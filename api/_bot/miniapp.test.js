@@ -11,7 +11,7 @@ vi.mock("./menu.js", () => ({
   FRANJAS: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"],
 }));
 
-const { validarInitData, semanaYCompra } = await import("./miniapp.js");
+const { validarInitData, semanaYCompra, marcarPorId, porPasillo } = await import("./miniapp.js");
 const casaMod = await import("./casa.js");
 const menuMod = await import("./menu.js");
 
@@ -107,5 +107,38 @@ describe("semanaYCompra", () => {
   it("sin menú activo no rompe", async () => {
     casaMod.cargarCasa.mockResolvedValue({ semana: null });
     expect(await semanaYCompra("casa")).toEqual({ semana: null, compra: [] });
+  });
+});
+
+describe("porPasillo", () => {
+  it("ordena como la app: pasillo de SHOPPING_AISLES y, dentro, por nombre", () => {
+    const items = [{ name: "Tomate" }, { name: "Pechuga de pollo" }, { name: "Cebolla" }, { name: "Aceite de oliva" }];
+    expect(porPasillo(items).map((it) => [it.name, it.pasillo])).toEqual([
+      ["Cebolla", "Verduras"],
+      ["Tomate", "Verduras"],
+      ["Pechuga de pollo", "Carne"],
+      ["Aceite de oliva", "Aceites y conservas"],
+    ]);
+  });
+});
+
+describe("marcarPorId", () => {
+  it("tacha sin dejar foto para «deshaz»", async () => {
+    let cambios;
+    casaMod.conCasa.mockImplementation(async (_id, cambiar) => {
+      cambios = await cambiar({ state: {}, semana: { shopping: { items: [{ id: "a", have: false }] } } });
+      return { ok: true };
+    });
+    expect(await marcarPorId("casa", "a", true)).toBe(true);
+    expect(cambios.sinDeshacer).toBe(true);
+    expect(cambios.semana.shopping.items[0].have).toBe(true);
+  });
+
+  it("un id que ya no está no escribe y dice que no", async () => {
+    casaMod.conCasa.mockImplementation(async (_id, cambiar) => {
+      const c = await cambiar({ state: {}, semana: { shopping: { items: [] } } });
+      return c ? { ok: true } : { ok: true, sinCambios: true };
+    });
+    expect(await marcarPorId("casa", "zz", true)).toBe(false);
   });
 });

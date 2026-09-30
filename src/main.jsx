@@ -4,6 +4,7 @@ import App from './App.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 import { InstallPwaBanner } from './components/InstallPwaBanner.jsx'
 import { PanelPlayground } from './dev/PanelPlayground.jsx'
+import MiniCargando from './mini/MiniCargando.jsx'
 import './index.css'
 
 // A tab left open across a deploy still holds the OLD index.html, which
@@ -41,7 +42,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
       {MINI ? (
-        <React.Suspense fallback={null}><MiniApp pestanaInicial={MINI} /></React.Suspense>
+        <React.Suspense fallback={<MiniCargando />}><MiniApp pestanaInicial={MINI} /></React.Suspense>
       ) : PANEL_SUELTO ? <PanelPlayground /> : <><App /><InstallPwaBanner /></>}
     </ErrorBoundary>
   </React.StrictMode>,

@@ -38,6 +38,8 @@ import {
 import { motor } from "../_bot/menu.js";
 import { sembrarCasa } from "../_bot/ajustes.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
+import { hoyISO } from "../_bot/casa.js";
+import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
 import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
@@ -128,6 +130,21 @@ async function atender(msg, base) {
   if (start?.[1] && /^(rc|ru|m)_/.test(start[1]) && !esGrupo) {
     const hecho = await recibirCompartido(chatId, start[1]);
     if (hecho) return hecho;
+  }
+  // Desde un botón de la app con algo pedido («cambia la cena del viernes»,
+  // src/lib/pedidoLola.js): se enlaza sin ceremonia si viene con código, y
+  // Lola recibe la frase como si la hubieran escrito.
+  const conPedido = !esGrupo && start?.[1] ? partirStart(start[1]) : null;
+  if (conPedido?.pedido) {
+    const frase = fraseDePedido(conPedido.pedido, hoyISO());
+    if (conPedido.codigo) {
+      const r = await enlazarDesdeAjustes(msg, chatId, false, conPedido.codigo, { callado: true });
+      if (r?.ocupado) return;
+    }
+    const [enlazado] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+    if (!enlazado) return bienvenida(chatId);
+    return enTurno(chatId, itemDe(msg.from, frase ?? COMANDOS.start),
+      atenderCola({ chatId, householdId: enlazado.household_id, esGrupo: false, base }));
   }
   if (start?.[1]) return enlazarDesdeAjustes(msg, chatId, esGrupo, start[1]);
 
@@ -705,15 +722,22 @@ async function abrirApp(msg, chatId, esGrupo, base) {
   });
 }
 
-async function enlazarDesdeAjustes(msg, chatId, esGrupo, token) {
+/**
+ * `callado`: viene de un botón de la app con algo pedido. Si el chat ya
+ * estaba enlazado, un código gastado da igual, y sobra el «conectado»: lo que
+ * toca es atender lo pedido. Devuelve `{ ocupado: true }` si el chat es de
+ * otra casa (y entonces no se atiende nada).
+ */
+async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = false } = {}) {
   const [fila] = await select("bot_link_tokens", `token=${eq(token)}`, "token,user_id,household_id,expires_at,used_at");
   if (!fila || fila.used_at || Date.parse(fila.expires_at) < Date.now()) {
+    if (callado) return null;
     return enviar(chatId, "Ese enlace ya no vale (caduca a los 15 minutos y sirve una sola vez). Pide otro desde la app.");
   }
 
   // Marcarlo usado ANTES de enlazar: dos pulsaciones seguidas no enlazan dos veces.
   const usados = await update("bot_link_tokens", `token=${eq(token)}&used_at=is.null`, { used_at: new Date().toISOString() });
-  if (!usados?.length) return enviar(chatId, "Ese enlace ya se ha usado. Pide otro desde la app.");
+  if (!usados?.length) return callado ? null : enviar(chatId, "Ese enlace ya se ha usado. Pide otro desde la app.");
 
   const r = await enlazarChat({
     chatId,
@@ -724,7 +748,11 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token) {
     nombre: nombreDe(msg.from),
     lang: msg.from?.language_code,
   });
-  if (r.ocupado) return enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
+  if (r.ocupado) {
+    await enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
+    return { ocupado: true };
+  }
+  if (callado) return { ok: true };
   return confirmarEnlace(chatId, fila.household_id, esGrupo);
 }
 

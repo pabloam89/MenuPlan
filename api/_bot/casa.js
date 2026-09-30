@@ -170,6 +170,8 @@ export async function deshacer(householdId) {
  * `cambiar` recibe la casa fresca y devuelve los cambios para `guardarCasa`
  * (o null para no escribir nada). Si el cambio es en otra semana del menú,
  * devuelve también `casa` apuntando a ella (enSemana), y se guarda ahí.
+ * `sinDeshacer: true` en los cambios: no deja foto para «deshaz» (un tachón
+ * de la compra no debe tapar el último cambio de Lola).
  */
 export async function conCasa(householdId, cambiar, intentos = 3) {
   for (let i = 0; i < intentos; i++) {
@@ -177,7 +179,7 @@ export async function conCasa(householdId, cambiar, intentos = 3) {
     if (!casa) return { ok: false, error: "sin casa en la nube" };
     const cambios = await cambiar(casa);
     if (!cambios) return { ok: true, casa, sinCambios: true };
-    const r = await guardarCasa(cambios.casa ?? casa, cambios);
+    const r = await guardarCasa(cambios.casa ?? casa, cambios, { sinDeshacer: !!cambios.sinDeshacer });
     if (!r.conflicto) return { ...r, casa };
   }
   return { ok: false, error: "conflicto persistente" };

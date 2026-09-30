@@ -20,6 +20,10 @@ import crypto from "node:crypto";
 import { select, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { prepararRecetas, grupos, DIAS, FRANJAS } from "./menu.js";
+// Los pasillos de la app (Shopping.jsx agrupa con itemsByAisle). Se importa
+// ingredientCategories.js y no shoppingListUtils.js: este último arrastra el
+// catálogo entero (JSON, Supabase, import.meta.env) y no carga en Node a pelo.
+import { SHOPPING_AISLES, guessShoppingAisle } from "../../src/lib/ingredientCategories.js";
 
 // Lo que dura una apertura: Telegram manda `auth_date` y un initData viejo no
 // debe servir de llave para siempre.
@@ -93,17 +97,29 @@ export async function semanaYCompra(householdId) {
     }),
   })).filter((d) => d.comidas.length);
 
-  const compra = (casa.semana.shopping?.items ?? [])
-    .filter((it) => !it.atHome && !it.fromPantry)
+  const compra = porPasillo((casa.semana.shopping?.items ?? []).filter((it) => !it.atHome && !it.fromPantry))
     .map((it) => ({
       id: it.id,
       nombre: it.name,
-      seccion: it.category || "Otros",
+      seccion: it.pasillo,
       cantidad: it.displayQty || (it.qty ? `${it.qty}${it.unit ? ` ${it.unit}` : ""}` : ""),
       comprado: !!it.have,
     }));
 
   return { semana: { desde: casa.semana.weekStart, hasta: casa.semana.weekEnd, dias }, compra };
+}
+
+/**
+ * Los productos en el orden de la lista de la app: por pasillo (el de
+ * `guessShoppingAisle`, en el orden de SHOPPING_AISLES) y, dentro, por nombre.
+ * Es lo que hace `itemsByAisle` (src/lib/shoppingListUtils.js), aplanado.
+ */
+export function porPasillo(items) {
+  const orden = new Map(SHOPPING_AISLES.map((a, i) => [a, i]));
+  return items
+    .map((it) => ({ ...it, pasillo: guessShoppingAisle(it.name ?? "") }))
+    .sort((a, b) => (orden.get(a.pasillo) ?? orden.size) - (orden.get(b.pasillo) ?? orden.size)
+      || (a.name ?? "").localeCompare(b.name ?? ""));
 }
 
 /** Tacha (o destacha) un producto de la compra por su id, como el bot. */
@@ -116,7 +132,8 @@ export async function marcarPorId(householdId, id, comprado) {
     it.have = !!comprado;
     hecho = true;
     const shopping = { ...(casa.semana.shopping ?? {}), items };
-    return { state: { ...casa.state, shopping }, semana: { shopping } };
+    // Sin foto para «deshaz»: si no, cada tachón taparía el último cambio de Lola.
+    return { state: { ...casa.state, shopping }, semana: { shopping }, sinDeshacer: true };
   });
   return r.ok && hecho;
 }
