@@ -70,7 +70,10 @@ export async function generarMenu(householdId, cual = "esta") {
   const { plan, recipes } = await m.generateMenuWithAI(weekData, { pantryIngredients, pantryMode, crossWeek });
   m.registerRecipes(recipes);
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
-  const shopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? [])] };
+  // Lo apuntado a mano y sin comprar («apunta leche y pan», con o sin menú)
+  // pasa a la lista nueva: generar un menú no puede borrarlo.
+  const aMano = (casa.semana?.shopping?.items ?? casa.state?.shopping?.items ?? []).filter((it) => it.manual && !it.have);
+  const shopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? []), ...aMano] };
 
   const week = { offset, startDayIdx, days, startISO, endISO, plan, shopping, schedule: weekSchedule };
   const menu = { id: m.createMenuId(), createdAt: Date.now(), isFavorite: false, isActive: true, activatedAt: null, varietyPref, weeks: { [startISO]: week } };

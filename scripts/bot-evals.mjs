@@ -62,7 +62,11 @@ const reales = await herramientas({ channel: "telegram", chatId: "0", householdI
 
 let bien = 0;
 let coste = 0;
+// Lo que tarda cada turno, para comparar modelos y esfuerzos (BOT_MODELO,
+// BOT_EFFORT): la velocidad es lo que nota quien espera en el chat.
+const tiempos = [];
 for (const caso of elegidos) {
+  const t0 = Date.now();
   const llamadas = [];
   const tools = reales.map((t) => ({
     ...t,
@@ -96,9 +100,13 @@ for (const caso of elegidos) {
   if (caso.sinTexto && new RegExp(caso.sinTexto, "mi").test(dicho)) fallos.push(`la respuesta casa con /${caso.sinTexto}/ y no debía`);
 
   if (!fallos.length) bien++;
-  console.log(`${fallos.length ? "✗" : "✓"} ${caso.nombre}  [${nombres.join(", ") || "sin herramientas"}]`);
+  const s = (Date.now() - t0) / 1000;
+  tiempos.push(s);
+  console.log(`${fallos.length ? "✗" : "✓"} ${caso.nombre}  [${nombres.join(", ") || "sin herramientas"}]  ${s.toFixed(1)} s`);
   for (const f of fallos) console.log(`    ${f}`);
   if (fallos.length && process.env.VERBOSO) console.log(`    respuesta: ${dicho.replace(/\n/g, " ⏎ ").slice(0, 400)}`);
 }
-console.log(`\n${bien}/${elegidos.length} bien · ~$${coste.toFixed(3)}`);
+const orden = [...tiempos].sort((a, b) => a - b);
+const mediana = orden.length ? orden[Math.floor(orden.length / 2)] : 0;
+console.log(`\n${bien}/${elegidos.length} bien · ~$${coste.toFixed(3)} · mediana ${mediana.toFixed(1)} s, máx ${(orden.at(-1) ?? 0).toFixed(1)} s · ${process.env.BOT_MODELO || "modelo por defecto"}, esfuerzo ${process.env.BOT_EFFORT || "por defecto"}`);
 process.exitCode = bien === elegidos.length ? 0 : 1;

@@ -273,14 +273,30 @@ export async function describirReceta(casa, consulta) {
 
 const activo = (it) => !it.have && !it.atHome && !it.fromPantry;
 
+/**
+ * La lista de la compra con la que se trabaja: la de la semana del menú o,
+ * si no hay menú, la de la casa (`state.shopping`, la que enseña la app).
+ * Sin esto, «apunta leche y pan» sin menú pedía generar una semana entera.
+ */
+function listaDe(casa) {
+  return casa.semana?.shopping ?? casa.state?.shopping ?? { items: [] };
+}
+
+/** Lo que devuelve un cambio de `conCasa` para guardar la lista donde vive. */
+function guardarLista(casa, shopping) {
+  return casa.semana
+    ? { state: { ...casa.state, shopping }, semana: { shopping } }
+    : { state: { ...casa.state, shopping } };
+}
+
 export function describirCompra(casa) {
-  const items = casa.semana?.shopping?.items ?? [];
-  if (!items.length) return "La lista de la compra está vacía (o no hay menú activo).";
+  const items = listaDe(casa).items ?? [];
+  if (!items.length) return "La lista de la compra está vacía.";
   const porCategoria = new Map();
   for (const it of items.filter(activo)) {
     const c = it.category || "Otros";
     if (!porCategoria.has(c)) porCategoria.set(c, []);
-    porCategoria.get(c).push(`• ${it.name}${it.displayQty ? ` — ${it.displayQty}` : it.qty ? ` — ${it.qty}${it.unit ? ` ${it.unit}` : ""}` : ""}`);
+    porCategoria.get(c).push(`• ${it.name}${it.displayQty ? `, ${it.displayQty}` : it.qty ? `, ${it.qty}${it.unit ? ` ${it.unit}` : ""}` : ""}`);
   }
   const hechas = items.filter((it) => it.have).length;
   const enCasa = items.filter((it) => it.atHome || it.fromPantry).length;
@@ -303,7 +319,7 @@ export async function marcarCompra(householdId, productos, estado) {
   const resultado = { hechos: [], noEncontrados: [], dudosos: [] };
   const r = await conCasa(householdId, (casa) => {
     Object.assign(resultado, { hechos: [], noEncontrados: [], dudosos: [] });
-    const items = (casa.semana?.shopping?.items ?? []).map((it) => ({ ...it }));
+    const items = (listaDe(casa).items ?? []).map((it) => ({ ...it }));
     if (!items.length) return null;
     for (const p of productos) {
       const encontrados = buscarItems(items, p);
@@ -315,8 +331,7 @@ export async function marcarCompra(householdId, productos, estado) {
       }
     }
     if (!resultado.hechos.length) return null;
-    const shopping = { ...(casa.semana.shopping ?? {}), items };
-    return { state: { ...casa.state, shopping }, semana: { shopping } };
+    return guardarLista(casa, { ...listaDe(casa), items });
   });
   if (!r.ok) return `No he podido guardar la lista: ${r.error}.`;
   return [
@@ -328,8 +343,7 @@ export async function marcarCompra(householdId, productos, estado) {
 
 export async function anadirCompra(householdId, productos) {
   const r = await conCasa(householdId, (casa) => {
-    if (!casa.semana) return null;
-    const items = [...(casa.semana.shopping?.items ?? [])];
+    const items = [...(listaDe(casa).items ?? [])];
     for (const p of productos) {
       const name = String(p).trim();
       if (!name) continue;
@@ -339,11 +353,9 @@ export async function anadirCompra(householdId, productos) {
         sources: [], have: false, atHome: false, manual: true, adapted: false,
       });
     }
-    const shopping = { ...(casa.semana.shopping ?? {}), items };
-    return { state: { ...casa.state, shopping }, semana: { shopping } };
+    return guardarLista(casa, { ...listaDe(casa), items });
   });
   if (!r.ok) return `No he podido guardar la lista: ${r.error}.`;
-  if (r.sinCambios) return "No hay menú activo, así que no hay lista de la compra a la que añadir.";
   return `Añadido a la compra: ${productos.join(", ")}.`;
 }
 
@@ -435,15 +447,18 @@ export async function proponerPlatos(householdId, { dia: diaPedido, semana, fran
   const cargada = await cargarCasa(householdId);
   if (!cargada) return "Esta casa todavía no tiene datos en la nube.";
   const rd = resolverDia(cargada, diaPedido, semana);
-  if (rd.error) return rd.error;
+  // Sin menú para ese día, ideas igualmente: recomendar una cena no puede
+  // obligar a generar la semana entera (pasó: «¿te genero el menú?» para una
+  // cena de hoy).
+  if (rd.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo, cual, n }, fotos);
   const { casa, dia, fecha } = rd;
   const h = huecoDe(casa, { dia, franja, grupo, cual });
-  if (h.error) return h.error;
+  if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo, cual, n }, fotos);
   const m = await prepararRecetas(casa);
   const res = m.pickCatalogReplacement(casa.state?.data ?? {}, casa.semana.plan, {
-    groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA ? POOL_PARA_APROXIMAR : n, pedido: !!parecidoA,
+    groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR, pedido: !!parecidoA,
   });
-  let lista = res?.candidatos ?? [];
+  let lista = parecidoA ? res?.candidatos ?? [] : variadas(res?.candidatos ?? [], n);
   if (parecidoA) {
     // Las más parecidas primero; si ninguna se parece, las de siempre.
     const ordenadas = [];
@@ -464,6 +479,88 @@ export async function proponerPlatos(householdId, { dia: diaPedido, semana, fran
     `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, ${h.g.label}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}`,
     ...lista.map((r, i) => `${i + 1}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`),
     "Nada está cambiado aún: para poner una, cambiar_plato con receta = su nombre.",
+  ].join("\n");
+}
+
+// Cuántas candidatas se piden para escoger `n` variadas.
+const POOL_PARA_VARIAR = 40;
+
+/**
+ * `n` recetas de `lista` que no se parezcan entre sí: primero distinta
+ * proteína y categoría, luego lo que quede en su orden. El motor devuelve las
+ * mejor puntuadas, y juntas suelen ser la misma idea tres veces (salieron tres
+ * platos de garbanzos para una cena). Pura, para el test.
+ */
+export function variadas(lista, n) {
+  const elegidas = [];
+  const usadas = new Set();
+  const claveDe = (r) => `${r.mainProtein ?? "?"}|${r.category ?? "?"}`;
+  for (const r of lista) {
+    if (elegidas.length >= n) break;
+    const prot = `p:${r.mainProtein ?? "?"}`;
+    const cat = `c:${r.category ?? "?"}`;
+    if (usadas.has(prot) || usadas.has(cat)) continue;
+    elegidas.push(r);
+    usadas.add(prot);
+    usadas.add(cat);
+  }
+  // Si no hay tanta variedad, al menos que no se repita la misma combinación.
+  const combos = new Set(elegidas.map(claveDe));
+  for (const r of lista) {
+    if (elegidas.length >= n) break;
+    if (elegidas.includes(r) || combos.has(claveDe(r))) continue;
+    elegidas.push(r);
+    combos.add(claveDe(r));
+  }
+  for (const r of lista) {
+    if (elegidas.length >= n) break;
+    if (!elegidas.includes(r)) elegidas.push(r);
+  }
+  return elegidas;
+}
+
+/**
+ * Ideas para una comida cuando no hay menú en ese día. Se monta en memoria un
+ * hueco vacío por grupo y se le piden candidatas al MISMO motor, así que valen
+ * las mismas reglas que con menú: alergias, el grupo del bebé con su etapa, el
+ * tope de tiempo del día y el tipo de plato de la franja. No se guarda nada.
+ *
+ * Sin `grupo`, una tanda por grupo que come (los mayores y el bebé no comen lo
+ * mismo): pie de foto «1. …» numerado seguido entre grupos, como la lista.
+ */
+export async function ideasSinMenu(casa, { diaPedido, franja, grupo, cual, n }, fotos) {
+  const m = await prepararRecetas(casa);
+  // `schedule` puede faltar en una casa recién creada desde el chat, y el motor
+  // lo lee sin mirar: sin horario apuntado, todos comen en casa.
+  const data = { schedule: {}, ...(casa.state?.data ?? {}) };
+  const conGente = (data.groups ?? []).filter((g) => m.membersOfGroup(g, data.members ?? []).length > 0);
+  const elegidos = grupo ? conGente.filter((g) => normal(g.label) === normal(grupo)) : conGente;
+  if (!elegidos.length) return grupo ? `No encuentro el grupo «${grupo}» en la casa.` : "La casa todavía no tiene a nadie apuntado.";
+  const dia = diaDe(diaPedido) ?? hoy();
+  const clave = `${dia}-${franja}`;
+  // Con primero y segundo, el hueco de la comida pide un segundo; sin él, plato único.
+  const conPrimero = franja === "Comida" && (cual === "primero" || data.mealStructure !== "1_plato");
+  const detalle = (r) => [r.time ? `${r.time} min` : "", r.difficulty ?? ""].filter(Boolean).join(", ");
+  const bloques = [];
+  let num = 0;
+  for (const g of elegidos) {
+    const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
+    const res = m.pickCatalogReplacement(data, plan, { groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: POOL_PARA_VARIAR });
+    const lista = variadas(res?.candidatos ?? [], n);
+    if (!lista.length) continue;
+    const quien = m.membersOfGroup(g, data.members ?? []).map((p) => p.name).filter(Boolean).join(", ");
+    bloques.push(`Para ${g.label}${quien ? ` (${quien})` : ""}:`);
+    for (const r of lista) {
+      num += 1;
+      apuntarFoto(m, fotos, r, `${num}. ${r.name}`);
+      bloques.push(`${num}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`);
+    }
+  }
+  if (!bloques.length) return "No hay recetas que encajen con vuestras alergias y gustos para esa comida.";
+  return [
+    `No hay menú para ese día, así que son ideas del recetario para la ${franja.toLowerCase()}, sin tocar nada:`,
+    ...bloques,
+    "Si eligen una: ver_receta para enseñarla. Para ponerla en un menú hace falta generarlo antes; ofrécelo solo si lo piden.",
   ].join("\n");
 }
 

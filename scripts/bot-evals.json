@@ -402,6 +402,50 @@
       }
     },
     {
+      "nombre": "recomendar cena sin menú: ideas, sin generar ni elegir por ellos",
+      "entrada": "Quiero que me recomiendes platos para cenar ligero esta noche Isa y yo, y a ver qué le ponemos a Cova",
+      "llama": [
+        "proponer_platos"
+      ],
+      "noLlama": [
+        "generar_menu",
+        "cambiar_plato"
+      ],
+      "sinTexto": "herramienta|el motor|todo listo|te lo genero"
+    },
+    {
+      "nombre": "el bebé ya come sólidos: lo apunta antes de proponer",
+      "historia": [
+        {
+          "role": "user",
+          "content": "¿Qué le pongo a Cova para cenar?"
+        },
+        {
+          "role": "assistant",
+          "content": "Para Cova te encajan:\n• <b>Puré de calabaza con pavo</b>, 18 min\n• <b>Puré de zanahoria con merluza</b>, 20 min\n\n¿Cuál te pongo?"
+        }
+      ],
+      "entrada": "Ya come sólidos, no purés",
+      "llama": [
+        "ajustar_cocina"
+      ],
+      "args": {
+        "ajustar_cocina": {
+          "etapaBebe": "solidos"
+        }
+      }
+    },
+    {
+      "nombre": "apuntar en la compra sin menú: sin pedir que genere",
+      "entrada": "apunta leche y pan",
+      "llama": [
+        "anadir_compra"
+      ],
+      "noLlama": [
+        "generar_menu"
+      ]
+    },
+    {
       "nombre": "ver recetas sin decir dónde: pregunta aquí o en la app",
       "entrada": "quiero ver recetas de sólidos para el bebé",
       "noLlama": [

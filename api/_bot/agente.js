@@ -34,7 +34,10 @@ import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
 
-const MODELO = "claude-sonnet-5";
+// Modelo y esfuerzo, configurables para medir velocidad contra calidad con
+// scripts/bot-evals.mjs (BOT_MODELO, BOT_EFFORT) sin tocar código.
+const MODELO = process.env.BOT_MODELO || "claude-sonnet-5";
+const EFFORT = ["low", "medium", "high"].includes(process.env.BOT_EFFORT) ? process.env.BOT_EFFORT : "medium";
 const TURNOS_DE_MEMORIA = 16;
 const DIAS_DE_MEMORIA = 3;
 
@@ -45,6 +48,15 @@ Reglas:
 - Ante cualquier pregunta sobre el menú, una receta, la compra o la familia, llama PRIMERO a la herramienta que corresponda, aunque creas saber la respuesta o ya lo hayas consultado antes en la charla: los datos cambian (otra persona puede haber tocado la app). Nunca digas que no tienes acceso a algo sin haberlo consultado.
 - El menú activo puede ser de una semana que ya pasó. Si te preguntan por él, enséñalo igualmente y avisa de las fechas.
 - Las recetas salen SIEMPRE del catálogo de HoMenu (tienen foto, ingredientes y encajan en la compra y las alergias), nunca de tu cosecha. Pero recomendar sí: si piden ideas, «¿qué me recomiendas?», «¿qué recetas me das?» o cambiar un plato sin decir por cuál, llama a proponer_platos y ofrece 3 opciones con un botón cada una, más [[Elige tú]] (4 botones en total). Al elegir una, cambiar_plato con receta = su nombre. Si dicen «cámbialo, me da igual» o pulsan «Elige tú», cambiar_plato sin receta. Nunca contestes que no puedes recomendar.
+- Aunque no haya menú para ese día, proponer_platos da ideas del recetario: úsalo igual. NO generes un menú para poder recomendar; generar es solo cuando piden un menú.
+
+Cómo llevar la conversación (esto manda sobre todo lo demás):
+- Una decisión por mensaje. Si preguntas algo, el mensaje termina en esa pregunta y esperas la respuesta. Nunca preguntes y hagas a la vez: nada de «¿te lo genero?» y generarlo en el mismo turno.
+- Si han pedido opciones, NUNCA elijas tú: enséñalas y espera a que elijan. Solo decides tú si lo dicen («elige tú», «me da igual»).
+- Si la petición es para varias personas que comen distinto (los mayores y el bebé), contesta todo en el mismo mensaje: un bloque de opciones para cada uno y UNA sola pregunta al final. No lo repartas en varios mensajes.
+- Si te cuentan algo que cambia lo que vas a proponer («ya come sólidos», «es alérgica al huevo»), apúntalo primero con su herramienta y propón después, ya con eso en cuenta.
+- Habla como una persona, no como un programa: nunca menciones herramientas, el motor, ids, «el sistema» ni cómo funcionas por dentro. Si algo no se puede, dilo con naturalidad y ofrece lo que sí.
+- Rápido: si necesitas varias consultas que no dependen entre sí, pide las herramientas a la vez en la misma vuelta, y no repitas una consulta que ya has hecho en este mismo turno.
 - Alergias e intolerancias: tómalas muy en serio. Nunca des por hecho que alguien puede comer algo que choque con ellas.
 - Cuando cambies algo, confírmalo en una frase diciendo qué ha cambiado. En un grupo, di también quién lo pidió.
 - Si te falta un dato para actuar (qué día, qué comida), pregúntalo en corto antes de hacer nada.
@@ -340,6 +352,7 @@ function herramientasDeAjustes(householdId, gustos) {
         tanda: { type: "string", enum: ["tanda", "cada_dia"] },
         trastos: { type: "array", items: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"] } },
         comidas: { type: "array", items: { type: "string", enum: ["Comida", "Cena"] }, description: "Qué comidas se planifican." },
+        etapaBebe: { type: "string", enum: ["cremas", "mixto", "solidos"], description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
       }),
       run: (args) => ajustarCocina(householdId, args),
     }),
@@ -611,7 +624,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null }
     model: MODELO,
     max_tokens: 4000,
     max_iterations: 8,
-    output_config: { effort: "medium" },
+    output_config: { effort: EFFORT },
     system: [
       { type: "text", text: SISTEMA, cache_control: { type: "ephemeral" } },
       // Fuera de la caché: cambia en cada mensaje.

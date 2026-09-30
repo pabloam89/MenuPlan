@@ -103,7 +103,13 @@ export async function ajustarGustos(householdId, ajustes, frase) {
 
 // ── Cocina: el `escribe` del registro del wizard ─────────────────────────────
 
-export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo, tanda, trastos, comidas }) {
+// Qué come el bebé de la casa: solo cremas, de todo o ya sólidos. Es
+// `data.etapaBebe`, la misma que elige la app (lib/babyStage.js) y la que usa
+// el motor para su menú; sin ella, «ya come sólidos» no cambiaba nada y le
+// seguían saliendo purés.
+const ETAPAS_BEBE = ["cremas", "mixto", "solidos"];
+
+export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo, tanda, trastos, comidas, etapaBebe }) {
   return conData(householdId, (data, m) => {
     const R = m.PREGUNTAS_POR_ID;
     let d = data;
@@ -118,6 +124,7 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
     if (esfuerzo) { d = R.esfuerzo.escribe(d, esfuerzo); hechos.push(`nivel: ${esfuerzo}`); }
     if (tiempo || tanda) { d = R.tiempo.escribe(d, { ...(tiempo ? { nivel: tiempo } : {}), ...(tanda ? { tanda } : {}) }); hechos.push(`tiempo: ${[tiempo, tanda].filter(Boolean).join(", ")}`); }
     if (Array.isArray(trastos)) { d = R.trastos.escribe(d, trastos); hechos.push(`trastos: ${trastos.join(", ") || "ninguno"}`); }
+    if (ETAPAS_BEBE.includes(etapaBebe)) { d = { ...d, etapaBebe }; hechos.push(`bebé: ${{ cremas: "cremas y purés", mixto: "de todo", solidos: "ya sólidos" }[etapaBebe]}`); }
     if (!hechos.length) return { texto: "No había nada que cambiar." };
     return { data: d, texto: `Guardado (${hechos.join("; ")}). Se aplicará al generar el próximo menú.` };
   });
