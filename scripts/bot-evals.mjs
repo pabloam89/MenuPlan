@@ -34,6 +34,18 @@ const RESPUESTAS = {
   ver_recordatorios: "No hay recordatorios pendientes en este chat.",
 };
 
+// Una «foto» de prueba: líneas de texto pintadas en un PNG (sharp), sin
+// guardar imágenes en el repo.
+async function fotoDe(lineas) {
+  const { default: sharp } = await import("sharp");
+  const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const alto = 60 + lineas.length * 34;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="${alto}"><rect width="100%" height="100%" fill="white"/>${
+    lineas.map((l, i) => `<text x="30" y="${50 + i * 34}" font-family="monospace" font-size="24" fill="black">${esc(l)}</text>`).join("")}</svg>`;
+  const png = await sharp(Buffer.from(svg)).png().toBuffer();
+  return { tipo: "image", mediaType: "image/png", base64: png.toString("base64") };
+}
+
 const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => {
   if (k === "_todo") return normal(JSON.stringify(args)).includes(normal(v));
@@ -59,7 +71,8 @@ for (const caso of elegidos) {
   let dicho = "";
   let fallos = [];
   try {
-    const r = await ejecutar({ historia: caso.historia ?? [], entrada: caso.entrada, tools });
+    const adjunto = caso.foto ? await fotoDe(caso.foto) : null;
+    const r = await ejecutar({ historia: caso.historia ?? [], entrada: caso.entrada, tools, adjunto });
     dicho = r.dicho;
     coste += (r.uso.input_tokens * 3 + r.uso.output_tokens * 15 + r.uso.cache_read_input_tokens * 0.3 + r.uso.cache_creation_input_tokens * 3.75) / 1e6;
   } catch (e) {
@@ -76,8 +89,8 @@ for (const caso of elegidos) {
   for (const [n, prohibido] of Object.entries(caso.noLlamaCon ?? {})) {
     if (llamadas.some((l) => l.nombre === n && contiene(l.args, prohibido))) fallos.push(`llamó a ${n} con ${JSON.stringify(prohibido)}`);
   }
-  if (caso.texto && !new RegExp(caso.texto, "m").test(dicho)) fallos.push(`la respuesta no casa con /${caso.texto}/`);
-  if (caso.sinTexto && new RegExp(caso.sinTexto, "m").test(dicho)) fallos.push(`la respuesta casa con /${caso.sinTexto}/ y no debía`);
+  if (caso.texto && !new RegExp(caso.texto, "mi").test(dicho)) fallos.push(`la respuesta no casa con /${caso.texto}/`);
+  if (caso.sinTexto && new RegExp(caso.sinTexto, "mi").test(dicho)) fallos.push(`la respuesta casa con /${caso.sinTexto}/ y no debía`);
 
   if (!fallos.length) bien++;
   console.log(`${fallos.length ? "✗" : "✓"} ${caso.nombre}  [${nombres.join(", ") || "sin herramientas"}]`);

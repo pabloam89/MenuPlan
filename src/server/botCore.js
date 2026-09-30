@@ -29,3 +29,9 @@ export { EU_ALLERGEN_IDS } from "../data/ingredientSchema.js";
 export { aplicarAlergias, FAMILIA } from "../lib/alergias.js";
 export { SLOT_VALUES, slotKey } from "../lib/planner.js";
 export { mapRow as filaDeDespensa, COLUMNAS_DESPENSA } from "../lib/pantry.js";
+
+// Fotos desde el chat: ticket o nevera → despensa; menú del cole → la casa.
+export { normalizePantryInput } from "../utils/normalizePantryInput.js";
+export { convertStockAmount } from "../lib/kitchenUnits.js";
+export { resolveIngredientId } from "../lib/ingredients.js";
+export { replaceSchoolWeeks, normalizeSchoolMenus, getSchoolDish, SCHOOL_DAYS, SCHOOL_COURSES } from "../lib/schoolMenu.js";

@@ -31,7 +31,7 @@ function lunesDe(cual) {
 }
 
 /** Guarda un `data` nuevo en la casa. `cambiar` recibe el data actual y el motor. */
-async function conData(householdId, cambiar) {
+export async function conData(householdId, cambiar) {
   let texto = "";
   let guardado = null;
   const r = await conCasa(householdId, async (casa) => {
@@ -49,7 +49,7 @@ async function conData(householdId, cambiar) {
   return texto;
 }
 
-const personaPorNombre = (data, nombre) => {
+export const personaPorNombre = (data, nombre) => {
   const q = normal(nombre);
   // Sin nombre no hay nadie: un startsWith("") casaría con el primero de la casa.
   if (!q) return null;

@@ -30,6 +30,8 @@ import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
 } from "./recordatorios.js";
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
+import { verDespensa, anadirDespensa } from "./despensa.js";
+import { guardarMenuCole, verMenuCole } from "./cole.js";
 
 const MODELO = "claude-sonnet-5";
 const TURNOS_DE_MEMORIA = 16;
@@ -52,7 +54,7 @@ Configurar la casa (esto sustituye al antiguo asistente de la app, y puede ir m�
 - Alergias e intolerancias: siempre repite lo que vas a guardar y pide confirmación antes de llamar a ajustar_alergias con confirmado=true.
 - No interrogues: nada es obligatorio salvo quién come, qué comidas se hacen y las alergias. Lo demás tiene un valor por defecto razonable. Si ves un hueco importante, sugiérelo una vez, sin agobiar.
 - Tras cambiar ajustes, ofrece generar el menú de nuevo para que se note. Generar un menú crea uno nuevo y lo deja activo (el anterior queda en el historial de la app): con generar_menu.
-- Las notas de voz te llegan ya transcritas (Whisper): puede haber errores de oído en nombres; si algo no cuadra, pregunta antes de cambiar nada. Las fotos (ticket, nevera, menú del cole) te llegan como imagen.
+- Las notas de voz te llegan ya transcritas (Whisper): puede haber errores de oído en nombres; si algo no cuadra, pregunta antes de cambiar nada. Las fotos y PDFs te llegan tal cual: un ticket o la nevera → propone la lista para la despensa; el menú del comedor → resúmelo y guárdalo con guardar_menu_cole. En ambos casos, enseña lo que has leído y guarda solo con su sí. Si la foto no se lee bien, dilo y pide otra.
 `;
 
 // Quién es, qué sabe hacer, modos, botones y formato: en un fichero aparte para
@@ -74,6 +76,57 @@ export async function herramientas(chat) {
     ...herramientasDeMenu(chat.householdId),
     ...herramientasDeAjustes(chat.householdId, gustos),
     ...herramientasDeRecordatorios(chat),
+    ...herramientasDeFotos(chat.householdId),
+  ];
+}
+
+// Despensa y menú del cole: se alimentan sobre todo de fotos (el ticket, la
+// nevera, el PDF del cole), que el modelo lee directamente.
+function herramientasDeFotos(householdId) {
+  const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
+  const platos = obj({ primero: { type: "string" }, segundo: { type: "string" }, postre: { type: "string" }, sinClase: { type: "boolean" } });
+  return [
+    betaTool({
+      name: "ver_despensa",
+      description: "Lo que hay apuntado en la despensa de la casa (nevera, despensa, congelador).",
+      inputSchema: obj({}),
+      run: () => verDespensa(householdId),
+    }),
+    betaTool({
+      name: "anadir_despensa",
+      description: "Apunta alimentos en la despensa (suma si ya estaban). Solo comida: nada de droguería ni bolsas. Nombres de alimento simples en español («pechuga de pollo», «tomate triturado»), sin marcas. Si viene de una foto, solo tras enseñar la lista y que digan que sí.",
+      inputSchema: obj({
+        items: {
+          type: "array", minItems: 1, maxItems: 40,
+          items: obj({
+            nombre: { type: "string" },
+            cantidad: { type: "number" },
+            unidad: { type: "string", enum: ["ud", "g", "kg", "ml", "l"] },
+            congelado: { type: "boolean" },
+          }, ["nombre"]),
+        },
+        origen: { type: "string", enum: ["foto", "texto"] },
+      }, ["items", "origen"]),
+      run: ({ items, origen }) => anadirDespensa(householdId, items, origen),
+    }),
+    betaTool({
+      name: "guardar_menu_cole",
+      description: "Guarda el menú del comedor escolar (leído de una foto o PDF, o dictado). Por días de lunes a viernes con primero, segundo y postre; sinClase=true si ese día no hay cole. Varias semanas si el cole rota, empezando por la que toca la semana que se planifica. para: «todos» o el nombre de un niño si es solo suyo. Solo tras enseñar el resumen y que digan que sí.",
+      inputSchema: obj({
+        semanas: {
+          type: "array", minItems: 1, maxItems: 6,
+          items: obj({ dias: obj({ lunes: platos, martes: platos, miercoles: platos, jueves: platos, viernes: platos }) }, ["dias"]),
+        },
+        para: { type: "string" },
+      }, ["semanas"]),
+      run: (args) => guardarMenuCole(householdId, args),
+    }),
+    betaTool({
+      name: "ver_menu_cole",
+      description: "El menú del cole guardado (lo que comen los niños en el comedor).",
+      inputSchema: obj({}),
+      run: () => verMenuCole(householdId),
+    }),
   ];
 }
 
@@ -322,20 +375,25 @@ async function memoria(channel, chatId) {
 /**
  * @returns {Promise<string>} el texto a mandar al chat (HTML de Telegram)
  */
-export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo }) {
+/**
+ * @param {{ tipo: "image" | "document", mediaType: string, base64: string }} [adjunto]
+ *   una foto o un PDF del mensaje: solo va en este turno; a la memoria pasa
+ *   como texto («[foto]»), que guardarla entera no merece la pena.
+ */
+export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, adjunto = null }) {
   const tope = await fueraDeLimite(householdId);
   if (tope) return tope;
 
   const historia = await memoria(channel, chatId);
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
   const tools = await herramientas({ channel, chatId: String(chatId), householdId, autor });
-  const { dicho, uso } = await ejecutar({ historia, entrada, tools });
+  const { dicho, uso } = await ejecutar({ historia, entrada, tools, adjunto });
 
   const llevados = await contarUso(householdId, uso).catch((e) => { console.error("[agente] uso", e?.message); return 0; });
   const respuesta = dicho + avisoDeLimite(householdId, llevados);
 
   await insert("bot_messages", [
-    { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor ?? null, content: { texto: entrada } },
+    { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor ?? null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
     { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta } },
   ]).catch((e) => console.error("[agente] memoria", e?.message));
   await segundaSemana(householdId).catch(() => {});
@@ -348,7 +406,10 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
  * Separado de responder() para que las pruebas (scripts/bot-evals.mjs) lo
  * muevan con herramientas de mentira, sin casa ni base de datos.
  */
-export async function ejecutar({ historia = [], entrada, tools }) {
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null }) {
+  const contenido = adjunto
+    ? [{ type: adjunto.tipo, source: { type: "base64", media_type: adjunto.mediaType, data: adjunto.base64 } }, { type: "text", text: entrada }]
+    : entrada;
   const runner = anthropic().beta.messages.toolRunner({
     model: MODELO,
     max_tokens: 4000,
@@ -360,7 +421,7 @@ export async function ejecutar({ historia = [], entrada, tools }) {
       { type: "text", text: `Ahora mismo en España: ${ahoraEnMadrid()}.` },
     ],
     tools,
-    messages: [...historia, { role: "user", content: entrada }],
+    messages: [...historia, { role: "user", content: contenido }],
   });
   // Cada vuelta del runner es una llamada al modelo: el coste es la suma.
   const uso = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };

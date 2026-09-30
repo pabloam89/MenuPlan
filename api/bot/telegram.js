@@ -28,6 +28,7 @@ import { enviar, llamar, escaparHtml } from "../_bot/telegram.js";
 import { responder } from "../_bot/agente.js";
 import { registrar, EMBUDO } from "../_bot/embudo.js";
 import { transcribir } from "../_bot/voz.js";
+import { adjuntoDe } from "../_bot/adjuntos.js";
 import { sembrarCasa } from "../_bot/ajustes.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
 import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
@@ -119,9 +120,28 @@ async function atender(msg, base) {
     });
   }
 
-  // Fotos y demás, aún no.
+  // Fotos y PDFs (un ticket, la nevera, el menú del cole): los lee el modelo.
+  // El pie de foto, si lo hay, es lo que se pide; si no, que lo deduzca.
+  if (!texto && (msg.photo || msg.document)) {
+    await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
+    const adjunto = await adjuntoDe(msg).catch((e) => ({ error: e?.message }));
+    if (!adjunto || adjunto.error) {
+      const porque = adjunto?.error === "tipo" ? "De ficheros solo entiendo fotos y PDFs."
+        : adjunto?.error === "grande" ? "Es demasiado grande: mándala como foto normal (no como archivo) o un PDF más ligero."
+          : "No he podido abrirla. ¿Me la mandas otra vez?";
+      return enviar(chatId, porque, { responderA: esGrupo ? msg.message_id : undefined });
+    }
+    const pie = (msg.caption ?? "").replace(/@\w+bot\b/gi, "").trim();
+    return conversar({
+      chatId, householdId: chat.household_id, from: msg.from, esGrupo, adjunto,
+      texto: pie || (adjunto.tipo === "document" ? "(te mando este PDF)" : "(te mando esta foto)"),
+      responderA: esGrupo ? msg.message_id : undefined,
+    });
+  }
+
+  // Stickers, ubicaciones y demás: nada que hacer.
   if (!texto) {
-    return enviar(chatId, "Todavía no entiendo fotos 🙈 Escríbemelo o mándame un audio y te ayudo.", {
+    return enviar(chatId, "Eso no lo sé leer 🙈 Escríbemelo, mándame un audio o una foto y te ayudo.", {
       responderA: esGrupo ? msg.message_id : undefined,
     });
   }
@@ -136,9 +156,9 @@ async function atender(msg, base) {
 }
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null }) {
+async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
-  const respuesta = await responder({ chatId, householdId, texto, autor: esGrupo ? nombreDe(from) : null, esGrupo });
+  const respuesta = await responder({ chatId, householdId, texto, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto });
   const { cuerpo, botones } = sacarBotones(respuesta);
   const eco = oido ? `🎙️ <i>«${escaparHtml(oido)}»</i>\n\n` : "";
   return enviar(chatId, eco + cuerpo, { responderA, botones });
