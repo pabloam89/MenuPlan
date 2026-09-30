@@ -24,7 +24,8 @@
 import crypto from "node:crypto";
 import { waitUntil } from "@vercel/functions";
 import { select, insert, update, eq } from "../_bot/db.js";
-import { enviar, enviarFotos, llamar, escaparHtml, nombreDelBot, TECLADO } from "../_bot/telegram.js";
+import { enviar, enviarFotos, editar, llamar, escaparHtml, nombreDelBot, TECLADO } from "../_bot/telegram.js";
+import { respuestaHoy, respuestaSemana, respuestaCompra, recordar } from "../_bot/rapido.js";
 import { responder, cortarCharla } from "../_bot/agente.js";
 import { registrar, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { transcribir } from "../_bot/voz.js";
@@ -206,6 +207,18 @@ async function atender(msg, base) {
   // traducen a lo que diría una persona y los atiende el agente, igual que si
   // se hubieran escrito. En grupo llegan como «/menu@bot».
   const comando = texto.match(/^\/(\w+)(?:@\w+)?\s*$/)?.[1]?.toLowerCase();
+  // Pura consulta del menú guardado: se contesta al momento, sin Lola. Si no
+  // hay nada claro que enseñar, sigue hacia ella (sabe explicar y ofrecer).
+  const directa = { "🍽️ Hoy": respuestaHoy, hoy: respuestaHoy, "📅 Semana": respuestaSemana, menu: respuestaSemana, "🛒 Compra": respuestaCompra, compra: respuestaCompra }[comando ?? texto];
+  if (directa) {
+    const r = await directa(chat.household_id).catch((e) => { console.error("[rapido]", e?.message); return null; });
+    if (r) {
+      const pregunta = COMANDOS[comando] ?? DEL_TECLADO[texto] ?? texto;
+      await entregar({ chatId, householdId: chat.household_id, esGrupo, base, from: msg.from, responderA: esGrupo ? msg.message_id : undefined, r });
+      await recordar({ chatId, householdId: chat.household_id, pregunta, respuesta: r.texto, autor: esGrupo ? nombreDe(msg.from) : null });
+      return;
+    }
+  }
   // En un grupo le hablan como «@bot …»: la mención no es parte del mensaje.
   const limpio = COMANDOS[comando] ?? DEL_TECLADO[texto] ?? (texto.replace(/@\w+bot\b/gi, "").trim() || texto);
   return enTurno(chatId, itemDe(msg.from, limpio, { responderA: esGrupo ? msg.message_id : undefined }),
@@ -239,20 +252,35 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
 async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
+  const eco = oido ? `🎙️ «${oido}»\n\n` : "";
+  const vivo = mensajeVivo(chatId, { responderA, eco });
   let r;
   try {
-    r = await responder({ chatId, householdId, texto, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto });
+    r = await responder({ chatId, householdId, texto, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir: vivo.escribir });
   } catch (err) {
     // Nunca un error técnico en el chat: una frase y, si cabe, reintentar con
     // un toque (el botón vuelve a mandar lo mismo).
     console.error("[bot/telegram] agente", err?.message);
     await registrar(FALLO, { userId: await duenoDe(householdId).catch(() => null), extra: { error: String(err?.message ?? err).slice(0, 300) } });
     const cabe = Buffer.byteLength(`t:${texto}`) <= 64;
-    return enviar(chatId, cabe ? "Uy, algo ha fallado. ¿Lo intento otra vez?" : "Uy, algo ha fallado. ¿Me lo escribes otra vez?", {
-      responderA,
-      ...(cabe ? { botones: [[{ texto: "🔁 Reintentar", dato: `t:${texto}` }]] } : {}),
-    });
+    const aviso = cabe ? "Uy, algo ha fallado. ¿Lo intento otra vez?" : "Uy, algo ha fallado. ¿Me lo escribes otra vez?";
+    const botones = cabe ? [[{ texto: "🔁 Reintentar", dato: `t:${texto}` }]] : undefined;
+    await vivo.parar();
+    if (vivo.id()) return editar(chatId, vivo.id(), aviso, { botones }).catch(() => enviar(chatId, aviso, { responderA, botones }));
+    return enviar(chatId, aviso, { responderA, botones });
   }
+  await vivo.parar();
+  return entregar({ chatId, householdId, esGrupo, base, from, responderA, oido, r, vivo });
+}
+
+/**
+ * La respuesta, con todo lo que la acompaña: fotos (un álbum, antes del
+ * texto), botones que puso Lola, «Deshacer», el de la pantalla de la app o la
+ * Mini App, los de compartir, y el teclado fijo en privado. Sirve igual para
+ * lo que contesta Lola que para las respuestas directas (api/_bot/rapido.js).
+ * Si el texto ya se estaba escribiendo en vivo, se termina ese mismo mensaje.
+ */
+async function entregar({ chatId, householdId, esGrupo, base, from, responderA, oido = null, r, vivo = null }) {
   const { cuerpo, botones: propios } = sacarBotones(r.texto);
   // Tras un cambio que se puede deshacer, el botón va solo: no hace falta
   // saber decir «deshaz».
@@ -277,13 +305,85 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
     if (enlaces) botones.push(...botonesCompartir(enlaces, r.compartir.tipo));
   }
   const eco = oido ? `🎙️ <i>«${escaparHtml(oido)}»</i>\n\n` : "";
-  // Las fotos, en UN álbum y justo antes del texto (así los botones quedan
-  // abajo). Si en el turno se han propuesto opciones (pie «1. …»), solo esas:
-  // son lo que se está eligiendo, y mezclarlas con las del menú confunde.
-  const propuestas = (r.fotos ?? []).filter((f) => /^\d+\. /.test(f.pie ?? ""));
-  const fotos = propuestas.length ? propuestas : (r.fotos ?? []);
+  if (vivo?.id()) {
+    // Ya estaba en pantalla escribiéndose: se completa ahí, con su formato y
+    // sus botones. (Las fotos, si las había, salieron antes que el texto.)
+    return editar(chatId, vivo.id(), eco + cuerpo, { botones: botones.length ? botones : undefined });
+  }
+  const fotos = fotosDelTurno(r.fotos);
   if (fotos.length) await enviarFotos(chatId, fotos, { responderA });
   return enviar(chatId, eco + cuerpo, { responderA, botones: botones.length ? botones : undefined, ...(esGrupo ? {} : { teclado: TECLADO }) });
+}
+
+// Las fotos, en UN álbum y justo antes del texto (así los botones quedan
+// abajo). Si en el turno se han propuesto opciones (pie «1. …»), solo esas:
+// son lo que se está eligiendo, y mezclarlas con las del menú confunde.
+function fotosDelTurno(todas = []) {
+  const propuestas = todas.filter((f) => /^\d+\. /.test(f.pie ?? ""));
+  return propuestas.length ? propuestas : todas;
+}
+
+/**
+ * El mensaje que se va escribiendo mientras Lola piensa: en cuanto hay una
+ * frase, sale; luego se reescribe como mucho cada ~1,2 s (Telegram no deja
+ * editar mucho más rápido). A medio escribir va sin formato (las etiquetas
+ * estarían sin cerrar) y sin los [[botones]]; el mensaje final, con todo, lo
+ * pone entregar() sobre este mismo.
+ *
+ * Si Lola llama a una herramienta después de haber empezado a escribir, lo
+ * siguiente que escriba sustituye a lo anterior en el mismo mensaje.
+ */
+const CADA_MS = 1200;
+const MINIMO = 40;
+export function mensajeVivo(chatId, { responderA, eco = "" }) {
+  let id = null;
+  let ultimo = "";
+  let ultimaVez = 0;
+  let pendiente = null;
+  let cadena = Promise.resolve();
+  let parado = false;
+  let fotosEnviadas = false;
+
+  const limpiar = (t) => String(t ?? "")
+    .replace(/\[\[[^\]\n]*\]\]/g, "")
+    .replace(/\[\[[^\]\n]*$/, "")
+    .replace(/<[^>]*>?/g, "")
+    .trim();
+
+  const volcar = (texto, fotos) => {
+    cadena = cadena.then(async () => {
+      if (parado || texto === ultimo) return;
+      if (!id) {
+        const fs = fotosDelTurno(fotos ?? []);
+        if (fs.length && !fotosEnviadas) { fotosEnviadas = true; await enviarFotos(chatId, fs, { responderA }); }
+        const m = await enviar(chatId, `${eco}${texto} …`, { responderA, plano: true }).catch(() => null);
+        id = m?.message_id ?? null;
+      } else {
+        await editar(chatId, id, `${eco}${texto} …`, { plano: true }).catch(() => {});
+      }
+      ultimo = texto;
+      ultimaVez = Date.now();
+    });
+    return cadena;
+  };
+
+  return {
+    id: () => id,
+    /** @param {string} parcial  lo escrito hasta ahora en esta vuelta del modelo */
+    escribir(parcial, { fotos } = {}) {
+      if (parado) return;
+      const texto = limpiar(parcial);
+      if (texto.length < MINIMO) return;
+      clearTimeout(pendiente);
+      const espera = Math.max(0, CADA_MS - (Date.now() - ultimaVez));
+      pendiente = setTimeout(() => volcar(texto, fotos), id ? espera : 0);
+    },
+    async parar() {
+      parado = true;
+      clearTimeout(pendiente);
+      await cadena;
+    },
+  };
 }
 
 /**

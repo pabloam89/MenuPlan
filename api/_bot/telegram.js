@@ -88,6 +88,35 @@ function enviarUno(chatId, texto, { botones, responderA, plano, teclado } = {}) 
 }
 
 /**
+ * Reescribe un mensaje ya enviado (el que se va escribiendo mientras Lola
+ * piensa). Con `plano`, sin HTML: a medio escribir las etiquetas pueden estar
+ * sin cerrar. Si el texto final no cabe o el HTML falla, lo que no entra sale
+ * en mensajes nuevos: nunca se pierde la respuesta.
+ */
+export async function editar(chatId, messageId, texto, { botones, plano = false } = {}) {
+  const trozos = partir(String(texto ?? ""), 3900);
+  const markup = botones
+    ? { reply_markup: { inline_keyboard: botones.map((fila) => fila.map((b) => (b.webApp ? { text: b.texto, web_app: { url: b.webApp } }
+      : b.url ? { text: b.texto, url: b.url } : { text: b.texto, callback_data: b.dato }))) } }
+    : {};
+  const uno = (t, p, conMarkup) => llamar("editMessageText", {
+    chat_id: chatId, message_id: messageId, text: t,
+    ...(p ? {} : { parse_mode: "HTML" }),
+    link_preview_options: { is_disabled: true },
+    ...(conMarkup ? markup : {}),
+  });
+  const soloUno = trozos.length === 1;
+  try {
+    await uno(trozos[0], plano, soloUno);
+  } catch (err) {
+    if (/message is not modified/i.test(err.message)) { /* ya estaba así */ }
+    else if (/parse entities|can't find end/i.test(err.message)) await uno(trozos[0].replace(/<[^>]+>/g, ""), true, soloUno);
+    else throw err;
+  }
+  if (!soloUno) await enviar(chatId, trozos.slice(1).join("\n\n"), { botones });
+}
+
+/**
  * Fotos de platos (URLs públicas): una sola con sendPhoto, varias en álbum
  * (sendMediaGroup, de 2 a 10). Si Telegram no puede bajar alguna, no pasa
  * nada: el texto ya ha salido.

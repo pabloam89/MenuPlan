@@ -612,7 +612,7 @@ async function memoria(channel, chatId) {
  *   el texto para el chat (HTML de Telegram), las fotos de los platos que se
  *   han enseñado y si se cambió algo que se puede deshacer.
  */
-export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, adjunto = null }) {
+export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, adjunto = null, alEscribir = null }) {
   const tope = await fueraDeLimite(householdId);
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
 
@@ -622,7 +622,10 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
   const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, fotos: [], escrito: false, ir: null, compartir: null };
   const tools = await herramientas(chat);
-  const { dicho, uso } = await ejecutar({ historia, entrada, tools, adjunto });
+  const { dicho, uso } = await ejecutar({
+    historia, entrada, tools, adjunto,
+    alEscribir: alEscribir ? (parcial) => alEscribir(parcial, { fotos: chat.fotos }) : null,
+  });
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
     await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200) } });
   }
@@ -644,7 +647,13 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
  * Separado de responder() para que las pruebas (scripts/bot-evals.mjs) lo
  * muevan con herramientas de mentira, sin casa ni base de datos.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null }) {
+/**
+ * @param {(parcial: string) => void} [alEscribir]  si se pasa, la respuesta
+ *   llega en vivo: se llama con lo escrito hasta ahora en cada vuelta del
+ *   modelo (desde cero en cada vuelta), para ir enseñándolo mientras piensa.
+ *   El resultado final no cambia.
+ */
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null }) {
   const contenido = adjunto
     ? [{ type: adjunto.tipo, source: { type: "base64", media_type: adjunto.mediaType, data: adjunto.base64 } }, { type: "text", text: entrada }]
     : entrada;
@@ -660,11 +669,23 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null }
     ],
     tools,
     messages: [...historia, { role: "user", content: contenido }],
+    ...(alEscribir ? { stream: true } : {}),
   });
   // Cada vuelta del runner es una llamada al modelo: el coste es la suma.
   const uso = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
   let final = null;
-  for await (const mensaje of runner) {
+  for await (const vuelta of runner) {
+    let mensaje = vuelta;
+    if (alEscribir) {
+      // En vivo: la vuelta es un stream; se va pasando lo escrito y al acabar
+      // se toma el mensaje entero, igual que sin stream.
+      let escrito = "";
+      vuelta.on("text", (trozo) => {
+        escrito += trozo;
+        try { alEscribir(escrito); } catch { /* enseñar a medias nunca rompe la respuesta */ }
+      });
+      mensaje = await vuelta.finalMessage();
+    }
     final = mensaje;
     for (const k of Object.keys(uso)) uso[k] += mensaje.usage?.[k] ?? 0;
   }
