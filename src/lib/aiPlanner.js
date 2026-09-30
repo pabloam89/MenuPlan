@@ -8,6 +8,7 @@ import { resolverMenu, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./sol
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { HOLGURA_TOPES, presupuestoDeTopes, repartoAFreqs, freqsAReparto } from "./reparto.js";
 import { stageForAge } from "./stages.js";
+import { racionesDe } from "./raciones.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
@@ -1889,10 +1890,15 @@ function masaDeRacion(r) {
   return masa;
 }
 
-export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []) {
+// `raciones`: lo que comen de verdad esos `eaters`, en raciones de adulto
+// (src/lib/raciones.js). Las cantidades siguen a las raciones; `servings`
+// sigue siendo cuántas personas son. Sin peso ni altura de nadie, raciones =
+// eaters y nada cambia.
+export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = [], raciones = null) {
   const r = applySeasonalFruit(catalogRecipe);
   const servings = Math.max(1, eaters);
-  const factor = servings / r.baseServings;
+  const racionesReales = raciones > 0 ? raciones : servings;
+  const factor = racionesReales / r.baseServings;
 
   const iconType = ICON_TYPE_MAP[r.mainProtein] ?? CATEGORY_ICON[r.category] ?? "chef";
 
@@ -1953,6 +1959,7 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
     kidFriendly: r.kidFriendly,
     allergens: r.allergens,
     servings,
+    raciones: racionesReales,
     macros: {
       protein: r.protein_g,
       carbs: r.carbs_g,
@@ -2325,6 +2332,15 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
 
   const guarnicionById = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
   const salsaById = Object.fromEntries(salsasData.map((s) => [s.id, s]));
+  // Raciones de un hueco: las de quienes comen en él (en casa o con tupper,
+  // el mismo criterio que `eaters`), cada uno con su factor.
+  const racionesEn = (miembros, day, meal) => racionesDe(
+    miembros.filter((m) => {
+      const status = data.schedule?.[slotKey(m.id, day, meal)] ?? "casa";
+      return status === "casa" || status === "tupper";
+    }),
+    resolveMemberAge,
+  );
   // User-created recipes aren't in the static bundled catalog, so the final
   // hydration step (recipeId -> full frontend recipe) needs its own lookup.
   const userRecipeById = Object.fromEntries((data.userRecipes ?? []).map((r) => [r.id, r]));
@@ -2341,6 +2357,10 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     const modeBySlot = Object.fromEntries(
       slotsContext.map((s) => [s.slotId, s.mode]),
     );
+    const miembrosDelGrupo = membersOfGroup(group, data.members);
+    const racionesBySlot = Object.fromEntries(
+      slotsContext.map((s) => [s.slotId, racionesEn(miembrosDelGrupo, s.day, s.mealType === "cena" ? "Cena" : "Comida")]),
+    );
 
     // Group assignments by day+meal
     const byDayMeal = {};
@@ -2349,11 +2369,12 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       if (!catalogRecipe) continue;
 
       const eaters = eatersBySlot[slotId] ?? 2;
+      const raciones = racionesBySlot[slotId] || eaters;
       const frontendId = prefix + recipeId;
 
       if (!seenRecipeIds.has(frontendId)) {
         seenRecipeIds.add(frontendId);
-        const fr = catalogToFrontendRecipe(catalogRecipe, eaters, restrictions);
+        const fr = catalogToFrontendRecipe(catalogRecipe, eaters, restrictions, raciones);
         if (prefix) fr.id = frontendId;
         // Keep the catalog id so the UI can resolve the dish photo even when
         // fr.id carries a group prefix (e.g. "groupId__carnes_007").
@@ -2362,13 +2383,13 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         // Merge garnish into the recipe: name, time, macros, ingredients
         if (garnishId) {
           const garnish = guarnicionById[garnishId];
-          if (garnish) applyGarnishToRecipe(fr, garnish, eaters, restrictions);
+          if (garnish) applyGarnishToRecipe(fr, garnish, raciones, restrictions);
         }
         // Same for sauce — independent of garnish, applied after so the name
         // suffix reads "... con Guarnición y Salsa" when both are present.
         if (sauceId) {
           const sauce = salsaById[sauceId];
-          if (sauce) applySauceToRecipe(fr, sauce, eaters, restrictions);
+          if (sauce) applySauceToRecipe(fr, sauce, raciones, restrictions);
         }
 
         allRecipes.push(fr);
@@ -2392,6 +2413,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
           recipeId: null,
           firstRecipeId: null,
           eaters: eaters,
+          raciones,
           mode: modeBySlot[slotId] ?? "casa",
           warnings: [],
         };
@@ -2449,7 +2471,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       const kidsMembers = membersOfGroup(kids, data.members);
       // Clona un plato del menú de los adultos al espacio de nombres de los
       // niños (prefijo de grupo si hay varios menús), arrastrando su guarnición.
-      const cloneForKids = (adultFrontendId, eaters) => {
+      const cloneForKids = (adultFrontendId, eaters, raciones) => {
         if (!adultFrontendId) return null;
         const baseId = adultFrontendId.includes("__")
           ? adultFrontendId.split("__").slice(1).join("__")
@@ -2459,13 +2481,13 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         const kidsFrontendId = multi ? `${kids.id}__${baseId}` : baseId;
         if (!seenRecipeIds.has(kidsFrontendId)) {
           seenRecipeIds.add(kidsFrontendId);
-          const fr = catalogToFrontendRecipe(catalogRecipe, eaters, []);
+          const fr = catalogToFrontendRecipe(catalogRecipe, eaters, [], raciones);
           if (multi) fr.id = kidsFrontendId;
           fr.baseRecipeId = baseId;
           const adultFr = allRecipes.find((r) => r.id === adultFrontendId);
           if (adultFr?.garnishId) {
             const garnish = guarnicionById[adultFr.garnishId];
-            if (garnish) applyGarnishToRecipe(fr, garnish, eaters, []);
+            if (garnish) applyGarnishToRecipe(fr, garnish, raciones, []);
           }
           allRecipes.push(fr);
         }
@@ -2487,14 +2509,16 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
           }).length;
           if (eaters <= 0) continue;
 
-          const mainId = cloneForKids(src.recipeId, eaters);
-          const firstId = cloneForKids(src.firstRecipeId, eaters);
+          const raciones = racionesEn(kidsMembers, day, meal) || eaters;
+          const mainId = cloneForKids(src.recipeId, eaters, raciones);
+          const firstId = cloneForKids(src.firstRecipeId, eaters, raciones);
           if (!mainId && !firstId) continue;
 
           plan[kids.id][`${day}-${meal}`] = {
             recipeId: mainId ?? firstId,
             firstRecipeId: mainId ? firstId : null,
             eaters,
+            raciones,
             mode: mode.mode,
             warnings: [],
             fromAdultLunch: action === "adultLunch",

@@ -97,7 +97,8 @@ export function describirCasa(casa) {
   const d = casa.state?.data ?? {};
   const miembros = (d.members ?? []).map((p) => {
     const alergias = [...(p.allergies ?? []), ...(p.intolerances ?? [])].filter(Boolean);
-    return `• ${p.name ?? "(sin nombre)"}${p.age != null ? `, ${p.age} años` : ""}${alergias.length ? ` — alergias/intolerancias: ${alergias.join(", ")}` : ""}${(p.dislikes ?? []).length ? ` — no le gusta: ${p.dislikes.join(", ")}` : ""}`;
+    const cuerpo = p.pesoKg && p.alturaCm ? `, ${p.pesoKg} kg y ${p.alturaCm} cm` : "";
+    return `• ${p.name ?? "(sin nombre)"}${p.age != null ? `, ${p.age} años` : ""}${cuerpo}${alergias.length ? ` — alergias/intolerancias: ${alergias.join(", ")}` : ""}${(p.dislikes ?? []).length ? ` — no le gusta: ${p.dislikes.join(", ")}` : ""}`;
   });
   return [
     `Miembros:\n${miembros.join("\n") || "(ninguno todavía)"}`,

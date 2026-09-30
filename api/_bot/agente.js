@@ -24,7 +24,7 @@ import { generarMenu } from "./generar.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
-  anadirComensal, quitarComensal, ajustarAlergias, dominiosDeGustos,
+  anadirComensal, quitarComensal, ajustarAlergias, dominiosDeGustos, ajustarPersona,
 } from "./ajustes.js";
 import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
@@ -227,6 +227,17 @@ function herramientasDeAjustes(householdId, gustos) {
       description: "Añade a alguien que vive y come en casa (no un invitado puntual).",
       inputSchema: obj({ nombre: { type: "string" }, edad: { type: "integer", minimum: 0, maximum: 120 } }, ["nombre"]),
       run: (args) => anadirComensal(householdId, args),
+    }),
+    betaTool({
+      name: "ajustar_persona",
+      description: "Peso (kg) y altura (cm) de una persona de la casa, opcionales: con los dos, el motor ajusta su ración (cantidades de la compra y de las recetas). borrar=true los quita.",
+      inputSchema: obj({
+        nombre: { type: "string" },
+        pesoKg: { type: "number" },
+        alturaCm: { type: "number" },
+        borrar: { type: "boolean" },
+      }, ["nombre"]),
+      run: (args) => ajustarPersona(householdId, args),
     }),
     betaTool({
       name: "quitar_comensal",

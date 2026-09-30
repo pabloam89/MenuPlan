@@ -267,6 +267,31 @@
           "_todo": "lentejas"
         }
       }
+    },
+    {
+      "nombre": "peso y altura: los guarda sin sermones",
+      "entrada": "Pablo pesa 90 kilos y mide 1,85",
+      "llama": [
+        "ajustar_persona"
+      ],
+      "args": {
+        "ajustar_persona": {
+          "nombre": "pablo"
+        }
+      },
+      "sinTexto": "IMC|sobrepeso|obesidad|dieta"
+    },
+    {
+      "nombre": "peso: convierte metros a centímetros",
+      "entrada": "Ana mide 1,65 y pesa 60",
+      "llama": [
+        "ajustar_persona"
+      ],
+      "args": {
+        "ajustar_persona": {
+          "_todo": "165"
+        }
+      }
     }
   ]
 }

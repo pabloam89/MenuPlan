@@ -195,6 +195,34 @@ export async function anadirComensal(householdId, { nombre, edad }) {
   });
 }
 
+/**
+ * Peso y altura de una persona (opcionales): con los dos, su ración deja de
+ * ser «1 adulto» y sale de su gasto estimado (src/lib/raciones.js). Se
+ * guardan en el miembro como pesoKg y alturaCm; la app los conserva.
+ */
+export async function ajustarPersona(householdId, { nombre, pesoKg, alturaCm, borrar = false }) {
+  return conData(householdId, (data, m) => {
+    const x = personaPorNombre(data, nombre);
+    if (!x) return { texto: `No encuentro a ${nombre} en la casa.` };
+    const peso = Number(pesoKg);
+    const altura = Number(alturaCm);
+    if (!borrar && pesoKg != null && !(peso >= 2 && peso <= 300)) return { texto: "Ese peso no me cuadra: dímelo en kilos." };
+    if (!borrar && alturaCm != null && !(altura >= 40 && altura <= 230)) return { texto: "Esa altura no me cuadra: dímela en centímetros." };
+    const cambiado = borrar
+      ? { ...x, pesoKg: null, alturaCm: null }
+      : { ...x, ...(pesoKg != null ? { pesoKg: peso } : {}), ...(alturaCm != null ? { alturaCm: altura } : {}) };
+    const members = (data.members ?? []).map((p) => (p.id === x.id ? cambiado : p));
+    const factor = m.factorRacion(cambiado, m.resolveMemberAge(cambiado));
+    const racion = cambiado.pesoKg && cambiado.alturaCm
+      ? ` Su ración: ${String(factor).replace(".", ",")} de adulto de referencia.`
+      : borrar ? "" : " Con peso y altura calculo su ración; falta uno de los dos.";
+    return {
+      data: { ...data, members },
+      texto: borrar ? `Borrados el peso y la altura de ${x.name}: vuelve a contar como una ración normal.` : `Anotado para ${x.name}.${racion} Se nota en el próximo menú que generes.`,
+    };
+  });
+}
+
 export async function quitarComensal(householdId, { nombre }) {
   return conData(householdId, (data, m) => {
     const x = personaPorNombre(data, nombre);

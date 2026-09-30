@@ -34,4 +34,6 @@ export { mapRow as filaDeDespensa, COLUMNAS_DESPENSA } from "../lib/pantry.js";
 export { normalizePantryInput } from "../utils/normalizePantryInput.js";
 export { convertStockAmount } from "../lib/kitchenUnits.js";
 export { resolveIngredientId } from "../lib/ingredients.js";
+export { factorRacion } from "../lib/raciones.js";
+export { resolveMemberAge } from "../lib/groups.js";
 export { replaceSchoolWeeks, normalizeSchoolMenus, getSchoolDish, SCHOOL_DAYS, SCHOOL_COURSES } from "../lib/schoolMenu.js";
