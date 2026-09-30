@@ -400,6 +400,39 @@
           "cuando": "T18:00"
         }
       }
+    },
+    {
+      "nombre": "platos pedidos por su nombre: se ponen (aproximados), nunca «no lo tengo»",
+      "entrada": "Vale hazme el menú para la semana que viene. Borra todo lo que hay y empieza de cero. Un día quiero salmon al horno con ensalada de mango y aguacate, otro pollo al horno con patatas, de cenas fáciles tipo tortillas francesas y el resto lo que sea",
+      "llama": [
+        "generar_menu",
+        "cambiar_plato"
+      ],
+      "args": {
+        "generar_menu": {
+          "semana": "siguiente"
+        },
+        "cambiar_plato": {
+          "semana": "siguiente"
+        }
+      },
+      "sinTexto": "no (tiene|tengo|existe|está disponible)|no quiero meterte"
+    },
+    {
+      "nombre": "cena de hoy: el día es hoy, no otro",
+      "entrada": "quiero cambiar la cena de hoy, algo rápido",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "dia": "hoy",
+          "comida": "cena"
+        }
+      },
+      "noLlama": [
+        "generar_menu"
+      ]
     }
   ]
 }

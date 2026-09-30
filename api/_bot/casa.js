@@ -14,14 +14,34 @@
 
 import { select, insert, update, rpc, eq } from "./db.js";
 
-const hoyISO = () => new Date().toISOString().slice(0, 10);
+// En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
+export const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+
+const aSemana = (s) => ({
+  menuId: s.menu_id, weekStart: s.week_start, weekEnd: s.week_end, startDayIdx: s.start_day_idx ?? 0,
+  activeDays: s.active_days ?? null, plan: s.plan, shopping: s.shopping,
+});
+
+/**
+ * La casa con `semana` apuntando a otra semana del menú activo (la de
+ * `weekStart`), o null si el menú no la tiene. Las herramientas que cambian un
+ * hueco lo usan para escribir en la semana de la FECHA pedida, no en la viva.
+ */
+export function enSemana(casa, weekStart) {
+  const s = (casa?.semanas ?? []).find((w) => w.weekStart === weekStart);
+  return s ? { ...casa, semana: s } : null;
+}
 
 /**
  * @returns {Promise<null | {
  *   householdId: string, botRev: number, state: any,
  *   menu: null | { id: string, userId: string },
  *   semana: null | { menuId: string, weekStart: string, weekEnd: string, plan: any, shopping: any },
+ *   semanas: object[], semanaViva: string | null,
  * }>}
+ *   `semana` es la que contiene hoy (si no hay, la primera que no ha pasado, y
+ *   si no, la primera), y `semanaViva` su weekStart: la que la app pinta y
+ *   refleja en `state.menuPlan`. `semanas`, todas las del menú activo.
  */
 export async function cargarCasa(householdId) {
   const [fila] = await select("household_state", `household_id=${eq(householdId)}`, "state,bot_rev,updated_at");
@@ -33,18 +53,20 @@ export async function cargarCasa(householdId) {
     "id,user_id",
   );
 
-  let semana = null;
+  let semanas = [];
   if (menu) {
-    const semanas = await select(
+    const filas = await select(
       "user_menu_weeks",
-      `household_id=${eq(householdId)}&menu_id=${eq(menu.id)}&order=week_offset.asc`,
+      `household_id=${eq(householdId)}&menu_id=${eq(menu.id)}&order=week_start.asc`,
       "menu_id,week_start,week_end,week_offset,start_day_idx,active_days,plan,shopping",
     );
-    // La semana que contiene hoy; si no hay, la primera (igual que la app).
-    const hoy = hoyISO();
-    const s = semanas.find((w) => w.week_start <= hoy && hoy <= w.week_end) ?? semanas[0];
-    if (s) semana = { menuId: s.menu_id, weekStart: s.week_start, weekEnd: s.week_end, startDayIdx: s.start_day_idx ?? 0, activeDays: s.active_days ?? null, plan: s.plan, shopping: s.shopping };
+    semanas = filas.map(aSemana);
   }
+  const hoy = hoyISO();
+  const semana = semanas.find((w) => w.weekStart <= hoy && hoy <= w.weekEnd)
+    ?? semanas.find((w) => w.weekEnd >= hoy)
+    ?? semanas[0]
+    ?? null;
 
   return {
     householdId,
@@ -53,6 +75,8 @@ export async function cargarCasa(householdId) {
     state: fila.state ?? {},
     menu: menu ? { id: menu.id, userId: menu.user_id } : null,
     semana,
+    semanas,
+    semanaViva: semana?.weekStart ?? null,
   };
 }
 
@@ -127,8 +151,10 @@ export async function deshacer(householdId) {
     await update("user_menus", `household_id=${eq(householdId)}&is_active=eq.true`, { is_active: false });
     await update("user_menus", `household_id=${eq(householdId)}&id=${eq(antes.menuActivo)}`, { is_active: true });
   }
-  const mismaSemana = antes.semana && casa.semana && antes.semana.menuId === casa.semana.menuId && antes.semana.weekStart === casa.semana.weekStart;
-  const r = await guardarCasa(casa, {
+  // La semana que se tocó, que no tiene por qué ser la de hoy.
+  const tocada = antes.semana ? enSemana(casa, antes.semana.weekStart) : null;
+  const mismaSemana = tocada && antes.semana.menuId === tocada.semana.menuId;
+  const r = await guardarCasa(mismaSemana ? tocada : casa, {
     state: antes.state,
     semana: mismaSemana ? { plan: antes.semana.plan, shopping: antes.semana.shopping } : null,
   }, { sinDeshacer: true });
@@ -142,7 +168,8 @@ export async function deshacer(householdId) {
 /**
  * Leer → cambiar → guardar, reintentando si otra escritura del bot se cruza.
  * `cambiar` recibe la casa fresca y devuelve los cambios para `guardarCasa`
- * (o null para no escribir nada).
+ * (o null para no escribir nada). Si el cambio es en otra semana del menú,
+ * devuelve también `casa` apuntando a ella (enSemana), y se guarda ahí.
  */
 export async function conCasa(householdId, cambiar, intentos = 3) {
   for (let i = 0; i < intentos; i++) {
@@ -150,7 +177,7 @@ export async function conCasa(householdId, cambiar, intentos = 3) {
     if (!casa) return { ok: false, error: "sin casa en la nube" };
     const cambios = await cambiar(casa);
     if (!cambios) return { ok: true, casa, sinCambios: true };
-    const r = await guardarCasa(casa, cambios);
+    const r = await guardarCasa(cambios.casa ?? casa, cambios);
     if (!r.conflicto) return { ...r, casa };
   }
   return { ok: false, error: "conflicto persistente" };

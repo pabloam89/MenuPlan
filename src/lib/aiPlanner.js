@@ -3100,7 +3100,7 @@ const POOL_DE_FRANJA = {
   Postre: "postres",
 };
 
-export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false }) {
+export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false }) {
   const group = (data?.groups ?? []).find((g) => g.id === groupId);
   if (!group) return null;
 
@@ -3217,9 +3217,11 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const restrictCategory = sameCategory ? currentCatalog?.category ?? null : null;
 
   const roleMatch = (r) => r.mealRole?.some((role) => targetRoles.has(role));
+  // Un plato pedido por su nombre no tiene tope de tiempo: quien pide pollo al
+  // horno un martes sabe lo que tarda.
   const structuralFit = (r) =>
     roleMatch(r) &&
-    r.time <= slotMaxTime &&
+    (pedido || r.time <= slotMaxTime) &&
     (isCenaRapida || !isMontaje(r)) &&
     (!restrictCategory || r.category === restrictCategory);
   const { candidates: selected, reusedDuplicate: rdup } = selectReplacementCandidates(
@@ -3231,6 +3233,13 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   reusedDuplicate = rdup;
   let candidates = selected;
   if (candidates.length === 0) return null;
+
+  // `pedido` (con `candidatos`): el usuario ha nombrado un plato («salmón al
+  // horno») y se busca el más parecido. Valen las reglas duras de arriba
+  // —alergias, rol del hueco, no repetir plato; el tiempo no— pero no las
+  // preferencias de variedad de abajo, que son para cuando elige la máquina:
+  // dejaban el pool en una docena de platos y sin rastro del salmón.
+  if (pedido && candidatos > 0) return { candidatos: candidates.slice(0, candidatos) };
 
   // School-menu avoidance: this swap path (manual "cambiar plato") is a
   // separate code path from the main generator and never runs through
