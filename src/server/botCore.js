@@ -11,3 +11,5 @@
 export { generateMenuWithAI, pickCatalogReplacement } from "../lib/aiPlanner.js";
 export { buildShoppingList } from "../lib/shoppingBuilder.js";
 export { registerRecipes, RECIPES_BY_ID } from "../data/recipes.js";
+export { DAYS, getDayMeals } from "../lib/planner.js";
+export { membersOfGroup, groupsFromModel } from "../lib/groups.js";

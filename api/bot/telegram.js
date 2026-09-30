@@ -22,9 +22,10 @@
  */
 
 import crypto from "node:crypto";
+import { waitUntil } from "@vercel/functions";
 import { select, update, eq } from "../_bot/db.js";
 import { enviar, llamar, escaparHtml } from "../_bot/telegram.js";
-import { cargarCasa } from "../_bot/casa.js";
+import { responder } from "../_bot/agente.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
 import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
 
@@ -42,13 +43,18 @@ export default async function handler(req, res) {
   // Siempre 200: si no, Telegram reintenta el mismo mensaje una y otra vez.
   if (chatId == null) return res.status(200).json({ ok: true });
 
-  try {
-    if (upd.callback_query) await pulsado(upd.callback_query, base);
-    else if (upd.message) await atender(upd.message, base);
-  } catch (err) {
-    console.error("[bot/telegram]", err?.message);
-    await enviar(chatId, "Uy, algo ha fallado por mi lado. Prueba otra vez en un momento.").catch(() => {});
-  }
+  // Se contesta a Telegram al momento y se trabaja después (waitUntil): el
+  // agente puede tardar varios segundos entre modelo y herramientas, y si el
+  // webhook no responde, Telegram reintenta y el mensaje se atendería dos veces.
+  waitUntil((async () => {
+    try {
+      if (upd.callback_query) await pulsado(upd.callback_query, base);
+      else if (upd.message) await atender(upd.message, base);
+    } catch (err) {
+      console.error("[bot/telegram]", err?.message);
+      await enviar(chatId, "Uy, algo ha fallado por mi lado. Prueba otra vez en un momento.").catch(() => {});
+    }
+  })());
   return res.status(200).json({ ok: true });
 }
 
@@ -82,15 +88,24 @@ async function atender(msg, base) {
     return bienvenida(chatId);
   }
 
-  const casa = await cargarCasa(chat.household_id);
-  const platos = contarPlatos(casa?.semana?.plan);
-  return enviar(
+  // Audios y fotos, aún no (falta el proveedor de transcripción).
+  if (!texto) {
+    return enviar(chatId, "Todavía no entiendo audios ni fotos 🙈 Escríbemelo y te ayudo.", {
+      responderA: esGrupo ? msg.message_id : undefined,
+    });
+  }
+
+  await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
+  // En un grupo le hablan como «@bot …»: la mención no es parte del mensaje.
+  const limpio = texto.replace(/@\w+bot\b/gi, "").trim() || texto;
+  const respuesta = await responder({
     chatId,
-    platos
-      ? `Te leo 👋 Tengo vuestra semana: <b>${platos} platos</b>. Muy pronto podrás preguntarme y cambiar cosas desde aquí.`
-      : "Te leo 👋 Aún no veo un menú activo en vuestra casa. Muy pronto podrás crearlo desde aquí.",
-    { responderA: esGrupo ? msg.message_id : undefined },
-  );
+    householdId: chat.household_id,
+    texto: limpio,
+    autor: esGrupo ? nombreDe(msg.from) : null,
+    esGrupo,
+  });
+  return enviar(chatId, respuesta, { responderA: esGrupo ? msg.message_id : undefined });
 }
 
 function bienvenida(chatId) {
@@ -285,13 +300,4 @@ function secretoValido(recibido) {
   const a = Buffer.from(recibido);
   const b = Buffer.from(secreto);
   return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
-
-function contarPlatos(plan) {
-  let n = 0;
-  for (const [grupo, huecos] of Object.entries(plan ?? {})) {
-    if (grupo.startsWith("_")) continue;
-    for (const h of Object.values(huecos ?? {})) if (h?.recipeId || h?.firstRecipeId) n++;
-  }
-  return n;
 }
