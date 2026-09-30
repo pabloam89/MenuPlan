@@ -38,12 +38,12 @@ export async function cargarCasa(householdId) {
     const semanas = await select(
       "user_menu_weeks",
       `household_id=${eq(householdId)}&menu_id=${eq(menu.id)}&order=week_offset.asc`,
-      "menu_id,week_start,week_end,plan,shopping",
+      "menu_id,week_start,week_end,week_offset,start_day_idx,active_days,plan,shopping",
     );
     // La semana que contiene hoy; si no hay, la primera (igual que la app).
     const hoy = hoyISO();
     const s = semanas.find((w) => w.week_start <= hoy && hoy <= w.week_end) ?? semanas[0];
-    if (s) semana = { menuId: s.menu_id, weekStart: s.week_start, weekEnd: s.week_end, plan: s.plan, shopping: s.shopping };
+    if (s) semana = { menuId: s.menu_id, weekStart: s.week_start, weekEnd: s.week_end, startDayIdx: s.start_day_idx ?? 0, activeDays: s.active_days ?? null, plan: s.plan, shopping: s.shopping };
   }
 
   return {

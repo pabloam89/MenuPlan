@@ -19,6 +19,11 @@ import {
   describirCasa, describirMenu, describirReceta, describirCompra,
   marcarCompra, anadirCompra, cambiarPlato, diaDe, franjaDe,
 } from "./menu.js";
+import { generarMenu } from "./generar.js";
+import {
+  describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
+  anadirComensal, quitarComensal, ajustarAlergias, dominiosDeGustos,
+} from "./ajustes.js";
 
 const MODELO = "claude-sonnet-5";
 const TURNOS_DE_MEMORIA = 16;
@@ -35,7 +40,13 @@ Reglas:
 - Alergias e intolerancias: tómalas muy en serio. Nunca des por hecho que alguien puede comer algo que choque con ellas.
 - Cuando cambies algo, confírmalo en una frase diciendo qué ha cambiado. En un grupo, di también quién lo pidió.
 - Si te falta un dato para actuar (qué día, qué comida), pregúntalo en corto antes de hacer nada.
-- Generar un menú nuevo desde el chat aún no está disponible: si lo piden, dilo y que lo hagan desde la app de momento.
+
+Configurar la casa (esto sustituye al antiguo asistente de la app, y puede ir más lejos):
+- Tú eres el panel de la casa. La gente te cuenta cómo vive («los niños comen en el cole de lunes a jueves», «el miércoles viene mi hermano a cenar», «queremos más pescado y nada de fritos», «tenemos airfryer», «voy siempre con prisa») y tú lo traduces con las herramientas de ajuste. Usa ver_ajustes para saber qué hay antes de proponer.
+- Lo que te digan claro, aplícalo y confírmalo. Lo que DEDUZCAS (no dicho literalmente), propónlo en una frase y aplícalo solo si te dicen que sí.
+- Alergias e intolerancias: siempre repite lo que vas a guardar y pide confirmación antes de llamar a ajustar_alergias con confirmado=true.
+- No interrogues: nada es obligatorio salvo quién come, qué comidas se hacen y las alergias. Lo demás tiene un valor por defecto razonable. Si ves un hueco importante, sugiérelo una vez, sin agobiar.
+- Tras cambiar ajustes, ofrece generar el menú de nuevo para que se note. Generar un menú crea uno nuevo y lo deja activo (el anterior queda en el historial de la app): con generar_menu.
 - Aún no entiendes notas de voz ni fotos: si llegan, dilo amablemente.
 
 Estilo: cercano, breve y útil, como un amigo que cocina. Contesta en el idioma en que te escriban (los nombres de los platos, tal cual). Formato de Telegram en HTML: <b>negrita</b> e <i>cursiva</i>; nada de Markdown (ni asteriscos ni almohadillas). Listas con «•». Emojis con moderación. Para el menú de la semana, un bloque por día con el día en negrita.`;
@@ -43,7 +54,105 @@ Estilo: cercano, breve y útil, como un amigo que cocina. Contesta en el idioma 
 let cliente = null;
 const anthropic = () => (cliente ??= new Anthropic());
 
-function herramientas(householdId) {
+async function herramientas(householdId) {
+  const gustos = await dominiosDeGustos();
+  return [...herramientasDeMenu(householdId), ...herramientasDeAjustes(householdId, gustos)];
+}
+
+function herramientasDeAjustes(householdId, gustos) {
+  const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
+  return [
+    betaTool({
+      name: "ver_ajustes",
+      description: "Cómo está configurada la casa: estructura de comidas, nivel de cocina, trastos, gustos anotados (con su estado: fijado/inferido/delegado), quién come fuera y reglas/invitados.",
+      inputSchema: obj({}),
+      run: async () => {
+        const casa = await cargarCasa(householdId);
+        return casa ? describirAjustes(casa) : "Sin datos de la casa en la nube.";
+      },
+    }),
+    betaTool({
+      name: "ajustar_gustos",
+      description: `Gustos de la casa, como el panel de la app. Cada ajuste: campo, valor, op (mas|menos|nunca), n opcional (veces/semana, 0-7, solo freqs), ambito (todos|ninos|adultos|bebes), servicio (ambos|comida|cena). Campos y valores válidos: ${gustos}. «Nada de X» es favoritos/excluidos con op=nunca.`,
+      inputSchema: obj({
+        ajustes: {
+          type: "array", minItems: 1, maxItems: 8,
+          items: obj({
+            campo: { type: "string" }, valor: { type: "string" },
+            op: { type: "string", enum: ["mas", "menos", "nunca"] },
+            n: { type: "integer", minimum: 0, maximum: 7 },
+            ambito: { type: "string", enum: ["todos", "ninos", "adultos", "bebes"] },
+            servicio: { type: "string", enum: ["ambos", "comida", "cena"] },
+          }, ["campo", "valor", "op"]),
+        },
+        frase: { type: "string", description: "Lo que dijo el usuario, literal: queda como procedencia." },
+      }, ["ajustes", "frase"]),
+      run: ({ ajustes, frase }) => ajustarGustos(householdId, ajustes, frase),
+    }),
+    betaTool({
+      name: "ajustar_cocina",
+      description: "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende), tanda (tanda = cocinar para varios días; cada_dia) y trastos (lista completa de lo que hay: Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera).",
+      inputSchema: obj({
+        estructura: { type: "string", enum: ["primero_segundo", "1_plato"] },
+        esfuerzo: { type: "string", enum: ["basic", "normal", "pro"] },
+        tiempo: { type: "string", enum: ["con_prisa", "normal", "con_tiempo", "depende"] },
+        tanda: { type: "string", enum: ["tanda", "cada_dia"] },
+        trastos: { type: "array", items: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"] } },
+      }),
+      run: (args) => ajustarCocina(householdId, args),
+    }),
+    betaTool({
+      name: "ajustar_horario",
+      description: "Quién come dónde. personas: nombres, o «todos», «niños», «adultos». dias: lunes…domingo, «entre semana» o «finde» (vacío = todos). comidas: Desayuno/Comida/Merienda/Cena/Postre (vacío = Comida y Cena). donde: casa | tupper (se lleva comida de casa) | fuera | cole | off (esa comida no se hace).",
+      inputSchema: obj({
+        personas: { type: "array", items: { type: "string" }, minItems: 1 },
+        dias: { type: "array", items: { type: "string" } },
+        comidas: { type: "array", items: { type: "string" } },
+        donde: { type: "string", enum: ["casa", "tupper", "fuera", "cole", "off"] },
+      }, ["personas", "donde"]),
+      run: (args) => ajustarHorario(householdId, args),
+    }),
+    betaTool({
+      name: "anadir_invitado",
+      description: "Alguien de fuera viene a comer o cenar un día concreto (se suma a las raciones y a la compra de esa semana, y caduca solo).",
+      inputSchema: obj({
+        dia: { type: "string" }, comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
+        n: { type: "integer", minimum: 1, maximum: 20 }, nombre: { type: "string" },
+        semana: { type: "string", enum: ["esta", "siguiente"] },
+      }, ["dia", "comida"]),
+      run: (args) => anadirInvitado(householdId, args),
+    }),
+    betaTool({
+      name: "anadir_comensal",
+      description: "Añade a alguien que vive y come en casa (no un invitado puntual).",
+      inputSchema: obj({ nombre: { type: "string" }, edad: { type: "integer", minimum: 0, maximum: 120 } }, ["nombre"]),
+      run: (args) => anadirComensal(householdId, args),
+    }),
+    betaTool({
+      name: "quitar_comensal",
+      description: "Quita a alguien de la casa (ya no come aquí). Confirma antes con el usuario.",
+      inputSchema: obj({ nombre: { type: "string" } }, ["nombre"]),
+      run: (args) => quitarComensal(householdId, args),
+    }),
+    betaTool({
+      name: "ajustar_alergias",
+      description: "Alergias o intolerancias de una persona (los 14 alérgenos oficiales: gluten, crustaceos, huevos, pescado, cacahuetes, soja, leche, frutos_cascara, apio, mostaza, sesamo, sulfitos, altramuces, moluscos). Solo con confirmado=true tras el «sí» explícito del usuario.",
+      inputSchema: obj({
+        persona: { type: "string" }, alergenos: { type: "array", items: { type: "string" }, minItems: 1 },
+        quitar: { type: "boolean" }, confirmado: { type: "boolean" },
+      }, ["persona", "alergenos", "confirmado"]),
+      run: (args) => ajustarAlergias(householdId, args),
+    }),
+    betaTool({
+      name: "generar_menu",
+      description: "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy o la «siguiente» entera. Tarda unos segundos.",
+      inputSchema: obj({ semana: { type: "string", enum: ["esta", "siguiente"] } }, ["semana"]),
+      run: ({ semana }) => generarMenu(householdId, semana),
+    }),
+  ];
+}
+
+function herramientasDeMenu(householdId) {
   const conCasa = async (f) => {
     const casa = await cargarCasa(householdId);
     if (!casa) return "Esta casa todavía no tiene datos en la nube. Que entren una vez en la app de HoMenu.";
@@ -170,7 +279,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     max_iterations: 8,
     output_config: { effort: "medium" },
     system: [{ type: "text", text: SISTEMA, cache_control: { type: "ephemeral" } }],
-    tools: herramientas(householdId),
+    tools: await herramientas(householdId),
     messages: [...historia, { role: "user", content: entrada }],
   });
 

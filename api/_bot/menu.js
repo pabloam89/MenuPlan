@@ -114,7 +114,10 @@ export async function describirMenu(casa, { dia } = {}) {
     : "";
   const nombre = (id) => (id ? m.RECIPES_BY_ID[id]?.name ?? m.RECIPES_BY_ID[id.split("__").pop()]?.name ?? id : null);
   const plan = casa.semana.plan;
-  const dias = dia ? [dia] : DIAS;
+  // Solo los días activos de la semana, como la app: el motor genera la semana
+  // entera, pero si empezó un miércoles, el lunes y el martes no cuentan.
+  const activos = casa.semana.activeDays?.length ? casa.semana.activeDays : DIAS.slice(casa.semana.startDayIdx ?? 0);
+  const dias = dia ? [dia] : activos;
   const lineas = [];
   for (const d of dias) {
     const delDia = [];

@@ -13,3 +13,17 @@ export { buildShoppingList } from "../lib/shoppingBuilder.js";
 export { registerRecipes, RECIPES_BY_ID } from "../data/recipes.js";
 export { DAYS, getDayMeals } from "../lib/planner.js";
 export { membersOfGroup, groupsFromModel } from "../lib/groups.js";
+export { resolveModeData, prepararSemana } from "../lib/prepararGeneracion.js";
+export { computeWeekRange, explicitDaysForOffset, createMenuId } from "../lib/menuArchive.js";
+export { menuToRow, weekToRow } from "../lib/menusSync.js";
+
+// Ajustes de la casa desde el chat: las mismas piezas que la app.
+export { aplicarAjustes, dataConLibreta } from "../lib/libretaEnData.js";
+export { normalizar as normalizarLibreta, estadoDe } from "../lib/notepad.js";
+export { CAMPOS, valorValido, FAMILIAS, AMBITOS, SERVICIOS } from "../lib/notepadFields.js";
+export { PREGUNTAS_POR_ID } from "../lib/wizardRegistry.js";
+export { reglaDeInvitado, describirRegla, podarReglasVencidas } from "../lib/reglas.js";
+export { reconcileGroupsWithMembers, migrateGroupsForBabies } from "../lib/groups.js";
+export { suggestHomeRole } from "../lib/stages.js";
+export { EU_ALLERGEN_IDS } from "../data/ingredientSchema.js";
+export { SLOT_VALUES, slotKey } from "../lib/planner.js";
