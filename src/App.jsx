@@ -235,11 +235,14 @@ const FORCE_VALUE_PROPS =
   FORCE_TOUR ||
   new URLSearchParams(window.location.search).get("tutorial") === "1";
 
-// Tutorial (carrusel de presentación) y visitas guiadas (spotlight) apagados
-// el 30 sep 2026: a la gente la agotaban, y la app pasa a ser para VER (el
-// bot de Telegram es el que guía). No se borran: con `?tutorial=1` o `?tour=1`
-// siguen saliendo para revisarlos, y volver a encenderlos es poner esto a true.
-const GUIAS_ACTIVAS = false;
+// Tutorial (carrusel de presentación) y visitas guiadas (spotlight): apagados
+// en staging el 30 sep 2026 (a la gente la agotaban, y allí guía el bot de
+// Telegram); en producción siguen hasta que el frontal de Lola llegue. Lo
+// decide vite.config.js por rama (VITE_GUIAS). Con `?tutorial=1` o `?tour=1`
+// siguen saliendo siempre, para revisarlos.
+// EXACTAMENTE `import.meta.env.VITE_GUIAS`, sin `?.`: si no, el define de
+// Vite no lo sustituye (ver solverActivo en lib/solver.js).
+const GUIAS_ACTIVAS = import.meta.env.VITE_GUIAS !== "off";
 
 // Temporary dietary states heavy/disruptive enough to warrant offering a
 // separate ad-hoc individual menu instead of restricting the whole family.
