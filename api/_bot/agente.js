@@ -18,7 +18,7 @@ import { select, insert, eq } from "./db.js";
 import { cargarCasa, deshacer } from "./casa.js";
 import {
   describirCasa, describirMenu, describirReceta, describirCompra,
-  marcarCompra, anadirCompra, cambiarPlato, diaDe, franjaDe,
+  marcarCompra, anadirCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
@@ -43,7 +43,7 @@ Qué haces: consultar y cambiar el menú de la semana, enseñar recetas e ingred
 Reglas:
 - Ante cualquier pregunta sobre el menú, una receta, la compra o la familia, llama PRIMERO a la herramienta que corresponda, aunque creas saber la respuesta o ya lo hayas consultado antes en la charla: los datos cambian (otra persona puede haber tocado la app). Nunca digas que no tienes acceso a algo sin haberlo consultado.
 - El menú activo puede ser de una semana que ya pasó. Si te preguntan por él, enséñalo igualmente y avisa de las fechas.
-- Los platos los elige el motor de HoMenu, no tú. Para cambiar un plato usa cambiar_plato; no propongas recetas de tu cosecha como si fueran del menú.
+- Las recetas salen SIEMPRE del catálogo de HoMenu (tienen foto, ingredientes y encajan en la compra y las alergias), nunca de tu cosecha. Pero recomendar sí: si piden ideas, «¿qué me recomiendas?», «¿qué recetas me das?» o cambiar un plato sin decir por cuál, llama a proponer_platos y ofrece 3 opciones con un botón cada una, más [[Elige tú]] (4 botones en total). Al elegir una, cambiar_plato con receta = su nombre. Si dicen «cámbialo, me da igual» o pulsan «Elige tú», cambiar_plato sin receta. Nunca contestes que no puedes recomendar.
 - Alergias e intolerancias: tómalas muy en serio. Nunca des por hecho que alguien puede comer algo que choque con ellas.
 - Cuando cambies algo, confírmalo en una frase diciendo qué ha cambiado. En un grupo, di también quién lo pidió.
 - Si te falta un dato para actuar (qué día, qué comida), pregúntalo en corto antes de hacer nada.
@@ -341,8 +341,8 @@ function herramientasDeMenu(householdId) {
       run: ({ productos }) => anadirCompra(householdId, productos),
     }),
     betaTool({
-      name: "cambiar_plato",
-      description: "Cambia el plato de un hueco del menú por otro que elige el motor de HoMenu respetando alergias y preferencias. En la comida hay primero y segundo; «cual» dice cuál cambiar.",
+      name: "proponer_platos",
+      description: "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir. En la comida hay primero y segundo; «cual» dice cuál.",
       inputSchema: {
         type: "object",
         properties: {
@@ -350,15 +350,38 @@ function herramientasDeMenu(householdId) {
           comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
           grupo: { type: "string", description: "Opcional: el grupo de menú (p. ej. «Bebé») si hay varios." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
+          n: { type: "integer", minimum: 2, maximum: 6, description: "Cuántas opciones; por defecto 3 (caben 3 botones más «Elige tú»)." },
         },
         required: ["dia", "comida"],
         additionalProperties: false,
       },
-      run: ({ dia, comida, grupo, cual }) => {
+      run: ({ dia, comida, grupo, cual, n }) => {
         const d = diaValido(dia);
         const f = franjaDe(comida);
         if (!d || !f) return `No entiendo qué hueco es («${dia}», «${comida}»).`;
-        return cambiarPlato(householdId, { dia: d, franja: f, grupo, cual });
+        return proponerPlatos(householdId, { dia: d, franja: f, grupo, cual, n: n ?? 3 });
+      },
+    }),
+    betaTool({
+      name: "cambiar_plato",
+      description: "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa (normalmente una de proponer_platos; se valida que encaje en el hueco); sin ella, el motor elige otra respetando alergias y preferencias. En la comida hay primero y segundo; «cual» dice cuál cambiar.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          dia: { type: "string", description: "lunes…domingo, «hoy» o «mañana»." },
+          comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
+          grupo: { type: "string", description: "Opcional: el grupo de menú (p. ej. «Bebé») si hay varios." },
+          cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
+          receta: { type: "string", description: "Opcional: el nombre de la receta elegida." },
+        },
+        required: ["dia", "comida"],
+        additionalProperties: false,
+      },
+      run: ({ dia, comida, grupo, cual, receta }) => {
+        const d = diaValido(dia);
+        const f = franjaDe(comida);
+        if (!d || !f) return `No entiendo qué hueco es («${dia}», «${comida}»).`;
+        return cambiarPlato(householdId, { dia: d, franja: f, grupo, cual, receta: receta || null });
       },
     }),
   ];

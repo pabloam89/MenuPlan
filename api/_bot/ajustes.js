@@ -72,7 +72,7 @@ export async function describirAjustes(casa) {
   const horario = fuera.slice(0, 40).map(([k, v]) => { const [id, dia, comida] = k.split("|"); return `• ${nombre(id)}: ${DIA_LARGO[dia] ?? dia} ${comida} → ${v}`; });
   const reglas = (d.reglas ?? []).map((r) => `• ${m.describirRegla(r, d)}`);
   return [
-    `Estructura de la comida: ${d.mealStructure ?? "(por defecto)"} · Nivel de cocina: ${d.cookLevel ?? "normal"} · Trastos: ${(d.kitchenTools ?? []).join(", ") || "(sin decir)"}`,
+    `Estructura de la comida: ${d.mealStructure ?? "(por defecto)"}\nNivel de cocina: ${d.cookLevel ?? "normal"}\nTrastos: ${(d.kitchenTools ?? []).join(", ") || "(sin decir)"}`,
     `Gustos en la libreta:\n${gustos.join("\n") || "(nada todavía: todo por defecto, menú equilibrado)"}`,
     `Quién NO come en casa (el resto, en casa):\n${horario.join("\n") || "(todos comen en casa siempre)"}${fuera.length > 40 ? `\n… y ${fuera.length - 40} más` : ""}`,
     `Reglas e invitados:\n${reglas.join("\n") || "(ninguna)"}`,
@@ -119,7 +119,7 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
     if (tiempo || tanda) { d = R.tiempo.escribe(d, { ...(tiempo ? { nivel: tiempo } : {}), ...(tanda ? { tanda } : {}) }); hechos.push(`tiempo: ${[tiempo, tanda].filter(Boolean).join(", ")}`); }
     if (Array.isArray(trastos)) { d = R.trastos.escribe(d, trastos); hechos.push(`trastos: ${trastos.join(", ") || "ninguno"}`); }
     if (!hechos.length) return { texto: "No había nada que cambiar." };
-    return { data: d, texto: `Guardado (${hechos.join(" · ")}). Se aplicará al generar el próximo menú.` };
+    return { data: d, texto: `Guardado (${hechos.join("; ")}). Se aplicará al generar el próximo menú.` };
   });
 }
 

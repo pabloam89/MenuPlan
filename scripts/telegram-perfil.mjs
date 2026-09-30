@@ -26,7 +26,7 @@ const llamar = async (metodo, cuerpo = {}) => {
 };
 
 // Máx. 64. El nombre visible del bot en la lista de chats (el @usuario no cambia).
-const NOMBRE = "Lola · HoMenu";
+const NOMBRE = "Lola de HoMenu";
 
 // Máx. 120 caracteres. Sale en el perfil y al compartir el bot.
 const ABOUT = "Soy Lola, tu cocinera de casa 👩‍🍳 Te planifico el menú de la semana, la compra y las recetas. Háblame como a una amiga.";

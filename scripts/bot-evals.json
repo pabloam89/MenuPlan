@@ -13,20 +13,80 @@
       ]
     },
     {
-      "nombre": "cambiar un plato concreto",
+      "nombre": "cambiar sin decir por cuál: da opciones",
       "entrada": "cambia la cena del jueves, que no nos apetece",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "dia": "jueves",
+          "comida": "cena"
+        }
+      },
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "texto": "\\[\\[Elige tú\\]\\]"
+    },
+    {
+      "nombre": "recomiéndame algo: opciones del catálogo, sin cambiar",
+      "entrada": "¿qué me recomiendas para cenar el jueves?",
+      "llama": [
+        "proponer_platos"
+      ],
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "sinTexto": "no puedo (recomendar|inventar)|no las invento"
+    },
+    {
+      "nombre": "elige una de las opciones: la pone",
+      "historia": [
+        {
+          "role": "user",
+          "content": "cambia la cena del jueves"
+        },
+        {
+          "role": "assistant",
+          "content": "👉 Para la <b>cena del jueves</b> te encajan:\n• <b>Garbanzos especiados con espinacas y piñones</b>, 25 min\n• <b>Tortilla de patata y cebolla</b>, 30 min\n• <b>Crema de puerros con picatostes</b>, 30 min\n\n¿Cuál te pongo?\n[[Garbanzos especiados]]\n[[Tortilla de patata]]\n[[Crema de puerros]]\n[[Elige tú]]"
+        }
+      ],
+      "entrada": "Garbanzos especiados",
       "llama": [
         "cambiar_plato"
       ],
       "args": {
         "cambiar_plato": {
           "dia": "jueves",
-          "comida": "cena"
+          "comida": "cena",
+          "receta": "garbanzos"
         }
-      },
-      "noLlama": [
-        "generar_menu"
-      ]
+      }
+    },
+    {
+      "nombre": "elige tú: cambia sin receta",
+      "historia": [
+        {
+          "role": "user",
+          "content": "cambia la cena del jueves"
+        },
+        {
+          "role": "assistant",
+          "content": "👉 Para la <b>cena del jueves</b> te encajan:\n• <b>Garbanzos especiados con espinacas y piñones</b>, 25 min\n• <b>Tortilla de patata y cebolla</b>, 30 min\n• <b>Crema de puerros con picatostes</b>, 30 min\n\n¿Cuál te pongo?\n[[Garbanzos especiados]]\n[[Tortilla de patata]]\n[[Crema de puerros]]\n[[Elige tú]]"
+        }
+      ],
+      "entrada": "Elige tú",
+      "llama": [
+        "cambiar_plato"
+      ],
+      "noLlamaCon": {
+        "cambiar_plato": {
+          "receta": "garbanzos"
+        }
+      }
     },
     {
       "nombre": "ambiguo: pregunta antes de cambiar",
@@ -162,7 +222,7 @@
       "llama": [
         "ver_menu"
       ],
-      "sinTexto": "\\*\\*|^#"
+      "sinTexto": "\\*\\*|^#| · "
     },
     {
       "nombre": "no inventa recetas fuera del motor",

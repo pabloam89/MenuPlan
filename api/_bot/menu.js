@@ -16,7 +16,7 @@
  */
 
 import { select, insert, eq } from "./db.js";
-import { conCasa } from "./casa.js";
+import { conCasa, cargarCasa } from "./casa.js";
 
 let motorCargado = null;
 export const motor = async () => (motorCargado ??= await import("./core.mjs"));
@@ -135,7 +135,9 @@ export async function describirMenu(casa, { dia } = {}) {
         const hueco = plan[g.id]?.[`${d}-${f}`];
         if (!hueco) continue;
         conHueco++;
-        const platos = [nombre(hueco.firstRecipeId), nombre(hueco.recipeId)].filter(Boolean).join(" · ") || "— vacío —";
+        const primero = nombre(hueco.firstRecipeId);
+        const principal = nombre(hueco.recipeId);
+        const platos = primero && principal ? `primero ${primero}; segundo ${principal}` : primero || principal || "(vacío)";
         if (!porPlatos.has(platos)) porPlatos.set(platos, []);
         porPlatos.get(platos).push(g.label);
       }
@@ -166,8 +168,9 @@ export async function describirReceta(casa, consulta) {
   if (!r) return `No encuentro ninguna receta que se llame así («${consulta}»).`;
   const ing = (r.ingredients ?? []).map((i) => `• ${i.name}${i.qty ? ` — ${i.qty}${i.unit ? ` ${i.unit}` : ""}` : ""}`);
   const pasos = (r.steps ?? []).map((p, i) => `${i + 1}. ${typeof p === "string" ? p : p?.text ?? ""}`);
+  const datos = [r.time ? `${r.time} min` : "", r.servings ? `${r.servings} raciones` : ""].filter(Boolean).join(", ");
   return [
-    `${r.name}${r.time ? ` (${r.time} min)` : ""}${r.servings ? ` · ${r.servings} raciones` : ""}`,
+    `${r.name}${datos ? ` (${datos})` : ""}`,
     ing.length ? `Ingredientes:\n${ing.join("\n")}` : "",
     pasos.length ? `Pasos:\n${pasos.join("\n")}` : "Sin pasos guardados.",
   ].filter(Boolean).join("\n\n");
@@ -249,25 +252,88 @@ export async function anadirCompra(householdId, productos) {
   return `Añadido a la compra: ${productos.join(", ")}.`;
 }
 
+/** El grupo y el hueco de un día y franja del menú activo, o por qué no hay. */
+function huecoDe(casa, { dia, franja, grupo, cual }) {
+  if (!casa.semana?.plan) return { error: "No hay menú activo." };
+  const gs = grupos(casa);
+  const g = grupo ? gs.find((x) => normal(x.label) === normal(grupo)) : gs.find((x) => casa.semana.plan[x.id]?.[`${dia}-${franja}`]);
+  if (!g) return { error: `No encuentro ese hueco (${DIA_LARGO[dia]}, ${franja}${grupo ? `, ${grupo}` : ""}).` };
+  const clave = `${dia}-${franja}`;
+  const hueco = casa.semana.plan[g.id]?.[clave];
+  if (!hueco) return { error: `El ${DIA_LARGO[dia]} no hay ${franja.toLowerCase()} planificada para ${g.label}.` };
+  const course = cual === "primero" && hueco.firstRecipeId ? "first" : "main";
+  return { gs, g, clave, hueco, course };
+}
+
+// Cuántas candidatas se miran al buscar la que alguien ha elegido por su
+// nombre: más que las que se enseñan, porque el botón puede ser de una lista
+// anterior y el pool se reordena con cada cambio del menú.
+const POOL_PARA_ELEGIR = 60;
+
+/**
+ * La receta de `candidatas` que nombra `texto`: exacta, o la que tenga todas
+ * sus palabras (con frontera: «pollo» no es «repollo»). Así un botón corto
+ * («Merluza salsa verde») encuentra «Merluza en salsa verde con almejas».
+ */
+export function candidataPorNombre(candidatas, texto) {
+  const q = normal(texto);
+  const exacta = candidatas.find((r) => normal(r.name) === q);
+  if (exacta) return exacta;
+  const palabras = q.split(/\s+/).filter((w) => w.length > 1);
+  if (!palabras.length) return null;
+  const todas = candidatas.filter((r) => palabras.every((w) => new RegExp(`\\b${escapar(w)}\\b`).test(normal(r.name))));
+  return todas.length === 1 ? todas[0] : todas.find((r) => normal(r.name).startsWith(q)) ?? todas[0] ?? null;
+}
+
+/**
+ * Las opciones que el motor da por buenas para un hueco, SIN cambiar nada: el
+ * mismo pool que usa la app para las sugerencias del recetario (rol del hueco,
+ * tope de tiempo, alergias, lo ya puesto en la semana, el cole y los gustos).
+ */
+export async function proponerPlatos(householdId, { dia, franja, grupo, cual = "principal", n = 3 }) {
+  const casa = await cargarCasa(householdId);
+  if (!casa) return "Esta casa todavía no tiene datos en la nube.";
+  const h = huecoDe(casa, { dia, franja, grupo, cual });
+  if (h.error) return h.error;
+  const m = await prepararRecetas(casa);
+  const res = m.pickCatalogReplacement(casa.state?.data ?? {}, casa.semana.plan, {
+    groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: n,
+  });
+  const lista = res?.candidatos ?? [];
+  if (!lista.length) return "No hay otras recetas que encajen en ese hueco con vuestras alergias, gustos y tiempo.";
+  const ahora = m.RECIPES_BY_ID[h.course === "first" ? h.hueco.firstRecipeId : h.hueco.recipeId]?.name;
+  const detalle = (r) => [r.time ? `${r.time} min` : "", r.difficulty ?? ""].filter(Boolean).join(", ");
+  return [
+    `Opciones para el ${DIA_LARGO[dia]}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, ${h.g.label}` : ""}. Ahora mismo: ${ahora ?? "nada"}.`,
+    ...lista.map((r, i) => `${i + 1}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`),
+    "Nada está cambiado aún: para poner una, cambiar_plato con receta = su nombre.",
+  ].join("\n");
+}
+
 /**
  * Cambia el plato de un hueco con el mismo motor que la app
  * (`pickCatalogReplacement`), y rehace la compra conservando lo ya marcado.
+ *
+ * Con `receta`, pone ESA en vez de sortear, pero solo si está entre las que el
+ * motor da por buenas para el hueco: elegir no se salta las alergias, el
+ * tiempo ni lo repetido.
  */
-export async function cambiarPlato(householdId, { dia, franja, grupo, cual = "principal" }) {
+export async function cambiarPlato(householdId, { dia, franja, grupo, cual = "principal", receta = null }) {
   let texto = "";
   const r = await conCasa(householdId, async (casa) => {
-    if (!casa.semana?.plan) { texto = "No hay menú activo."; return null; }
+    const h = huecoDe(casa, { dia, franja, grupo, cual });
+    if (h.error) { texto = h.error; return null; }
+    const { gs, g, clave, hueco, course } = h;
     const m = await prepararRecetas(casa);
     const data = casa.state?.data ?? {};
-    const gs = grupos(casa);
-    const g = grupo ? gs.find((x) => normal(x.label) === normal(grupo)) : gs.find((x) => casa.semana.plan[x.id]?.[`${dia}-${franja}`]);
-    if (!g) { texto = `No encuentro ese hueco (${DIA_LARGO[dia]}, ${franja}${grupo ? `, ${grupo}` : ""}).`; return null; }
-    const clave = `${dia}-${franja}`;
-    const hueco = casa.semana.plan[g.id]?.[clave];
-    if (!hueco) { texto = `El ${DIA_LARGO[dia]} no hay ${franja.toLowerCase()} planificada para ${g.label}.`; return null; }
-    const course = cual === "primero" && hueco.firstRecipeId ? "first" : "main";
 
-    const elegido = m.pickCatalogReplacement(data, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course });
+    let forcedRecipe = null;
+    if (receta) {
+      const pool = m.pickCatalogReplacement(data, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
+      forcedRecipe = candidataPorNombre(pool?.candidatos ?? [], receta);
+      if (!forcedRecipe) { texto = `«${receta}» no encaja en ese hueco (por alergias, tiempo o porque ya está en la semana). Pide opciones con proponer_platos.`; return null; }
+    }
+    const elegido = m.pickCatalogReplacement(data, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
     if (!elegido?.recipeId) { texto = "No he encontrado otro plato que encaje en ese hueco con vuestras preferencias."; return null; }
     const antes = m.RECIPES_BY_ID[course === "first" ? hueco.firstRecipeId : hueco.recipeId]?.name;
     m.registerRecipes([elegido.frontendRecipe]);

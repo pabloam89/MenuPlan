@@ -60,13 +60,13 @@ export async function verMenuCole(householdId) {
   const pintar = (entries, quien) => {
     for (const d of m.SCHOOL_DAYS) {
       const p = m.SCHOOL_COURSES.map((c) => entries?.[`${d}-${c}`]).filter(Boolean);
-      if (p.length) lineas.push(`${quien}${d}: ${p.join(" · ")}`);
+      if (p.length) lineas.push(`${quien}${d}: ${p.join(", ")}`);
     }
   };
   pintar(semana?.shared, "");
   const miembros = casa?.state?.data?.members ?? [];
   for (const [id, entries] of Object.entries(semana?.byMember ?? {})) {
-    pintar(entries, `${miembros.find((x) => x.id === id)?.name ?? "?"} · `);
+    pintar(entries, `(${miembros.find((x) => x.id === id)?.name ?? "?"}) `);
   }
   if (!lineas.length) return "No hay menú del cole guardado.";
   return `Menú del cole (semana 1 de ${sm.weeks.length}):\n${lineas.join("\n")}`;

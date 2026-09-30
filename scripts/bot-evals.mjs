@@ -28,8 +28,9 @@ const FAMILIA = "Casa de prueba: Ana (38 años), Pablo (40 años), Leo (6 años)
 const RESPUESTAS = {
   ver_casa: FAMILIA,
   ver_ajustes: "Estructura: primero y segundo. Esfuerzo normal. Trastos: Horno, Microondas. Gustos: nada anotado. Leo come en el cole de lunes a viernes.",
-  ver_menu: "Menú activo del 2026-09-28 al 2026-10-04.\nMiércoles 30 · comida: Crema de calabaza · Pollo al horno con patatas · cena: Tortilla de calabacín\nJueves 1 · comida: Lentejas estofadas · cena: Merluza a la plancha con ensalada",
-  ver_receta: "Tortilla de calabacín — 25 min, 4 raciones. Ingredientes: 6 huevos, 2 calabacines, 1 cebolla, aceite de oliva, sal. Pasos: 1. Pochar cebolla y calabacín. 2. Batir huevos y mezclar. 3. Cuajar por los dos lados.",
+  ver_menu: "Menú activo del 2026-09-28 al 2026-10-04.\nmiércoles:\n  Comida: primero Crema de calabaza; segundo Pollo al horno con patatas\n  Cena: Tortilla de calabacín\njueves:\n  Comida: Lentejas estofadas\n  Cena: Merluza a la plancha con ensalada",
+  ver_receta: "Tortilla de calabacín (25 min, 4 raciones)\n\nIngredientes:\n• huevos — 6 ud\n• calabacín — 2 ud\n• cebolla — 1 ud\n\nPasos:\n1. Pochar cebolla y calabacín.\n2. Batir huevos y mezclar.\n3. Cuajar por los dos lados.",
+  proponer_platos: "Opciones para el jueves, cena. Ahora mismo: Merluza a la plancha con ensalada.\n1. Garbanzos especiados con espinacas y piñones (25 min, facil)\n2. Tortilla de patata y cebolla (30 min, facil)\n3. Crema de puerros con picatostes (30 min, facil)\nNada está cambiado aún: para poner una, cambiar_plato con receta = su nombre.",
   ver_compra: "Frutas y verduras: calabacín 2 ud, cebolla 1 ud. Lácteos y huevos: huevos 12 ud. Quedan 3 por comprar.",
   ver_recordatorios: "No hay recordatorios pendientes en este chat.",
 };
