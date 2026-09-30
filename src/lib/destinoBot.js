@@ -11,6 +11,9 @@
  *   compra           la lista de la compra
  *   receta:<id>      la ficha de esa receta (id del catálogo; se quita el
  *                    prefijo de grupo `grupo__` si lo trae)
+ *   recetas          el recetario
+ *   recetas:<carpeta> el recetario abierto en esa carpeta (las de la app:
+ *                    legumbres, bebes_solidos…), o `mias` para «Mis recetas»
  *
  * Suele ir junto a `?entrar=` (BotEnlace.jsx), que puede recargar la página al
  * cambiar de cuenta: por eso el destino se guarda en sessionStorage y no solo
@@ -18,6 +21,13 @@
  */
 
 export const DIAS_APP = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+// Las carpetas del recetario (CATEGORY_META en CatalogBrowserSheet.jsx). Una
+// que no esté aquí no se pasa: abriría el recetario con un filtro que no
+// casa con nada y parecería vacío.
+const CARPETAS = new Set([
+  "legumbres", "carnes", "pescados", "huevos", "pasta_arroces", "sopas_cremas", "ensaladas_verduras",
+  "platos_unicos", "bebes_cremas", "bebes_solidos", "desayunos", "meriendas", "postres", "guarniciones", "salsas",
+]);
 const CLAVE = "mp_ir";
 
 /** De la cadena del enlace al destino, o null si no se entiende. */
@@ -27,6 +37,7 @@ export function interpretarDestino(valor) {
   if (v === "hoy") return { pantalla: "menu", vista: "dia", dia: null };
   if (v === "semana") return { pantalla: "menu", vista: "semana" };
   if (v === "compra") return { pantalla: "shopping" };
+  if (v === "recetas") return { pantalla: "recipes" };
   const [tipo, ...resto] = v.split(":");
   const arg = resto.join(":");
   if (tipo === "dia") {
@@ -34,6 +45,11 @@ export function interpretarDestino(valor) {
     return dia ? { pantalla: "menu", vista: "dia", dia } : null;
   }
   if (tipo === "receta" && arg) return { pantalla: "receta", id: arg.split("__").pop() };
+  if (tipo === "recetas") {
+    if (!arg) return { pantalla: "recipes" };
+    if (arg === "mias") return { pantalla: "recipes", mias: true };
+    return CARPETAS.has(arg) ? { pantalla: "recipes", categoria: arg } : { pantalla: "recipes" };
+  }
   return null;
 }
 

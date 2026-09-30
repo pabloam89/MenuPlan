@@ -40,3 +40,11 @@ export { replaceSchoolWeeks, normalizeSchoolMenus, getSchoolDish, SCHOOL_DAYS, S
 
 // Fotos de los platos para mandarlas por Telegram (URLs públicas del blob).
 export { dishImageForRecipe } from "../assets/dishes/dishImages.js";
+
+// Recetas desde el chat: buscar en el recetario y crear una propia con el
+// mismo borrador, la misma validación y la misma fila que el asistente de la app.
+export { recipeCatalog } from "../data/recipeCatalog.js";
+export { payloadDeBorrador, borradorDesdeRespuesta, recetaParaGuardar, INGREDIENT_UNITS } from "../lib/userRecipes.js";
+export { recipeToRow } from "../lib/userRecipesSync.js";
+export { KITCHEN_TOOLS } from "../lib/applianceMethods.js";
+export { FAST_MODEL } from "../lib/aiModels.js";

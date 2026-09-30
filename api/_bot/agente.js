@@ -32,6 +32,7 @@ import {
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
+import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
 
 const MODELO = "claude-sonnet-5";
 const TURNOS_DE_MEMORIA = 16;
@@ -98,6 +99,9 @@ function pantallaDe(herramienta, args = {}) {
   }
   if (["ver_compra", "marcar_compra", "anadir_compra"].includes(herramienta)) return "compra";
   if (herramienta === "generar_menu") return "semana";
+  // El recetario de la app, en la misma carpeta que se ha buscado aquí.
+  if (herramienta === "buscar_recetas") return args.categoria && args.categoria !== "mias" ? `recetas:${args.categoria}` : "recetas";
+  if (herramienta === "guardar_receta") return "recetas:mias";
   return null;
 }
 
@@ -114,6 +118,7 @@ export async function herramientas(chat) {
     ...herramientasDeAjustes(chat.householdId, gustos),
     ...herramientasDeRecordatorios(chat),
     ...herramientasDeFotos(chat.householdId),
+    ...herramientasDeRecetas(chat),
   ];
   return todas.map((t) => ({
     ...t,
@@ -131,6 +136,81 @@ export async function herramientas(chat) {
       }
     },
   }));
+}
+
+// El recetario: buscar lo que se quiera ver y crear recetas propias, con lo
+// mismo que pregunta el asistente de la app (api/_bot/recetas.js).
+function herramientasDeRecetas(chat) {
+  const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
+  const { householdId } = chat;
+  return [
+    betaTool({
+      name: "buscar_recetas",
+      description: `Busca en el recetario (catálogo de HoMenu y recetas propias de la casa) para VER recetas de lo que pidan: «sólidos de bebé», «algo con garbanzos», «postres». Nada se cambia. categoria (opcional) es una carpeta del recetario: ${Object.entries(CATEGORIAS).map(([k, v]) => `${k} = ${v}`).join("; ")}. consulta: palabras clave (ingrediente, nombre). conFotos: manda la foto de las primeras.`,
+      inputSchema: obj({
+        consulta: { type: "string" },
+        categoria: { type: "string", enum: Object.keys(CATEGORIAS) },
+        maxMinutos: { type: "integer", minimum: 5, maximum: 240 },
+        n: { type: "integer", minimum: 1, maximum: 10, description: "Cuántas enseñar; por defecto 6." },
+        conFotos: { type: "boolean" },
+      }),
+      run: (args) => buscarRecetas(householdId, args, chat),
+    }),
+    betaTool({
+      name: "apartar_foto_plato",
+      description: "Guarda la foto de ESTE mensaje como foto del plato de una receta que se está creando (el plato ya hecho, no una receta escrita ni un ticket). Después, preparar_receta con usarFoto = true.",
+      inputSchema: obj({}),
+      run: () => apartarFotoPlato(householdId, chat),
+    }),
+    betaTool({
+      name: "preparar_receta",
+      description: "Estructura una receta propia (como el asistente de la app) y la deja lista SIN guardar, para enseñarla. Solo cuando ya tengas nombre e ingredientes con cantidades; lo demás tiene valor por defecto. cuando: en qué comidas se sirve (primero, segundo, plato_unico, cena, merienda, postre). paraNinos: si es apta para niños (omitir si no lo saben). visibilidad: privada (solo la casa) o publica (sale en Gente).",
+      inputSchema: obj({
+        nombre: { type: "string" },
+        raciones: { type: "integer", minimum: 1, maximum: 20 },
+        minutos: { type: "integer", minimum: 1, maximum: 600 },
+        electrodomestico: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Olla rápida", "Thermomix", "Vaporera"] },
+        ingredientes: {
+          type: "array", minItems: 1, maxItems: 30,
+          items: obj({
+            nombre: { type: "string" },
+            cantidad: { type: "number" },
+            unidad: { type: "string", enum: ["g", "kg", "ml", "l", "ud", "cucharada", "cucharadita", "taza", "diente", "pizca", "al gusto", "c/n"] },
+          }, ["nombre"]),
+        },
+        cuando: { type: "array", items: { type: "string", enum: ["primero", "segundo", "plato_unico", "cena", "merienda", "postre"] } },
+        paraNinos: { type: "boolean" },
+        preparacion: { type: "string", description: "Cómo se hace, con sus palabras (el modelo redacta los pasos a partir de aquí)." },
+        visibilidad: { type: "string", enum: ["privada", "publica"] },
+        usarFoto: { type: "boolean", description: "true si hay foto del plato (en este mensaje o apartada con apartar_foto_plato)." },
+      }, ["nombre", "ingredientes"]),
+      run: (datos) => prepararReceta(householdId, datos, chat),
+    }),
+    betaTool({
+      name: "compartir",
+      description: "Pone los botones para mandar a otra persona (por WhatsApp o Telegram) una receta o la semana. que: receta o semana. receta: su nombre o id (solo si que = receta).",
+      inputSchema: obj({
+        que: { type: "string", enum: ["receta", "semana"] },
+        receta: { type: "string" },
+      }, ["que"]),
+      run: async ({ que, receta }) => {
+        if (que === "semana") {
+          chat.compartir = { tipo: "semana" };
+          return "Te pongo los botones para mandarlo.";
+        }
+        const r = receta ? await recetaPorNombre(householdId, receta) : null;
+        if (!r) return `No encuentro la receta «${receta ?? ""}». Pregunta cuál es.`;
+        chat.compartir = { tipo: "receta", recetaId: r.id };
+        return `Te pongo los botones para mandar «${r.name}».`;
+      },
+    }),
+    betaTool({
+      name: "guardar_receta",
+      description: "Guarda la receta preparada con preparar_receta, en el recetario de la casa (y el motor ya puede ponerla en menús). Solo con confirmado = true tras su «sí».",
+      inputSchema: obj({ confirmado: { type: "boolean" } }, ["confirmado"]),
+      run: ({ confirmado }) => guardarReceta(householdId, { confirmado }, chat),
+    }),
+  ];
 }
 
 // Despensa y menú del cole: se alimentan sobre todo de fotos (el ticket, la
@@ -497,7 +577,9 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
 
   const historia = await memoria(channel, chatId);
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
-  const chat = { channel, chatId: String(chatId), householdId, autor, fotos: [], escrito: false, ir: null };
+  // `adjunto` va también a las herramientas: la foto del plato de una receta
+  // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, fotos: [], escrito: false, ir: null, compartir: null };
   const tools = await herramientas(chat);
   const { dicho, uso } = await ejecutar({ historia, entrada, tools, adjunto });
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
@@ -513,7 +595,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   ]).catch((e) => console.error("[agente] memoria", e?.message));
   await segundaSemana(householdId).catch(() => {});
 
-  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir };
+  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir, compartir: chat.compartir };
 }
 
 /**

@@ -400,6 +400,106 @@
           "cuando": "T18:00"
         }
       }
+    },
+    {
+      "nombre": "ver recetas sin decir dónde: pregunta aquí o en la app",
+      "entrada": "quiero ver recetas de sólidos para el bebé",
+      "noLlama": [
+        "preparar_receta",
+        "cambiar_plato"
+      ],
+      "texto": "\\[\\[En la app\\]\\]"
+    },
+    {
+      "nombre": "ver recetas aquí con fotos: busca en la carpeta de sólidos",
+      "historia": [
+        {
+          "role": "user",
+          "content": "quiero ver recetas de sólidos para el bebé"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Claro! ¿Dónde te las enseño?\n[[Aquí con fotos]]\n[[Aquí en lista]]\n[[En la app]]"
+        }
+      ],
+      "entrada": "Aquí con fotos",
+      "llama": [
+        "buscar_recetas"
+      ],
+      "args": {
+        "buscar_recetas": {
+          "categoria": "bebes_solidos",
+          "conFotos": true
+        }
+      },
+      "sinTexto": " · "
+    },
+    {
+      "nombre": "crear receta: pregunta lo que falta antes de preparar",
+      "entrada": "quiero guardar mi receta de tortilla de patatas: 6 huevos, 600 g de patatas, una cebolla, aceite y sal. Para 4, media hora",
+      "noLlama": [
+        "guardar_receta"
+      ],
+      "noLlamaCon": {
+        "preparar_receta": {
+          "_todo": "tortilla"
+        }
+      }
+    },
+    {
+      "nombre": "crear receta: no guarda sin el sí",
+      "historia": [
+        {
+          "role": "user",
+          "content": "guarda mi tortilla de patatas, para la cena, sin aparatos, apta para niños, redáctalo tú, sin foto, solo para nosotros: 6 huevos, 600 g de patatas, una cebolla, 150 ml de aceite y sal. Para 4, 35 minutos"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Qué buena pinta! Tengo todo lo que necesito. ¿La preparo para que la veas antes de guardarla?\n[[Sí, prepárala]]"
+        }
+      ],
+      "entrada": "sí, prepárala",
+      "llama": [
+        "preparar_receta"
+      ],
+      "noLlama": [
+        "guardar_receta"
+      ]
+    },
+    {
+      "nombre": "crear receta: guarda tras el sí",
+      "historia": [
+        {
+          "role": "user",
+          "content": "guarda mi tortilla de patatas"
+        },
+        {
+          "role": "assistant",
+          "content": "Así queda 👇\n\n<b>Tortilla de patatas de la abuela</b>\n👥 4 raciones, ⏱️ 35 min, para la cena\n⚠️ Alérgenos: huevo\n\n¿La guardo?\n[[Guardar]]\n[[Cambiar algo]]"
+        }
+      ],
+      "entrada": "Guardar",
+      "llama": [
+        "guardar_receta"
+      ],
+      "args": {
+        "guardar_receta": {
+          "confirmado": true
+        }
+      }
+    },
+    {
+      "nombre": "compartir una receta",
+      "entrada": "quiero mandarle a mi hermana la receta de la tortilla de calabacín",
+      "llama": [
+        "compartir"
+      ],
+      "args": {
+        "compartir": {
+          "que": "receta",
+          "receta": "calabacin"
+        }
+      }
     }
   ]
 }

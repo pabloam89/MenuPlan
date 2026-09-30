@@ -385,9 +385,12 @@ export function CatalogBrowserSheet({
   // Reference/browse mode: preview a catalog dish paired with a garnish (opens
   // DishDetail in browse mode — does not save to Mis recetas).
   onBrowseGarnishCombo = null,
-  // Demo only: preselect a category so we land straight on its dish list (with
-  // real thumbnails) instead of the category grid.
+  // Preselect a category so we land straight on its dish list instead of the
+  // category grid: the value-prop demo, and links from the bot («recetas de
+  // sólidos de bebé» → bebes_solidos).
   initialCategory = null,
+  // Abrir directamente en «Mis recetas» (un enlace del bot tras guardar una).
+  initialMine = false,
   // Catálogo tab: set of catalog ids the user already discarded (para siempre).
   // Shows a toggle button on each card; onDiscardRecipe marks one, onRecoverRecipe clears it.
   discardedIds = null,
@@ -443,7 +446,7 @@ export function CatalogBrowserSheet({
 
   // La tile "Mis recetas" del grid de categorías filtra al vuelo por tuyas +
   // favoritas, mismo mecanismo que una categoría pero sin tocar `cats`.
-  const [viewingMine, setViewingMine] = useState(false);
+  const [viewingMine, setViewingMine] = useState(initialMine);
   // Como le va a lo que publicaste: se pide UNA vez al entrar en Mis Recetas
   // y solo para lo tuyo publicado. Fuera de ahi no se pregunta nada.
   const [socialStats, setSocialStats] = useState({});

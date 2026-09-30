@@ -3970,6 +3970,8 @@ export default function App() {
   // Con qué vista y día abre el menú al llegar desde el bot. Solo lo lee el
   // `useState` inicial de MenuScreen, así que no hace falta limpiarlo.
   const [menuInicio, setMenuInicio] = useState(null);
+  // Lo mismo para el recetario: en qué carpeta abre.
+  const [recetasInicio, setRecetasInicio] = useState(null);
   useEffect(() => {
     if (!destinoBot || authLoading) return;
     const lista = user ? nubeLista : (data.members?.length ?? 0) > 0;
@@ -3986,6 +3988,7 @@ export default function App() {
       return;
     }
     if (d.pantalla === "menu") setMenuInicio({ vista: d.vista, dia: d.dia ?? null, clave: Date.now() });
+    if (d.pantalla === "recipes") setRecetasInicio({ categoria: d.categoria ?? null, mias: Boolean(d.mias), clave: Date.now() });
     fwd(() => setScreen(d.pantalla));
   }, [destinoBot, authLoading, user, nubeLista, data.members, screen, handleOpenCatalogRecipe, showToast]);
 
@@ -6234,11 +6237,15 @@ export default function App() {
 
         {screen === "recipes" && (
           <div
-            key="recipes"
+            // Con la clave del destino del bot, como el menú: si ya estabas en
+            // Recetas, un enlace a otra carpeta lo vuelve a montar en ella.
+            key={`recipes-${recetasInicio?.clave ?? 0}`}
             className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
           >
             <Suspense fallback={null}>
               <RecipesScreen
+                initialCategory={recetasInicio?.categoria ?? null}
+                initialMine={Boolean(recetasInicio?.mias)}
                 user={user}
                 userRecipes={ownUserRecipes}
                 recipeVotes={data.recipeVotes}

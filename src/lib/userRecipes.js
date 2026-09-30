@@ -5,7 +5,7 @@ import { callModel, extractJson, AIPlannerError, ICON_TYPE_MAP, CATEGORY_ICON } 
 import { FAST_MODEL } from "./aiModels.js";
 import { EU_ALLERGENS } from "./allergens.js";
 import { normalizeRichSteps, richToPlainSteps } from "./recipeSteps.js";
-import { computeRecipeNutrition } from "./ingredients.js";
+import { computeRecipeNutrition, deriveRecipeAllergens } from "./ingredients.js";
 import { StepRichSchema, isMontaje } from "../data/recipeSchema.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { lowerFirst } from "./dishNaming.js";
@@ -753,10 +753,71 @@ export const UserRecipeDraftSchema = z.object({
  * @returns {Promise<Object>} validated recipe object, not yet persisted
  */
 export async function generateUserRecipeDraft(input, { signal } = {}) {
+  const userPayload = payloadDeBorrador(input);
+
+  const body = {
+    model: FAST_MODEL,
+    // Los pasos pasaron de strings a objetos {text, minutes, kind} y sin tope
+    // de número de pasos: una receta larga se truncaba a medio JSON con 1200.
+    max_tokens: 2600,
+    task: "structure-recipe",
+    messages: [{ role: "user", content: JSON.stringify(userPayload) }],
+  };
+
+  let parsed;
+  try {
+    const text = await callModel(body, signal);
+    parsed = extractJson(text);
+  } catch (err) {
+    if (err instanceof AIPlannerError) throw err;
+    throw new AIPlannerError("No se pudo generar la receta con IA.", { cause: err });
+  }
+  return borradorDesdeRespuesta(parsed, userPayload);
+}
+
+/**
+ * El borrador validado, con lo que decide quien la guarda encima: es lo que
+ * hace `saveRecipe` en RecipePlanner.jsx para una receta nueva, y tiene que
+ * seguir igual — si cambia allí, cambia aquí. Lo usa el bot, que no tiene
+ * formulario.
+ *
+ * Los alérgenos, como en la app: si TODOS los ingredientes resuelven contra
+ * el catálogo, el cálculo manda; si alguno no, la estimación de la IA.
+ */
+export function recetaParaGuardar(draft, { mealRole = [], requiredAppliances = [], photo = null, owner = null, visibility = "private" } = {}) {
+  const usageTags = draft.usageTags ?? [];
+  const type = deriveTypeFromUsageTags(usageTags);
+  const guarnicion = type === "guarnicion";
+  const calculados = deriveRecipeAllergens({ ingredients: draft.ingredients ?? [] });
+  return {
+    ...draft,
+    usageTags,
+    type,
+    montaje: guarnicion ? undefined : Boolean(draft.time <= 15 && draft.difficulty === "facil"),
+    category: guarnicion ? "guarniciones" : draft.category,
+    mainProtein: guarnicion ? "none" : draft.mainProtein,
+    mealRole: guarnicion ? ["guarnicion"] : (mealRole.length ? mealRole : draft.mealRole ?? []),
+    allergens: calculados.unknownNames.length === 0 ? calculados.allergens : draft.allergens ?? [],
+    requiredAppliances: requiredAppliances.length ? requiredAppliances : undefined,
+    photo: photo || undefined,
+    owner,
+    source: "user",
+    createdAt: draft.createdAt ?? Date.now(),
+    rating: draft.rating ?? { up: 0, down: 0, score: 0 },
+    visibility,
+  };
+}
+
+/**
+ * Lo que se le manda al modelo de `structure-recipe` a partir de lo que ha
+ * contado el usuario. Separado de la llamada para que el bot de Telegram, que
+ * llama al modelo desde el servidor, mande EXACTAMENTE lo mismo que la app.
+ */
+export function payloadDeBorrador(input) {
   // Classification (usageTags/type/category/mainProtein) is now proposed by the
   // AI and confirmed by the user at the review step — so we no longer force it
   // upfront. Only the ground-truth the user actually typed is passed as hints.
-  const userPayload = {
+  return {
     name: input.name,
     servings: input.baseServings,
     timeMin: input.time,
@@ -776,25 +837,17 @@ export async function generateUserRecipeDraft(input, { signal } = {}) {
     appliance: input.requiredAppliances?.[0] || undefined,
     preparationNotes: input.preparationNotes || undefined,
   };
+}
 
-  const body = {
-    model: FAST_MODEL,
-    // Los pasos pasaron de strings a objetos {text, minutes, kind} y sin tope
-    // de número de pasos: una receta larga se truncaba a medio JSON con 1200.
-    max_tokens: 2600,
-    task: "structure-recipe",
-    messages: [{ role: "user", content: JSON.stringify(userPayload) }],
-  };
-
-  let parsed;
-  try {
-    const text = await callModel(body, signal);
-    parsed = extractJson(text);
-  } catch (err) {
-    if (err instanceof AIPlannerError) throw err;
-    throw new AIPlannerError("No se pudo generar la receta con IA.", { cause: err });
-  }
-
+/**
+ * De la respuesta del modelo a una receta validada, lista para guardar: la
+ * normaliza, calcula la nutrición de verdad cuando el catálogo cubre la
+ * receta, valida con el esquema y le pone id. Es la mitad de
+ * `generateUserRecipeDraft` que no depende de dónde se llamó al modelo, y la
+ * comparten la app y el bot para que una receta dictada por Telegram sea
+ * idéntica a una creada con el asistente.
+ */
+export function borradorDesdeRespuesta(parsed, userPayload) {
   // Be forgiving if the model returns only one of the two classification
   // fields: fill in the missing side so validation can succeed, then let the
   // user adjust at the review step.
