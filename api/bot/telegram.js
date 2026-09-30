@@ -95,17 +95,32 @@ async function atender(msg, base) {
     });
   }
 
-  await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
   // En un grupo le hablan como «@bot …»: la mención no es parte del mensaje.
   const limpio = texto.replace(/@\w+bot\b/gi, "").trim() || texto;
-  const respuesta = await responder({
-    chatId,
-    householdId: chat.household_id,
-    texto: limpio,
-    autor: esGrupo ? nombreDe(msg.from) : null,
-    esGrupo,
-  });
-  return enviar(chatId, respuesta, { responderA: esGrupo ? msg.message_id : undefined });
+  return conversar({ chatId, householdId: chat.household_id, texto: limpio, from: msg.from, esGrupo, responderA: esGrupo ? msg.message_id : undefined });
+}
+
+/** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
+async function conversar({ chatId, householdId, texto, from, esGrupo, responderA }) {
+  await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
+  const respuesta = await responder({ chatId, householdId, texto, autor: esGrupo ? nombreDe(from) : null, esGrupo });
+  const { cuerpo, botones } = sacarBotones(respuesta);
+  return enviar(chatId, cuerpo, { responderA, botones });
+}
+
+/**
+ * El agente pone botones escribiendo `[[Opción]]` en líneas al final
+ * (api/_bot/conocimiento.md). Al pulsarlo vuelve como si se hubiera escrito:
+ * `t:<texto>` en callback_data, que Telegram limita a 64 bytes.
+ */
+function sacarBotones(texto) {
+  const opciones = [];
+  const cuerpo = String(texto).replace(/\[\[([^\]\n]{1,40})\]\]/g, (_, o) => { opciones.push(o.trim()); return ""; }).trim();
+  const validas = opciones.filter((o) => Buffer.byteLength(`t:${o}`) <= 64).slice(0, 4);
+  if (!validas.length) return { cuerpo, botones: undefined };
+  const filas = [];
+  for (let i = 0; i < validas.length; i += 2) filas.push(validas.slice(i, i + 2).map((o) => ({ texto: o, dato: `t:${o}` })));
+  return { cuerpo, botones: filas };
 }
 
 function bienvenida(chatId) {
@@ -128,9 +143,16 @@ async function pulsado(cq, base) {
     message_id: cq.message.message_id,
     reply_markup: { inline_keyboard: [] },
   }).catch(() => {});
-  if (esGrupoDe(cq.message.chat)) return;
-
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+
+  // Un botón que puso el agente: cuenta como si se hubiera escrito (también en grupo).
+  if (cq.data?.startsWith("t:")) {
+    if (!chat) return bienvenida(chatId);
+    const esGrupo = esGrupoDe(cq.message.chat);
+    return conversar({ chatId, householdId: chat.household_id, texto: cq.data.slice(2), from: cq.from, esGrupo, responderA: esGrupo ? cq.message.message_id : undefined });
+  }
+
+  if (esGrupoDe(cq.message.chat)) return;
   if (chat) return enviar(chatId, "Este chat ya está conectado a tu casa. Escríbeme cuando quieras.");
 
   if (cq.data === "cuenta:si") {
