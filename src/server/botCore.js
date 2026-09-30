@@ -40,3 +40,9 @@ export { replaceSchoolWeeks, normalizeSchoolMenus, getSchoolDish, SCHOOL_DAYS, S
 
 // Fotos de los platos para mandarlas por Telegram (URLs públicas del blob).
 export { dishImageForRecipe } from "../assets/dishes/dishImages.js";
+
+// Compartir una semana desde el chat: la misma «foto» que publica la app.
+export { buildSharedMenuPayload } from "../lib/sharedMenu.js";
+export { rowToRecipe } from "../lib/userRecipesSync.js";
+export { recipeCatalogById } from "../data/recipeCatalog.js";
+export { catalogToFrontendRecipe } from "../lib/aiPlanner.js";
