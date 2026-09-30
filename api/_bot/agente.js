@@ -436,9 +436,18 @@ function herramientasDeAjustes(householdId, gustos) {
     }),
     betaTool({
       name: "generar_menu",
-      description: "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy o la «siguiente» entera. Tarda unos segundos.",
-      inputSchema: obj({ semana: { type: "string", enum: ["esta", "siguiente"] } }, ["semana"]),
-      run: ({ semana }) => generarMenu(householdId, semana),
+      description: "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy o la «siguiente» entera. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después.",
+      inputSchema: obj({
+        semana: { type: "string", enum: ["esta", "siguiente"] },
+        fijos: {
+          type: "array", maxItems: 7,
+          items: obj({
+            nombre: { type: "string", description: "El plato como lo han dicho." },
+            comida: { type: "string", enum: ["Comida", "Cena"], description: "Solo si lo dicen; si no, se deduce del plato." },
+          }, ["nombre"]),
+        },
+      }, ["semana"]),
+      run: ({ semana, fijos }) => generarMenu(householdId, semana, fijos ?? []),
     }),
   ];
 }

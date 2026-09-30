@@ -24,7 +24,7 @@ process.env.TZ = "Europe/Madrid";
 
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, guardarCasa } from "./casa.js";
-import { motor, describirMenu } from "./menu.js";
+import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO } from "./menu.js";
 import { registrar, EMBUDO } from "./embudo.js";
 
 const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
@@ -37,12 +37,66 @@ const indiceHoy = () => {
  * @param {"esta" | "siguiente"} cual
  * @returns {Promise<string>} texto para el agente
  */
-export async function generarMenu(householdId, cual = "esta") {
+// Lo que puede ser un plato pedido para una comida o una cena: ni desayunos,
+// ni cosas de bebé, ni lo que acompaña.
+const FUERA_DE_PEDIDOS = new Set(["bebes", "desayunos", "meriendas", "postres", "salsas", "guarniciones"]);
+
+/**
+ * Los platos que piden por su nombre («un día salmón al horno, otro pollo con
+ * patatas») como platos fijos del motor, SOLO para esta generación: se
+ * resuelven a una receta (la exacta o la más parecida) y el motor los coloca
+ * una vez en la semana, en comida o cena. Antes se generaba y luego se cambiaba
+ * plato a plato: cada cambio, otra vuelta del modelo en el chat.
+ */
+export function platosPedidos(m, casa, fijos = []) {
+  const propias = casa.state?.data?.userRecipes ?? [];
+  const candidatas = [...propias, ...m.recipeCatalog].filter((r) => r?.name && !FUERA_DE_PEDIDOS.has(r.category));
+  return fijos.filter((f) => f?.nombre).map((f) => {
+    const q = normal(f.nombre);
+    const exacta = candidatas.find((r) => normal(r.name) === q);
+    const receta = exacta ?? masParecida(candidatas, f.nombre);
+    const roles = receta?.mealRole ?? [];
+    const comida = f.comida === "Cena" || f.comida === "Comida" ? f.comida
+      : roles.includes("cena") && !roles.includes("segundo") ? "Cena" : "Comida";
+    return {
+      pedido: f.nombre,
+      aproximada: !exacta,
+      fijo: { name: receta?.name ?? f.nombre, ...(receta?.id ? { catalogId: receta.id } : {}), timesPerWeek: 1, meals: [comida] },
+    };
+  });
+}
+
+/** Dónde ha quedado cada plato pedido en el plan, en palabras. */
+export function dondeQuedaron(pedidos, plan) {
+  return pedidos.map(({ pedido, aproximada, fijo }) => {
+    let donde = null;
+    for (const [gid, huecos] of Object.entries(plan)) {
+      if (gid.startsWith("_") || donde) continue;
+      for (const [clave, h] of Object.entries(huecos ?? {})) {
+        const ids = [h?.recipeId, h?.firstRecipeId].filter(Boolean).map((id) => String(id).split("__").pop());
+        if (fijo.catalogId ? ids.includes(fijo.catalogId) : false) {
+          const [d, franja] = clave.split("-");
+          donde = `${DIA_LARGO[d] ?? d}, ${franja.toLowerCase()}`;
+          break;
+        }
+      }
+    }
+    return donde
+      ? `«${pedido}» → ${fijo.name} (${donde})${aproximada ? ", lo más parecido que hay" : ""}`
+      : `«${pedido}» no ha cabido en la semana: ofrece ponerlo con cambiar_plato`;
+  });
+}
+
+export async function generarMenu(householdId, cual = "esta", fijos = []) {
   const casa = await cargarCasa(householdId);
   if (!casa) return "Esta casa todavía no tiene datos en la nube.";
   const m = await motor();
+  // Las recetas propias de la casa, registradas para resolver los pedidos.
+  if (fijos.length) await prepararRecetas(casa).catch(() => {});
 
-  const working = m.resolveModeData(casa.state?.data ?? {});
+  const base = m.resolveModeData(casa.state?.data ?? {});
+  const pedidos = platosPedidos(m, casa, fijos);
+  const working = pedidos.length ? { ...base, fixedDishes: [...(base.fixedDishes ?? []), ...pedidos.map((p) => p.fijo)] } : base;
   const miembros = working.members ?? [];
   let groups = working.groups ?? [];
   const conGente = (gs) => gs.some((g) => m.membersOfGroup(g, miembros).length > 0);
@@ -151,6 +205,7 @@ export async function generarMenu(householdId, cual = "esta") {
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(() => "");
   return `Menú nuevo generado y activado: del ${startISO} al ${endISO}, ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
+    + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan).join("\n")}` : "")
     + (semana
       ? `\n\nAsí queda, para que sepas qué hay (no hace falta ver_menu). En el chat NO la copies entera: resume en 3-4 líneas; la semana la ven con el botón que sale solo.\n${semana}`
       : " La semana la ven con el botón que sale solo: resume en 3-4 líneas qué has hecho.");
