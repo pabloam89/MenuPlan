@@ -16,7 +16,7 @@
  */
 
 import { select, insert, eq } from "./db.js";
-import { conCasa, cargarCasa } from "./casa.js";
+import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 
 let motorCargado = null;
 export const motor = async () => (motorCargado ??= await import("./core.mjs"));
@@ -45,6 +45,68 @@ export function diaDe(texto) {
 export function hoy() {
   const n = new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: "Europe/Madrid" }).format(new Date());
   return { Mon: "Lun", Tue: "Mar", Wed: "Mié", Thu: "Jue", Fri: "Vie", Sat: "Sáb", Sun: "Dom" }[n];
+}
+
+// ── Fechas ──────────────────────────────────────────────────────────────────
+// El plan se guarda por día de la semana («Mié-Cena»), pero un menú puede
+// tener varias semanas y la activa puede no ser la de hoy. Así que «hoy» o
+// «el jueves» se resuelven a una FECHA, y la fecha a la semana que la tiene.
+
+const sumarDias = (iso, n) => {
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+};
+const diaDeFecha = (iso) => DIAS[(new Date(`${iso}T12:00:00Z`).getUTCDay() + 6) % 7];
+const lunesDe = (iso) => sumarDias(iso, -DIAS.indexOf(diaDeFecha(iso)));
+const semanaConFecha = (casa, iso) => (casa.semanas ?? []).find((w) => w.weekStart <= iso && iso <= w.weekEnd) ?? null;
+const fechaCorta = (iso) => `${DIA_LARGO[diaDeFecha(iso)]} ${Number(iso.slice(8, 10))}`;
+
+function rangosDelMenu(casa) {
+  const ss = casa.semanas ?? [];
+  if (!ss.length) return "No hay ningún menú activo.";
+  return `El menú activo tiene: ${ss.map((w) => `del ${fechaCorta(w.weekStart)} al ${fechaCorta(w.weekEnd)}`).join(" y ")}.`;
+}
+
+/**
+ * «hoy», «mañana», «jueves» (+ «esta»/«siguiente» si lo dicen) → la fecha y
+ * la casa apuntando a la semana del menú que la contiene. Un día suelto sin
+ * semana es el próximo que cae (hoy incluido) que tenga menú; si ninguno
+ * tiene, el de esta semana.
+ * @returns {{ dia: string, fecha: string, casa: object } | { error: string }}
+ */
+export function resolverDia(casa, texto, semana = null) {
+  const t = normal(texto);
+  const hoy = hoyISO();
+  let fecha = null;
+  if (t === "hoy" || t === "esta noche") fecha = hoy;
+  else if (t === "manana") fecha = sumarDias(hoy, 1);
+  else if (t === "pasado manana") fecha = sumarDias(hoy, 2);
+  else {
+    const d = diaDe(texto);
+    if (!d) return { error: `No entiendo el día «${texto}».` };
+    const deEsta = sumarDias(lunesDe(hoy), DIAS.indexOf(d));
+    if (semana === "siguiente") fecha = sumarDias(deEsta, 7);
+    else if (semana === "esta") fecha = deEsta;
+    else {
+      const proxima = deEsta >= hoy ? deEsta : sumarDias(deEsta, 7);
+      fecha = [proxima, deEsta].find((f) => semanaConFecha(casa, f)) ?? proxima;
+    }
+  }
+  const s = semanaConFecha(casa, fecha);
+  if (!s) {
+    return { error: `No hay menú para el ${fechaCorta(fecha)} (${fecha}). ${rangosDelMenu(casa)} Si lo quieren, generar_menu para esa semana: las otras semanas del menú se conservan.` };
+  }
+  return { dia: diaDeFecha(fecha), fecha, casa: { ...casa, semana: s } };
+}
+
+/** «esta» / «siguiente» → la casa apuntando a esa semana, o un error. */
+function casaDeSemana(casa, semana) {
+  if (!semana) return { casa };
+  const lunes = sumarDias(lunesDe(hoyISO()), semana === "siguiente" ? 7 : 0);
+  const s = (casa.semanas ?? []).find((w) => w.weekEnd >= lunes && w.weekStart <= sumarDias(lunes, 6));
+  if (!s) return { error: `No hay menú para ${semana === "siguiente" ? "la semana que viene" : "esta semana"}. ${rangosDelMenu(casa)}` };
+  return { casa: { ...casa, semana: s } };
 }
 
 export function franjaDe(texto) {
@@ -104,8 +166,8 @@ export function describirCasa(casa) {
     `Miembros:\n${miembros.join("\n") || "(ninguno todavía)"}`,
     `Grupos de menú de la casa: ${(d.groups ?? []).map((g) => g.label).join(", ") || "(ninguno)"}`,
     `Comidas que se planifican: ${(d.meals ?? []).join(", ") || "Comida, Cena"}`,
-    casa.semana ? `Semana del menú activo: ${casa.semana.weekStart} a ${casa.semana.weekEnd}` : "No hay menú activo.",
-    `Hoy es ${DIA_LARGO[hoy()]}.`,
+    rangosDelMenu(casa),
+    `Hoy es ${fechaCorta(hoyISO())} (${hoyISO()}).`,
   ].join("\n");
 }
 
@@ -113,21 +175,26 @@ export function describirCasa(casa) {
  * Añade a `fotos` (si se pasa) la foto de catálogo de una receta, para que el
  * webhook la mande junto al texto. Sin foto (receta propia, fruta…), nada.
  */
-function apuntarFoto(m, fotos, id, pie) {
-  if (!fotos || !id) return;
-  const receta = m.RECIPES_BY_ID[id] ?? m.RECIPES_BY_ID[id.split("__").pop()];
-  const url = receta ? m.dishImageForRecipe(receta) : null;
-  if (url && !fotos.some((f) => f.url === url)) fotos.push({ url, pie: pie ?? receta.name });
+function apuntarFoto(m, fotos, receta, pie) {
+  if (!fotos || !receta) return;
+  // Por id o con la receta a mano. RECIPES_BY_ID solo tiene las registradas
+  // (las del menú); las del catálogo que se proponen no están, pero la foto
+  // sale igual de su id.
+  const r = typeof receta === "string"
+    ? m.RECIPES_BY_ID[receta] ?? m.RECIPES_BY_ID[receta.split("__").pop()] ?? { id: receta }
+    : receta;
+  const url = m.dishImageForRecipe(r);
+  if (url && !fotos.some((f) => f.url === url)) fotos.push({ url, pie: pie ?? r.name ?? "" });
 }
 
-export async function describirMenu(casa, { dia, fotos = null } = {}) {
+/** @param {{ dia?: string, fecha?: string, fotos?: any[] }} [opts] `dia` ya resuelto (resolverDia) */
+export async function describirMenu(casa, { dia, fecha, fotos = null } = {}) {
   if (!casa.semana?.plan) return "No hay ningún menú activo en esta casa.";
   const m = await prepararRecetas(casa);
   // Un menú de una semana que ya pasó no es «lo de hoy»: se dice.
-  const hoyISO = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
-  const aviso = casa.semana.weekEnd < hoyISO
+  const aviso = casa.semana.weekEnd < hoyISO()
     ? `Ojo: el menú activo es de la semana del ${casa.semana.weekStart} al ${casa.semana.weekEnd}, que ya pasó; no hay menú para esta semana todavía.\n\n`
-    : "";
+    : `Semana del ${fechaCorta(casa.semana.weekStart)} al ${fechaCorta(casa.semana.weekEnd)}.${(casa.semanas ?? []).length > 1 ? ` ${rangosDelMenu(casa)}` : ""}\n\n`;
   const nombre = (id) => (id ? m.RECIPES_BY_ID[id]?.name ?? m.RECIPES_BY_ID[id.split("__").pop()]?.name ?? id : null);
   const plan = casa.semana.plan;
   // Solo los días activos de la semana, como la app: el motor genera la semana
@@ -163,9 +230,20 @@ export async function describirMenu(casa, { dia, fotos = null } = {}) {
         delDia.push(`  ${f}${quien}: ${platos}`);
       }
     }
-    if (delDia.length) lineas.push(`${DIA_LARGO[d]}:\n${delDia.join("\n")}`);
+    if (delDia.length) lineas.push(`${dia && fecha ? `${fechaCorta(fecha)} (${fecha})` : DIA_LARGO[d]}:\n${delDia.join("\n")}`);
   }
   return aviso + (lineas.length ? lineas.join("\n") : `No hay nada planificado${dia ? ` el ${DIA_LARGO[dia]}` : ""}.`);
+}
+
+/** ver_menu: un día (por su fecha real) o una semana del menú activo. */
+export async function verMenu(casa, { dia, semana, fotos = null } = {}) {
+  if (dia) {
+    const rd = resolverDia(casa, dia, semana);
+    if (rd.error) return rd.error;
+    return describirMenu(rd.casa, { dia: rd.dia, fecha: rd.fecha, fotos });
+  }
+  const cs = casaDeSemana(casa, semana);
+  return cs.error ?? describirMenu(cs.casa);
 }
 
 export async function describirReceta(casa, consulta) {
@@ -302,27 +380,88 @@ export function candidataPorNombre(candidatas, texto) {
   return todas.length === 1 ? todas[0] : todas.find((r) => normal(r.name).startsWith(q)) ?? todas[0] ?? null;
 }
 
+// Palabras que no dicen qué plato es.
+const VACIAS = new Set(["con", "del", "las", "los", "para", "una", "uno", "unos", "unas", "tipo", "algo", "plato", "receta", "rico", "rica", "facil", "rapido", "rapida"]);
+// Por palabras enteras (se parte por lo que no es letra: sin trozos, «pollo»
+// no es «repollo») y sin la -s del plural: «tortillas francesas» es
+// «tortilla francesa».
+const palabrasDe = (s) => normal(s).split(/[^a-z0-9]+/)
+  .filter((w) => w.length > 2 && !VACIAS.has(w))
+  .map((w) => (w.length > 4 ? w.replace(/s$/, "") : w));
+
+/**
+ * La receta de `candidatas` MÁS PARECIDA a lo que piden, aunque no se llame
+ * así: cada palabra pedida suma 2 si está en el nombre y 1 si es un
+ * ingrediente. La primera («salmón» en «salmón al horno con ensalada de
+ * mango») dice qué plato es: tiene que estar, en el nombre o de ingrediente,
+ * y cuenta el triple. Sin eso, una ensalada de lentejas ganaba por «ensalada».
+ */
+export function masParecida(candidatas, texto) {
+  const pedidas = [...new Set(palabrasDe(texto))];
+  if (!pedidas.length) return null;
+  const [cabeza] = pedidas;
+  // Lo de antes del «con» es el plato («salmón al horno»); lo de después, el
+  // acompañamiento: pesa el doble lo primero.
+  const delPlato = new Set(palabrasDe(normal(texto).split(/\bcon\b/)[0]));
+  let mejor = null;
+  for (const r of candidatas) {
+    const enNombre = new Set(palabrasDe(r.name));
+    const enIngredientes = new Set((r.ingredients ?? []).flatMap((i) => palabrasDe(i?.name ?? i?.ingredient)));
+    if (!enNombre.has(cabeza) && !enIngredientes.has(cabeza)) continue;
+    const peso = (w) => (w === cabeza ? 3 : delPlato.has(w) ? 2 : 1);
+    const puntos = pedidas.reduce((s, w) => s + peso(w) * (enNombre.has(w) ? 2 : enIngredientes.has(w) ? 1 : 0), 0);
+    // A igualdad, el nombre con menos cosas que no se han pedido.
+    if (!mejor || puntos > mejor.puntos || (puntos === mejor.puntos && enNombre.size < mejor.tam)) mejor = { r, puntos, tam: enNombre.size };
+  }
+  return mejor?.r ?? null;
+}
+
+// Lo que se mira para aproximar un plato pedido por su nombre: todo lo que el
+// motor da por bueno en el hueco, no solo las primeras.
+const POOL_PARA_APROXIMAR = 400;
+
 /**
  * Las opciones que el motor da por buenas para un hueco, SIN cambiar nada: el
  * mismo pool que usa la app para las sugerencias del recetario (rol del hueco,
  * tope de tiempo, alergias, lo ya puesto en la semana, el cole y los gustos).
  */
-export async function proponerPlatos(householdId, { dia, franja, grupo, cual = "principal", n = 3 }, fotos = null) {
-  const casa = await cargarCasa(householdId);
-  if (!casa) return "Esta casa todavía no tiene datos en la nube.";
+/**
+ * @param {{ dia: string, semana?: "esta"|"siguiente", franja: string, grupo?: string,
+ *   cual?: string, n?: number, parecidoA?: string }} hueco
+ *   `dia` tal cual lo dicen («hoy», «jueves»); `parecidoA`, un plato que
+ *   piden por su nombre: las opciones salen ordenadas por parecido.
+ */
+export async function proponerPlatos(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal", n = 3, parecidoA = null }, fotos = null) {
+  const cargada = await cargarCasa(householdId);
+  if (!cargada) return "Esta casa todavía no tiene datos en la nube.";
+  const rd = resolverDia(cargada, diaPedido, semana);
+  if (rd.error) return rd.error;
+  const { casa, dia, fecha } = rd;
   const h = huecoDe(casa, { dia, franja, grupo, cual });
   if (h.error) return h.error;
   const m = await prepararRecetas(casa);
   const res = m.pickCatalogReplacement(casa.state?.data ?? {}, casa.semana.plan, {
-    groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: n,
+    groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA ? POOL_PARA_APROXIMAR : n, pedido: !!parecidoA,
   });
-  const lista = res?.candidatos ?? [];
+  let lista = res?.candidatos ?? [];
+  if (parecidoA) {
+    // Las más parecidas primero; si ninguna se parece, las de siempre.
+    const ordenadas = [];
+    let resto = lista;
+    while (ordenadas.length < n) {
+      const r = masParecida(resto, parecidoA);
+      if (!r) break;
+      ordenadas.push(r);
+      resto = resto.filter((x) => x !== r);
+    }
+    lista = ordenadas.length ? ordenadas : lista.slice(0, n);
+  }
   if (!lista.length) return "No hay otras recetas que encajen en ese hueco con vuestras alergias, gustos y tiempo.";
   const ahora = m.RECIPES_BY_ID[h.course === "first" ? h.hueco.firstRecipeId : h.hueco.recipeId]?.name;
   const detalle = (r) => [r.time ? `${r.time} min` : "", r.difficulty ?? ""].filter(Boolean).join(", ");
-  lista.forEach((r, i) => apuntarFoto(m, fotos, r.id, `${i + 1}. ${r.name}`));
+  lista.forEach((r, i) => apuntarFoto(m, fotos, r, `${i + 1}. ${r.name}`));
   return [
-    `Opciones para el ${DIA_LARGO[dia]}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, ${h.g.label}` : ""}. Ahora mismo: ${ahora ?? "nada"}.`,
+    `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, ${h.g.label}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}`,
     ...lista.map((r, i) => `${i + 1}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`),
     "Nada está cambiado aún: para poner una, cambiar_plato con receta = su nombre.",
   ].join("\n");
@@ -336,9 +475,12 @@ export async function proponerPlatos(householdId, { dia, franja, grupo, cual = "
  * motor da por buenas para el hueco: elegir no se salta las alergias, el
  * tiempo ni lo repetido.
  */
-export async function cambiarPlato(householdId, { dia, franja, grupo, cual = "principal", receta = null }) {
+export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal", receta = null }, fotos = null) {
   let texto = "";
-  const r = await conCasa(householdId, async (casa) => {
+  const r = await conCasa(householdId, async (cargada) => {
+    const rd = resolverDia(cargada, diaPedido, semana);
+    if (rd.error) { texto = rd.error; return null; }
+    const { casa, dia, fecha } = rd;
     const h = huecoDe(casa, { dia, franja, grupo, cual });
     if (h.error) { texto = h.error; return null; }
     const { gs, g, clave, hueco, course } = h;
@@ -346,10 +488,17 @@ export async function cambiarPlato(householdId, { dia, franja, grupo, cual = "pr
     const data = casa.state?.data ?? {};
 
     let forcedRecipe = null;
+    let aproximada = false;
     if (receta) {
       const pool = m.pickCatalogReplacement(data, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
       forcedRecipe = candidataPorNombre(pool?.candidatos ?? [], receta);
-      if (!forcedRecipe) { texto = `«${receta}» no encaja en ese hueco (por alergias, tiempo o porque ya está en la semana). Pide opciones con proponer_platos.`; return null; }
+      if (!forcedRecipe) {
+        // No está tal cual: la más parecida de todo lo que encaja en el hueco.
+        const grande = m.pickCatalogReplacement(data, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_APROXIMAR, pedido: true });
+        forcedRecipe = masParecida(grande?.candidatos ?? [], receta);
+        aproximada = !!forcedRecipe;
+      }
+      if (!forcedRecipe) { texto = `No hay nada parecido a «${receta}» que encaje en ese hueco (por alergias, tiempo o porque ya está en la semana). Pide opciones con proponer_platos.`; return null; }
     }
     const elegido = m.pickCatalogReplacement(data, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
     if (!elegido?.recipeId) { texto = "No he encontrado otro plato que encaje en ese hueco con vuestras preferencias."; return null; }
@@ -372,8 +521,13 @@ export async function cambiarPlato(householdId, { dia, franja, grupo, cual = "pr
       recipe_snapshot: elegido.frontendRecipe,
     }], { upsert: true }).catch(() => {});
 
-    texto = `Cambiado (${DIA_LARGO[dia]}, ${franja}${gs.length > 1 ? `, ${g.label}` : ""}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`;
-    return { state: { ...casa.state, menuPlan: plan, shopping, aiRecipes }, semana: { plan, shopping } };
+    apuntarFoto(m, fotos, elegido.frontendRecipe);
+    texto = `Cambiado (${fechaCorta(fecha)}, ${fecha}, ${franja}${gs.length > 1 ? `, ${g.label}` : ""}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`
+      + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "");
+    // `state.menuPlan` y `state.shopping` son la semana que pinta la app (la de
+    // hoy): si el cambio es en otra, solo se toca esa semana.
+    const viva = casa.semana.weekStart === cargada.semanaViva;
+    return { casa, state: viva ? { ...casa.state, menuPlan: plan, shopping, aiRecipes } : { ...casa.state, aiRecipes }, semana: { plan, shopping } };
   });
   if (!r.ok) return `No he podido guardar el cambio: ${r.error}.`;
   return texto;

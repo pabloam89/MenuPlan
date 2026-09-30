@@ -17,7 +17,7 @@ import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq } from "./db.js";
 import { cargarCasa, deshacer } from "./casa.js";
 import {
-  describirCasa, describirMenu, describirReceta, describirCompra,
+  describirCasa, verMenu, describirReceta, describirCompra,
   marcarCompra, anadirCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
@@ -206,7 +206,7 @@ function herramientasDeRecetas(chat) {
     }),
     betaTool({
       name: "guardar_receta",
-      description: "Guarda la receta preparada con preparar_receta, en el recetario de la casa (y el motor ya puede ponerla en menús). Solo con confirmado = true tras su «sí».",
+      description: "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true.",
       inputSchema: obj({ confirmado: { type: "boolean" } }, ["confirmado"]),
       run: ({ confirmado }) => guardarReceta(householdId, { confirmado }, chat),
     }),
@@ -417,7 +417,7 @@ function herramientasDeMenu(householdId, fotos = null) {
     if (!casa) return "Esta casa todavía no tiene datos en la nube. Que entren una vez en la app de HoMenu.";
     return f(casa);
   };
-  const diaValido = (d) => diaDe(d) ?? null;
+  const semana = { type: "string", enum: ["esta", "siguiente"], description: "Opcional: «esta» semana o la «siguiente», si lo dicen. Sin ella, el próximo día con ese nombre que tenga menú." };
 
   return [
     betaTool({
@@ -428,17 +428,16 @@ function herramientasDeMenu(householdId, fotos = null) {
     }),
     betaTool({
       name: "ver_menu",
-      description: "El menú de la semana activa: todo, o solo un día. Úsalo para «qué comemos hoy», «qué hay el jueves», «pásame el menú».",
+      description: "El menú activo (puede tener varias semanas): una semana entera, o solo un día. Úsalo para «qué comemos hoy», «qué hay el jueves», «pásame el menú de la semana que viene».",
       inputSchema: {
         type: "object",
-        properties: { dia: { type: "string", description: "Opcional: lunes…domingo, «hoy» o «mañana». Sin él, la semana entera." } },
+        properties: {
+          dia: { type: "string", description: "Opcional: lunes…domingo, «hoy» o «mañana». Sin él, la semana entera." },
+          semana,
+        },
         additionalProperties: false,
       },
-      run: ({ dia }) => conCasa((casa) => {
-        const d = dia ? diaValido(dia) : null;
-        if (dia && !d) return `No entiendo el día «${dia}».`;
-        return describirMenu(casa, { dia: d, fotos });
-      }),
+      run: ({ dia, semana: cual }) => conCasa((casa) => verMenu(casa, { dia, semana: cual, fotos })),
     }),
     betaTool({
       name: "ver_receta",
@@ -484,33 +483,35 @@ function herramientasDeMenu(householdId, fotos = null) {
     }),
     betaTool({
       name: "proponer_platos",
-      description: "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir. En la comida hay primero y segundo; «cual» dice cuál.",
+      description: "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál.",
       inputSchema: {
         type: "object",
         properties: {
           dia: { type: "string", description: "lunes…domingo, «hoy» o «mañana»." },
+          semana,
           comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
           grupo: { type: "string", description: "Opcional: el grupo de menú (p. ej. «Bebé») si hay varios." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           n: { type: "integer", minimum: 2, maximum: 6, description: "Cuántas opciones; por defecto 3 (caben 3 botones más «Elige tú»)." },
+          parecido_a: { type: "string", description: "Opcional: el plato que piden («salmón al horno con ensalada de mango»)." },
         },
         required: ["dia", "comida"],
         additionalProperties: false,
       },
-      run: ({ dia, comida, grupo, cual, n }) => {
-        const d = diaValido(dia);
+      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a }) => {
         const f = franjaDe(comida);
-        if (!d || !f) return `No entiendo qué hueco es («${dia}», «${comida}»).`;
-        return proponerPlatos(householdId, { dia: d, franja: f, grupo, cual, n: n ?? 3 }, fotos);
+        if (!f) return `No entiendo qué comida es («${comida}»).`;
+        return proponerPlatos(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, n: n ?? 3, parecidoA: parecido_a || null }, fotos);
       },
     }),
     betaTool({
       name: "cambiar_plato",
-      description: "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa (normalmente una de proponer_platos; se valida que encaje en el hueco); sin ella, el motor elige otra respetando alergias y preferencias. En la comida hay primero y segundo; «cual» dice cuál cambiar.",
+      description: "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa o, si no está tal cual en el catálogo, la más parecida que encaje en el hueco (la respuesta dice si es aproximada); sin ella, el motor elige otra respetando alergias y preferencias. En la comida hay primero y segundo; «cual» dice cuál cambiar.",
       inputSchema: {
         type: "object",
         properties: {
           dia: { type: "string", description: "lunes…domingo, «hoy» o «mañana»." },
+          semana,
           comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
           grupo: { type: "string", description: "Opcional: el grupo de menú (p. ej. «Bebé») si hay varios." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
@@ -519,11 +520,10 @@ function herramientasDeMenu(householdId, fotos = null) {
         required: ["dia", "comida"],
         additionalProperties: false,
       },
-      run: ({ dia, comida, grupo, cual, receta }) => {
-        const d = diaValido(dia);
+      run: ({ dia, semana: cual_semana, comida, grupo, cual, receta }) => {
         const f = franjaDe(comida);
-        if (!d || !f) return `No entiendo qué hueco es («${dia}», «${comida}»).`;
-        return cambiarPlato(householdId, { dia: d, franja: f, grupo, cual, receta: receta || null });
+        if (!f) return `No entiendo qué comida es («${comida}»).`;
+        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null }, fotos);
       },
     }),
   ];

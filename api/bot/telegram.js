@@ -29,6 +29,11 @@ import { responder, cortarCharla } from "../_bot/agente.js";
 import { registrar, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
+import {
+  enlacesReceta, enlacesSemana, botonesCompartir, resolverInvitacion,
+  recetaEnTexto, semanaEnTexto, copiarReceta,
+} from "../_bot/compartir.js";
+import { motor } from "../_bot/menu.js";
 import { sembrarCasa } from "../_bot/ajustes.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
 import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
@@ -118,6 +123,10 @@ async function atender(msg, base) {
   // el código solo (la plantilla de Supabase lo pone en el enlace t.me).
   const desdeCorreo = start?.[1]?.match(/^c(\d{6})$/);
   if (desdeCorreo && !esGrupo) return comprobarCodigo(msg, chatId, desdeCorreo[1]);
+  if (start?.[1] && /^(rc|ru|m)_/.test(start[1]) && !esGrupo) {
+    const hecho = await recibirCompartido(chatId, start[1]);
+    if (hecho) return hecho;
+  }
   if (start?.[1]) return enlazarDesdeAjustes(msg, chatId, esGrupo, start[1]);
 
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
@@ -236,6 +245,12 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
       : { texto: "📱 Verlo en la app", url: await enlaceApp(base, r.ir, from, chatId) });
   }
   if (alPie.length) botones.push(alPie);
+  if (r.compartir && base) {
+    const enlaces = r.compartir.tipo === "semana"
+      ? await enlacesSemana(householdId, base).catch((e) => { console.error("[compartir]", e?.message); return null; })
+      : await enlacesReceta(householdId, r.compartir.recetaId, base).catch((e) => { console.error("[compartir]", e?.message); return null; });
+    if (enlaces) botones.push(...botonesCompartir(enlaces, r.compartir.tipo));
+  }
   const eco = oido ? `🎙️ <i>«${escaparHtml(oido)}»</i>\n\n` : "";
   // Las fotos de los platos, antes del texto: así los botones quedan abajo.
   if (r.fotos?.length) await enviarFotos(chatId, r.fotos, { responderA });
@@ -254,6 +269,67 @@ async function enlaceApp(base, ir, from, chatId) {
   if (!cuenta) return `${base}/?${destino}`;
   const codigo = await crearCodigo({ tipo: "entrar", chatId, externalId: from.id, userId: cuenta.id, minutos: MIN_ENTRAR });
   return `${base}/?entrar=${codigo}&${destino}`;
+}
+
+/**
+ * Alguien abre a Lola desde un enlace de compartir (/start rc_… | ru_… | m_…):
+ * se le enseña lo que le han mandado y, si ya tiene casa, qué puede hacer con
+ * ello. Si no la tiene, la invitación a empezar: su siguiente mensaje ya es el
+ * alta (atender, «lo primero que escriben»).
+ */
+async function recibirCompartido(chatId, param) {
+  const inv = await resolverInvitacion(param).catch(() => null);
+  if (!inv) return enviar(chatId, "Ese enlace ya no funciona 🙈 Pídele que te lo vuelva a mandar.");
+  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+  const invitacion = "¿Te preparo también a ti el menú de la semana? Cuéntame quiénes coméis en casa (o mándame un audio) y empezamos 🙂";
+
+  if (inv.tipo === "semana") {
+    await enviar(chatId, `👋 Te han pasado su menú de la semana:\n\n${semanaEnTexto(inv.payload)}`);
+    return enviar(chatId, chat
+      ? "Si te apetece algún plato, dime «ponme la tortilla el jueves» y te lo cambio en tu menú."
+      : invitacion);
+  }
+
+  const r = inv.receta;
+  const m = await motor();
+  const foto = r.photo || m.dishImageForRecipe(inv.propia ? { id: r.linked_catalog_id ?? r.base_dish_id ?? r.id } : r);
+  if (foto) await enviarFotos(chatId, [{ url: foto, pie: r.name }]);
+  const de = inv.deQuien ? ` de ${escaparHtml(inv.deQuien)}` : "";
+  await enviar(chatId, `👋 Te han pasado una receta${de}:\n\n${recetaEnTexto(r)}`);
+  if (!chat) return enviar(chatId, invitacion);
+  return enviar(chatId, "¿Qué hago con ella?", {
+    botones: [[
+      ...(inv.propia ? [{ texto: "📥 Guardar en mi recetario", dato: `comp:g:${param}` }] : []),
+      { texto: "🍽️ Ponerla en mi menú", dato: `comp:m:${param}` },
+    ]],
+  });
+}
+
+async function usarCompartido(cq, chat, base) {
+  const chatId = String(cq.message.chat.id);
+  if (!chat) return bienvenida(chatId);
+  const [, accion, param] = cq.data.match(/^comp:(\w):(.+)$/) ?? [];
+  const inv = await resolverInvitacion(param).catch(() => null);
+  if (!inv || inv.tipo !== "receta") return enviar(chatId, "Ese enlace ya no funciona 🙈");
+  const esGrupo = esGrupoDe(cq.message.chat);
+  let nombre = inv.receta.name;
+  // Una receta propia de otra persona hay que tenerla antes de poder usarla.
+  if (inv.propia) {
+    const c = await copiarReceta(chat.household_id, inv.receta);
+    if (c.error) return enviar(chatId, c.error);
+    nombre = c.nombre;
+    if (accion === "g") {
+      return enviar(chatId, c.ya
+        ? `«${escaparHtml(nombre)}» ya estaba en tu recetario 👍`
+        : `📥 Guardada en tu recetario: <b>${escaparHtml(nombre)}</b>. La verás en la app y la puedo poner en tus menús.`, {
+        botones: [[{ texto: "🍽️ Ponerla en mi menú", dato: `comp:m:${param}` }]],
+      });
+    }
+  }
+  return conversar({
+    chatId, householdId: chat.household_id, from: cq.from, esGrupo, base,
+    texto: `Quiero poner «${nombre}» en mi menú de esta semana. ¿En qué comida encaja mejor?`,
+  });
 }
 
 /** Al entrar en un grupo: cómo se le habla, y cómo conectarlo si no lo está. */
@@ -335,6 +411,9 @@ async function pulsado(cq, base) {
     const esGrupo = esGrupoDe(cq.message.chat);
     return conversar({ chatId, householdId: chat.household_id, texto: cq.data.slice(2), from: cq.from, esGrupo, base, responderA: esGrupo ? cq.message.message_id : undefined });
   }
+
+  // Quien recibe una receta: guardársela o ponerla en su menú.
+  if (cq.data?.startsWith("comp:")) return usarCompartido(cq, chat, base);
 
   if (esGrupoDe(cq.message.chat)) return;
   if (chat) return enviar(chatId, "Este chat ya está conectado a tu casa. Escríbeme cuando quieras.");
