@@ -1,3 +1,6 @@
+import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "../lib/frontalBot.js";
+import { pedidoMenu } from "../lib/pedidoLola.js";
+import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -29,6 +32,7 @@ import {
   Plus,
   Receipt,
   Scale,
+  Send,
   Settings,
   Share2,
   ShoppingBasket,
@@ -329,15 +333,26 @@ export function ShoppingScreen({
     setShowSwipeTutorial(false);
   };
   const [pantryStock, setPantryStock] = useState(() => (user ? [] : loadLocalPantry()));
+  // De quién es el stock cargado. Hasta que llega el de esta cuenta la lista no
+  // se pinta: con el stock vacío salía entera y lo que ya hay en casa
+  // desaparecía un instante después (parpadeo al abrir).
+  const [stockOwner, setStockOwner] = useState(() => (user ? null : "guest"));
+  const stockReady = stockOwner === (user?.id ?? "guest");
   useEffect(() => {
     let active = true;
     if (!user) {
       setPantryStock(loadLocalPantry());
+      setStockOwner("guest");
       return undefined;
     }
-    loadPantry(user.id, pantryHouseholdId || null).then((rows) => {
-      if (active) setPantryStock(rows);
-    });
+    loadPantry(user.id, pantryHouseholdId || null)
+      .then((rows) => {
+        if (active) setPantryStock(rows);
+      })
+      .catch((err) => console.error("[shopping] loadPantry failed", err))
+      .finally(() => {
+        if (active) setStockOwner(user.id);
+      });
     return () => {
       active = false;
     };
@@ -363,9 +378,12 @@ export function ShoppingScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openCaptureOnMount]);
 
+  // Pasillos abiertos por defecto (en el súper se va bajando la lista, no
+  // abriendo cajones): solo cuenta el `false` de los que se pliegan a mano.
   const [openSections, setOpenSections] = useState(
     initialOpenAisle ? { [initialOpenAisle]: true } : {},
   );
+  const isSectionOpen = (key) => openSections[key] !== false;
   const [showIconCoach, setShowIconCoach] = useState(false);
   const [receiptBusy, setReceiptBusy] = useState(false);
   // Unified spend capture: one money button → chooser (escanear / a mano).
@@ -475,8 +493,13 @@ export function ShoppingScreen({
 
   // Writes one week's shopping through the parent (archive + live mirror for
   // the active week). Fallback mode drives the live `shopping` state directly.
+  // Lee las semanas del último render, no las del cierre: tachar, revertir y
+  // deshacer escriben después de un await o de un toast, y con las de entonces
+  // pisarían lo que se haya tocado mientras.
+  const weeksRef = useRef(weeks);
+  weeksRef.current = weeks;
   const updateWeek = (weekStart, updater) => {
-    const w = weeks.find((x) => x.weekStart === weekStart);
+    const w = weeksRef.current.find((x) => x.weekStart === weekStart);
     const next = updater(w?.items ?? []);
     if (menuMode) onUpdateWeek?.(weekStart, { items: next });
     else setShopping((s) => ({ ...s, items: next }));
@@ -618,13 +641,24 @@ export function ShoppingScreen({
       if (!byWeek.has(s.weekStart)) byWeek.set(s.weekStart, new Set());
       byWeek.get(s.weekStart).add(s.ikey);
     }
+    // Lo quitado, por semana, para que «Deshacer» lo devuelva tal cual.
+    const removed = [];
     for (const [weekStart, ikeys] of byWeek) {
-      updateWeek(weekStart, (items) =>
-        mergeShoppingItems(items).filter(
-          (it) => !ikeys.has(normalizeIngredientKey(it.name, it.unit ?? "ud")),
-        ),
-      );
+      const matches = (it) => ikeys.has(normalizeIngredientKey(it.name, it.unit ?? "ud"));
+      updateWeek(weekStart, (items) => {
+        const merged = mergeShoppingItems(items);
+        removed.push({ weekStart, items: merged.filter(matches) });
+        return merged.filter((it) => !matches(it));
+      });
     }
+    onToast?.(`${row.name}: quitado de la lista`, {
+      label: "Deshacer",
+      onClick: () => {
+        for (const { weekStart, items } of removed) {
+          if (items.length) updateWeek(weekStart, (cur) => [...cur, ...items]);
+        }
+      },
+    });
   };
   const markPurchased = (ids, weekStart = null) => {
     for (const id of ids) {
@@ -657,46 +691,46 @@ export function ShoppingScreen({
       source: "manual",
     };
   };
-  // Single "Comprado" tap: mark it bought (vanishes from the pending list — no
-  // "Comprado" sub-view anymore) and top up "En casa".
+  // Single "Comprado" tap: mark it bought (pasa a «Comprado») and top up
+  // "En casa". Optimista: se tacha al momento y En casa se sincroniza detrás;
+  // si eso falla, vuelve a «Por comprar» y se avisa.
   const markItemBought = async (id) => {
     const row = rowById.get(id);
     if (!row) return;
-    const item = rowToPantryItem(row);
-    if (item) {
-      try {
-        const saved = await restoreToPantry([item], {
-          user,
-          householdId: pantryHouseholdId || null,
-        });
-        if (user && saved < 1) {
-          console.error("[shopping] restoreToPantry wrote 0 rows");
-          return;
-        }
-        await reloadStock();
-      } catch (err) {
-        console.error("[shopping] restoreToPantry failed", err);
-        return;
-      }
-    }
     applyToSources(row, { have: true });
+    const item = rowToPantryItem(row);
+    if (!item) return;
+    try {
+      const saved = await restoreToPantry([item], {
+        user,
+        householdId: pantryHouseholdId || null,
+      });
+      if (user && saved < 1) throw new Error("restoreToPantry wrote 0 rows");
+      await reloadStock();
+    } catch (err) {
+      console.error("[shopping] restoreToPantry failed", err);
+      applyToSources(row, { have: false });
+      onToast?.(`No se pudo guardar ${row.name} en En casa`);
+    }
   };
-  // Swipe-left on a "Comprado" row: inverse of markItemBought — takes back
-  // out of "En casa" the exact stock that buying it just topped up (same
-  // consume/restore symmetry cooking uses), then returns it to "Por comprar".
+  // Casilla en «Comprado»: inverse of markItemBought — takes back out of
+  // "En casa" the exact stock that buying it just topped up (same
+  // consume/restore symmetry cooking uses), and returns it to "Por comprar".
+  // Optimista igual que tachar.
   const unmarkItemBought = async (id) => {
     const row = rowById.get(id);
     if (!row) return;
-    const item = rowToPantryItem(row);
-    if (item) {
-      try {
-        await consumeFromPantry([item], pantryStock, { user });
-        await reloadStock();
-      } catch (err) {
-        console.error("[shopping] consumeFromPantry failed", err);
-      }
-    }
     applyToSources(row, { have: false });
+    const item = rowToPantryItem(row);
+    if (!item) return;
+    try {
+      await consumeFromPantry([item], pantryStock, { user });
+      await reloadStock();
+    } catch (err) {
+      console.error("[shopping] consumeFromPantry failed", err);
+      applyToSources(row, { have: true });
+      onToast?.(`No se pudo quitar ${row.name} de En casa`);
+    }
   };
   const saveItemQty = (id, rawValue) => {
     const parsed = parseFloat(String(rawValue).replace(",", "."));
@@ -1089,14 +1123,15 @@ export function ShoppingScreen({
   };
 
   const renderAisleSection = (section, idx, total) => {
-    const open = Boolean(openSections[section.key]);
+    const open = isSectionOpen(section.key);
     const isLastSection = idx === total - 1;
     return (
       <div key={section.key}>
         <button
           type="button"
+          aria-expanded={open}
           onClick={() =>
-            setOpenSections((c) => ({ ...c, [section.key]: !c[section.key] }))
+            setOpenSections((c) => ({ ...c, [section.key]: c[section.key] === false }))
           }
           style={{
             width: "100%",
@@ -1148,6 +1183,7 @@ export function ShoppingScreen({
                 key={`${section.key}-${item.id}`}
                 item={item}
                 pricing={linePrices.get(item.id) ?? null}
+                showPrice={mercadonaSelected}
                 isLast={i === section.items.length - 1}
                 onSwipePurchased={() => markItemBought(item.id)}
                 onSwipeReturn={() => unmarkItemBought(item.id)}
@@ -1157,7 +1193,6 @@ export function ShoppingScreen({
                 onSaveQty={(val) => saveItemQty(item.id, val)}
                 onCancelQty={() => setEditingQtyId(null)}
                 onRemove={() => removeItem(item.id)}
-                suppressStrike={buyTab === "bought"}
                 boughtTab={buyTab === "bought"}
               />
             ))}
@@ -1172,7 +1207,7 @@ export function ShoppingScreen({
   // la franja de Mercadona si esta se pinta, o solo debajo de Por comprar/
   // Comprado si no hay súper seleccionado.
   const showMercadonaStrip =
-    mercadonaSelected && storeEstimate && storeEstimate.matched > 0 && !isEmpty;
+    mercadonaSelected && stockReady && storeEstimate && storeEstimate.matched > 0 && !isEmpty;
   const weekSelectorEl = orderedAll.length > 1 && !isEmpty && (
     <WeekChips
       ariaLabel="Semanas incluidas en la compra — marca varias para combinar"
@@ -1226,21 +1261,21 @@ export function ShoppingScreen({
               <ShoppingCart size={18} color="#b7791f" strokeWidth={2.4} />
             </span>
             <h2 style={titleStyle}>Tu compra</h2>
-            <button
-              type="button"
-              onClick={toggleIconCoach}
-              style={{
-                ...iconBtnStyle,
-                width: 32,
-                height: 32,
-                borderRadius: 999,
-                background: showIconCoach ? "#e8f0ea" : "#fff",
-              }}
-              aria-label="Explicar iconos"
-              aria-pressed={showIconCoach}
-            >
-              <CircleHelp size={17} strokeWidth={2.2} />
-            </button>
+            {GUIAS_ACTIVAS && (
+              <button
+                type="button"
+                onClick={toggleIconCoach}
+                style={{
+                  ...iconBtnStyle,
+                  borderRadius: 999,
+                  background: showIconCoach ? "#e8f0ea" : "#fff",
+                }}
+                aria-label="Explicar iconos"
+                aria-pressed={showIconCoach}
+              >
+                <CircleHelp size={17} strokeWidth={2.2} />
+              </button>
+            )}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button
@@ -1256,17 +1291,6 @@ export function ShoppingScreen({
             >
               <Share2 size={17} strokeWidth={2.2} />
             </button>
-            {buyTab !== "home" && (
-              <button
-                type="button"
-                onClick={() => setBuyTab("home")}
-                aria-label="Ver En casa"
-                title="En casa"
-                style={iconBtnStyle}
-              >
-                <Refrigerator size={17} strokeWidth={2.2} />
-              </button>
-            )}
             {buyTab === "home" && canEditPantryPrefs && (
               <button
                 type="button"
@@ -1281,40 +1305,16 @@ export function ShoppingScreen({
           </div>
         </div>
       </div>
-      {/* "En casa" salió del selector (2026-08-27) y vive como botón propio
-          en la cabecera: es un inventario persistente, no un tercer estado
-          de la lista de la compra — Comprado sigue siendo un registro fijo
-          de ESTA compra (un recibo), distinto del stock vivo de En casa que
-          se descuenta con el consumo del menú (pantryPrefs.consume). Comprado
+      {/* «En casa» vuelve al selector (30 sep 2026): escondido tras un icono
+          de la cabecera no lo encontraba nadie. Sigue siendo otra cosa —
+          Comprado es un registro fijo de ESTA compra (un recibo), En casa el
+          stock vivo que se descuenta con el consumo del menú
+          (pantryPrefs.consume) —, pero se llega de un toque. Comprado
           muestra precio/envase (misma UI que Pendiente en modo €) cuando hay
           Mercadona activado; si no, la lista plana de siempre. */}
-      {buyTab === "home" ? (
-        <div style={{ padding: "14px 16px 0" }}>
-          <button
-            type="button"
-            onClick={() => setBuyTab("pending")}
-            style={{
-              display: "flex", alignItems: "center", gap: 4,
-              border: "none", background: "transparent", cursor: "pointer",
-              padding: "4px 2px", fontFamily: "inherit",
-              fontSize: 13.5, fontWeight: 700, color: "#2d5a3d",
-            }}
-          >
-            <ChevronLeft size={16} strokeWidth={2.4} /> Tu compra
-          </button>
-        </div>
-      ) : (
-        <div style={{ padding: "14px 16px 0" }}>
-          <SegmentedControl
-            options={[
-              { id: "pending", label: "Por comprar" },
-              { id: "bought", label: "Comprado" },
-            ]}
-            value={buyTab}
-            onChange={setBuyTab}
-          />
-        </div>
-      )}
+      <div style={{ padding: "14px 16px 0" }}>
+        <BuyTabs value={buyTab} onChange={setBuyTab} />
+      </div>
 
       {buyTab === "home" ? (
         <div style={{ padding: "16px 16px 0", paddingBottom: `calc(${bottomNavSpacer()} + 12px)` }}>
@@ -1361,7 +1361,7 @@ export function ShoppingScreen({
           </div>
         )}
 
-        {showIconCoach && (
+        {GUIAS_ACTIVAS && showIconCoach && (
           <ShoppingCoachTour onClose={() => setShowIconCoach(false)} />
         )}
 
@@ -1378,7 +1378,9 @@ export function ShoppingScreen({
           paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
         }}
       >
-        {isEmpty && <EmptyList tab={buyTab} />}
+        {!stockReady && <ListSkeleton />}
+
+        {stockReady && isEmpty && <EmptyList tab={buyTab} readOnly={readOnly} />}
 
         {showMercadonaStrip && (
           <>
@@ -1426,7 +1428,7 @@ export function ShoppingScreen({
             the "En casa" tab (no duplicated stock view inside the buy list). */}
         {(() => {
           const activeSections = sections.filter((s) => s.items.length > 0);
-          if (activeSections.length === 0) return null;
+          if (!stockReady || activeSections.length === 0) return null;
           return (
             <div>
               {activeSections.map((section, i) =>
@@ -1435,6 +1437,52 @@ export function ShoppingScreen({
             </div>
           );
         })()}
+
+        {/* Lo que falta se le dice a Lola sin salir de la lista. Pegado al
+            pie (sticky, no fixed): al final de la lista ocupa su sitio y no
+            tapa la última fila. */}
+        {FRONTAL_BOT && !readOnly && stockReady && !isEmpty && (
+          <div
+            style={{
+              position: "sticky",
+              bottom: `calc(${bottomNavSpacer()} + 10px)`,
+              zIndex: 5,
+              display: "flex",
+              justifyContent: "flex-end",
+              marginTop: 12,
+              pointerEvents: "none",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => abrirLola()}
+              style={{
+                pointerEvents: "auto",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                minHeight: 44,
+                padding: "5px 14px 5px 5px",
+                borderRadius: 999,
+                border: "1px solid #e3ebe6",
+                background: "#fff",
+                boxShadow: "0 6px 16px -8px rgba(20,47,29,.35)",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                fontSize: 14,
+                fontWeight: 800,
+                color: "#142f1d",
+              }}
+            >
+              <img
+                src={lolaFoto}
+                alt=""
+                style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", objectPosition: "center 30%", flexShrink: 0 }}
+              />
+              ¿Falta algo? Díselo a Lola
+            </button>
+          </div>
+        )}
       </div>
       </>
       )}
@@ -1538,7 +1586,7 @@ export function ShoppingScreen({
         />
       )}
 
-      {showSwipeTutorial && <SwipeTutorialModal onClose={dismissSwipeTutorial} />}
+      {GUIAS_ACTIVAS && showSwipeTutorial && <SwipeTutorialModal onClose={dismissSwipeTutorial} />}
 
       <BottomNav active="shopping" onNav={onNav} />
     </div>
@@ -2045,6 +2093,8 @@ export function AisleIcon({ aisle, size = 36, soft = false }) {
 }
 
 function QtyInput({ item, onSave, onCancel }) {
+  // (Sin outline: none — el campo solo existe mientras se edita, y el anillo
+  // de foco es lo que dice dónde se está escribiendo.)
   const [val, setVal] = useState(String(item.qty ?? 1));
   const inputRef = useRef(null);
 
@@ -2069,8 +2119,11 @@ function QtyInput({ item, onSave, onCancel }) {
           if (e.key === "Enter") { e.preventDefault(); commit(); }
           if (e.key === "Escape") { e.preventDefault(); onCancel(); }
         }}
+        aria-label={`Cantidad de ${item.name}`}
         style={{
           width: "3.4rem",
+          minHeight: 44,
+          boxSizing: "border-box",
           textAlign: "right",
           border: "1.5px solid #2d5a3d",
           borderRadius: 7,
@@ -2081,20 +2134,20 @@ function QtyInput({ item, onSave, onCancel }) {
           fontFamily: "inherit",
           color: "#142f1d",
           background: "#fff",
-          outline: "none",
+          outline: "2px solid #2e7d75",
+          outlineOffset: 2,
         }}
       />
-      <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", flexShrink: 0 }}>
+      <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b", flexShrink: 0 }}>
         {item.unit !== "ud" ? item.unit : "uds"}
       </span>
     </div>
   );
 }
 
-const PRICE_NAME_MAX_W = 96;
-const QTY_COL_W = 58;
+const QTY_COL_W = 52;
 const QTY_GAP = 6;
-const ROW_COL_GAP = 3;
+const ROW_COL_GAP = 6;
 const SWIPE_MIN_PX = 140;
 
 function formatEuro(n) {
@@ -2133,15 +2186,11 @@ export function SwipePurchaseShell({
     const el = e.target instanceof Element ? e.target : e.target?.parentElement;
     // Keep typing/links; allow swipe from the photo and the pills (those used
     // to be skipped as button/[data-no-swipe] and ate the whole row).
-    if (el?.closest("input, textarea, select, a")) return;
+    // La casilla de comprado es un toque, no el arranque de un deslizamiento.
+    if (el?.closest("input, textarea, select, a, [data-swipe-skip]")) return;
     suppressClickRef.current = false;
     dragRef.current = { active: true, startX: e.clientX, pointerId: e.pointerId, dir: null };
     setDragging(true);
-    try {
-      shellRef.current?.setPointerCapture(e.pointerId);
-    } catch {
-      /* capture is optional — move/up still bubble */
-    }
   };
 
   const onPointerMove = (e) => {
@@ -2154,6 +2203,13 @@ export function SwipePurchaseShell({
       }
       suppressClickRef.current = true;
       dragRef.current.dir = dx > 0 ? "right" : "left";
+      // Se captura el puntero solo cuando ya es un deslizamiento: capturarlo
+      // en el pointerdown mandaba el click de un toque a la fila, no al botón.
+      try {
+        shellRef.current?.setPointerCapture(e.pointerId);
+      } catch {
+        /* capture is optional — move/up still bubble */
+      }
     }
     const thresh = swipeThreshold();
     if (dragRef.current.dir === "right") {
@@ -2288,13 +2344,13 @@ export function SwipePurchaseShell({
   );
 }
 
-function QtyCell({ text, cellStyle, editable, onEdit }) {
+// Ancho mínimo y no fijo: la cantidad se lee entera («2 bolsas», «1,2 kg»)
+// en vez de cortarse con puntos suspensivos.
+function QtyCell({ text, cellStyle, editable, onEdit, label }) {
   const isEmpty = text === "—";
   const style = {
     ...cellStyle,
-    width: QTY_COL_W,
     minWidth: QTY_COL_W,
-    maxWidth: QTY_COL_W,
     boxSizing: "border-box",
     display: "inline-flex",
     alignItems: "center",
@@ -2302,14 +2358,28 @@ function QtyCell({ text, cellStyle, editable, onEdit }) {
     ...(isEmpty ? { color: "#c2cfc7", background: "#f0f4f1" } : null),
   };
   if (editable && !isEmpty) {
+    // La pastilla se queda como está; el botón que la envuelve da los 44 px
+    // de toque.
     return (
       <button
         type="button"
         onClick={onEdit}
         title="Tocar para editar cantidad"
-        style={{ ...style, fontFamily: "inherit", cursor: "pointer" }}
+        aria-label={label ? `Cambiar cantidad de ${label}: ${text}` : `Cambiar cantidad: ${text}`}
+        style={{
+          minHeight: 44,
+          minWidth: 44,
+          padding: 0,
+          border: "none",
+          background: "transparent",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: "inherit",
+          cursor: "pointer",
+        }}
       >
-        {text}
+        <span style={style}>{text}</span>
       </button>
     );
   }
@@ -2361,16 +2431,13 @@ function ShoppingRow({
   onSaveQty,
   onCancelQty,
   onRemove,
-  // "Comprado" tab: every row here is have/atHome by definition, so the
-  // usual "tachado" that marks a done item inside the mixed Pendiente list
-  // would strike through the whole tab — noise, not signal, when the whole
-  // point of being here is that it's done. Only the text decoration is
-  // suppressed; the row still dims/disables the same as always.
-  suppressStrike = false,
-  // Also drives the swipe gesture: rows here are always dimmed (bought), so
-  // the usual dimmed→disabled swipe rule is skipped, and swipe-left returns
-  // the item to "Por comprar" instead of deleting it (swipe-right is off —
-  // nothing to "complete" on an already-bought row).
+  // Sin súper elegido no hay precios: la columna de € sería toda «—».
+  showPrice = true,
+  // "Comprado" tab: rows here are always bought, so the usual
+  // dimmed→disabled swipe rule is skipped and swipe-right is off (nothing to
+  // "complete"). Devolver a «Por comprar» va por la casilla; deslizar a la
+  // izquierda borra, igual que en «Por comprar» (antes aquí devolvía: el mismo
+  // gesto hacía cosas opuestas según la pestaña).
   boughtTab = false,
 }) {
   const unit = item.unit ?? "ud";
@@ -2403,24 +2470,37 @@ function ShoppingRow({
   const priceText =
     storePrice != null && storePrice > 0 ? formatEuro(storePrice) : "—";
 
+  // Casilla de comprado: el deslizamiento a la derecha queda como atajo. En
+  // «Comprado» la misma casilla lo devuelve a «Por comprar».
+  const toggleBought = boughtTab ? onSwipeReturn : onSwipePurchased;
+
   return (
     <SwipePurchaseShell
       isLast={isLast}
       readOnly={readOnly}
       disabled={(dimmed && !boughtTab) || isEditingQty}
       onComplete={boughtTab ? undefined : onSwipePurchased}
-      onDelete={boughtTab ? onSwipeReturn : onRemove}
+      onDelete={onRemove}
     >
-      <div
-        style={{
-          opacity: dimmed ? 0.45 : 1,
-          padding: "10px 2px",
-        }}
-      >
+      <div style={{ padding: "6px 2px 6px 0" }}>
         <div style={listRowStyle}>
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={Boolean(dimmed)}
+            aria-label={`${item.name}: comprado`}
+            data-swipe-skip
+            disabled={readOnly}
+            onClick={toggleBought}
+            style={checkBtnStyle(readOnly)}
+          >
+            <span style={checkBoxStyle(dimmed)}>
+              {dimmed && <Check size={16} color="#fff" strokeWidth={3} />}
+            </span>
+          </button>
           <IngredientThumb name={item.name} dimmed={dimmed} />
           <div style={nameColStyle}>
-            <span style={productNameStyle(true, dimmed && !suppressStrike)}>
+            <span style={productNameStyle(dimmed)}>
               {item.name}
             </span>
             {item.__weekLabel && (
@@ -2428,7 +2508,7 @@ function ShoppingRow({
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: 800,
                   color: "#2d5a3d",
                   background: "#eef4ef",
@@ -2446,20 +2526,18 @@ function ShoppingRow({
                 title="Adaptado por una intolerancia — asegúrate de comprar este producto y no el habitual"
                 style={{
                   display: "flex", alignItems: "center", gap: 3,
-                  fontSize: 10, fontWeight: 800, color: "#2f9e52",
+                  fontSize: 12, fontWeight: 800, color: "#1f7a3d",
                   marginTop: 1,
                 }}
               >
-                <Leaf size={11} strokeWidth={2.6} />
+                <Leaf size={12} strokeWidth={2.6} />
                 Adaptado
               </span>
             )}
           </div>
           <div style={pillsBlockStyle} data-no-swipe>
             {isEditingQty ? (
-              <div style={{ gridColumn: "1 / -1" }}>
-                <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
-              </div>
+              <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
             ) : (
               <>
                 <QtyCell
@@ -2467,14 +2545,18 @@ function ShoppingRow({
                   cellStyle={udsCellStyle}
                   editable={udsEditable && canEditQty}
                   onEdit={onEditQty}
+                  label={item.name}
                 />
                 <QtyCell
                   text={pesoText}
                   cellStyle={pesoCellStyle}
                   editable={pesoEditable && canEditQty}
                   onEdit={onEditQty}
+                  label={item.name}
                 />
-                <QtyCell text={priceText} cellStyle={priceCellStyle} editable={false} />
+                {showPrice && (
+                  <QtyCell text={priceText} cellStyle={priceCellStyle} editable={false} />
+                )}
               </>
             )}
           </div>
@@ -3854,7 +3936,11 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
   );
 }
 
-function EmptyList({ tab = "pending" }) {
+// Con el frontal del bot la lista sale del menú que se le pide a Lola: el
+// vacío de «Por comprar» abre el chat con ese pedido ya hecho (igual que el
+// vacío de Menú).
+function EmptyList({ tab = "pending", readOnly = false }) {
+  const conLola = FRONTAL_BOT && !readOnly && tab !== "bought";
   return (
     <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
       <EmptyIllustration
@@ -3863,14 +3949,69 @@ function EmptyList({ tab = "pending" }) {
         subtitle={
           tab === "bought"
             ? "Ve a «Por comprar» y marca algo como comprado — aparecerá aquí."
-            : "Genera la lista desde el menú de esta semana."
+            : conLola
+              ? "Pídele a Lola el menú de la semana"
+              : "Genera la lista desde el menú de esta semana."
         }
         maxWidth={240}
         imgAspect="1 / 1"
         imgPosition="center"
-      />
+      >
+        {conLola && (
+          <button
+            type="button"
+            onClick={() => abrirLola(pedidoMenu("esta"))}
+            style={{
+              marginTop: 14,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 7,
+              minHeight: 44,
+              padding: "11px 20px",
+              borderRadius: 13,
+              border: "none",
+              background: "#2d5a3d",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            <Send size={15} strokeWidth={2.4} /> Pedírselo a Lola
+          </button>
+        )}
+      </EmptyIllustration>
     </div>
   );
+}
+
+// Hueco de la lista mientras llega el stock de En casa (ver stockReady).
+function ListSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Cargando la lista" style={{ paddingTop: 8 }}>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          style={{ height: 52, borderRadius: 12, background: "#f0f4f1", marginBottom: 8 }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Por comprar · Comprado · En casa. SegmentedControl (ui.jsx) no deja pasar
+// roles ni aria a sus botones, así que se le ponen desde fuera al montarlo; el
+// alto de 44 sale de estirar el contenedor (los botones llenan su alto).
+const BUY_TABS = [
+  { id: "pending", label: "Por comprar" },
+  { id: "bought", label: "Comprado" },
+  { id: "home", label: "En casa" },
+];
+// 44 px de toque: el control mide 50 con 3 px de relleno por lado.
+function BuyTabs({ value, onChange }) {
+  return <SegmentedControl options={BUY_TABS} value={value} onChange={onChange} ariaLabel="Tu compra" style={{ minHeight: 50 }} />;
 }
 
 const titleStyle = {
@@ -3882,8 +4023,8 @@ const titleStyle = {
 };
 
 const iconBtnStyle = {
-  width: 36,
-  height: 36,
+  width: 44,
+  height: 44,
   borderRadius: 12,
   border: "1px solid #e0eae3",
   background: "#fff",
@@ -3916,40 +4057,68 @@ const rowGridStyle = {
   minHeight: 36,
 };
 
-const PILL_BLOCK_W = QTY_COL_W * 3 + QTY_GAP * 2;
-
+// Casilla · foto · nombre · cantidades. El nombre se lleva lo que sobra
+// (minmax(0,1fr)); con columnas fijas la fila se salía en móviles de 360 px.
 const listRowStyle = {
   display: "grid",
-  gridTemplateColumns: `auto ${PRICE_NAME_MAX_W}px ${PILL_BLOCK_W}px`,
+  gridTemplateColumns: "auto auto minmax(0, 1fr) auto",
   alignItems: "center",
   gap: ROW_COL_GAP,
-  minHeight: 36,
+  minHeight: 44,
 };
 
 const nameColStyle = {
-  width: PRICE_NAME_MAX_W,
-  maxWidth: PRICE_NAME_MAX_W,
-  minWidth: PRICE_NAME_MAX_W,
-  flexShrink: 0,
+  minWidth: 0,
 };
 
+// Las cantidades van a la derecha; si con el € no caben en una línea, el
+// precio baja a la siguiente en vez de comerse el nombre.
 const pillsBlockStyle = {
-  display: "grid",
-  gridTemplateColumns: `repeat(3, ${QTY_COL_W}px)`,
-  gap: QTY_GAP,
-  justifyItems: "stretch",
+  display: "flex",
+  flexWrap: "wrap",
+  justifyContent: "flex-end",
+  alignItems: "center",
+  columnGap: QTY_GAP,
+  maxWidth: 150,
 };
 
-function productNameStyle(hasPrice, dimmed) {
+function checkBtnStyle(readOnly) {
   return {
-    display: "-webkit-box",
-    WebkitLineClamp: 3,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
-    fontSize: 13,
+    width: 44,
+    height: 44,
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: readOnly ? "default" : "pointer",
+    flexShrink: 0,
+  };
+}
+
+function checkBoxStyle(checked) {
+  return {
+    width: 26,
+    height: 26,
+    boxSizing: "border-box",
+    borderRadius: 8,
+    border: checked ? "none" : "2px solid #7f9a89",
+    background: checked ? "#2f9e52" : "#fff",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+  };
+}
+
+// Comprado: tachado y en un gris que se sigue leyendo (sin opacidad).
+function productNameStyle(done) {
+  return {
+    display: "block",
+    fontSize: 16,
     fontWeight: 700,
-    color: hasPrice ? "#142f1d" : "#9ab0a1",
-    textDecoration: dimmed ? "line-through" : "none",
+    color: done ? "#5f7468" : "#142f1d",
+    textDecoration: done ? "line-through" : "none",
     lineHeight: 1.25,
     overflowWrap: "break-word",
     wordBreak: "break-word",
@@ -3968,16 +4137,14 @@ const valueGroupStyle = {
 
 const qtyCellBase = {
   textAlign: "center",
-  padding: "4px 3px",
+  padding: "5px 6px",
   borderRadius: 7,
   border: "none",
-  fontSize: 12,
+  fontSize: 15,
   fontWeight: 700,
   fontVariantNumeric: "tabular-nums",
   whiteSpace: "nowrap",
   lineHeight: 1.2,
-  overflow: "hidden",
-  textOverflow: "ellipsis",
 };
 
 // uds + peso — cool slate so both quantity columns read as the same family.

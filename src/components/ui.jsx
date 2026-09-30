@@ -1,3 +1,4 @@
+import { FRONTAL_BOT } from "../lib/frontalBot.js";
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
@@ -71,11 +72,15 @@ export function ProgressDots({ current, total, onJump, compact = false }) {
 export const APP_SHELL_MAX_WIDTH = 420;
 export const BOTTOM_NAV_HEIGHT = 80;
 
-export function SegmentedControl({ options, value, onChange, style, activeDark, compact = false }) {
+// `ariaLabel`: el nombre del grupo para el lector de pantalla («Tu compra»).
+// Cada opción anuncia si está elegida (aria-pressed), lo pongan o no.
+export function SegmentedControl({ options, value, onChange, style, activeDark, compact = false, ariaLabel }) {
   const fontSize = compact ? 11 : 13;
   const btnPad = compact ? "5px 10px" : "7px 0";
   return (
     <div
+      role={ariaLabel ? "group" : undefined}
+      aria-label={ariaLabel}
       style={{
         display: compact ? "inline-flex" : "flex",
         width: compact ? undefined : "100%",
@@ -93,6 +98,7 @@ export function SegmentedControl({ options, value, onChange, style, activeDark, 
           <button
             key={id}
             type="button"
+            aria-pressed={sel}
             onClick={() => onChange(id)}
             style={{
               flex: compact ? "0 0 auto" : 1,
@@ -105,7 +111,7 @@ export function SegmentedControl({ options, value, onChange, style, activeDark, 
               borderRadius: compact ? 8 : 9,
               border: "none",
               background: sel ? (activeDark ? "#2d5a3d" : "#fff") : "transparent",
-              color: sel ? (activeDark ? "#fff" : "#142f1d") : "#7a8a7f",
+              color: sel ? (activeDark ? "#fff" : "#142f1d") : "#5a7066",
               fontSize,
               fontWeight: 800,
               cursor: "pointer",
@@ -484,8 +490,13 @@ const NAV_ITEMS = [
   { id: "feed",      icon: Users,         label: "Gente",    color: "#4a6fd4" },
 ];
 
+// Frontal del bot: la app es para ver lo de esta semana, y el recetario (que
+// Pablo quiere a mano: «es crítico»). Gente no se borra; vuelve al apagar
+// FRONTAL_BOT.
+const NAV_FRONTAL = new Set(["dashboard", "recipes", "menu", "shopping"]);
+
 export function BottomNav({ active, onNav, dissolved = false }) {
-  const items = NAV_ITEMS;
+  const items = FRONTAL_BOT ? NAV_ITEMS.filter((it) => NAV_FRONTAL.has(it.id)) : NAV_ITEMS;
   // Aviso de novedades de Gente: punto sin numero (el numero esta en la
   // campana del propio Feed). Ver socialBadge.js para el porque del store.
   const feedNews = useSyncExternalStore(subscribeFeedBadge, readFeedBadge);
@@ -545,6 +556,7 @@ export function BottomNav({ active, onNav, dissolved = false }) {
               key={it.id}
               type="button"
               data-coach={`nav-${it.id}`}
+              aria-current={sel ? "page" : undefined}
               onClick={() => onNav(it.id)}
               style={{
                 flex: 1,
@@ -578,7 +590,7 @@ export function BottomNav({ active, onNav, dissolved = false }) {
                 <span style={{ position: "relative", display: "inline-flex" }}>
                   <it.icon
                     size={22}
-                    color={sel ? it.color : "#c2d4cb"}
+                    color={sel ? it.color : "#7f9488"}
                     strokeWidth={sel ? 2.4 : 1.8}
                   />
                   {it.id === "feed" && feedNews && !sel && (
@@ -593,11 +605,14 @@ export function BottomNav({ active, onNav, dissolved = false }) {
                   )}
                 </span>
               )}
+              {/* Contraste de texto (4,5:1): el color de cada pestaña va en el
+                  icono; la etiqueta, en tinta oscura si está elegida y en un
+                  gris que se lee si no. */}
               <span
                 style={{
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: sel || it.highlight ? 800 : 600,
-                  color: it.highlight ? "#1a3a24" : sel ? it.color : "#9ab0a1",
+                  color: it.highlight || sel ? "#1a3a24" : "#5f7468",
                   letterSpacing: ".2px",
                   lineHeight: 1,
                 }}

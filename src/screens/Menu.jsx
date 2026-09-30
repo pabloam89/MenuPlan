@@ -49,6 +49,7 @@ import {
   RotateCcw,
   RotateCw,
   Refrigerator,
+  Send,
   Salad,
   Shell,
   SlidersHorizontal,
@@ -132,6 +133,9 @@ import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
+import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "../lib/frontalBot.js";
+import { pedidoCambiar, pedidoMenu } from "../lib/pedidoLola.js";
+import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { MenuPlanBadge, RecipeVoteCounts, formatRecipeDate } from "../components/RecipeProvenance.jsx";
@@ -636,7 +640,7 @@ function DishIcon({ recipe, size = 44, imageUrl = null }) {
         src={deckImg(imageUrl, thumbW)}
         srcSet={deckSrcSet(imageUrl, size)}
         sizes={`${size}px`}
-        alt={recipe.name}
+        alt=""
         width={size}
         height={size}
         loading="lazy"
@@ -696,7 +700,7 @@ function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = null, tit
           src={deckImg(imageUrl, 720)}
           srcSet={deckSrcSet(imageUrl, 720)}
           sizes="100vw"
-          alt={displayTitle}
+          alt=""
           decoding="async"
           onError={() => setImgFailed(true)}
           style={{
@@ -1961,7 +1965,7 @@ export function DishCard({
                 aria-label={`Adaptado: ${adaptationLabels.join(", ")}`}
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 4,
-                  fontSize: 10, fontWeight: 800, color: "#2f9e52",
+                  fontSize: 11, fontWeight: 800, color: "#1f7a3d",
                 }}
               >
                 <Leaf size={13} strokeWidth={2.4} />
@@ -2023,19 +2027,22 @@ export function DishCard({
 // and fully isolated so the classic renderer above stays untouched.
 // ─────────────────────────────────────────────────────────────────────────
 
-// Tres tramos de tiempo, y solo tres. "Resumen" (`lista`) salió de aquí: era la
+// Dos tramos de tiempo, Día y Semana. "Resumen" (`lista`) salió de aquí: era la
 // misma semana que ya enseña la vista Semana, puesta en rejilla, así que la
 // cuarta opción del selector no llevaba a ningún sitio nuevo. Su vista sigue
 // montada más abajo (DeckCalendar) y `deckView === "lista"` sigue funcionando:
 // está APARCADA, no borrada, por si vuelve con algo propio que contar.
+//
+// Mes salió también (30 sep 2026): con un menú de una o dos semanas, el mes
+// eran casillas vacías. DeckMonth sigue montado abajo, aparcado como «lista».
 const DECK_VIEW_OPTIONS = [
   { id: "dia", label: "Día" },
   { id: "semana", label: "Semana" },
-  { id: "mes", label: "Mes" },
   // La cuarta NO es otro tramo de tiempo: es el mismo menú visto por lo que hay
   // que cocinar ANTES. Va aquí y no en un sitio propio porque se mira en el
   // mismo gesto que la semana — "¿qué comemos?" y "¿qué dejo hecho?" son la
-  // misma pregunta hecha desde dos lados.
+  // misma pregunta hecha desde dos lados. Solo sale si hay tanda (hayTanda en
+  // MenuScreen): sin ella la pestaña llevaba a «Esta semana no hay tanda».
   { id: "tanda", label: "Tanda" },
 ];
 
@@ -2178,7 +2185,7 @@ function AddSlotTile({ day, onAddSlot, denso = false, fino = false }) {
       >
         <Plus size={denso ? 15 : 18} strokeWidth={3} />
       </span>
-      <span style={{ fontSize: denso ? 10 : 11.5, fontWeight: 800, color: "#8aa394" }}>
+      <span style={{ fontSize: denso ? 11 : 12, fontWeight: 800, color: "#5a7066" }}>
         Añadir hueco
       </span>
     </button>
@@ -2416,13 +2423,13 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           </span>}
         </span>
         {!mosaico && (
-          <span style={{ fontSize: compact ? 10 * (denso ? letra : 1) : 12.5, fontWeight: 800, color: "#4f6a5b", textAlign: "center", lineHeight: 1.2 }}>
+          <span style={{ fontSize: compact ? Math.max(11, 10 * (denso ? letra : 1)) : 12.5, fontWeight: 800, color: "#4f6a5b", textAlign: "center", lineHeight: 1.2 }}>
             {tile.dosPlatos
               ? `${tile.course === "first" ? "1º" : "2º"} libre`
               : `${emptyMealLabel} libre`}
           </span>
         )}
-        {!denso && <span style={{ fontSize: compact ? 9 : 10.5, fontWeight: 600, color: "var(--pz-tinta-suave, #9bb0a4)" }}>Toca para añadir</span>}
+        {!denso && <span style={{ fontSize: compact ? 11 : 12, fontWeight: 600, color: "var(--pz-tinta-suave, #5a7066)" }}>Toca para añadir</span>}
       </button>
       </div>
     );
@@ -2508,7 +2515,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           src={optimized}
           srcSet={deckSrcSet(srcUrl, imgWidth)}
           sizes={`${imgWidth}px`}
-          alt={recipe.name}
+          alt={mosaico ? recipe.name : ""}
           loading="lazy"
           decoding="async"
           onError={() => setFailed(true)}
@@ -2645,7 +2652,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           <span
             style={{
               color: "rgba(255,255,255,.95)",
-              fontSize: compact ? 9 * (denso ? letra : 1) : 10.5,
+              fontSize: compact ? Math.max(11, 9 * (denso ? letra : 1)) : 11,
               fontWeight: 800,
               letterSpacing: ".7px",
               textTransform: "uppercase",
@@ -2689,6 +2696,7 @@ function DayScopeChip({ label, color, size, delay, onPick, children }) {
   return (
     <button
       type="button"
+      className="day-scope-chip"
       onClick={(e) => { e.stopPropagation(); onPick(); }}
       aria-label={label}
       title={label}
@@ -2903,9 +2911,9 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
               }}
             >
               <div style={{ position: "sticky", top: 0, zIndex: 2, background: "#fff", paddingBottom: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 2px" }}>
+                <div aria-current={esHoy(day, weekDates) ? "date" : undefined} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 2px" }}>
                   <span style={{ fontSize: 15, fontWeight: 900, color: "#142f1d", letterSpacing: "-.2px" }}>{dayLabel(day)}</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "#4cba6e" }}>{calendarDayNumber(day, weekDates)}</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "#2d5a3d", ...(esHoy(day, weekDates) ? numeroDeHoy : null) }}>{calendarDayNumber(day, weekDates)}</span>
                   <span style={{ flex: 1, height: 1, background: "#dbe8df", marginLeft: 2 }} />
                   <DayRegenButton day={day} onRegenerateDay={onRegenerateDay} groups={regenGroups} />
                 </div>
@@ -2917,7 +2925,7 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#aab5af",
+                    color: "#5a7066",
                     fontSize: 13,
                     fontWeight: 700,
                     background: "#f3f8f4",
@@ -2949,6 +2957,11 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
   );
 }
 
+// Hoy, en las cabeceras de Día y Semana: el mismo aro verde que marca hoy en
+// el Mes, alrededor del número.
+const esHoy = (day, weekDates) => Boolean(weekDates?.[day]) && isoLocalDate(weekDates[day]) === isoLocalDate(new Date());
+const numeroDeHoy = { fontWeight: 900, padding: "1px 7px", borderRadius: 999, boxShadow: "0 0 0 1.5px currentColor" };
+
 /** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
 function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false, zoom = null, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null, repartiendo = false }) {
   // Un contador que corre por TODA la semana, no por día: las cartas caen de
@@ -2974,17 +2987,18 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
         // línea de cabecera por día se comía media pantalla, y lo que se busca
         // desde ahí arriba es ver la semana entera de un vistazo.
         const mosaico = conZoom && z < 0.75;
+        const hoy = esHoy(day, weekDates);
         return (
           <div key={day} style={mosaico ? { display: "flex", alignItems: "center", gap: 8 } : undefined}>
             {mosaico ? (
-              <div style={{ width: 34, flexShrink: 0, textAlign: "center", lineHeight: 1.1 }}>
+              <div aria-current={hoy ? "date" : undefined} style={{ width: 34, flexShrink: 0, textAlign: "center", lineHeight: 1.1 }}>
                 <div style={{ fontSize: 11, fontWeight: 900, color: "var(--pz-tinta, #142f1d)", textTransform: "uppercase", letterSpacing: ".3px" }}>{day}</div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#4cba6e" }}>{calendarDayNumber(day, weekDates)}</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "var(--pz-verde, #2d5a3d)", ...(hoy ? numeroDeHoy : null) }}>{calendarDayNumber(day, weekDates)}</div>
               </div>
             ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <div aria-current={hoy ? "date" : undefined} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                 <span style={{ fontSize: 14, fontWeight: 900, color: "var(--pz-tinta, #142f1d)" }}>{dayLabel(day)}</span>
-                <span style={{ fontSize: 12, fontWeight: 800, color: "#4cba6e" }}>{calendarDayNumber(day, weekDates)}</span>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "var(--pz-verde, #2d5a3d)", ...(hoy ? numeroDeHoy : null) }}>{calendarDayNumber(day, weekDates)}</span>
                 <span style={{ flex: 1, height: 1, background: "var(--pz-linea, #e8f0ea)" }} />
                 <DayRegenButton day={day} onRegenerateDay={onRegenerateDay} groups={regenGroups} compact />
               </div>
@@ -3829,7 +3843,7 @@ function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
           src={optimized}
           srcSet={deckSrcSet(srcUrl, 760)}
           sizes="760px"
-          alt={base.name}
+          alt=""
           loading="lazy"
           decoding="async"
           onError={() => setFailed(true)}
@@ -4462,14 +4476,18 @@ function DeckNav({ value, onChange, options }) {
 
 /** Mini "N de X" week stepper shown next to DeckNav when there are multiple weeks. */
 function DeckWeekStepper({ weekIdx, weekTotal, onPrev, onNext, onOpen, style }) {
-  const btn = (Icon, onClick, disabled) => (
+  // Las flechas se dibujan de 20 px pero se tocan en 44: el margen negativo
+  // les devuelve el sitio que ocupaban, y van por encima del «1 de 3».
+  const btn = (Icon, onClick, disabled, label) => (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
+      aria-label={label}
       style={{
         display: "inline-flex", alignItems: "center", justifyContent: "center",
-        width: 20, height: 20, padding: 0, border: "none", borderRadius: 999,
+        width: 44, height: 44, margin: -12, padding: 0, border: "none", borderRadius: 999,
+        position: "relative", zIndex: 1,
         background: "none",
         color: disabled ? "#c8d8cc" : "#5a7060",
         cursor: disabled ? "default" : "pointer", fontFamily: "inherit",
@@ -4480,7 +4498,7 @@ function DeckWeekStepper({ weekIdx, weekTotal, onPrev, onNext, onOpen, style }) 
   );
   return (
     <div style={{ display: "inline-flex", alignItems: "center", background: "#eef4ef", borderRadius: 999, padding: "3px 6px 3px 4px", gap: 1, ...style }}>
-      {btn(ChevronLeft, onPrev, weekIdx <= 0)}
+      {btn(ChevronLeft, onPrev, weekIdx <= 0, "Semana anterior")}
       <button
         type="button"
         onClick={onOpen}
@@ -4491,7 +4509,7 @@ function DeckWeekStepper({ weekIdx, weekTotal, onPrev, onNext, onOpen, style }) 
       >
         {weekIdx + 1} de {weekTotal}
       </button>
-      {btn(ChevronRight, onNext, weekIdx >= weekTotal - 1)}
+      {btn(ChevronRight, onNext, weekIdx >= weekTotal - 1, "Semana siguiente")}
     </div>
   );
 }
@@ -5206,8 +5224,6 @@ export const MenuScreen = memo(function MenuScreen({
   // a animar, y un booleano que ya estaba a true no cambia nada.
   repartoKey = 0,
 }) {
-  const deckViews = modoPizarra ? DECK_VIEWS_BASICAS : DECK_VIEW_OPTIONS;
-
   // El reparto dura lo que dura y se apaga solo: si la clase se quedara
   // puesta, cualquier repintado posterior volvería a lanzar la animación.
   const [repartiendo, setRepartiendo] = useState(false);
@@ -5534,17 +5550,12 @@ export const MenuScreen = memo(function MenuScreen({
     }
     try {
       const saved = localStorage.getItem("menuDeckView");
-      // "lista" (Resumen) está oculta por ahora: un valor guardado antiguo cae a "día".
-      return saved === "semana" || saved === "mes" ? saved : "dia";
+      // "lista" (Resumen) y "mes" están ocultas: un valor guardado antiguo cae a "día".
+      return saved === "semana" ? saved : "dia";
     } catch {
       return "dia";
     }
-  }); // "dia" | "semana" | "mes" | "lista"
-  // Una vista guardada que este menú no ofrece (la pizarra solo da Día y
-  // Semana) dejaría el deck en blanco: se cae a la primera disponible.
-  useEffect(() => {
-    if (!deckViews.some((v) => v.id === deckView)) setDeckView(deckViews[0].id);
-  }, [deckViews, deckView]);
+  }); // "dia" | "semana" | "tanda" | "lista"
   useEffect(() => {
     // In demo mode we must not clobber the real user's saved deck preference.
     if (autoDemo) return;
@@ -5589,6 +5600,21 @@ export const MenuScreen = memo(function MenuScreen({
     () => (activeDays ?? []).some((day) => getDeckDayTiles(day, data, menuPlan, visibleGroups).length > 0),
     [activeDays, data, menuPlan, visibleGroups],
   );
+  // Tanda solo si esta semana hay algo que dejar hecho: la misma cuenta que
+  // pinta DeckBatch (dos platos o más que comparten base).
+  const hayTanda = useMemo(() => {
+    const plan = {};
+    for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
+    return sesionDeBases(plan, lookupDeTanda(), { dias: activeDays ?? [], comidas: getDayMeals(data) }).bases.length > 0;
+  }, [activeDays, data, menuPlan, visibleGroups]);
+  const deckViews = modoPizarra
+    ? DECK_VIEWS_BASICAS
+    : DECK_VIEW_OPTIONS.filter((v) => v.id !== "tanda" || hayTanda);
+  // Una vista guardada que este menú no ofrece (la pizarra solo da Semana; sin
+  // tanda no hay Tanda) dejaría el deck en blanco: se cae a la primera.
+  useEffect(() => {
+    if (!deckViews.some((v) => v.id === deckView)) setDeckView(deckViews[0].id);
+  }, [deckViews, deckView]);
   // Ver HuecosVivosContext. Una baldosa vacía compartida por dos grupos son
   // dos huecos: lo que pongas cae en los dos, y así lo cuenta Rellenar.
   const huecosVivos = useMemo(() => {
@@ -5781,7 +5807,7 @@ export const MenuScreen = memo(function MenuScreen({
         }
         onClick={puedeFavorito ? onToggleFavorite : sinCuenta("guardar favoritos")}
       />
-      <BaldosaAccion
+      {!FRONTAL_BOT && <BaldosaAccion
         Icono={Users}
         etiqueta={menuSharedInFeed ? "Publicado" : "Publicar"}
         color="#4a6fd4"
@@ -5792,7 +5818,7 @@ export const MenuScreen = memo(function MenuScreen({
             : menuSharedInFeed ? "Menú publicado en Gente" : "Publicar en Gente"
         }
         onClick={onPublishToFeed ? () => setPublishSheetOpen(true) : sinCuenta("publicar en Gente")}
-      />
+      />}
       {/* Estas cuatro no tienen estado: o las haces o no. Nunca llevan aro ni
           se apagan — compartir dos veces o bajar el PDF otra vez es legítimo. */}
       <BaldosaAccion
@@ -6006,7 +6032,7 @@ export const MenuScreen = memo(function MenuScreen({
 
         @media (prefers-reduced-motion: reduce) {
           .deck-view-swap, .deck-tile, .deck-tile img, .deck-press,
-          .sidebar-item, .deck-nav-item, .header-menu, .deck-nav-menu {
+          .sidebar-item, .deck-nav-item, .header-menu, .deck-nav-menu, .day-scope-chip {
             animation: none !important;
             transition: none !important;
           }
@@ -6030,10 +6056,17 @@ export const MenuScreen = memo(function MenuScreen({
             >
               <ClipboardList size={18} color="#1f4a30" strokeWidth={2.4} />
             </span>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--pz-tinta, #142f1d)", margin: 0, letterSpacing: "-.3px" }}>
-              Tu menú
-            </h2>
-            {!modoPizarra && <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />}
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--pz-tinta, #142f1d)", margin: 0, letterSpacing: "-.3px" }}>
+                Tu menú
+              </h2>
+              {hasMenu && weekLabel && (
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--pz-tinta-suave, #5a7066)", marginTop: 1, fontVariantNumeric: "tabular-nums" }}>
+                  {weekLabel}
+                </div>
+              )}
+            </div>
+            {GUIAS_ACTIVAS && !modoPizarra && <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {/* Activar y favorito se van a la fila de mandos como baldosas en
@@ -6180,7 +6213,9 @@ export const MenuScreen = memo(function MenuScreen({
                     // "Análisis" y "Borrar menú" quitados de momento (2026-08-27):
                     // para borrar, ahora se genera otro menú por encima.
                     onOpenMenus && { key: "menus", label: "Menús guardados", Icon: History, coach: "menu-menus", action: onOpenMenus, tint: "#f0e9fe", ink: "#7c3aed" },
-                    hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
+                    // Con el frontal del bot Gente no está en la barra: publicar
+                    // allí sería mandar el menú a una pantalla que no se ve.
+                    !FRONTAL_BOT && hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
                     hasMenu && { key: "share", label: "Compartir fuera", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
                     !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
@@ -6846,7 +6881,10 @@ function ErrorCard({ error, onRetry }) {
 
 // Sin botón de generar (2026-08-29): el único sitio para generar un menú es
 // la card de Inicio — meter un segundo botón aquí duplicaba esa acción.
+// Con el frontal del bot el menú se le pide a Lola, y eso sí se ofrece aquí:
+// no genera nada en la app, abre el chat con el pedido ya hecho.
 function EmptyState({ readOnly = false }) {
+  const conLola = FRONTAL_BOT && !readOnly;
   return (
     <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
       <EmptyIllustration
@@ -6855,12 +6893,39 @@ function EmptyState({ readOnly = false }) {
         subtitle={
           readOnly
             ? "Cuando el propietario genere el menú, lo verás aquí."
-            : "Genera tu menú desde Inicio y aparecerá aquí."
+            : conLola
+              ? "Pídele a Lola el menú de esta semana"
+              : "Genera tu menú desde Inicio y aparecerá aquí."
         }
         maxWidth={240}
         imgAspect="1 / 1"
         imgPosition="center"
-      />
+      >
+        {conLola && (
+          <button
+            type="button"
+            onClick={() => abrirLola(pedidoMenu("esta"))}
+            style={{
+              marginTop: 14,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 7,
+              padding: "11px 20px",
+              borderRadius: 13,
+              border: "none",
+              background: "#2d5a3d",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            <Send size={15} strokeWidth={2.4} /> Pedírselo a Lola
+          </button>
+        )}
+      </EmptyIllustration>
     </div>
   );
 }
@@ -6964,6 +7029,8 @@ export function DishDetail({
     () => (recipe.steps?.length ?? 0) === 0
   );
   const stepsCacheRef = useRef({});
+  // Sube con «Reintentar» cuando el paso a paso no llega: relanza la carga.
+  const [intentoPasos, setIntentoPasos] = useState(0);
   const catalogId = useMemo(() => catalogRecipeId(recipe), [recipe.baseRecipeId, recipe.id]);
 
   const userCatalogRecipe = useMemo(() => {
@@ -7615,6 +7682,33 @@ export function DishDetail({
 
   const TITLE_GREEN = "#2d5a3d";
 
+  // Escape cierra la ficha, o antes el diálogo de favoritas si está abierto.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      if (scopeOpen) setScopeOpen(false);
+      else onClose?.();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [scopeOpen, onClose]);
+
+  // «Cambiar con Lola»: el pedido para el chat con la fecha real del hueco.
+  // Solo desde un hueco del menú y con la casa a mano (de ahí sale la semana);
+  // desde el catálogo o en un hogar de solo lectura no hay hueco que cambiar.
+  // Las fechas, las mismas que pinta el Menú (ver `weekDates` en MenuScreen).
+  const pedidoLola = useMemo(() => {
+    if (!FRONTAL_BOT || browse || readOnly || !data || !day || !meal) return null;
+    const { dates } = getWeekDatesByMenuWeek(data.menuWeek ?? { offset: 0, startDayIdx: todayDayIdx() });
+    if (!dates[day]) return null;
+    const cual = slot?.firstRecipeId
+      ? (String(recipe.id) === String(slot.firstRecipeId) || catalogRecipeId(String(slot.firstRecipeId)) === catalogId
+        ? "primero"
+        : "principal")
+      : null;
+    return pedidoCambiar({ fechaISO: isoLocalDate(dates[day]), franja: meal, cual });
+  }, [browse, readOnly, data, day, meal, slot?.firstRecipeId, recipe.id, catalogId]);
+
   useEffect(() => {
     let active = true;
     const ctrl = new AbortController();
@@ -7721,7 +7815,7 @@ export function DishDetail({
       active = false;
       ctrl.abort();
     };
-  }, [recipe, activeAppliance, stepsByAppliance, richSteps, mainPlainSteps]);
+  }, [recipe, activeAppliance, stepsByAppliance, richSteps, mainPlainSteps, intentoPasos]);
 
   // Los pasos por electrodoméstico llegan de cuatro sitios (caché en memoria,
   // bundle del demo, bundle precomputado y /api/recipe-steps) y no todos usan el
@@ -7735,7 +7829,14 @@ export function DishDetail({
 
   return (
     <div className="mp-overlay-in" style={detailOverlayStyle} onClick={onClose}>
-      <div className="mp-sheet-up" style={detailSheetStyle} onClick={(e) => e.stopPropagation()}>
+      <div
+        className="mp-sheet-up"
+        role="dialog"
+        aria-modal="true"
+        aria-label={displayName}
+        style={detailSheetStyle}
+        onClick={(e) => e.stopPropagation()}
+      >
         <button type="button" onClick={onClose} aria-label="Cerrar detalle" style={closeButtonStyle}>
           <X size={20} />
         </button>
@@ -7798,7 +7899,7 @@ export function DishDetail({
                   {recipe.owner?.avatar ? (
                     <img
                       src={recipe.owner.avatar}
-                      alt={recipe.owner.name ?? ""}
+                      alt=""
                       onClick={abrirPerfil ?? undefined}
                       style={{
                         width: 30, height: 30, borderRadius: 999, objectFit: "cover", flexShrink: 0,
@@ -7839,7 +7940,7 @@ export function DishDetail({
                       </span>
                     )}
                     {recipe.createdAt && (
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#7a9485" }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#5a7066" }}>
                         {formatRecipeDate(recipe.createdAt)}
                       </span>
                     )}
@@ -7975,7 +8076,7 @@ export function DishDetail({
             }}>
               <Leaf size={15} color="#2f9e52" strokeWidth={2.4} style={{ marginTop: 1, flexShrink: 0 }} />
               <div>
-                <div style={{ fontSize: 11, fontWeight: 800, color: "#2f9e52", letterSpacing: ".3px", textTransform: "uppercase" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#1f7a3d", letterSpacing: ".3px", textTransform: "uppercase" }}>
                   Adaptado: {Array.from(new Set(recipe.adaptations.map((a) => a.label))).join(", ")}
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#3a5a44", marginTop: 3 }}>
@@ -8001,7 +8102,7 @@ export function DishDetail({
             }}>
               <MilkOff size={15} color="#2f9e52" strokeWidth={2.4} style={{ marginTop: 1, flexShrink: 0 }} />
               <div>
-                <div style={{ fontSize: 11, fontWeight: 800, color: "#2f9e52", letterSpacing: ".3px", textTransform: "uppercase" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#1f7a3d", letterSpacing: ".3px", textTransform: "uppercase" }}>
                   Se puede hacer sin lactosa
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#3a5a44", marginTop: 3 }}>
@@ -8211,7 +8312,7 @@ export function DishDetail({
             )}
 
             {/* Segmented control: Ingredientes | Pasos */}
-            <div style={{ display: "flex", background: "#eef3f0", borderRadius: 12, padding: 3, marginBottom: 14 }}>
+            <div role="tablist" aria-label="Receta" style={{ display: "flex", background: "#eef3f0", borderRadius: 12, padding: 3, marginBottom: 14 }}>
               {[
                 { id: "ingredientes", label: `Ingredientes (${courseIngredients.length})` },
                 { id: "pasos", label: "Pasos" },
@@ -8221,11 +8322,13 @@ export function DishDetail({
                   <button
                     key={t.id}
                     type="button"
+                    role="tab"
+                    aria-selected={sel}
                     onClick={() => setRecipeTab(t.id)}
                     style={{
                       flex: 1, padding: "8px 0", borderRadius: 9, border: "none",
                       background: sel ? "#fff" : "transparent",
-                      color: sel ? "#142f1d" : "#7a9485",
+                      color: sel ? "#142f1d" : "#5a7066",
                       fontSize: 13, fontWeight: sel ? 800 : 700,
                       cursor: "pointer", fontFamily: "inherit",
                       boxShadow: sel ? "0 1px 4px rgba(0,0,0,.1)" : "none",
@@ -8434,8 +8537,8 @@ export function DishDetail({
                             display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
                             padding: "8px 4px", borderRadius: 9, border: "none",
                             background: isActive ? "#fff" : "transparent",
-                            color: isActive ? "#142f1d" : "#7a9485",
-                            fontSize: 11.5, fontWeight: isActive ? 800 : 700,
+                            color: isActive ? "#142f1d" : "#5a7066",
+                            fontSize: 12, fontWeight: isActive ? 800 : 700,
                             cursor: "pointer", fontFamily: "inherit",
                             boxShadow: isActive ? "0 1px 4px rgba(0,0,0,.1)" : "none",
                             transition: "all .15s",
@@ -8467,6 +8570,7 @@ export function DishDetail({
                   />
                 ) : stepsLoading ? (
                   <div
+                    className="mp-pulso"
                     style={{
                       fontSize: 13,
                       color: "#8a948d",
@@ -8474,7 +8578,8 @@ export function DishDetail({
                     }}
                   >
                     Preparando el paso a paso…
-                    <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }`}</style>
+                    <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+                      @media (prefers-reduced-motion: reduce) { .mp-pulso { animation: none !important; } }`}</style>
                   </div>
                 ) : applianceStepList.plain.length > 0 ? (
                   <RecipeStepList
@@ -8484,9 +8589,27 @@ export function DishDetail({
                     kitchenTools={kitchenTools}
                   />
                 ) : (
-                  <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
-                    No se pudo cargar el paso a paso. Cierra y vuelve a abrir el plato para reintentar.
-                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    <p style={{ fontSize: 13, color: "#5a7066", margin: 0 }}>
+                      No se pudo cargar el paso a paso.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        delete stepsCacheRef.current[activeAppliance];
+                        setIntentoPasos((n) => n + 1);
+                      }}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                        minHeight: 44, padding: "0 14px", borderRadius: 12,
+                        border: "1.5px solid #d6e6db", background: "#fff", color: "#2d5a3d",
+                        fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                      }}
+                    >
+                      <RotateCw size={13} />
+                      Reintentar
+                    </button>
+                  </div>
                 )}
               </>
             )}
@@ -8558,7 +8681,7 @@ export function DishDetail({
               <Flame size={16} /> Nutrientes por ración
               {recipe.source === "user" && recipe.nutritionSource && (
                 <span style={{
-                  fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999,
+                  fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 999,
                   color: recipe.nutritionSource === "computed" ? "#2d5a3d" : "#8a6d1f",
                   background: recipe.nutritionSource === "computed" ? "#2d5a3d14" : "#8a6d1f14",
                 }}>
@@ -8594,7 +8717,7 @@ export function DishDetail({
                             </>}
                       </span>
                     </div>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#7a8a7f", textAlign: "center", maxWidth: 68 }}>{label}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#5a7066", textAlign: "center", maxWidth: 68 }}>{label}</span>
                   </div>
                 ))}
               </div>
@@ -8687,6 +8810,50 @@ export function DishDetail({
             </section>
           )}
         </div>
+
+        {/* Pegado abajo, a mano del pulgar: al llegar al final ocupa su propio
+            sitio y no tapa nada. Cambiar desde aquí sigue siendo posible
+            (Regenerar, pulsación larga); esto es el otro camino, por el chat. */}
+        {pedidoLola && (
+          <div
+            style={{
+              position: "sticky", bottom: 0, zIndex: 3,
+              margin: "16px -16px -24px",
+              padding: "10px 16px calc(14px + env(safe-area-inset-bottom, 0px))",
+              background: "#fff",
+              boxShadow: "0 -10px 18px -14px rgba(20,47,29,.35)",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => abrirLola(pedidoLola)}
+              style={{
+                display: "flex", alignItems: "center", gap: 12, width: "100%",
+                padding: "8px 10px 8px 8px", borderRadius: 16,
+                border: "1px solid #e3ebe6", background: "#fff", cursor: "pointer",
+                fontFamily: "inherit", textAlign: "left",
+              }}
+            >
+              <img
+                src={lolaFoto}
+                alt=""
+                style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", objectPosition: "center 30%", flexShrink: 0, background: "#f4f8f5" }}
+              />
+              <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 900, color: "#142f1d", letterSpacing: "-.2px" }}>
+                Cambiar con Lola
+              </span>
+              <span
+                aria-hidden
+                style={{
+                  width: 34, height: 34, borderRadius: "50%", background: "#2d5a3d", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <Send size={16} color="#fff" strokeWidth={2.4} />
+              </span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -8848,7 +9015,7 @@ const dishIngQtyCellBase = {
   padding: "4px 7px",
   borderRadius: 7,
   border: "none",
-  fontSize: 11.5,
+  fontSize: 12,
   fontWeight: 700,
   fontVariantNumeric: "tabular-nums",
   whiteSpace: "nowrap",
@@ -8983,6 +9150,15 @@ function FilaPiezaTanda({ pieza, sola, tengo, incluida, onCambiar }) {
   );
 }
 
+// El check de un ingrediente se dibuja de 18 px y se toca en 44: el margen
+// negativo le devuelve a la fila el sitio de siempre.
+const checkTactilStyle = {
+  width: 44, height: 44, margin: -13, flexShrink: 0,
+  display: "inline-flex", alignItems: "center", justifyContent: "center",
+  background: "none", border: "none", cursor: "pointer", padding: 0,
+  fontFamily: "inherit",
+};
+
 function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwned, onRevertOwned, deBase = null }) {
   const unit = ing.unit ?? "ud";
   const qty = ing.qtyScaled;
@@ -9020,13 +9196,18 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
                 type="button"
                 onClick={onRevertOwned}
                 title="Deshacer: quitar de En casa"
-                style={{
-                  width: 18, height: 18, borderRadius: 6, flexShrink: 0,
-                  display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  background: "#4cba6e", border: "none", cursor: "pointer", padding: 0,
-                }}
+                aria-label={`Quitar ${ing.name} de En casa`}
+                style={checkTactilStyle}
               >
-                <Check size={12} strokeWidth={3.2} color="#fff" />
+                <span
+                  style={{
+                    width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    background: "#4cba6e",
+                  }}
+                >
+                  <Check size={12} strokeWidth={3.2} color="#fff" />
+                </span>
               </button>
             ) : (
               <span
@@ -9045,13 +9226,16 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
               type="button"
               onClick={onMarkOwned}
               title="Marcar que ya lo tienes (lo añade a En casa)"
-              style={{
-                width: 18, height: 18, borderRadius: 6, flexShrink: 0,
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                background: "#fff", border: "1.5px solid #cdddd2", cursor: "pointer",
-                padding: 0,
-              }}
-            />
+              aria-label={`Ya tengo ${ing.name}`}
+              style={checkTactilStyle}
+            >
+              <span
+                style={{
+                  width: 18, height: 18, borderRadius: 6, flexShrink: 0, boxSizing: "border-box",
+                  background: "#fff", border: "1.5px solid #cdddd2",
+                }}
+              />
+            </button>
           )
         )}
         <IngredientThumb ing={ing} dimmed={owned} />
@@ -9059,7 +9243,7 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
           <span
             style={{
               display: "block",
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: 700,
               color: "#142f1d",
               textDecoration: owned ? "line-through" : "none",
@@ -9075,7 +9259,7 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
               title="Lo lleva la base que ya tienes hecha"
               style={{
                 display: "flex", alignItems: "center", gap: 3,
-                fontSize: 10, fontWeight: 800, color: "#2d5a3d",
+                fontSize: 11, fontWeight: 800, color: "#2d5a3d",
                 marginTop: 1,
               }}
             >
@@ -9088,7 +9272,7 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
               title="Adaptado por una intolerancia"
               style={{
                 display: "flex", alignItems: "center", gap: 3,
-                fontSize: 10, fontWeight: 800, color: "#2f9e52",
+                fontSize: 11, fontWeight: 800, color: "#1f7a3d",
                 marginTop: 1,
               }}
             >

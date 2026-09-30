@@ -20,7 +20,7 @@ function Chip({ color, background, children }) {
       display: "inline-flex", alignItems: "center",
       padding: "2px 8px", borderRadius: 999,
       background, color,
-      fontSize: 10.5, fontWeight: 800,
+      fontSize: 11, fontWeight: 800,
     }}>
       {children}
     </span>
@@ -41,7 +41,7 @@ export function RecipeStepList({ rich = null, plain = [], ingredients = null, ki
 
   if (!hasRich) {
     return (
-      <ol style={{ margin: 0, paddingLeft: 18, color: "#526057", fontSize: 13, lineHeight: 1.6 }}>
+      <ol style={{ margin: 0, paddingLeft: 18, color: "#526057", fontSize: 15, lineHeight: 1.6 }}>
         {plain.map((step, i) => (
           <li key={`${i}-${step.slice(0, 24)}`} style={{ marginBottom: 6 }}>{step}</li>
         ))}
@@ -86,7 +86,7 @@ export function RecipeStepList({ rich = null, plain = [], ingredients = null, ki
                   minWidth: 24, height: 24, padding: "0 4px", borderRadius: 999, flexShrink: 0,
                   background: meta.color, color: "#fff",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: label.length > 1 ? 10 : 12, fontWeight: 900, lineHeight: 1,
+                  fontSize: label.length > 1 ? 11 : 12, fontWeight: 900, lineHeight: 1,
                 }}>
                   {label}
                 </span>
@@ -108,7 +108,7 @@ export function RecipeStepList({ rich = null, plain = [], ingredients = null, ki
                     <Chip color="#8a6d3b" background="#f6efe0">De la tanda</Chip>
                   )}
                 </div>
-                <div style={{ fontSize: 13, lineHeight: 1.55, color: "#48564e" }}>
+                <div style={{ fontSize: 15, lineHeight: 1.55, color: "#48564e" }}>
                   {renderStepText(s.text, ingredients, kitchenTools)}
                 </div>
               </div>

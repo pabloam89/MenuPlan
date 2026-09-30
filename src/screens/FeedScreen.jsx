@@ -1,3 +1,4 @@
+import { GUIAS_ACTIVAS } from "../lib/frontalBot.js";
 import { Fragment, useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Ban as BlockIcon, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, ChevronLeft, Info } from "../components/icons.jsx";
 import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration, GroupAvatarStack } from "../components/ui.jsx";
@@ -952,7 +953,7 @@ export function FeedScreen({
           apunta. Se reusa el coach-mark de la casa -mismo recorte, misma
           burbuja- para que se vea como el resto de explicaciones de la app y
           no como un aviso pegado encima. */}
-      {publishHint && !publishOpen && onPublishRecipe && (
+      {GUIAS_ACTIVAS && publishHint && !publishOpen && onPublishRecipe && (
         <CoachTour
           steps={[{
             selector: '[data-coach="feed-publish"]',

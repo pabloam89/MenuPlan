@@ -14,8 +14,9 @@ body {
 }
 
 /* Baseline safety net: iOS Safari auto-zooms (and stays zoomed in) on focus
-   whenever a form field's effective font-size is below 16px, since our
-   viewport meta tag disables manual zoom. Every input/textarea/select in the
+   whenever a form field's effective font-size is below 16px. The viewport
+   no longer blocks zoom (WCAG 1.4.4, 30 sep 2026), so this rule is what keeps
+   focusing a field from zooming the page. Every input/textarea/select in the
    app should already set fontSize: 16 inline, but this catches anything that
    relies on the browser default instead. */
 input,

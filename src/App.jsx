@@ -1,3 +1,4 @@
+import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "./lib/frontalBot.js";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
@@ -239,7 +240,7 @@ const FORCE_VALUE_PROPS =
 // el 30 sep 2026: a la gente la agotaban, y la app pasa a ser para VER (el
 // bot de Telegram es el que guía). No se borran: con `?tutorial=1` o `?tour=1`
 // siguen saliendo para revisarlos, y volver a encenderlos es poner esto a true.
-const GUIAS_ACTIVAS = false;
+// Ahora vive en src/lib/frontalBot.js, junto al resto del frontal del bot.
 
 // Temporary dietary states heavy/disruptive enough to warrant offering a
 // separate ad-hoc individual menu instead of restricting the whole family.
@@ -250,6 +251,24 @@ const HEAVY_DIETARY_STATES = ["dieta_blanda"];
 // each week fans out to one LLM call per group, so we cap the burst to stay well
 // under Anthropic rate limits (e.g. 4 weeks × 2 groups would be 8 in flight).
 const WEEK_CONCURRENCY = 3;
+
+// Cada cuánto mira la app, a la vista, si Lola (o la Mini App) ha escrito en
+// la casa: una lectura de un número, barata.
+const BOT_REV_SONDEO_MS = 20_000;
+
+// Lo que espera un enlace del bot (`?ir=`) a que llegue la casa de la nube
+// antes de ir a la pantalla igualmente.
+const ESPERA_DESTINO_MS = 8_000;
+
+// Oculto a la vista, visible para el lector de pantalla.
+const SOLO_LECTOR = {
+  position: "absolute", width: 1, height: 1, padding: 0, margin: -1,
+  overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap", border: 0,
+};
+
+// Los avisos llegan como texto suelto (showToast("…")), sin tipo: un error se
+// reconoce por cómo empieza. Con uno de estos, el aviso no lleva el check.
+const esAvisoDeError = (texto) => /^(no |uy|vaya)|no se (ha )?pod|no he podido|error|ha fallado|repite/i.test(String(texto ?? ""));
 
 // Runs `fn` over `items` with at most `limit` in flight, preserving input order
 // in the returned results array. Rejects on the first error (like Promise.all).
@@ -1764,7 +1783,7 @@ export default function App() {
         // entretanto se recargó la nube, este estado ya es viejo y no se sube.
         if (!cloudReadyRef.current || botRevRef.current !== rev) return;
         saveHouseholdState(syncHouseholdId, snapshot, rev).then((r) => {
-          if (r.conflict) recargarDesdeNubeRef.current();
+          if (r.conflict) recargarDesdeNubeRef.current({ choque: true });
         });
       } else saveUserState(user.id, snapshot);
     }, 1200);
@@ -1773,15 +1792,21 @@ export default function App() {
 
   // Al volver a la app (desde Telegram, típicamente) se mira si el bot ha
   // escrito. Es una lectura de un número; la recarga solo si ha cambiado.
+  // Y mientras está a la vista, cada BOT_REV_SONDEO_MS: si tu pareja tacha en
+  // la lista desde Telegram, o Lola cambia un plato, se ve sin salir y volver.
   useEffect(() => {
     if (!user?.id || !syncHouseholdId) return;
-    const alVolver = async () => {
+    const mirar = async () => {
       if (document.visibilityState !== "visible" || !cloudReadyRef.current) return;
       const rev = await loadHouseholdBotRev(syncHouseholdId);
       if (rev != null && botRevRef.current != null && rev > botRevRef.current) recargarDesdeNubeRef.current();
     };
-    document.addEventListener("visibilitychange", alVolver);
-    return () => document.removeEventListener("visibilitychange", alVolver);
+    document.addEventListener("visibilitychange", mirar);
+    const sondeo = window.setInterval(mirar, BOT_REV_SONDEO_MS);
+    return () => {
+      document.removeEventListener("visibilitychange", mirar);
+      window.clearInterval(sondeo);
+    };
   }, [user?.id, syncHouseholdId]);
 
   // Reconcilia el modo de consumo saliente cuando el usuario lo cambia con un
@@ -1932,20 +1957,25 @@ export default function App() {
   const showToast = useCallback((msg, action = null) => {
     setToast(action ? { msg, action } : msg);
     window.clearTimeout(toastTimer.current);
-    toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 1800);
+    // 1,8 s no daba para leer una frase entera (WCAG 2.2.1): 3,5 s.
+    toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 3500);
   }, []);
 
   // El bot ha escrito en la casa: se vuelve a hidratar adoptando la nube.
   // Lo que se hubiera tocado aquí sin llegar a subir se pierde a propósito:
-  // es el precio de que el cambio del bot no desaparezca en silencio.
-  recargarDesdeNubeRef.current = () => {
+  // es el precio de que el cambio del bot no desaparezca en silencio. Pero no
+  // en silencio para ti: si lo que se pierde es tuyo (`choque`, un guardado
+  // que chocó), se dice, para que lo vuelvas a hacer.
+  recargarDesdeNubeRef.current = ({ choque = false } = {}) => {
     if (recargandoRef.current) return;
     recargandoRef.current = true;
     forceRemoteRef.current = true;
     hydratedUserRef.current = null;
     cloudReadyRef.current = false;
     setCloudEpoch((n) => n + 1);
-    showToast("Actualizado con los cambios del chat");
+    showToast(choque
+      ? "Lola cambió algo a la vez: repite tu último cambio"
+      : "Actualizado con los cambios del chat");
   };
 
   const handleDeleteRecipe = useCallback(async (recipeId) => {
@@ -2378,6 +2408,8 @@ export default function App() {
       setScreen("menu");
       regenerateMenu(nextData);
     },
+    // Con el frontal del bot siguen aquí: se puede cambiar desde la app Y
+    // hablando con Lola (Pablo, 30 sep 2026), y los dos escriben en la casa.
     habilitado: !householdReadOnly,
   });
 
@@ -2564,7 +2596,10 @@ export default function App() {
 
   const goToDashboard = useCallback(() => fwd(() => setScreen("dashboard")), []);
 
+  // Desde Inicio (el «Hoy toca»), el menú abre en el día de hoy: es lo que se
+  // estaba mirando. Mismo camino que un enlace del bot a `dia:…`.
   const goToMenuFromDashboard = useCallback(() => {
+    setMenuInicio({ vista: "dia", dia: DAYS[(new Date().getDay() + 6) % 7], clave: Date.now() });
     fwd(() => setScreen("menu"));
   }, []);
 
@@ -2978,7 +3013,7 @@ export default function App() {
     // shopping change on reload (the generation-time row would win). Debounced
     // + fire-and-forget inside queueSaveMenuWeek; local blob is still the belt.
     if (user && menuId && wk) {
-      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current() });
+      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
     }
   }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user]);
 
@@ -3107,7 +3142,7 @@ export default function App() {
       setData((d) => ({ ...d, menus }));
       if (user) {
         toggleMenuFavoriteRemote(user.id, menuId, true);
-        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current() });
+        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
       }
       showToast("Menú guardado en favoritos");
     } else {
@@ -3972,16 +4007,29 @@ export default function App() {
   const [menuInicio, setMenuInicio] = useState(null);
   // Lo mismo para el recetario: en qué carpeta abre.
   const [recetasInicio, setRecetasInicio] = useState(null);
+  // Si la nube no llega (sin casa, sin red), el enlace no puede quedarse
+  // esperando para siempre sin decir nada: pasado el plazo, se va igual.
+  const [esperaVencida, setEsperaVencida] = useState(false);
+  useEffect(() => {
+    if (!destinoBot) return undefined;
+    const t = window.setTimeout(() => setEsperaVencida(true), ESPERA_DESTINO_MS);
+    return () => window.clearTimeout(t);
+  }, [destinoBot]);
   useEffect(() => {
     if (!destinoBot || authLoading) return;
     const lista = user ? nubeLista : (data.members?.length ?? 0) > 0;
-    if (!lista) return;
+    // Sin cuenta se espera al login, que es lo que falta, no la nube.
+    if (!lista && !(user && esperaVencida)) return;
     const d = destinoBot;
     setDestinoBot(null);
     olvidarDestino();
     if (d.pantalla === "receta") {
       const receta = recipeCatalogById[d.id];
-      if (!receta) { showToast("No encuentro esa receta"); return; }
+      if (!receta) {
+        if (screen === "splash") setScreen("dashboard");
+        showToast("No encuentro esa receta");
+        return;
+      }
       // La ficha se pinta encima de cualquier pantalla, pero no del splash.
       if (screen === "splash") setScreen("dashboard");
       handleOpenCatalogRecipe(receta);
@@ -3990,7 +4038,7 @@ export default function App() {
     if (d.pantalla === "menu") setMenuInicio({ vista: d.vista, dia: d.dia ?? null, clave: Date.now() });
     if (d.pantalla === "recipes") setRecetasInicio({ categoria: d.categoria ?? null, mias: Boolean(d.mias), clave: Date.now() });
     fwd(() => setScreen(d.pantalla));
-  }, [destinoBot, authLoading, user, nubeLista, data.members, screen, handleOpenCatalogRecipe, showToast]);
+  }, [destinoBot, authLoading, user, nubeLista, esperaVencida, data.members, screen, handleOpenCatalogRecipe, showToast]);
 
   /**
    * Copiar una receta de Gente a mi biblioteca. Es una INSTANTÁNEA: nace con
@@ -7056,12 +7104,21 @@ export default function App() {
 
       <BotEnlace showToast={showToast} />
 
+      {/* El lector de pantalla oye el aviso: una región viva que está siempre
+          montada (una que aparece con el texto dentro no se anuncia fiable). */}
+      <div role="status" aria-live="polite" style={SOLO_LECTOR}>
+        {toast ? (typeof toast === "string" ? toast : toast.msg) : ""}
+      </div>
+
       {toast && (
         <div
           className="mp-toast-in"
+          aria-hidden="true"
           style={{
             position: "fixed",
-            bottom: 80,
+            // Por encima de la barra de abajo, que en iPhone crece con la
+            // zona del gesto de inicio.
+            bottom: "calc(88px + env(safe-area-inset-bottom, 0px))",
             left: "50%",
             transform: "translateX(-50%)",
             display: "flex",
@@ -7079,32 +7136,41 @@ export default function App() {
             fontSize: 13.5,
             fontWeight: 800,
             lineHeight: 1.3,
-            whiteSpace: "nowrap",
             boxShadow: "0 24px 60px -16px rgba(20,47,29,.5)",
             zIndex: 320,
           }}
         >
-          <span
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 11,
-              background: "#2d5a3d",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              boxShadow: "0 6px 14px -4px rgba(45,90,61,.5)",
-            }}
-          >
-            <Check size={17} color="#fff" strokeWidth={2.8} />
-          </span>
+          {/* Un error no lleva el check verde de «hecho». */}
+          {(() => {
+            const malo = esAvisoDeError(typeof toast === "string" ? toast : toast.msg);
+            return (
+              <span
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 11,
+                  background: malo ? "#b4462f" : "#2d5a3d",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  boxShadow: malo ? "0 6px 14px -4px rgba(180,70,47,.5)" : "0 6px 14px -4px rgba(45,90,61,.5)",
+                }}
+              >
+                {malo
+                  ? <AlertTriangle size={17} color="#fff" strokeWidth={2.6} />
+                  : <Check size={17} color="#fff" strokeWidth={2.8} />}
+              </span>
+            );
+          })()}
           <span
             style={{
               minWidth: 0,
-              whiteSpace: "nowrap",
+              // Dos líneas antes que cortar el mensaje a medias.
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
               overflow: "hidden",
-              textOverflow: "ellipsis",
             }}
           >
             {typeof toast === "string" ? toast : toast.msg}
@@ -7210,14 +7276,14 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
   const mDelay = isMenu ? 300 : 0;
   const nDelay = isMenu ? 0 : 300;
 
+  // Solo los botones entran: antes TODA la pantalla era un «Entrar sin
+  // cuenta», y un toque despistado en el vídeo te metía en el alta.
   return (
     <div
-      onClick={handleEnter}
       style={{
         position: "relative",
         minHeight: "100dvh",
         width: "100%",
-        cursor: "pointer",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -7408,6 +7474,11 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
           </GhostPillButton>
         ) : (
           <>
+            {FRONTAL_BOT && (
+              <GhostPillButton onClick={abrirLola} tone="solid">
+                Habla con Lola en Telegram
+              </GhostPillButton>
+            )}
             <GoogleButton onClick={onGoogle} variant="dark" />
             <GhostPillButton onClick={handleEnter} tone="light">
               Entrar sin cuenta
