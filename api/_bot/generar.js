@@ -151,5 +151,7 @@ export async function generarMenu(householdId, cual = "esta") {
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(() => "");
   return `Menú nuevo generado y activado: del ${startISO} al ${endISO}, ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
-    + (semana ? `\n\nAsí queda (no hace falta ver_menu):\n${semana}` : ` Enséñaselo con ver_menu${cual === "siguiente" ? " (semana: siguiente)" : ""}.`);
+    + (semana
+      ? `\n\nAsí queda, para que sepas qué hay (no hace falta ver_menu). En el chat NO la copies entera: resume en 3-4 líneas; la semana la ven con el botón que sale solo.\n${semana}`
+      : " La semana la ven con el botón que sale solo: resume en 3-4 líneas qué has hecho.");
 }

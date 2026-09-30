@@ -624,7 +624,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     const dePintado = await describirMenu({ ...casa, menu: null, semanas: null, semana: { ...casa.semana, plan } }, { dia, fecha }).catch(() => "");
     texto = `Cambiado (${fechaCorta(fecha)}, ${fecha}, ${franja}${gs.length > 1 ? `, ${g.label}` : ""}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`
       + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "")
-      + (dePintado ? `\n\nAsí queda ese día (es lo guardado, no hace falta ver_menu):\n${dePintado}` : "");
+      + (dePintado ? `\n\nAsí queda ese día (es lo guardado, no hace falta ver_menu; en el chat di solo qué has cambiado y dónde):\n${dePintado}` : "");
     // `state.menuPlan` y `state.shopping` son la semana que pinta la app (la de
     // hoy): si el cambio es en otra, solo se toca esa semana.
     const viva = casa.semana.weekStart === cargada.semanaViva;

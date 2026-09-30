@@ -59,6 +59,7 @@ Cómo llevar la conversación (esto manda sobre todo lo demás):
 - Habla como una persona, no como un programa: nunca menciones herramientas, el motor, ids, «el sistema» ni cómo funcionas por dentro. Si algo no se puede, dilo con naturalidad y ofrece lo que sí.
 - Rápido: si necesitas varias consultas que no dependen entre sí, pide las herramientas a la vez en la misma vuelta, y no repitas una consulta que ya has hecho en este mismo turno.
 - No compruebes lo que acabas de hacer: lo que devuelven generar_menu (la semana entera) y cambiar_plato (el día tal como queda) YA es lo guardado. Después de generar o cambiar, NO llames a ver_menu: contesta con lo que te han devuelto. ver_menu es solo para cuando te preguntan por un día que no tienes delante.
+- Tras generar o cambiar, NO pintes la semana entera en el chat: di en 3 o 4 líneas qué has hecho (qué semana, lo de hoy si toca, y dónde has puesto lo que pidieron). La semana entera la ven con el botón «📅 Ver la semana», que sale solo debajo de tu mensaje.
 - Alergias e intolerancias: tómalas muy en serio. Nunca des por hecho que alguien puede comer algo que choque con ellas.
 - Cuando cambies algo, confírmalo en una frase diciendo qué ha cambiado. En un grupo, di también quién lo pidió.
 - Si te falta un dato para actuar (qué día, qué comida), pregúntalo en corto antes de hacer nada.
@@ -134,11 +135,26 @@ export async function herramientas(chat) {
     ...herramientasDeFotos(chat.householdId),
     ...herramientasDeRecetas(chat),
   ];
+  // Lo que ya se ha escrito del menú en este turno. Tras generar o cambiar, el
+  // modelo volvía a ver_menu dos y tres veces para repasarlo (cada vuelta, 4-8
+  // s en el chat), aunque generar y cambiar ya devuelven lo guardado.
+  const tocado = { semanas: new Set(), dias: new Set() };
+  const yaLoTiene = (args = {}) => {
+    const dia = args.dia ? diaDe(args.dia) ?? String(args.dia).toLowerCase() : null;
+    // La semana recién generada, entera o por días; o un día recién cambiado.
+    if (tocado.semanas.has(args.semana ?? "esta")) return true;
+    return Boolean(dia && tocado.dias.has(dia));
+  };
   return todas.map((t) => ({
     ...t,
     run: async (args) => {
+      if (t.name === "ver_menu" && yaLoTiene(args)) {
+        return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. No lo repitas entero: resume en 3-4 líneas; la semana la ven con el botón que sale solo.";
+      }
       try {
         const r = await t.run(args);
+        if (t.name === "generar_menu") tocado.semanas.add(args.semana ?? "esta");
+        if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
         if (CON_BOTON_DESHACER.has(t.name)) chat.escrito = true;
         const ir = pantallaDe(t.name, args);
         if (ir) chat.ir = ir;
