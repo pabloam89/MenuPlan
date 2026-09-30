@@ -31,6 +31,10 @@ import { registrar, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
+import { clasificar, vaPorLaRapida } from "../_bot/router.js";
+import { viaRapida, eleccionDe, aplicarEleccion, contextoDe } from "../_bot/turno.js";
+import { ahoraEnMadrid } from "../_bot/recordatorios.js";
+import { fueraDeLimite, contarUso } from "../_bot/uso.js";
 import {
   enlacesReceta, enlacesSemana, botonesCompartir, resolverInvitacion,
   recetaEnTexto, semanaEnTexto, copiarReceta,
@@ -243,9 +247,9 @@ async function atender(msg, base) {
 }
 
 /** Un mensaje en la cola del chat (api/_bot/turnos.js): lo justo para responderlo. */
-function itemDe(from, texto, { oido = null, responderA } = {}) {
+function itemDe(from, texto, { oido = null, responderA, inmediato = false } = {}) {
   return {
-    texto, oido, responderA, autor: nombreDe(from),
+    texto, oido, responderA, autor: nombreDe(from), inmediato,
     from: from ? { id: from.id, first_name: from.first_name, last_name: from.last_name, language_code: from.language_code } : null,
   };
 }
@@ -258,7 +262,7 @@ function itemDe(from, texto, { oido = null, responderA } = {}) {
 function atenderCola({ chatId, householdId, esGrupo, base }) {
   return async (items) => {
     const { texto, oido, ultimo, variosAutores } = juntar(items, { esGrupo });
-    await conversar({
+    await turno({
       base, chatId, householdId, esGrupo, texto, oido,
       from: variosAutores ? null : ultimo.from,
       responderA: ultimo.responderA,
@@ -266,15 +270,127 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
   };
 }
 
+// ── El enrutador (api/_bot/router.js) ───────────────────────────────────────
+//
+// BOT_ROUTER=off     todo a Lola, como antes.
+// BOT_ROUTER=sombra  Lola contesta siempre; el enrutador decide en paralelo y
+//                    solo se APUNTA qué habría hecho (bot_route en user_events),
+//                    para medirlo con tráfico real antes de encenderlo.
+// BOT_ROUTER=on      la cascada entera:
+//   0. estado: si Lola acaba de dar opciones y le eligen una → se aplica.
+//   1. el enrutador (Haiku) y Lola arrancan A LA VEZ (especulativo, como hace
+//      Sierra): Lola no espera a nadie, pero lo que escribiría en la casa
+//      queda retenido, y lo que va escribiendo en el chat no sale todavía.
+//   2. si el turno es de la vía rápida, se cancela a Lola sin que haya tocado
+//      nada y se contesta con la plantilla; si no, se abre la puerta y sigue.
+// En grupos, de momento, siempre Lola.
+const MODO_ROUTER = () => (["sombra", "on"].includes(process.env.BOT_ROUTER) ? process.env.BOT_ROUTER : "off");
+const RUTA = "bot_route";
+
+/** Lo último que dijo Lola en este chat (y su propuesta de opciones, si la hubo). */
+async function ultimaDeLola(chatId) {
+  const filas = await select("bot_messages", `channel=eq.telegram&chat_id=${eq(chatId)}&order=created_at.desc&limit=2`, "role,content").catch(() => []);
+  const f = filas.find((x) => x.role === "assistant");
+  // Tras un /nueva (marcador de corte) no hay «último» que valga.
+  if (!f || filas[0]?.content?.corte) return null;
+  return { texto: String(f.content?.texto ?? "").replace(/<[^>]+>/g, ""), propuesta: f.content?.propuesta ?? null };
+}
+
+async function apuntarRuta(householdId, extra) {
+  await registrar(RUTA, { userId: await duenoDe(householdId).catch(() => null), extra }).catch(() => {});
+}
+
+async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, responderA }) {
+  const modo = MODO_ROUTER();
+  if (modo === "off" || esGrupo) return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA });
+  const t0 = Date.now();
+  const marca = (que) => process.env.BOT_TIEMPOS && console.log(`[turno] ${que}: ${Date.now() - t0} ms`);
+  // Lo último que dijo Lola y la casa (quién hay, si hay menú). Se probó a
+  // quitar la casa para ahorrar 0,3 s y el enrutador perdió confianza donde
+  // importa: sin saber que hay menú dudaba en «cambia la cena del jueves», y
+  // sin saber que hay un bebé mandaba «¿qué le hago al bebé?» a Lola
+  // (scripts/router-evals.mjs, 84/92 frente a 135/138).
+  const [ultima, contexto] = await Promise.all([ultimaDeLola(chatId), contextoDe(householdId)]);
+  marca("contexto");
+
+  // 0. Estado: elegir una de las opciones que acaba de dar.
+  if (modo === "on" && ultima?.propuesta) {
+    const eleccion = eleccionDe(texto, ultima.propuesta);
+    if (eleccion) {
+      const r = await aplicarEleccion(eleccion, ultima.propuesta, householdId).catch(() => null);
+      marca("elección aplicada");
+      if (r) {
+        await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
+        marca("entregado");
+        return apuntarRuta(householdId, { modo: "eleccion", rapida: true, ms: Date.now() - t0 });
+      }
+    }
+  }
+
+  const decisionP = clasificar({ texto, contexto: { ...contexto, ahora: ahoraEnMadrid(), ultimaDeLola: ultima?.texto ?? null } });
+
+  if (modo === "sombra") {
+    decisionP.then((d) => apuntarRuta(householdId, {
+      sombra: true, modo: d.modo, confianza: d.confianza, rapida: vaPorLaRapida(d), ms: d.ms, error: d.error, texto: String(texto).slice(0, 120),
+    }));
+    return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA });
+  }
+
+  // on: Lola arranca ya, con la puerta cerrada.
+  let abrir;
+  const puerta = new Promise((r) => { abrir = r; });
+  const ctrl = new AbortController();
+  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA, puerta, signal: ctrl.signal });
+
+  const d = await decisionP;
+  marca(`enrutador (${d.modo} ${d.confianza}, ${d.ms} ms)`);
+  if (vaPorLaRapida(d) && !(await fueraDeLimite(householdId))) {
+    const r = await viaRapida(d, householdId).catch((e) => { console.error("[router] vía rápida", e?.message); return null; });
+    marca("vía rápida hecha");
+    if (r) {
+      abrir(false);
+      ctrl.abort();
+      await lola.catch(() => {});
+      await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
+      await contarUso(householdId, d.uso ?? {}).catch(() => {});
+      return apuntarRuta(householdId, { modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms });
+    }
+  }
+  abrir(true);
+  apuntarRuta(householdId, { modo: d.modo, confianza: d.confianza, rapida: false, router_ms: d.ms, error: d.error });
+  return lola;
+}
+
+/** Entrega una respuesta de la vía rápida y la deja en la memoria de la charla. */
+async function entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r }) {
+  await entregar({ chatId, householdId, esGrupo, base, from, responderA, oido, r: { compartir: null, deshacible: false, ...r } });
+  await recordar({
+    chatId, householdId, pregunta: texto, respuesta: r.texto, autor: esGrupo ? nombreDe(from) : null,
+    extra: r.propuesta ? { propuesta: r.propuesta, via: "rapida" } : { via: "rapida" },
+  });
+}
+
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null }) {
+async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
   const eco = oido ? `🎙️ «${oido}»\n\n` : "";
   const vivo = mensajeVivo(chatId, { responderA, eco });
+  // Turno especulativo: lo que Lola va escribiendo no sale hasta que el turno
+  // es suyo (puerta → true). Se guarda lo último y se suelta al abrir.
+  let pendiente = null;
+  let abierta = !puerta;
+  puerta?.then((suyo) => {
+    abierta = suyo;
+    if (suyo && pendiente) vivo.escribir(...pendiente);
+  });
+  const alEscribir = (parcial, extra) => (abierta ? vivo.escribir(parcial, extra) : (pendiente = [parcial, extra]));
   let r;
   try {
-    r = await responder({ chatId, householdId, texto, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir: vivo.escribir });
+    r = await responder({ chatId, householdId, texto, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir, puerta, signal });
+    if (puerta && !(await puerta)) return; // el turno fue de la vía rápida
   } catch (err) {
+    // Cancelada porque el turno era de la vía rápida: nada que decir.
+    if (signal?.aborted || (puerta && !(await puerta))) { await vivo.parar(); return; }
     // Nunca un error técnico en el chat: una frase y, si cabe, reintentar con
     // un toque (el botón vuelve a mandar lo mismo).
     console.error("[bot/telegram] agente", err?.message);
@@ -555,7 +671,7 @@ async function pulsado(cq, base) {
   if (cq.data?.startsWith("t:")) {
     if (!chat) return bienvenida(chatId);
     const esGrupo = esGrupoDe(cq.message.chat);
-    return enTurno(chatId, itemDe(cq.from, cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined }),
+    return enTurno(chatId, itemDe(cq.from, cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true }),
       atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
   }
 

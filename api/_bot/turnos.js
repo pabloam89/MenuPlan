@@ -10,7 +10,10 @@
 
 import { select, insert, update, rpc, eq } from "./db.js";
 
-const ESPERA_RAFAGA_MS = 2000;
+// Lo que se espera por si llega otro mensaje detrás. 1 s basta para las
+// ráfagas de texto («quiero cambiar la cena» · «la del jueves»); un botón
+// pulsado (item.inmediato) no espera nada: nadie pulsa dos a la vez.
+const ESPERA_RAFAGA_MS = 1000;
 const DURACION_CANDADO_S = 150; // más que maxDuration (120): caduca solo si la función muere
 const MAX_VUELTAS = 4;
 
@@ -44,7 +47,7 @@ export async function enTurno(chatId, item, atender) {
   for (let intento = 0; intento < 2; intento++) {
     if (!(await tomarCandado(chatId))) return;
     try {
-      await dormir(ESPERA_RAFAGA_MS);
+      if (!item.inmediato) await dormir(ESPERA_RAFAGA_MS);
       for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
         const items = await sacarCola(chatId);
         if (!items.length) break;

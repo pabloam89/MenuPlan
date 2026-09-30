@@ -127,7 +127,31 @@ export async function prepararRecetas(casa) {
     const fotos = filas.map((f) => f.recipe_snapshot).filter(Boolean);
     if (fotos.length) m.registerRecipes(fotos);
   }
+  repararGrupos(m, casa);
   return m;
+}
+
+/**
+ * Las casas creadas desde el chat no guardaban sus grupos: generar los sacaba
+ * del modelo (groupsFromModel) para el plan y no los escribía en la casa. El
+ * plan tenía grupos que `data.groups` no conocía, y el motor, al buscar el
+ * grupo de un hueco, no encontraba nada: proponer y cambiar un plato salían
+ * vacíos («no hay otras recetas que encajen»), y el menú enseñaba «grupo 1».
+ *
+ * generar.js ya los guarda (30 sep 2026). Para las casas de antes se rehacen
+ * aquí, en memoria: los mismos grupos del modelo, con los ids del plan por
+ * orden (el plan los crea en ese mismo orden). Solo si cuadran en número.
+ */
+function repararGrupos(m, casa) {
+  const data = casa.state?.data;
+  const plan = casa.semana?.plan;
+  if (!data || !plan || !(data.members ?? []).length) return;
+  const ids = Object.keys(plan).filter((k) => !k.startsWith("_"));
+  const conocidos = new Set((data.groups ?? []).map((g) => g?.id));
+  if (!ids.length || ids.every((id) => conocidos.has(id))) return;
+  const modelo = m.groupsFromModel(data.members, m.resolveModeData(data).menuModel);
+  if (modelo.length !== ids.length) return;
+  casa.state.data = { ...data, groups: ids.map((id, i) => ({ ...modelo[i], id })) };
 }
 
 /**
@@ -315,7 +339,12 @@ function buscarItems(items, texto) {
   return items.filter((it) => palabras.every((w) => new RegExp(`\\b${escapar(w)}\\b`).test(normal(it.name))));
 }
 
-export async function marcarCompra(householdId, productos, estado) {
+// `out` (opcional, en marcarCompra, anadirCompra, proponerPlatos, ideasSinMenu
+// y cambiarPlato): se rellena con los DATOS de lo hecho, para las vías rápidas
+// del enrutador (api/_bot/turno.js), que pintan la respuesta con plantillas
+// sin pasar por Lola. El texto que devuelven, para Lola, no cambia.
+
+export async function marcarCompra(householdId, productos, estado, out = null) {
   const resultado = { hechos: [], noEncontrados: [], dudosos: [] };
   const r = await conCasa(householdId, (casa) => {
     Object.assign(resultado, { hechos: [], noEncontrados: [], dudosos: [] });
@@ -333,6 +362,7 @@ export async function marcarCompra(householdId, productos, estado) {
     if (!resultado.hechos.length) return null;
     return guardarLista(casa, { ...listaDe(casa), items });
   });
+  if (out) Object.assign(out, { ok: r.ok, ...resultado });
   if (!r.ok) return `No he podido guardar la lista: ${r.error}.`;
   return [
     resultado.hechos.length ? `Marcados como ${estado}: ${resultado.hechos.join(", ")}.` : "",
@@ -341,7 +371,7 @@ export async function marcarCompra(householdId, productos, estado) {
   ].filter(Boolean).join("\n") || "No había lista de la compra.";
 }
 
-export async function anadirCompra(householdId, productos) {
+export async function anadirCompra(householdId, productos, out = null) {
   const r = await conCasa(householdId, (casa) => {
     const items = [...(listaDe(casa).items ?? [])];
     for (const p of productos) {
@@ -355,6 +385,7 @@ export async function anadirCompra(householdId, productos) {
     }
     return guardarLista(casa, { ...listaDe(casa), items });
   });
+  if (out) Object.assign(out, { ok: r.ok, anadidos: productos.map((p) => String(p).trim()).filter(Boolean) });
   if (!r.ok) return `No he podido guardar la lista: ${r.error}.`;
   return `Añadido a la compra: ${productos.join(", ")}.`;
 }
@@ -443,7 +474,7 @@ const POOL_PARA_APROXIMAR = 400;
  *   `dia` tal cual lo dicen («hoy», «jueves»); `parecidoA`, un plato que
  *   piden por su nombre: las opciones salen ordenadas por parecido.
  */
-export async function proponerPlatos(householdId, { dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null }, fotos = null) {
+export async function proponerPlatos(householdId, { dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null }, fotos = null, out = null) {
   const cargada = await cargarCasa(householdId);
   if (!cargada) return "Esta casa todavía no tiene datos en la nube.";
   // Nada obligatorio: sin día ni comida, la próxima que toca; «para los
@@ -458,10 +489,10 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   // Sin menú para ese día, ideas igualmente: recomendar una cena no puede
   // obligar a generar la semana entera (pasó: «¿te genero el menú?» para una
   // cena de hoy).
-  if (rd.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos }, fotos);
+  if (rd.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos }, fotos, out);
   const { casa, dia, fecha } = rd;
   const h = huecoDe(casa, { dia, franja, grupo, cual });
-  if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos }, fotos);
+  if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos }, fotos, out);
   const m = await prepararRecetas(casa);
   const res = m.pickCatalogReplacement(casa.state?.data ?? {}, casa.semana.plan, {
     groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR, pedido: !!parecidoA,
@@ -482,8 +513,18 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
     }
     lista = ordenadas.length ? ordenadas : lista.slice(0, n);
   }
-  if (!lista.length) return "No hay otras recetas que encajen en ese hueco con vuestras alergias, gustos y tiempo.";
+  if (!lista.length) {
+    if (out) Object.assign(out, { conMenu: true, bloques: [], fecha, dia, franja });
+    return "No hay otras recetas que encajen en ese hueco con vuestras alergias, gustos y tiempo.";
+  }
   const actual = m.RECIPES_BY_ID[h.course === "first" ? h.hueco.firstRecipeId : h.hueco.recipeId];
+  if (out) {
+    Object.assign(out, {
+      conMenu: true, fecha, dia, franja, cual: h.course === "first" ? "primero" : "principal",
+      grupo: h.gs.length > 1 ? h.g.label : null, actual: actual?.name ?? null, estilo, aviso: filtro.aviso,
+      bloques: [{ grupo: h.gs.length > 1 ? h.g.label : null, opciones: lista }],
+    });
+  }
   const ahora = actual?.name ? `${actual.name}${detalleDe(actual, estilo) ? ` (${detalleDe(actual, estilo)})` : ""}` : null;
   const detalle = (r) => detalleDe(r, estilo);
   lista.forEach((r, i) => apuntarFoto(m, fotos, r, `${i + 1}. ${r.name}`));
@@ -637,7 +678,7 @@ export function variadas(lista, n) {
  * Sin `grupo`, una tanda por grupo que come (los mayores y el bebé no comen lo
  * mismo): pie de foto «1. …» numerado seguido entre grupos, como la lista.
  */
-export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null, cual, n, estilo = null, rasgos = null }, fotos) {
+export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null, cual, n, estilo = null, rasgos = null }, fotos, out = null) {
   const m = await prepararRecetas(casa);
   // `schedule` puede faltar en una casa recién creada desde el chat, y el motor
   // lo lee sin mirar: sin horario apuntado, todos comen en casa.
@@ -662,12 +703,14 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
     if (!lista.length) continue;
     const quien = m.membersOfGroup(g, data.members ?? []).map((p) => p.name).filter(Boolean).join(", ");
     bloques.push(`Para ${g.label}${quien ? ` (${quien})` : ""}:`);
+    if (out) (out.bloques ??= []).push({ grupo: elegidos.length > 1 ? g.label : null, opciones: lista, aviso: filtro.aviso });
     for (const r of lista) {
       num += 1;
       apuntarFoto(m, fotos, r, `${num}. ${r.name}`);
       bloques.push(`${num}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`);
     }
   }
+  if (out) Object.assign(out, { conMenu: false, dia, franja, estilo, bloques: out.bloques ?? [] });
   if (!bloques.length) return "No hay recetas que encajen con vuestras alergias y gustos para esa comida.";
   return [
     `No hay menú para ese día, así que son ideas del recetario para la ${franja.toLowerCase()}, sin tocar nada:`,
@@ -684,7 +727,7 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
  * motor da por buenas para el hueco: elegir no se salta las alergias, el
  * tiempo ni lo repetido.
  */
-export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal", receta = null }, fotos = null) {
+export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal", receta = null }, fotos = null, out = null) {
   let texto = "";
   const r = await conCasa(householdId, async (cargada) => {
     const rd = resolverDia(cargada, diaPedido, semana);
@@ -734,6 +777,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     // El día tal como queda, en la propia respuesta: el modelo iba a ver_menu
     // tras cada cambio para comprobarlo, y cada vuelta son 4-8 s en el chat.
     const dePintado = await describirMenu({ ...casa, menu: null, semanas: null, semana: { ...casa.semana, plan } }, { dia, fecha }).catch(() => "");
+    if (out) Object.assign(out, { cambiado: true, fecha, dia, franja, grupo: gs.length > 1 ? g.label : null, antes: antes ?? null, despues: elegido.frontendRecipe.name, recetaId: elegido.recipeId, aproximada, pedida: receta });
     texto = `Cambiado (${fechaCorta(fecha)}, ${fecha}, ${franja}${gs.length > 1 ? `, ${g.label}` : ""}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`
       + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "")
       + (dePintado ? `\n\nAsí queda ese día (es lo guardado, no hace falta ver_menu; en el chat di solo qué has cambiado y dónde):\n${dePintado}` : "");
@@ -742,6 +786,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     const viva = casa.semana.weekStart === cargada.semanaViva;
     return { casa, state: viva ? { ...casa.state, menuPlan: plan, shopping, aiRecipes } : { ...casa.state, aiRecipes }, semana: { plan, shopping } };
   });
+  if (out && !out.cambiado) out.error = r.ok ? texto : `No he podido guardar el cambio: ${r.error}.`;
   if (!r.ok) return `No he podido guardar el cambio: ${r.error}.`;
   return texto;
 }

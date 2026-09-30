@@ -53,16 +53,24 @@ function bloquesDelDia(casa, m, dia, { fotos = null, conFotos = false } = {}) {
 
 /** 🍽️ Hoy: lo de hoy con fotos. */
 export async function respuestaHoy(householdId) {
+  return respuestaDia(householdId, "hoy");
+}
+
+/** Un día cualquiera («mañana», «el jueves»), por su fecha real, con fotos. */
+export async function respuestaDia(householdId, texto) {
   const casa = await cargarCasa(householdId);
   if (!casa?.semana?.plan) return null;
-  const rd = resolverDia(casa, "hoy");
+  const rd = resolverDia(casa, texto);
   if (rd.error || !rd.casa?.semana?.plan) return null;
   const m = await prepararRecetas(rd.casa);
   const fotos = [];
   const bloques = bloquesDelDia(rd.casa, m, rd.dia, { fotos, conFotos: true });
   if (!bloques.length) return null;
   const n = Number(rd.fecha.slice(8, 10));
-  return { texto: `<b>Hoy, ${DIA_LARGO[rd.dia]} ${n}</b>\n\n${bloques.join("\n\n")}`, fotos, ir: "hoy" };
+  const esHoy = /^hoy$/i.test(String(texto).trim());
+  const nombre = DIA_LARGO[rd.dia];
+  const titulo = esHoy ? `Hoy, ${nombre} ${n}` : `${nombre[0].toUpperCase()}${nombre.slice(1)} ${n}`;
+  return { texto: `<b>${titulo}</b>\n\n${bloques.join("\n\n")}`, fotos, ir: esHoy ? "hoy" : `dia:${rd.dia}` };
 }
 
 /** 📅 Semana: un bloque por día, desde hoy si la semana está en curso. */
@@ -100,9 +108,10 @@ export async function respuestaCompra(householdId) {
 }
 
 /** Deja el turno en la memoria de la charla, como si lo hubiera contestado Lola. */
-export async function recordar({ channel = "telegram", chatId, householdId, pregunta, respuesta, autor = null }) {
+export async function recordar({ channel = "telegram", chatId, householdId, pregunta, respuesta, autor = null, extra = null }) {
   await insert("bot_messages", [
     { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor, content: { texto: pregunta } },
-    { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta } },
+    // `extra`: p. ej. la propuesta de opciones, para el paso 0 del turno siguiente.
+    { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, ...(extra ?? {}) } },
   ]).catch((e) => console.error("[rapido] memoria", e?.message));
 }

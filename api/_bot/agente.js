@@ -128,6 +128,12 @@ function pantallaDe(herramienta, args = {}) {
  *   `fotos` y `escrito` los rellenan las herramientas en este turno: las fotos
  *   de los platos que se han enseñado, y si se cambió algo que se puede deshacer.
  */
+// Las que no cambian nada: pueden correr antes de saber de quién es el turno.
+const SOLO_LECTURA = new Set([
+  "ver_casa", "ver_menu", "ver_receta", "ver_compra", "ver_ajustes", "ver_despensa", "ver_menu_cole",
+  "ver_recordatorios", "proponer_platos", "buscar_recetas", "compartir",
+]);
+
 export async function herramientas(chat) {
   const gustos = await dominiosDeGustos();
   const todas = [
@@ -150,6 +156,13 @@ export async function herramientas(chat) {
   return todas.map((t) => ({
     ...t,
     run: async (args) => {
+      // Turno especulativo (api/bot/telegram.js): Lola arranca a la vez que el
+      // enrutador. Lo que escribe en la casa espera a saber si el turno es
+      // suyo; si se lo queda la vía rápida, no escribe nada.
+      if (chat.puerta && !SOLO_LECTURA.has(t.name)) {
+        const seguir = await chat.puerta;
+        if (!seguir) throw new Error("turno de la vía rápida");
+      }
       if (t.name === "ver_menu" && yaLoTiene(args)) {
         return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. No lo repitas entero: resume en 3-4 líneas; la semana la ven con el botón que sale solo.";
       }
@@ -627,7 +640,12 @@ async function memoria(channel, chatId) {
  *   el texto para el chat (HTML de Telegram), las fotos de los platos que se
  *   han enseñado y si se cambió algo que se puede deshacer.
  */
-export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, adjunto = null, alEscribir = null }) {
+/**
+ * @param {Promise<boolean>} [puerta]  turno especulativo: las herramientas de
+ *   escritura esperan a que resuelva; false = el turno es de la vía rápida.
+ * @param {AbortSignal} [signal]  para cancelar a Lola si el turno no es suyo.
+ */
+export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, adjunto = null, alEscribir = null, puerta = null, signal = null }) {
   const tope = await fueraDeLimite(householdId);
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
 
@@ -635,10 +653,10 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, fotos: [], escrito: false, ir: null, compartir: null };
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, fotos: [], escrito: false, ir: null, compartir: null, puerta };
   const tools = await herramientas(chat);
   const { dicho, uso } = await ejecutar({
-    historia, entrada, tools, adjunto,
+    historia, entrada, tools, adjunto, signal,
     alEscribir: alEscribir ? (parcial) => alEscribir(parcial, { fotos: chat.fotos }) : null,
   });
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
@@ -668,7 +686,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
  *   modelo (desde cero en cada vuelta), para ir enseñándolo mientras piensa.
  *   El resultado final no cambia.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null }) {
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null }) {
   const contenido = adjunto
     ? [{ type: adjunto.tipo, source: { type: "base64", media_type: adjunto.mediaType, data: adjunto.base64 } }, { type: "text", text: entrada }]
     : entrada;
@@ -685,7 +703,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     tools,
     messages: [...historia, { role: "user", content: contenido }],
     ...(alEscribir ? { stream: true } : {}),
-  });
+  }, signal ? { signal } : undefined);
   // Cada vuelta del runner es una llamada al modelo: el coste es la suma.
   const uso = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
   let final = null;

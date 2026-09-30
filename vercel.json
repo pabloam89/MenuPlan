@@ -2,6 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "regions": ["fra1"],
   "functions": {
     "api/share-recipe.js": {
       "includeFiles": "src/{data/recipes/*.json,assets/dishes/dishImages.json}"

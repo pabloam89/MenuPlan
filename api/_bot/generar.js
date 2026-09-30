@@ -87,7 +87,7 @@ export function dondeQuedaron(pedidos, plan) {
   });
 }
 
-export async function generarMenu(householdId, cual = "esta", fijos = []) {
+export async function generarMenu(householdId, cual = "esta", fijos = [], out = null) {
   const casa = await cargarCasa(householdId);
   if (!casa) return "Esta casa todavía no tiene datos en la nube.";
   const m = await motor();
@@ -181,7 +181,10 @@ export async function generarMenu(householdId, cual = "esta", fijos = []) {
   const deHoy = semanasQueSeQuedan.find((w) => w.week_start <= hoy && hoy <= w.week_end);
   const state = {
     ...casa.state,
-    data: { ...(casa.state?.data ?? {}), activeMenuId: menu.id },
+    // Los grupos, si se sacaron del modelo aquí: sin ellos en la casa, el plan
+    // tiene grupos que nadie conoce y proponer o cambiar un plato salen vacíos
+    // (pasaba en todas las casas creadas desde el chat).
+    data: { ...(casa.state?.data ?? {}), activeMenuId: menu.id, ...(groups !== (working.groups ?? []) ? { groups } : {}) },
     menuPlan: deHoy && !(startISO <= hoy && hoy <= endISO) ? deHoy.plan : plan,
     shopping: deHoy && !(startISO <= hoy && hoy <= endISO) ? deHoy.shopping : shopping,
     aiRecipes: [...porId.values()],
@@ -203,6 +206,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = []) {
   // a ver_menu justo después (y otra vez tras cada cambio), y un «hazme el
   // menú con salmón un día» tardaba casi un minuto en seis vueltas.
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(() => "");
+  // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
+  if (out) Object.assign(out, { ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, pedidos: pedidos.length ? dondeQuedaron(pedidos, plan) : [] });
   return `Menú nuevo generado y activado: del ${startISO} al ${endISO}, ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
     + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan).join("\n")}` : "")

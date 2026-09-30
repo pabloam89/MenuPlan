@@ -1,0 +1,57 @@
+{
+  "_nota": "Frases etiquetadas para el enrutador (scripts/router-evals.mjs). «modo» es lo esperado; «rapida» si debe ir por la vía rápida (true) o a Lola (false); «datos» se comprueba por subcadena sin acentos. «ultima» es lo último que dijo Lola, para los casos de conversación en curso.",
+  "casos": [
+    { "texto": "¿qué comemos hoy?", "modo": "consulta", "rapida": true, "datos": { "que": "hoy" } },
+    { "texto": "qué hay de cena", "modo": "consulta", "rapida": true },
+    { "texto": "¿y mañana qué toca?", "modo": "consulta", "rapida": true, "datos": { "dia": "mañana|jueves" } },
+    { "texto": "qué hay el jueves", "modo": "consulta", "rapida": true, "datos": { "dia": "jueves" } },
+    { "texto": "pásame el menú de la semana", "modo": "consulta", "rapida": true, "datos": { "que": "semana" } },
+    { "texto": "qué me falta por comprar", "modo": "consulta", "rapida": true, "datos": { "que": "compra" } },
+    { "texto": "la lista de la compra porfa", "modo": "consulta", "rapida": true, "datos": { "que": "compra" } },
+
+    { "texto": "Hola, qué recetas me puedes recomendar para una cena rápida con mi mujer entre semana?", "modo": "recomendar", "rapida": true, "datos": { "comida": "Cena", "para": "mayores", "estilo": "rapido" } },
+    { "texto": "¿qué me recomiendas para cenar hoy?", "modo": "recomendar", "rapida": true, "datos": { "comida": "Cena" } },
+    { "texto": "ideas para la comida del jueves", "modo": "recomendar", "rapida": true, "datos": { "dia": "jueves", "comida": "Comida" } },
+    { "texto": "algo ligero para esta noche", "modo": "recomendar", "rapida": true, "datos": { "estilo": "ligero" } },
+    { "texto": "me apetece algo reconfortante de cuchara para cenar", "modo": "recomendar", "rapida": true, "datos": { "rasgos.connotacion": "reconfortante", "rasgos.textura": "cuchara" } },
+    { "texto": "dame ideas baratas para comer mañana, que no pique que es para los niños", "modo": "recomendar", "rapida": true, "datos": { "rasgos.coste": "economico", "rasgos.picante": "sin", "para": "ninos" } },
+    { "texto": "qué le hago de cenar al bebé", "modo": "recomendar", "rapida": true, "datos": { "para": "bebe" } },
+    { "texto": "Para hoy", "ultima": "¡Con gusto! ¿Para qué día te preparo las opciones? (hoy, mañana o un día concreto de esta semana)", "modo": "recomendar", "rapida": true, "datos": { "dia": "hoy" } },
+    { "texto": "la cena", "ultima": "¿Te busco ideas para la comida o para la cena?", "modo": "recomendar", "rapida": true, "datos": { "comida": "Cena" } },
+
+    { "texto": "cambia la cena del jueves", "modo": "cambiar", "rapida": true, "datos": { "dia": "jueves", "comida": "Cena" } },
+    { "texto": "pon lentejas el martes a mediodía", "modo": "cambiar", "rapida": true, "datos": { "dia": "martes", "comida": "Comida", "receta": "lentejas" } },
+    { "texto": "el viernes cenamos pizza, cámbialo", "modo": "cambiar", "rapida": true, "datos": { "dia": "viernes", "receta": "pizza" } },
+    { "texto": "cambia eso que no me gusta", "modo": "lola", "rapida": false },
+
+    { "texto": "apunta leche y pan", "modo": "compra_anadir", "rapida": true, "datos": { "productos": "leche" } },
+    { "texto": "añade pilas a la lista", "modo": "compra_anadir", "rapida": true, "datos": { "productos": "pilas" } },
+    { "texto": "ya he comprado los huevos y la leche", "modo": "compra_marcar", "rapida": true, "datos": { "productos": "huevos" } },
+    { "texto": "tacha el pan", "modo": "compra_marcar", "rapida": true, "datos": { "productos": "pan" } },
+
+    { "texto": "hazme el menú de la semana que viene", "modo": "generar", "rapida": true, "datos": { "semana": "siguiente" } },
+    { "texto": "genera un menú nuevo para esta semana", "modo": "generar", "rapida": true, "datos": { "semana": "esta" } },
+    { "texto": "Vale hazme el menú para la semana que viene. Un día quiero salmón al horno con ensalada de mango, otro pollo al horno con patatas y el resto lo que sea", "modo": "generar", "rapida": true, "datos": { "semana": "siguiente", "fijos": "salmon" } },
+
+    { "texto": "uy no, deja lo de antes", "modo": "deshacer", "rapida": true },
+    { "texto": "deshaz lo último", "modo": "deshacer", "rapida": true },
+
+    { "texto": "Leo es alérgico al huevo", "modo": "lola", "rapida": false },
+    { "texto": "los niños comen en el cole de lunes a jueves", "modo": "lola", "rapida": false },
+    { "texto": "queremos más pescado y nada de coliflor", "modo": "lola", "rapida": false },
+    { "texto": "tenemos airfryer", "modo": "lola", "rapida": false },
+    { "texto": "¿cómo se hace la tortilla de calabacín?", "modo": "lola", "rapida": false },
+    { "texto": "guárdame esta receta de mi abuela: croquetas de jamón con bechamel", "modo": "lola", "rapida": false },
+    { "texto": "recuérdame el domingo a las 7 hacer la compra", "modo": "lola", "rapida": false },
+    { "texto": "¿por qué me has puesto tanto pescado?", "modo": "lola", "rapida": false },
+    { "texto": "hola lola!", "modo": "lola", "rapida": false },
+    { "texto": "gracias, perfecto", "modo": "lola", "rapida": false },
+    { "texto": "comparte la receta de las lentejas con mi hermana", "modo": "lola", "rapida": false },
+    { "texto": "el miércoles viene mi suegra a cenar", "modo": "lola", "rapida": false },
+    { "texto": "cambia la cena del jueves y apunta leche", "modo": "lola", "rapida": false },
+    { "texto": "sí", "ultima": "Voy a guardar que Leo es alérgico al huevo. ¿Lo guardo?", "modo": "lola", "rapida": false },
+    { "texto": "Nadie tiene alergias", "ultima": "¿Alguien tiene alguna alergia o intolerancia?", "modo": "lola", "rapida": false },
+    { "texto": "Ana, Pablo y Leo de 6 años", "ultima": "¡Hola! Cuéntame quiénes coméis en casa.", "modo": "lola", "rapida": false },
+    { "texto": "pesa 90 kilos y mide 1,85", "modo": "lola", "rapida": false }
+  ]
+}
