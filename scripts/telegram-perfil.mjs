@@ -49,8 +49,8 @@ const COMANDOS = [
   { command: "generar", description: "Hacer un menú nuevo" },
   { command: "app", description: "Abrir la app de HoMenu" },
   { command: "grupo", description: "Meter a Lola en el grupo de la familia" },
+  { command: "nueva", description: "Empezar una charla nueva (el menú no se toca)" },
   { command: "ayuda", description: "Qué sé hacer" },
-  { command: "start", description: "Hola, qué sé hacer" },
 ];
 
 // El botón fijo junto al campo de texto de los chats privados: abre la semana

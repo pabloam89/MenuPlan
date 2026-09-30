@@ -25,7 +25,7 @@ import crypto from "node:crypto";
 import { waitUntil } from "@vercel/functions";
 import { select, insert, update, eq } from "../_bot/db.js";
 import { enviar, enviarFotos, llamar, escaparHtml, nombreDelBot, TECLADO } from "../_bot/telegram.js";
-import { responder } from "../_bot/agente.js";
+import { responder, cortarCharla } from "../_bot/agente.js";
 import { registrar, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
@@ -143,6 +143,12 @@ async function atender(msg, base) {
   }
 
   if (/^\/grupo(?:@\w+)?$/.test(texto)) return enlaceGrupo(chatId, esGrupo, chat.household_id);
+  if (/^\/nueva(?:@\w+)?$/.test(texto)) {
+    // Sin pasar por el modelo: es un corte en la memoria, nada más. Y dicho de
+    // forma que nadie tema haber borrado su menú.
+    await cortarCharla("telegram", chatId, chat.household_id);
+    return enviar(chatId, "✨ Listo, empezamos de cero.\n\nTu casa, tu menú y tu compra siguen igual: solo he olvidado lo que estábamos hablando. ¿En qué te ayudo?", esGrupo ? {} : { teclado: TECLADO });
+  }
 
   // Notas de voz: se transcriben y siguen el camino del texto. La respuesta
   // empieza con lo que se entendió, para que un error de oído se vea.

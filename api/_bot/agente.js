@@ -187,6 +187,15 @@ function herramientasDeRecordatorios(chat) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   return [
     betaTool({
+      name: "empezar_de_nuevo",
+      description: "Olvida lo hablado hasta ahora en este chat y empieza una charla nueva, cuando lo pidan («olvida lo que hemos hablado», «empecemos de nuevo»). NO borra la casa, el menú ni la compra: díselo así.",
+      inputSchema: obj({}),
+      run: async () => {
+        await cortarCharla(chat.channel ?? "telegram", chat.chatId, chat.householdId);
+        return "Hecho: a partir de ahora no recuerdas lo hablado antes. La casa, el menú y la compra siguen igual.";
+      },
+    }),
+    betaTool({
       name: "crear_recordatorio",
       description: "Programa un recordatorio en ESTE chat. Solo si el usuario lo ha pedido o ha dicho que sí a tu oferta. cuando: fecha y hora en hora de España, AAAA-MM-DDTHH:MM. repite: diario o semanal (opcional).",
       inputSchema: obj({
@@ -440,6 +449,18 @@ function herramientasDeMenu(householdId, fotos = null) {
   ];
 }
 
+/**
+ * «Empezar una charla nueva»: una fila marcador en bot_messages. memoria() no
+ * mira más atrás del último corte. No se borra nada (sirve para depurar) y no
+ * toca la casa, el menú ni la compra: solo lo que Lola recuerda de la charla.
+ */
+export async function cortarCharla(channel, chatId, householdId) {
+  await insert("bot_messages", [{
+    channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null,
+    content: { texto: "", corte: true },
+  }]);
+}
+
 async function memoria(channel, chatId) {
   const desde = encodeURIComponent(new Date(Date.now() - DIAS_DE_MEMORIA * 86400000).toISOString());
   const filas = await select(
@@ -447,6 +468,9 @@ async function memoria(channel, chatId) {
     `channel=${eq(channel)}&chat_id=${eq(chatId)}&created_at=gt.${desde}&order=created_at.desc&limit=${TURNOS_DE_MEMORIA}`,
     "role,content",
   );
+  // Solo lo posterior al último «empezar de nuevo» (vienen de más nuevo a más viejo).
+  const corte = filas.findIndex((f) => f.content?.corte);
+  if (corte !== -1) filas.length = corte;
   // Alternar user/assistant empezando por user, como pide la API.
   const turnos = filas.reverse().map((f) => ({ role: f.role, content: String(f.content?.texto ?? "") })).filter((t) => t.content);
   while (turnos.length && turnos[0].role !== "user") turnos.shift();
