@@ -46,7 +46,7 @@ const COMANDOS = [
   { command: "generar", description: "Hacer un menú nuevo" },
   { command: "app", description: "Abrir la app de HoMenu" },
   { command: "ayuda", description: "Qué sé hacer" },
-  { command: "start", description: "Empezar de cero" },
+  { command: "start", description: "Hola, qué sé hacer" },
 ];
 
 if ([...ABOUT].length > 120) throw new Error(`About: ${[...ABOUT].length} > 120`);
