@@ -6,6 +6,10 @@
 
 const API = "https://api.telegram.org";
 
+// El teclado fijo de los chats privados: lo de todos los días a un toque. Cada
+// botón llega como texto; api/bot/telegram.js lo traduce (DEL_TECLADO).
+export const TECLADO = [["🍽️ Hoy", "📅 Semana"], ["🛒 Compra", "✏️ Cambiar algo"]];
+
 function token() {
   const t = process.env.TELEGRAM_BOT_TOKEN;
   if (!t) throw new Error("Falta TELEGRAM_BOT_TOKEN");
@@ -27,7 +31,9 @@ export async function llamar(metodo, cuerpo) {
  * @param {string|number} chatId
  * @param {string} texto  HTML de Telegram (<b>, <i>, <a>): lo más cercano a lo
  *                        que WhatsApp también sabe pintar.
- * @param {{ botones?: {texto: string, dato?: string, url?: string}[][], responderA?: number }} [opts]
+ * @param {{ botones?: {texto: string, dato?: string, url?: string, webApp?: string}[][], responderA?: number, teclado?: string[][] }} [opts]
+ *   `teclado`: el teclado fijo de abajo (ReplyKeyboardMarkup). No puede ir en el
+ *   mismo mensaje que `botones`: si vienen los dos, mandan los botones.
  */
 export async function enviar(chatId, texto, opts = {}) {
   // Telegram corta en 4096 caracteres: se parte por párrafos.
@@ -59,7 +65,7 @@ function partir(texto, max) {
   return trozos.flatMap((t) => (t.length > max ? t.match(new RegExp(`[\\s\\S]{1,${max}}`, "g")) : [t]));
 }
 
-function enviarUno(chatId, texto, { botones, responderA, plano } = {}) {
+function enviarUno(chatId, texto, { botones, responderA, plano, teclado } = {}) {
   return llamar("sendMessage", {
     chat_id: chatId,
     text: texto,
@@ -70,12 +76,40 @@ function enviarUno(chatId, texto, { botones, responderA, plano } = {}) {
       ? {
           reply_markup: {
             inline_keyboard: botones.map((fila) =>
-              fila.map((b) => (b.url ? { text: b.texto, url: b.url } : { text: b.texto, callback_data: b.dato })),
+              fila.map((b) => (b.webApp ? { text: b.texto, web_app: { url: b.webApp } }
+                : b.url ? { text: b.texto, url: b.url } : { text: b.texto, callback_data: b.dato })),
             ),
           },
         }
-      : {}),
+      : teclado
+        ? { reply_markup: { keyboard: teclado.map((fila) => fila.map((t) => ({ text: t }))), is_persistent: true, resize_keyboard: true } }
+        : {}),
   });
+}
+
+/**
+ * Fotos de platos (URLs públicas): una sola con sendPhoto, varias en álbum
+ * (sendMediaGroup, de 2 a 10). Si Telegram no puede bajar alguna, no pasa
+ * nada: el texto ya ha salido.
+ * @param {{ url: string, pie?: string }[]} fotos
+ */
+export async function enviarFotos(chatId, fotos, { responderA } = {}) {
+  const lista = (fotos ?? []).filter((f) => f?.url).slice(0, 10);
+  if (!lista.length) return;
+  const respuesta = responderA ? { reply_parameters: { message_id: responderA, allow_sending_without_reply: true } } : {};
+  try {
+    if (lista.length === 1) {
+      await llamar("sendPhoto", { chat_id: chatId, photo: lista[0].url, caption: lista[0].pie ?? "", ...respuesta });
+    } else {
+      await llamar("sendMediaGroup", {
+        chat_id: chatId,
+        media: lista.map((f) => ({ type: "photo", media: f.url, caption: f.pie ?? "" })),
+        ...respuesta,
+      });
+    }
+  } catch (e) {
+    console.error("[telegram] fotos", e?.message);
+  }
 }
 
 let usuarioBot = null;

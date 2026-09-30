@@ -23,10 +23,10 @@
 
 import crypto from "node:crypto";
 import { waitUntil } from "@vercel/functions";
-import { select, update, eq } from "../_bot/db.js";
-import { enviar, llamar, escaparHtml } from "../_bot/telegram.js";
+import { select, insert, update, eq } from "../_bot/db.js";
+import { enviar, enviarFotos, llamar, escaparHtml, nombreDelBot, TECLADO } from "../_bot/telegram.js";
 import { responder } from "../_bot/agente.js";
-import { registrar, EMBUDO } from "../_bot/embudo.js";
+import { registrar, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { sembrarCasa } from "../_bot/ajustes.js";
@@ -44,6 +44,14 @@ const COMANDOS = {
   generar: "Quiero generar un menú nuevo",
   ayuda: "¿Qué sabes hacer y cómo funcionas?",
 };
+// Los botones del teclado fijo (TECLADO), dichos como los diría una persona.
+const DEL_TECLADO = {
+  "🍽️ Hoy": "¿Qué comemos hoy?",
+  "📅 Semana": "Enséñame el menú de la semana",
+  "🛒 Compra": "¿Qué falta por comprar?",
+  "✏️ Cambiar algo": "Quiero cambiar algo del menú",
+};
+const FALLO = "bot_error";
 const MIN_VINCULAR = 60; // lo que dura el enlace de acceso de Supabase
 const MIN_ENTRAR = 30;
 
@@ -62,14 +70,27 @@ export default async function handler(req, res) {
   // webhook no responde, Telegram reintenta y el mensaje se atendería dos veces.
   waitUntil((async () => {
     try {
-      if (upd.callback_query) await pulsado(upd.callback_query);
+      if (upd.callback_query) await pulsado(upd.callback_query, base);
       else if (upd.message) await atender(upd.message, base);
     } catch (err) {
       console.error("[bot/telegram]", err?.message);
-      await enviar(chatId, "Uy, algo ha fallado por mi lado. Prueba otra vez en un momento.").catch(() => {});
+      await enviar(chatId, "Uy, algo ha fallado. Escríbemelo otra vez en un momento, porfa.").catch(() => {});
     }
   })());
   return res.status(200).json({ ok: true });
+}
+
+/**
+ * En un grupo, ¿el mensaje es para Lola? Un comando, una mención, una
+ * respuesta a un mensaje suyo, o que empiece por «Lola». Exportada para el test.
+ */
+export function meHablan(msg, yo) {
+  const pie = (msg.text ?? msg.caption ?? "").trim();
+  const bot = String(yo ?? "").toLowerCase();
+  return /^\/\w+/.test(pie)
+    || Boolean(bot && pie.toLowerCase().includes(`@${bot}`))
+    || Boolean(msg.reply_to_message?.from?.is_bot && msg.reply_to_message.from.username?.toLowerCase() === bot)
+    || /^lola\b/i.test(pie);
 }
 
 const nombreDe = (from) => [from?.first_name, from?.last_name].filter(Boolean).join(" ") || null;
@@ -78,7 +99,18 @@ const esGrupoDe = (chat) => chat.type === "group" || chat.type === "supergroup";
 async function atender(msg, base) {
   const chatId = String(msg.chat.id);
   const esGrupo = esGrupoDe(msg.chat);
-  const texto = (msg.text ?? "").trim();
+  let texto = (msg.text ?? "").trim();
+
+  // En un grupo: al entrar, se presenta; y solo contesta cuando le hablan a
+  // ella (un comando, una mención, una respuesta a un mensaje suyo, o un
+  // mensaje que empieza por «Lola»). Para oír lo de «Lola, …» sin mención el
+  // bot necesita el modo privacidad apagado (BotFather → /setprivacy).
+  if (esGrupo) {
+    const yo = (await nombreDelBot().catch(() => "")).toLowerCase();
+    if (msg.new_chat_members?.some((m) => m.is_bot && m.username?.toLowerCase() === yo)) return saludoGrupo(chatId);
+    if (!meHablan(msg, yo)) return;
+    texto = texto.replace(/^lola[\s,:;.!¡¿-]*/i, "").trim() || texto;
+  }
 
   // /start <código> o, en grupo, /start@HoMenuBot <código>
   const start = texto.match(/^\/start(?:@\w+)?(?:\s+(\S+))?$/);
@@ -94,14 +126,23 @@ async function atender(msg, base) {
 
   if (!chat) {
     if (esGrupo) {
-      return enviar(chatId, "Este grupo aún no está conectado a ninguna casa. Conéctalo desde la app de HoMenu, en <b>Ajustes → Conectar Telegram</b>.");
+      return enviar(chatId, "Este grupo aún no está conectado a ninguna casa. Quien use HoMenu, que me escriba <b>/grupo</b> por privado y le doy el enlace para conectarlo.");
     }
     if (EMAIL_RE.test(texto)) return pedirAcceso(msg, chatId, texto.toLowerCase(), base);
     const cifras = texto.replace(/\s/g, "");
     if (/^\d{6}$/.test(cifras)) return comprobarCodigo(msg, chatId, cifras);
     await registrar(EMBUDO.ARRANQUE, { telegramId: msg.from?.id, unaVez: true });
-    return bienvenida(chatId);
+    if (!texto || texto.startsWith("/")) {
+      // Un audio o una foto de primeras: se crea la casa y se atiende igual.
+      if (msg.voice || msg.audio || msg.photo || msg.document) return crearCuenta(msg.from, chatId, { msg, base });
+      return bienvenida(chatId);
+    }
+    // Lo primero que escriben ya es el alta («somos cuatro, dos niños…»): sin
+    // preguntar por cuentas. Enlazar con la app es un botón, no un paso.
+    return crearCuenta(msg.from, chatId, { texto, base });
   }
+
+  if (/^\/grupo(?:@\w+)?$/.test(texto)) return enlaceGrupo(chatId, esGrupo, chat.household_id);
 
   // Notas de voz: se transcriben y siguen el camino del texto. La respuesta
   // empieza con lo que se entendió, para que un error de oído se vea.
@@ -113,7 +154,7 @@ async function atender(msg, base) {
       const porque = t.error === "largo" ? "Es un audio muy largo: mándamelo en trozos de menos de dos minutos." : "No he podido entender el audio. ¿Me lo escribes?";
       return enviar(chatId, porque, { responderA: esGrupo ? msg.message_id : undefined });
     }
-    return conversar({
+    return conversar({ base,
       chatId, householdId: chat.household_id, texto: t.texto, from: msg.from, esGrupo,
       responderA: esGrupo ? msg.message_id : undefined,
       oido: t.texto,
@@ -132,7 +173,7 @@ async function atender(msg, base) {
       return enviar(chatId, porque, { responderA: esGrupo ? msg.message_id : undefined });
     }
     const pie = (msg.caption ?? "").replace(/@\w+bot\b/gi, "").trim();
-    return conversar({
+    return conversar({ base,
       chatId, householdId: chat.household_id, from: msg.from, esGrupo, adjunto,
       texto: pie || (adjunto.tipo === "document" ? "(te mando este PDF)" : "(te mando esta foto)"),
       responderA: esGrupo ? msg.message_id : undefined,
@@ -151,17 +192,85 @@ async function atender(msg, base) {
   // se hubieran escrito. En grupo llegan como «/menu@bot».
   const comando = texto.match(/^\/(\w+)(?:@\w+)?\s*$/)?.[1]?.toLowerCase();
   // En un grupo le hablan como «@bot …»: la mención no es parte del mensaje.
-  const limpio = COMANDOS[comando] ?? (texto.replace(/@\w+bot\b/gi, "").trim() || texto);
-  return conversar({ chatId, householdId: chat.household_id, texto: limpio, from: msg.from, esGrupo, responderA: esGrupo ? msg.message_id : undefined });
+  const limpio = COMANDOS[comando] ?? DEL_TECLADO[texto] ?? (texto.replace(/@\w+bot\b/gi, "").trim() || texto);
+  return conversar({ base, chatId, householdId: chat.household_id, texto: limpio, from: msg.from, esGrupo, responderA: esGrupo ? msg.message_id : undefined });
 }
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null }) {
+async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
-  const respuesta = await responder({ chatId, householdId, texto, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto });
-  const { cuerpo, botones } = sacarBotones(respuesta);
+  let r;
+  try {
+    r = await responder({ chatId, householdId, texto, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto });
+  } catch (err) {
+    // Nunca un error técnico en el chat: una frase y, si cabe, reintentar con
+    // un toque (el botón vuelve a mandar lo mismo).
+    console.error("[bot/telegram] agente", err?.message);
+    await registrar(FALLO, { userId: await duenoDe(householdId).catch(() => null), extra: { error: String(err?.message ?? err).slice(0, 300) } });
+    const cabe = Buffer.byteLength(`t:${texto}`) <= 64;
+    return enviar(chatId, cabe ? "Uy, algo ha fallado. ¿Lo intento otra vez?" : "Uy, algo ha fallado. ¿Me lo escribes otra vez?", {
+      responderA,
+      ...(cabe ? { botones: [[{ texto: "🔁 Reintentar", dato: `t:${texto}` }]] } : {}),
+    });
+  }
+  const { cuerpo, botones: propios } = sacarBotones(r.texto);
+  // Tras un cambio que se puede deshacer, el botón va solo: no hace falta
+  // saber decir «deshaz».
+  const botones = [...(propios ?? [])];
+  // Lo que se ha visto o cambiado, en su pantalla de la app (en privado: el
+  // enlace abre la app de quien lo pulsa, con su sesión).
+  const alPie = [];
+  if (r.deshacible) alPie.push({ texto: "↩️ Deshacer", dato: "t:Deshaz lo último que has cambiado" });
+  if (r.ir && base && !esGrupo) alPie.push({ texto: "📱 Verlo en la app", url: await enlaceApp(base, r.ir, from, chatId) });
+  if (alPie.length) botones.push(alPie);
   const eco = oido ? `🎙️ <i>«${escaparHtml(oido)}»</i>\n\n` : "";
-  return enviar(chatId, eco + cuerpo, { responderA, botones });
+  // Las fotos de los platos, antes del texto: así los botones quedan abajo.
+  if (r.fotos?.length) await enviarFotos(chatId, r.fotos, { responderA });
+  return enviar(chatId, eco + cuerpo, { responderA, botones: botones.length ? botones : undefined, ...(esGrupo ? {} : { teclado: TECLADO }) });
+}
+
+/**
+ * El enlace a una pantalla de la app (?ir=, formato de App.jsx). A quien nació
+ * en este Telegram se le añade una llave de entrada de un solo uso, como /app:
+ * no tiene sesión en la app y sin ella vería el login. A los demás, no: su
+ * sesión es la de siempre (Google o email) y no se regala desde un chat.
+ */
+async function enlaceApp(base, ir, from, chatId) {
+  const destino = `ir=${encodeURIComponent(ir)}`;
+  const cuenta = from?.id ? await cuentaNacidaAqui(from.id).catch(() => null) : null;
+  if (!cuenta) return `${base}/?${destino}`;
+  const codigo = await crearCodigo({ tipo: "entrar", chatId, externalId: from.id, userId: cuenta.id, minutos: MIN_ENTRAR });
+  return `${base}/?entrar=${codigo}&${destino}`;
+}
+
+/** Al entrar en un grupo: cómo se le habla, y cómo conectarlo si no lo está. */
+async function saludoGrupo(chatId) {
+  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+  return enviar(chatId, [
+    "¡Hola, familia! Soy <b>Lola</b> 👩‍🍳, la que os prepara el menú y la compra.",
+    "Para hablarme aquí, empezad el mensaje con <b>Lola</b>: «Lola, ¿qué cenamos hoy?» o «Lola, apunta leche».",
+    chat ? "" : "Aún no sé de qué casa sois: quien use HoMenu, que me escriba <b>/grupo</b> por privado y le doy el enlace para conectarnos.",
+  ].filter(Boolean).join("\n\n"));
+}
+
+// /grupo, en privado: el enlace para meter a Lola en el grupo de la familia,
+// con un código de un solo uso (el mismo que da la app en Ajustes).
+const VALIDEZ_GRUPO_MS = 15 * 60 * 1000;
+async function enlaceGrupo(chatId, esGrupo, householdId) {
+  if (esGrupo) return enviar(chatId, "Eso por privado: escríbeme /grupo allí y te paso el enlace.");
+  const dueno = await duenoDe(householdId);
+  if (!dueno) return enviar(chatId, "No encuentro quién gestiona esta casa.");
+  const token = crypto.randomBytes(16).toString("base64url");
+  await insert("bot_link_tokens", [{ token, user_id: dueno, household_id: householdId, expires_at: new Date(Date.now() + VALIDEZ_GRUPO_MS).toISOString() }]);
+  const bot = await nombreDelBot();
+  return enviar(chatId, [
+    "Para tenerme en el grupo de la familia:",
+    "1. Pulsa el botón y elige el grupo.",
+    "2. Listo: allí, empezad los mensajes con <b>Lola</b>.",
+    "<i>El enlace vale 15 minutos y una sola vez.</i>",
+  ].join("\n"), {
+    botones: [[{ texto: "👨‍👩‍👧 Añadir al grupo", url: `https://t.me/${bot}?startgroup=${token}` }]],
+  });
 }
 
 /**
@@ -179,16 +288,22 @@ function sacarBotones(texto) {
   return { cuerpo, botones: filas };
 }
 
+// Empieza por lo que ofrece, no por la cuenta: quien escribe «somos cuatro»
+// ya está dando el alta. La cuenta de la app es un botón para quien ya la usa.
 function bienvenida(chatId) {
-  return enviar(chatId, "¡Hola! Soy <b>Lola</b> 👩‍🍳, la cocinera de casa de HoMenu. Te ayudo con el menú, la compra y las recetas.\n\n¿Ya usas HoMenu?", {
+  return enviar(chatId, [
+    "¡Hola! Soy <b>Lola</b> 👩‍🍳 Te preparo el menú de la semana y la lista de la compra, y te lo cambio cuando quieras.",
+    "Para empezar, cuéntame <b>quiénes coméis en casa</b> (y la edad de los peques). Escríbemelo o mándame un audio 🎙️",
+    "<i>Lo que me cuentes solo sirve para vuestro menú; no se lo paso a nadie.</i>",
+  ].join("\n\n"), {
     botones: [[
-      { texto: "Ya tengo cuenta", dato: "cuenta:si" },
-      { texto: "Soy nuevo", dato: "cuenta:nuevo" },
+      { texto: "Es mi primera vez", dato: "cuenta:nuevo:ok" },
+      { texto: "Ya uso HoMenu", dato: "cuenta:si" },
     ]],
   });
 }
 
-async function pulsado(cq) {
+async function pulsado(cq, base) {
   const chatId = String(cq.message.chat.id);
   await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(() => {});
   // Un botón se usa una vez: se quitan los del mensaje pulsado para que no
@@ -205,7 +320,7 @@ async function pulsado(cq) {
   if (cq.data?.startsWith("t:")) {
     if (!chat) return bienvenida(chatId);
     const esGrupo = esGrupoDe(cq.message.chat);
-    return conversar({ chatId, householdId: chat.household_id, texto: cq.data.slice(2), from: cq.from, esGrupo, responderA: esGrupo ? cq.message.message_id : undefined });
+    return conversar({ chatId, householdId: chat.household_id, texto: cq.data.slice(2), from: cq.from, esGrupo, base, responderA: esGrupo ? cq.message.message_id : undefined });
   }
 
   if (esGrupoDe(cq.message.chat)) return;
@@ -219,12 +334,12 @@ async function pulsado(cq) {
   if (cq.data === "cuenta:nuevo") {
     return enviar(chatId, "¿Seguro que no usas HoMenu todavía? Si ya entras en la app (por ejemplo, con Google), conecta esa cuenta para ver tu casa y tu menú.", {
       botones: [[
-        { texto: "Ya tengo cuenta", dato: "cuenta:si" },
-        { texto: "Sí, soy nuevo", dato: "cuenta:nuevo:ok" },
+        { texto: "Ya uso HoMenu", dato: "cuenta:si" },
+        { texto: "Es mi primera vez", dato: "cuenta:nuevo:ok" },
       ]],
     });
   }
-  if (cq.data === "cuenta:nuevo:ok") return crearCuenta(cq.from, chatId);
+  if (cq.data === "cuenta:nuevo:ok") return crearCuenta(cq.from, chatId, { base });
 }
 
 // Límites de correos de acceso: por persona (no bombardear a nadie desde un
@@ -304,7 +419,11 @@ async function comprobarCodigo(msg, chatId, token) {
   return confirmarEnlace(chatId, hogar.id);
 }
 
-async function crearCuenta(from, chatId) {
+/**
+ * @param {{ texto?: string, msg?: object, base?: string }} [primero]  lo primero que escribió
+ *   (o el audio / la foto): se atiende como parte del alta, sin hacerle repetir.
+ */
+async function crearCuenta(from, chatId, primero = {}) {
   // Si este Telegram ya creó su cuenta, no se crea otra; y siempre su casa
   // PROPIA, nunca la activa (podría ser una ajena en la que es invitado).
   const nacida = await cuentaNacidaAqui(from.id);
@@ -327,10 +446,22 @@ async function crearCuenta(from, chatId) {
   // (quiénes, alergias, qué comidas) y propone el primer menú. La app queda
   // para ver, con /app cuando se quiera.
   await sembrarCasa(cuenta.householdId);
-  await enviar(chatId, "¡Hecho! Ya tienes tu casa en HoMenu 🏡 Vamos a montarla en un minuto.");
+  let texto = primero.texto ?? null;
+  let oido = null;
+  let adjunto = null;
+  const m = primero.msg;
+  if (m?.voice || m?.audio) {
+    const t = await transcribir(m.voice ?? m.audio).catch((e) => ({ error: e?.message }));
+    if (!t.error) { texto = t.texto; oido = t.texto; }
+  } else if (m?.photo || m?.document) {
+    const a = await adjuntoDe(m).catch(() => null);
+    if (a && !a.error) { adjunto = a; texto = (m.caption ?? "").trim() || "(te mando esta foto)"; }
+  }
   return conversar({
-    chatId, householdId: cuenta.householdId, from, esGrupo: false,
-    texto: "[alta] Acabo de crear mi cuenta desde Telegram. Ayúdame a montar mi casa.",
+    chatId, householdId: cuenta.householdId, from, esGrupo: false, oido, adjunto, base: primero.base ?? null,
+    texto: texto
+      ? `[alta] Casa recién creada desde Telegram. Mi primer mensaje: ${texto}`
+      : "[alta] Casa recién creada desde Telegram. Ayúdame a montarla.",
   });
 }
 

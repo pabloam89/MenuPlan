@@ -48,6 +48,7 @@ const COMANDOS = [
   { command: "compra", description: "La lista de la compra" },
   { command: "generar", description: "Hacer un menú nuevo" },
   { command: "app", description: "Abrir la app de HoMenu" },
+  { command: "grupo", description: "Meter a Lola en el grupo de la familia" },
   { command: "ayuda", description: "Qué sé hacer" },
   { command: "start", description: "Hola, qué sé hacer" },
 ];

@@ -109,7 +109,18 @@ export function describirCasa(casa) {
   ].join("\n");
 }
 
-export async function describirMenu(casa, { dia } = {}) {
+/**
+ * Añade a `fotos` (si se pasa) la foto de catálogo de una receta, para que el
+ * webhook la mande junto al texto. Sin foto (receta propia, fruta…), nada.
+ */
+function apuntarFoto(m, fotos, id, pie) {
+  if (!fotos || !id) return;
+  const receta = m.RECIPES_BY_ID[id] ?? m.RECIPES_BY_ID[id.split("__").pop()];
+  const url = receta ? m.dishImageForRecipe(receta) : null;
+  if (url && !fotos.some((f) => f.url === url)) fotos.push({ url, pie: pie ?? receta.name });
+}
+
+export async function describirMenu(casa, { dia, fotos = null } = {}) {
   if (!casa.semana?.plan) return "No hay ningún menú activo en esta casa.";
   const m = await prepararRecetas(casa);
   // Un menú de una semana que ya pasó no es «lo de hoy»: se dice.
@@ -137,6 +148,12 @@ export async function describirMenu(casa, { dia } = {}) {
         conHueco++;
         const primero = nombre(hueco.firstRecipeId);
         const principal = nombre(hueco.recipeId);
+        // Fotos solo cuando se pregunta por UN día: la semana entera serían
+        // catorce fotos de golpe.
+        if (dia) {
+          apuntarFoto(m, fotos, hueco.firstRecipeId);
+          apuntarFoto(m, fotos, hueco.recipeId);
+        }
         const platos = primero && principal ? `primero ${primero}; segundo ${principal}` : primero || principal || "(vacío)";
         if (!porPlatos.has(platos)) porPlatos.set(platos, []);
         porPlatos.get(platos).push(g.label);
@@ -290,7 +307,7 @@ export function candidataPorNombre(candidatas, texto) {
  * mismo pool que usa la app para las sugerencias del recetario (rol del hueco,
  * tope de tiempo, alergias, lo ya puesto en la semana, el cole y los gustos).
  */
-export async function proponerPlatos(householdId, { dia, franja, grupo, cual = "principal", n = 3 }) {
+export async function proponerPlatos(householdId, { dia, franja, grupo, cual = "principal", n = 3 }, fotos = null) {
   const casa = await cargarCasa(householdId);
   if (!casa) return "Esta casa todavía no tiene datos en la nube.";
   const h = huecoDe(casa, { dia, franja, grupo, cual });
@@ -303,6 +320,7 @@ export async function proponerPlatos(householdId, { dia, franja, grupo, cual = "
   if (!lista.length) return "No hay otras recetas que encajen en ese hueco con vuestras alergias, gustos y tiempo.";
   const ahora = m.RECIPES_BY_ID[h.course === "first" ? h.hueco.firstRecipeId : h.hueco.recipeId]?.name;
   const detalle = (r) => [r.time ? `${r.time} min` : "", r.difficulty ?? ""].filter(Boolean).join(", ");
+  lista.forEach((r, i) => apuntarFoto(m, fotos, r.id, `${i + 1}. ${r.name}`));
   return [
     `Opciones para el ${DIA_LARGO[dia]}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, ${h.g.label}` : ""}. Ahora mismo: ${ahora ?? "nada"}.`,
     ...lista.map((r, i) => `${i + 1}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`),

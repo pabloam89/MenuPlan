@@ -70,14 +70,67 @@ ${REGLAS}`;
 let cliente = null;
 const anthropic = () => (cliente ??= new Anthropic());
 
+// Tras estas, el botón «↩️ Deshacer» sale solo. Son las que cambian lo que se
+// va a comer o comprar, donde un «uy, no» es habitual. No van las que se
+// confirman antes (alergias, menú del cole) ni las del alta (apuntar a alguien):
+// ahí el botón sería ruido. Se pueden deshacer igual, pidiéndolo.
+const CON_BOTON_DESHACER = new Set([
+  "marcar_compra", "anadir_compra", "cambiar_plato", "generar_menu",
+  "ajustar_gustos", "ajustar_horario", "anadir_invitado", "quitar_comensal",
+]);
+
+// Fallos de conversación, para medirlos (user_events, como el embudo).
+const FALLO_HERRAMIENTA = "bot_tool_error";
+const FALLO_NO_ENTIENDE = "bot_not_understood";
+
+// Qué pantalla de la app enseña lo que se acaba de ver o cambiar, en el
+// formato de ?ir= de la app (App.jsx): hoy, semana, dia:Jue, compra.
+function pantallaDe(herramienta, args = {}) {
+  if (herramienta === "ver_menu") {
+    if (!args.dia) return "semana";
+    if (/^hoy$/i.test(String(args.dia).trim())) return "hoy";
+    const d = diaDe(args.dia);
+    return d ? `dia:${d}` : null;
+  }
+  if (herramienta === "cambiar_plato" && args.dia) {
+    const d = diaDe(args.dia);
+    return d ? `dia:${d}` : null;
+  }
+  if (["ver_compra", "marcar_compra", "anadir_compra"].includes(herramienta)) return "compra";
+  if (herramienta === "generar_menu") return "semana";
+  return null;
+}
+
+/**
+ * @param {{ householdId: string, chatId?: string, channel?: string, autor?: string,
+ *   fotos?: {url: string, pie: string}[], escrito?: boolean }} chat
+ *   `fotos` y `escrito` los rellenan las herramientas en este turno: las fotos
+ *   de los platos que se han enseñado, y si se cambió algo que se puede deshacer.
+ */
 export async function herramientas(chat) {
   const gustos = await dominiosDeGustos();
-  return [
-    ...herramientasDeMenu(chat.householdId),
+  const todas = [
+    ...herramientasDeMenu(chat.householdId, chat.fotos),
     ...herramientasDeAjustes(chat.householdId, gustos),
     ...herramientasDeRecordatorios(chat),
     ...herramientasDeFotos(chat.householdId),
   ];
+  return todas.map((t) => ({
+    ...t,
+    run: async (args) => {
+      try {
+        const r = await t.run(args);
+        if (CON_BOTON_DESHACER.has(t.name)) chat.escrito = true;
+        const ir = pantallaDe(t.name, args);
+        if (ir) chat.ir = ir;
+        if (t.name === "deshacer") chat.escrito = false;
+        return r;
+      } catch (e) {
+        await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(() => null), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300) } });
+        throw e;
+      }
+    },
+  }));
 }
 
 // Despensa y menú del cole: se alimentan sobre todo de fotos (el ticket, la
@@ -269,7 +322,7 @@ function herramientasDeAjustes(householdId, gustos) {
   ];
 }
 
-function herramientasDeMenu(householdId) {
+function herramientasDeMenu(householdId, fotos = null) {
   const conCasa = async (f) => {
     const casa = await cargarCasa(householdId);
     if (!casa) return "Esta casa todavía no tiene datos en la nube. Que entren una vez en la app de HoMenu.";
@@ -295,7 +348,7 @@ function herramientasDeMenu(householdId) {
       run: ({ dia }) => conCasa((casa) => {
         const d = dia ? diaValido(dia) : null;
         if (dia && !d) return `No entiendo el día «${dia}».`;
-        return describirMenu(casa, { dia: d });
+        return describirMenu(casa, { dia: d, fotos });
       }),
     }),
     betaTool({
@@ -359,7 +412,7 @@ function herramientasDeMenu(householdId) {
         const d = diaValido(dia);
         const f = franjaDe(comida);
         if (!d || !f) return `No entiendo qué hueco es («${dia}», «${comida}»).`;
-        return proponerPlatos(householdId, { dia: d, franja: f, grupo, cual, n: n ?? 3 });
+        return proponerPlatos(householdId, { dia: d, franja: f, grupo, cual, n: n ?? 3 }, fotos);
       },
     }),
     betaTool({
@@ -407,21 +460,25 @@ async function memoria(channel, chatId) {
 }
 
 /**
- * @returns {Promise<string>} el texto a mandar al chat (HTML de Telegram)
- */
-/**
  * @param {{ tipo: "image" | "document", mediaType: string, base64: string }} [adjunto]
  *   una foto o un PDF del mensaje: solo va en este turno; a la memoria pasa
  *   como texto («[foto]»), que guardarla entera no merece la pena.
+ * @returns {Promise<{ texto: string, fotos: {url: string, pie: string}[], deshacible: boolean, ir: string|null }>}
+ *   el texto para el chat (HTML de Telegram), las fotos de los platos que se
+ *   han enseñado y si se cambió algo que se puede deshacer.
  */
 export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, adjunto = null }) {
   const tope = await fueraDeLimite(householdId);
-  if (tope) return tope;
+  if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
 
   const historia = await memoria(channel, chatId);
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
-  const tools = await herramientas({ channel, chatId: String(chatId), householdId, autor });
+  const chat = { channel, chatId: String(chatId), householdId, autor, fotos: [], escrito: false, ir: null };
+  const tools = await herramientas(chat);
   const { dicho, uso } = await ejecutar({ historia, entrada, tools, adjunto });
+  if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
+    await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200) } });
+  }
 
   const llevados = await contarUso(householdId, uso).catch((e) => { console.error("[agente] uso", e?.message); return 0; });
   const respuesta = dicho + avisoDeLimite(householdId, llevados);
@@ -432,7 +489,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   ]).catch((e) => console.error("[agente] memoria", e?.message));
   await segundaSemana(householdId).catch(() => {});
 
-  return respuesta;
+  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir };
 }
 
 /**

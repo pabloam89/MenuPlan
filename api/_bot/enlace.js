@@ -8,7 +8,7 @@
 
 import crypto from "node:crypto";
 import { select, insert, update, eq } from "./db.js";
-import { enviar, escaparHtml } from "./telegram.js";
+import { enviar, escaparHtml, TECLADO } from "./telegram.js";
 import { registrar, EMBUDO } from "./embudo.js";
 
 /**
@@ -93,8 +93,9 @@ export async function confirmarEnlace(chatId, householdId, esGrupo = false) {
   return enviar(
     chatId,
     esGrupo
-      ? `¡Listo! Este grupo está conectado${casa}. Para hablarme aquí, nómbrame (@) o responde a uno de mis mensajes.`
+      ? `¡Listo! Este grupo está conectado${casa}. Para hablarme aquí, empezad el mensaje con <b>Lola</b> (por ejemplo, «Lola, ¿qué cenamos?») o responded a uno de mis mensajes.`
       : `¡Listo! Estamos conectados${casa}. Escríbeme o mándame un audio cuando quieras.`,
+    esGrupo ? {} : { teclado: TECLADO },
   );
 }
 

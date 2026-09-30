@@ -352,6 +352,54 @@
           "_todo": "165"
         }
       }
+    },
+    {
+      "nombre": "alta: aprovecha el primer mensaje y no pide peso",
+      "entrada": "[alta] Casa recién creada desde Telegram. Mi primer mensaje: somos Ana, Pablo y Leo, que tiene 6 años",
+      "llama": [
+        "anadir_comensal"
+      ],
+      "noLlama": [
+        "ajustar_persona"
+      ],
+      "sinTexto": "peso|altura|kilos"
+    },
+    {
+      "nombre": "alta: tras el primer menú ofrece el aviso del domingo",
+      "historia": [
+        {
+          "role": "user",
+          "content": "[alta] Casa recién creada desde Telegram. Ayúdame a montarla."
+        },
+        {
+          "role": "assistant",
+          "content": "¡Listo! Ya tenéis menú 🎉\n\n<b>Hoy, miércoles 30</b>\n🍽️ <b>Comida</b>\n• Lentejas con verduras\n\nPídeme cambios, la compra o recetas cuando quieras."
+        }
+      ],
+      "entrada": "genial, gracias",
+      "noLlama": [
+        "crear_recordatorio"
+      ],
+      "texto": "domingo"
+    },
+    {
+      "nombre": "ritual aceptado: recordatorio semanal corto",
+      "historia": [
+        {
+          "role": "assistant",
+          "content": "¿Te aviso cada domingo a las 18:00 para preparar el menú de la semana?\n[[Sí, cada domingo]]\n[[No, gracias]]"
+        }
+      ],
+      "entrada": "Sí, cada domingo",
+      "llama": [
+        "crear_recordatorio"
+      ],
+      "args": {
+        "crear_recordatorio": {
+          "repite": "semanal",
+          "cuando": "T18:00"
+        }
+      }
     }
   ]
 }

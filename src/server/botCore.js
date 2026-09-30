@@ -37,3 +37,6 @@ export { resolveIngredientId } from "../lib/ingredients.js";
 export { factorRacion } from "../lib/raciones.js";
 export { resolveMemberAge } from "../lib/groups.js";
 export { replaceSchoolWeeks, normalizeSchoolMenus, getSchoolDish, SCHOOL_DAYS, SCHOOL_COURSES } from "../lib/schoolMenu.js";
+
+// Fotos de los platos para mandarlas por Telegram (URLs públicas del blob).
+export { dishImageForRecipe } from "../assets/dishes/dishImages.js";

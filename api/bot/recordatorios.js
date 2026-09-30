@@ -23,7 +23,12 @@ export default async function handler(req, res) {
   if (!autorizado(req.headers.authorization)) return res.status(401).end();
   const enviados = await enviarPendientes(async (r) => {
     if (r.channel !== "telegram") return;
-    await enviar(r.chat_id, `⏰ <b>Recordatorio</b>: ${escaparHtml(r.text)}`);
+    // Con un botón que se lo pide a Lola tal cual: «Preparar el menú de la
+    // semana que viene» se convierte en prepararlo, sin tener que escribir.
+    const cabe = Buffer.byteLength(`t:${r.text}`) <= 64;
+    await enviar(r.chat_id, `⏰ <b>Recordatorio</b>: ${escaparHtml(r.text)}`, cabe
+      ? { botones: [[{ texto: "👉 Vamos", dato: `t:${r.text}` }]] }
+      : {});
   });
   return res.status(200).json({ ok: true, enviados });
 }
