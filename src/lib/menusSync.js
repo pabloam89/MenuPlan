@@ -306,18 +306,40 @@ export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
 // Fire-and-forget; the user_state blob is still the belt-and-suspenders copy.
 const weekSaveTimers = new Map();
 
-export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200, householdId = null) {
+// En un hogar, la semana se guarda condicionada al `bot_rev` que la app vio al
+// cargar (0057): si el bot de Telegram ha escrito entretanto, no se pisa y se
+// avisa con `onConflict` para que la app recargue. `botRev` se fija al
+// encolar: la semana que se guarda es la de ese momento, y si la nube se ha
+// recargado entretanto, es vieja y no debe pasar con la versión nueva.
+export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200, householdId = null, { botRev = null, onConflict = null } = {}) {
   if (!supabase || !userId || !menuId || !startISO || !week) return;
   const key = `${householdId ?? userId}:${menuId}:${startISO}`;
   const existing = weekSaveTimers.get(key);
   if (existing) clearTimeout(existing);
   const timer = setTimeout(async () => {
     weekSaveTimers.delete(key);
+    const row = weekToRow(userId, menuId, startISO, week, householdId);
+    if (householdId) {
+      const { data, error } = await supabase.rpc("save_menu_week", {
+        p_row: row,
+        p_bot_rev: botRev,
+      });
+      if (!error) {
+        // Mismo contador que el enviado = no es el bot, es que no se pudo
+        // escribir (permisos): recargar no lo arreglaría y entraría en bucle.
+        if (data?.ok === false && Number(data.bot_rev) !== botRev) onConflict?.(Number(data.bot_rev));
+        else if (data?.ok === false) console.warn("[menusSync] save week (live) rejected");
+        return;
+      }
+      // Base sin la 0057: se guarda como antes.
+      if (error.code !== "PGRST202") {
+        console.warn("[menusSync] save week (live) failed", error.message);
+        return;
+      }
+    }
     const { error } = await supabase
       .from("user_menu_weeks")
-      .upsert(weekToRow(userId, menuId, startISO, week, householdId), {
-        onConflict: "user_id,menu_id,week_start",
-      });
+      .upsert(row, { onConflict: "user_id,menu_id,week_start" });
     if (error) console.warn("[menusSync] save week (live) failed", error.message);
   }, delay);
   weekSaveTimers.set(key, timer);

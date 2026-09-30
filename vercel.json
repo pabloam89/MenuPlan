@@ -2,6 +2,24 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "functions": {
+    "api/share-recipe.js": {
+      "includeFiles": "src/{data/recipes/*.json,assets/dishes/dishImages.json}"
+    },
+    "api/bot/telegram.js": {
+      "includeFiles": "api/_bot/{core.mjs,conocimiento.md}",
+      "maxDuration": 120
+    },
+    "api/bot/miniapp.js": {
+      "includeFiles": "api/_bot/core.mjs",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    { "source": "/r/:id", "destination": "/api/share-recipe?id=:id" },
+    { "source": "/r/:id/img", "destination": "/api/share-recipe?id=:id&img=1" },
+    { "source": "/m/:id", "destination": "/api/share-menu?id=:id" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

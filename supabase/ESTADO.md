@@ -9,11 +9,91 @@ ninguno fiable. Ver «El registro miente» más abajo.
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **54** |
+| Ficheros en `supabase/migrations/` | **63** |
 | Comprobadas contra producción | 32 |
-| Aplicadas | **31** |
-| **Sin aplicar** | **1** — `0021_store_products` |
+| Aplicadas | **39** |
+| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` la `0062_bot_cron` y la `0063_bot_turnos`, el 30 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
+
+## La 0063, aplicada el 30 sep 2026
+
+`0063_bot_turnos` — `bot_cola` y `bot_candados` (RLS sin políticas) y
+`bot_tomar_candado` / `bot_soltar_candado` (solo service_role; comprobado que
+anon no): un turno a la vez por chat y los mensajes seguidos juntos. Probado
+con ráfagas simuladas: una respuesta por ráfaga, nunca dos en paralelo.
+
+## La 0062, aplicada el 30 sep 2026
+
+`0062_bot_cron` — extensiones `pg_cron` y `pg_net`. El job `bot-recordatorios`
+(cada 5 min, POST a /api/bot/recordatorios con `BOT_CRON_SECRET`) lo programa
+`scripts/bot-cron.mjs`, no la migración, porque lleva el secreto. Primera
+pasada comprobada: 200 `{ok:true, enviados:0}`.
+
+## La 0061, aplicada el 30 sep 2026
+
+`0061_bot_recordatorios_y_uso` — `bot_reminders.repite` (diario/semanal),
+`bot_usage.cache_write_tokens` y `bot_contar_uso()` (suma atómica; ejecutable
+solo por service_role, comprobado que anon y authenticated no). Probada en vivo
+con una casa de prueba, borrada después.
+
+## La 0060, aplicada el 30 sep 2026
+
+`0060_bot_deshacer` — tabla `bot_deshacer` (RLS sin políticas, solo servidor):
+foto de la casa antes de cada escritura del bot, para «deshaz lo último».
+Comprobada en vivo con una casa de prueba (compra y menú generado, ida y
+vuelta), borrada después.
+
+## La 0059, aplicada el 29 sep 2026
+
+`0059_bot_codigo_por_email` — `bot_codigos` gana `email` e `intentos`: «ya tengo
+cuenta» pasa de un enlace que abría la app (se perdía con la caché de la PWA)
+a un código de 6 cifras que se escribe en el chat. Columnas añadidas y
+comprobadas en vivo.
+
+## La 0058, aplicada el 29 sep 2026
+
+`0058_bot_codigos` — códigos de un solo uso para entrar al bot sin pasar por
+Ajustes («ya tengo cuenta» por email y «soy nuevo»). Ensayada en transacción
+deshecha y aplicada: `bot_codigos` con RLS y sin políticas; un código `entrar`
+sin `user_id` se rechaza.
+
+## La 0057, aplicada el 29 sep 2026
+
+`0057_bot_cimientos` — cimientos del bot de Telegram: `household_state.bot_rev`
+y las escrituras condicionadas para que la app no pise lo que escribe el bot
+(ver `specs/plan-bot-mensajeria.md`). Probada antes en dos transacciones
+deshechas y aplicada después en transacción, verificada en vivo:
+
+| | |
+|---|---|
+| `household_state.bot_rev` | creada, `bigint default 0`; las 28 casas en 0 |
+| `bot_identities`, `bot_chats`, `bot_link_tokens`, `bot_messages`, `bot_reminders`, `bot_usage` | creadas, con RLS y sin políticas (solo servidor) |
+| `save_household_state` / `save_menu_week` | como usuario: versión buena → `ok`; tras una escritura del bot → `ok:false`; casa ajena → rechazada por RLS |
+| `bot_save_casa` | solo `service_role` (ni `anon` ni `authenticated`); versión vieja → `ok:false` |
+
+## La 0056, aplicada el 25 sep 2026
+
+`0056_menu_share_links` — enlaces con llave para mandar una SEMANA, hermana de
+la 0055. Aplicada en transacción contra producción y verificada en vivo:
+
+| | |
+|---|---|
+| `public.menu_share_links` | creada, con RLS activo y 1 política de lectura |
+| `menu_share_token` / `menu_share_revoke` / `menu_from_link` | las tres, creadas |
+| `menu_from_link` con un uuid inexistente, como `anon` | devuelve `{"status":"gone"}` |
+| `menu_share_token` sin sesión | rechaza con «sin sesión» |
+
+**Y algo que salió al verificarla y afecta también a la 0055:** `revoke all on
+function … from public` **no le quita el permiso a `anon`**. Supabase trae un
+`alter default privileges` que concede EXECUTE a `anon` y `authenticated` sobre
+las funciones nuevas del esquema `public`, y eso es una concesión DIRECTA que
+revocarle a `public` no toca.
+
+No es un agujero: las tres funciones de escritura empiezan mirando `auth.uid()`
+y responden «sin sesión». Pero la concesión dice lo contrario de lo que se
+pretendía. En la 0056 se ha añadido un `revoke execute … from anon` explícito;
+**`recipe_share_token` (0055) sigue con `anon = true`** y convendría hacerle lo
+mismo.
 
 ## La única sin aplicar
 

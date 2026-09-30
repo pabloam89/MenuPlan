@@ -115,7 +115,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_002",
@@ -238,7 +240,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_003",
@@ -436,7 +440,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_004",
@@ -556,7 +562,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_005",
@@ -688,7 +696,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_006",
@@ -829,7 +839,9 @@
     ],
     "tecnica": "crudo",
     "mainBase": "patatas",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_007",
@@ -960,7 +972,9 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_008",
@@ -1099,7 +1113,9 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_009",
@@ -1198,7 +1214,9 @@
       "lacteo",
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_010",
@@ -1305,7 +1323,9 @@
       "lacteo",
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_012",
@@ -1399,52 +1419,62 @@
       {
         "text": "Cortar {{Tomate maduro}} en trozos grandes y colocar en el vaso de la batidora.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pepino}} en trozos y añadir al vaso.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pimiento verde}} en trozos y añadir al vaso.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Ajo}} al vaso.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Trocear {{Pan}} y sumergirlo en agua fría durante 1 min; escurrir y añadir al vaso.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Triturar todos los ingredientes del vaso a máxima potencia hasta que la mezcla esté completamente lisa.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Aceite de oliva}} y {{Vinagre|gusto}} al vaso; triturar 30 segundos más hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colar la mezcla por un colador fino sobre un bol, presionando con una cuchara para extraer todo el líquido.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cortar el pan sobrante en dados pequeños y tostar en {{@Sartén}} a fuego medio hasta que estén dorados; reservar.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir el gazpacho frío en boles y repartir los dados de pan tostado por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -1456,7 +1486,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "sopa",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_013",
@@ -1547,67 +1579,80 @@
       {
         "text": "Cortar {{Pan de hogaza}} en 2 rebanadas de grosor medio.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cilantro|gusto}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Exprimir {{Lima}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Abrir {{Aguacate}}, retirar el hueso y extraer la pulpa en un bol.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Machacar la pulpa de aguacate con un tenedor hasta obtener una textura cremosa con algunos grumos.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir el zumo de lima y el cilantro picado al aguacate machacado y mezclar hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Llevar agua a ebullición en un cazo a fuego fuerte; añadir {{Vinagre}} y bajar a fuego suave hasta mantener un hervor leve.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Tostar las rebanadas de pan de hogaza en la tostadora hasta que estén doradas y crujientes.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cascar {{Huevo}} de uno en uno en un cuenco pequeño e introducirlos suavemente en el agua con vinagre.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer los huevos 3 min hasta que la clara esté cuajada y la yema líquida.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar los huevos poché con una espumadera y escurrir sobre papel de cocina.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Untar el guacamole de forma generosa sobre las tostas.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar 1 huevo poché sobre cada tosta y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 7,
@@ -1619,7 +1664,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_014",
@@ -1753,7 +1800,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_015",
@@ -1833,32 +1882,38 @@
       {
         "text": "Pelar {{Melón}} y cortar en trozos grandes, retirando las pepitas.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Jamón serrano}} en virutas finas con un cuchillo y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Añadir los trozos de melón, {{Yogur natural}}, {{Menta|pizca}} y {{Aceite de oliva|chorrito}} a un vaso batidor.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Triturar todos los ingredientes hasta obtener una crema lisa y homogénea.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Refrigerar la sopa en la nevera hasta que esté bien fría, al menos 30 min.",
         "minutes": 30,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Servir la sopa en cuencos fríos y repartir las virutas de jamón serrano por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -1871,7 +1926,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "sopa",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_061",
@@ -1963,41 +2020,48 @@
         "text": "Encender el {{@Horno}} a 210 grados.",
         "minutes": 1,
         "kind": "prep",
-        "base": "patatas_asadas"
+        "base": "patatas_asadas",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
         "minutes": 8,
         "kind": "prep",
-        "base": "patatas_asadas"
+        "base": "patatas_asadas",
+        "part": "principal"
       },
       {
         "text": "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
         "minutes": 4,
         "kind": "activo",
-        "base": "patatas_asadas"
+        "base": "patatas_asadas",
+        "part": "principal"
       },
       {
         "text": "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
         "minutes": 30,
         "kind": "pasivo",
-        "base": "patatas_asadas"
+        "base": "patatas_asadas",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Tomate frito}} en un cazo con una pizca más de {{Pimentón dulce}} hasta que espese.",
         "minutes": 6,
         "kind": "activo",
-        "base": "salsa_tomate"
+        "base": "salsa_tomate",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Mayonesa}} con {{Ajo}} picado muy fino para el alioli rápido.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Servir las patatas con la salsa por encima y el alioli en hilos.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "category": "cenas_rapidas",

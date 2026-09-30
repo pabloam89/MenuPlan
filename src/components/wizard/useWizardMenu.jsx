@@ -3,12 +3,12 @@ import { ControlRow } from "./ControlRow.jsx";
 // PanelCoach ya no se monta aquí: la burbuja está apagada (ver el `bubble: null`
 // de abajo). El componente sigue existiendo y se puede volver a montar con los
 // dos cabos que devuelve este hook en `panel`.
-import { normalizar as normalizarLibreta, poner, porQue, proyectar, valorDe } from "../../lib/notepad.js";
-import { freqsEfectivos, presupuestoDeTopes, repartoConFreq, repartoVisible, rutaDeReparto } from "../../lib/reparto.js";
-import { weeklySlotBudget } from "../../lib/planner.js";
+import { normalizar as normalizarLibreta, poner, porQue, proyectar } from "../../lib/notepad.js";
+import { repartoVisible, rutaDeReparto } from "../../lib/reparto.js";
 import { recuentoDelMenu } from "../../lib/menuRecuento.js";
 import { contextoParaElModelo } from "../../lib/panelSuggestions.js";
-import { aplicarOpcion, respuestaDeGuarda, validarRespuesta } from "../../lib/panelParser.js";
+import { respuestaDeGuarda, validarRespuesta } from "../../lib/panelParser.js";
+import { aplicarAjustes, dataConLibreta } from "../../lib/libretaEnData.js";
 import { recipeCatalogById } from "../../data/recipeCatalog.js";
 
 /**
@@ -64,50 +64,8 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
 
   /** Guarda una libreta nueva en `data`, con su vista ya proyectada. */
   const guardar = useCallback((libreta, extra = {}) => {
-    const vista = proyectar(libreta);
-    const siguiente = {
-      ...data,
-      ...extra,
-      notepad: libreta,
-      // El motor sigue leyendo `data.freqs`: la libreta es la fuente, esto es
-      // la vista que ella misma calcula.
-      //
-      // Solo entran los pedidos A MANO (`vista.freqs`, las claves `freqs.*` de
-      // la libreta). Antes entraba también `data.freqs` en bloque, y como un
-      // estilo de comida escribe ahí las seis familias, el reparto se quedaba
-      // sin efecto: movías el deslizador y salía el estilo otra vez. Ver
-      // `freqsEfectivos`.
-      freqs: freqsEfectivos(
-        { freqs: vista.freqs, reparto: vista.reparto },
-        { presupuesto: presupuestoDeTopes(weeklySlotBudget(data).total) },
-      ),
-      // Los dos ejes SIN fundir, para que el motor pueda rehacer la proyección
-      // con los huecos reales de cada grupo y cada semana (`ctx.slots.length`).
-      // `data.freqs` de aquí arriba es solo la vista para pintar: usa una
-      // estimación de la casa entera, que no distingue el menú de los niños del
-      // de los adultos ni una semana partida de una completa.
-      reparto: vista.reparto ?? {},
-      freqsPedidos: vista.freqs ?? {},
-      // Y `data.cocinas`, por el mismo camino: cuántos platos de cada cocina
-      // extranjera quiere la casa. Lo lee `filterRecipes` como puerta de
-      // entrada (las que están a cero no entran) y el prompt del planner como
-      // cuota. Se proyecta aquí y no se lee de la libreta en el motor, para que
-      // aiPlanner siga sin saber que la libreta existe.
-      cocinas: vista.sesgos?.cocina ?? {},
-      // Y el resto de la proyección, por el mismo camino y por el mismo
-      // motivo. Hasta el 11 sep 2026 `sesgos` (tecnica, salsa, base),
-      // `favoritos` y `excluidos` se calculaban aquí y morían en la UI: el
-      // usuario pedía "más horno" o "nada de coliflor" y el menú salía igual.
-      // Ahora los lee aiPlanner —excluidos se suma a los dislikes; sesgos y
-      // favoritos ordenan candidatos vía lib/sesgos.js— sin saber que la
-      // libreta existe.
-      sesgos: vista.sesgos ?? {},
-      // Las tandas pedidas, aparte de los sesgos: es una CUENTA que el validador
-      // exige como minimo (regla 11b), no una preferencia que ordena candidatos.
-      tanda: vista.tanda ?? {},
-      favoritos: vista.favoritos ?? [],
-      excluidos: vista.excluidos ?? [],
-    };
+    // La proyección vive en lib/libretaEnData.js: la comparte el bot de Telegram.
+    const siguiente = dataConLibreta({ ...data, ...extra }, libreta);
     setData(siguiente);
     return siguiente;
   }, [data, setData]);
@@ -161,29 +119,8 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
 
   const aplicarPanel = useCallback((opcion, frase) => {
     const fecha = new Date().toISOString().slice(0, 10);
-    let libreta = aplicarOpcion(notepad, opcion, { frase, fecha });
-    const tocadas = { reparto: [], cocina: [] };
-    let repartoNuevo = reparto;
-
-    for (const ajuste of opcion?.ajustes ?? []) {
-      if (ajuste.campo === "freqs") {
-        // El bot habla en veces por semana —como habla la gente— y el slider
-        // en porcentajes de suma fija. Sin traducirlo aquí, pedirlo por voz
-        // cambiaría el número por dentro y en pantalla no se movería nada.
-        tocadas.reparto.push(ajuste.valor);
-        const veces = valorDe(libreta, `freqs.${ajuste.valor}`, null);
-        if (veces != null) repartoNuevo = repartoConFreq(repartoNuevo, ajuste.valor, veces);
-      }
-      if (ajuste.campo === "reparto") tocadas.reparto.push(ajuste.valor);
-      if (ajuste.campo === "cocina") tocadas.cocina.push(ajuste.valor);
-    }
-
-    if (tocadas.reparto.length > 0) {
-      for (const [familia, valor] of Object.entries(repartoNuevo)) {
-        libreta = poner(libreta, rutaDeReparto(familia), valor, { origen: "texto", frase, fecha });
-      }
-    }
-
+    // Mismo camino que el bot de Telegram (lib/libretaEnData.js#aplicarAjustes).
+    const { libreta, tocadas } = aplicarAjustes(data, notepad, opcion?.ajustes ?? [], { frase, fecha });
     setMovidas(tocadas);
     const primera = tocadas.reparto[0] ?? tocadas.cocina[0];
     const ruta = tocadas.reparto[0]
@@ -196,7 +133,7 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
     const siguiente = guardar(libreta);
     setPendientes(new Set());
     onRegenerar?.(siguiente);
-  }, [notepad, reparto, guardar, onRegenerar]);
+  }, [data, notepad, guardar, onRegenerar]);
 
   if (!habilitado) {
     return { controls: null, bubble: null, panel: null };

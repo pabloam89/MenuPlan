@@ -11,15 +11,25 @@
 import { Wind, Flame, Microwave, Bot, CookingPot, Layers2 } from "../components/icons.jsx";
 
 /**
- * Los trastos que una casa declara tener.
+ * Los trastos que una casa declara tener, con su ilustración.
  *
- * Vive aquí y no en la pantalla que los pinta porque ya hay dos sitios que
- * preguntan lo mismo —los ajustes del menú y la baldosa de batch cooking— y
- * dos listas que tienen que coincidir palabra por palabra acaban sin coincidir.
- * Son las mismas claves que `REQUIRED_APPLIANCE_ICONS`, en español y con
- * mayúscula, porque así están guardadas ya en producción.
+ * Es la lista que el asistente ya enseñaba (`APPLIANCES`, que vivía dentro de
+ * Onboarding.jsx) traída a la librería, para que la baldosa de batch cooking
+ * pinte los MISMOS seis aparatos con las MISMAS fotos sin arrastrar el
+ * asistente entero detrás. Las claves son las de `REQUIRED_APPLIANCE_ICONS`,
+ * en español y con mayúscula, porque así están guardadas ya en producción.
  */
-export const KITCHEN_TOOLS = ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"];
+export const KITCHEN_TOOLS = [
+  { id: "Airfryer", img: "/avatares/cards/electrodomesticos/airfryer.webp" },
+  { id: "Horno", img: "/avatares/cards/electrodomesticos/horno.webp" },
+  { id: "Microondas", img: "/avatares/cards/electrodomesticos/microondas.webp" },
+  { id: "Olla rápida", img: "/avatares/cards/electrodomesticos/olla_rapida.webp" },
+  { id: "Thermomix", img: "/avatares/cards/electrodomesticos/thermomix.webp" },
+  { id: "Vaporera", img: "/avatares/cards/electrodomesticos/vaporera.webp" },
+];
+
+/** Solo los nombres, para quien compara contra `data.kitchenTools`. */
+export const KITCHEN_TOOL_IDS = KITCHEN_TOOLS.map((t) => t.id);
 
 export const APPLIANCE_LABELS = {
   airfryer: "Airfryer",

@@ -33,6 +33,39 @@ export function outStateFor(member, day, meal, schoolMenus) {
 }
 
 /**
+ * Los estados que recorre una casilla a base de toques, en orden.
+ *
+ * Arranca en `casa` y sigue por los "fuera de casa" que tienen sentido en ESE
+ * hueco: el comedor solo donde podría existir (niño, comida, día lectivo) y el
+ * tupper siempre, porque llevarse la comida hecha no depende de la edad ni del
+ * día. El resto de la pantalla ya sabía pintar los cuatro colores —la leyenda
+ * los enumera— pero no había forma de escribir ni `tupper` ni un `cole` que no
+ * viniera de un menú subido: el ciclo es la que faltaba.
+ *
+ * El PRIMER estado de fuera es el que `outStateFor` elegía para el toque único,
+ * así que un toque sigue dando exactamente lo de antes (comedor si hay menú del
+ * cole cargado para ese día, fuera si no) y los demás se alcanzan siguiendo.
+ */
+export function slotStateCycle(member, day, meal, schoolMenus) {
+  const fuera = ["fuera", "tupper"];
+  if (isKidMember(member) && meal === "Comida" && SCHOOL_DAYS.includes(day)) fuera.push("cole");
+  const primero = outStateFor(member, day, meal, schoolMenus);
+  return ["casa", primero, ...fuera.filter((s) => s !== primero)];
+}
+
+/**
+ * El siguiente estado de una casilla. Un valor que no esté en el ciclo —un
+ * `cole` que dejó de tener sentido al crecer el niño, un `off` heredado— vuelve
+ * a casa en el primer toque en vez de quedarse atrapado fuera del ciclo.
+ */
+export function nextSlotState(current, member, day, meal, schoolMenus) {
+  const ciclo = slotStateCycle(member, day, meal, schoolMenus);
+  const actual = isHomeState(current) ? "casa" : current;
+  const i = ciclo.indexOf(actual);
+  return i === -1 ? "casa" : ciclo[(i + 1) % ciclo.length];
+}
+
+/**
  * Four habits that cover most of what a family would otherwise fill in cell by
  * cell — a household of five spends ~20 taps on the first card alone.
  *

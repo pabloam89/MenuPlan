@@ -354,6 +354,20 @@ export const AlimentoSchema = z
     fuenteNombre: z.string().nullable(),
     fuenteFecha: z.string().nullable(),
 
+    // ── Con qué AUTORIDAD se eligió esa ficha ───────────────────────────────
+    // `decision` · `ciqual` · `usda`  una persona la eligió y escribió por qué
+    // `macros`                        NADIE la eligió: es la única ficha cuyos
+    //                                 cuatro macros duros coinciden con los
+    //                                 números que el ingrediente ya tenía
+    //
+    // La distinción es el trace-back entero. Sin ella un `fuenteId` inferido
+    // por coincidencia se lee igual que uno decidido y revisado, y son 76 de
+    // 377 filas — el 32 % de la masa servida del catálogo. `motivo` sólo lo
+    // llevan las tres primeras: la rama `macros` no tiene ninguno que dar, y
+    // ése es justo el punto.
+    via: z.enum(["decision", "ciqual", "usda", "macros"]).nullable(),
+    motivo: z.string().nullable(),
+
 /**
  * La SEGUNDA ficha, cuando la propia deja huecos que otra tabla sí publica.
  *
@@ -417,16 +431,6 @@ export const AlimentoSchema = z
     // dorada entera. Las dos son curadas, y por eso empiezan a null.
     densidad: z.number().positive().nullable(),
     fraccionComestible: z.number().min(0).max(1).nullable(),
-
-    // ── Compuestos: donde «un nodo, un padre» no llega ──────────────────────
-    // `taxonomia` da UN nodo, y unos tortellini rellenos de carne son pasta y
-    // son cerdo a la vez. Ausente es el caso normal —el alimento es su nodo—;
-    // presente, dice el reparto de masa entre los nodos que lo forman, con la
-    // misma ruta `clase.subclase.especie` que emite el vector. Se cura en
-    // src/data/composicion.json y hoy lo lleva UNO de 388: el criterio es
-    // estrecho a propósito, solo lo que se compra montado y cuyas partes
-    // juegan en ejes distintos.
-    composicion: z.record(z.number().positive().max(1)).optional(),
 
     // ── Libro de cuentas ────────────────────────────────────────────────────
     huecos: z.record(z.enum(ESTADOS_LIBRO)),

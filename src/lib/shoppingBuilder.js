@@ -122,9 +122,9 @@ function unidadesPorIngredienteDelPlan(menuPlan, groupById, meals) {
   return porIngrediente;
 }
 
-function scaleIngredient(ing, eaters, recipeServings) {
+// `factor`: cuántas veces la receta tal como está guardada (ver la llamada).
+function scaleIngredient(ing, factor) {
   if (isQualitativeUnit(ing.unit)) return { ...ing, qty: null, scaledPrice: 0 };
-  const factor = Math.max(1, eaters) / recipeServings;
   return {
     ...ing,
     qty: Math.round(ing.qty * factor * 100) / 100,
@@ -262,7 +262,15 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
             // Nada que comprar de esta mitad del plato: ya está cocinada y
             // esperando en el congelador.
             if (ingEaters <= 0) continue;
-            const scaled = scaleIngredient(ing, ingEaters, recipe.servings);
+            // La receta viene escalada a las raciones de su primer hueco
+            // (recipe.raciones; sin peso ni altura de nadie, = servings). Este
+            // hueco pide la parte que falta por cocinar (ingEaters de
+            // slot.eaters) de SUS raciones. Sin raciones: ingEaters / servings,
+            // lo de siempre.
+            const racionesHueco = slot.raciones > 0 ? slot.raciones : slot.eaters;
+            const racionesReceta = recipe.raciones > 0 ? recipe.raciones : recipe.servings;
+            const parte = slot.eaters > 0 ? ingEaters / slot.eaters : 1;
+            const scaled = scaleIngredient(ing, (parte * racionesHueco) / racionesReceta);
             // Ver aggregationUnit: "1 aguacate" y "150 g de aguacate" tienen que
             // caer en la misma fila, no en dos.
             const aggUnit = aggregationUnit(ing.name, ing.unit, unidadesPorIngrediente);

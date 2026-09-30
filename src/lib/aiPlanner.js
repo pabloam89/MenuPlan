@@ -8,6 +8,7 @@ import { resolverMenu, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./sol
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { HOLGURA_TOPES, presupuestoDeTopes, repartoAFreqs, freqsAReparto } from "./reparto.js";
 import { stageForAge } from "./stages.js";
+import { racionesDe } from "./raciones.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
@@ -43,6 +44,8 @@ import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
 import { normalizeKidDinnerConfig, schoolAvoidCategories, householdKidPolicy, kidsSlotAction } from "./kidsMenu.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 import { lowerFirst } from "./dishNaming.js";
+import { aporteDe, fundirMicros } from "./derive/aporteAcompanamiento.js";
+import { computeRecipeNutrition } from "./ingredients.js";
 
 /**
  * Los nombres por ración de los 24 micronutrientes. Los cuatro macros
@@ -1869,10 +1872,33 @@ export const CATEGORY_ICON = {
   cenas_rapidas: "chef",
 };
 
-export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []) {
+/**
+ * Gramos por ración de una receta de catálogo, memoizados por id.
+ *
+ * Sale del mismo operador que la nutrición para que las dos no puedan
+ * discrepar, y no de la tabla derivada: un artefacto sin regenerar no avisa de
+ * que está viejo, devuelve un número plausible.
+ */
+const masaCache = new Map();
+function masaDeRacion(r) {
+  if (!r?.id) return null;
+  if (masaCache.has(r.id)) return masaCache.get(r.id);
+  const raciones = r.baseServings || 2;
+  const n = computeRecipeNutrition(r, raciones);
+  const masa = n?.totalGrams > 0 ? n.totalGrams / raciones : null;
+  masaCache.set(r.id, masa);
+  return masa;
+}
+
+// `raciones`: lo que comen de verdad esos `eaters`, en raciones de adulto
+// (src/lib/raciones.js). Las cantidades siguen a las raciones; `servings`
+// sigue siendo cuántas personas son. Sin peso ni altura de nadie, raciones =
+// eaters y nada cambia.
+export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = [], raciones = null) {
   const r = applySeasonalFruit(catalogRecipe);
   const servings = Math.max(1, eaters);
-  const factor = servings / r.baseServings;
+  const racionesReales = raciones > 0 ? raciones : servings;
+  const factor = racionesReales / r.baseServings;
 
   const iconType = ICON_TYPE_MAP[r.mainProtein] ?? CATEGORY_ICON[r.category] ?? "chef";
 
@@ -1933,6 +1959,7 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
     kidFriendly: r.kidFriendly,
     allergens: r.allergens,
     servings,
+    raciones: racionesReales,
     macros: {
       protein: r.protein_g,
       carbs: r.carbs_g,
@@ -1949,8 +1976,17 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
       ...Object.fromEntries(
         MICRONUTRIENTES_RACION.filter((c) => r[c] != null).map((c) => [c, r[c]]),
       ),
-      ...(r.micronutrientesCobertura ? { cobertura: r.micronutrientesCobertura } : {}),
+      // La cobertura se COPIA, no se referencia: al fundir una guarnición se
+      // repondera campo a campo, y mutar el objeto del catálogo contaminaría
+      // la receta para todos los huecos siguientes.
+      ...(r.micronutrientesCobertura ? { cobertura: { ...r.micronutrientesCobertura } } : {}),
     },
+    // La masa por ración, que solo tiene un lector: ponderar la cobertura
+    // cuando se le funde una guarnición o una salsa (ver
+    // derive/aporteAcompanamiento.js). Sin ella la fusión conserva la
+    // cobertura del plato en vez de rebajarla, que es lo honesto pero no lo
+    // exacto. `masaDeRacion` memoiza, así que esto no recorre el catálogo.
+    masaPorRacion: masaDeRacion(r),
     // Heuristic flags (see lib/healthFlags.js) carried through so the menu/
     // dish detail can show a "menú más cuidado" badge (lib/healthProfileMatch.js).
     healthFlags: r.healthFlags ?? [],
@@ -2296,6 +2332,15 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
 
   const guarnicionById = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
   const salsaById = Object.fromEntries(salsasData.map((s) => [s.id, s]));
+  // Raciones de un hueco: las de quienes comen en él (en casa o con tupper,
+  // el mismo criterio que `eaters`), cada uno con su factor.
+  const racionesEn = (miembros, day, meal) => racionesDe(
+    miembros.filter((m) => {
+      const status = data.schedule?.[slotKey(m.id, day, meal)] ?? "casa";
+      return status === "casa" || status === "tupper";
+    }),
+    resolveMemberAge,
+  );
   // User-created recipes aren't in the static bundled catalog, so the final
   // hydration step (recipeId -> full frontend recipe) needs its own lookup.
   const userRecipeById = Object.fromEntries((data.userRecipes ?? []).map((r) => [r.id, r]));
@@ -2312,6 +2357,10 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     const modeBySlot = Object.fromEntries(
       slotsContext.map((s) => [s.slotId, s.mode]),
     );
+    const miembrosDelGrupo = membersOfGroup(group, data.members);
+    const racionesBySlot = Object.fromEntries(
+      slotsContext.map((s) => [s.slotId, racionesEn(miembrosDelGrupo, s.day, s.mealType === "cena" ? "Cena" : "Comida")]),
+    );
 
     // Group assignments by day+meal
     const byDayMeal = {};
@@ -2320,11 +2369,12 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       if (!catalogRecipe) continue;
 
       const eaters = eatersBySlot[slotId] ?? 2;
+      const raciones = racionesBySlot[slotId] || eaters;
       const frontendId = prefix + recipeId;
 
       if (!seenRecipeIds.has(frontendId)) {
         seenRecipeIds.add(frontendId);
-        const fr = catalogToFrontendRecipe(catalogRecipe, eaters, restrictions);
+        const fr = catalogToFrontendRecipe(catalogRecipe, eaters, restrictions, raciones);
         if (prefix) fr.id = frontendId;
         // Keep the catalog id so the UI can resolve the dish photo even when
         // fr.id carries a group prefix (e.g. "groupId__carnes_007").
@@ -2333,13 +2383,13 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         // Merge garnish into the recipe: name, time, macros, ingredients
         if (garnishId) {
           const garnish = guarnicionById[garnishId];
-          if (garnish) applyGarnishToRecipe(fr, garnish, eaters, restrictions);
+          if (garnish) applyGarnishToRecipe(fr, garnish, raciones, restrictions);
         }
         // Same for sauce — independent of garnish, applied after so the name
         // suffix reads "... con Guarnición y Salsa" when both are present.
         if (sauceId) {
           const sauce = salsaById[sauceId];
-          if (sauce) applySauceToRecipe(fr, sauce, eaters, restrictions);
+          if (sauce) applySauceToRecipe(fr, sauce, raciones, restrictions);
         }
 
         allRecipes.push(fr);
@@ -2363,6 +2413,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
           recipeId: null,
           firstRecipeId: null,
           eaters: eaters,
+          raciones,
           mode: modeBySlot[slotId] ?? "casa",
           warnings: [],
         };
@@ -2420,7 +2471,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       const kidsMembers = membersOfGroup(kids, data.members);
       // Clona un plato del menú de los adultos al espacio de nombres de los
       // niños (prefijo de grupo si hay varios menús), arrastrando su guarnición.
-      const cloneForKids = (adultFrontendId, eaters) => {
+      const cloneForKids = (adultFrontendId, eaters, raciones) => {
         if (!adultFrontendId) return null;
         const baseId = adultFrontendId.includes("__")
           ? adultFrontendId.split("__").slice(1).join("__")
@@ -2430,13 +2481,13 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         const kidsFrontendId = multi ? `${kids.id}__${baseId}` : baseId;
         if (!seenRecipeIds.has(kidsFrontendId)) {
           seenRecipeIds.add(kidsFrontendId);
-          const fr = catalogToFrontendRecipe(catalogRecipe, eaters, []);
+          const fr = catalogToFrontendRecipe(catalogRecipe, eaters, [], raciones);
           if (multi) fr.id = kidsFrontendId;
           fr.baseRecipeId = baseId;
           const adultFr = allRecipes.find((r) => r.id === adultFrontendId);
           if (adultFr?.garnishId) {
             const garnish = guarnicionById[adultFr.garnishId];
-            if (garnish) applyGarnishToRecipe(fr, garnish, eaters, []);
+            if (garnish) applyGarnishToRecipe(fr, garnish, raciones, []);
           }
           allRecipes.push(fr);
         }
@@ -2458,14 +2509,16 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
           }).length;
           if (eaters <= 0) continue;
 
-          const mainId = cloneForKids(src.recipeId, eaters);
-          const firstId = cloneForKids(src.firstRecipeId, eaters);
+          const raciones = racionesEn(kidsMembers, day, meal) || eaters;
+          const mainId = cloneForKids(src.recipeId, eaters, raciones);
+          const firstId = cloneForKids(src.firstRecipeId, eaters, raciones);
           if (!mainId && !firstId) continue;
 
           plan[kids.id][`${day}-${meal}`] = {
             recipeId: mainId ?? firstId,
             firstRecipeId: mainId ? firstId : null,
             eaters,
+            raciones,
             mode: mode.mode,
             warnings: [],
             fromAdultLunch: action === "adultLunch",
@@ -2676,23 +2729,36 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
   // Time: dishes are cooked in parallel, show the longest
   fr.time = Math.max(fr.time, garnish.time);
 
-  // Macros: garnish values are stored per baseServings
-  const gPerServing = garnish.baseServings ?? 1;
-  fr.kcal = fr.kcal + Math.round(garnish.kcal / gPerServing);
+  // MACROS: LOS DE LA GUARNICIÓN YA ESTÁN POR RACIÓN, y aquí se dividían otra
+  // vez entre `baseServings` — así que cada guarnición aportaba la mitad de lo
+  // suyo. Lo que está por receta entera son los INGREDIENTES, y de eso se
+  // ocupa `scaleSideIngredients`, que sí hace bien la división. El porqué del
+  // equívoco y las dos comprobaciones que lo cierran, en derive/aporteAcompanamiento.js.
+  fr.kcal = fr.kcal + Math.round(garnish.kcal ?? 0);
   fr.macros = {
-    protein: (fr.macros.protein ?? 0) + Math.round(garnish.protein_g / gPerServing),
-    carbs: (fr.macros.carbs ?? 0) + Math.round(garnish.carbs_g / gPerServing),
-    fat: (fr.macros.fat ?? 0) + Math.round(garnish.fat_g / gPerServing),
+    // EL SPREAD, QUE FALTABA. El objeto se reconstruía campo a campo con solo
+    // proteína, hidratos, grasa, fibra y sodio, así que aplicar una guarnición
+    // no es que no sumara los micros: los BORRABA, junto con su cobertura. Un
+    // plato emparejado llegaba a la ficha con cinco números donde antes había
+    // veintinueve. Es el mismo fallo que se documenta en `catalogToFrontendRecipe`
+    // sobre los campos que se caen en un puente, y van siete.
+    ...fr.macros,
+    protein: (fr.macros.protein ?? 0) + Math.round(garnish.protein_g ?? 0),
+    carbs: (fr.macros.carbs ?? 0) + Math.round(garnish.carbs_g ?? 0),
+    fat: (fr.macros.fat ?? 0) + Math.round(garnish.fat_g ?? 0),
     // Fibra y sodio se cargaban en el plato pero NO se sumaban aquí, así que un
     // plato con guarnición declaraba la fibra del plato solo. Con unas judías
     // verdes al lado eso no es un redondeo: es la mitad. Las 40 guarniciones y
     // las 28 salsas traen los dos datos, pero se suma con `?? 0` para que una
     // guarnición futura sin ellos reste precisión en vez de borrar el campo.
     ...(fr.macros.fiber != null
-      ? { fiber: fr.macros.fiber + Math.round((garnish.fiber_g ?? 0) / gPerServing) } : {}),
+      ? { fiber: fr.macros.fiber + Math.round(garnish.fiber_g ?? 0) } : {}),
     ...(fr.macros.sodium != null
-      ? { sodium: fr.macros.sodium + Math.round((garnish.sodium_mg ?? 0) / gPerServing) } : {}),
+      ? { sodium: fr.macros.sodium + Math.round(garnish.sodium_mg ?? 0) } : {}),
   };
+  // Y los 24 micros, que no se sumaban en absoluto. Se hace después de
+  // reconstruir `fr.macros` porque funde sobre el objeto ya montado.
+  fundirMicros(fr.macros, fr.masaPorRacion, aporteDe(garnish));
 
   // Ingredients: scale garnish to actual number of eaters. Compute the swap
   // the same way the main dish does (buildAdaptationMap against the group's
@@ -2738,20 +2804,23 @@ export function applySauceToRecipe(fr, sauce, eaters, restrictions = []) {
   // Time: se hace en paralelo o justo antes de servir, se muestra la más larga.
   fr.time = Math.max(fr.time, sauce.time);
 
-  // Macros: los valores de la salsa están guardados por baseServings.
-  const sPerServing = sauce.baseServings ?? 1;
-  fr.kcal = fr.kcal + Math.round(sauce.kcal / sPerServing);
+  // Macros: por ración, igual que la guarnición, y aquí se dividían entre
+  // `baseServings: 4` — la salsa entraba a la cuarta parte. Ver el porqué en
+  // derive/aporteAcompanamiento.js.
+  fr.kcal = fr.kcal + Math.round(sauce.kcal ?? 0);
   fr.macros = {
-    protein: (fr.macros.protein ?? 0) + Math.round(sauce.protein_g / sPerServing),
-    carbs: (fr.macros.carbs ?? 0) + Math.round(sauce.carbs_g / sPerServing),
-    fat: (fr.macros.fat ?? 0) + Math.round(sauce.fat_g / sPerServing),
+    ...fr.macros,
+    protein: (fr.macros.protein ?? 0) + Math.round(sauce.protein_g ?? 0),
+    carbs: (fr.macros.carbs ?? 0) + Math.round(sauce.carbs_g ?? 0),
+    fat: (fr.macros.fat ?? 0) + Math.round(sauce.fat_g ?? 0),
     // Mismo arreglo que en la guarnición: el sodio de una salsa no es un
     // detalle — es justo donde está.
     ...(fr.macros.fiber != null
-      ? { fiber: fr.macros.fiber + Math.round((sauce.fiber_g ?? 0) / sPerServing) } : {}),
+      ? { fiber: fr.macros.fiber + Math.round(sauce.fiber_g ?? 0) } : {}),
     ...(fr.macros.sodium != null
-      ? { sodium: fr.macros.sodium + Math.round((sauce.sodium_mg ?? 0) / sPerServing) } : {}),
+      ? { sodium: fr.macros.sodium + Math.round(sauce.sodium_mg ?? 0) } : {}),
   };
+  fundirMicros(fr.macros, fr.masaPorRacion, aporteDe(sauce));
 
   // Ingredientes: misma lógica de escalado + adaptaciones que la guarnición.
   const { renameByName, adaptations: sauceAdaptations } = buildAdaptationMap(sauce, restrictions);
@@ -3031,7 +3100,7 @@ const POOL_DE_FRANJA = {
   Postre: "postres",
 };
 
-export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0 }) {
+export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false }) {
   const group = (data?.groups ?? []).find((g) => g.id === groupId);
   if (!group) return null;
 
@@ -3134,16 +3203,25 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // A montaje dish (nachos, sándwiches...) is only appropriate for the exact
   // slot the user flagged as "cena rápida" — otherwise it can replace a normal
   // dinner with something that doesn't match what the user actually asked for.
-  const isCenaRapida = data.slotType?.[`${day}|${meal}`] === "rapida";
+  //
+  // `admiteMontaje` abre esa puerta para UN caso: las sugerencias de un hueco
+  // VACÍO, donde no se reemplaza nada y eliges tú. Ahí la regla sobraba y se
+  // notaba: dejaba fuera las doce tostas de cena del catálogo —ocho minutos,
+  // salmón ahumado, tomate rallado con anchoas— que son justo lo que se cena
+  // un martes. La puerta sigue cerrada para el relleno automático y para
+  // "cambiar plato": ahí decide la máquina, y ahí la regla es buena.
+  const isCenaRapida = admiteMontaje || data.slotType?.[`${day}|${meal}`] === "rapida";
 
   // "Parecido" (misma categoría): restrict candidates to the category of the
   // dish being replaced, e.g. another salad for a salad. Null = any category.
   const restrictCategory = sameCategory ? currentCatalog?.category ?? null : null;
 
   const roleMatch = (r) => r.mealRole?.some((role) => targetRoles.has(role));
+  // Un plato pedido por su nombre no tiene tope de tiempo: quien pide pollo al
+  // horno un martes sabe lo que tarda.
   const structuralFit = (r) =>
     roleMatch(r) &&
-    r.time <= slotMaxTime &&
+    (pedido || r.time <= slotMaxTime) &&
     (isCenaRapida || !isMontaje(r)) &&
     (!restrictCategory || r.category === restrictCategory);
   const { candidates: selected, reusedDuplicate: rdup } = selectReplacementCandidates(
@@ -3155,6 +3233,13 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   reusedDuplicate = rdup;
   let candidates = selected;
   if (candidates.length === 0) return null;
+
+  // `pedido` (con `candidatos`): el usuario ha nombrado un plato («salmón al
+  // horno») y se busca el más parecido. Valen las reglas duras de arriba
+  // —alergias, rol del hueco, no repetir plato; el tiempo no— pero no las
+  // preferencias de variedad de abajo, que son para cuando elige la máquina:
+  // dejaban el pool en una docena de platos y sin rastro del salmón.
+  if (pedido && candidatos > 0) return { candidatos: candidates.slice(0, candidatos) };
 
   // School-menu avoidance: this swap path (manual "cambiar plato") is a
   // separate code path from the main generator and never runs through

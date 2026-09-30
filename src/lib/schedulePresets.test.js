@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { outStateFor, isHomeState, resolveQuickActions } from "./schedulePresets.js";
+import {
+  outStateFor,
+  isHomeState,
+  slotStateCycle,
+  nextSlotState,
+  resolveQuickActions,
+} from "./schedulePresets.js";
 
 const kid = { id: "k1", name: "Leo", age: 8 };
 const kid2 = { id: "k2", name: "Sara", age: 6 };
@@ -45,6 +51,61 @@ describe("isHomeState", () => {
   it("trata casa, off y vacío como estar en casa", () => {
     for (const v of ["casa", "off", undefined, null]) expect(isHomeState(v)).toBe(true);
     for (const v of ["fuera", "cole", "tupper"]) expect(isHomeState(v)).toBe(false);
+  });
+});
+
+describe("slotStateCycle", () => {
+  it("el comedor solo entra donde podría existir", () => {
+    expect(slotStateCycle(kid, "Mar", "Comida", null)).toEqual(["casa", "fuera", "tupper", "cole"]);
+    // Adulto, cena y fin de semana: sin comedor, pero con tupper.
+    expect(slotStateCycle(adult, "Mar", "Comida", null)).toEqual(["casa", "fuera", "tupper"]);
+    expect(slotStateCycle(kid, "Mar", "Cena", null)).toEqual(["casa", "fuera", "tupper"]);
+    expect(slotStateCycle(kid, "Sáb", "Comida", null)).toEqual(["casa", "fuera", "tupper"]);
+  });
+
+  it("con menú del cole cargado el comedor pasa a ser el primer toque", () => {
+    expect(slotStateCycle(kid, "Lun", "Comida", MENUS)).toEqual(["casa", "cole", "fuera", "tupper"]);
+  });
+
+  it("nunca repite un estado", () => {
+    for (const day of ["Lun", "Mar", "Sáb"]) {
+      for (const meal of ["Comida", "Cena"]) {
+        const ciclo = slotStateCycle(kid, day, meal, MENUS);
+        expect(new Set(ciclo).size).toBe(ciclo.length);
+      }
+    }
+  });
+});
+
+describe("nextSlotState", () => {
+  it("el primer toque da lo mismo que el viejo toggle binario", () => {
+    for (const [m, day, meal] of [[kid, "Lun", "Comida"], [kid, "Mar", "Comida"], [adult, "Lun", "Comida"]]) {
+      expect(nextSlotState("casa", m, day, meal, MENUS)).toBe(outStateFor(m, day, meal, MENUS));
+    }
+  });
+
+  it("recorre el ciclo entero y vuelve a casa", () => {
+    const ciclo = slotStateCycle(kid, "Mar", "Comida", MENUS);
+    let v = "casa";
+    const visto = [];
+    for (let i = 0; i < ciclo.length; i++) {
+      v = nextSlotState(v, kid, "Mar", "Comida", MENUS);
+      visto.push(v);
+    }
+    expect(visto).toEqual([...ciclo.slice(1), "casa"]);
+    // Y el tupper es alcanzable, que es lo que no lo era.
+    expect(visto).toContain("tupper");
+  });
+
+  it("los estados de casa (off, vacío) arrancan el ciclo desde el principio", () => {
+    for (const v of ["off", undefined, null]) {
+      expect(nextSlotState(v, adult, "Lun", "Comida", null)).toBe("fuera");
+    }
+  });
+
+  it("un estado que ya no cabe en el hueco vuelve a casa", () => {
+    // "cole" guardado en una cena: no está en su ciclo, así que no se atasca.
+    expect(nextSlotState("cole", kid, "Mar", "Cena", MENUS)).toBe("casa");
   });
 });
 

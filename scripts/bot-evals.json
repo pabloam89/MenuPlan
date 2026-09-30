@@ -1,0 +1,601 @@
+{
+  "_nota": "Casos de conversación de Lola (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta. 'foto' son líneas de texto que se pintan en una imagen y van adjuntas.",
+  "casos": [
+    {
+      "nombre": "consulta rápida: qué cenamos",
+      "entrada": "¿qué cenamos hoy?",
+      "llama": [
+        "ver_menu"
+      ],
+      "noLlama": [
+        "generar_menu",
+        "cambiar_plato"
+      ]
+    },
+    {
+      "nombre": "cambiar sin decir por cuál: da opciones",
+      "entrada": "cambia la cena del jueves, que no nos apetece",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "dia": "jueves",
+          "comida": "cena"
+        }
+      },
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "texto": "\\[\\[Elige tú\\]\\]"
+    },
+    {
+      "nombre": "recomiéndame algo: opciones del catálogo, sin cambiar",
+      "entrada": "¿qué me recomiendas para cenar el jueves?",
+      "llama": [
+        "proponer_platos"
+      ],
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "sinTexto": "no puedo (recomendar|inventar)|no las invento"
+    },
+    {
+      "nombre": "elige una de las opciones: la pone",
+      "historia": [
+        {
+          "role": "user",
+          "content": "cambia la cena del jueves"
+        },
+        {
+          "role": "assistant",
+          "content": "👉 Para la <b>cena del jueves</b> te encajan:\n• <b>Garbanzos especiados con espinacas y piñones</b>, 25 min\n• <b>Tortilla de patata y cebolla</b>, 30 min\n• <b>Crema de puerros con picatostes</b>, 30 min\n\n¿Cuál te pongo?\n[[Garbanzos especiados]]\n[[Tortilla de patata]]\n[[Crema de puerros]]\n[[Elige tú]]"
+        }
+      ],
+      "entrada": "Garbanzos especiados",
+      "llama": [
+        "cambiar_plato"
+      ],
+      "args": {
+        "cambiar_plato": {
+          "dia": "jueves",
+          "comida": "cena",
+          "receta": "garbanzos"
+        }
+      }
+    },
+    {
+      "nombre": "elige tú: cambia sin receta",
+      "historia": [
+        {
+          "role": "user",
+          "content": "cambia la cena del jueves"
+        },
+        {
+          "role": "assistant",
+          "content": "👉 Para la <b>cena del jueves</b> te encajan:\n• <b>Garbanzos especiados con espinacas y piñones</b>, 25 min\n• <b>Tortilla de patata y cebolla</b>, 30 min\n• <b>Crema de puerros con picatostes</b>, 30 min\n\n¿Cuál te pongo?\n[[Garbanzos especiados]]\n[[Tortilla de patata]]\n[[Crema de puerros]]\n[[Elige tú]]"
+        }
+      ],
+      "entrada": "Elige tú",
+      "llama": [
+        "cambiar_plato"
+      ],
+      "noLlamaCon": {
+        "cambiar_plato": {
+          "receta": "garbanzos"
+        }
+      }
+    },
+    {
+      "nombre": "ambiguo: pregunta antes de cambiar",
+      "entrada": "cambia eso que no me gusta",
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ]
+    },
+    {
+      "nombre": "añadir a la compra",
+      "entrada": "apunta leche y pilas en la compra",
+      "llama": [
+        "anadir_compra"
+      ],
+      "args": {
+        "anadir_compra": {
+          "_todo": "leche"
+        }
+      }
+    },
+    {
+      "nombre": "alergia: no guarda sin confirmar",
+      "entrada": "Leo es alérgico al huevo",
+      "noLlamaCon": {
+        "ajustar_alergias": {
+          "confirmado": true
+        }
+      }
+    },
+    {
+      "nombre": "alergia: guarda tras el sí",
+      "historia": [
+        {
+          "role": "user",
+          "content": "Leo es alérgico al huevo"
+        },
+        {
+          "role": "assistant",
+          "content": "Entendido: voy a guardar que Leo es alérgico al huevo. ¿Lo guardo?\n[[Sí, guárdalo]]"
+        }
+      ],
+      "entrada": "Sí, guárdalo",
+      "llama": [
+        "ajustar_alergias"
+      ],
+      "args": {
+        "ajustar_alergias": {
+          "persona": "leo",
+          "_todo": "huevo",
+          "confirmado": true
+        }
+      }
+    },
+    {
+      "nombre": "generar guiado: primero pregunta, no genera de golpe",
+      "entrada": "hazme un menú nuevo para la semana que viene",
+      "noLlama": [
+        "generar_menu"
+      ],
+      "texto": "\\[\\[Genera ya\\]\\]"
+    },
+    {
+      "nombre": "genera ya",
+      "historia": [
+        {
+          "role": "user",
+          "content": "hazme un menú nuevo para la semana que viene"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Vamos! ¿Algo especial la semana que viene?\n[[Viene alguien]]\n[[Semana con prisa]]\n[[Genera ya]]"
+        }
+      ],
+      "entrada": "Genera ya",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "semana": "siguiente"
+        }
+      }
+    },
+    {
+      "nombre": "gusto: nada de coliflor",
+      "entrada": "en casa no queremos coliflor nunca",
+      "llama": [
+        "ajustar_gustos"
+      ],
+      "args": {
+        "ajustar_gustos": {
+          "_todo": "coliflor"
+        }
+      }
+    },
+    {
+      "nombre": "invitado puntual",
+      "entrada": "el sábado vienen mis suegros a comer",
+      "llama": [
+        "anadir_invitado"
+      ]
+    },
+    {
+      "nombre": "deshacer",
+      "entrada": "uy no, deja lo de antes",
+      "llama": [
+        "deshacer"
+      ]
+    },
+    {
+      "nombre": "recordatorio pedido",
+      "entrada": "recuérdame el domingo a las 7 de la tarde hacer la compra",
+      "llama": [
+        "crear_recordatorio"
+      ],
+      "args": {
+        "crear_recordatorio": {
+          "cuando": "T19:00"
+        }
+      }
+    },
+    {
+      "nombre": "no crea recordatorios por su cuenta",
+      "entrada": "¿qué comemos mañana?",
+      "noLlama": [
+        "crear_recordatorio"
+      ]
+    },
+    {
+      "nombre": "formato: sin markdown",
+      "entrada": "enséñame el menú de hoy",
+      "llama": [
+        "ver_menu"
+      ],
+      "sinTexto": "\\*\\*|^#| · "
+    },
+    {
+      "nombre": "no inventa recetas fuera del motor",
+      "entrada": "¿cómo se hace la tortilla de calabacín del miércoles?",
+      "llama": [
+        "ver_receta"
+      ]
+    },
+    {
+      "nombre": "despensa de palabra",
+      "entrada": "tengo dos kilos de patatas y una docena de huevos en casa",
+      "llama": [
+        "anadir_despensa"
+      ],
+      "args": {
+        "anadir_despensa": {
+          "_todo": "patata"
+        }
+      }
+    },
+    {
+      "nombre": "foto de ticket: enseña la lista y no guarda sin el sí",
+      "entrada": "(te mando esta foto)",
+      "foto": [
+        "MERCADONA S.A.",
+        "30/09/2026 18:42",
+        "LECHE ENTERA 6x1L        5,34",
+        "HUEVOS L 12 UD            2,45",
+        "PECHUGA POLLO 0,845 kg    6,12",
+        "DETERGENTE LIQUIDO        4,50",
+        "BOLSA PLASTICO            0,15",
+        "TOTAL                    18,56"
+      ],
+      "noLlama": [
+        "anadir_despensa"
+      ],
+      "texto": "leche",
+      "sinTexto": "detergente.*\n.*despensa"
+    },
+    {
+      "nombre": "ticket confirmado: a la despensa sin droguería",
+      "historia": [
+        {
+          "role": "user",
+          "content": "[foto] (te mando esta foto)"
+        },
+        {
+          "role": "assistant",
+          "content": "He leído tu ticket de Mercadona. A la despensa iría:\n• Leche entera — 6 l\n• Huevos — 12 ud\n• Pechuga de pollo — 845 g\n(el detergente y la bolsa no, que no son comida)\n¿Lo apunto?\n[[Sí, a la despensa]]\n[[Quitar algo]]"
+        }
+      ],
+      "entrada": "Sí, a la despensa",
+      "llama": [
+        "anadir_despensa"
+      ],
+      "args": {
+        "anadir_despensa": {
+          "_todo": "leche"
+        }
+      },
+      "noLlamaCon": {
+        "anadir_despensa": {
+          "_todo": "detergente"
+        }
+      }
+    },
+    {
+      "nombre": "foto del menú del cole: resume y pregunta",
+      "entrada": "el menú del comedor de Leo",
+      "foto": [
+        "COMEDOR ESCOLAR - OCTUBRE SEMANA 1",
+        "LUNES: Crema de calabaza / Merluza al horno / Fruta",
+        "MARTES: Lentejas / Tortilla de patata / Yogur",
+        "MIERCOLES: Macarrones con tomate / Pollo asado / Fruta",
+        "JUEVES: Garbanzos / Filete de ternera / Natillas",
+        "VIERNES: Arroz a la cubana / Pescadilla / Fruta"
+      ],
+      "noLlama": [
+        "guardar_menu_cole"
+      ],
+      "texto": "lentejas"
+    },
+    {
+      "nombre": "menú del cole confirmado",
+      "historia": [
+        {
+          "role": "user",
+          "content": "[foto] el menú del comedor de Leo"
+        },
+        {
+          "role": "assistant",
+          "content": "Menú del comedor de Leo:\nLunes: Crema de calabaza · Merluza al horno · Fruta\nMartes: Lentejas · Tortilla de patata · Yogur\nMiércoles: Macarrones con tomate · Pollo asado · Fruta\nJueves: Garbanzos · Filete de ternera · Natillas\nViernes: Arroz a la cubana · Pescadilla · Fruta\n¿Lo guardo para Leo?\n[[Sí, guárdalo]]"
+        }
+      ],
+      "entrada": "Sí, guárdalo",
+      "llama": [
+        "guardar_menu_cole"
+      ],
+      "args": {
+        "guardar_menu_cole": {
+          "para": "leo",
+          "_todo": "lentejas"
+        }
+      }
+    },
+    {
+      "nombre": "peso y altura: los guarda sin sermones",
+      "entrada": "Pablo pesa 90 kilos y mide 1,85",
+      "llama": [
+        "ajustar_persona"
+      ],
+      "args": {
+        "ajustar_persona": {
+          "nombre": "pablo"
+        }
+      },
+      "sinTexto": "IMC|sobrepeso|obesidad|dieta"
+    },
+    {
+      "nombre": "peso: convierte metros a centímetros",
+      "entrada": "Ana mide 1,65 y pesa 60",
+      "llama": [
+        "ajustar_persona"
+      ],
+      "args": {
+        "ajustar_persona": {
+          "_todo": "165"
+        }
+      }
+    },
+    {
+      "nombre": "alta: aprovecha el primer mensaje y no pide peso",
+      "entrada": "[alta] Casa recién creada desde Telegram. Mi primer mensaje: somos Ana, Pablo y Leo, que tiene 6 años",
+      "llama": [
+        "anadir_comensal"
+      ],
+      "noLlama": [
+        "ajustar_persona"
+      ],
+      "sinTexto": "peso|altura|kilos"
+    },
+    {
+      "nombre": "alta: tras el primer menú ofrece el aviso del domingo",
+      "historia": [
+        {
+          "role": "user",
+          "content": "[alta] Casa recién creada desde Telegram. Ayúdame a montarla."
+        },
+        {
+          "role": "assistant",
+          "content": "¡Listo! Ya tenéis menú 🎉\n\n<b>Hoy, miércoles 30</b>\n🍽️ <b>Comida</b>\n• Lentejas con verduras\n\nPídeme cambios, la compra o recetas cuando quieras."
+        }
+      ],
+      "entrada": "genial, gracias",
+      "noLlama": [
+        "crear_recordatorio"
+      ],
+      "texto": "domingo"
+    },
+    {
+      "nombre": "ritual aceptado: recordatorio semanal corto",
+      "historia": [
+        {
+          "role": "assistant",
+          "content": "¿Te aviso cada domingo a las 18:00 para preparar el menú de la semana?\n[[Sí, cada domingo]]\n[[No, gracias]]"
+        }
+      ],
+      "entrada": "Sí, cada domingo",
+      "llama": [
+        "crear_recordatorio"
+      ],
+      "args": {
+        "crear_recordatorio": {
+          "repite": "semanal",
+          "cuando": "T18:00"
+        }
+      }
+    },
+    {
+      "nombre": "algo ligero con menú puesto: opciones ligeras, no «no hay nada mejor»",
+      "entrada": "¿qué me recomiendas para cenar mañana algo ligero? y cuéntame por qué",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "comida": "cena",
+          "estilo": "ligero"
+        }
+      },
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "sinTexto": "no he encontrado|no hay (otra|nada)"
+    },
+    {
+      "nombre": "recomendar cena sin menú: ideas, sin generar ni elegir por ellos",
+      "entrada": "Quiero que me recomiendes platos para cenar ligero esta noche Isa y yo, y a ver qué le ponemos a Cova",
+      "llama": [
+        "proponer_platos"
+      ],
+      "noLlama": [
+        "generar_menu",
+        "cambiar_plato"
+      ],
+      "sinTexto": "herramienta|el motor|todo listo|te lo genero"
+    },
+    {
+      "nombre": "el bebé ya come sólidos: lo apunta antes de proponer",
+      "historia": [
+        {
+          "role": "user",
+          "content": "¿Qué le pongo a Cova para cenar?"
+        },
+        {
+          "role": "assistant",
+          "content": "Para Cova te encajan:\n• <b>Puré de calabaza con pavo</b>, 18 min\n• <b>Puré de zanahoria con merluza</b>, 20 min\n\n¿Cuál te pongo?"
+        }
+      ],
+      "entrada": "Ya come sólidos, no purés",
+      "llama": [
+        "ajustar_cocina"
+      ],
+      "args": {
+        "ajustar_cocina": {
+          "etapaBebe": "solidos"
+        }
+      }
+    },
+    {
+      "nombre": "apuntar en la compra sin menú: sin pedir que genere",
+      "entrada": "apunta leche y pan",
+      "llama": [
+        "anadir_compra"
+      ],
+      "noLlama": [
+        "generar_menu"
+      ]
+    },
+    {
+      "nombre": "ver recetas sin decir dónde: pregunta aquí o en la app",
+      "entrada": "quiero ver recetas de sólidos para el bebé",
+      "noLlama": [
+        "preparar_receta",
+        "cambiar_plato"
+      ],
+      "texto": "\\[\\[En la app\\]\\]"
+    },
+    {
+      "nombre": "ver recetas aquí con fotos: busca en la carpeta de sólidos",
+      "historia": [
+        {
+          "role": "user",
+          "content": "quiero ver recetas de sólidos para el bebé"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Claro! ¿Dónde te las enseño?\n[[Aquí con fotos]]\n[[Aquí en lista]]\n[[En la app]]"
+        }
+      ],
+      "entrada": "Aquí con fotos",
+      "llama": [
+        "buscar_recetas"
+      ],
+      "args": {
+        "buscar_recetas": {
+          "categoria": "bebes_solidos",
+          "conFotos": true
+        }
+      },
+      "sinTexto": " · "
+    },
+    {
+      "nombre": "crear receta: pregunta lo que falta antes de preparar",
+      "entrada": "quiero guardar mi receta de tortilla de patatas: 6 huevos, 600 g de patatas, una cebolla, aceite y sal. Para 4, media hora",
+      "noLlama": [
+        "guardar_receta"
+      ],
+      "noLlamaCon": {
+        "preparar_receta": {
+          "_todo": "tortilla"
+        }
+      }
+    },
+    {
+      "nombre": "crear receta: no guarda sin el sí",
+      "historia": [
+        {
+          "role": "user",
+          "content": "guarda mi tortilla de patatas, para la cena, sin aparatos, apta para niños, redáctalo tú, sin foto, solo para nosotros: 6 huevos, 600 g de patatas, una cebolla, 150 ml de aceite y sal. Para 4, 35 minutos"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Qué buena pinta! Tengo todo lo que necesito. ¿La preparo para que la veas antes de guardarla?\n[[Sí, prepárala]]"
+        }
+      ],
+      "entrada": "sí, prepárala",
+      "llama": [
+        "preparar_receta"
+      ],
+      "noLlama": [
+        "guardar_receta"
+      ]
+    },
+    {
+      "nombre": "crear receta: guarda tras el sí",
+      "historia": [
+        {
+          "role": "user",
+          "content": "guarda mi tortilla de patatas"
+        },
+        {
+          "role": "assistant",
+          "content": "Así queda 👇\n\n<b>Tortilla de patatas de la abuela</b>\n👥 4 raciones, ⏱️ 35 min, para la cena\n⚠️ Alérgenos: huevo\n\n• Huevos, 6\n• Patatas, 600 g\n• Cebolla, 1\n• Aceite de oliva, 150 ml\n• Sal, al gusto\n\n¿La guardo?\n[[Guardar]]\n[[Cambiar algo]]"
+        }
+      ],
+      "entrada": "Guardar",
+      "llama": [
+        "guardar_receta"
+      ],
+      "args": {
+        "guardar_receta": {
+          "confirmado": true
+        }
+      }
+    },
+    {
+      "nombre": "compartir una receta",
+      "entrada": "quiero mandarle a mi hermana la receta de la tortilla de calabacín",
+      "llama": [
+        "compartir"
+      ],
+      "args": {
+        "compartir": {
+          "que": "receta",
+          "receta": "calabacin"
+        }
+      }
+    },
+    {
+      "nombre": "platos pedidos por su nombre: se ponen (aproximados), nunca «no lo tengo»",
+      "entrada": "Vale hazme el menú para la semana que viene. Borra todo lo que hay y empieza de cero. Un día quiero salmon al horno con ensalada de mango y aguacate, otro pollo al horno con patatas, de cenas fáciles tipo tortillas francesas y el resto lo que sea",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "semana": "siguiente",
+          "_todo": "salmon"
+        }
+      },
+      "noLlama": [
+        "ver_menu"
+      ],
+      "sinTexto": "no (tiene|tengo|existe|está disponible)|no quiero meterte",
+      "maxLlamadas": 4
+    },
+    {
+      "nombre": "cena de hoy: el día es hoy, no otro",
+      "entrada": "quiero cambiar la cena de hoy, algo rápido",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "dia": "hoy",
+          "comida": "cena"
+        }
+      },
+      "noLlama": [
+        "generar_menu"
+      ]
+    }
+  ]
+}

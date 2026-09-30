@@ -178,7 +178,9 @@
       }
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_002",
@@ -334,7 +336,9 @@
     "saturated_fat_g": 5,
     "sodium_mg": 220,
     "freezable": false,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_003",
@@ -509,7 +513,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_004",
@@ -643,7 +649,9 @@
     "saturated_fat_g": 6,
     "sodium_mg": 380,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_005",
@@ -737,52 +745,62 @@
       {
         "text": "Pelar {{Patata}} y {{Cebolla}}, y laminarlas en rodajas de unos 3 mm de grosor.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Limón}} en rodajas finas.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Perejil}} finamente y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Extender las rodajas de patata y cebolla en una bandeja de horno, regar con {{Aceite de oliva|chorrito}} y salpimentar al gusto.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Hornear las verduras durante 15 min a 200 °C hasta que comiencen a estar tiernas.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar la bandeja del horno y colocar {{Lubina entera}} encima de la cama de verduras.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Disponer las rodajas de limón sobre la lubina y espolvorear el perejil picado.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Hornear el conjunto 18 min a 200 °C hasta que la lubina esté cocinada y la piel ligeramente dorada.",
         "minutes": 18,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar del horno y servir la lubina sobre la cama de verduras, con el jugo de cocción por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -790,7 +808,9 @@
     "saturated_fat_g": 2,
     "sodium_mg": 120,
     "freezable": false,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_006",
@@ -902,7 +922,9 @@
     "saturated_fat_g": 4,
     "sodium_mg": 210,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_007",
@@ -1039,7 +1061,9 @@
     "saturated_fat_g": 3,
     "sodium_mg": 320,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_008",
@@ -1201,7 +1225,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_009",
@@ -1312,7 +1338,9 @@
     "saturated_fat_g": 6,
     "sodium_mg": 280,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_010",
@@ -1428,7 +1456,9 @@
     "saturated_fat_g": 4,
     "sodium_mg": 520,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_011",
@@ -1554,7 +1584,9 @@
     "saturated_fat_g": 3,
     "sodium_mg": 280,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_012",
@@ -1660,7 +1692,9 @@
     ],
     "freezable": false,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_013",
@@ -1835,7 +1869,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_014",
@@ -1966,7 +2002,9 @@
     "saturated_fat_g": 4,
     "sodium_mg": 520,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_015",
@@ -2117,7 +2155,9 @@
     "saturated_fat_g": 5,
     "sodium_mg": 780,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_016",
@@ -2287,7 +2327,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_017",
@@ -2457,7 +2499,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_018",
@@ -2656,7 +2700,9 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_019",
@@ -2830,7 +2876,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_020",
@@ -2982,7 +3030,9 @@
     "saturated_fat_g": 3,
     "sodium_mg": 320,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_021",
@@ -3024,7 +3074,7 @@
       },
       {
         "name": "Gambas",
-        "ingredientId": "gambas",
+        "ingredientId": "gambas-enteras",
         "amount": 150,
         "unit": "g"
       },
@@ -3173,7 +3223,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 520,
     "freezable": false,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_022",
@@ -3320,7 +3371,9 @@
     "saturated_fat_g": 2,
     "sodium_mg": 180,
     "freezable": false,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_023",
@@ -3449,7 +3502,9 @@
     "saturated_fat_g": 4,
     "sodium_mg": 85,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_024",
@@ -3608,7 +3663,9 @@
     "saturated_fat_g": 2,
     "sodium_mg": 180,
     "freezable": false,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_025",
@@ -3809,7 +3866,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_026",
@@ -4027,7 +4086,9 @@
     "tecnica": "crudo",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_027",
@@ -4149,92 +4210,108 @@
         "text": "Lavar {{Arroz sushi}} bajo el grifo hasta que el agua salga clara.",
         "minutes": 2,
         "kind": "prep",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Cocer el arroz en un cazo con el doble de agua fría; llevar a ebullición a fuego fuerte.",
         "minutes": 2,
         "kind": "activo",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Tapar el cazo, bajar a fuego suave y cocer hasta que el arroz absorba toda el agua.",
         "minutes": 12,
         "kind": "pasivo",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Aguacate}} en láminas finas.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Rallar {{Zanahoria}} o cortar en bastones finos.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Pepino}} en bastones finos.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Salmón fresco para sushi}} en dados de bocado de unos 2 cm.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Hervir {{Edamame desvainado}} en agua con sal durante 3 min y escurrir.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Retirar el cazo del fuego y dejar reposar el arroz tapado 5 min.",
         "minutes": 5,
         "kind": "espera",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Extender el arroz en una fuente y aliñar con {{Vinagre de arroz}}; mezclar con suavidad.",
         "minutes": 2,
         "kind": "activo",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Dejar templar el arroz extendido hasta que pierda el exceso de calor.",
         "minutes": 5,
         "kind": "espera",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Salsa de soja}} con {{Aceite de sésamo}} en un cuenco pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir el arroz templado en 2 boles.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer el salmón, el aguacate, el edamame, la zanahoria y el pepino en montones sobre el arroz.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar cada bol con la mezcla de salsa de soja y aceite de sésamo.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear {{Semillas de sésamo}} y cortar {{Alga nori}} en tiras finas para terminar.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 7,
@@ -4269,7 +4346,9 @@
     "montaje": true,
     "tecnica": "crudo",
     "cocina": "asiatica",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_028",
@@ -4411,7 +4490,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_029",
@@ -4517,68 +4598,80 @@
         "text": "Cocer {{Arroz blanco}} en abundante agua con sal según el paquete.",
         "minutes": 15,
         "kind": "pasivo",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Exprimir {{Lima}} y reservar el zumo.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "salsa"
       },
       {
         "text": "Cortar {{Atún fresco para sushi}} en dados regulares de unos 2 cm.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Cortar {{Aguacate}} en dados del mismo tamaño que el atún.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Cortar {{Mango}} en dados del mismo tamaño que el aguacate.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Laminar {{Cebolleta}} en aros finos.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Escurrir el arroz cocido y dejar templar 3 min fuera del fuego.",
         "minutes": 3,
         "kind": "espera",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Salsa de soja}}, {{Aceite de sésamo}} y el zumo de lima en un bol pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir el arroz templado en 2 boles como base.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer el atún, el aguacate y el mango en montones separados sobre el arroz.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir la cebolleta laminada y {{Semillas de sésamo}} por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar con la mezcla de salsa de soja, aceite de sésamo y zumo de lima al gusto.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -4617,7 +4710,8 @@
       "verdura",
       "fruta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_030",
@@ -4779,7 +4873,9 @@
     ],
     "kidFavourite": true,
     "tecnica": "crudo",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_031",
@@ -4908,7 +5004,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_032",
@@ -5108,7 +5206,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_033",
@@ -5303,7 +5403,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_034",
@@ -5504,7 +5606,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_035",
@@ -5691,7 +5795,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_036",
@@ -5738,7 +5844,7 @@
       },
       {
         "name": "Romero fresco",
-        "ingredientId": "romero",
+        "ingredientId": "romero-fresco",
         "amount": 10,
         "unit": "g"
       },
@@ -5861,7 +5967,9 @@
     "tecnica": "horno",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_037",
@@ -6069,7 +6177,9 @@
     ],
     "occasion": "especial",
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_038",
@@ -6101,7 +6211,7 @@
     "ingredients": [
       {
         "name": "Atún rojo fresco de calidad sashimi",
-        "ingredientId": "atun",
+        "ingredientId": "atun-fresco",
         "amount": 250,
         "unit": "g"
       },
@@ -6242,7 +6352,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_039",
@@ -6441,7 +6553,9 @@
     ],
     "estrella": true,
     "tecnica": "crudo",
-    "cocina": "peruana"
+    "cocina": "peruana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_040",
@@ -6658,7 +6772,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_041",
@@ -6856,7 +6971,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_042",
@@ -7009,7 +7125,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_043",
@@ -7176,7 +7294,9 @@
     "estrella": true,
     "occasion": "especial",
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_044",
@@ -7406,7 +7526,8 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_045",
@@ -7621,7 +7742,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_046",
@@ -7846,7 +7969,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_047",
@@ -8092,7 +8216,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_048",
@@ -8121,7 +8247,7 @@
     "ingredients": [
       {
         "name": "Gambas frescas o congeladas",
-        "ingredientId": "gambas",
+        "ingredientId": "gambas-enteras",
         "amount": 350,
         "unit": "g"
       },
@@ -8139,7 +8265,7 @@
       },
       {
         "name": "Vino de Jerez",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 40,
         "unit": "ml"
       },
@@ -8254,7 +8380,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_049",
@@ -8398,7 +8526,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_050",
@@ -8611,7 +8741,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_051",
@@ -8784,7 +8916,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_052",
@@ -9033,7 +9167,9 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "occasion": "especial"
+    "occasion": "especial",
+    "formato": "sopa",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_053",
@@ -9322,7 +9458,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_054",
@@ -9477,7 +9614,9 @@
     "estrella": true,
     "kidFavourite": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_055",
@@ -9668,7 +9807,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_056",
@@ -9840,7 +9981,9 @@
     ],
     "kidFavourite": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_057",
@@ -10028,7 +10171,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "salsa_tomate"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_058",
@@ -10173,7 +10318,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "cocina": "peruana"
+    "cocina": "peruana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_059",
@@ -10257,67 +10404,80 @@
       {
         "text": "Congelar {{Salmón fresco calidad sashimi}} un mínimo de 48 h antes si no viene certificado apto para consumo en crudo.",
         "minutes": 2880,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Descongelar el salmón en la nevera hasta que esté firme pero manejable, sin llegar a temperatura ambiente.",
         "minutes": 240,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Laminar el salmón en láminas muy finas con un cuchillo afilado, trabajando en frío.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Naranja}} a lo vivo con un cuchillo, eliminando piel y membrana blanca por completo.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Separar los gajos de naranja retirando las membranas que los envuelven y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Pelar {{Pomelo}} a lo vivo del mismo modo, separar los gajos y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Exprimir {{Limón}} y verter el zumo en un bol pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Aceite de oliva virgen extra}} al zumo de limón y mezclar hasta emulsionar la vinagreta.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Eneldo fresco}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Disponer las láminas de salmón extendidas y sin solaparse sobre un plato frío.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir los gajos de naranja y pomelo sobre las láminas de salmón.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Regar con la vinagreta de limón y aceite de oliva virgen extra.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con el eneldo picado y servir de inmediato muy frío.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -10339,7 +10499,9 @@
       "fruta"
     ],
     "tecnica": "crudo",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_060",
@@ -10512,7 +10674,9 @@
     "freezable": false,
     "methods": [],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_061",
@@ -10673,7 +10837,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_062",
@@ -10905,7 +11071,9 @@
     "estrella": true,
     "kidFavourite": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_063",
@@ -11102,7 +11270,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_064",
@@ -11186,62 +11356,74 @@
       {
         "text": "Picar {{Perejil}} finamente y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Exprimir {{Limón}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Filetes de lubina}} por ambas caras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Plancha}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar los filetes de lubina con la piel hacia abajo y cocinar hasta que la piel esté dorada y crujiente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a los filetes de lubina y cocinar 2 min más hasta que estén hechos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar los filetes de lubina y reservar en los platos.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Bajar el fuego a medio y fundir {{Mantequilla}} en la misma plancha hasta que se dore ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Alcaparras}} y el zumo de limón reservado.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Remover para ligar la salsa con los jugos de la plancha hasta que esté homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter la salsa de mantequilla y alcaparras sobre los filetes de lubina en los platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear el perejil picado sobre los filetes y servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -11267,7 +11449,9 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_065",
@@ -11467,7 +11651,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_066",
@@ -11639,7 +11825,9 @@
     "estrella": true,
     "tecnica": "sarten",
     "cocina": "asiatica",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_067",
@@ -11822,7 +12010,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_068",
@@ -12040,7 +12230,9 @@
       "frutos_secos"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_069",
@@ -12232,7 +12424,9 @@
       "encurtido"
     ],
     "tecnica": "crudo",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_070",
@@ -12446,7 +12640,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_071",
@@ -12582,7 +12778,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_072",
@@ -12778,7 +12976,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_073",
@@ -12957,7 +13156,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_074",
@@ -13119,7 +13319,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_075",
@@ -13308,7 +13510,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_076",
@@ -13646,7 +13850,9 @@
       "hasta": 19,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_077",
@@ -13862,7 +14068,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_078",
@@ -14135,7 +14343,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_079",
@@ -14302,7 +14511,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_080",
@@ -14500,7 +14711,9 @@
     ],
     "estrella": true,
     "tecnica": "crudo",
-    "cocina": "peruana"
+    "cocina": "peruana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_081",
@@ -14673,7 +14886,9 @@
     "mainIngredients": [
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_082",
@@ -14825,7 +15040,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_083",
@@ -15033,7 +15250,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_084",
@@ -15221,7 +15440,9 @@
       "fruta"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_085",
@@ -15426,7 +15647,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_086",
@@ -15618,7 +15841,9 @@
     ],
     "tecnica": "sarten",
     "llevaSalsa": true,
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_087",
@@ -15874,7 +16099,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_088",
@@ -16057,7 +16283,9 @@
     "estrella": true,
     "occasion": "especial",
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_089",
@@ -16247,7 +16475,9 @@
       "hasta": 6,
       "guarda": "nevera",
       "dias": 1
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_090",
@@ -16281,7 +16511,7 @@
     "ingredients": [
       {
         "name": "Bonito fresco en tacos",
-        "ingredientId": "bonito-del-norte",
+        "ingredientId": "bonito-fresco",
         "amount": 500,
         "unit": "g"
       },
@@ -16476,7 +16706,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_091",
@@ -16560,74 +16792,88 @@
       {
         "text": "Descongelar {{Pulpo congelado limpio}} en la nevera hasta que esté completamente blando.",
         "minutes": 720,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Llevar una olla grande con agua abundante a ebullición fuerte.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Asustar el pulpo sumergiéndolo y sacándolo del agua hirviendo 3 veces sujetándolo por la cabeza.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer el pulpo a fuego medio 45 min, hasta que al pinchar en la parte más gruesa con un palillo entre con facilidad.",
         "minutes": 45,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y cortar en rodajas gruesas de unos 2 cm.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Retirar el pulpo del agua y reservar en un plato; dejar el agua de cocción en la olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Reposar el pulpo 5 min fuera del agua antes de cortarlo.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Cocer las patatas en el agua de cocción del pulpo a fuego medio, hasta que estén tiernas.",
         "minutes": 18,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Cortar el pulpo en rodajas con unas tijeras empezando por los tentáculos.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 7
+        "during": 7,
+        "part": "principal"
       },
       {
         "text": "Escurrir las patatas y colocarlas como base en una tabla de madera o plato de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir las rodajas de pulpo por encima de las patatas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear {{Sal gorda|gusto}} de manera uniforme sobre el pulpo y las patatas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear {{Pimentón dulce|gusto}} y {{Pimentón picante|pizca}} por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Regar con {{Aceite de oliva virgen extra|chorrito}} en crudo y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -16692,7 +16938,8 @@
     "occasion": "especial",
     "tecnica": "olla",
     "mainBase": "patatas",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_092",
@@ -16934,7 +17181,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_093",
@@ -16960,7 +17209,8 @@
       "moluscos",
       "sulfitos",
       "huevo",
-      "pescado"
+      "pescado",
+      "gluten"
     ],
     "season": "verano",
     "ingredients": [
@@ -17108,7 +17358,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "pescados_094",
@@ -17310,7 +17562,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_095",
@@ -17497,7 +17751,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_096",
@@ -17703,7 +17959,9 @@
       "frutos_secos"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_097",
@@ -17815,77 +18073,92 @@
       {
         "text": "Cortar {{Filetes de merluza o abadejo}} en tiras de unos 2 cm de ancho.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Repollo morado}} en juliana muy fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Exprimir {{Lima}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Cilantro fresco}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Mezclar {{Yogur natural}}, {{Mayonesa}}, la mitad del zumo de lima y el cilantro picado hasta obtener una salsa homogénea.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Mezclar {{Harina de trigo}} con {{Cerveza fría}} hasta obtener una masa de rebozado ligera y sin grumos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de girasol}} en una sartén honda a fuego fuerte hasta que alcance unos 180 °C.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Pasar las tiras de merluza por la masa de rebozado, cubriendo bien cada pieza.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír las tiras rebozadas en tandas, sin amontonarlas, hasta que estén doradas y crujientes.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir las tiras fritas sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Tortillas de trigo pequeñas}} en {{@Sartén}} seca a fuego medio, 30 segundos por cada lado, hasta que estén flexibles.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir el repollo en juliana sobre cada tortilla caliente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar 2 o 3 tiras de merluza rebozada sobre el repollo en cada tortilla.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir un poco de salsa cremosa encima y unas gotas del zumo de lima restante.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -17913,7 +18186,9 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_098",
@@ -18027,72 +18302,85 @@
         "text": "Cocer {{Arroz blanco}} en agua con sal según el tiempo del paquete.",
         "minutes": 15,
         "kind": "pasivo",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Mayonesa}} con {{Sriracha}} y {{Salsa de soja}} hasta obtener una crema homogénea.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "salsa"
       },
       {
         "text": "Cortar {{Pepino}} en bastones finos.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Laminar {{Aguacate}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Picar {{Cebollino}} fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Escurrir el arroz cocido y reservar templado.",
         "minutes": 1,
         "kind": "prep",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Salpimentar {{Salmón (lomos)}} por ambas caras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego fuerte y dorar los lomos de salmón 2 min por cada lado, hasta que estén dorados por fuera y jugosos por dentro.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar el salmón del fuego y desmenuzarlo en lascas grandes con un tenedor.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir el arroz templado en 2 boles.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar encima las lascas de salmón, el aguacate laminado, el pepino en bastones y {{Edamame}} por zonas.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar la crema de mayonesa y sriracha sobre el bowl.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear {{Sésamo tostado}} y el cebollino picado, y servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -18131,7 +18419,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_099",
@@ -18351,7 +18640,9 @@
     ],
     "occasion": "especial",
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_100",
@@ -18571,7 +18862,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_101",
@@ -18829,7 +19122,9 @@
       "lacteo",
       "encurtido"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_102",
@@ -19040,7 +19335,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_103",
@@ -19317,7 +19614,9 @@
     "cocina": "asiatica",
     "mainBase": "boniato",
     "baseMode": "dentro",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_104",
@@ -19580,7 +19879,29 @@
     "sodium_mg": 520,
     "freezable": false,
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Prepara las patatas panadera en cazuela a 180°C durante 25 min, luego sube a 200°C y añade el rape en medallones los últimos 12-15 min. Prepara la salsa verde en paralelo en fogón para que esté lista al servir."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las patatas panadera cortadas en rodajas a 190°C durante 20 min, luego añade los medallones de rape los últimos 10-12 min a 200°C. La salsa verde se prepara aparte en fogón para mantener su frescura."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas panadera en la olla a presión durante 8-10 min, luego termina el rape a la plancha en sartén aparte para conseguir el dorado. La salsa verde se prepara en paralelo en fogón."
+      }
+    ]
   },
   {
     "id": "pescados_105",
@@ -19818,7 +20139,29 @@
       "frutos_secos"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C. Dispón la dorada sobre las patatas panadera en una bandeja, rocía con aceite y hornea 35-40 min hasta que el pescado esté cocido y las patatas doradas. Prepara la salsa romesco en paralelo con thermomix o mortero."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 190°C. Cocina la dorada 18-20 min en la canasta principal, mientras en la bandeja inferior van las patatas panadera (cortadas finas). Rocía con aceite y voltea a mitad del tiempo para cocción uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Utiliza el thermomix para preparar la salsa romesco (tritura pimiento choricero, almendra, ajo, pan y vinagre en 20 seg). La dorada y patatas se cocinan en horno convencional a 200°C durante 40 min en paralelo."
+      }
+    ]
   },
   {
     "id": "pescados_106",
@@ -19826,7 +20169,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -19852,7 +20195,7 @@
     "ingredients": [
       {
         "name": "Atún (lomo fresco)",
-        "ingredientId": "atun",
+        "ingredientId": "atun-fresco",
         "amount": 320,
         "unit": "g"
       },
@@ -19949,7 +20292,8 @@
         "text": "Cocer la patata en un cazo con agua y {{Salsa de soja|gusto}} hasta que esté tierna.",
         "minutes": 18,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Rallar {{Jengibre fresco}}.",
@@ -20061,7 +20405,35 @@
     ],
     "tecnica": "plancha",
     "cocina": "asiatica",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina el atún 8-10 min dándole la vuelta a mitad. Mientras, cuece las patatas en agua hirviendo aparte (12 min) y prepara la salsa teriyaki en un bol. Monta el plato al final."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina el atún en bandeja 12-14 min. Cuece las patatas en agua hirviendo aparte (12 min), prepara la salsa teriyaki en cazuela pequeña a fuego lento. Monta todo junto."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas al vapor 15 min, el atún necesita sellarse en sartén aparte 6-8 min para no perder textura. Prepara la salsa teriyaki en cazuela. La vaporera solo es viable para las patatas, no para el atún que requiere plancha."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas en olla express 8 min a presión (muy rápido). Mientras, sella el atún en sartén aparte 6-8 min. Prepara la salsa teriyaki en cazuela. La olla express acelera las patatas significativamente."
+      }
+    ]
   },
   {
     "id": "pescados_107",
@@ -20292,6 +20664,28 @@
     "tecnica": "horno",
     "basesAparte": [
       "verdura_asada"
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa en thermomix, deja reposar 60 min, extiende en bandeja, cubre con verduras salteadas y sardinas, hornea a 200°C durante 25-30 min hasta dorar. Es la técnica tradicional de la coca de recapte."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza el thermomix solo para amasar la masa base (harina, levadura, aceite, agua) en 5 minutos a velocidad progresiva. El resto de la preparación (reposo, montaje y horneado) requiere horno convencional."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa y deja reposar 30 min, extiende en la canasta, cubre con verduras y sardinas, cocina a 180°C durante 12-15 min. Resulta más crujiente pero con menos volumen que el horno tradicional."
+      }
     ]
   },
   {
@@ -20517,6 +20911,28 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C. Carameliza la cebolla en sartén (30 min), extiende el hojaldre en bandeja, añade la cebolla, anchoas y aceitunas, hornea 25-30 min hasta que el hojaldre esté dorado y crujiente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Carameliza la cebolla en sartén convencional (30 min), monta la tarta en bandeja compatible con airfryer, cocina a 190°C durante 12-15 min hasta que el hojaldre esté crujiente y dorado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para caramelizar la cebolla a 100°C, velocidad 1, durante 25-30 min con la mariposa. Luego monta la tarta y termina en horno a 200°C durante 20 min para obtener el hojaldre crujiente."
+      }
     ]
   },
   {
@@ -20827,7 +21243,29 @@
       "hasta": 23,
       "guarda": "congelador",
       "dias": 30
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa con thermomix o a mano, deja reposar 45 min. Rellena con el sofrito de verduras y mariscos, hornea a 200°C durante 35-40 min hasta dorar. Es el método tradicional y da los mejores resultados."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 95,
+        "difficulty": "normal",
+        "prepSummary": "Usa el thermomix para amasar la masa (5 min a velocidad progresiva) y para picar/sofreír las verduras (10 min, 100°C, velocidad 2). Luego hornea la empanada rellena a 200°C durante 35-40 min."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa y relleno convencionalmente. Cocina la empanada en airfryer a 180°C durante 25-30 min, dándole la vuelta a mitad del proceso. Resulta crujiente y reduce significativamente el tiempo total."
+      }
+    ]
   },
   {
     "id": "pescados_110",
@@ -20858,7 +21296,7 @@
     "ingredients": [
       {
         "name": "Atún rojo (calidad sashimi)",
-        "ingredientId": "atun",
+        "ingredientId": "atun-fresco",
         "amount": 240,
         "unit": "g"
       },
@@ -21000,7 +21438,23 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C y tuesta el pan de payés 3-4 minutos hasta que esté crujiente. Mientras, prepara el tartar de atún y aguacate a temperatura ambiente, monta la tosta y sirve inmediatamente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C y tuesta el pan de payés 4-5 minutos hasta conseguir textura crujiente. Prepara el tartar frío simultáneamente y monta la tosta al finalizar."
+      }
+    ]
   },
   {
     "id": "pescados_111",
@@ -21208,7 +21662,29 @@
       "hasta": 8,
       "guarda": "nevera",
       "dias": 1
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 190°C, introduce los buñuelos en la cesta sin amontonar y cocina 12-14 min agitando a mitad del proceso. Quedan crujientes con menos aceite que en sartén tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C, coloca los buñuelos en bandeja con papel de horno y hornea 15-18 min hasta dorar. Resulta más ligero que frito pero pierde algo de textura crujiente característica."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para preparar la masa (mezcla ingredientes secos, luego húmedos) y el alioli (emulsiona mayonesa con ajo). La cocción final requiere sartén o airfryer, por lo que es auxiliar en la receta."
+      }
+    ]
   },
   {
     "id": "pescados_112",
@@ -21434,6 +21910,28 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara un molde con la mezcla de pescado, gambas, huevo y nata; cubre con tomate frito y mayonesa. Hornea a 180°C durante 60-70 min hasta que cuaje y dore ligeramente la superficie."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "elaborada",
+        "prepSummary": "Tritura el cabracho y gambas con huevo y nata en el vaso; vierte en molde con tomate y mayonesa. Cuece al vapor usando el accesorio de cocción a 100°C durante 35-40 min hasta que cuaje perfectamente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la mezcla de pescado, gambas, huevo y nata en un molde apto para vapor; cubre con tomate y mayonesa. Cuece al vapor a fuego medio durante 45-50 min hasta que esté firme y bien hecho."
+      }
     ]
   },
   {
@@ -21758,7 +22256,29 @@
       "hasta": 24,
       "guarda": "congelador",
       "dias": 30
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa con thermomix o a mano, deja reposar 60 min. Rellena con sofrito de verduras y bonito, hornea a 200°C durante 35-40 min hasta dorar. Método tradicional y resultado óptimo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 95,
+        "difficulty": "normal",
+        "prepSummary": "Usa el thermomix para amasar la masa (3 min, velocidad progresiva) y para preparar el sofrito de verduras (5 min, temperatura 100°C). Luego hornea la empanada 35-40 min a 200°C. Ahorra tiempo en preparación."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Prepara masa y relleno convencionalmente, cocina en airfryer a 180°C durante 25-30 min. Resulta más crujiente y reduce tiempo total, aunque la masa no desarrolla la misma esponjosidad que el horno."
+      }
+    ]
   },
   {
     "id": "pescados_114",
@@ -22062,7 +22582,29 @@
       "hasta": 23,
       "guarda": "congelador",
       "dias": 30
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa con thermomix o a mano, deja reposar 60 min. Rellena con sofrito de verduras y atún, hornea a 200°C durante 35-40 min hasta dorar. Es el método tradicional y garantiza mejor resultado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Prepara masa y relleno como en horno. Divide en porciones individuales, cocina a 180°C durante 20-25 min. Más rápido que horno convencional, aunque la empanada grande requeriría hacerla en dos tandas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Usa el thermomix solo para amasar (3 min, vel. 6) y para picar/sofreír las verduras (5 min). La cocción final se hace en horno a 200°C durante 35-40 min. Ahorra tiempo en preparación."
+      }
+    ]
   },
   {
     "id": "pescados_115",
@@ -22274,6 +22816,28 @@
     "tecnica": "horno",
     "basesAparte": [
       "bechamel"
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara la salsa de marisco en la cocina, rellena los vol-au-vent y gratina en horno a 180°C durante 12-15 min hasta dorar. Es el método tradicional que respeta la textura crujiente del hojaldre."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para elaborar la salsa béchamel (mantequilla, harina, leche) en modo cocción a 90°C, luego incorpora el marisco y vino. Finaliza gratinando los vol-au-vent en horno convencional 12 min."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara la salsa en cocina convencional, rellena los vol-au-vent y cocina en airfryer a 180°C durante 10-12 min. Resulta crujiente y más rápido que el horno, aunque requiere vigilancia para evitar quemaduras."
+      }
     ]
   },
   {
@@ -22517,7 +23081,35 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Cuece las patatas, mezcla con bacalao, cebolla, nata, huevo y queso en un molde, hornea 35-40 min hasta que cuaje y dore. El timbal queda cremoso y bien estructurado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la mezcla igual que en horno. Vierte en molde apto para airfryer, programa a 180°C durante 25-30 min. Cocina más rápido que el horno tradicional manteniendo la textura cremosa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa Thermomix para picar cebolla y perejil, luego cuece patatas al vapor. Mezcla todos ingredientes con la función pulso. Vierte en molde y termina en horno a 180°C durante 35 min para gratinar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas en olla express 8 min a presión. Prepara la mezcla, vierte en molde apto para horno y gratina 20 min a 180°C. Ahorra tiempo en la cocción de patatas."
+      }
+    ]
   },
   {
     "id": "pescados_117",
@@ -22721,7 +23313,35 @@
     "extraProteins": [
       "huevo"
     ],
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Prepara la mezcla de puerros salteados, salmón y crema en un molde, cubre con queso y hornea 45-50 min hasta que cuaje y dore. Es la técnica original y garantiza cocción uniforme."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Vierte la mezcla en un molde apto para airfryer y cocina 25-30 min hasta que cuaje. Reduce significativamente el tiempo respecto al horno tradicional manteniendo excelentes resultados."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 65,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para picar y saltear los puerros (varoma), luego mezcla con salmón, huevos y nata. Vierte en molde y termina la cocción en horno a 180°C durante 40 min. Ahorra tiempo en preparación."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Cuece los puerros al vapor 15 min, luego prepara la mezcla en un molde apto para vaporera y cocina al vapor 35-40 min. Resulta más delicado y ligero, aunque menos dorado que al horno."
+      }
+    ]
   },
   {
     "id": "pescados_118",
@@ -22958,7 +23578,29 @@
       "hasta": 13,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, rellena las obleas y cocina 12-15 min a 200°C dando la vuelta a mitad. Quedan crujientes y doradas sin necesidad de freír en aceite abundante."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca las empanadillas rellenas en bandeja, pincela con huevo batido y hornea 20-25 min hasta dorar. Resultado clásico y uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para picar y mezclar rápidamente los pimientos, cebolla y bonito (5 min), luego rellena y cocina en sartén o horno. Ahorra tiempo en la preparación del relleno."
+      }
+    ]
   },
   {
     "id": "pescados_119",
@@ -23165,7 +23807,29 @@
     "freezable": false,
     "estrella": true,
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, dispón el salmón y patatas en bandeja con la mezcla de soja-miel-ajo-jengibre, hornea 25-30 min hasta que el salmón esté cocido y las patatas doradas. Resultado clásico y equilibrado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina las patatas cortadas en dados 12 min, luego añade el salmón con la marinada de soja-miel y continúa 10-12 min más. Queda crujiente y jugoso en menos tiempo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas al vapor 15-18 min, luego coloca el salmón con la marinada en el nivel superior 10-12 min. Resultado más ligero y saludable, aunque menos caramelizado que el horno."
+      }
+    ]
   },
   {
     "id": "pescados_120",
@@ -23339,6 +24003,28 @@
         "kind": "emplatado",
         "part": "combinado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, reboza la merluza en huevo y harina, cocina 12-14 min a 200°C dando la vuelta a mitad. Queda crujiente y dorada sin necesidad de freír en aceite abundante."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 220°C, reboza la merluza, coloca en bandeja con aceite y hornea 12-15 min hasta dorar. Obtiene una textura crujiente similar a la plancha tradicional."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la merluza al vapor 10-12 min sin rebozar para mantener humedad, luego dórala rápidamente en sartén con aceite. Resulta más saludable aunque pierde algo de la textura romana."
+      }
     ]
   },
   {
@@ -23449,6 +24135,28 @@
         "text": "Servir los lomos de salmón con el jugo de la bandeja por encima.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca el salmón en una bandeja con aceite, limón y eneldo, hornea 12-15 min hasta que esté opaco. Resultado jugoso y perfectamente cocido."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C, coloca el salmón en la cesta con limón y eneldo, cocina 10-12 min. Queda dorado, crujiente por fuera y tierno por dentro."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Coloca el salmón sobre papel de horno con limón, ajo y eneldo en la bandeja de vapor, cocina 12-15 min a fuego medio-alto. Conserva toda la humedad y sabor delicado."
       }
     ]
   },
@@ -23568,6 +24276,28 @@
     ],
     "basesAparte": [
       "sofrito"
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla en una cazuela apta para horno a 180°C durante 5 min, añade el atún y tomate, cubre y hornea 20 min. El resultado es jugoso y bien integrado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla con el atún en modo rápido, añade tomate y vino, cierra y cocina a presión 8 min. Se obtiene un guiso concentrado y tierno en menos tiempo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el atún a 190°C durante 10 min, retira y prepara la cebolla y tomate en la bandeja con el atún, continúa 8 min más. Queda bien caramelizado aunque menos jugoso que en sartén."
+      }
     ]
   },
   {
@@ -23699,7 +24429,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_124",
@@ -23825,6 +24557,28 @@
         "kind": "emplatado",
         "part": "combinado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca los filetes con aceite y cocina 10-12 min. Prepara la ajada aparte en sartén tradicional y vierte sobre el pescado al servir."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca filetes en bandeja con aceite y hornea 12-15 min hasta que se opaque. Prepara la ajada en sartén y vierte caliente sobre el pescado."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 15,
+        "difficulty": "normal",
+        "prepSummary": "Cuece los filetes al vapor 10-12 min a fuego medio-alto hasta que se desmenucen fácilmente. Prepara la ajada en sartén aparte y vierte sobre el pescado cocido para darle sabor."
+      }
     ]
   },
   {
@@ -23909,57 +24663,88 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Calabacín}}, {{Pimiento rojo}}, {{Berenjena}} y {{Cebolla}} en tiras de grosor similar.",
         "minutes": 8,
         "kind": "paralelo",
         "during": 0,
-        "base": "verdura_asada"
+        "base": "verdura_asada",
+        "part": "guarnicion"
       },
       {
         "text": "Disponer las verduras cortadas en una bandeja de horno en una sola capa.",
         "minutes": 1,
         "kind": "prep",
-        "base": "verdura_asada"
+        "base": "verdura_asada",
+        "part": "guarnicion"
       },
       {
         "text": "Regar las verduras con {{Aceite de oliva|chorrito}} y salpimentar al gusto.",
         "minutes": 1,
         "kind": "prep",
-        "base": "verdura_asada"
+        "base": "verdura_asada",
+        "part": "guarnicion"
       },
       {
         "text": "Hornear las verduras en el horno a 200 °C durante 15 min hasta que estén tiernas y ligeramente doradas.",
         "minutes": 15,
         "kind": "pasivo",
-        "base": "verdura_asada"
+        "base": "verdura_asada",
+        "part": "guarnicion"
       },
       {
         "text": "Salpimentar {{Lomos de salmón}} por ambos lados.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "part": "principal"
       },
       {
         "text": "Colocar los lomos de salmón sobre las verduras y regar con un chorrito de aceite de oliva.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Hornear a 200 °C durante 12 min hasta que el salmón esté opaco y se desmenuce con facilidad.",
         "minutes": 12,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar la bandeja del horno y servir los lomos de salmón sobre la cama de verduras.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "basesAparte": [
       "verdura_asada"
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca el salmón y verduras en una bandeja con aceite de oliva, y hornea 20-25 min hasta que el salmón esté cocido y las verduras doradas. El resultado es jugoso y las verduras se asan perfectamente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca salmón y verduras cortadas en la cesta con aceite de oliva, y cocina 15-18 min removiendo las verduras a mitad del proceso. Queda crujiente por fuera y tierno por dentro sin perder jugosidad."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza el salmón y verduras durante 15-18 min a fuego medio-alto, luego saltea brevemente en sartén con aceite para dorar. Mantiene la humedad del pescado aunque requiere un paso adicional para conseguir color."
+      }
     ]
   },
   {
@@ -24083,6 +24868,22 @@
         "text": "Distribuir el ajo dorado y la guindilla por encima y servir de inmediato.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el pil pil en una cazuela a fuego suave (ajo y guindilla en aceite), luego introduce el bacalao en el horno a 180°C durante 12-15 minutos. El resultado es similar al tradicional, aunque pierde algo de la emulsión característica."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza el bacalao a 100°C durante 10-12 minutos para cocerlo sin aceite, luego prepara el pil pil aparte en una sartén y vierte sobre el bacalao cocido. Mantiene la textura del pescado pero requiere dos pasos."
       }
     ]
   },
@@ -24223,6 +25024,28 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C. Dispón las patatas en cazuela, coloca la lubina encima con cebolla y limón, rocía con aceite y hornea 35-40 min hasta que el pescado esté opaco y las patatas tiernas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C. Cocina las patatas laminadas 12 min, luego añade la lubina con cebolla y limón, rocía con aceite y continúa 10-12 min más hasta que el pescado esté cocido."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas al vapor 15 min hasta que estén casi tiernas, luego coloca la lubina con cebolla y limón en el nivel superior y continúa 12-15 min más. Termina en sartén con aceite para dorar si se desea."
+      }
     ]
   },
   {
@@ -24361,6 +25184,28 @@
         "text": "Espolvorear el perejil picado sobre las truchas y servir de inmediato.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca la trucha con aceite y ajo, cocina 10-12 min. Tuesta las almendras aparte en sartén y espolvorea al final para mantener su crujencia."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca la trucha en bandeja con aceite y ajo, hornea 12-14 min. Tuesta las almendras en sartén aparte y añade al plato terminado."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 15,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la trucha al vapor 10-12 min con ajo y perejil, luego saltéala brevemente en sartén con aceite para dorarla. Tuesta las almendras en sartén y espolvorea al servir."
       }
     ]
   },
@@ -24524,6 +25369,28 @@
     ],
     "basesAparte": [
       "sofrito"
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la salsa de tomate, cebolla y ajo en una cazuela, añade la merluza con aceitunas y alcaparras, cubre con papel de aluminio y hornea a 200°C durante 20 minutos. El resultado es jugoso y los sabores se integran perfectamente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Cocina primero la salsa en una cazuelita apta para airfryer a 180°C durante 8 minutos, añade la merluza con aceitunas y alcaparras, y continúa 10-12 minutos más. El pescado queda tierno aunque pierde algo de jugosidad respecto al horno."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 2 minutos a fuego fuerte, añade tomate, merluza, aceitunas y alcaparras, cierra y cocina a presión 8 minutos. Rápido y con excelente concentración de sabores, aunque el pescado puede desmenuzarse ligeramente."
+      }
     ]
   },
   {

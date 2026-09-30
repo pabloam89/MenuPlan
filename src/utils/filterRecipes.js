@@ -5,7 +5,7 @@ import { ensureHealthFlags } from "../lib/healthFlags.js";
 import { recipeHitsIntolerances, recipeViolatesDiet } from "../lib/intolerances.js";
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
-import { isMontaje, effectiveRecipeTime } from "../data/recipeSchema.js";
+import { isMontaje, effectiveRecipeTime, necesitaVispera } from "../data/recipeSchema.js";
 import { resolveIngredientId } from "../lib/ingredients.js";
 import { esAnadido } from "../lib/cocinaTopes.js";
 import { aporteDe } from "../lib/aporte.js";
@@ -32,7 +32,26 @@ function isPrimaryCatalog(recipe) {
 // Shared with the hasKids alcohol check inside filterRecipes() below.
 const ALCOHOL_RE =
   /\b(vino|cerveza|sidra|brandy|ron|whisky|vodka|licor|cava|champan|jerez|oporto|vermut|ginebra|cointreau|amaretto)\b/;
-const normalizeForAlcoholCheck = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+/**
+ * UN VINAGRE NO ES ALCOHOL, y el nombre no lo puede decir más claro: un
+ * vinagre ES vino fermentado hasta que deja de serlo.
+ *
+ * `\bvino\b` casa «Vinagre de vino» —ahí «vino» SÍ es una palabra completa, la
+ * frontera no salva de esto— y `\bjerez\b` casa «Vinagre de Jerez». Medido: 50
+ * recetas estrella se caían de TODO menú con niños sin llevar una gota de
+ * alcohol, y son justo las que querrías en verano con críos: el salmorejo,
+ * cuatro gazpachos, casi todo el bloque de ensaladas y el de huevos.
+ *
+ * Se recorta antes de preguntar, y no se le añade una excepción al regex,
+ * porque el regex responde «¿esta palabra nombra una bebida alcohólica?» y la
+ * respuesta para «vino» es sí. Lo que no es alcohol es el vinagre, que es otro
+ * ingrediente con otro nombre. Cubre también «vinagre balsámico» y «vinagre de
+ * sidra», que caía por `\bsidra\b` exactamente igual.
+ */
+const VINAGRE = /\bvinagres?\b( de \w+)?/g;
+const normalizeForAlcoholCheck = (s) =>
+  s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(VINAGRE, " ");
 
 /**
  * Whether a single recipe violates any HARD safety restriction (allergen,
@@ -490,6 +509,12 @@ export function filterRecipes({
 export function recipeMatchesPreferType(recipe, preferType, eaters) {
   if (!recipe) return false;
   if (preferType === "plato_unico") return (recipe.mealRole ?? []).includes("plato_unico");
+  // Nada que haya que empezar otro día es «rápido», por mucho que el trabajo
+  // de hoy sean diez minutos. El carpaccio de salmón es `montaje: true` y
+  // colaba por el atajo de abajo con un primer paso de «congelar 48 h».
+  if (preferType === "cena_rapida" || preferType === "comida_rapida") {
+    if (necesitaVispera(recipe)) return false;
+  }
   if (preferType === "cena_rapida") {
     if (isMontaje(recipe)) return true;
     // Same role gate validateMenu.slotAcceptsRole applies to every cena slot —

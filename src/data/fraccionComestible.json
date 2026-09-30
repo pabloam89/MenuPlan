@@ -1,6 +1,5 @@
 {
-  "_": "Qué fracción de lo que se COMPRA se acaba COMIENDO. 1 = todo; 0,25 = tres cuartas partes van a la basura. Solo aparecen aquí los ingredientes que descartan algo: un ingrediente ausente de este fichero no es un hueco, es que no se tira nada de él (la harina, el aceite, la leche). Por eso `alimentos.fraccionComestible` se queda a null en esos y el consumidor asume 1: null es «no verificado, se supone entero», no cero. POR QUÉ IMPORTA: estas líneas se pesan en crudo y con su descarte. Un consomé con 400 g de hueso de ternera contaba 400 g de comida en un plato de cuatro raciones, y el hueso va a la basura. No es un ingrediente sin nutrición — es un ingrediente que no se come, y darle nutrición habría sido peor que dejarlo vacío. — UNA RETIRADA, 21 sep 2026: `salmon-fresco` tenía 0,67, la merma del pez ENTERO (cabeza, espina y piel). Sus ocho líneas de receta son todas lomo —«para sushi», «calidad sashimi», «lomo con piel»— y ninguna es un salmón entero, así que la merma se estaba restando de pescado que ya viene limpio: en el poke bowl dejaba 200 g de salmón en 134 y le hacía perder el eje de la proteína contra el edamame. Si algún día entra un salmón entero de verdad, será otro ingrediente, como lo son «Lomos de salmón» y «Salmón ahumado».",
-
+  "_": "Qué fracción de lo que se COMPRA se acaba COMIENDO. 1 = todo; 0,25 = tres cuartas partes van a la basura. QUÉ SIGNIFICA CADA COSA, y cambió el 22 sep 2026: un `1` explícito es «alguien lo miró y no se tira nada», y la AUSENCIA es «nadie lo ha mirado todavía». Antes la ausencia significaba las dos cosas a la vez y por eso hubo que partirla: «Gambas peladas» y «Rape» estaban igual de vacíos, pero el primero está limpio y el segundo lleva la espina central en 2 kg de catálogo. Es el mismo arreglo que se le hizo a la nutrición con `via`: la cura no fue adivinar mejor, fue obligar al dato a decir de dónde viene. Fuera de pescado, marisco y cefalópodo la ausencia se sigue leyendo como 1 sin avisar, porque ahí el catálogo es de despieces (la harina, el aceite, la pechuga) y avisar de todos mataría el aviso. POR QUÉ IMPORTA: estas líneas se pesan en crudo y con su descarte. Un consomé con 400 g de hueso de ternera contaba 400 g de comida en un plato de cuatro raciones, y el hueso va a la basura. No es un ingrediente sin nutrición — es un ingrediente que no se come, y darle nutrición habría sido peor que dejarlo vacío. — UNA RETIRADA, 21 sep 2026: `salmon-fresco` tenía 0,67, la merma del pez ENTERO (cabeza, espina y piel). Sus ocho líneas de receta son todas lomo —«para sushi», «calidad sashimi», «lomo con piel»— y ninguna es un salmón entero, así que la merma se estaba restando de pescado que ya viene limpio: en el poke bowl dejaba 200 g de salmón en 134 y le hacía perder el eje de la proteína contra el edamame. Si algún día entra un salmón entero de verdad, será otro ingrediente, como lo son «Lomos de salmón» y «Salmón ahumado». — DOS HUECOS CONOCIDOS, 22 sep 2026, y se dejan escritos para que nadie repita la búsqueda: `caballa` y `cabracho` SÍ descartan —sus propias recetas lo dicen, «Limpiar caballa, retirar las espinas centrales y abrirla en lomos» y «Retirar piel y espinas del cabracho templado»— y NO hay fuente. En BEDCA las dos fichas de caballa (f_id 2319 y 1934) dan 1,00, que en esta tabla es relleno igual que el 0: lo delata el contraste entre duplicados, porque donde hay dato de verdad las hermanas coinciden (rape 0,73 en 2623 y 1918; pez espada 0,94 en tres). El cabracho da 0,99 en f_id 806, que para un pez que es un tercio cabeza espinosa no mide lo que se tira. CIQUAL no publica porción comestible en ningún alimento y el export de USDA ya no trae `Refuse_Pct`. Se cierra con una báscula —pesar la pieza entera y los lomos— o, en el cabracho, decidiendo que «Cabracho (o rape/merluza)» se compra por el sustituto y hereda su fracción.",
   "hueso-de-ternera": {
     "valor": 0,
     "confianza": 0.95,
@@ -16,7 +15,6 @@
     "confianza": 0.6,
     "motivo": "Mismo caso que la pata de ternera: se come la piel y la gelatina, no el hueso."
   },
-
   "almejas": {
     "valor": 0.25,
     "confianza": 0.85,
@@ -47,7 +45,6 @@
     "confianza": 0.8,
     "motivo": "Se compran enteras, con cabeza y caparazón."
   },
-
   "dorada": {
     "valor": 0.55,
     "confianza": 0.85,
@@ -58,7 +55,6 @@
     "confianza": 0.85,
     "motivo": "«Lubina entera limpia»: mismo caso que la dorada."
   },
-
   "puerro": {
     "valor": 0.35,
     "confianza": 0.8,
@@ -269,19 +265,16 @@
     "confianza": 0.5,
     "motivo": "Igual que la codorniz. BEDCA da 1 porque su ficha, «Perdiz, cruda», ya es la carne."
   },
-
   "pato": {
     "valor": 0.89,
     "confianza": 0.7,
     "motivo": "Porción comestible de BEDCA (ficha «Pato, entero, crudo», f_id 2287). Se le pasó a la tanda anterior por un despiste de clave —se escribió «magret-de-pato» y el id del ingrediente es «pato»—, y el hueco lo destapó el ragú de pato: 500 g de muslos con hueso daban 68 g de proteína por ración. Los 0,89 son del pato entero desplumado y eviscerado, así que para un muslo con hueso todavía se quedan largos; se toma el dato de la fuente antes que una estimación propia."
   },
-
   "pimiento-verde": {
     "valor": 0.83,
     "confianza": 0.6,
     "motivo": "Pedúnculo, semillas y nervaduras. El valor NO es suyo: es el del pimiento rojo, cuya ficha sí está en BEDCA (0,83). Misma especie y mismo descarte, así que se hereda en vez de estimarlo a ojo, y por eso la confianza baja. Lo destapó una revisión de raciones: al tomate de la misma receta se le aplicaba 0,95 y a 720 g de pimiento verde no se le aplicaba nada."
   },
-
   "hueso-de-jamon": {
     "valor": 0,
     "confianza": 0.95,
@@ -291,5 +284,140 @@
     "valor": 0,
     "confianza": 0.95,
     "motivo": "Se sofríen, se cuelan y se tiran; lo que queda en el plato es el sabor. Antes resolvían al langostino o a la gamba PELADOS, así que 300 g de cáscaras contaban como 300 g de carne: en el bisque metían 44 g de proteína fantasma por ración."
+  },
+  "salmon": {
+    "valor": 1,
+    "confianza": 0.9,
+    "motivo": "Su nombre canónico es «Lomos de salmón» y 15 de sus 16 líneas dicen lomo. Es la misma decisión que la retirada de `salmon-fresco` del 21 sep, ahora escrita en positivo para que la ausencia deje de significar dos cosas."
+  },
+  "salmon-fresco": {
+    "valor": 1,
+    "confianza": 0.95,
+    "motivo": "La retirada del 21 sep 2026, declarada. Sus ocho líneas son lomo —«para sushi», «calidad sashimi», «lomo con piel»— y el 0,67 que tenía era la merma del pez ENTERO: dejaba 200 g de salmón en 134 en el poke bowl."
+  },
+  "salmon-ahumado": {
+    "valor": 1,
+    "confianza": 0.9,
+    "motivo": "Se vende en lonchas listas para comer. No hay piel ni espina que quitar."
+  },
+  "atun": {
+    "valor": 1,
+    "confianza": 0.85,
+    "motivo": "Sus dos estados dan el mismo número: el atún en aceite se pesa escurrido y el lomo de sashimi ya viene limpio. AVISO APARTE, que no es de fracción: su ficha es «Atún en aceite vegetal» (203,7 kcal) y 570 g de sus líneas son atún rojo fresco, que son ~144."
+  },
+  "atun-lata": {
+    "valor": 1,
+    "confianza": 0.9,
+    "motivo": "La ficha es «Tuna, plain, canned, drained»: del atún escurrido no se tira nada. Lo que queda abierto es otra pregunta —si los gramos de la receta son de lata o de atún escurrido— y esa no se contesta con este campo."
+  },
+  "atun-fresco": {
+    "valor": 1,
+    "confianza": 0.85,
+    "motivo": "El atún fresco se vende en lomo o en rodaja de lomo, y así lo piden sus líneas. La ficha ciqual «Tuna, raw» ya es carne."
+  },
+  "ventresca": {
+    "valor": 1,
+    "confianza": 0.85,
+    "motivo": "«Ventresca de atún en aceite»: conserva escurrida, se come entera."
+  },
+  "bonito-del-norte": {
+    "valor": 1,
+    "confianza": 0.85,
+    "motivo": "Dos líneas de conserva y una de «Bonito fresco en tacos», que ya es lomo cortado. AVISO APARTE: los 500 g de tacos frescos del marmitako se están valorando con ficha de conserva escurrida."
+  },
+  "anchoa-en-aceite": {
+    "valor": 1,
+    "confianza": 0.9,
+    "motivo": "Filetes de anchoa en conserva: se comen enteros. Lo que sobra en la lata es aceite, no espina."
+  },
+  "bacalao": {
+    "valor": 1,
+    "confianza": 0.8,
+    "motivo": "Su nombre canónico es «Bacalao desalado», que se vende ya en lomos o en migas. AVISO APARTE: su ficha es ciqual «Cod, raw», bacalao FRESCO, así que el sodio de 6,1 kg de catálogo está mal por un orden de magnitud."
+  },
+  "merluza-lomos": {
+    "valor": 1,
+    "confianza": 0.95,
+    "motivo": "Ya estaba decidido y sin escribir: el motivo de `merluza` dice literalmente que «Merluza en lomos va aparte y sin fracción». Esto solo lo pone por escrito para que el silencio no se confunda con un descuido."
+  },
+  "pescadilla": {
+    "valor": 1,
+    "confianza": 0.85,
+    "motivo": "Sus dos líneas son despiece, «Pescadilla en lomos» y «Pescadilla (filetes)», y la ficha es pescadilla congelada, que se vende fileteada. Ojo: BEDCA da 0 para este pescado, y ese 0 es un hueco de la fuente, no una medida — hay otros dos iguales, el mango y las coles de Bruselas."
+  },
+  "boquerones": {
+    "valor": 1,
+    "confianza": 0.8,
+    "motivo": "Su nombre canónico es «Boquerones limpios», y en pescadería «limpio» en boquerón significa sin cabeza, sin tripa y sin espina. La ficha se eligió con ese mismo criterio. Si algún día entra un boquerón entero para fritura, será otro alimento."
+  },
+  "filete-de-pez-espada": {
+    "valor": 1,
+    "confianza": 0.85,
+    "motivo": "«Filetes de pez espada»: el filete viene sin piel ni hueso. Es el gemelo limpio de `rodajas-de-emperador`, que sí conserva el aro de piel y la espina central."
+  },
+  "truchas-enteras": {
+    "valor": 1,
+    "confianza": 0.85,
+    "motivo": "El id miente y por eso conviene declararlo: el nombre canónico es «Trucha limpia sin espinas» y la ficha se eligió «coincide con trucha limpia». Ponerle el 0,55 de la dorada sería restarle la cabeza a un pescado que ya viene sin ella."
+  },
+  "langostinos": {
+    "valor": 1,
+    "confianza": 0.85,
+    "motivo": "Su nombre canónico es «Langostinos pelados» y la ficha BEDCA se eligió textualmente «coincide con producto pelado crudo». La única línea con caparazón, «Langostinos frescos con cáscara», la resuelve `LINEA_ENTERA` sin necesidad de fracción."
+  },
+  "vieira": {
+    "valor": 1,
+    "confianza": 0.85,
+    "motivo": "Nombre canónico «Vieiras (sin concha)» y ficha elegida «coincide con vieiras sin concha». Además sus líneas van en unidades, así que manda el peso de pieza y no la fracción."
+  },
+  "zamburina": {
+    "valor": 1,
+    "confianza": 0.9,
+    "motivo": "«Carne de zamburiña» contra una ficha que dice «Scallop, without coral, raw». Carne contra carne: no queda concha que descontar."
+  },
+  "carne-de-txangurro": {
+    "valor": 1,
+    "confianza": 0.9,
+    "motivo": "«Carne de txangurro» contra una ficha USDA de carne de cangrejo cocida. El caparazón ya no está en ninguno de los dos lados."
+  },
+  "surimi": {
+    "valor": 1,
+    "confianza": 0.9,
+    "motivo": "Palitos de surimi: producto formado, comestible entero. AVISO APARTE y este es de seguridad: está taxonomizado como marisco/cangrejo y es pasta de abadejo con almidón de trigo — declara crustáceo, que sobra, y NO declara gluten, que falta."
+  },
+  "tinta-de-calamar": {
+    "valor": 1,
+    "confianza": 0.9,
+    "motivo": "La bolsita se vacía entera en el arroz; no queda descarte. Se declara sobre todo para apagar el aviso de clase `cefalopodo`, que aquí es falso: no es carne de calamar sino un condimento."
+  },
+  "monkfish": {
+    "valor": 0.73,
+    "confianza": 0.7,
+    "motivo": "Cola de rape con su espina central, la piel y la telilla. Porción comestible de BEDCA, ficha «Rape, crudo» f_id 2623 (Lophius piscatorius), repetida al decimal en su duplicado f_id 1918 y consultada en vivo el 22 sep 2026. NO es la merma del pez entero —esa rondaría 0,35, porque en el rape la cabeza es medio animal—: es la del despiece que se vende, y así lo dicen cuatro de sus nueve líneas («Colas de rape en trozos», «Medallones de rape»). El día que una línea pida un rape entero, este número se le queda corto. Chirría contra `merluza`, curada en 0,70 CON cabeza: si alguien quiere bajar el rape, ese es el argumento y no BEDCA."
+  },
+  "rodajas-de-emperador": {
+    "valor": 0.94,
+    "confianza": 0.8,
+    "motivo": "El aro de piel y la espina central de la rodaja. Porción comestible de BEDCA, que da 0,94 en tres fichas del mismo pez: «Pez emperador» f_id 1731 (Xiphias gladius), «Pez espada, crudo» f_id 835 y su duplicado f_id 255. Es la otra mitad de lo que ya dice `filete-de-pez-espada`, que se quedó en 1 porque el filete viene sin piel ni hueso: misma especie, y la rodaja sí conserva las dos cosas."
+  },
+  "corvina": {
+    "valor": 1,
+    "confianza": 0.85,
+    "motivo": "Sus dos líneas son pescado crudo en lomo: el tiradito la llama «Corvina fresca en lomo limpio» y el ceviche la corta en dados de 2 cm sin un solo paso de limpiar ni de quitar espinas. No queda descarte. BEDCA no tiene corvina por ningún nombre —de ahí el `foodId: null` de bedcaChoices—, así que este 1 lo dicen las recetas y no la tabla."
+  },
+  "gambas": {
+    "valor": 1,
+    "confianza": 0.9,
+    "motivo": "Su nombre canónico es «Gambas peladas» y no hay caparazón que descontar. Estaba decidido y sin declarar, igual que `merluza-lomos`: la ausencia se leía como «nadie lo ha mirado» y levantaba el aviso sobre 33 líneas. Las gambas que se compran con cáscara viven ahora en `gambas-enteras`."
+  },
+  "gambas-enteras": {
+    "valor": 0.47,
+    "confianza": 0.8,
+    "motivo": "Cabeza y caparazón. Porción comestible de BEDCA, ficha «Gamba roja, cruda» f_id 817 (edible_portion 0,470000); su duplicada f_id 582 trae 0,00, que en esa tabla es relleno, y coinciden en TODA la nutrición, lo que confirma que la única diferencia es el hueco. Contraste independiente: «Langostino» f_id 2340 da también 0,47. Confianza 0,8 y no más porque la única ficha de BEDCA con porción real es de gamba roja (Aristeus antennatus), que no es la gamba de una paella: el NÚMERO es genérico de crustáceo —lo confirma el langostino— pero el NOMBRE de la ficha no."
+  },
+  "bonito-fresco": {
+    "valor": 1,
+    "confianza": 0.9,
+    "motivo": "«En tacos» ya es lomo cortado: no hay cabeza ni espina que descontar."
   }
 }

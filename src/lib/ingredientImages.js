@@ -509,11 +509,20 @@ export function categoryImageSrc(category) {
 // recipeSchema.js MAIN_PROTEINS -> the ingredient art that stands for it. The
 // broad ones borrow their family image, since "ternera" as a filter means any
 // red meat rather than one specific cut.
+// `caza`, `cordero` y `pato` entraron en MAIN_PROTEINS el 21 sep y este mapa se
+// quedó atrás: `proteinImageSrc` devolvía null y las tres filas se pintaban sin
+// foto en el navegador de catálogo, que construye la lista desde el catálogo
+// real. 13 recetas estrella. El arte YA existía en ingredientImageIds.js — solo
+// faltaba nombrarlo. La caza pide prestada la perdiz por lo mismo que `ternera`
+// pide prestada la familia: el filtro significa el grupo, no una pieza.
 const PROTEIN_IMAGE = {
+  caza: "perdiz",
   cerdo: "fam_cerdo",
+  cordero: "cordero",
   huevo: "huevos",
   legumbre: "legumbres",
   marisco: "fam_marisco",
+  pato: "pato",
   pavo: "pavo",
   pescado_azul: "fam_pescado_azul",
   pescado_blanco: "fam_pescado_blanco",

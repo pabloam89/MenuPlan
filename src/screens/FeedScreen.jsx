@@ -1216,7 +1216,10 @@ function RecipeCard({ item, user, profile, mine, copied, stats, onOpen, onCopy, 
  * compra, ni presupuesto, ni horarios, ni nombres — aunque el menú original
  * los tenga, aquí no han llegado nunca.
  */
-function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, onSaveDish, onPlaceDish, onOpenDish, myRecipeIds = [] }) {
+// Se exporta porque la usa también la pantalla de «he abierto un enlace»
+// (App.jsx): un menú que llega por WhatsApp se mira igual que uno del feed, y
+// duplicar el visor para eso habría dejado dos sitios donde arreglar lo mismo.
+export function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, onSaveDish, onPlaceDish, onOpenDish, myRecipeIds = [] }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [copiedAll, setCopiedAll] = useState(false);

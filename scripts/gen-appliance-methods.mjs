@@ -10,6 +10,7 @@
 // version (stovetop / its own technique). `methods[]` only lists the variants.
 //
 // Usage:
+//   node --env-file=.env.local scripts/gen-appliance-methods.mjs --proveedor anthropic --file carnes.json --ids carnes_001,carnes_002
 //   node --env-file=.env.local scripts/gen-appliance-methods.mjs --pilot
 //   node --env-file=.env.local scripts/gen-appliance-methods.mjs --file carnes.json
 //   node --env-file=.env.local scripts/gen-appliance-methods.mjs --limit 20
@@ -29,14 +30,50 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RECIPES_DIR = join(__dirname, "../src/data/recipes");
 
-const GEMINI_KEY = process.env.GEMINI_AI_STUDIO_KEY;
-if (!GEMINI_KEY) {
-  console.error("❌  GEMINI_AI_STUDIO_KEY not found. Check .env.local");
+/**
+ * ESTO ES TEXTO, ASÍ QUE VA POR ANTHROPIC. En este repo el reparto no es una
+ * preferencia, es una división de trabajo:
+ *
+ *   GEMINI / AI Studio  →  IMÁGENES. Las doce herramientas que lo usan piden
+ *                          todas `gemini-2.5-flash-image` o Imagen 3:
+ *                          gen-all-photos, gen-dish-images-imagen3,
+ *                          regen-one-dish, api/generate-dish-photo…
+ *   ANTHROPIC           →  TEXTO. bedca-select elige fichas nutricionales,
+ *                          enrich-recipe-steps escribe pasos, api/generate
+ *                          arma menús.
+ *
+ * Este script era LA ÚNICA excepción: pedía texto —tiempos, dificultad y un
+ * resumen que el usuario lee— a la clave de las fotos. Eso costó una tanda
+ * entera el 23 sep 2026, cuando el crédito de prepago de AI Studio se agotó a
+ * mitad y devolvió 402 con 263 recetas sin procesar. Y el fallo no fue limpio:
+ * las peticiones se quedaban colgadas ~20 minutos antes de dar el error, así
+ * que el script parecía estar trabajando.
+ *
+ * `--proveedor gemini` se queda para poder comparar salidas, no para usarlo.
+ * El prompt, el vocabulario de aparatos y `sanitizeMethods` son los mismos por
+ * los dos caminos: lo único que cambia es el transporte.
+ */
+const PROVEEDOR = getOptEarly("--proveedor") || "anthropic";
+if (!["gemini", "anthropic"].includes(PROVEEDOR)) {
+  console.error(`❌  --proveedor tiene que ser "gemini" o "anthropic", no "${PROVEEDOR}".`);
   process.exit(1);
 }
 
-const ai = new GoogleGenAI({ apiKey: GEMINI_KEY });
-const MODEL = getOptEarly("--model") || "gemini-2.5-flash";
+const GEMINI_KEY = process.env.GEMINI_AI_STUDIO_KEY;
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
+if (PROVEEDOR === "gemini" && !GEMINI_KEY) {
+  console.error("❌  GEMINI_AI_STUDIO_KEY not found. Check .env.local");
+  process.exit(1);
+}
+if (PROVEEDOR === "anthropic" && !ANTHROPIC_KEY) {
+  console.error("❌  ANTHROPIC_API_KEY not found. Check .env.local");
+  process.exit(1);
+}
+
+const ai = GEMINI_KEY ? new GoogleGenAI({ apiKey: GEMINI_KEY }) : null;
+const MODEL =
+  getOptEarly("--model") ||
+  (PROVEEDOR === "anthropic" ? "claude-haiku-4-5-20251001" : "gemini-2.5-flash");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function getOptEarly(f) {
@@ -91,7 +128,15 @@ if (PILOT) files = ["huevos.json"]; // small, varied category for a quick smoke 
 function buildBabyPrompt(recipe, ingredients) {
   const cremas = (recipe.etapaBebe ?? "cremas") === "cremas";
   const formato = cremas
-    ? `Es un PURÉ/CREMA para bebé: el resultado tiene que seguir siendo una crema lisa y homogénea. Un electrodoméstico que deje trozos NO vale.`
+    ? `Es un PURÉ/CREMA para bebé: el resultado tiene que seguir siendo una crema lisa y homogénea. Un electrodoméstico que deje trozos NO vale.
+
+EL prepSummary TIENE QUE TERMINAR TRITURANDO, y esto no es una preferencia de
+estilo. La primera versión de este prompt decía solo lo de arriba, y 29 de 56
+métodos de puré acabaron en «cocina al vapor 25 minutos» y ahí se paraban: un
+padre que lo sigue al pie de la letra le pone trozos de patata y de merluza
+delante a un bebé de seis meses. Di SIEMPRE, con estas palabras o parecidas,
+que se tritura hasta que quede un puré fino y sin grumos, aunque el aparato sea
+solo para la cocción y haya que triturar después con otra cosa.`
     : `Es comida SÓLIDA en piezas que el bebé coge con la mano. El formato de "${recipe.name}" (tortita, bastón, tira, albóndiga, porción…) tiene que salir IGUAL del otro electrodoméstico. Si un aparato obliga a cambiar la forma, no lo propongas.`;
 
   return `Eres un chef especializado en alimentación infantil de 6 a 12 meses. Analiza esta receta.
@@ -190,6 +235,40 @@ function recortar(texto, max) {
   return cabe.slice(0, max - 1).trimEnd() + "…";
 }
 
+/**
+ * EL TRITURADO DE UN PURÉ DE BEBÉ NO SE LE PIDE AL MODELO: SE GARANTIZA.
+ *
+ * El prompt de bebés lo exige con todas las letras, y aun así 29 de 56 métodos
+ * de puré terminaban en «cocina al vapor 25 minutos» y ahí se paraban. Se
+ * reforzó la instrucción y bajó a 15, que para esto no es bajar: es seguir
+ * teniendo quince resúmenes que un padre puede leer y seguir al pie de la
+ * letra para acabar poniéndole trozos de patata y de merluza delante a un bebé
+ * de seis meses.
+ *
+ * Falla sobre todo con vaporera y olla exprés, y se entiende: esos dos aparatos
+ * NO trituran, así que el modelo describe honestamente lo que hacen y se calla
+ * lo que viene después. El error no es suyo, es de quien esperaba que se
+ * acordara.
+ *
+ * Así que el triturado se añade por código cuando falta. Es determinista, no
+ * depende de ninguna pasada y no puede volver a olvidarse. Una regla de
+ * seguridad que se le pide a un modelo es una regla que se cumple casi siempre,
+ * y «casi siempre» aquí no vale.
+ */
+const MENCIONA_TRITURADO = /tritur|bat[ie]|chafa|aplasta|machaca|homogene|sin grumos|pur[eé] fino/i;
+const COLETILLA_TRITURAR = " Después tritura todo hasta obtener un puré fino y sin grumos.";
+
+function garantizarTriturado(metodos, receta) {
+  if (receta?.etapaBebe !== "cremas") return metodos;
+  return metodos.map((m) => {
+    if (MENCIONA_TRITURADO.test(m.prepSummary)) return m;
+    // Se recorta el resumen lo justo para que la coletilla quepa en los 280.
+    const hueco = 280 - COLETILLA_TRITURAR.length;
+    const base = m.prepSummary.length > hueco ? recortar(m.prepSummary, hueco) : m.prepSummary;
+    return { ...m, prepSummary: base.trimEnd() + COLETILLA_TRITURAR };
+  });
+}
+
 function sanitizeMethods(raw) {
   if (!Array.isArray(raw)) return [];
   const seen = new Set();
@@ -210,8 +289,7 @@ function sanitizeMethods(raw) {
   return out;
 }
 
-async function generateMethods(recipe) {
-  const prompt = buildPrompt(recipe);
+async function pedirAGemini(prompt) {
   const resp = await ai.models.generateContent({
     model: MODEL,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -221,8 +299,47 @@ async function generateMethods(recipe) {
       httpOptions: { timeout: 60000 },
     },
   });
-  const text = resp?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ?? "";
-  return sanitizeMethods(extractJsonArray(text));
+  return resp?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ?? "";
+}
+
+/**
+ * Mismo prompt por fetch directo, como scripts/bedca-select.mjs.
+ *
+ * Con AbortController y no solo con el timeout del SDK: lo que dejó la tanda
+ * anterior colgada 20 minutos fue precisamente una petición que no cortaba.
+ * Un fallo rápido se reintenta; uno que no vuelve, no.
+ */
+async function pedirAAnthropic(prompt) {
+  const corte = new AbortController();
+  const reloj = setTimeout(() => corte.abort(), 60000);
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 2000,
+        temperature: 0.4,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: corte.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error?.message || `Anthropic HTTP ${res.status}`);
+    return data?.content?.map((b) => b.text ?? "").join("") ?? "";
+  } finally {
+    clearTimeout(reloj);
+  }
+}
+
+async function generateMethods(recipe) {
+  const prompt = buildPrompt(recipe);
+  const text = PROVEEDOR === "anthropic" ? await pedirAAnthropic(prompt) : await pedirAGemini(prompt);
+  return garantizarTriturado(sanitizeMethods(extractJsonArray(text)), recipe);
 }
 
 // ---- Main loop ----

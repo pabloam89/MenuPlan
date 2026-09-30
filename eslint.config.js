@@ -6,7 +6,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 import { noTdzInBody } from './eslint-rules/no-tdz-in-body.js'
 
 export default defineConfig([
-  globalIgnores(['**/dist/**', '**/dist']),
+  globalIgnores(['**/dist/**', '**/dist', 'api/_bot/core.mjs']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [

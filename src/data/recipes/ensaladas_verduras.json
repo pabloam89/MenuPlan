@@ -138,7 +138,9 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "estrella": true
+    "estrella": true,
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_002",
@@ -339,7 +341,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_003",
@@ -630,7 +633,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_004",
@@ -836,7 +840,9 @@
     ],
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_005",
@@ -963,7 +969,9 @@
       "verdura",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_006",
@@ -1168,7 +1176,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_007",
@@ -1413,7 +1423,9 @@
     ],
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_008",
@@ -1583,7 +1595,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_009",
@@ -1735,7 +1749,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "verdura_asada"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_010",
@@ -1879,7 +1895,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_011",
@@ -2057,7 +2074,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "bechamel"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_012",
@@ -2212,7 +2231,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_013",
@@ -2395,7 +2416,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "patatas",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_015",
@@ -2602,7 +2625,9 @@
     "mainBase": "patatas",
     "baseMode": "aparte",
     "llevaSalsa": true,
-    "estrella": true
+    "estrella": true,
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_016",
@@ -2764,7 +2789,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_017",
@@ -3019,7 +3045,9 @@
     ],
     "tecnica": "horno",
     "mainBase": "patatas",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_018",
@@ -3124,7 +3152,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_020",
@@ -3311,7 +3341,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_021",
@@ -3445,7 +3476,9 @@
       "encurtido"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_022",
@@ -3606,7 +3639,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_023",
@@ -3762,7 +3797,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_024",
@@ -3876,77 +3913,92 @@
       {
         "text": "Cortar {{Pan}} en dados de 1 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar y picar {{Ajo}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Queso parmesano}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Exprimir {{Limón}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Lavar {{Lechuga romana}} y trocear en hojas grandes.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocinar {{Pechuga de pollo}} hasta que esté dorada, 4 min por cada lado.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar la pechuga de pollo de la plancha y dejar reposar.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio con el resto del aceite de oliva.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir el ajo picado y los dados de pan hasta que estén dorados y crujientes.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Mayonesa}} con el zumo de limón y el queso parmesano rallado en un bol hasta obtener una salsa homogénea.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Cortar la pechuga de pollo reposada en tiras de 1 cm.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer la lechuga romana en los platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir las tiras de pollo y los picatostes sobre la lechuga.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir la salsa por encima y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -3959,7 +4011,9 @@
     ],
     "tecnica": "plancha",
     "cocina": "americana",
-    "estrella": true
+    "estrella": true,
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_025",
@@ -4106,7 +4160,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_031",
@@ -4272,7 +4327,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "pesto"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_032",
@@ -4478,7 +4535,9 @@
       "lacteo"
     ],
     "tecnica": "crudo",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_033",
@@ -4698,7 +4757,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_034",
@@ -4859,7 +4920,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_035",
@@ -5054,7 +5117,9 @@
     "cocina": "mexicana",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_036",
@@ -5147,73 +5212,87 @@
       {
         "text": "Llevar agua a ebullición en un cazo a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Introducir {{Huevo}} con cuidado y cocer a fuego medio.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pan}} en dados pequeños para los picatostes.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Retirar los huevos del cazo y sumergir en agua fría hasta que estén templados.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Pelar los huevos y cortar en cuartos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio sin aceite y añadir {{Bacon en tiras}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dorar el bacon hasta que quede crujiente, retirar y reservar sobre papel absorbente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír los dados de pan en la misma sartén con la grasa del bacon hasta que se doren.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar la sartén del fuego y añadir {{Vinagre de Jerez}} y {{Mostaza de Dijon}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Remover para ligar una vinagreta templada con los jugos de la sartén.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Repartir {{Espinacas baby}} en una ensaladera.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Regar las espinacas con la vinagreta templada de la sartén.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir el bacon crujiente, los picatostes y los huevos en cuartos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con {{Aceite de oliva|chorrito}} y servir enseguida antes de que la hoja se ablande.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -5239,7 +5318,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_037",
@@ -5370,7 +5451,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_038",
@@ -5499,7 +5582,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_039",
@@ -5585,47 +5670,56 @@
       {
         "text": "Cortar {{Remolacha cocida}} en dados de unos 2 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Queso de cabra}} en rodajas de aproximadamente 1 cm.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Trocear {{Nueces}} groseramente con el cuchillo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva virgen extra}}, {{Vinagre balsámico}} y {{Miel}} en un bol pequeño hasta integrar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir {{Rúcula}} en la base de 2 platos formando una cama uniforme.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Distribuir la remolacha en dados sobre la rúcula.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar las rodajas de queso de cabra repartidas por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Esparcir las nueces troceadas sobre la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Regar con la vinagreta justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -5654,7 +5748,9 @@
       "frutos_secos"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_040",
@@ -5695,7 +5791,7 @@
       },
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 80,
         "unit": "g"
       },
@@ -5752,77 +5848,92 @@
       {
         "text": "Laminar {{Cebolla morada}} en aros muy finos y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Naranja}} a vivo, separar los gajos y recoger el jugo que suelte en un bol.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Marcar la piel de {{Magret de pato}} en forma de rejilla con un cuchillo, sin llegar a la carne.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salpimentar {{Magret de pato}} por ambos lados con {{Sal|gusto}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar el magret con la piel hacia abajo en {{@Sartén}} fría, sin aceite, y encender el fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocinar sin mover hasta que la piel esté dorada y haya soltado su grasa, unos 7 min.",
         "minutes": 7,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar el exceso de grasa de la sartén con una cuchara.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Subir el fuego a fuerte y dorar el magret por el lado de la carne durante 2 min.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar el magret a una tabla y dejar reposar 5 min antes de cortar.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Añadir el jugo de naranja reservado, {{Vinagre de Jerez}} y {{Miel}} a la misma sartén.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Reducir a fuego medio hasta que la salsa espese ligeramente, unos 3 min. Retirar del fuego.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Cortar el magret reposado en láminas finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer {{Canónigos}} y la cebolla morada laminada en una fuente amplia.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir los gajos de naranja y las láminas de magret sobre los canónigos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Regar con {{Aceite de oliva virgen extra|chorrito}} y la reducción templada. Servir enseguida.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -5850,7 +5961,9 @@
       "fruta"
     ],
     "occasion": "especial",
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_041",
@@ -5945,67 +6058,80 @@
       {
         "text": "Lavar {{Lechuga}} y {{Tomate}} bajo el grifo con agua fría.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cilantro fresco}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Cortar el tomate en dados pequeños y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Aguacate}} por la mitad, retirar el hueso y cortar la pulpa en dados.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Trocear la lechuga en piezas medianas y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición agua con {{Sal|gusto}} en un cazo a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer {{Langostinos pelados}} en el agua hirviendo hasta que cambien de color, unos 2 min.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir los langostinos y enfriar en un bol con agua y hielo durante 2 min.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Escurrir los langostinos del agua con hielo y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva virgen extra}} con {{Lima}} y el cilantro picado en un bol pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir la lechuga troceada en la base de 2 platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Distribuir los dados de aguacate y de tomate sobre la lechuga.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar los langostinos encima y regar con el aliño de lima y cilantro justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -6043,7 +6169,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_042",
@@ -6072,7 +6200,7 @@
     "ingredients": [
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 80,
         "unit": "g"
       },
@@ -6128,42 +6256,50 @@
       {
         "text": "Lavar {{Canónigos}} bajo agua fría y escurrir bien.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Pera}} en rodajas finas sin pelar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva virgen extra}}, {{Vinagre balsámico}} y {{Miel}} en un bol pequeño hasta integrar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir los canónigos escurridos en la base de 2 platos.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Distribuir las láminas de pera sobre los canónigos.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Desmigar {{Queso roquefort}} por encima de la pera.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Trocear {{Nueces}} en trozos gruesos y esparcir sobre la ensalada.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Regar la ensalada con la vinagreta justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -6193,7 +6329,9 @@
       "frutos_secos"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_043",
@@ -6323,7 +6461,9 @@
       "fruta",
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_044",
@@ -6520,7 +6660,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_045",
@@ -6672,7 +6814,9 @@
     "montaje": true,
     "tecnica": "crudo",
     "llevaSalsa": true,
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_046",
@@ -6845,7 +6989,9 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "patatas",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_047",
@@ -7007,7 +7153,9 @@
     "montaje": true,
     "tecnica": "crudo",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_048",
@@ -7175,7 +7323,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_049",
@@ -7309,7 +7459,9 @@
       "verdura",
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_050",
@@ -7462,7 +7614,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_051",
@@ -7622,7 +7776,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_052",
@@ -7862,7 +8018,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_053",
@@ -8091,7 +8249,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_054",
@@ -8213,96 +8373,114 @@
         "text": "Llevar a ebullición una olla con agua y sal a fuego fuerte.",
         "minutes": 3,
         "kind": "activo",
-        "base": "patatas"
+        "base": "patatas",
+        "part": "principal"
       },
       {
         "text": "Cocer {{Patata}} con piel en el agua hirviendo a fuego medio hasta que estén tiernas.",
         "minutes": 20,
         "kind": "pasivo",
-        "base": "patatas"
+        "base": "patatas",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición un cazo con agua a fuego fuerte para cocer los huevos.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Cocer {{Huevo}} en el agua hirviendo a fuego medio durante 10 min.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Escurrir los huevos y sumergirlos en agua fría hasta que estén templados.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición otro cazo con agua y sal a fuego fuerte para las judías.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Escaldar {{Judías verdes}} en el agua hirviendo a fuego medio.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Escurrir las judías verdes y pasar por agua fría hasta que estén frías para cortar la cocción.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir las patatas y dejar templar hasta que se puedan manipular.",
         "minutes": 5,
         "kind": "espera",
-        "base": "patatas"
+        "base": "patatas",
+        "part": "principal"
       },
       {
         "text": "Pelar las patatas y cortar en rodajas.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar los huevos y cortar en cuartos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Tomate}} en gajos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva}}, {{Vinagre de vino}} y {{Mostaza de Dijon}} en un bol pequeño hasta emulsionar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Lavar {{Lechuga o mezclum}} y repartir en la base de 2 platos o una fuente.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Distribuir encima las rodajas de patata, las judías verdes y los gajos de tomate.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir {{Atún en aceite}} desmigado, {{Anchoas}} y {{Aceitunas negras}} repartidos por la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar los cuartos de huevo por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar la ensalada con la vinagreta justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -8341,7 +8519,9 @@
     "extraProteins": [
       "huevo"
     ],
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_055",
@@ -8370,7 +8550,7 @@
     "ingredients": [
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 100,
         "unit": "g"
       },
@@ -8477,7 +8657,9 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_056",
@@ -8507,7 +8689,7 @@
     "ingredients": [
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 100,
         "unit": "g"
       },
@@ -8636,7 +8818,9 @@
       "fruta",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_057",
@@ -8841,7 +9025,9 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_058",
@@ -9031,7 +9217,9 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_059",
@@ -9232,7 +9420,9 @@
       "verdura",
       "encurtido"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_060",
@@ -9408,7 +9598,9 @@
       "verdura",
       "seta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_061",
@@ -9561,7 +9753,9 @@
       "fruta",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_062",
@@ -9590,7 +9784,7 @@
     "ingredients": [
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 100,
         "unit": "g"
       },
@@ -9645,37 +9839,44 @@
       {
         "text": "Lavar {{Canónigos}} bajo agua fría y escurrir bien.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Desgranar {{Granada (arilos)}} retirando toda la piel blanca.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Queso de cabra}} en rodajas.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva|chorrito}}, {{Vinagre de Módena}} y {{Miel}} en un bol hasta emulsionar.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Repartir los canónigos escurridos en una fuente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer sobre los canónigos los arilos de granada, las rodajas de queso de cabra y {{Nueces}}.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar con el vinagre de Módena emulsionado justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -9705,7 +9906,9 @@
       "frutos_secos"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_063",
@@ -9821,7 +10024,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "pesto"
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_064",
@@ -9850,7 +10055,7 @@
     "ingredients": [
       {
         "name": "Lentejas cocidas",
-        "ingredientId": "lentejas",
+        "ingredientId": "lentejas-cocidas",
         "amount": 300,
         "unit": "g"
       },
@@ -9982,7 +10187,9 @@
     ],
     "tecnica": "sarten",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_065",
@@ -10170,7 +10377,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_066",
@@ -10260,62 +10469,74 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Calabaza}} y cortar en dados de 2 cm.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer los dados de calabaza en una bandeja y rociar con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salpimentar los dados de calabaza y hornear a 200 °C hasta que estén tiernos y dorados.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Miel}} y {{Vinagre balsámico}} con el resto del aceite de oliva en un bol hasta emulsionar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Trocear {{Nueces}} en trozos gruesos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Retirar la calabaza del horno y dejar templar.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Repartir {{Rúcula}} en los platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer los dados de calabaza templada sobre la rúcula.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Desmenuzar {{Queso de cabra}} por encima de la calabaza.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir las nueces troceadas sobre la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar la ensalada con la vinagreta de miel y vinagre balsámico justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -10343,7 +10564,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_067",
@@ -10605,7 +10828,9 @@
     ],
     "tecnica": "horno",
     "llevaSalsa": true,
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_068",
@@ -10751,7 +10976,9 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_069",
@@ -10872,7 +11099,9 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_070",
@@ -11075,7 +11304,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_071",
@@ -11253,7 +11484,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_072",
@@ -11458,7 +11691,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_073",
@@ -11601,7 +11836,9 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_074",
@@ -11735,7 +11972,9 @@
       "encurtido"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_075",
@@ -11881,7 +12120,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_076",
@@ -12018,7 +12259,9 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_077",
@@ -12195,7 +12438,9 @@
       "fruta",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_078",
@@ -12289,52 +12534,62 @@
       {
         "text": "Escurrir {{Espárragos blancos en conserva}} y secarlos con papel de cocina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Rúcula}} y secarla con papel de cocina.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva virgen extra}}, {{Zumo de limón}}, {{Mostaza de Dijon}} y {{Sal|gusto}} en un bol pequeño hasta emulsionar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Cortar {{Salmón ahumado}} en lonchas del tamaño de un bocado.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Eneldo fresco}} finamente.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir la rúcula como base en 2 platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar los espárragos sobre la rúcula, distribuyéndolos de forma uniforme entre los 2 platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer el salmón entre los espárragos en cada plato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar cada plato con el aliño justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear el eneldo picado sobre cada plato y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -12347,7 +12602,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_079",
@@ -12543,7 +12800,9 @@
     ],
     "tecnica": "horno",
     "cocina": "arabe",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_080",
@@ -12733,7 +12992,9 @@
     "montaje": true,
     "tecnica": "crudo",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_081",
@@ -12952,7 +13213,9 @@
       "encurtido"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_082",
@@ -13088,7 +13351,9 @@
       "verdura",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_083",
@@ -13174,42 +13439,50 @@
       {
         "text": "Separar las hojas de {{Endivias}}, lavarlas bajo agua fría y secarlas bien con papel de cocina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio sin aceite y tostar {{Nueces}} hasta que estén doradas, sin dejar de remover.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar las nueces de la sartén y trocearlas groseramente con un cuchillo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva}}, {{Vinagre de jerez}}, {{Miel}} y {{Sal|gusto}} en un bol pequeño hasta emulsionar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Disponer las hojas de endivias en forma de barco en una fuente o plato.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Desmenuzar {{Queso roquefort}} en trozos irregulares sobre las hojas de endivias.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir las nueces troceadas sobre la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar la ensalada con el aliño justo antes de servir y servir enseguida para conservar la textura crujiente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 4,
@@ -13224,7 +13497,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_084",
@@ -13283,7 +13558,7 @@
       },
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 60,
         "unit": "g"
       },
@@ -13413,7 +13688,9 @@
     ],
     "tecnica": "sarten",
     "llevaSalsa": true,
-    "cocina": "india"
+    "cocina": "india",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_085",
@@ -13583,7 +13860,9 @@
       "encurtido"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_086",
@@ -13724,7 +14003,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_087",
@@ -13833,75 +14114,89 @@
       {
         "text": "Salpimentar {{Pechuga de pollo}} por ambas caras con {{Sal|gusto}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocinar la pechuga de pollo 6 min por cada lado hasta que esté bien hecha.",
         "minutes": 12,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Mango}} y cortarlo en dados.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Laminar {{Cebolla morada}} muy fina.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Zumo de lima}}, {{Salsa de soja}}, {{Miel}} y el aceite de oliva restante en un bol hasta integrar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "salsa"
       },
       {
         "text": "Retirar la pechuga de la plancha y dejar reposar 3 min.",
         "minutes": 3,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Cortar la pechuga en tiras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Aguacate}} por la mitad, deshuesar y laminar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rociar las láminas de aguacate con un poco del zumo de lima del aliño para evitar que se oxide.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir {{Mezclum de lechugas}} como base en 2 platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer sobre la base las tiras de pollo, el mango y el aguacate.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir la cebolla morada laminada sobre la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar con el aliño justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -13928,7 +14223,9 @@
       "verdura",
       "fruta"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_088",
@@ -14064,7 +14361,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_089",
@@ -14270,7 +14569,9 @@
       "lacteo",
       "encurtido"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_090",
@@ -14539,7 +14840,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "salsa_tomate"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_091",
@@ -14762,7 +15065,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_092",
@@ -14882,70 +15187,83 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar las hojas exteriores de {{Coliflor entera}}, dejando el tallo intacto para que se sostenga.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva}}, {{Comino molido}}, {{Pimentón dulce}}, {{Cúrcuma}} y {{Sal|gusto}} en un bol pequeño.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pincelar toda la coliflor con la mezcla de especias, cubriendo bien las hendiduras entre los ramilletes.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar la coliflor en una bandeja de horno y tapar con papel de aluminio.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Hornear tapada a 200 °C durante 30 min.",
         "minutes": 30,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Mezclar {{Tahini}}, {{Zumo de limón}}, {{Agua}} y el ajo picado en un bol hasta obtener una salsa cremosa y homogénea.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Perejil fresco}} fino y reservar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Retirar el papel de aluminio y hornear 25 min más, hasta que la coliflor esté tierna por dentro y dorada por fuera.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Sacar la coliflor del horno y trasladarla a una fuente de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar la coliflor generosamente con la salsa de tahini.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir {{Granada (arilos)}} y el perejil picado por encima y servir entera para trocear en la mesa.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -14966,7 +15284,9 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_093",
@@ -15257,7 +15577,9 @@
       "hasta": 17,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_094",
@@ -15401,7 +15723,9 @@
     "mainIngredients": [
       "seta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_095",
@@ -15413,7 +15737,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "plancha",
     "time": 35,
     "difficulty": "facil",
     "season": "all",
@@ -15633,7 +15956,9 @@
       "frutos_secos"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_096",
@@ -15816,7 +16141,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_097",
@@ -15919,76 +16246,90 @@
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Zanahoria}} bajo el grifo y secar con papel de cocina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar las zanahorias en mitades a lo largo si son gruesas; dejarlas enteras si son finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol {{Aceite de oliva}}, {{Comino molido}}, {{Miel}} y {{Sal|gusto}} hasta integrar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer las zanahorias en una bandeja de horno y verter la mezcla de aceite y especias por encima.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Remover las zanahorias en la bandeja hasta que queden bien impregnadas de la mezcla.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Hornear las zanahorias durante 25 min, dándoles la vuelta a los 12 min, hasta que estén tiernas y caramelizadas.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Ajo}} muy fino sobre un bol pequeño.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Yogur griego}}, {{Zumo de limón}} y {{Sal|gusto}} al bol con el ajo rallado.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Mezclar el yogur, el ajo, el zumo de limón y la sal hasta obtener una salsa homogénea.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Perejil fresco}} fino y reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Extender la salsa de yogur en la base de una fuente de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar las zanahorias asadas encima de la salsa de yogur.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con el perejil picado por encima y servir templado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -16016,7 +16357,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_098",
@@ -16191,7 +16534,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_099",
@@ -16387,7 +16732,9 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_100",
@@ -16567,7 +16914,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_101",
@@ -16653,58 +17002,69 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Limpiar {{Coles de Bruselas}} y cortar cada una por la mitad.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Colocar las coles en una bandeja, añadir {{Aceite de oliva|chorrito}} y {{Sal|gusto}} y mezclar hasta que queden bien impregnadas.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Hornear las coles a 200 °C durante 22 min hasta que estén doradas y crujientes por fuera.",
         "minutes": 22,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol el ajo picado, {{Miel}}, {{Guindilla en copos|pizca}} y {{Zumo de limón}}.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Remover la bandeja a mitad de la cocción para que las coles se doren de forma uniforme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar la mezcla de miel en una {{@Sartén}} a fuego medio durante 2 min hasta que espese ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter el laqueado sobre las coles recién salidas del horno.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Remover bien para que las coles queden cubiertas con el laqueado.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir las coles calientes de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -16730,7 +17090,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_102",
@@ -16878,7 +17240,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_103",
@@ -17097,7 +17461,9 @@
       "hasta": 11,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_104",
@@ -17318,7 +17684,9 @@
       "hasta": 15,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_105",
@@ -17501,7 +17869,9 @@
       "verdura",
       "frutos_secos"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_106",
@@ -17704,7 +18074,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "verdura_asada"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_107",
@@ -17928,7 +18300,8 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_108",
@@ -18136,7 +18509,41 @@
       "hasta": 11,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Prepara la brandada cociendo patata y bacalao, mezcla con nata y aceite, rellena los pimientos y gratina 15-20 min hasta dorar ligeramente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Prepara la brandada en paralelo (cocida previamente), rellena los pimientos y cocina en la canasta 12-15 min hasta que se calienten y doren ligeramente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Usa el Thermomix para emulsionar la brandada (bacalao, patata cocida, nata y aceite) en 20 segundos a velocidad progresiva, luego rellena los pimientos y termina en horno o airfryer 15 min."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la patata y bacalao al vapor (15 min), prepara la brandada, rellena los pimientos y termina gratinando en horno 15 min para conseguir el toque final."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la patata y bacalao en olla express a presión (8 min), prepara rápidamente la brandada, rellena los pimientos y gratina en horno 12 min."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_109",
@@ -18268,7 +18675,29 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca calabacín cortado en rodajas finas engrasado, cocina 12 min removiendo a mitad. Termina con feta, menta, limón y aceite crudo."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Coloca calabacín en bandeja con aceite a 220°C durante 15-18 min hasta dorar. Añade feta, menta y limón al sacar del horno para mantener frescura."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza calabacín 10 min hasta tierno, luego saltea brevemente en sartén con aceite para conseguir color. Termina con feta, menta y limón para recuperar la esencia de la plancha."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_110",
@@ -18359,69 +18788,82 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Remolacha}} bajo el grifo frotando bien la piel.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Envolver cada remolacha entera, con piel, en papel de aluminio formando un paquete cerrado.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Hornear los paquetes en la bandeja central durante 50 min, hasta que estén tiernas al pincharlas.",
         "minutes": 50,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva|chorrito}}, {{Vinagre balsámico}} y {{Miel}} en un bol pequeño hasta emulsionar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Avellanas tostadas}} groseramente con el cuchillo.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "principal"
       },
       {
         "text": "Retirar los paquetes del horno y dejar templar sin abrir durante 10 min.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Abrir el papel de aluminio y pelar las remolachas frotando la piel con un paño de cocina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar las remolachas en gajos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer {{Rúcula}} en una fuente formando una base uniforme.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar los gajos de remolacha sobre la rúcula.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Desmenuzar {{Queso de cabra}} sobre la remolacha y repartir las avellanas picadas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar con la mezcla de aceite, vinagre balsámico y miel justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 4,
@@ -18435,7 +18877,35 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Envuelve la remolacha en papel de aluminio y asa a 200°C durante 60 minutos hasta que esté tierna. Pela, corta y monta la ensalada con rúcula, queso y avellanas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C y cocina la remolacha cortada en cuartos durante 35-40 minutos, removiendo a mitad del proceso. Se acelera la cocción respecto al horno manteniendo la textura."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la remolacha entera al vapor durante 40-45 minutos hasta que esté tierna. Luego pela, corta y prepara la ensalada con los demás ingredientes."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la remolacha entera con agua a presión durante 15 minutos, luego despresurizando. Reduce significativamente el tiempo manteniendo todas las propiedades."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_111",
@@ -18609,7 +19079,34 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Coloca las verduras cortadas en los cestos de la vaporera durante 15-18 min hasta que estén tiernas. Mientras tanto prepara la vinagreta mezclando zumos, aceite, mostaza y miel."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Vierte 200ml de agua, coloca el trípode y los cestos con verduras. Cocina a presión 8-10 min. La vinagreta se prepara aparte mientras se cocinan las verduras."
+      },
+      {
+        "appliance": "microondas",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Coloca las verduras cortadas en un recipiente con 3 cucharadas de agua, cubre y cocina a máxima potencia 10-12 min removiendo a mitad del proceso. Prepara la vinagreta mientras se cocinan."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C, coloca las verduras en una bandeja con papel de horno y cocina 20-22 min. Aunque pierde la técnica de vapor, el resultado es aceptable si las rocías con agua antes de hornear."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_112",
@@ -18754,7 +19251,29 @@
       "fruta",
       "frutos_secos"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C. Coloca las endivias en una bandeja, vierte la mezcla de naranja, mantequilla y azúcar, cubre con papel de aluminio y hornea 25 min. Descubre los últimos 5 min para dorar, luego espolvorea nueces."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C. Coloca las endivias en la cesta con la mezcla de naranja y mantequilla, cocina 18-20 min agitando a mitad del proceso. Termina con nueces tostadas al final."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza las endivias 15 min hasta que estén tiernas. Luego saltéalas en sartén con mantequilla, naranja y azúcar 10 min para caramelizar. Finaliza con nueces."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_113",
@@ -18890,7 +19409,29 @@
       "seta"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, introduce las setas con ajo y aceite en la canasta, cocina 15 min removiendo a mitad del proceso. Quedan confitadas y crujientes sin necesidad de sartén."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Coloca las setas con ajo, aceite y guindilla en una cazuela de horno, cubre con papel de aluminio y cocina a 190°C durante 20 min. Se confitan lentamente manteniendo toda su jugosidad."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Programa el vaso a 100°C, velocidad 1, durante 15 min con las setas, ajo y aceite. El calor controlado confita perfectamente sin quemar el ajo ni perder texturas."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_114",
@@ -19110,7 +19651,35 @@
       "hasta": 13,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C, rellena la calabaza vaciada con el sofrito de verduras y arroz, cubre con papel de aluminio y hornea 60 min hasta que la calabaza esté tierna. Destapa los últimos 10 min, añade queso y gratina."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C, prepara el relleno en sartén aparte, rellena la calabaza cortada por la mitad y cocina en la canasta del airfryer 40-45 min hasta que esté tierna. Añade queso en los últimos 5 min para gratinar."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para picar verduras (velocidad progresiva) y cocinar el arroz con caldo a 100°C, 20 min, giro a la izquierda. Luego rellena la calabaza y termina la cocción en horno a 180°C durante 30 min."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras en la olla express abierta, añade el arroz y caldo, introduce la calabaza rellena, cierra y cocina a presión 20 min. Deja reposar 5 min y abre. Gratina con queso en horno 5 min si lo deseas."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_115",
@@ -19352,7 +19921,29 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C, monta el timbal en molde, gratina 40-45 min hasta que el queso esté dorado y las verduras tiernas. El método original que respeta completamente la receta."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C, monta el timbal en molde apto para airfryer, cocina 30-32 min hasta gratinar. Reduce tiempo significativamente manteniendo la textura y el gratinado."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "elaborada",
+        "prepSummary": "Cuece las verduras al vapor 20 min, luego monta el timbal y termina bajo grill o en horno 15-20 min para gratinar. Requiere dos fases pero preserva nutrientes."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_116",
@@ -19524,7 +20115,29 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C, dispón las berenjenas laminadas en bandeja con aceite y hornea 20 min hasta que se ablanden. Monta las milhojas alternando berenjena, tomate y mozzarella, luego gratina 15 min más hasta que el queso se funda."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 190°C y cocina las láminas de berenjena 12-15 min hasta que se ablanden. Monta las milhojas en papel de horno dentro de la cesta y gratina 8-10 min más hasta que la mozzarella se funda completamente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza las láminas de berenjena durante 10-12 min hasta que estén tiernas, luego monta las milhojas y termina gratinándolas 5 min con calor directo o bajo el grill para que la mozzarella se funda sin desvirtuarse."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_117",
@@ -19731,6 +20344,28 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
+    ],
+    "formato": "ensalada",
+    "temperatura": "templado",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Asa las perdices a 180°C durante 35-40 min hasta que estén tiernas. Prepara el escabeche en paralelo con las verduras y especias, luego vierte sobre la perdiz caliente para que absorba los sabores mientras se templa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Dora las perdices 5 min a fuego fuerte, añade el escabeche y cierra. Cocina 20 min a presión máxima para ablandar la carne rápidamente. Deja reposar 10 min y sirve templada."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 190°C y cocina las perdices 25-30 min, dándoles la vuelta a mitad. Prepara el escabeche en paralelo y vierte sobre las perdices calientes para que se impregnen mientras se enfría a temperatura templada."
+      }
     ]
   },
   {
@@ -20020,7 +20655,29 @@
       "hasta": 18,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa béchamel en otro recipiente, forma las croquetas, rebózalas y cocina en airfryer a 190°C durante 12-15 min hasta dorar. Resulta crujiente con menos aceite que la fritura tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la béchamel, forma las croquetas rebozadas y hornea a 200°C durante 20-25 min hasta dorar. Opción más saludable aunque menos crujiente que la fritura."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Usa el Thermomix para picar boletus, cebolla y ajo, luego prepara la béchamel con la función de cocción a 90°C. Ahorra tiempo en la preparación de ingredientes y la salsa queda homogénea."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_119",
@@ -20365,7 +21022,29 @@
       "hasta": 22,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara la salsa boloñesa en la cocina, monta capas de berenjena asada, carne y bechamel en fuente refractaria. Hornea a 180°C durante 45-50 min hasta gratinar."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 75,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para picar verduras y preparar la salsa boloñesa (cebolla, ajo, tomate, carne) en modo cocción lenta. Luego monta y gratina en horno convencional."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la salsa boloñesa en la olla express a presión (20 min), luego monta capas en fuente refractaria y gratina en horno a 180°C durante 25-30 min."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_120",
@@ -20554,7 +21233,29 @@
     ],
     "kidFavourite": true,
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 100,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 220°C. Prepara la masa en thermomix o a mano, deja reposar 60 min, estira en bandeja, añade tomate y hornea 20-25 min hasta que la base esté dorada. Agrega burrata, rúcula y parmesano al sacar del horno."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa previamente (30 min de reposo mínimo), estira en bandeja compatible con airfryer, precalienta a 200°C y cocina 12-15 min con tomate. Finaliza con burrata, rúcula y parmesano al sacar. Ideal para porciones individuales."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 100,
+        "difficulty": "facil",
+        "prepSummary": "Usa el thermomix solo para preparar la masa (amasado rápido en 3 min), luego deja reposar 60 min fuera. Hornea en horno convencional a 220°C durante 20-25 min. El thermomix acelera la preparación de la base sin alterar el resultado final."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_121",
@@ -20792,7 +21493,29 @@
       "hasta": 11,
       "guarda": "nevera",
       "dias": 1
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca la masa en molde, rellena con calabacín y cebolla salteados, vierte la mezcla de huevo y nata, espolvorea feta y hornea 35-40 min hasta que cuaje y dore ligeramente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C, prepara la tarta en molde apto para airfryer, cocina 30-35 min hasta que el relleno cuaje y la superficie dore. El resultado es más crujiente que en horno convencional."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para picar calabacín y cebolla (velocidad 4-5, 5 seg), luego mezcla los ingredientes del relleno. Hornea la tarta en horno convencional a 200°C durante 35-40 min. El Thermomix acelera la preparación de ingredientes."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_122",
@@ -20932,7 +21655,17 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza la función picadora para trocar el aguacate, pepino y cebolleta de forma uniforme en segundos. Luego mezcla manualmente con los aliños para evitar oxidación del aguacate."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_123",
@@ -21159,6 +21892,34 @@
     "tecnica": "horno",
     "basesAparte": [
       "bechamel"
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la bechamel en la cocina, mezcla con espinacas cocidas, vierte en bandeja refractaria y gratina a 200°C durante 15-20 min hasta dorar. Resultado clásico y cremoso."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las espinacas en el vaso (varoma o cocción rápida), prepara la bechamel con mantequilla, harina y leche en el mismo electrodoméstico, mezcla todo y gratina 10 min en horno convencional."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza las espinacas durante 8-10 min para cocerlas sin perder nutrientes, prepara la bechamel aparte, mezcla y gratina en horno 15 min. Resultado más ligero y saludable."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las espinacas a presión 3-4 min, luego prepara la bechamel en la misma olla a fuego lento sin presión, mezcla todo y gratina en horno 10 min. Ahorra tiempo significativamente."
+      }
     ]
   },
   {
@@ -21315,6 +22076,22 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "formato": "ensalada",
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza la función de picado para procesar cebolla morada y cilantro en segundos, luego mezcla todos los ingredientes en el vaso a velocidad baja. Perfecto para emulsionar el aliño de lima y aceite."
+      },
+      {
+        "appliance": "microondas",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Si el maíz es congelado, descongélalo 2-3 min a potencia media. Luego prepara todos los ingredientes frescos y mezcla en frío. El microondas solo acelera la descongelación del maíz."
+      }
     ]
   },
   {
@@ -21457,6 +22234,22 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "formato": "ensalada",
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza el vaso para picar finamente la col, zanahoria y cebolleta en modo turbo (5-10 segundos cada una). Luego mezcla todos los ingredientes con el aliño usando velocidad baja durante 20 segundos para emulsionar sin desmenuzar las verduras."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Vaporiza la col y zanahoria cortadas gruesas durante 3-4 minutos para ablandarlas ligeramente manteniendo textura crujiente. Luego pica finamente y mezcla con el aliño de sésamo y lima a temperatura ambiente."
+      }
     ]
   },
   {
@@ -21561,7 +22354,33 @@
       "Cubrir generosamente con la salsa huancaína.",
       "Decorar con el huevo duro en cuartos y las aceitunas negras."
     ],
-    "description": "Rodajas de patata cocida bañadas en una salsa cremosa de queso fresco y ají amarillo. El entrante más conocido de la cocina peruana."
+    "description": "Rodajas de patata cocida bañadas en una salsa cremosa de queso fresco y ají amarillo. El entrante más conocido de la cocina peruana.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Tritura el ají amarillo, ajo, galletas María y queso fresco con leche a velocidad progresiva hasta obtener una salsa homogénea y cremosa. Hierve las patatas aparte y monta el plato con la salsa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las patatas al vapor durante 20 minutos hasta que estén tiernas. Prepara la salsa huancaína en paralelo y monta el plato con lechuga, patatas y salsa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las patatas en la olla express con agua durante 8 minutos a presión máxima. Prepara la salsa en paralelo y monta el plato final."
+      },
+      {
+        "appliance": "microondas",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las patatas en microondas con agua durante 12-15 minutos a máxima potencia en recipiente tapado. Prepara la salsa en paralelo y monta el plato."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_127",
@@ -21658,7 +22477,33 @@
       "Alisar la superficie y enfriar en la nevera al menos 1 hora.",
       "Desmoldar y decorar con huevo duro y aceitunas negras."
     ],
-    "description": "Pastel frío de puré de patata amarilla al ají y lima, relleno de pollo con mayonesa y aguacate. Se come frío, ideal para verano."
+    "description": "Pastel frío de puré de patata amarilla al ají y lima, relleno de pollo con mayonesa y aguacate. Se come frío, ideal para verano.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cocina la pechuga a 200°C durante 15-18 min hasta que esté dorada y jugosa. Hierve las patatas aparte y continúa con el montaje tradicional de la causa."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Hornea la pechuga a 200°C durante 20 min envuelta en papel de aluminio para mantener humedad. Hierve las patatas en paralelo y termina con el montaje de capas frías."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Vaporiza la pechuga durante 15-18 min a fuego medio-alto hasta cocción completa, manteniendo toda la jugosidad. Hierve las patatas simultáneamente en otro recipiente y monta la causa con los ingredientes cocidos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pechuga a presión durante 8-10 min con un poco de agua, ganando tiempo significativo. Cocina también las patatas en la misma olla en fases separadas para optimizar tiempo total."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_128",
@@ -21758,7 +22603,21 @@
       "Aliñar con aceite de oliva, vinagre, sal y el perejil fresco picado.",
       "Dejar reposar 10 min en frío antes de servir."
     ],
-    "description": "Ensalada fría de habas, maíz, queso fresco y aceituna, aliñada con vinagre y ají. Fresca, crujiente y de una sola pieza."
+    "description": "Ensalada fría de habas, maíz, queso fresco y aceituna, aliñada con vinagre y ají. Fresca, crujiente y de una sola pieza.",
+    "methods": [
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cuece los guisantes y maíz al vapor durante 8-10 minutos hasta que estén tiernos. Luego mezcla con el resto de ingredientes crudos (tomate, cebolla, queso, aceitunas) y aliña con vinagre y aceite."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza el vaso para picar finamente la cebolla roja y el ají amarillo en modo turbo. Cuece guisantes y maíz en agua hirviendo aparte, luego mezcla todos los ingredientes y aliña al gusto."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_129",
@@ -21867,6 +22726,26 @@
     "description": "Crema verde de espinacas especiadas con dados de queso fresco dorados. Se hace en media hora y gusta hasta a quien recela de la verdura.",
     "basesAparte": [
       "sofrito"
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Tritura espinacas, tomate, jengibre y ajo en 20 seg. Programa 5 min a 100°C con cebolla y especias, añade queso y nata al final en modo manual. Resultado cremoso y homogéneo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Vaporiza espinacas 8 min, luego sofríe cebolla, tomate y especias en bandeja inferior con mantequilla. Mezcla espinacas cocidas, queso y nata. Mantén caliente 5 min más al vapor."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla, tomate, jengibre y ajo 3 min a presión natural. Añade espinacas, especias y nata. Cierra 8 min a presión media. Integra queso fresco al final fuera del fuego."
+      }
     ]
   },
   {
@@ -21976,7 +22855,27 @@
       "Tapar y cocer a fuego muy suave 12 min, removiendo alguna vez, hasta que todo esté tierno.",
       "Servir con cilantro fresco picado por encima."
     ],
-    "description": "Patata y coliflor salteadas con cúrcuma y comino hasta quedar doradas por fuera y tiernas por dentro. Vegano y de una sola sartén."
+    "description": "Patata y coliflor salteadas con cúrcuma y comino hasta quedar doradas por fuera y tiernas por dentro. Vegano y de una sola sartén.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C. Cocina patatas y coliflor cortadas 15-18 min, luego añade cebolla, tomate y especias, otros 10-12 min removiendo a mitad. Queda crujiente y bien especiado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla, ajo y jengibre 2 min, añade especias, patata y coliflor cortadas, tomate y aceite. Cierra y cocina a presión 8-10 min. Rápido y con texturas bien integradas."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C. Saltea cebolla, ajo y especias en bandeja refractaria 3 min, añade patata y coliflor cortadas, tomate y aceite. Hornea 30-35 min removiendo a mitad. Resultado caramelizado y aromático."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_131",
@@ -22077,6 +22976,26 @@
     "description": "Berenjena, calabacín, pimiento y tomate cocinados por separado y reunidos al final con hierbas provenzales. Vegano y mejor de un día para otro.",
     "basesAparte": [
       "sofrito"
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, coloca las verduras cortadas en una bandeja con aceite, tomate y condimentos. Hornea 45-50 min removiendo a mitad de cocción para que se caramelicen uniformemente."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo en modo rápido, añade todas las verduras cortadas con aceite y condimentos. Cierra y cocina a presión 12-15 min. Gana tiempo sin perder sabor."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Programa la mariposa a velocidad progresiva (vel. 1-3) durante 30 min a 100°C para cocinar lentamente las verduras cortadas con aceite y condimentos, manteniendo texturas y sabores."
+      }
     ]
   },
   {
@@ -22395,7 +23314,9 @@
       "Mezclar los garbanzos con la verdura asada templada.",
       "Añadir {{Rúcula}}, aliñar con {{Limón}} y {{Sal|gusto}} y servir enseguida, antes de que la rúcula se apague."
     ],
-    "methods": []
+    "methods": [],
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_134",
@@ -22686,6 +23607,8 @@
       "Mezclar las patatas templadas con {{Atún en aceite}} escurrido y la cebolleta.",
       "Aliñar con el zumo de {{Limón}} y un hilo de aceite, y añadir {{Rúcula}} al final."
     ],
-    "methods": []
+    "methods": [],
+    "formato": "ensalada",
+    "temperatura": "templado"
   }
 ]

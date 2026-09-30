@@ -170,6 +170,54 @@ export async function loadPublicRecipe(recipeId) {
   return data ? rowToRecipe(data) : null;
 }
 
+/**
+ * Abrir una receta desde un enlace compartido (ver lib/shareLink.js). Pasa
+ * por recipe_from_link (0055), que aplica la llave y las políticas de 0046 en
+ * el servidor y contesta una de tres cosas:
+ *
+ *   { status: "ok", recipe }        la receta entera
+ *   { status: "locked", preview }   publicada para conexiones: nombre, foto y
+ *                                   de quién es, para poder pedir conexión
+ *   { status: "gone" }              no existe, privada sin llave, o bloqueo
+ *
+ * "error" es aparte: sin red o sin Supabase no es que la receta no esté, es
+ * que no se ha podido preguntar.
+ */
+export async function loadRecipeFromLink(recipeId, token = null) {
+  if (!supabase || !recipeId) return { status: "error" };
+  // La sesión se restaura de localStorage en segundo plano al arrancar, y un
+  // enlace se atiende justo al arrancar: sin esperar, la petición saldría
+  // como anónima y una conexión aceptada vería "cerrada" su propia receta.
+  await supabase.auth.getSession().catch(() => null);
+  const { data, error } = await supabase.rpc("recipe_from_link", {
+    p_recipe: recipeId,
+    p_token: token || null,
+  });
+  if (error) {
+    console.warn("[userRecipes] link load failed", error.message);
+    return { status: "error" };
+  }
+  if (data?.status === "ok" && data.recipe) return { status: "ok", recipe: rowToRecipe(data.recipe) };
+  if (data?.status === "locked" && data.preview) return { status: "locked", preview: data.preview };
+  return { status: "gone" };
+}
+
+/**
+ * La llave de una receta mía para el enlace "cualquiera con el enlace". La
+ * crea el servidor la primera vez y devuelve siempre la misma después
+ * (recipe_share_token, 0055). Null si la receta aún no está en la nube o no
+ * es mía.
+ */
+export async function createRecipeShareToken(recipeId) {
+  if (!supabase || !recipeId) return null;
+  const { data, error } = await supabase.rpc("recipe_share_token", { p_recipe: recipeId });
+  if (error) {
+    console.warn("[userRecipes] share token failed", error.message);
+    return null;
+  }
+  return data ?? null;
+}
+
 /** Inserts or updates a single recipe. */
 export async function upsertUserRecipe(userId, recipe) {
   if (!supabase || !userId || !recipe?.id) return;

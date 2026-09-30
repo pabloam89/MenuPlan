@@ -37,6 +37,10 @@ export function RecipesScreen({
   onOpenRecipePrefs,
   readOnly = false,
   readOnlyLabel = null,
+  // Con qué carpeta abre (un enlace del bot: «recetas de sólidos de bebé» →
+  // bebes_solidos), o directamente en «Mis recetas».
+  initialCategory = null,
+  initialMine = false,
 }) {
   const [showIconCoach, setShowIconCoach] = useState(false);
 
@@ -129,6 +133,8 @@ export function RecipesScreen({
           inlinePadding={18}
           reference
           browseCategories
+          initialCategory={initialCategory}
+          initialMine={initialMine}
           recipeVotes={recipeVotes}
           recipeCollections={recipeCollections}
           recipeFolders={recipeFolders}

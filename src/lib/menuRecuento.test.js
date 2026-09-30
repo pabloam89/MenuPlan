@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { recuentoDelMenu } from "./menuRecuento.js";
+import { motivoDeFamilia, recuentoDelMenu } from "./menuRecuento.js";
 
 /** Un catálogo mínimo con los ejes que el recuento mira. */
 const CATALOGO = {
@@ -78,7 +78,43 @@ describe("bordes que se dan de verdad", () => {
   });
 
   it("sin plan devuelve ceros en vez de reventar", () => {
-    expect(recuentoDelMenu(null, CATALOGO)).toEqual({ familias: {}, cocinas: {}, tecnicas: {}, huecos: 0 });
-    expect(recuentoDelMenu({}, undefined)).toEqual({ familias: {}, cocinas: {}, tecnicas: {}, huecos: 0 });
+    expect(recuentoDelMenu(null, CATALOGO)).toEqual({ familias: {}, platos: [], platosPorFamilia: {}, cocinas: {}, tecnicas: {}, huecos: 0 });
+    expect(recuentoDelMenu({}, undefined)).toEqual({ familias: {}, platos: [], platosPorFamilia: {}, cocinas: {}, tecnicas: {}, huecos: 0 });
+  });
+});
+
+/*
+ * El caso que hizo que el panel pareciera roto: una «Pasta con champiñones y
+ * bacon» aparecía bajo «Carne» sin decir por qué. Con la familia saliendo de
+ * la masa ya no aparece ahí —el bacon es el 12 %—, y lo que queda por explicar
+ * es lo otro: por qué un mismo plato sale en DOS familias.
+ */
+describe("por qué un plato cuenta en una familia", () => {
+  const cocido = { familias: ["carne", "legumbres"], familiaCuotas: { carne: 0.22, legumbres: 0.31 } };
+  const soloUna = { familias: ["pasta_arroz"], familiaCuotas: { pasta_arroz: 0.46 } };
+
+  it("con una sola familia no hay nada que justificar", () => {
+    expect(motivoDeFamilia(soloUna, "pasta_arroz")).toBeNull();
+  });
+
+  it("con dos, dice cuánta masa pone en cada una", () => {
+    expect(motivoDeFamilia(cocido, "carne")).toBe("22%");
+    expect(motivoDeFamilia(cocido, "legumbres")).toBe("31%");
+  });
+
+  it("y calla si no hay cuota que enseñar", () => {
+    expect(motivoDeFamilia({ familias: ["carne", "verdura"] }, "carne")).toBeNull();
+    expect(motivoDeFamilia({}, "carne")).toBeNull();
+    expect(motivoDeFamilia(null, "carne")).toBeNull();
+  });
+
+  it("la receta que ya trae familias no vuelve a mirar el cajón", () => {
+    // `category: pescados` y aun así manda lo derivado: es lo que evita que
+    // el panel y la tabla derivada digan cosas distintas.
+    const r = recuentoDelMenu(
+      plan({ "Lun-Cena": { recipeId: "raro" } }),
+      { raro: { name: "Cazuela de fideos", category: "pescados", mainProtein: "marisco", familias: ["pasta_arroz"] } },
+    );
+    expect(r.familias).toEqual({ pasta_arroz: 1 });
   });
 });

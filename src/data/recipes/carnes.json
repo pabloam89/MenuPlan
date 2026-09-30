@@ -195,7 +195,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_002",
@@ -322,7 +324,9 @@
     "saturated_fat_g": 3,
     "sodium_mg": 95,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_003",
@@ -538,7 +542,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_004",
@@ -667,7 +673,9 @@
     "saturated_fat_g": 6,
     "sodium_mg": 380,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_005",
@@ -891,7 +899,9 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_006",
@@ -1057,7 +1067,9 @@
       }
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_007",
@@ -1178,7 +1190,9 @@
     "saturated_fat_g": 6,
     "sodium_mg": 180,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_008",
@@ -1389,7 +1403,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_009",
@@ -1592,7 +1608,9 @@
       "verdura"
     ],
     "tecnica": "plancha",
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_010",
@@ -1797,7 +1815,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_011",
@@ -2004,7 +2024,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_012",
@@ -2220,7 +2242,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_013",
@@ -2392,7 +2415,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_014",
@@ -2586,7 +2611,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_015",
@@ -2810,7 +2837,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_016",
@@ -3029,7 +3058,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_017",
@@ -3206,7 +3237,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_018",
@@ -3333,7 +3366,9 @@
     "saturated_fat_g": 11,
     "sodium_mg": 180,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_019",
@@ -3523,7 +3558,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_020",
@@ -3723,7 +3760,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_021",
@@ -3946,7 +3985,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_022",
@@ -4172,7 +4213,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_023",
@@ -4313,7 +4356,9 @@
     "saturated_fat_g": 7,
     "sodium_mg": 180,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_024",
@@ -4434,7 +4479,9 @@
     "saturated_fat_g": 2,
     "sodium_mg": 95,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_025",
@@ -4636,7 +4683,9 @@
     "cocina": "india",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_026",
@@ -4849,7 +4898,9 @@
     ],
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_027",
@@ -4975,7 +5026,9 @@
     "saturated_fat_g": 11,
     "sodium_mg": 320,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_028",
@@ -5203,7 +5256,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_029",
@@ -5417,7 +5471,9 @@
     "tecnica": "plancha",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_030",
@@ -5583,7 +5639,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_031",
@@ -5634,7 +5692,7 @@
       },
       {
         "name": "Vino rancio",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 60,
         "unit": "ml"
       },
@@ -5788,7 +5846,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_032",
@@ -5924,7 +5984,9 @@
     "saturated_fat_g": 4,
     "sodium_mg": 320,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_033",
@@ -6133,7 +6195,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_034",
@@ -6324,7 +6388,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_035",
@@ -6517,7 +6583,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_037",
@@ -6850,7 +6918,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_038",
@@ -7132,7 +7201,9 @@
       "seta"
     ],
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_039",
@@ -7390,7 +7461,9 @@
     "estrella": true,
     "occasion": "especial",
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_040",
@@ -7622,7 +7695,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_041",
@@ -7841,7 +7915,9 @@
     "occasion": "especial",
     "tecnica": "sarten",
     "llevaSalsa": true,
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_042",
@@ -7884,7 +7960,7 @@
       },
       {
         "name": "Vino de Jerez",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 300,
         "unit": "ml"
       },
@@ -8213,7 +8289,8 @@
     ],
     "occasion": "especial",
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_043",
@@ -8451,7 +8528,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_044",
@@ -8701,7 +8780,9 @@
     ],
     "occasion": "especial",
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_045",
@@ -8891,7 +8972,9 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_046",
@@ -9093,7 +9176,9 @@
     "extraProteins": [
       "huevo"
     ],
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_047",
@@ -9302,7 +9387,9 @@
       "verdura"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_048",
@@ -9647,7 +9734,8 @@
     "estrella": true,
     "tecnica": "olla",
     "llevaSalsa": true,
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_049",
@@ -9688,7 +9776,7 @@
       },
       {
         "name": "Vino Pedro Ximénez",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 150,
         "unit": "ml"
       },
@@ -9860,7 +9948,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_050",
@@ -10120,7 +10209,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_051",
@@ -10352,7 +10443,9 @@
     ],
     "estrella": true,
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_052",
@@ -10631,7 +10724,9 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_053",
@@ -10860,7 +10955,8 @@
     "occasion": "especial",
     "tecnica": "olla",
     "mainBase": "boniato",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_054",
@@ -10994,7 +11090,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_055",
@@ -11029,7 +11127,7 @@
       },
       {
         "name": "Vino de Oporto",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 250,
         "unit": "ml"
       },
@@ -11259,7 +11357,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_056",
@@ -11457,7 +11556,9 @@
     ],
     "tecnica": "plancha",
     "cocina": "asiatica",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_057",
@@ -11542,57 +11643,68 @@
       {
         "text": "Picar {{Perejil fresco}} muy fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Rallar la piel de {{Limón}} sobre un bol pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Mezclar el perejil picado y el ajo picado con la ralladura de limón hasta obtener la gremolata.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Filete de ternera}} por ambos lados con {{Sal|gusto}} y {{Pimienta negra|pizca}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Plancha}} con {{Aceite de oliva|chorrito}} a fuego fuerte hasta que humee ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar los filetes en {{@Plancha}} y cocinar 2 min sin moverlos, hasta que se despeguen solos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a los filetes y cocinar 2 min más, hasta alcanzar el punto deseado.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar los filetes de la plancha y dejar reposar 2 min en un plato para que los jugos se redistribuyan.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Exprimir un poco de zumo del limón ya rallado sobre los filetes.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir la gremolata sobre los filetes y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -11616,7 +11728,9 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_058",
@@ -11805,7 +11919,9 @@
     ],
     "kidFavourite": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_059",
@@ -11965,7 +12081,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_060",
@@ -12103,7 +12221,9 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_061",
@@ -12273,7 +12393,9 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_062",
@@ -12499,7 +12621,9 @@
       "lacteo"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_063",
@@ -12752,7 +12876,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_064",
@@ -12998,7 +13124,9 @@
     "cocina": "americana",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_065",
@@ -13125,62 +13253,74 @@
       {
         "text": "Cortar {{Contramuslos de pollo deshuesados}} en trozos de unos 4 cm.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Harina de trigo}}, {{Maicena}}, {{Pimentón dulce}}, {{Ajo en polvo}} y {{Sal}} en un bol hasta integrar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Batir {{Huevo}} con {{Leche}} en otro bol hasta obtener una mezcla homogénea.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pasar cada trozo de pollo por la mezcla de harina, luego por el huevo batido y de nuevo por la harina.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Presionar bien el rebozado sobre cada trozo para que se adhiera y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de girasol}} en una sartén honda a fuego fuerte hasta alcanzar 180 °C.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír el pollo rebozado por tandas a 180 °C durante 5 min, hasta que esté dorado y crujiente.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir el pollo frito sobre papel absorbente y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Miel}}, {{Salsa de soja}}, {{Copos de guindilla}} y {{Zumo de lima}} en un cazo a fuego suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Remover la salsa sin parar durante 2 min hasta que espese ligeramente y retirar del fuego.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter la salsa caliente sobre el pollo frito y remover para que quede bien cubierto.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir de inmediato para conservar el crujiente del rebozado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -13206,7 +13346,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_066",
@@ -13478,7 +13620,9 @@
     "cocina": "americana",
     "basesAparte": [
       "salsa_tomate"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_067",
@@ -13717,7 +13861,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_068",
@@ -13917,7 +14063,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_069",
@@ -14004,52 +14151,62 @@
       {
         "text": "Envolver {{Solomillo de ternera}} en film transparente bien prieto y congelar hasta que esté firme pero no duro.",
         "minutes": 60,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Laminar el solomillo semicongelado en láminas lo más finas posible con un cuchillo bien afilado.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer las láminas de carne en un plato grande, superponiéndolas ligeramente hasta cubrir toda la superficie.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Lavar y escurrir {{Rúcula}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Queso parmesano}} en virutas con un pelador.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva virgen extra}} con {{Zumo de limón}} en un bol pequeño hasta integrar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir la rúcula sobre la carne.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Distribuir las virutas de queso parmesano por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar con la mezcla de aceite de oliva virgen extra y zumo de limón.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con {{Sal en escamas}} y {{Pimienta negra}} recién molida al gusto, y servir enseguida.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -14077,7 +14234,9 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_070",
@@ -14258,7 +14417,9 @@
     "tecnica": "crudo",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_071",
@@ -14528,7 +14689,9 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_072",
@@ -14574,7 +14737,7 @@
       },
       {
         "name": "Romero fresco",
-        "ingredientId": "romero",
+        "ingredientId": "romero-fresco",
         "amount": 3,
         "unit": "g"
       },
@@ -14740,7 +14903,9 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_073",
@@ -14940,7 +15105,9 @@
     ],
     "estrella": true,
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_074",
@@ -15167,7 +15334,9 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_075",
@@ -15383,7 +15552,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_076",
@@ -15619,7 +15789,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_077",
@@ -15627,7 +15798,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "caldo"
@@ -15825,7 +15996,8 @@
         "text": "Hervir agua con sal en un cazo y cocer las patatas troceadas 20 min, hasta que estén tiernas.",
         "minutes": 20,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Calentar {{Leche}} en un cazo pequeño a fuego suave hasta que esté caliente, sin que hierva.",
@@ -15929,7 +16101,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_078",
@@ -16213,7 +16386,9 @@
     ],
     "extraProteins": [
       "ternera"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_079",
@@ -16330,73 +16505,87 @@
       {
         "text": "Cortar {{Pechuga de pollo}} en trozos de bocado de unos 3 cm.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Batir {{Huevo}} en un bol y añadir los trozos de pollo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Dejar marinar el pollo en el huevo batido durante 5 min.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Jengibre fresco}} y {{Ajo}} finamente. Reservar.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "salsa"
       },
       {
         "text": "Escurrir el exceso de huevo de los trozos de pollo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rebozar los trozos de pollo en {{Maicena}} hasta cubrirlos bien. Sacudir el exceso.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de girasol}} en una sartén honda a fuego fuerte hasta alcanzar 180 °C.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír el pollo rebozado por tandas en el aceite caliente durante 4 min, hasta que esté dorado y crujiente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir el pollo frito sobre papel absorbente. Reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un cazo {{Zumo de limón}}, {{Azúcar}}, {{Salsa de soja}} y {{Caldo de pollo}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Añadir el jengibre y el ajo rallados al cazo con la mezcla de limón.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Calentar la salsa a fuego medio, removiendo, hasta que espese ligeramente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter la salsa caliente sobre el pollo frito y remover para que quede bien impregnado.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear {{Sésamo tostado}} por encima y servir enseguida.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -16423,7 +16612,8 @@
     "cocina": "asiatica",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_080",
@@ -16629,7 +16819,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_081",
@@ -16891,7 +17083,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_082",
@@ -17141,7 +17334,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_083",
@@ -17172,7 +17367,7 @@
       },
       {
         "name": "Romero fresco",
-        "ingredientId": "romero",
+        "ingredientId": "romero-fresco",
         "amount": 5,
         "unit": "g"
       },
@@ -17286,7 +17481,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_084",
@@ -17520,7 +17717,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_085",
@@ -17745,7 +17944,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_086",
@@ -17981,7 +18182,8 @@
       "hasta": 9,
       "guarda": "congelador",
       "dias": 30
-    }
+    },
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_087",
@@ -18179,7 +18381,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_088",
@@ -18438,7 +18642,9 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_089",
@@ -18628,7 +18834,9 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_090",
@@ -18728,57 +18936,68 @@
       {
         "text": "Laminar {{Champiñones}} en láminas de unos 3 mm.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Escalopines de ternera}} por ambas caras con {{Sal|gusto}} y {{Pimienta negra|pizca}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Enharinar los escalopines con {{Harina de trigo}}, sacudiendo el exceso.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} y la mitad de {{Mantequilla}} en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dorar los escalopines 1 min por cada cara hasta que estén dorados. Reservar en un plato.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir el resto de la mantequilla a la misma sartén a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Saltear los champiñones laminados hasta que estén dorados y hayan soltado su agua.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter {{Cava}} y llevar a ebullición a fuego fuerte hasta que reduzca a la mitad.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Nata para cocinar}} y cocer a fuego medio hasta que la salsa espese ligeramente.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Incorporar los escalopines reservados a la sartén y calentar a fuego suave, napando con la salsa.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir enseguida, bien caliente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -18800,7 +19019,9 @@
       "seta"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_091",
@@ -19007,7 +19228,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_092",
@@ -19163,7 +19386,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_093",
@@ -19415,7 +19640,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_094",
@@ -19645,7 +19872,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_095",
@@ -19653,7 +19881,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "caldo"
@@ -19847,7 +20075,8 @@
         "text": "Cocer las patatas en una olla con agua y sal a fuego fuerte hasta que estén tiernas.",
         "minutes": 20,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Calentar {{Leche}} en un cazo a fuego suave hasta que esté caliente sin llegar a hervir.",
@@ -19961,7 +20190,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_096",
@@ -19969,7 +20199,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "caldo"
@@ -20098,90 +20328,108 @@
       {
         "text": "Pelar {{Patata}} y cortar en trozos de tamaño similar.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Cocer la patata en una olla con agua abundante y sal hasta que esté tierna.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Picar {{Cebolla}}, {{Zanahoria}} y {{Ajo}} fino.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla, la zanahoria y el ajo hasta que estén blandos.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} y dorar a fuego fuerte, deshaciendo los grumos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar {{Tomate triturado}}, {{Caldo de carne}}, {{Salsa Worcestershire}} y {{Tomillo|pizca}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer a fuego medio hasta que la salsa espese. Salpimentar y reservar.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
         "kind": "paralelo",
-        "during": 7
+        "during": 7,
+        "part": "combinado"
       },
       {
         "text": "Calentar {{Leche}} en un cazo a fuego suave hasta que esté caliente.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 7
+        "during": 7,
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir la patata cocida y triturar en el mismo cazo.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Añadir la leche caliente y la mitad de {{Mantequilla}} al puré y mezclar hasta que esté cremoso.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Extender la carne guisada en una fuente de horno formando una capa uniforme.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Cubrir la carne con el puré y alisar la superficie con un tenedor.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Repartir {{Queso rallado}} y el resto de la mantequilla en trocitos por encima.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Hornear a 200 °C hasta que la superficie esté dorada.",
         "minutes": 18,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "combinado"
       },
       {
         "text": "Servir la fuente bien caliente en la mesa.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -20251,7 +20499,9 @@
       "hasta": 14,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_097",
@@ -20400,7 +20650,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_098",
@@ -20687,7 +20939,9 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_099",
@@ -20808,72 +21062,86 @@
       {
         "text": "Retirar {{Solomillo de ternera}} de la nevera y dejar atemperar a temperatura ambiente.",
         "minutes": 20,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Picar finamente {{Perejil fresco}}, {{Cebollino}}, {{Ajo}} y {{Chalota}}.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Ablandar {{Mantequilla}} a temperatura ambiente hasta que esté cremosa.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Mezclar la mantequilla con el perejil, el cebollino, el ajo y la chalota picados.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Mostaza de Dijon}}, {{Brandy}}, {{Pimentón dulce}}, {{Curry en polvo}} y {{Zumo de limón}} a la mezcla de mantequilla.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Mezclar bien hasta obtener una mantequilla compuesta homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Formar un cilindro con la mantequilla compuesta enrollándola en film transparente.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Enfriar el cilindro de mantequilla en el congelador hasta que esté firme.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar el solomillo de ternera por ambos lados.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Marcar el solomillo de ternera 2 min por cada lado hasta que esté dorado por fuera y rosado por dentro.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar el solomillo de la sartén y dejar reposar fuera del fuego.",
         "minutes": 3,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Cortar la mantequilla compuesta en rodajas de 1 cm.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Colocar 2 o 3 rodajas de mantequilla compuesta sobre cada medallón caliente y servir enseguida.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 0,
@@ -20901,7 +21169,9 @@
     ],
     "occasion": "especial",
     "tecnica": "sarten",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_100",
@@ -21170,7 +21440,9 @@
     "tecnica": "crudo",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_101",
@@ -21417,7 +21689,9 @@
       "seta"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_102",
@@ -21667,7 +21941,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_103",
@@ -21938,7 +22214,9 @@
     "mainBase": "boniato",
     "baseMode": "dentro",
     "llevaSalsa": true,
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_104",
@@ -22180,7 +22458,9 @@
       "frutos_secos"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_105",
@@ -22381,7 +22661,8 @@
     "tecnica": "olla",
     "mainBase": "boniato",
     "baseMode": "dentro",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_106",
@@ -22614,7 +22895,9 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_107",
@@ -22875,7 +23158,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_108",
@@ -23142,7 +23427,9 @@
     "estrella": true,
     "kidFavourite": true,
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_109",
@@ -23372,7 +23659,9 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_110",
@@ -23600,7 +23889,9 @@
     ],
     "tecnica": "plancha",
     "llevaSalsa": true,
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_111",
@@ -23835,7 +24126,8 @@
     "tecnica": "olla",
     "mainBase": "boniato",
     "baseMode": "dentro",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_112",
@@ -24060,7 +24352,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_113",
@@ -24258,7 +24551,9 @@
     ],
     "estrella": true,
     "tecnica": "horno",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_114",
@@ -24493,7 +24788,9 @@
       "fruta"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_115",
@@ -24709,7 +25006,9 @@
       "encurtido"
     ],
     "tecnica": "plancha",
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_116",
@@ -24997,7 +25296,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_117",
@@ -25194,7 +25495,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_118",
@@ -25458,7 +25761,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_119",
@@ -25698,7 +26002,9 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_120",
@@ -25903,7 +26209,9 @@
       "lacteo"
     ],
     "tecnica": "crudo",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_121",
@@ -26150,7 +26458,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_122",
@@ -26364,7 +26674,9 @@
       "cerdo",
       "huevo"
     ],
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_123",
@@ -26459,62 +26771,74 @@
       {
         "text": "Cortar {{Pan de molde}} en dados de 1 cm aproximadamente.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Tostar los dados de pan de molde en la sartén hasta que estén dorados y crujientes.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar los picatostes de la sartén y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Lavar y secar {{Lechuga romana}}, luego trocearla en tiras de tamaño de bocado.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Desmenuzar {{Pollo asado de bolsa}} en tiras con las manos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Anchoas en aceite}} en trozos pequeños.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Queso parmesano}} en lascas finas con un pelador o rallador.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer la lechuga en un bol grande y aliñar con {{Salsa César}}, mezclando bien hasta que quede repartida.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir el pollo desmenuzado y las anchoas picadas al bol y mezclar de nuevo.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir los picatostes y el queso parmesano rallado por encima de la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir inmediatamente para que los picatostes conserven el punto crujiente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -26543,7 +26867,9 @@
     ],
     "tecnica": "crudo",
     "llevaSalsa": true,
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_124",
@@ -26767,7 +27093,9 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_125",
@@ -26884,7 +27212,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_126",
@@ -27021,7 +27351,9 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_127",
@@ -27177,7 +27509,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_128",
@@ -27306,7 +27640,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_129",
@@ -27508,7 +27844,9 @@
     "cocina": "francesa",
     "basesAparte": [
       "bechamel"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_130",
@@ -27685,7 +28023,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "pavo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_131",
@@ -27874,7 +28214,9 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_132",
@@ -28028,7 +28370,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_133",
@@ -28225,7 +28569,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_134",
@@ -28379,7 +28725,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_135",
@@ -28604,7 +28952,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_136",
@@ -28672,7 +29021,7 @@
       },
       {
         "name": "Vino oloroso",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 30,
         "unit": "ml"
       },
@@ -28815,7 +29164,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_137",
@@ -29081,7 +29432,9 @@
       "hasta": 13,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_138",
@@ -29341,7 +29694,9 @@
       "hasta": 12,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_139",
@@ -29550,7 +29905,9 @@
       "hasta": 10,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_140",
@@ -29797,7 +30154,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_141",
@@ -29935,7 +30294,8 @@
       {
         "text": "Cocer las patatas en una olla con agua y {{Sal|gusto}} hasta que estén tiernas.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "patatas"
       },
       {
         "text": "Picar {{Cebolla}} en dados pequeños.",
@@ -30104,7 +30464,9 @@
       "hasta": 16,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_142",
@@ -30315,7 +30677,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_143",
@@ -30492,7 +30856,9 @@
       "hasta": 6,
       "guarda": "nevera",
       "dias": 1
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_144",
@@ -30749,7 +31115,9 @@
       "hasta": 11,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_145",
@@ -31039,7 +31407,9 @@
       "hasta": 7,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_146",
@@ -31220,6 +31590,22 @@
         "kind": "emplatado",
         "part": "combinado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca el pollo empanado y cocina 12-15 min dando la vuelta a mitad. Queda crujiente sin necesidad de aceite abundante. Mientras, prepara la ensalada."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca el pollo empanado en bandeja con poco aceite y hornea 15-18 min hasta dorar. Resulta más ligero que en sartén manteniendo la textura crujiente."
+      }
     ]
   },
   {
@@ -31356,6 +31742,28 @@
     ],
     "basesAparte": [
       "sofrito"
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C durante 3 min. Cocina los filetes 8-10 min y los pimientos asados 10 min aparte, ambos con un toque de aceite. Queda dorado y jugoso sin necesidad de sartén."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 220°C. Asa los pimientos 15 min, luego añade los filetes con cebolla y ajo otros 10 min. Se obtiene un resultado jugoso y los pimientos bien asados."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Sella los filetes 2 min a presión máxima con aceite caliente, retira y cocina pimientos y cebolla 5 min. Reintegra los filetes 1 min. Mantiene la jugosidad de la carne."
+      }
     ]
   },
   {
@@ -31487,6 +31895,28 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca los muslos con patatas, ajo y romero en una cazuela, rocía con aceite y limón. Hornea 45-50 min hasta que el pollo esté dorado y las patatas tiernas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los muslos 20 min, añade las patatas cortadas y continúa 12-15 min más. Queda crujiente por fuera y jugoso por dentro, más rápido que el horno."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sella los muslos en la olla abierta con aceite, añade patatas, ajo, romero y limón. Cierra y cocina a presión 12-15 min. Resultado tierno y jugoso en menos tiempo, aunque pierde algo de dorado."
+      }
     ]
   },
   {
@@ -31614,6 +32044,28 @@
     ],
     "basesAparte": [
       "sofrito"
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los filetes 12-14 min dándoles la vuelta a mitad. Aparte, carameliza la cebolla en sartén tradicional con azúcar y vino, luego combina. Queda jugoso y dorado."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sella los filetes en sartén 2 min por lado, luego hornea a 180°C durante 12-15 min. Carameliza la cebolla en sartén aparte con azúcar y vino, después mezcla. Resultado tierno y jugoso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sella los filetes en la olla abierta 2 min por lado, retira. Carameliza cebolla con azúcar y vino, devuelve los filetes, cierra y cocina 8 min a presión. Carne muy tierna con salsa concentrada."
+      }
     ]
   },
   {
@@ -31764,6 +32216,28 @@
         "kind": "emplatado",
         "part": "combinado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina la pechuga 12 min dando la vuelta a mitad. Mientras, saltea los champiñones con ajo en la bandeja adicional los últimos 6 min. Queda dorado y jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C. Sella la pechuga en una cazuela 2 min por lado, luego hornea 12 min. Saltea los champiñones al ajillo en paralelo en la placa. Resultado jugoso y bien hecho."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza la pechuga 15 min a fuego medio-alto para mantener jugosidad. Saltea los champiñones con ajo en sartén aparte los últimos 5 min. Resultado más ligero pero tierno."
+      }
     ]
   },
   {
@@ -31904,6 +32378,40 @@
         "minutes": 1,
         "kind": "emplatado",
         "part": "combinado"
+      }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los filetes 12-14 min dándoles la vuelta a mitad. Mientras, cuece las patatas en microondas y prepara el puré con mantequilla y leche."
+      },
+      {
+        "appliance": "horno",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los filetes en bandeja 15-18 min. Paralelamente cuece patatas en olla y prepara el puré con mantequilla y leche caliente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas troceadas con agua 20 min en función cocción. Luego prepara el puré con mantequilla y leche en 5 min. Los filetes se cocinan aparte en sartén tradicional."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza los filetes y patatas troceadas simultáneamente 15-18 min. Luego prepara el puré con mantequilla y leche. Resulta más saludable aunque menos dorado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las patatas troceadas a presión 8 min. Mientras, cocina los filetes en sartén. Prepara el puré rápidamente con mantequilla y leche caliente."
       }
     ]
   },
@@ -32046,6 +32554,28 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C. Dora las costillas en sartén, luego coloca en cazuela con patatas en rodajas, cebolla y ajo. Hornea 50-60 min cubierto, destapando los últimos 10 min para dorar. El pimentón se añade al inicio para que perfume todo el conjunto."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C. Cocina las costillas 20 min, luego añade las patatas cortadas en bastones con cebolla y ajo. Continúa 12-15 min más hasta que todo esté dorado y crujiente. Espolvorea pimentón antes de servir."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Dora las costillas en la olla con aceite. Añade patatas en rodajas, cebolla, ajo y pimentón. Cierra y cocina a presión 20 min. El resultado es más tierno y jugoso, aunque menos crujiente que al horno."
+      }
     ]
   },
   {
@@ -32080,7 +32610,7 @@
       },
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 80,
         "unit": "g"
       },
@@ -32186,6 +32716,22 @@
         "minutes": 1,
         "kind": "emplatado",
         "part": "combinado"
+      }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C durante 3 minutos, coloca las chuletas y cocina 12-15 minutos girando a mitad del tiempo. Se obtiene un resultado dorado y jugoso similar a la plancha tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 220°C, sella las chuletas 2 minutos en sartén caliente y termina en horno 10-12 minutos. Mantiene la jugosidad interior con un exterior bien dorado."
       }
     ]
   },
@@ -32333,6 +32879,28 @@
     ],
     "basesAparte": [
       "sofrito"
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina el solomillo 12-14 min dándole la vuelta a mitad. Saltea los pimientos y cebolla aparte en sartén, luego combina con el vino blanco para hacer la salsa."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sella el solomillo en sartén 2 min por lado, luego termina en horno a 200°C durante 12-15 min. Prepara la salsa de pimientos y cebolla en paralelo en la sartén con el vino blanco."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Sella el solomillo a fuego fuerte sin presión, añade pimientos, cebolla y vino blanco, cierra y cocina 8 min a presión. Queda tierno y la salsa concentrada."
+      }
     ]
   },
   {
@@ -32552,6 +33120,28 @@
         "kind": "emplatado",
         "part": "combinado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C, cocina las pechugas rellenas 18-20 min dándoles la vuelta a mitad. Mientras, cuece las judías en agua hirviendo y prepara la ensalada. Resultado crujiente y jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 32,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C, hornea las pechugas rellenas 20-22 min hasta dorar. Paralelamente cuece judías y prepara ensalada. Cocción uniforme y sin vigilancia constante."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza las pechugas rellenas 20-22 min a fuego medio-alto para cocción húmeda y jugosa. Simultáneamente cuece judías en agua y prepara ensalada. Resultado más saludable pero menos dorado."
+      }
     ]
   },
   {
@@ -32700,6 +33290,28 @@
         "minutes": 1,
         "kind": "emplatado",
         "part": "combinado"
+      }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los filetes 8-10 min y los champiñones salteados 5-7 min en dos tandas. La ensalada se prepara aparte. Resultado crujiente y jugoso sin aceite excesivo."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sella los filetes en sartén 2 min por lado, luego al horno a 200°C durante 10-12 min. Los champiñones se saltean en paralelo en sartén. La ensalada se prepara fría aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Sella los filetes a fuego fuerte 2 min por lado, añade champiñones y vino blanco, cierra 8 min a presión. Rápido y jugoso, aunque pierde algo de textura en la carne respecto a sartén."
       }
     ]
   },
@@ -32896,6 +33508,28 @@
         "kind": "emplatado",
         "part": "combinado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 150,
+        "difficulty": "normal",
+        "prepSummary": "Marina el lomo con pasta de ajo, pimentón, orégano y cítricos durante 30 min, luego hornea a 160°C durante 90-100 min cubierto con papel de aluminio para mantener la humedad. Sirve con la cebolla encurtida en vinagre."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Sella el lomo marinado en la olla a fuego alto 3 min por lado, luego cocina a presión 45-50 min con los jugos de cítricos. Reduce tiempo total a la mitad respecto al horno manteniendo la ternura característica."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Marina el lomo 30 min, cocina a 180°C durante 25-30 min en la canasta, dando la vuelta a mitad del proceso. Queda jugoso si no excedes la temperatura y lo cubres con papel de aluminio los primeros 15 min."
+      }
     ]
   },
   {
@@ -33085,6 +33719,22 @@
         "kind": "emplatado",
         "part": "combinado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los filetes 8-10 min dándoles la vuelta a mitad. Saltea los pimientos y cebolla aparte en sartén. Monta las fajitas con los ingredientes cocinados."
+      },
+      {
+        "appliance": "horno",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 220°C, cocina los filetes en bandeja 10-12 min. Saltea pimientos y cebolla en sartén aparte. Calienta tortillas en el horno los últimos 2 min. Monta las fajitas."
+      }
     ]
   },
   {
@@ -33257,6 +33907,28 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, marina los filetes 5 min con la salsa, luego cocina 12-13 min a 200°C dando la vuelta a mitad. Termina con sésamo tostado y jugo de naranja."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Sella los filetes en sartén 2 min por lado, vierte la salsa de naranja-soja-miel-jengibre, introduce a 200°C durante 12-15 min. Espolvorea sésamo al final."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la salsa en Thermomix (naranja, soja, miel, jengibre, ajo) en 3 min. Sella los filetes en sartén aparte 4 min, vierte la salsa y termina 10 min a fuego suave. Añade sésamo tostado."
+      }
     ]
   },
   {
@@ -33417,6 +34089,28 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C. Saltea la ternera 6-8 min, retira y cocina el brócoli con jengibre y ajo 8-10 min. Mezcla todo con salsas al final para mantener texturas crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Saltea ternera y verduras en bandeja a 220°C durante 12-15 min removiendo a mitad de cocción. Termina con aceite de sésamo y soja para no perder aroma en el horno."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza brócoli y jengibre 8-10 min, luego saltea la ternera en sartén aparte 6-8 min y mezcla. Pierde algo de caramelización pero mantiene nutrientes y texturas."
+      }
     ]
   },
   {
@@ -33527,7 +34221,27 @@
       "Devolver la ternera a la sartén, añadir las patatas fritas y saltear todo junto 30 segundos.",
       "Espolvorear cilantro fresco picado y servir con el arroz al lado."
     ],
-    "description": "El plato bandera del Perú: tiras de ternera salteadas a fuego vivo con cebolla y tomate, salsa de soja y vinagre, servidas con patatas fritas y arroz blanco."
+    "description": "El plato bandera del Perú: tiras de ternera salteadas a fuego vivo con cebolla y tomate, salsa de soja y vinagre, servidas con patatas fritas y arroz blanco.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el solomillo a 200°C durante 12-14 min (según grosor) y reserva. Saltea cebolla y tomate a 180°C durante 8 min, luego añade la carne con salsa de soja y vinagre. El resultado es jugoso y caramelizado sin aceite excesivo."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sella el solomillo en una cazuela a fuego fuerte, luego introduce al horno a 200°C durante 10-12 min. Saltea verduras aparte en sartén y combina todo con los condimentos. Mantiene la jugosidad de la carne perfectamente."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sella el solomillo en modo rápido sin presión, añade verduras y condimentos, cierra y cocina a presión 5 min. Libera presión rápidamente para evitar sobrecocción. Acelera el proceso manteniendo sabor y textura."
+      }
+    ]
   },
   {
     "id": "carnes_162",
@@ -33648,7 +34362,27 @@
       "Incorporar el pollo deshilachado y el queso parmesano rallado, y calentar 3 min.",
       "Servir sobre las rodajas de patata, con el arroz al lado y el huevo duro por encima."
     ],
-    "description": "Pollo deshilachado en una crema suave y amarilla de ají, pan y leche, con nueces molidas. Se sirve con arroz blanco, patata cocida y huevo duro."
+    "description": "Pollo deshilachado en una crema suave y amarilla de ají, pan y leche, con nueces molidas. Se sirve con arroz blanco, patata cocida y huevo duro.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para triturar el ají amarillo, cebolla, ajo y nueces con la leche formando una pasta suave. Luego cocina el pollo en la cazuela tradicional y vierte la crema preparada para que se integre perfectamente."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el pollo troceado con cebolla y ajo a presión durante 12 minutos. Luego abre, añade la crema de ají amarillo y nueces (preparada aparte), y termina 5 minutos más sin presión para que se integren los sabores."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza el pollo troceado durante 20 minutos hasta cocción completa. Prepara la salsa de ají amarillo en sartén aparte y combina al final, manteniendo la jugosidad de la carne sin perder la cremosidad de la salsa."
+      }
+    ]
   },
   {
     "id": "carnes_163",
@@ -33735,7 +34469,27 @@
       "Dorar también las rodajas de patata en la misma parrilla.",
       "Servir las brochetas sobre las patatas, muy calientes."
     ],
-    "description": "Brochetas de ternera maceradas en ají panca, vinagre y comino, asadas a la parrilla. El clásico de la calle limeña."
+    "description": "Brochetas de ternera maceradas en ají panca, vinagre y comino, asadas a la parrilla. El clásico de la calle limeña.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, marina la ternera 10 min, cocina los anticuchos 12-15 min a 200°C dando la vuelta a mitad. Las patatas se cocinan aparte en microondas o hervidas previamente."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 220°C, marina la ternera, coloca los anticuchos en bandeja y hornea 15-18 min hasta dorar. Las patatas se cocinan aparte hervidas o al horno simultáneamente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para preparar la marinada (ají, ajo, especias, aceite, vinagre) en 5 min, marina la ternera, luego cocina los anticuchos en sartén/plancha tradicional. El electrodoméstico optimiza la emulsión de la marinada."
+      }
+    ]
   },
   {
     "id": "carnes_164",
@@ -33808,8 +34562,8 @@
         "unit": "g"
       },
       {
-        "name": "Alubias blancas",
-        "ingredientId": "alubias",
+        "name": "Alubias blancas secas",
+        "ingredientId": "alubias-secas",
         "amount": 200,
         "unit": "g"
       },
@@ -33838,7 +34592,27 @@
       "Cocer el arroz en agua con sal.",
       "Servir el guiso con las alubias y el arroz al lado."
     ],
-    "description": "Guiso lento de ternera en una base verde de cilantro y ají, servido con frijoles canarios y arroz. Plato de domingo del norte del Perú."
+    "description": "Guiso lento de ternera en una base verde de cilantro y ají, servido con frijoles canarios y arroz. Plato de domingo del norte del Perú.",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la carne, cebolla y ajo a presión 3 min, añade el resto de ingredientes y cocina 35 min más. La olla express acelera la cocción de la carne y las alubias manteniendo la jugosidad."
+      },
+      {
+        "appliance": "horno",
+        "time": 120,
+        "difficulty": "normal",
+        "prepSummary": "Sella la carne en cazuela a fuego fuerte, añade verduras y caldo, tapa y hornea a 160°C durante 90 min. El horno distribuye el calor uniformemente para un guiso jugoso y bien integrado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 75,
+        "difficulty": "elaborada",
+        "prepSummary": "Pica verduras con la función picadora, sofríe la carne en modo cocción 5 min a 120°C, añade ingredientes y cocina 60 min a 100°C con giro lento. Requiere supervisión pero logra texturas perfectas."
+      }
+    ]
   },
   {
     "id": "carnes_165",
@@ -33948,7 +34722,27 @@
       "Sacar el pollo y dejarlo reposar 10 min antes de trincharlo.",
       "Servir con las patatas y la salsa de ají aparte."
     ],
-    "description": "Pollo entero macerado en soja, comino y ají panca, asado al horno hasta que la piel queda lacada. Con patatas y salsa de ají verde."
+    "description": "Pollo entero macerado en soja, comino y ají panca, asado al horno hasta que la piel queda lacada. Con patatas y salsa de ají verde.",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 75,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, marina el pollo 15 min con salsa de soja, ají y especias, luego asa 50-55 min hasta dorar. Las patatas se cocinan simultáneamente en bandeja inferior."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 60,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C, cocina el pollo troceado o en cuartos 35-40 min dándole la vuelta a mitad, previamente marinado. Las patatas se hacen en paralelo o después. Queda crujiente y jugoso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Dora el pollo marinado en aceite 5 min, añade patatas y líquido de marinada, cierra y cocina a presión 20 min. Abre y gratina brevemente en horno o airfryer para obtener la brasa final."
+      }
+    ]
   },
   {
     "id": "carnes_166",
@@ -34072,7 +34866,33 @@
       "Incorporar el pollo asado con sus jugos y dar un hervor de 5 min.",
       "Cocer el arroz basmati y servirlo al lado, con cilantro fresco por encima."
     ],
-    "description": "Tacos de pollo macerados en yogur y especias, asados y terminados en una salsa cremosa de tomate. El curry más pedido del mundo."
+    "description": "Tacos de pollo macerados en yogur y especias, asados y terminados en una salsa cremosa de tomate. El curry más pedido del mundo.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Marina el pollo en yogur y especias 15 min, luego cocina a 200°C durante 18-20 min. Prepara la salsa aparte en sartén y combina al final para obtener un tikka masala crujiente y sabroso."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Asa el pollo marinado a 200°C durante 25 min, luego prepara la salsa de tomate y nata en cazuela en horno a 180°C otros 15 min. Combina pollo y salsa al final para un resultado jugoso y aromático."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Tritura yogur, especias y aromáticos para la marinada (5 min), marina el pollo 15 min, cocina en modo vapor-cocción 20 min a 100°C. Prepara la salsa con tomate y nata en la misma máquina para máxima comodidad."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Dora el pollo marinado 5 min a presión natural, añade salsa de tomate y nata, cierra y cocina 12 min a presión máxima. Despresurizas y tienes un tikka masala tierno y concentrado en tiempo récord."
+      }
+    ]
   },
   {
     "id": "carnes_167",
@@ -34177,7 +34997,27 @@
       "Cortar la cebolla roja en aros finos y aliñarla con el resto del limón.",
       "Servir el pollo con los aros de cebolla encurtida por encima."
     ],
-    "description": "Pollo macerado en yogur especiado y asado a horno fuerte, con la superficie tostada y el interior jugoso. Sin freír y con muy poca grasa."
+    "description": "Pollo macerado en yogur especiado y asado a horno fuerte, con la superficie tostada y el interior jugoso. Sin freír y con muy poca grasa.",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Marina el pollo 15 min en yogur y especias, coloca en bandeja a 200°C durante 35 min. Queda tierno, jugoso y con sabor tandoori auténtico."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Marina el pollo 15 min, cocina a 190°C durante 20 min dando la vuelta a mitad. Resulta crujiente por fuera y jugoso por dentro con menos tiempo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para preparar la marinada (yogur, especias, ajo, jengibre) en 5 min, luego cocina el pollo en horno o sartén. Ahorra tiempo en preparación de ingredientes."
+      }
+    ]
   },
   {
     "id": "carnes_168",
@@ -34295,7 +35135,21 @@
       "Retirar del fuego, añadir el yogur natural y la nata líquida y remover fuera del calor para que no se corte.",
       "Cocer el arroz basmati y servirlo al lado."
     ],
-    "description": "Curry cremoso de almendra y yogur, sin nada de picante. Es la puerta de entrada a la cocina india para los niños de la casa."
+    "description": "Curry cremoso de almendra y yogur, sin nada de picante. Es la puerta de entrada a la cocina india para los niños de la casa.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Tritura almendras, sofríe cebolla/ajo/jengibre a 100°C 5 min, añade pollo y especias a 90°C 15 min, luego yogur y nata a 60°C 5 min. Cocina arroz aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla/ajo/jengibre sin presión 3 min, añade pollo y especias, cierra y cocina a presión 12 min. Abre, añade yogur/nata y almendras molidas, cuece 2 min más."
+      }
+    ]
   },
   {
     "id": "carnes_169",
@@ -34413,6 +35267,20 @@
     "description": "Ternera guisada durante horas en vino tinto de Borgoña con bacon, cebollitas y champiñones. El guiso francés por antonomasia.",
     "basesAparte": [
       "sofrito"
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 180,
+        "difficulty": "elaborada",
+        "prepSummary": "Sella la carne en cazuela a fuego fuerte, añade verduras y vino, cubre y cuece a 160°C durante 2,5-3 horas. El calor envolvente del horno garantiza una cocción uniforme y un guiso jugoso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Sella la carne y sofríe verduras en la olla a fuego fuerte, añade vino y caldo, cierra y cuece a presión 50 minutos. Reduce el tiempo a la mitad manteniendo la ternura de la carne."
+      }
     ]
   },
   {

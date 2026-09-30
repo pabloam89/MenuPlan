@@ -1,4 +1,6 @@
 import { cloneElement, createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useZoomPellizco } from "../lib/useZoomPellizco.js";
+import { HuecosVivosContext } from "../lib/huecosVivos.js";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -112,8 +114,7 @@ import {
   splitSlotPortions,
 } from "../lib/freezer.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
-import { recetaConBases } from "../lib/recetaConBases.js";
-import { hayTandasPedidas } from "../lib/cookTime.js";
+import { componentesDeTanda, familiaDeReceta, tandaDelMenu, vistaConTanda } from "../lib/tandaDelPlato.js";
 import { basesPedidas, claveDeBase, clavesDeReceta, sesionDeBases } from "../lib/bases.js";
 import { BASES_UI } from "../lib/basesUI.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
@@ -162,7 +163,7 @@ import {
 import {
   APPLIANCE_LABELS,
   APPLIANCE_COLORS,
-  KITCHEN_TOOLS,
+  KITCHEN_TOOL_IDS,
   REQUIRED_APPLIANCE_ICONS,
   selectMethodForRecipe,
   methodDifficultyLabel,
@@ -891,7 +892,7 @@ function AccordionSection({ title, icon: Icon, children, defaultOpen = false, ac
 
 function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const members = data.members ?? [];
-  const allTools = [...KITCHEN_TOOLS, ...(data.customKitchenTools ?? [])];
+  const allTools = [...KITCHEN_TOOL_IDS, ...(data.customKitchenTools ?? [])];
   const fixedDishes = migrateFixedDishes(data.fixedDishes ?? []);
   // members with allergies, and members needing a more careful menu
   const membersWithAllergies = members.filter((m) => (m.allergies ?? []).length > 0);
@@ -1602,6 +1603,22 @@ const ArmedContext = createContext(null);
  */
 const TandaContext = createContext(null);
 
+/**
+ * Los huecos marcados, mientras la pizarra está en modo selección.
+ *
+ * Va por contexto y no por props por lo mismo que `ArmedContext`: la baldosa
+ * está tres niveles por debajo (MenuDeck → DeckWeek/DeckDayPager → DeckTile) y
+ * encadenarlo a mano serían tres sitios donde olvidarse.
+ *
+ * `null` significa que NO hay modo selección, que es distinto de "no hay nada
+ * marcado": con el modo puesto y cero marcados, las baldosas ya se atenúan y
+ * la barra de abajo ya está ahí esperando.
+ */
+const SeleccionContext = createContext(null);
+
+/** La misma clave en los dos sitios: el tablero y el que rellena. */
+const claveDeHueco = (h) => `${h.groupId}|${h.day}-${h.meal}|${h.course ?? "main"}`;
+
 // Overlay that draws the traveling green "about to move" ring. Absolutely
 // positioned, so its host must be `position: relative`. `radius` matches the
 // host's border-radius so the ring hugs the corners exactly.
@@ -2116,7 +2133,28 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
  * donde se ve. Punteada y sin color, para no competir con los platos — es un
  * hueco por abrir, no un plato más.
  */
-function AddSlotTile({ day, onAddSlot, denso = false }) {
+function AddSlotTile({ day, onAddSlot, denso = false, fino = false }) {
+  // Fino: la columna estrecha de la pizarra, solo el `+`. Con el texto se comía
+  // un tercio de cada fila para decir lo mismo siete veces.
+  if (fino) {
+    return (
+      <button
+        type="button"
+        className="mp-press"
+        onClick={() => onAddSlot(day)}
+        aria-label={`Añadir hueco al ${dayLabel(day)}`}
+        style={{
+          width: "100%", height: "100%",
+          border: "1.5px dashed #d8e5dc", borderRadius: 12,
+          background: "transparent", cursor: "pointer", padding: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#8aa394",
+        }}
+      >
+        <Plus size={16} strokeWidth={2.8} />
+      </button>
+    );
+  }
   return (
     <button
       type="button"
@@ -2154,10 +2192,17 @@ const mandoStyle = {
   display: "flex", alignItems: "center", justifyContent: "center",
 };
 
-function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, denso = false, showGroup = false, members = null, invitados = 0, onRemoveSlot = null, onFillSlot = null, onDishActions = null }) {
+function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, denso = false, zoom = 1, showGroup = false, members = null, invitados = 0, onRemoveSlot = null, onFillSlot = null, onDishActions = null }) {
   const { meal, group, slot, dish } = tile;
+  // El zoom de la pizarra (ver `useZoomPellizco`). Por debajo de ~0,75 la
+  // tarjeta es una tesela del mosaico: foto o icono, y los mandos se esconden
+  // porque ya no caben dedos; por encima de ~1,4 vuelven las pastillas de
+  // dificultad y tiempo, que en la tarjeta densa no cabían.
+  const mosaico = denso && zoom < 0.75;
+  const letra = Math.min(1.3, Math.max(0.8, zoom));
   const armed = useContext(ArmedContext);
   const clavesTanda = useContext(TandaContext);
+  const seleccion = useContext(SeleccionContext);
   const isEmpty = Boolean(tile.empty);
   const badgeGroups = tile.groups ?? (group ? [group] : []);
   const [failed, setFailed] = useState(false);
@@ -2172,6 +2217,42 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
     : recipe
       ? { recipe, slot, groupId: group.id, day, meal, group, course: dish.courseKey }
       : null;
+  // Marcada, o marcable. En cuanto hay UN hueco marcado, todos los demás
+  // huecos vacíos enseñan su sello y se atenúan: es lo que dice que ahora
+  // mismo estás eligiendo cuáles. Los platos ya puestos se quedan como están
+  // —no se marcan— así que ni se atenúan ni esconden sus botones.
+  const enSeleccion = Boolean(seleccion) && Boolean(sel) && isEmpty;
+  const marcado = enSeleccion && seleccion.marcados.has(claveDeHueco({ ...sel, day, meal }));
+  const pinturaSeleccion = enSeleccion
+    ? {
+        // `outline` y no `border`: el borde movería el contenido 3px y la
+        // baldosa daría un salto al marcarla.
+        outline: marcado ? "3px solid var(--pz-verde, #2d5a3d)" : "none",
+        outlineOffset: -2,
+        // Sin transición a propósito: una transición de opacidad sobre una
+        // baldosa que se remonta con cada toque se queda a medias —o clavada
+        // en el fotograma cero si la pestaña no está delante— y entonces el
+        // atenuado no llega a verse nunca. Esto tiene que ser instantáneo:
+        // es el acuse de recibo del toque.
+        opacity: marcado ? 1 : 0.5,
+      }
+    : null;
+  const selloDeMarca = enSeleccion && (
+    <span
+      aria-hidden
+      style={{
+        position: "absolute", top: compact ? 5 : 7, left: compact ? 5 : 7, zIndex: 4,
+        width: 20, height: 20, borderRadius: 999,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: marcado ? "var(--pz-verde, #2d5a3d)" : "rgba(255,255,255,.92)",
+        border: marcado ? "none" : "1.5px solid #cbd8cf",
+        boxShadow: "0 2px 6px -3px rgba(20,47,29,.4)",
+      }}
+    >
+      {marcado && <Check size={12} color="#fff" strokeWidth={3.2} />}
+    </span>
+  );
+
   const press = useLongPress(
     (targetEl) => {
       if (!sel) return;
@@ -2183,11 +2264,16 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       });
     },
     () => sel && onDishTap?.(sel),
-    // En la pizarra esta misma pulsación levanta el plato para arrastrarlo, y
+    // Un hueco VACÍO pide casi un segundo: mantenerlo pulsado es lo que abre
+    // el modo de marcar, y ese gesto compite con el toque simple —que abre el
+    // recetario— así que tiene que ser inconfundible. Si fuera tan corto como
+    // el del plato, un toque con el dedo perezoso abriría el modo sin querer.
+    //
+    // En un plato puesto esta misma pulsación lo levanta para arrastrarlo, y
     // ahí el listón de 420ms/12px es demasiado fino: sujetar el dedo quieto
     // medio segundo sobre una baldosa que se mueve con el scroll falla más de
     // lo que acierta. Un pelín antes y con más margen de temblor.
-    onDishActions ? { ms: 340, moveTol: 18 } : undefined,
+    isEmpty ? { ms: 800, moveTol: 18 } : onDishActions ? { ms: 340, moveTol: 18 } : undefined,
   );
   const onPointerDownPrefetch = (e) => {
     press.onPointerDown?.(e);
@@ -2200,9 +2286,11 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   // mismo que `lookupDeTanda`: una semana generada antes de que el puente
   // copiara `basesAparte` la trae vacía, y el icono no aparecería nunca.
   const delCatalogo = recipe ? (recipeCatalogById[String(recipe.id).split("__").pop()] ?? recipe) : null;
+  const familiaTanda = delCatalogo ? familiaDeReceta(delCatalogo.id) : null;
   const deTanda = Boolean(
     delCatalogo && clavesTanda?.size
-    && clavesDeReceta(delCatalogo).some((c) => clavesTanda.has(c)),
+    && (clavesDeReceta(delCatalogo).some((c) => clavesTanda.has(c))
+      || (familiaTanda && clavesTanda.has(`plato:${familiaTanda.id}`))),
   );
   // `slot.mode` lo pone modeForGroupSlot: "tupper" cuando alguien de este grupo
   // se lleva esa comida fuera y hay que cocinarla igual.
@@ -2227,7 +2315,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       {/* "Que lo elija la app": rellena SOLO este hueco, con el mismo pool
           que ya calcula las sugerencias de abajo. Ni espera ni coste — no
           pasa por el modelo. */}
-      {onFillSlot && (
+      {onFillSlot && !mosaico && !enSeleccion && (
         <span
           role="button"
           tabIndex={0}
@@ -2245,7 +2333,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           <Sparkles size={11} color="#7a9485" strokeWidth={2.4} />
         </span>
       )}
-      {onRemoveSlot && (
+      {onRemoveSlot && !mosaico && !enSeleccion && (
         <span
           role="button"
           tabIndex={0}
@@ -2266,16 +2354,20 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       <button
         type="button"
         {...press}
+        className={marcado ? "mp-tiembla" : undefined}
         data-slot={`${day}-${meal}`}
         data-group={group?.id}
         data-course="main"
         style={{
+          ...pinturaSeleccion,
           position: "relative",
           width: "100%",
           height: "100%",
-          border: "2px dashed #cbd8cf",
+          // Los tres colores del hueco leen del tema de la pizarra y caen en
+          // el de siempre cuando no hay tema: en claro, nada cambia.
+          border: "2px dashed var(--pz-hueco-borde, #cbd8cf)",
           borderRadius: radius,
-          background: "#f6faf7",
+          background: "var(--pz-hueco, #f6faf7)",
           cursor: "pointer",
           fontFamily: "inherit",
           display: "flex",
@@ -2287,6 +2379,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           touchAction: "pan-x pan-y",
         }}
       >
+        {selloDeMarca}
         <span
           style={{
             position: "relative",
@@ -2301,7 +2394,9 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           }}
         >
           <MealIcon size={compact ? 16 : 22} strokeWidth={2.2} color={accent.ink} />
-          <span
+          {/* En la pizarra el hueco entero ya dice "toca aquí": el `+` y el
+              "Toca para añadir" repetidos catorce veces eran ruido. */}
+          {!denso && <span
             style={{
               position: "absolute",
               right: -3,
@@ -2314,18 +2409,20 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              border: "2px solid #f6faf7",
+              border: "2px solid var(--pz-hueco, #f6faf7)",
             }}
           >
             <Plus size={compact ? 9 : 11} strokeWidth={3.2} />
+          </span>}
+        </span>
+        {!mosaico && (
+          <span style={{ fontSize: compact ? 10 * (denso ? letra : 1) : 12.5, fontWeight: 800, color: "#4f6a5b", textAlign: "center", lineHeight: 1.2 }}>
+            {tile.dosPlatos
+              ? `${tile.course === "first" ? "1º" : "2º"} libre`
+              : `${emptyMealLabel} libre`}
           </span>
-        </span>
-        <span style={{ fontSize: compact ? 10 : 12.5, fontWeight: 800, color: "#4f6a5b", textAlign: "center", lineHeight: 1.2 }}>
-          {tile.dosPlatos
-            ? `${tile.course === "first" ? "1º" : "2º"} libre`
-            : `${emptyMealLabel} libre`}
-        </span>
-        <span style={{ fontSize: compact ? 9 : 10.5, fontWeight: 600, color: "#9bb0a4" }}>Toca para añadir</span>
+        )}
+        {!denso && <span style={{ fontSize: compact ? 9 : 10.5, fontWeight: 600, color: "var(--pz-tinta-suave, #9bb0a4)" }}>Toca para añadir</span>}
       </button>
       </div>
     );
@@ -2351,7 +2448,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   // Las acciones de un plato ya colocado. En la pizarra la pulsación larga
   // levanta el plato para arrastrarlo, así que el rosco y el vaciar necesitan
   // botón propio — sin ellos, un plato puesto no se podía ni quitar.
-  const mandosDelPlato = onDishActions && sel && (
+  const mandosDelPlato = onDishActions && sel && !mosaico && (
     <div
       style={{
         position: "absolute", top: compact ? 5 : 8, right: compact ? 5 : 8,
@@ -2385,6 +2482,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       {...press}
       onPointerDown={onPointerDownPrefetch}
       style={{
+        ...pinturaSeleccion,
         position: "relative",
         width: "100%",
         height: "100%",
@@ -2433,8 +2531,8 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       {/* En denso no: la tarjeta mide la mitad y con dos pastillas encima el
           nombre del plato, que es lo único que se viene a leer de un vistazo,
           pierde la esquina. Siguen a un toque, dentro del plato. */}
-      {!denso && (
-        <div style={{ position: "absolute", top: compact ? 8 : 12, right: compact ? 8 : 12 }}>
+      {(!denso || zoom >= 1.4) && (
+        <div style={{ position: "absolute", top: compact ? 8 : 12, right: compact ? (denso && onDishActions ? 34 : 8) : 12 }}>
           <DishSpecPills difficulty={recipe.difficulty} time={recipe.time} compact={compact} align="flex-end" />
         </div>
       )}
@@ -2530,7 +2628,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           )}
         </div>
       )}
-      <div style={{
+      {!mosaico && <div style={{
         position: "absolute", left: compact ? 10 : 14,
         // Se aparta de la chapa de la tanda para que el título no pase por debajo.
         right: (compact ? 10 : 14) + ((deTanda ? 1 : 0) + (esTupper ? 1 : 0)) * (compact ? 26 : 34),
@@ -2547,7 +2645,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           <span
             style={{
               color: "rgba(255,255,255,.95)",
-              fontSize: compact ? 9 : 10.5,
+              fontSize: compact ? 9 * (denso ? letra : 1) : 10.5,
               fontWeight: 800,
               letterSpacing: ".7px",
               textTransform: "uppercase",
@@ -2565,7 +2663,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
         <div
           style={{
             color: "#fff",
-            fontSize: compact ? 13 : 20,
+            fontSize: compact ? 13 * (denso ? letra : 1) : 20,
             fontWeight: 900,
             lineHeight: 1.15,
             letterSpacing: "-.3px",
@@ -2574,12 +2672,12 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
-            height: compact ? 30 : 46,
+            height: compact ? 30 * (denso ? letra : 1) : 46,
           }}
         >
           {recipe.name}
         </div>
-      </div>
+      </div>}
     </button>
   );
 }
@@ -2852,34 +2950,61 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
 }
 
 /** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
-function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null }) {
+function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false, zoom = null, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null, repartiendo = false }) {
+  // Un contador que corre por TODA la semana, no por día: las cartas caen de
+  // lunes a domingo seguidas, que es como se lee el tablero. Reiniciarlo en
+  // cada día las haría caer de siete en siete a la vez.
+  let orden = 0;
+  // Con zoom (la pizarra) el tamaño es continuo: ancho y alto de la tarjeta
+  // salen del factor, no de dos tallas fijas. Sin zoom, lo de siempre.
+  const z = zoom ?? 1;
+  const conZoom = zoom != null;
+  const anchoTile = conZoom ? `0 0 ${(33 * z).toFixed(2)}%` : denso ? "0 0 33%" : "0 0 46%";
+  const altoTile = conZoom ? Math.round(104 * z) : denso ? 104 : 150;
+  const radio = conZoom ? Math.round(Math.min(16, Math.max(9, 14 * z))) : denso ? 14 : 16;
+  const hueco = conZoom ? Math.round(Math.min(12, Math.max(5, 10 * z))) : 10;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: denso ? 12 : 18 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: conZoom ? Math.round(Math.min(16, Math.max(6, 12 * z))) : denso ? 12 : 18 }}>
       {days.map((day) => {
         const tiles = getDeckDayTiles(day, data, menuPlan, visibleGroups);
         // Un día sin huecos se sigue pintando cuando hay `+`: si desapareciera,
         // no habría dónde tocar para volver a abrirle uno.
         if (tiles.length === 0 && !onAddSlot) return null;
+        // De lejos (mosaico) el día pasa a una columna a la izquierda: una
+        // línea de cabecera por día se comía media pantalla, y lo que se busca
+        // desde ahí arriba es ver la semana entera de un vistazo.
+        const mosaico = conZoom && z < 0.75;
         return (
-          <div key={day}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 900, color: "#142f1d" }}>{dayLabel(day)}</span>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#4cba6e" }}>{calendarDayNumber(day, weekDates)}</span>
-              <span style={{ flex: 1, height: 1, background: "#e8f0ea" }} />
-              <DayRegenButton day={day} onRegenerateDay={onRegenerateDay} groups={regenGroups} compact />
-            </div>
-            <div className="deck-scroller" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
+          <div key={day} style={mosaico ? { display: "flex", alignItems: "center", gap: 8 } : undefined}>
+            {mosaico ? (
+              <div style={{ width: 34, flexShrink: 0, textAlign: "center", lineHeight: 1.1 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "var(--pz-tinta, #142f1d)", textTransform: "uppercase", letterSpacing: ".3px" }}>{day}</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#4cba6e" }}>{calendarDayNumber(day, weekDates)}</div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 900, color: "var(--pz-tinta, #142f1d)" }}>{dayLabel(day)}</span>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#4cba6e" }}>{calendarDayNumber(day, weekDates)}</span>
+                <span style={{ flex: 1, height: 1, background: "var(--pz-linea, #e8f0ea)" }} />
+                <DayRegenButton day={day} onRegenerateDay={onRegenerateDay} groups={regenGroups} compact />
+              </div>
+            )}
+            <div className="deck-scroller" style={{ display: "flex", gap: hueco, overflowX: "auto", paddingBottom: mosaico ? 0 : 4, flex: mosaico ? 1 : undefined, minWidth: 0 }}>
               {tiles.map((tile, i) => (
-                <div key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`} style={{ flex: denso ? "0 0 33%" : "0 0 46%" }}>
-                  <div style={{ height: denso ? 104 : 150 }}>
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={denso ? 14 : 16} compact denso={denso} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} />
+                <div
+                  key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`}
+                  className={repartiendo && tile.dish ? "mp-carta" : undefined}
+                  style={{ flex: anchoTile, "--d": `${(orden++) * 40}ms` }}
+                >
+                  <div style={{ height: altoTile }}>
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={conZoom && z > 1.2 ? 540 : 360} radius={radio} compact denso={denso} zoom={z} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} />
                   </div>
                 </div>
               ))}
               {onAddSlot && (
-                <div style={{ flex: denso ? "0 0 26%" : "0 0 34%" }}>
-                  <div style={{ height: denso ? 104 : 150 }}>
-                    <AddSlotTile day={day} onAddSlot={onAddSlot} denso={denso} />
+                <div style={{ flex: conZoom ? "0 0 38px" : denso ? "0 0 26%" : "0 0 34%" }}>
+                  <div style={{ height: altoTile }}>
+                    <AddSlotTile day={day} onAddSlot={onAddSlot} denso={denso} fino={conZoom} />
                   </div>
                 </div>
               )}
@@ -4092,23 +4217,19 @@ const monthDots = {
   alignItems: "center", gap: 3, maxWidth: 30,
 };
 
-function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null }) {
+function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null, denso = false, zoom = null, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null, repartiendo = false }) {
   // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
   // each tile shows a colored group badge so you can tell whose dish it is.
   const showGroup = multiGroup && scope === "all";
   const comidasDeLaSemana = getDayMeals(data);
   const clavesTanda = useMemo(() => {
-    // Solo si hay tandas PEDIDAS. El icono salía para todo el mundo, porque se
-    // calculaba de los platos de la semana (dos que comparten olla) sin mirar
-    // si alguien había pedido batch cooking. A quien no lo pidió le aparecían
-    // tandas que no existen — y marcar el modo sin pedir nada es exactamente el
-    // mismo caso: no hay olla que enseñar.
-    if (!hayTandasPedidas(data)) return new Set();
+    // Deducido de los platos, no pedido: dos platos que comparten olla, o un
+    // plato que se deja hecho (la lasaña montada, la crema entera). Nadie
+    // tiene que declarar tandas con deslizadores para que el tablero las vea.
     const plan = {};
     for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
-    const s = sesionDeBases(plan, lookupDeTanda(), { dias: days, comidas: comidasDeLaSemana });
-    return new Set(s.bases.map((b) => claveDeBase(b.base)).filter(Boolean));
-  }, [days, comidasDeLaSemana, menuPlan, visibleGroups, data]);
+    return tandaDelMenu(plan, lookupDeTanda(), { dias: days, comidas: comidasDeLaSemana }).claves;
+  }, [days, comidasDeLaSemana, menuPlan, visibleGroups]);
   return (
     <TandaContext.Provider value={clavesTanda}>
     <div key={deckView} className="deck-view-swap">
@@ -4134,7 +4255,7 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
         />
       )}
       {deckView === "semana" && (
-        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} denso={denso} onAddSlot={onAddSlot} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} />
+        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} denso={denso} zoom={zoom} onAddSlot={onAddSlot} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} repartiendo={repartiendo} />
       )}
       {deckView === "mes" && (
         <DeckMonth
@@ -5032,6 +5153,9 @@ export const MenuScreen = memo(function MenuScreen({
   // and auto-play the quick-actions rosco so the tutorial can show off the
   // week view + acciones rápidas without a real user gesture.
   initialDeckView = null,
+  // El día con que abre (clave de la app, "Jue"): lo pasa un enlace del bot
+  // que habla de ese día. Sin él, hoy, como siempre.
+  initialDay = null,
   autoDemo = null,
   // Live shopping list (active week) + jump-to-cook-mode callback, so each
   // dish can show a "faltan ingredientes" dot instead of making you go check
@@ -5074,8 +5198,27 @@ export const MenuScreen = memo(function MenuScreen({
   // sitio que la del asistente y por el mismo motivo: se lee como "esto de
   // aquí arriba controla lo de abajo".
   pizarraControles = null,
+  // "claro" | "oscuro". Solo pinta en la pizarra, y solo si se pide desde su
+  // baldosa: el resto de la app vive de ilustraciones sobre blanco.
+  temaPizarra = "claro",
+  // Sube cada vez que "Rellenar" termina de colocar. Es lo que dispara el
+  // reparto: no es un booleano porque dos rellenos seguidos tienen que volver
+  // a animar, y un booleano que ya estaba a true no cambia nada.
+  repartoKey = 0,
 }) {
   const deckViews = modoPizarra ? DECK_VIEWS_BASICAS : DECK_VIEW_OPTIONS;
+
+  // El reparto dura lo que dura y se apaga solo: si la clase se quedara
+  // puesta, cualquier repintado posterior volvería a lanzar la animación.
+  const [repartiendo, setRepartiendo] = useState(false);
+  useEffect(() => {
+    if (!repartoKey) return undefined;
+    setRepartiendo(true);
+    const id = setTimeout(() => setRepartiendo(false), 1200);
+    return () => clearTimeout(id);
+  }, [repartoKey]);
+  // Pellizcar la pizarra: la semana, más cerca o más lejos (ver el hook).
+  const { ref: refZoom, zoom: zoomPizarra } = useZoomPellizco(modoPizarra);
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
   const [pdfExportOpen, setPdfExportOpen] = useState(false);
@@ -5100,9 +5243,53 @@ export const MenuScreen = memo(function MenuScreen({
     if (incomingDish?.recipeId) setArmed({ mode: "incoming", dish: incomingDish });
   }, [incomingDish]);
 
+  // Los huecos marcados, por clave. No hay modo que encender: en la pizarra,
+  // tocar un hueco VACÍO lo marca y ya está. Se guarda el `sel` entero y no
+  // solo la clave porque la barra de abajo se los pasa tal cual a quien
+  // rellena.
+  //
+  // Solo huecos vacíos: un plato ya puesto se toca para abrirlo, y robarle ese
+  // toque para marcarlo dejaría el tablero sin forma de ver una receta.
+  const [marcados, setMarcados] = useState(() => new Map());
+  const huecosMarcados = useMemo(() => [...marcados.values()], [marcados]);
+  const hayMarcados = marcados.size > 0;
+  const limpiarMarcados = useCallback(() => setMarcados(new Map()), []);
+  const alternarMarca = useCallback((sel) => {
+    const clave = claveDeHueco(sel);
+    setMarcados((m) => {
+      const next = new Map(m);
+      if (next.has(clave)) next.delete(clave); else next.set(clave, sel);
+      return next;
+    });
+  }, []);
+  // Si el tablero cambia de forma debajo —otra pizarra, vaciarla, cambiar los
+  // días— lo marcado deja de existir y no puede quedarse en pie.
+  useEffect(() => { setMarcados(new Map()); }, [modoPizarra]);
+
+  // Tocar fuera cierra el modo. Sin velo delante —el velo impediría seguir
+  // marcando, que es justo lo que se está haciendo— así que hay que escuchar
+  // en el documento y perdonar los dos sitios que SÍ son "dentro": otro hueco
+  // y la propia barra.
+  useEffect(() => {
+    if (!hayMarcados) return undefined;
+    const fuera = (e) => {
+      const t = e.target;
+      if (t?.closest?.("[data-slot]") || t?.closest?.(".mp-barra-marcados")) return;
+      limpiarMarcados();
+    };
+    // En captura: si el toque cae en un botón que se desmonta al pulsarlo, en
+    // fase de burbuja el nodo ya no tiene padres y `closest` mentiría.
+    document.addEventListener("pointerdown", fuera, true);
+    return () => document.removeEventListener("pointerdown", fuera, true);
+  }, [hayMarcados, limpiarMarcados]);
+
   const handleTileTap = useCallback(
     (sel) => {
       if (readOnly && sel.empty) return;
+      // Con el modo ya abierto, un toque suma o quita. Con el modo cerrado el
+      // hueco hace lo de siempre —abrir el recetario— porque abrirlo es el
+      // gesto que más se usa y no se le puede cobrar una pulsación larga.
+      if (hayMarcados && sel.empty) { alternarMarca(sel); return; }
       if (armed) {
         // Tapping the same dish cancels the armed action.
         if (sameDish(armed.source, sel)) {
@@ -5122,7 +5309,7 @@ export const MenuScreen = memo(function MenuScreen({
       }
       onDishTap?.(sel);
     },
-    [armed, onDishSwap, onDishDuplicate, onDishPlace, onDishManualPick, onDishTap, readOnly],
+    [armed, onDishSwap, onDishDuplicate, onDishPlace, onDishManualPick, onDishTap, readOnly, hayMarcados, alternarMarca],
   );
 
   // El hueco al que se le estan añadiendo comensales, o null. Vive aparte de
@@ -5145,6 +5332,11 @@ export const MenuScreen = memo(function MenuScreen({
   const [arrastre, setArrastre] = useState(null);
   const arrastreRef = useRef(null);
   useEffect(() => { arrastreRef.current = arrastre; }, [arrastre]);
+  // El último hueco sobrevolado, en crudo. Se guarda el NODO —y en un ref, no
+  // en una variable del efecto— porque el efecto se vuelve a montar en CADA
+  // movimiento del dedo (`arrastre` está en sus dependencias): una variable
+  // local se quedaría a null justo antes de soltar.
+  const sobreElRef = useRef(null);
 
   const iniciarArrastre = useCallback((sel) => {
     // La etiqueta nace en el centro de la baldosa que acabas de levantar, no
@@ -5164,6 +5356,7 @@ export const MenuScreen = memo(function MenuScreen({
 
     const destinoEn = (x, y) => {
       const el = document.elementFromPoint(x, y)?.closest?.("[data-slot]");
+      sobreElRef.current = el ?? null;
       if (!el) return null;
       const bruto = el.getAttribute("data-slot") ?? "";
       const corte = bruto.indexOf("-");
@@ -5185,8 +5378,20 @@ export const MenuScreen = memo(function MenuScreen({
     };
     const soltar = () => {
       const a = arrastreRef.current;
+      const destino = a?.sobre ? sobreElRef.current : null;
       setArrastre(null);
-      if (a?.sobre) onSlotDrag?.(a.source, a.sobre);
+      if (!a?.sobre) return;
+      onSlotDrag?.(a.source, a.sobre);
+      // Peso al soltar: el hueco que recibe acusa el golpe. Se marca sobre el
+      // nodo y no por estado porque la baldosa sobrevive al re-render —es el
+      // mismo `data-slot`— y React no vuelve a escribir un `className` que en
+      // su árbol no ha cambiado. Se quita al acabar para no dejar un
+      // `transform` pegado: un ancestro con transform atrapa a los
+      // `position: fixed` de dentro (ver .mp-nav-fwd en index.css).
+      sobreElRef.current = null;
+      if (!destino) return;
+      destino.classList.add("mp-asienta");
+      setTimeout(() => destino.classList.remove("mp-asienta"), 420);
     };
 
     // ── Que el navegador no se lleve el gesto ───────────────────────────
@@ -5217,6 +5422,10 @@ export const MenuScreen = memo(function MenuScreen({
   const handleTileLongPress = useCallback(
     (sel) => {
       if (readOnly || armed) return;
+      // Un hueco vacío no se levanta —no hay nada que arrastrar— así que su
+      // pulsación larga es la que abre el modo de marcar. A partir de ahí los
+      // demás se suman de un toque.
+      if (modoPizarra && sel.empty && onFillSlots) { alternarMarca(sel); return; }
       // En la pizarra la pulsación larga LEVANTA el plato. Las acciones
       // (cambiar, duplicar, vaciar) siguen en el botón de los tres puntos, que
       // es un gesto explícito: aquí el dedo largo ya significa "lo voy a
@@ -5228,7 +5437,7 @@ export const MenuScreen = memo(function MenuScreen({
       if (sel.empty) return;
       setDishAction(sel);
     },
-    [armed, readOnly, modoPizarra, onSlotDrag, iniciarArrastre],
+    [armed, readOnly, modoPizarra, onSlotDrag, iniciarArrastre, onFillSlots, alternarMarca],
   );
 
   // Demo-only autoplay for the value-props carousel: open the quick-actions
@@ -5352,6 +5561,7 @@ export const MenuScreen = memo(function MenuScreen({
   const [accionesAbiertas, setAccionesAbiertas] = useState(false);
   const [confirmDeleteActive, setConfirmDeleteActive] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() => {
+    if (initialDay && DAYS.includes(initialDay)) return initialDay;
     const jsDay = new Date().getDay();
     const idx = jsDay === 0 ? 6 : jsDay - 1;
     if (data.menuWeek?.offset === 0) {
@@ -5379,6 +5589,18 @@ export const MenuScreen = memo(function MenuScreen({
     () => (activeDays ?? []).some((day) => getDeckDayTiles(day, data, menuPlan, visibleGroups).length > 0),
     [activeDays, data, menuPlan, visibleGroups],
   );
+  // Ver HuecosVivosContext. Una baldosa vacía compartida por dos grupos son
+  // dos huecos: lo que pongas cae en los dos, y así lo cuenta Rellenar.
+  const huecosVivos = useMemo(() => {
+    const out = [];
+    for (const day of activeDays ?? []) {
+      for (const t of getDeckDayTiles(day, data, menuPlan, visibleGroups)) {
+        if (!t.empty) continue;
+        for (const g of t.groups) out.push({ groupId: g.id, day, meal: t.meal, course: t.course ?? "main" });
+      }
+    }
+    return out;
+  }, [activeDays, data, menuPlan, visibleGroups]);
   const menuNeedsActivation = Boolean(
     user && activeMenu && activeMenu.activatedAt === null && onActivateMenu,
   );
@@ -5641,7 +5863,10 @@ export const MenuScreen = memo(function MenuScreen({
 
 
   return (
-    <div style={{ background: "#fff", minHeight: "100dvh" }}>
+    <div
+      className={modoPizarra && temaPizarra === "oscuro" ? "mp-pizarra-oscura" : undefined}
+      style={{ background: "var(--pz-fondo, #fff)", minHeight: "100dvh" }}
+    >
       <style>{`
         @keyframes shareDropIn {
           from { opacity: 0; transform: translateY(-6px) scale(.96); }
@@ -5788,7 +6013,7 @@ export const MenuScreen = memo(function MenuScreen({
         }
       `}</style>
       {/* ── Top header: title + actions ── */}
-      <div style={{ background: "#e9f4ed", padding: "20px 20px 14px" }}>
+      <div style={{ background: "var(--pz-fondo-suave, #e9f4ed)", padding: "20px 20px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
@@ -5805,7 +6030,7 @@ export const MenuScreen = memo(function MenuScreen({
             >
               <ClipboardList size={18} color="#1f4a30" strokeWidth={2.4} />
             </span>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.3px" }}>
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--pz-tinta, #142f1d)", margin: 0, letterSpacing: "-.3px" }}>
               Tu menú
             </h2>
             {!modoPizarra && <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />}
@@ -5992,7 +6217,27 @@ export const MenuScreen = memo(function MenuScreen({
       {/* ── Filter panel: collapsible con animación (solo modo clásico) ── */}
 
       {/* ── Zona de navegación: cabecera clásica (fecha/perfil/chevron) o nav del deck ── */}
-      <div style={{ background: "#fff", padding: "12px 16px 0" }}>
+      {/* En la pizarra esta franja se queda pegada arriba al bajar.
+          Los mandos de aquí no son decoración de cabecera: son con lo que
+          rellenas: el avatar dice para quién estás poniendo platos y las
+          baldosas abren días, balance, despensa, batch y rellenar. Con siete
+          días en pantalla, tocar un hueco del domingo y querer cambiar de
+          comensal obligaba a subir hasta arriba, cambiar y volver a bajar.
+          El que scrollea es el documento (la raíz solo pone minHeight), así
+          que basta con `sticky` — sin contenedor con overflow de por medio.
+          Solo en pizarra: en el modo clásico esta misma franja lleva el paso
+          de semanas y el filtro, que no se usan a media lista. */}
+      <div
+        style={{
+          background: "var(--pz-fondo, #fff)",
+          padding: "12px 16px 0",
+          ...(hasMenu && modoPizarra
+            // zIndex por encima de las tarjetas y por debajo de las hojas
+            // (160 el panel de la pizarra, 300 las bottom-sheets).
+            ? { position: "sticky", top: 0, zIndex: 20 }
+            : null),
+        }}
+      >
 
         {/* ── Multi-week switcher: solo en clásico (en deck vive dentro del DeckNav) ── */}
 
@@ -6007,9 +6252,19 @@ export const MenuScreen = memo(function MenuScreen({
             llega hasta el borde derecho porque la franja es una zona, no una
             tarjeta: cortarla antes del margen la convertiría en un recuadro
             más de los que hay debajo. */}
-        {hasMenu && modoPizarra && (
-          <div style={{ display: "flex", alignItems: "stretch", marginRight: -16, marginBottom: 14, minHeight: 78 }}>
-            <div style={{ background: "#fff", display: "flex", alignItems: "center", paddingRight: 12, flexShrink: 0 }}>
+        {/* `pizarraControles` manda: mientras la pizarra arranca llega vacío,
+            y entonces la franja ENTERA se va —avatares incluidos—. Una fila de
+            avatares sola, sin nada que hacer con ella, solo diría «hay cosas
+            que todavía no puedes tocar». */}
+        {hasMenu && modoPizarra && pizarraControles && (
+          <div
+            // Baja al montarse. La franja no existía hace un instante —llega
+            // al cerrar la hoja de arranque— y entrar de golpe la haría
+            // parecer algo que ya estaba y no habías visto.
+            className="mp-franja-entra"
+            style={{ display: "flex", alignItems: "stretch", marginRight: -16, marginBottom: 14, minHeight: 78 }}
+          >
+            <div style={{ background: "var(--pz-fondo, #fff)", display: "flex", alignItems: "center", paddingRight: 12, flexShrink: 0 }}>
               {(data.groups?.length > 0) && (
                 <DeckFilter
                   groups={data.groups}
@@ -6021,8 +6276,10 @@ export const MenuScreen = memo(function MenuScreen({
                 />
               )}
             </div>
-            <div style={{ flex: 1, minWidth: 0, background: "#f1f5f9", display: "flex", alignItems: "center" }}>
-              {pizarraControles}
+            <div style={{ flex: 1, minWidth: 0, background: "var(--pz-fondo-suave, #f1f5f9)", display: "flex", alignItems: "center" }}>
+              <HuecosVivosContext.Provider value={huecosVivos}>
+                {pizarraControles}
+              </HuecosVivosContext.Provider>
             </div>
           </div>
         )}
@@ -6104,18 +6361,29 @@ export const MenuScreen = memo(function MenuScreen({
         )}
         {(
           <div
+            // Mientras la pizarra arranca, el tablero se enseña DESNUDO: los
+            // días y su sitio, pero sin los huecos. La hoja de delante está
+            // decidiendo justo cuántos va a haber, así que enseñarlos antes
+            // sería enseñar una respuesta a la pregunta que estás leyendo. Se
+            // ocultan sin desmontar para que al aparecer no salte el alto.
+            className={modoPizarra && !pizarraControles ? "mp-tablero-desnudo" : undefined}
+            ref={modoPizarra ? refZoom : undefined}
             style={{
               paddingTop: 14,
-              // La lengüeta del calendario ocupa 26px pegada al borde: sin
-              // este aire se comía la esquina izquierda de las tarjetas.
-              paddingLeft: modoPizarra ? 36 : 16,
+              paddingLeft: 16,
               paddingRight: 16,
-              paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
+              // Con la barra de lo marcado puesta, el tablero le deja su alto:
+              // si no, la última fila queda debajo y hay huecos que no se
+              // pueden marcar porque no se pueden ver.
+              paddingBottom: `calc(${bottomNavSpacer()} + ${hayMarcados ? 112 : 12}px)`,
             }}
           >
             <ArmedContext.Provider value={armed}>
+            <SeleccionContext.Provider value={hayMarcados ? { marcados } : null}>
             <MenuDeck
+              repartiendo={repartiendo}
               denso={modoPizarra}
+              zoom={modoPizarra ? zoomPizarra : null}
               onAddSlot={modoPizarra ? onAddSlot : null}
               onRemoveSlot={modoPizarra ? onRemoveSlot : null}
               onFillSlot={modoPizarra ? onFillSlots : null}
@@ -6140,8 +6408,83 @@ export const MenuScreen = memo(function MenuScreen({
               onPickMonthDay={handlePickMonthDay}
               invitadosPorHueco={invitadosPorHueco}
             />
+            </SeleccionContext.Provider>
             </ArmedContext.Provider>
           </div>
+        )}
+
+        {/* ── La barra de lo marcado ────────────────────────────────────────
+            Misma forma que la barra de acciones de un plato (DishActionBar):
+            tarjeta blanca, icono en círculo y su palabra debajo. Es la misma
+            clase de cosa —un puñado de acciones sobre lo que acabas de tocar—
+            y darle otra forma la haría parecer otra cosa.
+
+            Lo que NO copia es el velo oscuro de aquella. Aquí sigues
+            marcando huecos mientras la barra está puesta, y un velo delante
+            te impediría tocarlos. Por eso también va anclada abajo y no al
+            hueco: no hay UN hueco al que anclarse.
+
+            Dos acciones y ya: con un puñado de huecos vacíos lo único que
+            se puede hacer es llenarlos, o soltarlos. Portal a `document.body`
+            porque el tablero tiene ancestros con `transform` mientras reparte
+            cartas, y esos se quedan con los `position: fixed` de dentro (ver
+            .mp-nav-fwd en index.css). */}
+        {hayMarcados && createPortal(
+          <div
+            className="mp-barra-marcados"
+            style={{
+              position: "fixed", zIndex: 190,
+              left: "50%", transform: "translateX(-50%)",
+              bottom: `calc(${bottomNavSpacer()} + 12px)`,
+              display: "flex", alignItems: "center", gap: 8,
+              padding: 12, borderRadius: 20,
+              background: "rgba(250,252,251,.98)",
+              boxShadow: "0 14px 34px rgba(9,18,12,.42)",
+              animation: "actionBarPop .22s cubic-bezier(.34,1.4,.64,1) both",
+            }}
+          >
+            <style>{`
+              @keyframes actionBarPop { from { opacity: 0; transform: translateX(-50%) scale(.9); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+            `}</style>
+            {[
+              {
+                id: "rellenar",
+                label: `Rellenar ${huecosMarcados.length}`,
+                Icon: Sparkles,
+                tint: "#e6f6ec",
+                color: "#1f7a45",
+                onPick: () => { onFillSlots?.({ huecos: huecosMarcados }); limpiarMarcados(); },
+              },
+              {
+                id: "quitar",
+                label: "Quitar",
+                Icon: X,
+                tint: "#f1f5f2",
+                color: "#5a7066",
+                onPick: limpiarMarcados,
+              },
+            ].map((act) => (
+              <button
+                key={act.id}
+                type="button"
+                aria-label={act.label}
+                onClick={act.onPick}
+                style={{
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+                  minWidth: 62, padding: "8px 6px", border: "none", background: "none",
+                  cursor: "pointer", fontFamily: "inherit", borderRadius: 12,
+                }}
+              >
+                <span style={{ width: 38, height: 38, borderRadius: "50%", display: "grid", placeItems: "center", background: act.tint }}>
+                  <act.Icon size={18} strokeWidth={2.3} color={act.color} />
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#142f1d", textAlign: "center", lineHeight: 1.15, whiteSpace: "nowrap" }}>
+                  {act.label}
+                </span>
+              </button>
+            ))}
+          </div>,
+          document.body,
         )}
 
         {/* La etiqueta que sigue al dedo mientras arrastras. Es la única pista
@@ -6433,6 +6776,20 @@ export const MenuScreen = memo(function MenuScreen({
   );
 });
 
+// Un error de servidor o de red no le dice nada a quien cocina ("HTTP 500.
+// ANTHROPIC_API_KEY not configured on server" salió tal cual en pantalla), y
+// asusta. Esos se cambian por una frase humana; los que ya están escritos para
+// el usuario ("Añade al menos un miembro…") pasan como están.
+const ERROR_TECNICO_RE = /\bHTTP\s*\d{3}\b|api[_ ]?key|not configured|failed to fetch|networkerror|typeerror|referenceerror|syntaxerror|\bjson\b|undefined|null|timeout|timed out|\berr_|\bstack\b|at \w+ \(/i;
+
+function mensajeDeError(error) {
+  const texto = error?.message;
+  if (!texto || ERROR_TECNICO_RE.test(texto)) {
+    return "Algo ha fallado al preparar el menú. Vuelve a intentarlo en un momento; si sigue sin salir, prueba más tarde.";
+  }
+  return texto;
+}
+
 function ErrorCard({ error, onRetry }) {
   return (
     <div style={{ padding: "0 16px" }}>
@@ -6457,7 +6814,7 @@ function ErrorCard({ error, onRetry }) {
           <div style={{ fontSize: 14, fontWeight: 900 }}>No se pudo generar el menú</div>
         </div>
         <div style={{ fontSize: 12, color: "#7a4a12", marginBottom: 14, lineHeight: 1.45 }}>
-          {error?.message ?? "La IA no respondió correctamente. Inténtalo de nuevo."}
+          {mensajeDeError(error)}
         </div>
         {onRetry && (
           <button
@@ -6510,6 +6867,10 @@ function EmptyState({ readOnly = false }) {
 
 export function DishDetail({
   recipe, slot, kitchenTools = [], onClose, onReject,
+  // Las piezas de Batch Cooking de la semana de este plato, deducidas del menú
+  // (`tandaDelMenu(...).claves`). Null fuera de un menú —recetario, histórico—:
+  // sin semana no hay nada que se haya dejado hecho.
+  tandaSemana = null,
   browse = false,
   // Group context — only present when opened from the weekly menu (not when
   // browsing the catalog). Used solely to resolve which "menú más cuidado"
@@ -6565,6 +6926,9 @@ export function DishDetail({
   // la cara siguen ahí, pero como texto: no se pinta un enlace que no lleva a
   // ningún sitio.
   onOpenPerson = null,
+  // Mandar esta receta fuera de la app (WhatsApp, portapapeles). Quien la
+  // monte decide si el enlace lleva llave; aquí solo hay un botón.
+  onShare = null,
   readOnly = false,
 }) {
   const isFavorite = favoriteScope != null;
@@ -6589,7 +6953,9 @@ export function DishDetail({
   //
   // Cuando la vista del domingo sepa qué se cocinó de verdad, podrá decidirlo
   // ella en vez de asumirlo.
-  const [conBases, setConBases] = useState(true);
+  // Lo que has dicho que NO tienes hecho, pieza a pieza (ver lib/tandaDelPlato).
+  // Vacío = todo hecho, que es el punto de partida por lo de arriba.
+  const [faltanDeTanda, setFaltanDeTanda] = useState(() => new Set());
   const [scopeOpen, setScopeOpen] = useState(false);
   // Pasos del método activo. La base usa los del catálogo (o IA bajo demanda);
   // los métodos por electrodoméstico se piden a /api/recipe-steps (caché Redis).
@@ -6764,15 +7130,33 @@ export function DishDetail({
   // Solo en el plato principal: una guarnición o una salsa de catálogo tienen
   // su propia pestaña con sus propios pasos, y meter ahí la tanda mezclaría
   // dos cosas que el usuario está mirando por separado.
-  const vistaBases = useMemo(() => recetaConBases(recipe), [recipe]);
+  // Una pieza por pregunta: el plato si se puede dejar hecho (semi o entero) y
+  // cada base por separado. `vistaBases` es la receta con lo que SÍ tienes.
+  const delCatalogoTanda = catalogId ? (recipeCatalogById[catalogId] ?? recipe) : recipe;
+  // Solo las piezas que la semana deduce: una base que no comparte nadie no
+  // se cocina aparte, así que no se pregunta por ella.
+  const piezasTanda = useMemo(
+    () => (tandaSemana
+      ? componentesDeTanda(recipe, delCatalogoTanda).filter((p) => tandaSemana.has(p.clave))
+      : []),
+    [recipe, delCatalogoTanda, tandaSemana],
+  );
+  const vistaBases = useMemo(
+    () => vistaConTanda(recipe, delCatalogoTanda, faltanDeTanda, tandaSemana ?? new Set()),
+    [recipe, delCatalogoTanda, faltanDeTanda, tandaSemana],
+  );
   // La pregunta solo tiene sentido si hay tandas pedidas. Antes salía en
   // cualquier plato que TUVIERA bases, que son casi todos, así que a quien
   // nunca pidió batch cooking le preguntaba si tiene cocinado un sofrito que
   // nadie le dijo que cocinara — y de paso hacía parecer que el menú traía
   // tandas que no había pedido.
-  const puedeConBases =
-    vistaBases.aplicada && !garnishRecipe && !sauceRecipe && hayTandasPedidas(data);
-  const usandoBases = puedeConBases && conBases;
+  const puedeConBases = piezasTanda.length > 0 && !garnishRecipe && !sauceRecipe;
+  const usandoBases = puedeConBases && vistaBases.aplicada;
+  const alternarPieza = (clave, tengo) => setFaltanDeTanda((prev) => {
+    const next = new Set(prev);
+    if (tengo) next.delete(clave); else next.add(clave);
+    return next;
+  });
   // Los ingredientes de la ficha vienen escalados, así que la marca se cruza
   // por nombre — que es la misma clave con la que se resolvieron.
   const deBasePorNombre = useMemo(() => {
@@ -7376,6 +7760,21 @@ export function DishDetail({
           </button>
         )}
 
+        {onShare && (
+          <button
+            type="button"
+            onClick={() => onShare(recipe)}
+            aria-label="Compartir receta"
+            title="Compartir receta"
+            style={{
+              ...heroActionButtonStyle, position: "absolute", top: 26, zIndex: 2,
+              // A la derecha del corazón cuando lo hay; en su sitio cuando no.
+              left: onSetFavoriteScope && !readOnly ? 66 : 26,
+            }}
+          >
+            <Share2 size={18} color="#1a3a24" strokeWidth={2} />
+          </button>
+        )}
 
         <DishVisual
           recipe={recipe}
@@ -7792,65 +8191,22 @@ export function DishDetail({
                 sola al mover el interruptor, que es donde el usuario ya mira
                 el tiempo del plato. */}
             {puedeConBases && (
-              <div
-                style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "10px 12px", marginBottom: 12, borderRadius: 12,
-                  background: usandoBases ? "#e8f5ec" : "#f7f9f7",
-                  outline: usandoBases ? "1.5px solid #2d5a3d" : "1px solid #e3ede6",
-                  outlineOffset: -1,
-                  transition: "background .15s, outline .15s",
-                }}
-              >
-                {/* Ilustración con su nombre debajo, como en el selector de
-                    bases: es la misma cosa y se reconoce por el dibujo. */}
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexShrink: 0 }}>
-                  {vistaBases.bases.map((b) => {
-                    const img = ingredientThumbSrc(BASES_UI[b.clave]?.foto ?? b.clave);
-                    return (
-                      <div key={b.clave} style={{ textAlign: "center", width: 54 }}>
-                        {img && (
-                          <img
-                            src={img}
-                            alt=""
-                            style={{ width: 42, height: 42, objectFit: "contain", display: "block", margin: "0 auto" }}
-                          />
-                        )}
-                        <div style={{
-                          fontSize: 10, fontWeight: 800, color: "#142f1d", lineHeight: 1.15, marginTop: 2,
-                        }}>
-                          {BASES_UI[b.clave]?.etiqueta ?? b.nombre}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.3 }}>
-                  {vistaBases.bases.length === 1
-                    ? "¿Tienes cocinada esta base?"
-                    : "¿Tienes cocinadas estas bases?"}
-                </div>
-
-                <div style={{ display: "flex", flexShrink: 0, background: "#fff", borderRadius: 999, padding: 3, outline: "1.5px solid #cfe0d5", outlineOffset: -1.5 }}>
-                  {[["si", "Sí", true], ["no", "No", false]].map(([id, texto, valor]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setConBases(valor)}
-                      aria-pressed={usandoBases === valor}
-                      style={{
-                        padding: "5px 13px", borderRadius: 999, border: "none",
-                        background: usandoBases === valor ? "#2d5a3d" : "transparent",
-                        color: usandoBases === valor ? "#fff" : "#7a9485",
-                        fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                        transition: "background .15s, color .15s",
-                      }}
-                    >
-                      {texto}
-                    </button>
-                  ))}
-                </div>
+              <div style={{ marginBottom: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+                {piezasTanda.length > 1 && (
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d", margin: "0 2px 2px" }}>
+                    ¿Qué tienes ya hecho?
+                  </div>
+                )}
+                {piezasTanda.map((pieza) => (
+                  <FilaPiezaTanda
+                    key={pieza.clave}
+                    pieza={pieza}
+                    sola={piezasTanda.length === 1}
+                    tengo={!faltanDeTanda.has(pieza.clave)}
+                    incluida={vistaBases.incluidas?.has(pieza.clave)}
+                    onCambiar={(v) => alternarPieza(pieza.clave, v)}
+                  />
+                ))}
               </div>
             )}
 
@@ -8549,6 +8905,84 @@ function IngredientThumb({ ing, dimmed = false, size = 30 }) {
   );
 }
 
+/**
+ * Una pieza de la tanda en la ficha: su dibujo, qué es y su Sí/No.
+ *
+ * Una fila por pieza y no una para todas: lo normal es tener el sofrito y no
+ * el arroz, y con un solo interruptor la receta era toda larga o toda corta.
+ * Una base que el plato hecho ya lleva dentro sale "Incluida", sin
+ * interruptor: preguntar por la bechamel de una lasaña montada no significa
+ * nada.
+ */
+const TEXTO_PIEZA = {
+  semi: { que: "Montado, a medio hacer", pregunta: "¿Lo tienes montado?" },
+  cocinado: { que: "Hecho entero", pregunta: "¿Lo tienes hecho?" },
+  base: { que: "Base", pregunta: "¿Tienes cocinada esta base?" },
+};
+
+function FilaPiezaTanda({ pieza, sola, tengo, incluida, onCambiar }) {
+  const esPlato = pieza.tipo !== "base";
+  const img = esPlato ? null : ingredientThumbSrc(BASES_UI[pieza.clave]?.foto ?? pieza.clave);
+  const nombre = esPlato ? pieza.nombre : (BASES_UI[pieza.clave]?.etiqueta ?? pieza.nombre);
+  const txt = TEXTO_PIEZA[pieza.tipo];
+  const activa = tengo && !incluida;
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 10,
+        padding: "8px 10px 8px 8px", borderRadius: 12,
+        background: incluida ? "#f7f9f7" : activa ? "#e8f5ec" : "#f7f9f7",
+        outline: activa ? "1.5px solid #2d5a3d" : "1px solid #e3ede6",
+        outlineOffset: -1,
+        opacity: incluida ? 0.6 : 1,
+        transition: "background .15s, outline .15s, opacity .15s",
+      }}
+    >
+      <span style={{
+        width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+        background: esPlato ? "#f6efe0" : "#fff",
+        display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
+      }}>
+        {img
+          ? <img src={img} alt="" style={{ width: 36, height: 36, objectFit: "contain" }} />
+          : <CookingPot size={19} color="#b2622f" strokeWidth={2.2} />}
+      </span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.2 }}>
+          {sola ? txt.pregunta : nombre}
+        </span>
+        <span style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "#7a9485", marginTop: 1 }}>
+          {incluida ? "Ya va dentro del plato" : sola ? nombre : txt.que}
+        </span>
+      </span>
+      {incluida ? (
+        <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: "#5a7066", padding: "0 6px" }}>Incluida</span>
+      ) : (
+        <div style={{ display: "flex", flexShrink: 0, background: "#fff", borderRadius: 999, padding: 3, outline: "1.5px solid #cfe0d5", outlineOffset: -1.5 }}>
+          {[["si", "Sí", true], ["no", "No", false]].map(([id, texto, valor]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onCambiar(valor)}
+              aria-pressed={tengo === valor}
+              aria-label={`${nombre}: ${texto}`}
+              style={{
+                padding: "5px 13px", borderRadius: 999, border: "none",
+                background: tengo === valor ? "#2d5a3d" : "transparent",
+                color: tengo === valor ? "#fff" : "#7a9485",
+                fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                transition: "background .15s, color .15s",
+              }}
+            >
+              {texto}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwned, onRevertOwned, deBase = null }) {
   const unit = ing.unit ?? "ud";
   const qty = ing.qtyScaled;
@@ -8646,7 +9080,7 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
               }}
             >
               <Check size={11} strokeWidth={3} />
-              Ya en la base
+              {String(deBase).startsWith("plato:") ? "Ya está en el plato" : "Ya en la base"}
             </span>
           )}
           {ing.adapted && (

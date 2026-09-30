@@ -50,6 +50,11 @@ const DEPRECATED_CATEGORIES = ["cenas_rapidas", "platos_unicos"];
 // `caza` agrupa jabalí, codorniz, perdiz y conejo, igual que la subclase
 // `carne_caza` del árbol de alimentos: la granularidad del enum sigue a la del
 // árbol en vez de inventarse otra.
+// Ya se exporta abajo, y conviene leerla desde ahí y no copiarla: `PROTEIN_IMAGE`
+// (ingredientImages.js) tenía nueve de las trece escritas a mano, y cuando
+// entraron `caza`, `cordero` y `pato` nadie lo actualizó — trece recetas
+// estrella se pintaban sin foto, y su test no lo cazaba porque también llevaba
+// la lista vieja copiada.
 const MAIN_PROTEINS = [
   "caza", "cerdo", "cordero", "huevo", "legumbre", "marisco", "none", "pato",
   "pavo", "pescado_azul", "pescado_blanco", "pollo", "ternera",
@@ -489,6 +494,21 @@ export const RecipeSchema = z
     // nombre inequívocamente extranjero (quiche lorraine, ceviche, hamburguesa,
     // pollo al curry) contaban como españoles por omisión.
     cocina: z.enum(COCINAS).optional(),
+    // FORMATO Y TEMPERATURA, los ejes 6 y 7 del registro (axisRegistry.js).
+    //
+    // Estaban poblados —749 y 916 recetas— y NO declarados aquí. El objeto no
+    // es `.strict()`, así que Zod los ignoraba en silencio: un typo en
+    // derive/formato.js habría escrito «cremosa» en 84 recetas sin que la
+    // validación dijera una palabra, y el fallo habría aparecido mucho después
+    // como una carta vacía en la UI. Un campo que se escribe pero no se valida
+    // es un campo sin barandilla.
+    //
+    // Los dos los deriva src/lib/derive/formato.js, que SE ABSTIENE cuando no
+    // puede decidir —284 recetas sin formato, casi todas de olla, donde
+    // conviven el vapor y el estofado sin nada que los separe—, y por eso van
+    // opcionales: el hueco es una respuesta y tiene que poder existir.
+    formato: z.enum(["ensalada", "sopa", "cremoso", "guiso", "plato_seco"]).optional(),
+    temperatura: z.enum(["caliente", "templado", "frio"]).optional(),
     // El plato TRAE salsa escrita dentro. No es `sauceId` —que fija UNA salsa
     // concreta a mano y no lo usa nadie— sino "esto es un plato de salsa".
     //
@@ -907,9 +927,76 @@ export function isMontaje(recipe) {
  * `recipe.time` sin tocar. Fuente única de verdad para el umbral de "comida/
  * cena rápida" (ver aiPlanner.js recipeMatchesPreferType).
  */
+/**
+ * ¿Hay que haber empezado esta receta OTRO DÍA?
+ *
+ * `time` cuenta el trabajo, no el reloj, y eso está bien casi siempre: las
+ * cuatro horas de un guiso al fuego son cuatro horas que no estás en la
+ * cocina. Pero hay pasos que no ocurren hoy — congelar el salmón 48 h por el
+ * anisakis, poner los garbanzos en remojo la noche anterior, curar un gravlax
+ * — y para esos el usuario necesita saberlo ANTES de elegir el plato.
+ *
+ * El caso que lo destapó: «Carpaccio de salmón con cítricos» es `montaje:
+ * true`, y `recipeMatchesPreferType("cena_rapida")` devolvía true por esa vía
+ * sin mirar el tiempo. La app podía proponerlo como cena de hoy cuando el
+ * primer paso dice «Congelar un mínimo de 48 h antes».
+ *
+ * 12 horas es el corte porque es lo que separa «esta tarde» de «otro día». Un
+ * marinado de dos horas cabe en la tarde; un remojo de doce, no. Hoy son 12
+ * recetas estrella, y `adelanto` no sirve para esto: ese campo es de batch
+ * cooking y dice si el plato AGUANTA hecho, no si EXIGE empezarse antes.
+ *
+ * @param {{stepsRich?: {minutes?: number}[]}} recipe
+ * @returns {boolean}
+ */
+export const MINUTOS_DE_VISPERA = 720;
+export function necesitaVispera(recipe) {
+  return (recipe?.stepsRich ?? []).some((s) => (s?.minutes ?? 0) >= MINUTOS_DE_VISPERA);
+}
+
+/**
+ * QUÉ TÉCNICAS OBLIGAN A COCINAR POR TANDAS — el eje 42 del registro.
+ *
+ * Un guiso escala: el doble de ingredientes en la misma olla y el mismo rato.
+ * Doce filetes a la plancha NO escalan: son tres tandas, y la tercera se come
+ * fría mientras se hace la cuarta. La diferencia no está en los ingredientes,
+ * está en si el RECIPIENTE limita.
+ *
+ * Vive aquí, al lado de su único lector, y `derive/ejesDePlato.js` la importa
+ * en vez de tener su propia copia: dos tablas que contestan lo mismo son dos
+ * tablas que se contradicen, y este repo ya tiene la cicatriz.
+ */
+export const ESCALA_POR_TECNICA = {
+  olla: "escala",
+  horno: "escala",
+  crudo: "escala",
+  sarten: "por_tandas",
+  plancha: "por_tandas",
+};
+
+/**
+ * SE DERIVA CUANDO EL CAMPO NO ESTÁ, y eso resucita un eje muerto.
+ *
+ * `scalesWithEaters` era el caso de estudio del registro: esquema, columna en
+ * Supabase, sincronización… y CERO recetas de 1.033. Esta función lo consultaba
+ * en todas y siempre le salía `undefined`, así que devolvía `recipe.time` sin
+ * tocar y el 12 % no se aplicaba jamás. Un lector sin datos no falla: deja de
+ * decidir en silencio.
+ *
+ * No hacía falta curar 1.033 recetas para arreglarlo, porque la respuesta ya
+ * estaba en `tecnica`: «va por tandas» ES «el tiempo crece con los comensales».
+ * El campo curado sigue mandando cuando existe —una receta puede declarar que
+ * escala aunque su técnica diga lo contrario—, y si no, se deriva.
+ */
+export function escalaPorTandas(recipe) {
+  if (typeof recipe?.scalesWithEaters === "boolean") return recipe.scalesWithEaters;
+  const e = ESCALA_POR_TECNICA[recipe?.tecnica];
+  return e === undefined ? null : e === "por_tandas";
+}
+
 export function effectiveRecipeTime(recipe, eaters) {
   if (!recipe) return 0;
-  if (!recipe.scalesWithEaters || !eaters) return recipe.time;
+  if (!escalaPorTandas(recipe) || !eaters) return recipe.time;
   const base = recipe.baseServings || 2;
   const extra = Math.max(0, eaters - base);
   return recipe.time * (1 + 0.12 * extra);

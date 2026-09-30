@@ -14,7 +14,8 @@ import { noUndefJsx } from './eslint-rules/no-undef-jsx.js'
  * los que tumban una pantalla entera en producción.
  */
 export default defineConfig([
-  globalIgnores(['**/dist/**', '**/node_modules/**']),
+  // api/_bot/core.mjs es el motor empaquetado (scripts/build-bot-core.mjs), no código fuente.
+  globalIgnores(['**/dist/**', '**/node_modules/**', 'api/_bot/core.mjs']),
   {
     files: ['**/*.{js,jsx,mjs}'],
     languageOptions: {

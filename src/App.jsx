@@ -23,9 +23,9 @@ import {
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { buildSharedMenuPayload } from "./lib/sharedMenu.js";
-import { publishMenu, unpublishMenu, loadMyPublishedMenus } from "./lib/social.js";
+import { publishMenu, unpublishMenu, loadMyPublishedMenus, createMenuShareToken, loadMenuFromLink } from "./lib/social.js";
 import { loadNotifications, countUnread } from "./lib/socialNotifications.js";
-import { readIncomingLink } from "./lib/shareLink.js";
+import { readIncomingLink, shareOut } from "./lib/shareLink.js";
 import { migrateEmbeddedPhotos } from "./lib/recipePhotos.js";
 import { searchProfiles, ensureSocialProfile } from "./lib/social.js";
 import { googleInfo } from "./screens/Settings.jsx";
@@ -37,6 +37,7 @@ import { ScopePickerScreen, SCOPE_TOPIC_STEPS } from "./screens/ScopePickerScree
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 import { CatalogBrowserSheet } from "./screens/CatalogBrowserSheet.jsx";
 import { recipeCatalogById } from "./data/recipeCatalog.js";
+import { tandaDelMenu } from "./lib/tandaDelPlato.js";
 const ValuePropsCarousel = lazy(() => import("./screens/ValueProps.jsx").then(m => ({ default: m.ValuePropsCarousel })));
 const ShoppingScreen = lazy(() => import("./screens/Shopping.jsx").then(m => ({ default: m.ShoppingScreen })));
 const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => ({ default: m.AnalyticsScreen })));
@@ -44,6 +45,8 @@ const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ 
 const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.AccountScreen })));
 const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => ({ default: m.DashboardScreen })));
 const PizarraControles = lazy(() => import("./screens/PizarraControles.jsx").then(m => ({ default: m.PizarraControles })));
+const ArranqueDePizarra = lazy(() => import("./screens/PizarraControles.jsx").then(m => ({ default: m.ArranqueDePizarra })));
+const PizarraBurbuja = lazy(() => import("./components/PizarraBurbuja.jsx").then(m => ({ default: m.PizarraBurbuja })));
 const AnadirHuecoSheet = lazy(() => import("./screens/AnadirHuecoSheet.jsx").then(m => ({ default: m.AnadirHuecoSheet })));
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
@@ -51,7 +54,9 @@ const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").t
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
+const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.MenuPeek })));
 import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
+import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
@@ -64,8 +69,7 @@ import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS, weeklySlotBudget } from "./lib/planner.js";
-import { freqsEfectivos, presupuestoDeTopes } from "./lib/reparto.js";
+import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
 import {
   groupsFromModel,
   migrateGroupsForBabies,
@@ -79,9 +83,10 @@ import {
   adhocReasonLabel,
   resolveMemberAge,
   membersOfGroup,
+  isBabyMenuGroup,
   reconcileGroupsWithMembers,
 } from "./lib/groups.js";
-import { normalizeKidDinnerConfig, deriveKidDinnerMatchesAdultLunch } from "./lib/kidsMenu.js";
+import { normalizeKidDinnerConfig } from "./lib/kidsMenu.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import {
   clampWeekCount,
@@ -99,10 +104,12 @@ import {
   pruneMenuHistory,
   planHasDishes,
   orderedWeeks,
+  MAX_MENU_WEEKS,
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
 import { pizarraActiva, planVacio, huecosDelPlan, conHuecosAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
-import { proyectarReglas, reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
+import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
+import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
   saveMenu as saveMenuRemote,
   loadMenuSummaries as loadMenuSummariesRemote,
@@ -149,7 +156,10 @@ import {
   mergeDiscards,
 } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
-import { loadHouseholdState, saveHouseholdState } from "./lib/householdState.js";
+import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev } from "./lib/householdState.js";
+import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
+import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
+import BotEnlace from "./components/BotEnlace.jsx";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard } from "./lib/householdDiscardsSync.js";
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
@@ -166,9 +176,10 @@ import {
   updateRecipeVisibility,
   deleteUserRecipe,
   loadPublicRecipe,
+  loadRecipeFromLink,
+  createRecipeShareToken,
 } from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
-import { schoolMenusForWeekIndex } from "./lib/schoolMenu.js";
 import { filterOwnCreatedRecipes, filterMyLibraryRecipes } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole, resolveAccountMember, memberIllustratedAvatarSrc } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
@@ -185,6 +196,8 @@ import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
+import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
+import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
 import { normalizePantryInput } from "./utils/normalizePantryInput.js";
@@ -221,6 +234,15 @@ const FORCE_TOUR =
 const FORCE_VALUE_PROPS =
   FORCE_TOUR ||
   new URLSearchParams(window.location.search).get("tutorial") === "1";
+
+// Tutorial (carrusel de presentación) y visitas guiadas (spotlight): apagados
+// en staging el 30 sep 2026 (a la gente la agotaban, y allí guía el bot de
+// Telegram); en producción siguen hasta que el frontal de Lola llegue. Lo
+// decide vite.config.js por rama (VITE_GUIAS). Con `?tutorial=1` o `?tour=1`
+// siguen saliendo siempre, para revisarlos.
+// EXACTAMENTE `import.meta.env.VITE_GUIAS`, sin `?.`: si no, el define de
+// Vite no lo sustituye (ver solverActivo en lib/solver.js).
+const GUIAS_ACTIVAS = import.meta.env.VITE_GUIAS !== "off";
 
 // Temporary dietary states heavy/disruptive enough to warrant offering a
 // separate ad-hoc individual menu instead of restricting the whole family.
@@ -495,69 +517,6 @@ function healAdhocGroupLabels(groups) {
   );
 }
 
-// Devuelve una copia de `data` con los ajustes del modo básico forzados.
-// En modo avanzado (expertMode) devuelve `data` tal cual.
-function resolveModeData(data) {
-  if (!data || data.expertMode) return data;
-  // Cenas rápidas viven en data.slotType como entradas "…|Cena": "rapida".
-  // En básico se descartan las que vienen de la configuración del onboarding,
-  // PERO se respetan las elegidas a mano desde el menú (data.manualSlotType),
-  // porque son una decisión explícita del usuario para ese hueco concreto.
-  const slotType = data.slotType ?? {};
-  const manualSlotType = data.manualSlotType ?? {};
-  const cleanedSlotType = {};
-  for (const [k, v] of Object.entries(slotType)) {
-    if (v !== "rapida" || manualSlotType[k]) cleanedSlotType[k] = v;
-  }
-  // Tiempo de cocina compartido (comida = cena) en básico.
-  const ct = data.cookTime?.weekday ? data.cookTime : COOK_TIME_DEFAULTS;
-  const syncBlock = (b) => {
-    const v = Math.max(b?.Comida ?? 30, b?.Cena ?? 30);
-    return { Comida: v, Cena: v };
-  };
-  return {
-    ...data,
-    // Solo comidas y cenas: sin desayuno, merienda ni postre.
-    extraMeals: { desayuno: "off", merienda: "off", postre: "off", postreTipo: "inmediato", postreInmediato: "mix" },
-    // Sin cenas rápidas.
-    slotType: cleanedSlotType,
-    // Nivel de cocina normal... salvo que lo hayas elegido tu desde la fila de
-    // mandos del menu (`cookLevelManual`, ver el mando "Esfuerzo" en
-    // lib/wizardRegistry.js). Mismo trato que `manualSlotType` aqui arriba: el
-    // modo basico simplifica lo que NO has contestado, no lo que acabas de
-    // decidir. Sin esto el mando se pintaba y no cambiaba el menu.
-    cookLevel: data.cookLevelManual ? (data.cookLevel ?? "normal") : "normal",
-    // La despensa NO se toca aquí, y es un cambio respecto a antes: el modo
-    // básico forzaba `pantryMode: "off"`, o sea que a casi todo el mundo —el
-    // básico es el defecto— la despensa no le contaba para nada.
-    //
-    // Se cae por lo mismo que se cayó la opción "Que no cuente": nadie rellena
-    // el inventario para que luego no cuente. Y arrastraba un daño que no se
-    // veía: los platos YA COCINADOS (tuppers de nevera y congelador) salen de
-    // la misma lista que los ingredientes (ver frozenDishes/fridgeDishes en
-    // lib/aiPlanner.js), así que apagarla no solo quitaba el sesgo — dejaba de
-    // ofrecerte un táper que caduca en tres días.
-    //
-    // Ahora el modo de despensa es de quien lo elige, no del modo básico, y
-    // manda igual sobre ingredientes y sobre platos hechos: quien sube algo
-    // quiere que entre en el menú, y lo que se gradúa es cuánto pesa.
-    // Multisemana: cosas distintas cada semana (sin repetir platos).
-    menuVarietyPref: "strict",
-    // Estilo de comida: equilibrado, sin diferenciar por grupo.
-    mealStyleByGroup: {},
-    // Estructura de plato única para todos (la global elegida en «¿Qué comidas
-    // quieres organizar?»); ignora overrides por grupo del modo avanzado.
-    mealStructureByGroup: {},
-    // Igual que la de la comida: en básico la estructura de cena es una sola
-    // para toda la casa, sin overrides por grupo.
-    mealStructureCenaByGroup: {},
-    // Tiempo de cocina igual para comida y cena.
-    cookTime: { mode: "shared", weekday: syncBlock(ct.weekday), weekend: syncBlock(ct.weekend) },
-    // pantryPrefs NO se fuerza: "cuándo damos por gastado lo de casa" se
-    // pregunta también en sencillo, así que forzarlo aquí sería preguntar y
-    // luego ignorar la respuesta.
-  };
-}
 
 function migrate(state) {
   if (!state) return null;
@@ -1077,25 +1036,29 @@ function pendingEndOfDaySweep(data, since) {
  *
  * Los candidatos vienen YA filtrados por `pickCatalogReplacement` —rol, tiempo,
  * alergias, lo que hay esta semana, el cole—, así que aquí no se descarta a
- * nadie: solo se ordena. Por eso las dos preferencias suman y no filtran: si
- * ninguna puntúa, sigue entrando el primero del pool, que es tan válido como
- * antes de que existieran estos interruptores.
+ * nadie: solo se ordena. Por eso los dos criterios SUMAN y no filtran: si
+ * ninguno puntúa —despensa vacía y ninguna base puesta— devuelve null y quien
+ * llama se queda con el sorteo de siempre.
  *
  *   · despensa → cuántos de sus ingredientes ya tienes en casa, en tanto por
  *     uno. Un plato que cubres entero gana a uno que cubres a medias.
- *   · agrupar  → si comparte base con algo que ya vas a cocinar. Vale más que
+ *   · bases    → si comparte base con algo que ya vas a cocinar. Vale más que
  *     la despensa porque ahorra una olla entera, no unos ingredientes.
+ *
+ * Los dos eran interruptores en la pizarra y ya no lo son: ninguno era una
+ * pregunta de verdad. Nadie apunta lo que tiene en casa para pedir que no se
+ * use, ni abre el batch cooking para pedir que los platos no compartan olla.
  */
-function mejorCandidato(candidatos, { usarDespensa, agrupar, despensa, basesPuestas }) {
+function mejorCandidato(candidatos, { despensa, basesPuestas }) {
   if (!candidatos?.length) return null;
   let mejor = null;
   let mejorNota = -1;
   for (const r of candidatos) {
     let nota = 0;
-    if (agrupar && basesPuestas?.size > 0) {
+    if (basesPuestas?.size > 0) {
       if (basesDeReceta(r).some((b) => basesPuestas.has(b.id))) nota += 2;
     }
-    if (usarDespensa && despensa?.length > 0) {
+    if (despensa?.length > 0) {
       const ings = r.ingredients ?? [];
       if (ings.length > 0) {
         const cubiertos = ings.filter((i) => findMatchingPantryItem(i.name, despensa)).length;
@@ -1436,6 +1399,22 @@ export default function App() {
   const hydratedUserRef = useRef(null);
   const cloudReadyRef = useRef(false);
   const householdJustEmptiedRef = useRef(false);
+  // El bot de Telegram escribe en la nube (0057). `botRevRef` es el contador
+  // que vimos al cargar: todo lo que la app sube va condicionado a él, y si el
+  // bot ha escrito entretanto, recargamos la nube (adoptándola entera, perfil
+  // incluido: `forceRemoteRef`) en vez de pisar su cambio. `cloudEpoch` solo
+  // existe para volver a disparar la hidratación.
+  const botRevRef = useRef(null);
+  const forceRemoteRef = useRef(false);
+  // Una recarga en curso: un segundo aviso de conflicto (la casa y la semana
+  // chocan a la vez) no lanza otra.
+  const recargandoRef = useRef(false);
+  const recargarDesdeNubeRef = useRef(() => {});
+  const [cloudEpoch, setCloudEpoch] = useState(0);
+  // Lo mismo que `cloudReadyRef`, pero como estado: el destino de un enlace
+  // del bot (`?ir=`) espera a que la casa haya llegado de la nube, y un ref
+  // no despierta a nadie cuando cambia.
+  const [nubeLista, setNubeLista] = useState(false);
   // Kept live (not just captured once) so the one-time legacy backfill below
   // can tell whether a menú it's about to activate in the cloud is still
   // actually the active one locally — the user may generate a brand new menú
@@ -1471,6 +1450,8 @@ export default function App() {
     const householdId = activeHouseholdId;
     const justEmptied = householdJustEmptiedRef.current;
     if (justEmptied) householdJustEmptiedRef.current = false;
+    const forceRemote = forceRemoteRef.current;
+    forceRemoteRef.current = false;
 
     // Capture local-only blobs before any await so a mid-hydration edit
     // isn't the source of truth for the union (same as before).
@@ -1532,8 +1513,20 @@ export default function App() {
       // profile (members, allergies, intolerances, healthProfiles) the user
       // just set up. See lib/profileMerge.js.
       const remoteData = remoteState?.state?.data;
+      // Si el bot ha escrito desde la última vez que este dispositivo miró
+      // (app cerrada mientras hablabas con él), la nube manda aunque aquí ya
+      // haya perfil: si no, el primer guardado de la app borraría su cambio.
+      // Solo se adopta la nube si de verdad llegó algo: sin red, `remoteData`
+      // es null y adoptarla reiniciaría la casa a vacío. Sin fila en la nube
+      // (casa recién creada) la versión es 0, no null: así los guardados van
+      // condicionados desde el primero y un cambio del bot no se pisa.
+      const remoteBotRev = remoteState?.botRev ?? null;
+      const botEscribio = remoteBotRev != null && remoteBotRev > (leerBotRevVisto(householdId) ?? 0);
+      if (householdId) botRevRef.current = remoteBotRev ?? 0;
       const useRemote =
         justEmptied
+        || (forceRemote && remoteData)
+        || (botEscribio && remoteData)
         || shouldAdoptRemoteProfile({
           localMemberCount: data.members?.length ?? 0,
           remoteMemberCount: remoteData?.members?.length ?? 0,
@@ -1636,7 +1629,7 @@ export default function App() {
         // runs when the cloud archive is empty, so it's naturally
         // idempotent — once any menú lands there (from this backfill or a
         // live dual-write), this branch never runs again for this user.
-        const finalMenus = useRemote ? (remoteData.menus ?? {}) : localMenus;
+        const finalMenus = useRemote ? (remoteData?.menus ?? {}) : localMenus;
         const menuList = Object.values(finalMenus);
         for (const menu of menuList) {
           const recipes = Array.from(collectMenuRecipeIds({ [menu.id]: menu }))
@@ -1744,20 +1737,24 @@ export default function App() {
         });
       }
 
+      if (remoteBotRev != null) guardarBotRevVisto(householdId, remoteBotRev);
       cloudReadyRef.current = true;
+      setNubeLista(true);
+      recargandoRef.current = false;
     })();
 
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, activeHouseholdId, householdLoading, householdReadOnly]);
+  }, [user?.id, activeHouseholdId, householdLoading, householdReadOnly, cloudEpoch]);
 
   // Debounced push of the private profile snapshot (everything except the
   // normalized recipes/votes, which sync through their own tables). Gated on
   // cloudReadyRef so we never clobber the remote copy before hydration lands.
   useEffect(() => {
     if (!user?.id || !cloudReadyRef.current || !activeHouseholdId || householdReadOnly) return;
+    const rev = botRevRef.current;
     const t = window.setTimeout(() => {
       const profile = { ...data };
       delete profile.userRecipes;
@@ -1765,11 +1762,30 @@ export default function App() {
       delete profile.discards;
       delete profile.menus;
       const snapshot = { data: profile, menuPlan, shopping, aiRecipes, onbStep };
-      if (syncHouseholdId) saveHouseholdState(syncHouseholdId, snapshot);
-      else saveUserState(user.id, snapshot);
+      if (syncHouseholdId) {
+        // La versión se fija al programar el guardado, no al dispararlo: si
+        // entretanto se recargó la nube, este estado ya es viejo y no se sube.
+        if (!cloudReadyRef.current || botRevRef.current !== rev) return;
+        saveHouseholdState(syncHouseholdId, snapshot, rev).then((r) => {
+          if (r.conflict) recargarDesdeNubeRef.current();
+        });
+      } else saveUserState(user.id, snapshot);
     }, 1200);
     return () => window.clearTimeout(t);
   }, [user?.id, activeHouseholdId, householdReadOnly, syncHouseholdId, data, menuPlan, shopping, aiRecipes, onbStep]);
+
+  // Al volver a la app (desde Telegram, típicamente) se mira si el bot ha
+  // escrito. Es una lectura de un número; la recarga solo si ha cambiado.
+  useEffect(() => {
+    if (!user?.id || !syncHouseholdId) return;
+    const alVolver = async () => {
+      if (document.visibilityState !== "visible" || !cloudReadyRef.current) return;
+      const rev = await loadHouseholdBotRev(syncHouseholdId);
+      if (rev != null && botRevRef.current != null && rev > botRevRef.current) recargarDesdeNubeRef.current();
+    };
+    document.addEventListener("visibilitychange", alVolver);
+    return () => document.removeEventListener("visibilitychange", alVolver);
+  }, [user?.id, syncHouseholdId]);
 
   // Reconcilia el modo de consumo saliente cuando el usuario lo cambia con un
   // menú ya activo. Ejemplo: modo "onGenerate" → "endOfDay". El stock se
@@ -1922,6 +1938,19 @@ export default function App() {
     toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 1800);
   }, []);
 
+  // El bot ha escrito en la casa: se vuelve a hidratar adoptando la nube.
+  // Lo que se hubiera tocado aquí sin llegar a subir se pierde a propósito:
+  // es el precio de que el cambio del bot no desaparezca en silencio.
+  recargarDesdeNubeRef.current = () => {
+    if (recargandoRef.current) return;
+    recargandoRef.current = true;
+    forceRemoteRef.current = true;
+    hydratedUserRef.current = null;
+    cloudReadyRef.current = false;
+    setCloudEpoch((n) => n + 1);
+    showToast("Actualizado con los cambios del chat");
+  };
+
   const handleDeleteRecipe = useCallback(async (recipeId) => {
     if (!recipeId) return;
     rememberDeletedRecipeId(recipeId);
@@ -2068,94 +2097,11 @@ export default function App() {
       const effectiveConcurrency = pantryMultiWeek === "spread" ? 1 : WEEK_CONCURRENCY;
       const weekResults = await mapWithConcurrency(weekOffsets, effectiveConcurrency, async (offset, w) => {
         const { startDayIdx, days, activeDays, startISO, endISO } = weekMeta[w];
-        const weekSchedule = sameForAllWeeks || offset === weekOffsets[0]
-          ? working.schedule
-          : (weekEntry(working.menuWeekOverrides, offset) ?? working.schedule);
-        // Each generated week pulls its own school week (positional mapping:
-        // 1st menú week → 1st selected school week, …, cycling when there are
-        // fewer school weeks than menú weeks). Passed as a plain single-week
-        // { shared, byMember } so every getSchoolDish(data.schoolMenus, …) call
-        // downstream reads the right week without any signature change.
-        const weekData = {
-          ...working,
-          groups,
-          schedule: weekSchedule,
-          menuWeek: { offset, startDayIdx, days },
-          schoolMenus: schoolMenusForWeekIndex(working.schoolMenus, w),
-        };
-
-        // ── Las reglas, justo antes de generar ──────────────────────────
-        // Una regla ("el miércoles viene mi hermano", "Lucía no cena en casa
-        // hasta el día 20") se convierte aquí en un delta sobre `data.*` que
-        // el motor ya entiende: un invitado es una PERSONA temporal con su
-        // horario, no un número suelto, así que a partir de este punto
-        // `eatersForSlot` lo cuenta, el plato escala y la compra sube — sin
-        // que nada de aguas abajo sepa que existen las reglas.
-        //
-        // El delta se consume UNA vez y se tira: no se persiste jamás. Es lo
-        // que impide que se acumule gente fantasma en la casa.
-        //
-        // `activeDays` y NO `days`: son cosas distintas y weekMeta trae las
-        // dos. `days` son los días que el usuario eligió; `activeDays` los
-        // que esta semana tiene de verdad. Pasar el otro haría que una regla
-        // "los sábados" se aplicara en una semana que empieza en miércoles.
-        const { delta: deltaReglas, avisos: avisosReglas } = proyectarReglas(
-          weekData.reglas,
-          weekData,
-          { hoy: isoLocalDate(new Date()), semana: { inicioISO: startISO, finISO: endISO, dias: activeDays } },
-        );
-        if (avisosReglas.length > 0) {
-          // Todavía sin sitio en la UI. Se registran para no perderlos en
-          // silencio: un aviso es "te he entendido y esto NO lo he hecho", y
-          // callarlo es peor que no entender.
-          console.warn("[reglas] avisos sin pintar:", avisosReglas);
-        }
-        Object.assign(weekData, deltaReglas);
-
-        // DESPUÉS del delta, no antes: se calcula sobre el horario, y un
-        // `presente` sobre un niño en Cena lo deja obsoleto — el flag diría
-        // "la cena del niño copia la comida del adulto" para un niño que esa
-        // noche no está en casa.
-        weekData.kidDinnerMatchesAdultLunch = deriveKidDinnerMatchesAdultLunch(weekData);
-
-        // ── El reparto, bajado a topes con los huecos REALES ─────────────
-        // El reparto se guarda en PORCENTAJES (suma 100) justo para no depender
-        // del número de huecos, pero al bajarlo a `freqs` se multiplicaba por
-        // una constante de 14. Una semana normal de primero+segundo+cena tiene
-        // 21 huecos, así que siete se quedaban sin cuota — y como 470 de las 471
-        // recetas servibles cuentan para alguna clave, no hay huecos libres que
-        // absorban la diferencia: son siete violaciones garantizadas de la regla
-        // 11, cada una con su reintento al modelo y su reparación.
-        //
-        // Se hace AQUÍ y no en el motor porque el número correcto depende del
-        // grupo y de la semana —los niños que comen en el cole tres días tienen
-        // menos huecos que los adultos, y una semana partida menos que una
-        // entera— y este es el único punto que conoce las dos cosas. `aiPlanner`
-        // sigue leyendo `data.freqsByGroup` como siempre, sin saber que la
-        // libreta existe.
-        //
-        // Un `freqsByGroup` ya escrito NO se toca: es el estilo de comida de ese
-        // grupo concreto, una decisión más específica que el reparto de la casa.
-        if (working.reparto && Object.keys(working.reparto).length > 0) {
-          const porGrupo = { ...(weekData.freqsByGroup ?? {}) };
-          const objetivoPorGrupo = {};
-          for (const g of groups) {
-            const huecos = weeklySlotBudget(weekData, g).total;
-            const ejes = { freqs: working.freqsPedidos ?? {}, reparto: working.reparto };
-            // El OBJETIVO es el reparto exacto sobre los huecos: a dónde va el
-            // solver. Los TOPES llevan holgura (HOLGURA_TOPES): hasta dónde
-            // puede. Sin holgura los topes no tienen solución, y sin objetivo
-            // la holgura se convertiría en siete carnes. Ver lib/reparto.js.
-            objetivoPorGrupo[g.id] = freqsEfectivos(ejes, { presupuesto: huecos });
-            if (porGrupo[g.id]) continue;
-            porGrupo[g.id] = freqsEfectivos(ejes, { presupuesto: presupuestoDeTopes(huecos) });
-          }
-          weekData.freqsByGroup = porGrupo;
-          weekData.objetivoByGroup = objetivoPorGrupo;
-        }
-        const crossWeek = varietyPref === "relaxed" || weekCount <= 1
-          ? null
-          : { weekIndex: w, weekCount, varietyPref };
+        const { weekData, crossWeek, weekSchedule } = prepararSemana(working, {
+          groups, offset, w, startDayIdx, days, activeDays, startISO, endISO,
+          weekOffsets, sameForAllWeeks, varietyPref, weekCount,
+          hoy: isoLocalDate(new Date()),
+        });
 
         // B: en "nearest" solo la semana más cercana recibe despensa como
         // sesgo; en "all" todas ven la despensa completa; en "spread" cada
@@ -2288,7 +2234,10 @@ export default function App() {
         elapsedMs: Date.now() - startedAt,
         ...plannerStats,
       });
-      if (isFirstMenu) upsertUserProfile(user, { first_menu_at: new Date().toISOString(), app_version: APP_VERSION });
+      if (isFirstMenu) {
+        upsertUserProfile(user, { first_menu_at: new Date().toISOString(), app_version: APP_VERSION });
+        trackEvent(user, EMBUDO.PRIMER_MENU, PANTALLA_EMBUDO, { canal: "app" });
+      }
 
       const newMenu = {
         id: newMenuId,
@@ -2738,10 +2687,38 @@ export default function App() {
       day: slotPicker.day,
       meal: slotPicker.meal,
       course: slotPicker.course ?? "main",
-      candidatos: 12,
+      // Se piden SESENTA para enseñar doce. El pool sale en el orden del
+      // catálogo, así que con doce salían siete de garbanzos seguidos y
+      // después cuatro de filete con patatas: el orden del fichero asomando.
+      // `sugerenciasDeHueco` reparte por familia y baja lo de ocasión y lo de
+      // otras cocinas, y para repartir hace falta de dónde.
+      candidatos: 60,
+      // El hueco está VACÍO y eliges tú, así que entran los platos de montaje
+      // —las tostas, los sándwiches—. Fuera de aquí siguen cerrados: en el
+      // relleno automático y en "cambiar plato" decide la máquina.
+      admiteMontaje: true,
     });
-    return r?.candidatos ?? [];
+    return sugerenciasDeHueco(r?.candidatos ?? [], 12);
   }, [slotPicker, data, menuPlan]);
+
+  /**
+   * El hueco, para que el recetario sepa qué carpetas ofrecer.
+   *
+   * Son dos datos: la franja —que decide si tienen sentido «Desayunos»,
+   * «Meriendas», «Postres» o «Cenas rápidas»— y si el menú es de bebé, que es
+   * lo único que justifica las dos carpetas de papillas y sólidos.
+   */
+  const contextoDelHueco = useMemo(() => {
+    if (!slotPicker || slotPicker.kind) return null;
+    const grupos = data.groups?.length > 0
+      ? data.groups
+      : groupsFromModel(data.members, data.menuModel);
+    const grupo = grupos.find((g) => g.id === slotPicker.groupId) ?? null;
+    return {
+      meal: slotPicker.meal,
+      esBebe: grupo ? isBabyMenuGroup(grupo, data.members ?? []) : false,
+    };
+  }, [slotPicker, data.groups, data.members, data.menuModel]);
 
   /**
    * Un cambio desde los mandos de la pizarra (comidas o días).
@@ -2778,6 +2755,32 @@ export default function App() {
    * desaparece y su consumo se quedaría huérfano. Empezar una pizarra no
    * puede costarte la despensa.
    */
+  // Mientras es `true`, la pizarra recién creada enseña el tablero vacío con
+  // la hoja de «¿Qué días?» delante y sin franja de mandos.
+  const [pizarraArrancando, setPizarraArrancando] = useState(false);
+
+  // Claro u oscuro, SOLO para el tablero de la pizarra. No es el tema de la
+  // app: el resto de pantallas se quedan en claro a propósito, porque el
+  // oscuro se lleva por delante el tono cartoon de las ilustraciones. Vive en
+  // localStorage y no en `data` porque es del aparato, no de la casa: si lo
+  // pones oscuro en el móvil, el portátil del otro no tiene por qué cambiar.
+  const [temaPizarra, setTemaPizarra] = useState(() => {
+    try { return localStorage.getItem("mp_tema_pizarra") === "oscuro" ? "oscuro" : "claro"; }
+    catch { return "claro"; }
+  });
+  const alternarTemaPizarra = useCallback(() => {
+    setTemaPizarra((t) => {
+      const otro = t === "oscuro" ? "claro" : "oscuro";
+      try { localStorage.setItem("mp_tema_pizarra", otro); } catch { /* modo incógnito */ }
+      return otro;
+    });
+  }, []);
+
+  // Sube cada vez que caen varios platos de golpe: es la señal para que el
+  // tablero los reparta como cartas en vez de enseñarlos ya puestos.
+  const [repartoKey, setRepartoKey] = useState(0);
+
+
   const handleStartPizarra = useCallback((eleccion = null) => {
     if (householdReadOnly) {
       showToast("Solo lectura: no puedes editar el menú");
@@ -2795,11 +2798,32 @@ export default function App() {
     // a rellenar compitiendo con los que sí. Se apaga SOLO para construir este
     // esqueleto —no se escribe en la casa— y el `+` de cada día lo puede
     // abrir donde haga falta.
+    // Y arranca SIEMPRE en la semana en curso, aunque la casa tuviera dos o
+    // tres pedidas de la última vez. Heredarlas abría una pizarra de veintiún
+    // días que nadie pidió, y la hoja de arranque existe justo para que esa
+    // decisión se tome aquí.
+    const soloEstaSemana = aplicarDiasDeSemana(
+      { ...base, menuWeekDays: {}, menuWeekOffsets: [], menuWeek: { offset: 0, startDayIdx: 0 } },
+      0,
+      diasPorDefecto(0),
+      { allOffsets: buildCalendarWeeks(MAX_MENU_WEEKS).map((w) => w.offset) },
+    );
     const working = {
-      ...base,
+      ...soloEstaSemana,
       extraMeals: { ...(base.extraMeals ?? {}), postre: "off" },
       ...(eleccion ?? {}),
     };
+    // Lo que decide la forma del tablero va también a `data`: la hoja de
+    // arranque lee de ahí, y `conHuecosAlDia` lo vuelve a leer cada vez que
+    // tocas un día — sin esto, el postre se colaba en el primer toque y las
+    // semanas viejas volvían con él.
+    setData((d) => ({
+      ...d,
+      menuWeekDays: working.menuWeekDays,
+      menuWeekOffsets: working.menuWeekOffsets,
+      menuWeek: working.menuWeek,
+      extraMeals: { ...(d.extraMeals ?? {}), postre: "off" },
+    }));
     const hasRoster = (gs) => gs.some((g) => membersOfGroup(g, working.members).length > 0);
     let groups = working.groups ?? [];
     if (working.members.length > 0 && (groups.length === 0 || !hasRoster(groups))) {
@@ -2905,6 +2929,12 @@ export default function App() {
       weekCount: weekOffsets.length,
       huecos: huecosDelPlan(firstWeekPlan),
     });
+    // El tablero entra DESNUDO —sin avatares ni baldosas— y encima aparece la
+    // hoja de arranque preguntando los días. Los mandos llegan al darle a
+    // «Empezar». Es transitorio a propósito: no es un estado del menú sino un
+    // momento de esta sesión, y guardarlo dejaría una pizarra a medio arrancar
+    // esperándote mañana.
+    setPizarraArrancando(true);
     fwd(() => setScreen("menu"));
   }, [data, user, householdReadOnly, showToast, syncHouseholdId]);
 
@@ -2951,7 +2981,7 @@ export default function App() {
     // shopping change on reload (the generation-time row would win). Debounced
     // + fire-and-forget inside queueSaveMenuWeek; local blob is still the belt.
     if (user && menuId && wk) {
-      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId);
+      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current() });
     }
   }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user]);
 
@@ -3080,7 +3110,7 @@ export default function App() {
       setData((d) => ({ ...d, menus }));
       if (user) {
         toggleMenuFavoriteRemote(user.id, menuId, true);
-        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId);
+        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current() });
       }
       showToast("Menú guardado en favoritos");
     } else {
@@ -3541,11 +3571,21 @@ export default function App() {
   // directo a eso. Se lee una sola vez al arrancar: readIncomingLink limpia
   // la barra, asi que recargar no repite la apertura.
   const [deepLinkPerson, setDeepLinkPerson] = useState(null);
+  // La semana que ha llegado por un enlace, si ha llegado alguna. Es una FOTO
+  // del momento en que se compartió, no el menú vivo de quien lo mandó.
+  const [menuDeEnlace, setMenuDeEnlace] = useState(null);
   useEffect(() => {
     const link = readIncomingLink();
     if (!link) return;
     if (link.kind === "recipe") {
-      handleOpenFeedRecipe({ id: link.id });
+      openLinkedRecipe(link.id, link.token);
+      return;
+    }
+    if (link.kind === "menu") {
+      loadMenuFromLink(link.id, link.token).then((res) => {
+        if (res.status === "ok") setMenuDeEnlace(res.menu);
+        else if (res.status === "gone") showToast("Ese enlace ya no vale");
+      });
       return;
     }
     // Del handle solo tenemos el texto: hay que resolverlo a una persona.
@@ -3926,6 +3966,35 @@ export default function App() {
     trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id, garnishId: resolvedGarnishId ?? undefined, sauceId: resolvedSauceId ?? undefined });
   }, [data.members, user]);
 
+  // Un enlace del bot a una pantalla concreta (`?ir=`, ver lib/destinoBot.js).
+  // Se aplica una vez y cuando ya está la casa: con cuenta, cuando la nube ha
+  // llegado (antes el menú estaría vacío); sin cuenta, cuando hay familia.
+  const [destinoBot, setDestinoBot] = useState(() => leerDestino());
+  // Con qué vista y día abre el menú al llegar desde el bot. Solo lo lee el
+  // `useState` inicial de MenuScreen, así que no hace falta limpiarlo.
+  const [menuInicio, setMenuInicio] = useState(null);
+  // Lo mismo para el recetario: en qué carpeta abre.
+  const [recetasInicio, setRecetasInicio] = useState(null);
+  useEffect(() => {
+    if (!destinoBot || authLoading) return;
+    const lista = user ? nubeLista : (data.members?.length ?? 0) > 0;
+    if (!lista) return;
+    const d = destinoBot;
+    setDestinoBot(null);
+    olvidarDestino();
+    if (d.pantalla === "receta") {
+      const receta = recipeCatalogById[d.id];
+      if (!receta) { showToast("No encuentro esa receta"); return; }
+      // La ficha se pinta encima de cualquier pantalla, pero no del splash.
+      if (screen === "splash") setScreen("dashboard");
+      handleOpenCatalogRecipe(receta);
+      return;
+    }
+    if (d.pantalla === "menu") setMenuInicio({ vista: d.vista, dia: d.dia ?? null, clave: Date.now() });
+    if (d.pantalla === "recipes") setRecetasInicio({ categoria: d.categoria ?? null, mias: Boolean(d.mias), clave: Date.now() });
+    fwd(() => setScreen(d.pantalla));
+  }, [destinoBot, authLoading, user, nubeLista, data.members, screen, handleOpenCatalogRecipe, showToast]);
+
   /**
    * Copiar una receta de Gente a mi biblioteca. Es una INSTANTÁNEA: nace con
    * id nuevo y dueño nuevo, y no vuelve a mirar al original — si el autor la
@@ -3989,6 +4058,66 @@ export default function App() {
   }, [handleOpenCatalogRecipe]);
 
   /**
+   * Quien llega por un enlace compartido (/r/<id>?t=<llave>). Las del
+   * catálogo se abren en local; las de gente pasan por recipe_from_link, que
+   * decide en el servidor si se ve entera, si está cerrada, o si no está.
+   *
+   * "Cerrada" no es un callejón: se abre el perfil de quien la subió, que ya
+   * tiene el botón de conectar. Cuando acepte, el mismo enlace abre la ficha.
+   */
+  const openLinkedRecipe = useCallback(async (id, token = null) => {
+    if (!id) return;
+    if (recipeCatalogById[id]) {
+      handleOpenCatalogRecipe(recipeCatalogById[id]);
+      return;
+    }
+    const res = await loadRecipeFromLink(id, token);
+    if (res.status === "ok") {
+      handleOpenCatalogRecipe(res.recipe);
+      return;
+    }
+    if (res.status === "locked") {
+      const owner = res.preview.owner ?? {};
+      const who = owner.username ? `@${owner.username}` : (owner.display_name || "alguien");
+      showToast(`«${res.preview.name}» es de ${who}. Conéctate para verla`);
+      if (owner.user_id) {
+        setDeepLinkPerson(owner.user_id);
+        setScreen("feed");
+      }
+      return;
+    }
+    showToast(res.status === "error" ? "No se ha podido abrir la receta" : "Esa receta ya no está disponible");
+  }, [handleOpenCatalogRecipe, showToast]);
+
+  /**
+   * Compartir la ficha abierta fuera de la app. Si la receta es mía, el
+   * enlace lleva llave: quien lo reciba la ve sin cuenta y sin conectar. Si
+   * es del catálogo o de otra persona, va sin llave y abre lo que esa persona
+   * ya pudiera ver.
+   */
+  const handleShareRecipe = useCallback(async (recipe) => {
+    if (!recipe?.id) return;
+    const id = String(recipe.baseRecipeId ?? recipe.id).split("__").pop();
+    let token = null;
+    // En un hogar ajeno `data.userRecipes` son las del propietario, no las
+    // mías: ahí no hay llave que pedir, y el enlace va como el de cualquier
+    // receta de otra persona.
+    const mine = !householdReadOnly && id.startsWith("user_") && (data.userRecipes ?? []).some((r) => r.id === id);
+    if (mine) {
+      if (!user?.id) { showToast("Inicia sesión para compartir tus recetas"); return; }
+      token = await createRecipeShareToken(id);
+      if (!token) { showToast("No se ha podido crear el enlace"); return; }
+    }
+    const res = await shareOut({
+      kind: "recipe", value: id, token,
+      title: recipe.name,
+      text: `Mira esta receta en HoMenu: ${recipe.name}`,
+    });
+    if (res === "copied") showToast("Enlace copiado");
+    else if (res === "error") showToast("No se ha podido compartir");
+  }, [householdReadOnly, data.userRecipes, user, showToast]);
+
+  /**
    * Publicar el menú activo en Gente.
    *
    * Lo que se manda NO es el menú: es la proyección que construye
@@ -3999,8 +4128,8 @@ export default function App() {
    * Y es una instantánea: seguir editando tu semana no cambia lo publicado
    * hasta que vuelvas a darle a compartir.
    */
-  const handlePublishMenu = useCallback(async (scope = "week", visibility = "followers") => {
-    if (!user?.id) { showToast("Inicia sesión para compartir tu menú"); return false; }
+  const handlePublishMenu = useCallback(async (scope = "week", visibility = "followers", { silencioso = false } = {}) => {
+    if (!user?.id) { showToast("Inicia sesión para compartir tu menú"); return null; }
     const menuId = data.activeMenuId ?? "actual";
     const { dates, activeDays } = getWeekDatesByMenuWeek({
       offset: data.menuWeek?.offset ?? 0,
@@ -4046,7 +4175,7 @@ export default function App() {
     const days = payload.weeks?.[0]?.days ?? [];
     if (days.length === 0) {
       showToast(scope === "today" ? "Hoy no hay nada planificado que compartir" : "Genera un menú antes de compartirlo");
-      return false;
+      return null;
     }
 
     const saved = await publishMenu(user.id, {
@@ -4057,11 +4186,46 @@ export default function App() {
       payload,
       visibility,
     });
-    if (!saved) { showToast("No se pudo compartir el menú"); return false; }
+    if (!saved) { showToast("No se pudo compartir el menú"); return null; }
     setPublishedMenus((prev) => ({ ...prev, [menuId]: saved }));
-    showToast("Menú publicado en Gente");
-    return true;
+    // El enlace usa esto mismo para guardar la foto, y ahí «publicado en
+    // Gente» sería mentira: no ha ido al feed, se ha guardado en privado.
+    if (!silencioso) showToast("Menú publicado en Gente");
+    return saved;
   }, [user, data, menuPlan, showToast]);
+
+  /**
+   * Mandar la SEMANA por un enlace.
+   *
+   * Un enlace por plato serían catorce en un mensaje, y WhatsApp solo
+   * previsualiza el primero. Este trae la semana entera, se ve bien, y desde
+   * dentro cada plato ya es tocable.
+   *
+   * Dos pasos, y el primero no es publicar: se guarda la foto en
+   * `shared_menus` —la misma que usa Gente— pero en `private`, porque mandar
+   * un enlace y ponerlo en el feed son dos actos distintos (ver 0056). Si el
+   * menú YA estaba publicado, se respeta su visibilidad: compartir por enlace
+   * no puede retirar del feed lo que ya habías puesto.
+   */
+  const handleShareMenuLink = useCallback(async () => {
+    if (!user?.id) { showToast("Inicia sesión para compartir tu menú"); return; }
+    const menuId = data.activeMenuId ?? "actual";
+    const yaPublicado = publishedMenus[menuId];
+    const guardado = await handlePublishMenu("week", yaPublicado?.visibility ?? "private", { silencioso: true });
+    if (!guardado) return;
+
+    const llave = await createMenuShareToken(menuId);
+    if (!llave) { showToast("No se ha podido crear el enlace"); return; }
+
+    const res = await shareOut({
+      kind: "menu", value: llave.id, token: llave.token,
+      title: "Nuestra semana",
+      text: "Mira lo que comemos esta semana",
+    });
+    if (res === "copied") showToast("Enlace copiado");
+    else if (res === "error") showToast("No se ha podido compartir");
+    else if (res === "shared") trackEvent(user, "menu_link_compartido", "menu", {});
+  }, [user, data.activeMenuId, publishedMenus, handlePublishMenu, showToast]);
 
   const handleUnpublishMenu = useCallback(async () => {
     const menuId = data.activeMenuId ?? "actual";
@@ -4467,32 +4631,11 @@ export default function App() {
    * tuyo: el plato de otra persona no esta en tu plan, asi que no hay origen
    * de donde copiarlo.
    */
-  /**
-   * Las preferencias de ESTA pizarra: cuánto tiempo tienes el domingo y qué
-   * quiere tener en cuenta el relleno.
-   *
-   * Viven en el menú y no en la casa a propósito. El tiempo del domingo es lo
-   * que más cambia de una semana a otra —un fin de semana tienes tres horas y
-   * el siguiente estás fuera—, así que guardarlo en el perfil haría que la
-   * prisa de un domingo se heredara para siempre.
-   */
-  // Con `?? {}` suelto, el literal es nuevo en cada render y arrastra consigo
-  // a `handleFillSlots`, que lo tiene en sus dependencias.
-  const prefsPizarra = useMemo(
-    () => data.menus?.[data.activeMenuId]?.pizarra ?? {},
-    [data.menus, data.activeMenuId],
-  );
-  const setPrefsPizarra = useCallback((patch) => {
-    setData((d) => {
-      const id = d.activeMenuId;
-      const menu = d.menus?.[id];
-      if (!menu) return d;
-      return {
-        ...d,
-        menus: { ...d.menus, [id]: { ...menu, pizarra: { ...(menu.pizarra ?? {}), ...patch } } },
-      };
-    });
-  }, []);
+  // Aquí hubo un `menu.pizarra` con las preferencias de la semana (tiempo del
+  // domingo, usar despensa, agrupar). Se ha ido entero: el tiempo lo manda
+  // `data.tandaMinutos` —donde escribe el deslizador del batch cooking— y las
+  // otras dos ya no se preguntan porque no eran preguntas. Un campo guardado
+  // que nadie lee es peor que no tenerlo.
 
   // La despensa, cargada para la pizarra. `pantryEpoch` la refresca cuando algo
   // la toca por otro lado (cocinar un plato, un ticket, el barrido del día).
@@ -4570,19 +4713,20 @@ export default function App() {
    */
   const handleFillSlots = useCallback(async (ambito) => {
     if (householdReadOnly) return;
-    const { usarDespensa = false, agrupar = false } = prefsPizarra;
-    const despensa = usarDespensa ? despensaPizarra : [];
+    // Las dos preferencias eran dos interruptores en la pizarra y ya no lo
+    // son, porque ninguna de las dos era una pregunta de verdad: nadie apunta
+    // lo que tiene en casa para pedir luego que no se use, y nadie abre la
+    // baldosa de batch cooking para pedir que los platos NO compartan olla.
+    const despensa = despensaPizarra;
     // Las bases que ya vas a cocinar. Preferir un plato que comparta una de
     // estas es lo que convierte siete platos en tres ollas.
     const basesPuestas = new Set();
-    if (agrupar) {
-      for (const gid of Object.keys(menuPlan)) {
-        if (gid === "_warnings") continue;
-        for (const s of Object.values(menuPlan[gid] ?? {})) {
-          for (const rid of [s?.recipeId, s?.firstRecipeId]) {
-            const receta = rid ? recipeCatalogById[String(rid).split("__").pop()] : null;
-            if (receta) for (const b of basesDeReceta(receta)) basesPuestas.add(b.id);
-          }
+    for (const gid of Object.keys(menuPlan)) {
+      if (gid === "_warnings") continue;
+      for (const s of Object.values(menuPlan[gid] ?? {})) {
+        for (const rid of [s?.recipeId, s?.firstRecipeId]) {
+          const receta = rid ? recipeCatalogById[String(rid).split("__").pop()] : null;
+          if (receta) for (const b of basesDeReceta(receta)) basesPuestas.add(b.id);
         }
       }
     }
@@ -4598,14 +4742,23 @@ export default function App() {
       for (const k of Object.keys(menuPlan[gid] ?? {})) trabajo[gid][k] = { ...menuPlan[gid][k] };
     }
 
+    // Una lista explícita de huecos —la que deja la multi-selección— manda
+    // sobre los filtros sueltos: cuando vienes de marcar cinco a dedo, no hay
+    // un día ni una franja que los describa, son esos cinco y ningún otro.
+    const marcados = Array.isArray(ambito?.huecos) && ambito.huecos.length > 0
+      ? new Set(ambito.huecos.map((h) => `${h.groupId}|${h.day}-${h.meal}|${h.course ?? "main"}`))
+      : null;
+
     const nuevas = [];
     let puestos = 0;
     for (const gid of Object.keys(trabajo)) {
       for (const key of Object.keys(trabajo[gid])) {
         const [day, meal] = [key.slice(0, key.indexOf("-")), key.slice(key.indexOf("-") + 1)];
-        if (ambito?.day && ambito.day !== day) continue;
-        if (ambito?.groupId && ambito.groupId !== gid) continue;
-        if (ambito?.meal && ambito.meal !== meal) continue;
+        if (!marcados) {
+          if (ambito?.day && ambito.day !== day) continue;
+          if (ambito?.groupId && ambito.groupId !== gid) continue;
+          if (ambito?.meal && ambito.meal !== meal) continue;
+        }
         const slot = trabajo[gid][key];
         if (!slot) continue;
 
@@ -4614,29 +4767,31 @@ export default function App() {
         const cursos = [];
         if (slot.dosPlatos && !slot.firstRecipeId) cursos.push("first");
         if (!slot.recipeId) cursos.push("main");
-        if (ambito?.course) {
+        if (ambito?.course && !marcados) {
           if (!cursos.includes(ambito.course)) continue;
           cursos.length = 0;
           cursos.push(ambito.course);
         }
+        if (marcados) {
+          const solo = cursos.filter((c) => marcados.has(`${gid}|${key}|${c}`));
+          if (solo.length === 0) continue;
+          cursos.length = 0;
+          cursos.push(...solo);
+        }
 
         for (const course of cursos) {
-          // Con preferencias no se coge el sorteo: se piden los candidatos que
-          // ese hueco admite —el mismo pool de siempre, ya filtrado— y se elige
-          // el mejor. Sin preferencias, el camino de antes, que sortea.
-          let r;
-          if (usarDespensa || agrupar) {
-            const lista = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, candidatos: 25 });
-            const mejor = mejorCandidato(lista?.candidatos ?? [], { usarDespensa, agrupar, despensa, basesPuestas });
-            r = mejor
-              ? pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, forcedRecipe: mejor })
-              : pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
-            // Lo colocado cuenta para el siguiente hueco: si acabas de meter
-            // una base, la de al lado ya prefiere compartirla.
-            if (mejor) for (const b of basesDeReceta(mejor)) basesPuestas.add(b.id);
-          } else {
-            r = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
-          }
+          // No se coge el sorteo: se piden los candidatos que ese hueco admite
+          // —el mismo pool de siempre, ya filtrado— y se elige el mejor. Si
+          // ninguno puntúa (despensa vacía y sin bases puestas), `mejorCandidato`
+          // devuelve null y se cae al sorteo de antes.
+          const lista = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, candidatos: 25 });
+          const mejor = mejorCandidato(lista?.candidatos ?? [], { despensa, basesPuestas });
+          const r = mejor
+            ? pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, forcedRecipe: mejor })
+            : pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
+          // Lo colocado cuenta para el siguiente hueco: si acabas de meter una
+          // base, la de al lado ya prefiere compartirla.
+          if (mejor) for (const b of basesDeReceta(mejor)) basesPuestas.add(b.id);
           if (!r) continue;
           nuevas.push(r.frontendRecipe);
           trabajo[gid][key] = {
@@ -4662,9 +4817,90 @@ export default function App() {
       applyShoppingFor(trabajo, groups, pantryIngredients);
       return trabajo;
     });
+    // Un solo hueco no se reparte: la carta cae sola y el resto del tablero
+    // parpadearía sin motivo. A partir de dos, sí.
+    if (puestos > 1) setRepartoKey((k) => k + 1);
     showToast(puestos === 1 ? "Hueco rellenado" : `${puestos} huecos rellenados`);
-    trackEvent(user, "pizarra_autorelleno", "menu", { puestos, ambito: ambito?.day ? "dia" : ambito?.meal ? "hueco" : "semana" });
-  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor, prefsPizarra, despensaPizarra]);
+    trackEvent(user, "pizarra_autorelleno", "menu", { puestos, ambito: marcados ? "seleccion" : ambito?.day ? "dia" : ambito?.meal ? "hueco" : "semana" });
+  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor, despensaPizarra]);
+
+  /**
+   * La burbuja de la pizarra: una frase → cambios en el tablero.
+   *
+   * El modelo solo traduce la frase a operaciones (ver lib/pizarraIA.js); las
+   * recetas salen de `pickCatalogReplacement`, como en cualquier toque a mano.
+   * Devuelve lo que la burbuja enseña, y guarda el plan de antes para que
+   * "Deshacer" lo devuelva entero de un toque.
+   */
+  const deshacerPizarra = useRef(null);
+
+  /**
+   * El Batch Cooking de la semana, deducido de los platos puestos (ver
+   * `tandaDelMenu`). La ficha de un plato lo usa para preguntar solo por lo
+   * que de verdad se deja hecho, sin que nadie lo haya pedido con deslizadores.
+   */
+  const tandaSemana = useMemo(() => {
+    const plan = {};
+    for (const [gid, slots] of Object.entries(menuPlan ?? {})) if (gid !== "_warnings") plan[gid] = slots;
+    const recetas = new Map(Object.entries(RECIPES_BY_ID));
+    for (const [id, r] of Object.entries(recipeCatalogById)) recetas.set(id, r);
+    return tandaDelMenu(plan, recetas, { dias: DAYS, comidas: getDayMeals(data) }).claves;
+  }, [menuPlan, data]);
+  const handleOrdenPizarra = useCallback(async (frase) => {
+    if (householdReadOnly) return { reply: "Solo lectura: no puedes editar el menú", hechos: 0, noHechos: [] };
+    const { contextoDelTablero, interpretarOrden, validarOrden, aplicarOrden } = await import("./lib/pizarraIA.js");
+    const groups = data.groups.length > 0
+      ? data.groups
+      : groupsFromModel(data.members, data.menuModel);
+    const plan = menuPlan ?? {};
+    // Los días y comidas que el tablero tiene de verdad, no los de la casa:
+    // el modelo solo puede señalar huecos que existen.
+    const claves = new Set();
+    for (const g of groups) for (const k of Object.keys(plan[g.id] ?? {})) claves.add(k);
+    const dias = DAYS.filter((d) => [...claves].some((k) => k.startsWith(`${d}-`)));
+    const comidas = getDayMeals(data).filter((m) => [...claves].some((k) => k.endsWith(`-${m}`)));
+    const principal = groups.find((g) => plan[g.id]) ?? groups[0];
+    const nombreDe = (id) => RECIPES_BY_ID[id]?.name ?? recipeCatalogById[String(id).split("__").pop()]?.name ?? "plato";
+    const contexto = contextoDelTablero({ plan: plan[principal?.id] ?? {}, dias, comidas, nombreDe });
+
+    const crudo = await interpretarOrden(frase, contexto);
+    const { reply, ops } = validarOrden(crudo, { dias, comidas });
+    if (ops.length === 0) {
+      return { reply: reply || "No he sabido qué cambiar. Prueba con «pon lentejas el lunes» o «algo rápido el miércoles».", hechos: 0, noHechos: [] };
+    }
+
+    const { trabajo, nuevas, hechos, noHechos, tocados } = aplicarOrden(ops, {
+      data: { ...data, groups }, plan, dias, comidas, pick: pickCatalogReplacement,
+    });
+    if (hechos === 0) return { reply: noHechos[0] ?? "No he podido cambiar nada", hechos, noHechos: noHechos.slice(1) };
+
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    deshacerPizarra.current = { plan, groups, pantryIngredients };
+    if (nuevas.length) {
+      registerRecipes(nuevas);
+      setAiRecipes((cur) => {
+        const byId = new Map(cur.map((r) => [r.id, r]));
+        for (const r of nuevas) byId.set(r.id, r);
+        return Array.from(byId.values());
+      });
+    }
+    setMenuPlan(() => {
+      applyShoppingFor(trabajo, groups, pantryIngredients);
+      return trabajo;
+    });
+    trackEvent(user, "pizarra_burbuja", "menu", { ops: ops.length, hechos, fallos: noHechos.length });
+    return { reply, hechos, noHechos, tocados };
+  }, [data, menuPlan, user, householdReadOnly, applyShoppingFor]);
+
+  const handleDeshacerPizarra = useCallback(() => {
+    const antes = deshacerPizarra.current;
+    if (!antes) return;
+    deshacerPizarra.current = null;
+    setMenuPlan(() => {
+      applyShoppingFor(antes.plan, antes.groups, antes.pantryIngredients);
+      return antes.plan;
+    });
+  }, [applyShoppingFor]);
 
   /**
    * Soltar un plato en otro hueco (arrastre de la pizarra).
@@ -4900,6 +5136,41 @@ export default function App() {
    * La compra se reconstruye al vuelo porque es justo lo que cambia: los
    * ingredientes de ese plato dejan de hacer falta.
    */
+  /**
+   * Vaciar la pizarra: fuera los platos, los HUECOS se quedan.
+   *
+   * Es lo contrario de «nueva pizarra». Aquí no se toca la forma del tablero
+   * —los días que elegiste, las franjas que abriste— solo lo que hay dentro:
+   * te quedas con el mismo tablero por rellenar. Borrar también los huecos
+   * sería tirar la decisión que acabas de tomar en la hoja de arranque, y para
+   * eso ya está empezar otra.
+   */
+  const handleVaciarPizarra = useCallback(async () => {
+    if (householdReadOnly) return;
+    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id, syncHouseholdId) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const next = { ...plan };
+      let tocados = 0;
+      for (const gid of Object.keys(plan)) {
+        if (gid === "_warnings") continue;
+        const slots = plan[gid];
+        if (!slots) continue;
+        const copia = {};
+        for (const [key, slot] of Object.entries(slots)) {
+          if (!slot || (!slot.recipeId && !slot.firstRecipeId)) { copia[key] = slot; continue; }
+          copia[key] = { ...slot, recipeId: null, firstRecipeId: null, warnings: [], cleared: true };
+          tocados++;
+        }
+        next[gid] = copia;
+      }
+      if (tocados === 0) return plan;
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    showToast("Pizarra vaciada");
+  }, [data, householdReadOnly, user, syncHouseholdId, showToast, applyShoppingFor]);
+
   const handleClearSlot = useCallback(async (sel) => {
     if (householdReadOnly || !sel) return;
     const { groupId, day, meal, course } = sel;
@@ -4990,14 +5261,13 @@ export default function App() {
     // comensales y sus intolerancias, así que cada uno necesita su propia
     // receta escalada y adaptada (y su prefijo de grupo, que es lo que impide
     // que dos menús compartan por error la misma ficha).
-    const destinos = Array.isArray(slotPicker.groupIds) && slotPicker.groupIds.length > 0
-      ? slotPicker.groupIds
-      : [groupId];
+    const destinos = (Array.isArray(slotPicker.groupIds) && slotPicker.groupIds.length > 0 ? slotPicker.groupIds : [groupId])
+      .map((gid) => ({ gid, day, meal, course: placeCourse }));
 
     const colocados = [];
-    for (const gid of destinos) {
-      const r = pickCatalogReplacement(data, menuPlan, { groupId: gid, day, meal, course: placeCourse, forcedRecipe: catalogRecipe });
-      if (r) colocados.push({ gid, ...r });
+    for (const d of destinos) {
+      const r = pickCatalogReplacement(data, menuPlan, { groupId: d.gid, day: d.day, meal: d.meal, course: d.course, forcedRecipe: catalogRecipe });
+      if (r) colocados.push({ ...d, ...r });
     }
     if (colocados.length === 0) { showToast("No se pudo colocar esa receta aquí"); setSlotPicker(null); return; }
     const frontendRecipe = colocados[0].frontendRecipe;
@@ -5023,15 +5293,18 @@ export default function App() {
     const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
     const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
     setMenuPlan((plan) => {
-      const key = `${day}-${meal}`;
       const next = { ...plan };
+      // Cada destino escribe en SU casilla: con una selección de varios huecos
+      // no comparten ni día ni franja, así que la clave no se puede calcular
+      // una vez fuera del bucle.
       for (const c of colocados) {
-        const prevSlot = plan[c.gid]?.[key] ?? {};
+        const key = `${c.day}-${c.meal}`;
+        const prevSlot = next[c.gid]?.[key] ?? plan[c.gid]?.[key] ?? {};
         next[c.gid] = {
           ...(next[c.gid] ?? {}),
           [key]: {
             ...prevSlot,
-            ...(placeCourse === "first" ? { firstRecipeId: c.recipeId } : { recipeId: c.recipeId }),
+            ...(c.course === "first" ? { firstRecipeId: c.recipeId } : { recipeId: c.recipeId }),
             // Plato único merges the two courses into one → drop the primero.
             ...(kind === "plato_unico" ? { firstRecipeId: null } : null),
             cleared: false,
@@ -5360,7 +5633,11 @@ export default function App() {
       // En el alta, avatares encadena con alergias: los dos son perfil (se
       // rellenan una vez), no asistente de menú. El alta termina en el paso
       // siguiente, no aquí.
-      onNext={nextOf(1)}
+      onNext={
+        firstRunOnboarding
+          ? () => { trackEvent(user, EMBUDO.FAMILIA, PANTALLA_EMBUDO, { canal: "app", miembros: data.members.length }); nextOf(1)?.(); }
+          : nextOf(1)
+      }
       onBack={backOf(1)}
       onFinish={firstRunOnboarding ? undefined : () => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
@@ -5368,14 +5645,24 @@ export default function App() {
     <OnboardingRestrictions
       data={data}
       setData={setData}
-      // Fin del alta: perfil listo (quién come + qué evitáis) y a Home. Modo y
-      // el resto del asistente se preguntan la primera vez que generes un
-      // menú, ya con esto relleno.
+      // Fin del alta: perfil listo (quién come + qué evitáis) y directo al
+      // menú, no a Inicio — lo primero que ves tras contarnos quiénes sois es
+      // vuestra semana. Genera con los valores por defecto, igual que «Genera
+      // el menú ya» del selector; el resto del asistente queda para afinar
+      // después, con el menú delante.
       onNext={
         editPreferencesOrigin
           ? undefined
           : firstRunOnboarding
-            ? () => { setFirstRunOnboarding(false); goToDashboard(); }
+            ? () => {
+                trackEvent(user, EMBUDO.ALERGIAS, PANTALLA_EMBUDO, {
+                  canal: "app",
+                  conAlergias: data.members.some((m) => m.allergies?.length > 0),
+                });
+                trackEvent(user, EMBUDO.CIMIENTOS, PANTALLA_EMBUDO, { canal: "app" });
+                setFirstRunOnboarding(false);
+                fwd(goToMenu);
+              }
             : nextOf(2)
       }
       onBack={
@@ -5539,8 +5826,11 @@ export default function App() {
         background: "#fff",
         fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
         position: "relative",
-        overflowX: "hidden",
+        // El recorte horizontal vive en `.mp-shell` (index.css) y no aquí: con
+        // `overflow-x: hidden` el shell se vuelve contenedor de scroll y rompe
+        // todos los `position: sticky` de dentro.
       }}
+      className="mp-shell"
     >
       <style>{`
         @keyframes slideFromRight {
@@ -5571,10 +5861,11 @@ export default function App() {
                 // come en casa?" and land straight on Home. Force onbStep
                 // back to 0 too — it may still be pointing at a later step
                 // left over from a previous (abandoned) attempt.
+                trackEvent(user, EMBUDO.ARRANQUE, PANTALLA_EMBUDO, { canal: "app" });
                 setFirstRunOnboarding(true);
                 setHomeCoachSeen(false); // spotlight siempre al llegar al dashboard tras el tutorial
                 setOnbStep(1);
-                setScreen(!FORCE_VALUE_PROPS && valuePropsSeen ? "onboarding" : "valueProps");
+                setScreen(FORCE_VALUE_PROPS || (GUIAS_ACTIVAS && !valuePropsSeen) ? "valueProps" : "onboarding");
               })
             }
             hasSaved={FORCE_VALUE_PROPS ? false : data.members.length > 0}
@@ -5615,10 +5906,14 @@ export default function App() {
 
         {screen === "menu" && (
           <div
-            key="menu"
+            // Con la clave del destino del bot: si ya estabas en el menú, un
+            // enlace a otro día lo vuelve a montar para que abra en ese día.
+            key={`menu-${menuInicio?.clave ?? 0}`}
             className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
           >
             <MenuScreen
+              initialDeckView={menuInicio?.vista}
+              initialDay={menuInicio?.dia}
               data={data}
               onPublishToFeed={householdReadOnly ? null : handlePublishMenu}
               onUnpublishFromFeed={handleUnpublishMenu}
@@ -5668,8 +5963,16 @@ export default function App() {
               // ajustar. Y la burbuja tampoco: el asistente entero sobra en un
               // menú que no genera nadie.
               wizardControls={esPizarra ? null : wizard.controls}
-              wizardBubble={esPizarra ? null : wizard.bubble}
+              wizardBubble={esPizarra
+                ? (!householdReadOnly && (
+                  <Suspense fallback={null}>
+                    <PizarraBurbuja onOrden={handleOrdenPizarra} onDeshacer={handleDeshacerPizarra} />
+                  </Suspense>
+                ))
+                : wizard.bubble}
               modoPizarra={esPizarra}
+              temaPizarra={esPizarra ? temaPizarra : "claro"}
+              repartoKey={esPizarra ? repartoKey : 0}
               onAddSlot={esPizarra ? setAddSlotDay : null}
               onRemoveSlot={esPizarra ? handleRemoveSlot : null}
               onSlotDrag={esPizarra ? handleSlotDrag : null}
@@ -5678,7 +5981,7 @@ export default function App() {
               // dentro de MenuScreen para que esa pantalla siga sin saber que
               // la pizarra existe: recibe nodos, no modos.
               pizarraControles={
-                esPizarra && !householdReadOnly ? (
+                esPizarra && !householdReadOnly && !pizarraArrancando ? (
                   <Suspense fallback={null}>
                     <PizarraControles
                       data={data}
@@ -5691,8 +5994,13 @@ export default function App() {
                       onAddDespensa={handleAddDespensa}
                       onQuitarDespensa={handleQuitarDespensa}
                       onQtyDespensa={handleQtyDespensa}
-                      prefs={prefsPizarra}
-                      onPrefs={setPrefsPizarra}
+                      onNuevaPizarra={() => handleStartPizarra()}
+                      onVaciar={handleVaciarPizarra}
+                      onFavorito={householdReadOnly ? undefined : toggleActiveFavorite}
+                      esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
+                      tema={temaPizarra}
+                      onTema={alternarTemaPizarra}
+                      onCompartir={householdReadOnly ? undefined : handleShareMenuLink}
                     />
                   </Suspense>
                 ) : null
@@ -5701,7 +6009,54 @@ export default function App() {
           </div>
         )}
 
+        {/* La semana que ha llegado por un enlace. Se mira con el MISMO visor
+            que las del feed: quien te la manda por WhatsApp y quien la publica
+            en Gente están enseñando lo mismo, y dos visores para eso serían
+            dos sitios donde arreglar la misma cosa.
+
+            Va por encima de todo y no dentro de una pantalla porque un enlace
+            se atiende al arrancar, cuando todavía no hay pantalla a la que
+            pertenecer. */}
+        {menuDeEnlace && (
+          <Suspense fallback={null}>
+            <MenuPeek
+              menu={{
+                id: menuDeEnlace.id,
+                title: menuDeEnlace.title,
+                payload: menuDeEnlace.payload,
+                week_start: menuDeEnlace.weekStart,
+                week_end: menuDeEnlace.weekEnd,
+                owner_id: null,
+              }}
+              user={user}
+              profile={menuDeEnlace.owner ? {
+                username: menuDeEnlace.owner.username,
+                display_name: menuDeEnlace.owner.displayName,
+                avatar_url: menuDeEnlace.owner.avatarUrl,
+              } : null}
+              onClose={() => setMenuDeEnlace(null)}
+              onOpenDish={(dish) => openLinkedRecipe(dish?.recipeId, null)}
+              myRecipeIds={(data.userRecipes ?? []).map((r) => r.id)}
+            />
+          </Suspense>
+        )}
+
+        {/* La hoja de arranque de la pizarra. Va aquí y no dentro de la
+            pantalla del menú porque tapa la pantalla entera: es un velo con
+            una hoja encima, no una pieza del tablero. */}
+        {screen === "menu" && esPizarra && pizarraArrancando && (
+          <Suspense fallback={null}>
+            <ArranqueDePizarra
+              data={data}
+              setData={setData}
+              onAplicar={aplicarCambioPizarra}
+              onEmpezar={() => setPizarraArrancando(false)}
+            />
+          </Suspense>
+        )}
+
         {screen === "menu" &&
+          (GUIAS_ACTIVAS || FORCE_TOUR) &&
           !menuCoachSeen &&
           !isGeneratingMenu &&
           !menuError &&
@@ -5877,7 +6232,7 @@ export default function App() {
           </div>
         )}
 
-        {screen === "dashboard" && !homeCoachSeen && (
+        {screen === "dashboard" && (GUIAS_ACTIVAS || FORCE_TOUR) && !homeCoachSeen && (
           <HomeCoachTour onClose={markHomeCoachSeen} />
         )}
 
@@ -5885,11 +6240,15 @@ export default function App() {
 
         {screen === "recipes" && (
           <div
-            key="recipes"
+            // Con la clave del destino del bot, como el menú: si ya estabas en
+            // Recetas, un enlace a otra carpeta lo vuelve a montar en ella.
+            key={`recipes-${recetasInicio?.clave ?? 0}`}
             className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
           >
             <Suspense fallback={null}>
               <RecipesScreen
+                initialCategory={recetasInicio?.categoria ?? null}
+                initialMine={Boolean(recetasInicio?.mias)}
                 user={user}
                 userRecipes={ownUserRecipes}
                 recipeVotes={data.recipeVotes}
@@ -5965,11 +6324,11 @@ export default function App() {
           </div>
         )}
 
-        {screen === "recipes" && !recipesCoachSeen && (
+        {screen === "recipes" && (GUIAS_ACTIVAS || FORCE_TOUR) && !recipesCoachSeen && (
           <RecipesCoachTour onClose={markRecipesCoachSeen} />
         )}
 
-        {screen === "feed" && !feedCoachSeen && (
+        {screen === "feed" && (GUIAS_ACTIVAS || FORCE_TOUR) && !feedCoachSeen && (
           <FeedCoachTour onClose={markFeedCoachSeen} />
         )}
 
@@ -6026,7 +6385,7 @@ export default function App() {
                 onAdvanceSetup={advanceSetupStatus}
                 onSignIn={signInWithGoogle}
                 onToast={showToast}
-                showCoach={Boolean(user) && !householdsCoachSeen}
+                showCoach={(GUIAS_ACTIVAS || FORCE_TOUR) && Boolean(user) && !householdsCoachSeen}
                 onCoachClose={markHouseholdsCoachSeen}
               />
             </Suspense>
@@ -6207,6 +6566,7 @@ export default function App() {
           allMembers={data.members}
           kitchenTools={data.kitchenTools ?? []}
           browse={Boolean(selectedSlot.browse)}
+          tandaSemana={selectedSlot.browse || !selectedSlot.day ? null : tandaSemana}
           initialCourse={selectedSlot.initialCourse ?? "principal"}
           initialAppliance={
             selectedSlot.initialAppliance
@@ -6249,6 +6609,7 @@ export default function App() {
                   )
           }
           onUpdateUserRecipe={householdReadOnly ? undefined : handleUpdateUserRecipe}
+          onShare={handleShareRecipe}
           readOnly={householdReadOnly && !selectedSlot.browse}
         />
         );
@@ -6275,6 +6636,7 @@ export default function App() {
           recipeVotes={data.recipeVotes ?? {}}
           extraRecipes={ownUserRecipes}
           sugerencias={sugerenciasDelHueco}
+          contextoHueco={contextoDelHueco}
           onPickSugerencia={(id) => { if (id) handleChooseRecipeForSlot(id); }}
         />
       )}
@@ -6694,6 +7056,8 @@ export default function App() {
       )}
 
       {/* FeedbackFAB hidden */}
+
+      <BotEnlace showToast={showToast} />
 
       {toast && (
         <div

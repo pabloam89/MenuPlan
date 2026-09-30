@@ -1,6 +1,5 @@
 {
   "_": "Qué ficha de USDA SR Legacy corresponde a cada ingrediente, para los huecos que ni BEDCA ni CIQUAL cierran. Mismo contrato que las otras dos: motivo obligatorio, `foodId: null` es la decisión explícita de que ninguna ficha sirve, y las claves son ids de ingrediente reales. — POR QUÉ UNA TERCERA TABLA. Dos huecos que las otras no cubren. EL DESPIECE: CIQUAL es francesa y no corta donde corta una carnicería española, así que no tiene morcillo, ni jarrete, ni entraña, ni oreja de cerdo; el despiece americano sí coincide. Y EL AZÚCAR: BEDCA lo publica en 42 de sus 198 fichas (21 %) y por eso el azúcar de las recetas se sostiene hoy sobre la mitad del plato; USDA lo trae en el 77 %. — EL COSTE, que el fichero de CIQUAL ya nombra: mezclar tablas de composición tiene un precio pequeño pero real, y con tres es mayor. Lo que lo hace asumible es que cada fila diga de dónde viene: una fila, una ficha, nunca campos de dos sitios.",
-
   "alga-nori": {
     "foodId": "168458",
     "confianza": 0.9,
@@ -175,7 +174,6 @@
     "motivo": "«Lard», 902 kcal. El unto gallego es manteca de cerdo curada, y una manteca es grasa pura. La ficha se encontró solo después de arreglar el buscador: con coincidencia por subcadena, «Lard» devolvía «Col-LARD-s» —berza— con puntuación perfecta.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "ajete": {
     "foodId": "170005",
     "confianza": 0.65,
@@ -200,13 +198,6 @@
     "motivo": "«Alcoholic beverage, liqueur, coffee, 63 proof», 308 kcal, como PROXY declarado. USDA no tiene licor de naranja. Un licor dulce a graduación parecida ronda lo mismo, porque su energía es etanol más azúcar, y el Cointreau está en 40 grados igual que este. Confianza baja: el sabor es otro y el azúcar puede variar.",
     "modelo": "decision-humana-2026-09-21"
   },
-  "ravioli": {
-    "foodId": "169727",
-    "confianza": 0.6,
-    "motivo": "«Pasta, fresh-refrigerated, plain, as purchased», 288 kcal, como PROXY declarado. El ingrediente son tortellini RELLENOS de carne y esta ficha es pasta fresca sin relleno. Se acepta porque la masa es la mayor parte del peso, y se deja la confianza baja porque el relleno sube la grasa y la proteína.",
-    "modelo": "decision-humana-2026-09-21"
-  },
-
   "carne-de-cocido": {
     "foodId": null,
     "confianza": 0.85,
@@ -278,5 +269,11 @@
     "confianza": 0.9,
     "motivo": "Ninguna de las tres tablas publica la tinta. Se usa en sobres de 4 g y su aporte es color, no comida.",
     "modelo": "decision-humana-2026-09-21"
+  },
+  "vino-generoso": {
+    "foodId": "173176",
+    "confianza": 0.7,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "«Alcoholic beverage, wine, dessert, sweet», 160 kcal. Pedro Ximénez, Oporto, Jerez, oloroso y vino rancio colgaban de `vino-blanco` y cobraban sus 60 kcal: son vinos de 15-20° contra los 12° de un vino de mesa. Se usa UNA sola ficha para los cinco porque USDA separa el dulce (160) del seco (152) y entre ellos hay 8 kcal, que es ruido al lado de los 100 que se estaban perdiendo. NO se usa BEDCA —sus tres fichas de «Vino dulce, tipo oporto» (308, 1444, 2463) vienen VACÍAS— ni CIQUAL, que da 17 kcal a un vino blanco seco porque su energía no cuenta el etanol. Salvedad escrita: un Pedro Ximénez de verdad ronda los 350 kcal, así que sus 370 g siguen quedándose cortos; lo que se corrige es el orden de magnitud."
   }
 }

@@ -55,6 +55,7 @@ describe("server-owned system prompts", () => {
       "school-menu",
       "suggest-ingredients",
       "structure-recipe",
+      "pizarra",
     ];
     for (const task of tasksUsedByClient) {
       expect(Object.keys(SYSTEM_PROMPTS)).toContain(task);

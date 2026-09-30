@@ -3112,7 +3112,7 @@
     "ingredients": [
       {
         "name": "Vino Pedro Ximénez",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 200,
         "unit": "ml"
       },

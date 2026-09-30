@@ -27,7 +27,28 @@
  * desincronizarse del primero.
  */
 
-/** familia → [reino, clase]. Determinista, sin excepciones. */
+/**
+ * La clase, cuando la familia NO puede darla.
+ *
+ * `REINO_CLASE` decía «determinista, sin excepciones» y casi lo es: una
+ * familia fija la clase. Casi, porque `carne_caza` mezcla dos —el jabalí y el
+ * conejo son mamíferos y la perdiz es un ave— y la tabla por familia la
+ * clasificaba a las tres de mamífero.
+ *
+ * No es cosmético: la clase es de lo que cuelga el eje «apto vigilia», que se
+ * deriva de «no hay carne de mamífero ni ave». Una perdiz mal clasificada no
+ * rompe nada hoy porque ese eje aún no existe; el día que exista, la habría
+ * dejado pasar como pescado.
+ *
+ * La lista es CORTA a propósito. Una excepción por especie es barata; una
+ * segunda tabla completa que se desincronice de la primera no lo es.
+ */
+const CLASE_POR_ESPECIE = {
+  perdiz: "ave",
+  codorniz: "ave",
+};
+
+/** familia → [reino, clase]. Determinista salvo lo de arriba. */
 export const REINO_CLASE = {
   carne_ave: ["animal", "ave"],
   carne_roja: ["animal", "mamifero"],
@@ -165,9 +186,10 @@ export function deriveTaxonomia(derivado, nombreStems, lexico) {
   const rc = REINO_CLASE[familia];
   if (!rc) return null;
   const clavesDeLaFamilia = lexico.find(([f]) => f === familia)?.[1] ?? [];
+  const especie = especieDe(nombreStems, derivado.clave, clavesDeLaFamilia, familia, lexico);
   return {
     reino: rc[0],
-    clase: rc[1],
+    clase: CLASE_POR_ESPECIE[especie] ?? rc[1],
     subclase: familia,
     especie: especieDe(nombreStems, derivado.clave, clavesDeLaFamilia, familia, lexico),
     // La variedad (ibérico, arbóreo, virgen extra) se deja para cuando alguien

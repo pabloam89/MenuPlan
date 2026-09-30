@@ -209,7 +209,8 @@
     "basesAparte": [
       "sofrito"
     ],
-    "estrella": true
+    "estrella": true,
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_002",
@@ -427,7 +428,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_003",
@@ -633,7 +635,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "salsa_tomate"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_004",
@@ -662,8 +665,8 @@
     "season": "invierno",
     "ingredients": [
       {
-        "name": "Garbanzos",
-        "ingredientId": "garbanzos",
+        "name": "Garbanzos secos",
+        "ingredientId": "garbanzos-secos",
         "amount": 250,
         "unit": "g"
       },
@@ -867,7 +870,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_005",
@@ -1093,7 +1098,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_006",
@@ -1120,8 +1127,8 @@
     "season": "invierno",
     "ingredients": [
       {
-        "name": "Fabes",
-        "ingredientId": "fabes",
+        "name": "Fabes secas",
+        "ingredientId": "alubia-grande",
         "amount": 250,
         "unit": "g"
       },
@@ -1307,7 +1314,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_007",
@@ -1552,7 +1561,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_008",
@@ -1756,7 +1767,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_009",
@@ -1949,7 +1961,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_010",
@@ -1960,7 +1973,6 @@
       "primero"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 10,
     "difficulty": "facil",
     "kcal": 268,
@@ -2119,7 +2131,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_011",
@@ -2355,7 +2369,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_012",
@@ -2382,7 +2397,7 @@
     "ingredients": [
       {
         "name": "Lentejas cocidas",
-        "ingredientId": "lentejas",
+        "ingredientId": "lentejas-cocidas",
         "amount": 300,
         "unit": "g"
       },
@@ -2495,7 +2510,9 @@
     "montaje": true,
     "tecnica": "crudo",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_013",
@@ -2701,7 +2718,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_014",
@@ -2913,7 +2931,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_015",
@@ -3060,7 +3079,9 @@
     "baseMode": "aparte",
     "basesAparte": [
       "verdura_asada"
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_016",
@@ -3084,8 +3105,8 @@
     "season": "invierno",
     "ingredients": [
       {
-        "name": "Alubias blancas",
-        "ingredientId": "alubias",
+        "name": "Alubias blancas secas",
+        "ingredientId": "alubias-secas",
         "amount": 250,
         "unit": "g"
       },
@@ -3285,7 +3306,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_017",
@@ -3504,7 +3527,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_018",
@@ -3693,7 +3717,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_019",
@@ -3907,7 +3932,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_020",
@@ -3935,7 +3961,7 @@
     "ingredients": [
       {
         "name": "Lentejas pardinas cocidas",
-        "ingredientId": "lentejas",
+        "ingredientId": "lentejas-cocidas",
         "amount": 300,
         "unit": "g"
       },
@@ -4074,7 +4100,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_021",
@@ -4254,7 +4282,9 @@
     "baseMode": "aparte",
     "basesAparte": [
       "verdura_asada"
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_022",
@@ -4383,47 +4413,56 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} bajo el grifo con un colador.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Ajo}} y partir en trozos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Triturar los garbanzos escurridos con {{Tahini}}, {{Zumo de limón}}, el ajo, {{Comino molido}} y {{Sal|gusto}} hasta obtener una crema lisa.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Aceite de oliva|chorrito}} y triturar de nuevo hasta integrar. Añadir un chorrito de agua si la crema ha quedado muy espesa.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Pepino}} en rodajas finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Tostar {{Pan de pueblo}} en una tostadora o bajo el grill hasta que esté dorado y crujiente.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Untar cada tosta generosamente con el hummus.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir las láminas de pepino sobre el hummus.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con {{Sésamo tostado}} y un chorrito de aceite de oliva por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "montaje": true,
@@ -4432,7 +4471,9 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_023",
@@ -4628,7 +4669,9 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_024",
@@ -4828,7 +4871,9 @@
     "tecnica": "horno",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_025",
@@ -5012,93 +5057,111 @@
       {
         "text": "Lavar {{Lentejas pardinas}} bajo el grifo y escurrir.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar y picar {{Cebolla}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pimiento verde}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar y cortar {{Zanahoria}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Chorizo}} en rodajas.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el pimiento verde hasta que ablanden.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir la zanahoria y el chorizo y sofreír hasta que el chorizo suelte su color.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Pimentón dulce|pizca}} y {{Tomate triturado}} y remover durante 1 min.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir las lentejas pardinas y {{Laurel}} y cubrir con agua hasta 3 cm por encima.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Bajar el fuego, tapar y cocer hasta que las lentejas estén tiernas.",
         "minutes": 30,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Llevar agua a ebullición en un cazo a fuego suave y añadir {{Vinagre}}.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 12
+        "during": 12,
+        "part": "guarnicion"
       },
       {
         "text": "Remover el agua para crear un remolino y cascar {{Huevo}} de uno en uno en el centro.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Cocer cada huevo hasta que la clara esté cuajada y la yema aún líquida.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar los huevos con espumadera y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir las lentejas en platos hondos y coronar cada uno con un huevo poché.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -5110,7 +5173,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_026",
@@ -5222,52 +5287,62 @@
         "text": "Escurrir {{Garbanzos cocidos}} y enjuagarlos bajo el grifo.",
         "minutes": 1,
         "kind": "prep",
-        "base": "legumbre"
+        "base": "legumbre",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Remolacha cocida}} en dados.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Ajo}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Tostar {{Piñones}} en {{@Sartén}} sin aceite a fuego medio hasta que estén dorados, removiendo para que no se quemen.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar los piñones de la sartén y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Triturar los garbanzos, la remolacha, {{Tahini}}, {{Zumo de limón}}, el ajo y {{Comino molido}} hasta obtener una crema fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Aceite de oliva|chorrito}} poco a poco sin dejar de triturar hasta ligar la crema.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Sal|gusto}} y triturar un instante más hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Extender el hummus en un plato haciendo un hueco en el centro con el dorso de una cuchara.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir los piñones tostados por encima y servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "montaje": true,
@@ -5279,7 +5354,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_027",
@@ -5440,7 +5517,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_028",
@@ -5470,7 +5549,7 @@
     "ingredients": [
       {
         "name": "Garbanzos secos crudos (en remojo)",
-        "ingredientId": "garbanzos",
+        "ingredientId": "garbanzos-secos",
         "amount": 200,
         "unit": "g"
       },
@@ -5708,7 +5787,8 @@
       "hasta": 7,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_029",
@@ -5958,7 +6038,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_030",
@@ -6165,7 +6246,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_031",
@@ -6373,7 +6456,8 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_032",
@@ -6615,7 +6699,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_033",
@@ -6816,7 +6902,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_034",
@@ -7072,7 +7160,9 @@
       "hasta": 9,
       "guarda": "nevera",
       "dias": 1
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_035",
@@ -7259,7 +7349,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_036",
@@ -7527,7 +7619,8 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_037",
@@ -7592,7 +7685,7 @@
       },
       {
         "name": "Vino oloroso",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 30,
         "unit": "ml"
       },
@@ -7766,7 +7859,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_038",
@@ -7898,88 +7992,105 @@
         "text": "Escurrir {{Garbanzos cocidos}} bajo agua fría y reservar.",
         "minutes": 2,
         "kind": "prep",
-        "base": "legumbre"
+        "base": "legumbre",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Espinacas frescas}} con abundante agua fría y escurrir bien.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pan del día anterior}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar y laminar {{Ajo}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír el pan en dados hasta que esté dorado. Retirar y reservar en un mortero o vaso triturador.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír el ajo laminado en la misma sartén hasta que se dore. Retirar y añadir al pan.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Comino molido}} y un chorrito de agua al mortero y triturar hasta obtener un majado homogéneo.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar el resto del aceite en una cazuela a fuego suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Pimentón dulce}} y remover durante 10 segundos hasta que empiece a soltar aroma, sin dejar que se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar los garbanzos escurridos y las espinacas. Saltear a fuego medio hasta que las espinacas se reduzcan.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir el majado y un chorrito de agua. Remover y cocer a fuego suave hasta que la mezcla ligue.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición agua en un cazo. Añadir {{Vinagre}} y reducir a fuego suave.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 11
+        "during": 11,
+        "part": "guarnicion"
       },
       {
         "text": "Cascar {{Huevo}} uno a uno en un cuenco y deslizar cada uno con cuidado en el agua con vinagre.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Cocer los huevos 3 min hasta que la clara esté cuajada y la yema aún líquida. Retirar con espumadera.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Salpimentar los garbanzos con {{Sal|gusto}} y remover.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir los garbanzos en platos hondos y coronar cada uno con un huevo escalfado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -7991,7 +8102,8 @@
       "huevo"
     ],
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_039",
@@ -8257,7 +8369,9 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_040",
@@ -8421,96 +8535,115 @@
       {
         "text": "Cubrir {{Fabes de la granja secas}} con agua fría abundante y dejar en remojo 12 h.",
         "minutes": 720,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Cebolla}} y dejarla entera. Pelar {{Ajo}} y dejar los dientes enteros.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Escurrir las fabes y colocarlas en una olla grande. Cubrir con agua fría.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Añadir la cebolla entera, el ajo, {{Laurel}}, {{Chorizo asturiano}} y {{Panceta}} a la olla.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición a fuego fuerte. Retirar la espuma que suba a la superficie con una espumadera.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Bajar el fuego al mínimo y tapar la olla. Cocer 75 min, añadiendo un chorro de agua fría cada vez que rompa a hervir fuerte.",
         "minutes": 75,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Calentar un poco de caldo de cocción en un cazo pequeño a fuego suave.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Disolver {{Azafrán en hebras}} y {{Pimentón dulce}} en el caldo caliente del cazo. Remover hasta integrar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Verter el caldo con el azafrán y el pimentón en la olla. Remover con suavidad.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Morcilla asturiana}} entera a la olla. Cocer a fuego mínimo tapado 20 min.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cortar el chorizo asturiano en rodajas de 1 cm de grosor.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Dorar las rodajas de chorizo en la sartén a fuego fuerte hasta que estén crujientes. Reservar.",
         "minutes": 4,
         "kind": "paralelo",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Retirar la cebolla, el ajo y el laurel de la olla.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sacar el chorizo, la morcilla y la panceta de la olla. Cortar en trozos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Sal|gusto}} a las fabes y remover con suavidad.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir las fabes con el compango troceado encima y las rodajas de chorizo crujiente por encima.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_041",
@@ -8536,7 +8669,7 @@
     "ingredients": [
       {
         "name": "Alubias blancas secas",
-        "ingredientId": "alubias",
+        "ingredientId": "alubias-secas",
         "amount": 200,
         "unit": "g"
       },
@@ -8795,7 +8928,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_042",
@@ -9031,7 +9166,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_043",
@@ -9196,7 +9332,9 @@
     ],
     "tecnica": "crudo",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_044",
@@ -9448,7 +9586,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_045",
@@ -9459,7 +9598,6 @@
       "primero"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "season": "all",
@@ -9615,7 +9753,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_046",
@@ -9852,7 +9992,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_047",
@@ -10067,7 +10209,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_048",
@@ -10094,8 +10238,8 @@
     "allergens": [],
     "ingredients": [
       {
-        "name": "Alubias pintas",
-        "ingredientId": "alubias",
+        "name": "Alubias pintas secas",
+        "ingredientId": "alubias-secas",
         "amount": 200,
         "unit": "g"
       },
@@ -10316,7 +10460,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_049",
@@ -10348,7 +10493,7 @@
     "ingredients": [
       {
         "name": "Lentejas cocidas",
-        "ingredientId": "lentejas",
+        "ingredientId": "lentejas-cocidas",
         "amount": 300,
         "unit": "g"
       },
@@ -10477,7 +10622,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_050",
@@ -10606,7 +10753,9 @@
     "estrella": true,
     "tecnica": "sarten",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_051",
@@ -10806,7 +10955,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_052",
@@ -10833,8 +10983,8 @@
     "allergens": [],
     "ingredients": [
       {
-        "name": "Alubias blancas",
-        "ingredientId": "alubias",
+        "name": "Alubias blancas secas",
+        "ingredientId": "alubias-secas",
         "amount": 220,
         "unit": "g"
       },
@@ -11067,7 +11217,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_053",
@@ -11273,7 +11424,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_054",
@@ -11513,7 +11665,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_055",
@@ -11540,8 +11693,8 @@
     "allergens": [],
     "ingredients": [
       {
-        "name": "Judías blancas",
-        "ingredientId": "judia-blanca",
+        "name": "Judías blancas secas",
+        "ingredientId": "alubias-secas",
         "amount": 200,
         "unit": "g"
       },
@@ -11755,7 +11908,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_056",
@@ -11956,7 +12111,9 @@
     ],
     "tecnica": "horno",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_057",
@@ -12197,7 +12354,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_058",
@@ -12413,7 +12571,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_059",
@@ -12639,7 +12798,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_060",
@@ -12822,7 +12982,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_061",
@@ -12875,7 +13037,7 @@
       },
       {
         "name": "Romero fresco",
-        "ingredientId": "romero",
+        "ingredientId": "romero-fresco",
         "amount": 3,
         "unit": "g"
       },
@@ -13039,7 +13201,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_062",
@@ -13226,7 +13389,9 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_063",
@@ -13257,8 +13422,8 @@
     ],
     "ingredients": [
       {
-        "name": "Garbanzos",
-        "ingredientId": "garbanzos",
+        "name": "Garbanzos secos",
+        "ingredientId": "garbanzos-secos",
         "amount": 500,
         "unit": "g"
       },
@@ -13520,7 +13685,9 @@
     "occasion": "especial",
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_064",
@@ -13639,7 +13806,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "sopa",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_065",
@@ -13864,7 +14033,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_066",
@@ -13892,8 +14062,8 @@
     "allergens": [],
     "ingredients": [
       {
-        "name": "Garbanzos",
-        "ingredientId": "garbanzos",
+        "name": "Garbanzos secos",
+        "ingredientId": "garbanzos-secos",
         "amount": 400,
         "unit": "g"
       },
@@ -14129,7 +14299,8 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_067",
@@ -14257,76 +14428,89 @@
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Boniato}} y cortar en dados de 2 cm.",
         "minutes": 4,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Escurrir {{Garbanzos cocidos}} y secar con papel de cocina hasta que estén bien secos.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Mezclar el boniato y los garbanzos con {{Aceite de oliva|chorrito}}, {{Comino molido|pizca}} y {{Pimentón ahumado|pizca}} en una bandeja.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Hornear 25 min hasta que el boniato esté tierno y los garbanzos crujientes.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición agua con sal en un cazo y cocer {{Quinoa}} según el tiempo del envase.",
         "minutes": 15,
         "kind": "paralelo",
         "during": 4,
-        "base": "quinoa"
+        "base": "quinoa",
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir la quinoa y dejar templar.",
         "minutes": 5,
         "kind": "paralelo",
         "during": 4,
-        "base": "quinoa"
+        "base": "quinoa",
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar {{Tahini}}, {{Zumo de limón}} y el resto del aceite de oliva con 2 cucharadas de agua hasta que el aliño esté fluido.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Laminar {{Aguacate}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "part": "principal"
       },
       {
         "text": "Retirar la bandeja del horno cuando el boniato esté tierno y los garbanzos crujientes.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir la quinoa en 2 boles y añadir {{Rúcula}} encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir el boniato asado, los garbanzos crujientes y el aguacate laminado sobre cada bol.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar cada bol con un chorrito del aliño de tahini por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -14334,7 +14518,9 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_068",
@@ -14464,6 +14650,27 @@
         "text": "Servir las alubias en plato hondo bien calientes.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras y jamón 5 min a fuego alto, añade las alubias cocidas con caldo, cierra y cocina 15 min a presión. Gana tiempo respecto a cazuela tradicional manteniendo texturas y sabores."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Programa sofrito de verduras a 100°C, velocidad 1, 8 min; añade alubias, jamón y caldo, cocina 15 min a 90°C. Resultado homogéneo y bien integrado, aunque pierde algo del carácter rústico."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe verduras y jamón en cazuela 5 min en vitrocerámica, añade alubias y caldo, termina en horno a 180°C durante 30 min. Cocción lenta y uniforme que realza sabores."
       }
     ]
   },
@@ -14625,6 +14832,28 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla, zanahoria y acelgas 3 min, añade garbanzos cocidos y patata troceada con caldo, cierra y cocina 12 min a presión. Termina con pimentón y aceite de oliva."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Programa sofrito con cebolla, zanahoria y acelgas (varoma 3 min), luego añade garbanzos, patata y caldo, cocina 20 min a 100°C. Finaliza con pimentón y aceite."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Cuece patata y zanahoria al vapor 20 min, sofríe cebolla y acelgas en bandeja inferior con aceite, mezcla todo con garbanzos cocidos y pimentón. Cocina 10 min más al vapor para integrar sabores."
+      }
     ]
   },
   {
@@ -14772,6 +15001,27 @@
         "text": "Servir en plato hondo caliente.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y chorizo a presión durante 2 min, añade arroz, judías y tomate, cierra y cocina 15 min a presión. Despresuriz y listo en menos tiempo que en cazuela tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y chorizo en cazuela refractaria, añade arroz, judías y tomate, cubre con caldo y hornea a 180°C durante 25 min hasta que el arroz absorba el líquido."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito (cebolla y chorizo a 100°C, vel. 1, 5 min), añade arroz y tomate, luego judías con caldo, y cocina a 100°C vel. 1 durante 18 min hasta que el arroz esté tierno."
       }
     ]
   },
@@ -14927,6 +15177,28 @@
         "text": "Servir el guiso en platos hondos bien caliente.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 2 min, añade patatas cortadas, garbanzos, tomate y pimentón. Cierra y cocina a presión 12 min. Rápido y con excelente textura."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe en cazuela a fuego fuerte 5 min, luego introduce en horno a 180°C durante 25-30 min hasta que las patatas estén tiernas. Obtiene un guiso jugoso y bien integrado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito 5 seg/vel.5 con cebolla y ajo, añade patatas cortadas, garbanzos y tomate. Cocina 25 min a 100°C con cesta de vapor o varoma. Resultado homogéneo y bien emulsionado."
       }
     ]
   },
@@ -15089,6 +15361,27 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la costilla y verduras 5 min, añade alubias cocidas y caldo, cierra y cocina 25 min a presión. Resulta más rápido que la cazuela tradicional manteniendo el sabor."
+      },
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe costilla y verduras en cazuela 10 min, añade alubias, tapa y hornea a 180°C durante 50 min. El calor envolvente integra perfectamente los sabores."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Cuece costilla y verduras al vapor 40 min, luego sofríe brevemente en sartén con las alubias calentadas. Resulta más ligero pero requiere un paso extra de cocción."
+      }
     ]
   },
   {
@@ -15244,6 +15537,33 @@
         "minutes": 1,
         "kind": "emplatado",
         "part": "combinado"
+      }
+    ],
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, saltea las verduras picadas 8 min, añade garbanzos y arroz cocido, mezcla bien y cocina 12 min más removiendo a mitad del proceso. Queda crujiente y bien integrado."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "En una cazuela de horno, saltea las verduras 5 min en la encimera, añade garbanzos y arroz cocido con un poco de caldo, cubre y hornea a 180°C durante 20 min. Resulta jugoso y bien amalgamado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Programa 5 seg velocidad 5 para picar las verduras, saltea en el vaso 8 min a 100°C velocidad cuchara, añade garbanzos y arroz cocido, cocina 5 min más a 90°C. Queda bien mezclado aunque pierde algo de textura crujiente."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Saltea las verduras picadas 3 min sin presión, añade garbanzos y arroz cocido con 50ml de caldo, cierra y cocina a presión 5 min. Despresurizador rápido y sirve. Resultado tierno y bien integrado."
       }
     ]
   },
@@ -15421,6 +15741,27 @@
         "text": "Servir los frijoles en cuenco con el cilantro picado por encima.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe chorizo y bacon 3 min, añade cebolla y ajo 2 min, luego frijoles, tomate y caldo. Cierra y cocina a presión 10 min. Termina con cilantro fresco."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe en cazuela los ingredientes 5 min en vitrocerámica, luego introduce en horno a 180°C durante 20 min. El calor envolvente integra sabores perfectamente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito (cebolla, ajo, tomate) 5 min a 100°C, velocidad 1. Añade chorizo, bacon y frijoles, cocina 15 min a 90°C. Termina con cilantro manual."
       }
     ]
   },
@@ -15607,6 +15948,28 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Programa sofrito de cebolla, ajo y jengibre a 37°C velocidad progresiva, luego añade curry y calabaza picada, cocina 15 min a 100°C con giro lento. Incorpora garbanzos y leche de coco, finaliza 5 min más."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla, ajo y jengibre en modo tradicional 3 min, añade curry y calabaza, cocina a presión 8 min. Abre, incorpora garbanzos y leche de coco, cuece 2 min más sin presión para integrar sabores."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe ingredientes base en cazuela a fuego fuerte 5 min, añade calabaza, garbanzos y leche de coco. Introduce en horno a 180°C durante 30 min tapado, removiendo a mitad de cocción para cocción uniforme."
+      }
     ]
   },
   {
@@ -15723,7 +16086,7 @@
     ],
     "methods": [
       {
-        "appliance": "olla_rapida",
+        "appliance": "olla_express",
         "time": 25,
         "difficulty": "facil",
         "prepSummary": "Sofríe la verdura en la olla destapada, añade tomate, alubias y agua a ras, cierra y cuece 6 minutos desde que suba la válvula. Despresuriza y deja reposar 5 minutos para que ligue."
@@ -15804,7 +16167,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_077",
@@ -15936,7 +16301,7 @@
     ],
     "methods": [
       {
-        "appliance": "olla_rapida",
+        "appliance": "olla_express",
         "time": 30,
         "difficulty": "facil",
         "prepSummary": "Haz el sofrito destapado, añade lentejas, patata y agua dos dedos por encima. Cierra y cuece 12 minutos desde que suba la válvula. Sala al abrir."
@@ -16024,7 +16389,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_078",
@@ -16150,7 +16516,7 @@
     ],
     "methods": [
       {
-        "appliance": "olla_rapida",
+        "appliance": "olla_express",
         "time": 28,
         "difficulty": "facil",
         "prepSummary": "Sofrito destapado, añade lentejas y agua, cierra y cuece 10 minutos desde la válvula. Abre, añade judía verde y guisantes y hierve 5 minutos destapada."
@@ -16239,7 +16605,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_079",
@@ -16431,7 +16798,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_080",
@@ -16565,7 +16934,7 @@
     ],
     "methods": [
       {
-        "appliance": "olla_rapida",
+        "appliance": "olla_express",
         "time": 35,
         "difficulty": "normal",
         "prepSummary": "Dora la carne y haz el sofrito destapado. Añade tomate, carne, laurel y agua, cierra y cuece 18 minutos desde la válvula. Abre, incorpora los garbanzos y hierve 5 minutos destapada."
@@ -16665,7 +17034,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_081",
@@ -16858,7 +17229,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_082",
@@ -17003,7 +17375,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_083",
@@ -17112,6 +17486,26 @@
     "description": "Lentejas negras guisadas muy lentamente con tomate, mantequilla y nata hasta quedar sedosas. El guiso vegetariano más goloso de la India.",
     "basesAparte": [
       "sofrito"
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla, ajo y jengibre 3 min, añade especias y tomate, luego lentejas y alubias. Cierra y cocina 15 min a presión. Al final incorpora mantequilla y nata fuera del fuego."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito de cebolla, ajo y jengibre (5 min, 100°C, vel. 1). Añade especias y tomate, cocina 20 min a 100°C. Incorpora lentejas y alubias previamente cocidas, mantequilla y nata al final."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe en cazuela los aromáticos con especias, añade tomate, lentejas y alubias. Introduce en horno a 180°C durante 35-40 min cubierto. Finaliza con mantequilla y nata fuera del horno."
+      }
     ]
   },
   {
@@ -17218,6 +17612,20 @@
     "description": "Garbanzos guisados en salsa de tomate y cebolla con especias tostadas y un golpe de limón al final. Vegano, de bote y listo en media hora.",
     "basesAparte": [
       "sofrito"
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Pica cebolla, ajo y jengibre con la función picadora, luego sofríe en modo mariposa a 100°C. Añade especias, tomate y garbanzos, cocina 15 min a 100°C. Termina con cilantro y limón al final."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla, ajo y jengibre en modo tradicional 3 min, añade especias y tomate. Incorpora garbanzos cocidos, cierra y cocina a presión 10 min. Finaliza con cilantro y limón."
+      }
     ]
   }
 ]

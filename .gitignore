@@ -63,3 +63,6 @@ supabase/.temp/
 # bancos de pruebas del motor (solver.stress / solver.vs.modelo)
 stress.json
 vs-modelo.json
+
+# Motor empaquetado para el bot (scripts/build-bot-core.mjs); se regenera en cada build
+/api/_bot/core.mjs

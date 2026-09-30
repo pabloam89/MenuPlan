@@ -25,6 +25,7 @@
 import { z } from "zod";
 import { VERBOS, AMBITOS, SERVICIOS, CAMPOS_POR_ID, valorValido, rutaDe } from "./notepadFields.js";
 import { poner, valorDe } from "./notepad.js";
+import { pareceAlergia } from "./alergias.js";
 
 /** Los tres desenlaces posibles de una frase. */
 export const TIPOS = ["propuestas", "limites", "no_entendido"];
@@ -73,24 +74,17 @@ export const RespuestaSchema = z.object({
 
 // ── Guardas deterministas, antes del modelo ────────────────────────────────
 
-// Se compara SIN tildes. La primera versión no lo hacía y se le escapaban
-// "soy alérgico" y "mi hija es celíaca" — o sea, las dos formas en que
-// cualquier español escribe esto. Un guarda de seguridad que no aguanta la
-// ortografía del idioma en que se le habla no es un guarda.
+// Se compara SIN tildes: un guarda de seguridad que no aguanta la ortografía
+// del idioma en que se le habla no es un guarda.
 const sinTildes = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
 
-// Alergias e intolerancias declaradas. Deliberadamente ancha: un falso
-// positivo manda al usuario a la pantalla correcta, que es donde debería ir de
-// todas formas. Un falso negativo le deja creer que está protegido.
-const ALERGIA_RE = /\b(alergi|alergic|intoleran|celiac|celiaqu|anafilax|sin gluten|sin lactosa|sin huevo|sin frutos secos|no puede tomar|le sienta mal|me sienta mal)/;
+// El detector de alergias vive en alergias.js, la regla de dominio que
+// comparten la app, el bot y la API. Se reexporta para no mover a quien ya lo
+// importaba de aquí.
+export { pareceAlergia };
 
 // Verbos destructivos: fuera del pool por construcción, no por prompt.
 const DESTRUCTIVO_RE = /\b(borra|borrar|elimina|eliminar|resetea|resetear)\b.{0,20}\b(cuenta|todo|menu|menus|datos|perfil)\b/;
-
-/** ¿Esta frase habla de una alergia o intolerancia? Se corta antes del modelo. */
-export function pareceAlergia(texto) {
-  return ALERGIA_RE.test(sinTildes(texto));
-}
 
 /** ¿Pide borrar algo? El panel no ejecuta destrucciones, ni con confirmación. */
 export function pareceDestructivo(texto) {

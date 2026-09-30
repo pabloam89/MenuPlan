@@ -21,7 +21,16 @@
 
 import ingredientsJson from "../data/ingredients.json";
 import substitutionsJson from "../data/ingredientSubstitutions.json";
-import fraccionComestibleJson from "../data/fraccionComestible.json";
+import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida, seFrie, esCostra, ES_SAL, SAL_A_GRANEL } from "./derive/masaServida.js";
+import { vieneCocinadaPorId } from "./derive/estadoDeFicha.js";
+import { factorRetencion } from "./derive/factorRetencion.js";
+import { repartoNova } from "./derive/nova.js";
+// LA COMPOSICIÓN SE LEE DE LA TABLA MAESTRA, no de una copia en el catálogo.
+// `alimentos.json` es el output maestro del embudo de alimentos —el número y su
+// procedencia viven juntos— y esto es su proyección para el cliente, sellada
+// con el hash de la maestra. Ver scripts/build-alimentos.mjs.
+import alimentosApp from "../data/derived/alimentosApp.json";
+import alimentoPorIngrediente from "../data/alimentoPorIngrediente.json";
 import densidadJson from "../data/densidad.json";
 import { NUTRIENTES, CAMPOS_NUTRICION, CAMPOS_DUROS, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import { validateIngredients } from "../data/ingredientSchema.js";
@@ -173,6 +182,41 @@ registerDensityCatalog(densityFor);
  * @param {{ingredients?: Array<{name: string, amount?: number, unit?: string}>}} recipe
  * @returns {Array<{position: number, rawName: string, amount: number|null, unit: string|null, ingredientId: string|null, ingredient: Ingredient|null}>}
  */
+/**
+ * El índice de composición, por id de alimento.
+ *
+ * Se exporta MUTABLE a propósito y solo por los tests, igual que
+ * `ingredientById`: un test que quiere «este ingrediente aporta 100 kcal» tiene
+ * que poder decirlo por la misma puerta que usa la app, no por una segunda.
+ * En producción lo llena la proyección y nadie lo toca.
+ */
+export const COMPOSICION = new Map(alimentosApp.filas.map((f) => [f.id, f.nutricion]));
+
+/**
+ * La fila entera del alimento, por id de INGREDIENTE.
+ *
+ * `fraccionServida` la necesita para distinguir un hueco de una decisión: sin
+ * la taxonomía no puede saber que «Gambas» es marisco y que por tanto su
+ * fracción comestible ausente es que nadie la miró, no que se coma el
+ * caparazón.
+ */
+const FILA_ALIMENTO = new Map(alimentosApp.filas.map((f) => [f.id, f]));
+const alimentoDeIngrediente = (ingredientId) =>
+  (ingredientId ? FILA_ALIMENTO.get(alimentoPorIngrediente[ingredientId] ?? ingredientId) : null) ?? null;
+
+/**
+ * La composición de un ingrediente, por su id.
+ *
+ * Un ingrediente apunta a un alimento por `alimentoPorIngrediente`; hoy es el
+ * mapa identidad (391 claves, todas a sí mismas) porque cada ingrediente tiene
+ * su ficha, pero el modelo admite N ingredientes → 1 alimento y por eso se
+ * pregunta por el mapa y no por el id directamente.
+ */
+export function composicionDe(ingredientId) {
+  if (!ingredientId) return null;
+  return COMPOSICION.get(alimentoPorIngrediente[ingredientId] ?? ingredientId) ?? null;
+}
+
 export function resolveRecipeIngredients(recipe) {
   return (recipe?.ingredients ?? []).map((line, position) => {
     const ingredient = resolveIngredient(line.name);
@@ -260,32 +304,16 @@ export function deriveRecipeAllergens(recipe) {
  * contarla entera se pasaba por un factor de 500. La regla viene de
  * scripts/audit-catalog.mjs, donde lleva tiempo, y aquí se aplica igual.
  */
-const SAL_A_GRANEL = 50;
-const ES_SAL = /^sal|sal gruesa|sal gorda|sal marina/i;
-const ES_AZUCAR = /^azucar/i;
+// Las tres viven ahora en derive/masaServida.js, que es el módulo que contesta
+// «de lo que se compra, cuánto llega al plato», al lado de la fracción
+// comestible y del aceite absorbido. Estaban AQUÍ, y por eso el vector de
+// composición no las conocía: la «Lubina entera a la sal» salía bien en kcal y
+// con 1.084 g por ración en masa, porque un carril descartaba la costra y el
+// otro la contaba como comida.
 
-/**
- * De todo el aceite que una receta lista, cuánto acaba DENTRO de la comida.
- *
- * Una fritura no se come su aceite: se calienta, se fríe y se tira. Contarlo
- * entero daba números imposibles y no en pocos casos —«Fritura de pescado
- * variado» listaba 367 g de aceite para dos raciones y salía a 2.062 kcal por
- * plato, cinco veces lo declarado; con el tope sale a 632—.
- *
- * El 6 % no es un número redondo elegido a ojo: sale del propio catálogo, y lo
- * midió antes scripts/audit-catalog.mjs. En «Patatas fritas caseras», de las
- * 500 kcal declaradas menos las 288 de la patata quedan 212 kcal de aceite,
- * que son 24 g, que son el 6 % del peso del sólido.
- *
- * Solo los aceites LÍQUIDOS de cocinar. La mantequilla y la manteca no entran:
- * en este catálogo no se fríe con ellas y su grasa sí se come.
- *
- * Y el tope no es un recorte, es un mínimo: un chorro para sofreír ya está por
- * debajo del 6 % del sólido y pasa entero. Muerde en 88 de las 726 recetas
- * estrella —la cola de las frituras— y deja las otras 638 intactas.
- */
-const ACEITE_ABSORBIDO = 0.06;
-const ACEITES_DE_FREIR = /^aceite-/;
+// El tope del aceite de freír vive en derive/masaServida.js, que es el módulo
+// que contesta a «de lo que se compra, cuánto llega al plato». Aquí estaba una
+// de las dos copias que había del mismo 0,06 con significados distintos.
 
 /**
  * @param {{ingredients?: Array<{name: string, amount?: number, unit?: string}>}} recipe
@@ -297,6 +325,30 @@ const ACEITES_DE_FREIR = /^aceite-/;
  *   CADA campo secundario, que es siempre menor o igual y a veces mucho menor:
  *   BEDCA publica azúcar en 42 de sus 198 fichas.
  */
+/**
+ * Las clases cuyo hierro es HEMO, que es el que se absorbe bien.
+ *
+ * Hemo es el hierro unido a la hemoglobina y la mioglobina, o sea el del
+ * músculo y la sangre de un animal. El huevo y el lácteo son de origen animal
+ * y su hierro NO es hemo: por eso la lista va por `clase` y no por `reino`,
+ * que es el error fácil aquí.
+ */
+const CLASES_HEMO = new Set(["mamifero", "ave", "viscera", "pez", "marisco", "cefalopodo"]);
+
+/**
+ * `compuesto` es el único que no se puede repartir: un alioli o una bechamel
+ * son varias cosas a la vez y su hierro viene de todas. Se cuenta aparte en
+ * vez de asignarlo a ojo a uno de los dos lados. Medido sobre el recetario
+ * estrella, es el 1,9 % del hierro total.
+ */
+function origenDelHierro(alimento) {
+  const clase = alimento?.taxonomia?.clase;
+  if (!clase) return "sinRepartir";
+  if (CLASES_HEMO.has(clase)) return "hemo";
+  if (clase === "compuesto") return "sinRepartir";
+  return "noHemo";
+}
+
 export function computeRecipeNutrition(recipe, servings) {
   if (!(servings > 0)) return null;
 
@@ -321,20 +373,49 @@ export function computeRecipeNutrition(recipe, servings) {
   const gramosDelCampo = Object.fromEntries(CAMPOS_SECUNDARIOS.map((c) => [c, 0]));
   let totalGrams = 0;
   let coveredGrams = 0;
+  // Los ingredientes a los que no se les supo aplicar retención porque no se
+  // sabe si su ficha venía cruda o cocinada. Viaja a la salida en vez de
+  // tragarse: un folato corregido y uno sin corregir no son el mismo dato, y
+  // la cobertura por campo no lo cuenta porque mide otra cosa.
+  const sinDecidir = new Set();
+
+  // EL HIERRO NO SE ABSORBE IGUAL SEGÚN DE DÓNDE VENGA, y el catálogo ya sabe
+  // de dónde viene: `taxonomia.clase` está al 100 % en las 396 fichas.
+  //
+  // El hemo —carne, ave, víscera, pescado, marisco, cefalópodo— se absorbe en
+  // torno al 25 %. El no hemo, en torno al 5-10 %, y además depende de lo que
+  // le acompañe. Sumar los dos en un número y llamarlo «hierro» dice menos de
+  // lo que el dato ya permite: un menú de legumbres y uno de carne con el
+  // mismo hierro en el papel no dan el mismo hierro a quien se lo come.
+  //
+  // Se reparte AQUÍ y no en un módulo aparte a propósito: este bucle ya tiene
+  // la masa buena —con merma, con el tope del aceite y sin la costra—, y
+  // recalcularla fuera habría abierto un tercer carril que se desincroniza.
+  const hierro = { hemo: 0, noHemo: 0, sinRepartir: 0 };
+
+  // La masa por alimento, para el reparto NOVA. Se acumula en este bucle y no
+  // se recalcula fuera por el mismo motivo que el hierro: aquí la masa ya trae
+  // la merma, el tope del aceite y la costra descontada.
+  const masaPorAlimento = [];
 
   // El aceite de freír se ABSORBE, no se come entero — ver ACEITE_ABSORBIDO.
   // Hace falta saber la masa sólida antes de contar el aceite, así que las
   // líneas se resuelven una vez y se recorren dos.
   const lineas = [];
   let solidoGramos = 0;
+  let aceiteBruto = 0;
   for (const line of resolveRecipeIngredients(recipe)) {
     const comprados = gramsForRecipeQuantity(line.rawName, line.amount, line.unit);
     if (comprados == null || comprados <= 0) continue;
-    const fraccion = fraccionComestibleJson[line.ingredient?.id]?.valor ?? 1;
-    const grams = comprados * fraccion;
+    // La merma es de la LÍNEA, no del ingrediente: unos «Mejillones (sin
+    // concha)» no vuelven a perder la concha. Ver derive/masaServida.js — eran
+    // 18 líneas restando dos veces, de 21 a 46 kcal por ración.
+    const grams = comprados
+      * fraccionServida(line.rawName, line.ingredient?.id, alimentoDeIngrediente(line.ingredient?.id)).factor;
     if (grams <= 0) continue;
-    const esAceite = ACEITES_DE_FREIR.test(line.ingredient?.id ?? "");
-    if (!esAceite) solidoGramos += grams;
+    const esAceite = ES_ACEITE_DE_FREIR.test(line.ingredient?.id ?? "");
+    if (esAceite) aceiteBruto += grams;
+    else solidoGramos += grams;
     lineas.push({ line, grams, esAceite, nombre: line.rawName ?? "" });
   }
 
@@ -342,28 +423,50 @@ export function computeRecipeNutrition(recipe, servings) {
   // contar nada, porque el azúcar del gravlax solo se tira si hay sal con él.
   const hayCurado = lineas.some((x) => ES_SAL.test(x.nombre) && x.grams >= SAL_A_GRANEL);
 
+  // El tope del aceite es de la RECETA y se reparte entre sus líneas de
+  // aceite. Aplicarlo línea a línea daba dos veces el 6 % a las 19 recetas que
+  // listan dos aceites: «Chuletón a la parrilla» lleva 300 ml de girasol para
+  // freír y 150 de oliva suave para el alioli.
+  const tajadaDeAceite = factorAceite(aceiteBruto, solidoGramos, seFrie(recipe));
+
   for (const { line, grams: brutos, esAceite, nombre } of lineas) {
     // La costra y el curado, fuera: ni su masa ni su sodio llegan al plato.
-    if (ES_SAL.test(nombre) && brutos >= SAL_A_GRANEL) continue;
-    if (hayCurado && ES_AZUCAR.test(nombre) && brutos >= SAL_A_GRANEL) continue;
-    // El tope: de todo el aceite que la receta lista, solo se come lo que el
-    // sólido absorbe. Muerde en 88 de las 726 recetas estrella y no toca las
-    // demás, porque un chorro para sofreír ya está por debajo del 6 %.
-    const grams = esAceite ? Math.min(brutos, ACEITE_ABSORBIDO * solidoGramos) : brutos;
+    if (esCostra(nombre, brutos, hayCurado)) continue;
+    const grams = esAceite ? brutos * tajadaDeAceite : brutos;
     if (grams <= 0) continue;
 
     totalGrams += grams;
+    // Va ANTES del filtro de composición: un alimento sin ficha nutricional
+    // puede tener grupo NOVA igual, y dejarlo fuera inflaría la fracción de los
+    // que sí la tienen.
+    masaPorAlimento.push({ id: alimentoDeIngrediente(line.ingredient?.id)?.id, gramos: grams });
 
-    const nutrition = line.ingredient?.nutrition;
+    const nutrition = composicionDe(line.ingredient?.id);
     if (!nutrition) continue;
     coveredGrams += grams;
 
     const factor = grams / 100;
     for (const campo of CAMPOS_DUROS) totals[campo] += nutrition[campo] * factor;
+
+    // LO QUE SE PIERDE AL COCINAR, y solo se le aplica a los secundarios.
+    //
+    // Los macros no se corrigen a propósito: las kcal, la proteína y la grasa
+    // no se destruyen con el calor, se concentran al irse el agua — y esa masa
+    // ya la lleva `factorHidratacion` por el otro carril. Lo que sí se destruye
+    // o se disuelve son las vitaminas y, en menor medida, los minerales.
+    //
+    // El estado de la ficha manda sobre la técnica: una legumbre que la tabla
+    // analizó ya cocida no vuelve a perder nada. Ver derive/factorRetencion.js.
+    const alimento = alimentoDeIngrediente(line.ingredient?.id);
+    const cocinada = vieneCocinadaPorId(alimento?.id).cocinada;
     for (const campo of CAMPOS_SECUNDARIOS) {
       if (nutrition[campo] == null) continue;
-      totals[campo] += nutrition[campo] * factor;
+      const ret = factorRetencion(NUTRIENTES[campo].porRacion, alimento?.familia, recipe?.tecnica, cocinada);
+      if (ret.via === "SIN DECIDIR") sinDecidir.add(alimento?.id ?? nombre);
+      const aporte = nutrition[campo] * factor * ret.factor;
+      totals[campo] += aporte;
       gramosDelCampo[campo] += grams;
+      if (campo === "iron100g") hierro[origenDelHierro(alimento)] += aporte;
     }
   }
 
@@ -395,6 +498,52 @@ export function computeRecipeNutrition(recipe, servings) {
     salida[nombre] = cobertura[nombre] > 0 ? perServing(totals[c], NUTRIENTES[c].decimales) : null;
   }
   salida.coverage = totalGrams > 0 ? Math.round((coveredGrams / totalGrams) * 1000) / 1000 : 0;
+  // LA MASA, QUE HASTA HOY NO SALÍA. `coverage` publicaba la FRACCIÓN de masa
+  // con ficha y se guardaba el denominador para sí, así que quien quisiera
+  // saber cuánta comida hay tenía que recalcularla entera.
+  //
+  // Es la masa de la RECETA COMPLETA, no la de una ración: los gramos se
+  // acumulan antes de dividir por `servings`, igual que `masaTotal` del
+  // vector de composición. Para la ración, entre `baseServings`.
+  //
+  // Hace falta para ponderar coberturas al fundir dos platos (ver
+  // `applyGarnishToRecipe`): sin masa, la cobertura de la suma solo se puede
+  // aproximar por el valor aportado, y esa aproximación es ciega justo en el
+  // caso que importa —un campo con cobertura 0 aporta 0 y no baja nada—.
+  salida.totalGrams = Math.round(totalGrams);
+  // La retención que no se pudo decidir, por su nombre. Vacío significa que
+  // todos los ingredientes de la receta supieron contestar, no que no se haya
+  // mirado.
+  salida.retencionSinDecidir = [...sinDecidir];
+
+  // De dónde viene el hierro de este plato, por ración. Los tres suman
+  // `iron_mg`, así que `sinRepartir` no es una pérdida: es la parte que viene
+  // de un `compuesto` y no se puede atribuir.
+  salida.hierroPorOrigen = {
+    hemo: perServing(hierro.hemo, 2),
+    noHemo: perServing(hierro.noHemo, 2),
+    sinRepartir: perServing(hierro.sinRepartir, 2),
+  };
+
+  // De qué está hecho el plato por grado de procesado. Va como reparto y no
+  // como etiqueta única a propósito: ver derive/nova.js.
+  salida.nova = repartoNova(masaPorAlimento);
+
+  // VITAMINA A EN µg RAE, que es la unidad en la que se publican las ingestas
+  // de referencia. El repo ya tenía las dos mitades en columnas separadas
+  // —`retinol_ug` y `beta_carotene_ug`— y solo faltaba la fórmula: el
+  // betacaroteno de la dieta rinde 1 µg de retinol por cada 12 µg, según el
+  // factor de conversión del Institute of Medicine que EFSA y la FAO usan.
+  //
+  // Sale `null` si falta cualquiera de las dos, no 0: media vitamina A no es
+  // una vitamina A baja, es media respuesta. Y por eso NO sustituye a los dos
+  // campos, que siguen publicándose aparte — un menú vegetariano y uno con
+  // hígado pueden dar el mismo RAE y no son lo mismo.
+  const retinol = salida.retinol_ug;
+  const caroteno = salida.beta_carotene_ug;
+  salida.vitamin_a_rae_ug = retinol == null || caroteno == null
+    ? null
+    : Math.round((retinol + caroteno / 12) * 10) / 10;
   // Qué parte de la receta sostiene cada campo secundario. Un 0,31 en
   // `sugar_g` dice que ese azúcar es el de un tercio del plato.
   salida.coberturaPorCampo = cobertura;

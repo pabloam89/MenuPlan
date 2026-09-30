@@ -31,10 +31,18 @@ const PANEL_SUELTO =
   import.meta.env.DEV &&
   new URLSearchParams(window.location.search).get('panel') === '1'
 
+// `?mini=semana|compra`: la Mini App de Telegram (src/mini/MiniApp.jsx). Va
+// sola, sin la app detrás: dentro de Telegram no hay sesión de la app que
+// abrir, y la semana y la compra no la necesitan.
+const MINI = new URLSearchParams(window.location.search).get('mini')
+const MiniApp = React.lazy(() => import('./mini/MiniApp.jsx'))
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
-      {PANEL_SUELTO ? <PanelPlayground /> : <><App /><InstallPwaBanner /></>}
+      {MINI ? (
+        <React.Suspense fallback={null}><MiniApp pestanaInicial={MINI} /></React.Suspense>
+      ) : PANEL_SUELTO ? <PanelPlayground /> : <><App /><InstallPwaBanner /></>}
     </ErrorBoundary>
   </React.StrictMode>,
 )

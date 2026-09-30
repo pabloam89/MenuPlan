@@ -94,7 +94,7 @@ const CRITERIOS = {
       { ids: /^bechamel$/ },
       { ids: /^(mantequilla|harina|leche)$/, minIngredientes: 3 },
     ],
-    paso: /bechamel|roux/,
+    paso: /bechamel|\broux\b/,
   },
   // El pesto o lo compras o lo haces, y las dos formas valen: si lo compras,
   // el ingrediente es "Pesto"; si lo haces, son albahaca y piñones juntos y en

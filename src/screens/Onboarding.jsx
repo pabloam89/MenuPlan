@@ -1,4 +1,5 @@
 import { ETAPAS_BEBE, ETAPA_BEBE_INFO, etapaBebeDe } from "../lib/babyStage.js";
+import { KITCHEN_TOOLS as KITCHEN_TOOLS_CON_ARTE } from "../lib/applianceMethods.js";
 import React, { Fragment, Suspense, lazy, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -142,7 +143,7 @@ import {
 } from "../lib/kidsMenu.js";
 import { POSTRE_INMEDIATO_KINDS } from "../lib/postres.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish, householdHasSchoolMenu, normalizeSchoolMenus, replaceSchoolWeeks, setSchoolDishAt, clearSchoolWeek, clearSchoolScope, getSchoolIconOverride, setSchoolIconOverride } from "../lib/schoolMenu.js";
-import { outStateFor, isHomeState, resolveQuickActions } from "../lib/schedulePresets.js";
+import { outStateFor, isHomeState, nextSlotState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 import { SchoolMenuDeck } from "./SchoolMenuDeck.jsx";
 
@@ -2355,6 +2356,16 @@ export function OnboardingRestrictions({
 
   const visibleAllergenIds = [...COMMON_ALLERGEN_IDS, ...EXTRA_ALLERGEN_IDS];
 
+  // Salir de aquí hacia delante ES haberlo revisado. Sin la marca, una lista
+  // vacía no distingue "no tenemos" de "no lo hemos mirado", que es justo lo
+  // que no se puede suponer (ver `alergias` en wizardRegistry.js).
+  const conRevision = (fn) => fn && (() => { setData((d) => ({ ...d, allergiesReviewed: true })); fn(); });
+  // Con todo vacío, el botón lo afirma en vez de decir "Continuar": pasar sin
+  // marcar nada tiene que leerse como una respuesta, no como saltarse el paso.
+  const nadaMarcado = data.members.every(
+    (m) => !m.allergies?.length && !m.intolerances?.length && !m.dietaryStates?.length && !m.healthProfiles?.length,
+  );
+  const etiquetaSiguiente = nextLabel ?? (nadaMarcado ? "Nada que evitar" : null);
 
   return (
     <OnboardingShell
@@ -2363,9 +2374,9 @@ export function OnboardingRestrictions({
       bg="#f5f9f6"
       onBack={onBack}
       onReset={onReset}
-      onNext={onNext}
-      onFinish={onFinish}
-      {...(nextLabel ? { nextLabel } : {})}
+      onNext={conRevision(onNext)}
+      onFinish={conRevision(onFinish)}
+      {...(etiquetaSiguiente ? { nextLabel: etiquetaSiguiente } : {})}
       {...(finishLabel ? { finishLabel } : {})}
     >
       <>
@@ -4698,13 +4709,13 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     updateSchedule((prev) => ({ ...prev, [`${memberId}|${day}|${meal}`]: value }));
   };
 
-  // Lane view edits are binary: at home, or not. Which "not" gets stored is
-  // resolved per slot by outStateFor, so the comedor label only appears where
-  // a comedor could plausibly exist.
+  // El toque en una casilla recorre el ciclo de estados (slotStateCycle): el
+  // primero es el que daba el viejo toggle binario, así que marcar "come fuera"
+  // sigue costando un toque y el tupper y el comedor están a uno más. Eran los
+  // dos que la leyenda anunciaba y no había forma de escribir.
   const toggleLaneSlot = (member, day, meal) => {
     const cur = effectiveSchedule[`${member.id}|${day}|${meal}`];
-    const next = isHomeState(cur) ? outStateFor(member, day, meal, data.schoolMenus) : "casa";
-    setMemberSlot(member.id, day, meal, next);
+    setMemberSlot(member.id, day, meal, nextSlotState(cur, member, day, meal, data.schoolMenus));
   };
 
   // Tapping a lane's meal glyph is the "Leo come fuera, y ya está" gesture:
@@ -9711,14 +9722,12 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
 // Exportado: RecipePlanner.jsx ("¿Cómo se prepara?") reutiliza la misma
 // lista + ilustraciones para que el electrodoméstico se vea igual en el
 // asistente de crear receta que aquí, en vez de duplicar el catálogo.
-export const APPLIANCES = [
-  { id: "Airfryer", img: "/avatares/cards/electrodomesticos/airfryer.webp" },
-  { id: "Horno", img: "/avatares/cards/electrodomesticos/horno.webp" },
-  { id: "Microondas", img: "/avatares/cards/electrodomesticos/microondas.webp" },
-  { id: "Olla rápida", img: "/avatares/cards/electrodomesticos/olla_rapida.webp" },
-  { id: "Thermomix", img: "/avatares/cards/electrodomesticos/thermomix.webp" },
-  { id: "Vaporera", img: "/avatares/cards/electrodomesticos/vaporera.webp" },
-];
+// La lista se mudó a lib/applianceMethods.js para que la baldosa de batch
+// cooking pinte los mismos seis sin importar esta pantalla entera. Se reexporta
+// con el nombre de siempre porque RecipePlanner la importa de aquí.
+// Se importa y se reexporta, no `export … from`: esa forma NO deja binding
+// local, así que el `APPLIANCES.map` de aquí abajo se quedaba sin variable.
+export const APPLIANCES = KITCHEN_TOOLS_CON_ARTE;
 
 // Sin "Añadir otro": la lista fija son los seis aparatos que el generador sabe
 // aprovechar de verdad (ver resolveCookwareMarker en RecipeSteps.jsx). Un

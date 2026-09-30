@@ -12,13 +12,27 @@
  *   2. Cada tabla lleva su PROCEDENCIA por fila: de qué operador salió y con
  *      qué cobertura. Una fila derivada que no dice de dónde viene acaba
  *      leyéndose como un dato medido, y no lo es.
- *   3. _meta.json lleva el hash de las fuentes. derived.test.js compara: si
- *      una fuente cambió y nadie regeneró, el test lo dice. Una tabla
+ *   3. _meta.json lleva el hash de las fuentes Y DEL OPERADOR. derived.test.js
+ *      compara: si algo cambió y nadie regeneró, el test lo dice. Una tabla
  *      derivada caducada es peor que no tenerla, porque parece fresca.
  *
  *   node scripts/build-derived.mjs [--check]
  *
  * --check no escribe: falla si lo generado no coincide con lo commiteado.
+ *
+ * ── OJO: en Node 24 esto no arranca ────────────────────────────────────────
+ *
+ * El script importa `src/lib/ingredients.js`, que importa JSON sin el
+ * `with { type: "json" }` que Node 24 exige, y la cascada muere con
+ * ERR_IMPORT_ATTRIBUTE_MISSING antes de ejecutar nada. No es un fallo de este
+ * fichero —es todo el árbol de imports del `src/`, que Vite sí resuelve— y
+ * arreglarlo a mano serían decenas de ficheros tocados por un problema de
+ * runtime. Mientras tanto se ejecuta a través de Vite, que ya está instalado:
+ *
+ *   mkdir scripts/__run
+ *   echo 'import {it,expect} from "vitest"; it("b", async()=>{ await import("../build-derived.mjs"); expect(1).toBe(1); }, 300000);' > scripts/__run/build.test.js
+ *   node node_modules/vitest/vitest.mjs run scripts/__run/build.test.js
+ *   rm -rf scripts/__run
  */
 import { createHash } from "crypto";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "fs";
@@ -31,7 +45,8 @@ import { availablePartsOf, ingredientsByPart, stepsByPart } from "../src/lib/rec
 import { deriveStepParts, medirConcordancia } from "../src/lib/derive/stepParts.js";
 import { selectPartsTargets } from "./select-recipes-for-parts.mjs";
 import { gramsForRecipeQuantity } from "../src/lib/kitchenUnits.js";
-import { resolveIngredient } from "../src/lib/ingredients.js";
+import { familiasDeReceta, FAMILIAS, UMBRAL } from "../src/lib/derive/familias.js";
+import { resolveIngredient, composicionDe } from "../src/lib/ingredients.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -57,13 +72,73 @@ const mediasPorCampo = (filas) =>
     ]),
   );
 
+/**
+ * UNA MEDIA NO ES UNA DISTRIBUCIÓN, y aquí la diferencia es todo.
+ *
+ * `cobertura_media` publicaba 0,998 y sonaba a catálogo resuelto. Pero esa
+ * media es «masa con ficha», vale exactamente 1,0 en 1.019 de las 1.033
+ * recetas y por tanto no separa nada: las 14 que fallan las tapa el resto.
+ *
+ * Lo que sí discrimina es la cobertura de los campos secundarios de cada
+ * receta, y ahí el reparto es otro: 761 recetas por debajo del 95 %, 586 de
+ * ellas estrella, y 138 por debajo del 80 %. Con eso se decide «rico en
+ * hierro», así que el número tiene que estar publicado y no solo su promedio.
+ *
+ * Se guardan los cortes y las peores, que es lo que alguien va a querer mirar.
+ */
+const reparto = (filas, valorDe) => {
+  const vs = filas.map(valorDe).sort((a, b) => a - b);
+  const bajo = (u) => vs.filter((v) => v < u).length;
+  return {
+    min: vs.length ? +vs[0].toFixed(3) : 0,
+    p05: vs.length ? +vs[Math.floor(vs.length * 0.05)].toFixed(3) : 0,
+    mediana: vs.length ? +vs[Math.floor(vs.length * 0.5)].toFixed(3) : 0,
+    bajo_95: bajo(0.95),
+    bajo_90: bajo(0.9),
+    bajo_80: bajo(0.8),
+    bajo_50: bajo(0.5),
+  };
+};
+
+/** La cobertura media de los campos secundarios de UNA receta. */
+const microDeFila = (v) =>
+  CAMPOS_SECUNDARIOS.reduce((a, c) => a + (v.coberturaPorCampo?.[c] ?? 0), 0) / CAMPOS_SECUNDARIOS.length;
+
 const ficheros = readdirSync(RECIPES_DIR).filter((f) => f.endsWith(".json")).sort();
 const recetas = ficheros.flatMap((f) => JSON.parse(readFileSync(join(RECIPES_DIR, f), "utf8")));
 const ingredientesRaw = readFileSync(join(ROOT, "src", "data", "ingredients.json"), "utf8");
 
+/**
+ * EL HASH NO CUBRÍA AL OPERADOR, y esa era la mitad del problema.
+ *
+ * `_meta.json` guardaba el hash de `ingredients.json` y de las recetas, y el
+ * test de CI comparaba eso. Pero la nutrición no sale solo de las fuentes:
+ * sale de las fuentes PASADAS POR UN OPERADOR. Al enchufar el factor de
+ * retención cambiaron los 1.033 folatos del artefacto sin que se moviera una
+ * sola fuente, así que el hash siguió cuadrando y el test siguió en verde
+ * sobre una tabla caducada. Es exactamente el fallo que ese test dice impedir:
+ * «una tabla derivada caducada es peor que no tenerla: parece fresca y no lo
+ * está».
+ *
+ * Faltaba además `alimentos.json`, que es de donde salen TODOS los números de
+ * composición. Estaba fuera del hash desde el principio.
+ */
+const FICHEROS_DEL_OPERADOR = [
+  "src/lib/ingredients.js",
+  "src/lib/derive/composicion.js",
+  "src/lib/derive/masaServida.js",
+  "src/lib/derive/estadoDeFicha.js",
+  "src/lib/derive/factorRetencion.js",
+  "src/lib/derive/nova.js",
+  "src/data/retencion.json",
+  "src/data/nutrientes.js",
+];
+
 const hashFuentes = {
   ingredientes: hash(ingredientesRaw),
   recetas: hash(ficheros.map((f) => readFileSync(join(RECIPES_DIR, f), "utf8")).join("")),
+  alimentos: hash(readFileSync(join(ROOT, "src", "data", "alimentos.json"), "utf8")),
+  operador: hash(FICHEROS_DEL_OPERADOR.map((f) => readFileSync(join(ROOT, f), "utf8")).join("")),
 };
 
 // ── recipeNutrition ─────────────────────────────────────────────────────────
@@ -81,6 +156,28 @@ for (const r of recetas) {
     operador: "computeRecipeNutrition",
   };
 }
+
+// ── recipeFamilias ──────────────────────────────────────────────────────────
+// De qué familia es cada plato, por MASA. Sustituye a las tres copias de la
+// regla que miraban `category` y `mainProtein` — binarias las dos, y la
+// primera además mezclaba de qué está hecho un plato con qué forma tiene.
+//
+// Se materializa por lo de siempre: calcularlo pide recorrer los ingredientes
+// de la receta entera, y el panel lo pregunta en cada pintada. Aquí se paga
+// una vez, se puede diffear, y `--check` avisa si alguien mueve la regla sin
+// regenerar.
+const recipeFamilias = {};
+for (const r of recetas) {
+  const { familias, cuotas } = familiasDeReceta(r);
+  recipeFamilias[r.id] = { familias, cuotas };
+}
+
+const repartoFamilias = {};
+for (const f of FAMILIAS) {
+  repartoFamilias[f] = Object.values(recipeFamilias).filter((v) => v.familias.includes(f)).length;
+}
+const sinFamilia = Object.values(recipeFamilias).filter((v) => v.familias.length === 0).length;
+const conVarias = Object.values(recipeFamilias).filter((v) => v.familias.length > 1).length;
 
 // ── recipeParts ─────────────────────────────────────────────────────────────
 // El vector de masa por componente del plato. Cada fila dice de dónde sale su
@@ -142,7 +239,22 @@ for (const r of recetas) {
       const g = gramsForRecipeQuantity(l.name, l.amount, l.unit);
       if (g == null || g <= 0) continue;
       masa += g;
-      const nu = (l.ingredientId ? resolveIngredient(l.name) : resolveIngredient(l.name))?.nutrition;
+      // La composición se pregunta a `composicionDe`, que es por donde la pide
+      // el resto de la app. Antes esta línea hacía `resolveIngredient(...)?.
+      // .nutrition`, y ese campo ya no existe: la nutrición se mudó a
+      // `COMPOSICION` / `alimentosApp.json` y el resolver dejó de servirla.
+      // Resultado: `nu` era undefined SIEMPRE, el `continue` se disparaba en el
+      // 100 % de las líneas, y las 180 filas `curado` publicaban un vector de
+      // macros enteramente a cero —428 de 428 partes, 171 de ellas estrella—
+      // con `_meta` declarando «curado: 180» y el hash de fuentes cuadrando.
+      // Exactamente la tabla que parece fresca y no lo está, que es la regla 3
+      // de la cabecera de este fichero.
+      //
+      // El id sale del que la línea declara, y solo si falta se resuelve por
+      // nombre: los dos carriles apuntan hoy al mismo alimento en las 7.586
+      // líneas (src/data/dosCarriles.test.js lo comprueba), así que el orden no
+      // cambia el número, pero declara cuál manda.
+      const nu = composicionDe(l.ingredientId ?? resolveIngredient(l.name)?.id);
       if (!nu) continue;
       cubierta += g;
       macros.kcal += (nu.kcal100g ?? 0) * g / 100;
@@ -186,15 +298,37 @@ const meta = {
     // espera foto—. Hoy las dos medias se parecen, pero la de todas significa
     // algo distinto de lo que aparenta, y se separará en cuanto crezca el pool.
     cobertura_media_por_campo: mediasPorCampo(Object.values(recipeNutrition)),
+    // El reparto, no solo la media: ver el comentario de `reparto` arriba.
+    reparto_masa: reparto(Object.values(recipeNutrition), (v) => v.coverage),
+    reparto_micros: reparto(Object.values(recipeNutrition), microDeFila),
     estrella: (() => {
       const ids = new Set(recetas.filter((r) => r.estrella === true).map((r) => r.id));
       const filas = Object.entries(recipeNutrition).filter(([id]) => ids.has(id)).map(([, v]) => v);
+      const peores = Object.entries(recipeNutrition)
+        .filter(([id]) => ids.has(id))
+        .map(([id, v]) => ({ id, micros: +microDeFila(v).toFixed(3), masa: +v.coverage.toFixed(3) }))
+        .sort((a, b) => a.micros - b.micros)
+        .slice(0, 10);
       return {
         filas: filas.length,
         cobertura_media: +(filas.reduce((a, v) => a + v.coverage, 0) / filas.length).toFixed(3),
         cobertura_media_por_campo: mediasPorCampo(filas),
+        reparto_masa: reparto(filas, (v) => v.coverage),
+        reparto_micros: reparto(filas, microDeFila),
+        // Las diez estrella peor sostenidas. Son las que hay que mirar primero
+        // si alguien va a rellenar fichas: son las que SÍ se proponen.
+        peores_micros: peores,
       };
     })(),
+  },
+  recipeFamilias: {
+    filas: Object.keys(recipeFamilias).length,
+    umbral: UMBRAL,
+    por_familia: repartoFamilias,
+    sin_familia: sinFamilia,
+    con_varias: conVarias,
+    operador: "src/lib/derive/familias.js",
+    nota: "Por masa servida, no por category ni por mainProtein. Un plato puede entrar en varias: un cocido es legumbres y carne, y gasta las dos cuotas.",
   },
   recipeParts: {
     filas: Object.keys(recipeParts).length,
@@ -212,6 +346,7 @@ const meta = {
 const salidas = {
   "recipeNutrition.json": recipeNutrition,
   "recipeParts.json": recipeParts,
+  "recipeFamilias.json": recipeFamilias,
   "_meta.json": meta,
 };
 
@@ -228,8 +363,16 @@ for (const [nombre, datos] of Object.entries(salidas)) {
   console.log(`${CHECK ? "DESFASADO" : "escrito"}  ${nombre}`);
 }
 
-console.log(`\nrecipeNutrition: ${meta.recipeNutrition.filas} filas, cobertura media ${(meta.recipeNutrition.cobertura_media * 100).toFixed(1)} %`);
+// La media de masa se imprime porque es la que la gente busca, pero NO va
+// sola: vale 1,0 en 1.019 de 1.033 y hace pensar que el catálogo está
+// resuelto. Al lado va el reparto de los micros, que es lo que de verdad
+// sostiene «rico en hierro» y donde sí hay trabajo pendiente.
+const rm = meta.recipeNutrition.estrella.reparto_micros;
+console.log(`\nrecipeNutrition: ${meta.recipeNutrition.filas} filas, cobertura media ${(meta.recipeNutrition.cobertura_media * 100).toFixed(1)} % (masa con ficha)`);
+console.log(`  micros en ESTRELLA: mediana ${(rm.mediana * 100).toFixed(1)} % · ${rm.bajo_95} por debajo del 95 % · ${rm.bajo_80} por debajo del 80 %`);
 console.log(`recipeParts:     ${Object.entries(cuentaOrigen).map(([k, v]) => `${k} ${v}`).join(" · ")}`);
+console.log(`recipeFamilias:  ${Object.entries(repartoFamilias).map(([k, v]) => `${k} ${v}`).join(" · ")}`);
+console.log(`  sin familia ${sinFamilia} · en más de una ${conVarias} · umbral ${(UMBRAL * 100).toFixed(0)} %`);
 console.log(`operador determinista: ${(concordancia.ratio * 100).toFixed(1)} % de concordancia sobre ${concordancia.pasos} pasos → NO promocionable`);
 if (!cambios) console.log("\nsin cambios: lo derivado ya estaba al día");
 if (CHECK && cambios) {
