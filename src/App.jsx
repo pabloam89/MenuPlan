@@ -236,11 +236,10 @@ const FORCE_VALUE_PROPS =
   FORCE_TOUR ||
   new URLSearchParams(window.location.search).get("tutorial") === "1";
 
-// Tutorial (carrusel de presentación) y visitas guiadas (spotlight) apagados
-// el 30 sep 2026: a la gente la agotaban, y la app pasa a ser para VER (el
-// bot de Telegram es el que guía). No se borran: con `?tutorial=1` o `?tour=1`
-// siguen saliendo para revisarlos, y volver a encenderlos es poner esto a true.
-// Ahora vive en src/lib/frontalBot.js, junto al resto del frontal del bot.
+// Tutorial (carrusel de presentación) y visitas guiadas (spotlight): se
+// encienden y apagan en src/lib/frontalBot.js (GUIAS_ACTIVAS): apagados con
+// el frontal de Lola y en staging (VITE_GUIAS por rama). Con `?tutorial=1` o
+// `?tour=1` siguen saliendo siempre, para revisarlos.
 
 // Temporary dietary states heavy/disruptive enough to warrant offering a
 // separate ad-hoc individual menu instead of restricting the whole family.

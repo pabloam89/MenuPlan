@@ -50,6 +50,7 @@ Reglas:
 - Las recetas salen SIEMPRE del catálogo de HoMenu (tienen foto, ingredientes y encajan en la compra y las alergias), nunca de tu cosecha. Pero recomendar sí: si piden ideas, «¿qué me recomiendas?», «¿qué recetas me das?» o cambiar un plato sin decir por cuál, llama a proponer_platos y ofrece 3 opciones con un botón cada una, más [[Elige tú]] (4 botones en total). Al elegir una, cambiar_plato con receta = su nombre. Si dicen «cámbialo, me da igual» o pulsan «Elige tú», cambiar_plato sin receta. Nunca contestes que no puedes recomendar.
 - Aunque no haya menú para ese día, proponer_platos da ideas del recetario: úsalo igual. NO generes un menú para poder recomendar; generar es solo cuando piden un menú.
 - Si piden ideas o recomendaciones, dalas YA con proponer_platos, sin preguntar antes: quién come, la etapa del bebé, las alergias y los gustos ya los sabe la herramienta. Si hay que afinar («más ligero», «sin pescado»), después, con las opciones delante.
+- «Algo ligero» o «algo rápido» es estilo = ligero / rapido en proponer_platos, aunque ya haya un plato puesto ese día. Nunca contestes que no hay nada mejor que lo que ya está sin haber llamado a proponer_platos: el plato actual no es una respuesta a «recomiéndame». Si piden el porqué, una línea con el dato (las kcal, el tiempo, que lleva verdura o pescado).
 
 Cómo llevar la conversación (esto manda sobre todo lo demás):
 - Pregunta solo lo que te falte. Si ya te han dicho qué quieren (p. ej. «hazme el menú de la semana que viene, un día salmón, otro pollo, y el resto lo que sea»), hazlo ya, sin preguntas previas: eso ya es la respuesta a «¿algo especial?».
@@ -528,21 +529,22 @@ function herramientasDeMenu(householdId, fotos = null) {
       inputSchema: {
         type: "object",
         properties: {
-          dia: { type: "string", description: "lunes…domingo, «hoy» o «mañana»." },
+          dia: { type: "string", description: "Opcional: lunes…domingo, «hoy» o «mañana». Sin él, la próxima comida que toca: NO lo preguntes para recomendar («entre semana» sin más = hoy)." },
           semana,
-          comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
+          comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"], description: "Opcional: sin ella, la próxima que toca por la hora." },
           grupo: { type: "string", description: "Opcional: el grupo de menú (p. ej. «Bebé») si hay varios." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           n: { type: "integer", minimum: 2, maximum: 6, description: "Cuántas opciones; por defecto 3 (caben 3 botones más «Elige tú»)." },
           parecido_a: { type: "string", description: "Opcional: el plato que piden («salmón al horno con ensalada de mango»)." },
+          estilo: { type: "string", enum: ["ligero", "rapido"], description: "Opcional: si piden algo ligero (ordena por calorías y las enseña) o rápido (por tiempo)." },
+          para: { type: "string", enum: ["mayores", "ninos", "bebe"], description: "Opcional: para quién. «Con mi mujer/marido», «para nosotros» = mayores. El bebé solo si lo nombran." },
         },
-        required: ["dia", "comida"],
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a }) => {
-        const f = franjaDe(comida);
-        if (!f) return `No entiendo qué comida es («${comida}»).`;
-        return proponerPlatos(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, n: n ?? 3, parecidoA: parecido_a || null }, fotos);
+      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, estilo, para }) => {
+        const f = comida ? franjaDe(comida) : null;
+        if (comida && !f) return `No entiendo qué comida es («${comida}»).`;
+        return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null }, fotos);
       },
     }),
     betaTool({
