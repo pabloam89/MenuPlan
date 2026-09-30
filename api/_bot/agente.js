@@ -68,7 +68,7 @@ ${REGLAS}`;
 let cliente = null;
 const anthropic = () => (cliente ??= new Anthropic());
 
-async function herramientas(chat) {
+export async function herramientas(chat) {
   const gustos = await dominiosDeGustos();
   return [
     ...herramientasDeMenu(chat.householdId),
@@ -328,7 +328,27 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
 
   const historia = await memoria(channel, chatId);
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
+  const tools = await herramientas({ channel, chatId: String(chatId), householdId, autor });
+  const { dicho, uso } = await ejecutar({ historia, entrada, tools });
 
+  const llevados = await contarUso(householdId, uso).catch((e) => { console.error("[agente] uso", e?.message); return 0; });
+  const respuesta = dicho + avisoDeLimite(householdId, llevados);
+
+  await insert("bot_messages", [
+    { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor ?? null, content: { texto: entrada } },
+    { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta } },
+  ]).catch((e) => console.error("[agente] memoria", e?.message));
+  await segundaSemana(householdId).catch(() => {});
+
+  return respuesta;
+}
+
+/**
+ * Una vuelta del agente: el modelo con sus herramientas hasta que contesta.
+ * Separado de responder() para que las pruebas (scripts/bot-evals.mjs) lo
+ * muevan con herramientas de mentira, sin casa ni base de datos.
+ */
+export async function ejecutar({ historia = [], entrada, tools }) {
   const runner = anthropic().beta.messages.toolRunner({
     model: MODELO,
     max_tokens: 4000,
@@ -339,7 +359,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
       // Fuera de la caché: cambia en cada mensaje.
       { type: "text", text: `Ahora mismo en España: ${ahoraEnMadrid()}.` },
     ],
-    tools: await herramientas({ channel, chatId: String(chatId), householdId, autor }),
+    tools,
     messages: [...historia, { role: "user", content: entrada }],
   });
   // Cada vuelta del runner es una llamada al modelo: el coste es la suma.
@@ -352,16 +372,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
 
   const dicho = (final?.content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim()
     || "Hecho.";
-  const llevados = await contarUso(householdId, uso).catch((e) => { console.error("[agente] uso", e?.message); return 0; });
-  const respuesta = dicho + avisoDeLimite(householdId, llevados);
-
-  await insert("bot_messages", [
-    { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor ?? null, content: { texto: entrada } },
-    { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta } },
-  ]).catch((e) => console.error("[agente] memoria", e?.message));
-  await segundaSemana(householdId).catch(() => {});
-
-  return respuesta;
+  return { dicho, uso };
 }
 
 /** Vuelve a usarlo una semana o más después de enlazar: la señal de que se queda. */

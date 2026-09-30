@@ -1,0 +1,98 @@
+{
+  "_nota": "Casos de conversación de Chef Mateo (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta.",
+  "casos": [
+    {
+      "nombre": "consulta rápida: qué cenamos",
+      "entrada": "¿qué cenamos hoy?",
+      "llama": ["ver_menu"],
+      "noLlama": ["generar_menu", "cambiar_plato"]
+    },
+    {
+      "nombre": "cambiar un plato concreto",
+      "entrada": "cambia la cena del jueves, que no nos apetece",
+      "llama": ["cambiar_plato"],
+      "args": { "cambiar_plato": { "dia": "jueves", "comida": "cena" } },
+      "noLlama": ["generar_menu"]
+    },
+    {
+      "nombre": "ambiguo: pregunta antes de cambiar",
+      "entrada": "cambia eso que no me gusta",
+      "noLlama": ["cambiar_plato", "generar_menu"]
+    },
+    {
+      "nombre": "añadir a la compra",
+      "entrada": "apunta leche y pilas en la compra",
+      "llama": ["anadir_compra"],
+      "args": { "anadir_compra": { "_todo": "leche" } }
+    },
+    {
+      "nombre": "alergia: no guarda sin confirmar",
+      "entrada": "Leo es alérgico al huevo",
+      "noLlamaCon": { "ajustar_alergias": { "confirmado": true } }
+    },
+    {
+      "nombre": "alergia: guarda tras el sí",
+      "historia": [
+        { "role": "user", "content": "Leo es alérgico al huevo" },
+        { "role": "assistant", "content": "Entendido: voy a guardar que Leo es alérgico al huevo. ¿Lo guardo?\n[[Sí, guárdalo]]" }
+      ],
+      "entrada": "Sí, guárdalo",
+      "llama": ["ajustar_alergias"],
+      "args": { "ajustar_alergias": { "persona": "leo", "_todo": "huevo", "confirmado": true } }
+    },
+    {
+      "nombre": "generar guiado: primero pregunta, no genera de golpe",
+      "entrada": "hazme un menú nuevo para la semana que viene",
+      "noLlama": ["generar_menu"],
+      "texto": "\\[\\[Genera ya\\]\\]"
+    },
+    {
+      "nombre": "genera ya",
+      "historia": [
+        { "role": "user", "content": "hazme un menú nuevo para la semana que viene" },
+        { "role": "assistant", "content": "¡Vamos! ¿Algo especial la semana que viene?\n[[Viene alguien]]\n[[Semana con prisa]]\n[[Genera ya]]" }
+      ],
+      "entrada": "Genera ya",
+      "llama": ["generar_menu"],
+      "args": { "generar_menu": { "semana": "siguiente" } }
+    },
+    {
+      "nombre": "gusto: nada de coliflor",
+      "entrada": "en casa no queremos coliflor nunca",
+      "llama": ["ajustar_gustos"],
+      "args": { "ajustar_gustos": { "_todo": "coliflor" } }
+    },
+    {
+      "nombre": "invitado puntual",
+      "entrada": "el sábado vienen mis suegros a comer",
+      "llama": ["anadir_invitado"]
+    },
+    {
+      "nombre": "deshacer",
+      "entrada": "uy no, deja lo de antes",
+      "llama": ["deshacer"]
+    },
+    {
+      "nombre": "recordatorio pedido",
+      "entrada": "recuérdame el domingo a las 7 de la tarde hacer la compra",
+      "llama": ["crear_recordatorio"],
+      "args": { "crear_recordatorio": { "cuando": "T19:00" } }
+    },
+    {
+      "nombre": "no crea recordatorios por su cuenta",
+      "entrada": "¿qué comemos mañana?",
+      "noLlama": ["crear_recordatorio"]
+    },
+    {
+      "nombre": "formato: sin markdown",
+      "entrada": "enséñame el menú de hoy",
+      "llama": ["ver_menu"],
+      "sinTexto": "\\*\\*|^#"
+    },
+    {
+      "nombre": "no inventa recetas fuera del motor",
+      "entrada": "¿cómo se hace la tortilla de calabacín del miércoles?",
+      "llama": ["ver_receta"]
+    }
+  ]
+}
