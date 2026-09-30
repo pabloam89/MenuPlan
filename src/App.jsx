@@ -251,7 +251,7 @@ const HEAVY_DIETARY_STATES = ["dieta_blanda"];
 // under Anthropic rate limits (e.g. 4 weeks × 2 groups would be 8 in flight).
 const WEEK_CONCURRENCY = 3;
 
-// Cada cuánto mira la app, a la vista, si Lola (o la Mini App) ha escrito en
+// Cada cuánto mira la app, a la vista, si Lola ha escrito en
 // la casa: una lectura de un número, barata.
 const BOT_REV_SONDEO_MS = 20_000;
 

@@ -26,7 +26,7 @@ import { waitUntil } from "@vercel/functions";
 import { select, insert, update, eq } from "../_bot/db.js";
 import { enviar, enviarFotos, editar, llamar, escaparHtml, nombreDelBot, TECLADO } from "../_bot/telegram.js";
 import { respuestaHoy, respuestaSemana, respuestaCompra, recordar } from "../_bot/rapido.js";
-import { responder, cortarCharla } from "../_bot/agente.js";
+import { responder, cortarCharla, esCaida } from "../_bot/agente.js";
 import { registrar, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
@@ -344,6 +344,10 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
 
   const d = await decisionP;
   marca(`enrutador (${d.modo} ${d.confianza}, ${d.ms} ms)`);
+  // Lo que hace falta para convertir un turno real en un caso de
+  // scripts/router-evals.json (scripts/router-feedback.mjs): la frase, lo que
+  // acababa de decir Lola, los datos sacados y el chat, para ver qué vino después.
+  const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, datos: d.datos, chat: String(chatId) };
   if (vaPorLaRapida(d) && !(await fueraDeLimite(householdId))) {
     const r = await viaRapida(d, householdId).catch((e) => { console.error("[router] vía rápida", e?.message); return null; });
     marca("vía rápida hecha");
@@ -353,11 +357,11 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
       await lola.catch(() => {});
       await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
       await contarUso(householdId, d.uso ?? {}).catch(() => {});
-      return apuntarRuta(householdId, { modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms });
+      return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms });
     }
   }
   abrir(true);
-  apuntarRuta(householdId, { modo: d.modo, confianza: d.confianza, rapida: false, router_ms: d.ms, error: d.error });
+  apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, router_ms: d.ms, error: d.error });
   return lola;
 }
 
@@ -396,7 +400,12 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
     console.error("[bot/telegram] agente", err?.message);
     await registrar(FALLO, { userId: await duenoDe(householdId).catch(() => null), extra: { error: String(err?.message ?? err).slice(0, 300) } });
     const cabe = Buffer.byteLength(`t:${texto}`) <= 64;
-    const aviso = cabe ? "Uy, algo ha fallado. ¿Lo intento otra vez?" : "Uy, algo ha fallado. ¿Me lo escribes otra vez?";
+    // Si es que la IA no está (saturada o caída, y el plan B tampoco), se dice
+    // lo que SÍ funciona: los botones de abajo salen del menú guardado, sin IA.
+    const caida = esCaida(err);
+    const aviso = caida
+      ? `😵‍💫 Ahora mismo tengo la cabeza saturada y no puedo pensar bien.\n\nLo tuyo sigue ahí: <b>🍽️ Hoy</b>, <b>📅 Semana</b> y <b>🛒 Compra</b> funcionan igual (botones de abajo, o /hoy, /menu y /compra). ${cabe ? "Y esto, reinténtalo en un minuto:" : "Y esto, ¿me lo escribes otra vez en un minuto?"}`
+      : cabe ? "Uy, algo ha fallado. ¿Lo intento otra vez?" : "Uy, algo ha fallado. ¿Me lo escribes otra vez?";
     const botones = cabe ? [[{ texto: "🔁 Reintentar", dato: `t:${texto}` }]] : undefined;
     await vivo.parar();
     if (vivo.id()) return editar(chatId, vivo.id(), aviso, { botones }).catch(() => enviar(chatId, aviso, { responderA, botones }));
@@ -408,8 +417,8 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
 
 /**
  * La respuesta, con todo lo que la acompaña: fotos (un álbum, antes del
- * texto), botones que puso Lola, «Deshacer», el de la pantalla de la app o la
- * Mini App, los de compartir, y el teclado fijo en privado. Sirve igual para
+ * texto), botones que puso Lola, «Deshacer», el de su pantalla en la app, los
+ * de compartir, y el teclado fijo en privado. Sirve igual para
  * lo que contesta Lola que para las respuestas directas (api/_bot/rapido.js).
  * Si el texto ya se estaba escribiendo en vivo, se termina ese mismo mensaje.
  */
@@ -422,13 +431,11 @@ async function entregar({ chatId, householdId, esGrupo, base, from, responderA, 
   // enlace abre la app de quien lo pulsa, con su sesión).
   const alPie = [];
   if (r.deshacible) alPie.push({ texto: "↩️ Deshacer", dato: "t:Deshaz lo último que has cambiado" });
-  // La semana y la compra se abren DENTRO de Telegram (Mini App, api/bot/
-  // miniapp.js; web_app solo vale en privado). Un día o una receta, en la app.
-  const mini = { semana: "📅 Ver la semana", compra: "🛒 Abrir la lista" }[r.ir];
+  // Todo se abre en la app, en su pantalla (?ir=). Solo en privado: el enlace
+  // puede llevar la llave de entrada de quien lo pide, y en un grupo la
+  // pulsaría cualquiera.
   if (r.ir && base && !esGrupo) {
-    alPie.push(mini
-      ? { texto: mini, webApp: `${base}/?mini=${r.ir}` }
-      : { texto: "📱 Verlo en la app", url: await enlaceApp(base, r.ir, from, chatId) });
+    alPie.push({ texto: textoBotonApp(r.ir), url: await enlaceApp(base, r.ir, from, chatId) });
   }
   if (alPie.length) botones.push(alPie);
   if (r.compartir && base) {
@@ -453,7 +460,10 @@ async function entregar({ chatId, householdId, esGrupo, base, from, responderA, 
 // son lo que se está eligiendo, y mezclarlas con las del menú confunde.
 function fotosDelTurno(todas = []) {
   const propuestas = todas.filter((f) => /^\d+\. /.test(f.pie ?? ""));
-  return propuestas.length ? propuestas : todas;
+  // Si buscó dos veces en el mismo turno (una carpeta y luego otra), la última
+  // serie: es la que acaba en el texto. Si no, salían 7 fotos para 4 recetas.
+  const desde = propuestas.findLastIndex((f) => /^1\. /.test(f.pie ?? ""));
+  return propuestas.length ? propuestas.slice(Math.max(desde, 0)) : todas;
 }
 
 /**
@@ -519,8 +529,18 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
   };
 }
 
+/** Lo que dice el botón que lleva a la app, según a qué pantalla lleva. */
+export function textoBotonApp(ir) {
+  if (ir === "semana") return "📅 Ver la semana en la app";
+  if (ir === "compra") return "🛒 Abrir la lista en la app";
+  if (ir === "hoy" || String(ir).startsWith("dia:")) return "🍽️ Ver el día en la app";
+  if (String(ir).startsWith("receta:")) return "📖 Ver la receta en la app";
+  if (String(ir).startsWith("recetas")) return "📚 Abrir el recetario";
+  return "📱 Verlo en la app";
+}
+
 /**
- * El enlace a una pantalla de la app (?ir=, formato de App.jsx). A quien nació
+ * El enlace a una pantalla de la app (?ir=, src/lib/destinoBot.js). A quien nació
  * en este Telegram se le añade una llave de entrada de un solo uso, como /app:
  * no tiene sesión en la app y sin ella vería el login. A los demás, no: su
  * sesión es la de siempre (Google o email) y no se regala desde un chat.

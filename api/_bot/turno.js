@@ -16,7 +16,7 @@ import {
   proponerPlatos, cambiarPlato, anadirCompra, marcarCompra, normal, DIA_LARGO, grupos,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
-import { respuestaHoy, respuestaSemana, respuestaCompra, respuestaDia } from "./rapido.js";
+import { respuestaHoy, respuestaSemana, respuestaCompra, respuestaDia, rangoDeFechas } from "./rapido.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const EMOJI = { Desayuno: "☕", Comida: "🍽️", Merienda: "🥪", Cena: "🌙", Postre: "🍮" };
@@ -27,8 +27,10 @@ const MAX_BOTON = 38;
 function huecoEnTexto({ franja, dia, fecha }) {
   const hoyISO = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
   const cuando = fecha === hoyISO ? "de hoy" : dia ? `del ${DIA_LARGO[dia] ?? dia}` : "";
-  return `${ARTICULO[franja] ?? franja?.toLowerCase() ?? "comida"} ${cuando}`.trim();
+  return `${ARTICULO[franja] ?? (franja ? franja.toLowerCase() : "la comida")} ${cuando}`.trim();
 }
+
+const mayusculaInicial = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
 const boton = (nombre) => (nombre.length > MAX_BOTON ? `${nombre.slice(0, MAX_BOTON - 1).trim()}…` : nombre);
 
@@ -38,7 +40,24 @@ function lineaOpcion(r, estilo) {
     estilo === "ligero" && r.kcal ? `${Math.round(r.kcal)} kcal` : "",
     r.costeRacion != null ? `≈ ${r.costeRacion.toFixed(2).replace(".", ",")} €/ración` : "",
   ].filter(Boolean).join(", ");
-  return `• <b>${esc(r.name)}</b>${extra ? `, ${extra}` : ""}`;
+  return `• <b>${esc(r.name)}</b>${extra ? `: ${extra}` : ""}`;
+}
+
+/** El nombre de un grupo como cabecera: icono según quién es, en negrita, con dos puntos. */
+function cabeceraGrupo(nombre, tipo) {
+  const icono = { bebe: "👶", ninos: "🧒" }[tipo] ?? (/beb/i.test(nombre) ? "👶" : /niñ|peque/i.test(nombre) ? "🧒" : "👥");
+  return `${icono} <b>${esc(mayusculaInicial(nombre))}:</b>`;
+}
+
+/**
+ * «🛒 Apuntado en la lista: <b>leche</b> y <b>pan</b>.» si son pocas y cortas;
+ * si no, la etiqueta en negrita y las cosas en viñetas. En una línea la
+ * etiqueta va sin negrita: pegada a las cosas en negrita se lee todo como una.
+ */
+function enLista(icono, etiqueta, cosas) {
+  const b = cosas.map((p) => `<b>${esc(p)}</b>`);
+  if (cosas.length <= 2 && cosas.join("").length < 40) return `${icono} ${etiqueta}: ${b.join(" y ")}.`;
+  return `${icono} <b>${etiqueta}:</b>\n${b.map((x) => `• ${x}`).join("\n")}`;
 }
 
 // ── Recomendar ──────────────────────────────────────────────────────────────
@@ -54,9 +73,9 @@ export async function recomendar(householdId, x) {
   if (!bloques.length) return null; // sin opciones: que lo explique Lola
   const hueco = huecoEnTexto(out);
   const cabecera = out.conMenu
-    ? `👉 Para ${hueco}${out.grupo ? ` (<i>${esc(out.grupo)}</i>)` : ""} te encajan:`
-    : `👉 Ideas para ${hueco}:`;
-  const cuerpo = bloques.map((b) => `${b.grupo && bloques.length > 1 ? `<i>${esc(b.grupo)}</i>\n` : ""}${b.opciones.map((r) => lineaOpcion(r, out.estilo)).join("\n")}`).join("\n\n");
+    ? `👉 Para <b>${hueco}</b>${out.grupo ? ` (<i>${esc(out.grupo)}</i>)` : ""} te encajan:`
+    : `👉 Ideas para <b>${hueco}</b>:`;
+  const cuerpo = bloques.map((b) => `${b.grupo && bloques.length > 1 ? `${cabeceraGrupo(b.grupo, b.tipo)}\n` : ""}${b.opciones.map((r) => lineaOpcion(r, out.estilo)).join("\n")}`).join("\n\n");
   const opciones = bloques.flatMap((b) => b.opciones);
   const aviso = (out.aviso || bloques.some((b) => b.aviso)) ? "\n\n<i>No había ninguna que cumpliera todo lo que pides: estas son las que más se acercan.</i>" : "";
   const pregunta = out.conMenu ? "¿Cuál te pongo?" : "¿Te paso la receta de alguna?";
@@ -86,7 +105,7 @@ export async function cambiar(householdId, x) {
   const hueco = huecoEnTexto(out);
   const aproximada = out.aproximada ? `\n<i>No había «${esc(out.pedida)}» tal cual: es lo más parecido que encaja.</i>` : "";
   return {
-    texto: `✅ Hecho: ${hueco}${out.grupo ? ` (<i>${esc(out.grupo)}</i>)` : ""} ahora es <b>${esc(out.despues)}</b>.${out.antes ? `\nAntes: ${esc(out.antes)}.` : ""}${aproximada}`,
+    texto: `✅ <b>Hecho.</b> ${mayusculaInicial(hueco)}${out.grupo ? ` (<i>${esc(out.grupo)}</i>)` : ""} ahora es:\n\n${EMOJI[out.franja] ?? "🍽️"} <b>${esc(out.despues)}</b>${out.antes ? `\n<i>Antes: ${esc(out.antes)}.</i>` : ""}${aproximada}`,
     fotos,
     deshacible: true,
     ir: out.dia ? `dia:${out.dia}` : null,
@@ -100,7 +119,7 @@ export async function apuntar(householdId, x) {
   await anadirCompra(householdId, x.productos ?? [], out);
   if (!out.ok || !out.anadidos?.length) return null;
   return {
-    texto: `🛒 Apuntado en la lista: ${out.anadidos.map((p) => `<b>${esc(p)}</b>`).join(", ")}.`,
+    texto: enLista("🛒", "Apuntado en la lista", out.anadidos),
     fotos: [], deshacible: true, ir: "compra",
   };
 }
@@ -110,9 +129,9 @@ export async function tachar(householdId, x) {
   await marcarCompra(householdId, x.productos ?? [], "comprado", out);
   // Si hay dudas («¿qué leche?») tiene que preguntar Lola.
   if (!out.ok || out.dudosos?.length || !out.hechos?.length) return null;
-  const faltan = out.noEncontrados?.length ? `\nNo encuentro en la lista: ${out.noEncontrados.map(esc).join(", ")}.` : "";
+  const faltan = out.noEncontrados?.length ? `\n\n🤔 <i>No encuentro en la lista: ${out.noEncontrados.map(esc).join(", ")}.</i>` : "";
   return {
-    texto: `✅ Tachado: ${out.hechos.map((p) => `<b>${esc(p)}</b>`).join(", ")}.${faltan}`,
+    texto: `${enLista("✅", "Tachado", out.hechos)}${faltan}`,
     fotos: [], deshacible: true, ir: "compra",
   };
 }
@@ -123,13 +142,12 @@ export async function generar(householdId, x) {
   const out = {};
   await generarMenu(householdId, x.semana ?? "esta", x.fijos ?? [], out);
   if (!out.ok) return null;
-  const fecha = (iso) => new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
   // Las líneas de dondeQuedaron (generar.js) están escritas para Lola: la
   // instrucción del final se cambia por lo que se le diría a la persona.
   const aPersona = (l) => l.replace(/: ofrece ponerlo con cambiar_plato$/, ". Si quieres, dime qué día y te lo pongo.");
-  const pedidos = out.pedidos?.length ? `\n\nLo que pediste:\n${out.pedidos.map((l) => `• ${esc(aPersona(l))}`).join("\n")}` : "";
+  const pedidos = out.pedidos?.length ? `\n\n📌 <b>Lo que pediste:</b>\n${out.pedidos.map((l) => `• ${esc(aPersona(l))}`).join("\n")}` : "";
   return {
-    texto: `🎉 ¡Listo! Menú nuevo del <b>${fecha(out.desde)}</b> al <b>${fecha(out.hasta)}</b>.${pedidos}\n\nPídeme cambios cuando quieras, o mira la semana con el botón.`,
+    texto: `🎉 <b>¡Menú listo!</b>\n📅 Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${pedidos}\n\nPídeme cambios cuando quieras («cambia la cena del jueves»), o ábrelo en la app con el botón.`,
     fotos: [], deshacible: true, ir: "semana",
   };
 }

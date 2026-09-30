@@ -9,11 +9,20 @@ ninguno fiable. Ver «El registro miente» más abajo.
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **63** |
+| Ficheros en `supabase/migrations/` | **64** |
 | Comprobadas contra producción | 32 |
-| Aplicadas | **39** |
-| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` la `0062_bot_cron` y la `0063_bot_turnos`, el 30 sep 2026) |
+| Aplicadas | **40** |
+| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` la `0062_bot_cron`, la `0063_bot_turnos` y la `0064_catalogo_una_fuente`, el 30 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
+
+## La 0064, aplicada el 30 sep 2026
+
+`0064_catalogo_una_fuente` — solo comentarios: `recipes`, `catalog_meta`,
+`recipe_ingredients` y `dish_images` quedan marcadas EN DESUSO. La app ya no
+las lee (src/data/recipeCatalog.js carga solo el bundle; lo vigila
+src/data/catalogoUnaFuente.test.js). No se borra nada; `ingredients` no se
+toca (la despensa apunta a ella). Comprobado con `obj_description` tras
+aplicarla.
 
 ## La 0063, aplicada el 30 sep 2026
 

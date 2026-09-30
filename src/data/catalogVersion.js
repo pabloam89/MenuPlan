@@ -1,17 +1,13 @@
-// Bundled catalog version — the anti-degradation "gate".
+// Versión del catálogo del bundle (src/data/recipes/*.json).
 //
-// The reviewed JSON in src/data/recipes/*.json is versioned by this integer.
-// Supabase's `recipes` table is allowed to override the bundled catalog ONLY
-// when its stored version (catalog_meta.version) is >= this number. If the DB
-// is behind (an older seed that predates, say, an allergen fix), the app falls
-// back to the bundled JSON instead of silently serving stale, medically
-// relevant data. See src/data/recipeCatalog.js.
+// Desde el 30 sep 2026 el bundle es la ÚNICA fuente de recetas: la app ya no
+// mira la copia de Supabase (se quedó en la v27; ver src/data/recipeCatalog.js
+// y la migración 0064). El número sigue sirviendo de registro de cambios del
+// catálogo y lo leen los scripts de build (derived/, seed de ingredientes):
+// súbelo con una línea abajo cada vez que cambies las recetas.
 //
-// BUMP THIS whenever you change src/data/recipes/*.json in a way that must
-// reach production, then regenerate + apply the seed
-// (scripts/generate-supabase-seed.mjs) so Supabase's catalog_meta.version
-// matches. Forgetting to push just means the app keeps using the (correct)
-// bundled JSON — safe by design.
+// Lo que sigue es la historia, de cuando este número era la «puerta» que
+// decidía entre el bundle y Supabase.
 // v19 (2026-09-01): 63 alérgenos añadidos a 60 recetas por
 // scripts/apply-allergen-findings.mjs — gluten de la salsa de soja, sulfitos de
 // encurtidos y desecados, huevo de la pasta al huevo, apio, mostaza, pescado y

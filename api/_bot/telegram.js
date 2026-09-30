@@ -31,7 +31,7 @@ export async function llamar(metodo, cuerpo) {
  * @param {string|number} chatId
  * @param {string} texto  HTML de Telegram (<b>, <i>, <a>): lo más cercano a lo
  *                        que WhatsApp también sabe pintar.
- * @param {{ botones?: {texto: string, dato?: string, url?: string, webApp?: string}[][], responderA?: number, teclado?: string[][] }} [opts]
+ * @param {{ botones?: {texto: string, dato?: string, url?: string}[][], responderA?: number, teclado?: string[][] }} [opts]
  *   `teclado`: el teclado fijo de abajo (ReplyKeyboardMarkup). No puede ir en el
  *   mismo mensaje que `botones`: si vienen los dos, mandan los botones.
  */
@@ -76,8 +76,7 @@ function enviarUno(chatId, texto, { botones, responderA, plano, teclado } = {}) 
       ? {
           reply_markup: {
             inline_keyboard: botones.map((fila) =>
-              fila.map((b) => (b.webApp ? { text: b.texto, web_app: { url: b.webApp } }
-                : b.url ? { text: b.texto, url: b.url } : { text: b.texto, callback_data: b.dato })),
+              fila.map((b) => (b.url ? { text: b.texto, url: b.url } : { text: b.texto, callback_data: b.dato })),
             ),
           },
         }
@@ -96,8 +95,7 @@ function enviarUno(chatId, texto, { botones, responderA, plano, teclado } = {}) 
 export async function editar(chatId, messageId, texto, { botones, plano = false } = {}) {
   const trozos = partir(String(texto ?? ""), 3900);
   const markup = botones
-    ? { reply_markup: { inline_keyboard: botones.map((fila) => fila.map((b) => (b.webApp ? { text: b.texto, web_app: { url: b.webApp } }
-      : b.url ? { text: b.texto, url: b.url } : { text: b.texto, callback_data: b.dato }))) } }
+    ? { reply_markup: { inline_keyboard: botones.map((fila) => fila.map((b) => (b.url ? { text: b.texto, url: b.url } : { text: b.texto, callback_data: b.dato }))) } }
     : {};
   const uno = (t, p, conMarkup) => llamar("editMessageText", {
     chat_id: chatId, message_id: messageId, text: t,

@@ -3,6 +3,7 @@
  *
  *   node scripts/bot-evals.mjs            → todos los casos
  *   node scripts/bot-evals.mjs alergia    → los que contengan «alergia»
+ *   node scripts/bot-evals.mjs --reserva  → con el modelo del plan B (agente.js MODELO_RESERVA)
  *
  * Usa el agente de verdad (mismo modelo, instrucciones y esquemas que en
  * Telegram, vía ejecutar()) pero con herramientas de mentira: no toca ninguna
@@ -21,7 +22,13 @@ for (const k of ["ANTHROPIC_API_KEY"]) {
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
-const { ejecutar, herramientas } = await import("../api/_bot/agente.js");
+const { ejecutar, herramientas, MODELO, MODELO_RESERVA } = await import("../api/_bot/agente.js");
+// Un solo modelo por pasada: sin esto, un fallo de la API caería al plan B en
+// silencio y la medida mezclaría dos modelos.
+const RESERVA = process.argv.includes("--reserva");
+const MEDIDO = RESERVA ? MODELO_RESERVA : MODELO;
+// $/M tokens: entrada, salida, leída de caché, escrita en caché.
+const PRECIO = /haiku/.test(MEDIDO) ? [1, 5, 0.1, 1.25] : /opus/.test(MEDIDO) ? [5, 25, 0.5, 6.25] : [3, 15, 0.3, 3.75];
 const { casos } = JSON.parse(fs.readFileSync(new URL("./bot-evals.json", import.meta.url), "utf8"));
 
 const FAMILIA = "Casa de prueba: Ana (38 años), Pablo (40 años), Leo (6 años). Comida y cena todos los días. Sin alergias anotadas.";
@@ -65,7 +72,7 @@ const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => 
   return normal(args?.[k]).includes(normal(v));
 });
 
-const filtro = normal(process.argv[2] ?? "");
+const filtro = normal(process.argv.slice(2).find((a) => !a.startsWith("--")) ?? "");
 const elegidos = casos.filter((c) => !filtro || normal(c.nombre).includes(filtro));
 const reales = await herramientas({ channel: "telegram", chatId: "0", householdId: "00000000-0000-0000-0000-000000000000", autor: null });
 
@@ -89,9 +96,9 @@ for (const caso of elegidos) {
   let fallos = [];
   try {
     const adjunto = caso.foto ? await fotoDe(caso.foto) : null;
-    const r = await ejecutar({ historia: caso.historia ?? [], entrada: caso.entrada, tools, adjunto });
+    const r = await ejecutar({ historia: caso.historia ?? [], entrada: caso.entrada, tools, adjunto, modelos: [MEDIDO] });
     dicho = r.dicho;
-    coste += (r.uso.input_tokens * 3 + r.uso.output_tokens * 15 + r.uso.cache_read_input_tokens * 0.3 + r.uso.cache_creation_input_tokens * 3.75) / 1e6;
+    coste += (r.uso.input_tokens * PRECIO[0] + r.uso.output_tokens * PRECIO[1] + r.uso.cache_read_input_tokens * PRECIO[2] + r.uso.cache_creation_input_tokens * PRECIO[3]) / 1e6;
   } catch (e) {
     fallos.push(`error: ${e?.message}`);
   }
@@ -121,5 +128,5 @@ for (const caso of elegidos) {
 }
 const orden = [...tiempos].sort((a, b) => a - b);
 const mediana = orden.length ? orden[Math.floor(orden.length / 2)] : 0;
-console.log(`\n${bien}/${elegidos.length} bien · ~$${coste.toFixed(3)} · mediana ${mediana.toFixed(1)} s, máx ${(orden.at(-1) ?? 0).toFixed(1)} s · ${process.env.BOT_MODELO || "modelo por defecto"}, esfuerzo ${process.env.BOT_EFFORT || "por defecto"}`);
+console.log(`\n${bien}/${elegidos.length} bien · ~$${coste.toFixed(3)} · mediana ${mediana.toFixed(1)} s, máx ${(orden.at(-1) ?? 0).toFixed(1)} s · ${MEDIDO}, esfuerzo ${/haiku/.test(MEDIDO) ? "—" : process.env.BOT_EFFORT || "por defecto"}`);
 process.exitCode = bien === elegidos.length ? 0 : 1;

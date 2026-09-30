@@ -15,7 +15,9 @@
     { "texto": "algo ligero para esta noche", "modo": "recomendar", "rapida": true, "datos": { "estilo": "ligero" } },
     { "texto": "me apetece algo reconfortante de cuchara para cenar", "modo": "recomendar", "rapida": true, "datos": { "rasgos.connotacion": "reconfortante", "rasgos.textura": "cuchara" } },
     { "texto": "dame ideas baratas para comer mañana, que no pique que es para los niños", "modo": "recomendar", "rapida": true, "datos": { "rasgos.coste": "economico", "rasgos.picante": "sin", "para": "ninos" } },
-    { "texto": "qué le hago de cenar al bebé", "modo": "recomendar", "rapida": true, "datos": { "para": "bebe" } },
+    { "texto": "qué le hago de cenar al bebé", "modo": "recomendar", "rapida": true, "datos": { "para": "bebe|cova" } },
+    { "texto": "¿qué le preparo a Leo para merendar?", "modo": "recomendar", "rapida": true, "datos": { "para": "leo|ninos", "comida": "merienda" } },
+    { "texto": "ideas de cena para Cova", "modo": "recomendar", "rapida": true, "datos": { "para": "cova|bebe" } },
     { "texto": "Para hoy", "ultima": "¡Con gusto! ¿Para qué día te preparo las opciones? (hoy, mañana o un día concreto de esta semana)", "modo": "recomendar", "rapida": true, "datos": { "dia": "hoy" } },
     { "texto": "la cena", "ultima": "¿Te busco ideas para la comida o para la cena?", "modo": "recomendar", "rapida": true, "datos": { "comida": "Cena" } },
 

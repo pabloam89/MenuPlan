@@ -254,7 +254,10 @@ export async function describirMenu(casa, { dia, fecha, fotos = null } = {}) {
         delDia.push(`  ${f}${quien}: ${platos}`);
       }
     }
-    if (delDia.length) lineas.push(`${dia && fecha ? `${fechaCorta(fecha)} (${fecha})` : DIA_LARGO[d]}:\n${delDia.join("\n")}`);
+    // Con su fecha también en la semana: Lola pone el día con fecha («Jueves 1
+    // de octubre») y sin ella se la inventaba.
+    const suFecha = dia && fecha ? fecha : sumarDias(lunesDe(casa.semana.weekStart), DIAS.indexOf(d));
+    if (delDia.length) lineas.push(`${fechaCorta(suFecha)} (${suFecha}):\n${delDia.join("\n")}`);
   }
   return aviso + (lineas.length ? lineas.join("\n") : `No hay nada planificado${dia ? ` el ${DIA_LARGO[dia]}` : ""}.`);
 }
@@ -576,7 +579,15 @@ function tipoDeGrupo(g, members = []) {
  */
 export function grupoPara(gs, members, para) {
   if (!para) return null;
-  return gs.find((g) => tipoDeGrupo(g, members) === para) ?? null;
+  if (["mayores", "ninos", "bebe"].includes(para)) return gs.find((g) => tipoDeGrupo(g, members) === para) ?? null;
+  // Una persona por su nombre («para Cova», «lo de Leo»): el grupo en el que
+  // come. Si no está en ninguno, el de su tipo, con el mismo criterio de arriba.
+  const quien = normal(para);
+  const p = members.find((x) => normal(x.name) === quien) ?? members.find((x) => normal(x.name).split(/\s+/)[0] === quien.split(/\s+/)[0]);
+  if (!p) return null;
+  return gs.find((g) => (g.memberIds ?? []).includes(p.id))
+    ?? gs.find((g) => tipoDeGrupo(g, members) === (esBebe(p) ? "bebe" : esMayor(p) ? "mayores" : "ninos"))
+    ?? null;
 }
 
 /**
@@ -703,7 +714,7 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
     if (!lista.length) continue;
     const quien = m.membersOfGroup(g, data.members ?? []).map((p) => p.name).filter(Boolean).join(", ");
     bloques.push(`Para ${g.label}${quien ? ` (${quien})` : ""}:`);
-    if (out) (out.bloques ??= []).push({ grupo: elegidos.length > 1 ? g.label : null, opciones: lista, aviso: filtro.aviso });
+    if (out) (out.bloques ??= []).push({ grupo: elegidos.length > 1 ? g.label : null, tipo: tipoDeGrupo(g, data.members ?? []), opciones: lista, aviso: filtro.aviso });
     for (const r of lista) {
       num += 1;
       apuntarFoto(m, fotos, r, `${num}. ${r.name}`);

@@ -31,6 +31,13 @@ describe("grupoPara", () => {
     expect(grupoPara([{ id: "x", label: "los mayores" }, { id: "y", label: "el bebé" }], [], "bebe").id).toBe("y");
     expect(grupoPara(gs, members, "ninos")).toBe(null);
   });
+  it("una persona por su nombre: el grupo en el que come", () => {
+    const conNombre = members.map((p, i) => ({ ...p, name: ["Pablo", "Isa", "Leo", "Cova"][i] }));
+    expect(grupoPara(gs, conNombre, "Cova").id).toBe("g2");
+    expect(grupoPara(gs, conNombre, "leo").id).toBe("g1");
+    expect(grupoPara(gs, conNombre, "Isa García").id).toBe("g1");
+    expect(grupoPara(gs, conNombre, "Marta")).toBe(null);
+  });
 });
 
 describe("segunEstilo", () => {

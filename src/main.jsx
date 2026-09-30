@@ -4,7 +4,6 @@ import App from './App.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 import { InstallPwaBanner } from './components/InstallPwaBanner.jsx'
 import { PanelPlayground } from './dev/PanelPlayground.jsx'
-import MiniCargando from './mini/MiniCargando.jsx'
 import './index.css'
 
 // A tab left open across a deploy still holds the OLD index.html, which
@@ -32,18 +31,10 @@ const PANEL_SUELTO =
   import.meta.env.DEV &&
   new URLSearchParams(window.location.search).get('panel') === '1'
 
-// `?mini=semana|compra`: la Mini App de Telegram (src/mini/MiniApp.jsx). Va
-// sola, sin la app detrás: dentro de Telegram no hay sesión de la app que
-// abrir, y la semana y la compra no la necesitan.
-const MINI = new URLSearchParams(window.location.search).get('mini')
-const MiniApp = React.lazy(() => import('./mini/MiniApp.jsx'))
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
-      {MINI ? (
-        <React.Suspense fallback={<MiniCargando />}><MiniApp pestanaInicial={MINI} /></React.Suspense>
-      ) : PANEL_SUELTO ? <PanelPlayground /> : <><App /><InstallPwaBanner /></>}
+      {PANEL_SUELTO ? <PanelPlayground /> : <><App /><InstallPwaBanner /></>}
     </ErrorBoundary>
   </React.StrictMode>,
 )

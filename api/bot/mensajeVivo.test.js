@@ -14,10 +14,14 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+// Se importa fuera de las pruebas: arrastra el motor entero y, con la batería
+// completa corriendo en paralelo, la importación sola se comía los 5 s de
+// plazo de la prueba.
+process.env.TELEGRAM_BOT_TOKEN = "prueba";
+const { mensajeVivo } = await import("./telegram.js");
 
 describe("mensajeVivo: el mensaje que se va escribiendo", () => {
   it("sale en cuanto hay una frase, sin formato ni [[botones]] a medias, y se reescribe sin saturar", async () => {
-    const { mensajeVivo } = await import("./telegram.js");
     const vivo = mensajeVivo("123", {});
     vivo.escribir("Hola");                                        // demasiado corto: nada
     await dormir(50);
@@ -38,7 +42,6 @@ describe("mensajeVivo: el mensaje que se va escribiendo", () => {
     expect(vivo.id()).toBe(77);
   });
   it("tras parar, no escribe más", async () => {
-    const { mensajeVivo } = await import("./telegram.js");
     const vivo = mensajeVivo("123", {});
     await vivo.parar();
     vivo.escribir("Esto ya no debería salir porque el turno ha terminado del todo");

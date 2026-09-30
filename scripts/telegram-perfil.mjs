@@ -53,11 +53,11 @@ const COMANDOS = [
   { command: "ayuda", description: "Qué sé hacer" },
 ];
 
-// El botón fijo junto al campo de texto de los chats privados: abre la semana
-// en la Mini App (api/bot/miniapp.js). Contra el despliegue de APP_URL, o
-// staging mientras el bot viva allí.
-const APP = (env.match(/^APP_URL="?([^"\r\n]+)"?/m)?.[1] ?? "https://homenu-staging.vercel.app").replace(/\/$/, "");
-const BOTON_MENU = { type: "web_app", text: "Semana", web_app: { url: `${APP}/?mini=semana` } };
+// El botón fijo junto al campo de texto: la lista de comandos. (Hubo una Mini
+// App de Telegram con la semana y la compra; se quitó el 30 sep 2026: la app
+// de verdad está mucho mejor, y /app o los botones de cada respuesta llevan a
+// ella.)
+const BOTON_MENU = { type: "commands" };
 
 if ([...NOMBRE].length > 64) throw new Error(`Nombre: ${[...NOMBRE].length} > 64`);
 if ([...ABOUT].length > 120) throw new Error(`About: ${[...ABOUT].length} > 120`);

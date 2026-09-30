@@ -30,14 +30,28 @@ import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
 } from "./recordatorios.js";
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
+import { supervisar } from "./supervisor.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
 
 // Modelo y esfuerzo, configurables para medir velocidad contra calidad con
 // scripts/bot-evals.mjs (BOT_MODELO, BOT_EFFORT) sin tocar código.
-const MODELO = process.env.BOT_MODELO || "claude-sonnet-5";
+export const MODELO = process.env.BOT_MODELO || "claude-sonnet-5";
 const EFFORT = ["low", "medium", "high"].includes(process.env.BOT_EFFORT) ? process.env.BOT_EFFORT : "medium";
+// Plan B: si el modelo de Lola no contesta (saturado, caído o colgado), el
+// turno se repite con este otro, de otra familia (cuando uno va saturado el
+// otro no suele ir). Opus y no Haiku, medido con scripts/bot-evals.mjs
+// --reserva el 30 sep 2026: Opus 5.5 43/44 (mediana 7,3 s), Haiku 4.5 34/44
+// (se dejaba a medias proponer platos, crear recetas y la despensa). Solo
+// contesta cuando Sonnet no está, así que lo que cuesta de más apenas pesa.
+export const MODELO_RESERVA = process.env.BOT_MODELO_RESERVA || "claude-opus-5-5";
+// El tiempo que tiene cada modelo para el turno ENTERO (todas sus vueltas con
+// herramientas). El timeout del SDK solo cubre hasta que llegan las cabeceras:
+// un stream que se queda colgado a mitad no lo cortaba nadie, y Vercel mata la
+// función a los 120 s (vercel.json) dejando el «…» en el chat. Los dos juntos
+// caben de sobra.
+const PLAZO_MS = { principal: 55000, reserva: 50000 };
 const TURNOS_DE_MEMORIA = 16;
 const DIAS_DE_MEMORIA = 3;
 
@@ -61,7 +75,7 @@ Cómo llevar la conversación (esto manda sobre todo lo demás):
 - Habla como una persona, no como un programa: nunca menciones herramientas, el motor, ids, «el sistema» ni cómo funcionas por dentro. Si algo no se puede, dilo con naturalidad y ofrece lo que sí.
 - Rápido: si necesitas varias consultas que no dependen entre sí, pide las herramientas a la vez en la misma vuelta, y no repitas una consulta que ya has hecho en este mismo turno.
 - No compruebes lo que acabas de hacer: lo que devuelven generar_menu (la semana entera) y cambiar_plato (el día tal como queda) YA es lo guardado. Después de generar o cambiar, NO llames a ver_menu: contesta con lo que te han devuelto. ver_menu es solo para cuando te preguntan por un día que no tienes delante.
-- Tras generar o cambiar, NO pintes la semana entera en el chat: di en 3 o 4 líneas qué has hecho (qué semana, lo de hoy si toca, y dónde has puesto lo que pidieron). La semana entera la ven con el botón «📅 Ver la semana», que sale solo debajo de tu mensaje.
+- Tras generar o cambiar, NO pintes la semana entera en el chat: di en 3 o 4 líneas qué has hecho (qué semana, lo de hoy si toca, y dónde has puesto lo que pidieron). La semana entera la ven en la app con el botón «📅 Ver la semana en la app», que sale solo debajo de tu mensaje.
 - Alergias e intolerancias: tómalas muy en serio. Nunca des por hecho que alguien puede comer algo que choque con ellas.
 - Cuando cambies algo, confírmalo en una frase diciendo qué ha cambiado. En un grupo, di también quién lo pidió.
 - Si te falta un dato para actuar (qué día, qué comida), pregúntalo en corto antes de hacer nada.
@@ -100,6 +114,8 @@ const CON_BOTON_DESHACER = new Set([
 // Fallos de conversación, para medirlos (user_events, como el embudo).
 const FALLO_HERRAMIENTA = "bot_tool_error";
 const FALLO_NO_ENTIENDE = "bot_not_understood";
+const FALLO_A_MEDIAS = "bot_error";
+const FRENO_SUPERVISOR = "bot_supervisor";
 
 // Qué pantalla de la app enseña lo que se acaba de ver o cambiar, en el
 // formato de ?ir= de la app (App.jsx): hoy, semana, dia:Jue, compra.
@@ -163,6 +179,13 @@ export async function herramientas(chat) {
         const seguir = await chat.puerta;
         if (!seguir) throw new Error("turno de la vía rápida");
       }
+      // Lo que quita protección (una alergia, a alguien de la casa) se contrasta
+      // con lo que ha escrito la persona, no solo con el «confirmado» del modelo.
+      const freno = supervisar(t.name, args, chat.texto);
+      if (freno) {
+        await registrar(FRENO_SUPERVISOR, { userId: await duenoDe(chat.householdId).catch(() => null), extra: { herramienta: t.name, texto: String(chat.texto ?? "").slice(0, 200) } });
+        return freno;
+      }
       if (t.name === "ver_menu" && yaLoTiene(args)) {
         return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. No lo repitas entero: resume en 3-4 líneas; la semana la ven con el botón que sale solo.";
       }
@@ -191,7 +214,7 @@ function herramientasDeRecetas(chat) {
   return [
     betaTool({
       name: "buscar_recetas",
-      description: `Busca en el recetario (catálogo de HoMenu y recetas propias de la casa) para VER recetas de lo que pidan: «sólidos de bebé», «algo con garbanzos», «postres». Nada se cambia. categoria (opcional) es una carpeta del recetario: ${Object.entries(CATEGORIAS).map(([k, v]) => `${k} = ${v}`).join("; ")}. consulta: palabras clave (ingrediente, nombre). conFotos: manda la foto de las primeras.`,
+      description: `Busca en el recetario (catálogo de HoMenu y recetas propias de la casa) para VER recetas de lo que pidan: «sólidos de bebé», «algo con garbanzos», «postres». Nada se cambia. categoria (opcional) es una carpeta del recetario: ${Object.entries(CATEGORIAS).map(([k, v]) => `${k} = ${v}`).join("; ")}. consulta: palabras clave (ingrediente, nombre) o lo que quieren tal cual lo dicen («algo de cuchara para el frío», «una cena que parezca de restaurante»): se busca también por significado. conFotos: manda la foto de las primeras.`,
       inputSchema: obj({
         consulta: { type: "string" },
         categoria: { type: "string", enum: Object.keys(CATEGORIAS) },
@@ -653,12 +676,27 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, fotos: [], escrito: false, ir: null, compartir: null, puerta };
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], escrito: false, ir: null, compartir: null, puerta };
   const tools = await herramientas(chat);
-  const { dicho, uso } = await ejecutar({
-    historia, entrada, tools, adjunto, signal,
-    alEscribir: alEscribir ? (parcial) => alEscribir(parcial, { fotos: chat.fotos }) : null,
-  });
+  let dicho, uso;
+  try {
+    ({ dicho, uso } = await ejecutar({
+      historia, entrada, tools, adjunto, signal,
+      alEscribir: alEscribir ? (parcial) => alEscribir(parcial, { fotos: chat.fotos }) : null,
+      // Lo que juntó el modelo que se cayó no es de esta respuesta.
+      alReintentar: () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; },
+    }));
+  } catch (err) {
+    // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
+    // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
+    if (!err?.aMedias) throw err;
+    console.error("[agente] a medias", err?.message);
+    await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(() => null), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}` } });
+    return {
+      texto: "😵‍💫 Me he quedado a medias: puede que ya haya cambiado algo y no te lo he podido contar.\n\nMíralo en la app con el botón antes de pedírmelo otra vez, así no se hace dos veces.",
+      fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir ?? "semana", compartir: null,
+    };
+  }
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
     await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200) } });
   }
@@ -686,15 +724,74 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
  *   modelo (desde cero en cada vuelta), para ir enseñándolo mientras piensa.
  *   El resultado final no cambia.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null }) {
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null }) {
+  // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
+  // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
+  // el éxito: una escritura que falló a medias puede haber guardado algo.
+  let escrituras = 0;
+  const vigiladas = tools.map((t) => ({
+    ...t,
+    run: async (...a) => {
+      if (!SOLO_LECTURA.has(t.name)) escrituras++;
+      return t.run(...a);
+    },
+  }));
+  let ultimoError = null;
+  for (const [i, modelo] of modelos.entries()) {
+    const plazo = AbortSignal.timeout(i === 0 ? PLAZO_MS.principal : PLAZO_MS.reserva);
+    try {
+      if (i > 0) alReintentar?.();
+      const r = await unaVuelta({
+        historia, entrada, tools: vigiladas, adjunto, alEscribir, modelo,
+        signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
+        // El principal sin reintentos: si falla, reintentar ES el de reserva.
+        maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
+      });
+      if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
+      return { ...r, modelo };
+    } catch (err) {
+      ultimoError = err;
+      // Cancelado desde fuera (el turno era de la vía rápida): nada que hacer.
+      if (signal?.aborted) throw err;
+      const agotado = plazo.aborted;
+      if (!agotado && !esCaida(err)) throw err;
+      console.error(`[agente] ${modelo} no contesta (${agotado ? "plazo agotado" : err?.status ?? err?.constructor?.name}): ${String(err?.message).slice(0, 120)}`);
+      if (escrituras > 0) throw Object.assign(err, { aMedias: true, caida: true });
+      Object.assign(err, { caida: true });
+    }
+  }
+  throw ultimoError;
+}
+
+/**
+ * ¿Es que el modelo no está (saturado, caído, colgado), y otro podría
+ * contestar? Un error nuestro (400: la petición está mal) no se arregla
+ * cambiando de modelo, así que no cuenta. Pura, para el test.
+ */
+export function esCaida(err) {
+  if (!err) return false;
+  if (err.caida) return true;
+  // Por clase y no por err.name: las del SDK no lo ponen (todas dicen «Error»).
+  // La de tiempo agotado es hija de la de conexión.
+  if (err instanceof Anthropic.APIConnectionError || err instanceof Anthropic.InternalServerError || err instanceof Anthropic.RateLimitError) return true;
+  if ([408, 409, 429, 500, 502, 503, 504, 529].includes(err.status)) return true;
+  // Un error que llega a mitad del stream no trae status: viene en el cuerpo.
+  const tipo = err.error?.error?.type ?? err.error?.type;
+  if (["overloaded_error", "api_error", "rate_limit_error", "timeout_error"].includes(tipo)) return true;
+  return /overloaded|timed? ?out|ECONNRESET|socket hang up|fetch failed|Connection error/i.test(String(err.message ?? ""));
+}
+
+async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries }) {
   const contenido = adjunto
     ? [{ type: adjunto.tipo, source: { type: "base64", media_type: adjunto.mediaType, data: adjunto.base64 } }, { type: "text", text: entrada }]
     : entrada;
+  const opciones = { maxRetries, signal };
   const runner = anthropic().beta.messages.toolRunner({
-    model: MODELO,
+    model: modelo,
     max_tokens: 4000,
     max_iterations: 8,
-    output_config: { effort: EFFORT },
+    // Haiku no tiene «effort» (si se pone de reserva con BOT_MODELO_RESERVA): va sin él.
+    ...(/haiku/.test(modelo) ? {} : { output_config: { effort: EFFORT } }),
     system: [
       { type: "text", text: SISTEMA, cache_control: { type: "ephemeral" } },
       // Fuera de la caché: cambia en cada mensaje.
@@ -703,7 +800,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     tools,
     messages: [...historia, { role: "user", content: contenido }],
     ...(alEscribir ? { stream: true } : {}),
-  }, signal ? { signal } : undefined);
+  }, opciones);
   // Cada vuelta del runner es una llamada al modelo: el coste es la suma.
   const uso = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
   let final = null;

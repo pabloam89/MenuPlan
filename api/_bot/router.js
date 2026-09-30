@@ -53,7 +53,7 @@ const ESQUEMA = {
     dia: { type: "string", enum: DIAS, description: "consulta de un día, recomendar o cambiar." },
     comida: { type: "string", enum: COMIDAS, description: "recomendar o cambiar." },
     cual: { type: "string", enum: ["principal", "primero"] },
-    para: { type: "string", enum: ["mayores", "ninos", "bebe"] },
+    para: { type: "string", description: "«mayores», «ninos» o «bebe»; o el nombre de una persona de la casa si la nombran («para Cova» → «Cova»)." },
     estilo: { type: "string", enum: ["ligero", "rapido"] },
     rasgos: RASGOS,
     receta: { type: "string", description: "cambiar: el plato que quieren poner, si lo nombran." },
@@ -69,10 +69,10 @@ const ESQUEMA = {
   additionalProperties: false,
 };
 
-const REGLAS = `Eres el enrutador de Lola, la cocinera de casa de una app de menús familiares (HoMenu). No contestas al usuario: solo clasificas su mensaje y sacas los datos. Elige UN modo:
+export const REGLAS = `Eres el enrutador de Lola, la cocinera de casa de una app de menús familiares (HoMenu). No contestas al usuario: solo clasificas su mensaje y sacas los datos. Elige UN modo:
 
 - consulta: quiere VER algo ya guardado. que=hoy («¿qué comemos hoy?», «¿qué hay de cena?»), dia + el día («¿qué hay el jueves?», «¿y mañana?»), semana («pásame el menú»), compra («¿qué falta por comprar?», «la lista»).
-- recomendar: pide ideas u opciones para UN hueco, sin cambiar nada todavía («¿qué me recomiendas para cenar?», «ideas para la comida del jueves», «algo ligero para esta noche»). Saca día, comida, para quién y rasgos solo si los dice o se deducen sin duda («con mi mujer», «para nosotros» = mayores; los niños = ninos; el bebé solo si lo nombran). «Ligero» y «rápido» van en estilo. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito», «contundente» van en rasgos.
+- recomendar: pide ideas u opciones para UN hueco, sin cambiar nada todavía («¿qué me recomiendas para cenar?», «ideas para la comida del jueves», «algo ligero para esta noche», «¿qué le hago de cenar al bebé?», «¿qué le preparo a Leo?»). «Qué le hago / qué le preparo» es pedir ideas; «qué hay / qué toca / qué comemos» es consulta. Saca día, comida, para quién y rasgos solo si los dice ESTE mensaje o se deducen sin duda de él («con mi mujer», «para nosotros» = mayores; los niños = ninos; el bebé solo si lo nombran; una persona por su nombre, tal cual). «Para quién» no se arrastra de mensajes anteriores: si ahora no lo dice, va vacío. «Ligero» y «rápido» van en estilo. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito», «contundente» van en rasgos.
 - cambiar: quiere cambiar YA un plato concreto del menú y dice qué hueco («cambia la cena del jueves», «pon lentejas el martes a mediodía»). Si nombra el plato nuevo, en receta (es opcional: sin él, el motor elige otro, y la confianza sigue siendo alta). Si no dice el hueco, NO es cambiar: es lola.
 - compra_anadir: apuntar cosas en la lista («apunta leche y pan», «añade pilas»). compra_marcar: tachar lo comprado («ya tengo los huevos», «compré la leche»).
 - generar: pide un menú nuevo para esta semana o la que viene. Si nombra platos que quiere esa semana, en fijos.
@@ -110,7 +110,9 @@ export async function clasificar({ texto, contexto }, { signal } = {}) {
       tools: [{ name: "enrutar", description: "Decide el modo del mensaje y saca sus datos.", input_schema: ESQUEMA }],
       tool_choice: { type: "tool", name: "enrutar" },
       messages: [{ role: "user", content: `${ctx}\n\nMensaje: «${texto}»` }],
-    }, { signal });
+      // Corto y sin reintentos: si Haiku tarda o falla, contesta Lola (que ya
+      // ha arrancado) y no se pierde nada; reintentar solo alargaría la espera.
+    }, { signal, timeout: 5000, maxRetries: 0 });
     const bloque = (r.content ?? []).find((b) => b.type === "tool_use");
     const x = bloque?.input ?? {};
     const modo = MODOS.includes(x.modo) ? x.modo : "lola";

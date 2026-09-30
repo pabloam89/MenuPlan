@@ -26,6 +26,7 @@ import { cargarCasa, conCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
 import { duenoDe } from "./embudo.js";
 import { SYSTEM_PROMPTS } from "../_prompts.js";
+import { porSignificado } from "./significado.js";
 
 // Las carpetas del recetario de la app (CATEGORY_META en CatalogBrowserSheet).
 // Los bebés van partidos por etapa, como allí.
@@ -76,6 +77,26 @@ export function filtrarRecetas(recetas, { consulta = "", categoria = null, maxMi
 }
 
 /**
+ * Lo que encuentran las palabras, completado (o encabezado) por lo que
+ * encaja por significado (significado.js). Una consulta descriptiva («algo de
+ * cuchara para el frío», tres palabras o más) va primero por significado: por
+ * palabras, «frío» encontraba el gazpacho. Una corta («garbanzos») va por
+ * palabras, y el significado solo entra si no sale NADA: una errata o algo
+ * dicho de otra manera; con alguna, no merece la espera.
+ */
+async function conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo }) {
+  const palabras = normal(consulta).split(/[^a-z0-9ñ]+/).filter((w) => w.length > 2 && !VACIAS.has(w));
+  const descriptiva = palabras.length >= 3;
+  if (!palabras.length || categoria === "mias" || (!descriptiva && porPalabras.length > 0)) return porPalabras;
+  const ids = await porSignificado(consulta, { catalogo, carpetaDe, n: 8 });
+  const porId = new Map(catalogo.map((r) => [r.id, r]));
+  const semanticas = ids.map((id) => porId.get(id))
+    .filter((r) => r && (!categoria || carpetaDe(r) === categoria) && !(maxMinutos && r.time && r.time > maxMinutos));
+  const juntas = descriptiva ? [...semanticas, ...porPalabras] : [...porPalabras, ...semanticas];
+  return [...new Map(juntas.map((r) => [r.id, r])).values()];
+}
+
+/**
  * @param {{ fotos?: {url: string, pie: string}[] }} chat  las fotos de este turno
  */
 export async function buscarRecetas(householdId, { consulta, categoria, maxMinutos, n = 6, conFotos = true }, chat = {}) {
@@ -83,8 +104,12 @@ export async function buscarRecetas(householdId, { consulta, categoria, maxMinut
   const m = await motor();
   if (casa) await prepararRecetas(casa);
   const propias = casa?.state?.data?.userRecipes ?? [];
-  const todas = [...propias, ...m.recipeCatalog];
-  const halladas = filtrarRecetas(todas, { consulta, categoria, maxMinutos });
+  // Del catálogo, solo el Recetario Estrella: el antiguo no se propone nunca
+  // (lo que haya que rescatar de él se promueve a mano).
+  const estrella = m.recipeCatalog.filter((r) => r.estrella);
+  const todas = [...propias, ...estrella];
+  const porPalabras = filtrarRecetas(todas, { consulta, categoria, maxMinutos });
+  const halladas = await conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo: estrella });
   if (!halladas.length) {
     return `No hay recetas de ${categoria ? CATEGORIAS[categoria] ?? categoria : "eso"}${consulta ? ` con «${consulta}»` : ""} en el recetario.`;
   }
