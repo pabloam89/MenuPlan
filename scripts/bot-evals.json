@@ -402,6 +402,24 @@
       }
     },
     {
+      "nombre": "algo ligero con menú puesto: opciones ligeras, no «no hay nada mejor»",
+      "entrada": "¿qué me recomiendas para cenar mañana algo ligero? y cuéntame por qué",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "comida": "cena",
+          "estilo": "ligero"
+        }
+      },
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "sinTexto": "no he encontrado|no hay (otra|nada)"
+    },
+    {
       "nombre": "recomendar cena sin menú: ideas, sin generar ni elegir por ellos",
       "entrada": "Quiero que me recomiendes platos para cenar ligero esta noche Isa y yo, y a ver qué le ponemos a Cova",
       "llama": [

@@ -3,7 +3,25 @@ import { describe, it, expect, vi } from "vitest";
 vi.mock("./db.js", () => ({ select: vi.fn(), insert: vi.fn(), eq: (v) => `eq.${v}` }));
 vi.mock("./casa.js", () => ({ cargarCasa: vi.fn(), conCasa: vi.fn() }));
 
-const { variadas } = await import("./menu.js");
+const { variadas, segunEstilo } = await import("./menu.js");
+
+describe("segunEstilo", () => {
+  const recetas = [
+    { id: "a", kcal: 650, time: 15 },
+    { id: "b", kcal: 320, time: 40 },
+    { id: "c", time: 10 },
+    { id: "d", kcal: 480, time: 25 },
+  ];
+  it("ligero: de menos a más kcal, y las que no las traen al final", () => {
+    expect(segunEstilo(recetas, "ligero").map((r) => r.id)).toEqual(["b", "d", "a", "c"]);
+  });
+  it("rápido: de menos a más tiempo", () => {
+    expect(segunEstilo(recetas, "rapido").map((r) => r.id)).toEqual(["c", "a", "d", "b"]);
+  });
+  it("sin estilo, el orden del motor", () => {
+    expect(segunEstilo(recetas, null)).toBe(recetas);
+  });
+});
 
 const r = (id, mainProtein, category) => ({ id, mainProtein, category });
 
