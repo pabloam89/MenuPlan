@@ -24,7 +24,8 @@ export const COMIDAS = [
   },
   {
     id: "Comida", letra: "C", nombre: "comida", plural: "comidas", articulo: "la comida", icono: "🍽️",
-    sinonimos: ["comida", "comidas", "almuerzo", "almuerzos", "almorzar", "mediodia", "a mediodia", "comer", "comemos", "comen"],
+    // «comer», «comemos» no: «¿qué comemos hoy?» es el día entero.
+    sinonimos: ["comida", "comidas", "almuerzo", "almuerzos", "almorzar", "mediodia", "a mediodia"],
     platos: ["primero", "principal"], tipo: "principal",
   },
   {
@@ -76,6 +77,22 @@ export function comidaDe(texto) {
   const t = normal(texto);
   if (!t) return null;
   return COMIDAS.find((c) => normal(c.id) === t || c.sinonimos.some((s) => normal(s) === t))?.id ?? null;
+}
+
+/**
+ * Las comidas que se nombran en una frase («¿qué cenamos este finde?» →
+ * ["Cena"]), en el orden del día. Sinónimos de una y dos palabras. Pura.
+ */
+export function comidasEnTexto(texto) {
+  const palabras = normal(texto).replace(/[¿?¡!.,;:]/g, " ").split(/\s+/).filter(Boolean);
+  const vistas = new Set();
+  palabras.forEach((p, i) => {
+    const una = comidaDe(p);
+    const dos = i + 1 < palabras.length ? comidaDe(`${p} ${palabras[i + 1]}`) : null;
+    if (dos) vistas.add(dos);
+    else if (una) vistas.add(una);
+  });
+  return COMIDAS.map((c) => c.id).filter((id) => vistas.has(id));
 }
 
 /** «primeros» → "primero", «segundo» → "principal". */

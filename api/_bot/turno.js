@@ -11,12 +11,13 @@
  * un «Para hoy» o «la merluza» se leían como peticiones nuevas.
  */
 
-import { cargarCasa, deshacer } from "./casa.js";
+import { cargarCasa, deshacer, hoyISO } from "./casa.js";
 import {
   proponerPlatos, cambiarPlato, anadirCompra, marcarCompra, normal, DIA_LARGO, grupos, quienesDe, cambiosDe,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
-import { respuestaHoy, respuestaSemana, respuestaCompra, respuestaDia, rangoDeFechas } from "./rapido.js";
+import { respuestaCompra, respuestaMenu, rangoDeFechas } from "./rapido.js";
+import { fechasDe } from "./cuando.js";
 import { rastro } from "./embudo.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 
@@ -160,11 +161,13 @@ export async function generar(householdId, x) {
 // ── Consultas y deshacer ────────────────────────────────────────────────────
 
 export async function consultar(householdId, x) {
-  if (x.que === "hoy") return respuestaHoy(householdId);
-  if (x.que === "semana") return respuestaSemana(householdId);
   if (x.que === "compra") return respuestaCompra(householdId);
-  if (x.que === "dia" && x.dia) return respuestaDia(householdId, x.dia);
-  return null;
+  // Justo lo pedido: los días (el finde, la semana que viene…), las comidas,
+  // los platos y para quién. Si no hay nada de eso en el menú, null: lo
+  // explica Lola y ofrece generarlo.
+  const dias = fechasDe(x, hoyISO());
+  if (!dias) return null;
+  return respuestaMenu(householdId, { dias, comidas: x.comidas ?? null, platos: x.platos ?? null, grupo: x.para ?? null });
 }
 
 export async function deshacerRapido(householdId) {

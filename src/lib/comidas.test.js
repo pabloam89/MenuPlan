@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { COMIDAS, IDS_COMIDAS, comidaDe, platoDe, comidasDeLaCasa, iconoDe, articuloDe } from "./comidas.js";
+import { COMIDAS, IDS_COMIDAS, comidaDe, platoDe, comidasDeLaCasa, comidasEnTexto, iconoDe, articuloDe } from "./comidas.js";
 
 const RAIZ = path.resolve(__dirname, "../..");
 const NOMBRES = COMIDAS.map((c) => c.id).join("|");
@@ -29,6 +29,13 @@ describe("el catálogo de comidas", () => {
     expect(comidaDe("lunes")).toBe(null);
     expect(platoDe("primeros")).toBe("primero");
     expect(platoDe("plato principal")).toBe("principal");
+  });
+
+  it("ve las comidas que se nombran en una frase, y ninguna en «¿qué comemos hoy?»", () => {
+    expect(comidasEnTexto("¿qué cenamos este finde?")).toEqual(["Cena"]);
+    expect(comidasEnTexto("la cena y la comida del jueves")).toEqual(["Comida", "Cena"]);
+    expect(comidasEnTexto("¿qué hay de picoteo el sábado?")).toEqual(["Aperitivo"]);
+    expect(comidasEnTexto("¿qué comemos hoy?")).toEqual([]);
   });
 
   it("las comidas de cada casa salen de sus datos", () => {

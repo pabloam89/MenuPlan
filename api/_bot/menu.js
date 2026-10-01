@@ -633,7 +633,15 @@ export function grupoPara(gs, members, para) {
   if (!para) return null;
   const sinonimo = SINONIMOS.find(([re]) => re.test(normal(para)))?.[1];
   if (sinonimo) para = sinonimo;
-  if (["mayores", "ninos", "bebe"].includes(para)) return gs.find((g) => tipoDeGrupo(g, members) === para) ?? null;
+  if (["mayores", "ninos", "bebe"].includes(para)) {
+    // Con un solo menú para la familia, «los niños» comen en el de los
+    // mayores: su menú es ese (el grupo donde come alguno), no ninguno.
+    const conAlguno = (g) => (g.memberIds ?? []).some((id) => {
+      const p = members.find((x) => x.id === id);
+      return p && (para === "ninos" ? !esBebe(p) && !esMayor(p) : para === "bebe" ? esBebe(p) : esMayor(p));
+    });
+    return gs.find((g) => tipoDeGrupo(g, members) === para) ?? gs.find(conAlguno) ?? null;
+  }
   // Una persona por su nombre («para Cova», «lo de Leo»): el grupo en el que
   // come. Si no está en ninguno, el de su tipo, con el mismo criterio de arriba.
   const quien = normal(para);

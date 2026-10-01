@@ -18,7 +18,8 @@
  * Aquí solo se DECIDE; actuar lo hace api/_bot/turno.js.
  */
 
-import { IDS_COMIDAS, COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
+import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS, COMIDAS as CATALOGO, comidasEnTexto } from "../../src/lib/comidas.js";
+import { CUANDOS } from "./cuando.js";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const MODELO_ROUTER = process.env.BOT_ROUTER_MODELO || "claude-haiku-4-5-20251001";
@@ -52,8 +53,12 @@ const ESQUEMA = {
     modo: { type: "string", enum: MODOS },
     varias: { type: "boolean", description: "true si el mensaje pide MÁS DE UNA cosa distinta (cambiar un plato Y apuntar algo, ver el menú Y configurar…)." },
     confianza: { type: "number", description: "0 a 1." },
-    que: { type: "string", enum: ["hoy", "dia", "semana", "compra"], description: "Solo en consulta: qué quiere ver." },
-    dia: { type: "string", enum: DIAS, description: "consulta de un día, recomendar o cambiar." },
+    que: { type: "string", enum: ["menu", "compra"], description: "Solo en consulta: el menú o la compra." },
+    cuando: { type: "string", enum: CUANDOS, description: "Solo en consulta del menú: qué días. dia = un día (va en dia); rango = de un día a otro (dia y hasta)." },
+    dia: { type: "string", enum: DIAS, description: "consulta de un día (o el primero de un rango), recomendar o cambiar." },
+    hasta: { type: "string", enum: DIAS, description: "Solo en consulta con cuando=rango: el último día." },
+    comidas: { type: "array", items: { type: "string", enum: COMIDAS }, description: "Solo en consulta, si las dicen («solo cenas», «qué desayunamos»): qué comidas ver." },
+    platos: { type: "array", items: { type: "string", enum: IDS_PLATOS }, description: "Solo en consulta, si lo dicen: primero («los primeros») o principal («los segundos»)." },
     comida: { type: "string", enum: COMIDAS, description: "recomendar o cambiar." },
     cual: { type: "string", enum: ["principal", "primero"] },
     para: { type: "string", description: "«mayores», «ninos» o «bebe»; o el nombre de una persona de la casa si la nombran («para Cova» → «Cova»)." },
@@ -75,7 +80,7 @@ const ESQUEMA = {
 
 export const REGLAS = `Eres el enrutador de Lola, la cocinera de casa de una app de menús familiares (HoMenu). No contestas al usuario: solo clasificas su mensaje y sacas los datos. Elige UN modo:
 
-- consulta: quiere VER algo ya guardado. que=hoy («¿qué comemos hoy?», «¿qué hay de cena?»), dia + el día («¿qué hay el jueves?», «¿y mañana?»), semana («pásame el menú»), compra («¿qué falta por comprar?», «la lista»).
+- consulta: quiere VER algo ya guardado. que=compra («¿qué falta por comprar?», «la lista»), o que=menu con cuando: hoy («¿qué comemos hoy?», «¿qué hay de cena?»), manana, pasado_manana, dia + el día («¿qué hay el jueves?»), finde («¿qué cenamos este finde?»), finde_que_viene, esta_semana («pásame el menú»), semana_que_viene («el menú de la semana que viene»), rango + dia + hasta («de lunes a miércoles»). Si dicen comidas, en comidas («solo cenas», «¿qué desayunamos?», «las meriendas»); si dicen platos, en platos («los primeros»); si es para alguien, en para («los niños» = ninos, «el bebé» = bebe, o el nombre).
 - recomendar: pide ideas u opciones para UN hueco, sin cambiar nada todavía («¿qué me recomiendas para cenar?», «ideas para la comida del jueves», «algo ligero para esta noche», «¿qué le hago de cenar al bebé?», «¿qué le preparo a Leo?»). «Qué le hago / qué le preparo» es pedir ideas; «qué hay / qué toca / qué comemos» es consulta. Saca día, comida, para quién y rasgos solo si los dice ESTE mensaje o se deducen sin duda de él («con mi mujer», «para nosotros» = mayores; los niños = ninos; el bebé solo si lo nombran; una persona por su nombre, tal cual). «Para quién» no se arrastra de mensajes anteriores: si ahora no lo dice, va vacío. «Ligero» y «rápido» van en estilo. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito», «contundente» van en rasgos.
 - cambiar: quiere cambiar YA un plato concreto del menú y dice qué hueco («cambia la cena del jueves», «pon lentejas el martes a mediodía», «el viernes cenamos pizza, cámbialo»). receta = el plato nuevo si lo nombra, ahora o en su mensaje anterior (dijo «pizza congelada» y ahora contesta «el viernes de cena» → receta = pizza congelada). cualquiera = true solo si pide otra cosa sin importarle cuál («cámbiala por lo que sea», «otra cosa cualquiera»). Si no dice el hueco, es lola. Si es algo que se repite («los viernes», «todos los lunes», «siempre»), no es un cambio de una vez: es lola.
 - compra_anadir: apuntar cosas en la lista («apunta leche y pan», «añade pilas»). compra_marcar: tachar lo comprado («ya tengo los huevos», «compré la leche»).
@@ -85,7 +90,9 @@ export const REGLAS = `Eres el enrutador de Lola, la cocinera de casa de una app
 
 Contexto: si Lola acaba de preguntar algo («¿para qué día?», «¿comida o cena?») y el mensaje es la respuesta, completa con él la petición que estaba en curso (la que dijo el usuario justo antes) (p. ej. Lola preguntó el día de una recomendación y dicen «para hoy» → recomendar con dia=hoy). No confundas esa respuesta con una consulta del menú.
 
-Rellena SIEMPRE los campos que el modo necesita: que (consulta), productos (compra), semana (generar), dia y comida (cambiar). Los días relativos déjalos como los dicen («hoy», «mañana»).
+Las comidas y cómo se dicen (para comida y comidas): ${CATALOGO.map((c) => `${c.id} = ${c.sinonimos.join(", ")}`).join("; ")}. «¿Qué comemos hoy?» o «¿qué hay mañana?» son el día entero: sin comidas.
+
+Rellena SIEMPRE los campos que el modo necesita: que y cuando (consulta del menú), productos (compra), semana (generar), dia y comida (cambiar). Los días relativos déjalos como los dicen («hoy», «mañana»).
 
 confianza: 0,9 o más solo si el modo es inequívoco y tienes los datos que ese modo necesita. En cambiar, receta es opcional: que no la digan no baja la confianza. Si falta algo obligatorio o dudas entre dos modos, baja de 0,8 o usa lola.`;
 
@@ -123,6 +130,14 @@ export async function clasificar({ texto, contexto }, { signal } = {}) {
     const modo = MODOS.includes(x.modo) ? x.modo : "lola";
     const confianza = Math.max(0, Math.min(1, Number(x.confianza) || 0));
     const { modo: _m, confianza: _c, ...datos } = x;
+    // Red para las comidas de una consulta: si el modelo no las ha sacado,
+    // se buscan en la frase con los sinónimos del catálogo («cenamos» → Cena,
+    // «picoteo» → Aperitivo). Así una comida nueva en el catálogo se entiende
+    // aunque el modelo pequeño no la recoja.
+    if (modo === "consulta" && datos.que === "menu" && !datos.comidas?.length) {
+      const vistas = comidasEnTexto(texto);
+      if (vistas.length) datos.comidas = vistas;
+    }
     return { modo, confianza, datos, ms: Date.now() - t0, uso: r.usage };
   } catch (err) {
     // Si el enrutador falla, Lola: nunca se queda un mensaje sin contestar.
@@ -136,7 +151,14 @@ export function vaPorLaRapida(d) {
   const x = d.datos ?? {};
   // Dos peticiones en un mensaje: la vía rápida haría una y perdería la otra.
   if (x.varias) return false;
-  if (d.modo === "consulta") return Boolean(x.que) && (x.que !== "dia" || Boolean(x.dia));
+  // Consulta: la compra, o el menú con días que se puedan resolver.
+  if (d.modo === "consulta") {
+    if (x.que === "compra") return true;
+    if (x.que !== "menu" || !CUANDOS.includes(x.cuando)) return false;
+    if (x.cuando === "dia") return Boolean(x.dia);
+    if (x.cuando === "rango") return Boolean(x.dia && x.hasta);
+    return true;
+  }
   // Sin plato ni «otra cosa», la vía rápida no elige: ofrece tres opciones
   // (turno.js). Antes ponía una al azar (la pizza que salió fettuccine).
   if (d.modo === "cambiar") return Boolean(x.dia && x.comida);
