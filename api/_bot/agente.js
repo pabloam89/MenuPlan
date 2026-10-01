@@ -123,6 +123,7 @@ const FALLO_HERRAMIENTA = "bot_tool_error";
 const FALLO_NO_ENTIENDE = "bot_not_understood";
 const FALLO_A_MEDIAS = "bot_error";
 const FRENO_SUPERVISOR = "bot_supervisor";
+const FALLO_SIN_GUARDAR = "bot_claimed_unsaved";
 
 // Qué pantalla de la app enseña lo que se acaba de ver o cambiar, en el
 // formato de ?ir= de la app (App.jsx): hoy, semana, dia:Jue, compra.
@@ -745,9 +746,9 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
   const ficha = casa ? montarFicha(casa, extras) : null;
-  let dicho, uso;
+  let dicho, uso, corregido;
   try {
-    ({ dicho, uso } = await ejecutar({
+    ({ dicho, uso, corregido } = await ejecutar({
       historia, entrada, tools, adjunto, signal, ficha,
       alEscribir: alEscribir ? (parcial) => alEscribir(parcial, { fotos: chat.fotos }) : null,
       // Lo que juntó el modelo que se cayó no es de esta respuesta.
@@ -763,6 +764,9 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
       texto: "😵‍💫 Me he quedado a medias: puede que ya haya cambiado algo y no te lo he podido contar.\n\nMíralo en la app con el botón antes de pedírmelo otra vez, así no se hace dos veces.",
       fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir ?? "semana", compartir: null,
     };
+  }
+  if (corregido) {
+    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200) } });
   }
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
     await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200) } });
@@ -800,7 +804,15 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
  * @param {{ estable: string, delDia: string } | null} [ficha]  la ficha de la
  *   casa (api/_bot/ficha.js); las pruebas pueden pasar una de mentira.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null }) {
+// Lola a veces dice «✅ Apuntado» sin haber llamado a nada que guarde (1 de
+// cada 3 con «a partir de ahora nada de coliflor»). Las reglas lo frenan casi
+// siempre, pero no del todo: si lo dice y en el turno no hubo ninguna
+// escritura, se le avisa y repite la vuelta una vez.
+const DICE_QUE_GUARDO = /✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
+export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(String(texto ?? ""));
+const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En tu respuesta dices que lo has apuntado, guardado o hecho, pero en este turno no has llamado a ninguna herramienta que guarde: no se ha guardado nada. Si había que guardarlo, llama ahora a la herramienta que toca y luego contesta. Si no, contesta otra vez sin decir que está hecho. Contesta a la persona directamente, sin mencionar este aviso.";
+
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta }) {
   // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
@@ -817,12 +829,23 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     const plazo = AbortSignal.timeout(i === 0 ? PLAZO_MS.principal : PLAZO_MS.reserva);
     try {
       if (i > 0) alReintentar?.();
-      const r = await unaVuelta({
-        historia, entrada, tools: vigiladas, adjunto, alEscribir, modelo, ficha,
+      const comun = {
+        tools: vigiladas, alEscribir, modelo, ficha,
         signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
-      });
+      };
+      let r = await vuelta({ ...comun, historia, entrada, adjunto });
+      if (escrituras === 0 && diceQueGuardo(r.dicho)) {
+        console.warn("[agente] dijo que guardó sin guardar: otra vuelta");
+        // Lo que dijo queda en la historia (sin el adjunto, que ya leyó), y el aviso va como mensaje nuevo.
+        const otra = await vuelta({
+          ...comun, adjunto: null, entrada: AVISO_SIN_GUARDAR,
+          historia: [...historia, { role: "user", content: entrada }, { role: "assistant", content: r.dicho }],
+        });
+        const uso = Object.fromEntries(Object.keys({ ...r.uso, ...otra.uso }).map((k) => [k, (r.uso?.[k] ?? 0) + (otra.uso?.[k] ?? 0)]));
+        r = { dicho: otra.dicho, uso, corregido: true };
+      }
       if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
       return { ...r, modelo };
     } catch (err) {
