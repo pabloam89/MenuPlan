@@ -12,8 +12,10 @@ import { supabase } from "./supabase.js";
  */
 
 /**
+ * null = la casa no tiene fila todavía. Si la lectura falla (sin red), vuelve
+ * con `error: true`: no es lo mismo una casa vacía que no saber qué tiene.
  * @param {string} householdId
- * @returns {Promise<{ state: any, updatedAt: string, botRev: number | null } | null>}
+ * @returns {Promise<{ state: any, updatedAt: string | null, botRev: number | null, error?: boolean } | null>}
  */
 export async function loadHouseholdState(householdId) {
   if (!supabase || !householdId) return null;
@@ -32,7 +34,7 @@ export async function loadHouseholdState(householdId) {
   }
   if (error) {
     console.warn("[householdState] load failed", error.message);
-    return null;
+    return { state: null, updatedAt: null, botRev: null, error: true };
   }
   if (!data) return null;
   return {
