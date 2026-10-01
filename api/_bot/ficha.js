@@ -41,14 +41,26 @@ const DIA_LARGO = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jue
 // ya se lee («sofrito», «salsa_tomate»). Sin bases.js: trae el JSON del catálogo.
 const ETIQUETA_TANDA = new Map([...SEMI, ...COCINADO].map((f) => [f.id, f.etiqueta.toLowerCase()]));
 
-/** «Tanda: sofrito ×3, arroz ×2 · el domingo · 1 h de manos», o null si no hay. */
-function tandaPedida(data) {
+/**
+ * El batch cooking pedido: { que: «sofrito ×3, arroz ×2», dia: "Dom" | null,
+ * manos: «1 h» }, o null si no hay. A la familia se le dice «batch cooking» o
+ * «día de tuppers», nunca «tanda» (Pablo, 1 oct 2026: «tanda» no lo usa nadie).
+ * Lo usan la ficha y el aviso de la víspera (vispera.js).
+ */
+export function batchCooking(data) {
   if (!hayTandasPedidas(data)) return null;
-  const pedidas = [...Object.entries(data.tanda ?? {}), ...Object.entries(data.tandaPlatos ?? {})]
+  const que = [...Object.entries(data.tanda ?? {}), ...Object.entries(data.tandaPlatos ?? {})]
     .filter(([, n]) => Number(n) > 0)
-    .map(([id, n]) => `${ETIQUETA_TANDA.get(id) ?? id.replace(/_/g, " ")} ×${n}`);
-  const dia = DIA_LARGO[data.diaTanda] ? `el ${DIA_LARGO[data.diaTanda]}` : null;
-  return ["Tanda: " + pedidas.join(", "), dia, `${enHoras(minutosDeTanda(data))} de manos`].filter(Boolean).join(" · ");
+    .map(([id, n]) => `${ETIQUETA_TANDA.get(id) ?? id.replace(/_/g, " ")} ×${n}`)
+    .join(", ");
+  return { que, dia: DIA_LARGO[data.diaTanda] ? data.diaTanda : null, manos: enHoras(minutosDeTanda(data)) };
+}
+
+/** «Batch cooking: sofrito ×3, arroz ×2 · el domingo · 1 h de manos», o null si no hay. */
+function tandaPedida(data) {
+  const b = batchCooking(data);
+  if (!b) return null;
+  return [`Batch cooking: ${b.que}`, b.dia ? `el ${DIA_LARGO[b.dia]}` : null, `${b.manos} de manos`].filter(Boolean).join(" · ");
 }
 const LETRA = { Lun: "L", Mar: "M", "Mié": "X", Jue: "J", Vie: "V", "Sáb": "S", Dom: "D" };
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
