@@ -511,6 +511,11 @@ async function entregar({ chatId, householdId, esGrupo, base, from, responderA, 
   // Si Lola ya puso su [[No es así]] (que es deshacer), no dos botones para lo mismo.
   const yaDeshace = botones.flat().some((b) => b.dato === `t:${DESHACER}`);
   if (r.deshacible && !yaDeshace) alPie.push({ texto: "↩️ Deshacer", dato: `t:${DESHACER}` });
+  // En un grupo, deshacer es de quien lo pidió: el botón lleva su id y, si lo
+  // pulsa otro, no hace nada (pulsado(), «d:»).
+  if (esGrupo && from?.id) {
+    for (const b of [...botones.flat(), ...alPie]) if (b.dato === `t:${DESHACER}`) b.dato = `d:${from.id}`;
+  }
   // Todo se abre en la app, en su pantalla (?ir=). Solo en privado: el enlace
   // puede llevar la llave de entrada de quien lo pide, y en un grupo la
   // pulsaría cualquiera.
@@ -769,6 +774,14 @@ function bienvenida(chatId) {
 
 async function pulsado(cq, base, host = "") {
   const chatId = String(cq.message.chat.id);
+  // Deshacer en un grupo: solo quien hizo el cambio. A otro se le dice en un
+  // aviso y el botón se queda para quien sí puede.
+  const deQuien = cq.data?.startsWith("d:") ? cq.data.slice(2) : null;
+  if (deQuien && String(cq.from?.id) !== deQuien) {
+    await llamar("answerCallbackQuery", { callback_query_id: cq.id, text: "Solo puede deshacerlo quien lo pidió." }).catch(() => {});
+    return;
+  }
+  if (deQuien) cq = { ...cq, data: `t:${DESHACER}` };
   await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(() => {});
   // Un botón se usa una vez: se quitan los del mensaje pulsado para que no
   // se pulsen luego los viejos (en la primera prueba salieron cinco avisos

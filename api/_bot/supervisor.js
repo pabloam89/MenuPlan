@@ -38,6 +38,44 @@ const NO_A_SECAS = (dicho) => {
   return palabras.length > 0 && palabras.length <= 6 && /^(no|nada|nop)$/.test(palabras[0]) && palabras.every((w) => RELLENO.has(w));
 };
 
+// Cómo se nombra cada uno de los 14 alérgenos al hablar (texto ya normalizado:
+// minúsculas y sin tildes). Sin frontera al final: «huevos», «nueces».
+const DICHO_ALERGENO = {
+  gluten: /\b(gluten|celiac|trigo|harina)/,
+  crustaceos: /\b(crustace|marisco|gamba|langostin|cangrej|cigala|bogavante)/,
+  huevos: /\bhuevo/,
+  pescado: /\b(pescado|pez\b|peces)/,
+  cacahuetes: /\b(cacahuet|mani\b)/,
+  soja: /\bsoja/,
+  leche: /\b(leche|lacte|lactos|queso|yogur|nata\b)/,
+  frutos_cascara: /\b(frutos? (secos|de cascara)|nuec|nuez|almendr|avellan|anacard|pistach)/,
+  apio: /\bapio/,
+  mostaza: /\bmostaza/,
+  sesamo: /\bsesamo/,
+  sulfitos: /\bsulfit/,
+  altramuces: /\baltramu/,
+  moluscos: /\b(molusc|marisco|mejillon|almeja|calamar|pulpo|sepia|berberecho|ostra)/,
+  // Intolerancias y estados (ajustar_salud).
+  lactosa_fina: /\blactos/,
+  fructosa: /\bfructos/,
+  sorbitol: /\bsorbitol/,
+  embarazo: /\b(embaraz|ha nacido|nacio|di a luz|dio a luz|parto|parido)/,
+  lactancia: /\b(lactanc|pecho|teta|destet)/,
+};
+// Pedir que se quite un estado se dice de más maneras: «ya no estoy
+// embarazada», «ya ha nacido», «ya no le doy el pecho», «hemos destetado».
+const QUITA_SALUD = new RegExp(`${QUITA.source}|\\b(ya ha nacido|ya nacio|di a luz|dio a luz|ya no (estoy|esta|le doy|doy)|destet)`);
+const mencionaAlergeno = (id, txt) => (DICHO_ALERGENO[id] ?? new RegExp(`\\b${normal(String(id)).replace(/_/g, " ")}`)).test(txt);
+
+// La persona por su nombre (el primero basta: «Leo» por «Leo Martín»). Para
+// toda la casa vale «todos», «la casa», «nadie».
+function mencionaPersona(persona, txt) {
+  const p = normal(persona ?? "");
+  if (!p || /^(toda la casa|todos|la casa|familia)$/.test(p)) return /\b(todos|toda la casa|la casa|nadie|ninguno|familia)\b/.test(txt);
+  const nombre = p.split(/\s+/)[0].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`\\b${nombre}\\b`).test(txt);
+}
+
 /** Lo que escribió la persona, sin el «[Ana]: » de los grupos, el «[nota de voz]» de los audios ni signos de apertura. */
 const limpio = (texto) => String(texto ?? "").trim().replace(/^\[[^\]]{1,40}\]:\s*/, "").replace(/^\[nota de voz\]\s*/i, "").replace(/^[¡¿]+/, "").trim();
 
@@ -47,17 +85,33 @@ const limpio = (texto) => String(texto ?? "").trim().replace(/^\[[^\]]{1,40}\]:\
  * @param {string} texto  lo que ha escrito la persona en este turno
  * @returns {null | string}  null = adelante; si no, lo que se le dice a Lola
  */
-export function supervisar(herramienta, args = {}, texto = "") {
+export function supervisar(herramienta, args = {}, texto = "", { anterior = "" } = {}) {
   const t = limpio(texto);
   const dicho = normal(t);
   const esSi = SI.test(t) && !SI_SIN_TILDE.test(t) && !PERO_NO.test(dicho);
 
   if (herramienta === "ajustar_alergias" && args.confirmado === true) {
-    if (args.quitar && !esSi && !QUITA.test(dicho)) {
-      return "No se ha guardado: quitar una alergia necesita que la persona lo confirme. Pregúntale en una frase si seguro que ya no la tiene, y quítala solo con su «sí».";
+    // Quitar: no basta un «sí» o un «quita» cualquiera; tienen que ser ESA
+    // persona y ESE alérgeno. O los nombra la persona al pedirlo («quítale el
+    // huevo a Leo»), o los nombraba la pregunta de Lola a la que dice que sí.
+    const deEso = (txt) => (args.alergenos ?? []).length > 0
+      && args.alergenos.every((a) => mencionaAlergeno(a, txt)) && mencionaPersona(args.persona, txt);
+    const loPide = QUITA.test(dicho) && deEso(dicho);
+    const loConfirma = esSi && (deEso(dicho) || deEso(normal(anterior)));
+    if (args.quitar && !loPide && !loConfirma) {
+      return "No se ha guardado: quitar una alergia necesita que la persona lo confirme diciendo quién y qué. Pregúntale en una frase si seguro que esa persona ya no tiene esa alergia (nómbralas las dos), y quítala solo con su «sí».";
     }
     if (args.ninguna && !esSi && !NADIE.test(dicho) && !NO_A_SECAS(dicho)) {
       return "No se ha guardado: para dejar a la casa sin alergias, la persona tiene que decirlo o confirmarlo. Pregúntale si nadie tiene ninguna alergia ni intolerancia.";
+    }
+  }
+
+  // Intolerancias y estados (embarazo, lactancia): igual que una alergia.
+  if (herramienta === "ajustar_salud" && args.confirmado === true && args.quitar) {
+    const cosas = [...(args.intolerancias ?? []), ...(args.estados ?? [])];
+    const deEso = (txt) => cosas.length > 0 && cosas.every((c) => mencionaAlergeno(c, txt)) && mencionaPersona(args.persona, txt);
+    if (!(QUITA_SALUD.test(dicho) && deEso(dicho)) && !(esSi && (deEso(dicho) || deEso(normal(anterior))))) {
+      return "No se ha guardado: quitar una intolerancia o un estado necesita que la persona lo confirme diciendo quién y qué. Pregúntale en una frase si seguro que ya no (nombra a la persona y lo que es), y quítalo solo con su «sí».";
     }
   }
 

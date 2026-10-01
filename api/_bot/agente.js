@@ -25,7 +25,7 @@ import { generarMenu } from "./generar.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
-  anadirComensal, quitarComensal, ajustarAlergias, dominiosDeGustos, ajustarPersona, ajustarMenuPeques,
+  anadirComensal, quitarComensal, ajustarAlergias, ajustarSalud, INTOLERANCIAS, ESTADOS, dominiosDeGustos, ajustarPersona, ajustarMenuPeques,
   descartarSupuesto, pedirTanda,
 } from "./ajustes.js";
 import {
@@ -80,7 +80,7 @@ const CON_BOTON_DESHACER = new Set([
   "marcar_compra", "anadir_compra", "cambiar_plato", "generar_menu",
   "ajustar_gustos", "descartar_supuesto", "ajustar_horario", "anadir_invitado", "quitar_comensal",
   // Las alergias se guardan al momento (con eco) y se deshacen con un toque.
-  "ajustar_alergias", "ajustar_menu_peques",
+  "ajustar_alergias", "ajustar_salud", "ajustar_menu_peques",
 ]);
 
 // Fallos de conversación, para medirlos (user_events, como el embudo).
@@ -156,7 +156,7 @@ export async function herramientas(chat) {
       }
       // Lo que quita protección (una alergia, a alguien de la casa) se contrasta
       // con lo que ha escrito la persona, no solo con el «confirmado» del modelo.
-      const freno = supervisar(t.name, args, chat.texto);
+      const freno = supervisar(t.name, args, chat.texto, { anterior: chat.anterior });
       if (freno) {
         await registrar(FRENO_SUPERVISOR, { userId: await duenoDe(chat.householdId).catch(() => null), extra: { herramienta: t.name, texto: String(chat.texto ?? "").slice(0, 200) } });
         return freno;
@@ -475,6 +475,18 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       run: (args) => ajustarAlergias(householdId, args),
     }),
     betaTool({
+      name: "ajustar_salud",
+      description: "Lo que NO es uno de los 14 alérgenos pero cambia el menú de una persona: intolerancias (lactosa_fina = intolerancia a la lactosa, fructosa, sorbitol) y estados (embarazo, lactancia). Igual que las alergias: confirmado=true en cuanto lo ha dicho claro (quién y qué), se guarda al momento y se cuenta en una línea con [[No es así]]. hasta (AAAA-MM-DD) solo si dan fecha de fin de un estado. quitar=true para quitarlo (se comprueba contra lo que ha escrito). La celiaquía y la alergia a la leche van con ajustar_alergias (gluten, leche).",
+      inputSchema: obj({
+        persona: { type: "string" },
+        intolerancias: { type: "array", items: { type: "string", enum: INTOLERANCIAS } },
+        estados: { type: "array", items: { type: "string", enum: ESTADOS } },
+        hasta: { type: "string" },
+        quitar: { type: "boolean" }, confirmado: { type: "boolean" },
+      }, ["persona", "confirmado"]),
+      run: (args) => ajustarSalud(householdId, args),
+    }),
+    betaTool({
       name: "deshacer",
       description: "Deshace TU último cambio en la casa (un plato cambiado, la compra, un ajuste o un menú generado: vuelve el anterior). Un solo nivel. No deshace lo que otra persona haya hecho en la app.",
       inputSchema: obj({}),
@@ -736,6 +748,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     cargarCasa(householdId).catch(() => null), extrasDeFicha(householdId, chatId),
   ]);
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
+  // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
+  chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
   const ficha = casa ? montarFicha(casa, extras) : null;
   let dicho, uso, corregido;
