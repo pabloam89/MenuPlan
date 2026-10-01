@@ -34,17 +34,33 @@ function cargar() {
 const recordadas = new Map();
 const MAX_RECORDADAS = 500;
 
+// Cortacircuitos: tras un límite (429) o un corte, no se vuelve a llamar hasta
+// que pase lo que pida el gateway (o 60 s). Por instancia, que es lo que hay.
+let cortadoHasta = 0;
+export const _reiniciarCorte = () => { cortadoHasta = 0; recordadas.clear(); };
+
 async function vectorDe(frase, { modelo, dims, prefijoConsulta }) {
   const clave = frase.trim().toLowerCase();
   if (recordadas.has(clave)) return recordadas.get(clave);
   const token = process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN;
-  if (!token) return null;
-  const r = await fetch(URL_GATEWAY, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: modelo, input: prefijoConsulta + frase }),
-    signal: AbortSignal.timeout(ESPERA_MS),
-  });
+  if (!token || Date.now() < cortadoHasta) return null;
+  let r;
+  try {
+    r = await fetch(URL_GATEWAY, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: modelo, input: prefijoConsulta + frase }),
+      signal: AbortSignal.timeout(ESPERA_MS),
+    });
+  } catch (err) {
+    cortadoHasta = Date.now() + 60_000;
+    throw err;
+  }
+  if (r.status === 429) {
+    const txt = await r.text();
+    cortadoHasta = Date.now() + (Number(txt.match(/after (\d+)s/)?.[1] ?? 60) + 1) * 1000;
+    throw new Error(`gateway 429: ${txt.slice(0, 120)}`);
+  }
   if (!r.ok) throw new Error(`gateway ${r.status}: ${(await r.text()).slice(0, 120)}`);
   const v = (await r.json()).data[0].embedding.slice(0, dims);
   let n = 0;
@@ -67,22 +83,33 @@ export function tieneNegacion(frase) {
  * @returns {Promise<string[]>} ids del catálogo estrella, de más a menos
  */
 export async function porVectores(consulta, { n = 8 } = {}) {
-  if (!String(consulta ?? "").trim()) return [];
+  const notas = await parecidos(consulta);
+  if (!notas) return [];
+  return [...notas.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map(([id]) => id);
+}
+
+/**
+ * El parecido (coseno) de la frase con TODAS las recetas del índice, para que
+ * quien llama ordene dentro de sus candidatas (api/_bot/buscador.js).
+ * @returns {Promise<Map<string, number> | null>} null si no se pudo vectorizar
+ */
+export async function parecidos(consulta) {
+  if (!String(consulta ?? "").trim()) return null;
   try {
     const ix = cargar();
     const q = await vectorDe(consulta, ix);
-    if (!q) return [];
+    if (!q) return null;
     const { dims, filas, escalas, ids } = ix;
-    const notas = new Float32Array(ids.length);
+    const notas = new Map();
     for (let i = 0; i < ids.length; i++) {
       let s = 0;
       const base = i * dims;
       for (let d = 0; d < dims; d++) s += q[d] * filas[base + d];
-      notas[i] = s * escalas[i];
+      notas.set(ids[i], s * escalas[i]);
     }
-    return [...notas.keys()].sort((a, b) => notas[b] - notas[a]).slice(0, n).map((i) => ids[i]);
+    return notas;
   } catch (err) {
     console.error("[vectores]", String(err?.message ?? err).slice(0, 150));
-    return [];
+    return null;
   }
 }

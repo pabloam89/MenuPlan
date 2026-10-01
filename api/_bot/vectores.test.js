@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
-import { porVectores, tieneNegacion } from "./vectores.js";
+import { porVectores, tieneNegacion, _reiniciarCorte } from "./vectores.js";
 
 const ix = JSON.parse(readFileSync(new URL("./recetasVectores.json", import.meta.url), "utf8"));
 const datos = Buffer.from(ix.datos, "base64");
@@ -11,7 +11,7 @@ const vectorDe = (id) => {
 };
 const responde = (embedding) => vi.fn(async () => ({ ok: true, json: async () => ({ data: [{ embedding }] }) }));
 
-afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); _reiniciarCorte(); });
 
 describe("porVectores", () => {
   it("el índice es del Recetario Estrella y está al día de tamaño", () => {
@@ -37,9 +37,18 @@ describe("porVectores", () => {
     expect(f).toHaveBeenCalledTimes(1);
   });
 
+  it("tras un 429 no se vuelve a llamar hasta que pase la espera", async () => {
+    vi.stubEnv("AI_GATEWAY_API_KEY", "k");
+    const f = vi.fn(async () => ({ ok: false, status: 429, text: async () => "Retry after 30s." }));
+    vi.stubGlobal("fetch", f);
+    expect(await porVectores("frase que falla")).toEqual([]);
+    expect(await porVectores("otra frase distinta")).toEqual([]);
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+
   it("si el gateway falla o no hay clave, [] y sigue el respaldo", async () => {
     vi.stubEnv("AI_GATEWAY_API_KEY", "k");
-    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 429, text: async () => "límite" })));
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 500, text: async () => "roto" })));
     expect(await porVectores("frase que falla")).toEqual([]);
     vi.stubEnv("AI_GATEWAY_API_KEY", "");
     vi.stubEnv("VERCEL_OIDC_TOKEN", "");

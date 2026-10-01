@@ -10,7 +10,12 @@
  */
 
 import fs from "node:fs";
-import { EXAMEN, NEGACIONES } from "./vectores-preguntas.mjs";
+import * as preguntas from "./vectores-preguntas.mjs";
+
+// --aparte: el examen que no se usó para diseñar (scripts/vectores-aparte.mjs).
+const aparte = process.argv.includes("--aparte") ? await import("./vectores-aparte.mjs") : null;
+const EXAMEN = aparte ? aparte.APARTE : preguntas.EXAMEN;
+const NEGACIONES = aparte ? aparte.APARTE_NEGACIONES : preguntas.NEGACIONES;
 
 for (const l of fs.readFileSync(".env.local", "utf8").split(/\r?\n/)) {
   const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
