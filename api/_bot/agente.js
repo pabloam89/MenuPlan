@@ -23,6 +23,7 @@ import {
   apuntarAusencia,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
+import { avisoVispera } from "./vispera.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
@@ -331,6 +332,12 @@ function herramientasDeRecordatorios(chat) {
       run: (args) => crearRecordatorio(chat, args),
     }),
     betaTool({
+      name: "aviso_vispera",
+      description: "El aviso de la víspera: cada noche miras el menú de mañana y, SOLO si hay algo que preparar (legumbres en remojo, sacar un plato del congelador, su día de batch cooking), les escribes. Solo con su sí: ofrécelo una vez, tras su primer menú, con [[Sí, avísame]] [[No hace falta]]. activar=false lo quita. hora HH:MM en hora de España (por defecto 20:30).",
+      inputSchema: obj({ activar: { type: "boolean" }, hora: { type: "string" } }, ["activar"]),
+      run: (args) => avisoVispera(chat, args),
+    }),
+    betaTool({
       name: "ver_recordatorios",
       description: "Los recordatorios pendientes de este chat, con su id.",
       inputSchema: obj({}),
@@ -405,7 +412,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     betaTool({
       name: "pedir_tanda",
-      description: "Cocinar en tanda (batch cooking), como la pantalla de bases de la app. bases: lo que se deja hecho para usar en varios platos (claves: arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito, caldo, salsa_tomate, verdura_asada, pesto, bechamel, patatas_asadas, bolonesa), con veces = platos de la semana que lo usan (2-5; 0 lo quita). platos: platos que se dejan hechos o a medias (claves: croquetas-crudas, bunuelos-masa, falafel-crudo, empanadillas-cerradas, empanada-montada, lasana-montada, ravioli-cortados, quiche-sin-hornear, pastel-al-horno, huevos-rellenos, carne-empanada, verduras-rellenas, gazpacho, caldo-casero, crema, sopa), veces 1-4. minutos: el rato de manos que hay para la sesión (30-240). dia: el día en que se cocina (lunes…domingo). ninguna=true: deja de cocinar en tanda. Si una clave no vale, te devuelvo la lista buena: corrígela, no se lo preguntes a la familia.",
+      description: "Batch cooking (día de hacer tuppers; a la familia nunca le digas «tanda»), como la pantalla de bases de la app. bases: lo que se deja hecho para usar en varios platos (claves: arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito, caldo, salsa_tomate, verdura_asada, pesto, bechamel, patatas_asadas, bolonesa), con veces = platos de la semana que lo usan (2-5; 0 lo quita). platos: platos que se dejan hechos o a medias (claves: croquetas-crudas, bunuelos-masa, falafel-crudo, empanadillas-cerradas, empanada-montada, lasana-montada, ravioli-cortados, quiche-sin-hornear, pastel-al-horno, huevos-rellenos, carne-empanada, verduras-rellenas, gazpacho, caldo-casero, crema, sopa), veces 1-4. minutos: el rato de manos que hay para la sesión (30-240). dia: el día en que se cocina (lunes…domingo). ninguna=true: deja de cocinar en tanda. Si una clave no vale, te devuelvo la lista buena: corrígela, no se lo preguntes a la familia.",
       inputSchema: obj({
         bases: { type: "array", items: obj({ base: { type: "string" }, veces: { type: "integer", minimum: 0, maximum: 5 } }, ["base"]) },
         platos: { type: "array", items: obj({ familia: { type: "string" }, veces: { type: "integer", minimum: 0, maximum: 4 } }, ["familia"]) },
