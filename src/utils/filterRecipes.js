@@ -87,11 +87,18 @@ export function puedeContenerDe(recipe) {
 
 export function recipeViolatesHardSafety(
   recipe,
-  { allergies = [], intolerances = [], hasKids = false, isBabyGroup = false } = {},
+  // offMenu: desayunos, meriendas y postres no se adaptan sin gluten (al
+  // generarlos no se hace; al rehacer uno, tampoco: las dos vías igual).
+  { allergies = [], intolerances = [], hasKids = false, isBabyGroup = false, offMenu = false } = {},
 ) {
   if (!recipe) return true;
 
-  const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
+  // Con «sin_gluten», el gluten es seguro solo si TODO lo que lo lleva tiene
+  // recambio (planAdaptations no bloquea); si no, cuenta como siempre.
+  const glutenAdaptado = intolerances.includes("sin_gluten") && !offMenu && !planAdaptations(recipe, ["sin_gluten"]).blocked;
+  const blockedAllergens = new Set(
+    allergies.map(normalizeAllergenId).filter((a) => !(a === "gluten" && glutenAdaptado)),
+  );
   if (blockedAllergens.size > 0) {
     if (recipe.allergens?.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
     if (puedeContenerDe(recipe).some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
@@ -138,7 +145,7 @@ export function filterOffMenuRecipes(
 
   // Hard safety — allergens + non-adaptable intolerances + alcohol-for-kids.
   pool = pool.filter(
-    (r) => !recipeViolatesHardSafety(r, { allergies, intolerances, hasKids, isBabyGroup: false }),
+    (r) => !recipeViolatesHardSafety(r, { allergies, intolerances, hasKids, isBabyGroup: false, offMenu: true }),
   );
 
   // Soft: dislikes (with fallback so we never empty the pool).
@@ -255,8 +262,13 @@ export function filterRecipes({
   // el paso 0.
   favoriteIds = null,
 } = {}) {
-  const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   const activeIntolerances = Array.from(new Set(intolerances));
+  // Con «sin_gluten» (alguien con el gluten como alergia, ver substitutions.js)
+  // el gluten no excluye en el paso 1: lo decide el 1c, que deja la receta
+  // solo si TODO lo que lleva gluten tiene recambio sin gluten de verdad.
+  const blockedAllergens = new Set(
+    allergies.map(normalizeAllergenId).filter((a) => !(a === "gluten" && activeIntolerances.includes("sin_gluten"))),
+  );
   const dislikeLower = dislikes.map((d) => d.toLowerCase());
   const toolsLower = new Set(kitchenTools.map((t) => t.toLowerCase()));
   const season = currentSeason();

@@ -14,7 +14,7 @@
 
 import { insert } from "./db.js";
 import { cargarCasa, hoyISO } from "./casa.js";
-import { prepararRecetas, grupos, resolverDia, describirCompra, FRANJAS, DIA_LARGO, DIAS } from "./menu.js";
+import { prepararRecetas, grupos, resolverDia, describirCompra, quienesDe, cambiosDe, FRANJAS, DIA_LARGO, DIAS } from "./menu.js";
 
 const EMOJI = { Desayuno: "☕", Comida: "🍽️", Merienda: "🥪", Cena: "🌙", Postre: "🍮" };
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -57,7 +57,13 @@ export function tituloDelDia(dia, fecha, hoy = hoyISO()) {
  */
 function bloquesDelDia(casa, m, dia, { fotos = null, conFotos = false } = {}) {
   const plan = casa.semana?.plan ?? {};
-  const nombre = (id) => (id ? m.RECIPES_BY_ID[id]?.name ?? m.RECIPES_BY_ID[String(id).split("__").pop()]?.name ?? null : null);
+  // Con lo que se ha adaptado para alguien de la casa: «(con pan sin gluten)».
+  const nombre = (id) => {
+    const r = id ? m.RECIPES_BY_ID[id] ?? m.RECIPES_BY_ID[String(id).split("__").pop()] : null;
+    if (!r?.name) return null;
+    const c = cambiosDe(r);
+    return c ? `${r.name} (${c})` : r.name;
+  };
   const bloques = [];
   for (const f of FRANJAS) {
     const porPlatos = new Map();
@@ -75,7 +81,7 @@ function bloquesDelDia(casa, m, dia, { fotos = null, conFotos = false } = {}) {
       }
       const clave = platos.join("\n");
       if (!porPlatos.has(clave)) porPlatos.set(clave, { platos, quienes: [] });
-      porPlatos.get(clave).quienes.push(g.label);
+      porPlatos.get(clave).quienes.push(quienesDe(g, casa.state?.data?.members ?? []) ?? g.label);
     }
     if (!porPlatos.size) continue;
     const varios = porPlatos.size > 1;

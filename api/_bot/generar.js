@@ -154,7 +154,19 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const miembros = working.members ?? [];
   let groups = working.groups ?? [];
   const conGente = (gs) => gs.some((g) => m.membersOfGroup(g, miembros).length > 0);
-  if (miembros.length && (!groups.length || !conGente(groups))) groups = m.groupsFromModel(miembros, working.menuModel);
+  // Una casa del chat sin modelo de menú es de antes de «todos comen lo
+  // mismo»: el reparto por edades que tiene no lo eligió nadie. Al generar
+  // (el plan es nuevo, no se pierde nada) pasa a un solo menú. Un reparto
+  // elegido (menuModel puesto, o menús individuales) no se toca.
+  const modeloElegido = Boolean(casa.state?.data?.menuModel);
+  const soloPorEdades = groups.length > 1 && groups.every((g) => !g.adHoc && ["Adultos", "Niños", "Bebé"].includes(g.label));
+  const vivas = (casa.semanas ?? []).filter((w) => w.weekEnd >= hoyISO());
+  // Si otra semana del menú se queda, sus huecos van con los ids de ahora: no
+  // se reagrupa (se hará cuando se rehaga esa).
+  const quedaOtra = cual === "siguiente" ? vivas.some((w) => w.weekStart <= hoyISO()) : vivas.some((w) => w.weekStart > hoyISO());
+  if (!modeloElegido && soloPorEdades && !quedaOtra) groups = [];
+  const modelo = working.menuModel ?? "same";
+  if (miembros.length && (!groups.length || !conGente(groups))) groups = m.groupsFromModel(miembros, modelo);
   if (!groups.length || !conGente(groups)) return "Antes de generar necesito saber quién come en casa: añade al menos una persona.";
 
   // «Esta semana» empieza hoy (no tiene sentido planificar el lunes pasado);
@@ -240,7 +252,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     // Los grupos, si se sacaron del modelo aquí: sin ellos en la casa, el plan
     // tiene grupos que nadie conoce y proponer o cambiar un plato salen vacíos
     // (pasaba en todas las casas creadas desde el chat).
-    data: { ...(casa.state?.data ?? {}), activeMenuId: menu.id, ...(groups !== (working.groups ?? []) ? { groups } : {}) },
+    data: { ...(casa.state?.data ?? {}), activeMenuId: menu.id, menuModel: casa.state?.data?.menuModel ?? "same", ...(groups !== (working.groups ?? []) ? { groups } : {}) },
     menuPlan: deHoy && !(startISO <= hoy && hoy <= endISO) ? deHoy.plan : plan,
     shopping: deHoy && !(startISO <= hoy && hoy <= endISO) ? deHoy.shopping : shopping,
     aiRecipes: [...porId.values()],

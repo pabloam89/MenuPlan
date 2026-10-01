@@ -26,6 +26,7 @@ const contexto = (c) => ({
   grupos: ["Familia", "Bebé"],
   hayMenu: true,
   ultimaDeLola: c.ultima ?? null,
+  anteriorDelUsuario: c.anterior ?? null,
 });
 
 let bien = 0, total = 0, rapidaMal = 0, lentaMal = 0;

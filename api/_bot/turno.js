@@ -13,7 +13,7 @@
 
 import { cargarCasa, deshacer } from "./casa.js";
 import {
-  proponerPlatos, cambiarPlato, anadirCompra, marcarCompra, normal, DIA_LARGO, grupos,
+  proponerPlatos, cambiarPlato, anadirCompra, marcarCompra, normal, DIA_LARGO, grupos, quienesDe, cambiosDe,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
 import { respuestaHoy, respuestaSemana, respuestaCompra, respuestaDia, rangoDeFechas } from "./rapido.js";
@@ -36,6 +36,7 @@ const boton = (nombre) => (nombre.length > MAX_BOTON ? `${nombre.slice(0, MAX_BO
 
 function lineaOpcion(r, estilo) {
   const extra = [
+    cambiosDe(r),
     r.time ? `${r.time} min` : "",
     estilo === "ligero" && r.kcal ? `${Math.round(r.kcal)} kcal` : "",
     r.costeRacion != null ? `≈ ${r.costeRacion.toFixed(2).replace(".", ",")} €/ración` : "",
@@ -73,9 +74,9 @@ export async function recomendar(householdId, x) {
   if (!bloques.length) return null; // sin opciones: que lo explique Lola
   const hueco = huecoEnTexto(out);
   const cabecera = out.conMenu
-    ? `👉 Para <b>${hueco}</b>${out.grupo ? ` (<i>${esc(out.grupo)}</i>)` : ""} te encajan:`
+    ? `👉 Para <b>${hueco}</b>${out.quienes ? ` de <i>${esc(out.quienes)}</i>` : ""} te encajan:`
     : `👉 Ideas para <b>${hueco}</b>:`;
-  const cuerpo = bloques.map((b) => `${b.grupo && bloques.length > 1 ? `${cabeceraGrupo(b.grupo, b.tipo)}\n` : ""}${b.opciones.map((r) => lineaOpcion(r, out.estilo)).join("\n")}`).join("\n\n");
+  const cuerpo = bloques.map((b) => `${b.grupo && bloques.length > 1 ? `${cabeceraGrupo(b.quienes ?? b.grupo, b.tipo)}\n` : ""}${b.opciones.map((r) => lineaOpcion(r, out.estilo)).join("\n")}`).join("\n\n");
   const opciones = bloques.flatMap((b) => b.opciones);
   const aviso = (out.aviso || bloques.some((b) => b.aviso)) ? "\n\n<i>No había ninguna que cumpliera todo lo que pides: estas son las que más se acercan.</i>" : "";
   const pregunta = out.conMenu ? "¿Cuál te pongo?" : "¿Te paso la receta de alguna?";
@@ -88,7 +89,8 @@ export async function recomendar(householdId, x) {
     // Para el paso 0 del turno siguiente: qué se ofreció y para qué hueco.
     propuesta: {
       conMenu: !!out.conMenu, dia: out.dia ?? null, fecha: out.fecha ?? null, franja: out.franja, cual: out.cual ?? "principal",
-      grupo: out.grupo ?? null, opciones: opciones.map((r) => ({ id: r.id, nombre: r.name })),
+      // El grupo solo si lo dijeron: si no, al elegir se pone para toda la familia.
+      grupo: x.para || x.grupo ? out.grupo ?? null : null, opciones: opciones.map((r) => ({ id: r.id, nombre: r.name })),
     },
   };
 }
@@ -99,13 +101,14 @@ export async function cambiar(householdId, x) {
   const out = {};
   const fotos = [];
   await cambiarPlato(householdId, {
-    dia: x.dia, franja: x.comida, grupo: x.grupo ?? null, cual: x.cual ?? "principal", receta: x.receta ?? null,
+    dia: x.dia, franja: x.comida, grupo: x.grupo ?? x.para ?? null, cual: x.cual ?? "principal", receta: x.receta ?? null,
   }, fotos, out);
   if (!out.cambiado) return null; // no se pudo: Lola lo explica y ofrece opciones
   const hueco = huecoEnTexto(out);
+  const sinCambiar = out.sinCambiar?.length ? `\n\n<i>A ${esc(out.sinCambiar.join(" y "))} le dejo lo suyo: ese plato no le encaja.</i>` : "";
   const aproximada = out.aproximada ? `\n<i>No había «${esc(out.pedida)}» tal cual: es lo más parecido que encaja.</i>` : "";
   return {
-    texto: `✅ <b>Hecho.</b> ${mayusculaInicial(hueco)}${out.grupo ? ` (<i>${esc(out.grupo)}</i>)` : ""} ahora es:\n\n${EMOJI[out.franja] ?? "🍽️"} <b>${esc(out.despues)}</b>${out.antes ? `\n<i>Antes: ${esc(out.antes)}.</i>` : ""}${aproximada}`,
+    texto: `✅ <b>Hecho.</b> ${mayusculaInicial(hueco)}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""} ahora es:\n\n${EMOJI[out.franja] ?? "🍽️"} <b>${esc(out.despues)}</b>${out.antes ? `\n<i>Antes: ${esc(out.antes)}.</i>` : ""}${aproximada}${sinCambiar}`,
     fotos,
     deshacible: true,
     ir: out.dia ? `dia:${out.dia}` : null,
@@ -173,7 +176,9 @@ export async function viaRapida(decision, householdId) {
   switch (decision.modo) {
     case "consulta": return consultar(householdId, x);
     case "recomendar": return recomendar(householdId, x);
-    case "cambiar": return cambiar(householdId, x);
+    // Sin decir qué plato (ni «lo que sea»): no se elige por ellos, se ofrecen
+    // tres opciones con «Elige tú», como haría Lola.
+    case "cambiar": return x.receta || x.cualquiera ? cambiar(householdId, x) : recomendar(householdId, x);
     case "compra_anadir": return apuntar(householdId, x);
     case "compra_marcar": return tachar(householdId, x);
     case "generar": return generar(householdId, x);
@@ -224,7 +229,7 @@ export async function contextoDe(householdId) {
   const hoyISO = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
   return {
     personas: miembros.map((p) => `${p.name}${p.age != null ? ` (${p.age})` : ""}`),
-    grupos: casa ? grupos(casa).map((g) => g.label) : [],
+    grupos: casa ? grupos(casa).map((g) => quienesDe(g, miembros) ?? g.label) : [],
     hayMenu: Boolean(casa?.semana?.plan && casa.semana.weekEnd >= hoyISO),
   };
 }

@@ -293,7 +293,19 @@ async function ultimaDeLola(chatId) {
   const f = filas.find((x) => x.role === "assistant");
   // Tras un /nueva (marcador de corte) no hay «último» que valga.
   if (!f || filas[0]?.content?.corte) return null;
-  return { texto: String(f.content?.texto ?? "").replace(/<[^>]+>/g, ""), propuesta: f.content?.propuesta ?? null };
+  // Y lo que el usuario dijo justo antes: «pizza congelada» → «¿qué día?» →
+  // «los viernes de cena». Con solo la frase de Lola, el enrutador veía un
+  // cambio sin plato y ponía uno al azar. Solo si Lola acababa de PREGUNTAR:
+  // si el turno anterior ya se cerró, su plato no tiene que ver con lo nuevo
+  // (pizza el viernes → «cambia la cena del sábado» no es otra pizza).
+  const antes = filas.find((x) => x.role === "user");
+  const texto = String(f.content?.texto ?? "").replace(/<[^>]+>/g, "");
+  const pregunto = /\?\s*(\[\[[^\]]*\]\]\s*)*$/.test(texto.trim());
+  return {
+    texto,
+    propuesta: f.content?.propuesta ?? null,
+    anteriorDelUsuario: antes && pregunto ? String(antes.content?.texto ?? "").slice(0, 300) : null,
+  };
 }
 
 async function apuntarRuta(householdId, extra) {
@@ -327,7 +339,7 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
     }
   }
 
-  const decisionP = clasificar({ texto, contexto: { ...contexto, ahora: ahoraEnMadrid(), ultimaDeLola: ultima?.texto ?? null } });
+  const decisionP = clasificar({ texto, contexto: { ...contexto, ahora: ahoraEnMadrid(), ultimaDeLola: ultima?.texto ?? null, anteriorDelUsuario: ultima?.anteriorDelUsuario ?? null } });
 
   if (modo === "sombra") {
     decisionP.then((d) => apuntarRuta(householdId, {
@@ -347,7 +359,7 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   // Lo que hace falta para convertir un turno real en un caso de
   // scripts/router-evals.json (scripts/router-feedback.mjs): la frase, lo que
   // acababa de decir Lola, los datos sacados y el chat, para ver qué vino después.
-  const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, datos: d.datos, chat: String(chatId) };
+  const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId) };
   if (vaPorLaRapida(d) && !(await fueraDeLimite(householdId))) {
     const r = await viaRapida(d, householdId).catch((e) => { console.error("[router] vía rápida", e?.message); return null; });
     marca("vía rápida hecha");
@@ -361,8 +373,10 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
     }
   }
   abrir(true);
-  apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, router_ms: d.ms, error: d.error });
-  return lola;
+  // Con el tiempo total del turno de Lola (hasta su respuesta entregada): sin
+  // él no había forma de saber cuánto tarda de verdad lo que no es vía rápida.
+  await lola.catch(() => {});
+  return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, ms: Date.now() - t0, router_ms: d.ms, error: d.error });
 }
 
 /** Entrega una respuesta de la vía rápida y la deja en la memoria de la charla. */
@@ -423,14 +437,20 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
  * Si el texto ya se estaba escribiendo en vivo, se termina ese mismo mensaje.
  */
 async function entregar({ chatId, householdId, esGrupo, base, from, responderA, oido = null, r, vivo = null }) {
-  const { cuerpo, botones: propios } = sacarBotones(r.texto);
+  const { cuerpo, botones: propiosCrudos } = sacarBotones(r.texto);
+  // [[No es así]] solo deshace si este turno ha guardado algo; si no, es una
+  // respuesta más (deshacer ahí tocaría un cambio anterior que nadie discute).
+  const propios = r.deshacible ? propiosCrudos
+    : propiosCrudos?.map((fila) => fila.map((b) => (b.dato === `t:${DESHACER}` ? { ...b, dato: `t:${b.texto}` } : b)));
   // Tras un cambio que se puede deshacer, el botón va solo: no hace falta
   // saber decir «deshaz».
   const botones = [...(propios ?? [])];
   // Lo que se ha visto o cambiado, en su pantalla de la app (en privado: el
   // enlace abre la app de quien lo pulsa, con su sesión).
   const alPie = [];
-  if (r.deshacible) alPie.push({ texto: "↩️ Deshacer", dato: "t:Deshaz lo último que has cambiado" });
+  // Si Lola ya puso su [[No es así]] (que es deshacer), no dos botones para lo mismo.
+  const yaDeshace = botones.flat().some((b) => b.dato === `t:${DESHACER}`);
+  if (r.deshacible && !yaDeshace) alPie.push({ texto: "↩️ Deshacer", dato: `t:${DESHACER}` });
   // Todo se abre en la app, en su pantalla (?ir=). Solo en privado: el enlace
   // puede llevar la llave de entrada de quien lo pide, y en un grupo la
   // pulsaría cualquiera.
@@ -655,8 +675,17 @@ function sacarBotones(texto) {
   const validas = opciones.filter((o) => Buffer.byteLength(`t:${o}`) <= 64).slice(0, 4);
   if (!validas.length) return { cuerpo, botones: undefined };
   const filas = [];
-  for (let i = 0; i < validas.length; i += 2) filas.push(validas.slice(i, i + 2).map((o) => ({ texto: o, dato: `t:${o}` })));
+  for (let i = 0; i < validas.length; i += 2) filas.push(validas.slice(i, i + 2).map((o) => ({ texto: o, dato: datoDeBoton(o) })));
   return { cuerpo, botones: filas };
+}
+
+// [[No es así]] tras apuntar algo (una alergia, quién come) es deshacer lo
+// que se acaba de guardar: va directo al deshacer de la casa (casa.js), sin
+// que el modelo tenga que entender un «no es así» suelto.
+const DESHACER = "Deshaz lo último que has cambiado";
+const ES_DESHACER = /^(no es as[ií]|no es correcto|no,? as[ií] no|me he equivocado)$/i;
+function datoDeBoton(o) {
+  return ES_DESHACER.test(o.trim()) ? `t:${DESHACER}` : `t:${o}`;
 }
 
 // Empieza por lo que ofrece, no por la cuenta: quien escribe «somos cuatro»

@@ -85,6 +85,12 @@ export async function cargarCasa(householdId) {
  * @param {{ state?: any, semana?: { plan?: any, shopping?: any } }} cambios
  * @returns {Promise<{ ok: true, botRev: number } | { ok: false, conflicto: true, botRev: number } | { ok: false, error: string }>}
  */
+// Cuándo se guardó por última vez cada casa en esta instancia: para saber si
+// una herramienta escribió de verdad (agente.js), y no ofrecer «Deshacer»
+// tras una que solo contestó «¿quién es?» (deshacería otra cosa anterior).
+const ultimaEscritura = new Map();
+export const escribioDesde = (householdId, t) => (ultimaEscritura.get(householdId) ?? 0) >= t;
+
 export async function guardarCasa(casa, { state = null, semana = null } = {}, { sinDeshacer = false } = {}) {
   const week = semana && casa.semana
     ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semana }
@@ -96,6 +102,7 @@ export async function guardarCasa(casa, { state = null, semana = null } = {}, { 
     p_week: week,
   });
   if (r?.ok) {
+    ultimaEscritura.set(casa.householdId, Date.now());
     if (!sinDeshacer) await guardarFotoPrevia(casa, Number(r.bot_rev)).catch((e) => console.error("[casa] deshacer", e?.message));
     return { ok: true, botRev: Number(r.bot_rev) };
   }

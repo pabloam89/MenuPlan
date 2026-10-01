@@ -50,6 +50,33 @@ export const SUBSTITUTION_RULES = {
     // reads naturally appended to any of them ("Nata para cocinar sin lactosa").
     rename: (name) => withSuffix(name, "sin lactosa"),
   },
+  // Celiaquía y alergia al gluten. No es «gluten» (el alérgeno, que excluye):
+  // es el recambio por el producto «sin gluten», que por ley (Reglamento UE
+  // 828/2014, menos de 20 ppm) es apto para celíacos, al revés que «sin
+  // lactosa» para un alérgico a la leche. Solo donde hay producto real en el
+  // súper (ingredientSubstitutions.json); harina, pan rallado, cuscús, sémola
+  // o caldos siguen excluyendo la receta. Lo pone el motor solo cuando alguien
+  // del grupo tiene el gluten como alergia (aiPlanner.js buildGroupContext).
+  sin_gluten: {
+    label: "sin gluten",
+    // Platos cuyo nombre lleva gluten: si ningún ingrediente lo explica, no
+    // hay línea que cambiar y la receta se bloquea (como «Batido de leche»).
+    keywords: ["pan", "pasta", "harina", "rebozad", "empanad", "croqueta", "pizza", "lasaña", "lasana", "galleta", "bizcocho", "trigo", "cuscus", "cuscús", "seitan", "seitán", "hojaldre", "fideo", "espagueti", "macarron",
+      "ñoqui", "noqui", "gnocchi", "tallarin", "canelon", "ravioli", "tortellini", "tosta", "bocadillo", "sandwich", "sándwich", "wrap", "migas", "picatost", "crouton", "panko", "bulgur", "biscote", "tostada", "malta", "espelta", "cebada", "centeno", "empanadilla", "cubito", "pastilla de caldo", "teriyaki", "kamut", "triticale"],
+    // Lo que NO se ha podido identificar en el catálogo de ingredientes no se
+    // da por bueno: si se llama a algo con gluten, o el plato declara gluten,
+    // la receta no se adapta (una receta propia con «Seitán» o «Picatostes»
+    // se colaba al cambiar solo la pasta).
+    sinIdentificar: true,
+    // «Pasta de miso», «pasta de hojaldre», «pasta de curry»: el catálogo las
+    // resuelve a «pasta», y no lo son. No se cambian: cuentan como sin identificar.
+    noEs: (nombre) => /\bpasta de (?!trigo|semola|sémola)/i.test(nombre),
+    rename: (name) => substitutionFor(name, "sin_gluten")?.replacementLabel ?? withSuffix(name, "sin gluten"),
+    // Choca lo que lleva gluten o puede llevarlo (las trazas también cuentan).
+    choca: (ingredient) => (ingredient?.allergens ?? []).includes("gluten") || (ingredient?.mayContain ?? []).includes("gluten"),
+    // Un plato que DECLARA gluten sin ingrediente que lo explique no se adapta.
+    declarado: (recipe) => [...(recipe?.allergens ?? []), ...(recipe?.puedeContener ?? [])].some((a) => String(a).toLowerCase() === "gluten"),
+  },
   alcohol_cocina: {
     label: "sin alcohol",
     keywords: INTOLERANCE_RULES.alcohol_cocina.keywords,
@@ -94,13 +121,24 @@ export function planAdaptations(recipe, restrictionIds) {
     for (const ing of recipe?.ingredients ?? []) {
       if (!ing?.name) continue;
 
+      // Reglas estrictas (sin_gluten): una línea que no se reconoce, o que se
+      // reconoce mal («pasta de miso» → pasta), no se puede dar por segura.
+      if (rule.sinIdentificar) {
+        const conocido = rule.noEs?.(ing.name) ? null : resolveIngredient(ing.name);
+        if (!conocido) {
+          if (re.test(normalizeText(ing.name)) || rule.declarado?.(recipe)) blocked = true;
+          continue;
+        }
+      }
+
       // El choque lo dice el catálogo, no las palabras clave. Antes bastaba con
       // que el nombre contuviera "leche" o "vino", y eso producía adaptaciones
       // inventadas que llegaban al usuario: "Leche de coco sin lactosa" (no
       // lleva lactosa), "Vinagre sin alcohol" (ya fermentó en ácido acético) o
       // "Ron sin alcohol" (no es un producto de súper).
       const ingredient = resolveIngredient(ing.name);
-      if (!ingredient?.conflictsWith?.includes(id)) continue;
+      const choca = rule.choca ? rule.choca(ingredient) : ingredient?.conflictsWith?.includes(id);
+      if (!choca) continue;
       matchedIngredient = true;
 
       // Choca pero no tiene recambio real (mozzarella sin lactosa, ron sin
@@ -122,6 +160,9 @@ export function planAdaptations(recipe, restrictionIds) {
     // Aquí sí siguen mandando las palabras clave: no hay ingrediente que
     // resolver, solo el título del plato.
     if (!matchedIngredient && re.test(normalizeText(recipe?.name))) {
+      blocked = true;
+    }
+    if (!matchedIngredient && rule.declarado?.(recipe)) {
       blocked = true;
     }
   }

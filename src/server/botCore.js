@@ -24,6 +24,7 @@ export { CAMPOS, valorValido, FAMILIAS, AMBITOS, SERVICIOS } from "../lib/notepa
 export { PREGUNTAS_POR_ID } from "../lib/wizardRegistry.js";
 export { reglaDeInvitado, describirRegla, podarReglasVencidas } from "../lib/reglas.js";
 export { reconcileGroupsWithMembers, migrateGroupsForBabies } from "../lib/groups.js";
+export { normalizeKidDinnerConfig, deriveKidsMenuModel, kidMembers, KID_DINNER_DEFAULTS, KID_DINNER_AVOID_DEFAULTS } from "../lib/kidsMenu.js";
 export { suggestHomeRole } from "../lib/stages.js";
 export { EU_ALLERGEN_IDS } from "../data/ingredientSchema.js";
 export { aplicarAlergias, FAMILIA } from "../lib/alergias.js";

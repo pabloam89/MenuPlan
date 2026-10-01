@@ -1,5 +1,11 @@
 [
   {
+    "ingredientId": "baguette",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pan sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
     "ingredientId": "bechamel",
     "restriction": "lactosa_fina",
     "replacementLabel": "Bechamel sin lactosa",
@@ -16,6 +22,54 @@
     "replacementLabel": "Cerveza sin alcohol"
   },
   {
+    "ingredientId": "cerveza",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Cerveza sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "espaguetis",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Espaguetis sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "farfalle",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pasta corta sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "fettuccine",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Espaguetis sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "fideo-mediano",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Fideos sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "fideos",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Fideos sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "fusilli",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pasta corta sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "hojaldre",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Hojaldre sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
     "ingredientId": "leche",
     "restriction": "lactosa_fina",
     "replacementLabel": "Leche sin lactosa"
@@ -24,6 +78,24 @@
     "ingredientId": "leche-condensada",
     "restriction": "lactosa_fina",
     "replacementLabel": "Leche condensada sin lactosa"
+  },
+  {
+    "ingredientId": "linguine",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Espaguetis sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "macarrones",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pasta corta sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "masa-de-pizza",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Base de pizza sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
   },
   {
     "ingredientId": "mascarpone",
@@ -48,6 +120,48 @@
     "replacementLabel": "Nata para montar sin lactosa"
   },
   {
+    "ingredientId": "orecchiette",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pasta corta sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "pan",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pan sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "pan-de-payes",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pan sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "pan-molde",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pan sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "pasta",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pasta corta sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "pasta-corta",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pasta corta sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "penne",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pasta corta sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
     "ingredientId": "queso-fresco",
     "restriction": "lactosa_fina",
     "replacementLabel": "Queso fresco sin lactosa"
@@ -65,9 +179,33 @@
     "note": "Mas denso que la ricotta: si el relleno queda pesado, aflojalo con un chorrito de leche sin lactosa."
   },
   {
+    "ingredientId": "rigatoni",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pasta corta sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "salsa-soja",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Salsa de soja sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
     "ingredientId": "sidra",
     "restriction": "alcohol_cocina",
     "replacementLabel": "Sidra sin alcohol"
+  },
+  {
+    "ingredientId": "tallarines",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Espaguetis sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
+  },
+  {
+    "ingredientId": "trofie",
+    "restriction": "sin_gluten",
+    "replacementLabel": "Pasta corta sin gluten",
+    "note": "Que el paquete ponga «sin gluten». Cuécelo aparte y con utensilios limpios: en celiaquía, la contaminación cruzada importa tanto como el ingrediente."
   },
   {
     "ingredientId": "vino-blanco",

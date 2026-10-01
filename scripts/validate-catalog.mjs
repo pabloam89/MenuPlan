@@ -118,7 +118,11 @@ if (existsSync(INGREDIENTS_PATH)) {
     // Mismo criterio que el CHECK de 0031: `restriction` es una intolerancia,
     // jamás un alérgeno. Confundirlos ofrecería a un alérgico un plato que le
     // sienta mal, sin ningún error visible por el camino.
-    const ADAPTABLES = new Set(["lactosa_fina", "alcohol_cocina"]);
+    // «sin_gluten» tampoco es el alérgeno «gluten»: es el recambio por un
+    // producto etiquetado «sin gluten», apto por ley para celíacos (ver
+    // src/lib/substitutions.js). La tabla de Supabase (0031) no la conoce: esa
+    // copia ya no se siembra (catálogo de una sola fuente, 0064).
+    const ADAPTABLES = new Set(["lactosa_fina", "alcohol_cocina", "sin_gluten"]);
     for (const sub of JSON.parse(readFileSync(SUBS_PATH, "utf8"))) {
       if (!ids.has(sub.ingredientId)) {
         errors.push(`Sustitución para un ingrediente inexistente: "${sub.ingredientId}"`);
