@@ -318,6 +318,14 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
 // por la rápida en grupo lo dice la tabla POLITICA de router.js, no un if.
 const MODO_ROUTER = () => (["sombra", "on"].includes(process.env.BOT_ROUTER) ? process.env.BOT_ROUTER : "off");
 const MODO_ROUTER_GRUPOS = () => (["off", "on"].includes(process.env.BOT_ROUTER_GRUPOS) ? process.env.BOT_ROUTER_GRUPOS : "sombra");
+// BOT_PISTA (on | off; por defecto on): con el enrutador en on, si el turno es
+// de Lola y el enrutador ha visto una lectura con sus datos, Lola recibe lo
+// que dedujo y la lectura ya hecha, para contestar en una llamada
+// (api/_bot/pista.js). Medido el 1 oct 2026 con frases que van a Lola: donde
+// se usa, una vuelta menos y el primer texto ~1,5-2,5 s antes (ideas en grupo
+// de 4-6 s a 2,3-3,2 s; «qué me falta y apúntalo» de 3 vueltas a 2); donde no,
+// nada cambia, porque Lola no la espera.
+const PISTA = () => process.env.BOT_PISTA !== "off";
 const RUTA = "bot_route";
 
 /** Lo último que dijo Lola en este chat (y su propuesta de opciones, si la hubo). */
@@ -419,7 +427,10 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   // Lo que se mide del turno (scripts/bot-medidas.mjs): primer texto visto,
   // lo de Lola (modelo, vueltas, tokens, herramientas) y si se canceló.
   const medir = {};
-  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA, puerta, signal: ctrl.signal, medir });
+  // La pista (BOT_PISTA): la decisión del enrutador, solo si el turno no va por
+  // la vía rápida. Lola no la espera: si llega a tiempo, la usa (pista.js).
+  const pista = PISTA() ? decisionP.then((d) => (vaPorLaRapida(d, chatDe) ? null : d)) : null;
+  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA, puerta, signal: ctrl.signal, medir, pista });
 
   const d = await decisionP;
   marca(`enrutador (${d.modo} ${d.confianza}, ${d.ms} ms)`);
@@ -464,6 +475,8 @@ function medida(medir, d, t0, primer = null) {
       uso: l.uso ? { in: l.uso.input_tokens ?? 0, out: l.uso.output_tokens ?? 0, cr: l.uso.cache_read_input_tokens ?? 0, cw: l.uso.cache_creation_input_tokens ?? 0 } : null,
       primera: l.primera ? { in: l.primera.input_tokens, cr: l.primera.cache_read_input_tokens, cw: l.primera.cache_creation_input_tokens } : null,
       herramientas: (l.herramientas ?? []).map((h) => [h.n, h.ms]),
+      // BOT_PISTA: qué se adelantó, cuánto tardó y si hubo que cortarla.
+      pista: l.pista ?? null,
     } : null,
   };
 }
@@ -478,7 +491,7 @@ async function entregarRapida({ chatId, householdId, esGrupo, base, from, respon
 }
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null }) {
+async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
   const eco = oido ? `🎙️ «${oido}»\n\n` : "";
   const vivo = mensajeVivo(chatId, { responderA, eco });
@@ -501,7 +514,7 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
     const paraLola = !oido ? texto
       : texto.startsWith("[alta]") ? texto.replace("Mi primer mensaje:", "Mi primer mensaje (nota de voz):")
         : `[nota de voz] ${texto}`;
-    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir, puerta, signal });
+    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir, puerta, signal, pista });
     if (puerta && !(await puerta)) { if (medir) { medir.cancelada = true; medir.lola = r?.medida ?? null; } return; } // el turno fue de la vía rápida
   } catch (err) {
     // Cancelada porque el turno era de la vía rápida: nada que decir.
