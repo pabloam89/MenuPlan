@@ -4014,9 +4014,27 @@ export default function App() {
     const t = window.setTimeout(() => setEsperaVencida(true), ESPERA_DESTINO_MS);
     return () => window.clearTimeout(t);
   }, [destinoBot]);
+  // Un enlace del bot sin sesión: la casa de Lola está en la nube, no en este
+  // móvil. Pintar lo que hubiera guardado aquí (un menú de otra semana, de
+  // otra prueba) es enseñar algo que no es suyo sin decirlo. Se pide entrar y
+  // el destino espera (guardado en sessionStorage, sobrevive al login).
+  const avisoEntrarRef = useRef(false);
+  // Quien nació en Telegram llega con una llave (?entrar=, BotEnlace.jsx) que
+  // tarda un momento en abrir la sesión: no se le pide entrar mientras tanto.
+  // Se mira al arrancar, antes de que BotEnlace la quite de la dirección.
+  const [conLlave] = useState(() => new URLSearchParams(window.location.search).has("entrar"));
+  useEffect(() => {
+    if (!destinoBot || authLoading || user || avisoEntrarRef.current) return;
+    if (conLlave && !esperaVencida) return;
+    avisoEntrarRef.current = true;
+    setScreen("splash");
+    showToast("Entra con tu cuenta para ver lo que te ha preparado Lola");
+  }, [destinoBot, authLoading, user, showToast, conLlave, esperaVencida]);
   useEffect(() => {
     if (!destinoBot || authLoading) return;
-    const lista = user ? nubeLista : (data.members?.length ?? 0) > 0;
+    // Sin cuenta, nada: el aviso de arriba pide entrar y el destino espera.
+    if (!user) return;
+    const lista = nubeLista;
     // Sin cuenta se espera al login, que es lo que falta, no la nube.
     if (!lista && !(user && esperaVencida)) return;
     const d = destinoBot;

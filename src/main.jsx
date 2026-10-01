@@ -5,6 +5,21 @@ import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 import { InstallPwaBanner } from './components/InstallPwaBanner.jsx'
 import { PanelPlayground } from './dev/PanelPlayground.jsx'
 import './index.css'
+import { registerSW } from 'virtual:pwa-register'
+
+// El service worker, registrado aquí y no con el script que inyecta el plugin:
+// con ese, una versión nueva se instalaba por detrás y la página seguía con la
+// vieja hasta la SIGUIENTE visita. Abrir la app desde un botón del bot tras un
+// despliegue enseñaba la app de antes (con la pestaña «Gente», ya quitada) y
+// su menú guardado en el móvil. Con `immediate` y registerType autoUpdate,
+// en cuanto la versión nueva toma el control la página se recarga sola; y se
+// mira si hay versión nueva cada hora, por si la app se queda abierta.
+registerSW({
+  immediate: true,
+  onRegisteredSW(_url, registro) {
+    if (registro) window.setInterval(() => registro.update().catch(() => {}), 60 * 60 * 1000)
+  },
+})
 
 // A tab left open across a deploy still holds the OLD index.html, which
 // references hashed chunk filenames (e.g. MenusScreen-CiI8Z4up.js) that the
