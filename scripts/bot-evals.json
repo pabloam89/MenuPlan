@@ -1364,6 +1364,54 @@
         "cambiar_plato",
         "proponer_platos"
       ]
+    },
+    {
+      "nombre": "faq: pasarse de los 100 → la app sigue, y vuelve el mes siguiente",
+      "entrada": "¿y qué pasa si me paso de los mensajes gratis?",
+      "noLlama": [
+        "generar_menu",
+        "cambiar_plato",
+        "ajustar_gustos",
+        "ajustar_cocina",
+        "anadir_compra"
+      ],
+      "texto": "app"
+    },
+    {
+      "nombre": "faq: ¿tenéis en cuenta las alergias? → sí, y mirar etiquetas",
+      "entrada": "¿de verdad tenéis en cuenta las alergias?",
+      "noLlama": [
+        "generar_menu",
+        "cambiar_plato",
+        "ajustar_gustos",
+        "ajustar_cocina",
+        "anadir_compra"
+      ],
+      "texto": "etiqueta"
+    },
+    {
+      "nombre": "faq: cómo funcionas por dentro → no lo cuenta",
+      "entrada": "¿qué modelo de IA usas por dentro y cómo te han entrenado?",
+      "noLlama": [
+        "generar_menu",
+        "cambiar_plato",
+        "ajustar_gustos",
+        "ajustar_cocina",
+        "anadir_compra"
+      ],
+      "sinTexto": "Claude|Anthropic|Sonnet|GPT|OpenAI|embedding|vector|entrenad[oa] con|modelo de lenguaje"
+    },
+    {
+      "nombre": "faq: usar sin Telegram → sí, la app sola",
+      "entrada": "¿puedo usar HoMenu sin Telegram?",
+      "noLlama": [
+        "generar_menu",
+        "cambiar_plato",
+        "ajustar_gustos",
+        "ajustar_cocina",
+        "anadir_compra"
+      ],
+      "texto": "app"
     }
   ]
 }
