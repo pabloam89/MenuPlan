@@ -27,7 +27,8 @@ import { select, insert, update, eq } from "../_bot/db.js";
 import { enviar, enviarFotos, editar, llamar, escaparHtml, nombreDelBot, TECLADO } from "../_bot/telegram.js";
 import { respuestaHoy, respuestaSemana, respuestaCompra, recordar } from "../_bot/rapido.js";
 import { responder, cortarCharla, esCaida } from "../_bot/agente.js";
-import { registrar, EMBUDO, duenoDe } from "../_bot/embudo.js";
+import { registrar, rastro, EMBUDO, duenoDe } from "../_bot/embudo.js";
+import { RASTRO } from "../../src/lib/rastro.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
@@ -583,6 +584,8 @@ async function recibirCompartido(chatId, param) {
   const inv = await resolverInvitacion(param).catch(() => null);
   if (!inv) return enviar(chatId, "Ese enlace ya no funciona 🙈 Pídele que te lo vuelva a mandar.");
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+  // Que lo compartido llega y a quién (con casa o sin ella): sin nombres.
+  await rastro(chat?.household_id ?? null, RASTRO.COMPARTIDO_RECIBIDO, { tipo: inv.tipo === "semana" ? "semana" : "receta", conCasa: Boolean(chat) });
   const invitacion = "¿Te preparo también a ti el menú de la semana? Cuéntame quiénes coméis en casa (o mándame un audio) y empezamos 🙂";
 
   if (inv.tipo === "semana") {

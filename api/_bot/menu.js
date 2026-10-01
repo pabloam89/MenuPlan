@@ -17,6 +17,8 @@
 
 import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
+import { rastro } from "./embudo.js";
+import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 
 let motorCargado = null;
 export const motor = async () => (motorCargado ??= await import("./core.mjs"));
@@ -374,6 +376,7 @@ export async function marcarCompra(householdId, productos, estado, out = null) {
   });
   if (out) Object.assign(out, { ok: r.ok, ...resultado });
   if (!r.ok) return `No he podido guardar la lista: ${r.error}.`;
+  if (resultado.hechos.length) await rastro(householdId, RASTRO.COMPRA_MARCADA, { n: resultado.hechos.length, estado });
   return [
     resultado.hechos.length ? `Marcados como ${estado}: ${resultado.hechos.join(", ")}.` : "",
     resultado.noEncontrados.length ? `No están en la lista: ${resultado.noEncontrados.join(", ")}.` : "",
@@ -786,8 +789,12 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
  * motor da por buenas para el hueco: elegir no se salta las alergias, el
  * tiempo ni lo repetido.
  */
-export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal", receta = null }, fotos = null, out = null) {
+// `motivo` (MOTIVO_CAMBIO, interno: no está en el esquema de la herramienta)
+// lo pone quien sabe por qué se cambia: la elección de una opción, «elige tú».
+export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal", receta = null, motivo = null }, fotos = null, out = null) {
   let texto = "";
+  // Lo que se ha cambiado, para el rastro (src/lib/rastro.js), una fila por grupo.
+  const cambios = [];
   const r = await conCasa(householdId, async (cargada) => {
     const rd = resolverDia(cargada, diaPedido, semana);
     if (rd.error) { texto = rd.error; return null; }
@@ -818,6 +825,8 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
 
     const plan = structuredClone(casa.semana.plan);
     plan[g.id][clave] = { ...hueco, [course === "first" ? "firstRecipeId" : "recipeId"]: elegido.recipeId, warnings: [] };
+    cambios.length = 0;
+    cambios.push({ day: dia, meal: franja, course, groupId: g.id, oldRecipeId: idBase(course === "first" ? hueco.firstRecipeId : hueco.recipeId), newRecipeId: idBase(elegido.recipeId) });
 
     // Sin decir para quién, el cambio es de toda la familia (el bebé tiene su
     // propio menú y no entra). A cada grupo se le pone solo si ese plato está
@@ -840,6 +849,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
         if (!suyoElegido?.recipeId) { sinCambiar.push(x.label); continue; }
         m.registerRecipes([suyoElegido.frontendRecipe]);
         plan[x.id][clave] = { ...suyo, [curso === "first" ? "firstRecipeId" : "recipeId"]: suyoElegido.recipeId, warnings: [] };
+        cambios.push({ day: dia, meal: franja, course: curso, groupId: x.id, oldRecipeId: idBase(curso === "first" ? suyo.firstRecipeId : suyo.recipeId), newRecipeId: idBase(suyoElegido.recipeId) });
         tambien.push(x.label);
       }
     }
@@ -876,6 +886,8 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
   });
   if (out && !out.cambiado) out.error = r.ok ? texto : `No he podido guardar el cambio: ${r.error}.`;
   if (!r.ok) return `No he podido guardar el cambio: ${r.error}.`;
+  const porque = motivo ?? (receta ? MOTIVO_CAMBIO.PEDIDO : MOTIVO_CAMBIO.OTRO);
+  for (const c of cambios) await rastro(householdId, RASTRO.PLATO_CAMBIADO, { ...c, motivo: porque });
   return texto;
 }
 

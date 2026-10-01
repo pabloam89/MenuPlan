@@ -24,7 +24,8 @@
 import { select, insert, eq, config } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
-import { duenoDe } from "./embudo.js";
+import { duenoDe, rastro } from "./embudo.js";
+import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { SYSTEM_PROMPTS } from "../_prompts.js";
 import { porSignificado } from "./significado.js";
 
@@ -291,6 +292,10 @@ export async function guardarReceta(householdId, { confirmado }, chat) {
   const receta = (await ultimoApartado(chat, TIPO_BORRADOR))?.receta;
   if (!receta) return "No tengo ninguna receta preparada en esta charla: prepárala primero con preparar_receta.";
   const r = await guardarRecetaPropia(householdId, receta);
+  await rastro(householdId, RASTRO.RECETA_GUARDADA, {
+    recipeId: receta.id ?? null, baseDishId: receta.baseDishId ?? receta.linkedCatalogId ?? null,
+    origen: receta.baseDishId || receta.linkedCatalogId ? ORIGEN_RECETA.VARIANTE : ORIGEN_RECETA.CREADA_BOT,
+  });
   if (!r.ok) return `Guardada en el recetario, pero no he podido apuntarla en la casa (${r.error}): saldrá en el menú cuando alguien abra la app.`;
   return `Guardada: «${receta.name}». Ya está en el recetario y puede salir en los menús.`;
 }

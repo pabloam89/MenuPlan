@@ -22,7 +22,8 @@ import crypto from "node:crypto";
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, prepararRecetas, grupos, DIAS } from "./menu.js";
-import { duenoDe } from "./embudo.js";
+import { duenoDe, rastro } from "./embudo.js";
+import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { nombreDelBot } from "./telegram.js";
 
 const nuevaLlave = () => crypto.randomBytes(16).toString("hex");
@@ -183,6 +184,7 @@ export async function copiarReceta(householdId, fila) {
     return { state: { ...casa.state, data: { ...data, userRecipes: [...propias, receta] } } };
   });
   if (!r.ok) console.error("[compartir] copiar en la casa", r.error);
+  await rastro(householdId, RASTRO.RECETA_GUARDADA, { recipeId: copia.id, origen: ORIGEN_RECETA.RECIBIDA_ENLACE, baseDishId: null, copiadaDe: fila.id });
   return { ok: true, nombre: copia.name };
 }
 

@@ -182,6 +182,8 @@ import {
   todayDayIdx,
 } from "../lib/weekCalendar.js";
 import { orderedWeeks } from "../lib/menuArchive.js";
+import { RASTRO, idBase } from "../lib/rastro.js";
+import { trackEvent } from "../lib/analytics.js";
 // La MISMA baldosa que un mando del wizard: las acciones se despliegan en su
 // fila, y con otra forma la fila cambiaría de idioma a mitad de gesto.
 import { BaldosaAccion } from "../components/wizard/ControlRow.jsx";
@@ -7542,6 +7544,8 @@ export function DishDetail({
           : {}),
       }));
       if (consumeIngredients || preparedDelta) await reloadCookStock();
+      // Lo cocinado, en un registro que no se borra con el menú (src/lib/rastro.js).
+      trackEvent(user, RASTRO.COCINADO, "menu", { canal: "app", recipeId: idBase(recipe.id), day, meal, semana: cookWeekKey ?? null });
       if (preparedDelta) {
         onToast?.(`¡Listo! ${portionsLabel(preparedDelta.portions)} ${preparedDelta.fromFridge ? "de la nevera" : "del congelador"}`);
       } else {

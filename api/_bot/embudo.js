@@ -8,6 +8,7 @@
  */
 
 import { EMBUDO, PANTALLA_EMBUDO } from "../../src/lib/embudo.js";
+import { PANTALLA_RASTRO } from "../../src/lib/rastro.js";
 import { select, insert, eq } from "./db.js";
 
 export { EMBUDO };
@@ -36,6 +37,25 @@ export async function registrar(event, { userId = null, telegramId = null, unaVe
     }]);
   } catch (err) {
     console.error("[bot/embudo]", event, err?.message);
+  }
+}
+
+/**
+ * El rastro de lo que se hace desde el chat (src/lib/rastro.js): mismos
+ * nombres y forma que la app, con la casa en metadata para el analista. Nunca
+ * rompe nada: si falla, se apunta en el log y sigue.
+ */
+export async function rastro(householdId, event, datos = {}) {
+  try {
+    const userId = householdId ? await duenoDe(householdId) : null;
+    await insert("user_events", [{
+      user_id: userId,
+      event,
+      screen: PANTALLA_RASTRO,
+      metadata: { canal: "telegram", ...(householdId ? { household_id: householdId } : {}), ...datos },
+    }]);
+  } catch (err) {
+    console.error("[bot/rastro]", event, err?.message);
   }
 }
 

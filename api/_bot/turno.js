@@ -17,6 +17,8 @@ import {
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
 import { respuestaHoy, respuestaSemana, respuestaCompra, respuestaDia, rangoDeFechas } from "./rapido.js";
+import { rastro } from "./embudo.js";
+import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const EMOJI = { Desayuno: "☕", Comida: "🍽️", Merienda: "🥪", Cena: "🌙", Postre: "🍮" };
@@ -101,7 +103,7 @@ export async function cambiar(householdId, x) {
   const out = {};
   const fotos = [];
   await cambiarPlato(householdId, {
-    dia: x.dia, franja: x.comida, grupo: x.grupo ?? x.para ?? null, cual: x.cual ?? "principal", receta: x.receta ?? null,
+    dia: x.dia, franja: x.comida, grupo: x.grupo ?? x.para ?? null, cual: x.cual ?? "principal", receta: x.receta ?? null, motivo: x.motivo ?? null,
   }, fotos, out);
   if (!out.cambiado) return null; // no se pudo: Lola lo explica y ofrece opciones
   const hueco = huecoEnTexto(out);
@@ -215,10 +217,18 @@ export function eleccionDe(texto, propuesta) {
 
 /** Aplica la elección: con menú, se pone en su hueco; sin menú, a Lola (que enseña la receta). */
 export async function aplicarEleccion(eleccion, propuesta, householdId) {
+  // Qué se ofreció y qué eligieron, aunque luego no haya hueco donde ponerlo:
+  // es lo que dice qué gusta (o que da igual).
+  await rastro(householdId, RASTRO.OPCION_ELEGIDA, {
+    day: propuesta.dia ?? null, meal: propuesta.franja ?? null,
+    ofrecidas: (propuesta.opciones ?? []).map((o) => idBase(o.id)),
+    elegida: idBase(eleccion.opcion?.id) ?? null, eligeTu: Boolean(eleccion.eligeTu),
+  });
   if (!propuesta.conMenu) return null;
   return cambiar(householdId, {
     dia: DIA_LARGO[propuesta.dia] ?? propuesta.dia, comida: propuesta.franja, grupo: propuesta.grupo,
     cual: propuesta.cual, receta: eleccion.opcion?.nombre ?? null,
+    motivo: eleccion.eligeTu ? MOTIVO_CAMBIO.ELIGE_TU : MOTIVO_CAMBIO.ELECCION,
   });
 }
 

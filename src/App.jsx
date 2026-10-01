@@ -199,6 +199,7 @@ import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
+import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
 import { normalizePantryInput } from "./utils/normalizePantryInput.js";
@@ -4078,6 +4079,7 @@ export default function App() {
       createdAt: Date.now(),
     };
     setData((d) => ({ ...d, userRecipes: [...(d.userRecipes ?? []), copy] }));
+    trackEvent(user, RASTRO.RECETA_GUARDADA, "menu", { canal: "app", recipeId: copy.id, origen: ORIGEN_RECETA.COPIADA_GENTE, copiadaDe: recipeId });
     const eaters = Math.max(1, data.members?.length || 4);
     registerRecipes([catalogToFrontendRecipe(copy, eaters)]);
     if (user?.id) upsertUserRecipe(user.id, copy);
@@ -4449,6 +4451,8 @@ export default function App() {
     if (reason) applyDiscardReason(selection, reason);
     const { groupId, day, meal } = selection;
     const course = selection.course ?? "main";
+    // El plato que había, para el rastro (src/lib/rastro.js): sin él no se sabe qué se quitó.
+    const platoAntes = menuPlan?.[groupId]?.[`${day}-${meal}`]?.[course === "first" ? "firstRecipeId" : "recipeId"] ?? null;
     // Pick the replacement from the SAME rich catalog the AI planner uses, so the
     // swapped dish is identical in shape (photo, methods, macros, scaled
     // ingredients) to the rest of the menu instead of a legacy-catalog mismatch.
@@ -4519,7 +4523,11 @@ export default function App() {
     });
     setSelectedSlot(null);
     showToast(`Sustituido por «${frontendRecipe.name}»`);
-    trackEvent(user, "dish_replaced", "menu", { day, meal, newRecipeId: recipeId });
+    trackEvent(user, RASTRO.PLATO_CAMBIADO, "menu", {
+      canal: "app", day, meal, course, groupId,
+      oldRecipeId: idBase(platoAntes), newRecipeId: idBase(recipeId),
+      motivo: MOTIVO_CAMBIO.OTRO, ...(reason ? { reason } : {}),
+    });
   }, [data, menuPlan, showToast, user, applyDiscardReason]);
 
   // Swap two existing dishes (long-press → "Intercambiar" → tap target). Only
@@ -6579,6 +6587,10 @@ export default function App() {
                 onSaved={(recipe, { edited } = {}) => {
                   showToast(edited ? "Receta actualizada" : "Receta creada con IA");
                   if (user?.id && recipe) upsertUserRecipe(user.id, recipe);
+                  if (!edited && recipe) {
+                    const base = recipe.baseDishId ?? recipe.linkedCatalogId ?? null;
+                    trackEvent(user, RASTRO.RECETA_GUARDADA, "menu", { canal: "app", recipeId: recipe.id, origen: base ? ORIGEN_RECETA.VARIANTE : ORIGEN_RECETA.CREADA_APP, baseDishId: base });
+                  }
                   setEditingRecipe(null);
                   // Saving takes you straight Home (dashboard), not back into
                   // the wizard's success screen.

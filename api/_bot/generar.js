@@ -25,7 +25,8 @@ process.env.TZ = "Europe/Madrid";
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, guardarCasa } from "./casa.js";
 import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO } from "./menu.js";
-import { registrar, EMBUDO } from "./embudo.js";
+import { registrar, rastro, EMBUDO } from "./embudo.js";
+import { RASTRO } from "../../src/lib/rastro.js";
 
 const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
 const indiceHoy = () => {
@@ -276,6 +277,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(() => "");
   // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
   if (out) Object.assign(out, { ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, pedidos: pedidos.length ? dondeQuedaron(pedidos, plan) : [] });
+  await rastro(householdId, RASTRO.MENU_GENERADO, { menuId: menu.id, weekStart: startISO, weekEnd: endISO, slots: platos, pedidos: pedidos.length });
   return `Menú nuevo generado y activado: del ${startISO} al ${endISO}, ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
     + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan).join("\n")}` : "")
