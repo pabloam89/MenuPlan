@@ -32,6 +32,12 @@ describe("la política del enrutador, por modo", () => {
     expect(vaPorLaRapida(d("cambiar", 0.95), PRIVADO)).toBe(true);
   });
 
+  it("generar con platos pedidos va a Lola, por segura que esté", () => {
+    expect(vaPorLaRapida({ modo: "generar", confianza: 0.99, datos: { semana: "siguiente", fijos: "salmon" } }, PRIVADO)).toBe(false);
+    expect(vaPorLaRapida({ modo: "generar", confianza: 0.99, datos: { semana: "siguiente", fijos: ["salmon"] } }, PRIVADO)).toBe(false);
+    expect(vaPorLaRapida({ modo: "generar", confianza: 0.99, datos: { semana: "siguiente", fijos: [] } }, PRIVADO)).toBe(true);
+  });
+
   it("en un chat de grupo, una persona: leer y la compra, sí; cambiar, generar y deshacer, a Lola", () => {
     expect(vaPorLaRapida(d("consulta", 0.95), GRUPO_UNO)).toBe(true);
     expect(vaPorLaRapida(d("recomendar", 0.95), GRUPO_UNO)).toBe(true);

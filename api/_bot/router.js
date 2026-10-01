@@ -205,6 +205,8 @@ export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false } = {}
   // (turno.js). Antes ponía una al azar (la pizza que salió fettuccine).
   if (d.modo === "cambiar") return Boolean(x.dia && x.comida);
   if (d.modo === "compra_anadir" || d.modo === "compra_marcar") return (x.productos ?? []).length > 0;
-  if (d.modo === "generar") return Boolean(x.semana);
+  // Con platos pedidos, Lola: cuenta dónde han caído y qué no ha cabido. No
+  // depende de la confianza, que con estas frases baila entre 0,85 y 0,95.
+  if (d.modo === "generar") return Boolean(x.semana) && !(Array.isArray(x.fijos) ? x.fijos.length : String(x.fijos ?? "").trim());
   return true; // recomendar (todo opcional) y deshacer
 }
