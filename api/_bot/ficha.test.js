@@ -102,6 +102,16 @@ describe("la ficha de la casa", () => {
     expect(f.estable + f.delDia).not.toMatch(/pescado/);
   });
 
+  it("la tanda pedida, en COCINA: qué, cuántas, el día y las manos; sin tanda, nada", () => {
+    const data = { members: MIEMBROS, tanda: { sofrito: 3, arroz: 2, pasta: 0, salsa_tomate: 1 }, tandaPlatos: { "croquetas-crudas": 2 }, diaTanda: "Dom", tandaMinutos: 90 };
+    const f = montarFicha(casaDe(data), {}, "2026-10-01");
+    expect(f.estable).toMatch(/- Tanda: sofrito ×3, arroz ×2, salsa tomate ×1, croquetas ×2 · el domingo · 1 h 30 de manos\./);
+    expect(f.estable).not.toMatch(/pasta/);
+    // Sin día dicho, sin día; con todo a cero, sin línea.
+    expect(montarFicha(casaDe({ ...data, diaTanda: undefined }), {}, "2026-10-01").estable).toMatch(/- Tanda: [^·]+ · 1 h 30 de manos\./);
+    expect(montarFicha(casaDe({ ...data, tanda: { sofrito: 0 }, tandaPlatos: {} }), {}, "2026-10-01").estable).not.toMatch(/Tanda/);
+  });
+
   it("nunca pasa del tope, y SEGURIDAD no se recorta aunque la casa sea enorme", () => {
     const muchos = Array.from({ length: 24 }, (_, i) => ({ id: `x${i}`, name: `Persona${i}`, age: 30 + i, allergies: i % 3 ? [] : ["gluten"], alergiasRevisadas: true, dislikes: ["coliflor", "hígado", "brócoli", "berenjena"] }));
     const schedule = Object.fromEntries(muchos.flatMap((m) => ["Lun", "Mar", "Mié", "Jue", "Vie"].map((d) => [`${m.id}|${d}|Comida`, "fuera"])));

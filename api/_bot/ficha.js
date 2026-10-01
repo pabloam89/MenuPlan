@@ -28,11 +28,28 @@ import { resolveMemberAge, stageForAge } from "../../src/lib/stages.js";
 import { INTOLERANCE_RULES } from "../../src/lib/intolerances.js";
 import { matizDe, vigente, rechazadosDe } from "../../src/lib/notepad.js";
 import { describirRegla } from "../../src/lib/reglasTexto.js";
+import { hayTandasPedidas, minutosDeTanda, enHoras } from "../../src/lib/cookTime.js";
+import { SEMI, COCINADO } from "../../src/lib/tandaFamiliasDefs.js";
 import { comidasDeLaCasa, comida as comidaDelCatalogo } from "../../src/lib/comidas.js";
 import { select, eq } from "./db.js";
 
 const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const DIA_CORTO = { Lun: "lun", Mar: "mar", "Mié": "mié", Jue: "jue", Vie: "vie", "Sáb": "sáb", Dom: "dom" };
+const DIA_LARGO = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves", Vie: "viernes", "Sáb": "sábado", Dom: "domingo" };
+
+// Los platos de tanda por su nombre («Croquetas»); las bases por su clave, que
+// ya se lee («sofrito», «salsa_tomate»). Sin bases.js: trae el JSON del catálogo.
+const ETIQUETA_TANDA = new Map([...SEMI, ...COCINADO].map((f) => [f.id, f.etiqueta.toLowerCase()]));
+
+/** «Tanda: sofrito ×3, arroz ×2 · el domingo · 1 h de manos», o null si no hay. */
+function tandaPedida(data) {
+  if (!hayTandasPedidas(data)) return null;
+  const pedidas = [...Object.entries(data.tanda ?? {}), ...Object.entries(data.tandaPlatos ?? {})]
+    .filter(([, n]) => Number(n) > 0)
+    .map(([id, n]) => `${ETIQUETA_TANDA.get(id) ?? id.replace(/_/g, " ")} ×${n}`);
+  const dia = DIA_LARGO[data.diaTanda] ? `el ${DIA_LARGO[data.diaTanda]}` : null;
+  return ["Tanda: " + pedidas.join(", "), dia, `${enHoras(minutosDeTanda(data))} de manos`].filter(Boolean).join(" · ");
+}
 const LETRA = { Lun: "L", Mar: "M", "Mié": "X", Jue: "J", Vie: "V", "Sáb": "S", Dom: "D" };
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const ALERGENOS = {
@@ -205,6 +222,8 @@ function cocinaBloque(data, hoy) {
   }
   const trastos = [...(data.kitchenTools ?? []), ...(data.customKitchenTools ?? [])];
   if (trastos.length) lineas.push(`- Aparatos: ${trastos.join(", ")}.`);
+  const tanda = tandaPedida(data);
+  if (tanda) lineas.push(`- ${tanda}.`);
   if ((data.menuModel ?? "same") === "separate") lineas.push("- Los peques cenan aparte (ajustar_menu_peques).");
   // La libreta: lo dicho y lo supuesto, separados (3 y 2 como mucho).
   const campos = Object.entries(data.notepad?.campos ?? {});
