@@ -276,12 +276,17 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // menú con salmón un día» tardaba casi un minuto en seis vueltas.
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(() => "");
   // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
-  if (out) Object.assign(out, { ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, pedidos: pedidos.length ? dondeQuedaron(pedidos, plan) : [] });
+  if (out) Object.assign(out, {
+    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas,
+    pedidos: pedidos.length ? dondeQuedaron(pedidos, plan) : [],
+    // Dónde quedó cada plato pedido («Jue-Comida»), para destacarlo al pintar.
+    colocados: pedidos.map((p) => claveDelPedido(p.fijo, plan)).filter(Boolean),
+  });
   await rastro(householdId, RASTRO.MENU_GENERADO, { menuId: menu.id, weekStart: startISO, weekEnd: endISO, slots: platos, pedidos: pedidos.length });
   return `Menú nuevo generado y activado: del ${startISO} al ${endISO}, ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
     + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan).join("\n")}` : "")
     + (semana
-      ? `\n\nAsí queda, para que sepas qué hay (no hace falta ver_menu). En el chat NO la copies entera: resume en 3-4 líneas; la semana la ven con el botón que sale solo.\n${semana}`
+      ? `\n\nLa semana SALE PINTADA debajo de tu mensaje, con lo pedido destacado: NO la escribas ni llames a ver_menu; di en una o dos frases qué has hecho y dónde ha quedado lo que pidieron. Para que lo sepas (no lo copies):\n${semana}`
       : " La semana la ven con el botón que sale solo: resume en 3-4 líneas qué has hecho.");
 }

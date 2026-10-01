@@ -18,12 +18,13 @@ import {
 import { generarMenu } from "./generar.js";
 import { respuestaCompra, respuestaMenu, rangoDeFechas } from "./rapido.js";
 import { fechasDe } from "./cuando.js";
+import { filtrosTrasGenerar, filtrosTrasCambiar } from "./pintar.js";
 import { rastro } from "./embudo.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 // Icono y artículo de cada comida, del catálogo (src/lib/comidas.js).
-import { iconoDe, articuloDe } from "../../src/lib/comidas.js";
+import { articuloDe } from "../../src/lib/comidas.js";
 const MAX_BOTON = 38;
 
 /** «la cena de hoy», «la comida del jueves» */
@@ -110,11 +111,14 @@ export async function cambiar(householdId, x) {
   const hueco = huecoEnTexto(out);
   const sinCambiar = out.sinCambiar?.length ? `\n\n<i>A ${esc(out.sinCambiar.join(" y "))} le dejo lo suyo: ese plato no le encaja.</i>` : "";
   const aproximada = out.aproximada ? `\n<i>No había «${esc(out.pedida)}» tal cual: es lo más parecido que encaja.</i>` : "";
+  // El día cambiado sale pintado debajo (pintarMenu), con el plato nuevo
+  // destacado: aquí solo se dice qué se ha hecho y qué había antes.
   return {
-    texto: `✅ <b>Hecho.</b> ${mayusculaInicial(hueco)}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""} ahora es:\n\n${iconoDe(out.franja)} <b>${esc(out.despues)}</b>${out.adaptado ? ` <i>(${esc(out.adaptado)})</i>` : ""}${out.antes ?`\n<i>Antes: ${esc(out.antes)}.</i>` : ""}${aproximada}${sinCambiar}`,
+    texto: `✅ <b>Hecho.</b> Cambiada ${hueco}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""}${out.antes ? ` <i>(antes: ${esc(out.antes)})</i>` : ""}.${aproximada}${sinCambiar}`,
     fotos,
     deshacible: true,
     ir: out.dia ? `dia:${out.dia}` : null,
+    pintar: filtrosTrasCambiar(out),
   };
 }
 
@@ -152,10 +156,15 @@ export async function generar(householdId, x) {
   // Las líneas de dondeQuedaron (generar.js) están escritas para Lola: la
   // instrucción del final se cambia por lo que se le diría a la persona.
   const aPersona = (l) => l.replace(/: ofrece ponerlo con cambiar_plato$/, ". Si quieres, dime qué día y te lo pongo.");
-  const pedidos = out.pedidos?.length ? `\n\n📌 <b>Lo que pediste:</b>\n${out.pedidos.map((l) => `• ${esc(aPersona(l))}`).join("\n")}` : "";
+  // La semana sale pintada debajo con lo pedido destacado (✨): aquí solo lo
+  // que no ha cabido, que eso no se ve en la lista.
+  const sinSitio = (out.pedidos ?? []).filter((l) => /no ha cabido/.test(l));
+  const pedidos = sinSitio.length ? `\n\n${sinSitio.map((l) => `• ${esc(aPersona(l))}`).join("\n")}` : "";
+  const destacados = (out.colocados ?? []).length ? " Lo que pediste va marcado con ✨." : "";
   return {
-    texto: `🎉 <b>¡Menú listo!</b>\n📅 Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${pedidos}\n\nPídeme cambios cuando quieras («cambia la cena del jueves»), o ábrelo en la app con el botón.`,
+    texto: `🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${pedidos}`,
     fotos: [], deshacible: true, ir: "semana",
+    pintar: filtrosTrasGenerar(out),
   };
 }
 

@@ -29,6 +29,7 @@ import { respuestaHoy, respuestaSemana, respuestaCompra, recordar } from "../_bo
 import { responder, cortarCharla, esCaida } from "../_bot/agente.js";
 import { registrar, rastro, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
+import { pintarMenu } from "../_bot/pintar.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
@@ -43,7 +44,7 @@ import {
 import { motor } from "../_bot/menu.js";
 import { sembrarCasa } from "../_bot/ajustes.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
-import { hoyISO } from "../_bot/casa.js";
+import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
 import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
 
@@ -461,7 +462,18 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
  * Si el texto ya se estaba escribiendo en vivo, se termina ese mismo mensaje.
  */
 async function entregar({ chatId, householdId, esGrupo, base, from, responderA, oido = null, r, vivo = null }) {
-  const { cuerpo, botones: propiosCrudos } = sacarBotones(r.texto);
+  const { cuerpo: frase, botones: propiosCrudos } = sacarBotones(r.texto);
+  // Lo que se ha generado, cambiado o pedido ver, pintado debajo de la frase
+  // (api/_bot/pintar.js): el modelo nunca escribe la lista de platos.
+  let cuerpo = frase;
+  if (r.pintar) {
+    const casa = await cargarCasa(householdId).catch(() => null);
+    const p = casa ? pintarMenu(casa, r.pintar) : null;
+    if (p?.texto) {
+      cuerpo = `${frase}\n\n${p.texto}`.trim();
+      if (!r.fotos?.length && p.fotos.length) r = { ...r, fotos: p.fotos };
+    }
+  }
   // [[No es así]] solo deshace si este turno ha guardado algo; si no, es una
   // respuesta más (deshacer ahí tocaría un cambio anterior que nadie discute).
   const propios = r.deshacible ? propiosCrudos

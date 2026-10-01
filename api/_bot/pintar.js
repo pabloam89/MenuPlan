@@ -25,7 +25,7 @@
 
 import fs from "node:fs";
 import { comida as delCatalogo, comidasDeLaCasa, iconoDe } from "../../src/lib/comidas.js";
-import { diaDeFecha } from "./cuando.js";
+import { diaDeFecha, sumarDias } from "./cuando.js";
 import { grupos as gruposDeLaCasa, grupoPara, quienesDe, cambiosDe, normal } from "./menu.js";
 
 const DIA_LARGO = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves", Vie: "viernes", "Sáb": "sábado", Dom: "domingo" };
@@ -45,6 +45,32 @@ function fotoDe(receta) {
   const id = String(receta.baseRecipeId ?? receta.linkedCatalogId ?? receta.id ?? "").split("__").pop();
   return manifiesto[id] ?? null;
 }
+
+/**
+ * Lo que se pinta debajo tras generar un menú: la semana generada, con lo que
+ * pidieron destacado. `out` es el de generarMenu (desde, hasta, colocados
+ * «Jue-Comida»).
+ */
+export function filtrosTrasGenerar(out) {
+  if (!out?.desde || !out?.hasta) return null;
+  const dias = [];
+  for (let d = out.desde; d <= out.hasta && dias.length < 14; d = sumarDias(d, 1)) dias.push(d);
+  const destacar = (out.colocados ?? []).map((clave) => {
+    const [dia, comida] = String(clave).split("-");
+    const fecha = dias.find((f) => diaDeFecha(f) === dia);
+    return fecha ? { fecha, comida } : null;
+  }).filter(Boolean);
+  return { dias, destacar };
+}
+
+/** Tras cambiar un plato: ese día, con el hueco cambiado destacado. */
+export function filtrosTrasCambiar(out) {
+  if (!out?.cambiado || !out?.fecha) return null;
+  return { dias: [out.fecha], destacar: [{ fecha: out.fecha, comida: out.franja }] };
+}
+
+/** Quita el HTML: lo pintado, en texto, para que Lola razone con ello (sin copiarlo). */
+export const sinEtiquetas = (t) => String(t ?? "").replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 
 /** «Sábado 4 de octubre» */
 export function tituloDia(fecha) {
