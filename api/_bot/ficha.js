@@ -28,6 +28,7 @@ import { resolveMemberAge, stageForAge } from "../../src/lib/stages.js";
 import { INTOLERANCE_RULES } from "../../src/lib/intolerances.js";
 import { estadoDe } from "../../src/lib/notepad.js";
 import { describirRegla } from "../../src/lib/reglasTexto.js";
+import { comidasDeLaCasa, comida as comidaDelCatalogo } from "../../src/lib/comidas.js";
 import { select, eq } from "./db.js";
 
 const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -184,13 +185,13 @@ function casaBloque(data) {
 
 function cocinaBloque(data) {
   const lineas = [];
-  const comidas = data.meals ?? ["Comida", "Cena"];
+  const comidas = comidasDeLaCasa(data).map((id) => comidaDelCatalogo(id)?.nombre ?? id);
   const estructura = { primero_segundo: "primero y segundo", plato_unico: "plato único", unico: "plato único", "1_plato": "plato único" };
   const est = [
-    comidas.includes("Comida") && data.mealStructure ? `Comida: ${estructura[data.mealStructure] ?? data.mealStructure}` : "",
-    comidas.includes("Cena") && data.mealStructureCena ? `Cena: ${estructura[data.mealStructureCena] ?? data.mealStructureCena}` : "",
+    comidasDeLaCasa(data).includes("Comida") && data.mealStructure ? `Comida: ${estructura[data.mealStructure] ?? data.mealStructure}` : "",
+    comidasDeLaCasa(data).includes("Cena") && data.mealStructureCena ? `Cena: ${estructura[data.mealStructureCena] ?? data.mealStructureCena}` : "",
   ].filter(Boolean);
-  lineas.push(`- Se planifican: ${comidas.join(" y ").toLowerCase()}${est.length ? `. ${est.join(". ")}` : ""}.`);
+  lineas.push(`- Se planifican: ${lista(comidas)}${est.length ? `. ${est.join(". ")}` : ""}.`);
   const ct = data.cookTime;
   if (ct?.weekday) {
     const ent = Math.max(ct.weekday.Comida ?? 0, ct.weekday.Cena ?? 0);
@@ -242,7 +243,7 @@ function platosDelDia(casa, dia, nombre) {
   const plan = casa.semana?.plan ?? {};
   const grupos = (casa.state?.data?.groups ?? []).filter((g) => plan[g.id]);
   const porFranja = [];
-  for (const franja of ["Desayuno", "Comida", "Merienda", "Cena"]) {
+  for (const franja of comidasDeLaCasa(casa.state?.data ?? {})) {
     const porGrupo = grupos.map((g) => {
       const h = plan[g.id]?.[`${dia}-${franja}`];
       const platos = h ? [nombre(h.firstRecipeId), nombre(h.recipeId)].filter(Boolean) : [];

@@ -21,15 +21,15 @@ import { rastro } from "./embudo.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const EMOJI = { Desayuno: "☕", Comida: "🍽️", Merienda: "🥪", Cena: "🌙", Postre: "🍮" };
-const ARTICULO = { Desayuno: "el desayuno", Comida: "la comida", Merienda: "la merienda", Cena: "la cena", Postre: "el postre" };
+// Icono y artículo de cada comida, del catálogo (src/lib/comidas.js).
+import { iconoDe, articuloDe } from "../../src/lib/comidas.js";
 const MAX_BOTON = 38;
 
 /** «la cena de hoy», «la comida del jueves» */
 function huecoEnTexto({ franja, dia, fecha }) {
   const hoyISO = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
   const cuando = fecha === hoyISO ? "de hoy" : dia ? `del ${DIA_LARGO[dia] ?? dia}` : "";
-  return `${ARTICULO[franja] ?? (franja ? franja.toLowerCase() : "la comida")} ${cuando}`.trim();
+  return `${articuloDe(franja)} ${cuando}`.trim();
 }
 
 const mayusculaInicial = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
@@ -110,7 +110,7 @@ export async function cambiar(householdId, x) {
   const sinCambiar = out.sinCambiar?.length ? `\n\n<i>A ${esc(out.sinCambiar.join(" y "))} le dejo lo suyo: ese plato no le encaja.</i>` : "";
   const aproximada = out.aproximada ? `\n<i>No había «${esc(out.pedida)}» tal cual: es lo más parecido que encaja.</i>` : "";
   return {
-    texto: `✅ <b>Hecho.</b> ${mayusculaInicial(hueco)}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""} ahora es:\n\n${EMOJI[out.franja] ?? "🍽️"} <b>${esc(out.despues)}</b>${out.adaptado ? ` <i>(${esc(out.adaptado)})</i>` : ""}${out.antes ?`\n<i>Antes: ${esc(out.antes)}.</i>` : ""}${aproximada}${sinCambiar}`,
+    texto: `✅ <b>Hecho.</b> ${mayusculaInicial(hueco)}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""} ahora es:\n\n${iconoDe(out.franja)} <b>${esc(out.despues)}</b>${out.adaptado ? ` <i>(${esc(out.adaptado)})</i>` : ""}${out.antes ?`\n<i>Antes: ${esc(out.antes)}.</i>` : ""}${aproximada}${sinCambiar}`,
     fotos,
     deshacible: true,
     ir: out.dia ? `dia:${out.dia}` : null,

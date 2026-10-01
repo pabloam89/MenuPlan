@@ -18,6 +18,7 @@
  * Aquí solo se DECIDE; actuar lo hace api/_bot/turno.js.
  */
 
+import { IDS_COMIDAS, COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const MODELO_ROUTER = process.env.BOT_ROUTER_MODELO || "claude-haiku-4-5-20251001";
@@ -26,7 +27,9 @@ export const UMBRAL = Number(process.env.BOT_ROUTER_UMBRAL) || 0.8;
 
 export const MODOS = ["consulta", "recomendar", "cambiar", "compra_anadir", "compra_marcar", "generar", "deshacer", "lola"];
 const DIAS = ["hoy", "mañana", "pasado mañana", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
-const COMIDAS = ["Desayuno", "Comida", "Merienda", "Cena", "Postre"];
+// Del catálogo de comidas (src/lib/comidas.js), aperitivo incluido aunque aún
+// no se planifique: así se entiende y pintarMenu puede decir que no lo hay.
+const COMIDAS = IDS_COMIDAS;
 
 // PLANO a propósito: con objetos anidados (consulta/plato/compra/generar) el
 // modelo pequeño acertaba el modo y se dejaba los datos sin rellenar (6 de 46
@@ -62,7 +65,7 @@ const ESQUEMA = {
     semana: { type: "string", enum: ["esta", "siguiente"], description: "generar: OBLIGATORIO." },
     fijos: {
       type: "array",
-      items: { type: "object", properties: { nombre: { type: "string" }, comida: { type: "string", enum: ["Comida", "Cena"] } }, required: ["nombre"], additionalProperties: false },
+      items: { type: "object", properties: { nombre: { type: "string" }, comida: { type: "string", enum: COMIDAS_PRINCIPALES } }, required: ["nombre"], additionalProperties: false },
       description: "generar: platos que piden por su nombre para esa semana.",
     },
   },

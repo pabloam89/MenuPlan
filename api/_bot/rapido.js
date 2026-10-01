@@ -16,7 +16,8 @@ import { insert } from "./db.js";
 import { cargarCasa, hoyISO } from "./casa.js";
 import { prepararRecetas, grupos, resolverDia, describirCompra, quienesDe, cambiosDe, FRANJAS, DIA_LARGO, DIAS } from "./menu.js";
 
-const EMOJI = { Desayuno: "☕", Comida: "🍽️", Merienda: "🥪", Cena: "🌙", Postre: "🍮" };
+// El icono de cada comida sale del catálogo (src/lib/comidas.js).
+import { iconoDe } from "../../src/lib/comidas.js";
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
@@ -87,7 +88,7 @@ function bloquesDelDia(casa, m, dia, { fotos = null, conFotos = false } = {}) {
     const varios = porPlatos.size > 1;
     const partes = [...porPlatos.values()].map(({ platos, quienes }) =>
       `${varios ? `<i>${esc(mayus(quienes.join(" y ")))}:</i>\n` : ""}${platos.map((p) => `• ${esc(p)}`).join("\n")}`);
-    bloques.push(`${EMOJI[f] ?? "🍽️"} <b>${f}:</b>\n${partes.join("\n")}`);
+    bloques.push(`${iconoDe(f)} <b>${f}:</b>\n${partes.join("\n")}`);
   }
   return bloques;
 }

@@ -18,12 +18,14 @@
 import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 import { rastro } from "./embudo.js";
+import { IDS_COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 
 let motorCargado = null;
 export const motor = async () => (motorCargado ??= await import("./core.mjs"));
 
-const FRANJAS = ["Desayuno", "Comida", "Merienda", "Cena", "Postre"];
+// Las comidas salen del catálogo (src/lib/comidas.js): una sola lista.
+const FRANJAS = IDS_COMIDAS;
 const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const DIA_LARGO = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves", Vie: "viernes", "Sáb": "sábado", Dom: "domingo" };
 
@@ -113,7 +115,8 @@ function casaDeSemana(casa, semana) {
 
 export function franjaDe(texto) {
   const t = normal(texto);
-  return FRANJAS.find((f) => normal(f) === t || (t === "almuerzo" && f === "Comida")) ?? null;
+  // Con sus sinónimos del catálogo: «almuerzo» es la comida, «picoteo» el aperitivo.
+  return comidaDe(t);
 }
 
 /** Registra en el motor las recetas de la casa para poder resolver ids. */

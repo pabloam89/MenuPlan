@@ -32,6 +32,7 @@ import {
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { supervisar } from "./supervisor.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
+import { IDS_COMIDAS, COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
@@ -411,7 +412,7 @@ function herramientasDeAjustes(householdId, gustos) {
         tiempo: { type: "string", enum: ["con_prisa", "normal", "con_tiempo", "depende"] },
         tanda: { type: "string", enum: ["tanda", "cada_dia"] },
         trastos: { type: "array", items: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"] } },
-        comidas: { type: "array", items: { type: "string", enum: ["Comida", "Cena"] }, description: "Qué comidas se planifican." },
+        comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
         etapaBebe: { type: "string", enum: ["cremas", "mixto", "solidos"], description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
       }),
       run: (args) => ajustarCocina(householdId, args),
@@ -431,7 +432,7 @@ function herramientasDeAjustes(householdId, gustos) {
       name: "anadir_invitado",
       description: "Alguien de fuera viene a comer o cenar un día concreto (se suma a las raciones y a la compra de esa semana, y caduca solo).",
       inputSchema: obj({
-        dia: { type: "string" }, comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
+        dia: { type: "string" }, comida: { type: "string", enum: IDS_COMIDAS },
         n: { type: "integer", minimum: 1, maximum: 20 }, nombre: { type: "string" },
         semana: { type: "string", enum: ["esta", "siguiente"] },
       }, ["dia", "comida"]),
@@ -490,7 +491,7 @@ function herramientasDeAjustes(householdId, gustos) {
           type: "array", maxItems: 7,
           items: obj({
             nombre: { type: "string", description: "El plato como lo han dicho." },
-            comida: { type: "string", enum: ["Comida", "Cena"], description: "Solo si lo dicen; si no, se deduce del plato." },
+            comida: { type: "string", enum: COMIDAS_PRINCIPALES, description: "Solo si lo dicen; si no, se deduce del plato." },
           }, ["nombre"]),
         },
       }, ["semana"]),
@@ -577,7 +578,7 @@ function herramientasDeMenu(householdId, fotos = null) {
         properties: {
           dia: { type: "string", description: "Opcional: lunes…domingo, «hoy» o «mañana». Sin él, la próxima comida que toca: NO lo preguntes para recomendar («entre semana» sin más = hoy)." },
           semana,
-          comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"], description: "Opcional: sin ella, la próxima que toca por la hora." },
+          comida: { type: "string", enum: IDS_COMIDAS, description: "Opcional: sin ella, la próxima que toca por la hora." },
           grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           n: { type: "integer", minimum: 2, maximum: 6, description: "Cuántas opciones; por defecto 3 (caben 3 botones más «Elige tú»)." },
@@ -614,7 +615,7 @@ function herramientasDeMenu(householdId, fotos = null) {
         properties: {
           dia: { type: "string", description: "lunes…domingo, «hoy» o «mañana»." },
           semana,
-          comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
+          comida: { type: "string", enum: IDS_COMIDAS },
           grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           receta: { type: "string", description: "Opcional: el nombre de la receta elegida." },
