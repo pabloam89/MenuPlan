@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { montarFicha, alergiasRevisadas } from "./ficha.js";
 import { alergiasRevisadas as deAlergias } from "../../src/lib/alergias.js";
+import { nuevaRegla } from "../../src/lib/reglas.js";
 
 const tok = (t) => Math.ceil(t.length / 3.6);
 const casaDe = (data, extra = {}) => ({ state: { data, aiRecipes: extra.aiRecipes ?? [] }, semana: extra.semana ?? null, semanas: extra.semanas ?? [] });
@@ -70,6 +71,35 @@ describe("la ficha de la casa", () => {
     expect(supuesto).toMatch(/mexicana/);
     expect(f.estable).not.toMatch(/pizza/);
     expect(f.estable).not.toMatch(/carne/);
+  });
+
+  it("lo rechazado no sale como apunte, y sí como «no volver a suponer»", () => {
+    const campos = {
+      "favoritos.lentejas": { valor: undefined, fuente: "supuesto", rechazos: [{ valor: true, fecha: "2026-09-28" }] },
+      "cocina.mexicana": { valor: undefined, fuente: "visto", rechazos: [{ valor: true, fecha: "2026-09-20" }] },
+      "favoritos.pizza": { valor: undefined, fuente: "supuesto", rechazos: [{ valor: true, fecha: "2026-08-01" }] },
+      "freqs.pescado": { valor: 3 },
+    };
+    const f = montarFicha(casaDe({ members: MIEMBROS, notepad: { v: 1, campos } }), {}, "2026-10-01");
+    expect(f.estable).not.toMatch(/undefined/);
+    expect(f.estable).not.toMatch(/- (Dicho|Supuesto):.*lentejas/);
+    const no = f.estable.match(/- No volver a suponer: (.*)/)?.[1] ?? "";
+    // Los dos últimos.
+    expect(no).toMatch(/lentejas/);
+    expect(no).toMatch(/mexicana/);
+    expect(no).not.toMatch(/pizza/);
+  });
+
+  it("las reglas de siempre (quitar algo ciertos días) salen en COCINA; las que caducan, en AHORA", () => {
+    const hoy = "2026-10-01";
+    const siempre = nuevaRegla({ sujeto: { tipo: "casa" }, ambito: { dias: ["Lun"] }, efecto: { tipo: "excluir", valor: "grupo:carne" }, hoy });
+    const temporal = nuevaRegla({ sujeto: { tipo: "casa" }, vigencia: { hasta: "2026-10-31" }, efecto: { tipo: "excluir", valor: "fritos" }, hoy });
+    const pasada = nuevaRegla({ sujeto: { tipo: "casa" }, vigencia: { hasta: "2026-09-15" }, efecto: { tipo: "excluir", valor: "pescado" }, hoy: "2026-09-01" });
+    const f = montarFicha(casaDe({ members: MIEMBROS, reglas: [siempre, temporal, pasada] }), {}, hoy);
+    expect(f.estable).toMatch(/- Reglas: En casa sin carne los Lun/);
+    expect(f.delDia).toMatch(/AHORA\n- En casa sin fritos/);
+    expect(f.delDia).not.toMatch(/carne/);
+    expect(f.estable + f.delDia).not.toMatch(/pescado/);
   });
 
   it("nunca pasa del tope, y SEGURIDAD no se recorta aunque la casa sea enorme", () => {

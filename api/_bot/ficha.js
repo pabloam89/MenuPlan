@@ -26,7 +26,7 @@
 import fs from "node:fs";
 import { resolveMemberAge, stageForAge } from "../../src/lib/stages.js";
 import { INTOLERANCE_RULES } from "../../src/lib/intolerances.js";
-import { matizDe, vigente } from "../../src/lib/notepad.js";
+import { matizDe, vigente, rechazadosDe } from "../../src/lib/notepad.js";
 import { describirRegla } from "../../src/lib/reglasTexto.js";
 import { comidasDeLaCasa, comida as comidaDelCatalogo } from "../../src/lib/comidas.js";
 import { select, eq } from "./db.js";
@@ -222,12 +222,19 @@ function cocinaBloque(data, hoy) {
   // fuente y es dicho. Lo visto y lo supuesto van juntos: Lola no los da por
   // hechos. Fuera queda lo caducado; lo que empieza más adelante sí entra,
   // con su «desde», para que Lola lo sepa.
-  const cuenta = ([, c]) => vigente(c, hoy) || (c.desde && c.desde > hoy && (!c.hasta || c.hasta >= hoy));
+  // Los rechazados («no, eso no es así») quedan con valor undefined: no son nada.
+  const cuenta = ([, c]) => c.valor !== undefined && (vigente(c, hoy) || (c.desde && c.desde > hoy && (!c.hasta || c.hasta >= hoy)));
   const vivos = campos.filter(cuenta);
   const dicho = vivos.filter(([, c]) => matizDe(c) === "dicho");
   const supuesto = vivos.filter(([, c]) => matizDe(c) === "visto" || matizDe(c) === "supuesto");
   if (dicho.length) lineas.push(`- Dicho: ${dicho.slice(0, 3).map(texto).join("; ")}${dicho.length > 3 ? `; +${dicho.length - 3} (ver_ajustes)` : ""}.`);
   if (supuesto.length) lineas.push(`- Supuesto: ${supuesto.slice(0, 2).map(texto).join("; ")}${supuesto.length > 2 ? `; +${supuesto.length - 2} (ver_ajustes)` : ""}.`);
+  // Lo que ya le dijeron que no: los dos últimos, para no volver a suponerlo.
+  const rechazados = rechazadosDe(data.notepad).sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))).slice(-2);
+  if (rechazados.length) lineas.push(`- No volver a suponer: ${rechazados.map((r) => texto([r.path, { valor: r.valor }])).join("; ")}.`);
+  // Las reglas de siempre («En casa sin carne los Lun»); las que caducan van en AHORA.
+  const fijas = (data.reglas ?? []).filter((r) => !r?.vigencia?.hasta);
+  if (fijas.length) lineas.push(`- Reglas: ${fijas.slice(0, 3).map((r) => describirRegla(r, data)).join("; ")}${fijas.length > 3 ? `; +${fijas.length - 3} (ver_ajustes)` : ""}.`);
   const nunca = [...(data.dislikes ?? []), ...(data.excluidos ?? [])];
   if (nunca.length) lineas.push(`- Nunca: ${nunca.slice(0, 6).join(", ")}${nunca.length > 6 ? `, +${nunca.length - 6}` : ""}.`);
   const fijos = (data.fixedDishes ?? []).map((f) => f?.name ?? f?.nombre ?? f?.recipeName).filter(Boolean);
@@ -273,8 +280,9 @@ function platosDelDia(casa, dia, nombre) {
 function delDiaBloque(casa, extras, hoy) {
   const data = casa.state?.data ?? {};
   const lineas = [cabeceraDia(hoy)];
-  // AHORA: reglas vigentes (invitados, temporales) e invitados.
-  const vigentes = (data.reglas ?? []).filter((r) => !r?.vigencia?.hasta || r.vigencia.hasta >= hoy);
+  // AHORA: las reglas que caducan (invitados, temporales) y siguen vivas. Las
+  // de siempre van en COCINA, que no cambia cada día.
+  const vigentes = (data.reglas ?? []).filter((r) => r?.vigencia?.hasta && r.vigencia.hasta >= hoy);
   if (vigentes.length) lineas.push("AHORA", ...vigentes.slice(0, 3).map((r) => `- ${describirRegla(r, data)}.`));
   // MENÚ: rangos, hoy y mañana, nevera.
   const semanas = casa.semanas ?? [];
