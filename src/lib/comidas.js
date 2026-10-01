@@ -83,11 +83,20 @@ export function comidaDe(texto) {
  * Las comidas que se nombran en una frase («¿qué cenamos este finde?» →
  * ["Cena"]), en el orden del día. Sinónimos de una y dos palabras. Pura.
  */
+// Palabras que también significan otra cosa («¿qué comida tenemos?» es comida
+// en general; «algo dulce», «picar algo»): solo cuentan con artículo delante
+// («la comida del jueves», «la noche del sábado»).
+const AMBIGUAS = new Set(["comida", "comidas", "noche", "dulce", "picar"]);
+const ARTICULOS = new Set(["el", "la", "los", "las"]);
+// «No cenamos en casa»: lo que va negado no es lo que quieren ver.
+const NEGACION = new Set(["no", "sin"]);
+
 export function comidasEnTexto(texto) {
   const palabras = normal(texto).replace(/[¿?¡!.,;:]/g, " ").split(/\s+/).filter(Boolean);
   const vistas = new Set();
   palabras.forEach((p, i) => {
-    const una = comidaDe(p);
+    if (NEGACION.has(palabras[i - 1])) return;
+    const una = AMBIGUAS.has(p) && !ARTICULOS.has(palabras[i - 1]) ? null : comidaDe(p);
     const dos = i + 1 < palabras.length ? comidaDe(`${p} ${palabras[i + 1]}`) : null;
     if (dos) vistas.add(dos);
     else if (una) vistas.add(una);
@@ -107,7 +116,7 @@ export function platoDe(texto) {
  * con su modo; "off" es que no). Sale de sus datos, no de una lista fija.
  */
 export function comidasDeLaCasa(data) {
-  const principales = Array.isArray(data?.meals) && data.meals.length ? data.meals : COMIDAS_PRINCIPALES;
+  const principales = (Array.isArray(data?.meals) && data.meals.length ? data.meals : COMIDAS_PRINCIPALES).map((m) => comidaDe(m) ?? m);
   const extras = data?.extraMeals ?? {};
   return COMIDAS.filter((c) => {
     if (c.tipo === "principal") return principales.includes(c.id);

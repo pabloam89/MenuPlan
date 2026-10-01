@@ -33,7 +33,7 @@ import {
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { supervisar } from "./supervisor.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
-import { pintarMenu, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
+import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
@@ -128,6 +128,8 @@ const FRENO_SUPERVISOR = "bot_supervisor";
 // formato de ?ir= de la app (App.jsx): hoy, semana, dia:Jue, compra.
 function pantallaDe(herramienta, args = {}) {
   if (herramienta === "ver_menu") {
+    if (args.cuando === "hoy") return "hoy";
+    if (args.cuando === "manana") return `dia:${diaDe("mañana")}`;
     if (!args.dia) return "semana";
     if (/^hoy$/i.test(String(args.dia).trim())) return "hoy";
     const d = diaDe(args.dia);
@@ -194,7 +196,7 @@ export async function herramientas(chat) {
         return freno;
       }
       if (t.name === "ver_menu" && yaLoTiene(args)) {
-        return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. No lo repitas entero: resume en 3-4 líneas; la semana la ven con el botón que sale solo.";
+        return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. Además sale pintado debajo de tu mensaje: no lo escribas; di en una o dos frases qué has hecho.";
       }
       try {
         const desde = Date.now();
@@ -518,10 +520,15 @@ function pintarTambien(chat, nuevo) {
   if (!nuevo) return;
   const antes = chat.pintar;
   if (!antes) { chat.pintar = nuevo; return; }
+  const igual = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
   chat.pintar = {
-    ...nuevo,
     dias: [...new Set([...(antes.dias ?? []), ...(nuevo.dias ?? [])])].sort(),
     destacar: [...(antes.destacar ?? []), ...(nuevo.destacar ?? [])],
+    // Un filtro solo vale si lo piden todas: si no, la semana generada saldría
+    // solo con las cenas que alguien consultó después.
+    comidas: igual(antes.comidas, nuevo.comidas) ? nuevo.comidas ?? null : null,
+    platos: igual(antes.platos, nuevo.platos) ? nuevo.platos ?? null : null,
+    grupo: igual(antes.grupo, nuevo.grupo) ? nuevo.grupo ?? null : null,
   };
 }
 
@@ -556,12 +563,13 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         },
         additionalProperties: false,
       },
-      run: ({ cuando, dia, hasta, comidas, platos, para, semana: cual }) => conCasa((casa) => {
+      run: ({ cuando, dia, hasta, comidas, platos, para, semana: cual }) => conCasa(async (casa) => {
         const pedido = cuando ?? (dia ? "dia" : cual === "siguiente" ? "semana_que_viene" : "esta_semana");
-        const dias = fechasDe({ cuando: pedido, dia, hasta }, hoyISO());
+        const dias = fechasDe({ cuando: pedido, dia, hasta, semana: cual }, hoyISO());
         if (!dias) return `No entiendo qué días son («${dia ?? cuando}»).`;
         const filtros = { dias, comidas: comidas ?? null, platos: platos ?? null, grupo: para ?? null };
-        const p = pintarMenu(casa, filtros);
+        const p = await pintarMenuEntero(casa, filtros);
+        if (p.sinGrupo) return `${sinEtiquetas(p.texto)} Pregunta de quién hablan.`;
         if (!p.conMenu && !p.noPlanificadas.length) return `No hay menú para esos días (${dias[0]}${dias.length > 1 ? ` a ${dias.at(-1)}` : ""}). ${rangosDelMenu(casa)} Si lo quieren, generar_menu.`;
         pintarTambien(chat, filtros);
         if (dias.length === 1 && fotos) for (const f of p.fotos) if (!fotos.some((x) => x.url === f.url)) fotos.push(f);

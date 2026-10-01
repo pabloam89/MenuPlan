@@ -36,12 +36,17 @@ describe("el catálogo de comidas", () => {
     expect(comidasEnTexto("la cena y la comida del jueves")).toEqual(["Comida", "Cena"]);
     expect(comidasEnTexto("¿qué hay de picoteo el sábado?")).toEqual(["Aperitivo"]);
     expect(comidasEnTexto("¿qué comemos hoy?")).toEqual([]);
+    // Lo ambiguo sin artículo no cuenta, y lo negado tampoco.
+    expect(comidasEnTexto("¿qué comida tenemos el jueves?")).toEqual([]);
+    expect(comidasEnTexto("algo dulce para el sábado")).toEqual([]);
+    expect(comidasEnTexto("el sábado no cenamos, ¿qué hay de comida?")).toEqual([]);
   });
 
   it("las comidas de cada casa salen de sus datos", () => {
     expect(comidasDeLaCasa({ meals: ["Comida", "Cena"], extraMeals: { desayuno: "off", merienda: "variado" } })).toEqual(["Comida", "Merienda", "Cena"]);
     expect(comidasDeLaCasa({ meals: ["Cena"] })).toEqual(["Cena"]);
     expect(comidasDeLaCasa({})).toEqual(["Comida", "Cena"]);
+    expect(comidasDeLaCasa({ meals: ["comida", "CENA"] })).toEqual(["Comida", "Cena"]);
   });
 
   it("añadir una comida al catálogo basta: el aperitivo ya se entiende, tiene icono y artículo", () => {

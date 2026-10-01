@@ -26,7 +26,7 @@
 import fs from "node:fs";
 import { comida as delCatalogo, comidasDeLaCasa, iconoDe } from "../../src/lib/comidas.js";
 import { diaDeFecha, sumarDias } from "./cuando.js";
-import { grupos as gruposDeLaCasa, grupoPara, quienesDe, cambiosDe, normal } from "./menu.js";
+import { grupos as gruposDeLaCasa, grupoPara, quienesDe, cambiosDe, normal, prepararRecetas } from "./menu.js";
 
 const DIA_LARGO = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves", Vie: "viernes", "Sáb": "sábado", Dom: "domingo" };
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -77,36 +77,62 @@ export function tituloDia(fecha) {
   return `${mayus(DIA_LARGO[diaDeFecha(fecha)])} ${Number(fecha.slice(8, 10))} de ${MESES[Number(fecha.slice(5, 7)) - 1]}`;
 }
 
-function recetasDe(state) {
+function recetasDe(state, otras) {
   const porId = new Map();
   for (const r of [...(state?.aiRecipes ?? []), ...(state?.data?.userRecipes ?? [])]) {
     if (!r?.id) continue;
     porId.set(r.id, r);
     if (!porId.has(String(r.id).split("__").pop())) porId.set(String(r.id).split("__").pop(), r);
   }
-  return (id) => (id ? porId.get(id) ?? porId.get(String(id).split("__").pop()) ?? null : null);
+  return (id) => (id ? porId.get(id) ?? porId.get(String(id).split("__").pop()) ?? otras?.(id) ?? null : null);
+}
+
+// «los desayunos», «las meriendas»: el género sale del artículo del catálogo.
+const pronombre = (cat) => (/^la\b/.test(cat?.articulo ?? "") ? "las" : "los");
+
+/**
+ * Como pintarMenu, pero si algún plato no está entre las recetas guardadas con
+ * el menú (un menú viejo, una receta del catálogo que nunca se registró), carga
+ * el motor y repinta con su recetario. Solo entonces: el motor tarda ~2 s.
+ */
+export async function pintarMenuEntero(casa, filtros) {
+  const p = pintarMenu(casa, filtros);
+  if (!p.faltan) return p;
+  const m = await prepararRecetas(casa).catch(() => null);
+  if (!m) return p;
+  return pintarMenu(casa, filtros, { otras: (id) => m.RECIPES_BY_ID[id] ?? m.RECIPES_BY_ID[String(id).split("__").pop()] ?? null });
 }
 
 /**
- * @returns {{ texto: string, fotos: {url: string, pie: string}[], conMenu: number, sinMenu: string[], noPlanificadas: string[], recortado: boolean } }
+ * @returns {{ texto: string, fotos: {url: string, pie: string}[], conMenu: number, sinMenu: string[], noPlanificadas: string[], recortado: boolean, faltan: number } }
  *   conMenu: cuántos días tenían algo; sinMenu: los que no; noPlanificadas: comidas
- *   pedidas que la casa no planifica.
+ *   pedidas que la casa no planifica; faltan: platos cuyo nombre no se ha
+ *   encontrado (pintarMenuEntero los busca en el motor).
  */
-export function pintarMenu(casa, { dias = [], comidas = null, platos = null, grupo = null, destacar = [] } = {}) {
+export function pintarMenu(casa, { dias = [], comidas = null, platos = null, grupo = null, destacar = [] } = {}, { otras = null } = {}) {
   const data = casa?.state?.data ?? {};
   const deLaCasa = comidasDeLaCasa(data);
   const pedidas = comidas?.length ? comidas : deLaCasa;
   const noPlanificadas = pedidas.filter((c) => !deLaCasa.includes(c));
   const aPintar = pedidas.filter((c) => deLaCasa.includes(c));
-  const receta = recetasDe(casa?.state);
+  const receta = recetasDe(casa?.state, otras);
   const miembros = data.members ?? [];
   const destacado = (fecha, c) => destacar.some((d) => (d.fecha ?? fecha) === fecha && d.comida === c);
+  let faltan = 0;
   const lineasAvisos = noPlanificadas.map((c) => {
     const cat = delCatalogo(c);
     return cat?.tipo === "futuro"
-      ? `${iconoDe(c)} Los ${cat.plural} todavía no los preparo.`
-      : `${iconoDe(c)} No te planifico ${cat?.plural ?? String(c).toLowerCase()}. ¿Quieres que los añada?`;
+      ? `${iconoDe(c)} ${mayus(pronombre(cat))} ${cat.plural} todavía no ${pronombre(cat)} preparo.`
+      : `${iconoDe(c)} No te planifico ${cat?.plural ?? String(c).toLowerCase()}. ¿Quieres que ${pronombre(cat)} añada?`;
   });
+  // Para alguien que no está en la casa, no se pinta la casa entera como si fuera suyo.
+  if (grupo && aPintar.length) {
+    const algunaSemana = (casa?.semanas ?? []).find((w) => w.plan);
+    const todos = algunaSemana ? gruposDeLaCasa({ ...casa, semana: algunaSemana }) : [];
+    if (todos.length && !todos.some((g) => normal(g.label) === normal(grupo)) && !grupoPara(todos, miembros, grupo)) {
+      return { texto: [...lineasAvisos, `No encuentro a «${esc(grupo)}» en la casa.`].join("\n"), fotos: [], conMenu: 0, sinMenu: [], noPlanificadas, recortado: false, faltan: 0, sinGrupo: true };
+    }
+  }
 
   const bloques = [];
   const fotos = [];
@@ -114,6 +140,7 @@ export function pintarMenu(casa, { dias = [], comidas = null, platos = null, gru
   let conMenu = 0;
   // Si todo lo pedido es algo que la casa no planifica, basta con decirlo.
   for (const fecha of aPintar.length ? dias : []) {
+    const faltabanAntes = faltan;
     const semana = (casa?.semanas ?? []).find((w) => w.weekStart <= fecha && fecha <= w.weekEnd) ?? null;
     const plan = semana?.plan;
     const dia = diaDeFecha(fecha);
@@ -132,7 +159,7 @@ export function pintarMenu(casa, { dias = [], comidas = null, platos = null, gru
         const nombres = ids.map((id) => {
           const r = receta(id);
           const nombre = r?.name ?? null;
-          if (!nombre) return null;
+          if (!nombre) { faltan++; return null; }
           if (dias.length === 1 && fotos.length < 10) {
             const url = fotoDe(r);
             if (url && !fotos.some((f) => f.url === url)) fotos.push({ url, pie: nombre });
@@ -145,10 +172,20 @@ export function pintarMenu(casa, { dias = [], comidas = null, platos = null, gru
       }).filter(Boolean);
       if (!porGrupo.length) continue;
       const marca = (t) => (destacado(fecha, c) ? `<b>${t}</b> ✨` : t);
-      const iguales = new Set(porGrupo.map((x) => x.texto)).size === 1;
-      if (iguales || elegido) lineas.push(`${iconoDe(c)} ${marca(porGrupo[0].texto)}`);
-      else for (const x of porGrupo) lineas.push(`${iconoDe(c)} <i>${esc(quienesDe(x.g, miembros) ?? x.g.label)}:</i> ${marca(x.texto)}`);
+      // Los grupos que comen lo mismo, en una línea («Isa y Pablo: …»).
+      const porPlato = new Map();
+      for (const x of porGrupo) porPlato.set(x.texto, [...(porPlato.get(x.texto) ?? []), x.g]);
+      if (porPlato.size === 1 || elegido) lineas.push(`${iconoDe(c)} ${marca(porGrupo[0].texto)}`);
+      else {
+        for (const [texto, gsDelPlato] of porPlato) {
+          const quienes = gsDelPlato.map((g) => quienesDe(g, miembros) ?? g.label);
+          const etiqueta = quienes.length > 1 ? `${quienes.slice(0, -1).join(", ")} y ${quienes.at(-1)}` : quienes[0];
+          lineas.push(`${iconoDe(c)} <i>${esc(mayus(etiqueta))}:</i> ${marca(texto)}`);
+        }
+      }
     }
+    // Hay plan pero no se ha encontrado ningún nombre: no es un día vacío.
+    if (!lineas.length && faltan > faltabanAntes) { bloques.push(`<b>${tituloDia(fecha)}</b>\nMíralo en la app.`); continue; }
     if (!lineas.length) { sinMenu.push(fecha); bloques.push(`<b>${tituloDia(fecha)}</b>\nNada planificado.`); continue; }
     conMenu++;
     bloques.push(`<b>${tituloDia(fecha)}</b>\n${lineas.join("\n")}`);
@@ -164,6 +201,6 @@ export function pintarMenu(casa, { dias = [], comidas = null, platos = null, gru
     largo += b.length + 2;
   }
   const partes = [...(lineasAvisos.length ? [lineasAvisos.join("\n")] : []), ...cuerpo];
-  if (recortado) partes.push(`<i>…y ${bloques.length - cuerpo.length} día${bloques.length - cuerpo.length > 1 ? "s" : ""} más: míralos en la app con el botón.</i>`);
-  return { texto: partes.join("\n\n"), fotos, conMenu, sinMenu, noPlanificadas, recortado };
+  if (recortado) partes.push(`<i>…y ${bloques.length - cuerpo.length} día${bloques.length - cuerpo.length > 1 ? "s" : ""} más: míralos en la app.</i>`);
+  return { texto: partes.join("\n\n"), fotos, conMenu, sinMenu, noPlanificadas, recortado, faltan };
 }

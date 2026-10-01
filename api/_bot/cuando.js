@@ -33,7 +33,9 @@ function indiceDeNombre(texto, hoy) {
   if (!t) return null;
   if (t === "hoy") return indiceDia(hoy);
   if (t === "manana") return indiceDia(sumarDias(hoy, 1));
-  const i = LARGOS.findIndex((d) => d === t || d.slice(0, 3) === t.slice(0, 3));
+  if (t === "pasado manana") return indiceDia(sumarDias(hoy, 2));
+  // El nombre entero o su abreviatura de tres letras («mié»); «marzo» no es martes.
+  const i = LARGOS.findIndex((d) => d === t || (t.length === 3 && d.slice(0, 3) === t));
   return i === -1 ? null : i;
 }
 
@@ -50,11 +52,13 @@ const entre = (desde, hasta) => {
 };
 
 /**
- * @param {{ cuando?: string, dia?: string, hasta?: string }} x  lo que sacó el enrutador
+ * @param {{ cuando?: string, dia?: string, hasta?: string, semana?: "esta" | "siguiente" }} x
+ *   lo que sacó el enrutador; con semana = siguiente, «el jueves» es el de la
+ *   semana que viene aunque aún quede jueves en esta.
  * @param {string} hoy  ISO, con la fecha de España
  * @returns {string[] | null}  días ISO en orden, o null si no se entiende
  */
-export function fechasDe({ cuando, dia, hasta } = {}, hoy) {
+export function fechasDe({ cuando, dia, hasta, semana } = {}, hoy) {
   const c = normal(cuando).replace(/\s+/g, "_");
   const domingoDe = (iso) => sumarDias(iso, 6 - indiceDia(iso));
   switch (c) {
@@ -63,7 +67,9 @@ export function fechasDe({ cuando, dia, hasta } = {}, hoy) {
     case "pasado_manana": return [sumarDias(hoy, 2)];
     case "dia": {
       const i = indiceDeNombre(dia, hoy);
-      return i == null ? null : [proximo(i, hoy)];
+      if (i == null) return null;
+      if (semana === "siguiente") return [sumarDias(sumarDias(hoy, 7 - indiceDia(hoy)), i)];
+      return [proximo(i, hoy)];
     }
     case "finde": {
       const i = indiceDia(hoy);
@@ -86,7 +92,7 @@ export function fechasDe({ cuando, dia, hasta } = {}, hoy) {
       const i = indiceDeNombre(dia, hoy);
       const j = indiceDeNombre(hasta, hoy);
       if (i == null || j == null) return null;
-      const desde = proximo(i, hoy);
+      const desde = semana === "siguiente" ? sumarDias(sumarDias(hoy, 7 - indiceDia(hoy)), i) : proximo(i, hoy);
       const fin = sumarDias(desde, (j - i + 7) % 7);
       return entre(desde, fin);
     }

@@ -3,7 +3,6 @@ import { describe, it, expect } from "vitest";
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 const { pintarMenu, tituloDia } = await import("./pintar.js");
-
 // Una casa: Pablo, Isa y Leo comen juntos («Familia»); Cova, el bebé, aparte.
 // Comida (con primero), cena y merienda; sin desayunos. Menú de dos semanas.
 const miembros = [
@@ -100,8 +99,39 @@ describe("pintarMenu", () => {
     const r = pintarMenu({ ...casa, state: { ...casa.state, aiRecipes: largo }, semanas, semana: semanas[0] }, { dias });
     expect(r.texto.length).toBeLessThan(3700);
     expect(r.recortado).toBe(true);
-    expect(r.texto).toMatch(/más: míralos en la app con el botón/);
+    expect(r.texto).toMatch(/más: míralos en la app\.<\/i>$/);
     void plan;
+  });
+
+  it("los grupos que comen lo mismo van en una línea", () => {
+    const tres = {
+      ...casa,
+      state: { ...casa.state, data: { ...casa.state.data, members: [...miembros, { id: "a", name: "Abuela", age: 80 }], groups: [...groups, { id: "a", label: "Abuela", memberIds: ["a"] }] } },
+      semanas: [{ ...semana1, plan: { ...semana1.plan, a: { "Sáb-Comida": { recipeId: "b__pure" } } } }],
+    };
+    const r = pintarMenu(tres, { dias: ["2026-10-03"], comidas: ["Comida"] });
+    expect(r.texto).toContain("🍽️ <i>Cova y Abuela:</i> Puré de verduras");
+    expect(r.texto.match(/Puré de verduras/g)).toHaveLength(1);
+  });
+
+  it("alguien que no está en la casa: lo dice, no pinta la casa entera", () => {
+    const r = pintarMenu(casa, { dias: ["2026-10-03"], grupo: "Marta" });
+    expect(r.texto).toBe("No encuentro a «Marta» en la casa.");
+    expect(r.sinGrupo).toBe(true);
+  });
+
+  it("concordancia: «las meriendas… las añada»", () => {
+    const sinMeriendas = { ...casa, state: { ...casa.state, data: { ...casa.state.data, extraMeals: {} } } };
+    expect(pintarMenu(sinMeriendas, { dias: ["2026-10-03"], comidas: ["Merienda"] }).texto).toBe("🥪 No te planifico meriendas. ¿Quieres que las añada?");
+  });
+
+  it("una receta que no está guardada con el menú: no es un día vacío, y se busca fuera", () => {
+    const rara = { ...casa, semanas: [{ ...semana1, plan: { f: { "Sáb-Cena": { recipeId: "f__rara" } } } }] };
+    const sin = pintarMenu(rara, { dias: ["2026-10-03"], comidas: ["Cena"] });
+    expect(sin.faltan).toBe(1);
+    expect(sin.sinMenu).toEqual([]);
+    const con = pintarMenu(rara, { dias: ["2026-10-03"], comidas: ["Cena"] }, { otras: (id) => (id === "f__rara" ? { id, name: "Pisto" } : null) });
+    expect(con.texto).toBe("<b>Sábado 3 de octubre</b>\n🌙 Pisto");
   });
 
   it("el título del día", () => {

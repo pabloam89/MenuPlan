@@ -48,5 +48,18 @@ describe("de «cuándo» a fechas", () => {
     expect(fechasDe({ cuando: "dia", dia: "el día de la marmota" }, MIERCOLES)).toBe(null);
     expect(fechasDe({ cuando: "algún día" }, MIERCOLES)).toBe(null);
     expect(fechasDe({}, MIERCOLES)).toBe(null);
+    // «marzo» no es martes: la abreviatura vale solo con tres letras.
+    expect(fechasDe({ cuando: "dia", dia: "marzo" }, MIERCOLES)).toBe(null);
+  });
+
+  it("pasado mañana como día, y abreviaturas", () => {
+    expect(fechasDe({ cuando: "dia", dia: "pasado mañana" }, MIERCOLES)).toEqual(["2026-10-02"]);
+    expect(fechasDe({ cuando: "dia", dia: "vie" }, MIERCOLES)).toEqual(["2026-10-02"]);
+  });
+
+  it("el jueves de la semana que viene, aunque aún quede jueves en esta", () => {
+    expect(fechasDe({ cuando: "dia", dia: "jueves", semana: "siguiente" }, MIERCOLES)).toEqual(["2026-10-08"]);
+    expect(fechasDe({ cuando: "dia", dia: "jueves" }, MIERCOLES)).toEqual(["2026-10-01"]);
+    expect(fechasDe({ cuando: "rango", dia: "lunes", hasta: "miércoles", semana: "siguiente" }, MARTES)).toEqual(["2026-10-05", "2026-10-06", "2026-10-07"]);
   });
 });

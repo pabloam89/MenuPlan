@@ -29,7 +29,7 @@ import { respuestaHoy, respuestaSemana, respuestaCompra, recordar } from "../_bo
 import { responder, cortarCharla, esCaida } from "../_bot/agente.js";
 import { registrar, rastro, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
-import { pintarMenu } from "../_bot/pintar.js";
+import { pintarMenuEntero } from "../_bot/pintar.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
@@ -468,7 +468,7 @@ async function entregar({ chatId, householdId, esGrupo, base, from, responderA, 
   let cuerpo = frase;
   if (r.pintar) {
     const casa = await cargarCasa(householdId).catch(() => null);
-    const p = casa ? pintarMenu(casa, r.pintar) : null;
+    const p = casa ? await pintarMenuEntero(casa, r.pintar).catch(() => null) : null;
     if (p?.texto) {
       cuerpo = `${frase}\n\n${p.texto}`.trim();
       if (!r.fotos?.length && p.fotos.length) r = { ...r, fotos: p.fotos };

@@ -8,7 +8,7 @@
       "includeFiles": "src/{data/recipes/*.json,assets/dishes/dishImages.json}"
     },
     "api/bot/telegram.js": {
-      "includeFiles": "api/_bot/{core.mjs,conocimiento.md,dominiosGustos.json,recetasVectores.json}",
+      "includeFiles": "{api/_bot/{core.mjs,conocimiento.md,dominiosGustos.json,recetasVectores.json},src/assets/dishes/dishImages.json}",
       "maxDuration": 120
     }
   },

@@ -15,7 +15,7 @@
 import { insert } from "./db.js";
 import { cargarCasa, hoyISO } from "./casa.js";
 import { describirCompra } from "./menu.js";
-import { pintarMenu } from "./pintar.js";
+import { pintarMenuEntero } from "./pintar.js";
 import { fechasDe, diaDeFecha } from "./cuando.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -36,7 +36,8 @@ export const rangoDeFechas = (a, b) => (a.slice(0, 7) === b.slice(0, 7) ? `${Num
 export async function respuestaMenu(householdId, filtros) {
   const casa = await cargarCasa(householdId);
   if (!casa || !filtros?.dias?.length) return null;
-  const r = pintarMenu(casa, filtros);
+  const r = await pintarMenuEntero(casa, filtros);
+  if (r.sinGrupo) return { texto: r.texto, fotos: [] };
   if (!r.conMenu && !r.noPlanificadas.length) return null;
   const hoy = hoyISO();
   const uno = filtros.dias.length === 1 ? filtros.dias[0] : null;
@@ -58,9 +59,14 @@ export async function respuestaDia(householdId, texto) {
   return dias ? respuestaMenu(householdId, { dias }) : null;
 }
 
-/** 📅 Semana: de hoy al domingo (lo pasado ya no interesa). */
+/** 📅 Semana: de hoy al domingo (lo pasado ya no interesa). El domingo, o si
+ *  de aquí al domingo no hay nada, la que viene: es la que van a mirar. */
 export async function respuestaSemana(householdId) {
-  return respuestaMenu(householdId, { dias: fechasDe({ cuando: "esta_semana" }, hoyISO()) });
+  const hoy = hoyISO();
+  const esta = fechasDe({ cuando: "esta_semana" }, hoy);
+  const siguiente = fechasDe({ cuando: "semana_que_viene" }, hoy);
+  if (esta.length === 1) return respuestaMenu(householdId, { dias: [...esta, ...siguiente] });
+  return (await respuestaMenu(householdId, { dias: esta })) ?? respuestaMenu(householdId, { dias: siguiente });
 }
 
 // Un icono por sección de la lista (las categorías de la app: «Verduras y

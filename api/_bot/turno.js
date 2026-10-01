@@ -114,7 +114,7 @@ export async function cambiar(householdId, x) {
   // El día cambiado sale pintado debajo (pintarMenu), con el plato nuevo
   // destacado: aquí solo se dice qué se ha hecho y qué había antes.
   return {
-    texto: `✅ <b>Hecho.</b> Cambiada ${hueco}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""}${out.antes ? ` <i>(antes: ${esc(out.antes)})</i>` : ""}.${aproximada}${sinCambiar}`,
+    texto: `✅ <b>Hecho.</b> He cambiado ${hueco}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""}: ahora es <b>${esc(out.despues)}</b>${out.antes ? ` <i>(antes: ${esc(out.antes)})</i>` : ""}.${aproximada}${sinCambiar}`,
     fotos,
     deshacible: true,
     ir: out.dia ? `dia:${out.dia}` : null,

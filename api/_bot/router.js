@@ -69,7 +69,7 @@ const ESQUEMA = {
     receta: { type: "string", description: "cambiar: el plato que quieren poner, si lo nombran (ahora o en su mensaje anterior)." },
     cualquiera: { type: "boolean", description: "cambiar sin receta: true solo si piden otra cosa cualquiera («cámbiala», «otra cosa», «la que sea»)." },
     productos: { type: "array", items: { type: "string" }, description: "compra_anadir o compra_marcar: cada producto tal cual lo dicen." },
-    semana: { type: "string", enum: ["esta", "siguiente"], description: "generar: OBLIGATORIO." },
+    semana: { type: "string", enum: ["esta", "siguiente"], description: "generar: OBLIGATORIO. En consulta con cuando=dia o rango, «siguiente» si dicen «de la semana que viene» («el jueves de la semana que viene»)." },
     fijos: {
       type: "array",
       items: { type: "object", properties: { nombre: { type: "string" }, comida: { type: "string", enum: COMIDAS_PRINCIPALES } }, required: ["nombre"], additionalProperties: false },
