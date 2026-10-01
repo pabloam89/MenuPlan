@@ -18,6 +18,7 @@
  */
 
 import { select, eq, config } from "./db.js";
+import { llamar } from "./telegram.js";
 
 const ADMINS = (process.env.BOT_ADMINS || "491628449").split(",").map((s) => s.trim()).filter(Boolean);
 
@@ -87,4 +88,39 @@ export async function borrarCuenta({ chatId, telegramId }) {
     await borrarUsuario(userId);
   }
   return { ok: true, casas: casas.length };
+}
+
+// Cuántos mensajes hacia atrás intenta borrar /limpiar, y de cuántos en
+// cuántos (deleteMessages acepta hasta 100 por llamada).
+const LIMPIAR_HACIA_ATRAS = 3000;
+const POR_TANDA = 100;
+
+/**
+ * Las tandas de ids a borrar, del más nuevo al más viejo: de `hasta` hacia
+ * atrás. En un chat privado los ids de mensaje son correlativos (los de los
+ * dos lados), así que no hace falta haberlos guardado.
+ */
+export function tandasHaciaAtras(hasta, cuantos = LIMPIAR_HACIA_ATRAS, porTanda = POR_TANDA) {
+  const tandas = [];
+  for (let fin = hasta; fin > 0 && hasta - fin < cuantos; fin -= porTanda) {
+    const ini = Math.max(1, fin - porTanda + 1, hasta - cuantos + 1);
+    tandas.push(Array.from({ length: fin - ini + 1 }, (_, i) => fin - i));
+  }
+  return tandas;
+}
+
+/**
+ * /limpiar: borra la pantalla del chat privado, los mensajes de los dos lados.
+ * Telegram solo deja a un bot borrar los de las últimas 48 horas: los más
+ * viejos se saltan (para esos, «Borrar chat» en Telegram).
+ */
+export async function limpiarPantalla(chatId, ultimoId) {
+  let tandas = 0;
+  for (const ids of tandasHaciaAtras(ultimoId)) {
+    // Una tanda que falla entera (todo más viejo de 48 h, o ya borrado) no
+    // para las demás.
+    const ok = await llamar("deleteMessages", { chat_id: chatId, message_ids: ids }).then(() => true).catch(() => false);
+    if (ok) tandas++;
+  }
+  return { tandas };
 }

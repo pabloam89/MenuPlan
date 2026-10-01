@@ -28,3 +28,20 @@ describe("puedeBorrar", () => {
     expect(puedeBorrar(PABLO, { BOT_BORRAR_CUENTA: "on" })).toBe(true);
   });
 });
+
+describe("tandasHaciaAtras", () => {
+  it("de lo más nuevo hacia atrás, en tandas de 100, sin pasar del 1", async () => {
+    const { tandasHaciaAtras } = await import("./borrar.js");
+    const t = tandasHaciaAtras(250);
+    expect(t.map((x) => x.length)).toEqual([100, 100, 50]);
+    expect(t[0][0]).toBe(250);
+    expect(t.at(-1).at(-1)).toBe(1);
+    expect(new Set(t.flat()).size).toBe(250);
+  });
+  it("como mucho los que se piden hacia atrás", async () => {
+    const { tandasHaciaAtras } = await import("./borrar.js");
+    const t = tandasHaciaAtras(5000, 3000);
+    expect(t.flat().length).toBe(3000);
+    expect(Math.min(...t.flat())).toBe(2001);
+  });
+});
