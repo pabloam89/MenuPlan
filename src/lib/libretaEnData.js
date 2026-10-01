@@ -8,7 +8,7 @@
 // en la app. Código movido sin cambios de comportamiento.
 
 import { aplicarOpcion } from "./panelParser.js";
-import { poner, proyectar, valorDe } from "./notepad.js";
+import { poner, proyectar, valorDe, dependeDelDia } from "./notepad.js";
 import { freqsEfectivos, presupuestoDeTopes, repartoConFreq, repartoVisible, rutaDeReparto } from "./reparto.js";
 import { weeklySlotBudget } from "./planner.js";
 
@@ -22,8 +22,8 @@ export function repartoDeLaCasa(data, libreta) {
 }
 
 /** `data` con la libreta nueva y su vista ya proyectada. */
-export function dataConLibreta(data, libreta) {
-  const vista = proyectar(libreta);
+export function dataConLibreta(data, libreta, { hoy } = {}) {
+  const vista = proyectar(libreta, { hoy });
   return {
     ...data,
     notepad: libreta,
@@ -72,8 +72,8 @@ export function dataConLibreta(data, libreta) {
  * Aplica ajustes del panel (`AjusteSchema`) a la libreta de `data`.
  * @returns {{ libreta, tocadas: { reparto: string[], cocina: string[] } }}
  */
-export function aplicarAjustes(data, libretaActual, ajustes, { frase, fecha }) {
-  let libreta = aplicarOpcion(libretaActual, { ajustes }, { frase, fecha });
+export function aplicarAjustes(data, libretaActual, ajustes, { frase, fecha, fuente, desde, hasta }) {
+  let libreta = aplicarOpcion(libretaActual, { ajustes }, { frase, fecha, fuente, desde, hasta });
   const tocadas = { reparto: [], cocina: [] };
   let repartoNuevo = repartoDeLaCasa(data, libretaActual);
 
@@ -92,8 +92,19 @@ export function aplicarAjustes(data, libretaActual, ajustes, { frase, fecha }) {
 
   if (tocadas.reparto.length > 0) {
     for (const [familia, valor] of Object.entries(repartoNuevo)) {
-      libreta = poner(libreta, rutaDeReparto(familia), valor, { origen: "texto", frase, fecha });
+      libreta = poner(libreta, rutaDeReparto(familia), valor, { origen: "texto", frase, fecha, fuente, desde, hasta });
     }
   }
   return { libreta, tocadas };
+}
+
+/**
+ * `data` con la vista recalculada para el día `hoy`, si la libreta tiene algo
+ * que dependa del día (desde/hasta, o algo supuesto que caduca). Sin eso, la
+ * vista que se guardó al escribir sigue valiendo y se devuelve `data` tal cual:
+ * a las casas de siempre no les cambia nada.
+ */
+export function dataVigente(data, hoy) {
+  if (!hoy || !data?.notepad || !dependeDelDia(data.notepad)) return data;
+  return dataConLibreta(data, data.notepad, { hoy });
 }

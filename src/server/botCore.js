@@ -18,9 +18,9 @@ export { computeWeekRange, explicitDaysForOffset, createMenuId } from "../lib/me
 export { menuToRow, weekToRow } from "../lib/menusSync.js";
 
 // Ajustes de la casa desde el chat: las mismas piezas que la app.
-export { aplicarAjustes, dataConLibreta } from "../lib/libretaEnData.js";
-export { normalizar as normalizarLibreta, estadoDe } from "../lib/notepad.js";
-export { CAMPOS, valorValido, FAMILIAS, AMBITOS, SERVICIOS } from "../lib/notepadFields.js";
+export { aplicarAjustes, dataConLibreta, dataVigente } from "../lib/libretaEnData.js";
+export { normalizar as normalizarLibreta, estadoDe, matizDe, vigente } from "../lib/notepad.js";
+export { CAMPOS, valorValido, rutaDe, FAMILIAS, AMBITOS, SERVICIOS } from "../lib/notepadFields.js";
 export { PREGUNTAS_POR_ID } from "../lib/wizardRegistry.js";
 export { reglaDeInvitado, describirRegla, podarReglasVencidas } from "../lib/reglas.js";
 export { reconcileGroupsWithMembers, migrateGroupsForBabies } from "../lib/groups.js";

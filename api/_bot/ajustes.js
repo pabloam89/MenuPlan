@@ -83,7 +83,17 @@ export async function describirAjustes(casa) {
 
 // ── Gustos: la libreta, como el panel de la app ─────────────────────────────
 
-export async function ajustarGustos(householdId, ajustes, frase) {
+/**
+ * @param {{ dicho?: boolean, desde?: string, hasta?: string }} [matiz]
+ *   dicho=false: Lola lo supone (lo dijeron de pasada, o lo deduce). Entra en
+ *   la libreta como «supuesto»: solo sesga el menú, nunca excluye, caduca a
+ *   los 90 días y no pisa nada de lo que la familia haya dicho (notepad.js).
+ *   desde/hasta (AAAA-MM-DD): «este mes», «a partir del lunes».
+ */
+export async function ajustarGustos(householdId, ajustes, frase, { dicho = true, desde, hasta } = {}) {
+  const fecha = /^\d{4}-\d{2}-\d{2}$/;
+  if ((desde && !fecha.test(desde)) || (hasta && !fecha.test(hasta))) return "Las fechas van como AAAA-MM-DD.";
+  if (desde && hasta && hasta < desde) return "La fecha de fin va antes que la de inicio: revísalas.";
   return conData(householdId, (data, m) => {
     const validos = [];
     const rechazados = [];
@@ -95,10 +105,23 @@ export async function ajustarGustos(householdId, ajustes, frase) {
     }
     if (!validos.length) return { texto: `No he podido aplicar nada: ${rechazados.join(", ") || "sin ajustes"}.` };
     const libreta = m.normalizarLibreta(data.notepad);
-    const { libreta: nueva } = m.aplicarAjustes(data, libreta, validos, { frase, fecha: hoyISO() });
+    const fuente = dicho ? "dicho" : "supuesto";
+    const { libreta: nueva } = m.aplicarAjustes(data, libreta, validos, { frase, fecha: hoyISO(), fuente, desde, hasta });
+    // Lo que no ha entrado porque ya había algo DICHO encima: Lola no puede
+    // suponer en contra de lo que dijo la familia.
+    const tapados = validos.filter((a) => {
+      const path = m.rutaDe(a.campo, a.valor, a.ambito, a.servicio);
+      return nueva.campos[path] === libreta.campos[path] && libreta.campos[path];
+    });
+    const ventana = desde || hasta ? ` (${desde ? `desde el ${desde}` : ""}${desde && hasta ? " " : ""}${hasta ? `hasta el ${hasta}` : ""})` : "";
     return {
       data: m.dataConLibreta(data, nueva),
-      texto: `Anotado: ${validos.map((a) => `${a.op ?? "mas"} ${a.valor}${a.n != null ? ` (${a.n}/semana)` : ""}`).join(", ")}.${rechazados.length ? ` No reconocido: ${rechazados.join(", ")}.` : ""} Se notará al generar el próximo menú.`,
+      texto: [
+        `Anotado${dicho ? "" : " como suposición (solo inclina el menú, no quita nada)"}: ${validos.filter((a) => !tapados.includes(a)).map((a) => `${a.op ?? "mas"} ${a.valor}${a.n != null ? ` (${a.n}/semana)` : ""}`).join(", ") || "nada"}${ventana}.`,
+        tapados.length ? ` No lo he cambiado porque la familia ya dijo otra cosa: ${tapados.map((a) => a.valor).join(", ")}.` : "",
+        rechazados.length ? ` No reconocido: ${rechazados.join(", ")}.` : "",
+        " Se notará al generar el próximo menú.",
+      ].join(""),
     };
   });
 }

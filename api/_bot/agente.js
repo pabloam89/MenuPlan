@@ -357,7 +357,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     betaTool({
       name: "ajustar_gustos",
-      description: `Gustos de la casa, como el panel de la app. Cada ajuste: campo, valor, op (mas|menos|nunca), n opcional (veces/semana, 0-7, solo freqs), ambito (todos|ninos|adultos|bebes), servicio (ambos|comida|cena). Campos y valores válidos: ${gustos}. «Nada de X» es favoritos/excluidos con op=nunca.`,
+      description: `Gustos de la casa, como el panel de la app. Cada ajuste: campo, valor, op (mas|menos|nunca), n opcional (veces/semana, 0-7, solo freqs), ambito (todos|ninos|adultos|bebes), servicio (ambos|comida|cena). Campos y valores válidos: ${gustos}. «Nada de X» es favoritos/excluidos con op=nunca. dicho=true SOLO si es una instrucción o una norma de la casa («en casa no comemos cerdo», «pon más pescado», «nada de fritos»). Un comentario u opinión es dicho=false aunque hable de gustos («a los peques no les va mucho el pescado», «el cerdo nos sienta regular», «son de poco comer»): eso solo inclina el menú, no excluye nada y caduca; se apunta sin preguntar. Un antojo de hoy («hoy no me apetece») no es un gusto: no lo apuntes. Con algo supuesto, habla de ello como impresión, no como hecho. desde/hasta (AAAA-MM-DD) para lo que tiene fecha («este mes», «a partir del lunes»).`,
       inputSchema: obj({
         ajustes: {
           type: "array", minItems: 1, maxItems: 8,
@@ -370,8 +370,11 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
           }, ["campo", "valor", "op"]),
         },
         frase: { type: "string", description: "Lo que dijo el usuario, literal: queda como procedencia." },
-      }, ["ajustes", "frase"]),
-      run: ({ ajustes, frase }) => ajustarGustos(householdId, ajustes, frase),
+        dicho: { type: "boolean", description: "true: lo ha dicho claro. false: lo supones tú." },
+        desde: { type: "string", description: "AAAA-MM-DD, solo si empieza más adelante." },
+        hasta: { type: "string", description: "AAAA-MM-DD, solo si tiene fin." },
+      }, ["ajustes", "frase", "dicho"]),
+      run: ({ ajustes, frase, dicho, desde, hasta }) => ajustarGustos(householdId, ajustes, frase, { dicho, desde, hasta }),
     }),
     betaTool({
       name: "ajustar_cocina",
