@@ -3,8 +3,13 @@
 // Hasta el 30 sep 2026 cada comensal contaba 1, fuera un adulto de 1,90 o un
 // niño de 6 años. Ahora, si de una persona se sabe peso y altura (opcionales,
 // se piden en el alta por chat), su ración sale de su gasto estimado frente al
-// de referencia (2000 kcal). Sin esos datos sigue valiendo 1: el menú de quien
-// no los da no cambia en nada.
+// de referencia (2000 kcal).
+//
+// Sin peso y altura, desde el 1 oct 2026 manda la edad (RACION_POR_EDAD): un
+// niño de 3 años no come lo de un adulto, y casi nadie da peso y altura, así
+// que la compra salía inflada en cuanto había niños. Sin edad, 1, como antes.
+// Los grupos de bebé no pasan por aquí: sus recetas ya son de ración de bebé
+// (ver racionesBySlot en aiPlanner).
 //
 // Estimación, no prescripción (no hay sexo ni actividad, a propósito: ver la
 // decisión «menú para familias»): metabolismo basal con la media de las
@@ -17,6 +22,22 @@ const MIN = 0.4;
 const MAX = 1.8;
 
 const num = (v) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : null);
+
+// Ración por tramos de edad, en raciones de adulto: las necesidades de
+// energía de referencia de la EFSA (actividad moderada) frente a las 2000 kcal
+// del adulto de referencia, redondeadas. Desde los 14, como un adulto.
+const RACION_POR_EDAD = [
+  { hasta: 1, racion: MIN },
+  { hasta: 4, racion: 0.5 },
+  { hasta: 9, racion: 0.65 },
+  { hasta: 14, racion: 0.75 },
+];
+
+/** La ración solo por la edad (años), o 1 si no se sabe. */
+export function racionPorEdad(edad) {
+  if (edad == null || !Number.isFinite(Number(edad)) || edad < 0) return 1;
+  return RACION_POR_EDAD.find((t) => edad < t.hasta)?.racion ?? 1;
+}
 
 /** Metabolismo basal estimado, o null si faltan datos. */
 export function basalEstimado({ pesoKg, alturaCm, edad }) {
@@ -32,14 +53,15 @@ export function basalEstimado({ pesoKg, alturaCm, edad }) {
 }
 
 /**
- * Ración de una persona frente a la de un adulto de referencia: 1 si no se
- * sabe, redondeada a 0,05 y acotada a [0,4, 1,8].
+ * Ración de una persona frente a la de un adulto de referencia: con peso y
+ * altura, por su gasto estimado (redondeada a 0,05 y acotada a [0,4, 1,8]);
+ * sin ellos, por la edad (racionPorEdad); sin nada, 1.
  * @param {{ pesoKg?: number, alturaCm?: number }} miembro
  * @param {number | null} edad  resolveMemberAge(miembro)
  */
 export function factorRacion(miembro, edad) {
   const basal = basalEstimado({ pesoKg: miembro?.pesoKg, alturaCm: miembro?.alturaCm, edad });
-  if (basal == null || basal <= 0) return 1;
+  if (basal == null || basal <= 0) return racionPorEdad(edad);
   const f = (basal * ACTIVIDAD) / KCAL_REFERENCIA;
   return Math.round(Math.min(MAX, Math.max(MIN, f)) * 20) / 20;
 }

@@ -2377,7 +2377,10 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       slotsContext.map((s) => [s.slotId, s.mode]),
     );
     const miembrosDelGrupo = membersOfGroup(group, data.members);
-    const racionesBySlot = Object.fromEntries(
+    // El grupo del bebé cuenta por cabezas: sus recetas ya son de ración de
+    // bebé, y la ración por edad (medio adulto a los 2 años) la encogería otra
+    // vez. Sin entrada, abajo cae a `eaters`.
+    const racionesBySlot = isBabyMenuGroup(group, data.members) ? {} : Object.fromEntries(
       slotsContext.map((s) => [s.slotId, racionesEn(miembrosDelGrupo, s.day, s.mealType === "cena" ? "Cena" : "Comida")]),
     );
 
