@@ -18,6 +18,7 @@
  *   m_<llave>    una semana compartida
  */
 
+import { COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
 import crypto from "node:crypto";
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
@@ -82,7 +83,7 @@ export async function enlacesSemana(householdId, base) {
     menuPlan: casa.semana.plan,
     groups: grupos(casa),
     members: data.members ?? [],
-    meals: ["Comida", "Cena"],
+    meals: COMIDAS_PRINCIPALES,
     weekStart: casa.semana.weekStart ?? null,
     // Solo los días del menú: uno que empezó el miércoles no enseña el lunes.
     onlyDays: (casa.semana.activeDays?.length ? casa.semana.activeDays : DIAS)

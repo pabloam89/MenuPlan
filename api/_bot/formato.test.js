@@ -6,14 +6,15 @@ import { describe, it, expect } from "vitest";
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
-const { tituloDelDia, rangoDeFechas, iconoSeccion } = await import("./rapido.js");
+const { rangoDeFechas, iconoSeccion } = await import("./rapido.js");
+const { tituloDia } = await import("./pintar.js");
 const { lineaIndice } = await import("./significado.js");
 
 describe("la cabecera de un día", () => {
-  it("hoy, mañana y los demás, con su fecha", () => {
-    expect(tituloDelDia("Mié", "2026-09-30", "2026-09-30")).toBe("📆 <b>Hoy, miércoles 30 de septiembre</b>");
-    expect(tituloDelDia("Jue", "2026-10-01", "2026-09-30")).toBe("📆 <b>Mañana, jueves 1 de octubre</b>");
-    expect(tituloDelDia("Dom", "2026-10-04", "2026-09-30")).toBe("📆 <b>Domingo 4 de octubre</b>");
+  it("cada día en negrita y sin 📆: «Sábado 4 de octubre»", () => {
+    expect(tituloDia("2026-10-03")).toBe("Sábado 3 de octubre");
+    expect(tituloDia("2026-10-01")).toBe("Jueves 1 de octubre");
+    expect(tituloDia("2026-09-30")).not.toContain("📆");
   });
   it("el rango de la semana, sin repetir el mes si es el mismo", () => {
     expect(rangoDeFechas("2026-10-01", "2026-10-04")).toBe("1 al 4 de octubre");

@@ -15,10 +15,11 @@ import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq } from "./db.js";
-import { cargarCasa, deshacer, escribioDesde } from "./casa.js";
+import { cargarCasa, deshacer, escribioDesde, hoyISO } from "./casa.js";
 import {
-  describirCasa, verMenu, describirReceta, describirCompra,
+  describirCasa, describirReceta, describirCompra,
   marcarCompra, anadirCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
+  rangosDelMenu,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
@@ -32,6 +33,9 @@ import {
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { supervisar } from "./supervisor.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
+import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
+import { fechasDe, CUANDOS } from "./cuando.js";
+import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
@@ -88,6 +92,8 @@ const FRENO_SUPERVISOR = "bot_supervisor";
 // formato de ?ir= de la app (App.jsx): hoy, semana, dia:Jue, compra.
 function pantallaDe(herramienta, args = {}) {
   if (herramienta === "ver_menu") {
+    if (args.cuando === "hoy") return "hoy";
+    if (args.cuando === "manana") return `dia:${diaDe("mañana")}`;
     if (!args.dia) return "semana";
     if (/^hoy$/i.test(String(args.dia).trim())) return "hoy";
     const d = diaDe(args.dia);
@@ -120,8 +126,8 @@ const SOLO_LECTURA = new Set([
 export async function herramientas(chat) {
   const gustos = await dominiosDeGustos();
   const todas = [
-    ...herramientasDeMenu(chat.householdId, chat.fotos),
-    ...herramientasDeAjustes(chat.householdId, gustos),
+    ...herramientasDeMenu(chat.householdId, chat.fotos, chat),
+    ...herramientasDeAjustes(chat.householdId, gustos, chat),
     ...herramientasDeRecordatorios(chat),
     ...herramientasDeFotos(chat.householdId),
     ...herramientasDeRecetas(chat),
@@ -154,7 +160,7 @@ export async function herramientas(chat) {
         return freno;
       }
       if (t.name === "ver_menu" && yaLoTiene(args)) {
-        return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. No lo repitas entero: resume en 3-4 líneas; la semana la ven con el botón que sale solo.";
+        return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. Además sale pintado debajo de tu mensaje: no lo escribas; di en una o dos frases qué has hecho.";
       }
       try {
         const desde = Date.now();
@@ -336,7 +342,7 @@ function herramientasDeRecordatorios(chat) {
   ];
 }
 
-function herramientasDeAjustes(householdId, gustos) {
+function herramientasDeAjustes(householdId, gustos, chat = {}) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   return [
     betaTool({
@@ -375,7 +381,7 @@ function herramientasDeAjustes(householdId, gustos) {
         tiempo: { type: "string", enum: ["con_prisa", "normal", "con_tiempo", "depende"] },
         tanda: { type: "string", enum: ["tanda", "cada_dia"] },
         trastos: { type: "array", items: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"] } },
-        comidas: { type: "array", items: { type: "string", enum: ["Comida", "Cena"] }, description: "Qué comidas se planifican." },
+        comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
         etapaBebe: { type: "string", enum: ["cremas", "mixto", "solidos"], description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
       }),
       run: (args) => ajustarCocina(householdId, args),
@@ -395,7 +401,7 @@ function herramientasDeAjustes(householdId, gustos) {
       name: "anadir_invitado",
       description: "Alguien de fuera viene a comer o cenar un día concreto (se suma a las raciones y a la compra de esa semana, y caduca solo).",
       inputSchema: obj({
-        dia: { type: "string" }, comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
+        dia: { type: "string" }, comida: { type: "string", enum: IDS_COMIDAS },
         n: { type: "integer", minimum: 1, maximum: 20 }, nombre: { type: "string" },
         semana: { type: "string", enum: ["esta", "siguiente"] },
       }, ["dia", "comida"]),
@@ -454,16 +460,43 @@ function herramientasDeAjustes(householdId, gustos) {
           type: "array", maxItems: 7,
           items: obj({
             nombre: { type: "string", description: "El plato como lo han dicho." },
-            comida: { type: "string", enum: ["Comida", "Cena"], description: "Solo si lo dicen; si no, se deduce del plato." },
+            comida: { type: "string", enum: COMIDAS_PRINCIPALES, description: "Solo si lo dicen; si no, se deduce del plato." },
           }, ["nombre"]),
         },
       }, ["semana"]),
-      run: ({ semana, fijos }) => generarMenu(householdId, semana, fijos ?? []),
+      run: async ({ semana, fijos }) => {
+        // La semana generada sale pintada debajo del mensaje de Lola (entregar()).
+        const out = {};
+        const texto = await generarMenu(householdId, semana, fijos ?? [], out);
+        if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
+        return texto;
+      },
     }),
   ];
 }
 
-function herramientasDeMenu(householdId, fotos = null) {
+/**
+ * Lo que sale pintado debajo del mensaje (pintar.js), sumando lo de cada
+ * herramienta del turno: si genera y luego cambia o consulta, se ven todos
+ * los días y no se pierde lo destacado.
+ */
+function pintarTambien(chat, nuevo) {
+  if (!nuevo) return;
+  const antes = chat.pintar;
+  if (!antes) { chat.pintar = nuevo; return; }
+  const igual = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  chat.pintar = {
+    dias: [...new Set([...(antes.dias ?? []), ...(nuevo.dias ?? [])])].sort(),
+    destacar: [...(antes.destacar ?? []), ...(nuevo.destacar ?? [])],
+    // Un filtro solo vale si lo piden todas: si no, la semana generada saldría
+    // solo con las cenas que alguien consultó después.
+    comidas: igual(antes.comidas, nuevo.comidas) ? nuevo.comidas ?? null : null,
+    platos: igual(antes.platos, nuevo.platos) ? nuevo.platos ?? null : null,
+    grupo: igual(antes.grupo, nuevo.grupo) ? nuevo.grupo ?? null : null,
+  };
+}
+
+function herramientasDeMenu(householdId, fotos = null, chat = {}) {
   const conCasa = async (f) => {
     const casa = await cargarCasa(householdId);
     if (!casa) return "Esta casa todavía no tiene datos en la nube. Que entren una vez en la app de HoMenu.";
@@ -480,16 +513,32 @@ function herramientasDeMenu(householdId, fotos = null) {
     }),
     betaTool({
       name: "ver_menu",
-      description: "El menú activo (puede tener varias semanas): una semana entera, o solo un día. Úsalo para «qué comemos hoy», «qué hay el jueves», «pásame el menú de la semana que viene».",
+      description: "El menú activo, justo el trozo que piden: unos días (hoy, mañana, un día, el finde, esta semana, la que viene, de un día a otro), unas comidas, unos platos, para alguien. Lo pedido SALE PINTADO DEBAJO de tu mensaje: no lo copies; como mucho, una frase. Lo que devuelve es para que tú lo sepas.",
       inputSchema: {
         type: "object",
         properties: {
-          dia: { type: "string", description: "Opcional: lunes…domingo, «hoy» o «mañana». Sin él, la semana entera." },
+          cuando: { type: "string", enum: CUANDOS, description: "Qué días. dia = un día (en dia); rango = de dia a hasta. Sin él, esta semana." },
+          dia: { type: "string", description: "Con cuando=dia o rango: lunes…domingo, «hoy» o «mañana»." },
+          hasta: { type: "string", description: "Con cuando=rango: el último día." },
+          comidas: { type: "array", items: { type: "string", enum: IDS_COMIDAS }, description: "Opcional: solo esas comidas («solo cenas»)." },
+          platos: { type: "array", items: { type: "string", enum: IDS_PLATOS }, description: "Opcional: primero o principal." },
+          para: { type: "string", description: "Opcional: para quién («el bebé», «los peques», «Leo»)." },
           semana,
         },
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual }) => conCasa((casa) => verMenu(casa, { dia, semana: cual, fotos })),
+      run: ({ cuando, dia, hasta, comidas, platos, para, semana: cual }) => conCasa(async (casa) => {
+        const pedido = cuando ?? (dia ? "dia" : cual === "siguiente" ? "semana_que_viene" : "esta_semana");
+        const dias = fechasDe({ cuando: pedido, dia, hasta, semana: cual }, hoyISO());
+        if (!dias) return `No entiendo qué días son («${dia ?? cuando}»).`;
+        const filtros = { dias, comidas: comidas ?? null, platos: platos ?? null, grupo: para ?? null };
+        const p = await pintarMenuEntero(casa, filtros);
+        if (p.sinGrupo) return `${sinEtiquetas(p.texto)} Pregunta de quién hablan.`;
+        if (!p.conMenu && !p.noPlanificadas.length) return `No hay menú para esos días (${dias[0]}${dias.length > 1 ? ` a ${dias.at(-1)}` : ""}). ${rangosDelMenu(casa)} Si lo quieren, generar_menu.`;
+        pintarTambien(chat, filtros);
+        if (dias.length === 1 && fotos) for (const f of p.fotos) if (!fotos.some((x) => x.url === f.url)) fotos.push(f);
+        return `Sale pintado debajo de tu mensaje (NO lo copies; como mucho una frase). Para que lo sepas:\n${sinEtiquetas(p.texto)}`;
+      }),
     }),
     betaTool({
       name: "ver_receta",
@@ -541,7 +590,7 @@ function herramientasDeMenu(householdId, fotos = null) {
         properties: {
           dia: { type: "string", description: "Opcional: lunes…domingo, «hoy» o «mañana». Sin él, la próxima comida que toca: NO lo preguntes para recomendar («entre semana» sin más = hoy)." },
           semana,
-          comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"], description: "Opcional: sin ella, la próxima que toca por la hora." },
+          comida: { type: "string", enum: IDS_COMIDAS, description: "Opcional: sin ella, la próxima que toca por la hora." },
           grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           n: { type: "integer", minimum: 2, maximum: 6, description: "Cuántas opciones; por defecto 3 (caben 3 botones más «Elige tú»)." },
@@ -578,7 +627,7 @@ function herramientasDeMenu(householdId, fotos = null) {
         properties: {
           dia: { type: "string", description: "lunes…domingo, «hoy» o «mañana»." },
           semana,
-          comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
+          comida: { type: "string", enum: IDS_COMIDAS },
           grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           receta: { type: "string", description: "Opcional: el nombre de la receta elegida." },
@@ -589,7 +638,10 @@ function herramientasDeMenu(householdId, fotos = null) {
       run: ({ dia, semana: cual_semana, comida, grupo, cual, receta }) => {
         const f = franjaDe(comida);
         if (!f) return `No entiendo qué comida es («${comida}»).`;
-        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null }, fotos);
+        // El día cambiado sale pintado debajo, con el plato nuevo destacado.
+        const out = {};
+        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null }, fotos, out)
+          .then((t) => { if (out.cambiado) pintarTambien(chat, filtrosTrasCambiar(out)); return t; });
       },
     }),
   ];
@@ -646,7 +698,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], escrito: false, ir: null, compartir: null, puerta };
+  // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], escrito: false, ir: null, compartir: null, pintar: null, puerta };
   // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
   const [tope, historia, tools, casa, extras] = await Promise.all([
@@ -662,7 +715,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
       historia, entrada, tools, adjunto, signal, ficha,
       alEscribir: alEscribir ? (parcial) => alEscribir(parcial, { fotos: chat.fotos }) : null,
       // Lo que juntó el modelo que se cayó no es de esta respuesta.
-      alReintentar: () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; },
+      alReintentar: () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; },
     }));
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
@@ -693,7 +746,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     segundaSemana(householdId).catch(() => {}),
   ]);
 
-  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir, compartir: chat.compartir, guardado };
+  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado };
 }
 
 /**
