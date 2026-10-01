@@ -159,6 +159,7 @@ import {
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
+import { guardarConVersion, guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
 import BotEnlace from "./components/BotEnlace.jsx";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard } from "./lib/householdDiscardsSync.js";
@@ -1415,18 +1416,38 @@ export default function App() {
   const hydratedUserRef = useRef(null);
   const cloudReadyRef = useRef(false);
   const householdJustEmptiedRef = useRef(false);
-  // El bot de Telegram escribe en la nube (0057). `botRevRef` es el contador
-  // que vimos al cargar: todo lo que la app sube va condicionado a él, y si el
-  // bot ha escrito entretanto, recargamos la nube (adoptándola entera, perfil
-  // incluido: `forceRemoteRef`) en vez de pisar su cambio. `cloudEpoch` solo
-  // existe para volver a disparar la hidratación.
+  // Lola y los demás dispositivos de la casa escriben en la nube (0057, 0068).
+  // `botRevRef` es la última versión de la casa que conocemos: la que vimos al
+  // cargar, y después la que deja cada guardado nuestro (versionCasa.js). Todo
+  // lo que la app sube va condicionado a ella, y si otro ha escrito entretanto,
+  // recargamos la nube (adoptándola entera, perfil incluido: `forceRemoteRef`)
+  // en vez de pisar su cambio. `cargaRef` cuenta las cargas de la nube: un
+  // guardado programado antes de la última ya es viejo y no sale. `cloudEpoch`
+  // solo existe para volver a disparar la hidratación.
   const botRevRef = useRef(null);
+  const cargaRef = useRef(0);
   const forceRemoteRef = useRef(false);
   // Una recarga en curso: un segundo aviso de conflicto (la casa y la semana
   // chocan a la vez) no lanza otra.
   const recargandoRef = useRef(false);
   const recargarDesdeNubeRef = useRef(() => {});
   const [cloudEpoch, setCloudEpoch] = useState(0);
+  // Lo que necesita la cola de guardados (versionCasa.js) para un guardado
+  // que se programa ahora: leer la versión al salir, apuntar la que deja, y
+  // saber si sigue valiendo (no ha habido otra carga de la nube entretanto).
+  const versionDeCasa = useCallback((householdId) => {
+    const carga = cargaRef.current;
+    const vigente = () => cloudReadyRef.current && cargaRef.current === carga;
+    return {
+      leer: () => botRevRef.current,
+      apuntar: (rev) => {
+        if (!vigente()) return;
+        botRevRef.current = rev;
+        guardarBotRevVisto(householdId, rev);
+      },
+      vigente,
+    };
+  }, []);
   // Lo mismo que `cloudReadyRef`, pero como estado: el destino de un enlace
   // del bot (`?ir=`) espera a que la casa haya llegado de la nube, y un ref
   // no despierta a nadie cuando cambia.
@@ -1539,6 +1560,7 @@ export default function App() {
       const remoteBotRev = remoteState?.botRev ?? null;
       const botEscribio = remoteBotRev != null && remoteBotRev > (leerBotRevVisto(householdId) ?? 0);
       if (householdId) botRevRef.current = remoteBotRev ?? 0;
+      cargaRef.current += 1;
       const useRemote =
         justEmptied
         || (forceRemote && remoteData)
@@ -1770,7 +1792,9 @@ export default function App() {
   // cloudReadyRef so we never clobber the remote copy before hydration lands.
   useEffect(() => {
     if (!user?.id || !cloudReadyRef.current || !activeHouseholdId || householdReadOnly) return;
-    const rev = botRevRef.current;
+    // Se fija al programar: si entretanto se recarga la nube, este estado ya
+    // es viejo y no se sube.
+    const version = versionDeCasa(syncHouseholdId);
     const t = window.setTimeout(() => {
       const profile = { ...data };
       delete profile.userRecipes;
@@ -1779,26 +1803,27 @@ export default function App() {
       delete profile.menus;
       const snapshot = { data: profile, menuPlan, shopping, aiRecipes, onbStep };
       if (syncHouseholdId) {
-        // La versión se fija al programar el guardado, no al dispararlo: si
-        // entretanto se recargó la nube, este estado ya es viejo y no se sube.
-        if (!cloudReadyRef.current || botRevRef.current !== rev) return;
-        saveHouseholdState(syncHouseholdId, snapshot, rev).then((r) => {
+        guardarConVersion(version, (rev) => saveHouseholdState(syncHouseholdId, snapshot, rev)).then((r) => {
           if (r.conflict) recargarDesdeNubeRef.current({ choque: true });
         });
       } else saveUserState(user.id, snapshot);
     }, 1200);
     return () => window.clearTimeout(t);
-  }, [user?.id, activeHouseholdId, householdReadOnly, syncHouseholdId, data, menuPlan, shopping, aiRecipes, onbStep]);
+  }, [user?.id, activeHouseholdId, householdReadOnly, syncHouseholdId, data, menuPlan, shopping, aiRecipes, onbStep, versionDeCasa]);
 
-  // Al volver a la app (desde Telegram, típicamente) se mira si el bot ha
+  // Al volver a la app (desde Telegram, típicamente) se mira si alguien ha
   // escrito. Es una lectura de un número; la recarga solo si ha cambiado.
   // Y mientras está a la vista, cada BOT_REV_SONDEO_MS: si tu pareja tacha en
-  // la lista desde Telegram, o Lola cambia un plato, se ve sin salir y volver.
+  // la lista, o Lola cambia un plato, se ve sin salir y volver. Con un
+  // guardado nuestro en marcha no se mira: el número que llega podría ser el
+  // nuestro, todavía sin apuntar, y recargaríamos por un cambio propio.
   useEffect(() => {
     if (!user?.id || !syncHouseholdId) return;
     const mirar = async () => {
-      if (document.visibilityState !== "visible" || !cloudReadyRef.current) return;
+      if (document.visibilityState !== "visible" || !cloudReadyRef.current || guardandoCasa()) return;
+      const antes = guardadosDeCasa();
       const rev = await loadHouseholdBotRev(syncHouseholdId);
+      if (guardandoCasa() || guardadosDeCasa() !== antes) return;
       if (rev != null && botRevRef.current != null && rev > botRevRef.current) recargarDesdeNubeRef.current();
     };
     document.addEventListener("visibilitychange", mirar);
@@ -1961,11 +1986,12 @@ export default function App() {
     toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 3500);
   }, []);
 
-  // El bot ha escrito en la casa: se vuelve a hidratar adoptando la nube.
-  // Lo que se hubiera tocado aquí sin llegar a subir se pierde a propósito:
-  // es el precio de que el cambio del bot no desaparezca en silencio. Pero no
-  // en silencio para ti: si lo que se pierde es tuyo (`choque`, un guardado
-  // que chocó), se dice, para que lo vuelvas a hacer.
+  // Otro (Lola, otro dispositivo, otra persona de la casa) ha escrito: se
+  // vuelve a hidratar adoptando la nube. Lo que se hubiera tocado aquí sin
+  // llegar a subir se pierde a propósito: es el precio de que el cambio del
+  // otro no desaparezca en silencio. Pero no en silencio para ti: si lo que se
+  // pierde es tuyo (`choque`, un guardado que chocó), se dice, para que lo
+  // vuelvas a hacer. Los textos no dicen quién, porque no lo sabemos.
   recargarDesdeNubeRef.current = ({ choque = false } = {}) => {
     if (recargandoRef.current) return;
     recargandoRef.current = true;
@@ -1974,8 +2000,8 @@ export default function App() {
     cloudReadyRef.current = false;
     setCloudEpoch((n) => n + 1);
     showToast(choque
-      ? "Lola cambió algo a la vez: repite tu último cambio"
-      : "Actualizado con los cambios del chat");
+      ? "Se cruzó con otro cambio de la casa: repite el tuyo"
+      : "Actualizado con los últimos cambios de la casa");
   };
 
   const handleDeleteRecipe = useCallback(async (recipeId) => {
@@ -3013,9 +3039,9 @@ export default function App() {
     // shopping change on reload (the generation-time row would win). Debounced
     // + fire-and-forget inside queueSaveMenuWeek; local blob is still the belt.
     if (user && menuId && wk) {
-      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
+      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
     }
-  }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user]);
+  }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user, syncHouseholdId, versionDeCasa]);
 
   // Undo a confirmed ticket's tachado. Deleting a ticket in Análisis → Gasto
   // must reverse the exact "have: true" the receipt wizard set — and through
@@ -3142,7 +3168,7 @@ export default function App() {
       setData((d) => ({ ...d, menus }));
       if (user) {
         toggleMenuFavoriteRemote(user.id, menuId, true);
-        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
+        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
       }
       showToast("Menú guardado en favoritos");
     } else {
@@ -3150,7 +3176,7 @@ export default function App() {
       if (user) toggleMenuFavoriteRemote(user.id, menuId, false);
       showToast("Quitado de favoritos");
     }
-  }, [data.activeMenuId, data.menus, data.menuWeek?.offset, menuPlan, user, showToast]);
+  }, [data.activeMenuId, data.menus, data.menuWeek?.offset, menuPlan, user, showToast, syncHouseholdId, versionDeCasa]);
 
   const ACTIVATE_MENU_TOAST = {
     onGenerate: "Menú activo · En casa actualizado",
