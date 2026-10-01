@@ -764,6 +764,14 @@ export function registerRecipes(extra) {
   if (!Array.isArray(extra)) return;
   for (const recipe of extra) {
     if (!recipe?.id) continue;
+    // Una versión ADAPTADA (sin gluten, sin lactosa: la del menú de quien lo
+    // necesita) no la pisa otra sin adaptar con el mismo id. Abrir la ficha
+    // del catálogo o recargar las recetas propias hidrata sin restricciones, y
+    // en una casa de un solo menú el id es el mismo que el del plan: la compra
+    // y la ficha volvían a decir «Espaguetis» para el celíaco. Si alguna vez
+    // sobra, sobra en la dirección segura.
+    const previa = RECIPES_BY_ID[recipe.id];
+    if (previa?.adaptations?.length && !recipe.adaptations?.length) continue;
     // Derive healthFlags defensively so every recipe reachable through
     // RECIPES_BY_ID (dish cards, dish detail) can show an honest health-profile
     // badge, regardless of which caller registered it (own recipe, AI-generated,

@@ -376,8 +376,11 @@ describe("sustituciones (Fase 3)", () => {
   });
 
   it("solo usa restricciones adaptables conocidas", () => {
+    // «sin_gluten» no es el alérgeno «gluten»: es el recambio por un producto
+    // etiquetado «sin gluten», que por ley es apto para celíacos (al revés que
+    // «sin lactosa» para la alergia a la leche). Ver substitutions.js.
     for (const s of ingredientSubstitutions) {
-      expect(["lactosa_fina", "alcohol_cocina"]).toContain(s.restriction);
+      expect(["lactosa_fina", "alcohol_cocina", "sin_gluten"]).toContain(s.restriction);
     }
   });
 

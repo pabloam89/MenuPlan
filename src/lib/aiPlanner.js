@@ -38,6 +38,7 @@ import { pairSauces } from "../utils/pairSauces.js";
 import { guessIngredientCategory } from "./ingredientCategories.js";
 import { isQualitativeUnit, mergeIngredientLines } from "./ingredientUnits.js";
 import { buildAdaptationMap } from "./substitutions.js";
+import { normalizeAllergenId } from "./allergens.js";
 import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortions, slotUsesPrepared, catalogIdOfPlanRecipe } from "./freezer.js";
 import { dominantComponentOf } from "./dominantComponent.js";
 import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
@@ -492,11 +493,15 @@ export function buildGroupContext(data, group) {
   const impliesAlcoholCocina = memberDietaryStates.some(
     (s) => s === "embarazo" || s === "lactancia",
   );
+  // Gluten como alergia: en vez de quitar toda la pasta y el pan del menú, se
+  // cambian por su versión sin gluten donde la hay (substitutions.js sin_gluten).
+  const impliesSinGluten = allergies.some((a) => normalizeAllergenId(a) === "gluten");
   const intolerances = Array.from(
     new Set([
       ...groupMembers.flatMap((m) => m.intolerances ?? []),
       ...memberDietaryStates,
       ...(impliesAlcoholCocina ? ["alcohol_cocina"] : []),
+      ...(impliesSinGluten ? ["sin_gluten"] : []),
     ]),
   );
   // `data.excluidos` es lo que el panel/wizard proyecta de la libreta ("nada
@@ -2495,13 +2500,20 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         const kidsFrontendId = multi ? `${kids.id}__${baseId}` : baseId;
         if (!seenRecipeIds.has(kidsFrontendId)) {
           seenRecipeIds.add(kidsFrontendId);
-          const fr = catalogToFrontendRecipe(catalogRecipe, eaters, [], raciones);
+          // Es el plato de la olla de los mayores: con sus mismos recambios
+          // (si un mayor es celíaco, la pasta de todos es sin gluten) y los de
+          // los niños. Con [] la copia de los niños compraba pasta normal.
+          const restriccionesCopia = [...new Set([
+            ...(results.find((x) => x.group.id === adults.id)?.restrictions ?? []),
+            ...(results.find((x) => x.group.id === kids.id)?.restrictions ?? []),
+          ])];
+          const fr = catalogToFrontendRecipe(catalogRecipe, eaters, restriccionesCopia, raciones);
           if (multi) fr.id = kidsFrontendId;
           fr.baseRecipeId = baseId;
           const adultFr = allRecipes.find((r) => r.id === adultFrontendId);
           if (adultFr?.garnishId) {
             const garnish = guarnicionById[adultFr.garnishId];
-            if (garnish) applyGarnishToRecipe(fr, garnish, raciones, []);
+            if (garnish) applyGarnishToRecipe(fr, garnish, raciones, restriccionesCopia);
           }
           allRecipes.push(fr);
         }
@@ -2594,6 +2606,9 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     assignPreparedToPlan(plan, pantryIngredients, {
       days: DAYS,
       mealLabels: ["Comida", "Cena"],
+      // Un táper no sabe si se cocinó con pasta sin gluten: a un plato adaptado
+      // para alguien no se le pone uno, por si acaso.
+      adaptadas: new Set(allRecipes.filter((r) => r.adaptations?.length).map((r) => r.id)),
     });
     applyPreparedGarnishes(plan, allRecipes, guarnicionById, results);
   }

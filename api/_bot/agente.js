@@ -15,7 +15,7 @@ import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq } from "./db.js";
-import { cargarCasa, deshacer } from "./casa.js";
+import { cargarCasa, deshacer, escribioDesde } from "./casa.js";
 import {
   describirCasa, verMenu, describirReceta, describirCompra,
   marcarCompra, anadirCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
@@ -24,7 +24,7 @@ import { generarMenu } from "./generar.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
-  anadirComensal, quitarComensal, ajustarAlergias, dominiosDeGustos, ajustarPersona,
+  anadirComensal, quitarComensal, ajustarAlergias, dominiosDeGustos, ajustarPersona, ajustarMenuPeques,
 } from "./ajustes.js";
 import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
@@ -109,6 +109,8 @@ const anthropic = () => (cliente ??= new Anthropic());
 const CON_BOTON_DESHACER = new Set([
   "marcar_compra", "anadir_compra", "cambiar_plato", "generar_menu",
   "ajustar_gustos", "ajustar_horario", "anadir_invitado", "quitar_comensal",
+  // Las alergias se guardan al momento (con eco) y se deshacen con un toque.
+  "ajustar_alergias", "ajustar_menu_peques",
 ]);
 
 // Fallos de conversación, para medirlos (user_events, como el embudo).
@@ -190,10 +192,11 @@ export async function herramientas(chat) {
         return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. No lo repitas entero: resume en 3-4 líneas; la semana la ven con el botón que sale solo.";
       }
       try {
+        const desde = Date.now();
         const r = await t.run(args);
         if (t.name === "generar_menu") tocado.semanas.add(args.semana ?? "esta");
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
-        if (CON_BOTON_DESHACER.has(t.name)) chat.escrito = true;
+        if (CON_BOTON_DESHACER.has(t.name) && escribioDesde(chat.householdId, desde)) chat.escrito = true;
         const ir = pantallaDe(t.name, args);
         if (ir) chat.ir = ir;
         if (t.name === "deshacer") chat.escrito = false;
@@ -451,6 +454,12 @@ function herramientasDeAjustes(householdId, gustos) {
       run: (args) => ajustarPersona(householdId, args),
     }),
     betaTool({
+      name: "ajustar_menu_peques",
+      description: "Si los peques comen lo mismo que los mayores o no. Por defecto, toda la casa come lo mismo (el bebé, aparte): úsala solo si lo dicen. igual = lo mismo que la familia; aparte = cenan algo suyo (sin repetir lo del cole); lo_del_mediodia = los días de cole cenan lo que la familia comió a mediodía. Cuenta en el próximo menú.",
+      inputSchema: obj({ cena: { type: "string", enum: ["igual", "aparte", "lo_del_mediodia"] } }, ["cena"]),
+      run: (args) => ajustarMenuPeques(householdId, args),
+    }),
+    betaTool({
       name: "quitar_comensal",
       description: "Quita a alguien de la casa (ya no come aquí). Confirma antes con el usuario.",
       inputSchema: obj({ nombre: { type: "string" } }, ["nombre"]),
@@ -458,7 +467,7 @@ function herramientasDeAjustes(householdId, gustos) {
     }),
     betaTool({
       name: "ajustar_alergias",
-      description: "Alergias o intolerancias de una persona o de «toda la casa» (los 14 alérgenos oficiales: gluten, crustaceos, huevos, pescado, cacahuetes, soja, leche, frutos_cascara, apio, mostaza, sesamo, sulfitos, altramuces, moluscos). ninguna=true si confirman que nadie tiene. Solo con confirmado=true tras el «sí» explícito del usuario.",
+      description: "Alergias o intolerancias de una persona o de «toda la casa» (los 14 alérgenos oficiales: gluten, crustaceos, huevos, pescado, cacahuetes, soja, leche, frutos_cascara, apio, mostaza, sesamo, sulfitos, altramuces, moluscos). ninguna=true si dicen que nadie tiene. confirmado=true en cuanto la persona lo ha dicho claro (quién y qué): se guarda al momento y se cuenta en una línea con [[No es así]] para deshacer. Si lo dijo a medias (sin decir quién, o «creo que…»), pregunta antes. Quitar una alergia o «nadie tiene» se comprueban además contra lo que ha escrito.",
       inputSchema: obj({
         persona: { type: "string" }, alergenos: { type: "array", items: { type: "string" } },
         ninguna: { type: "boolean" }, quitar: { type: "boolean" }, confirmado: { type: "boolean" },
@@ -568,7 +577,7 @@ function herramientasDeMenu(householdId, fotos = null) {
           dia: { type: "string", description: "Opcional: lunes…domingo, «hoy» o «mañana». Sin él, la próxima comida que toca: NO lo preguntes para recomendar («entre semana» sin más = hoy)." },
           semana,
           comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"], description: "Opcional: sin ella, la próxima que toca por la hora." },
-          grupo: { type: "string", description: "Opcional: el grupo de menú (p. ej. «Bebé») si hay varios." },
+          grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           n: { type: "integer", minimum: 2, maximum: 6, description: "Cuántas opciones; por defecto 3 (caben 3 botones más «Elige tú»)." },
           parecido_a: { type: "string", description: "Opcional: el plato que piden («salmón al horno con ensalada de mango»)." },
@@ -605,7 +614,7 @@ function herramientasDeMenu(householdId, fotos = null) {
           dia: { type: "string", description: "lunes…domingo, «hoy» o «mañana»." },
           semana,
           comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
-          grupo: { type: "string", description: "Opcional: el grupo de menú (p. ej. «Bebé») si hay varios." },
+          grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           receta: { type: "string", description: "Opcional: el nombre de la receta elegida." },
         },

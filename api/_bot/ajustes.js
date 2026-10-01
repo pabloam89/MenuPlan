@@ -185,6 +185,51 @@ function conGrupos(m, data, members) {
   return { ...data, members, groups };
 }
 
+/**
+ * Cómo comen los peques respecto a los mayores, lo mismo que decidía la
+ * pantalla de los niños del onboarding (OnboardingKidsDinner), para todos los
+ * niños a la vez:
+ *   igual            comen lo mismo que la familia (lo de siempre)
+ *   aparte           la cena es suya (sin repetir el comedor)
+ *   lo_del_mediodia  los días de cole cenan lo que la familia comió a mediodía
+ * Deriva el modelo de menú y los grupos como la app. Cuenta al generar.
+ */
+export async function ajustarMenuPeques(householdId, { cena }) {
+  return conData(householdId, (data, m) => {
+    const kids = m.kidMembers(data.members ?? []);
+    if (!kids.length) return { texto: "En esta casa no hay niños: todos comen lo mismo." };
+    if (!["igual", "aparte", "lo_del_mediodia"].includes(cena)) return { texto: "cena tiene que ser igual, aparte o lo_del_mediodia." };
+    const cfg = m.normalizeKidDinnerConfig(data.kidDinnerConfig);
+    const byMember = { ...cfg.byMember };
+    for (const k of kids) {
+      const base = byMember[k.id] ?? { ...m.KID_DINNER_DEFAULTS, safeFoods: [], avoid: { ...m.KID_DINNER_AVOID_DEFAULTS } };
+      byMember[k.id] = {
+        ...base, weekdayLunch: "together", weekend: "together",
+        dinner: cena === "aparte" ? "different" : "sameDinner",
+        reuseColeDinner: cena === "lo_del_mediodia",
+      };
+    }
+    const next = { ...data, kidDinnerConfig: { byMember } };
+    const modelo = m.deriveKidsMenuModel(next) ?? "same";
+    const members = next.members ?? [];
+    next.menuModel = modelo;
+    // Mismo modelo que ya había: los grupos no se tocan. groupsFromModel da
+    // ids nuevos cada vez, y el menú en curso está guardado con los viejos.
+    if (modelo !== (data.menuModel ?? "same") || !(data.groups ?? []).length) {
+      // Y si cambia, cada grupo nuevo hereda el id del viejo que hace su papel
+      // (Familia ↔ Adultos, Bebé ↔ Bebé): el menú en curso sigue siendo suyo.
+      const viejos = data.groups ?? [];
+      const papel = (l) => (l === "Bebé" ? "bebe" : l === "Niños" ? "ninos" : "mayores");
+      next.groups = m.migrateGroupsForBabies(members, m.groupsFromModel(members, modelo), modelo).map((g) => {
+        const antes = viejos.find((v) => papel(v.label) === papel(g.label));
+        return antes ? { ...g, id: antes.id } : g;
+      });
+    }
+    const dicho = { igual: "los peques comen lo mismo que vosotros", aparte: "los peques cenan aparte, sin repetir lo del cole", lo_del_mediodia: "los días de cole, los peques cenan lo que comisteis a mediodía" }[cena];
+    return { data: next, texto: `Apuntado: ${dicho}. Cuenta en el próximo menú (este no se rehace solo).` };
+  });
+}
+
 export async function anadirComensal(householdId, { nombre, edad }) {
   return conData(householdId, (data, m) => {
     if (!nombre) return { texto: "¿Cómo se llama?" };
@@ -282,6 +327,10 @@ export async function sembrarCasa(householdId) {
         ...data,
         members: data.members ?? [],
         groups: data.groups ?? [],
+        // Toda la casa come lo mismo (el bebé, aparte mientras lo sea): lo
+        // que quieren casi todas las familias. Sin esto el motor partía por
+        // edades (Adultos / Niños) y salían dos cenas cada noche.
+        menuModel: data.menuModel ?? "same",
         meals: data.meals ?? ["Comida", "Cena"],
         schedule: data.schedule ?? {},
       },
