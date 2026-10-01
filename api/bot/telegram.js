@@ -188,8 +188,11 @@ async function atender(msg, base) {
   const audio = msg.voice ?? msg.audio;
   if (!texto && audio) {
     await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
-    const t = await transcribir(audio).catch((e) => ({ error: e?.message }));
+    const t = await transcribir(audio, { idioma: msg.from?.language_code, householdId: chat.household_id })
+      .catch((e) => ({ error: e?.message }));
     if (t.error) {
+      // Sin esto, «no he podido entender el audio» no dejaba rastro de por qué.
+      console.error("[voz]", t.error, { segundos: audio.duration, tipo: audio.mime_type });
       const porque = t.error === "largo" ? "Es un audio muy largo: mándamelo en trozos de menos de dos minutos." : "No he podido entender el audio. ¿Me lo escribes?";
       return enviar(chatId, porque, { responderA: esGrupo ? msg.message_id : undefined });
     }
@@ -858,8 +861,10 @@ async function crearCuenta(from, chatId, primero = {}) {
   let adjunto = null;
   const m = primero.msg;
   if (m?.voice || m?.audio) {
-    const t = await transcribir(m.voice ?? m.audio).catch((e) => ({ error: e?.message }));
+    const t = await transcribir(m.voice ?? m.audio, { idioma: from.language_code, householdId: cuenta.householdId })
+      .catch((e) => ({ error: e?.message }));
     if (!t.error) { texto = t.texto; oido = t.texto; }
+    else console.error("[voz]", t.error);
   } else if (m?.photo || m?.document) {
     const a = await adjuntoDe(m).catch(() => null);
     if (a && !a.error) { adjunto = a; texto = (m.caption ?? "").trim() || "(te mando esta foto)"; }
