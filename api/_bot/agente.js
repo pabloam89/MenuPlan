@@ -42,7 +42,7 @@ import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comi
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
-import { conPista, planDeAdelanto, textoPista } from "./pista.js";
+import { conPista, textoPista, datosDePlantilla } from "./pista.js";
 import { verReceta, calorias as caloriasDePlato, queFalta } from "./plato.js";
 
 // Modelo y esfuerzo, configurables para medir velocidad contra calidad con
@@ -757,25 +757,55 @@ async function memoria(channel, chatId) {
   return limpios;
 }
 
+// Los mismos datos aunque vengan en otro orden o con huecos vacíos.
+const claveDe = (v) => JSON.stringify(v, (_, x) => (x && typeof x === "object" && !Array.isArray(x)
+  ? Object.fromEntries(Object.keys(x).sort().filter((k) => x[k] != null && x[k] !== "").map((k) => [k, x[k]]))
+  : x));
+
 /**
- * @param {{ tipo: "image" | "document", mediaType: string, base64: string }} [adjunto]
- *   una foto o un PDF del mensaje: solo va en este turno; a la memoria pasa
- *   como texto («[foto]»), que guardarla entera no merece la pena.
- * @returns {Promise<{ texto: string, fotos: {url: string, pie: string}[], deshacible: boolean, ir: string|null }>}
- *   el texto para el chat (HTML de Telegram), las fotos de los platos que se
- *   han enseñado y si se cambió algo que se puede deshacer.
+ * Lo que deja la lectura adelantada (fotos, lo pintado debajo, el botón a la
+ * app) NO pasa al turno por haberse leído: solo si Lola acepta la pista, que
+ * es una de dos:
+ *   · pide esa misma herramienta con esos mismos datos: se le sirve lo leído,
+ *     sin volver a leer, y cuentan sus efectos como si la hubiera hecho ella;
+ *   · empieza a contestar sin haber llamado a ninguna herramienta: contesta
+ *     con lo leído (ver_menu le dice que «sale pintado debajo»).
+ * Con una pista equivocada («Ojo, que Leo es alérgico al huevo» leído como
+ * ver el menú del finde) Lola llama a ajustar_alergias y debajo no sale nada.
+ * Exportada para el test.
  */
-/**
- * @param {Promise<boolean>} [puerta]  turno especulativo: las herramientas de
- *   escritura esperan a que resuelva; false = el turno es de la vía rápida.
- * @param {AbortSignal} [signal]  para cancelar a Lola si el turno no es suyo.
- */
+export function adelantoDelTurno(chat, progreso) {
+  let usado = null;
+  let aplicado = false;
+  const aplicar = () => {
+    if (!usado || aplicado) return;
+    aplicado = true;
+    for (const f of usado.fotos ?? []) if (!chat.fotos.some((x) => x.url === f.url)) chat.fotos.push(f);
+    if (usado.pintar) pintarTambien(chat, usado.pintar);
+    if (usado.ir && !chat.ir) chat.ir = usado.ir;
+  };
+  return {
+    usar(a) { usado = a ?? null; aplicado = false; },
+    /** Tras limpiar el turno (plan B): lo leído tiene que volver a aceptarse. */
+    olvidarEfectos() { aplicado = false; },
+    sinHerramientas() { if (!progreso.herramientas) aplicar(); },
+    servir: (tools) => tools.map((t) => ({
+      ...t,
+      run: async (args) => {
+        if (usado?.herramienta === t.name && claveDe(args ?? {}) === claveDe(usado.args ?? {})) { aplicar(); return usado.texto; }
+        return t.run(args);
+      },
+    })),
+  };
+}
+
 const FUENTE_PLANTILLA = { receta: "la receta del plato", calorias: "las calorías del plato", falta: "lo que falta del plato según la despensa" };
 
 /**
  * La lectura que pide la pista (pista.js planDeAdelanto), hecha antes de que
  * Lola la pida. Las herramientas, las de Lola tal cual, pero sobre una copia
- * del turno: lo que dejan (fotos, lo pintado) solo cuenta si la pista se usa.
+ * del turno: lo que dejan (fotos, lo pintado, el botón a la app) se guarda
+ * aparte y solo pasa al turno si Lola acepta la pista (responder, `aplicar`).
  * Las plantillas, las de la vía rápida (plato.js), que no tienen herramienta
  * propia: sin esto, «qué me falta» eran ver_receta y luego ver_despensa.
  */
@@ -788,7 +818,8 @@ async function adelantar(plan, chat) {
     if (!t) return null;
     const r = await t.run(plan.args);
     return {
-      nombre: plan.herramienta, fuente: `${plan.herramienta} ${JSON.stringify(plan.args)}`,
+      nombre: plan.herramienta, herramienta: plan.herramienta, args: plan.args,
+      fuente: `${plan.herramienta} ${JSON.stringify(plan.args)}`,
       texto: typeof r === "string" ? r : JSON.stringify(r), fotos: copia.fotos, pintar: copia.pintar, ir: copia.ir,
     };
   }
@@ -799,15 +830,24 @@ async function adelantar(plan, chat) {
   if (!r?.texto || r.propuesta?.tipo === "aclarar") return null;
   return {
     nombre: `plantilla:${plan.plantilla}`, fuente: FUENTE_PLANTILLA[plan.plantilla],
-    // Para Lola son datos: sin el HTML ni los [[botones]] de la plantilla.
-    texto: sinEtiquetas(r.texto).replace(/^\s*\[\[[^\]\n]*\]\]\s*$/gm, "").trim(),
+    // Para Lola son datos: sin el HTML, los [[botones]] ni los ✅ de la plantilla.
+    texto: datosDePlantilla(r.texto),
     fotos: [], pintar: null, ir: r.ir ?? null,
   };
 }
 
 /**
+ * @param {{ tipo: "image" | "document", mediaType: string, base64: string }} [adjunto]
+ *   una foto o un PDF del mensaje: solo va en este turno; a la memoria pasa
+ *   como texto («[foto]»), que guardarla entera no merece la pena.
+ * @param {Promise<boolean>} [puerta]  turno especulativo: las herramientas de
+ *   escritura esperan a que resuelva; false = el turno es de la vía rápida.
+ * @param {AbortSignal} [signal]  para cancelar a Lola si el turno no es suyo.
  * @param {Promise<object|null>} [pista]  la decisión del enrutador cuando el
  *   turno es de Lola (api/_bot/pista.js, BOT_PISTA); null si no hay.
+ * @returns {Promise<{ texto: string, fotos: {url: string, pie: string}[], deshacible: boolean, ir: string|null }>}
+ *   el texto para el chat (HTML de Telegram), las fotos de los platos que se
+ *   han enseñado y si se cambió algo que se puede deshacer.
  */
 export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null }) {
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
@@ -833,36 +873,47 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // Lo que deja la lectura adelantada (fotos, lo que se pinta debajo, el
   // botón a la app) se suma a lo del turno igual que si la hubiera hecho ella.
   const progreso = { vueltas: 0, herramientas: 0, texto: false };
-  let adelanto = null;
+  const adelanto = adelantoDelTurno(chat, progreso);
+  const conAdelanto = adelanto.servir(tools);
   let medidaPista = null;
-  const sumarAdelanto = () => {
-    if (!adelanto) return;
-    for (const f of adelanto.fotos) if (!chat.fotos.some((x) => x.url === f.url)) chat.fotos.push(f);
-    if (adelanto.pintar) pintarTambien(chat, adelanto.pintar);
-    if (adelanto.ir && !chat.ir) chat.ir = adelanto.ir;
-  };
   const limpiarTurno = () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; };
-  const lanzar = async (d, sig, { reinicio }) => {
+  const lanzar = (d, leido, sig, { reinicio }) => {
     if (reinicio) limpiarTurno();
-    const plan = planDeAdelanto(d);
-    if (plan) {
-      const t0 = Date.now();
-      adelanto = await adelantar(plan, chat).catch((e) => { console.error("[pista]", e?.message); return null; });
-      medidaPista = { modo: d.modo, confianza: d.confianza, adelanto: adelanto?.nombre ?? null, ms: Date.now() - t0, reinicio };
-    }
-    sumarAdelanto();
+    adelanto.usar(leido);
+    if (leido) medidaPista = { ...medidaPista, modo: d.modo, confianza: d.confianza, adelanto: leido.nombre, reinicio };
     return ejecutar({
-      historia, entrada, tools, adjunto, signal: sig, ficha, progreso,
-      pista: adelanto ? textoPista(d, adelanto) : null,
-      alEscribir: alEscribir ? (parcial, extra) => alEscribir(parcial, { fotos: chat.fotos, ...extra }) : null,
-      // Lo que juntó el modelo que se cayó no es de esta respuesta (lo
-      // adelantado sí: el de reserva lo recibe igual en su pista).
-      alReintentar: () => { limpiarTurno(); sumarAdelanto(); },
+      historia, entrada, tools: conAdelanto, adjunto, signal: sig, ficha, progreso,
+      pista: leido ? textoPista(d, leido) : null,
+      alEscribir: alEscribir ? (parcial, extra) => {
+        // Contestar sin haber llamado a nada es aceptar la pista: lo leído
+        // (sus fotos, lo pintado) pasa al turno antes de que salga el texto.
+        adelanto.sinHerramientas();
+        alEscribir(parcial, { fotos: chat.fotos, ...extra });
+      } : null,
+      // Lo que juntó el modelo que se cayó no es de esta respuesta; lo leído
+      // por adelantado vuelve a contar solo si el de reserva también lo acepta.
+      alReintentar: () => { limpiarTurno(); adelanto.olvidarEfectos(); },
     });
   };
   try {
     let r;
-    ({ dicho, uso, corregido, ...r } = await conPista({ pista, lanzar, progreso, signal }));
+    ({ dicho, uso, corregido, ...r } = await conPista({
+      pista, texto, progreso, signal, lanzar,
+      adelantar: (plan) => {
+        const t0 = Date.now();
+        // `leido`: si la lectura trajo algo; con leido y sin `reinicio`, es
+        // que Lola ya había avanzado y no se la cortó.
+        return adelantar(plan, chat)
+          .catch((e) => { console.error("[pista]", e?.message); return null; })
+          .then((a) => { medidaPista = { ...medidaPista, ms: Date.now() - t0, leido: Boolean(a) }; return a; });
+      },
+      alCortar: (ms) => { medidaPista = { ...medidaPista, cortada_ms: ms }; },
+    }));
+    // Sin texto en vivo (o sin texto), lo mismo al acabar: sin herramientas, aceptada.
+    adelanto.sinHerramientas();
+    // La llamada cortada no trae su uso (se paga igual): se estima con lo que
+    // leyó la primera llamada que sí acabó, que es casi lo mismo.
+    if (medidaPista?.reinicio && r.primera) medidaPista.cortada_tokens = (r.primera.input_tokens ?? 0) + (r.primera.cache_read_input_tokens ?? 0) + (r.primera.cache_creation_input_tokens ?? 0);
     // La medida del turno de Lola, para bot_route (api/bot/telegram.js).
     medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null };
   } catch (err) {
@@ -963,6 +1014,10 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
   const vigiladas = tools.map((t) => ({
     ...t,
     run: async (...a) => {
+      // Un intento cortado (la pista, o la vía rápida) no ejecuta nada más,
+      // aunque el runner llegue a pedirlo: «nunca dos veces» no depende de en
+      // qué orden corran las promesas.
+      if (signal?.aborted) throw signal.reason ?? new Error("turno cortado");
       if (!SOLO_LECTURA.has(t.name)) escrituras++;
       if (progreso) progreso.herramientas++;
       const avisoDe = escribir && avisoLento() ? AVISO_LENTO[t.name] : null;
