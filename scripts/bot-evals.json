@@ -970,6 +970,34 @@
       "noLlama": [
         "generar_menu"
       ]
+    },
+    {
+      "nombre": "tester: «Nada nada, feel free» a la pregunta de alergias → lo guarda, sin volver a preguntar",
+      "ficha": {
+        "estable": "SEGURIDAD: SIN REVISAR\nCASA\n- Pablo 36 · Isa 34 · Nat · Cova 0 (cumple 1 el 14/10).\n- Grupos: «Familia» (Pablo, Isa, Nat) y «Bebé» (Cova).",
+        "delDia": "jue 1 oct (2026-10-01)\nMENÚ: no hay menú esta semana"
+      },
+      "historia": [
+        {
+          "role": "user",
+          "content": "Pues mira, algún puré y algo sólido"
+        },
+        {
+          "role": "assistant",
+          "content": "✅ Apuntado: Cova come un poco de todo, puré y sólidos.\n\nY una cosa importante antes de generar el menú: ¿alguien en casa tiene alguna alergia o intolerancia (gluten, lácteos, frutos secos...), o puedo dar por hecho que no?"
+        }
+      ],
+      "entrada": "Nada nada, feel free",
+      "llama": [
+        "ajustar_alergias"
+      ],
+      "args": {
+        "ajustar_alergias": {
+          "ninguna": true,
+          "confirmado": true
+        }
+      },
+      "sinTexto": "confirm|claramente"
     }
   ]
 }

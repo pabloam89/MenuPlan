@@ -27,6 +27,16 @@ const SI_SIN_TILDE = /^si\b(?![.!]*\s*$)/i;
 const PERO_NO = /^[^.?!]{0,25}\b(que no|pero|no quites|no lo quites|espera)\b/;
 const QUITA = /\b(quit(a|ale|alo|ar|aselo|aselas)|borr(a|ale|alo|ar)|elimin(a|ale|alo|ar)|sac(a|ale|alo)|ya no (come|vive|esta|viene)|no (es|son) alergic|no tienen? alergi|no (es|tiene) intoleran|ya no (es|tiene))/;
 const NADIE = /\b(nadie|ninguno|ninguna|sin alergias|ningun)\b|\bno hay (alergi|ninguna|ningun|intoleran)/;
+// Un «no» o un «nada» a secas, contestando a «¿alguien tiene alergias?»
+// («Nada nada, feel free», «no, tranquila»): vale si TODO el mensaje es eso y
+// relleno. Si lleva algo más («no hay manera de que coma huevo»), no.
+// Lo pidió Pablo el 1 oct 2026: con solo «nadie/ninguna», Lola acababa
+// preguntando las alergias tres veces.
+const RELLENO = new Set(["no", "nada", "nop", "nadie", "ninguna", "ninguno", "tranquila", "tranquilo", "feel", "free", "gracias", "vale", "ok", "de", "momento", "que", "yo", "sepa", "todo", "bien"]);
+const NO_A_SECAS = (dicho) => {
+  const palabras = dicho.split(/[^a-z0-9ñ]+/).filter(Boolean);
+  return palabras.length > 0 && palabras.length <= 6 && /^(no|nada|nop)$/.test(palabras[0]) && palabras.every((w) => RELLENO.has(w));
+};
 
 /** Lo que escribió la persona, sin el «[Ana]: » de los grupos ni signos de apertura. */
 const limpio = (texto) => String(texto ?? "").trim().replace(/^\[[^\]]{1,40}\]:\s*/, "").replace(/^[¡¿]+/, "").trim();
@@ -46,7 +56,7 @@ export function supervisar(herramienta, args = {}, texto = "") {
     if (args.quitar && !esSi && !QUITA.test(dicho)) {
       return "No se ha guardado: quitar una alergia necesita que la persona lo confirme. Pregúntale en una frase si seguro que ya no la tiene, y quítala solo con su «sí».";
     }
-    if (args.ninguna && !esSi && !NADIE.test(dicho)) {
+    if (args.ninguna && !esSi && !NADIE.test(dicho) && !NO_A_SECAS(dicho)) {
       return "No se ha guardado: para dejar a la casa sin alergias, la persona tiene que decirlo o confirmarlo. Pregúntale si nadie tiene ninguna alergia ni intolerancia.";
     }
   }
