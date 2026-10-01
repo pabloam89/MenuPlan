@@ -743,18 +743,21 @@
       "texto": "gluten"
     },
     {
-      "nombre": "tester: «Manuel come como los demás» → lo aplica, sin repreguntar ni nombres de grupo",
+      "nombre": "tester: «Manuel come como los demás» → apunta sólidos, sin repreguntar ni nombres de grupo",
       "ficha": {
         "estable": "SEGURIDAD\n- Manu, Marina, Carmen, Manuel: ninguna.\n- Manuel (2): come purés.\nCASA\n- Manu 38 · Marina 36 · Carmen 4 · Manuel 2.\n- Grupos: «Familia» (Manu, Marina), «Niños» (Carmen) y «Bebé» (Manuel).\nCOCINA\n- Comida y cena: plato único.",
         "delDia": "jue 1 oct\nMENÚ 30 sep–4 oct"
       },
       "entrada": "Manuel mi hijo come lo mismo que los adultos o que su hermana",
       "sinTexto": "¿cómo come|grupo de (bebé|niños)",
-      "texto": "✅|apuntado",
-      "llamaAlguna": [
-        "ajustar_cocina",
-        "ajustar_menu_peques"
-      ]
+      "llama": [
+        "ajustar_cocina"
+      ],
+      "args": {
+        "ajustar_cocina": {
+          "etapaBebe": "solidos"
+        }
+      }
     },
     {
       "nombre": "ficha: quién come en casa sin llamar a ver_casa",
