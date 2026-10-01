@@ -16,7 +16,8 @@ describe("la ficha de la casa", () => {
   it("una casa recién creada: lo que falta, en una línea", () => {
     const f = montarFicha(casaDe({ members: [] }), {}, "2026-10-01");
     expect(f.estable).toMatch(/SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas/);
-    expect(f.delDia).toBe("jue 1 oct");
+    // Con la fecha ISO: ajustar_gustos pide desde/hasta en AAAA-MM-DD.
+    expect(f.delDia).toBe("jue 1 oct (2026-10-01)");
   });
 
   it("SEGURIDAD: alergias por persona, quién falta por preguntar, a quién aplica y los estados", () => {
@@ -44,6 +45,31 @@ describe("la ficha de la casa", () => {
     expect(f.delDia).toMatch(/MENÚ 28\/09–04\/10 \(no hay semana siguiente\)/);
     expect(f.delDia).toMatch(/- Hoy: comida Lentejas\./);
     expect(f.delDia).toMatch(/- Mañana: cena Tortilla\./);
+  });
+
+  it("la libreta por matiz: lo del panel es dicho; lo visto y supuesto, aparte; lo caducado, fuera", () => {
+    const campos = {
+      // Escrito a mano en el panel: origen «texto» y sin fuente → dicho (antes salía como «Supuesto»).
+      "freqs.pescado": { valor: 3, origen: "texto" },
+      "favoritos.lentejas": { valor: true, fuente: "supuesto", apuntado: "2026-09-20" },
+      "cocina.mexicana": { valor: true, fuente: "visto", apuntado: "2026-09-25" },
+      // Supuesto hace más de 90 días: caducado.
+      "favoritos.pizza": { valor: true, fuente: "supuesto", apuntado: "2026-05-01" },
+      // Con ventana: uno vigente hasta el 31, uno que ya pasó y uno que empieza el lunes.
+      "freqs.fritos": { valor: 0, hasta: "2026-10-31" },
+      "freqs.carne": { valor: 1, hasta: "2026-09-15" },
+      "freqs.verdura": { valor: 5, desde: "2026-10-05" },
+    };
+    const f = montarFicha(casaDe({ members: MIEMBROS, notepad: { v: 1, campos } }), {}, "2026-10-01");
+    const dicho = f.estable.match(/- Dicho: (.*)/)?.[1] ?? "";
+    const supuesto = f.estable.match(/- Supuesto: (.*)/)?.[1] ?? "";
+    expect(dicho).toMatch(/pescado \(3\)/);
+    expect(dicho).toMatch(/fritos \(0\) \(hasta 31\/10\)/);
+    expect(f.estable).toMatch(/verdura \(5\) \(desde 5\/10\)/);
+    expect(supuesto).toMatch(/lentejas/);
+    expect(supuesto).toMatch(/mexicana/);
+    expect(f.estable).not.toMatch(/pizza/);
+    expect(f.estable).not.toMatch(/carne/);
   });
 
   it("nunca pasa del tope, y SEGURIDAD no se recorta aunque la casa sea enorme", () => {

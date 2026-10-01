@@ -16,12 +16,14 @@
  * igual que el panel; las alergias solo se escriben con confirmación explícita.
  */
 
+import { COMIDAS_PLANIFICABLES, COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
 import { conCasa } from "./casa.js";
 import { motor, normal, diaDe, DIAS, DIA_LARGO } from "./menu.js";
 import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
 
 const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
-const COMIDAS = ["Desayuno", "Comida", "Merienda", "Cena", "Postre"];
+// Del catálogo de comidas (src/lib/comidas.js).
+const COMIDAS = COMIDAS_PLANIFICABLES;
 
 function lunesDe(cual) {
   const hoy = new Date(`${hoyISO()}T12:00:00Z`);
@@ -140,7 +142,7 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
     // Qué comidas se planifican (la fila «comidas» del registro solo lee: se
     // escribe `data.meals` directamente, con el mismo vocabulario).
     if (Array.isArray(comidas)) {
-      const meals = ["Comida", "Cena"].filter((c) => comidas.includes(c));
+      const meals = COMIDAS_PRINCIPALES.filter((c) => comidas.includes(c));
       if (meals.length) { d = { ...d, meals }; hechos.push(`comidas: ${meals.join(" y ")}`); }
     }
     if (estructura) { d = R.estructura.escribe(d, estructura); hechos.push(`estructura: ${estructura}`); }
@@ -169,7 +171,7 @@ export async function ajustarHorario(householdId, { personas, dias, comidas, don
       else { const x = personaPorNombre(data, p); x ? sel.add(x.id) : noEncontradas.push(p); }
     }
     const ds = (dias?.length ? dias : DIAS).map((d) => (/^(entre ?semana|laborables)$/.test(normal(d)) ? DIAS.slice(0, 5) : /^(finde|fin de semana)$/.test(normal(d)) ? DIAS.slice(5) : [diaDe(d)])).flat().filter(Boolean);
-    const cs = (comidas?.length ? comidas : ["Comida", "Cena"]).map((c) => COMIDAS.find((x) => normal(x) === normal(c))).filter(Boolean);
+    const cs = (comidas?.length ? comidas : COMIDAS_PRINCIPALES).map((c) => COMIDAS.find((x) => normal(x) === normal(c))).filter(Boolean);
     if (!sel.size || !ds.length || !cs.length) return { texto: `No sé a quién o cuándo aplicarlo${noEncontradas.length ? ` (no conozco a ${noEncontradas.join(", ")})` : ""}.` };
     const schedule = { ...(data.schedule ?? {}) };
     for (const id of sel) for (const d of ds) for (const c of cs) {
@@ -376,7 +378,7 @@ export async function sembrarCasa(householdId) {
         // que quieren casi todas las familias. Sin esto el motor partía por
         // edades (Adultos / Niños) y salían dos cenas cada noche.
         menuModel: data.menuModel ?? "same",
-        meals: data.meals ?? ["Comida", "Cena"],
+        meals: data.meals ?? COMIDAS_PRINCIPALES,
         schedule: data.schedule ?? {},
       },
       texto: "",
