@@ -36,3 +36,15 @@ await build({
 });
 
 console.log("bot core → api/_bot/core.mjs");
+
+// Los dominios del panel de gustos, para la descripción de ajustar_gustos. Se
+// sacan aquí y no en cada turno: calcularlos obligaba a cargar el motor entero
+// (core.mjs, ~10 MB) antes de llamar al modelo, aunque Lola no fuera a usarlo.
+// Se regenera con el motor, así que nunca se queda atrás.
+const { pathToFileURL } = await import("node:url");
+const fsP = await import("node:fs");
+const core = await import(pathToFileURL(path.join(raiz, "api/_bot/core.mjs")).href);
+const dominios = core.CAMPOS.filter((c) => c.panel !== false).map((c) =>
+  `${c.id} (${c.etiqueta})${Array.isArray(c.dominio) ? `: ${c.dominio.join("/")}` : ": texto libre"}`).join("; ");
+fsP.writeFileSync(path.join(raiz, "api/_bot/dominiosGustos.json"), JSON.stringify({ dominios }) + "\n");
+console.log("dominios de gustos → api/_bot/dominiosGustos.json");

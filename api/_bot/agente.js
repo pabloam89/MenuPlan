@@ -678,15 +678,13 @@ async function memoria(channel, chatId) {
  * @param {AbortSignal} [signal]  para cancelar a Lola si el turno no es suyo.
  */
 export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, adjunto = null, alEscribir = null, puerta = null, signal = null }) {
-  const tope = await fueraDeLimite(householdId);
-  if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
-
-  const historia = await memoria(channel, chatId);
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
   const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], escrito: false, ir: null, compartir: null, puerta };
-  const tools = await herramientas(chat);
+  // Las tres a la vez: no dependen entre sí, y en serie eran tres idas a la base.
+  const [tope, historia, tools] = await Promise.all([fueraDeLimite(householdId), memoria(channel, chatId), herramientas(chat)]);
+  if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
   let dicho, uso;
   try {
     ({ dicho, uso } = await ejecutar({
@@ -713,13 +711,18 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const llevados = await contarUso(householdId, uso).catch((e) => { console.error("[agente] uso", e?.message); return 0; });
   const respuesta = dicho + avisoDeLimite(householdId, llevados);
 
-  await insert("bot_messages", [
-    { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor ?? null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
-    { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta } },
-  ]).catch((e) => console.error("[agente] memoria", e?.message));
-  await segundaSemana(householdId).catch(() => {});
+  // Guardar la charla no tiene por qué retrasar la respuesta: va en
+  // `guardado`, y quien entrega lo espera DESPUÉS de enviar y antes de soltar
+  // el turno (si no, el mensaje siguiente no vería este en la memoria).
+  const guardado = Promise.all([
+    insert("bot_messages", [
+      { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor ?? null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
+      { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta } },
+    ]).catch((e) => console.error("[agente] memoria", e?.message)),
+    segundaSemana(householdId).catch(() => {}),
+  ]);
 
-  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir, compartir: chat.compartir };
+  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir, compartir: chat.compartir, guardado };
 }
 
 /**
@@ -791,9 +794,12 @@ export function esCaida(err) {
 }
 
 async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries }) {
+  // Con cache_control en el último bloque: la segunda vuelta del turno (tras
+  // una herramienta) y las siguientes leen de caché todo lo anterior —
+  // instrucciones, historia y el mensaje— en vez de volver a procesarlo.
   const contenido = adjunto
-    ? [{ type: adjunto.tipo, source: { type: "base64", media_type: adjunto.mediaType, data: adjunto.base64 } }, { type: "text", text: entrada }]
-    : entrada;
+    ? [{ type: adjunto.tipo, source: { type: "base64", media_type: adjunto.mediaType, data: adjunto.base64 } }, { type: "text", text: entrada, cache_control: { type: "ephemeral" } }]
+    : [{ type: "text", text: entrada, cache_control: { type: "ephemeral" } }];
   const opciones = { maxRetries, signal };
   const runner = anthropic().beta.messages.toolRunner({
     model: modelo,

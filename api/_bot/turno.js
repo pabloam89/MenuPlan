@@ -110,7 +110,7 @@ export async function cambiar(householdId, x) {
   const sinCambiar = out.sinCambiar?.length ? `\n\n<i>A ${esc(out.sinCambiar.join(" y "))} le dejo lo suyo: ese plato no le encaja.</i>` : "";
   const aproximada = out.aproximada ? `\n<i>No había «${esc(out.pedida)}» tal cual: es lo más parecido que encaja.</i>` : "";
   return {
-    texto: `✅ <b>Hecho.</b> ${mayusculaInicial(hueco)}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""} ahora es:\n\n${EMOJI[out.franja] ?? "🍽️"} <b>${esc(out.despues)}</b>${out.antes ? `\n<i>Antes: ${esc(out.antes)}.</i>` : ""}${aproximada}${sinCambiar}`,
+    texto: `✅ <b>Hecho.</b> ${mayusculaInicial(hueco)}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""} ahora es:\n\n${EMOJI[out.franja] ?? "🍽️"} <b>${esc(out.despues)}</b>${out.adaptado ? ` <i>(${esc(out.adaptado)})</i>` : ""}${out.antes ?`\n<i>Antes: ${esc(out.antes)}.</i>` : ""}${aproximada}${sinCambiar}`,
     fotos,
     deshacible: true,
     ir: out.dia ? `dia:${out.dia}` : null,
@@ -219,15 +219,18 @@ export function eleccionDe(texto, propuesta) {
 export async function aplicarEleccion(eleccion, propuesta, householdId) {
   // Qué se ofreció y qué eligieron, aunque luego no haya hueco donde ponerlo:
   // es lo que dice qué gusta (o que da igual).
+  // «Elige tú» elige ENTRE las que se ofrecieron (la primera, que es la que
+  // mejor encaja), no un plato cualquiera del catálogo: se lo pusieron delante.
+  const opcion = eleccion.opcion ?? (eleccion.eligeTu ? propuesta.opciones?.[0] ?? null : null);
   await rastro(householdId, RASTRO.OPCION_ELEGIDA, {
     day: propuesta.dia ?? null, meal: propuesta.franja ?? null,
     ofrecidas: (propuesta.opciones ?? []).map((o) => idBase(o.id)),
-    elegida: idBase(eleccion.opcion?.id) ?? null, eligeTu: Boolean(eleccion.eligeTu),
+    elegida: idBase(opcion?.id) ?? null, eligeTu: Boolean(eleccion.eligeTu),
   });
   if (!propuesta.conMenu) return null;
   return cambiar(householdId, {
     dia: DIA_LARGO[propuesta.dia] ?? propuesta.dia, comida: propuesta.franja, grupo: propuesta.grupo,
-    cual: propuesta.cual, receta: eleccion.opcion?.nombre ?? null,
+    cual: propuesta.cual, receta: opcion?.nombre ?? null,
     motivo: eleccion.eligeTu ? MOTIVO_CAMBIO.ELIGE_TU : MOTIVO_CAMBIO.ELECCION,
   });
 }
