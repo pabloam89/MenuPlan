@@ -443,9 +443,10 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     betaTool({
       name: "ajustar_persona",
-      description: "Peso (kg) y altura (cm) de una persona de la casa, opcionales: con los dos, el motor ajusta su ración (cantidades de la compra y de las recetas). borrar=true los quita.",
+      description: "Una persona de la casa: corregir cómo se escribe su nombre (nuevoNombre, p. ej. un nombre mal oído en un audio), y peso (kg) y altura (cm), opcionales: con los dos, el motor ajusta su ración (cantidades de la compra y de las recetas). borrar=true quita peso y altura.",
       inputSchema: obj({
         nombre: { type: "string" },
+        nuevoNombre: { type: "string" },
         pesoKg: { type: "number" },
         alturaCm: { type: "number" },
         borrar: { type: "boolean" },

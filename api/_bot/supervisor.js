@@ -38,8 +38,8 @@ const NO_A_SECAS = (dicho) => {
   return palabras.length > 0 && palabras.length <= 6 && /^(no|nada|nop)$/.test(palabras[0]) && palabras.every((w) => RELLENO.has(w));
 };
 
-/** Lo que escribió la persona, sin el «[Ana]: » de los grupos ni signos de apertura. */
-const limpio = (texto) => String(texto ?? "").trim().replace(/^\[[^\]]{1,40}\]:\s*/, "").replace(/^[¡¿]+/, "").trim();
+/** Lo que escribió la persona, sin el «[Ana]: » de los grupos, el «[nota de voz]» de los audios ni signos de apertura. */
+const limpio = (texto) => String(texto ?? "").trim().replace(/^\[[^\]]{1,40}\]:\s*/, "").replace(/^\[nota de voz\]\s*/i, "").replace(/^[¡¿]+/, "").trim();
 
 /**
  * @param {string} herramienta
