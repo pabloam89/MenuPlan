@@ -169,7 +169,7 @@ function noEntendido() {
  * INFERIDO y se pinta para que el usuario lo confirme. Nunca como si lo
  * hubiera dicho campo por campo.
  */
-export function aplicarAjuste(notepad, ajuste, { frase, fecha }) {
+export function aplicarAjuste(notepad, ajuste, { frase, fecha, fuente, desde, hasta }) {
   const campo = CAMPOS_POR_ID[ajuste.campo];
   if (!campo || !valorValido(ajuste.campo, ajuste.valor)) return notepad;
 
@@ -201,7 +201,9 @@ export function aplicarAjuste(notepad, ajuste, { frase, fecha }) {
     valor = ajuste.op === "mas" ? 1 : ajuste.op === "menos" ? -1 : 0;
   }
 
-  return poner(notepad, path, valor, { origen: "texto", frase, fecha });
+  // `fuente`, `desde` y `hasta` los pone el bot (lo dicho frente a lo supuesto,
+  // y «este mes»); el panel de la app no los manda y queda como siempre.
+  return poner(notepad, path, valor, { origen: "texto", frase, fecha, fuente, desde, hasta });
 }
 
 /** Aplica todos los ajustes de una opción, en orden. */

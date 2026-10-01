@@ -14,6 +14,7 @@ import { proyectarReglas } from "./reglas.js";
 import { deriveKidDinnerMatchesAdultLunch } from "./kidsMenu.js";
 import { weeklySlotBudget } from "./planner.js";
 import { freqsEfectivos, presupuestoDeTopes } from "./reparto.js";
+import { dataVigente } from "./libretaEnData.js";
 
 // Devuelve una copia de `data` con los ajustes del modo básico forzados.
 // En modo avanzado (expertMode) devuelve `data` tal cual.
@@ -87,6 +88,9 @@ export function prepararSemana(working, {
   groups, offset, w, startDayIdx, days, activeDays, startISO, endISO,
   weekOffsets, sameForAllWeeks, varietyPref, weekCount, hoy,
 }) {
+  // Lo que vale «hasta el 31» o caduca por viejo se mira con la fecha de ESTA
+  // semana, no con la del día en que se escribió (lib/libretaEnData.js).
+  working = dataVigente(working, startISO ?? hoy);
   const weekSchedule = sameForAllWeeks || offset === weekOffsets[0]
     ? working.schedule
     : (weekEntry(working.menuWeekOverrides, offset) ?? working.schedule);
