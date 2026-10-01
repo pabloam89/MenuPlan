@@ -28,7 +28,10 @@ export const MODELO_ROUTER = process.env.BOT_ROUTER_MODELO || "claude-haiku-4-5-
 // queda exportado para scripts/router-feedback.mjs, que lo usa de referencia.
 export const UMBRAL = Number(process.env.BOT_ROUTER_UMBRAL) || 0.8;
 
-export const MODOS = ["consulta", "recomendar", "cambiar", "compra_anadir", "compra_marcar", "generar", "deshacer", "lola"];
+// receta, calorias, falta y despensa: plantillas de lectura (api/_bot/plato.js).
+// ausencia: «hoy cenamos fuera» (la plantilla la conecta otra sesión; mientras
+// no está en POLITICA, va a Lola).
+export const MODOS = ["consulta", "recomendar", "cambiar", "compra_anadir", "compra_marcar", "generar", "deshacer", "receta", "calorias", "falta", "despensa", "ausencia", "lola"];
 const DIAS = ["hoy", "mañana", "pasado mañana", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
 // Del catálogo de comidas (src/lib/comidas.js), aperitivo incluido aunque aún
 // no se planifique: así se entiende y pintarMenu puede decir que no lo hay.
@@ -49,7 +52,7 @@ const RASGOS = {
   },
   additionalProperties: false,
 };
-const ESQUEMA = {
+export const ESQUEMA = {
   type: "object",
   properties: {
     modo: { type: "string", enum: MODOS },
@@ -67,6 +70,7 @@ const ESQUEMA = {
     estilo: { type: "string", enum: ["ligero", "rapido"] },
     rasgos: RASGOS,
     receta: { type: "string", description: "cambiar: el plato que quieren poner, si lo nombran (ahora o en su mensaje anterior)." },
+    plato: { type: "string", description: "receta, calorias o falta: el plato del que preguntan por su NOMBRE, si lo nombran («la tortilla», «las lentejas»). Si lo dicen por su hueco («la cena de hoy»), va en dia y comida." },
     cualquiera: { type: "boolean", description: "cambiar sin receta: true solo si piden otra cosa cualquiera («cámbiala», «otra cosa», «la que sea»)." },
     productos: { type: "array", items: { type: "string" }, description: "compra_anadir o compra_marcar: cada producto tal cual lo dicen." },
     semana: { type: "string", enum: ["esta", "siguiente"], description: "generar: OBLIGATORIO. En consulta con cuando=dia o rango, «siguiente» si dicen «de la semana que viene» («el jueves de la semana que viene»)." },
@@ -84,19 +88,28 @@ export const REGLAS = `Eres el enrutador de Lola, la cocinera de casa de una app
 
 - consulta: quiere VER algo ya guardado. que=compra («¿qué falta por comprar?», «la lista»), o que=menu con cuando: hoy («¿qué comemos hoy?», «¿qué hay de cena?»), manana, pasado_manana, dia + el día («¿qué hay el jueves?»), finde («¿qué cenamos este finde?»), finde_que_viene, esta_semana («pásame el menú»), semana_que_viene («el menú de la semana que viene»), rango + dia + hasta («de lunes a miércoles»). Si dicen comidas, en comidas («solo cenas», «¿qué desayunamos?», «las meriendas»); si dicen platos, en platos («los primeros»); si es para alguien, en para («los niños» = ninos, «el bebé» = bebe, o el nombre).
 - recomendar: pide ideas u opciones para UN hueco, sin cambiar nada todavía («¿qué me recomiendas para cenar?», «ideas para la comida del jueves», «algo ligero para esta noche», «¿qué le hago de cenar al bebé?», «¿qué le preparo a Leo?»). «Qué le hago / qué le preparo» es pedir ideas; «qué hay / qué toca / qué comemos» es consulta. Saca día, comida, para quién y rasgos solo si los dice ESTE mensaje o se deducen sin duda de él («con mi mujer», «para nosotros» = mayores; los niños = ninos; el bebé solo si lo nombran; una persona por su nombre, tal cual). «Para quién» no se arrastra de mensajes anteriores: si ahora no lo dice, va vacío. «Ligero» y «rápido» van en estilo. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito», «contundente» van en rasgos.
-- cambiar: quiere cambiar YA un plato concreto del menú y dice qué hueco («cambia la cena del jueves», «pon lentejas el martes a mediodía», «el viernes cenamos pizza, cámbialo»). receta = el plato nuevo si lo nombra, ahora o en su mensaje anterior (dijo «pizza congelada» y ahora contesta «el viernes de cena» → receta = pizza congelada). cualquiera = true solo si pide otra cosa sin importarle cuál («cámbiala por lo que sea», «otra cosa cualquiera»). Si no dice el hueco, es lola. Si es algo que se repite («los viernes», «todos los lunes», «siempre»), no es un cambio de una vez: es lola.
+- cambiar: quiere cambiar YA un plato concreto del menú y dice qué día («cambia la cena del jueves», «pon lentejas el martes a mediodía», «el viernes cenamos pizza, cámbialo», «¿podemos hacer pizza casera el viernes?»). La comida (Comida o Cena) si la dice; si solo dice el día, déjala vacía: se pregunta después. receta = el plato nuevo si lo nombra, ahora o en su mensaje anterior (dijo «pizza congelada» y ahora contesta «el viernes de cena» → receta = pizza congelada), o un tipo de plato («la carne», «algo de pescado»). cualquiera = true solo si pide otra cosa sin importarle cuál («cámbiala por lo que sea», «otra cosa cualquiera»). Si no dice ni el día, es lola. Si es algo que se repite («los viernes», «todos los lunes», «siempre»), no es un cambio de una vez: es lola. Mover un plato de un día a otro («pon el arroz el domingo en vez del sábado») es lola. Si pregunta POR QUÉ se puso algo («¿xk tortilla esta noche?»), es lola.
 - compra_anadir: apuntar cosas en la lista («apunta leche y pan», «añade pilas»). compra_marcar: tachar lo comprado («ya tengo los huevos», «compré la leche»).
 - generar: pide un menú nuevo para esta semana o la que viene. Si nombra platos que quiere esa semana, en fijos.
 - deshacer: «deshaz», «uy no, deja lo de antes», «vuelve a como estaba».
-- lola: TODO lo demás, y siempre que dudes: configurar la casa (quién come, horarios, gustos, trastos), alergias, peso o altura, recetas (ver cómo se hace una, crearla, buscarlas), fotos, recordatorios, compartir, preguntas de cocina o de «por qué», saludos y charla, varias peticiones mezcladas, y cualquier respuesta a una pregunta de Lola que no sea elegir un plato o un día.
+- receta: quiere ver CÓMO SE HACE un plato, entero («¿cómo se hace la tortilla del miércoles?», «pásame la receta de la cena de hoy»). El plato por su nombre en plato, o su hueco en dia y comida. Una pregunta concreta sobre el plato («¿lleva horno?», «¿se puede congelar?») es lola.
+- calorias: cuántas calorías tiene un plato («¿cuántas calorías tiene la cena de hoy?», «¿engorda mucho la lasaña?»). plato o dia y comida, como en receta. Si pregunta si le conviene por salud, es lola.
+- falta: qué le falta de la despensa para hacer un plato («¿qué me falta para las lentejas?», «¿tengo todo para la cena de mañana?»). plato o dia y comida.
+- despensa: ver lo que hay en la despensa, la nevera o el congelador («¿qué tengo en la despensa?», «¿qué queda en el congelador?»). La lista de la COMPRA es consulta con que=compra; tirarla, vaciarla o borrarla («tiras lista compra») es lola.
+- ausencia: alguien NO COME EN CASA una comida concreta, o no se cocina ese día («hoy cenamos fuera», «el jueves no como en casa», «q el jueves comida no xq no tengo tiempo, cámbialo»: eso NO es cambiar el plato). dia, comida y para quién (vacío = toda la casa). Si es todas las semanas («los jueves comemos fuera»), es lola. Si VIENE alguien de fuera («el miércoles viene mi suegra a cenar»), no es ausencia: es lola (invitados).
+- lola: TODO lo demás, y siempre que dudes: configurar la casa (quién come, horarios, gustos, trastos), alergias, peso o altura, recetas (crearla, buscarlas; VER cómo se hace una es receta), fotos, recordatorios, compartir, preguntas de cocina o de «por qué», saludos y charla, varias peticiones mezcladas, y cualquier respuesta a una pregunta de Lola que no sea elegir un plato o un día.
 
 Contexto: si Lola acaba de preguntar algo («¿para qué día?», «¿comida o cena?») y el mensaje es la respuesta, completa con él la petición que estaba en curso (la que dijo el usuario justo antes) (p. ej. Lola preguntó el día de una recomendación y dicen «para hoy» → recomendar con dia=hoy). No confundas esa respuesta con una consulta del menú.
 
 Para saber de QUÉ COMIDA hablan (campos comida y comidas; el plato que quieren poner sigue yendo en receta, p. ej. «el viernes cenamos pizza» → comida Cena, receta pizza): ${CATALOGO.map((c) => `${c.id} = ${c.sinonimos.join(", ")}`).join("; ")}. «¿Qué comemos hoy?» o «¿qué hay mañana?» son el día entero: sin comidas.
 
-Rellena SIEMPRE los campos que el modo necesita: que y cuando (consulta del menú), productos (compra), semana (generar), dia y comida (cambiar). Los días relativos déjalos como los dicen («hoy», «mañana»).
+Rellena SIEMPRE los campos que el modo necesita: que y cuando (consulta del menú), productos (compra), semana (generar), dia (cambiar; la comida si la dicen), plato o dia (receta, calorias, falta). Los días relativos déjalos como los dicen («hoy», «mañana»).
 
-confianza: 0,9 o más solo si el modo es inequívoco y tienes los datos que ese modo necesita. En cambiar, receta es opcional: que no la digan no baja la confianza. Si falta algo obligatorio o dudas entre dos modos, baja de 0,8 o usa lola.`;
+confianza: 0,9 o más solo si el modo es inequívoco y tienes los datos que ese modo necesita. En cambiar, receta y comida son opcionales (la comida se pregunta después): que no las digan no baja la confianza. Si falta algo obligatorio o dudas entre dos modos, baja de 0,8 o usa lola.`;
+// Sin los ejemplos de api/_bot/routerEjemplos.js a propósito: en el examen
+// cruzado no mejoraban el acierto (96/115 frente a 100/115) y, con 5.000 tokens
+// de instrucciones, el enrutador pasaba de los 2 s de plazo en 8 de 170
+// llamadas (antes, ninguna). Se quedan como banco de pruebas.
 
 let cliente = null;
 const anthropic = () => (cliente ??= new Anthropic());
@@ -105,7 +118,7 @@ const anthropic = () => (cliente ??= new Anthropic());
  * @param {{ texto: string, contexto: { ahora: string, personas?: string[], grupos?: string[], hayMenu?: boolean, ultimaDeLola?: string|null, anteriorDelUsuario?: string|null } }} p
  * @returns {Promise<{ modo: string, confianza: number, datos: object, ms: number, error?: string }>}
  */
-export async function clasificar({ texto, contexto }, { signal } = {}) {
+export async function clasificar({ texto, contexto }, { signal, reglas = REGLAS } = {}) {
   const t0 = Date.now();
   const ctx = [
     `Ahora en España: ${contexto.ahora}.`,
@@ -120,7 +133,8 @@ export async function clasificar({ texto, contexto }, { signal } = {}) {
       model: MODELO_ROUTER,
       max_tokens: 500,
       temperature: 0,
-      system: [{ type: "text", text: REGLAS, cache_control: { type: "ephemeral" } }],
+      // `reglas` solo cambia en las pruebas (scripts/router-ejemplos-examen.mjs).
+      system: [{ type: "text", text: reglas, cache_control: { type: "ephemeral" } }],
       tools: [{ name: "enrutar", description: "Decide el modo del mensaje y saca sus datos.", input_schema: ESQUEMA }],
       tool_choice: { type: "tool", name: "enrutar" },
       messages: [{ role: "user", content: `${ctx}\n\nMensaje: «${texto}»` }],
@@ -177,6 +191,14 @@ export const POLITICA = {
   generar: { riesgo: "escribe la semana entera", umbral: 0.9, enGrupo: false, condicionGrupo: null },
   // ¿El cambio de quién? En grupo, Lola.
   deshacer: { riesgo: "escribe", umbral: 0.9, enGrupo: false, condicionGrupo: null },
+  // Plantillas de lectura de un plato o de la despensa (api/_bot/plato.js).
+  receta: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null },
+  calorias: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null },
+  falta: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null },
+  despensa: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null },
+  // «Hoy cenamos fuera»: escribe (una regla de un día y el hueco vaciado), con
+  // deshacer. En grupo, ¿quién no viene? Lola.
+  ausencia: { riesgo: "escribe, fácil de deshacer", umbral: 0.9, enGrupo: false, condicionGrupo: null },
   // Paso 0 (elegir una de las opciones que acaba de dar Lola): no pasa por el
   // enrutador, pero se rige por esta misma fila (¿quién eligió?).
   eleccion: { riesgo: "escribe", umbral: null, enGrupo: false, condicionGrupo: null },
@@ -193,9 +215,13 @@ export function permitidoEn(modo, { esGrupo = false, variosAutores = false } = {
 
 export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false } = {}) {
   const p = d ? POLITICA[d.modo] : null;
-  if (!p || p.umbral == null || d.confianza < p.umbral) return false;
+  const x = d?.datos ?? {};
+  // Un cambio sin comida no escribe nada todavía: primero pregunta «¿comida o
+  // cena?». Hasta la respuesta es una lectura, y se le pide lo que a una.
+  const preguntaPrimero = (d?.modo === "cambiar" || d?.modo === "ausencia") && !x.comida;
+  const umbral = preguntaPrimero ? POLITICA.consulta.umbral : p?.umbral;
+  if (!p || umbral == null || d.confianza < umbral) return false;
   if (!permitidoEn(d.modo, { esGrupo, variosAutores })) return false;
-  const x = d.datos ?? {};
   // Dos peticiones en un mensaje: la vía rápida haría una y perdería la otra.
   if (x.varias) return false;
   // Consulta: la compra, o el menú con días que se puedan resolver.
@@ -208,7 +234,11 @@ export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false } = {}
   }
   // Sin plato ni «otra cosa», la vía rápida no elige: ofrece tres opciones
   // (turno.js). Antes ponía una al azar (la pizza que salió fettuccine).
-  if (d.modo === "cambiar") return Boolean(x.dia && x.comida);
+  // Sin comida ya no va a Lola: la vía rápida la pregunta con botones (plato.js).
+  if (d.modo === "cambiar") return Boolean(x.dia);
+  if (d.modo === "receta" || d.modo === "calorias" || d.modo === "falta") return Boolean(x.plato || x.dia);
+  // «Cenamos fuera» sin día es hoy; sin comida, se pregunta.
+  if (d.modo === "ausencia") return Boolean(x.dia || x.comida);
   if (d.modo === "compra_anadir" || d.modo === "compra_marcar") return (x.productos ?? []).length > 0;
   // Con platos pedidos, Lola: cuenta dónde han caído y qué no ha cabido. No
   // depende de la confianza, que con estas frases baila entre 0,85 y 0,95.

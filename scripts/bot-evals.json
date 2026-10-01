@@ -247,6 +247,10 @@
     },
     {
       "nombre": "matiz: la familia desmiente una suposición",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana, Pablo, Leo: ninguna.\nCASA\n- Ana 38 · Pablo 40 · Leo 6.\n- Todos comen lo mismo.\n- Leo: cole L–V a mediodía.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.\n- Horno, microondas.\n- Supuesto: Cuánto de cada cosa: pescado ninos (1).",
+        "delDia": "jue 1 oct (2026-10-01)\nMENÚ 28 sep–4 oct (no hay semana siguiente)\n- Hoy: crema de calabaza + pollo al horno con patatas; cena tortilla de calabacín."
+      },
       "historia": [
         {
           "role": "user",

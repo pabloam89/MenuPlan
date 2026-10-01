@@ -20,6 +20,8 @@ import { respuestaCompra, respuestaMenu, rangoDeFechas } from "./rapido.js";
 import { fechasDe } from "./cuando.js";
 import { filtrosTrasGenerar, filtrosTrasCambiar } from "./pintar.js";
 import { rastro } from "./embudo.js";
+import { verReceta, calorias, queFalta, verDespensaRapido, huecoSinComida, preguntaComida } from "./plato.js";
+import { apuntarAusencia } from "./menu.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -188,13 +190,39 @@ export async function deshacerRapido(householdId) {
 /** El modo del enrutador → su vía rápida. */
 /** @param {{ autor?: string|null }} [quien]  en un chat de grupo, quién lo pidió */
 export async function viaRapida(decision, householdId, { autor = null } = {}) {
-  const x = decision.datos ?? {};
+  let x = decision.datos ?? {};
   switch (decision.modo) {
     case "consulta": return consultar(householdId, x);
     case "recomendar": return recomendar(householdId, x);
-    // Sin decir qué plato (ni «lo que sea»): no se elige por ellos, se ofrecen
-    // tres opciones con «Elige tú», como haría Lola.
-    case "cambiar": return x.receta || x.cualquiera ? cambiar(householdId, x) : recomendar(householdId, x);
+    case "cambiar": {
+      // Sin decir si es comida o cena: si ese día solo hay una, es esa; si hay
+      // las dos, se pregunta con botones (Cena primero) en vez de ir a Lola.
+      if (!x.comida) {
+        const h = await huecoSinComida(householdId, "cambiar", x);
+        if (!h) return null;
+        if (h.pregunta) return h.pregunta;
+        x = { ...x, comida: h.comida };
+      }
+      // Sin decir qué plato (ni «lo que sea»): no se elige por ellos, se ofrecen
+      // tres opciones con «Elige tú», como haría Lola.
+      return x.receta || x.cualquiera ? cambiar(householdId, x) : recomendar(householdId, x);
+    }
+    case "ausencia": {
+      // «Hoy cenamos fuera»: regla de un día + el hueco del menú vaciado, con
+      // deshacer (menu.js apuntarAusencia). Sin comida, se pregunta.
+      if (!x.comida) {
+        const h = await huecoSinComida(householdId, "ausencia", x);
+        if (h?.comida) x = { ...x, comida: h.comida };
+        else return h?.pregunta ?? preguntaComida("ausencia", x, { dia: x.dia ?? "hoy" });
+      }
+      const r = await apuntarAusencia(householdId, { dia: x.dia ?? "hoy", comida: x.comida, quienes: x.para ? [x.para] : null, autor });
+      if (r.error) return null; // quién, qué día o qué comida no está claro: Lola
+      return { texto: r.texto, fotos: [], deshacible: true, ir: null, pintar: r.pintar };
+    }
+    case "receta": return verReceta(householdId, x);
+    case "calorias": return calorias(householdId, x);
+    case "falta": return queFalta(householdId, x);
+    case "despensa": return verDespensaRapido(householdId);
     case "compra_anadir": return apuntar(householdId, x, autor);
     case "compra_marcar": return tachar(householdId, x, autor);
     case "generar": return generar(householdId, x);

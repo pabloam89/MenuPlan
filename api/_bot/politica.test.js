@@ -67,7 +67,10 @@ describe("la política del enrutador, por modo", () => {
 
   it("los datos que pide cada modo se siguen exigiendo", () => {
     expect(vaPorLaRapida({ modo: "consulta", confianza: 0.95, datos: { que: "menu", cuando: "dia" } }, PRIVADO)).toBe(false);
-    expect(vaPorLaRapida({ modo: "cambiar", confianza: 0.95, datos: { dia: "jueves" } }, PRIVADO)).toBe(false);
+    // Desde el 1 oct 2026 el día basta: si falta comida o cena, la vía rápida
+    // lo pregunta con botones (api/_bot/plato.js). Sin día, sigue yendo a Lola.
+    expect(vaPorLaRapida({ modo: "cambiar", confianza: 0.95, datos: { dia: "jueves" } }, PRIVADO)).toBe(true);
+    expect(vaPorLaRapida({ modo: "cambiar", confianza: 0.95, datos: { comida: "Cena" } }, PRIVADO)).toBe(false);
     expect(vaPorLaRapida({ modo: "compra_anadir", confianza: 0.95, datos: { productos: [] } }, PRIVADO)).toBe(false);
   });
 });

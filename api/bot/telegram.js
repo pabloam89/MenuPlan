@@ -35,6 +35,7 @@ import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe } from "../_bot/turno.js";
+import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
 import { ahoraEnMadrid } from "../_bot/recordatorios.js";
 import { fueraDeLimite, contarUso } from "../_bot/uso.js";
 import {
@@ -362,6 +363,30 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   // (scripts/router-evals.mjs, 84/92 frente a 135/138).
   const [ultima, contexto] = await Promise.all([ultimaDeLola(chatId), contextoDe(householdId)]);
   marca("contexto");
+
+  // 0. Estado: contestar a una pregunta de la vía rápida.
+  //    · «¿Comida o cena?» (api/_bot/plato.js): con la respuesta se hace lo que
+  //      estaba pedido, sin pasar por el enrutador.
+  //    · «¿Lo apunto en la compra?» tras «qué me falta»: «Apúntalo» apunta eso.
+  const prop = !sombra ? ultima?.propuesta : null;
+  if (prop?.tipo === "aclarar" && permitidoEn(prop.modo, chatDe)) {
+    const comida = comidaElegida(texto);
+    if (comida) {
+      const r = await viaRapida({ modo: prop.modo, datos: { ...prop.datos, comida } }, householdId, { autor }).catch(() => null);
+      marca("aclaración aplicada");
+      if (r) {
+        await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
+        return apuntarRuta(householdId, { modo: `aclarar:${prop.modo}`, rapida: true, ms: Date.now() - t0 });
+      }
+    }
+  }
+  if (prop?.tipo === "apuntar" && permitidoEn("compra_anadir", chatDe) && quiereApuntar(texto)) {
+    const r = await viaRapida({ modo: "compra_anadir", datos: { productos: prop.productos ?? [] } }, householdId, { autor }).catch(() => null);
+    if (r) {
+      await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
+      return apuntarRuta(householdId, { modo: "apuntar_falta", rapida: true, ms: Date.now() - t0 });
+    }
+  }
 
   // 0. Estado: elegir una de las opciones que acaba de dar.
   if (!sombra && permitidoEn("eleccion", chatDe) && ultima?.propuesta) {

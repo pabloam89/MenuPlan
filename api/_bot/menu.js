@@ -18,7 +18,7 @@
 import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 import { rastro } from "./embudo.js";
-import { IDS_COMIDAS, comidaDe } from "../../src/lib/comidas.js";
+import { IDS_COMIDAS, COMIDAS_PRINCIPALES, comidaDe } from "../../src/lib/comidas.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 
 let motorCargado = null;
@@ -575,7 +575,13 @@ function horaMadrid(ahora = new Date()) {
  * a quien solo quería ideas, y con la pregunta en medio perdía el hilo. Pura.
  */
 export function cuandoPorDefecto({ dia = null, franja = null } = {}, hora) {
-  const f = franja ?? (hora < 16 ? "Comida" : "Cena");
+  // Para OTRO día que no es hoy, la hora de ahora no dice nada: «ideas para el
+  // jueves» a las 12:00 no es la comida del jueves. Lo normal es la cena
+  // (Pablo, 1 oct 2026: la cena es la comida familiar; a mediodía los niños
+  // suelen estar en el cole).
+  const otroDia = dia != null && !/^(hoy|esta noche)$/i.test(String(dia).trim());
+  const [COMIDA, CENA] = COMIDAS_PRINCIPALES;
+  const f = franja ?? (otroDia || hora >= 16 ? CENA : COMIDA);
   const pasada = (f === "Comida" && hora >= 16) || (f === "Cena" && hora >= 22);
   return { dia: dia ?? (pasada ? "mañana" : "hoy"), franja: f };
 }
