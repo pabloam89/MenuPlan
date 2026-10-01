@@ -41,6 +41,29 @@ describe("mensajeVivo: el mensaje que se va escribiendo", () => {
     expect(ediciones.at(-1).cuerpo.text).not.toContain("[[");
     expect(vivo.id()).toBe(77);
   });
+  it("un aviso de espera lo sustituye lo que escribe Lola, en el mismo mensaje", async () => {
+    const vivo = mensajeVivo("123", {});
+    vivo.escribir("Voy, te preparo el menú, dame unos segundos", { aviso: true });
+    await dormir(50);
+    expect(vivo.provisional()).toBe(true);
+    vivo.escribir("¡Menú listo! Te he puesto el salmón el jueves");
+    await dormir(1300);
+    await vivo.parar();
+    expect(llamadas.map((l) => l.metodo)).toEqual(["sendMessage", "editMessageText"]);
+    expect(llamadas[1].cuerpo.text).toMatch(/^¡Menú listo!/);
+    expect(vivo.provisional()).toBe(false);
+  });
+  it("si tras el aviso llegan fotos, el aviso se borra y el álbum sale antes del texto", async () => {
+    const vivo = mensajeVivo("123", {});
+    vivo.escribir("Un momento, que te busco unas recetas", { aviso: true });
+    await dormir(50);
+    const fotos = [{ url: "https://x/1.jpg", pie: "1. Crema" }, { url: "https://x/2.jpg", pie: "2. Sopa" }];
+    vivo.escribir("Mira, tres ideas de cuchara para la cena", { fotos });
+    await dormir(1300);
+    await vivo.parar();
+    expect(llamadas.map((l) => l.metodo)).toEqual(["sendMessage", "deleteMessage", "sendMediaGroup", "sendMessage"]);
+    expect(llamadas[3].cuerpo.text).toMatch(/^Mira, tres ideas/);
+  });
   it("tras parar, no escribe más", async () => {
     const vivo = mensajeVivo("123", {});
     await vivo.parar();

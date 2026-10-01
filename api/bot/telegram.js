@@ -477,6 +477,8 @@ function medida(medir, d, t0, primer = null) {
       herramientas: (l.herramientas ?? []).map((h) => [h.n, h.ms]),
       // BOT_PISTA: qué se adelantó, cuánto tardó y si hubo que cortarla.
       pista: l.pista ?? null,
+      // BOT_AVISO_LENTO: la herramienta lenta cuyo aviso salió (primer_ms es entonces el del aviso).
+      aviso: l.aviso ?? null,
     } : null,
   };
 }
@@ -596,6 +598,9 @@ async function entregar({ chatId, householdId, esGrupo, base, from, responderA, 
     if (enlaces) botones.push(...botonesCompartir(enlaces, r.compartir.tipo));
   }
   const eco = oido ? `🎙️ <i>«${escaparHtml(oido)}»</i>\n\n` : "";
+  // Si en pantalla solo quedó un aviso de espera y hay fotos, fuera el aviso:
+  // así el álbum sale antes del texto, como en un mensaje nuevo.
+  if (vivo?.provisional() && fotosDelTurno(r.fotos).length) await vivo.quitarAviso();
   if (vivo?.id()) {
     // Ya estaba en pantalla escribiéndose: se completa ahí, con su formato y
     // sus botones. (Las fotos, si las había, salieron antes que el texto.)
@@ -639,6 +644,11 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
   let cadena = Promise.resolve();
   let parado = false;
   let fotosEnviadas = false;
+  // Lo que hay en pantalla es un aviso de espera (agente.js AVISO_LENTO), no
+  // lo que ha escrito Lola: si después llegan fotos, el aviso se borra y sale
+  // el álbum antes del texto, como siempre (un álbum no se mete delante de un
+  // mensaje que ya existe).
+  let provisional = false;
 
   const limpiar = (t) => String(t ?? "")
     .replace(/\[\[[^\]\n]*\]\]/g, "")
@@ -646,9 +656,17 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
     .replace(/<[^>]*>?/g, "")
     .trim();
 
-  const volcar = (texto, fotos) => {
+  const quitarAviso = async () => {
+    if (!id || !provisional) return;
+    await llamar("deleteMessage", { chat_id: chatId, message_id: id }).catch(() => {});
+    id = null;
+    provisional = false;
+  };
+
+  const volcar = (texto, fotos, aviso = false) => {
     cadena = cadena.then(async () => {
       if (parado || texto === ultimo) return;
+      if (provisional && !fotosEnviadas && fotosDelTurno(fotos ?? []).length) await quitarAviso();
       if (!id) {
         const fs = fotosDelTurno(fotos ?? []);
         if (fs.length && !fotosEnviadas) { fotosEnviadas = true; await enviarFotos(chatId, fs, { responderA }); }
@@ -659,20 +677,28 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
       }
       ultimo = texto;
       ultimaVez = Date.now();
+      provisional = aviso;
     });
     return cadena;
   };
 
   return {
     id: () => id,
-    /** @param {string} parcial  lo escrito hasta ahora en esta vuelta del modelo */
-    escribir(parcial, { fotos } = {}) {
+    /** ¿Lo que hay en pantalla es solo un aviso de espera? */
+    provisional: () => provisional,
+    /** Borra el aviso de espera (si es lo que hay), para empezar de nuevo con fotos. */
+    quitarAviso: () => (cadena = cadena.then(quitarAviso)),
+    /**
+     * @param {string} parcial  lo escrito hasta ahora en esta vuelta del modelo
+     * @param {{ fotos?: object[], aviso?: boolean }} [extra]  aviso: es un aviso de espera
+     */
+    escribir(parcial, { fotos, aviso = false } = {}) {
       if (parado) return;
       const texto = limpiar(parcial);
       if (texto.length < MINIMO) return;
       clearTimeout(pendiente);
       const espera = Math.max(0, CADA_MS - (Date.now() - ultimaVez));
-      pendiente = setTimeout(() => volcar(texto, fotos), id ? espera : 0);
+      pendiente = setTimeout(() => volcar(texto, fotos, aviso), id ? espera : 0);
     },
     async parar() {
       parado = true;

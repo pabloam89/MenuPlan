@@ -848,7 +848,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     return ejecutar({
       historia, entrada, tools, adjunto, signal: sig, ficha, progreso,
       pista: adelanto ? textoPista(d, adelanto) : null,
-      alEscribir: alEscribir ? (parcial) => alEscribir(parcial, { fotos: chat.fotos }) : null,
+      alEscribir: alEscribir ? (parcial, extra) => alEscribir(parcial, { fotos: chat.fotos, ...extra }) : null,
       // Lo que juntó el modelo que se cayó no es de esta respuesta (lo
       // adelantado sí: el de reserva lo recibe igual en su pista).
       alReintentar: () => { limpiarTurno(); sumarAdelanto(); },
@@ -858,7 +858,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     let r;
     ({ dicho, uso, corregido, ...r } = await conPista({ pista, lanzar, progreso, signal }));
     // La medida del turno de Lola, para bot_route (api/bot/telegram.js).
-    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista };
+    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null };
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
@@ -915,6 +915,24 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
 // escritura, se le avisa y repite la vuelta una vez.
 const DICE_QUE_GUARDO = /✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
 export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(String(texto ?? ""));
+// Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
+// mientras corren, la persona ve al momento una frase de Lola en el mensaje
+// que se va escribiendo, y lo que Lola escriba después la sustituye en ese
+// mismo mensaje (api/bot/telegram.js mensajeVivo). Medidas de bot_route:
+// generar_menu 1,8-3 s, buscar_recetas hasta 3,3 s, y preparar_receta hace
+// su propia llamada a un modelo. Antes, en esos segundos solo se veía
+// «escribiendo…» y el primer texto llegaba a los 5-6 s. Va en código y no en
+// las instrucciones: así sale siempre, sin gastar tokens ni otra vuelta.
+export const AVISO_LENTO = {
+  // Sin «…» al final: el mensaje a medio escribir ya lleva el suyo.
+  generar_menu: "Voy, te preparo el menú, dame unos segundos",
+  // Con fotos, no: el álbum tiene que ir antes del texto y el aviso habría que
+  // borrarlo y volver a mandar (se ve un parpadeo), para una búsqueda que con
+  // fotos suele tardar menos de medio segundo.
+  buscar_recetas: (args) => (args?.conFotos ? null : "Un momento, que te busco unas recetas"),
+  preparar_receta: "Dame un momento, que te paso la receta a limpio",
+};
+const avisoLento = () => process.env.BOT_AVISO_LENTO !== "off";
 const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En tu respuesta dices que lo has apuntado, guardado o hecho, pero en este turno no has llamado a ninguna herramienta que guarde: no se ha guardado nada. Si había que guardarlo, llama ahora a la herramienta que toca y luego contesta. Si no, contesta otra vez sin decir que está hecho. Contesta a la persona directamente, sin mencionar este aviso.";
 
 /**
@@ -930,13 +948,22 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
   let escrituras = 0;
   // Cuánto tarda cada herramienta, para la medida del turno (bot_route).
   const herramientas = [];
+  // Lo que lleva escrito la vuelta en curso (se vacía al acabar cada
+  // herramienta: lo siguiente que escriba es otra vuelta, desde cero). Si una
+  // herramienta lenta arranca sin nada en pantalla, sale su aviso (AVISO_LENTO).
+  let enPantalla = "";
+  const avisos = [];
+  const escribir = alEscribir ? (parcial, extra) => { enPantalla = parcial; alEscribir(parcial, extra); } : null;
   const vigiladas = tools.map((t) => ({
     ...t,
     run: async (...a) => {
       if (!SOLO_LECTURA.has(t.name)) escrituras++;
       if (progreso) progreso.herramientas++;
+      const avisoDe = escribir && avisoLento() ? AVISO_LENTO[t.name] : null;
+      const aviso = typeof avisoDe === "function" ? avisoDe(a[0]) : avisoDe;
+      if (aviso && enPantalla.trim().length < 20) { escribir(aviso, { aviso: true }); avisos.push(t.name); }
       const t0 = Date.now();
-      try { return await t.run(...a); } finally { herramientas.push({ n: t.name, ms: Date.now() - t0 }); }
+      try { return await t.run(...a); } finally { herramientas.push({ n: t.name, ms: Date.now() - t0 }); enPantalla = ""; }
     },
   }));
   let ultimoError = null;
@@ -945,7 +972,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     try {
       if (i > 0) alReintentar?.();
       const comun = {
-        tools: vigiladas, alEscribir, modelo, ficha, progreso,
+        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso,
         signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
@@ -962,7 +989,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
         r = { dicho: otra.dicho, uso, corregido: true, vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera };
       }
       if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
-      return { ...r, modelo, herramientas, planB: i > 0 };
+      return { ...r, modelo, herramientas, planB: i > 0, avisos };
     } catch (err) {
       ultimoError = err;
       // Cancelado desde fuera (el turno era de la vía rápida): nada que hacer.
