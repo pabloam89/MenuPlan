@@ -126,7 +126,7 @@ export async function clasificar({ texto, contexto }, { signal } = {}) {
       messages: [{ role: "user", content: `${ctx}\n\nMensaje: «${texto}»` }],
       // Corto y sin reintentos: si Haiku tarda o falla, contesta Lola (que ya
       // ha arrancado) y no se pierde nada; reintentar solo alargaría la espera.
-    }, { signal, timeout: 5000, maxRetries: 0 });
+    }, { signal, timeout: PLAZO_ROUTER_MS, maxRetries: 0 });
     const bloque = (r.content ?? []).find((b) => b.type === "tool_use");
     const x = bloque?.input ?? {};
     const modo = MODOS.includes(x.modo) ? x.modo : "lola";
@@ -162,6 +162,11 @@ export async function clasificar({ texto, contexto }, { signal } = {}) {
  * umbrales son un punto de partida: se calibran con scripts/router-evals.mjs
  * y el modo sombra (BOT_ROUTER_GRUPOS).
  */
+// Lo que se espera al enrutador. Lola arranca a la vez pero no entrega hasta
+// que él decide: con 5 s, un Haiku colgado retenía una respuesta ya hecha.
+// Mediana ~1,1 s y p90 ~1,6 s (router-evals): con 2 s, lo que tarde más va a Lola.
+export const PLAZO_ROUTER_MS = 2000;
+
 export const POLITICA = {
   consulta: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null },
   recomendar: { riesgo: "solo lee, ofrece opciones", umbral: 0.8, enGrupo: true, condicionGrupo: "una_persona" },

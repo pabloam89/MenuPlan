@@ -998,6 +998,60 @@
         }
       },
       "sinTexto": "confirm|claramente"
+    },
+    {
+      "nombre": "salud: «estoy embarazada» → lo guarda ya, con eco y [[No es así]]",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Pablo, Marta, Leo: ninguna alergia.\n- Marta: lactancia, sin fecha (aplica a todo «Mayores»).\nCASA\n- Pablo 39 · Marta 37 · Leo 7.\n- Todos comen lo mismo.\nCOCINA\n- Comida y cena: plato único.",
+        "delDia": "jue 1 oct (2026-10-01)\nMENÚ 28 sep–4 oct"
+      },
+      "entrada": "[Marta]: estoy embarazada",
+      "llama": [
+        "ajustar_salud"
+      ],
+      "args": {
+        "ajustar_salud": {
+          "persona": "Marta",
+          "estados": "embarazo",
+          "confirmado": true
+        }
+      },
+      "noLlama": [
+        "ajustar_alergias"
+      ],
+      "texto": "[[No es así]]"
+    },
+    {
+      "nombre": "salud: intolerancia a la lactosa → ajustar_salud, no es alergia a la leche",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Pablo, Marta, Leo: ninguna alergia.\n- Marta: lactancia, sin fecha (aplica a todo «Mayores»).\nCASA\n- Pablo 39 · Marta 37 · Leo 7.\n- Todos comen lo mismo.\nCOCINA\n- Comida y cena: plato único.",
+        "delDia": "jue 1 oct (2026-10-01)\nMENÚ 28 sep–4 oct"
+      },
+      "entrada": "Leo es intolerante a la lactosa",
+      "llama": [
+        "ajustar_salud"
+      ],
+      "args": {
+        "ajustar_salud": {
+          "persona": "Leo",
+          "intolerancias": "lactosa",
+          "confirmado": true
+        }
+      },
+      "noLlamaCon": {
+        "ajustar_alergias": {
+          "alergenos": "leche"
+        }
+      }
+    },
+    {
+      "nombre": "salud: «ya no doy el pecho» (lo dice Marta) → quita la lactancia con eco, o pregunta; siempre nombrando a Marta y la lactancia",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Pablo, Marta, Leo: ninguna alergia.\n- Marta: lactancia, sin fecha (aplica a todo «Mayores»).\nCASA\n- Pablo 39 · Marta 37 · Leo 7.\n- Todos comen lo mismo.\nCOCINA\n- Comida y cena: plato único.",
+        "delDia": "jue 1 oct (2026-10-01)\nMENÚ 28 sep–4 oct"
+      },
+      "entrada": "[Marta]: ya no doy el pecho",
+      "texto": "Marta[\\s\\S]*(lactancia|pecho)|(lactancia|pecho)[\\s\\S]*Marta"
     }
   ]
 }

@@ -23,6 +23,7 @@ process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
 const { ejecutar, herramientas, MODELO, MODELO_RESERVA } = await import("../api/_bot/agente.js");
+const { supervisar } = await import("../api/_bot/supervisor.js");
 // Un solo modelo por pasada: sin esto, un fallo de la API caería al plan B en
 // silencio y la medida mezclaría dos modelos.
 const RESERVA = process.argv.includes("--reserva");
@@ -104,9 +105,16 @@ const tiempos = [];
 for (const caso of elegidos) {
   const t0 = Date.now();
   const llamadas = [];
+  // Lo que escribió la persona y lo último que dijo Lola: el supervisor de lo
+  // delicado (api/_bot/supervisor.js) los mira igual que en el bot de verdad.
+  // Sin esto, al poner herramientas de mentira, el supervisor no actuaba y
+  // las pruebas de alergias no medían lo que pasa en Telegram.
+  const anterior = [...(caso.historia ?? [])].reverse().find((h) => h.role === "assistant")?.content ?? "";
   const tools = reales.map((t) => ({
     ...t,
     run: (args) => {
+      const freno = supervisar(t.name, args, caso.entrada, { anterior });
+      if (freno) { llamadas.push({ nombre: `${t.name} (frenada)`, args }); return freno; }
       llamadas.push({ nombre: t.name, args });
       const r = RESPUESTAS[t.name];
       return typeof r === "function" ? r(args) : r ?? `Hecho (${t.name}).`;
@@ -150,7 +158,7 @@ for (const caso of elegidos) {
   tiempos.push(s);
   console.log(`${fallos.length ? "✗" : "✓"} ${caso.nombre}  [${nombres.join(", ") || "sin herramientas"}]  ${s.toFixed(1)} s`);
   for (const f of fallos) console.log(`    ${f}`);
-  if (fallos.length && process.env.VERBOSO) console.log(`    respuesta: ${dicho.replace(/\n/g, " ⏎ ").slice(0, 400)}`);
+  if ((fallos.length || process.env.VERBOSO === "todo") && process.env.VERBOSO) console.log(`    respuesta: ${dicho.replace(/\n/g, " ⏎ ").slice(0, 400)}`);
 }
 const orden = [...tiempos].sort((a, b) => a - b);
 const mediana = orden.length ? orden[Math.floor(orden.length / 2)] : 0;

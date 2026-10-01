@@ -510,6 +510,52 @@ export async function ajustarAlergias(householdId, { persona, alergenos, quitar 
   });
 }
 
+// Lo que no es uno de los 14 alérgenos pero quita recetas igual: las
+// intolerancias y los estados (src/lib/intolerances.js). Se guardan donde los
+// guarda la app (member.intolerances, member.dietaryStates) y el motor ya los lee.
+export const INTOLERANCIAS = ["lactosa_fina", "fructosa", "sorbitol"];
+export const ESTADOS = ["embarazo", "lactancia"];
+const ETIQUETA_SALUD = { lactosa_fina: "intolerancia a la lactosa", fructosa: "intolerancia a la fructosa", sorbitol: "intolerancia al sorbitol", embarazo: "embarazo", lactancia: "lactancia" };
+
+/**
+ * Intolerancias y estados de una persona, como las alergias: con confirmado y
+ * eco; quitar pasa además por el supervisor. `hasta` (AAAA-MM-DD), solo para
+ * los estados: la ficha lo enseña y Lola pregunta al pasar la fecha. Mientras
+ * nadie lo quite, el estado sigue aplicando (de más es el lado seguro).
+ */
+export async function ajustarSalud(householdId, { persona, intolerancias = [], estados = [], quitar = false, hasta, confirmado }) {
+  if (confirmado !== true) {
+    return "No se guarda sin confirmación explícita. Repite lo que vas a guardar y pregúntale si es correcto; solo con su «sí» llama otra vez con confirmado=true.";
+  }
+  const ints = (intolerancias ?? []).filter((x) => INTOLERANCIAS.includes(x));
+  const ests = (estados ?? []).filter((x) => ESTADOS.includes(x));
+  if (!ints.length && !ests.length) return `No reconozco nada de eso. Intolerancias: ${INTOLERANCIAS.join(", ")}; estados: ${ESTADOS.join(", ")}. El gluten, la leche y el resto de alérgenos van con ajustar_alergias.`;
+  if (hasta && !/^\d{4}-\d{2}-\d{2}$/.test(hasta)) return "La fecha «hasta» va en AAAA-MM-DD (la de hoy está en la primera línea del día de la ficha).";
+  return conData(householdId, (data) => {
+    const x = personaPorNombre(data, persona);
+    if (!x) return { texto: `No encuentro a ${persona} en la casa.` };
+    const sin = (lista, quitar_) => (lista ?? []).filter((id) => !quitar_.includes(id));
+    const meta = { ...(x.dietaryStatesMeta ?? {}) };
+    for (const id of ests) {
+      if (quitar || !hasta) delete meta[id];
+      else meta[id] = { hasta };
+    }
+    const cambiado = {
+      ...x,
+      intolerances: quitar ? sin(x.intolerances, ints) : [...new Set([...(x.intolerances ?? []), ...ints])],
+      dietaryStates: quitar ? sin(x.dietaryStates, ests) : [...new Set([...(x.dietaryStates ?? []), ...ests])],
+      dietaryStatesMeta: meta,
+    };
+    if (!Object.keys(meta).length) delete cambiado.dietaryStatesMeta;
+    const members = (data.members ?? []).map((p) => (p.id === x.id ? cambiado : p));
+    const que = [...ints, ...ests].map((id) => ETIQUETA_SALUD[id]).join(", ");
+    return {
+      data: { ...data, members },
+      texto: `${quitar ? "Quitado" : "Guardado"} para ${x.name}: ${que}${!quitar && hasta && ests.length ? ` (hasta el ${hasta})` : ""}. Cuenta en el próximo menú que generes.`,
+    };
+  });
+}
+
 /**
  * Una casa creada desde el bot nace vacía (`household_state.state = {}`). Se
  * siembran los mínimos que la app tendría por defecto, para que el agente y el

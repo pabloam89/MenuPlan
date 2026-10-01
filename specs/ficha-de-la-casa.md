@@ -1,6 +1,19 @@
 # Ficha de la casa y analista nocturno
 
-Diseño del 1 oct 2026. Sale de dos agentes (uno propuso y otro lo atacó con el código delante) y de la conversación con Pablo. Es un PLAN: nada de esto está montado todavía, salvo lo que se cita como existente con su fichero.
+Diseño del 1 oct 2026. Sale de dos agentes (uno propuso y otro lo atacó con el código delante) y de la conversación con Pablo.
+
+## Estado (1 oct 2026, staging)
+
+La **ficha** está montada (`api/_bot/ficha.js`, `montarFicha`), con una diferencia con el diseño: no se guarda ya montada. Se monta en cada mensaje desde la casa que `casa.js` recuerda unos segundos, sin el motor, en milisegundos. Los dos bloques van en el `system` con su caché. Lleva, además de lo de abajo:
+- la fecha ISO en la cabecera del día («jue 1 oct (2026-10-01)»);
+- en COCINA, «Reglas:» (las de siempre), «No volver a suponer:» (lo rechazado) y «Tanda:»;
+- «Dicho:» y «Supuesto:» por `matizDe` (lo visto va con lo supuesto) y filtrados por vigencia.
+
+La leyenda está en `conocimiento.md`, «Las marcas de la ficha».
+
+Del apartado 5, hechos: 1 (salvo que `buscar_recetas` marque intolerancias y estados), 2, 3 (`ajustar_salud`; la dieta blanda sigue sin caducidad en el servidor), 4, 5 y 6. Pendientes: el **hilo** (7), la **semana definitiva** (8) y el **analista** (9); la línea PENDIENTE de la ficha solo lleva, de momento, la pregunta de alergias.
+
+Lo que sigue es el diseño tal como se acordó.
 
 ## Por qué
 
