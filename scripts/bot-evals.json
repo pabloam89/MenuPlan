@@ -179,9 +179,56 @@
       ],
       "args": {
         "ajustar_gustos": {
-          "_todo": "coliflor"
+          "_todo": "coliflor",
+          "dicho": true
         }
       }
+    },
+    {
+      "nombre": "matiz: dicho de pasada no se apunta como norma",
+      "entrada": "a los peques no les va mucho el pescado, la verdad, pero bueno",
+      "noLlamaCon": {
+        "ajustar_gustos": {
+          "dicho": true
+        }
+      }
+    },
+    {
+      "nombre": "matiz: un antojo de hoy no es una norma de la casa",
+      "entrada": "hoy no me apetece nada de pescado",
+      "noLlamaCon": {
+        "ajustar_gustos": {
+          "dicho": true
+        }
+      }
+    },
+    {
+      "nombre": "matiz: norma clara con fecha de fin",
+      "entrada": "este mes estoy a dieta: nada de fritos hasta el 31",
+      "llama": [
+        "ajustar_gustos"
+      ],
+      "args": {
+        "ajustar_gustos": {
+          "dicho": true,
+          "hasta": "-31"
+        }
+      }
+    },
+    {
+      "nombre": "matiz: lo supuesto se cuenta como impresión, no como hecho",
+      "historia": [
+        {
+          "role": "user",
+          "content": "uf, el cerdo últimamente nos sienta regular"
+        },
+        {
+          "role": "assistant",
+          "content": "Me lo apunto como impresión: tiraré a algo menos de cerdo, sin quitarlo del todo."
+        }
+      ],
+      "entrada": "¿qué me recomiendas para cenar?",
+      "sinTexto": "como no (os|te) gusta el cerdo|ya que no com[eé]is cerdo|como no com[eé]is cerdo"
     },
     {
       "nombre": "invitado puntual",
