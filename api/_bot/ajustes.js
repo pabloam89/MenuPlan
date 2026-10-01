@@ -302,6 +302,59 @@ function conGrupos(m, data, members) {
  *   lo_del_mediodia  los días de cole cenan lo que la familia comió a mediodía
  * Deriva el modelo de menú y los grupos como la app. Cuenta al generar.
  */
+/**
+ * La tanda (batch cooking) desde el chat, con la MISMA escritura que la
+ * pantalla de bases de la app (`conTandaPedida`): bases que se dejan hechas
+ * (sofrito, arroz, legumbre cocida…) y platos que se dejan hechos o a medias
+ * (croquetas, cremas…), cuántas veces por semana; el rato que hay (minutos de
+ * manos) y el día en que se cocina.
+ *
+ * Antes Lola solo podía decir «tanda» en ajustar_cocina, que escribía un
+ * `cookTime.tanda` que nadie lee: alargaba el finde y no pedía ninguna base.
+ */
+export async function pedirTanda(householdId, { bases = [], platos = [], minutos, dia, ninguna = false }) {
+  return conData(householdId, (data, m) => {
+    const campo = (id) => m.CAMPOS.find((c) => c.id === id);
+    const cTanda = campo("tanda");
+    const cPlatos = campo("tandaPlatos");
+    let d = data;
+    const hechos = [];
+    const malos = [];
+    const pedir = (c, prefijo, clave, veces) => {
+      if (!c.dominio.includes(clave)) { malos.push(clave); return; }
+      const [min, max] = c.rango;
+      const n = Number(veces) <= 0 ? 0 : Math.min(max, Math.max(min, Math.round(Number(veces) || min)));
+      d = m.conTandaPedida(d, `${prefijo}.${clave}`, n);
+      hechos.push(n ? `${clave} ${n}/semana` : `sin ${clave}`);
+    };
+    if (ninguna) {
+      // Todo lo pedido a cero: la casa deja de cocinar en tanda.
+      for (const k of Object.keys(d.tanda ?? {})) if (d.tanda[k] > 0) pedir(cTanda, "tanda", k, 0);
+      for (const k of Object.keys(d.tandaPlatos ?? {})) if (d.tandaPlatos[k] > 0) pedir(cPlatos, "tandaPlatos", k, 0);
+    }
+    for (const b of bases) pedir(cTanda, "tanda", String(b.base ?? "").toLowerCase(), b.veces ?? cTanda.rango[0]);
+    for (const p of platos) pedir(cPlatos, "tandaPlatos", String(p.familia ?? "").toLowerCase(), p.veces ?? cPlatos.rango[0]);
+    if (minutos != null) {
+      // El rato de la sesión, en minutos de MANOS, de media en media hora.
+      const n = Math.min(m.TANDA_MAX, Math.max(m.TANDA_MIN, Math.round(Number(minutos) / m.TANDA_PASO) * m.TANDA_PASO));
+      d = { ...d, tandaMinutos: n };
+      hechos.push(`${n} min de manos`);
+    }
+    if (dia) {
+      const dd = diaDe(dia);
+      if (!dd) malos.push(`día «${dia}»`);
+      else { d = { ...d, diaTanda: dd }; hechos.push(`se cocina el ${DIA_LARGO[dd] ?? dd}`); }
+    }
+    if (!hechos.length) {
+      return { texto: `No he pedido nada.${malos.length ? ` No reconozco: ${malos.join(", ")}. Bases válidas: ${cTanda.dominio.join(", ")}. Platos: ${cPlatos.dominio.join(", ")}.` : ""}` };
+    }
+    return {
+      data: d,
+      texto: `Tanda: ${hechos.join(", ")}.${malos.length ? ` No reconozco: ${malos.join(", ")} (bases válidas: ${cTanda.dominio.join(", ")}; platos: ${cPlatos.dominio.join(", ")}).` : ""} El próximo menú pondrá platos que las aprovechen.`,
+    };
+  });
+}
+
 export async function ajustarMenuPeques(householdId, { cena }) {
   return conData(householdId, (data, m) => {
     const kids = m.kidMembers(data.members ?? []);

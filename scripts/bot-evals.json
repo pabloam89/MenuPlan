@@ -181,6 +181,46 @@
       }
     },
     {
+      "nombre": "tanda: bases y día",
+      "entrada": "los domingos dejo hecho sofrito y arroz para la semana",
+      "llama": [
+        "pedir_tanda"
+      ],
+      "args": {
+        "pedir_tanda": {
+          "_todo": "sofrito"
+        }
+      },
+      "noLlama": [
+        "ajustar_cocina"
+      ]
+    },
+    {
+      "nombre": "tanda: el día queda apuntado",
+      "entrada": "yo cocino para toda la semana los sábados por la mañana: legumbre cocida y verdura asada",
+      "llama": [
+        "pedir_tanda"
+      ],
+      "args": {
+        "pedir_tanda": {
+          "dia": "s",
+          "_todo": "verdura_asada"
+        }
+      }
+    },
+    {
+      "nombre": "tanda: dejarlo",
+      "entrada": "ya no cocino en tanda, cada día cocino lo del día",
+      "llama": [
+        "pedir_tanda"
+      ],
+      "args": {
+        "pedir_tanda": {
+          "ninguna": true
+        }
+      }
+    },
+    {
       "nombre": "matiz: los lunes, sin carne (por días)",
       "entrada": "los lunes en casa no comemos carne",
       "llama": [

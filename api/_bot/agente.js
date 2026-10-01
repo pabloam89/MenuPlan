@@ -26,7 +26,7 @@ import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
   anadirComensal, quitarComensal, ajustarAlergias, dominiosDeGustos, ajustarPersona, ajustarMenuPeques,
-  descartarSupuesto,
+  descartarSupuesto, pedirTanda,
 } from "./ajustes.js";
 import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
@@ -391,17 +391,28 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     betaTool({
       name: "ajustar_cocina",
-      description: "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende), tanda (tanda = cocinar para varios días; cada_dia) y trastos (lista completa de lo que hay: Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera).",
+      description: "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y trastos (lista completa de lo que hay: Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). Cocinar en tanda va por pedir_tanda.",
       inputSchema: obj({
         estructura: { type: "string", enum: ["primero_segundo", "1_plato"] },
         esfuerzo: { type: "string", enum: ["basic", "normal", "pro"] },
         tiempo: { type: "string", enum: ["con_prisa", "normal", "con_tiempo", "depende"] },
-        tanda: { type: "string", enum: ["tanda", "cada_dia"] },
         trastos: { type: "array", items: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"] } },
         comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
         etapaBebe: { type: "string", enum: ["cremas", "mixto", "solidos"], description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
       }),
       run: (args) => ajustarCocina(householdId, args),
+    }),
+    betaTool({
+      name: "pedir_tanda",
+      description: "Cocinar en tanda (batch cooking), como la pantalla de bases de la app. bases: lo que se deja hecho para usar en varios platos (claves: arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito, caldo, salsa_tomate, verdura_asada, pesto, bechamel, patatas_asadas, bolonesa), con veces = platos de la semana que lo usan (2-5; 0 lo quita). platos: platos que se dejan hechos o a medias (claves: croquetas-crudas, bunuelos-masa, falafel-crudo, empanadillas-cerradas, empanada-montada, lasana-montada, ravioli-cortados, quiche-sin-hornear, pastel-al-horno, huevos-rellenos, carne-empanada, verduras-rellenas, gazpacho, caldo-casero, crema, sopa), veces 1-4. minutos: el rato de manos que hay para la sesión (30-240). dia: el día en que se cocina (lunes…domingo). ninguna=true: deja de cocinar en tanda. Si una clave no vale, te devuelvo la lista buena: corrígela, no se lo preguntes a la familia.",
+      inputSchema: obj({
+        bases: { type: "array", items: obj({ base: { type: "string" }, veces: { type: "integer", minimum: 0, maximum: 5 } }, ["base"]) },
+        platos: { type: "array", items: obj({ familia: { type: "string" }, veces: { type: "integer", minimum: 0, maximum: 4 } }, ["familia"]) },
+        minutos: { type: "integer", minimum: 0, maximum: 240 },
+        dia: { type: "string" },
+        ninguna: { type: "boolean" },
+      }),
+      run: (args) => pedirTanda(householdId, args),
     }),
     betaTool({
       name: "ajustar_horario",

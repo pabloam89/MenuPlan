@@ -1789,6 +1789,7 @@ export function PizarraControles({
       dias: diasDe(0),
       comidas: getDayMeals(data),
       metodoDeBase: (b) => selectMethodForRecipe(b, data?.kitchenTools ?? []),
+      diaTanda: data?.diaTanda,
     };
     // Deducido del tablero: las bases que comparten dos platos y los platos
     // que se dejan hechos (ver `tandaDelMenu`). Nadie lo pide con deslizadores.

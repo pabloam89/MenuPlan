@@ -4914,7 +4914,7 @@ export default function App() {
     for (const [gid, slots] of Object.entries(menuPlan ?? {})) if (gid !== "_warnings") plan[gid] = slots;
     const recetas = new Map(Object.entries(RECIPES_BY_ID));
     for (const [id, r] of Object.entries(recipeCatalogById)) recetas.set(id, r);
-    return tandaDelMenu(plan, recetas, { dias: DAYS, comidas: getDayMeals(data) }).claves;
+    return tandaDelMenu(plan, recetas, { dias: DAYS, comidas: getDayMeals(data), diaTanda: data?.diaTanda }).claves;
   }, [menuPlan, data]);
   const handleOrdenPizarra = useCallback(async (frase) => {
     if (householdReadOnly) return { reply: "Solo lectura: no puedes editar el menú", hechos: 0, noHechos: [] };
