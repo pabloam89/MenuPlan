@@ -18,6 +18,18 @@ describe("supervisor: lo que quita protección necesita a la persona", () => {
     expect(supervisar("ajustar_alergias", args, "somos cuatro, dos adultos y dos niños")).toMatch(/No se ha guardado/);
   });
 
+  it("un «no» o un «nada» a secas también es la respuesta (Pablo, 1 oct 2026)", () => {
+    const args = { ninguna: true, confirmado: true };
+    expect(supervisar("ajustar_alergias", args, "Nada nada, feel free")).toBe(null);
+    expect(supervisar("ajustar_alergias", args, "no")).toBe(null);
+    expect(supervisar("ajustar_alergias", args, "No, tranquila")).toBe(null);
+    expect(supervisar("ajustar_alergias", args, "nada que yo sepa")).toBe(null);
+    // Con algo más dentro, ya no es un «no» a secas.
+    expect(supervisar("ajustar_alergias", args, "no hay manera de que coma huevo")).toMatch(/No se ha guardado/);
+    expect(supervisar("ajustar_alergias", args, "nada de marisco para Leo")).toMatch(/No se ha guardado/);
+    expect(supervisar("ajustar_alergias", args, "no sé, déjame preguntar")).toMatch(/No se ha guardado/);
+  });
+
   it("lo que parece un sí y no lo es", () => {
     const args = { persona: "Leo", alergenos: ["huevos"], quitar: true, confirmado: true };
     expect(supervisar("ajustar_alergias", args, "si le damos huevo, ¿qué pasa?")).toMatch(/No se ha guardado/);
