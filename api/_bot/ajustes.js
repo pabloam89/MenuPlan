@@ -184,7 +184,7 @@ function gustosPorDias(householdId, ajustes, frase, { dicho, desde, hasta, dias,
       }
     }
     if (!nuevas.length) return { texto: `Por días solo sé quitar cosas (un ingrediente, carne, pescado, legumbres, huevos, pasta o arroz, o una técnica como los fritos) para toda la casa. No he apuntado: ${noSe.join(", ") || "nada"}.` };
-    const reglas = m.podarReglasVencidas([...(data.reglas ?? []), ...nuevas], hoyISO());
+    const { reglas } = m.podarReglasVencidas([...(data.reglas ?? []), ...nuevas], hoyISO());
     return {
       data: { ...data, reglas },
       texto: `Anotado: ${nuevas.map((r) => m.describirRegla(r, data)).join("; ")}.${noSe.length ? ` Esto no lo sé hacer por días: ${noSe.join(", ")}.` : ""} Se notará al generar el próximo menú.`,
@@ -278,7 +278,7 @@ export async function anadirInvitado(householdId, { dia, comida, n = 1, nombre, 
     if (!d || !c) return { texto: `No entiendo cuándo («${dia}», «${comida}»).` };
     const regla = m.reglaDeInvitado({ dia: d, comida: c, n, nombre, semanaISO: lunesDe(semana), hoy: hoyISO() });
     if (!regla) return { texto: "No he podido apuntar al invitado." };
-    const reglas = m.podarReglasVencidas([...(data.reglas ?? []), { ...regla, origen: "texto" }], hoyISO());
+    const { reglas } = m.podarReglasVencidas([...(data.reglas ?? []), { ...regla, origen: "texto" }], hoyISO());
     return {
       data: { ...data, reglas },
       texto: `Apuntado: ${m.describirRegla(regla, data)}. Cuenta al generar el menú de esa semana (y caduca solo).`,
