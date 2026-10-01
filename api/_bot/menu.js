@@ -904,6 +904,107 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
   return texto;
 }
 
+/**
+ * «Hoy cenamos fuera», «el viernes Leo come en casa de los abuelos»: una
+ * ausencia de UN día, no un horario (ajustar_horario es para lo que se repite
+ * cada semana).
+ *
+ * Dos cosas a la vez:
+ *   · una regla de la casa `presente: fuera` acotada a ese día (vigencia
+ *     desde/hasta = esa fecha), que el motor respeta al generar y que caduca
+ *     sola (src/lib/reglas.js);
+ *   · en el menú que YA está hecho, si todos los de un grupo están fuera, ese
+ *     hueco se vacía y la compra se rehace. Si solo falta alguien, el plato se
+ *     queda para los demás.
+ *
+ * @param {{ dia: string, comida: string, quienes?: string[] | null, autor?: string | null }} x
+ *   quienes: nombres de la casa; sin ellos, toda la casa.
+ * @returns {Promise<{ texto: string, pintar: object | null, error?: string }>}
+ */
+export async function apuntarAusencia(householdId, { dia, comida, quienes = null, autor = null }) {
+  const c = comidaDe(comida ?? "");
+  if (!c) return { texto: `¿Qué comida? («${comida ?? ""}»)`, pintar: null, error: "comida" };
+  const t = normal(dia ?? "");
+  const hoy = hoyISO();
+  let fecha = null;
+  if (!t || t === "hoy" || t === "esta noche") fecha = hoy;
+  else if (t === "manana") fecha = sumarDias(hoy, 1);
+  else if (t === "pasado manana") fecha = sumarDias(hoy, 2);
+  else {
+    const d = diaDe(dia);
+    if (!d) return { texto: `No entiendo el día «${dia}».`, pintar: null, error: "dia" };
+    const deEsta = sumarDias(lunesDe(hoy), DIAS.indexOf(d));
+    fecha = deEsta >= hoy ? deEsta : sumarDias(deEsta, 7);
+  }
+  const d = diaDeFecha(fecha);
+  const clave = `${d}-${c}`;
+  let texto = "";
+  let vaciado = false;
+  let fallo = null;
+  const r = await conCasa(householdId, async (cargada) => {
+    const data = cargada.state?.data ?? {};
+    const miembros = data.members ?? [];
+    let fuera = miembros;
+    if (quienes?.length) {
+      const busca = (n) => miembros.find((p) => normal(p.name) === normal(n)) ?? miembros.find((p) => normal(p.name).startsWith(normal(n)));
+      const encontrados = quienes.map(busca);
+      const falta = quienes.filter((_, i) => !encontrados[i]);
+      if (falta.length) { texto = `No encuentro a ${falta.join(" ni a ")} en la casa.`; fallo = "quien"; return null; }
+      fuera = [...new Set(encontrados)];
+    }
+    const todos = fuera.length === miembros.length;
+    const m = await motor();
+    const reglasNuevas = (todos ? [{ tipo: "casa" }] : fuera.map((p) => ({ tipo: "miembro", ref: p.id }))).map((sujeto) => m.nuevaRegla({
+      sujeto,
+      ambito: { dias: [d], comidas: [c] },
+      vigencia: { desde: fecha, hasta: fecha },
+      efecto: { tipo: "presente", valor: "fuera" },
+      origen: "texto",
+      frase: `${todos ? "Toda la casa" : fuera.map((p) => p.name).join(" y ")} fuera el ${fecha} (${c.toLowerCase()})${autor ? `, lo dijo ${autor}` : ""}`,
+      hoy,
+    }));
+    // Devuelve { reglas, vencidas }, no la lista.
+    const { reglas } = m.podarReglasVencidas([...(data.reglas ?? []), ...reglasNuevas], hoy);
+    const dataNueva = { ...data, reglas };
+    const quien = todos ? "toda la casa" : fuera.map((p) => p.name).join(" y ");
+    const cuando = `el ${DIA_LARGO[d]} ${Number(fecha.slice(8, 10))} (${c.toLowerCase()})`;
+
+    // El menú ya hecho: el hueco de cada grupo que se queda sin nadie, fuera.
+    const s = semanaConFecha(cargada, fecha);
+    if (!s?.plan) {
+      texto = `Apuntado: ${quien} fuera ${cuando}. Cuenta al generar el menú de esa semana.`;
+      return { state: { ...cargada.state, data: dataNueva } };
+    }
+    const casa = { ...cargada, semana: s };
+    const gs = grupos(casa);
+    const idsFuera = new Set(fuera.map((p) => p.id));
+    const plan = structuredClone(s.plan);
+    for (const g of gs) {
+      if (!plan[g.id]?.[clave]) continue;
+      if ((g.memberIds ?? []).length && g.memberIds.every((id) => idsFuera.has(id))) {
+        delete plan[g.id][clave];
+        vaciado = true;
+      }
+    }
+    if (!vaciado) {
+      texto = `Apuntado: ${quien} fuera ${cuando}. El plato de ese día se queda para los demás.`;
+      return { state: { ...cargada.state, data: dataNueva } };
+    }
+    const mm = await prepararRecetas(casa);
+    const shopping = rehacerCompra(mm, plan, data, gs, s.shopping);
+    texto = `Apuntado: ${quien} fuera ${cuando}. He quitado ese plato del menú y de la compra.`;
+    const viva = s.weekStart === cargada.semanaViva;
+    return {
+      casa,
+      state: viva ? { ...cargada.state, data: dataNueva, menuPlan: plan, shopping } : { ...cargada.state, data: dataNueva },
+      semana: { plan, shopping },
+    };
+  });
+  if (fallo) return { texto, pintar: null, error: fallo };
+  if (!r.ok) return { texto: `No he podido guardarlo: ${r.error}.`, pintar: null, error: "guardar" };
+  return { texto, pintar: vaciado ? { dias: [fecha] } : null };
+}
+
 /** La compra de un plan, conservando lo marcado (comprado, ya en casa) y lo añadido a mano. */
 function rehacerCompra(m, plan, data, gs, anterior) {
   const lista = m.buildShoppingList(plan, gs, m.getDayMeals(data), []);

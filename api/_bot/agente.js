@@ -20,6 +20,7 @@ import {
   describirCasa, describirReceta, describirCompra,
   marcarCompra, anadirCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
   rangosDelMenu,
+  apuntarAusencia,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
@@ -80,7 +81,7 @@ const CON_BOTON_DESHACER = new Set([
   "marcar_compra", "anadir_compra", "cambiar_plato", "generar_menu",
   "ajustar_gustos", "descartar_supuesto", "ajustar_horario", "anadir_invitado", "quitar_comensal",
   // Las alergias se guardan al momento (con eco) y se deshacen con un toque.
-  "ajustar_alergias", "ajustar_salud", "ajustar_menu_peques",
+  "ajustar_alergias", "ajustar_salud", "ajustar_menu_peques", "fuera_de_casa",
 ]);
 
 // Fallos de conversación, para medirlos (user_events, como el embudo).
@@ -658,6 +659,25 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         const f = comida ? franjaDe(comida) : null;
         if (comida && !f) return `No entiendo qué comida es («${comida}»).`;
         return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null }, fotos);
+      },
+    }),
+    betaTool({
+      name: "fuera_de_casa",
+      description: "Un día concreto alguien (o toda la casa) no come en casa: «hoy cenamos fuera», «el viernes Leo come con los abuelos». Solo ese día; lo que se repite cada semana es ajustar_horario. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. quienes: nombres de la casa (vacío = toda la casa).",
+      inputSchema: {
+        type: "object",
+        properties: {
+          dia: { type: "string", description: "hoy, mañana, pasado mañana o el nombre del día" },
+          comida: { type: "string", enum: IDS_COMIDAS },
+          quienes: { type: "array", items: { type: "string" } },
+        },
+        required: ["dia", "comida"],
+        additionalProperties: false,
+      },
+      run: async (args) => {
+        const r = await apuntarAusencia(householdId, { ...args, autor: chat.autor ?? null });
+        if (r.pintar) pintarTambien(chat, r.pintar);
+        return r.texto;
       },
     }),
     betaTool({
