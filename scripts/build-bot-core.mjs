@@ -46,5 +46,8 @@ const fsP = await import("node:fs");
 const core = await import(pathToFileURL(path.join(raiz, "api/_bot/core.mjs")).href);
 const dominios = core.CAMPOS.filter((c) => c.panel !== false).map((c) =>
   `${c.id} (${c.etiqueta})${Array.isArray(c.dominio) ? `: ${c.dominio.join("/")}` : ": texto libre"}`).join("; ");
-fsP.writeFileSync(path.join(raiz, "api/_bot/dominiosGustos.json"), JSON.stringify({ dominios }) + "\n");
+// Y la etiqueta de cada campo, para la ficha de la casa (api/_bot/ficha.js),
+// que tampoco carga el motor.
+const etiquetas = Object.fromEntries(core.CAMPOS.map((c) => [c.id, c.etiqueta]));
+fsP.writeFileSync(path.join(raiz, "api/_bot/dominiosGustos.json"), JSON.stringify({ dominios, etiquetas }) + "\n");
 console.log("dominios de gustos → api/_bot/dominiosGustos.json");
