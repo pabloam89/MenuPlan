@@ -318,6 +318,18 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
 // por la rápida en grupo lo dice la tabla POLITICA de router.js, no un if.
 const MODO_ROUTER = () => (["sombra", "on"].includes(process.env.BOT_ROUTER) ? process.env.BOT_ROUTER : "off");
 const MODO_ROUTER_GRUPOS = () => (["off", "on"].includes(process.env.BOT_ROUTER_GRUPOS) ? process.env.BOT_ROUTER_GRUPOS : "sombra");
+// BOT_PISTA (on | off; por defecto on): con el enrutador en on, si el turno es
+// de Lola y el enrutador ha visto una lectura con sus datos, Lola recibe lo
+// que dedujo y la lectura ya hecha, para contestar en una llamada
+// (api/_bot/pista.js). Medido el 1 oct 2026 con frases que van a Lola: donde
+// se usa, una vuelta menos y el primer texto ~1,5-2,5 s antes (ideas en grupo
+// de 4-6 s a 2,3-3,2 s; «qué me falta y apúntalo» de 3 vueltas a 2); donde no,
+// nada cambia, porque Lola no la espera.
+// APAGADA por defecto (BOT_PISTA=on para encenderla): cuando Lola acepta la
+// pista contestando sin herramientas, lo leído ya no trae su álbum (el texto
+// sale en vivo antes), y en las ideas en grupo eso quita las fotos que hoy sí
+// salen. Lo decide Pablo (revisión del 1-2 oct 2026).
+const PISTA = () => process.env.BOT_PISTA === "on";
 const RUTA = "bot_route";
 
 /** Lo último que dijo Lola en este chat (y su propuesta de opciones, si la hubo). */
@@ -416,7 +428,13 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   let abrir;
   const puerta = new Promise((r) => { abrir = r; });
   const ctrl = new AbortController();
-  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA, puerta, signal: ctrl.signal });
+  // Lo que se mide del turno (scripts/bot-medidas.mjs): primer texto visto,
+  // lo de Lola (modelo, vueltas, tokens, herramientas) y si se canceló.
+  const medir = {};
+  // La pista (BOT_PISTA): la decisión del enrutador, solo si el turno no va por
+  // la vía rápida. Lola no la espera: si llega a tiempo, la usa (pista.js).
+  const pista = PISTA() ? decisionP.then((d) => (vaPorLaRapida(d, chatDe) ? null : d)) : null;
+  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA, puerta, signal: ctrl.signal, medir, pista });
 
   const d = await decisionP;
   marca(`enrutador (${d.modo} ${d.confianza}, ${d.ms} ms)`);
@@ -432,15 +450,41 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
       ctrl.abort();
       await lola.catch(() => {});
       await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
+      const primer = Date.now() - t0;
       await contarUso(householdId, d.uso ?? {}).catch(() => {});
-      return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms });
+      return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms, ...medida(medir, d, t0, primer) });
     }
   }
   abrir(true);
   // Con el tiempo total del turno de Lola (hasta su respuesta entregada): sin
   // él no había forma de saber cuánto tarda de verdad lo que no es vía rápida.
   await lola.catch(() => {});
-  return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, ms: Date.now() - t0, router_ms: d.ms, error: d.error });
+  return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, ms: Date.now() - t0, router_ms: d.ms, error: d.error, ...medida(medir, d, t0) });
+}
+
+/**
+ * Lo que se apunta en bot_route para medir un turno, sin texto de nadie (eso
+ * lo borra la retención a los 15 días; esto se queda). Tokens y no euros: el
+ * precio se aplica al leerlo (scripts/bot-medidas.mjs), así un cambio de
+ * tarifa no obliga a reescribir nada.
+ */
+function medida(medir, d, t0, primer = null) {
+  const l = medir.lola;
+  return {
+    primer_ms: primer ?? (medir.primerTexto ? medir.primerTexto - t0 : null),
+    router_uso: d.uso ? { in: d.uso.input_tokens ?? 0, out: d.uso.output_tokens ?? 0, cr: d.uso.cache_read_input_tokens ?? 0, cw: d.uso.cache_creation_input_tokens ?? 0 } : null,
+    lola_cancelada: !!medir.cancelada,
+    lola: l ? {
+      modelo: l.modelo, planB: !!l.planB, vueltas: l.vueltas ?? null, ms: l.ms, corregido: !!l.corregido,
+      uso: l.uso ? { in: l.uso.input_tokens ?? 0, out: l.uso.output_tokens ?? 0, cr: l.uso.cache_read_input_tokens ?? 0, cw: l.uso.cache_creation_input_tokens ?? 0 } : null,
+      primera: l.primera ? { in: l.primera.input_tokens, cr: l.primera.cache_read_input_tokens, cw: l.primera.cache_creation_input_tokens } : null,
+      herramientas: (l.herramientas ?? []).map((h) => [h.n, h.ms]),
+      // BOT_PISTA: qué se adelantó, cuánto tardó y si hubo que cortarla.
+      pista: l.pista ?? null,
+      // BOT_AVISO_LENTO: la herramienta lenta cuyo aviso salió (primer_ms es entonces el del aviso).
+      aviso: l.aviso ?? null,
+    } : null,
+  };
 }
 
 /** Entrega una respuesta de la vía rápida y la deja en la memoria de la charla. */
@@ -453,7 +497,7 @@ async function entregarRapida({ chatId, householdId, esGrupo, base, from, respon
 }
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null }) {
+async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
   const eco = oido ? `🎙️ «${oido}»\n\n` : "";
   const vivo = mensajeVivo(chatId, { responderA, eco });
@@ -461,11 +505,13 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
   // es suyo (puerta → true). Se guarda lo último y se suelta al abrir.
   let pendiente = null;
   let abierta = !puerta;
+  // `medir` (de turno()): cuándo vio la persona el primer texto, y lo que midió Lola.
+  const visto = () => { if (medir) medir.primerTexto ??= Date.now(); };
   puerta?.then((suyo) => {
     abierta = suyo;
-    if (suyo && pendiente) vivo.escribir(...pendiente);
+    if (suyo && pendiente) { visto(); vivo.escribir(...pendiente); }
   });
-  const alEscribir = (parcial, extra) => (abierta ? vivo.escribir(parcial, extra) : (pendiente = [parcial, extra]));
+  const alEscribir = (parcial, extra) => (abierta ? (visto(), vivo.escribir(parcial, extra)) : (pendiente = [parcial, extra]));
   let r;
   try {
     // Si vino en audio, Lola lo sabe: los nombres nuevos pueden venir mal oídos
@@ -474,11 +520,11 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
     const paraLola = !oido ? texto
       : texto.startsWith("[alta]") ? texto.replace("Mi primer mensaje:", "Mi primer mensaje (nota de voz):")
         : `[nota de voz] ${texto}`;
-    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir, puerta, signal });
-    if (puerta && !(await puerta)) return; // el turno fue de la vía rápida
+    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir, puerta, signal, pista });
+    if (puerta && !(await puerta)) { if (medir) { medir.cancelada = true; medir.lola = r?.medida ?? null; } return; } // el turno fue de la vía rápida
   } catch (err) {
     // Cancelada porque el turno era de la vía rápida: nada que decir.
-    if (signal?.aborted || (puerta && !(await puerta))) { await vivo.parar(); return; }
+    if (signal?.aborted || (puerta && !(await puerta))) { if (medir) medir.cancelada = true; await vivo.parar(); return; }
     // Nunca un error técnico en el chat: una frase y, si cabe, reintentar con
     // un toque (el botón vuelve a mandar lo mismo).
     console.error("[bot/telegram] agente", err?.message);
@@ -497,6 +543,7 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
   }
   await vivo.parar();
   const entregado = await entregar({ chatId, householdId, esGrupo, base, from, responderA, oido, r, vivo });
+  if (medir) { visto(); medir.lola = r.medida ?? null; }
   // La charla se guarda mientras se entregaba (agente.js `guardado`): se espera
   // aquí, antes de soltar el turno, para que el siguiente mensaje la vea.
   await r.guardado;
@@ -510,7 +557,7 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
  * lo que contesta Lola que para las respuestas directas (api/_bot/rapido.js).
  * Si el texto ya se estaba escribiendo en vivo, se termina ese mismo mensaje.
  */
-async function entregar({ chatId, householdId, esGrupo, base, from, responderA, oido = null, r, vivo = null }) {
+export async function entregar({ chatId, householdId, esGrupo, base, from, responderA, oido = null, r, vivo = null }) {
   const { cuerpo: frase, botones: propiosCrudos } = sacarBotones(r.texto);
   // Lo que se ha generado, cambiado o pedido ver, pintado debajo de la frase
   // (api/_bot/pintar.js): el modelo nunca escribe la lista de platos.
@@ -555,6 +602,10 @@ async function entregar({ chatId, householdId, esGrupo, base, from, responderA, 
     if (enlaces) botones.push(...botonesCompartir(enlaces, r.compartir.tipo));
   }
   const eco = oido ? `🎙️ <i>«${escaparHtml(oido)}»</i>\n\n` : "";
+  // Si en pantalla solo quedó un aviso de espera y hay fotos, fuera el aviso:
+  // así el álbum sale antes del texto, como en un mensaje nuevo.
+  // Si el álbum ya salió (con el propio aviso), no se borra ni se repite.
+  if (vivo?.provisional() && !vivo.fotosEnviadas() && fotosDelTurno(r.fotos).length) await vivo.quitarAviso();
   if (vivo?.id()) {
     // Ya estaba en pantalla escribiéndose: se completa ahí, con su formato y
     // sus botones. (Las fotos, si las había, salieron antes que el texto.)
@@ -598,6 +649,11 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
   let cadena = Promise.resolve();
   let parado = false;
   let fotosEnviadas = false;
+  // Lo que hay en pantalla es un aviso de espera (agente.js AVISO_LENTO), no
+  // lo que ha escrito Lola: si después llegan fotos, el aviso se borra y sale
+  // el álbum antes del texto, como siempre (un álbum no se mete delante de un
+  // mensaje que ya existe).
+  let provisional = false;
 
   const limpiar = (t) => String(t ?? "")
     .replace(/\[\[[^\]\n]*\]\]/g, "")
@@ -605,9 +661,20 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
     .replace(/<[^>]*>?/g, "")
     .trim();
 
-  const volcar = (texto, fotos) => {
+  const quitarAviso = async () => {
+    if (!id || !provisional) return;
+    // Si Telegram no deja borrarlo, se queda el id y se edita encima: mejor
+    // sin álbum que con un aviso huérfano encima de la respuesta.
+    const borrado = await llamar("deleteMessage", { chat_id: chatId, message_id: id }).then(() => true, () => false);
+    if (!borrado) return;
+    id = null;
+    provisional = false;
+  };
+
+  const volcar = (texto, fotos, aviso = false) => {
     cadena = cadena.then(async () => {
       if (parado || texto === ultimo) return;
+      if (provisional && !fotosEnviadas && fotosDelTurno(fotos ?? []).length) await quitarAviso();
       if (!id) {
         const fs = fotosDelTurno(fotos ?? []);
         if (fs.length && !fotosEnviadas) { fotosEnviadas = true; await enviarFotos(chatId, fs, { responderA }); }
@@ -618,20 +685,30 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
       }
       ultimo = texto;
       ultimaVez = Date.now();
+      provisional = aviso;
     });
     return cadena;
   };
 
   return {
     id: () => id,
-    /** @param {string} parcial  lo escrito hasta ahora en esta vuelta del modelo */
-    escribir(parcial, { fotos } = {}) {
+    /** ¿Lo que hay en pantalla es solo un aviso de espera? */
+    provisional: () => provisional,
+    /** ¿Ya salió un álbum con este mensaje? (entonces no se repite) */
+    fotosEnviadas: () => fotosEnviadas,
+    /** Borra el aviso de espera (si es lo que hay), para empezar de nuevo con fotos. */
+    quitarAviso: () => (cadena = cadena.then(quitarAviso)),
+    /**
+     * @param {string} parcial  lo escrito hasta ahora en esta vuelta del modelo
+     * @param {{ fotos?: object[], aviso?: boolean }} [extra]  aviso: es un aviso de espera
+     */
+    escribir(parcial, { fotos, aviso = false } = {}) {
       if (parado) return;
       const texto = limpiar(parcial);
       if (texto.length < MINIMO) return;
       clearTimeout(pendiente);
       const espera = Math.max(0, CADA_MS - (Date.now() - ultimaVez));
-      pendiente = setTimeout(() => volcar(texto, fotos), id ? espera : 0);
+      pendiente = setTimeout(() => volcar(texto, fotos, aviso), id ? espera : 0);
     },
     async parar() {
       parado = true;

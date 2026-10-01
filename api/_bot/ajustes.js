@@ -350,7 +350,7 @@ export async function pedirTanda(householdId, { bases = [], platos = [], minutos
     }
     return {
       data: d,
-      texto: `Tanda: ${hechos.join(", ")}.${malos.length ? ` No reconozco: ${malos.join(", ")} (bases válidas: ${cTanda.dominio.join(", ")}; platos: ${cPlatos.dominio.join(", ")}).` : ""} El próximo menú pondrá platos que las aprovechen.`,
+      texto: `Batch cooking: ${hechos.join(", ")}.${malos.length ? ` No reconozco: ${malos.join(", ")} (bases válidas: ${cTanda.dominio.join(", ")}; platos: ${cPlatos.dominio.join(", ")}).` : ""} El próximo menú pondrá platos que las aprovechen.`,
     };
   });
 }
