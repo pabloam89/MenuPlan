@@ -150,7 +150,7 @@ for (const caso of elegidos) {
   tiempos.push(s);
   console.log(`${fallos.length ? "✗" : "✓"} ${caso.nombre}  [${nombres.join(", ") || "sin herramientas"}]  ${s.toFixed(1)} s`);
   for (const f of fallos) console.log(`    ${f}`);
-  if (fallos.length && process.env.VERBOSO) console.log(`    respuesta: ${dicho.replace(/\n/g, " ⏎ ").slice(0, 400)}`);
+  if ((fallos.length || process.env.VERBOSO === "todo") && process.env.VERBOSO) console.log(`    respuesta: ${dicho.replace(/\n/g, " ⏎ ").slice(0, 400)}`);
 }
 const orden = [...tiempos].sort((a, b) => a - b);
 const mediana = orden.length ? orden[Math.floor(orden.length / 2)] : 0;
