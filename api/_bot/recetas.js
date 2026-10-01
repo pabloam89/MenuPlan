@@ -115,11 +115,15 @@ export async function buscarRecetas(householdId, { consulta, categoria, maxMinut
   }
 
   // Lo que la casa no puede comer se avisa, no se esconde: puede que busquen
-  // justo para otra persona. Pero que se vea antes de elegir.
-  const evitar = new Set((casa?.state?.data?.members ?? []).flatMap((p) => p.allergies ?? []).map((a) => normal(a)));
+  // justo para otra persona. Pero que se vea antes de elegir. Con las mismas
+  // reglas que el motor (choquesDeReceta): alergias, «puede contener»,
+  // intolerancias, dietas, embarazo o lactancia y etapa del bebé. Antes solo
+  // miraba alérgenos, y comparaba la etiqueta guardada («Frutos de cáscara»)
+  // con el id de la receta («frutos_cascara»), así que esa no avisaba nunca.
+  const data = casa?.state?.data ?? {};
   const aviso = (r) => {
-    const choca = (r.allergens ?? []).filter((a) => evitar.has(normal(a)));
-    return choca.length ? ` ⚠️ lleva ${choca.join(", ")}` : "";
+    const choques = m.choquesDeReceta(r, data);
+    return choques.length ? ` ${choques.map(m.textoDeChoque).join("; ")}` : "";
   };
 
   const mostrar = halladas.slice(0, Math.min(Math.max(n, 1), 10));

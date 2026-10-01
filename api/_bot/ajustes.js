@@ -240,8 +240,10 @@ export async function anadirComensal(householdId, { nombre, edad }) {
       name: nombre, age, useBirthDate: false, birthDate: "",
       homeRole: m.suggestHomeRole(age ?? 30), stageDetail: "", allergies: [], dislikes: [],
     };
+    // La casa deja de estar revisada hasta que alguien diga si el nuevo tiene alergias.
+    const conNuevo = m.conMiembroNuevo(data, nuevo);
     return {
-      data: conGrupos(m, data, [...(data.members ?? []), nuevo]),
+      data: conGrupos(m, conNuevo, conNuevo.members),
       texto: `Añadido a la casa: ${nombre}${age != null ? ` (${age} años)` : ""}. ¿Tiene alguna alergia o intolerancia?`,
     };
   });
@@ -288,19 +290,39 @@ export async function quitarComensal(householdId, { nombre }) {
 
 // ── Alergias: nunca sin confirmar ───────────────────────────────────────────
 
+const TODA_LA_CASA = /^(todos|toda la familia|familia|la casa)$/;
+
 export async function ajustarAlergias(householdId, { persona, alergenos, quitar = false, ninguna = false, confirmado }) {
   if (confirmado !== true) {
     return "Las alergias no se guardan sin confirmación explícita. Repite lo que vas a guardar y pregúntale si es correcto; solo con su «sí» llama otra vez con confirmado=true.";
   }
-  // «Nadie tiene alergias»: no se escribe ningún alérgeno, pero la casa queda
-  // revisada, que es lo que la app pide para dar los cimientos por hechos.
+  // La revisión es por persona: si queda alguien sin preguntar, se le dice a
+  // Lola por su nombre para que pregunte por él y no dé la casa por cerrada.
+  const faltan = (m, data) => {
+    const p = m.pendientesDeAlergias(data).map((x) => x.name);
+    return p.length ? ` Falta por saber si ${p.join(" y ")} tiene${p.length > 1 ? "n" : ""} alguna alergia: pregúntalo.` : "";
+  };
+  // «No tiene alergias»: no se escribe ningún alérgeno, pero esa persona (o
+  // toda la casa) queda revisada, que es lo que la app pide para los cimientos.
   if (ninguna) {
-    return conData(householdId, (data) => ({ data: { ...data, allergiesReviewed: true }, texto: "Anotado: nadie en casa tiene alergias ni intolerancias." }));
+    return conData(householdId, (data, m) => {
+      const uno = persona && !TODA_LA_CASA.test(normal(persona));
+      const x = uno ? personaPorNombre(data, persona) : null;
+      if (uno && !x) return { texto: `No encuentro a ${persona} en la casa.` };
+      const nuevo = m.marcarRevisadas(data, x ? [x.id] : null);
+      const conAlguna = (data.members ?? []).some((p) => (p.allergies ?? []).length);
+      return {
+        data: nuevo,
+        texto: x
+          ? `Anotado: ${x.name} no tiene alergias.${faltan(m, nuevo)}`
+          : conAlguna ? "Anotado: nadie más en casa tiene alergias." : "Anotado: nadie en casa tiene alergias ni intolerancias.",
+      };
+    });
   }
   return conData(householdId, (data, m) => {
     // La regla es la de la app (src/lib/alergias.js): ids con sus alias
     // («frutos secos»), y se escribe la ETIQUETA, que es lo que guarda la app.
-    const toda = /^(todos|toda la familia|familia|la casa)$/.test(normal(persona));
+    const toda = TODA_LA_CASA.test(normal(persona));
     const x = toda ? null : personaPorNombre(data, persona);
     if (!toda && !x) return { texto: `No encuentro a ${persona} en la casa.` };
     const r = m.aplicarAlergias(data, { memberId: toda ? m.FAMILIA : x.id, ids: alergenos, quitar, confirmado: true });
@@ -309,7 +331,7 @@ export async function ajustarAlergias(householdId, { persona, alergenos, quitar 
     }
     return {
       data: r.data,
-      texto: `${quitar ? "Quitadas" : "Guardadas"} para ${toda ? "toda la casa" : x.name}: ${r.aplicados.join(", ")}.${r.ignorados.length ? ` No reconocidas: ${r.ignorados.join(", ")}.` : ""}`,
+      texto: `${quitar ? "Quitadas" : "Guardadas"} para ${toda ? "toda la casa" : x.name}: ${r.aplicados.join(", ")}.${r.ignorados.length ? ` No reconocidas: ${r.ignorados.join(", ")}.` : ""}${faltan(m, r.data)}`,
     };
   });
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { aplicarAlergias, pareceAlergia, FAMILIA } from "./alergias.js";
+import { aplicarAlergias, pareceAlergia, FAMILIA, marcarRevisadas, pendientesDeAlergias } from "./alergias.js";
 
 const casa = () => ({
   members: [
@@ -18,11 +18,13 @@ describe("aplicarAlergias", () => {
     }
   });
 
-  it("añade con la etiqueta de la app y marca la revisión", () => {
+  it("añade con la etiqueta de la app y marca revisado SOLO a quien toca", () => {
     const r = aplicarAlergias(casa(), { memberId: "b", ids: ["huevos"], confirmado: true });
     expect(r.escrito).toBe(true);
     expect(r.data.members[1].allergies).toEqual(["Huevos"]);
-    expect(r.data.allergiesReviewed).toBe(true);
+    expect(r.data.members.map((m) => m.alergiasRevisadas)).toEqual([false, true]);
+    expect(r.data.allergiesReviewed).toBe(false);
+    expect(pendientesDeAlergias(r.data).map((m) => m.name)).toEqual(["Ana"]);
   });
 
   it("entiende los alias: «frutos secos» es frutos de cáscara", () => {
@@ -64,6 +66,26 @@ describe("aplicarAlergias", () => {
     const r = aplicarAlergias(data, { memberId: "zz", ids: ["soja"], confirmado: true });
     expect(r.escrito).toBe(false);
     expect(r.data).toBe(data);
+  });
+});
+
+describe("revisión por persona", () => {
+  it("los datos de antes heredan el valor de la casa", () => {
+    expect(pendientesDeAlergias({ ...casa(), allergiesReviewed: true })).toEqual([]);
+    expect(pendientesDeAlergias(casa()).length).toBe(2);
+  });
+
+  it("marcar a uno fija a los demás: el resumen de la casa ya no los arrastra", () => {
+    const antes = { ...casa(), allergiesReviewed: true };
+    const nuevo = { id: "c", name: "Bebé", allergies: [], alergiasRevisadas: false };
+    const d = marcarRevisadas(antes, []);
+    const conBebe = { ...d, members: [...d.members, nuevo], allergiesReviewed: false };
+    expect(pendientesDeAlergias(conBebe).map((m) => m.name)).toEqual(["Bebé"]);
+    expect(marcarRevisadas(conBebe, ["c"]).allergiesReviewed).toBe(true);
+  });
+
+  it("null marca a todos", () => {
+    expect(marcarRevisadas(casa(), null).allergiesReviewed).toBe(true);
   });
 });
 

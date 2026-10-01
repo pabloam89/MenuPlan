@@ -27,7 +27,7 @@ export { reconcileGroupsWithMembers, migrateGroupsForBabies } from "../lib/group
 export { normalizeKidDinnerConfig, deriveKidsMenuModel, kidMembers, KID_DINNER_DEFAULTS, KID_DINNER_AVOID_DEFAULTS } from "../lib/kidsMenu.js";
 export { suggestHomeRole } from "../lib/stages.js";
 export { EU_ALLERGEN_IDS } from "../data/ingredientSchema.js";
-export { aplicarAlergias, FAMILIA } from "../lib/alergias.js";
+export { aplicarAlergias, FAMILIA, marcarRevisadas, pendientesDeAlergias, conMiembroNuevo } from "../lib/alergias.js";
 export { SLOT_VALUES, slotKey } from "../lib/planner.js";
 export { mapRow as filaDeDespensa, COLUMNAS_DESPENSA } from "../lib/pantry.js";
 
@@ -53,6 +53,9 @@ export { FAST_MODEL } from "../lib/aiModels.js";
 // Compartir una semana desde el chat: la misma «foto» que publica la app.
 export { buildSharedMenuPayload } from "../lib/sharedMenu.js";
 export { catalogToFrontendRecipe } from "../lib/aiPlanner.js";
+
+// Qué choca de una receta con la casa, con las mismas reglas que el motor.
+export { choquesDeReceta, textoDeChoque } from "../lib/restriccionesReceta.js";
 
 // El coste por ración, para scripts/build-coste.mjs (Node a secas no carga src/).
 export { costeDeReceta } from "../lib/derive/coste.js";

@@ -68,14 +68,48 @@ export function aplicarAlergias(data, { memberId, ids = [], quitar = false, conf
     return [...actuales, ...aplicados.filter((id) => !tiene.has(id)).map((id) => EU_ALLERGENS[id].label)];
   };
 
+  const tocados = members.filter(toca).map((m) => m.id);
+  const conCambio = { ...data, members: members.map((m) => (toca(m) ? { ...m, allergies: conAlergias(m) } : m)) };
   return {
-    data: {
-      ...data,
-      members: members.map((m) => (toca(m) ? { ...m, allergies: conAlergias(m) } : m)),
-      allergiesReviewed: true,
-    },
+    data: marcarRevisadas(conCambio, tocados),
     escrito: true,
     aplicados,
     ignorados,
   };
+}
+
+/**
+ * ── Revisión por persona ──────────────────────────────────────────────────
+ * `allergiesReviewed` era de toda la casa y no se reseteaba al añadir a
+ * alguien: entraba un bebé nuevo y la casa seguía «revisada» sin que nadie
+ * hubiera preguntado por él. Ahora cada miembro lleva `alergiasRevisadas`, y
+ * `data.allergiesReviewed` queda como resumen (todos revisados), que es lo que
+ * siguen leyendo la app y el embudo.
+ *
+ * Un miembro sin el campo (datos de antes) hereda el valor de la casa.
+ */
+export const alergiasRevisadas = (data, m) => m?.alergiasRevisadas ?? data?.allergiesReviewed === true;
+
+/** Los de la casa a los que nadie ha preguntado todavía por alergias. */
+export function pendientesDeAlergias(data) {
+  return (data?.members ?? []).filter((m) => !alergiasRevisadas(data, m));
+}
+
+/**
+ * Marca como revisados los miembros con esos ids (`null` = todos) y deja el
+ * resto como estaba, pero escrito en cada uno: así cambiar el resumen de la
+ * casa no cambia lo que hereda un miembro antiguo.
+ */
+export function marcarRevisadas(data, ids = null) {
+  const members = (data?.members ?? []).map((m) => ({
+    ...m,
+    alergiasRevisadas: ids == null || ids.includes(m.id) ? true : alergiasRevisadas(data, m),
+  }));
+  return { ...data, members, allergiesReviewed: members.every((m) => m.alergiasRevisadas) };
+}
+
+/** Añade a alguien a la casa SIN revisar: hasta que se pregunte por él, la casa tampoco lo está. */
+export function conMiembroNuevo(data, nuevo) {
+  const base = marcarRevisadas(data, []);
+  return { ...base, members: [...base.members, { ...nuevo, alergiasRevisadas: false }], allergiesReviewed: false };
 }

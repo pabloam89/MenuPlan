@@ -100,6 +100,7 @@ import { isMercadonaStore } from "../lib/storeCatalog.js";
 import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc, avatarThumbSrcByKey } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
+import { marcarRevisadas, conMiembroNuevo } from "../lib/alergias.js";
 import { CatalogBrowserSheet, categoryColor } from "./CatalogBrowserSheet.jsx";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -563,22 +564,16 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
     if (!canAdd) return;
     setAddBounce(true);
     setTimeout(() => setAddBounce(false), 320);
-    setData((d) => ({
-      ...d,
-      members: [
-        ...d.members,
-        {
-          id: uid(),
-          name: trimmedName,
-          age: computedAge,
-          useBirthDate: false,
-          birthDate: "",
-          homeRole: suggestHomeRole(computedAge),
-          stageDetail: "",
-          allergies: [],
-          dislikes: [],
-        },
-      ],
+    setData((d) => conMiembroNuevo(d, {
+      id: uid(),
+      name: trimmedName,
+      age: computedAge,
+      useBirthDate: false,
+      birthDate: "",
+      homeRole: suggestHomeRole(computedAge),
+      stageDetail: "",
+      allergies: [],
+      dislikes: [],
     }));
     setName("");
     setAgeStr("");
@@ -592,25 +587,19 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
     const id = uid();
     const defFolder = AVATAR_FOLDER[profile.key];
     const defAvatar = DEFAULT_AVATAR[profile.key] ?? (defFolder ? `${defFolder}_1` : null);
-    setData((d) => ({
-      ...d,
-      members: [
-        ...d.members,
-        {
-          id,
-          name: "",
-          age: profile.age ?? null,
-          useBirthDate: false,
-          birthDate: "",
-          homeRole: profile.role,
-          profileKey: profile.key,
-          color: profile.tint,
-          avatarKey: defAvatar,
-          stageDetail: "",
-          allergies: [],
-          dislikes: [],
-        },
-      ],
+    setData((d) => conMiembroNuevo(d, {
+      id,
+      name: "",
+      age: profile.age ?? null,
+      useBirthDate: false,
+      birthDate: "",
+      homeRole: profile.role,
+      profileKey: profile.key,
+      color: profile.tint,
+      avatarKey: defAvatar,
+      stageDetail: "",
+      allergies: [],
+      dislikes: [],
     }));
     setJustAddedId(id);
     setEditingMemberId(id);
@@ -2359,7 +2348,8 @@ export function OnboardingRestrictions({
   // Salir de aquí hacia delante ES haberlo revisado. Sin la marca, una lista
   // vacía no distingue "no tenemos" de "no lo hemos mirado", que es justo lo
   // que no se puede suponer (ver `alergias` en wizardRegistry.js).
-  const conRevision = (fn) => fn && (() => { setData((d) => ({ ...d, allergiesReviewed: true })); fn(); });
+  // La pantalla enseña a todos los de la casa: revisa a todos.
+  const conRevision = (fn) => fn && (() => { setData((d) => marcarRevisadas(d, null)); fn(); });
   // Con todo vacío, el botón lo afirma en vez de decir "Continuar": pasar sin
   // marcar nada tiene que leerse como una respuesta, no como saltarse el paso.
   const nadaMarcado = data.members.every(
