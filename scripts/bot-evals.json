@@ -2,15 +2,15 @@
   "_nota": "Casos de conversación de Lola (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta. 'foto' son líneas de texto que se pintan en una imagen y van adjuntas.",
   "casos": [
     {
-      "nombre": "consulta rápida: qué cenamos",
+      "nombre": "consulta rápida: qué cenamos → de la ficha, sin ver_menu",
       "entrada": "¿qué cenamos hoy?",
-      "llama": [
-        "ver_menu"
-      ],
+      "llama": [],
       "noLlama": [
+        "ver_menu",
         "generar_menu",
         "cambiar_plato"
-      ]
+      ],
+      "texto": "tortilla"
     },
     {
       "nombre": "cambiar sin decir por cuál: da opciones",
@@ -109,13 +109,17 @@
       }
     },
     {
-      "nombre": "alergia: no guarda sin confirmar",
+      "nombre": "alergia dicha clara: la guarda ya, con eco y [[No es así]]",
       "entrada": "Leo es alérgico al huevo",
-      "noLlamaCon": {
+      "llama": [
+        "ajustar_alergias"
+      ],
+      "args": {
         "ajustar_alergias": {
           "confirmado": true
         }
-      }
+      },
+      "texto": "\\[\\[No es así\\]\\]"
     },
     {
       "nombre": "alergia: guarda tras el sí",
@@ -142,12 +146,17 @@
       }
     },
     {
-      "nombre": "generar guiado: primero pregunta, no genera de golpe",
+      "nombre": "generar: sin «¿algo especial?», genera ya",
       "entrada": "hazme un menú nuevo para la semana que viene",
-      "noLlama": [
+      "llama": [
         "generar_menu"
       ],
-      "texto": "\\[\\[Genera ya\\]\\]"
+      "args": {
+        "generar_menu": {
+          "semana": "siguiente"
+        }
+      },
+      "sinTexto": "algo especial"
     },
     {
       "nombre": "genera ya",
@@ -409,10 +418,18 @@
       "noLlama": [
         "ajustar_persona"
       ],
-      "sinTexto": "peso|altura|kilos"
+      "sinTexto": "peso|altura|kilos",
+      "ficha": {
+        "estable": "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas",
+        "delDia": "jue 1 oct"
+      }
     },
     {
-      "nombre": "alta: tras el primer menú ofrece el aviso del domingo",
+      "nombre": "alta: el primer menú sale con la lista de temas y el aviso del domingo",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana, Pablo, Leo: ninguna.\nCASA\n- Ana 38 · Pablo 40 · Leo 6.",
+        "delDia": "jue 1 oct\nMENÚ: no hay menú esta semana"
+      },
       "historia": [
         {
           "role": "user",
@@ -420,10 +437,21 @@
         },
         {
           "role": "assistant",
-          "content": "¡Listo! Ya tenéis menú 🎉\n\n<b>Hoy, miércoles 30</b>\n🍽️ <b>Comida</b>\n• Lentejas con verduras\n\nPídeme cambios, la compra o recetas cuando quieras."
+          "content": "¿Quiénes coméis en casa? Nombres, edades (así ajusto las cantidades) y si alguien tiene alguna alergia."
+        },
+        {
+          "role": "user",
+          "content": "Ana 38, Pablo 40 y Leo 6. Sin alergias"
+        },
+        {
+          "role": "assistant",
+          "content": "Ya os tengo: Ana, Pablo y Leo, sin alergias. ¿Te hago unas preguntas para afinarlo, te lo preparo ya y lo ajustamos sobre la marcha, o prefieres rellenarlo tú en la app?\n\n[[Hazme las preguntas]]\n[[Prepáralo ya]]\n[[Lo relleno yo en la app]]"
         }
       ],
-      "entrada": "genial, gracias",
+      "entrada": "Prepáralo ya",
+      "llama": [
+        "generar_menu"
+      ],
       "noLlama": [
         "crear_recordatorio"
       ],
@@ -519,7 +547,11 @@
         "generar_menu",
         "cambiar_plato"
       ],
-      "sinTexto": "herramienta|el motor|todo listo|te lo genero"
+      "sinTexto": "herramienta|el motor|todo listo|te lo genero",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Pablo, Isa, Nat, Cova: ninguna.\n- Cova (1): come purés.\nCASA\n- Pablo 39 · Isa 37 · Nat 6 · Cova 1.\n- Grupos: «Familia» (Pablo, Isa, Nat) y «Bebé» (Cova).\nCOCINA\n- Comida: primero y segundo. Cena: plato único.\n- Horno, microondas.",
+        "delDia": "jue 1 oct\nMENÚ: no hay menú esta semana"
+      }
     },
     {
       "nombre": "el bebé ya come sólidos: lo apunta antes de proponer",
@@ -541,6 +573,10 @@
         "ajustar_cocina": {
           "etapaBebe": "solidos"
         }
+      },
+      "ficha": {
+        "estable": "SEGURIDAD\n- Pablo, Isa, Nat, Cova: ninguna.\n- Cova (1): come purés.\nCASA\n- Pablo 39 · Isa 37 · Nat 6 · Cova 1.\n- Grupos: «Familia» (Pablo, Isa, Nat) y «Bebé» (Cova).\nCOCINA\n- Comida: primero y segundo. Cena: plato único.\n- Horno, microondas.",
+        "delDia": "jue 1 oct\nMENÚ: no hay menú esta semana"
       }
     },
     {
@@ -554,13 +590,16 @@
       ]
     },
     {
-      "nombre": "ver recetas sin decir dónde: pregunta aquí o en la app",
+      "nombre": "ver recetas sin decir dónde: las enseña aquí, con botón a la app",
       "entrada": "quiero ver recetas de sólidos para el bebé",
+      "llama": [
+        "buscar_recetas"
+      ],
       "noLlama": [
         "preparar_receta",
         "cambiar_plato"
       ],
-      "texto": "\\[\\[En la app\\]\\]"
+      "texto": "app"
     },
     {
       "nombre": "ver recetas aquí con fotos: busca en la carpeta de sólidos",
@@ -587,16 +626,15 @@
       "sinTexto": " · "
     },
     {
-      "nombre": "crear receta: pregunta lo que falta antes de preparar",
+      "nombre": "crear receta con todo dicho: prepara sin preguntar, no guarda",
       "entrada": "quiero guardar mi receta de tortilla de patatas: 6 huevos, 600 g de patatas, una cebolla, aceite y sal. Para 4, media hora",
+      "llama": [
+        "preparar_receta"
+      ],
       "noLlama": [
         "guardar_receta"
       ],
-      "noLlamaCon": {
-        "preparar_receta": {
-          "_todo": "tortilla"
-        }
-      }
+      "texto": "\\[\\[Guardar\\]\\]"
     },
     {
       "nombre": "crear receta: no guarda sin el sí",
@@ -714,6 +752,134 @@
           "_todo": "economico"
         }
       },
+      "noLlama": [
+        "generar_menu"
+      ]
+    },
+    {
+      "nombre": "tester: pizza pedida, luego «los viernes de cena» → la pone, no enseña el menú",
+      "historia": [
+        {
+          "role": "user",
+          "content": "Quiero que un día me pongas pizza congelada para hacer al horno"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Qué buena idea para una noche sin complicaciones! 🍕\n\n¿Qué día te la pongo?"
+        }
+      ],
+      "entrada": "Los viernes de cena",
+      "llama": [
+        "cambiar_plato"
+      ],
+      "args": {
+        "cambiar_plato": {
+          "dia": "viernes",
+          "comida": "cena",
+          "receta": "pizza"
+        }
+      },
+      "noLlama": [
+        "ver_menu"
+      ]
+    },
+    {
+      "nombre": "tester: gluten dicho en el alta → no ofrece «Nadie tiene alergias»",
+      "ficha": {
+        "estable": "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas",
+        "delDia": "jue 1 oct"
+      },
+      "entrada": "[alta] Casa recién creada desde Telegram. Mi primer mensaje: somos cuatro miembros de la familia: dos adultos, uno con intolerancia al gluten, y otros dos entre 3 y 5 años que comen en el colegio de lunes a viernes",
+      "sinTexto": "\\[\\[Nadie tiene alergias\\]\\]",
+      "texto": "gluten"
+    },
+    {
+      "nombre": "tester: Manuel «como los demás» → dice que de momento no puede, sin fingir que lo apunta",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Manu, Marina, Carmen, Manuel: ninguna.\n- Manuel (2): come purés.\nCASA\n- Manu 38 · Marina 36 · Carmen 4 · Manuel 2.\n- Grupos: «Familia» (Manu, Marina), «Niños» (Carmen) y «Bebé» (Manuel).\nCOCINA\n- Comida y cena: plato único.",
+        "delDia": "jue 1 oct\nMENÚ 30 sep–4 oct"
+      },
+      "entrada": "Como los demás",
+      "sinTexto": "apuntad|grupo de (bebé|niños)",
+      "noLlama": [
+        "generar_menu"
+      ],
+      "texto": "todavía|de momento|aún|por ahora",
+      "historia": [
+        {
+          "role": "user",
+          "content": "Manuel mi hijo come lo mismo que los adultos o que su hermana"
+        },
+        {
+          "role": "assistant",
+          "content": "Ahora mismo Manuel tiene su propio menú, con purés, aparte del vuestro y del de Carmen.\n\n¿Come ya lo mismo que vosotros o sigue con el suyo?"
+        }
+      ]
+    },
+    {
+      "nombre": "ficha: quién come en casa sin llamar a ver_casa",
+      "entrada": "¿quiénes estamos apuntados en casa?",
+      "noLlama": [
+        "ver_casa",
+        "ver_ajustes"
+      ],
+      "texto": "Leo"
+    },
+    {
+      "nombre": "ajuste de la semana en curso: lo apunta y ofrece rehacer, sin regenerar",
+      "entrada": "a partir de ahora nada de coliflor",
+      "llama": [
+        "ajustar_gustos"
+      ],
+      "noLlama": [
+        "generar_menu"
+      ],
+      "texto": "Rehacer"
+    },
+    {
+      "nombre": "alta: con quién come y alergias, deja elegir el camino",
+      "ficha": {
+        "estable": "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas",
+        "delDia": "jue 1 oct"
+      },
+      "historia": [
+        {
+          "role": "user",
+          "content": "[alta] Casa recién creada desde Telegram. Ayúdame a montarla."
+        },
+        {
+          "role": "assistant",
+          "content": "¡Hola! Soy Lola 👩‍🍳\n\n¿Quiénes coméis en casa? Nombres, edades (así ajusto las cantidades) y si alguien tiene alguna alergia. Si te es más fácil, mándamelo en un audio."
+        }
+      ],
+      "entrada": "Somos Ana de 38, Pablo de 40 y Leo de 6. Nadie tiene alergias",
+      "llama": [
+        "anadir_comensal"
+      ],
+      "noLlama": [
+        "generar_menu"
+      ],
+      "texto": "Prepáralo ya"
+    },
+    {
+      "nombre": "formato: un día del menú sin icono delante del día",
+      "entrada": "¿qué comemos mañana?",
+      "sinTexto": "📆"
+    },
+    {
+      "nombre": "formato: las opciones con su tiempo entre paréntesis",
+      "entrada": "¿qué me recomiendas para cenar el jueves?",
+      "llama": [
+        "proponer_platos"
+      ],
+      "texto": "\\(\\d+ min\\)"
+    },
+    {
+      "nombre": "ver un día entero: ver_menu (sale pintado)",
+      "entrada": "¿qué hay mañana?",
+      "llama": [
+        "ver_menu"
+      ],
       "noLlama": [
         "generar_menu"
       ]
