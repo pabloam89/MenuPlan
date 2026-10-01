@@ -264,13 +264,22 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     shopping: deHoy && !(startISO <= hoy && hoy <= endISO) ? deHoy.shopping : shopping,
     aiRecipes: [...porId.values()],
   };
-  const r = await guardarCasa(casa, { state });
-  if (!r.ok && r.conflicto) {
-    // Otra escritura del bot se cruzó: el menú ya está guardado y activo en
-    // sus tablas, que es lo que la app lee al cargar. Se reintenta la foto.
-    const fresca = await cargarCasa(householdId);
-    await guardarCasa(fresca, { state: { ...fresca.state, data: { ...fresca.state.data, activeMenuId: menu.id }, menuPlan: state.menuPlan, shopping: state.shopping, aiRecipes: state.aiRecipes } });
+  let r = await guardarCasa(casa, { state });
+  // Otra escritura se cruzó (del bot o, desde la 0068, cualquier toque en la
+  // app: tachar algo de la compra). El menú ya está guardado y activo en sus
+  // tablas, que es lo que la app lee al cargar; falta la foto de la casa. Se
+  // reintenta sobre la casa fresca, con lo que tocó esta generación y nada más.
+  for (let i = 0; i < 3 && !r.ok && r.conflicto; i++) {
+    const fresca = await cargarCasa(householdId, { fresca: true });
+    if (!fresca) break;
+    const d = fresca.state?.data ?? {};
+    r = await guardarCasa(fresca, { state: {
+      ...fresca.state,
+      data: { ...d, activeMenuId: menu.id, menuModel: state.data.menuModel, ...(state.data.groups ? { groups: state.data.groups } : {}) },
+      menuPlan: state.menuPlan, shopping: state.shopping, aiRecipes: state.aiRecipes,
+    } });
   }
+  if (!r.ok) console.error("[generar] la foto de la casa no se guardó", r.error ?? "conflicto");
 
   if (!previos.length) await registrar(EMBUDO.PRIMER_MENU, { userId: dueno, unaVez: true });
 
