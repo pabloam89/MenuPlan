@@ -768,19 +768,25 @@ const claveDe = (v) => JSON.stringify(v, (_, x) => (x && typeof x === "object" &
  * es una de dos:
  *   · pide esa misma herramienta con esos mismos datos: se le sirve lo leído,
  *     sin volver a leer, y cuentan sus efectos como si la hubiera hecho ella;
- *   · empieza a contestar sin haber llamado a ninguna herramienta: contesta
- *     con lo leído (ver_menu le dice que «sale pintado debajo»).
- * Con una pista equivocada («Ojo, que Leo es alérgico al huevo» leído como
- * ver el menú del finde) Lola llama a ajustar_alergias y debajo no sale nada.
+ *   · acaba el turno ENTERO sin haber llamado a ninguna herramienta: ha
+ *     contestado con lo leído (ver_menu le dice que «sale pintado debajo»).
+ * Lo segundo se decide al acabar, no al primer trozo de texto: Lola a veces
+ * escribe «¡Apuntado! Guardo la alergia…» ANTES de llamar a ajustar_alergias,
+ * y con una pista equivocada («Ojo, que Leo es alérgico al huevo» leído como
+ * ver el menú del finde) eso colaba el menú pintado debajo. Lo pintado y el
+ * botón a la app se ponen al entregar, así que decidir al final no los pierde.
+ * Las fotos sí: un álbum va antes del texto, y si el texto ya salió en vivo,
+ * ese turno se queda sin álbum (mejor eso que fotos de una pista dudosa).
  * Exportada para el test.
  */
-export function adelantoDelTurno(chat, progreso) {
+export function adelantoDelTurno(chat) {
   let usado = null;
   let aplicado = false;
-  const aplicar = () => {
+  let textoFuera = false;
+  const aplicar = ({ fotos = true } = {}) => {
     if (!usado || aplicado) return;
     aplicado = true;
-    for (const f of usado.fotos ?? []) if (!chat.fotos.some((x) => x.url === f.url)) chat.fotos.push(f);
+    if (fotos) for (const f of usado.fotos ?? []) if (!chat.fotos.some((x) => x.url === f.url)) chat.fotos.push(f);
     if (usado.pintar) pintarTambien(chat, usado.pintar);
     if (usado.ir && !chat.ir) chat.ir = usado.ir;
   };
@@ -788,7 +794,10 @@ export function adelantoDelTurno(chat, progreso) {
     usar(a) { usado = a ?? null; aplicado = false; },
     /** Tras limpiar el turno (plan B): lo leído tiene que volver a aceptarse. */
     olvidarEfectos() { aplicado = false; },
-    sinHerramientas() { if (!progreso.herramientas) aplicar(); },
+    /** Ya ha salido texto de Lola en vivo (no un aviso de espera). */
+    vioTexto() { textoFuera = true; },
+    /** @param {number} herramientasDelTurno  las que llamó Lola en todo el turno */
+    alAcabar(herramientasDelTurno) { if (!herramientasDelTurno) aplicar({ fotos: !textoFuera }); },
     servir: (tools) => tools.map((t) => ({
       ...t,
       run: async (args) => {
@@ -871,9 +880,10 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
   // según avanza: con él se sabe si aún se la puede cortar sin tirar nada.
   // Lo que deja la lectura adelantada (fotos, lo que se pinta debajo, el
-  // botón a la app) se suma a lo del turno igual que si la hubiera hecho ella.
+  // botón a la app) solo pasa al turno si Lola acepta la pista
+  // (adelantoDelTurno: pide lo mismo, o acaba sin llamar a ninguna herramienta).
   const progreso = { vueltas: 0, herramientas: 0, texto: false };
-  const adelanto = adelantoDelTurno(chat, progreso);
+  const adelanto = adelantoDelTurno(chat);
   const conAdelanto = adelanto.servir(tools);
   let medidaPista = null;
   const limpiarTurno = () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; };
@@ -885,9 +895,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
       historia, entrada, tools: conAdelanto, adjunto, signal: sig, ficha, progreso,
       pista: leido ? textoPista(d, leido) : null,
       alEscribir: alEscribir ? (parcial, extra) => {
-        // Contestar sin haber llamado a nada es aceptar la pista: lo leído
-        // (sus fotos, lo pintado) pasa al turno antes de que salga el texto.
-        adelanto.sinHerramientas();
+        // Si la pista se acepta al final, ya no hay sitio para su álbum.
+        if (!extra?.aviso) adelanto.vioTexto();
         alEscribir(parcial, { fotos: chat.fotos, ...extra });
       } : null,
       // Lo que juntó el modelo que se cayó no es de esta respuesta; lo leído
@@ -909,8 +918,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
       },
       alCortar: (ms) => { medidaPista = { ...medidaPista, cortada_ms: ms }; },
     }));
-    // Sin texto en vivo (o sin texto), lo mismo al acabar: sin herramientas, aceptada.
-    adelanto.sinHerramientas();
+    // Acabado el turno: sin ninguna herramienta en todo él, la pista se aceptó.
+    adelanto.alAcabar(r.herramientas?.length ?? 0);
     // La llamada cortada no trae su uso (se paga igual): se estima con lo que
     // leyó la primera llamada que sí acabó, que es casi lo mismo.
     if (medidaPista?.reinicio && r.primera) medidaPista.cortada_tokens = (r.primera.input_tokens ?? 0) + (r.primera.cache_read_input_tokens ?? 0) + (r.primera.cache_creation_input_tokens ?? 0);

@@ -128,8 +128,10 @@ export function textoPista(d, adelanto) {
 const saneado = (v, max = 60) => String(typeof v === "object" ? JSON.stringify(v) : v ?? "")
   .replace(/[\p{Cc}[\]<>]/gu, " ").replace(/\s+/g, " ").trim().slice(0, max);
 // Lo leído es nuestro (herramientas y plantillas), pero un menú o una despensa
-// enormes no tienen por qué ir enteros.
-const TOPE_LEIDO = 4000;
+// enormes no van en la pista: si no cabe entero, no hay pista (conPista), que
+// decirle «no hace falta volver a pedirlo» con datos a medias la engañaría.
+// El recorte de textoPista queda solo de red.
+export const TOPE_LEIDO = 4000;
 
 /**
  * Una plantilla de la vía rápida (plato.js), como datos para Lola: sin HTML,
@@ -174,7 +176,11 @@ export async function conPista({ pista, texto = "", adelantar, lanzar, progreso,
   const quieta = () => !progreso.vueltas && !progreso.herramientas && !progreso.texto;
   const leer = (d) => {
     const plan = planDeAdelanto(d, { texto });
-    return plan ? conPlazo(Promise.resolve().then(() => adelantar(plan, d)).catch(() => null), PLAZO_ADELANTO_MS) : Promise.resolve(null);
+    if (!plan) return Promise.resolve(null);
+    const lectura = Promise.resolve().then(() => adelantar(plan, d))
+      .then((a) => (a && String(a.texto ?? "").length > TOPE_LEIDO ? null : a))
+      .catch(() => null);
+    return conPlazo(lectura, PLAZO_ADELANTO_MS);
   };
   let decision; // undefined: aún no ha llegado
   let lanzada = false;

@@ -6,7 +6,7 @@ import { describe, it, expect } from "vitest";
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
-const { planDeAdelanto, textoPista, conPista, datosDePlantilla, PLAZO_ADELANTO_MS } = await import("./pista.js");
+const { planDeAdelanto, textoPista, conPista, datosDePlantilla, PLAZO_ADELANTO_MS, TOPE_LEIDO } = await import("./pista.js");
 const { ejecutar, SOLO_LECTURA, diceQueGuardo, adelantoDelTurno } = await import("./agente.js");
 const { MODOS } = await import("./router.js");
 
@@ -213,19 +213,28 @@ describe("lo leído por adelantado, como datos y sin colarse", () => {
 
   it("pista equivocada: Lola llama a otra herramienta → nada de lo leído pasa al turno", async () => {
     const chat = chatDe();
-    const progreso = quieta();
-    const a = adelantoDelTurno(chat, progreso);
+    const a = adelantoDelTurno(chat);
     a.usar(LEIDO_MENU);
     const [, otra] = a.servir([verMenu, alergias]);
-    progreso.herramientas++;
     await otra.run({ persona: "Leo" });
-    a.sinHerramientas();
+    a.alAcabar(1);
+    expect(chat).toEqual(chatDe());
+  });
+
+  it("pista equivocada con una frase ANTES de la herramienta («¡Apuntado! Guardo la alergia…»): tampoco", async () => {
+    const chat = chatDe();
+    const a = adelantoDelTurno(chat);
+    a.usar(LEIDO_MENU);
+    const [, otra] = a.servir([verMenu, alergias]);
+    a.vioTexto();               // el primer trozo de texto sale con 0 herramientas
+    await otra.run({ persona: "Leo" });
+    a.alAcabar(1);              // y luego, en el mismo turno, la escritura
     expect(chat).toEqual(chatDe());
   });
 
   it("la misma herramienta con los mismos datos: se sirve lo leído y cuentan sus efectos", async () => {
     const chat = chatDe();
-    const a = adelantoDelTurno(chat, quieta());
+    const a = adelantoDelTurno(chat);
     a.usar(LEIDO_MENU);
     const [menu] = a.servir([verMenu]);
     expect(await menu.run({ cuando: "finde", dia: null })).toBe("Sábado: lentejas.");
@@ -235,12 +244,33 @@ describe("lo leído por adelantado, como datos y sin colarse", () => {
     expect(await menu.run({ cuando: "esta_semana" })).toBe("de verdad");
   });
 
-  it("contesta sin herramientas: acepta la pista y cuentan sus efectos", () => {
+  it("acaba sin ninguna herramienta: acepta la pista y cuentan sus efectos", () => {
     const chat = chatDe();
-    const a = adelantoDelTurno(chat, quieta());
+    const a = adelantoDelTurno(chat);
     a.usar(LEIDO_MENU);
-    a.sinHerramientas();
+    a.alAcabar(0);
     expect(chat.fotos).toHaveLength(1);
+    expect(chat.pintar).toEqual({ dias: ["2026-10-03"] });
+  });
+
+  it("aceptada, pero con el texto ya en pantalla: lo pintado y el botón sí, el álbum no", () => {
+    const chat = chatDe();
+    const a = adelantoDelTurno(chat);
+    a.usar(LEIDO_MENU);
+    a.vioTexto();
+    a.alAcabar(0);
+    expect(chat.fotos).toHaveLength(0);
+    expect(chat.pintar).toEqual({ dias: ["2026-10-03"] });
+    expect(chat.ir).toBe("semana");
+  });
+});
+
+describe("conPista: lo leído que no cabe entero no se da", () => {
+  it("más largo que TOPE_LEIDO: sin pista y sin corte", async () => {
+    const { lanzar, llamadas } = lanzadorDe(60);
+    const largo = { nombre: "ver_menu", texto: "x".repeat(TOPE_LEIDO + 1) };
+    await conPista({ pista: tras(10, dec("recomendar")), adelantar: async () => largo, lanzar, progreso: quieta() });
+    expect(llamadas).toHaveLength(1);
   });
 });
 
