@@ -759,6 +759,21 @@ describe("el recibo que lee el usuario", () => {
       "En casa sin fritos los Lun, Mar salvo los Vie hasta el 2026-09-30",
     );
   });
+
+  it("concuerda: varios invitados «comen», toda la casa fuera un solo día", () => {
+    const dos = reglaDeInvitado({ dia: "Vie", comida: "Cena", n: 2, semanaISO: "2026-10-05", hoy: HOY });
+    expect(describirRegla(dos, CASA())).toBe("2 invitados comen en casa los Vie en cena solo esa semana");
+    const uno = reglaDeInvitado({ dia: "Vie", comida: "Cena", n: 1, hoy: HOY });
+    expect(describirRegla(uno, CASA())).toMatch(/^Un invitado come en casa/);
+    const fuera = nuevaRegla({
+      sujeto: { tipo: "casa" },
+      ambito: { dias: ["Sáb"], comidas: ["Cena"] },
+      vigencia: { desde: "2026-10-03", hasta: "2026-10-03" },
+      efecto: { tipo: "presente", valor: "fuera" },
+      hoy: HOY,
+    });
+    expect(describirRegla(fuera, CASA())).toBe("Toda la casa come fuera los Sáb en cena solo el 2026-10-03");
+  });
 });
 
 describe("el ámbito por día", () => {
