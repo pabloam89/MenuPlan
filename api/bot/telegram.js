@@ -45,6 +45,7 @@ import { motor } from "../_bot/menu.js";
 import { sembrarCasa } from "../_bot/ajustes.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
 import { hoyISO, cargarCasa } from "../_bot/casa.js";
+import { puedeBorrar, borrarCuenta } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
 import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
 
@@ -153,6 +154,15 @@ async function atender(msg, base) {
       atenderCola({ chatId, householdId: enlazado.household_id, esGrupo: false, base }));
   }
   if (start?.[1]) return enlazarDesdeAjustes(msg, chatId, esGrupo, start[1]);
+
+  // Borrar la cuenta entera, para probar altas (api/_bot/borrar.js): solo en
+  // staging y solo administradores. Para el resto el comando no existe y
+  // sigue el camino normal, sin decir nada.
+  if (/^\/borrarme(?:@\w+)?$/.test(texto) && !esGrupo && puedeBorrar(msg.from?.id)) {
+    return enviar(chatId, "⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu, tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.", {
+      botones: [[{ texto: "Sí, bórralo todo", dato: "borrar:si" }, { texto: "No", dato: "borrar:no" }]],
+    });
+  }
 
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
 
@@ -766,6 +776,17 @@ async function pulsado(cq, base) {
 
   // Quien recibe una receta: guardársela o ponerla en su menú.
   if (cq.data?.startsWith("comp:")) return usarCompartido(cq, chat, base);
+
+  // /borrarme: las mismas dos llaves al pulsar, no solo al pedirlo.
+  if (cq.data?.startsWith("borrar:") && !esGrupoDe(cq.message.chat) && puedeBorrar(cq.from?.id)) {
+    if (cq.data !== "borrar:si") return enviar(chatId, "Vale, no toco nada.");
+    const r = await borrarCuenta({ chatId, telegramId: cq.from.id }).catch((e) => {
+      console.error("[borrarme]", e?.message);
+      return { ok: false, motivo: "algo ha fallado a medias; mira los logs" };
+    });
+    if (!r.ok) return enviar(chatId, `No he borrado la cuenta: ${r.motivo}.`);
+    return enviar(chatId, "🗑️ <b>Borrado.</b> Ya no hay cuenta, ni casa, ni nada guardado de nuestras charlas.\n\nPara dejar la pantalla limpia, «Borrar chat» en Telegram. Cuando quieras empezar de nuevo, escríbeme.");
+  }
 
   if (esGrupoDe(cq.message.chat)) return;
   if (chat) return enviar(chatId, "Este chat ya está conectado a tu casa. Escríbeme cuando quieras.");
