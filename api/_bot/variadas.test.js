@@ -29,7 +29,10 @@ describe("grupoPara", () => {
   });
   it("sin miembros a la vista, por el nombre; y null si no hay ese grupo", () => {
     expect(grupoPara([{ id: "x", label: "los mayores" }, { id: "y", label: "el bebé" }], [], "bebe").id).toBe("y");
-    expect(grupoPara(gs, members, "ninos")).toBe(null);
+    // Sin grupo propio de niños, el niño come en «Familia»: su menú es ese.
+    expect(grupoPara(gs, members, "ninos").id).toBe("g1");
+    // Y si en la casa no hay ningún niño, ninguno.
+    expect(grupoPara(gs, members.filter((m) => m.id !== "n"), "ninos")).toBe(null);
   });
   it("una persona por su nombre: el grupo en el que come", () => {
     const conNombre = members.map((p, i) => ({ ...p, name: ["Pablo", "Isa", "Leo", "Cova"][i] }));

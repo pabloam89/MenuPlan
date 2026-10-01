@@ -18,12 +18,14 @@
 import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 import { rastro } from "./embudo.js";
+import { IDS_COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 
 let motorCargado = null;
 export const motor = async () => (motorCargado ??= await import("./core.mjs"));
 
-const FRANJAS = ["Desayuno", "Comida", "Merienda", "Cena", "Postre"];
+// Las comidas salen del catálogo (src/lib/comidas.js): una sola lista.
+const FRANJAS = IDS_COMIDAS;
 const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const DIA_LARGO = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves", Vie: "viernes", "Sáb": "sábado", Dom: "domingo" };
 
@@ -64,7 +66,7 @@ const lunesDe = (iso) => sumarDias(iso, -DIAS.indexOf(diaDeFecha(iso)));
 const semanaConFecha = (casa, iso) => (casa.semanas ?? []).find((w) => w.weekStart <= iso && iso <= w.weekEnd) ?? null;
 const fechaCorta = (iso) => `${DIA_LARGO[diaDeFecha(iso)]} ${Number(iso.slice(8, 10))}`;
 
-function rangosDelMenu(casa) {
+export function rangosDelMenu(casa) {
   const ss = casa.semanas ?? [];
   if (!ss.length) return "No hay ningún menú activo.";
   return `El menú activo tiene: ${ss.map((w) => `del ${fechaCorta(w.weekStart)} al ${fechaCorta(w.weekEnd)}`).join(" y ")}.`;
@@ -113,7 +115,8 @@ function casaDeSemana(casa, semana) {
 
 export function franjaDe(texto) {
   const t = normal(texto);
-  return FRANJAS.find((f) => normal(f) === t || (t === "almuerzo" && f === "Comida")) ?? null;
+  // Con sus sinónimos del catálogo: «almuerzo» es la comida, «picoteo» el aperitivo.
+  return comidaDe(t);
 }
 
 /** Registra en el motor las recetas de la casa para poder resolver ids. */
@@ -630,7 +633,15 @@ export function grupoPara(gs, members, para) {
   if (!para) return null;
   const sinonimo = SINONIMOS.find(([re]) => re.test(normal(para)))?.[1];
   if (sinonimo) para = sinonimo;
-  if (["mayores", "ninos", "bebe"].includes(para)) return gs.find((g) => tipoDeGrupo(g, members) === para) ?? null;
+  if (["mayores", "ninos", "bebe"].includes(para)) {
+    // Con un solo menú para la familia, «los niños» comen en el de los
+    // mayores: su menú es ese (el grupo donde come alguno), no ninguno.
+    const conAlguno = (g) => (g.memberIds ?? []).some((id) => {
+      const p = members.find((x) => x.id === id);
+      return p && (para === "ninos" ? !esBebe(p) && !esMayor(p) : para === "bebe" ? esBebe(p) : esMayor(p));
+    });
+    return gs.find((g) => tipoDeGrupo(g, members) === para) ?? gs.find(conAlguno) ?? null;
+  }
   // Una persona por su nombre («para Cova», «lo de Leo»): el grupo en el que
   // come. Si no está en ninguno, el de su tipo, con el mismo criterio de arriba.
   const quien = normal(para);
@@ -878,12 +889,14 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     texto = `Cambiado (${fechaCorta(fecha)}, ${fecha}, ${franja}${para ? `, para ${para}` : tambien.length ? ", para toda la familia" : ""}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`
       + (sinCambiarQuienes.length ? ` ${sinCambiarQuienes.join(" y ")} se quedan con lo suyo: ese plato no encaja con sus alergias o su etapa. Dilo así.` : "")
       + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "")
-      + (dePintado ? `\n\nAsí queda ese día (es lo guardado, no hace falta ver_menu; en el chat di solo qué has cambiado y dónde):\n${dePintado}` : "");
+      + (dePintado ? `\n\nAsí queda ese día (es lo guardado, y SALE PINTADO debajo de tu mensaje con el plato nuevo destacado: no lo escribas ni llames a ver_menu; di solo qué has cambiado):\n${dePintado}` : "");
     // `state.menuPlan` y `state.shopping` son la semana que pinta la app (la de
     // hoy): si el cambio es en otra, solo se toca esa semana.
     const viva = casa.semana.weekStart === cargada.semanaViva;
     return { casa, state: viva ? { ...casa.state, menuPlan: plan, shopping, aiRecipes } : { ...casa.state, aiRecipes }, semana: { plan, shopping } };
   });
+  // Si no se ha guardado, no ha cambiado nada (y no se pinta como cambiado).
+  if (out && !r.ok) out.cambiado = false;
   if (out && !out.cambiado) out.error = r.ok ? texto : `No he podido guardar el cambio: ${r.error}.`;
   if (!r.ok) return `No he podido guardar el cambio: ${r.error}.`;
   const porque = motivo ?? (receta ? MOTIVO_CAMBIO.PEDIDO : MOTIVO_CAMBIO.OTRO);

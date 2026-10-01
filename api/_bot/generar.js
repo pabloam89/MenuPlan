@@ -67,12 +67,18 @@ export function platosPedidos(m, casa, fijos = []) {
   });
 }
 
-/** La clave del hueco («Lun-Comida») donde está un plato pedido, o null. */
-function claveDelPedido(fijo, plan) {
+/**
+ * La clave del hueco («Lun-Comida») donde está un plato pedido, o null. Solo
+ * en los días activos de la semana (`activos`): el motor planifica la semana
+ * entera, y un menú hecho un jueves podía dejar lo pedido el lunes, que ya
+ * pasó; contaba como puesto, nadie lo veía y no se recolocaba.
+ */
+function claveDelPedido(fijo, plan, activos = null) {
   if (!fijo.catalogId) return null;
   for (const [gid, huecos] of Object.entries(plan)) {
     if (gid.startsWith("_")) continue;
     for (const [clave, h] of Object.entries(huecos ?? {})) {
+      if (activos?.length && !activos.includes(clave.split("-")[0])) continue;
       const ids = [h?.recipeId, h?.firstRecipeId].filter(Boolean).map((id) => String(id).split("__").pop());
       if (ids.includes(fijo.catalogId)) return clave;
     }
@@ -96,9 +102,9 @@ const MINUTOS_ENTRE_SEMANA = 30;
  */
 export function colocarPedidos(m, data, plan, recipes, pedidos, activeDays) {
   const colocados = [];
-  const ocupados = new Set(pedidos.map((p) => claveDelPedido(p.fijo, plan)?.split("-")[0]).filter(Boolean));
+  const ocupados = new Set(pedidos.map((p) => claveDelPedido(p.fijo, plan, activeDays)?.split("-")[0]).filter(Boolean));
   for (const p of pedidos) {
-    if (claveDelPedido(p.fijo, plan)) continue;
+    if (claveDelPedido(p.fijo, plan, activeDays)) continue;
     const receta = m.recipeCatalogById?.[p.fijo.catalogId] ?? (data.userRecipes ?? []).find((r) => r.id === p.fijo.catalogId);
     if (!receta) continue;
     const franja = p.fijo.meals?.[0] ?? "Comida";
@@ -131,9 +137,9 @@ export function colocarPedidos(m, data, plan, recipes, pedidos, activeDays) {
 }
 
 /** Dónde ha quedado cada plato pedido en el plan, en palabras. */
-export function dondeQuedaron(pedidos, plan) {
+export function dondeQuedaron(pedidos, plan, activos = null) {
   return pedidos.map(({ pedido, aproximada, fijo }) => {
-    const clave = claveDelPedido(fijo, plan);
+    const clave = claveDelPedido(fijo, plan, activos);
     const [d, franja] = clave ? clave.split("-") : [];
     const donde = clave ? `${DIA_LARGO[d] ?? d}, ${franja.toLowerCase()}` : null;
     return donde
@@ -276,12 +282,17 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // menú con salmón un día» tardaba casi un minuto en seis vueltas.
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(() => "");
   // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
-  if (out) Object.assign(out, { ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, pedidos: pedidos.length ? dondeQuedaron(pedidos, plan) : [] });
+  if (out) Object.assign(out, {
+    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas,
+    pedidos: pedidos.length ? dondeQuedaron(pedidos, plan, activeDays) : [],
+    // Dónde quedó cada plato pedido («Jue-Comida»), para destacarlo al pintar.
+    colocados: pedidos.map((p) => claveDelPedido(p.fijo, plan, activeDays)).filter(Boolean),
+  });
   await rastro(householdId, RASTRO.MENU_GENERADO, { menuId: menu.id, weekStart: startISO, weekEnd: endISO, slots: platos, pedidos: pedidos.length });
   return `Menú nuevo generado y activado: del ${startISO} al ${endISO}, ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
-    + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan).join("\n")}` : "")
+    + (pedidos.length ? `\nLo que pidieron, ya puesto (no hace falta cambiar_plato):\n${dondeQuedaron(pedidos, plan, activeDays).join("\n")}` : "")
     + (semana
-      ? `\n\nAsí queda, para que sepas qué hay (no hace falta ver_menu). En el chat NO la copies entera: resume en 3-4 líneas; la semana la ven con el botón que sale solo.\n${semana}`
+      ? `\n\nLa semana SALE PINTADA debajo de tu mensaje, con lo pedido destacado: NO la escribas ni llames a ver_menu; di en una o dos frases qué has hecho y dónde ha quedado lo que pidieron. Para que lo sepas (no lo copies):\n${semana}`
       : " La semana la ven con el botón que sale solo: resume en 3-4 líneas qué has hecho.");
 }

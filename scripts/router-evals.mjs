@@ -35,9 +35,11 @@ for (const c of casos) {
   for (let v = 0; v < veces; v++) {
     const d = await clasificar({ texto: c.texto, contexto: contexto(c) });
     tiempos.push(d.ms);
-    const rapida = vaPorLaRapida(d);
+    // Los casos de chat de grupo llevan esGrupo (y variosAutores si se juntan mensajes de varias personas).
+    const rapida = vaPorLaRapida(d, { esGrupo: Boolean(c.esGrupo), variosAutores: Boolean(c.variosAutores) });
     const fallos = [];
-    if (d.modo !== c.modo) fallos.push(`modo ${d.modo} (esperado ${c.modo})`);
+    // «modo» puede dar alternativas («lola|cambiar»): en algunos casos lo que importa es la ruta, no el modo.
+    if (!c.modo.split("|").includes(d.modo)) fallos.push(`modo ${d.modo} (esperado ${c.modo})`);
     if (rapida !== c.rapida) {
       fallos.push(rapida ? "RÁPIDA cuando tocaba Lola" : "a Lola cuando tocaba rápida");
       if (rapida) rapidaMal++; else lentaMal++;
@@ -49,7 +51,7 @@ for (const c of casos) {
     if (d.error) fallos.push(`error: ${d.error}`);
     total++;
     if (!fallos.length) bien++;
-    console.log(`${fallos.length ? "✗" : "✓"} «${c.texto.slice(0, 60)}» → ${d.modo} ${d.confianza.toFixed(2)} ${rapida ? "⚡" : "🧠"} ${d.ms} ms${fallos.length ? `\n    ${fallos.join(" · ")}` : ""}`);
+    console.log(`${fallos.length ? "✗" : "✓"} ${c.esGrupo ? "[grupo] " : ""}«${c.texto.slice(0, 60).replace(/\n/g, " | ")}» → ${d.modo} ${d.confianza.toFixed(2)} ${rapida ? "⚡" : "🧠"} ${d.ms} ms${fallos.length ? `\n    ${fallos.join(" · ")}` : ""}`);
   }
 }
 tiempos.sort((a, b) => a - b);

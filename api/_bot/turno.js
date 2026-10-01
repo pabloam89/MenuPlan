@@ -11,25 +11,27 @@
  * un «Para hoy» o «la merluza» se leían como peticiones nuevas.
  */
 
-import { cargarCasa, deshacer } from "./casa.js";
+import { cargarCasa, deshacer, hoyISO } from "./casa.js";
 import {
   proponerPlatos, cambiarPlato, anadirCompra, marcarCompra, normal, DIA_LARGO, grupos, quienesDe, cambiosDe,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
-import { respuestaHoy, respuestaSemana, respuestaCompra, respuestaDia, rangoDeFechas } from "./rapido.js";
+import { respuestaCompra, respuestaMenu, rangoDeFechas } from "./rapido.js";
+import { fechasDe } from "./cuando.js";
+import { filtrosTrasGenerar, filtrosTrasCambiar } from "./pintar.js";
 import { rastro } from "./embudo.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const EMOJI = { Desayuno: "☕", Comida: "🍽️", Merienda: "🥪", Cena: "🌙", Postre: "🍮" };
-const ARTICULO = { Desayuno: "el desayuno", Comida: "la comida", Merienda: "la merienda", Cena: "la cena", Postre: "el postre" };
+// Icono y artículo de cada comida, del catálogo (src/lib/comidas.js).
+import { articuloDe } from "../../src/lib/comidas.js";
 const MAX_BOTON = 38;
 
 /** «la cena de hoy», «la comida del jueves» */
 function huecoEnTexto({ franja, dia, fecha }) {
   const hoyISO = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
   const cuando = fecha === hoyISO ? "de hoy" : dia ? `del ${DIA_LARGO[dia] ?? dia}` : "";
-  return `${ARTICULO[franja] ?? (franja ? franja.toLowerCase() : "la comida")} ${cuando}`.trim();
+  return `${articuloDe(franja)} ${cuando}`.trim();
 }
 
 const mayusculaInicial = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
@@ -109,34 +111,38 @@ export async function cambiar(householdId, x) {
   const hueco = huecoEnTexto(out);
   const sinCambiar = out.sinCambiar?.length ? `\n\n<i>A ${esc(out.sinCambiar.join(" y "))} le dejo lo suyo: ese plato no le encaja.</i>` : "";
   const aproximada = out.aproximada ? `\n<i>No había «${esc(out.pedida)}» tal cual: es lo más parecido que encaja.</i>` : "";
+  // El día cambiado sale pintado debajo (pintarMenu), con el plato nuevo
+  // destacado: aquí solo se dice qué se ha hecho y qué había antes.
   return {
-    texto: `✅ <b>Hecho.</b> ${mayusculaInicial(hueco)}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""} ahora es:\n\n${EMOJI[out.franja] ?? "🍽️"} <b>${esc(out.despues)}</b>${out.adaptado ? ` <i>(${esc(out.adaptado)})</i>` : ""}${out.antes ?`\n<i>Antes: ${esc(out.antes)}.</i>` : ""}${aproximada}${sinCambiar}`,
+    texto: `✅ <b>Hecho.</b> He cambiado ${hueco}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""}: ahora es <b>${esc(out.despues)}</b>${out.antes ? ` <i>(antes: ${esc(out.antes)})</i>` : ""}.${aproximada}${sinCambiar}`,
     fotos,
     deshacible: true,
     ir: out.dia ? `dia:${out.dia}` : null,
+    pintar: filtrosTrasCambiar(out),
   };
 }
 
 // ── Compra ──────────────────────────────────────────────────────────────────
 
-export async function apuntar(householdId, x) {
+export async function apuntar(householdId, x, autor = null) {
   const out = {};
   await anadirCompra(householdId, x.productos ?? [], out);
   if (!out.ok || !out.anadidos?.length) return null;
   return {
-    texto: enLista("🛒", "Apuntado en la lista", out.anadidos),
+    // En un chat de grupo se dice quién lo pidió, como hace Lola.
+    texto: enLista("🛒", autor ? `Apuntado por ${esc(autor)}` : "Apuntado en la lista", out.anadidos),
     fotos: [], deshacible: true, ir: "compra",
   };
 }
 
-export async function tachar(householdId, x) {
+export async function tachar(householdId, x, autor = null) {
   const out = {};
   await marcarCompra(householdId, x.productos ?? [], "comprado", out);
   // Si hay dudas («¿qué leche?») tiene que preguntar Lola.
   if (!out.ok || out.dudosos?.length || !out.hechos?.length) return null;
   const faltan = out.noEncontrados?.length ? `\n\n🤔 <i>No encuentro en la lista: ${out.noEncontrados.map(esc).join(", ")}.</i>` : "";
   return {
-    texto: `${enLista("✅", "Tachado", out.hechos)}${faltan}`,
+    texto: `${enLista("✅", autor ? `Tachado por ${esc(autor)}` : "Tachado", out.hechos)}${faltan}`,
     fotos: [], deshacible: true, ir: "compra",
   };
 }
@@ -150,21 +156,28 @@ export async function generar(householdId, x) {
   // Las líneas de dondeQuedaron (generar.js) están escritas para Lola: la
   // instrucción del final se cambia por lo que se le diría a la persona.
   const aPersona = (l) => l.replace(/: ofrece ponerlo con cambiar_plato$/, ". Si quieres, dime qué día y te lo pongo.");
-  const pedidos = out.pedidos?.length ? `\n\n📌 <b>Lo que pediste:</b>\n${out.pedidos.map((l) => `• ${esc(aPersona(l))}`).join("\n")}` : "";
+  // La semana sale pintada debajo con lo pedido destacado (✨): aquí solo lo
+  // que no ha cabido, que eso no se ve en la lista.
+  const sinSitio = (out.pedidos ?? []).filter((l) => /no ha cabido/.test(l));
+  const pedidos = sinSitio.length ? `\n\n${sinSitio.map((l) => `• ${esc(aPersona(l))}`).join("\n")}` : "";
+  const destacados = (out.colocados ?? []).length ? " Lo que pediste va marcado con ✨." : "";
   return {
-    texto: `🎉 <b>¡Menú listo!</b>\n📅 Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${pedidos}\n\nPídeme cambios cuando quieras («cambia la cena del jueves»), o ábrelo en la app con el botón.`,
+    texto: `🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${pedidos}`,
     fotos: [], deshacible: true, ir: "semana",
+    pintar: filtrosTrasGenerar(out),
   };
 }
 
 // ── Consultas y deshacer ────────────────────────────────────────────────────
 
 export async function consultar(householdId, x) {
-  if (x.que === "hoy") return respuestaHoy(householdId);
-  if (x.que === "semana") return respuestaSemana(householdId);
   if (x.que === "compra") return respuestaCompra(householdId);
-  if (x.que === "dia" && x.dia) return respuestaDia(householdId, x.dia);
-  return null;
+  // Justo lo pedido: los días (el finde, la semana que viene…), las comidas,
+  // los platos y para quién. Si no hay nada de eso en el menú, null: lo
+  // explica Lola y ofrece generarlo.
+  const dias = fechasDe(x, hoyISO());
+  if (!dias) return null;
+  return respuestaMenu(householdId, { dias, comidas: x.comidas ?? null, platos: x.platos ?? null, grupo: x.para ?? null });
 }
 
 export async function deshacerRapido(householdId) {
@@ -173,7 +186,8 @@ export async function deshacerRapido(householdId) {
 }
 
 /** El modo del enrutador → su vía rápida. */
-export async function viaRapida(decision, householdId) {
+/** @param {{ autor?: string|null }} [quien]  en un chat de grupo, quién lo pidió */
+export async function viaRapida(decision, householdId, { autor = null } = {}) {
   const x = decision.datos ?? {};
   switch (decision.modo) {
     case "consulta": return consultar(householdId, x);
@@ -181,8 +195,8 @@ export async function viaRapida(decision, householdId) {
     // Sin decir qué plato (ni «lo que sea»): no se elige por ellos, se ofrecen
     // tres opciones con «Elige tú», como haría Lola.
     case "cambiar": return x.receta || x.cualquiera ? cambiar(householdId, x) : recomendar(householdId, x);
-    case "compra_anadir": return apuntar(householdId, x);
-    case "compra_marcar": return tachar(householdId, x);
+    case "compra_anadir": return apuntar(householdId, x, autor);
+    case "compra_marcar": return tachar(householdId, x, autor);
     case "generar": return generar(householdId, x);
     case "deshacer": return deshacerRapido(householdId);
     default: return null;

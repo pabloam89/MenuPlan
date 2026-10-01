@@ -15,10 +15,11 @@ import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq } from "./db.js";
-import { cargarCasa, deshacer, escribioDesde } from "./casa.js";
+import { cargarCasa, deshacer, escribioDesde, hoyISO } from "./casa.js";
 import {
-  describirCasa, verMenu, describirReceta, describirCompra,
+  describirCasa, describirReceta, describirCompra,
   marcarCompra, anadirCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
+  rangosDelMenu,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
@@ -33,6 +34,9 @@ import {
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { supervisar } from "./supervisor.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
+import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
+import { fechasDe, CUANDOS } from "./cuando.js";
+import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
@@ -57,49 +61,13 @@ const PLAZO_MS = { principal: 55000, reserva: 50000 };
 const TURNOS_DE_MEMORIA = 16;
 const DIAS_DE_MEMORIA = 3;
 
-const REGLAS = `
-Qué haces: consultar y cambiar el menú de la semana, enseñar recetas e ingredientes, llevar la lista de la compra y responder dudas de cocina de la casa. Para TODO lo que toque datos de la casa usa las herramientas: nunca te inventes platos, recetas, cantidades ni lo que hay en el menú. Si una herramienta no puede hacer algo, dilo con naturalidad y, si tiene sentido, sugiere hacerlo en la app de HoMenu.
-
-Reglas:
-- Ante cualquier pregunta sobre el menú, una receta, la compra o la familia, llama PRIMERO a la herramienta que corresponda, aunque creas saber la respuesta o ya lo hayas consultado antes en la charla: los datos cambian (otra persona puede haber tocado la app). Nunca digas que no tienes acceso a algo sin haberlo consultado.
-- El menú activo puede ser de una semana que ya pasó. Si te preguntan por él, enséñalo igualmente y avisa de las fechas.
-- Las recetas salen SIEMPRE del catálogo de HoMenu (tienen foto, ingredientes y encajan en la compra y las alergias), nunca de tu cosecha. Pero recomendar sí: si piden ideas, «¿qué me recomiendas?», «¿qué recetas me das?» o cambiar un plato sin decir por cuál, llama a proponer_platos y ofrece 3 opciones con un botón cada una, más [[Elige tú]] (4 botones en total). Al elegir una, cambiar_plato con receta = su nombre. Si dicen «cámbialo, me da igual» o pulsan «Elige tú», cambiar_plato sin receta. Nunca contestes que no puedes recomendar.
-- Aunque no haya menú para ese día, proponer_platos da ideas del recetario: úsalo igual. NO generes un menú para poder recomendar; generar es solo cuando piden un menú.
-- Si piden ideas o recomendaciones, dalas YA con proponer_platos, sin preguntar antes: quién come, la etapa del bebé, las alergias y los gustos ya los sabe la herramienta. Si hay que afinar («más ligero», «sin pescado»), después, con las opciones delante.
-- «Algo ligero» o «algo rápido» es estilo = ligero / rapido en proponer_platos, aunque ya haya un plato puesto ese día. Nunca contestes que no hay nada mejor que lo que ya está sin haber llamado a proponer_platos: el plato actual no es una respuesta a «recomiéndame». Si piden el porqué, una línea con el dato (las kcal, el tiempo, que lleva verdura o pescado).
-
-Cómo llevar la conversación (esto manda sobre todo lo demás):
-- Pregunta solo lo que te falte. Si ya te han dicho qué quieren (p. ej. «hazme el menú de la semana que viene, un día salmón, otro pollo, y el resto lo que sea»), hazlo ya, sin preguntas previas: eso ya es la respuesta a «¿algo especial?».
-- Una decisión por mensaje. Si preguntas algo, el mensaje termina en esa pregunta y esperas la respuesta. Nunca preguntes y hagas a la vez: nada de «¿te lo genero?» y generarlo en el mismo turno.
-- Si han pedido opciones, NUNCA elijas tú: enséñalas y espera a que elijan. Solo decides tú si lo dicen («elige tú», «me da igual»).
-- Si la petición es para varias personas que comen distinto (los mayores y el bebé), contesta todo en el mismo mensaje: un bloque de opciones para cada uno y UNA sola pregunta al final. No lo repartas en varios mensajes.
-- Si te cuentan algo que cambia lo que vas a proponer («ya come sólidos», «es alérgica al huevo»), apúntalo primero con su herramienta y propón después, ya con eso en cuenta.
-- Habla como una persona, no como un programa: nunca menciones herramientas, el motor, ids, «el sistema» ni cómo funcionas por dentro. Si algo no se puede, dilo con naturalidad y ofrece lo que sí.
-- Rápido: si necesitas varias consultas que no dependen entre sí, pide las herramientas a la vez en la misma vuelta, y no repitas una consulta que ya has hecho en este mismo turno.
-- No compruebes lo que acabas de hacer: lo que devuelven generar_menu (la semana entera) y cambiar_plato (el día tal como queda) YA es lo guardado. Después de generar o cambiar, NO llames a ver_menu: contesta con lo que te han devuelto. ver_menu es solo para cuando te preguntan por un día que no tienes delante.
-- Tras generar o cambiar, NO pintes la semana entera en el chat: di en 3 o 4 líneas qué has hecho (qué semana, lo de hoy si toca, y dónde has puesto lo que pidieron). La semana entera la ven en la app con el botón «📅 Ver la semana en la app», que sale solo debajo de tu mensaje.
-- Alergias e intolerancias: tómalas muy en serio. Nunca des por hecho que alguien puede comer algo que choque con ellas.
-- Cuando cambies algo, confírmalo en una frase diciendo qué ha cambiado. En un grupo, di también quién lo pidió.
-- Si te falta un dato para actuar (qué día, qué comida), pregúntalo en corto antes de hacer nada.
-
-Configurar la casa (esto sustituye al antiguo asistente de la app, y puede ir más lejos):
-- Tú eres el panel de la casa. La gente te cuenta cómo vive («los niños comen en el cole de lunes a jueves», «el miércoles viene mi hermano a cenar», «queremos más pescado y nada de fritos», «tenemos airfryer», «voy siempre con prisa») y tú lo traduces con las herramientas de ajuste. Usa ver_ajustes para saber qué hay antes de proponer.
-- Lo que te digan claro, aplícalo y confírmalo. Lo que DEDUZCAS (no dicho literalmente), propónlo en una frase y aplícalo solo si te dicen que sí.
-- Alergias e intolerancias: siempre repite lo que vas a guardar y pide confirmación antes de llamar a ajustar_alergias con confirmado=true.
-- No interrogues: nada es obligatorio salvo quién come, qué comidas se hacen y las alergias. Lo demás tiene un valor por defecto razonable. Si ves un hueco importante, sugiérelo una vez, sin agobiar.
-- Tras cambiar ajustes, ofrece generar el menú de nuevo para que se note. Generar un menú crea uno nuevo y lo deja activo (el anterior queda en el historial de la app): con generar_menu.
-- Las notas de voz te llegan ya transcritas (Whisper): puede haber errores de oído en nombres; si algo no cuadra, pregunta antes de cambiar nada. Las fotos y PDFs te llegan tal cual: un ticket o la nevera → propone la lista para la despensa; el menú del comedor → resúmelo y guárdalo con guardar_menu_cole. En ambos casos, enseña lo que has leído y guarda solo con su sí. Si la foto no se lee bien, dilo y pide otra.
-`;
-
 // Quién es, qué sabe hacer, modos, botones y formato: en un fichero aparte para
 // que se pueda editar sin tocar código (lo leen también los socios). Va en las
 // instrucciones con caché, así que crecer no encarece cada mensaje.
 const CONOCIMIENTO = fs.readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
-const SISTEMA = `${CONOCIMIENTO}
-
-# Reglas de trabajo
-
-${REGLAS}`;
+// Antes había aquí unas REGLAS aparte; desde el 1 oct 2026 todo vive en
+// conocimiento.md, con lo que manda arriba (una sola fuente, sin contradicciones).
+const SISTEMA = CONOCIMIENTO;
 
 let cliente = null;
 const anthropic = () => (cliente ??= new Anthropic());
@@ -120,11 +88,14 @@ const FALLO_HERRAMIENTA = "bot_tool_error";
 const FALLO_NO_ENTIENDE = "bot_not_understood";
 const FALLO_A_MEDIAS = "bot_error";
 const FRENO_SUPERVISOR = "bot_supervisor";
+const FALLO_SIN_GUARDAR = "bot_claimed_unsaved";
 
 // Qué pantalla de la app enseña lo que se acaba de ver o cambiar, en el
 // formato de ?ir= de la app (App.jsx): hoy, semana, dia:Jue, compra.
 function pantallaDe(herramienta, args = {}) {
   if (herramienta === "ver_menu") {
+    if (args.cuando === "hoy") return "hoy";
+    if (args.cuando === "manana") return `dia:${diaDe("mañana")}`;
     if (!args.dia) return "semana";
     if (/^hoy$/i.test(String(args.dia).trim())) return "hoy";
     const d = diaDe(args.dia);
@@ -157,8 +128,8 @@ const SOLO_LECTURA = new Set([
 export async function herramientas(chat) {
   const gustos = await dominiosDeGustos();
   const todas = [
-    ...herramientasDeMenu(chat.householdId, chat.fotos),
-    ...herramientasDeAjustes(chat.householdId, gustos),
+    ...herramientasDeMenu(chat.householdId, chat.fotos, chat),
+    ...herramientasDeAjustes(chat.householdId, gustos, chat),
     ...herramientasDeRecordatorios(chat),
     ...herramientasDeFotos(chat.householdId),
     ...herramientasDeRecetas(chat),
@@ -191,7 +162,7 @@ export async function herramientas(chat) {
         return freno;
       }
       if (t.name === "ver_menu" && yaLoTiene(args)) {
-        return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. No lo repitas entero: resume en 3-4 líneas; la semana la ven con el botón que sale solo.";
+        return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. Además sale pintado debajo de tu mensaje: no lo escribas; di en una o dos frases qué has hecho.";
       }
       try {
         const desde = Date.now();
@@ -373,7 +344,7 @@ function herramientasDeRecordatorios(chat) {
   ];
 }
 
-function herramientasDeAjustes(householdId, gustos) {
+function herramientasDeAjustes(householdId, gustos, chat = {}) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   return [
     betaTool({
@@ -427,7 +398,7 @@ function herramientasDeAjustes(householdId, gustos) {
         tiempo: { type: "string", enum: ["con_prisa", "normal", "con_tiempo", "depende"] },
         tanda: { type: "string", enum: ["tanda", "cada_dia"] },
         trastos: { type: "array", items: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"] } },
-        comidas: { type: "array", items: { type: "string", enum: ["Comida", "Cena"] }, description: "Qué comidas se planifican." },
+        comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
         etapaBebe: { type: "string", enum: ["cremas", "mixto", "solidos"], description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
       }),
       run: (args) => ajustarCocina(householdId, args),
@@ -447,7 +418,7 @@ function herramientasDeAjustes(householdId, gustos) {
       name: "anadir_invitado",
       description: "Alguien de fuera viene a comer o cenar un día concreto (se suma a las raciones y a la compra de esa semana, y caduca solo).",
       inputSchema: obj({
-        dia: { type: "string" }, comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
+        dia: { type: "string" }, comida: { type: "string", enum: IDS_COMIDAS },
         n: { type: "integer", minimum: 1, maximum: 20 }, nombre: { type: "string" },
         semana: { type: "string", enum: ["esta", "siguiente"] },
       }, ["dia", "comida"]),
@@ -506,16 +477,43 @@ function herramientasDeAjustes(householdId, gustos) {
           type: "array", maxItems: 7,
           items: obj({
             nombre: { type: "string", description: "El plato como lo han dicho." },
-            comida: { type: "string", enum: ["Comida", "Cena"], description: "Solo si lo dicen; si no, se deduce del plato." },
+            comida: { type: "string", enum: COMIDAS_PRINCIPALES, description: "Solo si lo dicen; si no, se deduce del plato." },
           }, ["nombre"]),
         },
       }, ["semana"]),
-      run: ({ semana, fijos }) => generarMenu(householdId, semana, fijos ?? []),
+      run: async ({ semana, fijos }) => {
+        // La semana generada sale pintada debajo del mensaje de Lola (entregar()).
+        const out = {};
+        const texto = await generarMenu(householdId, semana, fijos ?? [], out);
+        if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
+        return texto;
+      },
     }),
   ];
 }
 
-function herramientasDeMenu(householdId, fotos = null) {
+/**
+ * Lo que sale pintado debajo del mensaje (pintar.js), sumando lo de cada
+ * herramienta del turno: si genera y luego cambia o consulta, se ven todos
+ * los días y no se pierde lo destacado.
+ */
+function pintarTambien(chat, nuevo) {
+  if (!nuevo) return;
+  const antes = chat.pintar;
+  if (!antes) { chat.pintar = nuevo; return; }
+  const igual = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  chat.pintar = {
+    dias: [...new Set([...(antes.dias ?? []), ...(nuevo.dias ?? [])])].sort(),
+    destacar: [...(antes.destacar ?? []), ...(nuevo.destacar ?? [])],
+    // Un filtro solo vale si lo piden todas: si no, la semana generada saldría
+    // solo con las cenas que alguien consultó después.
+    comidas: igual(antes.comidas, nuevo.comidas) ? nuevo.comidas ?? null : null,
+    platos: igual(antes.platos, nuevo.platos) ? nuevo.platos ?? null : null,
+    grupo: igual(antes.grupo, nuevo.grupo) ? nuevo.grupo ?? null : null,
+  };
+}
+
+function herramientasDeMenu(householdId, fotos = null, chat = {}) {
   const conCasa = async (f) => {
     const casa = await cargarCasa(householdId);
     if (!casa) return "Esta casa todavía no tiene datos en la nube. Que entren una vez en la app de HoMenu.";
@@ -532,16 +530,32 @@ function herramientasDeMenu(householdId, fotos = null) {
     }),
     betaTool({
       name: "ver_menu",
-      description: "El menú activo (puede tener varias semanas): una semana entera, o solo un día. Úsalo para «qué comemos hoy», «qué hay el jueves», «pásame el menú de la semana que viene».",
+      description: "El menú activo, justo el trozo que piden: unos días (hoy, mañana, un día, el finde, esta semana, la que viene, de un día a otro), unas comidas, unos platos, para alguien. Lo pedido SALE PINTADO DEBAJO de tu mensaje: no lo copies; como mucho, una frase. Lo que devuelve es para que tú lo sepas.",
       inputSchema: {
         type: "object",
         properties: {
-          dia: { type: "string", description: "Opcional: lunes…domingo, «hoy» o «mañana». Sin él, la semana entera." },
+          cuando: { type: "string", enum: CUANDOS, description: "Qué días. dia = un día (en dia); rango = de dia a hasta. Sin él, esta semana." },
+          dia: { type: "string", description: "Con cuando=dia o rango: lunes…domingo, «hoy» o «mañana»." },
+          hasta: { type: "string", description: "Con cuando=rango: el último día." },
+          comidas: { type: "array", items: { type: "string", enum: IDS_COMIDAS }, description: "Opcional: solo esas comidas («solo cenas»)." },
+          platos: { type: "array", items: { type: "string", enum: IDS_PLATOS }, description: "Opcional: primero o principal." },
+          para: { type: "string", description: "Opcional: para quién («el bebé», «los peques», «Leo»)." },
           semana,
         },
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual }) => conCasa((casa) => verMenu(casa, { dia, semana: cual, fotos })),
+      run: ({ cuando, dia, hasta, comidas, platos, para, semana: cual }) => conCasa(async (casa) => {
+        const pedido = cuando ?? (dia ? "dia" : cual === "siguiente" ? "semana_que_viene" : "esta_semana");
+        const dias = fechasDe({ cuando: pedido, dia, hasta, semana: cual }, hoyISO());
+        if (!dias) return `No entiendo qué días son («${dia ?? cuando}»).`;
+        const filtros = { dias, comidas: comidas ?? null, platos: platos ?? null, grupo: para ?? null };
+        const p = await pintarMenuEntero(casa, filtros);
+        if (p.sinGrupo) return `${sinEtiquetas(p.texto)} Pregunta de quién hablan.`;
+        if (!p.conMenu && !p.noPlanificadas.length) return `No hay menú para esos días (${dias[0]}${dias.length > 1 ? ` a ${dias.at(-1)}` : ""}). ${rangosDelMenu(casa)} Si lo quieren, generar_menu.`;
+        pintarTambien(chat, filtros);
+        if (dias.length === 1 && fotos) for (const f of p.fotos) if (!fotos.some((x) => x.url === f.url)) fotos.push(f);
+        return `Sale pintado debajo de tu mensaje (NO lo copies; como mucho una frase). Para que lo sepas:\n${sinEtiquetas(p.texto)}`;
+      }),
     }),
     betaTool({
       name: "ver_receta",
@@ -593,7 +607,7 @@ function herramientasDeMenu(householdId, fotos = null) {
         properties: {
           dia: { type: "string", description: "Opcional: lunes…domingo, «hoy» o «mañana». Sin él, la próxima comida que toca: NO lo preguntes para recomendar («entre semana» sin más = hoy)." },
           semana,
-          comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"], description: "Opcional: sin ella, la próxima que toca por la hora." },
+          comida: { type: "string", enum: IDS_COMIDAS, description: "Opcional: sin ella, la próxima que toca por la hora." },
           grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           n: { type: "integer", minimum: 2, maximum: 6, description: "Cuántas opciones; por defecto 3 (caben 3 botones más «Elige tú»)." },
@@ -630,7 +644,7 @@ function herramientasDeMenu(householdId, fotos = null) {
         properties: {
           dia: { type: "string", description: "lunes…domingo, «hoy» o «mañana»." },
           semana,
-          comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
+          comida: { type: "string", enum: IDS_COMIDAS },
           grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           receta: { type: "string", description: "Opcional: el nombre de la receta elegida." },
@@ -641,7 +655,10 @@ function herramientasDeMenu(householdId, fotos = null) {
       run: ({ dia, semana: cual_semana, comida, grupo, cual, receta }) => {
         const f = franjaDe(comida);
         if (!f) return `No entiendo qué comida es («${comida}»).`;
-        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null }, fotos);
+        // El día cambiado sale pintado debajo, con el plato nuevo destacado.
+        const out = {};
+        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null }, fotos, out)
+          .then((t) => { if (out.cambiado) pintarTambien(chat, filtrosTrasCambiar(out)); return t; });
       },
     }),
   ];
@@ -698,7 +715,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], escrito: false, ir: null, compartir: null, puerta };
+  // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], escrito: false, ir: null, compartir: null, pintar: null, puerta };
   // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
   const [tope, historia, tools, casa, extras] = await Promise.all([
@@ -708,13 +726,13 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
   const ficha = casa ? montarFicha(casa, extras) : null;
-  let dicho, uso;
+  let dicho, uso, corregido;
   try {
-    ({ dicho, uso } = await ejecutar({
+    ({ dicho, uso, corregido } = await ejecutar({
       historia, entrada, tools, adjunto, signal, ficha,
       alEscribir: alEscribir ? (parcial) => alEscribir(parcial, { fotos: chat.fotos }) : null,
       // Lo que juntó el modelo que se cayó no es de esta respuesta.
-      alReintentar: () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; },
+      alReintentar: () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; },
     }));
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
@@ -726,6 +744,9 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
       texto: "😵‍💫 Me he quedado a medias: puede que ya haya cambiado algo y no te lo he podido contar.\n\nMíralo en la app con el botón antes de pedírmelo otra vez, así no se hace dos veces.",
       fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir ?? "semana", compartir: null,
     };
+  }
+  if (corregido) {
+    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200) } });
   }
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
     await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200) } });
@@ -745,7 +766,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     segundaSemana(householdId).catch(() => {}),
   ]);
 
-  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir, compartir: chat.compartir, guardado };
+  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado };
 }
 
 /**
@@ -763,7 +784,15 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
  * @param {{ estable: string, delDia: string } | null} [ficha]  la ficha de la
  *   casa (api/_bot/ficha.js); las pruebas pueden pasar una de mentira.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null }) {
+// Lola a veces dice «✅ Apuntado» sin haber llamado a nada que guarde (1 de
+// cada 3 con «a partir de ahora nada de coliflor»). Las reglas lo frenan casi
+// siempre, pero no del todo: si lo dice y en el turno no hubo ninguna
+// escritura, se le avisa y repite la vuelta una vez.
+const DICE_QUE_GUARDO = /✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
+export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(String(texto ?? ""));
+const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En tu respuesta dices que lo has apuntado, guardado o hecho, pero en este turno no has llamado a ninguna herramienta que guarde: no se ha guardado nada. Si había que guardarlo, llama ahora a la herramienta que toca y luego contesta. Si no, contesta otra vez sin decir que está hecho. Contesta a la persona directamente, sin mencionar este aviso.";
+
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta }) {
   // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
@@ -780,12 +809,23 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     const plazo = AbortSignal.timeout(i === 0 ? PLAZO_MS.principal : PLAZO_MS.reserva);
     try {
       if (i > 0) alReintentar?.();
-      const r = await unaVuelta({
-        historia, entrada, tools: vigiladas, adjunto, alEscribir, modelo, ficha,
+      const comun = {
+        tools: vigiladas, alEscribir, modelo, ficha,
         signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
-      });
+      };
+      let r = await vuelta({ ...comun, historia, entrada, adjunto });
+      if (escrituras === 0 && diceQueGuardo(r.dicho)) {
+        console.warn("[agente] dijo que guardó sin guardar: otra vuelta");
+        // Lo que dijo queda en la historia (sin el adjunto, que ya leyó), y el aviso va como mensaje nuevo.
+        const otra = await vuelta({
+          ...comun, adjunto: null, entrada: AVISO_SIN_GUARDAR,
+          historia: [...historia, { role: "user", content: entrada }, { role: "assistant", content: r.dicho }],
+        });
+        const uso = Object.fromEntries(Object.keys({ ...r.uso, ...otra.uso }).map((k) => [k, (r.uso?.[k] ?? 0) + (otra.uso?.[k] ?? 0)]));
+        r = { dicho: otra.dicho, uso, corregido: true };
+      }
       if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
       return { ...r, modelo };
     } catch (err) {

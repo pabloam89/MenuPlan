@@ -26,8 +26,9 @@
 import fs from "node:fs";
 import { resolveMemberAge, stageForAge } from "../../src/lib/stages.js";
 import { INTOLERANCE_RULES } from "../../src/lib/intolerances.js";
-import { estadoDe } from "../../src/lib/notepad.js";
+import { matizDe, vigente } from "../../src/lib/notepad.js";
 import { describirRegla } from "../../src/lib/reglasTexto.js";
+import { comidasDeLaCasa, comida as comidaDelCatalogo } from "../../src/lib/comidas.js";
 import { select, eq } from "./db.js";
 
 const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -54,6 +55,11 @@ function etiquetaDe(campo) {
 const sumarDias = (iso, n) => { const d = new Date(`${iso}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 const diaDeFecha = (iso) => DIAS[(new Date(`${iso}T12:00:00Z`).getUTCDay() + 6) % 7];
 const fechaCorta = (iso) => `${DIA_CORTO[diaDeFecha(iso)]} ${Number(iso.slice(8, 10))} ${MESES[Number(iso.slice(5, 7)) - 1]}`;
+// La primera línea del día lleva también la fecha ISO: ajustar_gustos pide
+// desde/hasta en AAAA-MM-DD, y sin el año Lola dudaba («hasta el 31»).
+const cabeceraDia = (iso) => `${fechaCorta(iso)} (${iso})`;
+// «hasta 31/10», «desde 6/10»: la ventana de un apunte de la libreta.
+const diaMes = (iso) => `${Number(iso.slice(8, 10))}/${Number(iso.slice(5, 7))}`;
 const ddmm = (iso) => (iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}` : "");
 const lista = (xs) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} y ${xs.at(-1)}`);
 
@@ -182,15 +188,15 @@ function casaBloque(data) {
 
 // ── COCINA ──────────────────────────────────────────────────────────────────
 
-function cocinaBloque(data) {
+function cocinaBloque(data, hoy) {
   const lineas = [];
-  const comidas = data.meals ?? ["Comida", "Cena"];
+  const comidas = comidasDeLaCasa(data).map((id) => comidaDelCatalogo(id)?.nombre ?? id);
   const estructura = { primero_segundo: "primero y segundo", plato_unico: "plato único", unico: "plato único", "1_plato": "plato único" };
   const est = [
-    comidas.includes("Comida") && data.mealStructure ? `Comida: ${estructura[data.mealStructure] ?? data.mealStructure}` : "",
-    comidas.includes("Cena") && data.mealStructureCena ? `Cena: ${estructura[data.mealStructureCena] ?? data.mealStructureCena}` : "",
+    comidasDeLaCasa(data).includes("Comida") && data.mealStructure ? `Comida: ${estructura[data.mealStructure] ?? data.mealStructure}` : "",
+    comidasDeLaCasa(data).includes("Cena") && data.mealStructureCena ? `Cena: ${estructura[data.mealStructureCena] ?? data.mealStructureCena}` : "",
   ].filter(Boolean);
-  lineas.push(`- Se planifican: ${comidas.join(" y ").toLowerCase()}${est.length ? `. ${est.join(". ")}` : ""}.`);
+  lineas.push(`- Se planifican: ${lista(comidas)}${est.length ? `. ${est.join(". ")}` : ""}.`);
   const ct = data.cookTime;
   if (ct?.weekday) {
     const ent = Math.max(ct.weekday.Comida ?? 0, ct.weekday.Cena ?? 0);
@@ -209,10 +215,17 @@ function cocinaBloque(data) {
     // paréntesis, solo si dice algo («Cuánto de cada cosa: pescado (3)»).
     const v = Array.isArray(c.valor) ? c.valor.join("/") : c.valor;
     const valor = v === true || v === 1 || v === "1" ? "" : ` (${v})`;
-    return `${etiquetaDe(id)}: ${detalle || ""}${valor}`.replace(/: \(/, ": (");
+    const ventana = c.desde && c.desde > hoy ? ` (desde ${diaMes(c.desde)})` : c.hasta ? ` (hasta ${diaMes(c.hasta)})` : "";
+    return `${etiquetaDe(id)}: ${detalle || ""}${valor}${ventana}`.replace(/: \(/, ": (");
   };
-  const dicho = campos.filter(([r]) => estadoDe(data.notepad, r) === "fijado");
-  const supuesto = campos.filter(([r]) => estadoDe(data.notepad, r) === "inferido");
+  // Por matiz (notepad.js): lo que la familia escribió en el panel no lleva
+  // fuente y es dicho. Lo visto y lo supuesto van juntos: Lola no los da por
+  // hechos. Fuera queda lo caducado; lo que empieza más adelante sí entra,
+  // con su «desde», para que Lola lo sepa.
+  const cuenta = ([, c]) => vigente(c, hoy) || (c.desde && c.desde > hoy && (!c.hasta || c.hasta >= hoy));
+  const vivos = campos.filter(cuenta);
+  const dicho = vivos.filter(([, c]) => matizDe(c) === "dicho");
+  const supuesto = vivos.filter(([, c]) => matizDe(c) === "visto" || matizDe(c) === "supuesto");
   if (dicho.length) lineas.push(`- Dicho: ${dicho.slice(0, 3).map(texto).join("; ")}${dicho.length > 3 ? `; +${dicho.length - 3} (ver_ajustes)` : ""}.`);
   if (supuesto.length) lineas.push(`- Supuesto: ${supuesto.slice(0, 2).map(texto).join("; ")}${supuesto.length > 2 ? `; +${supuesto.length - 2} (ver_ajustes)` : ""}.`);
   const nunca = [...(data.dislikes ?? []), ...(data.excluidos ?? [])];
@@ -242,7 +255,7 @@ function platosDelDia(casa, dia, nombre) {
   const plan = casa.semana?.plan ?? {};
   const grupos = (casa.state?.data?.groups ?? []).filter((g) => plan[g.id]);
   const porFranja = [];
-  for (const franja of ["Desayuno", "Comida", "Merienda", "Cena"]) {
+  for (const franja of comidasDeLaCasa(casa.state?.data ?? {})) {
     const porGrupo = grupos.map((g) => {
       const h = plan[g.id]?.[`${dia}-${franja}`];
       const platos = h ? [nombre(h.firstRecipeId), nombre(h.recipeId)].filter(Boolean) : [];
@@ -259,7 +272,7 @@ function platosDelDia(casa, dia, nombre) {
 
 function delDiaBloque(casa, extras, hoy) {
   const data = casa.state?.data ?? {};
-  const lineas = [fechaCorta(hoy)];
+  const lineas = [cabeceraDia(hoy)];
   // AHORA: reglas vigentes (invitados, temporales) e invitados.
   const vigentes = (data.reglas ?? []).filter((r) => !r?.vigencia?.hasta || r.vigencia.hasta >= hoy);
   if (vigentes.length) lineas.push("AHORA", ...vigentes.slice(0, 3).map((r) => `- ${describirRegla(r, data)}.`));
@@ -297,13 +310,13 @@ function delDiaBloque(casa, extras, hoy) {
 export function montarFicha(casa, extras = {}, hoy = hoyMadrid()) {
   const data = casa?.state?.data ?? {};
   if (!(data.members ?? []).length) {
-    return { estable: "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas", delDia: fechaCorta(hoy) };
+    return { estable: "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas", delDia: cabeceraDia(hoy) };
   }
   // Las secciones en el orden en que se recortan si no cabe (la última, nunca).
   const secciones = {
     seguridad: seguridad(data),
     casa: casaBloque(data),
-    cocina: cocinaBloque(data),
+    cocina: cocinaBloque(data, hoy),
     recetario: recetarioBloque(data),
   };
   let delDia = delDiaBloque(casa, extras, hoy);
