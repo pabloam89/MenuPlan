@@ -2,12 +2,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Telegram de mentira: se apunta cada llamada.
 const llamadas = [];
+// Los métodos que Telegram rechaza en una prueba (p. ej. un deleteMessage que falla).
+const fallan = new Set();
 beforeEach(() => {
   llamadas.length = 0;
+  fallan.clear();
   process.env.TELEGRAM_BOT_TOKEN = "prueba";
   vi.stubGlobal("fetch", async (url, opts) => {
     const metodo = String(url).split("/").pop();
     llamadas.push({ metodo, cuerpo: JSON.parse(opts?.body ?? "{}") });
+    if (fallan.has(metodo)) return new Response(JSON.stringify({ ok: false, description: "no" }));
     return new Response(JSON.stringify({ ok: true, result: { message_id: 77 } }));
   });
 });
@@ -18,7 +22,7 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 // completa corriendo en paralelo, la importación sola se comía los 5 s de
 // plazo de la prueba.
 process.env.TELEGRAM_BOT_TOKEN = "prueba";
-const { mensajeVivo } = await import("./telegram.js");
+const { mensajeVivo, entregar } = await import("./telegram.js");
 
 describe("mensajeVivo: el mensaje que se va escribiendo", () => {
   it("sale en cuanto hay una frase, sin formato ni [[botones]] a medias, y se reescribe sin saturar", async () => {
@@ -70,5 +74,35 @@ describe("mensajeVivo: el mensaje que se va escribiendo", () => {
     vivo.escribir("Esto ya no debería salir porque el turno ha terminado del todo");
     await dormir(50);
     expect(llamadas).toHaveLength(0);
+  });
+});
+
+describe("entregar tras un aviso de espera", () => {
+  const fotos = [{ url: "https://x/1.jpg", pie: "1. Crema" }, { url: "https://x/2.jpg", pie: "2. Sopa" }];
+  const conAviso = async (fotosDelAviso) => {
+    const vivo = mensajeVivo("123", {});
+    vivo.escribir("Un momento, que te busco unas recetas", { aviso: true, fotos: fotosDelAviso });
+    await dormir(50);
+    await vivo.parar();
+    llamadas.length = 0;
+    return vivo;
+  };
+  const entrega = (vivo) => entregar({ chatId: "123", householdId: "h", esGrupo: true, base: null, from: null, r: { texto: "Mira estas dos", fotos }, vivo });
+
+  it("si en pantalla solo queda el aviso y hay fotos: fuera el aviso, álbum y texto", async () => {
+    await entrega(await conAviso());
+    expect(llamadas.map((l) => l.metodo)).toEqual(["deleteMessage", "sendMediaGroup", "sendMessage"]);
+  });
+
+  it("si el álbum ya salió con el aviso, no se repite: se edita encima", async () => {
+    await entrega(await conAviso(fotos));
+    expect(llamadas.map((l) => l.metodo)).toEqual(["editMessageText"]);
+  });
+
+  it("si Telegram no deja borrar el aviso, se edita encima (sin aviso huérfano)", async () => {
+    const vivo = await conAviso();
+    fallan.add("deleteMessage");
+    await entrega(vivo);
+    expect(llamadas.map((l) => l.metodo)).toEqual(["deleteMessage", "editMessageText"]);
   });
 });

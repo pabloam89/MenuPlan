@@ -553,7 +553,7 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
  * lo que contesta Lola que para las respuestas directas (api/_bot/rapido.js).
  * Si el texto ya se estaba escribiendo en vivo, se termina ese mismo mensaje.
  */
-async function entregar({ chatId, householdId, esGrupo, base, from, responderA, oido = null, r, vivo = null }) {
+export async function entregar({ chatId, householdId, esGrupo, base, from, responderA, oido = null, r, vivo = null }) {
   const { cuerpo: frase, botones: propiosCrudos } = sacarBotones(r.texto);
   // Lo que se ha generado, cambiado o pedido ver, pintado debajo de la frase
   // (api/_bot/pintar.js): el modelo nunca escribe la lista de platos.
@@ -600,7 +600,8 @@ async function entregar({ chatId, householdId, esGrupo, base, from, responderA, 
   const eco = oido ? `🎙️ <i>«${escaparHtml(oido)}»</i>\n\n` : "";
   // Si en pantalla solo quedó un aviso de espera y hay fotos, fuera el aviso:
   // así el álbum sale antes del texto, como en un mensaje nuevo.
-  if (vivo?.provisional() && fotosDelTurno(r.fotos).length) await vivo.quitarAviso();
+  // Si el álbum ya salió (con el propio aviso), no se borra ni se repite.
+  if (vivo?.provisional() && !vivo.fotosEnviadas() && fotosDelTurno(r.fotos).length) await vivo.quitarAviso();
   if (vivo?.id()) {
     // Ya estaba en pantalla escribiéndose: se completa ahí, con su formato y
     // sus botones. (Las fotos, si las había, salieron antes que el texto.)
@@ -658,7 +659,10 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
 
   const quitarAviso = async () => {
     if (!id || !provisional) return;
-    await llamar("deleteMessage", { chat_id: chatId, message_id: id }).catch(() => {});
+    // Si Telegram no deja borrarlo, se queda el id y se edita encima: mejor
+    // sin álbum que con un aviso huérfano encima de la respuesta.
+    const borrado = await llamar("deleteMessage", { chat_id: chatId, message_id: id }).then(() => true, () => false);
+    if (!borrado) return;
     id = null;
     provisional = false;
   };
@@ -686,6 +690,8 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
     id: () => id,
     /** ¿Lo que hay en pantalla es solo un aviso de espera? */
     provisional: () => provisional,
+    /** ¿Ya salió un álbum con este mensaje? (entonces no se repite) */
+    fotosEnviadas: () => fotosEnviadas,
     /** Borra el aviso de espera (si es lo que hay), para empezar de nuevo con fotos. */
     quitarAviso: () => (cadena = cadena.then(quitarAviso)),
     /**
