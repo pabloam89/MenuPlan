@@ -58,6 +58,11 @@ describe("supervisor: lo que quita protección necesita a la persona", () => {
     expect(supervisar("quitar_comensal", { nombre: "Isa" }, "quita a Leo")).toMatch(/No se ha quitado/);
   });
 
+  it("lo que llega en audio se mira igual (sin el «[nota de voz]» que se le pone a Lola)", () => {
+    expect(supervisar("ajustar_alergias", { ninguna: true, confirmado: true }, "[nota de voz] Nada nada, feel free")).toBe(null);
+    expect(supervisar("ajustar_alergias", { persona: "Leo", alergenos: ["huevos"], quitar: true, confirmado: true }, "[nota de voz] Sí")).toBe(null);
+  });
+
   it("lo demás pasa sin mirar", () => {
     expect(supervisar("cambiar_plato", { dia: "jueves" }, "")).toBe(null);
   });
