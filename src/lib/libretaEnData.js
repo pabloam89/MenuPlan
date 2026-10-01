@@ -8,7 +8,8 @@
 // en la app. Código movido sin cambios de comportamiento.
 
 import { aplicarOpcion } from "./panelParser.js";
-import { poner, proyectar, valorDe, dependeDelDia } from "./notepad.js";
+import { poner, proyectar, valorDe, dependeDelDia, normalizar } from "./notepad.js";
+import { hayTandasPedidas, abrirFindeParaTanda } from "./cookTime.js";
 import { freqsEfectivos, presupuestoDeTopes, repartoConFreq, repartoVisible, rutaDeReparto } from "./reparto.js";
 import { weeklySlotBudget } from "./planner.js";
 
@@ -96,6 +97,34 @@ export function aplicarAjustes(data, libretaActual, ajustes, { frase, fecha, fue
     }
   }
   return { libreta, tocadas };
+}
+
+/**
+ * Pedir una tanda: `tanda.<base>` (sofrito, arroz…) o `tandaPlatos.<familia>`
+ * (croquetas, cremas…) a `n` por semana; 0 la quita. Es lo que hacía a mano la
+ * pantalla de bases (BasesPreferidas.jsx#escribir), sacado aquí el 1 oct 2026
+ * para que pedirlo en el chat escriba EXACTAMENTE lo mismo que en la app.
+ *
+ * Lo pedido es DICHO (origen "pregunta"): una tanda es una petición con
+ * consecuencias duras (regla 11b del validador), nunca una suposición.
+ */
+export function conTandaPedida(data, ruta, n) {
+  const actual = normalizar(data?.notepad);
+  const siguiente = poner(actual, ruta, n, { origen: "pregunta" });
+  const vista = proyectar(siguiente);
+  const conLibreta = {
+    ...data,
+    notepad: siguiente,
+    sesgos: vista.sesgos ?? {},
+    tanda: vista.tanda ?? {},
+    tandaPlatos: vista.tandaPlatos ?? {},
+  };
+  // El día de la tanda necesita sitio, y pedir la primera es lo que lo pide.
+  // Solo se toca el finde cuando CAMBIA el sí/no —de ninguna tanda a alguna, o
+  // al revés— para no reescribir a cada arrastre un tiempo ajustado a mano.
+  const antes = hayTandasPedidas(data);
+  const ahora = hayTandasPedidas(conLibreta);
+  return antes === ahora ? conLibreta : abrirFindeParaTanda(conLibreta, ahora);
 }
 
 /**

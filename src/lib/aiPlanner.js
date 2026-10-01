@@ -774,6 +774,9 @@ export function buildGroupContext(data, group) {
       ...topesDelGrupo(data, group, slots.length),
       cookLevel: data.cookLevel ?? "normal",
       cookTime,
+      // El día en que la casa cocina las tandas (Lun…Dom), si lo ha dicho. Sin él,
+      // el domingo de siempre.
+      diaTanda: data.diaTanda,
       // "Menú más cuidado" profiles present in the group (soft bias for the LLM).
       // An ad-hoc "dieta blanda" menu reuses the reflux profile as a bland-diet
       // proxy (no fritos/picante/ácido), so the individual menu comes out gentle.
@@ -825,6 +828,8 @@ export function compactCatalogTable(catalog) {
 }
 
 // `format`: "json" (task "planner") or "compact" (task "planner-compact").
+const DIA_LARGO_TANDA = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves", Vie: "viernes", "Sáb": "sábado", Dom: "domingo" };
+
 export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = [], cocinas = null, format = "json", bases = null) {
   const catalog = decisionCatalog(filteredRecipes);
   // How a boolean catalog flag reads in each format, for the instructions below.
@@ -911,7 +916,7 @@ INSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): GASTA esta lista. Coloca platos que use
       `\nBASES QUE LA CASA COCINA EN TANDA ESTA SEMANA:\n${lista}`
       + "\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): coloca ESE número de platos de cada base."
       + " Un plato lleva una base si la nombra en su campo basesAparte, o si su mainBase coincide y además trae baseMode aparte."
-      + " El sentido es cocinar esa olla UNA vez el domingo y repartirla entre varios días, así que reparte esos platos por la semana en vez de ponerlos seguidos."
+      + ` El sentido es cocinar esa olla UNA vez ${config?.diaTanda ? `el ${DIA_LARGO_TANDA[config.diaTanda] ?? config.diaTanda} y ponerla en los días siguientes, cuando está recién hecha` : "el domingo y repartirla entre varios días"}, así que reparte esos platos por la semana en vez de ponerlos seguidos.`
       + " No hace falta pasarse: más de los pedidos no aporta nada. Y nunca rompas por esto las demás reglas: alergias, objetivos semanales, complementación escolar, tipo de plato ni proteína repetida en comidas seguidas.",
     );
   }

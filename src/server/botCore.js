@@ -18,7 +18,8 @@ export { computeWeekRange, explicitDaysForOffset, createMenuId } from "../lib/me
 export { menuToRow, weekToRow } from "../lib/menusSync.js";
 
 // Ajustes de la casa desde el chat: las mismas piezas que la app.
-export { aplicarAjustes, dataConLibreta, dataVigente } from "../lib/libretaEnData.js";
+export { aplicarAjustes, dataConLibreta, dataVigente, conTandaPedida } from "../lib/libretaEnData.js";
+export { TANDA_MIN, TANDA_MAX, TANDA_PASO } from "../lib/cookTime.js";
 export { normalizar as normalizarLibreta, estadoDe, matizDe, vigente, rechazar, rechazadosDe } from "../lib/notepad.js";
 export { itemValido } from "../lib/excluirHueco.js";
 export { CAMPOS, valorValido, rutaDe, FAMILIAS, AMBITOS, SERVICIOS } from "../lib/notepadFields.js";

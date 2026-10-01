@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { BASES, MAX_POR_SEMANA, MIN_POR_SEMANA, clavesDeReceta, tiempoDeBase, topeDeBase } from "../lib/bases.js";
 import { selectMethodForRecipe } from "../lib/applianceMethods.js";
-import { abrirFindeParaTanda, hayTandasPedidas, minutosDeTanda } from "../lib/cookTime.js";
+import { minutosDeTanda } from "../lib/cookTime.js";
+import { conTandaPedida } from "../lib/libretaEnData.js";
 import { TiempoDeTanda } from "./TiempoDeTanda.jsx";
 import { weeklySlotBudget } from "../lib/planner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
@@ -9,7 +10,7 @@ import { FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { MAIN_BASES } from "../data/recipeSchema.js";
 import { BASES_UI } from "../lib/basesUI.js";
 import { ingredientThumbSrc } from "../lib/ingredientImages.js";
-import { normalizar as normalizarLibreta, poner, proyectar, valorDe } from "../lib/notepad.js";
+import { normalizar as normalizarLibreta, valorDe } from "../lib/notepad.js";
 import { SliderEjes } from "./wizard/SliderEjes.jsx";
 
 import { CookingPot, RollingPin, Soup } from "./icons.jsx";
@@ -557,26 +558,8 @@ export function BasesPreferidas({ data, setData, trasInventario = null }) {
     : bloquesDePlato(pestana);
 
 
-  const escribir = (ruta, n) => setData((d) => {
-    const actual = normalizarLibreta(d?.notepad);
-    const siguiente = poner(actual, ruta, n, { origen: "pregunta" });
-    const vista = proyectar(siguiente);
-    const conLibreta = {
-      ...d,
-      notepad: siguiente,
-      sesgos: vista.sesgos ?? {},
-      tanda: vista.tanda ?? {},
-      tandaPlatos: vista.tandaPlatos ?? {},
-    };
-    // El día de la tanda necesita sitio, y pedir la primera es lo que lo pide.
-    // Lo hacía la card "Batch cooking" que vivía en la pantalla de tiempos; sin
-    // ella, el gesto que lo dice es éste. Solo se toca el finde cuando CAMBIA
-    // el sí/no —de ninguna tanda a alguna, o al revés— para no reescribir a
-    // cada arrastre un tiempo que a lo mejor el usuario ajustó a mano.
-    const antes = hayTandasPedidas(d);
-    const ahora = hayTandasPedidas(conLibreta);
-    return antes === ahora ? conLibreta : abrirFindeParaTanda(conLibreta, ahora);
-  });
+  // Lo mismo que pide el chat (lib/libretaEnData.js#conTandaPedida).
+  const escribir = (ruta, n) => setData((d) => conTandaPedida(d, ruta, n));
 
   const cambiarPlato = (id, v) => escribir(`tandaPlatos.${id}`, Math.max(0, Math.min(v, MAX_PLATOS_SEMANA)));
 

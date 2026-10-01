@@ -3674,8 +3674,9 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
     return sesionDeBases(plan, lookupDeTanda(), {
       dias: days, comidas,
       metodoDeBase: (b) => selectMethodForRecipe(b, utensilios ?? []),
+      diaTanda: data?.diaTanda,
     });
-  }, [days, comidas, menuPlan, visibleGroups, utensilios]);
+  }, [days, comidas, menuPlan, visibleGroups, utensilios, data?.diaTanda]);
 
   // Las que el usuario PIDIÓ y esta semana no puede dar. Sin esto, marcar tres
   // bases y ver una sola tarjeta parece un fallo: no lo es — una tanda existe
@@ -4244,8 +4245,8 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
     // tiene que declarar tandas con deslizadores para que el tablero las vea.
     const plan = {};
     for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
-    return tandaDelMenu(plan, lookupDeTanda(), { dias: days, comidas: comidasDeLaSemana }).claves;
-  }, [days, comidasDeLaSemana, menuPlan, visibleGroups]);
+    return tandaDelMenu(plan, lookupDeTanda(), { dias: days, comidas: comidasDeLaSemana, diaTanda: data?.diaTanda }).claves;
+  }, [days, comidasDeLaSemana, menuPlan, visibleGroups, data?.diaTanda]);
   return (
     <TandaContext.Provider value={clavesTanda}>
     <div key={deckView} className="deck-view-swap">
@@ -5607,7 +5608,7 @@ export const MenuScreen = memo(function MenuScreen({
   const hayTanda = useMemo(() => {
     const plan = {};
     for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
-    return sesionDeBases(plan, lookupDeTanda(), { dias: activeDays ?? [], comidas: getDayMeals(data) }).bases.length > 0;
+    return sesionDeBases(plan, lookupDeTanda(), { dias: activeDays ?? [], comidas: getDayMeals(data), diaTanda: data?.diaTanda }).bases.length > 0;
   }, [activeDays, data, menuPlan, visibleGroups]);
   const deckViews = modoPizarra
     ? DECK_VIEWS_BASICAS
