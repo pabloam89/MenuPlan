@@ -47,6 +47,12 @@ import { verReceta, calorias as caloriasDePlato, queFalta } from "./plato.js";
 
 // Modelo y esfuerzo, configurables para medir velocidad contra calidad con
 // scripts/bot-evals.mjs (BOT_MODELO, BOT_EFFORT) sin tocar código.
+// Medido el 1 oct 2026 (100 casos, una pasada cada uno): sonnet-5/medium
+// 97/100, media 4,4 s, p90 6,7 s; sonnet-5/low 97/100, media 3,9 s, p90 6,0 s,
+// pero falla siempre «quita la lechuga del viernes» (3 de 3, repasa el menú
+// dos veces y no cambia nada); sonnet-5-5/medium 98/100, media 4,3 s, p90 7,0 s;
+// sonnet-5-5/low 96/100, media 4,4 s. Ninguno es más rápido sin perder algo:
+// se queda sonnet-5/medium. Lo que tarda es el número de llamadas, no cada una.
 export const MODELO = process.env.BOT_MODELO || "claude-sonnet-5";
 const EFFORT = ["low", "medium", "high"].includes(process.env.BOT_EFFORT) ? process.env.BOT_EFFORT : "medium";
 // Plan B: si el modelo de Lola no contesta (saturado, caído o colgado), el
