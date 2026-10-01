@@ -27,7 +27,8 @@ import { motor, normal, prepararRecetas } from "./menu.js";
 import { duenoDe, rastro } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { SYSTEM_PROMPTS } from "../_prompts.js";
-import { porSignificado } from "./significado.js";
+import { buscarHibrido, pasaRasgos } from "./buscador.js";
+import { rasgosDeFrase } from "../../src/lib/rasgosBusqueda.js";
 
 // Las carpetas del recetario de la app (CATEGORY_META en CatalogBrowserSheet).
 // Los bebés van partidos por etapa, como allí.
@@ -78,23 +79,27 @@ export function filtrarRecetas(recetas, { consulta = "", categoria = null, maxMi
 }
 
 /**
- * Lo que encuentran las palabras, completado (o encabezado) por lo que
- * encaja por significado (significado.js). Una consulta descriptiva («algo de
- * cuchara para el frío», tres palabras o más) va primero por significado: por
- * palabras, «frío» encontraba el gazpacho. Una corta («garbanzos») va por
- * palabras, y el significado solo entra si no sale NADA: una errata o algo
- * dicho de otra manera; con alguna, no merece la espera.
+ * Lo que encuentran las palabras, completado (o encabezado) por lo que encaja
+ * por significado (buscador.js: rasgos + vectores, y Haiku de reserva). Una
+ * consulta descriptiva («algo de cuchara para el frío», tres palabras o más)
+ * o con rasgos o negación («pescado azul», «que no sea pescado») va primero
+ * por significado: por palabras, «frío» encontraba el gazpacho y «sin
+ * pescado» encontraba pescado. Una corta y sin rasgos («croquetas») va por
+ * palabras, y el significado solo entra si no sale NADA.
+ *
+ * Lo que sale por palabras (y las recetas propias, que no tienen vector) pasa
+ * por las mismas exclusiones: «sin pescado» no enseña una propia con pescado.
  */
-async function conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo }) {
+export async function conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo }, deps) {
   const palabras = normal(consulta).split(/[^a-z0-9ñ]+/).filter((w) => w.length > 2 && !VACIAS.has(w));
-  const descriptiva = palabras.length >= 3;
-  if (!palabras.length || categoria === "mias" || (!descriptiva && porPalabras.length > 0)) return porPalabras;
-  const ids = await porSignificado(consulta, { catalogo, carpetaDe, n: 8 });
-  const porId = new Map(catalogo.map((r) => [r.id, r]));
-  const semanticas = ids.map((id) => porId.get(id))
-    .filter((r) => r && (!categoria || carpetaDe(r) === categoria) && !(maxMinutos && r.time && r.time > maxMinutos));
-  const juntas = descriptiva ? [...semanticas, ...porPalabras] : [...porPalabras, ...semanticas];
-  return [...new Map(juntas.map((r) => [r.id, r])).values()];
+  if (!palabras.length || categoria === "mias") return { halladas: porPalabras, aviso: "" };
+  const rasgos = rasgosDeFrase(consulta);
+  const descriptiva = palabras.length >= 3 || rasgos.hayRasgos || rasgos.negacion;
+  if (!descriptiva && porPalabras.length > 0) return { halladas: porPalabras, aviso: "" };
+  const h = await buscarHibrido(consulta, { catalogo, carpetaDe, categoria, maxMinutos, deps });
+  const palabrasQuePasan = porPalabras.filter((r) => pasaRasgos(r, h));
+  const juntas = descriptiva ? [...h.recetas, ...palabrasQuePasan] : [...palabrasQuePasan, ...h.recetas];
+  return { halladas: [...new Map(juntas.map((r) => [r.id, r])).values()], aviso: h.aviso, via: h.via };
 }
 
 /**
@@ -110,7 +115,7 @@ export async function buscarRecetas(householdId, { consulta, categoria, maxMinut
   const estrella = m.recipeCatalog.filter((r) => r.estrella);
   const todas = [...propias, ...estrella];
   const porPalabras = filtrarRecetas(todas, { consulta, categoria, maxMinutos });
-  const halladas = await conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo: estrella });
+  const { halladas, aviso: avisoBusqueda } = await conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo: estrella });
   if (!halladas.length) {
     return `No hay recetas de ${categoria ? CATEGORIAS[categoria] ?? categoria : "eso"}${consulta ? ` con «${consulta}»` : ""} en el recetario.`;
   }
@@ -136,6 +141,8 @@ export async function buscarRecetas(householdId, { consulta, categoria, maxMinut
   }
   return [
     `${halladas.length} receta(s)${categoria ? ` en ${CATEGORIAS[categoria] ?? categoria}` : ""}${consulta ? ` para «${consulta}»` : ""}. Las primeras ${mostrar.length}:`,
+    // Si se ha relajado lo pedido («al horno»), Lola tiene que saberlo para no venderlas como tal.
+    avisoBusqueda ? `Ojo: ${avisoBusqueda}` : "",
     ...mostrar.map((r, i) => `${i + 1}. ${r.name}${r.time ? ` (${r.time} min)` : ""}${r.source === "user" ? " [vuestra]" : ""}${aviso(r)}`),
     halladas.length > mostrar.length ? `Hay ${halladas.length - mostrar.length} más: se pueden pedir o verlas todas en la app.` : "",
   ].filter(Boolean).join("\n");

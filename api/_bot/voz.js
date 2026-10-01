@@ -112,7 +112,11 @@ export async function transcribir(audio, { householdId } = {}) {
 
   const pista = pistaDe(nombres);
   const form = new FormData();
-  const nombre = fichero.file_path.split("/").pop() || "nota.ogg";
+  // Telegram guarda las notas de voz como «.oga», y Groq decide el formato
+  // por la extensión y no la acepta (400, «file must be one of…»): es Ogg
+  // Opus, así que se llama «.ogg». Por esto la voz no funcionó nunca hasta
+  // el 1 oct 2026.
+  const nombre = (fichero.file_path.split("/").pop() || "nota.ogg").replace(/\.oga$/i, ".ogg");
   form.append("file", new Blob([bytes], { type: audio.mime_type || "audio/ogg" }), nombre);
   form.append("model", MODELO);
   form.append("language", IDIOMA);

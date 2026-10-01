@@ -24,7 +24,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 const MODELO = process.env.BOT_SIGNIFICADO_MODELO || "claude-haiku-4-5-20251001";
-const ESPERA_MS = 6000;
+// Ahora es la reserva del buscador híbrido (buscador.js): mejor cortar a los
+// 3 s y seguir con palabras que dejar a la familia 6 s esperando.
+const ESPERA_MS = 3000;
 
 let cliente = null;
 const anthropic = () => (cliente ??= new Anthropic());
