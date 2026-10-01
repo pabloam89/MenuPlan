@@ -415,10 +415,22 @@ export async function anadirComensal(householdId, { nombre, edad }) {
  * ser «1 adulto» y sale de su gasto estimado (src/lib/raciones.js). Se
  * guardan en el miembro como pesoKg y alturaCm; la app los conserva.
  */
-export async function ajustarPersona(householdId, { nombre, pesoKg, alturaCm, borrar = false }) {
+export async function ajustarPersona(householdId, { nombre, nuevoNombre, pesoKg, alturaCm, borrar = false }) {
   return conData(householdId, (data, m) => {
     const x = personaPorNombre(data, nombre);
     if (!x) return { texto: `No encuentro a ${nombre} en la casa.` };
+    // Un nombre mal oído en un audio («Iquer» → «Iker»): todo va por id, así
+    // que basta con cambiar el nombre.
+    const nuevo = String(nuevoNombre ?? "").trim();
+    if (nuevo) {
+      if (nuevo.length > 40) return { texto: "Ese nombre es muy largo." };
+      const otro = (data.members ?? []).find((p) => p.id !== x.id && normal(p.name ?? "") === normal(nuevo));
+      if (otro) return { texto: `Ya hay alguien llamado ${otro.name} en la casa.` };
+      if (pesoKg == null && alturaCm == null && !borrar) {
+        const members = (data.members ?? []).map((p) => (p.id === x.id ? { ...p, name: nuevo } : p));
+        return { data: { ...data, members }, texto: `Corregido: ahora es ${nuevo}.` };
+      }
+    }
     const peso = Number(pesoKg);
     const altura = Number(alturaCm);
     if (!borrar && pesoKg != null && !(peso >= 2 && peso <= 300)) return { texto: "Ese peso no me cuadra: dímelo en kilos." };
@@ -426,6 +438,7 @@ export async function ajustarPersona(householdId, { nombre, pesoKg, alturaCm, bo
     const cambiado = borrar
       ? { ...x, pesoKg: null, alturaCm: null }
       : { ...x, ...(pesoKg != null ? { pesoKg: peso } : {}), ...(alturaCm != null ? { alturaCm: altura } : {}) };
+    if (nuevo) cambiado.name = nuevo;
     const members = (data.members ?? []).map((p) => (p.id === x.id ? cambiado : p));
     const factor = m.factorRacion(cambiado, m.resolveMemberAge(cambiado));
     const racion = cambiado.pesoKg && cambiado.alturaCm

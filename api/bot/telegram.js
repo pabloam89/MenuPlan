@@ -443,7 +443,13 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
   const alEscribir = (parcial, extra) => (abierta ? vivo.escribir(parcial, extra) : (pendiente = [parcial, extra]));
   let r;
   try {
-    r = await responder({ chatId, householdId, texto, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir, puerta, signal });
+    // Si vino en audio, Lola lo sabe: los nombres nuevos pueden venir mal oídos
+    // y los confirma (conocimiento.md, «Fotos y voz»). En el alta va dentro,
+    // para que el mensaje siga empezando por «[alta]».
+    const paraLola = !oido ? texto
+      : texto.startsWith("[alta]") ? texto.replace("Mi primer mensaje:", "Mi primer mensaje (nota de voz):")
+        : `[nota de voz] ${texto}`;
+    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir, puerta, signal });
     if (puerta && !(await puerta)) return; // el turno fue de la vía rápida
   } catch (err) {
     // Cancelada porque el turno era de la vía rápida: nada que decir.

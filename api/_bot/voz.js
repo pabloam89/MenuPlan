@@ -20,7 +20,7 @@
  */
 
 import { llamar } from "./telegram.js";
-import { select, eq } from "./db.js";
+import { cargarCasa } from "./casa.js";
 
 const MODELO = "whisper-large-v3";
 const IDIOMA = "es";
@@ -51,20 +51,112 @@ const ALUCINACIONES = [
 // Un segmento sin voz, según Whisper (los umbrales de su propio transcribe.py).
 const SIN_VOZ = (s) => s.no_speech_prob > 0.6 && s.avg_logprob < -1;
 
-/** Los nombres de quien come en la casa, para la pista. Si falla, sin nombres. */
-async function nombresDeLaCasa(householdId) {
-  if (!householdId) return [];
+/**
+ * Lo que se dice en ESTA casa: quién come y las palabras suyas que más salen y
+ * Whisper no conoce (sus recetas, lo que no les gusta). De la casa en memoria
+ * (casa.js): el turno la lee igual justo después. Si falla, sin nada.
+ */
+export async function palabrasDeLaCasa(householdId) {
+  if (!householdId) return { nombres: [], propias: [] };
   try {
-    const [fila] = await select("household_state", `household_id=${eq(householdId)}`, "miembros:state->data->members");
-    return (fila?.miembros ?? []).map((p) => p?.name).filter(Boolean).slice(0, 12);
+    const data = (await cargarCasa(householdId))?.state?.data ?? {};
+    return palabrasDe(data);
   } catch {
-    return [];
+    return { nombres: [], propias: [] };
   }
 }
 
-/** La pista de vocabulario: nombres de la casa primero, luego cocina. */
-export function pistaDe(nombres = []) {
-  return [...nombres, ...VOCABULARIO].join(", ") + ".";
+/** Pura, para el test. */
+export function palabrasDe(data = {}) {
+  const miembros = data.members ?? [];
+  const nombres = miembros.map((p) => p?.name).filter(Boolean).slice(0, 12);
+  const recetas = (data.userRecipes ?? []).map((r) => r?.name).filter(Boolean).slice(-6);
+  const noGusta = [...miembros.flatMap((m) => m?.dislikes ?? []), ...(data.dislikes ?? []), ...(data.excluidos ?? [])]
+    .filter((x) => typeof x === "string").slice(0, 6);
+  return { nombres, propias: [...new Set([...recetas, ...noGusta])] };
+}
+
+// La pista, como mucho esto: ~200 tokens en español.
+const MAX_PISTA = 600;
+
+/**
+ * La pista de vocabulario. Whisper se queda con el FINAL si es larga, así que
+ * va de lo general a lo de la casa: cocina, sus palabras y, al final, los
+ * nombres. Si no cabe, se cae primero lo general.
+ */
+export function pistaDe(nombres = [], propias = []) {
+  const todo = [...VOCABULARIO, ...propias, ...nombres];
+  while (todo.length > nombres.length && todo.join(", ").length + 1 > MAX_PISTA) todo.shift();
+  return todo.join(", ") + ".";
+}
+
+// Palabras que empiezan frase o van en mayúscula y se parecen a un nombre
+// («Una» y Ana, «Los» y Lou): nunca se corrigen.
+const COMUNES = new Set(`una uno unos unas los las les lo la le el ella ello ellos ellas yo ya tu tú su sus mi mis nos
+  eso esa ese esto esta este estos estas hoy que qué con sin por para pero muy mas más dos tres cuatro seis siete ocho
+  nueve diez hay haz pon pues bueno vale hola lola cena cenas comida comidas menu menú mama mamá papa papá abuela abuelo
+  nada nadie todo toda todos todas otro otra como cómo cuando cuándo donde dónde quien quién lunes martes miercoles
+  miércoles jueves viernes sabado sábado domingo mañana tarde noche`.split(/\s+/).filter(Boolean));
+
+// Nombres corrientes: si Whisper ha oído uno de estos, es que lo han dicho
+// (un invitado, un amigo), aunque se parezca a alguien de la casa: «Mario» no
+// se cambia por «María». Aquí es donde una lista de nombres ayuda; en la pista
+// no, que solo caben ~200 tokens y diluiría los de la casa.
+const NOMBRES_CORRIENTES = new Set(`antonio jose manuel francisco david juan javier daniel carlos jesus alejandro miguel
+  rafael pablo pedro angel sergio fernando jorge luis alberto alvaro adrian diego raul ivan ruben enrique oscar ramon
+  andres vicente joaquin santiago victor eduardo roberto jaime mario marcos hugo martin lucas leo mateo nicolas samuel
+  gonzalo marc alex izan bruno thiago gabriel julio julian emilio ignacio tomas felipe cesar guillermo hector ismael
+  maria carmen ana isabel laura cristina marta lucia elena paula sara rosa pilar raquel beatriz patricia silvia julia
+  irene alba andrea claudia noelia rocio monica eva sofia martina daniela valeria carla alicia lola nuria teresa
+  ines olivia emma vega manuela luisa paola sonia veronica natalia adriana lorena alma chloe mia jimena celia diana
+  marina victoria clara blanca esther miriam mercedes dolores josefa antonia concepcion ainhoa irati leire`.split(/\s+/).filter(Boolean));
+
+// Cómo suena, no cómo se escribe: «Ximena» y «Jimena», «Iker» e «Iquer», «Lucía» y «Luzía».
+function sonido(palabra) {
+  return String(palabra).toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .replace(/ch/g, "§").replace(/h/g, "").replace(/§/g, "ch")
+    .replace(/qu([ei])/g, "k$1").replace(/c([ei])/g, "s$1").replace(/c/g, "k").replace(/z/g, "s")
+    .replace(/gu([ei])/g, "g$1").replace(/g([ei])/g, "j$1").replace(/x/g, "j").replace(/v/g, "b")
+    .replace(/ll/g, "y").replace(/(.)\1+/g, "$1");
+}
+
+function distancia(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  }
+  return d[a.length][b.length];
+}
+
+/**
+ * Los nombres de la casa mal oídos, corregidos: «Lío no quiere pescado» →
+ * «Leo no quiere pescado». Solo palabras en mayúscula (Whisper las pone a los
+ * nombres), que no sean palabras corrientes, que suenen casi igual que UN
+ * nombre de la casa (con dos parecidos, no se toca) y empiecen por la misma letra.
+ */
+export function corregirNombres(texto, nombres = []) {
+  const deLaCasa = [...new Set(nombres.flatMap((n) => String(n).split(/\s+/)).filter((n) => n.length >= 3))];
+  if (!deLaCasa.length) return texto;
+  const sinTilde = (s) => s.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+  // El de la casa, escrito como en la casa («Lucia» → «Lucía»).
+  const exactos = new Map(deLaCasa.map((n) => [sinTilde(n), n]));
+  return String(texto).replace(/\p{Lu}[\p{L}]{2,}/gu, (palabra) => {
+    const plano = sinTilde(palabra);
+    if (exactos.has(plano)) return exactos.get(plano);
+    const s = sonido(palabra);
+    // Suena exactamente igual que uno de la casa: es esa persona, mal escrita
+    // («Jimena» y en casa hay una Ximena), aunque sea un nombre corriente.
+    const iguales = deLaCasa.filter((n) => sonido(n) === s);
+    if (iguales.length === 1 && !COMUNES.has(plano)) return iguales[0];
+    if (COMUNES.has(plano) || NOMBRES_CORRIENTES.has(plano)) return palabra;
+    const parecidos = deLaCasa.filter((n) => {
+      const sn = sonido(n);
+      if (sn[0] !== s[0]) return false;
+      return sn === s || distancia(sn, s) <= (Math.min(sn.length, s.length) >= 6 ? 2 : 1);
+    });
+    return parecidos.length === 1 ? parecidos[0] : palabra;
+  });
 }
 
 const palabras = (s) => String(s).toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").split(/[^a-z0-9ñ]+/).filter(Boolean);
@@ -101,16 +193,16 @@ export async function transcribir(audio, { householdId } = {}) {
   if (!clave) return { error: "sin clave" };
   if ((audio.duration ?? 0) > MAX_SEGUNDOS) return { error: "largo" };
 
-  const [fichero, nombres] = await Promise.all([
+  const [fichero, { nombres, propias }] = await Promise.all([
     llamar("getFile", { file_id: audio.file_id }),
-    nombresDeLaCasa(householdId),
+    palabrasDeLaCasa(householdId),
   ]);
   const url = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${fichero.file_path}`;
   const descarga = await fetch(url, { signal: AbortSignal.timeout(TIEMPO_DESCARGA_MS) });
   if (!descarga.ok) return { error: `descarga ${descarga.status}` };
   const bytes = await descarga.arrayBuffer();
 
-  const pista = pistaDe(nombres);
+  const pista = pistaDe(nombres, propias);
   const form = new FormData();
   // Telegram guarda las notas de voz como «.oga», y Groq decide el formato
   // por la extensión y no la acepta (400, «file must be one of…»): es Ogg
@@ -133,6 +225,6 @@ export async function transcribir(audio, { householdId } = {}) {
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) return { error: json?.error?.message ?? `HTTP ${res.status}` };
-  const texto = limpiarTranscripcion(json, pista);
+  const texto = corregirNombres(limpiarTranscripcion(json, pista), nombres);
   return texto ? { texto } : { error: "vacío" };
 }
