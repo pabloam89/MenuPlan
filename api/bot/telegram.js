@@ -32,7 +32,7 @@ import { RASTRO } from "../../src/lib/rastro.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
-import { clasificar, vaPorLaRapida } from "../_bot/router.js";
+import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe } from "../_bot/turno.js";
 import { ahoraEnMadrid } from "../_bot/recordatorios.js";
 import { fueraDeLimite, contarUso } from "../_bot/uso.js";
@@ -274,6 +274,7 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
       base, chatId, householdId, esGrupo, texto, oido,
       from: variosAutores ? null : ultimo.from,
       responderA: ultimo.responderA,
+      variosAutores: Boolean(variosAutores),
     });
   };
 }
@@ -291,8 +292,12 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
 //      queda retenido, y lo que va escribiendo en el chat no sale todavía.
 //   2. si el turno es de la vía rápida, se cancela a Lola sin que haya tocado
 //      nada y se contesta con la plantilla; si no, se abre la puerta y sigue.
-// En grupos, de momento, siempre Lola.
+//
+// En los chats de grupo, además, BOT_ROUTER_GRUPOS (off | sombra | on; por
+// defecto sombra): en sombra decide y lo apunta, pero contesta Lola. Qué va
+// por la rápida en grupo lo dice la tabla POLITICA de router.js, no un if.
 const MODO_ROUTER = () => (["sombra", "on"].includes(process.env.BOT_ROUTER) ? process.env.BOT_ROUTER : "off");
+const MODO_ROUTER_GRUPOS = () => (["off", "on"].includes(process.env.BOT_ROUTER_GRUPOS) ? process.env.BOT_ROUTER_GRUPOS : "sombra");
 const RUTA = "bot_route";
 
 /** Lo último que dijo Lola en este chat (y su propuesta de opciones, si la hubo). */
@@ -320,9 +325,15 @@ async function apuntarRuta(householdId, extra) {
   await registrar(RUTA, { userId: await duenoDe(householdId).catch(() => null), extra }).catch(() => {});
 }
 
-async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, responderA }) {
+async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, responderA, variosAutores = false }) {
   const modo = MODO_ROUTER();
-  if (modo === "off" || esGrupo) return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA });
+  const modoGrupos = MODO_ROUTER_GRUPOS();
+  if (modo === "off" || (esGrupo && modoGrupos === "off")) return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA });
+  // En grupo, su propio interruptor: en sombra se decide y se apunta, contesta Lola.
+  const sombra = modo === "sombra" || (esGrupo && modoGrupos === "sombra");
+  const chatDe = { esGrupo, variosAutores };
+  // Quién lo pidió, para decirlo en las respuestas que escriben (en grupo).
+  const autor = esGrupo && from ? nombreDe(from) : null;
   const t0 = Date.now();
   const marca = (que) => process.env.BOT_TIEMPOS && console.log(`[turno] ${que}: ${Date.now() - t0} ms`);
   // Lo último que dijo Lola y la casa (quién hay, si hay menú). Se probó a
@@ -334,7 +345,7 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   marca("contexto");
 
   // 0. Estado: elegir una de las opciones que acaba de dar.
-  if (modo === "on" && ultima?.propuesta) {
+  if (!sombra && permitidoEn("eleccion", chatDe) && ultima?.propuesta) {
     const eleccion = eleccionDe(texto, ultima.propuesta);
     if (eleccion) {
       const r = await aplicarEleccion(eleccion, ultima.propuesta, householdId).catch(() => null);
@@ -349,9 +360,10 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
 
   const decisionP = clasificar({ texto, contexto: { ...contexto, ahora: ahoraEnMadrid(), ultimaDeLola: ultima?.texto ?? null, anteriorDelUsuario: ultima?.anteriorDelUsuario ?? null } });
 
-  if (modo === "sombra") {
+  if (sombra) {
     decisionP.then((d) => apuntarRuta(householdId, {
-      sombra: true, modo: d.modo, confianza: d.confianza, rapida: vaPorLaRapida(d), ms: d.ms, error: d.error, texto: String(texto).slice(0, 120),
+      sombra: true, modo: d.modo, confianza: d.confianza, rapida: vaPorLaRapida(d, chatDe), ms: d.ms, error: d.error,
+      texto: String(texto).slice(0, 120), datos: d.datos, esGrupo, variosAutores,
     }));
     return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA });
   }
@@ -367,9 +379,9 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   // Lo que hace falta para convertir un turno real en un caso de
   // scripts/router-evals.json (scripts/router-feedback.mjs): la frase, lo que
   // acababa de decir Lola, los datos sacados y el chat, para ver qué vino después.
-  const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId) };
-  if (vaPorLaRapida(d) && !(await fueraDeLimite(householdId))) {
-    const r = await viaRapida(d, householdId).catch((e) => { console.error("[router] vía rápida", e?.message); return null; });
+  const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId), esGrupo, variosAutores };
+  if (vaPorLaRapida(d, chatDe) && !(await fueraDeLimite(householdId))) {
+    const r = await viaRapida(d, householdId, { autor }).catch((e) => { console.error("[router] vía rápida", e?.message); return null; });
     marca("vía rápida hecha");
     if (r) {
       abrir(false);

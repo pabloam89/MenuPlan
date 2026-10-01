@@ -24,6 +24,8 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const MODELO_ROUTER = process.env.BOT_ROUTER_MODELO || "claude-haiku-4-5-20251001";
 /** Por encima, se actúa sin Lola; por debajo, a Lola. */
+// El umbral general ya no decide (cada modo tiene el suyo en POLITICA); se
+// queda exportado para scripts/router-feedback.mjs, que lo usa de referencia.
 export const UMBRAL = Number(process.env.BOT_ROUTER_UMBRAL) || 0.8;
 
 export const MODOS = ["consulta", "recomendar", "cambiar", "compra_anadir", "compra_marcar", "generar", "deshacer", "lola"];
@@ -90,7 +92,7 @@ export const REGLAS = `Eres el enrutador de Lola, la cocinera de casa de una app
 
 Contexto: si Lola acaba de preguntar algo («¿para qué día?», «¿comida o cena?») y el mensaje es la respuesta, completa con él la petición que estaba en curso (la que dijo el usuario justo antes) (p. ej. Lola preguntó el día de una recomendación y dicen «para hoy» → recomendar con dia=hoy). No confundas esa respuesta con una consulta del menú.
 
-Las comidas y cómo se dicen (para comida y comidas): ${CATALOGO.map((c) => `${c.id} = ${c.sinonimos.join(", ")}`).join("; ")}. «¿Qué comemos hoy?» o «¿qué hay mañana?» son el día entero: sin comidas.
+Para saber de QUÉ COMIDA hablan (campos comida y comidas; el plato que quieren poner sigue yendo en receta, p. ej. «el viernes cenamos pizza» → comida Cena, receta pizza): ${CATALOGO.map((c) => `${c.id} = ${c.sinonimos.join(", ")}`).join("; ")}. «¿Qué comemos hoy?» o «¿qué hay mañana?» son el día entero: sin comidas.
 
 Rellena SIEMPRE los campos que el modo necesita: que y cuando (consulta del menú), productos (compra), semana (generar), dia y comida (cambiar). Los días relativos déjalos como los dicen («hoy», «mañana»).
 
@@ -146,8 +148,48 @@ export async function clasificar({ texto, contexto }, { signal } = {}) {
 }
 
 /** ¿Se actúa sin Lola? Solo por encima del umbral y con los datos que el modo necesita. */
-export function vaPorLaRapida(d) {
-  if (!d || d.modo === "lola" || d.confianza < UMBRAL) return false;
+/**
+ * La política del enrutador, en UNA tabla: cada modo con su riesgo, el umbral
+ * de confianza en un chat privado y si va por la vía rápida en un chat de
+ * grupo de Telegram (y con qué condición). Se decide por la complejidad y el
+ * riesgo de lo que se pide, no por el tipo de chat: en grupo solo se añade
+ * algo donde hay riesgo real de malentendido.
+ *
+ *   una_persona  en grupo, solo si el turno es de UNA persona (si se juntan
+ *                mensajes de varias, a Lola: no se sabe de quién es qué)
+ *
+ * Un modo que no está en la tabla va siempre a Lola (seguro por defecto). Los
+ * umbrales son un punto de partida: se calibran con scripts/router-evals.mjs
+ * y el modo sombra (BOT_ROUTER_GRUPOS).
+ */
+export const POLITICA = {
+  consulta: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null },
+  recomendar: { riesgo: "solo lee, ofrece opciones", umbral: 0.8, enGrupo: true, condicionGrupo: "una_persona" },
+  compra_anadir: { riesgo: "escribe, fácil de deshacer", umbral: 0.85, enGrupo: true, condicionGrupo: "una_persona" },
+  compra_marcar: { riesgo: "escribe, fácil de deshacer", umbral: 0.85, enGrupo: true, condicionGrupo: "una_persona" },
+  // En grupo hay que decir quién lo pidió y de quién era el plato: Lola.
+  cambiar: { riesgo: "escribe en el menú", umbral: 0.9, enGrupo: false, condicionGrupo: null },
+  generar: { riesgo: "escribe la semana entera", umbral: 0.9, enGrupo: false, condicionGrupo: null },
+  // ¿El cambio de quién? En grupo, Lola.
+  deshacer: { riesgo: "escribe", umbral: 0.9, enGrupo: false, condicionGrupo: null },
+  // Paso 0 (elegir una de las opciones que acaba de dar Lola): no pasa por el
+  // enrutador, pero se rige por esta misma fila (¿quién eligió?).
+  eleccion: { riesgo: "escribe", umbral: null, enGrupo: false, condicionGrupo: null },
+};
+
+/** ¿Se puede hacer por la vía rápida en este chat? Solo lo que dice la tabla. */
+export function permitidoEn(modo, { esGrupo = false, variosAutores = false } = {}) {
+  const p = POLITICA[modo];
+  if (!p) return false;
+  if (!esGrupo) return true;
+  if (!p.enGrupo) return false;
+  return !(p.condicionGrupo === "una_persona" && variosAutores);
+}
+
+export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false } = {}) {
+  const p = d ? POLITICA[d.modo] : null;
+  if (!p || p.umbral == null || d.confianza < p.umbral) return false;
+  if (!permitidoEn(d.modo, { esGrupo, variosAutores })) return false;
   const x = d.datos ?? {};
   // Dos peticiones en un mensaje: la vía rápida haría una y perdería la otra.
   if (x.varias) return false;

@@ -16,6 +16,12 @@
     { "texto": "¿qué come el bebé mañana?", "modo": "consulta", "rapida": true, "datos": { "cuando": "manana|dia", "para": "bebe|cova" } },
     { "texto": "de lunes a miércoles, solo cenas", "modo": "consulta", "rapida": true, "datos": { "cuando": "rango", "dia": "lunes", "hasta": "miercoles", "comidas": "cena" } },
     { "texto": "¿qué hay de picoteo el sábado?", "modo": "consulta", "rapida": true, "datos": { "comidas": "aperitivo" } },
+    { "texto": "Lola, ¿qué cenamos hoy?", "esGrupo": true, "modo": "consulta", "rapida": true, "datos": { "cuando": "hoy" } },
+    { "texto": "Lola, apunta leche", "esGrupo": true, "modo": "compra_anadir", "rapida": true, "datos": { "productos": "leche" } },
+    { "texto": "¿qué hay el jueves?", "esGrupo": true, "modo": "consulta", "rapida": true, "datos": { "dia": "jueves" } },
+    { "texto": "Lola, cámbiame la cena del jueves por tortilla", "esGrupo": true, "modo": "cambiar", "rapida": false },
+    { "texto": "[Ana]: apunta pan\n[Luis]: cambia la cena del jueves", "esGrupo": true, "variosAutores": true, "modo": "lola|compra_anadir|cambiar", "rapida": false },
+    { "texto": "[Ana]: apunta pan\n[Luis]: y huevos", "esGrupo": true, "variosAutores": true, "modo": "compra_anadir", "rapida": false },
 
     { "texto": "Hola, qué recetas me puedes recomendar para una cena rápida con mi mujer entre semana?", "modo": "recomendar", "rapida": true, "datos": { "comida": "Cena", "para": "mayores", "estilo": "rapido" } },
     { "texto": "¿qué me recomiendas para cenar hoy?", "modo": "recomendar", "rapida": true, "datos": { "comida": "Cena" } },
@@ -45,7 +51,7 @@
 
     { "texto": "hazme el menú de la semana que viene", "modo": "generar", "rapida": true, "datos": { "semana": "siguiente" } },
     { "texto": "genera un menú nuevo para esta semana", "modo": "generar", "rapida": true, "datos": { "semana": "esta" } },
-    { "texto": "Vale hazme el menú para la semana que viene. Un día quiero salmón al horno con ensalada de mango, otro pollo al horno con patatas y el resto lo que sea", "modo": "generar", "rapida": true, "datos": { "semana": "siguiente", "fijos": "salmon" } },
+    { "texto": "Vale hazme el menú para la semana que viene. Un día quiero salmón al horno con ensalada de mango, otro pollo al horno con patatas y el resto lo que sea", "modo": "generar", "rapida": false, "_nota": "Con la tabla POLITICA, generar pide 0,9: con platos pedidos lo lleva Lola (y la semana sale pintada debajo)", "datos": { "semana": "siguiente", "fijos": "salmon" } },
 
     { "texto": "uy no, deja lo de antes", "modo": "deshacer", "rapida": true },
     { "texto": "deshaz lo último", "modo": "deshacer", "rapida": true },

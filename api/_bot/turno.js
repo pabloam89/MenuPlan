@@ -120,24 +120,25 @@ export async function cambiar(householdId, x) {
 
 // ── Compra ──────────────────────────────────────────────────────────────────
 
-export async function apuntar(householdId, x) {
+export async function apuntar(householdId, x, autor = null) {
   const out = {};
   await anadirCompra(householdId, x.productos ?? [], out);
   if (!out.ok || !out.anadidos?.length) return null;
   return {
-    texto: enLista("🛒", "Apuntado en la lista", out.anadidos),
+    // En un chat de grupo se dice quién lo pidió, como hace Lola.
+    texto: enLista("🛒", autor ? `Apuntado por ${esc(autor)}` : "Apuntado en la lista", out.anadidos),
     fotos: [], deshacible: true, ir: "compra",
   };
 }
 
-export async function tachar(householdId, x) {
+export async function tachar(householdId, x, autor = null) {
   const out = {};
   await marcarCompra(householdId, x.productos ?? [], "comprado", out);
   // Si hay dudas («¿qué leche?») tiene que preguntar Lola.
   if (!out.ok || out.dudosos?.length || !out.hechos?.length) return null;
   const faltan = out.noEncontrados?.length ? `\n\n🤔 <i>No encuentro en la lista: ${out.noEncontrados.map(esc).join(", ")}.</i>` : "";
   return {
-    texto: `${enLista("✅", "Tachado", out.hechos)}${faltan}`,
+    texto: `${enLista("✅", autor ? `Tachado por ${esc(autor)}` : "Tachado", out.hechos)}${faltan}`,
     fotos: [], deshacible: true, ir: "compra",
   };
 }
@@ -176,7 +177,8 @@ export async function deshacerRapido(householdId) {
 }
 
 /** El modo del enrutador → su vía rápida. */
-export async function viaRapida(decision, householdId) {
+/** @param {{ autor?: string|null }} [quien]  en un chat de grupo, quién lo pidió */
+export async function viaRapida(decision, householdId, { autor = null } = {}) {
   const x = decision.datos ?? {};
   switch (decision.modo) {
     case "consulta": return consultar(householdId, x);
@@ -184,8 +186,8 @@ export async function viaRapida(decision, householdId) {
     // Sin decir qué plato (ni «lo que sea»): no se elige por ellos, se ofrecen
     // tres opciones con «Elige tú», como haría Lola.
     case "cambiar": return x.receta || x.cualquiera ? cambiar(householdId, x) : recomendar(householdId, x);
-    case "compra_anadir": return apuntar(householdId, x);
-    case "compra_marcar": return tachar(householdId, x);
+    case "compra_anadir": return apuntar(householdId, x, autor);
+    case "compra_marcar": return tachar(householdId, x, autor);
     case "generar": return generar(householdId, x);
     case "deshacer": return deshacerRapido(householdId);
     default: return null;
