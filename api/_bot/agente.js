@@ -502,11 +502,27 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         // La semana generada sale pintada debajo del mensaje de Lola (entregar()).
         const out = {};
         const texto = await generarMenu(householdId, semana, fijos ?? [], out);
-        if (out.ok) chat.pintar = filtrosTrasGenerar(out);
+        if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
         return texto;
       },
     }),
   ];
+}
+
+/**
+ * Lo que sale pintado debajo del mensaje (pintar.js), sumando lo de cada
+ * herramienta del turno: si genera y luego cambia o consulta, se ven todos
+ * los días y no se pierde lo destacado.
+ */
+function pintarTambien(chat, nuevo) {
+  if (!nuevo) return;
+  const antes = chat.pintar;
+  if (!antes) { chat.pintar = nuevo; return; }
+  chat.pintar = {
+    ...nuevo,
+    dias: [...new Set([...(antes.dias ?? []), ...(nuevo.dias ?? [])])].sort(),
+    destacar: [...(antes.destacar ?? []), ...(nuevo.destacar ?? [])],
+  };
 }
 
 function herramientasDeMenu(householdId, fotos = null, chat = {}) {
@@ -547,7 +563,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         const filtros = { dias, comidas: comidas ?? null, platos: platos ?? null, grupo: para ?? null };
         const p = pintarMenu(casa, filtros);
         if (!p.conMenu && !p.noPlanificadas.length) return `No hay menú para esos días (${dias[0]}${dias.length > 1 ? ` a ${dias.at(-1)}` : ""}). ${rangosDelMenu(casa)} Si lo quieren, generar_menu.`;
-        chat.pintar = filtros;
+        pintarTambien(chat, filtros);
         if (dias.length === 1 && fotos) for (const f of p.fotos) if (!fotos.some((x) => x.url === f.url)) fotos.push(f);
         return `Sale pintado debajo de tu mensaje (NO lo copies; como mucho una frase). Para que lo sepas:\n${sinEtiquetas(p.texto)}`;
       }),
@@ -653,7 +669,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         // El día cambiado sale pintado debajo, con el plato nuevo destacado.
         const out = {};
         return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null }, fotos, out)
-          .then((t) => { if (out.cambiado) chat.pintar = filtrosTrasCambiar(out); return t; });
+          .then((t) => { if (out.cambiado) pintarTambien(chat, filtrosTrasCambiar(out)); return t; });
       },
     }),
   ];
