@@ -27,7 +27,15 @@ export function describirRegla(regla, data) {
   })();
 
   const que = (() => {
-    if (regla.efecto.tipo === "excluir") return `${ETIQUETA_EFECTO.excluir} ${regla.efecto.valor}`;
+    if (regla.efecto.tipo === "excluir") {
+      // «grupo:carne» → «carne», «tecnica:sarten» → «fritos» (lib/excluirHueco.js;
+      // copiado aquí a propósito, que este módulo no carga nada).
+      const v = String(regla.efecto.valor);
+      const legible = v.startsWith("grupo:") ? v.slice(6).replace("_", " ")
+        : v.startsWith("tecnica:") ? ({ sarten: "fritos", olla: "guisos" }[v.slice(8)] ?? v.slice(8))
+          : v;
+      return `${ETIQUETA_EFECTO.excluir} ${legible}`;
+    }
     if (regla.efecto.tipo === "presente") return `${ETIQUETA_EFECTO.presente} ${regla.efecto.valor === "casa" ? "en casa" : regla.efecto.valor}`;
     const { campo, valor, peso } = regla.efecto.valor;
     return `${peso >= 0 ? "más" : "menos"} ${valor} (${campo})`;

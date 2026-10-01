@@ -761,18 +761,54 @@ describe("el recibo que lee el usuario", () => {
   });
 });
 
-describe("el ámbito por día se aplica de más, y lo dice", () => {
-  it("una exclusión con días avisa de que alcanza toda la semana", () => {
+describe("el ámbito por día", () => {
+  // Hasta el 1 oct 2026 una exclusión con días se ensanchaba a toda la semana
+  // con un aviso `ambito_ignorado`. Ahora se proyecta por hueco.
+  it("una exclusión de la casa con días va SOLO a esos huecos, sin aviso", () => {
     const regla = nuevaRegla({
       sujeto: { tipo: "casa" },
       ambito: { dias: ["Lun"] },
-      efecto: { tipo: "excluir", valor: "fritos" },
+      efecto: { tipo: "excluir", valor: "grupo:carne" },
       hoy: HOY,
     });
     const { delta, avisos } = proyectarReglas([regla], CASA(), ctx());
-    expect(delta.excluidos).toEqual(["fritos"]);
-    expect(avisos[0].motivo).toBe("ambito_ignorado");
-    expect(avisos[0].clase).toBe("de_mas");
+    expect(avisos).toEqual([]);
+    expect(delta.excluidos).toBeUndefined();
+    expect(delta.excluirPorHueco).toEqual({ "Lun|Comida": ["grupo:carne"], "Lun|Cena": ["grupo:carne"] });
+  });
+
+  it("la salvedad se respeta: «nada de fritos en la cena salvo los viernes»", () => {
+    const regla = nuevaRegla({
+      sujeto: { tipo: "casa" },
+      ambito: { comidas: ["Cena"] },
+      salvedad: { dias: ["Vie"] },
+      efecto: { tipo: "excluir", valor: "tecnica:sarten" },
+      hoy: HOY,
+    });
+    const { delta } = proyectarReglas([regla], CASA(), ctx());
+    const huecos = Object.keys(delta.excluirPorHueco ?? {});
+    expect(huecos).toContain("Jue|Cena");
+    expect(huecos).not.toContain("Vie|Cena");
+    expect(huecos.some((k) => k.endsWith("|Comida"))).toBe(false);
+  });
+
+  it("lo que no se sabe quitar se dice, no se ignora en silencio", () => {
+    const regla = nuevaRegla({
+      sujeto: { tipo: "casa" },
+      ambito: { dias: ["Lun"] },
+      efecto: { tipo: "excluir", valor: "grupo:dinosaurio" },
+      hoy: HOY,
+    });
+    const { delta, avisos } = proyectarReglas([regla], CASA(), ctx());
+    expect(delta.excluirPorHueco).toBeUndefined();
+    expect(avisos[0].motivo).toBe("no_soportado");
+  });
+
+  it("un ingrediente para TODA la semana sigue yendo a `excluidos`, como siempre", () => {
+    const regla = nuevaRegla({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "coliflor" }, hoy: HOY });
+    const { delta } = proyectarReglas([regla], CASA(), ctx());
+    expect(delta.excluidos).toEqual(["coliflor"]);
+    expect(delta.excluirPorHueco).toBeUndefined();
   });
 
   it("pero la presencia SÍ sabe de días: ahí no hay aviso", () => {

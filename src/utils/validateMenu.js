@@ -13,6 +13,7 @@ import {
 } from "./reglasNoRepetir.js";
 import { esCasqueria } from "../lib/casqueria.js";
 import { clavesDeReceta } from "../lib/bases.js";
+import { chocaConHueco, textoDeItem } from "../lib/excluirHueco.js";
 
 // Health profiles that trigger a correctable violation below. `anemia` is a
 // presence-based profile ("must contain iron-rich flag") rather than
@@ -633,6 +634,13 @@ export const UNARIAS = [
     mensaje: (r) => `"${r.name}" tiene base "${getCarbType(r)}" que el menú escolar ya cubrió`,
   },
   {
+    // Lo que una regla quita SOLO de este hueco («los lunes, sin carne»). Dura:
+    // la reparación no se la salta (ver lib/excluirHueco.js).
+    rule: "excluido_en_hueco",
+    cumple: (r, h) => !chocaConHueco(r, h.excluirHueco),
+    mensaje: (r, h) => `"${r.name}" lleva ${textoDeItem(chocaConHueco(r, h.excluirHueco))}, que este día no toca`,
+  },
+  {
     // Unaria respecto al PLATO, pero su parámetro es del hogar y no del hueco,
     // así que `huecoDe` se lo cuelga a todos por igual.
     rule: "health_profile_conflict",
@@ -676,6 +684,7 @@ export function huecoDe(slotId, ctx = {}, extra = {}) {
     mode: ctx.mode,
     schoolProteinsToAvoid: ctx.schoolProteinsToAvoid,
     schoolCarbsToAvoid: ctx.schoolCarbsToAvoid,
+    excluirHueco: ctx.excluirHueco,
     ...extra,
   };
 }
@@ -1131,6 +1140,10 @@ export function validateMenu(
     UNARIA_POR_REGLA.tupper_not_friendly, slotAssignments, poolById, contextBySlot, unariaExtra,
   ));
 
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.excluido_en_hueco, slotAssignments, poolById, contextBySlot, unariaExtra,
+  ));
+
   // 6. No repeated recipeId in the week
   //
   //    Con UNA excepción, y es la olla de sopa: la entrada de una cena de dos
@@ -1453,6 +1466,8 @@ export const GUARD_FOR_RULE = {
   // soltar, el arreglo elegiría un plato sin la base y dejaría la violación
   // exactamente igual que estaba, habiendo cambiado la cena de sitio.
   base_pedida_insuficiente: null,
+  // Dura, como el tiempo y el táper: se comprueba en la parte que no se relaja.
+  excluido_en_hueco: null,
 };
 
 /**
@@ -1890,6 +1905,9 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         r, huecoDe(slot.slotId, { ...(ctx ?? {}), mealType: ctx?.mealType ?? mealType }),
       )) return false;
       if (v.rule === "tupper_not_friendly" && !r.tupperFriendly) return false;
+      // Lo que una regla quita de este día no vuelve por la reparación de otra
+      // cosa: arreglar un pescado repetido no puede meter carne un lunes sin carne.
+      if (chocaConHueco(r, ctx?.excluirHueco)) return false;
 
       // Same shared helper as the validation rule — see slotAcceptsRole.
       if (!slotAcceptsRole(r, {

@@ -172,6 +172,53 @@
       }
     },
     {
+      "nombre": "matiz: los lunes, sin carne (por días)",
+      "entrada": "los lunes en casa no comemos carne",
+      "llama": [
+        "ajustar_gustos"
+      ],
+      "args": {
+        "ajustar_gustos": {
+          "dias": "Lun",
+          "dicho": true
+        }
+      }
+    },
+    {
+      "nombre": "matiz: salvo los viernes",
+      "entrada": "por la noche nada de pescado, salvo los viernes",
+      "llama": [
+        "ajustar_gustos"
+      ],
+      "args": {
+        "ajustar_gustos": {
+          "salvoDias": "Vie"
+        }
+      }
+    },
+    {
+      "nombre": "matiz: la familia desmiente una suposición",
+      "historia": [
+        {
+          "role": "user",
+          "content": "uf, hoy el pescado no me apetece nada, a los peques tampoco les va mucho"
+        },
+        {
+          "role": "assistant",
+          "content": "Me lo apunto como impresión: tiraré a algo menos de pescado para los peques, sin quitarlo."
+        }
+      ],
+      "entrada": "no no, a los peques el pescado les encanta, lo dije por hoy",
+      "llama": [
+        "descartar_supuesto"
+      ],
+      "noLlamaCon": {
+        "ajustar_gustos": {
+          "dicho": false
+        }
+      }
+    },
+    {
       "nombre": "gusto: nada de coliflor",
       "entrada": "en casa no queremos coliflor nunca",
       "llama": [

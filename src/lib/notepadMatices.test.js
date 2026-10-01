@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { libretaVacia, poner, confirmar, proyectar, matizDe, vigente, normalizar, dependeDelDia } from "./notepad.js";
+import { libretaVacia, poner, confirmar, proyectar, matizDe, vigente, normalizar, dependeDelDia, rechazar, rechazadosDe } from "./notepad.js";
 import { dataVigente } from "./libretaEnData.js";
 
 const HOY = "2026-10-01";
@@ -41,6 +41,34 @@ describe("matices: dicho, visto, supuesto", () => {
   it("los matices sobreviven a normalizar (no los borra el esquema)", () => {
     const n = normalizar(supuesto(libretaVacia(), "freqs.pescado", 2, { desde: "2026-10-05", hasta: "2026-10-31" }));
     expect(n.campos["freqs.pescado"]).toMatchObject({ fuente: "supuesto", apuntado: HOY, desde: "2026-10-05", hasta: "2026-10-31" });
+  });
+});
+
+describe("rechazos: «no, eso no es así»", () => {
+  it("rechazar un supuesto lo quita del menú y Lola no puede volver a suponerlo", () => {
+    let n = supuesto(libretaVacia(), "freqs.pescado", 1);
+    const r = rechazar(n, "freqs.pescado", { fecha: HOY });
+    expect(r.rechazado).toBe(true);
+    n = r.libreta;
+    expect(proyectar(n).freqs.pescado).toBeUndefined();
+    expect(rechazadosDe(n)).toEqual([{ path: "freqs.pescado", valor: 1, fecha: HOY }]);
+    // Volver a suponer lo mismo no entra…
+    expect(supuesto(n, "freqs.pescado", 1).campos["freqs.pescado"].valor).toBeUndefined();
+    // …suponer otra cosa sí, y si la familia lo DICE, también (y el rechazo se queda).
+    expect(supuesto(n, "freqs.pescado", 2).campos["freqs.pescado"].valor).toBe(2);
+    const dichoAhora = dicho(n, "freqs.pescado", 1);
+    expect(dichoAhora.campos["freqs.pescado"].valor).toBe(1);
+    expect(dichoAhora.campos["freqs.pescado"].rechazos).toHaveLength(1);
+  });
+
+  it("lo dicho no se rechaza así: se cambia diciéndolo", () => {
+    const n = dicho(libretaVacia(), "excluidos.cerdo", true);
+    expect(rechazar(n, "excluidos.cerdo", { fecha: HOY }).rechazado).toBe(false);
+  });
+
+  it("los rechazos sobreviven a normalizar", () => {
+    const { libreta } = rechazar(supuesto(libretaVacia(), "tecnica.horno", 1), "tecnica.horno", { fecha: HOY });
+    expect(rechazadosDe(normalizar(libreta))).toHaveLength(1);
   });
 });
 

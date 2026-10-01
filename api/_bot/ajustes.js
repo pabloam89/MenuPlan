@@ -88,10 +88,11 @@ export async function describirAjustes(casa) {
  *   los 90 días y no pisa nada de lo que la familia haya dicho (notepad.js).
  *   desde/hasta (AAAA-MM-DD): «este mes», «a partir del lunes».
  */
-export async function ajustarGustos(householdId, ajustes, frase, { dicho = true, desde, hasta } = {}) {
+export async function ajustarGustos(householdId, ajustes, frase, { dicho = true, desde, hasta, dias, salvoDias } = {}) {
   const fecha = /^\d{4}-\d{2}-\d{2}$/;
   if ((desde && !fecha.test(desde)) || (hasta && !fecha.test(hasta))) return "Las fechas van como AAAA-MM-DD.";
   if (desde && hasta && hasta < desde) return "La fecha de fin va antes que la de inicio: revísalas.";
+  if (dias?.length || salvoDias?.length) return gustosPorDias(householdId, ajustes, frase, { dicho, desde, hasta, dias, salvoDias });
   return conData(householdId, (data, m) => {
     const validos = [];
     const rechazados = [];
@@ -121,6 +122,88 @@ export async function ajustarGustos(householdId, ajustes, frase, { dicho = true,
         " Se notará al generar el próximo menú.",
       ].join(""),
     };
+  });
+}
+
+// Las familias de la libreta que tienen grupo con el que quitarlas por hueco
+// (src/lib/excluirHueco.js). La verdura no: no hay plato «sin verdura».
+const GRUPOS_DE_FAMILIA = { carne: ["carne"], pescado: ["pescado"], legumbres: ["legumbre"], huevos: ["huevo"], pasta_arroz: ["pasta", "arroz"] };
+
+/** Lo que quita un ajuste, como cosas de excluirHueco («grupo:carne»…), o null si no quita nada. */
+function quitaDe(a) {
+  const quita = a.op === "nunca" || (a.campo === "freqs" && a.n === 0);
+  if (!quita) return null;
+  if (a.campo === "excluidos") return [String(a.valor).toLowerCase()];
+  if (a.campo === "tecnica") return [`tecnica:${a.valor}`];
+  if (a.campo === "freqs") return (GRUPOS_DE_FAMILIA[a.valor] ?? []).map((g) => `grupo:${g}`);
+  return null;
+}
+
+/**
+ * Gustos que valen solo ciertos días: «los lunes, sin carne», «entre semana,
+ * nada de fritos», «sin pescado en la cena salvo los viernes». No van a la
+ * libreta (no tiene días): son reglas de la casa (src/lib/reglas.js), que al
+ * generar se proyectan por hueco y el motor comprueba en cada uno.
+ *
+ * Por días solo se sabe QUITAR, y solo como norma dicha: inclinar un día
+ * («más pescado los viernes») o suponerlo no tiene todavía dónde vivir.
+ */
+function gustosPorDias(householdId, ajustes, frase, { dicho, desde, hasta, dias, salvoDias }) {
+  if (!dicho) return "Por días solo apunto normas dichas claras («los lunes, sin carne»), no suposiciones.";
+  const aDias = (lista) => [...new Set((lista ?? []).map(diaDe).filter(Boolean))];
+  const enDias = aDias(dias);
+  const salvo = aDias(salvoDias);
+  if (dias?.length && !enDias.length) return `No entiendo esos días (${dias.join(", ")}): usa Lun, Mar, Mié, Jue, Vie, Sáb, Dom.`;
+  return conData(householdId, (data, m) => {
+    const nuevas = [];
+    const noSe = [];
+    for (const a of ajustes ?? []) {
+      const items = quitaDe(a)?.filter(m.itemValido);
+      if (!items?.length || (a.ambito && a.ambito !== "todos")) {
+        noSe.push(`${a.op ?? ""} ${a.valor}`.trim());
+        continue;
+      }
+      // «comida»/«cena» → «Comida»/«Cena», el nombre de la comida en `data`.
+      const comidas = a.servicio && a.servicio !== "ambos" ? [a.servicio[0].toUpperCase() + a.servicio.slice(1)] : undefined;
+      for (const valor of items) {
+        const regla = m.nuevaRegla({
+          sujeto: { tipo: "casa" },
+          efecto: { tipo: "excluir", valor },
+          ambito: { ...(enDias.length ? { dias: enDias } : {}), ...(comidas ? { comidas } : {}) },
+          ...(salvo.length ? { salvedad: { dias: salvo } } : {}),
+          vigencia: { ...(desde ? { desde } : {}), ...(hasta ? { hasta } : {}) },
+          origen: "texto",
+          frase: frase ? String(frase).slice(0, 500) : undefined,
+          hoy: hoyISO(),
+        });
+        // null = no valida (p. ej. la ventana al revés): se dice, no se guarda a medias.
+        if (regla) nuevas.push(regla);
+        else noSe.push(`${a.op ?? ""} ${a.valor}`.trim());
+      }
+    }
+    if (!nuevas.length) return { texto: `Por días solo sé quitar cosas (un ingrediente, carne, pescado, legumbres, huevos, pasta o arroz, o una técnica como los fritos) para toda la casa. No he apuntado: ${noSe.join(", ") || "nada"}.` };
+    const reglas = m.podarReglasVencidas([...(data.reglas ?? []), ...nuevas], hoyISO());
+    return {
+      data: { ...data, reglas },
+      texto: `Anotado: ${nuevas.map((r) => m.describirRegla(r, data)).join("; ")}.${noSe.length ? ` Esto no lo sé hacer por días: ${noSe.join(", ")}.` : ""} Se notará al generar el próximo menú.`,
+    };
+  });
+}
+
+/**
+ * «No, eso no es así»: la familia desmiente algo que Lola supuso. Deja de
+ * valer y no se vuelve a suponer (notepad.js `rechazar`). Lo que la familia
+ * DIJO no se rechaza por aquí: se cambia con ajustar_gustos.
+ */
+export async function descartarSupuesto(householdId, { campo, valor, ambito = "todos", servicio = "ambos" }) {
+  return conData(householdId, (data, m) => {
+    const path = m.rutaDe(campo, valor, ambito, servicio);
+    const libreta = m.normalizarLibreta(data.notepad);
+    const { libreta: nueva, rechazado } = m.rechazar(libreta, path, { fecha: hoyISO() });
+    if (!rechazado) {
+      return { texto: libreta.campos[path]?.valor !== undefined ? `«${valor}» lo dijo la familia, no es una suposición: si ha cambiado, cámbialo con ajustar_gustos.` : `No tengo nada supuesto sobre «${valor}».` };
+    }
+    return { data: m.dataConLibreta(data, nueva), texto: `Descartado: no vuelvo a suponer «${valor}».` };
   });
 }
 

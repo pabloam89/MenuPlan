@@ -69,6 +69,9 @@ const CampoSchema = z.object({
   apuntado: z.string().optional(),
   desde: z.string().optional(),
   hasta: z.string().optional(),
+  // Lo que Lola supuso y la familia dijo que no. No se vuelve a suponer
+  // (`poner` lo bloquea), y la ficha y el analista lo leen.
+  rechazos: z.array(z.object({ valor: z.unknown(), fecha: z.string() })).optional(),
 });
 
 export const NotepadSchema = z.object({
@@ -160,6 +163,8 @@ export function poner(notepad, path, valor, { origen, frase, fecha, confirmado =
   // dijo se queda aunque Lola vuelva a suponer lo contrario. Es el «rechazado»
   // en la práctica, sin una lista aparte que nadie leería todavía.
   if (fuente && fuente !== "dicho" && previo && previo.valor !== undefined && matizDe(previo) === "dicho") return b;
+  // Ni lo que ya le rechazaron: «no, eso no es así» vale para siempre.
+  if (fuente && fuente !== "dicho" && (previo?.rechazos ?? []).some((x) => mismoValor(x.valor, valor))) return b;
   return {
     ...b,
     campos: {
@@ -178,6 +183,7 @@ export function poner(notepad, path, valor, { origen, frase, fecha, confirmado =
         ...(fuente ? { fuente, apuntado: fecha } : {}),
         ...(desde ? { desde } : {}),
         ...(hasta ? { hasta } : {}),
+        ...(previo?.rechazos ? { rechazos: previo.rechazos } : {}),
         // Solo se guarda el valor de la PRIMERA escritura de una tanda: si no,
         // dos cambios seguidos dejarían el deshacer a medio camino.
         ...(previo?.anterior !== undefined
@@ -188,6 +194,33 @@ export function poner(notepad, path, valor, { origen, frase, fecha, confirmado =
       },
     },
   };
+}
+
+const mismoValor = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/**
+ * «No, eso no es así»: la familia desmiente algo que Lola SUPUSO (o vio). El
+ * apunte deja de valer y su valor queda en `rechazos`, para no volver a
+ * suponerlo. Lo dicho no se rechaza así: si la familia cambia de idea, lo dice
+ * y se escribe encima.
+ * @returns {{ libreta, rechazado: boolean }}
+ */
+export function rechazar(notepad, path, { fecha } = {}) {
+  const b = base(notepad);
+  const campo = b.campos[path];
+  if (!campo || campo.valor === undefined || matizDe(campo) === "dicho") return { libreta: b, rechazado: false };
+  const rechazos = [...(campo.rechazos ?? []), { valor: campo.valor, fecha: fecha ?? "" }];
+  const { fuente, apuntado, desde, hasta, ...resto } = campo;
+  return {
+    libreta: { ...b, campos: { ...b.campos, [path]: { ...resto, valor: undefined, rechazos } } },
+    rechazado: true,
+  };
+}
+
+/** Lo rechazado de toda la libreta, para la ficha y el analista. */
+export function rechazadosDe(notepad) {
+  return Object.entries(notepad?.campos ?? {}).flatMap(([path, c]) =>
+    (c.rechazos ?? []).map((r) => ({ path, valor: r.valor, fecha: r.fecha })));
 }
 
 /** "Lo que tú veas": resuelto, no vacío. Es lo único que acorta el wizard. */

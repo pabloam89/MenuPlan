@@ -148,6 +148,7 @@ const UNARIAS_QUE_PODAN = [
   "legumbres_en_cena",
   "casqueria_entre_semana",
   "plato_ocasion_entre_semana",
+  "excluido_en_hueco",
 ].map((id) => UNARIA_POR_REGLA[id]);
 
 export function candidatosDeHueco(pool, slot) {

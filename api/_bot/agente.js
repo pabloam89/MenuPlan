@@ -25,6 +25,7 @@ import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
   anadirComensal, quitarComensal, ajustarAlergias, dominiosDeGustos, ajustarPersona, ajustarMenuPeques,
+  descartarSupuesto,
 } from "./ajustes.js";
 import {
   crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
@@ -109,7 +110,7 @@ const anthropic = () => (cliente ??= new Anthropic());
 // ahí el botón sería ruido. Se pueden deshacer igual, pidiéndolo.
 const CON_BOTON_DESHACER = new Set([
   "marcar_compra", "anadir_compra", "cambiar_plato", "generar_menu",
-  "ajustar_gustos", "ajustar_horario", "anadir_invitado", "quitar_comensal",
+  "ajustar_gustos", "descartar_supuesto", "ajustar_horario", "anadir_invitado", "quitar_comensal",
   // Las alergias se guardan al momento (con eco) y se deshacen con un toque.
   "ajustar_alergias", "ajustar_menu_peques",
 ]);
@@ -386,7 +387,7 @@ function herramientasDeAjustes(householdId, gustos) {
     }),
     betaTool({
       name: "ajustar_gustos",
-      description: `Gustos de la casa, como el panel de la app. Cada ajuste: campo, valor, op (mas|menos|nunca), n opcional (veces/semana, 0-7, solo freqs), ambito (todos|ninos|adultos|bebes), servicio (ambos|comida|cena). Campos y valores válidos: ${gustos}. «Nada de X» es favoritos/excluidos con op=nunca. dicho=true SOLO si es una instrucción o una norma de la casa («en casa no comemos cerdo», «pon más pescado», «nada de fritos»). Un comentario u opinión es dicho=false aunque hable de gustos («a los peques no les va mucho el pescado», «el cerdo nos sienta regular», «son de poco comer»): eso solo inclina el menú, no excluye nada y caduca; se apunta sin preguntar. Un antojo de hoy («hoy no me apetece») no es un gusto: no lo apuntes. Con algo supuesto, habla de ello como impresión, no como hecho. desde/hasta (AAAA-MM-DD) para lo que tiene fecha («este mes», «a partir del lunes»).`,
+      description: `Gustos de la casa, como el panel de la app. Cada ajuste: campo, valor, op (mas|menos|nunca), n opcional (veces/semana, 0-7, solo freqs), ambito (todos|ninos|adultos|bebes), servicio (ambos|comida|cena). Campos y valores válidos: ${gustos}. «Nada de X» es favoritos/excluidos con op=nunca. dicho=true SOLO si es una instrucción o una norma de la casa («en casa no comemos cerdo», «pon más pescado», «nada de fritos»). Un comentario u opinión es dicho=false aunque hable de gustos («a los peques no les va mucho el pescado», «el cerdo nos sienta regular», «son de poco comer»): eso solo inclina el menú, no excluye nada y caduca; se apunta sin preguntar. Un antojo de hoy («hoy no me apetece») no es un gusto: no lo apuntes. Con algo supuesto, habla de ello como impresión, no como hecho. desde/hasta (AAAA-MM-DD) para lo que tiene fecha («este mes», «a partir del lunes»). dias y salvoDias para lo que vale solo algunos días («los lunes, sin carne» → dias [Lun]; «entre semana, nada de fritos» → dias [Lun..Vie]; «sin pescado en la cena salvo los viernes» → servicio cena, salvoDias [Vie]): por días solo se puede QUITAR (op=nunca: un ingrediente, carne, pescado, legumbres, huevos, pasta_arroz o una técnica) y solo como norma dicha.`,
       inputSchema: obj({
         ajustes: {
           type: "array", minItems: 1, maxItems: 8,
@@ -402,8 +403,20 @@ function herramientasDeAjustes(householdId, gustos) {
         dicho: { type: "boolean", description: "true: lo ha dicho claro. false: lo supones tú." },
         desde: { type: "string", description: "AAAA-MM-DD, solo si empieza más adelante." },
         hasta: { type: "string", description: "AAAA-MM-DD, solo si tiene fin." },
+        dias: { type: "array", items: { type: "string" }, description: "Solo esos días: Lun, Mar, Mié, Jue, Vie, Sáb, Dom." },
+        salvoDias: { type: "array", items: { type: "string" }, description: "Todos los días menos estos." },
       }, ["ajustes", "frase", "dicho"]),
-      run: ({ ajustes, frase, dicho, desde, hasta }) => ajustarGustos(householdId, ajustes, frase, { dicho, desde, hasta }),
+      run: ({ ajustes, frase, dicho, desde, hasta, dias, salvoDias }) => ajustarGustos(householdId, ajustes, frase, { dicho, desde, hasta, dias, salvoDias }),
+    }),
+    betaTool({
+      name: "descartar_supuesto",
+      description: "Cuando la familia desmiente algo que TÚ apuntaste como supuesto («no, el pescado sí les encanta», «lo dije solo por hoy»): llámala SIEMPRE, porque lo supuesto sigue inclinando el menú hasta que se descarta; decir «vale, no cambio nada» no lo quita. Deja de valer y no lo vuelves a suponer. Mismos campo/valor/ambito/servicio con que se apuntó. Para lo que la familia dijo y ahora cambia, usa ajustar_gustos.",
+      inputSchema: obj({
+        campo: { type: "string" }, valor: { type: "string" },
+        ambito: { type: "string", enum: ["todos", "ninos", "adultos", "bebes"] },
+        servicio: { type: "string", enum: ["ambos", "comida", "cena"] },
+      }, ["campo", "valor"]),
+      run: (args) => descartarSupuesto(householdId, args),
     }),
     betaTool({
       name: "ajustar_cocina",

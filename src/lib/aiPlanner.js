@@ -723,6 +723,17 @@ export function buildGroupContext(data, group) {
     }
   }
 
+  // Lo que una regla quita SOLO ciertos días («los lunes, sin carne»):
+  // reglas.js lo proyecta por hueco y aquí se cuelga de cada uno, para que lo
+  // vean el validador (excluido_en_hueco), la reparación y el solver. Misma
+  // clave que `data.slotType`: «Lun|Comida».
+  if (data.excluirPorHueco) {
+    for (const s of slots) {
+      const lista = data.excluirPorHueco[`${s.day}|${s.mealType === "cena" ? "Cena" : "Comida"}`];
+      if (lista?.length) s.excluirHueco = lista;
+    }
+  }
+
   return {
     group: { label: group.label, hasKids, allergies, dislikes },
     slots,

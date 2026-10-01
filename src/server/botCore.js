@@ -19,10 +19,11 @@ export { menuToRow, weekToRow } from "../lib/menusSync.js";
 
 // Ajustes de la casa desde el chat: las mismas piezas que la app.
 export { aplicarAjustes, dataConLibreta, dataVigente } from "../lib/libretaEnData.js";
-export { normalizar as normalizarLibreta, estadoDe, matizDe, vigente } from "../lib/notepad.js";
+export { normalizar as normalizarLibreta, estadoDe, matizDe, vigente, rechazar, rechazadosDe } from "../lib/notepad.js";
+export { itemValido } from "../lib/excluirHueco.js";
 export { CAMPOS, valorValido, rutaDe, FAMILIAS, AMBITOS, SERVICIOS } from "../lib/notepadFields.js";
 export { PREGUNTAS_POR_ID } from "../lib/wizardRegistry.js";
-export { reglaDeInvitado, describirRegla, podarReglasVencidas } from "../lib/reglas.js";
+export { reglaDeInvitado, describirRegla, podarReglasVencidas, nuevaRegla } from "../lib/reglas.js";
 export { reconcileGroupsWithMembers, migrateGroupsForBabies } from "../lib/groups.js";
 export { normalizeKidDinnerConfig, deriveKidsMenuModel, kidMembers, KID_DINNER_DEFAULTS, KID_DINNER_AVOID_DEFAULTS } from "../lib/kidsMenu.js";
 export { suggestHomeRole } from "../lib/stages.js";

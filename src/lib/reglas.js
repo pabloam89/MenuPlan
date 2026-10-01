@@ -150,6 +150,7 @@ import { z } from "zod";
 import { DAYS, SLOT_VALUES, slotKey, getMeals, getDayMeals } from "./planner.js";
 import { uid, membersOfGroup } from "./groups.js";
 import { CAMPOS_POR_ID } from "./notepadFields.js";
+import { itemValido } from "./excluirHueco.js";
 
 export const REGLAS_VERSION = 1;
 
@@ -798,7 +799,9 @@ export function proyectarReglas(reglas, data, ctx = {}) {
     Object.entries(data?.sesgos ?? {}).map(([k, v]) => [k, { ...v }]),
   );
   const cocinas = { ...(data?.cocinas ?? {}) };
+  const excluirPorHueco = { ...(data?.excluirPorHueco ?? {}) };
 
+  let tocaPorHueco = false;
   let tocaMiembros = false;
   let tocaGrupos = false;
   let tocaSchedule = false;
@@ -990,6 +993,41 @@ export function proyectarReglas(reglas, data, ctx = {}) {
     // ── excluir: un ingrediente fuera, con el alcance del sujeto ──────────
     if (efecto.tipo === "excluir") {
       const valor = String(efecto.valor).trim().toLowerCase();
+
+      // POR HUECO (1 oct 2026): «los lunes, sin carne», «nada de fritos salvo
+      // los viernes». Para la casa, si la regla no cubre la semana entera, lleva
+      // salvedad o habla de un grupo o una técnica («grupo:carne»,
+      // «tecnica:sarten», que `excluidos` no sabe leer), ya no se ensancha a
+      // toda la semana: va a `excluirPorHueco` y la comprueba la regla
+      // `excluido_en_hueco` de validateMenu (lib/excluirHueco.js). Solo comida
+      // y cena: es lo que se planifica.
+      const conPrefijo = valor.includes(":");
+      if (sujeto.tipo === "casa" && (conPrefijo || regla.salvedad || cobertura === "parcial" || ambitoRecorta(regla, comidasPlanificadas))) {
+        if (!itemValido(valor)) {
+          aviso(regla, "no_soportado", `no sé quitar «${valor}»`);
+          continue;
+        }
+        let huecos = huecosDe(regla.ambito, regla.salvedad, comidasPlanificadas, diasActivos);
+        if (cobertura === "parcial" && fechas) {
+          const { desde, hasta } = regla.vigencia ?? {};
+          huecos = huecos.filter(({ dia }) => {
+            const f = fechas[dia];
+            return !f || ((!desde || f >= desde) && (!hasta || f <= hasta));
+          });
+        }
+        for (const { dia, comida } of huecos) {
+          const k = `${dia}|${comida}`;
+          const ya = excluirPorHueco[k] ?? [];
+          if (!ya.includes(valor)) excluirPorHueco[k] = [...ya, valor];
+          tocaPorHueco = true;
+        }
+        aplicadas.push(regla.id);
+        continue;
+      }
+      if (conPrefijo) {
+        aviso(regla, "no_soportado", "quitar un grupo o una técnica solo se sabe hacer para toda la casa");
+        continue;
+      }
       // El eje de destino (`dislikes` / `data.excluidos`) es por semana, no por
       // día: si la regla pedía menos, se aplica de más y se dice.
       //
@@ -1078,6 +1116,7 @@ export function proyectarReglas(reglas, data, ctx = {}) {
   if (tocaGrupos) delta.groups = grupos;
   if (tocaSchedule) delta.schedule = schedule;
   if (tocaExcluidos) delta.excluidos = excluidos;
+  if (tocaPorHueco) delta.excluirPorHueco = excluirPorHueco;
   if (tocaSesgos) {
     delta.sesgos = sesgos;
     delta.cocinas = cocinas;
