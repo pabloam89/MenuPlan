@@ -31,6 +31,7 @@ import {
 } from "./recordatorios.js";
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { supervisar } from "./supervisor.js";
+import { montarFicha, extrasDeFicha } from "./ficha.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
@@ -682,13 +683,19 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
   const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], escrito: false, ir: null, compartir: null, puerta };
-  // Las tres a la vez: no dependen entre sí, y en serie eran tres idas a la base.
-  const [tope, historia, tools] = await Promise.all([fueraDeLimite(householdId), memoria(channel, chatId), herramientas(chat)]);
+  // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
+  // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
+  const [tope, historia, tools, casa, extras] = await Promise.all([
+    fueraDeLimite(householdId), memoria(channel, chatId), herramientas(chat),
+    cargarCasa(householdId).catch(() => null), extrasDeFicha(householdId, chatId),
+  ]);
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
+  // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
+  const ficha = casa ? montarFicha(casa, extras) : null;
   let dicho, uso;
   try {
     ({ dicho, uso } = await ejecutar({
-      historia, entrada, tools, adjunto, signal,
+      historia, entrada, tools, adjunto, signal, ficha,
       alEscribir: alEscribir ? (parcial) => alEscribir(parcial, { fotos: chat.fotos }) : null,
       // Lo que juntó el modelo que se cayó no es de esta respuesta.
       alReintentar: () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; },
@@ -736,7 +743,11 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
  *   modelo (desde cero en cada vuelta), para ir enseñándolo mientras piensa.
  *   El resultado final no cambia.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null }) {
+/**
+ * @param {{ estable: string, delDia: string } | null} [ficha]  la ficha de la
+ *   casa (api/_bot/ficha.js); las pruebas pueden pasar una de mentira.
+ */
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null }) {
   // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
@@ -754,7 +765,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     try {
       if (i > 0) alReintentar?.();
       const r = await unaVuelta({
-        historia, entrada, tools: vigiladas, adjunto, alEscribir, modelo,
+        historia, entrada, tools: vigiladas, adjunto, alEscribir, modelo, ficha,
         signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
@@ -793,7 +804,7 @@ export function esCaida(err) {
   return /overloaded|timed? ?out|ECONNRESET|socket hang up|fetch failed|Connection error/i.test(String(err.message ?? ""));
 }
 
-async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries }) {
+async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null }) {
   // Con cache_control en el último bloque: la segunda vuelta del turno (tras
   // una herramienta) y las siguientes leen de caché todo lo anterior —
   // instrucciones, historia y el mensaje— en vez de volver a procesarlo.
@@ -809,6 +820,11 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
     ...(/haiku/.test(modelo) ? {} : { output_config: { effort: EFFORT } }),
     system: [
       { type: "text", text: SISTEMA, cache_control: { type: "ephemeral" } },
+      // La ficha, en dos bloques con su caché: el estable casi no cambia y el
+      // del día cambia una vez al día (o al cambiar el menú). Son 3 de los 4
+      // puntos de caché que deja la API; el cuarto, el mensaje.
+      ...(ficha?.estable ? [{ type: "text", text: `FICHA DE LA CASA (datos para ti, no un formato: tú contesta siempre en HTML de Telegram, nunca con ** ni guiones. Es lo guardado ahora y manda sobre lo dicho en charlas de otros días)\n${ficha.estable}`, cache_control: { type: "ephemeral" } }] : []),
+      ...(ficha?.delDia ? [{ type: "text", text: ficha.delDia, cache_control: { type: "ephemeral" } }] : []),
       // Fuera de la caché: cambia en cada mensaje.
       { type: "text", text: `Ahora mismo en España: ${ahoraEnMadrid()}.` },
     ],
