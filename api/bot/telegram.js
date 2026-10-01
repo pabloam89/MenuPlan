@@ -187,13 +187,17 @@ async function atender(msg, base) {
   // empieza con lo que se entendió, para que un error de oído se vea.
   const audio = msg.voice ?? msg.audio;
   if (!texto && audio) {
-    await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
-    const t = await transcribir(audio, { idioma: msg.from?.language_code, householdId: chat.household_id })
+    llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
+    const t = await transcribir(audio, { householdId: chat.household_id })
       .catch((e) => ({ error: e?.message }));
     if (t.error) {
       // Sin esto, «no he podido entender el audio» no dejaba rastro de por qué.
       console.error("[voz]", t.error, { segundos: audio.duration, tipo: audio.mime_type });
-      const porque = t.error === "largo" ? "Es un audio muy largo: mándamelo en trozos de menos de dos minutos." : "No he podido entender el audio. ¿Me lo escribes?";
+      // «No te he oído» solo si de verdad no había nada que oír; un fallo
+      // nuestro no es culpa del audio.
+      const porque = t.error === "largo" ? "Es un audio muy largo: mándamelo en trozos de menos de dos minutos."
+        : t.error === "vacío" ? "No te he oído bien. ¿Me lo repites?"
+          : "Ahora mismo no puedo escuchar audios. ¿Me lo escribes?";
       return enviar(chatId, porque, { responderA: esGrupo ? msg.message_id : undefined });
     }
     return enTurno(chatId, itemDe(msg.from, t.texto, { oido: t.texto, responderA: esGrupo ? msg.message_id : undefined }),
@@ -867,7 +871,7 @@ async function crearCuenta(from, chatId, primero = {}) {
   let adjunto = null;
   const m = primero.msg;
   if (m?.voice || m?.audio) {
-    const t = await transcribir(m.voice ?? m.audio, { idioma: from.language_code, householdId: cuenta.householdId })
+    const t = await transcribir(m.voice ?? m.audio, { householdId: cuenta.householdId })
       .catch((e) => ({ error: e?.message }));
     if (!t.error) { texto = t.texto; oido = t.texto; }
     else console.error("[voz]", t.error);
