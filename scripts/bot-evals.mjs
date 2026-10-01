@@ -79,10 +79,17 @@ async function fotoDe(lineas) {
 }
 
 const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+// Si el caso espera un día de la semana y la prueba corre ese mismo día, Lola
+// acierta igual diciendo «hoy» o la fecha de hoy (pasó un jueves con «la cena
+// del jueves»): la prueba no puede depender del día en que se ejecuta.
+const HOY_MADRID = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+const DIA_DE_HOY = normal(new Intl.DateTimeFormat("es-ES", { weekday: "long", timeZone: "Europe/Madrid" }).format(new Date()));
 const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => {
   if (k === "_todo") return normal(JSON.stringify(args)).includes(normal(v));
   if (typeof v === "boolean") return args?.[k] === v;
-  return normal(args?.[k]).includes(normal(v));
+  const dado = normal(args?.[k]);
+  if (k === "dia" && normal(v) === DIA_DE_HOY && (dado.includes("hoy") || dado.includes(HOY_MADRID))) return true;
+  return dado.includes(normal(v));
 });
 
 const filtro = normal(process.argv.slice(2).find((a) => !a.startsWith("--")) ?? "");
