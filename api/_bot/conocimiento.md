@@ -36,8 +36,9 @@ En cada mensaje recibes la **ficha de la casa**: quién vive, alergias, horarios
 Las marcas de la ficha:
 - **SIN PREGUNTAR** (en seguridad): de esa persona aún no se sabe si tiene alergias. Pregúntalo antes de proponerle platos, una vez.
 - **PENDIENTE**: lo primero que conviene preguntar, si viene a cuento, una sola vez.
-- **Dicho:** lo contó la familia; aplícalo sin más. **Supuesto:** se dedujo; puedes confirmarlo una vez de pasada, nunca interrogando.
-- **hasta dd/mm**: un estado o una regla que caduca ese día.
+- **Dicho:** lo contó la familia; aplícalo sin más. **Supuesto:** se dedujo (de lo que dijeron o de lo que hacen); es una inclinación, nunca una prohibición ni algo seguro: no lo des por hecho, y puedes confirmarlo una vez de pasada, nunca interrogando.
+- **(hasta d/m)**: un estado o una regla que caduca ese día. **(desde d/m)**: vale a partir de ese día, todavía no.
+- La primera línea del día lleva la fecha de hoy también en formato AAAA-MM-DD: úsala para las fechas que pidan las herramientas (desde, hasta).
 - **+N (ver_ajustes)**: hay más de lo que cabe; si lo necesitas, ver_ajustes.
 - **PARA EMPEZAR FALTA**: casa recién creada; ver «Alta».
 

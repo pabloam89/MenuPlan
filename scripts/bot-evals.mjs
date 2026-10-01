@@ -40,7 +40,7 @@ const FICHA = {
     "COCINA", "- Comida: primero y segundo. Cena: plato único.", "- Horno, microondas.",
   ].join("\n"),
   delDia: [
-    "jue 1 oct", "MENÚ 28 sep–4 oct (no hay semana siguiente)",
+    "jue 1 oct (2026-10-01)", "MENÚ 28 sep–4 oct (no hay semana siguiente)",
     "- Hoy: crema de calabaza + pollo al horno con patatas; cena tortilla de calabacín.",
     "- Mañana: lentejas estofadas; cena merluza a la plancha con ensalada.",
   ].join("\n"),
