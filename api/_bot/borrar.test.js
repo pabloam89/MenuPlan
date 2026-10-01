@@ -15,6 +15,14 @@ describe("puedeBorrar", () => {
     expect(puedeBorrar(PABLO, { VERCEL_GIT_COMMIT_REF: "main" })).toBe(false);
     expect(puedeBorrar(PABLO, {})).toBe(false);
   });
+  it("por el dominio de staging, aunque no lleguen las variables de entorno", () => {
+    expect(puedeBorrar(PABLO, {}, "homenu-staging.vercel.app")).toBe(true);
+    expect(puedeBorrar(123, {}, "homenu-staging.vercel.app")).toBe(false);
+    expect(puedeBorrar(PABLO, {}, "homenu.vercel.app")).toBe(false);
+    expect(puedeBorrar(PABLO, {}, "homenu.app")).toBe(false);
+    // Que «staging» vaya como palabra, no dentro de otra.
+    expect(puedeBorrar(PABLO, {}, "nostagingx.app")).toBe(false);
+  });
   it("la rama staging también vale, y se puede encender a mano", () => {
     expect(puedeBorrar(PABLO, { VERCEL_GIT_COMMIT_REF: "staging" })).toBe(true);
     expect(puedeBorrar(PABLO, { BOT_BORRAR_CUENTA: "on" })).toBe(true);

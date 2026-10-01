@@ -77,6 +77,9 @@ export default async function handler(req, res) {
 
   const upd = req.body ?? {};
   const base = baseDe(req);
+  // Por dónde llega la petición: el webhook de staging está en su propio
+  // dominio (homenu-staging…). Lo usa /borrarme para saber que no es prod.
+  const host = String(req.headers["x-forwarded-host"] || req.headers.host || "");
   const chatId = upd.message?.chat?.id ?? upd.callback_query?.message?.chat?.id;
   // Siempre 200: si no, Telegram reintenta el mismo mensaje una y otra vez.
   if (chatId == null) return res.status(200).json({ ok: true });
@@ -86,8 +89,8 @@ export default async function handler(req, res) {
   // webhook no responde, Telegram reintenta y el mensaje se atendería dos veces.
   waitUntil((async () => {
     try {
-      if (upd.callback_query) await pulsado(upd.callback_query, base);
-      else if (upd.message) await atender(upd.message, base);
+      if (upd.callback_query) await pulsado(upd.callback_query, base, host);
+      else if (upd.message) await atender(upd.message, base, host);
     } catch (err) {
       console.error("[bot/telegram]", err?.message);
       await enviar(chatId, "Uy, algo ha fallado. Escríbemelo otra vez en un momento, porfa.").catch(() => {});
@@ -112,7 +115,7 @@ export function meHablan(msg, yo) {
 const nombreDe = (from) => [from?.first_name, from?.last_name].filter(Boolean).join(" ") || null;
 const esGrupoDe = (chat) => chat.type === "group" || chat.type === "supergroup";
 
-async function atender(msg, base) {
+async function atender(msg, base, host = "") {
   const chatId = String(msg.chat.id);
   const esGrupo = esGrupoDe(msg.chat);
   let texto = (msg.text ?? "").trim();
@@ -158,7 +161,7 @@ async function atender(msg, base) {
   // Borrar la cuenta entera, para probar altas (api/_bot/borrar.js): solo en
   // staging y solo administradores. Para el resto el comando no existe y
   // sigue el camino normal, sin decir nada.
-  if (/^\/borrarme(?:@\w+)?$/.test(texto) && !esGrupo && puedeBorrar(msg.from?.id)) {
+  if (/^\/borrarme(?:@\w+)?$/.test(texto) && !esGrupo && puedeBorrar(msg.from?.id, process.env, host)) {
     return enviar(chatId, "⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu, tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.", {
       botones: [[{ texto: "Sí, bórralo todo", dato: "borrar:si" }, { texto: "No", dato: "borrar:no" }]],
     });
@@ -753,7 +756,7 @@ function bienvenida(chatId) {
   });
 }
 
-async function pulsado(cq, base) {
+async function pulsado(cq, base, host = "") {
   const chatId = String(cq.message.chat.id);
   await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(() => {});
   // Un botón se usa una vez: se quitan los del mensaje pulsado para que no
@@ -778,7 +781,7 @@ async function pulsado(cq, base) {
   if (cq.data?.startsWith("comp:")) return usarCompartido(cq, chat, base);
 
   // /borrarme: las mismas dos llaves al pulsar, no solo al pedirlo.
-  if (cq.data?.startsWith("borrar:") && !esGrupoDe(cq.message.chat) && puedeBorrar(cq.from?.id)) {
+  if (cq.data?.startsWith("borrar:") && !esGrupoDe(cq.message.chat) && puedeBorrar(cq.from?.id, process.env, host)) {
     if (cq.data !== "borrar:si") return enviar(chatId, "Vale, no toco nada.");
     const r = await borrarCuenta({ chatId, telegramId: cq.from.id }).catch((e) => {
       console.error("[borrarme]", e?.message);

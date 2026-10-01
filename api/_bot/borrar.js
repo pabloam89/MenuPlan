@@ -21,10 +21,15 @@ import { select, eq, config } from "./db.js";
 
 const ADMINS = (process.env.BOT_ADMINS || "491628449").split(",").map((s) => s.trim()).filter(Boolean);
 
-/** ¿Puede este usuario de Telegram borrar su cuenta desde aquí? */
-export function puedeBorrar(telegramId, entorno = process.env) {
+/**
+ * ¿Puede este usuario de Telegram borrar su cuenta desde aquí?
+ * `host`: por dónde llegó la petición. El webhook de staging tiene su propio
+ * dominio (homenu-staging…), y es lo fiable: en staging no llegaba ni
+ * VERCEL_TARGET_ENV ni la rama, y /borrarme caía a Lola (1 oct 2026).
+ */
+export function puedeBorrar(telegramId, entorno = process.env, host = "") {
   const donde = entorno.VERCEL_TARGET_ENV || entorno.VERCEL_GIT_COMMIT_REF || "";
-  const enStaging = donde === "staging" || entorno.BOT_BORRAR_CUENTA === "on";
+  const enStaging = donde === "staging" || entorno.BOT_BORRAR_CUENTA === "on" || /(^|[.-])staging([.-]|$)/i.test(host);
   return enStaging && telegramId != null && ADMINS.includes(String(telegramId));
 }
 
