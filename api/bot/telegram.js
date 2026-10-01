@@ -325,7 +325,11 @@ const MODO_ROUTER_GRUPOS = () => (["off", "on"].includes(process.env.BOT_ROUTER_
 // se usa, una vuelta menos y el primer texto ~1,5-2,5 s antes (ideas en grupo
 // de 4-6 s a 2,3-3,2 s; «qué me falta y apúntalo» de 3 vueltas a 2); donde no,
 // nada cambia, porque Lola no la espera.
-const PISTA = () => process.env.BOT_PISTA !== "off";
+// APAGADA por defecto (BOT_PISTA=on para encenderla): cuando Lola acepta la
+// pista contestando sin herramientas, lo leído ya no trae su álbum (el texto
+// sale en vivo antes), y en las ideas en grupo eso quita las fotos que hoy sí
+// salen. Lo decide Pablo (revisión del 1-2 oct 2026).
+const PISTA = () => process.env.BOT_PISTA === "on";
 const RUTA = "bot_route";
 
 /** Lo último que dijo Lola en este chat (y su propuesta de opciones, si la hubo). */
