@@ -2,15 +2,15 @@
   "_nota": "Casos de conversación de Lola (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta. 'foto' son líneas de texto que se pintan en una imagen y van adjuntas.",
   "casos": [
     {
-      "nombre": "consulta rápida: qué cenamos",
+      "nombre": "consulta rápida: qué cenamos → de la ficha, sin ver_menu",
       "entrada": "¿qué cenamos hoy?",
-      "llama": [
-        "ver_menu"
-      ],
+      "llama": [],
       "noLlama": [
+        "ver_menu",
         "generar_menu",
         "cambiar_plato"
-      ]
+      ],
+      "texto": "tortilla"
     },
     {
       "nombre": "cambiar sin decir por cuál: da opciones",
@@ -371,7 +371,11 @@
       "noLlama": [
         "ajustar_persona"
       ],
-      "sinTexto": "peso|altura|kilos"
+      "sinTexto": "peso|altura|kilos",
+      "ficha": {
+        "estable": "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas",
+        "delDia": "jue 1 oct"
+      }
     },
     {
       "nombre": "alta: el primer menú sale con la lista de temas y el aviso del domingo",
@@ -743,21 +747,18 @@
       "texto": "gluten"
     },
     {
-      "nombre": "tester: «Manuel come como los demás» → apunta sólidos, sin repreguntar ni nombres de grupo",
+      "nombre": "tester: «Manuel come como los demás» → dice que aún no puede, sin fingir que lo apunta",
       "ficha": {
         "estable": "SEGURIDAD\n- Manu, Marina, Carmen, Manuel: ninguna.\n- Manuel (2): come purés.\nCASA\n- Manu 38 · Marina 36 · Carmen 4 · Manuel 2.\n- Grupos: «Familia» (Manu, Marina), «Niños» (Carmen) y «Bebé» (Manuel).\nCOCINA\n- Comida y cena: plato único.",
         "delDia": "jue 1 oct\nMENÚ 30 sep–4 oct"
       },
       "entrada": "Manuel mi hijo come lo mismo que los adultos o que su hermana",
-      "sinTexto": "¿cómo come|grupo de (bebé|niños)",
-      "llama": [
-        "ajustar_cocina"
+      "sinTexto": "apuntad|¿cómo come|grupo de (bebé|niños)",
+      "noLlama": [
+        "ajustar_cocina",
+        "generar_menu"
       ],
-      "args": {
-        "ajustar_cocina": {
-          "etapaBebe": "solidos"
-        }
-      }
+      "texto": "todavía|de momento|aún"
     },
     {
       "nombre": "ficha: quién come en casa sin llamar a ver_casa",
@@ -816,6 +817,16 @@
         "proponer_platos"
       ],
       "texto": "\\(\\d+ min\\)"
+    },
+    {
+      "nombre": "ver un día entero: ver_menu (sale pintado)",
+      "entrada": "¿qué hay mañana?",
+      "llama": [
+        "ver_menu"
+      ],
+      "noLlama": [
+        "generar_menu"
+      ]
     }
   ]
 }
