@@ -42,9 +42,17 @@ import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comi
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
+import { conPista, textoPista, datosDePlantilla } from "./pista.js";
+import { verReceta, calorias as caloriasDePlato, queFalta } from "./plato.js";
 
 // Modelo y esfuerzo, configurables para medir velocidad contra calidad con
 // scripts/bot-evals.mjs (BOT_MODELO, BOT_EFFORT) sin tocar código.
+// Medido el 1 oct 2026 (100 casos, una pasada cada uno): sonnet-5/medium
+// 97/100, media 4,4 s, p90 6,7 s; sonnet-5/low 97/100, media 3,9 s, p90 6,0 s,
+// pero falla siempre «quita la lechuga del viernes» (3 de 3, repasa el menú
+// dos veces y no cambia nada); sonnet-5-5/medium 98/100, media 4,3 s, p90 7,0 s;
+// sonnet-5-5/low 96/100, media 4,4 s. Ninguno es más rápido sin perder algo:
+// se queda sonnet-5/medium. Lo que tarda es el número de llamadas, no cada una.
 export const MODELO = process.env.BOT_MODELO || "claude-sonnet-5";
 const EFFORT = ["low", "medium", "high"].includes(process.env.BOT_EFFORT) ? process.env.BOT_EFFORT : "medium";
 // Plan B: si el modelo de Lola no contesta (saturado, caído o colgado), el
@@ -122,7 +130,7 @@ function pantallaDe(herramienta, args = {}) {
  *   de los platos que se han enseñado, y si se cambió algo que se puede deshacer.
  */
 // Las que no cambian nada: pueden correr antes de saber de quién es el turno.
-const SOLO_LECTURA = new Set([
+export const SOLO_LECTURA = new Set([
   "ver_casa", "ver_menu", "ver_receta", "ver_compra", "ver_ajustes", "ver_despensa", "ver_menu_cole",
   "ver_recordatorios", "proponer_platos", "buscar_recetas", "compartir",
 ]);
@@ -749,20 +757,108 @@ async function memoria(channel, chatId) {
   return limpios;
 }
 
+// Los mismos datos aunque vengan en otro orden o con huecos vacíos.
+const claveDe = (v) => JSON.stringify(v, (_, x) => (x && typeof x === "object" && !Array.isArray(x)
+  ? Object.fromEntries(Object.keys(x).sort().filter((k) => x[k] != null && x[k] !== "").map((k) => [k, x[k]]))
+  : x));
+
+/**
+ * Lo que deja la lectura adelantada (fotos, lo pintado debajo, el botón a la
+ * app) NO pasa al turno por haberse leído: solo si Lola acepta la pista, que
+ * es una de dos:
+ *   · pide esa misma herramienta con esos mismos datos: se le sirve lo leído,
+ *     sin volver a leer, y cuentan sus efectos como si la hubiera hecho ella;
+ *   · acaba el turno ENTERO sin haber llamado a ninguna herramienta: ha
+ *     contestado con lo leído (ver_menu le dice que «sale pintado debajo»).
+ * Lo segundo se decide al acabar, no al primer trozo de texto: Lola a veces
+ * escribe «¡Apuntado! Guardo la alergia…» ANTES de llamar a ajustar_alergias,
+ * y con una pista equivocada («Ojo, que Leo es alérgico al huevo» leído como
+ * ver el menú del finde) eso colaba el menú pintado debajo. Lo pintado y el
+ * botón a la app se ponen al entregar, así que decidir al final no los pierde.
+ * Las fotos sí: un álbum va antes del texto, y si el texto ya salió en vivo,
+ * ese turno se queda sin álbum (mejor eso que fotos de una pista dudosa).
+ * Exportada para el test.
+ */
+export function adelantoDelTurno(chat) {
+  let usado = null;
+  let aplicado = false;
+  let textoFuera = false;
+  const aplicar = ({ fotos = true } = {}) => {
+    if (!usado || aplicado) return;
+    aplicado = true;
+    if (fotos) for (const f of usado.fotos ?? []) if (!chat.fotos.some((x) => x.url === f.url)) chat.fotos.push(f);
+    if (usado.pintar) pintarTambien(chat, usado.pintar);
+    if (usado.ir && !chat.ir) chat.ir = usado.ir;
+  };
+  return {
+    usar(a) { usado = a ?? null; aplicado = false; },
+    /** Tras limpiar el turno (plan B): lo leído tiene que volver a aceptarse. */
+    olvidarEfectos() { aplicado = false; },
+    /** Ya ha salido texto de Lola en vivo (no un aviso de espera). */
+    vioTexto() { textoFuera = true; },
+    /** @param {number} herramientasDelTurno  las que llamó Lola en todo el turno */
+    alAcabar(herramientasDelTurno) { if (!herramientasDelTurno) aplicar({ fotos: !textoFuera }); },
+    servir: (tools) => tools.map((t) => ({
+      ...t,
+      run: async (args) => {
+        if (usado?.herramienta === t.name && claveDe(args ?? {}) === claveDe(usado.args ?? {})) { aplicar(); return usado.texto; }
+        return t.run(args);
+      },
+    })),
+  };
+}
+
+const FUENTE_PLANTILLA = { receta: "la receta del plato", calorias: "las calorías del plato", falta: "lo que falta del plato según la despensa" };
+
+/**
+ * La lectura que pide la pista (pista.js planDeAdelanto), hecha antes de que
+ * Lola la pida. Las herramientas, las de Lola tal cual, pero sobre una copia
+ * del turno: lo que dejan (fotos, lo pintado, el botón a la app) se guarda
+ * aparte y solo pasa al turno si Lola acepta la pista (responder, `aplicar`).
+ * Las plantillas, las de la vía rápida (plato.js), que no tienen herramienta
+ * propia: sin esto, «qué me falta» eran ver_receta y luego ver_despensa.
+ */
+async function adelantar(plan, chat) {
+  if (plan.herramienta) {
+    // Solo lecturas: una escritura nunca se adelanta (ni con la puerta abierta).
+    if (!SOLO_LECTURA.has(plan.herramienta)) return null;
+    const copia = { ...chat, fotos: [], pintar: null, ir: null, compartir: null, escrito: false };
+    const t = (await herramientas(copia)).find((x) => x.name === plan.herramienta);
+    if (!t) return null;
+    const r = await t.run(plan.args);
+    return {
+      nombre: plan.herramienta, herramienta: plan.herramienta, args: plan.args,
+      fuente: `${plan.herramienta} ${JSON.stringify(plan.args)}`,
+      texto: typeof r === "string" ? r : JSON.stringify(r), fotos: copia.fotos, pintar: copia.pintar, ir: copia.ir,
+    };
+  }
+  const f = { receta: verReceta, calorias: caloriasDePlato, falta: queFalta }[plan.plantilla];
+  const r = f ? await f(chat.householdId, plan.datos) : null;
+  // Si la plantilla pregunta («¿comida o cena?») o no lo encuentra, no hay
+  // nada que adelantar: que Lola haga lo suyo.
+  if (!r?.texto || r.propuesta?.tipo === "aclarar") return null;
+  return {
+    nombre: `plantilla:${plan.plantilla}`, fuente: FUENTE_PLANTILLA[plan.plantilla],
+    // Para Lola son datos: sin el HTML, los [[botones]] ni los ✅ de la plantilla.
+    texto: datosDePlantilla(r.texto),
+    fotos: [], pintar: null, ir: r.ir ?? null,
+  };
+}
+
 /**
  * @param {{ tipo: "image" | "document", mediaType: string, base64: string }} [adjunto]
  *   una foto o un PDF del mensaje: solo va en este turno; a la memoria pasa
  *   como texto («[foto]»), que guardarla entera no merece la pena.
+ * @param {Promise<boolean>} [puerta]  turno especulativo: las herramientas de
+ *   escritura esperan a que resuelva; false = el turno es de la vía rápida.
+ * @param {AbortSignal} [signal]  para cancelar a Lola si el turno no es suyo.
+ * @param {Promise<object|null>} [pista]  la decisión del enrutador cuando el
+ *   turno es de Lola (api/_bot/pista.js, BOT_PISTA); null si no hay.
  * @returns {Promise<{ texto: string, fotos: {url: string, pie: string}[], deshacible: boolean, ir: string|null }>}
  *   el texto para el chat (HTML de Telegram), las fotos de los platos que se
  *   han enseñado y si se cambió algo que se puede deshacer.
  */
-/**
- * @param {Promise<boolean>} [puerta]  turno especulativo: las herramientas de
- *   escritura esperan a que resuelva; false = el turno es de la vía rápida.
- * @param {AbortSignal} [signal]  para cancelar a Lola si el turno no es suyo.
- */
-export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, adjunto = null, alEscribir = null, puerta = null, signal = null }) {
+export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null }) {
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
@@ -781,16 +877,54 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const ficha = casa ? montarFicha(casa, extras) : null;
   let dicho, uso, corregido, medida;
   const tLola = Date.now();
+  // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
+  // según avanza: con él se sabe si aún se la puede cortar sin tirar nada.
+  // Lo que deja la lectura adelantada (fotos, lo que se pinta debajo, el
+  // botón a la app) solo pasa al turno si Lola acepta la pista
+  // (adelantoDelTurno: pide lo mismo, o acaba sin llamar a ninguna herramienta).
+  const progreso = { vueltas: 0, herramientas: 0, texto: false };
+  const adelanto = adelantoDelTurno(chat);
+  const conAdelanto = adelanto.servir(tools);
+  let medidaPista = null;
+  const limpiarTurno = () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; };
+  const lanzar = (d, leido, sig, { reinicio }) => {
+    if (reinicio) limpiarTurno();
+    adelanto.usar(leido);
+    if (leido) medidaPista = { ...medidaPista, modo: d.modo, confianza: d.confianza, adelanto: leido.nombre, reinicio };
+    return ejecutar({
+      historia, entrada, tools: conAdelanto, adjunto, signal: sig, ficha, progreso,
+      pista: leido ? textoPista(d, leido) : null,
+      alEscribir: alEscribir ? (parcial, extra) => {
+        // Si la pista se acepta al final, ya no hay sitio para su álbum.
+        if (!extra?.aviso) adelanto.vioTexto();
+        alEscribir(parcial, { fotos: chat.fotos, ...extra });
+      } : null,
+      // Lo que juntó el modelo que se cayó no es de esta respuesta; lo leído
+      // por adelantado vuelve a contar solo si el de reserva también lo acepta.
+      alReintentar: () => { limpiarTurno(); adelanto.olvidarEfectos(); },
+    });
+  };
   try {
     let r;
-    ({ dicho, uso, corregido, ...r } = await ejecutar({
-      historia, entrada, tools, adjunto, signal, ficha,
-      alEscribir: alEscribir ? (parcial) => alEscribir(parcial, { fotos: chat.fotos }) : null,
-      // Lo que juntó el modelo que se cayó no es de esta respuesta.
-      alReintentar: () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; },
+    ({ dicho, uso, corregido, ...r } = await conPista({
+      pista, texto, progreso, signal, lanzar,
+      adelantar: (plan) => {
+        const t0 = Date.now();
+        // `leido`: si la lectura trajo algo; con leido y sin `reinicio`, es
+        // que Lola ya había avanzado y no se la cortó.
+        return adelantar(plan, chat)
+          .catch((e) => { console.error("[pista]", e?.message); return null; })
+          .then((a) => { medidaPista = { ...medidaPista, ms: Date.now() - t0, leido: Boolean(a) }; return a; });
+      },
+      alCortar: (ms) => { medidaPista = { ...medidaPista, cortada_ms: ms }; },
     }));
+    // Acabado el turno: sin ninguna herramienta en todo él, la pista se aceptó.
+    adelanto.alAcabar(r.herramientas?.length ?? 0);
+    // La llamada cortada no trae su uso (se paga igual): se estima con lo que
+    // leyó la primera llamada que sí acabó, que es casi lo mismo.
+    if (medidaPista?.reinicio && r.primera) medidaPista.cortada_tokens = (r.primera.input_tokens ?? 0) + (r.primera.cache_read_input_tokens ?? 0) + (r.primera.cache_creation_input_tokens ?? 0);
     // La medida del turno de Lola, para bot_route (api/bot/telegram.js).
-    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola };
+    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null };
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
@@ -847,21 +981,59 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
 // escritura, se le avisa y repite la vuelta una vez.
 const DICE_QUE_GUARDO = /✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
 export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(String(texto ?? ""));
+// Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
+// mientras corren, la persona ve al momento una frase de Lola en el mensaje
+// que se va escribiendo, y lo que Lola escriba después la sustituye en ese
+// mismo mensaje (api/bot/telegram.js mensajeVivo). Medidas de bot_route:
+// generar_menu 1,8-3 s, buscar_recetas hasta 3,3 s, y preparar_receta hace
+// su propia llamada a un modelo. Antes, en esos segundos solo se veía
+// «escribiendo…» y el primer texto llegaba a los 5-6 s. Va en código y no en
+// las instrucciones: así sale siempre, sin gastar tokens ni otra vuelta.
+export const AVISO_LENTO = {
+  // Sin «…» al final: el mensaje a medio escribir ya lleva el suyo.
+  generar_menu: "Voy, te preparo el menú, dame unos segundos",
+  // Con fotos, no: el álbum tiene que ir antes del texto y el aviso habría que
+  // borrarlo y volver a mandar (se ve un parpadeo), para una búsqueda que con
+  // fotos suele tardar menos de medio segundo.
+  buscar_recetas: (args) => (args?.conFotos ? null : "Un momento, que te busco unas recetas"),
+  preparar_receta: "Dame un momento, que te paso la receta a limpio",
+};
+const avisoLento = () => process.env.BOT_AVISO_LENTO !== "off";
 const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En tu respuesta dices que lo has apuntado, guardado o hecho, pero en este turno no has llamado a ninguna herramienta que guarde: no se ha guardado nada. Si había que guardarlo, llama ahora a la herramienta que toca y luego contesta. Si no, contesta otra vez sin decir que está hecho. Contesta a la persona directamente, sin mencionar este aviso.";
 
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta }) {
+/**
+ * @param {string|null} [pista]  la pista del enrutador (pista.js textoPista):
+ *   va detrás del mensaje, fuera de la caché y de la memoria.
+ * @param {{ vueltas: number, herramientas: number, texto: boolean }} [progreso]
+ *   se rellena según avanza (pista.js conPista lo mira para saber si cortar).
+ */
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null }) {
   // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
   let escrituras = 0;
   // Cuánto tarda cada herramienta, para la medida del turno (bot_route).
   const herramientas = [];
+  // Lo que lleva escrito la vuelta en curso (se vacía al acabar cada
+  // herramienta: lo siguiente que escriba es otra vuelta, desde cero). Si una
+  // herramienta lenta arranca sin nada en pantalla, sale su aviso (AVISO_LENTO).
+  let enPantalla = "";
+  const avisos = [];
+  const escribir = alEscribir ? (parcial, extra) => { enPantalla = parcial; alEscribir(parcial, extra); } : null;
   const vigiladas = tools.map((t) => ({
     ...t,
     run: async (...a) => {
+      // Un intento cortado (la pista, o la vía rápida) no ejecuta nada más,
+      // aunque el runner llegue a pedirlo: «nunca dos veces» no depende de en
+      // qué orden corran las promesas.
+      if (signal?.aborted) throw signal.reason ?? new Error("turno cortado");
       if (!SOLO_LECTURA.has(t.name)) escrituras++;
+      if (progreso) progreso.herramientas++;
+      const avisoDe = escribir && avisoLento() ? AVISO_LENTO[t.name] : null;
+      const aviso = typeof avisoDe === "function" ? avisoDe(a[0]) : avisoDe;
+      if (aviso && enPantalla.trim().length < 20) { escribir(aviso, { aviso: true }); avisos.push(t.name); }
       const t0 = Date.now();
-      try { return await t.run(...a); } finally { herramientas.push({ n: t.name, ms: Date.now() - t0 }); }
+      try { return await t.run(...a); } finally { herramientas.push({ n: t.name, ms: Date.now() - t0 }); enPantalla = ""; }
     },
   }));
   let ultimoError = null;
@@ -870,12 +1042,12 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     try {
       if (i > 0) alReintentar?.();
       const comun = {
-        tools: vigiladas, alEscribir, modelo, ficha,
+        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso,
         signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
       };
-      let r = await vuelta({ ...comun, historia, entrada, adjunto });
+      let r = await vuelta({ ...comun, historia, entrada, adjunto, pista });
       if (escrituras === 0 && diceQueGuardo(r.dicho)) {
         console.warn("[agente] dijo que guardó sin guardar: otra vuelta");
         // Lo que dijo queda en la historia (sin el adjunto, que ya leyó), y el aviso va como mensaje nuevo.
@@ -887,7 +1059,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
         r = { dicho: otra.dicho, uso, corregido: true, vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera };
       }
       if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
-      return { ...r, modelo, herramientas, planB: i > 0 };
+      return { ...r, modelo, herramientas, planB: i > 0, avisos };
     } catch (err) {
       ultimoError = err;
       // Cancelado desde fuera (el turno era de la vía rápida): nada que hacer.
@@ -920,13 +1092,17 @@ export function esCaida(err) {
   return /overloaded|timed? ?out|ECONNRESET|socket hang up|fetch failed|Connection error/i.test(String(err.message ?? ""));
 }
 
-async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null }) {
+async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null }) {
   // Con cache_control en el último bloque: la segunda vuelta del turno (tras
   // una herramienta) y las siguientes leen de caché todo lo anterior —
   // instrucciones, historia y el mensaje— en vez de volver a procesarlo.
   const contenido = adjunto
     ? [{ type: adjunto.tipo, source: { type: "base64", media_type: adjunto.mediaType, data: adjunto.base64 } }, { type: "text", text: entrada, cache_control: { type: "ephemeral" } }]
     : [{ type: "text", text: entrada, cache_control: { type: "ephemeral" } }];
+  // La pista del enrutador, DETRÁS del punto de caché: lo de antes (las
+  // instrucciones, la ficha, la historia, el mensaje) se sigue leyendo de
+  // caché igual, y ella, que cambia en cada turno, no ensucia nada.
+  if (pista) contenido.push({ type: "text", text: pista });
   const opciones = { maxRetries, signal };
   const runner = anthropic().beta.messages.toolRunner({
     model: modelo,
@@ -963,12 +1139,14 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
       let escrito = "";
       vuelta.on("text", (trozo) => {
         escrito += trozo;
+        if (progreso) progreso.texto = true;
         try { alEscribir(escrito); } catch { /* enseñar a medias nunca rompe la respuesta */ }
       });
       mensaje = await vuelta.finalMessage();
     }
     final = mensaje;
     vueltas++;
+    if (progreso) progreso.vueltas++;
     if (!primera) primera = { input_tokens: mensaje.usage?.input_tokens ?? 0, cache_read_input_tokens: mensaje.usage?.cache_read_input_tokens ?? 0, cache_creation_input_tokens: mensaje.usage?.cache_creation_input_tokens ?? 0 };
     for (const k of Object.keys(uso)) uso[k] += mensaje.usage?.[k] ?? 0;
   }

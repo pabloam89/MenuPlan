@@ -24,6 +24,9 @@ process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
 const { ejecutar, herramientas, MODELO, MODELO_RESERVA } = await import("../api/_bot/agente.js");
 const { supervisar } = await import("../api/_bot/supervisor.js");
+// La pista del enrutador (BOT_PISTA), con el mismo texto que en Telegram: un
+// caso con "pista" { decision, adelanto } mide si Lola la usa sin fiarse de más.
+const { textoPista } = await import("../api/_bot/pista.js");
 // Un solo modelo por pasada: sin esto, un fallo de la API caería al plan B en
 // silencio y la medida mezclaría dos modelos.
 const RESERVA = process.argv.includes("--reserva");
@@ -128,7 +131,8 @@ for (const caso of elegidos) {
     // ella, las pruebas medían a una Lola que no sabe nada de la familia.
     // `"ficha": null` en un caso la quita; `"ficha": {…}` pone otra.
     const ficha = caso.ficha === undefined ? FICHA : caso.ficha;
-    const r = await ejecutar({ historia: caso.historia ?? [], entrada: caso.entrada, tools, adjunto, modelos: [MEDIDO], ficha });
+    const pista = caso.pista ? textoPista(caso.pista.decision, caso.pista.adelanto) : null;
+    const r = await ejecutar({ historia: caso.historia ?? [], entrada: caso.entrada, tools, adjunto, modelos: [MEDIDO], ficha, pista });
     dicho = r.dicho;
     coste += (r.uso.input_tokens * PRECIO[0] + r.uso.output_tokens * PRECIO[1] + r.uso.cache_read_input_tokens * PRECIO[2] + r.uso.cache_creation_input_tokens * PRECIO[3]) / 1e6;
   } catch (e) {

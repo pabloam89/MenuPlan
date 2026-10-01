@@ -1416,6 +1416,67 @@
         "anadir_compra"
       ],
       "texto": "app"
+    },
+    {
+      "nombre": "pista: ideas en grupo con proponer_platos ya leído → contesta en una llamada",
+      "entrada": "[Ana]: Lola, ¿qué hago de cena hoy?\n[Luis]: Lola, algo rápido porfa",
+      "pista": {
+        "decision": { "modo": "recomendar", "confianza": 0.95, "datos": { "dia": "hoy", "comida": "Cena", "estilo": "rapido", "varias": false } },
+        "adelanto": {
+          "fuente": "proponer_platos {\"dia\":\"hoy\",\"comida\":\"Cena\",\"estilo\":\"rapido\",\"n\":3}",
+          "texto": "Opciones para hoy, cena. Ahora mismo: Tortilla de calabacín.\n1. Garbanzos especiados con espinacas y piñones (25 min, facil)\n2. Revuelto de setas y ajetes (15 min, facil)\n3. Crema de puerros con picatostes (30 min, facil)\nNada está cambiado aún: para poner una, cambiar_plato con receta = su nombre."
+        }
+      },
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "maxLlamadas": 0,
+      "texto": "Garbanzos|Revuelto|Crema de puerros"
+    },
+    {
+      "nombre": "pista equivocada: dicen una alergia y la pista cree que es ver el menú → la guarda igual",
+      "entrada": "Ojo, que Leo es alérgico al huevo",
+      "pista": {
+        "decision": { "modo": "consulta", "confianza": 0.75, "datos": { "que": "menu", "cuando": "finde", "varias": false } },
+        "adelanto": {
+          "fuente": "ver_menu {\"cuando\":\"finde\"}",
+          "texto": "Sale pintado debajo de tu mensaje (NO lo copies; como mucho una frase). Para que lo sepas:\nsábado:\n  Comida: Garbanzos con espinacas\n  Cena: Tortilla de patatas\ndomingo:\n  Comida: Lasaña de carne\n  Cena: Crema de puerros"
+        }
+      },
+      "llama": [
+        "ajustar_alergias"
+      ],
+      "args": {
+        "ajustar_alergias": {
+          "confirmado": true,
+          "_todo": "huevo"
+        }
+      }
+    },
+    {
+      "nombre": "pista: qué me falta para el cocido y apúntalo → apunta lo que falta sin volver a mirar",
+      "entrada": "¿Qué me falta para el cocido? Y apúntalo en la compra",
+      "pista": {
+        "decision": { "modo": "falta", "confianza": 0.85, "datos": { "plato": "cocido", "varias": true } },
+        "adelanto": {
+          "fuente": "lo que falta del plato según la despensa",
+          "texto": "🧺 Cocido madrileño\n\n🛒 Te falta:\n• garbanzos\n• morcillo de ternera\n• chorizo\n\n✅ Tienes:\n• zanahoria\n• patata\n\n¿Lo apunto en la compra?"
+        }
+      },
+      "llama": [
+        "anadir_compra"
+      ],
+      "args": {
+        "anadir_compra": {
+          "_todo": "garbanzos"
+        }
+      },
+      "noLlama": [
+        "ver_receta",
+        "ver_despensa"
+      ],
+      "maxLlamadas": 1
     }
   ]
 }
