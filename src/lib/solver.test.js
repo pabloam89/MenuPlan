@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolverMenu, candidatosDeHueco, REGLAS_RELAJABLES } from "./solver.js";
+import { resolverMenu, resolverConReintentos, candidatosDeHueco, REGLAS_RELAJABLES } from "./solver.js";
 import { buildGroupContext } from "./aiPlanner.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
 import { validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS, CENA_KCAL_SOFT_CAP, VECES_MISMA_SOPA } from "../utils/validateMenu.js";
@@ -34,21 +34,26 @@ function resolverPara(data, opciones = {}) {
   const { recipes: pool, error } = filterRecipes(ctx.filterOpts);
   if (error) throw new Error(error);
   const { achievable } = splitAchievableFreqs(pool, ctx.config.freqs);
-  const res = resolverMenu(ctx.slots, pool, {
+  const { conReintentos = false, ...resto } = opciones;
+  const res = (conReintentos ? resolverConReintentos : resolverMenu)(ctx.slots, pool, {
     healthProfiles: ctx.config.healthProfiles,
     freqs: achievable,
     // Solo el tope de NODOS, que es determinista. El de milisegundos existe
     // para el usuario que espera; en la suite, con veinte ficheros en
     // paralelo, cortaba la búsqueda en sitios distintos cada vez.
     maxMs: 120000,
-    ...opciones,
+    ...resto,
   });
   return { ...res, ctx, pool, achievable };
 }
 
 describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", () => {
+  // Por el camino de producción (aiPlanner usa resolverConReintentos). Con una
+  // sola semilla esta casa se metía en un callejón desde el 23 sep 2026 (62
+  // recetas desbloqueadas cambiaron el orden de búsqueda) y relajaba el tope
+  // de pescado en vie_cena.
   it("una semana normal sale entera y sin una sola violación", () => {
-    const { asignaciones, completo, ctx, pool, achievable } = resolverPara(casa());
+    const { asignaciones, completo, ctx, pool, achievable } = resolverPara(casa(), { conReintentos: true });
     expect(completo).toBe(true);
     expect(asignaciones).toHaveLength(ctx.slots.length);
 
@@ -57,7 +62,9 @@ describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", (
     );
     expect(violations.map((v) => `${v.rule} @ ${v.slotId}`)).toEqual([]);
     expect(valid).toBe(true);
-  });
+    // Hasta tres intentos con presupuesto de suite (maxMs alto): en una máquina
+    // cargada pasa de los 5 s por defecto. En producción el solver va en décimas.
+  }, 60000);
 
   it("una casa nueva de verdad: reparto por defecto, topes con holgura, objetivo exacto", () => {
     // Lo que produce App.jsx para quien no ha tocado nada: los topes llevan

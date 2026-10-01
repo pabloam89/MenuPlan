@@ -241,6 +241,11 @@ export function familiasDe(r) {
 export function resolverMenu(slots, pool, {
   healthProfiles = [], freqs = {}, objetivo = null, basesPedidas = {}, cocinas = null,
   recientes = null, semilla = 1, maxNodos = 400, maxMs = 400,
+  // false: la fase 3 rellena SOLO sin relajar (el pase estricto, que es el que
+  // cierra muchas semanas limpias) y se salta el relajado. Lo usan los intentos
+  // de resolverConReintentos: relajar se deja para el último.
+  relajar = true,
+  desde = null,
 } = {}) {
   const dominios = new Map();
   const sinCandidatos = [];
@@ -562,7 +567,10 @@ export function resolverMenu(slots, pool, {
     return false;
   };
 
-  let completo = buscar(0);
+  // `desde`: partir de un parcial ya buscado (el mejor intento de
+  // resolverConReintentos) y solo rellenar: sin volver a buscar desde cero.
+  if (desde) mejor = desde.filter((a) => dominios.has(a.slotId));
+  let completo = desde ? false : buscar(0);
   let sinCombinacion = [];
 
   // ── Fase 2: sin semana entera, todo lo demás ──────────────────────────────
@@ -583,7 +591,7 @@ export function resolverMenu(slots, pool, {
   // salida a mitad de semana (la cena del miércoles sin proteína posible
   // porque el martes ya gastó la que quedaba) se arregla así, y con la voraz a
   // secas se quedaba vacío.
-  if (!completo) {
+  if (!completo && !desde) {
     asignadas.length = 0;
     usados.clear();
     for (const f of Object.keys(cuenta)) cuenta[f] = 0;
@@ -672,7 +680,7 @@ export function resolverMenu(slots, pool, {
       const { violations } = validateMenu(asignadas, pool, contexto, [], {}, basesPedidas);
       return !violations.some((v) => !IGNORAR_EN_PARCIAL.has(v.rule));
     };
-    rellenar(relajadaValida);
+    if (relajar) rellenar(relajadaValida);
     for (const a of asignadas) if (!estrictos.has(a.slotId)) relajados.push(a.slotId);
 
     mejor = [...asignadas];
@@ -707,3 +715,47 @@ export function resolverMenu(slots, pool, {
  * revalidación de generateGroupMenu las ignora en los huecos `relajados`.
  */
 export const REGLAS_RELAJABLES = new Set(["health_profile_conflict", "freq_max_exceeded"]);
+
+/**
+ * El solver con REINTENTOS (1 oct 2026).
+ *
+ * La búsqueda es determinista por semilla, y con algunas se mete en un
+ * callejón: elige pronto platos que gastan los topes o fijan proteínas, y al
+ * llegar a un hueco del final no cabe nada. Deshacer paso a paso no llega al
+ * culpable (está al principio de la semana) antes de agotar el presupuesto, y
+ * la fase 3 acaba RELAJANDO un tope. Medido en la casa de solver.test.js: solo
+ * 13 de 30 semillas salían limpias, y las atascadas tardaban el doble (la fase
+ * 3 no tiene tope de tiempo). Empezar por otro camino es mucho más barato que
+ * salir del callejón.
+ *
+ * Así que: hasta INTENTOS_RAPIDOS semillas SIN relajar (con el relleno estricto
+ * de la fase 3, que es el que cierra muchas semanas: quitar la fase entera dejó
+ * los intentos sin salir nunca limpios), y la primera semana limpia gana. Si
+ * ninguna lo es, lo de siempre: un intento completo con la semilla original.
+ */
+export const INTENTOS_RAPIDOS = 3;
+
+export function resolverConReintentos(slots, pool, opciones = {}, { intentos = INTENTOS_RAPIDOS } = {}) {
+  const base = (opciones.semilla ?? 1) >>> 0;
+  let nodos = 0;
+  let ms = 0;
+  let mejorIntento = null;
+  for (let k = 0; k < intentos; k++) {
+    // Semillas separadas por un primo: con +1 el ruido apenas cambiaba.
+    const semilla = (base + k * 7919) >>> 0;
+    const r = resolverMenu(slots, pool, { ...opciones, semilla, relajar: false });
+    nodos += r.nodos;
+    ms += r.ms;
+    // Limpia = cubiertos todos los huecos que admiten algún plato, sin relajar
+    // nada. Los que no admiten ninguno (`sinCandidatos`) no los arregla ninguna
+    // semilla; contarlos haría reintentar en balde.
+    const cubiertos = new Set(r.asignaciones.map((a) => a.slotId));
+    const limpia = slots.every((s) => cubiertos.has(s.slotId) || r.sinCandidatos.includes(s.slotId));
+    if (limpia) return { ...r, completo: r.sinCandidatos.length === 0, sinCombinacion: [], nodos, ms, semilla, intentos: k + 1 };
+    if (!mejorIntento || r.asignaciones.length > mejorIntento.r.asignaciones.length) mejorIntento = { r, semilla };
+  }
+  // Ninguno limpio: se relaja sobre el MEJOR intento, sin volver a buscar.
+  const { r: m, semilla } = mejorIntento;
+  const r = resolverMenu(slots, pool, { ...opciones, semilla, desde: m.asignaciones });
+  return { ...r, nodos: nodos + r.nodos, ms: ms + r.ms, semilla, intentos };
+}

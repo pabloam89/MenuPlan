@@ -4,7 +4,7 @@ import { isBabyMenuGroup, membersOfGroup, resolveMemberAge } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { basesPedidas } from "./bases.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
-import { resolverMenu, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
+import { resolverConReintentos, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { HOLGURA_TOPES, presupuestoDeTopes, repartoAFreqs, freqsAReparto } from "./reparto.js";
 import { stageForAge } from "./stages.js";
@@ -1398,7 +1398,8 @@ function asignarConSolver({
   group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings,
 }) {
   const semilla = semillaDeGeneracion();
-  const res = resolverMenu(
+  // Con reintentos: otra semilla sale del callejón antes que la fase 3 (solver.js).
+  const res = resolverConReintentos(
     ctx.slots,
     ordenarPorSesgo(filteredPool, data.sesgos, data.favoritos),
     {
@@ -1425,7 +1426,9 @@ function asignarConSolver({
     stats.solverMs = res.ms;
     stats.solverCompleto = res.completo;
     stats.solverRelajados = res.relajados.length;
-    stats.solverSemilla = semilla;
+    // La que GANÓ, para poder reproducir el menú; y cuántos intentos costó.
+    stats.solverSemilla = res.semilla;
+    stats.solverIntentos = res.intentos;
   }
   // Los huecos SIN candidatos ya los avisa el paso 3c de generateGroupMenu
   // uno a uno. Esto es lo otro: había candidatos, pero ninguno compatible con
