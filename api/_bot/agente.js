@@ -23,6 +23,7 @@ import {
   apuntarAusencia,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
+import { avisoVispera } from "./vispera.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
@@ -331,6 +332,12 @@ function herramientasDeRecordatorios(chat) {
       run: (args) => crearRecordatorio(chat, args),
     }),
     betaTool({
+      name: "aviso_vispera",
+      description: "El aviso de la víspera: cada noche miras el menú de mañana y, SOLO si hay algo que preparar (legumbres en remojo, sacar un plato del congelador, su día de batch cooking), les escribes. Solo con su sí: ofrécelo una vez, tras su primer menú, con [[Sí, avísame]] [[No hace falta]]. activar=false lo quita. hora HH:MM en hora de España (por defecto 20:30).",
+      inputSchema: obj({ activar: { type: "boolean" }, hora: { type: "string" } }, ["activar"]),
+      run: (args) => avisoVispera(chat, args),
+    }),
+    betaTool({
       name: "ver_recordatorios",
       description: "Los recordatorios pendientes de este chat, con su id.",
       inputSchema: obj({}),
@@ -405,7 +412,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     betaTool({
       name: "pedir_tanda",
-      description: "Cocinar en tanda (batch cooking), como la pantalla de bases de la app. bases: lo que se deja hecho para usar en varios platos (claves: arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito, caldo, salsa_tomate, verdura_asada, pesto, bechamel, patatas_asadas, bolonesa), con veces = platos de la semana que lo usan (2-5; 0 lo quita). platos: platos que se dejan hechos o a medias (claves: croquetas-crudas, bunuelos-masa, falafel-crudo, empanadillas-cerradas, empanada-montada, lasana-montada, ravioli-cortados, quiche-sin-hornear, pastel-al-horno, huevos-rellenos, carne-empanada, verduras-rellenas, gazpacho, caldo-casero, crema, sopa), veces 1-4. minutos: el rato de manos que hay para la sesión (30-240). dia: el día en que se cocina (lunes…domingo). ninguna=true: deja de cocinar en tanda. Si una clave no vale, te devuelvo la lista buena: corrígela, no se lo preguntes a la familia.",
+      description: "Batch cooking (día de hacer tuppers; a la familia nunca le digas «tanda»), como la pantalla de bases de la app. bases: lo que se deja hecho para usar en varios platos (claves: arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito, caldo, salsa_tomate, verdura_asada, pesto, bechamel, patatas_asadas, bolonesa), con veces = platos de la semana que lo usan (2-5; 0 lo quita). platos: platos que se dejan hechos o a medias (claves: croquetas-crudas, bunuelos-masa, falafel-crudo, empanadillas-cerradas, empanada-montada, lasana-montada, ravioli-cortados, quiche-sin-hornear, pastel-al-horno, huevos-rellenos, carne-empanada, verduras-rellenas, gazpacho, caldo-casero, crema, sopa), veces 1-4. minutos: el rato de manos que hay para la sesión (30-240). dia: el día en que se cocina (lunes…domingo). ninguna=true: deja de cocinar en tanda. Si una clave no vale, te devuelvo la lista buena: corrígela, no se lo preguntes a la familia.",
       inputSchema: obj({
         bases: { type: "array", items: obj({ base: { type: "string" }, veces: { type: "integer", minimum: 0, maximum: 5 } }, ["base"]) },
         platos: { type: "array", items: obj({ familia: { type: "string" }, veces: { type: "integer", minimum: 0, maximum: 4 } }, ["familia"]) },
@@ -772,14 +779,18 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
   const ficha = casa ? montarFicha(casa, extras) : null;
-  let dicho, uso, corregido;
+  let dicho, uso, corregido, medida;
+  const tLola = Date.now();
   try {
-    ({ dicho, uso, corregido } = await ejecutar({
+    let r;
+    ({ dicho, uso, corregido, ...r } = await ejecutar({
       historia, entrada, tools, adjunto, signal, ficha,
       alEscribir: alEscribir ? (parcial) => alEscribir(parcial, { fotos: chat.fotos }) : null,
       // Lo que juntó el modelo que se cayó no es de esta respuesta.
       alReintentar: () => { chat.fotos.length = 0; chat.ir = null; chat.compartir = null; chat.pintar = null; },
     }));
+    // La medida del turno de Lola, para bot_route (api/bot/telegram.js).
+    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola };
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
@@ -812,7 +823,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     segundaSemana(householdId).catch(() => {}),
   ]);
 
-  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado };
+  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado, medida };
 }
 
 /**
@@ -843,11 +854,14 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
   let escrituras = 0;
+  // Cuánto tarda cada herramienta, para la medida del turno (bot_route).
+  const herramientas = [];
   const vigiladas = tools.map((t) => ({
     ...t,
     run: async (...a) => {
       if (!SOLO_LECTURA.has(t.name)) escrituras++;
-      return t.run(...a);
+      const t0 = Date.now();
+      try { return await t.run(...a); } finally { herramientas.push({ n: t.name, ms: Date.now() - t0 }); }
     },
   }));
   let ultimoError = null;
@@ -870,10 +884,10 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
           historia: [...historia, { role: "user", content: entrada }, { role: "assistant", content: r.dicho }],
         });
         const uso = Object.fromEntries(Object.keys({ ...r.uso, ...otra.uso }).map((k) => [k, (r.uso?.[k] ?? 0) + (otra.uso?.[k] ?? 0)]));
-        r = { dicho: otra.dicho, uso, corregido: true };
+        r = { dicho: otra.dicho, uso, corregido: true, vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera };
       }
       if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
-      return { ...r, modelo };
+      return { ...r, modelo, herramientas, planB: i > 0 };
     } catch (err) {
       ultimoError = err;
       // Cancelado desde fuera (el turno era de la vía rápida): nada que hacer.
@@ -937,6 +951,10 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
   // Cada vuelta del runner es una llamada al modelo: el coste es la suma.
   const uso = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
   let final = null;
+  // Cuántas llamadas al modelo y qué entró en la primera (lo que se paga
+  // también cuando un turno especulativo se cancela: scripts/bot-medidas.mjs).
+  let vueltas = 0;
+  let primera = null;
   for await (const vuelta of runner) {
     let mensaje = vuelta;
     if (alEscribir) {
@@ -950,12 +968,14 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
       mensaje = await vuelta.finalMessage();
     }
     final = mensaje;
+    vueltas++;
+    if (!primera) primera = { input_tokens: mensaje.usage?.input_tokens ?? 0, cache_read_input_tokens: mensaje.usage?.cache_read_input_tokens ?? 0, cache_creation_input_tokens: mensaje.usage?.cache_creation_input_tokens ?? 0 };
     for (const k of Object.keys(uso)) uso[k] += mensaje.usage?.[k] ?? 0;
   }
 
   const dicho = (final?.content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim()
     || "Hecho.";
-  return { dicho, uso };
+  return { dicho, uso, vueltas, primera };
 }
 
 /** Vuelve a usarlo una semana o más después de enlazar: la señal de que se queda. */
