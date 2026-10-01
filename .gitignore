@@ -66,6 +66,7 @@ vs-modelo.json
 
 # Motor empaquetado para el bot (scripts/build-bot-core.mjs); se regenera en cada build
 /api/_bot/core.mjs
+/api/_bot/dominiosGustos.json
 
 # Frases reales de usuarios sin revisar (scripts/router-feedback.mjs)
 scripts/router-evals-candidatos.json

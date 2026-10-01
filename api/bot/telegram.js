@@ -427,7 +427,11 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
     return enviar(chatId, aviso, { responderA, botones });
   }
   await vivo.parar();
-  return entregar({ chatId, householdId, esGrupo, base, from, responderA, oido, r, vivo });
+  const entregado = await entregar({ chatId, householdId, esGrupo, base, from, responderA, oido, r, vivo });
+  // La charla se guarda mientras se entregaba (agente.js `guardado`): se espera
+  // aquí, antes de soltar el turno, para que el siguiente mensaje la vea.
+  await r.guardado;
+  return entregado;
 }
 
 /**
@@ -498,7 +502,9 @@ function fotosDelTurno(todas = []) {
  * siguiente que escriba sustituye a lo anterior en el mismo mensaje.
  */
 const CADA_MS = 1200;
-const MINIMO = 40;
+// Con 40 caracteres el primer texto tardaba en salir; con 20 ya hay media
+// frase («¡Claro! Te propongo…») y se ve que Lola está en ello.
+const MINIMO = 20;
 export function mensajeVivo(chatId, { responderA, eco = "" }) {
   let id = null;
   let ultimo = "";

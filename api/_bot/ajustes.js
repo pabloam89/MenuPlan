@@ -362,7 +362,16 @@ export async function sembrarCasa(householdId) {
 }
 
 /** Para las descripciones de las herramientas: los dominios reales del panel. */
+// Calculados en el build (scripts/build-bot-core.mjs). Si no está el fichero
+// (pruebas sin build), se calculan con el motor, como antes.
+let dominiosHechos = null;
 export async function dominiosDeGustos() {
+  if (dominiosHechos) return dominiosHechos;
+  try {
+    const { readFileSync } = await import("node:fs");
+    dominiosHechos = JSON.parse(readFileSync(new URL("./dominiosGustos.json", import.meta.url), "utf8")).dominios;
+    if (dominiosHechos) return dominiosHechos;
+  } catch { /* sin build: con el motor */ }
   const m = await motor();
   return m.CAMPOS.filter((c) => c.panel !== false).map((c) =>
     `${c.id} (${c.etiqueta})${Array.isArray(c.dominio) ? `: ${c.dominio.join("/")}` : ": texto libre"}`).join("; ");

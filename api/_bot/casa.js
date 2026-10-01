@@ -43,7 +43,23 @@ export function enSemana(casa, weekStart) {
  *   si no, la primera), y `semanaViva` su weekStart: la que la app pinta y
  *   refleja en `state.menuPlan`. `semanas`, todas las del menú activo.
  */
-export async function cargarCasa(householdId) {
+// La casa se lee varias veces en un mismo turno (el enrutador, Lola, cada
+// herramienta) y son tres consultas cada vez. Se guarda unos segundos en esta
+// instancia; cualquier escritura propia la invalida, y conCasa, si choca con
+// una escritura ajena, vuelve a leer de verdad.
+const RECIENTE_MS = 8000;
+const recientes = new Map();
+export async function cargarCasa(householdId, { fresca = false } = {}) {
+  const r = recientes.get(householdId);
+  // Siempre una copia: quien la reciba puede tocarla sin estropear la de los demás.
+  if (!fresca && r && Date.now() - r.t < RECIENTE_MS) return structuredClone(await r.casa);
+  const casa = leerCasa(householdId);
+  recientes.set(householdId, { t: Date.now(), casa });
+  casa.catch(() => recientes.delete(householdId));
+  return structuredClone(await casa);
+}
+
+async function leerCasa(householdId) {
   const [fila] = await select("household_state", `household_id=${eq(householdId)}`, "state,bot_rev,updated_at");
   if (!fila) return null;
 
@@ -101,6 +117,8 @@ export async function guardarCasa(casa, { state = null, semana = null } = {}, { 
     p_state: state,
     p_week: week,
   });
+  // Escriba o choque, lo leído ya no vale.
+  recientes.delete(casa.householdId);
   if (r?.ok) {
     ultimaEscritura.set(casa.householdId, Date.now());
     if (!sinDeshacer) await guardarFotoPrevia(casa, Number(r.bot_rev)).catch((e) => console.error("[casa] deshacer", e?.message));
@@ -141,7 +159,8 @@ async function guardarFotoPrevia(casa, botRevDespues) {
 export async function deshacer(householdId) {
   const [foto] = await select("bot_deshacer", `household_id=${eq(householdId)}&usado_at=is.null&order=created_at.desc&limit=1`, "id,bot_rev_despues,antes,created_at");
   if (!foto) return "No hay ningún cambio mío reciente que deshacer.";
-  const casa = await cargarCasa(householdId);
+  // De la base: deshacer compara versiones y lo recordado podría ser viejo.
+  const casa = await cargarCasa(householdId, { fresca: true });
   if (!casa) return "Esta casa no tiene datos en la nube.";
   if (casa.botRev !== Number(foto.bot_rev_despues)) return "Ya no puedo deshacerlo: después hubo otros cambios míos.";
   // La app pone updated_at al guardar: si es posterior a mi cambio (con un
@@ -182,7 +201,8 @@ export async function deshacer(householdId) {
  */
 export async function conCasa(householdId, cambiar, intentos = 3) {
   for (let i = 0; i < intentos; i++) {
-    const casa = await cargarCasa(householdId);
+    // Al reintentar tras un choque, de la base: lo recordado es justo lo viejo.
+    const casa = await cargarCasa(householdId, { fresca: i > 0 });
     if (!casa) return { ok: false, error: "sin casa en la nube" };
     const cambios = await cambiar(casa);
     if (!cambios) return { ok: true, casa, sinCambios: true };
