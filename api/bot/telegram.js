@@ -416,7 +416,10 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   let abrir;
   const puerta = new Promise((r) => { abrir = r; });
   const ctrl = new AbortController();
-  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA, puerta, signal: ctrl.signal });
+  // Lo que se mide del turno (scripts/bot-medidas.mjs): primer texto visto,
+  // lo de Lola (modelo, vueltas, tokens, herramientas) y si se canceló.
+  const medir = {};
+  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA, puerta, signal: ctrl.signal, medir });
 
   const d = await decisionP;
   marca(`enrutador (${d.modo} ${d.confianza}, ${d.ms} ms)`);
@@ -432,15 +435,37 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
       ctrl.abort();
       await lola.catch(() => {});
       await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
+      const primer = Date.now() - t0;
       await contarUso(householdId, d.uso ?? {}).catch(() => {});
-      return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms });
+      return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms, ...medida(medir, d, t0, primer) });
     }
   }
   abrir(true);
   // Con el tiempo total del turno de Lola (hasta su respuesta entregada): sin
   // él no había forma de saber cuánto tarda de verdad lo que no es vía rápida.
   await lola.catch(() => {});
-  return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, ms: Date.now() - t0, router_ms: d.ms, error: d.error });
+  return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, ms: Date.now() - t0, router_ms: d.ms, error: d.error, ...medida(medir, d, t0) });
+}
+
+/**
+ * Lo que se apunta en bot_route para medir un turno, sin texto de nadie (eso
+ * lo borra la retención a los 15 días; esto se queda). Tokens y no euros: el
+ * precio se aplica al leerlo (scripts/bot-medidas.mjs), así un cambio de
+ * tarifa no obliga a reescribir nada.
+ */
+function medida(medir, d, t0, primer = null) {
+  const l = medir.lola;
+  return {
+    primer_ms: primer ?? (medir.primerTexto ? medir.primerTexto - t0 : null),
+    router_uso: d.uso ? { in: d.uso.input_tokens ?? 0, out: d.uso.output_tokens ?? 0, cr: d.uso.cache_read_input_tokens ?? 0, cw: d.uso.cache_creation_input_tokens ?? 0 } : null,
+    lola_cancelada: !!medir.cancelada,
+    lola: l ? {
+      modelo: l.modelo, planB: !!l.planB, vueltas: l.vueltas ?? null, ms: l.ms, corregido: !!l.corregido,
+      uso: l.uso ? { in: l.uso.input_tokens ?? 0, out: l.uso.output_tokens ?? 0, cr: l.uso.cache_read_input_tokens ?? 0, cw: l.uso.cache_creation_input_tokens ?? 0 } : null,
+      primera: l.primera ? { in: l.primera.input_tokens, cr: l.primera.cache_read_input_tokens, cw: l.primera.cache_creation_input_tokens } : null,
+      herramientas: (l.herramientas ?? []).map((h) => [h.n, h.ms]),
+    } : null,
+  };
 }
 
 /** Entrega una respuesta de la vía rápida y la deja en la memoria de la charla. */
@@ -453,7 +478,7 @@ async function entregarRapida({ chatId, householdId, esGrupo, base, from, respon
 }
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null }) {
+async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
   const eco = oido ? `🎙️ «${oido}»\n\n` : "";
   const vivo = mensajeVivo(chatId, { responderA, eco });
@@ -461,11 +486,13 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
   // es suyo (puerta → true). Se guarda lo último y se suelta al abrir.
   let pendiente = null;
   let abierta = !puerta;
+  // `medir` (de turno()): cuándo vio la persona el primer texto, y lo que midió Lola.
+  const visto = () => { if (medir) medir.primerTexto ??= Date.now(); };
   puerta?.then((suyo) => {
     abierta = suyo;
-    if (suyo && pendiente) vivo.escribir(...pendiente);
+    if (suyo && pendiente) { visto(); vivo.escribir(...pendiente); }
   });
-  const alEscribir = (parcial, extra) => (abierta ? vivo.escribir(parcial, extra) : (pendiente = [parcial, extra]));
+  const alEscribir = (parcial, extra) => (abierta ? (visto(), vivo.escribir(parcial, extra)) : (pendiente = [parcial, extra]));
   let r;
   try {
     // Si vino en audio, Lola lo sabe: los nombres nuevos pueden venir mal oídos
@@ -475,10 +502,10 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
       : texto.startsWith("[alta]") ? texto.replace("Mi primer mensaje:", "Mi primer mensaje (nota de voz):")
         : `[nota de voz] ${texto}`;
     r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir, puerta, signal });
-    if (puerta && !(await puerta)) return; // el turno fue de la vía rápida
+    if (puerta && !(await puerta)) { if (medir) { medir.cancelada = true; medir.lola = r?.medida ?? null; } return; } // el turno fue de la vía rápida
   } catch (err) {
     // Cancelada porque el turno era de la vía rápida: nada que decir.
-    if (signal?.aborted || (puerta && !(await puerta))) { await vivo.parar(); return; }
+    if (signal?.aborted || (puerta && !(await puerta))) { if (medir) medir.cancelada = true; await vivo.parar(); return; }
     // Nunca un error técnico en el chat: una frase y, si cabe, reintentar con
     // un toque (el botón vuelve a mandar lo mismo).
     console.error("[bot/telegram] agente", err?.message);
@@ -497,6 +524,7 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
   }
   await vivo.parar();
   const entregado = await entregar({ chatId, householdId, esGrupo, base, from, responderA, oido, r, vivo });
+  if (medir) { visto(); medir.lola = r.medida ?? null; }
   // La charla se guarda mientras se entregaba (agente.js `guardado`): se espera
   // aquí, antes de soltar el turno, para que el siguiente mensaje la vea.
   await r.guardado;
