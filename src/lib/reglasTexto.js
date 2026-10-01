@@ -17,7 +17,8 @@ export function describirRegla(regla, data) {
   if (!regla) return "";
   const quien = (() => {
     const s = regla.sujeto;
-    if (s.tipo === "casa") return "En casa";
+    // «En casa sin carne», pero «Toda la casa come fuera».
+    if (s.tipo === "casa") return regla.efecto.tipo === "presente" ? "Toda la casa" : "En casa";
     if (s.tipo === "invitado") return s.n > 1 ? `${s.n} invitados` : (s.nombre ?? "Un invitado");
     if (s.tipo === "grupo") {
       return (data?.groups ?? []).find((g) => g.id === s.ref)?.label ?? "Un menú";
@@ -36,7 +37,11 @@ export function describirRegla(regla, data) {
           : v;
       return `${ETIQUETA_EFECTO.excluir} ${legible}`;
     }
-    if (regla.efecto.tipo === "presente") return `${ETIQUETA_EFECTO.presente} ${regla.efecto.valor === "casa" ? "en casa" : regla.efecto.valor}`;
+    if (regla.efecto.tipo === "presente") {
+      // «2 invitados comen», no «come».
+      const verbo = regla.sujeto.tipo === "invitado" && regla.sujeto.n > 1 ? "comen" : ETIQUETA_EFECTO.presente;
+      return `${verbo} ${regla.efecto.valor === "casa" ? "en casa" : regla.efecto.valor}`;
+    }
     const { campo, valor, peso } = regla.efecto.valor;
     return `${peso >= 0 ? "más" : "menos"} ${valor} (${campo})`;
   })();
@@ -49,7 +54,9 @@ export function describirRegla(regla, data) {
     return partes.join(" ");
   })();
 
-  const cuando = regla.vigencia?.hasta ? `hasta el ${regla.vigencia.hasta}` : "";
+  // Un solo día («hoy cenamos fuera»): «solo el 2026-10-03», no «hasta el».
+  const { desde, hasta } = regla.vigencia ?? {};
+  const cuando = hasta ? (desde === hasta ? `solo el ${hasta}` : `hasta el ${hasta}`) : "";
   const salvo = regla.salvedad?.dias ? `salvo los ${regla.salvedad.dias.join(", ")}` : "";
 
   return [quien, que, donde, salvo, cuando].filter(Boolean).join(" ");
