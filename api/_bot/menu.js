@@ -874,7 +874,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     // Para quién ha sido, en personas y no en nombres de grupo.
     const para = grupo || sinCambiar.length ? quienesDe(g, data.members ?? []) : null;
     const sinCambiarQuienes = sinCambiar.map((l) => quienesDe(gs.find((x) => x.label === l), data.members ?? [])).filter(Boolean);
-    if (out) Object.assign(out, { cambiado: true, fecha, dia, franja, grupo: para, sinCambiar: sinCambiarQuienes, antes: antes ?? null, despues: elegido.frontendRecipe.name, recetaId: elegido.recipeId, aproximada, pedida: receta });
+    if (out) Object.assign(out, { cambiado: true, fecha, dia, franja, grupo: para, sinCambiar: sinCambiarQuienes, antes: antes ?? null, despues: elegido.frontendRecipe.name, adaptado: cambiosDe(elegido.frontendRecipe), recetaId: elegido.recipeId, aproximada, pedida: receta });
     texto = `Cambiado (${fechaCorta(fecha)}, ${fecha}, ${franja}${para ? `, para ${para}` : tambien.length ? ", para toda la familia" : ""}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`
       + (sinCambiarQuienes.length ? ` ${sinCambiarQuienes.join(" y ")} se quedan con lo suyo: ese plato no encaja con sus alergias o su etapa. Dilo así.` : "")
       + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "")
