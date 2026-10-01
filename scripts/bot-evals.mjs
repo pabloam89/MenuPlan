@@ -32,6 +32,19 @@ const PRECIO = /haiku/.test(MEDIDO) ? [1, 5, 0.1, 1.25] : /opus/.test(MEDIDO) ? 
 const { casos } = JSON.parse(fs.readFileSync(new URL("./bot-evals.json", import.meta.url), "utf8"));
 
 const FAMILIA = "Casa de prueba: Ana (38 años), Pablo (40 años), Leo (6 años). Comida y cena todos los días. Sin alergias anotadas.";
+// La misma casa, como la monta api/_bot/ficha.js.
+const FICHA = {
+  estable: [
+    "SEGURIDAD", "- Ana, Pablo, Leo: ninguna.",
+    "CASA", "- Ana 38 · Pablo 40 · Leo 6.", "- Todos comen lo mismo.", "- Leo: cole L–V a mediodía.",
+    "COCINA", "- Comida: primero y segundo. Cena: plato único.", "- Horno, microondas.",
+  ].join("\n"),
+  delDia: [
+    "jue 1 oct", "MENÚ 28 sep–4 oct (no hay semana siguiente)",
+    "- Hoy: crema de calabaza + pollo al horno con patatas; cena tortilla de calabacín.",
+    "- Mañana: lentejas estofadas; cena merluza a la plancha con ensalada.",
+  ].join("\n"),
+};
 const RESPUESTAS = {
   ver_casa: FAMILIA,
   ver_ajustes: "Estructura: primero y segundo. Esfuerzo normal. Trastos: Horno, Microondas. Gustos: nada anotado. Leo come en el cole de lunes a viernes.",
@@ -96,7 +109,11 @@ for (const caso of elegidos) {
   let fallos = [];
   try {
     const adjunto = caso.foto ? await fotoDe(caso.foto) : null;
-    const r = await ejecutar({ historia: caso.historia ?? [], entrada: caso.entrada, tools, adjunto, modelos: [MEDIDO] });
+    // Lola recibe la ficha de la casa en cada mensaje (api/_bot/ficha.js): sin
+    // ella, las pruebas medían a una Lola que no sabe nada de la familia.
+    // `"ficha": null` en un caso la quita; `"ficha": {…}` pone otra.
+    const ficha = caso.ficha === undefined ? FICHA : caso.ficha;
+    const r = await ejecutar({ historia: caso.historia ?? [], entrada: caso.entrada, tools, adjunto, modelos: [MEDIDO], ficha });
     dicho = r.dicho;
     coste += (r.uso.input_tokens * PRECIO[0] + r.uso.output_tokens * PRECIO[1] + r.uso.cache_read_input_tokens * PRECIO[2] + r.uso.cache_creation_input_tokens * PRECIO[3]) / 1e6;
   } catch (e) {
@@ -104,6 +121,8 @@ for (const caso of elegidos) {
   }
   const nombres = llamadas.map((l) => l.nombre);
   for (const n of caso.llama ?? []) if (!nombres.includes(n)) fallos.push(`no llamó a ${n}`);
+  // Alguna de estas (cuando hay más de una forma correcta de guardarlo).
+  if (caso.llamaAlguna && !caso.llamaAlguna.some((n) => nombres.includes(n))) fallos.push(`no llamó a ninguna de ${caso.llamaAlguna.join(", ")}`);
   for (const n of caso.noLlama ?? []) if (nombres.includes(n)) fallos.push(`llamó a ${n} y no debía`);
   for (const [n, esperado] of Object.entries(caso.args ?? {})) {
     if (!llamadas.some((l) => l.nombre === n && contiene(l.args, esperado))) {
