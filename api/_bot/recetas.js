@@ -305,6 +305,9 @@ export async function guardarReceta(householdId, { confirmado }, chat) {
   const receta = (await ultimoApartado(chat, TIPO_BORRADOR))?.receta;
   if (!receta) return "No tengo ninguna receta preparada en esta charla: prepárala primero con preparar_receta.";
   const r = await guardarRecetaPropia(householdId, receta);
+  // Sin dueño no llega ni al recetario: antes contestaba «Guardada en el
+  // recetario, pero…» sin haber guardado nada.
+  if (!r.enRecetario) return `NO GUARDADA: la receta no se ha podido guardar (${r.error}). Sigue preparada: se puede volver a intentar.`;
   await rastro(householdId, RASTRO.RECETA_GUARDADA, {
     recipeId: receta.id ?? null, baseDishId: receta.baseDishId ?? receta.linkedCatalogId ?? null,
     origen: receta.baseDishId || receta.linkedCatalogId ? ORIGEN_RECETA.VARIANTE : ORIGEN_RECETA.CREADA_BOT,
@@ -322,11 +325,12 @@ export async function guardarReceta(householdId, { confirmado }, chat) {
  * copia la de otra persona le pone antes id nuevo (`user_…`), `owner` y
  * `copiedFromRecipeId` / `copiedFromOwnerId`: aquí no se decide nada de eso.
  *
- * @returns {Promise<{ ok: boolean, error?: string }>}
+ * @returns {Promise<{ ok: boolean, enRecetario: boolean, error?: string }>}
+ *   `enRecetario`: si llegó a `user_recipes` (aunque la casa no se apuntara).
  */
 export async function guardarRecetaPropia(householdId, receta) {
   const dueno = receta.owner?.id ?? (await duenoDe(householdId));
-  if (!dueno) return { ok: false, error: "casa sin dueño" };
+  if (!dueno) return { ok: false, enRecetario: false, error: "casa sin dueño" };
   const m = await motor();
   const lista = { ...receta, owner: receta.owner ?? { id: dueno }, source: "user" };
   await insert("user_recipes", [m.recipeToRow(lista, dueno)], { upsert: true });
@@ -335,7 +339,7 @@ export async function guardarRecetaPropia(householdId, receta) {
     const otras = (data.userRecipes ?? []).filter((x) => x.id !== lista.id);
     return { state: { ...casa.state, data: { ...data, userRecipes: [...otras, lista] } } };
   });
-  return r.ok ? { ok: true } : { ok: false, error: r.error };
+  return r.ok ? { ok: true, enRecetario: true } : { ok: false, enRecetario: true, error: r.error };
 }
 
 /**

@@ -101,11 +101,14 @@ export async function avisoDeVisperaDe(householdId, hoyISO) {
  * Solo con el sí de la persona: Lola lo ofrece una vez (conocimiento.md).
  */
 export async function avisoVispera(chat, { activar = true, hora = "20:30" } = {}) {
+  // La hora se mira ANTES de quitar el que había: con una hora mal escrita se
+  // quedaba sin aviso y sin decirlo.
+  if (activar && !/^([01]\d|2[0-3]):[0-5]\d$/.test(hora)) return "Dime la hora como HH:MM (por ejemplo 20:30).";
   const enChat = `chat_id=eq.${encodeURIComponent(String(chat.chatId))}&status=eq.pending&text=eq.${encodeURIComponent(VISPERA)}`;
   const ya = await select("bot_reminders", enChat, "id");
+  // Si quitar el de antes falla, lanza: mejor un error que dos avisos cada noche.
   if (ya.length) await update("bot_reminders", enChat, { status: "cancelled" });
   if (!activar) return ya.length ? "Quitado: ya no te aviso la víspera." : "No tenías el aviso de la víspera puesto.";
-  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(hora)) return "Dime la hora como HH:MM (por ejemplo 20:30).";
   // La próxima vez que toque esa hora en España: hoy si aún no ha pasado.
   const ahora = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
   const [hoy, horaAhora] = ahora.split(" ");
