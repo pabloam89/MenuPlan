@@ -107,15 +107,18 @@ async function leerCasa(householdId) {
 const ultimaEscritura = new Map();
 export const escribioDesde = (householdId, t) => (ultimaEscritura.get(householdId) ?? 0) >= t;
 
-export async function guardarCasa(casa, { state = null, semana = null } = {}, { sinDeshacer = false } = {}) {
+// `activar`: id de un menú de la casa que queda activo en la MISMA transacción
+// (0069). Generar y deshacer lo usan: o cambian el menú y la casa, o nada.
+export async function guardarCasa(casa, { state = null, semana = null, activar = null } = {}, { sinDeshacer = false } = {}) {
   const week = semana && casa.semana
     ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semana }
     : null;
-  const r = await rpc("bot_save_casa", {
+  const r = await rpc(activar ? "bot_save_casa_activando" : "bot_save_casa", {
     p_household_id: casa.householdId,
     p_base_rev: casa.botRev,
     p_state: state,
     p_week: week,
+    ...(activar ? { p_menu_id: activar } : {}),
   });
   // Escriba o choque, lo leído ya no vale.
   recientes.delete(casa.householdId);
@@ -172,17 +175,17 @@ export async function deshacer(householdId) {
 
   const { antes } = foto;
   // Si lo último fue generar un menú, vuelve a estar activo el anterior (el
-  // generado se queda en el historial de la app).
-  if (antes.menuActivo && casa.menu?.id && antes.menuActivo !== casa.menu.id) {
-    await update("user_menus", `household_id=${eq(householdId)}&is_active=eq.true`, { is_active: false });
-    await update("user_menus", `household_id=${eq(householdId)}&id=${eq(antes.menuActivo)}`, { is_active: true });
-  }
+  // generado se queda en el historial de la app). En la misma transacción que
+  // la casa: antes se activaba primero y, si el guardado chocaba, el menú
+  // activo y la casa quedaban sin cuadrar.
+  const reactivar = antes.menuActivo && casa.menu?.id && antes.menuActivo !== casa.menu.id ? antes.menuActivo : null;
   // La semana que se tocó, que no tiene por qué ser la de hoy.
   const tocada = antes.semana ? enSemana(casa, antes.semana.weekStart) : null;
   const mismaSemana = tocada && antes.semana.menuId === tocada.semana.menuId;
   const r = await guardarCasa(mismaSemana ? tocada : casa, {
     state: antes.state,
     semana: mismaSemana ? { plan: antes.semana.plan, shopping: antes.semana.shopping } : null,
+    activar: reactivar,
   }, { sinDeshacer: true });
   if (!r.ok) return `No he podido deshacerlo: ${r.error ?? "se cruzó otro cambio"}.`;
   await update("bot_deshacer", `id=eq.${foto.id}`, { usado_at: new Date().toISOString() });

@@ -14,7 +14,7 @@
 import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
-import { select, insert, eq } from "./db.js";
+import { select, insert, eq, contandoEscrituras } from "./db.js";
 import { cargarCasa, deshacer, escribioDesde, hoyISO } from "./casa.js";
 import {
   describirCasa, describirReceta, describirCompra,
@@ -198,11 +198,15 @@ export async function herramientas(chat) {
       }
       try {
         const desde = Date.now();
-        const r = await t.run(args);
+        // `escribio`: si llegó a la base alguna escritura (db.js), no solo si se
+        // intentó. Una herramienta que contesta «no he podido guardarlo» no
+        // cuenta como guardado, ni lleva botón a la app.
+        const { r, escribio } = await contandoEscrituras(() => t.run(args));
+        if (escribio) chat.guardados = (chat.guardados ?? 0) + 1;
         if (t.name === "generar_menu") tocado.semanas.add(args.semana ?? "esta");
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
         if (CON_BOTON_DESHACER.has(t.name) && escribioDesde(chat.householdId, desde)) chat.escrito = true;
-        const ir = pantallaDe(t.name, args);
+        const ir = SOLO_LECTURA.has(t.name) || escribio ? pantallaDe(t.name, args) : null;
         if (ir) chat.ir = ir;
         if (t.name === "deshacer") chat.escrito = false;
         return r;
@@ -914,6 +918,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     if (leido) medidaPista = { ...medidaPista, modo: d.modo, confianza: d.confianza, adelanto: leido.nombre, reinicio };
     return ejecutar({
       historia, entrada, tools: conAdelanto, adjunto, signal: sig, ficha, progreso,
+      guardados: () => chat.guardados ?? 0,
       pista: leido ? textoPista(d, leido) : null,
       alEscribir: alEscribir ? (parcial, extra) => {
         // Si la pista se acepta al final, ya no hay sitio para su álbum.
@@ -1020,7 +1025,7 @@ export const AVISO_LENTO = {
   preparar_receta: "Dame un momento, que te paso la receta a limpio",
 };
 const avisoLento = () => process.env.BOT_AVISO_LENTO !== "off";
-const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En tu respuesta dices que lo has apuntado, guardado o hecho, pero en este turno no has llamado a ninguna herramienta que guarde: no se ha guardado nada. Si había que guardarlo, llama ahora a la herramienta que toca y luego contesta. Si no, contesta otra vez sin decir que está hecho. Contesta a la persona directamente, sin mencionar este aviso.";
+const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En tu respuesta dices que lo has apuntado, guardado o hecho, pero en este turno no se ha guardado nada: o no has llamado a ninguna herramienta que guarde, o la que llamaste no pudo guardar. Si había que guardarlo y no lo intentaste, llama ahora a la herramienta que toca y luego contesta. Si lo intentaste y no se pudo, dilo tal cual y ofrece intentarlo otra vez. Si no había nada que guardar, contesta otra vez sin decir que está hecho. Contesta a la persona directamente, sin mencionar este aviso.";
 
 /**
  * @param {string|null} [pista]  la pista del enrutador (pista.js textoPista):
@@ -1028,7 +1033,12 @@ const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En t
  * @param {{ vueltas: number, herramientas: number, texto: boolean }} [progreso]
  *   se rellena según avanza (pista.js conPista lo mira para saber si cortar).
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null }) {
+/**
+ * @param {() => number} [guardados]  cuántas herramientas GUARDARON de verdad
+ *   en el turno (responder lo saca de db.js). Sin él (pruebas con herramientas
+ *   de mentira) vale lo intentado.
+ */
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null }) {
   // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
@@ -1069,7 +1079,10 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
       };
       let r = await vuelta({ ...comun, historia, entrada, adjunto, pista });
-      if (escrituras === 0 && diceQueGuardo(r.dicho)) {
+      // Lo que cuenta es lo GUARDADO: un fuera_de_casa que chocó y contestó
+      // «no he podido guardarlo» no es un guardado, y un «✅ Apuntado» detrás
+      // tiene que pasar por el aviso igual que si no lo hubiera intentado.
+      if ((guardados ? guardados() : escrituras) === 0 && diceQueGuardo(r.dicho)) {
         console.warn("[agente] dijo que guardó sin guardar: otra vuelta");
         // Lo que dijo queda en la historia (sin el adjunto, que ya leyó), y el aviso va como mensaje nuevo.
         const otra = await vuelta({

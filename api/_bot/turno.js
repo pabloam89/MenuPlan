@@ -139,8 +139,9 @@ export async function apuntar(householdId, x, autor = null) {
 
 export async function tachar(householdId, x, autor = null) {
   const out = {};
-  await marcarCompra(householdId, x.productos ?? [], "comprado", out);
-  // Si hay dudas («¿qué leche?») tiene que preguntar Lola.
+  await marcarCompra(householdId, x.productos ?? [], "comprado", out, { soloSiClaro: true });
+  // Si hay dudas («¿qué leche?») tiene que preguntar Lola, y no se ha tachado
+  // nada: lo hará ella entero.
   if (!out.ok || out.dudosos?.length || !out.hechos?.length) return null;
   const faltan = out.noEncontrados?.length ? `\n\n🤔 <i>No encuentro en la lista: ${out.noEncontrados.map(esc).join(", ")}.</i>` : "";
   return {

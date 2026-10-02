@@ -71,7 +71,15 @@ export async function verRecordatorios(chatId) {
 }
 
 export async function cancelarRecordatorio(chatId, id) {
-  const r = await update("bot_reminders", `id=${eq(id)}&chat_id=${eq(chatId)}&status=eq.pending`, { status: "cancelled" }).catch(() => []);
+  // Un fallo de la base no es «no lo encuentro»: lo segundo hace que Lola diga
+  // que no existe uno que sigue pendiente y va a sonar.
+  let r;
+  try {
+    r = await update("bot_reminders", `id=${eq(id)}&chat_id=${eq(chatId)}&status=eq.pending`, { status: "cancelled" });
+  } catch (e) {
+    console.error("[recordatorios] cancelar", e?.message);
+    return "NO CANCELADO: no he podido cancelarlo ahora, sigue pendiente. Se puede volver a intentar.";
+  }
   return r?.length ? `Cancelado: «${r[0].text}».` : "No encuentro ese recordatorio pendiente en este chat.";
 }
 

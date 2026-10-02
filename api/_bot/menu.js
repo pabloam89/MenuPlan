@@ -359,7 +359,10 @@ function buscarItems(items, texto) {
 // del enrutador (api/_bot/turno.js), que pintan la respuesta con plantillas
 // sin pasar por Lola. El texto que devuelven, para Lola, no cambia.
 
-export async function marcarCompra(householdId, productos, estado, out = null) {
+// `soloSiClaro`: si algo es dudoso no se toca nada. La vía rápida lo usa:
+// con dudas le pasa el turno a Lola, y no debe dejar escrito medio mensaje
+// que Lola va a volver a hacer.
+export async function marcarCompra(householdId, productos, estado, out = null, { soloSiClaro = false } = {}) {
   const resultado = { hechos: [], noEncontrados: [], dudosos: [] };
   const r = await conCasa(householdId, (casa) => {
     Object.assign(resultado, { hechos: [], noEncontrados: [], dudosos: [] });
@@ -374,7 +377,7 @@ export async function marcarCompra(householdId, productos, estado, out = null) {
         resultado.hechos.push(encontrados[0].name);
       }
     }
-    if (!resultado.hechos.length) return null;
+    if (!resultado.hechos.length || (soloSiClaro && resultado.dudosos.length)) return null;
     return guardarLista(casa, { ...listaDe(casa), items });
   });
   if (out) Object.assign(out, { ok: r.ok, ...resultado });

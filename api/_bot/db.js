@@ -7,7 +7,27 @@
  * esto sale nunca hacia el cliente.
  */
 
+import { AsyncLocalStorage } from "node:async_hooks";
+
 const TIMEOUT_MS = 8000;
+
+// ¿Ha llegado a la base alguna escritura mientras corría esto? Lo usa el
+// agente para saber si una herramienta GUARDÓ, no solo si lo intentó: así no
+// hay que llevar a mano qué herramienta escribe en qué tabla. Los registros
+// (memoria del chat, eventos, fotos para deshacer) no cuentan.
+const escrituras = new AsyncLocalStorage();
+const SOLO_REGISTRO = new Set(["bot_messages", "user_events", "bot_route", "bot_deshacer"]);
+export async function contandoEscrituras(correr) {
+  const cuenta = { n: 0 };
+  const r = await escrituras.run(cuenta, correr);
+  return { r, escribio: cuenta.n > 0 };
+}
+function contarEscritura(ruta) {
+  const cuenta = escrituras.getStore();
+  if (!cuenta) return;
+  const tabla = ruta.split("?")[0].replace(/^\/rest\/v1\/(rpc\/)?/, "");
+  if (!SOLO_REGISTRO.has(tabla)) cuenta.n++;
+}
 
 export function config() {
   const url = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").replace(/\/$/, "");
@@ -32,7 +52,12 @@ async function pedir(ruta, { method = "GET", body, prefer } = {}) {
     });
     const text = await res.text();
     if (!res.ok) throw new Error(`${method} ${ruta.split("?")[0]} → ${res.status} ${text.slice(0, 300)}`);
-    return text ? JSON.parse(text) : null;
+    const datos = text ? JSON.parse(text) : null;
+    // Un rpc que guarda contesta { ok }: solo cuenta si fue ok (un choque de
+    // versión no es una escritura). Un PATCH que no tocó ninguna fila, tampoco.
+    const hizoAlgo = ruta.startsWith("/rest/v1/rpc/") ? datos?.ok !== false : !(Array.isArray(datos) && datos.length === 0);
+    if (method !== "GET" && hizoAlgo) contarEscritura(ruta);
+    return datos;
   } finally {
     clearTimeout(t);
   }
@@ -52,7 +77,9 @@ export const insert = (tabla, filas, { upsert = false } = {}) =>
 export const update = (tabla, filtro, cambios) =>
   pedir(`/rest/v1/${tabla}?${filtro}`, { method: "PATCH", body: cambios, prefer: "return=representation" });
 
-export const rpc = (funcion, args) => pedir(`/rest/v1/rpc/${funcion}`, { method: "POST", body: args });
+export const borrar = (tabla, filtro) => pedir(`/rest/v1/${tabla}?${filtro}`, { method: "DELETE" });
+
+export const rpc =(funcion, args) => pedir(`/rest/v1/rpc/${funcion}`, { method: "POST", body: args });
 
 /** El usuario detrás de un JWT de la app, validado contra Supabase Auth. */
 export async function usuarioDeToken(accessToken) {

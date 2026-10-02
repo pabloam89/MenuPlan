@@ -55,3 +55,17 @@ describe("filtrarRecetas", () => {
     expect(filtrarRecetas(RECETAS, { maxMinutos: 15 }).map((r) => r.id)).toEqual(["e1"]);
   });
 });
+
+describe("guardar_receta no dice «guardada» sin guardar", () => {
+  it("una casa sin dueño: ni llega al recetario, y se dice tal cual", async () => {
+    const { select, insert } = await import("./db.js");
+    const { duenoDe } = await import("./embudo.js");
+    const { guardarReceta } = await import("./recetas.js");
+    select.mockResolvedValueOnce([{ content: { receta: { id: "user_x", name: "Tortilla de la abuela" } } }]);
+    duenoDe.mockResolvedValueOnce(null);
+    const texto = await guardarReceta("h1", { confirmado: true }, { channel: "telegram", chatId: "1" });
+    expect(texto).toMatch(/^NO GUARDADA/);
+    expect(texto).not.toMatch(/Guardada en el recetario/);
+    expect(insert).not.toHaveBeenCalled();
+  });
+});
