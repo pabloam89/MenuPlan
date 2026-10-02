@@ -1326,11 +1326,29 @@
       "nombre": "habla: «el jueves comida no xq no tengo tiempo» → no comen en casa, no cambia el plato",
       "entrada": "q el jueves comida no xq no tengo tiempo, cámbialo",
       "llama": [
+        "fuera_de_casa"
+      ],
+      "args": {
+        "fuera_de_casa": {
+          "dia": "jueves",
+          "comida": "comida"
+        }
+      },
+      "noLlama": [
+        "ajustar_horario",
+        "cambiar_plato",
+        "proponer_platos"
+      ]
+    },
+    {
+      "nombre": "habla: «los jueves nunca comemos en casa» → es de cada semana: ajustar_horario, no fuera_de_casa",
+      "entrada": "los jueves nunca comemos en casa a mediodía",
+      "llama": [
         "ajustar_horario"
       ],
       "noLlama": [
-        "cambiar_plato",
-        "proponer_platos"
+        "fuera_de_casa",
+        "cambiar_plato"
       ]
     },
     {
