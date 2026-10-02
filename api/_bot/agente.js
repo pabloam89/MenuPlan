@@ -44,7 +44,7 @@ import { guardarMenuCole, verMenuCole } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
 import { conPista, textoPista, datosDePlantilla } from "./pista.js";
 import { verReceta, calorias as caloriasDePlato, queFalta } from "./plato.js";
-import { papelDeQuien } from "./papel.js";
+import { papelDeQuien, idiomaDe } from "./papel.js";
 import { herramientaPermitida } from "../../src/lib/papeles.js";
 
 // Modelo y esfuerzo, configurables para medir velocidad contra calidad con
@@ -899,9 +899,15 @@ const QUIEN_ESCRIBE = {
   viewer: "QUIEN ESCRIBE: lector de la casa. Puede consultarlo todo y tachar la compra; nada más, ni aquí ni en la app (no le mandes a la app a cambiar nada). Si pide cambiar otra cosa, dile con naturalidad que eso lo cambia quien gestiona la casa, sin hablar de permisos ni de lo que «puede» hacer.",
   ajeno: "QUIEN ESCRIBE: alguien del grupo sin cuenta enlazada a esta casa. Solo puedes contarle el menú, las recetas y la compra. Para apuntar o cambiar algo, que te escriba por privado y conecte su cuenta, o que se lo pida a quien gestiona la casa.",
 };
-export function conQuienEscribe(ficha, papel) {
-  const linea = QUIEN_ESCRIBE[papel ?? "ajeno"];
-  return linea && ficha ? { ...ficha, delDia: `${ficha.delDia}\n${linea}` } : ficha;
+// Y el idioma que eligió (0073): en inglés aunque escriba en español, y los
+// platos con su nombre traducido (los datos de la casa están en castellano).
+const IDIOMA = {
+  en: "IDIOMA: quien escribe eligió inglés. Contesta SIEMPRE en inglés, aunque escriba en español; los platos, ingredientes y pasos, traducidos al inglés.",
+};
+export function conQuienEscribe(ficha, papel, idioma = null) {
+  if (!ficha) return ficha;
+  const lineas = [QUIEN_ESCRIBE[papel ?? "ajeno"], IDIOMA[idioma]].filter(Boolean);
+  return lineas.length ? { ...ficha, delDia: [ficha.delDia, ...lineas].join("\n") } : ficha;
 }
 
 /**
@@ -919,7 +925,11 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // vale para el mensaje siguiente). Las herramientas se filtran con él.
   const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })
     .catch((e) => { console.error("[agente] papel", e?.message); return { papel: "ajeno", userId: null }; })
-    .then((p) => { chat.papel = p.papel; return p; });
+    .then(async (p) => {
+      chat.papel = p.papel;
+      chat.idioma = await idiomaDe(p.userId).catch(() => null);
+      return p;
+    });
   // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
   const [tope, historia, tools, casa, extras] = await Promise.all([
@@ -930,7 +940,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
-  const ficha = casa ? conQuienEscribe(montarFicha(casa, extras), chat.papel) : null;
+  const ficha = casa ? conQuienEscribe(montarFicha(casa, extras), chat.papel, chat.idioma) : null;
   let dicho, uso, corregido, medida, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola

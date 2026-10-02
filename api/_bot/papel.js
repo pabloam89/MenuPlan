@@ -60,3 +60,14 @@ export async function papelDeQuien({ householdId, chatId, esGrupo, desde, channe
   }
   return { papel: "ajeno", userId: null };
 }
+
+/**
+ * El idioma que eligió la persona (user_profiles.ui_lang, 0073), o null si no
+ * eligió: entonces Lola contesta en el idioma en que le escriban, como siempre.
+ * No se mira el idioma del teléfono: un móvil en inglés no es una elección.
+ */
+export async function idiomaDe(userId) {
+  if (!userId) return null;
+  const [p] = await select("user_profiles", `user_id=${eq(userId)}`, "ui_lang");
+  return p?.ui_lang === "en" || p?.ui_lang === "es" ? p.ui_lang : null;
+}

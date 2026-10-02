@@ -30,6 +30,7 @@ import {
   setHouseholdMemberRole,
 } from "../lib/householdsSync.js";
 import { NOMBRE_PAPEL, papelDe, puede } from "../lib/papeles.js";
+import { BOT_URL } from "../lib/frontalBot.js";
 import { HouseholdsCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 
 const GREEN = "#2d5a3d";
@@ -1472,11 +1473,16 @@ export function HouseholdsScreen({
       return;
     }
     const quien = role === "editor" ? "cotitular" : lang === "en" ? "lector en inglés" : "lector";
+    // Dos puertas con la misma invitación: Telegram (Lola le recibe y no
+    // necesita la app, api/_bot/invitacion.js) o la app. Vale la primera que se use.
+    const texto = lang === "en"
+      ? `Join our home on HoMenu.\nTelegram (Lola): ${BOT_URL}?start=inv_${r.token}\nApp: ${url}`
+      : `Te invito a nuestra casa en HoMenu.\nPor Telegram (Lola): ${BOT_URL}?start=inv_${r.token}\nEn la app: ${url}`;
     try {
-      await navigator.clipboard.writeText(url);
-      onToast?.(`Enlace de ${quien} copiado: sirve una vez y caduca en 7 días`);
+      await navigator.clipboard.writeText(texto);
+      onToast?.(`Invitación de ${quien} copiada: sirve una vez y caduca en 7 días`);
     } catch {
-      window.prompt(`Enlace de ${quien} (una vez, 7 días):`, url);
+      window.prompt(`Invitación de ${quien} (una vez, 7 días):`, texto);
     }
   }, [onToast]);
 

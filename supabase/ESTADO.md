@@ -15,6 +15,16 @@ ninguno fiable. Ver «El registro miente» más abajo.
 | **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` la `0062_bot_cron`, la `0063_bot_turnos` y la `0064_catalogo_una_fuente`, el 30 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
+## La 0073, aplicada el 2 oct 2026
+
+`0073_idioma_y_union_por_telegram` — `user_profiles.ui_lang` (es | en | null)
+y `_unirse(usuario, token)`: el cuerpo de unirse, que usan la app
+(`join_household_by_token`) y el bot (`bot_unirse_por_invitacion`, solo
+service_role, para /start inv_ en Telegram). Si la invitación trae idioma y la
+persona no eligió, se le pone. Ensayada en transacción deshecha (8 de 8; sin
+ella la función del bot no existe), aplicada con permiso de Pablo, y
+`scripts/ensayo-papeles.mjs` sigue limpio contra la base viva.
+
 ## La 0072, aplicada el 2 oct 2026
 
 `0072_lector_tacha` — `household_shopping_mark`: el lector (y cualquier

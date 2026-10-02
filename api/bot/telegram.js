@@ -47,6 +47,7 @@ import { motor } from "../_bot/menu.js";
 import { sembrarCasa } from "../_bot/ajustes.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo } from "../_bot/enlace.js";
 import { papelDeQuien } from "../_bot/papel.js";
+import { unirsePorInvitacion, ES_INVITACION } from "../_bot/invitacion.js";
 import { puede } from "../../src/lib/papeles.js";
 import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
@@ -141,6 +142,13 @@ async function atender(msg, base, host = "") {
   // el código solo (la plantilla de Supabase lo pone en el enlace t.me).
   const desdeCorreo = start?.[1]?.match(/^c(\d{6})$/);
   if (desdeCorreo && !esGrupo) return comprobarCodigo(msg, chatId, desdeCorreo[1]);
+  // Una invitación a una casa (la asistenta entra sin la app): api/_bot/invitacion.js.
+  const invitacion = start?.[1]?.match(ES_INVITACION);
+  if (invitacion && !esGrupo) {
+    const r = await unirsePorInvitacion({ from: msg.from, chatId, token: invitacion[1], nombre: nombreDe(msg.from) })
+      .catch((e) => { console.error("[invitación]", e?.message); return null; });
+    return enviar(chatId, r?.texto ?? "No he podido usar esa invitación ahora mismo. Prueba en unos minutos.");
+  }
   if (start?.[1] && /^(rc|ru|m)_/.test(start[1]) && !esGrupo) {
     const hecho = await recibirCompartido(chatId, start[1]);
     if (hecho) return hecho;
