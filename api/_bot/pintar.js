@@ -27,6 +27,7 @@ import fs from "node:fs";
 import { comida as delCatalogo, comidasDeLaCasa, iconoDe } from "../../src/lib/comidas.js";
 import { diaDeFecha, sumarDias } from "./cuando.js";
 import { grupos as gruposDeLaCasa, grupoPara, quienesDe, cambiosDe, normal, prepararRecetas } from "./menu.js";
+import { fueraEn } from "./presentes.js";
 
 const DIA_LARGO = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves", Vie: "viernes", "Sáb": "sábado", Dom: "domingo" };
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -151,9 +152,14 @@ export function pintarMenu(casa, { dias = [], comidas = null, platos = null, gru
     const gs = elegido ? [elegido] : todos;
     const lineas = [];
     for (const c of aPintar) {
+      // Los que ese día no comen en casa no salen en la etiqueta, y un grupo
+      // que se ha ido entero no se pinta (presentes.js).
+      const fuera = fueraEn(casa?.state?.data ?? {}, fecha, dia, c);
+      const enCasa = (g) => (fuera.size ? { ...g, memberIds: (g.memberIds ?? []).filter((id) => !fuera.has(id)) } : g);
       const porGrupo = gs.map((g) => {
         const h = plan[g.id]?.[`${dia}-${c}`];
         if (!h) return null;
+        if ((g.memberIds ?? []).length && !enCasa(g).memberIds.length) return null;
         const ids = (platos?.length ? platos : ["primero", "principal"])
           .map((p) => (p === "primero" ? h.firstRecipeId : h.recipeId)).filter(Boolean);
         const nombres = ids.map((id) => {
@@ -175,10 +181,14 @@ export function pintarMenu(casa, { dias = [], comidas = null, platos = null, gru
       // Los grupos que comen lo mismo, en una línea («Isa y Pablo: …»).
       const porPlato = new Map();
       for (const x of porGrupo) porPlato.set(x.texto, [...(porPlato.get(x.texto) ?? []), x.g]);
-      if (porPlato.size === 1 || elegido) lineas.push(`${iconoDe(c)} ${marca(porGrupo[0].texto)}`);
-      else {
+      if (porPlato.size === 1 || elegido) {
+        // Sin etiqueta de quién come: quien falta se dice aparte.
+        const ausentes = miembros.filter((p) => fuera.has(p.id) && porGrupo.some((x) => (x.g.memberIds ?? []).includes(p.id))).map((p) => p.name);
+        const nota = ausentes.length ? ` <i>(${esc(ausentes.length > 1 ? `${ausentes.slice(0, -1).join(", ")} y ${ausentes.at(-1)}` : ausentes[0])} fuera)</i>` : "";
+        lineas.push(`${iconoDe(c)} ${marca(porGrupo[0].texto)}${nota}`);
+      } else {
         for (const [texto, gsDelPlato] of porPlato) {
-          const quienes = gsDelPlato.map((g) => quienesDe(g, miembros) ?? g.label);
+          const quienes = gsDelPlato.map((g) => quienesDe(enCasa(g), miembros) ?? g.label);
           const etiqueta = quienes.length > 1 ? `${quienes.slice(0, -1).join(", ")} y ${quienes.at(-1)}` : quienes[0];
           lineas.push(`${iconoDe(c)} <i>${esc(mayus(etiqueta))}:</i> ${marca(texto)}`);
         }
