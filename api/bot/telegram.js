@@ -160,6 +160,12 @@ async function atender(msg, base, host = "") {
     return enTurno(chatId, itemDe(msg.from, frase ?? COMANDOS.start),
       atenderCola({ chatId, householdId: enlazado.household_id, esGrupo: false, base }));
   }
+  // `grupo`: el botón de un grupo sin casa abre el privado con esto. Con casa,
+  // el enlace para meter a Lola en el grupo; sin ella, primero el alta.
+  if (start?.[1] === "grupo" && !esGrupo) {
+    const [suyo] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+    return suyo ? enlaceGrupo(chatId, false, suyo.household_id, msg.from) : bienvenida(chatId);
+  }
   if (start?.[1]) return enlazarDesdeAjustes(msg, chatId, esGrupo, start[1]);
 
   // Borrar la cuenta entera, para probar altas (api/_bot/borrar.js): solo en
@@ -181,9 +187,7 @@ async function atender(msg, base, host = "") {
   if (/^\/app(?:@\w+)?$/.test(texto)) return abrirApp(msg, chatId, esGrupo, base);
 
   if (!chat) {
-    if (esGrupo) {
-      return enviar(chatId, "Este grupo aún no está conectado a ninguna casa. Quien use HoMenu, que me escriba <b>/grupo</b> por privado y le doy el enlace para conectarlo.");
-    }
+    if (esGrupo) return grupoSinCasa(msg, chatId);
     if (EMAIL_RE.test(texto)) return pedirAcceso(msg, chatId, texto.toLowerCase(), base);
     const cifras = texto.replace(/\s/g, "");
     if (/^\d{6}$/.test(cifras)) return comprobarCodigo(msg, chatId, cifras);
@@ -820,15 +824,73 @@ async function saludoGrupo(chatId) {
   return enviar(chatId, [
     "¡Hola, familia! Soy <b>Lola</b> 👩‍🍳, la que os prepara el menú y la compra.",
     "Para hablarme aquí, empezad el mensaje con <b>Lola</b>: «Lola, ¿qué cenamos hoy?» o «Lola, apunta leche».",
-    chat ? "" : "Aún no sé de qué casa sois: quien use HoMenu, que me escriba <b>/grupo</b> por privado y le doy el enlace para conectarnos.",
-  ].filter(Boolean).join("\n\n"));
+    chat ? "" : "Aún no sé de qué casa sois: quien use HoMenu, que me escriba aquí «Lola, conecta el grupo» y lo conecto a su casa.",
+  ].filter(Boolean).join("\n\n"), chat ? {} : { botones: await botonAlPrivado() });
+}
+
+// ── Un grupo sin casa ──────────────────────────────────────────────────────
+// Antes se decía «escríbeme /grupo por privado», sin botón, y se escribía
+// /grupo en el grupo una y otra vez (Pablo, 2 oct 2026). Ahora: si quien
+// escribe ya lleva una casa con Lola, se conecta aquí con un botón que solo
+// puede pulsar esa persona; si no, un botón que abre el privado con el enlace.
+
+/** El botón que abre el chat privado con Lola en el paso de conectar un grupo. */
+async function botonAlPrivado() {
+  return [[{ texto: "💬 Conectarlo por privado", url: `https://t.me/${await nombreDelBot()}?start=grupo` }]];
+}
+
+/**
+ * La casa que esta persona LLEVA (dueña o coeditora; no lectora), si es una
+ * sola. Por su identidad de Telegram, que solo se crea en privado y con prueba
+ * (api/_bot/enlace.js, apuntarIdentidad): un nombre o un grupo no bastan.
+ */
+async function casaQueLleva(from) {
+  const ext = idDePersona(from);
+  if (!ext) return null;
+  const [ident] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(ext)}`, "user_id");
+  if (!ident?.user_id) return null;
+  const filas = await select("household_members", `user_id=${eq(ident.user_id)}&role=in.(owner,editor)`, "household_id");
+  const casas = [...new Set(filas.map((f) => f.household_id))];
+  return casas.length === 1 ? { householdId: casas[0], userId: ident.user_id } : null;
+}
+
+async function grupoSinCasa(msg, chatId) {
+  const casa = await casaQueLleva(msg.from).catch(() => null);
+  if (casa) {
+    return enviar(chatId, `${escaparHtml(nombreDe(msg.from) ?? "")}, ¿conecto este grupo a tu casa? Así aquí os enseño vuestro menú y la compra, y me podéis pedir cambios.`, {
+      responderA: msg.message_id,
+      botones: [[{ texto: "Sí, conectar este grupo", dato: `cg:${msg.from.id}` }]],
+    });
+  }
+  return enviar(chatId, "Este grupo aún no está conectado a ninguna casa. Quien use HoMenu, que pulse aquí: hablamos por privado y le doy el enlace para conectarlo.", {
+    botones: await botonAlPrivado(),
+  });
+}
+
+/** El botón «Sí, conectar este grupo»: solo quien lo pidió, y comprobando otra vez que lleva esa casa. */
+async function conectarGrupo(cq, chatId) {
+  const casa = await casaQueLleva(cq.from).catch(() => null);
+  if (!casa) return enviar(chatId, "No encuentro tu casa. Escríbeme por privado y lo vemos.", { botones: await botonAlPrivado() });
+  // El permiso, con la misma regla que /grupo y la app (src/lib/papeles.js).
+  const ext = idDePersona(cq.from);
+  const { papel, userId } = await papelDeQuien({ householdId: casa.householdId, chatId: ext, esGrupo: false, desde: [ext] });
+  if (!puede(papel, "enlazar_grupo") || !userId) {
+    return enviar(chatId, "Meterme en el grupo de la familia lo hace quien gestiona la casa: pídeselo a esa persona.");
+  }
+  const r = await enlazarChat({
+    chatId, kind: "group", householdId: casa.householdId, userId,
+    externalId: idDePersona(cq.from), nombre: nombreDe(cq.from), lang: cq.from?.language_code, identidad: null,
+  });
+  if (r.ocupado) return enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
+  return confirmarEnlace(chatId, casa.householdId, true);
 }
 
 // /grupo, en privado: el enlace para meter a Lola en el grupo de la familia,
 // con un código de un solo uso (el mismo que da la app en Ajustes).
 const VALIDEZ_GRUPO_MS = 15 * 60 * 1000;
 async function enlaceGrupo(chatId, esGrupo, householdId, from) {
-  if (esGrupo) return enviar(chatId, "Eso por privado: escríbeme /grupo allí y te paso el enlace.");
+  // En un grupo que ya tiene casa (los que no, van antes a grupoSinCasa).
+  if (esGrupo) return enviar(chatId, "Este grupo ya está conectado a vuestra casa. Si quieres meterme en otro grupo, pulsa aquí y te paso el enlace.", { botones: await botonAlPrivado() });
   // Lo pide el titular o un cotitular, y el enlace va firmado con SU cuenta
   // (antes con la del titular: quien lo pulsara quedaba como él).
   const { papel, userId } = await papelDeQuien({ householdId, chatId, esGrupo: false, desde: [idDePersona(from)].filter(Boolean) });
@@ -889,6 +951,12 @@ function bienvenida(chatId) {
 
 async function pulsado(cq, base, host = "") {
   const chatId = String(cq.message.chat.id);
+  // Conectar un grupo a su casa: solo quien lo pidió (grupoSinCasa).
+  const conecta = cq.data?.startsWith("cg:") ? cq.data.slice(3) : null;
+  if (conecta && String(cq.from?.id) !== conecta) {
+    await llamar("answerCallbackQuery", { callback_query_id: cq.id, text: "Solo puede conectarlo quien lo pidió." }).catch(() => {});
+    return;
+  }
   await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(() => {});
   // Un botón se usa una vez: se quitan los del mensaje pulsado para que no
   // se pulsen luego los viejos (en la primera prueba salieron cinco avisos
@@ -898,6 +966,7 @@ async function pulsado(cq, base, host = "") {
     message_id: cq.message.message_id,
     reply_markup: { inline_keyboard: [] },
   }).catch(() => {});
+  if (conecta) return conectarGrupo(cq, chatId);
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
 
   // Un botón que puso el agente: cuenta como si se hubiera escrito (también en grupo).
