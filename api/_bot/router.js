@@ -182,38 +182,43 @@ export async function clasificar({ texto, contexto }, { signal, reglas = REGLAS 
 export const PLAZO_ROUTER_MS = 2000;
 
 export const POLITICA = {
-  consulta: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null },
-  recomendar: { riesgo: "solo lee, ofrece opciones", umbral: 0.8, enGrupo: true, condicionGrupo: "una_persona" },
-  compra_anadir: { riesgo: "escribe, fácil de deshacer", umbral: 0.85, enGrupo: true, condicionGrupo: "una_persona" },
-  compra_marcar: { riesgo: "escribe, fácil de deshacer", umbral: 0.85, enGrupo: true, condicionGrupo: "una_persona" },
+  consulta: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null, lector: true },
+  recomendar: { riesgo: "solo lee, ofrece opciones", umbral: 0.8, enGrupo: true, condicionGrupo: "una_persona", lector: true },
+  compra_anadir: { riesgo: "escribe, fácil de deshacer", umbral: 0.85, enGrupo: true, condicionGrupo: "una_persona", lector: false },
+  compra_marcar: { riesgo: "escribe, fácil de deshacer", umbral: 0.85, enGrupo: true, condicionGrupo: "una_persona", lector: true },
   // En grupo hay que decir quién lo pidió y de quién era el plato: Lola.
-  cambiar: { riesgo: "escribe en el menú", umbral: 0.9, enGrupo: false, condicionGrupo: null },
-  generar: { riesgo: "escribe la semana entera", umbral: 0.9, enGrupo: false, condicionGrupo: null },
+  cambiar: { riesgo: "escribe en el menú", umbral: 0.9, enGrupo: false, condicionGrupo: null, lector: false },
+  generar: { riesgo: "escribe la semana entera", umbral: 0.9, enGrupo: false, condicionGrupo: null, lector: false },
   // ¿El cambio de quién? En grupo, Lola.
-  deshacer: { riesgo: "escribe", umbral: 0.9, enGrupo: false, condicionGrupo: null },
+  deshacer: { riesgo: "escribe", umbral: 0.9, enGrupo: false, condicionGrupo: null, lector: false },
   // Plantillas de lectura de un plato o de la despensa (api/_bot/plato.js).
-  receta: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null },
-  calorias: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null },
-  falta: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null },
-  despensa: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null },
+  receta: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null, lector: true },
+  calorias: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null, lector: true },
+  falta: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null, lector: true },
+  despensa: { riesgo: "solo lee", umbral: 0.8, enGrupo: true, condicionGrupo: null, lector: true },
   // «Hoy cenamos fuera»: escribe (una regla de un día y el hueco vaciado), con
   // deshacer. En grupo, ¿quién no viene? Lola.
-  ausencia: { riesgo: "escribe, fácil de deshacer", umbral: 0.9, enGrupo: false, condicionGrupo: null },
+  ausencia: { riesgo: "escribe, fácil de deshacer", umbral: 0.9, enGrupo: false, condicionGrupo: null, lector: false },
   // Paso 0 (elegir una de las opciones que acaba de dar Lola): no pasa por el
   // enrutador, pero se rige por esta misma fila (¿quién eligió?).
-  eleccion: { riesgo: "escribe", umbral: null, enGrupo: false, condicionGrupo: null },
+  eleccion: { riesgo: "escribe", umbral: null, enGrupo: false, condicionGrupo: null, lector: false },
 };
 
 /** ¿Se puede hacer por la vía rápida en este chat? Solo lo que dice la tabla. */
-export function permitidoEn(modo, { esGrupo = false, variosAutores = false } = {}) {
+// `lector` (POLITICA): si lo puede pedir un lector de la casa por la vía
+// rápida. Solo leer, y tachar la compra. Alguien sin cuenta («ajeno»), solo
+// leer. Sin papel, como hasta ahora (lo pone siempre turno(), telegram.js).
+export function permitidoEn(modo, { esGrupo = false, variosAutores = false, papel = "owner" } = {}) {
   const p = POLITICA[modo];
   if (!p) return false;
+  if (papel === "viewer" && !p.lector) return false;
+  if (papel === "ajeno" && (!p.lector || modo === "compra_marcar")) return false;
   if (!esGrupo) return true;
   if (!p.enGrupo) return false;
   return !(p.condicionGrupo === "una_persona" && variosAutores);
 }
 
-export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false } = {}) {
+export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false, papel = "owner" } = {}) {
   const p = d ? POLITICA[d.modo] : null;
   const x = d?.datos ?? {};
   // Un cambio sin comida no escribe nada todavía: primero pregunta «¿comida o
@@ -221,7 +226,7 @@ export function vaPorLaRapida(d, { esGrupo = false, variosAutores = false } = {}
   const preguntaPrimero = (d?.modo === "cambiar" || d?.modo === "ausencia") && !x.comida;
   const umbral = preguntaPrimero ? POLITICA.consulta.umbral : p?.umbral;
   if (!p || umbral == null || d.confianza < umbral) return false;
-  if (!permitidoEn(d.modo, { esGrupo, variosAutores })) return false;
+  if (!permitidoEn(d.modo, { esGrupo, variosAutores, papel })) return false;
   // Dos peticiones en un mensaje: la vía rápida haría una y perdería la otra.
   if (x.varias) return false;
   // Consulta: la compra, o el menú con días que se puedan resolver.
