@@ -121,7 +121,10 @@ import {
   toggleMenuFavorite as toggleMenuFavoriteRemote,
   saveAndActivateMenu,
   queueSaveMenuWeek,
+  queueMarcarCompra,
 } from "./lib/menusSync.js";
+import { marcasEntre } from "./lib/tacharLector.js";
+import { puede } from "./lib/papeles.js";
 const MenusScreen = lazy(() => import("./screens/MenusScreen.jsx").then(m => ({ default: m.MenusScreen })));
 const MenuHistoryView = lazy(() => import("./screens/MenuHistoryView.jsx").then(m => ({ default: m.MenuHistoryView })));
 import { registerRecipes, RECIPES_BY_ID } from "./data/recipes.js";
@@ -3071,10 +3074,17 @@ export default function App() {
     // the week's normalized row too — otherwise a logged-in user loses every
     // shopping change on reload (the generation-time row would win). Debounced
     // + fire-and-forget inside queueSaveMenuWeek; local blob is still the belt.
-    if (user && menuId && wk) {
+    // El lector no guarda la semana: solo viajan sus tachados (0072).
+    if (user && menuId && wk && householdReadOnly && syncHouseholdId) {
+      const marcas = marcasEntre(wk.shopping?.items ?? [], nextShopping?.items ?? []);
+      queueMarcarCompra(syncHouseholdId, menuId, weekStart, marcas, {
+        version: versionDeCasa(syncHouseholdId),
+        onError: () => recargarDesdeNubeRef.current({ choque: true }),
+      });
+    } else if (user && menuId && wk) {
       queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
     }
-  }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user, syncHouseholdId, versionDeCasa]);
+  }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user, syncHouseholdId, versionDeCasa, householdReadOnly]);
 
   // Undo a confirmed ticket's tachado. Deleting a ticket in Análisis → Gasto
   // must reverse the exact "have: true" the receipt wizard set — and through
@@ -6243,6 +6253,7 @@ export default function App() {
           >
             <Suspense fallback={null}>
               <ShoppingScreen
+                canTick={puede(activeHousehold?.role, "tachar")}
                 shopping={shopping}
                 setShopping={householdReadOnly ? null : setShopping}
                 data={data}
