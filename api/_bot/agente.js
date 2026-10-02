@@ -1171,6 +1171,16 @@ export function esCaida(err) {
   return /overloaded|timed? ?out|ECONNRESET|socket hang up|fetch failed|Connection error/i.test(String(err.message ?? ""));
 }
 
+// La caché de lo fijo (instrucciones y ficha) dura una hora, no cinco minutos.
+// Una casa escribe a ratos: «¿qué cenamos?», y veinte minutos después «apunta
+// pan». Con 5 min, cada vuelta tras una pausa reescribía ~30.000 tokens de
+// caché (staging, 2 oct 2026: primer mensaje tras 9 min, cw 30.311 y cr 0).
+// Escribir a 1 h cuesta 2× en vez de 1,25×, pero cada lectura dentro de la hora
+// cuesta 0,1×: sale a cuenta en cuanto la casa vuelve a escribir. El mensaje
+// sigue con 5 min (solo sirve dentro del turno), y va detrás: la API exige que
+// los puntos de 1 h vayan antes que los de 5 min.
+const CACHE_FIJA = { type: "ephemeral", ttl: "1h" };
+
 async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null }) {
   // Con cache_control en el último bloque: la segunda vuelta del turno (tras
   // una herramienta) y las siguientes leen de caché todo lo anterior —
@@ -1190,12 +1200,12 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
     // Haiku no tiene «effort» (si se pone de reserva con BOT_MODELO_RESERVA): va sin él.
     ...(/haiku/.test(modelo) ? {} : { output_config: { effort: EFFORT } }),
     system: [
-      { type: "text", text: SISTEMA, cache_control: { type: "ephemeral" } },
+      { type: "text", text: SISTEMA, cache_control: CACHE_FIJA },
       // La ficha, en dos bloques con su caché: el estable casi no cambia y el
       // del día cambia una vez al día (o al cambiar el menú). Son 3 de los 4
       // puntos de caché que deja la API; el cuarto, el mensaje.
-      ...(ficha?.estable ? [{ type: "text", text: `FICHA DE LA CASA (datos para ti, no un formato: tú contesta siempre en HTML de Telegram, nunca con ** ni guiones. Es lo guardado ahora y manda sobre lo dicho en charlas de otros días)\n${ficha.estable}`, cache_control: { type: "ephemeral" } }] : []),
-      ...(ficha?.delDia ? [{ type: "text", text: ficha.delDia, cache_control: { type: "ephemeral" } }] : []),
+      ...(ficha?.estable ? [{ type: "text", text: `FICHA DE LA CASA (datos para ti, no un formato: tú contesta siempre en HTML de Telegram, nunca con ** ni guiones. Es lo guardado ahora y manda sobre lo dicho en charlas de otros días)\n${ficha.estable}`, cache_control: CACHE_FIJA }] : []),
+      ...(ficha?.delDia ? [{ type: "text", text: ficha.delDia, cache_control: CACHE_FIJA }] : []),
       // Fuera de la caché: cambia en cada mensaje.
       { type: "text", text: `Ahora mismo en España: ${ahoraEnMadrid()}.` },
     ],

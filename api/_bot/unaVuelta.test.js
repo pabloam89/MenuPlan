@@ -57,4 +57,13 @@ describe("unaVuelta: progreso y pista", () => {
     expect(ultimo[0]).toMatchObject({ text: "hola", cache_control: { type: "ephemeral" } });
     expect(ultimo[1]).toEqual({ type: "text", text: "[Pista del sistema] x" });
   });
+
+  it("lo fijo (instrucciones y ficha) con caché de 1 h, delante; el mensaje con 5 min, detrás", async () => {
+    guion.mensajes = [msg("Vale.")];
+    await ejecutar({ entrada: "hola", tools: [], modelos: ["claude-sonnet-5"], ficha: { estable: "CASA", delDia: "HOY" }, alEscribir: () => {} });
+    const marcas = guion.params.system.filter((b) => b.cache_control).map((b) => b.cache_control.ttl);
+    expect(marcas).toEqual(["1h", "1h", "1h"]);
+    // La API exige los de 1 h antes que los de 5 min: el del mensaje va sin ttl (5 min).
+    expect(guion.params.messages.at(-1).content[0].cache_control).toEqual({ type: "ephemeral" });
+  });
 });
