@@ -351,3 +351,46 @@ async function saveMenuWeekRpc(row, botRev) {
   }
   return { ok: true, botRev: data?.bot_rev == null ? botRev : Number(data.bot_rev) };
 }
+
+// ── El lector tacha (0072) ───────────────────────────────────────────────
+// El lector no puede guardar la semana: solo cambiar «comprado» por
+// household_shopping_mark. Los tachados de un rato (en el súper van seguidos)
+// se juntan en una sola llamada, y la última marca de cada artículo gana. Va
+// por la cola de versionCasa.js para apuntar la versión que deja y que el
+// sondeo no tome el tachado propio por un cambio ajeno.
+const marcasPendientes = new Map();
+
+/**
+ * @param {string} householdId
+ * @param {string} menuId
+ * @param {string} weekStart
+ * @param {{ name: string, unit: string, have: boolean }[]} marcas
+ * @param {{ version?: object, onError?: () => void }} [opts]
+ */
+export function queueMarcarCompra(householdId, menuId, weekStart, marcas, { version = null, onError = null, delay = 1200 } = {}) {
+  if (!supabase || !householdId || !menuId || !weekStart || !marcas?.length) return;
+  const key = `${householdId}:${menuId}:${weekStart}`;
+  const pendiente = marcasPendientes.get(key) ?? { marcas: new Map(), timer: null };
+  for (const m of marcas) pendiente.marcas.set(`${m.name}|${m.unit}`, m);
+  clearTimeout(pendiente.timer);
+  pendiente.timer = setTimeout(async () => {
+    marcasPendientes.delete(key);
+    const lote = [...pendiente.marcas.values()];
+    const enviar = async () => {
+      const { data, error } = await supabase.rpc("household_shopping_mark", {
+        p_household_id: householdId,
+        p_menu_id: menuId,
+        p_week_start: weekStart,
+        p_marcas: lote,
+      });
+      if (error || data?.ok === false) {
+        console.warn("[menusSync] marcar compra failed", error?.message ?? data?.error);
+        return { ok: false };
+      }
+      return { ok: true, botRev: data?.bot_rev == null ? null : Number(data.bot_rev) };
+    };
+    const r = version ? await guardarConVersion(version, enviar) : await enviar();
+    if (!r.ok && !r.descartado) onError?.();
+  }, delay);
+  marcasPendientes.set(key, pendiente);
+}

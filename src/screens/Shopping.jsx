@@ -266,6 +266,9 @@ export function ShoppingScreen({
   shopping,
   setShopping,
   readOnly = false,
+  // El lector (0072): solo lectura, pero tacha y destacha. Nada más: ni
+  // cantidades, ni borrar, ni «En casa».
+  canTick = false,
   readOnlyLabel = null,
   pantryHouseholdId = null,
   // Full app blob + writer, so spend capture (ticket / manual) lives right here
@@ -502,7 +505,7 @@ export function ShoppingScreen({
     const w = weeksRef.current.find((x) => x.weekStart === weekStart);
     const next = updater(w?.items ?? []);
     if (menuMode) onUpdateWeek?.(weekStart, { items: next });
-    else setShopping((s) => ({ ...s, items: next }));
+    else setShopping?.((s) => ({ ...s, items: next }));
   };
 
   // A row's sources belonging to `weekStart`, or every source if it has none
@@ -698,6 +701,8 @@ export function ShoppingScreen({
     const row = rowById.get(id);
     if (!row) return;
     applyToSources(row, { have: true });
+    // El lector tacha, pero «En casa» no es suyo.
+    if (readOnly) return;
     const item = rowToPantryItem(row);
     if (!item) return;
     try {
@@ -721,6 +726,7 @@ export function ShoppingScreen({
     const row = rowById.get(id);
     if (!row) return;
     applyToSources(row, { have: false });
+    if (readOnly) return;
     const item = rowToPantryItem(row);
     if (!item) return;
     try {
@@ -1189,6 +1195,7 @@ export function ShoppingScreen({
                 onSwipeReturn={() => unmarkItemBought(item.id)}
                 isEditingQty={!readOnly && editingQtyId === item.id}
                 readOnly={readOnly}
+                canTick={canTick}
                 onEditQty={() => !readOnly && setEditingQtyId(item.id)}
                 onSaveQty={(val) => saveItemQty(item.id, val)}
                 onCancelQty={() => setEditingQtyId(null)}
@@ -2427,6 +2434,7 @@ function ShoppingRow({
   onSwipeReturn,
   isEditingQty,
   readOnly = false,
+  canTick = false,
   onEditQty,
   onSaveQty,
   onCancelQty,
@@ -2490,9 +2498,9 @@ function ShoppingRow({
             aria-checked={Boolean(dimmed)}
             aria-label={`${item.name}: comprado`}
             data-swipe-skip
-            disabled={readOnly}
+            disabled={readOnly && !canTick}
             onClick={toggleBought}
-            style={checkBtnStyle(readOnly)}
+            style={checkBtnStyle(readOnly && !canTick)}
           >
             <span style={checkBoxStyle(dimmed)}>
               {dimmed && <Check size={16} color="#fff" strokeWidth={3} />}
