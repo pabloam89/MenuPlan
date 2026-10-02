@@ -1635,6 +1635,32 @@
           "semana": "siguiente"
         }
       }
+    },
+    {
+      "nombre": "idioma: la lectora en inglés pregunta qué hay de cena → en inglés, con el plato traducido",
+      "papel": "viewer",
+      "idioma": "en",
+      "entrada": "what is for dinner today?",
+      "texto": "(omelet|courgette|zucchini|tonight|dinner)",
+      "sinTexto": "(tortilla de calabac|la cena de hoy|para cenar)"
+    },
+    {
+      "nombre": "idioma: la lectora eligió inglés y escribe en español → contesta en inglés",
+      "papel": "viewer",
+      "idioma": "en",
+      "entrada": "qué hay mañana de comer?",
+      "texto": "(lentil|stew|tomorrow|lunch)",
+      "sinTexto": "(lentejas estofadas|mañana toca|de comer)"
+    },
+    {
+      "nombre": "idioma: la lectora en inglés pide cambiar un plato → en inglés, y remite",
+      "papel": "viewer",
+      "idioma": "en",
+      "entrada": "change tomorrow dinner to pizza please",
+      "noLlama": [
+        "cambiar_plato"
+      ],
+      "texto": "(ask|whoever|owner|manages|runs the home|in charge)"
     }
   ]
 }
