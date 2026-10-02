@@ -34,7 +34,7 @@ function describirDuros(duros) {
  * @param {string} consulta
  * @param {{ catalogo: any[], carpetaDe: (r: any) => string, categoria?: string|null, maxMinutos?: number|null, n?: number,
  *   deps?: { parecidos?: (frase: string) => Promise<Map<string, number>|null>, haiku?: Function } }} p
- * @returns {Promise<{ recetas: any[], aviso: string, via: "vectores"|"rasgos"|"haiku", rasgos: object, relajado: boolean }>}
+ * @returns {Promise<{ recetas: any[], aviso: string, via: "vectores"|"rasgos"|"haiku", rasgos: object, relajado: boolean, parecidoMax?: number|null }>}
  */
 export async function buscarHibrido(consulta, { catalogo, carpetaDe, categoria = null, maxMinutos = null, n = 10, deps = {} }) {
   const { parecidos = parecidosGateway, haiku = porSignificado } = deps;
@@ -65,7 +65,11 @@ export async function buscarHibrido(consulta, { catalogo, carpetaDe, categoria =
   const parecido = (r) => notas?.get(r.id) ?? -1;
   const puntos = new Map(candidatas.map((r) => [r.id, blandosCumplidos(r, rasgos.blandos)]));
   const ordenadas = [...candidatas].sort((a, b) => puntos.get(b.id) - puntos.get(a.id) || parecido(b) - parecido(a));
-  return { recetas: ordenadas.slice(0, n), aviso, via: notas ? "vectores" : "rasgos", rasgos, relajado };
+  const recetas = ordenadas.slice(0, n);
+  // El mejor parecido de lo que se devuelve: si es bajo, el índice no tenía
+  // nada cerca (un hueco, scripts/lola-feedback.mjs).
+  const parecidoMax = notas && recetas.length ? Math.max(...recetas.map(parecido)) : null;
+  return { recetas, aviso, via: notas ? "vectores" : "rasgos", rasgos, relajado, parecidoMax };
 }
 
 /** ¿Pasa una receta (p. ej. una propia, que no tiene vector) lo que pide la frase? */
