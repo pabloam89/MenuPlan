@@ -3385,7 +3385,14 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
       // El plato que se está sustituyendo no cuenta: se va.
       const base = stripGroupPrefix(rid);
       if (!base || base === currentBaseId) continue;
-      const carb = getCarbType(recipeCatalogById[base]);
+      // Solo lo que es del catálogo: un id que no está (el «_» con el que
+      // ideasSinMenu marca «aquí va un primero», una receta propia) no tiene
+      // base que comparar. Sin esto, getCarbType(undefined) rompía: Lola no
+      // podía dar ideas para una comida sin menú en casas con primero y segundo
+      // (staging, 2 oct 2026: 3 fallos seguidos de proponer_platos).
+      const receta = recipeCatalogById[base];
+      if (!receta) continue;
+      const carb = getCarbType(receta);
       if (carb) basesDelDia.add(carb);
     }
   }
