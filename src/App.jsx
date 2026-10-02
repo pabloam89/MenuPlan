@@ -4007,6 +4007,8 @@ export default function App() {
   const [menuInicio, setMenuInicio] = useState(null);
   // Lo mismo para el recetario: en qué carpeta abre.
   const [recetasInicio, setRecetasInicio] = useState(null);
+  // Y la compra con la hoja de Mercadona abierta («pásalo a Mercadona»).
+  const [compraMercadona, setCompraMercadona] = useState(null);
   // Si la nube no llega (sin casa, sin red), el enlace no puede quedarse
   // esperando para siempre sin decir nada: pasado el plazo, se va igual.
   const [esperaVencida, setEsperaVencida] = useState(false);
@@ -4055,6 +4057,7 @@ export default function App() {
     }
     if (d.pantalla === "menu") setMenuInicio({ vista: d.vista, dia: d.dia ?? null, clave: Date.now() });
     if (d.pantalla === "recipes") setRecetasInicio({ categoria: d.categoria ?? null, mias: Boolean(d.mias), clave: Date.now() });
+    if (d.pantalla === "shopping" && d.mercadona) setCompraMercadona(Date.now());
     fwd(() => setScreen(d.pantalla));
   }, [destinoBot, authLoading, user, nubeLista, esperaVencida, data.members, screen, handleOpenCatalogRecipe, showToast]);
 
@@ -6200,6 +6203,7 @@ export default function App() {
                 pantryEpoch={pantryEpoch}
                 initialTab={shoppingInitialTab}
                 onInitialTabHandled={() => setShoppingInitialTab(null)}
+                abrirMercadona={compraMercadona}
               />
             </Suspense>
           </div>

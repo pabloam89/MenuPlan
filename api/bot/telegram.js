@@ -722,6 +722,7 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
 export function textoBotonApp(ir) {
   if (ir === "semana") return "📅 Ver la semana en la app";
   if (ir === "compra") return "🛒 Abrir la lista en la app";
+  if (ir === "compra:mercadona") return "🛒 Pasar la lista a Mercadona";
   if (ir === "hoy" || String(ir).startsWith("dia:")) return "🍽️ Ver el día en la app";
   if (String(ir).startsWith("receta:")) return "📖 Ver la receta en la app";
   if (String(ir).startsWith("recetas")) return "📚 Abrir el recetario";

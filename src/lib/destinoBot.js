@@ -9,6 +9,7 @@
  *   semana           el menú en vista de semana
  *   dia:Jue          el menú en vista de día, ese día (claves de la app)
  *   compra           la lista de la compra
+ *   compra:mercadona la lista de la compra con la hoja de pasarla a Mercadona
  *   receta:<id>      la ficha de esa receta (id del catálogo; se quita el
  *                    prefijo de grupo `grupo__` si lo trae)
  *   recetas          el recetario
@@ -37,6 +38,7 @@ export function interpretarDestino(valor) {
   if (v === "hoy") return { pantalla: "menu", vista: "dia", dia: null };
   if (v === "semana") return { pantalla: "menu", vista: "semana" };
   if (v === "compra") return { pantalla: "shopping" };
+  if (v === "compra:mercadona") return { pantalla: "shopping", mercadona: true };
   if (v === "recetas") return { pantalla: "recipes" };
   const [tipo, ...resto] = v.split(":");
   const arg = resto.join(":");

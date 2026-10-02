@@ -6,6 +6,7 @@ describe("interpretarDestino", () => {
     expect(interpretarDestino("hoy")).toEqual({ pantalla: "menu", vista: "dia", dia: null });
     expect(interpretarDestino("semana")).toEqual({ pantalla: "menu", vista: "semana" });
     expect(interpretarDestino("compra")).toEqual({ pantalla: "shopping" });
+    expect(interpretarDestino("compra:mercadona")).toEqual({ pantalla: "shopping", mercadona: true });
   });
 
   it("un día, con o sin tilde y en cualquier caja", () => {

@@ -116,6 +116,7 @@ function pantallaDe(herramienta, args = {}) {
     return d ? `dia:${d}` : null;
   }
   if (["ver_compra", "marcar_compra", "anadir_compra"].includes(herramienta)) return "compra";
+  if (herramienta === "pasar_a_mercadona") return "compra:mercadona";
   if (herramienta === "generar_menu") return "semana";
   // El recetario de la app, en la misma carpeta que se ha buscado aquí.
   if (herramienta === "buscar_recetas") return args.categoria && args.categoria !== "mias" ? `recetas:${args.categoria}` : "recetas";
@@ -131,7 +132,7 @@ function pantallaDe(herramienta, args = {}) {
  */
 // Las que no cambian nada: pueden correr antes de saber de quién es el turno.
 export const SOLO_LECTURA = new Set([
-  "ver_casa", "ver_menu", "ver_receta", "ver_compra", "ver_ajustes", "ver_despensa", "ver_menu_cole",
+  "ver_casa", "ver_menu", "ver_receta", "ver_compra", "pasar_a_mercadona", "ver_ajustes", "ver_despensa", "ver_menu_cole",
   "ver_recordatorios", "proponer_platos", "buscar_recetas", "compartir",
 ]);
 
@@ -638,6 +639,16 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         additionalProperties: false,
       },
       run: ({ productos }) => anadirCompra(householdId, productos),
+    }),
+    betaTool({
+      name: "pasar_a_mercadona",
+      description: "Cuando pidan pasar, mandar o meter la lista de la compra en Mercadona (su web o su app). No compra ni toca nada: debajo de tu mensaje sale un botón que abre la lista en la app de HoMenu, empareja cada ingrediente con un producto de Mercadona y la crea como lista en SU cuenta de Mercadona.",
+      inputSchema: { type: "object", properties: {}, additionalProperties: false },
+      run: () => conCasa((casa) => {
+        const lista = describirCompra(casa);
+        if (/está vacía|No queda nada/.test(lista)) return `No hay nada que pasar: ${lista}`;
+        return "Sale un botón debajo de tu mensaje. Explícalo en pocas frases: se hace desde el ORDENADOR (en el móvil no funciona). En la app ve qué producto de Mercadona va por cada ingrediente y lo que no ha encontrado; la primera vez arrastra un botón a la barra de marcadores; luego entra en tienda.mercadona.es con su cuenta y pulsa ese marcador. Queda guardada como lista en su cuenta (también en la app de Mercadona), desde donde la pasa al carrito. Tú no ves su cuenta ni compras nada.";
+      }),
     }),
     betaTool({
       name: "proponer_platos",

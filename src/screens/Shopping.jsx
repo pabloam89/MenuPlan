@@ -105,6 +105,8 @@ import { shareShoppingList } from "../lib/menuExport.js";
 import { priceShoppingList } from "../lib/listPricing.js";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
 import { PantryPrefsSheet } from "../components/ModeSheets.jsx";
+import { MercadonaListSheet } from "../components/MercadonaListSheet.jsx";
+import { mercadonaListPayload } from "../lib/mercadonaList.js";
 
 // Lazy (not a top-level import): Pantry.jsx already imports SwipePurchaseShell
 // from this very file, so a plain top-level import here would be circular.
@@ -113,6 +115,10 @@ import { PantryPrefsSheet } from "../components/ModeSheets.jsx";
 const PantryScreen = lazy(() =>
   import("./Pantry.jsx").then((m) => ({ default: m.PantryScreen }))
 );
+
+// Los marcadores solo se pulsan con ratón; en el móvil el botón no sale.
+const CAN_USE_BOOKMARKLET =
+  typeof window !== "undefined" && window.matchMedia?.("(pointer: fine)").matches;
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
 
@@ -298,6 +304,9 @@ export function ShoppingScreen({
   // mount so "Subir ticket" from the pantry lands straight in the capture flow.
   openCaptureOnMount = false,
   onCaptureHandled = null,
+  // Enlace de Lola «pásalo a Mercadona» (`?ir=compra:mercadona`): abre la hoja
+  // de Mercadona al montar. Cambia de valor en cada enlace.
+  abrirMercadona = null,
   // Value-prop carousel demo: marca un par de productos y luego enseña el flujo
   // de "subir ticket" (chooser de demo → wizard del ticket) en bucle.
   autoDemo = false,
@@ -388,6 +397,7 @@ export function ShoppingScreen({
   const [receiptBusy, setReceiptBusy] = useState(false);
   // Unified spend capture: one money button → chooser (escanear / a mano).
   const [showCapture, setShowCapture] = useState(false);
+  const [mercadonaList, setMercadonaList] = useState(null);
   const [showManualSpend, setShowManualSpend] = useState(false);
   // Row-level "Comprado" tap: which item is being marked, while the wizard
   // (sin precio / añadir gasto / escanear ticket) or the manual modal opened
@@ -813,6 +823,21 @@ export function ShoppingScreen({
       : { dates: getWeekDates(), activeDays: undefined };
     return formatWeekRangeLabel(weekDates, activeDays);
   })();
+
+  // Lo pendiente de la semana, emparejado ahora con Mercadona: aunque la casa
+  // no tenga Mercadona entre sus súper (entonces linePrices viene vacío).
+  const pendientes = filterItemsByDays(enrichedItems, SHOPPING_DAY_WEEK).filter(isActiveItem);
+  const prepararMercadona = () =>
+    priceShoppingList("Mercadona", pendientes, data?.priceObs ?? [])
+      .then(({ map }) => setMercadonaList(mercadonaListPayload(pendientes, map, `MenuPlan · ${weekLabel}`)))
+      .catch(() => setMercadonaList(mercadonaListPayload(pendientes, new Map(), `MenuPlan · ${weekLabel}`)));
+  const mercadonaAbiertaRef = useRef(null);
+  useEffect(() => {
+    if (!abrirMercadona || mercadonaAbiertaRef.current === abrirMercadona) return;
+    if (!CAN_USE_BOOKMARKLET || !pendientes.length) return;
+    mercadonaAbiertaRef.current = abrirMercadona;
+    prepararMercadona();
+  });
 
   // Real span of the currently selected week(s), used by the receipt wizard to
   // check the ticket's date against the shopping week it should belong to.
@@ -1412,6 +1437,32 @@ export function ShoppingScreen({
                 >
                   {formatEuro0(storeEstimate.total)}
                 </span>
+                {/* Pasar la lista a la cuenta de Mercadona. Solo con ratón: el
+                    marcador que la crea allí no se puede pulsar en el móvil. */}
+                {buyTab === "pending" && CAN_USE_BOOKMARKLET && (
+                  <button
+                    type="button"
+                    aria-label="Pasar la lista a Mercadona"
+                    title="Pasar la lista a Mercadona"
+                    onClick={prepararMercadona}
+                    style={{
+                      marginLeft: 4,
+                      width: 30,
+                      height: 30,
+                      borderRadius: 999,
+                      border: "1px solid #e0eae3",
+                      background: "#fff",
+                      color: "#2d5a3d",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <ShoppingCart size={15} strokeWidth={2.2} />
+                  </button>
+                )}
               </div>
               {weekSelectorEl}
             </div>
@@ -1485,6 +1536,15 @@ export function ShoppingScreen({
         )}
       </div>
       </>
+      )}
+
+      {mercadonaList && (
+        <MercadonaListSheet
+          payload={mercadonaList.payload}
+          emparejados={mercadonaList.emparejados}
+          sinProducto={mercadonaList.sinProducto}
+          onClose={() => setMercadonaList(null)}
+        />
       )}
 
       {showCapture && (

@@ -283,6 +283,7 @@ function priceOneItem(item, catalogProducts, priceObs) {
         },
         mapEntry: {
           storePrice: buy.linePrice,
+          storeProductId: match.product.id,
           storeProductName: buy.productName,
           storeBuyDisplay: buy.buyDisplay,
           storePackLabel: buy.packLabel,
