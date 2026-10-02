@@ -1,7 +1,7 @@
 {
-  "_nota": "Los objetivos de Lola que mira el informe semanal (scripts/bot-semanal.mjs). PROPUESTA inicial de Álvaro y Claude, 2 oct 2026, con el primer texto de Lola en 4 s y el turno en 10 s por decisión de Álvaro; sin datos reales detrás: se ajustan tras las 2 primeras semanas de informe. null = sin objetivo (se mide, pero no hay semáforo). Tiempos en ms, porcentajes de 0 a 100, coste en USD.",
+  "_nota": "Los objetivos de Lola que mira el informe semanal (scripts/bot-semanal.mjs). PROPUESTA inicial de Álvaro y Claude, 2 oct 2026, con el primer texto de Lola en 2 s y el turno en 10 s por decisión de Álvaro; sin datos reales detrás: se ajustan tras las 2 primeras semanas de informe. null = sin objetivo (se mide, pero no hay semáforo). Tiempos en ms, porcentajes de 0 a 100, coste en USD.",
   "primerTextoRapidaP95Ms": 2500,
-  "primerTextoLolaP95Ms": 4000,
+  "primerTextoLolaP95Ms": 2000,
   "turnoLolaP95Ms": 10000,
   "corregidasMaxPct": 5,
   "noEntiendeMaxPct": 2,
