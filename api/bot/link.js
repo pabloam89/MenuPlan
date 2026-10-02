@@ -7,13 +7,15 @@
  * `/start <código>` y el webhook (api/bot/telegram.js) enlaza ese chat con la
  * casa.
  *
- * Solo el dueño de la casa puede conectarla: el bot va a escribir en ella, y
- * hoy el invitado de un hogar es de solo lectura (HOUSEHOLDS.md).
+ * Cualquiera de la casa conecta su privado: titular, cotitular o lector (Lola
+ * mira su papel en cada mensaje, api/_bot/papel.js). El enlace de grupo, solo
+ * titular y cotitular: meter a Lola en el grupo es cosa de quien gestiona.
  */
 
 import crypto from "node:crypto";
 import { select, insert, usuarioDeToken, eq } from "../_bot/db.js";
 import { nombreDelBot } from "../_bot/telegram.js";
+import { puede } from "../../src/lib/papeles.js";
 
 const VALIDEZ_MS = 15 * 60 * 1000;
 
@@ -31,10 +33,8 @@ export default async function handler(req, res) {
     const householdId = perfil?.active_household_id;
     if (!householdId) return res.status(409).json({ error: "No tienes una casa activa." });
 
-    const [hogar] = await select("households", `id=${eq(householdId)}`, "id,name,owner_user_id");
-    if (!hogar || hogar.owner_user_id !== user.id) {
-      return res.status(403).json({ error: "Solo quien gestiona la casa puede conectarla." });
-    }
+    const [miembro] = await select("household_members", `household_id=${eq(householdId)}&user_id=${eq(user.id)}`, "role");
+    if (!miembro) return res.status(403).json({ error: "No eres de esta casa." });
 
     // 16 bytes en base64url: cabe en el límite de 64 caracteres de /start.
     const token = crypto.randomBytes(16).toString("base64url");
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     const bot = await nombreDelBot();
     return res.status(200).json({
       privado: `https://t.me/${bot}?start=${token}`,
-      grupo: `https://t.me/${bot}?startgroup=${token}`,
+      grupo: puede(miembro.role, "enlazar_grupo") ? `https://t.me/${bot}?startgroup=${token}` : null,
       caduca: VALIDEZ_MS / 60000,
     });
   } catch (err) {

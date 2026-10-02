@@ -13,7 +13,9 @@ process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 vi.mock("./ajustes.js", async (original) => ({ ...(await original()), dominiosDeGustos: async () => "DOMINIOS" }));
 
 const { herramientas, FICHAS, SOLO_LECTURA, AVISO_LENTO, pantallaDe } = await import("./agente.js");
-const charla = { householdId: "x", chatId: "1", channel: "telegram", fotos: [] };
+// Como titular: lo que ve quien gestiona la casa, todas (el filtro por papel
+// se prueba en papel.test.js).
+const charla = { householdId: "x", chatId: "1", channel: "telegram", fotos: [], papel: "owner" };
 
 describe("lo que Lola ve de sus herramientas", () => {
   it("no cambia sin querer", async () => {
@@ -22,7 +24,7 @@ describe("lo que Lola ve de sus herramientas", () => {
   });
 
   it("la ficha no viaja a la API", async () => {
-    expect(JSON.stringify(await herramientas(charla))).not.toMatch(/"(soloLectura|pantalla|avisoLento)":/);
+    expect(JSON.stringify(await herramientas(charla))).not.toMatch(/"(soloLectura|pantalla|avisoLento|lector)":/);
   });
 });
 

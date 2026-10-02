@@ -34,6 +34,24 @@ export function puede(papel, accion) {
   return (MATRIZ[accion] ?? []).includes(papelDe(papel));
 }
 
+// ── Lola (api/_bot/agente.js) ───────────────────────────────────────────────
+// Cada herramienta declara en su ficha `lector`: true (la usa un lector),
+// "privado" (solo en su chat privado: recordatorios, su memoria) o false.
+// «ajeno» es alguien del grupo sin cuenta enlazada: solo consulta el menú,
+// las recetas y la compra; ni tacha ni ve la familia (salud, alergias: M-4).
+const PARA_AJENOS = new Set(["ver_menu", "ver_receta", "ver_compra", "ver_menu_cole", "proponer_platos", "buscar_recetas"]);
+
+/**
+ * @param {'owner'|'editor'|'viewer'|'ajeno'|undefined} papel  sin papel: ajeno (falla cerrado)
+ * @param {{ name: string, lector: boolean|'privado' }} herramienta
+ * @param {boolean} esGrupo
+ */
+export function herramientaPermitida(papel, { name, lector }, esGrupo) {
+  if (papel === "owner" || papel === "editor") return true;
+  if (papel === "viewer") return lector === true || (lector === "privado" && !esGrupo);
+  return lector === true && PARA_AJENOS.has(name);
+}
+
 export const NOMBRE_PAPEL = {
   es: { owner: "Titular", editor: "Cotitular", viewer: "Lector" },
   en: { owner: "Owner", editor: "Co-owner", viewer: "Viewer" },

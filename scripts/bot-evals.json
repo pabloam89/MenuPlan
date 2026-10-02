@@ -1573,6 +1573,68 @@
         "cambiar_plato"
       ],
       "sinTexto": "(por cierto|para hoy|no cena|come fuera|tortilla|pollo al horno|tranquil[ao])"
+    },
+    {
+      "nombre": "papeles: el lector pide cambiar un plato → no lo cambia y remite a quien gestiona",
+      "papel": "viewer",
+      "entrada": "cambia la cena del martes por pizza",
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "texto": "(gestiona|organiza|lleva la casa|p[ií]de(se)?lo|pedírselo|titular|dile que)",
+      "sinTexto": "(solo puedes|puedes consultar|tus permisos)"
+    },
+    {
+      "nombre": "papeles: el lector dice que ya compró → lo tacha",
+      "papel": "viewer",
+      "entrada": "ya he comprado la leche y los huevos",
+      "llama": [
+        "marcar_compra"
+      ]
+    },
+    {
+      "nombre": "papeles: el lector pide apuntar en la lista → no apunta y remite",
+      "papel": "viewer",
+      "entrada": "apunta lejía en la lista",
+      "noLlama": [
+        "anadir_compra"
+      ],
+      "texto": "(gestiona|organiza|lleva la casa|p[ií]de(se)?lo|pedírselo|titular|dile que)",
+      "sinTexto": "(solo puedes|puedes consultar|tus permisos)"
+    },
+    {
+      "nombre": "papeles: el lector pide mandar la semana → no comparte",
+      "papel": "viewer",
+      "entrada": "mándale el menú de la semana a mi hermana",
+      "noLlama": [
+        "compartir"
+      ],
+      "sinTexto": "(solo puedes|puedes consultar|tus permisos)"
+    },
+    {
+      "nombre": "papeles: alguien del grupo sin cuenta pide apuntar → no apunta, le dice cómo conectarse",
+      "papel": "ajeno",
+      "esGrupo": true,
+      "entrada": "Lola, apunta leche",
+      "noLlama": [
+        "anadir_compra",
+        "marcar_compra"
+      ],
+      "texto": "(privado|conect|cuenta|gestiona)"
+    },
+    {
+      "nombre": "papeles: el cotitular genera la semana que viene",
+      "papel": "editor",
+      "entrada": "genera el menú de la semana que viene",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "semana": "siguiente"
+        }
+      }
     }
   ]
 }
