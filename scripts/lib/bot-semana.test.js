@@ -57,6 +57,16 @@ describe("medir", () => {
     expect(m.coste.porTurnoUsd).toBeGreaterThan(0);
   });
 
+  it("separa lo que se corrigió solo de lo que no se guardó nunca", () => {
+    const m = medir([
+      { created_at: t(1), event: "bot_claimed_unsaved", m: { sigue: false } },
+      { created_at: t(2), event: "bot_claimed_unsaved", m: { sigue: true } },
+      { created_at: t(3), event: "bot_claimed_unsaved", m: {} },
+    ]);
+    expect(m.calidad.dijoQueGuardo).toBe(3);
+    expect(m.calidad.sinGuardarFinal).toBe(1);
+  });
+
   it("sin umbral de parecido, solo las vacías son flojas", () => {
     expect(medir(eventos).busqueda.flojasPct).toBe(50);
   });
