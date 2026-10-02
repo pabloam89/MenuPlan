@@ -152,6 +152,10 @@ async function insertPantryRows(userId, toInsert, itemsForLegacy) {
   return [];
 }
 
+// Lo que va por `id` (la clave de la tabla) no filtra además por `user_id`:
+// las filas de una casa están a nombre de su titular (0071), y el cotitular
+// que las edita tiene otro id. Qué filas puede tocar cada uno lo dice la RLS.
+
 /** Applies a top-up patch, degrading when optional columns aren't migrated yet. */
 async function patchPantryRow(userId, id, patch) {
   const { location, frozen, ...base } = patch;
@@ -162,7 +166,6 @@ async function patchPantryRow(userId, id, patch) {
   let result = await supabase
     .from("user_pantry")
     .update(withLoc)
-    .eq("user_id", userId)
     .eq("id", id)
     .select(RETURN_COLS);
 
@@ -170,7 +173,6 @@ async function patchPantryRow(userId, id, patch) {
     result = await supabase
       .from("user_pantry")
       .update(withLoc)
-      .eq("user_id", userId)
       .eq("id", id)
       .select(`${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}`);
   }
@@ -179,7 +181,6 @@ async function patchPantryRow(userId, id, patch) {
     result = await supabase
       .from("user_pantry")
       .update(withFrozen)
-      .eq("user_id", userId)
       .eq("id", id)
       .select(RETURN_COLS);
   }
@@ -187,7 +188,6 @@ async function patchPantryRow(userId, id, patch) {
     result = await supabase
       .from("user_pantry")
       .update(base)
-      .eq("user_id", userId)
       .eq("id", id)
       .select(RETURN_COLS);
   }
@@ -283,7 +283,7 @@ export async function addPantryItems(userId, items, householdId = null) {
     const { data: existing, error: fetchError } = await supabase
       .from("user_pantry")
       .select("id, ingredient_normalized, qty, unit, frozen")
-      .eq("user_id", userId)
+      .eq(householdId ? "household_id" : "user_id", householdId ?? userId)
       .eq("item_type", "ingredient")
       .in("ingredient_normalized", normalizedKeys);
     // A DB that hasn't run 0014 has no item_type/frozen columns — degrade to the
@@ -431,7 +431,6 @@ async function addPantryItemsLegacy(userId, items) {
       supabase
         .from("user_pantry")
         .update({ qty: u.qty })
-        .eq("user_id", userId)
         .eq("id", u.id)
         .select(BASE_COLS),
     ),
@@ -452,7 +451,7 @@ export async function setPantryItemQty(userId, id, qty, unit, location) {
   if (!(qty > 0)) return removePantryItem(userId, id);
   const base = unit != null ? { qty, unit } : { qty };
   const update = (patch) =>
-    supabase.from("user_pantry").update(patch).eq("user_id", userId).eq("id", id);
+    supabase.from("user_pantry").update(patch).eq("id", id);
 
   if (location == null) {
     const { error } = await update(base);
@@ -490,7 +489,6 @@ export async function adjustCookedDishPortions(userId, id, delta) {
   const { data: row, error: readError } = await supabase
     .from("user_pantry")
     .select("portions, qty")
-    .eq("user_id", userId)
     .eq("id", id)
     .maybeSingle();
   if (readError || !row) {
@@ -506,7 +504,6 @@ export async function adjustCookedDishPortions(userId, id, delta) {
   const { error } = await supabase
     .from("user_pantry")
     .update({ portions: next, qty: next })
-    .eq("user_id", userId)
     .eq("id", id);
   if (error) {
     console.error("[pantry] cooked portions update failed", error);
@@ -539,7 +536,6 @@ export async function removePantryItem(userId, id) {
   const { error } = await supabase
     .from("user_pantry")
     .delete()
-    .eq("user_id", userId)
     .eq("id", id);
   if (error) {
     console.error("[pantry] remove failed", error);
@@ -716,7 +712,7 @@ export async function mergeLocalPantryIntoCloud(userId, householdId = null) {
   if (!supabase || !userId) return false;
   const local = readLocalPantry();
   if (local.length === 0) return false;
-  await addPantryItems(
+  const guardadas = await addPantryItems(
     userId,
     local.map((it) => ({
       name: it.ingredientName,
@@ -734,6 +730,11 @@ export async function mergeLocalPantryIntoCloud(userId, householdId = null) {
     })),
     householdId,
   );
-  writeLocalPantry([]);
-  return true;
+  // Solo se borra de aquí lo que de verdad ha subido. En una casa que no es
+  // tuya la base rechaza la subida (0067: las filas de una casa van a nombre
+  // de su dueño), y vaciar la copia local entonces era perder la despensa.
+  const subidas = new Set((guardadas ?? []).map((r) => r.ingredientNormalized).filter(Boolean));
+  const quedan = local.filter((it) => !subidas.has(it.ingredientNormalized));
+  writeLocalPantry(quedan);
+  return quedan.length < local.length;
 }

@@ -22,8 +22,8 @@
 // servidor, la de España, no UTC.
 process.env.TZ = "Europe/Madrid";
 
-import { select, insert, update, eq } from "./db.js";
-import { cargarCasa, guardarCasa } from "./casa.js";
+import { select, insert, borrar, eq } from "./db.js";
+import { cargarCasa, conCasa } from "./casa.js";
 import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO } from "./menu.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
@@ -148,6 +148,14 @@ export function dondeQuedaron(pedidos, plan, activos = null) {
   });
 }
 
+/** Borra un menú que no llegó a activarse, con sus semanas y recetas. */
+async function borrarMenu(householdId, menuId) {
+  const f = `household_id=${eq(householdId)}&menu_id=${eq(menuId)}`;
+  await borrar("user_menu_recipes", f);
+  await borrar("user_menu_weeks", f);
+  await borrar("user_menus", `household_id=${eq(householdId)}&id=${eq(menuId)}&is_active=eq.false`);
+}
+
 export async function generarMenu(householdId, cual = "esta", fijos = [], out = null) {
   const casa = await cargarCasa(householdId);
   if (!casa) return "Esta casa todavía no tiene datos en la nube.";
@@ -231,55 +239,69 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     ? await select("user_menu_recipes", `household_id=${eq(householdId)}&menu_id=${eq(casa.menu.id)}`, "recipe_id,recipe_snapshot")
     : [];
 
-  await insert("user_menus", [m.menuToRow(menu, dueno, householdId)]);
-  await insert("user_menu_weeks", [
-    m.weekToRow(dueno, menu.id, startISO, week, householdId),
-    ...semanasQueSeQuedan.map((w) => ({ ...w, menu_id: menu.id })),
-  ]);
-  const porReceta = new Map(recetasQueSeQuedan.map((f) => [f.recipe_id, f.recipe_snapshot]));
-  for (const r of recipes) if (r?.id) porReceta.set(r.id, r);
-  const filas = [...porReceta].filter(([, snap]) => snap).map(([recipe_id, recipe_snapshot]) => ({
-    user_id: dueno, household_id: householdId, menu_id: menu.id, recipe_id, recipe_snapshot,
-  }));
-  if (filas.length) await insert("user_menu_recipes", filas, { upsert: true });
-
-  // activate_household_menu, hecho desde el servidor: uno activo por casa.
-  await update("user_menus", `household_id=${eq(householdId)}&is_active=eq.true`, { is_active: false });
-  await update("user_menus", `household_id=${eq(householdId)}&id=${eq(menu.id)}`, { is_active: true });
-
-  // La foto de la casa: plan y compra vivos, recetas registradas y el puntero
-  // al menú activo. Sube bot_rev, así que la app abierta recarga.
-  const porId = new Map((casa.state?.aiRecipes ?? []).map((r) => [r.id, r]));
-  for (const r of recipes) porId.set(r.id, r);
-  // La foto viva es la semana de hoy: si la que se queda es la de hoy (se ha
-  // pedido la siguiente), sigue siendo esa.
-  const deHoy = semanasQueSeQuedan.find((w) => w.week_start <= hoy && hoy <= w.week_end);
-  const state = {
-    ...casa.state,
-    // Los grupos, si se sacaron del modelo aquí: sin ellos en la casa, el plan
-    // tiene grupos que nadie conoce y proponer o cambiar un plato salen vacíos
-    // (pasaba en todas las casas creadas desde el chat).
-    data: { ...(casa.state?.data ?? {}), activeMenuId: menu.id, menuModel: casa.state?.data?.menuModel ?? "same", ...(groups !== (working.groups ?? []) ? { groups } : {}) },
-    menuPlan: deHoy && !(startISO <= hoy && hoy <= endISO) ? deHoy.plan : plan,
-    shopping: deHoy && !(startISO <= hoy && hoy <= endISO) ? deHoy.shopping : shopping,
-    aiRecipes: [...porId.values()],
-  };
-  let r = await guardarCasa(casa, { state });
-  // Otra escritura se cruzó (del bot o, desde la 0068, cualquier toque en la
-  // app: tachar algo de la compra). El menú ya está guardado y activo en sus
-  // tablas, que es lo que la app lee al cargar; falta la foto de la casa. Se
-  // reintenta sobre la casa fresca, con lo que tocó esta generación y nada más.
-  for (let i = 0; i < 3 && !r.ok && r.conflicto; i++) {
-    const fresca = await cargarCasa(householdId, { fresca: true });
-    if (!fresca) break;
-    const d = fresca.state?.data ?? {};
-    r = await guardarCasa(fresca, { state: {
-      ...fresca.state,
-      data: { ...d, activeMenuId: menu.id, menuModel: state.data.menuModel, ...(state.data.groups ? { groups: state.data.groups } : {}) },
-      menuPlan: state.menuPlan, shopping: state.shopping, aiRecipes: state.aiRecipes,
-    } });
+  try {
+    await insert("user_menus", [m.menuToRow(menu, dueno, householdId)]);
+    await insert("user_menu_weeks", [
+      m.weekToRow(dueno, menu.id, startISO, week, householdId),
+      ...semanasQueSeQuedan.map((w) => ({ ...w, menu_id: menu.id })),
+    ]);
+    const porReceta = new Map(recetasQueSeQuedan.map((f) => [f.recipe_id, f.recipe_snapshot]));
+    for (const r of recipes) if (r?.id) porReceta.set(r.id, r);
+    const filas = [...porReceta].filter(([, snap]) => snap).map(([recipe_id, recipe_snapshot]) => ({
+      user_id: dueno, household_id: householdId, menu_id: menu.id, recipe_id, recipe_snapshot,
+    }));
+    if (filas.length) await insert("user_menu_recipes", filas, { upsert: true });
+  } catch (e) {
+    // Un menú a medias no se queda en el historial.
+    await borrarMenu(householdId, menu.id).catch(() => {});
+    throw e;
   }
-  if (!r.ok) console.error("[generar] la foto de la casa no se guardó", r.error ?? "conflicto");
+
+  // Activar el menú y guardar la foto de la casa (plan y compra vivos, recetas
+  // registradas, puntero al menú activo), en UNA transacción (0069): o queda
+  // activo y la casa lo sabe, o nada. Sube bot_rev, así que la app recarga.
+  // Mientras el motor pensaba (segundos) pudo entrar otra escritura: cada
+  // intento parte de la casa fresca y solo pone lo que trae esta generación,
+  // así que lo apuntado a mano entre medias («apunta pan») no se pierde.
+  const ponerSemanaNueva = !semanasQueSeQuedan.some((w) => w.week_start <= hoy && hoy <= w.week_end) || (startISO <= hoy && hoy <= endISO);
+  const deHoy = semanasQueSeQuedan.find((w) => w.week_start <= hoy && hoy <= w.week_end);
+  let compraFinal = shopping;
+  const r = await conCasa(householdId, (fresca) => {
+    const d = fresca.state?.data ?? {};
+    const porId = new Map((fresca.state?.aiRecipes ?? []).map((x) => [x.id, x]));
+    for (const x of recipes) porId.set(x.id, x);
+    const aManoAhora = (fresca.semana?.shopping?.items ?? fresca.state?.shopping?.items ?? []).filter((it) => it.manual && !it.have);
+    compraFinal = { items: [...shopping.items.filter((it) => !it.manual), ...aManoAhora] };
+    return {
+      // La semana nueva del menú nuevo, con la compra a mano de ahora. La foto
+      // para «deshaz» lleva esa misma semana: deshacer reactiva el menú de
+      // antes y deja la nueva como estaba.
+      casa: { ...fresca, semana: { menuId: menu.id, weekStart: startISO, plan, shopping: compraFinal } },
+      semana: { shopping: compraFinal },
+      activar: menu.id,
+      state: {
+        ...fresca.state,
+        // Los grupos, si se sacaron del modelo aquí: sin ellos en la casa, el
+        // plan tiene grupos que nadie conoce y proponer o cambiar un plato
+        // salen vacíos (pasaba en todas las casas creadas desde el chat).
+        data: { ...d, activeMenuId: menu.id, menuModel: d.menuModel ?? "same", ...(groups !== (working.groups ?? []) ? { groups } : {}) },
+        // La foto viva es la semana de hoy: si la que se queda es la de hoy
+        // (se ha pedido la siguiente), sigue siendo esa.
+        menuPlan: ponerSemanaNueva ? plan : deHoy.plan,
+        shopping: ponerSemanaNueva ? compraFinal : deHoy.shopping,
+        aiRecipes: [...porId.values()],
+      },
+    };
+  });
+  if (!r.ok) {
+    // Nada quedó activo: el menú nuevo se borra para que no aparezca a medias
+    // en el historial, y se dice tal cual (antes respondía «generado y
+    // activado» aunque la casa no se hubiera guardado).
+    console.error("[generar] no se activó", r.error);
+    await borrarMenu(householdId, menu.id).catch((e) => console.error("[generar] borrar el menú a medias", e?.message));
+    if (out) out.ok = false;
+    return `NO GUARDADO: el menú no se ha podido guardar (${r.error === "conflicto persistente" ? "otros cambios en la casa a la vez" : r.error}). Sigue el menú de antes. Se puede volver a intentar.`;
+  }
 
   if (!previos.length) await registrar(EMBUDO.PRIMER_MENU, { userId: dueno, unaVez: true });
 

@@ -28,6 +28,22 @@ export function shouldAdoptRemoteProfile({ localMemberCount, remoteMemberCount }
   return remoteHasProfile && !localHasProfile;
 }
 
+// Lo de arriba («gana lo local si tiene familia») solo vale si lo local ES de
+// esta casa. El estado de la app es uno por dispositivo, y lleva apuntada la
+// casa a la que pertenece (`casaId`, en storage.js). Si es de otra casa —has
+// cambiado de casa, u otra cuenta usó este móvil—, o si la casa no es tuya,
+// manda la nube entera: si no, al abrir la casa compartida subirías TU
+// familia, alergias y compra encima de las de su titular (C-1 de
+// specs/roles-de-la-casa-revision.md).
+//
+// `casaLocal` null = estado sin apuntar (de antes de esto, o de «Entrar sin
+// cuenta»): en tu casa sigue la regla de siempre, para no perder un perfil
+// recién hecho sin cuenta.
+export function soloNubeAlCargar({ esMia, casaLocal, casa }) {
+  if (!esMia) return true;
+  return casaLocal != null && casaLocal !== casa;
+}
+
 // Unions user-created recipes by id, with the remote copy winning on conflict.
 //
 // Callers MUST pass the CURRENT live recipes as `current`, not a snapshot taken

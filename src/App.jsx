@@ -159,12 +159,13 @@ import {
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
+import { guardarConVersion, guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
 import BotEnlace from "./components/BotEnlace.jsx";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard } from "./lib/householdDiscardsSync.js";
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
-import { shouldAdoptRemoteProfile, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
+import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
 import {
   rememberDeletedRecipeId,
   reconcileDeletedRecipeIds,
@@ -1345,8 +1346,14 @@ export default function App() {
     dismissPendingInvite,
   } = useHousehold({ user, loading: authLoading });
 
-  const syncMenuUserId = householdReadOnly ? activeHousehold?.ownerUserId : user?.id;
+  // Los menús y la despensa de una casa están a nombre de su titular (0071):
+  // en una casa ajena (cotitular o lector) se leen los suyos.
+  const syncMenuUserId = activeHousehold && !activeHousehold.isOwn ? activeHousehold.ownerUserId : user?.id;
   const syncHouseholdId = activeHouseholdId ?? null;
+  // La casa activa, para lo que se dispara desde callbacks con dependencias
+  // viejas: así nunca leen ni escriben en la casa de antes de cambiar.
+  const casaActivaRef = useRef(null);
+  casaActivaRef.current = syncHouseholdId;
   const householdReadOnlyLabel =
     householdReadOnly && activeHousehold ? activeHousehold.name : null;
 
@@ -1371,13 +1378,18 @@ export default function App() {
     registerRecipes(ownUserRecipes.map((r) => catalogToFrontendRecipe(r, eaters)));
   }, [ownUserRecipes, data.members]);
 
+  // De qué casa es el estado que hay en memoria (y en localStorage): se apunta
+  // al terminar de cargar una casa de la nube. Al cargar otra, si no coincide,
+  // manda la nube (soloNubeAlCargar, en profileMerge.js). null = sin apuntar.
+  const casaDelEstadoRef = useRef(persisted?.casaId ?? null);
+
   // Debounced: serializar todo el estado a localStorage en cada pulsación de
   // tecla del onboarding es perceptible en móviles modestos. Si la cuota está
   // llena, saveState compacta historial/gasto y reintenta; sincronizamos ese
   // recorte al estado React para no volver a fallar en el siguiente tick.
   useEffect(() => {
     const t = window.setTimeout(() => {
-      const result = saveState({ screen, onbStep, data, menuPlan, shopping, aiRecipes });
+      const result = saveState({ screen, onbStep, data, menuPlan, shopping, aiRecipes, casaId: casaDelEstadoRef.current });
       if (result.ok && result.pruned && result.saved) {
         const prunedData = result.saved.data;
         setData((d) => {
@@ -1415,18 +1427,38 @@ export default function App() {
   const hydratedUserRef = useRef(null);
   const cloudReadyRef = useRef(false);
   const householdJustEmptiedRef = useRef(false);
-  // El bot de Telegram escribe en la nube (0057). `botRevRef` es el contador
-  // que vimos al cargar: todo lo que la app sube va condicionado a él, y si el
-  // bot ha escrito entretanto, recargamos la nube (adoptándola entera, perfil
-  // incluido: `forceRemoteRef`) en vez de pisar su cambio. `cloudEpoch` solo
-  // existe para volver a disparar la hidratación.
+  // Lola y los demás dispositivos de la casa escriben en la nube (0057, 0068).
+  // `botRevRef` es la última versión de la casa que conocemos: la que vimos al
+  // cargar, y después la que deja cada guardado nuestro (versionCasa.js). Todo
+  // lo que la app sube va condicionado a ella, y si otro ha escrito entretanto,
+  // recargamos la nube (adoptándola entera, perfil incluido: `forceRemoteRef`)
+  // en vez de pisar su cambio. `cargaRef` cuenta las cargas de la nube: un
+  // guardado programado antes de la última ya es viejo y no sale. `cloudEpoch`
+  // solo existe para volver a disparar la hidratación.
   const botRevRef = useRef(null);
+  const cargaRef = useRef(0);
   const forceRemoteRef = useRef(false);
   // Una recarga en curso: un segundo aviso de conflicto (la casa y la semana
   // chocan a la vez) no lanza otra.
   const recargandoRef = useRef(false);
   const recargarDesdeNubeRef = useRef(() => {});
   const [cloudEpoch, setCloudEpoch] = useState(0);
+  // Lo que necesita la cola de guardados (versionCasa.js) para un guardado
+  // que se programa ahora: leer la versión al salir, apuntar la que deja, y
+  // saber si sigue valiendo (no ha habido otra carga de la nube entretanto).
+  const versionDeCasa = useCallback((householdId) => {
+    const carga = cargaRef.current;
+    const vigente = () => cloudReadyRef.current && cargaRef.current === carga;
+    return {
+      leer: () => botRevRef.current,
+      apuntar: (rev) => {
+        if (!vigente()) return;
+        botRevRef.current = rev;
+        guardarBotRevVisto(householdId, rev);
+      },
+      vigente,
+    };
+  }, []);
   // Lo mismo que `cloudReadyRef`, pero como estado: el destino de un enlace
   // del bot (`?ir=`) espera a que la casa haya llegado de la nube, y un ref
   // no despierta a nadie cuando cambia.
@@ -1462,12 +1494,16 @@ export default function App() {
     hydratedUserRef.current = hydrateKey;
     cloudReadyRef.current = false;
 
-    const menuUserId = householdReadOnly ? activeHousehold?.ownerUserId : user.id;
+    const menuUserId = activeHousehold && !activeHousehold.isOwn ? activeHousehold.ownerUserId : user.id;
     const householdId = activeHouseholdId;
     const justEmptied = householdJustEmptiedRef.current;
     if (justEmptied) householdJustEmptiedRef.current = false;
     const forceRemote = forceRemoteRef.current;
     forceRemoteRef.current = false;
+    // Lo que hay en memoria es de otra casa, o esta no es tuya: manda la nube
+    // entera, y nada de lo local se mezcla ni se sube aquí (C-1).
+    const esMia = activeHousehold ? activeHousehold.isOwn : true;
+    const soloNube = soloNubeAlCargar({ esMia, casaLocal: casaDelEstadoRef.current, casa: householdId });
 
     // Capture local-only blobs before any await so a mid-hydration edit
     // isn't the source of truth for the union (same as before).
@@ -1488,7 +1524,9 @@ export default function App() {
     // Fold signed-out stock into the account first, then bump pantryEpoch so
     // any open En casa / Compra UI reloads after the merge (not mid-flight).
     (async () => {
-      if (!justEmptied) {
+      // Solo en tu casa: la despensa sin cuenta es tuya, no de una casa
+      // ajena (y como lector ni podrías subirla).
+      if (!justEmptied && esMia) {
         await mergeLocalPantryIntoCloud(user.id, householdId);
       }
       if (cancelled) return;
@@ -1509,6 +1547,15 @@ export default function App() {
         loadRecipeFolders(user.id),
       ]);
       if (cancelled) return;
+      // Sin red, y con lo de memoria de otra casa: no hay nada bueno que
+      // enseñar ni que subir. Se queda sin marcar como cargada (no se guarda
+      // nada) y se reintenta al volver a abrirla.
+      if (soloNube && remoteState?.error) {
+        hydratedUserRef.current = null;
+        recargandoRef.current = false;
+        showToast("No se pudo cargar la casa. Revisa la conexión y vuelve a abrirla.");
+        return;
+      }
 
       const deletedRecipeIds = reconcileDeletedRecipeIds(remoteRecipes);
 
@@ -1539,8 +1586,10 @@ export default function App() {
       const remoteBotRev = remoteState?.botRev ?? null;
       const botEscribio = remoteBotRev != null && remoteBotRev > (leerBotRevVisto(householdId) ?? 0);
       if (householdId) botRevRef.current = remoteBotRev ?? 0;
+      cargaRef.current += 1;
       const useRemote =
         justEmptied
+        || soloNube
         || (forceRemote && remoteData)
         || (botEscribio && remoteData)
         || shouldAdoptRemoteProfile({
@@ -1558,7 +1607,7 @@ export default function App() {
       const mergedDiscards = justEmptied
         ? mergeDiscards({ forever: [], cooldownUntil: {} }, remoteDiscards)
         : mergeDiscards(
-            mergeDiscards(localDiscards, remoteDiscards),
+            mergeDiscards(soloNube ? { forever: [], cooldownUntil: {} } : localDiscards, remoteDiscards),
             remoteData?.discards ?? { forever: [], cooldownUntil: {} },
           );
 
@@ -1570,19 +1619,22 @@ export default function App() {
         for (const x of b) if (x && x.id != null) m.set(x.id, x);
         return Array.from(m.values());
       };
-      const mergedPriceObs = justEmptied
+      const mergedPriceObs = justEmptied || soloNube
         ? (remoteData?.priceObs ?? [])
         : unionById(localPriceObs, remoteData?.priceObs);
-      const mergedReceipts = justEmptied
+      const mergedReceipts = justEmptied || soloNube
         ? (remoteData?.receipts ?? [])
         : unionById(localReceipts, remoteData?.receipts);
-      const mergedAliases = justEmptied
+      const mergedAliases = justEmptied || soloNube
         ? (remoteData?.priceAliases ?? {})
         : { ...(remoteData?.priceAliases ?? {}), ...localAliases };
 
       setData((d) => {
+        // Con lo de otra casa en memoria (las recetas de su titular, si eras
+        // lector), ni se mezclan ni se suben a tu cuenta.
+        const localRecipesNow = soloNube ? [] : (d.userRecipes ?? []);
         const mergedUserRecipes = mergeUserRecipesAfterCloudLoad(
-          withoutDeletedRecipes(d.userRecipes ?? [], deletedRecipeIds),
+          withoutDeletedRecipes(localRecipesNow, deletedRecipeIds),
           remoteRecipes,
           deletedRecipeIds,
         );
@@ -1590,7 +1642,7 @@ export default function App() {
         // Backfill local-only rows the cloud doesn't have yet (live state, not stale snapshot).
         const remoteIds = new Set(remoteRecipes.map((r) => r.id));
         const localOnly = withoutDeletedRecipes(
-          (d.userRecipes ?? []).filter((r) => r.id && !remoteIds.has(r.id)),
+          localRecipesNow.filter((r) => r.id && !remoteIds.has(r.id)),
           deletedRecipeIds,
         );
         if (localOnly.length) upsertUserRecipes(user.id, localOnly);
@@ -1638,7 +1690,9 @@ export default function App() {
       const cloudSummaries = await loadMenuSummariesRemote(menuUserId, householdId);
       if (cancelled) return;
 
-      if (cloudSummaries.length === 0) {
+      // El backfill solo en tu casa y con lo de tu casa: es lo que el 19 de
+      // agosto copió los menús de una casa ajena en la propia (C-1).
+      if (cloudSummaries.length === 0 && esMia && !soloNube) {
         // One-time backfill: an account that never wrote to the new menú
         // tables (pre-existing user, or a device that only ever wrote to
         // user_state) has real history sitting in the JSONB blob. Only
@@ -1754,6 +1808,7 @@ export default function App() {
       }
 
       if (remoteBotRev != null) guardarBotRevVisto(householdId, remoteBotRev);
+      casaDelEstadoRef.current = householdId;
       cloudReadyRef.current = true;
       setNubeLista(true);
       recargandoRef.current = false;
@@ -1770,7 +1825,9 @@ export default function App() {
   // cloudReadyRef so we never clobber the remote copy before hydration lands.
   useEffect(() => {
     if (!user?.id || !cloudReadyRef.current || !activeHouseholdId || householdReadOnly) return;
-    const rev = botRevRef.current;
+    // Se fija al programar: si entretanto se recarga la nube, este estado ya
+    // es viejo y no se sube.
+    const version = versionDeCasa(syncHouseholdId);
     const t = window.setTimeout(() => {
       const profile = { ...data };
       delete profile.userRecipes;
@@ -1779,26 +1836,27 @@ export default function App() {
       delete profile.menus;
       const snapshot = { data: profile, menuPlan, shopping, aiRecipes, onbStep };
       if (syncHouseholdId) {
-        // La versión se fija al programar el guardado, no al dispararlo: si
-        // entretanto se recargó la nube, este estado ya es viejo y no se sube.
-        if (!cloudReadyRef.current || botRevRef.current !== rev) return;
-        saveHouseholdState(syncHouseholdId, snapshot, rev).then((r) => {
+        guardarConVersion(version, (rev) => saveHouseholdState(syncHouseholdId, snapshot, rev)).then((r) => {
           if (r.conflict) recargarDesdeNubeRef.current({ choque: true });
         });
       } else saveUserState(user.id, snapshot);
     }, 1200);
     return () => window.clearTimeout(t);
-  }, [user?.id, activeHouseholdId, householdReadOnly, syncHouseholdId, data, menuPlan, shopping, aiRecipes, onbStep]);
+  }, [user?.id, activeHouseholdId, householdReadOnly, syncHouseholdId, data, menuPlan, shopping, aiRecipes, onbStep, versionDeCasa]);
 
-  // Al volver a la app (desde Telegram, típicamente) se mira si el bot ha
+  // Al volver a la app (desde Telegram, típicamente) se mira si alguien ha
   // escrito. Es una lectura de un número; la recarga solo si ha cambiado.
   // Y mientras está a la vista, cada BOT_REV_SONDEO_MS: si tu pareja tacha en
-  // la lista desde Telegram, o Lola cambia un plato, se ve sin salir y volver.
+  // la lista, o Lola cambia un plato, se ve sin salir y volver. Con un
+  // guardado nuestro en marcha no se mira: el número que llega podría ser el
+  // nuestro, todavía sin apuntar, y recargaríamos por un cambio propio.
   useEffect(() => {
     if (!user?.id || !syncHouseholdId) return;
     const mirar = async () => {
-      if (document.visibilityState !== "visible" || !cloudReadyRef.current) return;
+      if (document.visibilityState !== "visible" || !cloudReadyRef.current || guardandoCasa()) return;
+      const antes = guardadosDeCasa();
       const rev = await loadHouseholdBotRev(syncHouseholdId);
+      if (guardandoCasa() || guardadosDeCasa() !== antes) return;
       if (rev != null && botRevRef.current != null && rev > botRevRef.current) recargarDesdeNubeRef.current();
     };
     document.addEventListener("visibilitychange", mirar);
@@ -1876,7 +1934,7 @@ export default function App() {
       try {
         const newDeltas = {};
         for (const { dayISO, dayPlan } of pending) {
-          const freshStock = user ? await loadPantry(user.id) : loadLocalPantry();
+          const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
           const sh = buildShoppingList(dayPlan, groups, dayMeals, freshStock);
           const used = (sh.pantryItems ?? []).map((it) => ({
             name: it.name, qty: it.qty, unit: it.unit,
@@ -1961,11 +2019,12 @@ export default function App() {
     toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 3500);
   }, []);
 
-  // El bot ha escrito en la casa: se vuelve a hidratar adoptando la nube.
-  // Lo que se hubiera tocado aquí sin llegar a subir se pierde a propósito:
-  // es el precio de que el cambio del bot no desaparezca en silencio. Pero no
-  // en silencio para ti: si lo que se pierde es tuyo (`choque`, un guardado
-  // que chocó), se dice, para que lo vuelvas a hacer.
+  // Otro (Lola, otro dispositivo, otra persona de la casa) ha escrito: se
+  // vuelve a hidratar adoptando la nube. Lo que se hubiera tocado aquí sin
+  // llegar a subir se pierde a propósito: es el precio de que el cambio del
+  // otro no desaparezca en silencio. Pero no en silencio para ti: si lo que se
+  // pierde es tuyo (`choque`, un guardado que chocó), se dice, para que lo
+  // vuelvas a hacer. Los textos no dicen quién, porque no lo sabemos.
   recargarDesdeNubeRef.current = ({ choque = false } = {}) => {
     if (recargandoRef.current) return;
     recargandoRef.current = true;
@@ -1974,8 +2033,8 @@ export default function App() {
     cloudReadyRef.current = false;
     setCloudEpoch((n) => n + 1);
     showToast(choque
-      ? "Lola cambió algo a la vez: repite tu último cambio"
-      : "Actualizado con los cambios del chat");
+      ? "Se cruzó con otro cambio de la casa: repite el tuyo"
+      : "Actualizado con los últimos cambios de la casa");
   };
 
   const handleDeleteRecipe = useCallback(async (recipeId) => {
@@ -2083,7 +2142,7 @@ export default function App() {
         await restoreToPantry(bucketDeltas(staleGenDeltas[key]), { user });
       }
 
-      const pantryStock = user ? await loadPantry(user.id) : loadLocalPantry();
+      const pantryStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
       // Planning bias is controlled by pantryMode ("strict"/"only"/"prefer"/"off");
       // shopping always sees the stock so «Ya en casa» stays accurate.
       // Sin un modo válido guardado no se asume nada: "off" (ver normalizeData).
@@ -2199,7 +2258,7 @@ export default function App() {
         for (const res of weekResults) {
           const used = (res.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
           if (!used.length) continue;
-          const freshStock = user ? await loadPantry(user.id) : loadLocalPantry();
+          const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
           const { deltas } = await consumeFromPantry(used, freshStock, { user });
           if (deltas.length) genDeltasPatch[res.startISO] = makeDeltaBucket(newMenuId, deltas);
         }
@@ -2337,7 +2396,7 @@ export default function App() {
         const _menuId = newMenu.id;
         saveAndActivateMenu(user.id, newMenu, allRecipes, syncHouseholdId).then(() => {
           if (menusRef.current?.[_menuId]?.isFavorite) {
-            toggleMenuFavoriteRemote(user.id, _menuId, true).catch(() => {});
+            toggleMenuFavoriteRemote(user.id, _menuId, true, casaActivaRef.current).catch(() => {});
           }
         });
       }
@@ -3013,9 +3072,9 @@ export default function App() {
     // shopping change on reload (the generation-time row would win). Debounced
     // + fire-and-forget inside queueSaveMenuWeek; local blob is still the belt.
     if (user && menuId && wk) {
-      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
+      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
     }
-  }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user]);
+  }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user, syncHouseholdId, versionDeCasa]);
 
   // Undo a confirmed ticket's tachado. Deleting a ticket in Análisis → Gasto
   // must reverse the exact "have: true" the receipt wizard set — and through
@@ -3118,7 +3177,7 @@ export default function App() {
       // cloud call fails, the row would otherwise silently reappear on the
       // next hydration with zero explanation — at least warn so the user
       // knows to retry instead of assuming it's gone for good.
-      deleteMenuRemote(user.id, menuIdToDelete).then((res) => {
+      deleteMenuRemote(user.id, menuIdToDelete, casaActivaRef.current).then((res) => {
         if (!res.ok) showToast("No se pudo borrar el menú en la nube. Puede reaparecer al recargar.");
       });
     }
@@ -3141,16 +3200,16 @@ export default function App() {
       const { menus, weekStart, week } = saveActivePlanAsFavorite(data.menus, menuId, menuPlan, offset);
       setData((d) => ({ ...d, menus }));
       if (user) {
-        toggleMenuFavoriteRemote(user.id, menuId, true);
-        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
+        toggleMenuFavoriteRemote(user.id, menuId, true, casaActivaRef.current);
+        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
       }
       showToast("Menú guardado en favoritos");
     } else {
       setData((d) => ({ ...d, menus: toggleMenuFavorite(d.menus, menuId) }));
-      if (user) toggleMenuFavoriteRemote(user.id, menuId, false);
+      if (user) toggleMenuFavoriteRemote(user.id, menuId, false, casaActivaRef.current);
       showToast("Quitado de favoritos");
     }
-  }, [data.activeMenuId, data.menus, data.menuWeek?.offset, menuPlan, user, showToast]);
+  }, [data.activeMenuId, data.menus, data.menuWeek?.offset, menuPlan, user, showToast, syncHouseholdId, versionDeCasa]);
 
   const ACTIVATE_MENU_TOAST = {
     onGenerate: "Menú activo · En casa actualizado",
@@ -3186,7 +3245,7 @@ export default function App() {
           schedule: week.schedule ?? data.schedule,
           menuWeek: { offset: week.offset ?? 0, startDayIdx: week.startDayIdx ?? 0, days: week.days ?? null },
         };
-        const freshStock = user ? await loadPantry(user.id) : loadLocalPantry();
+        const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
         const sh = buildShoppingList(week.plan, groups, getDayMeals(weekData), freshStock);
         const used = (sh.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
         if (!used.length) continue;
@@ -3278,7 +3337,7 @@ export default function App() {
       restoreToPantry(recon.deltas, { user }).then(() => setPantryEpoch((n) => n + 1));
     }
     if (user) {
-      deleteMenuRemote(user.id, menuId).then((res) => {
+      deleteMenuRemote(user.id, menuId, casaActivaRef.current).then((res) => {
         if (!res.ok) showToast("No se pudo borrar el menú en la nube. Puede reaparecer al recargar.");
       });
     }
@@ -3299,7 +3358,7 @@ export default function App() {
     // of eagerly fetching every historic menú's full JSON up front.
     const isLazy = Object.values(old.weeks ?? {}).some((w) => w && w.schedule === undefined);
     if (isLazy && user) {
-      const detail = await loadMenuDetailRemote(user.id, menuId);
+      const detail = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
       if (detail) {
         old = { ...old, weeks: detail.menu.weeks };
         if (detail.recipes.length) {
@@ -3390,7 +3449,7 @@ export default function App() {
           .filter(Boolean);
         saveAndActivateMenu(user.id, newMenu, recipes, syncHouseholdId).then(() => {
           if (menusRef.current?.[_menuId]?.isFavorite) {
-            toggleMenuFavoriteRemote(user.id, _menuId, true).catch(() => {});
+            toggleMenuFavoriteRemote(user.id, _menuId, true, casaActivaRef.current).catch(() => {});
           }
         });
       }
@@ -3418,7 +3477,7 @@ export default function App() {
     if (!m) return;
     const isLazy = Object.values(m.weeks ?? {}).some((w) => w && w.schedule === undefined);
     if (isLazy && user) {
-      const detail = await loadMenuDetailRemote(user.id, menuId);
+      const detail = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
       if (!detail) {
         showToast("No se pudo cargar este menú del histórico. Inténtalo de nuevo.");
         return;
@@ -4404,7 +4463,7 @@ export default function App() {
     const delta = n - antes;
     const grupos =
       data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const key = `${day}-${meal}`;
       const prev = plan[groupId]?.[key];
@@ -4487,7 +4546,7 @@ export default function App() {
       data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
     // Fetched before the state updater (which must stay synchronous) so the
     // rebuilt shopping list still discounts pantry ingredients after a swap.
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const slotKey = `${day}-${meal}`;
       const prevSlot = plan[groupId]?.[slotKey] ?? {};
@@ -4556,7 +4615,7 @@ export default function App() {
 
     const groups =
       data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -4676,7 +4735,7 @@ export default function App() {
       return Array.from(byId.values());
     });
 
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan(() => {
       applyShoppingFor(working, groups, pantryIngredients);
       return working;
@@ -4714,7 +4773,7 @@ export default function App() {
     if (!esPizarra) return undefined;
     let vivo = true;
     (async () => {
-      const items = user ? await loadPantry(user.id, syncHouseholdId) : loadLocalPantry();
+      const items = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
       if (vivo) setDespensaPizarra(items ?? []);
     })();
     return () => { vivo = false; };
@@ -4803,7 +4862,7 @@ export default function App() {
     const groups = data.groups.length > 0
       ? data.groups
       : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
 
     const trabajo = {};
     for (const gid of Object.keys(menuPlan)) {
@@ -4944,7 +5003,7 @@ export default function App() {
     });
     if (hechos === 0) return { reply: noHechos[0] ?? "No he podido cambiar nada", hechos, noHechos: noHechos.slice(1) };
 
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     deshacerPizarra.current = { plan, groups, pantryIngredients };
     if (nuevas.length) {
       registerRecipes(nuevas);
@@ -5000,7 +5059,7 @@ export default function App() {
     const groups = data.groups.length > 0
       ? data.groups
       : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -5055,7 +5114,7 @@ export default function App() {
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
     const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: baseId, cleared: false, warnings: [] };
@@ -5108,7 +5167,7 @@ export default function App() {
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
     const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: srcRecipeId, cleared: false, warnings: [] };
@@ -5178,7 +5237,7 @@ export default function App() {
     }));
 
     const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const base = { ...(plan[groupId]?.[slotKey] ?? {}), warnings: [], cleared: false };
       if (toUnico) base.firstRecipeId = null;
@@ -5218,7 +5277,7 @@ export default function App() {
   const handleVaciarPizarra = useCallback(async () => {
     if (householdReadOnly) return;
     const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id, syncHouseholdId) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       let tocados = 0;
@@ -5247,7 +5306,7 @@ export default function App() {
     const key = `${day}-${meal}`;
     const field = course === "first" ? "firstRecipeId" : "recipeId";
     const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5283,7 +5342,7 @@ export default function App() {
     const key = `${day}-${meal}`;
     const groups =
       data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5361,7 +5420,7 @@ export default function App() {
       }));
     }
     const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       // Cada destino escribe en SU casilla: con una selección de varios huecos
@@ -5424,6 +5483,7 @@ export default function App() {
     setPublishedMenus({});
 
     clearState();
+    casaDelEstadoRef.current = null;
     // Fired immediately (not the 1200ms debounced profile push) so a quick
     // reload right after "Reiniciar" can't race the stale cloud snapshot back
     // in through the hydration effect above.
@@ -5506,6 +5566,7 @@ export default function App() {
 
     setResetConfirm(null);
     clearState();
+    casaDelEstadoRef.current = null;
     setData(ensureRosters(INITIAL_DATA));
     setMenuPlan({});
     setShopping({ items: [] });
@@ -6150,7 +6211,7 @@ export default function App() {
                 onToggleFavorite={householdReadOnly ? undefined : (menuId) => {
                   const nextFavorite = !data.menus?.[menuId]?.isFavorite;
                   setData((d) => ({ ...d, menus: toggleMenuFavorite(d.menus, menuId) }));
-                  if (user) toggleMenuFavoriteRemote(user.id, menuId, nextFavorite);
+                  if (user) toggleMenuFavoriteRemote(user.id, menuId, nextFavorite, casaActivaRef.current);
                 }}
                 onSignIn={signInWithGoogle}
                 onOpenHistory={openHistoryMenu}

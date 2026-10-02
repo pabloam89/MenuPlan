@@ -34,6 +34,7 @@ import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
+import { esCorreccion } from "../_bot/senales.js";
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe } from "../_bot/turno.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
 import { ahoraEnMadrid } from "../_bot/recordatorios.js";
@@ -44,7 +45,7 @@ import {
 } from "../_bot/compartir.js";
 import { motor } from "../_bot/menu.js";
 import { sembrarCasa } from "../_bot/ajustes.js";
-import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
+import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo } from "../_bot/enlace.js";
 import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
@@ -318,6 +319,18 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
 // por la rápida en grupo lo dice la tabla POLITICA de router.js, no un if.
 const MODO_ROUTER = () => (["sombra", "on"].includes(process.env.BOT_ROUTER) ? process.env.BOT_ROUTER : "off");
 const MODO_ROUTER_GRUPOS = () => (["off", "on"].includes(process.env.BOT_ROUTER_GRUPOS) ? process.env.BOT_ROUTER_GRUPOS : "sombra");
+// BOT_PISTA (on | off; por defecto off, ver abajo): con el enrutador en on, si el turno es
+// de Lola y el enrutador ha visto una lectura con sus datos, Lola recibe lo
+// que dedujo y la lectura ya hecha, para contestar en una llamada
+// (api/_bot/pista.js). Medido el 1 oct 2026 con frases que van a Lola: donde
+// se usa, una vuelta menos y el primer texto ~1,5-2,5 s antes (ideas en grupo
+// de 4-6 s a 2,3-3,2 s; «qué me falta y apúntalo» de 3 vueltas a 2); donde no,
+// nada cambia, porque Lola no la espera.
+// APAGADA por defecto (BOT_PISTA=on para encenderla): cuando Lola acepta la
+// pista contestando sin herramientas, lo leído ya no trae su álbum (el texto
+// sale en vivo antes), y en las ideas en grupo eso quita las fotos que hoy sí
+// salen. Lo decide Pablo (revisión del 1-2 oct 2026).
+const PISTA = () => process.env.BOT_PISTA === "on";
 const RUTA = "bot_route";
 
 /** Lo último que dijo Lola en este chat (y su propuesta de opciones, si la hubo). */
@@ -419,14 +432,19 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   // Lo que se mide del turno (scripts/bot-medidas.mjs): primer texto visto,
   // lo de Lola (modelo, vueltas, tokens, herramientas) y si se canceló.
   const medir = {};
-  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA, puerta, signal: ctrl.signal, medir });
+  // La pista (BOT_PISTA): la decisión del enrutador, solo si el turno no va por
+  // la vía rápida. Lola no la espera: si llega a tiempo, la usa (pista.js).
+  const pista = PISTA() ? decisionP.then((d) => (vaPorLaRapida(d, chatDe) ? null : d)) : null;
+  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA, puerta, signal: ctrl.signal, medir, pista });
 
   const d = await decisionP;
   marca(`enrutador (${d.modo} ${d.confianza}, ${d.ms} ms)`);
   // Lo que hace falta para convertir un turno real en un caso de
   // scripts/router-evals.json (scripts/router-feedback.mjs): la frase, lo que
   // acababa de decir Lola, los datos sacados y el chat, para ver qué vino después.
-  const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId), esGrupo, variosAutores };
+  // `corrige` (api/_bot/senales.js) se apunta ya, sin texto: así sigue
+  // midiéndose cuando la retención borre la frase (scripts/bot-semanal.mjs).
+  const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId), esGrupo, variosAutores, corrige: esCorreccion(texto, ultima?.texto) };
   if (vaPorLaRapida(d, chatDe) && !(await fueraDeLimite(householdId))) {
     const r = await viaRapida(d, householdId, { autor }).catch((e) => { console.error("[router] vía rápida", e?.message); return null; });
     marca("vía rápida hecha");
@@ -464,6 +482,10 @@ function medida(medir, d, t0, primer = null) {
       uso: l.uso ? { in: l.uso.input_tokens ?? 0, out: l.uso.output_tokens ?? 0, cr: l.uso.cache_read_input_tokens ?? 0, cw: l.uso.cache_creation_input_tokens ?? 0 } : null,
       primera: l.primera ? { in: l.primera.input_tokens, cr: l.primera.cache_read_input_tokens, cw: l.primera.cache_creation_input_tokens } : null,
       herramientas: (l.herramientas ?? []).map((h) => [h.n, h.ms]),
+      // BOT_PISTA: qué se adelantó, cuánto tardó y si hubo que cortarla.
+      pista: l.pista ?? null,
+      // BOT_AVISO_LENTO: la herramienta lenta cuyo aviso salió (primer_ms es entonces el del aviso).
+      aviso: l.aviso ?? null,
     } : null,
   };
 }
@@ -478,7 +500,7 @@ async function entregarRapida({ chatId, householdId, esGrupo, base, from, respon
 }
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null }) {
+async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
   const eco = oido ? `🎙️ «${oido}»\n\n` : "";
   const vivo = mensajeVivo(chatId, { responderA, eco });
@@ -501,7 +523,7 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
     const paraLola = !oido ? texto
       : texto.startsWith("[alta]") ? texto.replace("Mi primer mensaje:", "Mi primer mensaje (nota de voz):")
         : `[nota de voz] ${texto}`;
-    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir, puerta, signal });
+    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir, puerta, signal, pista });
     if (puerta && !(await puerta)) { if (medir) { medir.cancelada = true; medir.lola = r?.medida ?? null; } return; } // el turno fue de la vía rápida
   } catch (err) {
     // Cancelada porque el turno era de la vía rápida: nada que decir.
@@ -538,7 +560,7 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
  * lo que contesta Lola que para las respuestas directas (api/_bot/rapido.js).
  * Si el texto ya se estaba escribiendo en vivo, se termina ese mismo mensaje.
  */
-async function entregar({ chatId, householdId, esGrupo, base, from, responderA, oido = null, r, vivo = null }) {
+export async function entregar({ chatId, householdId, esGrupo, base, from, responderA, oido = null, r, vivo = null }) {
   const { cuerpo: frase, botones: propiosCrudos } = sacarBotones(r.texto);
   // Lo que se ha generado, cambiado o pedido ver, pintado debajo de la frase
   // (api/_bot/pintar.js): el modelo nunca escribe la lista de platos.
@@ -569,11 +591,14 @@ async function entregar({ chatId, householdId, esGrupo, base, from, responderA, 
   if (esGrupo && from?.id) {
     for (const b of [...botones.flat(), ...alPie]) if (b.dato === `t:${DESHACER}`) b.dato = `d:${from.id}`;
   }
-  // Todo se abre en la app, en su pantalla (?ir=). Solo en privado: el enlace
-  // puede llevar la llave de entrada de quien lo pide, y en un grupo la
-  // pulsaría cualquiera.
-  if (r.ir && base && !esGrupo) {
-    alPie.push({ texto: textoBotonApp(r.ir), url: await enlaceApp(base, r.ir, from, chatId) });
+  // Todo se abre en la app, en su pantalla (?ir=). En privado el enlace puede
+  // llevar la llave de entrada de quien lo pide; en un grupo la pulsaría
+  // cualquiera, así que va SIN llave: cada uno entra con su cuenta (quien ya
+  // tiene la sesión abierta, directo; si no, inicia sesión y la app le lleva
+  // igual a esa pantalla, que ?ir= se guarda en sessionStorage). Pablo, 2 oct
+  // 2026: «el inicio de sesión tarda nada».
+  if (r.ir && base) {
+    alPie.push({ texto: textoBotonApp(r.ir), url: esGrupo ? `${base}/?ir=${encodeURIComponent(r.ir)}` : await enlaceApp(base, r.ir, from, chatId) });
   }
   if (alPie.length) botones.push(alPie);
   if (r.compartir && base) {
@@ -583,6 +608,10 @@ async function entregar({ chatId, householdId, esGrupo, base, from, responderA, 
     if (enlaces) botones.push(...botonesCompartir(enlaces, r.compartir.tipo));
   }
   const eco = oido ? `🎙️ <i>«${escaparHtml(oido)}»</i>\n\n` : "";
+  // Si en pantalla solo quedó un aviso de espera y hay fotos, fuera el aviso:
+  // así el álbum sale antes del texto, como en un mensaje nuevo.
+  // Si el álbum ya salió (con el propio aviso), no se borra ni se repite.
+  if (vivo?.provisional() && !vivo.fotosEnviadas() && fotosDelTurno(r.fotos).length) await vivo.quitarAviso();
   if (vivo?.id()) {
     // Ya estaba en pantalla escribiéndose: se completa ahí, con su formato y
     // sus botones. (Las fotos, si las había, salieron antes que el texto.)
@@ -626,6 +655,11 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
   let cadena = Promise.resolve();
   let parado = false;
   let fotosEnviadas = false;
+  // Lo que hay en pantalla es un aviso de espera (agente.js AVISO_LENTO), no
+  // lo que ha escrito Lola: si después llegan fotos, el aviso se borra y sale
+  // el álbum antes del texto, como siempre (un álbum no se mete delante de un
+  // mensaje que ya existe).
+  let provisional = false;
 
   const limpiar = (t) => String(t ?? "")
     .replace(/\[\[[^\]\n]*\]\]/g, "")
@@ -633,9 +667,20 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
     .replace(/<[^>]*>?/g, "")
     .trim();
 
-  const volcar = (texto, fotos) => {
+  const quitarAviso = async () => {
+    if (!id || !provisional) return;
+    // Si Telegram no deja borrarlo, se queda el id y se edita encima: mejor
+    // sin álbum que con un aviso huérfano encima de la respuesta.
+    const borrado = await llamar("deleteMessage", { chat_id: chatId, message_id: id }).then(() => true, () => false);
+    if (!borrado) return;
+    id = null;
+    provisional = false;
+  };
+
+  const volcar = (texto, fotos, aviso = false) => {
     cadena = cadena.then(async () => {
       if (parado || texto === ultimo) return;
+      if (provisional && !fotosEnviadas && fotosDelTurno(fotos ?? []).length) await quitarAviso();
       if (!id) {
         const fs = fotosDelTurno(fotos ?? []);
         if (fs.length && !fotosEnviadas) { fotosEnviadas = true; await enviarFotos(chatId, fs, { responderA }); }
@@ -646,20 +691,30 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
       }
       ultimo = texto;
       ultimaVez = Date.now();
+      provisional = aviso;
     });
     return cadena;
   };
 
   return {
     id: () => id,
-    /** @param {string} parcial  lo escrito hasta ahora en esta vuelta del modelo */
-    escribir(parcial, { fotos } = {}) {
+    /** ¿Lo que hay en pantalla es solo un aviso de espera? */
+    provisional: () => provisional,
+    /** ¿Ya salió un álbum con este mensaje? (entonces no se repite) */
+    fotosEnviadas: () => fotosEnviadas,
+    /** Borra el aviso de espera (si es lo que hay), para empezar de nuevo con fotos. */
+    quitarAviso: () => (cadena = cadena.then(quitarAviso)),
+    /**
+     * @param {string} parcial  lo escrito hasta ahora en esta vuelta del modelo
+     * @param {{ fotos?: object[], aviso?: boolean }} [extra]  aviso: es un aviso de espera
+     */
+    escribir(parcial, { fotos, aviso = false } = {}) {
       if (parado) return;
       const texto = limpiar(parcial);
       if (texto.length < MINIMO) return;
       clearTimeout(pendiente);
       const espera = Math.max(0, CADA_MS - (Date.now() - ultimaVez));
-      pendiente = setTimeout(() => volcar(texto, fotos), id ? espera : 0);
+      pendiente = setTimeout(() => volcar(texto, fotos, aviso), id ? espera : 0);
     },
     async parar() {
       parado = true;
@@ -773,7 +828,7 @@ async function enlaceGrupo(chatId, esGrupo, householdId) {
   if (esGrupo) return enviar(chatId, "Eso por privado: escríbeme /grupo allí y te paso el enlace.");
   const dueno = await duenoDe(householdId);
   if (!dueno) return enviar(chatId, "No encuentro quién gestiona esta casa.");
-  const token = crypto.randomBytes(16).toString("base64url");
+  const token = codigoDeGrupo();
   await insert("bot_link_tokens", [{ token, user_id: dueno, household_id: householdId, expires_at: new Date(Date.now() + VALIDEZ_GRUPO_MS).toISOString() }]);
   const bot = await nombreDelBot();
   return enviar(chatId, [
@@ -962,9 +1017,10 @@ async function comprobarCodigo(msg, chatId, token) {
     kind: "private",
     householdId: hogar.id,
     userId,
-    externalId: msg.from?.id,
+    externalId: idDePersona(msg.from),
     nombre: nombreDe(msg.from),
     lang: msg.from?.language_code,
+    identidad: "email",
   });
   if (r.ocupado) return enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
   return confirmarEnlace(chatId, hogar.id);
@@ -988,9 +1044,10 @@ async function crearCuenta(from, chatId, primero = {}) {
     kind: "private",
     householdId: cuenta.householdId,
     userId: cuenta.userId,
-    externalId: from.id,
+    externalId: idDePersona(from),
     nombre: nombreDe(from),
     lang: from.language_code,
+    identidad: "nacida",
   });
 
   // El alta sigue aquí mismo, hablando: el agente pregunta lo imprescindible
@@ -1019,9 +1076,14 @@ async function crearCuenta(from, chatId, primero = {}) {
 }
 
 async function abrirApp(msg, chatId, esGrupo, base) {
-  // Solo en privado: en un grupo, cualquiera de dentro recibiría una llave
-  // para entrar en la cuenta de otro.
-  if (esGrupo) return enviar(chatId, "Eso te lo mando por privado: escríbeme /app allí.");
+  // En un grupo, la app sin llave (cualquiera de dentro recibiría la de otro):
+  // cada uno entra con su cuenta. Quien la creó aquí, en Telegram, no tiene
+  // email ni contraseña: su llave, por privado.
+  if (esGrupo) {
+    return enviar(chatId, "Cada uno entra con su cuenta. Si la tuya la creaste aquí conmigo, escríbeme /app por privado y te mando tu entrada.", {
+      botones: [[{ texto: "Abrir HoMenu", url: `${base}/` }]],
+    });
+  }
   // Y solo a cuentas NACIDAS en este Telegram (email sintético de este
   // from.id). Una identidad en bot_identities no prueba que este Telegram sea
   // el dueño de la cuenta: se crea también al enlazar por email o desde un
@@ -1048,6 +1110,13 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
     if (callado) return null;
     return enviar(chatId, "Ese enlace ya no vale (caduca a los 15 minutos y sirve una sola vez). Pide otro desde la app.");
   }
+  // El de /grupo lo firma el titular pero lo pide cualquiera con el privado
+  // enlazado: usado en un privado, enlazaría ese Telegram a la casa como si
+  // fuera el titular. Solo vale para meter a Lola en un grupo.
+  if (!esGrupo && esCodigoDeGrupo(token)) {
+    if (callado) return null;
+    return enviar(chatId, "Ese enlace es para meterme en un grupo: púlsalo y elige el grupo de la familia.");
+  }
 
   // Marcarlo usado ANTES de enlazar: dos pulsaciones seguidas no enlazan dos veces.
   const usados = await update("bot_link_tokens", `token=${eq(token)}&used_at=is.null`, { used_at: new Date().toISOString() });
@@ -1058,9 +1127,12 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
     kind: esGrupo ? "group" : "private",
     householdId: fila.household_id,
     userId: fila.user_id,
-    externalId: msg.from?.id,
+    externalId: idDePersona(msg.from),
     nombre: nombreDe(msg.from),
     lang: msg.from?.language_code,
+    // Solo en privado (enlazarChat lo vuelve a mirar): en un grupo, quien
+    // pulsa no tiene por qué ser quien sacó el enlace.
+    identidad: esGrupo ? null : "ajustes",
   });
   if (r.ocupado) {
     await enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");

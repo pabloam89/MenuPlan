@@ -15,6 +15,46 @@ ninguno fiable. Ver «El registro miente» más abajo.
 | **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` la `0062_bot_cron`, la `0063_bot_turnos` y la `0064_catalogo_una_fuente`, el 30 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
+## La 0070 y la 0071, aplicadas el 2 oct 2026
+
+`0070_papel_editor` (el valor `editor` del enum) y `0071_tres_papeles`
+(titular, cotitular y lector: RLS de cotitular, filas de casa reescritas a
+nombre del titular, household_invites y las RPC de miembros). Con permiso de
+Pablo. La 0070 en su transacción; la 0071 solo tras ensayarla en una
+transacción deshecha: el primer ensayo dio 2 fallos (los dos de la prueba,
+no de la migración), y la 0071 no se aplicó hasta que salió limpio (30 de
+30). Comprobado después contra la base viva con `node scripts/ensayo-papeles.mjs`
+(siempre deshace lo que hace): todo bien.
+
+## La 0069, aplicada el 2 oct 2026
+
+`0069_bot_activar_menu` (sesión menuplan-79, PR #25) — `bot_save_casa_activando`:
+lo mismo que `bot_save_casa`, pero activa además `p_menu_id` en la misma
+transacción. Solo service_role. La usan generar y deshacer del bot.
+
+## La 0068, aplicada el 2 oct 2026
+
+`0068_version_en_cada_escritura` — `save_household_state` y `save_menu_week`
+suben `household_state.bot_rev` en cada guardado de la app (C-2 de
+specs/roles-de-la-casa-revision.md). Ensayada en transacción deshecha (11 de
+11) y aplicada por la sesión menuplan-79 a petición de Pablo, ANTES de que el
+cliente que la entiende (src/lib/versionCasa.js, en staging desde el PR #24)
+llegue a producción: hasta entonces, la app vieja de producción recarga tras
+cada guardado propio. Pablo lo acepta («nadie está usando la app»).
+
+## La 0067, aplicada el 1 oct 2026
+
+`0067_cerrar_casas_ajenas` — fase 0 de specs/roles-de-la-casa-*.md. Trigger
+`fila_de_casa_es_del_dueno` en `user_pantry`, `user_menus`, `user_menu_weeks` y
+`user_menu_recipes` (una fila con `household_id` va a nombre del dueño de esa
+casa, también desde el servidor); las cuatro políticas «Users manage own …»
+exigen además `is_household_owner(household_id)`; trigger
+`dueno_de_casa_no_cambia` en `households`; `remove_household_member` y
+`leave_household` rotan `invite_token`. Antes de aplicarla, 0 filas la
+incumplían. Comprobado después con usuarios simulados en una transacción
+deshecha: meter una fila en casa ajena se bloquea, en la propia pasa.
+(El resumen de arriba no la cuenta todavía: lo actualiza quien suba la 0065 y la 0066.)
+
 ## La 0064, aplicada el 30 sep 2026
 
 `0064_catalogo_una_fuente` — solo comentarios: `recipes`, `catalog_meta`,

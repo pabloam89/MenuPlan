@@ -24,7 +24,7 @@
 import { select, insert, eq, config } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
-import { duenoDe, rastro } from "./embudo.js";
+import { duenoDe, rastro, registrar } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { SYSTEM_PROMPTS } from "../_prompts.js";
 import { buscarHibrido, pasaRasgos } from "./buscador.js";
@@ -92,14 +92,14 @@ export function filtrarRecetas(recetas, { consulta = "", categoria = null, maxMi
  */
 export async function conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo }, deps) {
   const palabras = normal(consulta).split(/[^a-z0-9ñ]+/).filter((w) => w.length > 2 && !VACIAS.has(w));
-  if (!palabras.length || categoria === "mias") return { halladas: porPalabras, aviso: "" };
+  if (!palabras.length || categoria === "mias") return { halladas: porPalabras, aviso: "", via: "palabras" };
   const rasgos = rasgosDeFrase(consulta);
   const descriptiva = palabras.length >= 3 || rasgos.hayRasgos || rasgos.negacion;
-  if (!descriptiva && porPalabras.length > 0) return { halladas: porPalabras, aviso: "" };
+  if (!descriptiva && porPalabras.length > 0) return { halladas: porPalabras, aviso: "", via: "palabras" };
   const h = await buscarHibrido(consulta, { catalogo, carpetaDe, categoria, maxMinutos, deps });
   const palabrasQuePasan = porPalabras.filter((r) => pasaRasgos(r, h));
   const juntas = descriptiva ? [...h.recetas, ...palabrasQuePasan] : [...palabrasQuePasan, ...h.recetas];
-  return { halladas: [...new Map(juntas.map((r) => [r.id, r])).values()], aviso: h.aviso, via: h.via };
+  return { halladas: [...new Map(juntas.map((r) => [r.id, r])).values()], aviso: h.aviso, via: h.via, parecido: h.parecidoMax ?? null };
 }
 
 /**
@@ -115,7 +115,13 @@ export async function buscarRecetas(householdId, { consulta, categoria, maxMinut
   const estrella = m.recipeCatalog.filter((r) => r.estrella);
   const todas = [...propias, ...estrella];
   const porPalabras = filtrarRecetas(todas, { consulta, categoria, maxMinutos });
-  const { halladas, aviso: avisoBusqueda } = await conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo: estrella });
+  const { halladas, aviso: avisoBusqueda, via, parecido } = await conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo: estrella });
+  // Para la mejora semanal (scripts/bot-semanal.mjs): qué buscó, por dónde y
+  // cuánto se parecía lo mejor. `texto` lo borra la retención a los 15 días.
+  // Sin esperar: no retrasa la respuesta.
+  duenoDe(householdId)
+    .then((userId) => registrar("bot_busqueda", { userId, extra: { texto: String(consulta ?? "").slice(0, 200), via: via ?? "palabras", parecido: Number.isFinite(parecido) ? Math.round(parecido * 1000) / 1000 : null, n: halladas.length, categoria: categoria ?? null } }))
+    .catch(() => {});
   if (!halladas.length) {
     return `No hay recetas de ${categoria ? CATEGORIAS[categoria] ?? categoria : "eso"}${consulta ? ` con «${consulta}»` : ""} en el recetario.`;
   }
@@ -299,6 +305,9 @@ export async function guardarReceta(householdId, { confirmado }, chat) {
   const receta = (await ultimoApartado(chat, TIPO_BORRADOR))?.receta;
   if (!receta) return "No tengo ninguna receta preparada en esta charla: prepárala primero con preparar_receta.";
   const r = await guardarRecetaPropia(householdId, receta);
+  // Sin dueño no llega ni al recetario: antes contestaba «Guardada en el
+  // recetario, pero…» sin haber guardado nada.
+  if (!r.enRecetario) return `NO GUARDADA: la receta no se ha podido guardar (${r.error}). Sigue preparada: se puede volver a intentar.`;
   await rastro(householdId, RASTRO.RECETA_GUARDADA, {
     recipeId: receta.id ?? null, baseDishId: receta.baseDishId ?? receta.linkedCatalogId ?? null,
     origen: receta.baseDishId || receta.linkedCatalogId ? ORIGEN_RECETA.VARIANTE : ORIGEN_RECETA.CREADA_BOT,
@@ -316,11 +325,12 @@ export async function guardarReceta(householdId, { confirmado }, chat) {
  * copia la de otra persona le pone antes id nuevo (`user_…`), `owner` y
  * `copiedFromRecipeId` / `copiedFromOwnerId`: aquí no se decide nada de eso.
  *
- * @returns {Promise<{ ok: boolean, error?: string }>}
+ * @returns {Promise<{ ok: boolean, enRecetario: boolean, error?: string }>}
+ *   `enRecetario`: si llegó a `user_recipes` (aunque la casa no se apuntara).
  */
 export async function guardarRecetaPropia(householdId, receta) {
   const dueno = receta.owner?.id ?? (await duenoDe(householdId));
-  if (!dueno) return { ok: false, error: "casa sin dueño" };
+  if (!dueno) return { ok: false, enRecetario: false, error: "casa sin dueño" };
   const m = await motor();
   const lista = { ...receta, owner: receta.owner ?? { id: dueno }, source: "user" };
   await insert("user_recipes", [m.recipeToRow(lista, dueno)], { upsert: true });
@@ -329,7 +339,7 @@ export async function guardarRecetaPropia(householdId, receta) {
     const otras = (data.userRecipes ?? []).filter((x) => x.id !== lista.id);
     return { state: { ...casa.state, data: { ...data, userRecipes: [...otras, lista] } } };
   });
-  return r.ok ? { ok: true } : { ok: false, error: r.error };
+  return r.ok ? { ok: true, enRecetario: true } : { ok: false, enRecetario: true, error: r.error };
 }
 
 /**

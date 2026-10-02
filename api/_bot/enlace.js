@@ -11,10 +11,36 @@ import { select, insert, update, eq } from "./db.js";
 import { enviar, escaparHtml, TECLADO } from "./telegram.js";
 import { registrar, EMBUDO } from "./embudo.js";
 
+// Ids de Telegram que no son una persona: el admin anónimo de un grupo
+// (GroupAnonymousBot), lo que se publica como canal (Channel_Bot) y los avisos
+// del propio Telegram. Todos los admins anónimos escriben con el primero: si se
+// enlazara a alguien, todos heredarían su cuenta.
+const NO_PERSONAS = new Set(["1087968824", "136817688", "777000"]);
+
+/** El id de quien escribe, o null si no es una persona (un bot, un anónimo). */
+export function idDePersona(from) {
+  if (!from?.id || from.is_bot) return null;
+  const id = String(from.id);
+  return NO_PERSONAS.has(id) ? null : id;
+}
+
 /**
- * @returns {Promise<{ ok: true } | { ok: false, ocupado: true }>}
+ * Enlazar un chat con una casa (bot_chats) es una cosa; decir que un Telegram
+ * ES una cuenta (bot_identities) es otra, y solo se apunta con prueba (C-3 de
+ * specs/roles-de-la-casa-revision.md):
+ *   · `nacida`: la cuenta se creó en este Telegram (email sintético de su id).
+ *     Es la prueba más fuerte, y la única que corrige una identidad anterior.
+ *   · `email`: escribió aquí el código que llegó al correo de la cuenta.
+ *   · `ajustes`: el enlace de «Conectar Telegram» que el dueño sacó en su app,
+ *     pulsado en un chat privado.
+ * Sin prueba (`identidad` null), o en un grupo, solo se enlaza el chat: el
+ * que pulsa «Añadir al grupo» no tiene por qué ser quien firmó el enlace.
+ * Y una identidad que ya es de otra cuenta no se cambia por pulsar un enlace.
+ *
+ * @param {{ identidad?: "nacida" | "email" | "ajustes" | null }} args
+ * @returns {Promise<{ ok: true, identidad: "nueva" | "igual" | "de-otra" | "sin" } | { ok: false, ocupado: true }>}
  */
-export async function enlazarChat({ channel = "telegram", chatId, kind, householdId, userId, externalId, nombre, lang }) {
+export async function enlazarChat({ channel = "telegram", chatId, kind, householdId, userId, externalId, nombre, lang, identidad = null }) {
   // Un chat ya enlazado a OTRA casa solo lo puede mover quien lo enlazó: si
   // no, cualquiera del grupo familiar se lo llevaría a su casa con su código.
   const [actual] = await select("bot_chats", `channel=${eq(channel)}&chat_id=${eq(chatId)}`, "household_id,linked_by");
@@ -22,14 +48,7 @@ export async function enlazarChat({ channel = "telegram", chatId, kind, househol
     return { ok: false, ocupado: true };
   }
 
-  if (externalId) {
-    await insert("bot_identities", [{
-      channel,
-      external_id: String(externalId),
-      user_id: userId,
-      display_name: nombre ?? null,
-    }], { upsert: true });
-  }
+  const estado = await apuntarIdentidad({ channel, kind, userId, externalId, nombre, identidad });
   await insert("bot_chats", [{
     channel,
     chat_id: String(chatId),
@@ -39,11 +58,33 @@ export async function enlazarChat({ channel = "telegram", chatId, kind, househol
     lang: lang ?? null,
   }], { upsert: true });
   await registrar(EMBUDO.ENLACE, { userId, telegramId: externalId, unaVez: true, extra: { tipo: kind } });
-  return { ok: true };
+  return { ok: true, identidad: estado };
+}
+
+async function apuntarIdentidad({ channel, kind, userId, externalId, nombre, identidad }) {
+  if (!identidad || kind !== "private" || !externalId || NO_PERSONAS.has(String(externalId))) return "sin";
+  const [ya] = await select("bot_identities", `channel=${eq(channel)}&external_id=${eq(String(externalId))}`, "user_id");
+  if (ya && ya.user_id !== userId && identidad !== "nacida") {
+    console.warn("[enlace] identidad de otra cuenta, no se cambia", { channel, identidad });
+    return "de-otra";
+  }
+  await insert("bot_identities", [{
+    channel,
+    external_id: String(externalId),
+    user_id: userId,
+    display_name: nombre ?? null,
+  }], { upsert: true });
+  return ya?.user_id === userId ? "igual" : "nueva";
 }
 
 /** 16 bytes en base64url: cabe en el `/start` de Telegram (máx. 64) y en una URL. */
 export const codigoNuevo = () => crypto.randomBytes(16).toString("base64url");
+
+// Los de /grupo llevan una «g» delante: 23 caracteres, y los demás (16 bytes en
+// base64url, también los de la app) siempre 22. Así se distinguen sin tocar la
+// tabla, y uno de grupo no sirve para enlazar un privado.
+export const codigoDeGrupo = () => `g${codigoNuevo()}`;
+export const esCodigoDeGrupo = (token) => typeof token === "string" && token.length === 23 && token.startsWith("g");
 
 export async function crearCodigo({ tipo, channel = "telegram", chatId, externalId, nombre, userId = null, email = null, minutos }) {
   const codigo = codigoNuevo();

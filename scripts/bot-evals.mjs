@@ -24,6 +24,9 @@ process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
 const { ejecutar, herramientas, MODELO, MODELO_RESERVA } = await import("../api/_bot/agente.js");
 const { supervisar } = await import("../api/_bot/supervisor.js");
+// La pista del enrutador (BOT_PISTA), con el mismo texto que en Telegram: un
+// caso con "pista" { decision, adelanto } mide si Lola la usa sin fiarse de más.
+const { textoPista } = await import("../api/_bot/pista.js");
 // Un solo modelo por pasada: sin esto, un fallo de la API caería al plan B en
 // silencio y la medida mezclaría dos modelos.
 const RESERVA = process.argv.includes("--reserva");
@@ -115,7 +118,13 @@ for (const caso of elegidos) {
     run: (args) => {
       const freno = supervisar(t.name, args, caso.entrada, { anterior });
       if (freno) { llamadas.push({ nombre: `${t.name} (frenada)`, args }); return freno; }
+      // `"respuestas": { herramienta: "texto" | ["1.ª", "2.ª", …] }` en un caso
+      // pisa la de siempre; con una lista, cada llamada recibe la suya (la
+      // última se repite): así se prueba qué dice Lola cuando algo falla.
+      const propia = caso.respuestas?.[t.name];
+      const vez = llamadas.filter((l) => l.nombre === t.name).length;
       llamadas.push({ nombre: t.name, args });
+      if (propia != null) return Array.isArray(propia) ? propia[Math.min(vez, propia.length - 1)] : propia;
       const r = RESPUESTAS[t.name];
       return typeof r === "function" ? r(args) : r ?? `Hecho (${t.name}).`;
     },
@@ -128,7 +137,8 @@ for (const caso of elegidos) {
     // ella, las pruebas medían a una Lola que no sabe nada de la familia.
     // `"ficha": null` en un caso la quita; `"ficha": {…}` pone otra.
     const ficha = caso.ficha === undefined ? FICHA : caso.ficha;
-    const r = await ejecutar({ historia: caso.historia ?? [], entrada: caso.entrada, tools, adjunto, modelos: [MEDIDO], ficha });
+    const pista = caso.pista ? textoPista(caso.pista.decision, caso.pista.adelanto) : null;
+    const r = await ejecutar({ historia: caso.historia ?? [], entrada: caso.entrada, tools, adjunto, modelos: [MEDIDO], ficha, pista });
     dicho = r.dicho;
     coste += (r.uso.input_tokens * PRECIO[0] + r.uso.output_tokens * PRECIO[1] + r.uso.cache_read_input_tokens * PRECIO[2] + r.uso.cache_creation_input_tokens * PRECIO[3]) / 1e6;
   } catch (e) {
@@ -139,6 +149,13 @@ for (const caso of elegidos) {
   // Alguna de estas (cuando hay más de una forma correcta de guardarlo).
   if (caso.llamaAlguna && !caso.llamaAlguna.some((n) => nombres.includes(n))) fallos.push(`no llamó a ninguna de ${caso.llamaAlguna.join(", ")}`);
   for (const n of caso.noLlama ?? []) if (nombres.includes(n)) fallos.push(`llamó a ${n} y no debía`);
+  // `"antes": [["a", "b"]]`: la primera vez que llama a «a» va antes que la
+  // primera de «b» (apuntar las condiciones y después generar).
+  for (const [a, b] of caso.antes ?? []) {
+    const ia = nombres.indexOf(a);
+    const ib = nombres.indexOf(b);
+    if (ia >= 0 && ib >= 0 && ia > ib) fallos.push(`llamó a ${b} antes que a ${a}`);
+  }
   for (const [n, esperado] of Object.entries(caso.args ?? {})) {
     if (!llamadas.some((l) => l.nombre === n && contiene(l.args, esperado))) {
       fallos.push(`${n} sin ${JSON.stringify(esperado)} (llegó: ${JSON.stringify(llamadas.filter((l) => l.nombre === n).map((l) => l.args))})`);

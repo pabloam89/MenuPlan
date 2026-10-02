@@ -68,6 +68,28 @@ describe("ejecutar: si lo dice y no guardó, otra vuelta", () => {
     expect(llamadas).toHaveLength(2);
   });
 
+  it("intentar guardar y fallar no cuenta: «✅ Apuntado» tras un choque pasa por el aviso", async () => {
+    // Lo de Nat (2 oct 2026): fuera_de_casa contestó «no he podido guardarlo»
+    // y aun así había contado como escritura.
+    const fallida = { name: "ajustar_gustos", run: async () => "No he podido guardarlo: conflicto persistente." };
+    const { vuelta, llamadas } = guion([
+      { dice: "✅ Apuntado.", llama: ["ajustar_gustos"] },
+      { dice: "No he podido guardarlo, ¿lo intento otra vez?" },
+    ]);
+    const r = await ejecutar({ entrada: "nada de coliflor", tools: [fallida], modelos: ["m"], vuelta, guardados: () => 0 });
+    expect(llamadas).toHaveLength(2);
+    expect(r.corregido).toBe(true);
+    // La segunda vuelta dice la verdad («no he podido»): no es un fallo final.
+    expect(r.sigueSinGuardar).toBe(false);
+  });
+
+  it("si tras el aviso sigue diciendo que guardó sin guardar, queda marcado", async () => {
+    const { vuelta } = guion([{ dice: "✅ Apuntado: nada de coliflor." }, { dice: "✅ Hecho, apuntado." }]);
+    const r = await ejecutar({ entrada: "nada de coliflor", tools: [ajustarGustos], modelos: ["m"], vuelta });
+    expect(r.corregido).toBe(true);
+    expect(r.sigueSinGuardar).toBe(true);
+  });
+
   it("una respuesta que solo informa no se toca", async () => {
     const { vuelta, llamadas } = guion([{ dice: "Esta noche, tortilla de patatas." }]);
     await ejecutar({ entrada: "¿qué cenamos?", tools: [verMenu], modelos: ["m"], vuelta });
