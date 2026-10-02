@@ -18,7 +18,7 @@
 import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 import { rastro } from "./embudo.js";
-import { IDS_COMIDAS, COMIDAS_PRINCIPALES, comidaDe } from "../../src/lib/comidas.js";
+import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 
 let motorCargado = null;
@@ -410,7 +410,7 @@ export async function anadirCompra(householdId, productos, out = null) {
 }
 
 /** El grupo y el hueco de un día y franja del menú activo, o por qué no hay. */
-function huecoDe(casa, { dia, franja, grupo, cual }) {
+export function huecoDe(casa, { dia, franja, grupo, cual }) {
   if (!casa.semana?.plan) return { error: "No hay menú activo." };
   const gs = grupos(casa);
   const members = casa.state?.data?.members ?? [];
@@ -426,8 +426,15 @@ function huecoDe(casa, { dia, franja, grupo, cual }) {
   const clave = `${dia}-${franja}`;
   const hueco = casa.semana.plan[g.id]?.[clave];
   if (!hueco) return { error: `El ${DIA_LARGO[dia]} no hay ${franja.toLowerCase()} planificada para ${quienesDe(g, members) ?? "ellos"}.` };
-  const course = cual === "primero" && hueco.firstRecipeId ? "first" : "main";
-  return { gs, g, clave, hueco, course };
+  // Un primero (entrante) que no estaba se AÑADE; nunca se cambia el principal
+  // en su lugar. Antes, sin primero en el hueco, caía en silencio al principal:
+  // «un entrante para la cena» → «Vamos con lomo» sustituyó la cena entera
+  // (staging, 2 oct 2026).
+  if (cual === "primero" && !(COMIDAS.find((c) => c.id === franja)?.platos ?? []).includes("primero")) {
+    return { error: `${franja} no lleva primero: no cambio el plato que hay. Si quieren otro, que lo digan.` };
+  }
+  const course = cual === "primero" ? "first" : "main";
+  return { gs, g, clave, hueco, course, anadir: course === "first" && !hueco.firstRecipeId };
 }
 
 // Cuántas candidatas se miran al buscar la que alguien ha elegido por su
@@ -821,7 +828,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     const { casa, dia, fecha } = rd;
     const h = huecoDe(casa, { dia, franja, grupo, cual });
     if (h.error) { texto = h.error; return null; }
-    const { gs, g, clave, hueco, course } = h;
+    const { gs, g, clave, hueco, course, anadir } = h;
     const m = await prepararRecetas(casa);
     const data = casa.state?.data ?? {};
 
@@ -862,7 +869,9 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
         if (x.id === g.id || tipoDeGrupo(x, data.members ?? []) === "bebe") continue;
         const suyo = plan[x.id]?.[clave];
         if (!suyo) continue;
-        const curso = course === "first" && suyo.firstRecipeId ? "first" : "main";
+        // El mismo plato que se pide: un entrante se añade también a los demás,
+        // nunca se les cambia el principal.
+        const curso = course;
         const permitidas = m.pickCatalogReplacement(data, plan, { groupId: x.id, day: dia, meal: franja, course: curso, candidatos: POOL_PARA_APROXIMAR, pedido: true })?.candidatos ?? [];
         if (!permitidas.some((r) => base(r.id) === base(elegido.recipeId))) { sinCambiar.push(x.label); continue; }
         const suyoElegido = m.pickCatalogReplacement(data, plan, { groupId: x.id, day: dia, meal: franja, course: curso, forcedRecipe: elegido.frontendRecipe });
@@ -894,8 +903,12 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     // Para quién ha sido, en personas y no en nombres de grupo.
     const para = grupo || sinCambiar.length ? quienesDe(g, data.members ?? []) : null;
     const sinCambiarQuienes = sinCambiar.map((l) => quienesDe(gs.find((x) => x.label === l), data.members ?? [])).filter(Boolean);
-    if (out) Object.assign(out, { cambiado: true, fecha, dia, franja, grupo: para, sinCambiar: sinCambiarQuienes, antes: antes ?? null, despues: elegido.frontendRecipe.name, adaptado: cambiosDe(elegido.frontendRecipe), recetaId: elegido.recipeId, aproximada, pedida: receta });
-    texto = `Cambiado (${fechaCorta(fecha)}, ${fecha}, ${franja}${para ? `, para ${para}` : tambien.length ? ", para toda la familia" : ""}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`
+    if (out) Object.assign(out, { cambiado: true, anadido: Boolean(anadir), fecha, dia, franja, grupo: para, sinCambiar: sinCambiarQuienes, antes: antes ?? null, despues: elegido.frontendRecipe.name, adaptado: cambiosDe(elegido.frontendRecipe), recetaId: elegido.recipeId, aproximada, pedida: receta });
+    const dondeQuien = `${fechaCorta(fecha)}, ${fecha}, ${franja}${para ? `, para ${para}` : tambien.length ? ", para toda la familia" : ""}`;
+    const principal = m.RECIPES_BY_ID[hueco.recipeId]?.name;
+    texto = (anadir
+      ? `Añadido de primero (${dondeQuien}): ${elegido.frontendRecipe.name}. El principal${principal ? ` (${principal})` : ""} se queda igual: dilo así, no digas que has cambiado la ${franja.toLowerCase()}.`
+      : `Cambiado (${dondeQuien}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`)
       + (sinCambiarQuienes.length ? ` ${sinCambiarQuienes.join(" y ")} se quedan con lo suyo: ese plato no encaja con sus alergias o su etapa. Dilo así.` : "")
       + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "")
       + (dePintado ? `\n\nAsí queda ese día (es lo guardado, y SALE PINTADO debajo de tu mensaje con el plato nuevo destacado: no lo escribas ni llames a ver_menu; di solo qué has cambiado):\n${dePintado}` : "");

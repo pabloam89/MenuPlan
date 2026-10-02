@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { resolverDia, masParecida } from "./menu.js";
+import { resolverDia, masParecida, huecoDe } from "./menu.js";
 
 // Menú con esta semana (empezada el miércoles) y la que viene, como queda
 // tras pedir «el menú de la semana que viene» con uno de esta ya activo.
@@ -54,5 +54,37 @@ describe("masParecida", () => {
 
   it("si no está lo principal, nada (y se ofrecen opciones)", () => {
     expect(masParecida(candidatas, "merluza en salsa verde")).toBeNull();
+  });
+});
+
+describe("huecoDe: un entrante se añade, nunca sustituye al principal", () => {
+  // Lo de staging (2 oct 2026): «un entrante para la cena» → «Vamos con lomo»
+  // cambió la cena entera porque la cena no tenía primero.
+  const conPlan = (hueco, franja = "Cena") => ({
+    semana: { plan: { g1: { [`Vie-${franja}`]: hueco } } },
+    state: { data: { groups: [{ id: "g1", label: "Familia", memberIds: ["a"] }], members: [{ id: "a", name: "Ana" }] } },
+  });
+
+  it("cena sin primero: el primero se añade y el principal no se toca", () => {
+    const h = huecoDe(conPlan({ recipeId: "tortilla" }), { dia: "Vie", franja: "Cena", cual: "primero" });
+    expect(h.course).toBe("first");
+    expect(h.anadir).toBe(true);
+  });
+
+  it("cena con primero: se cambia el primero", () => {
+    const h = huecoDe(conPlan({ recipeId: "tortilla", firstRecipeId: "crema" }), { dia: "Vie", franja: "Cena", cual: "primero" });
+    expect(h.course).toBe("first");
+    expect(h.anadir).toBe(false);
+  });
+
+  it("el principal, como siempre", () => {
+    const h = huecoDe(conPlan({ recipeId: "tortilla" }), { dia: "Vie", franja: "Cena", cual: "principal" });
+    expect(h.course).toBe("main");
+    expect(h.anadir).toBe(false);
+  });
+
+  it("una comida sin primero (desayuno) no cae al principal: error", () => {
+    const h = huecoDe(conPlan({ recipeId: "tostadas" }, "Desayuno"), { dia: "Vie", franja: "Desayuno", cual: "primero" });
+    expect(h.error).toMatch(/no lleva primero/);
   });
 });
