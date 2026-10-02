@@ -118,7 +118,13 @@ for (const caso of elegidos) {
     run: (args) => {
       const freno = supervisar(t.name, args, caso.entrada, { anterior });
       if (freno) { llamadas.push({ nombre: `${t.name} (frenada)`, args }); return freno; }
+      // `"respuestas": { herramienta: "texto" | ["1.ª", "2.ª", …] }` en un caso
+      // pisa la de siempre; con una lista, cada llamada recibe la suya (la
+      // última se repite): así se prueba qué dice Lola cuando algo falla.
+      const propia = caso.respuestas?.[t.name];
+      const vez = llamadas.filter((l) => l.nombre === t.name).length;
       llamadas.push({ nombre: t.name, args });
+      if (propia != null) return Array.isArray(propia) ? propia[Math.min(vez, propia.length - 1)] : propia;
       const r = RESPUESTAS[t.name];
       return typeof r === "function" ? r(args) : r ?? `Hecho (${t.name}).`;
     },
@@ -143,6 +149,13 @@ for (const caso of elegidos) {
   // Alguna de estas (cuando hay más de una forma correcta de guardarlo).
   if (caso.llamaAlguna && !caso.llamaAlguna.some((n) => nombres.includes(n))) fallos.push(`no llamó a ninguna de ${caso.llamaAlguna.join(", ")}`);
   for (const n of caso.noLlama ?? []) if (nombres.includes(n)) fallos.push(`llamó a ${n} y no debía`);
+  // `"antes": [["a", "b"]]`: la primera vez que llama a «a» va antes que la
+  // primera de «b» (apuntar las condiciones y después generar).
+  for (const [a, b] of caso.antes ?? []) {
+    const ia = nombres.indexOf(a);
+    const ib = nombres.indexOf(b);
+    if (ia >= 0 && ib >= 0 && ia > ib) fallos.push(`llamó a ${b} antes que a ${a}`);
+  }
   for (const [n, esperado] of Object.entries(caso.args ?? {})) {
     if (!llamadas.some((l) => l.nombre === n && contiene(l.args, esperado))) {
       fallos.push(`${n} sin ${JSON.stringify(esperado)} (llegó: ${JSON.stringify(llamadas.filter((l) => l.nombre === n).map((l) => l.args))})`);

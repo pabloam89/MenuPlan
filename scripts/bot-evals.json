@@ -1477,6 +1477,45 @@
         "ver_despensa"
       ],
       "maxLlamadas": 1
+    },
+    {
+      "nombre": "un guardado falla: dice qué se guardó y qué no, sin inventar por qué",
+      "entrada": "Leo no come en casa el fin de semana ni cena hoy",
+      "respuestas": {
+        "fuera_de_casa": "No he podido guardarlo: se cruzó con otro cambio. No se ha cambiado nada.",
+        "ajustar_horario": "No he podido guardarlo: se cruzó con otro cambio. No se ha cambiado nada."
+      },
+      "llamaAlguna": [
+        "fuera_de_casa",
+        "ajustar_horario"
+      ],
+      "texto": "^(?=[^]*(no (he podido|pude|se ha|se han|ha quedado)))(?=[^]*(Reinténtalo|reintent|otra vez|de nuevo))",
+      "sinTexto": "(porque|ya que|debido a|parece que|seguramente|probablemente)"
+    },
+    {
+      "nombre": "rehacer el menú con condiciones: primero apunta, luego genera",
+      "entrada": "rehazme el menú para lo que queda de semana, asume que mañana no comemos en casa",
+      "llama": [
+        "fuera_de_casa",
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "semana": "esta"
+        },
+        "fuera_de_casa": {
+          "dia": "mañana"
+        }
+      },
+      "antes": [
+        [
+          "fuera_de_casa",
+          "generar_menu"
+        ]
+      ],
+      "noLlama": [
+        "cambiar_plato"
+      ]
     }
   ]
 }
