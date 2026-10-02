@@ -1726,7 +1726,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   // Keyed by name so retyping the dish name (and coming back) re-suggests once.
   useEffect(() => {
     if (autoDemo) return; // en demo sembramos ingredientes, sin red
-    const ingredientsStepIndex = 1;
+    const ingredientsStepIndex = 2;
     if (step !== ingredientsStepIndex) return;
     const name = form.name.trim();
     if (!name) return;
