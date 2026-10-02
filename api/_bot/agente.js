@@ -697,15 +697,15 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     }),
     herramienta({ soloLectura: false, pantalla: "semana" }, {
       name: "fuera_de_casa",
-      description: "Un día concreto alguien (o toda la casa) no come en casa: «hoy cenamos fuera», «el viernes Leo come con los abuelos». Solo ese día; lo que se repite cada semana es ajustar_horario. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. quienes: nombres de la casa (vacío = toda la casa).",
+      description: "Días concretos en que alguien (o toda la casa) no come en casa: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde». Solo esos días; lo que se repite cada semana es ajustar_horario. Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. quienes: nombres de la casa (vacío = toda la casa).",
       inputSchema: {
         type: "object",
         properties: {
-          dia: { type: "string", description: "hoy, mañana, pasado mañana o el nombre del día" },
-          comida: { type: "string", enum: IDS_COMIDAS },
+          dias: { type: "array", items: { type: "string" }, minItems: 1, description: "cada uno: hoy, mañana, pasado mañana, el nombre del día o finde" },
+          comidas: { type: "array", items: { type: "string", enum: IDS_COMIDAS }, minItems: 1 },
           quienes: { type: "array", items: { type: "string" } },
         },
-        required: ["dia", "comida"],
+        required: ["dias", "comidas"],
         additionalProperties: false,
       },
       run: async (args) => {

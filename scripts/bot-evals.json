@@ -1330,8 +1330,8 @@
       ],
       "args": {
         "fuera_de_casa": {
-          "dia": "jueves",
-          "comida": "comida"
+          "dias": "jueves",
+          "comidas": "comida"
         }
       },
       "noLlama": [
@@ -1339,6 +1339,22 @@
         "cambiar_plato",
         "proponer_platos"
       ]
+    },
+    {
+      "nombre": "habla: «Leo no come en casa el finde ni cena hoy» → ausencias en lote, no una llamada por hueco (2 oct 2026: cinco a la vez)",
+      "entrada": "Leo no come en casa el finde ni cena hoy",
+      "llama": [
+        "fuera_de_casa"
+      ],
+      "args": {
+        "fuera_de_casa": {
+          "quienes": "leo"
+        }
+      },
+      "noLlama": [
+        "ajustar_horario"
+      ],
+      "maxLlamadas": 2
     },
     {
       "nombre": "habla: «los jueves nunca comemos en casa» → es de cada semana: ajustar_horario, no fuera_de_casa",
@@ -1522,7 +1538,7 @@
           "semana": "esta"
         },
         "fuera_de_casa": {
-          "dia": "mañana"
+          "dias": "mañana"
         }
       },
       "antes": [
