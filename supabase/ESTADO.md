@@ -15,6 +15,16 @@ ninguno fiable. Ver «El registro miente» más abajo.
 | **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` la `0062_bot_cron`, la `0063_bot_turnos` y la `0064_catalogo_una_fuente`, el 30 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
+## La 0068, SIN APLICAR a propósito
+
+`0068_version_en_cada_escritura` — `save_household_state` y `save_menu_week`
+suben `household_state.bot_rev` en cada guardado de la app (C-2 de
+specs/roles-de-la-casa-revision.md). **No se aplica hasta que el cliente que
+la entiende (src/lib/versionCasa.js) esté en producción**: un cliente viejo
+no apunta la versión de sus propios guardados y chocaría consigo mismo,
+recargando tras cada cambio. El cliente nuevo funciona igual con la base de
+antes. Ensayada en transacción deshecha: 11 de 11.
+
 ## La 0067, aplicada el 1 oct 2026
 
 `0067_cerrar_casas_ajenas` — fase 0 de specs/roles-de-la-casa-*.md. Trigger
