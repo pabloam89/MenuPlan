@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 import { cors } from "./_guard.js";
+import { borrarLoDelBot } from "./_bot/borrar.js";
 
 // Real account deletion (Apple App Store Guideline 5.1.1(v)): removes the
 // auth.users row for the caller. Every user-scoped table (user_state,
@@ -177,6 +178,15 @@ export default async function handler(req, res) {
 
   // Antes de borrar: mientras el usuario exista todavía se puede leer su token.
   await revokeAppleToken(supabaseUrl, serviceRoleKey, userId);
+
+  // Lo del bot de Telegram que no cae en cascada con el usuario (chats
+  // enlazados, charlas, recordatorios, identidad…): antes, porque después ya
+  // no se sabe qué casas eran suyas. Con 4 s como mucho y sin cortar el
+  // borrado: igual que con Apple, el derecho a borrar no depende de esto.
+  await Promise.race([
+    borrarLoDelBot(userId),
+    new Promise((resolve) => setTimeout(resolve, 4000)),
+  ]).catch((err) => console.error("[delete-account] limpieza del bot", err?.message));
 
   try {
     const deleteRes = await fetchWithTimeout(`${supabaseUrl}/auth/v1/admin/users/${userId}`, {

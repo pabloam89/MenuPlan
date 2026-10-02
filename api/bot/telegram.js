@@ -924,7 +924,8 @@ async function pulsado(cq, base, host = "") {
       return { ok: false, motivo: "algo ha fallado a medias; mira los logs" };
     });
     if (!r.ok) return enviar(chatId, `No he borrado la cuenta: ${r.motivo}.`);
-    return enviar(chatId, "🗑️ <b>Borrado.</b> Ya no hay cuenta, ni casa, ni nada guardado de nuestras charlas.\n\nCuando quieras empezar de nuevo, escríbeme.", {
+    const lectores = r.lectores ? `\n\n${r.lectores === 1 ? "La persona que veía tu casa ha perdido" : `Las ${r.lectores} personas que veían tu casa han perdido`} el acceso.` : "";
+    return enviar(chatId, `🗑️ <b>Borrado.</b> Ya no hay cuenta, ni casa, ni nada guardado de nuestras charlas.${lectores}\n\nCuando quieras empezar de nuevo, escríbeme.`, {
       botones: [[{ texto: "Limpiar la pantalla", dato: "limpiar" }]],
     });
   }
