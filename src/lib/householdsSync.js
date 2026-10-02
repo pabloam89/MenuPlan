@@ -1,11 +1,12 @@
 import { supabase } from "./supabase.js";
+import { NOMBRE_PAPEL, papelDe, puede } from "./papeles.js";
 
 /**
  * Cloud access for shared households (see HOUSEHOLDS.md + 0017_households.sql).
  * All functions no-op without Supabase / session.
  */
 
-/** @typedef {'owner' | 'viewer'} HouseholdRole */
+/** @typedef {'owner' | 'editor' | 'viewer'} HouseholdRole */
 /** @typedef {'dormant' | 'invite_ready' | 'active'} HouseholdSetupStatus */
 
 /**
@@ -32,7 +33,7 @@ export function parseHouseholdRow(row) {
   return {
     id: String(r.id),
     name: String(r.name ?? "Mi casa"),
-    role: r.role === "owner" ? "owner" : "viewer",
+    role: papelDe(r.role),
     setupStatus: /** @type {HouseholdSetupStatus} */ (r.setupStatus ?? r.setup_status ?? "dormant"),
     ownerUserId: String(r.ownerUserId ?? r.owner_user_id ?? ""),
     inviteToken: r.inviteToken != null ? String(r.inviteToken) : r.invite_token != null ? String(r.invite_token) : null,
@@ -45,19 +46,20 @@ export function parseHouseholdRow(row) {
 /**
  * @param {unknown} row
  * @param {string} [currentUserId]
- * @returns {{ id: string, name: string, photo: string|null, roleLabel: string, joinedAt: string, isYou: boolean }|null}
+ * @returns {{ id: string, name: string, photo: string|null, role: HouseholdRole, roleLabel: string, joinedAt: string, isYou: boolean }|null}
  */
 export function parseHouseholdMemberRow(row, currentUserId) {
   if (!row || typeof row !== "object") return null;
   const r = /** @type {Record<string, unknown>} */ (row);
   const id = String(r.userId ?? r.user_id ?? "");
   if (!id) return null;
-  const role = r.role === "owner" ? "owner" : "viewer";
+  const role = papelDe(r.role);
   return {
     id,
     name: String(r.name ?? "Usuario"),
     photo: r.photo != null && String(r.photo).trim() ? String(r.photo) : null,
-    roleLabel: role === "owner" ? "Propietario" : "Visitante",
+    role,
+    roleLabel: NOMBRE_PAPEL.es[role],
     joinedAt: String(r.joinedAt ?? r.joined_at ?? ""),
     isYou: currentUserId ? id === currentUserId : false,
   };
@@ -82,7 +84,7 @@ export async function loadHouseholdMembers(householdId, currentUserId) {
 
 /**
  * @param {string} token
- * @returns {Promise<{ householdId: string, householdName: string }|null>}
+ * @returns {Promise<{ householdId: string, householdName: string, role: HouseholdRole, ownerName: string|null, lang: string|null }|null>}
  */
 export async function previewHouseholdInvite(token) {
   if (!supabase || !token?.trim()) return null;
@@ -96,7 +98,13 @@ export async function previewHouseholdInvite(token) {
   const id = data.householdId ?? data.household_id;
   const name = data.householdName ?? data.household_name;
   if (!id || !name) return null;
-  return { householdId: String(id), householdName: String(name) };
+  return {
+    householdId: String(id),
+    householdName: String(name),
+    role: papelDe(data.role),
+    ownerName: data.ownerName ? String(data.ownerName) : null,
+    lang: data.lang ?? null,
+  };
 }
 
 /**
@@ -164,7 +172,7 @@ export async function setActiveHousehold(householdId) {
 
 /**
  * @param {string} token
- * @returns {Promise<{ householdId: string, alreadyMember: boolean }|null>}
+ * @returns {Promise<{ householdId: string, alreadyMember: boolean, role: HouseholdRole }|{ error: string }|null>}
  */
 export async function joinHouseholdByToken(token) {
   if (!supabase || !token?.trim()) return null;
@@ -178,6 +186,7 @@ export async function joinHouseholdByToken(token) {
   return {
     householdId: data?.householdId ?? data?.household_id,
     alreadyMember: Boolean(data?.alreadyMember ?? data?.already_member),
+    role: papelDe(data?.role),
   };
 }
 
@@ -333,7 +342,9 @@ export function resolveActiveHousehold(households, activeId) {
  * @returns {boolean}
  */
 export function isHouseholdReadOnly(household) {
-  return household?.role === "viewer";
+  // Sin casa no hay nada que proteger; con casa, solo el titular y el
+  // cotitular la editan.
+  return Boolean(household) && !puede(household.role, "editar_casa");
 }
 
 /**
@@ -342,8 +353,76 @@ export function isHouseholdReadOnly(household) {
  */
 export function canShareHouseholdInvite(household) {
   return (
-    household?.role === "owner"
+    puede(household?.role, "invitar_lector")
     && (household.setupStatus === "invite_ready" || household.setupStatus === "active")
     && Boolean(household.inviteToken)
   );
+}
+
+// ── Invitaciones con papel y cambios de papel (0071) ──────────────────────
+
+/**
+ * @param {string} householdId
+ * @param {'editor'|'viewer'} role
+ * @param {'es'|'en'|null} [lang]
+ * @returns {Promise<{ token: string, role: HouseholdRole, expiresAt: string }|{ error: string }>}
+ */
+export async function createHouseholdInvite(householdId, role, lang = null) {
+  if (!supabase || !householdId) return { error: "sin conexión" };
+  const { data, error } = await supabase.rpc("create_household_invite", {
+    p_household_id: householdId,
+    p_role: role,
+    p_lang: lang,
+  });
+  if (error) {
+    console.warn("[householdsSync] create invite failed", error.message);
+    return { error: error.message };
+  }
+  return { token: String(data.token), role: papelDe(data.role), expiresAt: String(data.expiresAt) };
+}
+
+/** @param {string} householdId */
+export async function listHouseholdInvites(householdId) {
+  if (!supabase || !householdId) return [];
+  const { data, error } = await supabase.rpc("list_household_invites", { p_household_id: householdId });
+  if (error) {
+    console.warn("[householdsSync] list invites failed", error.message);
+    return [];
+  }
+  return (Array.isArray(data) ? data : []).map((i) => ({
+    token: String(i.token),
+    role: papelDe(i.role),
+    lang: i.lang ?? null,
+    expiresAt: String(i.expiresAt),
+  }));
+}
+
+/** @param {string} token */
+export async function revokeHouseholdInvite(token) {
+  if (!supabase || !token) return false;
+  const { error } = await supabase.rpc("revoke_household_invite", { p_token: token });
+  if (error) {
+    console.warn("[householdsSync] revoke invite failed", error.message);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * @param {string} householdId
+ * @param {string} userId
+ * @param {'editor'|'viewer'} role
+ */
+export async function setHouseholdMemberRole(householdId, userId, role) {
+  if (!supabase || !householdId || !userId) return false;
+  const { error } = await supabase.rpc("set_household_member_role", {
+    p_household_id: householdId,
+    p_user_id: userId,
+    p_role: role,
+  });
+  if (error) {
+    console.warn("[householdsSync] set role failed", error.message);
+    return false;
+  }
+  return true;
 }

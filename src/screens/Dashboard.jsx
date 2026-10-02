@@ -21,6 +21,7 @@ import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import menuCardPhoto2 from "../assets/dashboard/menu-card-2.jpg";
 import menuCardPhoto3 from "../assets/dashboard/menu-card-3.jpg";
+import { NOMBRE_PAPEL, papelDe } from "../lib/papeles.js";
 
 // Degradado de fondo de toda Inicio (2026-08-28): sustituye la card verde
 // sólida del perfil, que se sentía como una caja vacía sin contenido real
@@ -614,7 +615,7 @@ export function DashboardScreen({
                 margin: "8px 0 0", fontSize: 11, fontWeight: 700, color: "#5c7568",
               }}
             >
-              {activeHousehold.name} · {householdReadOnly ? "Visitante" : "Propietario"}
+              {activeHousehold.name} · {NOMBRE_PAPEL.es[papelDe(activeHousehold.role)]}
             </p>
           )}
         </div>
