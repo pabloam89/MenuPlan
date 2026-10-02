@@ -1816,3 +1816,15 @@ describe("las franjas de fuera de menú se sirven de su propio pool", () => {
     }
   });
 });
+
+describe("pickCatalogReplacement con ids que no son del catálogo en el día", () => {
+  // ideasSinMenu (api/_bot/menu.js) monta el hueco con firstRecipeId «_» para
+  // pedir un segundo cuando la comida lleva primero; el motor buscaba «_» en el
+  // catálogo y getCarbType(undefined) rompía (staging, 2 oct 2026).
+  it("no rompe y da candidatas", () => {
+    const data = { members: [{ id: "m1", age: 36 }], groups: [{ id: "g1", label: "Familia", memberIds: ["m1"] }], schedule: {} };
+    const plan = { g1: { "Jue-Comida": { recipeId: null, firstRecipeId: "_", eaters: 2 } } };
+    const r = pickCatalogReplacement(data, plan, { groupId: "g1", day: "Jue", meal: "Comida", course: "main", candidatos: 10 });
+    expect(r?.candidatos?.length).toBeGreaterThan(0);
+  });
+});
