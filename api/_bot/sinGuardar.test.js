@@ -52,7 +52,15 @@ describe("ejecutar: si lo dice y no guardó, otra vuelta", () => {
     expect(llamadas[1].historia.at(-1)).toEqual({ role: "assistant", content: "✅ Apuntado: nada de coliflor." });
     expect(r.dicho).toBe("Apuntado: nada de coliflor en casa.");
     expect(r.corregido).toBe(true);
+    expect(r.sigueSinGuardar).toBe(false);
     expect(r.uso.input_tokens).toBe(20);
+  });
+
+  it("si tras el aviso sigue diciendo que guardó sin guardar, queda marcado", async () => {
+    const { vuelta } = guion([{ dice: "✅ Apuntado: nada de coliflor." }, { dice: "✅ Hecho, apuntado." }]);
+    const r = await ejecutar({ entrada: "nada de coliflor", tools: [ajustarGustos], modelos: ["m"], vuelta });
+    expect(r.corregido).toBe(true);
+    expect(r.sigueSinGuardar).toBe(true);
   });
 
   it("si de verdad guardó, no se repite", async () => {

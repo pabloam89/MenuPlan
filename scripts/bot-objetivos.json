@@ -7,6 +7,7 @@
   "noEntiendeMaxPct": 2,
   "planBMaxPct": 2,
   "dijoQueGuardoMax": 0,
+  "sinGuardarFinalMax": 0,
   "busquedaFlojaMaxPct": 10,
   "busquedaParecidoMinimo": null,
   "costePorTurnoMaxUsd": 0.03

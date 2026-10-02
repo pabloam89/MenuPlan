@@ -875,7 +875,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
   const ficha = casa ? montarFicha(casa, extras) : null;
-  let dicho, uso, corregido, medida;
+  let dicho, uso, corregido, medida, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
   // según avanza: con él se sabe si aún se la puede cortar sin tirar nada.
@@ -918,6 +918,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
       },
       alCortar: (ms) => { medidaPista = { ...medidaPista, cortada_ms: ms }; },
     }));
+    sigueSinGuardar = Boolean(r.sigueSinGuardar);
     // Acabado el turno: sin ninguna herramienta en todo él, la pista se aceptó.
     adelanto.alAcabar(r.herramientas?.length ?? 0);
     // La llamada cortada no trae su uso (se paga igual): se estima con lo que
@@ -937,7 +938,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     };
   }
   if (corregido) {
-    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200) } });
+    // `sigue`: ni con el aviso guardó. Sin él, se corrigió en la segunda vuelta.
+    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200), sigue: sigueSinGuardar } });
   }
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
     await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200) } });
@@ -1056,7 +1058,10 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
           historia: [...historia, { role: "user", content: entrada }, { role: "assistant", content: r.dicho }],
         });
         const uso = Object.fromEntries(Object.keys({ ...r.uso, ...otra.uso }).map((k) => [k, (r.uso?.[k] ?? 0) + (otra.uso?.[k] ?? 0)]));
-        r = { dicho: otra.dicho, uso, corregido: true, vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera };
+        // Si tras el aviso sigue sin guardar y diciendo que sí, ya no es un
+        // susto corregido: es un fallo de verdad (scripts/bot-semanal.mjs).
+        const sigueSinGuardar = escrituras === 0 && diceQueGuardo(otra.dicho);
+        r = { dicho: otra.dicho, uso, corregido: true, sigueSinGuardar, vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera };
       }
       if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
       return { ...r, modelo, herramientas, planB: i > 0, avisos };

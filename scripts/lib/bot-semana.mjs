@@ -102,7 +102,10 @@ export function medir(eventos, objetivos = {}) {
       noEntiendePct: tanto(contar("bot_not_understood"), deLola.length),
       supervisor: contar("bot_supervisor"),
       fallosHerramienta: contar("bot_tool_error"),
+      // Dijo que guardó sin guardar: los que se corrigieron solos en la segunda
+      // vuelta y los que no (sigue = true), que son los que pierden datos.
       dijoQueGuardo: contar("bot_claimed_unsaved"),
+      sinGuardarFinal: eventos.filter((e) => e.event === "bot_claimed_unsaved" && e.m?.sigue === true).length,
       errores: contar("bot_error"),
       planBPct: tanto(conLola.filter((e) => e.m.lola.planB).length, conLola.length),
       vueltasMedia: conLola.length ? conLola.reduce((a, e) => a + (e.m.lola.vueltas ?? 0), 0) / conLola.length : null,
@@ -131,7 +134,8 @@ const OBJETIVOS = {
   corregidasMaxPct: ["calidad.corregidasPct", "max", "Turnos corregidos", "%"],
   noEntiendeMaxPct: ["calidad.noEntiendePct", "max", "«No te he entendido»", "%"],
   planBMaxPct: ["calidad.planBPct", "max", "Contestó el modelo de reserva", "%"],
-  dijoQueGuardoMax: ["calidad.dijoQueGuardo", "max", "Dijo que guardó sin guardar", ""],
+  dijoQueGuardoMax: ["calidad.dijoQueGuardo", "max", "Dijo que guardó sin guardar (corregido solo)", ""],
+  sinGuardarFinalMax: ["calidad.sinGuardarFinal", "max", "Dijo que guardó y no guardó nunca", ""],
   busquedaFlojaMaxPct: ["busqueda.flojasPct", "max", "Búsquedas flojas o vacías", "%"],
   costePorTurnoMaxUsd: ["coste.porTurnoUsd", "max", "Coste por turno", "$"],
 };
