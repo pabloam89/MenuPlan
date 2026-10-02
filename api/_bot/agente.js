@@ -15,7 +15,7 @@ import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq, contandoEscrituras } from "./db.js";
-import { cargarCasa, deshacer, escribioDesde, hoyISO } from "./casa.js";
+import { cargarCasa, deshacer, hoyISO } from "./casa.js";
 import {
   describirCasa, describirReceta, describirCompra,
   marcarCompra, anadirCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
@@ -82,16 +82,9 @@ const SISTEMA = CONOCIMIENTO;
 let cliente = null;
 const anthropic = () => (cliente ??= new Anthropic());
 
-// Tras estas, el botón «↩️ Deshacer» sale solo. Son las que cambian lo que se
-// va a comer o comprar, donde un «uy, no» es habitual. No van las que se
-// confirman antes (alergias, menú del cole) ni las del alta (apuntar a alguien):
-// ahí el botón sería ruido. Se pueden deshacer igual, pidiéndolo.
-const CON_BOTON_DESHACER = new Set([
-  "marcar_compra", "anadir_compra", "cambiar_plato", "generar_menu",
-  "ajustar_gustos", "descartar_supuesto", "ajustar_horario", "anadir_invitado", "quitar_comensal",
-  // Las alergias se guardan al momento (con eco) y se deshacen con un toque.
-  "ajustar_alergias", "ajustar_salud", "ajustar_menu_peques", "fuera_de_casa",
-]);
+// Sin botón «↩️ Deshacer» (Pablo, 2 oct 2026): si no gusta lo que hizo Lola,
+// se le pide otra cosa en otro mensaje. El botón deshacía lo último de la
+// casa, que con varios chats no tenía por qué ser lo tuyo.
 
 // Fallos de conversación, para medirlos (user_events, como el embudo).
 const FALLO_HERRAMIENTA = "bot_tool_error";
@@ -126,9 +119,9 @@ function pantallaDe(herramienta, args = {}) {
 
 /**
  * @param {{ householdId: string, chatId?: string, channel?: string, autor?: string,
- *   fotos?: {url: string, pie: string}[], escrito?: boolean }} chat
- *   `fotos` y `escrito` los rellenan las herramientas en este turno: las fotos
- *   de los platos que se han enseñado, y si se cambió algo que se puede deshacer.
+ *   fotos?: {url: string, pie: string}[], guardados?: number }} chat
+ *   `fotos` y `guardados` los rellenan las herramientas en este turno: las
+ *   fotos de los platos que se han enseñado, y cuántas guardaron de verdad.
  */
 // Las que no cambian nada: pueden correr antes de saber de quién es el turno.
 export const SOLO_LECTURA = new Set([
@@ -197,7 +190,6 @@ export async function herramientas(chat) {
         return "Eso ya lo tienes: es lo que te devolvieron generar_menu o cambiar_plato en este turno, y es lo guardado. Además sale pintado debajo de tu mensaje: no lo escribas; di en una o dos frases qué has hecho.";
       }
       try {
-        const desde = Date.now();
         // `escribio`: si llegó a la base alguna escritura (db.js), no solo si se
         // intentó. Una herramienta que contesta «no he podido guardarlo» no
         // cuenta como guardado, ni lleva botón a la app.
@@ -205,10 +197,8 @@ export async function herramientas(chat) {
         if (escribio) chat.guardados = (chat.guardados ?? 0) + 1;
         if (t.name === "generar_menu") tocado.semanas.add(args.semana ?? "esta");
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
-        if (CON_BOTON_DESHACER.has(t.name) && escribioDesde(chat.householdId, desde)) chat.escrito = true;
         const ir = SOLO_LECTURA.has(t.name) || escribio ? pantallaDe(t.name, args) : null;
         if (ir) chat.ir = ir;
-        if (t.name === "deshacer") chat.escrito = false;
         return r;
       } catch (e) {
         await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(() => null), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300) } });
@@ -847,7 +837,7 @@ async function adelantar(plan, chat) {
   if (plan.herramienta) {
     // Solo lecturas: una escritura nunca se adelanta (ni con la puerta abierta).
     if (!SOLO_LECTURA.has(plan.herramienta)) return null;
-    const copia = { ...chat, fotos: [], pintar: null, ir: null, compartir: null, escrito: false };
+    const copia = { ...chat, fotos: [], pintar: null, ir: null, compartir: null };
     const t = (await herramientas(copia)).find((x) => x.name === plan.herramienta);
     if (!t) return null;
     const r = await t.run(plan.args);
@@ -888,7 +878,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
   // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], escrito: false, ir: null, compartir: null, pintar: null, puerta };
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta };
   // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
   const [tope, historia, tools, casa, extras] = await Promise.all([
@@ -959,7 +949,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(() => null), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}` } });
     return {
       texto: "😵‍💫 Me he quedado a medias: puede que ya haya cambiado algo y no te lo he podido contar.\n\nMíralo en la app con el botón antes de pedírmelo otra vez, así no se hace dos veces.",
-      fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir ?? "semana", compartir: null,
+      fotos: chat.fotos, deshacible: false, ir: chat.ir ?? "semana", compartir: null,
     };
   }
   if (corregido) {
@@ -983,7 +973,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     segundaSemana(householdId).catch(() => {}),
   ]);
 
-  return { texto: respuesta, fotos: chat.fotos, deshacible: chat.escrito, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado, medida };
+  return { texto: respuesta, fotos: chat.fotos, deshacible: false, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado, medida };
 }
 
 /**

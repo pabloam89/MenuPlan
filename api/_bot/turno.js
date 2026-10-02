@@ -118,7 +118,7 @@ export async function cambiar(householdId, x) {
   return {
     texto: `✅ <b>Hecho.</b> He cambiado ${hueco}${out.grupo ? ` de <i>${esc(out.grupo)}</i>` : ""}: ahora es <b>${esc(out.despues)}</b>${out.antes ? ` <i>(antes: ${esc(out.antes)})</i>` : ""}.${aproximada}${sinCambiar}`,
     fotos,
-    deshacible: true,
+    deshacible: false,
     ir: out.dia ? `dia:${out.dia}` : null,
     pintar: filtrosTrasCambiar(out),
   };
@@ -133,7 +133,7 @@ export async function apuntar(householdId, x, autor = null) {
   return {
     // En un chat de grupo se dice quién lo pidió, como hace Lola.
     texto: enLista("🛒", autor ? `Apuntado por ${esc(autor)}` : "Apuntado en la lista", out.anadidos),
-    fotos: [], deshacible: true, ir: "compra",
+    fotos: [], deshacible: false, ir: "compra",
   };
 }
 
@@ -146,7 +146,7 @@ export async function tachar(householdId, x, autor = null) {
   const faltan = out.noEncontrados?.length ? `\n\n🤔 <i>No encuentro en la lista: ${out.noEncontrados.map(esc).join(", ")}.</i>` : "";
   return {
     texto: `${enLista("✅", autor ? `Tachado por ${esc(autor)}` : "Tachado", out.hechos)}${faltan}`,
-    fotos: [], deshacible: true, ir: "compra",
+    fotos: [], deshacible: false, ir: "compra",
   };
 }
 
@@ -166,7 +166,7 @@ export async function generar(householdId, x) {
   const destacados = (out.colocados ?? []).length ? " Lo que pediste va marcado con ✨." : "";
   return {
     texto: `🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${pedidos}`,
-    fotos: [], deshacible: true, ir: "semana",
+    fotos: [], deshacible: false, ir: "semana",
     pintar: filtrosTrasGenerar(out),
   };
 }
@@ -218,7 +218,7 @@ export async function viaRapida(decision, householdId, { autor = null } = {}) {
       }
       const r = await apuntarAusencia(householdId, { dia: x.dia ?? "hoy", comida: x.comida, quienes: x.para ? [x.para] : null, autor });
       if (r.error) return null; // quién, qué día o qué comida no está claro: Lola
-      return { texto: r.texto, fotos: [], deshacible: true, ir: null, pintar: r.pintar };
+      return { texto: r.texto, fotos: [], deshacible: false, ir: null, pintar: r.pintar };
     }
     case "receta": return verReceta(householdId, x);
     case "calorias": return calorias(householdId, x);
