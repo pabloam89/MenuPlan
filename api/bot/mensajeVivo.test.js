@@ -106,3 +106,13 @@ describe("entregar tras un aviso de espera", () => {
     expect(llamadas.map((l) => l.metodo)).toEqual(["deleteMessage", "editMessageText"]);
   });
 });
+
+describe("el botón de la app en un grupo", () => {
+  it("sale, y sin llave: cada uno entra con su cuenta", async () => {
+    await entregar({ chatId: "-100", householdId: "h", esGrupo: true, base: "https://app", from: { id: 1 }, r: { texto: "Mira el jueves", ir: "dia:Jue" } });
+    const botones = llamadas.flatMap((l) => l.cuerpo.reply_markup?.inline_keyboard?.flat() ?? []);
+    const app = botones.find((b) => b.url);
+    expect(app?.url).toBe("https://app/?ir=dia%3AJue");
+    expect(app.url).not.toMatch(/entrar=/);
+  });
+});
