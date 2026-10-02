@@ -37,9 +37,12 @@ const escapar = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** «martes», «mar», «Mar» → "Mar". */
 export function diaDe(texto) {
-  const t = normal(texto);
+  // «el jueves», «jueves 8», «mié.»: sin artículo ni punto final.
+  const t = normal(texto).replace(/^el\s+/, "").replace(/\.$/, "");
   if (!t) return null;
-  for (const d of DIAS) if (normal(d) === t.slice(0, 3) || normal(DIA_LARGO[d]) === t) return d;
+  // La abreviatura entera («mar») o el nombre como palabra («martes», «martes 6»);
+  // antes bastaban las tres primeras letras, y «marzo» era martes.
+  for (const d of DIAS) if (normal(d) === t || new RegExp(`^${normal(DIA_LARGO[d])}(\\s|$)`).test(t)) return d;
   if (t === "hoy") return hoy();
   if (t === "manana") return DIAS[(DIAS.indexOf(hoy()) + 1) % 7];
   return null;
@@ -927,104 +930,141 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
 }
 
 /**
- * «Hoy cenamos fuera», «el viernes Leo come en casa de los abuelos»: una
- * ausencia de UN día, no un horario (ajustar_horario es para lo que se repite
- * cada semana).
+ * «Hoy cenamos fuera», «Nat no come el finde ni cena hoy»: ausencias de días
+ * concretos, no un horario (ajustar_horario es para lo que se repite cada
+ * semana). Varios días y comidas van en UNA llamada: con cinco llamadas en
+ * paralelo, las escrituras chocaban sobre la misma casa y las últimas se
+ * perdían («conflicto persistente», 2 oct 2026).
  *
  * Dos cosas a la vez:
- *   · una regla de la casa `presente: fuera` acotada a ese día (vigencia
- *     desde/hasta = esa fecha), que el motor respeta al generar y que caduca
- *     sola (src/lib/reglas.js);
+ *   · reglas de la casa `presente: fuera` acotadas a cada día (vigencia
+ *     desde/hasta = esa fecha), que el motor respeta al generar y que caducan
+ *     solas (src/lib/reglas.js); todas en una sola escritura;
  *   · en el menú que YA está hecho, si todos los de un grupo están fuera, ese
- *     hueco se vacía y la compra se rehace. Si solo falta alguien, el plato se
- *     queda para los demás.
+ *     hueco se vacía y la compra se rehace (una escritura más por cada semana
+ *     del menú que se toque, aparte de la primera). Si solo falta alguien, el
+ *     plato se queda para los demás.
  *
- * @param {{ dia: string, comida: string, quienes?: string[] | null, autor?: string | null }} x
- *   quienes: nombres de la casa; sin ellos, toda la casa.
+ * @param {{ dia?: string, dias?: string[], comida?: string, comidas?: string[], quienes?: string[] | null, autor?: string | null }} x
+ *   dias: hoy, mañana, pasado mañana, un día de la semana o «finde»; quienes:
+ *   nombres de la casa (sin ellos, toda la casa).
  * @returns {Promise<{ texto: string, pintar: object | null, error?: string }>}
  */
-export async function apuntarAusencia(householdId, { dia, comida, quienes = null, autor = null }) {
-  const c = comidaDe(comida ?? "");
-  if (!c) return { texto: `¿Qué comida? («${comida ?? ""}»)`, pintar: null, error: "comida" };
-  const t = normal(dia ?? "");
+export async function apuntarAusencia(householdId, { dia, dias, comida, comidas, quienes = null, autor = null }) {
+  const pedidas = comidas?.length ? comidas : [comida];
+  const lasComidas = [...new Set(pedidas.map((x) => comidaDe(x ?? "")))];
+  if (!lasComidas.length || lasComidas.some((c) => !c)) return { texto: `¿Qué comida? («${pedidas.join(", ")}»)`, pintar: null, error: "comida" };
   const hoy = hoyISO();
-  let fecha = null;
-  if (!t || t === "hoy" || t === "esta noche") fecha = hoy;
-  else if (t === "manana") fecha = sumarDias(hoy, 1);
-  else if (t === "pasado manana") fecha = sumarDias(hoy, 2);
-  else {
-    const d = diaDe(dia);
-    if (!d) return { texto: `No entiendo el día «${dia}».`, pintar: null, error: "dia" };
+  const fechaDe = (texto) => {
+    const t = normal(texto ?? "");
+    if (!t || t === "hoy" || t === "esta noche") return hoy;
+    if (t === "manana") return sumarDias(hoy, 1);
+    if (t === "pasado manana") return sumarDias(hoy, 2);
+    const d = diaDe(texto);
+    if (!d) return null;
     const deEsta = sumarDias(lunesDe(hoy), DIAS.indexOf(d));
-    fecha = deEsta >= hoy ? deEsta : sumarDias(deEsta, 7);
-  }
-  const d = diaDeFecha(fecha);
-  const clave = `${d}-${c}`;
-  let texto = "";
-  let vaciado = false;
-  let fallo = null;
-  const r = await conCasa(householdId, async (cargada) => {
-    const data = cargada.state?.data ?? {};
-    const miembros = data.members ?? [];
-    let fuera = miembros;
-    if (quienes?.length) {
-      const busca = (n) => miembros.find((p) => normal(p.name) === normal(n)) ?? miembros.find((p) => normal(p.name).startsWith(normal(n)));
-      const encontrados = quienes.map(busca);
-      const falta = quienes.filter((_, i) => !encontrados[i]);
-      if (falta.length) { texto = `No encuentro a ${falta.join(" ni a ")} en la casa.`; fallo = "quien"; return null; }
-      fuera = [...new Set(encontrados)];
-    }
-    const todos = fuera.length === miembros.length;
-    const m = await motor();
-    const reglasNuevas = (todos ? [{ tipo: "casa" }] : fuera.map((p) => ({ tipo: "miembro", ref: p.id }))).map((sujeto) => m.nuevaRegla({
-      sujeto,
-      ambito: { dias: [d], comidas: [c] },
-      vigencia: { desde: fecha, hasta: fecha },
-      efecto: { tipo: "presente", valor: "fuera" },
-      origen: "texto",
-      frase: `${todos ? "Toda la casa" : fuera.map((p) => p.name).join(" y ")} fuera el ${fecha} (${c.toLowerCase()})${autor ? `, lo dijo ${autor}` : ""}`,
-      hoy,
-    }));
-    // Devuelve { reglas, vencidas }, no la lista.
-    const { reglas } = m.podarReglasVencidas([...(data.reglas ?? []), ...reglasNuevas], hoy);
-    const dataNueva = { ...data, reglas };
-    const quien = todos ? "toda la casa" : fuera.map((p) => p.name).join(" y ");
-    const cuando = `el ${DIA_LARGO[d]} ${Number(fecha.slice(8, 10))} (${c.toLowerCase()})`;
+    return deEsta >= hoy ? deEsta : sumarDias(deEsta, 7);
+  };
+  // «el finde» son el sábado y el domingo que vienen (o este, si ya es finde).
+  const losDias = (dias?.length ? dias : [dia]).flatMap((x) => (/^(el )?(finde|fin de semana)$/.test(normal(x ?? "")) ? ["sábado", "domingo"] : [x]));
+  const fechas = losDias.map(fechaDe);
+  const malo = losDias.find((_, i) => !fechas[i]);
+  if (malo !== undefined) return { texto: `No entiendo el día «${malo}».`, pintar: null, error: "dia" };
+  const huecos = [...new Set(fechas)].sort().flatMap((fecha) => lasComidas.map((c) => ({ fecha, d: diaDeFecha(fecha), c })));
+  const enSemana = (w) => huecos.some((h) => w.weekStart <= h.fecha && h.fecha <= w.weekEnd);
 
-    // El menú ya hecho: el hueco de cada grupo que se queda sin nadie, fuera.
-    const s = semanaConFecha(cargada, fecha);
-    if (!s?.plan) {
-      texto = `Apuntado: ${quien} fuera ${cuando}. Cuenta al generar el menú de esa semana.`;
-      return { state: { ...cargada.state, data: dataNueva } };
-    }
+  let fallo = null;
+  let quien = "";
+  let fuera = [];
+  let hayMenu = false;
+  let semanasPorTocar = [];
+  const vaciadas = new Set();
+  // Vacía los huecos de una semana del menú; los cambios para conCasa, o null si no toca nada.
+  const vaciarEn = async (cargada, s, data = cargada.state?.data ?? {}) => {
     const casa = { ...cargada, semana: s };
     const gs = grupos(casa);
     const idsFuera = new Set(fuera.map((p) => p.id));
     const plan = structuredClone(s.plan);
-    for (const g of gs) {
-      if (!plan[g.id]?.[clave]) continue;
-      if ((g.memberIds ?? []).length && g.memberIds.every((id) => idsFuera.has(id))) {
-        delete plan[g.id][clave];
-        vaciado = true;
+    let algo = false;
+    for (const h of huecos.filter((x) => s.weekStart <= x.fecha && x.fecha <= s.weekEnd)) {
+      for (const g of gs) {
+        if (!plan[g.id]?.[`${h.d}-${h.c}`]) continue;
+        if ((g.memberIds ?? []).length && g.memberIds.every((id) => idsFuera.has(id))) {
+          delete plan[g.id][`${h.d}-${h.c}`];
+          algo = true;
+          vaciadas.add(h.fecha);
+        }
       }
     }
-    if (!vaciado) {
-      texto = `Apuntado: ${quien} fuera ${cuando}. El plato de ese día se queda para los demás.`;
-      return { state: { ...cargada.state, data: dataNueva } };
-    }
-    const mm = await prepararRecetas(casa);
-    const shopping = rehacerCompra(mm, plan, data, gs, s.shopping);
-    texto = `Apuntado: ${quien} fuera ${cuando}. He quitado ese plato del menú y de la compra.`;
+    if (!algo) return null;
+    const shopping = rehacerCompra(await prepararRecetas(casa), plan, data, gs, s.shopping);
     const viva = s.weekStart === cargada.semanaViva;
     return {
       casa,
-      state: viva ? { ...cargada.state, data: dataNueva, menuPlan: plan, shopping } : { ...cargada.state, data: dataNueva },
+      state: viva ? { ...cargada.state, data, menuPlan: plan, shopping } : { ...cargada.state, data },
       semana: { plan, shopping },
     };
+  };
+
+  // 1. Las reglas de todos los días y la primera semana del menú que se toque, en una escritura.
+  const r = await conCasa(householdId, async (cargada) => {
+    const data = cargada.state?.data ?? {};
+    const miembros = data.members ?? [];
+    fuera = miembros;
+    if (quienes?.length) {
+      const busca = (n) => miembros.find((p) => normal(p.name) === normal(n)) ?? miembros.find((p) => normal(p.name).startsWith(normal(n)));
+      const encontrados = quienes.map(busca);
+      const falta = quienes.filter((_, i) => !encontrados[i]);
+      if (falta.length) { quien = `No encuentro a ${falta.join(" ni a ")} en la casa.`; fallo = "quien"; return null; }
+      fuera = [...new Set(encontrados)];
+    }
+    const todos = fuera.length === miembros.length;
+    quien = todos ? "toda la casa" : fuera.map((p) => p.name).join(" y ");
+    const m = await motor();
+    const sujetos = todos ? [{ tipo: "casa" }] : fuera.map((p) => ({ tipo: "miembro", ref: p.id }));
+    // Una regla por persona y día, con las comidas de ese día.
+    const reglasNuevas = [...new Set(huecos.map((h) => h.fecha))].flatMap((fecha) => sujetos.map((sujeto) => m.nuevaRegla({
+      sujeto,
+      ambito: { dias: [diaDeFecha(fecha)], comidas: huecos.filter((h) => h.fecha === fecha).map((h) => h.c) },
+      vigencia: { desde: fecha, hasta: fecha },
+      efecto: { tipo: "presente", valor: "fuera" },
+      origen: "texto",
+      frase: `${todos ? "Toda la casa" : fuera.map((p) => p.name).join(" y ")} fuera el ${fecha}${autor ? `, lo dijo ${autor}` : ""}`,
+      hoy,
+    })));
+    // Devuelve { reglas, vencidas }, no la lista.
+    const { reglas } = m.podarReglasVencidas([...(data.reglas ?? []), ...reglasNuevas], hoy);
+    const dataNueva = { ...data, reglas };
+    const semanas = (cargada.semanas ?? []).filter((w) => w.plan && enSemana(w));
+    hayMenu = semanas.length > 0;
+    semanasPorTocar = semanas.slice(1).map((w) => w.weekStart);
+    const conPrimera = semanas[0] ? await vaciarEn(cargada, semanas[0], dataNueva) : null;
+    return conPrimera ?? { state: { ...cargada.state, data: dataNueva } };
   });
-  if (fallo) return { texto, pintar: null, error: fallo };
+  if (fallo) return { texto: quien, pintar: null, error: fallo };
   if (!r.ok) return { texto: `No he podido guardarlo: ${r.error}.`, pintar: null, error: "guardar" };
-  return { texto, pintar: vaciado ? { dias: [fecha] } : null };
+
+  // 2. Las demás semanas del menú, una escritura cada una (raro: un «hasta el martes» que cruza el domingo).
+  let aMedias = false;
+  for (const lunes of semanasPorTocar) {
+    const r2 = await conCasa(householdId, async (cargada) => {
+      const s = (cargada.semanas ?? []).find((w) => w.weekStart === lunes);
+      return s?.plan ? vaciarEn(cargada, s) : null;
+    });
+    if (!r2.ok) aMedias = true;
+  }
+
+  const porFecha = [...new Set(huecos.map((h) => h.fecha))].map((fecha) => {
+    const cs = huecos.filter((h) => h.fecha === fecha).map((h) => h.c.toLowerCase());
+    const nombre = fecha === hoy ? "hoy" : `el ${DIA_LARGO[diaDeFecha(fecha)]} ${Number(fecha.slice(8, 10))}`;
+    return `${nombre} (${cs.length > 1 ? `${cs.slice(0, -1).join(", ")} y ${cs.at(-1)}` : cs[0]})`;
+  });
+  const cuando = porFecha.length > 1 ? `${porFecha.slice(0, -1).join(", ")} y ${porFecha.at(-1)}` : porFecha[0];
+  const menu = vaciadas.size
+    ? " He quitado esos platos del menú y de la compra."
+    : hayMenu ? ` El plato de ${porFecha.length > 1 ? "esos días" : "ese día"} se queda para los demás.` : ` Cuenta al generar el menú de ${porFecha.length > 1 ? "esos días" : "ese día"}.`;
+  const texto = `Apuntado: ${quien} fuera ${cuando}.${menu}${aMedias ? " En alguna semana del menú no he podido quitar el plato: míralo en la app." : ""}`;
+  return { texto, pintar: vaciadas.size ? { dias: [...vaciadas].sort() } : null };
 }
 
 /** La compra de un plan, conservando lo marcado (comprado, ya en casa) y lo añadido a mano. */

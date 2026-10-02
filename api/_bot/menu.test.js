@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { resolverDia, masParecida, huecoDe } from "./menu.js";
+import { resolverDia, masParecida, diaDe, huecoDe } from "./menu.js";
 
 // Menú con esta semana (empezada el miércoles) y la que viene, como queda
 // tras pedir «el menú de la semana que viene» con uno de esta ya activo.
@@ -54,6 +54,23 @@ describe("masParecida", () => {
 
   it("si no está lo principal, nada (y se ofrecen opciones)", () => {
     expect(masParecida(candidatas, "merluza en salsa verde")).toBeNull();
+  });
+});
+
+describe("diaDe", () => {
+  it("el nombre o la abreviatura, con o sin artículo, tilde o punto", () => {
+    expect(diaDe("martes")).toBe("Mar");
+    expect(diaDe("el Miércoles")).toBe("Mié");
+    expect(diaDe("mie.")).toBe("Mié");
+    expect(diaDe("sábado 3")).toBe("Sáb");
+    expect(diaDe("dom")).toBe("Dom");
+  });
+
+  it("lo que solo empieza igual no es un día: «marzo» no es martes", () => {
+    expect(diaDe("marzo")).toBe(null);
+    expect(diaDe("juez")).toBe(null);
+    expect(diaDe("domingos")).toBe(null);
+    expect(diaDe("viernesito")).toBe(null);
   });
 });
 

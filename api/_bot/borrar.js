@@ -17,7 +17,7 @@
  * cascada les quitaría la casa a ellos.
  */
 
-import { select, eq, config } from "./db.js";
+import { select, eq, config, rpc } from "./db.js";
 import { llamar } from "./telegram.js";
 
 const ADMINS = (process.env.BOT_ADMINS || "491628449").split(",").map((s) => s.trim()).filter(Boolean);
@@ -55,39 +55,75 @@ async function borrarUsuario(userId) {
 const lista = (ids) => `in.(${ids.map((x) => `"${x}"`).join(",")})`;
 
 /**
+ * Lo que el bot guarda fuera de la cascada de auth, de una cuenta: los chats
+ * enlazados a sus casas (el privado y los de grupo), su conversación, cola,
+ * candados, códigos, recordatorios, identidades de Telegram, deshacer, uso y
+ * eventos. Lo usan el borrado desde Telegram y el de la app
+ * (api/delete-account.js), que antes dejaba todo esto huérfano.
+ * Hay que llamarlo ANTES de borrar el usuario: después ya no se sabe qué casas eran suyas.
+ */
+export async function borrarLoDelBot(userId, { chatIds = [], telegramId = null } = {}) {
+  const casas = userId ? (await select("households", `owner_user_id=${eq(userId)}`, "id")).map((h) => h.id) : [];
+  const identidades = userId ? await select("bot_identities", `user_id=${eq(userId)}`, "external_id") : [];
+  const externos = new Set([...(telegramId != null ? [String(telegramId)] : []), ...identidades.map((i) => String(i.external_id))]);
+  // En Telegram el chat privado tiene el mismo id que la persona.
+  const chats = new Set([...chatIds.map(String), ...externos]);
+  if (casas.length) for (const c of await select("bot_chats", `household_id=${lista(casas)}`, "chat_id")) chats.add(String(c.chat_id));
+  // Todo a la vez: no dependen entre sí, y la app tiene poco tiempo.
+  const borrados = [];
+  if (chats.size) {
+    const enChats = `chat_id=${lista([...chats])}`;
+    for (const tabla of ["bot_messages", "bot_cola", "bot_candados", "bot_codigos", "bot_reminders", "bot_chats"]) borrados.push(borrarFilas(tabla, enChats));
+  }
+  if (externos.size) {
+    borrados.push(borrarFilas("bot_identities", `external_id=${lista([...externos])}`));
+    borrados.push(borrarFilas("bot_codigos", `external_id=${lista([...externos])}`));
+  }
+  if (userId) borrados.push(borrarFilas("bot_identities", `user_id=${eq(userId)}`));
+  if (casas.length) for (const tabla of ["bot_deshacer", "bot_usage"]) borrados.push(borrarFilas(tabla, `household_id=${lista(casas)}`));
+  if (userId) borrados.push(borrarFilas("user_events", `user_id=${eq(userId)}`));
+  await Promise.all(borrados);
+  return { casas: casas.length };
+}
+
+/**
+ * Borrar la cuenta desde Telegram: lo del bot y el usuario (con él caen en
+ * cascada la casa, sus menús, la compra, las recetas y la despensa).
  * @returns {Promise<{ ok: true, casas: number } | { ok: false, motivo: string }>}
  */
 export async function borrarCuenta({ chatId, telegramId }) {
   const [identidad] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(String(telegramId))}`, "user_id");
-  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(String(chatId))}`, "household_id");
+  // La cuenta de QUIEN PULSA: su identidad de Telegram o, si no la tiene (chats
+  // enlazados antes de que existieran), la que enlazó este chat PRIVADO. Nunca
+  // la del dueño de la casa: abierto a todos, alguien enlazado a una casa
+  // ajena borraría al dueño (antes se hacía así, cuando solo lo usaba Pablo).
+  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(String(chatId))}`, "household_id,kind,linked_by");
   let userId = identidad?.user_id ?? null;
-  if (!userId && chat?.household_id) {
-    const [h] = await select("households", `id=${eq(chat.household_id)}`, "owner_user_id");
-    userId = h?.owner_user_id ?? null;
+  if (!userId && chat?.kind === "private" && String(chatId) === String(telegramId)) userId = chat.linked_by ?? null;
+  if (!userId) {
+    // Sin cuenta que borrar: solo lo que el bot guarda de este chat.
+    await borrarLoDelBot(null, { chatIds: [chatId], telegramId });
+    return { ok: true, casas: 0, lectores: 0, sinCuenta: true };
   }
 
-  const casas = userId ? (await select("households", `owner_user_id=${eq(userId)}`, "id")).map((h) => h.id) : [];
-  if (casas.length) {
-    const otros = await select("household_members", `household_id=${lista(casas)}&user_id=neq.${userId}`, "user_id");
-    if (otros.length) return { ok: false, motivo: "tu casa tiene más miembros con cuenta, y borrarla se la quitaría a ellos" };
+  // Antes de borrar, las casas que lleva con alguien pasan a ese cotitular (el
+  // más antiguo): menús, semanas, despensa, sus chats privados de esa casa y
+  // el enlace, rotado. Las que no, caen en cascada con el usuario. Lo hace la
+  // base de una vez (0075, fase 5 de los papeles de la casa, menuplan-92). Si
+  // falla, no se borra nada: borrar sin pasarla dejaría al cotitular sin casa.
+  let p;
+  try {
+    p = await rpc("prepare_account_deletion", { p_user_id: userId });
+  } catch (e) {
+    console.error("[borrarcuenta] prepare_account_deletion", e?.message);
+    return { ok: false, motivo: "no he podido pasar tu casa a quien la lleva contigo, así que no he borrado nada" };
   }
 
-  // Lo que el bot guarda fuera de la cascada de auth: por chat (el privado y
-  // los grupos de esas casas), por identidad de Telegram y por usuario.
-  const chats = new Set([String(chatId)]);
-  if (casas.length) for (const c of await select("bot_chats", `household_id=${lista(casas)}`, "chat_id")) chats.add(String(c.chat_id));
-  const enChats = `chat_id=${lista([...chats])}`;
-  for (const tabla of ["bot_messages", "bot_cola", "bot_candados", "bot_codigos", "bot_reminders", "bot_chats"]) await borrarFilas(tabla, enChats);
-  await borrarFilas("bot_identities", `channel=eq.telegram&external_id=${eq(String(telegramId))}`);
-  await borrarFilas("bot_codigos", `external_id=${eq(String(telegramId))}`);
-  if (casas.length) for (const tabla of ["bot_deshacer", "bot_usage"]) await borrarFilas(tabla, `household_id=${lista(casas)}`);
-  if (userId) {
-    await borrarFilas("user_events", `user_id=${eq(userId)}`);
-    // El último: con él caen en cascada la casa, sus menús, la compra, las
-    // recetas, la despensa y el resto de tablas de usuario.
-    await borrarUsuario(userId);
-  }
-  return { ok: true, casas: casas.length };
+  // Ya solo ve las casas que siguen siendo suyas: no borra lo del heredero.
+  const r = await borrarLoDelBot(userId, { chatIds: [chatId], telegramId });
+  // El último: con él cae todo lo demás.
+  await borrarUsuario(userId);
+  return { ok: true, casas: r.casas, lectores: p?.lectores ?? 0, pasadas: p?.pasadas ?? 0 };
 }
 
 // Cuántos mensajes hacia atrás intenta borrar /limpiar, y de cuántos en

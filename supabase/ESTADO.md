@@ -15,15 +15,66 @@ ninguno fiable. Ver «El registro miente» más abajo.
 | **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` la `0062_bot_cron`, la `0063_bot_turnos` y la `0064_catalogo_una_fuente`, el 30 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
-## La 0068, SIN APLICAR a propósito
+## La 0074 y la 0075, aplicadas el 2 oct 2026
+
+`0074_traducciones` — `content_translations` (hash del texto + idioma): la
+caché de lo pintado por el código que se traduce al inglés
+(api/_bot/traducir.js). Solo servidor.
+
+`0075_herencia` — heredar la casa al borrar la cuenta del titular:
+`households.propia` (la regla «una casa propia por persona» pasa a
+`uq_households_una_propia`, solo para las propias; la vieja
+`uq_households_one_owner_per_user` se quita), semanas y recetas del menú con
+ON UPDATE CASCADE, `_transfer_household_ownership`,
+`transfer_household_ownership` (titular) y `prepare_account_deletion`
+(servidor). Ensayada en transacción deshecha (18 de 18; sin ella la función no
+existe) y aplicada con permiso de Pablo. Se re-comprueba con
+`node scripts/ensayo-herencia.mjs`.
+
+## La 0073, aplicada el 2 oct 2026
+
+`0073_idioma_y_union_por_telegram` — `user_profiles.ui_lang` (es | en | null)
+y `_unirse(usuario, token)`: el cuerpo de unirse, que usan la app
+(`join_household_by_token`) y el bot (`bot_unirse_por_invitacion`, solo
+service_role, para /start inv_ en Telegram). Si la invitación trae idioma y la
+persona no eligió, se le pone. Ensayada en transacción deshecha (8 de 8; sin
+ella la función del bot no existe), aplicada con permiso de Pablo, y
+`scripts/ensayo-papeles.mjs` sigue limpio contra la base viva.
+
+## La 0072, aplicada el 2 oct 2026
+
+`0072_lector_tacha` — `household_shopping_mark`: el lector (y cualquier
+miembro) cambia SOLO `have` de artículos que ya existen, por nombre y unidad,
+en la semana y en la copia viva si es esa semana; sube `bot_rev`. Ensayada en
+transacción deshecha (10 de 10; sin ella la función no existe) y aplicada con
+permiso de Pablo. Comprobada después contra la base viva.
+
+## La 0070 y la 0071, aplicadas el 2 oct 2026
+
+`0070_papel_editor` (el valor `editor` del enum) y `0071_tres_papeles`
+(titular, cotitular y lector: RLS de cotitular, filas de casa reescritas a
+nombre del titular, household_invites y las RPC de miembros). Con permiso de
+Pablo. La 0070 en su transacción; la 0071 solo tras ensayarla en una
+transacción deshecha: el primer ensayo dio 2 fallos (los dos de la prueba,
+no de la migración), y la 0071 no se aplicó hasta que salió limpio (30 de
+30). Comprobado después contra la base viva con `node scripts/ensayo-papeles.mjs`
+(siempre deshace lo que hace): todo bien.
+
+## La 0069, aplicada el 2 oct 2026
+
+`0069_bot_activar_menu` (sesión menuplan-79, PR #25) — `bot_save_casa_activando`:
+lo mismo que `bot_save_casa`, pero activa además `p_menu_id` en la misma
+transacción. Solo service_role. La usan generar y deshacer del bot.
+
+## La 0068, aplicada el 2 oct 2026
 
 `0068_version_en_cada_escritura` — `save_household_state` y `save_menu_week`
 suben `household_state.bot_rev` en cada guardado de la app (C-2 de
-specs/roles-de-la-casa-revision.md). **No se aplica hasta que el cliente que
-la entiende (src/lib/versionCasa.js) esté en producción**: un cliente viejo
-no apunta la versión de sus propios guardados y chocaría consigo mismo,
-recargando tras cada cambio. El cliente nuevo funciona igual con la base de
-antes. Ensayada en transacción deshecha: 11 de 11.
+specs/roles-de-la-casa-revision.md). Ensayada en transacción deshecha (11 de
+11) y aplicada por la sesión menuplan-79 a petición de Pablo, ANTES de que el
+cliente que la entiende (src/lib/versionCasa.js, en staging desde el PR #24)
+llegue a producción: hasta entonces, la app vieja de producción recarga tras
+cada guardado propio. Pablo lo acepta («nadie está usando la app»).
 
 ## La 0067, aplicada el 1 oct 2026
 

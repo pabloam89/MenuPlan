@@ -14,6 +14,7 @@ import { googleInfo } from "./Settings.jsx";
 import { findAccountMember,
   resolveAccountMember, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
+import { NOMBRE_PAPEL, papelDe } from "../lib/papeles.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -326,7 +327,7 @@ export function HomeProfileScreen({
               background: householdReadOnly ? "#fff7e6" : "rgba(45,90,61,.1)",
               color: householdReadOnly ? "#9a6b00" : GREEN,
             }}>
-              {householdReadOnly ? "Visitante" : "Propietario"}
+              {NOMBRE_PAPEL.es[papelDe(activeHousehold.role)]}
             </span>
           )}
         </div>

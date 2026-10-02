@@ -44,6 +44,8 @@ import { guardarMenuCole, verMenuCole } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
 import { conPista, textoPista, datosDePlantilla } from "./pista.js";
 import { verReceta, calorias as caloriasDePlato, queFalta } from "./plato.js";
+import { papelDeQuien, idiomaDe } from "./papel.js";
+import { herramientaPermitida } from "../../src/lib/papeles.js";
 
 // Modelo y esfuerzo, configurables para medir velocidad contra calidad con
 // scripts/bot-evals.mjs (BOT_MODELO, BOT_EFFORT) sin tocar código.
@@ -93,28 +95,40 @@ const FALLO_A_MEDIAS = "bot_error";
 const FRENO_SUPERVISOR = "bot_supervisor";
 const FALLO_SIN_GUARDAR = "bot_claimed_unsaved";
 
-// Qué pantalla de la app enseña lo que se acaba de ver o cambiar, en el
-// formato de ?ir= de la app (App.jsx): hoy, semana, dia:Jue, compra.
-function pantallaDe(herramienta, args = {}) {
-  if (herramienta === "ver_menu") {
-    if (args.cuando === "hoy") return "hoy";
-    if (args.cuando === "manana") return `dia:${diaDe("mañana")}`;
-    if (!args.dia) return "semana";
-    if (/^hoy$/i.test(String(args.dia).trim())) return "hoy";
-    const d = diaDe(args.dia);
-    return d ? `dia:${d}` : null;
-  }
-  if (herramienta === "cambiar_plato" && args.dia) {
-    const d = diaDe(args.dia);
-    return d ? `dia:${d}` : null;
-  }
-  if (["ver_compra", "marcar_compra", "anadir_compra"].includes(herramienta)) return "compra";
-  // Las ausencias suelen tocar varios días («no come el finde ni cena hoy»): la semana.
-  if (herramienta === "generar_menu" || herramienta === "fuera_de_casa") return "semana";
-  // El recetario de la app, en la misma carpeta que se ha buscado aquí.
-  if (herramienta === "buscar_recetas") return args.categoria && args.categoria !== "mias" ? `recetas:${args.categoria}` : "recetas";
-  if (herramienta === "guardar_receta") return "recetas:mias";
-  return null;
+// ── La ficha de cada herramienta ────────────────────────────────────────────
+// Lo que el resto del bot sabe de una herramienta va en su ficha, junto a su
+// definición, y las listas (SOLO_LECTURA, AVISO_LENTO, pantallaDe) salen de
+// ahí, al final del fichero. Antes eran listas sueltas por nombre que había
+// que acordarse de tocar: fuera_de_casa se quedó sin botón a la app por no
+// estar en una (2 oct 2026).
+//   · soloLectura (obligatorio): no cambia nada. Es LA puerta para correr
+//     antes de saber de quién es el turno (pista.js) y fuera de la fila.
+//   · pantalla (obligatorio, aunque sea null): qué pantalla de la app enseña
+//     lo visto o cambiado, en el formato de ?ir= de la app (App.jsx): hoy,
+//     semana, dia:Jue, compra… O una función de los argumentos.
+//   · avisoLento: la frase que sale al momento si tarda (AVISO_LENTO).
+//   · lector (obligatorio): si la puede usar un lector de la casa: true, false
+//     o "privado" (solo en su chat privado). Lo lee herramientas(chat) con
+//     herramientaPermitida (src/lib/papeles.js). Independiente de soloLectura:
+//     marcar_compra escribe y el lector la tiene; compartir no escribe en la
+//     casa pero crea enlaces a nombre del titular, y no la tiene.
+// Va con una clave Symbol: betaTool tira lo que no conoce, y un Symbol no sale
+// en el JSON que va a la API (fichas.test.js lo comprueba).
+const FICHA = Symbol("ficha");
+function herramienta(ficha, def) {
+  if (typeof ficha?.soloLectura !== "boolean" || !("pantalla" in ficha)) throw new Error(`Ficha incompleta: ${def?.name}`);
+  if (!(ficha.lector === true || ficha.lector === false || ficha.lector === "privado")) throw new Error(`Ficha sin «lector»: ${def?.name}`);
+  return Object.assign(betaTool(def), { [FICHA]: { avisoLento: null, ...ficha } });
+}
+
+// ver_menu: el día que se ha mirado («hoy», «mañana», «el jueves») o la semana.
+function pantallaDeVerMenu(args) {
+  if (args.cuando === "hoy") return "hoy";
+  if (args.cuando === "manana") return `dia:${diaDe("mañana")}`;
+  if (!args.dia) return "semana";
+  if (/^hoy$/i.test(String(args.dia).trim())) return "hoy";
+  const d = diaDe(args.dia);
+  return d ? `dia:${d}` : null;
 }
 
 /**
@@ -123,11 +137,6 @@ function pantallaDe(herramienta, args = {}) {
  *   `fotos` y `guardados` los rellenan las herramientas en este turno: las
  *   fotos de los platos que se han enseñado, y cuántas guardaron de verdad.
  */
-// Las que no cambian nada: pueden correr antes de saber de quién es el turno.
-export const SOLO_LECTURA = new Set([
-  "ver_casa", "ver_menu", "ver_receta", "ver_compra", "ver_ajustes", "ver_despensa", "ver_menu_cole",
-  "ver_recordatorios", "proponer_platos", "buscar_recetas", "compartir",
-]);
 
 /**
  * Una fila: cada tarea empieza cuando acaba la anterior, falle o no. Pura, para el test.
@@ -142,15 +151,22 @@ export function colaDeEscritura() {
   };
 }
 
-export async function herramientas(chat) {
-  const gustos = await dominiosDeGustos();
-  const todas = [
+function todasLasHerramientas(chat, gustos) {
+  return [
     ...herramientasDeMenu(chat.householdId, chat.fotos, chat),
     ...herramientasDeAjustes(chat.householdId, gustos, chat),
     ...herramientasDeRecordatorios(chat),
     ...herramientasDeFotos(chat.householdId),
     ...herramientasDeRecetas(chat),
   ];
+}
+
+// Lo que puede usar quien escribe (titular, cotitular, lector o alguien del
+// grupo sin cuenta): el modelo ni ve las demás. Sin papel, como un ajeno.
+const permitida = (chat, t) => herramientaPermitida(chat.papel, { name: t.name, lector: t[FICHA].lector }, Boolean(chat.esGrupo));
+
+export async function herramientas(chat) {
+  const todas = todasLasHerramientas(chat, await dominiosDeGustos()).filter((t) => permitida(chat, t));
   // Lo que ya se ha escrito del menú en este turno. Tras generar o cambiar, el
   // modelo volvía a ver_menu dos y tres veces para repasarlo (cada vuelta, 4-8
   // s en el chat), aunque generar y cambiar ya devuelven lo guardado.
@@ -172,6 +188,10 @@ export async function herramientas(chat) {
   }));
 
   async function ejecutarUna(t, args) {
+      // Por si acaso: el papel se vuelve a mirar al ejecutar.
+      if (!permitida(chat, t)) {
+        return "Eso no lo puede cambiar quien te escribe (es de solo consulta en esta casa). Díselo con amabilidad y que se lo pida a quien gestiona la casa.";
+      }
       // Turno especulativo (api/bot/telegram.js): Lola arranca a la vez que el
       // enrutador. Lo que escribe en la casa espera a saber si el turno es
       // suyo; si se lo queda la vía rápida, no escribe nada.
@@ -213,7 +233,7 @@ function herramientasDeRecetas(chat) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   const { householdId } = chat;
   return [
-    betaTool({
+    herramienta({ lector: true, soloLectura: true, pantalla: (a) => (a.categoria && a.categoria !== "mias" ? `recetas:${a.categoria}` : "recetas"), avisoLento: (a) => (a?.conFotos ? null : "Un momento, que te busco unas recetas") }, {
       name: "buscar_recetas",
       description: `Busca en el recetario (catálogo de HoMenu y recetas propias de la casa) para VER recetas de lo que pidan: «sólidos de bebé», «algo con garbanzos», «postres». Nada se cambia. categoria (opcional) es una carpeta del recetario: ${Object.entries(CATEGORIAS).map(([k, v]) => `${k} = ${v}`).join("; ")}. consulta: palabras clave (ingrediente, nombre) o lo que quieren tal cual lo dicen («algo de cuchara para el frío», «una cena que parezca de restaurante»): se busca también por significado. conFotos: manda la foto de las primeras.`,
       inputSchema: obj({
@@ -225,13 +245,13 @@ function herramientasDeRecetas(chat) {
       }),
       run: (args) => buscarRecetas(householdId, args, chat),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "apartar_foto_plato",
       description: "Guarda la foto de ESTE mensaje como foto del plato de una receta que se está creando (el plato ya hecho, no una receta escrita ni un ticket). Después, preparar_receta con usarFoto = true.",
       inputSchema: obj({}),
       run: () => apartarFotoPlato(householdId, chat),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null, avisoLento: "Dame un momento, que te paso la receta a limpio" }, {
       name: "preparar_receta",
       description: "Estructura una receta propia (como el asistente de la app) y la deja lista SIN guardar, para enseñarla. Solo cuando ya tengas nombre e ingredientes con cantidades; lo demás tiene valor por defecto. cuando: en qué comidas se sirve (primero, segundo, plato_unico, cena, merienda, postre). paraNinos: si es apta para niños (omitir si no lo saben). visibilidad: privada (solo la casa) o publica (sale en Gente).",
       inputSchema: obj({
@@ -255,7 +275,7 @@ function herramientasDeRecetas(chat) {
       }, ["nombre", "ingredientes"]),
       run: (datos) => prepararReceta(householdId, datos, chat),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: true, pantalla: null }, {
       name: "compartir",
       description: "Pone los botones para mandar a otra persona (por WhatsApp o Telegram) una receta o la semana. que: receta o semana. receta: su nombre o id (solo si que = receta).",
       inputSchema: obj({
@@ -273,7 +293,7 @@ function herramientasDeRecetas(chat) {
         return `Te pongo los botones para mandar «${r.name}».`;
       },
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: "recetas:mias" }, {
       name: "guardar_receta",
       description: "Guarda la última receta preparada con preparar_receta en esta charla (la herramienta la tiene apartada: no hace falta volver a pedir ningún dato), en el recetario de la casa, y el motor ya puede ponerla en menús. Llámala en cuanto digan «Guardar» o «sí» al resumen, con confirmado = true.",
       inputSchema: obj({ confirmado: { type: "boolean" } }, ["confirmado"]),
@@ -288,13 +308,13 @@ function herramientasDeFotos(householdId) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   const platos = obj({ primero: { type: "string" }, segundo: { type: "string" }, postre: { type: "string" }, sinClase: { type: "boolean" } });
   return [
-    betaTool({
+    herramienta({ lector: true, soloLectura: true, pantalla: null }, {
       name: "ver_despensa",
       description: "Lo que hay apuntado en la despensa de la casa (nevera, despensa, congelador).",
       inputSchema: obj({}),
       run: () => verDespensa(householdId),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "anadir_despensa",
       description: "Apunta alimentos en la despensa (suma si ya estaban). Solo comida: nada de droguería ni bolsas. Nombres de alimento simples en español («pechuga de pollo», «tomate triturado»), sin marcas. Si viene de una foto, solo tras enseñar la lista y que digan que sí.",
       inputSchema: obj({
@@ -311,7 +331,7 @@ function herramientasDeFotos(householdId) {
       }, ["items", "origen"]),
       run: ({ items, origen }) => anadirDespensa(householdId, items, origen),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "guardar_menu_cole",
       description: "Guarda el menú del comedor escolar (leído de una foto o PDF, o dictado). Por días de lunes a viernes con primero, segundo y postre; sinClase=true si ese día no hay cole. Varias semanas si el cole rota, empezando por la que toca la semana que se planifica. para: «todos» o el nombre de un niño si es solo suyo. Solo tras enseñar el resumen y que digan que sí.",
       inputSchema: obj({
@@ -323,7 +343,7 @@ function herramientasDeFotos(householdId) {
       }, ["semanas"]),
       run: (args) => guardarMenuCole(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: true, soloLectura: true, pantalla: null }, {
       name: "ver_menu_cole",
       description: "El menú del cole guardado (lo que comen los niños en el comedor).",
       inputSchema: obj({}),
@@ -335,7 +355,7 @@ function herramientasDeFotos(householdId) {
 function herramientasDeRecordatorios(chat) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   return [
-    betaTool({
+    herramienta({ lector: "privado", soloLectura: false, pantalla: null }, {
       name: "empezar_de_nuevo",
       description: "Olvida lo hablado hasta ahora en este chat y empieza una charla nueva, cuando lo pidan («olvida lo que hemos hablado», «empecemos de nuevo»). NO borra la casa, el menú ni la compra: díselo así.",
       inputSchema: obj({}),
@@ -344,7 +364,7 @@ function herramientasDeRecordatorios(chat) {
         return "Hecho: a partir de ahora no recuerdas lo hablado antes. La casa, el menú y la compra siguen igual.";
       },
     }),
-    betaTool({
+    herramienta({ lector: "privado", soloLectura: false, pantalla: null }, {
       name: "crear_recordatorio",
       description: "Programa un recordatorio en ESTE chat. Solo si el usuario lo ha pedido o ha dicho que sí a tu oferta. cuando: fecha y hora en hora de España, AAAA-MM-DDTHH:MM. repite: diario o semanal (opcional).",
       inputSchema: obj({
@@ -354,19 +374,19 @@ function herramientasDeRecordatorios(chat) {
       }, ["texto", "cuando"]),
       run: (args) => crearRecordatorio(chat, args),
     }),
-    betaTool({
+    herramienta({ lector: "privado", soloLectura: false, pantalla: null }, {
       name: "aviso_vispera",
       description: "El aviso de la víspera: cada noche miras el menú de mañana y, SOLO si hay algo que preparar (legumbres en remojo, sacar un plato del congelador, su día de batch cooking), les escribes. Solo con su sí: ofrécelo una vez, tras su primer menú, con [[Sí, avísame]] [[No hace falta]]. activar=false lo quita. hora HH:MM en hora de España (por defecto 20:30).",
       inputSchema: obj({ activar: { type: "boolean" }, hora: { type: "string" } }, ["activar"]),
       run: (args) => avisoVispera(chat, args),
     }),
-    betaTool({
+    herramienta({ lector: "privado", soloLectura: true, pantalla: null }, {
       name: "ver_recordatorios",
       description: "Los recordatorios pendientes de este chat, con su id.",
       inputSchema: obj({}),
       run: () => verRecordatorios(chat.chatId),
     }),
-    betaTool({
+    herramienta({ lector: "privado", soloLectura: false, pantalla: null }, {
       name: "cancelar_recordatorio",
       description: "Cancela un recordatorio pendiente por su id (míralo antes con ver_recordatorios).",
       inputSchema: obj({ id: { type: "string" } }, ["id"]),
@@ -378,7 +398,7 @@ function herramientasDeRecordatorios(chat) {
 function herramientasDeAjustes(householdId, gustos, chat = {}) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   return [
-    betaTool({
+    herramienta({ lector: true, soloLectura: true, pantalla: null }, {
       name: "ver_ajustes",
       description: "Cómo está configurada la casa: estructura de comidas, nivel de cocina, trastos, gustos anotados (con su estado: fijado/inferido/delegado), quién come fuera y reglas/invitados.",
       inputSchema: obj({}),
@@ -387,7 +407,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         return casa ? describirAjustes(casa) : "Sin datos de la casa en la nube.";
       },
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_gustos",
       description: `Gustos de la casa, como el panel de la app. Cada ajuste: campo, valor, op (mas|menos|nunca), n opcional (veces/semana, 0-7, solo freqs), ambito (todos|ninos|adultos|bebes), servicio (ambos|comida|cena). Campos y valores válidos: ${gustos}. «Nada de X» es favoritos/excluidos con op=nunca. dicho=true SOLO si es una instrucción o una norma de la casa («en casa no comemos cerdo», «pon más pescado», «nada de fritos»). Un comentario u opinión es dicho=false aunque hable de gustos («a los peques no les va mucho el pescado», «el cerdo nos sienta regular», «son de poco comer»): eso solo inclina el menú, no excluye nada y caduca; se apunta sin preguntar. Un antojo de hoy («hoy no me apetece») no es un gusto: no lo apuntes. Con algo supuesto, habla de ello como impresión, no como hecho. desde/hasta (AAAA-MM-DD) para lo que tiene fecha («este mes», «a partir del lunes»). dias y salvoDias para lo que vale solo algunos días («los lunes, sin carne» → dias [Lun]; «entre semana, nada de fritos» → dias [Lun..Vie]; «sin pescado en la cena salvo los viernes» → servicio cena, salvoDias [Vie]): por días solo se puede QUITAR (op=nunca: un ingrediente, carne, pescado, legumbres, huevos, pasta_arroz o una técnica) y solo como norma dicha.`,
       inputSchema: obj({
@@ -410,7 +430,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["ajustes", "frase", "dicho"]),
       run: ({ ajustes, frase, dicho, desde, hasta, dias, salvoDias }) => ajustarGustos(householdId, ajustes, frase, { dicho, desde, hasta, dias, salvoDias }),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "descartar_supuesto",
       description: "Cuando la familia desmiente algo que TÚ apuntaste como supuesto («no, el pescado sí les encanta», «lo dije solo por hoy»): llámala SIEMPRE. Lo que dijiste que apuntabas «como impresión» YA ESTÁ GUARDADO (sale en la ficha como «Supuesto:») y sigue inclinando el menú hasta que se descarta: contestar «vale, no apunto nada» no lo quita. Deja de valer y no lo vuelves a suponer. Mismos campo/valor/ambito/servicio con que se apuntó. Para lo que la familia dijo y ahora cambia, usa ajustar_gustos.",
       inputSchema: obj({
@@ -420,7 +440,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["campo", "valor"]),
       run: (args) => descartarSupuesto(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_cocina",
       description: "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y trastos (lista completa de lo que hay: Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). Cocinar en tanda va por pedir_tanda.",
       inputSchema: obj({
@@ -433,7 +453,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }),
       run: (args) => ajustarCocina(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "pedir_tanda",
       description: "Batch cooking (día de hacer tuppers; a la familia nunca le digas «tanda»), como la pantalla de bases de la app. bases: lo que se deja hecho para usar en varios platos (claves: arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito, caldo, salsa_tomate, verdura_asada, pesto, bechamel, patatas_asadas, bolonesa), con veces = platos de la semana que lo usan (2-5; 0 lo quita). platos: platos que se dejan hechos o a medias (claves: croquetas-crudas, bunuelos-masa, falafel-crudo, empanadillas-cerradas, empanada-montada, lasana-montada, ravioli-cortados, quiche-sin-hornear, pastel-al-horno, huevos-rellenos, carne-empanada, verduras-rellenas, gazpacho, caldo-casero, crema, sopa), veces 1-4. minutos: el rato de manos que hay para la sesión (30-240). dia: el día en que se cocina (lunes…domingo). ninguna=true: deja de cocinar en tanda. Si una clave no vale, te devuelvo la lista buena: corrígela, no se lo preguntes a la familia.",
       inputSchema: obj({
@@ -445,7 +465,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }),
       run: (args) => pedirTanda(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_horario",
       description: "Quién come dónde. personas: nombres, o «todos», «niños», «adultos». dias: lunes…domingo, «entre semana» o «finde» (vacío = todos). comidas: Desayuno/Comida/Merienda/Cena/Postre (vacío = Comida y Cena). donde: casa | tupper (se lleva comida de casa) | fuera | cole | off (esa comida no se hace).",
       inputSchema: obj({
@@ -456,7 +476,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["personas", "donde"]),
       run: (args) => ajustarHorario(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "anadir_invitado",
       description: "Alguien de fuera viene a comer o cenar un día concreto (se suma a las raciones y a la compra de esa semana, y caduca solo).",
       inputSchema: obj({
@@ -466,13 +486,13 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["dia", "comida"]),
       run: (args) => anadirInvitado(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "anadir_comensal",
       description: "Añade a alguien que vive y come en casa (no un invitado puntual).",
       inputSchema: obj({ nombre: { type: "string" }, edad: { type: "integer", minimum: 0, maximum: 120 } }, ["nombre"]),
       run: (args) => anadirComensal(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_persona",
       description: "Una persona de la casa: corregir cómo se escribe su nombre (nuevoNombre, p. ej. un nombre mal oído en un audio), y peso (kg) y altura (cm), opcionales: con los dos, el motor ajusta su ración (cantidades de la compra y de las recetas). borrar=true quita peso y altura.",
       inputSchema: obj({
@@ -484,19 +504,19 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["nombre"]),
       run: (args) => ajustarPersona(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_menu_peques",
       description: "Si los peques comen lo mismo que los mayores o no. Por defecto, toda la casa come lo mismo (el bebé, aparte): úsala solo si lo dicen. igual = lo mismo que la familia; aparte = cenan algo suyo (sin repetir lo del cole); lo_del_mediodia = los días de cole cenan lo que la familia comió a mediodía. Cuenta en el próximo menú.",
       inputSchema: obj({ cena: { type: "string", enum: ["igual", "aparte", "lo_del_mediodia"] } }, ["cena"]),
       run: (args) => ajustarMenuPeques(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "quitar_comensal",
       description: "Quita a alguien de la casa (ya no come aquí). Confirma antes con el usuario.",
       inputSchema: obj({ nombre: { type: "string" } }, ["nombre"]),
       run: (args) => quitarComensal(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_alergias",
       description: "Alergias o intolerancias de una persona o de «toda la casa» (los 14 alérgenos oficiales: gluten, crustaceos, huevos, pescado, cacahuetes, soja, leche, frutos_cascara, apio, mostaza, sesamo, sulfitos, altramuces, moluscos). ninguna=true si dicen que nadie tiene. confirmado=true en cuanto la persona lo ha dicho claro (quién y qué): se guarda al momento y se cuenta en una línea con [[No es así]] para deshacer. Si lo dijo a medias (sin decir quién, o «creo que…»), pregunta antes. Quitar una alergia o «nadie tiene» se comprueban además contra lo que ha escrito.",
       inputSchema: obj({
@@ -505,7 +525,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["confirmado"]),
       run: (args) => ajustarAlergias(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_salud",
       description: "Lo que NO es uno de los 14 alérgenos pero cambia el menú de una persona: intolerancias (lactosa_fina = intolerancia a la lactosa, fructosa, sorbitol) y estados (embarazo, lactancia). Igual que las alergias: confirmado=true en cuanto lo ha dicho claro (quién y qué), se guarda al momento y se cuenta en una línea con [[No es así]]. hasta (AAAA-MM-DD) solo si dan fecha de fin de un estado. quitar=true para quitarlo (se comprueba contra lo que ha escrito). La celiaquía y la alergia a la leche van con ajustar_alergias (gluten, leche).",
       inputSchema: obj({
@@ -517,13 +537,13 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["persona", "confirmado"]),
       run: (args) => ajustarSalud(householdId, args),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "deshacer",
       description: "Deshace TU último cambio en la casa (un plato cambiado, la compra, un ajuste o un menú generado: vuelve el anterior). Un solo nivel. No deshace lo que otra persona haya hecho en la app.",
       inputSchema: obj({}),
       run: () => deshacer(householdId),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: "semana", avisoLento: "Voy, te preparo el menú, dame unos segundos" }, {
       name: "generar_menu",
       description: "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy o la «siguiente» entera. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después.",
       inputSchema: obj({
@@ -577,13 +597,13 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
   const semana = { type: "string", enum: ["esta", "siguiente"], description: "Opcional: «esta» semana o la «siguiente», si lo dicen. Sin ella, el próximo día con ese nombre que tenga menú." };
 
   return [
-    betaTool({
+    herramienta({ lector: true, soloLectura: true, pantalla: null }, {
       name: "ver_casa",
       description: "Quién vive en la casa (nombres, edades, alergias, intolerancias, lo que no les gusta), los grupos de menú, qué comidas se planifican y qué día es hoy.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       run: () => conCasa((casa) => describirCasa(casa)),
     }),
-    betaTool({
+    herramienta({ lector: true, soloLectura: true, pantalla: pantallaDeVerMenu }, {
       name: "ver_menu",
       description: "El menú activo, justo el trozo que piden: unos días (hoy, mañana, un día, el finde, esta semana, la que viene, de un día a otro), unas comidas, unos platos, para alguien. Lo pedido SALE PINTADO DEBAJO de tu mensaje: no lo copies; como mucho, una frase. Lo que devuelve es para que tú lo sepas.",
       inputSchema: {
@@ -612,7 +632,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         return `Sale pintado debajo de tu mensaje (NO lo copies; como mucho una frase). Para que lo sepas:\n${sinEtiquetas(p.texto)}`;
       }),
     }),
-    betaTool({
+    herramienta({ lector: true, soloLectura: true, pantalla: null }, {
       name: "ver_receta",
       description: "Ingredientes y pasos de una receta, por su nombre (normalmente uno de los platos del menú).",
       inputSchema: {
@@ -623,13 +643,13 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       },
       run: ({ nombre }) => conCasa((casa) => describirReceta(casa, nombre)),
     }),
-    betaTool({
+    herramienta({ lector: true, soloLectura: true, pantalla: "compra" }, {
       name: "ver_compra",
       description: "La lista de la compra de la semana activa: lo que falta por comprar, por secciones.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       run: () => conCasa((casa) => describirCompra(casa)),
     }),
-    betaTool({
+    herramienta({ lector: true, soloLectura: false, pantalla: "compra" }, {
       name: "marcar_compra",
       description: "Marca productos de la lista como comprados (o los devuelve a pendientes). Usa los nombres como aparecen en la lista.",
       inputSchema: {
@@ -643,7 +663,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       },
       run: ({ productos, estado }) => marcarCompra(householdId, productos, estado),
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: "compra" }, {
       name: "anadir_compra",
       description: "Añade a la lista de la compra cosas que no salen del menú («añade leche», «apunta pilas»).",
       inputSchema: {
@@ -654,7 +674,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       },
       run: ({ productos }) => anadirCompra(householdId, productos),
     }),
-    betaTool({
+    herramienta({ lector: true, soloLectura: true, pantalla: null }, {
       name: "proponer_platos",
       description: "Recetas del catálogo que encajan en un hueco del menú (respetan alergias, gustos, tiempo y lo que ya hay en la semana), SIN cambiar nada. Para recomendar o dar a elegir; con parecido_a, las más parecidas a un plato que piden por su nombre. En la comida hay primero y segundo; «cual» dice cuál.",
       inputSchema: {
@@ -691,17 +711,17 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null }, fotos);
       },
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: "semana" }, {
       name: "fuera_de_casa",
-      description: "Un día concreto alguien (o toda la casa) no come en casa: «hoy cenamos fuera», «el viernes Leo come con los abuelos». Solo ese día; lo que se repite cada semana es ajustar_horario. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. quienes: nombres de la casa (vacío = toda la casa).",
+      description: "Días concretos en que alguien (o toda la casa) no come en casa: «hoy cenamos fuera», «el viernes Leo come con los abuelos», «Nat no está el finde». Solo esos días; lo que se repite cada semana es ajustar_horario. Una llamada apunta todos los días × todas las comidas que le pases: «no come el finde» es dias [finde] con comidas [Comida, Cena]. Si los días no llevan las mismas comidas («el finde entero y hoy solo la cena»), una llamada por cada combinación. Si en el menú ya hecho todo un grupo queda fuera, se quita ese plato y la compra se rehace (sale pintado debajo); si solo falta alguien, el plato se queda para los demás. quienes: nombres de la casa (vacío = toda la casa).",
       inputSchema: {
         type: "object",
         properties: {
-          dia: { type: "string", description: "hoy, mañana, pasado mañana o el nombre del día" },
-          comida: { type: "string", enum: IDS_COMIDAS },
+          dias: { type: "array", items: { type: "string" }, minItems: 1, description: "cada uno: hoy, mañana, pasado mañana, el nombre del día o finde" },
+          comidas: { type: "array", items: { type: "string", enum: IDS_COMIDAS }, minItems: 1 },
           quienes: { type: "array", items: { type: "string" } },
         },
-        required: ["dia", "comida"],
+        required: ["dias", "comidas"],
         additionalProperties: false,
       },
       run: async (args) => {
@@ -710,7 +730,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         return r.texto;
       },
     }),
-    betaTool({
+    herramienta({ lector: false, soloLectura: false, pantalla: (a) => (a.dia && diaDe(a.dia) ? `dia:${diaDe(a.dia)}` : null) }, {
       name: "cambiar_plato",
       description: "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa o, si no está tal cual en el catálogo, la más parecida que encaje en el hueco (la respuesta dice si es aproximada); sin ella, el motor elige otra respetando alergias y preferencias. En la comida y la cena hay primero (entrante) y segundo; «cual» dice cuál. Un entrante, primero o tapa para una comida o cena que no lo tenía se AÑADE con cual: primero, y el principal no se toca: nunca cambies el principal para poner un entrante.",
       inputSchema: {
@@ -873,23 +893,54 @@ async function adelantar(plan, chat) {
  *   el texto para el chat (HTML de Telegram), las fotos de los platos que se
  *   han enseñado y si se cambió algo que se puede deshacer.
  */
-export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null }) {
+// Una línea en la ficha cuando quien escribe no gestiona la casa: así Lola
+// sabe qué ofrecer y qué remitir, en vez de descubrirlo al chocar.
+const QUIEN_ESCRIBE = {
+  viewer: "QUIEN ESCRIBE: lector de la casa. Puede consultarlo todo y tachar la compra; nada más, ni aquí ni en la app (no le mandes a la app a cambiar nada). Si pide cambiar otra cosa, dile con naturalidad que eso lo cambia quien gestiona la casa, sin hablar de permisos ni de lo que «puede» hacer.",
+  ajeno: "QUIEN ESCRIBE: alguien del grupo sin cuenta enlazada a esta casa. Solo puedes contarle el menú, las recetas y la compra. Para apuntar o cambiar algo, que te escriba por privado y conecte su cuenta, o que se lo pida a quien gestiona la casa.",
+};
+// Y el idioma que eligió (0073): en inglés aunque escriba en español, y los
+// platos con su nombre traducido (los datos de la casa están en castellano).
+const IDIOMA = {
+  en: "IDIOMA: quien escribe eligió inglés. Contesta SIEMPRE en inglés, aunque escriba en español; los platos, ingredientes y pasos, traducidos al inglés.",
+};
+export function conQuienEscribe(ficha, papel, idioma = null) {
+  if (!ficha) return ficha;
+  const lineas = [QUIEN_ESCRIBE[papel ?? "ajeno"], IDIOMA[idioma]].filter(Boolean);
+  return lineas.length ? { ...ficha, delDia: [ficha.delDia, ...lineas].join("\n") } : ficha;
+}
+
+/**
+ * @param {(string|number)[]} [desde]  los ids de Telegram de quienes escriben en
+ *   este turno (sin bots ni anónimos): de ahí sale su papel en la casa
+ *   (papel.js). Sin ellos, como alguien sin cuenta: solo consulta.
+ */
+export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, desde = [], adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null }) {
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
   // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta };
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined };
+  // El papel de quien escribe, en cada turno (no se guarda: quitar a alguien
+  // vale para el mensaje siguiente). Las herramientas se filtran con él.
+  const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })
+    .catch((e) => { console.error("[agente] papel", e?.message); return { papel: "ajeno", userId: null }; })
+    .then(async (p) => {
+      chat.papel = p.papel;
+      chat.idioma = await idiomaDe(p.userId).catch(() => null);
+      return p;
+    });
   // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
   const [tope, historia, tools, casa, extras] = await Promise.all([
-    fueraDeLimite(householdId), memoria(channel, chatId), herramientas(chat),
+    fueraDeLimite(householdId), memoria(channel, chatId), conPapel.then(() => herramientas(chat)),
     cargarCasa(householdId).catch(() => null), extrasDeFicha(householdId, chatId),
   ]);
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
-  const ficha = casa ? montarFicha(casa, extras) : null;
+  const ficha = casa ? conQuienEscribe(montarFicha(casa, extras), chat.papel, chat.idioma) : null;
   let dicho, uso, corregido, medida, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
@@ -975,7 +1026,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     segundaSemana(householdId).catch(() => {}),
   ]);
 
-  return { texto: respuesta, fotos: chat.fotos, deshacible: false, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado, medida };
+  return { texto: respuesta, fotos: chat.fotos, deshacible: false, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado, medida, idioma: chat.idioma ?? null };
 }
 
 /**
@@ -1007,15 +1058,11 @@ export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(String(texto ?? "")
 // su propia llamada a un modelo. Antes, en esos segundos solo se veía
 // «escribiendo…» y el primer texto llegaba a los 5-6 s. Va en código y no en
 // las instrucciones: así sale siempre, sin gastar tokens ni otra vuelta.
-export const AVISO_LENTO = {
-  // Sin «…» al final: el mensaje a medio escribir ya lleva el suyo.
-  generar_menu: "Voy, te preparo el menú, dame unos segundos",
-  // Con fotos, no: el álbum tiene que ir antes del texto y el aviso habría que
-  // borrarlo y volver a mandar (se ve un parpadeo), para una búsqueda que con
-  // fotos suele tardar menos de medio segundo.
-  buscar_recetas: (args) => (args?.conFotos ? null : "Un momento, que te busco unas recetas"),
-  preparar_receta: "Dame un momento, que te paso la receta a limpio",
-};
+// Cada frase va en la ficha de su herramienta (avisoLento), sin «…» al final:
+// el mensaje a medio escribir ya lleva el suyo. buscar_recetas con fotos, no:
+// el álbum tiene que ir antes del texto y el aviso habría que borrarlo y
+// volver a mandar (se ve un parpadeo), para una búsqueda que con fotos suele
+// tardar menos de medio segundo. AVISO_LENTO se saca de las fichas, abajo.
 const avisoLento = () => process.env.BOT_AVISO_LENTO !== "off";
 const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En tu respuesta dices que lo has apuntado, guardado o hecho, pero en este turno no se ha guardado nada: o no has llamado a ninguna herramienta que guarde, o la que llamaste no pudo guardar. Si había que guardarlo y no lo intentaste, llama ahora a la herramienta que toca y luego contesta. Si lo intentaste y no se pudo, dilo tal cual y ofrece intentarlo otra vez. Si no había nada que guardar, contesta otra vez sin decir que está hecho. Contesta a la persona directamente, sin mencionar este aviso.";
 
@@ -1193,4 +1240,22 @@ async function segundaSemana(householdId) {
   if (enlace && Date.now() - Date.parse(enlace.created_at) >= 7 * 86400000) {
     await registrar(EMBUDO.SEGUNDA_SEMANA, { userId: dueno, unaVez: true });
   }
+}
+
+// ── Lo que sale de las fichas ───────────────────────────────────────────────
+// Al final del fichero: las herramientas se montan una vez al importar, con
+// una charla vacía, solo para leer sus fichas (montarlas no toca la base ni
+// nada de fuera). Toda herramienta que exista sale aquí; si algún día una se
+// añade solo en ciertas charlas, fichas.test.js lo pilla.
+export const FICHAS = new Map(todasLasHerramientas({}, "").map((t) => [t.name, t[FICHA]]));
+
+// Las que no cambian nada: pueden correr antes de saber de quién es el turno.
+export const SOLO_LECTURA = new Set([...FICHAS].filter(([, f]) => f.soloLectura).map(([n]) => n));
+
+export const AVISO_LENTO = Object.fromEntries([...FICHAS].filter(([, f]) => f.avisoLento).map(([n, f]) => [n, f.avisoLento]));
+
+/** Qué pantalla de la app enseña lo que acaba de hacer esa herramienta, o null. */
+export function pantallaDe(nombre, args = {}) {
+  const p = FICHAS.get(nombre)?.pantalla;
+  return typeof p === "function" ? p(args) : p ?? null;
 }

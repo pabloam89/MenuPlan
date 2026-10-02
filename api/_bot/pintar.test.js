@@ -134,6 +134,50 @@ describe("pintarMenu", () => {
     expect(con.texto).toBe("<b>Sábado 3 de octubre</b>\n🌙 Pisto");
   });
 
+  // Staging, 2 oct 2026: el día salía «Nat, Pablo y Isa» con Pablo fuera a
+  // mediodía y Nat fuera por la noche, mientras Lola decía lo contrario.
+  describe("quien no come en casa ese día no sale", () => {
+    const fuera = (ref, comida, extra = {}) => ({
+      sujeto: { tipo: "miembro", ref }, ambito: { dias: ["Sáb"], comidas: [comida] },
+      vigencia: { desde: "2026-10-03", hasta: "2026-10-03" }, efecto: { tipo: "presente", valor: "fuera" }, ...extra,
+    });
+    const con = (data) => ({ ...casa, state: { ...casa.state, data: { ...casa.state.data, ...data } } });
+
+    it("con una ausencia puntual, la etiqueta es de los que quedan", () => {
+      const r = pintarMenu(con({ reglas: [fuera("p", "Comida")] }), { dias: ["2026-10-03"], comidas: ["Comida"] });
+      expect(r.texto).toContain("🍽️ <i>Isa y Leo:</i> Crema de calabaza + Pollo al horno");
+      expect(r.texto).not.toContain("Pablo");
+    });
+
+    it("solo ese día y esa comida: el domingo y la cena, como siempre", () => {
+      const r = pintarMenu(con({ reglas: [fuera("p", "Comida")] }), { dias: ["2026-10-03", "2026-10-04"], comidas: ["Comida", "Cena"] });
+      expect(r.texto).toContain("<i>Isa y Leo:</i> Crema");
+      expect(r.texto).toMatch(/🌙 Tortilla de patatas$/m);
+      expect(r.texto).toContain("Domingo 4 de octubre</b>\n🌙 <i>Pablo, Isa y Leo:</i>");
+    });
+
+    it("si todos comen lo mismo (sin etiqueta), quien falta se dice al lado", () => {
+      const r = pintarMenu(con({ reglas: [fuera("p", "Cena")] }), { dias: ["2026-10-03"], comidas: ["Cena"] });
+      expect(r.texto).toBe("<b>Sábado 3 de octubre</b>\n🌙 Tortilla de patatas <i>(Pablo fuera)</i>");
+    });
+
+    it("el horario de siempre («los sábados Pablo come fuera») cuenta igual; el tupper no", () => {
+      expect(pintarMenu(con({ schedule: { "p|Sáb|Comida": "fuera" } }), { dias: ["2026-10-03"], comidas: ["Comida"] }).texto).toContain("<i>Isa y Leo:</i>");
+      expect(pintarMenu(con({ schedule: { "p|Sáb|Comida": "tupper" } }), { dias: ["2026-10-03"], comidas: ["Comida"] }).texto).toContain("<i>Pablo, Isa y Leo:</i>");
+    });
+
+    it("un grupo que se va entero no se pinta", () => {
+      const r = pintarMenu(con({ reglas: [fuera("c", "Comida")] }), { dias: ["2026-10-03"], comidas: ["Comida"] });
+      expect(r.texto).not.toContain("Puré");
+      expect(r.texto).toContain("🍽️ Crema de calabaza + Pollo al horno");
+    });
+
+    it("una ausencia de otro día no toca este", () => {
+      const otra = { ...fuera("p", "Comida"), vigencia: { desde: "2026-10-10", hasta: "2026-10-10" } };
+      expect(pintarMenu(con({ reglas: [otra] }), { dias: ["2026-10-03"], comidas: ["Comida"] }).texto).toContain("<i>Pablo, Isa y Leo:</i>");
+    });
+  });
+
   it("el título del día", () => {
     expect(tituloDia("2026-10-03")).toBe("Sábado 3 de octubre");
   });

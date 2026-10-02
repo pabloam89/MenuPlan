@@ -1330,8 +1330,8 @@
       ],
       "args": {
         "fuera_de_casa": {
-          "dia": "jueves",
-          "comida": "comida"
+          "dias": "jueves",
+          "comidas": "comida"
         }
       },
       "noLlama": [
@@ -1339,6 +1339,22 @@
         "cambiar_plato",
         "proponer_platos"
       ]
+    },
+    {
+      "nombre": "habla: «Leo no come en casa el finde ni cena hoy» → ausencias en lote, no una llamada por hueco (2 oct 2026: cinco a la vez)",
+      "entrada": "Leo no come en casa el finde ni cena hoy",
+      "llama": [
+        "fuera_de_casa"
+      ],
+      "args": {
+        "fuera_de_casa": {
+          "quienes": "leo"
+        }
+      },
+      "noLlama": [
+        "ajustar_horario"
+      ],
+      "maxLlamadas": 2
     },
     {
       "nombre": "habla: «los jueves nunca comemos en casa» → es de cada semana: ajustar_horario, no fuera_de_casa",
@@ -1546,7 +1562,7 @@
           "semana": "esta"
         },
         "fuera_de_casa": {
-          "dia": "mañana"
+          "dias": "mañana"
         }
       },
       "antes": [
@@ -1558,6 +1574,117 @@
       "noLlama": [
         "cambiar_plato"
       ]
+    },
+    {
+      "nombre": "ficha: contesta lo que preguntan, sin contar el día que ya enseñó",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana, Pablo, Leo: ninguna.\nCASA\n- Ana 38 · Pablo 40 · Leo 6.\n- Todos comen lo mismo.",
+        "delDia": "jue 1 oct (2026-10-01)\nAHORA\n- Pablo no come en casa hoy.\n- Leo no cena en casa hoy.\nMENÚ 28 sep–4 oct (no hay semana siguiente)\n- Hoy: crema de calabaza + pollo al horno con patatas; cena tortilla de calabacín."
+      },
+      "historia": [
+        {
+          "role": "user",
+          "content": "¿qué hay hoy?"
+        },
+        {
+          "role": "assistant",
+          "content": "Hoy: crema de calabaza y pollo al horno con patatas; de cena, tortilla de calabacín. Pablo come fuera y Leo no cena en casa."
+        }
+      ],
+      "entrada": "si genero la semana que viene, ¿me rompe la actual?",
+      "noLlama": [
+        "generar_menu",
+        "cambiar_plato"
+      ],
+      "sinTexto": "(por cierto|para hoy|no cena|come fuera|tortilla|pollo al horno|tranquil[ao])"
+    },
+    {
+      "nombre": "papeles: el lector pide cambiar un plato → no lo cambia y remite a quien gestiona",
+      "papel": "viewer",
+      "entrada": "cambia la cena del martes por pizza",
+      "noLlama": [
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "texto": "(gestiona|organiza|lleva la casa|p[ií]de(se)?lo|pedírselo|titular|dile que)",
+      "sinTexto": "(solo puedes|puedes consultar|tus permisos)"
+    },
+    {
+      "nombre": "papeles: el lector dice que ya compró → lo tacha",
+      "papel": "viewer",
+      "entrada": "ya he comprado la leche y los huevos",
+      "llama": [
+        "marcar_compra"
+      ]
+    },
+    {
+      "nombre": "papeles: el lector pide apuntar en la lista → no apunta y remite",
+      "papel": "viewer",
+      "entrada": "apunta lejía en la lista",
+      "noLlama": [
+        "anadir_compra"
+      ],
+      "texto": "(gestiona|organiza|lleva la casa|p[ií]de(se)?lo|pedírselo|titular|dile que)",
+      "sinTexto": "(solo puedes|puedes consultar|tus permisos)"
+    },
+    {
+      "nombre": "papeles: el lector pide mandar la semana → no comparte",
+      "papel": "viewer",
+      "entrada": "mándale el menú de la semana a mi hermana",
+      "noLlama": [
+        "compartir"
+      ],
+      "sinTexto": "(solo puedes|puedes consultar|tus permisos)"
+    },
+    {
+      "nombre": "papeles: alguien del grupo sin cuenta pide apuntar → no apunta, le dice cómo conectarse",
+      "papel": "ajeno",
+      "esGrupo": true,
+      "entrada": "Lola, apunta leche",
+      "noLlama": [
+        "anadir_compra",
+        "marcar_compra"
+      ],
+      "texto": "(privado|conect|cuenta|gestiona)"
+    },
+    {
+      "nombre": "papeles: el cotitular genera la semana que viene",
+      "papel": "editor",
+      "entrada": "genera el menú de la semana que viene",
+      "llama": [
+        "generar_menu"
+      ],
+      "args": {
+        "generar_menu": {
+          "semana": "siguiente"
+        }
+      }
+    },
+    {
+      "nombre": "idioma: la lectora en inglés pregunta qué hay de cena → en inglés, con el plato traducido",
+      "papel": "viewer",
+      "idioma": "en",
+      "entrada": "what is for dinner today?",
+      "texto": "(omelet|courgette|zucchini|tonight|dinner)",
+      "sinTexto": "(tortilla de calabac|la cena de hoy|para cenar)"
+    },
+    {
+      "nombre": "idioma: la lectora eligió inglés y escribe en español → contesta en inglés",
+      "papel": "viewer",
+      "idioma": "en",
+      "entrada": "qué hay mañana de comer?",
+      "texto": "(lentil|stew|tomorrow|lunch)",
+      "sinTexto": "(lentejas estofadas|mañana toca|de comer)"
+    },
+    {
+      "nombre": "idioma: la lectora en inglés pide cambiar un plato → en inglés, y remite",
+      "papel": "viewer",
+      "idioma": "en",
+      "entrada": "change tomorrow dinner to pizza please",
+      "noLlama": [
+        "cambiar_plato"
+      ],
+      "texto": "(ask|whoever|owner|manages|runs the home|in charge)"
     },
     {
       "nombre": "un entrante para la cena se añade (cual: primero), no cambia el principal",

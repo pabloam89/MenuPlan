@@ -22,7 +22,7 @@ for (const k of ["ANTHROPIC_API_KEY"]) {
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
-const { ejecutar, herramientas, MODELO, MODELO_RESERVA } = await import("../api/_bot/agente.js");
+const { ejecutar, herramientas, conQuienEscribe, MODELO, MODELO_RESERVA } = await import("../api/_bot/agente.js");
 const { supervisar } = await import("../api/_bot/supervisor.js");
 // La pista del enrutador (BOT_PISTA), con el mismo texto que en Telegram: un
 // caso con "pista" { decision, adelanto } mide si Lola la usa sin fiarse de más.
@@ -92,13 +92,16 @@ const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => 
   if (k === "_todo") return normal(JSON.stringify(args)).includes(normal(v));
   if (typeof v === "boolean") return args?.[k] === v;
   const dado = normal(args?.[k]);
-  if (k === "dia" && normal(v) === DIA_DE_HOY && (dado.includes("hoy") || dado.includes(HOY_MADRID))) return true;
+  if ((k === "dia" || k === "dias") && normal(v) === DIA_DE_HOY && (dado.includes("hoy") || dado.includes(HOY_MADRID))) return true;
   return dado.includes(normal(v));
 });
 
 const filtro = normal(process.argv.slice(2).find((a) => !a.startsWith("--")) ?? "");
 const elegidos = casos.filter((c) => !filtro || normal(c.nombre).includes(filtro));
-const reales = await herramientas({ channel: "telegram", chatId: "0", householdId: "00000000-0000-0000-0000-000000000000", autor: null });
+// `"papel"` en un caso (owner | editor | viewer | ajeno; por defecto titular)
+// y `"esGrupo"`: las herramientas que ve Lola y la línea de la ficha salen
+// como en el bot de verdad (api/_bot/papel.js, herramientaPermitida).
+const realesDe = (caso) => herramientas({ channel: "telegram", chatId: "0", householdId: "00000000-0000-0000-0000-000000000000", autor: null, papel: caso.papel ?? "owner", esGrupo: Boolean(caso.esGrupo) });
 
 let bien = 0;
 let coste = 0;
@@ -113,7 +116,7 @@ for (const caso of elegidos) {
   // Sin esto, al poner herramientas de mentira, el supervisor no actuaba y
   // las pruebas de alergias no medían lo que pasa en Telegram.
   const anterior = [...(caso.historia ?? [])].reverse().find((h) => h.role === "assistant")?.content ?? "";
-  const tools = reales.map((t) => ({
+  const tools = (await realesDe(caso)).map((t) => ({
     ...t,
     run: (args) => {
       const freno = supervisar(t.name, args, caso.entrada, { anterior });
@@ -136,7 +139,7 @@ for (const caso of elegidos) {
     // Lola recibe la ficha de la casa en cada mensaje (api/_bot/ficha.js): sin
     // ella, las pruebas medían a una Lola que no sabe nada de la familia.
     // `"ficha": null` en un caso la quita; `"ficha": {…}` pone otra.
-    const ficha = caso.ficha === undefined ? FICHA : caso.ficha;
+    const ficha = conQuienEscribe(caso.ficha === undefined ? FICHA : caso.ficha, caso.papel ?? "owner", caso.idioma ?? null);
     const pista = caso.pista ? textoPista(caso.pista.decision, caso.pista.adelanto) : null;
     const r = await ejecutar({ historia: caso.historia ?? [], entrada: caso.entrada, tools, adjunto, modelos: [MEDIDO], ficha, pista });
     dicho = r.dicho;

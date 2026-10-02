@@ -46,6 +46,11 @@ import {
 import { motor } from "../_bot/menu.js";
 import { sembrarCasa } from "../_bot/ajustes.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo } from "../_bot/enlace.js";
+import { papelDeQuien } from "../_bot/papel.js";
+import { unirsePorInvitacion, ES_INVITACION } from "../_bot/invitacion.js";
+import { traducir } from "../_bot/traducir.js";
+import { idiomaDe } from "../_bot/papel.js";
+import { puede } from "../../src/lib/papeles.js";
 import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
@@ -139,6 +144,13 @@ async function atender(msg, base, host = "") {
   // el código solo (la plantilla de Supabase lo pone en el enlace t.me).
   const desdeCorreo = start?.[1]?.match(/^c(\d{6})$/);
   if (desdeCorreo && !esGrupo) return comprobarCodigo(msg, chatId, desdeCorreo[1]);
+  // Una invitación a una casa (la asistenta entra sin la app): api/_bot/invitacion.js.
+  const invitacion = start?.[1]?.match(ES_INVITACION);
+  if (invitacion && !esGrupo) {
+    const r = await unirsePorInvitacion({ from: msg.from, chatId, token: invitacion[1], nombre: nombreDe(msg.from) })
+      .catch((e) => { console.error("[invitación]", e?.message); return null; });
+    return enviar(chatId, r?.texto ?? "No he podido usar esa invitación ahora mismo. Prueba en unos minutos.");
+  }
   if (start?.[1] && /^(rc|ru|m)_/.test(start[1]) && !esGrupo) {
     const hecho = await recibirCompartido(chatId, start[1]);
     if (hecho) return hecho;
@@ -158,18 +170,25 @@ async function atender(msg, base, host = "") {
     return enTurno(chatId, itemDe(msg.from, frase ?? COMANDOS.start),
       atenderCola({ chatId, householdId: enlazado.household_id, esGrupo: false, base }));
   }
+  // `grupo`: el botón de un grupo sin casa abre el privado con esto. Con casa,
+  // el enlace para meter a Lola en el grupo; sin ella, primero el alta.
+  if (start?.[1] === "grupo" && !esGrupo) {
+    const [suyo] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+    return suyo ? enlaceGrupo(chatId, false, suyo.household_id, msg.from) : bienvenida(chatId);
+  }
   if (start?.[1]) return enlazarDesdeAjustes(msg, chatId, esGrupo, start[1]);
 
-  // Borrar la cuenta entera, para probar altas (api/_bot/borrar.js): solo en
-  // staging y solo administradores. Para el resto el comando no existe y
-  // sigue el camino normal, sin decir nada.
-  // Borrar la pantalla del chat (lo de las últimas 48 h: Telegram no deja más).
+  // Borrar la pantalla del chat (lo de las últimas 48 h: Telegram no deja más):
+  // solo para probar, staging y administradores (api/_bot/borrar.js).
   if (/^\/limpiar(?:@\w+)?$/.test(texto) && !esGrupo && puedeBorrar(msg.from?.id, process.env, host)) {
     await limpiarPantalla(chatId, msg.message_id);
     return;
   }
-  if (/^\/borrarme(?:@\w+)?$/.test(texto) && !esGrupo && puedeBorrar(msg.from?.id, process.env, host)) {
-    return enviar(chatId, "⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu, tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.", {
+  // Borrar la cuenta entera (api/_bot/borrar.js): cualquiera, en su chat
+  // privado, y solo pulsando «Sí» en el aviso. Es su derecho, como «Eliminar
+  // cuenta» en la app (Pablo, 2 oct 2026). /borrarme se queda como sinónimo.
+  if (/^\/(borrarcuenta|borrarme)(?:@\w+)?$/.test(texto) && !esGrupo) {
+    return enviar(chatId, "⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu (también en la app), tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.", {
       botones: [[{ texto: "Sí, bórralo todo", dato: "borrar:si" }, { texto: "No", dato: "borrar:no" }]],
     });
   }
@@ -179,9 +198,7 @@ async function atender(msg, base, host = "") {
   if (/^\/app(?:@\w+)?$/.test(texto)) return abrirApp(msg, chatId, esGrupo, base);
 
   if (!chat) {
-    if (esGrupo) {
-      return enviar(chatId, "Este grupo aún no está conectado a ninguna casa. Quien use HoMenu, que me escriba <b>/grupo</b> por privado y le doy el enlace para conectarlo.");
-    }
+    if (esGrupo) return grupoSinCasa(msg, chatId);
     if (EMAIL_RE.test(texto)) return pedirAcceso(msg, chatId, texto.toLowerCase(), base);
     const cifras = texto.replace(/\s/g, "");
     if (/^\d{6}$/.test(cifras)) return comprobarCodigo(msg, chatId, cifras);
@@ -196,7 +213,7 @@ async function atender(msg, base, host = "") {
     return crearCuenta(msg.from, chatId, { texto, base });
   }
 
-  if (/^\/grupo(?:@\w+)?$/.test(texto)) return enlaceGrupo(chatId, esGrupo, chat.household_id);
+  if (/^\/grupo(?:@\w+)?$/.test(texto)) return enlaceGrupo(chatId, esGrupo, chat.household_id, msg.from);
   if (/^\/nueva(?:@\w+)?$/.test(texto)) {
     // Sin pasar por el modelo: es un corte en la memoria, nada más. Y dicho de
     // forma que nadie tema haber borrado su menú.
@@ -294,6 +311,8 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
     await turno({
       base, chatId, householdId, esGrupo, texto, oido,
       from: variosAutores ? null : ultimo.from,
+      // Todos los que escriben en el turno: su papel en la casa es el más bajo.
+      desde: items.map((i) => idDePersona(i.from)).filter(Boolean),
       responderA: ultimo.responderA,
       variosAutores: Boolean(variosAutores),
     });
@@ -358,13 +377,17 @@ async function apuntarRuta(householdId, extra) {
   await registrar(RUTA, { userId: await duenoDe(householdId).catch(() => null), extra }).catch(() => {});
 }
 
-async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, responderA, variosAutores = false }) {
+async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, desde = null, responderA, variosAutores = false }) {
   const modo = MODO_ROUTER();
   const modoGrupos = MODO_ROUTER_GRUPOS();
-  if (modo === "off" || (esGrupo && modoGrupos === "off")) return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA });
+  desde ??= from ? [idDePersona(from)].filter(Boolean) : [];
+  if (modo === "off" || (esGrupo && modoGrupos === "off")) return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA });
   // En grupo, su propio interruptor: en sombra se decide y se apunta, contesta Lola.
   const sombra = modo === "sombra" || (esGrupo && modoGrupos === "sombra");
-  const chatDe = { esGrupo, variosAutores };
+  // El papel de quien escribe (api/_bot/papel.js), a la vez que el contexto:
+  // la vía rápida tampoco escribe por un lector o por alguien sin cuenta.
+  const papelP = papelDeQuien({ householdId, chatId, esGrupo, desde }).catch(() => ({ papel: "ajeno" }));
+  const chatDe = { esGrupo, variosAutores, papel: "ajeno" };
   // Quién lo pidió, para decirlo en las respuestas que escriben (en grupo).
   const autor = esGrupo && from ? nombreDe(from) : null;
   const t0 = Date.now();
@@ -374,7 +397,13 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   // importa: sin saber que hay menú dudaba en «cambia la cena del jueves», y
   // sin saber que hay un bebé mandaba «¿qué le hago al bebé?» a Lola
   // (scripts/router-evals.mjs, 84/92 frente a 135/138).
-  const [ultima, contexto] = await Promise.all([ultimaDeLola(chatId), contextoDe(householdId)]);
+  const [ultima, contexto, quien] = await Promise.all([ultimaDeLola(chatId), contextoDe(householdId), papelP]);
+  chatDe.papel = quien.papel;
+  // Quien eligió inglés: contesta Lola, que traduce. La vía rápida y sus
+  // plantillas están en castellano.
+  if (quien.userId && (await idiomaDe(quien.userId).catch(() => null)) === "en") {
+    return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA });
+  }
   marca("contexto");
 
   // 0. Estado: contestar a una pregunta de la vía rápida.
@@ -422,7 +451,7 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
       sombra: true, modo: d.modo, confianza: d.confianza, rapida: vaPorLaRapida(d, chatDe), ms: d.ms, error: d.error,
       texto: String(texto).slice(0, 120), datos: d.datos, esGrupo, variosAutores,
     }));
-    return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA });
+    return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA });
   }
 
   // on: Lola arranca ya, con la puerta cerrada.
@@ -435,7 +464,7 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   // La pista (BOT_PISTA): la decisión del enrutador, solo si el turno no va por
   // la vía rápida. Lola no la espera: si llega a tiempo, la usa (pista.js).
   const pista = PISTA() ? decisionP.then((d) => (vaPorLaRapida(d, chatDe) ? null : d)) : null;
-  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, responderA, puerta, signal: ctrl.signal, medir, pista });
+  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista });
 
   const d = await decisionP;
   marca(`enrutador (${d.modo} ${d.confianza}, ${d.ms} ms)`);
@@ -500,7 +529,7 @@ async function entregarRapida({ chatId, householdId, esGrupo, base, from, respon
 }
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null }) {
+async function conversar({ chatId, householdId, texto, from, desde = null, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
   const eco = oido ? `🎙️ «${oido}»\n\n` : "";
   const vivo = mensajeVivo(chatId, { responderA, eco });
@@ -523,7 +552,7 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
     const paraLola = !oido ? texto
       : texto.startsWith("[alta]") ? texto.replace("Mi primer mensaje:", "Mi primer mensaje (nota de voz):")
         : `[nota de voz] ${texto}`;
-    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, adjunto, alEscribir, puerta, signal, pista });
+    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, desde: desde ?? (from ? [idDePersona(from)].filter(Boolean) : []), adjunto, alEscribir, puerta, signal, pista });
     if (puerta && !(await puerta)) { if (medir) { medir.cancelada = true; medir.lola = r?.medida ?? null; } return; } // el turno fue de la vía rápida
   } catch (err) {
     // Cancelada porque el turno era de la vía rápida: nada que decir.
@@ -564,33 +593,31 @@ export async function entregar({ chatId, householdId, esGrupo, base, from, respo
   const { cuerpo: frase, botones: propiosCrudos } = sacarBotones(r.texto);
   // Lo que se ha generado, cambiado o pedido ver, pintado debajo de la frase
   // (api/_bot/pintar.js): el modelo nunca escribe la lista de platos.
-  let cuerpo = frase;
+  let pintado = "";
   if (r.pintar) {
     const casa = await cargarCasa(householdId).catch(() => null);
     const p = casa ? await pintarMenuEntero(casa, r.pintar).catch(() => null) : null;
     if (p?.texto) {
-      cuerpo = `${frase}\n\n${p.texto}`.trim();
+      pintado = p.texto;
       if (!r.fotos?.length && p.fotos.length) r = { ...r, fotos: p.fotos };
     }
   }
-  // [[No es así]] solo deshace si este turno ha guardado algo; si no, es una
-  // respuesta más (deshacer ahí tocaría un cambio anterior que nadie discute).
-  const propios = r.deshacible ? propiosCrudos
-    : propiosCrudos?.map((fila) => fila.map((b) => (b.dato === `t:${DESHACER}` ? { ...b, dato: `t:${b.texto}` } : b)));
-  // Tras un cambio que se puede deshacer, el botón va solo: no hace falta
-  // saber decir «deshaz».
+  // Quien eligió inglés (0073): Lola ya contesta en inglés; lo pintado por el
+  // código y los pies de las fotos se traducen aquí, en un lote (traducir.js).
+  if (r.idioma === "en" && (pintado || r.fotos?.length)) {
+    const fotos = r.fotos ?? [];
+    const [enIngles, ...pies] = await traducir([pintado, ...fotos.map((f) => f.pie ?? "")], "en");
+    pintado = enIngles;
+    r = { ...r, fotos: fotos.map((f, i) => ({ ...f, pie: pies[i] })) };
+  }
+  const cuerpo = pintado ? `${frase}\n\n${pintado}`.trim() : frase;
+  // No hay botón de deshacer (decisión de Pablo): [[No es así]] vuelve a Lola
+  // como lo que dice, y ella decide (deshacer, o corregir).
+  const propios = propiosCrudos?.map((fila) => fila.map((b) => (b.dato === `t:${DESHACER}` ? { ...b, dato: `t:${b.texto}` } : b)));
   const botones = [...(propios ?? [])];
   // Lo que se ha visto o cambiado, en su pantalla de la app (en privado: el
   // enlace abre la app de quien lo pulsa, con su sesión).
   const alPie = [];
-  // Si Lola ya puso su [[No es así]] (que es deshacer), no dos botones para lo mismo.
-  const yaDeshace = botones.flat().some((b) => b.dato === `t:${DESHACER}`);
-  if (r.deshacible && !yaDeshace) alPie.push({ texto: "↩️ Deshacer", dato: `t:${DESHACER}` });
-  // En un grupo, deshacer es de quien lo pidió: el botón lleva su id y, si lo
-  // pulsa otro, no hace nada (pulsado(), «d:»).
-  if (esGrupo && from?.id) {
-    for (const b of [...botones.flat(), ...alPie]) if (b.dato === `t:${DESHACER}`) b.dato = `d:${from.id}`;
-  }
   // Todo se abre en la app, en su pantalla (?ir=). En privado el enlace puede
   // llevar la llave de entrada de quien lo pide; en un grupo la pulsaría
   // cualquiera, así que va SIN llave: cada uno entra con su cuenta (quien ya
@@ -598,7 +625,7 @@ export async function entregar({ chatId, householdId, esGrupo, base, from, respo
   // igual a esa pantalla, que ?ir= se guarda en sessionStorage). Pablo, 2 oct
   // 2026: «el inicio de sesión tarda nada».
   if (r.ir && base) {
-    alPie.push({ texto: textoBotonApp(r.ir), url: esGrupo ? `${base}/?ir=${encodeURIComponent(r.ir)}` : await enlaceApp(base, r.ir, from, chatId) });
+    alPie.push({ texto: textoBotonApp(r.ir, r.idioma), url: esGrupo ? `${base}/?ir=${encodeURIComponent(r.ir)}` : await enlaceApp(base, r.ir, from, chatId) });
   }
   if (alPie.length) botones.push(alPie);
   if (r.compartir && base) {
@@ -725,7 +752,12 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
 }
 
 /** Lo que dice el botón que lleva a la app, según a qué pantalla lleva. */
-export function textoBotonApp(ir) {
+const BOTON_APP_EN = { semana: "📅 See the week in the app", compra: "🛒 Open the list in the app", dia: "🍽️ See the day in the app", receta: "📖 See the recipe in the app", recetas: "📚 Open the recipes", otro: "📱 See it in the app" };
+export function textoBotonApp(ir, idioma = null) {
+  if (idioma === "en") {
+    const k = ir === "hoy" || String(ir).startsWith("dia:") ? "dia" : String(ir).startsWith("receta:") ? "receta" : String(ir).startsWith("recetas") ? "recetas" : BOTON_APP_EN[ir] ? ir : "otro";
+    return BOTON_APP_EN[k];
+  }
   if (ir === "semana") return "📅 Ver la semana en la app";
   if (ir === "compra") return "🛒 Abrir la lista en la app";
   if (ir === "hoy" || String(ir).startsWith("dia:")) return "🍽️ Ver el día en la app";
@@ -788,6 +820,11 @@ async function usarCompartido(cq, chat, base) {
   const chatId = String(cq.message.chat.id);
   if (!chat) return bienvenida(chatId);
   const [, accion, param] = cq.data.match(/^comp:(\w):(.+)$/) ?? [];
+  // Guardar una receta en la casa o ponerla en el menú es cambiar la casa.
+  const { papel } = await papelDeQuien({ householdId: chat.household_id, chatId, esGrupo: esGrupoDe(cq.message.chat), desde: [idDePersona(cq.from)].filter(Boolean) });
+  if (!puede(papel, "editar_casa")) {
+    return enviar(chatId, "Guardar recetas o cambiar el menú lo hace quien gestiona la casa: pídeselo a esa persona 🙂");
+  }
   const inv = await resolverInvitacion(param).catch(() => null);
   if (!inv || inv.tipo !== "receta") return enviar(chatId, "Ese enlace ya no funciona 🙈");
   const esGrupo = esGrupoDe(cq.message.chat);
@@ -817,19 +854,81 @@ async function saludoGrupo(chatId) {
   return enviar(chatId, [
     "¡Hola, familia! Soy <b>Lola</b> 👩‍🍳, la que os prepara el menú y la compra.",
     "Para hablarme aquí, empezad el mensaje con <b>Lola</b>: «Lola, ¿qué cenamos hoy?» o «Lola, apunta leche».",
-    chat ? "" : "Aún no sé de qué casa sois: quien use HoMenu, que me escriba <b>/grupo</b> por privado y le doy el enlace para conectarnos.",
-  ].filter(Boolean).join("\n\n"));
+    chat ? "" : "Aún no sé de qué casa sois: quien use HoMenu, que me escriba aquí «Lola, conecta el grupo» y lo conecto a su casa.",
+  ].filter(Boolean).join("\n\n"), chat ? {} : { botones: await botonAlPrivado() });
+}
+
+// ── Un grupo sin casa ──────────────────────────────────────────────────────
+// Antes se decía «escríbeme /grupo por privado», sin botón, y se escribía
+// /grupo en el grupo una y otra vez (Pablo, 2 oct 2026). Ahora: si quien
+// escribe ya lleva una casa con Lola, se conecta aquí con un botón que solo
+// puede pulsar esa persona; si no, un botón que abre el privado con el enlace.
+
+/** El botón que abre el chat privado con Lola en el paso de conectar un grupo. */
+async function botonAlPrivado() {
+  return [[{ texto: "💬 Conectarlo por privado", url: `https://t.me/${await nombreDelBot()}?start=grupo` }]];
+}
+
+/**
+ * La casa que esta persona LLEVA (dueña o coeditora; no lectora), si es una
+ * sola. Por su identidad de Telegram, que solo se crea en privado y con prueba
+ * (api/_bot/enlace.js, apuntarIdentidad): un nombre o un grupo no bastan.
+ */
+async function casaQueLleva(from) {
+  const ext = idDePersona(from);
+  if (!ext) return null;
+  const [ident] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(ext)}`, "user_id");
+  if (!ident?.user_id) return null;
+  const filas = await select("household_members", `user_id=${eq(ident.user_id)}&role=in.(owner,editor)`, "household_id");
+  const casas = [...new Set(filas.map((f) => f.household_id))];
+  return casas.length === 1 ? { householdId: casas[0], userId: ident.user_id } : null;
+}
+
+async function grupoSinCasa(msg, chatId) {
+  const casa = await casaQueLleva(msg.from).catch(() => null);
+  if (casa) {
+    return enviar(chatId, `${escaparHtml(nombreDe(msg.from) ?? "")}, ¿conecto este grupo a tu casa? Así aquí os enseño vuestro menú y la compra, y me podéis pedir cambios.`, {
+      responderA: msg.message_id,
+      botones: [[{ texto: "Sí, conectar este grupo", dato: `cg:${msg.from.id}` }]],
+    });
+  }
+  return enviar(chatId, "Este grupo aún no está conectado a ninguna casa. Quien use HoMenu, que pulse aquí: hablamos por privado y le doy el enlace para conectarlo.", {
+    botones: await botonAlPrivado(),
+  });
+}
+
+/** El botón «Sí, conectar este grupo»: solo quien lo pidió, y comprobando otra vez que lleva esa casa. */
+async function conectarGrupo(cq, chatId) {
+  const casa = await casaQueLleva(cq.from).catch(() => null);
+  if (!casa) return enviar(chatId, "No encuentro tu casa. Escríbeme por privado y lo vemos.", { botones: await botonAlPrivado() });
+  // El permiso, con la misma regla que /grupo y la app (src/lib/papeles.js).
+  const ext = idDePersona(cq.from);
+  const { papel, userId } = await papelDeQuien({ householdId: casa.householdId, chatId: ext, esGrupo: false, desde: [ext] });
+  if (!puede(papel, "enlazar_grupo") || !userId) {
+    return enviar(chatId, "Meterme en el grupo de la familia lo hace quien gestiona la casa: pídeselo a esa persona.");
+  }
+  const r = await enlazarChat({
+    chatId, kind: "group", householdId: casa.householdId, userId,
+    externalId: idDePersona(cq.from), nombre: nombreDe(cq.from), lang: cq.from?.language_code, identidad: null,
+  });
+  if (r.ocupado) return enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
+  return confirmarEnlace(chatId, casa.householdId, true);
 }
 
 // /grupo, en privado: el enlace para meter a Lola en el grupo de la familia,
 // con un código de un solo uso (el mismo que da la app en Ajustes).
 const VALIDEZ_GRUPO_MS = 15 * 60 * 1000;
-async function enlaceGrupo(chatId, esGrupo, householdId) {
-  if (esGrupo) return enviar(chatId, "Eso por privado: escríbeme /grupo allí y te paso el enlace.");
-  const dueno = await duenoDe(householdId);
-  if (!dueno) return enviar(chatId, "No encuentro quién gestiona esta casa.");
+async function enlaceGrupo(chatId, esGrupo, householdId, from) {
+  // En un grupo que ya tiene casa (los que no, van antes a grupoSinCasa).
+  if (esGrupo) return enviar(chatId, "Este grupo ya está conectado a vuestra casa. Si quieres meterme en otro grupo, pulsa aquí y te paso el enlace.", { botones: await botonAlPrivado() });
+  // Lo pide el titular o un cotitular, y el enlace va firmado con SU cuenta
+  // (antes con la del titular: quien lo pulsara quedaba como él).
+  const { papel, userId } = await papelDeQuien({ householdId, chatId, esGrupo: false, desde: [idDePersona(from)].filter(Boolean) });
+  if (!puede(papel, "enlazar_grupo") || !userId) {
+    return enviar(chatId, "Meterme en el grupo de la familia lo hace quien gestiona la casa: pídeselo a esa persona.");
+  }
   const token = codigoDeGrupo();
-  await insert("bot_link_tokens", [{ token, user_id: dueno, household_id: householdId, expires_at: new Date(Date.now() + VALIDEZ_GRUPO_MS).toISOString() }]);
+  await insert("bot_link_tokens", [{ token, user_id: userId, household_id: householdId, expires_at: new Date(Date.now() + VALIDEZ_GRUPO_MS).toISOString() }]);
   const bot = await nombreDelBot();
   return enviar(chatId, [
     "Para tenerme en el grupo de la familia:",
@@ -882,14 +981,12 @@ function bienvenida(chatId) {
 
 async function pulsado(cq, base, host = "") {
   const chatId = String(cq.message.chat.id);
-  // Deshacer en un grupo: solo quien hizo el cambio. A otro se le dice en un
-  // aviso y el botón se queda para quien sí puede.
-  const deQuien = cq.data?.startsWith("d:") ? cq.data.slice(2) : null;
-  if (deQuien && String(cq.from?.id) !== deQuien) {
-    await llamar("answerCallbackQuery", { callback_query_id: cq.id, text: "Solo puede deshacerlo quien lo pidió." }).catch(() => {});
+  // Conectar un grupo a su casa: solo quien lo pidió (grupoSinCasa).
+  const conecta = cq.data?.startsWith("cg:") ? cq.data.slice(3) : null;
+  if (conecta && String(cq.from?.id) !== conecta) {
+    await llamar("answerCallbackQuery", { callback_query_id: cq.id, text: "Solo puede conectarlo quien lo pidió." }).catch(() => {});
     return;
   }
-  if (deQuien) cq = { ...cq, data: `t:${DESHACER}` };
   await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(() => {});
   // Un botón se usa una vez: se quitan los del mensaje pulsado para que no
   // se pulsen luego los viejos (en la primera prueba salieron cinco avisos
@@ -899,6 +996,7 @@ async function pulsado(cq, base, host = "") {
     message_id: cq.message.message_id,
     reply_markup: { inline_keyboard: [] },
   }).catch(() => {});
+  if (conecta) return conectarGrupo(cq, chatId);
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
 
   // Un botón que puso el agente: cuenta como si se hubiera escrito (también en grupo).
@@ -912,20 +1010,26 @@ async function pulsado(cq, base, host = "") {
   // Quien recibe una receta: guardársela o ponerla en su menú.
   if (cq.data?.startsWith("comp:")) return usarCompartido(cq, chat, base);
 
-  // /borrarme: las mismas dos llaves al pulsar, no solo al pedirlo.
+  // /limpiar: las mismas dos llaves al pulsar, no solo al pedirlo.
   if (cq.data === "limpiar" && !esGrupoDe(cq.message.chat) && puedeBorrar(cq.from?.id, process.env, host)) {
     await limpiarPantalla(chatId, cq.message.message_id);
     return;
   }
-  if (cq.data?.startsWith("borrar:") && !esGrupoDe(cq.message.chat) && puedeBorrar(cq.from?.id, process.env, host)) {
+  // Borrar la cuenta: cualquiera, en privado; se borra la cuenta de quien
+  // PULSA (por su identidad de Telegram), nunca la de otro (borrar.js).
+  if (cq.data?.startsWith("borrar:") && !esGrupoDe(cq.message.chat)) {
     if (cq.data !== "borrar:si") return enviar(chatId, "Vale, no toco nada.");
     const r = await borrarCuenta({ chatId, telegramId: cq.from.id }).catch((e) => {
-      console.error("[borrarme]", e?.message);
-      return { ok: false, motivo: "algo ha fallado a medias; mira los logs" };
+      console.error("[borrarcuenta]", e?.message);
+      return { ok: false, motivo: "algo ha fallado a medias. Vuelve a pedírmelo en un rato, o bórrala desde la app (Ajustes → Eliminar cuenta)" };
     });
     if (!r.ok) return enviar(chatId, `No he borrado la cuenta: ${r.motivo}.`);
-    return enviar(chatId, "🗑️ <b>Borrado.</b> Ya no hay cuenta, ni casa, ni nada guardado de nuestras charlas.\n\nCuando quieras empezar de nuevo, escríbeme.", {
-      botones: [[{ texto: "Limpiar la pantalla", dato: "limpiar" }]],
+    if (r.sinCuenta) return enviar(chatId, "No tenías cuenta conmigo. He borrado lo que guardaba de este chat. Si usas HoMenu en la app con otra cuenta, bórrala allí (Ajustes → Eliminar cuenta).");
+    // Con cotitular, la casa no se borra: pasa a esa persona (prepare_account_deletion).
+    const casa = r.pasadas ? "Tu casa sigue para quien la llevaba contigo; tu cuenta y lo nuestro, borrados." : "Ya no hay cuenta, ni casa, ni nada guardado de nuestras charlas.";
+    const lectores = r.lectores ? `\n\n${r.lectores === 1 ? "La persona que veía tu casa ha perdido" : `Las ${r.lectores} personas que veían tu casa han perdido`} el acceso.` : "";
+    return enviar(chatId, `🗑️ <b>Borrado.</b> ${casa}${lectores}\n\nLos mensajes de este chat siguen en tu Telegram: bórralos desde el chat si quieres. Cuando quieras empezar de nuevo, escríbeme.`, {
+      ...(puedeBorrar(cq.from?.id, process.env, host) ? { botones: [[{ texto: "Limpiar la pantalla", dato: "limpiar" }]] } : {}),
     });
   }
 
@@ -1116,6 +1220,14 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
   if (!esGrupo && esCodigoDeGrupo(token)) {
     if (callado) return null;
     return enviar(chatId, "Ese enlace es para meterme en un grupo: púlsalo y elige el grupo de la familia.");
+  }
+
+  // Quien lo firmó sigue en la casa (pudieron quitarle en estos 15 minutos), y
+  // un grupo solo lo enlaza el titular o un cotitular.
+  const [miembro] = await select("household_members", `household_id=${eq(fila.household_id)}&user_id=${eq(fila.user_id)}`, "role");
+  if (!miembro || (esGrupo && !puede(miembro.role, "enlazar_grupo"))) {
+    if (callado) return null;
+    return enviar(chatId, "Ese enlace ya no vale. Pide otro a quien gestiona la casa.");
   }
 
   // Marcarlo usado ANTES de enlazar: dos pulsaciones seguidas no enlazan dos veces.
