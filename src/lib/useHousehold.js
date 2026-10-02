@@ -334,7 +334,9 @@ export function useHousehold({ user, loading: authLoading }) {
 
       const hhs = bootResult?.households ?? [];
       const ownHousehold = hhs.find((h) => h.role === "owner" && h.isOwn);
-      const alreadyMember = hhs.some((h) => h.id === preview.householdId);
+      // Ya miembro, salvo que la invitación le suba de papel (lector → cotitular).
+      const yaDentro = hhs.find((h) => h.id === preview.householdId);
+      const alreadyMember = Boolean(yaDentro) && !(yaDentro.role === "viewer" && preview.role === "editor");
       const isOwnInvite =
         alreadyMember
         || (ownHousehold
@@ -349,6 +351,8 @@ export function useHousehold({ user, loading: authLoading }) {
         token: pending,
         householdId: preview.householdId,
         householdName: preview.householdName,
+        role: preview.role,
+        ownerName: preview.ownerName,
       });
 
     })();
