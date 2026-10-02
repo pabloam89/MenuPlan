@@ -199,8 +199,12 @@ export async function deshacer(householdId) {
  * `sinDeshacer: true` en los cambios: no deja foto para «deshaz» (un tachón
  * de la compra no debe tapar el último cambio de Lola).
  */
-export async function conCasa(householdId, cambiar, intentos = 3) {
+export async function conCasa(householdId, cambiar, intentos = 5) {
   for (let i = 0; i < intentos; i++) {
+    // Tras un choque, una espera corta y AL AZAR antes de releer: sin ella, dos
+    // escrituras que chocaron volvían a chocar en el mismo instante y agotaban
+    // los intentos juntas (staging, 2 oct 2026: «conflicto persistente»).
+    if (i > 0) await new Promise((r) => setTimeout(r, 40 * i + Math.random() * 120 * i));
     // Al reintentar tras un choque, de la base: lo recordado es justo lo viejo.
     const casa = await cargarCasa(householdId, { fresca: i > 0 });
     if (!casa) return { ok: false, error: "sin casa en la nube" };
