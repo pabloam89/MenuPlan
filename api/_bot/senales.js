@@ -4,8 +4,10 @@
  * bot: solo se apuntan.
  */
 
-// Corrige sin ambigüedad: da igual lo que preguntara Lola.
-const EXPLICITA = /^(deshaz|deshacer|vuelve a como|d[eé]jalo como|eso no\b|as[ií] no\b|no es eso|no era eso|no te he pedido|te has equivocado|mal\b)/i;
+// Corrige sin ambigüedad: da igual lo que preguntara Lola. «No es así» es
+// además el botón que Lola pone tras cada «✅ Apuntado» (staging, 2 oct 2026:
+// se pulsó y no contó, porque el mensaje de Lola acababa en pregunta).
+const EXPLICITA = /^(deshaz|deshacer|vuelve a como|d[eé]jalo como|eso no\b|as[ií] no\b|no es eso|no era eso|no es as[ií](?![a-zñ])|no te he pedido|te has equivocado|mal\b)/i;
 // «no» a secas: es corrección solo si Lola no acababa de preguntar
 // («¿alguna alergia?» → «no» es una respuesta, no un fallo).
 const NEGATIVA = /^(no\b|que no\b)/i;

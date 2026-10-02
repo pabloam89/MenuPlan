@@ -37,6 +37,8 @@ describe("lo que suena a «ya está guardado»", () => {
     expect(diceQueGuardo("Esta noche cenáis tortilla de patatas, y Leo lo mismo.")).toBe(false);
     expect(diceQueGuardo("¿Quieres que lo apunte para la semana que viene?")).toBe(false);
     expect(diceQueGuardo("Pollo hecho al horno con patatas")).toBe(false);
+    // Lo que sabe hacer, con ✅ de viñeta (staging, 2 oct 2026).
+    expect(diceQueGuardo("¡Hola! Puedo ayudarte con:\n• 🍽️ Enseñarte el menú\n• ✅ Cambiar un plato o generar el menú")).toBe(false);
   });
 });
 

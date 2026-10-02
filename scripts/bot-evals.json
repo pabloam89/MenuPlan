@@ -1768,6 +1768,24 @@
           "_todo": "gluten"
         }
       }
+    },
+    {
+      "nombre": "«¿y las recetas?» tras generar: se contestan, no se regenera el menú",
+      "historia": [
+        {
+          "role": "user",
+          "content": "prepáralo ya"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Ya tenéis menú para el finde! 🍽️ Lo tienes debajo con fotos."
+        }
+      ],
+      "entrada": "Y la recetas?",
+      "noLlama": [
+        "generar_menu",
+        "ajustar_cocina"
+      ]
     }
   ]
 }
