@@ -20,6 +20,7 @@ import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 import { rastro } from "./embudo.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
+import { restriccionesDeFuera, conQuienViene, describirDeFuera } from "./deFuera.js";
 
 let motorCargado = null;
 export const motor = async () => (motorCargado ??= await import("./core.mjs"));
@@ -511,8 +512,11 @@ const POOL_PARA_APROXIMAR = 400;
  *   `dia` tal cual lo dicen («hoy», «jueves»); `parecidoA`, un plato que
  *   piden por su nombre: las opciones salen ordenadas por parecido.
  */
-export async function proponerPlatos(householdId, { dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null }, fotos = null, out = null) {
+export async function proponerPlatos(householdId, { dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null, deFuera = null }, fotos = null, out = null) {
   const cargada = await cargarCasa(householdId);
+  // Lo que no pueden comer los invitados: lo filtra el motor (api/_bot/deFuera.js).
+  const rf = restriccionesDeFuera(deFuera);
+  const filtradoPara = rf ? ` Filtrado también para quien viene: ${describirDeFuera(rf)}.` : "";
   if (!cargada) return "Esta casa todavía no tiene datos en la nube.";
   // Nada obligatorio: sin día ni comida, la próxima que toca; «para los
   // mayores» → su grupo (el de la casa o el del plan, que pueden no coincidir).
@@ -531,7 +535,7 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   const h = huecoDe(casa, { dia, franja, grupo, cual });
   if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos }, fotos, out);
   const m = await prepararRecetas(casa);
-  const res = m.pickCatalogReplacement(casa.state?.data ?? {}, casa.semana.plan, {
+  const res = m.pickCatalogReplacement(conQuienViene(casa.state?.data ?? {}, [h.g.id], rf), casa.semana.plan, {
     groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR, pedido: !!parecidoA,
   });
   // Los rasgos filtran ANTES de ordenar y variar: variadas() elige entre lo
@@ -552,7 +556,7 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   }
   if (!lista.length) {
     if (out) Object.assign(out, { conMenu: true, bloques: [], fecha, dia, franja });
-    return "No hay otras recetas que encajen en ese hueco con vuestras alergias, gustos y tiempo.";
+    return `No hay otras recetas que encajen en ese hueco con vuestras alergias, gustos y tiempo.${filtradoPara}`;
   }
   const actual = m.RECIPES_BY_ID[h.course === "first" ? h.hueco.firstRecipeId : h.hueco.recipeId];
   if (out) {
@@ -568,7 +572,7 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   const detalle = (r) => detalleDe(r, estilo);
   lista.forEach((r, i) => apuntarFoto(m, fotos, r, `${i + 1}. ${r.name}`));
   return [
-    `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, para ${quienesDe(h.g, casa.state?.data?.members ?? [])}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}${estilo ? ` Las más ${estilo === "ligero" ? "ligeras" : "rápidas"} que encajan, variadas.` : ""}${filtro.aviso ? ` ${filtro.aviso}` : ""}`,
+    `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, para ${quienesDe(h.g, casa.state?.data?.members ?? [])}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}${estilo ? ` Las más ${estilo === "ligero" ? "ligeras" : "rápidas"} que encajan, variadas.` : ""}${filtro.aviso ? ` ${filtro.aviso}` : ""}${filtradoPara}`,
     ...lista.map((r, i) => `${i + 1}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`),
     "Nada está cambiado aún: para poner una, cambiar_plato con receta = su nombre.",
   ].join("\n");
@@ -770,7 +774,8 @@ export function variadas(lista, n) {
  * Sin `grupo`, una tanda por grupo que come (los mayores y el bebé no comen lo
  * mismo): pie de foto «1. …» numerado seguido entre grupos, como la lista.
  */
-export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null, cual, n, estilo = null, rasgos = null }, fotos, out = null) {
+export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null, cual, n, estilo = null, rasgos = null, deFuera: deFueraDicho = null }, fotos, out = null) {
+  const deFuera = restriccionesDeFuera(deFueraDicho);
   const m = await prepararRecetas(casa);
   // `schedule` puede faltar en una casa recién creada desde el chat, y el motor
   // lo lee sin mirar: sin horario apuntado, todos comen en casa.
@@ -788,7 +793,7 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
   let num = 0;
   for (const g of elegidos) {
     const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
-    const res = m.pickCatalogReplacement(data, plan, { groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: POOL_PARA_VARIAR });
+    const res = m.pickCatalogReplacement(conQuienViene(data, [g.id], deFuera), plan, { groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: POOL_PARA_VARIAR });
     const filtro = conRasgos(res?.candidatos ?? [], rasgos);
     if (filtro.aviso) bloques.push(filtro.aviso);
     const lista = variadas(segunEstilo(filtro.lista, estilo), n);
@@ -803,9 +808,10 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
     }
   }
   if (out) Object.assign(out, { conMenu: false, dia, franja, estilo, bloques: out.bloques ?? [] });
-  if (!bloques.length) return "No hay recetas que encajen con vuestras alergias y gustos para esa comida.";
+  const filtradoPara = deFuera ? ` Filtrado también para quien viene: ${describirDeFuera(deFuera)}.` : "";
+  if (!bloques.length) return `No hay recetas que encajen con vuestras alergias y gustos para esa comida.${filtradoPara}`;
   return [
-    `No hay menú para ese día, así que son ideas del recetario para la ${franja.toLowerCase()}, sin tocar nada:`,
+    `No hay menú para ese día, así que son ideas del recetario para la ${franja.toLowerCase()}, sin tocar nada:${filtradoPara}`,
     ...bloques,
     "Si eligen una: ver_receta para enseñarla. Para ponerla en un menú hace falta generarlo antes; ofrécelo solo si lo piden.",
   ].join("\n");
@@ -821,8 +827,9 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
  */
 // `motivo` (MOTIVO_CAMBIO, interno: no está en el esquema de la herramienta)
 // lo pone quien sabe por qué se cambia: la elección de una opción, «elige tú».
-export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal", receta = null, motivo = null }, fotos = null, out = null) {
+export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal", receta = null, motivo = null, deFuera = null }, fotos = null, out = null) {
   let texto = "";
+  const rf = restriccionesDeFuera(deFuera);
   // Lo que se ha cambiado, para el rastro (src/lib/rastro.js), una fila por grupo.
   const cambios = [];
   const r = await conCasa(householdId, async (cargada) => {
@@ -834,21 +841,24 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     const { gs, g, clave, hueco, course, anadir } = h;
     const m = await prepararRecetas(casa);
     const data = casa.state?.data ?? {};
+    // Para ELEGIR plato, con quien viene de fuera sentado en todos los grupos
+    // de esa comida; la compra y lo guardado, con la casa tal cual.
+    const paraElegir = conQuienViene(data, gs.map((x) => x.id), rf);
 
     let forcedRecipe = null;
     let aproximada = false;
     if (receta) {
-      const pool = m.pickCatalogReplacement(data, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
+      const pool = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
       forcedRecipe = candidataPorNombre(pool?.candidatos ?? [], receta);
       if (!forcedRecipe) {
         // No está tal cual: la más parecida de todo lo que encaja en el hueco.
-        const grande = m.pickCatalogReplacement(data, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_APROXIMAR, pedido: true });
+        const grande = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_APROXIMAR, pedido: true });
         forcedRecipe = masParecida(grande?.candidatos ?? [], receta);
         aproximada = !!forcedRecipe;
       }
       if (!forcedRecipe) { texto = `No hay nada parecido a «${receta}» que encaje en ese hueco (por alergias, tiempo o porque ya está en la semana). Pide opciones con proponer_platos.`; return null; }
     }
-    const elegido = m.pickCatalogReplacement(data, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
+    const elegido = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
     if (!elegido?.recipeId) { texto = "No he encontrado otro plato que encaje en ese hueco con vuestras preferencias."; return null; }
     const antes = m.RECIPES_BY_ID[course === "first" ? hueco.firstRecipeId : hueco.recipeId]?.name;
     m.registerRecipes([elegido.frontendRecipe]);
@@ -875,9 +885,9 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
         // El mismo plato que se pide: un entrante se añade también a los demás,
         // nunca se les cambia el principal.
         const curso = course;
-        const permitidas = m.pickCatalogReplacement(data, plan, { groupId: x.id, day: dia, meal: franja, course: curso, candidatos: POOL_PARA_APROXIMAR, pedido: true })?.candidatos ?? [];
+        const permitidas = m.pickCatalogReplacement(paraElegir, plan, { groupId: x.id, day: dia, meal: franja, course: curso, candidatos: POOL_PARA_APROXIMAR, pedido: true })?.candidatos ?? [];
         if (!permitidas.some((r) => base(r.id) === base(elegido.recipeId))) { sinCambiar.push(x.label); continue; }
-        const suyoElegido = m.pickCatalogReplacement(data, plan, { groupId: x.id, day: dia, meal: franja, course: curso, forcedRecipe: elegido.frontendRecipe });
+        const suyoElegido = m.pickCatalogReplacement(paraElegir, plan, { groupId: x.id, day: dia, meal: franja, course: curso, forcedRecipe: elegido.frontendRecipe });
         if (!suyoElegido?.recipeId) { sinCambiar.push(x.label); continue; }
         m.registerRecipes([suyoElegido.frontendRecipe]);
         plan[x.id][clave] = { ...suyo, [curso === "first" ? "firstRecipeId" : "recipeId"]: suyoElegido.recipeId, warnings: [] };
@@ -914,6 +924,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       : `Cambiado (${dondeQuien}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`)
       + (sinCambiarQuienes.length ? ` ${sinCambiarQuienes.join(" y ")} se quedan con lo suyo: ese plato no encaja con sus alergias o su etapa. Dilo así.` : "")
       + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "")
+      + (rf ? ` Elegido también para quien viene: ${describirDeFuera(rf)}.` : "")
       + (dePintado ? `\n\nAsí queda ese día (es lo guardado, y SALE PINTADO debajo de tu mensaje con el plato nuevo destacado: no lo escribas ni llames a ver_menu; di solo qué has cambiado):\n${dePintado}` : "");
     // `state.menuPlan` y `state.shopping` son la semana que pinta la app (la de
     // hoy): si el cambio es en otra, solo se toca esa semana.
