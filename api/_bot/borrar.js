@@ -93,11 +93,17 @@ export async function borrarLoDelBot(userId, { chatIds = [], telegramId = null }
  */
 export async function borrarCuenta({ chatId, telegramId }) {
   const [identidad] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(String(telegramId))}`, "user_id");
-  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(String(chatId))}`, "household_id");
+  // La cuenta de QUIEN PULSA: su identidad de Telegram o, si no la tiene (chats
+  // enlazados antes de que existieran), la que enlazó este chat PRIVADO. Nunca
+  // la del dueño de la casa: abierto a todos, alguien enlazado a una casa
+  // ajena borraría al dueño (antes se hacía así, cuando solo lo usaba Pablo).
+  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(String(chatId))}`, "household_id,kind,linked_by");
   let userId = identidad?.user_id ?? null;
-  if (!userId && chat?.household_id) {
-    const [h] = await select("households", `id=${eq(chat.household_id)}`, "owner_user_id");
-    userId = h?.owner_user_id ?? null;
+  if (!userId && chat?.kind === "private" && String(chatId) === String(telegramId)) userId = chat.linked_by ?? null;
+  if (!userId) {
+    // Sin cuenta que borrar: solo lo que el bot guarda de este chat.
+    await borrarLoDelBot(null, { chatIds: [chatId], telegramId });
+    return { ok: true, casas: 0, lectores: 0, sinCuenta: true };
   }
 
   // Quién más hay en sus casas (roles de la 0070: owner | editor | viewer). Un

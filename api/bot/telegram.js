@@ -176,16 +176,17 @@ async function atender(msg, base, host = "") {
   }
   if (start?.[1]) return enlazarDesdeAjustes(msg, chatId, esGrupo, start[1]);
 
-  // Borrar la cuenta entera, para probar altas (api/_bot/borrar.js): solo en
-  // staging y solo administradores. Para el resto el comando no existe y
-  // sigue el camino normal, sin decir nada.
-  // Borrar la pantalla del chat (lo de las últimas 48 h: Telegram no deja más).
+  // Borrar la pantalla del chat (lo de las últimas 48 h: Telegram no deja más):
+  // solo para probar, staging y administradores (api/_bot/borrar.js).
   if (/^\/limpiar(?:@\w+)?$/.test(texto) && !esGrupo && puedeBorrar(msg.from?.id, process.env, host)) {
     await limpiarPantalla(chatId, msg.message_id);
     return;
   }
-  if (/^\/borrarme(?:@\w+)?$/.test(texto) && !esGrupo && puedeBorrar(msg.from?.id, process.env, host)) {
-    return enviar(chatId, "⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu, tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.", {
+  // Borrar la cuenta entera (api/_bot/borrar.js): cualquiera, en su chat
+  // privado, y solo pulsando «Sí» en el aviso. Es su derecho, como «Eliminar
+  // cuenta» en la app (Pablo, 2 oct 2026). /borrarme se queda como sinónimo.
+  if (/^\/(borrarcuenta|borrarme)(?:@\w+)?$/.test(texto) && !esGrupo) {
+    return enviar(chatId, "⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu (también en la app), tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.", {
       botones: [[{ texto: "Sí, bórralo todo", dato: "borrar:si" }, { texto: "No", dato: "borrar:no" }]],
     });
   }
@@ -988,21 +989,24 @@ async function pulsado(cq, base, host = "") {
   // Quien recibe una receta: guardársela o ponerla en su menú.
   if (cq.data?.startsWith("comp:")) return usarCompartido(cq, chat, base);
 
-  // /borrarme: las mismas dos llaves al pulsar, no solo al pedirlo.
+  // /limpiar: las mismas dos llaves al pulsar, no solo al pedirlo.
   if (cq.data === "limpiar" && !esGrupoDe(cq.message.chat) && puedeBorrar(cq.from?.id, process.env, host)) {
     await limpiarPantalla(chatId, cq.message.message_id);
     return;
   }
-  if (cq.data?.startsWith("borrar:") && !esGrupoDe(cq.message.chat) && puedeBorrar(cq.from?.id, process.env, host)) {
+  // Borrar la cuenta: cualquiera, en privado; se borra la cuenta de quien
+  // PULSA (por su identidad de Telegram), nunca la de otro (borrar.js).
+  if (cq.data?.startsWith("borrar:") && !esGrupoDe(cq.message.chat)) {
     if (cq.data !== "borrar:si") return enviar(chatId, "Vale, no toco nada.");
     const r = await borrarCuenta({ chatId, telegramId: cq.from.id }).catch((e) => {
-      console.error("[borrarme]", e?.message);
-      return { ok: false, motivo: "algo ha fallado a medias; mira los logs" };
+      console.error("[borrarcuenta]", e?.message);
+      return { ok: false, motivo: "algo ha fallado a medias. Vuelve a pedírmelo en un rato, o bórrala desde la app (Ajustes → Eliminar cuenta)" };
     });
     if (!r.ok) return enviar(chatId, `No he borrado la cuenta: ${r.motivo}.`);
+    if (r.sinCuenta) return enviar(chatId, "No tenías cuenta conmigo. He borrado lo que guardaba de este chat. Si usas HoMenu en la app con otra cuenta, bórrala allí (Ajustes → Eliminar cuenta).");
     const lectores = r.lectores ? `\n\n${r.lectores === 1 ? "La persona que veía tu casa ha perdido" : `Las ${r.lectores} personas que veían tu casa han perdido`} el acceso.` : "";
-    return enviar(chatId, `🗑️ <b>Borrado.</b> Ya no hay cuenta, ni casa, ni nada guardado de nuestras charlas.${lectores}\n\nCuando quieras empezar de nuevo, escríbeme.`, {
-      botones: [[{ texto: "Limpiar la pantalla", dato: "limpiar" }]],
+    return enviar(chatId, `🗑️ <b>Borrado.</b> Ya no hay cuenta, ni casa, ni nada guardado de nuestras charlas.${lectores}\n\nLos mensajes de este chat siguen en tu Telegram: bórralos desde el chat si quieres. Cuando quieras empezar de nuevo, escríbeme.`, {
+      ...(puedeBorrar(cq.from?.id, process.env, host) ? { botones: [[{ texto: "Limpiar la pantalla", dato: "limpiar" }]] } : {}),
     });
   }
 

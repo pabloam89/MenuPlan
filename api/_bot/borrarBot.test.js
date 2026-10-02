@@ -2,17 +2,20 @@
  * borrarLoDelBot: lo que el bot guarda de una cuenta y no cae en cascada con
  * el usuario. Lo usa también «Eliminar cuenta» de la app (api/delete-account.js).
  */
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 
 // Quién más hay en la casa, para las pruebas de borrarCuenta.
 const miembros = { lista: [] };
+// Identidad de quien pulsa y el chat donde lo pulsa, para borrarCuenta.
+const ids = { lista: [{ external_id: "555", user_id: "u1" }] };
+const chats = { lista: [{ chat_id: "-100777" }] };
 vi.mock("./db.js", () => ({
   eq: (v) => `eq.${encodeURIComponent(v)}`,
   config: () => ({ url: "https://base", key: "k", headers: {} }),
   select: vi.fn(async (tabla) => {
     if (tabla === "households") return [{ id: "casa1" }];
-    if (tabla === "bot_identities") return [{ external_id: "555", user_id: "u1" }];
-    if (tabla === "bot_chats") return [{ chat_id: "-100777" }];
+    if (tabla === "bot_identities") return ids.lista;
+    if (tabla === "bot_chats") return chats.lista;
     if (tabla === "household_members") return miembros.lista;
     return [];
   }),
@@ -63,5 +66,35 @@ describe("borrarCuenta y los roles de la casa", () => {
     miembros.lista = [{ user_id: "u3", role: "viewer" }, { user_id: "u4", role: "viewer" }];
     const r = await borrarCuenta({ chatId: "555", telegramId: 555 });
     expect(r).toEqual({ ok: true, casas: 1, lectores: 2 });
+  });
+});
+
+describe("borrarCuenta: solo la cuenta de quien pulsa", () => {
+  const borradosAuth = [];
+  let fetchAntes;
+  beforeEach(() => {
+    fetchAntes = globalThis.fetch;
+    vi.stubGlobal("fetch", vi.fn(async (url, opts) => {
+      if (opts?.method === "DELETE" && String(url).includes("/auth/v1/admin/users/")) borradosAuth.push(String(url).split("/").pop());
+      return new Response(null, { status: 204 });
+    }));
+  });
+  afterEach(() => {
+    vi.stubGlobal("fetch", fetchAntes); borradosAuth.length = 0; ids.lista = [{ external_id: "555", user_id: "u1" }]; chats.lista = [{ chat_id: "-100777" }]; miembros.lista = []; });
+
+  it("sin identidad, en un chat que no es su privado: no se borra a nadie (y menos al dueño de la casa)", async () => {
+    ids.lista = [];
+    chats.lista = [{ chat_id: "-100777", household_id: "casa1", kind: "group", linked_by: "dueno" }];
+    const r = await borrarCuenta({ chatId: "-100777", telegramId: 555 });
+    expect(r.sinCuenta).toBe(true);
+    expect(borradosAuth).toEqual([]);
+  });
+
+  it("sin identidad pero en su privado: la cuenta que enlazó ese privado", async () => {
+    ids.lista = [];
+    chats.lista = [{ chat_id: "555", household_id: "casa1", kind: "private", linked_by: "u9" }];
+    const r = await borrarCuenta({ chatId: "555", telegramId: 555 });
+    expect(r.ok).toBe(true);
+    expect(borradosAuth).toEqual(["u9"]);
   });
 });
