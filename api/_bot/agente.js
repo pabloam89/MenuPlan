@@ -39,6 +39,7 @@ import { montarFicha, extrasDeFicha } from "./ficha.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
+import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
 import { buscarRecetas, prepararReceta, guardarReceta, apartarFotoPlato, recetaPorNombre, CATEGORIAS } from "./recetas.js";
@@ -689,6 +690,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
           parecido_a: { type: "string", description: "Opcional: el plato que piden («salmón al horno con ensalada de mango»)." },
           estilo: { type: "string", enum: ["ligero", "rapido"], description: "Opcional: si piden algo ligero (ordena por calorías y las enseña) o rápido (por tiempo)." },
           para: { type: "string", enum: ["mayores", "ninos", "bebe"], description: "Opcional: para quién. «Con mi mujer/marido», «para nosotros» = mayores. El bebé solo si lo nombran." },
+          de_fuera: ESQUEMA_DE_FUERA,
           rasgos: {
             type: "object",
             description: "Opcional: lo que piden del plato, tal cual lo dicen. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito»… Solo los que digan.",
@@ -705,10 +707,10 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         },
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, estilo, para, rasgos }) => {
+      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, estilo, para, rasgos, de_fuera }) => {
         const f = comida ? franjaDe(comida) : null;
         if (comida && !f) return `No entiendo qué comida es («${comida}»).`;
-        return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null }, fotos);
+        return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null, deFuera: de_fuera || null }, fotos);
       },
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: "semana" }, {
@@ -742,16 +744,17 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
           grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           receta: { type: "string", description: "Opcional: el nombre de la receta elegida." },
+          de_fuera: ESQUEMA_DE_FUERA,
         },
         required: ["dia", "comida"],
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual_semana, comida, grupo, cual, receta }) => {
+      run: ({ dia, semana: cual_semana, comida, grupo, cual, receta, de_fuera }) => {
         const f = franjaDe(comida);
         if (!f) return `No entiendo qué comida es («${comida}»).`;
         // El día cambiado sale pintado debajo, con el plato nuevo destacado.
         const out = {};
-        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null }, fotos, out)
+        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null, deFuera: de_fuera || null }, fotos, out)
           .then((t) => { if (out.cambiado) pintarTambien(chat, filtrosTrasCambiar(out)); return t; });
       },
     }),

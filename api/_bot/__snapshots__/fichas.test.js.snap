@@ -231,6 +231,56 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
      ],
      "description": "Opcional: para quién. «Con mi mujer/marido», «para nosotros» = mayores. El bebé solo si lo nombran."
     },
+    "de_fuera": {
+     "type": "object",
+     "description": "Lo que NO pueden comer los invitados de esa comida (celíaco = alergias: gluten; embarazada = estados: embarazo). Pásalo SIEMPRE que lo hayan dicho, también en cada propuesta o cambio siguiente de esa comida: el motor lo filtra igual que lo de la casa. Sin esto, no está filtrado y no puedes decir que lo es.",
+     "properties": {
+      "alergias": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "gluten",
+         "crustaceos",
+         "huevos",
+         "pescado",
+         "cacahuetes",
+         "soja",
+         "leche",
+         "frutos_cascara",
+         "apio",
+         "mostaza",
+         "sesamo",
+         "sulfitos",
+         "altramuces",
+         "moluscos"
+        ]
+       }
+      },
+      "intolerancias": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "lactosa_fina",
+         "fructosa",
+         "sorbitol"
+        ]
+       }
+      },
+      "estados": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "embarazo",
+         "lactancia"
+        ]
+       }
+      }
+     },
+     "additionalProperties": false
+    },
     "rasgos": {
      "type": "object",
      "description": "Opcional: lo que piden del plato, tal cual lo dicen. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito»… Solo los que digan.",
@@ -386,6 +436,56 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     "receta": {
      "type": "string",
      "description": "Opcional: el nombre de la receta elegida."
+    },
+    "de_fuera": {
+     "type": "object",
+     "description": "Lo que NO pueden comer los invitados de esa comida (celíaco = alergias: gluten; embarazada = estados: embarazo). Pásalo SIEMPRE que lo hayan dicho, también en cada propuesta o cambio siguiente de esa comida: el motor lo filtra igual que lo de la casa. Sin esto, no está filtrado y no puedes decir que lo es.",
+     "properties": {
+      "alergias": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "gluten",
+         "crustaceos",
+         "huevos",
+         "pescado",
+         "cacahuetes",
+         "soja",
+         "leche",
+         "frutos_cascara",
+         "apio",
+         "mostaza",
+         "sesamo",
+         "sulfitos",
+         "altramuces",
+         "moluscos"
+        ]
+       }
+      },
+      "intolerancias": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "lactosa_fina",
+         "fructosa",
+         "sorbitol"
+        ]
+       }
+      },
+      "estados": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "enum": [
+         "embarazo",
+         "lactancia"
+        ]
+       }
+      }
+     },
+     "additionalProperties": false
     }
    },
    "required": [

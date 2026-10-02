@@ -1708,6 +1708,66 @@
           "comida": "Cena"
         }
       }
+    },
+    {
+      "nombre": "invitada embarazada: las ideas van filtradas por el motor (de_fuera.estados embarazo)",
+      "historia": [
+        {
+          "role": "user",
+          "content": "esta noche cenamos con unos amigos: una está embarazada y otro es celíaco"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Qué bien! Lo tengo en cuenta. ¿Cuántos venís en total?"
+        },
+        {
+          "role": "user",
+          "content": "seis"
+        },
+        {
+          "role": "assistant",
+          "content": "Apuntados para esta noche."
+        }
+      ],
+      "entrada": "dame ideas para la cena de hoy",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "_todo": "embarazo"
+        }
+      }
+    },
+    {
+      "nombre": "invitado celíaco: las ideas van filtradas por el motor (de_fuera.alergias gluten)",
+      "historia": [
+        {
+          "role": "user",
+          "content": "esta noche cenamos con unos amigos: una está embarazada y otro es celíaco"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Qué bien! Lo tengo en cuenta. ¿Cuántos venís en total?"
+        },
+        {
+          "role": "user",
+          "content": "seis"
+        },
+        {
+          "role": "assistant",
+          "content": "Apuntados para esta noche."
+        }
+      ],
+      "entrada": "¿qué podemos cenar?",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "_todo": "gluten"
+        }
+      }
     }
   ]
 }
