@@ -116,7 +116,8 @@ function pantallaDe(herramienta, args = {}) {
     return d ? `dia:${d}` : null;
   }
   if (["ver_compra", "marcar_compra", "anadir_compra"].includes(herramienta)) return "compra";
-  if (herramienta === "generar_menu") return "semana";
+  // Las ausencias suelen tocar varios días («no come el finde ni cena hoy»): la semana.
+  if (herramienta === "generar_menu" || herramienta === "fuera_de_casa") return "semana";
   // El recetario de la app, en la misma carpeta que se ha buscado aquí.
   if (herramienta === "buscar_recetas") return args.categoria && args.categoria !== "mias" ? `recetas:${args.categoria}` : "recetas";
   if (herramienta === "guardar_receta") return "recetas:mias";
@@ -134,6 +135,19 @@ export const SOLO_LECTURA = new Set([
   "ver_casa", "ver_menu", "ver_receta", "ver_compra", "ver_ajustes", "ver_despensa", "ver_menu_cole",
   "ver_recordatorios", "proponer_platos", "buscar_recetas", "compartir",
 ]);
+
+/**
+ * Una fila: cada tarea empieza cuando acaba la anterior, falle o no. Pura, para el test.
+ * @returns {(correr: () => Promise<any>) => Promise<any>}
+ */
+export function colaDeEscritura() {
+  let cola = Promise.resolve();
+  return (correr) => {
+    const r = cola.then(correr, correr);
+    cola = r.catch(() => {});
+    return r;
+  };
+}
 
 export async function herramientas(chat) {
   const gustos = await dominiosDeGustos();
@@ -154,9 +168,17 @@ export async function herramientas(chat) {
     if (tocado.semanas.has(args.semana ?? "esta")) return true;
     return Boolean(dia && tocado.dias.has(dia));
   };
+  // Las que ESCRIBEN van en fila dentro del turno. El modelo lanza herramientas
+  // en paralelo, y cinco «fuera_de_casa» a la vez sobre la misma casa chocaban
+  // en conCasa hasta agotar los reintentos: las del domingo no se guardaban
+  // (staging, 2 oct 2026). Las lecturas siguen en paralelo.
+  const enFila = colaDeEscritura();
   return todas.map((t) => ({
     ...t,
-    run: async (args) => {
+    run: async (args) => (SOLO_LECTURA.has(t.name) ? ejecutarUna(t, args) : enFila(() => ejecutarUna(t, args))),
+  }));
+
+  async function ejecutarUna(t, args) {
       // Turno especulativo (api/bot/telegram.js): Lola arranca a la vez que el
       // enrutador. Lo que escribe en la casa espera a saber si el turno es
       // suyo; si se lo queda la vía rápida, no escribe nada.
@@ -188,8 +210,7 @@ export async function herramientas(chat) {
         await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(() => null), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300) } });
         throw e;
       }
-    },
-  }));
+  }
 }
 
 // El recetario: buscar lo que se quiera ver y crear recetas propias, con lo
