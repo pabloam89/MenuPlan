@@ -1004,8 +1004,10 @@ async function pulsado(cq, base, host = "") {
     });
     if (!r.ok) return enviar(chatId, `No he borrado la cuenta: ${r.motivo}.`);
     if (r.sinCuenta) return enviar(chatId, "No tenías cuenta conmigo. He borrado lo que guardaba de este chat. Si usas HoMenu en la app con otra cuenta, bórrala allí (Ajustes → Eliminar cuenta).");
+    // Con cotitular, la casa no se borra: pasa a esa persona (prepare_account_deletion).
+    const casa = r.pasadas ? "Tu casa sigue para quien la llevaba contigo; tu cuenta y lo nuestro, borrados." : "Ya no hay cuenta, ni casa, ni nada guardado de nuestras charlas.";
     const lectores = r.lectores ? `\n\n${r.lectores === 1 ? "La persona que veía tu casa ha perdido" : `Las ${r.lectores} personas que veían tu casa han perdido`} el acceso.` : "";
-    return enviar(chatId, `🗑️ <b>Borrado.</b> Ya no hay cuenta, ni casa, ni nada guardado de nuestras charlas.${lectores}\n\nLos mensajes de este chat siguen en tu Telegram: bórralos desde el chat si quieres. Cuando quieras empezar de nuevo, escríbeme.`, {
+    return enviar(chatId, `🗑️ <b>Borrado.</b> ${casa}${lectores}\n\nLos mensajes de este chat siguen en tu Telegram: bórralos desde el chat si quieres. Cuando quieras empezar de nuevo, escríbeme.`, {
       ...(puedeBorrar(cq.from?.id, process.env, host) ? { botones: [[{ texto: "Limpiar la pantalla", dato: "limpiar" }]] } : {}),
     });
   }

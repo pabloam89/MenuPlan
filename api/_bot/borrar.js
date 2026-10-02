@@ -17,7 +17,7 @@
  * cascada les quitaría la casa a ellos.
  */
 
-import { select, eq, config } from "./db.js";
+import { select, eq, config, rpc } from "./db.js";
 import { llamar } from "./telegram.js";
 
 const ADMINS = (process.env.BOT_ADMINS || "491628449").split(",").map((s) => s.trim()).filter(Boolean);
@@ -106,21 +106,24 @@ export async function borrarCuenta({ chatId, telegramId }) {
     return { ok: true, casas: 0, lectores: 0, sinCuenta: true };
   }
 
-  // Quién más hay en sus casas (roles de la 0070: owner | editor | viewer). Un
-  // coeditor frena el borrado: la casa también es suya, y hasta la fase 5
-  // (pasarle la casa antes de borrar) no hay a quién dejársela. Un lector no
-  // frena: pierde el acceso y se dice (92, propuesta de roles, sección 3).
-  const casas = userId ? (await select("households", `owner_user_id=${eq(userId)}`, "id")).map((h) => h.id) : [];
-  const otros = casas.length ? await select("household_members", `household_id=${lista(casas)}&user_id=neq.${userId}`, "user_id,role") : [];
-  if (otros.some((o) => o.role === "editor")) {
-    return { ok: false, motivo: "tu casa tiene alguien más que la lleva contigo, y borrarla se la quitaría. Que salga de la casa desde la app, o quítale tú, y luego vuelve a pedírmelo" };
+  // Antes de borrar, las casas que lleva con alguien pasan a ese cotitular (el
+  // más antiguo): menús, semanas, despensa, sus chats privados de esa casa y
+  // el enlace, rotado. Las que no, caen en cascada con el usuario. Lo hace la
+  // base de una vez (0075, fase 5 de los papeles de la casa, menuplan-92). Si
+  // falla, no se borra nada: borrar sin pasarla dejaría al cotitular sin casa.
+  let p;
+  try {
+    p = await rpc("prepare_account_deletion", { p_user_id: userId });
+  } catch (e) {
+    console.error("[borrarcuenta] prepare_account_deletion", e?.message);
+    return { ok: false, motivo: "no he podido pasar tu casa a quien la lleva contigo, así que no he borrado nada" };
   }
-  const lectores = otros.filter((o) => o.role === "viewer").length;
 
+  // Ya solo ve las casas que siguen siendo suyas: no borra lo del heredero.
   const r = await borrarLoDelBot(userId, { chatIds: [chatId], telegramId });
   // El último: con él cae todo lo demás.
-  if (userId) await borrarUsuario(userId);
-  return { ok: true, casas: r.casas, lectores };
+  await borrarUsuario(userId);
+  return { ok: true, casas: r.casas, lectores: p?.lectores ?? 0, pasadas: p?.pasadas ?? 0 };
 }
 
 // Cuántos mensajes hacia atrás intenta borrar /limpiar, y de cuántos en

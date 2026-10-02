@@ -6,6 +6,9 @@ import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 
 // Quién más hay en la casa, para las pruebas de borrarCuenta.
 const miembros = { lista: [] };
+// Lo que contesta prepare_account_deletion (0075), o un error si se pone.
+const preparar = { r: { pasadas: 0, borradas: 1, lectores: 0 }, error: null };
+const llamadasRpc = [];
 // Identidad de quien pulsa y el chat donde lo pulsa, para borrarCuenta.
 const ids = { lista: [{ external_id: "555", user_id: "u1" }] };
 const chats = { lista: [{ chat_id: "-100777" }] };
@@ -18,6 +21,11 @@ vi.mock("./db.js", () => ({
     if (tabla === "bot_chats") return chats.lista;
     if (tabla === "household_members") return miembros.lista;
     return [];
+  }),
+  rpc: vi.fn(async (funcion, args) => {
+    llamadasRpc.push([funcion, args]);
+    if (preparar.error) throw new Error(preparar.error);
+    return preparar.r;
   }),
 }));
 vi.mock("./telegram.js", () => ({ llamar: vi.fn() }));
@@ -54,18 +62,27 @@ describe("borrarLoDelBot", () => {
   });
 });
 
-describe("borrarCuenta y los roles de la casa", () => {
-  it("un coeditor frena el borrado; no se borra nada", async () => {
-    miembros.lista = [{ user_id: "u2", role: "editor" }];
+describe("borrarCuenta y los roles de la casa (fase 5)", () => {
+  afterEach(() => { preparar.r = { pasadas: 0, borradas: 1, lectores: 0 }; preparar.error = null; llamadasRpc.length = 0; });
+
+  it("con cotitular, la casa pasa y se borra la cuenta (antes de borrar lo del bot)", async () => {
+    preparar.r = { pasadas: 1, borradas: 0, lectores: 0 };
     const r = await borrarCuenta({ chatId: "555", telegramId: 555 });
-    expect(r.ok).toBe(false);
-    expect(r.motivo).toMatch(/lleva contigo/);
+    expect(llamadasRpc[0]).toEqual(["prepare_account_deletion", { p_user_id: "u1" }]);
+    expect(r).toMatchObject({ ok: true, pasadas: 1 });
   });
 
-  it("los lectores no frenan: se borra y se dice cuántos pierden el acceso", async () => {
-    miembros.lista = [{ user_id: "u3", role: "viewer" }, { user_id: "u4", role: "viewer" }];
+  it("los lectores pierden el acceso, y se dice cuántos", async () => {
+    preparar.r = { pasadas: 0, borradas: 1, lectores: 2 };
     const r = await borrarCuenta({ chatId: "555", telegramId: 555 });
-    expect(r).toEqual({ ok: true, casas: 1, lectores: 2 });
+    expect(r).toMatchObject({ ok: true, lectores: 2, pasadas: 0 });
+  });
+
+  it("si no se puede pasar la casa, no se borra nada", async () => {
+    preparar.error = "boom";
+    const r = await borrarCuenta({ chatId: "555", telegramId: 555 });
+    expect(r.ok).toBe(false);
+    expect(r.motivo).toMatch(/no he borrado nada/);
   });
 });
 
