@@ -100,16 +100,21 @@ export async function borrarCuenta({ chatId, telegramId }) {
     userId = h?.owner_user_id ?? null;
   }
 
+  // Quién más hay en sus casas (roles de la 0070: owner | editor | viewer). Un
+  // coeditor frena el borrado: la casa también es suya, y hasta la fase 5
+  // (pasarle la casa antes de borrar) no hay a quién dejársela. Un lector no
+  // frena: pierde el acceso y se dice (92, propuesta de roles, sección 3).
   const casas = userId ? (await select("households", `owner_user_id=${eq(userId)}`, "id")).map((h) => h.id) : [];
-  if (casas.length) {
-    const otros = await select("household_members", `household_id=${lista(casas)}&user_id=neq.${userId}`, "user_id");
-    if (otros.length) return { ok: false, motivo: "tu casa tiene más miembros con cuenta, y borrarla se la quitaría a ellos" };
+  const otros = casas.length ? await select("household_members", `household_id=${lista(casas)}&user_id=neq.${userId}`, "user_id,role") : [];
+  if (otros.some((o) => o.role === "editor")) {
+    return { ok: false, motivo: "tu casa tiene alguien más que la lleva contigo, y borrarla se la quitaría. Que salga de la casa desde la app, o quítale tú, y luego vuelve a pedírmelo" };
   }
+  const lectores = otros.filter((o) => o.role === "viewer").length;
 
   const r = await borrarLoDelBot(userId, { chatIds: [chatId], telegramId });
   // El último: con él cae todo lo demás.
   if (userId) await borrarUsuario(userId);
-  return { ok: true, casas: r.casas };
+  return { ok: true, casas: r.casas, lectores };
 }
 
 // Cuántos mensajes hacia atrás intenta borrar /limpiar, y de cuántos en

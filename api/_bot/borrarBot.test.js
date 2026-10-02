@@ -4,19 +4,22 @@
  */
 import { describe, it, expect, vi, afterEach } from "vitest";
 
+// Quién más hay en la casa, para las pruebas de borrarCuenta.
+const miembros = { lista: [] };
 vi.mock("./db.js", () => ({
   eq: (v) => `eq.${encodeURIComponent(v)}`,
   config: () => ({ url: "https://base", key: "k", headers: {} }),
   select: vi.fn(async (tabla) => {
     if (tabla === "households") return [{ id: "casa1" }];
-    if (tabla === "bot_identities") return [{ external_id: "555" }];
+    if (tabla === "bot_identities") return [{ external_id: "555", user_id: "u1" }];
     if (tabla === "bot_chats") return [{ chat_id: "-100777" }];
+    if (tabla === "household_members") return miembros.lista;
     return [];
   }),
 }));
 vi.mock("./telegram.js", () => ({ llamar: vi.fn() }));
 
-const { borrarLoDelBot } = await import("./borrar.js");
+const { borrarLoDelBot, borrarCuenta } = await import("./borrar.js");
 
 describe("borrarLoDelBot", () => {
   const borrados = [];
@@ -45,5 +48,20 @@ describe("borrarLoDelBot", () => {
     expect(r.casas).toBe(0);
     expect(borrados.some((b) => b.startsWith("bot_messages?") && b.includes('"42"'))).toBe(true);
     expect(borrados.some((b) => b.startsWith("user_events?"))).toBe(false);
+  });
+});
+
+describe("borrarCuenta y los roles de la casa", () => {
+  it("un coeditor frena el borrado; no se borra nada", async () => {
+    miembros.lista = [{ user_id: "u2", role: "editor" }];
+    const r = await borrarCuenta({ chatId: "555", telegramId: 555 });
+    expect(r.ok).toBe(false);
+    expect(r.motivo).toMatch(/lleva contigo/);
+  });
+
+  it("los lectores no frenan: se borra y se dice cuántos pierden el acceso", async () => {
+    miembros.lista = [{ user_id: "u3", role: "viewer" }, { user_id: "u4", role: "viewer" }];
+    const r = await borrarCuenta({ chatId: "555", telegramId: 555 });
+    expect(r).toEqual({ ok: true, casas: 1, lectores: 2 });
   });
 });
