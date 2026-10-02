@@ -546,7 +546,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: "semana", avisoLento: "Voy, te preparo el menú, dame unos segundos" }, {
       name: "generar_menu",
-      description: "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy o la «siguiente» entera. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después.",
+      description: "Genera un menú NUEVO con el motor de HoMenu (respeta toda la configuración) y lo deja activo: «esta» semana desde hoy o la «siguiente» entera. Tarda unos segundos. fijos: los platos que piden por su nombre para esa semana («un día salmón al horno», «otro pollo con patatas»); se ponen al generar, una vez cada uno, con la receta exacta o la más parecida. Con fijos NO hace falta cambiar_plato después. Solo si piden generar o rehacer, o si no hay menú: una pregunta sobre lo ya generado («¿y las recetas?», «¿y la compra?», «¿y el domingo?») se contesta con ver_receta, ver_compra o ver_menu y NUNCA regenera, porque rehacerlo cambia los platos que ya han visto.",
       inputSchema: obj({
         semana: { type: "string", enum: ["esta", "siguiente"] },
         fijos: {
@@ -1051,7 +1051,11 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
 // cada 3 con «a partir de ahora nada de coliflor»). Las reglas lo frenan casi
 // siempre, pero no del todo: si lo dice y en el turno no hubo ninguna
 // escritura, se le avisa y repite la vuelta una vez.
-const DICE_QUE_GUARDO = /✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
+// ✅ solo al empezar una línea, que es como confirma Lola («✅ Apuntado…»).
+// Como viñeta («• ✅ Cambiar un plato», al contar lo que sabe hacer) no es
+// decir que guardó: «hola, ¿qué sabes hacer?» pasaba por el aviso y una
+// segunda llamada al modelo (staging, 2 oct 2026: 8,2 s para un saludo).
+const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
 export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(String(texto ?? ""));
 // Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
 // mientras corren, la persona ve al momento una frase de Lola en el mensaje

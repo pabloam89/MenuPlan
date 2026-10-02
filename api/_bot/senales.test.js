@@ -6,6 +6,7 @@ describe("esCorreccion", () => {
     expect(esCorreccion("deshaz eso")).toBe(true);
     expect(esCorreccion("Eso no, el jueves", "¿Te lo cambio?")).toBe(true);
     expect(esCorreccion("no era eso lo que quería")).toBe(true);
+    expect(esCorreccion("No es así", "✅ Apuntado: A, celiaco. [[No es así]] ¿B tiene alguna alergia?")).toBe(true);
   });
 
   it("«no» tras una pregunta de Lola es una respuesta", () => {
