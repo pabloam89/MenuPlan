@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { guardarConVersion } from "./versionCasa.js";
 
 /**
  * Cloud persistence for multi-week menús (see 0005_multiweek_menus.sql:
@@ -306,12 +307,13 @@ export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
 // Fire-and-forget; the user_state blob is still the belt-and-suspenders copy.
 const weekSaveTimers = new Map();
 
-// En un hogar, la semana se guarda condicionada al `bot_rev` que la app vio al
-// cargar (0057): si el bot de Telegram ha escrito entretanto, no se pisa y se
-// avisa con `onConflict` para que la app recargue. `botRev` se fija al
-// encolar: la semana que se guarda es la de ese momento, y si la nube se ha
-// recargado entretanto, es vieja y no debe pasar con la versión nueva.
-export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200, householdId = null, { botRev = null, onConflict = null } = {}) {
+// En un hogar, la semana se guarda condicionada a la versión de la casa
+// (0057/0068): si otro (Lola, otro dispositivo) ha escrito entretanto, no se
+// pisa y se avisa con `onConflict` para que la app recargue. Va por la cola de
+// versionCasa.js, que lee la versión al salir y apunta la que deja este
+// guardado; `version.vigente` dice si la nube se recargó desde que se encoló
+// (entonces la semana es vieja y no sale).
+export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200, householdId = null, { version = null, onConflict = null } = {}) {
   if (!supabase || !userId || !menuId || !startISO || !week) return;
   const key = `${householdId ?? userId}:${menuId}:${startISO}`;
   const existing = weekSaveTimers.get(key);
@@ -319,23 +321,10 @@ export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200, 
   const timer = setTimeout(async () => {
     weekSaveTimers.delete(key);
     const row = weekToRow(userId, menuId, startISO, week, householdId);
-    if (householdId) {
-      const { data, error } = await supabase.rpc("save_menu_week", {
-        p_row: row,
-        p_bot_rev: botRev,
-      });
-      if (!error) {
-        // Mismo contador que el enviado = no es el bot, es que no se pudo
-        // escribir (permisos): recargar no lo arreglaría y entraría en bucle.
-        if (data?.ok === false && Number(data.bot_rev) !== botRev) onConflict?.(Number(data.bot_rev));
-        else if (data?.ok === false) console.warn("[menusSync] save week (live) rejected");
-        return;
-      }
-      // Base sin la 0057: se guarda como antes.
-      if (error.code !== "PGRST202") {
-        console.warn("[menusSync] save week (live) failed", error.message);
-        return;
-      }
+    if (householdId && version) {
+      const r = await guardarConVersion(version, (botRev) => saveMenuWeekRpc(row, botRev));
+      if (r.conflict) onConflict?.(r.botRev);
+      return;
     }
     const { error } = await supabase
       .from("user_menu_weeks")
@@ -343,4 +332,22 @@ export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200, 
     if (error) console.warn("[menusSync] save week (live) failed", error.message);
   }, delay);
   weekSaveTimers.set(key, timer);
+}
+
+async function saveMenuWeekRpc(row, botRev) {
+  const { data, error } = await supabase.rpc("save_menu_week", { p_row: row, p_bot_rev: botRev });
+  if (error) {
+    console.warn("[menusSync] save week (live) failed", error.message);
+    return { ok: false };
+  }
+  if (data?.ok === false) {
+    // Mismo contador que el enviado = nadie ha escrito, es que no se pudo
+    // (permisos): recargar no lo arreglaría y entraría en bucle.
+    if (Number(data.bot_rev) === botRev) {
+      console.warn("[menusSync] save week (live) rejected");
+      return { ok: false };
+    }
+    return { ok: false, conflict: true, botRev: Number(data.bot_rev) };
+  }
+  return { ok: true, botRev: data?.bot_rev == null ? botRev : Number(data.bot_rev) };
 }

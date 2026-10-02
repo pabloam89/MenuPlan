@@ -162,7 +162,7 @@ export async function deshacer(householdId) {
   // De la base: deshacer compara versiones y lo recordado podría ser viejo.
   const casa = await cargarCasa(householdId, { fresca: true });
   if (!casa) return "Esta casa no tiene datos en la nube.";
-  if (casa.botRev !== Number(foto.bot_rev_despues)) return "Ya no puedo deshacerlo: después hubo otros cambios míos.";
+  if (casa.botRev !== Number(foto.bot_rev_despues)) return "Ya no puedo deshacerlo: después hubo otros cambios en la casa.";
   // La app pone updated_at al guardar: si es posterior a mi cambio (con un
   // margen para el propio guardado), alguien tocó la casa desde la app y
   // restaurar pisaría lo suyo.

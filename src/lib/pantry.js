@@ -716,7 +716,7 @@ export async function mergeLocalPantryIntoCloud(userId, householdId = null) {
   if (!supabase || !userId) return false;
   const local = readLocalPantry();
   if (local.length === 0) return false;
-  await addPantryItems(
+  const guardadas = await addPantryItems(
     userId,
     local.map((it) => ({
       name: it.ingredientName,
@@ -734,6 +734,11 @@ export async function mergeLocalPantryIntoCloud(userId, householdId = null) {
     })),
     householdId,
   );
-  writeLocalPantry([]);
-  return true;
+  // Solo se borra de aquí lo que de verdad ha subido. En una casa que no es
+  // tuya la base rechaza la subida (0067: las filas de una casa van a nombre
+  // de su dueño), y vaciar la copia local entonces era perder la despensa.
+  const subidas = new Set((guardadas ?? []).map((r) => r.ingredientNormalized).filter(Boolean));
+  const quedan = local.filter((it) => !subidas.has(it.ingredientNormalized));
+  writeLocalPantry(quedan);
+  return quedan.length < local.length;
 }

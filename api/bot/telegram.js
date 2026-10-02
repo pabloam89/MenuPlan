@@ -45,7 +45,7 @@ import {
 } from "../_bot/compartir.js";
 import { motor } from "../_bot/menu.js";
 import { sembrarCasa } from "../_bot/ajustes.js";
-import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
+import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo } from "../_bot/enlace.js";
 import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
@@ -828,7 +828,7 @@ async function enlaceGrupo(chatId, esGrupo, householdId) {
   if (esGrupo) return enviar(chatId, "Eso por privado: escríbeme /grupo allí y te paso el enlace.");
   const dueno = await duenoDe(householdId);
   if (!dueno) return enviar(chatId, "No encuentro quién gestiona esta casa.");
-  const token = crypto.randomBytes(16).toString("base64url");
+  const token = codigoDeGrupo();
   await insert("bot_link_tokens", [{ token, user_id: dueno, household_id: householdId, expires_at: new Date(Date.now() + VALIDEZ_GRUPO_MS).toISOString() }]);
   const bot = await nombreDelBot();
   return enviar(chatId, [
@@ -1017,9 +1017,10 @@ async function comprobarCodigo(msg, chatId, token) {
     kind: "private",
     householdId: hogar.id,
     userId,
-    externalId: msg.from?.id,
+    externalId: idDePersona(msg.from),
     nombre: nombreDe(msg.from),
     lang: msg.from?.language_code,
+    identidad: "email",
   });
   if (r.ocupado) return enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
   return confirmarEnlace(chatId, hogar.id);
@@ -1043,9 +1044,10 @@ async function crearCuenta(from, chatId, primero = {}) {
     kind: "private",
     householdId: cuenta.householdId,
     userId: cuenta.userId,
-    externalId: from.id,
+    externalId: idDePersona(from),
     nombre: nombreDe(from),
     lang: from.language_code,
+    identidad: "nacida",
   });
 
   // El alta sigue aquí mismo, hablando: el agente pregunta lo imprescindible
@@ -1108,6 +1110,13 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
     if (callado) return null;
     return enviar(chatId, "Ese enlace ya no vale (caduca a los 15 minutos y sirve una sola vez). Pide otro desde la app.");
   }
+  // El de /grupo lo firma el titular pero lo pide cualquiera con el privado
+  // enlazado: usado en un privado, enlazaría ese Telegram a la casa como si
+  // fuera el titular. Solo vale para meter a Lola en un grupo.
+  if (!esGrupo && esCodigoDeGrupo(token)) {
+    if (callado) return null;
+    return enviar(chatId, "Ese enlace es para meterme en un grupo: púlsalo y elige el grupo de la familia.");
+  }
 
   // Marcarlo usado ANTES de enlazar: dos pulsaciones seguidas no enlazan dos veces.
   const usados = await update("bot_link_tokens", `token=${eq(token)}&used_at=is.null`, { used_at: new Date().toISOString() });
@@ -1118,9 +1127,12 @@ async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = fals
     kind: esGrupo ? "group" : "private",
     householdId: fila.household_id,
     userId: fila.user_id,
-    externalId: msg.from?.id,
+    externalId: idDePersona(msg.from),
     nombre: nombreDe(msg.from),
     lang: msg.from?.language_code,
+    // Solo en privado (enlazarChat lo vuelve a mirar): en un grupo, quien
+    // pulsa no tiene por qué ser quien sacó el enlace.
+    identidad: esGrupo ? null : "ajustes",
   });
   if (r.ocupado) {
     await enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");

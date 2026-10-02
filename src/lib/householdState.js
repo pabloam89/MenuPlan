@@ -4,15 +4,18 @@ import { supabase } from "./supabase.js";
  * Cloud mirror for household_state (see 0017_households.sql).
  * Replaces user_state for planning data scoped to a household.
  *
- * `botRev` (0057): contador que solo sube cuando escribe el bot de Telegram.
- * La app guarda condicionada al que vio al cargar; si el bot ha escrito
+ * `botRev` (0057, 0068): la versión de la casa. Sube con cada escritura, sea
+ * de Lola o de la app. La app guarda condicionada a la última que conoce (la
+ * cola de versionCasa.js lleva la cuenta de las suyas); si otro ha escrito
  * entretanto, el guardado vuelve con `conflict` y la app recarga la nube en
- * vez de pisar el cambio del bot.
+ * vez de pisar el cambio.
  */
 
 /**
+ * null = la casa no tiene fila todavía. Si la lectura falla (sin red), vuelve
+ * con `error: true`: no es lo mismo una casa vacía que no saber qué tiene.
  * @param {string} householdId
- * @returns {Promise<{ state: any, updatedAt: string, botRev: number | null } | null>}
+ * @returns {Promise<{ state: any, updatedAt: string | null, botRev: number | null, error?: boolean } | null>}
  */
 export async function loadHouseholdState(householdId) {
   if (!supabase || !householdId) return null;
@@ -31,7 +34,7 @@ export async function loadHouseholdState(householdId) {
   }
   if (error) {
     console.warn("[householdState] load failed", error.message);
-    return null;
+    return { state: null, updatedAt: null, botRev: null, error: true };
   }
   if (!data) return null;
   return {
@@ -42,7 +45,7 @@ export async function loadHouseholdState(householdId) {
 }
 
 /**
- * Solo el contador, para mirar barato si el bot ha escrito (al volver a la app).
+ * Solo el contador, para mirar barato si alguien ha escrito (al volver a la app).
  * @param {string} householdId
  * @returns {Promise<number | null>}
  */
@@ -63,7 +66,7 @@ const sinFuncion = (error) => error?.code === "PGRST202" || /save_household_stat
 /**
  * @param {string} householdId
  * @param {any} state
- * @param {number | null} botRev  el que la app vio al cargar; null = sin condición
+ * @param {number | null} botRev  la última versión que la app conoce; null = sin condición
  * @returns {Promise<{ ok: boolean, conflict?: boolean, botRev?: number | null }>}
  */
 export async function saveHouseholdState(householdId, state, botRev = null) {
@@ -79,7 +82,7 @@ export async function saveHouseholdState(householdId, state, botRev = null) {
     return { ok: false };
   }
   if (data?.ok === false) {
-    // Mismo contador que el enviado: no ha escrito el bot, es que la fila no
+    // Mismo contador que el enviado: no ha escrito nadie, es que la fila no
     // se pudo actualizar (permisos). No es conflicto: recargar entraría en bucle.
     if (Number(data.bot_rev) === botRev) {
       console.warn("[householdState] save rejected");
