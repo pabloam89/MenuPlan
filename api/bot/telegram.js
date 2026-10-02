@@ -48,6 +48,8 @@ import { sembrarCasa } from "../_bot/ajustes.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo } from "../_bot/enlace.js";
 import { papelDeQuien } from "../_bot/papel.js";
 import { unirsePorInvitacion, ES_INVITACION } from "../_bot/invitacion.js";
+import { traducir } from "../_bot/traducir.js";
+import { idiomaDe } from "../_bot/papel.js";
 import { puede } from "../../src/lib/papeles.js";
 import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
@@ -396,6 +398,11 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   // (scripts/router-evals.mjs, 84/92 frente a 135/138).
   const [ultima, contexto, quien] = await Promise.all([ultimaDeLola(chatId), contextoDe(householdId), papelP]);
   chatDe.papel = quien.papel;
+  // Quien eligió inglés: contesta Lola, que traduce. La vía rápida y sus
+  // plantillas están en castellano.
+  if (quien.userId && (await idiomaDe(quien.userId).catch(() => null)) === "en") {
+    return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA });
+  }
   marca("contexto");
 
   // 0. Estado: contestar a una pregunta de la vía rápida.
@@ -585,15 +592,24 @@ export async function entregar({ chatId, householdId, esGrupo, base, from, respo
   const { cuerpo: frase, botones: propiosCrudos } = sacarBotones(r.texto);
   // Lo que se ha generado, cambiado o pedido ver, pintado debajo de la frase
   // (api/_bot/pintar.js): el modelo nunca escribe la lista de platos.
-  let cuerpo = frase;
+  let pintado = "";
   if (r.pintar) {
     const casa = await cargarCasa(householdId).catch(() => null);
     const p = casa ? await pintarMenuEntero(casa, r.pintar).catch(() => null) : null;
     if (p?.texto) {
-      cuerpo = `${frase}\n\n${p.texto}`.trim();
+      pintado = p.texto;
       if (!r.fotos?.length && p.fotos.length) r = { ...r, fotos: p.fotos };
     }
   }
+  // Quien eligió inglés (0073): Lola ya contesta en inglés; lo pintado por el
+  // código y los pies de las fotos se traducen aquí, en un lote (traducir.js).
+  if (r.idioma === "en" && (pintado || r.fotos?.length)) {
+    const fotos = r.fotos ?? [];
+    const [enIngles, ...pies] = await traducir([pintado, ...fotos.map((f) => f.pie ?? "")], "en");
+    pintado = enIngles;
+    r = { ...r, fotos: fotos.map((f, i) => ({ ...f, pie: pies[i] })) };
+  }
+  const cuerpo = pintado ? `${frase}\n\n${pintado}`.trim() : frase;
   // No hay botón de deshacer (decisión de Pablo): [[No es así]] vuelve a Lola
   // como lo que dice, y ella decide (deshacer, o corregir).
   const propios = propiosCrudos?.map((fila) => fila.map((b) => (b.dato === `t:${DESHACER}` ? { ...b, dato: `t:${b.texto}` } : b)));
@@ -608,7 +624,7 @@ export async function entregar({ chatId, householdId, esGrupo, base, from, respo
   // igual a esa pantalla, que ?ir= se guarda en sessionStorage). Pablo, 2 oct
   // 2026: «el inicio de sesión tarda nada».
   if (r.ir && base) {
-    alPie.push({ texto: textoBotonApp(r.ir), url: esGrupo ? `${base}/?ir=${encodeURIComponent(r.ir)}` : await enlaceApp(base, r.ir, from, chatId) });
+    alPie.push({ texto: textoBotonApp(r.ir, r.idioma), url: esGrupo ? `${base}/?ir=${encodeURIComponent(r.ir)}` : await enlaceApp(base, r.ir, from, chatId) });
   }
   if (alPie.length) botones.push(alPie);
   if (r.compartir && base) {
@@ -735,7 +751,12 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
 }
 
 /** Lo que dice el botón que lleva a la app, según a qué pantalla lleva. */
-export function textoBotonApp(ir) {
+const BOTON_APP_EN = { semana: "📅 See the week in the app", compra: "🛒 Open the list in the app", dia: "🍽️ See the day in the app", receta: "📖 See the recipe in the app", recetas: "📚 Open the recipes", otro: "📱 See it in the app" };
+export function textoBotonApp(ir, idioma = null) {
+  if (idioma === "en") {
+    const k = ir === "hoy" || String(ir).startsWith("dia:") ? "dia" : String(ir).startsWith("receta:") ? "receta" : String(ir).startsWith("recetas") ? "recetas" : BOTON_APP_EN[ir] ? ir : "otro";
+    return BOTON_APP_EN[k];
+  }
   if (ir === "semana") return "📅 Ver la semana en la app";
   if (ir === "compra") return "🛒 Abrir la lista en la app";
   if (ir === "hoy" || String(ir).startsWith("dia:")) return "🍽️ Ver el día en la app";

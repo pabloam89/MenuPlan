@@ -176,12 +176,41 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: "Sesión inválida." });
   }
 
+  // Antes de nada que no tenga vuelta: sus casas con cotitular pasan al más
+  // antiguo (prepare_account_deletion, 0075). Si no, al borrar el usuario su
+  // pareja perdería menús, compra y despensa. Si esto falla, NO se borra la
+  // cuenta (se puede reintentar): borrar sin heredar no tiene arreglo.
+  let herencia = { pasadas: 0, lectores: 0 };
+  try {
+    const prepRes = await fetchWithTimeout(`${supabaseUrl}/rest/v1/rpc/prepare_account_deletion`, {
+      method: "POST",
+      headers: {
+        apikey: serviceRoleKey,
+        "Content-Type": "application/json",
+        // Las claves nuevas (sb_secret_…) no van como Bearer (api/_bot/db.js).
+        ...(serviceRoleKey.startsWith("eyJ") ? { Authorization: `Bearer ${serviceRoleKey}` } : {}),
+      },
+      body: JSON.stringify({ p_user_id: userId }),
+    });
+    const prepBody = await prepRes.text();
+    if (!prepRes.ok) {
+      console.error("[delete-account] prepare_account_deletion failed", prepRes.status, prepBody.slice(0, 300));
+      return res.status(500).json({ error: "No se pudo pasar tu casa a quien la lleva contigo. No se ha borrado nada; inténtalo de nuevo." });
+    }
+    herencia = JSON.parse(prepBody) ?? herencia;
+  } catch (err) {
+    console.error("[delete-account] prepare_account_deletion threw", err?.name, err?.message);
+    return res.status(500).json({ error: "No se pudo pasar tu casa a quien la lleva contigo. No se ha borrado nada; inténtalo de nuevo." });
+  }
+
   // Antes de borrar: mientras el usuario exista todavía se puede leer su token.
   await revokeAppleToken(supabaseUrl, serviceRoleKey, userId);
 
   // Lo del bot de Telegram que no cae en cascada con el usuario (chats
   // enlazados, charlas, recordatorios, identidad…): antes, porque después ya
-  // no se sabe qué casas eran suyas. Con 4 s como mucho y sin cortar el
+  // no se sabe qué casas eran suyas. Y después de heredar: así solo ve las que
+  // siguen siendo suyas, y no borra los chats ni la cuota del heredero (M-1).
+  // Con 4 s como mucho y sin cortar el
   // borrado: igual que con Apple, el derecho a borrar no depende de esto.
   await Promise.race([
     borrarLoDelBot(userId),
@@ -199,7 +228,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "No se pudo eliminar la cuenta." });
     }
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, pasadas: herencia.pasadas ?? 0, lectores: herencia.lectores ?? 0 });
   } catch (err) {
     console.error(
       "[delete-account] DELETE /auth/v1/admin/users threw",
