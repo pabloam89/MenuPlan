@@ -318,7 +318,7 @@ function atenderCola({ chatId, householdId, esGrupo, base }) {
 // por la rápida en grupo lo dice la tabla POLITICA de router.js, no un if.
 const MODO_ROUTER = () => (["sombra", "on"].includes(process.env.BOT_ROUTER) ? process.env.BOT_ROUTER : "off");
 const MODO_ROUTER_GRUPOS = () => (["off", "on"].includes(process.env.BOT_ROUTER_GRUPOS) ? process.env.BOT_ROUTER_GRUPOS : "sombra");
-// BOT_PISTA (on | off; por defecto on): con el enrutador en on, si el turno es
+// BOT_PISTA (on | off; por defecto off, ver abajo): con el enrutador en on, si el turno es
 // de Lola y el enrutador ha visto una lectura con sus datos, Lola recibe lo
 // que dedujo y la lectura ya hecha, para contestar en una llamada
 // (api/_bot/pista.js). Medido el 1 oct 2026 con frases que van a Lola: donde
@@ -588,11 +588,14 @@ export async function entregar({ chatId, householdId, esGrupo, base, from, respo
   if (esGrupo && from?.id) {
     for (const b of [...botones.flat(), ...alPie]) if (b.dato === `t:${DESHACER}`) b.dato = `d:${from.id}`;
   }
-  // Todo se abre en la app, en su pantalla (?ir=). Solo en privado: el enlace
-  // puede llevar la llave de entrada de quien lo pide, y en un grupo la
-  // pulsaría cualquiera.
-  if (r.ir && base && !esGrupo) {
-    alPie.push({ texto: textoBotonApp(r.ir), url: await enlaceApp(base, r.ir, from, chatId) });
+  // Todo se abre en la app, en su pantalla (?ir=). En privado el enlace puede
+  // llevar la llave de entrada de quien lo pide; en un grupo la pulsaría
+  // cualquiera, así que va SIN llave: cada uno entra con su cuenta (quien ya
+  // tiene la sesión abierta, directo; si no, inicia sesión y la app le lleva
+  // igual a esa pantalla, que ?ir= se guarda en sessionStorage). Pablo, 2 oct
+  // 2026: «el inicio de sesión tarda nada».
+  if (r.ir && base) {
+    alPie.push({ texto: textoBotonApp(r.ir), url: esGrupo ? `${base}/?ir=${encodeURIComponent(r.ir)}` : await enlaceApp(base, r.ir, from, chatId) });
   }
   if (alPie.length) botones.push(alPie);
   if (r.compartir && base) {
@@ -1070,9 +1073,14 @@ async function crearCuenta(from, chatId, primero = {}) {
 }
 
 async function abrirApp(msg, chatId, esGrupo, base) {
-  // Solo en privado: en un grupo, cualquiera de dentro recibiría una llave
-  // para entrar en la cuenta de otro.
-  if (esGrupo) return enviar(chatId, "Eso te lo mando por privado: escríbeme /app allí.");
+  // En un grupo, la app sin llave (cualquiera de dentro recibiría la de otro):
+  // cada uno entra con su cuenta. Quien la creó aquí, en Telegram, no tiene
+  // email ni contraseña: su llave, por privado.
+  if (esGrupo) {
+    return enviar(chatId, "Cada uno entra con su cuenta. Si la tuya la creaste aquí conmigo, escríbeme /app por privado y te mando tu entrada.", {
+      botones: [[{ texto: "Abrir HoMenu", url: `${base}/` }]],
+    });
+  }
   // Y solo a cuentas NACIDAS en este Telegram (email sintético de este
   // from.id). Una identidad en bot_identities no prueba que este Telegram sea
   // el dueño de la cuenta: se crea también al enlazar por email o desde un
