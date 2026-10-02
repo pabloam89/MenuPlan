@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de Lola</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10);
+    --rapida: #2a78d6; --lola: #eb6834;
+    --good: #0ca30c; --good-text: #006300; --critical: #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+      --rapida: #3987e5; --lola: #d95926; --good-text: #0ca30c;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+    --rapida: #3987e5; --lola: #d95926; --good-text: #0ca30c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  .sub { color: var(--ink-2); margin: 0 0 20px; }
+  .card { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 14px 16px; }
+  .tile .k { color: var(--ink-2); font-size: 13px; }
+  .tile .v { font-size: 28px; font-weight: 650; margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+  td.n, th.n { text-align: right; }
+  .estado { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+  .estado svg { flex: none; }
+  .ok { color: var(--good-text); } .mal { color: var(--critical); } .nd { color: var(--muted); font-weight: 500; }
+  .scroll { overflow-x: auto; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--ink-2); font-size: 13px; margin-bottom: 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  svg text { fill: var(--muted); font-size: 11px; font-family: inherit; }
+  .tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--ring);
+         border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.15); display: none; max-width: 280px; z-index: 10; }
+  .tip b { font-size: 13px; }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--ring); color: var(--ink-2); margin: 0 4px 2px 0; }
+  .tag.malo { color: var(--critical); border-color: currentColor; }
+  .vacio { color: var(--ink-2); padding: 24px 0; text-align: center; }
+  .texto { color: var(--ink-2); max-width: 260px; }
+  button.tema { float: right; background: none; border: 1px solid var(--ring); color: var(--ink-2); border-radius: 8px; padding: 4px 10px; cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <button class="tema" id="tema" type="button">Tema</button>
+  <h1>Panel de Lola</h1>
+  <p class="sub" id="sub"></p>
+
+  <div class="tiles" id="tiles"></div>
+
+  <section class="card">
+    <h2>Objetivos</h2>
+    <div class="scroll"><table id="semaforo"></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Primer texto de cada turno</h2>
+    <div class="legend" id="leyenda"></div>
+    <div id="grafica"></div>
+  </section>
+
+  <section class="card">
+    <h2>Herramientas más lentas (p95)</h2>
+    <div id="herramientas"></div>
+  </section>
+
+  <section class="card">
+    <h2>Últimos turnos</h2>
+    <div class="scroll"><table id="turnos"></table></div>
+  </section>
+</main>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+const D = /*__DATOS__*/null;
+const $ = (id) => document.getElementById(id);
+const el = (tag, attrs = {}, ...hijos) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  for (const h of hijos) n.append(h instanceof Node ? h : document.createTextNode(String(h)));
+  return n;
+};
+const SVG = "http://www.w3.org/2000/svg";
+const sv = (tag, attrs = {}) => { const n = document.createElementNS(SVG, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); return n; };
+const seg = (ms) => (ms == null ? "—" : `${(ms / 1000).toFixed(1)} s`);
+const fmt = (v, u) => v == null ? "—" : u === "ms" ? seg(v) : u === "%" ? `${v.toFixed(1)} %` : u === "$" ? `$${v.toFixed(4)}` : (Number.isInteger(v) ? String(v) : v.toFixed(2));
+const hora = (iso) => new Date(iso).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+// Tema: el del sistema, o el elegido (solo en este navegador).
+try { const t = localStorage.getItem("panel-tema"); if (t) document.documentElement.dataset.theme = t; } catch {}
+$("tema").onclick = () => {
+  const oscuro = getComputedStyle(document.documentElement).colorScheme.includes("dark");
+  document.documentElement.dataset.theme = oscuro ? "light" : "dark";
+  try { localStorage.setItem("panel-tema", document.documentElement.dataset.theme); } catch {}
+};
+
+// Iconos de estado: siempre con texto al lado, nunca solo color.
+const icono = (ok) => {
+  const s = sv("svg", { width: 14, height: 14, viewBox: "0 0 14 14", "aria-hidden": "true" });
+  if (ok === true) { s.append(sv("circle", { cx: 7, cy: 7, r: 6, fill: "none", stroke: "currentColor", "stroke-width": 1.6 }), sv("path", { d: "M4 7.2 6.2 9.3 10 5", fill: "none", stroke: "currentColor", "stroke-width": 1.6, "stroke-linecap": "round" })); }
+  else if (ok === false) { s.append(sv("circle", { cx: 7, cy: 7, r: 6, fill: "none", stroke: "currentColor", "stroke-width": 1.6 }), sv("path", { d: "M4.8 4.8 9.2 9.2M9.2 4.8 4.8 9.2", stroke: "currentColor", "stroke-width": 1.6, "stroke-linecap": "round" })); }
+  else s.append(sv("circle", { cx: 7, cy: 7, r: 6, fill: "none", stroke: "currentColor", "stroke-width": 1.4, "stroke-dasharray": "2 2" }));
+  return s;
+};
+const estado = (ok) => el("span", { class: `estado ${ok === true ? "ok" : ok === false ? "mal" : "nd"}` }, icono(ok), ok === true ? "Cumple" : ok === false ? "No cumple" : "Sin datos");
+
+// ── Cabecera y cifras ───────────────────────────────────────────────────────
+$("sub").textContent = `Últimos ${D.dias} días · generado ${hora(D.generado)} · ${D.textos ? "con textos (no lo compartas)" : "sin textos"}`;
+const m = D.medidas;
+const malos = D.semaforo.filter((x) => x.ok === false).length;
+for (const [k, v] of [
+  ["Turnos", m.uso.turnos],
+  ["Por la vía rápida", fmt(m.uso.rapidaPct, "%")],
+  ["Coste por turno", fmt(m.coste.porTurnoUsd, "$")],
+  ["Objetivos sin cumplir", `${malos} de ${D.semaforo.filter((x) => x.limite != null).length}`],
+]) $("tiles").append(el("div", { class: "tile" }, el("div", { class: "k" }, k), el("div", { class: "v" }, v)));
+
+// ── Semáforo ────────────────────────────────────────────────────────────────
+$("semaforo").append(el("tr", {}, el("th", {}, "Estado"), el("th", {}, "Medida"), el("th", { class: "n" }, "Ahora"), el("th", { class: "n" }, "Objetivo")));
+for (const x of D.semaforo) {
+  $("semaforo").append(el("tr", {}, el("td", {}, estado(x.ok)), el("td", {}, x.nombre), el("td", { class: "n" }, fmt(x.valor, x.unidad)), el("td", { class: "n" }, x.limite == null ? "sin fijar" : `≤ ${fmt(x.limite, x.unidad)}`)));
+}
+
+// ── Tooltip ─────────────────────────────────────────────────────────────────
+const tip = $("tip");
+const mostrar = (ev, filas) => {
+  tip.replaceChildren(...filas.map((f, i) => el("div", {}, i === 0 ? el("b", {}, f) : f)));
+  tip.style.display = "block";
+  const x = Math.min(ev.clientX + 14, innerWidth - tip.offsetWidth - 8);
+  const y = Math.min(ev.clientY + 14, innerHeight - tip.offsetHeight - 8);
+  tip.style.left = `${x}px`; tip.style.top = `${y}px`;
+};
+const ocultar = () => { tip.style.display = "none"; };
+
+// ── Gráfica: primer texto por turno ─────────────────────────────────────────
+// Una sola escala (segundos); cada turno es un punto, círculo la vía rápida y
+// cuadrado Lola (forma además de color). Las líneas son los objetivos.
+const SERIES = { rapida: { nombre: "Vía rápida", color: "var(--rapida)", forma: "circulo", objetivo: D.objetivos.primerTextoRapidaP95Ms },
+                 lola: { nombre: "Lola", color: "var(--lola)", forma: "cuadrado", objetivo: D.objetivos.primerTextoLolaP95Ms } };
+const marca = (forma, color, x, y, r = 5) => forma === "circulo"
+  ? sv("circle", { cx: x, cy: y, r, fill: color, stroke: "var(--surface)", "stroke-width": 2 })
+  : sv("rect", { x: x - r, y: y - r, width: r * 2, height: r * 2, rx: 1.5, fill: color, stroke: "var(--surface)", "stroke-width": 2 });
+for (const [k, s] of Object.entries(SERIES)) {
+  const sw = sv("svg", { width: 14, height: 14, "aria-hidden": "true" }); sw.append(marca(s.forma, s.color, 7, 7, 5));
+  $("leyenda").append(el("span", {}, sw, `${s.nombre} (objetivo p95 ${seg(s.objetivo)})`));
+}
+const puntos = D.turnos.filter((t) => Number.isFinite(t.primer));
+if (!puntos.length) $("grafica").append(el("div", { class: "vacio" }, "Aún no hay turnos con medida en este periodo."));
+else {
+  const W = Math.max(320, $("grafica").clientWidth || 900), H = 280, M = { l: 44, r: 16, t: 12, b: 28 };
+  const svg = sv("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Primer texto de cada turno, en segundos" });
+  const maxY = Math.max(...puntos.map((p) => p.primer), ...Object.values(SERIES).map((s) => s.objetivo ?? 0)) * 1.1;
+  const y = (ms) => M.t + (H - M.t - M.b) * (1 - ms / maxY);
+  const x = (i) => M.l + (puntos.length === 1 ? (W - M.l - M.r) / 2 : (i / (puntos.length - 1)) * (W - M.l - M.r));
+  const paso = maxY > 20000 ? 5000 : maxY > 8000 ? 2000 : 1000;
+  for (let v = 0; v <= maxY; v += paso) {
+    svg.append(sv("line", { x1: M.l, x2: W - M.r, y1: y(v), y2: y(v), stroke: v === 0 ? "var(--axis)" : "var(--grid)", "stroke-width": 1 }));
+    const t = sv("text", { x: M.l - 6, y: y(v) + 4, "text-anchor": "end" }); t.textContent = `${v / 1000} s`; svg.append(t);
+  }
+  for (const s of Object.values(SERIES)) {
+    if (!s.objetivo) continue;
+    svg.append(sv("line", { x1: M.l, x2: W - M.r, y1: y(s.objetivo), y2: y(s.objetivo), stroke: s.color, "stroke-width": 1.5, "stroke-dasharray": "5 4" }));
+  }
+  const t0 = sv("text", { x: M.l, y: H - 8 }); t0.textContent = hora(puntos[0].t); svg.append(t0);
+  if (puntos.length > 1) { const t1 = sv("text", { x: W - M.r, y: H - 8, "text-anchor": "end" }); t1.textContent = hora(puntos.at(-1).t); svg.append(t1); }
+  puntos.forEach((p, i) => {
+    const s = SERIES[p.camino];
+    const g = sv("g", { tabindex: 0 });
+    g.append(sv("circle", { cx: x(i), cy: y(p.primer), r: 12, fill: "transparent" }), marca(s.forma, s.color, x(i), y(p.primer)));
+    const filas = () => [`${seg(p.primer)} hasta el primer texto`, `${s.nombre}${p.modo ? ` · ${p.modo}` : ""}${p.confianza != null ? ` · confianza ${p.confianza}` : ""}`,
+      `Turno entero ${seg(p.total)} · enrutador ${seg(p.router)}`, hora(p.t), ...(p.avisos.length ? [`⚠ ${p.avisos.join(", ")}`] : [])];
+    g.addEventListener("pointermove", (ev) => mostrar(ev, filas()));
+    g.addEventListener("pointerleave", ocultar);
+    g.addEventListener("focus", () => { const r = g.getBoundingClientRect(); mostrar({ clientX: r.right, clientY: r.top }, filas()); });
+    g.addEventListener("blur", ocultar);
+    svg.append(g);
+  });
+  $("grafica").append(svg);
+}
+
+// ── Herramientas: barras horizontales, p95 ──────────────────────────────────
+if (!D.herramientas.length) $("herramientas").append(el("div", { class: "vacio" }, "Ninguna herramienta en este periodo."));
+else {
+  const max = Math.max(...D.herramientas.map((h) => h.p95));
+  const W = Math.max(320, $("herramientas").clientWidth || 900), fila = 26, L = 150, R = 120;
+  const svg = sv("svg", { width: W, height: D.herramientas.length * fila + 4, role: "img", "aria-label": "Herramientas más lentas, p95" });
+  D.herramientas.forEach((h, i) => {
+    const yy = i * fila + 4, ancho = Math.max(2, ((W - L - R) * h.p95) / max);
+    const n = sv("text", { x: L - 8, y: yy + 13, "text-anchor": "end" }); n.textContent = h.n; svg.append(n);
+    const b = sv("rect", { x: L, y: yy + 3, width: ancho, height: 14, rx: 4, fill: "var(--rapida)" });
+    b.addEventListener("pointermove", (ev) => mostrar(ev, [`${seg(h.p95)} p95`, h.n, `p50 ${seg(h.p50)} · ${h.veces} llamadas`]));
+    b.addEventListener("pointerleave", ocultar);
+    svg.append(b);
+    const v = sv("text", { x: L + ancho + 6, y: yy + 13 }); v.textContent = `${seg(h.p95)} · ${h.veces}×`; svg.append(v);
+  });
+  $("herramientas").append(svg);
+}
+
+// ── Tabla de turnos (los últimos primero) ───────────────────────────────────
+const cab = ["Hora", "Camino", "Modo", "Conf.", "Primer texto", "Total", "Enrutador", "Herramientas", "Avisos", ...(D.textos ? ["Mensaje"] : [])];
+$("turnos").append(el("tr", {}, ...cab.map((c, i) => el("th", { class: i >= 3 && i <= 6 ? "n" : "" }, c))));
+if (!D.turnos.length) $("turnos").append(el("tr", {}, el("td", { colspan: cab.length, class: "vacio" }, "Sin turnos.")));
+for (const t of [...D.turnos].reverse().slice(0, 100)) {
+  const lento = (ms, obj) => ms != null && obj != null && ms > obj;
+  const objPrimer = t.camino === "rapida" ? D.objetivos.primerTextoRapidaP95Ms : D.objetivos.primerTextoLolaP95Ms;
+  $("turnos").append(el("tr", {},
+    el("td", {}, hora(t.t)),
+    el("td", {}, SERIES[t.camino].nombre),
+    el("td", {}, t.modo ?? "—"),
+    el("td", { class: "n" }, t.confianza ?? "—"),
+    el("td", { class: `n ${lento(t.primer, objPrimer) ? "mal" : ""}` }, seg(t.primer)),
+    el("td", { class: `n ${t.camino === "lola" && lento(t.total, D.objetivos.turnoLolaP95Ms) ? "mal" : ""}` }, seg(t.total)),
+    el("td", { class: "n" }, seg(t.router)),
+    el("td", {}, ...(t.herramientas.length ? t.herramientas.map((h) => el("span", { class: "tag" }, h)) : ["—"])),
+    el("td", {}, ...(t.avisos.length ? t.avisos.map((a) => el("span", { class: "tag malo" }, a)) : ["—"])),
+    ...(D.textos ? [el("td", { class: "texto" }, t.texto ?? "—")] : []),
+  ));
+}
+</script>
+</body>
+</html>
