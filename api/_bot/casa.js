@@ -12,6 +12,7 @@
  * cruzado, vuelve `conflicto` y quien llama relee y repite.
  */
 
+import { AsyncLocalStorage } from "node:async_hooks";
 import { select, insert, update, rpc, eq } from "./db.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
@@ -200,6 +201,30 @@ export async function deshacer(householdId) {
  * de la compra no debe tapar el último cambio de Lola).
  */
 export async function conCasa(householdId, cambiar, intentos = 3) {
+  return enFila(householdId, () => leerCambiarGuardar(householdId, cambiar, intentos));
+}
+
+// Las escrituras de una misma casa, en fila dentro de este proceso. Lola llama
+// a varias herramientas a la vez («Nat no come el finde» → 5 fuera_de_casa):
+// en paralelo chocaban, cada choque releía la casa entera, y con 3 intentos
+// las últimas se rendían («conflicto persistente») y se perdía lo dicho
+// (medido el 2 oct 2026: 2 de 5, y hasta 9 s por llamada). En fila no chocan.
+// Entre procesos distintos sigue mandando el bot_rev de guardarCasa.
+const filas = new Map();
+const dentro = new AsyncLocalStorage();
+function enFila(householdId, fn) {
+  // Un conCasa dentro de otro de la misma casa no espera: se esperaría a sí mismo.
+  if (dentro.getStore()?.has(householdId)) return fn();
+  const ambito = new Set([...(dentro.getStore() ?? []), householdId]);
+  const previa = filas.get(householdId) ?? Promise.resolve();
+  const esta = previa.then(() => dentro.run(ambito, fn));
+  const cola = esta.catch(() => {});
+  filas.set(householdId, cola);
+  cola.then(() => { if (filas.get(householdId) === cola) filas.delete(householdId); });
+  return esta;
+}
+
+async function leerCambiarGuardar(householdId, cambiar, intentos) {
   for (let i = 0; i < intentos; i++) {
     // Al reintentar tras un choque, de la base: lo recordado es justo lo viejo.
     const casa = await cargarCasa(householdId, { fresca: i > 0 });
