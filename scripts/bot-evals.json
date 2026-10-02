@@ -1534,6 +1534,29 @@
       "noLlama": [
         "cambiar_plato"
       ]
+    },
+    {
+      "nombre": "ficha: contesta lo que preguntan, sin contar el día que ya enseñó",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana, Pablo, Leo: ninguna.\nCASA\n- Ana 38 · Pablo 40 · Leo 6.\n- Todos comen lo mismo.",
+        "delDia": "jue 1 oct (2026-10-01)\nAHORA\n- Pablo no come en casa hoy.\n- Leo no cena en casa hoy.\nMENÚ 28 sep–4 oct (no hay semana siguiente)\n- Hoy: crema de calabaza + pollo al horno con patatas; cena tortilla de calabacín."
+      },
+      "historia": [
+        {
+          "role": "user",
+          "content": "¿qué hay hoy?"
+        },
+        {
+          "role": "assistant",
+          "content": "Hoy: crema de calabaza y pollo al horno con patatas; de cena, tortilla de calabacín. Pablo come fuera y Leo no cena en casa."
+        }
+      ],
+      "entrada": "si genero la semana que viene, ¿me rompe la actual?",
+      "noLlama": [
+        "generar_menu",
+        "cambiar_plato"
+      ],
+      "sinTexto": "(por cierto|para hoy|no cena|come fuera|tortilla|pollo al horno|tranquil[ao])"
     }
   ]
 }
