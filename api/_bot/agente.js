@@ -1026,7 +1026,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     segundaSemana(householdId).catch(() => {}),
   ]);
 
-  return { texto: respuesta, fotos: chat.fotos, deshacible: false, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado, medida };
+  return { texto: respuesta, fotos: chat.fotos, deshacible: false, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado, medida, idioma: chat.idioma ?? null };
 }
 
 /**

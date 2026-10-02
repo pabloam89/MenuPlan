@@ -15,6 +15,22 @@ ninguno fiable. Ver «El registro miente» más abajo.
 | **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` la `0062_bot_cron`, la `0063_bot_turnos` y la `0064_catalogo_una_fuente`, el 30 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
+## La 0074 y la 0075, aplicadas el 2 oct 2026
+
+`0074_traducciones` — `content_translations` (hash del texto + idioma): la
+caché de lo pintado por el código que se traduce al inglés
+(api/_bot/traducir.js). Solo servidor.
+
+`0075_herencia` — heredar la casa al borrar la cuenta del titular:
+`households.propia` (la regla «una casa propia por persona» pasa a
+`uq_households_una_propia`, solo para las propias; la vieja
+`uq_households_one_owner_per_user` se quita), semanas y recetas del menú con
+ON UPDATE CASCADE, `_transfer_household_ownership`,
+`transfer_household_ownership` (titular) y `prepare_account_deletion`
+(servidor). Ensayada en transacción deshecha (18 de 18; sin ella la función no
+existe) y aplicada con permiso de Pablo. Se re-comprueba con
+`node scripts/ensayo-herencia.mjs`.
+
 ## La 0073, aplicada el 2 oct 2026
 
 `0073_idioma_y_union_por_telegram` — `user_profiles.ui_lang` (es | en | null)
