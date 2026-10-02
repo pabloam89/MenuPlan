@@ -92,7 +92,7 @@ const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => 
   if (k === "_todo") return normal(JSON.stringify(args)).includes(normal(v));
   if (typeof v === "boolean") return args?.[k] === v;
   const dado = normal(args?.[k]);
-  if (k === "dia" && normal(v) === DIA_DE_HOY && (dado.includes("hoy") || dado.includes(HOY_MADRID))) return true;
+  if ((k === "dia" || k === "dias") && normal(v) === DIA_DE_HOY && (dado.includes("hoy") || dado.includes(HOY_MADRID))) return true;
   return dado.includes(normal(v));
 });
 
