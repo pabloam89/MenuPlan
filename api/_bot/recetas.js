@@ -24,7 +24,7 @@
 import { select, insert, eq, config } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
-import { duenoDe, rastro } from "./embudo.js";
+import { duenoDe, rastro, registrar } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { SYSTEM_PROMPTS } from "../_prompts.js";
 import { buscarHibrido, pasaRasgos } from "./buscador.js";
@@ -92,14 +92,14 @@ export function filtrarRecetas(recetas, { consulta = "", categoria = null, maxMi
  */
 export async function conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo }, deps) {
   const palabras = normal(consulta).split(/[^a-z0-9ñ]+/).filter((w) => w.length > 2 && !VACIAS.has(w));
-  if (!palabras.length || categoria === "mias") return { halladas: porPalabras, aviso: "" };
+  if (!palabras.length || categoria === "mias") return { halladas: porPalabras, aviso: "", via: "palabras" };
   const rasgos = rasgosDeFrase(consulta);
   const descriptiva = palabras.length >= 3 || rasgos.hayRasgos || rasgos.negacion;
-  if (!descriptiva && porPalabras.length > 0) return { halladas: porPalabras, aviso: "" };
+  if (!descriptiva && porPalabras.length > 0) return { halladas: porPalabras, aviso: "", via: "palabras" };
   const h = await buscarHibrido(consulta, { catalogo, carpetaDe, categoria, maxMinutos, deps });
   const palabrasQuePasan = porPalabras.filter((r) => pasaRasgos(r, h));
   const juntas = descriptiva ? [...h.recetas, ...palabrasQuePasan] : [...palabrasQuePasan, ...h.recetas];
-  return { halladas: [...new Map(juntas.map((r) => [r.id, r])).values()], aviso: h.aviso, via: h.via };
+  return { halladas: [...new Map(juntas.map((r) => [r.id, r])).values()], aviso: h.aviso, via: h.via, parecido: h.parecidoMax ?? null };
 }
 
 /**
@@ -115,7 +115,13 @@ export async function buscarRecetas(householdId, { consulta, categoria, maxMinut
   const estrella = m.recipeCatalog.filter((r) => r.estrella);
   const todas = [...propias, ...estrella];
   const porPalabras = filtrarRecetas(todas, { consulta, categoria, maxMinutos });
-  const { halladas, aviso: avisoBusqueda } = await conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo: estrella });
+  const { halladas, aviso: avisoBusqueda, via, parecido } = await conSignificado(porPalabras, { consulta, categoria, maxMinutos, catalogo: estrella });
+  // Para la mejora semanal (scripts/bot-semanal.mjs): qué buscó, por dónde y
+  // cuánto se parecía lo mejor. `texto` lo borra la retención a los 15 días.
+  // Sin esperar: no retrasa la respuesta.
+  duenoDe(householdId)
+    .then((userId) => registrar("bot_busqueda", { userId, extra: { texto: String(consulta ?? "").slice(0, 200), via: via ?? "palabras", parecido: Number.isFinite(parecido) ? Math.round(parecido * 1000) / 1000 : null, n: halladas.length, categoria: categoria ?? null } }))
+    .catch(() => {});
   if (!halladas.length) {
     return `No hay recetas de ${categoria ? CATEGORIAS[categoria] ?? categoria : "eso"}${consulta ? ` con «${consulta}»` : ""} en el recetario.`;
   }

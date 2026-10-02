@@ -34,6 +34,7 @@ import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
 import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
 import { clasificar, vaPorLaRapida, permitidoEn } from "../_bot/router.js";
+import { esCorreccion } from "../_bot/senales.js";
 import { viaRapida, eleccionDe, aplicarEleccion, contextoDe } from "../_bot/turno.js";
 import { comidaElegida, quiereApuntar } from "../_bot/plato.js";
 import { ahoraEnMadrid } from "../_bot/recordatorios.js";
@@ -441,7 +442,9 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   // Lo que hace falta para convertir un turno real en un caso de
   // scripts/router-evals.json (scripts/router-feedback.mjs): la frase, lo que
   // acababa de decir Lola, los datos sacados y el chat, para ver qué vino después.
-  const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId), esGrupo, variosAutores };
+  // `corrige` (api/_bot/senales.js) se apunta ya, sin texto: así sigue
+  // midiéndose cuando la retención borre la frase (scripts/bot-semanal.mjs).
+  const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId), esGrupo, variosAutores, corrige: esCorreccion(texto, ultima?.texto) };
   if (vaPorLaRapida(d, chatDe) && !(await fueraDeLimite(householdId))) {
     const r = await viaRapida(d, householdId, { autor }).catch((e) => { console.error("[router] vía rápida", e?.message); return null; });
     marca("vía rápida hecha");

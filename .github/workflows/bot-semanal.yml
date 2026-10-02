@@ -1,0 +1,88 @@
+# Informe semanal de Lola: cada lunes mide la semana del bot (latencia,
+# calidad, búsqueda, coste) contra la anterior y contra los objetivos de
+# scripts/bot-objetivos.json, y lo deja como comentario en el issue
+# "Lola: informe semanal". Qué se hace con él: specs/mejora-semanal.md.
+#
+# ── Seguridad: el repo es PÚBLICO ─────────────────────────────────────────
+# - Lee con el rol ops_reader (secreto OPS_DB_URL, el mismo del agente de
+#   fallos), que solo ve la vista ops.bot_events (0066): sin textos, sin
+#   mensajes de error y con el chat como md5.
+# - El informe son solo números (scripts/lib/bot-semana.mjs, informe()). Los
+#   huecos con su frase se revisan en local (scripts/lola-feedback.mjs).
+# - Sin modelo de IA: no gasta clave de Anthropic.
+#
+# Sin el secreto configurado el workflow se salta a sí mismo sin fallar.
+
+name: Informe semanal de Lola
+
+on:
+  schedule:
+    # Lunes 06:40 UTC = 08:40 en Madrid en verano (07:40 en invierno).
+    - cron: "40 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: bot-semanal
+  cancel-in-progress: false
+
+jobs:
+  informe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Comprobar secretos
+        id: config
+        env:
+          OPS_DB_URL: ${{ secrets.OPS_DB_URL }}
+        run: |
+          if [ -z "$OPS_DB_URL" ]; then
+            echo "::warning::Informe desactivado: falta el secreto OPS_DB_URL"
+            echo "listo=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "listo=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.listo == 'true'
+        with:
+          ref: staging
+
+      - uses: actions/setup-node@v4
+        if: steps.config.outputs.listo == 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+        if: steps.config.outputs.listo == 'true'
+
+      - name: Medir la semana
+        if: steps.config.outputs.listo == 'true'
+        env:
+          OPS_DB_URL: ${{ secrets.OPS_DB_URL }}
+        # Solo números: se puede imprimir en el log.
+        run: node scripts/bot-semanal.mjs
+
+      - name: Publicar en el issue
+        if: steps.config.outputs.listo == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MENCIONES: ${{ vars.AVISO_MENCIONES || '@algbarc-design @pabloam89' }}
+        run: |
+          titulo="Lola: informe semanal"
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "\"$titulo\" in:title" --json number --jq '.[0].number // empty' || true)
+          if [ -z "$issue" ]; then
+            issue=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" \
+              --body "Un comentario por semana (.github/workflows/bot-semanal.yml). Qué hacer con él: specs/mejora-semanal.md." \
+              | grep -oE '[0-9]+$' || true)
+          fi
+          printf '%s\n\n%s\n' "$(cat .ops/informe-semanal.md)" "$MENCIONES" > "$RUNNER_TEMP/informe.md"
+          gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/informe.md" >/dev/null \
+            && echo "Informe publicado en el issue #$issue" \
+            || echo "::warning::No se pudo publicar el informe"

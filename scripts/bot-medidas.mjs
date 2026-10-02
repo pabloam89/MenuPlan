@@ -10,21 +10,13 @@
  * Lee SUPABASE_DB_URL de .env.local. Los turnos anteriores al 1 oct 2026 no
  * traen medidas (primer_ms, lola…): cuentan solo para el total.
  *
- * Precios en USD por millón de tokens: REVISARLOS contra la tarifa publicada
- * de Anthropic. Se aplican aquí, al leer, y no al apuntar: si cambian, basta
- * con tocar esta tabla.
+ * Precios: PRECIOS de scripts/lib/bot-semana.mjs (los mismos que el informe
+ * semanal). Se aplican aquí, al leer, y no al apuntar.
  */
 
 import fs from "node:fs";
 import pg from "pg";
-
-const PRECIOS = {
-  haiku: { in: 1, out: 5, cr: 0.1, cw: 1.25 },
-  sonnet: { in: 3, out: 15, cr: 0.3, cw: 3.75 },
-  opus: { in: 5, out: 25, cr: 0.5, cw: 6.25 },
-};
-const precioDe = (modelo = "") => PRECIOS[Object.keys(PRECIOS).find((k) => String(modelo).includes(k)) ?? "sonnet"];
-const usd = (u, p) => (u ? ((u.in ?? 0) * p.in + (u.out ?? 0) * p.out + (u.cr ?? 0) * p.cr + (u.cw ?? 0) * p.cw) / 1e6 : 0);
+import { PRECIOS, precioDe, usd, pct } from "./lib/bot-semana.mjs";
 
 const dias = Number(process.argv[2] ?? 7);
 const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
@@ -39,11 +31,6 @@ const { rows } = await c.query(
 await c.end();
 
 const turnos = rows.map((r) => r.m).filter((m) => !m.sombra);
-const pct = (xs, p) => {
-  const v = xs.filter((x) => Number.isFinite(x)).sort((a, b) => a - b);
-  if (!v.length) return null;
-  return v[Math.min(v.length - 1, Math.floor((p / 100) * v.length))];
-};
 const s = (ms) => (ms == null ? "—" : `${(ms / 1000).toFixed(1)} s`);
 const linea = (etiqueta, xs) => `  ${etiqueta.padEnd(26)} p50 ${s(pct(xs, 50)).padStart(7)}   p95 ${s(pct(xs, 95)).padStart(7)}   (n=${xs.filter(Number.isFinite).length})`;
 
