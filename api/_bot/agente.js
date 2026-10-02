@@ -732,7 +732,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: (a) => (a.dia && diaDe(a.dia) ? `dia:${diaDe(a.dia)}` : null) }, {
       name: "cambiar_plato",
-      description: "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa o, si no está tal cual en el catálogo, la más parecida que encaje en el hueco (la respuesta dice si es aproximada); sin ella, el motor elige otra respetando alergias y preferencias. En la comida hay primero y segundo; «cual» dice cuál cambiar.",
+      description: "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa o, si no está tal cual en el catálogo, la más parecida que encaje en el hueco (la respuesta dice si es aproximada); sin ella, el motor elige otra respetando alergias y preferencias. En la comida y la cena hay primero (entrante) y segundo; «cual» dice cuál. Un entrante, primero o tapa para una comida o cena que no lo tenía se AÑADE con cual: primero, y el principal no se toca: nunca cambies el principal para poner un entrante.",
       inputSchema: {
         type: "object",
         properties: {
