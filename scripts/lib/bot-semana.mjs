@@ -78,6 +78,16 @@ export function medir(eventos, objetivos = {}) {
     else if (m.lola_cancelada) coste += usd(estimada, PRECIOS.sonnet);
   }
 
+  // Dónde se va el tiempo de Lola (lola.llamadas, desde el 3 oct 2026): el
+  // modelo es lo que tardan sus llamadas menos las herramientas que corren
+  // entre ellas; el resto del turno (enrutador, cargar la casa, Telegram) es
+  // lo que queda hasta `ms`.
+  const conLlamadas = conLola.filter((e) => Array.isArray(e.m.lola.llamadas) && e.m.lola.llamadas.length);
+  const suma = (xs) => xs.reduce((a, x) => a + (Number(x) || 0), 0);
+  const herrMs = (e) => suma((e.m.lola.herramientas ?? []).map(([, ms]) => ms));
+  const modeloMs = (e) => Math.max(0, suma(e.m.lola.llamadas.map(([ms]) => ms)) - herrMs(e));
+  const llamadas = conLlamadas.flatMap((e) => e.m.lola.llamadas);
+
   const busquedas = eventos.filter((e) => e.event === "bot_busqueda");
   const porVector = busquedas.filter((e) => e.m.via === "vectores" && Number.isFinite(e.m.parecido));
   const minimo = objetivos.busquedaParecidoMinimo;
@@ -96,6 +106,14 @@ export function medir(eventos, objetivos = {}) {
       primerTextoLolaP95Ms: pct(deLola.map((e) => e.m.primer_ms), 95),
       turnoLolaP95Ms: pct(deLola.map((e) => e.m.ms), 95),
       enrutadorP50Ms: pct(turnos.map((e) => e.m.router_ms), 50),
+      // Lo que tarda el turno en poder arrancar al enrutador y a Lola.
+      contextoP50Ms: pct(turnos.map((e) => e.m.contexto_ms), 50),
+      // Desglose de los turnos de Lola (null hasta que haya turnos con llamadas).
+      modeloP50Ms: pct(conLlamadas.map(modeloMs), 50),
+      herramientasP50Ms: pct(conLlamadas.map(herrMs), 50),
+      restoP50Ms: pct(conLlamadas.map((e) => Math.max(0, e.m.ms - suma(e.m.lola.llamadas.map(([ms]) => ms)))), 50),
+      tokensSalidaPorLlamadaP50: pct(llamadas.map(([, out]) => out), 50),
+      primerTrozoP50Ms: pct(llamadas.map(([, , t]) => t), 50),
     },
     calidad: {
       corregidasPct: tanto(corr.size, turnos.length),
@@ -190,7 +208,10 @@ export function informe({ actual, anterior, objetivos, huecos = null, desde, has
   l.push("");
   l.push("<details><summary>Más detalle</summary>");
   l.push("");
-  l.push(`- Primer texto p50: vía rápida ${fmt(actual.latencia.primerTextoRapidaP50Ms, "ms")}, Lola ${fmt(actual.latencia.primerTextoLolaP50Ms, "ms")} · enrutador p50 ${fmt(actual.latencia.enrutadorP50Ms, "ms")}`);
+  l.push(`- Primer texto p50: vía rápida ${fmt(actual.latencia.primerTextoRapidaP50Ms, "ms")}, Lola ${fmt(actual.latencia.primerTextoLolaP50Ms, "ms")} · enrutador p50 ${fmt(actual.latencia.enrutadorP50Ms, "ms")} · arranque del turno p50 ${fmt(actual.latencia.contextoP50Ms, "ms")}`);
+  if (actual.latencia.modeloP50Ms != null) {
+    l.push(`- Dónde se va el tiempo de Lola (p50 por turno): modelo ${fmt(actual.latencia.modeloP50Ms, "ms")} · herramientas ${fmt(actual.latencia.herramientasP50Ms, "ms")} · resto ${fmt(actual.latencia.restoP50Ms, "ms")} · ${fmt(actual.latencia.tokensSalidaPorLlamadaP50)} tokens de salida por llamada · primer trozo de texto a ${fmt(actual.latencia.primerTrozoP50Ms, "ms")} de empezar la llamada`);
+  }
   l.push(`- Lola: ${fmt(actual.calidad.vueltasMedia)} llamadas al modelo por turno · supervisor frenó ${actual.calidad.supervisor} · fallos de herramienta ${actual.calidad.fallosHerramienta} · errores ${actual.calidad.errores}`);
   l.push(`- Búsqueda de recetas: ${actual.busqueda.n} búsquedas · vacías ${fmt(actual.busqueda.vaciasPct, "%")} · parecido p10 ${fmt(actual.busqueda.parecidoP10)} / p50 ${fmt(actual.busqueda.parecidoP50)}${objetivos.busquedaParecidoMinimo == null ? " (sin umbral de «floja» todavía: se fija mirando esta distribución)" : ""}`);
   l.push(`- Coste total: ${fmt(actual.coste.totalUsd, "$")}`);

@@ -1074,7 +1074,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     // leyó la primera llamada que sí acabó, que es casi lo mismo.
     if (medidaPista?.reinicio && r.primera) medidaPista.cortada_tokens = (r.primera.input_tokens ?? 0) + (r.primera.cache_read_input_tokens ?? 0) + (r.primera.cache_creation_input_tokens ?? 0);
     // La medida del turno de Lola, para bot_route (api/bot/telegram.js).
-    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null };
+    medida = { modelo: r.modelo, planB: r.planB, vueltas: r.vueltas, primera: r.primera, llamadas: r.llamadas ?? null, uso, herramientas: r.herramientas, corregido: !!corregido, ms: Date.now() - tLola, pista: medidaPista, aviso: r.avisos?.[0] ?? null };
   } catch (err) {
     // Ya había cambiado algo en la casa cuando el modelo se cayó: repetir el
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
@@ -1227,7 +1227,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
         // Si tras el aviso sigue sin guardar y diciendo que sí, ya no es un
         // susto corregido: es un fallo de verdad (scripts/bot-semanal.mjs).
         const sigueSinGuardar = (guardados ? guardados() : escrituras) === 0 && diceQueGuardo(otra.dicho);
-        r = { dicho: otra.dicho, uso, corregido: true, sigueSinGuardar, vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera };
+        r = { dicho: otra.dicho, uso, corregido: true, sigueSinGuardar, vueltas: (r.vueltas ?? 0) + (otra.vueltas ?? 0), primera: r.primera, llamadas: [...(r.llamadas ?? []), ...(otra.llamadas ?? [])] };
       }
       if (i > 0) console.warn(`[agente] plan B: contestó ${modelo}`);
       return { ...r, modelo, herramientas, planB: i > 0, avisos };
@@ -1312,20 +1312,32 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
   // también cuando un turno especulativo se cancela: scripts/bot-medidas.mjs).
   let vueltas = 0;
   let primera = null;
+  // Dónde se va el tiempo (bot_route lola.llamadas): por cada llamada al
+  // modelo, [ms desde que acabó la anterior, tokens de salida, ms hasta su
+  // primer trozo de texto o null]. Los ms incluyen las herramientas que el
+  // runner corre entre llamadas; restando lola.herramientas queda el modelo.
+  // Medido el 2 oct 2026: en los turnos lentos las herramientas eran ~5 s de
+  // 15-20; el resto, el modelo pensando y escribiendo, sin forma de verlo.
+  const llamadas = [];
+  let desde = Date.now();
   for await (const vuelta of runner) {
     let mensaje = vuelta;
+    let primerTrozo = null;
     if (alEscribir) {
       // En vivo: la vuelta es un stream; se va pasando lo escrito y al acabar
       // se toma el mensaje entero, igual que sin stream.
       let escrito = "";
       vuelta.on("text", (trozo) => {
         escrito += trozo;
+        primerTrozo ??= Date.now() - desde;
         if (progreso) progreso.texto = true;
         try { alEscribir(escrito); } catch { /* enseñar a medias nunca rompe la respuesta */ }
       });
       mensaje = await vuelta.finalMessage();
     }
     final = mensaje;
+    llamadas.push([Date.now() - desde, mensaje.usage?.output_tokens ?? 0, primerTrozo]);
+    desde = Date.now();
     vueltas++;
     if (progreso) progreso.vueltas++;
     if (!primera) primera = { input_tokens: mensaje.usage?.input_tokens ?? 0, cache_read_input_tokens: mensaje.usage?.cache_read_input_tokens ?? 0, cache_creation_input_tokens: mensaje.usage?.cache_creation_input_tokens ?? 0 };
@@ -1334,7 +1346,7 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
 
   const dicho = (final?.content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim()
     || "Hecho.";
-  return { dicho, uso, vueltas, primera };
+  return { dicho, uso, vueltas, primera, llamadas };
 }
 
 /** Vuelve a usarlo una semana o más después de enlazar: la señal de que se queda. */

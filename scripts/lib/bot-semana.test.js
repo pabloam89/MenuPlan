@@ -86,6 +86,25 @@ describe("medir", () => {
   });
 });
 
+describe("medir: dónde se va el tiempo de Lola", () => {
+  it("modelo = llamadas menos herramientas; resto = turno menos llamadas", () => {
+    const turno = ruta(0, { rapida: false, ms: 12000, lola: lola(11000, {
+      herramientas: [["generar_menu", 2000], ["ajustar_cocina", 1000]],
+      llamadas: [[4000, 300, null], [7000, 500, 6500]],
+    }) });
+    const m = medir([turno]).latencia;
+    expect(m.modeloP50Ms).toBe(8000);
+    expect(m.herramientasP50Ms).toBe(3000);
+    expect(m.restoP50Ms).toBe(1000);
+    expect(m.tokensSalidaPorLlamadaP50).toBe(500);
+    expect(m.primerTrozoP50Ms).toBe(6500);
+  });
+
+  it("sin llamadas apuntadas (turnos de antes del 3 oct), sin desglose", () => {
+    expect(medir([ruta(0, { rapida: false, ms: 5000, lola: lola(4000) })]).latencia.modeloP50Ms).toBeNull();
+  });
+});
+
 describe("huecosDeLola", () => {
   it("junta motivos del mismo texto y salta lo que no tiene texto", () => {
     const eventos = [

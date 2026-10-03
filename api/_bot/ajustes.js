@@ -253,6 +253,16 @@ export async function ajustarHorario(householdId, { personas, dias, comidas, don
       else if (/^(adultos|padres|mayores)$/.test(q)) miembros.filter((x) => x.age == null || x.age >= 18).forEach((x) => sel.add(x.id));
       else { const x = personaPorNombre(data, p); x ? sel.add(x.id) : noEncontradas.push(p); }
     }
+    // Al cole solo van los menores. «Todos» + cole dejaba también a los adultos
+    // sin comida entre semana: el motor no les planificaba nada a mediodía
+    // (staging, 2 oct 2026: un adulto de 36 años con «cole» de lunes a viernes).
+    // Sin edad no se sabe: se deja pasar, como hasta ahora.
+    const adultosAlCole = donde === "cole" ? miembros.filter((x) => sel.has(x.id) && x.age != null && x.age >= 18) : [];
+    for (const x of adultosAlCole) sel.delete(x.id);
+    const avisoCole = adultosAlCole.length
+      ? ` ${adultosAlCole.map((x) => x.name).join(", ")} no ${adultosAlCole.length > 1 ? "van" : "va"} al cole: no se ha tocado su horario. Si a mediodía no ${adultosAlCole.length > 1 ? "comen" : "come"} en casa, pregunta si es fuera o con táper.`
+      : "";
+    if (adultosAlCole.length && !sel.size) return { texto: `No he cambiado nada.${avisoCole}` };
     const ds = (dias?.length ? dias : DIAS).map((d) => (/^(entre ?semana|laborables)$/.test(normal(d)) ? DIAS.slice(0, 5) : /^(finde|fin de semana)$/.test(normal(d)) ? DIAS.slice(5) : [diaDe(d)])).flat().filter(Boolean);
     const cs = (comidas?.length ? comidas : COMIDAS_PRINCIPALES).map((c) => COMIDAS.find((x) => normal(x) === normal(c))).filter(Boolean);
     if (!sel.size || !ds.length || !cs.length) return { texto: `No sé a quién o cuándo aplicarlo${noEncontradas.length ? ` (no conozco a ${noEncontradas.join(", ")})` : ""}.` };
@@ -264,7 +274,7 @@ export async function ajustarHorario(householdId, { personas, dias, comidas, don
     const nombres = miembros.filter((x) => sel.has(x.id)).map((x) => x.name).join(", ");
     return {
       data: { ...data, schedule },
-      texto: `Horario guardado: ${nombres} → ${donde} (${ds.map((d) => DIA_LARGO[d]).join(", ")}; ${cs.join(", ")}).${noEncontradas.length ? ` No conozco a ${noEncontradas.join(", ")}.` : ""}`,
+      texto: `Horario guardado: ${nombres} → ${donde} (${ds.map((d) => DIA_LARGO[d]).join(", ")}; ${cs.join(", ")}).${noEncontradas.length ? ` No conozco a ${noEncontradas.join(", ")}.` : ""}${avisoCole}`,
     };
   });
 }

@@ -402,7 +402,7 @@ async function apuntarRuta(householdId, extra) {
   await registrar(RUTA, { userId: await duenoDe(householdId).catch(() => null), extra }).catch(() => {});
 }
 
-async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, desde = null, responderA, variosAutores = false }) {
+export async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, desde = null, responderA, variosAutores = false }) {
   const modo = MODO_ROUTER();
   const modoGrupos = MODO_ROUTER_GRUPOS();
   desde ??= from ? [idDePersona(from)].filter(Boolean) : [];
@@ -422,11 +422,20 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   // importa: sin saber que hay menú dudaba en «cambia la cena del jueves», y
   // sin saber que hay un bebé mandaba «¿qué le hago al bebé?» a Lola
   // (scripts/router-evals.mjs, 84/92 frente a 135/138).
-  const [ultima, contexto, quien] = await Promise.all([ultimaDeLola(chatId), contextoDe(householdId), papelP]);
+  // El idioma de quien escribe y el límite del mes se piden YA, a la vez que
+  // lo demás: antes iban en fila (el idioma tras el contexto, el límite tras
+  // el enrutador), y cada uno era una ida y vuelta a la base que retrasaba al
+  // enrutador y a Lola en TODOS los turnos (3 oct 2026).
+  const idiomaP = papelP.then((q) => (q.userId ? idiomaDe(q.userId) : null)).catch(() => null);
+  const limiteP = fueraDeLimite(householdId).catch(() => null);
+  const [ultima, contexto, quien, idioma] = await Promise.all([ultimaDeLola(chatId), contextoDe(householdId), papelP, idiomaP]);
   chatDe.papel = quien.papel;
+  // Lo que tarda el turno en estar listo para arrancar al enrutador y a Lola
+  // (bot_route contexto_ms): es tiempo que suma al primer texto de todos.
+  const contextoMs = Date.now() - t0;
   // Quien eligió inglés: contesta Lola, que traduce. La vía rápida y sus
   // plantillas están en castellano.
-  if (quien.userId && (await idiomaDe(quien.userId).catch(() => null)) === "en") {
+  if (idioma === "en") {
     return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA });
   }
   marca("contexto");
@@ -499,24 +508,30 @@ async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, f
   // `corrige` (api/_bot/senales.js) se apunta ya, sin texto: así sigue
   // midiéndose cuando la retención borre la frase (scripts/bot-semanal.mjs).
   const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId), esGrupo, variosAutores, corrige: esCorreccion(texto, ultima?.texto) };
-  if (vaPorLaRapida(d, chatDe) && !(await fueraDeLimite(householdId))) {
+  if (vaPorLaRapida(d, chatDe) && !(await limiteP)) {
     const r = await viaRapida(d, householdId, { autor }).catch((e) => { console.error("[router] vía rápida", e?.message); return null; });
     marca("vía rápida hecha");
     if (r) {
       abrir(false);
       ctrl.abort();
-      await lola.catch(() => {});
+      // La plantilla sale YA, sin esperar a que Lola acabe de cancelarse: con
+      // la puerta cerrada no puede escribir en el chat ni en la casa, y si
+      // estaba en medio de una lectura (una búsqueda, hasta 1,5 s) esa espera
+      // se la comía quien solo preguntó «¿qué cenamos?». Se la espera después,
+      // para su medida y para no soltar el turno con ella viva.
+      const lolaCancelada = lola.catch(() => {});
       await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
       const primer = Date.now() - t0;
+      await lolaCancelada;
       await contarUso(householdId, d.uso ?? {}).catch(() => {});
-      return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms, ...medida(medir, d, t0, primer) });
+      return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms, contexto_ms: contextoMs, ...medida(medir, d, t0, primer) });
     }
   }
   abrir(true);
   // Con el tiempo total del turno de Lola (hasta su respuesta entregada): sin
   // él no había forma de saber cuánto tarda de verdad lo que no es vía rápida.
   await lola.catch(() => {});
-  return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, ms: Date.now() - t0, router_ms: d.ms, error: d.error, ...medida(medir, d, t0) });
+  return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, ms: Date.now() - t0, router_ms: d.ms, contexto_ms: contextoMs, error: d.error, ...medida(medir, d, t0) });
 }
 
 /**
@@ -536,6 +551,7 @@ function medida(medir, d, t0, primer = null) {
       uso: l.uso ? { in: l.uso.input_tokens ?? 0, out: l.uso.output_tokens ?? 0, cr: l.uso.cache_read_input_tokens ?? 0, cw: l.uso.cache_creation_input_tokens ?? 0 } : null,
       primera: l.primera ? { in: l.primera.input_tokens, cr: l.primera.cache_read_input_tokens, cw: l.primera.cache_creation_input_tokens } : null,
       herramientas: (l.herramientas ?? []).map((h) => [h.n, h.ms]),
+      llamadas: l.llamadas ?? null,
       // BOT_PISTA: qué se adelantó, cuánto tardó y si hubo que cortarla.
       pista: l.pista ?? null,
       // BOT_AVISO_LENTO: la herramienta lenta cuyo aviso salió (primer_ms es entonces el del aviso).
