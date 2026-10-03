@@ -160,7 +160,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Añade a la lista de la compra cosas que no salen del menú («añade leche», «apunta pilas»)."
+  "description": "Añade a la lista de la compra comida o bebida que no sale del menú («añade leche», «apunta yogures»). Solo cosas de comer y beber: velas, pilas, pañales o limpieza no se añaden."
  },
  {
   "type": "custom",
@@ -1247,7 +1247,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Programa un recordatorio en ESTE chat. Solo si el usuario lo ha pedido o ha dicho que sí a tu oferta. cuando: fecha y hora en hora de España, AAAA-MM-DDTHH:MM. repite: diario o semanal (opcional)."
+  "description": "Programa un recordatorio en ESTE chat. Solo si el usuario lo ha pedido o ha dicho que sí a tu oferta, y solo de lo que tiene que ver con comer (sacar algo del congelador, la compra, preparar el menú). Citas, médicos o recados que no son de comida, no: dilo en una línea. cuando: fecha y hora en hora de España, AAAA-MM-DDTHH:MM. repite: diario o semanal (opcional)."
  },
  {
   "type": "custom",
@@ -1305,7 +1305,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    "properties": {
     "texto": {
      "type": "string",
-     "description": "Lo que queda abierto, en corto."
+     "description": "Lo que queda abierto, en corto y sin nombres de app."
     },
     "kind": {
      "type": "string",
@@ -1314,25 +1314,55 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
       "pregunta"
      ]
     },
+    "sobre": {
+     "type": "string",
+     "enum": [
+      "alergias",
+      "etapa_bebe",
+      "otra"
+     ],
+     "description": "De qué va una pregunta: alergias, cómo come el bebé, u otra cosa."
+    },
+    "para": {
+     "type": "string",
+     "description": "Para quién es: el nombre de alguien de la casa, tal cual."
+    },
+    "encargado": {
+     "type": "string",
+     "description": "Quién se encarga: el nombre de alguien de la casa, tal cual."
+    },
+    "vence": {
+     "type": "string",
+     "description": "Fecha límite, AAAA-MM-DD, si la dicen («antes del viernes»)."
+    },
+    "cuando": {
+     "type": "string",
+     "description": "Si quieren un aviso: fecha y hora en España, AAAA-MM-DDTHH:MM. Crea un recordatorio en este chat."
+    },
     "scope": {
      "type": "string",
      "enum": [
       "casa",
       "personal"
-     ]
+     ],
+     "description": "personal solo si es algo suyo y estáis en privado."
     },
     "confirmado": {
-     "type": "boolean"
+     "type": "boolean",
+     "description": "true solo si la persona ha dicho que sí a apuntarlo (obligatorio en seguimientos)."
+    },
+    "reemplaza": {
+     "type": "string",
+     "description": "Solo si la casa ya tenía el máximo y la persona ha elegido cuál quitar: su referencia."
     }
    },
    "required": [
     "texto",
-    "kind",
-    "confirmado"
+    "kind"
    ],
    "additionalProperties": false
   },
-  "description": "Apunta algo que queda abierto para más adelante: un seguimiento («dímelo cuando lo sepas») o una pregunta que hace falta contestar para atender algo («cómo come el bebé»). SOLO después de que la persona haya dicho que sí a que lo apuntes: pregúntale antes y pon confirmado = true únicamente con su sí. scope «personal» solo si es algo suyo y estáis en privado."
+  "description": "Apunta algo que tiene que sobrevivir a esta charla. Dos tipos:\\n- pregunta: un dato que te falta para atender algo y que van a darte más tarde («luego te digo cómo come»). No pide permiso.\\n- seguimiento: algo que te piden que tengas en cuenta («dímelo cuando lo sepas», «que Isa compre el pan antes del viernes»). SOLO con su sí: pregúntalo antes y pon confirmado = true únicamente si han dicho que sí.\\nNunca prometas enterarte tú de algo que no ves (si llegó un pedido, un precio): ofrece avisar en una fecha (cuando) para que lo miren. Si ya hay una igual en las abiertas, no la anotes otra vez. Solo lo que tiene que ver con lo que come la casa: citas, llamadas o recados que no son de comida, no."
  },
  {
   "type": "custom",
@@ -1340,23 +1370,57 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
   "input_schema": {
    "type": "object",
    "properties": {
-    "id": {
-     "type": "string"
+    "ref": {
+     "type": "string",
+     "description": "La referencia de 8 caracteres que sale entre corchetes en «Tareas abiertas de la casa»."
     },
     "estado": {
      "type": "string",
      "enum": [
       "hecha",
-      "descartada"
+      "descartada",
+      "rechazada"
      ]
     }
    },
    "required": [
-    "id"
+    "ref"
    ],
    "additionalProperties": false
   },
-  "description": "Cierra una tarea abierta por su id (la ves en «Tareas abiertas de la casa») cuando ya está resuelta. estado «descartada» si ya no hace falta."
+  "description": "Cierra una tarea abierta cuando lo que dicen la resuelve sin duda («ya está comprado»). estado «descartada» si ya no hace falta («olvídalo», «ya no»). estado «rechazada» si es una pregunta que no quieren contestar («prefiero no decirlo»): no se vuelve a preguntar. Si la referencia es vaga y podría ser más de una, pregunta cuál antes de cerrar."
+ },
+ {
+  "type": "custom",
+  "name": "editar_tarea",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "ref": {
+     "type": "string",
+     "description": "La referencia de 8 caracteres que sale entre corchetes en «Tareas abiertas de la casa»."
+    },
+    "texto": {
+     "type": "string"
+    },
+    "vence": {
+     "type": "string"
+    },
+    "para": {
+     "type": "string",
+     "description": "Para quién es: el nombre de alguien de la casa, tal cual."
+    },
+    "encargado": {
+     "type": "string",
+     "description": "Quién se encarga: el nombre de alguien de la casa, tal cual."
+    }
+   },
+   "required": [
+    "ref"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Corrige una tarea abierta («no, era para el sábado», «mejor que lo haga Pablo»): texto, fecha, para quién o quién se encarga."
  },
  {
   "type": "custom",

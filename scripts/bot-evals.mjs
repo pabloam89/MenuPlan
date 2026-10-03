@@ -24,6 +24,7 @@ process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
 const { ejecutar, herramientas, conQuienEscribe, MODELO, MODELO_RESERVA } = await import("../api/_bot/agente.js");
 const { bloqueDe } = await import("../api/_bot/pendientes.js");
+const { bloqueDeTareas } = await import("../api/_bot/tareas.js");
 const { supervisar } = await import("../api/_bot/supervisor.js");
 // La pista del enrutador (BOT_PISTA), con el mismo texto que en Telegram: un
 // caso con "pista" { decision, adelanto } mide si Lola la usa sin fiarse de más.
@@ -143,8 +144,8 @@ for (const caso of elegidos) {
     const ficha = conQuienEscribe(caso.ficha === undefined ? FICHA : caso.ficha, caso.papel ?? "owner", caso.idioma ?? null);
     const pista = caso.pista ? textoPista(caso.pista.decision, caso.pista.adelanto) : null;
     // `pendientes`: las tareas abiertas que el código adjuntaría (api/_bot/pendientes.js).
-    const bloque = bloqueDe(caso.pendientes ?? []);
-    const entrada = bloque ? `${bloque}\n\n${caso.entrada}` : caso.entrada;
+    // `tareas`: las de la tabla bot_tareas, como las monta el turno real.
+    const entrada = [bloqueDeTareas(caso.tareas ?? [], { data: { members: caso.miembros ?? [] }, chatId: "0" }), bloqueDe(caso.pendientes ?? []), caso.entrada].filter(Boolean).join("\n\n");
     const r = await ejecutar({ historia: caso.historia ?? [], entrada, tools, adjunto, modelos: [MEDIDO], ficha, pista });
     dicho = r.dicho;
     coste += (r.uso.input_tokens * PRECIO[0] + r.uso.output_tokens * PRECIO[1] + r.uso.cache_read_input_tokens * PRECIO[2] + r.uso.cache_creation_input_tokens * PRECIO[3]) / 1e6;

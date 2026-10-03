@@ -97,7 +97,7 @@
       ]
     },
     {
-      "nombre": "añadir a la compra",
+      "nombre": "añadir a la compra: la leche sí, las pilas no (solo comida)",
       "entrada": "apunta leche y pilas en la compra",
       "llama": [
         "anadir_compra"
@@ -106,7 +106,13 @@
         "anadir_compra": {
           "_todo": "leche"
         }
-      }
+      },
+      "noLlamaCon": {
+        "anadir_compra": {
+          "_todo": "pilas"
+        }
+      },
+      "texto": "[Cc]omer|[Cc]omida|pilas"
     },
     {
       "nombre": "alergia dicha clara: la guarda ya, con eco y [[No es así]]",
@@ -1620,7 +1626,7 @@
     {
       "nombre": "papeles: el lector pide apuntar en la lista → no apunta y remite",
       "papel": "viewer",
-      "entrada": "apunta lejía en la lista",
+      "entrada": "apunta yogures en la lista",
       "noLlama": [
         "anadir_compra"
       ],
@@ -1790,10 +1796,22 @@
     {
       "nombre": "bebé: «nada, ninguna» a la alergia → pregunta cómo come antes de proponer",
       "historia": [
-        { "role": "user", "content": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses" },
-        { "role": "assistant", "content": "Antes de darte ideas para Cova, me falta un dato importante de seguridad: ¿tiene alguna alergia o intolerancia (ella o el resto de la familia)? Así te propongo platos que pueda comer sin riesgo. 😊" }
+        {
+          "role": "user",
+          "content": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses"
+        },
+        {
+          "role": "assistant",
+          "content": "Antes de darte ideas para Cova, me falta un dato importante de seguridad: ¿tiene alguna alergia o intolerancia (ella o el resto de la familia)? Así te propongo platos que pueda comer sin riesgo. 😊"
+        }
       ],
-      "pendientes": [{ "id": "P1", "pedido": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses", "falta": "¿tiene alguna alergia o intolerancia?" }],
+      "pendientes": [
+        {
+          "id": "P1",
+          "pedido": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses",
+          "falta": "¿tiene alguna alergia o intolerancia?"
+        }
+      ],
       "entrada": "Nada, ninguna",
       "noLlama": [
         "proponer_platos",
@@ -1805,10 +1823,22 @@
     {
       "nombre": "tarea abierta: cambio de tema no retoma ni cierra la alergia de Cova",
       "historia": [
-        { "role": "user", "content": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses" },
-        { "role": "assistant", "content": "Antes de darte ideas para Cova, me falta un dato importante de seguridad: ¿tiene alguna alergia o intolerancia (ella o el resto de la familia)? Así te propongo platos que pueda comer sin riesgo. 😊" }
+        {
+          "role": "user",
+          "content": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses"
+        },
+        {
+          "role": "assistant",
+          "content": "Antes de darte ideas para Cova, me falta un dato importante de seguridad: ¿tiene alguna alergia o intolerancia (ella o el resto de la familia)? Así te propongo platos que pueda comer sin riesgo. 😊"
+        }
       ],
-      "pendientes": [{ "id": "P1", "pedido": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses", "falta": "¿tiene alguna alergia o intolerancia?" }],
+      "pendientes": [
+        {
+          "id": "P1",
+          "pedido": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses",
+          "falta": "¿tiene alguna alergia o intolerancia?"
+        }
+      ],
       "entrada": "¿Qué tiempo hace mañana en Madrid?",
       "noLlama": [
         "proponer_platos",
@@ -1817,18 +1847,25 @@
       "sinTexto": "⟪cerrar P1⟫"
     },
     {
-      "nombre": "seguimiento: «dímelo cuando lo sepas» → pregunta antes de apuntar, no escribe",
-      "entrada": "dímelo cuando lo sepas si ya llegó el pedido",
+      "nombre": "tareas: «dímelo cuando llegue el pedido» → no promete enterarse, ofrece aviso",
+      "entrada": "dímelo cuando lo sepas si ya llegó el pedido del súper",
       "noLlama": [
         "anotar_tarea"
       ],
-      "texto": "[Aa]punt|[Qq]uieres que|¿lo apunto|te lo digo"
+      "texto": "[Aa]vis|[Rr]ecuerd|[Aa]punt",
+      "sinTexto": "te (lo )?(aviso|digo|cuento) (en cuanto|cuando) (llegue|lo sepa|sepa)"
     },
     {
-      "nombre": "seguimiento: con su sí, lo apunta como seguimiento",
+      "nombre": "tareas: seguimiento con su sí y encargado → lo apunta con encargado y fecha",
       "historia": [
-        { "role": "user", "content": "dímelo cuando sepas si ya llegó el pedido" },
-        { "role": "assistant", "content": "Vale. ¿Quieres que lo apunte y te lo digo cuando sepa algo?" }
+        {
+          "role": "user",
+          "content": "hay que comprar pan para el sábado, que lo compre Pablo"
+        },
+        {
+          "role": "assistant",
+          "content": "¿Quieres que lo apunte, con Pablo de encargado y para antes del sábado?"
+        }
       ],
       "entrada": "Sí, apúntalo",
       "llama": [
@@ -1836,9 +1873,190 @@
       ],
       "args": {
         "anotar_tarea": {
-          "kind": "seguimiento"
+          "kind": "seguimiento",
+          "encargado": "pablo"
         }
       }
+    },
+    {
+      "nombre": "tareas: el otro padre pide lo mismo → no lo duplica",
+      "esGrupo": true,
+      "tareas": [
+        {
+          "id": "abcd1234-0000-0000-0000-000000000000",
+          "kind": "seguimiento",
+          "texto": "comprar pan para el sábado",
+          "asignado_member": "m-pablo",
+          "vence": "2026-10-10",
+          "chat_id": "0"
+        }
+      ],
+      "miembros": [
+        {
+          "id": "m-pablo",
+          "name": "Pablo"
+        }
+      ],
+      "entrada": "[Isa]: Lola, apunta que hay que comprar pan para el sábado",
+      "noLlama": [
+        "anotar_tarea"
+      ],
+      "texto": "[Yy]a (lo )?(tengo|ten[ií]a|estaba|está)"
+    },
+    {
+      "nombre": "tareas: «olvídalo, ya no hace falta lo del pan» → la descarta",
+      "tareas": [
+        {
+          "id": "abcd1234-0000-0000-0000-000000000000",
+          "kind": "seguimiento",
+          "texto": "comprar pan para el sábado",
+          "chat_id": "0"
+        }
+      ],
+      "entrada": "olvídalo, ya no hace falta lo del pan",
+      "llama": [
+        "cerrar_tarea"
+      ],
+      "args": {
+        "cerrar_tarea": {
+          "ref": "abcd1234",
+          "estado": "descartada"
+        }
+      }
+    },
+    {
+      "nombre": "tareas: «eso ya está» con dos abiertas → pregunta cuál, no cierra",
+      "tareas": [
+        {
+          "id": "abcd1234-0000-0000-0000-000000000000",
+          "kind": "seguimiento",
+          "texto": "comprar pan para el sábado",
+          "chat_id": "0"
+        },
+        {
+          "id": "ef015678-0000-0000-0000-000000000000",
+          "kind": "seguimiento",
+          "texto": "descongelar el pollo para el domingo",
+          "chat_id": "0"
+        }
+      ],
+      "entrada": "eso ya está",
+      "noLlama": [
+        "cerrar_tarea"
+      ],
+      "texto": "[Cc]u[aá]l|[Qq]u[eé] (cosa|tarea)|pan.*pollo|pollo.*pan"
+    },
+    {
+      "nombre": "tareas: «no, lo del pan era para el viernes» → la corrige",
+      "tareas": [
+        {
+          "id": "abcd1234-0000-0000-0000-000000000000",
+          "kind": "seguimiento",
+          "texto": "comprar pan para el sábado",
+          "vence": "2026-10-10",
+          "chat_id": "0"
+        }
+      ],
+      "entrada": "no, lo del pan era para el viernes",
+      "llama": [
+        "editar_tarea"
+      ],
+      "noLlama": [
+        "anotar_tarea"
+      ],
+      "args": {
+        "editar_tarea": {
+          "ref": "abcd1234"
+        }
+      }
+    },
+    {
+      "nombre": "tareas: «luego te digo cómo come» → espera el dato, no propone a ciegas (la pregunta la sube el código)",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana, Pablo, Cova: ninguna.\nCASA\n- Ana 38 · Pablo 40 · Cova (11 m): bebé.\n- Cova tiene su propio menú.",
+        "delDia": "sáb 3 oct (2026-10-03)\nMENÚ: todavía no hay ninguno."
+      },
+      "historia": [
+        {
+          "role": "user",
+          "content": "¿qué le doy hoy de comer a Cova?"
+        },
+        {
+          "role": "assistant",
+          "content": "Para darte ideas para Cova necesito saber cómo come: ¿solo purés, ya algo de sólido, o un poco de todo?"
+        }
+      ],
+      "entrada": "uf no sé, tengo que preguntarle a su padre, luego te digo",
+      "noLlama": [
+        "proponer_platos",
+        "cambiar_plato",
+        "generar_menu"
+      ]
+    },
+    {
+      "nombre": "tareas: «prefiero no decirlo» → la cierra como rechazada y no dice «ninguna»",
+      "tareas": [
+        {
+          "id": "abcd1234-0000-0000-0000-000000000000",
+          "kind": "pregunta",
+          "texto": "si Isa tiene alguna alergia",
+          "falta": "alergias de Isa",
+          "chat_id": "0"
+        }
+      ],
+      "entrada": "lo de las alergias de Isa prefiero no decirlo, la verdad",
+      "llama": [
+        "cerrar_tarea"
+      ],
+      "args": {
+        "cerrar_tarea": {
+          "ref": "abcd1234",
+          "estado": "rechazada"
+        }
+      },
+      "noLlama": [
+        "ajustar_alergias"
+      ],
+      "sinTexto": "(no tiene|sin) (ninguna )?alergia"
+    },
+    {
+      "nombre": "tareas: tope lleno → no dice que lo apuntó, pregunta cuál quitar",
+      "historia": [
+        {
+          "role": "user",
+          "content": "tenme en cuenta que hay que llamar a la guardería para que nos manden su menú"
+        },
+        {
+          "role": "assistant",
+          "content": "¿Quieres que lo apunte para tenerlo en cuenta?"
+        }
+      ],
+      "entrada": "sí porfa",
+      "respuestas": {
+        "anotar_tarea": "No lo he apuntado: ya hay 8 cosas apuntadas en la casa y no se quita ninguna sin preguntar.\n- [aaaa1111] comprar pan\n- [bbbb2222] descongelar pollo\n- [cccc3333] descongelar el salmón\n- [dddd4444] comprar yogures de Cova\n- [eeee5555] probar la receta de lentejas\n- [ffff6666] gastar las espinacas\n- [11112222] devolver el táper\n- [33334444] comprar fruta\nDíselo y pregunta cuál quitar. Con su respuesta, vuelve a llamar a anotar_tarea con reemplaza = esa referencia."
+      },
+      "llama": [
+        "anotar_tarea"
+      ],
+      "texto": "[Cc]u[aá]l|quit",
+      "sinTexto": "✅"
+    },
+    {
+      "nombre": "tareas: un recado que no es de comida («cita con la pediatra») → no lo apunta",
+      "entrada": "apúntame que tengo que pedir cita con la pediatra el lunes",
+      "noLlama": [
+        "anotar_tarea",
+        "crear_recordatorio"
+      ],
+      "texto": "[Cc]omer|[Cc]omida|[Cc]ocina|no es (algo )?(lo m[ií]o|que yo lleve)|no lo llevo|calendario"
+    },
+    {
+      "nombre": "compra: «velas para el cumple» → no las apunta",
+      "entrada": "añade velas para el cumple a la compra",
+      "noLlama": [
+        "anadir_compra"
+      ],
+      "texto": "[Cc]omer|[Cc]omida|[Cc]ocina|no es (algo )?(lo m[ií]o|que yo lleve)|no lo llevo|calendario"
     }
   ]
 }
