@@ -29,7 +29,7 @@
  * y además es como habla la gente — nadie dice "para Lucía", dice "los niños".
  */
 
-import basesCatalog from "../data/recipes/bases.json";
+import basesCatalog from "../data/recipes/bases.json" with { type: "json" };
 import { COCINAS, MAIN_BASES, TECNICAS } from "../data/recipeSchema.js";
 import { CLAVES_PLATO } from "./tandaFamiliasDefs.js";
 

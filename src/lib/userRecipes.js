@@ -9,7 +9,7 @@ import { computeRecipeNutrition, deriveRecipeAllergens } from "./ingredients.js"
 import { StepRichSchema, isMontaje } from "../data/recipeSchema.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { lowerFirst } from "./dishNaming.js";
-import guarnicionesData from "../data/recipes/guarniciones.json";
+import guarnicionesData from "../data/recipes/guarniciones.json" with { type: "json" };
 
 /** Los nombres por ración de los 24 micronutrientes (src/data/nutrientes.js). */
 const MICRONUTRIENTES_RACION = CAMPOS_SECUNDARIOS.filter(

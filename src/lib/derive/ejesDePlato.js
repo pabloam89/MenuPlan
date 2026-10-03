@@ -19,8 +19,8 @@
 
 import { composicionDe, ejeProteina, ejeHidrato } from "./composicion.js";
 import { ESCALA_POR_TECNICA } from "../../data/recipeSchema.js";
-import alimentos from "../../data/alimentos.json";
-import alimentoPorIngrediente from "../../data/alimentoPorIngrediente.json";
+import alimentos from "../../data/alimentos.json" with { type: "json" };
+import alimentoPorIngrediente from "../../data/alimentoPorIngrediente.json" with { type: "json" };
 
 const porId = new Map(alimentos.map((a) => [a.id, a]));
 const alimentoDe = (ingredientId) =>
