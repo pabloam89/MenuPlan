@@ -511,11 +511,8 @@
     },
     {
       "texto": "añade pilas a la lista",
-      "modo": "compra_anadir",
-      "rapida": true,
-      "datos": {
-        "productos": "pilas"
-      }
+      "modo": "lola",
+      "rapida": false
     },
     {
       "texto": "ya he comprado los huevos y la leche",
