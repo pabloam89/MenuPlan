@@ -184,11 +184,41 @@ function delta(a, b, unidad) {
   return ` (${d > 0 ? "+" : "−"}${fmt(Math.abs(d), unidad)})`;
 }
 
+// ── Privado o grupo ─────────────────────────────────────────────────────────
+// Dónde ocurre cada evento: en un chat de dos (privado) o en un grupo de
+// Telegram, donde escriben varios, la vía rápida está más limitada (router.js
+// POLITICA.enGrupo) y Lola tiene que saber a quién contesta. Lo apunta el bot
+// en `esGrupo` (bot_route desde el 1 oct 2026; el resto de eventos y los
+// atajos, desde el 3 oct). Sin el dato, «sinDato»: nunca se supone.
+
+/** "grupo" | "privado" | null (el evento no dice dónde fue). */
+export const lugarDe = (e) => (e?.m?.esGrupo === true ? "grupo" : e?.m?.esGrupo === false ? "privado" : null);
+
+/** Los eventos repartidos por dónde ocurrieron. */
+export function porLugar(eventos) {
+  const r = { privado: [], grupo: [], sinDato: [] };
+  for (const e of eventos) r[lugarDe(e) ?? "sinDato"].push(e);
+  return r;
+}
+
+/** Las medidas de cada lugar, y cuántos eventos no dicen dónde fueron. */
+export function medirPorLugar(eventos, objetivos = {}) {
+  const l = porLugar(eventos);
+  const grupo = medir(l.grupo, objetivos);
+  const turnosGrupo = turnosDe(l.grupo);
+  return {
+    privado: medir(l.privado, objetivos),
+    // En grupo, además: cuántos turnos tenían a más de una persona escribiendo.
+    grupo: { ...grupo, uso: { ...grupo.uso, variosAutoresPct: tanto(turnosGrupo.filter((e) => e.m.variosAutores).length, turnosGrupo.length) } },
+    sinDato: l.sinDato.length,
+  };
+}
+
 /**
  * El informe en Markdown. SOLO números: va a un issue de un repo público.
- * @param {{ actual: object, anterior: object|null, objetivos: object, huecos?: Record<string, number>|null, desde: string, hasta: string }} p
+ * @param {{ actual: object, anterior: object|null, objetivos: object, huecos?: Record<string, number>|null, lugares?: ReturnType<typeof medirPorLugar>|null, desde: string, hasta: string }} p
  */
-export function informe({ actual, anterior, objetivos, huecos = null, desde, hasta }) {
+export function informe({ actual, anterior, objetivos, huecos = null, lugares = null, desde, hasta }) {
   const s = semaforo(actual, objetivos);
   const sa = anterior ? semaforo(anterior, objetivos) : [];
   const mal = s.filter((x) => x.ok === false);
@@ -204,6 +234,31 @@ export function informe({ actual, anterior, objetivos, huecos = null, desde, has
   l.push("|---|---|---|---|---|");
   for (const [i, x] of s.entries()) {
     l.push(`| ${icono(x.ok)} | ${x.nombre} | ${fmt(x.valor, x.unidad)} | ${x.limite == null ? "sin fijar" : `≤ ${fmt(x.limite, x.unidad)}`} | ${delta(x.valor, sa[i]?.valor, x.unidad).trim() || "—"} |`);
+  }
+  if (lugares && (lugares.privado.uso.turnos || lugares.grupo.uso.turnos)) {
+    const { privado: p, grupo: g } = lugares;
+    const fila = (nombre, ruta, unidad) => {
+      const v = (m) => ruta.split(".").reduce((x, k) => x?.[k], m);
+      return `| ${nombre} | ${fmt(v(p), unidad)} | ${fmt(v(g), unidad)} |`;
+    };
+    l.push("");
+    l.push("**Privado frente a grupo**");
+    l.push("");
+    l.push("| Medida | Privado | Grupo |");
+    l.push("|---|---|---|");
+    l.push(fila("Turnos", "uso.turnos"));
+    l.push(fila("Chats", "uso.chats"));
+    l.push(fila("Por la vía rápida", "uso.rapidaPct", "%"));
+    l.push(fila("Primer texto, vía rápida (p95)", "latencia.primerTextoRapidaP95Ms", "ms"));
+    l.push(fila("Primer texto, Lola (p50)", "latencia.primerTextoLolaP50Ms", "ms"));
+    l.push(fila("Primer texto, Lola (p95)", "latencia.primerTextoLolaP95Ms", "ms"));
+    l.push(fila("Turno entero, Lola (p95)", "latencia.turnoLolaP95Ms", "ms"));
+    l.push(fila("Turnos corregidos", "calidad.corregidasPct", "%"));
+    l.push(fila("Dijo que guardó sin guardar", "calidad.dijoQueGuardo"));
+    l.push(fila("Fallos de herramienta", "calidad.fallosHerramienta"));
+    l.push(fila("Coste por turno", "coste.porTurnoUsd", "$"));
+    l.push(`| Turnos con varias personas escribiendo | — | ${fmt(g.uso.variosAutoresPct, "%")} |`);
+    if (lugares.sinDato) l.push(`\nEventos que no dicen dónde ocurrieron (de antes del 3 oct 2026), fuera de las dos columnas: ${lugares.sinDato}.`);
   }
   l.push("");
   l.push("<details><summary>Más detalle</summary>");
@@ -241,7 +296,7 @@ export function huecosDeLola(eventos, objetivos = {}, { sinTexto = false } = {})
   const huecos = [];
   const anadir = (e, motivo, extra) => {
     if (!e.m?.texto && !sinTexto) return;
-    huecos.push({ texto: e.m?.texto ?? null, ultima: e.m.ultima ?? null, motivos: [motivo], cuando: e.created_at, ...(extra ? { extra } : {}) });
+    huecos.push({ texto: e.m?.texto ?? null, ultima: e.m.ultima ?? null, motivos: [motivo], cuando: e.created_at, lugar: lugarDe(e), ...(extra ? { extra } : {}) });
   };
   for (const e of eventos) {
     if (e.event === "bot_route" && !e.m?.sombra && !e.m?.rapida) {

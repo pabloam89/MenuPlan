@@ -66,6 +66,25 @@ En orden, cada paso solo cuando el anterior funcione unas semanas:
    humana.
 4. Nunca automático: lo que toca alergias, salud o bebés.
 
+## Privado o grupo
+
+Cada evento del bot dice dónde ocurrió: `esGrupo` (y `variosAutores` en los
+turnos). En grupo cambian las reglas —la vía rápida hace menos
+(`router.js`, POLITICA), escriben varias personas y Lola tiene que saber a
+quién contesta—, así que se mide aparte:
+
+- el informe semanal trae la tabla «Privado frente a grupo»;
+  `node scripts/bot-semanal.mjs --solo=grupo` (o `privado`) da el semáforo
+  entero de uno de los dos;
+- el panel (`npm run bot:panel`) tiene el filtro Todos / Privado / Grupo y la
+  columna «Dónde»;
+- los huecos de `lola-feedback.mjs` llevan `_lugar`.
+
+Lo que no trae el dato (lo anterior al 3 oct 2026 que no sea `bot_route`) no se
+supone: se cuenta aparte como «sin dato». Los turnos que contesta Lola sin
+pasar por el enrutador (apagado, en sombra o en inglés) también se apuntan,
+con `sin_enrutador`.
+
 ## Límites
 
 - El repo es público: el informe solo lleva números; las frases reales solo

@@ -76,6 +76,14 @@ describe("turno por la vía rápida", () => {
     expect(ruta.ms).toBeGreaterThanOrEqual(t.cancelarTardaMs - 5);
     expect(ruta.contexto_ms).toBeGreaterThanOrEqual(0);
     expect(ruta.lola_cancelada).toBe(true);
+    expect(ruta).toMatchObject({ esGrupo: false, variosAutores: false, chat: "1" });
+  });
+
+  it("en un grupo, el turno se apunta como de grupo", async () => {
+    t.rapida = false;
+    responder.mockImplementationOnce(async () => ({ texto: "Hoy hay tortilla", fotos: [] }));
+    await turno({ chatId: -55, householdId: "h", esGrupo: true, variosAutores: true, base: "https://x", texto: "@lola ¿qué cenamos?", from: { id: 7, first_name: "Ana" }, responderA: 9 });
+    expect(t.rutas[0]).toMatchObject({ esGrupo: true, variosAutores: true, chat: "-55" });
   });
 
   it("con el límite del mes agotado no hay vía rápida: contesta Lola", async () => {
@@ -90,7 +98,9 @@ describe("turno por la vía rápida", () => {
     t.idioma = "en";
     responder.mockImplementationOnce(async () => ({ texto: "Tonight: omelette", fotos: [] }));
     await pedir();
-    expect(t.rutas).toHaveLength(0);
+    // Sin enrutador, pero el turno se apunta igual, con dónde ocurre.
+    expect(t.rutas).toHaveLength(1);
+    expect(t.rutas[0]).toMatchObject({ sin_enrutador: "idioma", rapida: false, modo: "lola", esGrupo: false, chat: "1" });
     expect(responder).toHaveBeenCalledTimes(1);
     expect(responder.mock.calls[0][0].puerta ?? null).toBeNull();
   });
