@@ -120,7 +120,7 @@ export async function buscarRecetas(householdId, { consulta, categoria, maxMinut
   // cuánto se parecía lo mejor. `texto` lo borra la retención a los 15 días.
   // Sin esperar: no retrasa la respuesta.
   duenoDe(householdId)
-    .then((userId) => registrar("bot_busqueda", { userId, extra: { texto: String(consulta ?? "").slice(0, 200), via: via ?? "palabras", parecido: Number.isFinite(parecido) ? Math.round(parecido * 1000) / 1000 : null, n: halladas.length, categoria: categoria ?? null } }))
+    .then((userId) => registrar("bot_busqueda", { userId, extra: { texto: String(consulta ?? "").slice(0, 200), via: via ?? "palabras", parecido: Number.isFinite(parecido) ? Math.round(parecido * 1000) / 1000 : null, n: halladas.length, categoria: categoria ?? null, esGrupo: Boolean(chat?.esGrupo) } }))
     .catch(() => {});
   if (!halladas.length) {
     return `No hay recetas de ${categoria ? CATEGORIAS[categoria] ?? categoria : "eso"}${consulta ? ` con «${consulta}»` : ""} en el recetario.`;

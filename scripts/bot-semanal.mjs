@@ -4,6 +4,10 @@
  *
  *   node scripts/bot-semanal.mjs                → los últimos 7 días contra los 7 anteriores
  *   node scripts/bot-semanal.mjs --hasta=2026-10-12   → la semana que acaba ese día (sin incluirlo)
+ *   node scripts/bot-semanal.mjs --solo=grupo         → solo lo de los grupos (o --solo=privado)
+ *
+ * El informe trae siempre la tabla «Privado frente a grupo»; --solo sirve para
+ * ver el semáforo entero de uno de los dos.
  *
  * De dónde lee:
  *   · OPS_DB_URL en el entorno (el workflow .github/workflows/bot-semanal.yml):
@@ -16,7 +20,7 @@
 
 import fs from "node:fs";
 import pg from "pg";
-import { medir, informe, huecosDeLola, contarHuecos } from "./lib/bot-semana.mjs";
+import { medir, informe, huecosDeLola, contarHuecos, medirPorLugar, lugarDe } from "./lib/bot-semana.mjs";
 
 const arg = (k) => process.argv.find((a) => a.startsWith(`--${k}=`))?.split("=")[1];
 const DIA = 86_400_000;
@@ -43,7 +47,9 @@ const { rows } = await db.query(
 );
 await db.end();
 
-const eventos = rows.map((r) => ({ ...r, created_at: new Date(r.created_at).toISOString(), m: r.m ?? {} }));
+const SOLO = ["grupo", "privado"].includes(arg("solo")) ? arg("solo") : null;
+const eventos = rows.map((r) => ({ ...r, created_at: new Date(r.created_at).toISOString(), m: r.m ?? {} }))
+  .filter((e) => !SOLO || lugarDe(e) === SOLO);
 const de = (a, b) => eventos.filter((e) => e.created_at >= a.toISOString() && e.created_at < b.toISOString());
 const objetivos = JSON.parse(fs.readFileSync(new URL("./bot-objetivos.json", import.meta.url), "utf8"));
 const estaSemana = de(desde, hasta);
@@ -55,10 +61,12 @@ const md = informe({
   objetivos,
   // Solo el recuento: los huecos con texto se miran en local.
   huecos: contarHuecos(huecosDeLola(estaSemana, objetivos, { sinTexto: true })),
+  lugares: SOLO ? null : medirPorLugar(estaSemana, objetivos),
   desde: iso(desde),
   hasta: iso(new Date(hasta - DIA)),
 });
 
 fs.mkdirSync(new URL("../.ops/", import.meta.url), { recursive: true });
-fs.writeFileSync(new URL("../.ops/informe-semanal.md", import.meta.url), `${md}\n`);
-console.log(md);
+const salida = SOLO ? `${md}\n\n_Solo los chats de tipo «${SOLO}»._` : md;
+fs.writeFileSync(new URL("../.ops/informe-semanal.md", import.meta.url), `${salida}\n`);
+console.log(salida);

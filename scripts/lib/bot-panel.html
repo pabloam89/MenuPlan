@@ -55,6 +55,10 @@
   .tag.malo { color: var(--critical); border-color: currentColor; }
   .vacio { color: var(--ink-2); padding: 24px 0; text-align: center; }
   .texto { color: var(--ink-2); max-width: 260px; }
+  .filtros { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 0 0 16px; }
+  .filtros button { background: var(--surface); border: 1px solid var(--ring); color: var(--ink-2); border-radius: 999px; padding: 6px 14px; cursor: pointer; font: inherit; }
+  .filtros button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 600; }
+  .filtros .nota { color: var(--muted); font-size: 12px; margin-left: 6px; }
   button.tema { float: right; background: none; border: 1px solid var(--ring); color: var(--ink-2); border-radius: 8px; padding: 4px 10px; cursor: pointer; }
 </style>
 </head>
@@ -63,6 +67,7 @@
   <button class="tema" id="tema" type="button">Tema</button>
   <h1>Panel de Lola</h1>
   <p class="sub" id="sub"></p>
+  <div class="filtros" id="filtros" role="group" aria-label="Dónde ocurre la conversación"></div>
 
   <div class="tiles" id="tiles"></div>
 
@@ -123,22 +128,22 @@ const icono = (ok) => {
 const estado = (ok) => el("span", { class: `estado ${ok === true ? "ok" : ok === false ? "mal" : "nd"}` }, icono(ok), ok === true ? "Cumple" : ok === false ? "No cumple" : "Sin datos");
 
 // ── Cabecera y cifras ───────────────────────────────────────────────────────
-$("sub").textContent = `Últimos ${D.dias} días · generado ${hora(D.generado)} · ${D.textos ? "con textos (no lo compartas)" : "sin textos"}`;
-const m = D.medidas;
-const malos = D.semaforo.filter((x) => x.ok === false).length;
-for (const [k, v] of [
-  ["Turnos", m.uso.turnos],
-  ["Por la vía rápida", fmt(m.uso.rapidaPct, "%")],
-  ["Coste por turno", fmt(m.coste.porTurnoUsd, "$")],
-  ["Objetivos sin cumplir", `${malos} de ${D.semaforo.filter((x) => x.limite != null).length}`],
-]) $("tiles").append(el("div", { class: "tile" }, el("div", { class: "k" }, k), el("div", { class: "v" }, v)));
-
-// ── Semáforo ────────────────────────────────────────────────────────────────
-$("semaforo").append(el("tr", {}, el("th", {}, "Estado"), el("th", {}, "Medida"), el("th", { class: "n" }, "Ahora"), el("th", { class: "n" }, "Objetivo")));
-for (const x of D.semaforo) {
-  $("semaforo").append(el("tr", {}, el("td", {}, estado(x.ok)), el("td", {}, x.nombre), el("td", { class: "n" }, fmt(x.valor, x.unidad)), el("td", { class: "n" }, x.limite == null ? "sin fijar" : `≤ ${fmt(x.limite, x.unidad)}`)));
+const LUGAR = { privado: "Privado", grupo: "Grupo" };
+// La vista elegida (todo, solo privado o solo grupo) se recuerda en este navegador.
+let vista = "todos";
+try { const v = localStorage.getItem("panel-vista"); if (v && D.vistas[v]) vista = v; } catch {}
+const FILTROS = [["todos", "Todos"], ["privado", "Privado"], ["grupo", "Grupo"]];
+function pintarFiltros() {
+  $("filtros").replaceChildren(
+    ...FILTROS.map(([k, nombre]) => {
+      const b = el("button", { type: "button", "aria-pressed": String(k === vista) }, `${nombre} · ${D.vistas[k].turnos.length}`);
+      b.onclick = () => { vista = k; try { localStorage.setItem("panel-vista", k); } catch {} pintarFiltros(); pintar(D.vistas[k]); };
+      return b;
+    }),
+    ...(D.sinDato ? [el("span", { class: "nota" }, `${D.sinDato} ${D.sinDato === 1 ? "evento" : "eventos"} sin el dato de dónde ${D.sinDato === 1 ? "fue" : "fueron"} (de antes del 3 oct): solo en «Todos».`)] : []),
+  );
 }
-
+$("sub").textContent = `Últimos ${D.dias} días · generado ${hora(D.generado)} · ${D.textos ? "con textos (no lo compartas)" : "sin textos"}`;
 // ── Tooltip ─────────────────────────────────────────────────────────────────
 const tip = $("tip");
 const mostrar = (ev, filas) => {
@@ -149,6 +154,23 @@ const mostrar = (ev, filas) => {
   tip.style.left = `${x}px`; tip.style.top = `${y}px`;
 };
 const ocultar = () => { tip.style.display = "none"; };
+
+function pintar(V) {
+for (const id of ["tiles", "semaforo", "leyenda", "grafica", "herramientas", "turnos"]) $(id).replaceChildren();
+const m = V.medidas;
+const malos = V.semaforo.filter((x) => x.ok === false).length;
+for (const [k, v] of [
+  ["Turnos", m.uso.turnos],
+  ["Por la vía rápida", fmt(m.uso.rapidaPct, "%")],
+  ["Coste por turno", fmt(m.coste.porTurnoUsd, "$")],
+  ["Objetivos sin cumplir", `${malos} de ${V.semaforo.filter((x) => x.limite != null).length}`],
+]) $("tiles").append(el("div", { class: "tile" }, el("div", { class: "k" }, k), el("div", { class: "v" }, v)));
+
+// ── Semáforo ────────────────────────────────────────────────────────────────
+$("semaforo").append(el("tr", {}, el("th", {}, "Estado"), el("th", {}, "Medida"), el("th", { class: "n" }, "Ahora"), el("th", { class: "n" }, "Objetivo")));
+for (const x of V.semaforo) {
+  $("semaforo").append(el("tr", {}, el("td", {}, estado(x.ok)), el("td", {}, x.nombre), el("td", { class: "n" }, fmt(x.valor, x.unidad)), el("td", { class: "n" }, x.limite == null ? "sin fijar" : `≤ ${fmt(x.limite, x.unidad)}`)));
+}
 
 // ── Gráfica: primer texto por turno ─────────────────────────────────────────
 // Una sola escala (segundos); cada turno es un punto, círculo la vía rápida y
@@ -162,7 +184,7 @@ for (const [k, s] of Object.entries(SERIES)) {
   const sw = sv("svg", { width: 14, height: 14, "aria-hidden": "true" }); sw.append(marca(s.forma, s.color, 7, 7, 5));
   $("leyenda").append(el("span", {}, sw, `${s.nombre} (objetivo p95 ${seg(s.objetivo)})`));
 }
-const puntos = D.turnos.filter((t) => Number.isFinite(t.primer));
+const puntos = V.turnos.filter((t) => Number.isFinite(t.primer));
 if (!puntos.length) $("grafica").append(el("div", { class: "vacio" }, "Aún no hay turnos con medida en este periodo."));
 else {
   const W = Math.max(320, $("grafica").clientWidth || 900), H = 280, M = { l: 44, r: 16, t: 12, b: 28 };
@@ -186,7 +208,7 @@ else {
     const g = sv("g", { tabindex: 0 });
     g.append(sv("circle", { cx: x(i), cy: y(p.primer), r: 12, fill: "transparent" }), marca(s.forma, s.color, x(i), y(p.primer)));
     const filas = () => [`${seg(p.primer)} hasta el primer texto`, `${s.nombre}${p.modo ? ` · ${p.modo}` : ""}${p.confianza != null ? ` · confianza ${p.confianza}` : ""}`,
-      `Turno entero ${seg(p.total)} · enrutador ${seg(p.router)}`, hora(p.t), ...(p.avisos.length ? [`⚠ ${p.avisos.join(", ")}`] : [])];
+      `Turno entero ${seg(p.total)} · enrutador ${seg(p.router)}`, `${hora(p.t)}${p.lugar ? ` · ${LUGAR[p.lugar].toLowerCase()}` : ""}`, ...(p.avisos.length ? [`⚠ ${p.avisos.join(", ")}`] : [])];
     g.addEventListener("pointermove", (ev) => mostrar(ev, filas()));
     g.addEventListener("pointerleave", ocultar);
     g.addEventListener("focus", () => { const r = g.getBoundingClientRect(); mostrar({ clientX: r.right, clientY: r.top }, filas()); });
@@ -197,12 +219,12 @@ else {
 }
 
 // ── Herramientas: barras horizontales, p95 ──────────────────────────────────
-if (!D.herramientas.length) $("herramientas").append(el("div", { class: "vacio" }, "Ninguna herramienta en este periodo."));
+if (!V.herramientas.length) $("herramientas").append(el("div", { class: "vacio" }, "Ninguna herramienta en este periodo."));
 else {
-  const max = Math.max(...D.herramientas.map((h) => h.p95));
+  const max = Math.max(...V.herramientas.map((h) => h.p95));
   const W = Math.max(320, $("herramientas").clientWidth || 900), fila = 26, L = 150, R = 120;
-  const svg = sv("svg", { width: W, height: D.herramientas.length * fila + 4, role: "img", "aria-label": "Herramientas más lentas, p95" });
-  D.herramientas.forEach((h, i) => {
+  const svg = sv("svg", { width: W, height: V.herramientas.length * fila + 4, role: "img", "aria-label": "Herramientas más lentas, p95" });
+  V.herramientas.forEach((h, i) => {
     const yy = i * fila + 4, ancho = Math.max(2, ((W - L - R) * h.p95) / max);
     const n = sv("text", { x: L - 8, y: yy + 13, "text-anchor": "end" }); n.textContent = h.n; svg.append(n);
     const b = sv("rect", { x: L, y: yy + 3, width: ancho, height: 14, rx: 4, fill: "var(--rapida)" });
@@ -215,14 +237,15 @@ else {
 }
 
 // ── Tabla de turnos (los últimos primero) ───────────────────────────────────
-const cab = ["Hora", "Camino", "Modo", "Conf.", "Primer texto", "Total", "Enrutador", "Modelo", "Herramientas", "Avisos", ...(D.textos ? ["Mensaje"] : [])];
-$("turnos").append(el("tr", {}, ...cab.map((c, i) => el("th", { class: i >= 3 && i <= 7 ? "n" : "" }, c))));
-if (!D.turnos.length) $("turnos").append(el("tr", {}, el("td", { colspan: cab.length, class: "vacio" }, "Sin turnos.")));
-for (const t of [...D.turnos].reverse().slice(0, 100)) {
+const cab = ["Hora", "Dónde", "Camino", "Modo", "Conf.", "Primer texto", "Total", "Enrutador", "Modelo", "Herramientas", "Avisos", ...(D.textos ? ["Mensaje"] : [])];
+$("turnos").append(el("tr", {}, ...cab.map((c, i) => el("th", { class: i >= 4 && i <= 8 ? "n" : "" }, c))));
+if (!V.turnos.length) $("turnos").append(el("tr", {}, el("td", { colspan: cab.length, class: "vacio" }, "Sin turnos.")));
+for (const t of [...V.turnos].reverse().slice(0, 100)) {
   const lento = (ms, obj) => ms != null && obj != null && ms > obj;
   const objPrimer = t.camino === "rapida" ? D.objetivos.primerTextoRapidaP95Ms : D.objetivos.primerTextoLolaP95Ms;
   $("turnos").append(el("tr", {},
     el("td", {}, hora(t.t)),
+    el("td", {}, t.lugar ? `${LUGAR[t.lugar]}${t.variosAutores ? " · varios" : ""}` : "—"),
     el("td", {}, SERIES[t.camino].nombre),
     el("td", {}, t.modo ?? "—"),
     el("td", { class: "n" }, t.confianza ?? "—"),
@@ -235,6 +258,10 @@ for (const t of [...D.turnos].reverse().slice(0, 100)) {
     ...(D.textos ? [el("td", { class: "texto" }, t.texto ?? "—")] : []),
   ));
 }
+}
+
+pintarFiltros();
+pintar(D.vistas[vista]);
 </script>
 </body>
 </html>

@@ -15,7 +15,7 @@
 
 import fs from "node:fs";
 import { exec } from "node:child_process";
-import { medir, semaforo, corregidos, pct } from "./lib/bot-semana.mjs";
+import { medir, semaforo, corregidos, pct, porLugar, lugarDe } from "./lib/bot-semana.mjs";
 
 const arg = (k) => process.argv.find((a) => a === `--${k}` || a.startsWith(`--${k}=`));
 const valor = (k) => arg(k)?.split("=")[1];
@@ -40,7 +40,6 @@ async function leerEventos() {
 
 const eventos = (await leerEventos()).map((r) => ({ ...r, created_at: new Date(r.created_at).toISOString(), m: r.m ?? {} }));
 const objetivos = JSON.parse(fs.readFileSync(new URL("./bot-objetivos.json", import.meta.url), "utf8"));
-const medidas = medir(eventos, objetivos);
 const corr = corregidos(eventos);
 
 // Lo que pasó justo después de cada turno de Lola, para las marcas de la tabla.
@@ -56,8 +55,13 @@ const avisosDe = (e) => {
   return a;
 };
 
-const turnos = eventos.filter((e) => e.event === "bot_route" && !e.m.sombra).map((e) => ({
+// Una vista del panel: todo, solo privado o solo grupo (el filtro de arriba).
+const vistaDe = (evs) => {
+const medidas = medir(evs, objetivos);
+const turnos = evs.filter((e) => e.event === "bot_route" && !e.m.sombra).map((e) => ({
   t: e.created_at,
+  lugar: lugarDe(e),
+  variosAutores: Boolean(e.m.variosAutores),
   camino: e.m.rapida ? "rapida" : "lola",
   modo: e.m.modo ?? null,
   confianza: Number.isFinite(Number(e.m.confianza)) ? Number(e.m.confianza) : null,
@@ -78,19 +82,21 @@ const turnos = eventos.filter((e) => e.event === "bot_route" && !e.m.sombra).map
 }));
 
 const porHerramienta = new Map();
-for (const e of eventos) for (const [n, ms] of e.m.lola?.herramientas ?? []) porHerramienta.set(n, [...(porHerramienta.get(n) ?? []), ms]);
+for (const e of evs) for (const [n, ms] of e.m.lola?.herramientas ?? []) porHerramienta.set(n, [...(porHerramienta.get(n) ?? []), ms]);
 const herramientas = [...porHerramienta].map(([n, xs]) => ({ n, veces: xs.length, p50: pct(xs, 50), p95: pct(xs, 95) }))
   .sort((a, b) => b.p95 - a.p95).slice(0, 10);
+return { medidas, semaforo: semaforo(medidas, objetivos), turnos, herramientas };
+};
 
+const lugares = porLugar(eventos);
 const datos = {
   generado: new Date().toISOString(),
   dias: DIAS,
   textos: TEXTOS,
-  medidas,
-  semaforo: semaforo(medidas, objetivos),
   objetivos,
-  turnos,
-  herramientas,
+  // Eventos que no dicen si fueron en grupo o en privado (anteriores al 3 oct 2026).
+  sinDato: lugares.sinDato.length,
+  vistas: { todos: vistaDe(eventos), privado: vistaDe(lugares.privado), grupo: vistaDe(lugares.grupo) },
 };
 
 const html = fs.readFileSync(new URL("./lib/bot-panel.html", import.meta.url), "utf8")
@@ -100,7 +106,7 @@ const salida = new URL("../.ops/panel.html", import.meta.url);
 fs.mkdirSync(new URL("../.ops/", import.meta.url), { recursive: true });
 fs.writeFileSync(salida, html);
 const ruta = decodeURIComponent(salida.pathname).replace(/^\/([A-Za-z]:)/, "$1");
-console.log(`${turnos.length} turnos en ${DIAS} días → ${ruta}`);
+console.log(`${datos.vistas.todos.turnos.length} turnos en ${DIAS} días (${datos.vistas.privado.turnos.length} en privado, ${datos.vistas.grupo.turnos.length} en grupo) → ${ruta}`);
 if (!arg("no-abrir")) {
   const abrir = process.platform === "win32" ? `start "" "${ruta}"` : process.platform === "darwin" ? `open "${ruta}"` : `xdg-open "${ruta}"`;
   exec(abrir);

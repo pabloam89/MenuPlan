@@ -406,7 +406,19 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   const modo = MODO_ROUTER();
   const modoGrupos = MODO_ROUTER_GRUPOS();
   desde ??= from ? [idDePersona(from)].filter(Boolean) : [];
-  if (modo === "off" || (esGrupo && modoGrupos === "off")) return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA });
+  // Los turnos que contesta Lola sin pasar por el enrutador (apagado, en
+  // sombra, o porque quien escribe eligió inglés) también se apuntan, con sus
+  // tiempos y dónde ocurren: antes no dejaban bot_route y eran invisibles al
+  // medir, justo los de los grupos con el enrutador apagado (3 oct 2026).
+  const soloLola = async (porQue, desdeMs = Date.now()) => {
+    const medir = {};
+    await conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, medir });
+    return apuntarRuta(householdId, {
+      chat: String(chatId), esGrupo: Boolean(esGrupo), variosAutores: Boolean(variosAutores),
+      modo: "lola", rapida: false, sin_enrutador: porQue, ms: Date.now() - desdeMs, ...medida(medir, {}, desdeMs),
+    });
+  };
+  if (modo === "off" || (esGrupo && modoGrupos === "off")) return soloLola("apagado");
   // En grupo, su propio interruptor: en sombra se decide y se apunta, contesta Lola.
   const sombra = modo === "sombra" || (esGrupo && modoGrupos === "sombra");
   // El papel de quien escribe (api/_bot/papel.js), a la vez que el contexto:
@@ -416,6 +428,9 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // Quién lo pidió, para decirlo en las respuestas que escriben (en grupo).
   const autor = esGrupo && from ? nombreDe(from) : null;
   const t0 = Date.now();
+  // Dónde ocurre el turno, en TODO lo que se apunta de él: para separar
+  // privado de grupo al medir (scripts/lib/bot-semana.mjs, porLugar).
+  const donde = { chat: String(chatId), esGrupo: Boolean(esGrupo), variosAutores: Boolean(variosAutores) };
   const marca = (que) => process.env.BOT_TIEMPOS && console.log(`[turno] ${que}: ${Date.now() - t0} ms`);
   // Lo último que dijo Lola y la casa (quién hay, si hay menú). Se probó a
   // quitar la casa para ahorrar 0,3 s y el enrutador perdió confianza donde
@@ -435,9 +450,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   const contextoMs = Date.now() - t0;
   // Quien eligió inglés: contesta Lola, que traduce. La vía rápida y sus
   // plantillas están en castellano.
-  if (idioma === "en") {
-    return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA });
-  }
+  if (idioma === "en") return soloLola("idioma", t0);
   marca("contexto");
 
   // 0. Estado: contestar a una pregunta de la vía rápida.
@@ -452,7 +465,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       marca("aclaración aplicada");
       if (r) {
         await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
-        return apuntarRuta(householdId, { modo: `aclarar:${prop.modo}`, rapida: true, ms: Date.now() - t0 });
+        return apuntarRuta(householdId, { modo: `aclarar:${prop.modo}`, rapida: true, ms: Date.now() - t0, ...donde });
       }
     }
   }
@@ -460,7 +473,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
     const r = await viaRapida({ modo: "compra_anadir", datos: { productos: prop.productos ?? [] } }, householdId, { autor }).catch(() => null);
     if (r) {
       await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
-      return apuntarRuta(householdId, { modo: "apuntar_falta", rapida: true, ms: Date.now() - t0 });
+      return apuntarRuta(householdId, { modo: "apuntar_falta", rapida: true, ms: Date.now() - t0, ...donde });
     }
   }
 
@@ -473,7 +486,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       if (r) {
         await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
         marca("entregado");
-        return apuntarRuta(householdId, { modo: "eleccion", rapida: true, ms: Date.now() - t0 });
+        return apuntarRuta(householdId, { modo: "eleccion", rapida: true, ms: Date.now() - t0, ...donde });
       }
     }
   }
@@ -483,9 +496,10 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   if (sombra) {
     decisionP.then((d) => apuntarRuta(householdId, {
       sombra: true, modo: d.modo, confianza: d.confianza, rapida: vaPorLaRapida(d, chatDe), ms: d.ms, error: d.error,
-      texto: String(texto).slice(0, 120), datos: d.datos, esGrupo, variosAutores,
+      texto: String(texto).slice(0, 120), datos: d.datos, chat: String(chatId), esGrupo: Boolean(esGrupo), variosAutores: Boolean(variosAutores),
     }));
-    return conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA });
+    // El turno de verdad (el que ve la persona) lo contesta Lola: se mide aparte.
+    return soloLola("sombra", t0);
   }
 
   // on: Lola arranca ya, con la puerta cerrada.

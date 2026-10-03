@@ -100,6 +100,8 @@ const nuevos = huecos.filter((h) => !vistos.has(normal(h.texto))).map((h) => ({
   aprobado: false,
   _motivo: h.motivos.join(", "),
   _cuando: h.cuando,
+  // Dónde pasó: en grupo Lola tiene que saber a quién contesta y la vía rápida hace menos.
+  ...(h.lugar ? { _lugar: h.lugar } : {}),
   ...(h.extra ? { _extra: h.extra } : {}),
 }));
 

@@ -209,7 +209,7 @@ export async function herramientas(chat) {
       // con lo que ha escrito la persona, no solo con el «confirmado» del modelo.
       const freno = supervisar(t.name, args, chat.texto, { anterior: chat.anterior });
       if (freno) {
-        await registrar(FRENO_SUPERVISOR, { userId: await duenoDe(chat.householdId).catch(() => null), extra: { herramienta: t.name, texto: String(chat.texto ?? "").slice(0, 200) } });
+        await registrar(FRENO_SUPERVISOR, { userId: await duenoDe(chat.householdId).catch(() => null), extra: { herramienta: t.name, texto: String(chat.texto ?? "").slice(0, 200), esGrupo: Boolean(chat.esGrupo) } });
         return freno;
       }
       if (t.name === "ver_menu" && yaLoTiene(args)) {
@@ -227,7 +227,7 @@ export async function herramientas(chat) {
         if (ir) chat.ir = ir;
         return r;
       } catch (e) {
-        await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(() => null), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300) } });
+        await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(() => null), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300), esGrupo: Boolean(chat.esGrupo) } });
         throw e;
       }
   }
@@ -1080,7 +1080,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
     if (!err?.aMedias) throw err;
     console.error("[agente] a medias", err?.message);
-    await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(() => null), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}` } });
+    await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(() => null), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}`, esGrupo: Boolean(esGrupo) } });
     return {
       texto: "😵‍💫 Me he quedado a medias: puede que ya haya cambiado algo y no te lo he podido contar.\n\nMíralo en la app con el botón antes de pedírmelo otra vez, así no se hace dos veces.",
       fotos: chat.fotos, deshacible: false, ir: chat.ir ?? "semana", compartir: null,
@@ -1088,10 +1088,10 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   }
   if (corregido) {
     // `sigue`: ni con el aviso guardó. Sin él, se corrigió en la segunda vuelta.
-    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200), sigue: sigueSinGuardar } });
+    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200), sigue: sigueSinGuardar, esGrupo: Boolean(esGrupo) } });
   }
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
-    await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200) } });
+    await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200), esGrupo: Boolean(esGrupo) } });
   }
 
   const llevados = await contarUso(householdId, uso).catch((e) => { console.error("[agente] uso", e?.message); return 0; });

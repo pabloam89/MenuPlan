@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { medir, semaforo, informe, huecosDeLola, contarHuecos, corregidos, pct } from "./bot-semana.mjs";
+import { medir, semaforo, informe, huecosDeLola, contarHuecos, corregidos, pct, lugarDe, porLugar, medirPorLugar } from "./bot-semana.mjs";
 
 const t = (min) => new Date(Date.UTC(2026, 9, 5, 10, min)).toISOString();
 const ruta = (min, m) => ({ created_at: t(min), event: "bot_route", m: { chat: "1", ...m } });
@@ -102,6 +102,57 @@ describe("medir: dónde se va el tiempo de Lola", () => {
 
   it("sin llamadas apuntadas (turnos de antes del 3 oct), sin desglose", () => {
     expect(medir([ruta(0, { rapida: false, ms: 5000, lola: lola(4000) })]).latencia.modeloP50Ms).toBeNull();
+  });
+});
+
+describe("privado o grupo", () => {
+  const eventos = [
+    ruta(0, { chat: "p", esGrupo: false, rapida: false, ms: 4000, primer_ms: 1500, lola_cancelada: false, lola: lola(3500) }),
+    ruta(1, { chat: "p", esGrupo: false, rapida: true, ms: 900, primer_ms: 800, lola_cancelada: true }),
+    ruta(2, { chat: "g", esGrupo: true, variosAutores: true, rapida: false, ms: 9000, primer_ms: 7000, lola_cancelada: false, lola: lola(8500) }),
+    ruta(3, { chat: "g", esGrupo: true, variosAutores: false, rapida: false, ms: 6000, primer_ms: 5000, lola_cancelada: false, lola: lola(5500) }),
+    { created_at: t(4), event: "bot_tool_error", m: { herramienta: "x", esGrupo: true } },
+    // De antes del 3 oct: no dice dónde fue.
+    { created_at: t(5), event: "bot_route", m: { rapida: true, ms: 700, modo: "eleccion" } },
+    { created_at: t(6), event: "bot_claimed_unsaved", m: {} },
+  ];
+
+  it("lugarDe no supone: sin el dato, null", () => {
+    expect(lugarDe(eventos[0])).toBe("privado");
+    expect(lugarDe(eventos[2])).toBe("grupo");
+    expect(lugarDe(eventos[5])).toBeNull();
+    expect(lugarDe({ m: { esGrupo: "true" } })).toBeNull();
+  });
+
+  it("reparte cada evento en su lugar, y lo que no lo dice, aparte", () => {
+    const l = porLugar(eventos);
+    expect([l.privado.length, l.grupo.length, l.sinDato.length]).toEqual([2, 3, 2]);
+  });
+
+  it("mide cada lugar por separado", () => {
+    const l = medirPorLugar(eventos);
+    expect(l.privado.uso.turnos).toBe(2);
+    expect(l.privado.uso.rapidaPct).toBe(50);
+    expect(l.privado.latencia.primerTextoLolaP50Ms).toBe(1500);
+    expect(l.grupo.uso.turnos).toBe(2);
+    expect(l.grupo.uso.rapidaPct).toBe(0);
+    expect(l.grupo.latencia.primerTextoLolaP95Ms).toBe(7000);
+    expect(l.grupo.calidad.fallosHerramienta).toBe(1);
+    expect(l.grupo.uso.variosAutoresPct).toBe(50);
+    expect(l.privado.calidad.fallosHerramienta).toBe(0);
+    expect(l.sinDato).toBe(2);
+  });
+
+  it("el informe trae la tabla de privado frente a grupo", () => {
+    const md = informe({ actual: medir(eventos), anterior: null, objetivos: {}, lugares: medirPorLugar(eventos), desde: "2026-10-05", hasta: "2026-10-11" });
+    expect(md).toMatch(/Privado frente a grupo/);
+    expect(md).toMatch(/| Turnos | 2 | 2 |/);
+    expect(md).toMatch(/fuera de las dos columnas: 2./);
+  });
+
+  it("sin turnos con el dato, el informe no pinta la tabla", () => {
+    const viejos = [eventos[5]];
+    expect(informe({ actual: medir(viejos), anterior: null, objetivos: {}, lugares: medirPorLugar(viejos), desde: "a", hasta: "b" })).not.toMatch(/Privado frente a grupo/);
   });
 });
 
