@@ -26,7 +26,7 @@ import { waitUntil } from "@vercel/functions";
 import { select, insert, update, eq } from "../_bot/db.js";
 import { enviar, enviarFotos, editar, llamar, escaparHtml, nombreDelBot, TECLADO } from "../_bot/telegram.js";
 import { respuestaHoy, respuestaSemana, respuestaCompra, recordar } from "../_bot/rapido.js";
-import { responder, cortarCharla, esCaida } from "../_bot/agente.js";
+import { responder, cortarCharla, esCaida, AVISO_LENTO } from "../_bot/agente.js";
 import { registrar, rastro, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
 import { pintarMenuEntero } from "../_bot/pintar.js";
@@ -498,7 +498,10 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // La pista (BOT_PISTA): la decisión del enrutador, solo si el turno no va por
   // la vía rápida. Lola no la espera: si llega a tiempo, la usa (pista.js).
   const pista = PISTA() ? decisionP.then((d) => (vaPorLaRapida(d, chatDe) ? null : d)) : null;
-  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista });
+  // El aviso de lo que va a tardar, en cuanto el enrutador sabe qué se pide y
+  // no cuando Lola llega a llamar a la herramienta (ver avisoDelModo).
+  const aviso = decisionP.then((d) => (vaPorLaRapida(d, chatDe) ? null : avisoDelModo(d))).catch(() => null);
+  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista, aviso });
 
   const d = await decisionP;
   marca(`enrutador (${d.modo} ${d.confianza}, ${d.ms} ms)`);
@@ -569,8 +572,32 @@ async function entregarRapida({ chatId, householdId, esGrupo, base, from, respon
   });
 }
 
+// Qué herramienta lenta acaba usando Lola en cada modo del enrutador: su aviso
+// (AVISO_LENTO, agente.js) puede salir antes de que Lola la pida.
+const HERRAMIENTA_LENTA_DEL_MODO = { generar: "generar_menu" };
+// Por debajo de esto el enrutador duda de qué se pide, y avisar de algo que
+// luego no pasa es peor que no avisar.
+const CONFIANZA_PARA_AVISAR = 0.7;
+
+/**
+ * La frase que puede salir en cuanto el enrutador decide, cuando el turno es de
+ * Lola y lo pedido tarda («prepárame el menú de la semana que viene»). Antes
+ * esa frase solo salía al arrancar generar_menu, es decir, tras la primera
+ * llamada de Lola al modelo: varios segundos con el chat en silencio (Álvaro,
+ * 3 oct 2026). Lo que Lola escriba después la sustituye en el mismo mensaje,
+ * así que si al final pregunta en vez de generar, no queda rastro.
+ * @param {{ modo?: string, confianza?: number }} d  la decisión del enrutador
+ * @returns {string | null}
+ */
+export function avisoDelModo(d) {
+  if (process.env.BOT_AVISO_LENTO === "off") return null;
+  if (!(Number(d?.confianza) >= CONFIANZA_PARA_AVISAR)) return null;
+  const frase = AVISO_LENTO[HERRAMIENTA_LENTA_DEL_MODO[d?.modo]];
+  return typeof frase === "string" ? frase : null;
+}
+
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, desde = null, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null }) {
+async function conversar({ chatId, householdId, texto, from, desde = null, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null, aviso = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
   const eco = oido ? `🎙️ «${oido}»\n\n` : "";
   const vivo = mensajeVivo(chatId, { responderA, eco });
@@ -580,11 +607,25 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
   let abierta = !puerta;
   // `medir` (de turno()): cuándo vio la persona el primer texto, y lo que midió Lola.
   const visto = () => { if (medir) medir.primerTexto ??= Date.now(); };
+  // Si Lola ya ha escrito algo suyo, el aviso del enrutador llega tarde y sobra.
+  let haEscrito = false;
   puerta?.then((suyo) => {
     abierta = suyo;
     if (suyo && pendiente) { visto(); vivo.escribir(...pendiente); }
   });
-  const alEscribir = (parcial, extra) => (abierta ? (visto(), vivo.escribir(parcial, extra)) : (pendiente = [parcial, extra]));
+  // El aviso del enrutador (avisoDelModo): con el turno ya de Lola y sin nada
+  // suyo en pantalla, sale al momento. Nunca rompe el turno.
+  if (puerta && aviso) {
+    Promise.all([puerta, aviso]).then(([suyo, frase]) => {
+      if (!suyo || !frase || haEscrito || signal?.aborted) return;
+      visto();
+      vivo.escribir(frase, { aviso: true });
+    }).catch(() => {});
+  }
+  const alEscribir = (parcial, extra) => {
+    haEscrito = true;
+    return abierta ? (visto(), vivo.escribir(parcial, extra)) : (pendiente = [parcial, extra]);
+  };
   let r;
   try {
     // Si vino en audio, Lola lo sabe: los nombres nuevos pueden venir mal oídos
