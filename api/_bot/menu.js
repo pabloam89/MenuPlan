@@ -28,6 +28,8 @@ export const motor = async () => (motorCargado ??= await import("./core.mjs"));
 
 // La densidad y la carga salen del bundle: src/ no se carga en Node a secas.
 let derivados = null;
+// Los tests los pasan directamente: en CI no existe core.mjs (sale del build).
+export function usarDerivados(d) { derivados = d; }
 export async function prepararDerivados() {
   if (!derivados) {
     const m = await motor();
