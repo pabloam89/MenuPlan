@@ -96,6 +96,17 @@ const lista = (xs) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(",
 // importar aquí: arrastra el catálogo). Una prueba vigila que digan lo mismo.
 export const alergiasRevisadas = (data, m) => m?.alergiasRevisadas ?? data?.allergiesReviewed === true;
 
+/**
+ * Lo que Lola aún debe preguntar por seguridad, con una clave estable. La ficha
+ * lo muestra como PENDIENTE y las tareas abiertas (pendientes.js) se cierran
+ * solas cuando la clave deja de estar aquí: una sola fuente, que es el estado.
+ */
+export function preguntasPendientes(data = {}) {
+  return (data.members ?? [])
+    .filter((m) => !alergiasRevisadas(data, m) && !(m.allergies ?? []).length)
+    .map((m) => ({ clave: `alergias:${m.id ?? m.name}`, nombre: m.name }));
+}
+
 // Solo la edad que se sabe: resolveMemberAge pone 30 a quien no la tiene, y en
 // la ficha eso sería afirmar algo que nadie ha dicho.
 function edadDe(m) {
@@ -333,8 +344,8 @@ function delDiaBloque(casa, extras, hoy) {
   if (extras.nevera?.length) lineas.push(`- Hecho y guardado: ${extras.nevera.slice(0, 3).join("; ")}.`);
   if (extras.avisos?.length) lineas.push("AVISOS", ...extras.avisos.slice(0, 2).map((a) => `- ${a}`));
   // PENDIENTE: primero, lo de seguridad.
-  const sinPreguntar = (data.members ?? []).filter((m) => !alergiasRevisadas(data, m) && !(m.allergies ?? []).length);
-  if (sinPreguntar.length) lineas.push("PENDIENTE", `- ¿${lista(sinPreguntar.map((m) => m.name))} ${sinPreguntar.length > 1 ? "tienen" : "tiene"} alguna alergia o intolerancia?`);
+  const sinPreguntar = preguntasPendientes(data);
+  if (sinPreguntar.length) lineas.push("PENDIENTE", `- ¿${lista(sinPreguntar.map((p) => p.nombre))} ${sinPreguntar.length > 1 ? "tienen" : "tiene"} alguna alergia o intolerancia?`);
   return lineas;
 }
 

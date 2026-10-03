@@ -1786,6 +1786,35 @@
         "generar_menu",
         "ajustar_cocina"
       ]
+    },
+    {
+      "nombre": "bebé: «nada, ninguna» a la alergia → pregunta cómo come antes de proponer",
+      "historia": [
+        { "role": "user", "content": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses" },
+        { "role": "assistant", "content": "Antes de darte ideas para Cova, me falta un dato importante de seguridad: ¿tiene alguna alergia o intolerancia (ella o el resto de la familia)? Así te propongo platos que pueda comer sin riesgo. 😊" }
+      ],
+      "pendientes": [{ "id": "P1", "pedido": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses", "falta": "¿tiene alguna alergia o intolerancia?" }],
+      "entrada": "Nada, ninguna",
+      "noLlama": [
+        "proponer_platos",
+        "cambiar_plato",
+        "generar_menu"
+      ],
+      "texto": "[Ss]ólidos|[Pp]urés|[Cc]ómo come|[Uu]n poco de todo|[Tt]rozos"
+    },
+    {
+      "nombre": "tarea abierta: cambio de tema no retoma ni cierra la alergia de Cova",
+      "historia": [
+        { "role": "user", "content": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses" },
+        { "role": "assistant", "content": "Antes de darte ideas para Cova, me falta un dato importante de seguridad: ¿tiene alguna alergia o intolerancia (ella o el resto de la familia)? Así te propongo platos que pueda comer sin riesgo. 😊" }
+      ],
+      "pendientes": [{ "id": "P1", "pedido": "@homenuers_bot qué recomendarías para nuestra hija Cova para comer hoy? Tiene 11 meses", "falta": "¿tiene alguna alergia o intolerancia?" }],
+      "entrada": "¿Qué tiempo hace mañana en Madrid?",
+      "noLlama": [
+        "proponer_platos",
+        "generar_menu"
+      ],
+      "sinTexto": "⟪cerrar P1⟫"
     }
   ]
 }

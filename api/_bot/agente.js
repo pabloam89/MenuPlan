@@ -36,7 +36,8 @@ import {
 } from "./recordatorios.js";
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { supervisar } from "./supervisor.js";
-import { montarFicha, extrasDeFicha } from "./ficha.js";
+import { montarFicha, extrasDeFicha, preguntasPendientes } from "./ficha.js";
+import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
@@ -798,6 +799,8 @@ async function memoria(channel, chatId) {
   // Solo lo posterior al último «empezar de nuevo» (vienen de más nuevo a más viejo).
   const corte = filas.findIndex((f) => f.content?.corte);
   if (corte !== -1) filas.length = corte;
+  // Lo último que dijo Lola trae sus tareas abiertas (pendientes.js).
+  const pendientes = filas.find((f) => f.role === "assistant")?.content?.pendientes ?? [];
   // Alternar user/assistant empezando por user, como pide la API.
   const turnos = filas.reverse().map((f) => ({ role: f.role, content: String(f.content?.texto ?? "") })).filter((t) => t.content);
   while (turnos.length && turnos[0].role !== "user") turnos.shift();
@@ -807,7 +810,7 @@ async function memoria(channel, chatId) {
     else limpios.push(t);
   }
   if (limpios.length && limpios[limpios.length - 1].role === "user") limpios.pop();
-  return limpios;
+  return { historia: limpios, pendientes };
 }
 
 // Los mismos datos aunque vengan en otro orden o con huecos vacíos.
@@ -950,11 +953,18 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     });
   // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
-  const [tope, historia, tools, casa, extras] = await Promise.all([
+  const [tope, mem, tools, casa, extras] = await Promise.all([
     fueraDeLimite(householdId), memoria(channel, chatId), conPapel.then(() => herramientas(chat)),
     cargarCasa(householdId).catch(() => null), extrasDeFicha(householdId, chatId),
   ]);
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
+  const { historia, pendientes: guardadas } = mem;
+  // Lo que el estado de la casa aún pregunta (ficha PENDIENTE): la fuente de verdad para las tareas de seguridad.
+  const preguntas = preguntasPendientes(casa?.state?.data ?? {});
+  const abiertas = vigentesSegun(guardadas, preguntas);
+  // Las tareas abiertas van delante de lo que dice la persona, solo para el modelo: no se guardan en su mensaje.
+  const bloque = bloqueDe(abiertas);
+  const entradaModelo = bloque ? `${bloque}\n\n${entrada}` : entrada;
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
@@ -976,7 +986,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     adelanto.usar(leido);
     if (leido) medidaPista = { ...medidaPista, modo: d.modo, confianza: d.confianza, adelanto: leido.nombre, reinicio };
     return ejecutar({
-      historia, entrada, tools: conAdelanto, adjunto, signal: sig, ficha, progreso,
+      historia, entrada: entradaModelo, tools: conAdelanto, adjunto, signal: sig, ficha, progreso,
       guardados: () => chat.guardados ?? 0,
       pista: leido ? textoPista(d, leido) : null,
       alEscribir: alEscribir ? (parcial, extra) => {
@@ -1031,7 +1041,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   }
 
   const llevados = await contarUso(householdId, uso).catch((e) => { console.error("[agente] uso", e?.message); return 0; });
-  const respuesta = dicho + avisoDeLimite(householdId, llevados);
+  const { visible, pendientes: pendientesNuevas } = tramitar(dicho, abiertas, texto, { clave: preguntas[0]?.clave ?? null });
+  const respuesta = visible + avisoDeLimite(householdId, llevados);
 
   // Guardar la charla no tiene por qué retrasar la respuesta: va en
   // `guardado`, y quien entrega lo espera DESPUÉS de enviar y antes de soltar
@@ -1039,7 +1050,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const guardado = Promise.all([
     insert("bot_messages", [
       { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor ?? null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
-      { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta } },
+      { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, pendientes: pendientesNuevas } },
     ]).catch((e) => console.error("[agente] memoria", e?.message)),
     segundaSemana(householdId).catch(() => {}),
   ]);
