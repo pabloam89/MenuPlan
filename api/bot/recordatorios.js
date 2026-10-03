@@ -10,6 +10,7 @@ import crypto from "node:crypto";
 import { enviarPendientes } from "../_bot/recordatorios.js";
 import { enviar, escaparHtml } from "../_bot/telegram.js";
 import { VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
+import { rpc } from "../_bot/db.js";
 
 function autorizado(cabecera) {
   const secreto = process.env.BOT_CRON_SECRET || process.env.CRON_SECRET;
@@ -39,5 +40,8 @@ export default async function handler(req, res) {
       ? { botones: [[{ texto: "👉 Vamos", dato: `t:${r.text}` }]] }
       : {});
   });
-  return res.status(200).json({ ok: true, enviados });
+  // Tareas caducadas y lo cerrado de hace más de 7 días (texto que puede llevar
+  // salud o menores): fuera. Si falla, los recordatorios ya salieron.
+  const tareas = await rpc("bot_tareas_purgar", {}).catch((e) => { console.error("[tareas] purga", e?.message); return null; });
+  return res.status(200).json({ ok: true, enviados, tareas });
 }

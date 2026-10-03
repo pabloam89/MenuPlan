@@ -69,21 +69,31 @@ describe("tramitar: crear, cerrar y caducar tareas", () => {
 });
 
 describe("vigentesSegun: el estado de la casa manda sobre las tareas de seguridad", () => {
-  it("una tarea ligada a una pregunta de estado ya contestada se quita sola", () => {
-    const abiertas = [{ id: "P1", pedido: "recomendar para Cova", falta: "alergias", vistas: 0, clave: "alergias:cova" }];
-    expect(vigentesSegun(abiertas, [])).toEqual([]);
+  const resueltaSi = (...claves) => (c) => claves.includes(c);
+  it("una tarea ligada a un hueco ya resuelto se quita sola", () => {
+    const abiertas = [{ id: "P1", pedido: "recomendar para Cova", falta: "alergias", vistas: 0, clave: "alergias:c1" }];
+    expect(vigentesSegun(abiertas, resueltaSi("alergias:c1"))).toEqual([]);
   });
-  it("una tarea ligada a una pregunta de estado que sigue pendiente se queda", () => {
-    const abiertas = [{ id: "P1", pedido: "recomendar para Cova", falta: "alergias", vistas: 0, clave: "alergias:cova" }];
-    expect(vigentesSegun(abiertas, [{ clave: "alergias:cova", nombre: "Cova" }])).toHaveLength(1);
+  it("una tarea ligada a un hueco aún sin resolver se queda", () => {
+    const abiertas = [{ id: "P1", pedido: "recomendar para Cova", falta: "alergias", vistas: 0, clave: "alergias:c1" }];
+    expect(vigentesSegun(abiertas, resueltaSi())).toHaveLength(1);
   });
   it("una tarea sin clave (no es de estado) no se toca aquí", () => {
     const abiertas = [{ id: "P1", pedido: "apuntar leche", falta: "cantidad", vistas: 0, clave: null }];
-    expect(vigentesSegun(abiertas, [])).toHaveLength(1);
+    expect(vigentesSegun(abiertas, resueltaSi("alergias:c1"))).toHaveLength(1);
   });
-  it("una pregunta nueva hereda la clave de estado que estaba pendiente", () => {
-    const { pendientes } = tramitar("¿Y cómo come? Purés o sólidos?", [], "recomendar para Cova", { clave: "alergias:cova" });
-    expect(pendientes[0].clave).toBe("alergias:cova");
+  it("la clave la pone el clasificador según la pregunta", () => {
+    const claveDe = (f) => (/alergi/.test(f) ? "alergias:c1" : /come/.test(f) ? "etapa:c1" : null);
+    const { pendientes } = tramitar(PREGUNTA_COVA, [], "recomendar para Cova", { claveDe });
+    expect(pendientes[0].clave).toBe("alergias:c1");
+  });
+  it("Cova: guardadas las alergias, la tarea pasa a la etapa y no se pierde", () => {
+    const claveDe = (f) => (/alergi/.test(f) ? "alergias:c1" : /come/.test(f) ? "etapa:c1" : null);
+    const previas = [{ id: "P1", pedido: "recomendar para Cova", falta: "¿alguna alergia?", vistas: 0, clave: "alergias:c1" }];
+    const { pendientes } = tramitar("✅ Apuntado: sin alergias.\n\n¿Cova ya come sólidos o sigue con purés?", previas, "Nada, ninguna", { claveDe });
+    expect(pendientes[0]).toMatchObject({ id: "P1", pedido: "recomendar para Cova", clave: "etapa:c1" });
+    // Al turno siguiente las alergias ya están revisadas, pero la tarea sigue viva.
+    expect(vigentesSegun(pendientes, resueltaSi("alergias:c1"))).toHaveLength(1);
   });
 });
 

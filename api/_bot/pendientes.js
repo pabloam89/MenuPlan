@@ -47,7 +47,7 @@ export function marcasDe(texto) {
  * @param {Array<{id:string, pedido:string, falta:string, vistas:number}>} previas
  * @param {string} pedido  lo que pidió la persona en este turno
  */
-export function tramitar(dicho, previas = [], pedido = "", { clave = null } = {}) {
+export function tramitar(dicho, previas = [], pedido = "", { claveDe = () => null } = {}) {
   const cerradas = new Set(marcasDe(dicho));
   const visible = String(dicho ?? "").replace(CUALQUIER_MARCA, "").replace(/[ \t]+\n/g, "\n").trim();
   const siguen = previas
@@ -59,12 +59,16 @@ export function tramitar(dicho, previas = [], pedido = "", { clave = null } = {}
   const pregunta = esPregunta(dicho);
   const ultima = siguen.at(-1);
   if (pregunta && ultima) {
+    // La clave sigue a la pregunta de AHORA: si antes faltaban las alergias y
+    // ahora falta cómo come, la tarea queda ligada a la etapa, no a lo ya resuelto.
     ultima.falta = faltaDe(dicho);
+    ultima.clave = claveDe(ultima.falta);
     ultima.vistas = 0;
     return { visible, pendientes: siguen.slice(-MAX_ABIERTAS) };
   }
+  const falta = faltaDe(dicho);
   const nueva = pregunta && pedido.trim()
-    ? [{ id: siguiente(previas), pedido: pedido.trim().slice(0, 300), falta: faltaDe(dicho), vistas: 0, clave }]
+    ? [{ id: siguiente(previas), pedido: pedido.trim().slice(0, 300), falta, vistas: 0, clave: claveDe(falta) }]
     : [];
   return { visible, pendientes: [...siguen, ...nueva].slice(-MAX_ABIERTAS) };
 }
@@ -74,9 +78,8 @@ export function tramitar(dicho, previas = [], pedido = "", { clave = null } = {}
  * alergia ya se guardó): no hace falta que el modelo las cierre. Las que no
  * dependen del estado se quedan y las cierra el modelo con ⟪cerrar⟫.
  */
-export function vigentesSegun(abiertas = [], preguntas = []) {
-  const vivas = new Set(preguntas.map((p) => p.clave));
-  return abiertas.filter((p) => !p.clave || vivas.has(p.clave));
+export function vigentesSegun(abiertas = [], estaResuelta = () => false) {
+  return abiertas.filter((p) => !p.clave || !estaResuelta(p.clave));
 }
 
 function siguiente(previas) {

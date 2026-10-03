@@ -101,10 +101,12 @@ export const alergiasRevisadas = (data, m) => m?.alergiasRevisadas ?? data?.alle
  * lo muestra como PENDIENTE y las tareas abiertas (pendientes.js) se cierran
  * solas cuando la clave deja de estar aquí: una sola fuente, que es el estado.
  */
-export function preguntasPendientes(data = {}) {
+export function preguntasPendientes(data = {}, calladas = new Set()) {
   return (data.members ?? [])
     .filter((m) => !alergiasRevisadas(data, m) && !(m.allergies ?? []).length)
-    .map((m) => ({ clave: `alergias:${m.id ?? m.name}`, nombre: m.name }));
+    .map((m) => ({ clave: `alergias:${m.id ?? m.name}`, nombre: m.name }))
+    // «No quiero decirlo» (bot_tareas rechazada): no se vuelve a pedir.
+    .filter((p) => !calladas.has(p.clave));
 }
 
 // Solo la edad que se sabe: resolveMemberAge pone 30 a quien no la tiene, y en
@@ -113,7 +115,7 @@ function edadDe(m) {
   const sabida = (m.useBirthDate && m.birthDate) || Number.isFinite(m.age) || Number.isFinite(parseInt(m.age, 10));
   return sabida ? resolveMemberAge(m) : null;
 }
-const esBebe = (m) => !m?.notBaby && stageForAge(resolveMemberAge(m))?.id === "baby";
+export const esBebe = (m) => !m?.notBaby && stageForAge(resolveMemberAge(m))?.id === "baby";
 
 /** «Pablo 37», «Vega 1», «Leo» */
 function personaCorta(m) {
@@ -344,7 +346,7 @@ function delDiaBloque(casa, extras, hoy) {
   if (extras.nevera?.length) lineas.push(`- Hecho y guardado: ${extras.nevera.slice(0, 3).join("; ")}.`);
   if (extras.avisos?.length) lineas.push("AVISOS", ...extras.avisos.slice(0, 2).map((a) => `- ${a}`));
   // PENDIENTE: primero, lo de seguridad.
-  const sinPreguntar = preguntasPendientes(data);
+  const sinPreguntar = preguntasPendientes(data, extras.calladas ?? new Set());
   if (sinPreguntar.length) lineas.push("PENDIENTE", `- ¿${lista(sinPreguntar.map((p) => p.nombre))} ${sinPreguntar.length > 1 ? "tienen" : "tiene"} alguna alergia o intolerancia?`);
   return lineas;
 }
