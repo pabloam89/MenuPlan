@@ -66,4 +66,17 @@ describe("unaVuelta: progreso y pista", () => {
     // La API exige los de 1 h antes que los de 5 min: el del mensaje va sin ttl (5 min).
     expect(guion.params.messages.at(-1).content[0].cache_control).toEqual({ type: "ephemeral" });
   });
+
+  it("apunta cada llamada al modelo: ms, tokens de salida y primer trozo de texto", async () => {
+    guion.mensajes = [msg(null), msg("Listo.")];
+    const r = await ejecutar({ entrada: "¿qué hay el sábado?", tools: [], modelos: ["claude-sonnet-5"], alEscribir: () => {} });
+    expect(r.llamadas).toHaveLength(2);
+    for (const [ms, out] of r.llamadas) {
+      expect(ms).toBeGreaterThanOrEqual(0);
+      expect(out).toBe(1);
+    }
+    // La primera llamada solo pidió una herramienta: sin texto. La segunda, sí.
+    expect(r.llamadas[0][2]).toBeNull();
+    expect(r.llamadas[1][2]).toBeGreaterThanOrEqual(0);
+  });
 });

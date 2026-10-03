@@ -65,6 +65,13 @@ const turnos = eventos.filter((e) => e.event === "bot_route" && !e.m.sombra).map
   total: e.m.ms ?? null,
   router: e.m.router_ms ?? null,
   vueltas: e.m.lola?.vueltas ?? null,
+  // Tiempo del modelo (sus llamadas menos las herramientas) y tokens de salida.
+  modelo: Array.isArray(e.m.lola?.llamadas)
+    ? {
+      ms: Math.max(0, e.m.lola.llamadas.reduce((a, [ms]) => a + ms, 0) - (e.m.lola.herramientas ?? []).reduce((a, [, ms]) => a + ms, 0)),
+      tokens: e.m.lola.llamadas.reduce((a, [, out]) => a + out, 0),
+    }
+    : null,
   herramientas: (e.m.lola?.herramientas ?? []).map(([n, ms]) => `${n} ${(ms / 1000).toFixed(1)} s`),
   avisos: avisosDe(e),
   ...(TEXTOS ? { texto: e.m.texto ?? null } : {}),

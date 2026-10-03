@@ -215,8 +215,8 @@ else {
 }
 
 // ── Tabla de turnos (los últimos primero) ───────────────────────────────────
-const cab = ["Hora", "Camino", "Modo", "Conf.", "Primer texto", "Total", "Enrutador", "Herramientas", "Avisos", ...(D.textos ? ["Mensaje"] : [])];
-$("turnos").append(el("tr", {}, ...cab.map((c, i) => el("th", { class: i >= 3 && i <= 6 ? "n" : "" }, c))));
+const cab = ["Hora", "Camino", "Modo", "Conf.", "Primer texto", "Total", "Enrutador", "Modelo", "Herramientas", "Avisos", ...(D.textos ? ["Mensaje"] : [])];
+$("turnos").append(el("tr", {}, ...cab.map((c, i) => el("th", { class: i >= 3 && i <= 7 ? "n" : "" }, c))));
 if (!D.turnos.length) $("turnos").append(el("tr", {}, el("td", { colspan: cab.length, class: "vacio" }, "Sin turnos.")));
 for (const t of [...D.turnos].reverse().slice(0, 100)) {
   const lento = (ms, obj) => ms != null && obj != null && ms > obj;
@@ -229,6 +229,7 @@ for (const t of [...D.turnos].reverse().slice(0, 100)) {
     el("td", { class: `n ${lento(t.primer, objPrimer) ? "mal" : ""}` }, seg(t.primer)),
     el("td", { class: `n ${t.camino === "lola" && lento(t.total, D.objetivos.turnoLolaP95Ms) ? "mal" : ""}` }, seg(t.total)),
     el("td", { class: "n" }, seg(t.router)),
+    el("td", { class: "n" }, t.modelo ? `${seg(t.modelo.ms)} · ${t.modelo.tokens} tok` : "—"),
     el("td", {}, ...(t.herramientas.length ? t.herramientas.map((h) => el("span", { class: "tag" }, h)) : ["—"])),
     el("td", {}, ...(t.avisos.length ? t.avisos.map((a) => el("span", { class: "tag malo" }, a)) : ["—"])),
     ...(D.textos ? [el("td", { class: "texto" }, t.texto ?? "—")] : []),
