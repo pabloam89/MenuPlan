@@ -232,6 +232,27 @@
       }
     },
     {
+      "texto": "Lola dame una opción con más carbos para el jueves 8 oct",
+      "modo": "recomendar",
+      "rapida": true,
+      "datos": {
+        "dia": "jueves",
+        "eje.cual": "carbohidratos",
+        "eje.direccion": "mas"
+      }
+    },
+    {
+      "texto": "cambia la cena del viernes por algo con menos grasa",
+      "modo": "cambiar",
+      "rapida": true,
+      "datos": {
+        "dia": "viernes",
+        "comida": "Cena",
+        "eje.cual": "grasa",
+        "eje.direccion": "menos"
+      }
+    },
+    {
       "texto": "Los viernes de cena",
       "anterior": "pizza congelada",
       "ultima": "¡Qué buena idea para una noche sin complicaciones! 🍕 ¿Qué día quieres la pizza?",

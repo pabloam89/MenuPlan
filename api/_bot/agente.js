@@ -21,8 +21,8 @@ import {
   marcarCompra, anadirCompra, cambiarPlato, proponerPlatos, diaDe, franjaDe,
   rangosDelMenu,
   apuntarAusencia,
-  EJES_NUMERICOS,
 } from "./menu.js";
+import { ESQUEMA_RASGOS, ESQUEMA_EJE } from "./esquemas.js";
 import { generarMenu } from "./generar.js";
 import { avisoVispera } from "./vispera.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
@@ -642,30 +642,6 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     return f(casa);
   };
   const semana = { type: "string", enum: ["esta", "siguiente"], description: "Opcional: «esta» semana o la «siguiente», si lo dicen. Sin ella, el próximo día con ese nombre que tenga menú." };
-  const ESQUEMA_RASGOS = {
-    type: "object",
-    description: "Opcional: lo que piden del plato, tal cual lo dicen. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito»… Solo los que digan.",
-    properties: {
-      connotacion: { type: "string", enum: ["reconfortante", "fresco", "casero", "festivo"] },
-      textura: { type: "string", enum: ["cuchara", "tenedor", "mano"], description: "cuchara = sopas, cremas, guisos; mano = para picar o bocadillo." },
-      picante: { type: "string", enum: ["sin", "con"], description: "sin = que no pique; con = que pique." },
-      sabor: { type: "string", enum: ["suave", "intenso", "especiado", "dulce", "acido", "ahumado"] },
-      coste: { type: "string", enum: ["economico", "medio", "caro"], description: "economico = barato (menos de 1 € por ración)." },
-      calorias: { type: "string", enum: ["ligero", "medio", "contundente"], description: "Para «algo contundente»; para «ligero» usa estilo." },
-    },
-    additionalProperties: false,
-  };
-  const ESQUEMA_EJE = {
-    type: "object",
-    description: "Opcional: «más» o «menos» de un número del plato, comparado con el que ya está en ese hueco. «Más carbos» → carbohidratos; «que llene» → carga (lo que sacia); «menos grasa» → grasa; «más proteína» → proteina. densidadNutricional = kcal por 100 g, para «algo que pese menos»; «ligero» sigue siendo estilo. Solo si lo piden.",
-    properties: {
-      cual: { type: "string", enum: Object.keys(EJES_NUMERICOS) },
-      direccion: { type: "string", enum: ["mas", "menos"] },
-    },
-    required: ["cual", "direccion"],
-    additionalProperties: false,
-  };
-
   return [
     herramienta({ lector: true, soloLectura: true, pantalla: null }, {
       name: "ver_casa",
