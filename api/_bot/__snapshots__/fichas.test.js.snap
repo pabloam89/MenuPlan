@@ -1299,6 +1299,67 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
  },
  {
   "type": "custom",
+  "name": "anotar_tarea",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "texto": {
+     "type": "string",
+     "description": "Lo que queda abierto, en corto."
+    },
+    "kind": {
+     "type": "string",
+     "enum": [
+      "seguimiento",
+      "pregunta"
+     ]
+    },
+    "scope": {
+     "type": "string",
+     "enum": [
+      "casa",
+      "personal"
+     ]
+    },
+    "confirmado": {
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "texto",
+    "kind",
+    "confirmado"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Apunta algo que queda abierto para más adelante: un seguimiento («dímelo cuando lo sepas») o una pregunta que hace falta contestar para atender algo («cómo come el bebé»). SOLO después de que la persona haya dicho que sí a que lo apuntes: pregúntale antes y pon confirmado = true únicamente con su sí. scope «personal» solo si es algo suyo y estáis en privado."
+ },
+ {
+  "type": "custom",
+  "name": "cerrar_tarea",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    },
+    "estado": {
+     "type": "string",
+     "enum": [
+      "hecha",
+      "descartada"
+     ]
+    }
+   },
+   "required": [
+    "id"
+   ],
+   "additionalProperties": false
+  },
+  "description": "Cierra una tarea abierta por su id (la ves en «Tareas abiertas de la casa») cuando ya está resuelta. estado «descartada» si ya no hace falta."
+ },
+ {
+  "type": "custom",
   "name": "ver_despensa",
   "input_schema": {
    "type": "object",

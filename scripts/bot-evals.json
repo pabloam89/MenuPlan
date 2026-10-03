@@ -1815,6 +1815,30 @@
         "generar_menu"
       ],
       "sinTexto": "⟪cerrar P1⟫"
+    },
+    {
+      "nombre": "seguimiento: «dímelo cuando lo sepas» → pregunta antes de apuntar, no escribe",
+      "entrada": "dímelo cuando lo sepas si ya llegó el pedido",
+      "noLlama": [
+        "anotar_tarea"
+      ],
+      "texto": "[Aa]punt|[Qq]uieres que|¿lo apunto|te lo digo"
+    },
+    {
+      "nombre": "seguimiento: con su sí, lo apunta como seguimiento",
+      "historia": [
+        { "role": "user", "content": "dímelo cuando sepas si ya llegó el pedido" },
+        { "role": "assistant", "content": "Vale. ¿Quieres que lo apunte y te lo digo cuando sepa algo?" }
+      ],
+      "entrada": "Sí, apúntalo",
+      "llama": [
+        "anotar_tarea"
+      ],
+      "args": {
+        "anotar_tarea": {
+          "kind": "seguimiento"
+        }
+      }
     }
   ]
 }

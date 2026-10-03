@@ -38,6 +38,7 @@ import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { supervisar } from "./supervisor.js";
 import { montarFicha, extrasDeFicha, preguntasPendientes } from "./ficha.js";
 import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
+import { tareasAbiertas, anotarTarea, cerrarTarea, bloqueDeTareas } from "./tareas.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
@@ -159,6 +160,7 @@ function todasLasHerramientas(chat, gustos) {
     ...herramientasDeMenu(chat.householdId, chat.fotos, chat),
     ...herramientasDeAjustes(chat.householdId, gustos, chat),
     ...herramientasDeRecordatorios(chat),
+    ...herramientasDeTareas(chat),
     ...herramientasDeFotos(chat.householdId),
     ...herramientasDeRecetas(chat),
   ];
@@ -351,6 +353,33 @@ function herramientasDeFotos(householdId) {
       description: "El menú del cole guardado (lo que comen los niños en el comedor).",
       inputSchema: obj({}),
       run: () => verMenuCole(householdId),
+    }),
+  ];
+}
+
+function herramientasDeTareas(chat) {
+  const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
+  const contexto = { householdId: chat.householdId, channel: chat.channel ?? "telegram", chatId: chat.chatId, userId: chat.userId ?? null, privado: !chat.esGrupo };
+  return [
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
+      name: "anotar_tarea",
+      description: "Apunta algo que queda abierto para más adelante: un seguimiento («dímelo cuando lo sepas») o una pregunta que hace falta contestar para atender algo («cómo come el bebé»). SOLO después de que la persona haya dicho que sí a que lo apuntes: pregúntale antes y pon confirmado = true únicamente con su sí. scope «personal» solo si es algo suyo y estáis en privado.",
+      inputSchema: obj({
+        texto: { type: "string", description: "Lo que queda abierto, en corto." },
+        kind: { type: "string", enum: ["seguimiento", "pregunta"] },
+        scope: { type: "string", enum: ["casa", "personal"] },
+        confirmado: { type: "boolean" },
+      }, ["texto", "kind", "confirmado"]),
+      run: (args) => anotarTarea(contexto, args),
+    }),
+    herramienta({ lector: false, soloLectura: false, pantalla: null }, {
+      name: "cerrar_tarea",
+      description: "Cierra una tarea abierta por su id (la ves en «Tareas abiertas de la casa») cuando ya está resuelta. estado «descartada» si ya no hace falta.",
+      inputSchema: obj({
+        id: { type: "string" },
+        estado: { type: "string", enum: ["hecha", "descartada"] },
+      }, ["id"]),
+      run: ({ id, estado }) => cerrarTarea(chat.householdId, id, estado ?? "hecha"),
     }),
   ];
 }
@@ -948,14 +977,16 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     .catch((e) => { console.error("[agente] papel", e?.message); return { papel: "ajeno", userId: null }; })
     .then(async (p) => {
       chat.papel = p.papel;
+      chat.userId = p.userId ?? null;
       chat.idioma = await idiomaDe(p.userId).catch(() => null);
       return p;
     });
   // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
-  const [tope, mem, tools, casa, extras] = await Promise.all([
+  const [tope, mem, tools, casa, extras, tareas] = await Promise.all([
     fueraDeLimite(householdId), memoria(channel, chatId), conPapel.then(() => herramientas(chat)),
     cargarCasa(householdId).catch(() => null), extrasDeFicha(householdId, chatId),
+    conPapel.then(() => tareasAbiertas(householdId, { userId: chat.userId, privado: !esGrupo })).catch((e) => { console.error("[agente] tareas", e?.message); return []; }),
   ]);
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
   const { historia, pendientes: guardadas } = mem;
@@ -964,7 +995,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const abiertas = vigentesSegun(guardadas, preguntas);
   // Las tareas abiertas van delante de lo que dice la persona, solo para el modelo: no se guardan en su mensaje.
   const bloque = bloqueDe(abiertas);
-  const entradaModelo = bloque ? `${bloque}\n\n${entrada}` : entrada;
+  const entradaModelo = [bloqueDeTareas(tareas), bloque, entrada].filter(Boolean).join("\n\n");
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
