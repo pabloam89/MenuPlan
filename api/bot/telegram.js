@@ -106,6 +106,11 @@ export default async function handler(req, res) {
   return res.status(200).json({ ok: true });
 }
 
+// Cómo se la nombra al empezar una frase: para saber si le hablan a ella
+// (NOMBRADA) y para quitárselo antes de pasarle el resto al agente (SIN_NOMBRE).
+const NOMBRADA = /^lola\b/i;
+const SIN_NOMBRE = /^lola[\s,:;.!¡¿-]*/i;
+
 /**
  * En un grupo, ¿el mensaje es para Lola? Un comando, una mención, una
  * respuesta a un mensaje suyo, o que empiece por «Lola». Exportada para el test.
@@ -116,7 +121,7 @@ export function meHablan(msg, yo) {
   return /^\/\w+/.test(pie)
     || Boolean(bot && pie.toLowerCase().includes(`@${bot}`))
     || Boolean(msg.reply_to_message?.from?.is_bot && msg.reply_to_message.from.username?.toLowerCase() === bot)
-    || /^lola\b/i.test(pie);
+    || NOMBRADA.test(pie);
 }
 
 const nombreDe = (from) => [from?.first_name, from?.last_name].filter(Boolean).join(" ") || null;
@@ -126,6 +131,7 @@ async function atender(msg, base, host = "") {
   const chatId = String(msg.chat.id);
   const esGrupo = esGrupoDe(msg.chat);
   let texto = (msg.text ?? "").trim();
+  let oidoDeGrupo = null; // si una nota de voz del grupo ya se transcribió para saber si era para Lola
 
   // En un grupo: al entrar, se presenta; y solo contesta cuando le hablan a
   // ella (un comando, una mención, una respuesta a un mensaje suyo, o un
@@ -134,8 +140,21 @@ async function atender(msg, base, host = "") {
   if (esGrupo) {
     const yo = (await nombreDelBot().catch(() => "")).toLowerCase();
     if (msg.new_chat_members?.some((m) => m.is_bot && m.username?.toLowerCase() === yo)) return saludoGrupo(chatId);
-    if (!meHablan(msg, yo)) return;
-    texto = texto.replace(/^lola[\s,:;.!¡¿-]*/i, "").trim() || texto;
+    if (!meHablan(msg, yo)) {
+      // Una nota de voz no lleva texto ni pie: sin escucharla no hay forma de
+      // saber si empieza por «Lola». Se transcribe solo para decidir esto; si
+      // no es para ella, se tira tal cual (nadie contesta ni queda rastro).
+      const audio = !msg.caption && (msg.voice ?? msg.audio);
+      if (!audio) return;
+      llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
+      const [paraOir] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+      oidoDeGrupo = await transcribir(audio, { householdId: paraOir?.household_id }).catch(() => null);
+      if (!oidoDeGrupo?.texto || !NOMBRADA.test(oidoDeGrupo.texto.trim())) return;
+      // `texto` sigue vacío a propósito: lo de más abajo («Notas de voz») la
+      // trata como la nota de voz que es, con su «oído: …», reutilizando esto.
+    } else {
+      texto = texto.replace(SIN_NOMBRE, "").trim() || texto;
+    }
   }
 
   // /start <código> o, en grupo, /start@HoMenuBot <código>
@@ -225,9 +244,12 @@ async function atender(msg, base, host = "") {
   // empieza con lo que se entendió, para que un error de oído se vea.
   const audio = msg.voice ?? msg.audio;
   if (!texto && audio) {
-    llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
-    const t = await transcribir(audio, { householdId: chat.household_id })
-      .catch((e) => ({ error: e?.message }));
+    // La del filtro de grupo ya se transcribió para saber si era para ella:
+    // no se vuelve a pagar Groq por el mismo audio.
+    const t = oidoDeGrupo ?? await (async () => {
+      llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
+      return transcribir(audio, { householdId: chat.household_id }).catch((e) => ({ error: e?.message }));
+    })();
     if (t.error) {
       // Sin esto, «no he podido entender el audio» no dejaba rastro de por qué.
       console.error("[voz]", t.error, { segundos: audio.duration, tipo: audio.mime_type });
@@ -238,7 +260,10 @@ async function atender(msg, base, host = "") {
           : "Ahora mismo no puedo escuchar audios. ¿Me lo escribes?";
       return enviar(chatId, porque, { responderA: esGrupo ? msg.message_id : undefined });
     }
-    return enTurno(chatId, itemDe(msg.from, t.texto, { oido: t.texto, responderA: esGrupo ? msg.message_id : undefined }),
+    // Lo que se le dice A ella no lleva su nombre delante; lo que se enseña
+    // como «oído: …» sí, tal cual se dijo, para que un error de oído se vea.
+    const dicho = t.texto.replace(SIN_NOMBRE, "").trim() || t.texto;
+    return enTurno(chatId, itemDe(msg.from, dicho, { oido: t.texto, responderA: esGrupo ? msg.message_id : undefined }),
       atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
   }
 
