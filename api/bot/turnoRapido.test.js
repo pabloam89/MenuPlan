@@ -9,7 +9,7 @@ process.env.BOT_ROUTER = "on";
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
-const t = vi.hoisted(() => ({ orden: [], rutas: [], limite: null, idioma: "es", cancelarTardaMs: 80 }));
+const t = vi.hoisted(() => ({ orden: [], rutas: [], limite: null, idioma: "es", cancelarTardaMs: 80, rapida: true, decision: { modo: "consulta", confianza: 0.95 } }));
 
 vi.mock("@vercel/functions", () => ({ waitUntil: () => {} }));
 vi.mock("../_bot/db.js", () => ({ select: vi.fn(async () => []), insert: vi.fn(async () => []), update: vi.fn(async () => []), rpc: vi.fn(), eq: (x) => x }));
@@ -25,14 +25,15 @@ vi.mock("../_bot/agente.js", () => ({
     signal?.addEventListener("abort", () => setTimeout(() => { t.orden.push("lola-cancelada"); ko(new Error("turno cortado")); }, t.cancelarTardaMs));
   })),
   cortarCharla: vi.fn(), esCaida: () => false,
+  AVISO_LENTO: { generar_menu: "Voy, te preparo el menú, dame unos segundos", buscar_recetas: () => "Un momento" },
 }));
 vi.mock("../_bot/embudo.js", () => ({
   registrar: vi.fn(async (ev, { extra } = {}) => { if (ev === "bot_route") t.rutas.push(extra); }),
   rastro: vi.fn(), EMBUDO: {}, duenoDe: vi.fn(async () => "u"),
 }));
 vi.mock("../_bot/router.js", () => ({
-  clasificar: vi.fn(async () => ({ modo: "consulta", confianza: 0.95, datos: {}, ms: 5, uso: {} })),
-  vaPorLaRapida: () => true, permitidoEn: () => true,
+  clasificar: vi.fn(async () => ({ datos: {}, ms: 5, uso: {}, ...t.decision })),
+  vaPorLaRapida: () => t.rapida, permitidoEn: () => true,
 }));
 vi.mock("../_bot/turno.js", () => ({
   viaRapida: vi.fn(async () => ({ texto: "Hoy: tortilla" })), eleccionDe: () => null, aplicarEleccion: vi.fn(), contextoDe: vi.fn(async () => ({})),
@@ -56,11 +57,11 @@ vi.mock("../_bot/casa.js", () => ({ hoyISO: () => "2026-10-02", cargarCasa: vi.f
 vi.mock("../_bot/borrar.js", () => ({ puedeBorrar: vi.fn(), borrarCuenta: vi.fn(), limpiarPantalla: vi.fn() }));
 vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
 
-const { turno } = await import("./telegram.js");
+const { turno, avisoDelModo } = await import("./telegram.js");
 const { responder } = await import("../_bot/agente.js");
 const pedir = () => turno({ chatId: 1, householdId: "h", esGrupo: false, base: "https://x", texto: "¿qué cenamos?", from: { id: 7, first_name: "Ana" }, responderA: 9 });
 
-beforeEach(() => { t.orden.length = 0; t.rutas.length = 0; t.limite = null; t.idioma = "es"; vi.clearAllMocks(); });
+beforeEach(() => { t.orden.length = 0; t.rutas.length = 0; t.limite = null; t.idioma = "es"; t.rapida = true; t.decision = { modo: "consulta", confianza: 0.95 }; vi.clearAllMocks(); });
 
 describe("turno por la vía rápida", () => {
   it("la plantilla sale antes de que Lola acabe de cancelarse", async () => {
@@ -92,5 +93,47 @@ describe("turno por la vía rápida", () => {
     expect(t.rutas).toHaveLength(0);
     expect(responder).toHaveBeenCalledTimes(1);
     expect(responder.mock.calls[0][0].puerta ?? null).toBeNull();
+  });
+});
+
+describe("el aviso sale en cuanto el enrutador sabe qué se pide", () => {
+  const AVISO = "Voy, te preparo el menú, dame unos segundos";
+  const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+  const pedirMenu = () => turno({ chatId: 1, householdId: "h", esGrupo: false, base: "https://x", texto: "prepárame el menú de la semana que viene", from: { id: 7, first_name: "Ana" }, responderA: 9 });
+
+  it("avisoDelModo: solo para lo que tarda, y solo si el enrutador lo tiene claro", () => {
+    expect(avisoDelModo({ modo: "generar", confianza: 0.85 })).toBe(AVISO);
+    expect(avisoDelModo({ modo: "generar", confianza: 0.5 })).toBeNull();
+    expect(avisoDelModo({ modo: "consulta", confianza: 0.95 })).toBeNull();
+    expect(avisoDelModo({ modo: "lola", confianza: 0.95 })).toBeNull();
+    expect(avisoDelModo(null)).toBeNull();
+  });
+
+  it("«prepárame el menú»: el aviso se ve antes de que Lola conteste", async () => {
+    t.rapida = false;
+    t.decision = { modo: "generar", confianza: 0.85 };
+    responder.mockImplementationOnce(async () => { await espera(120); t.orden.push("lola-contesta"); return { texto: "¡Menú listo!", fotos: [] }; });
+    await pedirMenu();
+    const aviso = t.orden.findIndex((x) => x.startsWith("enviar:") && x.includes(AVISO));
+    expect(aviso).toBeGreaterThanOrEqual(0);
+    expect(aviso).toBeLessThan(t.orden.indexOf("lola-contesta"));
+    expect(t.rutas[0].rapida).toBe(false);
+    expect(t.rutas[0].primer_ms).toBeLessThan(120);
+  });
+
+  it("si Lola ya ha escrito algo suyo, el aviso no lo pisa", async () => {
+    t.rapida = false;
+    t.decision = { modo: "generar", confianza: 0.85 };
+    responder.mockImplementationOnce(async ({ alEscribir }) => { alEscribir("¿Para esta semana o para la que viene?"); await espera(40); return { texto: "¿Para esta semana o para la que viene?", fotos: [] }; });
+    await pedirMenu();
+    expect(t.orden.some((x) => x.includes(AVISO))).toBe(false);
+  });
+
+  it("con el enrutador dudando, sin aviso", async () => {
+    t.rapida = false;
+    t.decision = { modo: "generar", confianza: 0.5 };
+    responder.mockImplementationOnce(async () => { await espera(40); return { texto: "¿Qué necesitas?", fotos: [] }; });
+    await pedirMenu();
+    expect(t.orden.some((x) => x.includes(AVISO))).toBe(false);
   });
 });
