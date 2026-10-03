@@ -15,7 +15,7 @@
  * solo a esa comida necesita tocar el motor (specs/invitados-seguros.md).
  */
 
-import { EU_ALLERGENS, normalizeAllergenId } from "../../src/lib/allergens.js";
+import { EU_ALLERGENS, normalizeAllergenId } from "../../src/lib/allergensCore.js";
 import { INTOLERANCE_RULES } from "../../src/lib/intolerances.js";
 
 export const ALERGENOS = Object.keys(EU_ALLERGENS);
