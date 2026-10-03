@@ -61,3 +61,6 @@ export { choquesDeReceta, textoDeChoque } from "../lib/restriccionesReceta.js";
 
 // El coste por ración, para scripts/build-coste.mjs (Node a secas no carga src/).
 export { costeDeReceta } from "../lib/derive/coste.js";
+
+// Los ejes «más/menos» de densidad y carga (api/_bot/menu.js, EJES_NUMERICOS).
+export { densidadDe, cargaDe } from "../lib/derive/ejesDePlato.js";

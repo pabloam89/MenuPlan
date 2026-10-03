@@ -1,11 +1,12 @@
-import { describe, it, expect } from "vitest";
-import { conRasgos, segunEstilo, conEje } from "./menu.js";
+import { describe, it, expect, beforeAll } from "vitest";
+import { conRasgos, segunEstilo, conEje, prepararDerivados } from "./menu.js";
 import { recipeCatalog } from "../../src/data/recipeCatalog.js";
 
 const estrella = recipeCatalog.filter((r) => r.estrella && r.category !== "bebes");
 const base = estrella.find((r) => [r.protein_g, r.fiber_g, r.carbs_g, r.fat_g, r.kcal].every((v) => v != null));
 
 describe("conEje, «más/menos» de un número contra el plato de ahora", () => {
+  beforeAll(() => prepararDerivados());
   it("«más carbos» deja solo lo que tiene más carbohidratos que el plato de ahora", () => {
     const { lista, aviso } = conEje(estrella, { cual: "carbohidratos", direccion: "mas" }, base);
     expect(aviso).toBeNull();

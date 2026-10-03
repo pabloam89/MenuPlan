@@ -28,8 +28,8 @@ import {
   slotAcceptsRole,
 } from "../utils/validateMenu.js";
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
-import guarnicionesData from "../data/recipes/guarniciones.json";
-import salsasData from "../data/recipes/salsas.json";
+import guarnicionesData from "../data/recipes/guarniciones.json" with { type: "json" };
+import salsasData from "../data/recipes/salsas.json" with { type: "json" };
 import { formatFixedDishesForAI, pinnedGarnishMap, pinnedSalsaMap, enforceFixedDishes, catalogMatchesForFixedDish } from "./fixedDishes.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { applySeasonalFruit, filterPostrePool } from "./postres.js";

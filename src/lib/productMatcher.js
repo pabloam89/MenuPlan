@@ -4,7 +4,7 @@
  */
 
 import { normalizeName, guessShoppingAisle, isPerishableAisle } from "./ingredientCategories.js";
-import productoBuscadoJson from "../data/productoBuscado.json";
+import productoBuscadoJson from "../data/productoBuscado.json" with { type: "json" };
 
 /** @typedef {{ id: string, name: string, price?: number|null, unitSize?: number|null, unitFormat?: string|null, section?: string, category?: string, subcategory?: string }} StoreProduct */
 

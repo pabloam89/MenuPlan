@@ -1,6 +1,6 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
-import salsas from "../data/recipes/salsas.json";
+import salsas from "../data/recipes/salsas.json" with { type: "json" };
 import { normalizeName, guessShoppingAisle } from "./ingredientCategories.js";
 
 // ── Canonical ingredient dictionary ──────────────────────────────────────

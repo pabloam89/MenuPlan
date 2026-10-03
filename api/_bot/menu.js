@@ -22,10 +22,18 @@ import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/l
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 import { restriccionesDeFuera, conQuienViene, describirDeFuera } from "./deFuera.js";
 import { EJE_POR_ID, puedeResponder } from "../../src/data/axisRegistry.js";
-import { densidadDe, cargaDe } from "../../src/lib/derive/ejesDePlato.js";
 
 let motorCargado = null;
 export const motor = async () => (motorCargado ??= await import("./core.mjs"));
+
+// La densidad y la carga salen del bundle: src/ no se carga en Node a secas.
+let derivados = null;
+export async function prepararDerivados() {
+  if (!derivados) {
+    const m = await motor();
+    derivados = { densidadDe: m.densidadDe, cargaDe: m.cargaDe };
+  }
+}
 
 // Las comidas salen del catálogo (src/lib/comidas.js): una sola lista.
 const FRANJAS = IDS_COMIDAS;
@@ -544,6 +552,7 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   // entre lo que ya cumple, no al revés.
   const actual = m.RECIPES_BY_ID[h.course === "first" ? h.hueco.firstRecipeId : h.hueco.recipeId];
   const filtro = conRasgos(res?.candidatos ?? [], rasgos);
+  await prepararDerivados();
   const filtroEje = conEje(filtro.lista, eje, actual);
   const aviso = [filtro.aviso, filtroEje.aviso].filter(Boolean).join(" ") || null;
   let lista = parecidoA ? res?.candidatos ?? [] : variadas(segunEstilo(filtroEje.lista, estilo), n);
@@ -744,10 +753,10 @@ export const EJES_NUMERICOS = {
   proteina: { leer: (r) => r?.protein_g ?? null, etiqueta: "proteína" },
   carbohidratos: { leer: (r) => r?.carbs_g ?? null, etiqueta: "carbohidratos" },
   grasa: { leer: (r) => r?.fat_g ?? null, etiqueta: "grasa" },
-  densidadNutricional: { leer: (r) => densidadDe(r).valor?.kcal100g ?? null, etiqueta: "calorías por 100 g", registro: "densidadNutricional" },
+  densidadNutricional: { leer: (r) => derivados?.densidadDe(r)?.valor?.kcal100g ?? null, etiqueta: "calorías por 100 g", registro: "densidadNutricional" },
   carga: {
     leer: (r) => {
-      const v = cargaDe(r).valor;
+      const v = derivados?.cargaDe(r)?.valor;
       return v ? v.proteinaPor100kcal + v.fibraPor100kcal : null;
     },
     etiqueta: "lo que sacia",
@@ -853,6 +862,7 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
     const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
     const res = m.pickCatalogReplacement(conQuienViene(data, [g.id], deFuera), plan, { groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: POOL_PARA_VARIAR });
     const filtro = conRasgos(res?.candidatos ?? [], rasgos);
+    await prepararDerivados();
     const filtroEje = conEje(filtro.lista, eje);
     const avisoFiltro = [filtro.aviso, filtroEje.aviso].filter(Boolean).join(" ") || null;
     if (avisoFiltro) bloques.push(avisoFiltro);
@@ -922,6 +932,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       const pool = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
       const actualCambio = m.RECIPES_BY_ID[course === "first" ? hueco.firstRecipeId : hueco.recipeId];
       const porRasgos = conRasgos(pool?.candidatos ?? [], rasgos);
+      await prepararDerivados();
       const porEje = conEje(porRasgos.lista, eje, actualCambio);
       const aviso = [porRasgos.aviso, porEje.aviso].filter(Boolean).join(" ");
       // Un cambio no se hace si lo pedido no existe: se devuelve el aviso tal cual.

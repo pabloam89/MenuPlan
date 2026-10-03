@@ -19,8 +19,8 @@
  * cobertura donde no.
  */
 
-import ingredientsJson from "../data/ingredients.json";
-import substitutionsJson from "../data/ingredientSubstitutions.json";
+import ingredientsJson from "../data/ingredients.json" with { type: "json" };
+import substitutionsJson from "../data/ingredientSubstitutions.json" with { type: "json" };
 import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida, seFrie, esCostra, ES_SAL, SAL_A_GRANEL } from "./derive/masaServida.js";
 import { vieneCocinadaPorId } from "./derive/estadoDeFicha.js";
 import { factorRetencion } from "./derive/factorRetencion.js";
@@ -29,9 +29,9 @@ import { repartoNova } from "./derive/nova.js";
 // `alimentos.json` es el output maestro del embudo de alimentos —el número y su
 // procedencia viven juntos— y esto es su proyección para el cliente, sellada
 // con el hash de la maestra. Ver scripts/build-alimentos.mjs.
-import alimentosApp from "../data/derived/alimentosApp.json";
-import alimentoPorIngrediente from "../data/alimentoPorIngrediente.json";
-import densidadJson from "../data/densidad.json";
+import alimentosApp from "../data/derived/alimentosApp.json" with { type: "json" };
+import alimentoPorIngrediente from "../data/alimentoPorIngrediente.json" with { type: "json" };
+import densidadJson from "../data/densidad.json" with { type: "json" };
 import { NUTRIENTES, CAMPOS_NUTRICION, CAMPOS_DUROS, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import { validateIngredients } from "../data/ingredientSchema.js";
 import { createIngredientResolver } from "./ingredientResolver.js";

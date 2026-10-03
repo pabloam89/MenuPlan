@@ -39,8 +39,8 @@
  * define el plato, la carbonara y la tarta de puerros y bacon— que el propio
  * documento ya daba por no derivable de la composición.
  */
-import alimentos from "../../data/alimentos.json";
-import alimentoPorIngrediente from "../../data/alimentoPorIngrediente.json";
+import alimentos from "../../data/alimentos.json" with { type: "json" };
+import alimentoPorIngrediente from "../../data/alimentoPorIngrediente.json" with { type: "json" };
 import { availablePartsOf, ingredientsByPart } from "../recipeSteps.js";
 import { gramsForRecipeQuantity } from "../kitchenUnits.js";
 // Importar `ingredients.js` no es decorativo aunque no se use nada suyo: al

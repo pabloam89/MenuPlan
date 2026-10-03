@@ -29,7 +29,7 @@
  * tanda. Sin ese tope el modelo prometería cocinar para 40 en el mismo cazo.
  */
 
-import basesCatalog from "../data/recipes/bases.json";
+import basesCatalog from "../data/recipes/bases.json" with { type: "json" };
 import { catalogIdOfPlanRecipe } from "./freezer.js";
 import { CAPACIDAD_POR_APARATO } from "./applianceMethods.js";
 
