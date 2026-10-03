@@ -526,8 +526,20 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // midiéndose cuando la retención borre la frase (scripts/bot-semanal.mjs).
   const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId), esGrupo, variosAutores, corrige: esCorreccion(texto, ultima?.texto) };
   if (vaPorLaRapida(d, chatDe) && !(await limiteP)) {
+    // Lo que tarda también por la vía rápida (generar: 3-5 s de motor, medido
+    // el 3 oct 2026) avisa igual que con Lola: la frase sale al decidir el
+    // enrutador y la plantilla la sustituye en el mismo mensaje.
+    const fraseRapida = avisoDelModo(d);
+    const vivoRapida = fraseRapida ? mensajeVivo(chatId, { responderA, eco: oido ? `🎙️ «${oido}»
+
+` : "" }) : null;
+    const avisadoMs = vivoRapida ? Date.now() - t0 : null;
+    vivoRapida?.escribir(fraseRapida, { aviso: true });
     const r = await viaRapida(d, householdId, { autor }).catch((e) => { console.error("[router] vía rápida", e?.message); return null; });
     marca("vía rápida hecha");
+    await vivoRapida?.parar();
+    // Sin plantilla el turno pasa a Lola, que escribe en su propio mensaje.
+    if (!r) await vivoRapida?.quitarAviso();
     if (r) {
       abrir(false);
       ctrl.abort();
@@ -537,11 +549,13 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       // se la comía quien solo preguntó «¿qué cenamos?». Se la espera después,
       // para su medida y para no soltar el turno con ella viva.
       const lolaCancelada = lola.catch(() => {});
-      await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
-      const primer = Date.now() - t0;
+      await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r, vivo: vivoRapida });
+      // Si el aviso llegó a salir, eso fue lo primero que se vio (como con Lola).
+      const avisado = Boolean(vivoRapida?.id());
+      const primer = avisado ? avisadoMs : Date.now() - t0;
       await lolaCancelada;
       await contarUso(householdId, d.uso ?? {}).catch(() => {});
-      return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms, contexto_ms: contextoMs, ...medida(medir, d, t0, primer) });
+      return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms, contexto_ms: contextoMs, ...(avisado ? { aviso: HERRAMIENTA_LENTA_DEL_MODO[d.modo] } : {}), ...medida(medir, d, t0, primer) });
     }
   }
   abrir(true);
@@ -561,6 +575,8 @@ function medida(medir, d, t0, primer = null) {
   const l = medir.lola;
   return {
     primer_ms: primer ?? (medir.primerTexto ? medir.primerTexto - t0 : null),
+    // El aviso por tiempo (AVISO_ESPERA) no cuenta como primer texto: va aparte.
+    ...(medir.espera ? { espera_ms: medir.espera - t0 } : {}),
     router_uso: d.uso ? { in: d.uso.input_tokens ?? 0, out: d.uso.output_tokens ?? 0, cr: d.uso.cache_read_input_tokens ?? 0, cw: d.uso.cache_creation_input_tokens ?? 0 } : null,
     lola_cancelada: !!medir.cancelada,
     lola: l ? {
@@ -578,8 +594,8 @@ function medida(medir, d, t0, primer = null) {
 }
 
 /** Entrega una respuesta de la vía rápida y la deja en la memoria de la charla. */
-async function entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r }) {
-  await entregar({ chatId, householdId, esGrupo, base, from, responderA, oido, r: { compartir: null, deshacible: false, ...r } });
+async function entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r, vivo = null }) {
+  await entregar({ chatId, householdId, esGrupo, base, from, responderA, oido, r: { compartir: null, deshacible: false, ...r }, vivo });
   await recordar({
     chatId, householdId, pregunta: texto, respuesta: r.texto, autor: esGrupo ? nombreDe(from) : null,
     extra: r.propuesta ? { propuesta: r.propuesta, via: "rapida" } : { via: "rapida" },
@@ -610,6 +626,15 @@ export function avisoDelModo(d) {
   return typeof frase === "string" ? frase : null;
 }
 
+// El aviso por tiempo: si a los 3 s Lola no ha puesto nada en pantalla, sale
+// esta frase, y lo que escriba después la sustituye en el mismo mensaje. Es
+// para los turnos en que el enrutador no sabe qué avisar (varias peticiones
+// en un mensaje: `lola` 0,6, y 25 s en silencio el 3 oct 2026). No depende del
+// enrutador y no cuenta como primer texto (bot_route espera_ms).
+// BOT_AVISO_ESPERA_MS cambia la espera; BOT_AVISO_LENTO=off lo apaga.
+export const AVISO_ESPERA = "Dame un momento, que lo miro";
+const esperaMs = () => (process.env.BOT_AVISO_LENTO === "off" ? null : Number(process.env.BOT_AVISO_ESPERA_MS) || 3000);
+
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
 async function conversar({ chatId, householdId, texto, from, desde = null, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null, aviso = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
@@ -620,7 +645,8 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
   let pendiente = null;
   let abierta = !puerta;
   // `medir` (de turno()): cuándo vio la persona el primer texto, y lo que midió Lola.
-  const visto = () => { if (medir) medir.primerTexto ??= Date.now(); };
+  let algoVisto = false;
+  const visto = () => { algoVisto = true; if (medir) medir.primerTexto ??= Date.now(); };
   // Si Lola ya ha escrito algo suyo, el aviso del enrutador llega tarde y sobra.
   let haEscrito = false;
   puerta?.then((suyo) => {
@@ -640,6 +666,17 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
     haEscrito = true;
     return abierta ? (visto(), vivo.escribir(parcial, extra)) : (pendiente = [parcial, extra]);
   };
+  // El aviso por tiempo (AVISO_ESPERA): solo con el turno ya de Lola y sin
+  // nada en pantalla, ni suyo ni del aviso del enrutador.
+  const tope = esperaMs();
+  let contestado = false;
+  const reloj = tope == null ? null : setTimeout(() => {
+    Promise.resolve(puerta ?? true).then((suyo) => {
+      if (!suyo || contestado || algoVisto || haEscrito || signal?.aborted) return;
+      if (medir) medir.espera ??= Date.now();
+      vivo.escribir(AVISO_ESPERA, { aviso: true });
+    }).catch(() => {});
+  }, tope);
   let r;
   try {
     // Si vino en audio, Lola lo sabe: los nombres nuevos pueden venir mal oídos
@@ -648,7 +685,7 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
     const paraLola = !oido ? texto
       : texto.startsWith("[alta]") ? texto.replace("Mi primer mensaje:", "Mi primer mensaje (nota de voz):")
         : `[nota de voz] ${texto}`;
-    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, desde: desde ?? (from ? [idDePersona(from)].filter(Boolean) : []), adjunto, alEscribir, puerta, signal, pista });
+    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, desde: desde ?? (from ? [idDePersona(from)].filter(Boolean) : []), adjunto, alEscribir, puerta, signal, pista }).finally(() => { contestado = true; clearTimeout(reloj); });
     if (puerta && !(await puerta)) { if (medir) { medir.cancelada = true; medir.lola = r?.medida ?? null; } return; } // el turno fue de la vía rápida
   } catch (err) {
     // Cancelada porque el turno era de la vía rápida: nada que decir.

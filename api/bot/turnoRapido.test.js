@@ -3,7 +3,7 @@
  * esperar a que Lola acabe de cancelarse, el límite del mes se sigue
  * respetando y quien eligió inglés va con Lola. Todo lo de fuera, de mentira.
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 process.env.BOT_ROUTER = "on";
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
@@ -57,8 +57,10 @@ vi.mock("../_bot/casa.js", () => ({ hoyISO: () => "2026-10-02", cargarCasa: vi.f
 vi.mock("../_bot/borrar.js", () => ({ puedeBorrar: vi.fn(), borrarCuenta: vi.fn(), limpiarPantalla: vi.fn() }));
 vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
 
-const { turno, avisoDelModo } = await import("./telegram.js");
+const { turno, avisoDelModo, AVISO_ESPERA } = await import("./telegram.js");
 const { responder } = await import("../_bot/agente.js");
+const { viaRapida } = await import("../_bot/turno.js");
+const { editar, llamar } = await import("../_bot/telegram.js");
 const pedir = () => turno({ chatId: 1, householdId: "h", esGrupo: false, base: "https://x", texto: "¿qué cenamos?", from: { id: 7, first_name: "Ana" }, responderA: 9 });
 
 beforeEach(() => { t.orden.length = 0; t.rutas.length = 0; t.limite = null; t.idioma = "es"; t.rapida = true; t.decision = { modo: "consulta", confianza: 0.95 }; vi.clearAllMocks(); });
@@ -145,5 +147,103 @@ describe("el aviso sale en cuanto el enrutador sabe qué se pide", () => {
     responder.mockImplementationOnce(async () => { await espera(40); return { texto: "¿Qué necesitas?", fotos: [] }; });
     await pedirMenu();
     expect(t.orden.some((x) => x.includes(AVISO))).toBe(false);
+  });
+});
+
+describe("lo que tarda por la vía rápida también avisa", () => {
+  const AVISO = "Voy, te preparo el menú, dame unos segundos";
+  const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+  const pedirMenu = () => turno({ chatId: 1, householdId: "h", esGrupo: false, base: "https://x", texto: "Quiero generar un menú nuevo", from: { id: 7, first_name: "Ana" }, responderA: 9 });
+
+  it("generar: el aviso sale al decidir el enrutador y el menú lo sustituye en el mismo mensaje", async () => {
+    t.decision = { modo: "generar", confianza: 0.95 };
+    viaRapida.mockImplementationOnce(async () => { await espera(60); t.orden.push("motor-acaba"); return { texto: "🎉 ¡Menú listo!" }; });
+    await pedirMenu();
+    const aviso = t.orden.findIndex((x) => x.startsWith("enviar:") && x.includes(AVISO));
+    expect(aviso).toBeGreaterThanOrEqual(0);
+    expect(aviso).toBeLessThan(t.orden.indexOf("motor-acaba"));
+    // El menú no sale en un mensaje nuevo: se edita el del aviso.
+    expect(t.orden.some((x) => x.startsWith("enviar:") && x.includes("Menú listo"))).toBe(false);
+    expect(editar).toHaveBeenCalledWith(1, 1, expect.stringContaining("Menú listo"), expect.anything());
+    const [ruta] = t.rutas;
+    expect(ruta).toMatchObject({ rapida: true, modo: "generar", aviso: "generar_menu" });
+    expect(ruta.primer_ms).toBeLessThan(60);
+    expect(ruta.ms).toBeGreaterThanOrEqual(55);
+  });
+
+  it("una consulta no avisa: sale la plantilla, como siempre", async () => {
+    await pedir();
+    expect(t.orden.some((x) => x.includes(AVISO))).toBe(false);
+    expect(t.rutas[0].aviso).toBeUndefined();
+    expect(editar).not.toHaveBeenCalled();
+  });
+
+  it("si la vía rápida no saca plantilla, el aviso se borra y contesta Lola", async () => {
+    t.decision = { modo: "generar", confianza: 0.95 };
+    viaRapida.mockImplementationOnce(async () => { await espera(40); return null; });
+    responder.mockImplementationOnce(async () => { await espera(80); return { texto: "¿Para cuántos días lo quieres?", fotos: [] }; });
+    await pedirMenu();
+    expect(llamar).toHaveBeenCalledWith("deleteMessage", { chat_id: 1, message_id: 1 });
+    expect(t.orden.some((x) => x.startsWith("enviar:") && x.includes("¿Para cuántos días"))).toBe(true);
+    expect(t.rutas[0].rapida).toBe(false);
+    expect(t.rutas[0].aviso).toBeUndefined();
+  });
+});
+
+describe("el aviso por tiempo: Lola tarda y no hay nada en pantalla", () => {
+  const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+  const pedirVarias = () => turno({ chatId: 1, householdId: "h", esGrupo: false, base: "https://x", texto: "La semana que viene como en casa. Dame solo la lista de la compra de ese menú.", from: { id: 7, first_name: "Ana" }, responderA: 9 });
+  beforeEach(() => { process.env.BOT_AVISO_ESPERA_MS = "30"; t.rapida = false; t.decision = { modo: "lola", confianza: 0.6 }; });
+  afterEach(() => { delete process.env.BOT_AVISO_ESPERA_MS; delete process.env.BOT_AVISO_LENTO; });
+
+  it("sale la frase, la respuesta la sustituye y no cuenta como primer texto", async () => {
+    responder.mockImplementationOnce(async () => { await espera(150); t.orden.push("lola-contesta"); return { texto: "Aquí tienes la lista.", fotos: [] }; });
+    await pedirVarias();
+    const aviso = t.orden.findIndex((x) => x.startsWith("enviar:") && x.includes(AVISO_ESPERA));
+    expect(aviso).toBeGreaterThanOrEqual(0);
+    expect(aviso).toBeLessThan(t.orden.indexOf("lola-contesta"));
+    expect(editar).toHaveBeenCalledWith(1, 1, expect.stringContaining("Aquí tienes la lista."), expect.anything());
+    const [ruta] = t.rutas;
+    expect(ruta.espera_ms).toBeGreaterThanOrEqual(25);
+    expect(ruta.espera_ms).toBeLessThan(150);
+    expect(ruta.primer_ms).toBeGreaterThanOrEqual(145);
+  });
+
+  it("si Lola contesta antes, no sale", async () => {
+    responder.mockImplementationOnce(async () => ({ texto: "Hola, ¿qué necesitas?", fotos: [] }));
+    await pedirVarias();
+    await espera(60);
+    expect(t.orden.some((x) => x.includes(AVISO_ESPERA))).toBe(false);
+    expect(t.rutas[0].espera_ms).toBeUndefined();
+  });
+
+  it("si Lola ya está escribiendo, no la pisa", async () => {
+    responder.mockImplementationOnce(async ({ alEscribir }) => { alEscribir("Te cuento lo que he encontrado para esa semana"); await espera(100); return { texto: "Te cuento lo que he encontrado para esa semana.", fotos: [] }; });
+    await pedirVarias();
+    expect(t.orden.some((x) => x.includes(AVISO_ESPERA))).toBe(false);
+    expect(t.rutas[0].espera_ms).toBeUndefined();
+  });
+
+  it("si ya salió el aviso del enrutador, no se cambia por el genérico", async () => {
+    t.decision = { modo: "generar", confianza: 0.85 };
+    responder.mockImplementationOnce(async () => { await espera(120); return { texto: "¡Menú listo!", fotos: [] }; });
+    await pedirVarias();
+    expect(t.orden.some((x) => x.includes("Voy, te preparo el menú"))).toBe(true);
+    expect(t.orden.some((x) => x.includes(AVISO_ESPERA))).toBe(false);
+  });
+
+  it("en un turno de la vía rápida no sale, aunque Lola tarde en soltar", async () => {
+    t.rapida = true;
+    t.decision = { modo: "consulta", confianza: 0.95 };
+    await pedir();
+    await espera(60);
+    expect(t.orden.some((x) => x.includes(AVISO_ESPERA))).toBe(false);
+  });
+
+  it("con BOT_AVISO_LENTO=off, no sale", async () => {
+    process.env.BOT_AVISO_LENTO = "off";
+    responder.mockImplementationOnce(async () => { await espera(100); return { texto: "Aquí tienes la lista.", fotos: [] }; });
+    await pedirVarias();
+    expect(t.orden.some((x) => x.includes(AVISO_ESPERA))).toBe(false);
   });
 });

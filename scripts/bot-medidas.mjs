@@ -41,6 +41,8 @@ console.log(`Bot — últimos ${dias} días: ${turnos.length} turnos (${rapidas.
 console.log("Tiempos");
 console.log(linea("Primer texto, vía rápida", rapidas.map((m) => m.primer_ms ?? m.ms)));
 console.log(linea("Primer texto, Lola", deLola.map((m) => m.primer_ms)));
+// Lo primero que se ve, contando el aviso por tiempo («Dame un momento», espera_ms).
+console.log(linea("Algo en pantalla, Lola", deLola.map((m) => Math.min(m.primer_ms ?? Infinity, m.espera_ms ?? Infinity)).filter(Number.isFinite)));
 console.log(linea("Turno entero, Lola", deLola.map((m) => m.ms)));
 console.log(linea("Enrutador", turnos.map((m) => m.router_ms)));
 console.log(linea("Lola (modelo + herramientas)", deLola.map((m) => m.lola?.ms)));
