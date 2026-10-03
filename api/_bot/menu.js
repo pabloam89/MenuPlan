@@ -21,6 +21,8 @@ import { rastro } from "./embudo.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 import { restriccionesDeFuera, conQuienViene, describirDeFuera } from "./deFuera.js";
+import { EJE_POR_ID, puedeResponder } from "../../src/data/axisRegistry.js";
+import { densidadDe, cargaDe } from "../../src/lib/derive/ejesDePlato.js";
 
 let motorCargado = null;
 export const motor = async () => (motorCargado ??= await import("./core.mjs"));
@@ -512,7 +514,7 @@ const POOL_PARA_APROXIMAR = 400;
  *   `dia` tal cual lo dicen («hoy», «jueves»); `parecidoA`, un plato que
  *   piden por su nombre: las opciones salen ordenadas por parecido.
  */
-export async function proponerPlatos(householdId, { dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null, deFuera = null }, fotos = null, out = null) {
+export async function proponerPlatos(householdId, { dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null, eje = null, deFuera = null }, fotos = null, out = null) {
   const cargada = await cargarCasa(householdId);
   // Lo que no pueden comer los invitados: lo filtra el motor (api/_bot/deFuera.js).
   const rf = restriccionesDeFuera(deFuera);
@@ -530,18 +532,21 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   // Sin menú para ese día, ideas igualmente: recomendar una cena no puede
   // obligar a generar la semana entera (pasó: «¿te genero el menú?» para una
   // cena de hoy).
-  if (rd.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos }, fotos, out);
+  if (rd.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos, eje }, fotos, out);
   const { casa, dia, fecha } = rd;
   const h = huecoDe(casa, { dia, franja, grupo, cual });
-  if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos }, fotos, out);
+  if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos, eje }, fotos, out);
   const m = await prepararRecetas(casa);
   const res = m.pickCatalogReplacement(conQuienViene(casa.state?.data ?? {}, [h.g.id], rf), casa.semana.plan, {
     groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR, pedido: !!parecidoA,
   });
-  // Los rasgos filtran ANTES de ordenar y variar: variadas() elige entre lo
-  // que ya cumple, no al revés.
+  // Los rasgos y el eje filtran ANTES de ordenar y variar: variadas() elige
+  // entre lo que ya cumple, no al revés.
+  const actual = m.RECIPES_BY_ID[h.course === "first" ? h.hueco.firstRecipeId : h.hueco.recipeId];
   const filtro = conRasgos(res?.candidatos ?? [], rasgos);
-  let lista = parecidoA ? res?.candidatos ?? [] : variadas(segunEstilo(filtro.lista, estilo), n);
+  const filtroEje = conEje(filtro.lista, eje, actual);
+  const aviso = [filtro.aviso, filtroEje.aviso].filter(Boolean).join(" ") || null;
+  let lista = parecidoA ? res?.candidatos ?? [] : variadas(segunEstilo(filtroEje.lista, estilo), n);
   if (parecidoA) {
     // Las más parecidas primero; si ninguna se parece, las de siempre.
     const ordenadas = [];
@@ -558,13 +563,12 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
     if (out) Object.assign(out, { conMenu: true, bloques: [], fecha, dia, franja });
     return `No hay otras recetas que encajen en ese hueco con vuestras alergias, gustos y tiempo.${filtradoPara}`;
   }
-  const actual = m.RECIPES_BY_ID[h.course === "first" ? h.hueco.firstRecipeId : h.hueco.recipeId];
   if (out) {
     Object.assign(out, {
       conMenu: true, fecha, dia, franja, cual: h.course === "first" ? "primero" : "principal",
       // `grupo` es el interno (para volver a encontrar el hueco); `quienes`, para enseñar.
       grupo: h.gs.length > 1 ? h.g.label : null, quienes: h.gs.length > 1 ? quienesDe(h.g, casa.state?.data?.members ?? []) : null,
-      actual: actual?.name ?? null, estilo, aviso: filtro.aviso,
+      actual: actual?.name ?? null, estilo, aviso,
       bloques: [{ grupo: h.gs.length > 1 ? h.g.label : null, quienes: h.gs.length > 1 ? quienesDe(h.g, casa.state?.data?.members ?? []) : null, opciones: lista }],
     });
   }
@@ -572,7 +576,7 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   const detalle = (r) => detalleDe(r, estilo);
   lista.forEach((r, i) => apuntarFoto(m, fotos, r, `${i + 1}. ${r.name}`));
   return [
-    `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, para ${quienesDe(h.g, casa.state?.data?.members ?? [])}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}${estilo ? ` Las más ${estilo === "ligero" ? "ligeras" : "rápidas"} que encajan, variadas.` : ""}${filtro.aviso ? ` ${filtro.aviso}` : ""}${filtradoPara}`,
+    `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, para ${quienesDe(h.g, casa.state?.data?.members ?? [])}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}${estilo ? ` Las más ${estilo === "ligero" ? "ligeras" : "rápidas"} que encajan, variadas.` : ""}${aviso ? ` ${aviso}` : ""}${filtradoPara}`,
     ...lista.map((r, i) => `${i + 1}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`),
     "Nada está cambiado aún: para poner una, cambiar_plato con receta = su nombre.",
   ].join("\n");
@@ -731,6 +735,60 @@ export function conRasgos(lista, rasgos) {
   return { lista, aviso: `(Ninguna que encaje cumple «${pedido}»: estas son las que hay. Dilo así.)` };
 }
 
+// Los ejes numéricos que se pueden pedir como «más/menos X» contra el plato que
+// ya ocupa el hueco. Los dos del registro (densidadNutricional, carga) estaban
+// sin lector: esto es su lector; por eso figuran en su `consumidores`. Los tres
+// macros (proteína, carbohidratos, grasa) son los declarados de la receta, al
+// 100 % de cobertura, y el registro no los numera como eje propio.
+export const EJES_NUMERICOS = {
+  proteina: { leer: (r) => r?.protein_g ?? null, etiqueta: "proteína" },
+  carbohidratos: { leer: (r) => r?.carbs_g ?? null, etiqueta: "carbohidratos" },
+  grasa: { leer: (r) => r?.fat_g ?? null, etiqueta: "grasa" },
+  densidadNutricional: { leer: (r) => densidadDe(r).valor?.kcal100g ?? null, etiqueta: "calorías por 100 g", registro: "densidadNutricional" },
+  carga: {
+    leer: (r) => {
+      const v = cargaDe(r).valor;
+      return v ? v.proteinaPor100kcal + v.fibraPor100kcal : null;
+    },
+    etiqueta: "lo que sacia",
+    registro: "carga",
+  },
+};
+
+/**
+ * «Más carbos», «menos grasa», «algo que llene»: compara cada candidata con el
+ * plato que ya está en el hueco (`actual`), no con un nivel absoluto. Sin
+ * `actual` (un hueco vacío, o ideas sin menú) no hay con qué comparar, así que
+ * ordena por ese número en la dirección pedida.
+ *
+ * Si el eje no existe, o el registro dice que el catálogo no puede contestarlo
+ * (`puedeResponder`), lo dice con un aviso, igual que `conRasgos`: no es un
+ * fallo técnico que se pueda reintentar.
+ * @param {{ cual: string, direccion: "mas"|"menos" }} [eje]
+ */
+export function conEje(lista, eje, actual) {
+  if (!eje?.cual) return { lista, aviso: null };
+  const def = EJES_NUMERICOS[eje.cual];
+  if (!def) return { lista, aviso: `(No tengo un dato de «${eje.cual}»: estas son las de siempre. Dilo con naturalidad, no como un fallo.)` };
+  if (def.registro) {
+    const { puede, porque } = puedeResponder(def.registro);
+    if (!puede) return { lista, aviso: `(${EJE_POR_ID.get(def.registro)?.nombre}: ${porque}. Dilo con naturalidad, no como un fallo.)` };
+  }
+  const mas = eje.direccion !== "menos";
+  if (actual == null) {
+    const conDato = lista.filter((r) => def.leer(r) != null).sort((a, b) => (mas ? def.leer(b) - def.leer(a) : def.leer(a) - def.leer(b)));
+    return { lista: [...conDato, ...lista.filter((r) => def.leer(r) == null)], aviso: null };
+  }
+  const valorActual = def.leer(actual);
+  if (valorActual == null) return { lista, aviso: `(No sé ${def.etiqueta} del plato de ahora, así que no puedo compararlo. Dilo así, no como un fallo.)` };
+  const cumplen = lista.filter((r) => {
+    const v = def.leer(r);
+    return v != null && (mas ? v > valorActual : v < valorActual);
+  });
+  if (cumplen.length) return { lista: cumplen, aviso: null };
+  return { lista, aviso: `(Ninguna tiene ${mas ? "más" : "menos"} ${def.etiqueta} que lo de hoy: estas son las que hay. Dilo así.)` };
+}
+
 /**
  * `n` recetas de `lista` que no se parezcan entre sí: primero distinta
  * proteína y categoría, luego lo que quede en su orden. El motor devuelve las
@@ -774,7 +832,7 @@ export function variadas(lista, n) {
  * Sin `grupo`, una tanda por grupo que come (los mayores y el bebé no comen lo
  * mismo): pie de foto «1. …» numerado seguido entre grupos, como la lista.
  */
-export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null, cual, n, estilo = null, rasgos = null, deFuera: deFueraDicho = null }, fotos, out = null) {
+export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null, cual, n, estilo = null, rasgos = null, eje = null, deFuera: deFueraDicho = null }, fotos, out = null) {
   const deFuera = restriccionesDeFuera(deFueraDicho);
   const m = await prepararRecetas(casa);
   // `schedule` puede faltar en una casa recién creada desde el chat, y el motor
@@ -795,8 +853,10 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
     const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
     const res = m.pickCatalogReplacement(conQuienViene(data, [g.id], deFuera), plan, { groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: POOL_PARA_VARIAR });
     const filtro = conRasgos(res?.candidatos ?? [], rasgos);
-    if (filtro.aviso) bloques.push(filtro.aviso);
-    const lista = variadas(segunEstilo(filtro.lista, estilo), n);
+    const filtroEje = conEje(filtro.lista, eje);
+    const avisoFiltro = [filtro.aviso, filtroEje.aviso].filter(Boolean).join(" ") || null;
+    if (avisoFiltro) bloques.push(avisoFiltro);
+    const lista = variadas(segunEstilo(filtroEje.lista, estilo), n);
     if (!lista.length) continue;
     const quien = m.membersOfGroup(g, data.members ?? []).map((p) => p.name).filter(Boolean).join(", ");
     bloques.push(`Para ${quienesDe(g, data.members ?? []) ?? quien}:`);
@@ -827,7 +887,7 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
  */
 // `motivo` (MOTIVO_CAMBIO, interno: no está en el esquema de la herramienta)
 // lo pone quien sabe por qué se cambia: la elección de una opción, «elige tú».
-export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal", receta = null, motivo = null, deFuera = null }, fotos = null, out = null) {
+export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja, grupo, cual = "principal", receta = null, motivo = null, rasgos = null, eje = null, deFuera = null }, fotos = null, out = null) {
   let texto = "";
   const rf = restriccionesDeFuera(deFuera);
   // Lo que se ha cambiado, para el rastro (src/lib/rastro.js), una fila por grupo.
@@ -857,6 +917,16 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
         aproximada = !!forcedRecipe;
       }
       if (!forcedRecipe) { texto = `No hay nada parecido a «${receta}» que encaje en ese hueco (por alergias, tiempo o porque ya está en la semana). Pide opciones con proponer_platos.`; return null; }
+    }
+    if (!receta && (rasgos || eje)) {
+      const pool = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
+      const actualCambio = m.RECIPES_BY_ID[course === "first" ? hueco.firstRecipeId : hueco.recipeId];
+      const porRasgos = conRasgos(pool?.candidatos ?? [], rasgos);
+      const porEje = conEje(porRasgos.lista, eje, actualCambio);
+      const aviso = [porRasgos.aviso, porEje.aviso].filter(Boolean).join(" ");
+      // Un cambio no se hace si lo pedido no existe: se devuelve el aviso tal cual.
+      if (aviso) { texto = `${aviso} No he cambiado nada.`; return null; }
+      forcedRecipe = porEje.lista[Math.floor(Math.random() * porEje.lista.length)];
     }
     const elegido = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
     if (!elegido?.recipeId) { texto = "No he encontrado otro plato que encaje en ese hueco con vuestras preferencias."; return null; }

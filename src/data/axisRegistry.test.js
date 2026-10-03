@@ -239,6 +239,7 @@ describe("el registro de ejes", () => {
     subtipoIngrediente: "taxonomia", parte: ".part", montaje: "montaje",
     gruposSecundarios: "mainIngredients", formato: "formato", temperatura: "temperatura",
     textura: "textura", connotacion: "connotacion", coste: "costeNivel",
+    densidadNutricional: "densidadDe", carga: "cargaDe",
   };
 
   it("cada consumidor declarado nombra de verdad el campo del eje", () => {

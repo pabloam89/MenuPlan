@@ -110,9 +110,9 @@ export const EJES = [
   },
   {
     n: 3, id: "densidadNutricional", nombre: "Densidad nutricional (kcal/100 g, g proteína/100 kcal, fibra, saciedad)",
-    ambito: AMBITO.RECETA, tipo: "numerico", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "numerico", estado: "activo",
     campo: null, vocabulario: null,
-    consumidores: [], cobertura: 1,
+    consumidores: ["menu"], cobertura: 1,
     nota: "DERIVADO, no curado: `densidadDe` en src/lib/derive/ejesDePlato.js da kcal/100 g del plato servido y gramos de proteína por 100 kcal, de las macros de receta (al 100 %) sobre la masa del vector. Cobertura 100 % del catálogo, mediana 113 kcal/100 g con p05 50 y p95 212. El segundo número es el que de verdad separa: un plato puede ser denso en calorías y pobre en proteína, que es justo lo que alguien quiere saber al pedir «algo que llene».",
   },
   {
@@ -169,9 +169,9 @@ export const EJES = [
   },
   {
     n: 10, id: "carga", nombre: "Carga / saciedad",
-    ambito: AMBITO.RECETA, tipo: "numerico", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "numerico", estado: "activo",
     campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0.881,
+    consumidores: ["menu"], cobertura: 0.881,
     nota: "Seis reglas del prompt la invocan. Es una de las tres que la función objetivo del solver necesita, junto con completitud y densidad. DERIVADA por `cargaDe` (src/lib/derive/ejesDePlato.js) de `protein_g` y `fiber_g` por ración, que están en 910 de 1.033: lo que sacia no son las calorías sino la proteína, la fibra y el volumen — 600 kcal de pasta con nata dejan con hambre a las dos horas y 400 de legumbre con verdura no. NO devuelve un índice de saciedad a propósito: hay media docena publicadas y ninguna es consenso, así que da los gramos y los dos ratios por 100 kcal y quien pregunte decide. Mediana 5,08 g de proteína por 100 kcal.",
   },
   {
