@@ -86,8 +86,8 @@ describe("0080 se puede reaplicar", () => {
   });
 });
 
-describe("0082: la FK de tareas a persona no puede borrar tareas al copiar personas", () => {
-  const fk = readFileSync(new URL("../../supabase/migrations/0082_bot_tareas_fk_persona.sql", import.meta.url), "utf8");
+describe("0083: la FK de tareas a persona no puede borrar tareas al copiar personas", () => {
+  const fk = readFileSync(new URL("../../supabase/migrations/0083_bot_tareas_fk_persona.sql", import.meta.url), "utf8");
   it("se niega a aplicarse si la copia de personas aún borra y reinserta", () => {
     expect(fk).toMatch(/persona_sincronizar_casa\(uuid, jsonb\)'\) is null then\s+raise exception/);
     expect(fk).toMatch(/not ilike '%persona_sincronizar_casa%' then\s+raise exception/);
