@@ -88,6 +88,49 @@ function mencionaPersona(persona, txt) {
 const limpio = (texto) => String(texto ?? "").trim().replace(/^\[[^\]]{1,40}\]:\s*/, "").replace(/^\[nota de voz\]\s*/i, "").replace(/^[¡¿]+/, "").trim();
 
 /**
+ * Lo que restaurar `antes` quitaría de `ahora`: personas que desaparecen y
+ * alergias, intolerancias o estados que se pierden. Deshacer un alta o una
+ * alergia recién apuntada es quitar protección, y se pide igual que a mano.
+ * @returns {{nombre: string, cosas: string[]}[]}
+ */
+export function quitaProteccion(ahora = {}, antes = {}) {
+  const previos = new Map((antes.members ?? []).map((m) => [m.id, m]));
+  const quita = [];
+  for (const m of ahora.members ?? []) {
+    const a = previos.get(m.id);
+    if (!a) { quita.push({ nombre: m.name, cosas: ["persona"] }); continue; }
+    const cosas = ["allergies", "intolerances", "dietaryStates"]
+      .flatMap((k) => (m[k] ?? []).filter((x) => !(a[k] ?? []).includes(x)));
+    if (cosas.length) quita.push({ nombre: m.name, cosas });
+  }
+  return quita;
+}
+
+const PIDE_DESHACER = /\b(deshaz\w*|deshacer|no es asi|me he equivocado|vuelve a como estaba)\b/;
+
+/**
+ * El freno de deshacer: si restaurar quitaría protección, hace falta pedirlo o
+ * confirmarlo nombrando a la persona y lo que se quita, en lo que escriben o en
+ * el mensaje de Lola al que contestan («✅ Apuntado: Leo es alérgico al huevo»
+ * + «No es así» vale; un «deshaz» suelto, no).
+ * @returns {null | string}
+ */
+export function frenoDeshacer(ahora, antes, texto = "", anterior = "") {
+  const quita = quitaProteccion(ahora, antes);
+  if (!quita.length) return null;
+  const t = limpio(texto);
+  const dicho = normal(t);
+  const previo = normal(anterior);
+  const esSi = SI.test(t) && !SI_SIN_TILDE.test(t) && !PERO_NO.test(dicho);
+  const clave = (c) => normal(c).replace(/\s+/g, "_");
+  const nombrado = ({ nombre, cosas }) => [dicho, previo].some((txt) => mencionaPersona(nombre, txt)
+    && cosas.filter((c) => c !== "persona").every((c) => mencionaAlergeno(clave(c), txt)));
+  if ((esSi || PIDE_DESHACER.test(dicho)) && quita.every(nombrado)) return null;
+  const que = quita.map(({ nombre, cosas }) => (cosas.includes("persona") ? `quitar a ${nombre} de la casa` : `quitarle a ${nombre} ${cosas.join(", ")}`)).join(" y ");
+  return `No lo he deshecho: deshacerlo supondría ${que}. Pregúntale en una frase si seguro (nombra a la persona y lo que se quita), y deshazlo solo con su «sí».`;
+}
+
+/**
  * @param {string} herramienta
  * @param {object} args
  * @param {string} texto  lo que ha escrito la persona en este turno

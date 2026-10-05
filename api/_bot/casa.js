@@ -157,9 +157,12 @@ async function guardarFotoPrevia(casa, botRevDespues) {
 
 /**
  * Deshace la última escritura del bot en la casa.
+ * `freno(ahora, antes)` (el del supervisor, frenoDeshacer) decide si restaurar
+ * quitaría protección sin confirmarlo; si devuelve texto, no se deshace nada.
+ * Se inyecta para no importar el supervisor aquí (ciclo con menu.js).
  * @returns {Promise<string>} qué ha pasado, para el agente
  */
-export async function deshacer(householdId) {
+export async function deshacer(householdId, { freno = null } = {}) {
   const [foto] = await select("bot_deshacer", `household_id=${eq(householdId)}&usado_at=is.null&order=created_at.desc&limit=1`, "id,bot_rev_despues,antes,created_at");
   if (!foto) return "No hay ningún cambio mío reciente que deshacer.";
   // De la base: deshacer compara versiones y lo recordado podría ser viejo.
@@ -174,6 +177,8 @@ export async function deshacer(householdId) {
   }
 
   const { antes } = foto;
+  const frenado = freno?.(casa.state?.data ?? {}, antes?.state?.data ?? {});
+  if (frenado) return frenado;
   // Si lo último fue generar un menú, vuelve a estar activo el anterior (el
   // generado se queda en el historial de la app). En la misma transacción que
   // la casa: antes se activaba primero y, si el guardado chocaba, el menú
