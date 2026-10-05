@@ -178,6 +178,10 @@ export function decidirTope(abiertos = [], reemplaza, quien = {}) {
   if (abiertos.length < LIMITE_ABIERTAS) return { cabe: true };
   if (reemplaza) {
     const quitar = porReferencia(abiertos.filter((t) => visiblePara(t, quien)), reemplaza);
+    // Quitar uno de la casa es cerrarlo: un lector solo quita lo suyo (modelo.mjs v17, menuplan-1e).
+    if (quitar && quien.papel === "viewer" && quitar.scope !== "personal") {
+      return { texto: "No la he quitado: quien solo puede ver la casa no quita cosas apuntadas para todos. Que lo haga quien la gestiona." };
+    }
     if (quitar) return { quitar };
     if (porReferencia(abiertos, reemplaza)) return { texto: "No la he quitado: es una cosa personal de otra persona y no se puede quitar desde aquí. Pregunta cuál de las que ve quitar." };
   }
@@ -286,13 +290,13 @@ export async function promoverPreguntas(ctx, pendientes = [], ahora = new Date()
 }
 
 export async function anotarTarea(ctx, datos, data = {}) {
-  const { householdId, channel, chatId, userId = null, privado = false, autor = null } = ctx;
+  const { householdId, channel, chatId, userId = null, privado = false, autor = null, papel = null } = ctx;
   const v = validarNueva(datos, data);
   if (v.error) return v.error;
   const t = v.valor;
   if (t.scope === "personal" && !(privado && userId)) return "Lo personal solo se apunta en un chat privado.";
   if (t.kind === "seguimiento") {
-    const lleno = await topeAlcanzado(householdId, datos.reemplaza, { userId, privado });
+    const lleno = await topeAlcanzado(householdId, datos.reemplaza, { userId, privado, papel });
     if (lleno) return lleno;
   }
   try {
@@ -303,7 +307,7 @@ export async function anotarTarea(ctx, datos, data = {}) {
       created_by: userId,
     }]);
   } catch (e) {
-    if (esTope(e)) return (await topeAlcanzado(householdId, null, { userId, privado })) ??"No he podido apuntarlo: hay demasiadas cosas abiertas. Pregunta cuál quitar.";
+    if (esTope(e)) return (await topeAlcanzado(householdId, null, { userId, privado, papel })) ?? "No he podido apuntarlo: hay demasiadas cosas abiertas. Pregunta cuál quitar.";
     if (!esDuplicado(e)) throw e;
     await registrar(EVENTO.DUPLICADA, { userId, extra: { householdId, kind: t.kind } });
     return "Ya estaba apuntado (lo pidió alguien antes): no lo he duplicado. Dilo así.";

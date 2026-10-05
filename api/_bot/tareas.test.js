@@ -193,6 +193,13 @@ describe("tope lleno: lo personal de otro ni se enseña ni se quita", () => {
   it("reemplazar una de la casa vale", () => {
     expect(decidirTope(llenas, "aaaaaaa0", { userId: YO, privado: false }).quitar?.id).toBe("aaaaaaa0-x");
   });
+  it("un lector no quita una de la casa; la suya personal, en privado, sí", () => {
+    const suya = { id: "ccccccc0-x", texto: "mis yogures", scope: "personal", owner_user_id: YO };
+    const conSuya = [...casa.slice(0, LIMITE_ABIERTAS - 1), suya];
+    expect(decidirTope(conSuya, "aaaaaaa0", { userId: YO, privado: true, papel: "viewer" }).texto).toMatch(/no quita cosas apuntadas para todos/);
+    expect(decidirTope(conSuya, "ccccccc0", { userId: YO, privado: true, papel: "viewer" }).quitar?.id).toBe("ccccccc0-x");
+    expect(decidirTope(conSuya, "aaaaaaa0", { userId: YO, privado: true, papel: "editor" }).quitar?.id).toBe("aaaaaaa0-x");
+  });
   it("con sitio, cabe", () => {
     expect(decidirTope(casa, "aaaaaaa0", {}).cabe).toBe(true);
   });

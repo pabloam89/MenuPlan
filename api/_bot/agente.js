@@ -363,7 +363,7 @@ function herramientasDeFotos(householdId) {
 function herramientasDeTareas(chat) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   // Se lee al ejecutar, no al montar: userId, las abiertas y la casa llegan con el turno.
-  const contexto = () => ({ householdId: chat.householdId, channel: chat.channel ?? "telegram", chatId: chat.chatId, userId: chat.userId ?? null, privado: !chat.esGrupo, autor: chat.autor ?? null });
+  const contexto = () => ({ householdId: chat.householdId, channel: chat.channel ?? "telegram", chatId: chat.chatId, userId: chat.userId ?? null, privado: !chat.esGrupo, autor: chat.autor ?? null, papel: chat.papel ?? null });
   const referencia = { type: "string", description: "La referencia de 8 caracteres que sale entre corchetes en «Tareas abiertas de la casa»." };
   const persona = (que) => ({ type: "string", description: `${que}: el nombre de alguien de la casa, tal cual.` });
   return [
