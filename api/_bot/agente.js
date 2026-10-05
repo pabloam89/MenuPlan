@@ -192,10 +192,12 @@ export async function herramientas(chat) {
   const enFila = colaDeEscritura();
   return todas.map((t) => ({
     ...t,
-    run: async (args) => (SOLO_LECTURA.has(t.name) ? ejecutarUna(t, args) : enFila(() => ejecutarUna(t, args))),
+    // `llamada`: lo que el SDK pasa como segundo argumento ({ toolUse }); su id
+    // sirve de clave para que una llamada repetida no escriba dos veces.
+    run: async (args, llamada) => (SOLO_LECTURA.has(t.name) ? ejecutarUna(t, args, llamada) : enFila(() => ejecutarUna(t, args, llamada))),
   }));
 
-  async function ejecutarUna(t, args) {
+  async function ejecutarUna(t, args, llamada) {
       // Por si acaso: el papel se vuelve a mirar al ejecutar.
       if (!permitida(chat, t)) {
         return "Eso no lo puede cambiar quien te escribe (es de solo consulta en esta casa). Díselo con amabilidad y que se lo pida a quien gestiona la casa.";
@@ -221,7 +223,7 @@ export async function herramientas(chat) {
         // `escribio`: si llegó a la base alguna escritura (db.js), no solo si se
         // intentó. Una herramienta que contesta «no he podido guardarlo» no
         // cuenta como guardado, ni lleva botón a la app.
-        const { r, escribio } = await contandoEscrituras(() => t.run(args));
+        const { r, escribio } = await contandoEscrituras(() => t.run(args, llamada));
         if (escribio) chat.guardados = (chat.guardados ?? 0) + 1;
         if (t.name === "generar_menu") tocado.semanas.add(args.semana ?? "esta");
         if (t.name === "cambiar_plato" && args.dia) tocado.dias.add(diaDe(args.dia) ?? String(args.dia).toLowerCase());
@@ -363,7 +365,7 @@ function herramientasDeFotos(householdId) {
 function herramientasDeTareas(chat) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   // Se lee al ejecutar, no al montar: userId, las abiertas y la casa llegan con el turno.
-  const contexto = () => ({ householdId: chat.householdId, channel: chat.channel ?? "telegram", chatId: chat.chatId, userId: chat.userId ?? null, privado: !chat.esGrupo, autor: chat.autor ?? null, papel: chat.papel ?? null });
+  const contexto = (llamada) => ({ householdId: chat.householdId, channel: chat.channel ?? "telegram", chatId: chat.chatId, userId: chat.userId ?? null, privado: !chat.esGrupo, autor: chat.autor ?? null, papel: chat.papel ?? null, idem: llamada?.toolUse?.id ?? null });
   const referencia = { type: "string", description: "La referencia de 8 caracteres que sale entre corchetes en «Tareas abiertas de la casa»." };
   const persona = (que) => ({ type: "string", description: `${que}: el nombre de alguien de la casa, tal cual.` });
   return [
@@ -382,19 +384,19 @@ function herramientasDeTareas(chat) {
         confirmado: { type: "boolean", description: "true solo si la persona ha dicho que sí a apuntarlo (obligatorio en seguimientos)." },
         reemplaza: { type: "string", description: "Solo si la casa ya tenía el máximo y la persona ha elegido cuál quitar: su referencia." },
       }, ["texto", "kind"]),
-      run: (args) => anotarTarea(contexto(), args, chat.casaData ?? {}),
+      run: (args, llamada) => anotarTarea(contexto(llamada), args, chat.casaData ?? {}),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "cerrar_tarea",
       description: "Cierra una tarea abierta cuando lo que dicen la resuelve sin duda («ya está comprado»). estado «descartada» si ya no hace falta («olvídalo», «ya no»). estado «rechazada» si es una pregunta que no quieren contestar («prefiero no decirlo»): no se vuelve a preguntar. Si la referencia es vaga y podría ser más de una, pregunta cuál antes de cerrar.",
       inputSchema: obj({ ref: referencia, estado: { type: "string", enum: ENUMS_TAREAS["cerrar_tarea.estado"] } }, ["ref"]),
-      run: ({ ref, estado }) => cerrarTarea(contexto(), chat.tareas ?? [], ref, estado ?? "hecha"),
+      run: ({ ref, estado }, llamada) => cerrarTarea(contexto(llamada), chat.tareas ?? [], ref, estado ?? "hecha"),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "editar_tarea",
       description: "Corrige una tarea abierta («no, era para el sábado», «mejor que lo haga Pablo»): texto, fecha, para quién o quién se encarga.",
       inputSchema: obj({ ref: referencia, texto: { type: "string" }, vence: { type: "string" }, para: persona("Para quién es"), encargado: persona("Quién se encarga") }, ["ref"]),
-      run: ({ ref, ...cambios }) => editarTarea(contexto(), chat.tareas ?? [], ref, cambios, chat.casaData ?? {}),
+      run: ({ ref, ...cambios }, llamada) => editarTarea(contexto(llamada), chat.tareas ?? [], ref, cambios, chat.casaData ?? {}),
     }),
   ];
 }

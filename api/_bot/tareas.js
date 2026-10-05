@@ -16,6 +16,7 @@ import { registrar } from "./embudo.js";
 import { crearRecordatorio } from "./recordatorios.js";
 import { resolverPersona, claveDePregunta, claveLibre, estadoDeClave, temaDe } from "./estadoCasa.js";
 import { esDeSeguridad, noEsComida, preguntaProhibida } from "../../src/lib/registroTareas.js";
+import { unaVez } from "./idempotencia.js";
 
 export const LIMITE_ABIERTAS = 8;
 // Lo que se trae de la base es una cota, no el recorte: el recorte lo hace
@@ -300,7 +301,21 @@ export async function promoverPreguntas(ctx, pendientes = [], ahora = new Date()
   }
 }
 
-export async function anotarTarea(ctx, datos, data = {}) {
+// Las tres escrituras de Lola sobre tareas, una sola vez por llamada de
+// herramienta (ctx.idem). Sin BOT_TAREAS_V2, unaVez solo ejecuta.
+export function anotarTarea(ctx, datos, data = {}) {
+  return unaVez({ householdId: ctx.householdId, clave: ctx.idem, rpc: "anotar_tarea" }, () => anotar(ctx, datos, data));
+}
+
+export function cerrarTarea(ctx, abiertas, referencia, estado = "hecha") {
+  return unaVez({ householdId: ctx.householdId, clave: ctx.idem, rpc: "cerrar_tarea" }, () => cerrar(ctx, abiertas, referencia, estado));
+}
+
+export function editarTarea(ctx, abiertas, referencia, cambios = {}, data = {}, ahora = new Date()) {
+  return unaVez({ householdId: ctx.householdId, clave: ctx.idem, rpc: "editar_tarea" }, () => editar(ctx, abiertas, referencia, cambios, data, ahora));
+}
+
+async function anotar(ctx, datos, data = {}) {
   const { householdId, channel, chatId, userId = null, privado = false, autor = null, papel = null } = ctx;
   const v = validarNueva(datos, data);
   if (v.error) return v.error;
@@ -331,7 +346,7 @@ export async function anotarTarea(ctx, datos, data = {}) {
   return "Apuntado.";
 }
 
-export async function cerrarTarea(ctx, abiertas, referencia, estado = "hecha") {
+async function cerrar(ctx, abiertas, referencia, estado = "hecha") {
   const t = porReferencia(abiertas, referencia);
   if (!t) return "No encuentro esa tarea entre las abiertas: mira la referencia en «Tareas abiertas de la casa».";
   if (estado === "rechazada" && t.kind !== "pregunta") return "«No quiere decirlo» solo vale para una pregunta; esto se descarta.";
@@ -344,7 +359,7 @@ export async function cerrarTarea(ctx, abiertas, referencia, estado = "hecha") {
   return `${estado === "hecha" ? "Cerrada" : "Descartada"}: ${t.texto}.${otroChat}`;
 }
 
-export async function editarTarea(ctx, abiertas, referencia, cambios = {}, data = {}, ahora = new Date()) {
+async function editar(ctx, abiertas, referencia, cambios = {}, data = {}, ahora = new Date()) {
   const t = porReferencia(abiertas, referencia);
   if (!t) return "No encuentro esa tarea entre las abiertas.";
   const parche = {};
