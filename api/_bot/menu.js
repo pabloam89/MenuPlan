@@ -1026,7 +1026,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     }
 
     const aiRecipes = [...(casa.state?.aiRecipes ?? []).filter((x) => x?.id !== elegido.frontendRecipe.id), elegido.frontendRecipe];
-    const shopping = rehacerCompra(m, plan, data, gs, casa.semana.shopping);
+    const shopping = rehacerCompra(m, plan, data, gs, casa.semana.shopping, await leerDespensa(m, casa.householdId));
 
     // La foto de la receta, como la guarda la app al generar: sin ella, otro
     // dispositivo que cargue el menú no sabría resolver el id nuevo.
@@ -1156,7 +1156,8 @@ export async function apuntarAusencia(householdId, { dia, dias, comida, comidas,
       }
     }
     if (!algo) return null;
-    const shopping = rehacerCompra(await prepararRecetas(casa), plan, data, gs, s.shopping);
+    const mc = await prepararRecetas(casa);
+    const shopping = rehacerCompra(mc, plan, data, gs, s.shopping, await leerDespensa(mc, casa.householdId));
     const viva = s.weekStart === cargada.semanaViva;
     return {
       casa,
@@ -1236,14 +1237,31 @@ export async function apuntarAusencia(householdId, { dia, dias, comida, comidas,
   return { texto, pintar: vaciadas.size ? { dias: [...vaciadas].sort() } : null };
 }
 
-/** La compra de un plan, conservando lo marcado (comprado, ya en casa) y lo añadido a mano. */
-function rehacerCompra(m, plan, data, gs, anterior) {
-  const lista = m.buildShoppingList(plan, gs, m.getDayMeals(data), []);
+/** La despensa de la casa como la lee generar; null si no se ha podido leer. */
+export async function leerDespensa(m, householdId) {
+  try {
+    const filas = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA);
+    return filas.map(m.filaDeDespensa);
+  } catch (e) {
+    console.error("[menu] despensa", e?.message);
+    return null;
+  }
+}
+
+/**
+ * La compra de un plan, conservando lo marcado (comprado, ya en casa) y lo
+ * añadido a mano. Con la despensa, como al generar: sin ella, la compra volvía
+ * a pedir lo que había en casa. Si no se pudo leer (`null`), lo que antes
+ * cubría la despensa sigue cubierto.
+ */
+export function rehacerCompra(m, plan, data, gs, anterior, despensa) {
+  const lista = m.buildShoppingList(plan, gs, m.getDayMeals(data), despensa ?? []);
   const nuevos = [...lista.byCategory.flatMap((c) => c.items), ...(lista.pantryItems ?? [])];
   const previos = new Map((anterior?.items ?? []).map((it) => [it.id, it]));
   const items = nuevos.map((it) => {
     const p = previos.get(it.id);
-    return p ? { ...it, have: !!p.have, atHome: !!p.atHome } : it;
+    const conMarcas = p ? { ...it, have: !!p.have, atHome: !!p.atHome } : it;
+    return despensa == null && p?.fromPantry ? { ...conMarcas, fromPantry: true } : conMarcas;
   });
   for (const it of anterior?.items ?? []) if (it.manual) items.push(it);
   return { ...(anterior ?? {}), items };
