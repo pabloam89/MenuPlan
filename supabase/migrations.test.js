@@ -38,6 +38,14 @@ const ficheros = fs
  */
 const DUPLICADOS_HEREDADOS = new Set(["0003", "0006", "0051"]);
 
+/**
+ * Números reservados para una migración que está en otra rama y aún no ha
+ * entrado. No es un hueco perdido: tiene dueño y se borra de aquí en cuanto
+ * su fichero exista.
+ *   0079: personas a tabla (rama feat/personas-tabla). La 0080 de tareas va después.
+ */
+const RESERVADOS = new Set(["0079"]);
+
 describe("las migraciones se pueden nombrar sin ambigüedad", () => {
   it("ningún número nuevo repetido", () => {
     const porNumero = new Map();
@@ -81,7 +89,8 @@ describe("las migraciones se pueden nombrar sin ambigüedad", () => {
     const nums = [...new Set(ficheros.map((f) => Number(f.slice(0, 4))))].sort((a, b) => a - b);
     const huecos = [];
     for (let n = nums[0]; n < nums[nums.length - 1]; n++) {
-      if (!nums.includes(n)) huecos.push(String(n).padStart(4, "0"));
+      const num = String(n).padStart(4, "0");
+      if (!nums.includes(n) && !RESERVADOS.has(num)) huecos.push(num);
     }
     expect(huecos, `Huecos en la numeración: ${huecos.join(", ")}`).toEqual([]);
   });

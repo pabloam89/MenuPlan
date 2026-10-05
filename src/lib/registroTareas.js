@@ -13,7 +13,12 @@
 export const ENUMS = {
   "bot_tareas.kind": ["seguimiento", "pregunta"],
   "bot_tareas.scope": ["casa", "personal"],
-  "bot_tareas.status": ["abierta", "hecha", "descartada", "caducada", "rechazada"],
+  // «aplazada» existe en la base desde 0080; el código solo la escribe con BOT_TAREAS_V2.
+  "bot_tareas.status": ["abierta", "aplazada", "hecha", "descartada", "caducada", "rechazada"],
+  // v2 (0080): conviven con kind mientras el bot viejo siga desplegado.
+  "bot_tareas.tipo": ["espera", "falta_saber", "decision", "seguimiento"],
+  "bot_tareas.resultado": ["aceptada", "mantenida"],
+  "bot_tareas.objetivo": ["ideas_plato", "calorias", "generar_menu"],
   // De qué va una pregunta (anotar_tarea.sobre) y cómo se cierra una tarea (cerrar_tarea.estado).
   "anotar_tarea.sobre": ["alergias", "etapa_bebe", "otra"],
   "cerrar_tarea.estado": ["hecha", "descartada", "rechazada"],
@@ -33,6 +38,9 @@ export const CAMPOS = {
   colegio: { politica: "nunca", seguridad: false },
   patronSemanas: { politica: "nunca", seguridad: false },
 };
+
+/** kind viejo → tipo nuevo, el mismo reparto que hace el disparador de 0080. */
+export const TIPO_DE_KIND = { pregunta: "falta_saber", seguimiento: "seguimiento" };
 
 /** El prefijo de las claves de estado de hoy («alergias:<id>», «etapa:<id>») → su campo. */
 export const CLAVE_A_CAMPO = { alergias: "alergias", etapa: "etapaBebe" };
