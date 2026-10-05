@@ -72,8 +72,9 @@ export function schoolMenusForWeekIndex(sm, idx = 0) {
 
 /**
  * Replace the whole ordered list of weeks for a given scope with the supplied
- * per-week entry maps (each an "Lun-Primero"→dish object). The other scope's
- * data is preserved where weeks overlap.
+ * per-week entry maps (each an "Lun-Primero"→dish object). The other scopes
+ * are preserved in every week, including weeks beyond the new list: uploading
+ * one week for one kid must not drop the shared menú or another kid's weeks.
  *
  *   scope === "shared"     → sets weeks[i].shared
  *   scope === "individual" → sets weeks[i].byMember[kidId]
@@ -82,20 +83,24 @@ export function replaceSchoolWeeks(sm, { scope, kidId, weeksEntries, weeksCatalo
   const norm = normalizeSchoolMenus(sm);
   const list = Array.isArray(weeksEntries) ? weeksEntries : [];
   const catList = Array.isArray(weeksCatalogIds) ? weeksCatalogIds : [];
-  const out = list.map((entries, i) => {
+  const total = Math.max(list.length, norm.weeks.length);
+  const out = [];
+  for (let i = 0; i < total; i++) {
     const prev = norm.weeks[i] ?? { shared: {}, byMember: {}, catalogIds: {} };
+    // Past the new list this scope is emptied; the other scopes stay.
+    const entries = i < list.length ? cloneEntries(list[i]) : {};
     // Prefer freshly-computed catalog ids; fall back to previously stored ones.
     const catalogIds = catList[i] ?? prev.catalogIds ?? {};
-    if (scope === "shared") {
-      return { label: `Semana ${i + 1}`, shared: cloneEntries(entries), byMember: cloneByMember(prev.byMember), catalogIds };
-    }
-    return {
-      label: `Semana ${i + 1}`,
-      shared: cloneEntries(prev.shared),
-      byMember: { ...cloneByMember(prev.byMember), [kidId]: cloneEntries(entries) },
-      catalogIds,
-    };
-  });
+    const byMember = cloneByMember(prev.byMember);
+    let shared = cloneEntries(prev.shared);
+    if (scope === "shared") shared = entries;
+    else if (i < list.length) byMember[kidId] = entries;
+    else delete byMember[kidId];
+    out.push({ label: `Semana ${i + 1}`, shared, byMember, catalogIds });
+  }
+  // Trailing weeks that ended up with nothing in any scope are dropped.
+  const vacia = (w) => !Object.keys(w.shared).length && Object.values(w.byMember).every((e) => !Object.keys(e ?? {}).length);
+  while (out.length > 1 && vacia(out[out.length - 1])) out.pop();
   const weeks = out.length ? out : [{ label: "Semana 1", shared: {}, byMember: {}, catalogIds: {} }];
   return { ...norm, shared: weeks[0].shared, byMember: weeks[0].byMember, weeks };
 }

@@ -24,7 +24,45 @@ import { restriccionesDeFuera, conQuienViene, describirDeFuera } from "./deFuera
 import { EJE_POR_ID, puedeResponder } from "../../src/data/axisRegistry.js";
 
 let motorCargado = null;
-export const motor = async () => (motorCargado ??= await import("./core.mjs"));
+// Las recetas que trae el motor de serie (antes de registrar ninguna casa).
+let recetasDeSerie = null;
+export const motor = async () => {
+  if (!motorCargado) {
+    const m = await import("./core.mjs");
+    recetasDeSerie ??= new Set(Object.keys(m.RECIPES_BY_ID));
+    motorCargado = m;
+  }
+  return motorCargado;
+};
+/** Las recetas de serie del motor ya cargado (vacío si aún no se cargó). */
+export const deSerieDelMotor = () => recetasDeSerie ?? new Set();
+
+/**
+ * El motor con un RECIPES_BY_ID que solo enseña lo de esta casa: sus recetas
+ * registradas, las de serie y las del catálogo común. El registro del motor es
+ * de toda la instancia, y Vercel reutiliza instancias entre casas: sin esto, al
+ * buscar una receta por nombre salía la receta propia de otra casa.
+ * `registerRecipes` sigue escribiendo en el registro global y suma a lo visible.
+ */
+export function recetasDeCasa(m, deSerie, propias) {
+  const visible = (id) => typeof id === "string"
+    && (propias.has(id) || deSerie.has(id) || Boolean(m.recipeCatalogById?.[idBase(id)]));
+  const vista = new Proxy(m.RECIPES_BY_ID, {
+    get: (t, id) => (visible(id) ? t[id] : undefined),
+    has: (t, id) => visible(id) && id in t,
+    ownKeys: (t) => Reflect.ownKeys(t).filter(visible),
+    getOwnPropertyDescriptor: (t, id) => (visible(id) ? Reflect.getOwnPropertyDescriptor(t, id) : undefined),
+  });
+  return Object.create(m, {
+    RECIPES_BY_ID: { value: vista },
+    registerRecipes: {
+      value: (extra) => {
+        m.registerRecipes(extra);
+        for (const r of Array.isArray(extra) ? extra : []) if (r?.id) propias.add(r.id);
+      },
+    },
+  });
+}
 
 // La densidad y la carga salen del bundle: src/ no se carga en Node a secas.
 let derivados = null;
@@ -137,7 +175,17 @@ export function franjaDe(texto) {
 
 /** Registra en el motor las recetas de la casa para poder resolver ids. */
 export async function prepararRecetas(casa) {
-  const m = await motor();
+  const global = await motor();
+  // Lo que es de esta casa: lo que registra ahora, lo que sale en sus menús y sus recetas propias.
+  const propias = new Set();
+  for (const s of [casa.semana, ...(casa.semanas ?? [])]) {
+    for (const [gid, huecos] of Object.entries(s?.plan ?? {})) {
+      if (gid.startsWith("_")) continue;
+      for (const h of Object.values(huecos ?? {})) for (const id of [h?.firstRecipeId, h?.recipeId]) if (id) propias.add(id).add(idBase(id));
+    }
+  }
+  for (const r of casa.state?.data?.userRecipes ?? []) if (r?.id) propias.add(r.id);
+  const m = recetasDeCasa(global, recetasDeSerie ?? new Set(), propias);
   if (Array.isArray(casa.state?.aiRecipes) && casa.state.aiRecipes.length) m.registerRecipes(casa.state.aiRecipes);
   if (casa.menu) {
     const filas = await select(
@@ -980,7 +1028,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     }
 
     const aiRecipes = [...(casa.state?.aiRecipes ?? []).filter((x) => x?.id !== elegido.frontendRecipe.id), elegido.frontendRecipe];
-    const shopping = rehacerCompra(m, plan, data, gs, casa.semana.shopping);
+    const shopping = rehacerCompra(m, plan, data, gs, casa.semana.shopping, await leerDespensa(m, casa.householdId));
 
     // La foto de la receta, como la guarda la app al generar: sin ella, otro
     // dispositivo que cargue el menú no sabría resolver el id nuevo.
@@ -1110,7 +1158,8 @@ export async function apuntarAusencia(householdId, { dia, dias, comida, comidas,
       }
     }
     if (!algo) return null;
-    const shopping = rehacerCompra(await prepararRecetas(casa), plan, data, gs, s.shopping);
+    const mc = await prepararRecetas(casa);
+    const shopping = rehacerCompra(mc, plan, data, gs, s.shopping, await leerDespensa(mc, casa.householdId));
     const viva = s.weekStart === cargada.semanaViva;
     return {
       casa,
@@ -1190,14 +1239,31 @@ export async function apuntarAusencia(householdId, { dia, dias, comida, comidas,
   return { texto, pintar: vaciadas.size ? { dias: [...vaciadas].sort() } : null };
 }
 
-/** La compra de un plan, conservando lo marcado (comprado, ya en casa) y lo añadido a mano. */
-function rehacerCompra(m, plan, data, gs, anterior) {
-  const lista = m.buildShoppingList(plan, gs, m.getDayMeals(data), []);
+/** La despensa de la casa como la lee generar; null si no se ha podido leer. */
+export async function leerDespensa(m, householdId) {
+  try {
+    const filas = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA);
+    return filas.map(m.filaDeDespensa);
+  } catch (e) {
+    console.error("[menu] despensa", e?.message);
+    return null;
+  }
+}
+
+/**
+ * La compra de un plan, conservando lo marcado (comprado, ya en casa) y lo
+ * añadido a mano. Con la despensa, como al generar: sin ella, la compra volvía
+ * a pedir lo que había en casa. Si no se pudo leer (`null`), lo que antes
+ * cubría la despensa sigue cubierto.
+ */
+export function rehacerCompra(m, plan, data, gs, anterior, despensa) {
+  const lista = m.buildShoppingList(plan, gs, m.getDayMeals(data), despensa ?? []);
   const nuevos = [...lista.byCategory.flatMap((c) => c.items), ...(lista.pantryItems ?? [])];
   const previos = new Map((anterior?.items ?? []).map((it) => [it.id, it]));
   const items = nuevos.map((it) => {
     const p = previos.get(it.id);
-    return p ? { ...it, have: !!p.have, atHome: !!p.atHome } : it;
+    const conMarcas = p ? { ...it, have: !!p.have, atHome: !!p.atHome } : it;
+    return despensa == null && p?.fromPantry ? { ...conMarcas, fromPantry: true } : conMarcas;
   });
   for (const it of anterior?.items ?? []) if (it.manual) items.push(it);
   return { ...(anterior ?? {}), items };
