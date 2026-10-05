@@ -15,8 +15,15 @@ describe("supervisor: lo que quita protección necesita a la persona", () => {
   it("«nadie tiene alergias»: dicho o confirmado", () => {
     const args = { ninguna: true, confirmado: true };
     expect(supervisar("ajustar_alergias", args, "no, nadie tiene alergias")).toBe(null);
-    expect(supervisar("ajustar_alergias", args, "sí, confirmo")).toBe(null);
+    expect(supervisar("ajustar_alergias", args, "sí, confirmo", { anterior: "¿Nadie en casa tiene ninguna alergia?" })).toBe(null);
     expect(supervisar("ajustar_alergias", args, "somos cuatro, dos adultos y dos niños")).toMatch(/No se ha guardado/);
+  });
+
+  it("«ninguna» con un «sí» a otra pregunta no vale", () => {
+    const args = { ninguna: true, confirmado: true };
+    expect(supervisar("ajustar_alergias", args, "sí")).toMatch(/No se ha guardado/);
+    expect(supervisar("ajustar_alergias", args, "sí", { anterior: "¿Te genero ya el menú?" })).toMatch(/No se ha guardado/);
+    expect(supervisar("ajustar_alergias", args, "vale", { anterior: "¿Alguien tiene alguna alergia o intolerancia?" })).toBe(null);
   });
 
   it("un «no» o un «nada» a secas también es la respuesta (Pablo, 1 oct 2026)", () => {

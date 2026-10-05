@@ -109,7 +109,9 @@ export function supervisar(herramienta, args = {}, texto = "", { anterior = "" }
     if (args.quitar && !loPide && !loConfirma) {
       return "No se ha guardado: quitar una alergia necesita que la persona lo confirme diciendo quién y qué. Pregúntale en una frase si seguro que esa persona ya no tiene esa alergia (nómbralas las dos), y quítala solo con su «sí».";
     }
-    if (args.ninguna && !esSi && !NADIE.test(dicho) && !NO_A_SECAS(dicho)) {
+    // Un «sí» solo vale si contesta a una pregunta de Lola sobre alergias.
+    const siAAlergias = esSi && /\b(alergi|alergic|intoleran)/.test(normal(anterior));
+    if (args.ninguna && !siAAlergias && !NADIE.test(dicho) && !NO_A_SECAS(dicho)) {
       return "No se ha guardado: para dejar a la casa sin alergias, la persona tiene que decirlo o confirmarlo. Pregúntale si nadie tiene ninguna alergia ni intolerancia.";
     }
   }
