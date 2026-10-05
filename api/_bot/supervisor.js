@@ -27,6 +27,14 @@ const SI_SIN_TILDE = /^si\b(?![.!]*\s*$)/i;
 const PERO_NO = /^[^.?!]{0,25}\b(que no|pero|no quites|no lo quites|espera)\b/;
 const QUITA = /\b(quit(a|ale|alo|ar|aselo|aselas)|borr(a|ale|alo|ar)|elimin(a|ale|alo|ar)|sac(a|ale|alo)|ya no (come|vive|esta|viene)|no (es|son) alergic|no tienen? alergi|no (es|tiene) intoleran|ya no (es|tiene))/;
 const NADIE = /\b(nadie|ninguno|ninguna|sin alergias|ningun)\b|\bno hay (alergi|ninguna|ningun|intoleran)/;
+// Quitar una alergia pidiéndolo (sin pregunta de Lola delante) exige hablar de
+// la alergia, no del plato: «quítale el queso a Leo» es la pizza, no su alergia
+// a la leche. Sin esto, Lola pregunta y el «sí» a su pregunta vale.
+const DE_ALERGIA = /\b(alergi|alergic|intoleran|celiac|tolera)/;
+// Quitar a alguien de la casa: verbos de quitar, o «ya no vive / come aquí».
+// «Ya no viene los jueves» o «esta semana está fuera» son ausencias, no bajas.
+const QUITA_COMENSAL = /\b(quit(a|ale|alo|ar|adla|adlo)|borr(a|ale|alo|ar)|elimin(a|ale|alo|ar)|sac(a|ale|alo)|ya no (vive|come) (en casa|aqui|con nosotros))\b/;
+const TEMPORAL = /\b(hoy|manana|esta semana|este finde|la semana que viene|hasta|de vacaciones|de campamento|los (lunes|martes|miercoles|jueves|viernes|sabados|domingos)|el (lunes|martes|miercoles|jueves|viernes|sabado|domingo))\b/;
 // Un «no» o un «nada» a secas, contestando a «¿alguien tiene alergias?»
 // («Nada nada, feel free», «no, tranquila»): vale si TODO el mensaje es eso y
 // relleno. Si lleva algo más («no hay manera de que coma huevo»), no.
@@ -96,7 +104,7 @@ export function supervisar(herramienta, args = {}, texto = "", { anterior = "" }
     // huevo a Leo»), o los nombraba la pregunta de Lola a la que dice que sí.
     const deEso = (txt) => (args.alergenos ?? []).length > 0
       && args.alergenos.every((a) => mencionaAlergeno(a, txt)) && mencionaPersona(args.persona, txt);
-    const loPide = QUITA.test(dicho) && deEso(dicho);
+    const loPide = QUITA.test(dicho) && DE_ALERGIA.test(dicho) && deEso(dicho);
     const loConfirma = esSi && (deEso(dicho) || deEso(normal(anterior)));
     if (args.quitar && !loPide && !loConfirma) {
       return "No se ha guardado: quitar una alergia necesita que la persona lo confirme diciendo quién y qué. Pregúntale en una frase si seguro que esa persona ya no tiene esa alergia (nómbralas las dos), y quítala solo con su «sí».";
@@ -117,8 +125,11 @@ export function supervisar(herramienta, args = {}, texto = "", { anterior = "" }
 
   if (herramienta === "quitar_comensal") {
     const nombre = normal(args.nombre ?? "").split(/\s+/)[0];
-    const loPide = QUITA.test(dicho) && nombre && new RegExp(`\\b${nombre.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(dicho);
-    if (!esSi && !loPide) {
+    const nombra = (txt) => Boolean(nombre) && new RegExp(`\\b${nombre.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(txt);
+    const loPide = QUITA_COMENSAL.test(dicho) && !TEMPORAL.test(dicho) && nombra(dicho);
+    // Un «sí» solo vale si contesta a una pregunta de Lola que nombraba a esa persona.
+    const loConfirma = esSi && nombra(normal(anterior));
+    if (!loConfirma && !loPide) {
       return `No se ha quitado: antes pregunta si seguro que ${args.nombre ?? "esa persona"} ya no come en casa (sus gustos y alergias dejan de contar para el menú), y quítala solo con su «sí».`;
     }
   }
