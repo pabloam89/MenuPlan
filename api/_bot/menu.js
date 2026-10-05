@@ -38,6 +38,11 @@ export const motor = async () => {
 };
 /** Las recetas de serie del motor ya cargado (vacío si aún no se cargó). */
 export const deSerieDelMotor = () => recetasDeSerie ?? new Set();
+// Los tests pasan src/server/botCore.js: en CI no existe core.mjs.
+export function usarMotor(m) {
+  recetasDeSerie ??= new Set(Object.keys(m.RECIPES_BY_ID ?? {}));
+  motorCargado = m;
+}
 
 /**
  * El motor con un RECIPES_BY_ID que solo enseña lo de esta casa: sus recetas
@@ -608,7 +613,7 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   const nut = await prepararNutricion();
   const filtro = filtrarCandidatas(res?.candidatos ?? [], { rasgos, ejes, perfil, cual: h.course === "first" ? "primero" : "principal" }, baseDelHueco(m, h.hueco, h.course, nut), nut);
   const aviso = filtro.aviso;
-  let lista = parecidoA ? res?.candidatos ?? [] : variadas(ordenParaVariar(filtro.lista, { ejes, perfil, estilo, n }), n);
+  let lista = parecidoA ? res?.candidatos ?? [] : variadas(ordenParaVariar(filtro.lista, { ordenado: filtro.ordenado, estilo, n }), n);
   if (parecidoA) {
     // Las más parecidas primero; si ninguna se parece, las de siempre.
     const ordenadas = [];
@@ -803,7 +808,28 @@ function valorDeEje(def, plato, nut) {
   const base = nut.crudoDe(plato);
   if (def.derivado === "densidad") return nut.densidadDe(base)?.valor?.kcal100g ?? null;
   const v = nut.cargaDe(base)?.valor;
-  return v ? v.proteinaPor100kcal + v.fibraPor100kcal : null;
+  if (v?.proteinaPor100kcal == null || v?.fibraPor100kcal == null) return null;
+  return v.proteinaPor100kcal + v.fibraPor100kcal;
+}
+
+/**
+ * Los ejes como llegan del modelo, a una lista válida. A veces llegan como
+ * cadena JSON o como un objeto suelto en vez de array. `invalidos` dice que
+ * pidieron algo y no se entendió: no es lo mismo que no pedir nada.
+ */
+export function normalizarEjes(ejes) {
+  if (ejes == null || ejes === "") return { pedidos: [], invalidos: false };
+  let x = ejes;
+  if (typeof x === "string") {
+    try { x = JSON.parse(x); } catch { return { pedidos: [], invalidos: true }; }
+  }
+  if (x && typeof x === "object" && !Array.isArray(x)) x = [x];
+  if (!Array.isArray(x)) return { pedidos: [], invalidos: true };
+  const pedidos = x
+    .filter((e) => e && typeof e === "object" && typeof e.cual === "string" && e.cual && (e.direccion === "mas" || e.direccion === "menos"))
+    .map((e) => ({ cual: e.cual, direccion: e.direccion }))
+    .slice(0, 3);
+  return { pedidos, invalidos: x.length > 0 && !pedidos.length };
 }
 
 /**
@@ -817,12 +843,14 @@ function valorDeEje(def, plato, nut) {
  * quien pedía proteína. Una candidata sin el dato nunca cumple.
  *
  * `exacto` dice si la lista cumple de verdad lo pedido: cambiar_plato solo
- * cambia si es así.
+ * cambia si es así. `ordenado` dice que el orden ES la respuesta (las primeras
+ * son las que más tienen), no solo un filtro.
  * @param {{ cual: string, direccion: "mas"|"menos" }[]} [ejes]
  */
 export function conEjes(lista, ejes, actual, nut = nutricion) {
-  const pedidos = (ejes ?? []).filter((e) => e?.cual).slice(0, 3);
-  if (!pedidos.length) return { lista, aviso: null, exacto: true };
+  const { pedidos, invalidos } = normalizarEjes(ejes);
+  if (invalidos) return { lista, aviso: "(No he entendido qué nutriente comparar: pídelo otra vez con «más» o «menos» de algo. Dilo así.)", exacto: false, ordenado: false };
+  if (!pedidos.length) return { lista, aviso: null, exacto: true, ordenado: false };
   const avisos = [];
   let exacto = true;
   const comparar = [];
@@ -868,7 +896,7 @@ export function conEjes(lista, ejes, actual, nut = nutricion) {
     });
     base = [...conDato, ...base.filter((r) => !conDato.includes(r))];
   }
-  return { lista: base, aviso: avisos.join(" ") || null, exacto };
+  return { lista: base, aviso: avisos.join(" ") || null, exacto, ordenado: ordenar.length > 0 };
 }
 
 /**
@@ -876,17 +904,19 @@ export function conEjes(lista, ejes, actual, nut = nutricion) {
  * src/lib/derive/perfiles.js). Solo para el plato principal: un primero no
  * tiene por qué ser una comida completa.
  */
+// Si alguna cumple, todas las que cumplen empatan (0 puntos) y el orden no es la
+// respuesta: ahí manda el estilo. Si ninguna, el orden por cercanía sí lo es.
 export function conPerfil(lista, perfil, actual, cual = "principal", nut = nutricion) {
-  if (!perfil) return { lista, aviso: null, exacto: true };
-  if (!PERFILES[perfil]) return { lista, aviso: `(No tengo un perfil «${perfil}». Dilo con naturalidad, no como un fallo.)`, exacto: false };
-  if (cual === "primero") return { lista, aviso: `(«${PERFILES[perfil].etiqueta}» es para el plato principal: en el primero no lo aplico. Dilo así.)`, exacto: false };
+  if (!perfil) return { lista, aviso: null, exacto: true, ordenado: false };
+  if (!PERFILES[perfil]) return { lista, aviso: `(No tengo un perfil «${perfil}». Dilo con naturalidad, no como un fallo.)`, exacto: false, ordenado: false };
+  if (cual === "primero") return { lista, aviso: `(«${PERFILES[perfil].etiqueta}» es para el plato principal: en el primero no lo aplico. Dilo así.)`, exacto: false, ordenado: false };
   const leer = (p, campo) => nut.nutrienteDe(p, campo).valor;
   const r = ordenarPorPerfil(lista, perfil, {
     leer,
     completitud: (p) => nut.completitudDe(nut.crudoDe(p)),
     kcalActual: actual ? leer(actual, "kcal") : null,
   });
-  return { lista: r.lista, aviso: r.aviso, exacto: !r.aviso };
+  return { lista: r.lista, aviso: r.aviso, exacto: !r.aviso, ordenado: Boolean(r.aviso) };
 }
 
 /**
@@ -902,22 +932,34 @@ export function filtrarCandidatas(lista, { rasgos = null, ejes = null, perfil = 
     lista: p.lista,
     aviso: [r.aviso, e.aviso, p.aviso].filter(Boolean).join(" ") || null,
     exacto: !r.aviso && e.exacto && p.exacto,
+    ordenado: e.ordenado || p.ordenado,
   };
 }
 
 /**
- * Con ejes o perfil el orden ya es la respuesta: se varía solo entre las mejores,
- * o variadas() sacaría una lejana por no repetir proteína. Sin ellos, el estilo.
+ * Lo que decide qué cumple son rasgos, ejes y perfil; dentro de eso ordena el
+ * estilo, como antes. Si el orden ya es la respuesta (`ordenado`), se varía
+ * solo entre las primeras, o variadas() sacaría una lejana por no repetir
+ * proteína, y el estilo ordena dentro de esa ventana.
  */
-export function ordenParaVariar(lista, { ejes = null, perfil = null, estilo = null, n = 3 } = {}) {
-  if (perfil || ejes?.length) return lista.slice(0, Math.max(3 * n, 9));
-  return segunEstilo(lista, estilo);
+export function ordenParaVariar(lista, { ordenado = false, estilo = null, n = 3 } = {}) {
+  return segunEstilo(ordenado ? lista.slice(0, Math.max(3 * n, 9)) : lista, estilo);
 }
 
-/** La receta base del plato que ocupa el hueco, para comparar con las candidatas. */
+/** Entre cuáles elige cambiar_plato: entre las mejores si el orden importa o hay perfil; si no, entre todas las que cumplen. */
+export function candidatasParaCambiar(filtro, { perfil = null } = {}) {
+  return perfil || filtro.ordenado ? filtro.lista.slice(0, 3) : filtro.lista;
+}
+
+/**
+ * La receta base del plato que ocupa el hueco, para comparar con las candidatas.
+ * Si su foto no está registrada (casa sin `menu`, foto perdida), la del catálogo
+ * por su id: sin ella no habría con qué comparar y se elegiría a ciegas.
+ */
 export function baseDelHueco(m, hueco, course, nut) {
-  const plato = m.RECIPES_BY_ID[course === "first" ? hueco.firstRecipeId : hueco.recipeId];
-  return plato ? nut.crudoDe(plato) : null;
+  const id = course === "first" ? hueco.firstRecipeId : hueco.recipeId;
+  if (!id) return null;
+  return nut.crudoDe(m.RECIPES_BY_ID[id] ?? { id });
 }
 
 /**
@@ -986,7 +1028,7 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
     const nut = await prepararNutricion();
     const filtro = filtrarCandidatas(res?.candidatos ?? [], { rasgos, ejes, perfil, cual }, null, nut);
     if (filtro.aviso) bloques.push(filtro.aviso);
-    const lista = variadas(ordenParaVariar(filtro.lista, { ejes, perfil, estilo, n }), n);
+    const lista = variadas(ordenParaVariar(filtro.lista, { ordenado: filtro.ordenado, estilo, n }), n);
     if (!lista.length) continue;
     const quien = m.membersOfGroup(g, data.members ?? []).map((p) => p.name).filter(Boolean).join(", ");
     bloques.push(`Para ${quienesDe(g, data.members ?? []) ?? quien}:`);
@@ -1037,6 +1079,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
 
     let forcedRecipe = null;
     let aproximada = false;
+    let notaEjes = "";
     if (receta) {
       const pool = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
       forcedRecipe = candidataPorNombre(pool?.candidatos ?? [], receta);
@@ -1048,15 +1091,17 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       }
       if (!forcedRecipe) { texto = `No hay nada parecido a «${receta}» que encaje en ese hueco (por alergias, tiempo o porque ya está en la semana). Pide opciones con proponer_platos.`; return null; }
     }
-    if (!receta && (rasgos || ejes?.length || perfil)) {
+    const pideEjes = normalizarEjes(ejes);
+    if (!receta && (rasgos || pideEjes.pedidos.length || pideEjes.invalidos || perfil)) {
       const pool = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
       const nut = await prepararNutricion();
-      const filtro = filtrarCandidatas(pool?.candidatos ?? [], { rasgos, ejes, perfil, cual: course === "first" ? "primero" : "principal" }, baseDelHueco(m, hueco, course, nut), nut);
+      const base = baseDelHueco(m, hueco, course, nut);
+      const filtro = filtrarCandidatas(pool?.candidatos ?? [], { rasgos, ejes, perfil, cual: course === "first" ? "primero" : "principal" }, base, nut);
       // Un cambio solo se hace si lo pedido se cumple de verdad: si no, el aviso tal cual.
       if (!filtro.exacto || !filtro.lista.length) { texto = `${filtro.aviso ?? "(Ninguna cumple lo que pides.)"} No he cambiado nada: ofrece opciones con proponer_platos.`; return null; }
-      // Con perfil, entre las tres mejores (variedad sin alejarse); si no, entre todas las que cumplen.
-      const entre = perfil ? filtro.lista.slice(0, 3) : filtro.lista;
+      const entre = candidatasParaCambiar(filtro, { perfil });
       forcedRecipe = entre[Math.floor(Math.random() * entre.length)];
+      if (pideEjes.pedidos.length && !base) notaEjes = " No había plato en ese hueco con el que comparar: he puesto una de las que más se ajustan a lo pedido. Dilo así.";
     }
     const elegido = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
     if (!elegido?.recipeId) { texto = "No he encontrado otro plato que encaje en ese hueco con vuestras preferencias."; return null; }
@@ -1124,6 +1169,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       : `Cambiado (${dondeQuien}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`)
       + (sinCambiarQuienes.length ? ` ${sinCambiarQuienes.join(" y ")} se quedan con lo suyo: ese plato no encaja con sus alergias o su etapa. Dilo así.` : "")
       + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "")
+      + notaEjes
       + (rf ? ` Elegido también para quien viene: ${describirDeFuera(rf)}.` : "")
       + (dePintado ? `\n\nAsí queda ese día (es lo guardado, y SALE PINTADO debajo de tu mensaje con el plato nuevo destacado: no lo escribas ni llames a ver_menu; di solo qué has cambiado):\n${dePintado}` : "");
     // `state.menuPlan` y `state.shopping` son la semana que pinta la app (la de

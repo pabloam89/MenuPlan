@@ -4,14 +4,15 @@
 // tests de antes usaban el JSON para las dos y no vieron que en producción el
 // plato de ahora nunca tenía dato.
 import { describe, it, expect, beforeAll } from "vitest";
-import { filtrarCandidatas, conEjes, baseDelHueco, ordenParaVariar, usarNutricion } from "./menu.js";
+import { filtrarCandidatas, conEjes, baseDelHueco, ordenParaVariar, usarNutricion, candidatasParaCambiar, normalizarEjes } from "./menu.js";
 import { lineaMacros } from "./plato.js";
 import { recipeCatalog, recipeCatalogById } from "../../src/data/recipeCatalog.js";
 import { registerRecipes, RECIPES_BY_ID } from "../../src/data/recipes.js";
-import { catalogToFrontendRecipe } from "../../src/lib/aiPlanner.js";
+import { catalogToFrontendRecipe, applyGarnishToRecipe } from "../../src/lib/aiPlanner.js";
 import { nutrienteDe, crudoDe } from "../../src/lib/nutricionPlato.js";
 import { densidadDe, cargaDe, completitudDe } from "../../src/lib/derive/ejesDePlato.js";
 import { puntuar } from "../../src/lib/derive/perfiles.js";
+import guarniciones from "../../src/data/recipes/guarniciones.json" with { type: "json" };
 
 const nut = { nutrienteDe, crudoDe, completitudDe, densidadDe, cargaDe };
 const valor = (p, campo) => nutrienteDe(p, campo).valor;
@@ -78,9 +79,101 @@ describe("el gazpacho de fresas de la captura, como plato de ahora", () => {
     expect(r.exacto).toBe(true);
   });
 
-  it("con perfil, se varía solo entre las mejores, no por toda la lista", () => {
+  it("si el orden es la respuesta, se varía solo entre las primeras", () => {
+    const r = filtrarCandidatas(cenas, { perfil: "equilibrado" }, null, nut);
+    expect(ordenParaVariar(r.lista, { ordenado: true, n: 3 })).toEqual(r.lista.slice(0, 9));
+  });
+});
+
+const tiempos = (l) => l.map((r) => r.time).filter(Number.isFinite);
+const creciente = (xs) => xs.every((x, i) => i === 0 || xs[i - 1] <= x);
+
+describe("el estilo sigue ordenando dentro de lo que cumple", () => {
+  it("«rápido + más proteína»: solo las que tienen más proteína, de la más rápida a la más lenta", () => {
+    const r = filtrarCandidatas(cenas, { ejes: [{ cual: "proteina", direccion: "mas" }] }, actual, nut);
+    expect(r.ordenado).toBe(false);
+    const o = ordenParaVariar(r.lista, { ordenado: r.ordenado, estilo: "rapido", n: 3 });
+    expect(new Set(o)).toEqual(new Set(r.lista));
+    expect(tiempos(o).length).toBeGreaterThan(10);
+    expect(creciente(tiempos(o))).toBe(true);
+    // Sin estilo el orden no es por tiempo: el test mide algo.
+    expect(creciente(tiempos(ordenParaVariar(r.lista, { ordenado: r.ordenado, n: 3 })))).toBe(false);
+  });
+
+  it("«rápido + equilibrado»: las que cumplen empatan, y entre ellas manda el tiempo", () => {
     const r = filtrarCandidatas(cenas, { perfil: "equilibrado" }, actual, nut);
-    expect(ordenParaVariar(r.lista, { perfil: "equilibrado", n: 3 })).toEqual(r.lista.slice(0, 9));
+    expect(r.aviso).toBeNull();
+    expect(r.ordenado).toBe(false);
+    expect(creciente(tiempos(ordenParaVariar(r.lista, { ordenado: r.ordenado, estilo: "rapido", n: 3 })))).toBe(true);
+  });
+});
+
+describe("el plato de ahora con una guarnición fundida se compara por su base", () => {
+  it("«más proteína» compara con los 3 g del gazpacho, no con los del plato con guarnición", () => {
+    const guarnicion = [...guarniciones].sort((a, b) => (b.protein_g ?? 0) - (a.protein_g ?? 0))[0];
+    expect(guarnicion.protein_g).toBeGreaterThanOrEqual(4);
+    const fundido = applyGarnishToRecipe(catalogToFrontendRecipe(GAZPACHO, 2), guarnicion, 2);
+    registerRecipes([{ ...fundido, id: "ninos__sopas_cremas_046" }]);
+    const proteinaFundida = RECIPES_BY_ID.ninos__sopas_cremas_046.macros.protein;
+    expect(proteinaFundida).toBeGreaterThan(3);
+    // Hay candidatas entre las dos cifras: si se comparara con el fundido, desaparecerían.
+    const enMedio = cenas.filter((x) => { const p = valor(x, "protein_g"); return p > 3 && p <= proteinaFundida; });
+    expect(enMedio.length).toBeGreaterThan(0);
+    const base = baseDelHueco(m, { recipeId: "ninos__sopas_cremas_046" }, "main", nut);
+    expect(valor(base, "protein_g")).toBe(3);
+    const r = filtrarCandidatas(cenas, { ejes: [{ cual: "proteina", direccion: "mas" }] }, base, nut);
+    expect(r.lista).toEqual(expect.arrayContaining(enMedio));
+  });
+});
+
+describe("el plato de ahora sin foto registrada", () => {
+  it("se compara con la receta del catálogo por su id", () => {
+    const base = baseDelHueco(m, { recipeId: "otros__sopas_cremas_046" }, "main", nut);
+    expect(RECIPES_BY_ID.otros__sopas_cremas_046).toBeUndefined();
+    expect(base).toBe(GAZPACHO);
+    const r = filtrarCandidatas(cenas, { ejes: [{ cual: "proteina", direccion: "mas" }] }, base, nut);
+    expect(r.exacto).toBe(true);
+    expect(r.lista.every((x) => valor(x, "protein_g") > 3)).toBe(true);
+  });
+
+  it("un id que no está en ningún sitio: no sé con qué comparar, y no es exacto (cambiar_plato no cambia)", () => {
+    const base = baseDelHueco(m, { recipeId: "otros__no_existe" }, "main", nut);
+    const r = filtrarCandidatas(cenas, { ejes: [{ cual: "proteina", direccion: "mas" }] }, base, nut);
+    expect(r.exacto).toBe(false);
+    expect(r.aviso).toMatch(/No sé/);
+  });
+
+  it("hueco vacío: sin base, y cambiar_plato elige entre las tres primeras del orden", () => {
+    expect(baseDelHueco(m, { recipeId: null }, "main", nut)).toBeNull();
+    const r = filtrarCandidatas(cenas, { ejes: [{ cual: "proteina", direccion: "mas" }] }, null, nut);
+    expect(r.ordenado).toBe(true);
+    expect(candidatasParaCambiar(r)).toEqual(r.lista.slice(0, 3));
+  });
+});
+
+describe("ejes que llegan mal formados", () => {
+  const bien = [{ cual: "proteina", direccion: "mas" }];
+  it("como cadena JSON o como objeto suelto, igual que el array", () => {
+    const esperado = conEjes(cenas, bien, actual, nut);
+    expect(conEjes(cenas, JSON.stringify(bien), actual, nut)).toEqual(esperado);
+    expect(conEjes(cenas, bien[0], actual, nut)).toEqual(esperado);
+  });
+  it("lo que no se entiende no es «nada pedido»: aviso y no exacto", () => {
+    for (const malo of ["proteina", "{no es json", [{ cual: "proteina" }], [{ direccion: "mas" }], 7]) {
+      const r = conEjes(cenas, malo, actual, nut);
+      expect(r.exacto, String(malo)).toBe(false);
+      expect(r.aviso, String(malo)).toMatch(/No he entendido/);
+    }
+    expect(normalizarEjes(null)).toEqual({ pedidos: [], invalidos: false });
+  });
+});
+
+describe("carga sin kcal no es 0", () => {
+  it("una candidata sin los dos sumandos no pasa por «menos carga»", () => {
+    const rara = { id: "rara_sin_kcal", name: "Rara" };
+    const nutRaro = { ...nut, cargaDe: (r) => (r?.id === rara.id ? { valor: { proteinaPor100kcal: null, fibraPor100kcal: null } } : cargaDe(r)) };
+    const r = conEjes([rara, ...cenas], [{ cual: "carga", direccion: "menos" }], actual, nutRaro);
+    expect(r.lista).not.toContain(rara);
   });
 });
 

@@ -745,7 +745,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
       run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, estilo, para, rasgos, ejes, perfil, de_fuera }) => {
         const f = comida ? franjaDe(comida) : null;
         if (comida && !f) return `No entiendo qué comida es («${comida}»).`;
-        return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null, ejes: ejes?.length ? ejes : null, perfil: perfil || null, deFuera: de_fuera || null }, fotos);
+        return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null, ejes: ejes ?? null, perfil: perfil || null, deFuera: de_fuera || null }, fotos);
       },
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: "semana" }, {
@@ -793,7 +793,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
         if (!f) return `No entiendo qué comida es («${comida}»).`;
         // El día cambiado sale pintado debajo, con el plato nuevo destacado.
         const out = {};
-        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null, rasgos: rasgos || null, ejes: ejes?.length ? ejes : null, perfil: perfil || null, deFuera: de_fuera || null }, fotos, out)
+        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null, rasgos: rasgos || null, ejes: ejes ?? null, perfil: perfil || null, deFuera: de_fuera || null }, fotos, out)
           .then((t) => { if (out.cambiado) pintarTambien(chat, filtrosTrasCambiar(out)); return t; });
       },
     }),
