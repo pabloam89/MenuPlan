@@ -29,12 +29,13 @@
 alter table public.bot_tareas
   add column if not exists tipo             text,
   add column if not exists campo            text,
-  add column if not exists persona_id       uuid,   -- FK a persona(household_id, id) tras la 0079
+  add column if not exists persona_id       text,   -- el id de persona es texto (0079); su FK compuesta va aparte
   add column if not exists objetivo         text,
   add column if not exists pedido           text,
   add column if not exists vuelve_at        timestamptz,
   add column if not exists version          int not null default 1,
-  add column if not exists restriccion_id   uuid,   -- FK a restriccion, ídem
+  add column if not exists valor            text,   -- causa de una decisión: el alérgeno, intolerancia o estado
+                                                     -- (persona_alergia / _intolerancia / _estado de la 0079, junto con persona_id y campo)
   add column if not exists receta_propuesta text,
   add column if not exists resultado        text;
 
@@ -70,7 +71,7 @@ alter table public.bot_tareas drop constraint if exists bot_tareas_v2_reglas_che
 alter table public.bot_tareas add constraint bot_tareas_v2_reglas_check check (
       (vuelve_at is null or status = 'aplazada')
   and (objetivo is null or tipo = 'espera')
-  and (restriccion_id is null or tipo = 'decision')
+  and (valor is null or tipo = 'decision')
   and (resultado is null or tipo = 'decision')
   and ((tipo = 'decision' and status = 'hecha') is not true or resultado is not null)
   and (pedido is null or length(pedido) <= 240)
