@@ -41,6 +41,27 @@ export function recetaComun(m, deSerie, id) {
   return c ? m.catalogToFrontendRecipe(c, c.baseServings ?? 2) : null;
 }
 
+/** ¿Bloqueo, en cualquier dirección, entre el dueño y alguna de estas cuentas? */
+export async function hayBloqueo(ownerId, usuarios = []) {
+  const otros = [...new Set(usuarios.filter((u) => u && u !== ownerId))];
+  if (!ownerId || !otros.length) return false;
+  for (const u of otros) {
+    const [a] = await select("blocked_users", `blocker_id=${eq(ownerId)}&blocked_id=${eq(u)}`, "blocker_id");
+    const [b] = await select("blocked_users", `blocker_id=${eq(u)}&blocked_id=${eq(ownerId)}`, "blocker_id");
+    if (a || b) return true;
+  }
+  return false;
+}
+
+/** Las cuentas detrás de quien escribe: su identidad de Telegram y el dueño de la casa del chat. */
+export async function cuentasDeQuien({ fromId, householdId }) {
+  const [ident] = fromId
+    ? await select("bot_identities", `channel=eq.telegram&external_id=${eq(String(fromId))}`, "user_id")
+    : [];
+  const dueno = householdId ? await duenoDe(householdId) : null;
+  return [ident?.user_id, dueno].filter(Boolean);
+}
+
 /** Una receta del catálogo con la forma de la app (ingredientes y pasos). */
 async function recetaDelCatalogo(id) {
   const m = await motor();
@@ -139,8 +160,10 @@ export function botonesCompartir(enlaces, tipo = "receta") {
  * la llave ya no vale.
  * @returns {Promise<null | { tipo: "receta", receta: object, deQuien: string|null, propia: boolean }
  *   | { tipo: "semana", payload: object, deQuien: string|null }>}
+ * @param {{ usuarios?: string[] }} [quien]  las cuentas de quien abre el enlace
+ *   (su identidad de Telegram y el dueño de su casa): con bloqueo, no llega.
  */
-export async function resolverInvitacion(param) {
+export async function resolverInvitacion(param, { usuarios = [] } = {}) {
   const p = String(param ?? "");
   if (p.startsWith("rc_")) {
     const r = await recetaDelCatalogo(p.slice(3));
@@ -151,6 +174,8 @@ export async function resolverInvitacion(param) {
     if (!llave) return null;
     const [fila] = await select("user_recipes", `id=${eq(llave.recipe_id)}`, "*");
     if (!fila) return null;
+    // Como is_blocked en la web (0033, 0055): ni con llave.
+    if (await hayBloqueo(fila.owner_id, usuarios)) return null;
     return { tipo: "receta", receta: fila, deQuien: fila.owner_snapshot?.name ?? null, propia: true };
   }
   if (p.startsWith("m_")) {

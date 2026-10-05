@@ -41,7 +41,7 @@ import { ahoraEnMadrid } from "../_bot/recordatorios.js";
 import { fueraDeLimite, contarUso } from "../_bot/uso.js";
 import {
   enlacesReceta, enlacesSemana, botonesCompartir, resolverInvitacion,
-  recetaEnTexto, semanaEnTexto, copiarReceta,
+  recetaEnTexto, semanaEnTexto, copiarReceta, cuentasDeQuien,
 } from "../_bot/compartir.js";
 import { motor } from "../_bot/menu.js";
 import { sembrarCasa } from "../_bot/ajustes.js";
@@ -171,7 +171,7 @@ async function atender(msg, base, host = "") {
     return enviar(chatId, r?.texto ?? "No he podido usar esa invitación ahora mismo. Prueba en unos minutos.");
   }
   if (start?.[1] && /^(rc|ru|m)_/.test(start[1]) && !esGrupo) {
-    const hecho = await recibirCompartido(chatId, start[1]);
+    const hecho = await recibirCompartido(chatId, start[1], msg.from);
     if (hecho) return hecho;
   }
   // Desde un botón de la app con algo pedido («cambia la cena del viernes»,
@@ -923,10 +923,11 @@ async function enlaceApp(base, ir, from, chatId) {
  * ello. Si no la tiene, la invitación a empezar: su siguiente mensaje ya es el
  * alta (atender, «lo primero que escriben»).
  */
-async function recibirCompartido(chatId, param) {
-  const inv = await resolverInvitacion(param).catch(() => null);
-  if (!inv) return enviar(chatId, "Ese enlace ya no funciona 🙈 Pídele que te lo vuelva a mandar.");
+async function recibirCompartido(chatId, param, from) {
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+  const usuarios = await cuentasDeQuien({ fromId: idDePersona(from), householdId: chat?.household_id }).catch(() => []);
+  const inv = await resolverInvitacion(param, { usuarios }).catch(() => null);
+  if (!inv) return enviar(chatId, "Ese enlace ya no funciona 🙈 Pídele que te lo vuelva a mandar.");
   // Que lo compartido llega y a quién (con casa o sin ella): sin nombres.
   await rastro(chat?.household_id ?? null, RASTRO.COMPARTIDO_RECIBIDO, { tipo: inv.tipo === "semana" ? "semana" : "receta", conCasa: Boolean(chat) });
   const invitacion = "¿Te preparo también a ti el menú de la semana? Cuéntame quiénes coméis en casa (o mándame un audio) y empezamos 🙂";
@@ -962,7 +963,8 @@ async function usarCompartido(cq, chat, base) {
   if (!puede(papel, "editar_casa")) {
     return enviar(chatId, "Guardar recetas o cambiar el menú lo hace quien gestiona la casa: pídeselo a esa persona 🙂");
   }
-  const inv = await resolverInvitacion(param).catch(() => null);
+  const usuarios = await cuentasDeQuien({ fromId: idDePersona(cq.from), householdId: chat.household_id }).catch(() => []);
+  const inv = await resolverInvitacion(param, { usuarios }).catch(() => null);
   if (!inv || inv.tipo !== "receta") return enviar(chatId, "Ese enlace ya no funciona 🙈");
   const esGrupo = esGrupoDe(cq.message.chat);
   let nombre = inv.receta.name;
