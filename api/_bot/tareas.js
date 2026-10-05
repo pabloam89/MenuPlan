@@ -344,15 +344,16 @@ export async function cerrarTarea(ctx, abiertas, referencia, estado = "hecha") {
   return `${estado === "hecha" ? "Cerrada" : "Descartada"}: ${t.texto}.${otroChat}`;
 }
 
-export async function editarTarea(ctx, abiertas, referencia, cambios = {}, data = {}) {
+export async function editarTarea(ctx, abiertas, referencia, cambios = {}, data = {}, ahora = new Date()) {
   const t = porReferencia(abiertas, referencia);
   if (!t) return "No encuentro esa tarea entre las abiertas.";
   const parche = {};
   if (cambios.texto) parche.texto = String(cambios.texto).trim().slice(0, TEXTO_MAX);
   if (cambios.vence) {
     if (!fechaValida(cambios.vence)) return `No entiendo la fecha «${cambios.vence}»: AAAA-MM-DD.`;
+    if (Date.parse(`${cambios.vence}T23:59:59Z`) < ahora.getTime()) return "Esa fecha ya ha pasado. ¿Para cuándo es?";
     parche.vence = cambios.vence;
-    parche.caduca_at = caducidadDe({ kind: t.kind, vence: cambios.vence }).toISOString();
+    parche.caduca_at = caducidadDe({ kind: t.kind, vence: cambios.vence }, ahora).toISOString();
   }
   for (const [campo, columna] of [["para", "para_member"], ["encargado", "asignado_member"]]) {
     if (!cambios[campo]) continue;
@@ -361,7 +362,18 @@ export async function editarTarea(ctx, abiertas, referencia, cambios = {}, data 
     parche[columna] = r.persona.id;
   }
   if (!Object.keys(parche).length) return "No me has dicho qué cambiar.";
-  parche.updated_at = new Date().toISOString();
-  await update("bot_tareas", `id=${eq(t.id)}&household_id=${eq(ctx.householdId)}&status=eq.abierta`, parche);
+  // La clave sale del texto y de para quién, como al crearla: si cambian, se recalcula.
+  // Las de estado («alergias:<id>», «etapa:<id>») no dependen del texto.
+  if (!/^(alergias|etapa):/.test(t.clave ?? "") && (parche.texto || "para_member" in parche)) {
+    const clave = claveLibre(t.kind, parche.texto ?? t.texto, parche.para_member ?? t.para_member ?? null);
+    if (clave && clave !== t.clave) parche.clave = clave;
+  }
+  parche.updated_at = ahora.toISOString();
+  try {
+    await update("bot_tareas", `id=${eq(t.id)}&household_id=${eq(ctx.householdId)}&status=eq.abierta`, parche);
+  } catch (e) {
+    if (esDuplicado(e)) return "Ya hay otra igual apuntada: no la he cambiado. Dilo así y pregunta si quiere cerrar una de las dos.";
+    throw e;
+  }
   return "Cambiado.";
 }
