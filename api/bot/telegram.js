@@ -285,7 +285,10 @@ async function atender(msg, base, host = "") {
       chatId, householdId: chat.household_id, from: msg.from, esGrupo, adjunto,
       texto: pie || (adjunto.tipo === "document" ? "(te mando este PDF)" : "(te mando esta foto)"),
       responderA: esGrupo ? msg.message_id : undefined,
-    }), atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
+    }), atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }),
+    () => enviar(chatId, "Estoy terminando otra cosa en este chat. Mándamela otra vez en un momento, porfa.", {
+      responderA: esGrupo ? msg.message_id : undefined,
+    }));
   }
 
   // Stickers, ubicaciones y demás: nada que hacer.

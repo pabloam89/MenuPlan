@@ -65,9 +65,16 @@ export async function enTurno(chatId, item, atender) {
 /**
  * Para lo que no se puede juntar (una foto o un PDF): espera a que el chat
  * esté libre, responde, y deja atendido lo que se haya acumulado detrás.
+ * Si tras la espera el chat sigue ocupado, no responde a la vez que el otro
+ * turno ni toca su candado: avisa con `alOcupar`.
  */
-export async function aSolas(chatId, atender, drenar) {
-  for (let i = 0; i < 60 && !(await tomarCandado(chatId)); i++) await dormir(1000);
+export async function aSolas(chatId, atender, drenar, alOcupar = async () => {}) {
+  let mio = await tomarCandado(chatId);
+  for (let i = 0; i < 60 && !mio; i++) {
+    await dormir(1000);
+    mio = await tomarCandado(chatId);
+  }
+  if (!mio) return alOcupar();
   try {
     await atender();
     for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
