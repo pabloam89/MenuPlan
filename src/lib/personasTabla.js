@@ -19,7 +19,25 @@ const CAMPOS_CON_COLUMNA = new Set([
   "healthProfiles", "healthProfile",
 ]);
 
+import { DEFAULT_ROSTER_ID } from "./rosters.js";
+
 const lista = (v) => (Array.isArray(v) ? v : []);
+
+// Un hogar tiene varios rosters (grupos de personas que se alternan, p. ej.
+// «Otro grupo»). El activo vive en data.members/data.groups; los demás, en
+// data.rosters[id].snapshot. Hay que copiarlos todos o las personas de los
+// rosters inactivos desaparecen de las tablas.
+const fuentesDe = (data) => {
+  const activo = data.activeRosterId ?? DEFAULT_ROSTER_ID;
+  return [
+    { members: data.members, groups: data.groups },
+    ...Object.values(data.rosters ?? {})
+      .filter((r) => r && r.id !== activo)
+      .map((r) => ({ members: r.snapshot?.members, groups: r.snapshot?.groups })),
+  ];
+};
+const todosLosMiembros = (data) => fuentesDe(data).flatMap((f) => lista(f.members));
+const todosLosGrupos = (data) => fuentesDe(data).flatMap((f) => lista(f.groups));
 const textoLimpio = (v) => String(v ?? "").trim();
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -41,7 +59,7 @@ export function filasDeCasa(householdId, state) {
   const perfilesSalud = [];
   const idsVistos = new Set();
 
-  for (const m of lista(data.members)) {
+  for (const m of todosLosMiembros(data)) {
     if (m?.id == null || textoLimpio(m.id) === "") {
       avisos.push("comensal sin id: se omite");
       continue;
@@ -99,7 +117,7 @@ export function filasDeCasa(householdId, state) {
   const grupoPersona = [];
   const idsGrupo = new Set();
 
-  lista(data.groups).forEach((g, orden) => {
+  todosLosGrupos(data).forEach((g, orden) => {
     if (g?.id == null || textoLimpio(g.id) === "") {
       avisos.push("grupo sin id: se omite");
       return;

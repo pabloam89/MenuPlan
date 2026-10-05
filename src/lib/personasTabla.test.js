@@ -103,6 +103,34 @@ describe("filasDeCasa", () => {
     expect(f.avisos).toEqual(['grupo «g1» apunta a una persona que no existe («fantasma»): se omite']);
   });
 
+  it("copia también las personas y grupos de los rosters inactivos", () => {
+    const state = {
+      data: {
+        activeRosterId: "default",
+        members: [{ id: "a", name: "Pablo" }],
+        groups: [{ id: "g-a", label: "Adultos", memberIds: ["a"] }],
+        rosters: {
+          default: { id: "default", name: "Casa", snapshot: { members: [{ id: "a", name: "Pablo" }] } },
+          otro: {
+            id: "otro", name: "Otro grupo",
+            snapshot: {
+              members: [{ id: "c", name: "Cova", age: 1 }],
+              groups: [{ id: "g-c", label: "Bebé", memberIds: ["c"] }],
+            },
+          },
+        },
+      },
+    };
+    const f = filasDeCasa(CASA, state);
+    expect(f.personas.map((p) => p.id).sort()).toEqual(["a", "c"]);
+    expect(f.grupos.map((g) => g.id).sort()).toEqual(["g-a", "g-c"]);
+    expect(f.grupoPersona).toEqual(expect.arrayContaining([
+      { household_id: CASA, grupo_id: "g-c", persona_id: "c" },
+    ]));
+    // El roster activo no se cuenta dos veces aunque su snapshot esté guardado.
+    expect(f.avisos).toEqual([]);
+  });
+
   it("casa vacía o sin estado: nada que copiar y ningún error", () => {
     expect(filasDeCasa(CASA, null)).toEqual({ personas: [], alergias: [], intolerancias: [], estados: [], perfilesSalud: [], grupos: [], grupoPersona: [], avisos: [] });
     expect(filasDeCasa(CASA, { data: {} }).personas).toEqual([]);
