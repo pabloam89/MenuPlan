@@ -9,7 +9,7 @@
  * vale para la semana que se planifica.
  */
 
-import { conData, personaPorNombre } from "./ajustes.js";
+import { conData, personaPorNombre, noEncuentro } from "./ajustes.js";
 import { cargarCasa } from "./casa.js";
 import { motor } from "./menu.js";
 
@@ -38,7 +38,7 @@ export function guardarMenuCole(householdId, { semanas, para }) {
     let kidId;
     if (para && !["todos", "todas", "los niños", "ninos"].includes(String(para).toLowerCase())) {
       const x = personaPorNombre(data, para);
-      if (!x) return { texto: `No encuentro a «${para}» en la casa.` };
+      if (!x) return { texto: noEncuentro(data, para) };
       scope = "individual";
       kidId = x.id;
     }

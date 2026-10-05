@@ -51,13 +51,34 @@ export async function conData(householdId, cambiar) {
   return texto;
 }
 
-export const personaPorNombre = (data, nombre) => {
+/**
+ * La persona por su nombre: exacto, luego primer nombre exacto, luego prefijo
+ * ÚNICO. Con varias candidatas no elige: devuelve las candidatas, porque
+ * escribir alergias o borrar a la persona equivocada es peor que preguntar.
+ */
+export function buscarPersona(data, nombre) {
   const q = normal(nombre);
   // Sin nombre no hay nadie: un startsWith("") casaría con el primero de la casa.
-  if (!q) return null;
-  return (data.members ?? []).find((p) => normal(p.name) === q)
-    ?? (data.members ?? []).find((p) => normal(p.name).startsWith(q));
-};
+  if (!q) return { persona: null, candidatas: [] };
+  const miembros = data.members ?? [];
+  const unica = (lista) => (lista.length === 1 ? { persona: lista[0], candidatas: [] } : lista.length > 1 ? { persona: null, candidatas: lista } : null);
+  return unica(miembros.filter((p) => normal(p.name) === q))
+    ?? unica(miembros.filter((p) => normal(p.name).split(/\s+/)[0] === q))
+    ?? unica(miembros.filter((p) => normal(p.name).startsWith(q)))
+    ?? { persona: null, candidatas: [] };
+}
+
+export const personaPorNombre = (data, nombre) => buscarPersona(data, nombre).persona;
+
+/** Qué decir cuando `personaPorNombre` no da a nadie: no está, o hay varias. */
+export function noEncuentro(data, nombre) {
+  const { candidatas } = buscarPersona(data, nombre);
+  if (candidatas.length > 1) {
+    const nombres = candidatas.map((p) => p.name);
+    return `¿Te refieres a ${nombres.slice(0, -1).join(", ")} o a ${nombres.at(-1)}? No he cambiado nada: dime cuál.`;
+  }
+  return `No encuentro a ${nombre} en la casa.`;
+}
 
 // ── Leer ────────────────────────────────────────────────────────────────────
 
@@ -404,7 +425,7 @@ export async function ajustarMenuPeques(householdId, { cena }) {
 export async function anadirComensal(householdId, { nombre, edad }) {
   return conData(householdId, (data, m) => {
     if (!nombre) return { texto: "¿Cómo se llama?" };
-    if (personaPorNombre(data, nombre)) return { texto: `${nombre} ya está en la casa.` };
+    if ((data.members ?? []).some((p) => normal(p.name) === normal(nombre))) return { texto: `${nombre} ya está en la casa.` };
     const age = Number.isFinite(edad) ? edad : null;
     const nuevo = {
       id: `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
@@ -428,7 +449,7 @@ export async function anadirComensal(householdId, { nombre, edad }) {
 export async function ajustarPersona(householdId, { nombre, nuevoNombre, pesoKg, alturaCm, borrar = false }) {
   return conData(householdId, (data, m) => {
     const x = personaPorNombre(data, nombre);
-    if (!x) return { texto: `No encuentro a ${nombre} en la casa.` };
+    if (!x) return { texto: noEncuentro(data, nombre) };
     // Un nombre mal oído en un audio («Iquer» → «Iker»): todo va por id, así
     // que basta con cambiar el nombre.
     const nuevo = String(nuevoNombre ?? "").trim();
@@ -464,7 +485,7 @@ export async function ajustarPersona(householdId, { nombre, nuevoNombre, pesoKg,
 export async function quitarComensal(householdId, { nombre }) {
   return conData(householdId, (data, m) => {
     const x = personaPorNombre(data, nombre);
-    if (!x) return { texto: `No encuentro a ${nombre} en la casa.` };
+    if (!x) return { texto: noEncuentro(data, nombre) };
     const members = (data.members ?? []).filter((p) => p.id !== x.id);
     if (!members.length) return { texto: "No puedo dejar la casa sin nadie." };
     const schedule = Object.fromEntries(Object.entries(data.schedule ?? {}).filter(([k]) => !k.startsWith(`${x.id}|`)));
@@ -492,7 +513,7 @@ export async function ajustarAlergias(householdId, { persona, alergenos, quitar 
     return conData(householdId, (data, m) => {
       const uno = persona && !TODA_LA_CASA.test(normal(persona));
       const x = uno ? personaPorNombre(data, persona) : null;
-      if (uno && !x) return { texto: `No encuentro a ${persona} en la casa.` };
+      if (uno && !x) return { texto: noEncuentro(data, persona) };
       const nuevo = m.marcarRevisadas(data, x ? [x.id] : null);
       const conAlguna = (data.members ?? []).some((p) => (p.allergies ?? []).length);
       return {
@@ -508,7 +529,7 @@ export async function ajustarAlergias(householdId, { persona, alergenos, quitar 
     // («frutos secos»), y se escribe la ETIQUETA, que es lo que guarda la app.
     const toda = TODA_LA_CASA.test(normal(persona));
     const x = toda ? null : personaPorNombre(data, persona);
-    if (!toda && !x) return { texto: `No encuentro a ${persona} en la casa.` };
+    if (!toda && !x) return { texto: noEncuentro(data, persona) };
     const r = m.aplicarAlergias(data, { memberId: toda ? m.FAMILIA : x.id, ids: alergenos, quitar, confirmado: true });
     if (!r.escrito) {
       return { texto: `No reconozco ninguno como uno de los 14 alérgenos oficiales (${r.ignorados.join(", ") || "vacío"}). Los válidos: ${m.EU_ALLERGEN_IDS.join(", ")}.` };
@@ -543,7 +564,7 @@ export async function ajustarSalud(householdId, { persona, intolerancias = [], e
   if (hasta && !/^\d{4}-\d{2}-\d{2}$/.test(hasta)) return "La fecha «hasta» va en AAAA-MM-DD (la de hoy está en la primera línea del día de la ficha).";
   return conData(householdId, (data) => {
     const x = personaPorNombre(data, persona);
-    if (!x) return { texto: `No encuentro a ${persona} en la casa.` };
+    if (!x) return { texto: noEncuentro(data, persona) };
     const sin = (lista, quitar_) => (lista ?? []).filter((id) => !quitar_.includes(id));
     const meta = { ...(x.dietaryStatesMeta ?? {}) };
     for (const id of ests) {
