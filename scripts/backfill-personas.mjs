@@ -50,7 +50,7 @@ for (const fila of casas ?? []) {
     continue;
   }
   // Una transacción por casa: la RPC borra lo que hubiera y vuelve a insertar.
-  const { error: e } = await sb.rpc("persona_reemplazar_casa", {
+  const { error: e } = await sb.rpc("persona_sincronizar_casa", {
     p_household: fila.household_id,
     p_filas: f,
   });
