@@ -24,6 +24,13 @@ create table if not exists public.persona (
   alergias_revisadas boolean not null default false,
   peso_kg            numeric check (peso_kg is null or peso_kg between 2 and 300),
   altura_cm          numeric check (altura_cm is null or altura_cm between 40 and 230),
+  usa_fecha_nacimiento boolean not null default false,
+  fecha_nacimiento   date,
+  detalle_etapa      text,
+  no_es_bebe         boolean not null default false,
+  clave_perfil       text,
+  clave_avatar       text,
+  color              text,
   resto              jsonb not null default '{}'::jsonb,
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now(),
@@ -35,6 +42,18 @@ create table if not exists public.persona_alergia (
   persona_id   text not null,
   alergeno     text not null,
   primary key (household_id, persona_id, alergeno),
+  foreign key (household_id, persona_id) references public.persona(household_id, id) on delete cascade
+);
+
+-- Perfiles de salud (glucemico, corazon, bajo_sodio, reflux, anemia…): solo muestran
+-- insignias y orientan al planificador. No son exclusiones duras (eso son alergias,
+-- intolerancias y estados). Texto libre a propósito: hay valores antiguos que no están
+-- en la lista actual.
+create table if not exists public.persona_perfil_salud (
+  household_id uuid not null,
+  persona_id   text not null,
+  perfil       text not null,
+  primary key (household_id, persona_id, perfil),
   foreign key (household_id, persona_id) references public.persona(household_id, id) on delete cascade
 );
 
@@ -80,11 +99,12 @@ alter table public.persona enable row level security;
 alter table public.persona_alergia enable row level security;
 alter table public.persona_intolerancia enable row level security;
 alter table public.persona_estado enable row level security;
+alter table public.persona_perfil_salud enable row level security;
 alter table public.grupo enable row level security;
 alter table public.grupo_persona enable row level security;
 
 revoke all on public.persona, public.persona_alergia, public.persona_intolerancia,
-  public.persona_estado, public.grupo, public.grupo_persona from anon, authenticated;
+  public.persona_estado, public.persona_perfil_salud, public.grupo, public.grupo_persona from anon, authenticated;
 
 -- Copia completa de una casa: borra lo que hubiera y vuelve a insertar, todo en
 -- una transacción (una llamada a una función = una transacción). Recibe las
@@ -98,19 +118,27 @@ as $$
 begin
   delete from public.grupo_persona where household_id = p_household;
   delete from public.grupo where household_id = p_household;
+  delete from public.persona_perfil_salud where household_id = p_household;
   delete from public.persona_estado where household_id = p_household;
   delete from public.persona_intolerancia where household_id = p_household;
   delete from public.persona_alergia where household_id = p_household;
   delete from public.persona where household_id = p_household;
 
-  insert into public.persona (household_id, id, nombre, edad, rol_hogar, alergias_revisadas, peso_kg, altura_cm, resto)
+  insert into public.persona (household_id, id, nombre, edad, rol_hogar, alergias_revisadas, peso_kg, altura_cm,
+    usa_fecha_nacimiento, fecha_nacimiento, detalle_etapa, no_es_bebe, clave_perfil, clave_avatar, color, resto)
   select p_household, x->>'id', x->>'nombre', (x->>'edad')::int, x->>'rol_hogar',
-         (x->>'alergias_revisadas')::boolean, (x->>'peso_kg')::numeric, (x->>'altura_cm')::numeric, coalesce(x->'resto', '{}'::jsonb)
+         (x->>'alergias_revisadas')::boolean, (x->>'peso_kg')::numeric, (x->>'altura_cm')::numeric,
+         (x->>'usa_fecha_nacimiento')::boolean, (x->>'fecha_nacimiento')::date, x->>'detalle_etapa',
+         (x->>'no_es_bebe')::boolean, x->>'clave_perfil', x->>'clave_avatar', x->>'color', coalesce(x->'resto', '{}'::jsonb)
     from jsonb_array_elements(coalesce(p_filas->'personas', '[]'::jsonb)) x;
 
   insert into public.persona_alergia (household_id, persona_id, alergeno)
   select p_household, x->>'persona_id', x->>'alergeno'
     from jsonb_array_elements(coalesce(p_filas->'alergias', '[]'::jsonb)) x;
+
+  insert into public.persona_perfil_salud (household_id, persona_id, perfil)
+  select p_household, x->>'persona_id', x->>'perfil'
+    from jsonb_array_elements(coalesce(p_filas->'perfilesSalud', '[]'::jsonb)) x;
 
   insert into public.persona_intolerancia (household_id, persona_id, valor)
   select p_household, x->>'persona_id', x->>'valor'

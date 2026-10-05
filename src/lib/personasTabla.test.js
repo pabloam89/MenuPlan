@@ -34,13 +34,34 @@ describe("filasDeCasa", () => {
     expect(f.avisos).toEqual([]);
   });
 
-  it("lo que no tiene columna propia va a resto, sin perder nada", () => {
+  it("lo que no tiene columna ni tabla propia va a resto, sin perder nada", () => {
     const f = filasDeCasa(CASA, {
-      data: { members: [{ id: "m2", name: "Leo", age: 6, dislikes: ["pepino"], healthProfiles: ["celiaco"], stageDetail: "x", color: "#fff", campoNuevo: 1 }] },
+      data: { members: [{ id: "m2", name: "Leo", age: 6, dislikes: ["pepino"], campoNuevo: 1 }] },
     });
-    expect(f.personas[0].resto).toEqual({ dislikes: ["pepino"], healthProfiles: ["celiaco"], stageDetail: "x", color: "#fff", campoNuevo: 1 });
+    expect(f.personas[0].resto).toEqual({ dislikes: ["pepino"], campoNuevo: 1 });
     expect(f.personas[0].resto).not.toHaveProperty("name");
     expect(f.personas[0].resto).not.toHaveProperty("allergies");
+  });
+
+  it("presentación y etapa salen a columnas; el perfil antiguo se une a la lista nueva", () => {
+    const f = filasDeCasa(CASA, {
+      data: { members: [{
+        id: "m4", name: "Ana", age: 40, useBirthDate: true, birthDate: "1986-03-02",
+        stageDetail: "lactancia materna", notBaby: true, profileKey: "mama", avatarKey: "mama_1", color: "#d81b60",
+        healthProfiles: ["glucemico", "anemia"], healthProfile: "reflux",
+      }] },
+    });
+    expect(f.personas[0]).toEqual(expect.objectContaining({
+      usa_fecha_nacimiento: true, fecha_nacimiento: "1986-03-02", detalle_etapa: "lactancia materna",
+      no_es_bebe: true, clave_perfil: "mama", clave_avatar: "mama_1", color: "#d81b60",
+    }));
+    expect(f.personas[0].resto).toEqual({});
+    expect(f.perfilesSalud.map((x) => x.perfil).sort()).toEqual(["anemia", "glucemico", "reflux"]);
+  });
+
+  it("una fecha de nacimiento mal escrita queda a null, no rompe la fila", () => {
+    const f = filasDeCasa(CASA, { data: { members: [{ id: "m5", name: "Leo", birthDate: "ayer" }] } });
+    expect(f.personas[0].fecha_nacimiento).toBeNull();
   });
 
   it("sin nombre se pone un marcador, y edad no numérica queda a null", () => {
@@ -83,7 +104,7 @@ describe("filasDeCasa", () => {
   });
 
   it("casa vacía o sin estado: nada que copiar y ningún error", () => {
-    expect(filasDeCasa(CASA, null)).toEqual({ personas: [], alergias: [], intolerancias: [], estados: [], grupos: [], grupoPersona: [], avisos: [] });
+    expect(filasDeCasa(CASA, null)).toEqual({ personas: [], alergias: [], intolerancias: [], estados: [], perfilesSalud: [], grupos: [], grupoPersona: [], avisos: [] });
     expect(filasDeCasa(CASA, { data: {} }).personas).toEqual([]);
   });
 });

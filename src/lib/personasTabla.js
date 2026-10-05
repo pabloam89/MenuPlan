@@ -10,20 +10,24 @@
  * pierde nada si los consumidores aún no lo leen de la tabla.
  */
 
-// Campos de un comensal que ya tienen columna o tabla propia.
+// Campos de un comensal que ya tienen columna o tabla propia. Lo demás (dislikes,
+// y cualquier clave desconocida) va a `resto` hasta que tenga su entidad.
 const CAMPOS_CON_COLUMNA = new Set([
   "id", "name", "age", "homeRole", "alergiasRevisadas", "pesoKg", "alturaCm",
   "allergies", "intolerances", "dietaryStates", "dietaryStatesMeta",
+  "useBirthDate", "birthDate", "stageDetail", "notBaby", "profileKey", "avatarKey", "color",
+  "healthProfiles", "healthProfile",
 ]);
 
 const lista = (v) => (Array.isArray(v) ? v : []);
 const textoLimpio = (v) => String(v ?? "").trim();
+const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * @param {string} householdId
  * @param {any} state  el JSON de household_state.state
  * @returns {{
- *   personas: object[], alergias: object[], intolerancias: object[], estados: object[],
+ *   personas: object[], alergias: object[], intolerancias: object[], estados: object[], perfilesSalud: object[],
  *   grupos: object[], grupoPersona: object[], avisos: string[]
  * }}
  */
@@ -34,6 +38,7 @@ export function filasDeCasa(householdId, state) {
   const alergias = [];
   const intolerancias = [];
   const estados = [];
+  const perfilesSalud = [];
   const idsVistos = new Set();
 
   for (const m of lista(data.members)) {
@@ -60,8 +65,21 @@ export function filasDeCasa(householdId, state) {
       alergias_revisadas: m.alergiasRevisadas === true,
       peso_kg: Number.isFinite(m.pesoKg) ? m.pesoKg : null,
       altura_cm: Number.isFinite(m.alturaCm) ? m.alturaCm : null,
+      usa_fecha_nacimiento: m.useBirthDate === true,
+      fecha_nacimiento: typeof m.birthDate === "string" && FECHA.test(m.birthDate) ? m.birthDate : null,
+      detalle_etapa: textoLimpio(m.stageDetail) || null,
+      no_es_bebe: m.notBaby === true,
+      clave_perfil: textoLimpio(m.profileKey) || null,
+      clave_avatar: textoLimpio(m.avatarKey) || null,
+      color: textoLimpio(m.color) || null,
       resto,
     });
+
+    // El perfil antiguo (un texto suelto) cuenta como uno más de la lista nueva.
+    const perfiles = new Set([...lista(m.healthProfiles), m.healthProfile].map(textoLimpio).filter(Boolean));
+    for (const perfil of perfiles) {
+      perfilesSalud.push({ household_id: householdId, persona_id: id, perfil });
+    }
 
     for (const a of new Set(lista(m.allergies).map(textoLimpio).filter(Boolean))) {
       alergias.push({ household_id: householdId, persona_id: id, alergeno: a });
@@ -108,5 +126,5 @@ export function filasDeCasa(householdId, state) {
     }
   });
 
-  return { personas, alergias, intolerancias, estados, grupos, grupoPersona, avisos };
+  return { personas, alergias, intolerancias, estados, perfilesSalud, grupos, grupoPersona, avisos };
 }
