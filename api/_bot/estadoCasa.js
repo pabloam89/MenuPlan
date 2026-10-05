@@ -64,7 +64,11 @@ export function resuelta(clave, data = {}) {
   return false;
 }
 
-const VACIAS = new Set("el la los las un una unos unas de del al a y o que en con por para lo le se me te mi tu su ya si no".split(" "));
+// El verbo del encargo no cambia qué es: «comprar pan para el sábado» y «pan
+// para el sábado» son lo mismo (claveSeguimiento de modelo.mjs v17, menuplan-1e).
+// «sin» no está: «pan» y «pan sin gluten» son cosas distintas.
+const VACIAS = new Set(("el la los las un una unos unas de del al a y o que en con por para lo le se me te mi tu su ya si no " +
+  "hay comprar compra compramos traer trae coger pillar acordarse acuerdate recordar recuerda recuerdame apunta apuntar algo mas").split(" "));
 
 /** Clave de una tarea libre: las palabras con contenido, ordenadas. Dos padres que piden lo mismo con otras palabras de relleno chocan. */
 export function claveLibre(kind, texto, paraId = null) {

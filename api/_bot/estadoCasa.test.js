@@ -81,6 +81,14 @@ describe("claveLibre: dos maneras de pedir lo mismo chocan", () => {
   it("sin palabras con contenido, no hay clave", () => {
     expect(claveLibre("seguimiento", "y de la")).toBe(null);
   });
+  it("el verbo del encargo no cuenta: «comprar pan para el sábado» = «pan para el sábado»", () => {
+    expect(claveLibre("seguimiento", "comprar pan para el sábado")).toBe(claveLibre("seguimiento", "pan para el sábado"));
+    expect(claveLibre("seguimiento", "hay que traer leche")).toBe(claveLibre("seguimiento", "leche"));
+    expect(claveLibre("seguimiento", "recuérdame coger los yogures")).toBe(claveLibre("seguimiento", "yogures"));
+  });
+  it("pero no se funden cosas distintas: «pan» y «pan sin gluten»", () => {
+    expect(claveLibre("seguimiento", "comprar pan")).not.toBe(claveLibre("seguimiento", "comprar pan sin gluten"));
+  });
 });
 
 describe("etapa del bebé: hoy es una sola por casa", () => {
