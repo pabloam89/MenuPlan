@@ -1,6 +1,8 @@
 -- Guardas de persona_sincronizar_casa (0081). Corrige un fallo de la 0081: con una
--- lista de personas o de grupos vacía (o ausente), el borrado por clave borraba toda
--- la casa. Ahora una lista ausente, o vacía sobre una casa con filas, se rechaza.
+-- lista de personas vacía, el borrado por clave borraba toda la casa. Ahora una lista
+-- de personas ausente, o vacía sobre una casa con filas, se rechaza. Los grupos vacíos
+-- no se rechazan: la app los regenera si hay personas, y solo tienen dependientes en
+-- grupo_persona (cascada).
 -- Redefine la función; el resto de la lógica es el de la 0081.
 
 -- Sincronización de personas y grupos por clave (sustituye a persona_reemplazar_casa
@@ -34,9 +36,6 @@ begin
   end if;
   if jsonb_array_length(p_filas->'personas') = 0 and exists (select 1 from public.persona where household_id = p_household) then
     raise exception 'lista de personas vacía: no se vacía una casa por sincronizar' using errcode = '22023';
-  end if;
-  if jsonb_array_length(p_filas->'grupos') = 0 and exists (select 1 from public.grupo where household_id = p_household) then
-    raise exception 'lista de grupos vacía: no se vacía una casa por sincronizar' using errcode = '22023';
   end if;
   -- 1. Personas: upsert por clave.
   insert into public.persona (household_id, id, nombre, edad, rol_hogar, alergias_revisadas, peso_kg, altura_cm,
