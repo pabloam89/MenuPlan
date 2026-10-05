@@ -1,7 +1,30 @@
 # Modelo de datos de la casa: fuentes de verdad
 
-Estado: propuesta para revisión. Decide quién manda sobre cada dato y en qué orden
+Estado: propuesta para revisión (ver «Estado real» abajo). Decide quién manda sobre cada dato y en qué orden
 se migra. No cambia código por sí solo.
+
+## Estado real (revisión de dos agentes, 5 oct 2026)
+
+Lo que la spec describe como hecho en el paso 1 **no existe**:
+
+- `bot_save_casa` (0057, y sus sucesores 0068/0069/0072) solo escribe `household_state` y `user_menu_weeks`. No llama a `persona_sincronizar_casa`.
+- No hay ningún disparador sobre `household_state`.
+- `persona_sincronizar_casa` tiene un único llamador: `scripts/backfill-personas.mjs`, a mano.
+
+Consecuencia: las tablas `persona_*` son una foto de la última vez que se ejecutó el script. Un alta o una alergia desde el bot o la app no llega a ellas. El borrado de una persona tampoco borra sus filas.
+
+Otros hallazgos de la revisión (sin resolver):
+
+- **Dos fuentes para el dueño:** `households.owner_user_id` lo leen enlace, generar y embudo; `household_members.role` lo leen papel, telegram y link. Un desajuste da permisos distintos según la ruta. ALTA.
+- **Concurrencia:** `bot_rev` no protege las tablas `persona_*`. Cuando la app escriba tablas, un cambio suyo no lo verá un bot con base antigua. ALTA para el paso 3.
+- **Vaciado de la casa desde la app** (`App.jsx:3556`) no manda `botRev`, así que no se comprueba la versión. ALTA si se añade un disparador.
+- **`bot_tareas` no tiene FK a persona.** La FK compuesta es el paso 6, y necesita la sincronización del paso 1.
+- **Una tarea de estado no se cierra al borrar a la persona.** Solo se cierra en el turno siguiente, y las tareas libres nunca se cierran. ALTA por RGPD.
+- **Datos de salud que sobreviven al borrado:** `bot_deshacer` guarda el estado completo (5 fotos por casa), `bot_messages` 15 días, `bot_tareas` 30+7 días, y la clave `alergias:<id>` en `user_events` para siempre.
+- **Escritura por cambio:** ni el bot ni la app lo cumplen. Ambos reescriben el blob entero.
+- **Coste:** el paso 1 dentro de la RPC añade unas quince sentencias por guardado. No hay medidas; las cifras son del código.
+
+Hasta que el paso 1 exista, la spec describe el destino, no el estado actual.
 
 ## Principios
 
