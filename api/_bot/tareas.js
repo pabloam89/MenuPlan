@@ -18,6 +18,9 @@ import { resolverPersona, claveDePregunta, claveLibre, resuelta, temaDe } from "
 import { esDeSeguridad, noEsComida, preguntaProhibida } from "../../src/lib/registroTareas.js";
 
 export const LIMITE_ABIERTAS = 8;
+// Lo que se trae de la base es una cota, no el recorte: el recorte lo hace
+// elegirParaLeer, que deja fuera del límite lo de seguridad.
+export const LIMITE_LECTURA = 50;
 const TEXTO_MAX = 240;
 const DIA = 86400000;
 // Cuánto tiene sentido cada cosa: la etapa de un bebé cambia en semanas.
@@ -34,7 +37,28 @@ export function filtroDeLectura({ householdId, userId = null, privado = false, a
   const ver = privado && userId
     ? `or=(scope.eq.casa,and(scope.eq.personal,owner_user_id.eq.${userId}))`
     : "scope=eq.casa";
-  return `household_id=${eq(householdId)}&status=eq.abierta&caduca_at=gt.${encodeURIComponent(ahora.toISOString())}&${ver}&order=created_at.asc&limit=${LIMITE_ABIERTAS}`;
+  return `household_id=${eq(householdId)}&status=eq.abierta&caduca_at=gt.${encodeURIComponent(ahora.toISOString())}&${ver}&order=created_at.desc&limit=${LIMITE_LECTURA}`;
+}
+
+const importanciaDe = (t) => (esDeSeguridad(t.clave) ? 0 : t.kind === "pregunta" ? 1 : 2);
+function urgenciaDe(t, ahora) {
+  if (!t.vence) return 2;
+  const dias = (Date.parse(`${t.vence}T23:59:59Z`) - ahora.getTime()) / DIA;
+  return dias <= 1 ? 0 : dias <= 7 ? 1 : 2;
+}
+
+/**
+ * Pura. Lo que lee Lola: lo de seguridad (alergias, etapa del bebé) entra
+ * siempre, sin límite; el resto, por importancia, urgencia y lo más reciente,
+ * hasta LIMITE_ABIERTAS. Antes se cortaba a 8 por antigüedad y una alergia
+ * nueva podía quedarse fuera.
+ */
+export function elegirParaLeer(tareas = [], ahora = new Date()) {
+  const orden = (a, b) => importanciaDe(a) - importanciaDe(b) || urgenciaDe(a, ahora) - urgenciaDe(b, ahora) || String(b.created_at).localeCompare(String(a.created_at));
+  const todas = [...tareas].sort(orden);
+  const seguridad = todas.filter((t) => importanciaDe(t) === 0);
+  const resto = todas.filter((t) => importanciaDe(t) > 0).slice(0, LIMITE_ABIERTAS);
+  return [...seguridad, ...resto];
 }
 
 /** Pura. Hasta cuándo tiene sentido: por tipo, o el día después de su fecha límite. */
@@ -147,9 +171,9 @@ async function topeAlcanzado(householdId, reemplaza) {
   return null;
 }
 
-export async function tareasAbiertas(householdId, opciones) {
+export async function tareasAbiertas(householdId, opciones = {}) {
   if (!householdId) return [];
-  return select("bot_tareas", filtroDeLectura({ householdId, ...opciones }), COLUMNAS);
+  return elegirParaLeer(await select("bot_tareas", filtroDeLectura({ householdId, ...opciones }), COLUMNAS), opciones.ahora);
 }
 
 /** Las claves de estado que alguien no quiso contestar: no se vuelven a preguntar. */

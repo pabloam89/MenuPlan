@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { filtroDeLectura, bloqueDeTareas, validarNueva, caducidadDe, separarPorEstado, porReferencia, aPromover, textoDeTope, LIMITE_ABIERTAS } from "./tareas.js";
+import { filtroDeLectura, bloqueDeTareas, validarNueva, caducidadDe, separarPorEstado, porReferencia, aPromover, textoDeTope, LIMITE_ABIERTAS, LIMITE_LECTURA, elegirParaLeer } from "./tareas.js";
 import { preguntasPendientes } from "./ficha.js";
 
 describe("preguntasPendientes: lo que no quieren decir no se vuelve a pedir", () => {
@@ -33,7 +33,32 @@ describe("filtroDeLectura: qué tareas ve quien escribe", () => {
     expect(f).toContain(`household_id=eq.${CASA}`);
     expect(f).toContain("status=eq.abierta");
     expect(f).toContain("caduca_at=gt.");
-    expect(f).toContain(`limit=${LIMITE_ABIERTAS}`);
+    // La lectura trae de más (cota de seguridad); el recorte a 8 lo hace elegirParaLeer.
+    expect(f).toContain(`limit=${LIMITE_LECTURA}`);
+  });
+});
+
+describe("elegirParaLeer: la seguridad entra siempre, el resto hasta el límite", () => {
+  const t = (i, kind, clave, dias = 0, vence = null) => ({
+    id: `t${i}`, kind, clave, vence, created_at: new Date(AHORA.getTime() - dias * 86400000).toISOString(),
+  });
+  it("6 seguimientos y 3 alergias más nuevas: las 3 alergias están", () => {
+    const seg = Array.from({ length: 6 }, (_, i) => t(i, "seguimiento", `seguimiento:casa:x${i}`, 10 - i));
+    const ale = ["nat", "pablo", "isa"].map((p, i) => t(10 + i, "pregunta", `alergias:${p}`, 1));
+    const otras = [t(20, "pregunta", null, 2), t(21, "pregunta", null, 3)];
+    const leidas = elegirParaLeer([...seg, ...otras, ...ale], AHORA);
+    expect(leidas.filter((x) => x.clave?.startsWith("alergias:"))).toHaveLength(3);
+  });
+  it("con 9 alergias por preguntar, entran las 9 aunque pasen del límite", () => {
+    const ale = Array.from({ length: 9 }, (_, i) => t(i, "pregunta", `alergias:p${i}`, i));
+    const seg = Array.from({ length: 8 }, (_, i) => t(20 + i, "seguimiento", `seguimiento:casa:y${i}`, i));
+    const leidas = elegirParaLeer([...seg, ...ale], AHORA);
+    expect(leidas.filter((x) => x.clave?.startsWith("alergias:"))).toHaveLength(9);
+    expect(leidas.filter((x) => x.kind === "seguimiento")).toHaveLength(LIMITE_ABIERTAS);
+  });
+  it("fuera de la seguridad, lo que vence antes va primero", () => {
+    const leidas = elegirParaLeer([t(1, "seguimiento", "s1", 5, "2026-12-01"), t(2, "seguimiento", "s2", 1, "2026-10-04")], AHORA);
+    expect(leidas.map((x) => x.id)).toEqual(["t2", "t1"]);
   });
 });
 
