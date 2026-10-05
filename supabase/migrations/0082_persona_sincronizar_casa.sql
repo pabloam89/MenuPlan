@@ -82,3 +82,16 @@ end;
 $$;
 
 revoke all on function public.persona_sincronizar_casa(uuid, jsonb) from public, anon, authenticated;
+
+-- La función vieja deja de borrar y reinsertar: delega en la nueva. Así ningún
+-- script antiguo puede volver a vaciar las personas de una casa.
+create or replace function public.persona_reemplazar_casa(p_household uuid, p_filas jsonb)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  select public.persona_sincronizar_casa(p_household, p_filas);
+$$;
+
+revoke all on function public.persona_reemplazar_casa(uuid, jsonb) from public, anon, authenticated;
