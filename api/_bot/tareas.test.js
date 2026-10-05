@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { filtroDeLectura, bloqueDeTareas, validarNueva, caducidadDe, separarPorEstado, porReferencia, aPromover, textoDeTope, LIMITE_ABIERTAS, LIMITE_LECTURA, elegirParaLeer } from "./tareas.js";
+import { filtroDeLectura, bloqueDeTareas, validarNueva, caducidadDe, separarPorEstado, porReferencia, aPromover, textoDeTope, decidirTope, LIMITE_ABIERTAS, LIMITE_LECTURA, elegirParaLeer } from "./tareas.js";
 import { preguntasPendientes } from "./ficha.js";
 
 describe("preguntasPendientes: lo que no quieren decir no se vuelve a pedir", () => {
@@ -168,6 +168,33 @@ describe("textoDeTope: lleno no es olvidar en silencio", () => {
     expect(t).toMatch(/No lo he apuntado/);
     expect(t).toContain("[0000000");
     expect(t).toMatch(/reemplaza/);
+  });
+});
+
+describe("tope lleno: lo personal de otro ni se enseña ni se quita", () => {
+  const OTRO = "33333333-3333-3333-3333-333333333333";
+  const casa = Array.from({ length: LIMITE_ABIERTAS - 1 }, (_, i) => ({ id: `aaaaaaa${i}-x`, texto: `casa ${i}`, scope: "casa" }));
+  const ajena = { id: "bbbbbbbb-x", texto: "regalo sorpresa de Isa", scope: "personal", owner_user_id: OTRO };
+  const llenas = [...casa, ajena];
+
+  it("en grupo, el texto de una personal ajena no sale", () => {
+    const t = textoDeTope(llenas, { userId: YO, privado: false });
+    expect(t).not.toContain("regalo sorpresa");
+    expect(t).toMatch(/otras 1 apuntadas que no puedo enseñarte/);
+  });
+  it("en privado, su dueño sí la ve", () => {
+    expect(textoDeTope(llenas, { userId: OTRO, privado: true })).toContain("regalo sorpresa");
+  });
+  it("reemplazar la personal de otro se rechaza", () => {
+    const d = decidirTope(llenas, "bbbbbbbb", { userId: YO, privado: true });
+    expect(d.quitar).toBeUndefined();
+    expect(d.texto).toMatch(/personal de otra persona/);
+  });
+  it("reemplazar una de la casa vale", () => {
+    expect(decidirTope(llenas, "aaaaaaa0", { userId: YO, privado: false }).quitar?.id).toBe("aaaaaaa0-x");
+  });
+  it("con sitio, cabe", () => {
+    expect(decidirTope(casa, "aaaaaaa0", {}).cabe).toBe(true);
   });
 });
 

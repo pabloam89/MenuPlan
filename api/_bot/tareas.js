@@ -153,18 +153,44 @@ const esTope = (e) => /tope de tareas abiertas|P0001/i.test(String(e?.message ??
  * Pura. Si hay ya LIMITE seguimientos abiertos, el texto para el modelo: lista
  * con referencias y la orden de preguntar cuál quitar. Nada se olvida en silencio.
  */
-export function textoDeTope(abiertos = []) {
+/** Pura. ¿Puede ver quien escribe esta tarea en este chat? Las personales, solo su dueño y en privado. */
+export const visiblePara = (t, { userId = null, privado = false } = {}) =>
+  t.scope !== "personal" || (privado && Boolean(userId) && t.owner_user_id === userId);
+
+export function textoDeTope(abiertos = [], quien = {}) {
   if (abiertos.length < LIMITE_ABIERTAS) return null;
-  const lista = abiertos.map((t) => `- [${ref(t.id)}] ${t.texto}`).join("\n");
-  return `No lo he apuntado: ya hay ${abiertos.length} cosas apuntadas en la casa y no se quita ninguna sin preguntar.\n${lista}\nDíselo y pregunta cuál quitar. Con su respuesta, vuelve a llamar a anotar_tarea con reemplaza = esa referencia.`;
+  const visibles = abiertos.filter((t) => visiblePara(t, quien));
+  const ocultas = abiertos.length - visibles.length;
+  const otras = ocultas ? `\nHay otras ${ocultas} apuntadas que no puedo enseñarte aquí.` : "";
+  if (!visibles.length) {
+    return `No lo he apuntado: ya hay ${abiertos.length} cosas apuntadas en la casa y ninguna se puede quitar desde aquí.${otras}\nDíselo así: no se quita nada sin preguntar a quien lo apuntó.`;
+  }
+  const lista = visibles.map((t) => `- [${ref(t.id)}] ${t.texto}`).join("\n");
+  return `No lo he apuntado: ya hay ${abiertos.length} cosas apuntadas en la casa y no se quita ninguna sin preguntar.\n${lista}${otras}\nDíselo y pregunta cuál quitar. Con su respuesta, vuelve a llamar a anotar_tarea con reemplaza = esa referencia.`;
 }
 
-/** Null si cabe. Con `reemplaza` válido, descarta esa y deja sitio. */
-async function topeAlcanzado(householdId, reemplaza) {
-  const abiertos = await select("bot_tareas", `household_id=${eq(householdId)}&status=eq.abierta&kind=eq.seguimiento&caduca_at=gt.${encodeURIComponent(new Date().toISOString())}&order=created_at.asc`, "id,texto");
-  if (abiertos.length < LIMITE_ABIERTAS) return null;
-  const quitar = reemplaza ? porReferencia(abiertos, reemplaza) : null;
-  if (!quitar) return textoDeTope(abiertos);
+/**
+ * Pura. Con el tope lleno: { cabe } si hay sitio, { quitar } si `reemplaza`
+ * apunta a una que quien escribe puede ver, o { texto } para el modelo. Una
+ * personal ajena nunca se enseña ni se quita.
+ */
+export function decidirTope(abiertos = [], reemplaza, quien = {}) {
+  if (abiertos.length < LIMITE_ABIERTAS) return { cabe: true };
+  if (reemplaza) {
+    const quitar = porReferencia(abiertos.filter((t) => visiblePara(t, quien)), reemplaza);
+    if (quitar) return { quitar };
+    if (porReferencia(abiertos, reemplaza)) return { texto: "No la he quitado: es una cosa personal de otra persona y no se puede quitar desde aquí. Pregunta cuál de las que ve quitar." };
+  }
+  return { texto: textoDeTope(abiertos, quien) };
+}
+
+/** Null si cabe. Con `reemplaza` válido y visible, descarta esa y deja sitio. */
+async function topeAlcanzado(householdId, reemplaza, quien = {}) {
+  const abiertos = await select("bot_tareas", `household_id=${eq(householdId)}&status=eq.abierta&kind=eq.seguimiento&caduca_at=gt.${encodeURIComponent(new Date().toISOString())}&order=created_at.asc`, "id,texto,scope,owner_user_id");
+  const d = decidirTope(abiertos, reemplaza, quien);
+  if (d.cabe) return null;
+  if (d.texto) return d.texto;
+  const quitar = d.quitar;
   const ahora = new Date().toISOString();
   await update("bot_tareas", `id=${eq(quitar.id)}&status=eq.abierta`, { status: "descartada", closed_at: ahora, updated_at: ahora });
   await registrar(EVENTO.CERRADA, { extra: { householdId, kind: "seguimiento", estado: "descartada", motivo: "reemplazo" } });
@@ -266,7 +292,7 @@ export async function anotarTarea(ctx, datos, data = {}) {
   const t = v.valor;
   if (t.scope === "personal" && !(privado && userId)) return "Lo personal solo se apunta en un chat privado.";
   if (t.kind === "seguimiento") {
-    const lleno = await topeAlcanzado(householdId, datos.reemplaza);
+    const lleno = await topeAlcanzado(householdId, datos.reemplaza, { userId, privado });
     if (lleno) return lleno;
   }
   try {
@@ -277,7 +303,7 @@ export async function anotarTarea(ctx, datos, data = {}) {
       created_by: userId,
     }]);
   } catch (e) {
-    if (esTope(e)) return (await topeAlcanzado(householdId, null)) ?? "No he podido apuntarlo: hay demasiadas cosas abiertas. Pregunta cuál quitar.";
+    if (esTope(e)) return (await topeAlcanzado(householdId, null, { userId, privado })) ??"No he podido apuntarlo: hay demasiadas cosas abiertas. Pregunta cuál quitar.";
     if (!esDuplicado(e)) throw e;
     await registrar(EVENTO.DUPLICADA, { userId, extra: { householdId, kind: t.kind } });
     return "Ya estaba apuntado (lo pidió alguien antes): no lo he duplicado. Dilo así.";
