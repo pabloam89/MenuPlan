@@ -85,3 +85,14 @@ describe("0080 se puede reaplicar", () => {
     expect(sql).not.toMatch(/\bif\b[^;]*\bcase\b[^;]*\bthen\b[^;]*\bend\b[^;]*\bthen\b/i);
   });
 });
+
+describe("0082: la FK de tareas a persona no puede borrar tareas al copiar personas", () => {
+  const fk = readFileSync(new URL("../../supabase/migrations/0082_bot_tareas_fk_persona.sql", import.meta.url), "utf8");
+  it("se niega a aplicarse si la copia de personas aún borra y reinserta", () => {
+    expect(fk).toMatch(/persona_sincronizar_casa\(uuid, jsonb\)'\) is null then\s+raise exception/);
+    expect(fk).toMatch(/not ilike '%persona_sincronizar_casa%' then\s+raise exception/);
+  });
+  it("FK compuesta por casa, en cascada y sin revisar lo que ya hay", () => {
+    expect(fk).toMatch(/foreign key \(household_id, persona_id\) references public\.persona\(household_id, id\)\s+on delete cascade not valid/);
+  });
+});

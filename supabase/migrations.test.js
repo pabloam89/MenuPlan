@@ -44,7 +44,7 @@ const DUPLICADOS_HEREDADOS = new Set(["0003", "0006", "0051"]);
  * su fichero exista.
  *   0079: personas a tabla (rama feat/personas-tabla). La 0080 de tareas va después.
  */
-const RESERVADOS = new Set([]);
+const RESERVADOS = new Set(["0081"]);
 
 describe("las migraciones se pueden nombrar sin ambigüedad", () => {
   it("ningún número nuevo repetido", () => {
