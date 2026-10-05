@@ -38,6 +38,17 @@ describe("filtroDeLectura: qué tareas ve quien escribe", () => {
 });
 
 describe("validarNueva", () => {
+  const seguir = (texto) => validarNueva({ texto, kind: "seguimiento", confirmado: true }, data, AHORA);
+  it("solo comida: velas, pilas o una cita no se apuntan, en código", () => {
+    for (const t of ["comprar velas para la tarta", "pilas del mando", "cita con la pediatra el jueves"]) expect(seguir(t).error, t).toMatch(/comida/);
+    for (const t of ["comprar leche", "pan sin gluten para el sábado"]) expect(seguir(t).valor, t).toBeTruthy();
+  });
+  it("lo que nunca se pregunta (edad, colegio, sexo, custodia) no se abre aunque Lola lo intente", () => {
+    for (const t of ["cuántos años tiene Cova", "a qué colegio va Leo", "si es chico o chica", "si tenéis custodia compartida"]) {
+      expect(validarNueva({ texto: t, kind: "pregunta" }, data, AHORA).error, t).toMatch(/no se pregunta/);
+    }
+    expect(validarNueva({ texto: "cómo come Cova", kind: "pregunta" }, data, AHORA).valor).toBeTruthy();
+  });
   it("un seguimiento sin el sí no se escribe", () => {
     expect(validarNueva({ texto: "comprar pan", kind: "seguimiento" }, data, AHORA).error).toMatch(/sí/);
   });

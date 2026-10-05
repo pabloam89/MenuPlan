@@ -15,6 +15,7 @@ import { select, insert, update, eq } from "./db.js";
 import { registrar } from "./embudo.js";
 import { crearRecordatorio } from "./recordatorios.js";
 import { resolverPersona, claveDePregunta, claveLibre, resuelta, temaDe } from "./estadoCasa.js";
+import { esDeSeguridad, noEsComida, preguntaProhibida } from "../../src/lib/registroTareas.js";
 
 export const LIMITE_ABIERTAS = 8;
 const TEXTO_MAX = 240;
@@ -53,6 +54,9 @@ export function validarNueva(datos = {}, data = {}, ahora = new Date()) {
   if (kind === "seguimiento" && datos.confirmado !== true) return { error: "Antes de anotarlo, pregúntale si quiere que lo apunte. Solo con su sí." };
   const texto = String(datos.texto ?? "").trim().slice(0, TEXTO_MAX);
   if (!texto) return { error: "¿Qué quieres que quede apuntado?" };
+  // Lo que no puede depender del modelo: solo comida, y lo que nunca se pregunta.
+  if (kind === "seguimiento" && noEsComida(texto)) return { error: `No lo he apuntado: solo llevo lo que tiene que ver con la comida de casa (${noEsComida(texto)} no). Dilo así, con naturalidad.` };
+  if (kind === "pregunta" && preguntaProhibida(texto)) return { error: "Eso no se pregunta (edad, colegio, sexo o custodia): solo se apunta si lo cuentan. No lo anotes ni lo preguntes." };
   const scope = datos.scope ?? "casa";
   if (!["casa", "personal"].includes(scope)) return { error: "Ámbito no válido." };
   let para = null, encargado = null;
