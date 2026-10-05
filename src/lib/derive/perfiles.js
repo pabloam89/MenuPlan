@@ -25,7 +25,6 @@ import { NUTRIENTES } from "../../data/nutrientes.js";
 const KCAL_POR_G = { protein_g: 4, carbs_g: 4, fat_g: 9 };
 const ESCALA_PCT = 0.1;
 const ESCALA_RELATIVA = 0.25;
-const COMPONENTES = ["proteina", "hidrato", "verdura"];
 
 const pctKcal = (campo, min = null, max = null) => ({
   id: `${campo}%`, campo, min, max, escala: ESCALA_PCT,
@@ -102,8 +101,7 @@ function escalaDe(c, limite) {
 function faltanDe(res) {
   if (!res || res.valor == null) return null;
   if (res.valor === true) return [];
-  if (Array.isArray(res.faltan)) return res.faltan;
-  return COMPONENTES.filter((k) => String(res.via ?? "").includes(k));
+  return Array.isArray(res.faltan) ? res.faltan : null;
 }
 
 const fraccionProteina = (leer, p) => {
