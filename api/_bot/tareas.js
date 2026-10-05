@@ -55,7 +55,9 @@ function urgenciaDe(t, ahora) {
  */
 export function elegirParaLeer(tareas = [], ahora = new Date()) {
   const orden = (a, b) => importanciaDe(a) - importanciaDe(b) || urgenciaDe(a, ahora) - urgenciaDe(b, ahora) || String(b.created_at).localeCompare(String(a.created_at));
-  const todas = [...tareas].sort(orden);
+  // Con la hora, no con el día: lo que caducó esta mañana ya no sale (lecturaTareas de modelo.mjs v17).
+  const vivas = tareas.filter((t) => !t.caduca_at || Date.parse(t.caduca_at) > ahora.getTime());
+  const todas = vivas.sort(orden);
   const seguridad = todas.filter((t) => importanciaDe(t) === 0);
   const resto = todas.filter((t) => importanciaDe(t) > 0).slice(0, LIMITE_ABIERTAS);
   return [...seguridad, ...resto];

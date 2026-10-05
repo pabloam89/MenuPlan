@@ -36,6 +36,19 @@ describe("filtroDeLectura: qué tareas ve quien escribe", () => {
     // La lectura trae de más (cota de seguridad); el recorte a 8 lo hace elegirParaLeer.
     expect(f).toContain(`limit=${LIMITE_LECTURA}`);
   });
+  it("compara con la hora, no con el día", () => {
+    expect(filtroDeLectura({ householdId: CASA, ahora: AHORA })).toContain(encodeURIComponent("2026-10-03T10:00:00"));
+  });
+});
+
+describe("elegirParaLeer: lo caducado esta mañana ya no sale", () => {
+  it("caducó a las 8, son las 10: fuera; caduca a las 12: dentro", () => {
+    const t = [
+      { id: "m", kind: "seguimiento", texto: "caducó", caduca_at: "2026-10-03T08:00:00Z", created_at: "2026-10-01" },
+      { id: "t", kind: "seguimiento", texto: "sigue", caduca_at: "2026-10-03T12:00:00Z", created_at: "2026-10-01" },
+    ];
+    expect(elegirParaLeer(t, AHORA).map((x) => x.id)).toEqual(["t"]);
+  });
 });
 
 describe("elegirParaLeer: la seguridad entra siempre, el resto hasta el límite", () => {
