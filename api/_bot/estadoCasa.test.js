@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolverPersona, temaDe, claveDePregunta, resuelta, claveLibre } from "./estadoCasa.js";
+import { resolverPersona, temaDe, claveDePregunta, resuelta, claveLibre, estadoDeClave } from "./estadoCasa.js";
 
 const casa = (extra = {}) => ({
   members: [
@@ -63,8 +63,18 @@ describe("resuelta: el estado decide", () => {
     expect(resuelta("etapa:c1", casa())).toBe(false);
     expect(resuelta("etapa:c1", casa({ etapaBebe: "cremas" }))).toBe(true);
   });
-  it("si la persona ya no está en la casa, deja de tener sentido", () => {
-    expect(resuelta("etapa:zz", casa())).toBe(true);
+  it("si la persona ya no está en la casa, la tarea se descarta, no se da por hecha", () => {
+    expect(resuelta("etapa:zz", casa())).toBe(false);
+    expect(estadoDeClave("etapa:zz", casa())).toBe("sin_persona");
+    expect(estadoDeClave("alergias:zz", casa())).toBe("sin_persona");
+    expect(estadoDeClave("alergias:c1", casa())).toBe("pendiente");
+    expect(estadoDeClave("alergias:c1", casa({ allergiesReviewed: true }))).toBe("resuelta");
+    expect(estadoDeClave("alergias:zz", {})).toBe("pendiente");
+  });
+  it("una casa que llega sin personas no resuelve nada (lectura a medias)", () => {
+    expect(resuelta("alergias:c1", { members: [] })).toBe(false);
+    expect(resuelta("etapa:c1", {})).toBe(false);
+    expect(resuelta("alergias:c1", { allergiesReviewed: true })).toBe(false);
   });
   it("una clave libre nunca la resuelve el estado", () => {
     expect(resuelta("seguimiento:casa:pan", casa())).toBe(false);
@@ -80,5 +90,30 @@ describe("claveLibre: dos maneras de pedir lo mismo chocan", () => {
   });
   it("sin palabras con contenido, no hay clave", () => {
     expect(claveLibre("seguimiento", "y de la")).toBe(null);
+  });
+  it("el verbo del encargo no cuenta: «comprar pan para el sábado» = «pan para el sábado»", () => {
+    expect(claveLibre("seguimiento", "comprar pan para el sábado")).toBe(claveLibre("seguimiento", "pan para el sábado"));
+    expect(claveLibre("seguimiento", "hay que traer leche")).toBe(claveLibre("seguimiento", "leche"));
+    expect(claveLibre("seguimiento", "recuérdame coger los yogures")).toBe(claveLibre("seguimiento", "yogures"));
+  });
+  it("pero no se funden cosas distintas: «pan» y «pan sin gluten»", () => {
+    expect(claveLibre("seguimiento", "comprar pan")).not.toBe(claveLibre("seguimiento", "comprar pan sin gluten"));
+  });
+});
+
+describe("etapa del bebé: hoy es una sola por casa", () => {
+  // data.etapaBebe es de la casa (src/lib/babyStage.js): no hay etapa por bebé.
+  // Con dos bebés, apuntarla resuelve a los dos; mientras no la haya, a ninguno.
+  const dos = { members: [{ id: "cova", name: "Cova", age: 0 }, { id: "leo", name: "Leo", age: 1 }] };
+  it("sin etapa, ninguno está resuelto", () => {
+    expect(resuelta("etapa:cova", dos)).toBe(false);
+    expect(resuelta("etapa:leo", dos)).toBe(false);
+  });
+  it("con la etapa de la casa, los dos", () => {
+    expect(resuelta("etapa:cova", { ...dos, etapaBebe: "mixto" })).toBe(true);
+    expect(resuelta("etapa:leo", { ...dos, etapaBebe: "mixto" })).toBe(true);
+  });
+  it("quien no es bebé no tiene tarea de etapa que resolver", () => {
+    expect(resuelta("etapa:ana", { members: [{ id: "ana", name: "Ana", age: 30 }] })).toBe(true);
   });
 });

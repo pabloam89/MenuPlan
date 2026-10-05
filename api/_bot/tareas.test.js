@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { filtroDeLectura, bloqueDeTareas, validarNueva, caducidadDe, separarPorEstado, porReferencia, aPromover, textoDeTope, LIMITE_ABIERTAS } from "./tareas.js";
+import { filtroDeLectura, bloqueDeTareas, validarNueva, caducidadDe, separarPorEstado, porReferencia, aPromover, textoDeTope, decidirTope, LIMITE_ABIERTAS, LIMITE_LECTURA, elegirParaLeer } from "./tareas.js";
 import { preguntasPendientes } from "./ficha.js";
 
 describe("preguntasPendientes: lo que no quieren decir no se vuelve a pedir", () => {
@@ -33,11 +33,60 @@ describe("filtroDeLectura: qué tareas ve quien escribe", () => {
     expect(f).toContain(`household_id=eq.${CASA}`);
     expect(f).toContain("status=eq.abierta");
     expect(f).toContain("caduca_at=gt.");
-    expect(f).toContain(`limit=${LIMITE_ABIERTAS}`);
+    // La lectura trae de más (cota de seguridad); el recorte a 8 lo hace elegirParaLeer.
+    expect(f).toContain(`limit=${LIMITE_LECTURA}`);
+  });
+  it("compara con la hora, no con el día", () => {
+    expect(filtroDeLectura({ householdId: CASA, ahora: AHORA })).toContain(encodeURIComponent("2026-10-03T10:00:00"));
+  });
+});
+
+describe("elegirParaLeer: lo caducado esta mañana ya no sale", () => {
+  it("caducó a las 8, son las 10: fuera; caduca a las 12: dentro", () => {
+    const t = [
+      { id: "m", kind: "seguimiento", texto: "caducó", caduca_at: "2026-10-03T08:00:00Z", created_at: "2026-10-01" },
+      { id: "t", kind: "seguimiento", texto: "sigue", caduca_at: "2026-10-03T12:00:00Z", created_at: "2026-10-01" },
+    ];
+    expect(elegirParaLeer(t, AHORA).map((x) => x.id)).toEqual(["t"]);
+  });
+});
+
+describe("elegirParaLeer: la seguridad entra siempre, el resto hasta el límite", () => {
+  const t = (i, kind, clave, dias = 0, vence = null) => ({
+    id: `t${i}`, kind, clave, vence, created_at: new Date(AHORA.getTime() - dias * 86400000).toISOString(),
+  });
+  it("6 seguimientos y 3 alergias más nuevas: las 3 alergias están", () => {
+    const seg = Array.from({ length: 6 }, (_, i) => t(i, "seguimiento", `seguimiento:casa:x${i}`, 10 - i));
+    const ale = ["nat", "pablo", "isa"].map((p, i) => t(10 + i, "pregunta", `alergias:${p}`, 1));
+    const otras = [t(20, "pregunta", null, 2), t(21, "pregunta", null, 3)];
+    const leidas = elegirParaLeer([...seg, ...otras, ...ale], AHORA);
+    expect(leidas.filter((x) => x.clave?.startsWith("alergias:"))).toHaveLength(3);
+  });
+  it("con 9 alergias por preguntar, entran las 9 aunque pasen del límite", () => {
+    const ale = Array.from({ length: 9 }, (_, i) => t(i, "pregunta", `alergias:p${i}`, i));
+    const seg = Array.from({ length: 8 }, (_, i) => t(20 + i, "seguimiento", `seguimiento:casa:y${i}`, i));
+    const leidas = elegirParaLeer([...seg, ...ale], AHORA);
+    expect(leidas.filter((x) => x.clave?.startsWith("alergias:"))).toHaveLength(9);
+    expect(leidas.filter((x) => x.kind === "seguimiento")).toHaveLength(LIMITE_ABIERTAS);
+  });
+  it("fuera de la seguridad, lo que vence antes va primero", () => {
+    const leidas = elegirParaLeer([t(1, "seguimiento", "s1", 5, "2026-12-01"), t(2, "seguimiento", "s2", 1, "2026-10-04")], AHORA);
+    expect(leidas.map((x) => x.id)).toEqual(["t2", "t1"]);
   });
 });
 
 describe("validarNueva", () => {
+  const seguir = (texto) => validarNueva({ texto, kind: "seguimiento", confirmado: true }, data, AHORA);
+  it("solo comida: velas, pilas o una cita no se apuntan, en código", () => {
+    for (const t of ["comprar velas para la tarta", "pilas del mando", "cita con la pediatra el jueves"]) expect(seguir(t).error, t).toMatch(/comida/);
+    for (const t of ["comprar leche", "pan sin gluten para el sábado"]) expect(seguir(t).valor, t).toBeTruthy();
+  });
+  it("lo que nunca se pregunta (edad, colegio, sexo, custodia) no se abre aunque Lola lo intente", () => {
+    for (const t of ["cuántos años tiene Cova", "a qué colegio va Leo", "si es chico o chica", "si tenéis custodia compartida"]) {
+      expect(validarNueva({ texto: t, kind: "pregunta" }, data, AHORA).error, t).toMatch(/no se pregunta/);
+    }
+    expect(validarNueva({ texto: "cómo come Cova", kind: "pregunta" }, data, AHORA).valor).toBeTruthy();
+  });
   it("un seguimiento sin el sí no se escribe", () => {
     expect(validarNueva({ texto: "comprar pan", kind: "seguimiento" }, data, AHORA).error).toMatch(/sí/);
   });
@@ -89,6 +138,13 @@ describe("separarPorEstado", () => {
     expect(resueltas.map((t) => t.id)).toEqual(["a"]);
     expect(siguen.map((t) => t.id)).toEqual(["b", "c"]);
   });
+  it("la de alguien que ya no está en la casa se descarta, no se da por hecha", () => {
+    const tareas = [{ id: "a", clave: "alergias:zz" }, { id: "b", clave: "alergias:c1" }];
+    const { resueltas, descartadas, siguen } = separarPorEstado(tareas, data);
+    expect(resueltas).toEqual([]);
+    expect(descartadas.map((t) => t.id)).toEqual(["a"]);
+    expect(siguen.map((t) => t.id)).toEqual(["b"]);
+  });
 });
 
 describe("porReferencia: cerrar sin equivocarse de tarea", () => {
@@ -132,6 +188,40 @@ describe("textoDeTope: lleno no es olvidar en silencio", () => {
     expect(t).toMatch(/No lo he apuntado/);
     expect(t).toContain("[0000000");
     expect(t).toMatch(/reemplaza/);
+  });
+});
+
+describe("tope lleno: lo personal de otro ni se enseña ni se quita", () => {
+  const OTRO = "33333333-3333-3333-3333-333333333333";
+  const casa = Array.from({ length: LIMITE_ABIERTAS - 1 }, (_, i) => ({ id: `aaaaaaa${i}-x`, texto: `casa ${i}`, scope: "casa" }));
+  const ajena = { id: "bbbbbbbb-x", texto: "regalo sorpresa de Isa", scope: "personal", owner_user_id: OTRO };
+  const llenas = [...casa, ajena];
+
+  it("en grupo, el texto de una personal ajena no sale", () => {
+    const t = textoDeTope(llenas, { userId: YO, privado: false });
+    expect(t).not.toContain("regalo sorpresa");
+    expect(t).toMatch(/otras 1 apuntadas que no puedo enseñarte/);
+  });
+  it("en privado, su dueño sí la ve", () => {
+    expect(textoDeTope(llenas, { userId: OTRO, privado: true })).toContain("regalo sorpresa");
+  });
+  it("reemplazar la personal de otro se rechaza", () => {
+    const d = decidirTope(llenas, "bbbbbbbb", { userId: YO, privado: true });
+    expect(d.quitar).toBeUndefined();
+    expect(d.texto).toMatch(/personal de otra persona/);
+  });
+  it("reemplazar una de la casa vale", () => {
+    expect(decidirTope(llenas, "aaaaaaa0", { userId: YO, privado: false }).quitar?.id).toBe("aaaaaaa0-x");
+  });
+  it("un lector no quita una de la casa; la suya personal, en privado, sí", () => {
+    const suya = { id: "ccccccc0-x", texto: "mis yogures", scope: "personal", owner_user_id: YO };
+    const conSuya = [...casa.slice(0, LIMITE_ABIERTAS - 1), suya];
+    expect(decidirTope(conSuya, "aaaaaaa0", { userId: YO, privado: true, papel: "viewer" }).texto).toMatch(/no quita cosas apuntadas para todos/);
+    expect(decidirTope(conSuya, "ccccccc0", { userId: YO, privado: true, papel: "viewer" }).quitar?.id).toBe("ccccccc0-x");
+    expect(decidirTope(conSuya, "aaaaaaa0", { userId: YO, privado: true, papel: "editor" }).quitar?.id).toBe("aaaaaaa0-x");
+  });
+  it("con sitio, cabe", () => {
+    expect(decidirTope(casa, "aaaaaaa0", {}).cabe).toBe(true);
   });
 });
 

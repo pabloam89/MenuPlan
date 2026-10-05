@@ -54,17 +54,30 @@ export function claveDePregunta(texto, data = {}) {
   return `${tema === "alergias" ? "alergias" : "etapa"}:${idDe(m)}`;
 }
 
-/** ¿Está resuelto ese hueco en el estado de ahora? Una clave que no es de estado nunca lo está. */
-export function resuelta(clave, data = {}) {
+/**
+ * El hueco de una clave de estado ahora: «resuelta» (se cierra como hecha),
+ * «sin_persona» (quien era ya no está en la casa: se descarta, no se da por
+ * hecha) o «pendiente». Una clave que no es de estado siempre está pendiente.
+ */
+export function estadoDeClave(clave, data = {}) {
   const [tipo, id] = String(clave ?? "").split(":");
-  if (!id) return false;
-  const m = (data.members ?? []).find((x) => idDe(x) === id);
-  if (tipo === "alergias") return !m || alergiasRevisadas(data, m) || Boolean((m.allergies ?? []).length);
-  if (tipo === "etapa") return !m || !esBebe(m) || ETAPAS_BEBE.includes(data.etapaBebe);
-  return false;
+  if (!id || (tipo !== "alergias" && tipo !== "etapa")) return "pendiente";
+  // Una casa sin personas es una lectura a medias, no una casa resuelta: no se cierra nada.
+  if (!(data?.members ?? []).length) return "pendiente";
+  const m = data.members.find((x) => idDe(x) === id);
+  if (!m) return "sin_persona";
+  if (tipo === "alergias") return alergiasRevisadas(data, m) || (m.allergies ?? []).length ? "resuelta" : "pendiente";
+  return !esBebe(m) || ETAPAS_BEBE.includes(data.etapaBebe) ? "resuelta" : "pendiente";
 }
 
-const VACIAS = new Set("el la los las un una unos unas de del al a y o que en con por para lo le se me te mi tu su ya si no".split(" "));
+/** ¿Está resuelto ese hueco en el estado de ahora? */
+export const resuelta = (clave, data = {}) => estadoDeClave(clave, data) === "resuelta";
+
+// El verbo del encargo no cambia qué es: «comprar pan para el sábado» y «pan
+// para el sábado» son lo mismo (claveSeguimiento de modelo.mjs v17, menuplan-1e).
+// «sin» no está: «pan» y «pan sin gluten» son cosas distintas.
+const VACIAS = new Set(("el la los las un una unos unas de del al a y o que en con por para lo le se me te mi tu su ya si no " +
+  "hay comprar compra compramos traer trae coger pillar acordarse acuerdate recordar recuerda recuerdame apunta apuntar algo mas").split(" "));
 
 /** Clave de una tarea libre: las palabras con contenido, ordenadas. Dos padres que piden lo mismo con otras palabras de relleno chocan. */
 export function claveLibre(kind, texto, paraId = null) {

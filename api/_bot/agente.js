@@ -40,7 +40,7 @@ import { montarFicha, extrasDeFicha } from "./ficha.js";
 import { montarMemoria, ORDEN as ORDEN_MEMORIA } from "./memoria.js";
 import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
 import { tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
-import { claveDePregunta, resuelta } from "./estadoCasa.js";
+import { claveDePregunta, estadoDeClave } from "./estadoCasa.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
@@ -52,6 +52,7 @@ import { conPista, textoPista, datosDePlantilla } from "./pista.js";
 import { verReceta, calorias as caloriasDePlato, queFalta } from "./plato.js";
 import { papelDeQuien, idiomaDe } from "./papel.js";
 import { herramientaPermitida } from "../../src/lib/papeles.js";
+import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 
 // Modelo y esfuerzo, configurables para medir velocidad contra calidad con
 // scripts/bot-evals.mjs (BOT_MODELO, BOT_EFFORT) sin tocar código.
@@ -362,7 +363,7 @@ function herramientasDeFotos(householdId) {
 function herramientasDeTareas(chat) {
   const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
   // Se lee al ejecutar, no al montar: userId, las abiertas y la casa llegan con el turno.
-  const contexto = () => ({ householdId: chat.householdId, channel: chat.channel ?? "telegram", chatId: chat.chatId, userId: chat.userId ?? null, privado: !chat.esGrupo, autor: chat.autor ?? null });
+  const contexto = () => ({ householdId: chat.householdId, channel: chat.channel ?? "telegram", chatId: chat.chatId, userId: chat.userId ?? null, privado: !chat.esGrupo, autor: chat.autor ?? null, papel: chat.papel ?? null });
   const referencia = { type: "string", description: "La referencia de 8 caracteres que sale entre corchetes en «Tareas abiertas de la casa»." };
   const persona = (que) => ({ type: "string", description: `${que}: el nombre de alguien de la casa, tal cual.` });
   return [
@@ -371,13 +372,13 @@ function herramientasDeTareas(chat) {
       description: "Apunta algo que tiene que sobrevivir a esta charla. Dos tipos:\n- pregunta: un dato que te falta para atender algo y que van a darte más tarde («luego te digo cómo come»). No pide permiso.\n- seguimiento: algo que te piden que tengas en cuenta («dímelo cuando lo sepas», «que Isa compre el pan antes del viernes»). SOLO con su sí: pregúntalo antes y pon confirmado = true únicamente si han dicho que sí.\nNunca prometas enterarte tú de algo que no ves (si llegó un pedido, un precio): ofrece avisar en una fecha (cuando) para que lo miren. Si ya hay una igual en las abiertas, no la anotes otra vez. Solo lo que tiene que ver con lo que come la casa: citas, llamadas o recados que no son de comida, no.",
       inputSchema: obj({
         texto: { type: "string", description: "Lo que queda abierto, en corto y sin nombres de app." },
-        kind: { type: "string", enum: ["seguimiento", "pregunta"] },
-        sobre: { type: "string", enum: ["alergias", "etapa_bebe", "otra"], description: "De qué va una pregunta: alergias, cómo come el bebé, u otra cosa." },
+        kind: { type: "string", enum: ENUMS_TAREAS["bot_tareas.kind"] },
+        sobre: { type: "string", enum: ENUMS_TAREAS["anotar_tarea.sobre"], description: "De qué va una pregunta: alergias, cómo come el bebé, u otra cosa." },
         para: persona("Para quién es"),
         encargado: persona("Quién se encarga"),
         vence: { type: "string", description: "Fecha límite, AAAA-MM-DD, si la dicen («antes del viernes»)." },
         cuando: { type: "string", description: "Si quieren un aviso: fecha y hora en España, AAAA-MM-DDTHH:MM. Crea un recordatorio en este chat." },
-        scope: { type: "string", enum: ["casa", "personal"], description: "personal solo si es algo suyo y estáis en privado." },
+        scope: { type: "string", enum: ENUMS_TAREAS["bot_tareas.scope"], description: "personal solo si es algo suyo y estáis en privado." },
         confirmado: { type: "boolean", description: "true solo si la persona ha dicho que sí a apuntarlo (obligatorio en seguimientos)." },
         reemplaza: { type: "string", description: "Solo si la casa ya tenía el máximo y la persona ha elegido cuál quitar: su referencia." },
       }, ["texto", "kind"]),
@@ -386,7 +387,7 @@ function herramientasDeTareas(chat) {
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "cerrar_tarea",
       description: "Cierra una tarea abierta cuando lo que dicen la resuelve sin duda («ya está comprado»). estado «descartada» si ya no hace falta («olvídalo», «ya no»). estado «rechazada» si es una pregunta que no quieren contestar («prefiero no decirlo»): no se vuelve a preguntar. Si la referencia es vaga y podría ser más de una, pregunta cuál antes de cerrar.",
-      inputSchema: obj({ ref: referencia, estado: { type: "string", enum: ["hecha", "descartada", "rechazada"] } }, ["ref"]),
+      inputSchema: obj({ ref: referencia, estado: { type: "string", enum: ENUMS_TAREAS["cerrar_tarea.estado"] } }, ["ref"]),
       run: ({ ref, estado }) => cerrarTarea(contexto(), chat.tareas ?? [], ref, estado ?? "hecha"),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
@@ -536,7 +537,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       name: "anadir_comensal",
       description: "Añade a alguien que vive y come en casa (no un invitado puntual).",
       inputSchema: obj({ nombre: { type: "string" }, edad: { type: "integer", minimum: 0, maximum: 120 } }, ["nombre"]),
-      run: (args) => anadirComensal(householdId, args),
+      run: (args) => anadirComensal(householdId, args, { channel: chat.channel ?? "telegram", chatId: chat.chatId, userId: chat.userId ?? null }),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_persona",
@@ -997,10 +998,14 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // solo (las de la tabla, en segundo plano) y no se le enseña al modelo.
   const data = casa?.state?.data ?? {};
   chat.casaData = data;
-  const estaResuelta = (clave) => resuelta(clave, data) || calladas.has(clave);
-  const { resueltas, siguen: tareasVivas } = separarPorEstado(tareas, data);
+  // Un pendiente del mensaje sobra si su hueco ya se resolvió o si su persona ya no está.
+  const estaResuelta = (clave) => estadoDeClave(clave, data) !== "pendiente" || calladas.has(clave);
+  const { resueltas, descartadas, siguen: tareasVivas } = separarPorEstado(tareas, data);
   chat.tareas = tareasVivas;
-  const cierresPorEstado = cerrarResueltas(resueltas, { householdId, userId: chat.userId });
+  const cierresPorEstado = Promise.all([
+    cerrarResueltas(resueltas, { householdId, userId: chat.userId }),
+    cerrarResueltas(descartadas, { householdId, userId: chat.userId }, "descartada"),
+  ]);
   // Lo que ya está en la tabla no se repite como pendiente del mensaje.
   const enTabla = new Set(tareasVivas.map((t) => t.clave).filter(Boolean));
   const abiertas = vigentesSegun(guardadas, estaResuelta).filter((p) => !p.clave || !enTabla.has(p.clave));

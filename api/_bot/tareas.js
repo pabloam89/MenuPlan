@@ -14,9 +14,13 @@
 import { select, insert, update, eq } from "./db.js";
 import { registrar } from "./embudo.js";
 import { crearRecordatorio } from "./recordatorios.js";
-import { resolverPersona, claveDePregunta, claveLibre, resuelta, temaDe } from "./estadoCasa.js";
+import { resolverPersona, claveDePregunta, claveLibre, estadoDeClave, temaDe } from "./estadoCasa.js";
+import { esDeSeguridad, noEsComida, preguntaProhibida } from "../../src/lib/registroTareas.js";
 
 export const LIMITE_ABIERTAS = 8;
+// Lo que se trae de la base es una cota, no el recorte: el recorte lo hace
+// elegirParaLeer, que deja fuera del límite lo de seguridad.
+export const LIMITE_LECTURA = 50;
 const TEXTO_MAX = 240;
 const DIA = 86400000;
 // Cuánto tiene sentido cada cosa: la etapa de un bebé cambia en semanas.
@@ -33,7 +37,30 @@ export function filtroDeLectura({ householdId, userId = null, privado = false, a
   const ver = privado && userId
     ? `or=(scope.eq.casa,and(scope.eq.personal,owner_user_id.eq.${userId}))`
     : "scope=eq.casa";
-  return `household_id=${eq(householdId)}&status=eq.abierta&caduca_at=gt.${encodeURIComponent(ahora.toISOString())}&${ver}&order=created_at.asc&limit=${LIMITE_ABIERTAS}`;
+  return `household_id=${eq(householdId)}&status=eq.abierta&caduca_at=gt.${encodeURIComponent(ahora.toISOString())}&${ver}&order=created_at.desc&limit=${LIMITE_LECTURA}`;
+}
+
+const importanciaDe = (t) => (esDeSeguridad(t.clave) ? 0 : t.kind === "pregunta" ? 1 : 2);
+function urgenciaDe(t, ahora) {
+  if (!t.vence) return 2;
+  const dias = (Date.parse(`${t.vence}T23:59:59Z`) - ahora.getTime()) / DIA;
+  return dias <= 1 ? 0 : dias <= 7 ? 1 : 2;
+}
+
+/**
+ * Pura. Lo que lee Lola: lo de seguridad (alergias, etapa del bebé) entra
+ * siempre, sin límite; el resto, por importancia, urgencia y lo más reciente,
+ * hasta LIMITE_ABIERTAS. Antes se cortaba a 8 por antigüedad y una alergia
+ * nueva podía quedarse fuera.
+ */
+export function elegirParaLeer(tareas = [], ahora = new Date()) {
+  const orden = (a, b) => importanciaDe(a) - importanciaDe(b) || urgenciaDe(a, ahora) - urgenciaDe(b, ahora) || String(b.created_at).localeCompare(String(a.created_at));
+  // Con la hora, no con el día: lo que caducó esta mañana ya no sale (lecturaTareas de modelo.mjs v17).
+  const vivas = tareas.filter((t) => !t.caduca_at || Date.parse(t.caduca_at) > ahora.getTime());
+  const todas = vivas.sort(orden);
+  const seguridad = todas.filter((t) => importanciaDe(t) === 0);
+  const resto = todas.filter((t) => importanciaDe(t) > 0).slice(0, LIMITE_ABIERTAS);
+  return [...seguridad, ...resto];
 }
 
 /** Pura. Hasta cuándo tiene sentido: por tipo, o el día después de su fecha límite. */
@@ -53,6 +80,9 @@ export function validarNueva(datos = {}, data = {}, ahora = new Date()) {
   if (kind === "seguimiento" && datos.confirmado !== true) return { error: "Antes de anotarlo, pregúntale si quiere que lo apunte. Solo con su sí." };
   const texto = String(datos.texto ?? "").trim().slice(0, TEXTO_MAX);
   if (!texto) return { error: "¿Qué quieres que quede apuntado?" };
+  // Lo que no puede depender del modelo: solo comida, y lo que nunca se pregunta.
+  if (kind === "seguimiento" && noEsComida(texto)) return { error: `No lo he apuntado: solo llevo lo que tiene que ver con la comida de casa (${noEsComida(texto)} no). Dilo así, con naturalidad.` };
+  if (kind === "pregunta" && preguntaProhibida(texto)) return { error: "Eso no se pregunta (edad, colegio, sexo o custodia): solo se apunta si lo cuentan. No lo anotes ni lo preguntes." };
   const scope = datos.scope ?? "casa";
   if (!["casa", "personal"].includes(scope)) return { error: "Ámbito no válido." };
   let para = null, encargado = null;
@@ -82,11 +112,17 @@ export function validarNueva(datos = {}, data = {}, ahora = new Date()) {
   };
 }
 
-/** Pura. Las que el estado de la casa ya resolvió (y se cierran solas) y las que siguen. */
+/**
+ * Pura. Las que el estado de la casa ya resolvió (se cierran como hechas), las
+ * de alguien que ya no está en la casa (se descartan) y las que siguen.
+ */
 export function separarPorEstado(tareas = [], data = {}) {
-  const resueltas = [], siguen = [];
-  for (const t of tareas) (t.clave && resuelta(t.clave, data) ? resueltas : siguen).push(t);
-  return { resueltas, siguen };
+  const resueltas = [], descartadas = [], siguen = [];
+  for (const t of tareas) {
+    const estado = t.clave ? estadoDeClave(t.clave, data) : "pendiente";
+    (estado === "resuelta" ? resueltas : estado === "sin_persona" ? descartadas : siguen).push(t);
+  }
+  return { resueltas, descartadas, siguen };
 }
 
 /** Pura. El bloque para el modelo: referencia corta, tipo, para quién, quién, fecha y de qué chat. */
@@ -125,27 +161,57 @@ const esTope = (e) => /tope de tareas abiertas|P0001/i.test(String(e?.message ??
  * Pura. Si hay ya LIMITE seguimientos abiertos, el texto para el modelo: lista
  * con referencias y la orden de preguntar cuál quitar. Nada se olvida en silencio.
  */
-export function textoDeTope(abiertos = []) {
+/** Pura. ¿Puede ver quien escribe esta tarea en este chat? Las personales, solo su dueño y en privado. */
+export const visiblePara = (t, { userId = null, privado = false } = {}) =>
+  t.scope !== "personal" || (privado && Boolean(userId) && t.owner_user_id === userId);
+
+export function textoDeTope(abiertos = [], quien = {}) {
   if (abiertos.length < LIMITE_ABIERTAS) return null;
-  const lista = abiertos.map((t) => `- [${ref(t.id)}] ${t.texto}`).join("\n");
-  return `No lo he apuntado: ya hay ${abiertos.length} cosas apuntadas en la casa y no se quita ninguna sin preguntar.\n${lista}\nDíselo y pregunta cuál quitar. Con su respuesta, vuelve a llamar a anotar_tarea con reemplaza = esa referencia.`;
+  const visibles = abiertos.filter((t) => visiblePara(t, quien));
+  const ocultas = abiertos.length - visibles.length;
+  const otras = ocultas ? `\nHay otras ${ocultas} apuntadas que no puedo enseñarte aquí.` : "";
+  if (!visibles.length) {
+    return `No lo he apuntado: ya hay ${abiertos.length} cosas apuntadas en la casa y ninguna se puede quitar desde aquí.${otras}\nDíselo así: no se quita nada sin preguntar a quien lo apuntó.`;
+  }
+  const lista = visibles.map((t) => `- [${ref(t.id)}] ${t.texto}`).join("\n");
+  return `No lo he apuntado: ya hay ${abiertos.length} cosas apuntadas en la casa y no se quita ninguna sin preguntar.\n${lista}${otras}\nDíselo y pregunta cuál quitar. Con su respuesta, vuelve a llamar a anotar_tarea con reemplaza = esa referencia.`;
 }
 
-/** Null si cabe. Con `reemplaza` válido, descarta esa y deja sitio. */
-async function topeAlcanzado(householdId, reemplaza) {
-  const abiertos = await select("bot_tareas", `household_id=${eq(householdId)}&status=eq.abierta&kind=eq.seguimiento&caduca_at=gt.${encodeURIComponent(new Date().toISOString())}&order=created_at.asc`, "id,texto");
-  if (abiertos.length < LIMITE_ABIERTAS) return null;
-  const quitar = reemplaza ? porReferencia(abiertos, reemplaza) : null;
-  if (!quitar) return textoDeTope(abiertos);
+/**
+ * Pura. Con el tope lleno: { cabe } si hay sitio, { quitar } si `reemplaza`
+ * apunta a una que quien escribe puede ver, o { texto } para el modelo. Una
+ * personal ajena nunca se enseña ni se quita.
+ */
+export function decidirTope(abiertos = [], reemplaza, quien = {}) {
+  if (abiertos.length < LIMITE_ABIERTAS) return { cabe: true };
+  if (reemplaza) {
+    const quitar = porReferencia(abiertos.filter((t) => visiblePara(t, quien)), reemplaza);
+    // Quitar uno de la casa es cerrarlo: un lector solo quita lo suyo (modelo.mjs v17, menuplan-1e).
+    if (quitar && quien.papel === "viewer" && quitar.scope !== "personal") {
+      return { texto: "No la he quitado: quien solo puede ver la casa no quita cosas apuntadas para todos. Que lo haga quien la gestiona." };
+    }
+    if (quitar) return { quitar };
+    if (porReferencia(abiertos, reemplaza)) return { texto: "No la he quitado: es una cosa personal de otra persona y no se puede quitar desde aquí. Pregunta cuál de las que ve quitar." };
+  }
+  return { texto: textoDeTope(abiertos, quien) };
+}
+
+/** Null si cabe. Con `reemplaza` válido y visible, descarta esa y deja sitio. */
+async function topeAlcanzado(householdId, reemplaza, quien = {}) {
+  const abiertos = await select("bot_tareas", `household_id=${eq(householdId)}&status=eq.abierta&kind=eq.seguimiento&caduca_at=gt.${encodeURIComponent(new Date().toISOString())}&order=created_at.asc`, "id,texto,scope,owner_user_id");
+  const d = decidirTope(abiertos, reemplaza, quien);
+  if (d.cabe) return null;
+  if (d.texto) return d.texto;
+  const quitar = d.quitar;
   const ahora = new Date().toISOString();
   await update("bot_tareas", `id=${eq(quitar.id)}&status=eq.abierta`, { status: "descartada", closed_at: ahora, updated_at: ahora });
   await registrar(EVENTO.CERRADA, { extra: { householdId, kind: "seguimiento", estado: "descartada", motivo: "reemplazo" } });
   return null;
 }
 
-export async function tareasAbiertas(householdId, opciones) {
+export async function tareasAbiertas(householdId, opciones = {}) {
   if (!householdId) return [];
-  return select("bot_tareas", filtroDeLectura({ householdId, ...opciones }), COLUMNAS);
+  return elegirParaLeer(await select("bot_tareas", filtroDeLectura({ householdId, ...opciones }), COLUMNAS), opciones.ahora);
 }
 
 /** Las claves de estado que alguien no quiso contestar: no se vuelven a preguntar. */
@@ -155,15 +221,49 @@ export async function clavesCalladas(householdId) {
   return new Set(filas.map((f) => f.clave));
 }
 
-/** Cierra en segundo plano lo que el estado ya resolvió. No retrasa el turno. */
-export function cerrarResueltas(resueltas = [], { householdId, userId = null } = {}) {
+/** Cierra en segundo plano lo que el estado ya decidió: «hecha» si se resolvió, «descartada» si la persona ya no está. No retrasa el turno. */
+export function cerrarResueltas(resueltas = [], { householdId, userId = null } = {}, estado = "hecha") {
   if (!resueltas.length) return Promise.resolve();
   const ahora = new Date().toISOString();
   return Promise.all(resueltas.map((t) =>
-    update("bot_tareas", `id=${eq(t.id)}&status=eq.abierta`, { status: "hecha", closed_at: ahora, updated_at: ahora })
-      .then(() => registrar(EVENTO.AUTO, { userId, extra: { householdId, kind: t.kind, clave: t.clave } }))
+    update("bot_tareas", `id=${eq(t.id)}&status=eq.abierta`, { status: estado, closed_at: ahora, updated_at: ahora })
+      .then(() => registrar(EVENTO.AUTO, { userId, extra: { householdId, kind: t.kind, clave: t.clave, estado } }))
       .catch((e) => console.error("[tareas] auto", e?.message)),
   ));
+}
+
+/**
+ * Al escribir en la casa: cierra en ese momento las tareas de estado que la
+ * casa recién guardada ya resuelve. Si falla, no deshace el dato: la red es el
+ * cierre del turno siguiente (separarPorEstado + cerrarResueltas en agente.js).
+ */
+export async function cerrarPorEstado(householdId, data, { userId = null } = {}) {
+  if (!householdId || !data) return 0;
+  const abiertas = await select("bot_tareas", `household_id=${eq(householdId)}&status=eq.abierta&or=(clave.like.alergias:*,clave.like.etapa:*)`, "id,kind,clave");
+  const { resueltas, descartadas } = separarPorEstado(abiertas, data);
+  await Promise.all([
+    cerrarResueltas(resueltas, { householdId, userId }),
+    cerrarResueltas(descartadas, { householdId, userId }, "descartada"),
+  ]);
+  return resueltas.length + descartadas.length;
+}
+
+/** Abre una pregunta de estado («alergias:<id>») desde el código. Si ya está abierta, el índice único la para. */
+export async function abrirPreguntaDeEstado(ctx, { clave, texto }, ahora = new Date()) {
+  if (!ctx?.householdId || !ctx?.chatId || !clave) return false;
+  const tema = clave.startsWith("etapa:") ? "etapa_bebe" : "alergias";
+  try {
+    await insert("bot_tareas", [{
+      household_id: ctx.householdId, channel: ctx.channel ?? "telegram", chat_id: String(ctx.chatId), kind: "pregunta", scope: "casa",
+      texto: String(texto ?? "").slice(0, TEXTO_MAX), clave, created_by: ctx.userId ?? null,
+      caduca_at: caducidadDe({ kind: "pregunta", tema }, ahora).toISOString(),
+    }]);
+    await registrar(EVENTO.CREADA, { userId: ctx.userId ?? null, extra: { householdId: ctx.householdId, kind: "pregunta", tema, origen: "codigo" } });
+    return true;
+  } catch (e) {
+    if (!esDuplicado(e)) throw e;
+    return false;
+  }
 }
 
 /**
@@ -201,13 +301,13 @@ export async function promoverPreguntas(ctx, pendientes = [], ahora = new Date()
 }
 
 export async function anotarTarea(ctx, datos, data = {}) {
-  const { householdId, channel, chatId, userId = null, privado = false, autor = null } = ctx;
+  const { householdId, channel, chatId, userId = null, privado = false, autor = null, papel = null } = ctx;
   const v = validarNueva(datos, data);
   if (v.error) return v.error;
   const t = v.valor;
   if (t.scope === "personal" && !(privado && userId)) return "Lo personal solo se apunta en un chat privado.";
   if (t.kind === "seguimiento") {
-    const lleno = await topeAlcanzado(householdId, datos.reemplaza);
+    const lleno = await topeAlcanzado(householdId, datos.reemplaza, { userId, privado, papel });
     if (lleno) return lleno;
   }
   try {
@@ -218,7 +318,7 @@ export async function anotarTarea(ctx, datos, data = {}) {
       created_by: userId,
     }]);
   } catch (e) {
-    if (esTope(e)) return (await topeAlcanzado(householdId, null)) ?? "No he podido apuntarlo: hay demasiadas cosas abiertas. Pregunta cuál quitar.";
+    if (esTope(e)) return (await topeAlcanzado(householdId, null, { userId, privado, papel })) ?? "No he podido apuntarlo: hay demasiadas cosas abiertas. Pregunta cuál quitar.";
     if (!esDuplicado(e)) throw e;
     await registrar(EVENTO.DUPLICADA, { userId, extra: { householdId, kind: t.kind } });
     return "Ya estaba apuntado (lo pidió alguien antes): no lo he duplicado. Dilo así.";
@@ -244,15 +344,16 @@ export async function cerrarTarea(ctx, abiertas, referencia, estado = "hecha") {
   return `${estado === "hecha" ? "Cerrada" : "Descartada"}: ${t.texto}.${otroChat}`;
 }
 
-export async function editarTarea(ctx, abiertas, referencia, cambios = {}, data = {}) {
+export async function editarTarea(ctx, abiertas, referencia, cambios = {}, data = {}, ahora = new Date()) {
   const t = porReferencia(abiertas, referencia);
   if (!t) return "No encuentro esa tarea entre las abiertas.";
   const parche = {};
   if (cambios.texto) parche.texto = String(cambios.texto).trim().slice(0, TEXTO_MAX);
   if (cambios.vence) {
     if (!fechaValida(cambios.vence)) return `No entiendo la fecha «${cambios.vence}»: AAAA-MM-DD.`;
+    if (Date.parse(`${cambios.vence}T23:59:59Z`) < ahora.getTime()) return "Esa fecha ya ha pasado. ¿Para cuándo es?";
     parche.vence = cambios.vence;
-    parche.caduca_at = caducidadDe({ kind: t.kind, vence: cambios.vence }).toISOString();
+    parche.caduca_at = caducidadDe({ kind: t.kind, vence: cambios.vence }, ahora).toISOString();
   }
   for (const [campo, columna] of [["para", "para_member"], ["encargado", "asignado_member"]]) {
     if (!cambios[campo]) continue;
@@ -261,7 +362,18 @@ export async function editarTarea(ctx, abiertas, referencia, cambios = {}, data 
     parche[columna] = r.persona.id;
   }
   if (!Object.keys(parche).length) return "No me has dicho qué cambiar.";
-  parche.updated_at = new Date().toISOString();
-  await update("bot_tareas", `id=${eq(t.id)}&household_id=${eq(ctx.householdId)}&status=eq.abierta`, parche);
+  // La clave sale del texto y de para quién, como al crearla: si cambian, se recalcula.
+  // Las de estado («alergias:<id>», «etapa:<id>») no dependen del texto.
+  if (!/^(alergias|etapa):/.test(t.clave ?? "") && (parche.texto || "para_member" in parche)) {
+    const clave = claveLibre(t.kind, parche.texto ?? t.texto, parche.para_member ?? t.para_member ?? null);
+    if (clave && clave !== t.clave) parche.clave = clave;
+  }
+  parche.updated_at = ahora.toISOString();
+  try {
+    await update("bot_tareas", `id=${eq(t.id)}&household_id=${eq(ctx.householdId)}&status=eq.abierta`, parche);
+  } catch (e) {
+    if (esDuplicado(e)) return "Ya hay otra igual apuntada: no la he cambiado. Dilo así y pregunta si quiere cerrar una de las dos.";
+    throw e;
+  }
   return "Cambiado.";
 }

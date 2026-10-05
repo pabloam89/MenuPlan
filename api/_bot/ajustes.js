@@ -20,6 +20,7 @@ import { COMIDAS_PLANIFICABLES, COMIDAS_PRINCIPALES } from "../../src/lib/comida
 import { conCasa } from "./casa.js";
 import { motor, normal, diaDe, DIAS, DIA_LARGO } from "./menu.js";
 import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
+import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
 
 const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
 // Del catálogo de comidas (src/lib/comidas.js).
@@ -32,21 +33,42 @@ function lunesDe(cual) {
   return hoy.toISOString().slice(0, 10);
 }
 
-/** Guarda un `data` nuevo en la casa. `cambiar` recibe el data actual y el motor. */
-export async function conData(householdId, cambiar) {
+// Lo que puede resolver una tarea de estado: quién hay, sus alergias y la etapa del bebé.
+const huellaDeEstado = (d = {}) => JSON.stringify([d.etapaBebe ?? null, d.allergiesReviewed ?? null,
+  (d.members ?? []).map((m) => [m.id, m.alergiasRevisadas ?? null, m.allergies ?? [], m.age ?? null, m.notBaby ?? null])]);
+
+/**
+ * Guarda un `data` nuevo en la casa. `cambiar` recibe el data actual y el motor.
+ * Si toca algo de estado, cierra en ese momento las tareas que ya resuelve, y
+ * abre las preguntas que devuelva `cambiar` (`preguntas`, con `ctx` del chat).
+ * Va dentro de la herramienta, así que también dentro de la fila de escrituras
+ * del turno. Si cerrar o abrir falla, el dato queda guardado: el turno
+ * siguiente lo recoge (separarPorEstado y promoverPreguntas en agente.js).
+ */
+export async function conData(householdId, cambiar, ctx = null) {
   let texto = "";
   let guardado = null;
+  let antes = null;
+  let preguntas = [];
   const r = await conCasa(householdId, async (casa) => {
     const m = await motor();
-    const res = await cambiar(casa.state?.data ?? {}, m, casa);
+    antes = casa.state?.data ?? {};
+    const res = await cambiar(antes, m, casa);
     texto = res.texto;
     guardado = res.data ?? null;
+    preguntas = res.preguntas ?? [];
     if (!res.data) return null;
     return { state: { ...casa.state, data: res.data } };
   });
   if (!r.ok) return `No he podido guardarlo: ${r.error}.`;
   if (guardado && cimientosCompletos(guardado)) {
     await registrar(EMBUDO.CIMIENTOS, { userId: await duenoDe(householdId), unaVez: true });
+  }
+  if (guardado && huellaDeEstado(antes) !== huellaDeEstado(guardado)) {
+    await cerrarPorEstado(householdId, guardado, { userId: ctx?.userId ?? null }).catch((e) => console.error("[ajustes] cerrar por estado", e?.message));
+  }
+  for (const p of guardado ? preguntas : []) {
+    await abrirPreguntaDeEstado({ householdId, ...ctx }, p).catch((e) => console.error("[ajustes] abrir pregunta", e?.message));
   }
   return texto;
 }
@@ -422,7 +444,7 @@ export async function ajustarMenuPeques(householdId, { cena }) {
   });
 }
 
-export async function anadirComensal(householdId, { nombre, edad }) {
+export async function anadirComensal(householdId, { nombre, edad }, ctx = null) {
   return conData(householdId, (data, m) => {
     if (!nombre) return { texto: "¿Cómo se llama?" };
     if ((data.members ?? []).some((p) => normal(p.name) === normal(nombre))) return { texto: `${nombre} ya está en la casa.` };
@@ -437,8 +459,10 @@ export async function anadirComensal(householdId, { nombre, edad }) {
     return {
       data: conGrupos(m, conNuevo, conNuevo.members),
       texto: `Añadido a la casa: ${nombre}${age != null ? ` (${age} años)` : ""}. ¿Tiene alguna alergia o intolerancia?`,
+      // Política «una vez, en el alta»: la pregunta queda apuntada por código.
+      preguntas: [{ clave: `alergias:${nuevo.id}`, texto: `¿${nombre} tiene alguna alergia o intolerancia?` }],
     };
-  });
+  }, ctx);
 }
 
 /**
@@ -495,7 +519,7 @@ export async function quitarComensal(householdId, { nombre }) {
 
 // ── Alergias: nunca sin confirmar ───────────────────────────────────────────
 
-const TODA_LA_CASA = /^(todos|toda la familia|familia|la casa)$/;
+const TODA_LA_CASA = /^(todos|todo el mundo|toda la familia|familia|la casa|toda la casa)$/;
 
 export async function ajustarAlergias(householdId, { persona, alergenos, quitar = false, ninguna = false, confirmado }) {
   if (confirmado !== true) {
@@ -511,6 +535,11 @@ export async function ajustarAlergias(householdId, { persona, alergenos, quitar 
   // toda la casa) queda revisada, que es lo que la app pide para los cimientos.
   if (ninguna) {
     return conData(householdId, (data, m) => {
+      // Sin decir de quién, con varios sin revisar, no se da la casa entera por
+      // revisada: «Nat no tiene» cerraría también las alergias de Pablo.
+      if (!persona && m.pendientesDeAlergias(data).length > 1) {
+        return { texto: "¿De quién? Dime la persona, o «toda la casa» si nadie tiene. No he guardado nada." };
+      }
       const uno = persona && !TODA_LA_CASA.test(normal(persona));
       const x = uno ? personaPorNombre(data, persona) : null;
       if (uno && !x) return { texto: noEncuentro(data, persona) };
