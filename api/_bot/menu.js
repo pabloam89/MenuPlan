@@ -1044,7 +1044,26 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
  *   nombres de la casa (sin ellos, toda la casa).
  * @returns {Promise<{ texto: string, pintar: object | null, error?: string }>}
  */
-export async function apuntarAusencia(householdId, { dia, dias, comida, comidas, quienes = null, autor = null }) {
+/**
+ * Pura. Las ausencias nuevas que copian una guardada en los últimos 3 días
+ * (misma persona, mismo día de la semana, alguna comida en común) para un día
+ * que ya pasó: { antes, ahora } por cada una.
+ */
+export function repeticionReciente(existentes = [], nuevas = [], hoy) {
+  const desde = new Date(Date.parse(`${hoy}T12:00:00Z`) - 3 * 86400000).toISOString().slice(0, 10);
+  const mismoSujeto = (a, b) => a?.tipo === b?.tipo && (a?.ref ?? null) === (b?.ref ?? null);
+  const salida = [];
+  for (const n of nuevas) {
+    const viejas = existentes.filter((r) =>
+      r?.efecto?.valor === "fuera" && (r.creadaEn ?? "") >= desde && r?.vigencia?.hasta && r.vigencia.hasta < hoy
+      && mismoSujeto(r.sujeto, n.sujeto) && r.ambito?.dias?.[0] === n.ambito?.dias?.[0]
+      && (r.ambito?.comidas ?? []).some((c) => (n.ambito?.comidas ?? []).includes(c)));
+    for (const v of viejas) salida.push({ antes: v.vigencia.hasta, ahora: n.vigencia.desde });
+  }
+  return salida;
+}
+
+export async function apuntarAusencia(householdId, { dia, dias, comida, comidas, quienes = null, autor = null, deNuevo = false }) {
   const pedidas = comidas?.length ? comidas : [comida];
   const lasComidas = [...new Set(pedidas.map((x) => comidaDe(x ?? "")))];
   if (!lasComidas.length || lasComidas.some((c) => !c)) return { texto: `¿Qué comida? («${pedidas.join(", ")}»)`, pintar: null, error: "comida" };
@@ -1126,6 +1145,16 @@ export async function apuntarAusencia(householdId, { dia, dias, comida, comidas,
       frase: `${todos ? "Toda la casa" : fuera.map((p) => p.name).join(" y ")} fuera el ${fecha}${autor ? `, lo dijo ${autor}` : ""}`,
       hoy,
     })));
+    // Lo mismo que se guardó hace nada para un día que ya pasó: es el modelo
+    // releyendo una orden vieja de la charla, no una nueva. No se escribe.
+    const repetidas = deNuevo ? [] : repeticionReciente(data.reglas ?? [], reglasNuevas, hoy);
+    if (repetidas.length) {
+      const antes = [...new Set(repetidas.map((x) => x.antes))].map((f) => `el ${DIA_LARGO[diaDeFecha(f)]} ${Number(f.slice(8, 10))}`).join(" y ");
+      const ahora = [...new Set(repetidas.map((x) => x.ahora))].map((f) => `el ${DIA_LARGO[diaDeFecha(f)]} ${Number(f.slice(8, 10))}`).join(" y ");
+      quien = `No he guardado nada: eso ya se apuntó para ${antes}, que ya pasó. Lo que lees en la charla es de otro día. Solo si la persona pide AHORA lo mismo para ${ahora}, confírmalo con ella y vuelve a llamar con de_nuevo = true.`;
+      fallo = "repetido";
+      return null;
+    }
     // Devuelve { reglas, vencidas }, no la lista.
     const { reglas } = m.podarReglasVencidas([...(data.reglas ?? []), ...reglasNuevas], hoy);
     const dataNueva = { ...data, reglas };

@@ -410,6 +410,10 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
      "items": {
       "type": "string"
      }
+    },
+    "de_nuevo": {
+     "type": "boolean",
+     "description": "Solo si la herramienta te dijo que eso ya se guardó hace poco y la persona, AHORA, ha confirmado que lo quiere también para estos días."
     }
    },
    "required": [

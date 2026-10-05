@@ -2057,6 +2057,31 @@
         "anadir_compra"
       ],
       "texto": "[Cc]omer|[Cc]omida|[Cc]ocina|no es (algo )?(lo m[ií]o|que yo lleve)|no lo llevo|calendario"
+    },
+    {
+      "nombre": "fechas: el «mañana» de un mensaje de otro día no es el de hoy",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Pablo, Isa: ninguna.\nCASA\n- Pablo 36 · Isa 34.",
+        "delDia": "YA PASÓ (guardado y hecho; no lo repitas)\n- sáb 3 oct: fuera toda la casa (comida, cena).\n- dom 4 oct: fuera toda la casa (comida).\nMENÚ: todavía no hay ninguno."
+      },
+      "historia": [
+        {
+          "role": "user",
+          "content": "[Escrito el viernes 2 de octubre] asume que mañana ni comemos ni cenamos en casa porque tenemos boda, y el domingo comemos en casa de mis padres"
+        },
+        {
+          "role": "assistant",
+          "content": "✅ Ya está: mañana sábado nadie come ni cena en casa (boda), y el domingo coméis en casa de tus padres."
+        }
+      ],
+      "entrada": "oye, ¿qué tengo que comer mañana? ¿tengo menú?",
+      "noLlama": [
+        "cambiar_plato"
+      ],
+      "sinTexto": "✅|[Mm]añana (s[aá]bado|no com|nadie)",
+      "respuestas": {
+        "fuera_de_casa": "No he guardado nada: eso ya se apuntó para el sábado 3 y el domingo 4, que ya pasó. Lo que lees en la charla es de otro día. Solo si la persona pide AHORA lo mismo para el sábado 10 y el domingo 11, confírmalo con ella y vuelve a llamar con de_nuevo = true."
+      }
     }
   ]
 }
