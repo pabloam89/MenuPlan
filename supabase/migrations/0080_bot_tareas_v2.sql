@@ -106,10 +106,14 @@ create trigger bot_tareas_kind_tipo
 revoke all on function public.bot_tareas_kind_tipo() from public, anon, authenticated;
 
 -- ── 5. El recordatorio sabe de qué tarea sale, y cae con ella ──
+-- La FK es compuesta (casa, tarea): un recordatorio nunca cuelga de una tarea
+-- de otra casa. Los recordatorios viejos sin casa pasan igual (MATCH SIMPLE).
+alter table public.bot_tareas drop constraint if exists bot_tareas_casa_id;
+alter table public.bot_tareas add constraint bot_tareas_casa_id unique (household_id, id);
 alter table public.bot_reminders add column if not exists tarea_id uuid;
 alter table public.bot_reminders drop constraint if exists bot_reminders_tarea_fk;
 alter table public.bot_reminders add constraint bot_reminders_tarea_fk
-  foreign key (tarea_id) references public.bot_tareas(id) on delete cascade not valid;
+  foreign key (household_id, tarea_id) references public.bot_tareas(household_id, id) on delete cascade not valid;
 create index if not exists bot_reminders_tarea on public.bot_reminders (tarea_id) where tarea_id is not null;
 
 -- ── 6. Idempotencia: una orden repetida no escribe dos veces ──
@@ -152,3 +156,44 @@ end;
 $$;
 
 revoke all on function public.bot_tareas_purgar() from public, anon, authenticated;
+
+-- ── 8. El tope, para el modelo nuevo ──
+-- El de 0078 contaba con `new.kind <> 'seguimiento'`: con kind null (esperas y
+-- decisiones del bot nuevo) eso da null, no sale, y una espera o una decisión
+-- se rechazaban con 8 seguimientos (el bot no podría ni preguntar ni avisar de
+-- un plato con alérgeno). Tampoco separaba casa y personales, ni contaba las
+-- aplazadas, ni miraba una aplazada que vuelve a abierta (solo era de insert).
+-- Ahora: solo seguimientos; 8 de la casa y 5 personales por dueño; cuentan
+-- abiertas y aplazadas vivas; y vale también al pasar a vivo en un update.
+create or replace function public.bot_tareas_tope()
+returns trigger
+language plpgsql
+as $$
+declare
+  vivas int;
+begin
+  if coalesce(new.tipo, new.kind) is distinct from 'seguimiento' then return new; end if;
+  if new.status not in ('abierta', 'aplazada') then return new; end if;
+  if tg_op = 'UPDATE' and old.status in ('abierta', 'aplazada') then return new; end if;
+  perform pg_advisory_xact_lock(hashtext('bot_tareas:' || new.household_id::text));
+  select count(*) into vivas
+    from public.bot_tareas
+   where household_id = new.household_id
+     and coalesce(tipo, kind) = 'seguimiento'
+     and status in ('abierta', 'aplazada')
+     and caduca_at > now()
+     and id is distinct from new.id
+     and owner_user_id is not distinct from new.owner_user_id;
+  if vivas >= case when new.owner_user_id is null then 8 else 5 end then
+    raise exception 'tope de tareas abiertas' using errcode = 'P0001', hint = 'tope';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists bot_tareas_tope on public.bot_tareas;
+create trigger bot_tareas_tope
+  before insert or update on public.bot_tareas
+  for each row execute function public.bot_tareas_tope();
+
+revoke all on function public.bot_tareas_tope() from public, anon, authenticated;

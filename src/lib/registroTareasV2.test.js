@@ -56,3 +56,23 @@ describe("0080 = registroTareas", () => {
     expect(codigo).toMatch(/create table if not exists public\.bot_idempotencia[\s\S]*primary key \(household_id, clave\)/i);
   });
 });
+
+// El tope de 0078 rechazaba esperas y decisiones (kind null) y no separaba
+// casa y personales; lo cazó el ensayo de la 0080 en Postgres. Se fija su forma.
+describe("0080: el tope solo cuenta seguimientos y separa casa y personales", () => {
+  const tope = sql.slice(sql.indexOf("create or replace function public.bot_tareas_tope()"));
+  it("solo seguimientos, también con kind null", () => {
+    expect(tope).toMatch(/coalesce\(new\.tipo, new\.kind\) is distinct from 'seguimiento'/);
+  });
+  it("cuenta abiertas y aplazadas, y vale al pasar a vivo en un update", () => {
+    expect(tope).toMatch(/status in \('abierta', 'aplazada'\)/);
+    expect(tope).toMatch(/before insert or update on public\.bot_tareas/);
+  });
+  it("8 de la casa y 5 personales por dueño", () => {
+    expect(tope).toMatch(/owner_user_id is not distinct from new\.owner_user_id/);
+    expect(tope).toMatch(/when new\.owner_user_id is null then 8 else 5/);
+  });
+  it("el recordatorio cuelga de una tarea de su casa", () => {
+    expect(sql).toMatch(/foreign key \(household_id, tarea_id\) references public\.bot_tareas\(household_id, id\)/);
+  });
+});
