@@ -13,6 +13,7 @@ import {
   cargaDe, esfuerzoDe, recursoDe, llevaMasaDe,
   escalabilidadDe, robustezDe, perecibilidadDe, conLasManosDe,
 } from "../lib/derive/ejesDePlato.js";
+import { IDS_PERFILES, puntuar } from "../lib/derive/perfiles.js";
 
 const RAIZ = fileURLToPath(new URL("./recipes", import.meta.url));
 const recipeCoste = JSON.parse(readFileSync(fileURLToPath(new URL("./derived/recipeCoste.json", import.meta.url)), "utf8"));
@@ -86,6 +87,11 @@ const MEDIDORES = {
   coste: () => recetas.filter((r) => recipeCoste.recetas?.[r.id]?.nivel).length / recetas.length,
   micronutrientes: () => Math.min(...["iron100g", "calcium100g", "vitaminB12100g", "folate100g"]
     .map((k) => alimentos.filter((a) => a.nutricion?.[k] != null).length / alimentos.length)),
+  // El 50 se mide corriendo `puntuar`: de cuántas recetas se puede afirmar al
+  // menos un perfil sin que le falte ningún dato.
+  perfilNutricional: () => recetas.filter((r) => IDS_PERFILES.some(
+    (id) => puntuar(id, r, { leer: (p, c) => p?.[c] ?? null, completitud: completitudDe }).sinDato.length === 0,
+  )).length / recetas.length,
 };
 
 describe("el registro de ejes", () => {

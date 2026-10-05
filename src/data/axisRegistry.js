@@ -435,6 +435,15 @@ export const EJES = [
     consumidores: ["filterRecipes", "necesitaVispera"], cobertura: 0.975,
     nota: "DERIVADO, no curado: sale de `stepsRich[].minutes >= 720` y por eso su cobertura es la de `stepsRich` (97,5 %) y no hay campo que mantener. Nace de un caso concreto: «Carpaccio de salmón con cítricos» es `montaje: true`, y el atajo de `recipeMatchesPreferType(\"cena_rapida\")` devolvía true por esa vía SIN mirar el tiempo, así que la app podía proponerlo como cena de hoy teniendo por primer paso «Congelar un mínimo de 48 h antes». Hoy son 12 recetas estrella con un paso pasivo de 12 h o más: los dos salmones de anisakis, los remojos de legumbre y los curados. NO es `adelanto`, que es de batch cooking y dice si el plato AGUANTA hecho; este dice si EXIGE empezarse antes, y son preguntas opuestas. Se deriva en vez de curarse porque el dato ya está escrito en los pasos y un campo nuevo sería una segunda verdad que se desincroniza.",
   },
+
+  // ── Preguntas compuestas sobre la nutrición (50) ─────────────────────────
+  {
+    n: 50, id: "perfilNutricional", nombre: "Perfil nutricional (equilibrado, alto en proteína, para entrenar, bajo en sal…)",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "sin_lector",
+    campo: null, vocabulario: ["equilibrado", "altoProteina", "despuesEntrenar", "antesEntrenar", "ligeroQueSacie", "bajoSal", "ricoHierro"],
+    consumidores: [], cobertura: 1,
+    nota: "DERIVADO por `puntuar` (src/lib/derive/perfiles.js): no es un eje nuevo sino una pregunta sobre VARIOS a la vez —macros, carga (10), completitud (11) y micros (4)—, y por eso hay uno solo para todos los perfiles en vez de uno por perfil. Nace del caso «el gazpacho de fresas se me queda ligero, dame algo más completo»: «más proteína» a secas daba otro plato desequilibrado, y lo que pedían era una PROPORCIÓN. La cobertura es «de cuántas recetas se puede afirmar algo» (al menos un perfil sin datos que falten), medida corriendo `puntuar` sobre las 1.033: los macros están al 100 %, así que es 1. Cada perfil por separado sí puede no saber —«bajo en sal» sin sodio es «no lo sé», nunca «bajo»—, y eso lo dice `sinDato` en vez de esta columna. SIN LECTOR a propósito: el lector será `menu` (api/_bot) cuando se cablee en `proponer_platos` y `cambiar_plato`; declararlo activo antes sería el error que este fichero persigue. Ese mismo día suben a `consumidores` los ejes 4, 10 y 11, que es donde de verdad se leen.",
+  },
 ];
 
 /** Por id, para no recorrer el array en cada consulta. */
