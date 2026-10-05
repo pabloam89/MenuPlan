@@ -474,7 +474,7 @@ export async function quitarComensal(householdId, { nombre }) {
 
 // ── Alergias: nunca sin confirmar ───────────────────────────────────────────
 
-const TODA_LA_CASA = /^(todos|toda la familia|familia|la casa)$/;
+const TODA_LA_CASA = /^(todos|todo el mundo|toda la familia|familia|la casa|toda la casa)$/;
 
 export async function ajustarAlergias(householdId, { persona, alergenos, quitar = false, ninguna = false, confirmado }) {
   if (confirmado !== true) {
@@ -490,6 +490,11 @@ export async function ajustarAlergias(householdId, { persona, alergenos, quitar 
   // toda la casa) queda revisada, que es lo que la app pide para los cimientos.
   if (ninguna) {
     return conData(householdId, (data, m) => {
+      // Sin decir de quién, con varios sin revisar, no se da la casa entera por
+      // revisada: «Nat no tiene» cerraría también las alergias de Pablo.
+      if (!persona && m.pendientesDeAlergias(data).length > 1) {
+        return { texto: "¿De quién? Dime la persona, o «toda la casa» si nadie tiene. No he guardado nada." };
+      }
       const uno = persona && !TODA_LA_CASA.test(normal(persona));
       const x = uno ? personaPorNombre(data, persona) : null;
       if (uno && !x) return { texto: `No encuentro a ${persona} en la casa.` };
