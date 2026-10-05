@@ -343,33 +343,80 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
      },
      "additionalProperties": false
     },
-    "eje": {
-     "type": "object",
-     "description": "Opcional: «más» o «menos» de un número del plato, comparado con el que ya está en ese hueco. «Más carbos» → carbohidratos; «que llene» → carga (lo que sacia); «menos grasa» → grasa; «más proteína» → proteina. densidadNutricional = kcal por 100 g, para «algo que pese menos»; «ligero» sigue siendo estilo. Solo si lo piden.",
-     "properties": {
-      "cual": {
-       "type": "string",
-       "enum": [
-        "proteina",
-        "carbohidratos",
-        "grasa",
-        "densidadNutricional",
-        "carga"
-       ]
+    "ejes": {
+     "type": "array",
+     "minItems": 1,
+     "maxItems": 3,
+     "description": "Opcional: «más» o «menos» de un nutriente, comparado con el plato que ya está en ese hueco; si piden varios, todos a la vez («más proteína y menos grasa»). Cualquier nutriente: «más carbos» → carbohidratos, «menos sal» → sodio, «más hierro» → hierro. carga = lo que sacia («que llene»); densidadNutricional = kcal por 100 g («que pese menos»). «Ligero» sigue siendo estilo. Solo si lo piden.",
+     "items": {
+      "type": "object",
+      "properties": {
+       "cual": {
+        "type": "string",
+        "enum": [
+         "calorias",
+         "proteina",
+         "carbohidratos",
+         "grasa",
+         "fibra",
+         "azucar",
+         "grasa_saturada",
+         "sodio",
+         "calcio",
+         "hierro",
+         "magnesio",
+         "fosforo",
+         "potasio",
+         "zinc",
+         "cobre",
+         "manganeso",
+         "selenio",
+         "yodo",
+         "vitamina_a",
+         "betacaroteno",
+         "vitamina_d",
+         "vitamina_e",
+         "vitamina_k",
+         "vitamina_c",
+         "vitamina_b1",
+         "vitamina_b2",
+         "vitamina_b3",
+         "vitamina_b5",
+         "vitamina_b6",
+         "folato",
+         "vitamina_b12",
+         "colesterol",
+         "carga",
+         "densidadNutricional"
+        ]
+       },
+       "direccion": {
+        "type": "string",
+        "enum": [
+         "mas",
+         "menos"
+        ]
+       }
       },
-      "direccion": {
-       "type": "string",
-       "enum": [
-        "mas",
-        "menos"
-       ]
-      }
-     },
-     "required": [
-      "cual",
-      "direccion"
+      "required": [
+       "cual",
+       "direccion"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "perfil": {
+     "type": "string",
+     "enum": [
+      "equilibrado",
+      "altoProteina",
+      "despuesEntrenar",
+      "antesEntrenar",
+      "ligeroQueSacie",
+      "bajoSal",
+      "ricoHierro"
      ],
-     "additionalProperties": false
+     "description": "Opcional: un perfil del plato entero, varios nutrientes a la vez. equilibrado = equilibrado; altoProteina = alto en proteína; despuesEntrenar = para después de entrenar; antesEntrenar = para antes de entrenar; ligeroQueSacie = ligero pero que sacie; bajoSal = bajo en sal; ricoHierro = rico en hierro. «Más completo», «que tenga de todo», «un compendio de proteína, grasa e hidratos» → equilibrado. Solo para el plato principal."
     }
    },
    "additionalProperties": false
@@ -467,7 +514,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
     },
     "receta": {
      "type": "string",
-     "description": "Opcional: el nombre de la receta elegida. Si va, rasgos y eje no se usan."
+     "description": "Opcional: el nombre de la receta elegida. Si va, rasgos, ejes y perfil no se usan."
     },
     "rasgos": {
      "type": "object",
@@ -531,33 +578,80 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
      },
      "additionalProperties": false
     },
-    "eje": {
-     "type": "object",
-     "description": "Opcional: «más» o «menos» de un número del plato, comparado con el que ya está en ese hueco. «Más carbos» → carbohidratos; «que llene» → carga (lo que sacia); «menos grasa» → grasa; «más proteína» → proteina. densidadNutricional = kcal por 100 g, para «algo que pese menos»; «ligero» sigue siendo estilo. Solo si lo piden.",
-     "properties": {
-      "cual": {
-       "type": "string",
-       "enum": [
-        "proteina",
-        "carbohidratos",
-        "grasa",
-        "densidadNutricional",
-        "carga"
-       ]
+    "ejes": {
+     "type": "array",
+     "minItems": 1,
+     "maxItems": 3,
+     "description": "Opcional: «más» o «menos» de un nutriente, comparado con el plato que ya está en ese hueco; si piden varios, todos a la vez («más proteína y menos grasa»). Cualquier nutriente: «más carbos» → carbohidratos, «menos sal» → sodio, «más hierro» → hierro. carga = lo que sacia («que llene»); densidadNutricional = kcal por 100 g («que pese menos»). «Ligero» sigue siendo estilo. Solo si lo piden.",
+     "items": {
+      "type": "object",
+      "properties": {
+       "cual": {
+        "type": "string",
+        "enum": [
+         "calorias",
+         "proteina",
+         "carbohidratos",
+         "grasa",
+         "fibra",
+         "azucar",
+         "grasa_saturada",
+         "sodio",
+         "calcio",
+         "hierro",
+         "magnesio",
+         "fosforo",
+         "potasio",
+         "zinc",
+         "cobre",
+         "manganeso",
+         "selenio",
+         "yodo",
+         "vitamina_a",
+         "betacaroteno",
+         "vitamina_d",
+         "vitamina_e",
+         "vitamina_k",
+         "vitamina_c",
+         "vitamina_b1",
+         "vitamina_b2",
+         "vitamina_b3",
+         "vitamina_b5",
+         "vitamina_b6",
+         "folato",
+         "vitamina_b12",
+         "colesterol",
+         "carga",
+         "densidadNutricional"
+        ]
+       },
+       "direccion": {
+        "type": "string",
+        "enum": [
+         "mas",
+         "menos"
+        ]
+       }
       },
-      "direccion": {
-       "type": "string",
-       "enum": [
-        "mas",
-        "menos"
-       ]
-      }
-     },
-     "required": [
-      "cual",
-      "direccion"
+      "required": [
+       "cual",
+       "direccion"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "perfil": {
+     "type": "string",
+     "enum": [
+      "equilibrado",
+      "altoProteina",
+      "despuesEntrenar",
+      "antesEntrenar",
+      "ligeroQueSacie",
+      "bajoSal",
+      "ricoHierro"
      ],
-     "additionalProperties": false
+     "description": "Opcional: un perfil del plato entero, varios nutrientes a la vez. equilibrado = equilibrado; altoProteina = alto en proteína; despuesEntrenar = para después de entrenar; antesEntrenar = para antes de entrenar; ligeroQueSacie = ligero pero que sacie; bajoSal = bajo en sal; ricoHierro = rico en hierro. «Más completo», «que tenga de todo», «un compendio de proteína, grasa e hidratos» → equilibrado. Solo para el plato principal."
     },
     "de_fuera": {
      "type": "object",
@@ -616,7 +710,7 @@ exports[`lo que Lola ve de sus herramientas > no cambia sin querer 1`] = `
    ],
    "additionalProperties": false
   },
-  "description": "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa o, si no está tal cual en el catálogo, la más parecida que encaje en el hueco (la respuesta dice si es aproximada); sin ella, el motor elige otra respetando alergias y preferencias. Con «rasgos» o «eje» (más/menos carbos, que llene…) elige solo entre las que cumplen; si ninguna cumple, NO cambia nada y lo dice. En la comida y la cena hay primero (entrante) y segundo; «cual» dice cuál. Un entrante, primero o tapa para una comida o cena que no lo tenía se AÑADE con cual: primero, y el principal no se toca: nunca cambies el principal para poner un entrante."
+  "description": "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa o, si no está tal cual en el catálogo, la más parecida que encaje en el hueco (la respuesta dice si es aproximada); sin ella, el motor elige otra respetando alergias y preferencias. Con «rasgos», «ejes» (más/menos de cualquier nutriente) o «perfil» (equilibrado, para entrenar…) elige solo entre las que cumplen; si ninguna cumple, NO cambia nada y lo dice. En la comida y la cena hay primero (entrante) y segundo; «cual» dice cuál. Un entrante, primero o tapa para una comida o cena que no lo tenía se AÑADE con cual: primero, y el principal no se toca: nunca cambies el principal para poner un entrante."
  },
  {
   "type": "custom",

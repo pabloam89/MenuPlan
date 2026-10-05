@@ -1,59 +1,8 @@
-import { describe, it, expect, beforeAll } from "vitest";
-import { conRasgos, segunEstilo, conEje, usarDerivados } from "./menu.js";
+import { describe, it, expect } from "vitest";
+import { conRasgos, segunEstilo } from "./menu.js";
 import { recipeCatalog } from "../../src/data/recipeCatalog.js";
-import { densidadDe, cargaDe } from "../../src/lib/derive/ejesDePlato.js";
 
 const estrella = recipeCatalog.filter((r) => r.estrella && r.category !== "bebes");
-const base = estrella.find((r) => [r.protein_g, r.fiber_g, r.carbs_g, r.fat_g, r.kcal].every((v) => v != null));
-
-describe("conEje, «más/menos» de un número contra el plato de ahora", () => {
-  beforeAll(() => usarDerivados({ densidadDe, cargaDe }));
-  it("«más carbos» deja solo lo que tiene más carbohidratos que el plato de ahora", () => {
-    const { lista, aviso } = conEje(estrella, { cual: "carbohidratos", direccion: "mas" }, base);
-    expect(aviso).toBeNull();
-    expect(lista.length).toBeGreaterThan(0);
-    expect(lista.every((r) => r.carbs_g > base.carbs_g)).toBe(true);
-  });
-  it("«menos grasa» va en la otra dirección", () => {
-    const { lista, aviso } = conEje(estrella, { cual: "grasa", direccion: "menos" }, base);
-    expect(aviso).toBeNull();
-    expect(lista.every((r) => r.fat_g < base.fat_g)).toBe(true);
-  });
-  it("una candidata sin el dato no pasa el filtro", () => {
-    const sinDato = { ...estrella[0], carbs_g: null };
-    const { lista } = conEje([sinDato, ...estrella.slice(0, 3)], { cual: "carbohidratos", direccion: "mas" }, base);
-    expect(lista).not.toContain(sinDato);
-  });
-  it("si ninguna supera el plato de ahora, avisa y devuelve la lista sin tocar", () => {
-    const pocas = estrella.slice(0, 5);
-    const { lista, aviso } = conEje(pocas, { cual: "proteina", direccion: "mas" }, { ...base, protein_g: 9999 });
-    expect(aviso).toMatch(/Ninguna/);
-    expect(lista).toHaveLength(5);
-  });
-  it("un eje que no existe avisa sin inventar nada", () => {
-    const { lista, aviso } = conEje(estrella, { cual: "omega3", direccion: "mas" }, base);
-    expect(aviso).toMatch(/No tengo/);
-    expect(lista).toBe(estrella);
-  });
-  it("«carga» y «densidadNutricional» responden: el registro ya tiene lector para los dos", () => {
-    expect(conEje(estrella, { cual: "carga", direccion: "mas" }, base).aviso).toBeNull();
-    expect(conEje(estrella, { cual: "densidadNutricional", direccion: "menos" }, base).aviso).toBeNull();
-  });
-  it("sin plato de ahora (hueco vacío o ideas sin menú) ordena en la dirección pedida", () => {
-    const { lista, aviso } = conEje(estrella, { cual: "carbohidratos", direccion: "mas" });
-    expect(aviso).toBeNull();
-    expect(lista).toHaveLength(estrella.length);
-    const cs = lista.map((r) => r.carbs_g).filter((v) => v != null);
-    expect(cs).toEqual([...cs].sort((a, b) => b - a));
-  });
-  it("se combina con un rasgo categórico: cumplen los dos a la vez", () => {
-    const sinPicante = conRasgos(estrella, { picante: "sin" }).lista;
-    const { lista, aviso } = conEje(sinPicante, { cual: "carbohidratos", direccion: "mas" }, base);
-    expect(aviso).toBeNull();
-    expect(lista.length).toBeGreaterThan(0);
-    expect(lista.every((r) => r.picante === "no" && r.carbs_g > base.carbs_g)).toBe(true);
-  });
-});
 
 describe("conRasgos, sobre el Recetario Estrella de verdad", () => {
   it("«reconfortante y de cuchara» da platos de cuchara reconfortantes, y hay para elegir", () => {

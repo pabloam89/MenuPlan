@@ -2082,6 +2082,50 @@
       "respuestas": {
         "fuera_de_casa": "No he guardado nada: eso ya se apuntó para el sábado 3 y el domingo 4, que ya pasó. Lo que lees en la charla es de otro día. Solo si la persona pide AHORA lo mismo para el sábado 10 y el domingo 11, confírmalo con ella y vuelve a llamar con de_nuevo = true."
       }
+    },
+    {
+      "nombre": "nutrición: «algo más completo, voy a hacer deporte» → proponer_platos con perfil, sin reintentar",
+      "entrada": "La cena del viernes se me queda demasiado ligera. Ese día voy a hacer deporte, dame algo más completo a nivel de macronutrientes",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "dia": "viernes",
+          "_todo": "perfil"
+        }
+      },
+      "noLlama": [
+        "cambiar_plato"
+      ],
+      "sinTexto": "[Ll]o intento otra vez|[Nn]o tengo apuntado"
+    },
+    {
+      "nombre": "nutrición: «un compendio de grasa, proteína e hidratos» → perfil equilibrado",
+      "entrada": "Para la cena del viernes quiero un compendio de grasas, proteínas y carbohidratos, que le falta proteína",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "perfil": "equilibrado"
+        }
+      }
+    },
+    {
+      "nombre": "nutrición: «menos sal y más proteína» → dos ejes a la vez",
+      "entrada": "dame opciones para la cena del jueves con menos sal y más proteína",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "_todo": "sodio"
+        }
+      },
+      "noLlama": [
+        "cambiar_plato"
+      ]
     }
   ]
 }

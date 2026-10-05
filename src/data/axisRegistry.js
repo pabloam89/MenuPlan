@@ -119,7 +119,7 @@ export const EJES = [
     n: 4, id: "micronutrientes", nombre: "Micronutrientes (hierro, calcio, B12, omega-3, folato)",
     ambito: AMBITO.ALIMENTO, tipo: "numerico", estado: "activo",
     campo: "alimentos.nutricion", vocabulario: null,
-    consumidores: ["ingredients", "recipeCatalog", "healthFlags", "aiPlanner", "userRecipes"], cobertura: 0.896,
+    consumidores: ["ingredients", "recipeCatalog", "healthFlags", "aiPlanner", "userRecipes", "menu"], cobertura: 0.896,
     nota: "El documento decía «BEDCA los tiene; el pipeline no los trae». Ya los trae: 24 micros por alimento. Pero la cobertura NO es la del calcio (94,9 %), que es de los mejores: es la del PEOR de los que el nombre del eje promete, y ese es la B12 con 89,6 %. Y hay uno que no se puede contestar en absoluto: el OMEGA-3 no tiene campo — omega3100g no existe en ninguna de las 396 filas, así que «dame algo con omega-3» no tiene respuesta por mucho que el eje diga 90 %. Falta además la TABLA DE RETENCIÓN POR TÉCNICA: un hervido pierde folato y el crudo no.",
   },
   {
@@ -176,9 +176,9 @@ export const EJES = [
   },
   {
     n: 11, id: "completitud", nombre: "Completitud (¿es comida entera?)",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "activo",
     campo: null, vocabulario: null,
-    consumidores: [], cobertura: 1,
+    consumidores: ["menu"], cobertura: 1,
     nota: "DERIVADO por `completitudDe` (src/lib/derive/ejesDePlato.js): un plato es entero cuando trae proteína, hidrato Y verdura, leídos del vector de composición. La verdura se mide por masa y no por presencia —40 g por ración—, porque dos hojas de perejil no completan nada. Cobertura 100 %, y DISCRIMINA: 261 de 947 son completos, así que el eje sirve para elegir cena. Nace de un caso en vivo: el solver dio por bueno un menú con «Brócoli al vapor en árbol» de segundo, cumpliendo TODAS las restricciones — las restricciones descartan, pero lo que hace bueno un menú es la función objetivo.",
   },
   {
@@ -439,10 +439,10 @@ export const EJES = [
   // ── Preguntas compuestas sobre la nutrición (50) ─────────────────────────
   {
     n: 50, id: "perfilNutricional", nombre: "Perfil nutricional (equilibrado, alto en proteína, para entrenar, bajo en sal…)",
-    ambito: AMBITO.RECETA, tipo: "tags", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
     campo: null, vocabulario: ["equilibrado", "altoProteina", "despuesEntrenar", "antesEntrenar", "ligeroQueSacie", "bajoSal", "ricoHierro"],
-    consumidores: [], cobertura: 1,
-    nota: "DERIVADO por `puntuar` (src/lib/derive/perfiles.js): no es un eje nuevo sino una pregunta sobre VARIOS a la vez —macros, carga (10), completitud (11) y micros (4)—, y por eso hay uno solo para todos los perfiles en vez de uno por perfil. Nace del caso «el gazpacho de fresas se me queda ligero, dame algo más completo»: «más proteína» a secas daba otro plato desequilibrado, y lo que pedían era una PROPORCIÓN. La cobertura es «de cuántas recetas se puede afirmar algo» (al menos un perfil sin datos que falten), medida corriendo `puntuar` sobre las 1.033: los macros están al 100 %, así que es 1. Cada perfil por separado sí puede no saber —«bajo en sal» sin sodio es «no lo sé», nunca «bajo»—, y eso lo dice `sinDato` en vez de esta columna. SIN LECTOR a propósito: el lector será `menu` (api/_bot) cuando se cablee en `proponer_platos` y `cambiar_plato`; declararlo activo antes sería el error que este fichero persigue. Ese mismo día suben a `consumidores` los ejes 4, 10 y 11, que es donde de verdad se leen.",
+    consumidores: ["menu"], cobertura: 1,
+    nota: "DERIVADO por `puntuar` (src/lib/derive/perfiles.js): no es un eje nuevo sino una pregunta sobre VARIOS a la vez —macros, carga (10), completitud (11) y micros (4)—, y por eso hay uno solo para todos los perfiles en vez de uno por perfil. Nace del caso «el gazpacho de fresas se me queda ligero, dame algo más completo»: «más proteína» a secas daba otro plato desequilibrado, y lo que pedían era una PROPORCIÓN. La cobertura es «de cuántas recetas se puede afirmar algo» (al menos un perfil sin datos que falten), medida corriendo `puntuar` sobre las 1.033: los macros están al 100 %, así que es 1. Cada perfil por separado sí puede no saber —«bajo en sal» sin sodio es «no lo sé», nunca «bajo»—, y eso lo dice `sinDato` en vez de esta columna. LECTOR: `menu` (api/_bot, `conPerfil`), en `proponer_platos` y `cambiar_plato` y en la vía rápida; con él subieron a `consumidores` los ejes 4, 10 y 11, que es donde de verdad se leen.",
   },
 ];
 

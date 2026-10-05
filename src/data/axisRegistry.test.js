@@ -246,6 +246,7 @@ describe("el registro de ejes", () => {
     gruposSecundarios: "mainIngredients", formato: "formato", temperatura: "temperatura",
     textura: "textura", connotacion: "connotacion", coste: "costeNivel",
     densidadNutricional: "densidadDe", carga: "cargaDe",
+    completitud: "completitudDe", perfilNutricional: "ordenarPorPerfil",
   };
 
   it("cada consumidor declarado nombra de verdad el campo del eje", () => {

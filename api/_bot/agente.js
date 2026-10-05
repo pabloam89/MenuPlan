@@ -22,7 +22,7 @@ import {
   rangosDelMenu,
   apuntarAusencia,
 } from "./menu.js";
-import { ESQUEMA_RASGOS, ESQUEMA_EJE } from "./esquemas.js";
+import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
 import { generarMenu } from "./generar.js";
 import { avisoVispera } from "./vispera.js";
 import { registrar, EMBUDO, duenoDe } from "./embudo.js";
@@ -737,14 +737,15 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
           para: { type: "string", enum: ["mayores", "ninos", "bebe"], description: "Opcional: para quién. «Con mi mujer/marido», «para nosotros» = mayores. El bebé solo si lo nombran." },
           de_fuera: ESQUEMA_DE_FUERA,
           rasgos: ESQUEMA_RASGOS,
-          eje: ESQUEMA_EJE,
+          ejes: ESQUEMA_EJES,
+          perfil: ESQUEMA_PERFIL,
         },
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, estilo, para, rasgos, eje, de_fuera }) => {
+      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, estilo, para, rasgos, ejes, perfil, de_fuera }) => {
         const f = comida ? franjaDe(comida) : null;
         if (comida && !f) return `No entiendo qué comida es («${comida}»).`;
-        return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null, eje: eje || null, deFuera: de_fuera || null }, fotos);
+        return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null, ejes: ejes?.length ? ejes : null, perfil: perfil || null, deFuera: de_fuera || null }, fotos);
       },
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: "semana" }, {
@@ -769,7 +770,7 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: (a) => (a.dia && diaDe(a.dia) ? `dia:${diaDe(a.dia)}` : null) }, {
       name: "cambiar_plato",
-      description: "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa o, si no está tal cual en el catálogo, la más parecida que encaje en el hueco (la respuesta dice si es aproximada); sin ella, el motor elige otra respetando alergias y preferencias. Con «rasgos» o «eje» (más/menos carbos, que llene…) elige solo entre las que cumplen; si ninguna cumple, NO cambia nada y lo dice. En la comida y la cena hay primero (entrante) y segundo; «cual» dice cuál. Un entrante, primero o tapa para una comida o cena que no lo tenía se AÑADE con cual: primero, y el principal no se toca: nunca cambies el principal para poner un entrante.",
+      description: "Cambia el plato de un hueco del menú y rehace la compra. Con «receta» pone esa o, si no está tal cual en el catálogo, la más parecida que encaje en el hueco (la respuesta dice si es aproximada); sin ella, el motor elige otra respetando alergias y preferencias. Con «rasgos», «ejes» (más/menos de cualquier nutriente) o «perfil» (equilibrado, para entrenar…) elige solo entre las que cumplen; si ninguna cumple, NO cambia nada y lo dice. En la comida y la cena hay primero (entrante) y segundo; «cual» dice cuál. Un entrante, primero o tapa para una comida o cena que no lo tenía se AÑADE con cual: primero, y el principal no se toca: nunca cambies el principal para poner un entrante.",
       inputSchema: {
         type: "object",
         properties: {
@@ -778,20 +779,21 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
           comida: { type: "string", enum: IDS_COMIDAS },
           grupo: { type: "string", description: "Opcional: para quién, si no es para toda la familia: el nombre de una persona («Leo») o «los peques», «los mayores», «el bebé». Sin esto, es para toda la familia (el bebé tiene su menú)." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
-          receta: { type: "string", description: "Opcional: el nombre de la receta elegida. Si va, rasgos y eje no se usan." },
+          receta: { type: "string", description: "Opcional: el nombre de la receta elegida. Si va, rasgos, ejes y perfil no se usan." },
           rasgos: ESQUEMA_RASGOS,
-          eje: ESQUEMA_EJE,
+          ejes: ESQUEMA_EJES,
+          perfil: ESQUEMA_PERFIL,
           de_fuera: ESQUEMA_DE_FUERA,
         },
         required: ["dia", "comida"],
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual_semana, comida, grupo, cual, receta, rasgos, eje, de_fuera }) => {
+      run: ({ dia, semana: cual_semana, comida, grupo, cual, receta, rasgos, ejes, perfil, de_fuera }) => {
         const f = franjaDe(comida);
         if (!f) return `No entiendo qué comida es («${comida}»).`;
         // El día cambiado sale pintado debajo, con el plato nuevo destacado.
         const out = {};
-        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null, rasgos: rasgos || null, eje: eje || null, deFuera: de_fuera || null }, fotos, out)
+        return cambiarPlato(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, receta: receta || null, rasgos: rasgos || null, ejes: ejes?.length ? ejes : null, perfil: perfil || null, deFuera: de_fuera || null }, fotos, out)
           .then((t) => { if (out.cambiado) pintarTambien(chat, filtrosTrasCambiar(out)); return t; });
       },
     }),

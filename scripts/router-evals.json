@@ -237,8 +237,8 @@
       "rapida": true,
       "datos": {
         "dia": "jueves",
-        "eje.cual": "carbohidratos",
-        "eje.direccion": "mas"
+        "ejes.0.cual": "carbohidratos",
+        "ejes.0.direccion": "mas"
       }
     },
     {
@@ -248,8 +248,26 @@
       "datos": {
         "dia": "viernes",
         "comida": "Cena",
-        "eje.cual": "grasa",
-        "eje.direccion": "menos"
+        "ejes.0.cual": "grasa",
+        "ejes.0.direccion": "menos"
+      }
+    },
+    {
+      "texto": "la cena del viernes se me queda ligera, voy a hacer deporte: dame algo más completo de macros",
+      "modo": "recomendar",
+      "rapida": true,
+      "datos": {
+        "dia": "viernes",
+        "comida": "Cena",
+        "perfil": "equilibrado"
+      }
+    },
+    {
+      "texto": "ideas bajas en sal para cenar hoy",
+      "modo": "recomendar",
+      "rapida": true,
+      "datos": {
+        "perfil": "bajoSal"
       }
     },
     {
