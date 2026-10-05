@@ -22,19 +22,29 @@ import { COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
 import crypto from "node:crypto";
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
-import { motor, prepararRecetas, grupos, DIAS } from "./menu.js";
+import { motor, prepararRecetas, grupos, DIAS, recetasDeCasa, deSerieDelMotor } from "./menu.js";
 import { duenoDe, rastro } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { nombreDelBot } from "./telegram.js";
 
 const nuevaLlave = () => crypto.randomBytes(16).toString("hex");
 
+/**
+ * Una receta del catálogo común o de serie, con la forma de la app. Nunca una
+ * receta propia: el registro del motor es de toda la instancia y puede tener
+ * las recetas privadas que registró otra casa (rc_ es para el catálogo).
+ */
+export function recetaComun(m, deSerie, id) {
+  const vista = recetasDeCasa(m, deSerie, new Set()).RECIPES_BY_ID;
+  if (vista[id]) return vista[id];
+  const c = m.recipeCatalogById?.[id];
+  return c ? m.catalogToFrontendRecipe(c, c.baseServings ?? 2) : null;
+}
+
 /** Una receta del catálogo con la forma de la app (ingredientes y pasos). */
 async function recetaDelCatalogo(id) {
   const m = await motor();
-  if (m.RECIPES_BY_ID[id]) return m.RECIPES_BY_ID[id];
-  const c = m.recipeCatalogById[id];
-  return c ? m.catalogToFrontendRecipe(c, c.baseServings ?? 2) : null;
+  return recetaComun(m, deSerieDelMotor(), id);
 }
 const idBase = (id) => String(id ?? "").split("__").pop();
 

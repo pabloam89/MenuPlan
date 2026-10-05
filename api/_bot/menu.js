@@ -34,6 +34,8 @@ export const motor = async () => {
   }
   return motorCargado;
 };
+/** Las recetas de serie del motor ya cargado (vacío si aún no se cargó). */
+export const deSerieDelMotor = () => recetasDeSerie ?? new Set();
 
 /**
  * El motor con un RECIPES_BY_ID que solo enseña lo de esta casa: sus recetas
