@@ -108,10 +108,11 @@ revoke all on function public.bot_tareas_kind_tipo() from public, anon, authenti
 -- ── 5. El recordatorio sabe de qué tarea sale, y cae con ella ──
 -- La FK es compuesta (casa, tarea): un recordatorio nunca cuelga de una tarea
 -- de otra casa. Los recordatorios viejos sin casa pasan igual (MATCH SIMPLE).
+-- Primero la FK que depende del unique, para que la migración se pueda reaplicar.
+alter table public.bot_reminders drop constraint if exists bot_reminders_tarea_fk;
 alter table public.bot_tareas drop constraint if exists bot_tareas_casa_id;
 alter table public.bot_tareas add constraint bot_tareas_casa_id unique (household_id, id);
 alter table public.bot_reminders add column if not exists tarea_id uuid;
-alter table public.bot_reminders drop constraint if exists bot_reminders_tarea_fk;
 alter table public.bot_reminders add constraint bot_reminders_tarea_fk
   foreign key (household_id, tarea_id) references public.bot_tareas(household_id, id) on delete cascade not valid;
 create index if not exists bot_reminders_tarea on public.bot_reminders (tarea_id) where tarea_id is not null;
@@ -170,7 +171,9 @@ returns trigger
 language plpgsql
 as $$
 declare
-  vivas int;
+  vivas  int;
+  -- En una variable: dentro de un IF, el THEN de un CASE corta la condición.
+  limite int := case when new.owner_user_id is null then 8 else 5 end;
 begin
   if coalesce(new.tipo, new.kind) is distinct from 'seguimiento' then return new; end if;
   if new.status not in ('abierta', 'aplazada') then return new; end if;
@@ -184,7 +187,7 @@ begin
      and caduca_at > now()
      and id is distinct from new.id
      and owner_user_id is not distinct from new.owner_user_id;
-  if vivas >= case when new.owner_user_id is null then 8 else 5 end then
+  if vivas >= limite then
     raise exception 'tope de tareas abiertas' using errcode = 'P0001', hint = 'tope';
   end if;
   return new;

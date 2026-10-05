@@ -76,3 +76,12 @@ describe("0080: el tope solo cuenta seguimientos y separa casa y personales", ()
     expect(sql).toMatch(/foreign key \(household_id, tarea_id\) references public\.bot_tareas\(household_id, id\)/);
   });
 });
+
+describe("0080 se puede reaplicar", () => {
+  it("borra la FK del recordatorio antes que el unique del que depende", () => {
+    expect(sql.indexOf("drop constraint if exists bot_reminders_tarea_fk")).toBeLessThan(sql.indexOf("drop constraint if exists bot_tareas_casa_id"));
+  });
+  it("ningún IF lleva un CASE dentro (PL/pgSQL corta en su THEN)", () => {
+    expect(sql).not.toMatch(/\bif\b[^;]*\bcase\b[^;]*\bthen\b[^;]*\bend\b[^;]*\bthen\b/i);
+  });
+});
