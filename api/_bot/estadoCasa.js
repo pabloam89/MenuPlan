@@ -58,7 +58,9 @@ export function claveDePregunta(texto, data = {}) {
 export function resuelta(clave, data = {}) {
   const [tipo, id] = String(clave ?? "").split(":");
   if (!id) return false;
-  const m = (data.members ?? []).find((x) => idDe(x) === id);
+  // Una casa sin personas es una lectura a medias, no una casa resuelta: no se cierra nada.
+  if (!(data?.members ?? []).length) return false;
+  const m = data.members.find((x) => idDe(x) === id);
   if (tipo === "alergias") return !m || alergiasRevisadas(data, m) || Boolean((m.allergies ?? []).length);
   if (tipo === "etapa") return !m || !esBebe(m) || ETAPAS_BEBE.includes(data.etapaBebe);
   return false;

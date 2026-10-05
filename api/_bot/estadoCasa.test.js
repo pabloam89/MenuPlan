@@ -66,6 +66,11 @@ describe("resuelta: el estado decide", () => {
   it("si la persona ya no está en la casa, deja de tener sentido", () => {
     expect(resuelta("etapa:zz", casa())).toBe(true);
   });
+  it("una casa que llega sin personas no resuelve nada (lectura a medias)", () => {
+    expect(resuelta("alergias:c1", { members: [] })).toBe(false);
+    expect(resuelta("etapa:c1", {})).toBe(false);
+    expect(resuelta("alergias:c1", { allergiesReviewed: true })).toBe(false);
+  });
   it("una clave libre nunca la resuelve el estado", () => {
     expect(resuelta("seguimiento:casa:pan", casa())).toBe(false);
   });
