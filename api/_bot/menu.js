@@ -24,7 +24,43 @@ import { restriccionesDeFuera, conQuienViene, describirDeFuera } from "./deFuera
 import { EJE_POR_ID, puedeResponder } from "../../src/data/axisRegistry.js";
 
 let motorCargado = null;
-export const motor = async () => (motorCargado ??= await import("./core.mjs"));
+// Las recetas que trae el motor de serie (antes de registrar ninguna casa).
+let recetasDeSerie = null;
+export const motor = async () => {
+  if (!motorCargado) {
+    const m = await import("./core.mjs");
+    recetasDeSerie ??= new Set(Object.keys(m.RECIPES_BY_ID));
+    motorCargado = m;
+  }
+  return motorCargado;
+};
+
+/**
+ * El motor con un RECIPES_BY_ID que solo enseña lo de esta casa: sus recetas
+ * registradas, las de serie y las del catálogo común. El registro del motor es
+ * de toda la instancia, y Vercel reutiliza instancias entre casas: sin esto, al
+ * buscar una receta por nombre salía la receta propia de otra casa.
+ * `registerRecipes` sigue escribiendo en el registro global y suma a lo visible.
+ */
+export function recetasDeCasa(m, deSerie, propias) {
+  const visible = (id) => typeof id === "string"
+    && (propias.has(id) || deSerie.has(id) || Boolean(m.recipeCatalogById?.[idBase(id)]));
+  const vista = new Proxy(m.RECIPES_BY_ID, {
+    get: (t, id) => (visible(id) ? t[id] : undefined),
+    has: (t, id) => visible(id) && id in t,
+    ownKeys: (t) => Reflect.ownKeys(t).filter(visible),
+    getOwnPropertyDescriptor: (t, id) => (visible(id) ? Reflect.getOwnPropertyDescriptor(t, id) : undefined),
+  });
+  return Object.create(m, {
+    RECIPES_BY_ID: { value: vista },
+    registerRecipes: {
+      value: (extra) => {
+        m.registerRecipes(extra);
+        for (const r of Array.isArray(extra) ? extra : []) if (r?.id) propias.add(r.id);
+      },
+    },
+  });
+}
 
 // La densidad y la carga salen del bundle: src/ no se carga en Node a secas.
 let derivados = null;
@@ -137,7 +173,17 @@ export function franjaDe(texto) {
 
 /** Registra en el motor las recetas de la casa para poder resolver ids. */
 export async function prepararRecetas(casa) {
-  const m = await motor();
+  const global = await motor();
+  // Lo que es de esta casa: lo que registra ahora, lo que sale en sus menús y sus recetas propias.
+  const propias = new Set();
+  for (const s of [casa.semana, ...(casa.semanas ?? [])]) {
+    for (const [gid, huecos] of Object.entries(s?.plan ?? {})) {
+      if (gid.startsWith("_")) continue;
+      for (const h of Object.values(huecos ?? {})) for (const id of [h?.firstRecipeId, h?.recipeId]) if (id) propias.add(id).add(idBase(id));
+    }
+  }
+  for (const r of casa.state?.data?.userRecipes ?? []) if (r?.id) propias.add(r.id);
+  const m = recetasDeCasa(global, recetasDeSerie ?? new Set(), propias);
   if (Array.isArray(casa.state?.aiRecipes) && casa.state.aiRecipes.length) m.registerRecipes(casa.state.aiRecipes);
   if (casa.menu) {
     const filas = await select(
