@@ -75,7 +75,7 @@ export async function recomendar(householdId, x) {
   const fotos = [];
   await proponerPlatos(householdId, {
     dia: x.dia ?? null, franja: x.comida ?? null, para: x.para ?? null, cual: x.cual ?? "principal",
-    n: 3, estilo: x.estilo ?? null, rasgos: x.rasgos ?? null,
+    n: 3, estilo: x.estilo ?? null, rasgos: x.rasgos ?? null, ejes: x.ejes ?? null, perfil: x.perfil ?? null,
   }, fotos, out);
   const bloques = (out.bloques ?? []).filter((b) => b.opciones?.length);
   if (!bloques.length) return null; // sin opciones: que lo explique Lola
@@ -109,6 +109,7 @@ export async function cambiar(householdId, x) {
   const fotos = [];
   await cambiarPlato(householdId, {
     dia: x.dia, franja: x.comida, grupo: x.grupo ?? x.para ?? null, cual: x.cual ?? "principal", receta: x.receta ?? null, motivo: x.motivo ?? null,
+    rasgos: x.rasgos ?? null, ejes: x.ejes ?? null, perfil: x.perfil ?? null,
   }, fotos, out);
   if (!out.cambiado) return null; // no se pudo: Lola lo explica y ofrece opciones
   const hueco = huecoEnTexto(out);

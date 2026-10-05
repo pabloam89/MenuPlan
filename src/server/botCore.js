@@ -63,4 +63,6 @@ export { choquesDeReceta, textoDeChoque } from "../lib/restriccionesReceta.js";
 export { costeDeReceta } from "../lib/derive/coste.js";
 
 // Los ejes «más/menos» de densidad y carga (api/_bot/menu.js, EJES_NUMERICOS).
-export { densidadDe, cargaDe } from "../lib/derive/ejesDePlato.js";
+export { densidadDe, cargaDe, completitudDe } from "../lib/derive/ejesDePlato.js";
+// Un solo lector de nutrientes para las dos formas de plato (src/lib/nutricionPlato.js).
+export { nutrienteDe, vectorDe, crudoDe, CAMPOS_PLATO } from "../lib/nutricionPlato.js";

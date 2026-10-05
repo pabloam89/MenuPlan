@@ -232,6 +232,45 @@
       }
     },
     {
+      "texto": "Lola dame una opción con más carbos para el jueves 8 oct",
+      "modo": "recomendar",
+      "rapida": true,
+      "datos": {
+        "dia": "jueves",
+        "ejes.0.cual": "carbohidratos",
+        "ejes.0.direccion": "mas"
+      }
+    },
+    {
+      "texto": "cambia la cena del viernes por algo con menos grasa",
+      "modo": "cambiar",
+      "rapida": true,
+      "datos": {
+        "dia": "viernes",
+        "comida": "Cena",
+        "ejes.0.cual": "grasa",
+        "ejes.0.direccion": "menos"
+      }
+    },
+    {
+      "texto": "la cena del viernes se me queda ligera, voy a hacer deporte: dame algo más completo de macros",
+      "modo": "recomendar",
+      "rapida": true,
+      "datos": {
+        "dia": "viernes",
+        "comida": "Cena",
+        "perfil": "equilibrado"
+      }
+    },
+    {
+      "texto": "ideas bajas en sal para cenar hoy",
+      "modo": "recomendar",
+      "rapida": true,
+      "datos": {
+        "perfil": "bajoSal"
+      }
+    },
+    {
       "texto": "Los viernes de cena",
       "anterior": "pizza congelada",
       "ultima": "¡Qué buena idea para una noche sin complicaciones! 🍕 ¿Qué día quieres la pizza?",
@@ -490,11 +529,8 @@
     },
     {
       "texto": "añade pilas a la lista",
-      "modo": "compra_anadir",
-      "rapida": true,
-      "datos": {
-        "productos": "pilas"
-      }
+      "modo": "lola",
+      "rapida": false
     },
     {
       "texto": "ya he comprado los huevos y la leche",

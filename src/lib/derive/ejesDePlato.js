@@ -209,8 +209,8 @@ export function completitudDe(receta) {
 
   const faltan = Object.entries(tiene).filter(([, v2]) => !v2).map(([k]) => k);
   return faltan.length
-    ? { valor: false, via: `le falta ${faltan.join(" y ")}`, duda: null }
-    : { valor: true, via: "trae proteína, hidrato y verdura", duda: null };
+    ? { valor: false, faltan, via: `le falta ${faltan.join(" y ")}`, duda: null }
+    : { valor: true, faltan, via: "trae proteína, hidrato y verdura", duda: null };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

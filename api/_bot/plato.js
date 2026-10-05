@@ -17,7 +17,7 @@
 
 import { select, eq } from "./db.js";
 import { cargarCasa } from "./casa.js";
-import { resolverDia, prepararRecetas, grupos, normal, DIA_LARGO } from "./menu.js";
+import { resolverDia, prepararRecetas, prepararNutricion, grupos, normal, DIA_LARGO } from "./menu.js";
 import { COMIDAS_PRINCIPALES, articuloDe } from "../../src/lib/comidas.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -149,6 +149,18 @@ export async function verReceta(householdId, x) {
 
 const NIVEL = { ligero: "ligero", medio: "normalito", contundente: "contundente" };
 
+/**
+ * «32 g de proteína, 45 g de hidratos, 18 g de grasa» del plato tal como se
+ * sirve (con su guarnición). El plato del menú llega con `macros.protein`, y
+ * leer `protein_g` dejaba esta línea siempre vacía. Pura.
+ */
+export function lineaMacros(plato, nut) {
+  const g = (campo) => nut.nutrienteDe(plato, campo).valor;
+  return [["protein_g", "proteína"], ["carbs_g", "hidratos"], ["fat_g", "grasa"]]
+    .map(([campo, nombre]) => (g(campo) != null ? `${Math.round(g(campo))} g de ${nombre}` : ""))
+    .filter(Boolean).join(", ");
+}
+
 export async function calorias(householdId, x) {
   const casa = await cargarCasa(householdId);
   if (!casa) return null;
@@ -158,7 +170,7 @@ export async function calorias(householdId, x) {
   const r = p.receta;
   if (!(r.kcal > 0)) return null; // sin dato: que lo explique Lola
   const nivel = NIVEL[r.caloriasNivel] ? ` Es un plato <b>${NIVEL[r.caloriasNivel]}</b>.` : "";
-  const macros = [r.protein_g ? `${Math.round(r.protein_g)} g de proteína` : "", r.carbs_g ? `${Math.round(r.carbs_g)} g de hidratos` : "", r.fat_g ? `${Math.round(r.fat_g)} g de grasa` : ""].filter(Boolean).join(", ");
+  const macros = lineaMacros(r, await prepararNutricion());
   return {
     texto: `🔥 <b>${esc(r.name)}</b>${en(p.dondeTexto)}: unas <b>${Math.round(r.kcal)} kcal por ración</b>.${nivel}${macros ? `\n<i>${macros}.</i>` : ""}`,
     fotos: [], deshacible: false, ir: null,

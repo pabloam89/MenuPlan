@@ -20,6 +20,7 @@
 
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS, COMIDAS as CATALOGO, comidasEnTexto } from "../../src/lib/comidas.js";
 import { CUANDOS } from "./cuando.js";
+import { ESQUEMA_RASGOS, ESQUEMA_EJES, ESQUEMA_PERFIL } from "./esquemas.js";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const MODELO_ROUTER = process.env.BOT_ROUTER_MODELO || "claude-haiku-4-5-20251001";
@@ -40,18 +41,6 @@ const COMIDAS = IDS_COMIDAS;
 // PLANO a propósito: con objetos anidados (consulta/plato/compra/generar) el
 // modelo pequeño acertaba el modo y se dejaba los datos sin rellenar (6 de 46
 // en la primera pasada de scripts/router-evals.mjs).
-const RASGOS = {
-  type: "object",
-  properties: {
-    connotacion: { type: "string", enum: ["reconfortante", "fresco", "casero", "festivo"] },
-    textura: { type: "string", enum: ["cuchara", "tenedor", "mano"] },
-    picante: { type: "string", enum: ["sin", "con"] },
-    sabor: { type: "string", enum: ["suave", "intenso", "especiado", "dulce", "acido", "ahumado"] },
-    coste: { type: "string", enum: ["economico", "medio", "caro"] },
-    calorias: { type: "string", enum: ["ligero", "medio", "contundente"] },
-  },
-  additionalProperties: false,
-};
 export const ESQUEMA = {
   type: "object",
   properties: {
@@ -68,7 +57,9 @@ export const ESQUEMA = {
     cual: { type: "string", enum: ["principal", "primero"] },
     para: { type: "string", description: "«mayores», «ninos» o «bebe»; o el nombre de una persona de la casa si la nombran («para Cova» → «Cova»)." },
     estilo: { type: "string", enum: ["ligero", "rapido"] },
-    rasgos: RASGOS,
+    rasgos: ESQUEMA_RASGOS,
+    ejes: ESQUEMA_EJES,
+    perfil: ESQUEMA_PERFIL,
     receta: { type: "string", description: "cambiar: el plato que quieren poner, si lo nombran (ahora o en su mensaje anterior)." },
     plato: { type: "string", description: "receta, calorias o falta: el plato del que preguntan por su NOMBRE, si lo nombran («la tortilla», «las lentejas»). Si lo dicen por su hueco («la cena de hoy»), va en dia y comida." },
     cualquiera: { type: "boolean", description: "cambiar sin receta: true solo si piden otra cosa cualquiera («cámbiala», «otra cosa», «la que sea»)." },
@@ -87,9 +78,9 @@ export const ESQUEMA = {
 export const REGLAS = `Eres el enrutador de Lola, la cocinera de casa de una app de menús familiares (HoMenu). No contestas al usuario: solo clasificas su mensaje y sacas los datos. Elige UN modo:
 
 - consulta: quiere VER algo ya guardado. que=compra («¿qué falta por comprar?», «la lista»), o que=menu con cuando: hoy («¿qué comemos hoy?», «¿qué hay de cena?»), manana, pasado_manana, dia + el día («¿qué hay el jueves?»), finde («¿qué cenamos este finde?»), finde_que_viene, esta_semana («pásame el menú»), semana_que_viene («el menú de la semana que viene»), rango + dia + hasta («de lunes a miércoles»). Si dicen comidas, en comidas («solo cenas», «¿qué desayunamos?», «las meriendas»); si dicen platos, en platos («los primeros»); si es para alguien, en para («los niños» = ninos, «el bebé» = bebe, o el nombre).
-- recomendar: pide ideas u opciones para UN hueco, sin cambiar nada todavía («¿qué me recomiendas para cenar?», «ideas para la comida del jueves», «algo ligero para esta noche», «¿qué le hago de cenar al bebé?», «¿qué le preparo a Leo?»). «Qué le hago / qué le preparo» es pedir ideas; «qué hay / qué toca / qué comemos» es consulta. Saca día, comida, para quién y rasgos solo si los dice ESTE mensaje o se deducen sin duda de él («con mi mujer», «para nosotros» = mayores; los niños = ninos; el bebé solo si lo nombran; una persona por su nombre, tal cual). «Para quién» no se arrastra de mensajes anteriores: si ahora no lo dice, va vacío. «Ligero» y «rápido» van en estilo. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito», «contundente» van en rasgos.
-- cambiar: quiere cambiar YA un plato concreto del menú y dice qué día («cambia la cena del jueves», «pon lentejas el martes a mediodía», «el viernes cenamos pizza, cámbialo», «¿podemos hacer pizza casera el viernes?»). La comida (Comida o Cena) si la dice; si solo dice el día, déjala vacía: se pregunta después. receta = el plato nuevo si lo nombra, ahora o en su mensaje anterior (dijo «pizza congelada» y ahora contesta «el viernes de cena» → receta = pizza congelada), o un tipo de plato («la carne», «algo de pescado»). cualquiera = true solo si pide otra cosa sin importarle cuál («cámbiala por lo que sea», «otra cosa cualquiera»). Si no dice ni el día, es lola. Si es algo que se repite («los viernes», «todos los lunes», «siempre»), no es un cambio de una vez: es lola. Mover un plato de un día a otro («pon el arroz el domingo en vez del sábado») es lola. Si pregunta POR QUÉ se puso algo («¿xk tortilla esta noche?»), es lola.
-- compra_anadir: apuntar cosas en la lista («apunta leche y pan», «añade pilas»). compra_marcar: tachar lo comprado («ya tengo los huevos», «compré la leche»).
+- recomendar: pide ideas u opciones para UN hueco, sin cambiar nada todavía («¿qué me recomiendas para cenar?», «ideas para la comida del jueves», «algo ligero para esta noche», «¿qué le hago de cenar al bebé?», «¿qué le preparo a Leo?»). «Qué le hago / qué le preparo» es pedir ideas; «qué hay / qué toca / qué comemos» es consulta. Saca día, comida, para quién y rasgos solo si los dice ESTE mensaje o se deducen sin duda de él («con mi mujer», «para nosotros» = mayores; los niños = ninos; el bebé solo si lo nombran; una persona por su nombre, tal cual). «Para quién» no se arrastra de mensajes anteriores: si ahora no lo dice, va vacío. «Ligero» y «rápido» van en estilo. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito», «contundente» van en rasgos. «Más carbos», «más hidratos», «más proteína», «menos sal», «más hierro», «algo que llene» van en ejes (cada uno con cual y dirección; varios si piden varios). «Más completo», «equilibrado», «que tenga de todo», «para antes/después de entrenar», «alto en proteína», «bajo en sal» van en perfil. Ejes y perfil, también en cambiar.
+- cambiar: quiere cambiar YA un plato concreto del menú y dice qué día («cambia la cena del jueves», «pon lentejas el martes a mediodía», «el viernes cenamos pizza, cámbialo», «¿podemos hacer pizza casera el viernes?»). La comida (Comida o Cena) si la dice; si solo dice el día, déjala vacía: se pregunta después. receta = el plato nuevo si lo nombra, ahora o en su mensaje anterior (dijo «pizza congelada» y ahora contesta «el viernes de cena» → receta = pizza congelada), o un tipo de plato («la carne», «algo de pescado»). Si solo lo describen por sus nutrientes («algo con más carbos», «algo más completo»), receta va vacía y eso va en ejes o perfil. cualquiera = true solo si pide otra cosa sin importarle cuál («cámbiala por lo que sea», «otra cosa cualquiera»). Si no dice ni el día, es lola. Si es algo que se repite («los viernes», «todos los lunes», «siempre»), no es un cambio de una vez: es lola. Mover un plato de un día a otro («pon el arroz el domingo en vez del sábado») es lola. Si pregunta POR QUÉ se puso algo («¿xk tortilla esta noche?»), es lola.
+- compra_anadir: apuntar comida o bebida en la lista («apunta leche y pan», «añade aceite»). Si algo de lo que apuntan no es comida ni bebida (pilas, velas, detergente, una cita), es lola. compra_marcar: tachar lo comprado («ya tengo los huevos», «compré la leche»).
 - generar: pide un menú nuevo para esta semana o la que viene. Si nombra platos que quiere esa semana, en fijos.
 - deshacer: «deshaz», «uy no, deja lo de antes», «vuelve a como estaba».
 - receta: quiere ver CÓMO SE HACE un plato, entero («¿cómo se hace la tortilla del miércoles?», «pásame la receta de la cena de hoy»). El plato por su nombre en plato, o su hueco en dia y comida. Una pregunta concreta sobre el plato («¿lleva horno?», «¿se puede congelar?») es lola.
