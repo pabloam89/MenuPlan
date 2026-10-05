@@ -2684,7 +2684,7 @@ export function applyPreparedGarnishes(plan, allRecipes, guarnicionById, groupRe
 // is kept in baseRecipeId so the photo resolves; the slot id gets the same
 // group prefix the generator uses for multi-group menus.
 
-const stripGroupPrefix = (id) => (id ? String(id).split("__").pop() : null);
+export const stripGroupPrefix = (id) => (id ? String(id).split("__").pop() : null);
 
 /**
  * Pick swap candidates for a slot: recipes matching its structural
