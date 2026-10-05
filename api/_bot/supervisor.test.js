@@ -15,8 +15,15 @@ describe("supervisor: lo que quita protección necesita a la persona", () => {
   it("«nadie tiene alergias»: dicho o confirmado", () => {
     const args = { ninguna: true, confirmado: true };
     expect(supervisar("ajustar_alergias", args, "no, nadie tiene alergias")).toBe(null);
-    expect(supervisar("ajustar_alergias", args, "sí, confirmo")).toBe(null);
+    expect(supervisar("ajustar_alergias", args, "sí, confirmo", { anterior: "¿Nadie en casa tiene ninguna alergia?" })).toBe(null);
     expect(supervisar("ajustar_alergias", args, "somos cuatro, dos adultos y dos niños")).toMatch(/No se ha guardado/);
+  });
+
+  it("«ninguna» con un «sí» a otra pregunta no vale", () => {
+    const args = { ninguna: true, confirmado: true };
+    expect(supervisar("ajustar_alergias", args, "sí")).toMatch(/No se ha guardado/);
+    expect(supervisar("ajustar_alergias", args, "sí", { anterior: "¿Te genero ya el menú?" })).toMatch(/No se ha guardado/);
+    expect(supervisar("ajustar_alergias", args, "vale", { anterior: "¿Alguien tiene alguna alergia o intolerancia?" })).toBe(null);
   });
 
   it("un «no» o un «nada» a secas también es la respuesta (Pablo, 1 oct 2026)", () => {
@@ -57,9 +64,31 @@ describe("supervisor: lo que quita protección necesita a la persona", () => {
 
   it("quitar a alguien: si lo pide con su nombre, o con un sí", () => {
     expect(supervisar("quitar_comensal", { nombre: "Leo" }, "quita a Leo, ya no come aquí")).toBe(null);
-    expect(supervisar("quitar_comensal", { nombre: "Leo" }, "sí")).toBe(null);
+    expect(supervisar("quitar_comensal", { nombre: "Leo" }, "sí", { anterior: "¿Seguro que Leo ya no come en casa?" })).toBe(null);
     expect(supervisar("quitar_comensal", { nombre: "Leo" }, "Leo esta semana está de campamentos")).toMatch(/No se ha quitado/);
     expect(supervisar("quitar_comensal", { nombre: "Isa" }, "quita a Leo")).toMatch(/No se ha quitado/);
+  });
+
+  it("quitar a alguien: un «sí» a otra cosa o una ausencia no bastan (auditoría A1, A3)", () => {
+    // Un sí suelto, sin pregunta que nombre a Leo.
+    expect(supervisar("quitar_comensal", { nombre: "Leo" }, "sí")).toMatch(/No se ha quitado/);
+    expect(supervisar("quitar_comensal", { nombre: "Leo" }, "vale", { anterior: "¿Te genero ya el menú?" })).toMatch(/No se ha quitado/);
+    expect(supervisar("quitar_comensal", { nombre: "Leo" }, "sí", { anterior: "¿Seguro que Isa ya no come en casa?" })).toMatch(/No se ha quitado/);
+    // Ausencias, no bajas.
+    expect(supervisar("quitar_comensal", { nombre: "Leo" }, "Leo ya no viene los jueves")).toMatch(/No se ha quitado/);
+    expect(supervisar("quitar_comensal", { nombre: "Leo" }, "quita a Leo esta semana, está de vacaciones")).toMatch(/No se ha quitado/);
+    // «Leonor» no es «Leo».
+    expect(supervisar("quitar_comensal", { nombre: "Leo" }, "quita a Leonor")).toMatch(/No se ha quitado/);
+    // Bajas de verdad.
+    expect(supervisar("quitar_comensal", { nombre: "Leo" }, "Leo ya no vive en casa, quítalo")).toBe(null);
+  });
+
+  it("quitar una alergia hablando del plato no la quita (auditoría A2)", () => {
+    const leche = { persona: "Leo", alergenos: ["leche"], quitar: true, confirmado: true };
+    expect(supervisar("ajustar_alergias", leche, "quítale el queso a Leo")).toMatch(/No se ha guardado/);
+    expect(supervisar("ajustar_alergias", leche, "a la pizza de Leo quítale el queso")).toMatch(/No se ha guardado/);
+    expect(supervisar("ajustar_alergias", leche, "Leo ya no es alérgico a la leche, quítasela")).toBe(null);
+    expect(supervisar("ajustar_alergias", leche, "Sí", { anterior: "¿Seguro que Leo ya no es alérgico a la leche?" })).toBe(null);
   });
 
   it("lo que llega en audio se mira igual (sin el «[nota de voz]» que se le pone a Lola)", () => {
@@ -81,7 +110,9 @@ describe("supervisor: lo que quita protección necesita a la persona", () => {
     // Varios alérgenos: todos nombrados.
     const dos = { ...args, alergenos: ["huevos", "frutos_cascara"] };
     expect(supervisar("ajustar_alergias", dos, "quítale el huevo a Leo")).toMatch(/No se ha guardado/);
-    expect(supervisar("ajustar_alergias", dos, "a Leo quítale el huevo y las nueces")).toBe(null);
+    // Sin hablar de la alergia puede ser el plato: pide confirmación.
+    expect(supervisar("ajustar_alergias", dos, "a Leo quítale el huevo y las nueces")).toMatch(/No se ha guardado/);
+    expect(supervisar("ajustar_alergias", dos, "a Leo quítale la alergia al huevo y a las nueces")).toBe(null);
     // Toda la casa.
     expect(supervisar("ajustar_alergias", { ...args, persona: "toda la casa", alergenos: ["gluten"] }, "quita el gluten, ya nadie es celíaco")).toBe(null);
   });

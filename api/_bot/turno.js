@@ -12,6 +12,7 @@
  */
 
 import { cargarCasa, deshacer, hoyISO } from "./casa.js";
+import { quitaProteccion } from "./supervisor.js";
 import {
   proponerPlatos, cambiarPlato, anadirCompra, marcarCompra, normal, DIA_LARGO, grupos, quienesDe, cambiosDe,
 } from "./menu.js";
@@ -183,8 +184,12 @@ export async function consultar(householdId, x) {
   return respuestaMenu(householdId, { dias, comidas: x.comidas ?? null, platos: x.platos ?? null, grupo: x.para ?? null });
 }
 
+// Si deshacer quitaría una alergia, una intolerancia, un estado o a una
+// persona, la vía rápida no decide: pasa a Lola, que lo confirma (supervisor).
+const A_LOLA = "__a_lola__";
 export async function deshacerRapido(householdId) {
-  const texto = await deshacer(householdId);
+  const texto = await deshacer(householdId, { freno: (ahora, antes) => (quitaProteccion(ahora, antes).length ? A_LOLA : null) });
+  if (texto === A_LOLA) return null;
   return { texto: `↩️ ${esc(texto)}`, fotos: [], deshacible: false, ir: null };
 }
 
