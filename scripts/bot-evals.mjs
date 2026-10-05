@@ -38,6 +38,23 @@ const PRECIO = /haiku/.test(MEDIDO) ? [1, 5, 0.1, 1.25] : /opus/.test(MEDIDO) ? 
 const { casos } = JSON.parse(fs.readFileSync(new URL("./bot-evals.json", import.meta.url), "utf8"));
 
 const FAMILIA = "Casa de prueba: Ana (38 años), Pablo (40 años), Leo (6 años). Comida y cena todos los días. Sin alergias anotadas.";
+function hoyEnMadrid() {
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+}
+const MES_CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+const DIA_CORTO = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+const corta = (iso) => `${Number(iso.slice(8, 10))} ${MES_CORTO[Number(iso.slice(5, 7)) - 1]}`;
+function cabeceraDeHoy() {
+  const hoy = hoyEnMadrid();
+  return `${DIA_CORTO[new Date(`${hoy}T12:00:00Z`).getUTCDay()]} ${corta(hoy)} (${hoy})`;
+}
+function rangoDeEstaSemana() {
+  const d = new Date(`${hoyEnMadrid()}T12:00:00Z`);
+  const lunes = new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * 86400000);
+  const domingo = new Date(lunes.getTime() + 6 * 86400000);
+  return `${corta(lunes.toISOString().slice(0, 10))}–${corta(domingo.toISOString().slice(0, 10))}`;
+}
+
 // La misma casa, como la monta api/_bot/ficha.js.
 const FICHA = {
   estable: [
@@ -45,8 +62,10 @@ const FICHA = {
     "CASA", "- Ana 38 · Pablo 40 · Leo 6.", "- Todos comen lo mismo.", "- Leo: cole L–V a mediodía.",
     "COCINA", "- Comida: primero y segundo. Cena: plato único.", "- Horno, microondas.",
   ].join("\n"),
+  // Con la fecha de HOY, como en producción: con una fija, «Ahora mismo en
+  // España» y la ficha se contradecían y Lola, con razón, iba a mirar el menú.
   delDia: [
-    "jue 1 oct (2026-10-01)", "MENÚ 28 sep–4 oct (no hay semana siguiente)",
+    cabeceraDeHoy(), `MENÚ ${rangoDeEstaSemana()} (no hay semana siguiente)`,
     "- Hoy: crema de calabaza + pollo al horno con patatas; cena tortilla de calabacín.",
     "- Mañana: lentejas estofadas; cena merluza a la plancha con ensalada.",
   ].join("\n"),

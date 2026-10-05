@@ -37,6 +37,7 @@ import {
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { supervisar } from "./supervisor.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
+import { montarMemoria, ORDEN as ORDEN_MEMORIA } from "./memoria.js";
 import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
 import { tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
 import { claveDePregunta, resuelta } from "./estadoCasa.js";
@@ -778,12 +779,13 @@ function herramientasDeMenu(householdId, fotos = null, chat = {}) {
           dias: { type: "array", items: { type: "string" }, minItems: 1, description: "cada uno: hoy, mañana, pasado mañana, el nombre del día o finde" },
           comidas: { type: "array", items: { type: "string", enum: IDS_COMIDAS }, minItems: 1 },
           quienes: { type: "array", items: { type: "string" } },
+          de_nuevo: { type: "boolean", description: "Solo si la herramienta te dijo que eso ya se guardó hace poco y la persona, AHORA, ha confirmado que lo quiere también para estos días." },
         },
         required: ["dias", "comidas"],
         additionalProperties: false,
       },
-      run: async (args) => {
-        const r = await apuntarAusencia(householdId, { ...args, autor: chat.autor ?? null });
+      run: async ({ de_nuevo, ...args }) => {
+        const r = await apuntarAusencia(householdId, { ...args, deNuevo: de_nuevo === true, autor: chat.autor ?? null });
         if (r.pintar) pintarTambien(chat, r.pintar);
         return r.texto;
       },
@@ -835,24 +837,10 @@ async function memoria(channel, chatId) {
   const desde = encodeURIComponent(new Date(Date.now() - DIAS_DE_MEMORIA * 86400000).toISOString());
   const filas = await select(
     "bot_messages",
-    `channel=${eq(channel)}&chat_id=${eq(chatId)}&created_at=gt.${desde}&order=created_at.desc&limit=${TURNOS_DE_MEMORIA}`,
-    "role,content",
+    `channel=${eq(channel)}&chat_id=${eq(chatId)}&created_at=gt.${desde}&order=${ORDEN_MEMORIA}&limit=${TURNOS_DE_MEMORIA}`,
+    "id,role,content,created_at",
   );
-  // Solo lo posterior al último «empezar de nuevo» (vienen de más nuevo a más viejo).
-  const corte = filas.findIndex((f) => f.content?.corte);
-  if (corte !== -1) filas.length = corte;
-  // Lo último que dijo Lola trae sus tareas abiertas (pendientes.js).
-  const pendientes = filas.find((f) => f.role === "assistant")?.content?.pendientes ?? [];
-  // Alternar user/assistant empezando por user, como pide la API.
-  const turnos = filas.reverse().map((f) => ({ role: f.role, content: String(f.content?.texto ?? "") })).filter((t) => t.content);
-  while (turnos.length && turnos[0].role !== "user") turnos.shift();
-  const limpios = [];
-  for (const t of turnos) {
-    if (limpios.length && limpios[limpios.length - 1].role === t.role) limpios[limpios.length - 1].content += `\n${t.content}`;
-    else limpios.push(t);
-  }
-  if (limpios.length && limpios[limpios.length - 1].role === "user") limpios.pop();
-  return { historia: limpios, pendientes };
+  return montarMemoria(filas, hoyISO());
 }
 
 // Los mismos datos aunque vengan en otro orden o con huecos vacíos.

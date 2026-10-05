@@ -115,6 +115,30 @@ function edadDe(m) {
   const sabida = (m.useBirthDate && m.birthDate) || Number.isFinite(m.age) || Number.isFinite(parseInt(m.age, 10));
   return sabida ? resolveMemberAge(m) : null;
 }
+/**
+ * Las reglas de un solo día que acabaron en los últimos 3 días (lo que la
+ * charla aún recuerda), en una línea por día: «sáb 3: fuera toda la casa
+ * (comida, cena); Nat (cena)». Las demás reglas con fecha se cuentan enteras.
+ */
+export function recienPasadoPorDia(data = {}, hoy) {
+  const desde = new Date(Date.parse(`${hoy}T12:00:00Z`) - 3 * 86400000).toISOString().slice(0, 10);
+  const pasadas = (data.reglas ?? []).filter((r) => r?.vigencia?.hasta && r.vigencia.hasta < hoy && r.vigencia.hasta >= desde);
+  const nombre = (r) => (r.sujeto?.tipo === "casa" ? "toda la casa" : (data.members ?? []).find((m) => m.id === r.sujeto?.ref)?.name ?? "alguien");
+  const porDia = new Map();
+  const otras = [];
+  for (const r of pasadas) {
+    const unDia = r.vigencia.desde === r.vigencia.hasta && r.efecto?.valor === "fuera";
+    if (!unDia) { otras.push(describirRegla(r, data)); continue; }
+    const quien = nombre(r);
+    const dia = porDia.get(r.vigencia.hasta) ?? new Map();
+    dia.set(quien, [...(dia.get(quien) ?? []), ...(r.ambito?.comidas ?? []).map((c) => String(c).toLowerCase())]);
+    porDia.set(r.vigencia.hasta, dia);
+  }
+  const lineas = [...porDia.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([fecha, quienes]) =>
+    `${fechaCorta(fecha)}: fuera ${[...quienes.entries()].map(([q, cs]) => `${q} (${[...new Set(cs)].join(", ")})`).join("; ")}`);
+  return [...lineas, ...otras].slice(-4);
+}
+
 export const esBebe = (m) => !m?.notBaby && stageForAge(resolveMemberAge(m))?.id === "baby";
 
 /** «Pablo 37», «Vega 1», «Leo» */
@@ -328,6 +352,11 @@ function delDiaBloque(casa, extras, hoy) {
   // de siempre van en COCINA, que no cambia cada día.
   const vigentes = (data.reglas ?? []).filter((r) => r?.vigencia?.hasta && r.vigencia.hasta >= hoy);
   if (vigentes.length) lineas.push("AHORA", ...vigentes.slice(0, 3).map((r) => `- ${describirRegla(r, data)}.`));
+  // YA PASÓ: lo de los últimos días que la charla todavía recuerda (memoria de
+  // 3 días). Sin esto, Lola leía «✅ apuntado» en la charla, no lo veía aquí y
+  // lo volvía a guardar, en el sábado de la semana siguiente.
+  const pasadas = recienPasadoPorDia(data, hoy);
+  if (pasadas.length) lineas.push("YA PASÓ (guardado y hecho; no lo repitas)", ...pasadas.map((l) => `- ${l}.`));
   // MENÚ: rangos, hoy y mañana, nevera.
   const semanas = casa.semanas ?? [];
   const vivas = semanas.filter((w) => w.weekEnd >= hoy);
