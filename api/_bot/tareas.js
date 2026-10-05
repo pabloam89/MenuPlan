@@ -195,6 +195,37 @@ export function cerrarResueltas(resueltas = [], { householdId, userId = null } =
 }
 
 /**
+ * Al escribir en la casa: cierra en ese momento las tareas de estado que la
+ * casa recién guardada ya resuelve. Si falla, no deshace el dato: la red es el
+ * cierre del turno siguiente (separarPorEstado + cerrarResueltas en agente.js).
+ */
+export async function cerrarPorEstado(householdId, data, { userId = null } = {}) {
+  if (!householdId || !data) return 0;
+  const abiertas = await select("bot_tareas", `household_id=${eq(householdId)}&status=eq.abierta&or=(clave.like.alergias:*,clave.like.etapa:*)`, "id,kind,clave");
+  const { resueltas } = separarPorEstado(abiertas, data);
+  await cerrarResueltas(resueltas, { householdId, userId });
+  return resueltas.length;
+}
+
+/** Abre una pregunta de estado («alergias:<id>») desde el código. Si ya está abierta, el índice único la para. */
+export async function abrirPreguntaDeEstado(ctx, { clave, texto }, ahora = new Date()) {
+  if (!ctx?.householdId || !ctx?.chatId || !clave) return false;
+  const tema = clave.startsWith("etapa:") ? "etapa_bebe" : "alergias";
+  try {
+    await insert("bot_tareas", [{
+      household_id: ctx.householdId, channel: ctx.channel ?? "telegram", chat_id: String(ctx.chatId), kind: "pregunta", scope: "casa",
+      texto: String(texto ?? "").slice(0, TEXTO_MAX), clave, created_by: ctx.userId ?? null,
+      caduca_at: caducidadDe({ kind: "pregunta", tema }, ahora).toISOString(),
+    }]);
+    await registrar(EVENTO.CREADA, { userId: ctx.userId ?? null, extra: { householdId: ctx.householdId, kind: "pregunta", tema, origen: "codigo" } });
+    return true;
+  } catch (e) {
+    if (!esDuplicado(e)) throw e;
+    return false;
+  }
+}
+
+/**
  * Pura. Las preguntas del mensaje (pendientes.js) que tocan un hueco de estado
  * y siguen abiertas: el código las sube a la tabla él solo, sin depender de que
  * el modelo llame a anotar_tarea. Así «luego te digo cómo come» no se pierde.

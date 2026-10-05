@@ -82,3 +82,20 @@ describe("claveLibre: dos maneras de pedir lo mismo chocan", () => {
     expect(claveLibre("seguimiento", "y de la")).toBe(null);
   });
 });
+
+describe("etapa del bebé: hoy es una sola por casa", () => {
+  // data.etapaBebe es de la casa (src/lib/babyStage.js): no hay etapa por bebé.
+  // Con dos bebés, apuntarla resuelve a los dos; mientras no la haya, a ninguno.
+  const dos = { members: [{ id: "cova", name: "Cova", age: 0 }, { id: "leo", name: "Leo", age: 1 }] };
+  it("sin etapa, ninguno está resuelto", () => {
+    expect(resuelta("etapa:cova", dos)).toBe(false);
+    expect(resuelta("etapa:leo", dos)).toBe(false);
+  });
+  it("con la etapa de la casa, los dos", () => {
+    expect(resuelta("etapa:cova", { ...dos, etapaBebe: "mixto" })).toBe(true);
+    expect(resuelta("etapa:leo", { ...dos, etapaBebe: "mixto" })).toBe(true);
+  });
+  it("quien no es bebé no tiene tarea de etapa que resolver", () => {
+    expect(resuelta("etapa:ana", { members: [{ id: "ana", name: "Ana", age: 30 }] })).toBe(true);
+  });
+});

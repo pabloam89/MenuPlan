@@ -56,7 +56,7 @@ vi.mock("./menu.js", async (original) => ({
   motor: async () => ({ ...alergias, suggestHomeRole, reconcileGroupsWithMembers, migrateGroupsForBabies }),
 }));
 
-const { ajustarAlergias, anadirComensal } = await import("./ajustes.js");
+const { ajustarAlergias, anadirComensal, ajustarCocina } = await import("./ajustes.js");
 const { resuelta } = await import("./estadoCasa.js");
 const { separarPorEstado, cerrarResueltas } = await import("./tareas.js");
 
@@ -79,8 +79,55 @@ describe("«ninguna» marca solo a quien se nombra", () => {
   });
 
   it("«toda la casa» sí marca a todos", async () => {
+    filas = [];
     await ajustarAlergias("h", { persona: "toda la casa", ninguna: true, confirmado: true });
     expect(resuelta("alergias:nat", guardada.state.data)).toBe(true);
     expect(resuelta("alergias:pablo", guardada.state.data)).toBe(true);
+  });
+});
+
+const abierta = (clave) => filas.find((t) => t.clave === clave)?.status;
+
+describe("cerrar al escribir, no al turno siguiente", () => {
+  it("«Nat no tiene alergias» cierra su tarea en esa misma llamada; la de Pablo sigue", async () => {
+    filas = [pregunta("alergias:nat"), pregunta("alergias:pablo")];
+    await ajustarAlergias("h", { persona: "Nat", ninguna: true, confirmado: true });
+    expect(abierta("alergias:nat")).toBe("hecha");
+    expect(abierta("alergias:pablo")).toBe("abierta");
+  });
+
+  it("apuntar la etapa del bebé cierra su tarea al momento", async () => {
+    guardada = { state: { data: { members: [{ id: "cova", name: "Cova", age: 0 }] } } };
+    filas = [pregunta("etapa:cova")];
+    await ajustarCocina("h", { etapaBebe: "solidos" });
+    expect(abierta("etapa:cova")).toBe("hecha");
+  });
+
+  it("si el cierre falla, el dato queda guardado y el turno siguiente la cierra", async () => {
+    filas = [pregunta("alergias:nat")];
+    fallaUpdate = true;
+    const t = await ajustarAlergias("h", { persona: "Nat", ninguna: true, confirmado: true });
+    expect(t).toMatch(/Nat no tiene alergias/);
+    expect(abierta("alergias:nat")).toBe("abierta");
+    fallaUpdate = false;
+    // La red de siempre: al empezar el turno, lo que el estado ya resolvió se cierra.
+    const { resueltas } = separarPorEstado(filas.filter((x) => x.status === "abierta"), guardada.state.data);
+    await cerrarResueltas(resueltas, { householdId: "h" });
+    expect(abierta("alergias:nat")).toBe("hecha");
+  });
+});
+
+describe("el alta abre la pregunta de alergias en código", () => {
+  const ctx = { channel: "telegram", chatId: "c1", userId: null };
+  it("añadir a alguien deja apuntada su tarea de alergias, sin depender de Lola", async () => {
+    await anadirComensal("h", { nombre: "Leo", edad: 6 }, ctx);
+    const leo = guardada.state.data.members.find((m) => m.name === "Leo");
+    expect(abierta(`alergias:${leo.id}`)).toBe("abierta");
+    const fila = filas.find((x) => x.clave === `alergias:${leo.id}`);
+    expect(fila).toMatchObject({ kind: "pregunta", scope: "casa", chat_id: "c1" });
+  });
+  it("sin chat (no viene de una conversación) no se apunta nada", async () => {
+    await anadirComensal("h", { nombre: "Leo", edad: 6 });
+    expect(filas).toHaveLength(0);
   });
 });

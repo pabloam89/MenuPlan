@@ -537,7 +537,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       name: "anadir_comensal",
       description: "Añade a alguien que vive y come en casa (no un invitado puntual).",
       inputSchema: obj({ nombre: { type: "string" }, edad: { type: "integer", minimum: 0, maximum: 120 } }, ["nombre"]),
-      run: (args) => anadirComensal(householdId, args),
+      run: (args) => anadirComensal(householdId, args, { channel: chat.channel ?? "telegram", chatId: chat.chatId, userId: chat.userId ?? null }),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "ajustar_persona",
