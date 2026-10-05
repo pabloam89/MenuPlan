@@ -39,12 +39,9 @@ const ficheros = fs
 const DUPLICADOS_HEREDADOS = new Set(["0003", "0006", "0051"]);
 
 /**
- * Números reservados para una migración que está en otra rama y aún no ha
- * entrado. No es un hueco perdido: tiene dueño y se borra de aquí en cuanto
- * su fichero exista.
- *   0079: personas a tabla (rama feat/personas-tabla). La 0080 de tareas va después.
+ * Números reservados para una migración que aún no ha entrado. Vacío: todas tienen fichero.
  */
-const RESERVADOS = new Set(["0081", "0082"]);
+const RESERVADOS = new Set();
 
 describe("las migraciones se pueden nombrar sin ambigüedad", () => {
   it("ningún número nuevo repetido", () => {
