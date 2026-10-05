@@ -14,7 +14,7 @@
 import { select, insert, update, eq } from "./db.js";
 import { registrar } from "./embudo.js";
 import { crearRecordatorio } from "./recordatorios.js";
-import { resolverPersona, claveDePregunta, claveLibre, resuelta, temaDe } from "./estadoCasa.js";
+import { resolverPersona, claveDePregunta, claveLibre, estadoDeClave, temaDe } from "./estadoCasa.js";
 import { esDeSeguridad, noEsComida, preguntaProhibida } from "../../src/lib/registroTareas.js";
 
 export const LIMITE_ABIERTAS = 8;
@@ -112,11 +112,17 @@ export function validarNueva(datos = {}, data = {}, ahora = new Date()) {
   };
 }
 
-/** Pura. Las que el estado de la casa ya resolvió (y se cierran solas) y las que siguen. */
+/**
+ * Pura. Las que el estado de la casa ya resolvió (se cierran como hechas), las
+ * de alguien que ya no está en la casa (se descartan) y las que siguen.
+ */
 export function separarPorEstado(tareas = [], data = {}) {
-  const resueltas = [], siguen = [];
-  for (const t of tareas) (t.clave && resuelta(t.clave, data) ? resueltas : siguen).push(t);
-  return { resueltas, siguen };
+  const resueltas = [], descartadas = [], siguen = [];
+  for (const t of tareas) {
+    const estado = t.clave ? estadoDeClave(t.clave, data) : "pendiente";
+    (estado === "resuelta" ? resueltas : estado === "sin_persona" ? descartadas : siguen).push(t);
+  }
+  return { resueltas, descartadas, siguen };
 }
 
 /** Pura. El bloque para el modelo: referencia corta, tipo, para quién, quién, fecha y de qué chat. */
@@ -215,13 +221,13 @@ export async function clavesCalladas(householdId) {
   return new Set(filas.map((f) => f.clave));
 }
 
-/** Cierra en segundo plano lo que el estado ya resolvió. No retrasa el turno. */
-export function cerrarResueltas(resueltas = [], { householdId, userId = null } = {}) {
+/** Cierra en segundo plano lo que el estado ya decidió: «hecha» si se resolvió, «descartada» si la persona ya no está. No retrasa el turno. */
+export function cerrarResueltas(resueltas = [], { householdId, userId = null } = {}, estado = "hecha") {
   if (!resueltas.length) return Promise.resolve();
   const ahora = new Date().toISOString();
   return Promise.all(resueltas.map((t) =>
-    update("bot_tareas", `id=${eq(t.id)}&status=eq.abierta`, { status: "hecha", closed_at: ahora, updated_at: ahora })
-      .then(() => registrar(EVENTO.AUTO, { userId, extra: { householdId, kind: t.kind, clave: t.clave } }))
+    update("bot_tareas", `id=${eq(t.id)}&status=eq.abierta`, { status: estado, closed_at: ahora, updated_at: ahora })
+      .then(() => registrar(EVENTO.AUTO, { userId, extra: { householdId, kind: t.kind, clave: t.clave, estado } }))
       .catch((e) => console.error("[tareas] auto", e?.message)),
   ));
 }
@@ -234,9 +240,12 @@ export function cerrarResueltas(resueltas = [], { householdId, userId = null } =
 export async function cerrarPorEstado(householdId, data, { userId = null } = {}) {
   if (!householdId || !data) return 0;
   const abiertas = await select("bot_tareas", `household_id=${eq(householdId)}&status=eq.abierta&or=(clave.like.alergias:*,clave.like.etapa:*)`, "id,kind,clave");
-  const { resueltas } = separarPorEstado(abiertas, data);
-  await cerrarResueltas(resueltas, { householdId, userId });
-  return resueltas.length;
+  const { resueltas, descartadas } = separarPorEstado(abiertas, data);
+  await Promise.all([
+    cerrarResueltas(resueltas, { householdId, userId }),
+    cerrarResueltas(descartadas, { householdId, userId }, "descartada"),
+  ]);
+  return resueltas.length + descartadas.length;
 }
 
 /** Abre una pregunta de estado («alergias:<id>») desde el código. Si ya está abierta, el índice único la para. */

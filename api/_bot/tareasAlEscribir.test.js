@@ -56,7 +56,7 @@ vi.mock("./menu.js", async (original) => ({
   motor: async () => ({ ...alergias, suggestHomeRole, reconcileGroupsWithMembers, migrateGroupsForBabies }),
 }));
 
-const { ajustarAlergias, anadirComensal, ajustarCocina } = await import("./ajustes.js");
+const { ajustarAlergias, anadirComensal, ajustarCocina, quitarComensal } = await import("./ajustes.js");
 const { resuelta } = await import("./estadoCasa.js");
 const { separarPorEstado, cerrarResueltas } = await import("./tareas.js");
 
@@ -114,6 +114,15 @@ describe("cerrar al escribir, no al turno siguiente", () => {
     const { resueltas } = separarPorEstado(filas.filter((x) => x.status === "abierta"), guardada.state.data);
     await cerrarResueltas(resueltas, { householdId: "h" });
     expect(abierta("alergias:nat")).toBe("hecha");
+  });
+});
+
+describe("quitar a alguien descarta sus tareas, no las da por hechas", () => {
+  it("quitar a Pablo deja su pregunta de alergias descartada; la de Nat sigue abierta", async () => {
+    filas = [pregunta("alergias:nat"), pregunta("alergias:pablo")];
+    await quitarComensal("h", { nombre: "Pablo" });
+    expect(abierta("alergias:pablo")).toBe("descartada");
+    expect(abierta("alergias:nat")).toBe("abierta");
   });
 });
 

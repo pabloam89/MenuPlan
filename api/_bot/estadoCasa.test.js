@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolverPersona, temaDe, claveDePregunta, resuelta, claveLibre } from "./estadoCasa.js";
+import { resolverPersona, temaDe, claveDePregunta, resuelta, claveLibre, estadoDeClave } from "./estadoCasa.js";
 
 const casa = (extra = {}) => ({
   members: [
@@ -63,8 +63,13 @@ describe("resuelta: el estado decide", () => {
     expect(resuelta("etapa:c1", casa())).toBe(false);
     expect(resuelta("etapa:c1", casa({ etapaBebe: "cremas" }))).toBe(true);
   });
-  it("si la persona ya no está en la casa, deja de tener sentido", () => {
-    expect(resuelta("etapa:zz", casa())).toBe(true);
+  it("si la persona ya no está en la casa, la tarea se descarta, no se da por hecha", () => {
+    expect(resuelta("etapa:zz", casa())).toBe(false);
+    expect(estadoDeClave("etapa:zz", casa())).toBe("sin_persona");
+    expect(estadoDeClave("alergias:zz", casa())).toBe("sin_persona");
+    expect(estadoDeClave("alergias:c1", casa())).toBe("pendiente");
+    expect(estadoDeClave("alergias:c1", casa({ allergiesReviewed: true }))).toBe("resuelta");
+    expect(estadoDeClave("alergias:zz", {})).toBe("pendiente");
   });
   it("una casa que llega sin personas no resuelve nada (lectura a medias)", () => {
     expect(resuelta("alergias:c1", { members: [] })).toBe(false);

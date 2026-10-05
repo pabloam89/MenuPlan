@@ -40,7 +40,7 @@ import { montarFicha, extrasDeFicha } from "./ficha.js";
 import { montarMemoria, ORDEN as ORDEN_MEMORIA } from "./memoria.js";
 import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
 import { tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
-import { claveDePregunta, resuelta } from "./estadoCasa.js";
+import { claveDePregunta, estadoDeClave } from "./estadoCasa.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
@@ -998,10 +998,14 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // solo (las de la tabla, en segundo plano) y no se le enseña al modelo.
   const data = casa?.state?.data ?? {};
   chat.casaData = data;
-  const estaResuelta = (clave) => resuelta(clave, data) || calladas.has(clave);
-  const { resueltas, siguen: tareasVivas } = separarPorEstado(tareas, data);
+  // Un pendiente del mensaje sobra si su hueco ya se resolvió o si su persona ya no está.
+  const estaResuelta = (clave) => estadoDeClave(clave, data) !== "pendiente" || calladas.has(clave);
+  const { resueltas, descartadas, siguen: tareasVivas } = separarPorEstado(tareas, data);
   chat.tareas = tareasVivas;
-  const cierresPorEstado = cerrarResueltas(resueltas, { householdId, userId: chat.userId });
+  const cierresPorEstado = Promise.all([
+    cerrarResueltas(resueltas, { householdId, userId: chat.userId }),
+    cerrarResueltas(descartadas, { householdId, userId: chat.userId }, "descartada"),
+  ]);
   // Lo que ya está en la tabla no se repite como pendiente del mensaje.
   const enTabla = new Set(tareasVivas.map((t) => t.clave).filter(Boolean));
   const abiertas = vigentesSegun(guardadas, estaResuelta).filter((p) => !p.clave || !enTabla.has(p.clave));

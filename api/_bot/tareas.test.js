@@ -138,6 +138,13 @@ describe("separarPorEstado", () => {
     expect(resueltas.map((t) => t.id)).toEqual(["a"]);
     expect(siguen.map((t) => t.id)).toEqual(["b", "c"]);
   });
+  it("la de alguien que ya no está en la casa se descarta, no se da por hecha", () => {
+    const tareas = [{ id: "a", clave: "alergias:zz" }, { id: "b", clave: "alergias:c1" }];
+    const { resueltas, descartadas, siguen } = separarPorEstado(tareas, data);
+    expect(resueltas).toEqual([]);
+    expect(descartadas.map((t) => t.id)).toEqual(["a"]);
+    expect(siguen.map((t) => t.id)).toEqual(["b"]);
+  });
 });
 
 describe("porReferencia: cerrar sin equivocarse de tarea", () => {
