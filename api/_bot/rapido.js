@@ -100,10 +100,14 @@ export async function respuestaCompra(householdId) {
   return { texto: `🛒 <b>Lo que falta</b>\n\n${lineas.join("\n")}${cuantos}`, fotos: [], ir: "compra" };
 }
 
-/** Deja el turno en la memoria de la charla, como si lo hubiera contestado Lola. */
-export async function recordar({ channel = "telegram", chatId, householdId, pregunta, respuesta, autor = null, extra = null }) {
+/**
+ * Deja el turno en la memoria de la charla, como si lo hubiera contestado Lola.
+ * `autor` se sigue aceptando pero no se guarda: author_id llevaba el nombre de
+ * Telegram de quien escribió y nadie lo leía (memoria() no lo pide).
+ */
+export async function recordar({ channel = "telegram", chatId, householdId, pregunta, respuesta, extra = null }) {
   await insert("bot_messages", [
-    { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor, content: { texto: pregunta } },
+    { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: pregunta } },
     // `extra`: p. ej. la propuesta de opciones, para el paso 0 del turno siguiente.
     { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, ...(extra ?? {}) } },
   ]).catch((e) => console.error("[rapido] memoria", e?.message));

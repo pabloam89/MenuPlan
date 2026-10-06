@@ -46,7 +46,16 @@ export const ahoraEnMadrid = () => new Intl.DateTimeFormat("es-ES", {
   timeZone: ZONA, weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
 }).format(new Date());
 
-export async function crearRecordatorio({ channel, chatId, householdId, autor }, { texto, cuando, repite }) {
+/**
+ * Qué clase de recordatorio es (bot_reminders.tipo, CHECK de 0085). «libre» es
+ * el texto que alguien pidió y se manda tal cual; «vispera» se monta al vencer
+ * con el menú de mañana (vispera.js). Antes se distinguían por el texto, y un
+ * recordatorio escrito igual que el aviso se habría portado como él.
+ */
+export const TIPOS_RECORDATORIO = ["libre", "vispera"];
+
+export async function crearRecordatorio({ channel, chatId, householdId }, { texto, cuando, repite, tipo = null }) {
+  if (tipo != null && !TIPOS_RECORDATORIO.includes(tipo)) throw new Error(`tipo de recordatorio desconocido: ${tipo}`);
   const limpio = String(texto ?? "").trim().slice(0, 300);
   if (!limpio) return "¿Qué quieres que te recuerde?";
   const fecha = madridAUtc(cuando);
@@ -58,7 +67,10 @@ export async function crearRecordatorio({ channel, chatId, householdId, autor },
   await insert("bot_reminders", [{
     channel, chat_id: String(chatId), household_id: householdId, text: limpio,
     due_at: fecha.toISOString(), repite: repite === "diario" || repite === "semanal" ? repite : null,
-    created_by: autor ?? null,
+    // Sin tipo, el default de la base («libre»): un recordatorio normal no
+    // depende de que la 0085 esté aplicada. Y sin created_by: guardaba el nombre
+    // de Telegram de quien lo pidió y nadie lo leía (un dato personal de balde).
+    ...(tipo ? { tipo } : {}),
   }]);
   const cada = repite === "diario" ? ", y luego cada día" : repite === "semanal" ? ", y luego cada semana" : "";
   return `Recordatorio creado: «${limpio}», el ${enMadrid(fecha)}${cada}.`;

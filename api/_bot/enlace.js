@@ -40,7 +40,10 @@ export function idDePersona(from) {
  * @param {{ identidad?: "nacida" | "email" | "ajustes" | null }} args
  * @returns {Promise<{ ok: true, identidad: "nueva" | "igual" | "de-otra" | "sin" } | { ok: false, ocupado: true }>}
  */
-export async function enlazarChat({ channel = "telegram", chatId, kind, householdId, userId, externalId, nombre, lang, identidad = null }) {
+// `lang` (el idioma de la app de Telegram) se sigue aceptando pero ya no se
+// guarda en bot_chats.lang: nadie lo leía. El idioma de Lola sale de
+// user_profiles.ui_lang (papel.js, idiomaDe).
+export async function enlazarChat({ channel = "telegram", chatId, kind, householdId, userId, externalId, nombre, identidad = null }) {
   // Un chat ya enlazado a OTRA casa solo lo puede mover quien lo enlazó: si
   // no, cualquiera del grupo familiar se lo llevaría a su casa con su código.
   const [actual] = await select("bot_chats", `channel=${eq(channel)}&chat_id=${eq(chatId)}`, "household_id,linked_by");
@@ -55,7 +58,6 @@ export async function enlazarChat({ channel = "telegram", chatId, kind, househol
     household_id: householdId,
     kind,
     linked_by: userId,
-    lang: lang ?? null,
   }], { upsert: true });
   await registrar(EMBUDO.ENLACE, { userId, telegramId: externalId, unaVez: true, extra: { tipo: kind } });
   return { ok: true, identidad: estado };

@@ -52,7 +52,8 @@ export { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 export { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 export { payloadDeBorrador, borradorDesdeRespuesta, recetaParaGuardar, INGREDIENT_UNITS } from "../lib/userRecipes.js";
 export { recipeToRow, rowToRecipe } from "../lib/userRecipesSync.js";
-export { KITCHEN_TOOLS } from "../lib/applianceMethods.js";
+// Los nombres, no KITCHEN_TOOLS: esos son objetos {id, img} y un nombre nunca está dentro.
+export { KITCHEN_TOOL_IDS } from "../lib/applianceMethods.js";
 export { FAST_MODEL } from "../lib/aiModels.js";
 
 // Compartir una semana desde el chat: la misma «foto» que publica la app.

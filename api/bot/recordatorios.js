@@ -9,7 +9,7 @@
 import crypto from "node:crypto";
 import { enviarPendientes } from "../_bot/recordatorios.js";
 import { enviar, escaparHtml } from "../_bot/telegram.js";
-import { VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
+import { VISPERA, TIPO_VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
 import { rpc } from "../_bot/db.js";
 import { isoDeCasa } from "../../src/lib/dias.js";
 
@@ -27,8 +27,10 @@ export default async function handler(req, res) {
   const enviados = await enviarPendientes(async (r) => {
     if (r.channel !== "telegram") return;
     // El aviso de la víspera (api/_bot/vispera.js): se monta ahora, con el menú
-    // de mañana, y si no hay nada que preparar no se manda nada.
-    if (r.text === VISPERA) {
+    // de mañana, y si no hay nada que preparar no se manda nada. El texto queda
+    // de respaldo mientras haya una base sin la 0085 (sin columna tipo): fuera
+    // cuando esté aplicada en todas.
+    if (r.tipo === TIPO_VISPERA || r.text === VISPERA) {
       const hoy = isoDeCasa();
       const aviso = r.household_id ? await avisoDeVisperaDe(r.household_id, hoy) : null;
       if (aviso) await enviar(r.chat_id, aviso);
