@@ -35,6 +35,19 @@ export function suggestHomeRole(age) {
   return "Adulto";
 }
 
+// Etiquetas de HOUSEHOLD_ROLES, tal y como las devuelve migrateHomeRole.
+const FAMILY_ROLES_SET = new Set(["Papá", "Mamá", "Hijo/a", "Bebé", "Abuelo/a"]);
+
+/**
+ * Si en la casa hay algún papel de familia (padres, hijos, bebé, abuelos), el
+ * menú común se llama «Familia»; si no (pisos de amigos, parejas), «Todos».
+ */
+export function isFamilyGroup(members) {
+  return (members ?? []).some((m) =>
+    FAMILY_ROLES_SET.has(migrateHomeRole(m.homeRole ?? suggestHomeRole(resolveMemberAge(m))))
+  );
+}
+
 export const ADULT_DETAILS = [
   "Trabajo",
   "Teletrabajo",

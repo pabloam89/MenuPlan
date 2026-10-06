@@ -97,7 +97,7 @@ import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { StoreBadge } from "./SpendPanel.jsx";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
-import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc, avatarThumbSrcByKey } from "../lib/stages.js";
+import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, isFamilyGroup, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc, avatarThumbSrcByKey } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
 import { marcarRevisadas, conMiembroNuevo } from "../lib/alergias.js";
@@ -214,13 +214,6 @@ function memberAge(member) {
 
 function normalizeTextValue(input) {
   return (input ?? "").trim().replace(/\s+/g, " ");
-}
-
-const FAMILY_ROLES_SET = new Set(["papa", "mama", "hijo", "hija", "bebe", "abuelo", "abuela"]);
-function isFamilyGroup(members) {
-  return members.some((m) =>
-    FAMILY_ROLES_SET.has(migrateHomeRole(m.homeRole ?? suggestHomeRole(memberAge(m))))
-  );
 }
 
 function titleCase(input) {
