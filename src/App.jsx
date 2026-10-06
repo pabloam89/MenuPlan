@@ -2630,7 +2630,9 @@ export default function App() {
     }
   }, [pendingInvite, user?.id, screen]);
 
-  const goToMenu = async () => {
+  // `destino`: el fin del alta deja en Inicio (el menú se genera igual, por
+  // detrás, y el «Hoy toca» se rellena al llegar); el resto, al Menú.
+  const goToMenu = async (destino = "menu") => {
     // Hard gate: no menu without at least one family member. The family step's
     // "Siguiente" is already blocked, but the progress-dot jump skips it (and any
     // later step's "Generar menú" would otherwise reach the planner), so the AI
@@ -2644,7 +2646,7 @@ export default function App() {
     }
     ensureGroupsIfMissing();
     setQuickMenu(false);
-    setScreen("menu");
+    setScreen(destino);
     if (user) {
       upsertUserProfile(user, {
         onboarding_completed: true,
@@ -5786,11 +5788,10 @@ export default function App() {
     <OnboardingRestrictions
       data={data}
       setData={setData}
-      // Fin del alta: perfil listo (quién come + qué evitáis) y directo al
-      // menú, no a Inicio — lo primero que ves tras contarnos quiénes sois es
-      // vuestra semana. Genera con los valores por defecto, igual que «Genera
-      // el menú ya» del selector; el resto del asistente queda para afinar
-      // después, con el menú delante.
+      // Fin del alta: perfil listo (quién come + qué evitáis) y a Inicio
+      // (Pablo, 6 oct 2026: antes iba al Menú). Genera con los valores por
+      // defecto, igual que «Genera el menú ya» del selector; el resto del
+      // asistente queda para afinar después, en Ajustes.
       onNext={
         editPreferencesOrigin
           ? undefined
@@ -5802,7 +5803,7 @@ export default function App() {
                 });
                 trackEvent(user, EMBUDO.CIMIENTOS, PANTALLA_EMBUDO, { canal: "app" });
                 setFirstRunOnboarding(false);
-                fwd(goToMenu);
+                fwd(() => goToMenu("dashboard"));
               }
             : nextOf(2)
       }

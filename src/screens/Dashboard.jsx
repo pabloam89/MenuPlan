@@ -8,7 +8,7 @@ import {
   Sparkles,
   Send,
 } from "../components/icons.jsx";
-import { FRONTAL_BOT, abrirLola } from "../lib/frontalBot.js";
+import { FRONTAL_BOT, abrirLola, lolaConectada } from "../lib/frontalBot.js";
 import { pedidoMenu } from "../lib/pedidoLola.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
@@ -275,8 +275,16 @@ function RotatingPhoto({ photos, objectPosition = "center", interval = 2000 }) {
  * La puerta a Lola (frontal del bot, src/lib/frontalBot.js): lo que antes era
  * «Generar menú» ahora se le pide a ella en Telegram. Tarjeta blanca y baja,
  * no un héroe: lo primero de Inicio sigue siendo ver qué toca hoy.
+ * Quien aún no habla con ella lee «Conecta con Lola»; el botón es el mismo
+ * (abrirLola lleva el código que conecta). Mientras no se sabe, «Pídeselo».
  */
 function LolaCard() {
+  const [conectada, setConectada] = useState(null);
+  useEffect(() => {
+    let vivo = true;
+    lolaConectada().then((c) => { if (vivo) setConectada(c); });
+    return () => { vivo = false; };
+  }, []);
   return (
     <button
       type="button"
@@ -295,7 +303,7 @@ function LolaCard() {
         style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", objectPosition: "center 30%", flexShrink: 0, background: "#f4f8f5" }}
       />
       <span style={{ flex: 1, minWidth: 0, fontSize: 16, fontWeight: 900, color: INK, letterSpacing: "-.2px" }}>
-        Pídeselo a Lola
+        {conectada === false ? "Conecta con Lola" : "Pídeselo a Lola"}
       </span>
       <span
         aria-hidden

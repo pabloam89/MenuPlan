@@ -55,3 +55,19 @@ export async function abrirLola(pedido = null) {
   }
   window.location.href = pedido ? `${BOT_URL}?start=${payloadStart(null, pedido)}` : BOT_URL;
 }
+
+/**
+ * ¿Esta persona ya habla con Lola en Telegram? true, false, o null si no se
+ * sabe (sin sesión o sin red): quien pinta el botón decide qué hacer con null.
+ */
+export async function lolaConectada() {
+  try {
+    const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+    if (!token) return null;
+    const res = await fetch("/api/bot/link", { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) return null;
+    return (await res.json()).conectado === true;
+  } catch {
+    return null;
+  }
+}
