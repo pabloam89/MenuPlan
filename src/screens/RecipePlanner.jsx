@@ -958,7 +958,29 @@ function UnitPicker({ value, onChange, width }) {
   );
 }
 
-function IngredientEditList({ items, onUpdate, onRemove }) {
+// `cascada`: los ingredientes que trae la IA entran uno detrás de otro en vez
+// de aparecer de golpe. `cargando`: mientras la IA piensa, filas fantasma.
+function IngredientEditList({ items, onUpdate, onRemove, cascada = false, cargando = false }) {
+  if (items.length === 0 && cargando) {
+    return (
+      <div style={{ marginTop: 12 }} aria-hidden="true">
+        {[72, 54, 64, 46, 58].map((w, i) => (
+          <div
+            key={i}
+            className="mp-ingrediente-fantasma"
+            style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "11px 2px",
+              borderBottom: i === 4 ? "none" : "1px solid rgba(45,110,70,.12)",
+              animationDelay: `${i * 120}ms`,
+            }}
+          >
+            <span style={{ width: 26, height: 26, borderRadius: 8, background: "#e3ece6", flexShrink: 0 }} />
+            <span style={{ height: 12, width: `${w}%`, borderRadius: 6, background: "#e3ece6" }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
   if (items.length === 0) {
     return (
       <div style={{ marginTop: 12, padding: "18px 14px", borderRadius: 14, border: "1.5px dashed #d8e6dc", textAlign: "center" }}>
@@ -970,10 +992,14 @@ function IngredientEditList({ items, onUpdate, onRemove }) {
     <div style={{ marginTop: 12 }}>
       {items.map((it, i) => (
         <div
-          key={`${it.name}-${i}`}
+          // Por nombre y no por posición: al borrar uno, los de debajo no se
+          // vuelven a montar (ni a animar).
+          key={it.name.toLowerCase()}
+          className="mp-ingrediente-entra"
           style={{
             display: "flex", alignItems: "center", gap: 8, padding: "9px 2px",
             borderBottom: i === items.length - 1 ? "none" : "1px solid rgba(45,110,70,.2)",
+            animationDelay: cascada ? `${Math.min(i, 14) * 60}ms` : "0ms",
           }}
         >
           <PantryCategoryIcon name={it.name} />
@@ -1403,6 +1429,8 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   const [suggestState, setSuggestState] = useState("idle"); // idle | loading | done | error
   const suggestAbortRef = useRef(null);
   const suggestedForNameRef = useRef(null);
+  // Durante un momento tras llegar las sugerencias, la lista entra en cascada.
+  const [cascadaIA, setCascadaIA] = useState(false);
 
   const updateForm = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -1548,6 +1576,8 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
               : makeIngredient(i.name),
           );
           setForm((f) => (f.ingredients.length === 0 ? { ...f, ingredients: asIngredients } : f));
+          setCascadaIA(true);
+          setTimeout(() => setCascadaIA(false), 1500);
         }
         setSuggestState("done");
       })
@@ -2040,6 +2070,8 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
                 items={form.ingredients}
                 onUpdate={updateIngredientAt}
                 onRemove={removeIngredient}
+                cascada={cascadaIA}
+                cargando={suggestState === "loading"}
               />
             )}
           </div>
@@ -2370,6 +2402,7 @@ function PhotoStep({ dishName, photo, genState, genError, onGenerate, onRemovePh
               <>
                 <Loader2 size={24} color={GREEN} style={{ animation: "mp-spin 1s linear infinite" }} />
                 <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: GREEN }}>Generando foto con IA…</p>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#7a9485" }}>Tarda alrededor de un minuto.</p>
               </>
             ) : (
               <>

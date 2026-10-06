@@ -131,7 +131,11 @@ export default async function handler(req, res) {
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {
         responseModalities: ["IMAGE", "TEXT"],
-        httpOptions: { timeout: 60000, headers: {} },
+        // El modelo tarda ya más de un minuto en devolver la imagen (68 s
+        // medidos el 6 oct 2026) y con 60 s se cortaba siempre: «This
+        // operation was aborted». Hasta 110 s, dentro de los 120 de
+        // maxDuration (vercel.json).
+        httpOptions: { timeout: 110000, headers: {} },
       },
     });
 
