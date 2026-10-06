@@ -26,7 +26,7 @@ export const BOT_URL = "https://t.me/homenuers_bot";
 /**
  * Abre Telegram con Lola. Con sesión, el enlace lleva un código de un solo
  * uso (api/bot/link) que conecta ese chat con esta casa; sin sesión, el bot a
- * secas, que ya pregunta «¿ya usas HoMenu?».
+ * secas, que da el alta (o reconoce a quien ya se conectó desde ese Telegram).
  *
  * `pedido` (src/lib/pedidoLola.js): lo que se le pide desde ese sitio
  * («cambia la cena del viernes»). Va en el mismo /start y Lola lo atiende
@@ -54,4 +54,20 @@ export async function abrirLola(pedido = null) {
     // Sin enlace con código, al bot a secas: mejor eso que un error.
   }
   window.location.href = pedido ? `${BOT_URL}?start=${payloadStart(null, pedido)}` : BOT_URL;
+}
+
+/**
+ * ¿Esta persona ya habla con Lola en Telegram? true, false, o null si no se
+ * sabe (sin sesión o sin red): quien pinta el botón decide qué hacer con null.
+ */
+export async function lolaConectada() {
+  try {
+    const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+    if (!token) return null;
+    const res = await fetch("/api/bot/link", { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) return null;
+    return (await res.json()).conectado === true;
+  } catch {
+    return null;
+  }
 }

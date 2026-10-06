@@ -5,7 +5,7 @@
  * un código de un solo uso (15 minutos): uno para hablar con el bot en privado
  * y otro para meterlo en un grupo. Al pulsarlo, Telegram le manda al bot
  * `/start <código>` y el webhook (api/bot/telegram.js) enlaza ese chat con la
- * casa.
+ * casa. Con GET, solo si esta persona ya está conectada (el botón de Inicio).
  *
  * Cualquiera de la casa conecta su privado: titular, cotitular o lector (Lola
  * mira su papel en cada mensaje, api/_bot/papel.js). El enlace de grupo, solo
@@ -20,7 +20,7 @@ import { puede } from "../../src/lib/papeles.js";
 const VALIDEZ_MS = 15 * 60 * 1000;
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST" && req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
   const accessToken = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "").trim();
   if (!accessToken) return res.status(401).json({ error: "Falta la sesión." });
@@ -28,6 +28,17 @@ export default async function handler(req, res) {
   try {
     const user = await usuarioDeToken(accessToken);
     if (!user) return res.status(401).json({ error: "Sesión inválida." });
+
+    // GET: ¿esta persona ya habla con Lola? Para el botón de Inicio («Pídeselo
+    // a Lola» o «Conecta con Lola»). Las tablas del bot no se leen desde la app
+    // (RLS sin políticas, 0057). Su Telegram es su cuenta, o enlazó un privado.
+    if (req.method === "GET") {
+      const [ident, privado] = await Promise.all([
+        select("bot_identities", `user_id=${eq(user.id)}&limit=1`, "user_id"),
+        select("bot_chats", `kind=eq.private&linked_by=${eq(user.id)}&limit=1`, "chat_id"),
+      ]);
+      return res.status(200).json({ conectado: ident.length > 0 || privado.length > 0 });
+    }
 
     const [perfil] = await select("user_profiles", `user_id=${eq(user.id)}`, "active_household_id");
     const householdId = perfil?.active_household_id;

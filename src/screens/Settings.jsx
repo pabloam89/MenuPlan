@@ -1,5 +1,4 @@
-import { useMemo, useRef, useState } from "react";
-import { supabase } from "../lib/supabase.js";
+import { useMemo, useRef } from "react";
 import {
   ChevronRight,
   ChevronLeft,
@@ -18,7 +17,6 @@ import {
   Wrench,
   Pencil,
   LayoutDashboard,
-  Send,
 } from "../components/icons.jsx";
 import {
   BottomNav,
@@ -192,22 +190,8 @@ export function SettingsScreen({
   onReset,
 }) {
   const g = googleInfo(user);
-  // «Conectar Telegram»: pide a api/bot/link un enlace t.me con código de un
-  // solo uso y abre Telegram, que enlaza ese chat con la casa (0057).
-  const [telegram, setTelegram] = useState(null);
-  const conectarTelegram = async () => {
-    setTelegram("cargando");
-    try {
-      const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
-      const res = await fetch("/api/bot/link", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok || !body.privado) throw new Error(body.error || "No se pudo crear el enlace.");
-      setTelegram(null);
-      window.location.href = body.privado;
-    } catch (err) {
-      setTelegram(err.message);
-    }
-  };
+  // Conectar Telegram ya no vive aquí: es el botón de Lola en Inicio
+  // («Conecta con Lola» / «Pídeselo a Lola», src/lib/frontalBot.js).
   const rowStyle = {
     display: "flex",
     alignItems: "center",
@@ -326,20 +310,6 @@ export function SettingsScreen({
               <User size={19} color={GREEN} />
               <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: INK }}>
                 Mi cuenta y perfil
-              </span>
-              <ChevronRight size={18} color="#9ab0a1" />
-            </button>
-          )}
-          {user && (
-            <button type="button" style={rowStyle} onClick={conectarTelegram} disabled={telegram === "cargando"}>
-              <Send size={19} color={GREEN} />
-              <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: INK }}>
-                Conectar Telegram
-                {telegram && telegram !== "cargando" && (
-                  <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#c0392b", marginTop: 2 }}>
-                    {telegram}
-                  </span>
-                )}
               </span>
               <ChevronRight size={18} color="#9ab0a1" />
             </button>
