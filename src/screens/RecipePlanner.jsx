@@ -59,7 +59,7 @@ import {
 } from "../lib/userRecipes.js";
 import { SHOPPING_AISLES, isQualitativeUnit, guessShoppingAisle, ingredientStem } from "../lib/ingredientCategories.js";
 import { RecipeStepList } from "../components/RecipeSteps.jsx";
-import { STEP_KIND_META, removeRichStep, richToPlainSteps } from "../lib/recipeSteps.js";
+import { removeRichStep, richToPlainSteps, stripStepMarkers, relinkStepMarkers } from "../lib/recipeSteps.js";
 import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
 import { deriveRecipeAllergens } from "../lib/ingredients.js";
 import { motivosNoAptoNinos, frasesMotivos } from "../lib/aptoNinos.js";
@@ -1042,11 +1042,25 @@ function draftRichSteps(draft) {
  * Editor del paso a paso. Trabaja sobre `stepsRich` ({ text, minutes, kind }),
  * el mismo formato que el catálogo, para que lo que se edita aquí sea
  * exactamente lo que luego pinta el stepper del detalle del menú.
- * El texto puede llevar marcadores ({{Ajo}}, {{@Sartén}}): se editan en crudo
- * y se resuelven al pintar, así que la vista previa del último paso del asistente
- * es donde se ve el resultado final.
+ *
+ * El texto lleva marcadores ({{Ajo}}, {{@Sartén}}) pero el usuario no los ve
+ * (review de UX, lámina 31): cada paso se lee con los ingredientes en negrita
+ * y, al tocarlo, se edita como texto normal. Al salir, relinkStepMarkers vuelve
+ * a poner los marcadores buscando los nombres de la lista. El tipo de paso
+ * (preparación, reposo…) lo pone la IA y ya no se edita aquí.
  */
-function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
+function EditableStepsList({ steps, ingredientNames, onUpdate, onRemove, onAdd }) {
+  const [editing, setEditing] = useState(null);
+  const [plain, setPlain] = useState("");
+  const startEdit = (i) => {
+    setEditing(i);
+    setPlain(stripStepMarkers(steps[i]?.text ?? ""));
+  };
+  const commit = () => {
+    if (editing === null) return;
+    onUpdate(editing, { text: relinkStepMarkers(plain, steps[editing]?.text ?? "", ingredientNames) });
+    setEditing(null);
+  };
   return (
     <div>
       {steps.length === 0 && (
@@ -1055,86 +1069,85 @@ function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
         </p>
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {steps.map((s, i) => {
-          const meta = STEP_KIND_META[s.kind] ?? null;
-          return (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{
-                flexShrink: 0, width: 20, height: 20, marginTop: 6, borderRadius: 999,
-                fontSize: 11, fontWeight: 900, color: "#fff",
-                background: meta?.color ?? GREEN,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                {i + 1}
-              </span>
-              <div style={{ flex: 1, minWidth: 0 }}>
+        {steps.map((s, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+            <span style={{
+              flexShrink: 0, width: 20, height: 20, marginTop: 6, borderRadius: 999,
+              fontSize: 11, fontWeight: 900, color: "#fff", background: GREEN,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              {i + 1}
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {editing === i ? (
                 <textarea
-                  ref={autoGrowTextarea}
-                  value={s.text}
-                  onChange={(e) => { onUpdate(i, { text: e.target.value }); autoGrowTextarea(e.target); }}
+                  ref={(el) => { if (el) { autoGrowTextarea(el); if (document.activeElement !== el) el.focus(); } }}
+                  value={plain}
+                  onChange={(e) => { setPlain(e.target.value); autoGrowTextarea(e.target); }}
+                  onBlur={commit}
                   rows={1}
+                  aria-label={`Paso ${i + 1}`}
                   style={{
                     width: "100%", resize: "none", overflow: "hidden", boxSizing: "border-box",
-                    border: "none", background: "#fff", borderRadius: 10, padding: "6px 8px",
-                    fontSize: 13.5, fontFamily: "inherit", color: INK, outline: "none", lineHeight: 1.4,
+                    border: `1.5px solid ${GREEN}`, background: "#fff", borderRadius: 10, padding: "6px 8px",
+                    fontSize: 16, fontFamily: "inherit", color: INK, outline: "none", lineHeight: 1.4,
                   }}
                 />
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
-                  <select
-                    value={s.kind ?? "activo"}
-                    onChange={(e) => onUpdate(i, { kind: e.target.value })}
-                    aria-label="Tipo de paso"
-                    style={{
-                      border: "none", borderRadius: 999, padding: "3px 8px",
-                      background: `${(STEP_KIND_META[s.kind] ?? STEP_KIND_META.activo).color}1a`,
-                      color: (STEP_KIND_META[s.kind] ?? STEP_KIND_META.activo).color,
-                      fontSize: 10.5, fontWeight: 800, fontFamily: "inherit", cursor: "pointer",
-                    }}
-                  >
-                    {Object.entries(STEP_KIND_META).map(([id, m]) => (
-                      <option key={id} value={id}>{m.label}</option>
-                    ))}
-                  </select>
-                  <span style={{
-                    display: "inline-flex", alignItems: "center", gap: 3,
-                    padding: "3px 8px", borderRadius: 999, background: "#f4f7f4",
-                  }}>
-                    <input
-                      type="number"
-                      min={0}
-                      value={s.minutes ?? ""}
-                      placeholder="–"
-                      onChange={(e) => onUpdate(i, { minutes: e.target.value === "" ? undefined : Number(e.target.value) })}
-                      aria-label="Minutos del paso"
-                      style={{
-                        width: 30, border: "none", background: "transparent", outline: "none",
-                        fontSize: 10.5, fontWeight: 800, color: "#5a7066", fontFamily: "inherit",
-                        textAlign: "right",
-                      }}
-                    />
-                    <span style={{ fontSize: 10.5, fontWeight: 800, color: "#5a7066" }}>min</span>
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => onRemove(i)}
-                aria-label="Quitar paso"
-                style={{
-                  width: 28, height: 28, marginTop: 4, borderRadius: 8, border: "none", flexShrink: 0,
-                  background: "#fdf1ef", color: "#c0392b", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-              >
-                <Trash2 size={13} />
-              </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => startEdit(i)}
+                  aria-label={`Editar paso ${i + 1}`}
+                  style={{
+                    display: "block", width: "100%", boxSizing: "border-box", textAlign: "left",
+                    border: "1.5px solid transparent", background: "#fff", borderRadius: 10, padding: "6px 8px",
+                    fontSize: 13.5, fontFamily: "inherit", color: INK, lineHeight: 1.4, cursor: "text",
+                  }}
+                >
+                  {s.text?.trim() ? <StepTextPreview text={s.text} /> : (
+                    <span style={{ color: "#9aa8a0" }}>Toca para escribir el paso</span>
+                  )}
+                </button>
+              )}
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 3, marginTop: 4,
+                padding: "3px 8px", borderRadius: 999, background: "#f4f7f4",
+              }}>
+                <input
+                  type="number"
+                  min={0}
+                  value={s.minutes ?? ""}
+                  placeholder="–"
+                  onChange={(e) => onUpdate(i, { minutes: e.target.value === "" ? undefined : Number(e.target.value) })}
+                  aria-label="Minutos del paso"
+                  className="mp-no-spinner"
+                  style={{
+                    width: 30, border: "none", background: "transparent", outline: "none",
+                    fontSize: 10.5, fontWeight: 800, color: "#5a7066", fontFamily: "inherit",
+                    textAlign: "right",
+                  }}
+                />
+                <span style={{ fontSize: 10.5, fontWeight: 800, color: "#5a7066" }}>min</span>
+              </span>
             </div>
-          );
-        })}
+            <button
+              type="button"
+              onClick={() => { setEditing(null); onRemove(i); }}
+              aria-label="Quitar paso"
+              style={{
+                width: 28, height: 28, marginTop: 4, borderRadius: 8, border: "none", flexShrink: 0,
+                background: "#fdf1ef", color: "#c0392b", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+        ))}
       </div>
       <button
         type="button"
-        onClick={onAdd}
+        onClick={() => { commit(); onAdd(); setEditing(steps.length); setPlain(""); }}
         style={{
           marginTop: 8, padding: "8px 12px", borderRadius: 10, border: "1.5px dashed #c8ddcf",
           background: "transparent", color: GREEN, fontFamily: "inherit", fontSize: 12.5, fontWeight: 700,
@@ -1145,6 +1158,18 @@ function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
       </button>
     </div>
   );
+}
+
+// Un paso tal como lo lee el usuario: sin llaves, los ingredientes en negrita
+// y los utensilios como texto normal.
+function StepTextPreview({ text }) {
+  const parts = String(text).split(/(\{\{[^}]+\}\})/g);
+  return parts.map((part, i) => {
+    const m = /^\{\{([^}]+)\}\}$/.exec(part);
+    if (!m) return part;
+    const label = stripStepMarkers(part);
+    return m[1].trim().startsWith("@") ? label : <strong key={i} style={{ fontWeight: 800 }}>{label}</strong>;
+  });
 }
 
 // ── Visibility options ─────────────────────────────────────────────────────
@@ -1378,11 +1403,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   const [suggestState, setSuggestState] = useState("idle"); // idle | loading | done | error
   const suggestAbortRef = useRef(null);
   const suggestedForNameRef = useRef(null);
-  // Lo que propone la IA NO entra solo en la receta (review de UX, lámina 29):
-  // se enseña marcado, el usuario quita lo que no lleva y lo añade él.
-  // `suggested` null = no hay propuesta pendiente.
-  const [suggested, setSuggested] = useState(null);
-  const [suggestPicked, setSuggestPicked] = useState(() => new Set());
 
   const updateForm = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -1502,10 +1522,14 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   // Pre-fill the ingredient step with AI suggestions the first time the user
   // lands on it with an empty list — a head start they can freely edit/remove.
   // Keyed by name so retyping the dish name (and coming back) re-suggests once.
+  //
+  // Se pide ya en «¿Cómo se prepara?» (paso 1) para que esté lista al llegar a
+  // ingredientes (paso 2), o en ingredientes si se llegó de otra forma. Y NO se
+  // cancela al cambiar de paso: antes, pasar rápido por los aparatos abortaba
+  // la petición y, como el nombre ya contaba como pedido, no volvía a pedirse.
   useEffect(() => {
     if (autoDemo) return; // en demo sembramos ingredientes, sin red
-    const ingredientsStepIndex = 1;
-    if (step !== ingredientsStepIndex) return;
+    if (step !== 1 && step !== 2) return;
     const name = form.name.trim();
     if (!name) return;
     if (form.ingredients.length > 0) return;
@@ -1523,8 +1547,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
               ? { name: String(i.name).trim(), amount: i.amount != null ? i.amount : defaultAmountForUnit(i.unit), unit: i.unit }
               : makeIngredient(i.name),
           );
-          setSuggested(asIngredients);
-          setSuggestPicked(new Set(asIngredients.map((i) => i.name.toLowerCase())));
+          setForm((f) => (f.ingredients.length === 0 ? { ...f, ingredients: asIngredients } : f));
         }
         setSuggestState("done");
       })
@@ -1532,27 +1555,10 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
         if (err?.name === "AbortError") return;
         setSuggestState("error");
       });
-    return () => ctrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, form.name]);
-
-  // La propuesta solo se enseña mientras la receta no tiene ingredientes: si el
-  // usuario ya empezó a buscar por su cuenta, no se le pone delante.
-  const showSuggested = step === 2 && suggested?.length > 0 && form.ingredients.length === 0;
-  const toggleSuggested = (name) =>
-    setSuggestPicked((prev) => {
-      const next = new Set(prev);
-      const key = name.toLowerCase();
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  const acceptSuggested = () => {
-    const picked = (suggested ?? []).filter((i) => suggestPicked.has(i.name.toLowerCase()));
-    setForm((f) => (f.ingredients.length === 0 ? { ...f, ingredients: picked } : f));
-    setSuggested(null);
-  };
-  const dismissSuggested = () => setSuggested(null);
+  // Solo se cancela si se cierra el asistente.
+  useEffect(() => () => suggestAbortRef.current?.abort(), []);
 
   // Kick off the AI draft once we land on the review step (the last one).
   useEffect(() => {
@@ -1847,25 +1853,17 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   };
   const goNext = () => setStep((s) => Math.min(STEP_META.length - 1, s + 1));
 
-  // Lo que hace el botón del pie en cada momento. En ingredientes no siempre
-  // es «Siguiente» (review de UX, lámina 29): con la propuesta de la IA en
-  // pantalla, la añade; con una búsqueda a medias, la acepta y vuelve a la
-  // lista. Pulsar «Siguiente» ahí te sacaba del paso sin querer.
-  const nSuggestPicked = suggestPicked.size;
+  // Lo que hace el botón del pie en cada momento. En ingredientes, con una
+  // búsqueda a medias, es «Aceptar»: la cierra y vuelve a la lista (review de
+  // UX, lámina 29). Pulsar «Siguiente» ahí te sacaba del paso sin querer.
   const nextAction =
-    step === 2 && showSuggested
-      ? {
-          label: nSuggestPicked === 1 ? "Añadir 1 ingrediente" : `Añadir ${nSuggestPicked} ingredientes`,
-          onClick: acceptSuggested,
-          enabled: nSuggestPicked > 0,
-        }
-      : step === 2 && ingredientQuery.trim()
-        ? { label: "Aceptar", onClick: () => setIngredientQuery(""), enabled: true }
-        : {
-            label: step === reviewStepIndex - 1 ? "Ver revisión" : "Siguiente",
-            onClick: goNext,
-            enabled: canNext[step],
-          };
+    step === 2 && ingredientQuery.trim()
+      ? { label: "Aceptar", onClick: () => setIngredientQuery(""), enabled: true }
+      : {
+          label: step === reviewStepIndex - 1 ? "Ver revisión" : "Siguiente",
+          onClick: goNext,
+          enabled: canNext[step],
+        };
 
   return (
     <div style={{ height: "100dvh", overflow: "hidden", background: BG, display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
@@ -2023,63 +2021,26 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
                 </span>
               </div>
             ) : null}
-            {showSuggested ? (
-              <>
-                <div style={{
-                  display: "flex", alignItems: "flex-start", gap: 8, margin: "0 0 12px",
-                  padding: "9px 11px", borderRadius: 12, background: "#fff7ed",
-                  border: "1px solid #f6dcc0",
-                }}>
-                  <Sparkles size={14} color="#c96a1c" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#a85a15", lineHeight: 1.4 }}>
-                    La IA cree que «{form.name.trim()}» lleva esto. Desmarca lo que no lleve; las cantidades, después.
-                  </span>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
-                  {suggested.map((i) => (
-                    <IngredientThumbCard
-                      key={i.name}
-                      name={i.name}
-                      added={suggestPicked.has(i.name.toLowerCase())}
-                      onToggle={toggleSuggested}
-                      large
-                    />
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={dismissSuggested}
-                  style={{
-                    display: "block", margin: "14px auto 0", padding: 0, border: "none",
-                    background: "transparent", color: GREEN, cursor: "pointer",
-                    fontFamily: "inherit", fontSize: 13, fontWeight: 700,
-                  }}
-                >
-                  Empezar sin sugerencias
-                </button>
-              </>
-            ) : (
-              <>
-                <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 800, color: "#9ab0a1", letterSpacing: ".3px" }}>
-                  MARCA LOS INGREDIENTES QUE LLEVA
-                </p>
-                <IngredientPicker
-                  query={ingredientQuery}
-                  onQueryChange={setIngredientQuery}
-                  addedNames={addedIngredientNames}
-                  onToggle={toggleIngredient}
-                  onAddCustom={addCustomIngredient}
-                />
-                {/* Mientras se busca, la lista de cantidades se aparta: lo que
-                    se ve es lo que se está eligiendo, y «Aceptar» abajo. */}
-                {!ingredientQuery.trim() && (
-                  <IngredientEditList
-                    items={form.ingredients}
-                    onUpdate={updateIngredientAt}
-                    onRemove={removeIngredient}
-                  />
-                )}
-              </>
+            <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 800, color: "#9ab0a1", letterSpacing: ".3px" }}>
+              {form.ingredients.length > 0
+                ? "REVISA LOS INGREDIENTES: AÑADE O QUITA LOS QUE QUIERAS"
+                : "BUSCA LOS INGREDIENTES QUE LLEVA"}
+            </p>
+            <IngredientPicker
+              query={ingredientQuery}
+              onQueryChange={setIngredientQuery}
+              addedNames={addedIngredientNames}
+              onToggle={toggleIngredient}
+              onAddCustom={addCustomIngredient}
+            />
+            {/* Mientras se busca, la lista de cantidades se aparta: lo que
+                se ve es lo que se está eligiendo, y «Aceptar» abajo. */}
+            {!ingredientQuery.trim() && (
+              <IngredientEditList
+                items={form.ingredients}
+                onUpdate={updateIngredientAt}
+                onRemove={removeIngredient}
+              />
             )}
           </div>
         )}
@@ -2099,7 +2060,8 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
               <p style={{ margin: 0, fontSize: 12.5, color: "#7a9485", textAlign: "center" }}>
                 Marca los que encajen. Si no marcas nada, decide la IA.
               </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 10 }}>
+              {/* Cuatro en fila (review de UX): las cuatro caben sin scroll. */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8, marginTop: 10 }}>
                 {[
                   { id: "comida", img: "/avatares/cards/cuando_se_sirve/comida.webp", label: "Comida", checked: comidaChecked, onClick: toggleComida },
                   { id: "cena", img: "/avatares/cards/cuando_se_sirve/cena.webp", label: "Cena", checked: form.mealRole.includes("cena"), onClick: () => toggleMealRole("cena") },
@@ -2111,6 +2073,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
                     img={m.img}
                     title={m.label}
                     imgRatio="1 / 1"
+                    compact
                     textOverlay
                     accent={CARD_ACCENT_TEAL}
                     active={m.checked}
@@ -2214,6 +2177,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
                 <FieldLabel icon={ListOrdered} color={GREEN}>Así ha quedado el paso a paso (editable)</FieldLabel>
                 <EditableStepsList
                   steps={editableSteps}
+                  ingredientNames={form.ingredients.map((i) => i.name)}
                   onUpdate={updateStepAt}
                   onRemove={removeStepAt}
                   onAdd={addStep}
