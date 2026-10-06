@@ -27,7 +27,6 @@ import {
   Camera,
   ImagePlus,
   Search,
-  SlidersHorizontal,
   Apple,
   Wheat,
   Milk,
@@ -63,6 +62,7 @@ import { RecipeStepList } from "../components/RecipeSteps.jsx";
 import { STEP_KIND_META, removeRichStep, richToPlainSteps } from "../lib/recipeSteps.js";
 import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
 import { deriveRecipeAllergens } from "../lib/ingredients.js";
+import { motivosNoAptoNinos, frasesMotivos } from "../lib/aptoNinos.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -228,22 +228,6 @@ function findBaseDishMatches(name, pool) {
     scored.push({ r, score });
   }
   return scored.sort((a, b) => b.score - a.score).slice(0, 3).map((s) => s.r);
-}
-
-// The "revisa las cantidades" hint explains how AI suggestions work, so it's
-// worth one interruption and no more — remembered across recipes and sessions.
-const SUGGEST_HINT_SEEN_KEY = "mp_recipe_suggest_hint_seen";
-
-/** Claims the one-time hint. True the first time ever, false afterwards. */
-function markSuggestHintSeen() {
-  try {
-    if (localStorage.getItem(SUGGEST_HINT_SEEN_KEY)) return false;
-    localStorage.setItem(SUGGEST_HINT_SEEN_KEY, "1");
-    return true;
-  } catch {
-    // Storage blocked (private mode): show it, just don't remember.
-    return true;
-  }
 }
 
 // Lunch is not a stored mealRole — we infer primero/segundo/plato_unico from
@@ -447,71 +431,6 @@ function AisleTile({ label, icon: Icon, color, active, onClick }) {
     );
   }
 
-function SelectedAisleChip({ label, onClear }) {
-  const Icon = AISLE_ICONS[label] ?? UtensilsCrossed;
-  const color = AISLE_COLORS[label] ?? GREEN;
-  return (
-        <div
-          style={{
-        display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", marginBottom: 10,
-        borderRadius: 10, border: `2px solid ${color}`, background: "#fff",
-      }}
-    >
-      <Icon size={14} color={color} style={{ flexShrink: 0 }} />
-      <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        Explorando: {label}
-      </span>
-            <button
-              type="button"
-        onClick={onClear}
-        aria-label="Quitar categoría"
-              style={{
-          width: 22, height: 22, borderRadius: 6, border: "none", background: "#f0f4f1",
-          color, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-              }}
-            >
-        <X size={12} />
-            </button>
-    </div>
-  );
-}
-
-function IngredientPickCard({ name, added, onToggle }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onToggle(name)}
-      style={{
-        display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left",
-        padding: "10px 11px", borderRadius: 11, cursor: "pointer", fontFamily: "inherit",
-        border: `1.5px solid ${added ? GREEN : "#e8efe9"}`,
-        background: added ? "#f2fbf5" : "#fff",
-        transition: "border-color .14s ease, background .14s ease",
-      }}
-    >
-      <span
-        style={{
-          width: 18, height: 18, borderRadius: 5, flexShrink: 0,
-          border: `1.5px solid ${added ? GREEN : "#cdd8d0"}`,
-          background: added ? GREEN : "#fff",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}
-      >
-        {added && <Check size={11} strokeWidth={3} color="#fff" />}
-      </span>
-      <span
-        style={{
-          flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700,
-          color: added ? "#142f1d" : "#3a4a42",
-          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        }}
-      >
-        {name}
-      </span>
-    </button>
-  );
-}
-
 // Category card for the compact 3-column illustrated grid
 function CategoryCard({ aisle, onSelect }) {
   const Icon = AISLE_ICONS[aisle] ?? UtensilsCrossed;
@@ -573,8 +492,9 @@ function CategoryCard({ aisle, onSelect }) {
   );
 }
 
-// Ingredient card for the compact 5-column grid (illustration + name + check)
-function IngredientThumbCard({ name, added, onToggle }) {
+// Ingredient card for the compact 5-column grid (illustration + name + check).
+// `large`: la de 3 columnas del creador de recetas, con el nombre legible.
+function IngredientThumbCard({ name, added, onToggle, large = false }) {
   const img = ingredientThumbSrc(name);
   const [failed, setFailed] = useState(false);
   const showImg = Boolean(img) && !failed;
@@ -582,9 +502,10 @@ function IngredientThumbCard({ name, added, onToggle }) {
     <button
       type="button"
       onClick={() => onToggle(name)}
+      aria-pressed={added}
       style={{
         display: "flex", flexDirection: "column", alignItems: "center",
-        gap: 0, padding: 0, border: "none", borderRadius: 8, cursor: "pointer",
+        gap: 0, padding: 0, border: "none", borderRadius: large ? 12 : 8, cursor: "pointer",
         fontFamily: "inherit", overflow: "hidden",
         background: added ? "#e8f5ec" : "#eef2f0",
         outline: added ? `2px solid ${GREEN}` : "none",
@@ -608,11 +529,11 @@ function IngredientThumbCard({ name, added, onToggle }) {
       <span
         style={{
           position: "absolute", bottom: 0, left: 0, right: 0,
-          padding: "3px 2px 4px",
+          padding: large ? "10px 4px 6px" : "3px 2px 4px",
           background: added
             ? `linear-gradient(to top, ${GREEN}ee 0%, ${GREEN}77 60%, transparent 100%)`
             : "linear-gradient(to top, rgba(20,47,29,.72) 0%, rgba(20,47,29,.3) 60%, transparent 100%)",
-          fontSize: 7.5, fontWeight: 800, color: "#fff", textAlign: "center",
+          fontSize: large ? 11 : 7.5, fontWeight: 800, color: "#fff", textAlign: "center",
           lineHeight: 1.1, letterSpacing: "-.05px",
           textShadow: "0 1px 2px rgba(0,0,0,.5)",
         }}
@@ -622,14 +543,25 @@ function IngredientThumbCard({ name, added, onToggle }) {
       {added && (
         <span
           style={{
-            position: "absolute", top: 2, right: 2,
-            width: 12, height: 12, borderRadius: 999,
+            position: "absolute", top: large ? 6 : 2, right: large ? 6 : 2,
+            width: large ? 20 : 12, height: large ? 20 : 12, borderRadius: 999,
             background: GREEN, display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 1px 3px rgba(0,0,0,.25)",
           }}
         >
-          <Check size={7} strokeWidth={3.5} color="#fff" />
+          <Check size={large ? 12 : 7} strokeWidth={3.5} color="#fff" />
         </span>
+      )}
+      {/* A tamaño grande se ve también el hueco sin marcar: que se lea
+          como casilla y no como foto decorativa. */}
+      {large && !added && (
+        <span
+          style={{
+            position: "absolute", top: 6, right: 6, width: 20, height: 20, borderRadius: 999,
+            border: "2px solid #fff", background: "rgba(20,47,29,.25)",
+            boxShadow: "0 1px 3px rgba(0,0,0,.25)", boxSizing: "border-box",
+          }}
+        />
       )}
     </button>
   );
@@ -640,14 +572,15 @@ function IngredientThumbCard({ name, added, onToggle }) {
 // mode instead of re-implementing it.
 //
 // `compact` (Pantry): narrower search + Categorías as icon+label button on
-// the right (dropdown keeps its usual width). The "+" lives outside the
-// selected-ingredients card, not next to the search. RecipePlanner keeps
-// the full non-compact button.
+// the right. The "+" lives outside the selected-ingredients card, not next
+// to the search. RecipePlanner (non-compact) only searches: no categories.
+const SEARCH_PREVIEW = 6;
+
 export function IngredientPicker({
   query,
   onQueryChange,
-  aisle,
-  onAisleChange,
+  aisle = null,
+  onAisleChange = () => {},
   addedNames,
   onToggle,
   onAddCustom,
@@ -660,14 +593,12 @@ export function IngredientPicker({
   uploadOpen = false,
   uploadLoading = false,
 }) {
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const catBtnRef = useRef(null);
   const q = normText(query);
+  // «Ver más» vale para esta búsqueda: al cambiarla, vuelven a ser seis.
+  const [showAllFor, setShowAllFor] = useState(null);
+  const showAll = showAllFor === q;
 
-  const setAisle = (a) => {
-    onAisleChange(a);
-    setFiltersOpen(false);
-  };
+  const setAisle = (a) => onAisleChange(a);
 
   const full = useMemo(() => (aisle ? INGREDIENT_CATALOG_BY_AISLE[aisle] ?? [] : []), [aisle]);
   const results = useMemo(() => {
@@ -825,83 +756,64 @@ export function IngredientPicker({
     );
   }
 
-  // Non-compact (RecipePlanner) mode: search + dropdown Categorias button
+  // Non-compact (RecipePlanner) mode: solo buscador (review de UX, lámina 29:
+  // la búsqueda encuentra bien y el botón de Categorías sobraba). Resultados
+  // con su ilustración, seis y «Ver más», para no cargar cuarenta fotos.
+  const shown = showAll ? results : results.slice(0, SEARCH_PREVIEW);
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
-        <div
-          style={{
-            flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8,
-            height: 42, padding: "0 12px", borderRadius: 12,
-            background: "#fff", border: `2px solid ${GREEN}`,
-          }}
-        >
-          <Search size={16} color={GREEN} style={{ flexShrink: 0 }} />
-          <input
-            value={query}
-            onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="Buscar..."
-            style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: "inherit", fontSize: 12.5, fontWeight: 800, color: INK }}
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => onQueryChange("")}
-              aria-label="Limpiar busqueda"
-              style={{ border: "none", background: "transparent", cursor: "pointer", color: "#9ab0a1", display: "flex", padding: 2 }}
-            >
-              <X size={15} />
-            </button>
-          )}
-        </div>
-        <button
-          ref={catBtnRef}
-          type="button"
-          onClick={() => setFiltersOpen((v) => !v)}
-          aria-haspopup="listbox"
-          aria-expanded={filtersOpen}
-          aria-label="Categorias"
-          title="Categorias"
-          style={{
-            position: "relative", display: "inline-flex", alignItems: "center",
-            justifyContent: "center", gap: 6, height: 42, padding: "0 12px",
-            borderRadius: 12, cursor: "pointer", flexShrink: 0,
-            border: `1.5px solid ${filtersOpen || aisle ? GREEN : "#e8efe9"}`,
-            background: filtersOpen || aisle ? GREEN : "#fff",
-            color: filtersOpen || aisle ? "#fff" : "#5a7066",
-            fontSize: 12.5, fontWeight: 800, fontFamily: "inherit",
-          }}
-        >
-          <SlidersHorizontal size={15} />
-          {"Categor\u00EDas"}
-          {filtersOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        </button>
+      <div
+        style={{
+          display: "flex", alignItems: "center", gap: 8, marginBottom: 10,
+          height: 42, padding: "0 12px", borderRadius: 12,
+          background: "#fff", border: `2px solid ${GREEN}`,
+        }}
+      >
+        <Search size={16} color={GREEN} style={{ flexShrink: 0 }} />
+        <input
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder="Buscar..."
+          style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: "inherit", fontSize: 12.5, fontWeight: 800, color: INK }}
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => onQueryChange("")}
+            aria-label="Limpiar busqueda"
+            style={{ border: "none", background: "transparent", cursor: "pointer", color: "#9ab0a1", display: "flex", padding: 2 }}
+          >
+            <X size={15} />
+          </button>
+        )}
       </div>
 
-      {filtersOpen && (
-        <AisleDropdown
-          aisle={aisle}
-          anchorRef={catBtnRef}
-          onClose={() => setFiltersOpen(false)}
-          onSelect={(a) => setAisle(aisle === a ? null : a)}
-        />
-      )}
-
-      {!filtersOpen && aisle && !q && (
-        <SelectedAisleChip label={aisle} onClear={() => setAisle(null)} />
-      )}
-
-      {results.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 8 }}>
-          {results.map((name) => (
-            <IngredientPickCard
+      {shown.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+          {shown.map((name) => (
+            <IngredientThumbCard
               key={name}
               name={name}
               added={addedNames.has(name.toLowerCase())}
               onToggle={onToggle}
+              large
             />
           ))}
         </div>
+      )}
+
+      {!showAll && results.length > SEARCH_PREVIEW && (
+        <button
+          type="button"
+          onClick={() => setShowAllFor(q)}
+          style={{
+            display: "block", margin: "10px auto 0", padding: 0, border: "none",
+            background: "transparent", color: GREEN, cursor: "pointer",
+            fontFamily: "inherit", fontSize: 13, fontWeight: 700,
+          }}
+        >
+          Ver más ({results.length - SEARCH_PREVIEW})
+        </button>
       )}
 
       {q && !exactExists && (
@@ -923,151 +835,9 @@ export function IngredientPicker({
   );
 }
 
-// Aisle chip for the Categorías list: the category illustration when we have
-// one, otherwise the flat icon on its tinted square. Selection is carried by a
-// coloured ring so it reads the same either way.
-function AisleBadge({ aisle, Icon, color, selected, size = 30 }) {
-  const img = aisleImageSrc(aisle);
-  const [failed, setFailed] = useState(false);
-  const showImg = Boolean(img) && !failed;
-  return (
-    <span
-      style={{
-        width: size, height: size, borderRadius: 9, flexShrink: 0,
-        overflow: "hidden",
-        background: showImg ? "#f2f7f4" : selected ? color : "#f0f4f1",
-        color: selected && !showImg ? "#fff" : color,
-        boxShadow: selected ? `0 0 0 2px ${color}` : "none",
-        display: "inline-flex", alignItems: "center", justifyContent: "center",
-      }}
-    >
-      {showImg ? (
-        <img
-          src={img}
-          alt=""
-          onError={() => setFailed(true)}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-        />
-      ) : (
-        <Icon size={14} strokeWidth={2.2} />
-      )}
-    </span>
-  );
-}
-
-// Floating aisle list for the Categorías button — portaled so it isn't clipped
-// by overflow parents; icons + horizontal dividers match StorePicker's language.
-function AisleDropdown({ aisle, anchorRef, onSelect, onClose }) {
-  const menuRef = useRef(null);
-  const [pos, setPos] = useState(null);
-
-  useLayoutEffect(() => {
-    const reposition = () => {
-      const el = anchorRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const spaceBelow = vh - r.bottom;
-      const openUp = spaceBelow < 280 && r.top > spaceBelow;
-      setPos({
-        left: Math.max(12, r.right - 220),
-        width: 220,
-        top: openUp ? null : r.bottom + 6,
-        bottom: openUp ? vh - r.top + 6 : null,
-        maxHeight: Math.max(180, (openUp ? r.top : spaceBelow) - 18),
-      });
-    };
-    reposition();
-    window.addEventListener("resize", reposition);
-    window.addEventListener("scroll", reposition, true);
-    return () => {
-      window.removeEventListener("resize", reposition);
-      window.removeEventListener("scroll", reposition, true);
-    };
-  }, [anchorRef]);
-
-  useEffect(() => {
-    const onPointerDown = (e) => {
-      if (menuRef.current?.contains(e.target) || anchorRef.current?.contains(e.target)) return;
-      onClose();
-    };
-    const onKeyDown = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("pointerdown", onPointerDown, true);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown, true);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [anchorRef, onClose]);
-
-  if (!pos) return null;
-
-  return createPortal(
-    <div
-      ref={menuRef}
-      role="listbox"
-      style={{
-        position: "fixed",
-        left: pos.left,
-        width: pos.width,
-        top: pos.top ?? undefined,
-        bottom: pos.bottom ?? undefined,
-        maxHeight: pos.maxHeight,
-        overflowY: "auto",
-        background: "#fff",
-        borderRadius: 14,
-        border: "1px solid #d7e6dc",
-        boxShadow: "0 20px 48px -10px rgba(20,47,29,.32)",
-        zIndex: 400,
-        padding: 5,
-      }}
-    >
-      {SHOPPING_AISLES.map((a, i) => {
-        const selected = aisle === a;
-        const Icon = AISLE_ICONS[a] ?? UtensilsCrossed;
-        const color = AISLE_COLORS[a] ?? GREEN;
-        return (
-          <div key={a}>
-            {i > 0 && <div style={{ height: 1, margin: "3px 8px", background: "#d7e6dc" }} />}
-            <button
-              type="button"
-              role="option"
-              aria-selected={selected}
-              onClick={() => onSelect(a)}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "9px 10px",
-                border: "none",
-                borderRadius: 10,
-                background: selected ? "#eaf3ec" : "transparent",
-                color: selected ? GREEN : INK,
-                fontWeight: selected ? 800 : 600,
-                fontSize: 13,
-                textAlign: "left",
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              <AisleBadge aisle={a} Icon={Icon} color={color} selected={selected} />
-              <span style={{ flex: 1, minWidth: 0 }}>{a}</span>
-              {selected && <Check size={15} strokeWidth={2.8} color={GREEN} style={{ flexShrink: 0 }} />}
-            </button>
-          </div>
-        );
-      })}
-    </div>,
-    document.body,
-  );
-}
-
 // Custom unit selector — the native <select> looked out of place (system
-// styling). This mirrors the app's dropdown language (AisleDropdown /
-// StorePicker): a rounded trigger + a portaled floating list with rounded
+// styling). This mirrors the app's dropdown language (StorePicker): a
+// rounded trigger + a portaled floating list with rounded
 // corners, thin horizontal dividers and a check on the selected unit.
 function UnitDropdown({ value, anchorRef, onSelect, onClose }) {
   const menuRef = useRef(null);
@@ -1279,6 +1049,11 @@ function draftRichSteps(draft) {
 function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
   return (
     <div>
+      {steps.length === 0 && (
+        <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 600, color: "#7a9485" }}>
+          Sin pasos no se puede guardar la receta: añade al menos uno o vuelve a procesarla.
+        </p>
+      )}
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {steps.map((s, i) => {
           const meta = STEP_KIND_META[s.kind] ?? null;
@@ -1345,12 +1120,9 @@ function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
                 type="button"
                 onClick={() => onRemove(i)}
                 aria-label="Quitar paso"
-                disabled={steps.length <= 1}
                 style={{
                   width: 28, height: 28, marginTop: 4, borderRadius: 8, border: "none", flexShrink: 0,
-                  background: steps.length <= 1 ? "#f3f5f3" : "#fdf1ef",
-                  color: steps.length <= 1 ? "#c3cdc7" : "#c0392b",
-                  cursor: steps.length <= 1 ? "default" : "pointer",
+                  background: "#fdf1ef", color: "#c0392b", cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}
               >
@@ -1572,7 +1344,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
     [form.name, baseDishPool],
   );
   const [ingredientQuery, setIngredientQuery] = useState("");
-  const [ingredientAisle, setIngredientAisle] = useState(null);
   const [aiState, setAiState] = useState(isEditing ? "done" : "idle"); // idle | loading | error | done
   const [aiError, setAiError] = useState(null);
   const [draft, setDraft] = useState(isEditing ? editRecipe : null);
@@ -1607,9 +1378,11 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   const [suggestState, setSuggestState] = useState("idle"); // idle | loading | done | error
   const suggestAbortRef = useRef(null);
   const suggestedForNameRef = useRef(null);
-  // "Revisa las cantidades" is onboarding for the suggestion feature, not a
-  // status: it shows for 3s on the first recipe ever and never again.
-  const [showSuggestHint, setShowSuggestHint] = useState(false);
+  // Lo que propone la IA NO entra solo en la receta (review de UX, lámina 29):
+  // se enseña marcado, el usuario quita lo que no lleva y lo añade él.
+  // `suggested` null = no hay propuesta pendiente.
+  const [suggested, setSuggested] = useState(null);
+  const [suggestPicked, setSuggestPicked] = useState(() => new Set());
 
   const updateForm = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -1669,13 +1442,16 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
     () => new Set(form.ingredients.map((i) => i.name.toLowerCase())),
     [form.ingredients],
   );
+  const motivosNinos = useMemo(() => motivosNoAptoNinos(form.ingredients), [form.ingredients]);
 
   const canNext = [
     form.name.trim().length > 0 && Number(form.baseServings) > 0 && Number(form.time) > 0,
     true, // ¿Cómo se prepara? — opcional, nada marcado = tradicional
     form.ingredients.length > 0,
     true,
-    true,
+    // Se pueden borrar todos los pasos (review de UX, lámina 31), pero sin
+    // ninguno la receta no se puede guardar: no se avanza hasta añadir uno.
+    aiState !== "done" || draftRichSteps(draft).some((s) => s.text?.trim()),
     true,
   ];
 
@@ -1693,7 +1469,9 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
           time: Number(form.time),
           ingredients: form.ingredients,
           mealRole: form.mealRole,
-          kidFriendly: form.kidFriendly,
+          // «No lo sé» con alcohol o picante a la vista ya tiene respuesta, y
+          // es la que se le ha enseñado al usuario en el paso.
+          kidFriendly: form.kidFriendly ?? (motivosNinos.length ? false : null),
           allergens: form.allergens,
           requiredAppliances: form.requiredAppliances,
           preparationNotes: form.preparationNotes.trim() || undefined,
@@ -1745,10 +1523,10 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
               ? { name: String(i.name).trim(), amount: i.amount != null ? i.amount : defaultAmountForUnit(i.unit), unit: i.unit }
               : makeIngredient(i.name),
           );
-          setForm((f) => (f.ingredients.length === 0 ? { ...f, ingredients: asIngredients } : f));
+          setSuggested(asIngredients);
+          setSuggestPicked(new Set(asIngredients.map((i) => i.name.toLowerCase())));
         }
         setSuggestState("done");
-        if (markSuggestHintSeen()) setShowSuggestHint(true);
       })
       .catch((err) => {
         if (err?.name === "AbortError") return;
@@ -1758,13 +1536,23 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, form.name]);
 
-  // The hint has said its piece after 3s; leaving it up just pushes the
-  // ingredient list down for the rest of the session.
-  useEffect(() => {
-    if (!showSuggestHint) return undefined;
-    const t = setTimeout(() => setShowSuggestHint(false), 3000);
-    return () => clearTimeout(t);
-  }, [showSuggestHint]);
+  // La propuesta solo se enseña mientras la receta no tiene ingredientes: si el
+  // usuario ya empezó a buscar por su cuenta, no se le pone delante.
+  const showSuggested = step === 2 && suggested?.length > 0 && form.ingredients.length === 0;
+  const toggleSuggested = (name) =>
+    setSuggestPicked((prev) => {
+      const next = new Set(prev);
+      const key = name.toLowerCase();
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  const acceptSuggested = () => {
+    const picked = (suggested ?? []).filter((i) => suggestPicked.has(i.name.toLowerCase()));
+    setForm((f) => (f.ingredients.length === 0 ? { ...f, ingredients: picked } : f));
+    setSuggested(null);
+  };
+  const dismissSuggested = () => setSuggested(null);
 
   // Kick off the AI draft once we land on the review step (the last one).
   useEffect(() => {
@@ -2050,7 +1838,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   const updateStepAt = (idx, patch) =>
     setSteps((list) => list.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
   const removeStepAt = (idx) =>
-    setSteps((list) => (list.length > 1 ? removeRichStep(list, idx) : list));
+    setSteps((list) => removeRichStep(list, idx));
   const addStep = () => setSteps((list) => [...list, { text: "", kind: "activo" }]);
 
   const goBack = () => {
@@ -2058,6 +1846,26 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
     setStep((s) => Math.max(0, s - 1));
   };
   const goNext = () => setStep((s) => Math.min(STEP_META.length - 1, s + 1));
+
+  // Lo que hace el botón del pie en cada momento. En ingredientes no siempre
+  // es «Siguiente» (review de UX, lámina 29): con la propuesta de la IA en
+  // pantalla, la añade; con una búsqueda a medias, la acepta y vuelve a la
+  // lista. Pulsar «Siguiente» ahí te sacaba del paso sin querer.
+  const nSuggestPicked = suggestPicked.size;
+  const nextAction =
+    step === 2 && showSuggested
+      ? {
+          label: nSuggestPicked === 1 ? "Añadir 1 ingrediente" : `Añadir ${nSuggestPicked} ingredientes`,
+          onClick: acceptSuggested,
+          enabled: nSuggestPicked > 0,
+        }
+      : step === 2 && ingredientQuery.trim()
+        ? { label: "Aceptar", onClick: () => setIngredientQuery(""), enabled: true }
+        : {
+            label: step === reviewStepIndex - 1 ? "Ver revisión" : "Siguiente",
+            onClick: goNext,
+            enabled: canNext[step],
+          };
 
   return (
     <div style={{ height: "100dvh", overflow: "hidden", background: BG, display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
@@ -2158,7 +1966,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
         {step === 1 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <p style={{ margin: 0, fontSize: 12.5, color: "#7a9485", textAlign: "center" }}>
-              Elige uno. Si no marcas nada, asumimos la forma tradicional (fuego / sartén / olla).
+              Marca los que uses. Si no marcas nada, asumimos la forma tradicional (fuego / sartén / olla).
             </p>
             {/* Mismas 6 tarjetas ilustradas (MJ) que OnboardingAppliances
                 (Onboarding.jsx), pero en cuadrado (imgRatio 1/1) en vez de
@@ -2169,25 +1977,34 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
                 "Siguiente" no puede desaparecer con scroll de página
                 (RecipePlannerScreen limita su alto a 100dvh), así que si el
                 grid cuadrado no cabe entero, este paso simplemente hace su
-                propio scroll interno sin arrastrarse el footer. */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              {APPLIANCES.map((a) => (
-                <RestrictionTabCard
-                  key={a.id}
-                  img={a.img}
-                  title={a.id}
-                  imgRatio="1 / 1"
-                  compact
-                  textOverlay
-                  accent={CARD_ACCENT_TEAL}
-                  active={form.requiredAppliances[0] === a.id}
-                  onClick={() =>
-                    updateForm({
-                      requiredAppliances: form.requiredAppliances[0] === a.id ? [] : [a.id],
-                    })
-                  }
-                />
-              ))}
+                propio scroll interno sin arrastrarse el footer. Tres columnas
+                (review de UX, lámina 28): las seis caben en dos filas sin
+                scroll. Se puede marcar más de uno: un plato complejo puede
+                empezar en la olla y acabar en el horno. */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+              {APPLIANCES.map((a) => {
+                const on = form.requiredAppliances.includes(a.id);
+                return (
+                  <RestrictionTabCard
+                    key={a.id}
+                    img={a.img}
+                    title={a.id}
+                    imgRatio="1 / 1"
+                    compact
+                    textOverlay
+                    accent={CARD_ACCENT_TEAL}
+                    active={on}
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        requiredAppliances: f.requiredAppliances.includes(a.id)
+                          ? f.requiredAppliances.filter((x) => x !== a.id)
+                          : [...f.requiredAppliances, a.id],
+                      }))
+                    }
+                  />
+                );
+              })}
             </div>
           </div>
         )}
@@ -2205,35 +2022,65 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
                   Sugiriendo ingredientes para «{form.name.trim()}»…
                 </span>
               </div>
-            ) : showSuggestHint && form.ingredients.length > 0 ? (
-              <div style={{
-                display: "flex", alignItems: "center", gap: 8, margin: "0 0 12px",
-                padding: "9px 11px", borderRadius: 12, background: "#fff7ed",
-                border: "1px solid #f6dcc0",
-              }}>
-                <Sparkles size={14} color="#c96a1c" />
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#a85a15" }}>
-                  Sugerencia lista: revisa, ajusta cantidades o quita lo que no lleve.
-                </span>
-              </div>
             ) : null}
-            <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 800, color: "#9ab0a1", letterSpacing: ".3px" }}>
-              MARCA LOS INGREDIENTES QUE LLEVA
-            </p>
-            <IngredientPicker
-              query={ingredientQuery}
-              onQueryChange={setIngredientQuery}
-              aisle={ingredientAisle}
-              onAisleChange={setIngredientAisle}
-              addedNames={addedIngredientNames}
-              onToggle={toggleIngredient}
-              onAddCustom={addCustomIngredient}
-            />
-            <IngredientEditList
-              items={form.ingredients}
-              onUpdate={updateIngredientAt}
-              onRemove={removeIngredient}
-            />
+            {showSuggested ? (
+              <>
+                <div style={{
+                  display: "flex", alignItems: "flex-start", gap: 8, margin: "0 0 12px",
+                  padding: "9px 11px", borderRadius: 12, background: "#fff7ed",
+                  border: "1px solid #f6dcc0",
+                }}>
+                  <Sparkles size={14} color="#c96a1c" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#a85a15", lineHeight: 1.4 }}>
+                    La IA cree que «{form.name.trim()}» lleva esto. Desmarca lo que no lleve; las cantidades, después.
+                  </span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+                  {suggested.map((i) => (
+                    <IngredientThumbCard
+                      key={i.name}
+                      name={i.name}
+                      added={suggestPicked.has(i.name.toLowerCase())}
+                      onToggle={toggleSuggested}
+                      large
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={dismissSuggested}
+                  style={{
+                    display: "block", margin: "14px auto 0", padding: 0, border: "none",
+                    background: "transparent", color: GREEN, cursor: "pointer",
+                    fontFamily: "inherit", fontSize: 13, fontWeight: 700,
+                  }}
+                >
+                  Empezar sin sugerencias
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 800, color: "#9ab0a1", letterSpacing: ".3px" }}>
+                  MARCA LOS INGREDIENTES QUE LLEVA
+                </p>
+                <IngredientPicker
+                  query={ingredientQuery}
+                  onQueryChange={setIngredientQuery}
+                  addedNames={addedIngredientNames}
+                  onToggle={toggleIngredient}
+                  onAddCustom={addCustomIngredient}
+                />
+                {/* Mientras se busca, la lista de cantidades se aparta: lo que
+                    se ve es lo que se está eligiendo, y «Aceptar» abajo. */}
+                {!ingredientQuery.trim() && (
+                  <IngredientEditList
+                    items={form.ingredients}
+                    onUpdate={updateIngredientAt}
+                    onRemove={removeIngredient}
+                  />
+                )}
+              </>
+            )}
           </div>
         )}
 
@@ -2281,12 +2128,31 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
                 options={[
                   { id: "yes", label: "Sí" },
                   { id: "no", label: "No" },
-                  { id: "unsure", label: "La IA decide" },
+                  { id: "unsure", label: "No lo sé" },
                 ]}
                 value={form.kidFriendly === null ? "unsure" : form.kidFriendly ? "yes" : "no"}
                 onChange={(v) => updateForm({ kidFriendly: v === "unsure" ? null : v === "yes" })}
                 activeDark
               />
+              {/* Lo decide el padre; la app solo dice lo que ve y por qué
+                  (review de UX, lámina 30). */}
+              {form.kidFriendly !== false && (motivosNinos.length > 0 || form.kidFriendly === null) && (
+                <p style={{
+                  margin: "10px 0 0", fontSize: 12.5, fontWeight: 600, lineHeight: 1.45,
+                  color: motivosNinos.length ? "#7a4e00" : "#7a9485",
+                  ...(motivosNinos.length
+                    ? { padding: "9px 11px", borderRadius: 12, background: "#fff8e7", border: "1px solid #f3dfae" }
+                    : {}),
+                }}>
+                  {motivosNinos.length
+                    ? form.kidFriendly
+                      ? `Ojo: lleva ${frasesMotivos(motivosNinos)}. Si aun así es para niños, déjalo en «Sí».`
+                      : `Lleva ${frasesMotivos(motivosNinos)}, así que la marcaremos como no apta para niños.`
+                    : form.kidFriendly
+                      ? null
+                      : "No vemos nada en los ingredientes que lo impida. La IA lo valorará con la receta completa."}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -2343,7 +2209,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
               <style>{`@keyframes mp-spin { to { transform: rotate(360deg); } }`}</style>
             </div>
 
-            {aiState === "done" && draft?.steps?.length > 0 && (
+            {aiState === "done" && draft && (
               <div style={{ borderTop: "1px solid #e8efe9", paddingTop: 16 }}>
                 <FieldLabel icon={ListOrdered} color={GREEN}>Así ha quedado el paso a paso (editable)</FieldLabel>
                 <EditableStepsList
@@ -2386,21 +2252,23 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
         )}
       </div>
 
-      {/* Footer */}
+      {/* Footer. Sin foto no hay receta: en el paso de la foto el pie no
+          aparece hasta que la hay, y el único botón es «Generar con IA». */}
+      {!(step === reviewStepIndex - 1 && !photo) && (
       <div style={{ padding: "12px 20px calc(14px + env(safe-area-inset-bottom))", flexShrink: 0, background: BG, boxShadow: "0 -10px 16px -10px rgba(0,0,0,0.1)" }}>
         {step < reviewStepIndex ? (
           <button
             type="button"
-            onClick={goNext}
-            disabled={!canNext[step]}
+            onClick={nextAction.onClick}
+            disabled={!nextAction.enabled}
             style={{
               width: "100%", padding: 13, borderRadius: 12, border: "none",
-              background: canNext[step] ? GREEN : "#c8d9ce", color: "#fff",
-              fontSize: 14, fontWeight: 800, cursor: canNext[step] ? "pointer" : "not-allowed",
+              background: nextAction.enabled ? GREEN : "#c8d9ce", color: "#fff",
+              fontSize: 14, fontWeight: 800, cursor: nextAction.enabled ? "pointer" : "not-allowed",
               fontFamily: "inherit",
             }}
           >
-            {step === reviewStepIndex - 1 ? "Ver revisión" : "Siguiente"}
+            {nextAction.label}
           </button>
         ) : saved ? (
           <button
@@ -2432,6 +2300,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
           </button>
         )}
       </div>
+      )}
 
       {showVisibilitySheet && (
         <VisibilitySheet
