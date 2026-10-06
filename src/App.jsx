@@ -4095,6 +4095,18 @@ export default function App() {
   // tarda un momento en abrir la sesión: no se le pide entrar mientras tanto.
   // Se mira al arrancar, antes de que BotEnlace la quite de la dirección.
   const [conLlave] = useState(() => new URLSearchParams(window.location.search).has("entrar"));
+  // El splash no deja pasar mientras llega la casa: con la llave aún sin
+  // sesión, o con sesión y la familia todavía en camino desde la nube. Si no,
+  // quien entra desde Lola pulsa «Empezar ya» antes de que se vea su familia
+  // y cae en el alta de la app (Avatares → Alergias) con lo que ya contó.
+  // Con plazo: sin red o sin casa, se deja pasar igual.
+  const [splashSinEspera, setSplashSinEspera] = useState(false);
+  useEffect(() => {
+    setSplashSinEspera(false);
+    const t = window.setTimeout(() => setSplashSinEspera(true), ESPERA_DESTINO_MS);
+    return () => window.clearTimeout(t);
+  }, [user?.id]);
+  const abriendoCasa = !splashSinEspera && ((conLlave && !user) || (Boolean(user) && !nubeLista));
   useEffect(() => {
     if (!destinoBot || authLoading || user || avisoEntrarRef.current) return;
     if (conLlave && !esperaVencida) return;
@@ -6014,6 +6026,7 @@ export default function App() {
             onResume={() => fwd(() => setScreen("dashboard"))}
             isAuthed={Boolean(user)}
             onGoogle={signInWithGoogle}
+            abriendoCasa={abriendoCasa}
           />
         )}
 
@@ -7356,7 +7369,7 @@ function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, dela
   );
 }
 
-function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
+function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, abriendoCasa = false }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
 
   // El wordmark alterna entre las dos lecturas de las mismas 6 letras
@@ -7570,7 +7583,11 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {hasSaved || isAuthed ? (
+        {abriendoCasa ? (
+          <GhostPillButton onClick={() => {}} tone="solid">
+            Abriendo tu casa…
+          </GhostPillButton>
+        ) : hasSaved || isAuthed ? (
           <GhostPillButton onClick={handleEnter} tone="solid">
             {hasSaved ? "Continuar" : "Empezar ya"}
           </GhostPillButton>
