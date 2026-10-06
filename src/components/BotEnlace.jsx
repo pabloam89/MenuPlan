@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { clearState } from "../lib/storage.js";
+import { cuentaDeLaCopia, olvidarCopia } from "../lib/useAuth.js";
 
 // `/?entrar=<código>`: el enlace que manda el bot de Telegram a quien empezó
 // allí sin cuenta (o le pidió /app). Se cambia en api/bot/entrar.js por una
@@ -38,14 +39,16 @@ export default function BotEnlace({ showToast }) {
         if (!res.ok) throw new Error(body.error || "No se pudo entrar.");
         const { token_hash, user_id } = body;
 
-        const antes = (await supabase.auth.getSession())?.data?.session?.user?.id ?? null;
+        const conSesion = (await supabase.auth.getSession())?.data?.session?.user?.id ?? null;
         // Otra cuenta en este navegador: su familia sigue en la copia local y
         // la app la subiría a la cuenta nueva en cuanto entre. Se cierra y se
-        // borra ANTES de abrir la nueva, y luego se recarga limpio.
+        // borra ANTES de abrir la nueva, y luego se recarga limpio. También si
+        // esa cuenta ya perdió la sesión (borrada con /borrarme): su copia sigue.
+        const antes = conSesion ?? cuentaDeLaCopia();
         const cambia = antes && antes !== user_id;
         if (cambia) {
-          await supabase.auth.signOut();
-          clearState();
+          if (conSesion) await supabase.auth.signOut();
+          olvidarCopia();
         }
         const { error } = await supabase.auth.verifyOtp({ token_hash, type: "magiclink" });
         if (error) throw error;

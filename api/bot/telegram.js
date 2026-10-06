@@ -207,7 +207,12 @@ async function atender(msg, base, host = "") {
   // privado, y solo pulsando «Sí» en el aviso. Es su derecho, como «Eliminar
   // cuenta» en la app (Pablo, 2 oct 2026). /borrarme se queda como sinónimo.
   if (/^\/(borrarcuenta|borrarme)(?:@\w+)?$/.test(texto) && !esGrupo) {
-    return enviar(chatId, "⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu (también en la app), tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.", {
+    // Si este Telegram está conectado a una cuenta que NO nació aquí, es la
+    // de la app (Google o email): se dice, que no parezca una de prueba.
+    const [ident] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(msg.from?.id)}`, "user_id").catch(() => []);
+    const deLaApp = ident?.user_id && !(await cuentaNacidaAqui(msg.from.id).catch(() => null));
+    const ojo = deLaApp ? "\n\n<b>Ojo: es tu cuenta de la app</b>, la que abres con Google o con tu email, no solo lo de Telegram." : "";
+    return enviar(chatId, `⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu (también en la app), tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.${ojo}`, {
       botones: [[{ texto: "Sí, bórralo todo", dato: "borrar:si" }, { texto: "No", dato: "borrar:no" }]],
     });
   }
