@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { findMenuRestrictionConflicts, summarizeMenuRestrictionConflicts } from "./menuConflicts.js";
+import { buildAdaptationMap } from "../lib/substitutions.js";
 
 // Synthetic fixtures only (never real catalog recipes) — this suite tests the
 // conflict-detection logic itself, not catalog data quality.
@@ -146,6 +147,41 @@ describe("findMenuRestrictionConflicts", () => {
     const menuPlan = { g1: { "Lun-Comida": { recipeId: "ghost-recipe" } } };
     expect(() => findMenuRestrictionConflicts(data, menuPlan, {})).not.toThrow();
     expect(findMenuRestrictionConflicts(data, menuPlan, {})).toEqual([]);
+  });
+
+  // Lámina 4 de la review de UX: celíaca, tosta con el pan cambiado por pan
+  // sin gluten, y el aviso naranja diciendo que el menú no respeta el gluten.
+  // Las adaptaciones salen de buildAdaptationMap, lo mismo que pega el motor
+  // a la receta del menú (aiPlanner.js).
+  describe("gluten adaptado sin gluten", () => {
+    const tosta = {
+      id: "tosta",
+      name: "Tosta de tomate rallado, anchoas y aceite",
+      allergens: ["gluten", "pescado"],
+      ingredients: [{ name: "Pan de payés" }, { name: "Tomate" }, { name: "Anchoas" }],
+    };
+    const celiaca = baseData([{ id: "a", age: 30, allergies: ["Gluten"] }]);
+    const menuPlan = { g1: { "Dom-Comida": { recipeId: "tosta" } } };
+
+    it("no avisa de un plato que el motor ya adaptó sin gluten", () => {
+      const { adaptations } = buildAdaptationMap(tosta, ["sin_gluten"]);
+      expect(adaptations.length).toBeGreaterThan(0);
+      const adaptada = { ...tosta, adaptations };
+      expect(findMenuRestrictionConflicts(celiaca, menuPlan, { tosta: adaptada })).toEqual([]);
+    });
+
+    it("sí avisa del mismo plato SIN adaptar (alergia añadida después de generar)", () => {
+      const conflicts = findMenuRestrictionConflicts(celiaca, menuPlan, { tosta });
+      expect(conflicts).toHaveLength(1);
+      expect(conflicts[0].restrictionId).toBe("gluten");
+    });
+
+    it("la adaptación sin gluten no tapa otra alergia del mismo plato", () => {
+      const { adaptations } = buildAdaptationMap(tosta, ["sin_gluten"]);
+      const data = baseData([{ id: "a", age: 30, allergies: ["Gluten", "Pescado"] }]);
+      const conflicts = findMenuRestrictionConflicts(data, menuPlan, { tosta: { ...tosta, adaptations } });
+      expect(conflicts.map((c) => c.restrictionId)).toEqual(["pescado"]);
+    });
   });
 
   it("returns [] for an empty/missing menuPlan", () => {

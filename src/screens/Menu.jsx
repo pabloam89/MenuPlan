@@ -76,7 +76,7 @@ import {
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
-import { adaptationsNeededFor } from "../lib/substitutions.js";
+import { adaptationsNeededFor, allergensAfterAdaptation } from "../lib/substitutions.js";
 import { matchingHealthProfiles } from "../lib/healthProfileMatch.js";
 import { migrateFixedDishes } from "../lib/fixedDishes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -1738,7 +1738,7 @@ export function DishCard({
   if (!recipe) return null;
 
   const palette = tagPalette(recipe);
-  const allergenItems = resolveRecipeAllergens(recipe.allergens);
+  const allergenItems = resolveRecipeAllergens(allergensAfterAdaptation(recipe));
   const method = selectMethodForRecipe(recipe, kitchenTools);
   const MethodIcon = method ? APPLIANCE_ICONS[method.appliance] : null;
   // Este plato sale (del todo o en parte) de un tupper del congelador: se avisa
@@ -8005,10 +8005,10 @@ export function DishDetail({
                 <UsedApplianceIcon size={12} /> {usedAppliance}
               </span>
             )}
-            {recipe.allergens.length > 0 && (
+            {allergensAfterAdaptation(recipe).length > 0 && (
               <>
                 <span style={{ width: 1, alignSelf: "stretch", background: "#e6efe9", margin: "0 2px" }} />
-                {resolveRecipeAllergens(recipe.allergens).map(({ id, Icon, label, color }) => (
+                {resolveRecipeAllergens(allergensAfterAdaptation(recipe)).map(({ id, Icon, label, color }) => (
                   <span key={id} style={{
                     display: "inline-flex", alignItems: "center", gap: 4,
                     color, fontSize: 12, fontWeight: 700,

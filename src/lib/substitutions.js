@@ -200,6 +200,34 @@ export function adaptationsNeededFor(recipe, restrictionId) {
 }
 
 /**
+ * ¿Este plato YA viene adaptado para esta restricción? Lo dice la receta
+ * hidratada del menú (`adaptations`), no el catálogo: un plato con pan normal
+ * que se podría adaptar pero no se adaptó sigue siendo un plato con gluten.
+ *
+ * @param {Object} recipe
+ * @param {string} restrictionId
+ */
+export function isAdaptedFor(recipe, restrictionId) {
+  const label = SUBSTITUTION_RULES[restrictionId]?.label;
+  if (!label) return false;
+  return (recipe?.adaptations ?? []).some((a) => a?.label === label);
+}
+
+/**
+ * Los alérgenos que el plato sigue llevando una vez adaptado. Solo el gluten
+ * desaparece: el producto «sin gluten» es apto para celíacos por ley. La leche
+ * NO se quita con «sin lactosa», que sigue teniendo la proteína de la leche.
+ *
+ * @param {Object} recipe
+ * @returns {string[]}
+ */
+export function allergensAfterAdaptation(recipe) {
+  const allergens = recipe?.allergens ?? [];
+  if (!isAdaptedFor(recipe, "sin_gluten")) return allergens;
+  return allergens.filter((a) => String(a).toLowerCase() !== "gluten");
+}
+
+/**
  * Build a Map<originalName, newName> for the swaps of a recipe, used when
  * rebuilding a recipe's ingredient list during hydration.
  * @param {Object} recipe
