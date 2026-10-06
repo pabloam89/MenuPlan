@@ -44,7 +44,6 @@ import {
   recetaEnTexto, semanaEnTexto, copiarReceta, cuentasDeQuien,
 } from "../_bot/compartir.js";
 import { motor } from "../_bot/menu.js";
-import { sembrarCasa } from "../_bot/ajustes.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia, idDePersona, codigoDeGrupo, esCodigoDeGrupo } from "../_bot/enlace.js";
 import { papelDeQuien } from "../_bot/papel.js";
 import { unirsePorInvitacion, ES_INVITACION } from "../_bot/invitacion.js";
@@ -54,7 +53,8 @@ import { puede } from "../../src/lib/papeles.js";
 import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
-import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
+import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cuentas.js";
+import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
 
@@ -185,7 +185,7 @@ async function atender(msg, base, host = "") {
       if (r?.ocupado) return;
     }
     const [enlazado] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
-    if (!enlazado) return bienvenida(chatId);
+    if (!enlazado) return bienvenida(chatId, msg.from, base);
     return enTurno(chatId, itemDe(msg.from, frase ?? COMANDOS.start),
       atenderCola({ chatId, householdId: enlazado.household_id, esGrupo: false, base }));
   }
@@ -193,7 +193,7 @@ async function atender(msg, base, host = "") {
   // el enlace para meter a Lola en el grupo; sin ella, primero el alta.
   if (start?.[1] === "grupo" && !esGrupo) {
     const [suyo] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
-    return suyo ? enlaceGrupo(chatId, false, suyo.household_id, msg.from) : bienvenida(chatId);
+    return suyo ? enlaceGrupo(chatId, false, suyo.household_id, msg.from) : bienvenida(chatId, msg.from, base);
   }
   if (start?.[1]) return enlazarDesdeAjustes(msg, chatId, esGrupo, start[1]);
 
@@ -243,7 +243,7 @@ async function atender(msg, base, host = "") {
     if (!texto || texto.startsWith("/")) {
       // Un audio o una foto de primeras: se crea la casa y se atiende igual.
       if (msg.voice || msg.audio || msg.photo || msg.document) return crearCuenta(msg.from, chatId, { msg, base });
-      return bienvenida(chatId);
+      return bienvenida(chatId, msg.from, base);
     }
     // Lo primero que escriben ya es el alta («somos cuatro, dos niños…»): sin
     // preguntar por cuentas. Enlazar con la app es un botón, no un paso.
@@ -974,7 +974,7 @@ async function recibirCompartido(chatId, param, from) {
 
 async function usarCompartido(cq, chat, base) {
   const chatId = String(cq.message.chat.id);
-  if (!chat) return bienvenida(chatId);
+  if (!chat) return bienvenida(chatId, cq.from, base);
   const [, accion, param] = cq.data.match(/^comp:(\w):(.+)$/) ?? [];
   // Guardar una receta en la casa o ponerla en el menú es cambiar la casa.
   const { papel } = await papelDeQuien({ householdId: chat.household_id, chatId, esGrupo: esGrupoDe(cq.message.chat), desde: [idDePersona(cq.from)].filter(Boolean) });
@@ -1159,15 +1159,36 @@ function datoDeBoton(o) {
 // quien ya usa la app entra por «Conecta con Lola» en Inicio (o escribe aquí su
 // email: pedirAcceso lo sigue atendiendo, sin botón que lo anuncie).
 // A quien prefiere tocar a escribir, un botón secundario: el alta de la app
-// (altaEnLaApp). El texto sigue invitando a escribir; el botón es la otra vía.
-function bienvenida(chatId) {
+// (botonAlta). El texto sigue invitando a escribir; el botón es la otra vía.
+async function bienvenida(chatId, from = null, base = null) {
   return enviar(chatId, [
     "¡Hola! Soy <b>Lola</b> 👩‍🍳 Te preparo el menú de la semana y la lista de la compra, y te lo cambio cuando quieras.",
     "Para empezar, cuéntame <b>quiénes coméis en casa</b> (y la edad de los peques). Escríbemelo o mándame un audio 🎙️",
     "<i>Lo que me cuentes solo sirve para vuestro menú; no se lo paso a nadie.</i>",
   ].join("\n\n"), {
-    botones: [[{ texto: "Prefiero rellenarlo en la app", dato: "alta:app" }]],
+    botones: [[await botonAlta(chatId, from, base)]],
   });
+}
+
+const PREFIERO_APP = "Prefiero rellenarlo en la app";
+
+/**
+ * El botón ya es el enlace: abre la app de un toque, directo al alta. Aún no
+ * hay cuenta, así que el código es `alta` (0084) y la cuenta se crea al
+ * abrirlo (api/bot/entrar.js). Sin quién ni dónde, o si el código no se puede
+ * guardar, el de dos toques (altaEnLaApp): el saludo nunca se queda sin salir.
+ */
+async function botonAlta(chatId, from, base) {
+  const ext = idDePersona(from);
+  if (ext && base && ext === String(chatId)) {
+    try {
+      const codigo = await crearCodigo({ tipo: "alta", chatId, externalId: ext, nombre: nombreDe(from), minutos: MIN_ENTRAR });
+      return { texto: PREFIERO_APP, url: `${base}/?entrar=${codigo}&ir=alta` };
+    } catch (e) {
+      console.error("[bienvenida] código de alta", e?.message);
+    }
+  }
+  return { texto: PREFIERO_APP, dato: "alta:app" };
 }
 
 async function pulsado(cq, base, host = "") {
@@ -1192,7 +1213,7 @@ async function pulsado(cq, base, host = "") {
 
   // Un botón que puso el agente: cuenta como si se hubiera escrito (también en grupo).
   if (cq.data?.startsWith("t:")) {
-    if (!chat) return bienvenida(chatId);
+    if (!chat) return bienvenida(chatId, cq.from, base);
     const esGrupo = esGrupoDe(cq.message.chat);
     return enTurno(chatId, itemDe(cq.from, cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true }),
       atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
@@ -1328,37 +1349,15 @@ async function comprobarCodigo(msg, chatId, token) {
   return confirmarEnlace(chatId, hogar.id);
 }
 
-/**
- * La cuenta nacida en este Telegram (la crea si no la hay), con su casa
- * sembrada y este chat enlazado. Si este Telegram ya creó su cuenta, no se
- * crea otra; y siempre su casa PROPIA, nunca la activa (podría ser una ajena
- * en la que es invitado).
- */
-async function cuentaYChat(from, chatId) {
-  const nacida = await cuentaNacidaAqui(from.id);
-  const cuenta = nacida
-    ? { userId: nacida.id, householdId: (await casaPropia(nacida.id))?.id }
-    : await crearCuentaTelegram({ telegramId: from.id, nombre: nombreDe(from) });
-  if (!cuenta.householdId) throw new Error("cuenta sin casa");
-
-  await enlazarChat({
-    chatId,
-    kind: "private",
-    householdId: cuenta.householdId,
-    userId: cuenta.userId,
-    externalId: idDePersona(from),
-    nombre: nombreDe(from),
-    lang: from.language_code,
-    identidad: "nacida",
-  });
-  await sembrarCasa(cuenta.householdId);
-  return cuenta;
-}
+// La cuenta nacida en este Telegram, con su chat enlazado (api/_bot/altaTelegram.js).
+const cuentaYChat = (from, chatId) =>
+  cuentaYChatDe({ telegramId: from.id, chatId, nombre: nombreDe(from), lang: from.language_code });
 
 /**
- * «Prefiero rellenarlo en la app»: la cuenta, y un enlace que entra ya dentro
- * (la llave de /app) directo al alta de la app (`ir=alta`, destinoBot.js). Al
- * acabarla, la app avisa y Lola lo dice aquí (api/bot/link.js).
+ * «Prefiero rellenarlo en la app» en dos toques: la cuenta, y un enlace que
+ * entra ya dentro (la llave de /app) directo al alta de la app (`ir=alta`).
+ * Es el camino de reserva: el saludo ya lleva el enlace de un toque
+ * (botonAlta), y este solo sale si ese no se pudo crear, o en saludos viejos.
  */
 async function altaEnLaApp(from, chatId, base) {
   const cuenta = await cuentaYChat(from, chatId);

@@ -75,12 +75,22 @@ beforeEach(() => {
 });
 
 describe("/start en un privado sin enlazar", () => {
-  it("un Telegram que no conocemos: el alta, sin preguntar por cuentas; rellenarlo en la app, de botón", async () => {
+  it("un Telegram que no conocemos: el alta, sin preguntar por cuentas; rellenarlo en la app, de un toque", async () => {
+    crearCodigo.mockResolvedValueOnce("ALTA");
     await escribe("/start");
     expect(t.enviados).toHaveLength(1);
     expect(t.enviados[0].texto).toContain("quiénes coméis en casa");
-    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", dato: "alta:app" }]);
+    // El botón ya es el enlace: código `alta` de este Telegram, sin cuenta todavía.
+    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", url: "https://x/?entrar=ALTA&ir=alta" }]);
+    expect(crearCodigo).toHaveBeenCalledWith(expect.objectContaining({ tipo: "alta", chatId: "7", externalId: "7" }));
     expect(enlazarChat).not.toHaveBeenCalled();
+    expect(crearCuentaTelegram).not.toHaveBeenCalled();
+  });
+
+  it("si el código de alta no se puede guardar (sin la 0084), el botón de dos toques: el saludo sale igual", async () => {
+    crearCodigo.mockRejectedValueOnce(new Error("violates check constraint"));
+    await escribe("/start");
+    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", dato: "alta:app" }]);
   });
 
   it("un Telegram que ya es una cuenta: se reengancha a su casa y no se le pregunta nada", async () => {
