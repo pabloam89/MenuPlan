@@ -163,11 +163,13 @@ describe("findMenuRestrictionConflicts", () => {
     const celiaca = baseData([{ id: "a", age: 30, allergies: ["Gluten"] }]);
     const menuPlan = { g1: { "Dom-Comida": { recipeId: "tosta" } } };
 
-    it("no avisa de un plato que el motor ya adaptó sin gluten", () => {
+    // Una adaptación sin gluten no levanta la alergia: sin certificado, el plato
+    // sigue marcado aunque el motor le haya puesto el recambio.
+    it("avisa aunque el plato esté adaptado sin gluten (no hay certificado)", () => {
       const { adaptations } = buildAdaptationMap(tosta, ["sin_gluten"]);
       expect(adaptations.length).toBeGreaterThan(0);
       const adaptada = { ...tosta, adaptations };
-      expect(findMenuRestrictionConflicts(celiaca, menuPlan, { tosta: adaptada })).toEqual([]);
+      expect(findMenuRestrictionConflicts(celiaca, menuPlan, { tosta: adaptada })).toHaveLength(1);
     });
 
     it("sí avisa del mismo plato SIN adaptar (alergia añadida después de generar)", () => {
@@ -176,11 +178,11 @@ describe("findMenuRestrictionConflicts", () => {
       expect(conflicts[0].restrictionId).toBe("gluten");
     });
 
-    it("la adaptación sin gluten no tapa otra alergia del mismo plato", () => {
+    it("con gluten y pescado como alergias, el plato adaptado sigue marcado por el gluten", () => {
       const { adaptations } = buildAdaptationMap(tosta, ["sin_gluten"]);
       const data = baseData([{ id: "a", age: 30, allergies: ["Gluten", "Pescado"] }]);
       const conflicts = findMenuRestrictionConflicts(data, menuPlan, { tosta: { ...tosta, adaptations } });
-      expect(conflicts.map((c) => c.restrictionId)).toEqual(["pescado"]);
+      expect(conflicts.map((c) => c.restrictionId)).toContain("gluten");
     });
   });
 

@@ -98,12 +98,10 @@ export function recipeViolatesHardSafety(
 ) {
   if (!recipe) return true;
 
-  // Con «sin_gluten», el gluten es seguro solo si TODO lo que lo lleva tiene
-  // recambio (planAdaptations no bloquea); si no, cuenta como siempre.
-  const glutenAdaptado = intolerances.includes("sin_gluten") && !offMenu && !planAdaptations(recipe, ["sin_gluten"]).blocked;
-  const blockedAllergens = new Set(
-    allergies.map(normalizeAllergenId).filter((a) => !(a === "gluten" && glutenAdaptado)),
-  );
+  // Una alergia no se desbloquea por sustitución: «sin_gluten» no prueba que el
+  // plato esté libre de gluten (falta certificado y contaminación cruzada).
+  // Hasta que haya sustitutos certificados, la alergia bloquea siempre.
+  const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   if (blockedAllergens.size > 0) {
     if (recipe.allergens?.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
     if (puedeContenerDe(recipe).some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
@@ -268,12 +266,9 @@ export function filterRecipes({
   favoriteIds = null,
 } = {}) {
   const activeIntolerances = Array.from(new Set(intolerances));
-  // Con «sin_gluten» (alguien con el gluten como alergia, ver substitutions.js)
-  // el gluten no excluye en el paso 1: lo decide el 1c, que deja la receta
-  // solo si TODO lo que lleva gluten tiene recambio sin gluten de verdad.
-  const blockedAllergens = new Set(
-    allergies.map(normalizeAllergenId).filter((a) => !(a === "gluten" && activeIntolerances.includes("sin_gluten"))),
-  );
+  // La alergia no se desbloquea con «sin_gluten»: el paso 1 excluye siempre el
+  // gluten de quien lo tiene como alergia (ver recipeViolatesHardSafety).
+  const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   const dislikeLower = dislikes.map((d) => d.toLowerCase());
   const toolsLower = new Set(kitchenTools.map((t) => t.toLowerCase()));
   const season = currentSeason();

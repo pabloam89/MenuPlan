@@ -62,6 +62,9 @@ export const EU_ALLERGENS = {
 
 const ALLERGEN_ALIASES = {
   gluten: "gluten",
+  celiaquia: "gluten",
+  celiaca: "gluten",
+  celiaco: "gluten",
   crustaceos: "crustaceos",
   crustaceo: "crustaceos",
   marisco: "crustaceos",

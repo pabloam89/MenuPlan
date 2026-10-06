@@ -35,7 +35,7 @@
 import { membersOfGroup } from "../lib/groups.js";
 import { normalizeAllergenId, recipeIngredientsHitAllergens, EU_ALLERGENS } from "../lib/allergens.js";
 import { recipeHitsIntolerances, recipeViolatesDiet, INTOLERANCE_RULES, DIET_RULES } from "../lib/intolerances.js";
-import { isAdaptableRestriction, isAdaptedFor } from "../lib/substitutions.js";
+import { isAdaptableRestriction } from "../lib/substitutions.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 
 /**
@@ -84,12 +84,10 @@ export function findMenuRestrictionConflicts(data, menuPlan, recipesById = RECIP
         const recipe = recipesById[recipeId];
         if (!recipe) continue;
 
-        // Un plato ya adaptado sin gluten no choca con la alergia al gluten: el
-        // motor lo dejó en el menú con el recambio. Sin esto, el aviso marcaba
-        // justo los platos que el motor había adaptado bien.
-        const recipeBlocked = isAdaptedFor(recipe, "sin_gluten")
-          ? new Set(Array.from(blockedAllergens).filter((id) => id !== "gluten"))
-          : blockedAllergens;
+        // Un plato «adaptado sin gluten» no levanta la alergia al gluten: no hay
+        // certificado que lo garantice (ver filterRecipes.js), así que el aviso
+        // se mantiene aunque el plato tenga el recambio.
+        const recipeBlocked = blockedAllergens;
 
         if (recipeBlocked.size > 0) {
           const declaredHit = (recipe.allergens ?? [])

@@ -17,15 +17,15 @@ describe("sin gluten", () => {
     expect(recipes.some(conGluten)).toBe(false);
   });
 
-  it("con la adaptación, vuelven recetas con pasta o pan, y cada una lleva su recambio", () => {
+  // Antes la adaptación devolvía recetas con pasta o pan a una casa con alergia
+  // al gluten. Eso se quitó: un sustituto sin gluten no está certificado, y la
+  // alergia no se desbloquea por sustitución (ver gluten.seguridad.test.js).
+  it("sin certificado, la alergia al gluten no recupera recetas con sin_gluten", () => {
     const antes = filterRecipes({ allergies: ["Gluten"] }).recipes;
     const ahora = filterRecipes({ allergies: ["Gluten"], intolerances: ["sin_gluten"] }).recipes;
-    const recuperadas = ahora.filter((r) => !nombres(antes).has(r.id));
-    expect(recuperadas.length).toBeGreaterThan(10);
-    for (const r of recuperadas) {
-      expect(r.adaptations?.some((a) => a.label === "sin gluten")).toBe(true);
-      expect(recipeViolatesHardSafety(r, { allergies: ["Gluten"], intolerances: ["sin_gluten"] })).toBe(false);
-    }
+    const permitidas = nombres(antes);
+    const recuperadas = [...nombres(ahora)].filter((id) => !permitidas.has(id));
+    expect(recuperadas).toEqual([]);
   });
 
   it("lo que no tiene recambio (harina, pan rallado, cuscús) sigue fuera", () => {
