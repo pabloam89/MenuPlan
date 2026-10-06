@@ -14,6 +14,8 @@
  *   recetas          el recetario
  *   recetas:<carpeta> el recetario abierto en esa carpeta (las de la app:
  *                    legumbres, bebes_solidos…), o `mias` para «Mis recetas»
+ *   alta             el alta de la app (Avatares → Alergias), para quien en
+ *                    el saludo de Lola eligió rellenarlo aquí
  *
  * Suele ir junto a `?entrar=` (BotEnlace.jsx), que puede recargar la página al
  * cambiar de cuenta: por eso el destino se guarda en sessionStorage y no solo
@@ -38,6 +40,7 @@ export function interpretarDestino(valor) {
   if (v === "semana") return { pantalla: "menu", vista: "semana" };
   if (v === "compra") return { pantalla: "shopping" };
   if (v === "recetas") return { pantalla: "recipes" };
+  if (v === "alta") return { pantalla: "alta" };
   const [tipo, ...resto] = v.split(":");
   const arg = resto.join(":");
   if (tipo === "dia") {
