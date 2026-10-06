@@ -53,6 +53,11 @@ const VINAGRE = /\bvinagres?\b( de \w+)?/g;
 const normalizeForAlcoholCheck = (s) =>
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(VINAGRE, " ");
 
+/** ¿Este ingrediente es (o lleva) una bebida alcohólica? Vinagre no. */
+export function nombraAlcohol(name) {
+  return ALCOHOL_RE.test(normalizeForAlcoholCheck(String(name ?? "")));
+}
+
 /**
  * Whether a single recipe violates any HARD safety restriction (allergen,
  * non-adaptable intolerance, alcohol-for-kids, baby-category isolation) for a
@@ -435,7 +440,9 @@ export function filterRecipes({
 
   // 6. Required appliance — exclude if user doesn't have the required tool.
   // Static catalog dishes use a single `requiredAppliance` string; user-made
-  // recipes can accept several via `requiredAppliances` (any one unlocks it).
+  // recipes can list several via `requiredAppliances`, and then the dish needs
+  // ALL of them (empieza en la olla y acaba en el horno). Hasta el 6 oct 2026
+  // bastaba con uno, pero nadie guardaba más de uno.
   pool = pool.filter((r) => {
     const required = r.requiredAppliances?.length
       ? r.requiredAppliances
@@ -443,7 +450,7 @@ export function filterRecipes({
         ? [r.requiredAppliance]
         : [];
     if (!required.length) return true;
-    return required.some((a) => toolsLower.has(a.toLowerCase()));
+    return required.every((a) => toolsLower.has(a.toLowerCase()));
   });
 
   // 7. Cook level — deterministic difficulty filter

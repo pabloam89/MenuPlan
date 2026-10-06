@@ -833,8 +833,9 @@ export function payloadDeBorrador(input) {
     allergens: input.allergens?.length ? input.allergens : undefined,
     // Electrodoméstico elegido en el paso "¿Cómo se prepara?" — para que los
     // pasos generados lo tengan en cuenta (ver regla en api/_prompts.js) en
-    // vez de dar por hecho fuego/sartén tradicional.
-    appliance: input.requiredAppliances?.[0] || undefined,
+    // vez de dar por hecho fuego/sartén tradicional. Si son varios, van todos
+    // separados por coma: cada paso usa el que le toque.
+    appliance: input.requiredAppliances?.length ? input.requiredAppliances.join(", ") : undefined,
     preparationNotes: input.preparationNotes || undefined,
   };
 }
