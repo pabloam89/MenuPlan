@@ -1567,7 +1567,7 @@ export default function App() {
       const personalVotes = mergeVotes(localVotes, remoteVotes);
       const mergedVotes = mergeVotes(
         personalVotes,
-        householdFavoritesToVotes(remoteHouseholdFavs),
+        householdFavoritesToVotes(remoteHouseholdFavs, personalVotes),
       );
       setPersonalRecipeVotes(personalVotes);
 
@@ -3902,7 +3902,7 @@ export default function App() {
       const entry = nextVotes[baseId] ?? null;
       if (syncHouseholdId) {
         if (entry == null) deleteHouseholdFavorite(syncHouseholdId, baseId);
-        else saveHouseholdFavorite(syncHouseholdId, baseId, entry.scope);
+        else saveHouseholdFavorite(syncHouseholdId, baseId, entry);
       } else if (entry == null) deleteRecipeVote(user.id, baseId);
       else saveRecipeVote(user.id, baseId, entry);
     }
