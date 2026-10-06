@@ -1198,139 +1198,6 @@ function StepTextPreview({ text }) {
   });
 }
 
-// ── Visibility options ─────────────────────────────────────────────────────
-
-// Dos estados, no tres (0046): publicada o no. La AUDIENCIA de lo publicado
-// la decide tu cuenta -cerrada, tus conexiones; abierta, cualquiera-, asi que
-// preguntarla aqui otra vez, receta a receta, era la tercera escala del
-// sistema y ya sobraba con dos.
-//
-// El copy de "Solo amigos" decia ademas algo que ya no es cierto: hablaba de
-// seguimiento MUTUO, y bajo conexion mutua eso es sencillamente "tus
-// conexiones". 'friends' se queda como valor legacy en las recetas viejas —
-// la RLS lo trata como publicada, igual que 'public'.
-const VISIBILITY_OPTIONS = [
-  {
-    id: "public",
-    art: "/avatares/cards/vis_cualquiera.png",
-    label: "Publicada",
-    sub: "La verán tus conexiones — o cualquiera, si tu cuenta está abierta.",
-    color: "#2d5a3d",
-    bg: "#e6f3ea",
-    border: "#a8d5b5",
-  },
-  {
-    id: "private",
-    art: "/avatares/cards/vis_nadie.png",
-    label: "Solo para mí",
-    sub: "No se publica. Solo tú la ves, en tu recetario.",
-    color: "#5a2d7a",
-    bg: "#f5edfc",
-    border: "#c9a0e8",
-  },
-];
-
-function VisibilitySheet({ onConfirm, onClose }) {
-  const [selected, setSelected] = useState("public");
-
-  // Rendered via a portal (matching every other position:fixed sheet in the
-  // app — CatalogBrowserSheet, MenusScreen, Menu.jsx, ui.jsx's BottomNav):
-  // without it, this was the one overlay left rendering inline inside
-  // RecipePlannerScreen's own tree, so a transform/animation on an ancestor
-  // (e.g. mid-transition) could turn it into position:fixed's containing
-  // block instead of the viewport — the backdrop still covers the screen,
-  // but the white sheet itself renders off-position/invisible.
-  return createPortal(
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 300,
-        background: "rgba(0,0,0,.45)",
-        display: "flex", alignItems: "flex-end", justifyContent: "center",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "#fff", borderRadius: "22px 22px 0 0",
-          width: "100%", maxWidth: 420,
-          padding: "22px 20px calc(28px + env(safe-area-inset-bottom, 0px))",
-          boxSizing: "border-box",
-        }}
-      >
-        {/* Handle */}
-        <div style={{ width: 36, height: 4, background: "#dde5df", borderRadius: 99, margin: "0 auto 18px" }} />
-
-        <p style={{ margin: "0 0 4px", fontSize: 17, fontWeight: 900, color: "#142f1d", textAlign: "center" }}>
-          ¿Publicas esta receta?
-        </p>
-        <p style={{ margin: "0 0 18px", fontSize: 13, color: "#7a9485", textAlign: "center", lineHeight: 1.45 }}>
-          Podrás cambiarlo después desde tu recetario.
-        </p>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 18 }}>
-          {VISIBILITY_OPTIONS.map((opt) => {
-            const active = selected === opt.id;
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => setSelected(opt.id)}
-                style={{
-                  display: "flex", alignItems: "flex-start", gap: 13,
-                  padding: "13px 14px", borderRadius: 14, cursor: "pointer",
-                  fontFamily: "inherit", textAlign: "left",
-                  border: `2px solid ${active ? opt.border : "#eef3f0"}`,
-                  background: active ? opt.bg : "#fafcfa",
-                  transition: "all .15s",
-                }}
-              >
-                {/* Mismas ilustraciones que VisibilityPrompt.jsx (Feed, "¿Quién
-                    te puede encontrar?") — mismo concepto de privacidad, mismos
-                    tres colores ya elegidos para él, sin duplicar el encargo. */}
-                <img src={opt.art} alt="" style={{ width: 36, height: 36, flexShrink: 0, display: "block" }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: "0 0 2px", fontSize: 14, fontWeight: 800, color: active ? opt.color : "#1a3a24" }}>
-                    {opt.label}
-                  </p>
-                  <p style={{ margin: 0, fontSize: 12, color: active ? opt.color : "#7a9485", lineHeight: 1.4, opacity: active ? 0.85 : 1 }}>
-                    {opt.sub}
-                  </p>
-                </div>
-                <div
-                  style={{
-                    width: 20, height: 20, borderRadius: 99, flexShrink: 0, marginTop: 2,
-                    border: `2px solid ${active ? opt.color : "#c8d9ce"}`,
-                    background: active ? opt.color : "#fff",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    transition: "all .15s",
-                  }}
-                >
-                  {active && <Check size={11} color="#fff" strokeWidth={3} />}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => onConfirm(selected)}
-          style={{
-            width: "100%", padding: 13, borderRadius: 13, border: "none",
-            background: "linear-gradient(135deg, #2d5a3d 0%, #4cba6e 100%)",
-            color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer",
-            fontFamily: "inherit",
-          }}
-        >
-          Guardar receta
-        </button>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
 /**
  * Recipe-creation wizard. Collects name/ingredients/time/servings from the
  * user, lets Claude fill in what's missing (macros, allergens, difficulty,
@@ -1383,8 +1250,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   });
   // Eje A decision on the name step: null (undecided) | "new" | "variant".
   const [baseDishDecision, setBaseDishDecision] = useState(null);
-  // Visibility popup shown just before the final save.
-  const [showVisibilitySheet, setShowVisibilitySheet] = useState(false);
 
   const baseDishPool = useMemo(
     () => [...recipeCatalog, ...(userRecipes ?? [])],
@@ -1787,7 +1652,10 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
     }
   };
 
-  const saveRecipe = (visibility = "public") => {
+  // Sin «Gente» todavía, no se pregunta si se publica (se quitó la hoja
+  // «¿Publicas esta receta?"): una receta nueva es solo tuya, y una editada
+  // conserva la visibilidad que tuviera.
+  const saveRecipe = (visibility = isEditing ? editRecipe.visibility ?? "private" : "private") => {
     if (!draft) return;
     // The user may have tweaked the AI's classification at review — the
     // canonical `type` the rest of the app reads is derived from usageTags.
@@ -2282,7 +2150,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
         ) : (
           <button
             type="button"
-            onClick={() => setShowVisibilitySheet(true)}
+            onClick={() => saveRecipe()}
             disabled={aiState !== "done"}
             style={{
               width: "100%", padding: 13, borderRadius: 12, border: "none",
@@ -2298,12 +2166,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
       </div>
       )}
 
-      {showVisibilitySheet && (
-        <VisibilitySheet
-          onClose={() => setShowVisibilitySheet(false)}
-          onConfirm={(vis) => { setShowVisibilitySheet(false); saveRecipe(vis); }}
-        />
-      )}
     </div>
   );
 }
@@ -2402,7 +2264,7 @@ function PhotoStep({ dishName, photo, genState, genError, onGenerate, onRemovePh
               <>
                 <Loader2 size={24} color={GREEN} style={{ animation: "mp-spin 1s linear infinite" }} />
                 <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: GREEN }}>Generando foto con IA…</p>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#7a9485" }}>Tarda alrededor de un minuto.</p>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#7a9485" }}>Tarda unos segundos.</p>
               </>
             ) : (
               <>
