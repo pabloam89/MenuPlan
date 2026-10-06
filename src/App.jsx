@@ -1,4 +1,4 @@
-import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola } from "./lib/frontalBot.js";
+import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola, avisarAltaALola } from "./lib/frontalBot.js";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
@@ -4136,6 +4136,16 @@ export default function App() {
       handleOpenCatalogRecipe(receta);
       return;
     }
+    // «Prefiero rellenarlo en la app» (saludo de Lola): el alta de la app,
+    // directa, sin pasar por el splash. Si la familia ya está (otro toque al
+    // mismo botón, o ya se lo contó a Lola), a Inicio.
+    if (d.pantalla === "alta") {
+      if ((data.members?.length ?? 0) > 0) return fwd(() => setScreen("dashboard"));
+      setFirstRunOnboarding(true);
+      setOnbStep(1);
+      fwd(() => setScreen("onboarding"));
+      return;
+    }
     if (d.pantalla === "menu") setMenuInicio({ vista: d.vista, dia: d.dia ?? null, clave: Date.now() });
     if (d.pantalla === "recipes") setRecetasInicio({ categoria: d.categoria ?? null, mias: Boolean(d.mias), clave: Date.now() });
     fwd(() => setScreen(d.pantalla));
@@ -5816,6 +5826,8 @@ export default function App() {
                 trackEvent(user, EMBUDO.CIMIENTOS, PANTALLA_EMBUDO, { canal: "app" });
                 setFirstRunOnboarding(false);
                 fwd(() => goToMenu("dashboard"));
+                // Si venía de Lola, que ella lo diga en su chat.
+                if (user) avisarAltaALola();
               }
             : nextOf(2)
       }

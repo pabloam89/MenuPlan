@@ -6,6 +6,7 @@
  * y otro para meterlo en un grupo. Al pulsarlo, Telegram le manda al bot
  * `/start <código>` y el webhook (api/bot/telegram.js) enlaza ese chat con la
  * casa. Con GET, solo si esta persona ya está conectada (el botón de Inicio).
+ * Con `{ aviso: "alta" }`, que Lola diga en su chat que el alta se hizo en la app.
  *
  * Cualquiera de la casa conecta su privado: titular, cotitular o lector (Lola
  * mira su papel en cada mensaje, api/_bot/papel.js). El enlace de grupo, solo
@@ -14,10 +15,12 @@
 
 import crypto from "node:crypto";
 import { select, insert, usuarioDeToken, eq } from "../_bot/db.js";
-import { nombreDelBot } from "../_bot/telegram.js";
+import { nombreDelBot, enviar, TECLADO } from "../_bot/telegram.js";
+import { recordar } from "../_bot/rapido.js";
 import { puede } from "../../src/lib/papeles.js";
 
 const VALIDEZ_MS = 15 * 60 * 1000;
+export const AVISO_ALTA = "¡Listo, ya os tengo! 🙌 Vuestro menú de la semana se está preparando en la app.\n\nDesde aquí me puedes pedir lo que quieras: «¿qué comemos hoy?», «cambia la cena del jueves» o «apunta leche».";
 
 export default async function handler(req, res) {
   if (req.method !== "POST" && req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
@@ -46,6 +49,19 @@ export default async function handler(req, res) {
 
     const [miembro] = await select("household_members", `household_id=${eq(householdId)}&user_id=${eq(user.id)}`, "role");
     if (!miembro) return res.status(403).json({ error: "No eres de esta casa." });
+
+    // `{ aviso: "alta" }`: acabó el alta en la app tras pulsar «Prefiero
+    // rellenarlo en la app» en el saludo de Lola. Ella lo dice en su chat (si
+    // no, allí seguiría su «¿quiénes coméis?» sin contestar) y lo apunta en su
+    // memoria, para no volver a preguntarlo.
+    if (req.body?.aviso === "alta") {
+      const chats = await select("bot_chats", `household_id=${eq(householdId)}&kind=eq.private&linked_by=${eq(user.id)}`, "chat_id");
+      await Promise.all(chats.map(async ({ chat_id }) => {
+        await enviar(chat_id, AVISO_ALTA, { teclado: TECLADO });
+        await recordar({ chatId: chat_id, householdId, pregunta: "(He rellenado en la app quiénes comemos y las alergias.)", respuesta: AVISO_ALTA });
+      }));
+      return res.status(200).json({ avisados: chats.length });
+    }
 
     // 16 bytes en base64url: cabe en el límite de 64 caracteres de /start.
     const token = crypto.randomBytes(16).toString("base64url");

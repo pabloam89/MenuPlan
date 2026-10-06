@@ -2,6 +2,10 @@ import { describe, it, expect } from "vitest";
 import { interpretarDestino } from "./destinoBot.js";
 
 describe("interpretarDestino", () => {
+  it("alta: el alta de la app, para quien eligió rellenarlo allí", () => {
+    expect(interpretarDestino("alta")).toEqual({ pantalla: "alta" });
+  });
+
   it("hoy, semana y compra", () => {
     expect(interpretarDestino("hoy")).toEqual({ pantalla: "menu", vista: "dia", dia: null });
     expect(interpretarDestino("semana")).toEqual({ pantalla: "menu", vista: "semana" });

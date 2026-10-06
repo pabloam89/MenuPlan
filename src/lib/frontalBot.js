@@ -57,6 +57,25 @@ export async function abrirLola(pedido = null) {
 }
 
 /**
+ * Acabó el alta en la app: que Lola lo diga en su chat, si hay uno (quien
+ * eligió «Prefiero rellenarlo en la app» lo tiene esperando). Sin chat, el
+ * servidor no hace nada. Suelto: si falla, el alta ya está hecha igual.
+ */
+export async function avisarAltaALola() {
+  try {
+    const token = (await supabase?.auth.getSession())?.data?.session?.access_token;
+    if (!token) return;
+    await fetch("/api/bot/link", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ aviso: "alta" }),
+    });
+  } catch {
+    // Sin red: Lola lo verá en la casa la próxima vez que le escriban.
+  }
+}
+
+/**
  * ¿Esta persona ya habla con Lola en Telegram? true, false, o null si no se
  * sabe (sin sesión o sin red): quien pinta el botón decide qué hacer con null.
  */

@@ -1156,14 +1156,18 @@ function datoDeBoton(o) {
 // Empieza por lo que ofrece, no por la cuenta: quien escribe «somos cuatro»
 // ya está dando el alta. A quien ya conocemos por su Telegram ni se le
 // pregunta (reconocer); uno que nunca se ha conectado es nuevo casi siempre, y
-// quien ya usa la app entra por Ajustes → Conectar Telegram (o escribe aquí su
+// quien ya usa la app entra por «Conecta con Lola» en Inicio (o escribe aquí su
 // email: pedirAcceso lo sigue atendiendo, sin botón que lo anuncie).
+// A quien prefiere tocar a escribir, un botón secundario: el alta de la app
+// (altaEnLaApp). El texto sigue invitando a escribir; el botón es la otra vía.
 function bienvenida(chatId) {
   return enviar(chatId, [
     "¡Hola! Soy <b>Lola</b> 👩‍🍳 Te preparo el menú de la semana y la lista de la compra, y te lo cambio cuando quieras.",
     "Para empezar, cuéntame <b>quiénes coméis en casa</b> (y la edad de los peques). Escríbemelo o mándame un audio 🎙️",
     "<i>Lo que me cuentes solo sirve para vuestro menú; no se lo paso a nadie.</i>",
-  ].join("\n\n"));
+  ].join("\n\n"), {
+    botones: [[{ texto: "Prefiero rellenarlo en la app", dato: "alta:app" }]],
+  });
 }
 
 async function pulsado(cq, base, host = "") {
@@ -1221,6 +1225,13 @@ async function pulsado(cq, base, host = "") {
   }
 
   if (esGrupoDe(cq.message.chat)) return;
+  // Antes que el «ya está conectado»: pulsarlo otra vez (el enlace caducó) da
+  // otro enlace. Solo en el privado de quien pulsa: la cuenta es la suya. Y
+  // con el chat ya enlazado a una cuenta de la app (Google, email), no: se le
+  // crearía otra.
+  if (cq.data === "alta:app" && chatId === idDePersona(cq.from) && (!chat || await cuentaNacidaAqui(cq.from.id))) {
+    return altaEnLaApp(cq.from, chatId, base);
+  }
   if (chat) return enviar(chatId, "Este chat ya está conectado a tu casa. Escríbeme cuando quieras.");
 
   if (cq.data === "cuenta:si") {
@@ -1318,12 +1329,12 @@ async function comprobarCodigo(msg, chatId, token) {
 }
 
 /**
- * @param {{ texto?: string, msg?: object, base?: string }} [primero]  lo primero que escribió
- *   (o el audio / la foto): se atiende como parte del alta, sin hacerle repetir.
+ * La cuenta nacida en este Telegram (la crea si no la hay), con su casa
+ * sembrada y este chat enlazado. Si este Telegram ya creó su cuenta, no se
+ * crea otra; y siempre su casa PROPIA, nunca la activa (podría ser una ajena
+ * en la que es invitado).
  */
-async function crearCuenta(from, chatId, primero = {}) {
-  // Si este Telegram ya creó su cuenta, no se crea otra; y siempre su casa
-  // PROPIA, nunca la activa (podría ser una ajena en la que es invitado).
+async function cuentaYChat(from, chatId) {
   const nacida = await cuentaNacidaAqui(from.id);
   const cuenta = nacida
     ? { userId: nacida.id, householdId: (await casaPropia(nacida.id))?.id }
@@ -1340,11 +1351,33 @@ async function crearCuenta(from, chatId, primero = {}) {
     lang: from.language_code,
     identidad: "nacida",
   });
+  await sembrarCasa(cuenta.householdId);
+  return cuenta;
+}
+
+/**
+ * «Prefiero rellenarlo en la app»: la cuenta, y un enlace que entra ya dentro
+ * (la llave de /app) directo al alta de la app (`ir=alta`, destinoBot.js). Al
+ * acabarla, la app avisa y Lola lo dice aquí (api/bot/link.js).
+ */
+async function altaEnLaApp(from, chatId, base) {
+  const cuenta = await cuentaYChat(from, chatId);
+  const codigo = await crearCodigo({ tipo: "entrar", chatId, externalId: from.id, userId: cuenta.userId, minutos: MIN_ENTRAR });
+  return enviar(chatId, "¡Genial! Ábrelo aquí y cuéntame quiénes sois desde la app. Cuando acabes, te espero aquí 🙂\n\n<i>El enlace sirve una vez y caduca en 30 minutos.</i>", {
+    botones: [[{ texto: "📱 Rellenar en la app", url: `${base}/?entrar=${codigo}&ir=alta` }]],
+  });
+}
+
+/**
+ * @param {{ texto?: string, msg?: object, base?: string }} [primero]  lo primero que escribió
+ *   (o el audio / la foto): se atiende como parte del alta, sin hacerle repetir.
+ */
+async function crearCuenta(from, chatId, primero = {}) {
+  const cuenta = await cuentaYChat(from, chatId);
 
   // El alta sigue aquí mismo, hablando: el agente pregunta lo imprescindible
   // (quiénes, alergias, qué comidas) y propone el primer menú. La app queda
   // para ver, con /app cuando se quiera.
-  await sembrarCasa(cuenta.householdId);
   let texto = primero.texto ?? null;
   let oido = null;
   let adjunto = null;

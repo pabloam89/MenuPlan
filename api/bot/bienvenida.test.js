@@ -1,7 +1,8 @@
 /**
  * /start en un privado sin enlazar (api/bot/telegram.js): a un Telegram que ya
  * es una cuenta se le reengancha a su casa sin preguntarle si es su primera
- * vez; a uno que no conocemos, el saludo de alta con «Ya uso HoMenu».
+ * vez; a uno que no conocemos, el saludo de alta, con «Prefiero rellenarlo en
+ * la app» de botón.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -45,8 +46,18 @@ vi.mock("../_bot/borrar.js", () => ({ puedeBorrar: () => false, borrarCuenta: vi
 vi.mock("../_bot/cuentas.js", () => ({ enviarAcceso: vi.fn(), verificarCodigoEmail: vi.fn(), crearCuentaTelegram: vi.fn(), cuentaNacidaAqui: vi.fn() }));
 
 const { default: handler } = await import("./telegram.js");
-const { enlazarChat } = await import("../_bot/enlace.js");
-const { crearCuentaTelegram } = await import("../_bot/cuentas.js");
+const { enlazarChat, crearCodigo } = await import("../_bot/enlace.js");
+const { crearCuentaTelegram, cuentaNacidaAqui } = await import("../_bot/cuentas.js");
+
+async function pulsa(dato, { chat = 7, from = 7 } = {}) {
+  const res = { status: () => res, json: () => res, end: () => res };
+  await handler({
+    method: "POST",
+    headers: { "x-telegram-bot-api-secret-token": "secreto" },
+    body: { callback_query: { id: "q", data: dato, from: { id: from, first_name: "Ana" }, message: { message_id: 2, chat: { id: chat, type: "private" } } } },
+  }, res);
+  await Promise.all(t.trabajo);
+}
 
 async function escribe(texto, { chat = 7, from = 7 } = {}) {
   const res = { status: () => res, json: () => res, end: () => res };
@@ -64,11 +75,11 @@ beforeEach(() => {
 });
 
 describe("/start en un privado sin enlazar", () => {
-  it("un Telegram que no conocemos: el alta, sin preguntar por cuentas", async () => {
+  it("un Telegram que no conocemos: el alta, sin preguntar por cuentas; rellenarlo en la app, de botón", async () => {
     await escribe("/start");
     expect(t.enviados).toHaveLength(1);
     expect(t.enviados[0].texto).toContain("quiénes coméis en casa");
-    expect(t.enviados[0].opciones?.botones).toBeUndefined();
+    expect(t.enviados[0].opciones.botones.flat()).toEqual([{ texto: "Prefiero rellenarlo en la app", dato: "alta:app" }]);
     expect(enlazarChat).not.toHaveBeenCalled();
   });
 
@@ -104,5 +115,36 @@ describe("/start en un privado sin enlazar", () => {
     t.tablas = { bot_identities: [{ user_id: "u1" }], household_members: [{ household_id: "h1" }] };
     await escribe("/start", { chat: 99, from: 7 });
     expect(enlazarChat).not.toHaveBeenCalled();
+  });
+});
+
+describe("«Prefiero rellenarlo en la app»", () => {
+  it("crea la cuenta y manda un enlace que entra ya dentro, directo al alta de la app", async () => {
+    crearCuentaTelegram.mockResolvedValueOnce({ userId: "n1", householdId: "hn" });
+    crearCodigo.mockResolvedValueOnce("COD");
+    await pulsa("alta:app");
+    expect(crearCuentaTelegram).toHaveBeenCalledTimes(1);
+    expect(enlazarChat).toHaveBeenCalledWith(expect.objectContaining({ chatId: "7", householdId: "hn", userId: "n1", identidad: "nacida" }));
+    const boton = t.enviados.at(-1).opciones.botones.flat()[0];
+    expect(boton.url).toBe("https://x/?entrar=COD&ir=alta");
+  });
+
+  it("con el chat ya enlazado a una cuenta de la app (no nacida aquí), no se crea otra", async () => {
+    t.tablas = { bot_chats: [{ household_id: "h1" }] };
+    await pulsa("alta:app");
+    expect(crearCuentaTelegram).not.toHaveBeenCalled();
+    expect(t.enviados.at(-1).texto).toContain("ya está conectado");
+  });
+
+  it("su cuenta ya nació aquí (el enlace caducó y lo pulsa otra vez): otro enlace, la misma cuenta", async () => {
+    t.tablas = { bot_chats: [{ household_id: "hn" }] };
+    cuentaNacidaAqui.mockResolvedValue({ id: "n1" });
+    const { casaPropia } = await import("../_bot/enlace.js");
+    casaPropia.mockResolvedValueOnce({ id: "hn" });
+    crearCodigo.mockResolvedValueOnce("COD2");
+    await pulsa("alta:app");
+    cuentaNacidaAqui.mockReset();
+    expect(crearCuentaTelegram).not.toHaveBeenCalled();
+    expect(t.enviados.at(-1).opciones.botones.flat()[0].url).toBe("https://x/?entrar=COD2&ir=alta");
   });
 });
