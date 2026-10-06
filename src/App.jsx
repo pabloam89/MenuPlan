@@ -2632,7 +2632,9 @@ export default function App() {
 
   // `destino`: el fin del alta deja en Inicio (el menú se genera igual, por
   // detrás, y el «Hoy toca» se rellena al llegar); el resto, al Menú.
-  const goToMenu = async (destino = "menu") => {
+  // `generar: false`: el alta que vino de Lola. El menú se le pide a ella
+  // (lo ofrece en su chat), no sale solo sin esperarlo.
+  const goToMenu = async (destino = "menu", { generar = true } = {}) => {
     // Hard gate: no menu without at least one family member. The family step's
     // "Siguiente" is already blocked, but the progress-dot jump skips it (and any
     // later step's "Generar menú" would otherwise reach the planner), so the AI
@@ -2655,7 +2657,7 @@ export default function App() {
         onboarding_step_max: onbStep,
       });
     }
-    await regenerateMenu();
+    if (generar) await regenerateMenu();
   };
 
   const goToDashboard = useCallback(() => fwd(() => setScreen("dashboard")), []);
@@ -4114,6 +4116,8 @@ export default function App() {
     setScreen("splash");
     showToast("Entra con tu cuenta para ver lo que te ha preparado Lola");
   }, [destinoBot, authLoading, user, showToast, conLlave, esperaVencida]);
+  // El alta en curso la abrió «Prefiero rellenarlo en la app» de Lola.
+  const altaDesdeLolaRef = useRef(false);
   useEffect(() => {
     if (!destinoBot || authLoading) return;
     // Sin cuenta, nada: el aviso de arriba pide entrar y el destino espera.
@@ -4141,6 +4145,7 @@ export default function App() {
     // mismo botón, o ya se lo contó a Lola), a Inicio.
     if (d.pantalla === "alta") {
       if ((data.members?.length ?? 0) > 0) return fwd(() => setScreen("dashboard"));
+      altaDesdeLolaRef.current = true;
       setFirstRunOnboarding(true);
       setOnbStep(1);
       fwd(() => setScreen("onboarding"));
@@ -5812,8 +5817,8 @@ export default function App() {
       setData={setData}
       // Fin del alta: perfil listo (quién come + qué evitáis) y a Inicio
       // (Pablo, 6 oct 2026: antes iba al Menú). Genera con los valores por
-      // defecto, igual que «Genera el menú ya» del selector; el resto del
-      // asistente queda para afinar después, en Ajustes.
+      // defecto, igual que «Genera el menú ya» del selector, salvo si vino
+      // de Lola; el resto del asistente queda para afinar después, en Ajustes.
       onNext={
         editPreferencesOrigin
           ? undefined
@@ -5825,9 +5830,12 @@ export default function App() {
                 });
                 trackEvent(user, EMBUDO.CIMIENTOS, PANTALLA_EMBUDO, { canal: "app" });
                 setFirstRunOnboarding(false);
-                fwd(() => goToMenu("dashboard"));
-                // Si venía de Lola, que ella lo diga en su chat.
-                if (user) avisarAltaALola();
+                // Si venía de Lola, sin menú: ella lo ofrece en su chat al
+                // enterarse (avisarAltaALola), y se pide cuando se quiera.
+                const desdeLola = altaDesdeLolaRef.current;
+                altaDesdeLolaRef.current = false;
+                fwd(() => goToMenu("dashboard", { generar: !desdeLola }));
+                if (user && desdeLola) avisarAltaALola();
               }
             : nextOf(2)
       }

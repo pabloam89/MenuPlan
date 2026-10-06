@@ -6,6 +6,9 @@
  * de enlace mágico y abre sesión con `supabase.auth.verifyOtp`. Ningún correo
  * sale: el enlace mágico se genera en el servidor y se usa en el acto.
  *
+ * Con un código `alta` (el saludo de Lola), la cuenta aún no existe y se crea
+ * aquí mismo, atada al Telegram que lo pidió.
+ *
  * Sin sesión a propósito (es justo lo que viene a conseguir): lo que protege es
  * el código, 128 bits, de un solo uso y caducidad corta, más el límite de ritmo.
  */
@@ -14,6 +17,7 @@ import { rateLimit } from "../_guard.js";
 import { config } from "../_bot/db.js";
 import { gastarCodigo } from "../_bot/enlace.js";
 import { tokenHashDe, emailSintetico } from "../_bot/cuentas.js";
+import { cuentaYChat, esDeOtraCuenta } from "../_bot/altaTelegram.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -21,8 +25,22 @@ export default async function handler(req, res) {
   if (!ok) return res.status(429).json({ error: "Demasiados intentos. Espera unos minutos." });
 
   try {
-    const fila = await gastarCodigo(req.body?.codigo, "entrar");
-    if (!fila) return res.status(410).json({ error: "Este enlace ya no vale. Pídele otro al bot con /app." });
+    let fila = await gastarCodigo(req.body?.codigo, "entrar");
+    // `alta` (0084): el botón «Prefiero rellenarlo en la app» del saludo. Aún
+    // no hay cuenta: se crea aquí, la del Telegram que lo pidió, con su chat.
+    if (!fila) {
+      const alta = await gastarCodigo(req.body?.codigo, "alta");
+      if (alta?.external_id) {
+        // Su Telegram ya es una cuenta de la app (Google, email): no se le crea
+        // otra, que pisaría su identidad.
+        if (await esDeOtraCuenta(alta.external_id)) {
+          return res.status(403).json({ error: "Tu Telegram ya está conectado a tu cuenta de HoMenu: entra con Google o con tu email." });
+        }
+        const cuenta = await cuentaYChat({ telegramId: alta.external_id, chatId: alta.chat_id, nombre: alta.nombre });
+        fila = { ...alta, user_id: cuenta.userId };
+      }
+    }
+    if (!fila) return res.status(410).json({ error: "Este enlace ya no vale. Vuelve a Telegram y pídele otro a Lola." });
 
     const { url, headers } = config();
     const u = await fetch(`${url}/auth/v1/admin/users/${fila.user_id}`, { headers }).then((r) => r.json());
