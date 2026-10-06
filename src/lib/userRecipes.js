@@ -9,6 +9,7 @@ import { computeRecipeNutrition, deriveRecipeAllergens } from "./ingredients.js"
 import { StepRichSchema, isMontaje } from "../data/recipeSchema.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { lowerFirst } from "./dishNaming.js";
+import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
 import guarnicionesData from "../data/recipes/guarniciones.json" with { type: "json" };
 
 /** Los nombres por ración de los 24 micronutrientes (src/data/nutrientes.js). */
@@ -33,14 +34,8 @@ export { QUALITATIVE_INGREDIENT_UNITS, isQualitativeUnit };
 // Leaving all unchecked means "no special tool", so the dish is never
 // excluded by a household's available equipment. Several can be checked
 // at once (e.g. oven or airfryer both work) — any one unlocks the dish.
-export const COOKING_METHODS = [
-  { id: "Horno", label: "Horno" },
-  { id: "Airfryer", label: "Airfryer" },
-  { id: "Thermomix", label: "Thermomix" },
-  { id: "Olla rápida", label: "Olla rápida" },
-  { id: "Microondas", label: "Microondas" },
-  { id: "Vaporera", label: "Vaporera" },
-];
+// Los nombres salen de electrodomesticos.js, el vocabulario del CHECK de 0086.
+export const COOKING_METHODS = KITCHEN_TOOL_IDS.map((id) => ({ id, label: id }));
 
 // A hand-picked starting point per aisle so the ingredient step never starts
 // from a blank page — especially fruit and veg, which are under-represented
@@ -214,7 +209,8 @@ export const USAGE_TAGS = [
   { id: "guarnicion", label: "Guarnición", hint: "Acompaña a otro plato" },
 ];
 
-const USAGE_TAG_IDS = USAGE_TAGS.map((t) => t.id);
+/** Los ids, que son también el vocabulario cerrado de user_recipes.usage_tags (CHECK de 0086). */
+export const USAGE_TAG_IDS = USAGE_TAGS.map((t) => t.id);
 
 /**
  * Collapses the multi-select usage tags into the single legacy `type` value
@@ -691,7 +687,7 @@ export const UserRecipeDraftSchema = z.object({
   mealRole: z.array(z.enum(["primero", "segundo", "plato_unico", "cena", "guarnicion", "merienda", "postre"])).min(1),
   // How the dish can be served — multi-select. `type` (below) is derived from
   // this and kept in sync for backward compatibility with the rest of the app.
-  usageTags: z.array(z.enum(["plato_unico", "plato_normal", "guarnicion"])).min(1),
+  usageTags: z.array(z.enum(USAGE_TAG_IDS)).min(1),
   type: z.enum(["completo", "principal", "guarnicion"]),
   // Fase 6: mismo criterio y mismo patrón que usageTags — propuesto por la IA
   // mirando la receta, nunca preguntado al usuario. No es un juicio ex-ante
