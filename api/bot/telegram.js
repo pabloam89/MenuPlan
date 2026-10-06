@@ -212,7 +212,20 @@ async function atender(msg, base, host = "") {
     });
   }
 
-  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+  let [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+
+  // Un Telegram que ya es una cuenta (bot_identities) no vuelve a pasar por el
+  // alta: se reengancha a su casa. Si no, «somos cuatro» le crearía otra cuenta
+  // nacida aquí que pisaría su identidad (enlace.js, apuntarIdentidad).
+  if (!chat && !esGrupo) {
+    const vuelve = await reconocer(msg.from, chatId).catch(() => null);
+    if (vuelve?.varias) return enviar(chatId, "¡Hola de nuevo! Llevas más de una casa en HoMenu: conecta la que quieras desde la app, en Ajustes → Conectar Telegram.");
+    if (vuelve) {
+      chat = { household_id: vuelve.householdId };
+      // /start (o nada que leer) es un saludo; lo demás, /app incluido, se atiende ya.
+      if (start || (!texto && !(msg.voice || msg.audio || msg.photo || msg.document))) return holaDeNuevo(chatId, vuelve.householdId);
+    }
+  }
 
   if (/^\/app(?:@\w+)?$/.test(texto)) return abrirApp(msg, chatId, esGrupo, base);
 
@@ -1023,6 +1036,38 @@ async function casaQueLleva(from) {
   return casas.length === 1 ? { householdId: casas[0], userId: ident.user_id } : null;
 }
 
+/**
+ * Quien abre el privado y su Telegram ya es una cuenta: se enlaza este chat a
+ * la casa que lleva, sin preguntar si es su primera vez. Solo en SU privado
+ * (en Telegram el id del chat privado es el de la persona); la identidad ya
+ * tuvo su prueba, así que aquí solo se enlaza el chat (identidad: null).
+ * Sin identidad, null: quien llega de fuera es nuevo casi siempre, y quien
+ * ya usa la app tiene el botón «Ya uso HoMenu».
+ */
+async function reconocer(from, chatId) {
+  const ext = idDePersona(from);
+  if (!ext || ext !== String(chatId)) return null;
+  const [ident] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(ext)}`, "user_id");
+  if (!ident?.user_id) return null;
+  const filas = await select("household_members", `user_id=${eq(ident.user_id)}&role=in.(owner,editor)`, "household_id");
+  const casas = [...new Set(filas.map((f) => f.household_id))];
+  if (casas.length > 1) return { varias: true };
+  // Sin casa que lleve (solo lectora, o se quedó sin ella): el alta de siempre.
+  if (!casas.length) return null;
+  const casa = { householdId: casas[0], userId: ident.user_id };
+  const r = await enlazarChat({
+    chatId, kind: "private", householdId: casa.householdId, userId: casa.userId,
+    externalId: ext, nombre: nombreDe(from), lang: from?.language_code, identidad: null,
+  });
+  return r.ok ? casa : null;
+}
+
+async function holaDeNuevo(chatId, householdId) {
+  const [hogar] = await select("households", `id=${eq(householdId)}`, "name");
+  const casa = hogar?.name ? ` Sigo con <b>${escaparHtml(hogar.name)}</b>, como lo dejamos.` : "";
+  return enviar(chatId, `¡Hola de nuevo! 👋${casa} Escríbeme o mándame un audio cuando quieras.`, { teclado: TECLADO });
+}
+
 async function grupoSinCasa(msg, chatId) {
   const casa = await casaQueLleva(msg.from).catch(() => null);
   if (casa) {
@@ -1104,18 +1149,16 @@ function datoDeBoton(o) {
 }
 
 // Empieza por lo que ofrece, no por la cuenta: quien escribe «somos cuatro»
-// ya está dando el alta. La cuenta de la app es un botón para quien ya la usa.
+// ya está dando el alta. A quien ya conocemos por su Telegram ni se le
+// pregunta (reconocer); uno que nunca se ha conectado es nuevo casi siempre, y
+// quien ya usa la app entra por Ajustes → Conectar Telegram (o escribe aquí su
+// email: pedirAcceso lo sigue atendiendo, sin botón que lo anuncie).
 function bienvenida(chatId) {
   return enviar(chatId, [
     "¡Hola! Soy <b>Lola</b> 👩‍🍳 Te preparo el menú de la semana y la lista de la compra, y te lo cambio cuando quieras.",
     "Para empezar, cuéntame <b>quiénes coméis en casa</b> (y la edad de los peques). Escríbemelo o mándame un audio 🎙️",
     "<i>Lo que me cuentes solo sirve para vuestro menú; no se lo paso a nadie.</i>",
-  ].join("\n\n"), {
-    botones: [[
-      { texto: "Es mi primera vez", dato: "cuenta:nuevo:ok" },
-      { texto: "Ya uso HoMenu", dato: "cuenta:si" },
-    ]],
-  });
+  ].join("\n\n"));
 }
 
 async function pulsado(cq, base, host = "") {

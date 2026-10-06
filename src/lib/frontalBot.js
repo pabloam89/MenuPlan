@@ -26,7 +26,7 @@ export const BOT_URL = "https://t.me/homenuers_bot";
 /**
  * Abre Telegram con Lola. Con sesión, el enlace lleva un código de un solo
  * uso (api/bot/link) que conecta ese chat con esta casa; sin sesión, el bot a
- * secas, que ya pregunta «¿ya usas HoMenu?».
+ * secas, que da el alta (o reconoce a quien ya se conectó desde ese Telegram).
  *
  * `pedido` (src/lib/pedidoLola.js): lo que se le pide desde ese sitio
  * («cambia la cena del viernes»). Va en el mismo /start y Lola lo atiende
