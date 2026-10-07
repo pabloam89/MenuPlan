@@ -220,6 +220,11 @@ export async function prepararRecetas(casa) {
  * generar.js ya los guarda (30 sep 2026). Para las casas de antes se rehacen
  * aquí, en memoria: los mismos grupos del modelo, con los ids del plan por
  * orden (el plan los crea en ese mismo orden). Solo si cuadran en número.
+ *
+ * Desde oct 2026 los grupos conservan su id al rehacerse (conservarIds,
+ * lib/groups.js), así que esto ya no hace falta para lo nuevo: solo para los
+ * menús guardados antes. Quitarlo cuando no quede ninguna semana viva generada
+ * antes del 30 sep 2026 con grupos que la casa no conoce.
  */
 function repararGrupos(m, casa) {
   const data = casa.state?.data;

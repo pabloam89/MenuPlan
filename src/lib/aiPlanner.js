@@ -1,6 +1,6 @@
 import { etapasServibles } from "./babyStage.js";
 import { z } from "zod";
-import { isBabyMenuGroup, membersOfGroup, resolveMemberAge } from "./groups.js";
+import { isBabyMenuGroup, membersOfGroup, resolveMemberAge, tipoDeGrupo } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { basesPedidas } from "./bases.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
@@ -526,8 +526,8 @@ export function buildGroupContext(data, group) {
   // Kid dinner = adults' lunch: adults' comida must avoid school proteins/carbs
   // from household kids; kids' cena slots are skipped and filled after Adultos.
   const linkKidDinner = Boolean(data.kidDinnerMatchesAdultLunch);
-  const isAdultsGroup = group.label === "Adultos";
-  const isKidsGroup = group.label === "Niños";
+  const isAdultsGroup = tipoDeGrupo(group) === "adultos";
+  const isKidsGroup = tipoDeGrupo(group) === "ninos";
   const schoolSourceMembers =
     linkKidDinner && isAdultsGroup
       ? (data.members ?? []).filter((m) => stageForAge(resolveMemberAge(m)).id !== "adulto")
@@ -760,7 +760,7 @@ export function buildGroupContext(data, group) {
       // "preferred" (default) | "only" (solo mías) | "catalog" (solo catálogo).
       recipeMode: data.recipeMode ?? "preferred",
       // Favorites that apply to THIS group (scope "all" or this group's label).
-      favoriteIds: favoriteIdsForGroup(data.recipeVotes, group.label),
+      favoriteIds: favoriteIdsForGroup(data.recipeVotes, group),
       // Cocinas extranjeras pedidas desde la fila de mandos del menú. Vista
       // proyectada de la libreta (ver useWizardMenu), no la libreta: aquí es un
       // mapa cocina → platos por semana. `undefined` para quien nunca lo ha
@@ -2353,8 +2353,8 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // SOLO los huecos propios del niño — los copiados son la comida de la
   // familia y no se tocan. Sin serializar los grupos: siguen en paralelo.
   if (householdKidPolicy(data)) {
-    const adultsRes = results.find((r) => r.group.label === "Adultos");
-    const kidsRes = results.find((r) => r.group.label === "Niños");
+    const adultsRes = results.find((r) => tipoDeGrupo(r.group) === "adultos");
+    const kidsRes = results.find((r) => tipoDeGrupo(r.group) === "ninos");
     if (adultsRes && kidsRes) validarNinosConCopias(data, adultsRes, kidsRes);
   }
 
@@ -2506,8 +2506,8 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // qué hueco copia de qué; aquí solo materializamos la copia.
   const kidsPolicy = householdKidPolicy(data);
   if (kidsPolicy) {
-    const adults = activeGroups.find((g) => g.label === "Adultos");
-    const kids = activeGroups.find((g) => g.label === "Niños");
+    const adults = activeGroups.find((g) => tipoDeGrupo(g) === "adultos");
+    const kids = activeGroups.find((g) => tipoDeGrupo(g) === "ninos");
     if (adults && kids) {
       const kidsMembers = membersOfGroup(kids, data.members);
       // Clona un plato del menú de los adultos al espacio de nombres de los

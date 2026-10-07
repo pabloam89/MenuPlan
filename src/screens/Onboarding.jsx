@@ -1535,12 +1535,14 @@ function FamilyMenuModelSection({ data, setData }) {
   const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [draftGroups, setDraftGroups] = useState(null);
 
-  const buildGroups = (members, modelId) =>
+  // `viejos`: los grupos de ahora; los rehechos heredan sus ids (conservarIds).
+  const buildGroups = (members, modelId, viejos) =>
     migrateGroupsForBabies(
       members.map((m) => ({ ...m, age: memberAge(m) })),
       groupsFromModel(
         members.map((m) => ({ ...m, age: memberAge(m) })),
-        modelId
+        modelId,
+        viejos
       ),
       modelId
     );
@@ -1549,14 +1551,14 @@ function FamilyMenuModelSection({ data, setData }) {
     if (modelId === "same") {
       setDraftGroups(null);
       setAssignmentOpen(false);
-      setData((d) => ({ ...d, menuModel: "same", groups: buildGroups(d.members, "same") }));
+      setData((d) => ({ ...d, menuModel: "same", groups: buildGroups(d.members, "same", d.groups) }));
       return;
     }
     const reuseExisting =
       data.menuModel === "separate" && Array.isArray(data.groups) && data.groups.length > 0;
     const groups = reuseExisting
       ? reconcileTierGroups(data.members, data.groups)
-      : buildGroups(data.members, "separate");
+      : buildGroups(data.members, "separate", data.groups);
 
     if (groups.length > 1) {
       setDraftGroups(groups);
@@ -3754,12 +3756,14 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
   const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [draftGroups, setDraftGroups] = useState(null);
 
-  const buildGroups = (members, modelId) =>
+  // `viejos`: los grupos de ahora; los rehechos heredan sus ids (conservarIds).
+  const buildGroups = (members, modelId, viejos) =>
     migrateGroupsForBabies(
       members.map((m) => ({ ...m, age: memberAge(m) })),
       groupsFromModel(
         members.map((m) => ({ ...m, age: memberAge(m) })),
-        modelId
+        modelId,
+        viejos
       ),
       modelId
     );
@@ -3771,7 +3775,7 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
     if (modelId === "same") {
       setDraftGroups(null);
       setAssignmentOpen(false);
-      setData((d) => ({ ...d, menuModel: "same", groups: buildGroups(d.members, "same") }));
+      setData((d) => ({ ...d, menuModel: "same", groups: buildGroups(d.members, "same", d.groups) }));
       return;
     }
 
@@ -3782,7 +3786,7 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
       data.menuModel === "separate" && Array.isArray(data.groups) && data.groups.length > 0;
     const groups = reuseExisting
       ? reconcileTierGroups(data.members, data.groups)
-      : buildGroups(data.members, "separate");
+      : buildGroups(data.members, "separate", data.groups);
 
     if (needsAssignmentPopup(groups, "separate")) {
       setDraftGroups(groups);
@@ -4219,7 +4223,7 @@ export function OnboardingKidsDinner({ data, setData, onNext, onBack, onFinish, 
       if (model) {
         const withAge = (next.members ?? []).map((m) => ({ ...m, age: memberAge(m) }));
         next.menuModel = model;
-        next.groups = migrateGroupsForBabies(withAge, groupsFromModel(withAge, model), model);
+        next.groups = migrateGroupsForBabies(withAge, groupsFromModel(withAge, model, d.groups), model);
       }
       return next;
     });

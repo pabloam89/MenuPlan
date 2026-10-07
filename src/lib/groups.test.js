@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { reconcileTierGroups, reconcileGroupsWithMembers, migrateGroupsForBabies, mismosGrupos } from "./groups.js";
+import { reconcileTierGroups, reconcileGroupsWithMembers, migrateGroupsForBabies, mismosGrupos, groupsFromModel, tipoDeGrupo, conservarIds, createIndividualMenuGroup } from "./groups.js";
 
 const adult = (id, name) => ({ id, name, age: 38, homeRole: "Adulto" });
 const kid = (id, name) => ({ id, name, age: 8, homeRole: "Hijo/a" });
@@ -158,5 +158,74 @@ describe("un bebé que llega después del alta", () => {
     );
     expect(despues.map((g) => g.label)).toEqual(["Familia"]);
     expect(despues[0].memberIds).toContain("b");
+  });
+});
+
+// ── Ids estables: un grupo que se rehace conserva su id ────────────────────
+// El plan, los *ByGroup, los ids de receta `${gid}__rid`, la compra y las
+// reglas van por id de grupo: si se rehace con otro id, todo eso se queda
+// huérfano (auditoría, oct 2026).
+describe("grupos con id estable", () => {
+  const papa = adult("p", "Papá");
+  const mama = adult("m", "Mamá");
+  const nina = kid("n", "Nina");
+  const bebe = baby("b", "Bebé");
+
+  it("cada grupo sabe de qué tipo es, y los viejos se deducen de la etiqueta", () => {
+    const familia = groupsFromModel([papa, mama], "same");
+    expect(familia.map((g) => g.tipo)).toEqual(["familia"]);
+    const aparte = groupsFromModel([papa, nina, bebe], "separate");
+    expect(aparte.map((g) => g.tipo)).toEqual(["adultos", "ninos", "bebe"]);
+    expect(tipoDeGrupo({ id: "x", label: "Niños", memberIds: [] })).toBe("ninos");
+    expect(tipoDeGrupo({ id: "x", label: "Dieta blanda", adHoc: true, memberIds: [] })).toBe("adhoc");
+    // El tipo manda sobre la etiqueta.
+    expect(tipoDeGrupo({ id: "x", label: "Los mayores", tipo: "adultos", memberIds: [] })).toBe("adultos");
+  });
+
+  it("rehacer los grupos con el mismo modelo conserva los ids", () => {
+    const miembros = [papa, mama, nina, bebe];
+    const antes = groupsFromModel(miembros, "separate");
+    const despues = groupsFromModel(miembros, "separate", antes);
+    expect(despues.map((g) => g.id)).toEqual(antes.map((g) => g.id));
+  });
+
+  it("de «todos lo mismo» a menús separados, Familia pasa a Adultos con su id", () => {
+    const miembros = [papa, mama, nina];
+    const antes = groupsFromModel(miembros, "same");
+    const despues = groupsFromModel(miembros, "separate", antes);
+    expect(despues.find((g) => g.tipo === "adultos").id).toBe(antes[0].id);
+    // Niños es nuevo: id nuevo, distinto del heredado.
+    expect(despues.find((g) => g.tipo === "ninos").id).not.toBe(antes[0].id);
+  });
+
+  it("y de vuelta, Adultos vuelve a ser Familia con el mismo id", () => {
+    const miembros = [papa, mama, nina];
+    const antes = groupsFromModel(miembros, "separate");
+    const despues = groupsFromModel(miembros, "same", antes);
+    expect(despues.map((g) => g.id)).toEqual([antes.find((g) => g.tipo === "adultos").id]);
+  });
+
+  it("llega un bebé: los grupos de siempre siguen con su id y aparece el del bebé", () => {
+    const antes = groupsFromModel([papa, mama], "same");
+    const miembros = [papa, mama, bebe];
+    const despues = migrateGroupsForBabies(miembros, reconcileGroupsWithMembers(miembros, antes), "same");
+    expect(despues.find((g) => g.tipo === "familia").id).toBe(antes[0].id);
+    const delBebe = despues.find((g) => g.tipo === "bebe");
+    expect(delBebe.memberIds).toEqual(["b"]);
+    // Y rehacerlo desde el modelo no le cambia el id al del bebé.
+    const rehecho = migrateGroupsForBabies(miembros, groupsFromModel(miembros, "same", despues), "same");
+    expect(rehecho.map((g) => g.id)).toEqual(despues.map((g) => g.id));
+  });
+
+  it("un menú individual hereda el id del que había para la misma persona", () => {
+    const viejo = { ...createIndividualMenuGroup(papa, "g1", "dieta_blanda"), id: "grp_viejo" };
+    const nuevo = createIndividualMenuGroup(papa, "g1", "dieta_blanda");
+    expect(conservarIds([viejo], [nuevo])[0].id).toBe("grp_viejo");
+  });
+
+  it("ningún id viejo se reparte dos veces", () => {
+    const viejos = [{ id: "f", label: "Familia", memberIds: [] }];
+    const nuevos = conservarIds(viejos, groupsFromModel([papa, nina], "separate"));
+    expect(nuevos.filter((g) => g.id === "f")).toHaveLength(1);
   });
 });

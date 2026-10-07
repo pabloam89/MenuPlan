@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { tipoDeGrupo } from "./groups.js";
 
 /**
  * A vote entry mixes two independent user actions on a recipe:
@@ -122,18 +123,28 @@ export function favoriteRecipeIds(votes) {
  * Favorite recipe ids that apply to a given menu group. A favorite applies when
  * its scope is "all", when the group is the single-family group ("Familia"), or
  * when the scope explicitly lists the group's label.
- * @param {string} groupLabel  e.g. "Adultos" | "Niños" | "Bebé" | "Familia"
+ *
+ * El ámbito guardado son etiquetas ("Adultos", "Niños"…), pero se compara por
+ * TIPO de grupo (tipoDeGrupo): un grupo que se llame distinto sigue recibiendo
+ * las favoritas de su tipo. Una etiqueta sin tipo conocido, por la etiqueta.
+ * @param {object|string} group  el grupo, o su etiqueta (llamadas de antes)
  * @returns {Set<string>}
  */
-export function favoriteIdsForGroup(votes, groupLabel) {
+export function favoriteIdsForGroup(votes, group) {
+  const g = typeof group === "string" ? { label: group } : group ?? {};
+  const tipo = tipoDeGrupo(g);
+  const cubre = (etiqueta) => {
+    const suyo = tipoDeGrupo({ label: etiqueta });
+    return suyo ? suyo === tipo : etiqueta === g.label;
+  };
   const ids = new Set();
   for (const [id, entry] of Object.entries(votes ?? {})) {
     if (!isFavorite(entry)) continue;
     const scope = favScopeOf(entry);
     if (
       scope === "all" ||
-      groupLabel === "Familia" ||
-      (Array.isArray(scope) && scope.includes(groupLabel))
+      tipo === "familia" ||
+      (Array.isArray(scope) && scope.some(cubre))
     ) {
       ids.add(id);
     }

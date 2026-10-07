@@ -428,17 +428,14 @@ export async function ajustarMenuPeques(householdId, { cena }) {
     const modelo = m.deriveKidsMenuModel(next) ?? "same";
     const members = next.members ?? [];
     next.menuModel = modelo;
-    // Mismo modelo que ya había: los grupos no se tocan. groupsFromModel da
-    // ids nuevos cada vez, y el menú en curso está guardado con los viejos.
+    // Mismo modelo que ya había: los grupos no se tocan (rehacerlos perdería
+    // un reparto hecho a mano).
     if (modelo !== (data.menuModel ?? "same") || !(data.groups ?? []).length) {
       // Y si cambia, cada grupo nuevo hereda el id del viejo que hace su papel
-      // (Familia ↔ Adultos, Bebé ↔ Bebé): el menú en curso sigue siendo suyo.
+      // (Familia ↔ Adultos, Bebé ↔ Bebé: conservarIds, lib/groups.js, lo mismo
+      // que la app): el menú en curso sigue siendo suyo.
       const viejos = data.groups ?? [];
-      const papel = (l) => (l === "Bebé" ? "bebe" : l === "Niños" ? "ninos" : "mayores");
-      next.groups = m.migrateGroupsForBabies(members, m.groupsFromModel(members, modelo), modelo).map((g) => {
-        const antes = viejos.find((v) => papel(v.label) === papel(g.label));
-        return antes ? { ...g, id: antes.id } : g;
-      });
+      next.groups = m.migrateGroupsForBabies(members, m.groupsFromModel(members, modelo, viejos), modelo);
     }
     const dicho = { igual: "los peques comen lo mismo que vosotros", aparte: "los peques cenan aparte, sin repetir lo del cole", lo_del_mediodia: "los días de cole, los peques cenan lo que comisteis a mediodía" }[cena];
     return { data: next, texto: `Apuntado: ${dicho}. Cuenta en el próximo menú (este no se rehace solo).` };
