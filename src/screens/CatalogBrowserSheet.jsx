@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Search,
@@ -874,7 +874,15 @@ export function CatalogBrowserSheet({
       return;
     }
     setQuery("");
-    clearFilters();
+    // Sale de la teja (categoría, faceta, cocina, Mis recetas) pero conserva
+    // los filtros de la hoja —tiempo, dificultad, proteína, niños—: antes se
+    // perdían al volver (review de UX, lámina 27). Siguen a la vista en el
+    // contador del botón «Filtros», y desde ahí se quitan.
+    setCats(new Set());
+    setViewingMine(false);
+    setViewingCollection(null);
+    setActiveFacets(new Set());
+    setCocina(null);
     setShowFilters(false);
   };
 
@@ -904,18 +912,30 @@ export function CatalogBrowserSheet({
   // Cuántas recetas hay de cada cocina. Solo se pintan las teselas con al
   // menos una: peruana tiene 3 y sale, pero si un día se queda en cero, la
   // tesela desaparece sola en vez de invitar a un callejón vacío.
+  // Los números de las tejas cuentan lo que verías al entrar: con los filtros
+  // de la hoja puestos (tiempo, dificultad, proteína, niños). Antes contaban
+  // el catálogo entero y no cambiaban hasta entrar (review de UX, lámina 27).
+  const pasaFiltros = useCallback(
+    (r) =>
+      (!maxTime || (r.time ?? 999) <= maxTime) &&
+      (difficulties.size === 0 || difficulties.has(r.difficulty)) &&
+      (proteins.size === 0 || proteins.has(r.mainProtein)) &&
+      (!kidOnly || r.kidFriendly),
+    [maxTime, difficulties, proteins, kidOnly],
+  );
+
   const cocinaCounts = useMemo(() => {
     const counts = {};
     for (const r of fullCatalog) {
-      if (r.cocina && !isGuarnicionRecipe(r)) counts[r.cocina] = (counts[r.cocina] ?? 0) + 1;
+      if (r.cocina && !isGuarnicionRecipe(r) && pasaFiltros(r)) counts[r.cocina] = (counts[r.cocina] ?? 0) + 1;
     }
     return counts;
-  }, [fullCatalog]);
+  }, [fullCatalog, pasaFiltros]);
 
   const categoryCounts = useMemo(() => {
     const counts = {};
     for (const r of fullCatalog) {
-      if (r.category && !isGuarnicionRecipe(r)) {
+      if (r.category && !isGuarnicionRecipe(r) && pasaFiltros(r)) {
         // Por clave de TEJA, no por categoría: si no, las 19 de bebé se cuentan
         // bajo "bebes" y la teja "Cremas de bebé" sale con el contador vacío
         // aunque estén todas ahí dentro.
@@ -929,13 +949,13 @@ export function CatalogBrowserSheet({
     counts.bebes_cremas ??= 0;
     counts.bebes_solidos ??= 0;
     if (catalogGarnishBrowseList.length > 0) {
-      counts.guarniciones = catalogGarnishBrowseList.length;
+      counts.guarniciones = catalogGarnishBrowseList.filter(pasaFiltros).length;
     }
     if (catalogSalsaBrowseList.length > 0) {
-      counts.salsas = catalogSalsaBrowseList.length;
+      counts.salsas = catalogSalsaBrowseList.filter(pasaFiltros).length;
     }
     return counts;
-  }, [fullCatalog, catalogGarnishBrowseList.length, catalogSalsaBrowseList.length]);
+  }, [fullCatalog, catalogGarnishBrowseList, catalogSalsaBrowseList, pasaFiltros]);
 
   // Sobre platoCatalog (no fullCatalog): es la misma base que filtran los
   // resultados reales al tocar la faceta, así el número de la esquina
@@ -943,6 +963,7 @@ export function CatalogBrowserSheet({
   const facetCounts = useMemo(() => {
     const counts = { ninos: 0, rapido: 0, gourmet: 0, verano: 0, invierno: 0 };
     for (const r of platoCatalog) {
+      if (!pasaFiltros(r)) continue;
       if (r.kidFriendly) counts.ninos++;
       if (esCenaRapida(r)) counts.rapido++;
       if (r.apetecible) counts.gourmet++;
@@ -950,7 +971,7 @@ export function CatalogBrowserSheet({
       if (r.season === "invierno") counts.invierno++;
     }
     return counts;
-  }, [platoCatalog]);
+  }, [platoCatalog, pasaFiltros]);
 
   const styleBlock = (
     <style>{`
