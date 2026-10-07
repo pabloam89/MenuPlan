@@ -13,6 +13,7 @@
  */
 
 import { select, insert, update, rpc, eq } from "./db.js";
+import { recetasPropiasDeCasa } from "./propias.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
 export const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
@@ -34,7 +35,7 @@ export function enSemana(casa, weekStart) {
 
 /**
  * @returns {Promise<null | {
- *   householdId: string, botRev: number, state: any,
+ *   householdId: string, botRev: number, state: any, recetasPropias: object[],
  *   menu: null | { id: string, userId: string },
  *   semana: null | { menuId: string, weekStart: string, weekEnd: string, plan: any, shopping: any },
  *   semanas: object[], semanaViva: string | null,
@@ -60,14 +61,21 @@ export async function cargarCasa(householdId, { fresca = false } = {}) {
 }
 
 async function leerCasa(householdId) {
-  const [fila] = await select("household_state", `household_id=${eq(householdId)}`, "state,bot_rev,updated_at");
+  // El dueño, a la vez que la casa: hace falta para sus recetas propias.
+  const [[fila], [hogar]] = await Promise.all([
+    select("household_state", `household_id=${eq(householdId)}`, "state,bot_rev,updated_at"),
+    select("households", `id=${eq(householdId)}`, "owner_user_id").catch(() => []),
+  ]);
   if (!fila) return null;
 
-  const [menu] = await select(
-    "user_menus",
-    `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=1`,
-    "id,user_id",
-  );
+  const [[menu], recetasPropias] = await Promise.all([
+    select(
+      "user_menus",
+      `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=1`,
+      "id,user_id",
+    ),
+    recetasPropiasDeCasa(hogar?.owner_user_id ?? null, fila.state?.data?.userRecipes),
+  ]);
 
   let semanas = [];
   if (menu) {
@@ -89,6 +97,8 @@ async function leerCasa(householdId) {
     botRev: Number(fila.bot_rev ?? 0),
     updatedAt: fila.updated_at,
     state: fila.state ?? {},
+    // Fuera de `state`: no se escriben de vuelta en household_state (propias.js).
+    recetasPropias,
     menu: menu ? { id: menu.id, userId: menu.user_id } : null,
     semana,
     semanas,

@@ -32,6 +32,7 @@ import { hayTandasPedidas, minutosDeTanda, enHoras } from "../../src/lib/cookTim
 import { SEMI, COCINADO } from "../../src/lib/tandaFamiliasDefs.js";
 import { comidasDeLaCasa, comida as comidaDelCatalogo } from "../../src/lib/comidas.js";
 import { select, eq } from "./db.js";
+import { propiasDe } from "./propias.js";
 
 const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const DIA_CORTO = { Lun: "lun", Mar: "mar", "Mié": "mié", Jue: "jue", Vie: "vie", "Sáb": "sáb", Dom: "dom" };
@@ -148,9 +149,9 @@ function personaCorta(m) {
 }
 
 /** De un id de plan al nombre del plato (lo hidratado del menú lleva el nombre). */
-function nombrador(state) {
+function nombrador(casa) {
   const porId = new Map();
-  for (const r of [...(state?.aiRecipes ?? []), ...(state?.data?.userRecipes ?? [])]) {
+  for (const r of [...(casa?.state?.aiRecipes ?? []), ...propiasDe(casa)]) {
     if (!r?.id || !r?.name) continue;
     porId.set(r.id, r.name);
     porId.set(String(r.id).split("__").pop(), r.name);
@@ -313,8 +314,7 @@ function cocinaBloque(data, hoy) {
 
 // ── RECETARIO ───────────────────────────────────────────────────────────────
 
-function recetarioBloque(data) {
-  const propias = data.userRecipes ?? [];
+function recetarioBloque(propias) {
   if (!propias.length) return [];
   const copiadas = propias.filter((r) => r.copiedFromRecipeId).length;
   const variantes = propias.filter((r) => !r.copiedFromRecipeId && (r.baseDishId || r.linkedCatalogId)).length;
@@ -363,7 +363,7 @@ function delDiaBloque(casa, extras, hoy) {
   if (!vivas.length) {
     lineas.push(semanas.length ? `MENÚ: el último (${ddmm(semanas.at(-1).weekStart)}–${ddmm(semanas.at(-1).weekEnd)}) ya pasó; no hay menú para esta semana.` : "MENÚ: todavía no hay ninguno.");
   } else {
-    const nombre = nombrador(casa.state);
+    const nombre = nombrador(casa);
     lineas.push(`MENÚ ${vivas.map((w) => `${ddmm(w.weekStart)}–${ddmm(w.weekEnd)}`).join(" y ")}${vivas.length === 1 ? " (no hay semana siguiente)" : ""}`);
     const manana = sumarDias(hoy, 1);
     const enHoy = casa.semana && casa.semana.weekStart <= hoy && hoy <= casa.semana.weekEnd ? platosDelDia(casa, diaDeFecha(hoy), nombre) : "";
@@ -398,7 +398,7 @@ export function montarFicha(casa, extras = {}, hoy = hoyMadrid()) {
     seguridad: seguridad(data),
     casa: casaBloque(data),
     cocina: cocinaBloque(data, hoy),
-    recetario: recetarioBloque(data),
+    recetario: recetarioBloque(propiasDe(casa)),
   };
   let delDia = delDiaBloque(casa, extras, hoy);
   const pintar = () => {

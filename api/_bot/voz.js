@@ -21,6 +21,7 @@
 
 import { llamar } from "./telegram.js";
 import { cargarCasa } from "./casa.js";
+import { propiasDe } from "./propias.js";
 
 const MODELO = "whisper-large-v3";
 const IDIOMA = "es";
@@ -59,18 +60,18 @@ const SIN_VOZ = (s) => s.no_speech_prob > 0.6 && s.avg_logprob < -1;
 export async function palabrasDeLaCasa(householdId) {
   if (!householdId) return { nombres: [], propias: [] };
   try {
-    const data = (await cargarCasa(householdId))?.state?.data ?? {};
-    return palabrasDe(data);
+    const casa = await cargarCasa(householdId);
+    return palabrasDe(casa?.state?.data ?? {}, propiasDe(casa));
   } catch {
     return { nombres: [], propias: [] };
   }
 }
 
 /** Pura, para el test. */
-export function palabrasDe(data = {}) {
+export function palabrasDe(data = {}, propias = data.userRecipes ?? []) {
   const miembros = data.members ?? [];
   const nombres = miembros.map((p) => p?.name).filter(Boolean).slice(0, 12);
-  const recetas = (data.userRecipes ?? []).map((r) => r?.name).filter(Boolean).slice(-6);
+  const recetas = propias.map((r) => r?.name).filter(Boolean).slice(-6);
   const noGusta = [...miembros.flatMap((m) => m?.dislikes ?? []), ...(data.dislikes ?? []), ...(data.excluidos ?? [])]
     .filter((x) => typeof x === "string").slice(0, 6);
   return { nombres, propias: [...new Set([...recetas, ...noGusta])] };

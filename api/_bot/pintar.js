@@ -28,6 +28,7 @@ import { comida as delCatalogo, comidasDeLaCasa, iconoDe } from "../../src/lib/c
 import { diaDeFecha, sumarDias } from "./cuando.js";
 import { grupos as gruposDeLaCasa, grupoPara, quienesDe, cambiosDe, normal, prepararRecetas } from "./menu.js";
 import { fueraEn } from "./presentes.js";
+import { propiasDe } from "./propias.js";
 
 const DIA_LARGO = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves", Vie: "viernes", "Sáb": "sábado", Dom: "domingo" };
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -78,9 +79,9 @@ export function tituloDia(fecha) {
   return `${mayus(DIA_LARGO[diaDeFecha(fecha)])} ${Number(fecha.slice(8, 10))} de ${MESES[Number(fecha.slice(5, 7)) - 1]}`;
 }
 
-function recetasDe(state, otras) {
+function recetasDe(casa, otras) {
   const porId = new Map();
-  for (const r of [...(state?.aiRecipes ?? []), ...(state?.data?.userRecipes ?? [])]) {
+  for (const r of [...(casa?.state?.aiRecipes ?? []), ...propiasDe(casa)]) {
     if (!r?.id) continue;
     porId.set(r.id, r);
     if (!porId.has(String(r.id).split("__").pop())) porId.set(String(r.id).split("__").pop(), r);
@@ -116,7 +117,7 @@ export function pintarMenu(casa, { dias = [], comidas = null, platos = null, gru
   const pedidas = comidas?.length ? comidas : deLaCasa;
   const noPlanificadas = pedidas.filter((c) => !deLaCasa.includes(c));
   const aPintar = pedidas.filter((c) => deLaCasa.includes(c));
-  const receta = recetasDe(casa?.state, otras);
+  const receta = recetasDe(casa, otras);
   const miembros = data.members ?? [];
   const destacado = (fecha, c) => destacar.some((d) => (d.fecha ?? fecha) === fecha && d.comida === c);
   let faltan = 0;

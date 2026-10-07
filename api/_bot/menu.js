@@ -17,6 +17,7 @@
 
 import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
+import { propiasDe } from "./propias.js";
 import { rastro } from "./embudo.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
 import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
@@ -193,7 +194,7 @@ export async function prepararRecetas(casa) {
       for (const h of Object.values(huecos ?? {})) for (const id of [h?.firstRecipeId, h?.recipeId]) if (id) propias.add(id).add(idBase(id));
     }
   }
-  for (const r of casa.state?.data?.userRecipes ?? []) if (r?.id) propias.add(r.id);
+  for (const r of propiasDe(casa)) if (r?.id) propias.add(r.id);
   const m = recetasDeCasa(global, recetasDeSerie ?? new Set(), propias);
   if (Array.isArray(casa.state?.aiRecipes) && casa.state.aiRecipes.length) m.registerRecipes(casa.state.aiRecipes);
   if (casa.menu) {

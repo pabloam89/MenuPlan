@@ -24,6 +24,7 @@
 import { select, insert, eq, config } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
+import { propiasDe } from "./propias.js";
 import { duenoDe, rastro, registrar } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { SYSTEM_PROMPTS } from "../_prompts.js";
@@ -109,7 +110,7 @@ export async function buscarRecetas(householdId, { consulta, categoria, maxMinut
   const casa = await cargarCasa(householdId);
   const m = await motor();
   if (casa) await prepararRecetas(casa);
-  const propias = casa?.state?.data?.userRecipes ?? [];
+  const propias = propiasDe(casa);
   // Del catálogo, solo el Recetario Estrella: el antiguo no se propone nunca
   // (lo que haya que rescatar de él se promueve a mano).
   const estrella = m.recipeCatalog.filter((r) => r.estrella);
@@ -350,7 +351,7 @@ export async function recetaPorNombre(householdId, texto) {
   const casa = await cargarCasa(householdId);
   const m = await motor();
   if (casa) await prepararRecetas(casa);
-  const todas = [...(casa?.state?.data?.userRecipes ?? []), ...m.recipeCatalog];
+  const todas = [...propiasDe(casa), ...m.recipeCatalog];
   const q = normal(texto);
   return todas.find((r) => r.id === texto || normal(r.name) === q) ?? filtrarRecetas(todas, { consulta: texto })[0] ?? null;
 }

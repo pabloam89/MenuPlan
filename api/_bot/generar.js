@@ -25,6 +25,7 @@ process.env.TZ = "Europe/Madrid";
 import { select, insert, borrar, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO } from "./menu.js";
+import { propiasDe } from "./propias.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
 
@@ -50,7 +51,7 @@ const FUERA_DE_PEDIDOS = new Set(["bebes", "desayunos", "meriendas", "postres", 
  * plato a plato: cada cambio, otra vuelta del modelo en el chat.
  */
 export function platosPedidos(m, casa, fijos = []) {
-  const propias = casa.state?.data?.userRecipes ?? [];
+  const propias = propiasDe(casa);
   const candidatas = [...propias, ...m.recipeCatalog].filter((r) => r?.name && !FUERA_DE_PEDIDOS.has(r.category));
   return fijos.filter((f) => f?.nombre).map((f) => {
     const q = normal(f.nombre);
@@ -163,7 +164,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // Las recetas propias de la casa, registradas para resolver los pedidos.
   if (fijos.length) await prepararRecetas(casa).catch(() => {});
 
-  const base = m.resolveModeData(casa.state?.data ?? {});
+  // Las propias de user_recipes, no las del JSON: la app las quita de ahí.
+  const base = m.resolveModeData({ ...(casa.state?.data ?? {}), userRecipes: propiasDe(casa) });
   const pedidos = platosPedidos(m, casa, fijos);
   const working = pedidos.length ? { ...base, fixedDishes: [...(base.fixedDishes ?? []), ...pedidos.map((p) => p.fijo)] } : base;
   const miembros = working.members ?? [];
