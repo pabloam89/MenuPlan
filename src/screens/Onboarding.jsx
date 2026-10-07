@@ -121,8 +121,8 @@ import {
   reconcileTierGroups,
   resolveMemberAge,
   tierForMember,
-  uid,
 } from "../lib/groups.js";
+import * as ids from "../lib/ids.js";
 import {
   ALL_DAY_MEALS,
   DAYS,
@@ -558,7 +558,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
     setAddBounce(true);
     setTimeout(() => setAddBounce(false), 320);
     setData((d) => conMiembroNuevo(d, {
-      id: uid(),
+      id: ids.persona.nuevo(),
       name: trimmedName,
       age: computedAge,
       useBirthDate: false,
@@ -577,7 +577,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   const addProfile = (profile) => {
     setAddBounce(true);
     setTimeout(() => setAddBounce(false), 320);
-    const id = uid();
+    const id = ids.persona.nuevo();
     const defFolder = AVATAR_FOLDER[profile.key];
     const defAvatar = DEFAULT_AVATAR[profile.key] ?? (defFolder ? `${defFolder}_1` : null);
     setData((d) => conMiembroNuevo(d, {
@@ -9170,7 +9170,7 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
     setDraftGoal("");
     if (!v) return;
     if (goalDefs.some((g) => g.label.toLowerCase() === v.toLowerCase())) return;
-    const baseId = slugifyGoalLabel(v) || `custom-${Math.random().toString(36).slice(2, 8)}`;
+    const baseId = slugifyGoalLabel(v) || ids.objetivoPropio.nuevo();
     let newId = baseId;
     let i = 2;
     while (goalDefs.some((g) => g.id === newId)) {

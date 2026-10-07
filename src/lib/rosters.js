@@ -1,4 +1,4 @@
-import { uid } from "./groups.js";
+import * as ids from "./ids.js";
 
 /**
  * Rosters — the isolated sets of people you plan menús for.
@@ -149,7 +149,7 @@ export function switchRoster(data, targetId) {
  */
 export function createRoster(data, { name = "Otro grupo", defaults } = {}) {
   const saved = saveActiveRoster(data);
-  const id = uid();
+  const id = ids.roster.nuevo();
   const snapshot = blankRosterSnapshot(defaults);
   return {
     ...saved,

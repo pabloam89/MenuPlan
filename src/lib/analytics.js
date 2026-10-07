@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import * as ids from "./ids.js";
 
 const deviceType = () =>
   /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop";
@@ -59,9 +60,7 @@ function getAnonId() {
     // storage blocked — fall through to a per-session id
   }
   if (!anonId) {
-    anonId =
-      globalThis.crypto?.randomUUID?.() ??
-      `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+    anonId = ids.anonimo.nuevo();
     try {
       localStorage.setItem(ANON_ID_KEY, anonId);
     } catch {

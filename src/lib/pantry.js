@@ -1,5 +1,5 @@
 import { supabase } from "./supabase.js";
-import { uid } from "./groups.js";
+import * as ids from "./ids.js";
 import { convertStockAmount } from "./kitchenUnits.js";
 import { resolveIngredientId } from "./ingredients.js";
 
@@ -621,7 +621,7 @@ export function addLocalPantryItems(items) {
     if (isCooked) {
       const portions = Number(it.portions ?? it.qty) > 0 ? Number(it.portions ?? it.qty) : 1;
       next.push({
-        id: `local_${uid()}`,
+        id: ids.despensaLocal.nuevo(),
         ingredientName: it.name,
         ingredientNormalized: it.normalized,
         qty: portions,
@@ -650,7 +650,7 @@ export function addLocalPantryItems(items) {
       }
     } else {
       const row = {
-        id: `local_${uid()}`,
+        id: ids.despensaLocal.nuevo(),
         ingredientName: it.name,
         ingredientNormalized: it.normalized,
         qty,

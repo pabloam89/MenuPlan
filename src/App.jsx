@@ -220,6 +220,7 @@ import {
   stripCookedDishesForMenuList,
 } from "./lib/pantryDeltas.js";
 import demoState from "./dev/demoState.json";
+import * as ids from "./lib/ids.js";
 
 const DEV_DEMO_MENU =
   import.meta.env.DEV &&
@@ -556,7 +557,7 @@ function migrate(state) {
       const age = resolveMemberAge(m);
       return {
         ...m,
-        id: m.id ?? Math.random().toString(36).slice(2, 10),
+        id: m.id ?? ids.persona.nuevo(),
         allergies: Array.isArray(m.allergies)
           ? m.allergies
           : [...legacyAllergies],
@@ -639,7 +640,7 @@ function migrate(state) {
     d.goalDefs = DEFAULT_GOAL_DEFS.map((g) => ({ ...g, isCustom: false }));
     if (Array.isArray(d.customGoals)) {
       for (const label of d.customGoals) {
-        const id = slugify(label) || `custom-${Math.random().toString(36).slice(2, 8)}`;
+        const id = slugify(label) || ids.objetivoPropio.nuevo();
         if (!d.goalDefs.some((g) => g.id === id)) {
           d.goalDefs.push({ id, label, profile: {}, isCustom: true });
         }
@@ -4194,7 +4195,7 @@ export default function App() {
     if (!src) { showToast("Esa receta ya no está disponible"); return null; }
     const copy = {
       ...src,
-      id: `user_${crypto.randomUUID()}`,
+      id: ids.recetaPropia.nuevo(),
       visibility: "private",
       copiedFromRecipeId: recipeId,
       copiedFromOwnerId: ownerId ?? null,

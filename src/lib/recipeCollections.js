@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import * as ids from "./ids.js";
 
 /**
  * Carpetas de recetas, dentro de "Mis recetas". Son de dos clases:
@@ -58,8 +59,7 @@ export function folderLabel(folderId, customFolders = []) {
 }
 
 export function newFolderId() {
-  const rand = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(16).slice(2)}`;
-  return `fld_${rand}`;
+  return ids.carpeta.nuevo();
 }
 
 // ── Pertenencia (recipeId → folder ids) ──────────────────────────────────────

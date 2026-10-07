@@ -16,6 +16,9 @@ export { membersOfGroup, groupsFromModel } from "../lib/groups.js";
 export { resolveModeData, prepararSemana } from "../lib/prepararGeneracion.js";
 export { computeWeekRange, explicitDaysForOffset, createMenuId } from "../lib/menuArchive.js";
 export { menuToRow, weekToRow } from "../lib/menusSync.js";
+// Los ids nuevos (src/lib/ids.js). Los ficheros del bot que no cargan el motor
+// lo importan directo: es puro y no pesa, y core.mjs son ~10 MB.
+export * as ids from "../lib/ids.js";
 
 // Ajustes de la casa desde el chat: las mismas piezas que la app.
 export { aplicarAjustes, dataConLibreta, dataVigente, conTandaPedida } from "../lib/libretaEnData.js";
