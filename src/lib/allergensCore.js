@@ -1,5 +1,16 @@
 import { compileKeywordRegex, normalizeText } from "./recipeText.js";
 
+// Nada de importar aquí el catálogo de ingredientes (ingredients.js). Este
+// fichero lo usa también el supervisor del bot solo para pareceAlergia, una
+// comprobación de texto barata — cargar los 396 ingredientes y construir sus
+// resolutores de alias/raíz ahí metía un retraso real en el arranque del
+// módulo. Se midió: tardaba lo bastante como para que el freno de deshacer
+// (api/_bot/casa.js) comparara marcas de tiempo de más de 5 s de diferencia y
+// confundiera "se ha tardado en cargar" con "alguien ha tocado la casa".
+// Por eso recipeIngredientIdsHitFreeAllergy recibe el resolutor por
+// parámetro: quien ya lo tiene cargado para otra cosa (filterRecipes.js) se
+// lo pasa, y quien no lo necesita no paga ese coste.
+
 /** Reglamento UE — 14 alérgenos declarables */
 export const EU_ALLERGENS = {
   gluten: {
@@ -159,6 +170,37 @@ export function recipeIngredientsHitAllergens(ingredientNames, blockedAllergenId
     const re = INGREDIENT_ALLERGEN_RE[id] ?? (EU_ALLERGENS[id] ? null : regexParaAlergiaLibre(id));
     if (!re) continue;
     if (names.some((name) => re.test(name))) return true;
+  }
+  return false;
+}
+
+/**
+ * Nivel 2 de la red de alergias libres: en vez de buscar la palabra suelta,
+ * resuelve el texto de la alergia al mismo ingrediente canónico que ya usan
+ * las recetas (alias, raíz singularizada, calificativo recortado — ver
+ * ingredientResolver.js) y comprueba por id. Es exacto donde el nivel 1 solo
+ * aproxima: "Brócolis al vapor" como alergia encuentra el ingrediente
+ * "brocoli" igual que lo encontraría esa misma frase en una receta, sin
+ * depender de que el nombre de la receta use la palabra literal.
+ *
+ * Solo entra en juego para alergias que NO sean ya de los 14 UE ni de
+ * INGREDIENT_ALLERGEN_KEYWORDS: esas se cubren arriba y no hay que
+ * resolverlas dos veces. Si el texto no resuelve a ningún ingrediente real,
+ * no dice nada — el nivel 1 sigue siendo la red para ese caso.
+ *
+ * @param {string[]} allergiesRaw - el texto ORIGINAL de cada alergia (no el id normalizado: el resolutor necesita la frase)
+ * @param {Array<{ingredientId?: string}>} recipeIngredients
+ * @param {(texto: string) => string|null} resolveIngredientIdFn - el resolutor del catálogo (ver comentario de arriba: lo pasa quien ya lo tenga cargado)
+ * @returns {boolean}
+ */
+export function recipeIngredientIdsHitFreeAllergy(allergiesRaw, recipeIngredients, resolveIngredientIdFn) {
+  const ids = new Set((recipeIngredients ?? []).map((i) => i.ingredientId).filter(Boolean));
+  if (ids.size === 0 || !resolveIngredientIdFn) return false;
+  for (const raw of allergiesRaw ?? []) {
+    const normalizado = normalizeAllergenId(raw);
+    if (EU_ALLERGENS[normalizado] || INGREDIENT_ALLERGEN_KEYWORDS[normalizado]) continue;
+    const resuelto = resolveIngredientIdFn(raw);
+    if (resuelto && ids.has(resuelto)) return true;
   }
   return false;
 }

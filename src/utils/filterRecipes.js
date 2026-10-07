@@ -1,6 +1,6 @@
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarniciones from "../data/recipes/guarniciones.json";
-import { normalizeAllergenId, recipeIngredientsHitAllergens } from "../lib/allergens.js";
+import { normalizeAllergenId, recipeIngredientsHitAllergens, recipeIngredientIdsHitFreeAllergy } from "../lib/allergens.js";
 import { ensureHealthFlags } from "../lib/healthFlags.js";
 import { recipeHitsIntolerances, recipeViolatesDiet } from "../lib/intolerances.js";
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
@@ -107,6 +107,11 @@ export function recipeViolatesHardSafety(
     if (puedeContenerDe(recipe).some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
     const names = (recipe.ingredients ?? []).map((ing) => ing.name);
     if (recipeIngredientsHitAllergens(names, blockedAllergens)) return true;
+    // Nivel 2 de las alergias libres: por id de ingrediente, no por nombre.
+    // resolveIngredientId ya está cargado en este fichero para otra cosa; se
+    // pasa en vez de que allergensCore.js importe el catálogo entero (ver su
+    // cabecera: eso retrasaba el arranque de quien solo necesita el nivel 1).
+    if (recipeIngredientIdsHitFreeAllergy(allergies, recipe.ingredients, resolveIngredientId)) return true;
   }
 
   const hardIntolerances = Array.from(new Set(intolerances)).filter(
