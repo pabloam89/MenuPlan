@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import {
+  Ban,
   ChevronDown,
   ChevronUp,
   User,
@@ -250,6 +251,7 @@ export function HomeProfileScreen({
   onDeleteAccount,
   onEditMembers,
   onEditPreferences,
+  onEditDislikes,
   onOpenHouseholds,
   activeHousehold,
   householdReadOnly = false,
@@ -437,8 +439,18 @@ export function HomeProfileScreen({
           <ProfileOptionRow
             img="/avatares/cards/cook_alergias.jpg"
             title="Gestionar alergias"
-            subtitle="Alergias, intolerancias y lo que no coméis."
+            subtitle="Alergias, intolerancias y menús más cuidados."
             onClick={onEditPreferences}
+          />
+        )}
+
+        {onEditDislikes && !householdReadOnly && (
+          <ProfileOptionRow
+            icon={Ban}
+            accent={GREEN}
+            title="Qué no os gusta"
+            subtitle="Categorías, proteínas o platos que preferís evitar."
+            onClick={onEditDislikes}
           />
         )}
 

@@ -100,9 +100,10 @@ import { isMercadonaStore } from "../lib/storeCatalog.js";
 import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc, avatarThumbSrcByKey } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
-import { CatalogBrowserSheet, categoryColor } from "./CatalogBrowserSheet.jsx";
+import { CatalogBrowserSheet, categoryColor, categoryIcon } from "./CatalogBrowserSheet.jsx";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
-import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
+import { MAIN_PROTEINS } from "../data/recipeSchema.js";
 import { dishImageUrl } from "../assets/dishes/dishImages.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 
@@ -2568,6 +2569,303 @@ export function OnboardingRestrictions({
             </div>
           )}
 
+      </>
+    </OnboardingShell>
+  );
+}
+
+// ── Dislikes: categorías, proteínas y platos concretos ──────────────────
+// "Qué no os gusta" — hermana de OnboardingRestrictions (Alergias/Salud):
+// mismo patrón de scope por miembro (ScopeCirclePicker + Familia/Todos) y
+// mismo toggle "si lo tiene todo el scope, quita; si no, añade a quien le
+// falte". Tres pestañas en vez de dos porque aquí hay tres granularidades
+// reales, no dos: categoría de plato, proteína concreta y receta concreta.
+//
+// Se guarda per-member (dislikedCategories/dislikedProteins/dislikedRecipeIds),
+// igual que member.dislikes (ingredientes) ya se guarda — así que hereda la
+// misma advertencia que ese campo: en un menú compartido, lo que no le gusta a
+// uno se proyecta a todo el grupo (ver la nota de reglas.js sobre
+// necesitaMenuPropio). No es un bug nuevo, es el mismo trade-off ya aceptado.
+const DISLIKE_CATEGORY_UI = [
+  { id: "carnes", label: "Carnes", Icon: Beef, color: "#b0303f" },
+  { id: "pescados", label: "Pescado", Icon: Fish, color: "#3f87b0" },
+  { id: "legumbres", label: "Legumbres", Icon: Bean, color: "#8a6a2f" },
+  { id: "huevos", label: "Huevos", Icon: Egg, color: "#dd8a2c" },
+  { id: "pasta_arroces", label: "Pasta y arroz", Icon: Wheat, color: "#b08a2f" },
+  { id: "ensaladas_verduras", label: "Ensaladas y verdura", Icon: Salad, color: "#4a8a3a" },
+  { id: "sopas_cremas", label: "Sopas y cremas", Icon: CookingPot, color: "#7a8a3a" },
+  { id: "guarniciones", label: "Guarniciones", Icon: UtensilsCrossed, color: "#7a6a5a" },
+];
+// Únicas categorías con plato de comida/cena de verdad — deja fuera bebes,
+// desayunos/meriendas/postres/salsas/bases (off-menu, ver CATEGORIES en
+// data/recipeSchema.js): un "no me gusta" ahí no tendría dónde aplicarse.
+const DISH_PICKER_CATEGORIES = new Set(DISLIKE_CATEGORY_UI.map((c) => c.id));
+
+// Lista curada a mano (no MAIN_PROTEINS directo) porque necesita label +
+// icono + color por id; se filtra contra MAIN_PROTEINS para no ofrecer un id
+// que el enum ya no reconozca si algún día se retira uno.
+const PROTEIN_UI_ALL = [
+  { id: "pollo", label: "Pollo", Icon: Beef, color: "#b0303f" },
+  { id: "pavo", label: "Pavo", Icon: Beef, color: "#c2504a" },
+  { id: "cerdo", label: "Cerdo", Icon: Beef, color: "#a8433a" },
+  { id: "ternera", label: "Ternera", Icon: Beef, color: "#8f3a3a" },
+  { id: "cordero", label: "Cordero", Icon: Beef, color: "#96513a" },
+  { id: "pato", label: "Pato", Icon: Beef, color: "#7a4a30" },
+  { id: "caza", label: "Caza (conejo, codorniz…)", Icon: Beef, color: "#6b5030" },
+  { id: "pescado_blanco", label: "Pescado blanco", Icon: Fish, color: "#3f87b0" },
+  { id: "pescado_azul", label: "Pescado azul", Icon: Fish, color: "#2f6a92" },
+  { id: "marisco", label: "Marisco", Icon: Fish, color: "#1f7a8a" },
+  { id: "legumbre", label: "Legumbre", Icon: Bean, color: "#8a6a2f" },
+  { id: "huevo", label: "Huevo", Icon: Egg, color: "#dd8a2c" },
+];
+const DISLIKE_PROTEIN_UI = PROTEIN_UI_ALL.filter((p) => MAIN_PROTEINS.includes(p.id));
+
+const DISLIKE_TAB_META = [
+  { id: "categorias", title: "Categorías", Icon: Ban },
+  { id: "proteinas", title: "Proteínas", Icon: Beef },
+  { id: "platos", title: "Platos", Icon: Utensils },
+];
+
+export function OnboardingDislikes({
+  data,
+  setData,
+  onNext,
+  onBack,
+  onFinish,
+  onReset,
+  nextLabel,
+  finishLabel,
+}) {
+  const [dislikeMemberId, setDislikeMemberId] = useState(data.members[0]?.id ?? null);
+  const [mainTab, setMainTab] = useState("categorias");
+  const [dishSearch, setDishSearch] = useState("");
+
+  const isFamilia = dislikeMemberId === FAMILIA_TARGET;
+  const activeDislikeMemberId = isFamilia
+    ? FAMILIA_TARGET
+    : data.members.some((m) => m.id === dislikeMemberId)
+      ? dislikeMemberId
+      : data.members[0]?.id ?? null;
+  const activeMemberColor = isFamilia
+    ? "#2d5a3d"
+    : activeDislikeMemberId
+      ? memberAvatarColor(activeDislikeMemberId, data.members)
+      : "#2d5a3d";
+
+  const inScope = (m) => isFamilia || m.id === activeDislikeMemberId;
+  const scopeMembers = data.members.filter(inScope);
+
+  const hasVal = (m, field, val) => (m[field] ?? []).includes(val);
+  const allScopeHave = (field, val) => scopeMembers.length > 0 && scopeMembers.every((m) => hasVal(m, field, val));
+  // Mismo "si todo el scope lo tiene, quita a todos; si no, añade a quien le
+  // falte" que toggleScopeMembership en OnboardingRestrictions — reimplementado
+  // aquí genérico por `field` porque este screen toca tres campos distintos.
+  const toggleVal = (field, val) =>
+    setData((d) => {
+      const targets = d.members.filter(inScope);
+      const allHave = targets.length > 0 && targets.every((m) => hasVal(m, field, val));
+      return {
+        ...d,
+        members: d.members.map((m) => {
+          if (!inScope(m)) return m;
+          const list = m[field] ?? [];
+          const has = list.includes(val);
+          if (allHave) return { ...m, [field]: list.filter((v) => v !== val) };
+          return has ? m : { ...m, [field]: [...list, val] };
+        }),
+      };
+    });
+  // A diferencia de toggleVal, quitar un plato de "Ya marcados" siempre debe
+  // quitarlo (nunca añadirlo): la lista es la UNIÓN del scope, así que un
+  // plato puede estar ahí sin que TODOS los del scope lo tengan, y toggleVal
+  // en ese caso lo habría añadido en vez de quitarlo.
+  const removeVal = (field, val) =>
+    setData((d) => ({
+      ...d,
+      members: d.members.map((m) => (inScope(m) ? { ...m, [field]: (m[field] ?? []).filter((v) => v !== val) } : m)),
+    }));
+
+  const dishQueryLower = dishSearch.trim().toLowerCase();
+  const dishMatches =
+    dishQueryLower.length < 2
+      ? []
+      : recipeCatalog
+          .filter((r) => DISH_PICKER_CATEGORIES.has(r.category) && r.name.toLowerCase().includes(dishQueryLower))
+          .slice(0, 25);
+
+  const selectedDishIds = Array.from(new Set(scopeMembers.flatMap((m) => m.dislikedRecipeIds ?? [])));
+
+  return (
+    <OnboardingShell
+      title="¿Hay algo que no os guste?"
+      subtitle="Marca categorías, proteínas o platos concretos para dejarlos fuera del menú."
+      bg="#f5f9f6"
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+      {...(nextLabel ? { nextLabel } : {})}
+      {...(finishLabel ? { finishLabel } : {})}
+    >
+      <>
+        {data.members.length > 1 && (
+          <div style={{ marginBottom: 16 }}>
+            <ScopeCirclePicker
+              value={activeDislikeMemberId}
+              onChange={setDislikeMemberId}
+              allMembers={data.members}
+              style={{ marginBottom: 0 }}
+              options={[
+                {
+                  id: FAMILIA_TARGET,
+                  label: isFamilyGroup(data.members) ? "Familia" : "Todos",
+                  abbrev: isFamilyGroup(data.members) ? "F" : "T",
+                  Icon: Users,
+                  color: "#2d5a3d",
+                  members: data.members,
+                },
+                ...data.members.map((m) => ({
+                  id: m.id,
+                  label: m.name,
+                  abbrev: (m.name ?? "?").trim().charAt(0).toUpperCase() || "?",
+                  color: memberAvatarColor(m.id, data.members),
+                  members: [m],
+                })),
+              ]}
+            />
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          {DISLIKE_TAB_META.map((tab) => (
+            <RestrictionTabCard
+              key={tab.id}
+              Icon={tab.Icon}
+              title={tab.title}
+              accent={CARD_ACCENT_TEAL}
+              active={mainTab === tab.id}
+              onClick={() => setMainTab(tab.id)}
+            />
+          ))}
+        </div>
+
+        {mainTab === "categorias" ? (
+          <div style={panelCardStyle}>
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", columnGap: 16 }}>
+              {DISLIKE_CATEGORY_UI.map((opt, i) => (
+                <AllergenRow
+                  key={opt.id}
+                  Icon={opt.Icon}
+                  color={opt.color}
+                  label={opt.label}
+                  checked={allScopeHave("dislikedCategories", opt.id)}
+                  checkColor={activeMemberColor}
+                  onToggle={() => activeDislikeMemberId && toggleVal("dislikedCategories", opt.id)}
+                  last={i >= DISLIKE_CATEGORY_UI.length - 2}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {mainTab === "proteinas" ? (
+          <div style={panelCardStyle}>
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", columnGap: 16 }}>
+              {DISLIKE_PROTEIN_UI.map((opt, i) => (
+                <AllergenRow
+                  key={opt.id}
+                  Icon={opt.Icon}
+                  color={opt.color}
+                  label={opt.label}
+                  checked={allScopeHave("dislikedProteins", opt.id)}
+                  checkColor={activeMemberColor}
+                  onToggle={() => activeDislikeMemberId && toggleVal("dislikedProteins", opt.id)}
+                  last={i >= DISLIKE_PROTEIN_UI.length - 2}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {mainTab === "platos" ? (
+          <div style={panelCardStyle}>
+            <input
+              value={dishSearch}
+              onChange={(e) => setDishSearch(e.target.value)}
+              placeholder="Busca un plato por nombre…"
+              style={{
+                width: "100%", boxSizing: "border-box", padding: "9px 12px", borderRadius: 10,
+                border: "1.5px solid #dde7e0", fontSize: 16, outline: "none", fontFamily: "inherit",
+              }}
+            />
+
+            {dishQueryLower.length >= 2 && (
+              <div style={{ marginTop: 10, display: "flex", flexDirection: "column" }}>
+                {dishMatches.length === 0 ? (
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "#8a9a90", padding: "6px 2px" }}>Sin resultados.</span>
+                ) : (
+                  dishMatches.map((r, i) => (
+                    <AllergenRow
+                      key={r.id}
+                      Icon={categoryIcon(r.category)}
+                      color={categoryColor(r.category)}
+                      label={r.name}
+                      checked={allScopeHave("dislikedRecipeIds", r.id)}
+                      checkColor={activeMemberColor}
+                      onToggle={() => activeDislikeMemberId && toggleVal("dislikedRecipeIds", r.id)}
+                      last={i === dishMatches.length - 1}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+
+            {selectedDishIds.length > 0 && (
+              <div
+                style={{
+                  marginTop: dishQueryLower.length >= 2 ? 14 : 0,
+                  paddingTop: dishQueryLower.length >= 2 ? 12 : 0,
+                  borderTop: dishQueryLower.length >= 2 ? "1px solid #eef3f0" : "none",
+                }}
+              >
+                <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, color: "#8a9a90", textTransform: "uppercase", letterSpacing: ".04em" }}>
+                  Ya marcados
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {selectedDishIds.map((id) => {
+                    const r = recipeCatalogById[id];
+                    if (!r) return null;
+                    return (
+                      <div
+                        key={id}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 8,
+                          background: "#f7faf8", border: "1px solid #eef3f0", borderRadius: 10, padding: "7px 10px",
+                        }}
+                      >
+                        <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: "#1a3a24" }}>{r.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeVal("dislikedRecipeIds", id)}
+                          aria-label={`Quitar ${r.name}`}
+                          style={{ background: "none", border: "none", padding: 2, display: "flex", cursor: "pointer" }}
+                        >
+                          <X size={14} color="#9fb0a6" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {dishQueryLower.length < 2 && selectedDishIds.length === 0 && (
+              <p style={{ margin: "10px 2px 0", fontSize: 12, fontWeight: 600, color: "#8a9a90" }}>
+                Escribe al menos 2 letras para buscar un plato.
+              </p>
+            )}
+          </div>
+        ) : null}
       </>
     </OnboardingShell>
   );

@@ -196,6 +196,8 @@ export function scorePantryMatch(recipe, pantryNormalized, pantryIngredientIds =
  * @param {Object} opts
  * @param {string[]} opts.allergies  - member allergens (app format: "Gluten", "Frutos secos")
  * @param {string[]} opts.dislikes   - disliked ingredients (app format: "Hígado", "Coliflor")
+ * @param {string[]} [opts.dislikedCategories] - disliked recipe.category ids (e.g. "pescados")
+ * @param {string[]} [opts.dislikedProteins] - disliked MAIN_PROTEINS ids (e.g. "pescado_azul")
  * @param {boolean}  opts.hasKids    - if true, only kidFriendly recipes
  * @param {number}   opts.maxTime    - max cooking time in minutes (weekday or weekend)
  * @param {string[]} opts.kitchenTools - available tools ["Horno", "Batidora", ...]
@@ -212,6 +214,13 @@ export function filterRecipes({
   // sorbitol, embarazo, lactancia) — see lib/intolerances.js. Hard exclusion.
   intolerances = [],
   dislikes = [],
+  // Categorías/proteínas marcadas como "no nos gusta" en el wizard (Onboarding
+  // Dislikes, member.dislikedCategories/dislikedProteins) — mismo trato soft
+  // que `dislikes` (sin fallback anti-vaciado, igual que el bloque 2 de abajo):
+  // el equivalente estructural de `dislikes` pero por categoría de plato o por
+  // mainProtein/extraProteins en vez de por texto de ingrediente.
+  dislikedCategories = [],
+  dislikedProteins = [],
   // Recipe ids the user actively discarded (permanent "no me gusta" + still-live
   // weekly/cooldown discards). Hard exclusion by id, applied before every other
   // pass so a rejected dish can never come back on generation or regeneration.
@@ -383,6 +392,23 @@ export function filterRecipes({
           return dislikeLower.some((d) => name.includes(d));
         }),
     );
+  }
+
+  // 2b. Categorías que no gustan — exclusión suave por categoría de plato.
+  if (dislikedCategories.length > 0) {
+    const blockedCats = new Set(dislikedCategories);
+    pool = pool.filter((r) => !blockedCats.has(r.category));
+  }
+
+  // 2c. Proteínas que no gustan — estructural (mainProtein + extraProteins),
+  // mismo campo que usa recipeViolatesDiet (lib/intolerances.js) para
+  // vegetariano/vegano.
+  if (dislikedProteins.length > 0) {
+    const blockedProteins = new Set(dislikedProteins);
+    pool = pool.filter((r) => {
+      const proteins = [r.mainProtein, ...(r.extraProteins ?? [])];
+      return !proteins.some((p) => blockedProteins.has(p));
+    });
   }
 
   // 3. Kid-friendly

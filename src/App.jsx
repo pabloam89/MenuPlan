@@ -4,6 +4,7 @@ import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAva
 import {
   OnboardingMembers,
   OnboardingRestrictions,
+  OnboardingDislikes,
   OnboardingMenuModel,
   OnboardingKidsDinner,
   OnboardingMealStyle,
@@ -3586,6 +3587,17 @@ export default function App() {
     _doGoToOnboardingStep(2);
   }, [_doGoToOnboardingStep]);
 
+  // Same self-contained mini-editor pattern as "Editar preferencias" above,
+  // but for the dislikes step (18): its own origin tracker so it doesn't
+  // fight editPreferencesOrigin if both ever ended up set. NOTE: keep the
+  // index in sync with OnboardingDislikes' position in `onbScreens` below
+  // (currently 18).
+  const [editDislikesOrigin, setEditDislikesOrigin] = useState(null);
+  const openEditDislikes = useCallback((origin) => {
+    setEditDislikesOrigin(origin);
+    _doGoToOnboardingStep(18);
+  }, [_doGoToOnboardingStep]);
+
   // "¿Para quién es el menú?" — when the profile already has members, offer to
   // reuse the household or start fresh for a different group, instead of always
   // forcing the full onboarding.
@@ -5492,16 +5504,20 @@ export default function App() {
   // Orden de `onbScreens`: 0 Ajustes (picker) · 1 Familia · 2 Alergias · 3 Modelo · 4 Cole ·
   // 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras-Comidas ·
   // 11 Extras-Otros · 12 Tu despensa · 13 Cuánto pesa la despensa ·
-  // 14 Cocina · 15 Electrodomésticos · 16 Tiempos · 17 Batch cooking. Los índices de
+  // 14 Cocina · 15 Electrodomésticos · 16 Tiempos · 17 Batch cooking ·
+  // 18 Qué no os gusta. Los índices de
   // abajo dependen de ese orden — y también los de SCOPE_TOPIC_STEPS, en
   // screens/ScopePickerScreen.jsx, que es lo que decide qué pasos abre cada
   // modo del picker. Mover un paso obliga a tocar los dos sitios.
+  // El 18 es perfil igual que 1-2 (se rellena una vez en el alta, no en cada
+  // generación de menú) y por eso vive fuera de SCOPE_TOPIC_STEPS: se oculta
+  // con la misma regla que 1-2 más abajo, no con el picker.
   // "Ajustes despensa" (¿cuándo se da por gastado?) vivió aquí como paso 13
   // condicional un día (2026-08-25) — se quitó al día siguiente: la pregunta
   // se entiende mejor mirando la despensa real que a mitad del asistente, así
   // que ahora es un sheet contextual en Compra → En casa (icono de ajustes +
   // primer aviso tras generar un menú), no un paso del wizard.
-  const ONB_STEP_COUNT = 18;
+  const ONB_STEP_COUNT = 19;
   // «¿Cómo coméis en casa?» (mismo/separado) ya no se pregunta cuando hay niños:
   // esa decisión la deriva ahora la pantalla «¿Cómo comen los niños?» (paso 7).
   // Solo sobreviviría para hogares adulto+niño… que es justo cuando hay niños,
@@ -5542,7 +5558,9 @@ export default function App() {
       // marcaste no se pregunta. Los pasos 1-2 (perfil) quedan fuera de esta
       // regla — tienen la suya abajo — y "Editar preferencias"/"Gestionar
       // alergias" entran a pelo a un paso concreto, así que ahí no aplica.
-      (!editPreferencesOrigin && i >= 3 && !scopeSteps.has(i)) ||
+      // El 18 (qué no os gusta) es perfil igual que 1-2 y queda fuera por el
+      // mismo motivo, aunque sea >= 3.
+      (!editPreferencesOrigin && i >= 3 && i !== 18 && !scopeSteps.has(i)) ||
       (i === 3 && skipMenuModel) ||
       (i === 4 && skipSchoolMenu) ||
       (i === 6 && skipBudgetStep) ||
@@ -5557,8 +5575,11 @@ export default function App() {
       // ...salvo cuando se entra expresamente a editarlas ("Gestionar
       // alergias"): ahí el paso 2 ES el destino, y ocultarlo hacía que el
       // normalizador saltase al siguiente visible (la semana del menú).
-      (!firstRunOnboarding && !editPreferencesOrigin && profileAlreadySetUp && (i === 1 || i === 2)),
-    [skipMenuModel, skipSchoolMenu, skipKidsDinner, skipPantryMode, quickMenu, basicMode, firstRunOnboarding, profileAlreadySetUp, editPreferencesOrigin, scopeSteps]
+      (!firstRunOnboarding && !editPreferencesOrigin && profileAlreadySetUp && (i === 1 || i === 2)) ||
+      // Mismo trato para el 18 ("Gestionar qué no os gusta"), con su propio
+      // origin tracker para no interferir con editPreferencesOrigin.
+      (!firstRunOnboarding && !editDislikesOrigin && profileAlreadySetUp && i === 18),
+    [skipMenuModel, skipSchoolMenu, skipKidsDinner, skipPantryMode, quickMenu, basicMode, firstRunOnboarding, profileAlreadySetUp, editPreferencesOrigin, editDislikesOrigin, scopeSteps]
   );
   const stepNeighbor = useCallback(
     (from, dir) => {
@@ -5684,7 +5705,10 @@ export default function App() {
         editPreferencesOrigin
           ? undefined
           : firstRunOnboarding
-            ? () => { setFirstRunOnboarding(false); goToDashboard(); }
+            // Encadena con "Qué no os gusta" (18) en vez de terminar el alta
+            // aquí mismo — ese paso es el que ahora cierra el alta y manda a
+            // Home. Ver su entrada en `onbScreens` más abajo.
+            ? () => fwd(() => setOnbStep(18))
             : nextOf(2)
       }
       onBack={
@@ -5828,6 +5852,28 @@ export default function App() {
       onBack={backOf(17)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
+    />,
+    <OnboardingDislikes
+      data={data}
+      setData={setData}
+      // Perfil, igual que Alergias (2): en el alta cierra el flujo y manda a
+      // Home; fuera del alta solo se ve entrando a pelo desde "Gestionar qué
+      // no os gusta" (openEditDislikes), como mini-editor autocontenido.
+      onNext={editDislikesOrigin ? undefined : nextOf(18)}
+      onBack={
+        editDislikesOrigin
+          ? () => back(() => { setScreen(editDislikesOrigin); setEditDislikesOrigin(null); })
+          : backOf(18)
+      }
+      onFinish={
+        editDislikesOrigin
+          ? () => back(() => { setScreen(editDislikesOrigin); setEditDislikesOrigin(null); })
+          : firstRunOnboarding
+            ? () => { setFirstRunOnboarding(false); goToDashboard(); }
+            : () => fwd(goToMenu)
+      }
+      onReset={handleAbandonOnboarding}
+      {...(editDislikesOrigin ? { finishLabel: "Guardar" } : {})}
     />,
   ];
 
@@ -6488,6 +6534,7 @@ export default function App() {
                 onDeleteAccount={handleDeleteAccount}
                 onEditMembers={() => fwd(() => setScreen("members"))}
                 onEditPreferences={() => openEditPreferences("profile")}
+                onEditDislikes={() => openEditDislikes("profile")}
                 onOpenHouseholds={() => fwd(() => setScreen("households"))}
                 activeHousehold={activeHousehold}
                 householdReadOnly={householdReadOnly}

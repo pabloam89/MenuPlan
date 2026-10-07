@@ -505,6 +505,14 @@ export function buildGroupContext(data, group) {
   const dislikes = Array.from(
     new Set([...(data.dislikes ?? []), ...(data.excluidos ?? []), ...groupMembers.flatMap((m) => m.dislikes ?? [])]),
   );
+  // "Qué no os gusta" (OnboardingDislikes) — mismo agregado por grupo que
+  // `dislikes` arriba, y misma advertencia de fuga a hermanos que comparten
+  // menú (ver reglas.js). dislikedRecipeIds se mezcla más abajo con
+  // activeDiscardIds en vez de viajar aparte: para filterRecipes un plato
+  // descartado a mano y uno marcado aquí son la misma exclusión dura por id.
+  const dislikedCategories = Array.from(new Set(groupMembers.flatMap((m) => m.dislikedCategories ?? [])));
+  const dislikedProteins = Array.from(new Set(groupMembers.flatMap((m) => m.dislikedProteins ?? [])));
+  const dislikedRecipeIds = Array.from(new Set(groupMembers.flatMap((m) => m.dislikedRecipeIds ?? [])));
 
   const kitchenTools = [...(data.kitchenTools ?? []), ...(data.customKitchenTools ?? [])];
   const cookTime = migrateCookTime(data);
@@ -726,8 +734,12 @@ export function buildGroupContext(data, group) {
       allergies,
       intolerances,
       dislikes,
-      // Permanent + still-live weekly/cooldown discards, excluded by id.
-      excludeIds: activeDiscardIds(data),
+      dislikedCategories,
+      dislikedProteins,
+      // Permanent + still-live weekly/cooldown discards, excluded by id, plus
+      // dishes marked "no me gusta" per member in OnboardingDislikes — same
+      // hard-exclusion-by-id treatment as a manual discard (see filterRecipes.js).
+      excludeIds: Array.from(new Set([...activeDiscardIds(data), ...dislikedRecipeIds])),
       hasKids,
       // Cremas, sólidos o las dos. Solo lo mira el grupo de bebés; para el
       // resto filterRecipes lo ignora.
