@@ -780,7 +780,7 @@ export async function entregar({ chatId, householdId, esGrupo, base, from, respo
   // igual a esa pantalla, que ?ir= se guarda en sessionStorage). Pablo, 2 oct
   // 2026: «el inicio de sesión tarda nada».
   if (r.ir && base) {
-    alPie.push({ texto: textoBotonApp(r.ir, r.idioma), url: esGrupo ? `${base}/?ir=${encodeURIComponent(r.ir)}` : await enlaceApp(base, r.ir, from, chatId) });
+    alPie.push({ texto: textoBotonApp(r.ir, r.idioma), ...(esGrupo ? { url: `${base}/?ir=${encodeURIComponent(r.ir)}` } : await botonApp(base, r.ir, from, chatId)) });
   }
   if (alPie.length) botones.push(alPie);
   if (r.compartir && base) {
@@ -921,18 +921,29 @@ export function textoBotonApp(ir, idioma = null) {
   return "📱 Verlo en la app";
 }
 
+// El dominio que el bot tiene en @BotFather (/setdomain, 7 oct 2026). Un botón
+// de login a otro dominio da error en Telegram, así que solo se usa si la app
+// está en este; si no (otro despliegue), la llave de un solo uso de antes.
+const DOMINIO_LOGIN = process.env.BOT_LOGIN_DOMINIO || "homenu-staging.vercel.app";
+export const conLoginDeTelegram = (base) => {
+  try { return new URL(base).host === DOMINIO_LOGIN; } catch { return false; }
+};
+
 /**
- * El enlace a una pantalla de la app (?ir=, src/lib/destinoBot.js). A quien nació
- * en este Telegram se le añade una llave de entrada de un solo uso, como /app:
- * no tiene sesión en la app y sin ella vería el login. A los demás, no: su
+ * El botón a una pantalla de la app (?ir=, src/lib/destinoBot.js). A quien nació
+ * en este Telegram, un botón de login: Telegram firma quién lo pulsa y la app
+ * entra con esa firma (api/bot/entrar.js), también en mensajes de hace días.
+ * Antes era una llave de un solo uso y 30 minutos, y el botón de un mensaje
+ * viejo ya no abría nada (7 oct 2026). A los demás, el enlace a secas: su
  * sesión es la de siempre (Google o email) y no se regala desde un chat.
  */
-async function enlaceApp(base, ir, from, chatId) {
-  const destino = `ir=${encodeURIComponent(ir)}`;
+async function botonApp(base, ir, from, chatId) {
+  const destino = `${base}/?ir=${encodeURIComponent(ir)}`;
   const cuenta = from?.id ? await cuentaNacidaAqui(from.id).catch(() => null) : null;
-  if (!cuenta) return `${base}/?${destino}`;
+  if (!cuenta) return { url: destino };
+  if (conLoginDeTelegram(base)) return { login: destino };
   const codigo = await crearCodigo({ tipo: "entrar", chatId, externalId: from.id, userId: cuenta.id, minutos: MIN_ENTRAR });
-  return `${base}/?entrar=${codigo}&${destino}`;
+  return { url: `${base}/?entrar=${codigo}&ir=${encodeURIComponent(ir)}` };
 }
 
 /**
@@ -1414,6 +1425,10 @@ async function abrirApp(msg, chatId, esGrupo, base) {
   const cuenta = await cuentaNacidaAqui(msg.from.id);
   if (!cuenta) {
     return enviar(chatId, "Tu cuenta se abre como siempre, con Google o con tu email, desde la app de HoMenu.");
+  }
+  // Botón de login (botonApp): sirve siempre, no caduca.
+  if (conLoginDeTelegram(base)) {
+    return enviar(chatId, "Aquí tienes:", { botones: [[{ texto: "Abrir HoMenu", login: `${base}/` }]] });
   }
   const codigo = await crearCodigo({ tipo: "entrar", chatId, externalId: msg.from.id, userId: cuenta.id, minutos: MIN_ENTRAR });
   return enviar(chatId, "Aquí tienes (sirve una vez y caduca en 30 minutos):", {

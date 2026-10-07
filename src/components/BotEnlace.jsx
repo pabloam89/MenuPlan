@@ -2,44 +2,49 @@ import { useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { clearState } from "../lib/storage.js";
 import { cuentaDeLaCopia, olvidarCopia } from "../lib/useAuth.js";
+import { sacarLlaveDeLola } from "../lib/llaveLola.js";
 
-// `/?entrar=<código>`: el enlace que manda el bot de Telegram a quien empezó
-// allí sin cuenta (o le pidió /app). Se cambia en api/bot/entrar.js por una
-// sesión y entras ya dentro, sin email ni Google (specs/plan-bot-mensajeria.md).
+// Entrar desde un botón de Lola, ya dentro, sin email ni Google
+// (specs/plan-bot-mensajeria.md). La llave (lib/llaveLola.js) es:
+//   · `?entrar=<código>`: de un solo uso y 30 minutos (/app, el alta);
+//   · la firma de un botón de login de Telegram (`?id=…&hash=…`): sirve cada
+//     vez que se pulsa, también en mensajes de hace días.
+// api/bot/entrar.js la cambia por una sesión.
 //
 // «Ya tengo cuenta» no pasa por aquí: se resuelve entero en el chat con un
 // código de 6 cifras por email (0059).
+//
+// `onFallo(mensaje)`: la llave no sirvió y este navegador no está dentro con
+// esa cuenta. App lo dice en el splash en vez de pedir entrar con Google.
 
-function sacarParametro(nombre) {
-  const url = new URL(window.location.href);
-  const valor = url.searchParams.get(nombre);
-  if (valor == null) return null;
-  url.searchParams.delete(nombre);
-  window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
-  return valor;
-}
-
-export default function BotEnlace({ showToast }) {
+export default function BotEnlace({ showToast, onFallo }) {
   const leido = useRef(false);
 
   useEffect(() => {
     if (leido.current || !supabase) return;
     leido.current = true;
 
-    const entrar = sacarParametro("entrar");
-    if (!entrar) return;
+    const llave = sacarLlaveDeLola();
+    if (!llave) return;
     (async () => {
+      const conSesion = (await supabase.auth.getSession())?.data?.session?.user?.id ?? null;
       try {
         const res = await fetch("/api/bot/entrar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ codigo: entrar }),
+          body: JSON.stringify(llave),
         });
         const body = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(body.error || "No se pudo entrar.");
+        if (!res.ok) {
+          // Un botón viejo (llave gastada) en un navegador que ya está dentro
+          // con esa misma cuenta: no hay nada que arreglar, se sigue al destino.
+          if (body.user_id && body.user_id === conSesion) return;
+          throw new Error(body.error || "No se pudo entrar.");
+        }
         const { token_hash, user_id } = body;
+        // Ya dentro con esa cuenta: nada que abrir.
+        if (conSesion && conSesion === user_id) return;
 
-        const conSesion = (await supabase.auth.getSession())?.data?.session?.user?.id ?? null;
         // Otra cuenta en este navegador: su familia sigue en la copia local y
         // la app la subiría a la cuenta nueva en cuanto entre. Se cierra y se
         // borra ANTES de abrir la nueva, y luego se recarga limpio. También si
@@ -57,10 +62,12 @@ export default function BotEnlace({ showToast }) {
           window.location.replace(window.location.pathname);
         }
       } catch (err) {
-        showToast(err.message || "No se pudo entrar.");
+        const mensaje = err.message || "No se pudo entrar.";
+        if (onFallo) onFallo(mensaje);
+        else showToast(mensaje);
       }
     })();
-  }, [showToast]);
+  }, [showToast, onFallo]);
 
   return null;
 }

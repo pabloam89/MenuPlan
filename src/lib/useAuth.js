@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase.js";
 import { upsertUserProfile } from "./analytics.js";
 import { clearState } from "./storage.js";
+import { traeLlaveDeLola } from "./llaveLola.js";
 
 // De quién es la copia de la casa que guarda este navegador (storage.js). Si
 // esa cuenta deja de existir (/borrarme en Telegram, o borrada en otro
@@ -22,10 +23,10 @@ export function olvidarCopia() {
   quitarMarca();
 }
 
-// La llave de Lola (?entrar=) la gestiona BotEnlace, que ya limpia al cambiar
-// de cuenta: aquí no se toca nada mientras tanto. Se lee al cargar el módulo,
-// antes de que BotEnlace la quite de la dirección.
-const CON_LLAVE = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("entrar");
+// La llave de Lola (?entrar= o la firma de Telegram, llaveLola.js) la gestiona
+// BotEnlace, que ya limpia al cambiar de cuenta: aquí no se toca nada mientras
+// tanto. Se lee al cargar el módulo, antes de que BotEnlace la quite.
+const CON_LLAVE = typeof window !== "undefined" && traeLlaveDeLola();
 
 // «User from sub claim in JWT does not exist»: el token es bueno pero la cuenta ya no está.
 const esCuentaBorrada = (error) =>

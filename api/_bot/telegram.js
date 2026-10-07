@@ -65,6 +65,19 @@ function partir(texto, max) {
   return trozos.flatMap((t) => (t.length > max ? t.match(new RegExp(`[\\s\\S]{1,${max}}`, "g")) : [t]));
 }
 
+/**
+ * Un botón nuestro → el de Telegram. `login`: un botón de login (login_url).
+ * Al pulsarlo, Telegram abre esa URL firmando quién lo ha pulsado (id, hash…),
+ * y api/bot/entrar.js lo verifica: entra siempre, en mensajes viejos también,
+ * y reenviado no le sirve a otro. El dominio es el que tiene el bot en
+ * @BotFather (/setdomain).
+ */
+export function botonTelegram(b) {
+  if (b.login) return { text: b.texto, login_url: { url: b.login, request_write_access: false } };
+  if (b.url) return { text: b.texto, url: b.url };
+  return { text: b.texto, callback_data: b.dato };
+}
+
 function enviarUno(chatId, texto, { botones, responderA, plano, teclado } = {}) {
   return llamar("sendMessage", {
     chat_id: chatId,
@@ -75,9 +88,7 @@ function enviarUno(chatId, texto, { botones, responderA, plano, teclado } = {}) 
     ...(botones
       ? {
           reply_markup: {
-            inline_keyboard: botones.map((fila) =>
-              fila.map((b) => (b.url ? { text: b.texto, url: b.url } : { text: b.texto, callback_data: b.dato })),
-            ),
+            inline_keyboard: botones.map((fila) => fila.map(botonTelegram)),
           },
         }
       : teclado
@@ -95,7 +106,7 @@ function enviarUno(chatId, texto, { botones, responderA, plano, teclado } = {}) 
 export async function editar(chatId, messageId, texto, { botones, plano = false } = {}) {
   const trozos = partir(String(texto ?? ""), 3900);
   const markup = botones
-    ? { reply_markup: { inline_keyboard: botones.map((fila) => fila.map((b) => (b.url ? { text: b.texto, url: b.url } : { text: b.texto, callback_data: b.dato }))) } }
+    ? { reply_markup: { inline_keyboard: botones.map((fila) => fila.map(botonTelegram)) } }
     : {};
   const uno = (t, p, conMarkup) => llamar("editMessageText", {
     chat_id: chatId, message_id: messageId, text: t,
