@@ -126,11 +126,28 @@ const INGREDIENT_ALLERGEN_RE = Object.fromEntries(
   Object.entries(INGREDIENT_ALLERGEN_KEYWORDS).map(([id, words]) => [id, compileKeywordRegex(words)]),
 );
 
+// Alergias libres: cualquier cosa que la persona escriba que NO sea uno de
+// los 14 de la UE («Brócoli», «Judías verdes»…) no tiene campo declarado que
+// la cubra — `recipe.allergens` solo admite el vocabulario UE — así que el
+// nombre del ingrediente es la ÚNICA red posible. Antes esto se saltaba en
+// silencio (`if (!re) continue`): una alergia fuera de la lista UE se
+// guardaba confirmada y no protegía ningún plato. El id normalizado (p. ej.
+// "judias_verdes") se deshace a palabras ("judias verdes") y se compila con
+// la misma frontera de palabra que el resto, nunca un substring suelto.
+const regexDeAlergiaLibre = new Map();
+function regexParaAlergiaLibre(id) {
+  if (regexDeAlergiaLibre.has(id)) return regexDeAlergiaLibre.get(id);
+  const palabras = id.replace(/_/g, " ").trim();
+  const re = palabras ? compileKeywordRegex([palabras]) : null;
+  regexDeAlergiaLibre.set(id, re);
+  return re;
+}
+
 /**
  * Safety net: does any of a recipe's ingredient names reveal a blocked allergen
- * that the catalog's `allergens` field cannot encode? Only checks the allergens
- * in INGREDIENT_ALLERGEN_KEYWORDS; the other 8 are already covered by declared
- * `allergens`, so this never second-guesses them.
+ * that the catalog's `allergens` field cannot encode? Checks the allergens en
+ * INGREDIENT_ALLERGEN_KEYWORDS (de los 14 UE sin campo declarado) y, para
+ * cualquier id que no sea de los 14 UE, una alergia libre por nombre.
  *
  * @param {string[]} ingredientNames
  * @param {Set<string>|Iterable<string>} blockedAllergenIds - normalized ids
@@ -139,7 +156,7 @@ const INGREDIENT_ALLERGEN_RE = Object.fromEntries(
 export function recipeIngredientsHitAllergens(ingredientNames, blockedAllergenIds) {
   const names = (ingredientNames ?? []).map(normalizeText);
   for (const id of blockedAllergenIds) {
-    const re = INGREDIENT_ALLERGEN_RE[id];
+    const re = INGREDIENT_ALLERGEN_RE[id] ?? (EU_ALLERGENS[id] ? null : regexParaAlergiaLibre(id));
     if (!re) continue;
     if (names.some((name) => re.test(name))) return true;
   }
