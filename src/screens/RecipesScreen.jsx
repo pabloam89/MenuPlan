@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { BookOpen, Plus, SlidersHorizontal, Sparkles } from "../components/icons.jsx";
-import { BottomNav, bottomNavSpacer } from "../components/ui.jsx";
+import { BookOpen, Heart, NotebookPen, Plus, Settings, Sparkles } from "../components/icons.jsx";
+import { BottomNav, bottomNavSpacer, SegmentedTabBar, SegmentedTabButton } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { filterMyLibraryRecipes, isCatalogGarnishCombo } from "../lib/userRecipes.js";
+import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -43,6 +44,12 @@ export function RecipesScreen({
   initialMine = false,
 }) {
   const [showIconCoach, setShowIconCoach] = useState(false);
+  // Pestañas (review de UX, lámina 27): Para ti (el catálogo), Mis recetas
+  // (lo que has creado, con tus carpetas) y Favoritos (lo que marcaste con ♥).
+  // Hasta el 7 oct 2026 «Mis recetas» era una teja más del catálogo y las
+  // favoritas iban dentro (ver la nota del 27 ago más abajo).
+  const [pestana, setPestana] = useState(initialMine ? "mias" : "parati");
+  const favoritas = useMemo(() => new Set(favoriteRecipeIds(recipeVotes)), [recipeVotes]);
 
   const ownRecipes = useMemo(
     () => (readOnly ? userRecipes : filterMyLibraryRecipes(userRecipes, user)),
@@ -84,7 +91,8 @@ export function RecipesScreen({
               <button
                 type="button"
                 onClick={onOpenRecipePrefs}
-                title="Preferencias de recetas"
+                title="Preferencias del menú"
+                aria-label="Preferencias del menú"
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "center",
                   width: 36, height: 36, borderRadius: 12,
@@ -92,7 +100,10 @@ export function RecipesScreen({
                   color: GREEN, cursor: "pointer",
                 }}
               >
-                <SlidersHorizontal size={16} strokeWidth={2.3} />
+                {/* Engranaje y no barritas: esto decide qué recetas entran en
+                    tus próximos menús, no filtra la lista (eso es «Filtros»),
+                    y con el mismo icono parecían lo mismo (review de UX). */}
+                <Settings size={16} strokeWidth={2.3} />
               </button>
             )}
             {onOpenRecipePlanner && !readOnly && (
@@ -110,6 +121,13 @@ export function RecipesScreen({
               </button>
             )}
           </div>
+        </div>
+        <div style={{ padding: "0 18px 12px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+          <SegmentedTabBar>
+            <SegmentedTabButton selected={pestana === "parati"} onClick={() => setPestana("parati")} label="Para ti" Icon={Sparkles} fontSize={12} />
+            <SegmentedTabButton selected={pestana === "mias"} onClick={() => setPestana("mias")} label="Mis recetas" Icon={NotebookPen} fontSize={12} />
+            <SegmentedTabButton selected={pestana === "favoritos"} onClick={() => setPestana("favoritos")} label="Favoritos" Icon={Heart} accent="#c0485f" fontSize={12} />
+          </SegmentedTabBar>
         </div>
       </div>
 
@@ -129,12 +147,20 @@ export function RecipesScreen({
             "Crear" vuelve a la cabecera, que es donde no estorba. */}
 
         <CatalogBrowserSheet
+          // Una por pestaña: cada una arranca limpia (su buscador, sus filtros).
+          key={pestana}
           inline
           inlinePadding={18}
           reference
           browseCategories
-          initialCategory={initialCategory}
-          initialMine={initialMine}
+          initialCategory={pestana === "parati" ? initialCategory : null}
+          initialMine={pestana === "mias"}
+          hideMineTile
+          soloMias={pestana === "mias"}
+          favoriteIds={pestana === "favoritos" ? favoritas : null}
+          emptyImg={pestana === "favoritos" ? "/avatares/cards/empty_favoritas.jpg" : undefined}
+          emptyLabel={pestana === "favoritos" ? "Aún no tienes favoritas" : undefined}
+          emptySubtitle={pestana === "favoritos" ? "Toca el ♥ de una receta y aparecerá aquí." : undefined}
           recipeVotes={recipeVotes}
           recipeCollections={recipeCollections}
           recipeFolders={recipeFolders}
