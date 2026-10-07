@@ -107,6 +107,11 @@ Por qué: dos copias acaban diciendo cosas distintas (los comensales en el
 JSON de la casa y en `persona` mientras dure la transición son la excepción
 declarada, no el modelo).
 
+Vale también entre capas: un hecho del catálogo (JSON en git) no se copia a
+mano en una tabla ni en una constante JS, y un vocabulario de la base no se
+reescribe en el código; se genera o se importa de su origen, con un test que
+compare. **[revisión]**
+
 ## 7. Concurrencia
 
 El estado compartido de la casa se escribe con RPC que comprueban y suben una
@@ -175,11 +180,101 @@ módulo por transformación.
 
 ## 12. Nombres
 
-- Tablas nuevas en plural. **[revisión]**
+Un mismo patrón en todas las tablas, para que leer una sea leerlas todas.
+
+- `snake_case` ASCII en minúsculas, sin abreviaturas inventadas. **[revisión]**
+- Tablas nuevas en plural; la clave ajena se llama como la entidad en
+  singular + `_id` (`persona_id` → `personas`). **[revisión]**
 - Columnas estructurales en inglés: `id`, `*_id`, `created_at`, `updated_at`,
-  `status`. Las de dominio pueden ir en español. **[revisión]**
+  `status`. Las de dominio pueden ir en español, pero una misma idea se llama
+  igual en todas las tablas. **[revisión]**
+- Sufijos que dicen el tipo: `_at` es `timestamptz`, `_on` es `date`, `es_` /
+  `is_` es `boolean`, y las magnitudes llevan su unidad: `_g`, `_ml`, `_min`,
+  `_cents`, `_kcal`. **[revisión]** Por qué: «cantidad» sin unidad es la mitad
+  de los fallos de recetas (gramos frente a piezas).
 - Sufijos y prefijos de constraints e índices: `_fk`, `_vocabulario`, `uq_`,
   `idx_`. **[revisión]**
+
+## 13. Normalización
+
+Las tablas nuevas nacen en tercera forma normal. En llano:
+
+- **Cada celda, un valor (1FN).** Nada de listas separadas por comas en un
+  `text`, ni columnas repetidas `alergia_1`, `alergia_2`…: eso es una tabla
+  hija. **[revisión]**
+- **Cada columna depende de la clave entera (2FN).** En una tabla con clave
+  compuesta, lo que solo depende de una parte de la clave va a otra tabla.
+  **[revisión]**
+- **Nada que se pueda leer de otra entidad (3FN).** Se guarda el id, no una
+  copia de su nombre, su precio o su foto. **[revisión]** Por qué: la copia
+  se queda vieja el día que cambia el original (el `owner_snapshot` de
+  `user_recipes` llegó a servir un email).
+- **Clave natural única además de la técnica.** Si en el mundo real algo no
+  puede repetirse (un alimento por nombre canónico, un miembro por casa y
+  usuario), lleva su `unique`. **[revisión]** Por qué: un `uuid` no impide
+  duplicados; solo los numera.
+- **Desnormalizar es una decisión, no un atajo.** Una copia por rendimiento
+  es una proyección (sección 6): lleva `comment on column` con «PROYECCIÓN de
+  <origen>, la recalcula <quién>» y un test o trigger que la recalcule.
+  **[revisión]**
+
+## 14. Tipos y nulos
+
+- **`not null` por defecto.** Un `null` es una decisión: si una columna lo
+  admite, su `comment on column` dice qué significa (¿desconocido? ¿no
+  aplica?). **[revisión]**
+- **Fechas con zona**: `timestamptz`, nunca `timestamp` a secas. **[auto]**
+  Por qué: la casa, el bot y Vercel viven en zonas distintas.
+- **Texto sin longitud fija**: `text` + `check (char_length(x) <= n)` si hace
+  falta tope, nunca `varchar(n)` ni `char(n)`. **[auto]** Por qué: cambiar un
+  check es barato; cambiar un tipo reescribe la tabla.
+- **Números exactos**: dinero en céntimos `integer`, cantidades en `numeric`
+  o `integer` con la unidad en el nombre; nunca `real`, `float` ni `double
+  precision`. **[auto]** Por qué: 0,1 + 0,2 no da 0,3 en coma flotante, y una
+  lista de la compra suma.
+- **Rangos con check**: una magnitud que no puede ser negativa lleva
+  `check (x >= 0)`. **[revisión]**
+- **Booleanos `not null default false`**: un booleano con tres estados es un
+  vocabulario. **[revisión]**
+
+## 15. Cableado: del código a la tabla
+
+La base puede estar perfecta y romperse igual si el código la toca con
+strings sueltos desde cualquier sitio.
+
+- **Una tabla, un módulo dueño.** Cada tabla se lee y escribe desde un
+  módulo (en la app, `src/lib/<dominio>Sync.js`; en el servidor, el módulo
+  de dominio de `api/_bot/`). El resto del código llama a sus funciones.
+  **[auto]** trinquete: `supabase/cableado.test.js` compara con
+  `supabase/cableado.json` y falla si un fichero nuevo se pone a tocar una
+  tabla (medido el 7 oct 2026: 40 tablas, 99 pares tabla-fichero; el objetivo
+  es uno por tabla). Por qué: hoy `bot_identities` se toca desde nueve
+  ficheros; cambiar una columna obliga a encontrarlos todos.
+- **Nombres de columnas y valores, desde una constante.** Fuera del módulo
+  dueño no se escriben a mano nombres de columnas, filtros PostgREST
+  (`status=eq.activo`) ni valores de vocabulario: salen de la constante de la
+  sección 4 o de una función del módulo. **[revisión]**
+- **Tipos generados como objetivo.** Los tipos que genera Supabase a partir
+  del esquema vivo (`supabase gen types`) son la meta para que el editor y el
+  CI marquen un nombre mal escrito antes de producción. **[revisión]** hasta
+  que existan.
+- **La forma del JSON, en un solo esquema zod**, que usan tanto quien escribe
+  como quien lee. **[revisión]**
+
+## 16. Diccionario y lectura
+
+- **Cada tabla nueva dice qué es**: `comment on table` con una frase sobre qué
+  guarda y quién la escribe. **[auto]** Las columnas que no se explican por
+  su nombre, también (`comment on column`). **[revisión]** Por qué: el
+  catálogo de la base es la documentación que no se queda vieja.
+- **Columnas explícitas**: el código nuevo pide las columnas que usa, no
+  `select *`. **[revisión]** Por qué: una columna nueva no viaja sin que nadie
+  la pida, y se ve qué código depende de qué columna.
+- **Lecturas compuestas con nombre**: lo que cruza varias tablas se lee con
+  una vista o una RPC con nombre, no con el mismo `join` copiado en varios
+  sitios. **[revisión]**
+- **Listas con tope**: toda lectura que puede crecer lleva límite o
+  paginación. **[revisión]**
 
 ## Qué comprueba el test
 
@@ -196,8 +291,15 @@ módulo por transformación.
 8. ni `concurrently`, ni `begin`/`commit`, ni `vacuum`;
 9. `drop table | column` → cabecera `-- CONTRAE:`;
 10. el número aparece en `supabase/ESTADO.md`;
-11. `set lock_timeout` presente.
+11. `set lock_timeout` presente;
+12. ni `timestamp` sin zona, ni `varchar(n)`/`char(n)`, ni `real`/`float`/
+    `double precision`/`money` en columnas nuevas o cambiadas;
+13. cada `create table` tiene su `comment on table`.
 
 Y sobre todas las migraciones: cada NOT VALID sin un `validate` posterior está
 en PENDIENTES.md. El test se prueba a sí mismo con SQL de ejemplo, bueno y
 malo, para cada regla.
+
+Y `supabase/cableado.test.js`, sobre el código de `src/` y `api/`: ningún
+fichero nuevo toca una tabla directamente, y los que dejan de tocarla salen
+de `supabase/cableado.json` (`node scripts/cableado.mjs` da el resumen).

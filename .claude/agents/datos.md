@@ -59,6 +59,17 @@ No es suyo:
 9. **Magnitudes en unidad canónica**: gramos, minutos, céntimos en entero.
 10. **Primero el modelo, luego el código**: entidades, relaciones, ciclo de
     vida, invariantes (repartidos entre la base y el código, con test).
+11. **Tercera forma normal por defecto.** Un valor por celda, nada que se
+    pueda leer de otra entidad (se guarda su id), clave natural `unique`
+    además de la técnica. Desnormalizar solo como proyección declarada.
+12. **Tipos homogéneos**: `not null` salvo decisión comentada, `timestamptz`,
+    `text` con check, céntimos en `integer`, unidad en el nombre de la
+    columna. Una misma idea se llama igual en todas las tablas.
+13. **Una tabla, un módulo dueño.** El código llega a cada tabla por un solo
+    módulo; nombres de columnas, filtros y vocabularios salen de constantes.
+    El trinquete `supabase/cableado.test.js` no deja abrir caminos nuevos.
+14. **Cada tabla se explica sola**: `comment on table` siempre, y en las
+    columnas que no se entienden por su nombre.
 
 ## 4. Disparadores
 
@@ -130,11 +141,13 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 - Si la decisión cambia el producto (qué ve la familia, qué hace Lola), la
   devuelve a la sesión principal con opciones.
 - Ramas, CI, permisos o despliegues: a `gobierno`.
+- Siempre, al terminar una migración o un cambio de modelo: la sesión
+  principal lo pasa a `auditor-datos` antes del OK para aplicar.
 
 ## 10. Hecho
 
-- `npm test` pasa, incluidos `supabase/migrations.test.js` y
-  `supabase/principios.test.js`.
+- `npm test` pasa, incluidos `supabase/migrations.test.js`,
+  `supabase/principios.test.js` y `supabase/cableado.test.js`.
 - El ensayo de cada migración nueva pasa contra la base, y lo que debía cambiar
   se ha comprobado leyendo el catálogo (`pg_constraint`, `pg_proc`), no solo el
   «OK».

@@ -146,7 +146,16 @@ escriben en ella. Cada migración es un cambio en producción.
   nunca se editan a mano ambos.
 - Cambios de modelo: primero el modelo (entidades, relaciones con `on delete`
   justificado, ciclo de vida, invariantes), luego el código. Lo lleva el
-  agente `datos`.
+  agente `datos` y lo juzga `auditor-datos` antes de aplicar.
+- **Todas las tablas con los mismos criterios** (`docs/datos/PRINCIPIOS.md`):
+  tercera forma normal, se guarda el id y no una copia del nombre, clave
+  natural `unique`, `not null` salvo decisión comentada, `timestamptz`, `text`
+  sin `varchar`, céntimos en `integer`, la unidad en el nombre de la columna,
+  y `comment on table` en cada tabla nueva.
+- **Una tabla, un módulo dueño.** El código toca cada tabla desde un solo
+  módulo; nada de nombres de tabla, columnas o filtros PostgREST a mano por
+  ahí. `supabase/cableado.test.js` falla si un fichero nuevo se pone a tocar
+  una tabla (`node scripts/cableado.mjs` da el mapa).
 
 ## Código
 
@@ -220,6 +229,9 @@ Jueces:
 - **`qa`**: la app en el navegador, con capturas a 375 y 420 px.
 - **`evaluador`**: evals de Lola antes y después de cada cambio.
 - **`seguridad`**: RLS, endpoints, secretos, inyección en prompts.
+- **`auditor-datos`**: el modelo de datos con los mismos criterios para
+  todas las tablas — normalización, nombres y tipos, duplicados entre SQL,
+  JSON y constantes, y el cableado del código a cada tabla.
 
 Para encargos que necesitan más de un agente: **`/orquestar <encargo>`**
 (`.claude/commands/orquestar.md`) elige el pipeline, escribe el brief de cada

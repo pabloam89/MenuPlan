@@ -20,7 +20,7 @@ Estado medido el 7 oct 2026 sobre `staging`.
 | 5 | Entornos | ¿Dónde pruebo sin riesgo? | 1 | 3 | 4 | gobierno, datos |
 | 6 | Observabilidad | ¿Cómo me entero de que algo falla en producción? | 1 | 3 | 4 | (vigía, cuando exista la herramienta) |
 | 7 | Seguridad | ¿Quién puede ver o romper qué? | 1 | 3 | 4 | seguridad, gobierno |
-| 8 | Datos | ¿Están bien modelados y puedo recuperarlos? | 2 | 3 | 4 | datos |
+| 8 | Datos | ¿Están bien modelados y puedo recuperarlos? | 2 | 3 | 4 | datos, auditor-datos |
 | 9 | Calidad de la IA | ¿Lola responde bien tras cada cambio? | 1 | 2 | 3 | lola, evaluador |
 | 10 | Coste | ¿Cuánto gasto y quién lo gasta? | 1 | 3 | 4 | rendimiento, lola |
 | 11 | Entrada del trabajo | ¿Cómo pasa una idea a tarea bien definida? | 1 | 2 | 3 | (la sesión principal con `/orquestar`) |
@@ -57,9 +57,13 @@ scanning ni alertas de dependencias, y críticos de coste abiertos en
 `specs/AUDIT-REPORT.md`. *Siguiente*: secret scanning + Dependabot; decidir
 repo privado.
 
-**8 · Datos (2).** Agente `datos`, test de principios, `verificar-estado`.
-Copias de seguridad sin comprobar. *Siguiente*: confirmar PITR/backups de
-Supabase y hacer una restauración de prueba.
+**8 · Datos (2).** Agentes `datos` y `auditor-datos`; 16 principios en
+`docs/datos/PRINCIPIOS.md`, con 13 comprobaciones automáticas sobre las
+migraciones nuevas; trinquete de cableado (40 tablas, 99 pares tabla-fichero
+el 7 oct; objetivo uno por tabla); `verificar-estado`. Copias de seguridad sin
+comprobar. *Siguiente*: el mapa de verdades (cada hecho, dónde vive y sus
+copias) por `auditor-datos`; confirmar PITR/backups de Supabase y hacer una
+restauración de prueba.
 
 **9 · Calidad de la IA (1).** `bot-evals`, `router-evals`, `/revision-semanal`,
 todo a mano. *Siguiente*: evals de Lola en CI cuando un PR toca `api/_bot/`.

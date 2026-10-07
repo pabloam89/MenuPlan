@@ -34,6 +34,7 @@ se sabrá que está bien), pregunta antes de lanzar nada.
 | `qa` | juez | 4, 13 | la app en el navegador: flujos, capturas, accesibilidad |
 | `evaluador` | juez | 9, 10 | evals de Lola antes y después |
 | `seguridad` | juez | 7 | RLS, endpoints, secretos, inyección en prompts |
+| `auditor-datos` | juez | 4, 8 | modelo de datos: normalización, homogeneidad, duplicados, cableado |
 
 Fichas completas en `.claude/agents/`; planos en `ops/PLANOS.md`.
 
@@ -48,7 +49,9 @@ Fichas completas en `.claude/agents/`; planos en `ops/PLANOS.md`.
 | Assets (icono, ilustración, limpieza) | `diseno` → [`rendimiento`] → `qa` |
 | Herramienta nueva o cambio en Lola | `lola` → `evaluador` + `revisor` → [`seguridad` si escribe datos] |
 | Cambiar conocimiento, prompt o enrutador del bot | `lola` → `evaluador` |
-| Cambio de esquema o dato nuevo | `datos` → [`arquitecto`] → `seguridad` si toca RLS → `revisor` → *OK para aplicar* |
+| Cambio de esquema o dato nuevo | `datos` → `auditor-datos` + [`seguridad` si toca RLS] → *OK para aplicar* |
+| Dato que vive en varias capas (base, catálogo, constantes) | `auditor-datos` (mapa) → `datos` → `auditor-datos` |
+| Reducir el cableado de una tabla | `auditor-datos` (qué ficheros) → [`arquitecto`] → constructor del dominio → `revisor` |
 | Recetas o catálogo (contenido) | sesión principal → `revisor` (validación del catálogo en los tests) |
 | Función que cruza dominios | `arquitecto` → constructores por dominio → `revisor` + `qa` |
 | Bug | `revisor` (diagnóstico y test que lo reproduce) → constructor del dominio → `revisor` |
@@ -57,7 +60,7 @@ Fichas completas en `.claude/agents/`; planos en `ops/PLANOS.md`.
 | Endpoint nuevo en `api/` | constructor → `seguridad` + `revisor` |
 | CI, permisos, hooks, ramas, secretos | `gobierno` |
 | Desplegar a producción | `gobierno` → [`evaluador` si cambia el bot] → *OK de una persona* |
-| Revisión periódica | `seguridad` + `arquitecto` + `evaluador` + `gobierno` (planos), en paralelo |
+| Revisión periódica | `seguridad` + `arquitecto` + `auditor-datos` + `evaluador` + `gobierno` (planos), en paralelo |
 
 Regla fija: **quien construye no juzga**. Cada constructor va seguido de al
 menos un juez distinto.

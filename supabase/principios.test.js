@@ -227,6 +227,24 @@ export function revisar(fichero, sql, { pendientes, estado }) {
   // lock-timeout.
   if (!/\bset\s+(?:local\s+)?lock_timeout\b/.test(codigo)) v.push("lock-timeout: falta set lock_timeout");
 
+  // tipos: fechas con zona, texto sin longitud fija, números exactos.
+  for (const s of sents) {
+    const ct = RE_CREATE_TABLE.exec(s);
+    const at = RE_ALTER_TABLE.exec(s);
+    if (!ct && !at) continue;
+    for (const c of clausulas(s)) {
+      if (at && !/^add\s+(?:column\b|(?!constraint\b)\w)/.test(c) && !/^alter\s+(?:column\s+)?\w+\s+(?:set\s+data\s+)?type\b/.test(c)) continue;
+      if (/\btimestamp\b(?!\s*(?:\(\s*\d+\s*\)\s*)?with\s+time\s+zone)/.test(c)) v.push(`tipos: timestamp sin zona (usa timestamptz): ${c.slice(0, 80)}`);
+      if (/\b(?:varchar|character\s+varying|char|character)\s*\(/.test(c)) v.push(`tipos: texto con longitud fija (usa text + check): ${c.slice(0, 80)}`);
+      if (/\b(?:real|float[48]?|double\s+precision|money)\b/.test(c)) v.push(`tipos: número inexacto (usa integer o numeric): ${c.slice(0, 80)}`);
+    }
+  }
+
+  // comentario: cada tabla nueva dice qué es.
+  for (const t of creadas) {
+    if (!new RegExp(String.raw`comment\s+on\s+table\s+(?:public\.)?"?${t}"?\s+is\b`).test(codigo)) v.push(`comentario: ${t} sin comment on table`);
+  }
+
   return v;
 }
 
@@ -291,6 +309,7 @@ revoke all on function public.hacer_cosa(uuid) from public, anon, authenticated;
 grant execute on function public.hacer_cosa(uuid) to service_role;
 
 comment on table public.cosas is 'Un texto largo que dice references, begin; y drop table, y no es SQL de verdad';
+comment on table public.cosas_log is 'Registro de solo añadir de lo que pasa con cada cosa';
 `;
 
 const CTX = { pendientes: "- `bot_tareas_ejemplo_vocabulario`", estado: "| `0999_ejemplo` | sin aplicar |" };
@@ -340,6 +359,16 @@ const MALAS = [
     (s) => s + "drop table if exists public.viejas;\n"],
   ["lock-timeout", "sin set lock_timeout",
     (s) => s.replace("set lock_timeout = '5s';\n", "")],
+  ["tipos", "timestamp sin zona",
+    (s) => s.replace("created_at timestamptz not null", "created_at timestamp not null")],
+  ["tipos", "varchar con longitud",
+    (s) => s.replace("nombre text not null", "nombre varchar(80) not null")],
+  ["tipos", "precio en float",
+    (s) => s + "alter table public.cosas add column precio double precision;\n"],
+  ["tipos", "columna cambiada a real",
+    (s) => s + "alter table public.cosas alter column nombre type real;\n"],
+  ["comentario", "tabla nueva sin comment on table",
+    (s) => s.replace("comment on table public.cosas_log is 'Registro de solo añadir de lo que pasa con cada cosa';\n", "")],
 ];
 
 describe("principios: el lector distingue SQL bueno de malo", () => {
