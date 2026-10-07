@@ -776,8 +776,12 @@ export function segunEstilo(lista, estilo) {
   return [...con.sort((a, b) => clave(a) - clave(b)), ...sin];
 }
 
-/** Tiempo y dificultad de una opción; con «ligero», también sus kcal para poder explicarlo. */
-const detalleDe = (r, estilo) => [cambiosDe(r), r.time ? `${r.time} min` : "", estilo === "ligero" && r.kcal ? `${Math.round(r.kcal)} kcal${r.caloriasNivel ? `, ${r.caloriasNivel}` : ""}` : "", r.costeRacion != null ? `unos ${r.costeRacion.toFixed(2).replace(".", ",")} € por ración` : "", r.difficulty ?? ""].filter(Boolean).join(", ");
+/**
+ * Tiempo y dificultad de una opción; con «ligero», también sus kcal para poder
+ * explicarlo. Sin precio por ración: nadie lo pide al cambiar un plato y
+ * ensuciaba la lista (Pablo, 7 oct 2026). «Algo barato» ya filtra por coste.
+ */
+const detalleDe = (r, estilo) => [cambiosDe(r), r.time ? `${r.time} min` : "", estilo === "ligero" && r.kcal ? `${Math.round(r.kcal)} kcal${r.caloriasNivel ? `, ${r.caloriasNivel}` : ""}` : "", r.difficulty ?? ""].filter(Boolean).join(", ");
 
 /**
  * Rasgos que piden en voz alta: «algo reconfortante», «de cuchara», «que no

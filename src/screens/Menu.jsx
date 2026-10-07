@@ -8716,7 +8716,7 @@ export function DishDetail({
           )}
         </div>
 
-        {/* «Cambiar con Lola»: su cara, flotando abajo a la derecha. Era una
+        {/* «Habla con Lola»: su cara, flotando abajo a la derecha. Era una
             barra pegajosa de todo el ancho que tapaba media ficha (review de
             UX, lámina 5). El hueco de abajo es para que la cara no tape lo
             último de la ficha al llegar al final. */}
@@ -8738,14 +8738,17 @@ export function DishDetail({
                     boxShadow: "0 6px 20px rgba(20,47,29,.18)", whiteSpace: "nowrap",
                   }}
                 >
-                  ¿Lo cambiamos?
+                  Habla con Lola
                 </span>
               )}
+              {/* Abre el chat con Lola, sin pedido: con «cámbialo» por delante
+                  Lola proponía platos que nadie había pedido y en Telegram no
+                  se entendía qué se le había pedido (Pablo, 7 oct 2026). */}
               <button
                 type="button"
-                onClick={() => abrirLola(pedidoLola)}
-                aria-label="Cambiar con Lola"
-                title="Cambiar con Lola"
+                onClick={() => abrirLola()}
+                aria-label="Hablar con Lola"
+                title="Hablar con Lola"
                 className="mp-press"
                 style={{
                   position: "relative", width: 56, height: 56, padding: 0, flexShrink: 0,
