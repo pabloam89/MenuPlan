@@ -17,8 +17,10 @@ import {
   trackDayPasta,
 } from "./recipeDiversity.js";
 import { maxCookTime } from "./cookTime.js";
+import { DIAS } from "./vocabularios.js";
 
-export const DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+// La lista vive en vocabularios.js (fuente única); aquí con su nombre de siempre.
+export const DAYS = DIAS;
 
 export const DAY_LABELS = {
   Lun: "Lunes",

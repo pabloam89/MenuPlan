@@ -9,6 +9,7 @@
  * columnas nuevas (tipo, objetivo, aplazada, decisión, persona) es la fase
  * siguiente.
  */
+import { REGISTRO_CAMPOS } from "./registroCampos.js";
 
 export const ENUMS = {
   "bot_tareas.kind": ["seguimiento", "pregunta"],
@@ -26,18 +27,10 @@ export const ENUMS = {
 
 /**
  * Campos de la ficha que una tarea puede preguntar, o que nunca se preguntan.
- * politica: nunca · solo_si_lo_piden · antes_de_usarlo · de_pasada · una_vez.
- * seguridad: su tarea entra siempre en lo que lee Lola, sin límite.
+ * Viven en registroCampos.js (la fuente de registro_campo); aquí con su nombre
+ * de siempre para quien ya los usa.
  */
-export const CAMPOS = {
-  alergias: { politica: "una_vez", seguridad: true, caduca_dias: 30 },
-  etapaBebe: { politica: "antes_de_usarlo", seguridad: true, caduca_dias: 21 },
-  edad: { politica: "nunca", seguridad: false },
-  nacimiento: { politica: "nunca", seguridad: false },
-  sexo: { politica: "nunca", seguridad: false },
-  colegio: { politica: "nunca", seguridad: false },
-  patronSemanas: { politica: "nunca", seguridad: false },
-};
+export const CAMPOS = REGISTRO_CAMPOS;
 
 /** kind viejo → tipo nuevo, el mismo reparto que hace el disparador de 0080. */
 export const TIPO_DE_KIND = { pregunta: "falta_saber", seguimiento: "seguimiento" };

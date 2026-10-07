@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import * as ids from "./ids.js";
+import { USOS_RECETA } from "./vocabularios.js";
 import { callModel, extractJson, AIPlannerError, ICON_TYPE_MAP, CATEGORY_ICON } from "./aiPlanner.js";
 import { FAST_MODEL } from "./aiModels.js";
 import { EU_ALLERGENS } from "./allergens.js";
@@ -210,7 +211,8 @@ export const USAGE_TAGS = [
 ];
 
 /** Los ids, que son también el vocabulario cerrado de user_recipes.usage_tags (CHECK de 0086). */
-export const USAGE_TAG_IDS = USAGE_TAGS.map((t) => t.id);
+// La lista vive en vocabularios.js; vocabularios.test.js comprueba que cuadra con USAGE_TAGS.
+export const USAGE_TAG_IDS = USOS_RECETA;
 
 /**
  * Collapses the multi-select usage tags into the single legacy `type` value

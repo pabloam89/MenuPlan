@@ -1,16 +1,9 @@
 import { normalizeName, guessShoppingAisle } from "./ingredientCategories.js";
 import { toCanonicalStockQty } from "./kitchenUnits.js";
+import { ENVASES } from "./vocabularios.js";
 
-/** Container types for packaged grocery items (matches SpendPanel vocabulary). */
-export const PACK_KINDS = [
-  { value: "bote", label: "bote" },
-  { value: "lata", label: "lata" },
-  { value: "paquete", label: "paquete" },
-  { value: "bolsa", label: "bolsa" },
-  { value: "brick", label: "brick" },
-  { value: "botella", label: "botella" },
-  { value: "carton", label: "cartón" },
-];
+/** Container types for packaged grocery items. Los valores salen de vocabularios.js (CHECK de 0086). */
+export const PACK_KINDS = ENVASES.map((value) => ({ value, label: value === "carton" ? "cartón" : value }));
 
 export const PACK_SIZE_UNITS = ["g", "kg", "ml", "l"];
 
