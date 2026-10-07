@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { upsertRecipeDiscards } from "./recipeDiscardsSync.js";
 
 /** @typedef {{ forever: string[], cooldownUntil: Record<string, number> }} DiscardsState */
 
@@ -61,4 +62,36 @@ export async function deleteHouseholdDiscard(householdId, recipeId) {
     .eq("household_id", householdId)
     .eq("recipe_id", recipeId);
   if (error) console.warn("[householdDiscardsSync] delete failed", error.message);
+}
+
+/**
+ * Sube de una vez los descartes que la nube aún no tiene (primera carga en un
+ * dispositivo, o los del blob antiguo). Con casa van a la tabla de la casa, la
+ * misma de la que se leen al cargar (loadHouseholdDiscards); sin casa, a los
+ * del usuario. Antes iban siempre a los del usuario: con casa no los veía
+ * nadie y se volvían a subir en cada carga.
+ *
+ * @param {string|null} householdId
+ * @param {string} userId
+ * @param {DiscardsState} discards
+ */
+export async function subirDescartesPendientes(householdId, userId, discards) {
+  if (!householdId) return upsertRecipeDiscards(userId, discards);
+  if (!supabase) return;
+  const forever = discards?.forever ?? [];
+  const cooldownUntil = discards?.cooldownUntil ?? {};
+  const rows = [
+    ...forever.map((recipe_id) => ({ household_id: householdId, recipe_id, is_permanent: true, cooldown_until: null })),
+    ...Object.entries(cooldownUntil).map(([recipe_id, ts]) => ({
+      household_id: householdId,
+      recipe_id,
+      is_permanent: false,
+      cooldown_until: new Date(ts).toISOString(),
+    })),
+  ];
+  if (rows.length === 0) return;
+  const { error } = await supabase
+    .from("household_recipe_discards")
+    .upsert(rows, { onConflict: "household_id,recipe_id" });
+  if (error) console.warn("[householdDiscardsSync] bulk upsert failed", error.message);
 }

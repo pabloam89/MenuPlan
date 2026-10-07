@@ -88,3 +88,15 @@ describe("generar menú: todo o nada", () => {
     expect(conCasa).not.toHaveBeenCalled();
   });
 });
+
+describe("generar menú con las recetas propias", () => {
+  it("el motor recibe las de user_recipes (las de la app), no solo las del JSON", async () => {
+    const propia = { id: "user_app1", name: "Tortilla de la abuela", source: "user" };
+    cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), recetasPropias: [propia] });
+    conCasa.mockResolvedValue({ ok: true });
+    const prepararSemana = vi.spyOn(m, "prepararSemana");
+    await generarMenu("h1", "esta", [], {});
+    expect(prepararSemana.mock.calls[0][0].userRecipes).toEqual([propia]);
+    prepararSemana.mockRestore();
+  });
+});
