@@ -60,7 +60,9 @@ No tienes acceso a la base de datos. Las consultas están en
    - Rama `claude/fallos-AAAAMMDD-<slug-corto>` desde `staging`.
    - Primero un test que falle reproduciendo el caso.
    - Arreglo mínimo, con el estilo y los comentarios del código de alrededor.
-   - `npx vitest run` y `npx vite build`. Si hay tests que ya fallaban en
+   - `npx vitest run` y `npm run build` (no `vite build` a secas: se salta el
+     prebuild, y la guardia de `.claude/hooks` lo niega). Añade los ficheros
+     por nombre, nunca `git add .`. Si hay tests que ya fallaban en
      `staging` sin tu cambio, compruébalo y no los atribuyas a tu arreglo.
    - Commit en español con el formato del repo (`fix(area): ...`), push de la
      rama y `gh pr create --draft --base staging` con: causa, arreglo, cómo lo
