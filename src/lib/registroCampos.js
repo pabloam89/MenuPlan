@@ -28,7 +28,7 @@ const campo = (c) => ({
 });
 
 export const REGISTRO_CAMPOS = Object.freeze({
-  alergias: campo({ tipo: "lista_enum", politica: "una_vez", seguridad: true, caduca_dias: 30 }),
+  alergias: campo({ tipo: "lista_enum", vocabulario: "alergenos", politica: "una_vez", seguridad: true, caduca_dias: 30 }),
   etapaBebe: campo({ tipo: "enum", vocabulario: "etapa_bebe", politica: "antes_de_usarlo", seguridad: true, caduca_dias: 21 }),
   edad: campo({ tipo: "int", unidad: "años", minimo: 0, maximo: 120, politica: "nunca" }),
   nacimiento: campo({ tipo: "fecha", politica: "nunca" }),
@@ -37,7 +37,14 @@ export const REGISTRO_CAMPOS = Object.freeze({
   patronSemanas: campo({ tipo: "texto", politica: "nunca" }),
 });
 
-export const TIPOS_CAMPO = ["enum", "lista_enum", "int", "float", "bool", "fecha", "texto"];
+export const TIPOS_CAMPO = ["enum", "lista_enum", "int", "float", "bool", "fecha", "ref", "texto"];
+
+/**
+ * Vocabularios que la ficha ya referencia y aún no viven en vocabularios.js:
+ * los de salud los trae menuplan-09 con su catálogo de alergias. Cuando
+ * existan, salen de aquí y entran en VOCABULARIOS.
+ */
+export const VOCABULARIOS_PENDIENTES = ["alergenos", "estados"];
 export const POLITICAS = ["nunca", "solo_si_lo_piden", "antes_de_usarlo", "de_pasada", "una_vez"];
 
 /** Los campos sobre los que una tarea puede preguntar (CHECK de bot_tareas.campo en 0080). */

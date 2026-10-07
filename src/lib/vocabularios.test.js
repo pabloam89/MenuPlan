@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { VOCABULARIOS, vocabulario, TIPOS_GRUPO } from "./vocabularios.js";
-import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, CAMPOS_PREGUNTABLES } from "./registroCampos.js";
+import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, CAMPOS_PREGUNTABLES, VOCABULARIOS_PENDIENTES } from "./registroCampos.js";
+
+// Enums cuya lista aún no existe: deuda a la vista, que solo puede bajar.
+const ENUM_SIN_LISTA = ["sexo"];
 import { CAMPOS, ENUMS } from "./registroTareas.js";
 import { DAYS } from "./planner.js";
 import { PACK_KINDS } from "./packUnits.js";
@@ -47,8 +50,13 @@ describe("registroCampos: la fuente de registro_campo", () => {
     for (const [id, c] of Object.entries(REGISTRO_CAMPOS)) {
       expect(TIPOS_CAMPO, `${id}.tipo`).toContain(c.tipo);
       expect(POLITICAS, `${id}.politica`).toContain(c.politica);
-      if (c.vocabulario !== null) expect(vocabulario(c.vocabulario), `${id}.vocabulario`).not.toBe(null);
-      if (c.vocabulario !== null) expect(["enum", "lista_enum"], `${id}: vocabulario sin ser enum`).toContain(c.tipo);
+      const pendiente = VOCABULARIOS_PENDIENTES.includes(c.vocabulario);
+      if (c.vocabulario !== null && !pendiente) expect(vocabulario(c.vocabulario), `${id}.vocabulario`).not.toBe(null);
+      // Lo mismo que el CHECK de registro_campo (ficha v18): vocabulario si y solo si es enum.
+      // Los enum sin lista todavía (sexo) se marcan como deuda aquí, no se inventa la lista.
+      const esEnum = ["enum", "lista_enum"].includes(c.tipo);
+      if (c.vocabulario !== null) expect(esEnum, `${id}: vocabulario sin ser enum`).toBe(true);
+      if (esEnum && c.vocabulario === null) expect(ENUM_SIN_LISTA, `${id}: enum sin vocabulario`).toContain(id);
       if (c.minimo !== null && c.maximo !== null) expect(c.minimo).toBeLessThanOrEqual(c.maximo);
       if (c.minimo !== null || c.maximo !== null) expect(["int", "float"], `${id}: rango sin ser numérico`).toContain(c.tipo);
     }
