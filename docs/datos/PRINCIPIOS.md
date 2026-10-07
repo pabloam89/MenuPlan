@@ -47,10 +47,13 @@ diga cuál y por qué. Lo que no vale es saltársela sin decirlo.
 | Registro o cola de solo añadir | `bigserial` |
 | Entidad de la casa | compuesta `(household_id, id)` |
 
-**[revisión]** Por qué: los ids de cliente existen (personas, carpetas
-`fld_…`, menús `menu_…`) y hoy cada uno se fabrica a su manera con
-`Math.random`. El formato común irá en `src/lib/ids.js` (aún no existe: se
-crea con la primera tabla que lo necesite) y el CHECK impide que entre otro.
+**[auto en el código, revisión en el SQL]** Por qué: los ids de cliente
+(personas, grupos, carpetas `fld_…`, menús `menu_…`) se fabricaban cada uno
+a su manera con `Math.random`. Ahora todos salen de `src/lib/ids.js`
+(`ids.<tipo>.nuevo()`, `ids.<tipo>.es()` acepta el formato nuevo y los viejos),
+y `src/lib/ids.guard.test.js` falla si alguien genera un id fuera de él. Los
+ids viejos no se reescriben nunca. El CHECK de formato en la base usa las
+regex que exporta `ids.js`.
 
 ## 4. Vocabularios cerrados
 
