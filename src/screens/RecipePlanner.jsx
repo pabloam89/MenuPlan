@@ -1672,8 +1672,10 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
     const linkedCatalogId =
       usageTags.includes("guarnicion") && form.linkedCatalogId ? form.linkedCatalogId : undefined;
 
+    // `mencionados` es del asistente (ver userRecipes.js), no de la receta.
+    const { mencionados: _mencionados, ...draftSinMencionados } = draft;
     const finalRecipe = {
-      ...draft,
+      ...draftSinMencionados,
       // Editing keeps the original id so it updates in place; a new recipe
       // keeps whatever id the draft already carries.
       id: editRecipe?.id ?? draft.id,
@@ -1745,6 +1747,20 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   const removeStepAt = (idx) =>
     setSteps((list) => removeRichStep(list, idx));
   const addStep = () => setSteps((list) => [...list, { text: "", kind: "activo" }]);
+
+  // Lo que nombraste en «¿Cómo lo preparas?» y no estaba en la lista (review
+  // de UX, lámina 31). La IA lo deja en el texto del paso, sin marcador; aquí
+  // se propone añadirlo, y al añadirlo se enlaza en los pasos para que salga
+  // con su cantidad. Solo llega lo que conocemos (ingredientesReconocidos).
+  const enLista = new Set(form.ingredients.map((i) => ingredientStem(i.name)));
+  const mencionadosPendientes = (draft?.mencionados ?? []).filter((n) => !enLista.has(ingredientStem(n)));
+  const anadirMencionado = (name) => {
+    setForm((f) => ({ ...f, ingredients: [...f.ingredients, makeIngredient(name)] }));
+    setSteps((list) => list.map((s) => ({
+      ...s,
+      text: relinkStepMarkers(stripStepMarkers(s.text ?? ""), s.text ?? "", [name]),
+    })));
+  };
 
   const goBack = () => {
     if (step === 0) { onClose(); return; }
@@ -2083,6 +2099,42 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
                   onRemove={removeStepAt}
                   onAdd={addStep}
                 />
+                {mencionadosPendientes.length > 0 && (
+                  <div style={{
+                    marginTop: 14, padding: "11px 12px", borderRadius: 12,
+                    background: "#f2fbf5", border: "1.5px solid #bfe6cb",
+                  }}>
+                    <p style={{ margin: "0 0 9px", fontSize: 12.5, fontWeight: 700, color: "#1a3a24", lineHeight: 1.4 }}>
+                      {mencionadosPendientes.length === 1
+                        ? `Mencionas ${mencionadosPendientes[0].toLowerCase()}, que no está en tus ingredientes.`
+                        : `Mencionas ${mencionadosPendientes.map((n) => n.toLowerCase()).join(", ")}, que no están en tus ingredientes.`}
+                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {mencionadosPendientes.map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => anadirMencionado(n)}
+                          style={{
+                            display: "inline-flex", alignItems: "center", gap: 7, minHeight: 40,
+                            padding: "4px 12px 4px 4px", borderRadius: 999, cursor: "pointer",
+                            border: `1.5px solid ${GREEN}`, background: "#fff", color: GREEN,
+                            fontFamily: "inherit", fontSize: 13, fontWeight: 800,
+                          }}
+                        >
+                          {ingredientThumbSrc(n) ? (
+                            <img src={ingredientThumbSrc(n)} alt="" style={{ width: 30, height: 30, borderRadius: 999, objectFit: "cover" }} />
+                          ) : (
+                            <span style={{ width: 30, height: 30, borderRadius: 999, background: "#eaf3ec", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                              <Plus size={14} />
+                            </span>
+                          )}
+                          <Plus size={13} strokeWidth={2.8} /> {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
