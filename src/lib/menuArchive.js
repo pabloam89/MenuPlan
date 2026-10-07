@@ -312,3 +312,27 @@ export function saveActivePlanAsFavorite(menus, activeMenuId, livePlan, activeOf
   const nextMenus = { ...menus, [activeMenuId]: { ...menu, weeks, isFavorite: true } };
   return { menus: nextMenus, weekStart, week };
 }
+
+/**
+ * La semana que se ve, con el plan y la lista que hay ahora en pantalla, si
+ * difieren de lo que tiene guardado. Los cambios de plato de la app solo
+ * tocaban `menuPlan`: la fila de la semana (lo que se carga al volver y lo
+ * único que lee Lola) seguía con el plan de cuando se generó, y el cambio se
+ * perdía al recargar. `activeOffset` es data.menuWeek.offset, como en
+ * saveActivePlanAsFavorite. Un plan vacío no se guarda: es un estado de paso
+ * (borrar, cambiar de menú) y vaciaría la semana. Devuelve null si no hay nada
+ * que guardar; si no, el archivo ya al día y la semana para la nube. Pura.
+ */
+export function semanaVivaPorGuardar(menus, activeMenuId, activeOffset, livePlan, liveShopping) {
+  const menu = activeMenuId ? menus?.[activeMenuId] : null;
+  if (!menu || !livePlan || Object.keys(livePlan).length === 0) return null;
+  const entry = Object.entries(menu.weeks ?? {}).find(([, w]) => w?.offset === activeOffset);
+  if (!entry) return null;
+  const [weekStart, actual] = entry;
+  const shopping = liveShopping ?? actual.shopping ?? { items: [] };
+  const igual = (a, b) => a === b || JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  if (igual(actual.plan, livePlan) && igual(actual.shopping, shopping)) return null;
+  const week = { ...actual, plan: livePlan, shopping };
+  const nextMenus = { ...menus, [activeMenuId]: { ...menu, weeks: { ...menu.weeks, [weekStart]: week } } };
+  return { menus: nextMenus, weekStart, week };
+}
