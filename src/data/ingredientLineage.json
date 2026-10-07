@@ -1,0 +1,2925 @@
+{
+  "version": 1,
+  "generadoEl": "2026-10-07",
+  "fuenteBiologica": {
+    "girasol": "Girasol (semilla)",
+    "aceituna": "Aceituna (fruto del olivo)",
+    "alcaparra": "Alcaparra (botón floral)",
+    "cana-azucar-o-remolacha": "Caña de azúcar o remolacha azucarera",
+    "pescado-blanco": "Merluza o abadejo (pescado blanco fresco)",
+    "cerdo": "Cerdo",
+    "trigo": "Trigo",
+    "cereal-malta": "Cereal malteado (cebada, trigo u otro)",
+    "alcohol-destilado": "Alcohol destilado",
+    "vainilla": "Vainilla (vaina)",
+    "colageno-animal": "Colágeno animal (hueso o piel)",
+    "cafe": "Café",
+    "fruta-variable": "Fruta (variable según receta)",
+    "semilla-mostaza": "Semilla de mostaza",
+    "cereal-o-patata": "Cereal o patata",
+    "soja": "Soja (haba)"
+  },
+  "items": [
+    {
+      "id": "aceite-de-sesamo",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "sesamo"
+        }
+      ],
+      "heredaAlergenos": [
+        "sesamo"
+      ]
+    },
+    {
+      "id": "aceite-girasol",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "girasol"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "aceite-oliva",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "aceituna"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "aceite-oliva-virgen",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "aceituna"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "aceitunas",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "aceituna"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "aceitunas-negras",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "aceituna"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "acelga",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "agua",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "aguacate",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "ajete",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "ajetes-tiernos",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "aji-amarillo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "ajo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "ajo-polvo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "albahaca",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "alcachofa",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "alcachofa-conserva",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "alcachofa"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "alcaparras",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "alcaparra"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "alga-nori",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "alga-wakame",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "alioli",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "alitas-de-pollo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "almejas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "almendras",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "alubia-grande",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "alubias",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "alubias-rojas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "alubias-secas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "anchoa-en-aceite",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "boquerones"
+        }
+      ],
+      "heredaAlergenos": [
+        "pescado"
+      ]
+    },
+    {
+      "id": "apio",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "apionabo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "arandanos",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "arroz",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "arroz-arborio",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "arroz-bomba",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "arroz-cocido",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "atun",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "atun-fresco"
+        }
+      ],
+      "heredaAlergenos": [
+        "pescado"
+      ]
+    },
+    {
+      "id": "atun-fresco",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "atun-lata",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "atun-fresco"
+        }
+      ],
+      "heredaAlergenos": [
+        "pescado"
+      ]
+    },
+    {
+      "id": "avellanas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "avena",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "azafran",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "azucar",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cana-azucar-o-remolacha"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "azucar-glas",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cana-azucar-o-remolacha"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "azucar-moreno",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cana-azucar-o-remolacha"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "bacalao",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "pescado-blanco"
+        }
+      ],
+      "heredaAlergenos": [
+        "pescado"
+      ]
+    },
+    {
+      "id": "bacon",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cerdo"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "baguette",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "bechamel",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "berberecho",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "berenjena",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "bicarbonato",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "bizcocho-de-soletilla",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "bogavante",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "boletus",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "boniato",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "bonito-del-norte",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "bonito-fresco"
+        }
+      ],
+      "heredaAlergenos": [
+        "pescado"
+      ]
+    },
+    {
+      "id": "bonito-fresco",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "boquerones",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "brandy",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "brocoli",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "brote-tierno",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "burrata",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "butifarra",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "caballa",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cabracho",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cacahuete",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cacao",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cafe-espresso",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "calabacin",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "calabaza",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "calamar",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "caldo-de-carne",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "caldo-de-marisco",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "caldo-de-pescado",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "caldo-de-pollo",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "caldo-de-verduras",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "callo-de-ternera-limpio",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "canela",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "canelones",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "canonigos",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-de-cerdo-en-dado-aguja-o-secreto",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-de-cocido",
+      "clase": "simple",
+      "confianza": "revisar"
+    },
+    {
+      "id": "carne-de-jabali-picada",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-de-ternera-para-guisar",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-de-txangurro",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-picada",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-picada-de-cerdo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "carrillada",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "carrillera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cascara-de-marisco",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "castanas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cava",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "cayena",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cebolla",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cebolla-morada",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cebolleta",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cebollino",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cereales",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "cerveza",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cereal-malta"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "chalota",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "champinon",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "chocolate",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "chorizo",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "chuletas-de-cerdo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "chuleton-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cigala",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cilantro",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cinta-de-lomo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "ciruelas-pasas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "clara-de-huevo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "coco",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "codorniz",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cointreau",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "naranja"
+        },
+        {
+          "tipo": "fuente",
+          "id": "alcohol-destilado"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "col",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "coles-de-bruselas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "coliflor",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "colorante",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "comino",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "conejo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "congrio",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "contramuslos-de-pollo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "cordero",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "corvina",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "costilla",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "costilla-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "curcuma",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "curry",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "cuscus",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "dorada",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "edamame",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "endivia",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "eneldo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "entrania-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "entrecot",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "escalopines-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "espaguetis",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "esparragos",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "esparragos-blancos",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "esparragos"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "especia-cajun",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "espinacas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "extracto-de-vainilla",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "vainilla"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "falafel-congelado",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "farfalle",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "fettuccine",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        },
+        {
+          "tipo": "ingrediente",
+          "id": "huevos"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten",
+        "huevos"
+      ]
+    },
+    {
+      "id": "fideo-mediano",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "fideos",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "filete-de-cerdo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "filete-de-pez-espada",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "filete-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "filetes-finos-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "foie",
+      "clase": "compuesto",
+      "confianza": "revisar"
+    },
+    {
+      "id": "fresa",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "frutos-rojos",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "fuet",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "fusilli",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "galletas-maria",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "gambas",
+      "clase": "simple",
+      "confianza": "revisar"
+    },
+    {
+      "id": "gambas-enteras",
+      "clase": "simple",
+      "confianza": "revisar"
+    },
+    {
+      "id": "garbanzos",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "garbanzos-secos",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "garrofon",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "gazpacho-de-bote",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "gochujang",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "granada",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "granola",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "grelo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "guanciale",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cerdo"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "guindilla",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "guisantes",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "hamburguesa",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "harina",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "harissa",
+      "clase": "compuesto",
+      "confianza": "revisar"
+    },
+    {
+      "id": "higado-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "higo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "hinojo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "hoja-de-gelatina",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "colageno-animal"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "hojaldre",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "hojas-verdes",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "hueso-de-jamon",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cerdo"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "hueso-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "huevos",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "jamon",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cerdo"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "jamon-york",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "jarrete-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "jengibre",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "jerez-seco",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "judia-blanca",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "judia-negra",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "judia-verde",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "judias-pintas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "kefir",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "ketchup",
+      "clase": "compuesto",
+      "confianza": "revisar"
+    },
+    {
+      "id": "lacon",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cerdo"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "langostinos",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "lasana",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        },
+        {
+          "tipo": "ingrediente",
+          "id": "huevos"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten",
+        "huevos"
+      ]
+    },
+    {
+      "id": "laurel",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "leche",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "leche-coco",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "coco"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "leche-condensada",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "lechuga",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "lenguado",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "lentejas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "lentejas-cocidas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "lentejas-rojas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "levadura",
+      "clase": "simple",
+      "confianza": "revisar"
+    },
+    {
+      "id": "levadura-quimica",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "licor-de-cafe",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        },
+        {
+          "tipo": "fuente",
+          "id": "cafe"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "lima",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "limon",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "linguine",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "lombarda",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "lomo-de-cerdo-en-filetes",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "lubina",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "macarrones",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "magro-de-cerdo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "maicena",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "maiz"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "maiz",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "mango",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "manitas-de-cerdo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "manteca-de-cerdo",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cerdo"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "mantequilla",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "mantequilla-de-cacahuete",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "cacahuete"
+        }
+      ],
+      "heredaAlergenos": [
+        "cacahuetes"
+      ]
+    },
+    {
+      "id": "manzana",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "masa-de-pizza",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "masa-quebrada",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "mascarpone",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "mayonesa",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "medio-cochinillo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "mejillones",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "melocoton",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "melon",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "menta",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "merluza",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "merluza-lomos",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "mermelada",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "fruta-variable"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "miel",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "mirin",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "arroz"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "miso",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "edamame"
+        }
+      ],
+      "heredaAlergenos": [
+        "soja"
+      ]
+    },
+    {
+      "id": "monkfish",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "morcilla",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "morcillo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "morcillo-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "mostaza",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "semilla-mostaza"
+        }
+      ],
+      "heredaAlergenos": [
+        "mostaza"
+      ]
+    },
+    {
+      "id": "mozzarella",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "muffin-ingle",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "muslo-de-pollo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "nabo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "nachos",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "naranja",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "nata",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "nata-para-montar",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "navaja",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "nueces",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "nuez-moscada",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "obleas",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "orecchiette",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "oregano",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "oreja-de-cerdo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "orzo",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "pan",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "pan-de-payes",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "pan-molde",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "pan-rallado",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "panceta",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cerdo"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "parmesano",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "pasas",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "pasta",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "pasta-corta",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "pastrami-de-ternera-en-loncha",
+      "clase": "compuesto",
+      "confianza": "revisar"
+    },
+    {
+      "id": "pata-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "patata",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pate",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "pato",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pavo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pechuga-de-pavo",
+      "clase": "simple",
+      "confianza": "revisar"
+    },
+    {
+      "id": "pechuga-de-pollo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pedro-ximenez",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "penne",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "pepinillos",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "pepino"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "pepino",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "perdiz",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "perejil",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pescadilla",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pesto",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimenton",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimienta",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimienta-blanca",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimiento-choricero",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimiento-rojo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimiento-verde",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimientos-del-piquillo",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "pimiento-rojo"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "pina",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pinones",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pistacho",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "placas-de-cannelones",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "platano",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "platano-macho",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pluma-iberica",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pollo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pomelo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "presa-iberica",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "puerro",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pulpa-de-acai-congelada",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "pulpo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "quesito",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "queso",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "queso-azul",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "queso-brie",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "queso-cabra",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "queso-crema",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "queso-en-lonchas",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "queso-feta",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "queso-fresco",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "queso-tierno",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "quinoa",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "rabo-de-toro",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "ravioli",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "redondo-de-ternera",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "remolacha",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "repollo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "requeson",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "ricotta",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "rigatoni",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "rodaballo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "rodajas-de-emperador",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "romero",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "romero-fresco",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "ron",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cana-azucar-o-remolacha"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "roquefort",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "rucula",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "sal",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "sal-escamas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "sal-gruesa",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "salchicha",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "salmon",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "salmon-ahumado",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "salmon"
+        }
+      ],
+      "heredaAlergenos": [
+        "pescado"
+      ]
+    },
+    {
+      "id": "salmon-fresco",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "salmonete",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "salsa-barbacoa",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "salsa-cesar",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "salsa-soja",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "soja"
+        },
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "soja",
+        "gluten"
+      ]
+    },
+    {
+      "id": "salsa-worcestershire",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "salvia",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "sandia",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "sardinas",
+      "clase": "simple",
+      "confianza": "revisar"
+    },
+    {
+      "id": "secreto-iberico",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "semola-de-trigo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "sepia",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "sesamo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "setas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "sidra",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "manzana"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "sirope-de-arce",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "sobrasada",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "solomillo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "solomillo-de-cerdo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "sriracha",
+      "clase": "compuesto",
+      "confianza": "revisar"
+    },
+    {
+      "id": "surimi",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "tabasco",
+      "clase": "compuesto",
+      "confianza": "revisar"
+    },
+    {
+      "id": "tahini",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "sesamo"
+        }
+      ],
+      "heredaAlergenos": [
+        "sesamo"
+      ]
+    },
+    {
+      "id": "tallarines",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        },
+        {
+          "tipo": "ingrediente",
+          "id": "huevos"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten",
+        "huevos"
+      ]
+    },
+    {
+      "id": "ternera-magra",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "tinta-de-calamar",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "calamar"
+        }
+      ],
+      "heredaAlergenos": [
+        "moluscos",
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "tocino",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cerdo"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "tofu",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "edamame"
+        }
+      ],
+      "heredaAlergenos": [
+        "soja"
+      ]
+    },
+    {
+      "id": "tomate",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "tomate-cherry",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "tomate-concentrado",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "tomate-frito",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "tomate-seco",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "tomate"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "tomate-triturado",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "tomillo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "tortilla-de-maiz",
+      "clase": "compuesto",
+      "confianza": "revisar"
+    },
+    {
+      "id": "tortilla-de-trigo",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "trofie",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "trigo"
+        }
+      ],
+      "heredaAlergenos": [
+        "gluten"
+      ]
+    },
+    {
+      "id": "truchas-enteras",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "trufa-negra",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "unto",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cerdo"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "uvas",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "ventresca",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "atun-fresco"
+        }
+      ],
+      "heredaAlergenos": [
+        "pescado"
+      ]
+    },
+    {
+      "id": "vieira",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "vinagre",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "vinagre-balsamico",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "vinagre-de-jerez",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "vinagre-de-manzana",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "manzana"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "vino-blanco",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "vino-generoso",
+      "clase": "derivado",
+      "confianza": "revisar",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "vino-tinto",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "uvas"
+        }
+      ],
+      "heredaAlergenos": [
+        "sulfitos"
+      ]
+    },
+    {
+      "id": "vodka",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cereal-o-patata"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "vol-au-vent",
+      "clase": "compuesto",
+      "confianza": "alta"
+    },
+    {
+      "id": "whisky",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "fuente",
+          "id": "cereal-malta"
+        }
+      ],
+      "heredaAlergenos": []
+    },
+    {
+      "id": "yema-de-huevo",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "yogur",
+      "clase": "derivado",
+      "confianza": "alta",
+      "origenes": [
+        {
+          "tipo": "ingrediente",
+          "id": "leche"
+        }
+      ],
+      "heredaAlergenos": [
+        "leche"
+      ]
+    },
+    {
+      "id": "zamburina",
+      "clase": "simple",
+      "confianza": "alta"
+    },
+    {
+      "id": "zanahoria",
+      "clase": "simple",
+      "confianza": "alta"
+    }
+  ]
+}

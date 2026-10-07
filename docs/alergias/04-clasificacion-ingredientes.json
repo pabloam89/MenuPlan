@@ -1,0 +1,2783 @@
+{
+  "total": 396,
+  "porClase": {
+    "simple": 235,
+    "derivado": 106,
+    "compuesto": 55
+  },
+  "items": [
+    {
+      "id": "aceite-de-sesamo",
+      "clase": "derivado",
+      "origen": "sesamo",
+      "heredaAlergenos": [
+        "sesamo"
+      ],
+      "motivo": "Aceite extraído por presión de semillas de sésamo; el alérgeno se hereda del sésamo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "aceite-girasol",
+      "clase": "derivado",
+      "origen": "girasol (semilla)",
+      "heredaAlergenos": [],
+      "motivo": "Aceite extraído por presión de semillas de girasol; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "aceite-oliva",
+      "clase": "derivado",
+      "origen": "aceituna (fruto del olivo)",
+      "heredaAlergenos": [],
+      "motivo": "Aceite extraído por presión de la aceituna; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "aceite-oliva-virgen",
+      "clase": "derivado",
+      "origen": "aceituna (fruto del olivo)",
+      "heredaAlergenos": [],
+      "motivo": "Aceite extraído por presión de la aceituna; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "aceitunas",
+      "clase": "derivado",
+      "origen": "aceituna (fruto del olivo)",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "La aceituna se consume siempre fermentada/encurtida en salmuera; los sulfitos son conservante habitual del encurtido.",
+      "confianza": "alta"
+    },
+    {
+      "id": "aceitunas-negras",
+      "clase": "derivado",
+      "origen": "aceituna (fruto del olivo)",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Encurtido de aceituna negra; sulfitos como conservante habitual.",
+      "confianza": "alta"
+    },
+    {
+      "id": "acelga",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "agua",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "aguacate",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "ajete",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "ajetes-tiernos",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "aji-amarillo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "ajo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "ajo-polvo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "albahaca",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "alcachofa",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "alcachofa-conserva",
+      "clase": "derivado",
+      "origen": "alcachofa",
+      "heredaAlergenos": [],
+      "motivo": "Corazón de alcachofa en conserva (cocido y envasado en líquido); conserva el origen vegetal sin alérgeno propio.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "alcaparras",
+      "clase": "derivado",
+      "origen": "alcaparra (botón floral encurtido)",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Encurtido en vinagre/salmuera; sulfitos habituales en el líquido de gobierno.",
+      "confianza": "alta"
+    },
+    {
+      "id": "alga-nori",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "alga-wakame",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "alioli",
+      "clase": "compuesto",
+      "motivo": "Salsa emulsionada de ajo, huevo y aceite; receta de salsa preparada, variable por marca/receta.",
+      "confianza": "alta"
+    },
+    {
+      "id": "alitas-de-pollo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "almejas",
+      "clase": "simple",
+      "motivo": "Marisco (molusco) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "almendras",
+      "clase": "simple",
+      "motivo": "Fruto de cáscara crudo/tostado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "alubia-grande",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "alubias",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "alubias-rojas",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "alubias-secas",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "anchoa-en-aceite",
+      "clase": "derivado",
+      "origen": "boquerones (anchoa fresca)",
+      "heredaAlergenos": [
+        "pescado"
+      ],
+      "motivo": "Anchoa curada en sal y conservada en aceite; el alérgeno se hereda del pescado de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "apio",
+      "clase": "simple",
+      "motivo": "Apio o raíz de apio frescos; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "apionabo",
+      "clase": "simple",
+      "motivo": "Apio o raíz de apio frescos; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "arandanos",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "arroz",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "arroz-arborio",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "arroz-bomba",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "arroz-cocido",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "atun",
+      "clase": "derivado",
+      "origen": "atun-fresco",
+      "heredaAlergenos": [
+        "pescado"
+      ],
+      "motivo": "Atún conservado en aceite; el alérgeno se hereda del pescado de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "atun-fresco",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "atun-lata",
+      "clase": "derivado",
+      "origen": "atun-fresco",
+      "heredaAlergenos": [
+        "pescado"
+      ],
+      "motivo": "Atún en conserva (lata); el alérgeno se hereda del pescado de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "avellanas",
+      "clase": "simple",
+      "motivo": "Fruto de cáscara crudo/tostado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "avena",
+      "clase": "simple",
+      "motivo": "Copos de avena; solo laminado del grano, no hay extracción/separación de un componente.",
+      "confianza": "alta"
+    },
+    {
+      "id": "azafran",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "azucar",
+      "clase": "derivado",
+      "origen": "caña de azúcar o remolacha azucarera",
+      "heredaAlergenos": [],
+      "motivo": "La sacarosa se extrae y cristaliza a partir del jugo de caña/remolacha; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "azucar-glas",
+      "clase": "derivado",
+      "origen": "caña de azúcar o remolacha azucarera",
+      "heredaAlergenos": [],
+      "motivo": "Azúcar extraída y molida muy fina; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "azucar-moreno",
+      "clase": "derivado",
+      "origen": "caña de azúcar o remolacha azucarera",
+      "heredaAlergenos": [],
+      "motivo": "Azúcar extraída, con parte de la melaza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "bacalao",
+      "clase": "derivado",
+      "origen": "merluza/abadejo (pescado blanco fresco)",
+      "heredaAlergenos": [
+        "pescado"
+      ],
+      "motivo": "Pescado curado en sal y luego desalado; el alérgeno se hereda del pescado de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "bacon",
+      "clase": "derivado",
+      "origen": "cerdo (panceta)",
+      "heredaAlergenos": [],
+      "motivo": "Panceta de cerdo curada y ahumada; transformación estándar sin alérgeno propio añadido.",
+      "confianza": "alta"
+    },
+    {
+      "id": "baguette",
+      "clase": "compuesto",
+      "motivo": "Pan de barra; receta de panadería con posibles trazas variables por obrador/marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "bechamel",
+      "clase": "compuesto",
+      "motivo": "Salsa de mantequilla, harina y leche cocinadas; receta variable (tipo de materia grasa, espesante).",
+      "confianza": "alta"
+    },
+    {
+      "id": "berberecho",
+      "clase": "simple",
+      "motivo": "Marisco (molusco) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "berenjena",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "bicarbonato",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "bizcocho-de-soletilla",
+      "clase": "compuesto",
+      "motivo": "Bizcocho de panadería (harina, huevo, azúcar); receta variable por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "bogavante",
+      "clase": "simple",
+      "motivo": "Marisco (crustáceo) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "boletus",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "boniato",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "bonito-del-norte",
+      "clase": "derivado",
+      "origen": "bonito-fresco",
+      "heredaAlergenos": [
+        "pescado"
+      ],
+      "motivo": "Bonito en conserva; el alérgeno se hereda del pescado de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "bonito-fresco",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "boquerones",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "brandy",
+      "clase": "derivado",
+      "origen": "uvas (vino)",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Destilado de vino; los sulfitos se declaran como en el vino de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "brocoli",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "brote-tierno",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "burrata",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso fresco de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "butifarra",
+      "clase": "compuesto",
+      "motivo": "Embutido de cerdo con especias en tripa; receta variable por marca/carnicero.",
+      "confianza": "alta"
+    },
+    {
+      "id": "caballa",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cabracho",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cacahuete",
+      "clase": "simple",
+      "motivo": "Cacahuete; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cacao",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cafe-espresso",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "calabacin",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "calabaza",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "calamar",
+      "clase": "simple",
+      "motivo": "Marisco (molusco) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "caldo-de-carne",
+      "clase": "compuesto",
+      "motivo": "Caldo preparado con verduras, posibles especias y, a veces, concentrados; composición variable, necesita etiqueta.",
+      "confianza": "alta"
+    },
+    {
+      "id": "caldo-de-marisco",
+      "clase": "compuesto",
+      "motivo": "Caldo/fumet preparado con marisco, pescado y verduras; composición variable, necesita etiqueta.",
+      "confianza": "alta"
+    },
+    {
+      "id": "caldo-de-pescado",
+      "clase": "compuesto",
+      "motivo": "Fumet preparado con pescado y verduras; composición variable, necesita etiqueta.",
+      "confianza": "alta"
+    },
+    {
+      "id": "caldo-de-pollo",
+      "clase": "compuesto",
+      "motivo": "Caldo preparado con pollo y verduras; composición variable, necesita etiqueta.",
+      "confianza": "alta"
+    },
+    {
+      "id": "caldo-de-verduras",
+      "clase": "compuesto",
+      "motivo": "Caldo preparado con varias verduras; composición variable, necesita etiqueta.",
+      "confianza": "alta"
+    },
+    {
+      "id": "callo-de-ternera-limpio",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "canela",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "canelones",
+      "clase": "derivado",
+      "origen": "trigo",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "canonigos",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-de-cerdo-en-dado-aguja-o-secreto",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-de-cocido",
+      "clase": "simple",
+      "motivo": "El alias \"variada\" sugiere una mezcla de piezas e incluso de especies; no se detecta otro alérgeno mientras sea solo carne.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "carne-de-jabali-picada",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-de-ternera-para-guisar",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-de-txangurro",
+      "clase": "simple",
+      "motivo": "Marisco (crustáceo) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-picada",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "carne-picada-de-cerdo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "carrillada",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "carrillera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cascara-de-marisco",
+      "clase": "simple",
+      "motivo": "Marisco (crustáceo) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "castanas",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cava",
+      "clase": "derivado",
+      "origen": "uvas",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Vino espumoso fermentado a partir de uva; sulfitos propios de la vinificación.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cayena",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cebolla",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cebolla-morada",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cebolleta",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cebollino",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cereales",
+      "clase": "compuesto",
+      "motivo": "Cereal de desayuno manufacturado; receta y aditivos variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cerveza",
+      "clase": "derivado",
+      "origen": "cebada/trigo (malta)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Fermentado de cereal maltado; el gluten se hereda del cereal.",
+      "confianza": "alta"
+    },
+    {
+      "id": "chalota",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "champinon",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "chocolate",
+      "clase": "compuesto",
+      "motivo": "Mezcla de cacao, azúcar y grasas (a veces leche/lecitina de soja); receta variable por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "chorizo",
+      "clase": "compuesto",
+      "motivo": "Embutido de cerdo con pimentón en tripa; receta variable por marca/carnicero.",
+      "confianza": "alta"
+    },
+    {
+      "id": "chuletas-de-cerdo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "chuleton-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cigala",
+      "clase": "simple",
+      "motivo": "Marisco (crustáceo) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cilantro",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cinta-de-lomo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "ciruelas-pasas",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "clara-de-huevo",
+      "clase": "simple",
+      "motivo": "Huevo o parte del huevo; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "coco",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "codorniz",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cointreau",
+      "clase": "derivado",
+      "origen": "naranja + alcohol destilado",
+      "heredaAlergenos": [],
+      "motivo": "Licor destilado aromatizado con cítricos; receta de casa con posibles trazas de sulfitos.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "col",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "coles-de-bruselas",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "coliflor",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "colorante",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "comino",
+      "clase": "simple",
+      "motivo": "Especia o hierba aromática simple (una sola planta), molida o fresca; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "conejo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "congrio",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "contramuslos-de-pollo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cordero",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "corvina",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "costilla",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "costilla-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "curcuma",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "curry",
+      "clase": "compuesto",
+      "motivo": "Mezcla de varias especias; proporción y trazas (mostaza) variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "cuscus",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Sémola de trigo precocida en gránulos; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "dorada",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "edamame",
+      "clase": "simple",
+      "motivo": "Soja fresca; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "endivia",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "eneldo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "entrania-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "entrecot",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "escalopines-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "espaguetis",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "esparragos",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "esparragos-blancos",
+      "clase": "derivado",
+      "origen": "esparragos",
+      "heredaAlergenos": [],
+      "motivo": "Espárrago cocido y envasado en conserva; conserva el origen vegetal sin alérgeno propio.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "especia-cajun",
+      "clase": "compuesto",
+      "motivo": "Mezcla de varias especias; proporción y trazas variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "espinacas",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "extracto-de-vainilla",
+      "clase": "derivado",
+      "origen": "vainilla (vaina)",
+      "heredaAlergenos": [],
+      "motivo": "Extracción alcohólica del aroma de la vainilla; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "falafel-congelado",
+      "clase": "compuesto",
+      "motivo": "Preparado congelado de garbanzo, especias y a veces harina/pan; receta variable por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "farfalle",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "fettuccine",
+      "clase": "derivado",
+      "origen": "trigo y huevo",
+      "heredaAlergenos": [
+        "gluten",
+        "huevos"
+      ],
+      "motivo": "Pasta fresca/seca al huevo; receta estándar (sémola + huevo), sin variabilidad relevante.",
+      "confianza": "alta"
+    },
+    {
+      "id": "fideo-mediano",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "fideos",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "filete-de-cerdo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "filete-de-pez-espada",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "filete-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "filetes-finos-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "foie",
+      "clase": "compuesto",
+      "motivo": "Preparación de hígado graso de pato/oca, a veces con añadidos (vino dulce, lácteos); la leche declarada no es intrínseca del hígado y depende de la receta.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "fresa",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "frutos-rojos",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "fuet",
+      "clase": "compuesto",
+      "motivo": "Embutido curado de cerdo en tripa; receta variable por marca/carnicero.",
+      "confianza": "alta"
+    },
+    {
+      "id": "fusilli",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "galletas-maria",
+      "clase": "compuesto",
+      "motivo": "Galleta de panadería (harina, grasa, azúcar); receta y trazas variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "gambas",
+      "clase": "simple",
+      "motivo": "Marisco fresco/congelado; el mayContain de sulfitos es tratamiento antimelanosis habitual, pero contradice la certeza propia de \"simple\".",
+      "confianza": "revisar"
+    },
+    {
+      "id": "gambas-enteras",
+      "clase": "simple",
+      "motivo": "Marisco fresco/congelado; el mayContain de sulfitos es tratamiento antimelanosis habitual, pero contradice la certeza propia de \"simple\".",
+      "confianza": "revisar"
+    },
+    {
+      "id": "garbanzos",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "garbanzos-secos",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "garrofon",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "gazpacho-de-bote",
+      "clase": "compuesto",
+      "motivo": "Sopa fría envasada de varias verduras, aceite y vinagre; composición variable, necesita etiqueta.",
+      "confianza": "alta"
+    },
+    {
+      "id": "gochujang",
+      "clase": "compuesto",
+      "motivo": "Pasta fermentada coreana de chile, cereal (arroz o trigo) y soja; la proporción de cereal varía por marca y afecta al gluten.",
+      "confianza": "alta"
+    },
+    {
+      "id": "granada",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "granola",
+      "clase": "compuesto",
+      "motivo": "Mezcla manufacturada de avena, frutos secos, semillas y endulzantes; receta variable por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "grelo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "guanciale",
+      "clase": "derivado",
+      "origen": "cerdo (papada)",
+      "heredaAlergenos": [],
+      "motivo": "Papada de cerdo curada con sal; transformación estándar sin alérgeno propio añadido.",
+      "confianza": "alta"
+    },
+    {
+      "id": "guindilla",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "guisantes",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "hamburguesa",
+      "clase": "compuesto",
+      "motivo": "Pan de hamburguesa de panadería; receta y trazas variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "harina",
+      "clase": "simple",
+      "motivo": "Harina de trigo; solo molienda del grano, no hay extracción/separación de un componente.",
+      "confianza": "alta"
+    },
+    {
+      "id": "harissa",
+      "clase": "compuesto",
+      "motivo": "Pasta de varios chiles, especias y aceite; receta variable por marca.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "higado-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "higo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "hinojo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "hoja-de-gelatina",
+      "clase": "derivado",
+      "origen": "colágeno animal (hueso/piel)",
+      "heredaAlergenos": [],
+      "motivo": "Colágeno extraído de hueso/piel animal mediante hidrólisis; no es alérgeno del Anexo II, pero el origen animal no siempre consta en la etiqueta.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "hojaldre",
+      "clase": "compuesto",
+      "motivo": "Masa de harina y materia grasa laminada; receta variable (mantequilla o margarina) por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "hojas-verdes",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "hueso-de-jamon",
+      "clase": "derivado",
+      "origen": "cerdo (jamón curado)",
+      "heredaAlergenos": [],
+      "motivo": "Hueso de una pieza de jamón curado; hereda el estado de curado del jamón.",
+      "confianza": "alta"
+    },
+    {
+      "id": "hueso-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "huevos",
+      "clase": "simple",
+      "motivo": "Huevo o parte del huevo; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "jamon",
+      "clase": "derivado",
+      "origen": "cerdo",
+      "heredaAlergenos": [],
+      "motivo": "Jamón curado con sal (DOP estándar); sin otros ingredientes añadidos, sin alérgeno propio.",
+      "confianza": "alta"
+    },
+    {
+      "id": "jamon-york",
+      "clase": "compuesto",
+      "motivo": "Jamón cocido inyectado en salmuera con aditivos; receta variable por marca (lácteos, soja).",
+      "confianza": "alta"
+    },
+    {
+      "id": "jarrete-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "jengibre",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "jerez-seco",
+      "clase": "derivado",
+      "origen": "uvas",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Vino generoso fermentado de uva; sulfitos propios de la vinificación.",
+      "confianza": "alta"
+    },
+    {
+      "id": "judia-blanca",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "judia-negra",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "judia-verde",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "judias-pintas",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "kefir",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Leche fermentada; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "ketchup",
+      "clase": "compuesto",
+      "motivo": "Salsa preparada de tomate, azúcar y vinagre; receta variable por marca.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "lacon",
+      "clase": "derivado",
+      "origen": "cerdo",
+      "heredaAlergenos": [],
+      "motivo": "Pieza de cerdo curada/cocida; composición estándar, aunque el lacón cocido industrial puede llevar aditivos variables.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "langostinos",
+      "clase": "simple",
+      "motivo": "Marisco (crustáceo) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "lasana",
+      "clase": "derivado",
+      "origen": "trigo y huevo",
+      "heredaAlergenos": [
+        "gluten",
+        "huevos"
+      ],
+      "motivo": "Pasta al huevo; receta estándar (sémola + huevo).",
+      "confianza": "alta"
+    },
+    {
+      "id": "laurel",
+      "clase": "simple",
+      "motivo": "Especia o hierba aromática simple (una sola planta), molida o fresca; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "leche",
+      "clase": "simple",
+      "motivo": "Leche entera; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "leche-coco",
+      "clase": "derivado",
+      "origen": "coco",
+      "heredaAlergenos": [],
+      "motivo": "Líquido extraído de la pulpa de coco; el coco no está en la lista de 14 alérgenos UE.",
+      "confianza": "alta"
+    },
+    {
+      "id": "leche-condensada",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Leche concentrada y azucarada; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "lechuga",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "lenguado",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "lentejas",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "lentejas-cocidas",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "lentejas-rojas",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "levadura",
+      "clase": "simple",
+      "motivo": "Microorganismo (levadura de panadería) seco, un solo componente; el mayContain de gluten viene del entorno de producción, no del propio ingrediente.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "levadura-quimica",
+      "clase": "compuesto",
+      "motivo": "Mezcla de bicarbonato, sal ácida y almidón de carga; el almidón de carga (a veces de trigo) varía por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "licor-de-cafe",
+      "clase": "derivado",
+      "origen": "uvas/alcohol + café",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Licor a base de alcohol destilado y café; receta de casa, sulfitos posibles del alcohol base.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "lima",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "limon",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "linguine",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "lombarda",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "lomo-de-cerdo-en-filetes",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "lubina",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "macarrones",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "magro-de-cerdo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "maicena",
+      "clase": "derivado",
+      "origen": "maiz",
+      "heredaAlergenos": [],
+      "motivo": "Almidón extraído del grano de maíz (se separa del resto del grano); el maíz no es alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "maiz",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "mango",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "manitas-de-cerdo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "manteca-de-cerdo",
+      "clase": "derivado",
+      "origen": "cerdo",
+      "heredaAlergenos": [],
+      "motivo": "Grasa de cerdo fundida/extraída por calor; sin alérgeno propio.",
+      "confianza": "alta"
+    },
+    {
+      "id": "mantequilla",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Grasa láctea separada de la nata por batido; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "mantequilla-de-cacahuete",
+      "clase": "derivado",
+      "origen": "cacahuete",
+      "heredaAlergenos": [
+        "cacahuetes"
+      ],
+      "motivo": "Pasta molida de cacahuete; el alérgeno se hereda del cacahuete.",
+      "confianza": "alta"
+    },
+    {
+      "id": "manzana",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "masa-de-pizza",
+      "clase": "compuesto",
+      "motivo": "Masa de panadería (harina, agua, levadura); receta y trazas variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "masa-quebrada",
+      "clase": "compuesto",
+      "motivo": "Masa de harina y mantequilla; receta y trazas variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "mascarpone",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso fresco italiano obtenido de nata de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "mayonesa",
+      "clase": "compuesto",
+      "motivo": "Salsa emulsionada de huevo y aceite; receta variable por marca (mostaza, acidulantes).",
+      "confianza": "alta"
+    },
+    {
+      "id": "medio-cochinillo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "mejillones",
+      "clase": "simple",
+      "motivo": "Marisco (molusco) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "melocoton",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "melon",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "menta",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "merluza",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "merluza-lomos",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "mermelada",
+      "clase": "derivado",
+      "origen": "fruta (variable según receta)",
+      "heredaAlergenos": [],
+      "motivo": "Fruta cocida con azúcar y, a veces, pectina añadida; composición bastante estándar y sin alérgeno propio habitual.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "miel",
+      "clase": "simple",
+      "motivo": "Un solo componente, sin transformación relevante; alérgeno directo del Anexo II cuando lo tiene.",
+      "confianza": "alta"
+    },
+    {
+      "id": "mirin",
+      "clase": "derivado",
+      "origen": "arroz",
+      "heredaAlergenos": [],
+      "motivo": "Vino de arroz fermentado usado para cocinar; sin alérgeno propio habitual.",
+      "confianza": "alta"
+    },
+    {
+      "id": "miso",
+      "clase": "derivado",
+      "origen": "edamame (soja)",
+      "heredaAlergenos": [
+        "soja"
+      ],
+      "motivo": "Pasta fermentada de soja (a veces con cereal); el alérgeno principal se hereda de la soja.",
+      "confianza": "alta"
+    },
+    {
+      "id": "monkfish",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "morcilla",
+      "clase": "compuesto",
+      "motivo": "Embutido de cerdo con sangre, cebolla/arroz y especias en tripa; receta variable por marca/carnicero.",
+      "confianza": "alta"
+    },
+    {
+      "id": "morcillo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "morcillo-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "mostaza",
+      "clase": "derivado",
+      "origen": "semilla de mostaza",
+      "heredaAlergenos": [
+        "mostaza"
+      ],
+      "motivo": "Semilla de mostaza molida con vinagre/agua; el alérgeno se hereda de la semilla de mostaza.",
+      "confianza": "alta"
+    },
+    {
+      "id": "mozzarella",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso fresco de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "muffin-ingle",
+      "clase": "compuesto",
+      "motivo": "Panecillo de panadería (harina, leche, huevo); receta y trazas variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "muslo-de-pollo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "nabo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "nachos",
+      "clase": "compuesto",
+      "motivo": "Totopo de maíz frito manufacturado; receta y trazas variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "naranja",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "nata",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Nata separada de la leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "nata-para-montar",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Nata separada de la leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "navaja",
+      "clase": "simple",
+      "motivo": "Marisco (molusco) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "nueces",
+      "clase": "simple",
+      "motivo": "Fruto de cáscara crudo/tostado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "nuez-moscada",
+      "clase": "simple",
+      "motivo": "Especia o hierba aromática simple (una sola planta), molida o fresca; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "obleas",
+      "clase": "compuesto",
+      "motivo": "Lámina de harina, agua y a veces huevo para rellenar; receta variable por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "orecchiette",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "oregano",
+      "clase": "simple",
+      "motivo": "Especia o hierba aromática simple (una sola planta), molida o fresca; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "oreja-de-cerdo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "orzo",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pan",
+      "clase": "compuesto",
+      "motivo": "Pan de panadería; receta y trazas variables por obrador/marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pan-de-payes",
+      "clase": "compuesto",
+      "motivo": "Pan de panadería; receta y trazas variables por obrador/marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pan-molde",
+      "clase": "compuesto",
+      "motivo": "Pan de panadería envasado; receta y trazas variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pan-rallado",
+      "clase": "compuesto",
+      "motivo": "Pan molido; hereda la variabilidad de receta del pan del que procede.",
+      "confianza": "alta"
+    },
+    {
+      "id": "panceta",
+      "clase": "derivado",
+      "origen": "cerdo",
+      "heredaAlergenos": [],
+      "motivo": "Panceta de cerdo curada; transformación estándar sin alérgeno propio añadido.",
+      "confianza": "alta"
+    },
+    {
+      "id": "parmesano",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso curado de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pasas",
+      "clase": "derivado",
+      "origen": "uvas",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Uva secada; los sulfitos son tratamiento habitual del secado.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pasta",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pasta-corta",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pastrami-de-ternera-en-loncha",
+      "clase": "compuesto",
+      "motivo": "Fiambre de ternera curado/ahumado en salmuera; composición de aditivos variable por marca.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "pata-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "patata",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pate",
+      "clase": "compuesto",
+      "motivo": "Paté de cerdo con grasa y, a veces, lácteos; receta variable por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pato",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pavo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pechuga-de-pavo",
+      "clase": "simple",
+      "motivo": "El alias \"en lonchas\" sugiere que podría tratarse de fiambre loncheado y no de pechuga fresca; conviene confirmar cuál es el producto real.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "pechuga-de-pollo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pedro-ximenez",
+      "clase": "derivado",
+      "origen": "uvas",
+      "heredaAlergenos": [],
+      "motivo": "Vino dulce de uva pasificada; sulfitos como posible trazas del proceso de vinificación.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "penne",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pepinillos",
+      "clase": "derivado",
+      "origen": "pepino",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Pepino encurtido en vinagre; sulfitos habituales en el líquido de gobierno.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pepino",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pera",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "perdiz",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "perejil",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pescadilla",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pesto",
+      "clase": "compuesto",
+      "motivo": "Salsa preparada de albahaca, piñones/frutos secos, queso y aceite; receta variable (tipo de fruto seco, con o sin queso).",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimenton",
+      "clase": "simple",
+      "motivo": "Especia o hierba aromática simple (una sola planta), molida o fresca; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimienta",
+      "clase": "simple",
+      "motivo": "Especia o hierba aromática simple (una sola planta), molida o fresca; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimienta-blanca",
+      "clase": "simple",
+      "motivo": "Especia o hierba aromática simple (una sola planta), molida o fresca; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimiento-choricero",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimiento-rojo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimiento-verde",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pimientos-del-piquillo",
+      "clase": "derivado",
+      "origen": "pimiento-rojo",
+      "heredaAlergenos": [],
+      "motivo": "Pimiento asado y envasado en conserva; conserva el origen vegetal sin alérgeno propio.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "pina",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pinones",
+      "clase": "simple",
+      "motivo": "Fruto de cáscara crudo/tostado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pistacho",
+      "clase": "simple",
+      "motivo": "Fruto de cáscara crudo/tostado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "placas-de-cannelones",
+      "clase": "derivado",
+      "origen": "trigo",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo. Mismo producto que \"canelones\" pero aquí el gluten figura como mayContain en vez de allergens: revisar consistencia.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "platano",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "platano-macho",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pluma-iberica",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pollo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pomelo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "presa-iberica",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "puerro",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pulpa-de-acai-congelada",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "pulpo",
+      "clase": "simple",
+      "motivo": "Marisco (molusco) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "quesito",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso fundido en porciones; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "queso",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso cuajado a partir de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "queso-azul",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso cuajado a partir de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "queso-brie",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso cuajado a partir de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "queso-cabra",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso cuajado a partir de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "queso-crema",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso cuajado a partir de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "queso-en-lonchas",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso cuajado a partir de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "queso-feta",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso cuajado a partir de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "queso-fresco",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso cuajado a partir de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "queso-tierno",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso cuajado a partir de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "quinoa",
+      "clase": "simple",
+      "motivo": "Legumbre o grano seco/cocido; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "rabo-de-toro",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "ravioli",
+      "clase": "compuesto",
+      "motivo": "Pasta fresca rellena de carne; el relleno es variable y debe comprobarse en la etiqueta.",
+      "confianza": "alta"
+    },
+    {
+      "id": "redondo-de-ternera",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "remolacha",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "repollo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "requeson",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Cuajada fresca de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "ricotta",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Cuajada fresca a partir del suero de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "rigatoni",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "rodaballo",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "rodajas-de-emperador",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "romero",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "romero-fresco",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "ron",
+      "clase": "derivado",
+      "origen": "caña de azúcar",
+      "heredaAlergenos": [],
+      "motivo": "Destilado de melaza de caña; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "roquefort",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Queso azul cuajado a partir de leche; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "rucula",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "sal",
+      "clase": "simple",
+      "motivo": "Un solo componente, sin transformación relevante; alérgeno directo del Anexo II cuando lo tiene.",
+      "confianza": "alta"
+    },
+    {
+      "id": "sal-escamas",
+      "clase": "simple",
+      "motivo": "Un solo componente, sin transformación relevante; alérgeno directo del Anexo II cuando lo tiene.",
+      "confianza": "alta"
+    },
+    {
+      "id": "sal-gruesa",
+      "clase": "simple",
+      "motivo": "Un solo componente, sin transformación relevante; alérgeno directo del Anexo II cuando lo tiene.",
+      "confianza": "alta"
+    },
+    {
+      "id": "salchicha",
+      "clase": "compuesto",
+      "motivo": "Embutido fresco de carne en tripa; receta variable por marca/carnicero.",
+      "confianza": "alta"
+    },
+    {
+      "id": "salmon",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "salmon-ahumado",
+      "clase": "derivado",
+      "origen": "salmon",
+      "heredaAlergenos": [
+        "pescado"
+      ],
+      "motivo": "Salmón curado y ahumado; el alérgeno se hereda del pescado de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "salmon-fresco",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "salmonete",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "salsa-barbacoa",
+      "clase": "compuesto",
+      "motivo": "Salsa preparada de tomate, azúcar y especias; receta variable por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "salsa-cesar",
+      "clase": "compuesto",
+      "motivo": "Salsa preparada de huevo, queso, anchoa y mostaza; receta variable por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "salsa-soja",
+      "clase": "derivado",
+      "origen": "soja y trigo",
+      "heredaAlergenos": [
+        "soja",
+        "gluten"
+      ],
+      "motivo": "Fermentado tradicional de soja y trigo; composición estándar, el alérgeno se hereda de ambos orígenes.",
+      "confianza": "alta"
+    },
+    {
+      "id": "salsa-worcestershire",
+      "clase": "compuesto",
+      "motivo": "Salsa preparada fermentada con anchoa, vinagre y especias; receta variable por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "salvia",
+      "clase": "simple",
+      "motivo": "Especia o hierba aromática simple (una sola planta), molida o fresca; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "sandia",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "sardinas",
+      "clase": "simple",
+      "motivo": "El id mezcla alias de sardina fresca y sardina ahumada; conviene separarlos porque el ahumado cambiaría la clase a \"derivado\".",
+      "confianza": "revisar"
+    },
+    {
+      "id": "secreto-iberico",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "semola-de-trigo",
+      "clase": "simple",
+      "motivo": "Sémola de trigo; solo molienda gruesa del grano, no hay extracción/separación de un componente.",
+      "confianza": "alta"
+    },
+    {
+      "id": "sepia",
+      "clase": "simple",
+      "motivo": "Marisco (molusco) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "sesamo",
+      "clase": "simple",
+      "motivo": "Semilla de sésamo; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "setas",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "sidra",
+      "clase": "derivado",
+      "origen": "manzana",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Fermentado de manzana; sulfitos propios de la fermentación/estabilización.",
+      "confianza": "alta"
+    },
+    {
+      "id": "sirope-de-arce",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "sobrasada",
+      "clase": "compuesto",
+      "motivo": "Embutido crudo-curado de cerdo con pimentón en tripa; receta variable por marca/carnicero.",
+      "confianza": "alta"
+    },
+    {
+      "id": "solomillo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "solomillo-de-cerdo",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "sriracha",
+      "clase": "compuesto",
+      "motivo": "Salsa preparada de chile, ajo, azúcar y vinagre; receta variable por marca.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "surimi",
+      "clase": "compuesto",
+      "motivo": "Pasta de pescado reestructurada con almidón, saborizante de cangrejo y a veces huevo; receta variable por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tabasco",
+      "clase": "compuesto",
+      "motivo": "Salsa preparada fermentada de chile y vinagre; receta variable por marca.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "tahini",
+      "clase": "derivado",
+      "origen": "sesamo",
+      "heredaAlergenos": [
+        "sesamo"
+      ],
+      "motivo": "Pasta de semillas de sésamo molidas; el alérgeno se hereda del sésamo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tallarines",
+      "clase": "derivado",
+      "origen": "trigo y huevo",
+      "heredaAlergenos": [
+        "gluten",
+        "huevos"
+      ],
+      "motivo": "Pasta al huevo; receta estándar (sémola + huevo).",
+      "confianza": "alta"
+    },
+    {
+      "id": "ternera-magra",
+      "clase": "simple",
+      "motivo": "Carne o pescado fresco/congelado, una sola pieza; sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tinta-de-calamar",
+      "clase": "derivado",
+      "origen": "calamar",
+      "heredaAlergenos": [
+        "moluscos",
+        "sulfitos"
+      ],
+      "motivo": "Tinta extraída del calamar, envasada con sulfitos como conservante habitual; el molusco se hereda del calamar de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tocino",
+      "clase": "derivado",
+      "origen": "cerdo",
+      "heredaAlergenos": [],
+      "motivo": "Grasa de cerdo curada; transformación estándar sin alérgeno propio añadido.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tofu",
+      "clase": "derivado",
+      "origen": "edamame (soja)",
+      "heredaAlergenos": [
+        "soja"
+      ],
+      "motivo": "Cuajada de leche de soja; el alérgeno se hereda de la soja.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tomate",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tomate-cherry",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tomate-concentrado",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tomate-frito",
+      "clase": "compuesto",
+      "motivo": "Salsa de tomate cocinada con aceite, cebolla y azúcar; receta variable por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tomate-seco",
+      "clase": "derivado",
+      "origen": "tomate",
+      "heredaAlergenos": [],
+      "motivo": "Tomate secado y conservado en aceite; los sulfitos son tratamiento habitual del secado.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "tomate-triturado",
+      "clase": "simple",
+      "motivo": "Un solo componente, sin transformación relevante; alérgeno directo del Anexo II cuando lo tiene.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tomillo",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "tortilla-de-maiz",
+      "clase": "compuesto",
+      "motivo": "Tortilla de panadería de maíz; algunas marcas mezclan harina de trigo, necesita etiqueta.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "tortilla-de-trigo",
+      "clase": "compuesto",
+      "motivo": "Tortilla de panadería de trigo; receta y trazas variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "trofie",
+      "clase": "derivado",
+      "origen": "trigo (sémola)",
+      "heredaAlergenos": [
+        "gluten"
+      ],
+      "motivo": "Pasta seca de trigo; el gluten se hereda del trigo.",
+      "confianza": "alta"
+    },
+    {
+      "id": "truchas-enteras",
+      "clase": "simple",
+      "motivo": "Pescado fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "trufa-negra",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "unto",
+      "clase": "derivado",
+      "origen": "cerdo",
+      "heredaAlergenos": [],
+      "motivo": "Grasa de cerdo curada con pimentón (uso gallego); transformación estándar sin alérgeno propio añadido.",
+      "confianza": "alta"
+    },
+    {
+      "id": "uvas",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "ventresca",
+      "clase": "derivado",
+      "origen": "atun-fresco",
+      "heredaAlergenos": [
+        "pescado"
+      ],
+      "motivo": "Ventresca de atún conservada en aceite; el alérgeno se hereda del pescado de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "vieira",
+      "clase": "simple",
+      "motivo": "Marisco (molusco) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "vinagre",
+      "clase": "derivado",
+      "origen": "uvas/vino",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Fermentación acética del vino; sulfitos como en el vino de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "vinagre-balsamico",
+      "clase": "derivado",
+      "origen": "uvas/vino",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Fermentación y envejecimiento de mosto de uva; sulfitos como en el vino de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "vinagre-de-jerez",
+      "clase": "derivado",
+      "origen": "uvas/vino",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Fermentación acética de vino de Jerez; sulfitos como en el vino de origen.",
+      "confianza": "alta"
+    },
+    {
+      "id": "vinagre-de-manzana",
+      "clase": "derivado",
+      "origen": "manzana",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Fermentación acética de sidra de manzana; sulfitos habituales del proceso.",
+      "confianza": "alta"
+    },
+    {
+      "id": "vino-blanco",
+      "clase": "derivado",
+      "origen": "uvas",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Vino fermentado de uva; sulfitos propios de la vinificación.",
+      "confianza": "alta"
+    },
+    {
+      "id": "vino-generoso",
+      "clase": "derivado",
+      "origen": "uvas",
+      "heredaAlergenos": [],
+      "motivo": "Vino fermentado y encabezado de uva; sulfitos como posible traza del proceso.",
+      "confianza": "revisar"
+    },
+    {
+      "id": "vino-tinto",
+      "clase": "derivado",
+      "origen": "uvas",
+      "heredaAlergenos": [
+        "sulfitos"
+      ],
+      "motivo": "Vino fermentado de uva; sulfitos propios de la vinificación.",
+      "confianza": "alta"
+    },
+    {
+      "id": "vodka",
+      "clase": "derivado",
+      "origen": "cereal/patata",
+      "heredaAlergenos": [],
+      "motivo": "Destilado de cereal o patata; la destilación elimina las proteínas alergénicas.",
+      "confianza": "alta"
+    },
+    {
+      "id": "vol-au-vent",
+      "clase": "compuesto",
+      "motivo": "Volován de hojaldre precocido; receta y trazas variables por marca.",
+      "confianza": "alta"
+    },
+    {
+      "id": "whisky",
+      "clase": "derivado",
+      "origen": "cereal (malta)",
+      "heredaAlergenos": [],
+      "motivo": "Destilado de cereal maltado; la destilación elimina las proteínas alergénicas.",
+      "confianza": "alta"
+    },
+    {
+      "id": "yema-de-huevo",
+      "clase": "simple",
+      "motivo": "Huevo o parte del huevo; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "yogur",
+      "clase": "derivado",
+      "origen": "leche",
+      "heredaAlergenos": [
+        "leche"
+      ],
+      "motivo": "Leche fermentada; el alérgeno se hereda de la leche.",
+      "confianza": "alta"
+    },
+    {
+      "id": "zamburina",
+      "clase": "simple",
+      "motivo": "Marisco (molusco) fresco/congelado; alérgeno directo del Anexo II.",
+      "confianza": "alta"
+    },
+    {
+      "id": "zanahoria",
+      "clase": "simple",
+      "motivo": "Verdura o fruta fresca; un solo componente, sin alérgeno del Anexo II.",
+      "confianza": "alta"
+    }
+  ],
+  "discrepancias": [
+    {
+      "id": "gambas",
+      "detalle": "Clasificado \"simple\" pero el repo le pone mayContain=[sulfitos]; un simple debería tener el alérgeno cierto (Anexo II) o ninguno, no un \"puede contener\"."
+    },
+    {
+      "id": "gambas-enteras",
+      "detalle": "Clasificado \"simple\" pero el repo le pone mayContain=[sulfitos]; un simple debería tener el alérgeno cierto (Anexo II) o ninguno, no un \"puede contener\"."
+    },
+    {
+      "id": "levadura",
+      "detalle": "Clasificado \"simple\" pero el repo le pone mayContain=[gluten]; un simple debería tener el alérgeno cierto (Anexo II) o ninguno, no un \"puede contener\"."
+    },
+    {
+      "id": "canelones / placas-de-cannelones",
+      "detalle": "Son el mismo producto (placas de pasta para canelones) pero \"canelones\" declara allergens=[gluten] y \"placas-de-cannelones\" lo deja en mayContain=[gluten]; conviene unificar."
+    },
+    {
+      "id": "sardinas",
+      "detalle": "El id \"sardinas\" mezcla en sus alias la sardina fresca y la sardina ahumada; si se añade un alérgeno distinto para el ahumado habría que separar el id."
+    },
+    {
+      "id": "foie",
+      "detalle": "Declara allergens=[leche] en directo, algo atípico para hígado de pato/oca; probablemente viene de una receta concreta de mi-cuit con lácteos y no debería ir como alérgeno \"cierto\" de todo el ingrediente."
+    },
+    {
+      "id": "pechuga-de-pavo",
+      "detalle": "El alias \"Pechuga de pavo en lonchas\" sugiere fiambre envasado (que llevaría aditivos variables) y no pechuga fresca; el id actual no distingue los dos productos."
+    }
+  ]
+}
