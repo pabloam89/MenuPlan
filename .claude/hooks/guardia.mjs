@@ -33,9 +33,10 @@ const REGLAS_COMANDO = [
     da: () => deny("main es producción: no se sube nunca desde una sesión. Abre un PR a staging; el paso a main lo hace Pablo cuando lo pide."),
   },
   {
-    // Reescribir staging rompe a todas las sesiones que salen de ella.
-    si: (o) => /^git\s+push\b/.test(o) && /\s(-f|--force|--force-with-lease)\b/.test(o) && /(^|[\s:+])staging(\s|$)/.test(o),
-    da: () => deny("Push forzado a staging: reescribe la rama de la que salen todas las sesiones. Nunca."),
+    // A staging se llega por PR con el CI en verde. GitHub no puede exigirlo
+    // todavía porque el cron de Mercadona empuja directo (ver ops/INVENTARIO.md).
+    si: (o) => /^git\s+push\b/.test(o) && /(^|[\s:+])(refs\/heads\/)?staging(\s|$)/.test(o),
+    da: () => deny("A staging no se sube directo: empuja tu rama y abre un PR a staging; con el CI en verde lo puedes fusionar."),
   },
   {
     si: (o) => /^git\s+push\b/.test(o) && /\s(-f|--force)(\s|$)/.test(o),

@@ -52,7 +52,9 @@ en Vercel (y `BOT_CRON_SECRET` también en el job de `pg_cron`, ver
 | 2 | ~~Transferir Supabase desde Bytask~~ — **no procede**: cuelga del equipo de Vercel (ver la tabla) | — | cerrado (7 oct) |
 | 3 | Sacar la copia local de OneDrive a `C:\dev\MenuPlan` | Pablo + Claude | hecho (7 oct); queda retirar la carpeta vieja y sus worktrees |
 | 4 | Identidad de git: Gmail en todo `C:\dev\` (`includeIf` → `~/.gitconfig-personal`) | Pablo | hecho (7 oct) |
-| 5 | Proteger `main` y `staging` en GitHub: solo por PR y con el check «Tests» obligatorio. Es gratis mientras el repo sea público | Pablo | abierto |
+| 5 | Proteger `main` y `staging` en GitHub | Pablo + Claude | hecho (7 oct): `main` solo por PR con `tests` en verde; las dos sin force push ni borrado, también para administradores |
+| 11 | Que el cron de Mercadona abra un PR en vez de empujar a `staging`, para poder exigir PR también en `staging`. Ojo: un PR abierto con el token de Actions no lanza `tests.yml`; hay que dispararlo a mano (`workflow_dispatch`) | Claude, con OK de Pablo | abierto |
+| 12 | Activar secret scanning y push protection (Settings → Code security). Comprobado el 7 oct: todo desactivado | Pablo | abierto |
 | 6 | Borrar las ~88 ramas ya fusionadas (las nuevas ya se borran solas) | Pablo lanza, Claude prepara | abierto, no urge |
 | 7 | ~~Reconciliar `main` y `staging`~~ — **no procede**: revisado el 7 oct, nada de `main` que portar | — | cerrado |
 | 8 | Rama por defecto de GitHub → `staging`; el cron de Mercadona empuja a `staging` (PR #85) | Pablo | hecho (7 oct) |

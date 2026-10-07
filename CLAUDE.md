@@ -56,6 +56,10 @@ JSON versionado en git (`src/data/`). Hosting en Vercel.
 - **`main` es producción.** Ninguna sesión sube ni fusiona a `main`. Solo
   cuando Pablo lo pide («sube a prod», «despliega»), y el método se decide con
   él en ese momento.
+- **Protección en GitHub (desde el 7 oct 2026), también para administradores:**
+  `main` solo admite PR con el check `tests` en verde; ni `main` ni `staging`
+  admiten force push ni borrado. `staging` aún admite push directo porque el
+  cron de Mercadona lo usa; ahí el «solo por PR» lo pone la guardia.
 - Una rama por tarea, con prefijo de área y nombre corto en castellano:
   `bot/`, `datos/`, `ux/`, `fix/`, `feat/`, `ops/`, `motor/`. Se borra sola
   al fusionar el PR.
@@ -179,7 +183,7 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
 - **`arranque.mjs`** (al abrir sesión): carpeta, rama, si falta `.env.local`,
   si vas por detrás de staging y qué migraciones siguen sin aplicar.
 - **`guardia.mjs`** (antes de cada comando o edición): niega push a `main`,
-  push forzado a staging, `git stash`, `git add .`/`-A`, `vite build` a secas,
+  push directo a staging, `git stash`, `git add .`/`-A`, `vite build` a secas,
   `Set-Content` y editar una migración aplicada; pregunta antes de aplicar una
   migración, de SQL que escribe, de un push forzado y de tocar permisos o
   hooks; `gh pr merge` solo a staging.

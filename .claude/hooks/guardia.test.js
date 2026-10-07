@@ -37,8 +37,18 @@ describe("main es producción", () => {
   ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
 });
 
+describe("a staging solo por PR", () => {
+  it.each(["git push origin staging", "git push origin HEAD:staging", "git push --force origin staging", "git push origin datos/x:staging"])(
+    "deniega %s",
+    (c) => expect(bash(c)).toBe("deny"),
+  );
+  it.each(["git push -u origin ops/staging-limpio", "git fetch origin staging", "git merge origin/staging"])(
+    "deja pasar %s",
+    (c) => expect(bash(c)).toBe(null),
+  );
+});
+
 describe("push forzado", () => {
-  it("a staging, nunca", () => expect(bash("git push --force origin staging")).toBe("deny"));
   it("a una rama de trabajo, pregunta", () => expect(bash("git push -f origin ops/x")).toBe("ask"));
 });
 
