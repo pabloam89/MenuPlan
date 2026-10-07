@@ -186,7 +186,12 @@ export function scoreProductName(productName, probeId) {
   // y se puntúa como antes.
   const pideNucleo = [...probeTokens].some((t) => !MODIFICADORES.has(t));
   let score = pideNucleo && nucleo === 0 ? 0 : solape;
-  if (containsWholePhrase(norm, probeId) || containsWholePhrase(probeId, norm)) {
+  // El suelo de 0,75 solo cuando el ingrediente va EN CABEZA del producto. El
+  // súper nombra primero lo que el producto es y luego de qué: «Croissant de
+  // mantequilla» es un croissant, «Café con leche» un café, «Refresco cola zero
+  // azúcar» un refresco, y los tres cobraban como mantequilla, leche y azúcar.
+  const probe = normalizeName(probeId);
+  if (norm === probe || norm.startsWith(`${probe} `) || containsWholePhrase(probeId, norm)) {
     score = Math.max(score, 0.75);
   }
   return Math.min(0.95, score);
