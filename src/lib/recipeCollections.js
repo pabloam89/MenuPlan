@@ -187,8 +187,20 @@ export async function saveRecipeFolder(userId, folder) {
   if (error) console.warn("[recipeCollections] folder save failed", error.message);
 }
 
+/**
+ * Borra una carpeta del usuario y, con ella, sus pertenencias en
+ * recipe_collections (collection_id no tiene FK, ver 0026: nada las borra en
+ * cascada). Sin esto, loadRecipeCollections las volvía a traer en la carga
+ * siguiente y deshacía el purgeFolder local. Las 4 fijas no se borran.
+ */
 export async function deleteRecipeFolder(userId, folderId) {
-  if (!supabase || !userId || !folderId) return;
+  if (!supabase || !userId || !folderId || isBuiltInCollection(folderId)) return;
+  const { error: membersError } = await supabase
+    .from("recipe_collections")
+    .delete()
+    .eq("user_id", userId)
+    .eq("collection_id", folderId);
+  if (membersError) console.warn("[recipeCollections] folder members delete failed", membersError.message);
   const { error } = await supabase
     .from("recipe_folders")
     .delete()

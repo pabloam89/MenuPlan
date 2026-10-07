@@ -44,6 +44,7 @@ import { claveDePregunta, estadoDeClave } from "./estadoCasa.js";
 import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas } from "./pintar.js";
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
+import { KITCHEN_TOOL_IDS } from "../../src/lib/electrodomesticos.js";
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
@@ -268,7 +269,7 @@ function herramientasDeRecetas(chat) {
         nombre: { type: "string" },
         raciones: { type: "integer", minimum: 1, maximum: 20 },
         minutos: { type: "integer", minimum: 1, maximum: 600 },
-        electrodomestico: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Olla rápida", "Thermomix", "Vaporera"] },
+        electrodomestico: { type: "string", enum: KITCHEN_TOOL_IDS },
         ingredientes: {
           type: "array", minItems: 1, maxItems: 30,
           items: obj({

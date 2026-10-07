@@ -43,8 +43,10 @@ const DUPLICADOS_HEREDADOS = new Set(["0003", "0006", "0051"]);
  * entrado. No es un hueco perdido: tiene dueño y se borra de aquí en cuanto
  * su fichero exista.
  *   0079: personas a tabla (rama feat/personas-tabla). La 0080 de tareas va después.
+ *   0084: código de alta del bot (rama feat/alta-un-toque).
+ *   0085: vocabulario cerrado del bot (rama datos/sistematizar).
  */
-const RESERVADOS = new Set(["0081", "0082"]);
+const RESERVADOS = new Set(["0081", "0082", "0084", "0085"]);
 
 describe("las migraciones se pueden nombrar sin ambigüedad", () => {
   it("ningún número nuevo repetido", () => {
