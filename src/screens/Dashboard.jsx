@@ -9,7 +9,6 @@ import {
   Send,
 } from "../components/icons.jsx";
 import { FRONTAL_BOT, abrirLola, lolaConectada } from "../lib/frontalBot.js";
-import { pedidoMenu } from "../lib/pedidoLola.js";
 import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
@@ -733,25 +732,14 @@ export function DashboardScreen({
                 )}
               </div>
             ) : (
+              // Sin botón a Lola aquí: ya está la tarjeta de arriba (LolaCard),
+              // y dos llamadas a lo mismo en una pantalla sobran (7 oct 2026).
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", margin: "2px 2px 0" }}>
                 <p style={{ margin: 0, fontSize: 13, color: "#5c7568", fontWeight: 600 }}>
                   {multiGroup && selectedGroup?.label
                     ? `Hoy no tenemos menú para ${selectedGroup.label.toLowerCase()}`
                     : "Hoy no tenemos menú"}
                 </p>
-                {FRONTAL_BOT && !householdReadOnly && (
-                  <button
-                    type="button"
-                    onClick={() => abrirLola(pedidoMenu("esta"))}
-                    style={{
-                      minHeight: 44, padding: "0 16px", borderRadius: 999, border: "none",
-                      background: GREEN, color: "#fff", fontSize: 13.5, fontWeight: 800,
-                      fontFamily: "inherit", cursor: "pointer",
-                    }}
-                  >
-                    Pedírselo a Lola
-                  </button>
-                )}
               </div>
             )}
           </div>

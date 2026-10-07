@@ -46,7 +46,7 @@ function lineaOpcion(r, estilo) {
     cambiosDe(r),
     r.time ? `${r.time} min` : "",
     estilo === "ligero" && r.kcal ? `${Math.round(r.kcal)} kcal` : "",
-    r.costeRacion != null ? `≈ ${r.costeRacion.toFixed(2).replace(".", ",")} €/ración` : "",
+    // Sin precio por ración, como detalleDe en menu.js (7 oct 2026).
   ].filter(Boolean).join(", ");
   return `• <b>${esc(r.name)}</b>${extra ? `: ${extra}` : ""}`;
 }
