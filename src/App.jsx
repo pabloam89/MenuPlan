@@ -1855,14 +1855,15 @@ export default function App() {
   // llegaba a `state.menuPlan`: al recargar ganaba la fila, con el plan de
   // cuando se generó, y Lola, que solo lee la fila, no lo veía. Con la versión
   // de la casa, como la lista (updateWeekShopping): si Lola u otro ha escrito
-  // entretanto, no se pisa y se recarga.
+  // entretanto, no se pisa y se recarga. Con el user_id de quien generó el
+  // menú, no el de quien edita (ver rowToMenuSummary).
   useEffect(() => {
     if (!user?.id || !cloudReadyRef.current || householdReadOnly) return;
     const r = semanaVivaPorGuardar(data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, shopping);
     if (!r) return;
     const menuId = data.activeMenuId;
     setData((d) => (d.activeMenuId === menuId && d.menus === data.menus ? { ...d, menus: r.menus } : d));
-    queueSaveMenuWeek(user.id, menuId, r.weekStart, r.week, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
+    queueSaveMenuWeek(data.menus[menuId]?.userId ?? user.id, menuId, r.weekStart, r.week, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
   }, [user?.id, householdReadOnly, nubeLista, data.menus, data.activeMenuId, data.menuWeek?.offset, menuPlan, shopping, syncHouseholdId, versionDeCasa]);
 
   // Al volver a la app (desde Telegram, típicamente) se mira si alguien ha
@@ -3104,7 +3105,7 @@ export default function App() {
         onError: () => recargarDesdeNubeRef.current({ choque: true }),
       });
     } else if (user && menuId && wk) {
-      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
+      queueSaveMenuWeek(data.menus?.[menuId]?.userId ?? user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
     }
   }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user, syncHouseholdId, versionDeCasa, householdReadOnly]);
 
@@ -3233,7 +3234,7 @@ export default function App() {
       setData((d) => ({ ...d, menus }));
       if (user) {
         toggleMenuFavoriteRemote(user.id, menuId, true, casaActivaRef.current);
-        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
+        if (weekStart && week) queueSaveMenuWeek(current.userId ?? user.id, menuId, weekStart, week, 1200, syncHouseholdId, { version: versionDeCasa(syncHouseholdId), onConflict: () => recargarDesdeNubeRef.current({ choque: true }) });
       }
       showToast("Menú guardado en favoritos");
     } else {

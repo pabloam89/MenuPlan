@@ -136,13 +136,13 @@ describe("saveMenu (mocked client)", () => {
 describe("loadMenuSummaries (mocked client)", () => {
   it("maps rows to camelCase summaries", async () => {
     const row = {
-      id: "menu_abc", variety_pref: "strict", is_favorite: false, is_active: true,
+      id: "menu_abc", user_id: "user-1", variety_pref: "strict", is_favorite: false, is_active: true,
       created_at: "2026-07-01T00:00:00.000Z", updated_at: "2026-07-01T00:00:00.000Z",
     };
     Object.assign(supabase, mockClient({ user_menus: [{ data: [row], error: null }] }));
     const summaries = await loadMenuSummaries("user-1");
     expect(summaries).toEqual([
-      { id: "menu_abc", varietyPref: "strict", isFavorite: false, isActive: true, createdAt: Date.parse(row.created_at), updatedAt: Date.parse(row.updated_at) },
+      { id: "menu_abc", userId: "user-1", varietyPref: "strict", isFavorite: false, isActive: true, createdAt: Date.parse(row.created_at), updatedAt: Date.parse(row.updated_at) },
     ]);
   });
 

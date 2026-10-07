@@ -56,6 +56,13 @@ describe("rowToMenuSummary", () => {
     expect(summary.createdAt).toBe(Date.parse(row.created_at));
     expect(summary.updatedAt).toBe(Date.parse(row.updated_at));
   });
+
+  // La semana se guarda con el user_id del menú (FK (user_id, menu_id) →
+  // user_menus), no con el de quien la toca: en una casa, un cotitular edita
+  // menús que generó el titular o Lola.
+  it("lleva el dueño del menú", () => {
+    expect(rowToMenuSummary({ id: "m", user_id: "titular" }).userId).toBe("titular");
+  });
 });
 
 describe("weekToRow / rowToWeek round-trip", () => {
