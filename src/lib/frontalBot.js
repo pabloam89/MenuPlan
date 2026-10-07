@@ -15,6 +15,20 @@ import { payloadStart } from "./pedidoLola.js";
 
 export const FRONTAL_BOT = true;
 
+// [GENTE-APAGADA] La parte social (Gente: perfiles, seguir, publicar, me
+// gusta, comentarios) está apagada mientras la app es el frontal de Lola.
+// Quitar la pestaña de la barra no bastaba: la ficha del plato, Mis recetas,
+// la Biblioteca, el creador de recetas, el menú que llega por enlace y tres
+// enlaces seguían enseñándola o llevando a ella.
+//
+// TODO lo social que se oculta cuelga de esta constante y lleva la etiqueta
+// [GENTE-APAGADA] en un comentario al lado. Para encontrarlo todo:
+//     grep -rn "GENTE-APAGADA" src
+// Lista completa, con el porqué de cada uno y cómo volver a encenderlo:
+// specs/gente-apagada.md. No se ha borrado nada: con GENTE_ACTIVA = true
+// todo vuelve a salir como antes.
+export const GENTE_ACTIVA = !FRONTAL_BOT;
+
 // Guías, visitas y tutoriales de la app: apagados con el frontal (el alta y
 // la configuración viven en el chat) y en staging (VITE_GUIAS por rama, ver
 // vite.config.js). EXACTAMENTE `import.meta.env.VITE_GUIAS`, sin `?.`: si no,

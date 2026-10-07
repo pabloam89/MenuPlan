@@ -59,6 +59,8 @@ import { dishImageUrl, dishImageForRecipe } from "../assets/dishes/dishImages.js
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { allFolders, collectionRecipeIds, collectionCounts, DISCARDED_ID } from "../lib/recipeCollections.js";
 import { carpetasDelHueco, facetasDelHueco } from "../lib/carpetasDelHueco.js";
+import { DishActionBar } from "../components/DishActionBar.jsx";
+import { GENTE_ACTIVA } from "../lib/frontalBot.js";
 
 
 // Carpeta virtual: todo lo que has guardado, sin filtrar por carpeta.
@@ -472,7 +474,8 @@ export function CatalogBrowserSheet({
   // existian y reventaba la pantalla entera con "Cannot access ... before
   // initialization". El build no lo ve: es correcto sintacticamente.
   useEffect(() => {
-    if (!viewingMine) return;
+    // [GENTE-APAGADA] Los 👍 y 💬 de lo que publicaste son de Gente.
+    if (!viewingMine || !GENTE_ACTIVA) return;
     const ids = mineRecipes
       .filter((r) => r.source === "user" && (r.visibility ?? "private") !== "private")
       .map((r) => r.id);
@@ -1443,8 +1446,9 @@ export function CatalogBrowserSheet({
                 animDelay={i < 12 ? i * 18 : 0}
                 // Lo social solo tiene sentido sobre lo TUYO: en el catalogo
                 // no hay nada que publicar ni retirar.
+                // [GENTE-APAGADA] Sin Gente no hay chapitas de 👍/💬.
                 social={
-                  viewingMine && r.source === "user"
+                  GENTE_ACTIVA && viewingMine && r.source === "user"
                     ? { stats: socialStats[r.id] ?? null }
                     : null
                 }
@@ -2934,18 +2938,37 @@ function RecipeGridCard({
   const photo = dishImageForRecipe(recipe);
   const diffLabel = DIFFICULTY_LABEL[recipe.difficulty];
   const diffColor = DIFFICULTY_BADGE_COLOR[recipe.difficulty] ?? GREEN;
-  // Dos toques para borrar: el primero pide confirmación en el propio icono.
-  // Sin diálogo, pero tampoco un borrado irreversible a un solo toque.
+  // Carpeta, editar y borrar salen del «⋯» con la misma barra que los platos
+  // de Menú (DishActionBar): fondo apagado, el plato enmarcado y los botones
+  // debajo. Borrar pide un segundo toque en la propia barra.
+  const [mandos, setMandos] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  // Carpeta, editar y borrar viven en un menú «⋯» (review de UX, lámina 33):
-  // tres iconos de 24px sobre la foto eran demasiado pequeños para el dedo.
-  const [menuOpen, setMenuOpen] = useState(false);
+  const fotoRef = useRef(null);
   const hasMenu = Boolean(onOpenFolders || onEdit || onDelete);
-  const closeMenu = () => { setMenuOpen(false); setConfirmDelete(false); };
+  const closeMenu = () => { setMandos(null); setConfirmDelete(false); };
+  const openMenu = () => {
+    const r = fotoRef.current?.getBoundingClientRect();
+    setConfirmDelete(false);
+    setMandos(r ? { tile: { top: r.top, left: r.left, width: r.width, height: r.height }, radius: 14 } : {});
+  };
+  const acciones = confirmDelete
+    ? [
+        { id: "borrar-si", label: "Sí, borrar", Icon: Trash2, tint: "#fdecea", color: "#c0392b", onPick: () => { closeMenu(); onDelete(); } },
+        { id: "cancelar", label: "Cancelar", Icon: X, onPick: () => setConfirmDelete(false) },
+      ]
+    : [
+        onEdit && { id: "editar", label: "Editar", Icon: Pencil, onPick: () => { closeMenu(); onEdit(); } },
+        onOpenFolders && {
+          id: "carpeta", label: inFolders > 0 ? `Carpetas (${inFolders})` : "Carpeta", Icon: FolderIcon,
+          onPick: () => { closeMenu(); onOpenFolders(); },
+        },
+        onDelete && { id: "borrar", label: "Borrar", Icon: Trash2, tint: "#fdecea", color: "#c0392b", onPick: () => setConfirmDelete(true) },
+      ].filter(Boolean);
 
   return (
     <div className="catalog-card-enter" style={{ position: "relative", display: "flex", flexDirection: "column", gap: 6, minWidth: 0, animationDelay: `${animDelay}ms` }}>
       <button
+        ref={fotoRef}
         type="button"
         onClick={onOpenRecipe ? () => onOpenRecipe(recipe) : undefined}
         disabled={!onOpenRecipe}
@@ -3018,62 +3041,28 @@ function RecipeGridCard({
           <span
             role="button"
             tabIndex={0}
-            onClick={(e) => { e.stopPropagation(); if (menuOpen) closeMenu(); else setMenuOpen(true); }}
+            onClick={(e) => { e.stopPropagation(); openMenu(); }}
             onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.click(); }}
-            aria-label={`Más opciones de ${recipe.name}`}
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
+            aria-label={`Acciones de ${recipe.name}`}
+            className="deck-tile-actions"
             style={{
               position: "absolute", bottom: 0, right: 0, width: 44, height: 44,
               display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1,
             }}
           >
+            {/* El mismo «⋯» que los platos de Menú: círculo oscuro translúcido
+                con los puntos en blanco, con 44 px de zona táctil alrededor. */}
             <span style={{
-              width: 30, height: 30, borderRadius: "50%",
-              border: "1.5px solid #fff", background: "rgba(255,255,255,.92)",
+              width: 26, height: 26, borderRadius: 999,
+              background: "rgba(12,22,15,.45)", backdropFilter: "blur(3px)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 1px 3px rgba(0,0,0,.2)", color: "#42594c",
             }}>
-              <MoreHorizontal size={16} strokeWidth={2.4} />
+              <MoreHorizontal size={14} color="#fff" strokeWidth={2.8} />
             </span>
           </span>
         )}
       </button>
-      {menuOpen && (
-        <>
-          <div onClick={closeMenu} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
-          <div
-            role="menu"
-            style={{
-              position: "absolute", right: 4, top: "calc(100% - 60px)", zIndex: 41,
-              minWidth: 176, padding: 6, borderRadius: 14, background: "#fff",
-              border: "1px solid #e3ebe6", boxShadow: "0 6px 20px rgba(0,0,0,.12)",
-            }}
-          >
-            {onEdit && (
-              <GridMenuItem icon={<Pencil size={15} />} label="Editar" onClick={() => { closeMenu(); onEdit(); }} />
-            )}
-            {onOpenFolders && (
-              <GridMenuItem
-                icon={<FolderIcon size={15} />}
-                label={inFolders > 0 ? `Carpetas (${inFolders})` : "Guardar en carpeta"}
-                onClick={() => { closeMenu(); onOpenFolders(); }}
-              />
-            )}
-            {onDelete && (
-              <GridMenuItem
-                icon={<Trash2 size={15} />}
-                label={confirmDelete ? "Toca otra vez para borrar" : "Borrar"}
-                danger
-                onClick={() => {
-                  if (confirmDelete) { closeMenu(); onDelete(); }
-                  else setConfirmDelete(true);
-                }}
-              />
-            )}
-          </div>
-        </>
-      )}
+      {mandos && acciones.length > 0 && (<DishActionBar anchor={mandos} actions={acciones} onClose={closeMenu} />)}
       <div>
         <p
           style={{
@@ -3090,25 +3079,6 @@ function RecipeGridCard({
         )}
       </div>
     </div>
-  );
-}
-
-function GridMenuItem({ icon, label, onClick, danger = false }) {
-  return (
-    <button
-      type="button"
-      role="menuitem"
-      onClick={(e) => { e.stopPropagation(); onClick(); }}
-      style={{
-        display: "flex", alignItems: "center", gap: 10, width: "100%", minHeight: 44,
-        padding: "0 10px", border: "none", borderRadius: 10, background: "transparent",
-        color: danger ? "#c0392b" : "#142f1d", cursor: "pointer",
-        fontFamily: "inherit", fontSize: 13.5, fontWeight: 700, textAlign: "left", whiteSpace: "nowrap",
-      }}
-    >
-      {icon}
-      {label}
-    </button>
   );
 }
 

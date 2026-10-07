@@ -1,4 +1,4 @@
-import { GUIAS_ACTIVAS } from "../lib/frontalBot.js";
+import { GUIAS_ACTIVAS, GENTE_ACTIVA } from "../lib/frontalBot.js";
 import { Fragment, useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Ban as BlockIcon, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, ChevronLeft, Info } from "../components/icons.jsx";
 import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration, GroupAvatarStack } from "../components/ui.jsx";
@@ -1274,7 +1274,8 @@ export function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBloc
       days.flatMap((d) => (d.meals ?? []).flatMap((meal) => (meal.dishes ?? []).map((x) => x.recipeId)))
         .filter(Boolean),
     )];
-    if (ids.length === 0) return undefined;
+    // [GENTE-APAGADA] Los 👍 👎 🍲 💬 de cada plato son de Gente.
+    if (ids.length === 0 || !GENTE_ACTIVA) return undefined;
     let alive = true;
     loadRecipeStats(ids).then((real) => {
       if (alive) setDishStats(FIXTURES_ENABLED ? { ...FIXTURE_STATS, ...real } : real);
@@ -1310,10 +1311,14 @@ export function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBloc
             <ChevronLeft size={20} strokeWidth={2.6} />
           </button>
 
+          {/* [GENTE-APAGADA] «Reportar menú» y «Bloquear» son de Gente: un menú
+              que te llega por enlace te lo ha mandado alguien que conoces. */}
+          {GENTE_ACTIVA && (
           <button type="button" className="mp-press" onClick={() => setMoreOpen((v) => !v)} aria-label="Más opciones" style={{ ...peekBarIcon, order: 3 }}>
             <MoreVertical size={16} strokeWidth={2.6} />
           </button>
-          {moreOpen && (
+          )}
+          {GENTE_ACTIVA && moreOpen && (
             <div style={peekMenu}>
               <button type="button" onClick={() => { setMoreOpen(false); setReporting(true); }} style={peekMenuItem}>
                 <Flag size={13} strokeWidth={2.5} /> Reportar menú
@@ -1328,7 +1333,9 @@ export function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBloc
             </div>
           )}
 
-          <button type="button" className="mp-press" onClick={onOpenPerson} style={peekWho} aria-label={`Ver el perfil de ${name}`}>
+          {/* [GENTE-APAGADA] Quién lo manda se sigue viendo, pero ya no es un
+              botón: «Ver el perfil» llevaba a Gente. */}
+          <button type="button" className="mp-press" onClick={GENTE_ACTIVA ? onOpenPerson : undefined} disabled={!GENTE_ACTIVA} style={{ ...peekWho, ...(GENTE_ACTIVA ? {} : { cursor: "default", color: "inherit" }) }} aria-label={GENTE_ACTIVA ? `Ver el perfil de ${name}` : `Menú de ${name}`}>
             <Avatar name={profile?.display_name ?? "?"} photo={profile?.avatar_url} size={34} color={TEAL} />
             <span style={{ minWidth: 0 }}>
               <span style={peekWhoName}>{name}</span>
@@ -1379,9 +1386,12 @@ export function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBloc
             </button>
           )}
 
+          {/* [GENTE-APAGADA] Los comentarios del menú son de Gente. */}
+          {GENTE_ACTIVA && (
           <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eef3f0" }}>
             <CommentThread user={user} targetType="menu" targetId={m.id} targetOwnerId={m.owner_id} />
           </div>
+          )}
         </div>
       </div>
 
@@ -1787,7 +1797,8 @@ function SharedDishTile({ item, stats = null, onPick, onOpen, height, compact = 
   // Ceros explicitos, como en el rio: sin ellos la columna de la derecha no se
   // pinta y parece que el plato no tiene datos, en vez de tener cero. Un plato
   // cerrado no lleva ninguna: no hay receta de la que contar nada.
-  const dishStats = dish.recipeId ? (stats?.[dish.recipeId] ?? EMPTY_STATS) : null;
+  // [GENTE-APAGADA] Sin Gente no hay contadores: ni siquiera a cero.
+  const dishStats = GENTE_ACTIVA && dish.recipeId ? (stats?.[dish.recipeId] ?? EMPTY_STATS) : null;
   return (
     <button
       type="button"

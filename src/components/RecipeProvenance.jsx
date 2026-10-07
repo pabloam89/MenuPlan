@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ThumbsUp, ThumbsDown, Utensils } from "./icons.jsx";
+import { GENTE_ACTIVA } from "../lib/frontalBot.js";
 
 // Small MenuPlan logo mark used instead of a user avatar for catalog dishes.
 export function MenuPlanBadge({ size = 26 }) {
@@ -104,6 +105,9 @@ function OwnerBadge({ owner }) {
  * Used as the trailing slot of the catalog's RecipeCard list rows.
  */
 export function RecipeProvenance({ recipe }) {
+  // [GENTE-APAGADA] Autor y 👍/👎 de la comunidad en las filas de la
+  // Biblioteca y del catálogo: son de Gente.
+  if (!GENTE_ACTIVA) return null;
   const isUserRecipe = Boolean(recipe.owner);
   const owner = recipe.owner;
   const up = recipe.rating?.up ?? 0;
