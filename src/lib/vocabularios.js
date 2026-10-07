@@ -77,8 +77,8 @@ export const ORIGEN_DATO = ["dicho", "supuesto", "visto", "derivado", "por_defec
 /** A qué se refiere un «sobre» o un cambio: qué lo originó. */
 export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];
 
-/** Quién puede ver un dato de la ficha. */
-export const VISIBILIDAD = ["casa", "adultos", "titulares", "la_persona_y_tutores"];
+/** Quién puede ver un dato de la ficha. Se guarda pero aún no filtra nada (todo visible). */
+export const VISIBILIDAD = ["casa", "titulares", "la_persona_y_tutores"];
 
 /** Sexo de una persona: campo nuevo de la ficha v18, solo para calorías y nunca se pregunta. */
 export const SEXO = ["mujer", "hombre", "sin_dato"];
