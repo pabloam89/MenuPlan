@@ -433,13 +433,16 @@ const hoyMadrid = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Mad
  */
 export async function extrasDeFicha(householdId, chatId) {
   const [nevera, avisos] = await Promise.all([
-    select("user_pantry", `household_id=${eq(householdId)}&item_type=eq.cooked_dish&order=cooked_at.desc&limit=5`, "name,portions,frozen")
-      .then((fs) => fs.map((p) => `${p.portions ?? 1} raciones de ${p.name} (${p.frozen ? "congelador" : "nevera"})`))
-      .catch(() => []),
+    select("user_pantry", `household_id=${eq(householdId)}&item_type=eq.cooked_dish&order=cooked_at.desc&limit=5`, "ingredient_name,portions,frozen")
+      .then((fs) => fs.map((p) => `${p.portions ?? 1} raciones de ${p.ingredient_name} (${p.frozen ? "congelador" : "nevera"})`))
+      // Sin nevera la ficha sigue valiendo, pero que se vea en el log: pedir
+      // una columna que no existe (`name` en vez de `ingredient_name`) la dejó
+      // en blanco desde el primer día sin que nadie se enterase.
+      .catch((e) => { console.error("[ficha] nevera", e?.message); return []; }),
     chatId != null
       ? select("bot_reminders", `chat_id=${eq(String(chatId))}&status=eq.pending&order=due_at.asc&limit=3`, "text,due_at,repite")
         .then((fs) => fs.map((r) => `${r.text}${r.repite ? ` (${r.repite})` : ""}`))
-        .catch(() => [])
+        .catch((e) => { console.error("[ficha] avisos", e?.message); return []; })
       : [],
   ]);
   return { nevera, avisos };
