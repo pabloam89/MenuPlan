@@ -71,3 +71,8 @@ vs-modelo.json
 # Frases reales de usuarios sin revisar (scripts/router-feedback.mjs, scripts/lola-feedback.mjs)
 scripts/router-evals-candidatos.json
 scripts/bot-evals-candidatos.json
+
+# Material de trabajo local que no es código de la app: el vídeo (descartado
+# el 7 oct) y las capturas y PDFs de feedback de UX.
+/video/
+/ux feedback/
