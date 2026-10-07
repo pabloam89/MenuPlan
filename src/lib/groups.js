@@ -1,11 +1,8 @@
 import { migrateHomeRole, resolveMemberAge, stageForAge, suggestHomeRole } from "./stages.js";
+import * as ids from "./ids.js";
 
 const GROUP_COLORS = ["#2d5a3d", "#c67030", "#5a7ea8", "#a85a7e", "#7e5aa8", "#5aa87e"];
 const BABY_GROUP_LABEL = "Bebé";
-
-export function uid() {
-  return Math.random().toString(36).slice(2, 10);
-}
 
 // Re-exported for backwards compatibility: `resolveMemberAge` lives in
 // stages.js (the single source of truth for age math), but historically
@@ -100,7 +97,7 @@ function buildSplitGroups({ adults, children, babies }) {
   let colorIdx = 0;
   if (adults.length > 0) {
     groups.push({
-      id: uid(),
+      id: ids.grupo.nuevo(),
       label: "Adultos",
       memberIds: adults.map((m) => m.id),
       color: GROUP_COLORS[colorIdx++],
@@ -108,7 +105,7 @@ function buildSplitGroups({ adults, children, babies }) {
   }
   if (children.length > 0) {
     groups.push({
-      id: uid(),
+      id: ids.grupo.nuevo(),
       label: "Niños",
       memberIds: children.map((m) => m.id),
       color: GROUP_COLORS[colorIdx++],
@@ -116,7 +113,7 @@ function buildSplitGroups({ adults, children, babies }) {
   }
   if (babies.length > 0) {
     groups.push({
-      id: uid(),
+      id: ids.grupo.nuevo(),
       label: "Bebé",
       memberIds: babies.map((m) => m.id),
       color: GROUP_COLORS[colorIdx++],
@@ -133,7 +130,7 @@ export function defaultGroupsFromMembers(members) {
   const groups = buildSplitGroups(split);
   if (groups.length === 0 && members.length > 0) {
     groups.push({
-      id: uid(),
+      id: ids.grupo.nuevo(),
       label: "Familia",
       memberIds: members.map((m) => m.id),
       color: GROUP_COLORS[0],
@@ -189,7 +186,7 @@ export function reconcileTierGroups(members, groups) {
 
   for (const tier of ["adult", "child", "baby"]) {
     if (byTier[tier].length > 0 && !next.some((g) => g.label === TIER_LABEL[tier])) {
-      next.push({ id: uid(), label: TIER_LABEL[tier], memberIds: [], color: nextGroupColor(next) });
+      next.push({ id: ids.grupo.nuevo(), label: TIER_LABEL[tier], memberIds: [], color: nextGroupColor(next) });
     }
   }
 
@@ -317,7 +314,7 @@ export function adhocReasonLabel(reason) {
 /** Create the ad-hoc group for one member, remembering their home group. */
 export function createIndividualMenuGroup(member, sourceGroupId, reason) {
   return {
-    id: uid(),
+    id: ids.grupo.nuevo(),
     label: adhocReasonLabel(reason),
     memberIds: [member.id],
     color: ADHOC_MENU_COLOR,
@@ -372,13 +369,13 @@ export function groupsFromModel(members, model) {
     if (babies.length > 0 && rest.length > 0) {
       return [
         {
-          id: uid(),
+          id: ids.grupo.nuevo(),
           label: "Familia",
           memberIds: rest.map((m) => m.id),
           color: GROUP_COLORS[0],
         },
         {
-          id: uid(),
+          id: ids.grupo.nuevo(),
           label: BABY_GROUP_LABEL,
           memberIds: babies.map((m) => m.id),
           color: GROUP_COLORS[2],
@@ -387,7 +384,7 @@ export function groupsFromModel(members, model) {
     }
     return [
       {
-        id: uid(),
+        id: ids.grupo.nuevo(),
         label: "Familia",
         memberIds: members.map((m) => m.id),
         color: GROUP_COLORS[0],
@@ -400,7 +397,7 @@ export function groupsFromModel(members, model) {
   if (groups.length <= 1) {
     return [
       {
-        id: uid(),
+        id: ids.grupo.nuevo(),
         label: "Familia",
         memberIds: members.map((m) => m.id),
         color: GROUP_COLORS[0],
@@ -436,7 +433,7 @@ export function migrateGroupsForBabies(members, groups, _menuModel) {
 
   if (!babyGroup) {
     babyGroup = {
-      id: uid(),
+      id: ids.grupo.nuevo(),
       label: BABY_GROUP_LABEL,
       memberIds: [],
       color: nextGroupColor(updated),

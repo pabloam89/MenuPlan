@@ -6,7 +6,7 @@
  * viven en un solo sitio para que ninguno se las salte.
  */
 
-import crypto from "node:crypto";
+import * as ids from "../../src/lib/ids.js";
 import { select, insert, update, eq } from "./db.js";
 import { enviar, escaparHtml, TECLADO } from "./telegram.js";
 import { registrar, EMBUDO } from "./embudo.js";
@@ -77,14 +77,17 @@ async function apuntarIdentidad({ channel, kind, userId, externalId, nombre, ide
   return ya?.user_id === userId ? "igual" : "nueva";
 }
 
-/** 16 bytes en base64url: cabe en el `/start` de Telegram (máx. 64) y en una URL. */
-export const codigoNuevo = () => crypto.randomBytes(16).toString("base64url");
+/**
+ * 16 bytes en base64url: cabe en el `/start` de Telegram (máx. 64) y en una
+ * URL. Nunca empieza como otra clase de /start (rc_, ru_, m_…): src/lib/ids.js.
+ */
+export const codigoNuevo = () => ids.codigoBot.nuevo();
 
 // Los de /grupo llevan una «g» delante: 23 caracteres, y los demás (16 bytes en
 // base64url, también los de la app) siempre 22. Así se distinguen sin tocar la
 // tabla, y uno de grupo no sirve para enlazar un privado.
-export const codigoDeGrupo = () => `g${codigoNuevo()}`;
-export const esCodigoDeGrupo = (token) => typeof token === "string" && token.length === 23 && token.startsWith("g");
+export const codigoDeGrupo = () => ids.codigoGrupo.nuevo();
+export const esCodigoDeGrupo = (token) => ids.codigoGrupo.es(token);
 
 export async function crearCodigo({ tipo, channel = "telegram", chatId, externalId, nombre, userId = null, email = null, minutos }) {
   const codigo = codigoNuevo();

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
-import { uid } from "./groups.js";
+import * as ids from "./ids.js";
 import { callModel, extractJson, AIPlannerError, ICON_TYPE_MAP, CATEGORY_ICON } from "./aiPlanner.js";
 import { FAST_MODEL } from "./aiModels.js";
 import { EU_ALLERGENS } from "./allergens.js";
@@ -384,7 +384,7 @@ export const ALLERGEN_OPTIONS = Object.entries(EU_ALLERGENS).map(([id, meta]) =>
 }));
 
 export function buildUserRecipeId() {
-  return `user_${uid()}`;
+  return ids.recetaPropia.nuevo();
 }
 
 /**

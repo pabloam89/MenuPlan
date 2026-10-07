@@ -1,4 +1,5 @@
 import { getWeekDatesByMenuWeek, mondayISOForOffset } from "./weekCalendar.js";
+import * as ids from "./ids.js";
 
 // A "menú" used to mean exactly one calendar week. It can now span several
 // weeks generated in one go (`data.menuWeekOffsets`, not necessarily
@@ -39,7 +40,7 @@ export function clampWeekCount(n) {
 }
 
 export function createMenuId() {
-  return `menu_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
+  return ids.menu.nuevo();
 }
 
 function isoDate(date) {

@@ -50,6 +50,7 @@ import { guessShoppingAisle } from "../lib/ingredientCategories.js";
 import { aisleImageSrc } from "../lib/ingredientImages.js";
 import { useAuth } from "../lib/useAuth.js";
 import { removePantryItem } from "../lib/pantry.js";
+import * as ids from "../lib/ids.js";
 
 const GREEN = "#2d5a3d";
 
@@ -501,7 +502,7 @@ function parseSize(text) {
 export function appendManualSpend(setData, entry, dict, aliases = {}) {
   const m = matchReceiptLine(entry.name, dict, aliases);
   const ingredientId = m.ingredientId ?? ingredientIdFor(entry.name);
-  const id = `m-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const id = ids.gasto.nuevo();
   setData((d) => ({
     ...d,
     priceObs: [
@@ -537,7 +538,7 @@ export function appendReceiptSpend(setData, { store, date, lines, tachedKeys = [
   if (included.length === 0) return 0;
 
   const purchasedAt = date ? new Date(date).toISOString() : new Date().toISOString();
-  const receiptId = `r-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const receiptId = ids.ticket.nuevo();
   const storeName = store?.trim() || null;
 
   const newObs = included.map((l, i) => {

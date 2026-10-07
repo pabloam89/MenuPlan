@@ -148,7 +148,8 @@
 
 import { z } from "zod";
 import { DAYS, SLOT_VALUES, slotKey, getMeals, getDayMeals } from "./planner.js";
-import { uid, membersOfGroup } from "./groups.js";
+import { membersOfGroup } from "./groups.js";
+import * as ids from "./ids.js";
 import { CAMPOS_POR_ID } from "./notepadFields.js";
 import { itemValido } from "./excluirHueco.js";
 
@@ -330,7 +331,7 @@ export function normalizarReglas(raw) {
 /** Una regla nueva, con su id y su fecha. */
 export function nuevaRegla({ sujeto, efecto, ambito = {}, vigencia = {}, salvedad, origen = "manual", frase, hoy }) {
   const regla = {
-    id: uid(),
+    id: ids.regla.nuevo(),
     sujeto,
     ambito,
     vigencia,

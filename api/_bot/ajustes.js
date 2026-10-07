@@ -21,6 +21,7 @@ import { conCasa } from "./casa.js";
 import { motor, normal, diaDe, DIAS, DIA_LARGO } from "./menu.js";
 import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
 import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
+import * as ids from "../../src/lib/ids.js";
 
 const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
 // Del catálogo de comidas (src/lib/comidas.js).
@@ -450,7 +451,7 @@ export async function anadirComensal(householdId, { nombre, edad }, ctx = null) 
     if ((data.members ?? []).some((p) => normal(p.name) === normal(nombre))) return { texto: `${nombre} ya está en la casa.` };
     const age = Number.isFinite(edad) ? edad : null;
     const nuevo = {
-      id: `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+      id: ids.persona.nuevo(),
       name: nombre, age, useBirthDate: false, birthDate: "",
       homeRole: m.suggestHomeRole(age ?? 30), stageDetail: "", allergies: [], dislikes: [],
     };

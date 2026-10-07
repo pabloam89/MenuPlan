@@ -86,4 +86,17 @@ describe("códigos de /grupo", () => {
       expect(esCodigoDeGrupo(codigoNuevo())).toBe(false);
     }
   });
+
+  // Un código de 22 caracteres base64url empieza por «m_» una vez de cada
+  // 4096: con 40 000 (y otros tantos de grupo) sale ~10 veces si el generador
+  // no lo evita. Y entonces el /start lo confundía con una semana compartida.
+  it("nunca empiezan como otra clase de /start (rc_, ru_, m_, inv_, p-)", () => {
+    const malos = [];
+    for (let i = 0; i < 40000; i++) {
+      for (const c of [codigoNuevo(), codigoDeGrupo()]) {
+        if (/^(rc_|ru_|m_|inv_|p-|grupo)/.test(c)) malos.push(c);
+      }
+    }
+    expect(malos).toEqual([]);
+  });
 });

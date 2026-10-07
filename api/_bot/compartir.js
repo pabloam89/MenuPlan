@@ -19,7 +19,7 @@
  */
 
 import { COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
-import crypto from "node:crypto";
+import * as ids from "../../src/lib/ids.js";
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, prepararRecetas, grupos, DIAS, recetasDeCasa, deSerieDelMotor } from "./menu.js";
@@ -27,7 +27,8 @@ import { duenoDe, rastro } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { nombreDelBot } from "./telegram.js";
 
-const nuevaLlave = () => crypto.randomBytes(16).toString("hex");
+// 32 hex, como gen_invite_token() en SQL: la llave que crea la app y la del bot son iguales.
+const nuevaLlave = () => ids.llave.nuevo();
 
 /**
  * Una receta del catálogo común o de serie, con la forma de la app. Nunca una
@@ -201,7 +202,7 @@ export async function copiarReceta(householdId, fila) {
   if (ya) return { ya: true, nombre: ya.name };
   const copia = {
     ...fila,
-    id: `user_${Date.now().toString(36)}${crypto.randomBytes(3).toString("hex")}`,
+    id: ids.recetaPropia.nuevo(),
     owner_id: dueno,
     visibility: "private",
     copied_from_recipe_id: fila.id,
