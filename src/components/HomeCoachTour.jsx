@@ -26,6 +26,7 @@ import {
   Heart,
   Search,
 } from "./icons.jsx";
+import { GENTE_ACTIVA } from "../lib/frontalBot.js";
 
 // One-shot guided tours ("coach-marks"): a dimming overlay with a cut-out
 // spotlight around each target button plus a branded bubble (with a pointer)
@@ -134,7 +135,8 @@ export const RECIPES_COACH_STEPS = [
     selector: '[data-coach="recipes-mine"]',
     Icon: ChefHat,
     title: "Mis recetas",
-    desc: "Todo tu recetario: las que creas, las que marcas como favoritas y las que te traes de Gente. Dentro están tus carpetas y los platos que descartaste, por si quieres recuperarlos.",
+    // [GENTE-APAGADA] Sin Gente no hay recetas que traerse de ella.
+    desc: `Todo tu recetario: las que creas, las que marcas como favoritas${GENTE_ACTIVA ? " y las que te traes de Gente" : ""}. Dentro están tus carpetas y los platos que descartaste, por si quieres recuperarlos.`,
     place: "below",
   },
 ];

@@ -63,6 +63,7 @@ import { removeRichStep, richToPlainSteps, stripStepMarkers, relinkStepMarkers }
 import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
 import { deriveRecipeAllergens } from "../lib/ingredients.js";
 import { motivosNoAptoNinos, frasesMotivos } from "../lib/aptoNinos.js";
+import { GENTE_ACTIVA } from "../lib/frontalBot.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -2384,9 +2385,12 @@ function ReviewStep({
             receta trae salsa/guarnición como parte de sí misma (pasos con
             `part`), aquí ya salen en sus propias pestañas, igual que en el
             menú (Menu.jsx#DishDetail ya sabe hacer ese desglose solo). */}
+        {/* [GENTE-APAGADA] «Así se verá tu receta» enseñaba al autor y los
+            👍 👎 🍲 💬 a cero: es como la vería Gente. */}
         <RecipePoster
           recipe={posterRecipe}
-          stats={previewStats}
+          stats={GENTE_ACTIVA ? previewStats : null}
+          showOwner={GENTE_ACTIVA}
           onInfo={() => setShowFullPreview(true)}
           style={{ width: "100%", height: 220, borderRadius: 20 }}
         />

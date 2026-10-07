@@ -1,4 +1,4 @@
-import { FRONTAL_BOT, GUIAS_ACTIVAS, abrirLola, avisarAltaALola } from "./lib/frontalBot.js";
+import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, abrirLola, avisarAltaALola } from "./lib/frontalBot.js";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
@@ -3668,7 +3668,8 @@ export default function App() {
   // corregia publicando otra vez en la misma sesion.
   useEffect(() => {
     let alive = true;
-    if (!user?.id) { setPublishedMenus({}); return; }
+    // [GENTE-APAGADA] Sin Gente no se publica nada: no hace falta preguntarlo.
+    if (!user?.id || !GENTE_ACTIVA) { setPublishedMenus({}); return; }
     loadMyPublishedMenus(user.id).then((m) => { if (alive) setPublishedMenus(m); });
     return () => { alive = false; };
   }, [user?.id]);
@@ -3693,6 +3694,8 @@ export default function App() {
       });
       return;
     }
+    // [GENTE-APAGADA] Un enlace de perfil (?u=) abría la pantalla de Gente.
+    if (!GENTE_ACTIVA) return;
     // Del handle solo tenemos el texto: hay que resolverlo a una persona.
     searchProfiles(link.username).then((rows) => {
       const hit = rows.find((r) => r.username?.toLowerCase() === link.username.toLowerCase());
@@ -3721,7 +3724,9 @@ export default function App() {
   // estando perfecta — buscaba sobre un censo vacio. Con retardo y sin
   // bloquear nada, como la migracion de fotos de arriba.
   useEffect(() => {
-    if (!user?.id) return;
+    // [GENTE-APAGADA] Sin Gente no se crea el perfil social: quien entra ahora
+    // no aparece en «Encontrar gente». Los perfiles que ya existían siguen ahí.
+    if (!user?.id || !GENTE_ACTIVA) return;
     const t = setTimeout(() => {
       // El perfil hereda el DIBUJO que ya elegiste para ti en la app. La foto
       // real no: publicar tu cara se hace a proposito, desde el cajon del
@@ -3740,7 +3745,8 @@ export default function App() {
   // al iniciar sesion y ya: sin polling — Gente refresca el punto solo
   // cuando lo visitas.
   useEffect(() => {
-    if (!user?.id) return;
+    // [GENTE-APAGADA] El punto de novedades es de la pestaña Gente, que no está.
+    if (!user?.id || !GENTE_ACTIVA) return;
     let alive = true;
     loadNotifications(user.id).then(({ items, seenAt }) => {
       if (alive) setFeedBadge(countUnread(items, seenAt) > 0);
@@ -4239,6 +4245,12 @@ export default function App() {
       return;
     }
     if (res.status === "locked") {
+      // [GENTE-APAGADA] «Conéctate para verla» llevaba al perfil del autor en
+      // Gente. Sin Gente no hay cómo conectar: solo se dice que es privada.
+      if (!GENTE_ACTIVA) {
+        showToast(`«${res.preview.name}» es una receta privada`);
+        return;
+      }
       const owner = res.preview.owner ?? {};
       const who = owner.username ? `@${owner.username}` : (owner.display_name || "alguien");
       showToast(`«${res.preview.name}» es de ${who}. Conéctate para verla`);

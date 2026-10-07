@@ -11,6 +11,7 @@ Specs producidas por ingeniería inversa del código real (`src/`, `api/`, esque
 | [recipe-catalog.md](recipe-catalog.md) | Catálogo de recetas, pasos enriquecidos, recetas de usuario |
 | [batch-cooking.md](batch-cooking.md) | Bases: cocinar una vez para varios platos (`type: "base"`, `mainBase`, `baseMode`) |
 | [pagos.md](pagos.md) | No existe — documentado como ausencia, con evidencia |
+| [gente-apagada.md](gente-apagada.md) | Gente (lo social) apagada desde el 7 oct 2026: el interruptor `GENTE_ACTIVA`, la etiqueta `[GENTE-APAGADA]` y la lista de todo lo que se oculta y cómo volver a encenderlo |
 | [ficha-de-la-casa.md](ficha-de-la-casa.md) | PLAN (1 oct 2026): la ficha que ve Lola en cada mensaje (capas, dos bloques, topes), los menús «definitivos» sin pedir «me gusta», el analista nocturno con salida tabulada y cómo se convierte una observación en eje nuevo; huecos por orden |
 | [modelo-datos.md](modelo-datos.md) | Auditoría de normalización del modelo y plan: campos por plano, operadores y calculadoras, magnitudes (tiempo/gramos/macros/raciones/precio), el mapa de tablas por ámbito (global/hogar), sesgos y batch cooking; Fase A: esquema de `alimentos` (alimento/producto/ingrediente, siete dimensiones, procedencia BEDCA) y plan de curación de `familia`, `densidad` y `rendimiento` |
 
