@@ -29,7 +29,7 @@ const campo = (c) => ({
 
 export const REGISTRO_CAMPOS = Object.freeze({
   alergias: campo({ tipo: "lista_enum", politica: "una_vez", seguridad: true, caduca_dias: 30 }),
-  etapaBebe: campo({ tipo: "enum", politica: "antes_de_usarlo", seguridad: true, caduca_dias: 21 }),
+  etapaBebe: campo({ tipo: "enum", vocabulario: "etapa_bebe", politica: "antes_de_usarlo", seguridad: true, caduca_dias: 21 }),
   edad: campo({ tipo: "int", unidad: "años", minimo: 0, maximo: 120, politica: "nunca" }),
   nacimiento: campo({ tipo: "fecha", politica: "nunca" }),
   sexo: campo({ tipo: "enum", politica: "nunca" }),
