@@ -144,3 +144,21 @@ describe("listPricing pack math", () => {
     expect(buy.buyDisplay).toBeNull();
   });
 });
+
+describe("el ingrediente tiene que ir en cabeza del producto", () => {
+  // Los cinco salían con confianza alta en la lista de la compra: el nombre
+  // del ingrediente estaba entero en el del producto, pero de complemento.
+  it.each([
+    ["mantequilla", "Croissant de mantequilla"],
+    ["leche", "Café con leche cappuccino Hacendado"],
+    ["azucar", "Refresco cola Hacendado zero azúcar"],
+    ["vino blanco", "Vinagre de vino blanco Hacendado"],
+    ["miel", "Caramelos miel sabor limón Pifarré"],
+  ])("«%s» no es «%s»", (ingrediente, producto) => {
+    expect(scoreProductName(producto, ingrediente)).toBeLessThan(0.7);
+  });
+
+  it("pero sí cuando va delante", () => {
+    expect(scoreProductName("Mantequilla sin sal añadida Hacendado", "mantequilla")).toBeGreaterThanOrEqual(0.7);
+  });
+});

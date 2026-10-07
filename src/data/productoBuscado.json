@@ -73,7 +73,7 @@
   },
 
   "queso parmesano": {
-    "buscar": ["grana padano"],
+    "buscar": ["queso grana padano"],
     "motivo": "No hay parmigiano en el catálogo. El grana padano es el queso de pasta dura curada que ocupa su lugar en la cocina y en el rallador. Antes casaba «Queso cottage», que es fresco y desgrasado: el error nutricional más caro de la lista."
   },
   "queso crema": {
@@ -120,5 +120,33 @@
   "foie mi-cuit": {
     "buscar": ["foie gras de pato"],
     "motivo": "El catálogo no usa «mi-cuit». Hay foie fresco y en bloc, y ninguno se encontraba."
+  },
+  "laurel": {
+    "buscar": ["hoja de laurel"],
+    "motivo": "Se vende como «Hoja de laurel». Sin esto el laurel va en cola del nombre y no pasa del 0,4."
+  },
+  "tahini": {
+    "buscar": ["pasta de sesamo"],
+    "motivo": "Mercadona lo llama «Pasta de sésamo Tahini»: el nombre por el que lo pedimos va detrás."
+  },
+  "guindilla": {
+    "buscar": ["cayena guindillas"],
+    "motivo": "La guindilla seca de guisar es la «Cayena guindillas». Sin esto se llevaba las Gildas."
+  },
+  "arroz": {
+    "buscar": ["arroz redondo"],
+    "motivo": "«Arroz» a secas empataba con los vasitos de arroz cocido Sabroz y ganaban por baratos. El de cocinar es el redondo."
+  },
+  "lentejas": {
+    "buscar": ["lenteja pardina"],
+    "motivo": "Sin esto se llevaba «Lentejas a la jardinera», que es un plato hecho. La de guisar es la pardina."
+  },
+  "queso de cabra": {
+    "buscar": ["queso rulo de cabra"],
+    "motivo": "«Ensalada queso de cabra» puntuaba más que cualquier queso. El que piden las recetas, a la plancha o gratinado, es el rulo."
+  },
+  "nueces": {
+    "buscar": ["nuez natural"],
+    "motivo": "El súper las vende en singular, «Nuez natural». En plural solo salen helados y trenzas con nueces."
   }
 }
