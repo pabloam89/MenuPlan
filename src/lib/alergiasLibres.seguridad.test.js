@@ -46,3 +46,26 @@ describe("alergias libres (fuera de los 14 UE)", () => {
     expect(recipeIngredientsHitAllergens(["Huevo cocido"], new Set(["huevos"]))).toBe(false);
   });
 });
+
+describe("alergias libres, nivel 2: resolver al ingrediente real, no solo buscar la palabra", () => {
+  // Caso que el nivel 1 NO puede resolver: la frase completa de la alergia no
+  // aparece literal en ningún nombre de receta, pero resuelve al mismo
+  // ingrediente que resolvería esa misma frase dentro de una receta.
+  const recetaConBrocoliSolo = { allergens: [], ingredients: [{ name: "Brócoli", ingredientId: "brocoli" }, { name: "Ajo", ingredientId: "ajo" }] };
+  const recetaSinBrocoli = { allergens: [], ingredients: [{ name: "Zanahoria", ingredientId: "zanahoria" }] };
+
+  it("«Brócoli al vapor» como alergia bloquea una receta con brócoli, aunque la receta diga solo «Brócoli»", () => {
+    expect(recipeViolatesHardSafety(recetaConBrocoliSolo, { allergies: ["Brócoli al vapor"] })).toBe(true);
+    expect(recipeViolatesHardSafety(recetaSinBrocoli, { allergies: ["Brócoli al vapor"] })).toBe(false);
+  });
+
+  it("y el nivel 1 por sí solo, con esa misma frase de tres palabras, no la encuentra", () => {
+    // Lo que demuestra que el nivel 2 añade cobertura real, no que la repite.
+    expect(recipeIngredientsHitAllergens(["Brócoli", "Ajo"], new Set(["brocoli_al_vapor"]))).toBe(false);
+  });
+
+  it("una categoría («Marisco») no resuelve, y sigue sin bloquear nada por sí sola", () => {
+    const conGambas = { allergens: [], ingredients: [{ name: "Gambas peladas", ingredientId: "gambas" }] };
+    expect(recipeViolatesHardSafety(conGambas, { allergies: ["Marisco"] })).toBe(false);
+  });
+});
