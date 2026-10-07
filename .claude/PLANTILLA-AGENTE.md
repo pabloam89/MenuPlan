@@ -1,26 +1,36 @@
-# Plantilla de agente
+# Plantilla de agente (v2)
 
 Todo agente de `.claude/agents/` tiene esta forma. La personalidad, las
 herramientas y los principios cambian de uno a otro; las secciones, no.
-`.claude/agentes.test.js` falla si a un agente le falta alguna o están
-desordenadas.
+`.claude/agentes.test.js` falla si a un agente le falta alguna, están
+desordenadas o el frontmatter se sale de lo permitido.
 
 Está fuera de `.claude/agents/` a propósito: ahí Claude Code cargaría la
-plantilla como si fuera un agente más.
+plantilla como si fuera un agente más. El catálogo y cómo se combinan los
+agentes está en `.claude/commands/orquestar.md`.
+
+Basada en la documentación oficial de subagentes de Claude Code
+(code.claude.com/docs/en/sub-agents) y en «Building effective agents» y
+«Effective context engineering» del blog de ingeniería de Anthropic.
 
 ```markdown
 ---
-name: <identificador, en minúsculas>
-description: <CUÁNDO invocarlo. Claude lo lee para decidir solo; empieza por el disparador, no por lo que es>
-tools: <lista cerrada: solo las que necesita>
+name: <identificador, en minúsculas, igual que el fichero>
+description: <QUÉ hace y CUÁNDO usarlo, empezando por el disparador. Termina con «No para: …» nombrando qué es de otro agente. Máx. 600 caracteres>
+tools: <lista cerrada: solo las que necesita. Un juez no lleva Edit, Write ni NotebookEdit>
 model: <inherit | opus | sonnet | haiku>
-color: <el «icono»: red, blue, green, yellow, purple, orange, pink, cyan>
+color: <red, blue, green, yellow, purple, orange, pink, cyan>
+memory: <opcional: project, si acumula criterio entre sesiones>
 ---
 
 ## 1. Identidad
-Quién es y cómo habla. Dos o tres frases.
+Quién es y cómo habla. Dos o tres frases. Sin biografías: lo que cambia su
+comportamiento, no adornos.
 
 ## 2. Misión y alcance
+Tipo: constructor | juez
+Planos: <números de ops/PLANOS.md a los que sirve>
+
 Qué es suyo y, sobre todo, qué NO es suyo y a quién le toca.
 
 ## 3. Principios
@@ -32,27 +42,66 @@ Situaciones concretas en las que la sesión principal debe llamarlo.
 ## 5. Fuentes de verdad
 Qué ficheros, tablas o comandos lee ANTES de opinar, en orden.
 
-## 6. Gateways
-Lo que nunca hace sin el OK explícito de Pablo. Lo devuelve como decisión
-pendiente; no lo ejecuta.
+## 6. Método
+Pasos numerados de cómo trabaja, del primero al informe. Heurísticas, no un
+guion rígido.
 
-## 7. Entregables
-Qué produce, con qué formato y DÓNDE se guarda.
+## 7. Gateways
+Lo que nunca hace sin el OK explícito de una persona. Lo devuelve como
+decisión pendiente; no lo ejecuta.
 
-## 8. Escalado
+## 8. Entregables
+Qué produce, con qué formato y DÓNDE se guarda. Siempre termina con el
+informe común.
+
+## 9. Escalado
 Cuándo para, y a quién pasa el trabajo (otro agente o la sesión principal).
 
-## 9. Hecho
-Cómo comprueba que terminó bien antes de devolver el informe.
+## 10. Hecho
+Cómo comprueba que terminó bien antes de devolver el informe, con evidencia.
 ```
+
+## Constructor o juez
+
+- **Constructor**: escribe código, datos o documentos. Lleva `Edit`/`Write`.
+- **Juez**: solo lee, ejecuta comprobaciones y opina. Sin `Edit`, `Write` ni
+  `NotebookEdit` (el test lo impide). Quien construye algo no lo juzga: la
+  sesión principal pasa el resultado de un constructor a un juez distinto.
 
 ## Reglas comunes a todos
 
-- Un subagente no puede preguntar a mitad de trabajo. Termina su informe con
-  una sección **«Decisiones para Pablo»**: cada una con la pregunta, las
-  opciones, su recomendación y qué pasa si no se decide. La sesión principal
-  se las plantea.
+- **No ve la conversación.** Solo recibe su prompt, el encargo de la sesión
+  principal, el `CLAUDE.md` y el estado de git. Si le falta un dato para
+  decidir, lo dice en el informe; no lo inventa.
+- **No pregunta a mitad de trabajo.** Las decisiones van al final, en
+  «Decisiones pendientes», para quien lanzó la sesión (Pablo o Álvaro).
+- **No lanza otros agentes.** Profundidad 1: coordinar es cosa de la sesión
+  principal (`/orquestar`). Así el coste no se multiplica sin que se vea.
+- **Pide y da evidencia, no afirmaciones**: el comando que corrió y lo que
+  salió, la ruta y la línea, la captura. Lo no comprobado se dice como no
+  comprobado.
+- **Un juez solo marca lo que importa.** Bloqueante o alto si rompe algo o
+  incumple un requisito; el resto es «nit» y no bloquea. Un juez que siempre
+  encuentra algo es ruido.
 - Cumple el `CLAUDE.md` entero; su sección de gateways también le obliga.
-- Habla como un colega: prosa corta, en castellano, sin relleno. Tablas solo
-  cuando ordenan algo de verdad.
-- Lo que no ha comprobado, lo dice como no comprobado.
+- Habla como un colega: prosa corta, en castellano, sin relleno.
+
+## Informe común
+
+Todos los agentes terminan con este bloque, igual, para que la sesión
+principal lo pueda leer y combinar. Máximo unas 60 líneas: el detalle largo
+va a un fichero y aquí solo su ruta.
+
+```
+## Informe
+ESTADO: ok | bloqueado | fallo
+RESUMEN: (3 líneas como mucho)
+CAMBIOS: ruta:línea — qué (o «ninguno»)
+EVIDENCIA: comando → resultado (o captura → ruta)
+HALLAZGOS:
+- [bloqueante|alto|medio|nit] ruta:línea — problema → arreglo propuesto
+NO COMPROBADO: lo que no pudo verificar
+SIGUIENTE: qué toca ahora y a qué agente
+DECISIONES PENDIENTES:
+- pregunta · opciones · recomendación · qué pasa si no se decide
+```
