@@ -6809,6 +6809,17 @@ function EmptyState({ readOnly = false }) {
   );
 }
 
+// El bocadillo «¿Lo cambiamos?» junto a la cara de Lola sale la primera vez
+// que se abre un plato y ya no más: una cara sola no dice qué hace a quien
+// todavía no conoce a Lola, pero repetirlo en cada plato es ruido.
+const BOCADILLO_LOLA_KEY = "mp_lola_bocadillo_visto";
+function bocadilloLolaVisto() {
+  try { return Boolean(localStorage.getItem(BOCADILLO_LOLA_KEY)); } catch { return false; }
+}
+function marcarBocadilloLolaVisto() {
+  try { localStorage.setItem(BOCADILLO_LOLA_KEY, "1"); } catch { /* sin almacenamiento: saldrá otra vez, y ya */ }
+}
+
 export function DishDetail({
   recipe, slot, kitchenTools = [], onClose, onReject,
   // Las piezas de Batch Cooking de la semana de este plato, deducidas del menú
@@ -7590,6 +7601,15 @@ export function DishDetail({
       : null;
     return pedidoCambiar({ fechaISO: isoLocalDate(dates[day]), franja: meal, cual });
   }, [browse, readOnly, data, day, meal, slot?.firstRecipeId, recipe.id, catalogId]);
+
+  const [bocadilloLola, setBocadilloLola] = useState(() => !bocadilloLolaVisto());
+  const verBocadilloLola = Boolean(pedidoLola) && bocadilloLola;
+  useEffect(() => {
+    if (!verBocadilloLola) return undefined;
+    marcarBocadilloLolaVisto();
+    const t = setTimeout(() => setBocadilloLola(false), 4000);
+    return () => clearTimeout(t);
+  }, [verBocadilloLola]);
 
   useEffect(() => {
     let active = true;
@@ -8696,47 +8716,62 @@ export function DishDetail({
           )}
         </div>
 
-        {/* Pegado abajo, a mano del pulgar: al llegar al final ocupa su propio
-            sitio y no tapa nada. Cambiar desde aquí sigue siendo posible
-            (Regenerar, pulsación larga); esto es el otro camino, por el chat. */}
+        {/* «Cambiar con Lola»: su cara, flotando abajo a la derecha. Era una
+            barra pegajosa de todo el ancho que tapaba media ficha (review de
+            UX, lámina 5). El hueco de abajo es para que la cara no tape lo
+            último de la ficha al llegar al final. */}
+        {pedidoLola && <div aria-hidden style={{ height: 76 }} />}
         {pedidoLola && (
-          <div
-            style={{
-              position: "sticky", bottom: 0, zIndex: 3,
-              margin: "16px -16px -24px",
-              padding: "10px 16px calc(14px + env(safe-area-inset-bottom, 0px))",
-              background: "#fff",
-              boxShadow: "0 -10px 18px -14px rgba(20,47,29,.35)",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => abrirLola(pedidoLola)}
+          <div style={{ position: "sticky", bottom: 0, zIndex: 3, height: 0, pointerEvents: "none" }}>
+            <div
               style={{
-                display: "flex", alignItems: "center", gap: 12, width: "100%",
-                padding: "8px 10px 8px 8px", borderRadius: 16,
-                border: "1px solid #e3ebe6", background: "#fff", cursor: "pointer",
-                fontFamily: "inherit", textAlign: "left",
+                position: "absolute", right: 0, bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
+                display: "flex", alignItems: "center", gap: 10, pointerEvents: "auto",
               }}
             >
-              <img
-                src={lolaFoto}
-                alt=""
-                style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", objectPosition: "center 30%", flexShrink: 0, background: "#f4f8f5" }}
-              />
-              <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 900, color: "#142f1d", letterSpacing: "-.2px" }}>
-                Cambiar con Lola
-              </span>
-              <span
-                aria-hidden
+              {verBocadilloLola && (
+                <span
+                  className="mp-lola-bocadillo"
+                  style={{
+                    padding: "9px 13px", borderRadius: "16px 16px 4px 16px",
+                    background: "#fff", color: "#142f1d", fontSize: 13.5, fontWeight: 800,
+                    boxShadow: "0 6px 20px rgba(20,47,29,.18)", whiteSpace: "nowrap",
+                  }}
+                >
+                  ¿Lo cambiamos?
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => abrirLola(pedidoLola)}
+                aria-label="Cambiar con Lola"
+                title="Cambiar con Lola"
+                className="mp-press"
                 style={{
-                  width: 34, height: 34, borderRadius: "50%", background: "#2d5a3d", flexShrink: 0,
-                  display: "flex", alignItems: "center", justifyContent: "center",
+                  position: "relative", width: 56, height: 56, padding: 0, flexShrink: 0,
+                  borderRadius: "50%", border: "3px solid #fff", background: "#f4f8f5",
+                  boxShadow: "0 6px 20px rgba(20,47,29,.28)", cursor: "pointer",
                 }}
               >
-                <Send size={16} color="#fff" strokeWidth={2.4} />
-              </span>
-            </button>
+                <img
+                  src={lolaFoto}
+                  alt=""
+                  style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", objectPosition: "center 30%", display: "block" }}
+                />
+                {/* El circulito verde dice «hablar»: sin él, la cara se lee
+                    como un avatar decorativo y no como un botón. */}
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute", right: -4, bottom: -4, width: 24, height: 24, borderRadius: "50%",
+                    background: "#2d5a3d", border: "2px solid #fff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <Send size={11} color="#fff" strokeWidth={2.6} />
+                </span>
+              </button>
+            </div>
           </div>
         )}
       </div>
