@@ -176,14 +176,15 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // (el plan es nuevo, no se pierde nada) pasa a un solo menú. Un reparto
   // elegido (menuModel puesto, o menús individuales) no se toca.
   const modeloElegido = Boolean(casa.state?.data?.menuModel);
-  const soloPorEdades = groups.length > 1 && groups.every((g) => !g.adHoc && ["Adultos", "Niños", "Bebé"].includes(g.label));
+  const soloPorEdades = groups.length > 1 && groups.every((g) => ["adultos", "ninos", "bebe"].includes(m.tipoDeGrupo(g)));
   const vivas = (casa.semanas ?? []).filter((w) => w.weekEnd >= hoyISO());
   // Si otra semana del menú se queda, sus huecos van con los ids de ahora: no
   // se reagrupa (se hará cuando se rehaga esa).
   const quedaOtra = cual === "siguiente" ? vivas.some((w) => w.weekStart <= hoyISO()) : vivas.some((w) => w.weekStart > hoyISO());
   if (!modeloElegido && soloPorEdades && !quedaOtra) groups = [];
   const modelo = working.menuModel ?? "same";
-  if (miembros.length && (!groups.length || !conGente(groups))) groups = m.groupsFromModel(miembros, modelo);
+  // Rehechos, heredan el id de los de antes por su papel (Adultos → Familia).
+  if (miembros.length && (!groups.length || !conGente(groups))) groups = m.groupsFromModel(miembros, modelo, working.groups ?? []);
   if (!groups.length || !conGente(groups)) return "Antes de generar necesito saber quién come en casa: añade al menos una persona.";
 
   // «Esta semana» empieza hoy (no tiene sentido planificar el lunes pasado);

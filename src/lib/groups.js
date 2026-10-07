@@ -4,6 +4,72 @@ import * as ids from "./ids.js";
 const GROUP_COLORS = ["#2d5a3d", "#c67030", "#5a7ea8", "#a85a7e", "#7e5aa8", "#5aa87e"];
 const BABY_GROUP_LABEL = "Bebé";
 
+/**
+ * De qué es un grupo: 'familia' | 'adultos' | 'ninos' | 'bebe' | 'adhoc' (un
+ * menú individual, como la dieta blanda). Lo que lo identifica es esto, no la
+ * etiqueta: la etiqueta se enseña y puede cambiar.
+ *
+ * Los grupos guardados antes de oct 2026 no lo llevan: se deduce de la
+ * etiqueta, aquí y solo aquí. Un grupo con etiqueta desconocida da null.
+ */
+const TIPO_POR_ETIQUETA = { Familia: "familia", Adultos: "adultos", "Niños": "ninos", [BABY_GROUP_LABEL]: "bebe" };
+export function tipoDeGrupo(group) {
+  if (!group) return null;
+  if (group.tipo) return group.tipo;
+  if (group.adHoc) return "adhoc";
+  return TIPO_POR_ETIQUETA[group.label] ?? null;
+}
+
+const esDelBebe = (group) => tipoDeGrupo(group) === "bebe";
+
+/** El mismo grupo con su tipo escrito, si se puede deducir y no lo llevaba. */
+function conTipo(group) {
+  const tipo = tipoDeGrupo(group);
+  return tipo && group.tipo !== tipo ? { ...group, tipo } : group;
+}
+
+// Familia y Adultos hacen el mismo papel, el menú de los mayores: al pasar de
+// «todos lo mismo» a menús separados (o al revés) uno hereda el id del otro.
+const RELEVO = { familia: "adultos", adultos: "familia" };
+
+/**
+ * Los grupos `nuevos` con los ids de los `viejos` que hacen su mismo papel.
+ *
+ * El plan, los *ByGroup, los ids de receta `${gid}__rid`, la compra y las
+ * reglas van por id de grupo: rehacer los grupos con ids nuevos dejaba todo eso
+ * huérfano. Se hereda por tipo (un id viejo, una sola vez): primero el mismo
+ * tipo; luego Familia ↔ Adultos; un menú individual, por la persona
+ * (`sourceMemberId`); un grupo sin tipo conocido, por la etiqueta. Lo que no
+ * hereda nada se queda con su id nuevo. Los `sourceGroupId` que apuntaban a un
+ * id nuevo pasan al heredado.
+ */
+export function conservarIds(viejos, nuevos) {
+  const candidatos = (viejos ?? []).filter((v) => v?.id);
+  if (!candidatos.length || !Array.isArray(nuevos) || !nuevos.length) return nuevos;
+  const usados = new Set(nuevos.map((g) => g.id).filter((id) => candidatos.some((v) => v.id === id)));
+  const elegidos = nuevos.map((g) => (usados.has(g.id) ? g.id : null));
+  const mismoPapel = (g, v) => {
+    const tipo = tipoDeGrupo(g);
+    if (tipo === "adhoc") return tipoDeGrupo(v) === "adhoc" && v.sourceMemberId === g.sourceMemberId;
+    if (tipo == null) return tipoDeGrupo(v) == null && v.label === g.label;
+    return tipoDeGrupo(v) === tipo;
+  };
+  const relevo = (g, v) => RELEVO[tipoDeGrupo(g)] != null && tipoDeGrupo(v) === RELEVO[tipoDeGrupo(g)];
+  for (const casa of [mismoPapel, relevo]) {
+    nuevos.forEach((g, i) => {
+      if (elegidos[i]) return;
+      const v = candidatos.find((x) => !usados.has(x.id) && casa(g, x));
+      if (v) { usados.add(v.id); elegidos[i] = v.id; }
+    });
+  }
+  const renombrado = new Map(nuevos.map((g, i) => [g.id, elegidos[i] ?? g.id]));
+  return nuevos.map((g, i) => {
+    const id = elegidos[i] ?? g.id;
+    const origen = g.sourceGroupId != null ? renombrado.get(g.sourceGroupId) ?? g.sourceGroupId : g.sourceGroupId;
+    return id === g.id && origen === g.sourceGroupId ? g : { ...g, id, ...(g.sourceGroupId != null ? { sourceGroupId: origen } : {}) };
+  });
+}
+
 // Re-exported for backwards compatibility: `resolveMemberAge` lives in
 // stages.js (the single source of truth for age math), but historically
 // callers import it from groups.js.
@@ -72,7 +138,7 @@ export function canSplitMenus(members) {
 
 /** True when this group's menu must use only baby recipes. */
 export function isBabyMenuGroup(group, members) {
-  if (group?.label === BABY_GROUP_LABEL) return true;
+  if (esDelBebe(group)) return true;
   const groupMembers = membersOfGroup(group, members);
   return groupMembers.length > 0 && groupMembers.every((m) => memberIsBaby(m));
 }
@@ -81,14 +147,14 @@ export function isBabyMenuGroup(group, members) {
 export function groupsAvailableForMember(member, groups) {
   const isBaby = memberIsBaby(member);
   return groups.filter((g) =>
-    isBaby ? g.label === BABY_GROUP_LABEL : g.label !== BABY_GROUP_LABEL
+    isBaby ? esDelBebe(g) : !esDelBebe(g)
   );
 }
 
 export function canAssignMemberToGroup(member, group) {
   if (!group) return false;
   const isBaby = memberIsBaby(member);
-  if (group.label === BABY_GROUP_LABEL) return isBaby;
+  if (esDelBebe(group)) return isBaby;
   return !isBaby;
 }
 
@@ -99,6 +165,7 @@ function buildSplitGroups({ adults, children, babies }) {
     groups.push({
       id: ids.grupo.nuevo(),
       label: "Adultos",
+      tipo: "adultos",
       memberIds: adults.map((m) => m.id),
       color: GROUP_COLORS[colorIdx++],
     });
@@ -107,6 +174,7 @@ function buildSplitGroups({ adults, children, babies }) {
     groups.push({
       id: ids.grupo.nuevo(),
       label: "Niños",
+      tipo: "ninos",
       memberIds: children.map((m) => m.id),
       color: GROUP_COLORS[colorIdx++],
     });
@@ -115,6 +183,7 @@ function buildSplitGroups({ adults, children, babies }) {
     groups.push({
       id: ids.grupo.nuevo(),
       label: "Bebé",
+      tipo: "bebe",
       memberIds: babies.map((m) => m.id),
       color: GROUP_COLORS[colorIdx++],
     });
@@ -132,6 +201,7 @@ export function defaultGroupsFromMembers(members) {
     groups.push({
       id: ids.grupo.nuevo(),
       label: "Familia",
+      tipo: "familia",
       memberIds: members.map((m) => m.id),
       color: GROUP_COLORS[0],
     });
@@ -140,7 +210,9 @@ export function defaultGroupsFromMembers(members) {
 }
 
 const TIER_LABEL = { adult: "Adultos", child: "Niños", baby: BABY_GROUP_LABEL };
-const TIER_BY_LABEL = { Adultos: "adult", "Niños": "child", [BABY_GROUP_LABEL]: "baby" };
+const TIPO_POR_TIER = { adult: "adultos", child: "ninos", baby: "bebe" };
+const TIER_POR_TIPO = { adultos: "adult", ninos: "child", bebe: "baby" };
+const tierDeGrupo = (group) => TIER_POR_TIPO[tipoDeGrupo(group)];
 
 /**
  * Keeps the tier menus in sync with who actually lives in the house: drops a
@@ -154,7 +226,7 @@ const TIER_BY_LABEL = { Adultos: "adult", "Niños": "child", [BABY_GROUP_LABEL]:
  */
 function isTierSplit(groups) {
   const tierGroups = groups.filter((g) => !g.adHoc);
-  return tierGroups.length > 0 && tierGroups.every((g) => TIER_BY_LABEL[g.label]);
+  return tierGroups.length > 0 && tierGroups.every((g) => tierDeGrupo(g));
 }
 
 /** Same groups, same people on each, in the same order. */
@@ -181,12 +253,12 @@ export function reconcileTierGroups(members, groups) {
   const alive = new Set(members.map((m) => m.id));
 
   const next = list
-    .filter((g) => g.adHoc || byTier[TIER_BY_LABEL[g.label]].length > 0)
+    .filter((g) => g.adHoc || byTier[tierDeGrupo(g)].length > 0)
     .map((g) => ({ ...g, memberIds: g.memberIds.filter((id) => alive.has(id)) }));
 
   for (const tier of ["adult", "child", "baby"]) {
-    if (byTier[tier].length > 0 && !next.some((g) => g.label === TIER_LABEL[tier])) {
-      next.push({ id: ids.grupo.nuevo(), label: TIER_LABEL[tier], memberIds: [], color: nextGroupColor(next) });
+    if (byTier[tier].length > 0 && !next.some((g) => tierDeGrupo(g) === tier)) {
+      next.push({ id: ids.grupo.nuevo(), label: TIER_LABEL[tier], tipo: TIPO_POR_TIER[tier], memberIds: [], color: nextGroupColor(next) });
     }
   }
 
@@ -194,7 +266,7 @@ export function reconcileTierGroups(members, groups) {
   // disappeared counts as unassigned and lands back in their own tier.
   const placed = new Set(next.flatMap((g) => g.memberIds));
   return next.map((g) => {
-    const tier = TIER_BY_LABEL[g.label];
+    const tier = g.adHoc ? undefined : tierDeGrupo(g);
     if (!tier) return g;
     const missing = byTier[tier].filter((m) => !placed.has(m.id)).map((m) => m.id);
     return missing.length > 0 ? { ...g, memberIds: [...g.memberIds, ...missing] } : g;
@@ -255,8 +327,8 @@ export function reconcileGroupsWithMembers(members, groups) {
 
   // Babies keep their own menu when one exists; everyone else joins the
   // general one, which is whichever menu isn't the babies'.
-  const babyGroup = pruned.find((g) => g.label === BABY_GROUP_LABEL);
-  const general = pruned.find((g) => g.label !== BABY_GROUP_LABEL) ?? pruned[0];
+  const babyGroup = pruned.find(esDelBebe);
+  const general = pruned.find((g) => !esDelBebe(g)) ?? pruned[0];
   const babyIds = babyGroup
     ? newcomers.filter((m) => memberIsBaby(m)).map((m) => m.id)
     : [];
@@ -319,6 +391,7 @@ export function createIndividualMenuGroup(member, sourceGroupId, reason) {
     memberIds: [member.id],
     color: ADHOC_MENU_COLOR,
     adHoc: true,
+    tipo: "adhoc",
     sourceMemberId: member.id,
     sourceGroupId: sourceGroupId ?? null,
     reason,
@@ -359,73 +432,72 @@ export function membersOfGroup(group, members) {
  * Build groups based on the chosen menu model.
  * - "same": one group "Familia" with everyone.
  * - "separate": Adultos / Niños / Bebé when several profiles coexist.
+ *
+ * `viejos`: los grupos que había. Cada grupo nuevo hereda el id del viejo que
+ * hace su papel (`conservarIds`), así que rehacerlos no deja huérfano el menú
+ * en curso. Sin viejos, ids nuevos.
  */
-export function groupsFromModel(members, model) {
+export function groupsFromModel(members, model, viejos = []) {
+  return conservarIds(viejos, gruposDelModelo(members, model));
+}
+
+function gruposDelModelo(members, model) {
   if (members.length === 0) return [];
+  const familia = (memberIds) => ({
+    id: ids.grupo.nuevo(),
+    label: "Familia",
+    tipo: "familia",
+    memberIds,
+    color: GROUP_COLORS[0],
+  });
 
   if (model === "same") {
     const babies = members.filter((m) => memberIsBaby(m));
     const rest = members.filter((m) => !memberIsBaby(m));
     if (babies.length > 0 && rest.length > 0) {
       return [
-        {
-          id: ids.grupo.nuevo(),
-          label: "Familia",
-          memberIds: rest.map((m) => m.id),
-          color: GROUP_COLORS[0],
-        },
+        familia(rest.map((m) => m.id)),
         {
           id: ids.grupo.nuevo(),
           label: BABY_GROUP_LABEL,
+          tipo: "bebe",
           memberIds: babies.map((m) => m.id),
           color: GROUP_COLORS[2],
         },
       ];
     }
-    return [
-      {
-        id: ids.grupo.nuevo(),
-        label: "Familia",
-        memberIds: members.map((m) => m.id),
-        color: GROUP_COLORS[0],
-      },
-    ];
+    return [familia(members.map((m) => m.id))];
   }
 
   const split = splitMembersByStage(members);
   const groups = buildSplitGroups(split);
-  if (groups.length <= 1) {
-    return [
-      {
-        id: ids.grupo.nuevo(),
-        label: "Familia",
-        memberIds: members.map((m) => m.id),
-        color: GROUP_COLORS[0],
-      },
-    ];
-  }
+  if (groups.length <= 1) return [familia(members.map((m) => m.id))];
   return groups;
 }
 
-/** Keep babies only in Bebé and everyone else out of it (any menu model). */
-export function migrateGroupsForBabies(members, groups, _menuModel) {
+/**
+ * Keep babies only in Bebé and everyone else out of it (any menu model).
+ * Escribe el `tipo` a los grupos que no lo llevaban, y el del bebé, si hay que
+ * crearlo, hereda el id de uno de `viejos` (por defecto, los mismos `groups`).
+ */
+export function migrateGroupsForBabies(members, groups, _menuModel, viejos = groups) {
   if (!Array.isArray(groups) || groups.length === 0) return groups;
 
   const babyIds = new Set(members.filter((m) => memberIsBaby(m)).map((m) => m.id));
   if (babyIds.size === 0) {
     return groups
-      .filter((g) => g.label !== BABY_GROUP_LABEL)
-      .map((g) => ({
+      .filter((g) => !esDelBebe(g))
+      .map((g) => conTipo({
         ...g,
         memberIds: g.memberIds.filter((id) => !babyIds.has(id)),
       }))
       .filter((g) => g.memberIds.length > 0);
   }
 
-  let babyGroup = groups.find((g) => g.label === BABY_GROUP_LABEL);
+  let babyGroup = groups.find(esDelBebe);
   const updated = groups
-    .filter((g) => g.label !== BABY_GROUP_LABEL)
-    .map((g) => ({
+    .filter((g) => !esDelBebe(g))
+    .map((g) => conTipo({
       ...g,
       memberIds: g.memberIds.filter((id) => !babyIds.has(id)),
     }))
@@ -435,14 +507,27 @@ export function migrateGroupsForBabies(members, groups, _menuModel) {
     babyGroup = {
       id: ids.grupo.nuevo(),
       label: BABY_GROUP_LABEL,
+      tipo: "bebe",
       memberIds: [],
       color: nextGroupColor(updated),
     };
   }
 
-  updated.push({
+  updated.push(conTipo({
     ...babyGroup,
     memberIds: Array.from(babyIds),
-  });
-  return updated;
+  }));
+  return conservarIds(viejos, updated);
+}
+
+/**
+ * Los grupos de la casa, para leer: los guardados o, si aún no hay, los que
+ * saldrían del modelo. Si los generados van a quedar en algo que se guarda (un
+ * plan, una compra), quien llama tiene que guardarlos también: sus ids son
+ * nuevos y no existen en ninguna otra parte.
+ */
+export function gruposVigentes(data) {
+  const guardados = data?.groups ?? [];
+  if (guardados.length > 0) return guardados;
+  return groupsFromModel(data?.members ?? [], data?.menuModel ?? "same");
 }

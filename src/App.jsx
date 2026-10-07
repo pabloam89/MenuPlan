@@ -73,6 +73,7 @@ import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS } from "./lib/planner.js";
 import {
   groupsFromModel,
+  gruposVigentes,
   migrateGroupsForBabies,
   mismosGrupos,
   memberIsBaby,
@@ -1268,7 +1269,7 @@ export default function App() {
   // cocinada válida.
   const feedTodayDishes = useMemo(() => {
     const hoy = DAYS[(new Date().getDay() + 6) % 7];
-    const grupos = data.groups?.length ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const grupos = gruposVigentes(data);
     const vistos = new Set();
     const out = [];
     for (const g of grupos) {
@@ -1947,9 +1948,7 @@ export default function App() {
     const pending = pendingEndOfDaySweep(data, data.pantryEndOfDaySince);
     if (!pending.length) return;
 
-    const groups = data.groups?.length > 0
-      ? data.groups
-      : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const dayMeals = getDayMeals(data);
 
     endOfDaySweepRef.current = true;
@@ -2101,9 +2100,10 @@ export default function App() {
     // members re-added after a reset, or a stale saved model) makes the AI
     // planner throw "Ningún grupo tiene miembros asignados". Rebuild from the
     // model whenever groups are missing OR stale, so generation stays viable.
+    // Rehechos, conservan el id de los que había (conservarIds).
     const hasRoster = (gs) => gs.some((g) => membersOfGroup(g, working.members).length > 0);
     if (working.members.length > 0 && (groups.length === 0 || !hasRoster(groups))) {
-      groups = groupsFromModel(working.members, working.menuModel);
+      groups = groupsFromModel(working.members, working.menuModel, groups);
       setData((d) => ({ ...d, groups }));
     }
     if (groups.length === 0 || !hasRoster(groups)) {
@@ -2751,9 +2751,10 @@ export default function App() {
       }
     }
 
-    const groups = nextData.groups?.length > 0
-      ? nextData.groups
-      : groupsFromModel(nextData.members, nextData.menuModel);
+    // Si los grupos acaban de salir del modelo, se guardan con el hueco: el
+    // plan va a ir por sus ids.
+    const groups = gruposVigentes(nextData);
+    if (groups.length && groups !== nextData.groups) nextData = { ...nextData, groups };
     const { activeDays } = getWeekDatesByMenuWeek(nextData.menuWeek);
     const dias = todaLaSemana ? activeDays : [day];
 
@@ -2828,9 +2829,7 @@ export default function App() {
    */
   const contextoDelHueco = useMemo(() => {
     if (!slotPicker || slotPicker.kind) return null;
-    const grupos = data.groups?.length > 0
-      ? data.groups
-      : groupsFromModel(data.members, data.menuModel);
+    const grupos = gruposVigentes(data);
     const grupo = grupos.find((g) => g.id === slotPicker.groupId) ?? null;
     return {
       meal: slotPicker.meal,
@@ -2847,10 +2846,10 @@ export default function App() {
    * de una comida que acabas de apagar, por si la vuelves a encender.
    */
   const aplicarCambioPizarra = useCallback((nextData) => {
-    setData(nextData);
-    const groups = nextData.groups?.length > 0
-      ? nextData.groups
-      : groupsFromModel(nextData.members, nextData.menuModel);
+    // Los grupos que reciben huecos, guardados: si acaban de salir del modelo,
+    // sus ids solo existirían en el plan.
+    const groups = gruposVigentes(nextData);
+    setData(groups.length && groups !== nextData.groups ? { ...nextData, groups } : nextData);
     setMenuPlan((plan) => conHuecosAlDia(plan, nextData, groups));
   }, []);
 
@@ -2945,7 +2944,8 @@ export default function App() {
     const hasRoster = (gs) => gs.some((g) => membersOfGroup(g, working.members).length > 0);
     let groups = working.groups ?? [];
     if (working.members.length > 0 && (groups.length === 0 || !hasRoster(groups))) {
-      groups = groupsFromModel(working.members, working.menuModel);
+      // Se guardan con el menú nuevo (más abajo), con el id de los que había.
+      groups = groupsFromModel(working.members, working.menuModel, groups);
     }
     if (groups.length === 0 || !hasRoster(groups)) {
       showToast("Añade al menos un miembro antes de empezar el menú");
@@ -3266,7 +3266,7 @@ export default function App() {
     }
 
     const consumeMode = pantryConsumeMode(data);
-    const groups = data.groups?.length ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const genDeltasPatch = {};
     if (consumeMode === "onGenerate") {
       const weekEntries = Object.values(menu.weeks ?? {}).sort((a, b) =>
@@ -4548,8 +4548,7 @@ export default function App() {
     });
 
     const delta = n - antes;
-    const grupos =
-      data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const grupos = gruposVigentes(data);
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const key = `${day}-${meal}`;
@@ -4629,8 +4628,7 @@ export default function App() {
       return Array.from(byId.values());
     });
 
-    const groups =
-      data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     // Fetched before the state updater (which must stay synchronous) so the
     // rebuilt shopping list still discounts pantry ingredients after a swap.
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
@@ -4700,8 +4698,7 @@ export default function App() {
       return;
     }
 
-    const groups =
-      data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
 
     setMenuPlan((plan) => {
@@ -4767,7 +4764,7 @@ export default function App() {
   // Defined AFTER applyShoppingFor since it depends on it (const TDZ).
   const handleRegenerateDay = useCallback(async (day, { groupIds = null } = {}) => {
     if (householdReadOnly) return;
-    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     let activeGroups = groups.filter((g) => membersOfGroup(g, data.members).length > 0);
     // Scope picker (multi-menu households): regenerate only the chosen menus.
     // A null/empty selection falls back to every active menu.
@@ -4946,9 +4943,7 @@ export default function App() {
         }
       }
     }
-    const groups = data.groups.length > 0
-      ? data.groups
-      : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
 
     const trabajo = {};
@@ -5065,9 +5060,7 @@ export default function App() {
   const handleOrdenPizarra = useCallback(async (frase) => {
     if (householdReadOnly) return { reply: "Solo lectura: no puedes editar el menú", hechos: 0, noHechos: [] };
     const { contextoDelTablero, interpretarOrden, validarOrden, aplicarOrden } = await import("./lib/pizarraIA.js");
-    const groups = data.groups.length > 0
-      ? data.groups
-      : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const plan = menuPlan ?? {};
     // Los días y comidas que el tablero tiene de verdad, no los de la casa:
     // el modelo solo puede señalar huecos que existen.
@@ -5143,9 +5136,7 @@ export default function App() {
     if (!sRecipe) return;
     const tRecipe = menuPlan[target.groupId]?.[tKey]?.[tField] ?? null;
 
-    const groups = data.groups.length > 0
-      ? data.groups
-      : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
 
     setMenuPlan((plan) => {
@@ -5200,7 +5191,7 @@ export default function App() {
     const tGroup = target.groupId;
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
-    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
@@ -5253,7 +5244,7 @@ export default function App() {
     const tGroup = target.groupId;
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
-    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
@@ -5323,7 +5314,7 @@ export default function App() {
       slotType: { ...(d.slotType ?? {}), [`${day}|${meal}`]: toUnico ? "unico" : undefined },
     }));
 
-    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const base = { ...(plan[groupId]?.[slotKey] ?? {}), warnings: [], cleared: false };
@@ -5363,7 +5354,7 @@ export default function App() {
    */
   const handleVaciarPizarra = useCallback(async () => {
     if (householdReadOnly) return;
-    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -5392,7 +5383,7 @@ export default function App() {
     const { groupId, day, meal, course } = sel;
     const key = `${day}-${meal}`;
     const field = course === "first" ? "firstRecipeId" : "recipeId";
-    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
@@ -5427,8 +5418,7 @@ export default function App() {
     if (householdReadOnly) return;
     const { groupId, day, meal } = sel;
     const key = `${day}-${meal}`;
-    const groups =
-      data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
@@ -5506,7 +5496,7 @@ export default function App() {
           : null),
       }));
     }
-    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const groups = gruposVigentes(data);
     const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };

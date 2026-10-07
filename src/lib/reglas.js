@@ -148,7 +148,7 @@
 
 import { z } from "zod";
 import { DAYS, SLOT_VALUES, slotKey, getMeals, getDayMeals } from "./planner.js";
-import { membersOfGroup } from "./groups.js";
+import { membersOfGroup, tipoDeGrupo } from "./groups.js";
 import * as ids from "./ids.js";
 import { CAMPOS_POR_ID } from "./notepadFields.js";
 import { itemValido } from "./excluirHueco.js";
@@ -690,7 +690,7 @@ function grupoAnfitrion(groups, grupoRef) {
     const elegido = lista.find((g) => g.id === grupoRef);
     if (elegido) return elegido;
   }
-  return lista.find((g) => !g.adHoc && g.label !== "Bebé") ?? lista[0] ?? null;
+  return lista.find((g) => !["adhoc", "bebe"].includes(tipoDeGrupo(g))) ?? lista[0] ?? null;
 }
 
 /**

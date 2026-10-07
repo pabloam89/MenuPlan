@@ -40,6 +40,14 @@ describe("favoritas de la casa al cargar", () => {
     expect(favoriteIdsForGroup(votos, "Niños").has("r-1")).toBe(true);
     expect(favoriteIdsForGroup(votos, "Bebé").has("r-1")).toBe(false);
   });
+
+  it("el ámbito va por el tipo del grupo, no por cómo se llame", () => {
+    const votos = cargar({}, { "r-1": { scope: "Adultos" } });
+    expect(favoriteIdsForGroup(votos, { label: "Los mayores", tipo: "adultos" }).has("r-1")).toBe(true);
+    expect(favoriteIdsForGroup(votos, { label: "Adultos", tipo: "ninos" }).has("r-1")).toBe(false);
+    // El menú único de la casa recibe todas, se llame como se llame.
+    expect(favoriteIdsForGroup(votos, { label: "Casa", tipo: "familia" }).has("r-1")).toBe(true);
+  });
 });
 
 describe("saveHouseholdFavorite", () => {

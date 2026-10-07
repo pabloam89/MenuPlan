@@ -21,7 +21,7 @@ import {
   WeekRangeBadge,
   bottomNavSpacer,
 } from "../components/ui.jsx";
-import { groupsFromModel } from "../lib/groups.js";
+import { gruposVigentes } from "../lib/groups.js";
 import { getConsumptionInsights, mergeConsumptionGroups, filterConsumptionByMeal } from "../lib/consumptionInsights.js";
 import { getMenuInsights } from "../lib/menuInsights.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
@@ -55,7 +55,7 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
   };
   const [scope, setScope] = useState("all");
   const weekLabel = formatWeekRangeLabel(getWeekDates());
-  const groups = data.groups?.length ? data.groups : groupsFromModel(data.members, data.menuModel);
+  const groups = gruposVigentes(data);
 
   const insights = useMemo(
     () => getMenuInsights(menuPlan, groups, data, shopping),
