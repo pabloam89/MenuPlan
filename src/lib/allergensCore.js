@@ -146,13 +146,20 @@ export function recipeIngredientsHitAllergens(ingredientNames, blockedAllergenId
   return false;
 }
 
-/** @param {string[] | undefined} allergens */
-export function resolveRecipeAllergens(allergens) {
+/**
+ * `tabla`: de dónde salen los datos de cada alérgeno. Por defecto esta, sin
+ * iconos (el bot); la UI pasa la suya con `Icon` (allergens.js). Sin el
+ * parámetro, la de allergens.js reexportaba esta tal cual y devolvía alérgenos
+ * sin icono: la ficha de cualquier plato con alérgenos pintaba `<undefined>`
+ * y se caía (React #130, del 3 al 7 oct 2026).
+ * @param {string[] | undefined} allergens
+ */
+export function resolveRecipeAllergens(allergens, tabla = EU_ALLERGENS) {
   const seen = new Set();
   const items = [];
   for (const raw of allergens ?? []) {
     const id = normalizeAllergenId(raw);
-    const meta = EU_ALLERGENS[id];
+    const meta = tabla[id];
     if (!meta || seen.has(id)) continue;
     seen.add(id);
     items.push({ id, ...meta });
