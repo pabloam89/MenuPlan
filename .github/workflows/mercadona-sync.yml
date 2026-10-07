@@ -7,8 +7,9 @@
 # una lectura a Supabase. Servirlo desde la base de datos serían 568 KB por
 # usuario y sesión, que es justo el patrón que disparó el egress a 7,4 GB.
 #
-# El push a main dispara el deploy de Vercel, así que en la práctica se publica
-# solo.
+# Los cron de GitHub corren en la rama por defecto, que es staging: el commit
+# cae en staging y llega a producción con el siguiente deploy, como todo lo
+# demás. main no recibe nada directo.
 #
 # ── Sobre la API ──────────────────────────────────────────────────────────
 # tienda.mercadona.es/api es NO OFICIAL. Una cosa es lanzarlo a mano de vez en
