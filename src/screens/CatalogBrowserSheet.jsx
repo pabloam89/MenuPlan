@@ -408,6 +408,12 @@ export function CatalogBrowserSheet({
   initialCategory = null,
   // Abrir directamente en «Mis recetas» (un enlace del bot tras guardar una).
   initialMine = false,
+  // Pestañas de Recetas (Para ti / Mis recetas / Favoritos, review de UX,
+  // lámina 27). `hideMineTile`: sin la teja «Mis recetas», que ya es una
+  // pestaña. `soloMias`: la vista se queda en Mis recetas («Volver» no sale al
+  // catálogo) y sin las favoritas, que tienen su propia pestaña.
+  hideMineTile = false,
+  soloMias = false,
   // Catálogo tab: set of catalog ids the user already discarded (para siempre).
   // Shows a toggle button on each card; onDiscardRecipe marks one, onRecoverRecipe clears it.
   discardedIds = null,
@@ -454,12 +460,12 @@ export function CatalogBrowserSheet({
     // significa "restringe TODO el catálogo a solo favoritas". Aquí solo
     // queremos la lista de favoritas para construir "Mis recetas", sin tocar
     // ese comportamiento — se calcula aparte, directo de `recipeVotes`.
-    const favIds = new Set(favoriteRecipeIds(recipeVotes));
+    const favIds = soloMias ? new Set() : new Set(favoriteRecipeIds(recipeVotes));
     if (favIds.size === 0) return extraRecipes;
     const seen = new Set(extraRecipes.map((r) => r.id));
     const favorited = recipeCatalog.filter((r) => favIds.has(r.id) && !seen.has(r.id));
     return [...extraRecipes, ...favorited];
-  }, [extraRecipes, recipeVotes]);
+  }, [extraRecipes, recipeVotes, soloMias]);
 
   // La tile "Mis recetas" del grid de categorías filtra al vuelo por tuyas +
   // favoritas, mismo mecanismo que una categoría pero sin tocar `cats`.
@@ -874,6 +880,11 @@ export function CatalogBrowserSheet({
       return;
     }
     setQuery("");
+    // En la pestaña «Mis recetas» la raíz es esa: no se vuelve al catálogo.
+    if (soloMias) {
+      setShowFilters(false);
+      return;
+    }
     // Sale de la teja (categoría, faceta, cocina, Mis recetas) pero conserva
     // los filtros de la hoja —tiempo, dificultad, proteína, niños—: antes se
     // perdían al volver (review de UX, lámina 27). Siguen a la vista en el
@@ -1107,7 +1118,7 @@ export function CatalogBrowserSheet({
             </button>
           )}
         </div>
-        {isBrowseCatalog && !showCategoryGrid ? (
+        {isBrowseCatalog && !showCategoryGrid && !(soloMias && !viewingCollection) ? (
           <button
             type="button"
             onClick={goBackToCategories}
@@ -1223,7 +1234,7 @@ export function CatalogBrowserSheet({
   // todas, porque esconder «Legumbres» en una cena sería decidir por el
   // usuario qué se cena.
   const gridTiles = [
-    { kind: "mine", id: "__mine__" },
+    ...(hideMineTile ? [] : [{ kind: "mine", id: "__mine__" }]),
     ...facetasDelHueco(["rapido"], contextoHueco).map((id) => ({ kind: "facet", id })),
     ...carpetasDelHueco(allCats, contextoHueco).map((catId) => ({ kind: "category", id: catId })),
     ...cocinaTiles.map((id) => ({ kind: "cocina", id })),
