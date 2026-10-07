@@ -780,7 +780,10 @@ export async function generateUserRecipeDraft(input, { signal } = {}) {
  * Los alérgenos, como en la app: si TODOS los ingredientes resuelven contra
  * el catálogo, el cálculo manda; si alguno no, la estimación de la IA.
  */
-export function recetaParaGuardar(draft, { mealRole = [], requiredAppliances = [], photo = null, owner = null, visibility = "private" } = {}) {
+export function recetaParaGuardar(borrador, { mealRole = [], requiredAppliances = [], photo = null, owner = null, visibility = "private" } = {}) {
+  // `mencionados` es del asistente (lo que nombraste y no estaba en la lista),
+  // no de la receta: no se guarda.
+  const { mencionados: _mencionados, ...draft } = borrador;
   const usageTags = draft.usageTags ?? [];
   const type = deriveTypeFromUsageTags(usageTags);
   const guarnicion = type === "guarnicion";
@@ -844,7 +847,39 @@ export function payloadDeBorrador(input) {
  * comparten la app y el bot para que una receta dictada por Telegram sea
  * idéntica a una creada con el asistente.
  */
+/**
+ * De los ingredientes que la IA dice que nombraste en «¿Cómo lo preparas?» y
+ * no están en tu lista, los que conocemos, con el nombre del catálogo. Lo que
+ * no reconocemos se descarta (decisión de Pablo, 7 oct 2026: de un ingrediente
+ * desconocido no sabemos alérgenos ni precio, y proponerlo solo da líos). Se
+ * compara la forma normalizada entera —sin acentos, en singular—, nunca «que
+ * contenga»: «pan» no es «panceta».
+ *
+ * @param {string[]} nombres - lo que devolvió la IA en `mentionedIngredients`
+ * @param {string[]} yaEnLista - los nombres que ya lleva la receta
+ * @returns {string[]}
+ */
+export function ingredientesReconocidos(nombres, yaEnLista = []) {
+  const ya = new Set(yaEnLista.map((n) => ingredientStem(n)));
+  const porForma = new Map(INGREDIENT_CATALOG.map((n) => [ingredientStem(n), n]));
+  const vistos = new Set();
+  const out = [];
+  for (const nombre of Array.isArray(nombres) ? nombres : []) {
+    const forma = ingredientStem(String(nombre ?? ""));
+    if (!forma || ya.has(forma) || vistos.has(forma)) continue;
+    const delCatalogo = porForma.get(forma);
+    if (!delCatalogo) continue;
+    vistos.add(forma);
+    out.push(delCatalogo);
+  }
+  return out;
+}
+
 export function borradorDesdeRespuesta(parsed, userPayload) {
+  const mencionados = ingredientesReconocidos(
+    parsed?.mentionedIngredients,
+    (userPayload?.ingredients ?? []).map((i) => i?.name),
+  );
   // Be forgiving if the model returns only one of the two classification
   // fields: fill in the missing side so validation can succeed, then let the
   // user adjust at the review step.
@@ -959,6 +994,7 @@ export function borradorDesdeRespuesta(parsed, userPayload) {
   const draft = validation.data;
   return {
     ...draft,
+    mencionados,
     id: buildUserRecipeId(),
     requiredAppliances: undefined,
     methods: [],
