@@ -245,7 +245,9 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     await insert("user_menus", [m.menuToRow(menu, dueno, householdId)]);
     await insert("user_menu_weeks", [
       m.weekToRow(dueno, menu.id, startISO, week, householdId),
-      ...semanasQueSeQuedan.map((w) => ({ ...w, menu_id: menu.id })),
+      // Con el dueño del menú nuevo: la semana pudo guardarla un cotitular, y
+      // la FK (user_id, menu_id) → user_menus la rechazaría.
+      ...semanasQueSeQuedan.map((w) => ({ ...w, user_id: dueno, menu_id: menu.id })),
     ]);
     const porReceta = new Map(recetasQueSeQuedan.map((f) => [f.recipe_id, f.recipe_snapshot]));
     for (const r of recipes) if (r?.id) porReceta.set(r.id, r);

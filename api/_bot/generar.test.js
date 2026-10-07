@@ -87,6 +87,22 @@ describe("generar menú: todo o nada", () => {
     expect(borrar).toHaveBeenCalled();
     expect(conCasa).not.toHaveBeenCalled();
   });
+
+  it("las semanas que se quedan pasan al dueño del menú nuevo, aunque las guardara un cotitular", async () => {
+    // La FK (user_id, menu_id) → user_menus: una semana copiada con el user_id
+    // del menú viejo (de un cotitular) no entra en el menú nuevo, que es del titular.
+    cargarCasa.mockResolvedValue({ ...structuredClone(casaVieja), semanas: [{ weekStart: "2099-01-05", weekEnd: "2099-01-11" }] });
+    select.mockImplementation(async (tabla) => {
+      if (tabla === "households") return [{ owner_user_id: "u1" }];
+      if (tabla === "user_menu_weeks") return [{ user_id: "u2", household_id: "h1", week_start: "2099-01-05", plan: {} }];
+      return [];
+    });
+    conCasa.mockResolvedValue({ ok: true });
+    await generarMenu("h1", "esta", [], {});
+    const semanas = insert.mock.calls.find(([t]) => t === "user_menu_weeks")[1];
+    const copiada = semanas.find((w) => w.week_start === "2099-01-05");
+    expect(copiada).toMatchObject({ user_id: "u1", menu_id: "menu-nuevo" });
+  });
 });
 
 describe("generar menú con las recetas propias", () => {

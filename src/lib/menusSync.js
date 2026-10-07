@@ -36,6 +36,10 @@ export function menuToRow(menu, userId, householdId = null) {
 export function rowToMenuSummary(row) {
   return {
     id: row.id,
+    // Quién lo generó. Sus semanas se guardan con este user_id (la FK
+    // (user_id, menu_id) → user_menus), no con el de quien las toca: en una
+    // casa, un cotitular edita menús del titular o de Lola.
+    userId: row.user_id ?? null,
     varietyPref: row.variety_pref ?? "strict",
     isFavorite: Boolean(row.is_favorite),
     isActive: Boolean(row.is_active),
@@ -185,7 +189,7 @@ export async function loadMenuSummaries(userId, householdId = null) {
   if (!supabase || !userId) return [];
   let q = supabase
     .from("user_menus")
-    .select("id, variety_pref, is_favorite, is_active, created_at, updated_at")
+    .select("id, user_id, variety_pref, is_favorite, is_active, created_at, updated_at")
     .order("created_at", { ascending: false });
   q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
   const { data, error } = await q;
