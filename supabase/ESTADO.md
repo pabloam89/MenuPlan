@@ -9,11 +9,36 @@ ninguno fiable. Ver «El registro miente» más abajo.
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **64** |
-| Comprobadas contra producción | 32 |
-| Aplicadas | **40** |
-| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` la `0062_bot_cron`, la `0063_bot_turnos` y la `0064_catalogo_una_fuente`, el 30 sep 2026) |
+Contado el 7 oct 2026 sobre la rama `staging` (0001–0086, sin 0081, 0082 ni
+0085, que están en otras ramas):
+
+| | |
+|---|---|
+| Ficheros en `supabase/migrations/` | **86** |
+| Comprobadas contra producción con objeto testigo | 32 (el 17 sep; las posteriores, como dice cada sección) |
+| Aplicadas | **80** |
+| **Sin aplicar** | **4** — `0021_store_products`, `0080_bot_tareas_v2`, `0083_bot_tareas_fk_persona`, `0086_vocabulario_de_la_app` |
+| **Sin verificar** | **2** — `0065_bot_retencion`, `0066_ops_bot_eventos`: nadie apuntó si se aplicaron |
+| En otras ramas | `0081` (aplicada en producción) y `0082` (sin aplicar), en `fix/personas-rosters`; `0085` (sin aplicar), en `datos/sistematizar` |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
+
+Los constraints NOT VALID que quedan por validar están en `PENDIENTES.md`.
+
+## De la 0076 a la 0086
+
+| Migración | Estado | Notas |
+|---|---|---|
+| `0076_bot_tareas` | aplicada (3 oct 2026) | tabla de tareas abiertas de Lola |
+| `0077_bot_tareas_a_fondo` | aplicada (3 oct 2026) | |
+| `0078_bot_tareas_tope_sin_olvidos` | aplicada (3 oct 2026) | |
+| `0079_personas_y_grupos` | aplicada en producción | personas y grupos a tablas, paso 1; fecha sin verificar |
+| `0080_bot_tareas_v2` | **sin aplicar** | 7 constraints NOT VALID; el índice concurrente va en `manual/0080b_indice_concurrente.sql` |
+| `0081_persona_sincronizar_casa` | aplicada en producción | en la rama `fix/personas-rosters`, aún no en staging |
+| `0082_persona_sincronizar_casa_guardas` | **sin aplicar** | en `fix/personas-rosters`; la 0083 exige que esté |
+| `0083_bot_tareas_fk_persona` | **sin aplicar** | va después de 0080, 0081 y 0082; 1 FK NOT VALID |
+| `0084_bot_codigo_alta` | aplicada en producción | según el commit `f2187d4` (6 oct 2026); sin objeto testigo comprobado aquí |
+| `0085_bot_vocabulario_cerrado` | **sin aplicar** | en la rama `datos/sistematizar`; 5 CHECK NOT VALID |
+| `0086_vocabulario_de_la_app` | **sin aplicar** | 5 CHECK NOT VALID; las consultas previas, en su cabecera |
 
 ## La 0074 y la 0075, aplicadas el 2 oct 2026
 
@@ -87,7 +112,6 @@ exigen además `is_household_owner(household_id)`; trigger
 `leave_household` rotan `invite_token`. Antes de aplicarla, 0 filas la
 incumplían. Comprobado después con usuarios simulados en una transacción
 deshecha: meter una fila en casa ajena se bloquea, en la propia pasa.
-(El resumen de arriba no la cuenta todavía: lo actualiza quien suba la 0065 y la 0066.)
 
 ## La 0064, aplicada el 30 sep 2026
 
@@ -178,7 +202,7 @@ pretendía. En la 0056 se ha añadido un `revoke execute … from anon` explíci
 **`recipe_share_token` (0055) sigue con `anon = true`** y convendría hacerle lo
 mismo.
 
-## La única sin aplicar
+## La 0021, sin aplicar a propósito
 
 **`0021_store_products`** — la tabla `store_products` no existe en producción.
 
@@ -240,6 +264,8 @@ nada, y así se quedó sin aplicar durante meses la de `base_mode`.
    hace. Lo que no se ve en el SQL es qué se rompía sin él.
 4. **Comprobar antes de escribir.** Media docena de columnas de este repo ya
    existían en producción cuando alguien fue a añadirlas.
+5. **Desde la 0087, `docs/datos/PRINCIPIOS.md`**, vigilado por
+   `supabase/principios.test.js`. Cada migración nueva se apunta aquí.
 
 ## Aviso: aplicada ≠ con datos
 
