@@ -3,8 +3,33 @@ import * as ids from "./ids.js";
 
 const { _interno, payloadStart } = ids;
 
+describe("persona y grupo: UUID v4 (7 oct 2026)", () => {
+  for (const nombre of ["persona", "grupo"]) {
+    it(nombre, () => {
+      const c = ids[nombre];
+      const vistos = new Set();
+      for (let i = 0; i < 500; i++) {
+        const id = c.nuevo();
+        expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+        expect(c.es(id) && c.esNuevo(id)).toBe(true);
+        // Ni `__` (recetaEnGrupo) ni `|` (claves de horario) dentro.
+        expect(id).not.toMatch(/__|\|/);
+        vistos.add(id);
+      }
+      expect(vistos.size).toBe(500);
+      expect(c.es(null) || c.es("") || c.es(42)).toBe(false);
+      // Los viejos valen mientras dura la migración, pero no son nuevos.
+      expect(c.es("k3j9x0ab") && !c.esNuevo("k3j9x0ab")).toBe(true);
+    });
+  }
+  it("los per_/grp_ que alcanzaron a fabricarse siguen valiendo", () => {
+    expect(ids.persona.es("per_0123456789ab")).toBe(true);
+    expect(ids.grupo.es("grp_0123456789ab")).toBe(true);
+  });
+});
+
 const CLASES = {
-  persona: "per_", grupo: "grp_", regla: "reg_", roster: "ros_", recetaPropia: "user_",
+  regla: "reg_", roster: "ros_", recetaPropia: "user_",
   menu: "menu_", carpeta: "fld_", borrador: "draft_", objetivoPropio: "custom-",
   despensaLocal: "local_", gasto: "gst_", ticket: "tkt_",
 };

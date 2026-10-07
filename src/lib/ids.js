@@ -67,6 +67,16 @@ function uuid() {
 const LARGO = 12;
 const esTexto = (x) => typeof x === "string";
 
+const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+/** Una clase de id UUID. `viejo`: formas guardadas antes que se siguen aceptando. */
+const claseUuid = ({ viejo = null } = {}) => Object.freeze({
+  re: RE_UUID,
+  viejo,
+  nuevo: uuid,
+  es: (x) => esTexto(x) && (RE_UUID.test(x) || Boolean(viejo?.test(x))),
+  esNuevo: (x) => esTexto(x) && RE_UUID.test(x),
+});
+
 /**
  * Una clase de id con prefijo. `viejo`: la forma de los que ya hay guardados
  * (se siguen aceptando); `fijos`: ids con nombre que también valen.
@@ -87,10 +97,19 @@ const VIEJO_UID = /^[0-9a-z]{1,8}$/;
 
 // ── Ids de cosas de la casa (dentro de `data`) ──────────────────────────────
 
-/** Una persona de la casa. Viejo: el uid() de la app o `m<base36>` del bot. */
-export const persona = clase("per_", { viejo: /^[0-9a-z]{1,16}$/ });
+/**
+ * Persona y grupo son UUID (decisión de Pablo, 7 oct 2026): van a columnas
+ * `uuid` de persona/grupo, y los ~92 + ~34 que ya hay se migran (bloque 0120+
+ * de la sesión de la ficha). Mientras dura la migración `es()` acepta también
+ * los viejos: el uid() de la app (≤ 8), `m<base36>` del bot y los `per_`/`grp_`
+ * que se fabricaron entre #83 y este cambio.
+ */
+const VIEJO_PERSONA = /^([0-9a-z]{1,16}|per_[0-9a-z]{12})$/;
+const VIEJO_GRUPO = /^([0-9a-z]{1,8}|grp_[0-9a-z]{12})$/;
+/** Una persona de la casa. */
+export const persona = claseUuid({ viejo: VIEJO_PERSONA });
 /** Un grupo de menú (Adultos, Niños, Bebé, un menú individual…). */
-export const grupo = clase("grp_", { viejo: VIEJO_UID });
+export const grupo = claseUuid({ viejo: VIEJO_GRUPO });
 /** Una regla (src/lib/reglas.js). */
 export const regla = clase("reg_", { viejo: VIEJO_UID });
 /** Un roster («Mi familia», «Otro grupo»…). `default` y `other` son fijos. */
@@ -121,8 +140,6 @@ export const ticket = clase("tkt_", { viejo: /^r-\d{10,16}-[0-9a-z]{1,4}$/ });
 
 // ── Ids que van a columnas `uuid` de la base ────────────────────────────────
 
-const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const claseUuid = () => Object.freeze({ re: RE_UUID, nuevo: uuid, es: (x) => esTexto(x) && RE_UUID.test(x) });
 /** Una cocinada (cookings.id; también la carpeta de su foto en Storage). */
 export const cocinada = claseUuid();
 /** El id anónimo de analítica de quien no ha entrado (localStorage). */

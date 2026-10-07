@@ -1,5 +1,6 @@
 import { supabase } from "./supabase.js";
 import * as ids from "./ids.js";
+import { CARPETAS_FIJAS } from "./vocabularios.js";
 
 /**
  * Carpetas de recetas, dentro de "Mis recetas". Son de dos clases:
@@ -29,7 +30,8 @@ export const BUILT_IN_COLLECTIONS = [
   { id: "hijos", label: "Para mis hijos" },
 ];
 
-export const BUILT_IN_IDS = BUILT_IN_COLLECTIONS.map((c) => c.id);
+// Los ids salen de vocabularios.js (CHECK de 0086); vocabularios.test.js comprueba que cuadran con las etiquetas.
+export const BUILT_IN_IDS = CARPETAS_FIJAS;
 
 /**
  * "Descartados" no es una carpeta de este mapa: se pinta como una más en Mis
