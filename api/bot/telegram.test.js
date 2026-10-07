@@ -22,3 +22,15 @@ describe("meHablan: en un grupo, ¿es para Lola?", () => {
     expect(meHablan({ caption: "Lola, el ticket de hoy", photo: [{}] }, YO)).toBe(true);
   });
 });
+
+describe("conLoginDeTelegram: el botón de login solo en el dominio de @BotFather", async () => {
+  const { conLoginDeTelegram } = await import("./telegram.js");
+  it("staging, que es el dominio del bot: sí", () => {
+    expect(conLoginDeTelegram("https://homenu-staging.vercel.app")).toBe(true);
+  });
+  it("otro despliegue (una preview, producción): no, la llave de antes", () => {
+    expect(conLoginDeTelegram("https://homenu.app")).toBe(false);
+    expect(conLoginDeTelegram("https://homenu-git-rama.vercel.app")).toBe(false);
+    expect(conLoginDeTelegram(null)).toBe(false);
+  });
+});

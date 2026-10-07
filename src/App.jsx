@@ -203,6 +203,7 @@ import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
+import { traeLlaveDeLola } from "./lib/llaveLola.js";
 import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
@@ -4099,10 +4100,14 @@ export default function App() {
   // otra prueba) es enseñar algo que no es suyo sin decirlo. Se pide entrar y
   // el destino espera (guardado en sessionStorage, sobrevive al login).
   const avisoEntrarRef = useRef(false);
-  // Quien nació en Telegram llega con una llave (?entrar=, BotEnlace.jsx) que
-  // tarda un momento en abrir la sesión: no se le pide entrar mientras tanto.
-  // Se mira al arrancar, antes de que BotEnlace la quite de la dirección.
-  const [conLlave] = useState(() => new URLSearchParams(window.location.search).has("entrar"));
+  // Quien nació en Telegram llega con una llave (?entrar= o la firma de un
+  // botón de login, lib/llaveLola.js) que tarda un momento en abrir la sesión:
+  // no se le pide entrar mientras tanto. Se mira al arrancar, antes de que
+  // BotEnlace la quite de la dirección.
+  const [conLlave] = useState(() => traeLlaveDeLola());
+  // La llave no sirvió (un botón viejo, otra cuenta…) y este navegador no está
+  // dentro con esa cuenta: se dice eso, no «entra con tu cuenta» (BotEnlace).
+  const [falloLlave, setFalloLlave] = useState(null);
   // El splash no deja pasar mientras llega la casa: con la llave aún sin
   // sesión, o con sesión y la familia todavía en camino desde la nube. Si no,
   // quien entra desde Lola pulsa «Empezar ya» antes de que se vea su familia
@@ -4114,7 +4119,19 @@ export default function App() {
     const t = window.setTimeout(() => setSplashSinEspera(true), ESPERA_DESTINO_MS);
     return () => window.clearTimeout(t);
   }, [user?.id]);
-  const abriendoCasa = !splashSinEspera && ((conLlave && !user) || (Boolean(user) && !nubeLista));
+  const abriendoCasa = !splashSinEspera && ((conLlave && !user && !falloLlave) || (Boolean(user) && !nubeLista));
+  useEffect(() => {
+    if (!falloLlave) return;
+    // Con otra sesión en este navegador, el aviso y se sigue donde se esté.
+    if (user) { showToast(falloLlave); return; }
+    // Sin sesión: en el splash, que ya ofrece «Habla con Lola en Telegram».
+    // El destino se olvida: sin cuenta no hay qué enseñar.
+    avisoEntrarRef.current = true;
+    setDestinoBot(null);
+    olvidarDestino();
+    setScreen("splash");
+    showToast(falloLlave);
+  }, [falloLlave]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!destinoBot || authLoading || user || avisoEntrarRef.current) return;
     if (conLlave && !esperaVencida) return;
@@ -7249,7 +7266,7 @@ export default function App() {
 
       {/* FeedbackFAB hidden */}
 
-      <BotEnlace showToast={showToast} />
+      <BotEnlace showToast={showToast} onFallo={setFalloLlave} />
 
       {/* El lector de pantalla oye el aviso: una región viva que está siempre
           montada (una que aparece con el texto dentro no se anuncia fiable). */}
