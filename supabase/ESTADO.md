@@ -5,40 +5,46 @@ Verificado contra el esquema vivo de producción (`mdzwbrworucnummibxrq`) el
 (su tabla, su columna o su esquema) — no leyendo ningún registro, porque no hay
 ninguno fiable. Ver «El registro miente» más abajo.
 
+**7 oct 2026:** vuelto a comprobar, solo con consultas de lectura, de la 0065 a
+la 0086. Las funciones se comparan por su cuerpo (`pg_proc.prosrc` frente al
+fichero), no solo por el nombre. Salieron aplicadas la 0065, la 0066, la 0079
+(su segunda versión), la 0081, la 0082 y la 0084 (su versión final). Sin aplicar
+quedan la 0080, la 0083, la 0085 y la 0086. Los testigos de cada una, en la
+tabla de abajo.
+
 ## Resumen
 
-| | |
-|---|---|
-Contado el 7 oct 2026 sobre la rama `staging` (0001–0086, sin 0081, 0082 ni
-0085, que están en otras ramas):
+Contado el 7 oct 2026 sobre la rama `staging` (0001–0086, sin la 0085, que está
+en otra rama):
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **86** |
-| Comprobadas contra producción con objeto testigo | 32 (el 17 sep; las posteriores, como dice cada sección) |
-| Aplicadas | **80** |
+| Ficheros en `supabase/migrations/` | **88** |
+| Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
+| Aplicadas | **84** |
 | **Sin aplicar** | **4** — `0021_store_products`, `0080_bot_tareas_v2`, `0083_bot_tareas_fk_persona`, `0086_vocabulario_de_la_app` |
-| **Sin verificar** | **2** — `0065_bot_retencion`, `0066_ops_bot_eventos`: nadie apuntó si se aplicaron |
-| En otras ramas | `0081` (aplicada en producción) y `0082` (sin aplicar), en `fix/personas-rosters`; `0085` (sin aplicar), en `datos/sistematizar` |
+| En otras ramas | `0085` (sin aplicar), en `datos/sistematizar` |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
 Los constraints NOT VALID que quedan por validar están en `PENDIENTES.md`.
 
-## De la 0076 a la 0086
+## De la 0065 a la 0086
 
 | Migración | Estado | Notas |
 |---|---|---|
+| `0065_bot_retencion` | aplicada (comprobado el 7 oct 2026) | testigo: `bot_purgar(integer)` con el cuerpo idéntico al fichero, y el job `bot-retencion` (`17 3 * * *`, activo) en `cron.job` |
+| `0066_ops_bot_eventos` | aplicada (comprobado el 7 oct 2026) | testigo: la vista `ops.bot_events`, con la definición del fichero (quita `telegram_id` y `error`, chat en md5, 21 días) y SELECT para `ops_reader` |
 | `0076_bot_tareas` | aplicada (3 oct 2026) | tabla de tareas abiertas de Lola |
 | `0077_bot_tareas_a_fondo` | aplicada (3 oct 2026) | |
 | `0078_bot_tareas_tope_sin_olvidos` | aplicada (3 oct 2026) | |
-| `0079_personas_y_grupos` | aplicada en producción | personas y grupos a tablas, paso 1; fecha sin verificar |
-| `0080_bot_tareas_v2` | **sin aplicar** | 7 constraints NOT VALID; el índice concurrente va en `manual/0080b_indice_concurrente.sql` |
-| `0081_persona_sincronizar_casa` | aplicada en producción | en la rama `fix/personas-rosters`, aún no en staging |
-| `0082_persona_sincronizar_casa_guardas` | **sin aplicar** | en `fix/personas-rosters`; la 0083 exige que esté |
-| `0083_bot_tareas_fk_persona` | **sin aplicar** | va después de 0080, 0081 y 0082; 1 FK NOT VALID |
-| `0084_bot_codigo_alta` | aplicada en producción | según el commit `f2187d4` (6 oct 2026); sin objeto testigo comprobado aquí |
-| `0085_bot_vocabulario_cerrado` | **sin aplicar** | en la rama `datos/sistematizar`; 5 CHECK NOT VALID |
-| `0086_vocabulario_de_la_app` | **sin aplicar** | 5 CHECK NOT VALID; las consultas previas, en su cabecera |
+| `0079_personas_y_grupos` | aplicada, versión 2 (comprobado el 7 oct 2026) | personas y grupos a tablas, paso 1. Testigos de la versión 2 (`49e8ec3`): las 7 columnas de presentación y etapa en `persona` (`usa_fecha_nacimiento` … `color`) y la tabla `persona_perfil_salud` con RLS. Su `persona_reemplazar_casa` ya no está: la sustituyó la 0081 |
+| `0080_bot_tareas_v2` | **sin aplicar** (comprobado el 7 oct 2026) | 7 constraints NOT VALID; el índice concurrente va en `manual/0080b_indice_concurrente.sql`. No existen `bot_tareas.tipo`, `bot_reminders.tarea_id` ni `bot_tareas_kind_tipo()` |
+| `0081_persona_sincronizar_casa` | aplicada (comprobado el 7 oct 2026) | testigo: `persona_reemplazar_casa` es la de la 0081 (solo delega en `persona_sincronizar_casa`, `language sql`). Su `persona_sincronizar_casa` la sobrescribió después la 0082 |
+| `0082_persona_sincronizar_casa_guardas` | aplicada (comprobado el 7 oct 2026) | testigo: el cuerpo de `persona_sincronizar_casa` es idéntico al de la 0082 (con las guardas: «sin lista de personas», «sin lista de grupos», «lista de personas vacía…») |
+| `0083_bot_tareas_fk_persona` | **sin aplicar** (comprobado el 7 oct 2026) | va después de 0080, 0081 y 0082 (las dos últimas ya están); 1 FK NOT VALID. No existen `bot_tareas_persona_fk` ni el índice `bot_tareas_persona` |
+| `0084_bot_codigo_alta` | aplicada, versión final (comprobado el 7 oct 2026) | testigos de la versión de `f2187d4`: `bot_codigos_tipo_check` con `vincular`, `entrar` y `alta`, y `bot_codigos_alta_check` (`tipo <> 'alta' or external_id is not null`), los dos validados |
+| `0085_bot_vocabulario_cerrado` | **sin aplicar** (comprobado el 7 oct 2026) | en la rama `datos/sistematizar`; 5 CHECK NOT VALID. No existen los `*_channel_check` de `bot_messages`/`bot_reminders`/`bot_tareas`/`bot_cola` ni `bot_reminders.tipo`, y `bot_deshacer.descripcion` sigue |
+| `0086_vocabulario_de_la_app` | **sin aplicar** (comprobado el 7 oct 2026) | 5 CHECK NOT VALID; las consultas previas, en su cabecera. No hay ninguna constraint `*_vocabulario` |
 
 ## La 0074 y la 0075, aplicadas el 2 oct 2026
 
