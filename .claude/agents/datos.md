@@ -72,8 +72,10 @@ No es suyo:
 2. `supabase/ESTADO.md` y `supabase/PENDIENTES.md`.
 3. Las migraciones en `origin/staging` (tras `git fetch`), no solo las de la
    rama: el siguiente número libre sale de ahí.
-4. El esquema vivo, **solo con lecturas** (`pg_constraint`, `pg_proc.prosrc`,
-   `information_schema`), cuando haya que confirmar qué está aplicado.
+4. El esquema vivo, **solo con lecturas**: primero
+   `node scripts/verificar-estado.mjs` (todas, o `--solo 00XX --detalle`);
+   para lo que no ve (grants, datos, cambios de una columna), consultas al
+   catálogo dentro de una transacción `read only`.
 5. `specs/modelo-datos.md`, `src/data/model.js` y el código que lee cada tabla
    (`grep` del nombre).
 

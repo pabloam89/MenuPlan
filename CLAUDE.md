@@ -119,6 +119,9 @@ escriben en ella. Cada migración es un cambio en producción.
 - **Una sola vía para aplicar:** `node scripts/apply-migration.mjs <nombre>`
   (ensayo, hace ROLLBACK) y luego `--si` con el OK de Pablo. En el mismo PR o
   justo después, apúntala en `supabase/ESTADO.md` con su objeto testigo.
+- **¿Está aplicada?** `node scripts/verificar-estado.mjs` (o `--solo 0080`)
+  compara cada migración con el catálogo de producción, en solo lectura, y
+  avisa de lo que no cuadra con ESTADO.md.
 - **Una migración aplicada no se edita nunca**: se escribe otra. La que está
   en staging y ESTADO.md da por «sin aplicar» todavía se puede tocar.
 - Número: el siguiente libre de `origin/staging`, comprobado justo antes del

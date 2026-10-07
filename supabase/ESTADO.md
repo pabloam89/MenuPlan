@@ -28,6 +28,30 @@ en otra rama):
 
 Los constraints NOT VALID que quedan por validar están en `PENDIENTES.md`.
 
+## Comprobación automática
+
+Desde el 7 oct 2026, `node scripts/verificar-estado.mjs` saca los objetos
+testigo de cada migración (tablas, columnas, funciones con su cuerpo,
+constraints con sus valores, políticas, índices, triggers, tipos, vistas y
+crons). Después los busca en el catálogo de producción con una transacción de
+solo lectura y avisa de lo que no cuadra con la lista «Sin aplicar» de arriba.
+No ve grants, comments, datos ni cambios dentro de una columna existente: las
+que solo hacen eso salen «sin testigo».
+
+Primera pasada, el 7 oct 2026, sobre las 88. Cuadran todas menos cinco, que
+están en producción solo en parte. Ninguna se ha tocado; se deciden aparte:
+
+| Migración | Lo que falta en producción | Qué significa |
+|---|---|---|
+| `0010_recipe_discards` | **la tabla `user_recipe_discards` entera** | **Fallo real.** `src/lib/recipeDiscardsSync.js` lee y escribe en ella, así que los descartes no se guardan en la nube. Las RPC que la leen (`ensure_user_household`) lo hacen dentro de un `exception when others` y siguen sin ella |
+| `0008_meal_extras_catalog` | la columna `user_recipes.product_aliases` | Ya se sabía (ver `scripts/generate-supabase-seed.mjs`). `recipeRow.js` la lee como opcional, así que no rompe nada. Está en la lista de limpieza para quitarla del repo |
+| `0017_households` | la política `household_members` «Users insert self as viewer» | Nadie la recrea ni la quita en otra migración: se quitó a mano. Unirse a una casa va por la RPC `join_household_by_token` (security definer), así que no hace falta. Queda que una migración lo diga |
+| `0003_analytics_feedback_votes` | las políticas de `user_profiles`, `user_events` y `app_feedback`, y dos índices de `user_events` | Las tablas se crearon desde el panel antes que el fichero, con otros nombres (las políticas se llaman «insert own» y «select own»: las retoca la 0011). El fichero no es lo que se ejecutó |
+| `0003_user_data` | la política `recipe_votes` «Votes are publicly readable» | Igual que la anterior: nombre distinto o quitada a mano. Sin efecto visible |
+
+Sin testigo, y por tanto sin comprobar por el script: 0011, 0038, 0043, 0047,
+0048, 0062 y 0064.
+
 ## De la 0065 a la 0086
 
 | Migración | Estado | Notas |
