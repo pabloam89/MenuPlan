@@ -53,6 +53,7 @@ import { puede } from "../../src/lib/papeles.js";
 import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
+import { payloadStart } from "../../src/lib/ids.js";
 import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cuentas.js";
 import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
 
@@ -170,7 +171,11 @@ async function atender(msg, base, host = "") {
       .catch((e) => { console.error("[invitación]", e?.message); return null; });
     return enviar(chatId, r?.texto ?? "No he podido usar esa invitación ahora mismo. Prueba en unos minutos.");
   }
-  if (start?.[1] && /^(rc|ru|m)_/.test(start[1]) && !esGrupo) {
+  // Un enlace de compartir, reconocido por su forma ENTERA (src/lib/ids.js): un
+  // código de «Conectar Telegram» es base64url y podía empezar por «m_» o «ru_»
+  // por azar (1 de cada 4096 con «m_»); mirando solo el prefijo, a esa persona
+  // se le decía «Ese enlace ya no funciona» y no se enlazaba.
+  if (payloadStart.esCompartido(start?.[1]) && !esGrupo) {
     const hecho = await recibirCompartido(chatId, start[1], msg.from);
     if (hecho) return hecho;
   }

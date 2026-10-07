@@ -13,7 +13,7 @@
  * titular y cotitular: meter a Lola en el grupo es cosa de quien gestiona.
  */
 
-import crypto from "node:crypto";
+import { codigoBot } from "../../src/lib/ids.js";
 import { select, insert, usuarioDeToken, eq } from "../_bot/db.js";
 import { nombreDelBot, enviar } from "../_bot/telegram.js";
 import { recordar } from "../_bot/rapido.js";
@@ -66,8 +66,9 @@ export default async function handler(req, res) {
       return res.status(200).json({ avisados: chats.length });
     }
 
-    // 16 bytes en base64url: cabe en el límite de 64 caracteres de /start.
-    const token = crypto.randomBytes(16).toString("base64url");
+    // 16 bytes en base64url: cabe en el límite de 64 caracteres de /start, y
+    // nunca empieza como un enlace de compartir (rc_, ru_, m_…): src/lib/ids.js.
+    const token = codigoBot.nuevo();
     await insert("bot_link_tokens", [{
       token,
       user_id: user.id,
