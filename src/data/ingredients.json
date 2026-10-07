@@ -2571,9 +2571,7 @@
     ],
     "aisle": "Carne",
     "category": "Verduras y frutas",
-    "allergens": [
-      "leche"
-    ],
+    "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": false,
@@ -2581,6 +2579,7 @@
     "defaultUnit": "g",
     "medianAmount": 100,
     "mayContain": [
+      "leche",
       "sulfitos"
     ]
   },
@@ -4848,7 +4847,11 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "mayContain": [
+      "leche",
+      "sulfitos"
+    ]
   },
   {
     "id": "pechuga-de-pollo",
@@ -5231,16 +5234,15 @@
     "aliases": [],
     "aisle": "Pasta y arroz",
     "category": "Verduras y frutas",
-    "allergens": [],
+    "allergens": [
+      "gluten"
+    ],
     "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 100,
-    "mayContain": [
-      "gluten"
-    ]
+    "medianAmount": 100
   },
   {
     "id": "platano",
@@ -6116,7 +6118,10 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "mayContain": [
+      "sulfitos"
+    ]
   },
   {
     "id": "secreto-iberico",

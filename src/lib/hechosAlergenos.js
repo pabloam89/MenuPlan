@@ -32,10 +32,34 @@ export function construirHechos(ingredientes, lineage) {
       for (const a of item.heredaAlergenos ?? []) fila[a] = PRESENCIA.CONTIENE;
       for (const a of EU_ALLERGEN_IDS) if (!fila[a]) fila[a] = PRESENCIA.AUSENTE;
     }
-    // "compuesto" o sin clasificar: solo lo declarado; el resto se queda sin
-    // fila a propósito, para que cuente como no verificado.
+    // Un "compuesto" sin receta propia (`componentes`) no se deriva: solo lo
+    // declarado, y el resto se queda sin fila a propósito, para que cuente
+    // como no verificado. Los que sí tienen receta propia se resuelven abajo,
+    // en una segunda pasada, porque dependen de hechos de otros ingredientes.
 
     hechos[ing.id] = fila;
   }
+
+  // Segunda pasada: un "compuesto" con `componentes` (alioli, mayonesa, pesto,
+  // bechamel) hereda de SUS propios ingredientes, ya calculados arriba. La
+  // combinación es la misma que usaría el comprobador sobre una receta: si
+  // algún componente lo tiene, el compuesto lo tiene; si algún componente no
+  // está verificado para ese alérgeno, el compuesto tampoco lo está — no se
+  // puede decir "ausente" de algo que depende de una pieza desconocida.
+  for (const item of lineage.items) {
+    if (item.clase !== "compuesto" || !item.componentes?.length) continue;
+    const fila = hechos[item.id] ?? {};
+    for (const a of EU_ALLERGEN_IDS) {
+      if (fila[a]) continue; // lo declarado manda sobre lo derivado.
+      const delosComponentes = item.componentes.map((c) => hechos[c]?.[a]);
+      if (delosComponentes.some((p) => p === PRESENCIA.CONTIENE)) fila[a] = PRESENCIA.CONTIENE;
+      else if (delosComponentes.some((p) => p === PRESENCIA.PUEDE_CONTENER)) fila[a] = PRESENCIA.PUEDE_CONTENER;
+      else if (delosComponentes.every((p) => p === PRESENCIA.AUSENTE)) fila[a] = PRESENCIA.AUSENTE;
+      // Si algún componente no tiene fila para este alérgeno, se deja sin
+      // fila: no verificado, no "ausente" por falta de información.
+    }
+    hechos[item.id] = fila;
+  }
+
   return hechos;
 }

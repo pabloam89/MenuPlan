@@ -187,7 +187,13 @@
     {
       "id": "alioli",
       "clase": "compuesto",
-      "confianza": "alta"
+      "confianza": "alta",
+      "componentes": [
+        "ajo",
+        "aceite-oliva",
+        "sal",
+        "limon"
+      ]
     },
     {
       "id": "alitas-de-pollo",
@@ -391,7 +397,14 @@
     {
       "id": "bechamel",
       "clase": "compuesto",
-      "confianza": "alta"
+      "confianza": "alta",
+      "componentes": [
+        "mantequilla",
+        "harina",
+        "leche",
+        "nuez-moscada",
+        "sal"
+      ]
     },
     {
       "id": "berberecho",
@@ -1588,7 +1601,13 @@
     {
       "id": "mayonesa",
       "clase": "compuesto",
-      "confianza": "alta"
+      "confianza": "alta",
+      "componentes": [
+        "huevos",
+        "aceite-girasol",
+        "limon",
+        "sal"
+      ]
     },
     {
       "id": "medio-cochinillo",
@@ -2023,7 +2042,14 @@
     {
       "id": "pesto",
       "clase": "compuesto",
-      "confianza": "alta"
+      "confianza": "alta",
+      "componentes": [
+        "albahaca",
+        "pinones",
+        "parmesano",
+        "ajo",
+        "aceite-oliva"
+      ]
     },
     {
       "id": "pimenton",

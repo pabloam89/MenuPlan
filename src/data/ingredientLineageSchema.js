@@ -48,6 +48,12 @@ export const IngredientLineageItemSchema = z
     confianza: z.enum(["alta", "revisar"]),
     origenes: z.array(OrigenSchema).optional(),
     heredaAlergenos: z.array(z.enum(EU_ALLERGEN_IDS)).optional(),
+    // Un "compuesto" normalmente no se puede derivar (depende de la marca).
+    // Excepción: cuando es una receta nuestra, de principio a fin (alioli,
+    // mayonesa, pesto, bechamel — ver salsas.json), sus propios ingredientes
+    // SÍ son del catálogo, y entonces se deriva igual que un derivado, solo
+    // que encadenando varios ingredientes en vez de uno.
+    componentes: z.array(z.string()).optional(),
   })
   .refine((it) => it.clase !== "derivado" || (it.origenes && it.origenes.length > 0), {
     message: "un derivado necesita al menos un origen",
