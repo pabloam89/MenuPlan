@@ -80,6 +80,12 @@ export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];
 /** Quién puede ver un dato de la ficha. */
 export const VISIBILIDAD = ["casa", "adultos", "titulares", "la_persona_y_tutores"];
 
+/** Sexo de una persona: campo nuevo de la ficha v18, solo para calorías y nunca se pregunta. */
+export const SEXO = ["mujer", "hombre", "sin_dato"];
+
+/** Con qué frecuencia vive alguien en casa (custodia): campo nuevo de la ficha v18, nunca se pregunta. */
+export const PATRON_SEMANAS = ["siempre", "alternas"];
+
 /**
  * El mapa nombre → lista. Es lo que referencia `registro_campo.vocabulario`
  * (la ficha): guarda el nombre, nunca una copia de los valores.
@@ -103,6 +109,8 @@ export const VOCABULARIOS = Object.freeze({
   origen_dato: ORIGEN_DATO,
   ref_tipo: REF_TIPO,
   visibilidad: VISIBILIDAD,
+  sexo: SEXO,
+  patron_semanas: PATRON_SEMANAS,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */

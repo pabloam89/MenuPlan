@@ -3,7 +3,7 @@ import { VOCABULARIOS, vocabulario, TIPOS_GRUPO } from "./vocabularios.js";
 import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, CAMPOS_PREGUNTABLES, VOCABULARIOS_PENDIENTES } from "./registroCampos.js";
 
 // Enums cuya lista aún no existe: deuda a la vista, que solo puede bajar.
-const ENUM_SIN_LISTA = ["sexo"];
+const ENUM_SIN_LISTA = [];
 import { CAMPOS, ENUMS } from "./registroTareas.js";
 import { DAYS } from "./planner.js";
 import { PACK_KINDS } from "./packUnits.js";

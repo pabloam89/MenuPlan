@@ -32,9 +32,9 @@ export const REGISTRO_CAMPOS = Object.freeze({
   etapaBebe: campo({ tipo: "enum", vocabulario: "etapa_bebe", politica: "antes_de_usarlo", seguridad: true, caduca_dias: 21 }),
   edad: campo({ tipo: "int", unidad: "años", minimo: 0, maximo: 120, politica: "nunca" }),
   nacimiento: campo({ tipo: "fecha", politica: "nunca" }),
-  sexo: campo({ tipo: "enum", politica: "nunca" }),
+  sexo: campo({ tipo: "enum", vocabulario: "sexo", politica: "nunca" }),
   colegio: campo({ tipo: "texto", politica: "nunca" }),
-  patronSemanas: campo({ tipo: "texto", politica: "nunca" }),
+  patronSemanas: campo({ tipo: "enum", vocabulario: "patron_semanas", politica: "nunca" }),
 });
 
 export const TIPOS_CAMPO = ["enum", "lista_enum", "int", "float", "bool", "fecha", "ref", "texto"];
