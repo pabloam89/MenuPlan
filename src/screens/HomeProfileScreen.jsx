@@ -8,12 +8,14 @@ import {
   Check,
   Info,
   ShieldCheck,
+  FileText,
 } from "../components/icons.jsx";
 import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { findAccountMember,
   resolveAccountMember, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
+import { URL_PRIVACIDAD, URL_TERMINOS } from "../lib/legal.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -480,19 +482,28 @@ export function HomeProfileScreen({
           onClick={onDeleteAccount}
         />
 
-        {/* Política de privacidad */}
-        <a
-          href="/privacidad.html"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            marginTop: 14, padding: "10px 0", textDecoration: "none",
-          }}
-        >
-          <ShieldCheck size={13} color="#7a9485" />
-          <span style={{ fontSize: 12.5, color: "#7a9485", fontWeight: 700 }}>Política de privacidad</span>
-        </a>
+        {/* Política de privacidad y términos de uso */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 14, padding: "10px 0" }}>
+          <a
+            href={URL_PRIVACIDAD}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none" }}
+          >
+            <ShieldCheck size={13} color="#7a9485" />
+            <span style={{ fontSize: 12.5, color: "#7a9485", fontWeight: 700 }}>Privacidad</span>
+          </a>
+          <span style={{ width: 3, height: 3, borderRadius: 999, background: "#c3d1c8" }} />
+          <a
+            href={URL_TERMINOS}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none" }}
+          >
+            <FileText size={13} color="#7a9485" />
+            <span style={{ fontSize: 12.5, color: "#7a9485", fontWeight: 700 }}>Términos</span>
+          </a>
+        </div>
 
         {/* Version */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "0 0 0", opacity: 0.5 }}>

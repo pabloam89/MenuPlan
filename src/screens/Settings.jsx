@@ -19,6 +19,7 @@ import {
   Pencil,
   LayoutDashboard,
   Send,
+  FileText,
 } from "../components/icons.jsx";
 import {
   BottomNav,
@@ -29,10 +30,30 @@ import {
 import { memberAvatarColor, memberAvatarThumbSrc, stageLabel, migrateHomeRole } from "../lib/stages.js";
 import { computeStreak } from "../lib/menuStats.js";
 import { INTOLERANCE_RULES } from "../lib/intolerances.js";
+import { URL_PRIVACIDAD, URL_TERMINOS } from "../lib/legal.js";
 
 const PAGE_BG = "#f7f9f7";
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
+
+const legalLinkBtn = {
+  flex: 1,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 7,
+  padding: "13px",
+  borderRadius: 14,
+  border: "1.5px solid #e3e8e4",
+  background: "#fff",
+  color: INK,
+  fontSize: 13,
+  fontWeight: 800,
+  cursor: "pointer",
+  fontFamily: "inherit",
+  textDecoration: "none",
+  boxSizing: "border-box",
+};
 
 const pageTitle = {
   fontSize: 26,
@@ -811,32 +832,14 @@ export function AccountScreen({
                 <span style={{ fontSize: 13, fontWeight: 600, color: INK }}>{formatDate(g.createdAt ? new Date(g.createdAt).getTime() : null)}</span>
               </div>
             </Card>
-            <a
-              href="/privacidad.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                width: "100%",
-                marginTop: 12,
-                padding: "14px",
-                borderRadius: 14,
-                border: "1.5px solid #e3e8e4",
-                background: "#fff",
-                color: INK,
-                fontSize: 14,
-                fontWeight: 800,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                textDecoration: "none",
-                boxSizing: "border-box",
-              }}
-            >
-              <ShieldCheck size={16} /> Política de privacidad
-            </a>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <a href={URL_PRIVACIDAD} target="_blank" rel="noopener noreferrer" style={legalLinkBtn}>
+                <ShieldCheck size={15} /> Privacidad
+              </a>
+              <a href={URL_TERMINOS} target="_blank" rel="noopener noreferrer" style={legalLinkBtn}>
+                <FileText size={15} /> Términos
+              </a>
+            </div>
             <button
               type="button"
               onClick={onSignOut}

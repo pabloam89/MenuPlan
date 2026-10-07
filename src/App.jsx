@@ -193,6 +193,8 @@ import {
 } from "./lib/rosters.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
+import { haAceptadoEnEsteDispositivo, marcarAceptadoEnEsteDispositivo, faltaAceptar, aceptarConSesion } from "./lib/legalConsent.js";
+import { LegalGate } from "./components/LegalGate.jsx";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
@@ -1322,7 +1324,119 @@ export default function App() {
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 
-  const { user, session, loading: authLoading, signInWithGoogle, signOut } = useAuth();
+  const { user, session, loading: authLoading, signInWithGoogle: signInWithGoogleDirecto, signOut } = useAuth();
+
+  // ── Consentimiento legal ──────────────────────────────────────────────────
+  // Un único punto: GoogleButton vive en 8 pantallas distintas, pero TODAS
+  // reciben este signInWithGoogle de aquí, así que basta con envolverlo aquí
+  // una vez. Si este dispositivo no ha dicho que sí todavía, el clic abre el
+  // aviso en vez de ir directo a Google y GoogleButton se queda esperando esa
+  // promesa: al aceptar, se marca y SIGUE con el inicio de sesión que se había
+  // pedido (no hace falta volver a pulsar); al cerrar sin aceptar, se resuelve
+  // con `cancelado` para que el botón suelte su "Redirigiendo…".
+  // Un único estado en vez de dos booleanos sueltos: "google" (antes de
+  // entrar) y "cuentaVieja" (ya con sesión) nunca se dan a la vez de verdad
+  // —son excluyentes por naturaleza—, así que modelarlos como dos flags
+  // independientes solo dejaba la puerta abierta a que un futuro cambio
+  // tocara uno y se olvidara del otro. Con un único valor, eso ya no se puede
+  // hacer mal: cerrar es siempre `null`, y solo hay un sitio que decide qué
+  // aviso tocaba mostrar.
+  const [motivoLegalGate, setMotivoLegalGate] = useState(null);
+  const resolverGoogleTrasLegal = useRef(null);
+  // La comprobación "cuenta vieja" en marcha (useEffect de abajo), si hay
+  // alguna: conConsentimiento la espera antes de decidir si hace falta abrir
+  // el aviso, ver comentario allí.
+  const comprobandoCuentaVieja = useRef(null);
+  const signInWithGoogle = useCallback(() => {
+    if (haAceptadoEnEsteDispositivo()) return signInWithGoogleDirecto();
+    // Doble clic antes de que llegue a montarse el aviso (loading no se pone
+    // a true en GoogleButton hasta saber que hay redirección real, así que el
+    // botón sigue pulsable ese instante): sin esto, el segundo resolver pisaba
+    // al primero y la promesa del primer clic se quedaba colgada para siempre.
+    if (resolverGoogleTrasLegal.current) return Promise.resolve({ cancelado: true });
+    return new Promise((resolve) => {
+      resolverGoogleTrasLegal.current = resolve;
+      setMotivoLegalGate("google");
+    });
+  }, [signInWithGoogleDirecto]);
+
+  // Para quien YA tenía sesión antes de que esto existiera (o entró desde otro
+  // dispositivo): se comprueba una vez por sesión, contra Supabase (no el
+  // dispositivo, que no sabría nada de una cuenta vieja). No bloquea nada
+  // mientras se decide: solo se abre el aviso si de verdad falta.
+  useEffect(() => {
+    // Se cierra solo si el aviso abierto era justo el de "cuenta vieja": si
+    // es el de "google" (p. ej. alguien sin sesión abrió el aviso y ENTONCES,
+    // en otra pestaña, cerró sesión en esta), no es asunto de este efecto.
+    if (!user?.id) { setMotivoLegalGate((m) => (m === "cuentaVieja" ? null : m)); return; }
+    // Si este dispositivo ya sabe que aceptó, ni se pregunta a Supabase: sin
+    // esto había una carrera real justo después de aceptar ANTES de entrar
+    // con Google — este mismo efecto se dispara en cuanto llega la sesión, a
+    // la vez que useAuth.js guarda el "pendiente", y si la lectura ganaba la
+    // carrera veía la versión todavía vieja y reabría el aviso que la persona
+    // acababa de aceptar, sin nada que lo volviera a cerrar en esta sesión.
+    if (haAceptadoEnEsteDispositivo()) return;
+    let activo = true;
+    // Expuesta en el ref para que conConsentimiento (más abajo) pueda
+    // esperarla antes de decidir si hace falta abrir el aviso: sin esto,
+    // pulsar "Entrar" en el instante entre que llega la sesión y que responde
+    // Supabase abría el aviso para alguien que ya había aceptado en otro
+    // dispositivo.
+    const comprobacion = faltaAceptar(user.id).then((falta) => {
+      // No pisar un aviso de "google" ya en marcha (resolverGoogleTrasLegal
+      // sigue con un resolver pendiente): es un caso raro —una sesión
+      // aparecería por otra vía, en la misma pestaña, mientras alguien sin
+      // sesión todavía tenía el aviso de Google abierto sin aceptar— pero de
+      // pisarlo, onAccept tomaría la rama de Google (resolver sigue puesto) en
+      // vez de registrar el consentimiento de la sesión que acaba de llegar.
+      if (activo && falta && !resolverGoogleTrasLegal.current) setMotivoLegalGate("cuentaVieja");
+    }).finally(() => {
+      // Solo si el ref sigue siendo ESTA promesa: en un dispositivo
+      // compartido, si cambia de cuenta mientras esta comprobación seguía en
+      // vuelo, el efecto siguiente ya habrá puesto la suya propia en el ref —
+      // sin esta comprobación, esta (la vieja) la borraría igual al resolver
+      // después, dejando a conConsentimiento sin nada que esperar para la
+      // cuenta nueva.
+      if (comprobandoCuentaVieja.current === comprobacion) comprobandoCuentaVieja.current = null;
+    });
+    comprobandoCuentaVieja.current = comprobacion;
+    return () => { activo = false; };
+  }, [user?.id]);
+  const cerrarLegalGate = useCallback(() => setMotivoLegalGate(null), []);
+  // Para entrar SIN cuenta (SplashScreen → "Entrar sin cuenta" o volver con lo
+  // ya guardado): antes no pasaba por ningún aviso, aunque el alta pida quién
+  // vive en casa y sus alergias, y generar el menú con IA mande eso al
+  // servidor sin que exista todavía ninguna cuenta donde registrar un "sí".
+  // Mismo mecanismo que signInWithGoogle, pero con una acción cualquiera en
+  // vez de una promesa que GoogleButton tenga que esperar — aquí nadie espera
+  // nada, salvo la comprobación de "cuenta vieja" de arriba si está en
+  // marcha (ver comprobandoCuentaVieja): sin esperarla, quien ya aceptó en
+  // otro dispositivo y pulsa aquí en el primer instante (antes de que
+  // responda Supabase) vería el aviso de todas formas, por pura mala suerte
+  // de tiempos.
+  const accionPendienteTrasLegal = useRef(null);
+  const conConsentimiento = useCallback(async (accion) => {
+    if (haAceptadoEnEsteDispositivo()) { accion(); return; }
+    // Un Google ya en marcha (resolverGoogleTrasLegal puesto) manda: si esto
+    // pisara motivoLegalGate a "entrada", aceptar el aviso iría a la rama de
+    // Google en onAccept (mira el resolver antes que accionPendiente) y esta
+    // acción se perdería sin más — tocar dos botones casi a la vez, antes de
+    // que el aviso tape la pantalla, no debería poder colar una por encima de
+    // la otra.
+    if (resolverGoogleTrasLegal.current) return;
+    if (comprobandoCuentaVieja.current) {
+      // Con límite: en una conexión mala (la tablet de la cocina, el caso de
+      // uso normal de esta app) esperar sin límite a que responda Supabase
+      // dejaría el botón sin hacer nada que se note durante ese rato. Pasado
+      // el límite se sigue como si no hubiera comprobación en marcha — como
+      // antes de que esto existiera, pedir el aviso de más una vez es mucho
+      // mejor que un botón que no parece hacer nada.
+      await Promise.race([comprobandoCuentaVieja.current, new Promise((r) => setTimeout(r, 2500))]);
+    }
+    if (haAceptadoEnEsteDispositivo()) { accion(); return; }
+    accionPendienteTrasLegal.current = accion;
+    setMotivoLegalGate("entrada");
+  }, []);
   const {
     households,
     activeHousehold,
@@ -5925,7 +6039,7 @@ export default function App() {
         {screen === "splash" && (
           <SplashScreen
             onNext={() =>
-              fwd(() => {
+              conConsentimiento(() => fwd(() => {
                 // hasSaved is false here (see below), so this is always a
                 // brand-new visitor: after this they only fill in "¿quién
                 // come en casa?" and land straight on Home. Force onbStep
@@ -5936,10 +6050,10 @@ export default function App() {
                 setHomeCoachSeen(false); // spotlight siempre al llegar al dashboard tras el tutorial
                 setOnbStep(1);
                 setScreen(FORCE_VALUE_PROPS || (GUIAS_ACTIVAS && !valuePropsSeen) ? "valueProps" : "onboarding");
-              })
+              }))
             }
             hasSaved={FORCE_VALUE_PROPS ? false : data.members.length > 0}
-            onResume={() => fwd(() => setScreen("dashboard"))}
+            onResume={() => conConsentimiento(() => fwd(() => setScreen("dashboard")))}
             isAuthed={Boolean(user)}
             onGoogle={signInWithGoogle}
           />
@@ -7132,6 +7246,80 @@ export default function App() {
       {/* FeedbackFAB hidden */}
 
       <BotEnlace showToast={showToast} />
+
+      {motivoLegalGate && (
+        <LegalGate
+          onClose={() => {
+            cerrarLegalGate();
+            resolverGoogleTrasLegal.current?.({ cancelado: true });
+            resolverGoogleTrasLegal.current = null;
+            // Cerrar sin aceptar es "ahora no": la acción pendiente (entrar
+            // sin cuenta) se descarta, no se hace sola más tarde.
+            accionPendienteTrasLegal.current = null;
+          }}
+          onAccept={() => {
+            cerrarLegalGate();
+            const resolver = resolverGoogleTrasLegal.current;
+            resolverGoogleTrasLegal.current = null;
+            const accionPendiente = accionPendienteTrasLegal.current;
+            accionPendienteTrasLegal.current = null;
+            if (user) {
+              // Ya hay sesión: manda sobre un resolver pendiente, aunque
+              // hubiera uno. Pasa en un caso raro pero real en un dispositivo
+              // compartido: se abrió este aviso ANTES de iniciar sesión con
+              // Google, y mientras seguía abierto sin contestar apareció
+              // sesión por otra vía en la misma pestaña (el enlace mágico del
+              // bot, BotEnlace.jsx). Sin esto, aceptar aquí disparaba una
+              // redirección a Google innecesaria en vez de registrar el
+              // consentimiento de la sesión que ya existe. Si quedaba un
+              // GoogleButton esperando, se suelta sin redirigir a nada: ya no
+              // hace falta.
+              resolver?.({ cancelado: true });
+              // Por la misma razón: si había una acción de "entrar sin
+              // cuenta" esperando (p. ej. apareció sesión por otra vía
+              // mientras esa persona todavía no había aceptado), se hace
+              // igual — si no, se quedaba en la Splash sin moverse, como si
+              // el toque en "Entrar sin cuenta" no hubiera servido de nada.
+              accionPendiente?.();
+              // aceptarConSesion ya marca el dispositivo por su cuenta (sin
+              // dejar nada "pendiente": aquí ya hay sesión y se guarda ya
+              // mismo). Si el guardado falla (hipo de red), no se da por
+              // aceptado: sin esto, el aviso no se reabría hasta que cambiara
+              // user?.id (el efecto de abajo), que podía ser nunca en esta
+              // sesión. Y el .catch es la misma razón que el de abajo: si la
+              // llamada lanza en vez de resolver con fallo, sin esto no se
+              // reabriría nunca.
+              aceptarConSesion(user)
+                .then((ok) => { if (!ok) setMotivoLegalGate("cuentaVieja"); })
+                .catch(() => setMotivoLegalGate("cuentaVieja"));
+            } else if (resolver) {
+              // Antes de tener sesión: hace falta dejarlo "pendiente" además
+              // de marcar el dispositivo, para guardarlo en Supabase en
+              // cuanto exista sesión (useAuth, SIGNED_IN).
+              marcarAceptadoEnEsteDispositivo();
+              // El .catch es necesario: signInWithGoogleDirecto normalmente
+              // RESUELVE con { error } en vez de rechazar, pero si el propio
+              // fetch de Supabase lanza (caída de red a mitad), sin esto el
+              // resolver nunca se llama y el await de GoogleButton se queda
+              // colgado para siempre, sin aviso.
+              signInWithGoogleDirecto().then(resolver, (err) => resolver({ error: err }));
+            } else if (accionPendiente) {
+              // Entrar sin cuenta: no hay user_id donde guardarlo todavía, así
+              // que (como con Google) se marca "pendiente" — si más tarde esta
+              // persona entra con Google desde este mismo dispositivo, se
+              // guardará en Supabase en ese momento (useAuth, SIGNED_IN).
+              marcarAceptadoEnEsteDispositivo();
+              accionPendiente();
+            } else {
+              // Ni "google" en marcha ni sesión ni acción pendiente: la sesión
+              // se fue (caducó, se cerró en otra pestaña) mientras el aviso
+              // estaba abierto. Nada que guardar — pero cerrarlo en silencio
+              // daría a entender que se aceptó, así que se dice.
+              showToast("No se ha podido guardar: parece que se cerró la sesión. Entra otra vez.");
+            }
+          }}
+        />
+      )}
 
       {/* El lector de pantalla oye el aviso: una región viva que está siempre
           montada (una que aparece con el texto dentro no se anuncia fiable). */}

@@ -17,8 +17,22 @@ import { registrar, EMBUDO } from "./embudo.js";
 export async function enlazarChat({ channel = "telegram", chatId, kind, householdId, userId, externalId, nombre, lang }) {
   // Un chat ya enlazado a OTRA casa solo lo puede mover quien lo enlazó: si
   // no, cualquiera del grupo familiar se lo llevaría a su casa con su código.
+  // `actual.linked_by` también manda aquí, pero SOLO en chats privados: si es
+  // null, no es que "lo enlazó otro" — es que su cuenta se borró (ON DELETE
+  // SET NULL) y esta fila quedó huérfana, sin dueño que proteger (un chat
+  // privado es de una sola persona). Sin esta comprobación, cualquier intento
+  // de volver a usar ese chat se topaba con "ocupado" para siempre (una
+  // cuenta nueva nunca puede coincidir con la fila vieja), deshaciendo justo
+  // el "se cura solo" que era la idea original de esto.
+  //
+  // En un GRUPO no aplica: `linked_by` es solo quien ejecutó /grupo una vez,
+  // no el dueño de lo que hay dentro — el grupo sigue siendo de toda su
+  // familia aunque esa cuenta se borre. Tratar su fila como "sin dueño"
+  // dejaría que cualquiera que lance un enlace para ese mismo chat_id se
+  // lleve el grupo entero a otra casa sin que nadie más lo apruebe.
   const [actual] = await select("bot_chats", `channel=${eq(channel)}&chat_id=${eq(chatId)}`, "household_id,linked_by");
-  if (actual && actual.household_id !== householdId && actual.linked_by !== userId) {
+  const huerfanoAutocurable = kind === "private" && !actual?.linked_by;
+  if (actual && actual.household_id !== householdId && !huerfanoAutocurable && actual.linked_by !== userId) {
     return { ok: false, ocupado: true };
   }
 

@@ -15,8 +15,9 @@ const deviceType = () =>
 // métrica, es una anécdota.
 export const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? "dev";
 
+/** @returns {Promise<boolean>} si el guardado salió bien (false también si no hay sesión: nada que confirmar) */
 export async function upsertUserProfile(user, extra = {}) {
-  if (!supabase || !user) return;
+  if (!supabase || !user) return false;
   const { error } = await supabase.from("user_profiles").upsert(
     {
       user_id: user.id,
@@ -30,6 +31,7 @@ export async function upsertUserProfile(user, extra = {}) {
     { onConflict: "user_id" }
   );
   if (error) console.warn("[analytics] upsertUserProfile", error.message);
+  return !error;
 }
 
 // ── Event batching ──────────────────────────────────────────────

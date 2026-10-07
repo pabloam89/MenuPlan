@@ -1,5 +1,5 @@
 import { FRONTAL_BOT } from "../lib/frontalBot.js";
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, ShoppingCart, Sparkles, UserCircle, Users, X } from "./icons.jsx";
 import { initialsOf, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
@@ -695,11 +695,25 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
   const [pressed, setPressed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // Un ref, no el estado `loading`: dos clics casi a la vez (un doble toque
+  // rápido) pueden los dos leer `loading` todavía en false si el segundo
+  // llega antes de que React repinte el botón deshabilitado. El ref se lee y
+  // escribe al momento, sin esperar a ningún repintado, así que el segundo
+  // clic ve siempre el de verdad.
+  const enCursoRef = useRef(false);
 
   const handleClick = async () => {
-    if (loading) return;
-    setLoading(true);
+    if (enCursoRef.current) return;
+    enCursoRef.current = true;
     setError(null);
+    // SIEMPRE, de entrada: onClick() puede ir derecho a Google o abrir antes
+    // el aviso legal (LegalGate), y en los dos casos hay algo en marcha que
+    // justifica deshabilitar el botón — un segundo clic mientras se decide
+    // podría disparar una segunda redirección a Google. Por eso la etiqueta de
+    // abajo dice "Un momento…" y no "Redirigiendo…": lo primero es cierto
+    // tanto si se está yendo a Google como si se está abriendo el aviso; lo
+    // segundo mentiría durante ese aviso.
+    setLoading(true);
     let failure = null;
     try {
       // signInWithGoogle reports failures by *returning* { error } rather than
@@ -707,11 +721,16 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
       // Supabase env vars in a deploy hit the returned-error path, which used
       // to leave the button spinning "Redirigiendo…" forever with no clue why.
       const result = await onClick?.();
+      // `cancelado`: el llamador interceptó el clic (p. ej. el aviso legal) y
+      // no hay redirección en camino — sin esto, loading se quedaba pegado
+      // para siempre si se cerraba el aviso sin aceptar.
+      if (result?.cancelado) { enCursoRef.current = false; setLoading(false); return; }
       failure = result?.error ?? null;
     } catch (err) {
       failure = err;
     }
     if (failure) {
+      enCursoRef.current = false;
       setLoading(false);
       setError(failure.message || "No se pudo conectar con Google.");
     }
@@ -765,7 +784,7 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
       ) : (
         <GoogleGlyph size={18} />
       )}
-      {loading ? "Redirigiendo…" : label}
+      {loading ? "Un momento…" : label}
     </button>
     {error && (
       <p

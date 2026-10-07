@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { clearState } from "../lib/storage.js";
+import { olvidarDispositivo } from "../lib/legalConsent.js";
 
 // `/?entrar=<código>`: el enlace que manda el bot de Telegram a quien empezó
 // allí sin cuenta (o le pidió /app). Se cambia en api/bot/entrar.js por una
@@ -49,6 +50,17 @@ export default function BotEnlace({ showToast }) {
         }
         const { error } = await supabase.auth.verifyOtp({ token_hash, type: "magiclink" });
         if (error) throw error;
+        // DESPUÉS de confirmar que de verdad hay sesión nueva, no antes: si
+        // verifyOtp fallara (red, token ya gastado por una carrera), esto no
+        // debe borrar el "ya acepté" de quien se queda sin sesión nueva y
+        // tal vez vuelva a entrar con la misma cuenta de siempre.
+        // Siempre, no solo si `cambia`: una sesión anterior pudo caducar sola
+        // (sin pasar por useAuth.signOut, que es donde se limpiaría) y dejar
+        // el dispositivo diciendo "ya acepté" para quien entra ahora. Este
+        // enlace es de un solo uso y poco frecuente, así que el precio de
+        // limpiarlo de más (la misma persona tiene que volver a aceptar) es
+        // pequeño frente a heredar el consentimiento de otra cuenta.
+        olvidarDispositivo();
         if (cambia) {
           clearState();
           window.location.replace(window.location.pathname);

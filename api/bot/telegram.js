@@ -47,7 +47,8 @@ import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPr
 import { hoyISO, cargarCasa } from "../_bot/casa.js";
 import { puedeBorrar, borrarCuenta, limpiarPantalla } from "../_bot/borrar.js";
 import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
-import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
+import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui, registrarConsentimiento, faltaAceptarLegal } from "../_bot/cuentas.js";
+import { URL_PRIVACIDAD, URL_TERMINOS } from "../../src/lib/legal.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
 
@@ -115,6 +116,102 @@ export function meHablan(msg, yo) {
 const nombreDe = (from) => [from?.first_name, from?.last_name].filter(Boolean).join(" ") || null;
 const esGrupoDe = (chat) => chat.type === "group" || chat.type === "supergroup";
 
+/**
+ * ¿Viene esta pulsación de quien tiene abierto, en privado, el chat al que se
+ * mandó? En un chat privado Telegram define chat.id igual al from.id de su
+ * dueño: si no coinciden, no es suyo. Los botones legal:ok: y legal:correo:
+ * llevan un userId de Supabase (no de Telegram) con el que registrar
+ * consentimiento, así que no se puede comparar directamente contra quien
+ * pulsa — esta es la comprobación que sí se puede hacer sin más
+ * infraestructura, y en un chat privado basta.
+ *
+ * Esto vale porque el callback_query de un botón siempre llega atado al chat
+ * donde VIVE ese mensaje — no hay forma de pulsarlo "desde" otro chat. Las
+ * dos únicas formas en que ese mismo botón podría aparecer en un chat ajeno
+ * son que alguien lo reenvíe (Telegram no copia el teclado inline de un
+ * sendMessage normal al reenviar: el reenvío llega sin botones) o que este
+ * código lo reenviara/copiara él mismo a otro chat (no lo hace: estos botones
+ * solo se mandan, una vez, al chat que originó la verificación). Si algún día
+ * se añade un camino que reenvíe o copie mensajes entre chats, esta
+ * comprobación deja de bastar y hace falta algo más (verificar el userId
+ * contra bot_identities, por ejemplo).
+ */
+const esSuChatPrivado = (cq, chatId) => !esGrupoDe(cq.message.chat) && String(cq.from?.id) === chatId;
+
+/**
+ * La fila de bot_chats para este chat, o null si no la hay.
+ *
+ * En un chat PRIVADO, también null si la hay pero sin cuenta detrás
+ * (linked_by a null: la FK se pone así sola, on delete set null, si se borró
+ * la cuenta que lo enlazó, aunque la casa y el chat sigan). Un chat privado
+ * sin cuenta no es un chat enlazado de verdad: antes se trataba como si lo
+ * fuera y faltaAceptarLegal(null) dejaba pasar todo sin pedir nunca el aviso.
+ * Tratarlo como "sin enlazar" lo manda por el mismo camino que ya sabe
+ * arreglar esto (crearCuenta / bienvenida), y un enlace nuevo lo cura solo:
+ * enlazarChat hace upsert sobre esta misma fila.
+ *
+ * En un GRUPO no se aplica esa regla: linked_by ahí es solo quien hizo
+ * /grupo, y el aviso legal no se pide nunca en grupo (más abajo, a
+ * propósito: no hay forma de saber, con el modelo actual, quién de los que
+ * escriben es quien lo enlazó). Que esa cuenta se borrara no debe desconectar
+ * un grupo cuya casa sigue viva con otros miembros.
+ *
+ * El consentimiento en grupo sigue sin resolverse (decisión consciente, no
+ * descuido: por quién escribe en un grupo, no por quién enlazó el chat, es
+ * trabajo de una fase futura — specs/plan-bot-mensajeria.md habla de grupos
+ * como fase 2).
+ */
+async function chatEnlazado(chatId, { esGrupo = false } = {}) {
+  const [fila] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id,linked_by");
+  if (!fila) return null;
+  return esGrupo || fila.linked_by ? fila : null;
+}
+
+/**
+ * ¿Hace falta mostrar el aviso legal antes de seguir? Un solo sitio para la
+ * regla (chat ya enlazado, nunca en grupo, consentimiento desfasado): antes
+ * vivía repetida en atender() y en pulsado(), y una regla que cambia en un
+ * sitio y no en el otro es exactamente el tipo de fallo que esto evita.
+ */
+async function faltaAvisoLegal(chat, esGrupo) {
+  return Boolean(chat) && !esGrupo && (await faltaAceptarLegal(chat.linked_by).catch(() => false));
+}
+
+/**
+ * Un enlace de /start <token> o de "ya tengo cuenta" que se paró por el aviso
+ * legal, para ESTE chat sin enlazar todavía (chat_id, 0067 / bot_codigos.user_id,
+ * 0058) — null si no hay ninguno.
+ *
+ * Sin esto, un mensaje suelto en medio (en vez de pulsar el botón del aviso)
+ * caía en el "alguien totalmente nuevo" de atender() y sembraba una cuenta y
+ * una casa de usar y tirar, desconectadas de la que estaba a medio enlazar.
+ *
+ * bot_codigos.user_id se limpia solo en cuanto el enlace se resuelve
+ * (enlazarCuentaPropia) — pero esa limpieza es un UPDATE más que puede
+ * fallar, y sin ningún límite de tiempo aquí, un fallo justo en ESE borrado
+ * dejaría una fila de hace meses lista para reenlazar un chat que, mientras
+ * tanto, se hubiera desenlazado por otra vía (p. ej. al salir de la casa) a
+ * la cuenta vieja, sin pedir nada nuevo. UN_DIA_MS acota eso: de sobra para
+ * volver y pulsar el botón, poco para resucitar algo ya olvidado.
+ */
+const UN_DIA_MS = 24 * 60 * 60 * 1000;
+async function enlacePendiente(chatId) {
+  const ahora = encodeURIComponent(new Date().toISOString());
+  const [token] = await select(
+    "bot_link_tokens",
+    `chat_id=${eq(chatId)}&used_at=is.null&expires_at=gt.${ahora}&order=created_at.desc&limit=1`,
+    "token,user_id",
+  );
+  if (token) return { via: "token", userId: token.user_id, token: token.token };
+  const desde = encodeURIComponent(new Date(Date.now() - UN_DIA_MS).toISOString());
+  const [codigo] = await select(
+    "bot_codigos",
+    `tipo=eq.vincular&channel=eq.telegram&chat_id=${eq(chatId)}&user_id=not.is.null&created_at=gt.${desde}&order=created_at.desc&limit=1`,
+    "user_id",
+  );
+  return codigo ? { via: "codigo", userId: codigo.user_id } : null;
+}
+
 async function atender(msg, base, host = "") {
   const chatId = String(msg.chat.id);
   const esGrupo = esGrupoDe(msg.chat);
@@ -131,12 +228,45 @@ async function atender(msg, base, host = "") {
     texto = texto.replace(/^lola[\s,:;.!¡¿-]*/i, "").trim() || texto;
   }
 
+  // /limpiar y /borrarme (solo staging, solo admins: api/_bot/borrar.js) van
+  // ANTES del aviso legal a propósito: son herramientas para probar altas,
+  // no para usuarios reales, y no tiene sentido pedirle a quien está
+  // probando que acepte nada.
+  if (/^\/limpiar(?:@\w+)?$/.test(texto) && !esGrupo && puedeBorrar(msg.from?.id, process.env, host)) {
+    await limpiarPantalla(chatId, msg.message_id);
+    return;
+  }
+  if (/^\/borrarme(?:@\w+)?$/.test(texto) && !esGrupo && puedeBorrar(msg.from?.id, process.env, host)) {
+    return enviar(chatId, "⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu, tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.", {
+      botones: [[{ texto: "Sí, bórralo todo", dato: "borrar:si" }, { texto: "No", dato: "borrar:no" }]],
+    });
+  }
+
   // /start <código> o, en grupo, /start@HoMenuBot <código>
   const start = texto.match(/^\/start(?:@\w+)?(?:\s+(\S+))?$/);
   // `c123456`: el botón del correo de «ya tengo cuenta» abre Telegram y manda
-  // el código solo (la plantilla de Supabase lo pone en el enlace t.me).
+  // el código solo (la plantilla de Supabase lo pone en el enlace t.me). Va
+  // ANTES del aviso legal general de abajo, a propósito: verifica una cuenta
+  // que puede no ser la de `chat` (p. ej. este chat ya estaba enlazado a otra
+  // casa con el consentimiento desfasado, y esto es "ya tengo cuenta" para
+  // una cuenta distinta) — comprobarCodigo hace su propia comprobación legal
+  // sobre la cuenta correcta (la del código), no la de chat.linked_by.
   const desdeCorreo = start?.[1]?.match(/^c(\d{6})$/);
-  if (desdeCorreo && !esGrupo) return comprobarCodigo(msg, chatId, desdeCorreo[1]);
+  if (desdeCorreo && !esGrupo) return comprobarCodigo(msg, chatId, desdeCorreo[1], base);
+
+  // De verdad antes que nada más (salvo lo de arriba): antes incluso de mirar
+  // si es un /start, un enlace compartido o cualquier otra cosa. Esto estaba
+  // más abajo, después de varias ramas que devolvían antes de llegar —
+  // recibirCompartido() y /app, entre otras, se saltaban el aviso entero con
+  // tal de no ser texto normal. Puesto aquí arriba, nada de lo que viene
+  // después puede esquivarlo: ya no depende de que cada rama nueva se acuerde
+  // de comprobarlo ella misma.
+  // Para un chat SIN enlazar no hace nada (chat es null): ese caso lo gestiona
+  // cada camino de alta por su cuenta (crearCuenta, comprobarCodigo,
+  // enlazarDesdeAjustes), antes de escribir nada, no aquí.
+  const chat = await chatEnlazado(chatId, { esGrupo });
+  if (await faltaAvisoLegal(chat, esGrupo)) return pedirConsentimiento(chatId, base, { nuevo: false });
+
   if (start?.[1] && /^(rc|ru|m)_/.test(start[1]) && !esGrupo) {
     const hecho = await recibirCompartido(chatId, start[1]);
     if (hecho) return hecho;
@@ -148,31 +278,23 @@ async function atender(msg, base, host = "") {
   if (conPedido?.pedido) {
     const frase = fraseDePedido(conPedido.pedido, hoyISO());
     if (conPedido.codigo) {
-      const r = await enlazarDesdeAjustes(msg, chatId, false, conPedido.codigo, { callado: true });
-      if (r?.ocupado) return;
+      const r = await enlazarDesdeAjustes(msg, chatId, false, conPedido.codigo, base, { callado: true });
+      // faltaConsentimiento: enlazarDesdeAjustes ya mandó el aviso (ver ahí
+      // abajo); no hay nada más que hacer en este turno.
+      if (r?.ocupado || r?.faltaConsentimiento) return;
     }
-    const [enlazado] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
-    if (!enlazado) return bienvenida(chatId);
+    // Sin código, el chat ya estaba enlazado desde antes de este turno: el
+    // aviso legal de ahí arriba ya lo cubrió sobre esta misma fila (`chat`),
+    // así que no hace falta ni volver a leerla ni volver a comprobar el
+    // consentimiento. Con código, acaba de enlazarse ahora mismo (`chat`, de
+    // ahí arriba, está desfasado) y enlazarDesdeAjustes ya comprobó el
+    // consentimiento ANTES de enlazar — tampoco hay nada que repetir aquí.
+    const enlazado = conPedido.codigo ? await chatEnlazado(chatId) : chat;
+    if (!enlazado) return bienvenida(chatId, base);
     return enTurno(chatId, itemDe(msg.from, frase ?? COMANDOS.start),
       atenderCola({ chatId, householdId: enlazado.household_id, esGrupo: false, base }));
   }
-  if (start?.[1]) return enlazarDesdeAjustes(msg, chatId, esGrupo, start[1]);
-
-  // Borrar la cuenta entera, para probar altas (api/_bot/borrar.js): solo en
-  // staging y solo administradores. Para el resto el comando no existe y
-  // sigue el camino normal, sin decir nada.
-  // Borrar la pantalla del chat (lo de las últimas 48 h: Telegram no deja más).
-  if (/^\/limpiar(?:@\w+)?$/.test(texto) && !esGrupo && puedeBorrar(msg.from?.id, process.env, host)) {
-    await limpiarPantalla(chatId, msg.message_id);
-    return;
-  }
-  if (/^\/borrarme(?:@\w+)?$/.test(texto) && !esGrupo && puedeBorrar(msg.from?.id, process.env, host)) {
-    return enviar(chatId, "⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu, tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.", {
-      botones: [[{ texto: "Sí, bórralo todo", dato: "borrar:si" }, { texto: "No", dato: "borrar:no" }]],
-    });
-  }
-
-  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+  if (start?.[1]) return enlazarDesdeAjustes(msg, chatId, esGrupo, start[1], base);
 
   if (/^\/app(?:@\w+)?$/.test(texto)) return abrirApp(msg, chatId, esGrupo, base);
 
@@ -182,12 +304,24 @@ async function atender(msg, base, host = "") {
     }
     if (EMAIL_RE.test(texto)) return pedirAcceso(msg, chatId, texto.toLowerCase(), base);
     const cifras = texto.replace(/\s/g, "");
-    if (/^\d{6}$/.test(cifras)) return comprobarCodigo(msg, chatId, cifras);
+    if (/^\d{6}$/.test(cifras)) return comprobarCodigo(msg, chatId, cifras, base);
+    // Antes de tratarlo como alguien nuevo: ¿ya había un enlace de este mismo
+    // chat parado por el aviso legal (comprobarCodigo, enlazarDesdeAjustes)?
+    // Si lo hay, se retoma — nunca crearCuenta, que sembraría una cuenta y una
+    // casa nuevas desconectadas de la que de verdad estaba a medio enlazar.
+    const pendiente = await enlacePendiente(chatId).catch(() => null);
+    if (pendiente?.via === "token") return enlazarDesdeAjustes(msg, chatId, esGrupo, pendiente.token, base);
+    if (pendiente?.via === "codigo") {
+      if (await faltaAceptarLegal(pendiente.userId).catch(() => false)) {
+        return pedirConsentimiento(chatId, base, { nuevo: false, completarCorreo: pendiente.userId });
+      }
+      return enlazarCuentaPropia(chatId, pendiente.userId, msg.from);
+    }
     await registrar(EMBUDO.ARRANQUE, { telegramId: msg.from?.id, unaVez: true });
     if (!texto || texto.startsWith("/")) {
       // Un audio o una foto de primeras: se crea la casa y se atiende igual.
       if (msg.voice || msg.audio || msg.photo || msg.document) return crearCuenta(msg.from, chatId, { msg, base });
-      return bienvenida(chatId);
+      return bienvenida(chatId, base);
     }
     // Lo primero que escriben ya es el alta («somos cuatro, dos niños…»): sin
     // preguntar por cuentas. Enlazar con la app es un botón, no un paso.
@@ -649,7 +783,10 @@ async function enlaceApp(base, ir, from, chatId) {
 async function recibirCompartido(chatId, param) {
   const inv = await resolverInvitacion(param).catch(() => null);
   if (!inv) return enviar(chatId, "Ese enlace ya no funciona 🙈 Pídele que te lo vuelva a mandar.");
-  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+  // chatEnlazado, no un select crudo: solo se llama en privado (su único sitio
+  // la descarta en grupo), y así una cuenta borrada (linked_by a null) cuenta
+  // como "sin casa" en vez de como una casa viva cuyo dueño ya no existe.
+  const chat = await chatEnlazado(chatId);
   // Que lo compartido llega y a quién (con casa o sin ella): sin nombres.
   await rastro(chat?.household_id ?? null, RASTRO.COMPARTIDO_RECIBIDO, { tipo: inv.tipo === "semana" ? "semana" : "receta", conCasa: Boolean(chat) });
   const invitacion = "¿Te preparo también a ti el menú de la semana? Cuéntame quiénes coméis en casa (o mándame un audio) y empezamos 🙂";
@@ -678,7 +815,7 @@ async function recibirCompartido(chatId, param) {
 
 async function usarCompartido(cq, chat, base) {
   const chatId = String(cq.message.chat.id);
-  if (!chat) return bienvenida(chatId);
+  if (!chat) return bienvenida(chatId, base);
   const [, accion, param] = cq.data.match(/^comp:(\w):(.+)$/) ?? [];
   const inv = await resolverInvitacion(param).catch(() => null);
   if (!inv || inv.tipo !== "receta") return enviar(chatId, "Ese enlace ya no funciona 🙈");
@@ -705,7 +842,7 @@ async function usarCompartido(cq, chat, base) {
 
 /** Al entrar en un grupo: cómo se le habla, y cómo conectarlo si no lo está. */
 async function saludoGrupo(chatId) {
-  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+  const chat = await chatEnlazado(chatId, { esGrupo: true });
   return enviar(chatId, [
     "¡Hola, familia! Soy <b>Lola</b> 👩‍🍳, la que os prepara el menú y la compra.",
     "Para hablarme aquí, empezad el mensaje con <b>Lola</b>: «Lola, ¿qué cenamos hoy?» o «Lola, apunta leche».",
@@ -759,14 +896,37 @@ function datoDeBoton(o) {
 
 // Empieza por lo que ofrece, no por la cuenta: quien escribe «somos cuatro»
 // ya está dando el alta. La cuenta de la app es un botón para quien ya la usa.
-function bienvenida(chatId) {
+//
+// Los enlaces legales van tejidos aquí mismo (no en una pantalla aparte):
+// «Es mi primera vez» manda directo a legal:acepto, porque para cuando lo
+// pulsan ya los han visto en este mismo mensaje. Antes mandaba a
+// cuenta:nuevo:ok, que hoy cae en pedirConsentimiento (crearCuenta) y pedía
+// el mismo aviso una segunda vez — ese botón se deja tal cual para cualquier
+// otro camino que no haya enseñado los enlaces todavía.
+// baseDe(req) ya normaliza esto para el request en curso; este helper es para
+// los dos sitios (bienvenida, pedirConsentimiento) que enlazan a la app con
+// ese mismo `base` ya resuelto, con el mismo respaldo que baseDe por si no
+// llegara (p. ej. un botón pulsado sin base en algún camino viejo).
+const baseNormalizada = (base) => {
+  const b = (base ?? process.env.APP_URL ?? "").replace(/\/$/, "");
+  // Sin dominio, el <a href="/privacidad.html"> que se construye con esto es
+  // relativo: Telegram rechaza ese HTML ("can't parse entities"), y enviar()
+  // reintenta en plano quitando TODas las etiquetas — el enlace desaparece
+  // sin dejar rastro, justo en el mensaje que existe para enseñarlo. No hay
+  // nada sensato que hacer aquí salvo que se vea en los logs.
+  if (!b) console.error("[bot/telegram] baseNormalizada: sin base ni APP_URL — los enlaces legales van a salir rotos");
+  return b;
+};
+
+function bienvenida(chatId, base) {
+  const b = baseNormalizada(base);
   return enviar(chatId, [
     "¡Hola! Soy <b>Lola</b> 👩‍🍳 Te preparo el menú de la semana y la lista de la compra, y te lo cambio cuando quieras.",
     "Para empezar, cuéntame <b>quiénes coméis en casa</b> (y la edad de los peques). Escríbemelo o mándame un audio 🎙️",
-    "<i>Lo que me cuentes solo sirve para vuestro menú; no se lo paso a nadie.</i>",
+    `<i>Lo que me cuentes solo sirve para vuestro menú; no se lo paso a nadie. Más en la <a href="${b}${URL_PRIVACIDAD}">política de privacidad</a> y los <a href="${b}${URL_TERMINOS}">términos de uso</a>.</i>`,
   ].join("\n\n"), {
     botones: [[
-      { texto: "Es mi primera vez", dato: "cuenta:nuevo:ok" },
+      { texto: "Es mi primera vez", dato: "legal:acepto" },
       { texto: "Ya uso HoMenu", dato: "cuenta:si" },
     ]],
   });
@@ -791,20 +951,9 @@ async function pulsado(cq, base, host = "") {
     message_id: cq.message.message_id,
     reply_markup: { inline_keyboard: [] },
   }).catch(() => {});
-  const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
-
-  // Un botón que puso el agente: cuenta como si se hubiera escrito (también en grupo).
-  if (cq.data?.startsWith("t:")) {
-    if (!chat) return bienvenida(chatId);
-    const esGrupo = esGrupoDe(cq.message.chat);
-    return enTurno(chatId, itemDe(cq.from, cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true }),
-      atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
-  }
-
-  // Quien recibe una receta: guardársela o ponerla en su menú.
-  if (cq.data?.startsWith("comp:")) return usarCompartido(cq, chat, base);
-
-  // /borrarme: las mismas dos llaves al pulsar, no solo al pedirlo.
+  // Botones de /limpiar y /borrarme: igual que los comandos de texto
+  // (atender()), antes del aviso legal y por la misma razón — son para quien
+  // está probando altas, no para usuarios reales.
   if (cq.data === "limpiar" && !esGrupoDe(cq.message.chat) && puedeBorrar(cq.from?.id, process.env, host)) {
     await limpiarPantalla(chatId, cq.message.message_id);
     return;
@@ -819,6 +968,73 @@ async function pulsado(cq, base, host = "") {
     return enviar(chatId, "🗑️ <b>Borrado.</b> Ya no hay cuenta, ni casa, ni nada guardado de nuestras charlas.\n\nCuando quieras empezar de nuevo, escríbeme.", {
       botones: [[{ texto: "Limpiar la pantalla", dato: "limpiar" }]],
     });
+  }
+
+  const chat = await chatEnlazado(chatId, { esGrupo: esGrupoDe(cq.message.chat) });
+
+  // Mismo aviso que para un mensaje de texto (atender()), y por la misma
+  // razón: sin esto, cualquier botón (una opción que ofreció Lola, "Reintentar",
+  // una receta compartida, deshacer…) esquivaba el aviso entero con tal de no
+  // escribir texto. legal:* son la excepción: son la propia respuesta al
+  // aviso, y bloquearlos impediría aceptar.
+  if (!cq.data?.startsWith("legal:") && await faltaAvisoLegal(chat, esGrupoDe(cq.message.chat))) {
+    return pedirConsentimiento(chatId, base, { nuevo: false });
+  }
+
+  // Un botón que puso el agente: cuenta como si se hubiera escrito (también en grupo).
+  if (cq.data?.startsWith("t:")) {
+    if (!chat) return bienvenida(chatId, base);
+    const esGrupo = esGrupoDe(cq.message.chat);
+    return enTurno(chatId, itemDe(cq.from, cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined, inmediato: true }),
+      atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
+  }
+
+  // Quien recibe una receta: guardársela o ponerla en su menú.
+  if (cq.data?.startsWith("comp:")) return usarCompartido(cq, chat, base);
+
+  const AVISO_LEGAL_NO_GUARDADO = "Uy, no he podido guardarlo. ¿Pulsas otra vez en un momento?";
+
+  // El "sí" de alguien que ya tenía la cuenta enlazada, tras subir
+  // LEGAL_VERSION (atender() se lo pidió en vez de atender su mensaje). Se
+  // guarda en chat.linked_by: la cuenta de ESTE chat, no la dueña de la casa
+  // (pueden ser personas distintas si hay dos chats privados enlazados).
+  // Los dos de abajo solo tienen sentido en un chat privado: un chat de grupo
+  // lo ven y lo podrían pulsar varias personas, y aquí se registra el
+  // consentimiento de UNA cuenta concreta (chat.linked_by, o el userId que
+  // lleva el propio botón) — nunca de quien resulte haber pulsado.
+  if (cq.data === "legal:acepto:existente") {
+    if (esGrupoDe(cq.message.chat) || !chat) return bienvenida(chatId, base);
+    const guardado = await registrarConsentimiento(chat.linked_by);
+    if (!guardado) return enviar(chatId, AVISO_LEGAL_NO_GUARDADO);
+    return enviar(chatId, "¡Gracias! Seguimos. ¿En qué te ayudo?");
+  }
+
+  // El "sí" de alguien a quien se paró un enlace de un solo uso SIN gastarlo
+  // (enlazarDesdeAjustes: ese token lo gasta el propio bot, así que puede
+  // dejarlo sin tocar para reintentarlo): se registra para esa cuenta
+  // directamente (no hay chat enlazado del que sacarla) y se pide pulsarlo otra vez.
+  if (cq.data?.startsWith("legal:ok:")) {
+    if (!esSuChatPrivado(cq, chatId)) return;
+    const userId = cq.data.slice("legal:ok:".length);
+    const guardado = await registrarConsentimiento(userId);
+    if (!guardado) return enviar(chatId, AVISO_LEGAL_NO_GUARDADO);
+    // Genérico a propósito: lo usan enlazarDesdeAjustes (pulsar el enlace),
+    // comprobarCodigo ya no (ese tiene su propio legal:correo:, ver abajo) y
+    // abrirApp (escribir /app) — ninguno gastó nada antes de llegar aquí, así
+    // que "vuelve a intentarlo" vale para los dos sin mentir en ninguno.
+    return enviar(chatId, "¡Gracias! Ahora sí: vuelve a intentarlo.");
+  }
+
+  // El "sí" de quien verificó su código de email (comprobarCodigo) pero le
+  // faltaba el consentimiento: ESE código ya lo gastó Supabase al
+  // comprobarlo, así que no hay nada que reintentar — se completa el enlace
+  // aquí mismo con lo que ya se sabe (mismo camino que usaría comprobarCodigo).
+  if (cq.data?.startsWith("legal:correo:")) {
+    if (!esSuChatPrivado(cq, chatId)) return;
+    const userId = cq.data.slice("legal:correo:".length);
+    const guardado = await registrarConsentimiento(userId);
+    if (!guardado) return enviar(chatId, AVISO_LEGAL_NO_GUARDADO);
+    return enlazarCuentaPropia(chatId, userId, cq.from);
   }
 
   if (esGrupoDe(cq.message.chat)) return;
@@ -838,6 +1054,7 @@ async function pulsado(cq, base, host = "") {
     });
   }
   if (cq.data === "cuenta:nuevo:ok") return crearCuenta(cq.from, chatId, { base });
+  if (cq.data === "legal:acepto") return crearCuenta(cq.from, chatId, { base, legalAceptado: true });
 }
 
 // Límites de correos de acceso: por persona (no bombardear a nadie desde un
@@ -881,14 +1098,52 @@ async function pedirAcceso(msg, chatId, email, base) {
 
 const MAX_INTENTOS = 5;
 
-async function comprobarCodigo(msg, chatId, token) {
+/**
+ * Enlaza la casa propia de una cuenta YA verificada (por email) a este chat.
+ * La usan comprobarCodigo y, tras aceptar el aviso legal, su botón
+ * (legal:correo:<userId>, en pulsado): dos sitios, la misma cola del mismo
+ * camino, así que viven en un solo sitio.
+ */
+async function enlazarCuentaPropia(chatId, userId, from) {
+  // Se limpia pase lo que pase (abajo, en cada rama): es el marcador que deja
+  // comprobarCodigo en bot_codigos.user_id para que enlacePendiente pueda
+  // retomar el enlace ante un mensaje suelto. Sin limpiarlo también en el
+  // caso que SÍ se completa, una verificación de hace semanas, ya enlazada y
+  // olvidada, quedaba "pendiente" para siempre — y si ese chat se
+  // desenlazaba más tarde por otra vía (p. ej. al salir de la casa),
+  // cualquier mensaje suelto lo reenlazaba solo a la cuenta vieja, sin pedir
+  // nada nuevo.
+  const limpiarPendiente = () =>
+    update("bot_codigos", `tipo=eq.vincular&channel=eq.telegram&chat_id=${eq(chatId)}&user_id=${eq(userId)}`, { user_id: null })
+      .catch((e) => console.error("[bot/telegram] enlazarCuentaPropia: no se pudo limpiar user_id", e?.message));
+
+  const hogar = await casaPropia(userId);
+  if (!hogar) {
+    await limpiarPendiente();
+    return enviar(chatId, "Tu cuenta no gestiona ninguna casa todavía. Entra en la app de HoMenu para crear la tuya y vuelve a escribirme.");
+  }
+  const r = await enlazarChat({
+    chatId,
+    kind: "private",
+    householdId: hogar.id,
+    userId,
+    externalId: from?.id,
+    nombre: nombreDe(from),
+    lang: from?.language_code,
+  });
+  await limpiarPendiente();
+  if (r.ocupado) return enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
+  return confirmarEnlace(chatId, hogar.id);
+}
+
+async function comprobarCodigo(msg, chatId, token, base) {
   const ahora = encodeURIComponent(new Date().toISOString());
   const [pendiente] = await select(
     "bot_codigos",
     `tipo=eq.vincular&channel=eq.telegram&chat_id=${eq(chatId)}&external_id=${eq(msg.from?.id)}&used_at=is.null&expires_at=gt.${ahora}&order=created_at.desc&limit=1`,
     "codigo,email,intentos",
   );
-  if (!pendiente?.email) return bienvenida(chatId);
+  if (!pendiente?.email) return bienvenida(chatId, base);
   if (pendiente.intentos >= MAX_INTENTOS) {
     return enviar(chatId, "Demasiados intentos con ese código. Escríbeme otra vez tu email y te mando uno nuevo.");
   }
@@ -898,39 +1153,108 @@ async function comprobarCodigo(msg, chatId, token) {
     await update("bot_codigos", `codigo=${eq(pendiente.codigo)}`, { intentos: pendiente.intentos + 1 });
     return enviar(chatId, "Ese código no es correcto (o ha caducado). Revísalo y vuelve a escribírmelo.");
   }
+  // El código de SUPABASE (el de 6 cifras) ya está gastado aquí arriba, lo
+  // diga o no bot_codigos: verificarCodigoEmail lo consume al comprobarlo, así
+  // que si falta el aviso legal no hay nada que "reintentar" — se completa el
+  // enlace en el propio botón (legal:correo:, en pulsado), con lo que ya se
+  // sabe. gastarCodigo (nuestra marca de bot_codigos) se deja para después:
+  // sin eso, dos códigos distintos para el mismo email seguirían libres para
+  // probar otra vez si este turno no llegara a enlazar.
+  // Un solo sitio, antes de las dos ramas: si esto no ha marcado nada (un
+  // doble toque casi a la vez sobre el mismo código), no se sigue sin más,
+  // falte o no el aviso legal.
+  if (!(await gastarCodigo(pendiente.codigo, "vincular"))) return bienvenida(chatId, base);
+  // Para que un mensaje suelto ANTES de pulsar "Acepto, vamos" (más abajo,
+  // atender()) pueda reconocer este chat como "ya verificado, solo falta el
+  // legal" en vez de caer en crearCuenta y sembrar una cuenta nueva
+  // desconectada de esta: user_id ya existía en el esquema (0058) para esto.
+  // A lo mejor: si esto fallara (un hipo de red), el BOTÓN sigue funcionando
+  // igual (legal:correo:<userId> lleva el userId consigo, no lo relee de
+  // aquí) — solo se pierde la posibilidad de retomar el enlace ante un
+  // mensaje suelto, que es exactamente como se comportaba esto antes de que
+  // enlacePendiente existiera. Ni más roto ni menos, igual que el resto de
+  // guardas del bot que fallan abierto ante un error de lectura/escritura.
+  await update("bot_codigos", `codigo=${eq(pendiente.codigo)}`, { user_id: userId })
+    .catch((e) => console.error("[bot/telegram] comprobarCodigo: no se pudo guardar user_id", e?.message));
 
-  if (!(await gastarCodigo(pendiente.codigo, "vincular"))) return bienvenida(chatId);
-  const hogar = await casaPropia(userId);
-  if (!hogar) {
-    return enviar(chatId, "Tu cuenta no gestiona ninguna casa todavía. Entra en la app de HoMenu para crear la tuya y vuelve a escribirme.");
+  if (await faltaAceptarLegal(userId).catch(() => false)) {
+    return pedirConsentimiento(chatId, base, { nuevo: false, completarCorreo: userId });
   }
-  const r = await enlazarChat({
-    chatId,
-    kind: "private",
-    householdId: hogar.id,
-    userId,
-    externalId: msg.from?.id,
-    nombre: nombreDe(msg.from),
-    lang: msg.from?.language_code,
-  });
-  if (r.ocupado) return enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
-  return confirmarEnlace(chatId, hogar.id);
+  return enlazarCuentaPropia(chatId, userId, msg.from);
 }
 
 /**
- * @param {{ texto?: string, msg?: object, base?: string }} [primero]  lo primero que escribió
- *   (o el audio / la foto): se atiende como parte del alta, sin hacerle repetir.
+ * El aviso legal: enlaza privacidad y términos y pide un toque explícito.
+ *
+ * Dos casos, mismo mensaje con matices:
+ *   · Cuenta nueva (`nuevo`): antes de crear nada. Quien escriba después de
+ *     verlo (en vez de pulsar) vuelve a caer aquí, así que no hay forma de que
+ *     nazca una cuenta sin él. El "primero" que hubiera escrito (texto, audio,
+ *     foto) se pierde adrede: precio pequeño, una vez por persona, frente a no
+ *     tener dónde anclar el "sí".
+ *   · Cuenta ya enlazada cuyo LEGAL_VERSION quedó viejo (subió el texto legal):
+ *     atender() la muestra en vez de atender el mensaje, en cada turno, hasta
+ *     que acepte (faltaAceptarLegal, con caché corta para no mirarlo en cada
+ *     mensaje mientras no haga falta).
+ *
+ * `nuevo` decide solo el SALUDO (dos redacciones, para una cuenta que nace o
+ * una que ya existía). El BOTÓN lo decide, en este orden:
+ *   · `completarCorreo` (un userId): comprobarCodigo verificó el email, pero
+ *     ese código de Supabase ya está gastado por la propia verificación (a
+ *     diferencia de un bot_link_tokens, no hay forma de "dejarlo sin gastar"
+ *     para reintentarlo) — así que legal:correo:<userId> no pide repetir
+ *     nada: completa el enlace él mismo con lo que ya se sabe.
+ *   · si no, `reintentoDe` (un userId): un enlace de un solo uso que SÍ se
+ *     paró ANTES de gastarse (enlazarDesdeAjustes, bot_link_tokens, que el
+ *     bot gasta él mismo y por tanto puede dejar sin gastar). legal:ok:
+ *     <userId> registra el consentimiento y pide pulsar el enlace otra vez.
+ *   · si no, `viaCrearCuenta` (por defecto, sigue a `nuevo`): una cuenta que
+ *     nace o que existía pero su chat no está enlazado (nacida=true sin fila
+ *     en bot_chats, p. ej. tras salir de la casa) tiene que volver a pasar
+ *     por crearCuenta para enlazarse — legal:acepto, no legal:acepto:existente
+ *     (que da por hecho que el chat YA está enlazado y solo registra).
+ */
+function pedirConsentimiento(chatId, base, { nuevo = true, viaCrearCuenta = nuevo, reintentoDe = null, completarCorreo = null } = {}) {
+  const b = baseNormalizada(base);
+  const abre = nuevo ? "¡Hola! Soy <b>Lola</b> 👩‍🍳\n\nAntes de nada, dos" : "He actualizado cómo cuido vuestros datos: dos";
+  const dato = completarCorreo ? `legal:correo:${completarCorreo}`
+    : reintentoDe ? `legal:ok:${reintentoDe}`
+      : viaCrearCuenta ? "legal:acepto" : "legal:acepto:existente";
+  return enviar(chatId, [
+    `${abre} enlaces cortos: la <a href="${b}${URL_PRIVACIDAD}">política de privacidad</a> y los <a href="${b}${URL_TERMINOS}">términos de uso</a>.`,
+    "Guardo lo que me cuentes de tu casa (quién vive, alergias, gustos) para preparar vuestro menú. Nunca lo comparto, y lo puedes borrar cuando quieras.",
+  ].join("\n\n"), {
+    botones: [[{ texto: "✅ Acepto, vamos", dato }]],
+  });
+}
+
+/**
+ * @param {{ texto?: string, msg?: object, base?: string, legalAceptado?: boolean }} [primero]
+ *   lo primero que escribió (o el audio / la foto): se atiende como parte del
+ *   alta, sin hacerle repetir. `legalAceptado` solo lo pone el botón de
+ *   pedirConsentimiento: sin él, ni nace una cuenta ni se reenlaza una vieja.
  */
 async function crearCuenta(from, chatId, primero = {}) {
   // Si este Telegram ya creó su cuenta, no se crea otra; y siempre su casa
   // PROPIA, nunca la activa (podría ser una ajena en la que es invitado).
   const nacida = await cuentaNacidaAqui(from.id);
+  // Nace (nunca ha aceptado nada) o ya existía pero con LEGAL_VERSION vieja
+  // (p. ej. se quitó este chat de bot_chats, como al salir de la casa, y la
+  // cuenta vuelve a escribir): los dos casos piden el mismo aviso antes de
+  // (re)enlazar nada.
+  const falta = !primero.legalAceptado && (nacida ? await faltaAceptarLegal(nacida.id).catch(() => false) : true);
+  // viaCrearCuenta siempre true aquí: tanto si nace como si existía pero su
+  // chat no estaba enlazado, el botón tiene que volver a pasar por esta
+  // función para (re)enlazar — legal:acepto:existente asume un chat que en
+  // este punto puede no existir todavía.
+  if (falta) return pedirConsentimiento(chatId, primero.base, { nuevo: !nacida, viaCrearCuenta: true });
+
   const cuenta = nacida
     ? { userId: nacida.id, householdId: (await casaPropia(nacida.id))?.id }
     : await crearCuentaTelegram({ telegramId: from.id, nombre: nombreDe(from) });
   if (!cuenta.householdId) throw new Error("cuenta sin casa");
 
-  await enlazarChat({
+  const enlace = await enlazarChat({
     chatId,
     kind: "private",
     householdId: cuenta.householdId,
@@ -939,6 +1263,31 @@ async function crearCuenta(from, chatId, primero = {}) {
     nombre: nombreDe(from),
     lang: from.language_code,
   });
+  // Un chat huérfano (cuenta borrada, linked_by a null) ya NO cae aquí: desde
+  // que enlazarChat trata esa fila como sin dueño (enlace.js), se cura sola
+  // con el enlace nuevo. Lo que sigue pudiendo pasar, rara vez, es una
+  // carrera de verdad: dos mensajes casi a la vez para el mismo chat sin
+  // enlazar, cada uno creando su propia cuenta, y el segundo enlazarChat
+  // encuentra la fila que acaba de dejar el primero con OTRA cuenta — eso sí
+  // sigue siendo "ocupado", y sin comprobarlo, la casa del segundo se
+  // sembraba y se hablaba con ella igual, pero bot_chats se quedaba con la
+  // del primero: una casa abandonada, sin ningún error a la vista.
+  if (enlace.ocupado) {
+    // La cuenta y la casa que se acaban de crear (cuenta.userId/householdId)
+    // se quedan huérfanas: nadie las borra. Arreglarlo de verdad pide que
+    // crearCuentaTelegram y enlazarChat sean una sola transacción, que hoy no
+    // existe — con lo rara que es la carrera, se deja aquí visible en el log
+    // para una limpieza manual en vez de montar esa pieza para esto solo.
+    console.error("[bot/telegram] crearCuenta: carrera con enlazarChat; huérfanas:", { userId: cuenta.userId, householdId: cuenta.householdId });
+    return enviar(chatId, "Uy, creo que se han cruzado dos mensajes tuyos a la vez. Escríbeme otra vez en un momento.");
+  }
+  // Se registra siempre que hiciera falta llegar hasta aquí: cuenta recién
+  // nacida, o una existente que acababa de aceptar tras quedarse atrás. Si ya
+  // estaba al día (ni nacida ni con la versión vieja), no hay nada que volver
+  // a escribir. Si falla (queda en el log), no se corta el alta por eso: el
+  // chequeo de cada turno (más arriba, en atender()) lo volverá a pedir en el
+  // siguiente mensaje si de verdad no se guardó.
+  if (!nacida || primero.legalAceptado) await registrarConsentimiento(cuenta.userId);
 
   // El alta sigue aquí mismo, hablando: el agente pregunta lo imprescindible
   // (quiénes, alergias, qué comidas) y propone el primer menú. La app queda
@@ -977,6 +1326,12 @@ async function abrirApp(msg, chatId, esGrupo, base) {
   if (!cuenta) {
     return enviar(chatId, "Tu cuenta se abre como siempre, con Google o con tu email, desde la app de HoMenu.");
   }
+  // cuentaNacidaAqui encuentra la cuenta aunque este chat no esté enlazado
+  // ahora mismo (p. ej. tras salir de una casa) — el aviso de arriba, que
+  // depende de chat.linked_by, no la habría cubierto en ese caso.
+  if (await faltaAceptarLegal(cuenta.id).catch(() => false)) {
+    return pedirConsentimiento(chatId, base, { nuevo: false, reintentoDe: cuenta.id });
+  }
   const codigo = await crearCodigo({ tipo: "entrar", chatId, externalId: msg.from.id, userId: cuenta.id, minutos: MIN_ENTRAR });
   return enviar(chatId, "Aquí tienes (sirve una vez y caduca en 30 minutos):", {
     botones: [[{ texto: "Abrir HoMenu", url: `${base}/?entrar=${codigo}` }]],
@@ -987,13 +1342,25 @@ async function abrirApp(msg, chatId, esGrupo, base) {
  * `callado`: viene de un botón de la app con algo pedido. Si el chat ya
  * estaba enlazado, un código gastado da igual, y sobra el «conectado»: lo que
  * toca es atender lo pedido. Devuelve `{ ocupado: true }` si el chat es de
- * otra casa (y entonces no se atiende nada).
+ * otra casa, o `{ faltaConsentimiento: true }` si hace falta el aviso legal
+ * (ya mandado en los dos casos: no se atiende nada más en el turno).
  */
-async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, { callado = false } = {}) {
+async function enlazarDesdeAjustes(msg, chatId, esGrupo, token, base, { callado = false } = {}) {
   const [fila] = await select("bot_link_tokens", `token=${eq(token)}`, "token,user_id,household_id,expires_at,used_at");
   if (!fila || fila.used_at || Date.parse(fila.expires_at) < Date.now()) {
     if (callado) return null;
     return enviar(chatId, "Ese enlace ya no vale (caduca a los 15 minutos y sirve una sola vez). Pide otro desde la app.");
+  }
+  // Antes de marcarlo usado: así, si falta el "sí" legal, el enlace sigue
+  // valiendo y no hace falta pedir otro para reintentarlo.
+  if (!esGrupo && (await faltaAceptarLegal(fila.user_id).catch(() => false))) {
+    // chat_id (0067) es lo que permite a atender() reconocer, ante un mensaje
+    // suelto antes de pulsar el botón, que este chat ya tiene un enlace
+    // esperando y retomarlo en vez de tratarlo como alguien nuevo.
+    await update("bot_link_tokens", `token=${eq(token)}`, { chat_id: chatId })
+      .catch((e) => console.error("[bot/telegram] enlazarDesdeAjustes: no se pudo guardar chat_id", e?.message));
+    await pedirConsentimiento(chatId, base, { nuevo: false, reintentoDe: fila.user_id });
+    return { faltaConsentimiento: true };
   }
 
   // Marcarlo usado ANTES de enlazar: dos pulsaciones seguidas no enlazan dos veces.

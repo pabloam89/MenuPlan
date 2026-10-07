@@ -19,9 +19,86 @@
  * servidor (`sesionDe`): ningún correo sale y nadie más ve el token.
  */
 
-import { config, select, eq } from "./db.js";
+import { config, select, insert, eq } from "./db.js";
+import { LEGAL_VERSION } from "../../src/lib/legal.js";
 
 const DOMINIO_SINTETICO = "usuarios.menuplanai.com";
+
+// Una respuesta reciente, en cualquiera de los dos sentidos, no se vuelve a
+// mirar: es un chequeo que entra en CADA mensaje de un chat ya enlazado.
+// "Al día" se cachea más (LEGAL_VERSION no cambia a diario); "le falta" se
+// cachea poco, para no consultar Supabase en cada mensaje mientras alguien
+// ignora el aviso y sigue escribiendo, pero sin tardar en notar que ya
+// aceptó. registrarConsentimiento limpia la entrada al momento: no hace
+// falta esperar a que caduque para que el "sí" surta efecto.
+//
+// MAX_CACHE es una válvula de seguridad, no un LRU de verdad: en una
+// instancia caliente que atienda a muchísima gente distinta, vaciar el mapa
+// entero de cuando en cuando es más simple que llevar la cuenta de qué
+// entradas son viejas, y el coste (una consulta de más justo después de
+// vaciar) es insignificante al lado de crecer sin límite.
+const ESTADO_LEGAL = new Map();
+const OK_MS = 10 * 60 * 1000;
+const FALTA_MS = 60 * 1000;
+const MAX_CACHE = 5000;
+
+function recordarEstadoLegal(userId, falta) {
+  if (ESTADO_LEGAL.size >= MAX_CACHE) ESTADO_LEGAL.clear();
+  ESTADO_LEGAL.set(userId, { t: Date.now(), falta });
+}
+
+/**
+ * Guarda el "acepto" legal de una cuenta (nacida en el chat, o una ya
+ * existente que vuelve a aceptar tras subir LEGAL_VERSION). Misma versión y
+ * misma columna que usa la app (src/lib/legal.js), así que da igual por dónde
+ * se haya aceptado.
+ *
+ * Upsert, no PATCH: una cuenta que llegó por "ya tengo cuenta" (verificación
+ * de email) puede no tener todavía fila en user_profiles si nunca pasó por
+ * ensure_user_household ni por el login de Google de la app — un PATCH a un
+ * user_id sin fila vuelve 200 con cero filas, sin lanzar nada, y se quedaría
+ * pidiendo el aviso para siempre sin que ningún reintento lo arreglara nunca.
+ * Comprueba igualmente que de verdad tocó algo: por si acaso.
+ *
+ * Nunca lanza (todo queda en el log): quien llama no puede dejar a medias un
+ * turno por esto, pero SÍ necesita saber si de verdad se guardó, para no
+ * decir "¡Gracias!" cuando no ha pasado nada — por eso devuelve si salió bien.
+ * @returns {Promise<boolean>}
+ */
+export async function registrarConsentimiento(userId) {
+  const filas = await insert("user_profiles", [{
+    user_id: userId,
+    legal_version: LEGAL_VERSION,
+    legal_accepted_at: new Date().toISOString(),
+  }], { upsert: true }).catch((e) => { console.error("[cuentas] registrarConsentimiento", e?.message); return null; });
+  if (!filas?.length) { console.error("[cuentas] registrarConsentimiento: no se guardó", userId); return false; }
+  recordarEstadoLegal(userId, false);
+  return true;
+}
+
+/**
+ * ¿A esta cuenta (ya creada: la persona detrás de un chat ya enlazado, nunca
+ * la que se va a crear ahora) le falta aceptar la versión vigente?
+ *
+ * Un ERROR de lectura falla ABIERTO y no se cachea (un hipo de red no corta
+ * la charla de nadie por un turno, igual que el resto de guardas del bot:
+ * fueraDeLimite, el candado…; y se vuelve a intentar en el siguiente turno,
+ * no dentro de 10 min). Una lectura que SALE BIEN pero no encuentra fila es
+ * otra cosa: no es un fallo, es que esa cuenta nunca aceptó nada, así que
+ * cuenta como "le falta" — antes se confundían los dos casos y una cuenta sin
+ * fila en user_profiles no veía el aviso nunca.
+ */
+export async function faltaAceptarLegal(userId) {
+  if (!userId) return false;
+  const visto = ESTADO_LEGAL.get(userId);
+  if (visto && Date.now() - visto.t < (visto.falta ? FALTA_MS : OK_MS)) return visto.falta;
+  const filas = await select("user_profiles", `user_id=${eq(userId)}`, "legal_version")
+    .catch((e) => { console.error("[cuentas] faltaAceptarLegal", e?.message); return null; });
+  if (filas === null) return false; // error de lectura: sin cachear, se reintenta en el próximo turno
+  const falta = (filas[0]?.legal_version ?? null) !== LEGAL_VERSION;
+  recordarEstadoLegal(userId, falta);
+  return falta;
+}
 
 export const emailSintetico = (telegramId) => `tg${telegramId}@${DOMINIO_SINTETICO}`;
 
