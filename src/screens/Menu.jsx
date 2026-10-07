@@ -123,7 +123,7 @@ import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
 import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
 import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
 import { consumeFromPantry, restoreToPantry, pantryConsumeMode } from "../lib/cookPantry.js";
-import { addPantryItems, addLocalPantryItems, adjustCookedDishPortions, adjustLocalCookedDishPortions, loadPantry, loadLocalPantry, removePantryItem, removeLocalPantryItem } from "../lib/pantry.js";
+import { addPantryItems, addLocalPantryItems, adjustCookedDishPortions, adjustLocalCookedDishPortions, loadPantry, loadLocalPantry } from "../lib/pantry.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
@@ -6854,7 +6854,8 @@ export function DishDetail({
   // del menú: elegir «Thermomix» aquí es decir con qué lo vas a hacer, no solo
   // mirar sus pasos. En modo catálogo no se pasa — no hay dónde guardarlo.
   onPickAppliance = null,
-  initialCourse = "principal",
+  // Ya no se usa: una sola vista (ver `activeCourse`). Se acepta para no romper a quien lo pasa.
+  initialCourse: _initialCourse = "principal",
   initialRecipeTab = "ingredientes",
   stepsByAppliance = null,
   autoDemo = null,
@@ -7031,7 +7032,12 @@ export function DishDetail({
     [sauceRecipe],
   );
 
-  const [activeCourse, setActiveCourse] = useState(initialCourse);
+  // Una sola vista (review de UX, lámina 6): fuera las pestañas Primer plato
+  // / Guarnición / Salsa / Combinado. Se queda la del plato, que es la que
+  // tiene el aparato, el descongelado, el check de «en casa» y «Marcar como
+  // cocinado», y debajo van la guarnición y la salsa (`acompanamientos`). Las
+  // otras vistas siguen en el código por si vuelven las pestañas.
+  const activeCourse = "principal";
   const garnishShortName = garnishRecipe
     ? (GUARNICION_BY_ID[garnishRecipe.id]?.shortName ?? garnishRecipe.name)
     : null;
@@ -7065,7 +7071,8 @@ export function DishDetail({
   const showSalsaCourse = (Boolean(sauceRecipe) && !platoUnico) || ownParts.includes("salsa");
   const displayName = useMemo(() => {
     if (!garnishRecipe && !sauceRecipe) return recipe.name;
-    if (platoUnico || activeCourse === "combinado") {
+    // Con una sola vista, el título dice el plato entero: «Merluza con patatas».
+    if (platoUnico || activeCourse === "combinado" || activeCourse === "principal") {
       return formatDishWithGarnish(
         baseName,
         garnishRecipe ? { shortName: garnishShortName, name: garnishRecipe.name } : null,
@@ -7130,6 +7137,23 @@ export function DishDetail({
     ((showGarnishCourse || showSalsaCourse) && activeCourse === "combinado") ||
     (platoUnico && (Boolean(garnishRecipe) || Boolean(sauceRecipe)));
   const cookCourse = platoUnico || (!onGarnishCourse && !onSalsaCourse && !onCombinedCourse);
+  // Lo que acompaña al plato, debajo de sus ingredientes y de sus pasos.
+  const acompanamientos = useMemo(() => {
+    if (platoUnico) return [];
+    if (hasOwnParts) {
+      const ICONO = { guarnicion: Salad, salsa: Droplets, combinado: Layers2 };
+      return ["guarnicion", "salsa", "combinado"]
+        .filter((p) => (ownIngredientsByPart[p] ?? []).length > 0 || (ownStepsByPart[p] ?? []).length > 0)
+        .map((p) => ({
+          key: p, label: STEP_PART_META[p].label, color: STEP_PART_META[p].color, Icon: ICONO[p],
+          ings: ownIngredientsByPart[p] ?? [], rich: ownStepsByPart[p] ?? [], plain: [],
+        }));
+    }
+    return [
+      garnishRecipe && { key: "guarnicion", label: garnishRecipe.name, color: "#16a34a", Icon: Salad, ings: garnishIngredients, rich: garnishRichSteps, plain: garnishPlainSteps },
+      sauceRecipe && { key: "salsa", label: sauceRecipe.name, color: "#c2703d", Icon: Droplets, ings: sauceIngredients, rich: sauceRichSteps, plain: saucePlainSteps },
+    ].filter(Boolean);
+  }, [platoUnico, hasOwnParts, ownIngredientsByPart, ownStepsByPart, garnishRecipe, garnishIngredients, garnishRichSteps, garnishPlainSteps, sauceRecipe, sauceIngredients, sauceRichSteps, saucePlainSteps]);
   const courseIngredients = onGarnishCourse
     ? (garnishRecipe ? garnishIngredients : (ownIngredientsByPart.guarnicion ?? []))
     : onSalsaCourse
@@ -7204,48 +7228,6 @@ export function DishDetail({
   // (catálogo curado) usan nombres de campo distintos; se comprueban los dos.
   const usedAppliance = recipe.requiredAppliances?.[0] ?? recipe.requiredAppliance ?? null;
   const UsedApplianceIcon = usedAppliance ? (REQUIRED_APPLIANCE_ICONS[usedAppliance] ?? UtensilsCrossed) : null;
-  // "Lo tengo": you have this even though it's not registered — add it to En
-  // casa (the override we agreed on), so the tick lights up and cooking can
-  // later discount it. Uses the dish's scaled need as the stocked amount.
-  // Tracks the created/topped-up pantry row id per ingredient (session-local,
-  // reset on unmount) so the tick can be reverted — but ONLY for a tick we
-  // ourselves just added here. A tick that reflects real pre-existing "En
-  // casa" stock must stay read-only: un-ticking it would delete stock the
-  // user has for reasons unrelated to this dish.
-  const [manuallyOwnedIds, setManuallyOwnedIds] = useState({});
-  const markIngredientOwned = async (ing) => {
-    const parsed = normalizePantryInput(ing.name)[0];
-    if (!parsed) return;
-    const item = {
-      name: parsed.raw,
-      normalized: parsed.ambiguous ? parsed.candidates[0].normalized : parsed.normalized,
-      qty: Number(ing.qtyScaled) > 0 ? Number(ing.qtyScaled) : 1,
-      unit: ing.unit ?? "ud",
-      source: "manual",
-    };
-    let addedId = null;
-    if (user) {
-      const rows = await addPantryItems(user.id, [item]);
-      addedId = rows[0]?.id ?? null;
-    } else {
-      const next = addLocalPantryItems([item]);
-      addedId = next.find((it) => it.ingredientNormalized === item.normalized)?.id ?? null;
-    }
-    if (addedId) setManuallyOwnedIds((m) => ({ ...m, [ing.id]: addedId }));
-    await reloadCookStock();
-  };
-  const revertIngredientOwned = async (ing) => {
-    const pantryId = manuallyOwnedIds[ing.id];
-    if (!pantryId) return;
-    if (user) await removePantryItem(user.id, pantryId);
-    else removeLocalPantryItem(pantryId);
-    setManuallyOwnedIds((m) => {
-      const next = { ...m };
-      delete next[ing.id];
-      return next;
-    });
-    await reloadCookStock();
-  };
   const cookIngredients = () =>
     ingredients.map((ing) => ({
       name: ing.name,
@@ -7926,48 +7908,7 @@ export function DishDetail({
             <div style={{ height: 2, background: "#d5e3da", borderRadius: 2, marginBottom: 14 }} />
           )}
 
-          {/* Selector de curso: icono a color + copy. Primer plato siempre;
-              Guarnición y Salsa solo si el plato las lleva (independientes
-              entre sí); Combinado en cuanto haya al menos una de las dos. */}
-          {(showGarnishCourse || showSalsaCourse) && (
-            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
-              {[
-                { id: "principal", Icon: CookingPot, color: "#2d5a3d", copy: "Primer plato", sub: baseName },
-                showGarnishCourse && { id: "guarnicion", Icon: Salad, color: "#16a34a", copy: "Guarnición", sub: garnishRecipe ? garnishRecipe.name : STEP_PART_META.guarnicion.label },
-                showSalsaCourse && { id: "salsa", Icon: Droplets, color: "#c2703d", copy: "Salsa", sub: sauceRecipe ? sauceRecipe.name : STEP_PART_META.salsa.label },
-                {
-                  id: "combinado", Icon: Layers2, color: "#2f6fb8", copy: "Combinado",
-                  sub: [showGarnishCourse && "guarnición", showSalsaCourse && "salsa"].filter(Boolean).join(" + ") || "guarnición",
-                },
-              ].filter(Boolean).map(({ id, Icon, color, copy, sub }) => {
-                const sel = activeCourse === id;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => setActiveCourse(id)}
-                    aria-pressed={sel}
-                    title={`${copy} · ${sub}`}
-                    style={{
-                      flex: 1, minWidth: 0, maxWidth: 120,
-                      display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
-                      padding: "9px 6px", borderRadius: 13,
-                      border: sel ? `2px solid ${color}` : `1.5px solid ${color}2e`,
-                      background: sel ? `${color}12` : "#fff",
-                      cursor: "pointer", fontFamily: "inherit",
-                      boxShadow: sel ? `0 6px 16px -10px ${color}` : "none",
-                      transition: "all .15s",
-                    }}
-                  >
-                    <Icon size={20} strokeWidth={2.3} color={color} />
-                    <span style={{ fontSize: 11.5, fontWeight: sel ? 800 : 700, color: sel ? color : "#5a7066", whiteSpace: "nowrap" }}>
-                      {copy}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* Sin selector de curso: una sola vista (ver `activeCourse`). */}
 
           {recipe.adaptations?.length > 0 && (
             <div style={{
@@ -8306,11 +8247,19 @@ export function DishDetail({
                     isLast={i === courseIngredients.length - 1}
                     cookable={cookable && cookCourse && !readOnly}
                     owned={cookable && cookCourse && haveByIngId[ing.id]}
-                    revertible={!readOnly && cookable && cookCourse && Boolean(manuallyOwnedIds[ing.id])}
-                    onMarkOwned={() => markIngredientOwned(ing)}
-                    onRevertOwned={() => revertIngredientOwned(ing)}
                     deBase={usandoBases ? deBasePorNombre.get(ing.name) ?? null : null}
                   />
+                ))}
+                {acompanamientos.filter((a) => a.ings.length > 0).map((a) => (
+                  <div key={a.key} style={{ marginTop: 18 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 10px" }}>
+                      <span style={{ fontSize: 12, fontWeight: 900, color: a.color, whiteSpace: "nowrap" }}>{a.label}</span>
+                      <div style={{ flex: 1, borderTop: `1.5px dashed ${a.color}44` }} />
+                    </div>
+                    {a.ings.map((ing, i) => (
+                      <DishIngredientRow key={ing.id} ing={ing} isLast={i === a.ings.length - 1} cookable={false} />
+                    ))}
+                  </div>
                 ))}
               </div>
             )}
@@ -8517,6 +8466,22 @@ export function DishDetail({
                 )}
               </>
             )}
+
+            {recipeTab === "pasos" && activeCourse === "principal" && acompanamientos.map((a) => (
+              (a.rich?.length > 0 || a.plain?.length > 0) && (
+                <div key={a.key} style={{ marginTop: 18 }}>
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10,
+                    padding: "3px 10px", borderRadius: 999,
+                    background: `${a.color}14`, color: a.color, fontSize: 11.5, fontWeight: 800,
+                  }}>
+                    <a.Icon size={13} strokeWidth={2.4} />
+                    {a.label}
+                  </div>
+                  <RecipeStepList rich={a.rich} plain={a.plain} ingredients={a.ings} kitchenTools={kitchenTools} accent={a.color} />
+                </div>
+              )
+            ))}
 
             {cookable && cookCourse && !readOnly && (
               <button
@@ -9073,16 +9038,7 @@ function FilaPiezaTanda({ pieza, sola, tengo, incluida, onCambiar }) {
   );
 }
 
-// El check de un ingrediente se dibuja de 18 px y se toca en 44: el margen
-// negativo le devuelve a la fila el sitio de siempre.
-const checkTactilStyle = {
-  width: 44, height: 44, margin: -13, flexShrink: 0,
-  display: "inline-flex", alignItems: "center", justifyContent: "center",
-  background: "none", border: "none", cursor: "pointer", padding: 0,
-  fontFamily: "inherit",
-};
-
-function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwned, onRevertOwned, deBase = null }) {
+function DishIngredientRow({ ing, isLast, cookable, owned, deBase = null }) {
   const unit = ing.unit ?? "ud";
   const qty = ing.qtyScaled;
   const displayVal = qty == null ? qualitativeUnitLabel(unit) : formatDisplay(qty, unit);
@@ -9095,11 +9051,10 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
     <div
       style={{
         borderBottom: isLast ? "none" : "1px solid #dde8e1",
-        // Lo que resuelve una tanda se atenua igual que lo que ya tienes en
-        // casa, porque para esta cena significa lo mismo: no hay que hacerlo.
-        // Pero NO se tacha ni se borra — sigue haciendo falta comprarlo, solo
-        // que para el domingo, y una linea tachada diria lo contrario.
-        opacity: owned || deBase ? 0.45 : 1,
+        // Lo que resuelve una tanda se atenua: para esta cena no hay que
+        // hacerlo. Lo que ya tienes en casa, NO (review de UX, lámina 16):
+        // atenuado y tachado parecía justo lo contrario, que te faltaba.
+        opacity: deBase ? 0.45 : 1,
         padding: "10px 4px",
       }}
     >
@@ -9112,56 +9067,27 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
           ...(cookable ? { gap: 10 } : null),
         }}
       >
+        {/* [Review de UX, lámina 16] El check es solo informativo: «ya lo
+            tienes en casa». Lo que falta va en blanco. Marcar y desmarcar se
+            hace en la Compra, no en la receta. */}
         {cookable && (
           owned ? (
-            revertible ? (
-              <button
-                type="button"
-                onClick={onRevertOwned}
-                title="Deshacer: quitar de En casa"
-                aria-label={`Quitar ${ing.name} de En casa`}
-                style={checkTactilStyle}
-              >
-                <span
-                  style={{
-                    width: 18, height: 18, borderRadius: 6, flexShrink: 0,
-                    display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    background: "#4cba6e",
-                  }}
-                >
-                  <Check size={12} strokeWidth={3.2} color="#fff" />
-                </span>
-              </button>
-            ) : (
-              <span
-                title="Ya lo tienes en casa"
-                style={{
-                  width: 18, height: 18, borderRadius: 6, flexShrink: 0,
-                  display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  background: "#4cba6e",
-                }}
-              >
-                <Check size={12} strokeWidth={3.2} color="#fff" />
-              </span>
-            )
-          ) : (
-            <button
-              type="button"
-              onClick={onMarkOwned}
-              title="Marcar que ya lo tienes (lo añade a En casa)"
-              aria-label={`Ya tengo ${ing.name}`}
-              style={checkTactilStyle}
+            <span
+              title="Ya lo tienes en casa"
+              aria-label="Ya lo tienes en casa"
+              style={{
+                width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                background: "#4cba6e",
+              }}
             >
-              <span
-                style={{
-                  width: 18, height: 18, borderRadius: 6, flexShrink: 0, boxSizing: "border-box",
-                  background: "#fff", border: "1.5px solid #cdddd2",
-                }}
-              />
-            </button>
+              <Check size={12} strokeWidth={3.2} color="#fff" />
+            </span>
+          ) : (
+            <span aria-hidden style={{ width: 18, height: 18, flexShrink: 0 }} />
           )
         )}
-        <IngredientThumb ing={ing} dimmed={owned} />
+        <IngredientThumb ing={ing} />
         <div style={{ minWidth: 0 }}>
           <span
             style={{
@@ -9169,7 +9095,6 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
               fontSize: 14,
               fontWeight: 700,
               color: "#142f1d",
-              textDecoration: owned ? "line-through" : "none",
               lineHeight: 1.25,
               whiteSpace: "normal",
               overflowWrap: "anywhere",
