@@ -156,7 +156,6 @@ import {
   loadRecipeDiscards,
   saveRecipeDiscard,
   deleteRecipeDiscard,
-  upsertRecipeDiscards,
   mergeDiscards,
 } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
@@ -165,7 +164,7 @@ import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardarConVersion, guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
 import BotEnlace from "./components/BotEnlace.jsx";
-import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard } from "./lib/householdDiscardsSync.js";
+import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, subirDescartesPendientes } from "./lib/householdDiscardsSync.js";
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
 import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
@@ -1689,7 +1688,9 @@ export default function App() {
           Object.entries(mergedDiscards.cooldownUntil).filter(([id]) => !(id in (remoteDiscards.cooldownUntil ?? {}))),
         ),
       };
-      upsertRecipeDiscards(user.id, discardsBackfill);
+      // A la tabla de la que se acaba de leer: la de la casa si hay casa. Un
+      // lector no escribe en la casa ajena (RLS lo rechazaría igual).
+      if (!householdReadOnly) subirDescartesPendientes(householdId, user.id, discardsBackfill);
 
       const cloudSummaries = await loadMenuSummariesRemote(menuUserId, householdId);
       if (cancelled) return;
