@@ -142,3 +142,27 @@ union all select 'bot_cola',      count(*) from public.bot_cola      where chann
 ```sql
 select count(*) from public.bot_reminders where tipo not in ('libre','vispera');
 ```
+
+## Ids de persona y grupo a UUID (Pablo, 7 oct 2026: «UUID 100 %»)
+
+Script: `scripts/migrar-ids-uuid.mjs` (ensayo por defecto; `--si` guarda, con copia en
+`respaldo_uuid_<fecha>` y el mapa viejo → nuevo en `respaldo_uuid_<fecha>.ids_mapa`).
+
+Orden:
+1. `ids.persona`/`ids.grupo` generan UUID en **staging y en main** (PR #91). Si main no la
+   tiene, la app de producción seguirá creando ids viejos.
+2. Migración de datos (`--si`). Después, `--repaso respaldo_uuid_<fecha> --si` por si una
+   app antigua reintrodujo ids viejos; y otra pasada normal para personas creadas en
+   medio con ids viejos.
+3. Cambio de tipo a `uuid` de `persona.id`, `grupo.id` y sus FK (bloque 0120+), **solo
+   cuando** main lleve una semana con la #91 y esta consulta dé 0:
+```sql
+select count(*) from public.persona where id !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+union all select count(*) from public.grupo where id !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
+```
+4. Antes de la 0083 (FK de bot_tareas a persona en cascada): la migración rehace persona
+   con borrar e insertar, y con esa FK se llevaría las tareas.
+
+Se quedan como están, a sabiendas: ids huérfanos (de personas o grupos que ya no
+existen: no hay a qué mapearlos), ids de invitado (`inv_…`, `_de_fuera`) y `user_events`.
+Por eso `ids.persona.es()`/`ids.grupo.es()` siguen aceptando los formatos viejos.

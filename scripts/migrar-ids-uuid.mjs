@@ -45,6 +45,14 @@ import { filasDeCasa } from "../src/lib/personasTabla.js";
 const CONFIRMA = process.argv.includes("--si");
 const iCasa = process.argv.indexOf("--casa");
 const SOLO = iCasa >= 0 ? process.argv[iCasa + 1] : null;
+// --repaso <esquema>: vuelve a pasar con el mapa guardado en ese respaldo, para los ids
+// viejos que una app antigua haya reintroducido después. Con --si guarda.
+const iRep = process.argv.indexOf("--repaso");
+const REPASO = iRep >= 0 ? process.argv[iRep + 1] : null;
+if (REPASO && !/^respaldo_uuid_\d{8}$/.test(REPASO)) {
+  console.error("--repaso espera el nombre del esquema de respaldo (respaldo_uuid_AAAAMMDD)");
+  process.exit(1);
+}
 if (!process.env.SUPABASE_DB_URL) {
   console.error("Falta SUPABASE_DB_URL. Carga el entorno:  set -a; . ./.env.local; set +a");
   process.exit(1);
@@ -52,6 +60,9 @@ if (!process.env.SUPABASE_DB_URL) {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SEP = "[|:_@\\-]";
+// Claves cuyo valor es texto libre (la conversación con Lola): no se tocan. Un id corto
+// entre guiones podría casar con una palabra (menuplan-05, 7 oct).
+const TEXTO_LIBRE = new Set(["texto", "text", "pregunta", "respuesta", "oido", "frase"]);
 // jsonb siempre como texto: pg convierte un array JS en array de Postgres, no en JSON.
 const J = (v) => (v == null ? null : JSON.stringify(v));
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -73,13 +84,15 @@ function reescritor(mapa) {
       return pre + mapa[id];
     });
   };
-  const json = (v, ruta = "$") => {
-    if (Array.isArray(v)) return v.map((x, i) => json(x, `${ruta}[${i}]`));
+  // `saltar`: claves de texto libre cuyo valor se deja como está.
+  const json = (v, ruta = "$", saltar = null) => {
+    if (Array.isArray(v)) return v.map((x, i) => json(x, `${ruta}[${i}]`, saltar));
     if (v && typeof v === "object") {
       const out = {};
       for (const [k, x] of Object.entries(v)) {
+        if (saltar?.has(k) && typeof x === "string") { out[k] = x; continue; }
         const k2 = str(k, `${ruta}.{clave}`);
-        out[k2] = json(x, `${ruta}.${k2}`);
+        out[k2] = json(x, `${ruta}.${k2}`, saltar);
       }
       return out;
     }
@@ -99,15 +112,27 @@ const db = new pg.Client({ connectionString: process.env.SUPABASE_DB_URL, ssl: {
 await db.connect();
 console.log(`Base de datos: ${new URL(process.env.SUPABASE_DB_URL).hostname}  ·  ${CONFIRMA ? "DE VERDAD" : "ENSAYO (nada se guarda)"}`);
 
-if (CONFIRMA) {
+let ESQUEMA = null;
+if (CONFIRMA && !REPASO) {
   const esquema = `respaldo_uuid_${new Date().toISOString().slice(0, 10).replace(/-/g, "")}`;
   const tablas = ["household_state", "user_menu_weeks", "user_menu_recipes", "bot_tareas", "bot_messages", "bot_deshacer",
     "cookings", "shared_menus", "user_state", "persona", "persona_alergia", "persona_intolerancia", "persona_estado",
     "persona_perfil_salud", "grupo", "grupo_persona"];
   await db.query(`create schema if not exists ${esquema}`);
   for (const t of tablas) await db.query(`create table if not exists ${esquema}.${t} as table public.${t}`);
+  // El mapa viejo → nuevo, por casa: para un --repaso después, y para deshacer.
+  await db.query(`create table if not exists ${esquema}.ids_mapa (household_id uuid not null, viejo text not null, nuevo uuid not null, primary key (household_id, viejo))`);
   await db.query(`revoke all on schema ${esquema} from public`);
-  console.log(`Copia de seguridad en el esquema ${esquema} (${tablas.length} tablas).`);
+  ESQUEMA = esquema;
+  console.log(`Copia de seguridad en el esquema ${esquema} (${tablas.length} tablas) y mapa en ${esquema}.ids_mapa.`);
+}
+const mapasGuardados = new Map();
+if (REPASO) {
+  for (const x of (await db.query(`select household_id, viejo, nuevo from ${REPASO}.ids_mapa`)).rows) {
+    if (!mapasGuardados.has(x.household_id)) mapasGuardados.set(x.household_id, {});
+    mapasGuardados.get(x.household_id)[x.viejo] = x.nuevo;
+  }
+  console.log(`Repaso con el mapa de ${REPASO}: ${mapasGuardados.size} casas.`);
 }
 
 const casas = (await db.query(
@@ -127,9 +152,10 @@ for (const casa of casas) {
   try {
     const { state, bot_rev } = (await db.query(`select state, bot_rev from household_state where household_id = $1 for update`, [H])).rows[0];
     const data = state?.data ?? {};
-    const mapa = {};
+    // En un repaso, el mapa guardado; si no, uno nuevo con los ids de hoy.
+    const mapa = REPASO ? { ...(mapasGuardados.get(H) ?? {}) } : {};
     const raros = [];
-    for (const id of [...(data.members ?? []).map((m) => m?.id), ...(data.groups ?? []).map((g) => g?.id)]) {
+    if (!REPASO) for (const id of [...(data.members ?? []).map((m) => m?.id), ...(data.groups ?? []).map((g) => g?.id)]) {
       if (id == null || UUID.test(String(id))) continue;
       if (!seguro(String(id))) { raros.push(String(id)); continue; }
       mapa[String(id)] ??= crypto.randomUUID();
@@ -139,6 +165,8 @@ for (const casa of casas) {
     total.ids += Object.keys(mapa).length;
     const r = reescritor(mapa);
     const esPropia = propiaDe.get(casa.owner_user_id) === H;
+    if (ESQUEMA) for (const [viejo, nuevo] of Object.entries(mapa))
+      await db.query(`insert into ${ESQUEMA}.ids_mapa values ($1,$2,$3) on conflict do nothing`, [H, viejo, nuevo]);
 
     // 1. La casa
     const nuevoState = r.json(state, "state");
@@ -163,7 +191,7 @@ for (const casa of casas) {
         [t.id, r.str(t.clave, "bot_tareas.clave"), r.str(t.para_member, "bot_tareas.para_member"), r.str(t.asignado_member, "bot_tareas.asignado_member")]);
     }
     for (const m of (await db.query(`select id, content from bot_messages where household_id = $1`, [H])).rows) {
-      const c2 = r.json(m.content, "bot_messages.content");
+      const c2 = r.json(m.content, "bot_messages.content", TEXTO_LIBRE);
       if (JSON.stringify(c2) !== JSON.stringify(m.content)) await db.query(`update bot_messages set content = $2 where id = $1`, [m.id, J(c2)]);
     }
     await db.query(`update bot_deshacer set usado_at = now() where household_id = $1 and usado_at is null`, [H]);
