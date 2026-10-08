@@ -72,8 +72,20 @@ describe("hábitos que ya rompieron cosas", () => {
 
 describe("la base es producción", () => {
   it("el ensayo de una migración pasa", () => expect(bash("node scripts/apply-migration.mjs 0086_vocabulario_de_la_app")).toBe(null));
-  it("aplicarla, nunca desde una sesión: la lanza Pablo con !", () =>
-    expect(bash("node scripts/apply-migration.mjs 0086_vocabulario_de_la_app --si")).toBe("deny"));
+  it("aplicarla con --si pasa: la protege el script (staging, ensayo, juez)", () =>
+    expect(bash("node scripts/apply-migration.mjs 0086_vocabulario_de_la_app --si")).toBe(null));
+  it("--pablo, nunca desde una sesión: lo destructivo y la RLS los lanza Pablo con !", () => {
+    expect(bash("node scripts/apply-migration.mjs 0090_x --si --pablo")).toBe("deny");
+    expect(bash("cd C:/dev/MenuPlan-x && node scripts/apply-migration.mjs 0090_x --pablo --si")).toBe("deny");
+  });
+  it.each([
+    'node scripts/apply-migration.mjs 0090_x --si "--pablo"',
+    "node scripts/apply-migration.mjs 0090_x --si '--pablo'",
+    "node scripts/apply-migration.mjs 0090_x --si --pablo=1",
+    "X=--pablo; node scripts/apply-migration.mjs 0090_x --si $X",
+  ])("--pablo disfrazado también se niega: %s", (c) => expect(bash(c)).toBe("deny"));
+  it("un commit cuyo mensaje nombra apply-migration y --si no es aplicar", () =>
+    expect(bash("git commit -m \"docs: node scripts/apply-migration.mjs 0090_x --si lo lanza la sesión\"")).toBe(null));
   it.each([
     'psql "$SUPABASE_DB_URL" -c "drop table public.bot_cola"',
     'psql $SUPABASE_DB_URL -c "delete from user_pantry"',

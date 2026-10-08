@@ -69,15 +69,22 @@ const REGLAS_COMANDO = [
   },
 ];
 
-// Escribir en producción se niega siempre, no se pregunta: en modo auto un
-// «ask» puede resolverlo el clasificador en vez de una persona. Lo lanza Pablo
-// con `!` en su terminal (eso no pasa por los hooks), después de ver el ensayo.
+// `apply-migration.mjs --si` ya no se niega aquí: lo protege el propio script
+// (staging, ensayo reciente y el OK del juez auditor-datos; decidido por Pablo
+// el 8 oct 2026). Lo que sí se niega es `--pablo`, que levanta lo que es solo
+// suyo (CONTRAE, RLS y permisos de lo existente): lo lanza él con `!`, que no
+// pasa por los hooks. Se mira por orden, para que un mensaje de commit que
+// nombra el script no cuente. Basta con que la orden diga «pablo» de cualquier
+// forma: entre comillas, `--pablo=1` o metido en una variable se colaba (juez
+// de seguridad, 8 oct 2026).
+const PABLO_EN_APLICAR = {
+  si: (o) => /apply-migration\b/.test(o) && /pablo/i.test(o),
+  da: () => deny("`--pablo` es solo de Pablo: borra algo con datos o cambia RLS o permisos. Enséñale el ensayo y el veredicto del juez, y dale el comando para que lo lance con `!`."),
+};
+
+// El SQL a mano contra la base se niega siempre, no se pregunta: en modo auto
+// un «ask» puede resolverlo el clasificador en vez de una persona.
 const REGLAS_SQL = [
-  {
-    // La única vía para tocar la base, y la base es la de producción.
-    si: (o) => /apply-migration\.mjs\b/.test(o) && /\s--si(\s|$)/.test(o),
-    da: (o) => deny(`Aplicar en PRODUCCIÓN lo lanza Pablo, no una sesión. Enséñale el ensayo y dale el comando para que lo pegue con \`!\`: ${o.trim()}`),
-  },
   {
     // SQL que escribe o cambia permisos contra una base real.
     si: (o) => /\b(psql|SUPABASE_DB_URL|OPS_DB_URL|pg\.Client|new\s+Client)\b/.test(o)
@@ -201,6 +208,9 @@ export function decidir(entrada, ctx) {
 
   if (herramienta === "Bash" || herramienta === "PowerShell") {
     const cmd = String(datos.command ?? "");
+    // «pablo» se mira en el comando entero: `X=--pablo; node …apply-migration… $X`
+    // reparte la opción entre dos órdenes.
+    if (PABLO_EN_APLICAR.si(cmd)) return PABLO_EN_APLICAR.da(cmd);
     for (const o of ordenes(cmd)) {
       for (const r of REGLAS_COMANDO) if (r.si(o)) return r.da(o);
 

@@ -35,6 +35,9 @@ import { apuntarEnsayo, deStaging, leerEnsayo, motivosParaNoAplicar, olvidarEnsa
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIR = join(__dirname, "..", "supabase", "migrations");
 const CONFIRMA = process.argv.includes("--si");
+// Solo para lo que es de Pablo (CONTRAE, RLS o permisos de lo existente). La
+// guardia niega `--pablo` a cualquier sesión: lo lanza él con `!`.
+const PABLO = process.argv.includes("--pablo");
 const nombre = process.argv.slice(2).find((a) => !a.startsWith("--"));
 
 if (!nombre) {
@@ -54,7 +57,7 @@ const base = file.replace(/\.sql$/, "");
 const RAIZ = join(__dirname, "..");
 
 if (CONFIRMA) {
-  const no = motivosParaNoAplicar({ nombre: base, local: sql, enStaging: deStaging(RAIZ, base), ensayo: leerEnsayo(RAIZ, base) });
+  const no = motivosParaNoAplicar({ nombre: base, local: sql, enStaging: deStaging(RAIZ, base), ensayo: leerEnsayo(RAIZ, base), pablo: PABLO });
   if (no.length) {
     console.error(`No aplico ${base} en producción:\n  - ${no.join("\n  - ")}`);
     process.exit(1);

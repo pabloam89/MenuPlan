@@ -9,7 +9,14 @@
  *   1. la migración esté ya en origin/staging y sea idéntica a la local (pasó
  *      por PR con el CI en verde, incluidos los tests de principios);
  *   2. haya un ensayo de ESE contenido de hace menos de una hora (si alguien la
- *      toca después del ensayo, hay que repetirlo).
+ *      toca después del ensayo, hay que repetirlo);
+ *   3. lleve en la cabecera el visto bueno del juez:
+ *      `-- AUDITADA: auditor-datos AAAA-MM-DD OK`;
+ *   4. y, si trae `-- CONTRAE:`, toca RLS o permisos de tablas que ya existían
+ *      o crea `security definer`, que venga `--pablo`. Esa opción la guardia se
+ *      la niega a cualquier sesión: solo la usa Pablo con `!`. La RLS y el
+ *      revoke de una tabla creada en la misma migración no cuentan (PRINCIPIOS
+ *      §8 los exige en toda tabla nueva).
  *
  * Lo comprueba el script y no la buena fe de quien lo lanza, y vale igual para
  * Pablo que para una sesión. El SQL a mano contra la base sigue negado por la
@@ -29,12 +36,121 @@ export const VIGENCIA_MS = 60 * 60 * 1000;
 /** Mismo hash para el mismo SQL aunque cambien los saltos de línea. */
 export const hashDe = (sql) => createHash("sha256").update(String(sql).replace(/\r\n/g, "\n")).digest("hex");
 
+const RE_AUDITADA = /^--\s*AUDITADA:\s*auditor-datos\s+(\d{4}-\d{2}-\d{2})\s+(.+?)\s*$/m;
+
+/** El veredicto del juez en la cabecera: { fecha, veredicto } o null. */
+export function auditoriaDe(sql) {
+  const m = RE_AUDITADA.exec(String(sql));
+  if (!m) return null;
+  const d = new Date(`${m[1]}T00:00:00Z`);
+  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== m[1]) return null;
+  return { fecha: m[1], veredicto: m[2] };
+}
+
+const nombreTabla = (s) => s.replace(/"/g, "").replace(/^public\./i, "").toLowerCase();
+
+/**
+ * Quita los comentarios (`--` y `/* *\/`) sin tocar lo que va entre comillas
+ * simples: un `'--'` dentro de un literal no es un comentario.
+ */
+export function sinComentarios(sql) {
+  const s = String(sql);
+  let out = "";
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === "'") {
+      const fin = s.indexOf("'", i + 1);
+      const j = fin < 0 ? s.length : fin;
+      out += s.slice(i, j + 1);
+      i = j;
+    } else if (c === "-" && s[i + 1] === "-") {
+      const fin = s.indexOf("\n", i);
+      i = fin < 0 ? s.length : fin - 1;
+    } else if (c === "/" && s[i + 1] === "*") {
+      const fin = s.indexOf("*/", i + 2);
+      i = fin < 0 ? s.length : fin + 1;
+    } else {
+      out += c;
+    }
+  }
+  return out;
+}
+
+/** Tablas de una lista `a, public.b, "c"` (hasta `to`/`from` o el final). */
+const tablasDeLista = (lista) => lista.split(",").map((t) => nombreTabla(t.trim().split(/\s+/)[0])).filter(Boolean);
+
+/**
+ * Por qué esta migración la lanza Pablo (vacío = no hace falta). Ante la duda,
+ * es suya: se mira lo que HACE el SQL, no solo su cabecera. Borrar o vaciar
+ * datos, cambiar el tipo de una columna, tocar RLS o permisos de algo que ya
+ * existía, `security definer`, vistas que se saltan la RLS y SQL dinámico.
+ */
+export function motivosDePablo(sql) {
+  const texto = String(sql);
+  const r = [];
+  if (/^--\s*CONTRAE:/m.test(texto)) r.push("borra algo que ya existía (`-- CONTRAE:`)");
+  const conCuerpos = sinComentarios(texto).toLowerCase();
+  // El cuerpo de una función (`as $x$ … $x$`) no se ejecuta al aplicar: un
+  // `update` dentro de una RPC no toca datos ahora. Los bloques `do $$ … $$`
+  // sí se ejecutan, y se quedan.
+  const codigo = conCuerpos.replace(/\bas\s+(\$[\w]*\$)[\s\S]*?\1/g, "as $cuerpo$");
+  // Solo cuenta como nueva una tabla creada sin `if not exists`: con él, la
+  // tabla puede existir ya y la RLS que se le ponga sería la de una ajena.
+  const nuevas = new Set([...codigo.matchAll(/create\s+(?:unlogged\s+)?table\s+(?!if\s+not\s+exists)([\w."]+)/g)].map((m) => nombreTabla(m[1])));
+  const ajena = (t) => !nuevas.has(nombreTabla(t));
+
+  // Datos que se pierden o se reescriben.
+  if (/\bdrop\s+(?:table|view|materialized\s+view|schema|type|sequence|extension)\b/.test(codigo)) r.push("borra una tabla, vista, esquema, tipo o secuencia");
+  if (/\bdrop\s+column\b|\balter\s+table\b[^;]*\bdrop\s+(?!constraint\b|default\b|not\s+null\b)(?:if\s+exists\s+)?[\w"]+/.test(codigo)) r.push("borra una columna");
+  if (/\btruncate\b/.test(codigo)) r.push("vacía una tabla (`truncate`)");
+  if (/\bdelete\s+from\b/.test(codigo)) r.push("borra filas (`delete from`)");
+  if (/\bupdate\s+[\w."]+\s+set\b/.test(codigo)) r.push("reescribe filas (`update … set`)");
+  if (/\balter\s+column\s+[\w"]+\s+(?:set\s+data\s+)?type\b/.test(codigo)) r.push("cambia el tipo de una columna");
+
+  // RLS, políticas y permisos.
+  for (const m of codigo.matchAll(/alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?([\w."]+)[^;]*?\b(enable|disable|force|no\s+force)\s+row\s+level\s+security/g)) {
+    if (m[2] !== "enable" || ajena(m[1])) r.push(`cambia la RLS de ${nombreTabla(m[1])}`);
+  }
+  for (const m of codigo.matchAll(/\b(?:create|alter|drop)\s+policy\b[^;]*?\bon\s+([\w."]+)/g)) {
+    if (ajena(m[1])) r.push(`toca una política de ${nombreTabla(m[1])}`);
+  }
+  for (const m of codigo.matchAll(/\b(grant|revoke)\b([^;]*)/g)) {
+    const resto = m[2];
+    const on = /\bon\s+(?:(table|function|schema|all\s+tables\s+in\s+schema|all\s+functions\s+in\s+schema|sequence|all)\s+)?([\s\S]*?)\s+(?:to|from)\b/.exec(resto);
+    if (!on) {
+      r.push(`${m[1]} de un rol a otro`);
+    } else if (on[1] && on[1] !== "table") {
+      r.push(`${m[1]} sobre ${on[1]}`);
+    } else {
+      for (const t of tablasDeLista(on[2])) if (ajena(t)) r.push(`${m[1]} sobre ${t}`);
+    }
+  }
+  if (/\balter\s+default\s+privileges\b/.test(codigo)) r.push("cambia los permisos por defecto");
+  if (/\bsecurity\s+definer\b/.test(conCuerpos)) r.push("crea o cambia una función `security definer` (se salta la RLS)");
+  for (const m of codigo.matchAll(/\bcreate\s+(?:or\s+replace\s+)?(?:materialized\s+)?view\s+[\w."]+([^;]*)/g)) {
+    if (!/security_invoker\s*=\s*(?:true|on)/.test(m[1])) r.push("crea una vista sin `security_invoker` (se salta la RLS)");
+  }
+  // SQL dinámico: lo que ejecuta no se puede leer aquí.
+  if (/\bexecute\s+(?:format\s*\(|'|\$)/.test(codigo) || /\bexecute\s+[\w]+\s*;/.test(codigo)) r.push("ejecuta SQL dinámico (`execute`), que este script no puede revisar");
+  return [...new Set(r)];
+}
+
 /**
  * Lo que impide aplicar. Vacío = adelante.
- * @param {{ nombre: string, local: string, enStaging: string|null, ensayo: {hash: string, at: string}|null, ahora?: number }} d
+ * @param {{ nombre: string, local: string, enStaging: string|null, ensayo: {hash: string, at: string}|null, pablo?: boolean, ahora?: number }} d
  */
-export function motivosParaNoAplicar({ nombre, local, enStaging, ensayo, ahora = Date.now() }) {
+export function motivosParaNoAplicar({ nombre, local, enStaging, ensayo, pablo = false, ahora = Date.now() }) {
   const no = [];
+  const juez = auditoriaDe(local);
+  if (!juez) {
+    no.push(`${nombre} no tiene el visto bueno del juez: pide al juez auditor-datos que la revise y apunta su veredicto en la cabecera (\`-- AUDITADA: auditor-datos AAAA-MM-DD OK\`).`);
+  } else if (juez.veredicto !== "OK") {
+    no.push(`El juez auditor-datos no dio el OK a ${nombre} (${juez.fecha}: «${juez.veredicto}»). Arregla lo que dice y que la revise otra vez.`);
+  }
+  const dePablo = motivosDePablo(local);
+  if (dePablo.length && !pablo) {
+    no.push(`${nombre} ${dePablo.join("; ")}: esta la lanza Pablo con \`!\` y \`--pablo\`.`);
+  }
   const h = hashDe(local);
   if (enStaging == null) {
     no.push(`${nombre} no está en origin/staging. Primero su PR, con el CI en verde; luego se aplica.`);
