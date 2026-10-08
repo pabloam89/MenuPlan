@@ -11,3 +11,8 @@ scripts/*
 !scripts/validate-catalog.mjs
 # El motor del bot se empaqueta en `npm run build` (scripts/build-bot-core.mjs).
 !scripts/build-bot-core.mjs
+# vite.config.js resuelve las direcciones op:// de .env.local con este lector
+# (en Vercel no hay .env.local, pero el import tiene que existir).
+!scripts/lib/
+scripts/lib/*
+!scripts/lib/env.mjs

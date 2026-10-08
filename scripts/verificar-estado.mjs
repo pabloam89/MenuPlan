@@ -30,9 +30,10 @@
  * que ya existía (tipo, default). Una migración que solo hace eso sale «sin
  * testigo» y hay que mirarla a mano.
  */
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { leerEnv } from "./lib/env.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIR = join(RAIZ, "supabase", "migrations");
@@ -264,11 +265,7 @@ async function leerCatalogo(url) {
 }
 
 function urlDeLaBase() {
-  if (process.env.SUPABASE_DB_URL) return process.env.SUPABASE_DB_URL;
-  const env = join(RAIZ, ".env.local");
-  if (!existsSync(env)) return null;
-  const linea = readFileSync(env, "utf8").split(/\r?\n/).find((l) => /^\s*SUPABASE_DB_URL\s*=/.test(l));
-  return linea?.replace(/^\s*SUPABASE_DB_URL\s*=\s*/, "").replace(/^["']|["']$/g, "").trim() || null;
+  return leerEnv("SUPABASE_DB_URL") ?? null;
 }
 
 export function leerSinAplicar(estadoMd) {

@@ -18,6 +18,7 @@ import {
 } from "./recipeDiversity.js";
 import { maxCookTime } from "./cookTime.js";
 import { DIAS } from "./vocabularios.js";
+import { platoVetado, vetosDe } from "./vetos.js";
 
 // La lista vive en vocabularios.js (fuente única); aquí con su nombre de siempre.
 export const DAYS = DIAS;
@@ -279,12 +280,9 @@ function recipeScore(recipe, ctx) {
     if (recipe.allergens.includes(a.toLowerCase())) return -Infinity;
   }
 
-  // Dislikes: soft exclude (tag or name match)
-  const lowerName = recipe.name.toLowerCase();
-  for (const d of ctx.dislikes) {
-    const dl = d.toLowerCase();
-    if (lowerName.includes(dl) || recipe.tags.includes(dl)) score -= 50;
-  }
+  // Vetos: duros, como en filterRecipes, y con el mismo comparador
+  // (lib/vetos.js). Antes era un -50 por substring en nombre y etiquetas.
+  if (platoVetado(recipe, ctx.dislikes)) return -Infinity;
 
   // Tupper mode → boost tupperFriendly, penalize others
   if (ctx.mode === "tupper") {
@@ -485,7 +483,7 @@ function warningsForRecipe(recipe, ctx) {
  * Generate a menu plan: { [groupId]: { [`${day}-${meal}`]: { recipeId, mode, eaters } | null } }
  */
 export function generateMenu(data) {
-  const { members, groups, schedule, dislikes, cookLevel } = data;
+  const { members, groups, schedule, cookLevel } = data;
   const plan = { _warnings: [] };
 
   const fixedTracks = migrateFixedDishes(data.fixedDishes).map((fd) => ({ ...fd, placed: 0 }));
@@ -499,9 +497,7 @@ export function generateMenu(data) {
     const groupAllergies = Array.from(
       new Set(groupMembers.flatMap((m) => m.allergies ?? []))
     );
-    const groupDislikes = Array.from(
-      new Set([...(dislikes ?? []), ...groupMembers.flatMap((m) => m.dislikes ?? [])])
-    );
+    const groupDislikes = vetosDe(data, { grupo: group });
 
     const usedIds = new Set();
     const proteinCount = { pescado: 0, carne: 0, legumbres: 0, huevos: 0 };

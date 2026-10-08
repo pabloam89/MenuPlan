@@ -5,8 +5,8 @@
 // transacción, para ensayarla en una base que no la tiene.
 
 import fs from "node:fs"; import pg from "pg";
-const env = fs.readFileSync(".env.local", "utf8");
-const c = new pg.Client({ connectionString: env.match(/^SUPABASE_DB_URL="?([^"\r\n]+)/m)[1], ssl: { rejectUnauthorized: false } });
+import { leerEnv } from "./lib/env.mjs";
+const c = new pg.Client({ connectionString: leerEnv("SUPABASE_DB_URL", { obligatoria: true }), ssl: { rejectUnauthorized: false } });
 await c.connect();
 const q = async (s, p) => (await c.query(s, p)).rows;
 let malos = 0;

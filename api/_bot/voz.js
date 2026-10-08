@@ -22,6 +22,7 @@
 import { llamar } from "./telegram.js";
 import { cargarCasa } from "./casa.js";
 import { propiasDe } from "./propias.js";
+import { vetosDe } from "../../src/lib/vetos.js";
 
 const MODELO = "whisper-large-v3";
 const IDIOMA = "es";
@@ -72,8 +73,7 @@ export function palabrasDe(data = {}, propias = data.userRecipes ?? []) {
   const miembros = data.members ?? [];
   const nombres = miembros.map((p) => p?.name).filter(Boolean).slice(0, 12);
   const recetas = propias.map((r) => r?.name).filter(Boolean).slice(-6);
-  const noGusta = [...miembros.flatMap((m) => m?.dislikes ?? []), ...(data.dislikes ?? []), ...(data.excluidos ?? [])]
-    .filter((x) => typeof x === "string").slice(0, 6);
+  const noGusta = vetosDe(data).slice(0, 6);
   return { nombres, propias: [...new Set([...recetas, ...noGusta])] };
 }
 

@@ -20,6 +20,7 @@
 
 import fs from "node:fs";
 import pg from "pg";
+import { leerEnv } from "./lib/env.mjs";
 import { medir, informe, huecosDeLola, contarHuecos, medirPorLugar, lugarDe } from "./lib/bot-semana.mjs";
 
 const arg = (k) => process.argv.find((a) => a.startsWith(`--${k}=`))?.split("=")[1];
@@ -32,8 +33,7 @@ const iso = (d) => d.toISOString().slice(0, 10);
 let url = process.env.OPS_DB_URL;
 const vista = Boolean(url);
 if (!url) {
-  const env = fs.existsSync(new URL("../.env.local", import.meta.url)) ? fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8") : "";
-  url = process.env.SUPABASE_DB_URL || env.match(/^SUPABASE_DB_URL="?([^"\r\n]+)/m)?.[1]?.trim();
+  url = leerEnv("SUPABASE_DB_URL");
 }
 if (!url) throw new Error("Falta OPS_DB_URL (entorno) o SUPABASE_DB_URL (.env.local)");
 

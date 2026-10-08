@@ -26,10 +26,12 @@ describe("voz", () => {
   it("las palabras de la casa: quién come, sus recetas y lo que no les gusta", () => {
     const w = palabrasDe({
       members: [{ name: "Iker", dislikes: ["coliflor"] }, { name: "Uxue" }],
-      userRecipes: [{ name: "Marmitako de la amama" }], excluidos: ["hígado"],
+      userRecipes: [{ name: "Marmitako de la amama" }],
+      // Lo de la casa sale de la libreta (lib/vetos.js), no de `excluidos`.
+      notepad: { campos: { "excluidos.hígado": { valor: true } } }, excluidos: ["sesos"],
     });
     expect(w.nombres).toEqual(["Iker", "Uxue"]);
-    expect(w.propias).toEqual(["Marmitako de la amama", "coliflor", "hígado"]);
+    expect(w.propias).toEqual(["Marmitako de la amama", "hígado", "coliflor"]);
   });
 
   it("un nombre de la casa mal oído se corrige; lo demás no se toca", () => {

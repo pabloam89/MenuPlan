@@ -14,6 +14,7 @@
  */
 
 import fs from "node:fs";
+import { leerEnv } from "./lib/env.mjs";
 import { exec } from "node:child_process";
 import { medir, semaforo, corregidos, pct, porLugar, lugarDe } from "./lib/bot-semana.mjs";
 
@@ -24,8 +25,7 @@ const TEXTOS = Boolean(arg("textos"));
 
 async function leerEventos() {
   if (valor("json")) return JSON.parse(fs.readFileSync(valor("json"), "utf8"));
-  const env = fs.existsSync(new URL("../.env.local", import.meta.url)) ? fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8") : "";
-  const url = process.env.SUPABASE_DB_URL || env.match(/^SUPABASE_DB_URL="?([^"\r\n]+)/m)?.[1]?.trim();
+  const url = leerEnv("SUPABASE_DB_URL");
   if (!url) throw new Error("Falta SUPABASE_DB_URL en .env.local (Supabase → proyecto → Connect → URI)");
   const { default: pg } = await import("pg");
   const db = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });

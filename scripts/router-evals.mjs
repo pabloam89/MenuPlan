@@ -11,9 +11,9 @@
  */
 
 import fs from "node:fs";
+import { cargarEnv } from "./lib/env.mjs";
 
-const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
-process.env.ANTHROPIC_API_KEY ||= env.match(/^ANTHROPIC_API_KEY="?([^"\r\n]+)/m)?.[1]?.trim();
+cargarEnv(["ANTHROPIC_API_KEY"]);
 const { clasificar, vaPorLaRapida } = await import("../api/_bot/router.js");
 const { casos } = JSON.parse(fs.readFileSync(new URL("./router-evals.json", import.meta.url), "utf8"));
 const veces = Number(process.argv.find((a) => a.startsWith("--veces="))?.split("=")[1] ?? 1);

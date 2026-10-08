@@ -16,6 +16,7 @@ Bytask, migrar · ❓ sin confirmar.
 |---|---|---|---|---|
 | **GitHub** `pabloam89/MenuPlan` | Código, PRs, Actions | ✅ personal (`pabloam89`) | secrets de Actions (abajo) | GitHub → Settings → Secrets |
 | **Vercel** | Hosting web + funciones `api/` + crons | ✅ equipo «Monicos MenuPlan» (`team_sV2KePPHNXRWD9JsNQCfGwwV`), plan Pro; Owners: Pablo (`pabloam89@gmail.com`) y Álvaro. Ninguna cuenta de Bytask (7 oct 2026) | todas las de runtime de `api/` | Vercel → Project → Environment Variables |
+| **1Password** | Las claves de `.env.local` (bóveda `HoMenu`) y la service account de solo lectura del PC de Pablo | ✅ cuenta de Pablo (`my.1password.eu`), plan Familias en prueba desde el 8 oct 2026 | el token de la service account «MenuPlan PC Pablo» | llavero de Windows del PC de Pablo |
 | **Supabase** (`mdzwbrworucnummibxrq`, eu-central-1) | Base de datos, Auth, RLS | ✅ integración del Marketplace de Vercel: la org `vercel_icfg_…` cuelga del equipo de Vercel, que es el dueño y el que paga. Nada que transferir (comprobado el 7 oct 2026) | `SUPABASE_URL`, `VITE_SUPABASE_URL`, `SUPABASE_ANON_KEY`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_SECRET_KEY`, `SUPABASE_DB_URL` | Vercel + `.env.local` |
 | **Upstash Redis** | Rate limit y caché | ❓ probablemente también del Marketplace de Vercel (variables `KV_REST_API_*`), sin confirmar | `UPSTASH_REDIS_*` / `KV_REST_API_*` | Vercel (integración) |
 | **Vercel Blob** | Imágenes de platos | ✅ va con Vercel | `BLOB_READ_WRITE_TOKEN` | Vercel |
