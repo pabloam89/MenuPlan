@@ -13,10 +13,16 @@ import { fileURLToPath } from "node:url";
  * ninguna casa llegó a `active`. La 0090 lo arregló y dejó un `raise warning`.
  *
  * ── La regla ──────────────────────────────────────────────────────────────
- * Todo manejador `when others` de una migración lleva un `raise` (warning,
- * notice, exception o un `raise;` que relance). Si se traga el error a
- * propósito, lo dice al lado con un comentario `-- a propósito: <porqué>`
- * (en el manejador, o en la línea de antes del `exception`).
+ * Todo manejador cuya condición lleve `others` (también `… or others`) tiene,
+ * en el nivel de arriba del manejador, un `raise` que llegue al log de
+ * Supabase, que guarda de warning para arriba: `raise warning`, `raise
+ * exception`, `raise;`, `raise '…'` sin nivel, `raise sqlstate …` o `raise
+ * using …`. Un `raise notice` (o debug, log, info) no vale: repetiría #177 con
+ * el test en verde. Tampoco vale uno dentro de un `if`, `case`, `loop` o
+ * bloque anidado, porque no siempre se ejecuta. Si se traga el error a
+ * propósito, lo dice al lado con `-- a propósito: <porqué>`: dentro del
+ * manejador o en las líneas de solo comentario justo encima de su `when` (o
+ * del `exception`, si es el primero). El de un manejador hermano no vale.
  *
  * ── Las antiguas ──────────────────────────────────────────────────────────
  * Una migración aplicada no se edita, así que las que ya lo tenían van en
@@ -26,6 +32,15 @@ import { fileURLToPath } from "node:url";
  *
  * Es un lector de texto, no un parser de PL/pgSQL. Los ejemplos de abajo
  * prueban que distingue lo que tiene que distinguir.
+ *
+ * ── Límites conocidos (decididos, no se vigilan) ──────────────────────────
+ * - Los manejadores de una condición concreta sin `others` (`when
+ *   unique_violation then null`) quedan fuera: tragarse un error que se ha
+ *   nombrado ya es una decisión escrita.
+ * - Un `exit <etiqueta> when` o un `continue <etiqueta> when` en el nivel de
+ *   arriba del manejador se lee como el siguiente manejador; y un `merge` con
+ *   sus `when matched then` dentro de un manejador, igual. Ninguna migración
+ *   los usa ahí; si aparecen, el lector corta el manejador antes de tiempo.
  */
 const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "migrations");
 
@@ -45,9 +60,12 @@ const HEREDADOS = [
 const TOPE = 89;
 
 /**
- * El SQL con comentarios y textos entre comillas simples cambiados por
- * espacios (misma longitud, mismos saltos de línea), en minúsculas. Los
- * cuerpos $$…$$ se quedan: ahí es donde vive el PL/pgSQL.
+ * El SQL en minúsculas, con la misma longitud y los mismos saltos de línea,
+ * y lo que no es código cambiado por espacios: comentarios, el interior de
+ * los textos '…' (las comillas se quedan, para que se vea `raise '…'`), con
+ * `\'` dentro de E'…', y los textos $tag$…$tag$ que no son el cuerpo de una
+ * función o de un `do` (`comment on … is $c$…$c$`). Los cuerpos se quedan:
+ * ahí es donde vive el PL/pgSQL.
  */
 export function enmascarar(sql) {
   const out = sql.split("");
@@ -55,6 +73,7 @@ export function enmascarar(sql) {
   const borrar = (a, b) => {
     for (let k = a; k < b; k++) if (out[k] !== "\n") out[k] = " ";
   };
+  let cuerpo = null; // la etiqueta $…$ del cuerpo en el que estamos
   let i = 0;
   while (i < n) {
     const c = sql[i];
@@ -74,17 +93,37 @@ export function enmascarar(sql) {
       continue;
     }
     if (c === "'") {
+      const escapes = /[eE]/.test(sql[i - 1] ?? "") && !/\w/.test(sql[i - 2] ?? "");
       let j = i + 1;
       while (j < n) {
+        if (escapes && sql[j] === "\\") { j += 2; continue; }
         if (sql[j] === "'") {
           if (sql[j + 1] === "'") { j += 2; continue; }
           break;
         }
         j++;
       }
-      borrar(i, j + 1);
+      borrar(i + 1, j);
       i = j + 1;
       continue;
+    }
+    if (c === "$") {
+      const m = /^\$([A-Za-z_]\w*)?\$/.exec(sql.slice(i, i + 64));
+      if (m) {
+        const tag = m[0];
+        if (cuerpo === tag) { cuerpo = null; i += tag.length; continue; }
+        const antes = out.slice(Math.max(0, i - 40), i).join("");
+        if (cuerpo === null && /\b(as|do|plpgsql)\s*$/i.test(antes)) {
+          cuerpo = tag;
+          i += tag.length;
+          continue;
+        }
+        const j = sql.indexOf(tag, i + tag.length);
+        const fin = j < 0 ? n : j + tag.length;
+        borrar(i, fin);
+        i = fin;
+        continue;
+      }
     }
     i++;
   }
@@ -92,7 +131,7 @@ export function enmascarar(sql) {
 }
 
 const RE_FUNCION = /create\s+(?:or\s+replace\s+)?function\s+((?:"[^"]+"|\w+)(?:\.(?:"[^"]+"|\w+))?)/g;
-const RE_DO = /\bdo\s+\$/g;
+const RE_DO = /\bdo\s+(?:language\s+\w+\s+)?\$/g;
 
 /** La función (o el bloque `do`) en la que cae una posición. */
 function funcionEn(codigo, pos) {
@@ -110,53 +149,102 @@ function funcionEn(codigo, pos) {
   return nombre;
 }
 
+/** La palabra (o el `;`) de antes de una posición. */
+const anterior = (codigo, pos) => /(\w+|;)\s*$/.exec(codigo.slice(Math.max(0, pos - 40), pos))?.[1] ?? null;
+/** La palabra (o el signo) de después de una posición. */
+const siguiente = (codigo, pos) => /^\s*(\w+|\S)/.exec(codigo.slice(pos, pos + 80));
+
+/** Tras qué palabras un `if` empieza una sentencia (y no es un `drop … if exists`). */
+const ABRE_SENTENCIA = new Set([";", "then", "else", "loop", "begin"]);
+
 /**
- * Dónde acaba un manejador que empieza en `desde`, y si lleva `raise`.
- * Acaba en el `end` que cierra su bloque o en el siguiente `when … then` del
- * mismo `exception`. Cuenta los `begin` y `case` anidados; `end if` y
- * `end loop` no cierran nada; `continue when` y `exit when` no son manejadores.
+ * Un `raise` que deja rastro en el log de Supabase, que guarda de warning para
+ * arriba: `warning`, `exception`, `raise;` (relanza), sin nivel (es exception),
+ * `sqlstate …` y `using …`. Notice, debug, log e info no llegan.
  */
-function manejador(codigo, desde) {
-  const re = /\b(begin|case|end|when|raise)\b/g;
-  re.lastIndex = desde;
+const RAISE_QUE_AVISA = new Set(["warning", "exception", "sqlstate", "using", ";", "'"]);
+
+/**
+ * Los manejadores del bloque `exception` que empieza en `pos`:
+ * [{ when, fin, cond, avisa }]. Cada uno va de su `when` al siguiente `when`
+ * del mismo nivel o al `end` del bloque. Solo cuenta el `raise` del nivel de
+ * arriba del manejador: uno dentro de un `if`, `case`, `loop` o bloque anidado
+ * no siempre se ejecuta.
+ */
+function manejadores(codigo, pos) {
+  const re = /\b(begin|case|if|loop|end|when|raise)\b/g;
+  re.lastIndex = pos + "exception".length;
+  const r = [];
+  let cur = null;
   let prof = 0;
-  let avisa = false;
   let m;
   while ((m = re.exec(codigo))) {
     const w = m[1];
-    if (w === "raise") avisa = true;
-    else if (w === "begin" || w === "case") prof++;
-    else if (w === "end") {
-      const sig = /^\s*(\w+)/.exec(codigo.slice(re.lastIndex));
-      if (sig && (sig[1] === "if" || sig[1] === "loop")) continue;
-      if (sig && sig[1] === "case") re.lastIndex += sig[0].length;
-      if (prof === 0) return { fin: m.index, avisa };
+    if (w === "when" && prof === 0) {
+      const a = anterior(codigo, m.index);
+      if (a === "continue" || a === "exit") continue;
+      const then = /\bthen\b/g;
+      then.lastIndex = m.index;
+      const t = then.exec(codigo);
+      if (!t) break;
+      if (cur) { cur.fin = m.index; r.push(cur); }
+      cur = { when: m.index, cond: codigo.slice(m.index + 4, t.index), avisa: false };
+      re.lastIndex = t.index + 4;
+    } else if (w === "end") {
+      const sig = siguiente(codigo, re.lastIndex);
+      if (sig && ["if", "loop", "case"].includes(sig[1])) re.lastIndex += sig[0].length;
+      if (prof === 0) break;
       prof--;
-    } else if (w === "when" && prof === 0) {
-      const antes = /(\w+)\s*$/.exec(codigo.slice(Math.max(0, m.index - 20), m.index));
-      if (antes && (antes[1] === "continue" || antes[1] === "exit")) continue;
-      return { fin: m.index, avisa };
+    } else if (w === "begin" || w === "case" || w === "loop") {
+      prof++;
+    } else if (w === "if") {
+      if (ABRE_SENTENCIA.has(anterior(codigo, m.index))) prof++;
+    } else if (w === "raise" && prof === 0 && cur) {
+      const sig = siguiente(codigo, re.lastIndex);
+      if (sig && RAISE_QUE_AVISA.has(sig[1])) cur.avisa = true;
     }
   }
-  return { fin: codigo.length, avisa };
+  if (cur) { cur.fin = m ? m.index : codigo.length; r.push(cur); }
+  return r;
 }
 
 const RE_A_PROPOSITO = /--[ \t]*a[ \t]+prop[oó]sito:[ \t]*\S/i;
+const soloComentario = (linea) => /^\s*(--.*)?$/.test(linea);
 
-/** Los manejadores `when others` sin aviso de un SQL: [{ funcion, linea }]. */
+/**
+ * ¿Lleva el manejador su `-- a propósito: <porqué>` al lado? Vale dentro del
+ * manejador (de su `when` a su final, sin los comentarios del final, que ya
+ * son del siguiente) o en las líneas de solo comentario justo encima de su
+ * `when`; para el primero, también encima del `exception`. El de un manejador
+ * hermano no vale.
+ */
+function aProposito(sql, h, desde) {
+  const propio = sql.slice(h.when, h.fin).split("\n");
+  while (propio.length > 1 && soloComentario(propio[propio.length - 1])) propio.pop();
+  if (RE_A_PROPOSITO.test(propio.join("\n"))) return true;
+  const inicioLinea = sql.lastIndexOf("\n", desde - 1) + 1;
+  if (sql.slice(inicioLinea, desde).trim() !== "") return false;
+  const encima = sql.slice(0, inicioLinea).split("\n");
+  encima.pop();
+  while (encima.length && soloComentario(encima[encima.length - 1])) {
+    if (RE_A_PROPOSITO.test(encima.pop())) return true;
+  }
+  return false;
+}
+
+/** Los manejadores con `others` sin aviso de un SQL: [{ funcion, linea }]. */
 export function mudos(sql) {
   const codigo = enmascarar(sql);
   const r = [];
-  for (const m of codigo.matchAll(/\bwhen\s+others\s+then\b/g)) {
-    const desde = m.index + m[0].length;
-    const { fin, avisa } = manejador(codigo, desde);
-    if (avisa) continue;
-    // «Al lado»: desde la línea de antes del `exception` hasta el final del manejador.
-    const exc = codigo.lastIndexOf("exception", m.index);
-    const lineaExc = sql.lastIndexOf("\n", (exc < 0 ? m.index : exc) - 1);
-    const inicio = lineaExc < 0 ? 0 : sql.lastIndexOf("\n", lineaExc - 1) + 1;
-    if (RE_A_PROPOSITO.test(sql.slice(inicio, fin))) continue;
-    r.push({ funcion: funcionEn(codigo, m.index), linea: sql.slice(0, m.index).split("\n").length });
+  for (const e of codigo.matchAll(/\bexception\b/g)) {
+    if (anterior(codigo, e.index) === "raise") continue;
+    if (!/^\s+when\b/.test(codigo.slice(e.index + 9, e.index + 40))) continue;
+    manejadores(codigo, e.index).forEach((h, k) => {
+      if (!/\bothers\b/.test(h.cond) || h.avisa) return;
+      // El primero puede llevar el comentario encima del `exception`.
+      if (aProposito(sql, h, h.when) || (k === 0 && aProposito(sql, { when: e.index, fin: h.fin }, e.index))) return;
+      r.push({ funcion: funcionEn(codigo, h.when), linea: sql.slice(0, h.when).split("\n").length });
+    });
   }
   return r;
 }
@@ -205,10 +293,83 @@ describe("el lector de manejadores", () => {
     expect(mudos(fn("  begin perform 1;\n  exception when others then null;\n  end;"))).toHaveLength(1);
   });
 
-  it("acepta raise warning, notice, exception y raise;", () => {
-    for (const r of ["raise warning 'x %', sqlerrm;", "raise notice 'x';", "raise exception 'x';", "raise;"]) {
+  it("acepta raise warning, exception, raise;, sin nivel, sqlstate y using", () => {
+    const buenos = [
+      "raise warning 'x %', sqlerrm;",
+      "raise exception 'x';",
+      "raise;",
+      "raise 'x %', sqlerrm;",
+      "raise sqlstate '22012';",
+      "raise using message = 'x';",
+    ];
+    for (const r of buenos) {
       expect(mudos(fn(`  perform 1;\nexception when others then\n  ${r}`))).toEqual([]);
     }
+  });
+
+  it("notice, debug, log e info no son aviso: Supabase solo guarda de warning para arriba", () => {
+    for (const nivel of ["notice", "debug", "log", "info"]) {
+      expect(mudos(fn(`  perform 1;\nexception when others then\n  raise ${nivel} 'x %', sqlerrm;`))).toHaveLength(1);
+    }
+  });
+
+  it("others junto a otra condición con or también cuenta", () => {
+    expect(mudos(fn("  perform 1;\nexception when sqlstate '23505' or others then null;"))).toHaveLength(1);
+    expect(mudos(fn("  perform 1;\nexception when others or unique_violation then null;"))).toHaveLength(1);
+  });
+
+  it("el raise del manejador de un bloque anidado no vale para el de fuera", () => {
+    const cuerpo = [
+      "  perform 1;",
+      "exception when others then",
+      "  begin",
+      "    perform 2;",
+      "  exception when others then",
+      "    raise warning 'dentro: %', sqlerrm;",
+      "  end;",
+    ].join("\n");
+    expect(mudos(fn(cuerpo))).toEqual([{ funcion: "f", linea: 4 }]);
+  });
+
+  it("el raise tiene que estar arriba del manejador, no dentro de un if, un case o un loop", () => {
+    const dentro = [
+      "if sqlstate = 'x' then raise warning 'y'; end if;",
+      "case when true then raise warning 'y'; end case;",
+      "loop raise warning 'y'; exit; end loop;",
+      "for i in 1..2 loop raise warning 'y'; end loop;",
+    ];
+    for (const d of dentro) {
+      expect(mudos(fn(`  perform 1;\nexception when others then\n  ${d}`))).toHaveLength(1);
+    }
+    // Arriba, después de un if, sí vale.
+    expect(mudos(fn("  perform 1;\nexception when others then\n  if true then null; end if;\n  raise warning 'y';"))).toEqual([]);
+  });
+
+  it("los textos $tag$…$tag$ y E'…' no tapan ni inventan código", () => {
+    const malo = fn("  perform 1;\nexception when others then null;");
+    expect(mudos(`comment on function public.f() is $c$it's$c$;\n${malo}`)).toHaveLength(1);
+    expect(mudos(`select E'it\\'s';\n${malo}`)).toHaveLength(1);
+    expect(mudos("comment on function public.f() is $c$begin exception when others then null; end$c$;")).toEqual([]);
+  });
+
+  it("do language plpgsql $$ también es un bloque do", () => {
+    expect(mudos("do language plpgsql $$ begin perform 1; exception when others then null; end $$;"))
+      .toEqual([{ funcion: "do", linea: 1 }]);
+  });
+
+  it("el a propósito de un manejador hermano no vale para el others de después", () => {
+    const cuerpo = [
+      "  perform 1;",
+      "exception",
+      "  when unique_violation then",
+      "    -- a propósito: el duplicado ya está",
+      "    null;",
+      "  when others then",
+      "    null;",
+    ].join("\n");
+    expect(mudos(fn(cuerpo))).toHaveLength(1);
+    const primero = "  perform 1;\nexception when unique_violation then null; -- a propósito: dup\n  when others then null;";
+    expect(mudos(fn(primero))).toHaveLength(1);
   });
 
   it("acepta el comentario a propósito, en el manejador o justo encima", () => {

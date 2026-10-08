@@ -28,6 +28,9 @@ Además:
 - Una migración aplicada **no se edita nunca**: se escribe otra.
 - **El código no puede depender de que la migración ya esté**: la rama se
   despliega antes de aplicarla. Plan B siempre.
+- Todo `when others` lleva `raise warning` (o `raise exception`) en el nivel
+  de arriba del manejador, o `-- a propósito: <porqué>`; lo vigila
+  `supabase/errores.test.js`.
 - `drop constraint` **sin** `if exists`, con el nombre leído de
   `pg_constraint`.
 - Vocabulario cerrado: CHECK + la lista en una constante JS + un test SQL↔JS
