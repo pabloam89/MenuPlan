@@ -15,11 +15,16 @@
 -- Aditiva. El código no depende de ella: si la tabla no existe, el webhook
 -- atiende el mensaje como antes (plan B, ver entradas.js).
 --
--- Normas 17-21 de PRINCIPIOS (en camino, ops/cimientos): clave identity,
--- created_at, unique (proveedor, *_xid), texto sin espacios sobrantes, comment
--- con el plazo de conservación.
+-- PRINCIPIOS §3 (clave identity), §9 (created_at), §14 (texto sin espacios
+-- sobrantes), §16 (comment con el plazo de conservación) y §19 (unique
+-- (proveedor, *_xid)). La columna se llama `proveedor` y no `channel` porque
+-- §19 la quiere para todo lo que llega de fuera (webhooks, cron, Mercadona);
+-- hoy su lista coincide con los canales del bot, y el test de vocabularios la
+-- ata a CANALES mientras sea así.
 --
 -- Se escribió como 0087; otra rama cogió ese número antes (0087_menu_activo).
+--
+-- AUDITADA: auditor-datos 2026-10-08 OK
 
 set lock_timeout = '5s';
 
@@ -44,5 +49,6 @@ comment on column public.bot_entradas.entrada_xid is
   'Id externo que pone el proveedor (Telegram update_id). Sin FK: es de fuera.';
 
 -- La purga, aparte de bot_purgar (0065) para no reescribir su cuerpo.
+-- 03:29 UTC = 05:29 en Madrid en verano, 04:29 en invierno (§20).
 select cron.unschedule('bot-entradas-purga') where exists (select 1 from cron.job where jobname = 'bot-entradas-purga');
 select cron.schedule('bot-entradas-purga', '29 3 * * *', $$delete from public.bot_entradas where created_at < now() - interval '7 days'$$);
