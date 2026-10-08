@@ -9,6 +9,7 @@ import { isMontaje, effectiveRecipeTime, necesitaVispera } from "../data/recipeS
 import { resolveIngredientId, deriveRecipeAllergens } from "../lib/ingredients.js";
 import { esAnadido } from "../lib/cocinaTopes.js";
 import { aporteDe } from "../lib/aporte.js";
+import { platoVetado } from "../lib/vetos.js";
 
 // Off-menu categories: the optional desayuno/merienda/postre pool. They live in
 // the same catalog but must never be picked by the comida/cena planner (see the
@@ -151,12 +152,10 @@ export function filterOffMenuRecipes(
     (r) => !recipeViolatesHardSafety(r, { allergies, intolerances, hasKids, isBabyGroup: false, offMenu: true }),
   );
 
-  // Soft: dislikes (with fallback so we never empty the pool).
-  const dislikeLower = dislikes.map((d) => String(d).toLowerCase()).filter(Boolean);
-  if (dislikeLower.length > 0) {
-    const noDislike = pool.filter(
-      (r) => !r.ingredients.some((ing) => dislikeLower.some((d) => ing.name.toLowerCase().includes(d))),
-    );
+  // Soft: dislikes (with fallback so we never empty the pool). Mismo
+  // comparador que el menú (lib/vetos.js); aquí blando a propósito.
+  if (dislikes.length > 0) {
+    const noDislike = pool.filter((r) => !platoVetado(r, dislikes));
     if (noDislike.length > 0) pool = noDislike;
   }
 
@@ -269,7 +268,6 @@ export function filterRecipes({
   // La alergia no se desbloquea con «sin_gluten»: el paso 1 excluye siempre el
   // gluten de quien lo tiene como alergia (ver recipeViolatesHardSafety).
   const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
-  const dislikeLower = dislikes.map((d) => d.toLowerCase());
   const toolsLower = new Set(kitchenTools.map((t) => t.toLowerCase()));
   const season = currentSeason();
 
@@ -400,15 +398,12 @@ export function filterRecipes({
       .filter(Boolean);
   }
 
-  // 2. Dislikes — exclude if any ingredient name contains a disliked term
-  if (dislikeLower.length > 0) {
-    pool = pool.filter(
-      (r) =>
-        !r.ingredients.some((ing) => {
-          const name = ing.name.toLowerCase();
-          return dislikeLower.some((d) => name.includes(d));
-        }),
-    );
+  // 2. Vetos («no me pongas X») — DUROS en la comida y la cena: el plato sale
+  // del pool, sin caída. Palabra entera, sin tildes, singular o plural, sobre
+  // el nombre y los ingredientes (lib/vetos.js#platoVetado). Hasta el 8 oct
+  // 2026 era un substring: «pollo» se llevaba el repollo.
+  if (dislikes.length > 0) {
+    pool = pool.filter((r) => !platoVetado(r, dislikes));
   }
 
   // 3. Kid-friendly

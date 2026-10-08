@@ -38,6 +38,7 @@ JSON versionado en git (`src/data/`). Hosting en Vercel.
 | Hosting | Vercel, equipo «Monicos MenuPlan», proyecto `menu-plan` |
 | Base de datos | Supabase `mdzwbrworucnummibxrq`, **una sola: producción**. Cuelga del equipo de Vercel (Marketplace), no de una cuenta propia |
 | Servicios, cuentas dueñas y dónde está cada clave | `ops/INVENTARIO.md` (nunca valores de claves) |
+| Las claves en local | 1Password, bóveda `HoMenu`. `.env.local` guarda direcciones `op://` (plantilla `ops/env.1password`), no claves. Skill `1password` |
 | Estado real de las migraciones | `supabase/ESTADO.md` (el registro de Supabase no sirve: tiene 12 filas) |
 | Constraints NOT VALID por validar | `supabase/PENDIENTES.md` |
 | Reglas de estructura de tablas | `docs/datos/PRINCIPIOS.md` (con test desde la 0087) |

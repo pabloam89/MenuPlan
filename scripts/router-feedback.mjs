@@ -22,10 +22,9 @@
 
 import fs from "node:fs";
 import pg from "pg";
+import { cargarEnv, leerEnv } from "./lib/env.mjs";
 
-const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
-const leerEnv = (k) => env.match(new RegExp(`^${k}="?([^"\\r\\n]+)`, "m"))?.[1]?.trim();
-process.env.ANTHROPIC_API_KEY ||= leerEnv("ANTHROPIC_API_KEY");
+cargarEnv(["ANTHROPIC_API_KEY"]);
 const arg = (k) => process.argv.find((a) => a.startsWith(`--${k}`));
 const DIAS = Number(arg("dias=")?.split("=")[1] ?? 14);
 const EVALS = new URL("./router-evals.json", import.meta.url);

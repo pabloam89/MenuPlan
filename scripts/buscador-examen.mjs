@@ -16,12 +16,9 @@
  * cada una con la caché caliente) y la referencia.
  */
 
-import fs from "node:fs";
+import { cargarEnv, leerFichero } from "./lib/env.mjs";
 
-for (const l of fs.readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-  const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
-  if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^"|"$/g, "").trim();
-}
+cargarEnv(Object.keys(leerFichero()));
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 
 const args = process.argv.slice(2);

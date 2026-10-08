@@ -15,12 +15,13 @@
  *                     platos de carne fuera de la carpeta «Carnes»
  *                     (rasgosBusqueda.js GRUPOS).
  *   «tecnica:sarten»  una técnica del catálogo (horno, plancha, sarten, olla, crudo).
- *   «coliflor»        un ingrediente, con frontera de palabra: «pollo» no es «repollo».
+ *   «coliflor»        un ingrediente, con el mismo comparador que los vetos de
+ *                     siempre (lib/vetos.js#platoVetado): palabra entera, sin
+ *                     tildes, singular o plural. «pollo» no es «repollo».
  */
 
-import { GRUPOS, sinTildes } from "./rasgosBusqueda.js";
-
-const escapar = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+import { GRUPOS } from "./rasgosBusqueda.js";
+import { platoVetado } from "./vetos.js";
 
 /** ¿Es un valor que se sabe aplicar? Para validar antes de guardar una regla. */
 export function itemValido(item) {
@@ -34,17 +35,14 @@ export function itemValido(item) {
 /** Lo primero de la lista con lo que choca el plato, o null. */
 export function chocaConHueco(receta, items = []) {
   if (!receta || !items?.length) return null;
-  let ingredientes = null;
   for (const item of items) {
     const s = String(item);
     if (s.startsWith("grupo:")) {
       if (GRUPOS[s.slice(6)]?.es(receta)) return s;
     } else if (s.startsWith("tecnica:")) {
       if (receta.tecnica === s.slice(8)) return s;
-    } else {
-      ingredientes ??= (receta.ingredients ?? []).map((i) => sinTildes(i?.name));
-      const re = new RegExp(`\\b${escapar(sinTildes(s))}`);
-      if (ingredientes.some((n) => re.test(n))) return s;
+    } else if (platoVetado(receta, [s])) {
+      return s;
     }
   }
   return null;
