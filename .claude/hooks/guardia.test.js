@@ -72,13 +72,14 @@ describe("hábitos que ya rompieron cosas", () => {
 
 describe("la base es producción", () => {
   it("el ensayo de una migración pasa", () => expect(bash("node scripts/apply-migration.mjs 0086_vocabulario_de_la_app")).toBe(null));
-  it("aplicarla pregunta", () => expect(bash("node scripts/apply-migration.mjs 0086_vocabulario_de_la_app --si")).toBe("ask"));
+  it("aplicarla, nunca desde una sesión: la lanza Pablo con !", () =>
+    expect(bash("node scripts/apply-migration.mjs 0086_vocabulario_de_la_app --si")).toBe("deny"));
   it.each([
     'psql "$SUPABASE_DB_URL" -c "drop table public.bot_cola"',
     'psql $SUPABASE_DB_URL -c "delete from user_pantry"',
     "node -e \"new pg.Client(process.env.SUPABASE_DB_URL); q('update households set name=1')\"",
     'psql "$OPS_DB_URL" -c "grant select on x to anon"',
-  ])("SQL que escribe pregunta: %s", (c) => expect(bash(c)).toBe("ask"));
+  ])("SQL que escribe, negado: %s", (c) => expect(bash(c)).toBe("deny"));
   it("una lectura pasa", () => expect(bash('psql "$SUPABASE_DB_URL" -c "select count(*) from households"')).toBe(null));
 });
 
@@ -86,6 +87,8 @@ describe("migraciones aplicadas no se editan", () => {
   it("aplicada y en staging: deniega", () => expect(edita("C:\\dev\\MenuPlan\\supabase\\migrations\\0079_personas_y_grupos.sql")).toBe("deny"));
   it("en staging pero sin aplicar: libre", () => expect(edita("C:/dev/x/supabase/migrations/0080_bot_tareas_v2.sql")).toBe(null));
   it("nueva en la rama: libre", () => expect(edita("C:/dev/x/supabase/migrations/0090_nueva.sql")).toBe(null));
+  it("nueva pero con un número que staging ya usa: deniega", () =>
+    expect(edita("C:/dev/x/supabase/migrations/0086_otra_cosa.sql", ctx({ numeroEnStaging: (n) => (n === "0086" ? "0086_vocabulario_de_la_app" : null) }))).toBe("deny"));
   it("sin ESTADO.md legible: deniega con explicación", () =>
     expect(edita("supabase/migrations/0080_bot_tareas_v2.sql", ctx({ estadoMd: null }))).toBe("deny"));
   it("por shell tampoco", () => expect(bash("sed -i 's/a/b/' supabase/migrations/0079_personas_y_grupos.sql")).toBe("deny"));
