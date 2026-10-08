@@ -43,8 +43,8 @@ scripts/.enrich-base-done.json
 scripts/.enrich-parts-done.json
 scripts/.enrich-basesteps-done.json
 
-# Salidas de las pruebas de generación de fotos: son cientos de MB de imágenes
-# descartables que se regeneran con scripts/gen-test-photos.mjs.
+# Salidas de las pruebas de generación de fotos: cientos de MB, fuera de git.
+# NO son descartables: costaron dinero (Gemini). Sus copias, en docs/medios.md.
 scripts/test-photos/
 scripts/prompt-test/
 
