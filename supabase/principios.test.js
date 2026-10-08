@@ -227,7 +227,145 @@ export function revisar(fichero, sql, { pendientes, estado }) {
   // lock-timeout.
   if (!/\bset\s+(?:local\s+)?lock_timeout\b/.test(codigo)) v.push("lock-timeout: falta set lock_timeout");
 
+  // tipos: fechas con zona, texto sin longitud fija, números exactos.
+  for (const s of sents) {
+    const ct = RE_CREATE_TABLE.exec(s);
+    const at = RE_ALTER_TABLE.exec(s);
+    if (!ct && !at) continue;
+    for (const c of clausulas(s)) {
+      if (at && !/^add\s+(?:column\b|(?!constraint\b)\w)/.test(c) && !/^alter\s+(?:column\s+)?\w+\s+(?:set\s+data\s+)?type\b/.test(c)) continue;
+      if (/\btimestamp\b(?!\s*(?:\(\s*\d+\s*\)\s*)?with\s+time\s+zone)/.test(c)) v.push(`tipos: timestamp sin zona (usa timestamptz): ${c.slice(0, 80)}`);
+      if (/\b(?:varchar|character\s+varying|char|character)\s*\(/.test(c)) v.push(`tipos: texto con longitud fija (usa text + check): ${c.slice(0, 80)}`);
+      if (/\b(?:real|float[48]?|double\s+precision|money)\b/.test(c)) v.push(`tipos: número inexacto (usa integer o numeric): ${c.slice(0, 80)}`);
+    }
+  }
+
+  // comentario: cada tabla nueva dice qué es.
+  for (const t of creadas) {
+    if (!new RegExp(String.raw`comment\s+on\s+table\s+(?:public\.)?"?${t}"?\s+is\b`).test(codigo)) v.push(`comentario: ${t} sin comment on table`);
+  }
+
+  // fk-indice y created-at: sobre cada create table del fichero, y las FK y
+  // los unique que entran por alter table.
+  const indices = indicesDelFichero(codigo);
+  const alter = fksYClavesDeAlter(sents);
+  const cubierta = (t, fk, extra) => [...(indices.get(t) ?? []), ...(alter.claves.get(t) ?? []), ...extra]
+    .some((ix) => ix.length >= fk.length && fk.every((c) => ix.slice(0, fk.length).includes(c)));
+  for (const { tabla, fk } of alter.fks) {
+    if (!cubierta(tabla, fk, [])) v.push(`fk-indice: ${tabla} (${fk.join(", ")}) sin índice que empiece por la FK`);
+  }
+  for (const s of sents) {
+    const ct = RE_CREATE_TABLE.exec(s);
+    if (!ct || !creadas.has(nombre(ct[1]))) continue;
+    const t = nombre(ct[1]);
+    const cl = clausulas(s);
+    for (const fk of fksDeLaTabla(cl)) {
+      if (!cubierta(t, fk, clavesDeLaTabla(cl))) v.push(`fk-indice: ${t} (${fk.join(", ")}) sin índice que empiece por la FK`);
+    }
+    const creado = cl.find((c) => /^"?created_at"?\s/.test(c));
+    if (!creado || !/\bnot\s+null\b/.test(creado) || !/\bdefault\s+now\(\)/.test(creado)) {
+      v.push(`created-at: ${t} sin created_at … not null default now()`);
+    }
+  }
+
+  // serial: la identidad es generated always as identity.
+  if (/\b(?:small|big)?serial[248]?\b/.test(codigo)) v.push("serial: usa generated always as identity");
+
+  // between: los rangos se escriben >= a and < b.
+  if (/\bbetween\b/.test(codigo)) v.push("between: usa >= a and < b");
+
+  // salud: columnas de salud con comment on column 'SALUD: …'. Se mira el SQL
+  // original (limpiar() vacía los textos largos) sin las líneas de comentario.
+  const original = sql.replace(/--[^\n]*/g, "");
+  for (const { tabla, col } of columnasNuevas(sents)) {
+    if (!RE_SALUD.test(col)) continue;
+    const re = new RegExp(String.raw`comment\s+on\s+column\s+(?:public\.)?"?${tabla}"?\."?${col}"?\s+is\s+'SALUD:`, "i");
+    if (!re.test(original)) v.push(`salud: ${tabla}.${col} sin comment on column 'SALUD: …'`);
+  }
+
   return v;
+}
+
+// Anclado al principio de cada palabra: «alergias_revisadas» y
+// «perfil_salud» sí; «es_saludable» o «saludo», no.
+const RE_SALUD = /^(?:(?:\w+_)?(?:alerg|intoler)\w*|(?:\w+_)?salud(?:_\w+)?|peso_\w*|altura_\w*|fecha_nacimiento)$/;
+const NO_COLUMNA = /^(?:constraint|primary|unique|foreign|check|exclude|like)\b/;
+const columnasDe = (lista) => trozos(lista).map((c) => nombre(c.split(/\s+/)[0]));
+
+/** FKs de un create table: cada una, la lista de sus columnas. */
+function fksDeLaTabla(cl) {
+  const r = [];
+  for (const c of cl) {
+    const tabla = /\bforeign\s+key\s*\(([^)]*)\)/.exec(c);
+    if (tabla) r.push(columnasDe(tabla[1]));
+    else if (!NO_COLUMNA.test(c) && /\breferences\b/.test(c)) r.push([nombre(c.split(/\s+/)[0])]);
+  }
+  return r;
+}
+
+/** Primary key y unique de un create table, que también sirven de índice. */
+function clavesDeLaTabla(cl) {
+  const r = [];
+  for (const c of cl) {
+    const tabla = /^(?:constraint\s+\S+\s+)?(?:primary\s+key|unique)\s*\(([^)]*)\)/.exec(c);
+    if (tabla) r.push(columnasDe(tabla[1]));
+    else if (!NO_COLUMNA.test(c) && /\b(?:primary\s+key|unique)\b/.test(c)) r.push([nombre(c.split(/\s+/)[0])]);
+  }
+  return r;
+}
+
+/** FKs y claves (primary key, unique) que entran por alter table. */
+function fksYClavesDeAlter(sents) {
+  const fks = [];
+  const claves = new Map();
+  const clave = (t, cols) => { if (!claves.has(t)) claves.set(t, []); claves.get(t).push(cols); };
+  for (const s of sents) {
+    const at = RE_ALTER_TABLE.exec(s);
+    if (!at) continue;
+    const t = nombre(at[1]);
+    for (const c of trozos(at[2])) {
+      const fkTabla = /^add\s+(?:constraint\s+\S+\s+)?foreign\s+key\s*\(([^)]*)\)/.exec(c);
+      const claveTabla = /^add\s+(?:constraint\s+\S+\s+)?(?:primary\s+key|unique)\s*\(([^)]*)\)/.exec(c);
+      const col = /^add\s+(?:column\s+)?(?:if\s+not\s+exists\s+)?("?[\w]+"?)/.exec(c);
+      if (fkTabla) fks.push({ tabla: t, fk: columnasDe(fkTabla[1]) });
+      else if (claveTabla) clave(t, columnasDe(claveTabla[1]));
+      else if (col && !/^add\s+constraint\b/.test(c)) {
+        if (/\breferences\b/.test(c)) fks.push({ tabla: t, fk: [nombre(col[1])] });
+        if (/\b(?:primary\s+key|unique)\b/.test(c)) clave(t, [nombre(col[1])]);
+      }
+    }
+  }
+  return { fks, claves };
+}
+
+/** Los create index del fichero, por tabla: cada uno, sus columnas en orden. */
+function indicesDelFichero(codigo) {
+  const m = new Map();
+  const re = new RegExp(String.raw`create\s+(?:unique\s+)?index\s+(?:if\s+not\s+exists\s+)?(?:[\w"]+\s+)?on\s+(?:only\s+)?${ID}\s*(?:using\s+\w+\s*)?\(([^;]*?)\)`, "g");
+  for (const x of codigo.matchAll(re)) {
+    const t = nombre(x[1]);
+    if (!m.has(t)) m.set(t, []);
+    m.get(t).push(columnasDe(x[2]));
+  }
+  return m;
+}
+
+/** Columnas que nacen en el fichero: las de create table y las de add column. */
+function columnasNuevas(sents) {
+  const r = [];
+  for (const s of sents) {
+    const ct = RE_CREATE_TABLE.exec(s);
+    const at = RE_ALTER_TABLE.exec(s);
+    if (ct) {
+      for (const c of clausulas(s)) if (!NO_COLUMNA.test(c)) r.push({ tabla: nombre(ct[1]), col: nombre(c.split(/\s+/)[0]) });
+    } else if (at) {
+      for (const c of trozos(at[2])) {
+        const add = /^add\s+(?:column\s+)?(?:if\s+not\s+exists\s+)?("?[\w]+"?)/.exec(c);
+        if (add && !/^add\s+constraint\b/.test(c)) r.push({ tabla: nombre(at[1]), col: nombre(add[1]) });
+      }
+    }
+  }
+  return r;
 }
 
 /** NOT VALID que ninguna migración posterior valida y que no están en PENDIENTES.md. */
@@ -261,13 +399,15 @@ create policy "miembros leen cosas" on public.cosas
   for select using (household_id in (select household_id from public.household_members where user_id = (select auth.uid())));
 
 create table public.cosas_log (
-  id bigserial primary key,
+  id bigint generated always as identity primary key,
   household_id uuid not null references public.households(id) on delete cascade,
   cosa_id uuid,
+  created_at timestamptz not null default now(),
   constraint cosas_log_cosa_fk foreign key (household_id, cosa_id)
     references public.cosas(household_id, id) on delete cascade,
   constraint cosas_log_nota_vocabulario check (cosa_id is not null)
 );
+create index if not exists idx_cosas_log_cosa on public.cosas_log (household_id, cosa_id);
 alter table public.cosas_log enable row level security;
 revoke all on table public.cosas_log from anon, authenticated;
 
@@ -291,9 +431,10 @@ revoke all on function public.hacer_cosa(uuid) from public, anon, authenticated;
 grant execute on function public.hacer_cosa(uuid) to service_role;
 
 comment on table public.cosas is 'Un texto largo que dice references, begin; y drop table, y no es SQL de verdad';
+comment on table public.cosas_log is 'Registro de solo añadir de lo que pasa con cada cosa';
 `;
 
-const CTX = { pendientes: "- `bot_tareas_ejemplo_vocabulario`", estado: "| `0999_ejemplo` | sin aplicar |" };
+const CTX = { pendientes: "- `bot_tareas_ejemplo_vocabulario`\n- `bot_reminders_cosa_fk`", estado: "| `0999_ejemplo` | sin aplicar |" };
 const F = "0999_ejemplo.sql";
 
 const reglas = (v) => [...new Set(v.map((x) => x.split(":")[0]))].sort();
@@ -303,7 +444,7 @@ const MALAS = [
   ["on-delete", "FK en create table sin on delete",
     (s) => s.replace("references public.households(id) on delete cascade,\n  id uuid", "references public.households(id),\n  id uuid")],
   ["on-delete", "FK en add column sin on delete",
-    (s) => s + "alter table public.bot_tareas add column cosa_id uuid references public.cosas(id);\n"],
+    (s) => s + "alter table public.bot_tareas add column cosa_id uuid references public.cosas(id);\ncreate index idx_bot_tareas_cosa on public.bot_tareas (cosa_id);\n"],
   ["on-delete", "FK de tabla sin on delete",
     (s) => s.replace("references public.cosas(household_id, id) on delete cascade", "references public.cosas(household_id, id)")],
   ["rls", "tabla sin enable row level security",
@@ -325,7 +466,7 @@ const MALAS = [
   ["not-valid", "check sobre tabla existente sin not valid",
     (s) => s.replace("check (tipo in ('a', 'b')) not valid;", "check (tipo in ('a', 'b'));")],
   ["not-valid", "foreign key sobre tabla existente sin not valid",
-    (s) => s + "alter table public.bot_reminders add constraint bot_reminders_cosa_fk foreign key (household_id, cosa_id) references public.cosas(household_id, id) on delete cascade;\n"],
+    (s) => s + "alter table public.bot_reminders add constraint bot_reminders_cosa_fk foreign key (household_id, cosa_id) references public.cosas(household_id, id) on delete cascade;\ncreate index idx_bot_reminders_cosa on public.bot_reminders (household_id, cosa_id);\n"],
   ["pendientes", "not valid sin apuntar en PENDIENTES.md",
     (s) => s.replace("bot_tareas_ejemplo_vocabulario", "bot_tareas_otro_vocabulario")],
   ["transaccion", "begin/commit sueltos",
@@ -340,6 +481,36 @@ const MALAS = [
     (s) => s + "drop table if exists public.viejas;\n"],
   ["lock-timeout", "sin set lock_timeout",
     (s) => s.replace("set lock_timeout = '5s';\n", "")],
+  ["tipos", "timestamp sin zona",
+    (s) => s.replace("created_at timestamptz not null", "created_at timestamp not null")],
+  ["tipos", "varchar con longitud",
+    (s) => s.replace("nombre text not null", "nombre varchar(80) not null")],
+  ["tipos", "precio en float",
+    (s) => s + "alter table public.cosas add column precio double precision;\n"],
+  ["tipos", "columna cambiada a real",
+    (s) => s + "alter table public.cosas alter column nombre type real;\n"],
+  ["comentario", "tabla nueva sin comment on table",
+    (s) => s.replace("comment on table public.cosas_log is 'Registro de solo añadir de lo que pasa con cada cosa';\n", "")],
+  ["fk-indice", "FK sin índice que empiece por ella",
+    (s) => s.replace("create index if not exists idx_cosas_log_cosa on public.cosas_log (household_id, cosa_id);\n", "")],
+  ["fk-indice", "índice que no empieza por la FK",
+    (s) => s.replace("public.cosas_log (household_id, cosa_id)", "public.cosas_log (cosa_id)")],
+  ["fk-indice", "FK en add column sin índice",
+    (s) => s + "alter table public.bot_tareas add column cosa_id uuid references public.cosas(id) on delete set null;\n"],
+  ["fk-indice", "foreign key añadida a tabla existente sin índice",
+    (s) => s + "alter table public.bot_reminders add constraint bot_reminders_cosa_fk foreign key (household_id, cosa_id) references public.cosas(household_id, id) on delete cascade not valid;\n"],
+  ["created-at", "tabla nueva sin created_at",
+    (s) => s.replace("  cosa_id uuid,\n  created_at timestamptz not null default now(),\n", "  cosa_id uuid,\n")],
+  ["created-at", "created_at sin default now()",
+    (s) => s.replace("  cosa_id uuid,\n  created_at timestamptz not null default now(),\n", "  cosa_id uuid,\n  created_at timestamptz not null,\n")],
+  ["serial", "bigserial en vez de identity",
+    (s) => s.replace("id bigint generated always as identity primary key", "id bigserial primary key")],
+  ["between", "rango con between",
+    (s) => s + "create index idx_cosas_corto on public.cosas (household_id, nombre) where length(nombre) between 1 and 9;\n"],
+  ["salud", "columna de salud sin comment SALUD",
+    (s) => s + "alter table public.cosas add column alergenos text;\n"],
+  ["salud", "columna de salud con comment que no dice SALUD",
+    (s) => s + "alter table public.cosas add column peso_kg numeric;\ncomment on column public.cosas.peso_kg is 'Peso de la persona en kilos';\n"],
 ];
 
 describe("principios: el lector distingue SQL bueno de malo", () => {
@@ -351,6 +522,18 @@ describe("principios: el lector distingue SQL bueno de malo", () => {
     const malo = mutar(BUENA);
     expect(malo, "la mutación no cambió nada: el caso no prueba nada").not.toBe(BUENA);
     expect(reglas(revisar(F, malo, CTX))).toEqual([regla]);
+  });
+
+  it("fk-indice: un unique añadido con alter table cubre la FK", () => {
+    const sql = BUENA + "alter table public.bot_tareas add column cosa_id uuid references public.cosas(id) on delete set null;\n"
+      + "alter table public.bot_tareas add constraint uq_bot_tareas_cosa unique (cosa_id);\n";
+    expect(revisar(F, sql, CTX)).toEqual([]);
+  });
+
+  it("salud: es_saludable o saludo no son datos de salud", () => {
+    const sql = BUENA + "alter table public.cosas add column es_saludable boolean not null default false;\n"
+      + "alter table public.cosas add column saludo text;\n";
+    expect(revisar(F, sql, CTX)).toEqual([]);
   });
 
   it("estado: el número tiene que estar en ESTADO.md (y 0099 no vale por 0999)", () => {
@@ -365,6 +548,12 @@ describe("principios: el lector distingue SQL bueno de malo", () => {
 
   it("constraint añadido en la tabla que se crea en el mismo fichero no necesita not valid", () => {
     const sql = BUENA + "alter table public.cosas add constraint cosas_nombre_vocabulario check (nombre <> '');\n";
+    expect(revisar(F, sql, CTX)).toEqual([]);
+  });
+
+  it("salud: con su comment SALUD, la columna pasa", () => {
+    const sql = BUENA + "alter table public.cosas add column alergenos text;\n"
+      + "comment on column public.cosas.alergenos is 'SALUD: alérgenos declarados; se borran con la persona';\n";
     expect(revisar(F, sql, CTX)).toEqual([]);
   });
 

@@ -1,0 +1,40 @@
+# Dependabot: avisa de librerías desfasadas o con vulnerabilidades.
+#
+# Somos dos personas: un solo PR semanal agrupado por ecosistema, contra
+# staging (la rama por defecto), y como mucho 3 abiertos a la vez. Los PR de
+# seguridad (si se activan las alertas en los ajustes del repo) no esperan al
+# lunes: Dependabot los abre en cuanto sale el aviso.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: staging
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Madrid
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      npm-semanal:
+        applies-to: version-updates
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: staging
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Madrid
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      actions-semanal:
+        applies-to: version-updates
+        patterns: ["*"]
