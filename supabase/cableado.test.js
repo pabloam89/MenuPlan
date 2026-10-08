@@ -11,9 +11,11 @@ import { BASE, medir } from "../scripts/cableado.mjs";
  * - Un fichero NUEVO se pone a tocar una tabla: usa el módulo que ya la toca.
  *   Si de verdad tiene que ser así, se añade a mano a cableado.json y el PR
  *   explica por qué.
- * - Un fichero DEJA de tocarla: bien, pero se quita de cableado.json en el
- *   mismo PR (`node scripts/cableado.mjs --escribir`). Así el número solo baja
- *   y nadie vuelve a abrir esa puerta sin que se vea.
+ * - Un fichero DEJA de tocarla: bien, y se quita de cableado.json con
+ *   `node scripts/cableado.mjs --escribir`. Solo avisa, no falla: con sesiones
+ *   en paralelo, el PR que dejaba de tocar una tabla ponía en rojo el CI de
+ *   todos los demás hasta que alguien regenerara el fichero (8 oct 2026).
+ *   Mientras no se quite, ese par sigue abierto: el aviso sale en cada CI.
  */
 const base = JSON.parse(readFileSync(BASE, "utf8"));
 const hoy = medir();
@@ -29,8 +31,10 @@ describe("cableado: qué fichero toca qué tabla", () => {
     expect(nuevos, "Pasa por el módulo que ya toca esa tabla, o añádelo a supabase/cableado.json con su porqué").toEqual([]);
   });
 
-  it("lo que ya no toca una tabla sale de la base (el número solo baja)", () => {
+  it("lo que ya no toca una tabla se avisa para sacarlo de la base", () => {
     const viejos = [...antes].filter((p) => !ahora.has(p));
-    expect(viejos, "Bien: ahora quítalos con `node scripts/cableado.mjs --escribir`").toEqual([]);
+    if (viejos.length) {
+      console.warn(`cableado: ${viejos.length} par(es) ya no se usan; quítalos con \`node scripts/cableado.mjs --escribir\`:\n  ${viejos.join("\n  ")}`);
+    }
   });
 });

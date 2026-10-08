@@ -67,3 +67,53 @@ Esto significa que `aiPlanner.js` sí puede operar sobre datos de `recipes` (Sup
 3. **`recipes` (tabla Supabase) no se usa en el flujo real de generación** pese a existir con RLS y datos — coste de mantenimiento sin beneficio claro en este dominio. [AMBIGUO — preguntar si tiene otro consumidor no localizado.]
 4. ~~La invariante "solo un menú activo" vive en una función RPC, no en un constraint DB~~ — **descartado, ver §2**: sí hay un índice único parcial que la garantiza a nivel de motor.
 5. ~~Importación de menú escolar sin fallback determinista~~ — **descartado, ver §1**: sí cae a extracción de texto + regex sin IA; el riesgo real es que ese fallo es silencioso (el usuario no se entera de que el resultado es del fallback, más pobre, en vez de la lectura por IA).
+
+## 6. El solver y la puerta de cocinas (decisiones, sep–oct 2026)
+
+**Por qué hay solver.** En septiembre de 2026 se midió que el modelo nunca
+había escrito un menú que viera un usuario: 19 de 19 unidades grupo×semana
+fallaron la validación a la primera y acabaron en `applyFallback` (~31 s,
+~50 llamadas). El banco «modelo frente a solver» con 12 casas reales lo
+confirmó: el modelo, 144 violaciones y p50 de 40 s; el solver, 0 violaciones
+y p50 de 0,7 s.
+
+**Estado.** `src/lib/solver.js` está ENCENDIDO desde el 30 sep 2026 en
+staging y producción (ramas `staging` y `main`), apagado en local y en
+previews (`VITE_MOTOR`, que vive en `.env.development.local`). El bot lo usa
+siempre (fijado en `scripts/build-bot-core.mjs`). Un fallo del solver afecta,
+por tanto, a menús reales.
+
+- Tres fases: backtracking con `validateMenu` como oráculo, B&B que salta
+  huecos, y relleno que solo relaja perfiles de salud y topes
+  (`REGLAS_RELAJABLES`), devuelto con nombre (`relajados`, `vacios`).
+- Con el solver NO corren `breakProteinClusters` ni `ajustarCuota`: re-elegían
+  sin validar y rompían menús válidos.
+- Reintentos con otras semillas y presupuesto corto (PR #14, 1 oct 2026).
+- **Holgura de topes 1,4** (`HOLGURA_TOPES`): un plato gasta 1,4 topes de
+  media, así que topes = huecos exactos no tiene solución. `DEFAULT_FREQS`
+  (suma 14) tampoco la tenía.
+- Los máximos leen la identidad del plato (categoría, proteína, fécula), no el
+  `aporte`; contar `aporte` convertía «verdura: 3» en «evita la verdura».
+- Telemetría en `menu_generated`: `motor`, `solverNodos`, `solverMs`,
+  `solverCompleto`, `solverRelajados`, `solverSemilla`.
+
+**`src/lib/solver.test.js` está roto desde el 23 sep 2026** (las 62 recetas
+nuevas del catálogo meten a la búsqueda en una semana sin salida). Está fuera
+del CI a propósito (`tests.yml`) hasta que se arregle; no es que la semana
+sea inviable, porque otras semillas la resuelven.
+
+**Pendiente de producto:** una casa con 25 min entre semana y cocina básica
+solo tiene primeros de montaje, y la regla `cena_rapida_no_solicitada` los
+prohíbe fuera de la cena: ¿puede una ensalada de bote ser primero de comida?
+Es el primer caso para una pantalla de ajuste (solo inviabilidad).
+
+**La puerta de cocinas (15 sep 2026).** Son dos interruptores distintos:
+
+- `estrella` decide si un plato PUEDE salir (sin foto no puede ser estrella).
+- La puerta de `filterRecipes` decide si sale SIN pedirlo: una cocina
+  extranjera está apagada salvo que la casa la marque.
+
+La puerta se aplica siempre, también a la casa sin preferencias guardadas
+(«no me has pedido nada» = «me has pedido cero»). `italiana` está en
+`SIEMPRE_ENCENDIDAS` porque en este catálogo significa pasta, que ya se pide
+por el reparto; `francesa`, no.

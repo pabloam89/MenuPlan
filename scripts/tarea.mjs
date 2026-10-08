@@ -11,6 +11,13 @@
  * libre para la app. Al acabar: `npm run retirar -- <nombre>`.
  *
  * No borra ni sobrescribe nada: si la carpeta o la rama local ya existen, para.
+ *
+ * Una rama nueva lleva un commit vacío desde el primer segundo, ANTES de copiar
+ * el entorno y de instalar dependencias. Sin él, la rama es ancestro de
+ * `origin/staging` y el hook de usuario `limpiar-worktrees` la da por fusionada
+ * y borra la carpeta al abrir cualquier otra sesión (pasó dos veces el 8 oct
+ * 2026; la segunda, con `npm ci` todavía instalando). `retirar` no cuenta ese
+ * commit como trabajo sin subir.
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, writeFileSync } from "node:fs";
@@ -25,6 +32,26 @@ export function leerRama(texto) {
   if (!m) return { error: "Pon la rama como <area>/<nombre>, en minúsculas y con guiones: `npm run tarea -- datos/descartes`." };
   if (!AREAS.includes(m[1])) return { error: `El área «${m[1]}» no existe. Vale: ${AREAS.join(", ")}.` };
   return { rama: texto, nombre: m[2] };
+}
+
+/** Una línea de `git log --oneline` que es el commit inicial de una tarea. */
+export const MARCA_INICIAL = /^[0-9a-f]+ tarea: arranca /;
+
+/** El commit vacío que hace que la rama deje de ser ancestro de staging. */
+export function commitInicial(destino, rama) {
+  execFileSync(
+    "git",
+    [
+      "-C",
+      destino,
+      "commit",
+      "-q",
+      "--allow-empty",
+      "-m",
+      `tarea: arranca ${rama}\n\nCommit vacío a propósito (lo pone \`npm run tarea\`): sin él, el hook limpiar-worktrees\nve la rama como fusionada y borra la carpeta. \`npm run retirar\` no lo cuenta como trabajo.`,
+    ],
+    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+  );
 }
 
 const git = (args, opciones = {}) => execFileSync("git", args, { encoding: "utf8", ...opciones }).trim();
@@ -77,6 +104,11 @@ async function main() {
     // Sin seguimiento: si no, la rama queda enganchada a staging y un `git pull`
     // o un `git push` despistados van a staging. El primer push: `git push -u origin <rama>`.
     git(["-C", principal, "worktree", "add", "-q", "--no-track", "-b", rama, destino, "origin/staging"]);
+    try {
+      commitInicial(destino, rama);
+    } catch (e) {
+      console.warn(`Aviso: no pude hacer el commit inicial (${String(e.stderr || e.message).trim().split("\n")[0]}). Hazlo ya a mano, o el hook limpiar-worktrees puede borrar esta carpeta: git -C "${destino}" commit --allow-empty -m "tarea: arranca ${rama}"`);
+    }
   }
 
   const env = join(principal, ".env.local");

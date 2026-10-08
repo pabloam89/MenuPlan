@@ -27,11 +27,16 @@ export function migrateHomeRole(role) {
   return "Otro";
 }
 
+/**
+ * El papel que se propone por la edad, con los mismos cortes que etapaDe (bebé
+ * hasta cumplir 3: 2,5 es «Bebé»). Sin edad (null, "", «no») no se sabe nada y
+ * se propone «Adulto», como siempre; antes Number(null) = 0 lo hacía «Bebé».
+ */
 export function suggestHomeRole(age) {
-  const a = Number(age);
-  if (Number.isNaN(a)) return "Adulto";
-  if (a <= 2) return "Bebé";
-  if (a < 18) return "Hijo/a";
+  const a = edadEscrita(age);
+  if (a == null) return "Adulto";
+  if (a < DESDE_INFANTIL) return "Bebé";
+  if (a < DESDE_ADULTO) return "Hijo/a";
   return "Adulto";
 }
 
@@ -76,10 +81,19 @@ export function stageForAge(age) {
   return STAGES.adulto;
 }
 
+/**
+ * «YYYY-MM-DD» como día local: new Date("2023-10-08") es medianoche UTC, que al
+ * oeste de Greenwich cae el día 7 y adelanta el cumpleaños. Lo demás, tal cual.
+ */
+function fechaLocal(v) {
+  const m = typeof v === "string" && /^(\d{4})-(\d{2})-(\d{2})$/.exec(v.trim());
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(v);
+}
+
 /** Edad en años cumplidos a `hoy` desde una fecha de nacimiento; null si no se lee. */
 function edadDesdeFecha(birthDate, hoy) {
-  const d0 = new Date(birthDate);
-  const ahora = hoy instanceof Date ? hoy : new Date(hoy ?? Date.now());
+  const d0 = fechaLocal(birthDate);
+  const ahora = hoy instanceof Date ? hoy : hoy == null ? new Date() : fechaLocal(hoy);
   if (Number.isNaN(d0.getTime()) || Number.isNaN(ahora.getTime())) return null;
   let edad = ahora.getFullYear() - d0.getFullYear();
   const md = ahora.getMonth() - d0.getMonth();
@@ -105,7 +119,7 @@ const sinAcentos = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace
 function etapaPorPapel(homeRole) {
   const t = sinAcentos(homeRole);
   if (!t) return null;
-  if (/\bbebe/.test(t)) return "bebe";
+  if (/\bbebes?\b/.test(t)) return "bebe"; // «bebé», «bebés»; no «bebedor»
   if (/^(hij[oa]|hijo\/a|nin[oa]|nino\/a)$/.test(t)) return "nino";
   if (/^(adult[oa]|papa|mama|padre|madre|abuel[oa]|abuelo\/a|pareja)$/.test(t)) return "adulto";
   return null;

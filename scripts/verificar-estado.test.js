@@ -106,6 +106,7 @@ describe("con el repo de verdad", () => {
 
   it("lee la lista «Sin aplicar» de ESTADO.md", () => {
     const lista = leerSinAplicar(readFileSync(join(RAIZ, "supabase", "ESTADO.md"), "utf8"));
-    expect(lista.has("0080_bot_tareas_v2")).toBe(true);
+    expect(lista.has("0021_store_products")).toBe(true);
+    expect(lista.has("0080_bot_tareas_v2")).toBe(false); // aplicada el 8 oct 2026
   });
 });

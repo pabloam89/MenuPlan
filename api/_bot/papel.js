@@ -25,6 +25,13 @@ export function papelMasBajo(papeles) {
   return papeles.reduce((a, b) => (RANGO[b] < RANGO[a] ? b : a));
 }
 
+/** Quienes llevan la casa: los user_id con papel owner o editor (titular y cotitular). */
+export async function quienesLlevanLaCasa(householdId) {
+  if (!householdId) return [];
+  const filas = await select("household_members", `household_id=${eq(householdId)}&role=in.(owner,editor)`, "user_id");
+  return (filas ?? []).map((m) => m.user_id).filter(Boolean);
+}
+
 async function papelDeUsuario(householdId, userId) {
   if (!userId) return null;
   const [m] = await select("household_members", `household_id=${eq(householdId)}&user_id=${eq(userId)}`, "role");

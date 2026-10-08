@@ -69,25 +69,113 @@ const REGLAS_COMANDO = [
   },
 ];
 
-// Escribir en producción se niega siempre, no se pregunta: en modo auto un
-// «ask» puede resolverlo el clasificador en vez de una persona. Lo lanza Pablo
-// con `!` en su terminal (eso no pasa por los hooks), después de ver el ensayo.
+// `apply-migration.mjs --si` ya no se niega aquí: lo protege el propio script
+// (staging, ensayo reciente y el OK del juez auditor-datos; decidido por Pablo
+// el 8 oct 2026). Lo que sí se niega es `--pablo`, que levanta lo que es solo
+// suyo (CONTRAE, RLS y permisos de lo existente): lo lanza él con `!`, que no
+// pasa por los hooks. Se mira por orden, para que un mensaje de commit que
+// nombra el script no cuente. Basta con que la orden diga «pablo» de cualquier
+// forma: entre comillas, `--pablo=1` o metido en una variable se colaba (juez
+// de seguridad, 8 oct 2026).
+const PABLO_EN_APLICAR = {
+  si: (o) => /apply-migration\b/.test(o) && /pablo/i.test(o),
+  da: () => deny("`--pablo` es solo de Pablo: borra algo con datos o cambia RLS o permisos. Enséñale el ensayo y el veredicto del juez, y dale el comando para que lo lance con `!`."),
+};
+
+// El Postgres del panel (Hetzner) corre en un contenedor y no es producción:
+// `docker compose exec -T db psql -U panel …`. Solo ESE psql tiene excepción, y
+// la excepción es en positivo: el tramo tiene que ser exactamente un `docker
+// [compose [-f x]] exec … (db|panel-db-1) psql … -U panel`, y en TODO el comando
+// no puede haber nada que lo lleve a otra base. Se mira el comando entero y no
+// el tramo: un `;` dentro del SQL entrecomillado, o un `\` al final de línea,
+// partían el comando y dejaban el host en un tramo que nadie miraba (juez de
+// seguridad, 8 oct 2026). Lo dudoso se niega: es mejor un falso positivo que un
+// psql contra producción. Las variables de producción (SUPABASE_DB_URL…) se
+// niegan siempre, vayan donde vayan.
+const PSQL_DEL_PANEL = /\bdocker\s+(?:compose\s+(?:-f\s+\S+\s+)?)?exec\b[^|;&\n]*?\b(?:db|panel-db-1)\s+psql\b/i;
+const ES_USUARIO_PANEL = /\s-U\s+panel\b/;
+const OTRA_BASE = new RegExp(
+  [
+    String.raw`postgres(?:ql)?:\/\/`, // una URL
+    String.raw`(?:^|\s)(?:-h|--host)`, // -h, --host, y -h10.1.2.3 pegado
+    String.raw`\bhost(?:addr)?\s*=`, // cadena de conexión clave=valor
+    String.raw`\bPG(?:HOST|HOSTADDR|SERVICE|SERVICEFILE|PASSFILE)\b`, // destino por entorno
+    "supabase",
+    String.raw`\$\{?\w*(?:URL|DSN|CONN)\w*`, // una variable de conexión con otro nombre
+    "dblink|postgres_fdw",
+    String.raw`\$\(|\x60`, // sustitución de comandos: no se ve a dónde va
+  ].join("|"),
+  "i",
+);
+// Las continuaciones de línea (`\` o acento grave de PowerShell) se unen antes de partir.
+const unirContinuaciones = (o) => o.replace(/[\\\x60]\r?\n\s*/g, " ");
+const psqlFueraDelPanel = (o) => {
+  const c = unirContinuaciones(o);
+  const sinOtraBase = !OTRA_BASE.test(c);
+  return c
+    .split(/&&|\|\||[;|\n]/)
+    .some((tramo) => /\bpsql\b/i.test(tramo) && !(PSQL_DEL_PANEL.test(tramo) && ES_USUARIO_PANEL.test(tramo) && sinOtraBase));
+};
+
+// El SQL a mano contra la base se niega siempre, no se pregunta: en modo auto
+// un «ask» puede resolverlo el clasificador en vez de una persona.
 const REGLAS_SQL = [
   {
-    // La única vía para tocar la base, y la base es la de producción.
-    si: (o) => /apply-migration\.mjs\b/.test(o) && /\s--si(\s|$)/.test(o),
-    da: (o) => deny(`Aplicar en PRODUCCIÓN lo lanza Pablo, no una sesión. Enséñale el ensayo y dale el comando para que lo pegue con \`!\`: ${o.trim()}`),
-  },
-  {
     // SQL que escribe o cambia permisos contra una base real.
-    si: (o) => /\b(psql|SUPABASE_DB_URL|OPS_DB_URL|pg\.Client|new\s+Client)\b/.test(o)
+    si: (o) => (/\b(SUPABASE_DB_URL|OPS_DB_URL|pg\.Client|new\s+Client)\b/.test(o) || psqlFueraDelPanel(o))
       && /\b(drop\s+(table|schema|column|function|policy|constraint|index|view|type|trigger)|truncate|delete\s+from|alter\s+(table|type|function|policy)|update\s+[\w."]+\s+set|insert\s+into|grant|revoke|create\s+(table|policy|function|or\s+replace))\b/i.test(o),
     da: () => deny("SQL que escribe, borra o cambia permisos contra producción (es la única base). Va en una migración por `scripts/apply-migration.mjs`; si de verdad hace falta a mano, dale el comando a Pablo para que lo lance con `!`."),
   },
 ];
 
-/** Ficheros de migración que un comando de shell escribe, mueve o borra. */
-const MIGRACION_EN_COMANDO = /(?:sed\s+-i|>>?|\btee\b|\bmv\b|\brm\b|\bcp\b)[^\n]*?supabase[\\/]migrations[\\/](?<nombre>\d{4}_[\w-]+)\.sql/;
+/** Ficheros de migración; el grupo 1 es el nombre. */
+const RUTA_MIGRACION = String.raw`supabase[\\/]migrations[\\/](\d{4}_[\w-]+)\.sql`;
+
+/**
+ * Lo que lee Lola. La regla `.claude/rules/lola.md` solo se carga con
+ * Read/Write/Edit, así que por shell se salta sin avisar; y un cambio en lo que
+ * lee Lola pide pasar los evals antes de mergear.
+ */
+const RUTA_LOLA = String.raw`api[\\/]_bot[\\/](?:conocimiento\.md|agente\.js|herramientas[\w.-]*)`;
+
+/**
+ * Qué hace un comando de shell con TODOS los ficheros que casan con `ruta`:
+ * [{ nombre, como }], con `como` = "escribe" (redirección, tee, sed/perl -i o
+ * --in-place, git checkout/restore, node -e con writeFileSync, o el destino de
+ * un mv/cp), "mueve" (el origen de un mv) o "borra" (rm). Leer no cuenta: un
+ * `>` suelto (el `NR>=251` de un awk, `grep … > /tmp/x`) o el origen de un cp
+ * son lecturas, y negarlas eran falsos positivos. Se miran todas las
+ * coincidencias: con solo la primera, `echo a > 0090_nueva.sql && echo b >>
+ * 0079_aplicada.sql` pasaba.
+ */
+export function tocaEn(cmd, ruta) {
+  const r = [];
+  const re = (flags = "") => new RegExp(ruta, flags);
+  const anota = (txt, como) => {
+    if (como && re().test(txt)) r.push({ nombre: re().exec(txt)[1] ?? txt, como });
+  };
+  // La redirección cuenta solo si va justo antes de la ruta.
+  for (const m of cmd.matchAll(new RegExp(String.raw`>>?\s*["']?(?:[^\s"'|;&<>]*[\\/])?` + ruta, "g"))) anota(m[0], "escribe");
+  // node -e escribiendo: su código lleva sus propios `;`, así que se mira entero.
+  if (/\bnode\b[^\n]*\s-[ep]\b/.test(cmd) && /\b(?:writeFileSync|appendFileSync)\b/.test(cmd)) {
+    for (const m of cmd.matchAll(re("g"))) anota(m[0], "escribe");
+  }
+  for (const o of ordenes(cmd)) {
+    const tokens = [...o.matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3]);
+    const args = tokens.filter((t) => !t.startsWith("-"));
+    const orden = tokens[0] === "git" ? `git ${tokens[1]}` : tokens[0];
+    const enRuta = args.filter((t) => re().test(t));
+    if (!enRuta.length) continue;
+    const enSitio = (/^(?:sed|perl)$/.test(orden) && tokens.some((t) => /^-\w*i|^--in-place\b/.test(t)))
+      || ["tee", "git checkout", "git restore"].includes(orden);
+    if (enSitio) enRuta.forEach((t) => anota(t, "escribe"));
+    else if (["mv", "git mv", "cp"].includes(orden)) {
+      const destino = args[args.length - 1];
+      for (const t of enRuta) anota(t, t === destino ? "escribe" : orden === "cp" ? null : "mueve");
+    } else if (["rm", "git rm"].includes(orden)) enRuta.forEach((t) => anota(t, "borra"));
+  }
+  return r;
+}
 
 // ── Migraciones ────────────────────────────────────────────────────────────
 
@@ -142,6 +230,26 @@ function contextoReal(raiz) {
         return null;
       }
     },
+    // Commits de origin/staging que le faltan a tu rama (tras traerlo). null si no se puede saber.
+    atrasoLocal: () => {
+      try {
+        execFileSync("git", ["-C", raiz, "fetch", "-q", "origin", "staging"], { stdio: "ignore", timeout: 30000 });
+        return Number(execFileSync("git", ["-C", raiz, "rev-list", "--count", "HEAD..origin/staging"], { encoding: "utf8" }).trim());
+      } catch {
+        return null;
+      }
+    },
+    // Lo mismo para la rama de un PR, preguntado a GitHub (la rama puede no estar en local).
+    atrasoDelPr: (numero) => {
+      try {
+        const opts = { cwd: raiz, encoding: "utf8", timeout: 15000 };
+        const cabeza = execFileSync("gh", ["pr", "view", ...(numero ? [numero] : []), "--json", "headRefOid", "-q", ".headRefOid"], opts).trim();
+        const n = Number(execFileSync("gh", ["api", `repos/{owner}/{repo}/compare/staging...${cabeza}`, "-q", ".behind_by"], opts).trim());
+        return Number.isFinite(n) ? n : null;
+      } catch {
+        return null;
+      }
+    },
   };
 }
 
@@ -155,25 +263,47 @@ export function decidir(entrada, ctx) {
 
   if (herramienta === "Bash" || herramienta === "PowerShell") {
     const cmd = String(datos.command ?? "");
+    // «pablo» se mira en el comando entero: `X=--pablo; node …apply-migration… $X`
+    // reparte la opción entre dos órdenes.
+    if (PABLO_EN_APLICAR.si(cmd)) return PABLO_EN_APLICAR.da(cmd);
     for (const o of ordenes(cmd)) {
       for (const r of REGLAS_COMANDO) if (r.si(o)) return r.da(o);
+
+      // Un PR con la rama atrasada respecto a staging choca con lo que acaban
+      // de meter otras sesiones, o pasa el CI sin haberlo probado junto (el 8
+      // oct 2026, el cableado). Se mira al abrirlo y otra vez al fusionarlo.
+      if (/^gh\s+pr\s+create\b/.test(o)) {
+        const atraso = ctx.atrasoLocal();
+        if (atraso === null) return ask("No he podido comprobar si tu rama tiene lo último de staging. Haz `git fetch origin staging` y `git merge origin/staging` antes de abrir el PR.");
+        if (atraso > 0) return deny(`Tu rama va ${atraso} commit(s) por detrás de staging. Antes de abrir el PR: \`git fetch origin staging\`, \`git merge origin/staging\`, resuelve, pasa los tests y empuja.`);
+        continue;
+      }
 
       // gh pr merge: solo a staging (lo permite settings.local.json de Pablo).
       const merge = o.match(/^gh\s+pr\s+merge\b\s*(\d+)?/);
       if (merge) {
         const base = ctx.baseDelPr(merge[1]);
-        if (base === "staging") continue;
         if (base === null) return ask("No he podido leer la rama base de este PR. Si no es staging, solo Pablo lo fusiona.");
-        return deny(`Este PR va contra ${base}, no contra staging. Fusionar fuera de staging solo lo hace Pablo.`);
+        if (base !== "staging") return deny(`Este PR va contra ${base}, no contra staging. Fusionar fuera de staging solo lo hace Pablo.`);
+        const atraso = ctx.atrasoDelPr(merge[1]);
+        if (atraso === null) return ask("No he podido comprobar si la rama del PR tiene lo último de staging. Míralo antes de fusionar.");
+        if (atraso > 0) return deny(`La rama del PR va ${atraso} commit(s) por detrás de staging: el CI no ha probado tu cambio junto a lo último. Ponla al día (\`gh pr update-branch${merge[1] ? ` ${merge[1]}` : ""}\` o merge de origin/staging y push), espera el CI en verde y fusiona.`);
+        continue;
       }
     }
     // El SQL se mira en el comando entero: un `node -e` lleva sus propios `;`.
     for (const r of REGLAS_SQL) if (r.si(cmd)) return r.da(cmd);
 
-    const m = cmd.match(MIGRACION_EN_COMANDO);
-    if (m) {
-      const motivo = migracionCerrada(m.groups.nombre, ctx);
+    for (const { nombre, como } of tocaEn(cmd, RUTA_MIGRACION)) {
+      // Mover o borrar una que no está en staging (salir de un choque de
+      // número) es libre: el número que cuenta es el del destino. Si ya está
+      // en staging, moverla o borrarla es tocar una aplicada.
+      if (como !== "escribe" && !ctx.enStaging(nombre)) continue;
+      const motivo = migracionCerrada(nombre, ctx);
       if (motivo) return deny(motivo);
+    }
+    if (tocaEn(cmd, RUTA_LOLA).length) {
+      return ask("Esto escribe en lo que lee Lola desde la shell. Mejor con Edit: así se carga `.claude/rules/lola.md`. Y si cambia lo que lee Lola, pasa los evals (`scripts/bot-evals.mjs`) antes de mergear.");
     }
     return null;
   }

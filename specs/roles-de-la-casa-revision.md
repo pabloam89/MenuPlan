@@ -198,3 +198,24 @@ Qué cambiar: calcular el papel dentro de `conversar`/`responder`, y que `herram
 5. **Fase 0.** Añadir el filtro por titular en el bot, no romper el merge del lector y rotar el enlace al expulsar (A-1, A-2).
 6. **Salud y lector (A-5).** Es una decisión de producto con coste técnico real: hay que tomarla antes de invitar a nadie de fuera de la familia.
 7. **Numeración y pruebas (A-9).** Renumerar y montar el banco desde un volcado de producción.
+
+---
+
+## Decisiones de Pablo (3 oct 2026)
+
+Cierran parte de lo anterior. La propuesta de «alergias solo en privado» queda
+descartada; no se reabre sin preguntarle.
+
+- **Alergias y salud las puede cambiar el cotitular** (editor), también en
+  grupo. En grupo escriben titular y editor; lector y ajeno solo consultan y
+  tachan la compra.
+- **El cotitular puede enlazar un chat privado**, no solo el titular.
+  Pendiente: hoy `api/_bot/enlace.js` solo deja al titular
+  (`owner_user_id`), la matriz de `src/lib/papeles.js` no lo recoge y la app
+  no se lo enseña a los editores.
+- **Una persona puede ser titular de más de una casa**, en teoría sí. El caso
+  raro es una casa `dormant` con contenido tras una transferencia. La UI no lo
+  muestra.
+
+Sigue abierta la A-5 (salud y lector): ocultar la salud al lector exige
+sacarla del blob de la casa.

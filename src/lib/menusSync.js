@@ -284,6 +284,18 @@ export async function activateMenu(menuId) {
 // them to resolve in the order they were issued.
 const activationQueues = new Map();
 
+/**
+ * Lo que está subiendo saveAndActivateMenu para esa casa,
+ * o ese usuario sin casa. En una casa, por prefijo: la semana se guarda con el
+ * user_id de quien generó el menú, y la cola va por el de quien lo sube.
+ */
+function subidasPendientes(userId, householdId) {
+  const colas = householdId
+    ? [...activationQueues].filter(([k]) => k.startsWith(`${householdId}:`)).map(([, p]) => p)
+    : [activationQueues.get(userId)].filter(Boolean);
+  return Promise.all(colas.map((p) => p.catch(() => {})));
+}
+
 export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
   const queueKey = householdId ? `${householdId}:${userId}` : userId;
   const prev = activationQueues.get(queueKey) ?? Promise.resolve();
@@ -293,38 +305,6 @@ export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
       const res = await saveMenu(userId, menu, recipes, householdId);
       if (res.ok) await activateMenu(menu.id);
       return res;
-    });
-  activationQueues.set(queueKey, next);
-  return next;
-}
-
-/**
- * Lleva a user_menus.is_active (la verdad, ver menuActivo.js) el menú que la
- * app acaba de poner activo sin generar: al cambiar de grupo (roster). Con
- * `menuId`, lo activa; sin él (grupo nuevo o sin menú), deja la casa sin
- * ninguno activo. Sin esto, al recargar volvía el menú del otro grupo.
- * Por la misma cola que saveAndActivateMenu, para no adelantar a una
- * generación que aún está subiendo.
- */
-export function ponerMenuActivo(menuId, userId, householdId = null) {
-  if (!supabase || !userId) return Promise.resolve({ ok: false, error: "no-op" });
-  const queueKey = householdId ? `${householdId}:${userId}` : userId;
-  const prev = activationQueues.get(queueKey) ?? Promise.resolve();
-  const next = prev
-    .catch(() => {})
-    .then(async () => {
-      if (menuId) return activateMenu(menuId);
-      // UPDATE directo (la RLS deja a titular y cotitular): no hay RPC que
-      // desactive sin activar otro, y este no sube bot_rev. Apuntado en
-      // supabase/PENDIENTES.md («Desactivar el menú de la casa por RPC»).
-      let q = supabase.from("user_menus").update({ is_active: false });
-      q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
-      const { error } = await q.eq("is_active", true);
-      if (error) {
-        console.warn("[menusSync] deactivate failed", error.message);
-        return { ok: false, error: error.message };
-      }
-      return { ok: true };
     });
   activationQueues.set(queueKey, next);
   return next;
@@ -356,6 +336,10 @@ export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200, 
   if (existing) clearTimeout(existing);
   const timer = setTimeout(async () => {
     weekSaveTimers.delete(key);
+    // Detrás de lo que esté subiendo saveAndActivateMenu: recién generado, la
+    // fila del menú puede no existir aún (la semana fallaría por FK) y saveMenu
+    // pisaría lo tachado con la lista de cuando se generó.
+    await subidasPendientes(userId, householdId);
     const row = weekToRow(userId, menuId, startISO, week, householdId);
     if (householdId && version) {
       const r = await guardarConVersion(version, (botRev) => saveMenuWeekRpc(row, botRev));

@@ -37,6 +37,9 @@ import { leerEnv } from "./lib/env.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIR = join(RAIZ, "supabase", "migrations");
+// Lo que no cabe en una transacción (índices concurrentes) va a manual/ con el
+// número de su migración y una letra (0080b): también cuenta, en su orden.
+const DIR_MANUAL = join(RAIZ, "supabase", "manual");
 
 // ── Leer el SQL ────────────────────────────────────────────────────────────
 
@@ -158,7 +161,7 @@ export function testigos(sql) {
       for (const a of m[2].matchAll(new RegExp(String.raw`drop\s+constraint\s+(?:if\s+exists\s+)?(${ID})`, "gi"))) {
         quita.push({ tipo: "constraint", id: `${t}:${nombre(a[1]).nombre}` });
       }
-    } else if ((m = s.match(new RegExp(String.raw`^drop\s+(table|view|materialized\s+view|function|type|index)\s+(?:if\s+exists\s+)?(${QID})`, "i")))) {
+    } else if ((m = s.match(new RegExp(String.raw`^drop\s+(table|view|materialized\s+view|function|type|index)\s+(?:concurrently\s+)?(?:if\s+exists\s+)?(${QID})`, "i")))) {
       const tipo = { table: "tabla", view: "vista", function: "función", type: "tipo", index: "índice" }[m[1].toLowerCase().split(/\s+/).pop()];
       quita.push({ tipo, id: clave(nombre(m[2])) });
     } else if ((m = s.match(new RegExp(String.raw`^drop\s+policy\s+(?:if\s+exists\s+)?(${ID})\s+on\s+(${QID})`, "i")))) {
@@ -274,10 +277,16 @@ export function leerSinAplicar(estadoMd) {
 }
 
 export function leerMigraciones() {
-  return readdirSync(DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort()
-    .map((f) => ({ nombre: f.replace(/\.sql$/, ""), ...testigos(readFileSync(join(DIR, f), "utf8")) }));
+  const de = (dir) => {
+    try {
+      return readdirSync(dir).filter((f) => f.endsWith(".sql")).map((f) => ({ f, dir }));
+    } catch {
+      return [];
+    }
+  };
+  return [...de(DIR), ...de(DIR_MANUAL).filter(({ f }) => /^\d{4}[a-z]_/.test(f))]
+    .sort((a, b) => (a.f < b.f ? -1 : a.f > b.f ? 1 : 0))
+    .map(({ f, dir }) => ({ nombre: f.replace(/\.sql$/, ""), ...testigos(readFileSync(join(dir, f), "utf8")) }));
 }
 
 // ── Principal ──────────────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ name: gobierno
 description: Úsalo ANTES de una operación con riesgo o fricción — push, merge o PR fuera de lo normal, crear o borrar ramas y worktrees, tocar CI, crons, permisos, hooks, secretos o ajustes de GitHub/Vercel/Supabase, o desplegar a producción — y cuando algo de eso falle (CI rojo, despliegue «Blocked», hook que bloquea). También para «¿cómo está la casa?» (ramas, inventario, planos). No para: esquema o migraciones (datos), código del producto, revisar un diff (revisor).
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: inherit
+skills: [github, vercel, supabase, 1password, hetzner, tailscale]
 color: orange
 ---
 
@@ -101,7 +102,9 @@ No es suyo:
 Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 
 - Subir o fusionar a `main`.
-- Aplicar una migración en producción (la prepara `datos`).
+- Aplicar una migración con `CONTRAE` o que cambie RLS o permisos de lo que
+  ya existía (`--pablo`). Las demás las aplica la sesión si el script lo deja
+  (staging, ensayo y el OK de `auditor-datos`).
 - Borrar ramas, worktrees, carpetas o recursos de un servicio.
 - Crear, rotar o cambiar secretos y variables de entorno.
 - Cambiar `.claude/settings.json`, los hooks o los permisos.

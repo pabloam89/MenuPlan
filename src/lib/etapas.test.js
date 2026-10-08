@@ -23,6 +23,8 @@ const CASOS = [
   ["1 año", { age: 1, homeRole: "Bebé" }, "bebe"],
   ["2 años", { age: 2, homeRole: "Bebé" }, "bebe"],
   ["2 años con papel de hijo", { age: 2, homeRole: "Hijo/a" }, "bebe"],
+  ["2 años y medio", { age: 2.5, homeRole: "Hijo/a" }, "bebe"],
+  ["2 años y medio escrito como texto", { age: "2.5" }, "bebe"],
   ["3 años", { age: 3, homeRole: "Hijo/a" }, "nino"],
   ["3 años con papel de bebé", { age: 3, homeRole: "Bebé" }, "nino"],
   ["11 años", { age: 11, homeRole: "Hijo/a" }, "nino"],
@@ -43,6 +45,8 @@ const CASOS = [
   ["sin edad: Abuelo/a", { homeRole: "Abuelo/a" }, "adulto"],
   ["sin edad: Amigo/a", { homeRole: "Amigo/a" }, "desconocida"],
   ["sin edad: Otro", { homeRole: "Otro" }, "desconocida"],
+  ["sin edad: bebedor (no es bebé)", { homeRole: "Bebedor" }, "desconocida"],
+  ["sin edad: Bebés", { homeRole: "Bebés" }, "bebe"],
   ["sin edad ni papel", {}, "desconocida"],
   // Fecha de nacimiento: cumple 2 mañana → aún tiene 1.
   ["nacido el 9-10-2024", { useBirthDate: true, birthDate: "2024-10-09", age: 30 }, "bebe"],
@@ -77,6 +81,38 @@ describe("etapaDe", () => {
     expect(stages.etapaDe?.({ age: stages.STAGES.infantil.range[0] })?.etapa).toBe("nino");
     expect(stages.etapaDe?.({ age: stages.STAGES.secundaria.range[0] })?.etapa).toBe("adolescente");
     expect(stages.etapaDe?.({ age: stages.STAGES.adulto.range[0] })?.etapa).toBe("adulto");
+  });
+});
+
+describe("suggestHomeRole corta donde etapaDe", () => {
+  it("2,5 años es «Bebé», como su etapa; 3 ya es «Hijo/a»", () => {
+    expect(stages.suggestHomeRole(2.5)).toBe("Bebé");
+    expect(stages.etapaDe({ age: 2.5 }).etapa).toBe("bebe");
+    expect(stages.suggestHomeRole(3)).toBe("Hijo/a");
+    expect(stages.suggestHomeRole(17.5)).toBe("Hijo/a");
+    expect(stages.suggestHomeRole(18)).toBe("Adulto");
+  });
+
+  it("sin edad no se sabe: ni null ni undefined son un bebé", () => {
+    for (const a of [null, undefined, "", "no"]) expect(stages.suggestHomeRole(a), String(a)).toBe("Adulto");
+    expect(stages.suggestHomeRole(0)).toBe("Bebé");
+  });
+});
+
+describe("la fecha de nacimiento es un día, no un instante UTC", () => {
+  it("al oeste de Greenwich el cumpleaños no se adelanta un día", () => {
+    const tz = process.env.TZ;
+    process.env.TZ = "America/New_York";
+    try {
+      const vega = { useBirthDate: true, birthDate: "2023-10-08" };
+      // El 7 a mediodía (hora local) aún no ha cumplido 3.
+      expect(stages.etapaDe(vega, { hoy: new Date(2026, 9, 7, 12) }).etapa).toBe("bebe");
+      expect(stages.etapaDe(vega, { hoy: "2026-10-07" }).etapa).toBe("bebe");
+      expect(stages.etapaDe(vega, { hoy: "2026-10-08" }).etapa).toBe("nino");
+    } finally {
+      if (tz === undefined) delete process.env.TZ;
+      else process.env.TZ = tz;
+    }
   });
 });
 

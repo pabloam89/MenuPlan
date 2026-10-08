@@ -37,6 +37,7 @@ import {
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { supervisar, frenoDeshacer } from "./supervisor.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
+import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha } from "./fichaRpc.js";
 import { montarMemoria, ORDEN as ORDEN_MEMORIA } from "./memoria.js";
 import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
 import { tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
@@ -45,6 +46,7 @@ import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas 
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { KITCHEN_TOOL_IDS } from "../../src/lib/electrodomesticos.js";
+import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME } from "../../src/lib/vocabularios.js";
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
@@ -426,7 +428,8 @@ function herramientasDeRecordatorios(chat) {
         cuando: { type: "string" },
         repite: { type: "string", enum: ["diario", "semanal"] },
       }, ["texto", "cuando"]),
-      run: (args) => crearRecordatorio(chat, args),
+      // Sin pasar `tipo`: el aviso de la víspera solo lo crea avisoVispera.
+      run: ({ texto, cuando, repite }) => crearRecordatorio(chat, { texto, cuando, repite }),
     }),
     herramienta({ lector: "privado", soloLectura: false, pantalla: null }, {
       name: "aviso_vispera",
@@ -499,11 +502,11 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       description: "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y trastos (lista completa de lo que hay: Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). Cocinar en tanda va por pedir_tanda.",
       inputSchema: obj({
         estructura: { type: "string", enum: ["primero_segundo", "1_plato"] },
-        esfuerzo: { type: "string", enum: ["basic", "normal", "pro"] },
-        tiempo: { type: "string", enum: ["con_prisa", "normal", "con_tiempo", "depende"] },
+        esfuerzo: { type: "string", enum: NIVEL_COCINA },
+        tiempo: { type: "string", enum: RITMO_COCINA },
         trastos: { type: "array", items: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"] } },
         comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
-        etapaBebe: { type: "string", enum: ["cremas", "mixto", "solidos"], description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
+        etapaBebe: { type: "string", enum: ETAPA_BEBE, description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
       }),
       run: (args) => ajustarCocina(householdId, args),
     }),
@@ -526,7 +529,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         personas: { type: "array", items: { type: "string" }, minItems: 1 },
         dias: { type: "array", items: { type: "string" } },
         comidas: { type: "array", items: { type: "string" } },
-        donde: { type: "string", enum: ["casa", "tupper", "fuera", "cole", "off"] },
+        donde: { type: "string", enum: DONDE_COME },
       }, ["personas", "donde"]),
       run: (args) => ajustarHorario(householdId, args),
     }),
@@ -968,15 +971,23 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
       chat.idioma = await idiomaDe(p.userId).catch(() => null);
       return p;
     });
+  // Con BOT_FICHA_RPC, las tareas, lo callado y lo de seguridad de la ficha
+  // salen de ficha_casa en una ida (fichaRpc.js). Si no está o falla, null: se
+  // lee como siempre.
+  const deTablas = fichaRpc()
+    ? conPapel.then(() => leerFichaCasa({ householdId, userId: chat.userId, canal: channel }))
+    : Promise.resolve(null);
   // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
-  const [tope, mem, tools, casa, extrasBase, tareas, calladas] = await Promise.all([
+  const [tope, mem, tools, casa, extrasBase, tareas, calladas, tablas] = await Promise.all([
     fueraDeLimite(householdId), memoria(channel, chatId), conPapel.then(() => herramientas(chat)),
     cargarCasa(householdId).catch(() => null), extrasDeFicha(householdId, chatId),
-    conPapel.then(() => tareasAbiertas(householdId, { userId: chat.userId, privado: !esGrupo })).catch((e) => { console.error("[agente] tareas", e?.message); return []; }),
-    clavesCalladas(householdId).catch((e) => { console.error("[agente] calladas", e?.message); return new Set(); }),
+    conPapel.then(() => deTablas).then((f) => (f ? tareasDeFicha(f, { userId: chat.userId, privado: !esGrupo }) : tareasAbiertas(householdId, { userId: chat.userId, privado: !esGrupo }))).catch((e) => { console.error("[agente] tareas", e?.message); return []; }),
+    deTablas.then((f) => (f ? calladasDeFicha(f) : clavesCalladas(householdId))).catch((e) => { console.error("[agente] calladas", e?.message); return new Set(); }),
+    deTablas,
   ]);
-  const extras = { ...extrasBase, calladas };
+  const deLaFicha = tablas && casa ? conLaFicha(casa, tablas, calladas) : { casa };
+  const extras = { ...extrasBase, calladas, ...(deLaFicha.pendientes ? { pendientes: deLaFicha.pendientes } : {}) };
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
   const { historia, pendientes: guardadas } = mem;
   // El estado de la casa es la fuente de verdad: lo que ya resolvió se cierra
@@ -1000,7 +1011,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
-  const ficha = casa ? conQuienEscribe(montarFicha(casa, extras), chat.papel, chat.idioma) : null;
+  const ficha = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
   let dicho, uso, corregido, medida, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
@@ -1092,15 +1103,21 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // Guardar la charla no tiene por qué retrasar la respuesta: va en
   // `guardado`, y quien entrega lo espera DESPUÉS de enviar y antes de soltar
   // el turno (si no, el mensaje siguiente no vería este en la memoria).
+  // Quién lo dijo ya va dentro del texto («[Ana]: …», ver `entrada`), que es lo
+  // que lee memoria(); author_id solo duplicaba el nombre de Telegram sin lector.
   const guardado = Promise.all([
     insert("bot_messages", [
-      { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor ?? null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
+      { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
       { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, pendientes: pendientesNuevas } },
     ]).catch((e) => console.error("[agente] memoria", e?.message)),
     segundaSemana(householdId).catch(() => {}),
     cierresPorEstado,
     promocion,
-  ]);
+  ]).then((r) => { if (tablas) olvidarFicha(householdId); return r; });
+  // Lo leído de ficha_casa no vale para el turno siguiente: este puede haber
+  // anotado o cerrado tareas sin que cambie bot_rev. Se olvida ya y otra vez al
+  // acabar de guardar (cierres y promociones van en `guardado`).
+  if (tablas) olvidarFicha(householdId);
 
   return { texto: respuesta, fotos: chat.fotos, deshacible: false, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado, medida, idioma: chat.idioma ?? null };
 }

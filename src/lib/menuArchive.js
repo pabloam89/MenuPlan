@@ -330,6 +330,10 @@ export function semanaVivaPorGuardar(menus, activeMenuId, activeOffset, livePlan
   const entry = Object.entries(menu.weeks ?? {}).find(([, w]) => w?.offset === activeOffset);
   if (!entry) return null;
   const [weekStart, actual] = entry;
+  // Sin plan, de la semana solo se cargó el rango (loadMenuWeekRanges: falló
+  // loadMenuDetail). Guardarla pisaría la fila con un horario y unos días que
+  // no se leyeron (weekToRow: schedule {}, active_days null).
+  if (!actual || actual.plan === undefined) return null;
   const shopping = liveShopping ?? actual.shopping ?? { items: [] };
   const igual = (a, b) => a === b || JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
   if (igual(actual.plan, livePlan) && igual(actual.shopping, shopping)) return null;

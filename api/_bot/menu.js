@@ -498,7 +498,7 @@ export function huecoDe(casa, { dia, franja, grupo, cual }) {
   // tenga esa comida, y el del bebé solo si no hay otro. Antes era el primero
   // que salía, y «cambia la cena del viernes» se la cambiaba solo a los niños.
   const conHueco = gs.filter((x) => casa.semana.plan[x.id]?.[`${dia}-${franja}`]);
-  const porGente = (x) => (tipoDeGrupo(x, members) === "bebe" ? -1 : (x.memberIds ?? []).length);
+  const porGente = (x) => (papelEnElMenu(x, members) === "bebe" ? -1 : (x.memberIds ?? []).length);
   const g = grupo
     ? gs.find((x) => normal(x.label) === normal(grupo)) ?? grupoPara(gs, members, grupo)
     : [...conHueco].sort((a, b) => porGente(b) - porGente(a))[0];
@@ -708,15 +708,16 @@ export function quienesDe(g, members = []) {
   if (!g) return null;
   const nombres = (g.memberIds ?? []).map((id) => members.find((p) => p.id === id)?.name).filter(Boolean);
   if (nombres.length && nombres.length <= 3) return nombres.length === 1 ? nombres[0] : `${nombres.slice(0, -1).join(", ")} y ${nombres.at(-1)}`;
-  return { bebe: "el bebé", ninos: "los peques", mayores: "los mayores" }[tipoDeGrupo(g, members)];
+  return { bebe: "el bebé", ninos: "los peques", mayores: "los mayores" }[papelEnElMenu(g, members)];
 }
 
 /**
- * Qué come cada grupo: el del bebé (solo bebés), el de los mayores (hay algún
- * adulto: «Familia» come con ellos) o el de los niños. Sin miembros a la vista
- * (grupos deducidos del plan), por su nombre.
+ * El papel de un grupo en el menú: 'bebe' (solo bebés), 'mayores' (hay algún
+ * adulto: «Familia» come con ellos) o 'ninos'. Sin miembros a la vista (grupos
+ * deducidos del plan), por su nombre. No es tipoDeGrupo (src/lib/groups.js):
+ * ese dice de qué es el grupo guardado, con su propio vocabulario.
  */
-function tipoDeGrupo(g, members = []) {
+export function papelEnElMenu(g, members = []) {
   const suyos = (g?.memberIds ?? []).map((id) => members.find((p) => p.id === id)).filter(Boolean);
   if (!suyos.length) return /beb/i.test(g?.label ?? "") ? "bebe" : /niñ|nin|peque/i.test(normal(g?.label)) ? "ninos" : "mayores";
   if (suyos.every(esBebe)) return "bebe";
@@ -744,7 +745,7 @@ export function grupoPara(gs, members, para) {
       const p = members.find((x) => x.id === id);
       return p && (para === "ninos" ? !esBebe(p) && !esMayor(p) : para === "bebe" ? esBebe(p) : esMayor(p));
     });
-    return gs.find((g) => tipoDeGrupo(g, members) === para) ?? gs.find(conAlguno) ?? null;
+    return gs.find((g) => papelEnElMenu(g, members) === para) ?? gs.find(conAlguno) ?? null;
   }
   // Una persona por su nombre («para Cova», «lo de Leo»): el grupo en el que
   // come. Si no está en ninguno, el de su tipo, con el mismo criterio de arriba.
@@ -752,7 +753,7 @@ export function grupoPara(gs, members, para) {
   const p = members.find((x) => normal(x.name) === quien) ?? members.find((x) => normal(x.name).split(/\s+/)[0] === quien.split(/\s+/)[0]);
   if (!p) return null;
   return gs.find((g) => (g.memberIds ?? []).includes(p.id))
-    ?? gs.find((g) => tipoDeGrupo(g, members) === (esBebe(p) ? "bebe" : esMayor(p) ? "mayores" : "ninos"))
+    ?? gs.find((g) => papelEnElMenu(g, members) === (esBebe(p) ? "bebe" : esMayor(p) ? "mayores" : "ninos"))
     ?? null;
 }
 
@@ -791,7 +792,8 @@ const detalleDe = (r, estilo) => [cambiosDe(r), r.time ? `${r.time} min` : "", e
  * Rasgos que piden en voz alta: «algo reconfortante», «de cuchara», «que no
  * pique», «algo barato». Salen de los atributos del Recetario Estrella
  * (connotacion, textura, picante, sabor: scripts/recetas-atributos-blandos.mjs;
- * costeNivel: derive/coste.js; caloriasNivel). Una receta sin el dato NO pasa
+ * costeNivel: lib/coste.js en modo granel, el mismo € por ración de la ficha;
+ * caloriasNivel). Una receta sin el dato NO pasa
  * el filtro: decir «barata» de una que no sabemos sería mentir.
  *
  * Si ninguna cumple, se devuelven las de siempre con un aviso para que Lola lo
@@ -1046,7 +1048,7 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
     if (!lista.length) continue;
     const quien = m.membersOfGroup(g, data.members ?? []).map((p) => p.name).filter(Boolean).join(", ");
     bloques.push(`Para ${quienesDe(g, data.members ?? []) ?? quien}:`);
-    if (out) (out.bloques ??= []).push({ grupo: elegidos.length > 1 ? g.label : null, quienes: elegidos.length > 1 ? quienesDe(g, data.members ?? []) : null, tipo: tipoDeGrupo(g, data.members ?? []), opciones: lista, aviso: filtro.aviso });
+    if (out) (out.bloques ??= []).push({ grupo: elegidos.length > 1 ? g.label : null, quienes: elegidos.length > 1 ? quienesDe(g, data.members ?? []) : null, tipo: papelEnElMenu(g, data.members ?? []), opciones: lista, aviso: filtro.aviso });
     for (const r of lista) {
       num += 1;
       apuntarFoto(m, fotos, r, `${num}. ${r.name}`);
@@ -1138,7 +1140,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     if (!grupo && (data.menuModel ?? "same") === "same") {
       const base = (id) => String(id ?? "").split("__").pop();
       for (const x of gs) {
-        if (x.id === g.id || tipoDeGrupo(x, data.members ?? []) === "bebe") continue;
+        if (x.id === g.id || papelEnElMenu(x, data.members ?? []) === "bebe") continue;
         const suyo = plan[x.id]?.[clave];
         if (!suyo) continue;
         // El mismo plato que se pide: un entrante se añade también a los demás,

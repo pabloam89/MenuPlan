@@ -52,7 +52,8 @@ export { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 export { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 export { payloadDeBorrador, borradorDesdeRespuesta, recetaParaGuardar, INGREDIENT_UNITS } from "../lib/userRecipes.js";
 export { recipeToRow, rowToRecipe } from "../lib/userRecipesSync.js";
-export { KITCHEN_TOOLS } from "../lib/applianceMethods.js";
+// Los nombres, no KITCHEN_TOOLS: esos son objetos {id, img} y un nombre nunca está dentro.
+export { KITCHEN_TOOL_IDS } from "../lib/applianceMethods.js";
 export { FAST_MODEL } from "../lib/aiModels.js";
 
 // Compartir una semana desde el chat: la misma «foto» que publica la app.
@@ -63,7 +64,7 @@ export { catalogToFrontendRecipe } from "../lib/aiPlanner.js";
 export { choquesDeReceta, textoDeChoque } from "../lib/restriccionesReceta.js";
 
 // El coste por ración, para scripts/build-coste.mjs (Node a secas no carga src/).
-export { costeDeReceta } from "../lib/derive/coste.js";
+export { costeReceta, UMBRALES, COBERTURA_MINIMA } from "../lib/coste.js";
 
 // Los ejes «más/menos» de densidad y carga (api/_bot/menu.js, EJES_NUMERICOS).
 export { densidadDe, cargaDe, completitudDe } from "../lib/derive/ejesDePlato.js";

@@ -99,5 +99,14 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    juez. Repite el juez tras el arreglo.
 3. Junta todas las «Decisiones pendientes» en una sola lista para quien lanzó
    la sesión, sin duplicados, con la recomendación de cada una.
-4. Termina con un resumen corto: qué se hizo, en qué rama o PR, qué se
+4. Lo que no se cierra en este PR va a un issue, no a una frase del resumen:
+   un hallazgo sin arreglar o un fallo del camino (vigilante que bloqueó algo
+   bueno, entorno distinto del CI, limpieza a medias) → `tipo:leccion`; una
+   decisión que no se toma hoy → `tipo:decision`; trabajo que alguien tiene
+   que coger → `tipo:encargo`. Siempre con causa y área (skill `github`,
+   «Issues»). El chat se pierde al cerrar la sesión; el issue no. Y al
+   revés: el PR lleva `Closes #n` de los issues que arregla y `Agente:` con
+   el constructor que lo hizo.
+5. Termina con un resumen corto: qué se hizo, en qué rama o PR, qué se
    verificó, qué queda pendiente y qué gateway falta.
+6. Tras el merge, retirar: `npm run retirar -- <tarea>` en la misma sesión.

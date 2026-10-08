@@ -19,7 +19,7 @@ En el mismo commit se borra de aquí y se apunta en `ESTADO.md`.
 `supabase/principios.test.js` falla si alguna migración (vieja o nueva) deja un
 NOT VALID sin validar que no está en esta lista.
 
-## 0080 · tareas v2 (sin aplicar)
+## 0080 · tareas v2 (aplicada el 8 oct 2026)
 
 Condición para todos: 0080 aplicada y el bot con `BOT_TAREAS_V2` desplegado
 una semana sin errores.
@@ -35,6 +35,12 @@ select count(*) from public.bot_tareas
 ```sql
 select count(*) from public.bot_tareas
  where tipo is not null and tipo not in ('espera','falta_saber','decision','seguimiento');
+```
+
+`bot_tareas_campo_check`
+```sql
+select count(*) from public.bot_tareas
+ where campo is not null and campo not in ('alergias','etapaBebe');
 ```
 
 `bot_tareas_resultado_check`
@@ -75,7 +81,12 @@ select count(*) from public.bot_reminders r
                     where t.household_id = r.household_id and t.id = r.tarea_id);
 ```
 
-## 0083 · tareas → persona (sin aplicar)
+## 0083 · tareas → persona (aplicada el 8 oct 2026)
+
+La 0089 la sustituye (abajo): mientras no se aplique la 0089, vale esta. Su
+comentario («una baja lógica no borra la fila») no era verdad: la
+sincronización por clave (0081) borra la fila de quien sale de la familia, y
+con `on delete cascade` se llevaba sus tareas.
 
 `bot_tareas_persona_fk` — condición: 0081, 0082 y 0083 aplicadas y el bot nuevo
 una semana sin errores.
@@ -86,7 +97,18 @@ select count(*) from public.bot_tareas t
                     where p.household_id = t.household_id and p.id = t.persona_id);
 ```
 
-## 0086 · vocabulario de la app (sin aplicar)
+## 0089 · tareas → persona, sin cascada (sin aplicar)
+
+`bot_tareas_persona_fk` rehecha con `on delete set null (persona_id)`, NOT
+VALID: quitar a alguien de la familia borra su fila de persona y su salud,
+pero no sus tareas (el código las descarta como «sin_persona»). Condición:
+0089 aplicada, la consulta de arriba en 0 y una semana de guardados sin
+WARNING `_personas_al_guardar` en los logs.
+```sql
+alter table public.bot_tareas validate constraint bot_tareas_persona_fk;
+```
+
+## 0086 · vocabulario de la app (aplicada el 8 oct 2026)
 
 Condición para todos: 0086 aplicada, las consultas en 0 y ningún error 23514
 en los logs durante una semana. Ojo: aun sin validar, un UPDATE de una fila
@@ -124,7 +146,7 @@ select count(*) from public.recipe_collections
    and collection_id not like 'fld\_%';
 ```
 
-## 0085 · vocabulario del bot (rama `datos/sistematizar`, sin aplicar)
+## 0085 · vocabulario del bot (aplicada el 8 oct 2026)
 
 Aún no está en esta rama; se apuntan para que no se pierdan al entrar.
 Condición: 0085 aplicada y el bot nuevo una semana sin errores.
@@ -162,14 +184,3 @@ set null`. Cuándo: DESPUÉS de la migración de menuplan-1e que pasa los ids de
 persona a uuid (bloque 0120+), para no crear una FK sobre un tipo que va a
 cambiar. Ese día se copia el mapa a la columna y el mapa deja de escribirse.
 Hasta entonces el mapa es una caché declarada.
-
-## Desactivar el menú de la casa por RPC
-
-`ponerMenuActivo(null, …)` (`src/lib/menusSync.js`), al empezar «Otro grupo»,
-desactiva con un UPDATE directo a `user_menus` (la RLS deja a titular y
-cotitular). No hay ninguna RPC que desactive sin activar otro
-(`activate_household_menu` y `bot_save_casa_activando` piden un menú), y este
-UPDATE no sube `household_state.bot_rev`: otra app abierta no se entera hasta
-recargar. Arreglo: una RPC `deactivate_household_menu(p_household_id)`
-(security definer, `is_household_editor`, sube `bot_rev`) en una migración
-nueva, y que `ponerMenuActivo` la llame.

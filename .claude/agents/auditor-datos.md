@@ -98,6 +98,9 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
 ## 8. Entregables
 
 - Los hallazgos por severidad, cada uno con ejemplo y arreglo.
+- Para una migración, el veredicto en una línea que se copia tal cual en su
+  cabecera: `-- AUDITADA: auditor-datos AAAA-MM-DD OK`, o en lugar de `OK`
+  lo que falla. Sin esa línea con `OK`, `apply-migration --si` no aplica.
 - Cuando se pida, el mapa de verdades: hecho → dónde vive → copias y quién
   las recalcula.
 - Las cifras de cableado antes y después del cambio.

@@ -17,7 +17,8 @@ import {
   deleteMenu,
   toggleMenuFavorite,
   activateMenu,
-  ponerMenuActivo,
+  saveAndActivateMenu,
+  queueSaveMenuWeek,
 } from "./menusSync.js";
 
 // A minimal chainable query-builder stand-in: every method records the call
@@ -261,23 +262,31 @@ describe("deleteMenu / toggleMenuFavorite / activateMenu (mocked client)", () =>
   });
 });
 
-// Cambiar de grupo (roster) cambia data.activeMenuId; si la tabla no se entera,
-// al recargar vuelve el menú del otro grupo (user_menus.is_active manda).
-describe("ponerMenuActivo: el cambio de grupo llega a la tabla (mocked client)", () => {
-  it("con menú, lo activa por la RPC", async () => {
-    const client = mockClient({ __rpc: [{ error: null }] });
+// Al generar, saveAndActivateMenu sube el menú sin esperar; si entretanto se
+// tacha algo de la lista, la semana se guardaba por su cuenta: antes que la
+// fila del menú (falla por FK) o justo antes de que saveMenu la pisara con la
+// lista de cuando se generó (el tachado se perdía).
+describe("queueSaveMenuWeek espera a que el menú recién generado esté subido (mocked client)", () => {
+  it("la semana se escribe después de saveMenu y de activarlo", async () => {
+    let soltar;
+    const menuSubiendo = new Promise((r) => { soltar = () => r({ error: null }); });
+    const client = mockClient({
+      user_menus: [menuSubiendo],
+      user_menu_weeks: [{ error: null }, { error: null }],
+      __rpc: [{ error: null }],
+    });
     Object.assign(supabase, client);
-    expect(await ponerMenuActivo("menu_otro", "user-1", "casa-1")).toEqual({ ok: true });
-    expect(client.rpc).toHaveBeenCalledWith("activate_user_menu", { p_menu_id: "menu_otro" });
-  });
-
-  it("sin menú (grupo nuevo), desactiva el que hubiera en la casa", async () => {
-    const client = mockClient({ user_menus: [{ error: null }] });
-    Object.assign(supabase, client);
-    expect(await ponerMenuActivo(null, "user-1", "casa-1")).toEqual({ ok: true });
-    const upd = client.log.find((c) => c.method === "update");
-    expect(upd.args[0]).toEqual({ is_active: false });
-    const eqs = client.log.filter((c) => c.method === "eq").map((c) => c.args);
-    expect(eqs).toEqual([["household_id", "casa-1"], ["is_active", true]]);
+    const semana = { offset: 0, endISO: "2026-07-19", plan: {}, shopping: { items: [] }, schedule: {} };
+    const menu = { id: "menu_nuevo", weeks: { "2026-07-13": semana } };
+    const subida = saveAndActivateMenu("user-1", menu, [], "casa-1");
+    const tachada = { ...semana, shopping: { items: [{ id: "pollo|g", have: true }] } };
+    queueSaveMenuWeek("user-1", "menu_nuevo", "2026-07-13", tachada, 0, "casa-1");
+    await new Promise((r) => setTimeout(r, 20));
+    soltar();
+    await subida;
+    await new Promise((r) => setTimeout(r, 20));
+    const orden = client.log.filter((c) => c.method === "upsert" || c.method === "rpc").map((c) => c.table);
+    expect(orden).toEqual(["user_menus", "user_menu_weeks", "rpc:activate_user_menu", "user_menu_weeks"]);
+    expect(client.log.filter((c) => c.method === "upsert").at(-1).args[0].shopping).toEqual(tachada.shopping);
   });
 });

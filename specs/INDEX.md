@@ -15,6 +15,21 @@ Specs producidas por ingeniería inversa del código real (`src/`, `api/`, esque
 | [ficha-de-la-casa.md](ficha-de-la-casa.md) | PLAN (1 oct 2026): la ficha que ve Lola en cada mensaje (capas, dos bloques, topes), los menús «definitivos» sin pedir «me gusta», el analista nocturno con salida tabulada y cómo se convierte una observación en eje nuevo; huecos por orden |
 | [modelo-datos.md](modelo-datos.md) | Auditoría de normalización del modelo y plan: campos por plano, operadores y calculadoras, magnitudes (tiempo/gramos/macros/raciones/precio), el mapa de tablas por ámbito (global/hogar), sesgos y batch cooking; Fase A: esquema de `alimentos` (alimento/producto/ingrediente, siete dimensiones, procedencia BEDCA) y plan de curación de `familia`, `densidad` y `rendimiento` |
 
+## Documentos de diseño fuera del repo
+
+Artefactos de claude.ai con decisiones que no se derivan del código. Léelos
+antes de diseñar lo que tocan.
+
+- **Plan maestro del entorno** (oct 2026): planos, piezas, fases y normas de datos — https://claude.ai/code/artifact/6f0f8c05-8ec0-48ea-b372-a08e6e0f761e
+- **Ficha de la casa** (spec viva, oct 2026) — https://claude.ai/artifact/6Dgpfp8raH28qUTte3ahPC
+- **Motor de reglas del menú** (ago 2026): 13 operadores, 9 ejes, los 35 campos, el grafo de preguntas y el esquema de `notepad.json` — https://claude.ai/code/artifact/393ab45f-c914-42ee-9fc6-9889eba9dbd7
+- **El wizard que se acorta** (ago 2026): el registro de preguntas como datos y el panel de IA como «mando a distancia» — https://claude.ai/code/artifact/4c2155d8-b3ff-4c7c-884c-2fc43c2ee766
+- **El menú que se explica** (ago 2026) — https://claude.ai/code/artifact/7b4a0625-08a4-410a-b58f-2a98cb18e075
+- **Partir el catálogo** (sep 2026): plan de datos y mapa de entidades — https://claude.ai/code/artifact/b7cdbfa7-1904-4f4b-9885-57c11d1ff153 · https://claude.ai/code/artifact/86e1dbeb-bb2a-4558-af27-b417fa55b0b5
+
+Veredicto del motor de reglas: «El notepad es el 5 % del esfuerzo;
+`validateMenu.js` y `filterRecipes.js` son el 95 %».
+
 ## Mapa de dependencias entre dominios
 
 ```
