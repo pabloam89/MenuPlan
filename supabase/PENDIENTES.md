@@ -19,7 +19,7 @@ En el mismo commit se borra de aquí y se apunta en `ESTADO.md`.
 `supabase/principios.test.js` falla si alguna migración (vieja o nueva) deja un
 NOT VALID sin validar que no está en esta lista.
 
-## 0080 · tareas v2 (sin aplicar)
+## 0080 · tareas v2 (aplicada el 8 oct 2026)
 
 Condición para todos: 0080 aplicada y el bot con `BOT_TAREAS_V2` desplegado
 una semana sin errores.
@@ -35,6 +35,12 @@ select count(*) from public.bot_tareas
 ```sql
 select count(*) from public.bot_tareas
  where tipo is not null and tipo not in ('espera','falta_saber','decision','seguimiento');
+```
+
+`bot_tareas_campo_check`
+```sql
+select count(*) from public.bot_tareas
+ where campo is not null and campo not in ('alergias','etapaBebe');
 ```
 
 `bot_tareas_resultado_check`
@@ -75,7 +81,7 @@ select count(*) from public.bot_reminders r
                     where t.household_id = r.household_id and t.id = r.tarea_id);
 ```
 
-## 0083 · tareas → persona (sin aplicar)
+## 0083 · tareas → persona (aplicada el 8 oct 2026)
 
 `bot_tareas_persona_fk` — condición: 0081, 0082 y 0083 aplicadas y el bot nuevo
 una semana sin errores.
@@ -86,7 +92,7 @@ select count(*) from public.bot_tareas t
                     where p.household_id = t.household_id and p.id = t.persona_id);
 ```
 
-## 0086 · vocabulario de la app (sin aplicar)
+## 0086 · vocabulario de la app (aplicada el 8 oct 2026)
 
 Condición para todos: 0086 aplicada, las consultas en 0 y ningún error 23514
 en los logs durante una semana. Ojo: aun sin validar, un UPDATE de una fila
@@ -124,7 +130,7 @@ select count(*) from public.recipe_collections
    and collection_id not like 'fld\_%';
 ```
 
-## 0085 · vocabulario del bot (rama `datos/sistematizar`, sin aplicar)
+## 0085 · vocabulario del bot (aplicada el 8 oct 2026)
 
 Aún no está en esta rama; se apuntan para que no se pierdan al entrar.
 Condición: 0085 aplicada y el bot nuevo una semana sin errores.
