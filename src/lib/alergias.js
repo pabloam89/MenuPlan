@@ -90,6 +90,25 @@ export function aplicarAlergias(data, { memberId, ids = [], quitar = false, conf
  */
 export const alergiasRevisadas = (data, m) => m?.alergiasRevisadas ?? data?.allergiesReviewed === true;
 
+/**
+ * Las alergias con las que el MENÚ filtra a una persona.
+ *
+ * Una lista vacía no dice lo mismo antes y después de preguntar: antes es «no
+ * lo sabemos» y después «no tiene ninguna». El motor leía `m.allergies` a pelo
+ * y trataba las dos igual, así que a quien no habían preguntado le podía salir
+ * su alérgeno. Decidido por Pablo el 8 oct 2026: mientras no estén revisadas,
+ * el menú esquiva los 14 del reglamento (quedan unos 30 platos de 424, de
+ * sobra para una semana) y Lola pregunta.
+ *
+ * Solo para filtrar. No se guarda nunca ni se enseña como alergia de nadie:
+ * las fichas, Lola y la explicación de un plato siguen leyendo `m.allergies`.
+ */
+export function alergiasParaMenu(data, m) {
+  const propias = m?.allergies ?? [];
+  if (alergiasRevisadas(data, m)) return propias;
+  return [...new Set([...propias, ...EU_ALLERGEN_IDS.map((id) => EU_ALLERGENS[id].label)])];
+}
+
 /** Los de la casa a los que nadie ha preguntado todavía por alergias. */
 export function pendientesDeAlergias(data) {
   return (data?.members ?? []).filter((m) => !alergiasRevisadas(data, m));

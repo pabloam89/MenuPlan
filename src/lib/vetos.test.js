@@ -158,7 +158,10 @@ describe("el bot y la app dicen lo mismo", () => {
 describe("un veto caducado deja de vetar también al cambiar un plato", () => {
   const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
   const plan = { g1: { "Lun-Postre": { recipeId: "__ninguno__", eaters: 1 } } };
+  // Revisada y sin alergias: sin revisar, el menú esquiva los 14 alérgenos y
+  // no quedaría ningún postre con mantequilla que vetar (alergiasParaMenu).
   const conVeto = (hasta) => ({
+    allergiesReviewed: true,
     members: [{ id: "m1", age: 40 }],
     groups: [group],
     schedule: {},
