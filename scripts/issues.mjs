@@ -15,12 +15,22 @@
  * La clasificación y su porqué, en scripts/lib/issues.mjs.
  */
 import { execFileSync } from "node:child_process";
-import { etiquetas, etiquetasDeFormulario, porGrupo, resumen } from "./lib/issues.mjs";
+import { CONSULTA, etiquetas, etiquetasDeFormulario, leerIssue, porGrupo, resumen } from "./lib/issues.mjs";
 
 const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
 
+/** Todos los issues, con sus PR, reaperturas y padre (una consulta por cada 100). */
 function todos() {
-  return JSON.parse(gh("issue", "list", "--state", "all", "--limit", "1000", "--json", "number,title,state,labels,createdAt,closedAt,body"));
+  const out = [];
+  let cursor = null;
+  do {
+    const args = ["api", "graphql", "-f", `query=${CONSULTA}`];
+    if (cursor) args.push("-f", `cursor=${cursor}`);
+    const pag = JSON.parse(gh(...args)).data.repository.issues;
+    out.push(...pag.nodes.map(leerIssue));
+    cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
+  } while (cursor);
+  return out;
 }
 
 const args = process.argv.slice(2);
@@ -61,7 +71,8 @@ if (args.includes("--etiquetas")) {
     for (const i of de) {
       const g = porGrupo(i.labels.map((l) => l.name));
       const etiq = [...g.area, ...g.causa].join(", ");
-      console.log(`  #${i.number}  ${i.createdAt.slice(0, 10)}  ${i.title}${etiq ? `  [${etiq}]` : ""}`);
+      const extra = [i.reaperturas ? `reabierta ${i.reaperturas}×` : "", i.padre ? `sigue a #${i.padre}` : "", i.asignados.length ? `de ${i.asignados.join(", ")}` : ""].filter(Boolean).join(" · ");
+      console.log(`  #${i.number}  ${i.createdAt.slice(0, 10)}  ${i.title}${etiq ? `  [${etiq}]` : ""}${extra ? `  (${extra})` : ""}`);
     }
     console.log("");
   }
@@ -69,17 +80,28 @@ if (args.includes("--etiquetas")) {
   const causas = Object.entries(r.causas).sort((a, b) => b[1].total - a[1].total);
   if (causas.length) {
     console.log("Lecciones por causa:");
-    console.log("  causa               total  abiertas  días hasta cerrar (mediana)  arreglo");
+    console.log("  causa               total  abiertas  reabiertas  días hasta cerrar (mediana)  arreglo");
     for (const [c, f] of causas) {
       const arreglos = Object.entries(f.arreglos).map(([a, n]) => `${a} ${n}`).join(", ") || "—";
       const med = f.medianaDias == null ? "—" : f.medianaDias.toFixed(1);
-      console.log(`  ${c.padEnd(18)}  ${String(f.total).padStart(5)}  ${String(f.abiertas).padStart(8)}  ${med.padStart(27)}  ${arreglos}`);
+      console.log(`  ${c.padEnd(18)}  ${String(f.total).padStart(5)}  ${String(f.abiertas).padStart(8)}  ${String(f.reaperturas).padStart(10)}  ${med.padStart(27)}  ${arreglos}`);
+    }
+    console.log("");
+  }
+
+  const agentes = Object.entries(r.agentes).sort((a, b) => b[1].arregladas - a[1].arregladas);
+  if (agentes.length) {
+    console.log("Lecciones por quién las arregló (línea «Agente:» del PR que las cierra):");
+    console.log("  agente              arregladas  reabiertas  días hasta cerrar (mediana)");
+    for (const [a, f] of agentes) {
+      const med = f.medianaDias == null ? "—" : f.medianaDias.toFixed(1);
+      console.log(`  ${a.padEnd(18)}  ${String(f.arregladas).padStart(10)}  ${String(f.reaperturas).padStart(10)}  ${med.padStart(27)}`);
     }
     console.log("");
   }
 
   if (r.malClasificados.length) {
-    console.log("Mal clasificados (falta la etiqueta de):");
+    console.log("Mal clasificados o sin trazar (falta):");
     for (const m of r.malClasificados) console.log(`  #${m.number}  ${m.title}: ${m.faltan.join(", ")}`);
     console.log("Prueba `npm run issues -- --ordenar`, o ponlas con `gh issue edit <n> --add-label …`.");
   }

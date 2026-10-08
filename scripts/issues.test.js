@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { GRUPOS, etiquetas, etiquetasDeFormulario, faltas, resumen } from "./lib/issues.mjs";
+import { GRUPOS, agenteDe, etiquetas, etiquetasDeFormulario, faltas, leerIssue, resumen } from "./lib/issues.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PLANTILLAS = join(RAIZ, ".github", "ISSUE_TEMPLATE");
@@ -68,5 +68,49 @@ describe("clasificación de issues", () => {
     ]);
     expect(r.porTipo).toEqual({ leccion: 2, decision: 1 });
     expect(r.causas.entorno).toMatchObject({ total: 4, abiertas: 2, medianaDias: 2, arreglos: { test: 1, script: 1 } });
+  });
+});
+
+describe("trazabilidad desde GitHub", () => {
+  const nodo = (extra = {}) => ({
+    number: 7, title: "x", state: "CLOSED", createdAt: "2026-10-01T00:00:00Z", closedAt: "2026-10-03T00:00:00Z", body: "",
+    labels: { nodes: [{ name: "tipo:leccion" }, { name: "causa:entorno" }, { name: "area:ops" }, { name: "arreglo:test" }] },
+    assignees: { nodes: [] }, reaperturas: { totalCount: 0 }, closedByPullRequestsReferences: { nodes: [] }, comments: { nodes: [] }, parent: null,
+    ...extra,
+  });
+
+  it("el agente sale de la línea «Agente:» del PR; sin ella, la sesión principal", () => {
+    expect(agenteDe("Arregla el PATH.\n\nAgente: gobierno\n")).toBe("gobierno");
+    expect(agenteDe("Agente: `Datos`")).toBe("datos");
+    expect(agenteDe("Closes #3")).toBe("sesión");
+  });
+
+  it("los PR que cierran: los fusionados con «Closes #n», o «PR #n» en un comentario al cerrar", () => {
+    const conPr = leerIssue(nodo({ closedByPullRequestsReferences: { nodes: [
+      { number: 150, headRefName: "ops/path", mergedAt: "2026-10-03T00:00:00Z", body: "Agente: gobierno", author: { login: "pabloam89" } },
+      { number: 149, headRefName: "ops/otro", mergedAt: null, body: "", author: { login: "pabloam89" } },
+    ] } }));
+    expect(conPr.prs).toEqual([{ number: 150, rama: "ops/path", autor: "pabloam89", agente: "gobierno", mergedAt: "2026-10-03T00:00:00Z" }]);
+    const aMano = leerIssue(nodo({ comments: { nodes: [{ body: "Queda en el PR #137." }] } }));
+    expect(aMano.prs.map((p) => p.number)).toEqual([137]);
+  });
+
+  it("una lección cerrada sin PR que la arregle está sin trazar, salvo arreglo:ninguno", () => {
+    expect(faltas(leerIssue(nodo()))).toEqual([expect.stringMatching(/^PR del arreglo/)]);
+    const ninguno = nodo({ labels: { nodes: [{ name: "tipo:leccion" }, { name: "causa:entorno" }, { name: "area:ops" }, { name: "arreglo:ninguno" }] } });
+    expect(faltas(leerIssue(ninguno))).toEqual([]);
+  });
+
+  it("cuenta por agente lo que arregló y cuántas veces se le reabrió", () => {
+    const pr = (agente) => ({ closedByPullRequestsReferences: { nodes: [{ number: 1, headRefName: "r", mergedAt: "2026-10-03T00:00:00Z", body: `Agente: ${agente}`, author: null }] } });
+    const r = resumen([
+      leerIssue(nodo(pr("gobierno"))),
+      leerIssue(nodo({ ...pr("gobierno"), reaperturas: { totalCount: 1 } })),
+      // Reabierta y aún abierta: el arreglo de datos no aguantó.
+      leerIssue(nodo({ ...pr("datos"), state: "OPEN", reaperturas: { totalCount: 2 } })),
+    ]);
+    expect(r.agentes.gobierno).toMatchObject({ arregladas: 2, reaperturas: 1, medianaDias: 2 });
+    expect(r.agentes.datos).toMatchObject({ arregladas: 1, reaperturas: 2, medianaDias: null });
+    expect(r.causas.entorno.reaperturas).toBe(3);
   });
 });
