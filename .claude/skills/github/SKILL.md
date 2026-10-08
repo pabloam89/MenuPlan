@@ -70,6 +70,44 @@ CLI `gh` va con la sesión de Pablo (`gh auth status`).
   `scripts/podar.mjs` borra solo las fusionadas enteras en `origin/staging`,
   sin PR abierto, de hace más de 1 día y sin worktree.
 
+### Issues: lecciones, decisiones y encargos
+
+Lo que no se cierra en una sesión vive en un issue: sobrevive al reinicio, lo
+ven Álvaro y las sesiones de la nube, y con las mismas etiquetas siempre se
+puede contar qué falla más. La clasificación tiene una sola fuente,
+`scripts/lib/issues.mjs`; los formularios de `.github/ISSUE_TEMPLATE/` salen
+de ella y `scripts/issues.test.js` vigila que no se separen.
+
+| Grupo | Valores | Cuándo |
+|---|---|---|
+| `tipo:` | `leccion`, `decision`, `encargo` | siempre, uno |
+| `causa:` | `vigilante-falso`, `vigilante-hueco`, `entorno`, `limpieza`, `coordinacion`, `modelo-datos`, `codigo` | toda lección |
+| `area:` | `datos`, `lola`, `ui`, `catalogo`, `motor`, `ops` | siempre |
+| `arreglo:` | `test`, `guardia`, `script`, `regla`, `skill`, `ninguno` | al cerrar una lección: dónde quedó |
+
+```
+gh issue create --title "[lección] …" --label tipo:leccion,causa:entorno,area:ops --body-file <fichero>
+gh issue create --title "[decisión] …" --label tipo:decision,area:datos --body-file <fichero>
+gh issue edit <n> --add-assignee @me        # coger un encargo (o «Quién lo coge» en el cuerpo)
+gh issue close <n> --comment "Queda en <test o PR>"   # antes: --add-label arreglo:test
+npm run issues                              # abiertos, lecciones por causa, mal clasificados
+npm run issues -- --ordenar                 # etiquetas que faltan, leídas de un formulario
+npm run issues -- --etiquetas               # crear las etiquetas en GitHub (OK de Pablo)
+```
+
+- **El cuerpo de una lección:** cuándo, qué pasó (esperado frente a real),
+  evidencia (comando y salida, PR, fichero:línea) y dónde debería quedar el
+  arreglo. El de una decisión: la pregunta en llano, las opciones con la
+  recomendada primero y qué pasa si no se decide.
+- **Una categoría nueva** se añade en `scripts/lib/issues.mjs` con su
+  descripción, se regeneran las etiquetas y se pone en el formulario. Si algo
+  no encaja en ninguna causa, primero se mira si es una de las que hay; una
+  clasificación que crece sin control deja de servir para contar.
+- **El repo es público:** ni claves, ni datos de familias, ni un fallo de
+  seguridad que se pueda aprovechar. Eso va a Pablo en privado.
+- **Antes de empezar un encargo**, `npm run issues`: si ya está cogido, no se
+  duplica.
+
 ## Lo que falló y por qué
 
 - **2026-10-08 · la carpeta de trabajo recién creada desaparece sola y queda un
