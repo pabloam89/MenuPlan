@@ -93,6 +93,56 @@ describe("migraciones aplicadas no se editan", () => {
     expect(edita("supabase/migrations/0080_bot_tareas_v2.sql", ctx({ estadoMd: null }))).toBe("deny"));
   it("por shell tampoco", () => expect(bash("sed -i 's/a/b/' supabase/migrations/0079_personas_y_grupos.sql")).toBe("deny"));
   it("leerla por shell sí", () => expect(bash("cat supabase/migrations/0079_personas_y_grupos.sql")).toBe(null));
+  it.each([
+    "awk 'NR>=251 && NR<=386' supabase/migrations/0079_personas_y_grupos.sql",
+    'grep -n "x" supabase/migrations/0079_personas_y_grupos.sql > /tmp/salida.txt',
+    "cat supabase/migrations/0079_personas_y_grupos.sql | tee /tmp/copia.sql",
+  ])("un > que no apunta a la migración es una lectura: %s", (c) => expect(bash(c)).toBe(null));
+  it.each([
+    "echo x > supabase/migrations/0079_personas_y_grupos.sql",
+    'cat a >> "supabase/migrations/0079_personas_y_grupos.sql"',
+    "echo x | tee -a supabase/migrations/0079_personas_y_grupos.sql",
+    "mv /tmp/x.sql supabase/migrations/0079_personas_y_grupos.sql",
+  ])("escribirla por shell, negado: %s", (c) => expect(bash(c)).toBe("deny"));
+  it.each([
+    "echo a > supabase/migrations/0090_nueva.sql && echo b >> supabase/migrations/0079_personas_y_grupos.sql",
+    "sed --in-place 's/a/b/' supabase/migrations/0079_personas_y_grupos.sql",
+    "git checkout -- supabase/migrations/0079_personas_y_grupos.sql",
+    "git restore supabase/migrations/0079_personas_y_grupos.sql",
+    `node -e "require('fs').writeFileSync('supabase/migrations/0079_personas_y_grupos.sql', 'x'); console.log(1)"`,
+    "git rm supabase/migrations/0079_personas_y_grupos.sql",
+  ])("también negado: %s", (c) => expect(bash(c)).toBe("deny"));
+  it("copiarla a otro sitio es leerla", () =>
+    expect(bash("cp supabase/migrations/0079_personas_y_grupos.sql /tmp/x.sql")).toBe(null));
+
+  // Salir de un choque de número: d7 renombraba su 0087 a 0088 porque otra rama
+  // ya usaba la 0087, y la guardia miraba el origen y se lo negaba.
+  const choque = ctx({ numeroEnStaging: (n) => (n === "0087" ? "0087_menu_activo_y_casa_propia" : null) });
+  it("mover la propia al siguiente libre pasa: cuenta el destino", () =>
+    expect(bash("git mv supabase/migrations/0087_bot_entradas.sql supabase/migrations/0088_bot_entradas.sql", choque)).toBe(null));
+  it("mover a un número ocupado, negado", () =>
+    expect(bash("git mv supabase/migrations/0090_x.sql supabase/migrations/0087_y.sql", choque)).toBe("deny"));
+  it("borrar la vieja, que no está en staging, pasa", () =>
+    expect(bash("git rm supabase/migrations/0087_bot_entradas.sql", choque)).toBe(null));
+});
+
+describe("lo que lee Lola, por shell", () => {
+  it.each([
+    "sed -i 's/a/b/' api/_bot/conocimiento.md",
+    "echo x >> api/_bot/conocimiento.md",
+    "cat nuevo.js > api/_bot/agente.js",
+    "echo x | tee api/_bot/conocimiento.md",
+    "perl -pi -e 's/a/b/' api/_bot/agente.js",
+    "cp /tmp/c.md api/_bot/conocimiento.md",
+    "mv /tmp/h.js api/_bot/herramientas.js",
+  ])("escribir pregunta: %s", (c) => expect(bash(c)).toBe("ask"));
+  it.each([
+    "cat api/_bot/conocimiento.md",
+    'grep -n "alergia" api/_bot/agente.js',
+    "sed -n '1,40p' api/_bot/conocimiento.md",
+    "wc -l api/_bot/conocimiento.md > /tmp/n.txt",
+  ])("leer no: %s", (c) => expect(bash(c)).toBe(null));
+  it("con Edit no pregunta: ahí ya salta la regla", () => expect(edita("C:/dev/x/api/_bot/conocimiento.md")).toBe(null));
 });
 
 describe("gh pr merge", () => {
