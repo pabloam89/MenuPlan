@@ -897,3 +897,49 @@ exactamente lo que esta auditoría ha desmontado tres veces (`getCarbType`,
 
 A1–A5 cierran L0 de verdad. A lo que sigue después ya se le puede llamar
 "rellenar tablas" sin que sea un eufemismo de adivinar.
+
+## 16 · Decisiones vivas (traídas de la memoria el 8 oct 2026)
+
+**Macros: el calculado es el bueno (21 sep 2026).** Cada receta lleva ocho
+macros escritos a mano y la app enseña esos; `src/data/derived/recipeNutrition.json`
+los calcula desde los ingredientes. El declarado es una estimación comprimida:
+el ratio declarado/calculado cae liso con el tamaño del plato (1,03 · 0,95 ·
+0,89 · 0,83 · 0,72 · 0,64), y en los platos pequeños coinciden. Lo que ve el
+usuario NO ha cambiado: es una decisión de producto pendiente. **Trampa al
+medir:** esa compresión crea sola un «N implícito» de 2,5-2,8 raciones sobre
+base 2; un test que busque raciones mal puestas con ese ratio se confunde.
+
+**Masa que se compra y no se come.** El cálculo de nutrición descuenta:
+
+1. la fracción comestible (`src/data/fraccionComestible.json`), sin
+   aplicarla dos veces si el ingrediente o la ficha ya vienen limpios;
+2. el aceite de freír, del que solo cuenta lo absorbido (6 % del peso del
+   sólido);
+3. la costra de sal (sal ≥ 50 g se retira, y el azúcar con ella si hay
+   curado).
+
+La lista de la compra sigue pidiendo el aceite entero, que es lo correcto.
+Falta modelar los líquidos que se tiran (bisque, court-bouillon, escabeches).
+Una clave de estos ficheros que no casa con ningún `ingredientId` no falla,
+no hace nada: lo vigila `src/data/alimentos.test.js`.
+
+**El fusible del espejo.** `src/data/recipeRow.test.js` compara los campos
+del esquema con lo que sale del mapeador, y `NO_VIAJAN` declara con su razón
+lo que no viaja a propósito. Nació porque un campo nuevo se perdía en silencio
+al pasar por el puente (cinco veces). El espejo `recipes` está muerto desde la
+0064, pero el patrón vale para cualquier puente campo a campo.
+
+**Decisiones de Pablo que no salen del código:**
+
+- `pan` y `avena` no son bases; `boniato` sí, pero cuenta como patata en el
+  hidrato.
+- Criterio APARTE/DENTRO de una salsa: aparte = se puede servir al lado Y el
+  plato sigue siendo ese plato sin ella. Si el líquido cocinó el principal, es
+  principal.
+- `sauceId` es del usuario (`fixedDishes.sauceId`), no un campo muerto.
+- El scorer de `lib/planner.js` es código muerto anterior al LLM, pendiente
+  de retirar.
+
+**Copias de la casa sin borrar en cascada.** `persona_reemplazar_casa` (0079)
+borraba e insertaba todas las personas; desde la 0081 se sincroniza por clave
+(upsert y borrar solo lo que falta). Regla general en PRINCIPIOS §5.

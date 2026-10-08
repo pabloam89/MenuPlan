@@ -182,3 +182,22 @@ comprobaron paso a paso y están anotadas como excepción.
    acepta), y eso es una decisión de producto, no una consecuencia colateral de
    haber cerrado el campo a enum. Es exactamente el patrón de duplicación
    código↔prompt que `INDEX.md` ya documenta como transversal.
+
+## 8. Decisiones y lecciones (15 sep 2026)
+
+- **Dos motivos distintos para una base:** *manos* (minutos delante del
+  fuego), que arreglan el sofrito y la verdura asada; y *reloj* (minutos hasta
+  comer), que arreglan las féculas y sobre todo la verdura asada (−51 min por
+  plato). Medir solo las manos lleva a concluir, en falso, que las féculas no
+  sirven. Lo que importa es si el plato CRUZA de no caber a caber
+  (`esMontajeRapido`, `loQueGana()` en `lib/bases.js`).
+- **Trece bases**, ordenadas por trabajo ahorrado. Boniato, cuscús y quinoa se
+  quedan por decisión de Pablo («que cada uno marque lo que quiera»): no
+  volver a proponer quitarlas.
+- **Bases ricas, no neutras** (arroz con ajo, sofrito con tomate). La
+  combinatoria va embebida en el catálogo como platos cerrados con foto.
+- El catálogo de 28 salsas (`salsas.json`) no tiene consumidores: es cantera
+  de bases nuevas (de ahí salió la bechamel).
+- **Pendiente:** 34 recetas sin foto, entre ellas las 10 nuevas de verdura
+  asada y pesto. Sin foto no pueden ser estrella. Hay crédito de AI Studio
+  desde el 6 oct; falta correr `scripts/gen-fotos-pendientes.mjs` y marcarlas.

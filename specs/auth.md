@@ -79,3 +79,26 @@ Las RLS de `user_pantry`, `user_menus`, `user_menu_weeks`, `user_menu_recipes` S
 3. **Feature completa sin usar**: sistema de hogares compartidos — coste de mantenimiento (14 funciones RPC, 8 políticas RLS extra) sin ningún beneficio de producto materializado.
 4. **Doble nombre de variable de entorno** para la clave de servicio (`SUPABASE_SERVICE_ROLE_KEY` vs `SUPABASE_SECRET_KEY`) por la coexistencia de una integración Vercel↔Supabase nativa y variables manuales — riesgo de que alguien la borre pensando que es redundante.
 5. **`signOut()` no limpia el estado local** (`storage.js` `menuplan.state.v1` persiste) — cerrar sesión dentro del mismo dispositivo no resetea el menú/familia visibles, aunque sí deja de sincronizar con la cuenta. [AMBIGUO: no está claro si esto es intencionado (mantener utilidad en modo anónimo tras cerrar sesión) o un descuido — el flujo de *borrado* de cuenta sí limpia el estado (`clearState()` en `doDeleteAccount`), lo que sugiere que el de *cierre* de sesión debería comportarse igual pero no lo hace.]
+
+## 6. Entrar en la app desde Lola (6 oct 2026)
+
+Tres fallos al pasar de Telegram a la app, y la regla que dejó cada uno:
+
+1. **Decidir con datos que aún no han llegado** (PR #65). La pantalla de
+   inicio elegía entre el alta y «Continuar» antes de que llegara la familia
+   de la nube, y repetía el alta. Regla: una pantalla que decide con datos de
+   la nube espera a que estén (`nubeLista` en `src/App.jsx`), con un plazo por
+   si no llegan.
+2. **Copia local sin dueño** (PR #66). Tras `/borrarme`, el navegador seguía
+   enseñando la casa borrada como invitado. Regla: lo que se guarda en local
+   lleva la marca de su cuenta (`homenu:cuenta`, `src/lib/useAuth.js`); si esa
+   cuenta ya no existe, la copia se borra.
+3. **Cuenta y chat son cosas distintas.** `bot_identities` dice que un Telegram
+   ES una cuenta; `bot_chats`, que un chat está conectado a una casa.
+   `/borrarme` borra la cuenta a la que apunta la identidad, que puede ser la
+   de Google (de ahí el aviso «es tu cuenta de la app»). La llave `?entrar=`
+   solo se da a cuentas nacidas en Telegram.
+
+Flujo vigente: Lola saluda sin preguntas de cuenta, con «Prefiero rellenarlo
+en la app» a un toque (código `alta`, migración 0084). El alta en la app acaba
+en Inicio sin generar el menú, y Lola lo ofrece en el chat.

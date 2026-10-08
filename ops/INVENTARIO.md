@@ -52,6 +52,7 @@ en Vercel (y `BOT_CRON_SECRET` también en el job de `pg_cron`, ver
 | 1 | Confirmar la cuenta dueña de cada ❓ de la tabla | Pablo | abierto |
 | 2 | ~~Transferir Supabase desde Bytask~~ — **no procede**: cuelga del equipo de Vercel (ver la tabla) | — | cerrado (7 oct) |
 | 3 | Sacar la copia local de OneDrive a `C:\dev\MenuPlan` | Pablo + Claude | hecho (7 oct); queda retirar la carpeta vieja y sus worktrees |
+| 13 | Retirar los worktrees ya fusionados del 7 oct (alergenos, fuente, grupos, ids, plan-semana, principios, ux, menuplan-ops, -gitignore, -0081 y `C:\dev\MenuPlan-claude-md`) cuando no tengan nada en vuelo: con `npm run retirar` o, si no salieron de `tarea`, con comandos que lanza Pablo | Pablo lanza, Claude prepara | abierto |
 | 4 | Identidad de git: Gmail en todo `C:\dev\` (`includeIf` → `~/.gitconfig-personal`) | Pablo | hecho (7 oct) |
 | 5 | Proteger `main` y `staging` en GitHub | Pablo + Claude | hecho (7 oct): `main` solo por PR con `tests` en verde; las dos sin force push ni borrado, también para administradores |
 | 11 | Que el cron de Mercadona abra un PR en vez de empujar a `staging`, para poder exigir PR también en `staging`. Ojo: un PR abierto con el token de Actions no lanza `tests.yml`; hay que dispararlo a mano (`workflow_dispatch`) | Claude, con OK de Pablo | abierto |

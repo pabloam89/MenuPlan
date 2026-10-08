@@ -73,3 +73,35 @@ RLS (`user_recipes`): `Owner manages own recipes` (`auth.uid() = owner_id`), `Pu
 3. ~~`recipe_votes.vote` sin enum DB~~ — **descartado, ver §2**: sí tiene CHECK constraint en producción.
 4. **`dish_images` no tiene `ON DELETE CASCADE`** desde `recipes` — una receta borrada del catálogo puede dejar una imagen huérfana referenciando un `recipe_id` inexistente en la práctica (la FK sigue existiendo con `NO ACTION`, así que Postgres impediría el borrado si hay una imagen que la referencia, salvo que se borre la imagen primero — comportamiento no verificado end-to-end en esta pasada).
 5. **Modelo Haiku de `api/recipe-steps.js` hardcodeado en el propio fichero** en vez de importar de `aiModels.js` (comentario explícito: *"runs server-side and keeps its own constant"*) — decisión deliberada y documentada, pero es una tercera fuente de verdad de "qué modelo Haiku usamos" junto a `aiModels.js` y `api/generate.js`.
+
+## 6. Políticas del catálogo (decisiones de Pablo)
+
+- **Solo el Recetario Estrella** (`estrella: true`). El catálogo antiguo
+  («fondo de armario») no se propone nunca. Si el pool se queda corto, error,
+  no relleno (`isPrimaryCatalog()` en `filterRecipes.js`). Promover una
+  receta exige que tenga foto. `estrella: false` escrito = «lo miré y de
+  momento no»; ausente = otro catálogo, y solo sube a mano.
+- **Una receta, una foto; sin pairing** plato + guarnición. «Pollo asado con
+  patatas» es UNA receta. Solo se enseñan platos con foto. Descomponer vale
+  para ingredientes y pasos, nunca para presentar. Los restos del pairing
+  (`canBeGarnish`, `filterGarnishes()`, el formato combo de `dishImages.json`)
+  están muertos: no tomarlos como señal.
+- **Los menús de comedor** del cole van aparte (`src/lib/schoolMenu.js`,
+  `api/_bot/cole.js`) y no pasan por esta política.
+
+**Enriquecimiento v39 (30 sep 2026).**
+
+- Los sulfitos del vino, el vinagre y los licores se DECLARAN;
+  `cookingAllergens` queda vacío a propósito.
+- `mayContain` en 51 ingredientes elaborados: la receta hereda
+  `puedeContener` al cargar y `filterRecipes` la excluye para esa alergia.
+- `caloriasNivel` y `costeRacion`/`costeNivel` (Mercadona, `npm run
+  build:coste`) se calculan al cargar; no están en el JSON.
+- Atributos blandos en las estrella: `connotacion`, `textura`, `picante`,
+  `sabor`; los lee `proponer_platos` (`conRasgos` en `api/_bot/menu.js`).
+- **Lección:** una sola pasada de LLM no basta para datos de seguridad. Hacen
+  falta dos pasadas, un juez y una revisión escéptica. Las primeras marcaban
+  pollo fresco o especias puras como «puede contener».
+- `occasion` y `kidFavourite` NO se aplicaron: el LLM los inflaba (35 % y
+  42 % frente a 7 % y 8 %). Pendientes de revisión manual, igual que las
+  trazas de huevo en la pasta seca.

@@ -192,3 +192,34 @@ Datos de salud: inferirlos del chat necesita base legal o consentimiento (RGPD, 
 7. **Hilo:** fila oculta en `bot_messages` con la pregunta abierta y las opciones propuestas (como el borrador de receta).
 8. **«Semana definitiva»** estimada y la pregunta del domingo.
 9. **Analista v1**, empezando por los ejes sin modelo: repeticiones, recetas propias, invitados recurrentes, básicos, gasto, etapa por edad.
+
+## 6. Modelo de datos acordado (5 oct 2026)
+
+La spec viva está en el artefacto «Ficha de la casa»
+(https://claude.ai/artifact/6Dgpfp8raH28qUTte3ahPC). Lo que decidió Pablo y
+conviene tener aquí:
+
+- **Entidades:** casa (personas, seguridad, cuenta, capacidades, semana tipo,
+  niños y comedor, gusto), menú externo (el cole), coyuntura (reglas con
+  fecha) y menú semanal (hereda de la casa y guarda solo diferencias).
+- **Gusto en cuatro capas:** qué, cómo, nunca (con alcance y excepción) y
+  aprendido (siempre «supuesto»). Precedencia: seguridad > nunca > coyuntura >
+  diferencias del menú > lo dicho > aprendido > matices.
+- **Edad:** no se pregunta. Sin dato, categoría supuesta por parentesco,
+  nunca 30 años. El bebé que come con la familia está en los dos grupos.
+- **Menús de la casa, recetas de la persona** (v13): `user_menus` y
+  `user_menu_weeks` pasan a la casa; `user_recipes` sigue siendo de la persona,
+  que se lleva su recetario a otras casas.
+- **Calorías por persona, no por grupo** (v8). Peso y altura quedan fuera del
+  alta y se piden solo si alguien pide calorías. El sexo se deduce del nombre
+  solo si es claro, solo para calorías, y nunca se enseña ni se usa para
+  hablar. La actividad, solo si la cuentan. El cálculo vive en
+  `src/lib/raciones.js`.
+- **El perfilado es un aplazamiento, no un descarte:** antes de proponerlo,
+  preguntar si ya toca.
+- Huecos vistos de paso: `OnboardingGoals` no se monta, así que `data.kcal`
+  vale 2000 para todos; `resolveMemberAge()` devuelve 30 por defecto.
+
+**v17, estresada en Postgres local (PGlite) con 252 pruebas en verde.** El
+arnés vivía en el scratchpad temporal de una sesión y **probablemente se ha
+perdido**. Si se retoma, habrá que reconstruirlo dentro del repo.
