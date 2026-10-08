@@ -7,6 +7,7 @@
  * esto sale nunca hacia el cliente.
  */
 
+import { seguirCon } from "./avisar.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 
 const TIMEOUT_MS = 8000;
@@ -88,7 +89,8 @@ export async function usuarioDeToken(accessToken) {
     headers: { apikey: key, Authorization: `Bearer ${accessToken}` },
   });
   if (!res.ok) return null;
-  const u = await res.json().catch(() => null);
+  // a propósito: un cuerpo que no es JSON es un token sin usuario
+  const u = await res.json().catch(seguirCon("db/usuario", null));
   return u?.id ? u : null;
 }
 

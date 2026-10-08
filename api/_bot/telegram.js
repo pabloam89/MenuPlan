@@ -22,7 +22,8 @@ export async function llamar(metodo, cuerpo) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(cuerpo),
   });
-  const json = await res.json().catch(() => null);
+  // a propósito: sin cuerpo JSON, falla justo abajo con el status
+  const json = await res.json().catch(seguirCon("telegram/json", null));
   if (!json?.ok) throw new Error(`Telegram ${metodo}: ${json?.description ?? res.status}`);
   return json.result;
 }
@@ -159,4 +160,5 @@ export async function nombreDelBot() {
 }
 
 export const escaparHtml = (s) =>
-  String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");import { seguirCon } from "./avisar.js";
+

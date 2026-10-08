@@ -28,6 +28,7 @@
  * no tocan nada.
  */
 
+import { seguirCon } from "./avisar.js";
 import { CUANDOS } from "./cuando.js";
 
 /** Por debajo, la decisión es demasiado dudosa para gastar en adelantarla. */
@@ -179,7 +180,8 @@ export async function conPista({ pista, texto = "", adelantar, lanzar, progreso,
     if (!plan) return Promise.resolve(null);
     const lectura = Promise.resolve().then(() => adelantar(plan, d))
       .then((a) => (a && String(a.texto ?? "").length > TOPE_LEIDO ? null : a))
-      .catch(() => null);
+      // a propósito: el adelanto es una ayuda; sin él, Lola lee como siempre
+      .catch(seguirCon("pista/adelanto", null));
     return conPlazo(lectura, PLAZO_ADELANTO_MS);
   };
   let decision; // undefined: aún no ha llegado

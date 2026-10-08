@@ -664,7 +664,10 @@ export async function dominiosDeGustos() {
     const { readFileSync } = await import("node:fs");
     dominiosHechos = JSON.parse(readFileSync(new URL("./dominiosGustos.json", import.meta.url), "utf8")).dominios;
     if (dominiosHechos) return dominiosHechos;
-  } catch { /* sin build: con el motor */ }
+  } catch (e) {
+    // a propósito: sin build (en local y en los tests) no hay fichero; con el motor.
+    console.warn("[ajustes] sin dominiosGustos.json, con el motor:", e?.message);
+  }
   const m = await motor();
   return m.CAMPOS.filter((c) => c.panel !== false).map((c) =>
     `${c.id} (${c.etiqueta})${Array.isArray(c.dominio) ? `: ${c.dominio.join("/")}` : ": texto libre"}`).join("; ");

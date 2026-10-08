@@ -17,6 +17,7 @@
  * Sin el motor: las recetas salen de las guardadas con el menú (aiRecipes).
  */
 
+import { fallaCon } from "./avisar.js";
 import { cargarCasa } from "./casa.js";
 import { select, update } from "./db.js";
 import { crearRecordatorio } from "./recordatorios.js";
@@ -97,7 +98,7 @@ export function avisoDeVispera(casa, manana) {
 
 /** El aviso de una casa para mañana (fecha de Madrid), o null. */
 export async function avisoDeVisperaDe(householdId, hoyISO) {
-  const casa = await cargarCasa(householdId).catch(() => null);
+  const casa = await cargarCasa(householdId).catch(fallaCon("vispera/casa", null));
   if (!casa) return null;
   const d = new Date(`${hoyISO}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + 1);
