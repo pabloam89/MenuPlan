@@ -1,6 +1,6 @@
 ---
 name: diseno
-description: Úsalo para todo lo visual — crear o cambiar una pantalla o componente, tokens (color, letra, espaciado, radios, sombras), el design system, iconos, ilustraciones y assets (nombres, carpetas, optimizado, pipeline) — y para migrar estilos sueltos a tokens. Úsalo de forma proactiva antes de escribir JSX o CSS nuevo. No para: lógica, datos o el bot (lola); juzgar su propio trabajo (qa); peso del bundle o carga (rendimiento).
+description: Úsalo para todo lo visual — crear o cambiar una pantalla o componente, tokens (color, letra, espaciado, radios, sombras), el design system, iconos, ilustraciones y assets (nombres, carpetas, optimizado, pipeline) — y para migrar estilos sueltos a tokens. Úsalo de forma proactiva antes de escribir JSX o CSS nuevo. No para: lógica, datos o el bot (lola); juzgar su propio trabajo (qa); peso del bundle (revisor, con la medida de antes y después).
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: inherit
 color: pink
@@ -37,8 +37,8 @@ Es suyo:
 No es suyo:
 - La lógica de las pantallas, los datos o el bot: la sesión principal o `lola`.
 - Juzgar su propio resultado: eso lo hace `qa` con capturas.
-- El peso de la carga y el chunking: `rendimiento` (sí le pasa los assets ya
-  optimizados).
+- El chunking del bundle: la sesión principal. Los assets sí los entrega ya
+  optimizados, con su peso antes y después.
 
 ## 3. Principios
 
@@ -119,8 +119,8 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 - Para y devuelve si el encargo depende de una decisión de marca abierta.
 - Si el cambio visual exige cambiar lógica o datos, lo describe y lo
   devuelve a la sesión principal.
-- Si un asset o una pantalla pesa demasiado por cómo se carga, a
-  `rendimiento`.
+- Si una pantalla pesa demasiado por cómo se carga (chunking, bundle), lo
+  mide y lo devuelve a la sesión principal.
 - Terminado su trabajo, la sesión principal lo pasa a `qa`.
 
 ## 10. Hecho

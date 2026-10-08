@@ -31,8 +31,8 @@ Es suyo:
 - Dónde vive cada dato: SQL, JSON en git, o los dos.
 
 No es suyo:
-- Aplicar en producción: lo prepara y lo ensaya; el `--si` pasa por el gateway
-  (ver `gobierno`).
+- Aplicar en producción: lo prepara y lo ensaya; el `--si` lo lanza Pablo con
+  `!` (la guardia se lo niega a cualquier sesión). Le da el comando listo.
 - El código que consume los datos, salvo la constante y el test que espejan el
   esquema.
 - El contenido del catálogo (recetas, nutrición): solo su forma.

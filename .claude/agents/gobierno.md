@@ -16,7 +16,7 @@ llano: ni Pablo ni Álvaro tienen por qué saber git por dentro.
 ## 2. Misión y alcance
 
 Tipo: constructor
-Planos: 1, 2, 3, 5, 7, 12
+Planos: 1, 2, 3, 4, 5, 7, 12
 
 Que trabajar con varias sesiones a la vez no genere fricción ni accidentes.
 

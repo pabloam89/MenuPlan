@@ -24,19 +24,19 @@ se sabrá que está bien), pregunta antes de lanzar nada.
 
 | Agente | Tipo | Planos | Para |
 |---|---|---|---|
-| `gobierno` | constructor | 1, 2, 3, 5, 7, 12 | ramas, CI, permisos, secretos, despliegues, inventario |
+| `gobierno` | constructor | 1, 2, 3, 4, 5, 7, 12 | ramas, CI, permisos, secretos, despliegues, inventario |
 | `datos` | constructor | 4, 5, 8 | esquema, migraciones, vocabularios, dónde vive cada dato |
-| `diseno` | constructor | 2, 4, 13 | pantallas, tokens, design system, iconos y assets |
-| `lola` | constructor | 9, 10 | el bot: herramientas, conocimiento, enrutador, turnos |
-| `rendimiento` | constructor | 10, 13 | bundle, carga, imágenes, caché, coste y latencia de modelos |
-| `arquitecto` | juez | 2, 4 | dónde va una pieza, acoplamiento, planes de refactor |
-| `revisor` | juez | 4 | fallos reales en un diff |
+| `diseno` | constructor | 2, 4, 13 | pantallas, tokens, design system, iconos y assets; peso de imágenes y carga |
+| `lola` | constructor | 9, 10 | el bot: herramientas, conocimiento, enrutador, turnos, coste y latencia |
+| `revisor` | juez | 2, 4 | fallos reales en un diff |
 | `qa` | juez | 4, 13 | la app en el navegador: flujos, capturas, accesibilidad |
 | `evaluador` | juez | 9, 10 | evals de Lola antes y después |
 | `seguridad` | juez | 7 | RLS, endpoints, secretos, inyección en prompts |
 | `auditor-datos` | juez | 4, 8 | modelo de datos: normalización, homogeneidad, duplicados, cableado |
 
-Fichas completas en `.claude/agents/`; planos en `ops/PLANOS.md`.
+Fichas completas en `.claude/agents/`; planos en `ops/PLANOS.md`. Hay dos
+agentes aparcados (rendimiento y arquitecto) en `.claude/agentes-aparcados/`:
+no se lanzan hasta que vuelvan a `.claude/agents/`.
 
 ## 3. Qué pipeline según la acción
 
@@ -44,23 +44,23 @@ Fichas completas en `.claude/agents/`; planos en `ops/PLANOS.md`.
 
 | Acción | Pipeline |
 |---|---|
-| Pantalla o componente nuevo | [`arquitecto`] → `diseno` → `qa` + `revisor` |
+| Pantalla o componente nuevo | `diseno` → `qa` + `revisor` |
 | Migrar una pantalla a tokens | `diseno` → `qa` |
-| Assets (icono, ilustración, limpieza) | `diseno` → [`rendimiento`] → `qa` |
+| Assets (icono, ilustración, limpieza) | `diseno` → `qa` |
 | Herramienta nueva o cambio en Lola | `lola` → `evaluador` + `revisor` → [`seguridad` si escribe datos] |
 | Cambiar conocimiento, prompt o enrutador del bot | `lola` → `evaluador` |
 | Cambio de esquema o dato nuevo | `datos` → `auditor-datos` + [`seguridad` si toca RLS] → *OK para aplicar* |
 | Dato que vive en varias capas (base, catálogo, constantes) | `auditor-datos` (mapa) → `datos` → `auditor-datos` |
-| Reducir el cableado de una tabla | `auditor-datos` (qué ficheros) → [`arquitecto`] → constructor del dominio → `revisor` |
+| Reducir el cableado de una tabla | `auditor-datos` (qué ficheros) → constructor del dominio → `revisor` |
 | Recetas o catálogo (contenido) | sesión principal → `revisor` (validación del catálogo en los tests) |
-| Función que cruza dominios | `arquitecto` → constructores por dominio → `revisor` + `qa` |
+| Función que cruza dominios | sesión principal (plan corto) → constructores por dominio → `revisor` + `qa` |
 | Bug | `revisor` (diagnóstico y test que lo reproduce) → constructor del dominio → `revisor` |
-| Algo va lento o cuesta de más | `rendimiento` (mide) → constructor → `rendimiento` (vuelve a medir) |
-| Refactor de un monolito | `arquitecto` (plan) → constructor por pasos → `revisor` en cada paso |
+| Algo va lento o cuesta de más | constructor del dominio (mide antes; `lola` si es el bot) → `revisor` (exige la medida de después) |
+| Refactor de un monolito | sesión principal (plan por pasos) → constructor por pasos → `revisor` en cada paso |
 | Endpoint nuevo en `api/` | constructor → `seguridad` + `revisor` |
 | CI, permisos, hooks, ramas, secretos | `gobierno` |
 | Desplegar a producción | `gobierno` → [`evaluador` si cambia el bot] → *OK de una persona* |
-| Revisión periódica | `seguridad` + `arquitecto` + `auditor-datos` + `evaluador` + `gobierno` (planos), en paralelo |
+| Revisión periódica | `seguridad` + `auditor-datos` + `evaluador` + `gobierno` (planos), en paralelo |
 
 Regla fija: **quien construye no juzga**. Cada constructor va seguido de al
 menos un juez distinto.

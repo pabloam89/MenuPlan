@@ -157,7 +157,9 @@ escriben en ella. Cada migración es un cambio en producción.
   tercera forma normal, se guarda el id y no una copia del nombre, clave
   natural `unique`, `not null` salvo decisión comentada, `timestamptz`, `text`
   sin `varchar`, céntimos en `integer`, la unidad en el nombre de la columna,
-  y `comment on table` en cada tabla nueva.
+  `comment on table` en cada tabla nueva, índice en cada FK, y las secciones
+  17-21: salud (RGPD), quién y por dónde, cada orden una vez, el día de la casa
+  y estados con su fecha.
 - **Una tabla, un módulo dueño.** El código toca cada tabla desde un solo
   módulo; nada de nombres de tabla, columnas o filtros PostgREST a mano por
   ahí. `supabase/cableado.test.js` falla si un fichero nuevo se pone a tocar
@@ -236,11 +238,9 @@ Constructores:
 - **`diseno`**: pantallas, tokens, design system, iconos y assets
   (diagnóstico y plan en `docs/diseno/ESTADO.md`).
 - **`lola`**: el bot — herramientas, conocimiento, enrutador, coste por turno.
-- **`rendimiento`**: bundle, carga, imágenes, caché, coste y latencia de
-  modelos. Mide antes y después.
 
-Jueces:
-- **`arquitecto`**: dónde va cada pieza, acoplamiento, planes de refactor.
+Jueces (sin Edit ni Write, pero con Bash: no escribir es convención, y el
+`revisor` lo vigila en el diff):
 - **`revisor`**: fallos reales en un diff, antes de fusionar.
 - **`qa`**: la app en el navegador, con capturas a 375 y 420 px.
 - **`evaluador`**: evals de Lola antes y después de cada cambio.
@@ -254,3 +254,6 @@ Para encargos que necesitan más de un agente: **`/orquestar <encargo>`**
 agente y junta sus informes. Un subagente no puede preguntar a mitad de
 trabajo ni lanza otros agentes: devuelve sus decisiones pendientes y es la
 sesión principal la que se las plantea a quien lanzó la sesión.
+
+Aparcados en `.claude/agentes-aparcados/` (vuelven cuando haya trabajo
+para ellos): rendimiento y arquitecto.

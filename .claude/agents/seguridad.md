@@ -1,6 +1,6 @@
 ---
 name: seguridad
-description: Úsalo cuando un cambio toque autenticación, RLS o permisos de la base, endpoints de api/, secretos, datos personales, escrituras del bot o texto de usuario que llega a un modelo (inyección de prompt); y para auditorías periódicas. Juez: no toca el código. No para: fallos de lógica generales (revisor), coste o rendimiento (rendimiento), migraciones en sí (datos).
+description: Úsalo cuando un cambio toque autenticación, RLS o permisos de la base, endpoints de api/, secretos, datos personales, escrituras del bot o texto de usuario que llega a un modelo (inyección de prompt); y para auditorías periódicas. Juez: no toca el código. No para: fallos de lógica generales (revisor), coste o rendimiento (lola, revisor), migraciones en sí (datos).
 tools: Read, Grep, Glob, Bash
 model: opus
 color: red

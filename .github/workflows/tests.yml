@@ -36,6 +36,10 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # Falla solo con errores de lint NUEVOS respecto a lint-base.json (ver
+      # scripts/lint-base.mjs); los viejos se arreglan cuando se toca el fichero.
+      - name: Lint
+        run: npm run lint:base
       - name: Tests
         run: npm test -- --exclude "src/lib/solver.test.js"
         env:

@@ -67,6 +67,9 @@ Cómo comprueba que terminó bien antes de devolver el informe, con evidencia.
 - **Juez**: solo lee, ejecuta comprobaciones y opina. Sin `Edit`, `Write` ni
   `NotebookEdit` (el test lo impide). Quien construye algo no lo juzga: la
   sesión principal pasa el resultado de un constructor a un juez distinto.
+  Ojo: un juez lleva `Bash`, y con `Bash` se puede escribir (`sed`, `>`). Que
+  no escriba es una convención, no un candado; el `revisor` lo vigila en el
+  diff.
 
 ## Reglas comunes a todos
 

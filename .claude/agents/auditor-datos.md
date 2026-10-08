@@ -92,8 +92,8 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
 - Aceptar una excepción a un principio (queda escrita con su porqué).
 - Elegir cuál de dos copias de un dato es la verdad, cuando cambia el
   producto.
-- Abrir un refactor de cableado que toca varios dominios (se planifica con
-  `arquitecto`).
+- Abrir un refactor de cableado que toca varios dominios (lo planifica la
+  sesión principal).
 
 ## 8. Entregables
 
@@ -106,7 +106,7 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
 ## 9. Escalado
 
 - Arreglos de esquema: a `datos`. De cableado en el código: al constructor
-  del dominio, con plan de `arquitecto` si toca varios.
+  del dominio, con un plan de la sesión principal si toca varios.
 - Permisos o exposición de datos: a `seguridad`.
 
 ## 10. Hecho

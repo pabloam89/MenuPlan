@@ -9,23 +9,24 @@ evidencia, no a ojo.
 **Escala**: 0 no existe · 1 existe pero es manual · 2 obliga (algo bloquea si
 falla) · 3 mide y avisa solo · 4 previene (el error no se puede ni escribir).
 
-Estado medido el 7 oct 2026 sobre `staging`.
+Estado medido el 8 oct 2026 sobre `staging` (y sobre producción, en solo
+lectura, para el plano 8).
 
 | # | Plano | Pregunta | Hoy | Lanzar | Escalar | Agentes |
 |---|---|---|---|---|---|---|
 | 1 | Flujo | ¿Dónde vive el código y cómo llega a producción? | 3 | 3 | 4 | gobierno |
-| 2 | Reglas y contexto | ¿Qué sabe cada sesión antes de tocar nada? | 3 | 3 | 4 | gobierno, arquitecto |
+| 2 | Reglas y contexto | ¿Qué sabe cada sesión antes de tocar nada? | 3 | 3 | 4 | gobierno, revisor |
 | 3 | Guardarraíles | ¿Qué es imposible hacer mal? | 3 | 3 | 4 | gobierno |
-| 4 | Verificación | ¿Cómo sé, sin mirar, que no he roto nada? | 2 | 3 | 4 | revisor, qa, arquitecto |
+| 4 | Verificación | ¿Cómo sé, sin mirar, que no he roto nada? | 2 | 3 | 4 | revisor, qa, gobierno |
 | 5 | Entornos | ¿Dónde pruebo sin riesgo? | 1 | 3 | 4 | gobierno, datos |
 | 6 | Observabilidad | ¿Cómo me entero de que algo falla en producción? | 1 | 3 | 4 | (vigía, cuando exista la herramienta) |
-| 7 | Seguridad | ¿Quién puede ver o romper qué? | 1 | 3 | 4 | seguridad, gobierno |
+| 7 | Seguridad | ¿Quién puede ver o romper qué? | 2 | 3 | 4 | seguridad, gobierno |
 | 8 | Datos | ¿Están bien modelados y puedo recuperarlos? | 2 | 3 | 4 | datos, auditor-datos |
 | 9 | Calidad de la IA | ¿Lola responde bien tras cada cambio? | 1 | 2 | 3 | lola, evaluador |
-| 10 | Coste | ¿Cuánto gasto y quién lo gasta? | 1 | 3 | 4 | rendimiento, lola |
+| 10 | Coste | ¿Cuánto gasto y quién lo gasta? | 1 | 3 | 4 | lola, evaluador |
 | 11 | Entrada del trabajo | ¿Cómo pasa una idea a tarea bien definida? | 1 | 2 | 3 | (la sesión principal con `/orquestar`) |
 | 12 | Release y vuelta atrás | ¿Cómo subo y cómo deshago? | 1 | 3 | 4 | gobierno |
-| 13 | Diseño y experiencia | ¿Se ve, se siente y responde como debe? | 1 | 3 | 4 | diseno, qa, rendimiento |
+| 13 | Diseño y experiencia | ¿Se ve, se siente y responde como debe? | 1 | 3 | 4 | diseno, qa |
 
 ## Por qué cada nivel, y el siguiente paso
 
@@ -40,9 +41,10 @@ detecte sola, no solo cuando alguien pasa `/update-specs`.
 **3 · Guardarraíles (3).** Guardia con tests, protección de ramas. Solo cubre
 sesiones de Claude. *Siguiente*: lo del plano 1.
 
-**4 · Verificación (2).** Tests y build bloquean el merge. Sin tipos, sin lint
-en CI. *Siguiente*: `npm run lint` en `tests.yml`; piloto de `checkJs` con
-tipos generados de Supabase en un dominio.
+**4 · Verificación (2).** Tests y build bloquean el merge. Sin tipos. El lint
+en CI, con línea base que solo baja, entra en este PR (`ops/cimientos`).
+*Siguiente*: piloto de `checkJs` con tipos generados de Supabase en un
+dominio.
 
 **5 · Entornos (1).** Previews de Vercel, pero una sola base, que es
 producción. *Siguiente*: base de pruebas (Supabase branching) para ensayar
@@ -52,14 +54,22 @@ migraciones sin datos reales.
 *Siguiente*: captura de errores (Sentry o similar) en app y `api/`. Cuando
 exista, nace el agente `vigía`.
 
-**7 · Seguridad (1).** RLS y una auditoría hecha, pero repo público, sin secret
-scanning ni alertas de dependencias, y críticos de coste abiertos en
-`specs/AUDIT-REPORT.md`. *Siguiente*: secret scanning + Dependabot; decidir
-repo privado.
+**7 · Seguridad (2).** RLS y una auditoría hecha. Secret scanning y push
+protection activos desde el 7 oct (comprobado con `gh api`): un push con una
+clave se bloquea. Dependabot entra en este PR (`ops/cimientos`); las alertas
+de dependencias se encienden en Settings. Repo público y críticos de coste
+abiertos en `specs/AUDIT-REPORT.md`. *Siguiente*: decidir repo privado;
+cerrar los críticos de coste.
 
-**8 · Datos (2).** Agentes `datos` y `auditor-datos`; 16 principios en
-`docs/datos/PRINCIPIOS.md`, con 13 comprobaciones automáticas sobre las
-migraciones nuevas; trinquete de cableado (40 tablas, 99 pares tabla-fichero
+**8 · Datos (2).** Agentes `datos` y `auditor-datos`; principios en
+`docs/datos/PRINCIPIOS.md` con comprobaciones automáticas sobre las
+migraciones nuevas. En este PR entran las normas 17-21: salud (RGPD art. 9),
+autoría y canal, idempotencia de lo que llega de fuera, el día de la casa y
+estados con su fecha. Medido en producción el 8 oct (55 tablas, solo
+lectura): 20 FK sin índice, 18 tablas sin `created_at`, solo 3 de 55 con
+autor, ningún registro de auditoría y ningún `update_id` de Telegram. Lo que
+ya existe no se reescribe por las normas: se arregla al tocarlo, salvo la
+salud y la idempotencia, que son encargos de `datos`; trinquete de cableado (40 tablas, 99 pares tabla-fichero
 el 7 oct; objetivo uno por tabla); `verificar-estado`. Copias de seguridad sin
 comprobar. *Siguiente*: el mapa de verdades (cada hecho, dónde vive y sus
 copias) por `auditor-datos`; confirmar PITR/backups de Supabase y hacer una
@@ -68,7 +78,8 @@ restauración de prueba.
 **9 · Calidad de la IA (1).** `bot-evals`, `router-evals`, `/revision-semanal`,
 todo a mano. *Siguiente*: evals de Lola en CI cuando un PR toca `api/_bot/`.
 
-**10 · Coste (1).** `scripts/bot-coste.mjs` y límite mensual del bot. Sin cuota
+**10 · Coste (1).** `scripts/bot-coste.mjs` y límite mensual del bot. Lo
+cuida `lola`; `evaluador` mide el coste de cada eval. Sin cuota
 por usuario ni alerta de gasto. *Siguiente*: coste por turno medido y alerta
 de gasto diario en Anthropic.
 
@@ -77,7 +88,8 @@ de gasto diario en Anthropic.
 y fuera de alcance, que es lo que `/orquestar` necesita para el brief.
 
 **12 · Release y vuelta atrás (1).** Vercel permite volver atrás; no hay
-proceso escrito ni probado. *Siguiente*: decidir el paso de `staging` a
+proceso escrito ni probado. La app iOS sale por `.github/workflows/ios-testflight.yml`,
+fuera de cualquier proceso de release. *Siguiente*: decidir el paso de `staging` a
 producción (pendiente 9) y ensayar una vuelta atrás.
 
 **13 · Diseño y experiencia (1).** `DESIGN_SYSTEM.md` describe lo observado,
