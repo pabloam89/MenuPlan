@@ -97,15 +97,21 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    hallazgo bloqueante paran el pipeline hasta resolverlo.
 2. Un hallazgo bloqueante vuelve al constructor que toca, con el informe del
    juez. Repite el juez tras el arreglo.
-3. Junta todas las «Decisiones pendientes» en una sola lista para quien lanzó
-   la sesión, sin duplicados, con la recomendación de cada una.
+3. Junta todas las «Decisiones pendientes» en una sola lista, sin
+   duplicados, con la recomendación de cada una. Las que Pablo no contesta en
+   esta misma conversación pasan a un issue cada una, con `npm run issues --
+   --nuevo "…" --tipo decision --area … --cuerpo <fichero>`: busca antes las
+   parecidas y se asigna a Pablo, que así la ve sin entrar al repo. En el
+   resumen, el número del issue, no solo la frase.
 4. Lo que no se cierra en este PR va a un issue, no a una frase del resumen.
    Cada hallazgo sin arreglar o fallo del camino (vigilante que bloqueó algo
    bueno, entorno distinto del CI, error que se tragó) es un **caso**, y antes
    de abrirlo se analiza hasta su **problema de fondo**, con una de las cuatro
    respuestas de CLAUDE.md: nuevo (abre el fondo), abierto (cuélgalo), no
    aguantó (cuélgalo; el fondo se reabre: ¿roto o corto?) o puntual (con su
-   porqué). `npm run issues` enseña los fondos abiertos para buscar el suyo.
+   porqué). `npm run issues` enseña los fondos abiertos para buscar el suyo,
+   y se crea con `npm run issues -- --nuevo` (la guardia niega `gh issue
+   create`).
    Una decisión que no se toma hoy → `tipo:decision`; trabajo que alguien
    tiene que coger → `tipo:encargo`, colgando de su fondo si es parte de un
    arreglo. Detalle y comandos: skill `github`, «Issues». El chat se pierde

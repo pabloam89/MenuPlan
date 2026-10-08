@@ -63,6 +63,12 @@ const REGLAS_COMANDO = [
     da: () => deny("Usa `npm run build`: `vite build` a secas se salta el prebuild (validate-catalog + check:tdz), que es lo que corre Vercel."),
   },
   {
+    // El 8 oct 2026 tres sesiones abrieron el mismo fallo (#153, #154, #159):
+    // la norma pedía buscar antes y nada obligaba. El script busca los parecidos.
+    si: (o) => /^gh\s+issue\s+create\b/.test(o),
+    da: () => deny("Los issues se crean con `npm run issues -- --nuevo \"título\" --tipo … --area … --cuerpo <fichero>`: antes de crear enseña los parecidos, y a Pablo le asigna las decisiones. Si ya existe uno, comenta allí."),
+  },
+  {
     // PowerShell 5.1 escribe UTF-8 con BOM y destroza los acentos.
     si: (o) => /\b(Set-Content|Out-File|Add-Content)\b/i.test(o) && !/\b(temp|tmp|scratchpad)\b/i.test(o),
     da: () => deny("Set-Content/Out-File/Add-Content rompen los acentos y meten BOM en los ficheros del repo. Edita con la herramienta Edit/Write."),
@@ -284,6 +290,20 @@ function contextoReal(raiz) {
         return null;
       }
     },
+    ramaDe: (dir = raiz) => {
+      try {
+        return git(["-C", dir, "rev-parse", "--abbrev-ref", "HEAD"]);
+      } catch {
+        return null;
+      }
+    },
+    leer: (fichero, dir = raiz) => {
+      try {
+        return readFileSync(resolve(dir, fichero), "utf8");
+      } catch {
+        return null;
+      }
+    },
     // Commits de origin/staging que le faltan a tu rama (tras traerlo). null si no se puede saber.
     atrasoLocal: (dir = raiz) => {
       try {
@@ -341,7 +361,21 @@ export function decidir(entrada, ctx) {
       // varios commits cada pocos minutos y exigirlo siempre dejaba los PR sin
       // poder entrar nunca. Lo que no se pisa lo recoge el CI de staging.
       if (/^gh\s+pr\s+create\b/.test(o)) {
-        const atraso = ctx.atrasoLocal(carpetaDe(cmd, o, entrada.cwd ?? "") || undefined);
+        const dir = carpetaDe(cmd, o, entrada.cwd ?? "") || undefined;
+        // Rama con issue (`npm run tarea -- ops/x 193` → `ops/193-x`): el PR lo
+        // cierra. Sin el `Closes`, el issue se queda abierto y la traza no sabe
+        // quién lo arregló (8 oct 2026: ninguna rama vieja tenía issue).
+        const rama = o.match(/--head\s+(\S+)/)?.[1] ?? ctx.ramaDe(dir);
+        const issue = rama?.match(/^[a-z]+\/(\d+)-/)?.[1];
+        if (issue) {
+          const fichero = o.match(/--body-file\s+(?:"([^"]+)"|'([^']+)'|(\S+))/);
+          const cuerpo = fichero ? ctx.leer(fichero[1] ?? fichero[2] ?? fichero[3], dir) ?? "" : "";
+          const texto = `${cmd}\n${cuerpo}`;
+          if (!new RegExp(String.raw`\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+#${issue}\b`, "i").test(texto)) {
+            return deny(`Tu rama es del issue #${issue}: pon \`Closes #${issue}\` en el cuerpo del PR (y la línea \`Agente: <nombre>\`), para que se cierre al fusionar y quede la traza.`);
+          }
+        }
+        const atraso = ctx.atrasoLocal(dir);
         if (atraso === null) return ask("No he podido comprobar si tu rama tiene lo último de staging. Haz `git fetch origin staging` y `git merge origin/staging` antes de abrir el PR.");
         if (atraso > 0) return deny(`Tu rama va ${atraso} commit(s) por detrás de staging. Antes de abrir el PR: \`git fetch origin staging\`, \`git merge origin/staging\`, resuelve, pasa los tests y empuja.`);
         continue;

@@ -13,7 +13,8 @@
  * worktree, con `git branch -d` (nunca -D).
  *
  * Lo que no está en staging NO se toca nunca, aunque sea vieja: sale en el
- * informe como «sin fusionar: decide Pablo». Un PR fusionado con squash deja
+ * informe como «sin fusionar: decide Pablo», y aparte las huérfanas (sin PR ni
+ * issue, de más de 3 días), para que alguien diga qué son. Un PR fusionado con squash deja
  * la rama «sin fusionar» para git; también se queda, a propósito.
  *
  * Por qué existe: GitHub borra la rama al fusionar el PR, pero las ~100 de
@@ -65,6 +66,17 @@ export function clasificar(ramas, { ahora = Date.now(), dias = 1 } = {}) {
   return r;
 }
 
+/**
+ * Huérfanas: sin fusionar, sin ningún PR (ni abierto ni cerrado), sin issue en
+ * el nombre (`ops/193-x`) y con el último commit de hace más de `dias`. Nadie
+ * sabe ya qué son: el 8 oct 2026 hubo que reconstruir con un agente qué era
+ * cada una. Las de Dependabot no cuentan (las gestiona él).
+ */
+export function huerfanas(sinFusionar, { conPr, ahora = Date.now(), dias = 3 }) {
+  return sinFusionar.filter((x) =>
+    !conPr.has(x.rama) && !/^[a-z]+\/\d+-/.test(x.rama) && !x.rama.startsWith("dependabot/") && x.fecha < ahora - dias * DIA);
+}
+
 /** Locales que se pueden borrar con -d: fusionadas, sin worktree, no protegidas. */
 export function localesABorrar(locales) {
   return locales.filter((x) => !PROTEGIDAS.has(x.rama) && x.fusionada && !x.enWorktree).map((x) => x.rama);
@@ -76,6 +88,14 @@ function prsAbiertos(cwd) {
   );
   if (out === null) return null;
   return new Set(JSON.parse(out).map((p) => p.headRefName));
+}
+
+/** Ramas que han tenido algún PR, abierto, cerrado o fusionado. */
+function prsTodos(cwd) {
+  const out = intenta(() =>
+    execFileSync("gh", ["pr", "list", "--state", "all", "--limit", "1000", "--json", "headRefName"], { cwd, encoding: "utf8", timeout: 60000 }),
+  );
+  return out === null ? null : new Set(JSON.parse(out).map((p) => p.headRefName));
 }
 
 async function main() {
@@ -127,6 +147,13 @@ async function main() {
   if (c.borrar.length) console.log(lista(c.borrar));
   console.log(`  - Sin fusionar: decide Pablo (${c.sinFusionar.length}):`);
   if (c.sinFusionar.length) console.log(lista(c.sinFusionar));
+  const conPr = prsTodos(principal);
+  const solas = conPr ? huerfanas(c.sinFusionar, { conPr }) : [];
+  if (conPr === null) console.log("  - Huérfanas: no he podido leer los PR (`gh pr list`).");
+  else {
+    console.log(`  - Huérfanas, sin PR ni issue y de hace más de 3 días (${solas.length}): abre un issue que diga qué son, o pide a Pablo borrarlas.`);
+    if (solas.length) console.log(lista(solas));
+  }
   console.log(`  - Con PR abierto: ${c.conPr.length}. Recientes (< ${dias} días): ${c.recientes.length}. Sacadas en un worktree: ${c.enWorktree.length}.`);
   console.log(`Ramas locales fusionadas y sin worktree: ${localesFuera.length}${localesFuera.length ? ` (${localesFuera.join(", ")})` : ""}.`);
 

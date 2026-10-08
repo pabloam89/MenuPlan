@@ -383,6 +383,69 @@ export function resumen(issues) {
   };
 }
 
+// ── Antes de crear: los parecidos ─────────────────────────────────────────────
+//
+// El 8 oct 2026 tres sesiones abrieron el mismo fallo (#153, #154, #159) con el
+// primero ya abierto: la norma pedía buscar y nada obligaba. `npm run issues --
+// --nuevo` busca con esto antes de crear (la guardia niega `gh issue create`),
+// y el aviso al editar (`.claude/hooks/avisos.mjs`) usa `ficherosNombrados`.
+
+/** Quien decide: las decisiones se le asignan para que le lleguen. */
+export const PABLO = "pabloam89";
+
+const VACIAS = new Set([
+  "para", "pero", "como", "cuando", "donde", "desde", "hasta", "sobre", "entre", "este", "esta", "esto", "estos", "estas",
+  "ese", "esa", "eso", "esos", "esas", "aqui", "ahora", "todo", "toda", "todos", "todas", "otro", "otra", "otros", "otras",
+  "porque", "aunque", "solo", "sola", "tambien", "nada", "algo", "cada", "mismo", "misma", "sigue", "siempre", "nunca",
+  "hace", "hacer", "puede", "pueden", "tiene", "tienen", "queda", "quedan", "ser", "esta", "estan", "hay", "sin", "con",
+]);
+
+/** Raíces de las palabras con peso: sin acentos, sin vacías, 4+ letras, cortadas a 5 (carpeta = carpetas). */
+export function raices(texto) {
+  const limpio = String(texto ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/^\[[^\]]*\]\s*/, "");
+  return new Set((limpio.match(/[a-z0-9]+/g) ?? []).filter((p) => p.length >= 4 && !VACIAS.has(p)).map((p) => p.slice(0, 5)));
+}
+
+/** Nombres de fichero que salen en todas partes y no distinguen nada. */
+const COMUNES = new Set(["claude.md", "skill.md", "readme.md", "package.json", "package-lock.json", "index.js", "index.jsx", "estado.md"]);
+
+/** Los ficheros que nombra un texto, por su nombre (`guardia.mjs`), sin los comunes. */
+export function ficherosNombrados(texto) {
+  const m = String(texto ?? "").match(/[\w.-]+\.(?:mjs|cjs|js|jsx|ts|tsx|json|md|sql|yml|yaml|css)\b/gi) ?? [];
+  return new Set(m.map((f) => f.replace(/^.*[\\/]/, "").toLowerCase()).filter((f) => !COMUNES.has(f)));
+}
+
+/**
+ * Los issues que se parecen a uno nuevo, de más a menos: [{ number, title,
+ * state, parecido }]. Parecido = palabras del título en común (Dice), más un
+ * empujón si nombran el mismo fichero. Abiertos y cerrados: uno cerrado que se
+ * repite es un arreglo que no aguantó, y eso también hay que verlo.
+ */
+export function parecidos(issues, { titulo, cuerpo = "" }, { minimo = 0.45, max = 5 } = {}) {
+  const a = raices(titulo);
+  const fa = ficherosNombrados(`${titulo}\n${cuerpo}`);
+  if (!a.size) return [];
+  return issues
+    .map((i) => {
+      const b = raices(i.title);
+      const comunes = [...a].filter((x) => b.has(x)).length;
+      const dice = b.size ? (2 * comunes) / (a.size + b.size) : 0;
+      const fb = ficherosNombrados(`${i.title}\n${i.body ?? ""}`);
+      const fichero = [...fa].some((f) => fb.has(f)) ? 0.15 : 0;
+      return { number: i.number, title: i.title, state: i.state, parecido: Math.round((dice + fichero) * 100) / 100 };
+    })
+    .filter((x) => x.parecido >= minimo)
+    .sort((x, y) => y.parecido - x.parecido)
+    .slice(0, max);
+}
+
+/** Los issues abiertos que nombran un fichero, por su nombre. */
+export function issuesQueNombran(issues, ruta) {
+  const nombre = String(ruta ?? "").replace(/^.*[\\/]/, "").toLowerCase();
+  if (!nombre || COMUNES.has(nombre)) return [];
+  return issues.filter((i) => String(i.state ?? "OPEN").toUpperCase() === "OPEN" && ficherosNombrados(`${i.title}\n${i.body ?? ""}`).has(nombre));
+}
+
 /** Las líneas que el arranque enseña a cada sesión (vacío si no hay nada). */
 export function avisoDeArranque(issues) {
   const r = resumen(issues);
