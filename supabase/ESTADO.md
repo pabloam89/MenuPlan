@@ -19,10 +19,10 @@ en otra rama); el 8 oct se suma la 0087, sin aplicar:
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **91** (con la 0089) |
+| Ficheros en `supabase/migrations/` | **92** (con la 0090) |
 | Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
 | Aplicadas | **84** |
-| **Sin aplicar** | **1** — `0021_store_products` (el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086, 0087, 0088 y 0089) |
+| **Sin aplicar** | **2** — `0021_store_products`, `0090_casa_nueva_completa` (el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086, 0087, 0088 y 0089) |
 | En otras ramas | — |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
@@ -43,7 +43,7 @@ están en producción solo en parte. Ninguna se ha tocado; se deciden aparte:
 
 | Migración | Lo que falta en producción | Qué significa |
 |---|---|---|
-| `0010_recipe_discards` | **la tabla `user_recipe_discards` entera** | **Resuelto por código (8 oct 2026, rama `datos/descartes-de-casa`); la tabla sigue sin existir a propósito y no se va a crear.** Los descartes son de la casa: la app solo lee y escribe `household_recipe_discards` (0017, RLS de la 0071) con el `household_id` de la casa activa; sin casa se quedan en el dispositivo y suben al cargar la casa. `householdDiscardsSync.test.js` falla si alguien vuelve a consultar `user_recipe_discards`. **Queda un fallo en la base:** `ensure_user_household` (0071) la lee dentro de un `begin … exception when others`, así que ese bloque entero se deshace siempre: las casas nuevas nunca copian `user_state`, despensa, menús ni favoritos ni pasan a `active` (el 8 oct, 31 `dormant`, 4 `invite_ready`, 0 `active`). Pendiente de decidir una migración que quite esa línea |
+| `0010_recipe_discards` | **la tabla `user_recipe_discards` entera** | **Resuelto por código (8 oct 2026, rama `datos/descartes-de-casa`); la tabla sigue sin existir a propósito y no se va a crear.** Los descartes son de la casa: la app solo lee y escribe `household_recipe_discards` (0017, RLS de la 0071) con el `household_id` de la casa activa; sin casa se quedan en el dispositivo y suben al cargar la casa. `householdDiscardsSync.test.js` falla si alguien vuelve a consultar `user_recipe_discards`. **Queda un fallo en la base:** `ensure_user_household` (0071) la lee dentro de un `begin … exception when others`, así que ese bloque entero se deshace siempre: las casas nuevas nunca copian `user_state`, despensa, menús ni favoritos ni pasan a `active` (el 8 oct, 31 `dormant`, 4 `invite_ready`, 0 `active`). La quita la `0090_casa_nueva_completa` (issue #144); completar las casas que ya se quedaron a medias va aparte |
 | `0008_meal_extras_catalog` | la columna `user_recipes.product_aliases` | Ya se sabía (ver `scripts/generate-supabase-seed.mjs`). `recipeRow.js` la lee como opcional, así que no rompe nada. Está en la lista de limpieza para quitarla del repo |
 | `0017_households` | la política `household_members` «Users insert self as viewer» | Nadie la recrea ni la quita en otra migración: se quitó a mano. Unirse a una casa va por la RPC `join_household_by_token` (security definer), así que no hace falta. Queda que una migración lo diga |
 | `0003_analytics_feedback_votes` | las políticas de `user_profiles`, `user_events` y `app_feedback`, y dos índices de `user_events` | Las tablas se crearon desde el panel antes que el fichero, con otros nombres (las políticas se llaman «insert own» y «select own»: las retoca la 0011). El fichero no es lo que se ejecutó |
@@ -72,6 +72,7 @@ Sin testigo, y por tanto sin comprobar por el script: 0011, 0038, 0043, 0047,
 | `0087_menu_activo_y_casa_propia` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | solo `create or replace` de 4 funciones: `household_shopping_mark` mira `user_menus.is_active` en vez de `data.activeMenuId`; `ensure_user_household`, `_unirse` y `_despedir` eligen la casa propia con `order by propia desc, created_at`, y `ensure_user_household` devuelve `'propia'`. Testigo: ese `order by` en `pg_proc.prosrc` de `_despedir` |
 | `0088_bot_entradas` | aplicada el 8 oct 2026 (Pablo, con `--pablo` por el `delete` de la purga); `verificar-estado --solo 0088`: 3/3 | tabla `bot_entradas` (update_id de Telegram, una vez) y el job `bot-entradas-purga`. Aditiva; el código funciona sin ella. Testigo: la tabla y el job en `cron.job` |
 | `0089_personas_al_guardar` | **aplicada el 8 oct 2026** (la lanzó Pablo con `--pablo`; auditada por auditor-datos). Tras la puesta al día, las 35 casas cuadran: 92 personas en el JSON y 92 filas en `persona` | triggers `personas_al_crear` y `personas_al_guardar` sobre `household_state`: cada guardado copia la familia activa (`data.members`/`data.groups`, sin rosters aparcados ni invitados) a persona/grupo con `persona_sincronizar_casa`, en la misma transacción; si falla, WARNING y el guardado sigue. Al aplicarse, pone al día todas las casas (borra de persona a quien ya no está en el JSON, con sus tareas por la FK de la 0083: consulta previa en la cabecera). Necesita 0081 y 0082. Testigo: `select tgname from pg_trigger where tgname like 'personas_al_%'` |
+| `0090_casa_nueva_completa` | **sin aplicar** (nueva, 8 oct 2026; issue #144) | `ensure_user_household` sin la copia de `user_recipe_discards` (no existe), que deshacía siempre el bloque de preparar la casa; si vuelve a fallar, WARNING en el log. Solo `create or replace` de la función; las casas ya a medias no se tocan. Testigo: `pg_proc.prosrc` de `ensure_user_household` contiene «no se pudo preparar la casa» |
 
 ## La 0074 y la 0075, aplicadas el 2 oct 2026
 
