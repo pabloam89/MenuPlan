@@ -17,8 +17,8 @@ description: Úsala para operar la base de datos de MenuPlan en Supabase: una co
   las tres, por eso irse de Supabase no es un cambio de proveedor sin más.
 - **Escribir migraciones** no es de esta skill: `.claude/rules/migraciones.md`,
   `docs/datos/PRINCIPIOS.md` y el agente `datos`.
-- **Pendiente:** las copias de seguridad no están comprobadas (ver «Coste y
-  límites»).
+- **Pendiente:** las copias continuas están activas (ver «Coste y límites»),
+  pero falta saber cuántos días guardan y no hay una restauración ensayada.
 
 ## Claves y accesos
 
@@ -36,6 +36,7 @@ cuelga del equipo de Vercel.
 | Ensayar una migración | `node scripts/apply-migration.mjs <nombre>` (sin `--si`) | ejecuta y hace ROLLBACK |
 | Aplicar una migración (OK, o Pablo con `!`) | `node scripts/apply-migration.mjs <nombre> --si` | exige estar en staging, un ensayo de menos de una hora y el OK de `auditor-datos` en la cabecera |
 | Consulta a producción | como `scripts/verificar-estado.mjs`: `set session characteristics as transaction read only`, `begin read only`, solo `select`, `rollback` | filas o recuentos; aunque se colara un `update`, Postgres lo rechaza |
+| ¿Hay copias continuas? (pista, solo lectura) | `select archived_count, failed_count, last_archived_time from pg_stat_archiver` | `archived_count` que crece, `failed_count` en 0 y `last_archived_time` de hace unos minutos. El 2026-10-08: 8.620, 0, y hace menos de 15 minutos |
 | Ver los jobs de `pg_cron` | `select jobname, schedule from cron.job` en solo lectura | `bot-recordatorios` y `bot-retencion` |
 | Programar o quitar el cron de recordatorios | `node scripts/bot-cron.mjs [url] [--quitar]` (por defecto, contra staging) | el job creado o quitado; el mismo `BOT_CRON_SECRET` tiene que estar en Vercel |
 | Ver quién es `anon` en una función | `select proname, proacl from pg_proc where proname = '<función>'` en solo lectura | `anon` ni `public` en el ACL |
@@ -87,10 +88,18 @@ cuelga del equipo de Vercel.
 
 ## Coste y límites
 
-Lo paga el equipo de Vercel por el Marketplace. **Copias: sin comprobar.** Nadie
-ha mirado el plan, si hay PITR ni cuántos días guarda, y no hay una restauración
-ensayada. Mientras no se compruebe, hay que tratar la base como si no tuviera
-copia utilizable. El plano 8 de `ops/PLANOS.md` lo marca como prioridad.
+Lo paga el equipo de Vercel por el Marketplace. La base pesa 65 MB (2026-10-08).
+
+**Copias.** Hay archivado continuo de la bitácora de la base (`archive_mode = on`,
+`archive_command` con `wal-g`, `archive_timeout = 120`): 8.620 ficheros archivados,
+ninguno fallido, el último de hace minutos. Es la señal de que Supabase guarda el
+historial para volver a un minuto concreto (PITR), pero **no es una prueba**: no
+se ha visto el plan, ni cuántos días guarda, ni se ha restaurado nunca. La
+integración no aparece en la lista del conector de Vercel, así que el plan solo se
+ve en el panel de Supabase (Database → Backups). Hoy **no hay copia propia** de esta base: una
+copia diaria nuestra, restaurable en nuestro propio Postgres, sería la única que
+se podría ensayar (plano 8 de `ops/PLANOS.md`). Son datos de salud de familias
+(alergias, RGPD art. 9) en otro sitio: la decide Pablo, y iría cifrada.
 
 ## Fuentes y comprobación
 
@@ -98,4 +107,4 @@ copia utilizable. El plano 8 de `ops/PLANOS.md` lo marca como prioridad.
 - https://supabase.com/docs/guides/database/postgres/row-level-security
 - https://supabase.com/docs/guides/database/extensions/pg_cron
 
-Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; hoy no se ha vuelto a ejecutar lo que cita. Sin comprobar: las copias y su restauración.
+Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; salvo el archivado de copias, que se consultó hoy en solo lectura contra producción (`pg_stat_archiver` y `pg_settings`). Sin comprobar: el plan de Supabase, los días que guarda, y restaurar.
