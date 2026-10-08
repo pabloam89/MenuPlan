@@ -34,8 +34,19 @@ async function auth(ruta, { method = "POST", body, token } = {}) {
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   // a propósito: sin cuerpo JSON, el status ya dice qué pasó
-  const json = await res.json().catch(seguirCon("cuentas/json", {}));
+  const json = await res.json().catch(seguirCon("cuentas_json", {}));
   return { ok: res.ok, status: res.status, json };
+}
+
+/**
+ * Un fallo de GoTrue, con su código y su mensaje y nada más: el cuerpo puede
+ * traer el id y el email de la persona, y el texto acaba en el log (#211).
+ */
+function errorDeAuth(que, r) {
+  const j = r.json ?? {};
+  const codigo = j.error_code ?? j.code ?? j.error ?? null;
+  const msg = j.msg ?? j.error_description ?? j.message ?? "";
+  return Object.assign(new Error(`${que} → ${r.status} ${[codigo, msg].filter(Boolean).join(" ")}`.slice(0, 200)), { status: r.status });
 }
 
 const anonKey = () => process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || null;
@@ -73,7 +84,7 @@ export async function verificarCodigoEmail(email, token) {
 export async function tokenHashDe(email) {
   const r = await auth("/admin/generate_link", { body: { type: "magiclink", email } });
   const hash = r.json?.properties?.hashed_token ?? r.json?.hashed_token;
-  if (!r.ok || !hash) throw new Error(`generate_link → ${r.status} ${JSON.stringify(r.json).slice(0, 200)}`);
+  if (!r.ok || !hash) throw errorDeAuth("generate_link", r);
   return hash;
 }
 
@@ -95,7 +106,7 @@ export async function cuentaNacidaAqui(telegramId) {
   const [id] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(telegramId)}`, "user_id");
   if (!id) return null;
   const { url, headers } = config();
-  const u = await fetch(`${url}/auth/v1/admin/users/${id.user_id}`, { headers }).then((r) => r.json()).catch(fallaCon("cuentas/nacida aquí", null));
+  const u = await fetch(`${url}/auth/v1/admin/users/${id.user_id}`, { headers }).then((r) => r.json()).catch(fallaCon("cuentas_nacida_aqui", null));
   return u?.email === emailSintetico(telegramId) ? { id: u.id, email: u.email } : null;
 }
 
@@ -116,7 +127,7 @@ export async function crearCuentaTelegram({ telegramId, nombre }) {
   });
   const yaExistia = !creada.ok && /already|exists|registered/i.test(JSON.stringify(creada.json));
   if (!creada.ok && !yaExistia) {
-    throw new Error(`crear usuario → ${creada.status} ${JSON.stringify(creada.json).slice(0, 200)}`);
+    throw errorDeAuth("crear usuario", creada);
   }
 
   const token = await sesionDe(email);
@@ -142,7 +153,7 @@ export async function crearCuentaTelegram({ telegramId, nombre }) {
     body: "{}",
   });
   // a propósito: sin cuerpo JSON, falla justo abajo con el status
-  const hogar = await res.json().catch(seguirCon("cuentas/hogar", null));
+  const hogar = await res.json().catch(seguirCon("cuentas_hogar", null));
   if (!res.ok || !hogar?.activeHouseholdId) throw new Error(`ensure_user_household → ${res.status}`);
 
   return { userId: yo.json?.id, householdId: hogar.activeHouseholdId, email };

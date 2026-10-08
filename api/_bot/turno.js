@@ -288,7 +288,7 @@ export async function aplicarEleccion(eleccion, propuesta, householdId) {
 
 /** Contexto que el enrutador necesita: quién hay, los grupos y si hay menú esta semana. */
 export async function contextoDe(householdId) {
-  const casa = await cargarCasa(householdId).catch(fallaCon("turno/casa", null));
+  const casa = await cargarCasa(householdId).catch(fallaCon("turno_casa", null));
   const miembros = casa?.state?.data?.members ?? [];
   const hoyISO = isoDeCasa();
   return {

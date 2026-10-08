@@ -98,7 +98,7 @@ export function avisoDeVispera(casa, manana) {
 
 /** El aviso de una casa para mañana (fecha de Madrid), o null. */
 export async function avisoDeVisperaDe(householdId, hoyISO) {
-  const casa = await cargarCasa(householdId).catch(fallaCon("vispera/casa", null));
+  const casa = await cargarCasa(householdId).catch(fallaCon("vispera_casa", null));
   if (!casa) return null;
   const d = new Date(`${hoyISO}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + 1);

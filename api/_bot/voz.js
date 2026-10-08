@@ -228,7 +228,7 @@ export async function transcribir(audio, { householdId } = {}) {
     signal: AbortSignal.timeout(TIEMPO_GROQ_MS),
   });
   // a propósito: sin cuerpo JSON, el status ya dice qué pasó
-  const json = await res.json().catch(seguirCon("voz/json", {}));
+  const json = await res.json().catch(seguirCon("voz_json", {}));
   if (!res.ok) return { error: json?.error?.message ?? `HTTP ${res.status}` };
   const texto = corregirNombres(limpiarTranscripcion(json, pista), nombres);
   return texto ? { texto } : { error: "vacío" };

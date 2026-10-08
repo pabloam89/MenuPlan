@@ -105,7 +105,7 @@ const pronombre = (cat) => (/^la\b/.test(cat?.articulo ?? "") ? "las" : "los");
 export async function pintarMenuEntero(casa, filtros) {
   const p = pintarMenu(casa, filtros);
   if (!p.faltan) return p;
-  const m = await prepararRecetas(casa).catch(fallaCon("pintar/recetas", null));
+  const m = await prepararRecetas(casa).catch(fallaCon("pintar_recetas", null));
   if (!m) return p;
   return pintarMenu(casa, filtros, { otras: (id) => m.RECIPES_BY_ID[id] ?? m.RECIPES_BY_ID[String(id).split("__").pop()] ?? null });
 }

@@ -25,8 +25,8 @@ export async function llamar(metodo, cuerpo) {
     body: JSON.stringify(cuerpo),
   });
   // a propósito: sin cuerpo JSON, falla justo abajo con el status
-  const json = await res.json().catch(seguirCon("telegram/json", null));
-  if (!json?.ok) throw new Error(`Telegram ${metodo}: ${json?.description ?? res.status}`);
+  const json = await res.json().catch(seguirCon("telegram_json", null));
+  if (!json?.ok) throw Object.assign(new Error(`Telegram ${metodo}: ${json?.description ?? res.status}`), { servicio: "telegram", status: json?.error_code ?? res.status });
   return json.result;
 }
 

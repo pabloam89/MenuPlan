@@ -25,7 +25,7 @@ import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, prepararRecetas, grupos, DIAS, recetasDeCasa, deSerieDelMotor } from "./menu.js";
-import { duenoDe, rastro } from "./embudo.js";
+import { duenoDe, duenoDeEstricto, rastro } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { nombreDelBot } from "./telegram.js";
 import { DIA_LARGO } from "../../src/lib/dias.js";
@@ -62,7 +62,9 @@ export async function cuentasDeQuien({ fromId, householdId }) {
   const [ident] = fromId
     ? await select("bot_identities", `channel=eq.telegram&external_id=${eq(String(fromId))}`, "user_id")
     : [];
-  const dueno = householdId ? await duenoDe(householdId) : null;
+  // El dueño, sin tragarse el error (duenoDe sí lo hace): sin él no se puede
+  // comprobar el bloqueo, y quien llama tiene que saberlo para decirlo (#208).
+  const dueno = householdId ? await duenoDeEstricto(householdId) : null;
   return [ident?.user_id, dueno].filter(Boolean);
 }
 
@@ -89,7 +91,7 @@ export async function enlacesReceta(householdId, recetaId, base) {
   if (!fila) return null;
   let [llave] = await select("recipe_share_links", `recipe_id=${eq(id)}`, "token");
   if (!llave) {
-    await insert("recipe_share_links", [{ recipe_id: id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(fallaCon("compartir/llave"));
+    await insert("recipe_share_links", [{ recipe_id: id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(fallaCon("compartir_llave"));
     [llave] = await select("recipe_share_links", `recipe_id=${eq(id)}`, "token");
   }
   if (!llave?.token) return null;
@@ -137,7 +139,7 @@ export async function enlacesSemana(householdId, base) {
   if (!compartido?.id) return null;
   let [llave] = await select("menu_share_links", `shared_menu_id=${eq(compartido.id)}`, "token");
   if (!llave) {
-    await insert("menu_share_links", [{ shared_menu_id: compartido.id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(fallaCon("compartir/llave"));
+    await insert("menu_share_links", [{ shared_menu_id: compartido.id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(fallaCon("compartir_llave"));
     [llave] = await select("menu_share_links", `shared_menu_id=${eq(compartido.id)}`, "token");
   }
   if (!llave?.token) return null;
