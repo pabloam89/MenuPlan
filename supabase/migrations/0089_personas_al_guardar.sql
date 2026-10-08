@@ -1,4 +1,5 @@
 -- 0089 · Cada guardado de la casa copia la familia a persona y grupo.
+-- AUDITADA: auditor-datos 2026-10-08 OK
 --
 -- Qué se rompía: las tablas persona/grupo (0079) solo las rellenaba a mano
 -- scripts/backfill-personas.mjs. Nadie llamaba a persona_sincronizar_casa
