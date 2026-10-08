@@ -21,6 +21,29 @@ describe("npm run consulta solo lee", () => {
     expect(motivoParaNoLeer("")).toMatch(/vacía/);
   });
 
+  it("el truco del juez del PR #223: un -- dentro de una cadena no esconde lo que viene después", () => {
+    expect(motivoParaNoLeer("select '--'; commit; begin read write; delete from households; commit")).not.toBe(null);
+    expect(motivoParaNoLeer("select '/*'; delete from households; select '*/'")).not.toBe(null);
+    expect(motivoParaNoLeer("select $$--$$; commit")).not.toBe(null);
+    expect(motivoParaNoLeer("select 'it''s'; commit")).not.toBe(null);
+  });
+
+  it("para lo que read only no impide: señales, replicación, sesión, red", () => {
+    for (const q of [
+      "select pg_terminate_backend(pid) from pg_stat_activity",
+      "select pg_create_physical_replication_slot('x', true)",
+      "select set_config('role','postgres',false)",
+      "select pg_advisory_lock(1)",
+      "select net.http_get('https://x')",
+      "select cron.schedule('x','* * * * *','select 1')",
+    ]) expect(motivoParaNoLeer(q), q).not.toBe(null);
+  });
+
+  it("el script manda la consulta por el protocolo extendido, que no admite varias sentencias", () => {
+    const fuente = readFileSync(new URL("./consulta.mjs", import.meta.url), "utf8");
+    expect(fuente).toMatch(/client\.query\(\{ text: sql, values: \[\] \}\)/);
+  });
+
   it("los permisos dejan lanzarla sin preguntar, y la autorización está escrita", () => {
     const settings = JSON.parse(readFileSync(new URL("../.claude/settings.json", import.meta.url), "utf8"));
     expect(settings.permissions.allow).toContain("Bash(npm run *)");

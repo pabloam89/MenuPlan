@@ -25,7 +25,9 @@ try {
   await client.query("set session characteristics as transaction read only");
   await client.query("begin read only");
   await client.query("set local statement_timeout = '15s'");
-  const r = await client.query(sql);
+  // Protocolo extendido ({ text, values }): Postgres no admite ahí varias
+  // sentencias, pase lo que pase por el filtro de texto (juez del PR #223).
+  const r = await client.query({ text: sql, values: [] });
   const filas = r.rows ?? [];
   if (filas.length) console.table(filas.slice(0, 200));
   console.log(`${filas.length} fila(s)${filas.length > 200 ? " (enseño las 200 primeras)" : ""}.`);
