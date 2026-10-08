@@ -1,0 +1,260 @@
+-- 0089 · Cada guardado de la casa copia la familia a persona y grupo.
+--
+-- Qué se rompía: las tablas persona/grupo (0079) solo las rellenaba a mano
+-- scripts/backfill-personas.mjs. Nadie llamaba a persona_sincronizar_casa
+-- (0081/0082) al guardar, así que se quedaban viejas; y de ellas cuelgan la FK
+-- bot_tareas → persona (0083) y la ficha de la casa (0120).
+--
+-- Cómo: un trigger AFTER sobre household_state, en la misma transacción que el
+-- guardado. No se tocan las funciones de guardado, por tres razones:
+--   · escriben household_state.state seis funciones (save_household_state,
+--     bot_save_casa, bot_save_casa_activando, household_shopping_mark,
+--     ensure_user_household, _unirse…): el trigger las cubre a todas, y a las
+--     que vengan;
+--   · save_household_state es SECURITY INVOKER (corre como el usuario), y
+--     persona_sincronizar_casa no se puede ejecutar como authenticated: llamarla
+--     desde ahí rompería cada guardado de la app. El trigger es definer;
+--   · copiar enteras tres funciones para añadir una línea es la forma de que
+--     diverjan. Y el p_bot_rev nulo de los clientes viejos no le afecta.
+--
+-- Qué copia: SOLO la familia activa (data.members / data.groups). Desde el
+-- 8 oct 2026 no hay varios rosters: los aparcados en data.rosters no se copian
+-- (si están en la tabla, el primer guardado los borra), ni los invitados de las
+-- reglas (`invitado: true`, ids `inv_…`).
+--
+-- Rompe a la vista el principio 11 (una transacción, un módulo): la conversión
+-- JSON → filas existe dos veces, src/lib/personasTabla.js (filasDeCasa, la
+-- referencia, que usa el backfill) y _persona_filas_de_estado aquí. Por qué:
+-- para que la copia sea atómica con el guardado tiene que hacerla la base.
+-- supabase/personasAlGuardar.test.js compara las claves de `resto` y los topes.
+--
+-- Nunca rompe un guardado: sin lista de comensales (guardado parcial) o con la
+-- familia vacía no hace nada (la 0082 rechazaría vaciar la casa), y si la copia
+-- falla, avisa con un WARNING en el log de Postgres y el guardado sigue.
+--
+-- Al final pone al día todas las casas una vez. OJO: borra de persona a quien
+-- ya no está en data.members, y con la FK de la 0083 en cascada, sus tareas.
+-- Antes de aplicar, en el SQL editor, cuántas tareas se irían (debería dar 0):
+--   select count(*) from public.bot_tareas t
+--     join public.household_state s using (household_id)
+--    where t.persona_id is not null
+--      and jsonb_typeof(s.state->'data'->'members') = 'array'
+--      and not exists (select 1 from jsonb_array_elements(s.state->'data'->'members') m
+--                       where m->>'id' = t.persona_id);
+--
+-- Idempotente. SIN APLICAR.
+
+set lock_timeout = '5s';
+
+-- Precondición: la sincronización por clave (0081) con sus guardas (0082). Sin
+-- ellas, una lista vacía vaciaría la casa y, con la FK, sus tareas.
+do $$
+begin
+  if to_regprocedure('public.persona_sincronizar_casa(uuid, jsonb)') is null then
+    raise exception '0089 necesita persona_sincronizar_casa (0081): aplícala antes';
+  end if;
+  if pg_get_functiondef('public.persona_sincronizar_casa(uuid, jsonb)'::regprocedure) not ilike '%lista de personas vacía%' then
+    raise exception '0089 necesita las guardas de la 0082 en persona_sincronizar_casa: aplícala antes';
+  end if;
+end;
+$$;
+
+-- Una fecha ISO que existe, o null. «2020-02-30» tiene la forma pero no
+-- convierte a date, y haría fallar la fila entera.
+create or replace function public._fecha_iso_o_null(p text)
+returns text
+language plpgsql
+immutable
+set search_path = public, pg_temp
+as $$
+begin
+  if p is null or p !~ '^\d{4}-\d{2}-\d{2}$' then
+    return null;
+  end if;
+  return case when to_char(p::date, 'YYYY-MM-DD') = p then p end;
+exception when others then
+  return null;
+end;
+$$;
+
+revoke all on function public._fecha_iso_o_null(text) from public, anon, authenticated;
+
+-- El gemelo de filasDeCasa (src/lib/personasTabla.js): el estado de la casa en
+-- la forma que recibe persona_sincronizar_casa. Pura.
+create or replace function public._persona_filas_de_estado(p_state jsonb)
+returns jsonb
+language sql
+stable
+set search_path = public, pg_temp
+as $$
+  with miembros as (
+    -- Con id, que no sean invitados; si un id se repite, gana el primero.
+    select distinct on (t.x->>'id') t.x as m, t.x->>'id' as id
+      from jsonb_array_elements(case when jsonb_typeof(p_state->'data'->'members') = 'array'
+                                     then p_state->'data'->'members' else '[]'::jsonb end)
+           with ordinality as t(x, ord)
+     where jsonb_typeof(t.x) = 'object'
+       and nullif(btrim(t.x->>'id', E' \t\r\n'), '') is not null
+       and t.x->'invitado' is distinct from 'true'::jsonb
+       and t.x->>'id' not like 'inv\_%'
+     order by t.x->>'id', t.ord
+  ),
+  numeros as (
+    select mi.id, mi.m,
+           case when jsonb_typeof(mi.m->'age') = 'number' then trunc((mi.m->>'age')::numeric) end as edad,
+           case when jsonb_typeof(mi.m->'pesoKg') = 'number' then (mi.m->>'pesoKg')::numeric end as peso,
+           case when jsonb_typeof(mi.m->'alturaCm') = 'number' then (mi.m->>'alturaCm')::numeric end as altura
+      from miembros mi
+  ),
+  personas as (
+    -- Los topes son los CHECK de persona (0079), y los de RANGOS en JS.
+    select n.id, jsonb_build_object(
+      'id', n.id,
+      'nombre', coalesce(nullif(btrim(n.m->>'name', E' \t\r\n'), ''), '(sin nombre)'),
+      'edad', case when n.edad >= 0 and n.edad <= 120 then n.edad::int end,
+      'rol_hogar', n.m->>'homeRole',
+      'alergias_revisadas', n.m->'alergiasRevisadas' is not distinct from 'true'::jsonb,
+      'peso_kg', case when n.peso >= 2 and n.peso <= 300 then n.peso end,
+      'altura_cm', case when n.altura >= 40 and n.altura <= 230 then n.altura end,
+      'usa_fecha_nacimiento', n.m->'useBirthDate' is not distinct from 'true'::jsonb,
+      'fecha_nacimiento', public._fecha_iso_o_null(case when jsonb_typeof(n.m->'birthDate') = 'string' then n.m->>'birthDate' end),
+      'detalle_etapa', nullif(btrim(n.m->>'stageDetail', E' \t\r\n'), ''),
+      'no_es_bebe', n.m->'notBaby' is not distinct from 'true'::jsonb,
+      'clave_perfil', nullif(btrim(n.m->>'profileKey', E' \t\r\n'), ''),
+      'clave_avatar', nullif(btrim(n.m->>'avatarKey', E' \t\r\n'), ''),
+      'color', nullif(btrim(n.m->>'color', E' \t\r\n'), ''),
+      -- Lo que no tiene columna: las mismas claves que CAMPOS_CON_COLUMNA.
+      'resto', n.m - array['id', 'name', 'age', 'homeRole', 'alergiasRevisadas', 'pesoKg', 'alturaCm',
+                          'allergies', 'intolerances', 'dietaryStates', 'dietaryStatesMeta',
+                          'useBirthDate', 'birthDate', 'stageDetail', 'notBaby', 'profileKey', 'avatarKey', 'color',
+                          'healthProfiles', 'healthProfile']
+    ) as fila
+      from numeros n
+  ),
+  lista as (
+    -- Cada lista de texto de un miembro, limpia y sin repetidos.
+    select distinct mi.id as persona_id, k.clave, btrim(v, E' \t\r\n') as valor
+      from miembros mi
+     cross join (values ('allergies'), ('intolerances'), ('dietaryStates'), ('healthProfiles')) as k(clave)
+     cross join lateral jsonb_array_elements_text(case when jsonb_typeof(mi.m->k.clave) = 'array'
+                                                       then mi.m->k.clave else '[]'::jsonb end) as v
+     where btrim(v, E' \t\r\n') <> ''
+    union
+    -- El perfil antiguo (un texto suelto) cuenta como uno más de la lista nueva.
+    select mi.id, 'healthProfiles', btrim(mi.m->>'healthProfile', E' \t\r\n')
+      from miembros mi
+     where btrim(mi.m->>'healthProfile', E' \t\r\n') <> ''
+  ),
+  grupos as (
+    -- El orden es la posición en la lista original, como en JS.
+    select distinct on (t.g->>'id') t.g->>'id' as id, t.g, (t.ord - 1)::int as orden
+      from jsonb_array_elements(case when jsonb_typeof(p_state->'data'->'groups') = 'array'
+                                     then p_state->'data'->'groups' else '[]'::jsonb end)
+           with ordinality as t(g, ord)
+     where jsonb_typeof(t.g) = 'object'
+       and nullif(btrim(t.g->>'id', E' \t\r\n'), '') is not null
+     order by t.g->>'id', t.ord
+  ),
+  grupo_persona as (
+    select distinct gr.id as grupo_id, p as persona_id
+      from grupos gr
+     cross join lateral jsonb_array_elements_text(case when jsonb_typeof(gr.g->'memberIds') = 'array'
+                                                       then gr.g->'memberIds' else '[]'::jsonb end) as p
+     where p in (select id from miembros)
+  )
+  select jsonb_build_object(
+    'personas', coalesce((select jsonb_agg(fila order by id) from personas), '[]'::jsonb),
+    'alergias', coalesce((select jsonb_agg(jsonb_build_object('persona_id', persona_id, 'alergeno', valor))
+                            from lista where clave = 'allergies'), '[]'::jsonb),
+    'intolerancias', coalesce((select jsonb_agg(jsonb_build_object('persona_id', persona_id, 'valor', valor))
+                                 from lista where clave = 'intolerances'), '[]'::jsonb),
+    'estados', coalesce((select jsonb_agg(jsonb_build_object(
+                           'persona_id', l.persona_id, 'estado', l.valor,
+                           'hasta', public._fecha_iso_o_null(
+                             case when jsonb_typeof(mi.m->'dietaryStatesMeta'->l.valor->'hasta') = 'string'
+                                  then mi.m->'dietaryStatesMeta'->l.valor->>'hasta' end)))
+                           from lista l join miembros mi on mi.id = l.persona_id
+                          where l.clave = 'dietaryStates'), '[]'::jsonb),
+    'perfilesSalud', coalesce((select jsonb_agg(jsonb_build_object('persona_id', persona_id, 'perfil', valor))
+                                 from lista where clave = 'healthProfiles'), '[]'::jsonb),
+    'grupos', coalesce((select jsonb_agg(jsonb_build_object(
+                          'id', id,
+                          'nombre', coalesce(nullif(btrim(g->>'label', E' \t\r\n'), ''), '(sin nombre)'),
+                          'color', case when jsonb_typeof(g->'color') = 'string' then g->>'color' end,
+                          'orden', orden) order by orden)
+                          from grupos), '[]'::jsonb),
+    'grupoPersona', coalesce((select jsonb_agg(jsonb_build_object('grupo_id', grupo_id, 'persona_id', persona_id))
+                                from grupo_persona), '[]'::jsonb)
+  );
+$$;
+
+revoke all on function public._persona_filas_de_estado(jsonb) from public, anon, authenticated;
+
+-- El trigger. Definer: save_household_state corre como el usuario, que no
+-- puede tocar persona ni ejecutar persona_sincronizar_casa.
+create or replace function public._personas_al_guardar()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_filas jsonb;
+begin
+  -- Un guardado sin lista de comensales no dice nada de quién vive en la casa.
+  if jsonb_typeof(new.state->'data'->'members') is distinct from 'array' then
+    return null;
+  end if;
+  v_filas := public._persona_filas_de_estado(new.state);
+  -- Familia vacía (casa recién creada, «Reiniciar»): no se vacía la tabla al
+  -- guardar; la 0082 lo rechazaría igual.
+  if jsonb_array_length(v_filas->'personas') = 0 then
+    return null;
+  end if;
+  begin
+    perform public.persona_sincronizar_casa(new.household_id, v_filas);
+  exception when others then
+    raise warning '_personas_al_guardar: casa %, la copia a persona falló (% %); el guardado sigue',
+      new.household_id, sqlstate, sqlerrm;
+  end;
+  return null;
+end;
+$$;
+
+revoke all on function public._personas_al_guardar() from public, anon, authenticated;
+
+create or replace trigger personas_al_crear
+  after insert on public.household_state
+  for each row
+  execute function public._personas_al_guardar();
+
+-- Solo si cambian los comensales o los grupos: tachar la compra o guardar el
+-- menú no copia nada.
+create or replace trigger personas_al_guardar
+  after update of state on public.household_state
+  for each row
+  when (old.state->'data'->'members' is distinct from new.state->'data'->'members'
+        or old.state->'data'->'groups' is distinct from new.state->'data'->'groups')
+  execute function public._personas_al_guardar();
+
+-- Poner al día, una vez, las casas que ya hay. Una casa que falle no para las
+-- demás: queda un WARNING y se copiará en su próximo guardado.
+do $$
+declare
+  r record;
+  v_filas jsonb;
+begin
+  for r in
+    select household_id, state from public.household_state
+     where jsonb_typeof(state->'data'->'members') = 'array'
+  loop
+    v_filas := public._persona_filas_de_estado(r.state);
+    continue when jsonb_array_length(v_filas->'personas') = 0;
+    begin
+      perform public.persona_sincronizar_casa(r.household_id, v_filas);
+    exception when others then
+      raise warning '0089: casa %, la copia a persona falló (% %)', r.household_id, sqlstate, sqlerrm;
+    end;
+  end loop;
+end;
+$$;

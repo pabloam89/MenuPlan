@@ -103,6 +103,56 @@ describe("filasDeCasa", () => {
     expect(f.avisos).toEqual(['grupo «g1» apunta a una persona que no existe («fantasma»): se omite']);
   });
 
+  // Desde el 8 oct 2026 no hay varios rosters: solo cuenta la familia activa.
+  // Los rosters aparcados (data.rosters) son datos viejos que no se copian.
+  it("solo la familia activa: los rosters aparcados no se copian", () => {
+    const f = filasDeCasa(CASA, {
+      data: {
+        members: [{ id: "a", name: "Pablo" }],
+        groups: [{ id: "g1", label: "Todos", memberIds: ["a"] }],
+        activeRosterId: "default",
+        rosters: {
+          other: { id: "other", snapshot: { members: [{ id: "x", name: "Suegra" }], groups: [{ id: "g9", label: "Otro", memberIds: ["x"] }] } },
+        },
+      },
+    });
+    expect(f.personas.map((p) => p.id)).toEqual(["a"]);
+    expect(f.grupos.map((g) => g.id)).toEqual(["g1"]);
+  });
+
+  it("los invitados de las reglas no son personas de la casa", () => {
+    const f = filasDeCasa(CASA, {
+      data: {
+        members: [
+          { id: "a", name: "Pablo" },
+          { id: "inv_reg_1", name: "Mi tío", invitado: true, reglaId: "reg_1" },
+          { id: "otro", name: "Visita", invitado: true },
+        ],
+        groups: [{ id: "g1", label: "Todos", memberIds: ["a", "inv_reg_1", "otro"] }],
+      },
+    });
+    expect(f.personas.map((p) => p.id)).toEqual(["a"]);
+    expect(f.grupoPersona.map((x) => x.persona_id)).toEqual(["a"]);
+  });
+
+  it("valores fuera de los rangos de la tabla quedan a null (la tabla los rechazaría)", () => {
+    const f = filasDeCasa(CASA, {
+      data: { members: [{ id: "m", name: "X", age: 130, pesoKg: 1, alturaCm: 300 }] },
+    });
+    expect(f.personas[0]).toEqual(expect.objectContaining({ edad: null, peso_kg: null, altura_cm: null }));
+  });
+
+  it("fechas con forma buena pero imposibles quedan a null", () => {
+    const f = filasDeCasa(CASA, {
+      data: { members: [{
+        id: "m", name: "X", birthDate: "2020-02-30",
+        dietaryStates: ["embarazo"], dietaryStatesMeta: { embarazo: { hasta: "pronto" } },
+      }] },
+    });
+    expect(f.personas[0].fecha_nacimiento).toBeNull();
+    expect(f.estados[0].hasta).toBeNull();
+  });
+
   it("casa vacía o sin estado: nada que copiar y ningún error", () => {
     expect(filasDeCasa(CASA, null)).toEqual({ personas: [], alergias: [], intolerancias: [], estados: [], perfilesSalud: [], grupos: [], grupoPersona: [], avisos: [] });
     expect(filasDeCasa(CASA, { data: {} }).personas).toEqual([]);
