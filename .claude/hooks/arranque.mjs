@@ -17,7 +17,7 @@ import { execFile, execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
-import { avisosDeLimpieza, leerPendientes } from "../../scripts/limpiar-worktrees.mjs";
+import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/limpiar-worktrees.mjs";
 import { sinAplicar } from "./guardia.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
@@ -94,7 +94,9 @@ try {
 // arrancar; lo que no pudo borrar lo apunta y aquí se enseña.
 try {
   const comun = git("rev-parse", "--path-format=absolute", "--git-common-dir");
-  if (comun) avisos.push(...avisosDeLimpieza(leerPendientes(comun)));
+  // Sin la lista de worktrees no se avisa: podría mandar borrar uno vivo.
+  const lista = git("worktree", "list", "--porcelain");
+  if (comun && lista !== null) avisos.push(...avisosDeLimpieza(leerPendientes(comun), existsSync, worktreesVivos(lista)));
 } catch (e) {
   avisos.push(`Limpieza de carpetas: no he podido leer lo que dejó pendiente (${String(e?.message ?? e).split("\n")[0]}).`);
 }

@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -7,10 +7,12 @@ import {
   avisosDeLimpieza,
   ficheroPendientes,
   fusionarPendientes,
+  guardarPendientes,
   leerPendientes,
   problemaDelBorrado,
   salidaDeProblemas,
   terminada,
+  worktreesVivos,
 } from "./limpiar-worktrees.mjs";
 
 // #141: tras un merge, la limpieza quitó C:\dev\MenuPlan-estado-0088 de
@@ -57,6 +59,46 @@ describe("limpiar-worktrees: lo que no pudo borrar se dice (#141)", () => {
     const p = problemaDelBorrado({ dir, rama, quitado: true, sigue: true });
     expect(avisosDeLimpieza([p], () => true)).toEqual([expect.stringMatching(/^AVISO: .*MenuPlan-estado-0088/)]);
     expect(avisosDeLimpieza([p], () => false)).toEqual([]);
+  });
+
+  // Revisor del PR #186: si la ruta se reutiliza, el aviso mandaba borrar un
+  // worktree vivo. Secuencia: la limpieza falla y lo apunta; Pablo borra la
+  // carpeta a mano; `npm run tarea` crea otra en la MISMA ruta.
+  it("una ruta que vuelve a ser un worktree vivo sale del registro y del aviso", () => {
+    const apuntado = problemaDelBorrado({ dir, rama, quitado: true, sigue: true });
+    const existe = () => true; // la carpeta nueva de `tarea` existe
+    const vivos = worktreesVivos(`worktree C:/dev/MenuPlan\nHEAD abc\nbranch refs/heads/staging\n\nworktree C:/dev/MenuPlan-estado-0088\nHEAD def\nbranch refs/heads/datos/otra\n`);
+    expect(fusionarPendientes([apuntado], [], existe, vivos)).toEqual([]);
+    expect(avisosDeLimpieza([apuntado], existe, vivos)).toEqual([]);
+    // y una huérfana de verdad sigue saliendo
+    expect(avisosDeLimpieza([{ ...apuntado, dir: "C:\\dev\\MenuPlan-huerfana" }], existe, vivos)).toHaveLength(1);
+  });
+
+  it("guardar: vuelve a leer justo antes de escribir, conserva lo de otra limpieza y no deja temporales", () => {
+    const comun = mkdtempSync(join(tmpdir(), "limpieza-"));
+    try {
+      const otra = { dir: "C:\\dev\\MenuPlan-otra", rama: "ops/otra", motivo: "m" };
+      writeFileSync(ficheroPendientes(comun), JSON.stringify([otra])); // la escribió otra limpieza a la vez
+      const nuevo = problemaDelBorrado({ dir, rama, quitado: true, sigue: true });
+      guardarPendientes(comun, [nuevo], { existe: () => true, vivos: new Set() });
+      expect(leerPendientes(comun).map((p) => p.dir).sort()).toEqual([otra.dir, dir].sort());
+      expect(readdirSync(comun)).toEqual(["claude-limpieza.json"]);
+    } finally {
+      rmSync(comun, { recursive: true, force: true });
+    }
+  });
+
+  it("guardar: un registro corrupto se reescribe y lo dice", () => {
+    const comun = mkdtempSync(join(tmpdir(), "limpieza-"));
+    try {
+      writeFileSync(ficheroPendientes(comun), "{roto");
+      const nuevo = problemaDelBorrado({ dir, rama, quitado: true, sigue: true });
+      const r = guardarPendientes(comun, [nuevo], { existe: () => true, vivos: new Set() });
+      expect(r.corrupto).toBeTruthy();
+      expect(leerPendientes(comun)).toEqual([nuevo]);
+    } finally {
+      rmSync(comun, { recursive: true, force: true });
+    }
   });
 
   it("lee el registro de la carpeta común; sin registro, nada; corrupto, lanza (y quien lee avisa)", () => {
