@@ -122,9 +122,11 @@ import {
   deleteMenu as deleteMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
   saveAndActivateMenu,
+  ponerMenuActivo,
   queueSaveMenuWeek,
   queueMarcarCompra,
 } from "./lib/menusSync.js";
+import { menuActivoDe } from "./lib/menuActivo.js";
 import { marcasEntre } from "./lib/tacharLector.js";
 import { puede } from "./lib/papeles.js";
 const MenusScreen = lazy(() => import("./screens/MenusScreen.jsx").then(m => ({ default: m.MenusScreen })));
@@ -169,6 +171,7 @@ import BotEnlace from "./components/BotEnlace.jsx";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, subirDescartesPendientes } from "./lib/householdDiscardsSync.js";
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
+import { esTitular } from "./lib/householdsSync.js";
 import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
 import {
   rememberDeletedRecipeId,
@@ -187,7 +190,7 @@ import {
 } from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { filterOwnCreatedRecipes, filterMyLibraryRecipes } from "./lib/userRecipes.js";
-import { suggestHomeRole, migrateHomeRole, resolveAccountMember, memberIllustratedAvatarSrc } from "./lib/stages.js";
+import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuentaId, memberIllustratedAvatarSrc } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import {
   DEFAULT_ROSTER_ID,
@@ -477,6 +480,9 @@ const INITIAL_DATA = {
   // Cual de los miembros es la persona de la cuenta. Se marca a mano en Mi
   // perfil; sin marcar, la app lo adivina por el nombre (ver stages.js).
   accountMemberId: null,
+  // El de cada cuenta de la casa ({ [userId]: memberId }): el de arriba es
+  // compartido y titular y cotitular se pisaban (ver miembroDeCuentaId).
+  accountMemberIdByUser: {},
   kitchenTools: [],
   customKitchenTools: [],
   cookTime: { ...COOK_TIME_DEFAULTS },
@@ -683,6 +689,7 @@ function migrate(state) {
   }
   if (!Array.isArray(d.cookSkills)) d.cookSkills = [];
   if (typeof d.accountMemberId !== "string") d.accountMemberId = null;
+  if (!d.accountMemberIdByUser || typeof d.accountMemberIdByUser !== "object" || Array.isArray(d.accountMemberIdByUser)) d.accountMemberIdByUser = {};
   if (!Array.isArray(d.kitchenTools)) d.kitchenTools = [];
   if (!Array.isArray(d.customKitchenTools)) d.customKitchenTools = [];
   // Normalize school menus: courses (Primero/Segundo/Postre) instead of meals.
@@ -1354,7 +1361,7 @@ export default function App() {
 
   // Los menús y la despensa de una casa están a nombre de su titular (0071):
   // en una casa ajena (cotitular o lector) se leen los suyos.
-  const syncMenuUserId = activeHousehold && !activeHousehold.isOwn ? activeHousehold.ownerUserId : user?.id;
+  const syncMenuUserId = activeHousehold && !esTitular(activeHousehold) ? activeHousehold.ownerUserId : user?.id;
   const syncHouseholdId = activeHouseholdId ?? null;
   // La casa activa, para lo que se dispara desde callbacks con dependencias
   // viejas: así nunca leen ni escriben en la casa de antes de cambiar.
@@ -1500,7 +1507,7 @@ export default function App() {
     hydratedUserRef.current = hydrateKey;
     cloudReadyRef.current = false;
 
-    const menuUserId = activeHousehold && !activeHousehold.isOwn ? activeHousehold.ownerUserId : user.id;
+    const menuUserId = activeHousehold && !esTitular(activeHousehold) ? activeHousehold.ownerUserId : user.id;
     const householdId = activeHouseholdId;
     const justEmptied = householdJustEmptiedRef.current;
     if (justEmptied) householdJustEmptiedRef.current = false;
@@ -1508,7 +1515,7 @@ export default function App() {
     forceRemoteRef.current = false;
     // Lo que hay en memoria es de otra casa, o esta no es tuya: manda la nube
     // entera, y nada de lo local se mezcla ni se sube aquí (C-1).
-    const esMia = activeHousehold ? activeHousehold.isOwn : true;
+    const esMia = activeHousehold ? esTitular(activeHousehold) : true;
     const soloNube = soloNubeAlCargar({ esMia, casaLocal: casaDelEstadoRef.current, casa: householdId });
 
     // Capture local-only blobs before any await so a mid-hydration edit
@@ -1743,7 +1750,9 @@ export default function App() {
         nowD.setHours(0, 0, 0, 0);
         const todayISO = `${nowD.getFullYear()}-${String(nowD.getMonth() + 1).padStart(2, "0")}-${String(nowD.getDate()).padStart(2, "0")}`;
 
-        const activeSummary = cloudSummaries.find((s) => s.isActive) ?? null;
+        // user_menus.is_active manda (menuActivo.js); data.activeMenuId es caché.
+        const activeCloudId = menuActivoDe(cloudSummaries);
+        const activeSummary = cloudSummaries.find((s) => s.id === activeCloudId) ?? null;
         let activeWeek = null;
         if (activeSummary) {
           const detail = await loadMenuDetailRemote(menuUserId, activeSummary.id, householdId);
@@ -1807,7 +1816,7 @@ export default function App() {
             menus: merged,
             // Same reasoning for the pointer: only follow the cloud's idea of
             // "active" when it actually has one, otherwise keep the local one.
-            activeMenuId: activeSummary?.id ?? d.activeMenuId ?? null,
+            activeMenuId: menuActivoDe(cloudSummaries, d.activeMenuId),
             ...(activeWeek
               ? { menuWeek: { offset: activeWeek.offset, startDayIdx: activeWeek.startDayIdx ?? 0, days: activeWeek.days ?? null } }
               : {}),
@@ -3752,7 +3761,7 @@ export default function App() {
       // real no: publicar tu cara se hace a proposito, desde el cajon del
       // perfil, no de oficio al iniciar sesion. Sin esto el perfil nacia sin
       // imagen y toda la cabecera del feed eran iniciales sueltas.
-      const me = resolveAccountMember(data.members, data.accountMemberId, googleInfo(user).name);
+      const me = resolveAccountMember(data.members, miembroDeCuentaId(data, user.id, { esTitular: !activeHousehold || esTitular(activeHousehold) }), googleInfo(user).name);
       ensureSocialProfile(user.id, googleInfo(user).name, memberIllustratedAvatarSrc(me));
     }, 2500);
     return () => clearTimeout(t);
@@ -3838,12 +3847,15 @@ export default function App() {
   // already had, with no way back.
   const startOtherGroup = useCallback(() => {
     setData((d) => startOtherRoster(d, { defaults: INITIAL_DATA }));
+    // El grupo nuevo no tiene menú: la tabla tampoco (manda ella al recargar).
+    // TODO(producto): la misma pregunta que en useRoster, aquí desactivando.
+    if (user && !householdReadOnly) ponerMenuActivo(null, user.id, casaActivaRef.current);
     setMenuPlan({});
     setShopping({ items: [] });
     setSelectedSlot(null);
     setQuickMenu(false);
     _doGoToOnboardingStep(0);
-  }, [_doGoToOnboardingStep]);
+  }, [_doGoToOnboardingStep, user, householdReadOnly]);
 
   // Switching back to a group also has to restore the menú it last generated:
   // `menuPlan`/`shopping` live outside `data`, so swapping the roster alone
@@ -3855,10 +3867,16 @@ export default function App() {
     const weeks = Object.values(snapshot.menus?.[snapshot.activeMenuId]?.weeks ?? {});
     const week = weeks.find((w) => w.offset === snapshot.menuWeek?.offset) ?? weeks[0] ?? null;
     setData((d) => switchRoster(d, rosterId));
+    // Cambiar de grupo cambia el menú activo: a la tabla también, que es la
+    // verdad (menuActivo.js). Sin esto, al recargar volvía el del otro grupo.
+    // TODO(producto): ¿cambiar de grupo debe cambiar el menú activo de TODA la
+    // casa (lo que ven el cotitular, el lector y Lola), o el grupo es solo una
+    // vista de quien lo cambia y el menú activo de la casa no se toca?
+    if (user && !householdReadOnly) ponerMenuActivo(snapshot.activeMenuId ?? null, user.id, casaActivaRef.current);
     setMenuPlan(week?.plan ?? {});
     setShopping(week?.shopping ?? { items: [] });
     setSelectedSlot(null);
-  }, [data]);
+  }, [data, user, householdReadOnly]);
 
   /**
    * "Esta la hago con la Thermomix": guarda el método elegido EN el hueco.
