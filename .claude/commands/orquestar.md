@@ -101,3 +101,4 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    la sesión, sin duplicados, con la recomendación de cada una.
 4. Termina con un resumen corto: qué se hizo, en qué rama o PR, qué se
    verificó, qué queda pendiente y qué gateway falta.
+5. Tras el merge, retirar: `npm run retirar -- <tarea>` en la misma sesión.

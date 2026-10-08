@@ -57,7 +57,10 @@ puerto); `npm run retirar -- descartes` la cierra solo si no se pierde nada.
 Nada de borrar worktrees a mano; si el arranque avisa de otra sesión en tu
 carpeta, no trabajes ahí. App en local: localhost y la IP de la wifi, nada más
 (el login con Google solo vuelve al puerto 5176). Primer push: `git push -u
-origin <rama>`.
+origin <rama>`. **Al fusionar tu PR:** `npm run retirar -- <tarea>` en la misma
+sesión (la rama de GitHub la borra GitHub sola). Ramas viejas ya fusionadas:
+`npm run podar` (ensayo) y `npm run podar -- --si`; nunca toca lo que no está
+en staging.
 
 ## Antes del PR (lo que no vigila la guardia)
 
