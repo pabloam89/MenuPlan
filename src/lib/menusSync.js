@@ -310,38 +310,6 @@ export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
   return next;
 }
 
-/**
- * Lleva a user_menus.is_active (la verdad, ver menuActivo.js) el menú que la
- * app acaba de poner activo sin generar: al cambiar de grupo (roster). Con
- * `menuId`, lo activa; sin él (grupo nuevo o sin menú), deja la casa sin
- * ninguno activo. Sin esto, al recargar volvía el menú del otro grupo.
- * Por la misma cola que saveAndActivateMenu, para no adelantar a una
- * generación que aún está subiendo.
- */
-export function ponerMenuActivo(menuId, userId, householdId = null) {
-  if (!supabase || !userId) return Promise.resolve({ ok: false, error: "no-op" });
-  const queueKey = householdId ? `${householdId}:${userId}` : userId;
-  const prev = activationQueues.get(queueKey) ?? Promise.resolve();
-  const next = prev
-    .catch(() => {})
-    .then(async () => {
-      if (menuId) return activateMenu(menuId);
-      // UPDATE directo (la RLS deja a titular y cotitular): no hay RPC que
-      // desactive sin activar otro, y este no sube bot_rev. Apuntado en
-      // supabase/PENDIENTES.md («Desactivar el menú de la casa por RPC»).
-      let q = supabase.from("user_menus").update({ is_active: false });
-      q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
-      const { error } = await q.eq("is_active", true);
-      if (error) {
-        console.warn("[menusSync] deactivate failed", error.message);
-        return { ok: false, error: error.message };
-      }
-      return { ok: true };
-    });
-  activationQueues.set(queueKey, next);
-  return next;
-}
-
 // ── Live per-week upsert (shopping edits) ────────────────────────────────
 // saveMenu only writes user_menu_weeks at generation time, but the cloud
 // tables are the hydration read-preference (see App.jsx). So any edit made
