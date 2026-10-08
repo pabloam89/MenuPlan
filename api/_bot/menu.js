@@ -1173,12 +1173,12 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       menu_id: casa.menu.id,
       recipe_id: elegido.recipeId,
       recipe_snapshot: elegido.frontendRecipe,
-    }], { upsert: true }).catch(fallaCon("menu/foto de la receta"));
+    }], { upsert: true }).catch(fallaCon("menu_foto_de_la_receta"));
 
     apuntarFoto(m, fotos, elegido.frontendRecipe);
     // El día tal como queda, en la propia respuesta: el modelo iba a ver_menu
     // tras cada cambio para comprobarlo, y cada vuelta son 4-8 s en el chat.
-    const dePintado = await describirMenu({ ...casa, menu: null, semanas: null, semana: { ...casa.semana, plan } }, { dia, fecha }).catch(fallaCon("menu/describir", ""));
+    const dePintado = await describirMenu({ ...casa, menu: null, semanas: null, semana: { ...casa.semana, plan } }, { dia, fecha }).catch(fallaCon("menu_describir", ""));
     // Para quién ha sido, en personas y no en nombres de grupo.
     const para = grupo || sinCambiar.length ? quienesDe(g, data.members ?? []) : null;
     const sinCambiarQuienes = sinCambiar.map((l) => quienesDe(gs.find((x) => x.label === l), data.members ?? [])).filter(Boolean);

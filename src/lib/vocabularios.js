@@ -86,6 +86,49 @@ export const SEXO = ["mujer", "hombre", "sin_dato"];
 /** Con qué frecuencia vive alguien en casa (custodia): campo nuevo de la ficha v18, nunca se pregunta. */
 export const PATRON_SEMANAS = ["siempre", "alternas"];
 
+// ── Los del registro de fallos del bot (#211). No se guardan en ninguna tabla:
+// van en la línea de log `bot_fallo` (api/_bot/avisar.js) y los cuenta
+// `npm run fallos` (scripts/bot-fallos.mjs). Cerrados para poder agruparlos.
+
+/**
+ * Por qué falló algo: lo deduce `motivoDe` (api/_bot/avisar.js) del error.
+ * `telegram` y `modelo` dicen de qué servicio vino; el resto, qué le pasó a la
+ * base (o a la red hasta ella). `otro` es lo que no se sabe clasificar.
+ */
+export const MOTIVOS_FALLO = [
+  "red", "tiempo", "sin_sesion", "permiso", "no_existe", "conflicto",
+  "datos_invalidos", "limite", "servidor", "telegram", "modelo", "otro",
+];
+
+/**
+ * Dónde falló: el primer argumento de cada `seguirCon` y `fallaCon` del bot.
+ * Un sitio nuevo se añade aquí; api/_bot/avisar.test.js falla si se usa uno
+ * que no está.
+ */
+export const SITIOS_FALLO = [
+  // api/_bot/agente.js
+  "agente_casa", "agente_dueno", "agente_idioma", "agente_papel", "agente_segunda_semana",
+  // api/bot/telegram.js
+  "aclarar_via_rapida", "alta_adjunto", "apuntar_falta_via_rapida", "aviso_de_espera",
+  "aviso_del_enrutador", "aviso_del_modo", "borrarcuenta_identidad", "borrarcuenta_nacida_aqui",
+  "bot_telegram_aviso", "boton_nacida_aqui", "boton_quitar", "boton_responder",
+  "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno",
+  "grupo_casa", "grupo_nombre_del_bot", "grupo_voz", "idioma", "invitacion",
+  "invitacion_cuentas", "lola", "lola_cancelada", "limite", "papel", "reconocer", "ruta",
+  "ruta_dueno", "ultima_de_lola", "uso", "vivo_borrar_aviso", "vivo_editar", "vivo_enviar",
+  // api/bot/entrar.js
+  "bot_entrar",
+  // el resto de api/_bot/
+  "borrar_tanda", "compartir_llave", "cuentas_hogar", "cuentas_json", "cuentas_nacida_aqui",
+  "db_usuario", "embudo_dueno", "ficharpc_casa", "generar_borrar_menu_a_medias",
+  "generar_describir", "generar_despensa", "generar_recetas_propias",
+  "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse",
+  "menu_describir", "menu_foto_de_la_receta", "pintar_recetas", "pista_adelanto",
+  "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "telegram_json",
+  "traducir_memoria", "turno_casa", "turnos_soltar_candado", "uso_limite", "vispera_casa",
+  "voz_json",
+];
+
 /**
  * El mapa nombre → lista. Es lo que referencia `registro_campo.vocabulario`
  * (la ficha): guarda el nombre, nunca una copia de los valores.
@@ -111,6 +154,8 @@ export const VOCABULARIOS = Object.freeze({
   visibilidad: VISIBILIDAD,
   sexo: SEXO,
   patron_semanas: PATRON_SEMANAS,
+  motivos_fallo: MOTIVOS_FALLO,
+  sitios_fallo: SITIOS_FALLO,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */

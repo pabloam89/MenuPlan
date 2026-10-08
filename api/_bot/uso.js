@@ -24,7 +24,7 @@ export const mesActual = () =>
 export async function fueraDeLimite(householdId) {
   if (sinLimite(householdId)) return null;
   // a propósito: sin poder leer el uso, mejor contestar que bloquear
-  const [fila] = await select("bot_usage", `household_id=${eq(householdId)}&month=eq.${mesActual()}`, "messages").catch(seguirCon("uso/límite", []));
+  const [fila] = await select("bot_usage", `household_id=${eq(householdId)}&month=eq.${mesActual()}`, "messages").catch(seguirCon("uso_limite", []));
   if ((fila?.messages ?? 0) < limiteMensual()) return null;
   return `Este mes ya hemos hablado ${limiteMensual()} veces, que es el límite de la versión gratis 🙈. `
     + "El día 1 se reinicia. Mientras, el menú, la compra y las recetas siguen en la app (/app).";

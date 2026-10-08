@@ -156,7 +156,7 @@ export async function limpiarPantalla(chatId, ultimoId) {
   for (const ids of tandasHaciaAtras(ultimoId)) {
     // A propósito: una tanda que falla entera (todo más viejo de 48 h, o ya borrado) no
     // para las demás.
-    const ok = await llamar("deleteMessages", { chat_id: chatId, message_ids: ids }).then(() => true).catch(seguirCon("borrar/tanda", false));
+    const ok = await llamar("deleteMessages", { chat_id: chatId, message_ids: ids }).then(() => true).catch(seguirCon("borrar_tanda", false));
     if (ok) tandas++;
   }
   return { tandas };

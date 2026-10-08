@@ -74,7 +74,7 @@ export async function leerFichaCasa({ householdId, userId = null, canal = null }
   if (r && Date.now() - r.t < RECIENTE_MS) {
     // La casa ya está leída en el turno (casa.js la recuerda): no es otra ida.
     // a propósito: sin la casa no se compara la revisión: se lee la ficha de nuevo
-    const casa = await cargarCasa(householdId).catch(seguirCon("fichaRpc/casa", null));
+    const casa = await cargarCasa(householdId).catch(seguirCon("ficharpc_casa", null));
     if (casa && Number(casa.botRev) === r.rev) return r.ficha;
   }
   let ficha;

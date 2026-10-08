@@ -114,7 +114,8 @@ function cierre(mascara, desde, abre, cierra) {
   return mascara.length - 1;
 }
 
-const AVISA = /console\.(warn|error)\s*\(|\bthrow\b/;
+// avisarFallo (avisar.js) deja la línea `bot_fallo` con su console.warn o .error.
+const AVISA = /console\.(warn|error)\s*\(|\bavisarFallo\s*\(|\bthrow\b/;
 const A_PROPOSITO = /a propósito/i;
 
 /** Los catch de `src` que se tragan el error sin decirlo: [{ linea, texto }]. */
@@ -167,6 +168,7 @@ describe("el detector de errores tragados", () => {
     expect(tragados("// a propósito: da igual\np.catch(() => {});")).toEqual([]);
     expect(tragados("p.catch((e) => { console.error('[p]', e?.message); return []; });")).toEqual([]);
     expect(tragados("p.catch(avisar);")).toEqual([]);
+    expect(tragados("try { x(); } catch (e) { avisarFallo('x', e); return null; }")).toEqual([]);
   });
 
   it("no se lía con llaves, comillas o barras dentro de textos y regex", () => {

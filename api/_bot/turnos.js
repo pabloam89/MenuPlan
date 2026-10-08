@@ -21,7 +21,7 @@ const MAX_VUELTAS = 4;
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export const tomarCandado = (chatId) => rpc("bot_tomar_candado", { p_chat: String(chatId), p_segundos: DURACION_CANDADO_S });
-export const soltarCandado = (chatId) => rpc("bot_soltar_candado", { p_chat: String(chatId) }).catch(fallaCon("turnos/soltar candado"));
+export const soltarCandado = (chatId) => rpc("bot_soltar_candado", { p_chat: String(chatId) }).catch(fallaCon("turnos_soltar_candado"));
 
 export const encolar = (chatId, item) => insert("bot_cola", [{ chat_id: String(chatId), item }]);
 
