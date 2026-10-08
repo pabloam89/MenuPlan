@@ -11,7 +11,8 @@
  * lo que importa se guarda en la casa, no en la charla.
  */
 
-import { seguirCon, fallaCon } from "./avisar.js";
+import { seguirCon, fallaCon, SIN_LEER } from "./avisar.js";
+import { noPude } from "./noPude.js";
 import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
@@ -219,7 +220,7 @@ export async function herramientas(chat) {
       const freno = supervisar(t.name, args, chat.texto, { anterior: chat.anterior });
       if (freno) {
         // a propósito: el evento vale más sin dueño que perdido
-        await registrar(FRENO_SUPERVISOR, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente/dueño", null)), extra: { herramienta: t.name, texto: String(chat.texto ?? "").slice(0, 200), esGrupo: Boolean(chat.esGrupo) } });
+        await registrar(FRENO_SUPERVISOR, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente_dueno", null)), extra: { herramienta: t.name, texto: String(chat.texto ?? "").slice(0, 200), esGrupo: Boolean(chat.esGrupo) } });
         return freno;
       }
       if (t.name === "ver_menu" && yaLoTiene(args)) {
@@ -238,7 +239,7 @@ export async function herramientas(chat) {
         return r;
       } catch (e) {
         // a propósito: el evento vale más sin dueño que perdido
-        await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente/dueño", null)), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300), esGrupo: Boolean(chat.esGrupo) } });
+        await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente_dueno", null)), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300), esGrupo: Boolean(chat.esGrupo) } });
         throw e;
       }
   }
@@ -967,12 +968,15 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // El papel de quien escribe, en cada turno (no se guarda: quitar a alguien
   // vale para el mensaje siguiente). Las herramientas se filtran con él.
   const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })
-    .catch((e) => { console.error("[agente] papel", e?.message); return { papel: "ajeno", userId: null }; })
-    .then(async (p) => {
+    // Sin poder leerlo no se le trata como de fuera: se le dice (#208, abajo).
+    .catch(fallaCon("agente_papel", SIN_LEER))
+    .then(async (leido) => {
+      chat.sinPapel = leido === SIN_LEER;
+      const p = chat.sinPapel ? { papel: "ajeno", userId: null } : leido;
       chat.papel = p.papel;
       chat.userId = p.userId ?? null;
       // a propósito: sin idioma guardado, contesta en castellano
-      chat.idioma = await idiomaDe(p.userId).catch(seguirCon("agente/idioma", null));
+      chat.idioma = await idiomaDe(p.userId).catch(seguirCon("agente_idioma", null));
       return p;
     });
   // Con BOT_FICHA_RPC, las tareas, lo callado y lo de seguridad de la ficha
@@ -985,11 +989,18 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
   const [tope, mem, tools, casa, extrasBase, tareas, calladas, tablas] = await Promise.all([
     fueraDeLimite(householdId), memoria(channel, chatId), conPapel.then(() => herramientas(chat)),
-    cargarCasa(householdId).catch(fallaCon("agente/casa", null)), extrasDeFicha(householdId, chatId),
+    cargarCasa(householdId).catch(fallaCon("agente_casa", SIN_LEER)), extrasDeFicha(householdId, chatId),
     conPapel.then(() => deTablas).then((f) => (f ? tareasDeFicha(f, { userId: chat.userId, privado: !esGrupo }) : tareasAbiertas(householdId, { userId: chat.userId, privado: !esGrupo }))).catch((e) => { console.error("[agente] tareas", e?.message); return []; }),
     deTablas.then((f) => (f ? calladasDeFicha(f) : clavesCalladas(householdId))).catch((e) => { console.error("[agente] calladas", e?.message); return new Set(); }),
     deTablas,
   ]);
+  // Si la base no contesta, Lola lo dice y no llama al modelo (#208): sin la
+  // casa contestaría sin alergias ni menú, como si estuviera vacía; sin el
+  // papel, como a alguien de fuera. Una casa que de verdad no existe es null,
+  // no SIN_LEER, y sigue como siempre.
+  if (casa === SIN_LEER || chat.sinPapel) {
+    return { texto: noPude(casa === SIN_LEER ? "casa" : "papel", chat.idioma), fotos: [], deshacible: false, ir: null };
+  }
   const deLaFicha = tablas && casa ? conLaFicha(casa, tablas, calladas) : { casa };
   const extras = { ...extrasBase, calladas, ...(deLaFicha.pendientes ? { pendientes: deLaFicha.pendientes } : {}) };
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
@@ -1074,7 +1085,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     if (!err?.aMedias) throw err;
     console.error("[agente] a medias", err?.message);
     // a propósito: el evento vale más sin dueño que perdido
-    await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(seguirCon("agente/dueño", null)), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}`, esGrupo: Boolean(esGrupo) } });
+    await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}`, esGrupo: Boolean(esGrupo) } });
     return {
       texto: "😵‍💫 Me he quedado a medias: puede que ya haya cambiado algo y no te lo he podido contar.\n\nMíralo en la app con el botón antes de pedírmelo otra vez, así no se hace dos veces.",
       fotos: chat.fotos, deshacible: false, ir: chat.ir ?? "semana", compartir: null,
@@ -1083,11 +1094,11 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   if (corregido) {
     // `sigue`: ni con el aviso guardó. Sin él, se corrigió en la segunda vuelta.
     // a propósito: el evento vale más sin dueño que perdido
-    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(seguirCon("agente/dueño", null)), extra: { texto: String(texto).slice(0, 200), sigue: sigueSinGuardar, esGrupo: Boolean(esGrupo) } });
+    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { texto: String(texto).slice(0, 200), sigue: sigueSinGuardar, esGrupo: Boolean(esGrupo) } });
   }
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
     // a propósito: el evento vale más sin dueño que perdido
-    await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(seguirCon("agente/dueño", null)), extra: { texto: String(texto).slice(0, 200), esGrupo: Boolean(esGrupo) } });
+    await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { texto: String(texto).slice(0, 200), esGrupo: Boolean(esGrupo) } });
   }
 
   const llevados = await contarUso(householdId, uso).catch((e) => { console.error("[agente] uso", e?.message); return 0; });
@@ -1118,7 +1129,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
       { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, pendientes: pendientesNuevas } },
     ]).catch((e) => console.error("[agente] memoria", e?.message)),
     // a propósito: es una señal del embudo; no toca la charla
-    segundaSemana(householdId).catch(seguirCon("agente/segunda semana")),
+    segundaSemana(householdId).catch(seguirCon("agente_segunda_semana")),
     cierresPorEstado,
     promocion,
   ]).then((r) => { if (tablas) olvidarFicha(householdId); return r; });

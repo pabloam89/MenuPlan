@@ -68,7 +68,7 @@ export default async function handler(req, res) {
       // si este navegador ya está dentro con esa cuenta, la app sigue sin
       // avisar de nada. Quien tiene el código ya sabía a quién abría.
       // a propósito: sin la fila vieja, el 410 sale sin user_id
-      const [vieja] = await select("bot_codigos", `codigo=${eq(String(req.body?.codigo ?? ""))}&tipo=eq.entrar`, "user_id").catch(seguirCon("bot/entrar", []));
+      const [vieja] = await select("bot_codigos", `codigo=${eq(String(req.body?.codigo ?? ""))}&tipo=eq.entrar`, "user_id").catch(seguirCon("bot_entrar", []));
       return res.status(410).json({ error: "Este enlace ya se usó. Vuelve a Telegram y pídele otro a Lola.", user_id: vieja?.user_id ?? null });
     }
 

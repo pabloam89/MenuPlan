@@ -63,7 +63,7 @@ export async function rastro(householdId, event, datos = {}) {
 /** El dueño de una casa: los eventos van a su nombre, como en la app. */
 export async function duenoDe(householdId) {
   // a propósito: el evento vale más sin dueño que perdido
-  const [h] = await select("households", `id=${eq(householdId)}`, "owner_user_id").catch(seguirCon("embudo/dueño", []));
+  const [h] = await select("households", `id=${eq(householdId)}`, "owner_user_id").catch(seguirCon("embudo_dueno", []));
   return h?.owner_user_id ?? null;
 }
 

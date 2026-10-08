@@ -181,7 +181,7 @@ export async function conPista({ pista, texto = "", adelantar, lanzar, progreso,
     const lectura = Promise.resolve().then(() => adelantar(plan, d))
       .then((a) => (a && String(a.texto ?? "").length > TOPE_LEIDO ? null : a))
       // a propósito: el adelanto es una ayuda; sin él, Lola lee como siempre
-      .catch(seguirCon("pista/adelanto", null));
+      .catch(seguirCon("pista_adelanto", null));
     return conPlazo(lectura, PLAZO_ADELANTO_MS);
   };
   let decision; // undefined: aún no ha llegado

@@ -55,7 +55,7 @@ export async function traducir(textos, idioma, { modelo = alModelo } = {}) {
   const sinMemoria = [...new Set(hashes.filter((h, i) => !memoria.has(h) && textos[i].trim()))];
   if (sinMemoria.length) {
     // a propósito: sin la memoria se traduce de nuevo
-    const filas = await select("content_translations", `lang=eq.en&source_hash=in.(${sinMemoria.join(",")})`, "source_hash,texto").catch(seguirCon("traducir/memoria", []));
+    const filas = await select("content_translations", `lang=eq.en&source_hash=in.(${sinMemoria.join(",")})`, "source_hash,texto").catch(seguirCon("traducir_memoria", []));
     for (const f of filas ?? []) memoria.set(f.source_hash, f.texto);
   }
   const faltan = [...new Set(textos.filter((t, i) => t.trim() && !memoria.has(hashes[i])))];

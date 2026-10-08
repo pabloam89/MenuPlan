@@ -1,0 +1,180 @@
+#!/usr/bin/env node
+/**
+ * ¿Por qué falla el bot? Cuenta las líneas `bot_fallo` (api/_bot/avisar.js,
+ * #211) por motivo y por sitio.
+ *
+ *   npm run fallos                    último día, producción, leído de Vercel
+ *   npm run fallos -- --dias 7        los últimos 7 días
+ *   npm run fallos -- --entorno preview
+ *   npm run fallos -- --fichero logs.jsonl   un export que ya tienes
+ *
+ * De Vercel lo lee con su CLI (`vercel logs`, que tiene que estar instalada y
+ * con sesión: `vercel login`), filtrando por el texto «bot_fallo»:
+ *
+ *   vercel logs --project homenu --scope menuplan --environment production \
+ *     --since 24h --query bot_fallo --json --limit 2000 > logs.jsonl
+ *
+ * Ese mismo comando sirve para sacar el fichero a mano y pasarlo con
+ * --fichero (o por la entrada estándar: `… | npm run fallos -- --fichero -`).
+ * Los logs de Vercel duran poco según el plan: lo que no está ahí, no se
+ * puede contar.
+ *
+ * Solo lee: no toca la base ni Vercel.
+ */
+import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { pathToFileURL } from "node:url";
+import { MOTIVOS_FALLO, SITIOS_FALLO } from "../src/lib/vocabularios.js";
+
+const PROYECTO = "homenu";
+const EQUIPO = "menuplan";
+const MARCA = '"evento":"bot_fallo"';
+
+/** El objeto de un trozo de JSON, o null si no lo es. */
+function intentar(trozo) {
+  try {
+    return JSON.parse(trozo);
+  } catch {
+    return null; // a propósito: aún no cierra; quien llama prueba con la llave siguiente y cuenta los ilegibles
+  }
+}
+
+/** Las líneas bot_fallo que hay dentro de un texto (una línea JSON de Vercel o una línea suelta). */
+function deTexto(texto, out) {
+  let i = texto.indexOf(MARCA);
+  while (i >= 0) {
+    const desde = texto.lastIndexOf("{", i);
+    // El primer «}» que cierra un JSON válido (el texto de un «otro» puede llevar llaves).
+    let leido = null;
+    for (let hasta = texto.indexOf("}", i), n = 0; hasta > desde && desde >= 0 && n < 20 && !leido; hasta = texto.indexOf("}", hasta + 1), n++) {
+      leido = intentar(texto.slice(desde, hasta + 1));
+    }
+    if (leido) out.push(leido);
+    else out.ilegibles = (out.ilegibles ?? 0) + 1;
+    i = texto.indexOf(MARCA, i + MARCA.length);
+  }
+}
+
+/** Todas las cadenas de un objeto de log de Vercel, sin repetir el mensaje y sus `logs`. */
+function cadenasDe(obj) {
+  if (typeof obj === "string") return [obj];
+  if (!obj || typeof obj !== "object") return [];
+  // Una petición de `vercel logs --json`: sus líneas van en `logs`; si no
+  // trae, en `message`. No los dos, para no contar dos veces la misma.
+  if (Array.isArray(obj.logs) && obj.logs.length) return obj.logs.flatMap(cadenasDe);
+  if (typeof obj.message === "string" && obj.message) return [obj.message];
+  return Object.values(obj).flatMap(cadenasDe);
+}
+
+/**
+ * Los fallos de un export de logs: JSON Lines de `vercel logs --json`, un
+ * array JSON o texto plano con una línea por log.
+ * @returns {{ donde: string, motivo: string, codigo: string|null, grave: boolean, texto?: string }[]}
+ */
+export function fallosDe(contenido) {
+  const out = [];
+  const texto = String(contenido ?? "");
+  let entero = null;
+  if (/^\s*\[/.test(texto)) entero = intentar(texto); // si no es un array entero, línea a línea
+  const piezas = Array.isArray(entero) ? entero : texto.split(/\r?\n/).filter((l) => l.trim());
+  for (const pieza of piezas) {
+    let obj = pieza;
+    if (typeof pieza === "string" && pieza.trim().startsWith("{") && !pieza.includes(`{${MARCA}`)) {
+      obj = intentar(pieza) ?? pieza; // si no es JSON, se busca la marca en el texto
+    }
+    for (const c of cadenasDe(obj)) deTexto(c, out);
+  }
+  return Object.assign(out.filter((f) => f?.evento === "bot_fallo"), { ilegibles: out.ilegibles ?? 0 });
+}
+
+/** Cuenta por motivo, por sitio y por sitio y motivo. */
+export function contar(fallos) {
+  const porMotivo = {};
+  const porSitio = {};
+  const otros = {};
+  let graves = 0;
+  for (const f of fallos) {
+    porMotivo[f.motivo] = (porMotivo[f.motivo] ?? 0) + 1;
+    const s = (porSitio[f.donde] ??= { total: 0, motivos: {} });
+    s.total++;
+    s.motivos[f.motivo] = (s.motivos[f.motivo] ?? 0) + 1;
+    if (f.grave) graves++;
+    if (f.motivo === "otro" && f.texto) otros[f.texto] = (otros[f.texto] ?? 0) + 1;
+  }
+  const fuera = {
+    motivos: Object.keys(porMotivo).filter((m) => !MOTIVOS_FALLO.includes(m)),
+    sitios: Object.keys(porSitio).filter((s) => !SITIOS_FALLO.includes(s)),
+  };
+  return { total: fallos.length, graves, porMotivo, porSitio, otros, fuera };
+}
+
+const ordenar = (obj, valor = (v) => v) => Object.entries(obj).sort((a, b) => valor(b[1]) - valor(a[1]));
+
+export function informe(c, { titulo = "" } = {}) {
+  const l = [`Fallos del bot: ${c.total} (${c.graves} graves)${titulo ? ` · ${titulo}` : ""}`];
+  if (!c.total) return l.join("\n");
+  l.push("", "Por motivo:");
+  for (const [m, n] of ordenar(c.porMotivo)) l.push(`  ${m.padEnd(16)} ${String(n).padStart(5)}`);
+  l.push("", "Por sitio:");
+  for (const [s, v] of ordenar(c.porSitio, (x) => x.total)) {
+    const detalle = ordenar(v.motivos).map(([m, n]) => `${m} ${n}`).join(", ");
+    l.push(`  ${s.padEnd(32)} ${String(v.total).padStart(5)}  (${detalle})`);
+  }
+  const otros = ordenar(c.otros).slice(0, 10);
+  if (otros.length) {
+    l.push("", "Sin clasificar (motivo «otro»), los más repetidos:");
+    for (const [t, n] of otros) l.push(`  ${String(n).padStart(5)}  ${t}`);
+  }
+  if (c.fuera.motivos.length || c.fuera.sitios.length) {
+    l.push("", `Fuera de la lista: motivos ${c.fuera.motivos.join(", ") || "—"}; sitios ${c.fuera.sitios.join(", ") || "—"}`);
+  }
+  return l.join("\n");
+}
+
+function argumentos(argv) {
+  const a = { dias: 1, entorno: "production", fichero: null, limite: 2000 };
+  for (let i = 0; i < argv.length; i++) {
+    const k = argv[i];
+    if (k === "--dias") a.dias = Number(argv[++i]);
+    else if (k === "--entorno") a.entorno = argv[++i];
+    else if (k === "--fichero") a.fichero = argv[++i];
+    else if (k === "--limite") a.limite = Number(argv[++i]);
+    else throw new Error(`No conozco «${k}». Mira la cabecera de scripts/bot-fallos.mjs.`);
+  }
+  if (!(a.dias > 0 && a.dias <= 30)) throw new Error("--dias va de 1 a 30");
+  if (!(Number.isInteger(a.limite) && a.limite > 0)) throw new Error("--limite es un número entero");
+  if (!["production", "preview"].includes(a.entorno)) throw new Error("--entorno es production o preview");
+  return a;
+}
+
+function deVercel({ dias, entorno, limite }) {
+  const args = ["logs", "--project", PROYECTO, "--scope", EQUIPO, "--environment", entorno,
+    "--since", `${dias * 24}h`, "--query", "bot_fallo", "--json", "--limit", String(limite)];
+  // En Windows la CLI es vercel.cmd: hace falta la shell. Los argumentos son fijos o números ya comprobados.
+  const opciones = { encoding: "utf8", maxBuffer: 512 * 1024 * 1024 };
+  const r = process.platform === "win32"
+    ? spawnSync(`vercel ${args.join(" ")}`, { ...opciones, shell: true })
+    : spawnSync("vercel", args, opciones);
+  if (r.error || r.status !== 0) {
+    throw new Error(`vercel logs no ha ido (${r.error?.message ?? `salida ${r.status}`}). ¿Está instalada la CLI y con sesión (vercel login)?\n${String(r.stderr ?? "").slice(0, 500)}`);
+  }
+  return r.stdout;
+}
+
+async function main() {
+  const a = argumentos(process.argv.slice(2));
+  const contenido = a.fichero === "-" ? readFileSync(0, "utf8")
+    : a.fichero ? readFileSync(a.fichero, "utf8")
+      : deVercel(a);
+  const fallos = fallosDe(contenido);
+  const titulo = a.fichero ? `fichero ${a.fichero}` : `últimos ${a.dias} día(s), ${a.entorno}`;
+  console.log(informe(contar(fallos), { titulo }));
+  if (fallos.ilegibles) console.warn(`\n(${fallos.ilegibles} líneas bot_fallo cortadas o ilegibles, sin contar)`);
+  if (!a.fichero && contenido.trim().split(/\n/).length >= a.limite) {
+    console.warn(`\nOjo: Vercel ha devuelto el máximo (${a.limite}); puede haber más. Sube --limite o baja --dias.`);
+  }
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  main().catch((e) => { console.error(e.message); process.exit(1); });
+}

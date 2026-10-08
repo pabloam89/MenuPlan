@@ -52,6 +52,14 @@ export function resumenDeError(text) {
   return String(text ?? "").slice(0, 300);
 }
 
+/** El código de un error de PostgREST (SQLSTATE o PGRSTnnn), o null. */
+export function codigoDeError(text) {
+  try {
+    const j = JSON.parse(text);
+    return typeof j?.code === "string" && j.code ? j.code.slice(0, 12) : null;
+  } catch { return null; } // a propósito: sin JSON no hay código; el mensaje ya lleva el texto
+}
+
 async function pedir(ruta, { method = "GET", body, prefer } = {}) {
   const { url, headers } = config();
   const ctrl = new AbortController();
@@ -64,7 +72,9 @@ async function pedir(ruta, { method = "GET", body, prefer } = {}) {
       signal: ctrl.signal,
     });
     const text = await res.text();
-    if (!res.ok) throw new Error(`${method} ${ruta.split("?")[0]} → ${res.status} ${resumenDeError(text)}`);
+    // `status` y `codigo` van en el error para que avisar.js sepa por qué
+    // falló (motivoDe) sin leer el mensaje.
+    if (!res.ok) throw Object.assign(new Error(`${method} ${ruta.split("?")[0]} → ${res.status} ${resumenDeError(text)}`), { status: res.status, codigo: codigoDeError(text) });
     const datos = text ? JSON.parse(text) : null;
     // Un rpc que guarda contesta { ok }: solo cuenta si fue ok (un choque de
     // versión no es una escritura). Un PATCH que no tocó ninguna fila, tampoco.
@@ -102,7 +112,7 @@ export async function usuarioDeToken(accessToken) {
   });
   if (!res.ok) return null;
   // a propósito: un cuerpo que no es JSON es un token sin usuario
-  const u = await res.json().catch(seguirCon("db/usuario", null));
+  const u = await res.json().catch(seguirCon("db_usuario", null));
   return u?.id ? u : null;
 }
 
