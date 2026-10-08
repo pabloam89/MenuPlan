@@ -9,14 +9,12 @@
  * use api/_bot/agente.js (MODELO); la voz (Groq) no entra, es céntimos.
  */
 
-import fs from "node:fs";
 import pg from "pg";
+import { leerEnv } from "./lib/env.mjs";
 
 const PRECIO = { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 }; // USD / 1M tokens
 
-const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
-const dbUrl = env.match(/^SUPABASE_DB_URL="?([^"\r\n]+)/m)?.[1];
-if (!dbUrl) throw new Error("Falta SUPABASE_DB_URL en .env.local");
+const dbUrl = leerEnv("SUPABASE_DB_URL", { obligatoria: true });
 
 const mes = (process.argv[2] ?? new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date()).slice(0, 7)) + "-01";
 

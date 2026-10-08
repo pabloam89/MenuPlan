@@ -28,7 +28,8 @@
     "bot:panel": "node scripts/bot-panel.mjs",
     "tarea": "node scripts/tarea.mjs",
     "retirar": "node scripts/retirar.mjs",
-    "verificar:estado": "node scripts/verificar-estado.mjs"
+    "verificar:estado": "node scripts/verificar-estado.mjs",
+    "op": "node scripts/op.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",

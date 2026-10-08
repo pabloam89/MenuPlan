@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { SYSTEM_PROMPTS } from "../../api/_prompts.js";
 import { casaAleatoria } from "./casasAleatorias.js";
 import { medirUnidad, resumir } from "./solver.stress.test.js";
+import { leerEnv } from "../../scripts/lib/env.mjs";
 
 /**
  * El modelo contra el solver sobre LAS MISMAS casas. Llama a Anthropic de
@@ -19,10 +20,7 @@ const N = Number(process.env.VS_N ?? 12);
 const SALIDA = process.env.VS_OUT ?? "vs-modelo.json";
 
 function apiKey() {
-  const env = fs.readFileSync(".env.local", "utf8");
-  const m = env.match(/^ANTHROPIC_API_KEY="?([^"\r\n]+)"?/m);
-  if (!m) throw new Error("ANTHROPIC_API_KEY no está en .env.local");
-  return m[1];
+  return leerEnv("ANTHROPIC_API_KEY", { obligatoria: true });
 }
 
 function desviarFetch(key) {

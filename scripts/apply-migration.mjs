@@ -24,6 +24,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 import pg from "pg";
+import { cargarEnv } from "./lib/env.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIR = join(__dirname, "..", "supabase", "migrations");
@@ -35,8 +36,9 @@ if (!nombre) {
   for (const f of readdirSync(DIR).sort().slice(-5)) console.error(`   ${f.replace(/\.sql$/, "")}`);
   process.exit(1);
 }
+cargarEnv(["SUPABASE_DB_URL"]);
 if (!process.env.SUPABASE_DB_URL) {
-  console.error("Falta SUPABASE_DB_URL. Carga el entorno:  set -a; . ./.env.local; set +a");
+  console.error("Falta SUPABASE_DB_URL en .env.local o en el entorno");
   process.exit(1);
 }
 
