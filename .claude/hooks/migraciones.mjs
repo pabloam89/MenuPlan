@@ -16,7 +16,7 @@ const ejecuta = (cmd, args, cwd, timeout = 8000) => {
   try {
     return execFileSync(cmd, args, { cwd, encoding: "utf8", timeout, stdio: ["ignore", "pipe", "ignore"] });
   } catch {
-    return null;
+    return null; // a propósito: null es «no se sabe» (sin red, sin gh); cada uso lo dice o sigue sin ello
   }
 };
 const NOMBRE = /^(\d{4})_[\w-]+\.sql$/;
