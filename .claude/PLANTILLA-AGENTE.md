@@ -86,6 +86,9 @@ Cómo comprueba que terminó bien antes de devolver el informe, con evidencia.
 - **Un juez solo marca lo que importa.** Bloqueante o alto si rompe algo o
   incumple un requisito; el resto es «nit» y no bloquea. Un juez que siempre
   encuentra algo es ruido.
+- **Piensa en datos** (CLAUDE.md, «Pensar en datos»): vocabulario cerrado en
+  vez de texto libre, la clase en vez del caso, y la cifra antes y después de
+  cada arreglo.
 - Cumple el `CLAUDE.md` entero; su sección de gateways también le obliga.
 - Habla como un colega: prosa corta, en castellano, sin relleno.
 

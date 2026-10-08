@@ -31,6 +31,7 @@
     "retirar": "node scripts/retirar.mjs",
     "podar": "node scripts/podar.mjs",
     "issues": "node scripts/issues.mjs",
+    "hora": "node scripts/hora.mjs",
     "verificar:estado": "node scripts/verificar-estado.mjs",
     "op": "node scripts/op.mjs"
   },
