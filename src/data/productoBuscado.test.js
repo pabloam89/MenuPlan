@@ -58,6 +58,20 @@ describe("el emparejador no confunde alimentos parecidos", () => {
     expect(scoreProductName(producto, ingrediente)).toBeLessThan(0.4);
   });
 
+  // Ingredientes que el súper no vende: el producto que se llevaban antes
+  // llevaba el nombre de complemento. Mejor sin producto que con este.
+  it.each([
+    ["menta", "Infusión Menta Poleo Hacendado"],
+    ["hinojo", "Infusión Hinojo Hacendado"],
+    ["sandia", "Gelatina 0% azúcar sabor cereza, cola y sandía Hacendado"],
+    ["granada", "Refresco té rojo Zero Hacendado sabor frutos rojos, hibisco y granada"],
+    ["miso", "Sopa de miso"],
+    ["lentejas rojas", "Pasta fusilli 100% lentejas rojas Felicia"],
+    ["codorniz", "Huevos de codorniz"],
+  ])("«%s» no es «%s» (ni con confianza alta)", (ingrediente, producto) => {
+    expect(scoreProductName(producto, ingrediente)).toBeLessThan(0.7);
+  });
+
   it.each([
     ["gambas", "Gamba pelada cocida"],
     ["fresas", "Fresas"],
