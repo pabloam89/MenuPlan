@@ -37,6 +37,7 @@ import {
 import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 import { supervisar, frenoDeshacer } from "./supervisor.js";
 import { montarFicha, extrasDeFicha } from "./ficha.js";
+import { fichaRpc, leerFichaCasa, tareasDeFicha, calladasDeFicha, conLaFicha, olvidarFicha } from "./fichaRpc.js";
 import { montarMemoria, ORDEN as ORDEN_MEMORIA } from "./memoria.js";
 import { tramitar, bloqueDe, vigentesSegun } from "./pendientes.js";
 import { tareasAbiertas, clavesCalladas, anotarTarea, cerrarTarea, editarTarea, bloqueDeTareas, separarPorEstado, cerrarResueltas, promoverPreguntas } from "./tareas.js";
@@ -968,15 +969,23 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
       chat.idioma = await idiomaDe(p.userId).catch(() => null);
       return p;
     });
+  // Con BOT_FICHA_RPC, las tareas, lo callado y lo de seguridad de la ficha
+  // salen de ficha_casa en una ida (fichaRpc.js). Si no está o falla, null: se
+  // lee como siempre.
+  const deTablas = fichaRpc()
+    ? conPapel.then(() => leerFichaCasa({ householdId, userId: chat.userId, canal: channel }))
+    : Promise.resolve(null);
   // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
-  const [tope, mem, tools, casa, extrasBase, tareas, calladas] = await Promise.all([
+  const [tope, mem, tools, casa, extrasBase, tareas, calladas, tablas] = await Promise.all([
     fueraDeLimite(householdId), memoria(channel, chatId), conPapel.then(() => herramientas(chat)),
     cargarCasa(householdId).catch(() => null), extrasDeFicha(householdId, chatId),
-    conPapel.then(() => tareasAbiertas(householdId, { userId: chat.userId, privado: !esGrupo })).catch((e) => { console.error("[agente] tareas", e?.message); return []; }),
-    clavesCalladas(householdId).catch((e) => { console.error("[agente] calladas", e?.message); return new Set(); }),
+    conPapel.then(() => deTablas).then((f) => (f ? tareasDeFicha(f, { userId: chat.userId, privado: !esGrupo }) : tareasAbiertas(householdId, { userId: chat.userId, privado: !esGrupo }))).catch((e) => { console.error("[agente] tareas", e?.message); return []; }),
+    deTablas.then((f) => (f ? calladasDeFicha(f) : clavesCalladas(householdId))).catch((e) => { console.error("[agente] calladas", e?.message); return new Set(); }),
+    deTablas,
   ]);
-  const extras = { ...extrasBase, calladas };
+  const deLaFicha = tablas && casa ? conLaFicha(casa, tablas, calladas) : { casa };
+  const extras = { ...extrasBase, calladas, ...(deLaFicha.pendientes ? { pendientes: deLaFicha.pendientes } : {}) };
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
   const { historia, pendientes: guardadas } = mem;
   // El estado de la casa es la fuente de verdad: lo que ya resolvió se cierra
@@ -1000,7 +1009,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
-  const ficha = casa ? conQuienEscribe(montarFicha(casa, extras), chat.papel, chat.idioma) : null;
+  const ficha = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
   let dicho, uso, corregido, medida, sigueSinGuardar = false;
   const tLola = Date.now();
   // La pista del enrutador (api/_bot/pista.js). `progreso` lo rellena Lola
@@ -1100,7 +1109,11 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     segundaSemana(householdId).catch(() => {}),
     cierresPorEstado,
     promocion,
-  ]);
+  ]).then((r) => { if (tablas) olvidarFicha(householdId); return r; });
+  // Lo leído de ficha_casa no vale para el turno siguiente: este puede haber
+  // anotado o cerrado tareas sin que cambie bot_rev. Se olvida ya y otra vez al
+  // acabar de guardar (cierres y promociones van en `guardado`).
+  if (tablas) olvidarFicha(householdId);
 
   return { texto: respuesta, fotos: chat.fotos, deshacible: false, ir: chat.ir, compartir: chat.compartir, pintar: chat.pintar, guardado, medida, idioma: chat.idioma ?? null };
 }
