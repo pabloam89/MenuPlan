@@ -58,7 +58,8 @@ describe("números de migración", () => {
   });
 
   it("lo de mi propia carpeta no sale como «de otro»", () => {
-    const r = resumen(staging, [{ nombre: "0087_mia", donde: "yo", ruta: "C:/dev/MenuPlan-yo" }], "c:/dev/menuplan-yo");
+    // git da C:/dev/…, Claude Code da C:\dev\…: tienen que ser la misma carpeta.
+    const r = resumen(staging, [{ nombre: "0087_mia", donde: "yo", ruta: "C:/dev/MenuPlan-yo" }], "C:\\dev\\MenuPlan-yo\\");
     expect(r.ocupados).toEqual([]);
     expect(r.siguiente).toBe("0088");
   });

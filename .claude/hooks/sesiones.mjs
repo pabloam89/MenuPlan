@@ -13,7 +13,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 
 export const ACTIVA_H = 3;
 export const CADUCA_H = 48;
@@ -31,7 +31,9 @@ export function dirSesiones(desde) {
 }
 
 const valido = (id) => typeof id === "string" && /^[\w-]{6,80}$/.test(id);
-const misma = (a, b) => resolve(a).toLowerCase() === resolve(b).toLowerCase();
+/** Rutas comparables en Windows y en Linux (el CI): barras, mayúsculas y la barra final. */
+export const normaRuta = (p) => String(p).replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+const misma = (a, b) => normaRuta(a) === normaRuta(b);
 
 export function apuntar(dir, { id, cwd, rama }) {
   if (!dir || !valido(id)) return;

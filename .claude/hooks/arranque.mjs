@@ -14,7 +14,7 @@ import { basename, join } from "node:path";
 
 import { sinAplicar } from "./guardia.mjs";
 import { enPrs, enStaging, enWorktrees, resumen } from "./migraciones.mjs";
-import { activas, apuntar, dirSesiones, listar } from "./sesiones.mjs";
+import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
 
 let entrada = {};
 try {
@@ -56,11 +56,11 @@ const dir = dirSesiones(raiz);
 try {
   const otras = activas(listar(dir)).filter((s) => s.id !== entrada.session_id);
   apuntar(dir, { id: entrada.session_id, cwd: raiz, rama });
-  const aqui = otras.filter((s) => s.cwd.toLowerCase() === raiz.toLowerCase());
+  const aqui = otras.filter((s) => normaRuta(s.cwd) === normaRuta(raiz));
   if (aqui.length) {
     avisos.push(`AVISO: hay ${aqui.length === 1 ? "otra sesión activa" : `${aqui.length} sesiones activas`} en esta MISMA carpeta. Dos sesiones en una carpeta se pisan: abre la tuya con \`npm run tarea\`.`);
   }
-  const misma = otras.filter((s) => s.rama === rama && s.cwd.toLowerCase() !== raiz.toLowerCase() && rama !== "staging");
+  const misma = otras.filter((s) => s.rama === rama && normaRuta(s.cwd) !== normaRuta(raiz) && rama !== "staging");
   if (misma.length) avisos.push(`AVISO: la rama ${rama} también está abierta en ${misma.map((s) => basename(s.cwd)).join(", ")}.`);
   if (otras.length) {
     const h = (x) => (x < 1 ? `${Math.round(x * 60)} min` : `${x.toFixed(1)} h`);

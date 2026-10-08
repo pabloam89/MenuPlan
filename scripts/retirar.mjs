@@ -18,7 +18,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, rmSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 
-import { dirSesiones, enCarpeta, listar } from "../.claude/hooks/sesiones.mjs";
+import { dirSesiones, enCarpeta, listar, normaRuta } from "../.claude/hooks/sesiones.mjs";
 
 const git = (args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 const intenta = (fn) => {
@@ -51,7 +51,7 @@ export function elegir(worktrees, texto) {
 /** Lo que se perdería. Vacío = se puede borrar. */
 export function motivosParaNo({ principal, ruta, sucios, sesiones, sinSubir }) {
   const no = [];
-  if (resolve(ruta).toLowerCase() === resolve(principal).toLowerCase()) no.push("es la carpeta principal: esa no se retira");
+  if (normaRuta(ruta) === normaRuta(principal)) no.push("es la carpeta principal: esa no se retira");
   if (sucios.length) no.push(`tiene cambios sin commitear:\n      ${sucios.slice(0, 10).join("\n      ")}${sucios.length > 10 ? `\n      … y ${sucios.length - 10} más` : ""}`);
   if (sinSubir.length) no.push(`tiene commits que no están en GitHub ni en staging:\n      ${sinSubir.slice(0, 10).join("\n      ")}`);
   if (sesiones.length) no.push(`hay ${sesiones.length} sesión(es) de Claude activa(s) en esa carpeta: ciérrala(s) antes`);

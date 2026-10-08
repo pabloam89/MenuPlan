@@ -10,6 +10,8 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
 import { basename, join } from "node:path";
 
+import { normaRuta } from "./sesiones.mjs";
+
 const ejecuta = (cmd, args, cwd, timeout = 8000) => {
   try {
     return execFileSync(cmd, args, { cwd, encoding: "utf8", timeout, stdio: ["ignore", "pipe", "ignore"] });
@@ -75,7 +77,7 @@ export function enPrs(raiz, deStaging) {
 export function resumen(deStaging, fuera, aqui = null) {
   const num = (n) => Number(n.slice(0, 4));
   const ultimo = Math.max(0, ...deStaging.map(num));
-  const deOtros = fuera.filter((m) => !aqui || !m.ruta || m.ruta.toLowerCase() !== aqui.toLowerCase());
+  const deOtros = fuera.filter((m) => !aqui || !m.ruta || normaRuta(m.ruta) !== normaRuta(aqui));
   const porNombre = new Map();
   for (const m of deOtros) porNombre.set(m.nombre, [...new Set([...(porNombre.get(m.nombre) ?? []), m.donde])]);
   const ocupados = [...porNombre.entries()].map(([nombre, donde]) => ({ nombre, donde })).sort((a, b) => a.nombre.localeCompare(b.nombre));
