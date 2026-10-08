@@ -11,6 +11,7 @@
  * un «Para hoy» o «la merluza» se leían como peticiones nuevas.
  */
 
+import { fallaCon } from "./avisar.js";
 import { cargarCasa, deshacer, hoyISO } from "./casa.js";
 import { quitaProteccion } from "./supervisor.js";
 import {
@@ -287,7 +288,7 @@ export async function aplicarEleccion(eleccion, propuesta, householdId) {
 
 /** Contexto que el enrutador necesita: quién hay, los grupos y si hay menú esta semana. */
 export async function contextoDe(householdId) {
-  const casa = await cargarCasa(householdId).catch(() => null);
+  const casa = await cargarCasa(householdId).catch(fallaCon("turno/casa", null));
   const miembros = casa?.state?.data?.members ?? [];
   const hoyISO = isoDeCasa();
   return {
