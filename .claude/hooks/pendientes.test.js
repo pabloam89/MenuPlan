@@ -5,8 +5,23 @@ import { leerTranscript, pendientesSinIssue } from "./pendientes.mjs";
 const linea = (content) => JSON.stringify({ type: "assistant", message: { content } });
 
 describe("pendientes al terminar (#207)", () => {
-  it("deja decisiones y no ha tocado ningún issue: frena", () =>
-    expect(pendientesSinIssue({ ultimo: "**Decisiones para Pablo:** cerrar el #94", comandos: ["git status"] })).toBe(true));
+  it.each([
+    "**Decisiones para Pablo:** cerrar el script de ids viejos",
+    "Decisiones para Pablo:\n- rescatar el emparejador\n- probar Mercadona",
+    "Queda pendiente decidir qué hacemos con la rama del iPhone.",
+  ])("deja pendientes sin issue y no ha tocado ninguno: frena (%s)", (ultimo) =>
+    expect(pendientesSinIssue({ ultimo, comandos: ["git status"] })).toBe(true));
+
+  // Falsos positivos que vio el juez (8 oct): la cabecera fija del informe de
+  // los agentes, las negaciones y los pendientes que ya tienen su issue.
+  it.each([
+    "DECISIONES PENDIENTES:\n- ninguna",
+    "Sin pendientes: fusionado y retirado.",
+    "Nada pendiente: PR #210 fusionado.",
+    "Queda pendiente el #94",
+    "Decisiones para Pablo:\n- #194 cerrar el script\n- #196 el emparejador",
+    "No quedan pendientes.",
+  ])("no frena: %s", (ultimo) => expect(pendientesSinIssue({ ultimo, comandos: [] })).toBe(false));
   it("si ya creó o comentó un issue en la sesión, no", () => {
     expect(pendientesSinIssue({ ultimo: "Queda pendiente el #94", comandos: ['npm run issues -- --nuevo "x" --tipo decision'] })).toBe(false);
     expect(pendientesSinIssue({ ultimo: "Queda pendiente el #94", comandos: ["gh issue comment 94 --body x"] })).toBe(false);

@@ -135,6 +135,13 @@ if (args.includes("--etiquetas")) {
   for (const [g, v] of extra) if (!GRUPOS[g].valores[v]) fallo(`--${g} tiene que ser uno de: ${Object.keys(GRUPOS[g].valores).join(", ")}.`);
 
   const issues = todos();
+  // El padre se valida antes de crear: si no, el issue queda creado y suelto.
+  const padre = Number(String(valor("--padre") ?? "").replace("#", ""));
+  if (padre) {
+    const f = issues.find((i) => i.number === padre);
+    if (!f || !porGrupo(f.labels.map((l) => l.name)).tipo.has("fondo")) fallo(`#${padre} no es un problema de fondo (tipo:fondo).`);
+    if (tipo !== "caso" && tipo !== "encargo") fallo("De un fondo solo cuelgan casos y encargos.");
+  }
   const texto = readFileSync(cuerpo, "utf8");
   const hay = parecidos(issues, { titulo, cuerpo: texto });
   if (hay.length && !args.includes("--crear-igual")) {
@@ -155,7 +162,6 @@ if (args.includes("--etiquetas")) {
     const url = gh(...crear).trim();
     const n = Number(url.match(/(\d+)\s*$/)?.[1]);
     console.log(`Creado #${n}: ${url}`);
-    const padre = Number(String(valor("--padre") ?? "").replace("#", ""));
     if (padre) colgar(todos(), n, padre);
   } catch (e) {
     console.error(motivo(e));

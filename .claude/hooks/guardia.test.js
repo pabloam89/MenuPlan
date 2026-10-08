@@ -225,7 +225,13 @@ describe("gh pr merge", () => {
 });
 
 describe("los issues se crean buscando antes (#204)", () => {
-  it.each(['gh issue create --title "x" --label tipo:caso', 'cd /c/dev/MenuPlan-x && gh issue create -t x -F f.md'])("niega %s", (c) =>
+  it.each([
+    'gh issue create --title "x" --label tipo:caso',
+    "cd /c/dev/MenuPlan-x && gh issue create -t x -F f.md",
+    "gh -R pabloam89/MenuPlan issue create -t x",
+    "GH_REPO=pabloam89/MenuPlan gh issue create -t x",
+    "gh.exe issue create -t x",
+  ])("niega %s", (c) =>
     expect(bash(c)).toBe("deny"));
   it.each(['npm run issues -- --nuevo "x" --tipo caso --area ops --cuerpo f.md', "gh issue comment 94 --body x", "gh issue list"])("deja %s", (c) =>
     expect(bash(c)).toBe(null));
@@ -238,6 +244,19 @@ describe("PR de una rama con issue: lleva su Closes (#206)", () => {
     expect(bash('gh pr create --base staging --body "$(cat <<\'EOF\'\nCloses #193\nEOF\n)"', conIssue())).toBe(null));
   it("con Closes en el --body-file, sí", () =>
     expect(bash("gh pr create --base staging --body-file pr.md", conIssue({ leer: () => "Fixes #193\nAgente: gobierno" }))).toBe(null));
+  // Las formas que vio el juez (8 oct): `-F`, `--body-file=`, rutas de Git Bash y `Closes:`.
+  it.each(["gh pr create -F pr.md", "gh pr create --body-file=pr.md", 'gh pr create --body-file "pr.md"'])("lee el cuerpo de %s", (c) =>
+    expect(bash(c, conIssue({ leer: () => "Closes #193" }))).toBe(null));
+  it("traduce las rutas de Git Bash antes de leer", () => {
+    let leida;
+    bash("gh pr create --body-file /c/Users/x/pr.md", conIssue({ leer: (f) => ((leida = f), "Closes #193") }));
+    expect(leida).toBe("c:/Users/x/pr.md");
+  });
+  it("acepta «Closes: #193»", () => expect(bash('gh pr create --body "Closes: #193"', conIssue())).toBe(null));
+  it("--head dueño:rama y entre comillas también cuentan", () => {
+    expect(bash('gh pr create --head pabloam89:ops/193-x --body "x"', ctx())).toBe("deny");
+    expect(bash('gh pr create --head "ops/193-x" --body "x"', ctx())).toBe("deny");
+  });
   it("otro número no vale", () => expect(bash('gh pr create --body "Closes #19"', conIssue())).toBe("deny"));
   it("--head manda sobre la rama de la carpeta", () =>
     expect(bash('gh pr create --head ops/7-x --body "Closes #193"', conIssue())).toBe("deny"));

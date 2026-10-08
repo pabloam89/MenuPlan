@@ -16,14 +16,35 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-/** Frases que dicen «esto queda por decidir o por hacer». */
-const PENDIENTE = /decisiones para pablo|quedan? pendientes?|pendientes?\s*:|lo dejo pendiente|te toca decidir|falta que decidas/i;
+/** Frases que dicen «esto queda por decidir o por hacer» (sin acentos). */
+const PENDIENTE = /decisiones (?:para pablo|pendientes)|quedan? pendientes?|lo dejo pendiente|te toca decidir|falta que decidas/i;
+/** Lo que dice que no queda nada: «ninguna», «sin pendientes», «no hay»… */
+const NADA = /\b(?:sin|nada|ningun[oa]?|no hay|no quedan?)\b/i;
 /** Comandos que dejan rastro en un issue. */
 const A_ISSUE = /npm run issues\s+--\s+--nuevo|gh\s+issue\s+(?:create|comment)|--colgar/;
 
-/** ¿Deja el último mensaje pendientes sin que la sesión haya tocado ningún issue? */
+/**
+ * ¿Deja el último mensaje pendientes sin issue, y la sesión no ha tocado
+ * ninguno? Un pendiente cuenta si lo que lo sigue (el resto de la línea y la
+ * lista que cuelga debajo) tiene algo que no cita un `#n` ni dice «ninguna»:
+ * la cabecera fija «DECISIONES PENDIENTES: ninguna» del informe de los agentes
+ * o «Queda pendiente el #94» no frenan.
+ */
 export function pendientesSinIssue({ ultimo, comandos }) {
-  return PENDIENTE.test(String(ultimo ?? "")) && !comandos.some((c) => A_ISSUE.test(String(c)));
+  if (comandos.some((c) => A_ISSUE.test(String(c)))) return false;
+  const lineas = String(ultimo ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").split("\n");
+  return lineas.some((l, i) => {
+    const m = PENDIENTE.exec(l);
+    if (!m || NADA.test(l.slice(0, m.index + m[0].length))) return false;
+    const debajo = [];
+    for (const s of lineas.slice(i + 1, i + 16)) {
+      if (!s.trim()) break;
+      debajo.push(s);
+    }
+    const items = [l.slice(m.index + m[0].length), ...debajo].map((s) => s.replace(/^[\s:*\-–·.]+/, "").trim()).filter(Boolean);
+    if (!items.length) return true;
+    return items.some((s) => !/#\d+/.test(s) && !NADA.test(s));
+  });
 }
 
 /** Del transcript (JSONL): el último texto de Claude y todos los comandos de shell. */
@@ -35,6 +56,7 @@ export function leerTranscript(jsonl) {
     try {
       e = JSON.parse(linea);
     } catch {
+      // a propósito: una línea del transcript que no es JSON (cortada al escribir) se salta
       continue;
     }
     if (e?.type !== "assistant") continue;
@@ -67,7 +89,7 @@ if (esPrincipal) {
       process.stdout.write(JSON.stringify({ decision: "block", reason: RECORDATORIO }));
     }
   } catch {
-    // un recordatorio, no un vigilante: si falla, calla
+    // a propósito: un recordatorio, no un vigilante; si falla, la sesión termina normal
   }
   process.exit(0);
 }

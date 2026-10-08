@@ -28,7 +28,7 @@ export function avisoDe(issues, ruta) {
   if (!hay.length) return null;
   const nombre = String(ruta).replace(/^.*[\\/]/, "");
   const lista = hay.slice(0, 5).map((i) => `#${i.number} ${i.title}`).join("; ");
-  return `[avisos] Hay ${hay.length} issue(s) abierto(s) que nombran ${nombre}: ${lista}${hay.length > 5 ? "; …" : ""}. `
+  return `[avisos] Hay ${hay.length} issue(s) abierto(s) que nombran ${nombre}: ${lista}${hay.length > 5 ? " y más" : ""}. `
     + "Míralos (`gh issue view <n>`): puede que ya los lleve alguien, que tu cambio los arregle (pon `Closes #n` en el PR) o que te cuenten algo que no sabías.";
 }
 
@@ -66,7 +66,7 @@ if (esPrincipal) {
       process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PostToolUse", additionalContext: aviso } }));
     }
   } catch {
-    // una ayuda, no un vigilante: si falla, calla
+    // a propósito: una ayuda, no un vigilante; sin red o sin gh, la edición sigue sin aviso
   }
   process.exit(0);
 }

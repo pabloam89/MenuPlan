@@ -15,6 +15,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -65,7 +66,8 @@ const REGLAS_COMANDO = [
   {
     // El 8 oct 2026 tres sesiones abrieron el mismo fallo (#153, #154, #159):
     // la norma pedía buscar antes y nada obligaba. El script busca los parecidos.
-    si: (o) => /^gh\s+issue\s+create\b/.test(o),
+    // También con `VAR=x gh …`, `gh.exe` o `gh -R dueño/repo issue create`.
+    si: (o) => /^(?:\w+=\S*\s+)*gh(?:\.exe)?\s+(?:(?:-R|--repo)\s+\S+\s+)?issue\s+create\b/.test(o),
     da: () => deny("Los issues se crean con `npm run issues -- --nuevo \"título\" --tipo … --area … --cuerpo <fichero>`: antes de crear enseña los parecidos, y a Pablo le asigna las decisiones. Si ya existe uno, comenta allí."),
   },
   {
@@ -219,8 +221,12 @@ export function migracionCerrada(nombre, { enStaging, estadoMd, numeroEnStaging 
  * `cd` anterior en el comando, o la de la sesión. Las sesiones suelen quedarse
  * en la carpeta principal y hacer `cd C:/dev/MenuPlan-x && …`.
  */
+/** Una ruta de Git Bash a Windows: `/c/dev/x` → `c:/dev/x`, `/tmp/x` → la carpeta temporal. */
+export function windows(p) {
+  return p.replace(/^\/tmp(?=\/|$)/, tmpdir().replace(/\\/g, "/")).replace(/^\/([a-z])\//i, "$1:/");
+}
+
 export function carpetaDe(cmd, orden, cwd) {
-  const windows = (p) => p.replace(/^\/([a-z])\//i, "$1:/");
   const c = orden.match(/^git\s+-C\s+(?:"([^"]+)"|'([^']+)'|(\S+))/);
   if (c) return windows(c[1] ?? c[2] ?? c[3]);
   const hasta = cmd.indexOf(orden);
@@ -295,6 +301,7 @@ function contextoReal(raiz) {
       try {
         return git(["-C", dir, "rev-parse", "--abbrev-ref", "HEAD"]);
       } catch {
+        // a propósito: sin rama legible no se exige el Closes (null = no se sabe)
         return null;
       }
     },
@@ -302,6 +309,7 @@ function contextoReal(raiz) {
       try {
         return readFileSync(resolve(dir, fichero), "utf8");
       } catch {
+        // a propósito: un --body-file ilegible cuenta como cuerpo vacío, y entonces se pide el Closes
         return null;
       }
     },
@@ -366,13 +374,15 @@ export function decidir(entrada, ctx) {
         // Rama con issue (`npm run tarea -- ops/x 193` → `ops/193-x`): el PR lo
         // cierra. Sin el `Closes`, el issue se queda abierto y la traza no sabe
         // quién lo arregló (8 oct 2026: ninguna rama vieja tenía issue).
-        const rama = o.match(/--head\s+(\S+)/)?.[1] ?? ctx.ramaDe(dir);
+        // `--head ops/x`, `--head "ops/x"` o `--head dueño:ops/x`.
+        const rama = o.match(/(?:-H|--head)(?:\s+|=)["']?(?:[\w-]+:)?([^\s"']+)/)?.[1] ?? ctx.ramaDe(dir);
         const issue = rama?.match(/^[a-z]+\/(\d+)-/)?.[1];
         if (issue) {
-          const fichero = o.match(/--body-file\s+(?:"([^"]+)"|'([^']+)'|(\S+))/);
-          const cuerpo = fichero ? ctx.leer(fichero[1] ?? fichero[2] ?? fichero[3], dir) ?? "" : "";
+          // `--body-file f`, `--body-file=f` o `-F f`, con rutas de Git Bash (`/c/…`, `/tmp/…`).
+          const fichero = o.match(/(?:-F|--body-file)(?:\s+|=)(?:"([^"]+)"|'([^']+)'|(\S+))/);
+          const cuerpo = fichero ? ctx.leer(windows(fichero[1] ?? fichero[2] ?? fichero[3]), dir) ?? "" : "";
           const texto = `${cmd}\n${cuerpo}`;
-          if (!new RegExp(String.raw`\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+#${issue}\b`, "i").test(texto)) {
+          if (!new RegExp(String.raw`\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?\s+#${issue}\b`, "i").test(texto)) {
             return deny(`Tu rama es del issue #${issue}: pon \`Closes #${issue}\` en el cuerpo del PR (y la línea \`Agente: <nombre>\`), para que se cierre al fusionar y quede la traza.`);
           }
         }
