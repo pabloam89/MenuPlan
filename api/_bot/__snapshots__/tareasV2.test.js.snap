@@ -1,0 +1,411 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`sin BOT_TAREAS_V2: lo de siempre, byte a byte > las mismas llamadas a la base, con los mismos cuerpos 1`] = `
+[
+  [
+    "select",
+    "bot_tareas",
+    "household_id=eq.11111111-1111-1111-1111-111111111111&status=eq.abierta&kind=eq.seguimiento&caduca_at=gt.2026-10-08T10%3A00%3A00.000Z&order=created_at.asc",
+    "id,texto,scope,owner_user_id",
+  ],
+  [
+    "insert",
+    "bot_tareas",
+    [
+      {
+        "asignado_member": null,
+        "caduca_at": "2026-10-11T23:59:59.000Z",
+        "channel": "telegram",
+        "chat_id": "c1",
+        "clave": "seguimiento:isa:pan-sabado",
+        "created_by": "22222222-2222-2222-2222-222222222222",
+        "household_id": "11111111-1111-1111-1111-111111111111",
+        "kind": "seguimiento",
+        "owner_user_id": null,
+        "para_member": "isa",
+        "scope": "casa",
+        "texto": "comprar pan para el sábado",
+        "vence": "2026-10-10",
+      },
+    ],
+  ],
+  [
+    "evento",
+    "bot_task_created",
+    {
+      "extra": {
+        "conAviso": true,
+        "conFecha": true,
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "seguimiento",
+        "tema": null,
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+  [
+    "insert",
+    "bot_tareas",
+    [
+      {
+        "asignado_member": null,
+        "caduca_at": "2026-11-07T10:00:00.000Z",
+        "channel": "telegram",
+        "chat_id": "c1",
+        "clave": "alergias:nat",
+        "created_by": "22222222-2222-2222-2222-222222222222",
+        "household_id": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "owner_user_id": null,
+        "para_member": "nat",
+        "scope": "casa",
+        "texto": "si tiene alguna alergia",
+        "vence": null,
+      },
+    ],
+  ],
+  [
+    "evento",
+    "bot_task_created",
+    {
+      "extra": {
+        "conAviso": false,
+        "conFecha": false,
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "tema": "alergias",
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+  [
+    "insert",
+    "bot_tareas",
+    [
+      {
+        "asignado_member": null,
+        "caduca_at": "2026-10-29T10:00:00.000Z",
+        "channel": "telegram",
+        "chat_id": "c1",
+        "clave": "etapa:cova",
+        "created_by": "22222222-2222-2222-2222-222222222222",
+        "household_id": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "owner_user_id": null,
+        "para_member": "cova",
+        "scope": "casa",
+        "texto": "cómo come",
+        "vence": null,
+      },
+    ],
+  ],
+  [
+    "evento",
+    "bot_task_created",
+    {
+      "extra": {
+        "conAviso": false,
+        "conFecha": false,
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "tema": "etapa_bebe",
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+  [
+    "insert",
+    "bot_tareas",
+    [
+      {
+        "asignado_member": null,
+        "caduca_at": "2026-10-22T10:00:00.000Z",
+        "channel": "telegram",
+        "chat_id": "c1",
+        "clave": "pregunta:casa:abuela-comer-dia-viene",
+        "created_by": "22222222-2222-2222-2222-222222222222",
+        "household_id": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "owner_user_id": null,
+        "para_member": null,
+        "scope": "casa",
+        "texto": "qué día viene la abuela a comer",
+        "vence": null,
+      },
+    ],
+  ],
+  [
+    "evento",
+    "bot_task_created",
+    {
+      "extra": {
+        "conAviso": false,
+        "conFecha": false,
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "tema": null,
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+  [
+    "insert",
+    "bot_tareas",
+    [
+      {
+        "asignado_member": null,
+        "caduca_at": "2026-11-07T10:00:00.000Z",
+        "channel": "telegram",
+        "chat_id": "c1",
+        "clave": "alergias:isa",
+        "created_by": "22222222-2222-2222-2222-222222222222",
+        "household_id": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "owner_user_id": null,
+        "para_member": null,
+        "scope": "casa",
+        "texto": "si Isa tiene alguna intolerancia",
+        "vence": null,
+      },
+    ],
+  ],
+  [
+    "evento",
+    "bot_task_created",
+    {
+      "extra": {
+        "conAviso": false,
+        "conFecha": false,
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "tema": "alergias",
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+  [
+    "insert",
+    "bot_tareas",
+    [
+      {
+        "asignado_member": null,
+        "caduca_at": "2026-11-07T10:00:00.000Z",
+        "channel": "telegram",
+        "chat_id": "c1",
+        "clave": "alergias:nat",
+        "created_by": "22222222-2222-2222-2222-222222222222",
+        "household_id": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "owner_user_id": null,
+        "para_member": "nat",
+        "scope": "casa",
+        "texto": "si tiene alguna alergia",
+        "vence": null,
+      },
+    ],
+  ],
+  [
+    "evento",
+    "bot_task_duplicate",
+    {
+      "extra": {
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+  [
+    "insert",
+    "bot_tareas",
+    [
+      {
+        "caduca_at": "2026-11-07T10:00:00.000Z",
+        "channel": "telegram",
+        "chat_id": "c1",
+        "clave": "alergias:leo",
+        "created_by": "22222222-2222-2222-2222-222222222222",
+        "household_id": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "scope": "casa",
+        "texto": "¿Leo tiene alguna alergia?",
+      },
+    ],
+  ],
+  [
+    "evento",
+    "bot_task_created",
+    {
+      "extra": {
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "origen": "codigo",
+        "tema": "alergias",
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+  [
+    "insert",
+    "bot_tareas",
+    [
+      {
+        "caduca_at": "2026-10-29T10:00:00.000Z",
+        "channel": "telegram",
+        "chat_id": "c1",
+        "clave": "etapa:cova",
+        "created_by": "22222222-2222-2222-2222-222222222222",
+        "falta": "¿Cova come purés o trozos?",
+        "household_id": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "scope": "casa",
+        "texto": "qué le doy a",
+      },
+    ],
+  ],
+  [
+    "select",
+    "bot_tareas",
+    "household_id=eq.11111111-1111-1111-1111-111111111111&status=eq.abierta&caduca_at=gt.2026-10-08T10%3A00%3A00.000Z&or=(scope.eq.casa,and(scope.eq.personal,owner_user_id.eq.22222222-2222-2222-2222-222222222222))&order=created_at.desc&limit=50",
+    "id,kind,scope,texto,falta,clave,chat_id,para_member,asignado_member,vence,caduca_at,created_at",
+  ],
+  [
+    "select",
+    "bot_tareas",
+    "household_id=eq.11111111-1111-1111-1111-111111111111&status=eq.rechazada&clave=not.is.null",
+    "clave",
+  ],
+  [
+    "update",
+    "bot_tareas",
+    "id=eq.t1aaaaaaaa&household_id=eq.11111111-1111-1111-1111-111111111111&status=eq.abierta",
+    {
+      "clave": "seguimiento:nat:leche-pan-sabado",
+      "para_member": "nat",
+      "texto": "pan y leche para el sábado",
+      "updated_at": "2026-10-08T10:00:00.000Z",
+    },
+  ],
+  [
+    "update",
+    "bot_tareas",
+    "id=eq.t4aaaaaaaa&household_id=eq.11111111-1111-1111-1111-111111111111&status=eq.abierta",
+    {
+      "closed_at": "2026-10-08T10:00:00.000Z",
+      "status": "rechazada",
+      "updated_at": "2026-10-08T10:00:00.000Z",
+    },
+  ],
+  [
+    "evento",
+    "bot_task_closed",
+    {
+      "extra": {
+        "estado": "rechazada",
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+        "otroChat": false,
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+  [
+    "update",
+    "bot_tareas",
+    "id=eq.t1aaaaaaaa&household_id=eq.11111111-1111-1111-1111-111111111111&status=eq.abierta",
+    {
+      "closed_at": "2026-10-08T10:00:00.000Z",
+      "status": "hecha",
+      "updated_at": "2026-10-08T10:00:00.000Z",
+    },
+  ],
+  [
+    "evento",
+    "bot_task_closed",
+    {
+      "extra": {
+        "estado": "hecha",
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "seguimiento",
+        "otroChat": false,
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+  [
+    "select",
+    "bot_tareas",
+    "household_id=eq.11111111-1111-1111-1111-111111111111&status=eq.abierta&or=(clave.like.alergias:*,clave.like.etapa:*)",
+    "id,kind,clave",
+  ],
+  [
+    "update",
+    "bot_tareas",
+    "id=eq.t2aaaaaaaa&status=eq.abierta",
+    {
+      "closed_at": "2026-10-08T10:00:00.000Z",
+      "status": "hecha",
+      "updated_at": "2026-10-08T10:00:00.000Z",
+    },
+  ],
+  [
+    "update",
+    "bot_tareas",
+    "id=eq.t3aaaaaaaa&status=eq.abierta",
+    {
+      "closed_at": "2026-10-08T10:00:00.000Z",
+      "status": "hecha",
+      "updated_at": "2026-10-08T10:00:00.000Z",
+    },
+  ],
+  [
+    "update",
+    "bot_tareas",
+    "id=eq.t6aaaaaaaa&status=eq.abierta",
+    {
+      "closed_at": "2026-10-08T10:00:00.000Z",
+      "status": "descartada",
+      "updated_at": "2026-10-08T10:00:00.000Z",
+    },
+  ],
+  [
+    "evento",
+    "bot_task_auto_closed",
+    {
+      "extra": {
+        "clave": "alergias:nat",
+        "estado": "hecha",
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+  [
+    "evento",
+    "bot_task_auto_closed",
+    {
+      "extra": {
+        "clave": "etapa:cova",
+        "estado": "hecha",
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+  [
+    "evento",
+    "bot_task_auto_closed",
+    {
+      "extra": {
+        "clave": "alergias:leo",
+        "estado": "descartada",
+        "householdId": "11111111-1111-1111-1111-111111111111",
+        "kind": "pregunta",
+      },
+      "userId": "22222222-2222-2222-2222-222222222222",
+    },
+  ],
+]
+`;

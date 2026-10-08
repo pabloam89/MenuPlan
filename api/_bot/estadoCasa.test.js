@@ -28,7 +28,7 @@ describe("temaDe: clasificador determinista, con fronteras de palabra", () => {
     expect(temaDe("¿tiene alguna alergia o intolerancia?")).toBe("alergias");
   });
   it("cómo come el bebé", () => {
-    expect(temaDe("¿Cova ya come sólidos o sigue con purés?")).toBe("etapa_bebe");
+    expect(temaDe("¿Cova ya come sólidos o sigue con purés?")).toBe("etapaBebe");
   });
   it("no confunde palabras que contienen otras («purés» dentro de «impurezas»)", () => {
     expect(temaDe("¿quitamos las impurezas del caldo?")).toBe(null);
