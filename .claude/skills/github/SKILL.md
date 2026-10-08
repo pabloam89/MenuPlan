@@ -54,7 +54,15 @@ gh run rerun <run-id> --failed              # relanzar lo que falló
 gh workflow run tests.yml --ref <rama>      # lanzar a mano (workflow_dispatch)
 gh pr merge <n> --merge                     # solo a staging; la guardia lo vigila
 gh api repos/pabloam89/MenuPlan -q .security_and_analysis   # seguridad, en lectura
+npm run podar                               # ensayo: ramas fusionadas que borraría
+npm run podar -- --si                       # borrarlas (GitHub y locales con -d)
 ```
+
+- **Ramas viejas:** GitHub borra la rama al fusionar el PR
+  (`delete_branch_on_merge`), pero las de antes del 8 oct 2026 se quedaron.
+  `scripts/podar.mjs` borra solo las fusionadas enteras en `origin/staging`,
+  sin PR abierto, de hace más de 1 día y sin worktree. Lo que no está en
+  staging sale como «sin fusionar: decide Pablo» y no se toca.
 
 - **¿Está en staging?** Se contesta con `git fetch origin` y mirando
   `origin/staging`, nunca el upstream de tu rama.
