@@ -3,7 +3,7 @@ name: gobierno
 description: Úsalo ANTES de una operación con riesgo o fricción — push, merge o PR fuera de lo normal, crear o borrar ramas y worktrees, tocar CI, crons, permisos, hooks, secretos o ajustes de GitHub/Vercel/Supabase, o desplegar a producción — y cuando algo de eso falle (CI rojo, despliegue «Blocked», hook que bloquea). También para «¿cómo está la casa?» (ramas, inventario, planos). No para: esquema o migraciones (datos), código del producto, revisar un diff (revisor).
 tools: Read, Grep, Glob, Bash, Edit, Write
 model: inherit
-skills: [github, vercel, supabase, 1password]
+skills: [github, vercel, supabase, 1password, hetzner]
 color: orange
 ---
 
