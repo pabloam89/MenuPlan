@@ -1,7 +1,7 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, abrirLola, avisarAltaALola } from "./lib/frontalBot.js";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
-import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
+import { LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
+import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton } from "./components/ui.jsx";
 import {
   OnboardingMembers,
   OnboardingRestrictions,
@@ -123,7 +123,6 @@ import {
   deleteMenu as deleteMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
   saveAndActivateMenu,
-  ponerMenuActivo,
   queueSaveMenuWeek,
   queueMarcarCompra,
 } from "./lib/menusSync.js";
@@ -188,13 +187,6 @@ import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { filterOwnCreatedRecipes, filterMyLibraryRecipes } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuentaId, memberIllustratedAvatarSrc } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
-import {
-  DEFAULT_ROSTER_ID,
-  ensureRosters,
-  listRosters,
-  startOtherRoster,
-  switchRoster,
-} from "./lib/rosters.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
@@ -520,12 +512,9 @@ const INITIAL_DATA = {
   // Uploaded receipts (the "facturas" inbox): { id, createdAt, store,
   // purchasedAt, total, lineCount }.
   receipts: [],
-  // ── Grupos de personas para los que planificas (lib/rosters.js) ──
-  // El roster activo vive en los campos de arriba (members, groups, schedule…);
-  // los demás se aparcan aquí y se intercambian al cambiar de grupo, de modo
-  // que "Otro grupo" ya no contamina la familia habitual.
-  rosters: {},
-  activeRosterId: DEFAULT_ROSTER_ID,
+  // Ya no hay varios rosters (8 oct 2026): la familia es una, la de arriba.
+  // Las casas viejas pueden traer data.rosters / data.activeRosterId; se
+  // conservan tal cual y nadie los lee.
 };
 
 // Ad-hoc menus used to be labeled by the member's name ("Menú de X"); now
@@ -883,82 +872,7 @@ function migrate(state) {
     d.menus = { [legacyMenu.id]: legacyMenu };
     d.activeMenuId = legacyMenu.id;
   }
-  return { ...state, data: ensureRosters({ ...INITIAL_DATA, ...d }) };
-}
-
-// ─── Combos de familias para la card "Otro grupo" ───────────────────────────
-const OTHER_GROUP_COMBOS = [
-  // 4: papá + mamá + hijo + hija
-  [
-    { src: "/avatares/papa/papa_3.png",   color: "#6b8fa8" },
-    { src: "/avatares/mama/mama_4.png",   color: "#c47fa0" },
-    { src: "/avatares/hijo/hijo_5.png",   color: "#7ab87a" },
-    { src: "/avatares/hija/hija_2.png",   color: "#e8a45a" },
-  ],
-  // 2: pareja sin hijos
-  [
-    { src: "/avatares/adulto/adulto_2.png", color: "#8a7bc8" },
-    { src: "/avatares/adulto/adulto_5.png", color: "#b87ab8" },
-  ],
-  // 5: familia grande con abuela
-  [
-    { src: "/avatares/papa/papa_7.png",    color: "#5a8a6a" },
-    { src: "/avatares/mama/mama_9.png",    color: "#c07080" },
-    { src: "/avatares/hijo/hijo_8.png",    color: "#7090c0" },
-    { src: "/avatares/hija/hija_6.png",    color: "#d08050" },
-    { src: "/avatares/abuela/abuela_2.png",color: "#90a080" },
-  ],
-  // 3: adulto solo con dos hijos
-  [
-    { src: "/avatares/adulto/adulto_4.png", color: "#c06050" },
-    { src: "/avatares/hijo/hijo_11.png",    color: "#6090a0" },
-    { src: "/avatares/hija/hija_9.png",     color: "#e0a060" },
-  ],
-  // 3: abuelos + nieto
-  [
-    { src: "/avatares/abuelo/abuelo_2.png", color: "#708090" },
-    { src: "/avatares/abuela/abuela_4.png", color: "#a08090" },
-    { src: "/avatares/hijo/hijo_3.png",     color: "#80b090" },
-  ],
-  // 4: mamá + bebé + hijo + hija
-  [
-    { src: "/avatares/mama/mama_6.png",   color: "#d06080" },
-    { src: "/avatares/bebe/bebe_2.png",   color: "#f0c060" },
-    { src: "/avatares/hijo/hijo_2.png",   color: "#60a090" },
-    { src: "/avatares/hija/hija_12.png",  color: "#e09050" },
-  ],
-];
-
-function RotatingGroupPreview() {
-  const [idx, setIdx] = useState(0);
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setIdx((i) => (i + 1) % OTHER_GROUP_COMBOS.length);
-        setVisible(true);
-      }, 300);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const faces = OTHER_GROUP_COMBOS[idx];
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "22px 18px 18px",
-        opacity: visible ? 1 : 0,
-        transition: "opacity .3s ease",
-      }}
-    >
-      <GroupAvatarStack faces={faces} size={64} />
-    </div>
-  );
+  return { ...state, data: { ...INITIAL_DATA, ...d } };
 }
 
 // ── Barrido "al final del día" (consume === "endOfDay") ─────────────────────
@@ -3560,11 +3474,11 @@ export default function App() {
     hydratedUserRef.current = null;
     cloudReadyRef.current = false;
 
-    const emptyProfile = ensureRosters({
+    const emptyProfile = {
       ...INITIAL_DATA,
       userRecipes: data.userRecipes ?? [],
       recipeVotes: data.recipeVotes ?? {},
-    });
+    };
     setData(emptyProfile);
     setMenuPlan({});
     setShopping({ items: [] });
@@ -3648,10 +3562,6 @@ export default function App() {
     _doGoToOnboardingStep(2);
   }, [_doGoToOnboardingStep]);
 
-  // "¿Para quién es el menú?" — when the profile already has members, offer to
-  // reuse the household or start fresh for a different group, instead of always
-  // forcing the full onboarding.
-  const [whoForOpen, setWhoForOpen] = useState(false);
   // Quick-menu mode: a shortened onboarding for "Mi familia habitual" that skips
   // the steps already configured in Mi perfil (family + cooking), while still
   // walking through the per-menu screens (week, schedule, style, restrictions…).
@@ -3833,43 +3743,6 @@ export default function App() {
     setOnbResumeOpen(false);
     startQuickMenu();
   }, [startQuickMenu]);
-
-  // "Otro grupo" → park the current household and start an empty roster, so
-  // whoever gets added next belongs to that group alone. Before rosters existed
-  // this only jumped to step 0, which appended the new people to the family you
-  // already had, with no way back.
-  const startOtherGroup = useCallback(() => {
-    setData((d) => startOtherRoster(d, { defaults: INITIAL_DATA }));
-    // El grupo nuevo no tiene menú: la tabla tampoco (manda ella al recargar).
-    // TODO(producto): la misma pregunta que en useRoster, aquí desactivando.
-    if (user && !householdReadOnly) ponerMenuActivo(null, user.id, casaActivaRef.current);
-    setMenuPlan({});
-    setShopping({ items: [] });
-    setSelectedSlot(null);
-    setQuickMenu(false);
-    _doGoToOnboardingStep(0);
-  }, [_doGoToOnboardingStep, user, householdReadOnly]);
-
-  // Switching back to a group also has to restore the menú it last generated:
-  // `menuPlan`/`shopping` live outside `data`, so swapping the roster alone
-  // would leave the previous group's food on screen.
-  const useRoster = useCallback((rosterId) => {
-    const target = data.rosters?.[rosterId];
-    if (!target || rosterId === data.activeRosterId) return;
-    const snapshot = target.snapshot ?? {};
-    const weeks = Object.values(snapshot.menus?.[snapshot.activeMenuId]?.weeks ?? {});
-    const week = weeks.find((w) => w.offset === snapshot.menuWeek?.offset) ?? weeks[0] ?? null;
-    setData((d) => switchRoster(d, rosterId));
-    // Cambiar de grupo cambia el menú activo: a la tabla también, que es la
-    // verdad (menuActivo.js). Sin esto, al recargar volvía el del otro grupo.
-    // TODO(producto): ¿cambiar de grupo debe cambiar el menú activo de TODA la
-    // casa (lo que ven el cotitular, el lector y Lola), o el grupo es solo una
-    // vista de quien lo cambia y el menú activo de la casa no se toca?
-    if (user && !householdReadOnly) ponerMenuActivo(snapshot.activeMenuId ?? null, user.id, casaActivaRef.current);
-    setMenuPlan(week?.plan ?? {});
-    setShopping(week?.shopping ?? { items: [] });
-    setSelectedSlot(null);
-  }, [data, user, householdReadOnly]);
 
   /**
    * "Esta la hago con la Thermomix": guarda el método elegido EN el hueco.
@@ -5573,7 +5446,7 @@ export default function App() {
     // reload right after "Reiniciar" can't race the stale cloud snapshot back
     // in through the hydration effect above.
     if (user?.id) clearUserState(user.id);
-    setData(ensureRosters(INITIAL_DATA));
+    setData({ ...INITIAL_DATA });
     setMenuPlan({});
     setShopping({ items: [] });
     setSelectedSlot(null);
@@ -5652,7 +5525,7 @@ export default function App() {
     setResetConfirm(null);
     clearState();
     casaDelEstadoRef.current = null;
-    setData(ensureRosters(INITIAL_DATA));
+    setData({ ...INITIAL_DATA });
     setMenuPlan({});
     setShopping({ items: [] });
     setSelectedSlot(null);
@@ -7085,23 +6958,19 @@ export default function App() {
                   onClick: () => {
                     setOnbResumeOpen(false);
                     const members = data.members ?? [];
-                    const rosters = data.rosters;
-                    const activeRosterId = data.activeRosterId;
                     setMenuPlan({});
                     setShopping({ items: [] });
                     setSelectedSlot(null);
                     setAiRecipes([]);
                     setMenuError(null);
-                    setData((d) =>
-                      ensureRosters({
-                        ...INITIAL_DATA,
-                        members: d.members ?? members,
-                        rosters: d.rosters ?? rosters,
-                        activeRosterId: d.activeRosterId ?? activeRosterId,
-                        expertMode: d.expertMode,
-                        modePrompted: false,
-                      }),
-                    );
+                    setData((d) => ({
+                      ...INITIAL_DATA,
+                      members: d.members ?? members,
+                      // Rosters de antes (ya no se usan): no se borran.
+                      ...(d.rosters ? { rosters: d.rosters, activeRosterId: d.activeRosterId } : {}),
+                      expertMode: d.expertMode,
+                      modePrompted: false,
+                    }));
                     startQuickMenu();
                   },
                 },
@@ -7151,132 +7020,6 @@ export default function App() {
                 </button>
               ))}
             </div>
-          </div>
-        </div>
-      )}
-
-      {whoForOpen && (
-        <div
-          onClick={() => setWhoForOpen(false)}
-          className="mp-overlay-in"
-          style={{
-            position: "fixed", inset: 0, zIndex: 300,
-            background: "rgba(0,0,0,.5)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            padding: "0 24px",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="mp-sheet-up"
-            style={{
-              background: "#fff",
-              borderRadius: 26,
-              padding: "26px 22px 20px",
-              width: "100%", maxWidth: 360, boxSizing: "border-box",
-              boxShadow: "0 24px 60px rgba(0,0,0,.25)",
-            }}
-          >
-            <h3 style={{ margin: "0 0 6px", fontSize: 20, fontWeight: 900, color: "#142f1d", textAlign: "center", letterSpacing: "-.01em" }}>
-              ¿Para quién es el menú?
-            </h3>
-            <p style={{ margin: "0 auto 20px", fontSize: 13.5, color: "#7a9485", textAlign: "center", lineHeight: 1.45, maxWidth: 260 }}>
-              Reutiliza un grupo que ya tengas o empieza de cero.
-            </p>
-
-            {(() => {
-              // Solo dos opciones: reutilizar la familia habitual ("Mi familia",
-              // el roster primario) o empezar "Otro grupo". Los grupos scratch no
-              // se listan uno a uno (antes se acumulaban como tarjetas duplicadas
-              // e indistinguibles, todas "Otro grupo").
-              const allRosters = listRosters(data);
-              const primaryRoster =
-                allRosters.find((r) => r.id === DEFAULT_ROSTER_ID) ??
-                allRosters.find((r) => r.isActive) ??
-                allRosters[0];
-              const options = [
-                ...(primaryRoster && primaryRoster.members.length > 0
-                  ? [
-                      {
-                        key: primaryRoster.id,
-                        Icon: Users,
-                        primary: true,
-                        label: primaryRoster.name,
-                        faces: groupAvatarFaces(primaryRoster.members, primaryRoster.members),
-                        onClick: () => {
-                          setWhoForOpen(false);
-                          if (!primaryRoster.isActive) useRoster(primaryRoster.id);
-                          startQuickMenu();
-                        },
-                      },
-                    ]
-                  : []),
-                {
-                  key: "other", Icon: Sparkles, rotating: true, primary: false,
-                  label: "Otro grupo",
-                  onClick: () => { setWhoForOpen(false); startOtherGroup(); },
-                },
-              ];
-              return (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {options.map(({ key, Icon, rotating, primary, label, faces = [], onClick }) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={onClick}
-                      style={{
-                        display: "flex", flexDirection: "column", alignItems: "center",
-                        justifyContent: "center", gap: rotating ? 0 : 10, width: "100%", textAlign: "center",
-                        padding: "0 0 18px", borderRadius: 20, cursor: "pointer",
-                        fontFamily: "inherit", overflow: "hidden",
-                        background: primary ? "#eef6f0" : "#f7f9f8",
-                        border: `2.5px solid ${primary ? "#bfe0cb" : "#e8ede9"}`,
-                        transition: "all .15s ease",
-                      }}
-                    >
-                      {rotating ? (
-                        <>
-                          <RotatingGroupPreview />
-                          <span style={{ fontWeight: 800, color: "#1a3a24", fontSize: 15.5 }}>{label}</span>
-                        </>
-                      ) : faces.length > 0 ? (
-                        <>
-                          <div style={{ padding: "22px 18px 4px" }}>
-                            <GroupAvatarStack faces={faces} size={72} />
-                          </div>
-                          <span style={{ fontWeight: 800, color: "#1a3a24", fontSize: 15.5 }}>{label}</span>
-                        </>
-                      ) : (
-                        <div style={{ padding: "22px 18px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-                          <span
-                            style={{
-                              width: 58, height: 58, borderRadius: 18,
-                              background: primary ? "#2d5a3d" : "#edf2ee",
-                              display: "inline-flex", alignItems: "center", justifyContent: "center",
-                            }}
-                          >
-                            <Icon size={28} color={primary ? "#fff" : "#2d5a3d"} strokeWidth={2.2} />
-                          </span>
-                          <span style={{ fontWeight: 800, color: "#1a3a24", fontSize: 15.5 }}>{label}</span>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              );
-            })()}
-
-            <button
-              type="button"
-              onClick={() => setWhoForOpen(false)}
-              style={{
-                display: "block", margin: "16px auto 0", padding: "6px 12px",
-                border: "none", background: "none", cursor: "pointer",
-                fontFamily: "inherit", fontSize: 13.5, fontWeight: 700, color: "#9aa8a0",
-              }}
-            >
-              Cancelar
-            </button>
           </div>
         </div>
       )}

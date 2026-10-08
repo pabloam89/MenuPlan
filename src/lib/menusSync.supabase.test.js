@@ -17,7 +17,6 @@ import {
   deleteMenu,
   toggleMenuFavorite,
   activateMenu,
-  ponerMenuActivo,
   saveAndActivateMenu,
   queueSaveMenuWeek,
 } from "./menusSync.js";
@@ -260,27 +259,6 @@ describe("deleteMenu / toggleMenuFavorite / activateMenu (mocked client)", () =>
   it("activateMenu reports success", async () => {
     Object.assign(supabase, mockClient({ __rpc: [{ error: null }] }));
     expect(await activateMenu("menu_abc")).toEqual({ ok: true });
-  });
-});
-
-// Cambiar de grupo (roster) cambia data.activeMenuId; si la tabla no se entera,
-// al recargar vuelve el menú del otro grupo (user_menus.is_active manda).
-describe("ponerMenuActivo: el cambio de grupo llega a la tabla (mocked client)", () => {
-  it("con menú, lo activa por la RPC", async () => {
-    const client = mockClient({ __rpc: [{ error: null }] });
-    Object.assign(supabase, client);
-    expect(await ponerMenuActivo("menu_otro", "user-1", "casa-1")).toEqual({ ok: true });
-    expect(client.rpc).toHaveBeenCalledWith("activate_user_menu", { p_menu_id: "menu_otro" });
-  });
-
-  it("sin menú (grupo nuevo), desactiva el que hubiera en la casa", async () => {
-    const client = mockClient({ user_menus: [{ error: null }] });
-    Object.assign(supabase, client);
-    expect(await ponerMenuActivo(null, "user-1", "casa-1")).toEqual({ ok: true });
-    const upd = client.log.find((c) => c.method === "update");
-    expect(upd.args[0]).toEqual({ is_active: false });
-    const eqs = client.log.filter((c) => c.method === "eq").map((c) => c.args);
-    expect(eqs).toEqual([["household_id", "casa-1"], ["is_active", true]]);
   });
 });
 

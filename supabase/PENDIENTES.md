@@ -83,6 +83,11 @@ select count(*) from public.bot_reminders r
 
 ## 0083 · tareas → persona (aplicada el 8 oct 2026)
 
+La 0089 la sustituye (abajo): mientras no se aplique la 0089, vale esta. Su
+comentario («una baja lógica no borra la fila») no era verdad: la
+sincronización por clave (0081) borra la fila de quien sale de la familia, y
+con `on delete cascade` se llevaba sus tareas.
+
 `bot_tareas_persona_fk` — condición: 0081, 0082 y 0083 aplicadas y el bot nuevo
 una semana sin errores.
 ```sql
@@ -90,6 +95,17 @@ select count(*) from public.bot_tareas t
  where t.persona_id is not null
    and not exists (select 1 from public.persona p
                     where p.household_id = t.household_id and p.id = t.persona_id);
+```
+
+## 0089 · tareas → persona, sin cascada (sin aplicar)
+
+`bot_tareas_persona_fk` rehecha con `on delete set null (persona_id)`, NOT
+VALID: quitar a alguien de la familia borra su fila de persona y su salud,
+pero no sus tareas (el código las descarta como «sin_persona»). Condición:
+0089 aplicada, la consulta de arriba en 0 y una semana de guardados sin
+WARNING `_personas_al_guardar` en los logs.
+```sql
+alter table public.bot_tareas validate constraint bot_tareas_persona_fk;
 ```
 
 ## 0086 · vocabulario de la app (aplicada el 8 oct 2026)
@@ -168,14 +184,3 @@ set null`. Cuándo: DESPUÉS de la migración de menuplan-1e que pasa los ids de
 persona a uuid (bloque 0120+), para no crear una FK sobre un tipo que va a
 cambiar. Ese día se copia el mapa a la columna y el mapa deja de escribirse.
 Hasta entonces el mapa es una caché declarada.
-
-## Desactivar el menú de la casa por RPC
-
-`ponerMenuActivo(null, …)` (`src/lib/menusSync.js`), al empezar «Otro grupo»,
-desactiva con un UPDATE directo a `user_menus` (la RLS deja a titular y
-cotitular). No hay ninguna RPC que desactive sin activar otro
-(`activate_household_menu` y `bot_save_casa_activando` piden un menú), y este
-UPDATE no sube `household_state.bot_rev`: otra app abierta no se entera hasta
-recargar. Arreglo: una RPC `deactivate_household_menu(p_household_id)`
-(security definer, `is_household_editor`, sube `bot_rev`) en una migración
-nueva, y que `ponerMenuActivo` la llame.
