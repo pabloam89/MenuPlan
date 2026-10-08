@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -448,5 +448,59 @@ describe("puerta de lectura: el cableado real", () => {
 
   it("sin id de sesión no puede anotar el aviso, así que no bloquea", () => {
     expect(lanza("node scripts/telegram-perfil.mjs aplicar", { session_id: undefined })).toBe(null);
+  });
+});
+
+describe("entrada ilegible (#209)", () => {
+  // Si la guardia no puede leer lo que le llega, pregunta: ni deja pasar en
+  // silencio (antes salía con 0 y no vigilaba nada) ni niega (un fallo tonto
+  // no debe dejar parada una sesión). Decidido por Pablo el 8 oct.
+  const GUARDIA = join(RAIZ, ".claude", "hooks", "guardia.mjs");
+  const lanza = (entrada) => {
+    const r = spawnSync(process.execPath, [GUARDIA], { input: entrada, encoding: "utf8", timeout: 20000 });
+    return { codigo: r.status, salida: r.stdout };
+  };
+
+  it.each([
+    ["JSON inválido", "{esto no es json"],
+    ["entrada vacía", ""],
+    ["JSON que no es un objeto", "null"],
+  ])("%s: pregunta", (_, entrada) => {
+    const { codigo, salida } = lanza(entrada);
+    expect(codigo).toBe(0);
+    const out = JSON.parse(salida).hookSpecificOutput;
+    expect(out.hookEventName).toBe("PreToolUse");
+    expect(out.permissionDecision).toBe("ask");
+    expect(out.permissionDecisionReason).toMatch(/no ha podido leer/);
+  });
+});
+
+// La puerta de lectura no afloja nada: lo que ya se negaba se sigue negando igual
+// con la puerta puesta, en el primer intento y en el reintento.
+describe("la puerta no afloja las reglas duras", () => {
+  const mapa = cargarMapa(RAIZ);
+  const conPuerta = () => {
+    const vistas = new Set();
+    return ctx({ dominios: mapa, skillAbierta: (s) => vistas.has(s), marcarSkill: (s) => (vistas.add(s), true) });
+  };
+  const peligrosos = [
+    "node scripts/apply-migration.mjs 0090_x --pablo",
+    "git push origin main",
+    "git stash",
+    'psql "$SUPABASE_DB_URL" -c "drop table x"',
+  ];
+  const motivo = (cmd, c) => decidir({ tool_name: "Bash", tool_input: { command: cmd } }, c)?.motivo;
+  it.each(peligrosos)("%s: deny sin puerta, y con puerta en el 1er intento y en el reintento", (cmd) => {
+    expect(bash(cmd)).toBe("deny");
+    const c = conPuerta();
+    const sin = motivo(cmd, ctx());
+    expect(motivo(cmd, c)).toBe(sin);
+    expect(motivo(cmd, c)).toBe(sin);
+  });
+  it("y la carpeta principal sigue mandando sobre la puerta", () => {
+    const c = ctx({ esPrincipal: () => true, dominios: mapa, skillAbierta: () => false, marcarSkill: () => true });
+    const r = decidir({ tool_name: "Bash", cwd: "C:/dev/MenuPlan", tool_input: { command: "git commit -m 'toca apply-migration'" } }, c);
+    expect(r.decision).toBe("deny");
+    expect(r.motivo).toMatch(/carpeta principal/);
   });
 });

@@ -22,10 +22,6 @@ const CARPETAS = ["scripts", ".claude/hooks"];
 // Fichero → texto de la línea del manejador (recortado), con su línea aproximada.
 // Al arreglar uno, bórralo de aquí. No se añade nada: se arregla o se marca.
 const TRAGADOS_CONOCIDOS = {
-  // La guardia deja pasar TODO si no puede leer la entrada (`catch { process.exit(0) }`):
-  // falla abierta. Fallar abierta o cerrada es decisión de Pablo (hook suyo); hasta
-  // que decida, se queda aquí y no se toca.
-  ".claude/hooks/guardia.mjs": ["} catch {"], // ~l.410
   "scripts/audit-catalog.mjs": [
     "} catch { /* la tabla aún no existe: no es un fallo del catálogo */ }", // ~l.712
     'try { return JSON.parse(readFileSync(join(ROOT, "src", "data", "alimentoPorIngrediente.json"), "utf8', // ~l.811
@@ -87,10 +83,8 @@ describe("scripts y hooks: ningún error tragado sin aviso (#177)", () => {
     expect(sobran, "Ya no están en el código: bórralos de TRAGADOS_CONOCIDOS.").toEqual([]);
   });
 
-  it("de los hooks, en la lista solo la entrada ilegible de la guardia (decisión de Pablo)", () => {
-    expect(Object.entries(TRAGADOS_CONOCIDOS).filter(([f]) => f.startsWith(".claude/"))).toEqual([
-      [".claude/hooks/guardia.mjs", ["} catch {"]],
-    ]);
+  it("de los hooks, ninguno en la lista (la guardia pregunta si no lee la entrada, #209)", () => {
+    expect(Object.entries(TRAGADOS_CONOCIDOS).filter(([f]) => f.startsWith(".claude/"))).toEqual([]);
   });
 });
 
