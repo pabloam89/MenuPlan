@@ -38,8 +38,11 @@
 -- Y cuando no quede desplegado ningún bot anterior a este (el viejo escribe
 -- estas columnas; quitarlas antes haría fallar sus inserts):
 --   alter table public.bot_chats     drop column lang;        -- nadie lo lee: el idioma es user_profiles.ui_lang
---   alter table public.bot_messages  drop column author_id;   -- nombre de Telegram, sin lector
---   alter table public.bot_reminders drop column created_by;  -- ídem
+--   bot_messages.author_id y bot_reminders.created_by: NO se borran sin más. El
+--   plan maestro (8 oct 2026, «Quién y por dónde») pide autor y canal en cada
+--   escritura de la casa: se sustituyen por `author_user_id uuid references
+--   auth.users on delete set null` (el user_id de quien escribe, nunca su nombre
+--   visible) en una migración posterior, y solo entonces se quita la columna vieja.
 --   drop trigger if exists bot_reminders_tipo_vispera on public.bot_reminders;
 --   drop function if exists public.bot_reminders_tipo_vispera();
 
