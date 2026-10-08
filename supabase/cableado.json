@@ -164,9 +164,6 @@
     "src/lib/analytics.js",
     "src/lib/householdsSync.js"
   ],
-  "user_recipe_discards": [
-    "src/lib/recipeDiscardsSync.js"
-  ],
   "user_recipes": [
     "api/_bot/compartir.js",
     "api/_bot/propias.js",
