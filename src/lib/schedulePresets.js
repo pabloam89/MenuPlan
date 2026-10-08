@@ -1,15 +1,15 @@
 import { DAYS } from "./planner.js";
 import { SCHOOL_DAYS, hasAnySchoolDish, getSchoolDish } from "./schoolMenu.js";
 import {
-  resolveMemberAge,
-  stageForAge,
+  esMenor,
   memberAvatarColor,
   memberAvatarThumbSrc,
 } from "./stages.js";
 
 export const WEEKDAYS = DAYS.filter((d) => !["Sáb", "Dom"].includes(d));
 
-export const isKidMember = (m) => stageForAge(resolveMemberAge(m)).id !== "adulto";
+// Menor de edad según etapaDe (bebé, niño o adolescente).
+export const isKidMember = (m) => esMenor(m);
 
 export const isHomeState = (v) => v === "casa" || v === "off" || v == null;
 

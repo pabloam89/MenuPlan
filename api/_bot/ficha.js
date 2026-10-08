@@ -24,7 +24,7 @@
  */
 
 import fs from "node:fs";
-import { resolveMemberAge, stageForAge } from "../../src/lib/stages.js";
+import { etapaDe, esEtapaBebe } from "../../src/lib/stages.js";
 import { INTOLERANCE_RULES } from "../../src/lib/intolerances.js";
 import { matizDe, vigente, rechazadosDe } from "../../src/lib/notepad.js";
 import { describirRegla } from "../../src/lib/reglasTexto.js";
@@ -110,12 +110,9 @@ export function preguntasPendientes(data = {}, calladas = new Set()) {
     .filter((p) => !calladas.has(p.clave));
 }
 
-// Solo la edad que se sabe: resolveMemberAge pone 30 a quien no la tiene, y en
-// la ficha eso sería afirmar algo que nadie ha dicho.
-function edadDe(m) {
-  const sabida = (m.useBirthDate && m.birthDate) || Number.isFinite(m.age) || Number.isFinite(parseInt(m.age, 10));
-  return sabida ? resolveMemberAge(m) : null;
-}
+// Solo la edad que se sabe (etapaDe da null sin ella): poner 30 a quien no la
+// tiene sería afirmar en la ficha algo que nadie ha dicho.
+const edadDe = (m) => etapaDe(m).edad;
 /**
  * Las reglas de un solo día que acabaron en los últimos 3 días (lo que la
  * charla aún recuerda), en una línea por día: «sáb 3: fuera toda la casa
@@ -140,7 +137,9 @@ export function recienPasadoPorDia(data = {}, hoy) {
   return [...lineas, ...otras].slice(-4);
 }
 
-export const esBebe = (m) => !m?.notBaby && stageForAge(resolveMemberAge(m))?.id === "baby";
+// La misma definición que la app (etapaDe en src/lib/stages.js): bebé hasta
+// cumplir 3, o sin edad con papel «Bebé»; «ya come como un niño» lo saca.
+export const esBebe = (m) => esEtapaBebe(m);
 
 /** «Pablo 37», «Vega 1», «Leo» */
 function personaCorta(m) {
@@ -202,7 +201,8 @@ function seguridad(data) {
   // El bebé y su etapa.
   for (const m of miembros.filter(esBebe)) {
     const etapa = { cremas: "solo cremas y purés", mixto: "cremas y algo de sólido", solidos: "ya come sólidos" }[data.etapaBebe];
-    const meses = Number.isFinite(resolveMemberAge(m)) ? Math.round(resolveMemberAge(m) * 12) : null;
+    const edad = edadDe(m);
+    const meses = edad != null ? Math.round(edad * 12) : null;
     lineas.push(`- ${m.name}${meses != null && meses < 24 ? ` (${meses} m)` : ""}: bebé${etapa ? `, ${etapa}` : ""}.`);
   }
   return lineas;

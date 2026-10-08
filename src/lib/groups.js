@@ -1,4 +1,4 @@
-import { migrateHomeRole, resolveMemberAge, stageForAge, suggestHomeRole } from "./stages.js";
+import { esEtapaBebe, esMenor, etapaDe, resolveMemberAge } from "./stages.js";
 import * as ids from "./ids.js";
 
 const GROUP_COLORS = ["#2d5a3d", "#c67030", "#5a7ea8", "#a85a7e", "#7e5aa8", "#5aa87e"];
@@ -77,18 +77,15 @@ export { resolveMemberAge };
 
 /**
  * Which menu tier ("Adultos" / "Niños" / "Bebé") a member belongs to by
- * default. Age decides the baby cutoff (nutrition-critical), but "child vs
- * adult" is decided by household role, not age: a 15-year-old with role
- * "Hijo/a" should still default into "Niños", while an "Adulto" role always
- * goes to "Adultos" regardless of age. This keeps teens assignable to the
- * kids' menu instead of being silently bucketed as adults.
+ * default, from etapaDe (stages.js): bebé → "baby"; niño y adolescente (3–17)
+ * → "child", so a 15-year-old still defaults into "Niños"; adulto → "adult".
+ * La edad manda sobre el papel: un «Amigo/a» de 40 o un «Hijo/a» de 25 van
+ * con los mayores. Sin edad ni papel que lo diga ('desconocida', p. ej. un
+ * «Amigo/a» sin edad), con los mayores, como cuando valía 30 años.
  */
+const TIER_POR_ETAPA = { bebe: "baby", nino: "child", adolescente: "child", adulto: "adult", desconocida: "adult" };
 export function tierForMember(member) {
-  const age = resolveMemberAge(member);
-  if (memberIsBaby(member)) return "baby";
-  const role = migrateHomeRole(member.homeRole ?? suggestHomeRole(age));
-  if (role === "Hijo/a" || role === "Amigo/a") return "child";
-  return "adult"; // Adulto, Papá, Mamá, Abuelo/a, Otro
+  return TIER_POR_ETAPA[etapaDe(member).etapa];
 }
 
 export function splitMembersByStage(members) {
@@ -105,27 +102,26 @@ export function splitMembersByStage(members) {
 }
 
 export function memberIsBaby(member) {
-  // Age decides the baby cutoff, but the user can override it ("ya come como
-  // un niño") via `notBaby`, which promotes the member out of the baby menu.
-  if (member?.notBaby) return false;
-  return stageForAge(resolveMemberAge(member)).id === "baby";
+  // etapaDe: bebé hasta cumplir 3, o sin edad con papel «Bebé»; «ya come como
+  // un niño» (`notBaby`) lo saca siempre del menú del bebé.
+  return esEtapaBebe(member);
 }
 
 export function hasBabyMember(members) {
   return members.some((m) => memberIsBaby(m));
 }
 
-/** True when someone belongs on the kids' menu (Hijo/a, Amigo/a, or a baby
- * marked "ya come como niño" via notBaby + child role). Pure babies do NOT
- * count — they already have a dedicated baby pool. */
+/** True when someone belongs on the kids' menu (3–17, or a baby marked "ya
+ * come como niño" via notBaby). Pure babies do NOT count — they already have a
+ * dedicated baby pool. */
 export function hasChildMember(members) {
   return splitMembersByStage(members).children.length > 0;
 }
 
-/** True when a member is younger than adult (baby or child by age), i.e. the
+/** True when a member is younger than adult (baby, child or teen), i.e. the
  * household has someone a school/daycare menu could apply to. */
 export function hasUnderageMember(members) {
-  return members.some((m) => stageForAge(resolveMemberAge(m)).id !== "adulto");
+  return members.some((m) => esMenor(m));
 }
 
 /** True when "Menús separados" is worth asking: there is at least one child
