@@ -15,7 +15,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
@@ -206,9 +206,63 @@ export function migracionCerrada(nombre, { enStaging, estadoMd, numeroEnStaging 
   return `${nombre} ya está aplicada en producción (no figura «sin aplicar» en supabase/ESTADO.md). No se edita: escribe una migración nueva con el siguiente número libre.`;
 }
 
+// ── La carpeta principal ───────────────────────────────────────────────────
+
+/**
+ * La carpeta donde corre de verdad una orden: la de su `git -C`, la del último
+ * `cd` anterior en el comando, o la de la sesión. Las sesiones suelen quedarse
+ * en la carpeta principal y hacer `cd C:/dev/MenuPlan-x && …`.
+ */
+export function carpetaDe(cmd, orden, cwd) {
+  const windows = (p) => p.replace(/^\/([a-z])\//i, "$1:/");
+  const c = orden.match(/^git\s+-C\s+(?:"([^"]+)"|'([^']+)'|(\S+))/);
+  if (c) return windows(c[1] ?? c[2] ?? c[3]);
+  const hasta = cmd.indexOf(orden);
+  const cds = [...cmd.matchAll(/(?:^|&&|;|\n)\s*(?:cd|Set-Location|pushd)\s+(?:"([^"]+)"|'([^']+)'|([^\s;&|]+))/g)]
+    .filter((m) => hasta < 0 || m.index < hasta);
+  const ultimo = cds.at(-1);
+  return ultimo ? windows(ultimo[1] ?? ultimo[2] ?? ultimo[3]) : cwd;
+}
+
+/** Git que cambia la carpeta: añadir, commitear, fusionar o cambiar de rama. */
+const GIT_QUE_ESCRIBE = /^git\s+(?:-C\s+(?:"[^"]+"|'[^']+'|\S+)\s+)?(add|commit|merge|rebase|cherry-pick|checkout|switch|reset|restore|revert|am|apply)\b/;
+/** Lo que sí vale en la principal: ponerla al día y volver a staging. */
+const GIT_DE_MANTENER = /\bmerge\s+(.*\s)?--ff-only\b|\b(checkout|switch)\s+staging\s*$/;
+
+const EN_LA_PRINCIPAL = "Estás en la carpeta principal (C:\\dev\\MenuPlan): es de todas las sesiones y en ella no se trabaja, solo se mira y se lanza `npm run tarea`. Abre la tuya con `npm run tarea -- <area>/<nombre>` y trabaja allí.";
+
 function contextoReal(raiz) {
   let deStaging;
+  const git = (args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000 }).trim();
+  let comunPropio;
+  const esPrincipal = (dir) => {
+    try {
+      comunPropio ??= resolve(git(["-C", raiz, "rev-parse", "--path-format=absolute", "--git-common-dir"])).toLowerCase();
+      const [gitDir, comun] = git(["-C", dir, "rev-parse", "--path-format=absolute", "--git-dir", "--git-common-dir"]).split(/\r?\n/);
+      return resolve(gitDir).toLowerCase() === resolve(comun).toLowerCase() && resolve(comun).toLowerCase() === comunPropio;
+    } catch {
+      return false;
+    }
+  };
   return {
+    esPrincipal,
+    // Un fichero del repo en la carpeta principal. Lo ignorado (.env.local) y la
+    // memoria de los agentes, que vive en la carpeta del proyecto, no cuentan.
+    rutaEnPrincipal: (ruta) => {
+      if (!ruta || /[\\/]\.claude[\\/]agent-memory[\\/]/.test(ruta)) return false;
+      let dir = dirname(ruta);
+      while (!existsSync(dir)) {
+        if (dirname(dir) === dir) return false;
+        dir = dirname(dir);
+      }
+      if (!esPrincipal(dir)) return false;
+      try {
+        git(["-C", dir, "check-ignore", "-q", ruta]);
+        return false; // ignorado
+      } catch {
+        return true;
+      }
+    },
     numeroEnStaging: (numero) => {
       deStaging ??= enStagingTodas(raiz) ?? [];
       return deStaging.find((n) => n.startsWith(`${numero}_`)) ?? null;
@@ -231,10 +285,10 @@ function contextoReal(raiz) {
       }
     },
     // Commits de origin/staging que le faltan a tu rama (tras traerlo). null si no se puede saber.
-    atrasoLocal: () => {
+    atrasoLocal: (dir = raiz) => {
       try {
-        execFileSync("git", ["-C", raiz, "fetch", "-q", "origin", "staging"], { stdio: "ignore", timeout: 30000 });
-        return Number(execFileSync("git", ["-C", raiz, "rev-list", "--count", "HEAD..origin/staging"], { encoding: "utf8" }).trim());
+        execFileSync("git", ["-C", dir, "fetch", "-q", "origin", "staging"], { stdio: "ignore", timeout: 30000 });
+        return Number(execFileSync("git", ["-C", dir, "rev-list", "--count", "HEAD..origin/staging"], { encoding: "utf8" }).trim());
       } catch {
         return null;
       }
@@ -269,11 +323,17 @@ export function decidir(entrada, ctx) {
     for (const o of ordenes(cmd)) {
       for (const r of REGLAS_COMANDO) if (r.si(o)) return r.da(o);
 
+      // Una sesión, una carpeta: en la principal no se commitea ni se cambia de
+      // rama (el 8 oct 2026 había tres sesiones trabajando a la vez en ella).
+      if (GIT_QUE_ESCRIBE.test(o) && !GIT_DE_MANTENER.test(o) && ctx.esPrincipal(carpetaDe(cmd, o, entrada.cwd ?? ""))) {
+        return deny(EN_LA_PRINCIPAL);
+      }
+
       // Un PR con la rama atrasada respecto a staging choca con lo que acaban
       // de meter otras sesiones, o pasa el CI sin haberlo probado junto (el 8
       // oct 2026, el cableado). Se mira al abrirlo y otra vez al fusionarlo.
       if (/^gh\s+pr\s+create\b/.test(o)) {
-        const atraso = ctx.atrasoLocal();
+        const atraso = ctx.atrasoLocal(carpetaDe(cmd, o, entrada.cwd ?? "") || undefined);
         if (atraso === null) return ask("No he podido comprobar si tu rama tiene lo último de staging. Haz `git fetch origin staging` y `git merge origin/staging` antes de abrir el PR.");
         if (atraso > 0) return deny(`Tu rama va ${atraso} commit(s) por detrás de staging. Antes de abrir el PR: \`git fetch origin staging\`, \`git merge origin/staging\`, resuelve, pasa los tests y empuja.`);
         continue;
@@ -315,6 +375,7 @@ export function decidir(entrada, ctx) {
       const motivo = migracionCerrada(m[1], ctx);
       if (motivo) return deny(motivo);
     }
+    if (ctx.rutaEnPrincipal(ruta)) return deny(EN_LA_PRINCIPAL);
     if (/[\\/]\.claude[\\/](settings\.json|hooks[\\/])/.test(ruta)) {
       return ask("Esto cambia los permisos o los hooks compartidos de todas las sesiones. Pide el OK de Pablo.");
     }

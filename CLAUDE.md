@@ -54,8 +54,9 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
 `npm run tarea -- datos/descartes` abre `C:\dev\MenuPlan-descartes` (rama
 desde `origin/staging`, `.env.local`, flags de staging, dependencias y
 puerto); `npm run retirar -- descartes` la cierra solo si no se pierde nada.
-Nada de borrar worktrees a mano; si el arranque avisa de otra sesión en tu
-carpeta, no trabajes ahí. App en local: localhost y la IP de la wifi, nada más
+En la carpeta principal (`C:\dev\MenuPlan`) no se trabaja: la guardia no deja
+editar, commitear ni cambiar de rama en ella. Nada de borrar worktrees a mano;
+si el arranque avisa de otra sesión en tu carpeta, no trabajes ahí. App en local: localhost y la IP de la wifi, nada más
 (el login con Google solo vuelve al puerto 5176). Primer push: `git push -u
 origin <rama>`. **Al fusionar tu PR:** `npm run retirar -- <tarea>` en la misma
 sesión (la rama de GitHub la borra GitHub sola). Ramas viejas ya fusionadas:
@@ -159,8 +160,9 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
   directo a staging, `git stash`, `git add .`, `vite build` a secas,
   `Set-Content`, tocar una migración aplicada (también por terminal), crear
   una con un número que staging ya usa, SQL a mano contra producción y
-  `apply-migration --pablo` (solo de Pablo), y abrir o fusionar un PR con
-  la rama atrasada respecto a staging; pregunta
+  `apply-migration --pablo` (solo de Pablo), abrir o fusionar un PR con
+  la rama atrasada respecto a staging y trabajar en la carpeta principal;
+  pregunta
   antes de un push forzado, de tocar permisos y hooks y de escribir por
   terminal lo que lee Lola. Cada regla,
   con su porqué y su test en `.claude/hooks/guardia.test.js`.

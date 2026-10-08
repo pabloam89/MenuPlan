@@ -120,7 +120,10 @@ npm run issues -- --etiquetas               # crear las etiquetas en GitHub (OK 
   nada más crear la rama, antes de copiar el entorno y de instalar nada, y
   `retirar` no lo cuenta como trabajo sin subir (test en `scripts/tarea.test.js`).
   Para una carpeta anterior a ese cambio, a mano:
-  `git commit --allow-empty -m "tarea: arranca <rama>"`. El hook no se ha tocado.
+  `git commit --allow-empty -m "tarea: arranca <rama>"`. Y el hook ya solo borra
+  ramas que se subieron con su nombre (`git push -u`) y luego se fusionaron
+  (`scripts/limpiar-worktrees.test.js`); la copia que corre está en
+  `~/.claude/hooks/` de cada PC y se actualiza a mano desde `scripts/`.
   Si pasa igual, los restos huérfanos no los trata ni `tarea` ni `retirar`: los
   borra Pablo, tras mirar que `node_modules` no es una unión, y antes hay que
   parar el `npm ci` que siga vivo (`taskkill /T` sobre su `tarea.mjs`).
