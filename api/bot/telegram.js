@@ -178,7 +178,7 @@ async function atender(msg, base, host = "") {
   if (invitacion && !esGrupo) {
     const r = await unirsePorInvitacion({ from: msg.from, chatId, token: invitacion[1], nombre: nombreDe(msg.from) })
       .catch(fallaCon("invitacion_unirse", null));
-    return enviar(chatId, r?.texto ?? noPude("invitacion"));
+    return enviar(chatId, r?.texto ?? noPude("invitacion", msg.from?.language_code));
   }
   // Un enlace de compartir, reconocido por su forma ENTERA (src/lib/ids.js): un
   // código de «Conectar Telegram» es base64url y podía empezar por «m_» o «ru_»
@@ -223,7 +223,9 @@ async function atender(msg, base, host = "") {
   if (/^\/(borrarcuenta|borrarme)(?:@\w+)?$/.test(texto) && !esGrupo) {
     // Si este Telegram está conectado a una cuenta que NO nació aquí, es la
     // de la app (Google o email): se dice, que no parezca una de prueba.
-    const [ident] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(msg.from?.id)}`, "user_id").catch(fallaCon("borrarcuenta_identidad", []));
+    const [ident] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(msg.from?.id)}`, "user_id").catch(fallaCon("borrarcuenta_identidad", [SIN_LEER]));
+    // Sin saber de qué cuenta es, el aviso podría callarse el «Ojo» (#208).
+    if (ident === SIN_LEER) return enviar(chatId, noPude("cuenta", msg.from?.language_code));
     const deLaApp = ident?.user_id && !(await cuentaNacidaAqui(msg.from.id).catch(fallaCon("borrarcuenta_nacida_aqui", null)));
     const ojo = deLaApp ? "\n\n<b>Ojo: es tu cuenta de la app</b>, la que abres con Google o con tu email, no solo lo de Telegram." : "";
     return enviar(chatId, `⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu (también en la app), tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.${ojo}`, {
@@ -240,7 +242,7 @@ async function atender(msg, base, host = "") {
     const vuelve = await reconocer(msg.from, chatId).catch(fallaCon("reconocer", SIN_LEER));
     // Sin saber si ya es una cuenta, ni bienvenida ni alta: otra cuenta nacida
     // aquí pisaría la suya (#208).
-    if (vuelve === SIN_LEER) return enviar(chatId, noPude("cuenta"));
+    if (vuelve === SIN_LEER) return enviar(chatId, noPude("cuenta", msg.from?.language_code));
     if (vuelve?.varias) return enviar(chatId, "¡Hola de nuevo! Llevas más de una casa en HoMenu: conecta la que quieras desde la app, en Ajustes → Conectar Telegram.");
     if (vuelve) {
       chat = { household_id: vuelve.householdId };
@@ -490,7 +492,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // a propósito: sin poder leer el uso, mejor contestar que bloquear
   const limiteP = fueraDeLimite(householdId).catch(seguirCon("limite", null));
   const [ultima, contexto, quien, idioma] = await Promise.all([ultimaDeLola(chatId), contextoDe(householdId), papelP, idiomaP]);
-  if (quien === SIN_LEER) return enviar(chatId, noPude("papel"), { responderA });
+  if (quien === SIN_LEER) return enviar(chatId, noPude("papel", idioma ?? from?.language_code), { responderA });
   chatDe.papel = quien.papel;
   // Lo que tarda el turno en estar listo para arrancar al enrutador y a Lola
   // (bot_route contexto_ms): es tiempo que suma al primer texto de todos.

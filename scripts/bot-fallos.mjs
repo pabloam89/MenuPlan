@@ -5,14 +5,18 @@
  *
  *   npm run fallos                    último día, producción, leído de Vercel
  *   npm run fallos -- --dias 7        los últimos 7 días
- *   npm run fallos -- --entorno preview
+ *   npm run fallos -- --entorno preview   staging; en producción puede no haber tráfico reciente
+ *   npm run fallos -- --tandas 400   más tandas de 50 si el rango tiene mucho
  *   npm run fallos -- --fichero logs.jsonl   un export que ya tienes
  *
  * De Vercel lo lee con su CLI (`vercel logs`, que tiene que estar instalada y
- * con sesión: `vercel login`), filtrando por el texto «bot_fallo»:
+ * con sesión: `vercel login`), filtrando por el texto «bot_fallo». La CLI da
+ * como mucho 50 peticiones por llamada: el script pide tandas hacia atrás con
+ * --until hasta cubrir el rango, y la salida dice qué entorno y qué rango ha
+ * cubierto de verdad. A mano, una tanda:
  *
  *   vercel logs --project homenu --scope menuplan --environment production \
- *     --since 24h --query bot_fallo --json --limit 2000 > logs.jsonl
+ *     --since 24h --query bot_fallo --json --limit 50 > logs.jsonl
  *
  * Ese mismo comando sirve para sacar el fichero a mano y pasarlo con
  * --fichero (o por la entrada estándar: `… | npm run fallos -- --fichero -`).
@@ -132,46 +136,97 @@ export function informe(c, { titulo = "" } = {}) {
 }
 
 function argumentos(argv) {
-  const a = { dias: 1, entorno: "production", fichero: null, limite: 2000 };
+  const a = { dias: 1, entorno: "production", fichero: null, maxTandas: 200 };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i];
     if (k === "--dias") a.dias = Number(argv[++i]);
     else if (k === "--entorno") a.entorno = argv[++i];
     else if (k === "--fichero") a.fichero = argv[++i];
-    else if (k === "--limite") a.limite = Number(argv[++i]);
+    else if (k === "--tandas") a.maxTandas = Number(argv[++i]);
     else throw new Error(`No conozco «${k}». Mira la cabecera de scripts/bot-fallos.mjs.`);
   }
   if (!(a.dias > 0 && a.dias <= 30)) throw new Error("--dias va de 1 a 30");
-  if (!(Number.isInteger(a.limite) && a.limite > 0)) throw new Error("--limite es un número entero");
+  if (!(Number.isInteger(a.maxTandas) && a.maxTandas > 0)) throw new Error("--tandas es un número entero");
   if (!["production", "preview"].includes(a.entorno)) throw new Error("--entorno es production o preview");
   return a;
 }
 
-function deVercel({ dias, entorno, limite }) {
-  const args = ["logs", "--project", PROYECTO, "--scope", EQUIPO, "--environment", entorno,
-    "--since", `${dias * 24}h`, "--query", "bot_fallo", "--json", "--limit", String(limite)];
-  // En Windows la CLI es vercel.cmd: hace falta la shell. Los argumentos son fijos o números ya comprobados.
-  const opciones = { encoding: "utf8", maxBuffer: 512 * 1024 * 1024 };
-  const r = process.platform === "win32"
-    ? spawnSync(`vercel ${args.join(" ")}`, { ...opciones, shell: true })
-    : spawnSync("vercel", args, opciones);
-  if (r.error || r.status !== 0) {
-    throw new Error(`vercel logs no ha ido (${r.error?.message ?? `salida ${r.status}`}). ¿Está instalada la CLI y con sesión (vercel login)?\n${String(r.stderr ?? "").slice(0, 500)}`);
-  }
-  return r.stdout;
+// `vercel logs` devuelve como mucho 50 peticiones por llamada, pidas las que
+// pidas (comprobado el 8 oct 2026 con la CLI 62.1.0).
+const TANDA = 50;
+
+/** Una tanda de `vercel logs` entre dos instantes (ms), en JSON Lines. */
+function tandaDeVercel(entorno) {
+  return ({ desde, hasta }) => {
+    const args = ["logs", "--project", PROYECTO, "--scope", EQUIPO, "--environment", entorno,
+      "--since", new Date(desde).toISOString(), "--until", new Date(hasta).toISOString(),
+      "--query", "bot_fallo", "--json", "--limit", String(TANDA)];
+    // En Windows la CLI es vercel.cmd: hace falta la shell. Los argumentos son fijos, fechas ISO o números ya comprobados.
+    const opciones = { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 };
+    const r = process.platform === "win32"
+      ? spawnSync(`vercel ${args.join(" ")}`, { ...opciones, shell: true })
+      : spawnSync("vercel", args, opciones);
+    if (r.error || r.status !== 0) {
+      throw new Error(`vercel logs no ha ido (${r.error?.message ?? `salida ${r.status}`}). ¿Está instalada la CLI y con sesión (vercel login)?\n${String(r.stderr ?? "").slice(0, 500)}`);
+    }
+    return r.stdout;
+  };
 }
+
+/**
+ * Pide tandas hacia atrás: cada una acaba (--until) en la petición más vieja
+ * de la anterior, hasta llegar a `desde` o a una tanda que no se llena.
+ * @param {(r: { desde: number, hasta: number }) => string} pedirTanda
+ * @returns {{ contenido: string, peticiones: number, tandas: number, completo: boolean, cubreDesde: number, hasta: number }}
+ */
+export function paginar(pedirTanda, { desde, hasta, tanda = TANDA, maxTandas = 200 }) {
+  const vistas = new Set();
+  const lineas = [];
+  let cursor = hasta;
+  let tandas = 0;
+  let completo = false;
+  while (tandas < maxTandas) {
+    tandas++;
+    const filas = String(pedirTanda({ desde, hasta: cursor }) ?? "").split(/\r?\n/).filter((l) => l.trim());
+    let nuevas = 0;
+    let masVieja = cursor;
+    for (const l of filas) {
+      const p = intentar(l);
+      const id = p?.id ?? l;
+      if (typeof p?.timestamp === "number") masVieja = Math.min(masVieja, p.timestamp);
+      if (vistas.has(id)) continue;
+      vistas.add(id);
+      lineas.push(l);
+      nuevas++;
+    }
+    // Se acabó: la tanda no se llenó, no trajo nada nuevo o ya llega al principio.
+    if (filas.length < tanda || !nuevas || masVieja <= desde) { completo = true; cursor = desde; break; }
+    // La más vieja entra otra vez (puede haber más en el mismo milisegundo); el id la quita.
+    cursor = masVieja;
+  }
+  return { contenido: lineas.join("\n"), peticiones: lineas.length, tandas, completo, cubreDesde: Math.max(cursor, desde), hasta };
+}
+
+const fecha = (ms) => new Date(ms).toISOString().slice(0, 16).replace("T", " ") + " UTC";
 
 async function main() {
   const a = argumentos(process.argv.slice(2));
-  const contenido = a.fichero === "-" ? readFileSync(0, "utf8")
-    : a.fichero ? readFileSync(a.fichero, "utf8")
-      : deVercel(a);
-  const fallos = fallosDe(contenido);
-  const titulo = a.fichero ? `fichero ${a.fichero}` : `últimos ${a.dias} día(s), ${a.entorno}`;
+  if (a.fichero) {
+    const fallos = fallosDe(a.fichero === "-" ? readFileSync(0, "utf8") : readFileSync(a.fichero, "utf8"));
+    console.log(informe(contar(fallos), { titulo: `fichero ${a.fichero}` }));
+    if (fallos.ilegibles) console.warn(`\n(${fallos.ilegibles} líneas bot_fallo cortadas o ilegibles, sin contar)`);
+    return;
+  }
+  const hasta = Date.now();
+  const desde = hasta - a.dias * 24 * 3600 * 1000;
+  const r = paginar(tandaDeVercel(a.entorno), { desde, hasta, maxTandas: a.maxTandas });
+  const fallos = fallosDe(r.contenido);
+  // Qué se ha mirado de verdad: el entorno, el rango cubierto y cuántas peticiones.
+  const titulo = `${a.entorno}, de ${fecha(r.cubreDesde)} a ${fecha(hasta)} · ${r.peticiones} peticiones en ${r.tandas} tanda(s)`;
   console.log(informe(contar(fallos), { titulo }));
   if (fallos.ilegibles) console.warn(`\n(${fallos.ilegibles} líneas bot_fallo cortadas o ilegibles, sin contar)`);
-  if (!a.fichero && contenido.trim().split(/\n/).length >= a.limite) {
-    console.warn(`\nOjo: Vercel ha devuelto el máximo (${a.limite}); puede haber más. Sube --limite o baja --dias.`);
+  if (!r.completo) {
+    console.warn(`\nOjo: no llega al principio del rango pedido (${fecha(desde)}): se ha parado en ${a.maxTandas} tandas. Sube --tandas o baja --dias.`);
   }
 }
 

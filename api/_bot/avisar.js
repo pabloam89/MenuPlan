@@ -14,7 +14,7 @@
 // Sin datos de la familia: el texto del error solo va (recortado) cuando el
 // motivo es `otro`, que es cuando hace falta para clasificarlo.
 
-import { AnthropicError } from "@anthropic-ai/sdk/core/error";
+import { AnthropicError, APIConnectionError, APIUserAbortError } from "@anthropic-ai/sdk/core/error";
 import { SITIOS_FALLO } from "../../src/lib/vocabularios.js";
 
 const SITIOS = new Set(SITIOS_FALLO);
@@ -81,6 +81,27 @@ export function motivoDe(e) {
   if (typeof causa === "string" && CAIDA_RED.test(causa)) return "red";
   if (e instanceof TypeError && /fetch failed|network/i.test(String(e.message))) return "red";
   return "otro";
+}
+
+// Cuándo un error del modelo es una caída (otro modelo podría contestar), y no
+// una petición mal hecha o cancelada por nosotros.
+const CAIDA_STATUS = new Set([408, 409, 429, 500, 502, 503, 504, 529]);
+const CAIDA_TIPO = new Set(["overloaded_error", "api_error", "rate_limit_error", "timeout_error"]);
+
+/**
+ * ¿La IA está caída? Solo si el motivo es `modelo` (lo de la base o de
+ * Telegram nunca, aunque traiga un 503): saturada, caída, sin conexión o sin
+ * tiempo. Lo usa esCaida (agente.js) para el plan B y el aviso a la familia.
+ */
+export function caidaDelModelo(e) {
+  if (motivoDe(e) !== "modelo") return false;
+  if (e instanceof APIUserAbortError) return false;
+  // Por clase y no por e.name: las del SDK no lo ponen. La de tiempo agotado es hija de la de conexión.
+  if (e instanceof APIConnectionError) return true;
+  if (CAIDA_STATUS.has(e.status)) return true;
+  // Un error que llega a mitad del stream no trae status: viene en el cuerpo.
+  if (CAIDA_TIPO.has(e.error?.error?.type ?? e.error?.type)) return true;
+  return /overloaded|timed? ?out|ECONNRESET|socket hang up|fetch failed|Connection error/i.test(String(e.message ?? ""));
 }
 
 /**

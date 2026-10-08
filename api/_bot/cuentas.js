@@ -38,6 +38,17 @@ async function auth(ruta, { method = "POST", body, token } = {}) {
   return { ok: res.ok, status: res.status, json };
 }
 
+/**
+ * Un fallo de GoTrue, con su código y su mensaje y nada más: el cuerpo puede
+ * traer el id y el email de la persona, y el texto acaba en el log (#211).
+ */
+function errorDeAuth(que, r) {
+  const j = r.json ?? {};
+  const codigo = j.error_code ?? j.code ?? j.error ?? null;
+  const msg = j.msg ?? j.error_description ?? j.message ?? "";
+  return Object.assign(new Error(`${que} → ${r.status} ${[codigo, msg].filter(Boolean).join(" ")}`.slice(0, 200)), { status: r.status });
+}
+
 const anonKey = () => process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || null;
 
 /**
@@ -73,7 +84,7 @@ export async function verificarCodigoEmail(email, token) {
 export async function tokenHashDe(email) {
   const r = await auth("/admin/generate_link", { body: { type: "magiclink", email } });
   const hash = r.json?.properties?.hashed_token ?? r.json?.hashed_token;
-  if (!r.ok || !hash) throw new Error(`generate_link → ${r.status} ${JSON.stringify(r.json).slice(0, 200)}`);
+  if (!r.ok || !hash) throw errorDeAuth("generate_link", r);
   return hash;
 }
 
@@ -116,7 +127,7 @@ export async function crearCuentaTelegram({ telegramId, nombre }) {
   });
   const yaExistia = !creada.ok && /already|exists|registered/i.test(JSON.stringify(creada.json));
   if (!creada.ok && !yaExistia) {
-    throw new Error(`crear usuario → ${creada.status} ${JSON.stringify(creada.json).slice(0, 200)}`);
+    throw errorDeAuth("crear usuario", creada);
   }
 
   const token = await sesionDe(email);

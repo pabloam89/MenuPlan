@@ -37,7 +37,11 @@ vi.mock("../_bot/adjuntos.js", () => ({ adjuntoDe: vi.fn() }));
 vi.mock("../_bot/turnos.js", () => ({ enTurno: vi.fn(), aSolas: vi.fn(), juntar: vi.fn() }));
 vi.mock("../_bot/plato.js", () => ({ comidaElegida: () => null, quiereApuntar: () => false }));
 vi.mock("../_bot/recordatorios.js", () => ({ ahoraEnMadrid: () => "" }));
-vi.mock("../_bot/compartir.js", () => ({ enlacesReceta: vi.fn(), enlacesSemana: vi.fn(), botonesCompartir: vi.fn(), resolverInvitacion: vi.fn(async () => null), recetaEnTexto: vi.fn(() => "receta"), semanaEnTexto: vi.fn(), copiarReceta: vi.fn(), cuentasDeQuien: vi.fn(async () => ["u1"]) }));
+// cuentasDeQuien, la de verdad (con la base de mentira): es la que lee al dueño.
+vi.mock("../_bot/compartir.js", async (original) => {
+  const real = await original();
+  return { enlacesReceta: vi.fn(), enlacesSemana: vi.fn(), botonesCompartir: vi.fn(), resolverInvitacion: vi.fn(async () => null), recetaEnTexto: vi.fn(() => "receta"), semanaEnTexto: vi.fn(), copiarReceta: vi.fn(), cuentasDeQuien: vi.fn((...a) => real.cuentasDeQuien(...a)) };
+});
 vi.mock("../_bot/menu.js", () => ({ motor: vi.fn() }));
 vi.mock("../_bot/ajustes.js", () => ({ sembrarCasa: vi.fn() }));
 vi.mock("../_bot/enlace.js", () => ({ enlazarChat: vi.fn(async () => ({ ok: true })), crearCodigo: vi.fn(), gastarCodigo: vi.fn(), baseDe: () => "https://x", confirmarEnlace: vi.fn(async () => ({})), casaPropia: vi.fn(), idDePersona: (f) => (f?.id ? String(f.id) : null), codigoDeGrupo: vi.fn(), esCodigoDeGrupo: () => false }));
@@ -54,15 +58,16 @@ const { papelDeQuien } = await import("../_bot/papel.js");
 const { viaRapida } = await import("../_bot/turno.js");
 const { responder } = await import("../_bot/agente.js");
 const { cuentasDeQuien, resolverInvitacion } = await import("../_bot/compartir.js");
+const { unirsePorInvitacion } = await import("../_bot/invitacion.js");
 
 const NO_PUDE = /^No he podido .* ahora mismo; vuelve a intentarlo en un minuto/;
 const res = () => { const r = { status: () => r, json: () => r, end: () => r }; return r; };
 
-async function escribe(texto, { chat = 7, from = 7 } = {}) {
+async function escribe(texto, { chat = 7, from = 7, lang } = {}) {
   await handler({
     method: "POST",
     headers: { "x-telegram-bot-api-secret-token": "secreto" },
-    body: { message: { message_id: 1, text: texto, chat: { id: chat, type: "private" }, from: { id: from, first_name: "Ana" } } },
+    body: { message: { message_id: 1, text: texto, chat: { id: chat, type: "private" }, from: { id: from, first_name: "Ana", ...(lang ? { language_code: lang } : {}) } } },
   }, res());
   await Promise.all(t.trabajo);
 }
@@ -96,6 +101,25 @@ describe("reconocer: sin saber si ya es una cuenta, ni bienvenida ni alta", () =
     expect(enlazarChat).not.toHaveBeenCalled();
   });
 
+  it("en inglés si su Telegram está en inglés", async () => {
+    t.rotas.add("bot_identities");
+    await escribe("hello", { lang: "en-GB" });
+    expect(textos()).toEqual([expect.stringMatching(/^I couldn't check whether you already have an account just now/)]);
+  });
+
+  it("/borrarcuenta: sin saber de qué cuenta es, no enseña el aviso de borrar", async () => {
+    t.rotas.add("bot_identities");
+    await escribe("/borrarcuenta");
+    expect(textos()).toEqual([expect.stringMatching(NO_PUDE)]);
+    expect(t.enviados[0].opciones?.botones).toBeUndefined();
+  });
+
+  it("la invitación, si cae entera, en el idioma de su Telegram", async () => {
+    unirsePorInvitacion.mockRejectedValueOnce(caida());
+    await escribe(`/start inv_${LLAVE}`, { lang: "en" });
+    expect(textos()).toEqual([expect.stringMatching(/^I couldn't open your invitation just now/)]);
+  });
+
   it("y sin fallo, quien no es nadie sigue al alta como siempre", async () => {
     await escribe("/start");
     expect(textos().join(" ")).not.toMatch(NO_PUDE);
@@ -112,6 +136,12 @@ describe("papelDeQuien: sin saber su papel, no se le trata como de fuera", () =>
     expect(textos()[0]).toContain("quién eres en esta casa");
     expect(viaRapida).not.toHaveBeenCalled();
     expect(responder).not.toHaveBeenCalled();
+  });
+
+  it("en inglés si su Telegram está en inglés (sin papel no hay idioma guardado que leer)", async () => {
+    papelDeQuien.mockRejectedValueOnce(caida());
+    await turno({ chatId: 7, householdId: "h1", esGrupo: false, base: "https://x", texto: "what's for dinner?", from: { id: 7, first_name: "Ann", language_code: "en" }, responderA: 9 });
+    expect(textos()).toEqual([expect.stringMatching(/^I couldn't check who you are in this home just now/)]);
   });
 
   it("y sin fallo, contesta la vía rápida", async () => {
@@ -141,6 +171,14 @@ describe("enlace de receta compartida: sin poder comprobar el bloqueo, ni se ens
     t.tablas.bot_chats = [{ household_id: "h1" }];
     cuentasDeQuien.mockRejectedValueOnce(caida());
     await pulsa(`comp:m:ru_${LLAVE}`);
+    expect(resolverInvitacion).not.toHaveBeenCalled();
+    expect(textos()).toEqual([expect.stringMatching(NO_PUDE)]);
+  });
+
+  it("si cae al leer el dueño de su casa (households), tampoco se enseña", async () => {
+    t.tablas.bot_chats = [{ household_id: "h1" }];
+    t.rotas.add("households");
+    await escribe(`/start ru_${LLAVE}`);
     expect(resolverInvitacion).not.toHaveBeenCalled();
     expect(textos()).toEqual([expect.stringMatching(NO_PUDE)]);
   });

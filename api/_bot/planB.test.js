@@ -33,4 +33,12 @@ describe("esCaida: otro modelo podría contestar", () => {
     expect(esCaida(new Error("turno de la vía rápida"))).toBe(false);
     expect(esCaida(null)).toBe(false);
   });
+
+  it("un error de la base o de Telegram, aunque traiga un status de caída: no (no es la IA)", () => {
+    // Como los lanza db.js y telegram.js, con status y código (#211).
+    expect(esCaida(Object.assign(new Error("GET /rest/v1/household_state → 503 PGRST002 Could not query the database"), { status: 503, codigo: "PGRST002" }))).toBe(false);
+    expect(esCaida(Object.assign(new Error("POST /rest/v1/bot_messages → 409 23505 duplicate key"), { status: 409, codigo: "23505" }))).toBe(false);
+    expect(esCaida(Object.assign(new Error("Telegram sendMessage: Too Many Requests: retry after 3"), { servicio: "telegram", status: 429 }))).toBe(false);
+    expect(esCaida(Object.assign(new TypeError("fetch failed"), { cause: { code: "ECONNRESET" } }))).toBe(false);
+  });
 });

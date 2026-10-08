@@ -62,8 +62,10 @@ export async function cuentasDeQuien({ fromId, householdId }) {
   const [ident] = fromId
     ? await select("bot_identities", `channel=eq.telegram&external_id=${eq(String(fromId))}`, "user_id")
     : [];
-  const dueno = householdId ? await duenoDe(householdId) : null;
-  return [ident?.user_id, dueno].filter(Boolean);
+  // El dueño, sin tragarse el error (duenoDe sí lo hace): sin él no se puede
+  // comprobar el bloqueo, y quien llama tiene que saberlo para decirlo (#208).
+  const [hogar] = householdId ? await select("households", `id=${eq(householdId)}`, "owner_user_id") : [];
+  return [ident?.user_id, hogar?.owner_user_id].filter(Boolean);
 }
 
 /** Una receta del catálogo con la forma de la app (ingredientes y pasos). */

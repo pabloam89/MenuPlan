@@ -22,8 +22,12 @@ const QUE = {
   enlace: { es: "No he podido abrir ese enlace ahora mismo", en: "I couldn't open that link just now" },
 };
 
-/** La frase de «no he podido» para `que` (casa, cuenta, papel, invitacion, enlace). */
+/**
+ * La frase de «no he podido» para `que` (casa, cuenta, papel, invitacion,
+ * enlace). `idioma`: el elegido («es», «en») o, si no se pudo leer, el
+ * language_code de Telegram («en-GB»); sin él, en castellano.
+ */
 export function noPude(que, idioma = "es") {
-  const lengua = idioma === "en" ? "en" : "es";
+  const lengua = String(idioma ?? "").toLowerCase().startsWith("en") ? "en" : "es";
   return `${QUE[que][lengua]}; ${ESPERA[lengua]}`;
 }

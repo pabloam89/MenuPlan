@@ -11,7 +11,7 @@
  * lo que importa se guarda en la casa, no en la charla.
  */
 
-import { seguirCon, fallaCon, SIN_LEER } from "./avisar.js";
+import { seguirCon, fallaCon, SIN_LEER, caidaDelModelo } from "./avisar.js";
 import { noPude } from "./noPude.js";
 import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
@@ -1274,14 +1274,9 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
 export function esCaida(err) {
   if (!err) return false;
   if (err.caida) return true;
-  // Por clase y no por err.name: las del SDK no lo ponen (todas dicen «Error»).
-  // La de tiempo agotado es hija de la de conexión.
-  if (err instanceof Anthropic.APIConnectionError || err instanceof Anthropic.InternalServerError || err instanceof Anthropic.RateLimitError) return true;
-  if ([408, 409, 429, 500, 502, 503, 504, 529].includes(err.status)) return true;
-  // Un error que llega a mitad del stream no trae status: viene en el cuerpo.
-  const tipo = err.error?.error?.type ?? err.error?.type;
-  if (["overloaded_error", "api_error", "rate_limit_error", "timeout_error"].includes(tipo)) return true;
-  return /overloaded|timed? ?out|ECONNRESET|socket hang up|fetch failed|Connection error/i.test(String(err.message ?? ""));
+  // Una sola clasificación de errores, la de avisar.js (#211): un 503 de la
+  // base o un 429 de Telegram no es «la IA está saturada».
+  return caidaDelModelo(err);
 }
 
 // La caché de lo fijo (instrucciones y ficha) dura una hora, no cinco minutos.

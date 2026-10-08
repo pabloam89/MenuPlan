@@ -1,7 +1,7 @@
 // npm run fallos (scripts/bot-fallos.mjs): cuenta las líneas bot_fallo de un
 // export de logs de Vercel por motivo y por sitio (#211).
 import { describe, it, expect } from "vitest";
-import { fallosDe, contar, informe } from "./bot-fallos.mjs";
+import { fallosDe, contar, informe, paginar } from "./bot-fallos.mjs";
 
 const linea = (f) => JSON.stringify({ evento: "bot_fallo", ...f });
 // Como sale de `vercel logs --json`: una petición por línea, sus logs dentro.
@@ -48,6 +48,29 @@ describe("npm run fallos", () => {
     const c = contar(fallosDe(linea({ donde: "me_lo_invento", motivo: "marciano", grave: true })));
     expect(c.fuera).toEqual({ motivos: ["marciano"], sitios: ["me_lo_invento"] });
     expect(informe(c)).toContain("Fuera de la lista");
+  });
+
+  it("pagina hacia atrás con --until hasta cubrir el rango (la CLI da 50 por tanda)", () => {
+    // 120 peticiones, una por minuto, de la más nueva a la más vieja, como las da Vercel.
+    const AHORA = Date.UTC(2026, 9, 8, 12);
+    const todas = Array.from({ length: 120 }, (_, i) => ({ id: `p${i}`, timestamp: AHORA - i * 60000, logs: [{ message: linea({ donde: "agente_casa", motivo: "tiempo", grave: true }) }] }));
+    const pedidas = [];
+    const tanda = ({ desde, hasta }) => {
+      pedidas.push(hasta);
+      return todas.filter((p) => p.timestamp >= desde && p.timestamp <= hasta).slice(0, 50).map((p) => JSON.stringify(p)).join("\n");
+    };
+    const r = paginar(tanda, { desde: AHORA - 200 * 60000, hasta: AHORA, tanda: 50 });
+    expect(contar(fallosDe(r.contenido)).total).toBe(120);
+    expect(pedidas.length).toBeGreaterThanOrEqual(3);
+    expect(r.completo).toBe(true);
+    expect(r.peticiones).toBe(120);
+  });
+
+  it("si se queda en el tope de tandas, lo dice y dice hasta dónde llegó", () => {
+    const tanda = ({ hasta }) => Array.from({ length: 50 }, (_, i) => JSON.stringify({ id: `${hasta}-${i}`, timestamp: hasta - i, logs: [] })).join("\n");
+    const r = paginar(tanda, { desde: 0, hasta: 1_000_000, tanda: 50, maxTandas: 2 });
+    expect(r.completo).toBe(false);
+    expect(r.cubreDesde).toBeGreaterThan(0);
   });
 
   it("el informe pone primero lo que más falla", () => {
