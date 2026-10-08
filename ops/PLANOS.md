@@ -73,10 +73,13 @@ lectura): 20 FK sin índice, 18 tablas sin `created_at`, solo 3 de 55 con
 autor, ningún registro de auditoría y ningún `update_id` de Telegram. Lo que
 ya existe no se reescribe por las normas: se arregla al tocarlo, salvo la
 salud y la idempotencia, que son encargos de `datos`; trinquete de cableado (40 tablas, 99 pares tabla-fichero
-el 7 oct; objetivo uno por tabla); `verificar-estado`. Copias de seguridad sin
-comprobar. *Siguiente*: el mapa de verdades (cada hecho, dónde vive y sus
-copias) por `auditor-datos`; confirmar PITR/backups de Supabase y hacer una
-restauración de prueba.
+el 7 oct; objetivo uno por tabla); `verificar-estado`. **Sin copias de la base de
+producción** (8 oct 2026, visto en el panel de Supabase: el plan Free no las
+incluye; ver la skill `supabase`). *Siguiente*: decidir entre una copia propia
+cifrada y el plan Pro (issue #156) y ensayar una restauración; después, el mapa
+de verdades (cada hecho, dónde vive y sus copias) por `auditor-datos`. Con la
+base que no se puede recuperar, el nivel de este plano es discutible: lo revisa
+`gobierno` con Pablo.
 
 **9 · Calidad de la IA (1).** `bot-evals`, `router-evals`, `/revision-semanal`,
 todo a mano. *Siguiente*: evals de Lola en CI cuando un PR toca `api/_bot/`.
