@@ -19,6 +19,7 @@ import { existsSync, rmSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 
 import { dirSesiones, enCarpeta, listar, normaRuta } from "../.claude/hooks/sesiones.mjs";
+import { MARCA_INICIAL } from "./tarea.mjs";
 
 const git = (args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 const intenta = (fn) => {
@@ -46,6 +47,11 @@ export function elegir(worktrees, texto) {
   return worktrees.filter(
     (w) => w.rama?.toLowerCase() === t || basename(w.ruta).toLowerCase() === t || basename(w.ruta).toLowerCase() === `menuplan-${t}`,
   );
+}
+
+/** Quita de «commits sin subir» el commit vacío con el que `tarea` abre la rama: no es trabajo. */
+export function sinMarcaInicial(lineas) {
+  return lineas.filter((l) => !MARCA_INICIAL.test(l));
 }
 
 /** Lo que se perdería. Vacío = se puede borrar. */
@@ -83,7 +89,7 @@ async function main() {
   let sinSubir = [];
   if (rama) {
     const fuera = intenta(() => git(["-C", principal, "log", "--oneline", rama, "--not", "--remotes=origin"])) ?? "";
-    sinSubir = fuera.split("\n").filter(Boolean);
+    sinSubir = sinMarcaInicial(fuera.split("\n").filter(Boolean));
     if (sinSubir.length) {
       const fusionado = intenta(() => execFileSync("gh", ["pr", "list", "--head", rama, "--state", "merged", "--json", "headRefOid"], { cwd: principal, encoding: "utf8", timeout: 15000 }));
       const cabeza = git(["-C", principal, "rev-parse", rama]);
