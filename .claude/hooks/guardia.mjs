@@ -19,8 +19,9 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { cargarMapa, skillsDeComando, unirContinuaciones } from "./dominios.mjs";
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
-import { dirSesiones, tocar } from "./sesiones.mjs";
+import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
 
 const deny = (motivo) => ({ decision: "deny", motivo });
 const ask = (motivo) => ({ decision: "ask", motivo });
@@ -115,8 +116,8 @@ const OTRA_BASE = new RegExp(
   ].join("|"),
   "i",
 );
-// Las continuaciones de línea (`\` o acento grave de PowerShell) se unen antes de partir.
-const unirContinuaciones = (o) => o.replace(/[\\\x60]\r?\n\s*/g, " ");
+// Las continuaciones de línea (`\` o acento grave de PowerShell) se unen antes
+// de partir (unirContinuaciones, de dominios.mjs).
 const psqlFueraDelPanel = (o) => {
   const c = unirContinuaciones(o);
   const sinOtraBase = !OTRA_BASE.test(c);
@@ -243,7 +244,7 @@ const GIT_DE_MANTENER = /\bmerge\s+(.*\s)?--ff-only\b|\b(checkout|switch)\s+stag
 
 const EN_LA_PRINCIPAL = "Estás en la carpeta principal (C:\\dev\\MenuPlan): es de todas las sesiones y en ella no se trabaja, solo se mira y se lanza `npm run tarea`. Abre la tuya con `npm run tarea -- <area>/<nombre>` y trabaja allí.";
 
-function contextoReal(raiz) {
+export function contextoReal(raiz, entrada = {}) {
   let deStaging;
   const git = (args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000 }).trim();
   let comunPropio;
@@ -257,7 +258,27 @@ function contextoReal(raiz) {
       return false;
     }
   };
+  // El registro de sesiones (para la puerta de lectura de las skills), perezoso:
+  // casi ningún comando lo necesita.
+  let dirReg;
+  const registro = () => (dirReg ??= dirSesiones(raiz) ?? null);
+  const idSesion = entrada.session_id;
   return {
+    dominios: cargarMapa(raiz),
+    skillAbierta: (skill) => skillAnotada(registro(), idSesion, skill),
+    marcarSkill: (skill) => anotarSkill(registro(), idSesion, skill, "avisada"),
+    // Las skills que un subagente trae precargadas en su frontmatter (`skills: [a, b]`).
+    skillsDelAgente: (tipo) => {
+      if (typeof tipo !== "string" || !/^[\w-]+$/.test(tipo)) return [];
+      try {
+        const md = readFileSync(join(raiz, ".claude", "agents", `${tipo}.md`), "utf8").replace(/\r\n/g, "\n");
+        const linea = md.match(/^---\n([\s\S]*?)\n---/)?.[1].match(/^skills:\s*\[(.*)\]\s*$/m)?.[1] ?? "";
+        return linea.split(",").map((s) => s.trim()).filter(Boolean);
+      } catch {
+        // a propósito: falla abierta — si no se puede leer el agente se pierde saber qué skills trae precargadas; cuesta un reintento de la puerta, mejor que bloquear.
+        return [];
+      }
+    },
     esPrincipal,
     // Un fichero del repo en la carpeta principal. Lo ignorado (.env.local) y la
     // memoria de los agentes, que vive en la carpeta del proyecto, no cuentan.
@@ -341,6 +362,38 @@ function contextoReal(raiz) {
   };
 }
 
+// ── La puerta de lectura de las skills ─────────────────────────────────────
+
+/**
+ * Las skills (.claude/skills/) son los runbooks, con lo que ya falló en cada
+ * servicio. Se abrían solo si la sesión decidía hacerlo. Aquí, la PRIMERA vez
+ * que una sesión lanza un comando de riesgo de un dominio con skill (el mapa:
+ * .claude/dominios-skills.json), se le niega con el nombre de la skill; al
+ * reintentar pasa. Es un obstáculo, no un candado: una vez por skill y sesión.
+ *
+ *  - Si la sesión ya abrió la skill (herramienta Skill o Read de su SKILL.md,
+ *    anotado por skill-abierta.mjs), pasa a la primera.
+ *  - Si es un subagente con la skill en su frontmatter (`skills: [...]`), ya la
+ *    tiene en el contexto: cuenta como abierta. El hook solo sabe qué agente es
+ *    si Claude Code le pasa `agent_type`; si no, el coste es un reintento.
+ *  - Falla abierta: si no se puede anotar el aviso (sin registro, disco, id
+ *    raro), NO se niega; una puerta que no recuerda atascaría la sesión.
+ */
+function puertaDeSkills(cmd, entrada, ctx) {
+  if (!ctx.dominios || !ctx.skillAbierta || !ctx.marcarSkill) return null;
+  const delAgente = ctx.skillsDelAgente?.(entrada.agent_type) ?? [];
+  const faltan = skillsDeComando(cmd, ctx.dominios).filter((s) => !delAgente.includes(s) && !ctx.skillAbierta(s));
+  const avisadas = faltan.filter((s) => ctx.marcarSkill(s));
+  if (!avisadas.length) return null;
+  const lista = avisadas.map((s) => `\`${s}\``).join(" y ");
+  const abre = avisadas.map((s) => `Skill con skill: "${s}"`).join(" y ");
+  return deny(
+    `Este comando es de los que, mal hechos, cuestan caro, y ${avisadas.length > 1 ? "sus dominios tienen" : "su dominio tiene"} runbook con lo que ya falló aquí. ` +
+    `Abre antes ${avisadas.length > 1 ? "las skills" : "la skill"} ${lista} (herramienta ${abre}) y reintenta el mismo comando. ` +
+    "Este aviso sale una sola vez por skill y sesión: al reintentar pasa.",
+  );
+}
+
 // ── La decisión ────────────────────────────────────────────────────────────
 
 /**
@@ -418,6 +471,10 @@ export function decidir(entrada, ctx) {
       const motivo = migracionCerrada(nombre, ctx);
       if (motivo) return deny(motivo);
     }
+    // La puerta de lectura va la última entre los «no»: una orden que otra regla
+    // ya niega no gasta el aviso. Se mira el comando ENTERO (no un tramo).
+    const puerta = puertaDeSkills(cmd, entrada, ctx);
+    if (puerta) return puerta;
     if (tocaEn(cmd, RUTA_LOLA).length) {
       return ask("Esto escribe en lo que lee Lola desde la shell. Mejor con Edit: así se carga `.claude/rules/lola.md`. Y si cambia lo que lee Lola, pasa los evals (`scripts/bot-evals.mjs`) antes de mergear.");
     }
@@ -486,7 +543,7 @@ if (esPrincipal) {
   } catch {
     // a propósito: el registro es una ayuda, no un requisito; si falla, el arranque lo dice
   }
-  const r = decidir(entrada, contextoReal(raiz));
+  const r = decidir(entrada, contextoReal(raiz, entrada));
   if (r) responder(r);
   process.exit(0);
 }

@@ -19,7 +19,7 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 
 | Workflow | Cuándo | Qué hace |
 |---|---|---|
-| `tests.yml` | PR a `staging` o `main`, push a `staging`, a mano | lint con línea base, tests y build. Es el check `tests` |
+| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | la línea «Runbook:» del PR, lint con línea base, tests y build. Es el check `tests` |
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano | precios de Mercadona; commitea y **empuja a `staging`** |
 | `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |
 | `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola |
@@ -38,6 +38,19 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
   retirar` las cierra. Un hook personal de Pablo (`~/.claude/hooks/limpiar-worktrees.mjs`)
   borra solo las que ve **fusionadas y limpias**, tras cada `gh pr merge` y al
   abrir cualquier sesión.
+- **Las skills, por obligación** (#164; mapa `.claude/dominios-skills.json`, cruzado por test con `.claude/skills/`):
+  - **Puerta de lectura** (`guardia.mjs`): el primer comando de riesgo de un dominio en la
+    sesión (`apply-migration`, `telegram-webhook.mjs set`, `vercel env`, `op item|read`, `ssh`
+    al panel, `gh api -X POST`…) se niega con «abre antes la skill X y reintenta»; al
+    reintentar pasa, y a la primera si la sesión ya abrió la skill (`Skill` o `Read` de su
+    `SKILL.md`; lo anota `skill-abierta.mjs`) o el subagente la trae en su `skills:`. Sin registro, no bloquea.
+  - **Puede avisar de más** («ante la duda, niega»; un reintento; fijado en el test del
+    mapa): un `git commit -m` que nombra `apply-migration`, `gh workflow run`, `gh api
+    graphql -f`, un `docker … -U panel` local, una `ssh` con la IP.
+  - **Línea «Runbook:» del PR** (`scripts/runbook-pr.mjs`, tercer paso del job `tests`): si
+    el PR toca rutas de un dominio, `Runbook: actualizado (skill X)` (y tocar esa skill) o
+    `Runbook: sin novedades`; todas las líneas valen, las de bloques de código no cuentan.
+    Exentos solo los PR de un bot; editar el cuerpo relanza el check.
 
 ## Claves y accesos
 
@@ -64,6 +77,7 @@ CLI `gh` va con la sesión de Pablo (`gh auth status`).
 | Borrarlas (OK) | `npm run podar -- --si` | GitHub y locales con `-d`; lo no fusionado sale como «decide Pablo» |
 | ¿Está en staging? | `git fetch origin` y mirar `origin/staging`, nunca el upstream de tu rama | el commit o la ausencia |
 | CI en rojo: reproducir un test | `npx vitest run <fichero>` | el mismo fallo que en el CI |
+| Probar a mano la línea «Runbook:» | `git diff --name-only origin/staging... > $TEMP/f.txt` y `PR_BODY="$(gh pr view <n> --json body -q .body)" node scripts/runbook-pr.mjs $TEMP/f.txt` | `Runbook: ok`, o `FALLA` con la línea a poner (se arregla con `gh pr edit <n> --body-file <f>`) |
 
 - **Ramas viejas:** GitHub borra la rama al fusionar el PR
   (`delete_branch_on_merge`), pero las de antes del 8 oct 2026 se quedaron.
@@ -213,4 +227,4 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://cli.github.com/manual/
 - https://docs.github.com/code-security/dependabot
 
-Comprobado el 2026-10-08: la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.
+Comprobado el 2026-10-08: la comprobación del runbook y la puerta de lectura, con sus tests y a mano en local (sin probarlas aún en un PR real de GitHub ni con el campo `agent_type` de un subagente de verdad); la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.

@@ -1,0 +1,80 @@
+{
+  "_nota": "Un solo mapa de qué dominios tienen skill (runbook en .claude/skills/<nombre>/). Lo leen la guardia (.claude/hooks/guardia.mjs: puerta de lectura) y scripts/runbook-pr.mjs (la línea «Runbook:» de cada PR en el CI). Lo cruza .claude/dominios-skills.test.js con las skills reales. 'comandos': expresiones regulares (sin distinguir mayúsculas) que se buscan en el comando ENTERO, solo los que mutan o son de alto riesgo: leer no tiene puerta. 'rutas': expresiones regulares sobre rutas del repo con barras normales (sensibles a mayúsculas): tocarlas pide la línea «Runbook:» en el PR. 'exentas': skill -> motivo, para una skill que no tiene ni comandos ni rutas que vigilar. Una skill nueva se añade aquí o el test falla. Los comodines entre dos piezas de un patrón llevan tope ([\\s\\S]{0,1000} o {0,2000}): sin él, una entrada grande y repetida es cuadrática.",
+  "skills": {
+    "supabase": {
+      "comandos": [
+        "apply-migration",
+        "bot-cron\\.mjs",
+        "\\b(?:SUPABASE_DB_URL|OPS_DB_URL)\\b",
+        "(?:backfill-[\\w-]+|run-seed|mercadona-sync)\\.mjs",
+        "\\bsupabase\\s+(?:db|migration)\\s+(?:push|reset|repair)\\b"
+      ],
+      "rutas": [
+        "^supabase/",
+        "^scripts/(?:apply-migration|bot-cron|verificar-estado)\\.mjs$"
+      ]
+    },
+    "github": {
+      "comandos": [
+        "\\bgh\\s+api\\b[\\s\\S]{0,2000}?(?:(?:-X|--method)\\s*=?\\s*['\"]?(?:POST|PUT|PATCH|DELETE)\\b|\\s-f\\b|--(?:field|raw-field|input)\\b)",
+        "\\bgh\\s+(?:workflow|secret|variable|ruleset)\\b",
+        "\\bgh\\s+repo\\s+(?:edit|delete|rename|archive|transfer)\\b"
+      ],
+      "rutas": [
+        "^\\.github/",
+        "^scripts/(?:podar|retirar|tarea|issues|runbook-pr)\\.mjs$",
+        "^scripts/lib/issues\\.mjs$",
+        "^\\.claude/dominios-skills\\.json$"
+      ]
+    },
+    "vercel": {
+      "comandos": [
+        "\\bvercel(?:\\.cmd)?\\s+(?:env|deploy|promote|rollback|rm|remove|domains?|projects?|link|alias|blob|integration|--prod)\\b",
+        "upload-to-blob",
+        "build-vectores"
+      ],
+      "rutas": [
+        "^vercel\\.json$",
+        "^scripts/(?:upload-to-blob|build-vectores)\\.mjs$"
+      ]
+    },
+    "1password": {
+      "comandos": [
+        "(?:^|[\\s\"'=;&|(])op(?:\\.exe)?(?:\\s+--)?\\s+(?:item|vault|service-account|user|group|document|connect|account|read|inject)\\b"
+      ],
+      "rutas": [
+        "^ops/env\\.1password$",
+        "^scripts/lib/env\\.mjs$"
+      ]
+    },
+    "telegram": {
+      "comandos": [
+        "telegram-webhook\\.mjs\\s+(?!info\\b)\\S",
+        "telegram-perfil\\.mjs\\s+\\S",
+        "\\b(?:setWebhook|deleteWebhook|setMy\\w+|deleteMy\\w+|setChat\\w+)\\b"
+      ],
+      "rutas": [
+        "^scripts/telegram-[\\w-]+\\.mjs$",
+        "^api/bot/telegram\\.js$"
+      ]
+    },
+    "hetzner": {
+      "comandos": [
+        "\\b(?:ssh|scp|sftp|rsync)(?:\\.exe)?\\b[\\s\\S]{0,1000}(?:100\\.73\\.252\\.32|188\\.245\\.14\\.194|homenu-panel)",
+        "(?:100\\.73\\.252\\.32|188\\.245\\.14\\.194|homenu-panel)[\\s\\S]{0,1000}\\b(?:ssh|scp|sftp|rsync)\\b",
+        "\\bufw\\b",
+        "\\bdocker\\b[\\s\\S]{0,1000}(?:\\bpanel-db-1\\b|-U\\s+panel\\b)",
+        "/opt/panel\\b"
+      ],
+      "rutas": []
+    },
+    "tailscale": {
+      "comandos": [
+        "\\btailscale(?:\\.exe)?[\"']?\\s+(?:up|down|set|serve|funnel|login|logout|cert|file|ssh|switch|lock|configure)\\b",
+        "tailscale\\.com/install\\.sh"
+      ],
+      "rutas": []
+    }
+  },
+  "exentas": {}
+}
