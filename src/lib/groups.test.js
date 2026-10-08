@@ -199,7 +199,8 @@ describe("grupos con id estable", () => {
   });
 
   it("y de vuelta, Adultos vuelve a ser Familia con el mismo id", () => {
-    const miembros = [papa, mama, nina];
+    // Con un adolescente: un niño de 3 a 11 no deja heredar (ver abajo).
+    const miembros = [papa, mama, { id: "t", name: "Teo", age: 14, homeRole: "Hijo/a" }];
     const antes = groupsFromModel(miembros, "separate");
     const despues = groupsFromModel(miembros, "same", antes);
     expect(despues.map((g) => g.id)).toEqual([antes.find((g) => g.tipo === "adultos").id]);
@@ -225,7 +226,65 @@ describe("grupos con id estable", () => {
 
   it("ningún id viejo se reparte dos veces", () => {
     const viejos = [{ id: "f", label: "Familia", memberIds: [] }];
-    const nuevos = conservarIds(viejos, groupsFromModel([papa, nina], "separate"));
+    const nuevos = conservarIds(viejos, groupsFromModel([papa, nina], "separate"), [papa, nina]);
     expect(nuevos.filter((g) => g.id === "f")).toHaveLength(1);
+  });
+});
+
+// ── El id lleva el plan: no se hereda si el plan no vale para los que llegan ─
+// El menú de Adultos se hizo sin los niños: si Familia hereda su id, se lo
+// sirve a Nina sin pasar por su filtro de alergias (juez de datos, oct 2026).
+describe("conservarIds no hereda un plan que no vale para los que llegan", () => {
+  const papa = adult("p", "Papá");
+  const mama = adult("m", "Mamá");
+  const nina = { id: "n", name: "Nina", age: 6, homeRole: "Hijo/a", allergies: ["Huevo"] };
+  const teo = { id: "t", name: "Teo", age: 14, homeRole: "Hijo/a" };
+  const separadosATodos = (miembros) => {
+    const antes = groupsFromModel(miembros, "separate");
+    return { antes, despues: groupsFromModel(miembros, "same", antes) };
+  };
+  const adultosDe = (gs) => gs.find((g) => g.tipo === "adultos").id;
+
+  it("Nina, alérgica al huevo, pasa de Niños a Familia: Familia estrena id", () => {
+    const { antes, despues } = separadosATodos([papa, mama, nina]);
+    expect(antes.map((g) => g.id)).not.toContain(despues[0].id);
+  });
+
+  it("un niño de 3 a 11 que llega también: el plan de Adultos no filtró el alcohol", () => {
+    const { antes, despues } = separadosATodos([papa, mama, kid("k", "Kike")]);
+    expect(antes.map((g) => g.id)).not.toContain(despues[0].id);
+  });
+
+  it("un adolescente sin restricciones sí deja heredar", () => {
+    const { antes, despues } = separadosATodos([papa, mama, teo]);
+    expect(despues[0].id).toBe(adultosDe(antes));
+  });
+
+  it("si la alergia ya la tenía alguien del grupo viejo, se hereda", () => {
+    const { antes, despues } = separadosATodos([{ ...papa, allergies: ["huevo"] }, mama, { ...teo, allergies: ["Huevo"] }]);
+    expect(despues[0].id).toBe(adultosDe(antes));
+  });
+
+  it("intolerancias, estados y perfiles de salud cuentan igual", () => {
+    for (const extra of [{ intolerances: ["lactosa"] }, { dietaryStates: ["embarazo"] }, { healthProfiles: ["reflux"] }]) {
+      const { antes, despues } = separadosATodos([papa, mama, { ...teo, ...extra }]);
+      expect(antes.map((g) => g.id)).not.toContain(despues[0].id);
+    }
+  });
+
+  it("alguien sin alergias revisadas no está cubierto por quien sí las tiene", () => {
+    const { antes, despues } = separadosATodos([
+      { ...papa, alergiasRevisadas: true },
+      { ...mama, alergiasRevisadas: true },
+      { ...teo, alergiasRevisadas: false },
+    ]);
+    expect(antes.map((g) => g.id)).not.toContain(despues[0].id);
+  });
+
+  it("de Familia a Adultos sí hereda: nadie llega, solo se va gente", () => {
+    const miembros = [papa, mama, nina];
+    const antes = groupsFromModel(miembros, "same");
+    const despues = groupsFromModel(miembros, "separate", antes);
+    expect(adultosDe(despues)).toBe(antes[0].id);
   });
 });
