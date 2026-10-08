@@ -1,7 +1,7 @@
 # Generado con la clasificación de scripts/lib/issues.mjs: las opciones de los
 # desplegables las vigila scripts/issues.test.js.
-name: Decisión
-description: Algo que tiene que decidir Pablo (o Álvaro). Recomendación primero, en llano.
+name: "Decisión"
+description: "Algo que tiene que decidir Pablo (o Álvaro). Recomendación primero, en llano."
 title: "[decisión] "
 labels: ["tipo:decision"]
 body:
@@ -12,26 +12,29 @@ body:
   - type: textarea
     id: pregunta
     attributes:
-      label: Pregunta
-      description: Qué hay que decidir, en una frase que se entienda sin saber programar.
+      label: "Pregunta"
+      description: "Qué hay que decidir, en una frase que se entienda sin saber programar."
     validations:
       required: true
   - type: textarea
     id: opciones
     attributes:
-      label: Opciones y recomendación
-      description: Cada opción con lo que pasa si se elige. La recomendada, primero.
+      label: "Opciones y recomendación"
+      description: "Cada opción con lo que pasa si se elige. La recomendada, primero."
     validations:
       required: true
   - type: textarea
     id: sin-decidir
     attributes:
-      label: Qué pasa si no se decide
+      label: "Qué pasa si no se decide"
+      description: "Qué se queda parado o empeora mientras tanto."
+    validations:
+      required: false
   - type: dropdown
     id: area
     attributes:
-      label: Área
-      description: La zona donde pasó o donde va el trabajo.
+      label: "Área"
+      description: "La zona donde pasó o donde va el trabajo."
       options:
         - "datos — Esquema, migraciones, Supabase"
         - "lola — El bot"

@@ -1,0 +1,89 @@
+# Generado con la clasificación de scripts/lib/issues.mjs: las opciones de los
+# desplegables las vigila scripts/issues.test.js.
+name: "Caso (un fallo)"
+description: "Algo falló o casi falla. Antes de abrirlo, analízalo: ¿de qué problema de fondo es síntoma, o es puntual y por qué?"
+title: "[caso] "
+labels: ["tipo:caso"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        El repo es **público**: nada de claves, datos de familias ni fallos de seguridad que se puedan aprovechar. Eso va a Pablo en privado.
+  - type: input
+    id: cuando
+    attributes:
+      label: "Cuándo"
+      description: "Fecha en que pasó (AAAA-MM-DD)."
+    validations:
+      required: true
+  - type: textarea
+    id: que
+    attributes:
+      label: "Qué pasó"
+      description: "Lo que se esperaba y lo que pasó, en dos o tres frases."
+    validations:
+      required: true
+  - type: textarea
+    id: evidencia
+    attributes:
+      label: "Evidencia"
+      description: "El comando y su salida, el PR, el fichero y la línea."
+    validations:
+      required: false
+  - type: dropdown
+    id: analisis
+    attributes:
+      label: "Análisis"
+      description: "De qué es síntoma. Si su problema de fondo estaba cerrado, su arreglo no aguantó: di si se rompió o se quedó corto."
+      options:
+        - "nuevo — No había problema de fondo: se abrió uno para este caso"
+        - "abierto — Su problema de fondo estaba abierto: un caso más"
+        - "no-aguanto-roto — Su problema de fondo estaba cerrado y el arreglo se rompió después"
+        - "no-aguanto-corto — Su problema de fondo estaba cerrado y el arreglo no cubría la clase entera"
+        - "puntual — No puede repetirse, o repetirlo no hace daño; el issue dice por qué"
+    validations:
+      required: true
+  - type: input
+    id: fondo
+    attributes:
+      label: "De qué problema de fondo"
+      description: "El #n del problema de fondo del que cuelga (vacío si es puntual o si vas a abrir uno nuevo)."
+    validations:
+      required: false
+  - type: textarea
+    id: puntual
+    attributes:
+      label: "Por qué es puntual"
+      description: "Solo si es puntual: por qué no puede repetirse, o por qué repetirlo no hace daño. «Alguien podría volver a hacerlo» no es puntual."
+    validations:
+      required: false
+  - type: dropdown
+    id: causa
+    attributes:
+      label: "Causa"
+      description: "Solo si es puntual (si cuelga de un problema de fondo, hereda su causa)."
+      options:
+        - "vigilante-falso — Un vigilante (guardia, script, CI) bloqueó algo que estaba bien"
+        - "vigilante-hueco — Un vigilante dejó pasar algo que estaba mal"
+        - "entorno — Lo local no es igual que el CI o que producción (PATH, flags, Windows, red)"
+        - "dos-fuentes — La misma regla o dato escrito en dos sitios, que acaban diciendo cosas distintas"
+        - "error-silencioso — Un error que se traga sin dejar aviso (catch vacío, exception when others, «se calla»)"
+        - "coordinacion — Sesiones que se pisan, duplican trabajo o pierden un aviso"
+        - "modelo-datos — Una tabla, una FK o un dato que no cuadra con su uso"
+        - "codigo — Un fallo de lógica en el producto"
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Área"
+      description: "La zona donde pasó o donde va el trabajo."
+      options:
+        - "datos — Esquema, migraciones, Supabase"
+        - "lola — El bot"
+        - "ui — La app: pantallas e iconos"
+        - "catalogo — Recetas, alimentos y nutrición"
+        - "motor — Planificador y solver"
+        - "ops — Git, CI, hooks, scripts, servicios"
+    validations:
+      required: true
