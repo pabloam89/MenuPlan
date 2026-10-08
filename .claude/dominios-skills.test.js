@@ -156,23 +156,45 @@ describe("conocido: avisa de más", () => {
 
 describe("el coste de evaluar los patrones", () => {
   // Un [\s\S]* sin tope sobre una entrada grande y repetida es cuadrático y
-  // cuelga el hook (timeout de 20 s). Con tope, milisegundos.
-  const enormes = {
-    ssh: "ssh ".repeat(25000),
-    ip: "100.73.252.32 ".repeat(7200),
-    gh: "gh api ".repeat(14300),
-    docker: "docker ".repeat(14300),
-    mezcla: "ssh gh api docker 100.73.252.32 ".repeat(3200),
-    sinSalto: "a".repeat(100000),
+  // cuelga el hook (timeout de 20 s). No se mide un tiempo absoluto (depende de
+  // la máquina y del ruido de la suite en paralelo): se mide cómo CRECE. Con la
+  // misma forma de entrada, cuadruplicar el tamaño (25 KB → 100 KB) cuesta ~4×
+  // si el patrón es lineal y ~16× si es cuadrático; el umbral está en 8×. El
+  // denominador no baja de SUELO_MS para no dividir ruido.
+  const SUELO_MS = 5;
+  const UMBRAL = 8;
+  const formas = {
+    ssh: "ssh ",
+    ip: "100.73.252.32 ",
+    gh: "gh api ",
+    docker: "docker ",
+    mezcla: "ssh gh api docker 100.73.252.32 ",
+    sinSalto: "a",
   };
-  it.each(Object.entries(enormes))("100 KB de %s se evalúan en menos de 300 ms", (_, cmd) => {
-    expect(cmd.length).toBeGreaterThanOrEqual(99000);
-    let mejor = Infinity; // la mejor de tres: con la suite entera en paralelo hay ruido
+  const entrada = (unidad, bytes) => unidad.repeat(Math.ceil(bytes / unidad.length));
+  const mejorDeTres = (cmd, m) => {
+    let mejor = Infinity;
     for (let i = 0; i < 3; i++) {
       const t0 = performance.now();
-      skillsDeComando(cmd, mapa);
+      skillsDeComando(cmd, m);
       mejor = Math.min(mejor, performance.now() - t0);
     }
-    expect(mejor).toBeLessThan(300);
+    return mejor;
+  };
+  const razon = (unidad, m) => {
+    const t25 = mejorDeTres(entrada(unidad, 25_000), m);
+    const t100 = mejorDeTres(entrada(unidad, 100_000), m);
+    return { t25, t100, razon: t100 / Math.max(t25, SUELO_MS) };
+  };
+
+  it.each(Object.entries(formas))("%s: cuadruplicar la entrada no cuesta más de 8×", (_, unidad) => {
+    const r = razon(unidad, mapa);
+    expect(r.razon, `25 KB: ${r.t25.toFixed(1)} ms, 100 KB: ${r.t100.toFixed(1)} ms`).toBeLessThan(UMBRAL);
+  });
+
+  it("el test ve un patrón cuadrático: sin tope, la razón se dispara", () => {
+    const sinTope = { skills: { prueba: { comandos: ["\\bssh\\b[\\s\\S]*(?:100\\.73\\.252\\.32)"], rutas: [] } } };
+    const r = razon("ssh ", sinTope);
+    expect(r.razon, `25 KB: ${r.t25.toFixed(1)} ms, 100 KB: ${r.t100.toFixed(1)} ms`).toBeGreaterThan(UMBRAL);
   });
 });

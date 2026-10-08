@@ -37,6 +37,7 @@ export function cargarMapa(raiz) {
     compilar(mapa); // un patrón que no compila deja el mapa inservible: mejor sin mapa que a medias
     return mapa;
   } catch {
+    // a propósito: falla abierta — sin mapa legible (o con un patrón roto) no hay puerta ni comprobación de PR; mejor eso que bloquear todos los comandos o PR por una config rota (lo vigila dominios-skills.test.js).
     return null;
   }
 }

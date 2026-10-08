@@ -263,6 +263,7 @@ export function contextoReal(raiz, entrada = {}) {
         const linea = md.match(/^---\n([\s\S]*?)\n---/)?.[1].match(/^skills:\s*\[(.*)\]\s*$/m)?.[1] ?? "";
         return linea.split(",").map((s) => s.trim()).filter(Boolean);
       } catch {
+        // a propósito: falla abierta — si no se puede leer el agente se pierde saber qué skills trae precargadas; cuesta un reintento de la puerta, mejor que bloquear.
         return [];
       }
     },

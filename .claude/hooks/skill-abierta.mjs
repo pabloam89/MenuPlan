@@ -44,12 +44,12 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
       try {
         raiz = execFileSync("git", ["-C", desde, "rev-parse", "--show-toplevel"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
       } catch {
-        // fuera de un repo: nos quedamos con lo que hay
+        // a propósito: falla abierta — fuera de un repo se usa la carpeta tal cual; en el peor caso no se anota la skill y la guardia pide un reintento.
       }
       anotarSkill(dirSesiones(raiz), entrada.session_id, skill, "abierta");
     }
   } catch {
-    // sin entrada legible o sin registro: no hay nada que anotar
+    // a propósito: falla abierta — este hook corre antes de CADA lectura y nunca debe bloquear ni ensuciar una; lo que se pierde es una anotación (cuesta un reintento en la guardia).
   }
   process.exit(0);
 }

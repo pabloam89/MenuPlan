@@ -61,7 +61,7 @@ export function quitar(dir, id) {
     const sk = join(dir, SKILLS);
     for (const f of existsSync(sk) ? readdirSync(sk) : []) if (f.startsWith(`${id}__`)) rmSync(join(sk, f), { force: true });
   } catch {
-    // una ficha de skill que se queda la barre listar() a las 48 h
+    // a propósito: falla abierta — una ficha de skill que no se borra la barre listar() a las 48 h; no vale la pena romper el cierre de sesión.
   }
 }
 
@@ -82,6 +82,7 @@ export function anotarSkill(dir, id, skill, como = "abierta") {
     writeFileSync(ficheroSkill(dir, id, skill), JSON.stringify({ id, skill, como, cuando: new Date().toISOString() }));
     return true;
   } catch {
+    // a propósito: falla abierta — si no se puede anotar, devuelve false y la guardia NO bloquea (una puerta que no recuerda atascaría la sesión).
     return false;
   }
 }
@@ -91,6 +92,7 @@ export function skillAnotada(dir, id, skill) {
   try {
     return existsSync(ficheroSkill(dir, id, skill));
   } catch {
+    // a propósito: falla abierta — sin poder leer el registro se da por no abierta; cuesta como mucho un aviso de la puerta, que no bloquea.
     return false;
   }
 }
@@ -105,7 +107,7 @@ function barrerSkills(dir, ahora) {
       if ((ahora - statSync(fichero).mtimeMs) / 36e5 > CADUCA_H) rmSync(fichero, { force: true });
     }
   } catch {
-    // es limpieza: si falla, se queda para la próxima
+    // a propósito: falla abierta — es limpieza; si falla, las fichas viejas se quedan hasta la próxima y no pasa nada.
   }
 }
 
