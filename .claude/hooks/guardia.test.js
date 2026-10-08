@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -291,5 +292,29 @@ describe("ESTADO.md de verdad", () => {
     expect(libres.size).toBeGreaterThan(0);
     const sinFichero = [...libres].filter((n) => !existsSync(join(RAIZ, "supabase", "migrations", `${n}.sql`)));
     expect(sinFichero).toEqual([]);
+  });
+});
+
+describe("entrada ilegible (#209)", () => {
+  // Si la guardia no puede leer lo que le llega, pregunta: ni deja pasar en
+  // silencio (antes salía con 0 y no vigilaba nada) ni niega (un fallo tonto
+  // no debe dejar parada una sesión). Decidido por Pablo el 8 oct.
+  const GUARDIA = join(RAIZ, ".claude", "hooks", "guardia.mjs");
+  const lanza = (entrada) => {
+    const r = spawnSync(process.execPath, [GUARDIA], { input: entrada, encoding: "utf8", timeout: 20000 });
+    return { codigo: r.status, salida: r.stdout };
+  };
+
+  it.each([
+    ["JSON inválido", "{esto no es json"],
+    ["entrada vacía", ""],
+    ["JSON que no es un objeto", "null"],
+  ])("%s: pregunta", (_, entrada) => {
+    const { codigo, salida } = lanza(entrada);
+    expect(codigo).toBe(0);
+    const out = JSON.parse(salida).hookSpecificOutput;
+    expect(out.hookEventName).toBe("PreToolUse");
+    expect(out.permissionDecision).toBe("ask");
+    expect(out.permissionDecisionReason).toMatch(/no ha podido leer/);
   });
 });
