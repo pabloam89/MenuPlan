@@ -22,8 +22,8 @@ en otra rama); el 8 oct se suma la 0087, sin aplicar:
 | Ficheros en `supabase/migrations/` | **89** |
 | Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
 | Aplicadas | **84** |
-| **Sin aplicar** | **6** — `0021_store_products`, `0080_bot_tareas_v2`, `0083_bot_tareas_fk_persona`, `0086_vocabulario_de_la_app`, `0087_menu_activo_y_casa_propia`, `0088_bot_entradas` |
-| En otras ramas | `0085` (sin aplicar), en `datos/sistematizar` |
+| **Sin aplicar** | **2** — `0021_store_products`, `0088_bot_entradas` (el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086 y 0087) |
+| En otras ramas | — |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
 Los constraints NOT VALID que quedan por validar están en `PENDIENTES.md`.
@@ -62,14 +62,14 @@ Sin testigo, y por tanto sin comprobar por el script: 0011, 0038, 0043, 0047,
 | `0077_bot_tareas_a_fondo` | aplicada (3 oct 2026) | |
 | `0078_bot_tareas_tope_sin_olvidos` | aplicada (3 oct 2026) | |
 | `0079_personas_y_grupos` | aplicada, versión 2 (comprobado el 7 oct 2026) | personas y grupos a tablas, paso 1. Testigos de la versión 2 (`49e8ec3`): las 7 columnas de presentación y etapa en `persona` (`usa_fecha_nacimiento` … `color`) y la tabla `persona_perfil_salud` con RLS. Su `persona_reemplazar_casa` ya no está: la sustituyó la 0081 |
-| `0080_bot_tareas_v2` | **sin aplicar** (comprobado el 7 oct 2026) | 7 constraints NOT VALID; el índice concurrente va en `manual/0080b_indice_concurrente.sql`. No existen `bot_tareas.tipo`, `bot_reminders.tarea_id` ni `bot_tareas_kind_tipo()` |
+| `0080_bot_tareas_v2` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | 7 constraints NOT VALID; el índice concurrente va en `manual/0080b_indice_concurrente.sql`. No existen `bot_tareas.tipo`, `bot_reminders.tarea_id` ni `bot_tareas_kind_tipo()` | Índice `bot_tareas_una_viva_por_clave` (manual/0080b) creado el 8 oct; el viejo `bot_tareas_una_abierta_por_clave`, borrado.
 | `0081_persona_sincronizar_casa` | aplicada (comprobado el 7 oct 2026) | testigo: `persona_reemplazar_casa` es la de la 0081 (solo delega en `persona_sincronizar_casa`, `language sql`). Su `persona_sincronizar_casa` la sobrescribió después la 0082 |
 | `0082_persona_sincronizar_casa_guardas` | aplicada (comprobado el 7 oct 2026) | testigo: el cuerpo de `persona_sincronizar_casa` es idéntico al de la 0082 (con las guardas: «sin lista de personas», «sin lista de grupos», «lista de personas vacía…») |
-| `0083_bot_tareas_fk_persona` | **sin aplicar** (comprobado el 7 oct 2026) | va después de 0080, 0081 y 0082 (las dos últimas ya están); 1 FK NOT VALID. No existen `bot_tareas_persona_fk` ni el índice `bot_tareas_persona` |
+| `0083_bot_tareas_fk_persona` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | va después de 0080, 0081 y 0082 (las dos últimas ya están); 1 FK NOT VALID. No existen `bot_tareas_persona_fk` ni el índice `bot_tareas_persona` |
 | `0084_bot_codigo_alta` | aplicada, versión final (comprobado el 7 oct 2026) | testigos de la versión de `f2187d4`: `bot_codigos_tipo_check` con `vincular`, `entrar` y `alta`, y `bot_codigos_alta_check` (`tipo <> 'alta' or external_id is not null`), los dos validados |
-| `0085_bot_vocabulario_cerrado` | **sin aplicar** (comprobado el 7 oct 2026) | en la rama `datos/sistematizar`; 5 CHECK NOT VALID. No existen los `*_channel_check` de `bot_messages`/`bot_reminders`/`bot_tareas`/`bot_cola` ni `bot_reminders.tipo`, y `bot_deshacer.descripcion` sigue |
-| `0086_vocabulario_de_la_app` | **sin aplicar** (comprobado el 7 oct 2026) | 5 CHECK NOT VALID; las consultas previas, en su cabecera. No hay ninguna constraint `*_vocabulario` |
-| `0087_menu_activo_y_casa_propia` | **sin aplicar** (escrita el 8 oct 2026, rama `datos/menu-activo`) | solo `create or replace` de 4 funciones: `household_shopping_mark` mira `user_menus.is_active` en vez de `data.activeMenuId`; `ensure_user_household`, `_unirse` y `_despedir` eligen la casa propia con `order by propia desc, created_at`, y `ensure_user_household` devuelve `'propia'`. Testigo: ese `order by` en `pg_proc.prosrc` de `_despedir` |
+| `0085_bot_vocabulario_cerrado` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | en la rama `datos/sistematizar`; 5 CHECK NOT VALID. No existen los `*_channel_check` de `bot_messages`/`bot_reminders`/`bot_tareas`/`bot_cola` ni `bot_reminders.tipo`, y `bot_deshacer.descripcion` sigue |
+| `0086_vocabulario_de_la_app` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | 5 CHECK NOT VALID; las consultas previas, en su cabecera. No hay ninguna constraint `*_vocabulario` |
+| `0087_menu_activo_y_casa_propia` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | solo `create or replace` de 4 funciones: `household_shopping_mark` mira `user_menus.is_active` en vez de `data.activeMenuId`; `ensure_user_household`, `_unirse` y `_despedir` eligen la casa propia con `order by propia desc, created_at`, y `ensure_user_household` devuelve `'propia'`. Testigo: ese `order by` en `pg_proc.prosrc` de `_despedir` |
 | `0088_bot_entradas` | **sin aplicar** (nueva, 8 oct 2026; escrita como 0087) | tabla `bot_entradas` (update_id de Telegram, una vez) y el job `bot-entradas-purga`. Aditiva; el código funciona sin ella. Testigo: la tabla y el job en `cron.job` |
 
 ## La 0074 y la 0075, aplicadas el 2 oct 2026

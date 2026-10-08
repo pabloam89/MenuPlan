@@ -40,6 +40,11 @@ describe("C-3: un Telegram es una cuenta solo con prueba", () => {
     expect(filas.bot_chats).toHaveLength(1);
   });
 
+  it("el idioma de Telegram no se guarda en bot_chats (no lo lee nadie)", async () => {
+    await enlazar({ chatId: "p1", kind: "private", userId: TITULAR, externalId: "555", identidad: null, lang: "en" });
+    expect(filas.bot_chats[0]).not.toHaveProperty("lang");
+  });
+
   it("aunque alguien pase una prueba en un grupo, en un grupo no se apunta", async () => {
     await enlazar({ chatId: "g1", kind: "group", userId: TITULAR, externalId: "555", identidad: "ajustes" });
     expect(identidadDe("555")).toBe(null);

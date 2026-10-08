@@ -42,6 +42,11 @@ export const ENUMS = {
  */
 export const CAMPOS = REGISTRO_CAMPOS;
 
+// Los que se pueden preguntar: el CHECK de bot_tareas.campo (0080) es esta lista.
+ENUMS["bot_tareas.campo"] = Object.keys(CAMPOS).filter((c) => CAMPOS[c].politica !== "nunca");
+// Las órdenes que guardan respuesta en bot_idempotencia (api/_bot/tareas.js).
+ENUMS["bot_idempotencia.rpc"] = ["anotar_tarea", "cerrar_tarea", "editar_tarea"];
+
 /** kind viejo → tipo nuevo, el mismo reparto que hace el disparador de 0080. */
 export const TIPO_DE_KIND = { pregunta: "falta_saber", seguimiento: "seguimiento" };
 

@@ -19,6 +19,7 @@
 -- Después de aplicar y con el bot nuevo desplegado una semana sin errores:
 --   alter table public.bot_tareas validate constraint bot_tareas_tipo_check;
 --   alter table public.bot_tareas validate constraint bot_tareas_resultado_check;
+--   alter table public.bot_tareas validate constraint bot_tareas_campo_check;
 --   alter table public.bot_tareas validate constraint bot_tareas_objetivo_check;
 --   alter table public.bot_tareas validate constraint bot_tareas_cierre_check;
 --   alter table public.bot_tareas validate constraint bot_tareas_v2_reglas_check;
@@ -56,6 +57,12 @@ alter table public.bot_tareas add constraint bot_tareas_tipo_check
 alter table public.bot_tareas drop constraint if exists bot_tareas_resultado_check;
 alter table public.bot_tareas add constraint bot_tareas_resultado_check
   check (resultado is null or resultado in ('aceptada', 'mantenida')) not valid;
+
+-- Solo los campos de la ficha que se pueden preguntar (registroTareas.CAMPOS sin
+-- los de política «nunca»): una tarea sobre la edad o el colegio no cabe en la base.
+alter table public.bot_tareas drop constraint if exists bot_tareas_campo_check;
+alter table public.bot_tareas add constraint bot_tareas_campo_check
+  check (campo is null or campo in ('alergias', 'etapaBebe')) not valid;
 
 alter table public.bot_tareas drop constraint if exists bot_tareas_objetivo_check;
 alter table public.bot_tareas add constraint bot_tareas_objetivo_check
@@ -124,7 +131,7 @@ create index if not exists bot_reminders_tarea on public.bot_reminders (tarea_id
 create table if not exists public.bot_idempotencia (
   household_id uuid not null references public.households(id) on delete cascade,
   clave        text not null,
-  rpc          text not null,
+  rpc          text not null check (rpc in ('anotar_tarea', 'cerrar_tarea', 'editar_tarea')),
   resultado    jsonb,
   created_at   timestamptz not null default now(),
   primary key (household_id, clave)

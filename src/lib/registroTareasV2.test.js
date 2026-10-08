@@ -17,7 +17,13 @@ const valoresDe = (columna) => {
 };
 
 describe("0080 = registroTareas", () => {
-  for (const col of ["tipo", "resultado", "objetivo"]) {
+  it("bot_idempotencia.rpc", () => {
+    const m = codigo.match(/rpc\s+text not null check \(rpc in \(([^)]*)\)\)/i);
+    expect(m, "no encuentro el CHECK de rpc en 0080").toBeTruthy();
+    expect([...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]).sort()).toEqual([...ENUMS["bot_idempotencia.rpc"]].sort());
+  });
+
+  for (const col of ["tipo", "resultado", "objetivo", "campo"]) {
     it(`bot_tareas.${col}`, () => {
       const enBase = valoresDe(col);
       expect(enBase, `no encuentro el CHECK de ${col} en 0080`).toBeTruthy();
