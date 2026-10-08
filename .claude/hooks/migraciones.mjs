@@ -6,7 +6,7 @@
  * la misma rama. Esto mira antes los tres sitios donde puede estar un número:
  * origin/staging, los demás worktrees de este PC y los PR abiertos.
  */
-import { execFileSync } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
 import { basename, join } from "node:path";
 
@@ -54,9 +54,21 @@ export function enWorktrees(raiz, deStaging) {
   return out;
 }
 
-/** Migraciones nuevas en PR abiertos. Necesita gh; si no está, nada. */
-export function enPrs(raiz, deStaging) {
-  const salida = ejecuta("gh", ["pr", "list", "--state", "open", "--limit", "50", "--json", "number,headRefName,files"], raiz, 15000);
+const ARGS_PRS = ["pr", "list", "--state", "open", "--limit", "50", "--json", "number,headRefName,files"];
+
+/**
+ * Lanza la consulta de PR abiertos SIN esperar (es red, tarda de 1 a 15 s):
+ * así corre a la vez que el `git fetch` del arranque. Devuelve una promesa con
+ * la salida de gh, o null si falla o pasa de `ms`.
+ */
+export function pedirPrs(raiz, ms = 5000) {
+  return new Promise((ok) => {
+    execFile("gh", ARGS_PRS, { cwd: raiz, encoding: "utf8", timeout: ms, maxBuffer: 8e6 }, (error, salida) => ok(error ? null : salida));
+  });
+}
+
+/** Migraciones nuevas en PR abiertos, a partir de la salida de gh. */
+export function enPrs(salida, deStaging) {
   if (!salida) return [];
   const yaEstan = new Set(deStaging);
   const out = [];

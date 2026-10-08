@@ -13,7 +13,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
 import { sinAplicar } from "./guardia.mjs";
-import { enPrs, enStaging, enWorktrees, resumen } from "./migraciones.mjs";
+import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
 
 let entrada = {};
@@ -26,9 +26,18 @@ try {
 }
 
 const raiz = entrada.cwd || process.cwd();
+
+// Presupuesto de tiempo. Si el hook pasa del timeout de settings.json (30 s),
+// Claude Code lo corta y la sesión no ve NADA de esto. Lo local tarda
+// milisegundos; lo que se dispara es la red (fetch y gh, medido de 3 a 20 s
+// el 8 oct 2026), así que cada llamada de red lleva su tope corto y, si no
+// llega, se sigue sin ella.
+const LOCAL_MS = 4000;
+const RED_MS = 5000;
 const git = (...args) => {
+  const red = args[0] === "fetch";
   try {
-    return execFileSync("git", ["-C", raiz, ...args], { encoding: "utf8", timeout: 8000, stdio: ["ignore", "pipe", "ignore"] }).trim();
+    return execFileSync("git", ["-C", raiz, ...args], { encoding: "utf8", timeout: red ? RED_MS : LOCAL_MS, stdio: ["ignore", "pipe", "ignore"] }).trim();
   } catch {
     return null;
   }
@@ -71,6 +80,7 @@ try {
 }
 
 // ── Staging y migraciones ──────────────────────────────────────────────────
+const prs = pedirPrs(raiz, 10_000); // a la vez que el fetch: los dos son red, y gh es el lento
 git("fetch", "-q", "origin", "staging");
 const detras = git("rev-list", "--count", "HEAD..origin/staging");
 if (rama && rama !== "staging" && rama !== "main" && Number(detras) > 0) {
@@ -78,10 +88,12 @@ if (rama && rama !== "staging" && rama !== "main" && Number(detras) > 0) {
 }
 
 const deStaging = enStaging(raiz);
+const salidaPrs = await prs;
 if (deStaging) {
-  const r = resumen(deStaging, [...enWorktrees(raiz, deStaging), ...enPrs(raiz, deStaging)], raiz);
+  const r = resumen(deStaging, [...enWorktrees(raiz, deStaging), ...enPrs(salidaPrs, deStaging)], raiz);
   let linea = `Migraciones: la última en staging es la ${String(r.ultimo).padStart(4, "0")}; el siguiente número libre es la ${r.siguiente}`;
   if (r.ocupados.length) linea += `. Cogidas fuera de staging: ${r.ocupados.map((m) => `${m.nombre} en ${m.donde.join(" y ")}`).join("; ")}`;
+  if (salidaPrs === null) linea += " (sin contar los PR abiertos: GitHub no ha contestado a tiempo)";
   avisos.push(`${linea}.`);
   if (r.choques.length) avisos.push(`AVISO: números de migración repetidos: ${r.choques.join("; ")}. Hay que renumerar una antes de fusionar.`);
 }
