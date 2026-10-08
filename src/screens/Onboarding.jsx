@@ -2845,6 +2845,8 @@ export function RestrictionTabCard({
   );
 }
 
+// Aparcado a propósito: App.jsx no lo monta. Ni montarlo ni borrarlo, ni en
+// una limpieza de código muerto (decisión de Pablo, 8 sep 2026).
 export function OnboardingRepeat({
   data,
   setData,
@@ -7144,6 +7146,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
 
 // ─── Fixed dishes ──────────────────────────────────────────────
 
+// Aparcado a propósito, como OnboardingRepeat: ni montarlo ni borrarlo
+// (decisión de Pablo, 8 sep 2026).
 export function OnboardingFixedDishes({ data, setData, onNext, onBack, onFinish, onReset }) {
   const [dish, setDish] = useState("");
   const add = () => {
