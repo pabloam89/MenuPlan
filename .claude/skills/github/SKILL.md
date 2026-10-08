@@ -70,7 +70,7 @@ CLI `gh` va con la sesión de Pablo (`gh auth status`).
   `scripts/podar.mjs` borra solo las fusionadas enteras en `origin/staging`,
   sin PR abierto, de hace más de 1 día y sin worktree.
 
-## Issues: lecciones, decisiones y encargos
+### Issues: lecciones, decisiones y encargos
 
 Lo que no se cierra en una sesión vive en un issue: sobrevive al reinicio, lo
 ven Álvaro y las sesiones de la nube, y con las mismas etiquetas siempre se
