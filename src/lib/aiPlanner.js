@@ -39,6 +39,7 @@ import { guessIngredientCategory } from "./ingredientCategories.js";
 import { isQualitativeUnit, mergeIngredientLines } from "./ingredientUnits.js";
 import { buildAdaptationMap } from "./substitutions.js";
 import { normalizeAllergenId } from "./allergens.js";
+import { alergiasParaMenu } from "./alergias.js";
 import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortions, slotUsesPrepared, catalogIdOfPlanRecipe } from "./freezer.js";
 import { dominantComponentOf } from "./dominantComponent.js";
 import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
@@ -477,7 +478,7 @@ export function buildGroupContext(data, group) {
   const isBabyGroup = isBabyMenuGroup(group, data.members);
   // Niños de 3 a 11 (etapaDe): el filtro kidFriendly y el de alcohol.
   const hasKids = !isBabyGroup && groupMembers.some((m) => esNino(m));
-  const allergies = Array.from(new Set(groupMembers.flatMap((m) => m.allergies ?? [])));
+  const allergies = Array.from(new Set(groupMembers.flatMap((m) => alergiasParaMenu(data, m))));
   // Predefined intolerances + temporary dietary states (embarazo/lactancia)
   // are aggregated together and handled by filterRecipes via lib/intolerances.js
   // — most are hard exclusions, lactosa_fina is adapted (see substitutions.js).
@@ -2117,7 +2118,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   const hasKids = kids.length > 0;
 
   const safety = {
-    allergies: [...new Set(members.flatMap((m) => m.allergies ?? []))],
+    allergies: [...new Set(members.flatMap((m) => alergiasParaMenu(data, m)))],
     intolerances: [
       ...new Set(members.flatMap((m) => [...(m.intolerances ?? []), ...(m.dietaryStates ?? [])])),
     ],
