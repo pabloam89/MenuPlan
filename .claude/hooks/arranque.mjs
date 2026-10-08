@@ -20,6 +20,7 @@ import { basename, join } from "node:path";
 import { ahoraEnMadrid } from "../../scripts/lib/hora.mjs";
 import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/limpiar-worktrees.mjs";
 import { sinAplicar } from "./guardia.mjs";
+import { avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
 
@@ -113,7 +114,21 @@ const issues = new Promise((ok) => {
   execFile("node", ["scripts/issues.mjs", "--arranque"], { cwd: raiz, encoding: "utf8", timeout: 10_000 }, (error, salida) => ok(error ? null : salida));
 });
 git("fetch", "-q", "origin", "staging");
-const detras = git("rev-list", "--count", "HEAD..origin/staging");
+let detras = git("rev-list", "--count", "HEAD..origin/staging");
+
+// La carpeta principal se adelanta sola (#192): si no, sus hooks son los viejos.
+const plan = planAdelantar({ esWorktree, rama, detras, sucio: git("status", "--porcelain", "--untracked-files=no") });
+if (plan.aviso) avisos.push(plan.aviso);
+if (plan.adelantar) {
+  const antes = git("rev-parse", "HEAD");
+  if (git("merge", "--ff-only", "-q", "origin/staging") !== null) {
+    const cambiados = (git("diff", "--name-only", `${antes}..HEAD`) ?? "").split("\n").filter(Boolean);
+    avisos.push(avisoTrasAdelantar(detras, cambiados));
+    detras = "0";
+  } else {
+    avisos.push(`AVISO: la carpeta principal va ${detras} commits por detrás de origin/staging y no he podido adelantarla (\`git merge --ff-only origin/staging\` falló: ¿un fichero sin seguir que pisaría?). Los hooks que corren son los viejos.`);
+  }
+}
 if (rama && rama !== "staging" && rama !== "main" && Number(detras) > 0) {
   avisos.push(`Tu rama va ${detras} commits por detrás de origin/staging: fusiónala antes de abrir el PR.`);
 }
