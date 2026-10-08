@@ -1,7 +1,7 @@
 import { RECIPES, RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "./groups.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
-import { resolveMemberAge, stageForAge } from "./stages.js";
+import { etapaDe } from "./stages.js";
 import {
   fixedDishScoreBoost,
   markFixedDishPlaced,
@@ -493,10 +493,7 @@ export function generateMenu(data) {
   for (const group of groups) {
     plan[group.id] = {};
     const groupMembers = membersOfGroup(group, members);
-    const groupHasKids = groupMembers.some((m) => {
-      const s = stageForAge(resolveMemberAge(m)).id;
-      return s === "baby" || s === "infantil" || s === "primaria";
-    });
+    const groupHasKids = groupMembers.some((m) => ["bebe", "nino"].includes(etapaDe(m).etapa));
 
     // Aggregate per-member allergies + dislikes for this group.
     const groupAllergies = Array.from(

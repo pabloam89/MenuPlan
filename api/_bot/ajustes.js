@@ -22,6 +22,7 @@ import { motor, normal, diaDe, DIAS, DIA_LARGO } from "./menu.js";
 import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
 import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
 import * as ids from "../../src/lib/ids.js";
+import { etapaDe, esMenor } from "../../src/lib/stages.js";
 
 const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
 // Del catálogo de comidas (src/lib/comidas.js).
@@ -36,7 +37,8 @@ function lunesDe(cual) {
 
 // Lo que puede resolver una tarea de estado: quién hay, sus alergias y la etapa del bebé.
 const huellaDeEstado = (d = {}) => JSON.stringify([d.etapaBebe ?? null, d.allergiesReviewed ?? null,
-  (d.members ?? []).map((m) => [m.id, m.alergiasRevisadas ?? null, m.allergies ?? [], m.age ?? null, m.notBaby ?? null])]);
+  (d.members ?? []).map((m) => [m.id, m.alergiasRevisadas ?? null, m.allergies ?? [], m.age ?? null, m.notBaby ?? null,
+    m.homeRole ?? null, m.useBirthDate ?? null, m.birthDate ?? null])]);
 
 /**
  * Guarda un `data` nuevo en la casa. `cambiar` recibe el data actual y el motor.
@@ -284,6 +286,16 @@ export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo,
 
 // ── Horario: quién come dónde ───────────────────────────────────────────────
 
+/**
+ * «Los niños» / «los adultos» de la casa, con etapaDe (la definición de la
+ * app): niños son los menores (bebé, niño, adolescente); adultos, el resto,
+ * también quien no tiene edad ni papel que lo diga. Nadie cae en los dos: antes
+ * un «Hijo/a» sin edad era niño y adulto a la vez. Pura, para el test.
+ */
+export function personasDeEdad(miembros, cuales) {
+  return (miembros ?? []).filter((x) => esMenor(x) === (cuales === "ninos"));
+}
+
 export async function ajustarHorario(householdId, { personas, dias, comidas, donde }) {
   return conData(householdId, (data, m) => {
     if (!m.SLOT_VALUES.includes(donde)) return { texto: `«${donde}» no vale: casa, tupper, fuera, cole u off.` };
@@ -293,15 +305,16 @@ export async function ajustarHorario(householdId, { personas, dias, comidas, don
     for (const p of personas ?? ["todos"]) {
       const q = normal(p);
       if (q === "todos") miembros.forEach((x) => sel.add(x.id));
-      else if (/^(ninos|hijos|peques)$/.test(q)) miembros.filter((x) => /nino|hijo|hija|nina/.test(normal(x.homeRole)) || (x.age != null && x.age < 18)).forEach((x) => sel.add(x.id));
-      else if (/^(adultos|padres|mayores)$/.test(q)) miembros.filter((x) => x.age == null || x.age >= 18).forEach((x) => sel.add(x.id));
+      else if (/^(ninos|hijos|peques)$/.test(q)) personasDeEdad(miembros, "ninos").forEach((x) => sel.add(x.id));
+      else if (/^(adultos|padres|mayores)$/.test(q)) personasDeEdad(miembros, "adultos").forEach((x) => sel.add(x.id));
       else { const x = personaPorNombre(data, p); x ? sel.add(x.id) : noEncontradas.push(p); }
     }
     // Al cole solo van los menores. «Todos» + cole dejaba también a los adultos
     // sin comida entre semana: el motor no les planificaba nada a mediodía
     // (staging, 2 oct 2026: un adulto de 36 años con «cole» de lunes a viernes).
-    // Sin edad no se sabe: se deja pasar, como hasta ahora.
-    const adultosAlCole = donde === "cole" ? miembros.filter((x) => sel.has(x.id) && x.age != null && x.age >= 18) : [];
+    // Adulto por edad, o sin edad por su papel (Papá, Mamá…). Sin edad ni papel
+    // que lo diga no se sabe: se deja pasar, como hasta ahora.
+    const adultosAlCole = donde === "cole" ? miembros.filter((x) => sel.has(x.id) && etapaDe(x).etapa === "adulto") : [];
     for (const x of adultosAlCole) sel.delete(x.id);
     const avisoCole = adultosAlCole.length
       ? ` ${adultosAlCole.map((x) => x.name).join(", ")} no ${adultosAlCole.length > 1 ? "van" : "va"} al cole: no se ha tocado su horario. Si a mediodía no ${adultosAlCole.length > 1 ? "comen" : "come"} en casa, pregunta si es fuera o con táper.`

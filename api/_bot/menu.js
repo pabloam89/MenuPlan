@@ -25,6 +25,7 @@ import { restriccionesDeFuera, conQuienViene, describirDeFuera } from "./deFuera
 import { EJE_POR_ID, puedeResponder } from "../../src/data/axisRegistry.js";
 import { EJES } from "./esquemas.js";
 import { PERFILES, ordenarPorPerfil } from "../../src/lib/derive/perfiles.js";
+import { etapaDe } from "../../src/lib/stages.js";
 
 let motorCargado = null;
 // Las recetas que trae el motor de serie (antes de registrar ninguna casa).
@@ -680,8 +681,11 @@ export function cuandoPorDefecto({ dia = null, franja = null } = {}, hora) {
   return { dia: dia ?? (pasada ? "mañana" : "hoy"), franja: f };
 }
 
-const esBebe = (p) => (p?.age != null && p.age < 2) || /beb/i.test(p?.homeRole ?? "");
-const esMayor = (p) => !esBebe(p) && (p?.age == null || p.age >= 18);
+// Bebé, niño o mayor con la misma definición que la app (etapaDe): antes el bot
+// cortaba el bebé en < 2 años (la app en ≤ 2) e ignoraba «ya come como un niño».
+// Sin edad ni papel que lo diga, con los mayores.
+export const esBebe = (p) => etapaDe(p).etapa === "bebe";
+export const esMayor = (p) => ["adulto", "desconocida"].includes(etapaDe(p).etapa);
 
 /**
  * Lo que se ha cambiado en un plato para que lo pueda comer quien tiene una
