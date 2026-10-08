@@ -47,6 +47,7 @@ import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 import { lowerFirst } from "./dishNaming.js";
 import { aporteDe, fundirMicros } from "./derive/aporteAcompanamiento.js";
 import { computeRecipeNutrition } from "./ingredients.js";
+import { vetosDe } from "./vetos.js";
 
 /**
  * Los nombres por ración de los 24 micronutrientes. Los cuatro macros
@@ -500,13 +501,10 @@ export function buildGroupContext(data, group) {
       ...(impliesSinGluten ? ["sin_gluten"] : []),
     ]),
   );
-  // `data.excluidos` es lo que el panel/wizard proyecta de la libreta ("nada
-  // de coliflor"): mismo formato y misma semántica que un dislike —soft, con
-  // fallback para no vaciar el pool— así que va al mismo saco. Hasta el 11
-  // sep 2026 se proyectaba y no lo leía nadie.
-  const dislikes = Array.from(
-    new Set([...(data.dislikes ?? []), ...(data.excluidos ?? []), ...groupMembers.flatMap((m) => m.dislikes ?? [])]),
-  );
+  // Los vetos («nada de coliflor»): la libreta, las reglas y los de cada
+  // persona del grupo, calculados al leer (lib/vetos.js). Duros en comida y
+  // cena (filterRecipes paso 2), blandos fuera de menú.
+  const dislikes = vetosDe(data, { grupo: group });
 
   const kitchenTools = [...(data.kitchenTools ?? []), ...(data.customKitchenTools ?? [])];
   const cookTime = migrateCookTime(data);
@@ -2121,7 +2119,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
     intolerances: [
       ...new Set(members.flatMap((m) => [...(m.intolerances ?? []), ...(m.dietaryStates ?? [])])),
     ],
-    dislikes: [...new Set([...(data.dislikes ?? []), ...(data.excluidos ?? []), ...members.flatMap((m) => m.dislikes ?? [])])],
+    dislikes: vetosDe(data, { grupo: group }),
   };
 
   const weekendIdx = (i) => i >= 5; // Sáb/Dom

@@ -57,14 +57,17 @@ export function dataConLibreta(data, libreta, { hoy } = {}) {
     // motivo. Hasta el 11 sep 2026 `sesgos` (tecnica, salsa, base),
     // `favoritos` y `excluidos` se calculaban aquí y morían en la UI: el
     // usuario pedía "más horno" o "nada de coliflor" y el menú salía igual.
-    // Ahora los lee aiPlanner —excluidos se suma a los dislikes; sesgos y
-    // favoritos ordenan candidatos vía lib/sesgos.js— sin saber que la
-    // libreta existe.
+    // Ahora sesgos y favoritos los lee aiPlanner (ordenan candidatos vía
+    // lib/sesgos.js) sin saber que la libreta existe.
     sesgos: vista.sesgos ?? {},
     // Las tandas pedidas, aparte de los sesgos: es una CUENTA que el validador
     // exige como minimo (regla 11b), no una preferencia que ordena candidatos.
     tanda: vista.tanda ?? {},
     favoritos: vista.favoritos ?? [],
+    // Los vetos NO se leen de aquí: lib/vetos.js los calcula de la libreta al
+    // leer, con fecha. Se sigue escribiendo SOLO para los clientes con el
+    // bundle de antes del 8 oct 2026, que aún leen `data.excluidos`; cuando
+    // no quede ninguno, fuera.
     excluidos: vista.excluidos ?? [],
   };
 }

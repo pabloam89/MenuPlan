@@ -27,6 +27,8 @@ import {
 import { memberAvatarColor, memberAvatarThumbSrc, stageLabel, migrateHomeRole } from "../lib/stages.js";
 import { computeStreak } from "../lib/menuStats.js";
 import { INTOLERANCE_RULES } from "../lib/intolerances.js";
+import { vetosDe } from "../lib/vetos.js";
+import { isoLocalDate } from "../lib/weekCalendar.js";
 
 const PAGE_BG = "#f7f9f7";
 const GREEN = "#2d5a3d";
@@ -404,9 +406,11 @@ export function AccountScreen({
         .map((id) => INTOLERANCE_RULES[id]?.label ?? id),
     [members],
   );
+  // Los vetos de la casa y de cada persona, de la misma fuente que el menú
+  // (lib/vetos.js): antes aquí no salía lo dicho en la libreta.
   const dislikes = useMemo(
-    () => Array.from(new Set([...(data.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])])),
-    [data.dislikes, members],
+    () => vetosDe({ notepad: data.notepad, dislikes: data.dislikes, members }, { hoy: isoLocalDate(new Date()) }),
+    [data.notepad, data.dislikes, members],
   );
 
   const menuDays = Object.keys(menuPlan ?? {}).length

@@ -26,6 +26,7 @@ import { EJE_POR_ID, puedeResponder } from "../../src/data/axisRegistry.js";
 import { EJES } from "./esquemas.js";
 import { PERFILES, ordenarPorPerfil } from "../../src/lib/derive/perfiles.js";
 import { etapaDe } from "../../src/lib/stages.js";
+import { vetosDePersona } from "../../src/lib/vetos.js";
 
 let motorCargado = null;
 // Las recetas que trae el motor de serie (antes de registrar ninguna casa).
@@ -269,7 +270,8 @@ export function describirCasa(casa) {
   const miembros = (d.members ?? []).map((p) => {
     const alergias = [...(p.allergies ?? []), ...(p.intolerances ?? [])].filter(Boolean);
     const cuerpo = p.pesoKg && p.alturaCm ? `, ${p.pesoKg} kg y ${p.alturaCm} cm` : "";
-    return `• ${p.name ?? "(sin nombre)"}${p.age != null ? `, ${p.age} años` : ""}${cuerpo}${alergias.length ? ` — alergias/intolerancias: ${alergias.join(", ")}` : ""}${(p.dislikes ?? []).length ? ` — no le gusta: ${p.dislikes.join(", ")}` : ""}`;
+    const noLeGusta = vetosDePersona(p);
+    return `• ${p.name ?? "(sin nombre)"}${p.age != null ? `, ${p.age} años` : ""}${cuerpo}${alergias.length ? ` — alergias/intolerancias: ${alergias.join(", ")}` : ""}${noLeGusta.length ? ` — no le gusta: ${noLeGusta.join(", ")}` : ""}`;
   });
   return [
     `Miembros:\n${miembros.join("\n") || "(ninguno todavía)"}`,

@@ -1,5 +1,6 @@
 import { filterRecipes, recipeMatchesPreferType } from "./filterRecipes.js";
 import { BUILT_IN_IDS } from "../lib/recipeCollections.js";
+import { vetosDe } from "../lib/vetos.js";
 
 /**
  * Inspíranos: qué recetas entran en cada una de las 4 intenciones que el
@@ -111,9 +112,8 @@ export function eligibleCatalogPool(data, { excludeIds, extraRecipes = [] } = {}
         ...(impliesAlcoholCocina ? ["alcohol_cocina"] : []),
       ]),
     ),
-    dislikes: Array.from(
-      new Set([...(data?.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])]),
-    ),
+    // Los mismos vetos que el menú (lib/vetos.js), libreta incluida.
+    dislikes: vetosDe(data),
     excludeIds: blocked,
     extraRecipes,
     kitchenTools: [...(data?.kitchenTools ?? []), ...(data?.customKitchenTools ?? [])],
