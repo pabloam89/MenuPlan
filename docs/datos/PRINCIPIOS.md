@@ -52,7 +52,7 @@ diga cuál y por qué. Lo que no vale es saltársela sin decirlo.
 | Caso | Clave |
 |---|---|
 | La genera el servidor | `uuid default gen_random_uuid()` |
-| La genera el cliente | `uuid` si va a una columna uuid (persona y grupo, desde el 7 oct 2026: uuid en el valor; la columna pasa a uuid con la migración de 1e (PR #94), hasta entonces es `text`); si no, `text` con prefijo de tipo + 12 base36 de CSPRNG y CHECK de formato. Siempre de `src/lib/ids.js` |
+| La genera el cliente | `uuid` si va a una columna uuid (persona y grupo, desde el 7 oct 2026: uuid en el valor; los viejos pasan a uuid con la 0091, y la columna, de `text` a `uuid` después: transición en `supabase/PENDIENTES.md`); si no, `text` con prefijo de tipo + 12 base36 de CSPRNG y CHECK de formato. Siempre de `src/lib/ids.js` |
 | Registro o cola de solo añadir | `bigint generated always as identity` (nunca `serial`/`bigserial`: **[auto]**) |
 | Entidad de la casa | compuesta `(household_id, id)` |
 
