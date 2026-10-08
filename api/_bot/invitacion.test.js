@@ -66,6 +66,25 @@ describe("entrar con una invitación desde Telegram", () => {
     expect((await unirsePorInvitacion({ from: { id: 77 }, chatId: "c", token: TOKEN })).texto).toMatch(/ya no vale/);
   });
 
+  it("si la base no contesta, no dice que está caducada: dice que no ha podido (#208)", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    rpcR = () => { throw Object.assign(new Error("POST /rest/v1/rpc/bot_unirse_por_invitacion → 503 PGRST002 Could not query the database"), { status: 503, codigo: "PGRST002" }); };
+    const r = await unirsePorInvitacion({ from: { id: 77 }, chatId: "c", token: TOKEN });
+    expect(r.texto).toMatch(/^No he podido abrir tu invitación ahora mismo; vuelve a intentarlo en un minuto/);
+    expect(r.householdId).toBe(null);
+    rpcR = () => { throw Object.assign(new TypeError("fetch failed"), { cause: { code: "ECONNRESET" } }); };
+    expect((await unirsePorInvitacion({ from: { id: 77, language_code: "en" }, chatId: "c", token: TOKEN })).texto).toMatch(/^I couldn't open your invitation/);
+    // La línea de log lleva el sitio y el motivo, no el token.
+    expect(JSON.parse(warn.mock.calls[0][0])).toMatchObject({ evento: "bot_fallo", donde: "invitacion_unirse", motivo: "servidor" });
+    expect(warn.mock.calls.join(" ")).not.toContain(TOKEN);
+    warn.mockRestore();
+  });
+
+  it("y el tope de casas, que sí es una respuesta de la base, se sigue diciendo", async () => {
+    rpcR = () => { throw Object.assign(new Error("POST /rest/v1/rpc/bot_unirse_por_invitacion → 400 P0001 Member limit reached (max 3)"), { status: 400, codigo: "P0001" }); };
+    expect((await unirsePorInvitacion({ from: { id: 77 }, chatId: "c", token: TOKEN })).texto).toMatch(/máximo de casas/);
+  });
+
   it("un bot o un admin anónimo no entra", async () => {
     const r = await unirsePorInvitacion({ from: { id: 1087968824, is_bot: true }, chatId: "g", token: TOKEN });
     expect(r.householdId).toBe(null);

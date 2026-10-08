@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { carpetaDe, decidir, sinAplicar } from "./guardia.mjs";
+import { carpetaDe, contextoReal, decidir, sinAplicar } from "./guardia.mjs";
+import { cargarMapa } from "./dominios.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ESTADO_REAL = readFileSync(join(RAIZ, "supabase", "ESTADO.md"), "utf8");
@@ -336,6 +338,160 @@ describe("ESTADO.md de verdad", () => {
   });
 });
 
+// ── La puerta de lectura de las skills ─────────────────────────────────────
+
+describe("puerta de lectura: abre la skill antes del primer comando de riesgo", () => {
+  const mapa = cargarMapa(RAIZ);
+  /** Un contexto con estado, como el registro real: lo abierto y lo avisado. */
+  const sesion = ({ abiertas = [], marcaOk = true, extra = {} } = {}) => {
+    const vistas = new Set(abiertas);
+    return ctx({
+      dominios: mapa,
+      skillAbierta: (s) => vistas.has(s),
+      marcarSkill: (s) => {
+        if (!marcaOk) return false;
+        vistas.add(s);
+        return true;
+      },
+      ...extra,
+    });
+  };
+
+  it("la primera vez niega y dice qué skill abrir; el reintento pasa", () => {
+    const c = sesion();
+    const r = decidir({ tool_name: "Bash", tool_input: { command: "node scripts/telegram-webhook.mjs set https://x.app/api/bot/telegram" } }, c);
+    expect(r.decision).toBe("deny");
+    expect(r.motivo).toMatch(/skill `telegram`/);
+    expect(r.motivo).toMatch(/reintenta/i);
+    expect(bash("node scripts/telegram-webhook.mjs set https://x.app/api/bot/telegram", c)).toBe(null);
+  });
+
+  it("si ya la abrió, pasa a la primera", () =>
+    expect(bash("node scripts/telegram-webhook.mjs delete", sesion({ abiertas: ["telegram"] }))).toBe(null));
+
+  it("la puerta es por skill: abrir una no abre las demás", () => {
+    const c = sesion({ abiertas: ["telegram"] });
+    expect(bash("vercel env add FOO", c)).toBe("deny");
+    expect(bash("vercel env add FOO", c)).toBe(null);
+  });
+
+  it("si el comando toca dos dominios, pide las dos de una vez", () => {
+    const r = decidir({ tool_name: "Bash", tool_input: { command: "ssh root@100.73.252.32 'tailscale up'" } }, sesion());
+    expect(r.decision).toBe("deny");
+    expect(r.motivo).toMatch(/`hetzner`/);
+    expect(r.motivo).toMatch(/`tailscale`/);
+  });
+
+  it("PowerShell también", () =>
+    expect(decidir({ tool_name: "PowerShell", tool_input: { command: "node scripts/telegram-perfil.mjs aplicar" } }, sesion())?.decision).toBe("deny"));
+
+  it("falla abierta: si no puede anotar que avisó, no bloquea (atascaría la sesión)", () =>
+    expect(bash("node scripts/telegram-webhook.mjs delete", sesion({ marcaOk: false }))).toBe(null));
+
+  it("sin mapa o sin registro, no hay puerta", () => {
+    expect(bash("node scripts/telegram-webhook.mjs delete")).toBe(null);
+    expect(bash("node scripts/telegram-webhook.mjs delete", ctx({ dominios: mapa }))).toBe(null);
+  });
+
+  it("las lecturas y lo de cada día no tienen puerta", () => {
+    const c = sesion();
+    for (const cmd of ["node scripts/verificar-estado.mjs", "git status --short", "gh pr view 3", "gh pr checks 3", "node scripts/telegram-webhook.mjs info", "npm test"]) {
+      expect(bash(cmd, c), cmd).toBe(null);
+    }
+  });
+
+  it("una regla que ya niega gana y no gasta la puerta", () => {
+    const c = sesion();
+    expect(bash("node scripts/apply-migration.mjs 0090_x --pablo", c)).toBe("deny");
+    const r = decidir({ tool_name: "Bash", tool_input: { command: "node scripts/apply-migration.mjs 0090_x" } }, c);
+    expect(r.motivo).toMatch(/skill `supabase`/);
+  });
+
+  // Lo que dejó colar la guardia dos veces: mirar un tramo y no el comando. La
+  // puerta mira el comando ENTERO; todo esto sigue pidiendo la skill.
+  describe.each([
+    ["tras un &&", "git fetch && node scripts/telegram-webhook.mjs delete"],
+    ["tras un ;", "echo hola; node scripts/telegram-webhook.mjs delete"],
+    ["tras un pipe", "echo y | node scripts/telegram-webhook.mjs delete"],
+    ["en otra línea", "git fetch\nnode scripts/telegram-webhook.mjs delete"],
+    ["con continuación de línea", "node scripts/telegram-webhook.mjs \\\n  delete"],
+    ["con continuación de PowerShell", "node scripts/telegram-webhook.mjs `\r\n  delete"],
+    ["dentro de bash -c", `bash -c "cd x; node scripts/telegram-webhook.mjs delete"`],
+    ["tras un ; dentro de comillas", `echo "a;b" && node scripts/telegram-webhook.mjs delete`],
+    ["en mayúsculas", "NODE SCRIPTS/TELEGRAM-WEBHOOK.MJS DELETE"],
+    ["con barras de Windows", "node scripts\\telegram-webhook.mjs delete"],
+    ["con la ruta absoluta", "node C:/dev/MenuPlan-x/scripts/telegram-webhook.mjs   set   https://x"],
+    ["en una variable", "X=delete; node scripts/telegram-webhook.mjs $X"],
+  ])("sigue negado %s", (_, cmd) => {
+    it(cmd.replace(/\s+/g, " "), () => expect(bash(cmd, sesion())).toBe("deny"));
+  });
+
+  it("gh api con método que escribe niega, y con -q de lectura no", () => {
+    expect(bash("gh api -X DELETE repos/o/r/branches/x", sesion())).toBe("deny");
+    expect(bash("gh api repos/o/r --method PATCH -f a=b", sesion())).toBe("deny");
+    expect(bash("gh api repos/pabloam89/MenuPlan -q .security_and_analysis", sesion())).toBe(null);
+  });
+
+  describe("skills precargadas de un agente", () => {
+    const delAgente = (agent_type) =>
+      decidir(
+        { tool_name: "Bash", agent_type, tool_input: { command: "ssh root@100.73.252.32 hostname" } },
+        sesion({ extra: { skillsDelAgente: (t) => (t === "gobierno" ? ["github", "hetzner", "tailscale"] : []) } }),
+      )?.decision ?? null;
+    it("gobierno ya trae hetzner: pasa", () => expect(delAgente("gobierno")).toBe(null));
+    it("otro agente, o sin saber cuál, paga un reintento", () => {
+      expect(delAgente("lola")).toBe("deny");
+      expect(delAgente(undefined)).toBe("deny");
+    });
+  });
+});
+
+// El cableado de verdad: contextoReal con un repo git temporal, el registro de
+// sesiones en su .git y un agente con skills en su frontmatter. Los tests de
+// arriba simulan el registro con sesion(); estos prueban que lo real encaja.
+describe("puerta de lectura: el cableado real", () => {
+  const repo = mkdtempSync(join(tmpdir(), "guardia-cableado-"));
+  execFileSync("git", ["init", "-q", repo]);
+  mkdirSync(join(repo, ".claude", "agents"), { recursive: true });
+  copyFileSync(join(RAIZ, ".claude", "dominios-skills.json"), join(repo, ".claude", "dominios-skills.json"));
+  writeFileSync(join(repo, ".claude", "agents", "probando.md"), "---\nname: probando\nskills: [hetzner, tailscale]\nmodel: inherit\n---\ncuerpo\n");
+  const entrada = (command, extra = {}) => ({ session_id: "cableado-sesion-1", cwd: repo, tool_name: "Bash", tool_input: { command }, ...extra });
+  // Como el hook: un proceso (un contexto) nuevo por acción.
+  const lanza = (command, extra) => {
+    const e = entrada(command, extra);
+    return decidir(e, contextoReal(repo, e))?.decision ?? null;
+  };
+
+  it("skillAbierta / marcarSkill escriben y leen el registro de la sesión", () => {
+    const c = contextoReal(repo, entrada("x"));
+    expect(c.skillAbierta("github")).toBe(false);
+    expect(c.marcarSkill("github")).toBe(true);
+    expect(contextoReal(repo, entrada("x")).skillAbierta("github")).toBe(true);
+    expect(contextoReal(repo, entrada("x", { session_id: "otra-sesion-99" })).skillAbierta("github")).toBe(false);
+    expect(existsSync(join(repo, ".git", "claude-sesiones", "skills", "cableado-sesion-1__github.json"))).toBe(true);
+  });
+
+  it("skillsDelAgente lee el frontmatter del agente, y solo de un nombre válido", () => {
+    const c = contextoReal(repo, entrada("x"));
+    expect(c.skillsDelAgente("probando")).toEqual(["hetzner", "tailscale"]);
+    expect(c.skillsDelAgente("no-existe")).toEqual([]);
+    expect(c.skillsDelAgente("../probando")).toEqual([]);
+    expect(c.skillsDelAgente(undefined)).toEqual([]);
+  });
+
+  it("de punta a punta: niega a la primera, pasa al reintento, y un agente con la skill pasa", () => {
+    const cmd = "node scripts/telegram-webhook.mjs delete";
+    expect(lanza(cmd)).toBe("deny");
+    expect(lanza(cmd)).toBe(null);
+    expect(lanza("ssh root@100.73.252.32 hostname", { agent_type: "probando" })).toBe(null);
+    expect(lanza("vercel env ls", { agent_type: "probando" })).toBe("deny");
+  });
+
+  it("sin id de sesión no puede anotar el aviso, así que no bloquea", () => {
+    expect(lanza("node scripts/telegram-perfil.mjs aplicar", { session_id: undefined })).toBe(null);
+  });
+});
+
 describe("entrada ilegible (#209)", () => {
   // Si la guardia no puede leer lo que le llega, pregunta: ni deja pasar en
   // silencio (antes salía con 0 y no vigilaba nada) ni niega (un fallo tonto
@@ -357,5 +513,35 @@ describe("entrada ilegible (#209)", () => {
     expect(out.hookEventName).toBe("PreToolUse");
     expect(out.permissionDecision).toBe("ask");
     expect(out.permissionDecisionReason).toMatch(/no ha podido leer/);
+  });
+});
+
+// La puerta de lectura no afloja nada: lo que ya se negaba se sigue negando igual
+// con la puerta puesta, en el primer intento y en el reintento.
+describe("la puerta no afloja las reglas duras", () => {
+  const mapa = cargarMapa(RAIZ);
+  const conPuerta = () => {
+    const vistas = new Set();
+    return ctx({ dominios: mapa, skillAbierta: (s) => vistas.has(s), marcarSkill: (s) => (vistas.add(s), true) });
+  };
+  const peligrosos = [
+    "node scripts/apply-migration.mjs 0090_x --pablo",
+    "git push origin main",
+    "git stash",
+    'psql "$SUPABASE_DB_URL" -c "drop table x"',
+  ];
+  const motivo = (cmd, c) => decidir({ tool_name: "Bash", tool_input: { command: cmd } }, c)?.motivo;
+  it.each(peligrosos)("%s: deny sin puerta, y con puerta en el 1er intento y en el reintento", (cmd) => {
+    expect(bash(cmd)).toBe("deny");
+    const c = conPuerta();
+    const sin = motivo(cmd, ctx());
+    expect(motivo(cmd, c)).toBe(sin);
+    expect(motivo(cmd, c)).toBe(sin);
+  });
+  it("y la carpeta principal sigue mandando sobre la puerta", () => {
+    const c = ctx({ esPrincipal: () => true, dominios: mapa, skillAbierta: () => false, marcarSkill: () => true });
+    const r = decidir({ tool_name: "Bash", cwd: "C:/dev/MenuPlan", tool_input: { command: "git commit -m 'toca apply-migration'" } }, c);
+    expect(r.decision).toBe("deny");
+    expect(r.motivo).toMatch(/carpeta principal/);
   });
 });

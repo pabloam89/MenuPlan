@@ -197,6 +197,13 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
   **`pendientes.mjs`** al terminar de responder: frena una vez si dejas
   decisiones o pendientes sin ningún issue. Las decisiones se asignan a Pablo.
 - **GitHub**: `main` solo por PR con `tests`; secret scanning y Dependabot.
+- **Las skills, por obligación** (`.claude/dominios-skills.json`): la primera
+  vez que una sesión lanza un comando de riesgo de un dominio con skill
+  (`apply-migration`, `telegram-webhook.mjs set`, `vercel env`, `op item`, `ssh` al
+  panel…), la guardia le pide abrir antes la skill; y el CI (`tests`) exige en
+  cada PR que toca un dominio la línea «Runbook: actualizado (skill X)» o
+  «Runbook: sin novedades». El `revisor` comprueba que un fallo arreglado dejó
+  su lección en un test, la guardia o la skill.
 - Las reglas por carpeta solo saltan con Read, Write o Edit, no por terminal:
   lo crítico va en la guardia.
 - **Cuando algo falla, la lección va a un test o a la guardia; si no se puede,
