@@ -1,4 +1,5 @@
 -- 0091 · Los ids viejos de persona y grupo pasan a UUID, en todas partes y sin borrar a nadie.
+-- AUDITADA: auditor-datos 2026-10-08 OK
 --
 -- Por qué ahora (Pablo, 8 oct 2026, issue #194): «ahora da igual, pero luego será
 -- peligroso». Desde el PR #91 los ids nuevos nacen UUID, y los viejos (el uid() de la
