@@ -153,8 +153,14 @@ describe("ids de persona y grupo: ninguna columna fuera del paso a UUID", () => 
 
   it("el INVENTARIO de la 0091 se lee y solo usa modos que la 0091 sabe hacer", () => {
     expect(inventario.length).toBeGreaterThan(10);
-    for (const [t, c, modo] of inventario) {
+    const { cols } = todas();
+    for (const [t, c, modo, casa, usuario] of inventario) {
       expect(MODOS.has(modo), `${t}.${c}: modo ${modo}`).toBe(true);
+      // De quién es la fila: la 0091 aborta si un id viejo sale en otra casa.
+      expect(casa ?? usuario, `${t}.${c}: sin columna de dueño`).toBeTruthy();
+      for (const d of [casa, usuario].filter(Boolean)) {
+        expect(cols.has(`${t}.${d}`), `${t}.${d}: columna de dueño que ninguna migración declara`).toBe(true);
+      }
     }
     expect(inventario.filter(([, , m]) => m === "jsonb_casa").map(([t]) => t)).toEqual(["household_state"]);
   });

@@ -1,5 +1,4 @@
 -- 0091 · Los ids viejos de persona y grupo pasan a UUID, en todas partes y sin borrar a nadie.
--- AUDITADA: auditor-datos 2026-10-08 OK
 --
 -- Por qué ahora (Pablo, 8 oct 2026, issue #194): «ahora da igual, pero luego será
 -- peligroso». Desde el PR #91 los ids nuevos nacen UUID, y los viejos (el uid() de la
@@ -14,6 +13,11 @@
 -- recrea nada que tenga algo colgando:
 --   1. Mapa viejo → UUID, guardado en `ids_uuid_equivalencias` (para poder repasar
 --      lo que reintroduzca una app vieja, y para deshacer: no hay copias de la base).
+--      Solo entran las formas viejas conocidas (c_formas, abajo): el JSON de la casa
+--      lo escribe cada usuario, y un `members:[{id:"dinner"}]` plantado no puede
+--      volverse un token que se reescriba en toda la base. Y antes de tocar nada se
+--      comprueba que cada id viejo solo aparece en filas de su casa (o de un usuario
+--      de su casa): si sale en otra, aborta.
 --   2. persona y grupo: se inserta la copia con el id nuevo, se mueven a ella TODAS
 --      las FK que apuntan a persona o grupo (leídas de pg_constraint, así entran
 --      solas las tablas que vengan, como la `sobre` de la 0120), y se borra la fila
@@ -84,6 +88,8 @@ comment on column public.ids_uuid_equivalencias.viejo is
   'El id de antes: uid() de la app, m… del bot, per_/grp_ o m-<nombre>. Único en toda la base.';
 comment on column public.ids_uuid_equivalencias.nuevo is
   'El UUID que lo sustituye en persona, grupo, sus FK y los JSON de la casa.';
+comment on column public.ids_uuid_equivalencias.created_at is
+  'Cuándo entró en el mapa: la pasada de la 0091 que lo cambió (una pasada posterior solo añade los que falten).';
 
 -- ── 1. Piezas de esta transacción (se van al terminar) ──────────────────────
 
@@ -92,6 +98,8 @@ create temp table _ids_patron (patron text not null) on commit drop;
 create temp table _ids_fuentes (ambito text not null, id text not null) on commit drop;
 create temp table _ids_informe (orden bigint generated always as identity, linea text not null) on commit drop;
 create temp table _ids_cuentas (que text primary key, antes bigint, despues bigint) on commit drop;
+-- De quién es cada id viejo: su casa, su usuario ('u:<id>') y las casas de ese usuario.
+create temp table _ids_duenos (viejo text not null, ambito text not null) on commit drop;
 
 -- Los ids de persona y grupo que declara un estado (household_state.state o
 -- user_state.state): la familia, los grupos y las fotos de los rosters aparcados.
@@ -157,25 +165,36 @@ declare
   --   jsonb           : JSON entero
   --   jsonb_sin_texto : JSON entero salvo la clave 'texto' (lo que dijo la persona)
   --   texto           : columna de texto
+  -- Las dos últimas: de quién es la fila (columna de casa y columna de usuario,
+  -- null si no tiene). Con casa, manda la casa; sin ella, el usuario y sus casas.
   v_inventario constant jsonb := '[
-    ["household_state",   "state",           "jsonb_casa"],
-    ["user_state",        "state",           "jsonb"],
-    ["user_menu_weeks",   "plan",            "jsonb"],
-    ["user_menu_weeks",   "schedule",        "jsonb"],
-    ["user_menu_weeks",   "shopping",        "jsonb"],
-    ["user_menu_recipes", "recipe_id",       "texto"],
-    ["user_menu_recipes", "recipe_snapshot", "jsonb"],
-    ["cookings",          "recipe_id",       "texto"],
-    ["cookings",          "eaters",          "jsonb"],
-    ["shared_menus",      "payload",         "jsonb"],
-    ["bot_tareas",        "clave",           "texto"],
-    ["bot_tareas",        "para_member",     "texto"],
-    ["bot_tareas",        "asignado_member", "texto"],
-    ["bot_messages",      "content",         "jsonb_sin_texto"],
-    ["bot_deshacer",      "antes",           "jsonb"],
-    ["user_events",       "metadata",        "jsonb"]
+    ["household_state",   "state",           "jsonb_casa",      "household_id", null],
+    ["user_state",        "state",           "jsonb",           null,           "user_id"],
+    ["user_menu_weeks",   "plan",            "jsonb",           "household_id", "user_id"],
+    ["user_menu_weeks",   "schedule",        "jsonb",           "household_id", "user_id"],
+    ["user_menu_weeks",   "shopping",        "jsonb",           "household_id", "user_id"],
+    ["user_menu_recipes", "recipe_id",       "texto",           "household_id", "user_id"],
+    ["user_menu_recipes", "recipe_snapshot", "jsonb",           "household_id", "user_id"],
+    ["cookings",          "recipe_id",       "texto",           null,           "owner_id"],
+    ["cookings",          "eaters",          "jsonb",           null,           "owner_id"],
+    ["shared_menus",      "payload",         "jsonb",           null,           "owner_id"],
+    ["bot_tareas",        "clave",           "texto",           "household_id", "owner_user_id"],
+    ["bot_tareas",        "para_member",     "texto",           "household_id", "owner_user_id"],
+    ["bot_tareas",        "asignado_member", "texto",           "household_id", "owner_user_id"],
+    ["bot_messages",      "content",         "jsonb_sin_texto", "household_id", null],
+    ["bot_deshacer",      "antes",           "jsonb",           "household_id", null],
+    ["user_events",       "metadata",        "jsonb",           null,           "user_id"]
   ]'::jsonb;
   c_uuid constant text := '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
+  -- Las formas viejas que de verdad hay (8 oct 2026: 142 uid() de 8 en base36, 16
+  -- `m…` del bot, 2 `grp_`, y los 3 `m-<nombre>` de una casa de pruebas). Lo que
+  -- no tenga una de estas formas no entra en el mapa: si está en persona o grupo,
+  -- aborta; si solo está en un JSON, se queda como está.
+  c_formas constant text := '^([0-9a-z]{8}|m[0-9a-z]{7,12}|(per|grp)_[0-9a-z]{12}|m-ana|m-leo|m-pablo)$';
+  v_col text;
+  v_h text;
+  v_u text;
+  v_revisadas bigint := 0;
   v_re text;
   v_n bigint;
   v_m bigint;
@@ -198,6 +217,14 @@ begin
                     where table_schema = 'public' and table_name = e->>0 and column_name = e->>1) then
       raise exception '0091: no existe public.%.% del inventario', e->>0, e->>1;
     end if;
+    if e->>3 is null and e->>4 is null then
+      raise exception '0091: public.%.% del inventario no dice de quién es la fila', e->>0, e->>1;
+    end if;
+    if (select count(*) from information_schema.columns
+         where table_schema = 'public' and table_name = e->>0 and column_name in (e->>3, e->>4))
+       <> (case when e->>3 is null then 0 else 1 end) + (case when e->>4 is null then 0 else 1 end) then
+      raise exception '0091: public.% no tiene las columnas de dueño del inventario', e->>0;
+    end if;
   end loop;
 
   -- 2.1 Qué ids viejos hay, y de qué ámbito (casa, o usuario para user_state).
@@ -208,17 +235,34 @@ begin
   union all select 'u:' || us.user_id::text, d.id from public.user_state us, pg_temp._ids_de_estado(us.state) d;
   delete from _ids_fuentes where id ~* c_uuid or id like 'inv\_%';
 
-  select string_agg(distinct id, ', ') into v_txt
-    from (select id from _ids_fuentes where id !~ '^[0-9a-z_-]{5,40}$' limit 10) x;
-  if v_txt is not null then
-    raise exception '0091: ids viejos con una forma que no se puede buscar como token sin riesgo (se arreglan a mano antes): %', v_txt;
+  -- Solo formas viejas conocidas (c_formas). Los mensajes dan recuentos, no ids.
+  select count(*) into v_n
+    from (select id from public.persona union select id from public.grupo) x
+   where id !~* c_uuid and id !~ c_formas;
+  if v_n > 0 then
+    raise exception '0091: % ids de persona o grupo con una forma vieja desconocida: se miran a mano antes', v_n;
   end if;
-  select string_agg(id, ', ') into v_txt
+  select count(distinct id) into v_n from _ids_fuentes where id !~ c_formas;
+  delete from _ids_fuentes where id !~ c_formas;
+  insert into _ids_informe (linea)
+  values (format('fuera del mapa: %s ids de JSON con una forma desconocida (se quedan como están)', v_n));
+
+  select count(*) into v_n
     from (select id from _ids_fuentes where ambito not like 'u:%'
-           group by id having count(distinct ambito) > 1 limit 10) x;
-  if v_txt is not null then
-    raise exception '0091: el mismo id viejo está en varias casas (recibirían un solo UUID): %', v_txt;
+           group by id having count(distinct ambito) > 1) x;
+  if v_n > 0 then
+    raise exception '0091: % ids viejos están en varias casas (recibirían un solo UUID)', v_n;
   end if;
+
+  -- Dueños de cada id: su casa o su usuario, y las casas de ese usuario.
+  insert into _ids_duenos
+  select distinct id, ambito from _ids_fuentes
+  union
+  select f.id, hm.household_id::text
+    from _ids_fuentes f join public.household_members hm on f.ambito = 'u:' || hm.user_id::text
+  union
+  select f.id, hh.id::text
+    from _ids_fuentes f join public.households hh on f.ambito = 'u:' || hh.owner_user_id::text;
 
   -- 2.2 El mapa: lo que ya estaba (una pasada anterior) y los que faltan.
   insert into public.ids_uuid_equivalencias (viejo, nuevo)
@@ -233,17 +277,54 @@ begin
   end if;
 
   -- Un id viejo no puede ser token de otro: se reescribiría a medias.
-  select string_agg(a.viejo || ' en ' || b.viejo, ', ') into v_txt
+  select count(*) into v_n
     from _ids_mapa a join _ids_mapa b
       on a.viejo <> b.viejo and b.viejo ~ ('(?<![0-9A-Za-z])' || a.viejo || '(?![0-9A-Za-z])');
-  if v_txt is not null then
-    raise exception '0091: un id viejo es parte de otro, no se pueden reescribir como token: %', v_txt;
+  if v_n > 0 then
+    raise exception '0091: % ids viejos son parte de otro; no se pueden reescribir como token', v_n;
   end if;
 
   insert into _ids_patron
   select '(?<![0-9A-Za-z])(' || string_agg(viejo, '|' order by length(viejo) desc, viejo) || ')(?![0-9A-Za-z])'
     from _ids_mapa;
   select patron into v_re from _ids_patron;
+
+  -- Cada id viejo solo puede aparecer en filas de su casa, o de un usuario de su
+  -- casa (las semanas viejas sin casa del titular, por ejemplo). Si sale en otra,
+  -- el mapa vendría de un JSON que alguien ha escrito a mano: no se toca nada.
+  -- Los ids que una pasada anterior ya mapeó y hoy no tienen dueño (no están en
+  -- ninguna lista) pasaron esta comprobación entonces.
+  v_txt := null;
+  for e in select * from jsonb_array_elements(v_inventario) loop
+    v_col := case e->>2
+               when 'texto' then format('t.%I', e->>1)
+               when 'jsonb_sin_texto' then format('(case when jsonb_typeof(t.%I) = ''object'' then t.%I - ''texto'' end)::text', e->>1, e->>1)
+               else format('t.%I::text', e->>1)
+             end;
+    v_h := case when e->>3 is null then 'null::uuid' else format('t.%I', e->>3) end;
+    v_u := case when e->>4 is null then 'null::uuid' else format('t.%I', e->>4) end;
+    execute format('select count(*) from public.%I t where %s ~ $1', e->>0, v_col) into v_m using v_re;
+    v_revisadas := v_revisadas + v_m;
+    execute format(
+      'select count(distinct z.fila) from ('
+      || ' select t.ctid as fila, x[1] as tok, %s as h, %s as u'
+      || '   from public.%I t, regexp_matches(%s, $1, ''g'') as x where %s ~ $1) z'
+      || ' where exists (select 1 from pg_temp._ids_duenos d where d.viejo = z.tok)'
+      || '   and not exists (select 1 from pg_temp._ids_duenos d where d.viejo = z.tok and ('
+      || '         d.ambito = z.h::text'
+      || '      or (z.h is null and (d.ambito = ''u:'' || z.u::text'
+      || '          or d.ambito in (select hm.household_id::text from public.household_members hm where hm.user_id = z.u)'
+      || '          or d.ambito in (select hh.id::text from public.households hh where hh.owner_user_id = z.u)))))',
+      v_h, v_u, e->>0, v_col, v_col) into v_n using v_re;
+    if v_n > 0 then
+      v_txt := coalesce(v_txt || ', ', '') || format('%s.%s (%s filas)', e->>0, e->>1, v_n);
+    end if;
+  end loop;
+  if v_txt is not null then
+    raise exception '0091: hay ids viejos en filas de otra casa o de otro usuario: %; no se toca nada', v_txt;
+  end if;
+  insert into _ids_informe (linea)
+  values (format('dueños: %s filas con ids viejos revisadas, 0 de otra casa o de otro usuario', v_revisadas));
 
   insert into _ids_informe (linea)
   select format('mapa: %s ids viejos (%s en persona, %s en grupo, %s solo en JSON); %s ya mapeados antes',
@@ -403,10 +484,18 @@ begin
     update _ids_cuentas set despues = v_n where que = format('filas %s.%s', r.hija, r.col);
     update _ids_cuentas set despues = v_m where que = format('colgando %s.%s', r.hija, r.col);
   end loop;
-  select string_agg(format('%s: %s → %s', que, antes, coalesce(despues, 0)), '; ') into v_txt
-    from _ids_cuentas
-   where (que like 'colgando %' and coalesce(despues, 0) > antes)
-      or (que not like 'colgando %' and coalesce(despues, 0) <> antes);
+  -- Sin household_id en el mensaje: las cuentas por casa salen como un recuento.
+  select string_agg(x, '; ') into v_txt
+    from (select format('%s: %s → %s', que, antes, coalesce(despues, 0)) as x
+            from _ids_cuentas
+           where que not like '% de %'
+             and ((que like 'colgando %' and coalesce(despues, 0) > antes)
+                  or (que not like 'colgando %' and coalesce(despues, 0) <> antes))
+          union all
+          select format('%s casas con otro número de personas o grupos', count(*))
+            from _ids_cuentas
+           where que like '% de %' and coalesce(despues, 0) <> antes
+          having count(*) > 0) y;
   if v_txt is not null then
     raise exception '0091: se perdería o se desengancharía algo: %', v_txt;
   end if;
@@ -419,7 +508,7 @@ begin
   end if;
   select count(*) into v_n
     from public.household_state hs, pg_temp._ids_de_estado(hs.state) d
-   where d.id !~* c_uuid and d.id not like 'inv\_%';
+   where d.id ~ c_formas;
   if v_n > 0 then
     raise exception '0091: quedan % ids no UUID en las listas de household_state', v_n;
   end if;
