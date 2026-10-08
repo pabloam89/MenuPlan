@@ -195,6 +195,26 @@ function contextoReal(raiz) {
         return null;
       }
     },
+    // Commits de origin/staging que le faltan a tu rama (tras traerlo). null si no se puede saber.
+    atrasoLocal: () => {
+      try {
+        execFileSync("git", ["-C", raiz, "fetch", "-q", "origin", "staging"], { stdio: "ignore", timeout: 30000 });
+        return Number(execFileSync("git", ["-C", raiz, "rev-list", "--count", "HEAD..origin/staging"], { encoding: "utf8" }).trim());
+      } catch {
+        return null;
+      }
+    },
+    // Lo mismo para la rama de un PR, preguntado a GitHub (la rama puede no estar en local).
+    atrasoDelPr: (numero) => {
+      try {
+        const opts = { cwd: raiz, encoding: "utf8", timeout: 15000 };
+        const cabeza = execFileSync("gh", ["pr", "view", ...(numero ? [numero] : []), "--json", "headRefOid", "-q", ".headRefOid"], opts).trim();
+        const n = Number(execFileSync("gh", ["api", `repos/{owner}/{repo}/compare/staging...${cabeza}`, "-q", ".behind_by"], opts).trim());
+        return Number.isFinite(n) ? n : null;
+      } catch {
+        return null;
+      }
+    },
   };
 }
 
@@ -214,13 +234,26 @@ export function decidir(entrada, ctx) {
     for (const o of ordenes(cmd)) {
       for (const r of REGLAS_COMANDO) if (r.si(o)) return r.da(o);
 
+      // Un PR con la rama atrasada respecto a staging choca con lo que acaban
+      // de meter otras sesiones, o pasa el CI sin haberlo probado junto (el 8
+      // oct 2026, el cableado). Se mira al abrirlo y otra vez al fusionarlo.
+      if (/^gh\s+pr\s+create\b/.test(o)) {
+        const atraso = ctx.atrasoLocal();
+        if (atraso === null) return ask("No he podido comprobar si tu rama tiene lo último de staging. Haz `git fetch origin staging` y `git merge origin/staging` antes de abrir el PR.");
+        if (atraso > 0) return deny(`Tu rama va ${atraso} commit(s) por detrás de staging. Antes de abrir el PR: \`git fetch origin staging\`, \`git merge origin/staging\`, resuelve, pasa los tests y empuja.`);
+        continue;
+      }
+
       // gh pr merge: solo a staging (lo permite settings.local.json de Pablo).
       const merge = o.match(/^gh\s+pr\s+merge\b\s*(\d+)?/);
       if (merge) {
         const base = ctx.baseDelPr(merge[1]);
-        if (base === "staging") continue;
         if (base === null) return ask("No he podido leer la rama base de este PR. Si no es staging, solo Pablo lo fusiona.");
-        return deny(`Este PR va contra ${base}, no contra staging. Fusionar fuera de staging solo lo hace Pablo.`);
+        if (base !== "staging") return deny(`Este PR va contra ${base}, no contra staging. Fusionar fuera de staging solo lo hace Pablo.`);
+        const atraso = ctx.atrasoDelPr(merge[1]);
+        if (atraso === null) return ask("No he podido comprobar si la rama del PR tiene lo último de staging. Míralo antes de fusionar.");
+        if (atraso > 0) return deny(`La rama del PR va ${atraso} commit(s) por detrás de staging: el CI no ha probado tu cambio junto a lo último. Ponla al día (\`gh pr update-branch${merge[1] ? ` ${merge[1]}` : ""}\` o merge de origin/staging y push), espera el CI en verde y fusiona.`);
+        continue;
       }
     }
     // El SQL se mira en el comando entero: un `node -e` lleva sus propios `;`.
