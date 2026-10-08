@@ -1,5 +1,5 @@
 {
-  "_nota": "Un solo mapa de qué dominios tienen skill (runbook en .claude/skills/<nombre>/). Lo leen la guardia (.claude/hooks/guardia.mjs: puerta de lectura) y scripts/runbook-pr.mjs (la línea «Runbook:» de cada PR en el CI). Lo cruza .claude/dominios-skills.test.js con las skills reales. 'comandos': expresiones regulares (sin distinguir mayúsculas) que se buscan en el comando ENTERO, solo los que mutan o son de alto riesgo: leer no tiene puerta. 'rutas': expresiones regulares sobre rutas del repo con barras normales (sensibles a mayúsculas): tocarlas pide la línea «Runbook:» en el PR. 'exentas': skill -> motivo, para una skill que no tiene ni comandos ni rutas que vigilar. Una skill nueva se añade aquí o el test falla. Los comodines entre dos piezas de un patrón llevan tope ([\\s\\S]{0,2000}): sin él, una entrada grande y repetida es cuadrática.",
+  "_nota": "Un solo mapa de qué dominios tienen skill (runbook en .claude/skills/<nombre>/). Lo leen la guardia (.claude/hooks/guardia.mjs: puerta de lectura) y scripts/runbook-pr.mjs (la línea «Runbook:» de cada PR en el CI). Lo cruza .claude/dominios-skills.test.js con las skills reales. 'comandos': expresiones regulares (sin distinguir mayúsculas) que se buscan en el comando ENTERO, solo los que mutan o son de alto riesgo: leer no tiene puerta. 'rutas': expresiones regulares sobre rutas del repo con barras normales (sensibles a mayúsculas): tocarlas pide la línea «Runbook:» en el PR. 'exentas': skill -> motivo, para una skill que no tiene ni comandos ni rutas que vigilar. Una skill nueva se añade aquí o el test falla. Los comodines entre dos piezas de un patrón llevan tope ([\\s\\S]{0,1000} o {0,2000}): sin él, una entrada grande y repetida es cuadrática.",
   "skills": {
     "supabase": {
       "comandos": [
@@ -60,10 +60,10 @@
     },
     "hetzner": {
       "comandos": [
-        "\\b(?:ssh|scp|sftp|rsync)(?:\\.exe)?\\b[\\s\\S]{0,2000}(?:100\\.73\\.252\\.32|188\\.245\\.14\\.194|homenu-panel)",
-        "(?:100\\.73\\.252\\.32|188\\.245\\.14\\.194|homenu-panel)[\\s\\S]{0,2000}\\b(?:ssh|scp|sftp|rsync)\\b",
+        "\\b(?:ssh|scp|sftp|rsync)(?:\\.exe)?\\b[\\s\\S]{0,1000}(?:100\\.73\\.252\\.32|188\\.245\\.14\\.194|homenu-panel)",
+        "(?:100\\.73\\.252\\.32|188\\.245\\.14\\.194|homenu-panel)[\\s\\S]{0,1000}\\b(?:ssh|scp|sftp|rsync)\\b",
         "\\bufw\\b",
-        "\\bdocker\\b[\\s\\S]{0,2000}(?:\\bpanel-db-1\\b|-U\\s+panel\\b)",
+        "\\bdocker\\b[\\s\\S]{0,1000}(?:\\bpanel-db-1\\b|-U\\s+panel\\b)",
         "/opt/panel\\b"
       ],
       "rutas": []
