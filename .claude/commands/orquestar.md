@@ -99,14 +99,20 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    juez. Repite el juez tras el arreglo.
 3. Junta todas las «Decisiones pendientes» en una sola lista para quien lanzó
    la sesión, sin duplicados, con la recomendación de cada una.
-4. Lo que no se cierra en este PR va a un issue, no a una frase del resumen:
-   un hallazgo sin arreglar o un fallo del camino (vigilante que bloqueó algo
-   bueno, entorno distinto del CI, limpieza a medias) → `tipo:leccion`; una
-   decisión que no se toma hoy → `tipo:decision`; trabajo que alguien tiene
-   que coger → `tipo:encargo`. Siempre con causa y área (skill `github`,
-   «Issues»). El chat se pierde al cerrar la sesión; el issue no. Y al
-   revés: el PR lleva `Closes #n` de los issues que arregla y `Agente:` con
-   el constructor que lo hizo.
+4. Lo que no se cierra en este PR va a un issue, no a una frase del resumen.
+   Cada hallazgo sin arreglar o fallo del camino (vigilante que bloqueó algo
+   bueno, entorno distinto del CI, error que se tragó) es un **caso**, y antes
+   de abrirlo se analiza hasta su **problema de fondo**, con una de las cuatro
+   respuestas de CLAUDE.md: nuevo (abre el fondo), abierto (cuélgalo), no
+   aguantó (cuélgalo; el fondo se reabre: ¿roto o corto?) o puntual (con su
+   porqué). `npm run issues` enseña los fondos abiertos para buscar el suyo.
+   Una decisión que no se toma hoy → `tipo:decision`; trabajo que alguien
+   tiene que coger → `tipo:encargo`, colgando de su fondo si es parte de un
+   arreglo. Detalle y comandos: skill `github`, «Issues». El chat se pierde
+   al cerrar la sesión; el issue no. Y al revés: el PR lleva `Closes #n` de
+   los encargos o fondos que cierra y `Agente:` con el constructor.
+   Si el encargo era arreglar un problema de fondo, el juez comprueba que el
+   arreglo cubre la clase (un test que la vigila), no solo los casos conocidos.
 5. Termina con un resumen corto: qué se hizo, en qué rama o PR, qué se
    verificó, qué queda pendiente y qué gateway falta.
 6. Tras el merge, retirar: `npm run retirar -- <tarea>` en la misma sesión.

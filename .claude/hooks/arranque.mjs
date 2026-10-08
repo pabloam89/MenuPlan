@@ -82,8 +82,10 @@ try {
 
 // ── Staging y migraciones ──────────────────────────────────────────────────
 const prs = pedirPrs(raiz, 10_000); // a la vez que el fetch: los dos son red, y gh es el lento
+// Lo que se enseña de los issues lo decide scripts/lib/issues.mjs (una sola
+// fuente con `npm run issues`); aquí solo se lanza y se espera al final.
 const issues = new Promise((ok) => {
-  execFile("gh", ["issue", "list", "--state", "open", "--limit", "200", "--json", "number,labels"], { cwd: raiz, encoding: "utf8", timeout: 10_000 }, (error, salida) => ok(error ? null : salida));
+  execFile("node", ["scripts/issues.mjs", "--arranque"], { cwd: raiz, encoding: "utf8", timeout: 10_000 }, (error, salida) => ok(error ? null : salida));
 });
 git("fetch", "-q", "origin", "staging");
 const detras = git("rev-list", "--count", "HEAD..origin/staging");
@@ -109,17 +111,10 @@ if (existsSync(estado)) {
 }
 
 // ── Issues: lo que espera a alguien ──────────────────────────────────────
-try {
-  const abiertos = JSON.parse((await issues) ?? "[]");
-  const de = (t) => abiertos.filter((i) => i.labels.some((l) => l.name === `tipo:${t}`)).length;
-  const partes = [
-    [de("decision"), "decisiones esperando a Pablo"],
-    [de("encargo"), "encargos (mira si el tuyo ya lo tiene alguien)"],
-    [de("leccion"), "lecciones sin su test"],
-  ].filter(([n]) => n).map(([n, que]) => `${n} ${que}`);
-  if (partes.length) avisos.push(`Issues abiertos: ${partes.join("; ")}. Detalle: \`npm run issues\`.`);
-} catch {
-  // sin GitHub: se calla
-}
+const lineasIssues = (await issues)?.split("\n").map((l) => l.trim()).filter(Boolean);
+if (lineasIssues) avisos.push(...lineasIssues);
+// Sin respuesta (sin gh, sin red o tarda más de 10 s) no se calla: se dice, para
+// que nadie crea que no hay nada pendiente.
+else avisos.push("Issues: GitHub no ha contestado a tiempo; míralos con `npm run issues`.");
 
 process.stdout.write(`[arranque MenuPlan]\n- ${avisos.join("\n- ")}\n`);
