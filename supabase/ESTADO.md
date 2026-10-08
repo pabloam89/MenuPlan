@@ -69,6 +69,7 @@ Sin testigo, y por tanto sin comprobar por el script: 0011, 0038, 0043, 0047,
 | `0084_bot_codigo_alta` | aplicada, versión final (comprobado el 7 oct 2026) | testigos de la versión de `f2187d4`: `bot_codigos_tipo_check` con `vincular`, `entrar` y `alta`, y `bot_codigos_alta_check` (`tipo <> 'alta' or external_id is not null`), los dos validados |
 | `0085_bot_vocabulario_cerrado` | **sin aplicar** (comprobado el 7 oct 2026) | en la rama `datos/sistematizar`; 5 CHECK NOT VALID. No existen los `*_channel_check` de `bot_messages`/`bot_reminders`/`bot_tareas`/`bot_cola` ni `bot_reminders.tipo`, y `bot_deshacer.descripcion` sigue |
 | `0086_vocabulario_de_la_app` | **sin aplicar** (comprobado el 7 oct 2026) | 5 CHECK NOT VALID; las consultas previas, en su cabecera. No hay ninguna constraint `*_vocabulario` |
+| `0120_ficha_registro_sobre_cambio` | **sin aplicar** (8 oct 2026) | tablas `registro_campo`, `sobre` y `cambio`, y la RPC `ficha_casa`. Exige la 0080 y la 0081 (se niega sin ellas). Ensayada en PGlite sobre 0076–0083 |
 
 ## La 0074 y la 0075, aplicadas el 2 oct 2026
 

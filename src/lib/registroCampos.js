@@ -15,7 +15,12 @@
  *  - politica: nunca · solo_si_lo_piden · antes_de_usarlo · de_pasada · una_vez.
  *  - seguridad: su tarea entra siempre en lo que lee Lola, sin límite.
  *  - caduca_dias: cuánto vive la pregunta abierta sobre este campo.
- *  - visibilidad, por, aplica: de la ficha (los rellena su sesión); null hasta entonces.
+ *  - visibilidad: quién puede verlo (VISIBILIDAD). Se guarda, pero aún no filtra nada.
+ *  - por: si el dato es de cada persona o de la casa entera.
+ *  - aplica: a quién se le pregunta (todos, o solo a los bebés; la etapa la decide etapaDe en JS).
+ *
+ * La migración 0120 copia esto en registro_campo; registroCampos.test.js
+ * comprueba que el INSERT de la migración y este objeto dicen lo mismo.
  *
  * Los vocabularios de salud (alergias, intolerancias, estados) los lleva otra
  * sesión con su catálogo: `alergias` queda con vocabulario null hasta que exista.
@@ -23,19 +28,22 @@
 
 const campo = (c) => ({
   tipo: null, vocabulario: null, unidad: null, minimo: null, maximo: null,
-  politica: null, visibilidad: null, seguridad: false, por: null, aplica: null, caduca_dias: null,
+  politica: null, visibilidad: "casa", seguridad: false, por: "persona", aplica: "todos", caduca_dias: null,
   ...c,
 });
 
 export const REGISTRO_CAMPOS = Object.freeze({
   alergias: campo({ tipo: "lista_enum", vocabulario: "alergenos", politica: "una_vez", seguridad: true, caduca_dias: 30 }),
-  etapaBebe: campo({ tipo: "enum", vocabulario: "etapa_bebe", politica: "antes_de_usarlo", seguridad: true, caduca_dias: 21 }),
+  etapaBebe: campo({ tipo: "enum", vocabulario: "etapa_bebe", politica: "antes_de_usarlo", seguridad: true, aplica: "bebe", caduca_dias: 21 }),
   edad: campo({ tipo: "int", unidad: "años", minimo: 0, maximo: 120, politica: "nunca" }),
   nacimiento: campo({ tipo: "fecha", politica: "nunca" }),
-  sexo: campo({ tipo: "enum", vocabulario: "sexo", politica: "nunca" }),
+  sexo: campo({ tipo: "enum", vocabulario: "sexo", politica: "nunca", visibilidad: "la_persona_y_tutores" }),
   colegio: campo({ tipo: "texto", politica: "nunca" }),
-  patronSemanas: campo({ tipo: "enum", vocabulario: "patron_semanas", politica: "nunca" }),
+  patronSemanas: campo({ tipo: "enum", vocabulario: "patron_semanas", politica: "nunca", visibilidad: "titulares" }),
 });
+
+export const POR = ["persona", "casa"];
+export const APLICA = ["todos", "bebe"];
 
 export const TIPOS_CAMPO = ["enum", "lista_enum", "int", "float", "bool", "fecha", "ref", "texto"];
 
