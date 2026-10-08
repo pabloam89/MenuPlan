@@ -92,6 +92,7 @@ import { MAX_MENU_WEEKS, weekEntry } from "../lib/menuArchive.js";
 import { applyFreqWithinBudget } from "../lib/freqBudget.js";
 import { FAMILIA_LABELS } from "../lib/notepadFields.js";
 import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel, mondayISOForOffset } from "../lib/weekCalendar.js";
+import { NOMBRES_DIA, LETRAS_DIA, indiceDeFecha } from "../lib/dias.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
@@ -5484,7 +5485,7 @@ function MixedDots({ states }) {
   );
 }
 
-const FULL_DAY_NAMES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const FULL_DAY_NAMES = NOMBRES_DIA;
 
 function DayView({ days, meals, members, schedule, coleAllowedIds = new Set(), dayIdx, onDayChange, onClose, onSetMemberSlot }) {
   const [touchStartX, setTouchStartX] = useState(null);
@@ -9929,22 +9930,20 @@ export function OnboardingBatchCooking({ data, setData, onNext, onBack, onFinish
 
 // ── Week selector ────────────────────────────────────────────────────────────
 
-const WEEK_DAY_SHORT = ["L", "M", "X", "J", "V", "S", "D"];
+const WEEK_DAY_SHORT = LETRAS_DIA;
 const MONTH_NAMES_ES = [
   "Enero","Febrero","Marzo","Abril","Mayo","Junio",
   "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre",
 ];
 
 function todayMondayIdx() {
-  const d = new Date().getDay();
-  return d === 0 ? 6 : d - 1;
+  return indiceDeFecha(new Date());
 }
 
 function buildCalendarWeeks(count = 6) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const dow = today.getDay();
-  const toMonday = dow === 0 ? -6 : 1 - dow;
+  const toMonday = -indiceDeFecha(today);
   const thisMonday = new Date(today);
   thisMonday.setDate(today.getDate() + toMonday);
 

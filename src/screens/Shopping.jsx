@@ -94,7 +94,7 @@ import {
   matchReceiptProducts,
   SHOPPING_DAY_WEEK,
 } from "../lib/shoppingListUtils.js";
-import { DAYS } from "../lib/planner.js";
+import { DIA_LETRA, DIA_LARGO, LETRAS_DIA, indiceDeFecha } from "../lib/dias.js";
 import {
   calendarDayNumber,
   formatWeekRangeLabel,
@@ -114,17 +114,9 @@ const PantryScreen = lazy(() =>
   import("./Pantry.jsx").then((m) => ({ default: m.PantryScreen }))
 );
 
-const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
+const DAY_LETTERS = DIA_LETRA;
 
-const DAY_FULL = {
-  Lun: "Lunes",
-  Mar: "Martes",
-  Mié: "Miércoles",
-  Jue: "Jueves",
-  Vie: "Viernes",
-  Sáb: "Sábado",
-  Dom: "Domingo",
-};
+const DAY_FULL = DIA_LARGO;
 
 const MEAL_BADGE = {
   Desayuno: { Icon: Coffee, color: "#a16207" },
@@ -2976,7 +2968,7 @@ const CAL_MONTHS = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ];
-const CAL_WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
+const CAL_WEEKDAYS = LETRAS_DIA;
 
 function parseYMD(s) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ""));
@@ -3043,7 +3035,7 @@ function CalendarPopover({ value, anchorRef, onSelect, onClose }) {
 
   if (!pos) return null;
 
-  const firstDow = (new Date(view.y, view.mo, 1).getDay() + 6) % 7; // Mon-first
+  const firstDow = indiceDeFecha(new Date(view.y, view.mo, 1));
   const daysInMonth = new Date(view.y, view.mo + 1, 0).getDate();
   const cells = [...Array(firstDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
   const shift = (delta) => setView((v) => {

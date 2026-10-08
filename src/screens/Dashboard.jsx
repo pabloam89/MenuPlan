@@ -13,7 +13,8 @@ import lolaFoto from "../assets/lola/lola-perfil.jpg";
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { planHasDishes } from "../lib/menuArchive.js";
-import { DAYS, getDayMeals } from "../lib/planner.js";
+import { getDayMeals } from "../lib/planner.js";
+import { diaDeFecha } from "../lib/dias.js";
 import { adhocReasonLabel } from "../lib/groups.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
@@ -35,7 +36,7 @@ const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 
 
-const todayShort = () => DAYS[(new Date().getDay() + 6) % 7];
+const todayShort = () => diaDeFecha(new Date());
 
 // Saludo contextual: le da a la cabecera un texto propio en vez de depender
 // solo de los avatares — pequeño, gratis, y varía a lo largo del día en vez

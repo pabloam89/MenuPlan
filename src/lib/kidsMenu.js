@@ -26,8 +26,9 @@
 
 import { slotKey, DAYS } from "./planner.js";
 import { splitMembersByStage } from "./groups.js";
+import { DIAS_LABORABLES } from "./dias.js";
 
-const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie"];
+const WEEKDAYS = DIAS_LABORABLES;
 const WEEKEND = ["Sáb", "Dom"];
 
 export const KID_DINNER_OPTIONS = {

@@ -11,7 +11,8 @@
  *     otro día lleva su fecha delante, para que el modelo lo lea en su día.
  */
 
-const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+import { nombreDia, diaDeFechaUTC } from "../../src/lib/dias.js";
+
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
 const diaMadrid = (iso) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date(iso));
@@ -19,7 +20,7 @@ const diaMadrid = (iso) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/
 /** «viernes 2 de octubre», del día AAAA-MM-DD. */
 export function fechaLarga(dia) {
   const d = new Date(`${dia}T12:00:00Z`);
-  return `${DIAS[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]}`;
+  return `${nombreDia(diaDeFechaUTC(d), { minusculas: true })} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]}`;
 }
 
 /** Orden de inserción, del más nuevo al más viejo: hora y, si empatan, id. */

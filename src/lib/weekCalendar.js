@@ -1,4 +1,5 @@
 import { DAYS } from "./planner.js";
+import { indiceDeFecha } from "./dias.js";
 
 /**
  * La fecha de un Date en formato ISO (YYYY-MM-DD), leida en HORA LOCAL.
@@ -20,8 +21,7 @@ export function isoLocalDate(d) {
 export function getWeekDates(referenceDate = new Date()) {
   const d = new Date(referenceDate);
   d.setHours(0, 0, 0, 0);
-  const dow = d.getDay();
-  const toMonday = dow === 0 ? -6 : 1 - dow;
+  const toMonday = -indiceDeFecha(d);
   const monday = new Date(d);
   monday.setDate(d.getDate() + toMonday);
 
@@ -112,8 +112,7 @@ export function mondayISOForOffset(offset = 0, today = new Date()) {
 
 /** Returns the 0-based Monday index of today (0=Lun … 6=Dom). */
 export function todayDayIdx() {
-  const dow = new Date().getDay(); // 0=Sun
-  return dow === 0 ? 6 : dow - 1;
+  return indiceDeFecha(new Date());
 }
 
 function pad2(n) {

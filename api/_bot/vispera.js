@@ -21,13 +21,13 @@ import { select, update } from "./db.js";
 import { crearRecordatorio } from "./recordatorios.js";
 import { batchCooking } from "./ficha.js";
 import { IDS_COMIDAS, comida as delCatalogo } from "../../src/lib/comidas.js";
+import { diaDeISO } from "../../src/lib/dias.js";
 import { slotUsesFreezer } from "../../src/lib/freezer.js";
 
 /** El texto con el que se guarda el aviso en bot_reminders. */
 export const VISPERA = "Aviso de la víspera";
 
-const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-const diaDeFecha = (iso) => DIAS[(new Date(`${iso}T12:00:00Z`).getUTCDay() + 6) % 7];
+const diaDeFecha = diaDeISO;
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 // Lo que va a remojo la noche antes. Las lentejas no; lo de bote o ya cocido, tampoco.

@@ -22,7 +22,9 @@
  * en memoria, para que sobreviva a esa recarga.
  */
 
-export const DIAS_APP = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+import { DIAS } from "./dias.js";
+
+export const DIAS_APP = DIAS;
 // Las carpetas del recetario (CATEGORY_META en CatalogBrowserSheet.jsx). Una
 // que no esté aquí no se pasa: abriría el recetario con un filtro que no
 // casa con nada y parecería vacío.

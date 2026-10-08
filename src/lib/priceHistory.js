@@ -2,6 +2,7 @@ import { RECIPES_BY_ID } from "../data/recipes.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import salsas from "../data/recipes/salsas.json" with { type: "json" };
 import { normalizeName, guessShoppingAisle } from "./ingredientCategories.js";
+import { indiceDeFecha } from "./dias.js";
 
 // ── Canonical ingredient dictionary ──────────────────────────────────────
 // The universe of ingredients we can attribute a price to is (mostly) the set
@@ -677,7 +678,6 @@ export function estimateListCost(items = [], obs = []) {
 // ── Period / store / time-series aggregations for the richer Gasto view ───
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-export const WEEKDAY_LABELS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 function tsOf(o) {
   const t = o?.purchasedAt ? new Date(o.purchasedAt).getTime() : o?.createdAt;
@@ -763,7 +763,7 @@ export function spendByStore(obs = []) {
 
 function startOfWeek(d) {
   const x = new Date(d);
-  const dow = (x.getDay() + 6) % 7; // Monday = 0
+  const dow = indiceDeFecha(x);
   x.setDate(x.getDate() - dow);
   x.setHours(0, 0, 0, 0);
   return x;

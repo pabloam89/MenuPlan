@@ -27,6 +27,7 @@ import { motor, prepararRecetas, grupos, DIAS, recetasDeCasa, deSerieDelMotor } 
 import { duenoDe, rastro } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { nombreDelBot } from "./telegram.js";
+import { DIA_LARGO } from "../../src/lib/dias.js";
 
 // 32 hex, como gen_invite_token() en SQL: la llave que crea la app y la del bot son iguales.
 const nuevaLlave = () => ids.llave.nuevo();
@@ -246,11 +247,10 @@ export function recetaEnTexto(r) {
 
 /** Una semana compartida (payload de buildSharedMenuPayload) en HTML de Telegram. */
 export function semanaEnTexto(payload) {
-  const DIA = { Lun: "Lunes", Mar: "Martes", "Mié": "Miércoles", Jue: "Jueves", Vie: "Viernes", "Sáb": "Sábado", Dom: "Domingo" };
   const dias = payload?.weeks?.[0]?.days ?? [];
   return dias.map((d) => {
     const comidas = d.meals.map((e) => `${e.slot === "Cena" ? "🌙" : "🍽️"} ${esc(e.dishes.map((x) => x.name).join(", "))}`);
-    return `<b>${DIA[d.day] ?? d.day}</b>\n${comidas.join("\n")}`;
+    return `<b>${DIA_LARGO[d.day] ?? d.day}</b>\n${comidas.join("\n")}`;
   }).join("\n\n");
 }
 

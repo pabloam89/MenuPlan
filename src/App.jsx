@@ -110,6 +110,7 @@ import {
   MAX_MENU_WEEKS,
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
+import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
 import { pizarraActiva, planVacio, huecosDelPlan, conHuecosAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
@@ -1032,7 +1033,7 @@ function pendingEndOfDaySweep(data, since) {
     // UTC y en husos negativos desplazaría toda la semana un día.
     const start = parseLocalISODate(wk.startISO);
     if (Number.isNaN(start.getTime())) continue;
-    const firstDayIdx = (start.getDay() + 6) % 7; // Lun=0
+    const firstDayIdx = indiceDeFecha(start);
     const end = wk.endISO ? parseLocalISODate(wk.endISO) : null;
     const span = end && !Number.isNaN(end.getTime())
       ? Math.round((end - start) / 86400000) + 1
@@ -1275,7 +1276,7 @@ export default function App() {
   // niños, bebé): si has cocinado el puré del bebé, esa también es una
   // cocinada válida.
   const feedTodayDishes = useMemo(() => {
-    const hoy = DAYS[(new Date().getDay() + 6) % 7];
+    const hoy = diaDeFecha(new Date());
     const grupos = gruposVigentes(data);
     const vistos = new Set();
     const out = [];
@@ -2694,7 +2695,7 @@ export default function App() {
   // Desde Inicio (el «Hoy toca»), el menú abre en el día de hoy: es lo que se
   // estaba mirando. Mismo camino que un enlace del bot a `dia:…`.
   const goToMenuFromDashboard = useCallback(() => {
-    setMenuInicio({ vista: "dia", dia: DAYS[(new Date().getDay() + 6) % 7], clave: Date.now() });
+    setMenuInicio({ vista: "dia", dia: diaDeFecha(new Date()), clave: Date.now() });
     fwd(() => setScreen("menu"));
   }, []);
 
@@ -4378,7 +4379,7 @@ export default function App() {
     // "Solo hoy": el payload lleva únicamente el día de hoy, y el rango de
     // fechas se estrecha a hoy — así en «Hoy cocinan» aparece hoy y mañana ya
     // no, que es exactamente lo que significa compartir solo el día.
-    const todayLabel = DAYS[(new Date().getDay() + 6) % 7];
+    const todayLabel = diaDeFecha(new Date());
     const todayIso = isoLocalDate(new Date());
 
     const payload = buildSharedMenuPayload({

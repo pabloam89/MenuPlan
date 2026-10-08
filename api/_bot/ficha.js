@@ -33,12 +33,12 @@ import { SEMI, COCINADO } from "../../src/lib/tandaFamiliasDefs.js";
 import { comidasDeLaCasa, comida as comidaDelCatalogo } from "../../src/lib/comidas.js";
 import { claveDeTarea } from "../../src/lib/registroTareas.js";
 import { vetosConAmbito, textoDeVeto, vetosDePersona } from "../../src/lib/vetos.js";
+import { DIAS, DIA_LARGO_MINUSCULAS, DIA_LETRA, diaDeISO } from "../../src/lib/dias.js";
 import { select, eq } from "./db.js";
 import { propiasDe } from "./propias.js";
 
-const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-const DIA_CORTO = { Lun: "lun", Mar: "mar", "Mié": "mié", Jue: "jue", Vie: "vie", "Sáb": "sáb", Dom: "dom" };
-const DIA_LARGO = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves", Vie: "viernes", "Sáb": "sábado", Dom: "domingo" };
+const DIA_CORTO = Object.fromEntries(DIAS.map((d) => [d, d.toLowerCase()]));
+const DIA_LARGO = DIA_LARGO_MINUSCULAS;
 
 // Los platos de tanda por su nombre («Croquetas»); las bases por su clave, que
 // ya se lee («sofrito», «salsa_tomate»). Sin bases.js: trae el JSON del catálogo.
@@ -65,7 +65,7 @@ function tandaPedida(data) {
   if (!b) return null;
   return [`Batch cooking: ${b.que}`, b.dia ? `el ${DIA_LARGO[b.dia]}` : null, `${b.manos} de manos`].filter(Boolean).join(" · ");
 }
-const LETRA = { Lun: "L", Mar: "M", "Mié": "X", Jue: "J", Vie: "V", "Sáb": "S", Dom: "D" };
+const LETRA = DIA_LETRA;
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const ALERGENOS = {
   gluten: "gluten", crustaceos: "crustáceos", huevos: "huevo", pescado: "pescado", cacahuetes: "cacahuete",
@@ -85,7 +85,7 @@ function etiquetaDe(campo) {
 }
 
 const sumarDias = (iso, n) => { const d = new Date(`${iso}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
-const diaDeFecha = (iso) => DIAS[(new Date(`${iso}T12:00:00Z`).getUTCDay() + 6) % 7];
+const diaDeFecha = diaDeISO;
 const fechaCorta = (iso) => `${DIA_CORTO[diaDeFecha(iso)]} ${Number(iso.slice(8, 10))} ${MESES[Number(iso.slice(5, 7)) - 1]}`;
 // La primera línea del día lleva también la fecha ISO: ajustar_gustos pide
 // desde/hasta en AAAA-MM-DD, y sin el año Lola dudaba («hasta el 31»).
