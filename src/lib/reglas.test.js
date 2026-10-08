@@ -38,7 +38,7 @@ const CASA = () => ({
     { id: "g_ni", label: "Niños", memberIds: ["h1", "h2"], color: "#c67030" },
   ],
   schedule: {},
-  excluidos: [],
+  excluidosReglas: [],
   sesgos: {},
   cocinas: {},
 });
@@ -81,7 +81,7 @@ describe("caso 1: mi hija no come pescado", () => {
   it("escribe el dislike en ELLA, no en la casa", () => {
     const { delta } = proyectarReglas([regla], CASA(), ctx());
     expect(delta.members.find((m) => m.id === "h1").dislikes).toEqual(["pescado"]);
-    expect(delta.excluidos).toBeUndefined();
+    expect(delta.excluidosReglas).toBeUndefined();
   });
 
   it("no toca a nadie más de la casa", () => {
@@ -329,12 +329,12 @@ describe("caso 4: hasta que acabe el tratamiento, sin picante", () => {
 
   it("mientras vale, entra por el mismo sitio que la libreta", () => {
     const { delta } = proyectarReglas([regla], CASA(), ctx());
-    expect(delta.excluidos).toEqual(["picante"]);
+    expect(delta.excluidosReglas).toEqual(["picante"]);
   });
 
-  it("no se duplica sobre lo que ya excluía la libreta", () => {
-    const data = { ...CASA(), excluidos: ["picante", "cilantro"] };
-    expect(proyectarReglas([regla], data, ctx()).delta.excluidos).toBeUndefined();
+  it("no se duplica sobre lo que ya vetaba otra regla (con la libreta no se cruza: eso lo hace lib/vetos.js al leer)", () => {
+    const data = { ...CASA(), excluidosReglas: ["picante", "cilantro"] };
+    expect(proyectarReglas([regla], data, ctx()).delta.excluidosReglas).toBeUndefined();
   });
 
   it("pasado el día no se aplica, sin avisar de nada", () => {
@@ -342,7 +342,7 @@ describe("caso 4: hasta que acabe el tratamiento, sin picante", () => {
       hoy: "2026-10-05",
       semana: { inicioISO: "2026-10-05", finISO: "2026-10-11", dias: [...DAYS] },
     });
-    expect(delta.excluidos).toBeUndefined();
+    expect(delta.excluidosReglas).toBeUndefined();
     expect(avisos).toEqual([]);
   });
 
@@ -576,7 +576,7 @@ describe("una regla no puede degradarse a «toda la casa»", () => {
     });
     const { delta, avisos, aplicadas } = proyectarReglas([fantasma], CASA(), ctx());
     expect(aplicadas).toEqual([]);
-    expect(delta.excluidos).toBeUndefined();
+    expect(delta.excluidosReglas).toBeUndefined();
     expect(delta.members).toBeUndefined();
     expect(avisos[0].motivo).toBe("sujeto_desconocido");
     expect(avisos[0].clase).toBe("no_hecho");
@@ -788,7 +788,7 @@ describe("el ámbito por día", () => {
     });
     const { delta, avisos } = proyectarReglas([regla], CASA(), ctx());
     expect(avisos).toEqual([]);
-    expect(delta.excluidos).toBeUndefined();
+    expect(delta.excluidosReglas).toBeUndefined();
     expect(delta.excluirPorHueco).toEqual({ "Lun|Comida": ["grupo:carne"], "Lun|Cena": ["grupo:carne"] });
   });
 
@@ -819,10 +819,10 @@ describe("el ámbito por día", () => {
     expect(avisos[0].motivo).toBe("no_soportado");
   });
 
-  it("un ingrediente para TODA la semana sigue yendo a `excluidos`, como siempre", () => {
+  it("un ingrediente para TODA la semana va a `excluidosReglas`, la clave de los vetos de las reglas", () => {
     const regla = nuevaRegla({ sujeto: { tipo: "casa" }, efecto: { tipo: "excluir", valor: "coliflor" }, hoy: HOY });
     const { delta } = proyectarReglas([regla], CASA(), ctx());
-    expect(delta.excluidos).toEqual(["coliflor"]);
+    expect(delta.excluidosReglas).toEqual(["coliflor"]);
     expect(delta.excluirPorHueco).toBeUndefined();
   });
 
@@ -923,7 +923,7 @@ describe("N2 — una regla vencida todavía cubre los días pasados de la semana
     const lunes = proyectarReglas([regla], CASA(), { hoy: "2026-09-07", semana: SEMANA });
     expect(viernes.aplicadas).toEqual([regla.id]);
     expect(lunes.aplicadas).toEqual(viernes.aplicadas);
-    expect(lunes.delta.excluidos).toEqual(viernes.delta.excluidos);
+    expect(lunes.delta.excluidosReglas).toEqual(viernes.delta.excluidosReglas);
   });
 
   it("en la semana en curso generada desde hoy la rareza ni aparece", () => {
@@ -941,7 +941,7 @@ describe("N2 — una regla vencida todavía cubre los días pasados de la semana
 });
 
 describe("N3 — el ámbito de comidas se mide contra un destino distinto según el efecto", () => {
-  // `planExtraMealsForGroup` mete `data.excluidos` y `m.dislikes` en los
+  // `planExtraMealsForGroup` mete los vetos (lib/vetos.js: reglas, libreta y `m.dislikes`) en los
   // dislikes del desayuno/merienda/postre (aiPlanner.js:1472), pero llama a
   // `filterOffMenuRecipes` SIN sesgos ni cocinas. O sea: una exclusión llega a
   // cinco comidas y un sesgo solo a dos.

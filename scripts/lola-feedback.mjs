@@ -31,11 +31,10 @@
 
 import fs from "node:fs";
 import pg from "pg";
+import { cargarEnv, leerEnv } from "./lib/env.mjs";
 import { huecosDeLola, contarHuecos, normal } from "./lib/bot-semana.mjs";
 
-const env = fs.existsSync(new URL("../.env.local", import.meta.url)) ? fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8") : "";
-const leerEnv = (k) => env.match(new RegExp(`^${k}="?([^"\\r\\n]+)`, "m"))?.[1]?.trim();
-process.env.ANTHROPIC_API_KEY ||= leerEnv("ANTHROPIC_API_KEY");
+cargarEnv(["ANTHROPIC_API_KEY"]);
 const arg = (k) => process.argv.find((a) => a.startsWith(`--${k}`));
 const DIAS = Math.min(14, Number(arg("dias=")?.split("=")[1] ?? 7));
 const EVALS = new URL("./bot-evals.json", import.meta.url);
@@ -76,7 +75,7 @@ if (arg("anadir")) {
 }
 
 // ── Sacar los huecos ────────────────────────────────────────────────────────
-const url = process.env.SUPABASE_DB_URL || leerEnv("SUPABASE_DB_URL");
+const url = leerEnv("SUPABASE_DB_URL");
 if (!url) throw new Error("Falta SUPABASE_DB_URL en .env.local");
 const db = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
 await db.connect();

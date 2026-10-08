@@ -9,7 +9,7 @@
  * Necesita AI_GATEWAY_API_KEY y ANTHROPIC_API_KEY en .env.local.
  */
 
-import fs from "node:fs";
+import { cargarEnv, leerFichero } from "./lib/env.mjs";
 import * as preguntas from "./vectores-preguntas.mjs";
 
 // --aparte: el examen que no se usó para diseñar (scripts/vectores-aparte.mjs).
@@ -17,10 +17,7 @@ const aparte = process.argv.includes("--aparte") ? await import("./vectores-apar
 const EXAMEN = aparte ? aparte.APARTE : preguntas.EXAMEN;
 const NEGACIONES = aparte ? aparte.APARTE_NEGACIONES : preguntas.NEGACIONES;
 
-for (const l of fs.readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-  const m = l.match(/^([A-Z0-9_]+)=(.*)$/);
-  if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^"|"$/g, "").trim();
-}
+cargarEnv(Object.keys(leerFichero()));
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 const { recipeCatalog } = await import("../api/_bot/core.mjs");
 const { porVectores } = await import("../api/_bot/vectores.js");

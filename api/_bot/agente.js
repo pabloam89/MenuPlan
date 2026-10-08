@@ -54,6 +54,7 @@ import { verReceta, calorias as caloriasDePlato, queFalta } from "./plato.js";
 import { papelDeQuien, idiomaDe } from "./papel.js";
 import { herramientaPermitida } from "../../src/lib/papeles.js";
 import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
+import { tareasV2 } from "./idempotencia.js";
 
 // Modelo y esfuerzo, configurables para medir velocidad contra calidad con
 // scripts/bot-evals.mjs (BOT_MODELO, BOT_EFFORT) sin tocar código.
@@ -389,8 +390,11 @@ function herramientasDeTareas(chat) {
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
       name: "cerrar_tarea",
-      description: "Cierra una tarea abierta cuando lo que dicen la resuelve sin duda («ya está comprado»). estado «descartada» si ya no hace falta («olvídalo», «ya no»). estado «rechazada» si es una pregunta que no quieren contestar («prefiero no decirlo»): no se vuelve a preguntar. Si la referencia es vaga y podría ser más de una, pregunta cuál antes de cerrar.",
-      inputSchema: obj({ ref: referencia, estado: { type: "string", enum: ENUMS_TAREAS["cerrar_tarea.estado"] } }, ["ref"]),
+      // Con BOT_TAREAS_V2 también aplaza: cambia lo que lee Lola, así que encenderlo pide bot-evals.
+      description: "Cierra una tarea abierta cuando lo que dicen la resuelve sin duda («ya está comprado»). estado «descartada» si ya no hace falta («olvídalo», «ya no»). estado «rechazada» si es una pregunta que no quieren contestar («prefiero no decirlo»): no se vuelve a preguntar."
+        + (tareasV2() ? " estado «aplazada» si a una pregunta contestan «ahora te digo» o «luego te lo digo»: vuelve sola mañana." : "")
+        + " Si la referencia es vaga y podría ser más de una, pregunta cuál antes de cerrar.",
+      inputSchema: obj({ ref: referencia, estado: { type: "string", enum: tareasV2() ? ENUMS_TAREAS["cerrar_tarea.estado_v2"] : ENUMS_TAREAS["cerrar_tarea.estado"] } }, ["ref"]),
       run: ({ ref, estado }, llamada) => cerrarTarea(contexto(llamada), chat.tareas ?? [], ref, estado ?? "hecha"),
     }),
     herramienta({ lector: false, soloLectura: false, pantalla: null }, {
@@ -1072,6 +1076,13 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const { visible, pendientes: pendientesNuevas } = tramitar(dicho, abiertas, texto, { claveDe: (falta) => claveDePregunta(falta, data) });
   // Lo que falta saber de la casa (alergias, cómo come el bebé) pasa a la tabla
   // aunque el modelo no lo anote: no depende de él.
+  // Dos libretas a propósito, también con BOT_TAREAS_V2 (fase T2, 8 oct 2026):
+  // las esperas del turno (content.pendientes) aún no se pueden pasar a
+  // bot_tareas sin perder nada. Les falta en la base lo que hoy da el mensaje
+  // (las 2 vueltas de `vistas`, el tope de 5 por chat, ⟪cerrar P1⟫), cambiaría
+  // el bloque que lee Lola (bot-evals), y la prueba que pide la spec antes de
+  // quitarlas (una semana escribiendo las esperas en la tabla con 0 diferencias,
+  // T1) no se ha hecho. Sale con turno_guardar, no aquí.
   const promocion = promoverPreguntas(
     { householdId, channel, chatId, userId: chat.userId ?? null },
     pendientesNuevas.filter((p) => !enTabla.has(p.clave) && !calladas.has(p.clave)),

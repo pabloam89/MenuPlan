@@ -7,12 +7,9 @@
 // Lee TELEGRAM_BOT_TOKEN de .env.local, como telegram-webhook.mjs. La foto de
 // perfil y el GIF de la descripción no tienen API: van a mano en @BotFather.
 
-import fs from "node:fs";
-import path from "node:path";
+import { leerEnv } from "./lib/env.mjs";
 
-const env = fs.readFileSync(path.resolve(import.meta.dirname, "..", ".env.local"), "utf8");
-const token = env.match(/^TELEGRAM_BOT_TOKEN="?([^"\r\n]+)"?/m)?.[1];
-if (!token) throw new Error("Falta TELEGRAM_BOT_TOKEN en .env.local");
+const token = leerEnv("TELEGRAM_BOT_TOKEN", { obligatoria: true });
 
 const llamar = async (metodo, cuerpo = {}) => {
   const res = await fetch(`https://api.telegram.org/bot${token}/${metodo}`, {

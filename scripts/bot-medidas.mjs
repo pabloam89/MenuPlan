@@ -14,14 +14,12 @@
  * semanal). Se aplican aquí, al leer, y no al apuntar.
  */
 
-import fs from "node:fs";
 import pg from "pg";
+import { leerEnv } from "./lib/env.mjs";
 import { PRECIOS, precioDe, usd, pct } from "./lib/bot-semana.mjs";
 
 const dias = Number(process.argv[2] ?? 7);
-const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
-const dbUrl = env.match(/^SUPABASE_DB_URL="?([^"\r\n]+)/m)?.[1];
-if (!dbUrl) throw new Error("Falta SUPABASE_DB_URL en .env.local");
+const dbUrl = leerEnv("SUPABASE_DB_URL", { obligatoria: true });
 const c = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
 await c.connect();
 const { rows } = await c.query(

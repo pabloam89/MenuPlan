@@ -16,6 +16,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { leerEnv } from "./lib/env.mjs";
 import { textoDeReceta, normalizar, masCercanos } from "../src/lib/vectores.js";
 import { EXAMEN, NEGACIONES } from "./vectores-preguntas.mjs";
 
@@ -23,11 +24,7 @@ process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.VITE_SUPABASE_ANON_KEY ||= "x";
 const { recipeCatalog } = await import("../api/_bot/core.mjs");
 
-const env = Object.fromEntries(
-  fs.readFileSync(".env.local", "utf8").split(/\r?\n/).map((l) => l.match(/^([A-Z0-9_]+)=(.*)$/)).filter(Boolean)
-    .map(([, k, v]) => [k, v.replace(/^"|"$/g, "")]),
-);
-const CLAVE = process.env.AI_GATEWAY_API_KEY || env.AI_GATEWAY_API_KEY;
+const CLAVE = leerEnv("AI_GATEWAY_API_KEY");
 
 // Algunos modelos rinden más si se les dice qué es pregunta y qué documento.
 const PREFIJOS = {

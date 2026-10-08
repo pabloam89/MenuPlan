@@ -23,11 +23,12 @@ import pg from "pg";
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { leerEnv } from "./lib/env.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SUPA = join(__dirname, "..", "supabase");
 
-const url = process.env.SUPABASE_DB_URL;
+const url = leerEnv("SUPABASE_DB_URL");
 if (!url) {
   console.error("❌ Falta SUPABASE_DB_URL en .env.local");
   process.exit(1);
