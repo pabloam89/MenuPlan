@@ -181,7 +181,8 @@ export async function calorias(householdId, x) {
 /** Lo de la despensa, con su id de ingrediente si la base lo tiene. */
 async function filasDespensa(householdId, m) {
   return select("user_pantry", `household_id=${eq(householdId)}`, `${m.COLUMNAS_DESPENSA}, ingredient_id`)
-    .catch(() => select("user_pantry", `household_id=${eq(householdId)}`, m.COLUMNAS_DESPENSA))
+    // a propósito: sin la columna ingredient_id (migración sin aplicar), sin ella.
+    .catch((e) => { console.warn("[plato] despensa sin ingredient_id:", e?.message); return select("user_pantry", `household_id=${eq(householdId)}`, m.COLUMNAS_DESPENSA); })
     .then((fs) => fs.map(m.filaDeDespensa).filter((p) => p.itemType !== "cooked_dish"));
 }
 

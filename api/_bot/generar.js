@@ -22,6 +22,7 @@
 // servidor, la de España, no UTC.
 process.env.TZ = "Europe/Madrid";
 
+import { fallaCon } from "./avisar.js";
 import { select, insert, borrar, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO } from "./menu.js";
@@ -160,7 +161,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   if (!casa) return "Esta casa todavía no tiene datos en la nube.";
   const m = await motor();
   // Las recetas propias de la casa, registradas para resolver los pedidos.
-  if (fijos.length) await prepararRecetas(casa).catch(() => {});
+  if (fijos.length) await prepararRecetas(casa).catch(fallaCon("generar/recetas propias"));
 
   // Las propias de user_recipes, no las del JSON: la app las quita de ahí.
   const base = m.resolveModeData({ ...(casa.state?.data ?? {}), userRecipes: propiasDe(casa) });
@@ -198,7 +199,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     weekOffsets: [offset], sameForAllWeeks: true, varietyPref, weekCount: 1, hoy: hoyISO(),
   });
 
-  const filasDespensa = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA).catch(() => []);
+  const filasDespensa = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA).catch(fallaCon("generar/despensa", []));
   const despensa = filasDespensa.map(m.filaDeDespensa);
   const pantryMode = ["strict", "only", "prefer", "off"].includes(working.pantryMode) ? working.pantryMode : "off";
   const pantryIngredients = pantryMode === "off" ? [] : despensa;
@@ -256,7 +257,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     if (filas.length) await insert("user_menu_recipes", filas, { upsert: true });
   } catch (e) {
     // Un menú a medias no se queda en el historial.
-    await borrarMenu(householdId, menu.id).catch(() => {});
+    await borrarMenu(householdId, menu.id).catch(fallaCon("generar/borrar el menú a medias"));
     throw e;
   }
 
@@ -314,7 +315,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // La semana generada va en la propia respuesta: sin ella, el modelo llamaba
   // a ver_menu justo después (y otra vez tras cada cambio), y un «hazme el
   // menú con salmón un día» tardaba casi un minuto en seis vueltas.
-  const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(() => "");
+  const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(fallaCon("generar/describir", ""));
   // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
   if (out) Object.assign(out, {
     ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas,

@@ -19,6 +19,7 @@
  * servidor (`sesionDe`): ningún correo sale y nadie más ve el token.
  */
 
+import { seguirCon, fallaCon } from "./avisar.js";
 import { config, select, eq } from "./db.js";
 
 const DOMINIO_SINTETICO = "usuarios.menuplanai.com";
@@ -32,7 +33,8 @@ async function auth(ruta, { method = "POST", body, token } = {}) {
     headers: token ? { apikey: anonKey() ?? key, Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  const json = await res.json().catch(() => ({}));
+  // a propósito: sin cuerpo JSON, el status ya dice qué pasó
+  const json = await res.json().catch(seguirCon("cuentas/json", {}));
   return { ok: res.ok, status: res.status, json };
 }
 
@@ -93,7 +95,7 @@ export async function cuentaNacidaAqui(telegramId) {
   const [id] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(telegramId)}`, "user_id");
   if (!id) return null;
   const { url, headers } = config();
-  const u = await fetch(`${url}/auth/v1/admin/users/${id.user_id}`, { headers }).then((r) => r.json()).catch(() => null);
+  const u = await fetch(`${url}/auth/v1/admin/users/${id.user_id}`, { headers }).then((r) => r.json()).catch(fallaCon("cuentas/nacida aquí", null));
   return u?.email === emailSintetico(telegramId) ? { id: u.id, email: u.email } : null;
 }
 
@@ -139,7 +141,8 @@ export async function crearCuentaTelegram({ telegramId, nombre }) {
     headers: { apikey: anonKey() ?? config().key, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: "{}",
   });
-  const hogar = await res.json().catch(() => null);
+  // a propósito: sin cuerpo JSON, falla justo abajo con el status
+  const hogar = await res.json().catch(seguirCon("cuentas/hogar", null));
   if (!res.ok || !hogar?.activeHouseholdId) throw new Error(`ensure_user_household → ${res.status}`);
 
   return { userId: yo.json?.id, householdId: hogar.activeHouseholdId, email };
