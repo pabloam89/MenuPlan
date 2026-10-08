@@ -2,9 +2,9 @@
 // mercadona.json, sincronizado cada semana por scripts/mercadona-sync.mjs).
 //
 // Precio POR KILO o POR LITRO (bulkPrice), no por paquete: para saber lo que
-// cuesta un plato, 30 ml de aceite son 30 ml, no la botella entera. (La lista
-// de la compra sí cuenta paquetes enteros, y por eso no sirve aquí:
-// estimateRecipeCost de listPricing.js redondea al paquete.)
+// cuesta un plato, 30 ml de aceite son 30 ml, no la botella entera. Es el
+// operador del modo 'granel' de lib/coste.js, que es por donde se lee; el modo
+// 'paquetes' (la lista de la compra) redondea al envase y vive en listPricing.js.
 //
 // Honesto con lo que no sabe: una línea sin gramos (al gusto, un «pellizco»)
 // o sin producto emparejado con confianza no suma ni resta, y queda contada en

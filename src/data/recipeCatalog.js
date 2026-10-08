@@ -19,7 +19,7 @@ import { deriveHealthFlags } from "../lib/healthFlags.js";
 import { conNivelCalorias } from "../lib/caloriasNivel.js";
 import recipeNutrition from "./derived/recipeNutrition.json" with { type: "json" };
 import recipeFamilias from "./derived/recipeFamilias.json" with { type: "json" };
-import recipeCoste from "./derived/recipeCoste.json" with { type: "json" };
+import { costeReceta } from "../lib/coste.js";
 import { computeRecipeNutrition, deriveRecipeAllergens } from "../lib/ingredients.js";
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "./nutrientes.js";
 
@@ -128,10 +128,11 @@ export function withPuedeContener(recipes) {
 }
 
 export function withCoste(recipes) {
-  const filas = recipeCoste.recetas ?? {};
+  // Modo 'granel' (lib/coste.js): el € por ración que se planifica. Lo leen el
+  // planner (puente de aiPlanner) y el bot («algo barato»: costeNivel).
   return recipes.map((r) => {
-    const c = filas[r.id];
-    return c?.porRacion != null ? { ...r, costeRacion: c.porRacion, costeNivel: c.nivel } : r;
+    const c = costeReceta(r, { modo: "granel" });
+    return c ? { ...r, costeRacion: c.porRacion, costeNivel: c.nivel } : r;
   });
 }
 

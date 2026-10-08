@@ -96,7 +96,8 @@ import {
   ingredientsByPart,
   STEP_PART_META,
 } from "../lib/recipeSteps.js";
-import { estimateRecipeCost } from "../lib/listPricing.js";
+import { costeReceta } from "../lib/coste.js";
+import { loadStoreCatalog } from "../lib/storeCatalog.js";
 import {
   assignFreezerToSlot,
   assignFridgeToSlot,
@@ -7205,22 +7206,29 @@ export function DishDetail({
     }
     return map;
   }, [cookable, ingredients, pantryStock]);
-  // Coste estimado por ración — mismo motor de precios que la lista de la
-  // compra (Fase 8), aplicado a lo que este plato compra de verdad (los
-  // ingredientes ya escalados a `cookedEaters`). Async porque el catálogo de
-  // Mercadona se carga por fetch; sin resultado (aún cargando, o ningún
-  // ingrediente con precio) no se pinta nada — nunca un coste inventado.
+  // Coste por ración en modo 'granel' (lib/coste.js): lo que cuesta comerse el
+  // plato, el mismo número con el que el planner y el bot dicen «barato». No
+  // 'paquetes': eso carga la botella de aceite entera a un solo plato, y es el
+  // número de la lista de la compra. Del catálogo sale de la tabla; una receta
+  // de usuario se calcula con los precios de Mercadona (fetch). Sin precio no
+  // se pinta nada — nunca un coste inventado.
   const [recipeCost, setRecipeCost] = useState(null);
   useEffect(() => {
     let active = true;
     setRecipeCost(null);
     if (ingredients.length === 0 || !(cookedEaters > 0)) return undefined;
-    (async () => {
-      const cost = await estimateRecipeCost({ ingredients }, cookedEaters, data?.priceObs ?? []);
-      if (active) setRecipeCost(cost);
-    })();
+    const deTabla = costeReceta(recipe, { modo: "granel", raciones: cookedEaters });
+    if (deTabla) {
+      setRecipeCost(deTabla);
+      return undefined;
+    }
+    loadStoreCatalog("mercadona")
+      .then(({ products }) => {
+        if (active) setRecipeCost(costeReceta({ ingredients }, { modo: "granel", raciones: cookedEaters, precios: products }));
+      })
+      .catch(() => {});
     return () => { active = false; };
-  }, [ingredients, cookedEaters, data?.priceObs]);
+  }, [recipe, ingredients, cookedEaters]);
   // Electrodoméstico usado para cocinar el plato (RecipePlanner.jsx, paso
   // "¿Cómo se prepara?"), si se marcó alguno — nada si es tradicional
   // (fuego/sartén/olla), mismo criterio que el resto de chips opcionales de
@@ -7878,7 +7886,7 @@ export function DishDetail({
             </span>
             {recipeCost != null && (
               <span style={detailTagStyle}>
-                <Euro size={12} /> ~{recipeCost.perServing.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €/ración
+                <Euro size={12} /> ~{recipeCost.porRacion.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €/ración
               </span>
             )}
             {usedAppliance && (

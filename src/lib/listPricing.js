@@ -264,7 +264,8 @@ function emptyEstimate(storeName, items, obs, extra = {}) {
   };
 }
 
-function priceOneItem(item, catalogProducts, priceObs) {
+/** Una línea a envases enteros (o a priceObs). Modo 'paquetes' de lib/coste.js. */
+export function priceOneItem(item, catalogProducts, priceObs) {
   const key = item.id ?? `${item.name}|${item.unit ?? "ud"}`;
   const match = matchProductForIngredient(item.name, catalogProducts);
   if (match && match.confidence >= MATCH_HIGH) {
@@ -390,40 +391,4 @@ export async function estimateShoppingList(storeName, items = [], priceObs = [])
 export async function priceMapForItems(storeName, items = [], priceObs = []) {
   const { map } = await priceShoppingList(storeName, items, priceObs);
   return map;
-}
-
-/**
- * Coste estimado de UNA receta, por ración — mismo motor que la lista de la
- * compra (`priceShoppingList`), aplicado a los ingredientes ya escalados de
- * un plato en vez de a la lista agregada de la semana.
- * @param {{ingredients: object[]}} recipe con `ingredients` ya escalados
- *   (p. ej. salida de `scaledIngredients(recipe, eaters)`: cada uno con
- *   `id`, `name`, `unit` y la cantidad ya lista para comprar en `qtyScaled`
- *   — `null` en unidades cualitativas, "al gusto").
- * @param {number} servings raciones que cubren esos ingredientes ya escalados
- * @param {object[]} [priceObs] precios que el usuario ha registrado
- * @param {string} [store]
- * @returns {Promise<{perServing: number, confidence: number, matchedCount: number, totalCount: number} | null>}
- *   `null` si ningún ingrediente tiene precio — nunca se inventa un coste.
- */
-export async function estimateRecipeCost(recipe, servings, priceObs = [], store = "Mercadona") {
-  const ingredients = recipe?.ingredients ?? [];
-  if (ingredients.length === 0 || !(servings > 0)) return null;
-
-  const items = ingredients.map((ing) => ({
-    id: ing.id,
-    name: ing.name,
-    unit: ing.unit,
-    qty: ing.qtyScaled ?? ing.qty ?? null,
-  }));
-
-  const { estimate } = await priceShoppingList(store, items, priceObs);
-  if (estimate.matched === 0) return null;
-
-  return {
-    perServing: Math.round((estimate.total / servings) * 100) / 100,
-    confidence: estimate.matched / estimate.count,
-    matchedCount: estimate.matched,
-    totalCount: estimate.count,
-  };
 }
