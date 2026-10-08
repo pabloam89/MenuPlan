@@ -162,3 +162,55 @@ describe("el ingrediente tiene que ir en cabeza del producto", () => {
     expect(scoreProductName("Mantequilla sin sal añadida Hacendado", "mantequilla")).toBeGreaterThanOrEqual(0.7);
   });
 });
+
+describe("el ingrediente es el núcleo aunque no vaya en cabeza tal cual", () => {
+  // Pérdidas que trajo la primera versión de la regla (exigir que el nombre del
+  // producto EMPEZARA por el ingrediente): emparejamientos buenos de staging que
+  // se quedaron sin producto. Medidas con scripts/medir-emparejador.mjs.
+  it.each([
+    // una clase delante, sin «de»
+    ["penne", "Pasta penne rigate Hacendado"],
+    ["fusilli", "Pasta fusilli Armando"],
+    ["tagliatelle", "Pasta fresca tagliatelle al huevo Hacendado"],
+    ["ricotta", "Queso ricotta mezcla Hacendado"],
+    ["mascarpone", "Queso fresco mascarpone de vaca Hacendado"],
+    ["kefir", "Bebida Kéfir natural Hacendado 0% MG"],
+    // una parte o un corte delante, con «de»
+    ["rape", "Cola de rape del Cabo sin piel Hacendado ultracongelada"],
+    ["rodaballo", "Filete de rodaballo"],
+    ["pimiento choricero", "Carne de pimiento choricero Hacendado"],
+    ["anchoas", "Filetes de anchoa en aceite de oliva Hacendado"],
+    // el número
+    ["almejas", "Almeja Hacendado congelada"],
+    ["alcachofas", "Alcachofa troceada Hacendado ultracongelada"],
+    ["langostinos", "Langostino crudo y pelado Hacendado ultracongelado"],
+  ])("«%s» es «%s»", (ingrediente, producto) => {
+    expect(scoreProductName(producto, ingrediente)).toBeGreaterThanOrEqual(0.7);
+  });
+
+  // Y las holguras no reabren la puerta a los complementos.
+  it.each([
+    ["almendras", "Bebida de almendras 0% azúcar Hacendado"], // clase + «de»: materia, no especie
+    ["lentejas rojas", "Pasta fusilli 100% lentejas rojas Felicia"],
+    ["queso azul", "Queso untar con queso azul de vaca Hacendado"],
+    ["yogur", "Salsa Yogur Hacendado"], // «salsa» no es clase
+    ["pollo", "Patas de pollo"], // «patas» no es parte
+    ["maiz", "Tiras de maíz frito sabor barbacoa Hacendado"],
+    ["leche", "Dulce de leche"], // un adjetivo con «de» no es una parte
+    ["menta", "Infusión Menta Poleo Hacendado"],
+  ])("«%s» no es «%s»", (ingrediente, producto) => {
+    expect(scoreProductName(producto, ingrediente)).toBeLessThan(0.7);
+  });
+
+  it("en un empate gana el nombre exacto sobre el plural", () => {
+    expect(scoreProductName("Espinacas baby lavadas", "espinacas")).toBeGreaterThan(
+      scoreProductName("Espinaca en porciones Hacendado ultracongelada", "espinacas"),
+    );
+  });
+
+  it("los platos hechos de legumbre o pasta no son el ingrediente", () => {
+    expect(shouldSkipProduct("garbanzos", { name: "Garbanzos a la jardinera Hacendado" })).toBe(true);
+    expect(shouldSkipProduct("macarrones", { name: "Macarrones Mac & Cheese Bacon Hacendado gratinados" })).toBe(true);
+    expect(shouldSkipProduct("langostinos", { name: "Langostino caballitos rebozados Hacendado ultracongelados" })).toBe(true);
+  });
+});

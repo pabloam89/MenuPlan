@@ -41,8 +41,12 @@ export const MERCADONA_SEARCH_ALIASES = {
 // y el tocino, o sea un imán de tres ingredientes. Los otros cinco
 // «Preparado de …» del súper (paella, verdura para cocido, coco, medallones
 // marinados) sí son platos y siguen fuera.
+//
+// Rebozados y empanados, también: con el plural ya casado («Langostinos» es
+// «Langostino …»), «Langostino caballitos rebozados» empataba con el crudo y
+// ganaba por envase barato, y «Merluza rebozada» se llevaba la merluza.
 const PREPARED_DISH_RE =
-  /arroz de|pasta con|paella con|guisado|estofado|lasaña|lasana|croqueta|empanadilla|plato preparado|revuelto|al horno|con setas|con verduras|frito con|preparado de (?!carne picada)|cocinado|ultracongelado.*hacendado.*arroz/i;
+  /arroz de|pasta con|paella con|guisado|estofado|lasaña|lasana|croqueta|empanadilla|rebozad|empanad[oa]s?\b|plato preparado|revuelto|al horno|con setas|con verduras|frito con|preparado de (?!carne picada)|cocinado|ultracongelado.*hacendado.*arroz/i;
 
 /** Comida para bebés: potitos, papillas, leches de continuación y bolsitas. */
 const ES_INFANTIL =
@@ -186,15 +190,103 @@ export function scoreProductName(productName, probeId) {
   // y se puntúa como antes.
   const pideNucleo = [...probeTokens].some((t) => !MODIFICADORES.has(t));
   let score = pideNucleo && nucleo === 0 ? 0 : solape;
-  // El suelo de 0,75 solo cuando el ingrediente va EN CABEZA del producto. El
-  // súper nombra primero lo que el producto es y luego de qué: «Croissant de
-  // mantequilla» es un croissant, «Café con leche» un café, «Refresco cola zero
-  // azúcar» un refresco, y los tres cobraban como mantequilla, leche y azúcar.
-  const probe = normalizeName(probeId);
-  if (norm === probe || norm.startsWith(`${probe} `) || containsWholePhrase(probeId, norm)) {
-    score = Math.max(score, 0.75);
-  }
+  // El suelo solo cuando el ingrediente es el NÚCLEO del producto, no un
+  // complemento (ver vaEnCabeza).
+  if (containsWholePhrase(probeId, norm)) score = Math.max(score, SUELO_EXACTO);
+  else score = Math.max(score, vaEnCabeza(norm, probeId));
   return Math.min(0.95, score);
+}
+
+// El ingrediente tal cual en cabeza del producto se queda con el suelo de
+// siempre. Si para verlo ha hecho falta una holgura (el plural, una clase o una
+// parte delante), el suelo es algo más bajo: sigue pasando del 0,7, pero en un
+// empate gana el nombre exacto. Sin esto, «Espinacas» empataba «Espinacas baby»
+// con «Espinaca en porciones ultracongelada» y se llevaba la congelada por
+// barata.
+const SUELO_EXACTO = 0.75;
+const SUELO_HOLGURA = 0.72;
+
+/**
+ * Palabras que nombran la CLASE a la que pertenece el alimento y que el súper
+ * pone delante sin preposición: «Pasta penne» es penne, «Queso ricotta» es
+ * ricotta, «Bebida kéfir» es kéfir. Con «de» detrás ya no son lo mismo: la
+ * clase pasa a ser el producto y el ingrediente su materia —«Bebida de
+ * almendras» no son almendras, «Pasta de lentejas» no son lentejas—.
+ *
+ * «Salsa» no está a propósito: «Salsa yogur», «Salsa curry» o «Salsa fresca
+ * queso» no son yogur, curry ni queso. Solo entra una clase cuando cualquier
+ * «Clase X» del catálogo es de verdad X.
+ */
+const CLASES = new Set(["pasta", "queso", "bebida"]);
+
+/**
+ * Palabras que nombran una PARTE, un corte o un envase del alimento, y que sí
+ * admiten «de» detrás: «Cola de rape», «Filete de rodaballo», «Carne de
+ * pimiento choricero», «Hoja de laurel», «Bote de garbanzos». El producto
+ * sigue siendo el alimento.
+ *
+ * Los adjetivos de MODIFICADORES no entran aquí: «Dulce de leche» no es leche.
+ * Tampoco «patas» ni «tiras», medidas en el catálogo: «Patas de pollo» no es
+ * el pollo de una receta y «Tiras de maíz frito» es un aperitivo.
+ */
+const PARTES = new Set([
+  "filete", "filetes", "lomo", "lomos", "cola", "colas",
+  "carne", "pulpa", "hoja", "hojas", "trozo", "trozos", "taco", "tacos",
+  "dado", "dados", "rodaja", "rodajas", "loncha", "lonchas",
+  "medallon", "medallones", "pieza", "piezas",
+  "lata", "bote", "bolsa", "bandeja", "pack",
+]);
+const PREPOSICION_DE = new Set(["de", "del"]);
+// Adjetivos que pueden ir entre la clase o la parte y el alimento («Pasta
+// fresca tagliatelle», «Carne picada de cerdo»). Preposiciones y artículos no.
+const NO_ADJETIVOS = new Set(["de", "la", "el", "en", "al", "lo", "un", "con", "sin", "del", "las", "los", "para", "una", "que", "por"]);
+const ADJETIVOS_INTERMEDIOS = new Set([...MODIFICADORES].filter((m) => !NO_ADJETIVOS.has(m)));
+
+function palabras(s) {
+  return normalizeName(s)
+    .split(/\s+/)
+    .map((t) => t.replace(/[^a-z0-9]/g, ""))
+    .filter((t) => t.length > 1);
+}
+
+/**
+ * ¿Es el ingrediente lo que el producto ES, y no algo que lleva?
+ *
+ * El súper nombra primero lo que el producto es y luego de qué: «Croissant de
+ * mantequilla» es un croissant, «Café con leche» un café, «Refresco cola zero
+ * azúcar» un refresco, y los tres cobraban como mantequilla, leche y azúcar.
+ * Así que el ingrediente tiene que ir en cabeza, con tres holguras:
+ *
+ *   - el número: «Fideos finos» es «Fideo fino», «huevo» es «Huevos»
+ *     (mismoLema; la concordancia, solo en las palabras que no son la primera);
+ *   - una clase delante sin preposición: «Pasta penne rigate» (CLASES);
+ *   - una parte, corte o envase delante, con o sin «de»: «Cola de rape»
+ *     (PARTES); y entre medias, adjetivos: «Pasta fresca tagliatelle».
+ *
+ * @returns {number} el suelo que le toca (SUELO_EXACTO, SUELO_HOLGURA) o 0.
+ */
+function vaEnCabeza(normProducto, probeId) {
+  const p = palabras(normProducto);
+  const q = palabras(probeId);
+  if (!q.length || p.length < q.length) return 0;
+
+  if (q.every((t, j) => t === p[j])) return SUELO_EXACTO;
+  const casaEn = (i) =>
+    p.length - i >= q.length &&
+    q.every((t, j) => mismoLema(t, p[i + j]) || (j > 0 && concuerda(t, p[i + j])));
+  if (casaEn(0)) return SUELO_HOLGURA;
+
+  const cabeza = p[0];
+  const esParte = PARTES.has(cabeza);
+  if (!esParte && !CLASES.has(cabeza)) return 0;
+  // Si el ingrediente ya empieza por esa palabra («Queso de cabra»), no se
+  // salta: lo de detrás tiene que casar con él entero, y eso ya lo ha mirado
+  // casaEn(0). «Queso untar con queso azul» no es «queso azul».
+  if (mismoLema(q[0], cabeza)) return 0;
+  let i = 1;
+  while (i < p.length && ADJETIVOS_INTERMEDIOS.has(p[i])) i++;
+  if (esParte && PREPOSICION_DE.has(p[i])) i++;
+  return casaEn(i) ? SUELO_HOLGURA : 0;
 }
 
 const INDEX_CACHE = new WeakMap();
@@ -291,6 +383,14 @@ export function shouldSkipProduct(ingredientId, product) {
   }
 
   if (/^arroz$|^pasta$|^fideos|^espagueti/.test(ing) && /salsa|preparado|plato|lasaña/.test(name)) {
+    return true;
+  }
+
+  // Platos hechos de la despensa seca: «Garbanzos a la jardinera», «Lentejas a
+  // la riojana», «Macarrones … gratinados». Llevan el ingrediente en cabeza, y
+  // el filtro de platos preparados de abajo solo mira la carne, el pescado y
+  // lo perecedero, así que la legumbre o la pasta seca se los llevaba.
+  if (/a la jardinera|a la riojana|gratinad/.test(name) && !/jardinera|riojana|gratinad/.test(ing)) {
     return true;
   }
 

@@ -148,5 +148,49 @@
   "nueces": {
     "buscar": ["nuez natural"],
     "motivo": "El súper las vende en singular, «Nuez natural». En plural solo salen helados y trenzas con nueces."
+  },
+  "frutos rojos": {
+    "buscar": ["mix frutos rojos"],
+    "motivo": "Se venden como «Mix frutos rojos» congelados. Antes se llevaba la «Infusión frutos rojos», que es un té."
+  },
+  "fideos finos": {
+    "buscar": ["fideo cabello de angel"],
+    "motivo": "El fideo más fino del súper es el «cabello de ángel»; no hay ninguno que se llame «fino». Antes se llevaba una «Sopa de pollo con fideos finos» de sobre."
+  },
+  "mantequilla de cacahuete": {
+    "buscar": ["crema de cacahuete"],
+    "motivo": "Se vende como «Crema de cacahuete 100%». Antes se llevaba un helado que la lleva de relleno."
+  },
+  "jerez seco": {
+    "buscar": ["vino fino"],
+    "motivo": "El jerez seco de cocinar es un fino, y el súper solo tiene «Vino fino» de Montilla-Moriles, que es el mismo tipo de vino. Antes se llevaba el vinagre de Jerez."
+  },
+  "pedro ximenez": {
+    "buscar": ["vino dulce pedro ximenez"],
+    "motivo": "El que hay es «Vino dulce Pedro Ximénez». Antes se llevaba la reducción de vinagre Pedro Ximénez, que es un aliño."
+  },
+  "ciruelas pasas": {
+    "buscar": ["ciruelas desecadas"],
+    "motivo": "Mercadona las llama «Ciruelas desecadas sin hueso». Antes se llevaba un bífidus con ciruelas."
+  },
+  "uvas": {
+    "buscar": ["uva blanca"],
+    "motivo": "Se venden en singular, «Uva blanca» y «Uva roja», y «uva» es demasiado corta para que el emparejador la una con «uvas». Antes se llevaba un vino «Mar de Uvas»."
+  },
+  "secreto iberico": {
+    "buscar": ["secreto de cerdo iberico"],
+    "motivo": "El súper pone el animal en medio: «Secreto de cerdo ibérico». Antes se llevaba una hamburguesa «con secreto ibérico»."
+  },
+  "pesto": {
+    "buscar": ["salsa pesto"],
+    "motivo": "Se vende como «Salsa Pesto». «Salsa» no puede ir en las clases del emparejador porque «Salsa yogur» o «Salsa curry» no son yogur ni curry, así que el pesto va aquí."
+  },
+  "brotes tiernos": {
+    "buscar": ["ensalada mezcla brotes tiernos"],
+    "motivo": "Es una bolsa de ensalada: «Ensalada mezcla brotes tiernos lavada». Con el nombre solo, los brotes van en cola y no pasan del umbral."
+  },
+  "pulpo cocido": {
+    "buscar": ["patas de pulpo cocido"],
+    "motivo": "Se vende como «Patas de pulpo cocido». «Patas» no puede ir en las partes del emparejador porque «Patas de pollo» no es el pollo de una receta."
   }
 }
