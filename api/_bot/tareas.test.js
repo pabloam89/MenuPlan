@@ -116,8 +116,8 @@ describe("validarNueva", () => {
 describe("caducidadDe", () => {
   const dias = (d) => Math.round((d.getTime() - AHORA.getTime()) / 86400000);
   it("la etapa de un bebé dura menos que unas alergias", () => {
-    expect(dias(caducidadDe({ kind: "pregunta", tema: "etapa_bebe" }, AHORA))).toBe(21);
-    expect(dias(caducidadDe({ kind: "pregunta", tema: "alergias" }, AHORA))).toBe(30);
+    expect(dias(caducidadDe({ kind: "pregunta", campo: "etapaBebe" }, AHORA))).toBe(21);
+    expect(dias(caducidadDe({ kind: "pregunta", campo: "alergias" }, AHORA))).toBe(30);
   });
   it("con fecha límite, caduca el día después", () => {
     expect(caducidadDe({ kind: "seguimiento", vence: "2026-10-10" }, AHORA).toISOString().slice(0, 10)).toBe("2026-10-11");
@@ -169,7 +169,7 @@ describe("aPromover: lo que falta saber de la casa no depende del modelo", () =>
     const turno2 = tramitar("Vale, en cuanto lo sepas me dices 😊", turno1.pendientes, "uf no sé, luego te digo", { claveDe });
     const subir = aPromover(turno2.pendientes);
     expect(subir).toHaveLength(1);
-    expect(subir[0]).toMatchObject({ clave: "etapa:c1", tema: "etapa_bebe" });
+    expect(subir[0]).toMatchObject({ clave: "etapa:c1", campo: "etapaBebe", personaId: "c1" });
     expect(subir[0].texto).toBe("¿qué le doy hoy a Cova?");
   });
   it("lo que no es de estado se queda en el mensaje", () => {

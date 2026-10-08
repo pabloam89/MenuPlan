@@ -471,7 +471,7 @@ export async function anadirComensal(householdId, { nombre, edad }, ctx = null) 
       data: conGrupos(m, conNuevo, conNuevo.members),
       texto: `Añadido a la casa: ${nombre}${age != null ? ` (${age} años)` : ""}. ¿Tiene alguna alergia o intolerancia?`,
       // Política «una vez, en el alta»: la pregunta queda apuntada por código.
-      preguntas: [{ clave: `alergias:${nuevo.id}`, texto: `¿${nombre} tiene alguna alergia o intolerancia?` }],
+      preguntas: [{ campo: "alergias", personaId: nuevo.id, texto: `¿${nombre} tiene alguna alergia o intolerancia?` }],
     };
   }, ctx);
 }

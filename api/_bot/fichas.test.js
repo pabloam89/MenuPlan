@@ -70,3 +70,23 @@ describe("una ficha por herramienta", () => {
     expect(pantallaDe("no_existe")).toBeNull();
   });
 });
+
+describe("BOT_TAREAS_V2 solo cambia cerrar_tarea, y solo encendido", () => {
+  it("encendido, cerrar_tarea también aplaza; apagado, es la de la foto", async () => {
+    const cerrar = async () => (await herramientas(charla)).find((t) => t.name === "cerrar_tarea");
+    const antes = await cerrar();
+    expect(JSON.stringify(antes)).not.toContain("\"aplazada\"");
+    process.env.BOT_TAREAS_V2 = "1";
+    try {
+      const v2 = JSON.stringify(await cerrar());
+      expect(v2).toContain("\"aplazada\"");
+      expect(v2).toMatch(/ahora te digo/);
+      // El resto de herramientas, igual.
+      const resto = (await herramientas(charla)).filter((t) => t.name !== "cerrar_tarea");
+      delete process.env.BOT_TAREAS_V2;
+      expect(JSON.stringify(resto)).toBe(JSON.stringify((await herramientas(charla)).filter((t) => t.name !== "cerrar_tarea")));
+    } finally {
+      delete process.env.BOT_TAREAS_V2;
+    }
+  });
+});
