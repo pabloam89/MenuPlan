@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { decidir, sinAplicar } from "./guardia.mjs";
+import { carpetaDe, decidir, sinAplicar } from "./guardia.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ESTADO_REAL = readFileSync(join(RAIZ, "supabase", "ESTADO.md"), "utf8");
@@ -15,6 +15,8 @@ const ctx = (extra = {}) => ({
   baseDelPr: () => "staging",
   atrasoLocal: () => 0,
   atrasoDelPr: () => 0,
+  esPrincipal: () => false,
+  rutaEnPrincipal: () => false,
   ...extra,
 });
 const bash = (command, c = ctx()) => decidir({ tool_name: "Bash", tool_input: { command } }, c)?.decision ?? null;
@@ -222,6 +224,53 @@ describe("gh pr create con la rama al día", () => {
   it("atrasada, no", () => expect(bash("git push -u origin ops/x && gh pr create --base staging", ctx({ atrasoLocal: () => 2 }))).toBe("deny"));
   it("sin poder saberlo, pregunta", () => expect(bash("gh pr create", ctx({ atrasoLocal: () => null }))).toBe("ask"));
   it("otros gh pr no lo miran", () => expect(bash("gh pr view 90", ctx({ atrasoLocal: () => 5, atrasoDelPr: () => 5 }))).toBe(null));
+  it("mira la carpeta del `cd`, no la de la sesión", () => {
+    let mirada;
+    bash('cd "C:/dev/MenuPlan-x" && gh pr create', ctx({ atrasoLocal: (d) => ((mirada = d), 0) }));
+    expect(mirada).toBe("C:/dev/MenuPlan-x");
+  });
+});
+
+describe("una sesión, una carpeta: en la principal no se trabaja", () => {
+  const principal = (d) => /MenuPlan$/.test(d);
+  const enPrincipal = (command, cwd = "C:/dev/MenuPlan") =>
+    decidir({ tool_name: "Bash", tool_input: { command }, cwd }, ctx({ esPrincipal: principal }))?.decision ?? null;
+
+  it.each([
+    "git commit -m x",
+    "git add src/App.jsx",
+    "git checkout -b ops/x",
+    "git switch ops/x",
+    "git merge origin/staging",
+    "git reset --hard HEAD~1",
+    "git -C C:/dev/MenuPlan commit -m x",
+  ])("niega %s", (c) => expect(enPrincipal(c)).toBe("deny"));
+
+  it.each([
+    "git status --short",
+    "git log --oneline -5",
+    "git pull",
+    "git fetch origin",
+    "git merge --ff-only origin/staging",
+    "git checkout staging",
+    "git worktree list",
+    "npm run tarea -- ops/x",
+  ])("deja %s", (c) => expect(enPrincipal(c)).toBe(null));
+
+  it("en su carpeta, sí", () => expect(enPrincipal("git commit -m x", "C:/dev/MenuPlan-x")).toBe(null));
+  it("con `cd` a su carpeta desde la principal, sí", () =>
+    expect(enPrincipal('cd /c/dev/MenuPlan-x && git add a.js && git commit -m x')).toBe(null));
+  it("con `git -C` a su carpeta, sí", () => expect(enPrincipal("git -C C:/dev/MenuPlan-x commit -m x")).toBe(null));
+  it("editar un fichero de la principal, no", () =>
+    expect(edita("C:/dev/MenuPlan/src/App.jsx", ctx({ rutaEnPrincipal: () => true }))).toBe("deny"));
+});
+
+describe("carpetaDe", () => {
+  it("sin cd, la de la sesión", () => expect(carpetaDe("git status", "git status", "C:/s")).toBe("C:/s"));
+  it("ruta de bash a Windows", () => expect(carpetaDe("cd /c/dev/X && git add a", "git add a", "C:/s")).toBe("c:/dev/X"));
+  it("el último cd anterior a la orden", () =>
+    expect(carpetaDe('cd A && git add a && cd "B C" && git commit', "git add a", "C:/s")).toBe("A"));
+  it("git -C manda", () => expect(carpetaDe("cd A && git -C 'D' commit", "git -C 'D' commit", "C:/s")).toBe("D"));
 });
 
 it("cambiar permisos o hooks compartidos pregunta", () => {
