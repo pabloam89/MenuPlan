@@ -379,8 +379,9 @@ function delDiaBloque(casa, extras, hoy) {
   }
   if (extras.nevera?.length) lineas.push(`- Hecho y guardado: ${extras.nevera.slice(0, 3).join("; ")}.`);
   if (extras.avisos?.length) lineas.push("AVISOS", ...extras.avisos.slice(0, 2).map((a) => `- ${a}`));
-  // PENDIENTE: primero, lo de seguridad.
-  const sinPreguntar = preguntasPendientes(data, extras.calladas ?? new Set());
+  // PENDIENTE: primero, lo de seguridad. Con BOT_FICHA_RPC llega ya calculado
+  // de «faltan» (fichaRpc.js, conLaFicha); sin ella, del JSON.
+  const sinPreguntar = extras.pendientes ?? preguntasPendientes(data, extras.calladas ?? new Set());
   if (sinPreguntar.length) lineas.push("PENDIENTE", `- ¿${lista(sinPreguntar.map((p) => p.nombre))} ${sinPreguntar.length > 1 ? "tienen" : "tiene"} alguna alergia o intolerancia?`);
   return lineas;
 }
@@ -389,7 +390,7 @@ function delDiaBloque(casa, extras, hoy) {
 
 /**
  * @param {object} casa  lo que devuelve cargarCasa
- * @param {{ nevera?: string[], avisos?: string[] }} [extras]
+ * @param {{ nevera?: string[], avisos?: string[], calladas?: Set<string>, pendientes?: { clave: string, nombre: string }[] }} [extras]
  * @param {string} [hoy] ISO, para las pruebas
  * @returns {{ estable: string, delDia: string }}
  */
