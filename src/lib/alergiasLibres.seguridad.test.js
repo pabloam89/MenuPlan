@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { normalizeAllergenId, recipeIngredientsHitAllergens } from "./allergensCore.js";
-import { recipeViolatesHardSafety } from "../utils/filterRecipes.js";
+import { filterGarnishes, filterRecipes, recipeViolatesHardSafety } from "../utils/filterRecipes.js";
 
 // Hueco de seguridad real en producción (aviso de menuplan-05): una persona
 // guarda «Brócoli» como alergia confirmada. normalizeAllergenId la convierte
@@ -67,5 +67,85 @@ describe("alergias libres, nivel 2: resolver al ingrediente real, no solo buscar
   it("una categoría («Marisco») no resuelve, y sigue sin bloquear nada por sí sola", () => {
     const conGambas = { allergens: [], ingredients: [{ name: "Gambas peladas", ingredientId: "gambas" }] };
     expect(recipeViolatesHardSafety(conGambas, { allergies: ["Marisco"] })).toBe(false);
+  });
+});
+
+// Los jueces (revisor y seguridad) vieron que el primer arreglo solo protegía
+// dentro de recipeViolatesHardSafety: el generador y las guarniciones usaban
+// una copia del filtro sin el nivel 2, y el nivel 1 no entendía el plural.
+describe("alergias libres: plural, texto raro y todos los caminos", () => {
+  const tieneIngrediente = (receta, re) => (receta.ingredients ?? []).some((i) => re.test(i.name));
+  const caso = (alergia, ingrediente) =>
+    recipeIngredientsHitAllergens([ingrediente], new Set([normalizeAllergenId(alergia)]));
+
+  it("plural y singular dan igual en el nivel 1, en las dos direcciones", () => {
+    expect(caso("Pimientos", "Pimiento rojo")).toBe(true);
+    expect(caso("Judías verdes", "Judía verde")).toBe(true);
+    expect(caso("Judía verde", "Judías verdes")).toBe(true);
+    expect(caso("Champiñones", "Champiñón")).toBe(true);
+    expect(caso("Fresas", "Fresa")).toBe(true);
+    expect(caso("Lentejas", "Lenteja pardina")).toBe(true);
+  });
+
+  it("y no se vuelve loco: otra legumbre u otra verdura siguen sin bloquear", () => {
+    expect(caso("Judías verdes", "Judías blancas")).toBe(false);
+    expect(caso("Pimientos", "Patata")).toBe(false);
+  });
+
+  it("texto con símbolos de regex no lanza ni bloquea de más", () => {
+    for (const rara of ["Kiwi (leve", "fresa)", "C++", "*", "?", "[", "\\", "a|"]) {
+      expect(() => caso(rara, "Brócoli")).not.toThrow();
+    }
+    // «a|» no se interpreta como «a o vacío»: no bloquea todo el catálogo.
+    expect(caso("a|", "Brócoli")).toBe(false);
+  });
+
+  it("un patrón que colgaría el proceso (ReDoS) no cuesta nada", () => {
+    const t0 = performance.now();
+    caso("(a|a)*b", "aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    caso("(.*a){12}x", "aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    expect(performance.now() - t0).toBeLessThan(200);
+  });
+
+  it("un texto larguísimo se acota en vez de compilar un regex enorme", () => {
+    expect(() => caso("pimiento ".repeat(500), "Pimiento rojo")).not.toThrow();
+  });
+
+  it("el generador principal (filterRecipes) deja fuera «Tomates», «Judía verde» y «Pimientos», que antes se colaban", () => {
+    for (const [alergia, re] of [
+      ["Tomates", /tomate/i],
+      ["Judía verde", /jud[ií]as? verdes?/i],
+      ["Pimientos", /pimiento/i],
+    ]) {
+      const { recipes: pool, error } = filterRecipes({ allergies: [alergia] });
+      expect(error).toBeNull();
+      expect(pool.length).toBeGreaterThan(0);
+      expect(pool.filter((r) => tieneIngrediente(r, re)).map((r) => r.name)).toEqual([]);
+    }
+  });
+
+  it("el nivel 2 (por id) llega al generador y a las guarniciones, no solo a recipeViolatesHardSafety", () => {
+    // Frases que el nivel 1 por sí solo NO encuentra («brocoli al vapor» no
+    // aparece en ningún ingrediente): solo las salva el resolutor por id.
+    const sinAlergia = filterRecipes({}).recipes;
+    expect(sinAlergia.some((r) => tieneIngrediente(r, /br[óo]coli/i))).toBe(true);
+    const { recipes } = filterRecipes({ allergies: ["Brócoli al vapor"] });
+    expect(recipes.filter((r) => tieneIngrediente(r, /br[óo]coli/i)).map((r) => r.name)).toEqual([]);
+
+    expect(filterGarnishes({}).some((g) => tieneIngrediente(g, /patata/i))).toBe(true);
+    const guarniciones = filterGarnishes({ allergies: ["Patata cocida"] });
+    expect(guarniciones.filter((g) => tieneIngrediente(g, /patata/i)).map((g) => g.name)).toEqual([]);
+  });
+
+  it("las guarniciones también respetan una alergia libre en plural", () => {
+    const guarniciones = filterGarnishes({ allergies: ["Patatas"] });
+    expect(guarniciones.length).toBeGreaterThan(0);
+    expect(guarniciones.filter((g) => tieneIngrediente(g, /patata/i)).map((g) => g.name)).toEqual([]);
+  });
+
+  it("los tres caminos deciden igual para una misma alergia libre", () => {
+    const conTomate = { allergens: [], ingredients: [{ name: "Tomate frito", ingredientId: "tomate" }] };
+    expect(recipeViolatesHardSafety(conTomate, { allergies: ["Tomates"] })).toBe(true);
+    expect(filterGarnishes({ allergies: ["Tomates"] }, [{ name: "g", ...conTomate }])).toEqual([]);
   });
 });

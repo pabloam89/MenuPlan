@@ -32,8 +32,12 @@ describe("recipeIngredientIdsHitFreeAllergy (nivel 2 de alergias libres)", () =>
     expect(recipeIngredientIdsHitFreeAllergy(["Gluten"], receta("pan"), resolutorDePrueba)).toBe(false);
   });
 
-  it("sin resolutor, sin receta o sin alergias, no hay nada que comprobar (nunca un falso positivo por falta de datos)", () => {
-    expect(recipeIngredientIdsHitFreeAllergy(["Brócoli"], receta("brocoli"), null)).toBe(false);
+  it("sin resolutor es un error de programación, no un «false» que deje pasar una alergia", () => {
+    expect(() => recipeIngredientIdsHitFreeAllergy(["Brócoli"], receta("brocoli"), null)).toThrow(TypeError);
+    expect(() => recipeIngredientIdsHitFreeAllergy(["Brócoli"], receta("brocoli"))).toThrow(TypeError);
+  });
+
+  it("sin receta o sin alergias, no hay nada que comprobar (nunca un falso positivo por falta de datos)", () => {
     expect(recipeIngredientIdsHitFreeAllergy([], receta("brocoli"), resolutorDePrueba)).toBe(false);
     expect(recipeIngredientIdsHitFreeAllergy(["Brócoli"], [], resolutorDePrueba)).toBe(false);
     expect(recipeIngredientIdsHitFreeAllergy(["Brócoli"], undefined, resolutorDePrueba)).toBe(false);

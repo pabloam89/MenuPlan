@@ -145,11 +145,39 @@ const INGREDIENT_ALLERGEN_RE = Object.fromEntries(
 // guardaba confirmada y no protegía ningún plato. El id normalizado (p. ej.
 // "judias_verdes") se deshace a palabras ("judias verdes") y se compila con
 // la misma frontera de palabra que el resto, nunca un substring suelto.
+//
+// El texto es LIBRE (sin filtro al escribirlo), así que:
+//  - se escapa antes de compilarlo: «Kiwi (leve» o «C++» no pueden tumbar la
+//    generación del menú, ni un patrón como «(.*a){12}x» colgar el proceso;
+//  - se acota (60 caracteres, 6 palabras);
+//  - cada palabra se compara por su raíz sin plural, porque la gente escribe
+//    «Pimientos» y el catálogo «Pimiento rojo» (y al revés: «Judías verdes» /
+//    «Judía verde»). Sobrebloquear es la dirección segura.
+const MAX_CARACTERES_ALERGIA_LIBRE = 60;
+const MAX_PALABRAS_ALERGIA_LIBRE = 6;
+
+function escaparParaRegex(texto) {
+  return texto.replace(/[.*+?^${}()|[\]\\]/g, (c) => `\\${c}`);
+}
+
+function raizSinPlural(palabra) {
+  if (palabra.length <= 3) return palabra;
+  if (palabra.length > 4 && palabra.endsWith("es")) return palabra.slice(0, -2);
+  if (palabra.endsWith("s")) return palabra.slice(0, -1);
+  return palabra;
+}
+
 const regexDeAlergiaLibre = new Map();
 function regexParaAlergiaLibre(id) {
   if (regexDeAlergiaLibre.has(id)) return regexDeAlergiaLibre.get(id);
-  const palabras = id.replace(/_/g, " ").trim();
-  const re = palabras ? compileKeywordRegex([palabras]) : null;
+  const palabras = normalizeText(String(id).slice(0, MAX_CARACTERES_ALERGIA_LIBRE).replace(/_/g, " "))
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, MAX_PALABRAS_ALERGIA_LIBRE)
+    .map((p) => escaparParaRegex(raizSinPlural(p)));
+  // «\w*\s+» entre palabras deja que una lleve plural («judias verdes»
+  // encuentra «judia verde») sin saltar de una palabra a otra a ciegas.
+  const re = palabras.length ? new RegExp(`\\b${palabras.join("\\w*\\s+")}`) : null;
   regexDeAlergiaLibre.set(id, re);
   return re;
 }
@@ -194,8 +222,13 @@ export function recipeIngredientsHitAllergens(ingredientNames, blockedAllergenId
  * @returns {boolean}
  */
 export function recipeIngredientIdsHitFreeAllergy(allergiesRaw, recipeIngredients, resolveIngredientIdFn) {
+  // Sin resolutor no hay red: que se note (error de programación) en vez de
+  // dejar pasar en silencio una alergia declarada.
+  if (typeof resolveIngredientIdFn !== "function") {
+    throw new TypeError("recipeIngredientIdsHitFreeAllergy necesita el resolutor de ingredientes");
+  }
   const ids = new Set((recipeIngredients ?? []).map((i) => i.ingredientId).filter(Boolean));
-  if (ids.size === 0 || !resolveIngredientIdFn) return false;
+  if (ids.size === 0) return false;
   for (const raw of allergiesRaw ?? []) {
     const normalizado = normalizeAllergenId(raw);
     if (EU_ALLERGENS[normalizado] || INGREDIENT_ALLERGEN_KEYWORDS[normalizado]) continue;
