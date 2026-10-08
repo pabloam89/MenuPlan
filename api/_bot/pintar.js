@@ -29,8 +29,9 @@ import { diaDeFecha, sumarDias } from "./cuando.js";
 import { grupos as gruposDeLaCasa, grupoPara, quienesDe, cambiosDe, normal, prepararRecetas } from "./menu.js";
 import { fueraEn } from "./presentes.js";
 import { propiasDe } from "./propias.js";
+import { DIA_LARGO_MINUSCULAS } from "../../src/lib/dias.js";
 
-const DIA_LARGO = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves", Vie: "viernes", "Sáb": "sábado", Dom: "domingo" };
+const DIA_LARGO = DIA_LARGO_MINUSCULAS;
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 // Telegram corta a 4096; con margen para la frase de Lola encima.
 const MAX_CARACTERES = 3500;

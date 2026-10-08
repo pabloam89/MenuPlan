@@ -16,16 +16,17 @@
  *                                  segundo, sin pasar de 7 días
  */
 
+import { NOMBRES_DIA, indiceDeISO, diaDeISO } from "../../src/lib/dias.js";
+
 export const CUANDOS = ["hoy", "manana", "pasado_manana", "dia", "finde", "finde_que_viene", "esta_semana", "semana_que_viene", "rango"];
 
-const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
-const LARGOS = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
+const LARGOS = NOMBRES_DIA.map(normal);
 
 export const sumarDias = (iso, n) => { const d = new Date(`${iso}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 /** 0 = lunes … 6 = domingo */
-export const indiceDia = (iso) => (new Date(`${iso}T12:00:00Z`).getUTCDay() + 6) % 7;
-export const diaDeFecha = (iso) => DIAS[indiceDia(iso)];
+export const indiceDia = indiceDeISO;
+export const diaDeFecha = diaDeISO;
 
 /** «jueves», «el jueves», «Jue», «mañana» → índice 0-6 del día de la semana, o null. */
 function indiceDeNombre(texto, hoy) {

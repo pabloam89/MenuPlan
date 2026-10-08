@@ -23,14 +23,15 @@ import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
 import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
 import * as ids from "../../src/lib/ids.js";
 import { etapaDe, esMenor } from "../../src/lib/stages.js";
+import { indiceDeFechaUTC, isoDeCasa } from "../../src/lib/dias.js";
 
-const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+const hoyISO = () => isoDeCasa();
 // Del catálogo de comidas (src/lib/comidas.js).
 const COMIDAS = COMIDAS_PLANIFICABLES;
 
 function lunesDe(cual) {
   const hoy = new Date(`${hoyISO()}T12:00:00Z`);
-  const dia = (hoy.getUTCDay() + 6) % 7;
+  const dia = indiceDeFechaUTC(hoy);
   hoy.setUTCDate(hoy.getUTCDate() - dia + (cual === "siguiente" ? 7 : 0));
   return hoy.toISOString().slice(0, 10);
 }

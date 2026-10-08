@@ -10,6 +10,7 @@ import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { registerRecipes } from "../data/recipes.js";
 import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
 import demoState from "../dev/demoState.json";
+import { DIAS } from "../lib/dias.js";
 
 // First-run value-prop carousel. Hard rule (per product feedback): NO invented
 // UI — every slide embeds a REAL app screen fed with realistic data, rendered
@@ -308,7 +309,7 @@ const HOME_DEMO_GROUP = {
   memberIds: HOME_DEMO_MEMBERS.map((m) => m.id),
   color: "#2d5a3d",
 };
-const WEEK_DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const WEEK_DAYS = DIAS;
 const buildScheduleDemo = () => {
   const s = {};
   for (const day of WEEK_DAYS) {

@@ -25,12 +25,13 @@ import { gruposVigentes } from "../lib/groups.js";
 import { getConsumptionInsights, mergeConsumptionGroups, filterConsumptionByMeal } from "../lib/consumptionInsights.js";
 import { getMenuInsights } from "../lib/menuInsights.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
+import { DIA_LETRA } from "../lib/dias.js";
 import { mealTimeColor } from "../lib/mealTimes.js";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
 import { tabDirection } from "../lib/motion.js";
 import { SpendPanel } from "./SpendPanel.jsx";
 
-const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
+const DAY_LETTERS = DIA_LETRA;
 const TAB_OPTIONS = [
   { id: "cocina", label: "Cocina" },
   { id: "objetivos", label: "Objetivos" },

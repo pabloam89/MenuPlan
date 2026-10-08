@@ -1,4 +1,4 @@
-import { DAYS } from "./planner.js";
+import { DIAS_LABORABLES } from "./dias.js";
 import { SCHOOL_DAYS, hasAnySchoolDish, getSchoolDish } from "./schoolMenu.js";
 import {
   esMenor,
@@ -6,7 +6,7 @@ import {
   memberAvatarThumbSrc,
 } from "./stages.js";
 
-export const WEEKDAYS = DAYS.filter((d) => !["Sáb", "Dom"].includes(d));
+export const WEEKDAYS = [...DIAS_LABORABLES];
 
 // Menor de edad según etapaDe (bebé, niño o adolescente).
 export const isKidMember = (m) => esMenor(m);

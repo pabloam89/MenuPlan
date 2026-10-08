@@ -14,6 +14,7 @@ import {
 import { esCasqueria } from "../lib/casqueria.js";
 import { clavesDeReceta } from "../lib/bases.js";
 import { chocaConHueco, textoDeItem } from "../lib/excluirHueco.js";
+import { SLUGS_DIA, DIAS_LABORABLES, slugDeDia } from "../lib/dias.js";
 
 // Health profiles that trigger a correctable violation below. `anemia` is a
 // presence-based profile ("must contain iron-rich flag") rather than
@@ -192,10 +193,10 @@ export function getCarbType(recipe) {
 // means — a slot's neighbors in this array are always its true chronological
 // prev/next main meal, including across a day boundary (cena day N ->
 // comida day N+1).
-const DAY_ORDER = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"];
+const DAY_ORDER = SLUGS_DIA;
 // De lunes a viernes se come lo de diario; el fin de semana es donde caben la
 // paella de marisco y el arroz de bogavante (ver la regla 3f).
-const WEEKDAY_SLUGS = new Set(["lun", "mar", "mie", "jue", "vie"]);
+const WEEKDAY_SLUGS = new Set(DIAS_LABORABLES.map(slugDeDia));
 
 // Coarse protein grouping shared by the school-conflict rule (4), the new
 // same-day clash rule (3c) and applyFallback, so "no repetir carne/pescado el

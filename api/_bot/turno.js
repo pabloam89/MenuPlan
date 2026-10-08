@@ -28,11 +28,12 @@ import { RASTRO, MOTIVO_CAMBIO, idBase } from "../../src/lib/rastro.js";
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 // Icono y artículo de cada comida, del catálogo (src/lib/comidas.js).
 import { articuloDe } from "../../src/lib/comidas.js";
+import { isoDeCasa } from "../../src/lib/dias.js";
 const MAX_BOTON = 38;
 
 /** «la cena de hoy», «la comida del jueves» */
 function huecoEnTexto({ franja, dia, fecha }) {
-  const hoyISO = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+  const hoyISO = isoDeCasa();
   const cuando = fecha === hoyISO ? "de hoy" : dia ? `del ${DIA_LARGO[dia] ?? dia}` : "";
   return `${articuloDe(franja)} ${cuando}`.trim();
 }
@@ -288,7 +289,7 @@ export async function aplicarEleccion(eleccion, propuesta, householdId) {
 export async function contextoDe(householdId) {
   const casa = await cargarCasa(householdId).catch(() => null);
   const miembros = casa?.state?.data?.members ?? [];
-  const hoyISO = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+  const hoyISO = isoDeCasa();
   return {
     personas: miembros.map((p) => `${p.name}${p.age != null ? ` (${p.age})` : ""}`),
     grupos: casa ? grupos(casa).map((g) => quienesDe(g, miembros) ?? g.label) : [],

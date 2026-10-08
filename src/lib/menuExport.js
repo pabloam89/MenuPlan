@@ -2,6 +2,7 @@ import QRCode from "qrcode";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "./groups.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
+import { DIAS_LABORABLES, DIAS_FINDE, DIA_LARGO } from "./dias.js";
 import {
   getSchoolDish,
   hasAnySchoolDish,
@@ -33,8 +34,8 @@ const MONTH_NAMES = [
 
 const COLE_COLOR = "#1d6fd8";
 
-export const PDF_WEEKDAY_DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie"];
-export const PDF_WEEKEND_DAYS = ["Sáb", "Dom"];
+export const PDF_WEEKDAY_DAYS = DIAS_LABORABLES;
+export const PDF_WEEKEND_DAYS = DIAS_FINDE;
 export const PDF_EXPORT_MEALS = ["Desayuno", "Comida", "Cena"];
 
 /** True when any member eats comedor escolar on a weekday. */
@@ -180,10 +181,7 @@ function longDate(date) {
   return `${date.getDate()} de ${MONTH_NAMES[date.getMonth()]}`;
 }
 
-const DAY_FULL = {
-  Lun: "Lunes", Mar: "Martes", Mié: "Miércoles", Jue: "Jueves",
-  Vie: "Viernes", Sáb: "Sábado", Dom: "Domingo",
-};
+const DAY_FULL = DIA_LARGO;
 
 export function formatMenuText(data, menuPlan, groups) {
   const dates = getWeekDates();

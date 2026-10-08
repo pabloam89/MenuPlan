@@ -32,6 +32,7 @@
 import basesCatalog from "../data/recipes/bases.json" with { type: "json" };
 import { catalogIdOfPlanRecipe } from "./freezer.js";
 import { CAPACIDAD_POR_APARATO } from "./applianceMethods.js";
+import { DIAS } from "./dias.js";
 
 /** Todas las bases del catálogo. */
 export const BASES = basesCatalog;
@@ -559,7 +560,7 @@ export const MIN_PLATOS_POR_BASE = 2;
  * @returns {{ bases: Array, minutosTotales: number, ahorroTotal: number }}
  *   ordenado por ahorro descendente: lo que más tiempo devuelve, primero.
  */
-const SEMANA = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const SEMANA = DIAS;
 
 export function sesionDeBases(plan, recetasPorId, opts = {}) {
   const dias = opts.dias ?? [];

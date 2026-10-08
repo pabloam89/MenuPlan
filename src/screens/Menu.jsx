@@ -149,6 +149,7 @@ import { OnboardingRestrictions, OnboardingMealStyle, OnboardingMealExtrasComida
 import { downloadMenuPdf, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps, catalogToFrontendRecipe } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, getDayMeals, isLunchMeal, dayLabel } from "../lib/planner.js";
+import { DIA_LETRA, indiceDeFecha } from "../lib/dias.js";
 import { dishAvailabilityMap, formatDisplay } from "../lib/shoppingListUtils.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import { deckImg, deckSrcSet, prefetchDeckHero } from "../lib/dishPhotoOptimize.js";
@@ -302,7 +303,7 @@ function DaySectionHeader({ day, dayNumber, right = null }) {
   );
 }
 
-const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
+const DAY_LETTERS = DIA_LETRA;
 const GROUP_ABBREV = { Adultos: "A", Niños: "N", "Bebé": "B", Familia: "F" };
 
 // An ad-hoc menú isn't a set of people, and a caller with no roster can't
@@ -3552,13 +3553,13 @@ const MONTH_NAMES = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ];
-const MONTH_COLS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const MONTH_COLS = DAYS;
 
 /** Lunes de la semana que contiene `d`. */
 function mondayOf(d) {
   const out = new Date(d);
   out.setHours(0, 0, 0, 0);
-  out.setDate(out.getDate() - ((out.getDay() + 6) % 7));
+  out.setDate(out.getDate() - indiceDeFecha(out));
   return out;
 }
 
@@ -5452,8 +5453,7 @@ export const MenuScreen = memo(function MenuScreen({
   const [confirmDeleteActive, setConfirmDeleteActive] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() => {
     if (initialDay && DAYS.includes(initialDay)) return initialDay;
-    const jsDay = new Date().getDay();
-    const idx = jsDay === 0 ? 6 : jsDay - 1;
+    const idx = indiceDeFecha(new Date());
     if (data.menuWeek?.offset === 0) {
       return DAYS[Math.max(idx, data.menuWeek.startDayIdx ?? idx)];
     }
