@@ -13,6 +13,8 @@ const ctx = (extra = {}) => ({
   enStaging: (n) => ["0079_personas_y_grupos", "0080_bot_tareas_v2"].includes(n),
   estadoMd: ESTADO,
   baseDelPr: () => "staging",
+  atrasoLocal: () => 0,
+  atrasoDelPr: () => 0,
   ...extra,
 });
 const bash = (command, c = ctx()) => decidir({ tool_name: "Bash", tool_input: { command } }, c)?.decision ?? null;
@@ -161,6 +163,20 @@ describe("gh pr merge", () => {
   it("a staging pasa", () => expect(bash("gh pr merge 90 --squash")).toBe(null));
   it("a main, no", () => expect(bash("gh pr merge 90", ctx({ baseDelPr: () => "main" }))).toBe("deny"));
   it("sin poder leer la base, pregunta", () => expect(bash("gh pr merge", ctx({ baseDelPr: () => null }))).toBe("ask"));
+  it("con la rama atrasada, no", () => expect(bash("gh pr merge 90 --squash", ctx({ atrasoDelPr: () => 3 }))).toBe("deny"));
+  it("sin poder saber el atraso, pregunta", () => expect(bash("gh pr merge 90", ctx({ atrasoDelPr: () => null }))).toBe("ask"));
+  it("a main ni se mira el atraso", () => {
+    let mirado = false;
+    expect(bash("gh pr merge 90", ctx({ baseDelPr: () => "main", atrasoDelPr: () => ((mirado = true), 0) }))).toBe("deny");
+    expect(mirado).toBe(false);
+  });
+});
+
+describe("gh pr create con la rama al día", () => {
+  it("al día pasa", () => expect(bash('gh pr create --base staging --title "x" --body "y"')).toBe(null));
+  it("atrasada, no", () => expect(bash("git push -u origin ops/x && gh pr create --base staging", ctx({ atrasoLocal: () => 2 }))).toBe("deny"));
+  it("sin poder saberlo, pregunta", () => expect(bash("gh pr create", ctx({ atrasoLocal: () => null }))).toBe("ask"));
+  it("otros gh pr no lo miran", () => expect(bash("gh pr view 90", ctx({ atrasoLocal: () => 5, atrasoDelPr: () => 5 }))).toBe(null));
 });
 
 it("cambiar permisos o hooks compartidos pregunta", () => {
