@@ -24,6 +24,9 @@
   "bot_deshacer": [
     "api/_bot/casa.js"
   ],
+  "bot_entradas": [
+    "api/_bot/entradas.js"
+  ],
   "bot_idempotencia": [
     "api/_bot/idempotencia.js"
   ],
@@ -163,9 +166,6 @@
     "api/bot/link.js",
     "src/lib/analytics.js",
     "src/lib/householdsSync.js"
-  ],
-  "user_recipe_discards": [
-    "src/lib/recipeDiscardsSync.js"
   ],
   "user_recipes": [
     "api/_bot/compartir.js",
