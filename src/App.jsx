@@ -164,7 +164,7 @@ import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { guardarConVersion, guardandoCasa, guardadosDeCasa } from "./lib/versionCasa.js";
 import { resolveModeData, prepararSemana } from "./lib/prepararGeneracion.js";
 import BotEnlace from "./components/BotEnlace.jsx";
-import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, subirDescartesPendientes } from "./lib/householdDiscardsSync.js";
+import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, subirDescartesUnaVez } from "./lib/householdDiscardsSync.js";
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
 import { esTitular } from "./lib/householdsSync.js";
@@ -1689,16 +1689,11 @@ export default function App() {
       // an account whose only record of a discard sits in the blob needs it
       // pushed to household_recipe_discards too, not only kept in memory.
       // Incluye los descartes hechos con sesión pero antes de tener casa
-      // (esos solo se guardaron en el dispositivo).
-      const discardsBackfill = {
-        forever: mergedDiscards.forever.filter((id) => !(remoteDiscards.forever ?? []).includes(id)),
-        cooldownUntil: Object.fromEntries(
-          Object.entries(mergedDiscards.cooldownUntil).filter(([id]) => !(id in (remoteDiscards.cooldownUntil ?? {}))),
-        ),
-      };
+      // (esos solo se guardaron en el dispositivo). Una sola vez por casa y
+      // dispositivo (subirDescartesUnaVez): después manda la tabla.
       // A la tabla de la que se acaba de leer: la de la casa si hay casa. Un
       // lector no escribe en la casa ajena (RLS lo rechazaría igual).
-      if (!householdReadOnly) subirDescartesPendientes(householdId, discardsBackfill);
+      if (!householdReadOnly) subirDescartesUnaVez({ userId: user.id, householdId, local: mergedDiscards, remote: remoteDiscards });
 
       const cloudSummaries = await loadMenuSummariesRemote(menuUserId, householdId);
       if (cancelled) return;
@@ -4058,7 +4053,7 @@ export default function App() {
       return { ...d, discards: { forever, cooldownUntil } };
     });
     // A la casa (household_recipe_discards). Sin casa todavía, solo en el
-    // dispositivo: la carga con casa lo sube (subirDescartesPendientes).
+    // dispositivo: la carga con casa lo sube (subirDescartesUnaVez).
     if (user?.id && syncHouseholdId) {
       if (reason === "dislike") {
         saveHouseholdDiscard(syncHouseholdId, baseId, { isPermanent: true });

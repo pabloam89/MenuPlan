@@ -24,6 +24,7 @@ import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
 import * as ids from "../../src/lib/ids.js";
 import { etapaDe, esMenor } from "../../src/lib/stages.js";
 import { indiceDeFechaUTC, isoDeCasa } from "../../src/lib/dias.js";
+import { ETAPA_BEBE } from "../../src/lib/vocabularios.js";
 
 const hoyISO = () => isoDeCasa();
 // Del catálogo de comidas (src/lib/comidas.js).
@@ -262,7 +263,7 @@ export async function descartarSupuesto(householdId, { campo, valor, ambito = "t
 // `data.etapaBebe`, la misma que elige la app (lib/babyStage.js) y la que usa
 // el motor para su menú; sin ella, «ya come sólidos» no cambiaba nada y le
 // seguían saliendo purés.
-const ETAPAS_BEBE = ["cremas", "mixto", "solidos"];
+const ETAPAS_BEBE = ETAPA_BEBE;
 
 export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo, tanda, trastos, comidas, etapaBebe }) {
   return conData(householdId, (data, m) => {

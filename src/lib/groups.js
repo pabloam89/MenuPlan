@@ -1,4 +1,5 @@
-import { esEtapaBebe, esMenor, etapaDe, resolveMemberAge } from "./stages.js";
+import { esEtapaBebe, esMenor, esNino, etapaDe, resolveMemberAge } from "./stages.js";
+import { normalizeAllergenId } from "./allergensCore.js";
 import * as ids from "./ids.js";
 
 const GROUP_COLORS = ["#2d5a3d", "#c67030", "#5a7ea8", "#a85a7e", "#7e5aa8", "#5aa87e"];
@@ -33,6 +34,38 @@ function conTipo(group) {
 const RELEVO = { familia: "adultos", adultos: "familia" };
 
 /**
+ * Lo que una persona le pide al filtro del menú: alergias (todas, si están
+ * sin revisar: ver alergiasParaMenu en alergias.js), intolerancias, estados,
+ * perfiles de salud y, de 3 a 11, el filtro del alcohol (buildGroupContext).
+ */
+function restriccionesDe(m) {
+  return [
+    ...(m.allergies ?? []).map((a) => `alergia:${normalizeAllergenId(a)}`),
+    ...(m.alergiasRevisadas === false ? ["alergia:sin_revisar"] : []),
+    ...(m.intolerances ?? []).map((x) => `intolerancia:${x}`),
+    ...(m.dietaryStates ?? []).map((x) => `estado:${x}`),
+    ...(m.healthProfiles ?? []).map((x) => `salud:${x}`),
+    ...(esNino(m) ? ["nino"] : []),
+  ];
+}
+
+/**
+ * ¿Vale el plan del grupo viejo `v` para el nuevo `g`? Se hizo para los de
+ * `v`: si llega alguien con una restricción que no tenía ninguno de ellos, el
+ * plan no pasó por su filtro (Nina, alérgica al huevo, de Niños a Familia con
+ * la tortilla de Adultos). Sin `members` no se sabe: solo vale si no llega nadie.
+ */
+function planValePara(g, v, members) {
+  const antes = new Set(v.memberIds ?? []);
+  const llegan = (g.memberIds ?? []).filter((id) => !antes.has(id));
+  if (!llegan.length) return true;
+  if (!Array.isArray(members)) return false;
+  const porId = new Map(members.map((m) => [m.id, m]));
+  const cubiertas = new Set([...antes].flatMap((id) => (porId.has(id) ? restriccionesDe(porId.get(id)) : [])));
+  return llegan.every((id) => !porId.has(id) || restriccionesDe(porId.get(id)).every((r) => cubiertas.has(r)));
+}
+
+/**
  * Los grupos `nuevos` con los ids de los `viejos` que hacen su mismo papel.
  *
  * El plan, los *ByGroup, los ids de receta `${gid}__rid`, la compra y las
@@ -42,8 +75,13 @@ const RELEVO = { familia: "adultos", adultos: "familia" };
  * (`sourceMemberId`); un grupo sin tipo conocido, por la etiqueta. Lo que no
  * hereda nada se queda con su id nuevo. Los `sourceGroupId` que apuntaban a un
  * id nuevo pasan al heredado.
+ *
+ * Con el id va el plan: no se hereda si llega al grupo alguien con una
+ * restricción que el grupo viejo no tenía (planValePara). Entonces id nuevo y
+ * tablero vacío, como antes de heredar ids: más vale rehacer que servir un
+ * plato sin pasar por su filtro.
  */
-export function conservarIds(viejos, nuevos) {
+export function conservarIds(viejos, nuevos, members) {
   const candidatos = (viejos ?? []).filter((v) => v?.id);
   if (!candidatos.length || !Array.isArray(nuevos) || !nuevos.length) return nuevos;
   const usados = new Set(nuevos.map((g) => g.id).filter((id) => candidatos.some((v) => v.id === id)));
@@ -58,7 +96,7 @@ export function conservarIds(viejos, nuevos) {
   for (const casa of [mismoPapel, relevo]) {
     nuevos.forEach((g, i) => {
       if (elegidos[i]) return;
-      const v = candidatos.find((x) => !usados.has(x.id) && casa(g, x));
+      const v = candidatos.find((x) => !usados.has(x.id) && casa(g, x) && planValePara(g, x, members));
       if (v) { usados.add(v.id); elegidos[i] = v.id; }
     });
   }
@@ -434,7 +472,7 @@ export function membersOfGroup(group, members) {
  * en curso. Sin viejos, ids nuevos.
  */
 export function groupsFromModel(members, model, viejos = []) {
-  return conservarIds(viejos, gruposDelModelo(members, model));
+  return conservarIds(viejos, gruposDelModelo(members, model), members);
 }
 
 function gruposDelModelo(members, model) {
@@ -513,7 +551,7 @@ export function migrateGroupsForBabies(members, groups, _menuModel, viejos = gro
     ...babyGroup,
     memberIds: Array.from(babyIds),
   }));
-  return conservarIds(viejos, updated);
+  return conservarIds(viejos, updated, members);
 }
 
 /**

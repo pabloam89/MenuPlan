@@ -17,7 +17,7 @@ import {
   trackDayPasta,
 } from "./recipeDiversity.js";
 import { maxCookTime } from "./cookTime.js";
-import { DIAS } from "./vocabularios.js";
+import { DIAS, COMIDAS, DONDE_COME } from "./vocabularios.js";
 import { alergiasParaMenu } from "./alergias.js";
 import { platoVetado, vetosDe } from "./vetos.js";
 import { DIA_LARGO, tipoDeComida } from "./dias.js";
@@ -65,7 +65,7 @@ export function getExtraMeals(data) {
  */
 export function getDayMeals(data) {
   const active = new Set([...getMeals(data), ...getExtraMeals(data)]);
-  return ["Desayuno", "Comida", "Merienda", "Cena", "Postre"].filter((m) => active.has(m));
+  return COMIDAS.filter((m) => active.has(m));
 }
 
 export function isLunchMeal(meal) {
@@ -84,7 +84,7 @@ export function primaryDayMeal(data) {
 //   "fuera"  → comen fuera
 //   "cole"   → comedor escolar (solo niños)
 //   "off"    → no aplica / no come
-export const SLOT_VALUES = ["casa", "tupper", "fuera", "cole", "off"];
+export const SLOT_VALUES = DONDE_COME;
 
 export function slotKey(memberId, day, meal) {
   return `${memberId}|${day}|${meal}`;

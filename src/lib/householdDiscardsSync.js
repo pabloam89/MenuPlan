@@ -91,9 +91,41 @@ export async function subirDescartesPendientes(householdId, discards) {
       cooldown_until: new Date(ts).toISOString(),
     })),
   ];
-  if (rows.length === 0) return;
+  if (rows.length === 0) return true;
   const { error } = await supabase
     .from("household_recipe_discards")
     .upsert(rows, { onConflict: "household_id,recipe_id" });
   if (error) console.warn("[householdDiscardsSync] bulk upsert failed", error.message);
+  return !error;
+}
+
+// En el localStorage y no en `data`: `data` viaja a household_state y la marca
+// de un dispositivo dejaría sin subir los de otro.
+const claveSubidos = (userId, householdId) => `mp_descartes_subidos:${userId}:${householdId}`;
+
+/**
+ * Lo que el dispositivo tiene (`local`: lo suyo más el blob antiguo) y la
+ * casa no (`remote`, recién leído), subido UNA vez por casa, usuario y
+ * dispositivo. Después la tabla de la casa manda: si otro miembro saca una
+ * receta de descartes, la copia local de este no la vuelve a subir en cada
+ * carga. Nunca sube un enfriamiento vencido ni el de una receta que la casa
+ * descarta para siempre (el upsert la volvería temporal).
+ */
+export async function subirDescartesUnaVez({ userId, householdId, local, remote, now = Date.now() }) {
+  if (!householdId || !userId) return;
+  try {
+    if (localStorage.getItem(claveSubidos(userId, householdId))) return;
+  } catch { /* sin localStorage: se sube, filtrado igual */ }
+  const paraSiempre = new Set(remote?.forever ?? []);
+  const pendientes = {
+    forever: (local?.forever ?? []).filter((id) => !paraSiempre.has(id)),
+    cooldownUntil: Object.fromEntries(
+      Object.entries(local?.cooldownUntil ?? {}).filter(
+        ([id, ts]) => ts > now && !paraSiempre.has(id) && !(id in (remote?.cooldownUntil ?? {})),
+      ),
+    ),
+  };
+  const ok = await subirDescartesPendientes(householdId, pendientes);
+  if (!ok) return;
+  try { localStorage.setItem(claveSubidos(userId, householdId), "1"); } catch { /* modo incógnito */ }
 }

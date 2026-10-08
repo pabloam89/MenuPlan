@@ -1,5 +1,5 @@
 import { supabase } from "./supabase.js";
-import { favScopeOf, voteOf } from "./recipeVotes.js";
+import { favScopeOf, isFavorite, voteOf } from "./recipeVotes.js";
 
 /**
  * Household favorites for menu generation (see household_favorites table).
@@ -53,6 +53,9 @@ function columnToScope(scope) {
  */
 export async function saveHouseholdFavorite(householdId, recipeId, entry = null) {
   if (!supabase || !householdId || !recipeId) return;
+  // Una entrada que ya no es favorita (queda solo el 👍/👎) no es una fila con
+  // scope null: null es «todos», y al recargar volvería a ser de toda la casa.
+  if (!isFavorite(entry)) return deleteHouseholdFavorite(householdId, recipeId);
   const { error } = await supabase.from("household_favorites").upsert(
     {
       household_id: householdId,

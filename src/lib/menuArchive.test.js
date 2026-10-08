@@ -398,4 +398,15 @@ describe("semanaVivaPorGuardar", () => {
     expect(semanaVivaPorGuardar(menus, "m", 3, editado, lista)).toBeNull();
     expect(semanaVivaPorGuardar(menus, "m", 0, {}, lista)).toBeNull();
   });
+
+  // Si loadMenuDetail falla (red), el archivo solo tiene el rango de la semana
+  // (loadMenuWeekRanges): sin plan, ni horario, ni días. Guardarla pisaba la
+  // fila con el plan del blob, schedule {} y active_days null.
+  it("una semana de la que solo se cargó el rango no se guarda", () => {
+    const soloRango = {
+      m: { id: "m", weeks: { "2026-10-05": { offset: 0, startDayIdx: 0, startISO: "2026-10-05", endISO: "2026-10-11" } } },
+    };
+    const editado = { g1: { "Lun-Comida": { recipeId: "pescados_002" } } };
+    expect(semanaVivaPorGuardar(soloRango, "m", 0, editado, lista)).toBeNull();
+  });
 });
