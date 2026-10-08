@@ -5,9 +5,11 @@
  * que se hace a continuación: en qué carpeta y rama estás, si te falta el
  * entorno, si vas por detrás de staging, qué otras sesiones hay abiertas, qué
  * números de migración están cogidos, cuáles siguen sin aplicar y qué issues
- * esperan a alguien (decisiones de Pablo, encargos, lecciones sin su test).
+ * esperan a alguien (decisiones de Pablo, encargos, los problemas de fondo que
+ * más se repiten y lo que está sin clasificar).
  * Además apunta esta sesión en el registro (sesiones.mjs).
- * Nunca falla: si algo no se puede mirar, se calla.
+ * Nunca rompe el arranque: si algo no se puede mirar, sigue con lo demás. Lo
+ * que no pudo mirar lo dice cuando callarlo engañaría (los issues).
  */
 import { execFile, execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -82,8 +84,10 @@ try {
 
 // ── Staging y migraciones ──────────────────────────────────────────────────
 const prs = pedirPrs(raiz, 10_000); // a la vez que el fetch: los dos son red, y gh es el lento
+// Lo que se enseña de los issues lo decide scripts/lib/issues.mjs (una sola
+// fuente con `npm run issues`); aquí solo se lanza y se espera al final.
 const issues = new Promise((ok) => {
-  execFile("gh", ["issue", "list", "--state", "open", "--limit", "200", "--json", "number,labels"], { cwd: raiz, encoding: "utf8", timeout: 10_000 }, (error, salida) => ok(error ? null : salida));
+  execFile("node", ["scripts/issues.mjs", "--arranque"], { cwd: raiz, encoding: "utf8", timeout: 10_000 }, (error, salida) => ok(error ? null : salida));
 });
 git("fetch", "-q", "origin", "staging");
 const detras = git("rev-list", "--count", "HEAD..origin/staging");
@@ -109,17 +113,10 @@ if (existsSync(estado)) {
 }
 
 // ── Issues: lo que espera a alguien ──────────────────────────────────────
-try {
-  const abiertos = JSON.parse((await issues) ?? "[]");
-  const de = (t) => abiertos.filter((i) => i.labels.some((l) => l.name === `tipo:${t}`)).length;
-  const partes = [
-    [de("decision"), "decisiones esperando a Pablo"],
-    [de("encargo"), "encargos (mira si el tuyo ya lo tiene alguien)"],
-    [de("leccion"), "lecciones sin su test"],
-  ].filter(([n]) => n).map(([n, que]) => `${n} ${que}`);
-  if (partes.length) avisos.push(`Issues abiertos: ${partes.join("; ")}. Detalle: \`npm run issues\`.`);
-} catch {
-  // sin GitHub: se calla
-}
+const lineasIssues = (await issues)?.split("\n").map((l) => l.trim()).filter(Boolean);
+if (lineasIssues) avisos.push(...lineasIssues);
+// Sin respuesta (sin gh, sin red o tarda más de 10 s) no se calla: se dice, para
+// que nadie crea que no hay nada pendiente.
+else avisos.push("Issues: no he podido leerlos (GitHub no contesta, gh sin sesión o un fallo del script); míralos con `npm run issues`.");
 
 process.stdout.write(`[arranque MenuPlan]\n- ${avisos.join("\n- ")}\n`);

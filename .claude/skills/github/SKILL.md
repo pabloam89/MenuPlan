@@ -93,43 +93,74 @@ CLI `gh` va con la sesión de Pablo (`gh auth status`).
   `scripts/podar.mjs` borra solo las fusionadas enteras en `origin/staging`,
   sin PR abierto, de hace más de 1 día y sin worktree.
 
-### Issues: lecciones, decisiones y encargos
+### Issues: problemas de fondo, casos, encargos y decisiones
 
 Lo que no se cierra en una sesión vive en un issue: sobrevive al reinicio, lo
 ven Álvaro y las sesiones de la nube, y con las mismas etiquetas siempre se
-puede contar qué falla más. La clasificación tiene una sola fuente,
-`scripts/lib/issues.mjs`; los formularios de `.github/ISSUE_TEMPLATE/` salen
-de ella y `scripts/issues.test.js` vigila que no se separen.
+puede contar. Un fallo no se apunta suelto: se analiza hasta su **problema de
+fondo** (la norma, en CLAUDE.md, «Cuando algo falla»). La clasificación tiene
+una sola fuente, `scripts/lib/issues.mjs`; los formularios de
+`.github/ISSUE_TEMPLATE/` salen de ella y `scripts/issues.test.js` vigila que
+no se separen y que la norma siga escrita aquí, en CLAUDE.md y en `/orquestar`.
+
+```
+problema de fondo (tipo:fondo)   qué falla de fondo, su arreglo general y cómo se probará
+  ├─ caso (tipo:caso)            dónde se ha visto: la evidencia
+  └─ encargo (tipo:encargo)      una parte del arreglo, con su dueño y su PR
+```
 
 | Grupo | Valores | Cuándo |
 |---|---|---|
-| `tipo:` | `leccion`, `decision`, `encargo` | siempre, uno |
-| `causa:` | `vigilante-falso`, `vigilante-hueco`, `entorno`, `limpieza`, `coordinacion`, `modelo-datos`, `codigo` | toda lección |
+| `tipo:` | `fondo`, `caso`, `encargo`, `decision` | siempre, uno |
+| `analisis:` | `nuevo`, `abierto`, `no-aguanto-roto`, `no-aguanto-corto`, `puntual` | todo caso |
+| `causa:` | `vigilante-falso`, `vigilante-hueco`, `entorno`, `dos-fuentes`, `error-silencioso`, `coordinacion`, `modelo-datos`, `codigo` | todo fondo, y el caso puntual |
 | `area:` | `datos`, `lola`, `ui`, `catalogo`, `motor`, `ops` | siempre |
-| `arreglo:` | `test`, `guardia`, `script`, `regla`, `skill`, `ninguno` | al cerrar una lección: dónde quedó |
+| `arreglo:` | `test`, `guardia`, `script`, `regla`, `skill`, `ninguno` | al cerrar un fondo: dónde quedó |
+
+**El análisis de un caso**, siempre con una de estas respuestas:
+
+1. `nuevo`: no hay fondo. Abre uno con `## Arreglo general` y `## Cómo se
+   probará` (qué test cubre la clase entera) y cuelga el caso.
+2. `abierto`: hay uno abierto (búscalo en `npm run issues`). Cuélgalo.
+3. `no-aguanto-roto` o `no-aguanto-corto`: el fondo lo cerró un PR. Cuélgalo:
+   `--colgar` lo reabre y nombra el PR. **Roto**: el arreglo funcionaba y algo
+   lo deshizo o lo esquivó; falta un test que lo proteja. **Corto**: tapó los
+   casos conocidos y no la clase; el nuevo arreglo es más general, no otra
+   excepción.
+4. `puntual`: no puede repetirse, o repetirlo no hace daño. El cuerpo dice
+   «Puntual porque …» y lleva `causa:`. Se cierra en el momento. «Alguien
+   podría volver a hacerlo» no es puntual. Ejemplo válido: GitHub caído.
+
+**El arreglo** va en el fondo: uno o varios encargos colgando de él. Uno por
+superficie (base, scripts, bot…) cuando el cambio vive en sitios distintos;
+uno solo, con un dueño y un juez por superficie, cuando es una pieza común
+(partirla daría dos versiones: `dos-fuentes`). El fondo se cierra cuando
+acaban sus encargos y el test de la clase está en verde.
 
 ```
-gh issue create --title "[lección] …" --label tipo:leccion,causa:entorno,area:ops --body-file <fichero>
+gh issue create --title "[caso] …" --label tipo:caso,analisis:abierto,area:ops --body-file <fichero>
+gh issue create --title "[fondo] …" --label tipo:fondo,causa:error-silencioso,area:datos --body-file <fichero>
+gh issue create --title "[encargo] …" --label tipo:encargo,area:datos --body-file <fichero>
 gh issue create --title "[decisión] …" --label tipo:decision,area:datos --body-file <fichero>
+npm run issues -- --colgar <caso o encargo> <fondo>   # cuelga; si el fondo estaba cerrado, lo reabre
 gh issue edit <n> --add-assignee @me        # coger un encargo (o «Quién lo coge» en el cuerpo)
-gh issue close <n> --comment "Queda en el PR #n"     # solo si no lo cerró el PR; antes: --add-label arreglo:test
-gh issue reopen <n> --comment "Vuelve a pasar: …"     # una lección que reincide se reabre, no se duplica
-npm run issues                              # abiertos, lecciones por causa y por agente, sin trazar
-npm run issues -- --ordenar                 # etiquetas que faltan, leídas de un formulario
-npm run issues -- --etiquetas               # crear las etiquetas en GitHub (OK de Pablo)
+gh issue close <n> --comment "Queda en el PR #n"     # solo si no lo cerró el PR; un fondo, antes con --add-label arreglo:test
+npm run issues                              # fondos por casos, encargos, puntuales, por causa y agente, sin trazar
+npm run issues -- --ordenar                 # etiquetas y padre que faltan, leídos de un formulario
+npm run issues -- --etiquetas               # crear o retirar etiquetas en GitHub (OK de Pablo)
 ```
 
-- **El cuerpo de una lección:** cuándo, qué pasó (esperado frente a real),
-  evidencia (comando y salida, PR, fichero:línea) y dónde debería quedar el
-  arreglo. El de una decisión: la pregunta en llano, las opciones con la
-  recomendada primero y qué pasa si no se decide.
-- **La traza no se rellena: se deduce.** Fechas, reaperturas, asignados y el
-  issue padre los guarda GitHub. Quién arregló sale del PR que cierra: lleva
+- **El cuerpo de un caso:** cuándo, qué pasó (esperado frente a real),
+  evidencia (comando y salida, PR, fichero:línea) y el análisis. El de una
+  decisión: la pregunta en llano, las opciones con la recomendada primero y
+  qué pasa si no se decide.
+- **La traza no se rellena: se deduce.** Fechas, reaperturas, asignados,
+  padre e hijos los guarda GitHub. Quién arregló sale del PR que cierra: lleva
   `Closes #n` y una línea `Agente: <nombre>` (o `sesión`); la plantilla de PR
-  los trae. Si se cierra a mano, «PR #n» en el comentario de cierre. Un
-  seguimiento que deja una lección se abre como sub-issue de ella.
-- **Si una lección vuelve a pasar, se reabre la misma.** Las reaperturas son
-  la cuenta de «arreglo que no aguantó», por causa y por agente.
+  los trae. Si se cierra a mano, «PR #n» en el comentario de cierre.
+- **Cada semana**, `/revision-issues` mira el conjunto: puntuales que se
+  parecen (tres «puntuales» parecidos son un fondo), casos colgados del fondo
+  equivocado, dos fondos que son el mismo y fondos sin encargos.
 - **Una categoría nueva** se añade en `scripts/lib/issues.mjs` con su
   descripción, se regeneran las etiquetas y se pone en el formulario. Si algo
   no encaja en ninguna causa, primero se mira si es una de las que hay; una
