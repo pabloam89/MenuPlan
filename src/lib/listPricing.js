@@ -264,8 +264,7 @@ function emptyEstimate(storeName, items, obs, extra = {}) {
   };
 }
 
-/** Una línea a envases enteros (o a priceObs). Modo 'paquetes' de lib/coste.js. */
-export function priceOneItem(item, catalogProducts, priceObs) {
+function priceOneItem(item, catalogProducts, priceObs) {
   const key = item.id ?? `${item.name}|${item.unit ?? "ud"}`;
   const match = matchProductForIngredient(item.name, catalogProducts);
   if (match && match.confidence >= MATCH_HIGH) {

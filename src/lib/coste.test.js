@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { costeReceta, costeMenu } from "./coste.js";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { costeReceta } from "./coste.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { catalogToFrontendRecipe } from "./aiPlanner.js";
 import { conRasgos } from "../../api/_bot/menu.js";
@@ -56,54 +56,41 @@ describe("costeReceta: un número por receta y modo, lo lea quien lo lea", () =>
   });
 });
 
-describe("redondeo a envase entero: solo en modo paquetes", () => {
-  const receta = { ingredients: [{ id: "a", name: "Aceite de oliva", unit: "ml", amount: 30 }], baseServings: 4 };
+describe("la ficha del plato", () => {
+  const menu = readFileSync(fileURLToPath(new URL("../screens/Menu.jsx", import.meta.url)), "utf8");
 
-  it("30 ml de aceite cuestan céntimos a granel y una botella en paquetes", () => {
-    const granel = costeReceta(receta, { modo: "granel", raciones: 4, precios: PRECIOS });
-    const paquetes = costeReceta(receta, { modo: "paquetes", raciones: 4, precios: PRECIOS });
-    expect(granel.total).toBeLessThan(0.5);
-    expect(paquetes.total).toBe(5);
-    expect(paquetes.porRacion).toBe(1.25);
-  });
-
-  it("paquetes: precio por ración de la compra real (envases enteros entre raciones)", () => {
-    const r = costeReceta(
-      { ingredients: [{ id: "a", name: "Merluza", unit: "g", qtyScaled: 500 }, { id: "b", name: "Aceite de oliva", unit: "ml", qtyScaled: 1000 }] },
-      { modo: "paquetes", raciones: 4, precios: PRECIOS },
-    );
-    expect(r.cobertura).toBe(1);
-    expect(r.porRacion).toBeCloseTo(2.38, 2); // (4,5 + 5) / 4
-  });
-
-  it("paquetes sin nada emparejado: null, nunca un coste inventado", () => {
-    const r = costeReceta({ ingredients: [{ id: "a", name: "Ingrediente inventado xyz", unit: "g", qtyScaled: 100 }] }, { modo: "paquetes", raciones: 2, precios: PRECIOS });
-    expect(r).toBeNull();
-  });
-
-  it("paquetes con «al gusto» (qtyScaled null) no rompe ni da NaN", () => {
-    const r = costeReceta({ ingredients: [{ id: "a", name: "Merluza", unit: "g", qty: 500, qtyScaled: null }] }, { modo: "paquetes", raciones: 4, precios: PRECIOS });
-    expect(Number.isFinite(r.porRacion)).toBe(true);
-  });
-
-  it("sin modo explícito no hay número", () => {
-    expect(() => costeReceta(receta, { raciones: 4, precios: PRECIOS })).toThrow(/modo/);
+  // Decisión del 8 oct 2026: el €/ración de la ficha es el mismo número que ve
+  // Lola. Los precios que apunta el usuario (data.priceObs) cuentan en el total
+  // de la compra (listPricing), no aquí.
+  it("no usa data.priceObs ni el precio a envases de listPricing", () => {
+    expect(menu).not.toMatch(/priceObs/);
+    expect(menu).not.toMatch(/from "\.\.\/lib\/listPricing\.js"/);
+    expect(menu).toMatch(/costeReceta\(recipe, \{ modo: "granel"/);
   });
 });
 
-describe("costeMenu", () => {
-  const plato = { ingredients: [{ id: "a", name: "Aceite de oliva", unit: "ml", amount: 30 }], baseServings: 4 };
-  const menu = [{ receta: plato, raciones: 4 }, { receta: plato, raciones: 4 }];
-
-  it("paquetes compra una botella para toda la semana; granel suma lo que se gasta", () => {
-    expect(costeMenu(menu, { modo: "paquetes", precios: PRECIOS }).total).toBe(5);
-    const granel = costeMenu(menu, { modo: "granel", precios: PRECIOS });
-    expect(granel.total).toBeCloseTo(2 * costeReceta(plato, { modo: "granel", raciones: 4, precios: PRECIOS }).total, 2);
+describe("coste.js", () => {
+  it("sin modo explícito no hay número", () => {
+    expect(() => costeReceta(conPrecio[0], {})).toThrow(/modo/);
+    expect(() => costeReceta(conPrecio[0], { modo: "paquetes" })).toThrow(/priceShoppingList/);
   });
 
-  it("granel del menú = suma de los platos del catálogo con la tabla", () => {
-    const [a, b] = conPrecio;
-    const t = costeMenu([{ receta: a, raciones: 2 }, { receta: b, raciones: 3 }], { modo: "granel" });
-    expect(t.total).toBeCloseTo(a.costeRacion * 2 + b.costeRacion * 3, 2);
+  // recipeCatalog llama a costeReceta mientras se evalúa: si coste.js llegara
+  // a importar algo que importe recipeCatalog, habría un ciclo.
+  it("no alcanza recipeCatalog por sus imports (sin ciclo)", () => {
+    const vistos = new Set();
+    const pendientes = [fileURLToPath(new URL("./coste.js", import.meta.url))];
+    while (pendientes.length) {
+      const f = pendientes.pop();
+      if (vistos.has(f)) continue;
+      vistos.add(f);
+      const src = readFileSync(f, "utf8");
+      for (const [, rel] of src.matchAll(/^import[^;]*?from\s+"(\.[^"]+\.js)"/gms)) {
+        pendientes.push(fileURLToPath(new URL(rel, pathToFileURL(f))));
+      }
+    }
+    const nombres = [...vistos].map((f) => pathToFileURL(f).href);
+    expect(nombres.some((f) => f.endsWith("/data/recipeCatalog.js"))).toBe(false);
+    expect(nombres.some((f) => f.endsWith("/lib/listPricing.js"))).toBe(false);
   });
 });
