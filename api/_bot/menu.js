@@ -15,6 +15,7 @@
  * primera vez que hace falta: son 10 MB y la mayoría de mensajes no lo usan.
  */
 
+import { fallaCon } from "./avisar.js";
 import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
 import { propiasDe } from "./propias.js";
@@ -837,7 +838,11 @@ export function normalizarEjes(ejes) {
   if (ejes == null || ejes === "") return { pedidos: [], invalidos: false };
   let x = ejes;
   if (typeof x === "string") {
-    try { x = JSON.parse(x); } catch { return { pedidos: [], invalidos: true }; }
+    try { x = JSON.parse(x); } catch (e) {
+      // a propósito: el modelo mandó algo que no es JSON; se le dice que son inválidos.
+      console.warn("[menu] pedidos sin JSON:", e?.message);
+      return { pedidos: [], invalidos: true };
+    }
   }
   if (x && typeof x === "object" && !Array.isArray(x)) x = [x];
   if (!Array.isArray(x)) return { pedidos: [], invalidos: true };
@@ -1168,12 +1173,12 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       menu_id: casa.menu.id,
       recipe_id: elegido.recipeId,
       recipe_snapshot: elegido.frontendRecipe,
-    }], { upsert: true }).catch(() => {});
+    }], { upsert: true }).catch(fallaCon("menu/foto de la receta"));
 
     apuntarFoto(m, fotos, elegido.frontendRecipe);
     // El día tal como queda, en la propia respuesta: el modelo iba a ver_menu
     // tras cada cambio para comprobarlo, y cada vuelta son 4-8 s en el chat.
-    const dePintado = await describirMenu({ ...casa, menu: null, semanas: null, semana: { ...casa.semana, plan } }, { dia, fecha }).catch(() => "");
+    const dePintado = await describirMenu({ ...casa, menu: null, semanas: null, semana: { ...casa.semana, plan } }, { dia, fecha }).catch(fallaCon("menu/describir", ""));
     // Para quién ha sido, en personas y no en nombres de grupo.
     const para = grupo || sinCambiar.length ? quienesDe(g, data.members ?? []) : null;
     const sinCambiarQuienes = sinCambiar.map((l) => quienesDe(gs.find((x) => x.label === l), data.members ?? [])).filter(Boolean);

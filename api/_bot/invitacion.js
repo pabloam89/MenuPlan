@@ -60,6 +60,7 @@ export async function unirsePorInvitacion({ from, chatId, token, nombre = null }
   try {
     r = await rpc("bot_unirse_por_invitacion", { p_user_id: userId, p_token: token });
   } catch (e) {
+    console.warn("[invitación] unirse:", String(e?.message ?? e).slice(0, 200));
     const lleno = /limit/i.test(String(e?.message));
     return { texto: TEXTOS[lang][lleno ? "lleno" : "caducada"], householdId: null, lang };
   }

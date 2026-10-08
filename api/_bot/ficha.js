@@ -79,7 +79,11 @@ const tokens = (t) => Math.ceil(String(t).length / 3.6);
 let etiquetas = null;
 function etiquetaDe(campo) {
   if (!etiquetas) {
-    try { etiquetas = JSON.parse(fs.readFileSync(new URL("./dominiosGustos.json", import.meta.url), "utf8")).etiquetas ?? {}; } catch { etiquetas = {}; }
+    try { etiquetas = JSON.parse(fs.readFileSync(new URL("./dominiosGustos.json", import.meta.url), "utf8")).etiquetas ?? {}; } catch (e) {
+      // a propósito: sin build (en local y en los tests) no hay fichero; el campo, sin etiqueta.
+      console.warn("[ficha] sin dominiosGustos.json:", e?.message);
+      etiquetas = {};
+    }
   }
   return etiquetas[campo] ?? campo;
 }

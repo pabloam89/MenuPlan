@@ -18,6 +18,7 @@
  *   m_<llave>    una semana compartida
  */
 
+import { fallaCon } from "./avisar.js";
 import { COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
 import * as ids from "../../src/lib/ids.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
@@ -88,7 +89,7 @@ export async function enlacesReceta(householdId, recetaId, base) {
   if (!fila) return null;
   let [llave] = await select("recipe_share_links", `recipe_id=${eq(id)}`, "token");
   if (!llave) {
-    await insert("recipe_share_links", [{ recipe_id: id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(() => {});
+    await insert("recipe_share_links", [{ recipe_id: id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(fallaCon("compartir/llave"));
     [llave] = await select("recipe_share_links", `recipe_id=${eq(id)}`, "token");
   }
   if (!llave?.token) return null;
@@ -136,7 +137,7 @@ export async function enlacesSemana(householdId, base) {
   if (!compartido?.id) return null;
   let [llave] = await select("menu_share_links", `shared_menu_id=${eq(compartido.id)}`, "token");
   if (!llave) {
-    await insert("menu_share_links", [{ shared_menu_id: compartido.id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(() => {});
+    await insert("menu_share_links", [{ shared_menu_id: compartido.id, owner_id: dueno, token: nuevaLlave() }], { upsert: true }).catch(fallaCon("compartir/llave"));
     [llave] = await select("menu_share_links", `shared_menu_id=${eq(compartido.id)}`, "token");
   }
   if (!llave?.token) return null;

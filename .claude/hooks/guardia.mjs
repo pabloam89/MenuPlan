@@ -247,6 +247,7 @@ function contextoReal(raiz) {
       const [gitDir, comun] = git(["-C", dir, "rev-parse", "--path-format=absolute", "--git-dir", "--git-common-dir"]).split(/\r?\n/);
       return resolve(gitDir).toLowerCase() === resolve(comun).toLowerCase() && resolve(comun).toLowerCase() === comunPropio;
     } catch {
+      // a propósito: fuera de un repo (o si git no contesta) no es la carpeta principal
       return false;
     }
   };
@@ -266,7 +267,7 @@ function contextoReal(raiz) {
         git(["-C", dir, "check-ignore", "-q", ruta]);
         return false; // ignorado
       } catch {
-        return true;
+        return true; // a propósito: check-ignore sale con error cuando NO está ignorado; es su respuesta
       }
     },
     numeroEnStaging: (numero) => {
@@ -278,7 +279,7 @@ function contextoReal(raiz) {
         execFileSync("git", ["-C", raiz, "cat-file", "-e", `origin/staging:supabase/migrations/${nombre}.sql`], { stdio: "ignore" });
         return true;
       } catch {
-        return false;
+        return false; // a propósito: cat-file -e sale con error cuando el fichero no está en staging
       }
     },
     estadoMd: existsSync(join(raiz, "supabase", "ESTADO.md")) ? readFileSync(join(raiz, "supabase", "ESTADO.md"), "utf8") : null,
@@ -287,7 +288,7 @@ function contextoReal(raiz) {
         const args = ["pr", "view", ...(numero ? [numero] : []), "--json", "baseRefName", "-q", ".baseRefName"];
         return execFileSync("gh", args, { cwd: raiz, encoding: "utf8", timeout: 15000 }).trim();
       } catch {
-        return null;
+        return null; // a propósito: null es «no se sabe» y decidir() lo convierte en pregunta (ask)
       }
     },
     ramaDe: (dir = raiz) => {
@@ -310,7 +311,7 @@ function contextoReal(raiz) {
         execFileSync("git", ["-C", dir, "fetch", "-q", "origin", "staging"], { stdio: "ignore", timeout: 30000 });
         return Number(execFileSync("git", ["-C", dir, "rev-list", "--count", "HEAD..origin/staging"], { encoding: "utf8" }).trim());
       } catch {
-        return null;
+        return null; // a propósito: null es «no se sabe» y decidir() lo convierte en pregunta (ask)
       }
     },
     // Ficheros que el PR cambia y que staging también ha cambiado desde que la
@@ -326,7 +327,7 @@ function contextoReal(raiz) {
         const deStaging = new Set(compara(cabeza, "staging").ficheros);
         return delPr.ficheros.filter((f) => deStaging.has(f));
       } catch {
-        return null;
+        return null; // a propósito: null es «no se sabe» y decidir() lo convierte en pregunta (ask)
       }
     },
   };
@@ -451,12 +452,12 @@ if (esPrincipal) {
   try {
     raiz = execFileSync("git", ["-C", desde, "rev-parse", "--show-toplevel"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
   } catch {
-    // fuera de un repo: nos quedamos con lo que hay
+    // a propósito: fuera de un repo nos quedamos con la raíz que hay
   }
   try {
     tocar(dirSesiones(raiz), entrada.session_id); // «sigo viva», para el registro de sesiones
   } catch {
-    // el registro es una ayuda, no un requisito
+    // a propósito: el registro es una ayuda, no un requisito; si falla, el arranque lo dice
   }
   const r = decidir(entrada, contextoReal(raiz));
   if (r) {

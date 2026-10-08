@@ -58,7 +58,7 @@ export async function cargarCasa(householdId, { fresca = false } = {}) {
   if (!fresca && r && Date.now() - r.t < RECIENTE_MS) return structuredClone(await r.casa);
   const casa = leerCasa(householdId);
   recientes.set(householdId, { t: Date.now(), casa });
-  casa.catch(() => recientes.delete(householdId));
+  casa.catch(() => recientes.delete(householdId)); // a propósito: el error le llega a quien espera `casa`, abajo; aquí solo se olvida
   return structuredClone(await casa);
 }
 
