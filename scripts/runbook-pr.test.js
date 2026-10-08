@@ -41,6 +41,23 @@ describe("la línea «Runbook:» del cuerpo", () => {
     expect(r.motivo).toMatch(new RegExp(tipo, "i"));
   });
 
+  it("una línea «Runbook:» dentro de un bloque de código no cuenta", () => {
+    expect(lineaRunbook("```\nRunbook: sin novedades\n```").valida).toBe(false);
+    expect(lineaRunbook("Ejemplo:\n~~~md\nRunbook: sin novedades\n~~~\n").valida).toBe(false);
+    // sin cerrar: todo lo que sigue es código
+    expect(lineaRunbook("```\nRunbook: sin novedades").valida).toBe(false);
+    // y la de fuera sí
+    expect(lineaRunbook("```\nRunbook: lo que sea\n```\nRunbook: sin novedades").valida).toBe(true);
+  });
+
+  it("TODAS las líneas «Runbook:» tienen que ser válidas, no basta una", () => {
+    const r = lineaRunbook("Runbook: sin novedades\nRunbook: lo miraré");
+    expect(r.valida).toBe(false);
+    expect(r.motivo).toMatch(/no vale/i);
+    expect(lineaRunbook("Runbook: sin novedades\nRunbook:").valida).toBe(false);
+    expect(lineaRunbook("Runbook: sin novedades\nRunbook: sin novedades").valida).toBe(true);
+  });
+
   it("el comentario de la plantilla no cuenta como respuesta", () => {
     const plantilla = "<!--\nRunbook: sin novedades  o  Runbook: actualizado (skill X)\n-->\n\nRunbook:\n";
     expect(lineaRunbook(plantilla).valida).toBe(false);
@@ -86,6 +103,20 @@ describe("cuándo falla el CI", () => {
     expect(ok({ cuerpo: "Runbook: actualizado (skill inventada)", ficheros: [...TOCA_TELEGRAM, ".claude/skills/inventada/SKILL.md"] })).toBe(false);
   });
 
+  it("con varias líneas «actualizado», el PR tiene que tocar TODAS esas skills", () => {
+    const cuerpo = "Runbook: actualizado (skill telegram)\nRunbook: actualizado (skill vercel)";
+    const base = [...TOCA_TELEGRAM, ".claude/skills/telegram/SKILL.md"];
+    expect(ok({ cuerpo, ficheros: base })).toBe(false);
+    expect(ok({ cuerpo, ficheros: [...base, ".claude/skills/vercel/SKILL.md"] })).toBe(true);
+  });
+
+  it("rutas con acentos o eñes bajo un dominio también cuentan", () => {
+    const ruta = "supabase/migrations/0090_añade_ñandú.sql";
+    expect(comprobar({ mapa, cuerpo: "", ficheros: [ruta] }).dominios).toEqual(["supabase"]);
+    expect(ok({ cuerpo: "", ficheros: [ruta] })).toBe(false);
+    expect(ok({ cuerpo: "Runbook: sin novedades", ficheros: [ruta] })).toBe(true);
+  });
+
   it("dos dominios: una sola línea sirve", () => {
     expect(ok({ cuerpo: "Runbook: sin novedades", ficheros: ["scripts/telegram-webhook.mjs", "vercel.json"] })).toBe(true);
   });
@@ -95,8 +126,11 @@ describe("cuándo falla el CI", () => {
     const dominios = [".github/workflows/tests.yml", "vercel.json", "package.json"];
     it.each(["dependabot[bot]", "Dependabot[bot]", "github-actions[bot]"])("PR de %s, aunque toque un dominio", (autor) =>
       expect(ok({ cuerpo: cuerpoDependabot, ficheros: dominios, autor })).toBe(true));
-    it("rama dependabot/…, aunque el autor no llegue", () =>
-      expect(ok({ cuerpo: cuerpoDependabot, ficheros: dominios, rama: "dependabot/github_actions/staging/actions-semanal-e873aee6fb" })).toBe(true));
+    // La rama la elige quien abre el PR; el autor no se puede falsear.
+    it("un PR humano desde una rama dependabot/… NO queda exento", () =>
+      expect(ok({ cuerpo: cuerpoDependabot, ficheros: dominios, autor: "pabloam89", rama: "dependabot/loquesea" })).toBe(false));
+    it("ni sin autor, solo por la rama", () =>
+      expect(ok({ cuerpo: cuerpoDependabot, ficheros: dominios, rama: "dependabot/github_actions/staging/actions-semanal-e873aee6fb" })).toBe(false));
     it("pero una persona sin la línea sí falla", () => expect(ok({ cuerpo: cuerpoDependabot, ficheros: dominios, autor: "pabloam89", rama: "ops/x" })).toBe(false));
     it("y un autor que solo lo parece (dependabot-fake) también", () =>
       expect(ok({ cuerpo: "", ficheros: dominios, autor: "dependabot-fake", rama: "ops/x" })).toBe(false));

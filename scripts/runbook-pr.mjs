@@ -24,20 +24,37 @@ import { cargarMapa, ficherosDe, skillsDeFicheros } from "../.claude/hooks/domin
 
 const BOTS = new Set(["dependabot[bot]", "github-actions[bot]"]);
 
-/** Lee la línea «Runbook:» del cuerpo. {valida, valor} o {valida:false, motivo}. */
-export function lineaRunbook(cuerpo) {
-  // El comentario de la plantilla explica las dos respuestas: no cuenta como respuesta.
-  const texto = String(cuerpo ?? "").replace(/\r/g, "").replace(/<!--[\s\S]*?(?:-->|$)/g, "");
+/**
+ * Las líneas «Runbook:» del cuerpo, todas. Antes de buscar se quitan los
+ * comentarios HTML (la plantilla explica las dos respuestas) y los bloques de
+ * código (``` o ~~~, aunque no se cierren): una línea de ejemplo no es la
+ * respuesta. Y TODAS tienen que valer: con que una valga, otra rota o vacía
+ * colaba.
+ * {valida, valores:["sin novedades" | "actualizado:<skill>", …]} o {valida:false, motivo}.
+ */
+export function analizarRunbook(cuerpo) {
+  const texto = String(cuerpo ?? "")
+    .replace(/\r/g, "")
+    .replace(/<!--[\s\S]*?(?:-->|$)/g, "")
+    .replace(/^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:^[ \t]*\1[ \t]*$|$(?![\s\S]))/gm, "");
   const lineas = [...texto.matchAll(/^[ \t>*-]*(?:\*\*)?Runbook(?:\*\*)?[ \t]*:(?:\*\*)?[ \t]*(.*)$/gim)].map((m) => m[1].trim());
   if (!lineas.length) return { valida: false, motivo: "Falta la línea «Runbook:» en el cuerpo del PR." };
+  const valores = [];
   for (const crudo of lineas) {
+    if (!crudo) return { valida: false, motivo: "La línea «Runbook:» está vacía." };
     const v = crudo.replace(/\.$/, "").trim().toLowerCase();
-    if (v === "sin novedades") return { valida: true, valor: "sin novedades" };
-    const m = v.match(/^actualizado\s*\(\s*skill\s+([\w-]+)\s*\)$/);
-    if (m) return { valida: true, valor: `actualizado:${m[1]}` };
+    const act = v.match(/^actualizado\s*\(\s*skill\s+([\w-]+)\s*\)$/)?.[1];
+    if (v === "sin novedades") valores.push("sin novedades");
+    else if (act) valores.push(`actualizado:${act}`);
+    else return { valida: false, motivo: `«Runbook: ${crudo}» no vale: tiene que ser «actualizado (skill <nombre>)» o «sin novedades».` };
   }
-  if (lineas.every((l) => !l)) return { valida: false, motivo: "La línea «Runbook:» está vacía." };
-  return { valida: false, motivo: `«Runbook: ${lineas.find(Boolean)}» no vale: tiene que ser «actualizado (skill <nombre>)» o «sin novedades».` };
+  return { valida: true, valores };
+}
+
+/** Lo mismo con un solo valor (el primero): {valida, valor} o {valida:false, motivo}. */
+export function lineaRunbook(cuerpo) {
+  const r = analizarRunbook(cuerpo);
+  return r.valida ? { valida: true, valor: r.valores[0] } : r;
 }
 
 /**
@@ -47,7 +64,9 @@ export function lineaRunbook(cuerpo) {
  */
 export function comprobar({ mapa, cuerpo, ficheros = [], autor = "", rama = "" }) {
   if (!mapa) return { ok: true, dominios: [], motivo: "Sin mapa de dominios: no se comprueba." };
-  if (BOTS.has(String(autor).toLowerCase()) || String(rama).startsWith("dependabot/")) {
+  // Solo por el autor, que GitHub no deja falsear. La rama la pone quien abre
+  // el PR: una rama «dependabot/…» de una persona no la exime.
+  if (BOTS.has(String(autor).toLowerCase())) {
     return { ok: true, dominios: [], motivo: "PR de un bot: exento." };
   }
   const dominios = skillsDeFicheros(ficheros, mapa);
@@ -59,11 +78,10 @@ export function comprobar({ mapa, cuerpo, ficheros = [], autor = "", rama = "" }
   const ayuda =
     "Añade al cuerpo del PR una línea «Runbook: actualizado (skill <nombre>)» si has actualizado el runbook " +
     "de `.claude/skills/<nombre>/`, o «Runbook: sin novedades» si no has aprendido nada nuevo.";
-  const linea = lineaRunbook(cuerpo);
+  const linea = analizarRunbook(cuerpo);
   if (!linea.valida) return { ok: false, dominios, motivo: `${linea.motivo} Este PR toca ${donde}. ${ayuda}` };
 
-  const act = linea.valor.match(/^actualizado:(.+)$/)?.[1];
-  if (act) {
+  for (const act of linea.valores.map((v) => v.match(/^actualizado:(.+)$/)?.[1]).filter(Boolean)) {
     const conocidas = new Set([...Object.keys(mapa.skills), ...Object.keys(mapa.exentas ?? {})]);
     if (!conocidas.has(act)) {
       return { ok: false, dominios, motivo: `«Runbook: actualizado (skill ${act})»: no existe esa skill (hay: ${[...conocidas].join(", ")}).` };
@@ -79,7 +97,7 @@ export function comprobar({ mapa, cuerpo, ficheros = [], autor = "", rama = "" }
       };
     }
   }
-  return { ok: true, dominios, motivo: `Runbook: ${linea.valor}` };
+  return { ok: true, dominios, motivo: `Runbook: ${linea.valores.join(", ")}` };
 }
 
 // ── Entrada desde el CI ────────────────────────────────────────────────────

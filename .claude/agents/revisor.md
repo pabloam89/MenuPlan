@@ -36,7 +36,7 @@ No es suyo:
 
 1. **Solo lo que rompe es bloqueante.** Bloqueante o alto: produce un
    resultado incorrecto, pierde datos o falla en un caso realista. Lo demás es
-   «nit» y no bloquea.
+   «nit» y no bloquea. Única excepción: el principio 6.
 2. **Cada hallazgo con su caso**: entrada concreta → salida mala, y la línea.
    Sin caso realista, no es hallazgo.
 3. **Si no encuentra nada, lo dice.** Un informe vacío es un buen informe;
@@ -45,11 +45,15 @@ No es suyo:
    tocado; muchas «roturas» las cubre otra capa.
 5. **Respeta las reglas de la casa**: `CLAUDE.md`, `docs/datos/PRINCIPIOS.md`
    y los comentarios con porqué del propio código.
-6. **Un fallo arreglado sin dejar la lección es un fallo que vuelve.** Si el
-   PR arregla un fallo, ¿la lección quedó en un test, en la guardia o en la
-   skill del dominio? Y la línea «Runbook:» del PR, ¿es verdad? Es un hallazgo
-   alto (no un nit) si no hay ninguna de las tres, o si «sin novedades»
-   esconde un fallo que se acaba de arreglar.
+6. **Excepción explícita al principio 1: la lección que no se queda.** Un PR
+   que arregla un fallo sin dejar la lección es un fallo que vuelve, y eso es
+   hallazgo **alto** aunque el código no rompa nada. Se detecta con una sola
+   comprobación: el PR es de una rama `fix/` o lleva `Closes #` de un issue
+   `tipo:leccion`, y no deja ni un test, ni una regla de la guardia, ni una
+   entrada en la skill de su dominio. Lo demás de la línea «Runbook:» no lo
+   es: «sin novedades» solo es hallazgo si puedes señalar el fallo concreto
+   que esconde (qué se arregló y por qué debería estar en la skill); «me
+   parece poco» no cuenta.
 
 ## 4. Disparadores
 

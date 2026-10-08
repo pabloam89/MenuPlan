@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readdirSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -30,11 +30,24 @@ describe("qué acción cuenta como abrir una skill", () => {
 });
 
 describe("el hook, lanzado como lo hace Claude Code", () => {
-  it("sale 0 y no imprime nada, con una entrada rota o vacía", () => {
-    for (const stdin of ["", "no es json", "{}"]) {
-      const salida = execFileSync("node", [join(AQUI, "skill-abierta.mjs")], { input: stdin, encoding: "utf8" });
+  it("con una entrada rota, vacía o que no abre ninguna skill: sale 0, no imprime y no escribe ninguna ficha", () => {
+    const repo = mkdtempSync(join(tmpdir(), "skill-abierta-rota-"));
+    execFileSync("git", ["init", "-q", repo]);
+    const entradas = [
+      "",
+      "no es json",
+      "{}",
+      JSON.stringify({ session_id: "sesion-de-prueba-2", cwd: repo, tool_name: "Read", tool_input: { file_path: "src/App.jsx" } }),
+      JSON.stringify({ session_id: "sesion-de-prueba-2", cwd: repo, tool_name: "Skill", tool_input: { skill: "../../etc" } }),
+      // abre una skill pero sin sesión (o con un id inservible): no hay dónde anotarlo
+      JSON.stringify({ cwd: repo, tool_name: "Skill", tool_input: { skill: "github" } }),
+      JSON.stringify({ session_id: "../x", cwd: repo, tool_name: "Skill", tool_input: { skill: "github" } }),
+    ];
+    for (const stdin of entradas) {
+      const salida = execFileSync("node", [join(AQUI, "skill-abierta.mjs")], { input: stdin, encoding: "utf8", cwd: repo });
       expect(salida).toBe("");
     }
+    expect(existsSync(join(repo, ".git", "claude-sesiones"))).toBe(false);
   });
 
   it("anota la skill en el registro de la sesión", () => {

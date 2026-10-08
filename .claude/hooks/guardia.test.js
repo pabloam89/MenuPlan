@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { carpetaDe, decidir, sinAplicar } from "./guardia.mjs";
+import { carpetaDe, contextoReal, decidir, sinAplicar } from "./guardia.mjs";
 import { cargarMapa } from "./dominios.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -400,5 +402,51 @@ describe("puerta de lectura: abre la skill antes del primer comando de riesgo", 
       expect(delAgente("lola")).toBe("deny");
       expect(delAgente(undefined)).toBe("deny");
     });
+  });
+});
+
+// El cableado de verdad: contextoReal con un repo git temporal, el registro de
+// sesiones en su .git y un agente con skills en su frontmatter. Los tests de
+// arriba simulan el registro con sesion(); estos prueban que lo real encaja.
+describe("puerta de lectura: el cableado real", () => {
+  const repo = mkdtempSync(join(tmpdir(), "guardia-cableado-"));
+  execFileSync("git", ["init", "-q", repo]);
+  mkdirSync(join(repo, ".claude", "agents"), { recursive: true });
+  copyFileSync(join(RAIZ, ".claude", "dominios-skills.json"), join(repo, ".claude", "dominios-skills.json"));
+  writeFileSync(join(repo, ".claude", "agents", "probando.md"), "---\nname: probando\nskills: [hetzner, tailscale]\nmodel: inherit\n---\ncuerpo\n");
+  const entrada = (command, extra = {}) => ({ session_id: "cableado-sesion-1", cwd: repo, tool_name: "Bash", tool_input: { command }, ...extra });
+  // Como el hook: un proceso (un contexto) nuevo por acción.
+  const lanza = (command, extra) => {
+    const e = entrada(command, extra);
+    return decidir(e, contextoReal(repo, e))?.decision ?? null;
+  };
+
+  it("skillAbierta / marcarSkill escriben y leen el registro de la sesión", () => {
+    const c = contextoReal(repo, entrada("x"));
+    expect(c.skillAbierta("github")).toBe(false);
+    expect(c.marcarSkill("github")).toBe(true);
+    expect(contextoReal(repo, entrada("x")).skillAbierta("github")).toBe(true);
+    expect(contextoReal(repo, entrada("x", { session_id: "otra-sesion-99" })).skillAbierta("github")).toBe(false);
+    expect(existsSync(join(repo, ".git", "claude-sesiones", "skills", "cableado-sesion-1__github.json"))).toBe(true);
+  });
+
+  it("skillsDelAgente lee el frontmatter del agente, y solo de un nombre válido", () => {
+    const c = contextoReal(repo, entrada("x"));
+    expect(c.skillsDelAgente("probando")).toEqual(["hetzner", "tailscale"]);
+    expect(c.skillsDelAgente("no-existe")).toEqual([]);
+    expect(c.skillsDelAgente("../probando")).toEqual([]);
+    expect(c.skillsDelAgente(undefined)).toEqual([]);
+  });
+
+  it("de punta a punta: niega a la primera, pasa al reintento, y un agente con la skill pasa", () => {
+    const cmd = "node scripts/telegram-webhook.mjs delete";
+    expect(lanza(cmd)).toBe("deny");
+    expect(lanza(cmd)).toBe(null);
+    expect(lanza("ssh root@100.73.252.32 hostname", { agent_type: "probando" })).toBe(null);
+    expect(lanza("vercel env ls", { agent_type: "probando" })).toBe("deny");
+  });
+
+  it("sin id de sesión no puede anotar el aviso, así que no bloquea", () => {
+    expect(lanza("node scripts/telegram-perfil.mjs aplicar", { session_id: undefined })).toBe(null);
   });
 });

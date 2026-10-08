@@ -59,6 +59,13 @@ describe("qué comandos tienen puerta", () => {
       "node scripts/bot-cron.mjs --quitar",
       'node -e "console.log(process.env.SUPABASE_DB_URL)"',
       "node --env-file=.env.local x.mjs OPS_DB_URL",
+      "node scripts/backfill-personas.mjs",
+      "node scripts/backfill-pantry-ingredient-ids.mjs --si",
+      "node scripts/run-seed.mjs",
+      "node scripts/mercadona-sync.mjs",
+      "supabase db push",
+      "npx supabase migration repair --status applied 0090",
+      "supabase db reset",
     ],
     hetzner: [
       "ssh root@100.73.252.32 'ufw status'",
@@ -73,7 +80,7 @@ describe("qué comandos tienen puerta", () => {
       "node scripts/telegram-perfil.mjs aplicar",
     ],
     vercel: ["vercel env add FOO", "npx vercel deploy --prod", "node scripts/upload-to-blob.mjs", "node scripts/build-vectores.mjs"],
-    "1password": ["op item create --vault HoMenu -", "env -u OP_SERVICE_ACCOUNT_TOKEN op vault list", "op service-account create x", "npm run op -- item get x"],
+    "1password": ["op item create --vault HoMenu -", "env -u OP_SERVICE_ACCOUNT_TOKEN op vault list", "op service-account create x", "npm run op -- item get x", "op read op://HoMenu/Supabase/X", "op inject -i ops/env.1password", "npm run op -- read op://HoMenu/X/Y"],
     tailscale: ['"C:\\Program Files\\Tailscale\\tailscale.exe" up', "tailscale set --ssh", "tailscale serve 3000"],
     github: ["gh api -X POST repos/o/r/issues", "gh api repos/o/r/labels --method=PATCH", "gh api repos/o/r/x -f a=b", "gh workflow run tests.yml --ref x", "gh secret set X", "gh repo edit --visibility private"],
   };
@@ -96,12 +103,19 @@ describe("qué comandos tienen puerta", () => {
     "node scripts/telegram-webhook.mjs info",
     "node scripts/telegram-perfil.mjs",
     "op run --env-file=.env.local -- node x.mjs",
-    "op read op://HoMenu/Supabase/X",
     "npm run op -- run --env-file=.env.local -- npm run build",
     '"C:\\Program Files\\Tailscale\\tailscale.exe" status',
     "npm test",
     "npx vitest run .claude",
     "node scripts/tarea.mjs ops/x",
+    // scripts/lib/env.mjs llama a «op inject» por dentro: la puerta mira el comando
+    // de la sesión, así que lo de cada día que lee claves no se entera.
+    "node scripts/bot-evals.mjs",
+    "node scripts/build-catalog.mjs",
+    "npm run build",
+    "node scripts/verificar-estado.mjs --detalle",
+    "supabase --version",
+    "supabase db diff",
   ])("sin puerta: %s", (c) => expect(skillsDeComando(c, mapa)).toEqual([]));
 });
 
@@ -125,4 +139,36 @@ describe("qué ficheros piden la línea del PR", () => {
   );
 
   it("normaliza barras de Windows", () => expect(skillsDeFicheros(["scripts\\telegram-webhook.mjs"], mapa)).toContain("telegram"));
+});
+
+// Lo que avisa de más. Es el compromiso «ante la duda, niega»: cuesta un
+// reintento, una vez por skill y sesión. Se fija aquí para que cambiarlo sea una
+// decisión y no un accidente (documentado en la skill github).
+describe("conocido: avisa de más", () => {
+  it.each([
+    ["un mensaje de commit que nombra el script", 'git commit -m "arregla apply-migration"', "supabase"],
+    ["gh workflow run tests.yml, que es rutina", "gh workflow run tests.yml --ref ops/x", "github"],
+    ["gh api graphql con -f, que es una lectura", "gh api graphql -f query='{ viewer { login } }'", "github"],
+    ["un docker local con el usuario panel", "docker compose exec -T db psql -U panel -c 'select 1'", "hetzner"],
+    ["una ssh cualquiera junto a la IP del panel", "grep 100.73.252.32 ops/INVENTARIO.md | ssh-keygen -l", "hetzner"],
+  ])("%s", (_, cmd, skill) => expect(skillsDeComando(cmd, mapa)).toContain(skill));
+});
+
+describe("el coste de evaluar los patrones", () => {
+  // Un [\s\S]* sin tope sobre una entrada grande y repetida es cuadrático y
+  // cuelga el hook (timeout de 20 s). Con tope, milisegundos.
+  const enormes = {
+    ssh: "ssh ".repeat(25000),
+    ip: "100.73.252.32 ".repeat(7200),
+    gh: "gh api ".repeat(14300),
+    docker: "docker ".repeat(14300),
+    mezcla: "ssh gh api docker 100.73.252.32 ".repeat(3200),
+    sinSalto: "a".repeat(100000),
+  };
+  it.each(Object.entries(enormes))("100 KB de %s se evalúan en menos de 300 ms", (_, cmd) => {
+    expect(cmd.length).toBeGreaterThanOrEqual(99000);
+    const t0 = performance.now();
+    skillsDeComando(cmd, mapa);
+    expect(performance.now() - t0).toBeLessThan(300);
+  });
 });

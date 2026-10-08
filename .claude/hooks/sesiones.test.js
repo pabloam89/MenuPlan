@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { resumen } from "./migraciones.mjs";
-import { activas, anotarSkill, apuntar, enCarpeta, listar, quitar, skillAnotada, tocar } from "./sesiones.mjs";
+import { CADUCA_H, activas, anotarSkill, apuntar, enCarpeta, listar, quitar, skillAnotada, tocar } from "./sesiones.mjs";
 
 describe("registro de sesiones", () => {
   const dir = mkdtempSync(join(tmpdir(), "sesiones-"));
@@ -94,5 +94,16 @@ describe("skills abiertas por sesión", () => {
     expect(anotarSkill(dir, ID, "../../etc")).toBe(false);
     expect(skillAnotada(null, ID, "github")).toBe(false);
     expect(anotarSkill(join(dir, "no", "existe", "\0"), ID, "github")).toBe(false);
+  });
+
+  it("listar barre las fichas de skill de más de 48 h y deja las recientes", () => {
+    anotarSkill(dir, "vieja-sesion-1", "github");
+    anotarSkill(dir, "reciente-sesion-1", "github");
+    const hace = (h) => new Date(Date.now() - h * 36e5);
+    utimesSync(join(dir, "skills", "vieja-sesion-1__github.json"), hace(CADUCA_H + 1), hace(CADUCA_H + 1));
+    utimesSync(join(dir, "skills", "reciente-sesion-1__github.json"), hace(CADUCA_H - 1), hace(CADUCA_H - 1));
+    listar(dir);
+    expect(skillAnotada(dir, "vieja-sesion-1", "github")).toBe(false);
+    expect(skillAnotada(dir, "reciente-sesion-1", "github")).toBe(true);
   });
 });
