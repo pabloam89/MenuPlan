@@ -22,7 +22,7 @@ en otra rama); el 8 oct se suma la 0087, sin aplicar:
 | Ficheros en `supabase/migrations/` | **91** (con la 0089) |
 | Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
 | Aplicadas | **84** |
-| **Sin aplicar** | **2** — `0021_store_products`, `0088_bot_entradas` (el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086, 0087 y 0089) |
+| **Sin aplicar** | **1** — `0021_store_products` (el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086, 0087, 0088 y 0089) |
 | En otras ramas | — |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
@@ -70,7 +70,7 @@ Sin testigo, y por tanto sin comprobar por el script: 0011, 0038, 0043, 0047,
 | `0085_bot_vocabulario_cerrado` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | en la rama `datos/sistematizar`; 5 CHECK NOT VALID. No existen los `*_channel_check` de `bot_messages`/`bot_reminders`/`bot_tareas`/`bot_cola` ni `bot_reminders.tipo`, y `bot_deshacer.descripcion` sigue |
 | `0086_vocabulario_de_la_app` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | 5 CHECK NOT VALID; las consultas previas, en su cabecera. No hay ninguna constraint `*_vocabulario` |
 | `0087_menu_activo_y_casa_propia` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | solo `create or replace` de 4 funciones: `household_shopping_mark` mira `user_menus.is_active` en vez de `data.activeMenuId`; `ensure_user_household`, `_unirse` y `_despedir` eligen la casa propia con `order by propia desc, created_at`, y `ensure_user_household` devuelve `'propia'`. Testigo: ese `order by` en `pg_proc.prosrc` de `_despedir` |
-| `0088_bot_entradas` | **sin aplicar** (nueva, 8 oct 2026; escrita como 0087) | tabla `bot_entradas` (update_id de Telegram, una vez) y el job `bot-entradas-purga`. Aditiva; el código funciona sin ella. Testigo: la tabla y el job en `cron.job` |
+| `0088_bot_entradas` | aplicada el 8 oct 2026 (Pablo, con `--pablo` por el `delete` de la purga); `verificar-estado --solo 0088`: 3/3 | tabla `bot_entradas` (update_id de Telegram, una vez) y el job `bot-entradas-purga`. Aditiva; el código funciona sin ella. Testigo: la tabla y el job en `cron.job` |
 | `0089_personas_al_guardar` | **aplicada el 8 oct 2026** (la lanzó Pablo con `--pablo`; auditada por auditor-datos). Tras la puesta al día, las 35 casas cuadran: 92 personas en el JSON y 92 filas en `persona` | triggers `personas_al_crear` y `personas_al_guardar` sobre `household_state`: cada guardado copia la familia activa (`data.members`/`data.groups`, sin rosters aparcados ni invitados) a persona/grupo con `persona_sincronizar_casa`, en la misma transacción; si falla, WARNING y el guardado sigue. Al aplicarse, pone al día todas las casas (borra de persona a quien ya no está en el JSON, con sus tareas por la FK de la 0083: consulta previa en la cabecera). Necesita 0081 y 0082. Testigo: `select tgname from pg_trigger where tgname like 'personas_al_%'` |
 
 ## La 0074 y la 0075, aplicadas el 2 oct 2026
