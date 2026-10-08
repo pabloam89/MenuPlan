@@ -13,12 +13,9 @@
  */
 
 import fs from "node:fs";
+import { cargarEnv } from "./lib/env.mjs";
 
-const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
-for (const k of ["ANTHROPIC_API_KEY"]) {
-  const v = env.match(new RegExp(`^${k}="?([^"\\r\\n]+)`, "m"))?.[1];
-  if (v && !process.env[k]) process.env[k] = v.trim();
-}
+cargarEnv(["ANTHROPIC_API_KEY"]);
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 

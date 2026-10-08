@@ -17,6 +17,7 @@
 
 import fs from "node:fs";
 import crypto from "node:crypto";
+import { leerEnv } from "./lib/env.mjs";
 import { textoDeReceta, normalizar } from "../src/lib/vectores.js";
 
 export const MODELO = "voyage/voyage-4";
@@ -53,11 +54,7 @@ if (process.argv.includes("--comprobar")) {
   process.exit(0);
 }
 
-const env = Object.fromEntries(
-  fs.readFileSync(".env.local", "utf8").split(/\r?\n/).map((l) => l.match(/^([A-Z0-9_]+)=(.*)$/)).filter(Boolean)
-    .map(([, k, v]) => [k, v.replace(/^"|"$/g, "").trim()]),
-);
-const CLAVE = process.env.AI_GATEWAY_API_KEY || env.AI_GATEWAY_API_KEY;
+const CLAVE = leerEnv("AI_GATEWAY_API_KEY");
 if (faltan.length && !CLAVE) { console.error("Falta AI_GATEWAY_API_KEY en .env.local"); process.exit(1); }
 
 async function vectorizar(lote) {

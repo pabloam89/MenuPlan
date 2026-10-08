@@ -12,10 +12,10 @@
 
 import fs from "node:fs";
 import pg from "pg";
+import { leerEnv } from "./lib/env.mjs";
 
 const NOMBRE = "bot-recordatorios";
-const env = fs.readFileSync(new URL("../.env.local", import.meta.url), "utf8");
-const leer = (k) => env.match(new RegExp(`^${k}="?([^"\\r\\n]+)`, "m"))?.[1]?.trim();
+const leer = leerEnv;
 const dbUrl = leer("SUPABASE_DB_URL");
 const secreto = leer("BOT_CRON_SECRET");
 if (!dbUrl || !secreto) throw new Error("Faltan SUPABASE_DB_URL o BOT_CRON_SECRET en .env.local");

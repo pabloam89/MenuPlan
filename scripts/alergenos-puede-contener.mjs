@@ -24,12 +24,12 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { leerEnv } from "./lib/env.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const OUT = path.join(ROOT, "output");
 const INGREDIENTES = path.join(ROOT, "src/data/ingredients.json");
-const env = fs.readFileSync(path.join(ROOT, ".env.local"), "utf8");
-const API_KEY = process.env.ANTHROPIC_API_KEY ?? env.match(/^ANTHROPIC_API_KEY="?([^"\r\n]+)/m)?.[1]?.trim();
+const API_KEY = leerEnv("ANTHROPIC_API_KEY");
 const MODELO = process.env.ENRICH_MODEL ?? "claude-sonnet-5";
 const LOTE = 25;
 

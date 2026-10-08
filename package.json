@@ -25,7 +25,8 @@
     "sync:mercadona": "node scripts/mercadona-sync.mjs && node scripts/build-coste.mjs",
     "build:coste": "node scripts/build-coste.mjs",
     "sync:mercadona:cache": "node scripts/mercadona-sync.mjs --cache",
-    "bot:panel": "node scripts/bot-panel.mjs"
+    "bot:panel": "node scripts/bot-panel.mjs",
+    "op": "node scripts/op.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
