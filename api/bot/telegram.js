@@ -56,6 +56,7 @@ import { partirStart, fraseDePedido } from "../../src/lib/pedidoLola.js";
 import { payloadStart } from "../../src/lib/ids.js";
 import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cuentas.js";
 import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
+import { primeraVez } from "../_bot/entradas.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
 
@@ -97,6 +98,9 @@ export default async function handler(req, res) {
   // webhook no responde, Telegram reintenta y el mensaje se atendería dos veces.
   waitUntil((async () => {
     try {
+      // Y aun así a veces llega dos veces (una cola, un corte de red): el mismo
+      // update_id solo se atiende una (0087, entradas.js).
+      if (!(await primeraVez("telegram", upd.update_id))) return;
       if (upd.callback_query) await pulsado(upd.callback_query, base, host);
       else if (upd.message) await atender(upd.message, base, host);
     } catch (err) {

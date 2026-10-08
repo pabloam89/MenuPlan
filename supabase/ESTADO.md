@@ -22,7 +22,7 @@ en otra rama):
 | Ficheros en `supabase/migrations/` | **88** |
 | Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
 | Aplicadas | **84** |
-| **Sin aplicar** | **4** — `0021_store_products`, `0080_bot_tareas_v2`, `0083_bot_tareas_fk_persona`, `0086_vocabulario_de_la_app` |
+| **Sin aplicar** | **5** — `0021_store_products`, `0080_bot_tareas_v2`, `0083_bot_tareas_fk_persona`, `0086_vocabulario_de_la_app`, `0087_bot_entradas` |
 | En otras ramas | `0085` (sin aplicar), en `datos/sistematizar` |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
@@ -69,6 +69,7 @@ Sin testigo, y por tanto sin comprobar por el script: 0011, 0038, 0043, 0047,
 | `0084_bot_codigo_alta` | aplicada, versión final (comprobado el 7 oct 2026) | testigos de la versión de `f2187d4`: `bot_codigos_tipo_check` con `vincular`, `entrar` y `alta`, y `bot_codigos_alta_check` (`tipo <> 'alta' or external_id is not null`), los dos validados |
 | `0085_bot_vocabulario_cerrado` | **sin aplicar** (comprobado el 7 oct 2026) | en la rama `datos/sistematizar`; 5 CHECK NOT VALID. No existen los `*_channel_check` de `bot_messages`/`bot_reminders`/`bot_tareas`/`bot_cola` ni `bot_reminders.tipo`, y `bot_deshacer.descripcion` sigue |
 | `0086_vocabulario_de_la_app` | **sin aplicar** (comprobado el 7 oct 2026) | 5 CHECK NOT VALID; las consultas previas, en su cabecera. No hay ninguna constraint `*_vocabulario` |
+| `0087_bot_entradas` | **sin aplicar** (nueva, 8 oct 2026) | tabla `bot_entradas` (update_id de Telegram, una vez) y el job `bot-entradas-purga`. Aditiva; el código funciona sin ella. Testigo: la tabla y el job en `cron.job` |
 
 ## La 0074 y la 0075, aplicadas el 2 oct 2026
 
