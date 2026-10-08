@@ -26,6 +26,15 @@
       "Bash(node scripts/verificar-estado.mjs)",
       "Bash(node scripts/verificar-estado.mjs *)",
       "Bash(node scripts/apply-migration.mjs *)",
+      "Bash(node scripts/consulta.mjs *)",
+      "Bash(node scripts/issues.mjs *)",
+      "Bash(gh issue *)",
+      "Bash(gh label *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh pr update-branch *)",
+      "Bash(gh pr edit *)",
+      "Bash(gh run rerun *)",
+      "Bash(git pull --ff-only*)",
       "WebSearch"
     ],
     "deny": [

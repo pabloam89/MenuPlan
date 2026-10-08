@@ -320,9 +320,9 @@ describe("carpetaDe", () => {
   it("git -C manda", () => expect(carpetaDe("cd A && git -C 'D' commit", "git -C 'D' commit", "C:/s")).toBe("D"));
 });
 
-it("cambiar permisos o hooks compartidos pregunta", () => {
+it("cambiar los permisos compartidos pregunta; los hooks van por PR con juez y no", () => {
   expect(edita("C:\\dev\\MenuPlan\\.claude\\settings.json")).toBe("ask");
-  expect(edita("C:/dev/MenuPlan/.claude/hooks/guardia.mjs")).toBe("ask");
+  expect(edita("C:/dev/MenuPlan/.claude/hooks/guardia.mjs")).toBe(null);
   expect(edita("C:/dev/MenuPlan/.claude/settings.local.json")).toBe(null);
 });
 

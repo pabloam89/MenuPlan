@@ -489,8 +489,11 @@ export function decidir(entrada, ctx) {
       if (motivo) return deny(motivo);
     }
     if (ctx.rutaEnPrincipal(ruta)) return deny(EN_LA_PRINCIPAL);
-    if (/[\\/]\.claude[\\/](settings\.json|hooks[\\/])/.test(ruta)) {
-      return ask("Esto cambia los permisos o los hooks compartidos de todas las sesiones. Pide el OK de Pablo.");
+    // Solo los permisos: ampliarlos es lo único de aquí que Pablo quiere decidir
+    // (CLAUDE.md, «Qué se le pregunta a Pablo», 8 oct 2026). Los hooks se
+    // cambian por PR con juez y CI, y no tienen efecto hasta fusionarlos.
+    if (/[\\/]\.claude[\\/]settings\.json$/.test(ruta)) {
+      return ask("Esto cambia los permisos compartidos de todas las sesiones. Ampliarlos es de Pablo: pídele el OK.");
     }
     return null;
   }
