@@ -12,7 +12,8 @@ import {
 import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { findAccountMember,
-  resolveAccountMember, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
+  resolveAccountMember, miembroDeCuentaId, conMiembroDeCuenta, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
+import { esTitular } from "../lib/householdsSync.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
 import { NOMBRE_PAPEL, papelDe } from "../lib/papeles.js";
 
@@ -264,7 +265,12 @@ export function HomeProfileScreen({
   // OJO: va DESPUES de members. Estaba encima y reventaba la pantalla entera
   // con "Cannot access members before initialization" — un const no existe
   // hasta su linea, aunque el fichero compile sin rechistar.
-  const accountMember = resolveAccountMember(members, data.accountMemberId, g.name);
+  // Por cuenta, no compartido en la casa (miembroDeCuentaId en stages.js).
+  const accountMember = resolveAccountMember(
+    members,
+    miembroDeCuentaId(data, user?.id, { esTitular: !activeHousehold || esTitular(activeHousehold) }),
+    g.name,
+  );
 
   const setField = (key, val) => setData((d) => ({ ...d, [key]: val }));
 
@@ -394,7 +400,7 @@ export function HomeProfileScreen({
                         key={m.id}
                         type="button"
                         aria-pressed={on}
-                        onClick={() => setField("accountMemberId", on ? null : m.id)}
+                        onClick={() => setData((d) => conMiembroDeCuenta(d, user?.id, on ? null : m.id))}
                         style={{
                           display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
                           flexShrink: 0, width: 62, padding: "7px 3px", borderRadius: 12,
