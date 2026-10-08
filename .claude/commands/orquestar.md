@@ -104,7 +104,9 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    bueno, entorno distinto del CI, limpieza a medias) → `tipo:leccion`; una
    decisión que no se toma hoy → `tipo:decision`; trabajo que alguien tiene
    que coger → `tipo:encargo`. Siempre con causa y área (skill `github`,
-   «Issues»). El chat se pierde al cerrar la sesión; el issue no.
+   «Issues»). El chat se pierde al cerrar la sesión; el issue no. Y al
+   revés: el PR lleva `Closes #n` de los issues que arregla y `Agente:` con
+   el constructor que lo hizo.
 5. Termina con un resumen corto: qué se hizo, en qué rama o PR, qué se
    verificó, qué queda pendiente y qué gateway falta.
 6. Tras el merge, retirar: `npm run retirar -- <tarea>` en la misma sesión.

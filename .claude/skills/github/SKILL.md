@@ -89,8 +89,9 @@ de ella y `scripts/issues.test.js` vigila que no se separen.
 gh issue create --title "[lección] …" --label tipo:leccion,causa:entorno,area:ops --body-file <fichero>
 gh issue create --title "[decisión] …" --label tipo:decision,area:datos --body-file <fichero>
 gh issue edit <n> --add-assignee @me        # coger un encargo (o «Quién lo coge» en el cuerpo)
-gh issue close <n> --comment "Queda en <test o PR>"   # antes: --add-label arreglo:test
-npm run issues                              # abiertos, lecciones por causa, mal clasificados
+gh issue close <n> --comment "Queda en el PR #n"     # solo si no lo cerró el PR; antes: --add-label arreglo:test
+gh issue reopen <n> --comment "Vuelve a pasar: …"     # una lección que reincide se reabre, no se duplica
+npm run issues                              # abiertos, lecciones por causa y por agente, sin trazar
 npm run issues -- --ordenar                 # etiquetas que faltan, leídas de un formulario
 npm run issues -- --etiquetas               # crear las etiquetas en GitHub (OK de Pablo)
 ```
@@ -99,6 +100,13 @@ npm run issues -- --etiquetas               # crear las etiquetas en GitHub (OK 
   evidencia (comando y salida, PR, fichero:línea) y dónde debería quedar el
   arreglo. El de una decisión: la pregunta en llano, las opciones con la
   recomendada primero y qué pasa si no se decide.
+- **La traza no se rellena: se deduce.** Fechas, reaperturas, asignados y el
+  issue padre los guarda GitHub. Quién arregló sale del PR que cierra: lleva
+  `Closes #n` y una línea `Agente: <nombre>` (o `sesión`); la plantilla de PR
+  los trae. Si se cierra a mano, «PR #n» en el comentario de cierre. Un
+  seguimiento que deja una lección se abre como sub-issue de ella.
+- **Si una lección vuelve a pasar, se reabre la misma.** Las reaperturas son
+  la cuenta de «arreglo que no aguantó», por causa y por agente.
 - **Una categoría nueva** se añade en `scripts/lib/issues.mjs` con su
   descripción, se regeneran las etiquetas y se pone en el formulario. Si algo
   no encaja en ninguna causa, primero se mira si es una de las que hay; una

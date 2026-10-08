@@ -74,6 +74,8 @@ en staging.
    **lista** de errores, no el recuento.
 4. Un test nuevo se ve fallar una vez antes de creértelo (detalle en la regla
    `tests`).
+5. En el cuerpo del PR, `Closes #n` por cada issue que arregla y una línea
+   `Agente: <nombre>` (o `sesión`): de ahí sale quién arregló qué y si aguantó.
 
 ## Base de datos
 
