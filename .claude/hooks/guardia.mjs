@@ -293,13 +293,18 @@ function contextoReal(raiz) {
         return null;
       }
     },
-    // Lo mismo para la rama de un PR, preguntado a GitHub (la rama puede no estar en local).
-    atrasoDelPr: (numero) => {
+    // Ficheros que el PR cambia y que staging también ha cambiado desde que la
+    // rama se separó, preguntado a GitHub (la rama puede no estar en local).
+    // [] si no va atrasada o no se pisan; null si no se puede saber.
+    choquesDelPr: (numero) => {
       try {
         const opts = { cwd: raiz, encoding: "utf8", timeout: 15000 };
         const cabeza = execFileSync("gh", ["pr", "view", ...(numero ? [numero] : []), "--json", "headRefOid", "-q", ".headRefOid"], opts).trim();
-        const n = Number(execFileSync("gh", ["api", `repos/{owner}/{repo}/compare/staging...${cabeza}`, "-q", ".behind_by"], opts).trim());
-        return Number.isFinite(n) ? n : null;
+        const compara = (de, a) => JSON.parse(execFileSync("gh", ["api", `repos/{owner}/{repo}/compare/${de}...${a}`, "-q", "{atraso: .behind_by, ficheros: [.files[].filename]}"], opts));
+        const delPr = compara("staging", cabeza);
+        if (delPr.atraso === 0) return [];
+        const deStaging = new Set(compara(cabeza, "staging").ficheros);
+        return delPr.ficheros.filter((f) => deStaging.has(f));
       } catch {
         return null;
       }
@@ -331,7 +336,10 @@ export function decidir(entrada, ctx) {
 
       // Un PR con la rama atrasada respecto a staging choca con lo que acaban
       // de meter otras sesiones, o pasa el CI sin haberlo probado junto (el 8
-      // oct 2026, el cableado). Se mira al abrirlo y otra vez al fusionarlo.
+      // oct 2026, el cableado). Al abrirlo, al día del todo (es barato). Al
+      // fusionar, solo si staging ha tocado sus mismos ficheros: staging avanza
+      // varios commits cada pocos minutos y exigirlo siempre dejaba los PR sin
+      // poder entrar nunca. Lo que no se pisa lo recoge el CI de staging.
       if (/^gh\s+pr\s+create\b/.test(o)) {
         const atraso = ctx.atrasoLocal(carpetaDe(cmd, o, entrada.cwd ?? "") || undefined);
         if (atraso === null) return ask("No he podido comprobar si tu rama tiene lo último de staging. Haz `git fetch origin staging` y `git merge origin/staging` antes de abrir el PR.");
@@ -345,9 +353,12 @@ export function decidir(entrada, ctx) {
         const base = ctx.baseDelPr(merge[1]);
         if (base === null) return ask("No he podido leer la rama base de este PR. Si no es staging, solo Pablo lo fusiona.");
         if (base !== "staging") return deny(`Este PR va contra ${base}, no contra staging. Fusionar fuera de staging solo lo hace Pablo.`);
-        const atraso = ctx.atrasoDelPr(merge[1]);
-        if (atraso === null) return ask("No he podido comprobar si la rama del PR tiene lo último de staging. Míralo antes de fusionar.");
-        if (atraso > 0) return deny(`La rama del PR va ${atraso} commit(s) por detrás de staging: el CI no ha probado tu cambio junto a lo último. Ponla al día (\`gh pr update-branch${merge[1] ? ` ${merge[1]}` : ""}\` o merge de origin/staging y push), espera el CI en verde y fusiona.`);
+        const choques = ctx.choquesDelPr(merge[1]);
+        if (choques === null) return ask("No he podido comprobar si staging ha tocado lo mismo que este PR. Míralo antes de fusionar.");
+        if (choques.length) {
+          const lista = choques.slice(0, 5).join(", ") + (choques.length > 5 ? ` y ${choques.length - 5} más` : "");
+          return deny(`Desde que se abrió este PR, staging ha cambiado sus mismos ficheros (${lista}): el CI no los ha probado juntos. Ponlo al día (\`gh pr update-branch${merge[1] ? ` ${merge[1]}` : ""}\` o merge de origin/staging y push), espera el CI en verde y fusiona.`);
+        }
         continue;
       }
     }
