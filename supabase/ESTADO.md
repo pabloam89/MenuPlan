@@ -22,7 +22,7 @@ en otra rama); el 8 oct se suma la 0087, sin aplicar:
 | Ficheros en `supabase/migrations/` | **89** |
 | Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
 | Aplicadas | **84** |
-| **Sin aplicar** | **5** — `0021_store_products`, `0080_bot_tareas_v2`, `0083_bot_tareas_fk_persona`, `0086_vocabulario_de_la_app`, `0087_menu_activo_y_casa_propia` |
+| **Sin aplicar** | **6** — `0021_store_products`, `0080_bot_tareas_v2`, `0083_bot_tareas_fk_persona`, `0086_vocabulario_de_la_app`, `0087_menu_activo_y_casa_propia`, `0088_bot_entradas` |
 | En otras ramas | `0085` (sin aplicar), en `datos/sistematizar` |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
@@ -70,6 +70,7 @@ Sin testigo, y por tanto sin comprobar por el script: 0011, 0038, 0043, 0047,
 | `0085_bot_vocabulario_cerrado` | **sin aplicar** (comprobado el 7 oct 2026) | en la rama `datos/sistematizar`; 5 CHECK NOT VALID. No existen los `*_channel_check` de `bot_messages`/`bot_reminders`/`bot_tareas`/`bot_cola` ni `bot_reminders.tipo`, y `bot_deshacer.descripcion` sigue |
 | `0086_vocabulario_de_la_app` | **sin aplicar** (comprobado el 7 oct 2026) | 5 CHECK NOT VALID; las consultas previas, en su cabecera. No hay ninguna constraint `*_vocabulario` |
 | `0087_menu_activo_y_casa_propia` | **sin aplicar** (escrita el 8 oct 2026, rama `datos/menu-activo`) | solo `create or replace` de 4 funciones: `household_shopping_mark` mira `user_menus.is_active` en vez de `data.activeMenuId`; `ensure_user_household`, `_unirse` y `_despedir` eligen la casa propia con `order by propia desc, created_at`, y `ensure_user_household` devuelve `'propia'`. Testigo: ese `order by` en `pg_proc.prosrc` de `_despedir` |
+| `0088_bot_entradas` | **sin aplicar** (nueva, 8 oct 2026; escrita como 0087) | tabla `bot_entradas` (update_id de Telegram, una vez) y el job `bot-entradas-purga`. Aditiva; el código funciona sin ella. Testigo: la tabla y el job en `cron.job` |
 
 ## La 0074 y la 0075, aplicadas el 2 oct 2026
 
