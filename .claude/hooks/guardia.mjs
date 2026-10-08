@@ -445,14 +445,31 @@ export function decidir(entrada, ctx) {
 
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 
+const responder = (r) => {
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: r.decision,
+      permissionDecisionReason: `[guardia] ${r.motivo}`,
+    },
+  }));
+};
+
 if (esPrincipal) {
   let crudo = "";
   for await (const trozo of process.stdin) crudo += trozo;
-  let entrada;
+  // Sin entrada legible la guardia no puede vigilar: pregunta (#209, decisión
+  // de Pablo del 8 oct). Ni deja pasar en silencio ni niega, para que un fallo
+  // tonto no pare la sesión.
+  let entrada = null;
   try {
     entrada = JSON.parse(crudo);
-  } catch {
-    process.exit(0); // sin entrada legible no hay nada que vigilar
+  } catch (e) {
+    console.error(`[guardia] entrada ilegible: ${e.message}`);
+  }
+  if (!entrada || typeof entrada !== "object") {
+    responder(ask("La guardia no ha podido leer esta orden, así que no sabe si es segura. ¿La dejas pasar?"));
+    process.exit(0);
   }
   // La raíz del worktree donde se trabaja, no CLAUDE_PROJECT_DIR (que apunta a
   // la carpeta original): el ESTADO.md que vale es el de tu rama.
@@ -470,14 +487,6 @@ if (esPrincipal) {
     // a propósito: el registro es una ayuda, no un requisito; si falla, el arranque lo dice
   }
   const r = decidir(entrada, contextoReal(raiz));
-  if (r) {
-    process.stdout.write(JSON.stringify({
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: r.decision,
-        permissionDecisionReason: `[guardia] ${r.motivo}`,
-      },
-    }));
-  }
+  if (r) responder(r);
   process.exit(0);
 }
