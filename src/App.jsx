@@ -156,12 +156,7 @@ import {
   saveRecipeFolder,
   deleteRecipeFolder,
 } from "./lib/recipeCollections.js";
-import {
-  loadRecipeDiscards,
-  saveRecipeDiscard,
-  deleteRecipeDiscard,
-  mergeDiscards,
-} from "./lib/recipeDiscardsSync.js";
+import { mergeDiscards } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
@@ -1547,8 +1542,8 @@ export default function App() {
 
       const loadState = () =>
         householdId ? loadHouseholdState(householdId) : loadUserState(user.id);
-      const loadDiscards = () =>
-        householdId ? loadHouseholdDiscards(householdId) : loadRecipeDiscards(user.id);
+      // Descartes: siempre de la casa (aquí la casa ya está cargada).
+      const loadDiscards = () => loadHouseholdDiscards(householdId);
 
       const [remoteState, remoteRecipes, remoteVotes, remoteDiscards, remoteHouseholdFavs, remoteCollections, remoteFolders] = await Promise.all([
         loadState(),
@@ -1613,10 +1608,10 @@ export default function App() {
 
       // Forever discards union, cooldowns take the later expiry — see
       // recipeDiscardsSync.js's mergeDiscards for the reasoning. Also folds in
-      // whatever discards still sit in the legacy user_state blob (remoteData),
-      // for accounts whose only record of them predates user_recipe_discards —
-      // otherwise that history would be silently orphaned the moment the blob
-      // write stops carrying `discards` (see the debounced push below).
+      // whatever discards still sit in the state blob (remoteData.discards:
+      // household_state, o el user_state antiguo copiado a ella), for accounts
+      // whose only record of them is there — the backfill below pushes them
+      // to household_recipe_discards.
       const mergedDiscards = justEmptied
         ? mergeDiscards({ forever: [], cooldownUntil: {} }, remoteDiscards)
         : mergeDiscards(
@@ -1689,9 +1684,11 @@ export default function App() {
         if (!(rid in remoteVotes)) votesBackfill[rid] = v;
       }
       upsertRecipeVotes(user.id, votesBackfill);
-      // Backfill from the full merge (local + legacy blob), not just local —
-      // an account whose only record of a discard sits in the legacy blob
-      // needs it pushed to the new table too, not only kept in memory.
+      // Backfill from the full merge (local + state blob), not just local —
+      // an account whose only record of a discard sits in the blob needs it
+      // pushed to household_recipe_discards too, not only kept in memory.
+      // Incluye los descartes hechos con sesión pero antes de tener casa
+      // (esos solo se guardaron en el dispositivo).
       const discardsBackfill = {
         forever: mergedDiscards.forever.filter((id) => !(remoteDiscards.forever ?? []).includes(id)),
         cooldownUntil: Object.fromEntries(
@@ -1700,7 +1697,7 @@ export default function App() {
       };
       // A la tabla de la que se acaba de leer: la de la casa si hay casa. Un
       // lector no escribe en la casa ajena (RLS lo rechazaría igual).
-      if (!householdReadOnly) subirDescartesPendientes(householdId, user.id, discardsBackfill);
+      if (!householdReadOnly) subirDescartesPendientes(householdId, discardsBackfill);
 
       const cloudSummaries = await loadMenuSummariesRemote(menuUserId, householdId);
       if (cancelled) return;
@@ -4008,10 +4005,8 @@ export default function App() {
         discards: { forever: (src.forever ?? []).filter((id) => id !== baseId), cooldownUntil },
       };
     });
-    if (user?.id) {
-      if (syncHouseholdId) deleteHouseholdDiscard(syncHouseholdId, baseId);
-      else deleteRecipeDiscard(user.id, baseId);
-    }
+    // Sin casa todavía, solo en el dispositivo; la carga con casa lo sube.
+    if (user?.id && syncHouseholdId) deleteHouseholdDiscard(syncHouseholdId, baseId);
     showToast("Recuperada");
   }, [user, householdReadOnly, syncHouseholdId, showToast]);
 
@@ -4061,15 +4056,14 @@ export default function App() {
       }
       return { ...d, discards: { forever, cooldownUntil } };
     });
-    if (user?.id) {
+    // A la casa (household_recipe_discards). Sin casa todavía, solo en el
+    // dispositivo: la carga con casa lo sube (subirDescartesPendientes).
+    if (user?.id && syncHouseholdId) {
       if (reason === "dislike") {
-        if (syncHouseholdId) saveHouseholdDiscard(syncHouseholdId, baseId, { isPermanent: true });
-        else saveRecipeDiscard(user.id, baseId, { isPermanent: true });
+        saveHouseholdDiscard(syncHouseholdId, baseId, { isPermanent: true });
       } else if (!(data.discards?.forever ?? []).includes(baseId)) {
         const days = reason === "recent" ? 14 : 7;
-        const until = Date.now() + days * DAY_MS;
-        if (syncHouseholdId) saveHouseholdDiscard(syncHouseholdId, baseId, { cooldownUntil: until });
-        else saveRecipeDiscard(user.id, baseId, { cooldownUntil: until });
+        saveHouseholdDiscard(syncHouseholdId, baseId, { cooldownUntil: Date.now() + days * DAY_MS });
       }
     }
     const label = reason === "dislike"
