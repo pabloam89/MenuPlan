@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const ahora = { members: [{ id: "m1", name: "Leo", allergies: ["Huevos"] }] };
-const foto = { id: 1, bot_rev_despues: 7, antes: { state: { data: { members: [{ id: "m1", name: "Leo", allergies: [] }] } } }, created_at: new Date().toISOString() };
+// La hora de la foto se pone al leerla, no al cargar el fichero: deshacer()
+// se niega si la casa se guardó más de 5 s después de la foto, y con el PC
+// cargado importar el bot ya tarda más que eso (medido: 11 s el 8 oct 2026).
+const foto = { id: 1, bot_rev_despues: 7, antes: { state: { data: { members: [{ id: "m1", name: "Leo", allergies: [] }] } } } };
 const rpc = vi.fn(async () => ({ ok: true }));
 
 vi.mock("./db.js", () => ({
   select: vi.fn(async (tabla) => {
-    if (tabla === "bot_deshacer") return [foto];
+    if (tabla === "bot_deshacer") return [{ ...foto, created_at: new Date().toISOString() }];
     if (tabla === "household_state") return [{ state: { data: ahora }, bot_rev: 7, updated_at: new Date().toISOString() }];
     return [];
   }),
