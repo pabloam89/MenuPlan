@@ -14,7 +14,7 @@ const ctx = (extra = {}) => ({
   estadoMd: ESTADO,
   baseDelPr: () => "staging",
   atrasoLocal: () => 0,
-  atrasoDelPr: () => 0,
+  choquesDelPr: () => [],
   esPrincipal: () => false,
   rutaEnPrincipal: () => false,
   ...extra,
@@ -210,11 +210,14 @@ describe("gh pr merge", () => {
   it("a staging pasa", () => expect(bash("gh pr merge 90 --squash")).toBe(null));
   it("a main, no", () => expect(bash("gh pr merge 90", ctx({ baseDelPr: () => "main" }))).toBe("deny"));
   it("sin poder leer la base, pregunta", () => expect(bash("gh pr merge", ctx({ baseDelPr: () => null }))).toBe("ask"));
-  it("con la rama atrasada, no", () => expect(bash("gh pr merge 90 --squash", ctx({ atrasoDelPr: () => 3 }))).toBe("deny"));
-  it("sin poder saber el atraso, pregunta", () => expect(bash("gh pr merge 90", ctx({ atrasoDelPr: () => null }))).toBe("ask"));
-  it("a main ni se mira el atraso", () => {
+  it("si staging ha tocado sus mismos ficheros, no", () =>
+    expect(bash("gh pr merge 90 --squash", ctx({ choquesDelPr: () => ["src/App.jsx"] }))).toBe("deny"));
+  it("atrasada pero sin pisarse (choques vacíos), pasa", () =>
+    expect(bash("gh pr merge 90 --squash", ctx({ choquesDelPr: () => [] }))).toBe(null));
+  it("sin poder saberlo, pregunta", () => expect(bash("gh pr merge 90", ctx({ choquesDelPr: () => null }))).toBe("ask"));
+  it("a main ni se mira", () => {
     let mirado = false;
-    expect(bash("gh pr merge 90", ctx({ baseDelPr: () => "main", atrasoDelPr: () => ((mirado = true), 0) }))).toBe("deny");
+    expect(bash("gh pr merge 90", ctx({ baseDelPr: () => "main", choquesDelPr: () => ((mirado = true), []) }))).toBe("deny");
     expect(mirado).toBe(false);
   });
 });
@@ -223,7 +226,7 @@ describe("gh pr create con la rama al día", () => {
   it("al día pasa", () => expect(bash('gh pr create --base staging --title "x" --body "y"')).toBe(null));
   it("atrasada, no", () => expect(bash("git push -u origin ops/x && gh pr create --base staging", ctx({ atrasoLocal: () => 2 }))).toBe("deny"));
   it("sin poder saberlo, pregunta", () => expect(bash("gh pr create", ctx({ atrasoLocal: () => null }))).toBe("ask"));
-  it("otros gh pr no lo miran", () => expect(bash("gh pr view 90", ctx({ atrasoLocal: () => 5, atrasoDelPr: () => 5 }))).toBe(null));
+  it("otros gh pr no lo miran", () => expect(bash("gh pr view 90", ctx({ atrasoLocal: () => 5, choquesDelPr: () => ["a"] }))).toBe(null));
   it("mira la carpeta del `cd`, no la de la sesión", () => {
     let mirada;
     bash('cd "C:/dev/MenuPlan-x" && gh pr create', ctx({ atrasoLocal: (d) => ((mirada = d), 0) }));
