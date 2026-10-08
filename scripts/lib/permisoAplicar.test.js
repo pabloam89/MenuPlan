@@ -78,6 +78,39 @@ describe("lo que lanza Pablo", () => {
     expect(motivosDePablo(sql).join()).toMatch(/security definer/);
   });
 
+  // Los huecos del juez de seguridad (8 oct 2026): se mira lo que HACE el SQL.
+  it.each([
+    ["truncate", "truncate public.user_pantry;"],
+    ["delete from", "delete from public.persona where true;"],
+    ["update … set", "update public.persona set nombre = 'x';"],
+    ["drop view", "drop view public.v_casas;"],
+    ["drop table sin CONTRAE", "drop table public.viejas;"],
+    ["drop column sin CONTRAE", "alter table public.persona drop column apodo;"],
+    ["cambio de tipo", "alter table public.persona alter column edad type text;"],
+    ["RLS al final de un alter con varias cosas", "alter table public.persona add column x int, disable row level security;"],
+    ["grant a varias tablas", "grant select on public.cosas, public.persona to anon;"],
+    ["grant de un rol a otro", "grant authenticated to anon;"],
+    ["permisos por defecto", "alter default privileges in schema public grant select on tables to anon;"],
+    ["create table if not exists no es nueva", "create table if not exists public.persona (id uuid);\nalter table public.persona disable row level security;"],
+    ["vista sin security_invoker", "create view public.v as select * from public.persona;"],
+    ["SQL dinámico en un do", "do $$ begin execute 'drop table public.persona'; end $$;"],
+  ])("%s es de Pablo", (_n, extra) => {
+    expect(motivosDePablo(`${SQL}${extra}\n`)).not.toEqual([]);
+  });
+
+  it("un update dentro del cuerpo de una función no es de Pablo (no se ejecuta al aplicar)", () => {
+    const f = "create or replace function public.marcar(p uuid) returns void language sql as $$ update public.cosas set nombre = 'x' where id = p $$;\n";
+    expect(motivosDePablo(`${SQL}${f}`)).toEqual([]);
+  });
+
+  it("un '--' dentro de un literal no esconde lo que viene detrás", () => {
+    expect(motivosDePablo(`${SQL}insert into public.cosas (nombre) values ('--'); truncate public.persona;\n`)).not.toEqual([]);
+  });
+
+  it("una vista con security_invoker no es de Pablo", () => {
+    expect(motivosDePablo(`${SQL}create view public.v with (security_invoker = true) as select 1;\n`)).toEqual([]);
+  });
+
   it("--pablo levanta lo de Pablo…", () => {
     expect(motivosParaNoAplicar(con(`-- CONTRAE: x\n${SQL}`, { pablo: true }))).toEqual([]);
   });

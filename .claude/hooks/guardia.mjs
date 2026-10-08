@@ -74,9 +74,11 @@ const REGLAS_COMANDO = [
 // el 8 oct 2026). Lo que sí se niega es `--pablo`, que levanta lo que es solo
 // suyo (CONTRAE, RLS y permisos de lo existente): lo lanza él con `!`, que no
 // pasa por los hooks. Se mira por orden, para que un mensaje de commit que
-// nombra el script no cuente.
+// nombra el script no cuente. Basta con que la orden diga «pablo» de cualquier
+// forma: entre comillas, `--pablo=1` o metido en una variable se colaba (juez
+// de seguridad, 8 oct 2026).
 const PABLO_EN_APLICAR = {
-  si: (o) => /apply-migration\b/.test(o) && /(^|\s)--pablo(\s|$)/.test(o),
+  si: (o) => /apply-migration\b/.test(o) && /pablo/i.test(o),
   da: () => deny("`--pablo` es solo de Pablo: borra algo con datos o cambia RLS o permisos. Enséñale el ensayo y el veredicto del juez, y dale el comando para que lo lance con `!`."),
 };
 
@@ -206,9 +208,11 @@ export function decidir(entrada, ctx) {
 
   if (herramienta === "Bash" || herramienta === "PowerShell") {
     const cmd = String(datos.command ?? "");
+    // «pablo» se mira en el comando entero: `X=--pablo; node …apply-migration… $X`
+    // reparte la opción entre dos órdenes.
+    if (PABLO_EN_APLICAR.si(cmd)) return PABLO_EN_APLICAR.da(cmd);
     for (const o of ordenes(cmd)) {
       for (const r of REGLAS_COMANDO) if (r.si(o)) return r.da(o);
-      if (PABLO_EN_APLICAR.si(o)) return PABLO_EN_APLICAR.da(o);
 
       // gh pr merge: solo a staging (lo permite settings.local.json de Pablo).
       const merge = o.match(/^gh\s+pr\s+merge\b\s*(\d+)?/);

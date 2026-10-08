@@ -78,6 +78,12 @@ describe("la base es producción", () => {
     expect(bash("node scripts/apply-migration.mjs 0090_x --si --pablo")).toBe("deny");
     expect(bash("cd C:/dev/MenuPlan-x && node scripts/apply-migration.mjs 0090_x --pablo --si")).toBe("deny");
   });
+  it.each([
+    'node scripts/apply-migration.mjs 0090_x --si "--pablo"',
+    "node scripts/apply-migration.mjs 0090_x --si '--pablo'",
+    "node scripts/apply-migration.mjs 0090_x --si --pablo=1",
+    "X=--pablo; node scripts/apply-migration.mjs 0090_x --si $X",
+  ])("--pablo disfrazado también se niega: %s", (c) => expect(bash(c)).toBe("deny"));
   it("un commit cuyo mensaje nombra apply-migration y --si no es aplicar", () =>
     expect(bash("git commit -m \"docs: node scripts/apply-migration.mjs 0090_x --si lo lanza la sesión\"")).toBe(null));
   it.each([

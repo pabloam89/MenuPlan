@@ -50,28 +50,88 @@ export function auditoriaDe(sql) {
 const nombreTabla = (s) => s.replace(/"/g, "").replace(/^public\./i, "").toLowerCase();
 
 /**
- * Por qué esta migración la lanza Pablo (vacío = no hace falta): borra algo
- * con datos, o cambia RLS o permisos de lo que ya existía.
+ * Quita los comentarios (`--` y `/* *\/`) sin tocar lo que va entre comillas
+ * simples: un `'--'` dentro de un literal no es un comentario.
+ */
+export function sinComentarios(sql) {
+  const s = String(sql);
+  let out = "";
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === "'") {
+      const fin = s.indexOf("'", i + 1);
+      const j = fin < 0 ? s.length : fin;
+      out += s.slice(i, j + 1);
+      i = j;
+    } else if (c === "-" && s[i + 1] === "-") {
+      const fin = s.indexOf("\n", i);
+      i = fin < 0 ? s.length : fin - 1;
+    } else if (c === "/" && s[i + 1] === "*") {
+      const fin = s.indexOf("*/", i + 2);
+      i = fin < 0 ? s.length : fin + 1;
+    } else {
+      out += c;
+    }
+  }
+  return out;
+}
+
+/** Tablas de una lista `a, public.b, "c"` (hasta `to`/`from` o el final). */
+const tablasDeLista = (lista) => lista.split(",").map((t) => nombreTabla(t.trim().split(/\s+/)[0])).filter(Boolean);
+
+/**
+ * Por qué esta migración la lanza Pablo (vacío = no hace falta). Ante la duda,
+ * es suya: se mira lo que HACE el SQL, no solo su cabecera. Borrar o vaciar
+ * datos, cambiar el tipo de una columna, tocar RLS o permisos de algo que ya
+ * existía, `security definer`, vistas que se saltan la RLS y SQL dinámico.
  */
 export function motivosDePablo(sql) {
   const texto = String(sql);
   const r = [];
   if (/^--\s*CONTRAE:/m.test(texto)) r.push("borra algo que ya existía (`-- CONTRAE:`)");
-  const codigo = texto.replace(/--[^\n]*/g, "");
-  const nuevas = new Set([...codigo.matchAll(/create\s+(?:unlogged\s+)?table\s+(?:if\s+not\s+exists\s+)?([\w."]+)/gi)].map((m) => nombreTabla(m[1])));
+  const conCuerpos = sinComentarios(texto).toLowerCase();
+  // El cuerpo de una función (`as $x$ … $x$`) no se ejecuta al aplicar: un
+  // `update` dentro de una RPC no toca datos ahora. Los bloques `do $$ … $$`
+  // sí se ejecutan, y se quedan.
+  const codigo = conCuerpos.replace(/\bas\s+(\$[\w]*\$)[\s\S]*?\1/g, "as $cuerpo$");
+  // Solo cuenta como nueva una tabla creada sin `if not exists`: con él, la
+  // tabla puede existir ya y la RLS que se le ponga sería la de una ajena.
+  const nuevas = new Set([...codigo.matchAll(/create\s+(?:unlogged\s+)?table\s+(?!if\s+not\s+exists)([\w."]+)/g)].map((m) => nombreTabla(m[1])));
   const ajena = (t) => !nuevas.has(nombreTabla(t));
-  for (const s of codigo.split(";").map((x) => x.trim()).filter(Boolean)) {
-    let m;
-    if ((m = /^alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?([\w."]+)\s+(?:enable|disable|force|no\s+force)\s+row\s+level\s+security\b/i.exec(s))) {
-      if (ajena(m[1])) r.push(`cambia la RLS de ${nombreTabla(m[1])}`);
-    } else if ((m = /^(?:create|alter|drop)\s+policy\b[\s\S]*?\bon\s+([\w."]+)/i.exec(s))) {
-      if (ajena(m[1])) r.push(`toca una política de ${nombreTabla(m[1])}`);
-    } else if ((m = /^(grant|revoke)\b[\s\S]*?\bon\s+(?:(function|schema|all|sequence|table)\s+)?([\w."]+)/i.exec(s))) {
-      const sobre = (m[2] ?? "table").toLowerCase();
-      if (sobre !== "table" || ajena(m[3])) r.push(`${m[1].toLowerCase()} sobre ${sobre === "table" ? nombreTabla(m[3]) : `${sobre} ${m[3]}`}`);
+
+  // Datos que se pierden o se reescriben.
+  if (/\bdrop\s+(?:table|view|materialized\s+view|schema|type|sequence|extension)\b/.test(codigo)) r.push("borra una tabla, vista, esquema, tipo o secuencia");
+  if (/\bdrop\s+column\b|\balter\s+table\b[^;]*\bdrop\s+(?!constraint\b|default\b|not\s+null\b)(?:if\s+exists\s+)?[\w"]+/.test(codigo)) r.push("borra una columna");
+  if (/\btruncate\b/.test(codigo)) r.push("vacía una tabla (`truncate`)");
+  if (/\bdelete\s+from\b/.test(codigo)) r.push("borra filas (`delete from`)");
+  if (/\bupdate\s+[\w."]+\s+set\b/.test(codigo)) r.push("reescribe filas (`update … set`)");
+  if (/\balter\s+column\s+[\w"]+\s+(?:set\s+data\s+)?type\b/.test(codigo)) r.push("cambia el tipo de una columna");
+
+  // RLS, políticas y permisos.
+  for (const m of codigo.matchAll(/alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?([\w."]+)[^;]*?\b(enable|disable|force|no\s+force)\s+row\s+level\s+security/g)) {
+    if (m[2] !== "enable" || ajena(m[1])) r.push(`cambia la RLS de ${nombreTabla(m[1])}`);
+  }
+  for (const m of codigo.matchAll(/\b(?:create|alter|drop)\s+policy\b[^;]*?\bon\s+([\w."]+)/g)) {
+    if (ajena(m[1])) r.push(`toca una política de ${nombreTabla(m[1])}`);
+  }
+  for (const m of codigo.matchAll(/\b(grant|revoke)\b([^;]*)/g)) {
+    const resto = m[2];
+    const on = /\bon\s+(?:(table|function|schema|all\s+tables\s+in\s+schema|all\s+functions\s+in\s+schema|sequence|all)\s+)?([\s\S]*?)\s+(?:to|from)\b/.exec(resto);
+    if (!on) {
+      r.push(`${m[1]} de un rol a otro`);
+    } else if (on[1] && on[1] !== "table") {
+      r.push(`${m[1]} sobre ${on[1]}`);
+    } else {
+      for (const t of tablasDeLista(on[2])) if (ajena(t)) r.push(`${m[1]} sobre ${t}`);
     }
   }
-  if (/\bsecurity\s+definer\b/i.test(codigo)) r.push("crea o cambia una función `security definer` (se salta la RLS)");
+  if (/\balter\s+default\s+privileges\b/.test(codigo)) r.push("cambia los permisos por defecto");
+  if (/\bsecurity\s+definer\b/.test(conCuerpos)) r.push("crea o cambia una función `security definer` (se salta la RLS)");
+  for (const m of codigo.matchAll(/\bcreate\s+(?:or\s+replace\s+)?(?:materialized\s+)?view\s+[\w."]+([^;]*)/g)) {
+    if (!/security_invoker\s*=\s*(?:true|on)/.test(m[1])) r.push("crea una vista sin `security_invoker` (se salta la RLS)");
+  }
+  // SQL dinámico: lo que ejecuta no se puede leer aquí.
+  if (/\bexecute\s+(?:format\s*\(|'|\$)/.test(codigo) || /\bexecute\s+[\w]+\s*;/.test(codigo)) r.push("ejecuta SQL dinámico (`execute`), que este script no puede revisar");
   return [...new Set(r)];
 }
 
