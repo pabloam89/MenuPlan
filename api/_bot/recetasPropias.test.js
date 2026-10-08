@@ -27,12 +27,17 @@ const filaDeApp = {
   meal_roles: ["main"], ingredients: [{ name: "huevo", qty: 4, unit: "ud" }], steps: [], created_at: "2026-10-01T10:00:00Z",
 };
 
+const filaDeCotitular = { ...filaDeApp, id: "user_app2", owner_id: "u2", name: "Pisto de Marta", created_at: "2026-10-02T10:00:00Z" };
+const filaDeLectora = { ...filaDeApp, id: "user_app3", owner_id: "u3", name: "Bizcocho de la invitada", created_at: "2026-10-03T10:00:00Z" };
+
 beforeEach(() => {
   pedidas.length = 0;
   tablas.household_state = [{ state: { data: { members: [PABLO], userRecipes: [{ id: "user_viejo", name: "Lentejas de antes", source: "user" }] } }, bot_rev: 1 }];
   tablas.households = [{ owner_user_id: "u1" }];
   tablas.user_menus = [];
-  tablas.user_recipes = (filtro) => (filtro.includes("owner_id=eq.u1") ? [filaDeApp] : []);
+  tablas.household_members = [];
+  // Como PostgREST: owner_id=in.(…) devuelve las de esos autores.
+  tablas.user_recipes = (filtro) => [filaDeApp, filaDeCotitular, filaDeLectora].filter((f) => filtro.includes(f.owner_id));
 });
 
 describe("las recetas propias de la casa", () => {
@@ -44,11 +49,46 @@ describe("las recetas propias de la casa", () => {
     expect(ficha.estable).toMatch(/2 recetas propias/);
   });
 
-  it("son las del dueño de la casa, en una sola consulta", async () => {
+  it("son las del dueño de la casa, en una sola consulta con tope", async () => {
     await cargarCasa("casa-b");
     const deRecetas = pedidas.filter((p) => p.tabla === "user_recipes");
     expect(deRecetas).toHaveLength(1);
-    expect(deRecetas[0].filtro).toMatch(/owner_id=eq\.u1/);
+    expect(deRecetas[0].filtro).toMatch(/owner_id=in\.\(u1\)/);
+    expect(deRecetas[0].filtro).toMatch(/limit=\d+/);
+  });
+
+  it("también las de la cotitular (editor), y no las de quien solo mira", async () => {
+    tablas.household_members = (filtro) => (filtro.includes("role=in.(owner,editor)") ? [{ user_id: "u1" }, { user_id: "u2" }] : [{ user_id: "u3" }]);
+    const ficha = montarFicha(await cargarCasa("casa-d"), {}, "2026-10-07");
+    expect(ficha.estable).toMatch(/Tortilla de la abuela/);
+    expect(ficha.estable).toMatch(/Pisto de Marta/);
+    expect(ficha.estable).not.toMatch(/Bizcocho de la invitada/);
+  });
+
+  it("pide columnas, no select *", async () => {
+    const { select } = await import("./db.js");
+    await cargarCasa("casa-e");
+    const llamada = select.mock.calls.find(([tabla]) => tabla === "user_recipes");
+    expect(llamada[2]).toBeTruthy();
+    expect(llamada[2]).not.toBe("*");
+    expect(llamada[2].split(",")).toContain("ingredients");
+  });
+
+  it("si household_members falla, quedan las del dueño (y se dice en el log)", async () => {
+    tablas.household_members = new Error("500");
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const ficha = montarFicha(await cargarCasa("casa-f"), {}, "2026-10-07");
+    expect(ficha.estable).toMatch(/Tortilla de la abuela/);
+    expect(log).toHaveBeenCalledWith("[propias] household_members", expect.anything());
+    log.mockRestore();
+  });
+
+  it("si households falla, se dice en el log", async () => {
+    tablas.households = new Error("500");
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    await cargarCasa("casa-g");
+    expect(log).toHaveBeenCalledWith("[casa] households", expect.anything());
+    log.mockRestore();
   });
 
   it("si user_recipes falla, queda lo del JSON", async () => {

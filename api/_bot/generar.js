@@ -118,7 +118,7 @@ export function colocarPedidos(m, data, plan, recipes, pedidos, activeDays) {
         const h = gid.startsWith("_") ? null : huecos?.[clave];
         if (!h || /(^|__)bebes_/.test(h.recipeId ?? "")) continue;
         const course = h.firstRecipeId && roles.includes("primero") && !roles.includes("segundo") ? "first" : "main";
-        const el = m.pickCatalogReplacement(data, plan, { groupId: gid, day: d, meal: franja, course, forcedRecipe: receta });
+        const el = m.pickCatalogReplacement(data, plan, { groupId: gid, day: d, meal: franja, course, forcedRecipe: receta, hoy: hoyISO() });
         if (!el?.recipeId) continue;
         plan[gid][clave] = { ...h, [course === "first" ? "firstRecipeId" : "recipeId"]: el.recipeId, warnings: [] };
         m.registerRecipes([el.frontendRecipe]);

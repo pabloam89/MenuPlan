@@ -66,7 +66,10 @@ async function leerCasa(householdId) {
   // El dueño, a la vez que la casa: hace falta para sus recetas propias.
   const [[fila], [hogar]] = await Promise.all([
     select("household_state", `household_id=${eq(householdId)}`, "state,bot_rev,updated_at"),
-    select("households", `id=${eq(householdId)}`, "owner_user_id").catch(() => []),
+    select("households", `id=${eq(householdId)}`, "owner_user_id").catch((e) => {
+      console.error("[casa] households", e?.message);
+      return [];
+    }),
   ]);
   if (!fila) return null;
 
@@ -76,7 +79,7 @@ async function leerCasa(householdId) {
       `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=5`,
       "id,user_id,is_active,updated_at",
     ),
-    recetasPropiasDeCasa(hogar?.owner_user_id ?? null, fila.state?.data?.userRecipes),
+    recetasPropiasDeCasa(householdId, hogar?.owner_user_id ?? null, fila.state?.data?.userRecipes),
   ]);
   // El mismo lector que la app (menuActivo.js): si hubiera dos activos, los
   // dos eligen el de updated_at más reciente.

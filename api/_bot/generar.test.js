@@ -116,3 +116,17 @@ describe("generar menú con las recetas propias", () => {
     prepararSemana.mockRestore();
   });
 });
+
+describe("colocarPedidos", () => {
+  it("pasa el `hoy` de la casa a pickCatalogReplacement (la vigencia no puede ir por el reloj del servidor)", async () => {
+    const { colocarPedidos } = await import("./generar.js");
+    const { isoDeCasa } = await import("../../src/lib/dias.js");
+    const receta = { id: "lentejas", name: "Lentejas", time: 30, mealRole: ["main"] };
+    const pick = vi.fn(() => ({ recipeId: "lentejas", frontendRecipe: receta }));
+    const motorFalso = { recipeCatalogById: { lentejas: receta }, pickCatalogReplacement: pick, registerRecipes: () => {} };
+    const planDeSemana = { g1: { "Lun-Comida": { recipeId: "otra" } } };
+    const pedidos = [{ pedido: "lentejas", fijo: { catalogId: "lentejas", meals: ["Comida"] } }];
+    expect(colocarPedidos(motorFalso, {}, planDeSemana, [], pedidos, ["Lun"])).toEqual(["lentejas"]);
+    expect(pick.mock.calls[0][2].hoy).toBe(isoDeCasa());
+  });
+});

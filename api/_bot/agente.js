@@ -46,6 +46,7 @@ import { pintarMenuEntero, filtrosTrasGenerar, filtrosTrasCambiar, sinEtiquetas 
 import { fechasDe, CUANDOS } from "./cuando.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, IDS_PLATOS } from "../../src/lib/comidas.js";
 import { KITCHEN_TOOL_IDS } from "../../src/lib/electrodomesticos.js";
+import { NIVEL_COCINA, RITMO_COCINA, ETAPA_BEBE, DONDE_COME } from "../../src/lib/vocabularios.js";
 import { ESQUEMA_DE_FUERA } from "./deFuera.js";
 import { verDespensa, anadirDespensa } from "./despensa.js";
 import { guardarMenuCole, verMenuCole } from "./cole.js";
@@ -501,11 +502,11 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       description: "Cómo se cocina en casa: estructura de la comida (primero_segundo = primero y segundo; 1_plato = plato único), esfuerzo (basic/normal/pro), tiempo por día (con_prisa/normal/con_tiempo/depende) y trastos (lista completa de lo que hay: Airfryer, Horno, Microondas, Thermomix, Olla rápida, Vaporera). Cocinar en tanda va por pedir_tanda.",
       inputSchema: obj({
         estructura: { type: "string", enum: ["primero_segundo", "1_plato"] },
-        esfuerzo: { type: "string", enum: ["basic", "normal", "pro"] },
-        tiempo: { type: "string", enum: ["con_prisa", "normal", "con_tiempo", "depende"] },
+        esfuerzo: { type: "string", enum: NIVEL_COCINA },
+        tiempo: { type: "string", enum: RITMO_COCINA },
         trastos: { type: "array", items: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"] } },
         comidas: { type: "array", items: { type: "string", enum: COMIDAS_PRINCIPALES }, description: "Qué comidas se planifican." },
-        etapaBebe: { type: "string", enum: ["cremas", "mixto", "solidos"], description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
+        etapaBebe: { type: "string", enum: ETAPA_BEBE, description: "Qué come el bebé: cremas (solo purés), mixto (de todo) o solidos (ya come sólidos). Apúntalo en cuanto lo digan («ya come sólidos»), antes de proponerle nada." },
       }),
       run: (args) => ajustarCocina(householdId, args),
     }),
@@ -528,7 +529,7 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
         personas: { type: "array", items: { type: "string" }, minItems: 1 },
         dias: { type: "array", items: { type: "string" } },
         comidas: { type: "array", items: { type: "string" } },
-        donde: { type: "string", enum: ["casa", "tupper", "fuera", "cole", "off"] },
+        donde: { type: "string", enum: DONDE_COME },
       }, ["personas", "donde"]),
       run: (args) => ajustarHorario(householdId, args),
     }),
