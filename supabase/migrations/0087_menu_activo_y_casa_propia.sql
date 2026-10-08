@@ -17,6 +17,19 @@
 
 set lock_timeout = '5s';
 
+-- Precondición: households.propia (0075). Sin ella, el `order by propia` de
+-- abajo no compilaría a medias: mejor parar aquí con un mensaje claro.
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'households' and column_name = 'propia'
+  ) then
+    raise exception '0087 necesita households.propia (0075): aplica antes la 0075';
+  end if;
+end;
+$$;
+
 -- ── 1. El lector tacha: el menú activo de la tabla ──────────────────────────
 create or replace function public.household_shopping_mark(
   p_household_id uuid, p_menu_id text, p_week_start date, p_marcas jsonb)

@@ -314,6 +314,9 @@ export function ponerMenuActivo(menuId, userId, householdId = null) {
     .catch(() => {})
     .then(async () => {
       if (menuId) return activateMenu(menuId);
+      // UPDATE directo (la RLS deja a titular y cotitular): no hay RPC que
+      // desactive sin activar otro, y este no sube bot_rev. Apuntado en
+      // supabase/PENDIENTES.md («Desactivar el menú de la casa por RPC»).
       let q = supabase.from("user_menus").update({ is_active: false });
       q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
       const { error } = await q.eq("is_active", true);

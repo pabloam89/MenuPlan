@@ -320,6 +320,12 @@ export function resolveAccountMember(members, accountMemberId, accountName) {
  * viejo compartido solo vale de respaldo para el titular, que es quien lo
  * marcaba antes de que hubiera cotitulares; a los demás les toca la adivinanza
  * por nombre hasta que marquen el suyo.
+ *
+ * TRANSICIÓN (ver supabase/PENDIENTES.md): el sitio de verdad es
+ * `household_members.persona_id`, con FK compuesta a `persona`. Se hará
+ * DESPUÉS de que menuplan-1e pase los ids de persona a uuid (bloque 0120+),
+ * para no chocar con ese cambio de tipo. Hasta entonces este mapa es una caché
+ * declarada en el JSON de la casa, y el día de la columna se copia de aquí.
  * @returns {string|null}
  */
 export function miembroDeCuentaId(data, userId, { esTitular = true } = {}) {

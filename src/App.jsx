@@ -3848,6 +3848,7 @@ export default function App() {
   const startOtherGroup = useCallback(() => {
     setData((d) => startOtherRoster(d, { defaults: INITIAL_DATA }));
     // El grupo nuevo no tiene menú: la tabla tampoco (manda ella al recargar).
+    // TODO(producto): la misma pregunta que en useRoster, aquí desactivando.
     if (user && !householdReadOnly) ponerMenuActivo(null, user.id, casaActivaRef.current);
     setMenuPlan({});
     setShopping({ items: [] });
@@ -3868,6 +3869,9 @@ export default function App() {
     setData((d) => switchRoster(d, rosterId));
     // Cambiar de grupo cambia el menú activo: a la tabla también, que es la
     // verdad (menuActivo.js). Sin esto, al recargar volvía el del otro grupo.
+    // TODO(producto): ¿cambiar de grupo debe cambiar el menú activo de TODA la
+    // casa (lo que ven el cotitular, el lector y Lola), o el grupo es solo una
+    // vista de quien lo cambia y el menú activo de la casa no se toca?
     if (user && !householdReadOnly) ponerMenuActivo(snapshot.activeMenuId ?? null, user.id, casaActivaRef.current);
     setMenuPlan(week?.plan ?? {});
     setShopping(week?.shopping ?? { items: [] });

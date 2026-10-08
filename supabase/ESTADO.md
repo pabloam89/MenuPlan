@@ -15,14 +15,14 @@ tabla de abajo.
 ## Resumen
 
 Contado el 7 oct 2026 sobre la rama `staging` (0001–0086, sin la 0085, que está
-en otra rama):
+en otra rama); el 8 oct se suma la 0087, sin aplicar:
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **88** |
+| Ficheros en `supabase/migrations/` | **89** |
 | Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
 | Aplicadas | **84** |
-| **Sin aplicar** | **4** — `0021_store_products`, `0080_bot_tareas_v2`, `0083_bot_tareas_fk_persona`, `0086_vocabulario_de_la_app` (y `0087`, posterior al recuento: ver abajo) |
+| **Sin aplicar** | **5** — `0021_store_products`, `0080_bot_tareas_v2`, `0083_bot_tareas_fk_persona`, `0086_vocabulario_de_la_app`, `0087_menu_activo_y_casa_propia` |
 | En otras ramas | `0085` (sin aplicar), en `datos/sistematizar` |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 

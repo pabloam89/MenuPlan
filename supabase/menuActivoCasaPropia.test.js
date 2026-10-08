@@ -18,6 +18,13 @@ function funcion(nombre) {
   return sinComentarios.slice(i, j < 0 ? undefined : j);
 }
 
+describe("0087: precondición", () => {
+  it("para si no existe households.propia (0075), antes de tocar ninguna función", () => {
+    const pre = sinComentarios.slice(0, sinComentarios.indexOf("create or replace function"));
+    expect(pre).toMatch(/do \$\$[\s\S]*if not exists \([\s\S]*table_name = 'households' and column_name = 'propia'[\s\S]*raise exception/);
+  });
+});
+
 describe("0087: el lector tacha según user_menus.is_active", () => {
   const f = funcion("household_shopping_mark");
   it("mira la tabla", () => {
