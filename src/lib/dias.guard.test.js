@@ -1,15 +1,18 @@
 // Guardia de src/lib/dias.js: que nadie vuelva a escribirse la semana a mano.
 //
-// Cuatro cosas, cada una con su lista congelada (fichero → veces). El número
+// Cinco cosas, cada una con su lista congelada (fichero → veces). El número
 // solo puede bajar: si el test falla porque BAJÓ, bájalo aquí también, para
 // que la lista no deje hueco a que vuelva a subir. Algo nuevo, a dias.js.
 //
 // 1. Listas y mapas de días escritos a mano (["Lun", "Mar"…], slugs, nombres
-//    largos, letras, los que empiezan en domingo, `{ Lun: "…" }`).
+//    largos, letras, los que empiezan en domingo, `{ Lun: "…" }`, en inglés
+//    ("Mon"…) y el finde ["Sáb", "Dom"]).
 // 2. Sacar el día de una fecha a mano: `(getDay() + 6) % 7` y `=== 0 ? 6 :`.
 //    → indiceDeFecha / indiceDeISO / diaDeFecha / diaDeISO.
 // 3. Pasar «Comida»/«Cena» a «comida»/«cena» a mano → tipoDeComida / comidaDeTipo.
 // 4. Partir el hueco del motor («lun_comida_1») con split("_") → huecoMotor.leer.
+// 5. Calcular «hoy» a mano: Intl con Europe/Madrid o toISOString().slice(0, 10)
+//    (que es UTC: entre las 00:00 y las 02:00 sale el día anterior) → hoyDeCasa / isoDeCasa.
 
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
@@ -62,6 +65,8 @@ const LISTA = new RegExp([
   /["'][Dd]omingo["']\s*,\s*["'][Ll]unes["']/.source, // largos desde el domingo
   /["']L["']\s*,\s*["']M["']\s*,\s*["']X["']/.source, // letras
   /\bLun:\s*["']/.source, // mapas { Lun: "…" }
+  /["']Mon["']\s*,\s*["']Tue["']|\bMon:\s*["']/.source, // en inglés (Intl en-GB)
+  /["']Sáb["']\s*,\s*["']Dom["']/.source, // el finde a mano (DIAS_FINDE)
 ].join("|"));
 
 // Congelada el 8 oct 2026. Solo puede bajar.
@@ -103,6 +108,39 @@ const PERMITIDO_MOTOR = Object.freeze({
   "src/utils/validateMenu.js": 13,
 });
 
+// ── 5. «Hoy» a mano ─────────────────────────────────────────────────────────
+
+const HOY = /Europe\/Madrid|toISOString\(\)\.slice\(0,\s*10\)/;
+
+// Congelada el 8 oct 2026. Solo puede bajar. Ninguno es «qué día es hoy en
+// la casa»: eso ya va todo por hoyDeCasa / isoDeCasa.
+const PERMITIDO_HOY = Object.freeze({
+  // Datos de mentira y pantallas de desarrollo.
+  "src/dev/PanelPlayground.jsx": 1,
+  "src/lib/receiptFixtures.js": 2,
+  "src/lib/socialFixtures.js": 1,
+  // Comentarios que explican por qué NO se usa toISOString().slice(0, 10).
+  "src/lib/reglas.js": 1,
+  "src/lib/weekCalendar.js": 1,
+  // Claves de agrupación de tickets por día/semana (aritmética, no «hoy»).
+  "src/lib/priceHistory.js": 2,
+  // Aritmética de fechas a mediodía UTC (sumarDias, lunesDe, «hace 3 días»).
+  "api/_bot/ajustes.js": 1,
+  "api/_bot/cuando.js": 1,
+  "api/_bot/ficha.js": 2,
+  // sumarDias, «hace 3 días» y la HORA de Madrid (no el día).
+  "api/_bot/menu.js": 3,
+  // Fecha + hora de Madrid para programar el aviso, y aritmética de fechas.
+  "api/_bot/vispera.js": 3,
+  // process.env.TZ para computeWeekRange del motor.
+  "api/_bot/generar.js": 1,
+  // La zona de los recordatorios con hora.
+  "api/_bot/recordatorios.js": 1,
+  // Tope diario de gasto en IA: día UTC a propósito (es un techo de coste,
+  // global, no el día de ninguna casa).
+  "api/_guard.js": 1,
+});
+
 describe("la semana vive en src/lib/dias.js: congelado", () => {
   it("listas y mapas de días escritos a mano", () => {
     expect(recuento(LISTA)).toEqual(PERMITIDO_LISTA);
@@ -115,6 +153,9 @@ describe("la semana vive en src/lib/dias.js: congelado", () => {
   });
   it("el hueco del motor partido a mano (usa huecoMotor.leer)", () => {
     expect(recuento(MOTOR)).toEqual(PERMITIDO_MOTOR);
+  });
+  it("«hoy» calculado a mano (usa hoyDeCasa / isoDeCasa)", () => {
+    expect(recuento(HOY)).toEqual(PERMITIDO_HOY);
   });
 });
 
@@ -131,7 +172,10 @@ describe("la guardia ve lo que tiene que ver", () => {
       'const D = ["L", "M", "X", "J"];',
       'const D = { Lun: "L", Mar: "M" };',
     ]) expect(LISTA.test(malo), malo).toBe(true);
-    for (const bueno of ['DIAS.includes("Lun")', 'dia === "Lun"', '["Sáb", "Dom"]']) {
+    for (const malo of ['["Mon", "Tue", "Wed"]', '{ Mon: "Lun", Tue: "Mar" }', '["Sáb", "Dom"]']) {
+      expect(LISTA.test(malo), malo).toBe(true);
+    }
+    for (const bueno of ['DIAS.includes("Lun")', 'dia === "Lun"', "DIAS_FINDE", '"Monday"']) {
       expect(LISTA.test(bueno), bueno).toBe(false);
     }
   });
@@ -149,6 +193,9 @@ describe("la guardia ve lo que tiene que ver", () => {
     expect(COMIDA.test("tipoDeComida(meal)")).toBe(false);
     expect(MOTOR.test('slot.slotId.split("_")[1]')).toBe(true);
     expect(MOTOR.test("huecoMotor.leer(slot.slotId)")).toBe(false);
+    expect(HOY.test('new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" })')).toBe(true);
+    expect(HOY.test("new Date().toISOString().slice(0, 10)")).toBe(true);
+    expect(HOY.test("isoDeCasa()")).toBe(false);
   });
 
   it("mira donde tiene que mirar", () => {

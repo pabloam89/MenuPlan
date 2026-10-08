@@ -28,12 +28,10 @@ import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO }
 import { propiasDe } from "./propias.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
+import { hoyDeCasa, isoDeCasa, DIAS_FINDE } from "../../src/lib/dias.js";
 
-const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
-const indiceHoy = () => {
-  const d = new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: "Europe/Madrid" }).format(new Date());
-  return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(d);
-};
+const hoyISO = () => isoDeCasa();
+const indiceHoy = () => hoyDeCasa().indice;
 
 /**
  * @param {"esta" | "siguiente"} cual
@@ -87,7 +85,7 @@ function claveDelPedido(fijo, plan, activos = null) {
   return null;
 }
 
-const FINDE = new Set(["Sáb", "Dom"]);
+const FINDE = new Set(DIAS_FINDE);
 // Por encima de esto, mejor en fin de semana: es donde la casa tiene tiempo.
 const MINUTOS_ENTRE_SEMANA = 30;
 

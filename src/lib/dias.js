@@ -55,6 +55,31 @@ export const diaDeFechaUTC = (fecha) => DIAS[indiceDeFechaUTC(fecha)];
 /** El día («Jue») de una fecha «AAAA-MM-DD». */
 export const diaDeISO = (iso) => DIAS[indiceDeISO(iso)];
 
+// ── El hoy de la casa ───────────────────────────────────────────────────────
+
+/** La zona de la casa mientras no haya una guardada. */
+export const ZONA_CASA = "Europe/Madrid";
+
+const formatos = new Map();
+function formatoISO(zona) {
+  if (!formatos.has(zona)) formatos.set(zona, new Intl.DateTimeFormat("sv-SE", { timeZone: zona }));
+  return formatos.get(zona);
+}
+
+/**
+ * Qué día es HOY en la casa: `{ iso: "AAAA-MM-DD", dia: "Jue", indice: 3 }`.
+ * En la hora de la casa (Europe/Madrid si no hay otra), no en UTC: a las 00:30
+ * del jueves es jueves, no el miércoles de UTC. Lo mismo en la app que en el
+ * bot: el navegador suele estar en la misma zona, pero no se fía de ello.
+ */
+export function hoyDeCasa({ ahora = new Date(), zona = ZONA_CASA } = {}) {
+  const iso = formatoISO(zona || ZONA_CASA).format(ahora);
+  const indice = indiceDeISO(iso);
+  return { iso, dia: DIAS[indice], indice };
+}
+/** Solo la fecha «AAAA-MM-DD» de hoyDeCasa. */
+export const isoDeCasa = (opciones) => hoyDeCasa(opciones).iso;
+
 // ── Entre formas del día ────────────────────────────────────────────────────
 
 /** «Mié» → 2; -1 si no es un día. */

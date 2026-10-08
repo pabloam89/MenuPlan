@@ -94,7 +94,7 @@ import {
   matchReceiptProducts,
   SHOPPING_DAY_WEEK,
 } from "../lib/shoppingListUtils.js";
-import { DIA_LETRA, DIA_LARGO, LETRAS_DIA, indiceDeFecha } from "../lib/dias.js";
+import { DIA_LETRA, DIA_LARGO, LETRAS_DIA, indiceDeFecha, isoDeCasa } from "../lib/dias.js";
 import {
   calendarDayNumber,
   formatWeekRangeLabel,
@@ -3248,7 +3248,7 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
   const [storeSel, setStoreSel] = useState(knownStore ?? "");
   const [storeOther, setStoreOther] = useState(knownStore ? "" : detectedStore);
   const store = storeSel === "__other" ? storeOther : storeSel;
-  const [date, setDate] = useState(detail.date ?? new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(detail.date ?? isoDeCasa());
   const [lines, setLines] = useState(initialLines);
   const [step, setStep] = useState(0);
   // "Aclara productos" is answered one line at a time (select-a-candidate),

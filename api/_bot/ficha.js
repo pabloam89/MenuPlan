@@ -33,7 +33,7 @@ import { SEMI, COCINADO } from "../../src/lib/tandaFamiliasDefs.js";
 import { comidasDeLaCasa, comida as comidaDelCatalogo } from "../../src/lib/comidas.js";
 import { claveDeTarea } from "../../src/lib/registroTareas.js";
 import { vetosConAmbito, textoDeVeto, vetosDePersona } from "../../src/lib/vetos.js";
-import { DIAS, DIA_LARGO_MINUSCULAS, DIA_LETRA, diaDeISO } from "../../src/lib/dias.js";
+import { DIAS, DIA_LARGO_MINUSCULAS, DIA_LETRA, diaDeISO, isoDeCasa } from "../../src/lib/dias.js";
 import { select, eq } from "./db.js";
 import { propiasDe } from "./propias.js";
 
@@ -429,7 +429,7 @@ export function montarFicha(casa, extras = {}, hoy = hoyMadrid()) {
   return f;
 }
 
-const hoyMadrid = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+const hoyMadrid = () => isoDeCasa();
 
 /**
  * Lo que la ficha necesita y no está en el JSON de la casa: lo cocinado que

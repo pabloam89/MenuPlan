@@ -11,12 +11,13 @@
  */
 
 import { select, rpc, eq } from "./db.js";
+import { isoDeCasa } from "../../src/lib/dias.js";
 
 export const limiteMensual = () => Number(process.env.BOT_LIMITE_MENSUAL) || 100;
 const sinLimite = (householdId) => (process.env.BOT_SIN_LIMITE ?? "").split(",").map((s) => s.trim()).includes(householdId);
 
 export const mesActual = () =>
-  new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date()).slice(0, 7) + "-01";
+  isoDeCasa().slice(0, 7) + "-01";
 
 /** null si puede seguir; si no, el texto con el que se contesta. */
 export async function fueraDeLimite(householdId) {

@@ -11,11 +11,11 @@
  *     otro día lleva su fecha delante, para que el modelo lo lea en su día.
  */
 
-import { nombreDia, diaDeFechaUTC } from "../../src/lib/dias.js";
+import { nombreDia, diaDeFechaUTC, isoDeCasa } from "../../src/lib/dias.js";
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
-const diaMadrid = (iso) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date(iso));
+const diaMadrid = (iso) => isoDeCasa({ ahora: new Date(iso) });
 
 /** «viernes 2 de octubre», del día AAAA-MM-DD. */
 export function fechaLarga(dia) {

@@ -26,6 +26,8 @@ import {
   comidaDeTipo,
   huecoPlan,
   huecoMotor,
+  hoyDeCasa,
+  isoDeCasa,
 } from "./dias.js";
 import { DIAS as DIAS_VOCAB } from "./vocabularios.js";
 import { DAYS } from "./planner.js";
@@ -135,5 +137,32 @@ describe("dias.js: claves de hueco", () => {
     expect(huecoMotor.aPlan("jue_cena_1")).toBe("Jue-Cena");
     expect(huecoMotor.aPlan("lun_comida_2")).toBe("Lun-Comida");
     expect(huecoMotor.aPlan("nada")).toBe(null);
+  });
+});
+
+describe("dias.js: el hoy de la casa (Europe/Madrid salvo otra zona)", () => {
+  it("a las 00:30 de Madrid ya es el día nuevo, aunque en UTC sea el anterior", () => {
+    // Jueves 8 oct 2026, 00:30 en Madrid (verano, UTC+2) = miércoles 22:30 UTC.
+    const ahora = new Date("2026-10-07T22:30:00Z");
+    expect(hoyDeCasa({ ahora })).toEqual({ iso: "2026-10-08", dia: "Jue", indice: 3 });
+    expect(isoDeCasa({ ahora })).toBe("2026-10-08");
+    expect(hoyDeCasa({ ahora, zona: "UTC" })).toEqual({ iso: "2026-10-07", dia: "Mié", indice: 2 });
+  });
+
+  it("también en invierno (UTC+1) y en el cambio de domingo a lunes", () => {
+    const ahora = new Date("2026-01-04T23:30:00Z"); // lunes 5 ene, 00:30 en Madrid
+    expect(hoyDeCasa({ ahora })).toEqual({ iso: "2026-01-05", dia: "Lun", indice: 0 });
+  });
+
+  it("a las 23:59 de Madrid sigue siendo el mismo día", () => {
+    const ahora = new Date("2026-10-11T21:59:00Z"); // domingo 23:59 en Madrid
+    expect(hoyDeCasa({ ahora })).toEqual({ iso: "2026-10-11", dia: "Dom", indice: 6 });
+  });
+
+  it("sin argumentos, el de ahora", () => {
+    const h = hoyDeCasa();
+    expect(h.iso).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(h.dia).toBe(diaDeISO(h.iso));
+    expect(isoDeCasa()).toBe(h.iso);
   });
 });

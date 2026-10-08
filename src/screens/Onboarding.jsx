@@ -91,7 +91,7 @@ import {
 import { MAX_MENU_WEEKS, weekEntry } from "../lib/menuArchive.js";
 import { applyFreqWithinBudget } from "../lib/freqBudget.js";
 import { FAMILIA_LABELS } from "../lib/notepadFields.js";
-import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel, mondayISOForOffset } from "../lib/weekCalendar.js";
+import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel, mondayISOForOffset, todayDayIdx } from "../lib/weekCalendar.js";
 import { NOMBRES_DIA, LETRAS_DIA, indiceDeFecha } from "../lib/dias.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
@@ -9936,10 +9936,6 @@ const MONTH_NAMES_ES = [
   "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre",
 ];
 
-function todayMondayIdx() {
-  return indiceDeFecha(new Date());
-}
-
 function buildCalendarWeeks(count = 6) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -9976,7 +9972,7 @@ const VARIETY_OPTIONS = [
 ];
 
 export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinish }) {
-  const todayIdx = todayMondayIdx();
+  const todayIdx = todayDayIdx();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 

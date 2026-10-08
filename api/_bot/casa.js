@@ -15,9 +15,10 @@
 import { select, insert, update, rpc, eq } from "./db.js";
 import { recetasPropiasDeCasa } from "./propias.js";
 import { menuActivoDe } from "../../src/lib/menuActivo.js";
+import { isoDeCasa } from "../../src/lib/dias.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
-export const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+export const hoyISO = () => isoDeCasa();
 
 const aSemana = (s) => ({
   menuId: s.menu_id, weekStart: s.week_start, weekEnd: s.week_end, startDayIdx: s.start_day_idx ?? 0,
