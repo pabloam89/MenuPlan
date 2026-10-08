@@ -4,11 +4,12 @@
  * Lo que imprime entra en el contexto de la sesión. Solo avisos que cambian lo
  * que se hace a continuación: en qué carpeta y rama estás, si te falta el
  * entorno, si vas por detrás de staging, qué otras sesiones hay abiertas, qué
- * números de migración están cogidos y cuáles siguen sin aplicar.
+ * números de migración están cogidos, cuáles siguen sin aplicar y qué issues
+ * esperan a alguien (decisiones de Pablo, encargos, lecciones sin su test).
  * Además apunta esta sesión en el registro (sesiones.mjs).
  * Nunca falla: si algo no se puede mirar, se calla.
  */
-import { execFileSync } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
@@ -81,6 +82,9 @@ try {
 
 // ── Staging y migraciones ──────────────────────────────────────────────────
 const prs = pedirPrs(raiz, 10_000); // a la vez que el fetch: los dos son red, y gh es el lento
+const issues = new Promise((ok) => {
+  execFile("gh", ["issue", "list", "--state", "open", "--limit", "200", "--json", "number,labels"], { cwd: raiz, encoding: "utf8", timeout: 10_000 }, (error, salida) => ok(error ? null : salida));
+});
 git("fetch", "-q", "origin", "staging");
 const detras = git("rev-list", "--count", "HEAD..origin/staging");
 if (rama && rama !== "staging" && rama !== "main" && Number(detras) > 0) {
@@ -102,6 +106,20 @@ const estado = join(raiz, "supabase", "ESTADO.md");
 if (existsSync(estado)) {
   const libres = sinAplicar(readFileSync(estado, "utf8"));
   if (libres?.size) avisos.push(`Sin aplicar en producción según ESTADO.md: ${[...libres].join(", ")}. El código no puede depender de ellas.`);
+}
+
+// ── Issues: lo que espera a alguien ──────────────────────────────────────
+try {
+  const abiertos = JSON.parse((await issues) ?? "[]");
+  const de = (t) => abiertos.filter((i) => i.labels.some((l) => l.name === `tipo:${t}`)).length;
+  const partes = [
+    [de("decision"), "decisiones esperando a Pablo"],
+    [de("encargo"), "encargos (mira si el tuyo ya lo tiene alguien)"],
+    [de("leccion"), "lecciones sin su test"],
+  ].filter(([n]) => n).map(([n, que]) => `${n} ${que}`);
+  if (partes.length) avisos.push(`Issues abiertos: ${partes.join("; ")}. Detalle: \`npm run issues\`.`);
+} catch {
+  // sin GitHub: se calla
 }
 
 process.stdout.write(`[arranque MenuPlan]\n- ${avisos.join("\n- ")}\n`);
