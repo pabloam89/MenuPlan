@@ -18,20 +18,14 @@ import {
 } from "./recipeDiversity.js";
 import { maxCookTime } from "./cookTime.js";
 import { DIAS } from "./vocabularios.js";
+import { alergiasParaMenu } from "./alergias.js";
 import { platoVetado, vetosDe } from "./vetos.js";
+import { DIA_LARGO, tipoDeComida } from "./dias.js";
 
 // La lista vive en vocabularios.js (fuente única); aquí con su nombre de siempre.
 export const DAYS = DIAS;
 
-export const DAY_LABELS = {
-  Lun: "Lunes",
-  Mar: "Martes",
-  Mié: "Miércoles",
-  Jue: "Jueves",
-  Vie: "Viernes",
-  Sáb: "Sábado",
-  Dom: "Domingo",
-};
+export const DAY_LABELS = DIA_LARGO;
 
 export function dayLabel(short) {
   return DAY_LABELS[short] ?? short;
@@ -202,7 +196,7 @@ function recipeMealType(meal) {
   // Map any user-defined meal label to a recipe mealType. Only "cena"
   // requires the cena tag; everything else (Comida, Desayuno, Almuerzo,
   // Merienda, etc.) reuses "comida" recipes.
-  return (meal ?? "").toLowerCase() === "cena" ? "cena" : "comida";
+  return tipoDeComida(meal);
 }
 
 const PROTEIN_TAGS = ["pescado", "carne", "legumbres", "huevos"];
@@ -495,7 +489,7 @@ export function generateMenu(data) {
 
     // Aggregate per-member allergies + dislikes for this group.
     const groupAllergies = Array.from(
-      new Set(groupMembers.flatMap((m) => m.allergies ?? []))
+      new Set(groupMembers.flatMap((m) => alergiasParaMenu(data, m)))
     );
     const groupDislikes = vetosDe(data, { grupo: group });
 

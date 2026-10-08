@@ -15,6 +15,7 @@ import { membersOfGroup } from "../lib/groups.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
+import { LETRAS_DIA, DIA_LETRA } from "../lib/dias.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { calendarDayNumber, getWeekDates, todayDayIdx } from "../lib/weekCalendar.js";
 import { tandaDelMenu } from "../lib/tandaDelPlato.js";
@@ -67,7 +68,7 @@ const TEAL = "#0f766e";
 const NARANJA = "#b2622f";
 
 const ETIQUETA_SEMANA = ["Esta", "La próxima", "En 2 sem.", "En 3 sem."];
-const DIAS_CORTOS = ["L", "M", "X", "J", "V", "S", "D"];
+const DIAS_CORTOS = LETRAS_DIA;
 const MESES = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
@@ -80,7 +81,7 @@ const MESES = [
  * la barra contaría una familia y compararía con otra.
  */
 /** La inicial del día, la misma que usan Compra, Análisis y el menú. */
-const LETRA_DIA = { Lun: "L", Mar: "M", "Mié": "X", Jue: "J", Vie: "V", "Sáb": "S", Dom: "D" };
+const LETRA_DIA = DIA_LETRA;
 
 /** El icono de la franja, el mismo del tablero. */
 const ICONO_FRANJA = {

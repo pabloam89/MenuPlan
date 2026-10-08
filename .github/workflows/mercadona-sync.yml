@@ -82,6 +82,12 @@ jobs:
             }
           '
 
+      # El € por ración (derived/recipeCoste.json) sale de estos precios: si no
+      # se regenera con ellos, la ficha de una receta de usuario y la del
+      # catálogo dejan de medir con la misma vara (lib/coste.test.js lo caza).
+      - name: Recalcular el coste por ración
+        run: node scripts/build-coste.mjs
+
       - name: Commitear si ha cambiado algo
         run: |
           if git diff --quiet -- public/store/mercadona.json; then
@@ -91,6 +97,6 @@ jobs:
           N=$(node -p "require('./public/store/mercadona.json').productCount")
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/store/mercadona.json
+          git add public/store/mercadona.json src/data/derived/recipeCoste.json
           git commit -m "chore(mercadona): catálogo semanal — ${N} productos"
           git push

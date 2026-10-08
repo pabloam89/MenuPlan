@@ -14,12 +14,12 @@
 // Compartido entre la app y el bot: el mismo código escribe y lee.
 
 import { COMIDAS, articuloDe } from "./comidas.js";
+import { nombreDia, diaDeFechaUTC } from "./dias.js";
 
 // La letra de cada comida sale del catálogo (src/lib/comidas.js, `letra`), con
 // las mismas de siempre: los enlaces ya enviados se siguen leyendo.
 const FRANJAS = Object.fromEntries(COMIDAS.filter((c) => c.letra).map((c) => [c.letra, c.id]));
 const LETRA = Object.fromEntries(Object.entries(FRANJAS).map(([k, v]) => [v, k]));
-const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
 const LARGO_CODIGO = 22;
@@ -68,7 +68,7 @@ export function fraseDePedido(pedido, hoyISO) {
   if (Number.isNaN(fecha.getTime())) return null;
   const franja = FRANJAS[f];
   const plato = n === "1" ? `el primero de ${articuloDe(franja)}` : articuloDe(franja);
-  let cuando = `del ${DIAS[fecha.getUTCDay()]} ${+d} de ${MESES[+mes - 1]}`;
+  let cuando = `del ${nombreDia(diaDeFechaUTC(fecha), { minusculas: true })} ${+d} de ${MESES[+mes - 1]}`;
   if (hoyISO) {
     const hoy = new Date(`${hoyISO}T12:00:00Z`);
     const lunesQueViene = new Date(hoy);

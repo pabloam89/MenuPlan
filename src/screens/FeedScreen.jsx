@@ -24,6 +24,7 @@ import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { memberAvatarColor } from "../lib/stages.js";
 import { DAYS } from "../lib/planner.js";
+import { diaDeFecha } from "../lib/dias.js";
 import { loadPublicRecipe } from "../lib/userRecipesSync.js";
 import { folderArt, ALL_ID } from "./CatalogBrowserSheet.jsx";
 import { allFolders } from "../lib/recipeCollections.js";
@@ -1446,7 +1447,7 @@ function SharedMenuDeck({ days, weekStart, scopes, roleFilter, onRole, stats, on
   // que la semana de otro pareciera un documento archivado en vez de algo que
   // está pasando — y es lo que más barato costaba arreglar.
   const [dayIdx, setDayIdx] = useState(() => {
-    const hoy = DAYS[(new Date().getDay() + 6) % 7];
+    const hoy = diaDeFecha(new Date());
     const i = days.findIndex((d) => d.day === hoy);
     return i === -1 ? 0 : i;
   });

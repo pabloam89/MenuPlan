@@ -150,6 +150,7 @@
 
 import { z } from "zod";
 import { DAYS, SLOT_VALUES, slotKey, getMeals, getDayMeals } from "./planner.js";
+import { DIAS, indiceDeFecha } from "./dias.js";
 import { membersOfGroup, tipoDeGrupo } from "./groups.js";
 import * as ids from "./ids.js";
 import { CAMPOS_POR_ID } from "./notepadFields.js";
@@ -216,7 +217,7 @@ const SujetoSchema = z.object({
 
 /** Dónde aplica. Todo opcional; lo que falta significa "siempre". */
 const AmbitoSchema = z.object({
-  dias: z.array(z.enum(["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"])).min(1).optional(),
+  dias: z.array(z.enum(DIAS)).min(1).optional(),
   comidas: z.array(z.string().min(1)).min(1).optional(),
   // El LUNES de cada semana, en ISO. Ver decisión 4 de la cabecera.
   semanas: z.array(iso).min(1).optional(),
@@ -501,7 +502,7 @@ export function hastaEnDias(dias, hoyISO) {
 export function lunesDe(fechaISO) {
   const d = new Date(`${fechaISO}T00:00:00`);
   // getDay(): 0 domingo … 6 sábado. La semana empieza en lunes, como DAYS.
-  const desplazamiento = (d.getDay() + 6) % 7;
+  const desplazamiento = indiceDeFecha(d);
   d.setDate(d.getDate() - desplazamiento);
   return isoLocal(d);
 }

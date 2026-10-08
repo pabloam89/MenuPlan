@@ -39,6 +39,7 @@ import { guessIngredientCategory } from "./ingredientCategories.js";
 import { isQualitativeUnit, mergeIngredientLines } from "./ingredientUnits.js";
 import { buildAdaptationMap } from "./substitutions.js";
 import { normalizeAllergenId } from "./allergens.js";
+import { alergiasParaMenu } from "./alergias.js";
 import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortions, slotUsesPrepared, catalogIdOfPlanRecipe } from "./freezer.js";
 import { dominantComponentOf } from "./dominantComponent.js";
 import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
@@ -49,6 +50,7 @@ import { aporteDe, fundirMicros } from "./derive/aporteAcompanamiento.js";
 import { computeRecipeNutrition } from "./ingredients.js";
 import { vetosDe } from "./vetos.js";
 import { isoLocalDate } from "./weekCalendar.js";
+import { DIA_SLUG as DAY_SLUG, DIA_LARGO_MINUSCULAS, diaDeSlug, tipoDeComida, comidaDeTipo, huecoMotor } from "./dias.js";
 
 /**
  * Los nombres por ración de los 24 micronutrientes. Los cuatro macros
@@ -157,11 +159,6 @@ function proteinGroupsOf(recipe) {
 // como punto de partida del eje de reparto, y tenerlo duplicado allí dejaba
 // dos defaults que se desincronizan en cuanto alguien afine uno de los dos.
 export { DEFAULT_FREQS };
-
-const DAY_SLUG = {
-  Lun: "lun", Mar: "mar", Mié: "mie", Jue: "jue",
-  Vie: "vie", Sáb: "sab", Dom: "dom",
-};
 
 export function extractJson(text) {
   const trimmed = String(text ?? "").trim();
@@ -479,7 +476,7 @@ export function buildGroupContext(data, group) {
   const isBabyGroup = isBabyMenuGroup(group, data.members);
   // Niños de 3 a 11 (etapaDe): el filtro kidFriendly y el de alcohol.
   const hasKids = !isBabyGroup && groupMembers.some((m) => esNino(m));
-  const allergies = Array.from(new Set(groupMembers.flatMap((m) => m.allergies ?? [])));
+  const allergies = Array.from(new Set(groupMembers.flatMap((m) => alergiasParaMenu(data, m))));
   // Predefined intolerances + temporary dietary states (embarazo/lactancia)
   // are aggregated together and handled by filterRecipes via lib/intolerances.js
   // — most are hard exclusions, lactosa_fina is adapted (see substitutions.js).
@@ -597,7 +594,7 @@ export function buildGroupContext(data, group) {
         return status === "casa" || status === "tupper";
       }).length;
 
-      const mealType = meal.toLowerCase() === "cena" ? "cena" : "comida";
+      const mealType = tipoDeComida(meal);
       const maxTime = maxCookTime(data, { isWeekend, meal });
       // User-marked exception for this exact day+meal ("unico" | "rapida").
       const slotTypeSel = data.slotType?.[`${day}|${meal}`];
@@ -724,7 +721,7 @@ export function buildGroupContext(data, group) {
   // clave que `data.slotType`: «Lun|Comida».
   if (data.excluirPorHueco) {
     for (const s of slots) {
-      const lista = data.excluirPorHueco[`${s.day}|${s.mealType === "cena" ? "Cena" : "Comida"}`];
+      const lista = data.excluirPorHueco[`${s.day}|${comidaDeTipo(s.mealType)}`];
       if (lista?.length) s.excluirHueco = lista;
     }
   }
@@ -823,7 +820,7 @@ export function compactCatalogTable(catalog) {
 }
 
 // `format`: "json" (task "planner") or "compact" (task "planner-compact").
-const DIA_LARGO_TANDA = { Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves", Vie: "viernes", "Sáb": "sábado", Dom: "domingo" };
+const DIA_LARGO_TANDA = DIA_LARGO_MINUSCULAS;
 
 export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = [], cocinas = null, format = "json", bases = null) {
   const catalog = decisionCatalog(filteredRecipes);
@@ -2116,7 +2113,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   const hasKids = kids.length > 0;
 
   const safety = {
-    allergies: [...new Set(members.flatMap((m) => m.allergies ?? []))],
+    allergies: [...new Set(members.flatMap((m) => alergiasParaMenu(data, m)))],
     intolerances: [
       ...new Set(members.flatMap((m) => [...(m.intolerances ?? []), ...(m.dietaryStates ?? [])])),
     ],
@@ -2392,7 +2389,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     // bebé, y la ración por edad (medio adulto a los 2 años) la encogería otra
     // vez. Sin entrada, abajo cae a `eaters`.
     const racionesBySlot = isBabyMenuGroup(group, data.members) ? {} : Object.fromEntries(
-      slotsContext.map((s) => [s.slotId, racionesEn(miembrosDelGrupo, s.day, s.mealType === "cena" ? "Cena" : "Comida")]),
+      slotsContext.map((s) => [s.slotId, racionesEn(miembrosDelGrupo, s.day, comidaDeTipo(s.mealType))]),
     );
 
     // Group assignments by day+meal
@@ -2435,10 +2432,10 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       const mealType = parts[1]; // "comida" or "cena"
       const position = parts[2]; // "1", "2", o undefined en la cena de un plato
 
-      const day = dayBySlot[slotId] ?? Object.entries(DAY_SLUG).find(([, v]) => v === daySlug)?.[0];
+      const day = dayBySlot[slotId] ?? diaDeSlug(daySlug);
       if (!day) continue;
 
-      const mealLabel = mealType === "cena" ? "Cena" : "Comida";
+      const mealLabel = comidaDeTipo(mealType);
       const planKey = `${day}-${mealLabel}`;
 
       if (!byDayMeal[planKey]) {
@@ -2941,7 +2938,7 @@ function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPo
   const forcedSlotIds = new Set(ctx.slots.filter((s) => s.preferType).map((s) => s.slotId));
   const isLocked = (slot) => {
     if (forcedSlotIds.has(slot.slotId)) return true;
-    const mealType = slot.slotId.split("_")[1] === "cena" ? "cena" : "comida";
+    const mealType = tipoDeComida(huecoMotor.leer(slot.slotId)?.tipo);
     return fixedByMeal[mealType].has(slot.recipeId);
   };
   const groupOf = (slotId) => proteinGroupOf(poolById[bySlot.get(slotId)?.recipeId]);
@@ -3226,7 +3223,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   let targetRoles;
   if (course === "first") {
     targetRoles = new Set(["primero"]);
-  } else if (String(meal).toLowerCase() === "cena") {
+  } else if (tipoDeComida(meal) === "cena") {
     targetRoles = new Set(["cena", "plato_unico"]);
   } else {
     targetRoles = new Set(currentSlot.firstRecipeId ? ["segundo"] : ["plato_unico"]);
@@ -3295,7 +3292,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // exact protein or carb base the school already served that day, undoing
   // the one guarantee buildGroupContext made for that slot. Soft guardrail
   // like the others here: relaxed (not applied) if it would empty the pool.
-  if (String(meal).toLowerCase() === "cena") {
+  if (tipoDeComida(meal) === "cena") {
     const schoolSlotCtx = ctx.slots.find((s) => s.slotId === `${DAY_SLUG[day]}_cena`);
     const schoolProteinsToAvoid = new Set(schoolSlotCtx?.schoolProteinsToAvoid ?? []);
     const schoolCarbsToAvoid = new Set(schoolSlotCtx?.schoolCarbsToAvoid ?? []);
@@ -3467,7 +3464,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // have dish+garnish combo photos, so without this the photo would show a side
   // (e.g. rice) that isn't in the recipe.
   const daySlug = DAY_SLUG[day];
-  const targetMealType = String(meal).toLowerCase() === "cena" ? "cena" : "comida";
+  const targetMealType = tipoDeComida(meal);
   const targetSlotId =
     targetMealType === "cena"
       ? `${daySlug}_cena`
@@ -3480,7 +3477,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   for (const m of getMeals(data)) {
     const s = menuPlan[groupId]?.[`${day}-${m}`];
     if (!s?.recipeId) continue;
-    const mt = String(m).toLowerCase() === "cena" ? "cena" : "comida";
+    const mt = tipoDeComida(m);
     if (mt === "comida") {
       if (s.firstRecipeId) {
         dayAssignments.push({ slotId: `${daySlug}_comida_1`, recipeId: stripGroupPrefix(s.firstRecipeId) });
@@ -3536,7 +3533,7 @@ export function pickGarnishReplacement(data, menuPlan, { groupId, day, meal, cou
   const eaters = currentSlot.eaters ?? 2;
 
   const daySlug = DAY_SLUG[day];
-  const targetMealType = String(meal).toLowerCase() === "cena" ? "cena" : "comida";
+  const targetMealType = tipoDeComida(meal);
   const targetSlotId =
     targetMealType === "cena"
       ? `${daySlug}_cena`
@@ -3549,7 +3546,7 @@ export function pickGarnishReplacement(data, menuPlan, { groupId, day, meal, cou
   for (const m of getMeals(data)) {
     const s = menuPlan[groupId]?.[`${day}-${m}`];
     if (!s?.recipeId) continue;
-    const mt = String(m).toLowerCase() === "cena" ? "cena" : "comida";
+    const mt = tipoDeComida(m);
     if (mt === "comida") {
       if (s.firstRecipeId) {
         dayAssignments.push({ slotId: `${daySlug}_comida_1`, recipeId: stripGroupPrefix(s.firstRecipeId) });

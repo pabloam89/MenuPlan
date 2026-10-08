@@ -424,8 +424,10 @@ async function cerrar(ctx, abiertas, referencia, estado = "hecha", ahora = new D
   if (estado === "rechazada" && tipoDe(t) !== "falta_saber") return "«No quiere decirlo» solo vale para una pregunta; esto se descarta.";
   const filas = await update("bot_tareas", `id=${eq(t.id)}&household_id=${eq(ctx.householdId)}&${filtroVivas()}`, cierre(estado, ahora.toISOString()));
   if (!filas?.length) return "Esa tarea ya estaba cerrada.";
-  await registrar(EVENTO.CERRADA, { userId: ctx.userId ?? null, extra: { householdId: ctx.householdId, kind: t.kind, estado, otroChat: String(t.chat_id) !== String(ctx.chatId) } });
-  const otroChat = String(t.chat_id) !== String(ctx.chatId) ? " Se pidió en otro chat: si hace falta que allí lo sepan, ofrécete a decirlo, no lo hagas tú." : "";
+  // Sin chat_id (las que trae ficha_casa, fichaRpc.js) no se sabe: no se dice que fue en otro.
+  const deOtroChat = t.chat_id != null && String(t.chat_id) !== String(ctx.chatId);
+  await registrar(EVENTO.CERRADA, { userId: ctx.userId ?? null, extra: { householdId: ctx.householdId, kind: t.kind, estado, otroChat: deOtroChat } });
+  const otroChat = deOtroChat ? " Se pidió en otro chat: si hace falta que allí lo sepan, ofrécete a decirlo, no lo hagas tú." : "";
   if (estado === "rechazada") return `Hecho: no lo volveré a preguntar. Ojo: no es «ninguna»; si importa para la seguridad, dilo así, sin insistir.${otroChat}`;
   return `${estado === "hecha" ? "Cerrada" : "Descartada"}: ${t.texto}.${otroChat}`;
 }

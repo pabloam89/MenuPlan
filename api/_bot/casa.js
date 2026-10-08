@@ -14,9 +14,11 @@
 
 import { select, insert, update, rpc, eq } from "./db.js";
 import { recetasPropiasDeCasa } from "./propias.js";
+import { menuActivoDe } from "../../src/lib/menuActivo.js";
+import { isoDeCasa } from "../../src/lib/dias.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
-export const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+export const hoyISO = () => isoDeCasa();
 
 const aSemana = (s) => ({
   menuId: s.menu_id, weekStart: s.week_start, weekEnd: s.week_end, startDayIdx: s.start_day_idx ?? 0,
@@ -68,14 +70,20 @@ async function leerCasa(householdId) {
   ]);
   if (!fila) return null;
 
-  const [[menu], recetasPropias] = await Promise.all([
+  const [activos, recetasPropias] = await Promise.all([
     select(
       "user_menus",
-      `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=1`,
-      "id,user_id",
+      `household_id=${eq(householdId)}&is_active=eq.true&order=updated_at.desc&limit=5`,
+      "id,user_id,is_active,updated_at",
     ),
     recetasPropiasDeCasa(hogar?.owner_user_id ?? null, fila.state?.data?.userRecipes),
   ]);
+  // El mismo lector que la app (menuActivo.js): si hubiera dos activos, los
+  // dos eligen el de updated_at más reciente.
+  // La consulta ya filtra is_active.
+  const filasActivas = (activos ?? []).map((m) => ({ ...m, is_active: true }));
+  const idActivo = menuActivoDe(filasActivas);
+  const menu = filasActivas.find((m) => m.id === idActivo) ?? null;
 
   let semanas = [];
   if (menu) {

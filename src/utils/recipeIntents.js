@@ -1,5 +1,6 @@
 import { filterRecipes, recipeMatchesPreferType } from "./filterRecipes.js";
 import { BUILT_IN_IDS } from "../lib/recipeCollections.js";
+import { alergiasParaMenu } from "../lib/alergias.js";
 import { vetosDe } from "../lib/vetos.js";
 
 /**
@@ -104,7 +105,7 @@ export function eligibleCatalogPool(data, { excludeIds, extraRecipes = [] } = {}
   const dietaryStates = members.flatMap((m) => m.dietaryStates ?? []);
   const impliesAlcoholCocina = dietaryStates.some((s) => s === "embarazo" || s === "lactancia");
   const { recipes } = filterRecipes({
-    allergies: Array.from(new Set(members.flatMap((m) => m.allergies ?? []))),
+    allergies: Array.from(new Set(members.flatMap((m) => alergiasParaMenu(data, m)))),
     intolerances: Array.from(
       new Set([
         ...members.flatMap((m) => m.intolerances ?? []),

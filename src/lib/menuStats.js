@@ -1,9 +1,10 @@
 import { getConsumptionInsights, mergeConsumptionGroups } from "./consumptionInsights.js";
+import { indiceDeFecha } from "./dias.js";
 
 function weekStart(ts) {
   const d = new Date(ts);
   d.setHours(0, 0, 0, 0);
-  const day = (d.getDay() + 6) % 7; // Monday = 0
+  const day = indiceDeFecha(d);
   d.setDate(d.getDate() - day);
   return d.getTime();
 }

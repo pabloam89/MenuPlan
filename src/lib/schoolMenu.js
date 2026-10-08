@@ -1,4 +1,6 @@
-export const SCHOOL_DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie"];
+import { DIAS_LABORABLES } from "./dias.js";
+
+export const SCHOOL_DAYS = DIAS_LABORABLES;
 export const SCHOOL_COURSES = ["Primero", "Segundo", "Postre"];
 
 // ─── Multi-week school menus ───────────────────────────────────────────────

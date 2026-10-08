@@ -110,6 +110,7 @@ import {
   MAX_MENU_WEEKS,
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
+import { diaDeFecha, indiceDeFecha } from "./lib/dias.js";
 import { pizarraActiva, planVacio, huecosDelPlan, conHuecosAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
@@ -122,9 +123,11 @@ import {
   deleteMenu as deleteMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
   saveAndActivateMenu,
+  ponerMenuActivo,
   queueSaveMenuWeek,
   queueMarcarCompra,
 } from "./lib/menusSync.js";
+import { menuActivoDe } from "./lib/menuActivo.js";
 import { marcasEntre } from "./lib/tacharLector.js";
 import { puede } from "./lib/papeles.js";
 const MenusScreen = lazy(() => import("./screens/MenusScreen.jsx").then(m => ({ default: m.MenusScreen })));
@@ -154,12 +157,7 @@ import {
   saveRecipeFolder,
   deleteRecipeFolder,
 } from "./lib/recipeCollections.js";
-import {
-  loadRecipeDiscards,
-  saveRecipeDiscard,
-  deleteRecipeDiscard,
-  mergeDiscards,
-} from "./lib/recipeDiscardsSync.js";
+import { mergeDiscards } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
@@ -169,6 +167,7 @@ import BotEnlace from "./components/BotEnlace.jsx";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, subirDescartesPendientes } from "./lib/householdDiscardsSync.js";
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
+import { esTitular } from "./lib/householdsSync.js";
 import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
 import {
   rememberDeletedRecipeId,
@@ -187,7 +186,7 @@ import {
 } from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { filterOwnCreatedRecipes, filterMyLibraryRecipes } from "./lib/userRecipes.js";
-import { suggestHomeRole, migrateHomeRole, resolveAccountMember, memberIllustratedAvatarSrc } from "./lib/stages.js";
+import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuentaId, memberIllustratedAvatarSrc } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import {
   DEFAULT_ROSTER_ID,
@@ -477,6 +476,9 @@ const INITIAL_DATA = {
   // Cual de los miembros es la persona de la cuenta. Se marca a mano en Mi
   // perfil; sin marcar, la app lo adivina por el nombre (ver stages.js).
   accountMemberId: null,
+  // El de cada cuenta de la casa ({ [userId]: memberId }): el de arriba es
+  // compartido y titular y cotitular se pisaban (ver miembroDeCuentaId).
+  accountMemberIdByUser: {},
   kitchenTools: [],
   customKitchenTools: [],
   cookTime: { ...COOK_TIME_DEFAULTS },
@@ -683,6 +685,7 @@ function migrate(state) {
   }
   if (!Array.isArray(d.cookSkills)) d.cookSkills = [];
   if (typeof d.accountMemberId !== "string") d.accountMemberId = null;
+  if (!d.accountMemberIdByUser || typeof d.accountMemberIdByUser !== "object" || Array.isArray(d.accountMemberIdByUser)) d.accountMemberIdByUser = {};
   if (!Array.isArray(d.kitchenTools)) d.kitchenTools = [];
   if (!Array.isArray(d.customKitchenTools)) d.customKitchenTools = [];
   // Normalize school menus: courses (Primero/Segundo/Postre) instead of meals.
@@ -1025,7 +1028,7 @@ function pendingEndOfDaySweep(data, since) {
     // UTC y en husos negativos desplazaría toda la semana un día.
     const start = parseLocalISODate(wk.startISO);
     if (Number.isNaN(start.getTime())) continue;
-    const firstDayIdx = (start.getDay() + 6) % 7; // Lun=0
+    const firstDayIdx = indiceDeFecha(start);
     const end = wk.endISO ? parseLocalISODate(wk.endISO) : null;
     const span = end && !Number.isNaN(end.getTime())
       ? Math.round((end - start) / 86400000) + 1
@@ -1268,7 +1271,7 @@ export default function App() {
   // niños, bebé): si has cocinado el puré del bebé, esa también es una
   // cocinada válida.
   const feedTodayDishes = useMemo(() => {
-    const hoy = DAYS[(new Date().getDay() + 6) % 7];
+    const hoy = diaDeFecha(new Date());
     const grupos = gruposVigentes(data);
     const vistos = new Set();
     const out = [];
@@ -1354,7 +1357,7 @@ export default function App() {
 
   // Los menús y la despensa de una casa están a nombre de su titular (0071):
   // en una casa ajena (cotitular o lector) se leen los suyos.
-  const syncMenuUserId = activeHousehold && !activeHousehold.isOwn ? activeHousehold.ownerUserId : user?.id;
+  const syncMenuUserId = activeHousehold && !esTitular(activeHousehold) ? activeHousehold.ownerUserId : user?.id;
   const syncHouseholdId = activeHouseholdId ?? null;
   // La casa activa, para lo que se dispara desde callbacks con dependencias
   // viejas: así nunca leen ni escriben en la casa de antes de cambiar.
@@ -1500,7 +1503,7 @@ export default function App() {
     hydratedUserRef.current = hydrateKey;
     cloudReadyRef.current = false;
 
-    const menuUserId = activeHousehold && !activeHousehold.isOwn ? activeHousehold.ownerUserId : user.id;
+    const menuUserId = activeHousehold && !esTitular(activeHousehold) ? activeHousehold.ownerUserId : user.id;
     const householdId = activeHouseholdId;
     const justEmptied = householdJustEmptiedRef.current;
     if (justEmptied) householdJustEmptiedRef.current = false;
@@ -1508,7 +1511,7 @@ export default function App() {
     forceRemoteRef.current = false;
     // Lo que hay en memoria es de otra casa, o esta no es tuya: manda la nube
     // entera, y nada de lo local se mezcla ni se sube aquí (C-1).
-    const esMia = activeHousehold ? activeHousehold.isOwn : true;
+    const esMia = activeHousehold ? esTitular(activeHousehold) : true;
     const soloNube = soloNubeAlCargar({ esMia, casaLocal: casaDelEstadoRef.current, casa: householdId });
 
     // Capture local-only blobs before any await so a mid-hydration edit
@@ -1540,8 +1543,8 @@ export default function App() {
 
       const loadState = () =>
         householdId ? loadHouseholdState(householdId) : loadUserState(user.id);
-      const loadDiscards = () =>
-        householdId ? loadHouseholdDiscards(householdId) : loadRecipeDiscards(user.id);
+      // Descartes: siempre de la casa (aquí la casa ya está cargada).
+      const loadDiscards = () => loadHouseholdDiscards(householdId);
 
       const [remoteState, remoteRecipes, remoteVotes, remoteDiscards, remoteHouseholdFavs, remoteCollections, remoteFolders] = await Promise.all([
         loadState(),
@@ -1606,10 +1609,10 @@ export default function App() {
 
       // Forever discards union, cooldowns take the later expiry — see
       // recipeDiscardsSync.js's mergeDiscards for the reasoning. Also folds in
-      // whatever discards still sit in the legacy user_state blob (remoteData),
-      // for accounts whose only record of them predates user_recipe_discards —
-      // otherwise that history would be silently orphaned the moment the blob
-      // write stops carrying `discards` (see the debounced push below).
+      // whatever discards still sit in the state blob (remoteData.discards:
+      // household_state, o el user_state antiguo copiado a ella), for accounts
+      // whose only record of them is there — the backfill below pushes them
+      // to household_recipe_discards.
       const mergedDiscards = justEmptied
         ? mergeDiscards({ forever: [], cooldownUntil: {} }, remoteDiscards)
         : mergeDiscards(
@@ -1682,9 +1685,11 @@ export default function App() {
         if (!(rid in remoteVotes)) votesBackfill[rid] = v;
       }
       upsertRecipeVotes(user.id, votesBackfill);
-      // Backfill from the full merge (local + legacy blob), not just local —
-      // an account whose only record of a discard sits in the legacy blob
-      // needs it pushed to the new table too, not only kept in memory.
+      // Backfill from the full merge (local + state blob), not just local —
+      // an account whose only record of a discard sits in the blob needs it
+      // pushed to household_recipe_discards too, not only kept in memory.
+      // Incluye los descartes hechos con sesión pero antes de tener casa
+      // (esos solo se guardaron en el dispositivo).
       const discardsBackfill = {
         forever: mergedDiscards.forever.filter((id) => !(remoteDiscards.forever ?? []).includes(id)),
         cooldownUntil: Object.fromEntries(
@@ -1693,7 +1698,7 @@ export default function App() {
       };
       // A la tabla de la que se acaba de leer: la de la casa si hay casa. Un
       // lector no escribe en la casa ajena (RLS lo rechazaría igual).
-      if (!householdReadOnly) subirDescartesPendientes(householdId, user.id, discardsBackfill);
+      if (!householdReadOnly) subirDescartesPendientes(householdId, discardsBackfill);
 
       const cloudSummaries = await loadMenuSummariesRemote(menuUserId, householdId);
       if (cancelled) return;
@@ -1743,7 +1748,9 @@ export default function App() {
         nowD.setHours(0, 0, 0, 0);
         const todayISO = `${nowD.getFullYear()}-${String(nowD.getMonth() + 1).padStart(2, "0")}-${String(nowD.getDate()).padStart(2, "0")}`;
 
-        const activeSummary = cloudSummaries.find((s) => s.isActive) ?? null;
+        // user_menus.is_active manda (menuActivo.js); data.activeMenuId es caché.
+        const activeCloudId = menuActivoDe(cloudSummaries);
+        const activeSummary = cloudSummaries.find((s) => s.id === activeCloudId) ?? null;
         let activeWeek = null;
         if (activeSummary) {
           const detail = await loadMenuDetailRemote(menuUserId, activeSummary.id, householdId);
@@ -1807,7 +1814,7 @@ export default function App() {
             menus: merged,
             // Same reasoning for the pointer: only follow the cloud's idea of
             // "active" when it actually has one, otherwise keep the local one.
-            activeMenuId: activeSummary?.id ?? d.activeMenuId ?? null,
+            activeMenuId: menuActivoDe(cloudSummaries, d.activeMenuId),
             ...(activeWeek
               ? { menuWeek: { offset: activeWeek.offset, startDayIdx: activeWeek.startDayIdx ?? 0, days: activeWeek.days ?? null } }
               : {}),
@@ -2685,7 +2692,7 @@ export default function App() {
   // Desde Inicio (el «Hoy toca»), el menú abre en el día de hoy: es lo que se
   // estaba mirando. Mismo camino que un enlace del bot a `dia:…`.
   const goToMenuFromDashboard = useCallback(() => {
-    setMenuInicio({ vista: "dia", dia: DAYS[(new Date().getDay() + 6) % 7], clave: Date.now() });
+    setMenuInicio({ vista: "dia", dia: diaDeFecha(new Date()), clave: Date.now() });
     fwd(() => setScreen("menu"));
   }, []);
 
@@ -3752,7 +3759,7 @@ export default function App() {
       // real no: publicar tu cara se hace a proposito, desde el cajon del
       // perfil, no de oficio al iniciar sesion. Sin esto el perfil nacia sin
       // imagen y toda la cabecera del feed eran iniciales sueltas.
-      const me = resolveAccountMember(data.members, data.accountMemberId, googleInfo(user).name);
+      const me = resolveAccountMember(data.members, miembroDeCuentaId(data, user.id, { esTitular: !activeHousehold || esTitular(activeHousehold) }), googleInfo(user).name);
       ensureSocialProfile(user.id, googleInfo(user).name, memberIllustratedAvatarSrc(me));
     }, 2500);
     return () => clearTimeout(t);
@@ -3838,12 +3845,15 @@ export default function App() {
   // already had, with no way back.
   const startOtherGroup = useCallback(() => {
     setData((d) => startOtherRoster(d, { defaults: INITIAL_DATA }));
+    // El grupo nuevo no tiene menú: la tabla tampoco (manda ella al recargar).
+    // TODO(producto): la misma pregunta que en useRoster, aquí desactivando.
+    if (user && !householdReadOnly) ponerMenuActivo(null, user.id, casaActivaRef.current);
     setMenuPlan({});
     setShopping({ items: [] });
     setSelectedSlot(null);
     setQuickMenu(false);
     _doGoToOnboardingStep(0);
-  }, [_doGoToOnboardingStep]);
+  }, [_doGoToOnboardingStep, user, householdReadOnly]);
 
   // Switching back to a group also has to restore the menú it last generated:
   // `menuPlan`/`shopping` live outside `data`, so swapping the roster alone
@@ -3855,10 +3865,16 @@ export default function App() {
     const weeks = Object.values(snapshot.menus?.[snapshot.activeMenuId]?.weeks ?? {});
     const week = weeks.find((w) => w.offset === snapshot.menuWeek?.offset) ?? weeks[0] ?? null;
     setData((d) => switchRoster(d, rosterId));
+    // Cambiar de grupo cambia el menú activo: a la tabla también, que es la
+    // verdad (menuActivo.js). Sin esto, al recargar volvía el del otro grupo.
+    // TODO(producto): ¿cambiar de grupo debe cambiar el menú activo de TODA la
+    // casa (lo que ven el cotitular, el lector y Lola), o el grupo es solo una
+    // vista de quien lo cambia y el menú activo de la casa no se toca?
+    if (user && !householdReadOnly) ponerMenuActivo(snapshot.activeMenuId ?? null, user.id, casaActivaRef.current);
     setMenuPlan(week?.plan ?? {});
     setShopping(week?.shopping ?? { items: [] });
     setSelectedSlot(null);
-  }, [data]);
+  }, [data, user, householdReadOnly]);
 
   /**
    * "Esta la hago con la Thermomix": guarda el método elegido EN el hueco.
@@ -3990,10 +4006,8 @@ export default function App() {
         discards: { forever: (src.forever ?? []).filter((id) => id !== baseId), cooldownUntil },
       };
     });
-    if (user?.id) {
-      if (syncHouseholdId) deleteHouseholdDiscard(syncHouseholdId, baseId);
-      else deleteRecipeDiscard(user.id, baseId);
-    }
+    // Sin casa todavía, solo en el dispositivo; la carga con casa lo sube.
+    if (user?.id && syncHouseholdId) deleteHouseholdDiscard(syncHouseholdId, baseId);
     showToast("Recuperada");
   }, [user, householdReadOnly, syncHouseholdId, showToast]);
 
@@ -4043,15 +4057,14 @@ export default function App() {
       }
       return { ...d, discards: { forever, cooldownUntil } };
     });
-    if (user?.id) {
+    // A la casa (household_recipe_discards). Sin casa todavía, solo en el
+    // dispositivo: la carga con casa lo sube (subirDescartesPendientes).
+    if (user?.id && syncHouseholdId) {
       if (reason === "dislike") {
-        if (syncHouseholdId) saveHouseholdDiscard(syncHouseholdId, baseId, { isPermanent: true });
-        else saveRecipeDiscard(user.id, baseId, { isPermanent: true });
+        saveHouseholdDiscard(syncHouseholdId, baseId, { isPermanent: true });
       } else if (!(data.discards?.forever ?? []).includes(baseId)) {
         const days = reason === "recent" ? 14 : 7;
-        const until = Date.now() + days * DAY_MS;
-        if (syncHouseholdId) saveHouseholdDiscard(syncHouseholdId, baseId, { cooldownUntil: until });
-        else saveRecipeDiscard(user.id, baseId, { cooldownUntil: until });
+        saveHouseholdDiscard(syncHouseholdId, baseId, { cooldownUntil: Date.now() + days * DAY_MS });
       }
     }
     const label = reason === "dislike"
@@ -4360,7 +4373,7 @@ export default function App() {
     // "Solo hoy": el payload lleva únicamente el día de hoy, y el rango de
     // fechas se estrecha a hoy — así en «Hoy cocinan» aparece hoy y mañana ya
     // no, que es exactamente lo que significa compartir solo el día.
-    const todayLabel = DAYS[(new Date().getDay() + 6) % 7];
+    const todayLabel = diaDeFecha(new Date());
     const todayIso = isoLocalDate(new Date());
 
     const payload = buildSharedMenuPayload({

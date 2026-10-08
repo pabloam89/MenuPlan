@@ -19,15 +19,13 @@
  */
 
 import { familiasDe } from "./menuRecuento.js";
+import { DIA_LARGO_MINUSCULAS } from "./dias.js";
 
 export const OPS = ["poner", "cambiar", "rellenar", "vaciar", "mover"];
 export const FAMILIAS = ["carne", "pescado", "legumbres", "huevos", "pasta_arroz", "verdura"];
 const MAX_OPS = 21;
 
-const NOMBRE_DIA = {
-  Lun: "lunes", Mar: "martes", "Mié": "miércoles", Jue: "jueves",
-  Vie: "viernes", "Sáb": "sábado", Dom: "domingo",
-};
+const NOMBRE_DIA = DIA_LARGO_MINUSCULAS;
 
 /** Minúsculas y sin tildes: "Lentejas estofadas" y "lentejas" se tienen que encontrar. */
 export function normalizar(t) {

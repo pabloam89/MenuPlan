@@ -351,7 +351,7 @@ export const EJES = [
     n: 34, id: "coste", nombre: "Coste por ración",
     ambito: AMBITO.RECETA, tipo: "numerico", estado: "activo",
     campo: "costeNivel", vocabulario: ["economico", "medio", "caro"], consumidores: ["menu.js"], cobertura: 0.856,
-    nota: "€ por ración con Mercadona a €/kg (derive/coste.js → derived/recipeCoste.json, que regenera build:coste y cada sync:mercadona). Nivel solo con cobertura de precios ≥ 0,8; sin ella, sin nivel. La lee el bot («algo barato»).",
+    nota: "€ por ración con Mercadona a €/kg (lib/coste.js, modo granel → derived/recipeCoste.json, que regenera build:coste y cada sync:mercadona). Nivel solo con cobertura de precios ≥ 0,8; sin ella, sin nivel. La lee el bot («algo barato»).",
   },
   {
     n: 35, id: "huella", nombre: "Huella / sostenibilidad",
