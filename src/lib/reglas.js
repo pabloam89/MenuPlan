@@ -11,8 +11,9 @@
  * ── Lo que NO es ──────────────────────────────────────────────────────────
  * No es un segundo motor. Una regla no elige platos ni habla con el planner:
  * se PROYECTA sobre `data.*` —el mismo truco que ya usa la libreta— y lo que
- * el motor lee sigue siendo `data.schedule`, `data.members`, `data.excluidos`
- * y `data.sesgos`, exactamente como antes. `aiPlanner` sigue sin saber que
+ * el motor lee sigue siendo `data.schedule`, `data.members`, `data.sesgos` y,
+ * para los vetos de la casa, `data.excluidosReglas` (que lib/vetos.js suma a
+ * los de la libreta), exactamente como antes. `aiPlanner` sigue sin saber que
  * esto existe, y esa es la propiedad que hace que se pueda apagar entero
  * borrando una línea en la generación.
  *
@@ -106,9 +107,10 @@
  * queda escrito para que no se lea como un fallo de las reglas.
  *
  * ── Las alergias no pasan por aquí ────────────────────────────────────────
- * Ni de lejos. `efecto.excluir` proyecta a `dislikes`, que es SOFT y tiene
- * fallback para no vaciar el pool (filterRecipes.js). Una alergia es una
- * invariante dura y vive en `member.allergies`. Una regla no puede crear,
+ * Ni de lejos. `efecto.excluir` proyecta a un VETO (lib/vetos.js): duro en
+ * comida y cena, blando con caída en desayuno, merienda y postre, y siempre
+ * por nombre de ingrediente, sin saber de trazas ni de derivados. Una alergia
+ * es una invariante de seguridad y vive en `member.allergies`. Una regla no puede crear,
  * aflojar ni sustituir una alergia, y por eso "alergia" no es un tipo de
  * efecto: si lo fuera, alguien acabaría escribiendo una desde una frase.
  *
@@ -705,7 +707,7 @@ function grupoAnfitrion(groups, grupoRef) {
  *   no el `data` global: `groups` ya reconstruidos, `schedule` = el
  *   `weekSchedule` de ESA semana (el override de `menuWeekOverrides[offset]`
  *   cuando lo hay, NUNCA `data.schedule` a secas), más `meals`, `extraMeals`,
- *   `members`, `excluidos`, `sesgos` y `cocinas`.
+ *   `members`, `excluidosReglas`, `sesgos` y `cocinas`.
  *
  * @param {object} ctx
  *   `{ hoy: "YYYY-MM-DD", semana: { inicioISO, finISO, dias } }`. Esos tres
@@ -795,7 +797,10 @@ export function proyectarReglas(reglas, data, ctx = {}) {
   const porId = new Map(miembros.map((m, i) => [m.id, i]));
   const grupos = (data?.groups ?? []).map((g) => ({ ...g, memberIds: [...(g.memberIds ?? [])] }));
   const schedule = { ...(data?.schedule ?? {}) };
-  const excluidos = [...(data?.excluidos ?? [])];
+  // Solo los vetos de las REGLAS, en su propia clave: los de la libreta los
+  // calcula lib/vetos.js al leer, y `data.excluidos` (la proyección guardada)
+  // ya no la lee nadie.
+  const excluidos = [...(data?.excluidosReglas ?? [])];
   const sesgos = Object.fromEntries(
     Object.entries(data?.sesgos ?? {}).map(([k, v]) => [k, { ...v }]),
   );
@@ -1029,13 +1034,12 @@ export function proyectarReglas(reglas, data, ctx = {}) {
         aviso(regla, "no_soportado", "quitar un grupo o una técnica solo se sabe hacer para toda la casa");
         continue;
       }
-      // El eje de destino (`dislikes` / `data.excluidos`) es por semana, no por
-      // día: si la regla pedía menos, se aplica de más y se dice.
+      // El eje de destino (`dislikes` / `data.excluidosReglas`) es por semana,
+      // no por día: si la regla pedía menos, se aplica de más y se dice.
       //
       // Y se mide contra TODAS las comidas, no solo contra las que planifica
       // el LLM. `planExtraMealsForGroup` construye sus dislikes con
-      // `...(data.excluidos ?? [])` y `members.flatMap(m => m.dislikes)`
-      // (aiPlanner.js:1472), así que una exclusión llega también al desayuno,
+      // `vetosDe(data, { grupo })` (lib/vetos.js), que suma los dos, así que una exclusión llega también al desayuno,
       // la merienda y el postre. En una casa con desayuno activo, una regla
       // que nombra "comida y cena" acaba aplicándose a cinco comidas: eso es
       // aplicar de más, y hay que decirlo. (El `sesgo` de abajo se mide
@@ -1116,7 +1120,7 @@ export function proyectarReglas(reglas, data, ctx = {}) {
   if (tocaMiembros) delta.members = miembros;
   if (tocaGrupos) delta.groups = grupos;
   if (tocaSchedule) delta.schedule = schedule;
-  if (tocaExcluidos) delta.excluidos = excluidos;
+  if (tocaExcluidos) delta.excluidosReglas = excluidos;
   if (tocaPorHueco) delta.excluirPorHueco = excluirPorHueco;
   if (tocaSesgos) {
     delta.sesgos = sesgos;

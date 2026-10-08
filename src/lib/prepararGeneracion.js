@@ -105,6 +105,9 @@ export function prepararSemana(working, {
     schedule: weekSchedule,
     menuWeek: { offset, startDayIdx, days },
     schoolMenus: schoolMenusForWeekIndex(working.schoolMenus, w),
+    // La fecha con la que se leen los vetos de la libreta (lib/vetos.js): la
+    // de ESTA semana, como `dataVigente` arriba. Vive lo que la generación.
+    vigenteEn: startISO ?? hoy,
   };
 
   // ── Las reglas, justo antes de generar ──────────────────────────
