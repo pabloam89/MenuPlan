@@ -57,15 +57,33 @@ describe("bot y app rehacen los grupos con los mismos ids", () => {
   });
 
   it("menús separados con bebé → todos lo mismo: mismos ids en los dos", async () => {
-    const members = [papa, mama, nina, bebe];
+    // Con un adolescente: con un niño de 3 a 11, Familia no hereda (ver abajo).
+    const members = [papa, mama, { ...nina, age: 14 }, bebe];
     const viejos = [
       { id: "grp_a", label: "Adultos", memberIds: ["p", "m"], color: "#2d5a3d" },
       { id: "grp_n", label: "Niños", memberIds: ["n"], color: "#c67030" },
       { id: "grp_b", label: "Bebé", memberIds: ["b"], color: "#5a7ea8" },
     ];
-    const bot = await enElBot(members, "separate", viejos, "igual");    expect(bot.menuModel).toBe("same");
+    const bot = await enElBot(members, "separate", viejos, "igual");
+    expect(bot.menuModel).toBe("same");
     const app = enLaApp(members, "same", viejos);
     expect(bot.groups.map((g) => g.id)).toEqual(["grp_a", "grp_b"]);
     expect(app.map((g) => g.id)).toEqual(bot.groups.map((g) => g.id));
+  });
+
+  // El plan de Adultos se hizo sin Nina: heredar su id le serviría la tortilla
+  // del martes sin pasar por su alergia al huevo. Familia estrena id en los dos.
+  it("menús separados → todos lo mismo con Nina alérgica al huevo: Familia no hereda el plan de Adultos", async () => {
+    const members = [papa, mama, { ...nina, allergies: ["Huevo"] }];
+    const viejos = [
+      { id: "grp_a", label: "Adultos", memberIds: ["p", "m"], color: "#2d5a3d" },
+      { id: "grp_n", label: "Niños", memberIds: ["n"], color: "#c67030" },
+    ];
+    const bot = await enElBot(members, "separate", viejos, "igual");
+    const app = enLaApp(members, "same", viejos);
+    for (const gs of [bot.groups, app]) {
+      expect(gs).toHaveLength(1);
+      expect(["grp_a", "grp_n"]).not.toContain(gs[0].id);
+    }
   });
 });

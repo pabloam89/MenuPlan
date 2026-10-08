@@ -79,4 +79,22 @@ describe("saveHouseholdFavorite", () => {
     await saveHouseholdFavorite("h-1", "r-1", { fav: ["Adultos", "Niños"] });
     expect(filas[0].scope).toBe("Adultos,Niños");
   });
+
+  // Quitar de favoritas una receta con 👍 deja la entrada { v: "up" }: no es
+  // null y App.jsx la guardaba. Con scope null, que es «todos»: al recargar
+  // volvía a ser favorita de toda la casa.
+  it("una entrada que ya no es favorita (solo 👍) borra la fila, no la guarda con scope null", async () => {
+    const llamadas = [];
+    const q = {
+      upsert: (fila) => (llamadas.push(["upsert", fila]), Promise.resolve({ error: null })),
+      delete: () => (llamadas.push(["delete"]), q),
+      eq: (...a) => (llamadas.push(["eq", ...a]), q),
+      then: (ok, ko) => Promise.resolve({ error: null }).then(ok, ko),
+    };
+    supabase.from = () => q;
+    await saveHouseholdFavorite("h-1", "r-1", { v: "up" });
+    expect(llamadas.map((l) => l[0])).not.toContain("upsert");
+    expect(llamadas).toContainEqual(["eq", "recipe_id", "r-1"]);
+    expect(llamadas[0]).toEqual(["delete"]);
+  });
 });
