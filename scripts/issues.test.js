@@ -4,7 +4,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   GRUPOS, agenteDe, avisoDeArranque, debeReabrir, etiquetas, etiquetasDeFormulario, etiquetasQueFaltan, etiquetasSobrantes,
-  faltas, fondoDeFormulario, justificaPuntual, leerIssue, resumen,
+  faltas, ficherosNombrados, fondoDeFormulario, issuesQueNombran, justificaPuntual, leerIssue, parecidos, resumen,
 } from "./lib/issues.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -226,5 +226,43 @@ describe("la norma está escrita donde se lee", () => {
 
   it("hay revisión periódica que mira el conjunto", () => {
     expect(leer(".claude/commands/revision-issues.md")).toMatch(/puntual/i);
+  });
+});
+
+describe("antes de crear: los parecidos (#204)", () => {
+  // Los tres títulos reales del 8 oct 2026: el mismo fallo, abierto tres veces.
+  const T153 = "[lección] la guardia de rama atrasada mira la carpeta de la sesión, no la del comando";
+  const T154 = "[lección] La guardia mide el atraso del PR desde la carpeta de la sesión, no desde la rama del PR";
+  const T159 = "[lección] La guardia mira la carpeta de la sesión, no la del cd del comando";
+  const otros = [
+    { number: 145, title: "[lección] la guardia de --pablo salta con la carpeta de usuario", state: "OPEN", body: "" },
+    { number: 193, title: "[encargo] Dependabot: lo pequeño entra solo, lo grande lo mira una sesión", state: "OPEN", body: "" },
+    { number: 190, title: "[caso] Exigir la rama al día para fusionar dejaba los PR sin poder entrar nunca", state: "OPEN", body: "" },
+  ];
+  const issues = [{ number: 153, title: T153, state: "CLOSED", body: "" }, { number: 154, title: T154, state: "OPEN", body: "" }, ...otros];
+
+  it("el tercero encuentra a los dos primeros, y nada más", () =>
+    expect(parecidos(issues, { titulo: T159 }).map((p) => p.number)).toEqual([153, 154]));
+  it("uno sin relación no encuentra nada", () =>
+    expect(parecidos(issues, { titulo: "Lola no entiende las alergias al kiwi" })).toEqual([]));
+  it("nombrar el mismo fichero empuja", () => {
+    const con = [{ number: 1, title: "Avisos raros al editar", state: "OPEN", body: "toca `.claude/hooks/guardia.mjs`" }];
+    const sin = parecidos(con, { titulo: "Avisos raros de la guardia", cuerpo: "" });
+    const empuja = parecidos(con, { titulo: "Avisos raros de la guardia", cuerpo: "en guardia.mjs" }, { minimo: 0 });
+    expect(empuja[0].parecido).toBeGreaterThan(sin[0]?.parecido ?? 0);
+  });
+});
+
+describe("los ficheros que nombra un issue (#205)", () => {
+  it("por su nombre, sin la ruta, y sin los comunes", () =>
+    expect([...ficherosNombrados("mira `.claude/hooks/guardia.mjs`, CLAUDE.md y scripts/podar.mjs")]).toEqual(["guardia.mjs", "podar.mjs"]));
+  it("los abiertos que nombran el fichero que tocas", () => {
+    const issues = [
+      { number: 1, title: "x", state: "OPEN", body: "en guardia.mjs" },
+      { number: 2, title: "y", state: "CLOSED", body: "en guardia.mjs" },
+      { number: 3, title: "z", state: "OPEN", body: "en podar.mjs" },
+    ];
+    expect(issuesQueNombran(issues, String.raw`C:\dev\MenuPlan-x\.claude\hooks\guardia.mjs`).map((i) => i.number)).toEqual([1]);
+    expect(issuesQueNombran(issues, "C:/dev/MenuPlan-x/CLAUDE.md")).toEqual([]);
   });
 });

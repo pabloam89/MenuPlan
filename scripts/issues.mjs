@@ -12,6 +12,12 @@
  *                                           estaba cerrado y el hijo es un
  *                                           caso, lo reabre: su arreglo no
  *                                           aguantó
+ *   npm run issues -- --nuevo "título" --tipo caso --area ops --cuerpo <f.md>
+ *                                           crea un issue, pero antes enseña
+ *                                           los parecidos y para si los hay
+ *                                           (--crear-igual para seguir); las
+ *                                           decisiones se asignan a Pablo. La
+ *                                           guardia niega `gh issue create`
  *   npm run issues -- --ordenar             etiquetas y padre que se deducen
  *                                           de lo rellenado en un formulario
  *   npm run issues -- --arranque            las líneas cortas del arranque
@@ -24,9 +30,10 @@
  * scripts/lib/issues.mjs; el procedimiento, en la skill `github`.
  */
 import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import {
-  CONSULTA, avisoDeArranque, etiquetas, etiquetasSobrantes,
-  debeReabrir, etiquetasQueFaltan, fondoDeFormulario, leerIssue, porGrupo, resumen,
+  CONSULTA, GRUPOS, PABLO, avisoDeArranque, etiquetas, etiquetasSobrantes,
+  debeReabrir, etiquetasQueFaltan, fondoDeFormulario, leerIssue, parecidos, porGrupo, resumen,
 } from "./lib/issues.mjs";
 
 const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
@@ -102,6 +109,60 @@ if (args.includes("--etiquetas")) {
   }
   try {
     colgar(todos(), hijo, fondo);
+  } catch (e) {
+    console.error(motivo(e));
+    process.exit(1);
+  }
+} else if (args.includes("--nuevo")) {
+  // Crear un issue, buscando antes los parecidos. La guardia niega `gh issue
+  // create` a pelo: el 8 oct 2026 tres sesiones abrieron el mismo fallo.
+  const valor = (op) => (args.indexOf(op) >= 0 ? args[args.indexOf(op) + 1] : undefined);
+  const titulo = valor("--nuevo");
+  const tipo = valor("--tipo");
+  const area = valor("--area");
+  const cuerpo = valor("--cuerpo");
+  const uso = 'Uso: npm run issues -- --nuevo "título" --tipo caso|fondo|encargo|decision --area ops --cuerpo <fichero.md>\n'
+    + "       [--analisis abierto] [--causa entorno] [--padre <fondo>] [--asignar <login>] [--crear-igual]";
+  const fallo = (m) => {
+    console.error(`${m}\n${uso}`);
+    process.exit(1);
+  };
+  if (!titulo || titulo.startsWith("--")) fallo("Falta el título.");
+  if (!GRUPOS.tipo.valores[tipo]) fallo(`--tipo tiene que ser uno de: ${Object.keys(GRUPOS.tipo.valores).join(", ")}.`);
+  if (!GRUPOS.area.valores[area]) fallo(`--area tiene que ser una de: ${Object.keys(GRUPOS.area.valores).join(", ")}.`);
+  if (!cuerpo || !existsSync(cuerpo)) fallo("Falta el cuerpo: escríbelo en un fichero (en el scratchpad) y pásalo con --cuerpo.");
+  const extra = ["analisis", "causa"].map((g) => [g, valor(`--${g}`)]).filter(([, v]) => v);
+  for (const [g, v] of extra) if (!GRUPOS[g].valores[v]) fallo(`--${g} tiene que ser uno de: ${Object.keys(GRUPOS[g].valores).join(", ")}.`);
+
+  const issues = todos();
+  // El padre se valida antes de crear: si no, el issue queda creado y suelto.
+  const padre = Number(String(valor("--padre") ?? "").replace("#", ""));
+  if (padre) {
+    const f = issues.find((i) => i.number === padre);
+    if (!f || !porGrupo(f.labels.map((l) => l.name)).tipo.has("fondo")) fallo(`#${padre} no es un problema de fondo (tipo:fondo).`);
+    if (tipo !== "caso" && tipo !== "encargo") fallo("De un fondo solo cuelgan casos y encargos.");
+  }
+  const texto = readFileSync(cuerpo, "utf8");
+  const hay = parecidos(issues, { titulo, cuerpo: texto });
+  if (hay.length && !args.includes("--crear-igual")) {
+    console.log("Antes de crear: estos se parecen.\n");
+    for (const p of hay) console.log(`  #${p.number}  ${p.state === "OPEN" ? "abierto" : "cerrado"}  ${p.title}`);
+    console.log("\nSi es uno de estos, no abras otro: añade lo tuyo con `gh issue comment <n> --body-file <fichero>`"
+      + " (si está cerrado y es un caso que vuelve, ábrelo como caso y cuélgalo con --padre: se reabre el fondo).\n"
+      + "Si no es ninguno, repite con --crear-igual.");
+    process.exit(2);
+  }
+  const prefijo = { fondo: "fondo", caso: "caso", encargo: "encargo", decision: "decisión" }[tipo];
+  const etiq = [`tipo:${tipo}`, `area:${area}`, ...extra.map(([g, v]) => `${g}:${v}`)];
+  const crear = ["issue", "create", "--title", titulo.startsWith("[") ? titulo : `[${prefijo}] ${titulo}`, "--label", etiq.join(","), "--body-file", cuerpo];
+  // Las decisiones se asignan a Pablo: así le llegan por correo y en la app de GitHub.
+  const asignar = valor("--asignar") ?? (tipo === "decision" ? PABLO : null);
+  if (asignar) crear.push("--assignee", asignar);
+  try {
+    const url = gh(...crear).trim();
+    const n = Number(url.match(/(\d+)\s*$/)?.[1]);
+    console.log(`Creado #${n}: ${url}`);
+    if (padre) colgar(todos(), n, padre);
   } catch (e) {
     console.error(motivo(e));
     process.exit(1);

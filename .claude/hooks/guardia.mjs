@@ -15,6 +15,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -61,6 +62,13 @@ const REGLAS_COMANDO = [
     // el gate de Vercel. El 22 sep 2026 rompió el despliegue de staging.
     si: (o) => /(^|\s)(npx\s+)?vite\s+build\b/.test(o),
     da: () => deny("Usa `npm run build`: `vite build` a secas se salta el prebuild (validate-catalog + check:tdz), que es lo que corre Vercel."),
+  },
+  {
+    // El 8 oct 2026 tres sesiones abrieron el mismo fallo (#153, #154, #159):
+    // la norma pedía buscar antes y nada obligaba. El script busca los parecidos.
+    // También con `VAR=x gh …`, `gh.exe` o `gh -R dueño/repo issue create`.
+    si: (o) => /^(?:\w+=\S*\s+)*gh(?:\.exe)?\s+(?:(?:-R|--repo)\s+\S+\s+)?issue\s+create\b/.test(o),
+    da: () => deny("Los issues se crean con `npm run issues -- --nuevo \"título\" --tipo … --area … --cuerpo <fichero>`: antes de crear enseña los parecidos, y a Pablo le asigna las decisiones. Si ya existe uno, comenta allí."),
   },
   {
     // PowerShell 5.1 escribe UTF-8 con BOM y destroza los acentos.
@@ -213,8 +221,12 @@ export function migracionCerrada(nombre, { enStaging, estadoMd, numeroEnStaging 
  * `cd` anterior en el comando, o la de la sesión. Las sesiones suelen quedarse
  * en la carpeta principal y hacer `cd C:/dev/MenuPlan-x && …`.
  */
+/** Una ruta de Git Bash a Windows: `/c/dev/x` → `c:/dev/x`, `/tmp/x` → la carpeta temporal. */
+export function windows(p) {
+  return p.replace(/^\/tmp(?=\/|$)/, tmpdir().replace(/\\/g, "/")).replace(/^\/([a-z])\//i, "$1:/");
+}
+
 export function carpetaDe(cmd, orden, cwd) {
-  const windows = (p) => p.replace(/^\/([a-z])\//i, "$1:/");
   const c = orden.match(/^git\s+-C\s+(?:"([^"]+)"|'([^']+)'|(\S+))/);
   if (c) return windows(c[1] ?? c[2] ?? c[3]);
   const hasta = cmd.indexOf(orden);
@@ -285,6 +297,22 @@ function contextoReal(raiz) {
         return null; // a propósito: null es «no se sabe» y decidir() lo convierte en pregunta (ask)
       }
     },
+    ramaDe: (dir = raiz) => {
+      try {
+        return git(["-C", dir, "rev-parse", "--abbrev-ref", "HEAD"]);
+      } catch {
+        // a propósito: sin rama legible no se exige el Closes (null = no se sabe)
+        return null;
+      }
+    },
+    leer: (fichero, dir = raiz) => {
+      try {
+        return readFileSync(resolve(dir, fichero), "utf8");
+      } catch {
+        // a propósito: un --body-file ilegible cuenta como cuerpo vacío, y entonces se pide el Closes
+        return null;
+      }
+    },
     // Commits de origin/staging que le faltan a tu rama (tras traerlo). null si no se puede saber.
     atrasoLocal: (dir = raiz) => {
       try {
@@ -342,7 +370,23 @@ export function decidir(entrada, ctx) {
       // varios commits cada pocos minutos y exigirlo siempre dejaba los PR sin
       // poder entrar nunca. Lo que no se pisa lo recoge el CI de staging.
       if (/^gh\s+pr\s+create\b/.test(o)) {
-        const atraso = ctx.atrasoLocal(carpetaDe(cmd, o, entrada.cwd ?? "") || undefined);
+        const dir = carpetaDe(cmd, o, entrada.cwd ?? "") || undefined;
+        // Rama con issue (`npm run tarea -- ops/x 193` → `ops/193-x`): el PR lo
+        // cierra. Sin el `Closes`, el issue se queda abierto y la traza no sabe
+        // quién lo arregló (8 oct 2026: ninguna rama vieja tenía issue).
+        // `--head ops/x`, `--head "ops/x"` o `--head dueño:ops/x`.
+        const rama = o.match(/(?:-H|--head)(?:\s+|=)["']?(?:[\w-]+:)?([^\s"']+)/)?.[1] ?? ctx.ramaDe(dir);
+        const issue = rama?.match(/^[a-z]+\/(\d+)-/)?.[1];
+        if (issue) {
+          // `--body-file f`, `--body-file=f` o `-F f`, con rutas de Git Bash (`/c/…`, `/tmp/…`).
+          const fichero = o.match(/(?:-F|--body-file)(?:\s+|=)(?:"([^"]+)"|'([^']+)'|(\S+))/);
+          const cuerpo = fichero ? ctx.leer(windows(fichero[1] ?? fichero[2] ?? fichero[3]), dir) ?? "" : "";
+          const texto = `${cmd}\n${cuerpo}`;
+          if (!new RegExp(String.raw`\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?\s+#${issue}\b`, "i").test(texto)) {
+            return deny(`Tu rama es del issue #${issue}: pon \`Closes #${issue}\` en el cuerpo del PR (y la línea \`Agente: <nombre>\`), para que se cierre al fusionar y quede la traza.`);
+          }
+        }
+        const atraso = ctx.atrasoLocal(dir);
         if (atraso === null) return ask("No he podido comprobar si tu rama tiene lo último de staging. Haz `git fetch origin staging` y `git merge origin/staging` antes de abrir el PR.");
         if (atraso > 0) return deny(`Tu rama va ${atraso} commit(s) por detrás de staging. Antes de abrir el PR: \`git fetch origin staging\`, \`git merge origin/staging\`, resuelve, pasa los tests y empuja.`);
         continue;
