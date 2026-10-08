@@ -82,12 +82,23 @@ const PABLO_EN_APLICAR = {
   da: () => deny("`--pablo` es solo de Pablo: borra algo con datos o cambia RLS o permisos. Enséñale el ensayo y el veredicto del juez, y dale el comando para que lo lance con `!`."),
 };
 
+// `psql` dentro de un contenedor propio (el Postgres del panel en Hetzner, con
+// `docker compose exec … psql -U panel`): no es producción. Vale solo si en ese
+// mismo tramo del comando no hay una URL ni un host, que lo llevarían a otra
+// base. Se mira tramo a tramo (`&&`, `||`, `;`, `|`): un `psql` pegado detrás,
+// fuera del contenedor, sigue negándose. Las variables de conexión de
+// producción (SUPABASE_DB_URL…) se niegan siempre, vayan donde vayan.
+const PSQL_EN_CONTENEDOR = /\bdocker\s+(?:compose\s+)?exec\b/;
+const APUNTA_A_OTRA_BASE = /postgres(?:ql)?:\/\/|\s-h\b|\s--host\b|supabase/i;
+const psqlFueraDeContenedor = (o) =>
+  o.split(/&&|\|\||[;|\n]/).some((tramo) => /\bpsql\b/.test(tramo) && !(PSQL_EN_CONTENEDOR.test(tramo) && !APUNTA_A_OTRA_BASE.test(tramo)));
+
 // El SQL a mano contra la base se niega siempre, no se pregunta: en modo auto
 // un «ask» puede resolverlo el clasificador en vez de una persona.
 const REGLAS_SQL = [
   {
     // SQL que escribe o cambia permisos contra una base real.
-    si: (o) => /\b(psql|SUPABASE_DB_URL|OPS_DB_URL|pg\.Client|new\s+Client)\b/.test(o)
+    si: (o) => (/\b(SUPABASE_DB_URL|OPS_DB_URL|pg\.Client|new\s+Client)\b/.test(o) || psqlFueraDeContenedor(o))
       && /\b(drop\s+(table|schema|column|function|policy|constraint|index|view|type|trigger)|truncate|delete\s+from|alter\s+(table|type|function|policy)|update\s+[\w."]+\s+set|insert\s+into|grant|revoke|create\s+(table|policy|function|or\s+replace))\b/i.test(o),
     da: () => deny("SQL que escribe, borra o cambia permisos contra producción (es la única base). Va en una migración por `scripts/apply-migration.mjs`; si de verdad hace falta a mano, dale el comando a Pablo para que lo lance con `!`."),
   },

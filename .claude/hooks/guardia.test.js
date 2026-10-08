@@ -93,6 +93,28 @@ describe("la base es producción", () => {
     'psql "$OPS_DB_URL" -c "grant select on x to anon"',
   ])("SQL que escribe, negado: %s", (c) => expect(bash(c)).toBe("deny"));
   it("una lectura pasa", () => expect(bash('psql "$SUPABASE_DB_URL" -c "select count(*) from households"')).toBe(null));
+
+  // El Postgres del panel (Hetzner) corre en un contenedor y no es producción:
+  // la regla lo confundía por ver `psql` y `create table` (8 oct 2026).
+  describe("un Postgres propio dentro de un contenedor no es producción", () => {
+    it.each([
+      `ssh root@100.73.252.32 'cd /opt/panel && docker compose exec -T db psql -U panel -d panel -c "create table prueba(id int)"'`,
+      `docker compose exec -T db psql -U panel -d panel -c "insert into prueba values (1)"`,
+      `docker exec panel-db-1 psql -U panel -d panel -c "drop table prueba"`,
+    ])("pasa: %s", (c) => expect(bash(c)).toBe(null));
+
+    it.each([
+      // con una URL o un host de por medio ya no es el contenedor
+      `docker compose exec -T db psql postgresql://u:p@db.x.supabase.co/postgres -c "drop table t"`,
+      `docker exec db psql -h db.abc.supabase.co -U postgres -c "delete from t"`,
+      // el contenedor no tapa lo que va pegado detrás
+      `docker compose exec db true && psql "$SUPABASE_DB_URL" -c "drop table x"`,
+      `docker compose exec -T db psql -U panel -c "select 1"; psql -c "drop table x"`,
+      `docker exec db sh -c 'psql "$SUPABASE_DB_URL" -c "drop table x"'`,
+      // sin contenedor, como siempre
+      `psql -U panel -d panel -c "create table prueba(id int)"`,
+    ])("sigue negado: %s", (c) => expect(bash(c)).toBe("deny"));
+  });
 });
 
 describe("migraciones aplicadas no se editan", () => {
