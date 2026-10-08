@@ -18,6 +18,11 @@
  *
  * El ensayo abre la transacción, ejecuta la migración y hace ROLLBACK: sirve
  * para ver si el SQL es válido contra el esquema real sin dejar rastro.
+ *
+ * `--si` se niega salvo que la migración esté ya en origin/staging, idéntica,
+ * y tenga un ensayo de ese mismo contenido de hace menos de una hora (ver
+ * scripts/lib/permisoAplicar.mjs). Con eso, una sesión puede aplicarla sin
+ * Pablo; lo decidió él el 8 oct 2026, porque no hay otra base donde aplicar.
  */
 import { readFileSync, readdirSync } from "fs";
 import { dirname, join } from "path";
@@ -25,6 +30,7 @@ import { fileURLToPath } from "url";
 
 import pg from "pg";
 import { cargarEnv } from "./lib/env.mjs";
+import { apuntarEnsayo, deStaging, leerEnsayo, motivosParaNoAplicar, olvidarEnsayo } from "./lib/permisoAplicar.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIR = join(__dirname, "..", "supabase", "migrations");
@@ -44,6 +50,16 @@ if (!process.env.SUPABASE_DB_URL) {
 
 const file = nombre.endsWith(".sql") ? nombre : `${nombre}.sql`;
 const sql = readFileSync(join(DIR, file), "utf8");
+const base = file.replace(/\.sql$/, "");
+const RAIZ = join(__dirname, "..");
+
+if (CONFIRMA) {
+  const no = motivosParaNoAplicar({ nombre: base, local: sql, enStaging: deStaging(RAIZ, base), ensayo: leerEnsayo(RAIZ, base) });
+  if (no.length) {
+    console.error(`No aplico ${base} en producción:\n  - ${no.join("\n  - ")}`);
+    process.exit(1);
+  }
+}
 
 const client = new pg.Client({
   connectionString: process.env.SUPABASE_DB_URL,
@@ -66,11 +82,14 @@ try {
   await client.query(sql);
   if (CONFIRMA) {
     await client.query("commit");
+    olvidarEnsayo(RAIZ, base);
     console.log("✅ aplicada y confirmada");
+    console.log(`   Ahora: márcala aplicada en supabase/ESTADO.md con su testigo y compruébalo con \`node scripts/verificar-estado.mjs --solo ${base.slice(0, 4)}\`.`);
   } else {
     await client.query("rollback");
+    apuntarEnsayo(RAIZ, base, sql);
     console.log("🔎 ENSAYO: el SQL es válido contra el esquema real. No se ha cambiado nada.");
-    console.log("   Para aplicarla de verdad, repite el comando con --si");
+    console.log("   Para aplicarla de verdad (si ya está en staging), repite el comando con --si en menos de una hora.");
   }
 } catch (err) {
   await client.query("rollback");
