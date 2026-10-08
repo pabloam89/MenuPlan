@@ -102,7 +102,9 @@ No es suyo:
 Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 
 - Subir o fusionar a `main`.
-- Aplicar una migración en producción (la prepara `datos`).
+- Aplicar una migración con `CONTRAE` o que cambie RLS o permisos de lo que
+  ya existía (`--pablo`). Las demás las aplica la sesión si el script lo deja
+  (staging, ensayo y el OK de `auditor-datos`).
 - Borrar ramas, worktrees, carpetas o recursos de un servicio.
 - Crear, rotar o cambiar secretos y variables de entorno.
 - Cambiar `.claude/settings.json`, los hooks o los permisos.

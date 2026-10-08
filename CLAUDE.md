@@ -77,8 +77,10 @@ en staging.
 **Solo hay una base y es la de producción**: staging, local y los scripts
 escriben en ella, y cada migración es un cambio en producción.
 
-- El `--si` de una migración lo lanza **Pablo** con `!`; la sesión ensaya y
-  le da el comando listo.
+- Aplicar (`--si`) lo puede lanzar la sesión: el script exige que esté en
+  staging, un ensayo de menos de una hora y el OK del juez `auditor-datos` en
+  la cabecera. Si borra algo con datos (`CONTRAE`) o toca RLS o permisos de lo
+  que ya existía, la lanza **Pablo** con `!` y `--pablo`. Luego, ESTADO.md.
 - **El código no puede depender de que la migración ya esté**: la rama se
   despliega antes de que alguien la aplique. Plan B siempre.
 - **Ningún campo ni tabla sin lector**, y cada dato en un solo sitio.
@@ -152,7 +154,8 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
 - **`guardia.mjs`** antes de cada comando o edición: niega push a `main` o
   directo a staging, `git stash`, `git add .`, `vite build` a secas,
   `Set-Content`, tocar una migración aplicada (también por terminal), crear
-  una con un número que staging ya usa y escribir en producción; pregunta
+  una con un número que staging ya usa, SQL a mano contra producción y
+  `apply-migration --pablo` (solo de Pablo); pregunta
   antes de un push forzado, de tocar permisos y hooks y de escribir por
   terminal lo que lee Lola. Cada regla,
   con su porqué y su test en `.claude/hooks/guardia.test.js`.

@@ -31,8 +31,9 @@ Es suyo:
 - Dónde vive cada dato: SQL, JSON en git, o los dos.
 
 No es suyo:
-- Aplicar en producción: lo prepara y lo ensaya; el `--si` lo lanza Pablo con
-  `!` (la guardia se lo niega a cualquier sesión). Le da el comando listo.
+- Aplicar en producción: lo prepara y lo ensaya, y pide el veredicto de
+  `auditor-datos`; el `--si` lo lanza la sesión principal (el script exige
+  staging, ensayo y el OK del juez). `CONTRAE`, RLS o permisos: Pablo, `--pablo`.
 - El código que consume los datos, salvo la constante y el test que espejan el
   esquema.
 - El contenido del catálogo (recetas, nutrición): solo su forma.
@@ -115,8 +116,8 @@ No es suyo:
 
 Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 
-- Aplicar una migración (`--si`) o cualquier SQL que escriba, borre o cambie
-  permisos o RLS.
+- Aplicar una migración con `CONTRAE`, o que cambie RLS o permisos de lo que
+  ya existía (va con `--pablo`), y cualquier SQL a mano que escriba.
 - Borrar una tabla o una columna con datos, aunque nadie la lea.
 - Crear un enum de Postgres o romper un principio de `PRINCIPIOS.md` (se
   propone con el porqué).

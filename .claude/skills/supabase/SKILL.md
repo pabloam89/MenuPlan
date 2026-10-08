@@ -78,10 +78,10 @@ los scripts para conectar es `SUPABASE_DB_URL`, leída con `leerEnv` de
 
 ## Qué requiere el OK de Pablo
 
-- Cualquier escritura en producción: `apply-migration.mjs --si`, SQL que
-  escribe, borra o cambia permisos o RLS. Hoy la guardia lo niega a las
-  sesiones y lo lanza Pablo con `!`; la política puede cambiar (CLAUDE.md
-  manda).
+- Desde el 8 oct 2026 una sesión aplica (`--si`) si el script ve la migración
+  en staging, un ensayo de menos de una hora y el OK de `auditor-datos` en la
+  cabecera. Son de Pablo (`!` y `--pablo`): `CONTRAE`, y RLS o permisos de lo
+  que ya existía. El SQL a mano que escribe, siempre negado.
 - Cambiar ajustes del panel: Auth, proveedores, URLs de retorno, plan, crons
   fuera de `scripts/bot-cron.mjs`.
 - **Pendiente de Pablo: comprobar las copias.** En el panel, Database →

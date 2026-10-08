@@ -9,7 +9,14 @@
  *   1. la migración esté ya en origin/staging y sea idéntica a la local (pasó
  *      por PR con el CI en verde, incluidos los tests de principios);
  *   2. haya un ensayo de ESE contenido de hace menos de una hora (si alguien la
- *      toca después del ensayo, hay que repetirlo).
+ *      toca después del ensayo, hay que repetirlo);
+ *   3. lleve en la cabecera el visto bueno del juez:
+ *      `-- AUDITADA: auditor-datos AAAA-MM-DD OK`;
+ *   4. y, si trae `-- CONTRAE:`, toca RLS o permisos de tablas que ya existían
+ *      o crea `security definer`, que venga `--pablo`. Esa opción la guardia se
+ *      la niega a cualquier sesión: solo la usa Pablo con `!`. La RLS y el
+ *      revoke de una tabla creada en la misma migración no cuentan (PRINCIPIOS
+ *      §8 los exige en toda tabla nueva).
  *
  * Lo comprueba el script y no la buena fe de quien lo lanza, y vale igual para
  * Pablo que para una sesión. El SQL a mano contra la base sigue negado por la
@@ -29,12 +36,61 @@ export const VIGENCIA_MS = 60 * 60 * 1000;
 /** Mismo hash para el mismo SQL aunque cambien los saltos de línea. */
 export const hashDe = (sql) => createHash("sha256").update(String(sql).replace(/\r\n/g, "\n")).digest("hex");
 
+const RE_AUDITADA = /^--\s*AUDITADA:\s*auditor-datos\s+(\d{4}-\d{2}-\d{2})\s+(.+?)\s*$/m;
+
+/** El veredicto del juez en la cabecera: { fecha, veredicto } o null. */
+export function auditoriaDe(sql) {
+  const m = RE_AUDITADA.exec(String(sql));
+  if (!m) return null;
+  const d = new Date(`${m[1]}T00:00:00Z`);
+  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== m[1]) return null;
+  return { fecha: m[1], veredicto: m[2] };
+}
+
+const nombreTabla = (s) => s.replace(/"/g, "").replace(/^public\./i, "").toLowerCase();
+
+/**
+ * Por qué esta migración la lanza Pablo (vacío = no hace falta): borra algo
+ * con datos, o cambia RLS o permisos de lo que ya existía.
+ */
+export function motivosDePablo(sql) {
+  const texto = String(sql);
+  const r = [];
+  if (/^--\s*CONTRAE:/m.test(texto)) r.push("borra algo que ya existía (`-- CONTRAE:`)");
+  const codigo = texto.replace(/--[^\n]*/g, "");
+  const nuevas = new Set([...codigo.matchAll(/create\s+(?:unlogged\s+)?table\s+(?:if\s+not\s+exists\s+)?([\w."]+)/gi)].map((m) => nombreTabla(m[1])));
+  const ajena = (t) => !nuevas.has(nombreTabla(t));
+  for (const s of codigo.split(";").map((x) => x.trim()).filter(Boolean)) {
+    let m;
+    if ((m = /^alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?([\w."]+)\s+(?:enable|disable|force|no\s+force)\s+row\s+level\s+security\b/i.exec(s))) {
+      if (ajena(m[1])) r.push(`cambia la RLS de ${nombreTabla(m[1])}`);
+    } else if ((m = /^(?:create|alter|drop)\s+policy\b[\s\S]*?\bon\s+([\w."]+)/i.exec(s))) {
+      if (ajena(m[1])) r.push(`toca una política de ${nombreTabla(m[1])}`);
+    } else if ((m = /^(grant|revoke)\b[\s\S]*?\bon\s+(?:(function|schema|all|sequence|table)\s+)?([\w."]+)/i.exec(s))) {
+      const sobre = (m[2] ?? "table").toLowerCase();
+      if (sobre !== "table" || ajena(m[3])) r.push(`${m[1].toLowerCase()} sobre ${sobre === "table" ? nombreTabla(m[3]) : `${sobre} ${m[3]}`}`);
+    }
+  }
+  if (/\bsecurity\s+definer\b/i.test(codigo)) r.push("crea o cambia una función `security definer` (se salta la RLS)");
+  return [...new Set(r)];
+}
+
 /**
  * Lo que impide aplicar. Vacío = adelante.
- * @param {{ nombre: string, local: string, enStaging: string|null, ensayo: {hash: string, at: string}|null, ahora?: number }} d
+ * @param {{ nombre: string, local: string, enStaging: string|null, ensayo: {hash: string, at: string}|null, pablo?: boolean, ahora?: number }} d
  */
-export function motivosParaNoAplicar({ nombre, local, enStaging, ensayo, ahora = Date.now() }) {
+export function motivosParaNoAplicar({ nombre, local, enStaging, ensayo, pablo = false, ahora = Date.now() }) {
   const no = [];
+  const juez = auditoriaDe(local);
+  if (!juez) {
+    no.push(`${nombre} no tiene el visto bueno del juez: pide al juez auditor-datos que la revise y apunta su veredicto en la cabecera (\`-- AUDITADA: auditor-datos AAAA-MM-DD OK\`).`);
+  } else if (juez.veredicto !== "OK") {
+    no.push(`El juez auditor-datos no dio el OK a ${nombre} (${juez.fecha}: «${juez.veredicto}»). Arregla lo que dice y que la revise otra vez.`);
+  }
+  const dePablo = motivosDePablo(local);
+  if (dePablo.length && !pablo) {
+    no.push(`${nombre} ${dePablo.join("; ")}: esta la lanza Pablo con \`!\` y \`--pablo\`.`);
+  }
   const h = hashDe(local);
   if (enStaging == null) {
     no.push(`${nombre} no está en origin/staging. Primero su PR, con el CI en verde; luego se aplica.`);

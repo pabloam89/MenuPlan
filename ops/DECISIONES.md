@@ -6,6 +6,7 @@ fila. La más reciente, arriba. Sin valores de claves.
 
 | Fecha | Qué | Por qué | Aprobó |
 |---|---|---|---|
+| 2026-10-08 | Una sesión aplica migraciones (`apply-migration --si`) si el script ve: la migración en staging, un ensayo de menos de una hora y `-- AUDITADA: auditor-datos AAAA-MM-DD OK` en la cabecera. `CONTRAE` y RLS o permisos de lo existente, solo Pablo con `!` y `--pablo` (la guardia niega `--pablo`). Sustituye a la fila de abajo | Sin otra base donde aplicar, que el trabajo no se pare esperando a Pablo, con un juez que no escribió la migración. Lo irreversible y lo que decide quién ve los datos de cada familia sigue siendo de una persona | Pablo |
 | 2026-10-08 | Escribir en producción (`apply-migration --si`, SQL que escribe) pasa de «preguntar» a «negar» en la guardia: lo lanza Pablo con `!` | En modo auto un «preguntar» del hook puede resolverlo el clasificador y no una persona | Pablo |
 | 2026-10-08 | `npm run tarea` / `npm run retirar`, registro de sesiones y números de migración en el arranque, `.gitattributes` con LF, `testTimeout` de 30 s | Quitar los roces de abrir y cerrar tareas, que las sesiones se vean entre sí y que los tests no fallen por reloj | Pablo |
 | 2026-10-07 | Secret scanning y push protection activados | Repo público: que una clave no llegue a GitHub | Pablo |
