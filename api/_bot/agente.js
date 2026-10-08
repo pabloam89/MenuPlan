@@ -427,7 +427,8 @@ function herramientasDeRecordatorios(chat) {
         cuando: { type: "string" },
         repite: { type: "string", enum: ["diario", "semanal"] },
       }, ["texto", "cuando"]),
-      run: (args) => crearRecordatorio(chat, args),
+      // Sin pasar `tipo`: el aviso de la víspera solo lo crea avisoVispera.
+      run: ({ texto, cuando, repite }) => crearRecordatorio(chat, { texto, cuando, repite }),
     }),
     herramienta({ lector: "privado", soloLectura: false, pantalla: null }, {
       name: "aviso_vispera",
@@ -1101,9 +1102,11 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // Guardar la charla no tiene por qué retrasar la respuesta: va en
   // `guardado`, y quien entrega lo espera DESPUÉS de enviar y antes de soltar
   // el turno (si no, el mensaje siguiente no vería este en la memoria).
+  // Quién lo dijo ya va dentro del texto («[Ana]: …», ver `entrada`), que es lo
+  // que lee memoria(); author_id solo duplicaba el nombre de Telegram sin lector.
   const guardado = Promise.all([
     insert("bot_messages", [
-      { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor ?? null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
+      { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
       { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, pendientes: pendientesNuevas } },
     ]).catch((e) => console.error("[agente] memoria", e?.message)),
     segundaSemana(householdId).catch(() => {}),

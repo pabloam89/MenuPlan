@@ -240,7 +240,7 @@ export async function prepararReceta(householdId, datos, chat) {
     .filter((i) => i?.nombre)
     .map((i) => ({ name: String(i.nombre).trim(), amount: Number(i.cantidad) || 0, unit: unidades.has(i.unidad) ? i.unidad : "ud" }));
   if (!datos.nombre || !ingredientes.length) return "Faltan el nombre o los ingredientes: pídeselos antes de preparar la receta.";
-  const electro = m.KITCHEN_TOOLS.includes(datos.electrodomestico) ? [datos.electrodomestico] : [];
+  const electro = m.KITCHEN_TOOL_IDS.includes(datos.electrodomestico) ? [datos.electrodomestico] : [];
 
   const entrada = {
     name: String(datos.nombre).trim(),
