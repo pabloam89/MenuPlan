@@ -1,0 +1,181 @@
+{
+  "app_feedback": [
+    "src/lib/feedback.js"
+  ],
+  "blocked_users": [
+    "api/_bot/compartir.js",
+    "src/lib/social.js"
+  ],
+  "bot_chats": [
+    "api/_bot/borrar.js",
+    "api/_bot/enlace.js",
+    "api/_bot/papel.js",
+    "api/bot/link.js",
+    "api/bot/telegram.js"
+  ],
+  "bot_codigos": [
+    "api/_bot/enlace.js",
+    "api/bot/entrar.js",
+    "api/bot/telegram.js"
+  ],
+  "bot_cola": [
+    "api/_bot/turnos.js"
+  ],
+  "bot_deshacer": [
+    "api/_bot/casa.js"
+  ],
+  "bot_idempotencia": [
+    "api/_bot/idempotencia.js"
+  ],
+  "bot_identities": [
+    "api/_bot/altaTelegram.js",
+    "api/_bot/borrar.js",
+    "api/_bot/compartir.js",
+    "api/_bot/cuentas.js",
+    "api/_bot/enlace.js",
+    "api/_bot/invitacion.js",
+    "api/_bot/papel.js",
+    "api/bot/link.js",
+    "api/bot/telegram.js"
+  ],
+  "bot_link_tokens": [
+    "api/bot/link.js",
+    "api/bot/telegram.js"
+  ],
+  "bot_messages": [
+    "api/_bot/agente.js",
+    "api/_bot/rapido.js",
+    "api/_bot/recetas.js",
+    "api/bot/telegram.js"
+  ],
+  "bot_reminders": [
+    "api/_bot/ficha.js",
+    "api/_bot/recordatorios.js",
+    "api/_bot/vispera.js"
+  ],
+  "bot_tareas": [
+    "api/_bot/tareas.js"
+  ],
+  "bot_usage": [
+    "api/_bot/uso.js"
+  ],
+  "content_reports": [
+    "src/lib/social.js"
+  ],
+  "content_translations": [
+    "api/_bot/traducir.js"
+  ],
+  "cookings": [
+    "src/lib/cookingsSync.js"
+  ],
+  "household_favorites": [
+    "src/lib/householdFavoritesSync.js"
+  ],
+  "household_members": [
+    "api/_bot/papel.js",
+    "api/bot/link.js",
+    "api/bot/telegram.js"
+  ],
+  "household_recipe_discards": [
+    "src/lib/householdDiscardsSync.js"
+  ],
+  "household_state": [
+    "api/_bot/casa.js",
+    "src/lib/householdState.js"
+  ],
+  "households": [
+    "api/_bot/borrar.js",
+    "api/_bot/casa.js",
+    "api/_bot/embudo.js",
+    "api/_bot/enlace.js",
+    "api/_bot/generar.js",
+    "api/_bot/invitacion.js",
+    "api/bot/telegram.js"
+  ],
+  "menu_share_links": [
+    "api/_bot/compartir.js"
+  ],
+  "recipe_collections": [
+    "src/lib/recipeCollections.js"
+  ],
+  "recipe_folders": [
+    "src/lib/recipeCollections.js"
+  ],
+  "recipe_share_links": [
+    "api/_bot/compartir.js"
+  ],
+  "recipe_votes": [
+    "src/lib/recipeVotes.js"
+  ],
+  "shared_menus": [
+    "api/_bot/compartir.js",
+    "src/lib/social.js",
+    "src/lib/socialNotifications.js"
+  ],
+  "social_comment_likes": [
+    "src/lib/social.js"
+  ],
+  "social_comments": [
+    "src/lib/social.js",
+    "src/lib/socialNotifications.js"
+  ],
+  "social_profiles": [
+    "src/lib/social.js",
+    "src/lib/socialNotifications.js"
+  ],
+  "user_events": [
+    "api/_bot/agente.js",
+    "api/_bot/embudo.js",
+    "src/lib/analytics.js"
+  ],
+  "user_follows": [
+    "src/lib/social.js",
+    "src/lib/socialNotifications.js"
+  ],
+  "user_menu_recipes": [
+    "api/_bot/generar.js",
+    "api/_bot/menu.js",
+    "src/lib/menusSync.js"
+  ],
+  "user_menu_weeks": [
+    "api/_bot/casa.js",
+    "api/_bot/generar.js",
+    "src/lib/menusSync.js"
+  ],
+  "user_menus": [
+    "api/_bot/casa.js",
+    "api/_bot/generar.js",
+    "src/lib/menusSync.js"
+  ],
+  "user_pantry": [
+    "api/_bot/despensa.js",
+    "api/_bot/ficha.js",
+    "api/_bot/generar.js",
+    "api/_bot/menu.js",
+    "api/_bot/plato.js",
+    "src/lib/pantry.js"
+  ],
+  "user_profiles": [
+    "api/_bot/cuentas.js",
+    "api/_bot/enlace.js",
+    "api/_bot/invitacion.js",
+    "api/_bot/papel.js",
+    "api/bot/link.js",
+    "src/lib/analytics.js",
+    "src/lib/householdsSync.js"
+  ],
+  "user_recipe_discards": [
+    "src/lib/recipeDiscardsSync.js"
+  ],
+  "user_recipes": [
+    "api/_bot/compartir.js",
+    "api/_bot/propias.js",
+    "api/_bot/recetas.js",
+    "src/lib/recipePhotos.js",
+    "src/lib/social.js",
+    "src/lib/userRecipesSync.js"
+  ],
+  "user_state": [
+    "src/lib/userState.js"
+  ]
+}
