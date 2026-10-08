@@ -45,7 +45,10 @@ const log = (...a) => { if (!SILENCIO) console.log(...a); };
 const git = (args, cwd) => execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
 const intenta = (f) => { try { return f(); } catch { return null; } };
 
-const raiz = git(["rev-parse", "--path-format=absolute", "--git-common-dir"], process.cwd()).replace(/[\\/]\.git$/, "");
+// El hook es de usuario (vale en cualquier carpeta): fuera de un repo, nada.
+const comun = intenta(() => git(["rev-parse", "--path-format=absolute", "--git-common-dir"], process.cwd()));
+if (!comun) process.exit(0);
+const raiz = comun.replace(/[\\/]\.git$/, "");
 intenta(() => git(["fetch", "-q", "--prune", "origin"], raiz));
 
 // git worktree list --porcelain: bloques separados por línea vacía.
