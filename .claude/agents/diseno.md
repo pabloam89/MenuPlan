@@ -23,7 +23,7 @@ Que la app se vea como una sola, que cada pantalla nueva salga del sistema y
 que los assets sean reproducibles desde un clon limpio.
 
 Es suyo:
-- Los tokens y su fuente única (la carpeta `src/design/` cuando exista) y las
+- Los tokens y su fuente única (una carpeta src/design, cuando exista) y las
   variables CSS que se generan de ellos.
 - Los primitivos de `src/components/ui.jsx` (y los que salgan de él) y los
   iconos de `src/components/icons.jsx`.

@@ -35,14 +35,17 @@ PR también en `staging` (el cron de Mercadona tiene que abrir PR; ver
 `ops/INVENTARIO.md`, pendiente 11).
 
 **2 · Reglas y contexto (3).** `CLAUDE.md`, `specs/`, `docs/datos/PRINCIPIOS.md`,
-agentes con plantilla y test. *Siguiente*: que la deriva de las specs se
-detecte sola, no solo cuando alguien pasa `/update-specs`.
+agentes con plantilla y test. En este PR (`ops/contexto`): CLAUDE.md en
+unas 150 líneas, 6 reglas por carpeta en `.claude/rules/` y un test que
+falla si una regla o skill cita una ruta que no existe. *Siguiente*: que la
+deriva de las specs se detecte sola, no solo cuando alguien pasa
+`/update-specs`.
 
 **3 · Guardarraíles (3).** Guardia con tests, protección de ramas. Solo cubre
 sesiones de Claude. *Siguiente*: lo del plano 1.
 
-**4 · Verificación (2).** Tests y build bloquean el merge. Sin tipos. El lint
-en CI, con línea base que solo baja, entra en este PR (`ops/cimientos`).
+**4 · Verificación (2).** Tests, build y lint bloquean el merge; el lint con
+línea base que solo baja (133 errores, activo desde el PR #108). Sin tipos.
 *Siguiente*: piloto de `checkJs` con tipos generados de Supabase en un
 dominio.
 
@@ -56,8 +59,8 @@ exista, nace el agente `vigía`.
 
 **7 · Seguridad (2).** RLS y una auditoría hecha. Secret scanning y push
 protection activos desde el 7 oct (comprobado con `gh api`): un push con una
-clave se bloquea. Dependabot entra en este PR (`ops/cimientos`); las alertas
-de dependencias se encienden en Settings. Repo público y críticos de coste
+clave se bloquea. Dependabot activo desde el 8 oct: alertas, PRs de
+seguridad y actualizaciones semanales agrupadas (PR #108). Repo público y críticos de coste
 abiertos en `specs/AUDIT-REPORT.md`. *Siguiente*: decidir repo privado;
 cerrar los críticos de coste.
 

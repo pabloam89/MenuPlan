@@ -86,8 +86,54 @@ const REGLAS_SQL = [
   },
 ];
 
-/** Ficheros de migración que un comando de shell escribe, mueve o borra. */
-const MIGRACION_EN_COMANDO = /(?:sed\s+-i|>>?|\btee\b|\bmv\b|\brm\b|\bcp\b)[^\n]*?supabase[\\/]migrations[\\/](?<nombre>\d{4}_[\w-]+)\.sql/;
+/** Ficheros de migración; el grupo 1 es el nombre. */
+const RUTA_MIGRACION = String.raw`supabase[\\/]migrations[\\/](\d{4}_[\w-]+)\.sql`;
+
+/**
+ * Lo que lee Lola. La regla `.claude/rules/lola.md` solo se carga con
+ * Read/Write/Edit, así que por shell se salta sin avisar; y un cambio en lo que
+ * lee Lola pide pasar los evals antes de mergear.
+ */
+const RUTA_LOLA = String.raw`api[\\/]_bot[\\/](?:conocimiento\.md|agente\.js|herramientas[\w.-]*)`;
+
+/**
+ * Qué hace un comando de shell con TODOS los ficheros que casan con `ruta`:
+ * [{ nombre, como }], con `como` = "escribe" (redirección, tee, sed/perl -i o
+ * --in-place, git checkout/restore, node -e con writeFileSync, o el destino de
+ * un mv/cp), "mueve" (el origen de un mv) o "borra" (rm). Leer no cuenta: un
+ * `>` suelto (el `NR>=251` de un awk, `grep … > /tmp/x`) o el origen de un cp
+ * son lecturas, y negarlas eran falsos positivos. Se miran todas las
+ * coincidencias: con solo la primera, `echo a > 0090_nueva.sql && echo b >>
+ * 0079_aplicada.sql` pasaba.
+ */
+export function tocaEn(cmd, ruta) {
+  const r = [];
+  const re = (flags = "") => new RegExp(ruta, flags);
+  const anota = (txt, como) => {
+    if (como && re().test(txt)) r.push({ nombre: re().exec(txt)[1] ?? txt, como });
+  };
+  // La redirección cuenta solo si va justo antes de la ruta.
+  for (const m of cmd.matchAll(new RegExp(String.raw`>>?\s*["']?(?:[^\s"'|;&<>]*[\\/])?` + ruta, "g"))) anota(m[0], "escribe");
+  // node -e escribiendo: su código lleva sus propios `;`, así que se mira entero.
+  if (/\bnode\b[^\n]*\s-[ep]\b/.test(cmd) && /\b(?:writeFileSync|appendFileSync)\b/.test(cmd)) {
+    for (const m of cmd.matchAll(re("g"))) anota(m[0], "escribe");
+  }
+  for (const o of ordenes(cmd)) {
+    const tokens = [...o.matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3]);
+    const args = tokens.filter((t) => !t.startsWith("-"));
+    const orden = tokens[0] === "git" ? `git ${tokens[1]}` : tokens[0];
+    const enRuta = args.filter((t) => re().test(t));
+    if (!enRuta.length) continue;
+    const enSitio = (/^(?:sed|perl)$/.test(orden) && tokens.some((t) => /^-\w*i|^--in-place\b/.test(t)))
+      || ["tee", "git checkout", "git restore"].includes(orden);
+    if (enSitio) enRuta.forEach((t) => anota(t, "escribe"));
+    else if (["mv", "git mv", "cp"].includes(orden)) {
+      const destino = args[args.length - 1];
+      for (const t of enRuta) anota(t, t === destino ? "escribe" : orden === "cp" ? null : "mueve");
+    } else if (["rm", "git rm"].includes(orden)) enRuta.forEach((t) => anota(t, "borra"));
+  }
+  return r;
+}
 
 // ── Migraciones ────────────────────────────────────────────────────────────
 
@@ -170,10 +216,16 @@ export function decidir(entrada, ctx) {
     // El SQL se mira en el comando entero: un `node -e` lleva sus propios `;`.
     for (const r of REGLAS_SQL) if (r.si(cmd)) return r.da(cmd);
 
-    const m = cmd.match(MIGRACION_EN_COMANDO);
-    if (m) {
-      const motivo = migracionCerrada(m.groups.nombre, ctx);
+    for (const { nombre, como } of tocaEn(cmd, RUTA_MIGRACION)) {
+      // Mover o borrar una que no está en staging (salir de un choque de
+      // número) es libre: el número que cuenta es el del destino. Si ya está
+      // en staging, moverla o borrarla es tocar una aplicada.
+      if (como !== "escribe" && !ctx.enStaging(nombre)) continue;
+      const motivo = migracionCerrada(nombre, ctx);
       if (motivo) return deny(motivo);
+    }
+    if (tocaEn(cmd, RUTA_LOLA).length) {
+      return ask("Esto escribe en lo que lee Lola desde la shell. Mejor con Edit: así se carga `.claude/rules/lola.md`. Y si cambia lo que lee Lola, pasa los evals (`scripts/bot-evals.mjs`) antes de mergear.");
     }
     return null;
   }

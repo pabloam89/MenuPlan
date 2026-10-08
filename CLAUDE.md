@@ -1,187 +1,131 @@
 # MenuPlan — reglas para cualquier sesión
 
-Lo lee toda sesión de Claude, en cualquier terminal, worktree o en la nube.
-Arriba va lo que evita fricción: dónde vive cada cosa y qué no se toca sin
-permiso. El detalle de cada dominio está en `specs/` (índice en
-`specs/INDEX.md`).
-
-Lo que de verdad obliga no es este fichero: son los permisos y los hooks de
-`.claude/settings.json` (ver «Lo que hace cumplir esto»). Si una regla de aquí
-choca con un hook, el hook manda y la regla se corrige.
+Lo que vale siempre, para toda sesión. Lo de cada zona salta solo al tocarla
+(`.claude/rules/`); el detalle de cada dominio, en `specs/INDEX.md`. Si una
+regla choca con un hook, el hook manda.
 
 ## Qué es
 
-HoMenu / MenuPlan: menús semanales para familias. Dos frentes sobre el mismo
-código:
-
-- **Lola**, el bot de mensajería (Telegram hoy, WhatsApp después): `api/_bot/`
-  y `api/bot/`. Es el producto hacia el que vamos.
-- **La app** React + Vite (`src/`), PWA, con funciones serverless en `api/`.
-
-Datos en Supabase (Postgres + Auth + RLS). Catálogo de recetas y alimentos en
-JSON versionado en git (`src/data/`). Hosting en Vercel.
+HoMenu / MenuPlan: menús semanales para familias. **Lola**, el bot de
+mensajería (Telegram hoy, WhatsApp después; `api/_bot/`, `api/bot/`), es el
+producto hacia el que vamos; **la app** React + Vite (`src/`), PWA con
+funciones en `api/`, es el respaldo. Datos en Supabase (Postgres + Auth +
+RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
 
 ## Equipo
 
-- **Pablo** (`pabloam89`) y **Álvaro** (`algbarc`, `algbarc-design`):
-  escriben en el repo, a menudo con varias sesiones a la vez.
-- **Manu**: socio sin acceso al repo, a propósito.
-- Pablo no es informático: explicar decisiones técnicas en llano, con la
-  recomendación primero.
+- **Pablo** (`pabloam89`) y **Álvaro** (`algbarc`, `algbarc-design`) escriben
+  en el repo, a menudo con varias sesiones a la vez. **Manu**, socio, sin
+  acceso al repo a propósito.
+- Pablo no es informático: decisiones técnicas en llano, recomendación primero.
 
 ## Dónde vive cada cosa
 
 | Qué | Dónde |
 |---|---|
 | Repositorio (el único de verdad) | `github.com/pabloam89/MenuPlan`, **público** |
-| Copia de trabajo en el PC de Pablo | `C:\dev\MenuPlan`; worktrees en `C:\dev\MenuPlan-<tarea>` |
-| Hosting | Vercel, equipo «Monicos MenuPlan», proyecto `menu-plan` |
-| Base de datos | Supabase `mdzwbrworucnummibxrq`, **una sola: producción**. Cuelga del equipo de Vercel (Marketplace), no de una cuenta propia |
-| Servicios, cuentas dueñas y dónde está cada clave | `ops/INVENTARIO.md` (nunca valores de claves) |
+| Copia de trabajo de Pablo | `C:\dev\MenuPlan`; worktrees en `C:\dev\MenuPlan-<tarea>` |
+| Hosting | Vercel, equipo «menuplan», proyecto `homenu` (antes «Monicos MenuPlan» y `menu-plan`) |
+| Base de datos | Supabase `mdzwbrworucnummibxrq`, **una sola: producción**. Cuelga del equipo de Vercel (Marketplace) |
+| Servicios, cuentas y dónde está cada clave | `ops/INVENTARIO.md` (nunca valores) |
 | Las claves en local | 1Password, bóveda `HoMenu`. `.env.local` guarda direcciones `op://` (plantilla `ops/env.1password`), no claves. Skill `1password` |
-| Estado real de las migraciones | `supabase/ESTADO.md` (el registro de Supabase no sirve: tiene 12 filas) |
-| Constraints NOT VALID por validar | `supabase/PENDIENTES.md` |
-| Reglas de estructura de tablas | `docs/datos/PRINCIPIOS.md` (con test desde la 0087) |
+| Estado real de las migraciones | `supabase/ESTADO.md`; NOT VALID por validar en `supabase/PENDIENTES.md` |
+| Cómo deben ser las tablas | `docs/datos/PRINCIPIOS.md` (con test desde la 0087) |
 | Reglas de UI | `DESIGN_SYSTEM.md` |
-| Decisiones de operación | `ops/DECISIONES.md` |
+| Decisiones de operación y hoja de ruta | `ops/DECISIONES.md`, `ops/PLANOS.md` |
 
-`pabloartinano/MenuPlan` y la carpeta de OneDrive son restos de antes del
-7 oct 2026: si aparecen en algún fichero, es un error a corregir.
+`pabloartinano/MenuPlan` y OneDrive son restos de antes del 7 oct: un error.
 
 ## Ramas y flujo
 
-- **`staging`** es la rama por defecto de GitHub y la que despliega Vercel en
-  staging. Todo trabajo sale de `origin/staging` y vuelve por **PR con el CI
-  en verde** (`.github/workflows/tests.yml`: tests + build). Nada de push
-  directo a staging.
-- **`main` es producción.** Ninguna sesión sube ni fusiona a `main`. Solo
-  cuando Pablo lo pide («sube a prod», «despliega»), y el método se decide con
-  él en ese momento.
-- **Protección en GitHub (desde el 7 oct 2026), también para administradores:**
-  `main` solo admite PR con el check `tests` en verde; ni `main` ni `staging`
-  admiten force push ni borrado. `staging` aún admite push directo porque el
-  cron de Mercadona lo usa; ahí el «solo por PR» lo pone la guardia.
-- Una rama por tarea, con prefijo de área y nombre corto en castellano:
-  `bot/`, `datos/`, `ux/`, `fix/`, `feat/`, `ops/`, `motor/`. Se borra sola
-  al fusionar el PR.
-- Las sesiones en la nube trabajan en la rama que se les asigna y solo empujan
-  a esa.
-- **«¿Está en staging?»** se responde con `git fetch origin` y mirando
-  `origin/staging`, nunca el upstream de tu rama.
-- Hay sesiones en paralelo tocando los mismos ficheros: antes del PR, fusiona
-  `origin/staging` en tu rama y resuelve.
-- Un PR a staging con el CI verde lo puede fusionar la propia sesión. A `main`,
-  nunca.
+- **`staging`** es la rama por defecto y la que despliega Vercel en staging.
+  Todo sale de `origin/staging` y vuelve por **PR con el CI en verde**
+  (`tests.yml`: lint con línea base, tests y build). Ese PR lo puede fusionar
+  la propia sesión.
+- **`main` es producción.** Ninguna sesión sube ni fusiona a `main`; solo
+  cuando Pablo lo pide, con el método que se decida con él.
+- Una rama por tarea, prefijo de área y nombre en castellano: `bot/`, `datos/`,
+  `ux/`, `fix/`, `feat/`, `ops/`, `motor/`. Las de la nube empujan solo a la
+  suya. «¿Está en staging?» se mira en `origin/staging` tras `git fetch`.
 
-## Varias sesiones a la vez
+## Una sesión, una tarea
 
 **Una sesión = una carpeta = una rama = una tarea.**
+`npm run tarea -- datos/descartes` abre `C:\dev\MenuPlan-descartes` (rama
+desde `origin/staging`, `.env.local`, flags de staging, dependencias y
+puerto); `npm run retirar -- descartes` la cierra solo si no se pierde nada.
+Nada de borrar worktrees a mano; si el arranque avisa de otra sesión en tu
+carpeta, no trabajes ahí. App en local: localhost y la IP de la wifi, nada más
+(el login con Google solo vuelve al puerto 5176). Primer push: `git push -u
+origin <rama>`.
 
-```
-npm run tarea -- datos/descartes      # abre C:\dev\MenuPlan-descartes
-npm run retirar -- descartes          # la cierra, solo si no se pierde nada
-```
+## Antes del PR (lo que no vigila la guardia)
 
-- `tarea` crea el worktree y la rama desde `origin/staging` (o retoma la de
-  GitHub si ya existe), sin enganche a staging. Copia `.env.local`, crea
-  `.env.development.local` con solver y pizarra (como en staging; en
-  `.env.local` romperían tests), instala dependencias y busca un puerto libre.
-- `retirar` se niega si hay cambios sin commitear, commits que no están en
-  GitHub ni en staging, o una sesión activa en esa carpeta. Con `--ensayo`
-  solo dice qué haría. Nada de borrar worktrees a mano.
-- El primer push de una rama nueva: `git push -u origin <rama>`.
-- Si Pablo pide ver la app en local, dale las dos URLs (localhost y la IP de la
-  wifi) y nada más. El login con Google solo vuelve al puerto 5176.
-- Al abrir sesión, el arranque dice qué otras sesiones hay activas y en qué
-  rama, y qué números de migración están cogidos (staging, otros worktrees y
-  PR abiertos). Si avisa de otra sesión en tu misma carpeta, no trabajes ahí.
-- **Nunca `git stash`**: es uno para todos los worktrees y se cruza con otras
-  sesiones. Para comparar, `git show origin/staging:<ruta>` o un worktree
-  aparte.
-- No cambies de rama en una carpeta con cambios sin commitear.
-- Saltos de línea: LF siempre (`.gitattributes`), también en Windows.
-
-## Antes de commitear y de abrir el PR
-
-1. `git status --short` y añade **por nombre** solo lo que has tocado tú. Si
-   un fichero mezcla lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera.
-2. `npm test` y **`npm run build`**, nunca `vite build` a secas: el `prebuild`
-   (catálogo + `check:tdz`) es lo que corre Vercel.
-3. Con el lint, compara la **lista** de errores antes y después, no el
-   recuento.
-4. Un test nuevo se ve fallar una vez (rompe a propósito lo que mide) antes de
-   creértelo. Prueba con los objetos que entrega el motor (`RECIPES_BY_ID`),
-   no con el JSON del catálogo. Un test que copia la verdad
-   (`expect(UMBRAL).toBe(4.2)`) no la vigila: fija suelos y relaciones.
-5. `src/lib/solver.test.js` está fuera del CI a propósito (ver `tests.yml`).
+1. Fusiona `origin/staging` en tu rama y resuelve: hay sesiones en paralelo.
+2. `git status --short` y añade por nombre solo lo tuyo; si un fichero mezcla
+   lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera.
+3. `npm test` y `npm run build`. Con el lint, `npm run lint:base`: cuenta la
+   **lista** de errores, no el recuento.
+4. Un test nuevo se ve fallar una vez antes de creértelo (detalle en la regla
+   `tests`).
 
 ## Base de datos
 
-**Solo hay una base y es la de producción.** Staging, local y los scripts
-escriben en ella. Cada migración es un cambio en producción.
+**Solo hay una base y es la de producción**: staging, local y los scripts
+escriben en ella, y cada migración es un cambio en producción.
 
-- **Una sola vía para aplicar:** `node scripts/apply-migration.mjs <nombre>`
-  (ensayo, hace ROLLBACK; lo puede lanzar la sesión). El `--si` lo lanza
-  **Pablo** con `!` en su terminal: la guardia lo niega a cualquier sesión. Se
-  le enseña el ensayo y se le da el comando listo. En el mismo PR o justo
-  después, apúntala en `supabase/ESTADO.md` con su objeto testigo.
-- **¿Está aplicada?** `node scripts/verificar-estado.mjs` (o `--solo 0080`)
-  compara cada migración con el catálogo de producción, en solo lectura, y
-  avisa de lo que no cuadra con ESTADO.md.
-- **Una migración aplicada no se edita nunca**: se escribe otra. La que está
-  en staging y ESTADO.md da por «sin aplicar» todavía se puede tocar.
-- Número: el «siguiente libre» que da el arranque de la sesión (cuenta
-  staging, los otros worktrees y los PR abiertos); vuelve a mirarlo justo
-  antes del PR. La guardia niega crear una migración con un número que
-  staging ya usa, y `supabase/migrations.test.js` vigila los repetidos.
+- El `--si` de una migración lo lanza **Pablo** con `!`; la sesión ensaya y
+  le da el comando listo.
 - **El código no puede depender de que la migración ya esté**: la rama se
   despliega antes de que alguien la aplique. Plan B siempre.
-- `drop constraint` **sin** `if exists`, con el nombre leído de
-  `pg_constraint`: con el nombre mal, `if exists` no hace nada y el ensayo
-  pasa igual.
-- Vocabulario cerrado: **CHECK** (NOT VALID si hay filas, apuntado en
-  PENDIENTES.md) con la lista en una constante JS y un test SQL↔JS. Tabla
-  catálogo solo si los valores tienen atributos que alguien lee. **Enum de
-  Postgres, casi nunca.** Y la regla de cada valor en su propio check
-  (`tipo <> 'alta' or external_id is not null`).
-- Ids nuevos generados en cliente: `src/lib/ids.js` (prefijo de tipo + 12
-  base36).
-- **Ningún campo ni tabla sin lector.** Antes de exponer un dato en la UI o al
-  motor, mide su cobertura.
-- Dónde vive un dato: lo curado por nosotros (catálogo) en JSON en git; lo que
-  escriben los usuarios, solo en SQL; los dos solo si uno se genera del otro y
-  nunca se editan a mano ambos.
-- Cambios de modelo: primero el modelo (entidades, relaciones con `on delete`
-  justificado, ciclo de vida, invariantes), luego el código. Lo lleva el
-  agente `datos` y lo juzga `auditor-datos` antes de aplicar.
-- **Todas las tablas con los mismos criterios** (`docs/datos/PRINCIPIOS.md`):
-  tercera forma normal, se guarda el id y no una copia del nombre, clave
-  natural `unique`, `not null` salvo decisión comentada, `timestamptz`, `text`
-  sin `varchar`, céntimos en `integer`, la unidad en el nombre de la columna,
-  `comment on table` en cada tabla nueva, índice en cada FK, y las secciones
-  17-21: salud (RGPD), quién y por dónde, cada orden una vez, el día de la casa
-  y estados con su fecha.
-- **Una tabla, un módulo dueño.** El código toca cada tabla desde un solo
-  módulo; nada de nombres de tabla, columnas o filtros PostgREST a mano por
-  ahí. `supabase/cableado.test.js` falla si un fichero nuevo se pone a tocar
-  una tabla (`node scripts/cableado.mjs` da el mapa).
+- **Ningún campo ni tabla sin lector**, y cada dato en un solo sitio.
+- Una tabla, un módulo dueño: nada de columnas ni filtros PostgREST a mano
+  fuera de él (PRINCIPIOS §15).
+
+El cómo, en la regla `migraciones`; cómo es una tabla, en `PRINCIPIOS.md`.
+
+## Encargos
+
+Clasifica lo que pide Pablo. Lo trivial lo haces tú. Si es normal (un dominio)
+o grande (varios, o un refactor), propón **`/orquestar <encargo>`**, que elige
+el pipeline por tipo de encargo y escribe el brief de cada agente. Regla fija:
+quien construye no juzga.
+
+## Agentes
+
+En `.claude/agents/`, con la estructura de `.claude/PLANTILLA-AGENTE.md`
+(vigilada por `.claude/agentes.test.js`). Un subagente no pregunta a mitad de
+trabajo: devuelve «Decisiones para Pablo».
+
+| Constructores | Jueces (sin Edit ni Write; no escribir por Bash es convención que vigila `revisor`) |
+|---|---|
+| `gobierno`: git, CI, permisos, hooks, secretos, servicios, `ops/` | `revisor`: fallos reales en un diff |
+| `datos`: esquema, migraciones, modelo, ESTADO.md | `qa`: la app en el navegador (Chrome en local) |
+| `diseno`: pantallas, tokens, iconos y assets | `evaluador`: evals de Lola antes y después |
+| `lola`: el bot, herramientas, conocimiento, coste | `seguridad`: RLS, endpoints, secretos, prompts |
+| | `auditor-datos`: normalización, duplicados y cableado |
+
+Aparcados en `.claude/agentes-aparcados/`: rendimiento y arquitecto.
+
+## Reglas por carpeta y skills
+
+Las reglas (`.claude/rules/`) saltan solas al leer o editar un fichero de su
+zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
+(`api/_bot/`, `api/bot/`), `catalogo` (`src/data/`, `src/utils/`, `src/lib/`,
+`api/_bot/`), `tests` (`*.test.{js,jsx,mjs}`) y
+`api` (`api/*.js`). Las skills (`.claude/skills/`) son runbooks que se abren
+por su nombre: `1password`; en camino, `vercel`, `supabase`, `github` y
+`telegram`.
 
 ## Código
 
-- Ficheros del repo: UTF-8 sin BOM, comentarios en castellano. Edita con la
-  herramienta Edit/Write; **nunca** `Set-Content`/`Out-File` de PowerShell
-  (destrozan los acentos).
-- Regex sobre nombres de alimento: `\b` por defecto y probado contra el
-  catálogo entero. Cuando la palabra va dentro de otro ingrediente («vinagre
-  de vino»), quita ese otro nombre antes de preguntar.
+- UTF-8 sin BOM, comentarios en castellano, saltos de línea LF. Edita con
+  Edit/Write.
+- Regex sobre nombres de alimento: `\b` por defecto (detalle en la regla
+  `catalogo`).
 - Modelos: **Gemini para imágenes, Anthropic para texto.** Mira qué genera un
   script, no qué proveedor trae escrito.
-- Evals de Lola (`scripts/bot-evals.mjs`, ~1,20 $) y e2e que pasen por ella:
-  solo antes de mergear cambios en lo que Lola lee (`api/_bot/conocimiento.md`,
-  el SISTEMA de `agente.js`, textos de herramientas). Vitest y CI, siempre.
-- UI: lee `DESIGN_SYSTEM.md` antes de tocar un `.jsx`. Iconos solo de Nucleo
-  (`src/components/icons.jsx`, `npm run build:icons`). Sin textos ni toasts que
-  nadie pidió; ante una duda de diseño, pregunta.
+- No cambies de rama en una carpeta con cambios sin commitear.
 
 ## Acciones que SIEMPRE requieren un OK explícito de Pablo
 
@@ -198,63 +142,17 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
 
 ## Lo que hace cumplir esto
 
-`.claude/settings.json` (compartido, en git) + `.claude/settings.local.json`
-(personal, fuera de git).
-
-- **`arranque.mjs`** (al abrir sesión): carpeta, rama, si falta `.env.local`,
-  si vas por detrás de staging, qué otras sesiones están activas, números de
-  migración cogidos y el siguiente libre, y qué migraciones siguen sin
-  aplicar. Apunta la sesión en el registro (`sesiones.mjs`, en la carpeta
-  común de git); `fin.mjs` la borra al cerrarse.
-- **`guardia.mjs`** (antes de cada comando o edición). **Niega:** push a
-  `main`, push directo a staging, `git stash`, `git add .`/`-A`, `vite build` a
-  secas, `Set-Content`, editar una migración aplicada, crear una con un número
-  que staging ya usa, y cualquier escritura en producción (`--si` o SQL que
-  escribe: eso lo lanza Pablo con `!`). **Pregunta:** push forzado y tocar
-  permisos o hooks. `gh pr merge`, solo a staging.
-- **GitHub:** `main` solo por PR con `tests` en verde; `main` y `staging` sin
-  force push ni borrado. **Secret scanning** con push protection activado.
-- **Permitidos sin preguntar** (`settings.json`): lecturas de git y gh, los
-  `npm run` (incluidos `tarea` y `retirar`, que se protegen solos), el ensayo de
-  migraciones y `verificar-estado`. En modo auto el clasificador para por su
-  cuenta lo destructivo que no esté en esa lista.
-
-Cada regla de la guardia tiene su porqué y su test en
-`.claude/hooks/guardia.test.js`. Si una estorba, se cambia ahí con su test,
-nunca se desactiva sin decirlo.
-
-## Agentes
-
-En `.claude/agents/`, todos con la misma estructura
-(`.claude/PLANTILLA-AGENTE.md`, vigilada por `.claude/agentes.test.js`). Cada
-uno es **constructor** (escribe) o **juez** (solo lee y opina): quien
-construye algo no lo juzga.
-
-Constructores:
-- **`gobierno`**: git, ramas, worktrees, CI, despliegues, permisos, hooks,
-  secretos y servicios. Custodia los gateways y lleva `ops/DECISIONES.md` y
-  `ops/PLANOS.md`.
-- **`datos`**: esquema, migraciones, ESTADO.md, principios y modelo de datos.
-  Propone y ensaya; aplicar en producción pasa por el gateway.
-- **`diseno`**: pantallas, tokens, design system, iconos y assets
-  (diagnóstico y plan en `docs/diseno/ESTADO.md`).
-- **`lola`**: el bot — herramientas, conocimiento, enrutador, coste por turno.
-
-Jueces (sin Edit ni Write, pero con Bash: no escribir es convención, y el
-`revisor` lo vigila en el diff):
-- **`revisor`**: fallos reales en un diff, antes de fusionar.
-- **`qa`**: la app en el navegador, con capturas a 375 y 420 px.
-- **`evaluador`**: evals de Lola antes y después de cada cambio.
-- **`seguridad`**: RLS, endpoints, secretos, inyección en prompts.
-- **`auditor-datos`**: el modelo de datos con los mismos criterios para
-  todas las tablas — normalización, nombres y tipos, duplicados entre SQL,
-  JSON y constantes, y el cableado del código a cada tabla.
-
-Para encargos que necesitan más de un agente: **`/orquestar <encargo>`**
-(`.claude/commands/orquestar.md`) elige el pipeline, escribe el brief de cada
-agente y junta sus informes. Un subagente no puede preguntar a mitad de
-trabajo ni lanza otros agentes: devuelve sus decisiones pendientes y es la
-sesión principal la que se las plantea a quien lanzó la sesión.
-
-Aparcados en `.claude/agentes-aparcados/` (vuelven cuando haya trabajo
-para ellos): rendimiento y arquitecto.
+- **`arranque.mjs`** al abrir sesión: carpeta, rama, sesiones activas, números
+  de migración cogidos y migraciones sin aplicar.
+- **`guardia.mjs`** antes de cada comando o edición: niega push a `main` o
+  directo a staging, `git stash`, `git add .`, `vite build` a secas,
+  `Set-Content`, tocar una migración aplicada (también por terminal), crear
+  una con un número que staging ya usa y escribir en producción; pregunta
+  antes de un push forzado, de tocar permisos y hooks y de escribir por
+  terminal lo que lee Lola. Cada regla,
+  con su porqué y su test en `.claude/hooks/guardia.test.js`.
+- **GitHub**: `main` solo por PR con `tests`; secret scanning y Dependabot.
+- Las reglas por carpeta solo saltan con Read, Write o Edit, no por terminal:
+  lo crítico va en la guardia.
+- **Cuando algo falla, la lección va a un test o a la guardia; si no se puede,
+  a una regla o una skill; a la memoria, nunca.**
