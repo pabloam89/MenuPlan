@@ -18,6 +18,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { enStaging as enStagingTodas } from "./migraciones.mjs";
+import { dirSesiones, tocar } from "./sesiones.mjs";
+
 const deny = (motivo) => ({ decision: "deny", motivo });
 const ask = (motivo) => ({ decision: "ask", motivo });
 
@@ -66,17 +69,20 @@ const REGLAS_COMANDO = [
   },
 ];
 
+// Escribir en producción se niega siempre, no se pregunta: en modo auto un
+// «ask» puede resolverlo el clasificador en vez de una persona. Lo lanza Pablo
+// con `!` en su terminal (eso no pasa por los hooks), después de ver el ensayo.
 const REGLAS_SQL = [
   {
     // La única vía para tocar la base, y la base es la de producción.
     si: (o) => /apply-migration\.mjs\b/.test(o) && /\s--si(\s|$)/.test(o),
-    da: () => ask("Esto APLICA una migración en PRODUCCIÓN (es la única base). ¿Ha pasado el ensayo y lo ha pedido Pablo?"),
+    da: (o) => deny(`Aplicar en PRODUCCIÓN lo lanza Pablo, no una sesión. Enséñale el ensayo y dale el comando para que lo pegue con \`!\`: ${o.trim()}`),
   },
   {
     // SQL que escribe o cambia permisos contra una base real.
     si: (o) => /\b(psql|SUPABASE_DB_URL|OPS_DB_URL|pg\.Client|new\s+Client)\b/.test(o)
       && /\b(drop\s+(table|schema|column|function|policy|constraint|index|view|type|trigger)|truncate|delete\s+from|alter\s+(table|type|function|policy)|update\s+[\w."]+\s+set|insert\s+into|grant|revoke|create\s+(table|policy|function|or\s+replace))\b/i.test(o),
-    da: () => ask("SQL que escribe, borra o cambia permisos contra una base real (la única es producción). Las migraciones van por `scripts/apply-migration.mjs`. ¿Seguro?"),
+    da: () => deny("SQL que escribe, borra o cambia permisos contra producción (es la única base). Va en una migración por `scripts/apply-migration.mjs`; si de verdad hace falta a mano, dale el comando a Pablo para que lo lance con `!`."),
   },
 ];
 
@@ -97,8 +103,15 @@ export function sinAplicar(estadoMd) {
  * por sin aplicar. Una aplicada no se edita: se escribe otra que la corrija,
  * porque producción ya ejecutó la versión vieja y nadie lo notaría.
  */
-export function migracionCerrada(nombre, { enStaging, estadoMd }) {
-  if (!enStaging(nombre)) return null; // nueva en esta rama: se edita libre
+export function migracionCerrada(nombre, { enStaging, estadoMd, numeroEnStaging = () => null }) {
+  if (!enStaging(nombre)) {
+    // Nueva en esta rama: se edita libre, salvo que su número ya lo use otra.
+    const otra = numeroEnStaging(nombre.slice(0, 4));
+    if (otra && otra !== nombre) {
+      return `El número ${nombre.slice(0, 4)} ya es de ${otra} en staging. Usa el siguiente libre (te lo dice el arranque de la sesión).`;
+    }
+    return null;
+  }
   const libres = estadoMd ? sinAplicar(estadoMd) : null;
   if (!libres) return `No puedo leer supabase/ESTADO.md para saber si ${nombre} está aplicada. Compruébalo antes de editarla.`;
   if (libres.has(nombre)) return null;
@@ -106,7 +119,12 @@ export function migracionCerrada(nombre, { enStaging, estadoMd }) {
 }
 
 function contextoReal(raiz) {
+  let deStaging;
   return {
+    numeroEnStaging: (numero) => {
+      deStaging ??= enStagingTodas(raiz) ?? [];
+      return deStaging.find((n) => n.startsWith(`${numero}_`)) ?? null;
+    },
     enStaging: (nombre) => {
       try {
         execFileSync("git", ["-C", raiz, "cat-file", "-e", `origin/staging:supabase/migrations/${nombre}.sql`], { stdio: "ignore" });
@@ -198,6 +216,11 @@ if (esPrincipal) {
     raiz = execFileSync("git", ["-C", desde, "rev-parse", "--show-toplevel"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
   } catch {
     // fuera de un repo: nos quedamos con lo que hay
+  }
+  try {
+    tocar(dirSesiones(raiz), entrada.session_id); // «sigo viva», para el registro de sesiones
+  } catch {
+    // el registro es una ayuda, no un requisito
   }
   const r = decidir(entrada, contextoReal(raiz));
   if (r) {
