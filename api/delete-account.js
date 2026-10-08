@@ -6,10 +6,12 @@ import { borrarLoDelBot } from "./_bot/borrar.js";
 // Real account deletion (Apple App Store Guideline 5.1.1(v)): removes the
 // auth.users row for the caller. Every user-scoped table (user_state,
 // user_pantry, user_profiles, user_events, recipe_votes, user_follows,
-// user_recipes, user_menus + user_menu_weeks/user_menu_recipes,
-// user_recipe_discards) references auth.users(id) on delete cascade, so this
-// single call is enough to wipe all of it — app_feedback is the deliberate
-// exception (on delete set null: anonymized, not deleted).
+// user_recipes, user_menus + user_menu_weeks/user_menu_recipes)
+// references auth.users(id) on delete cascade, so this single call is enough
+// to wipe all of it — app_feedback is the deliberate exception (on delete set
+// null: anonymized, not deleted). Lo de la casa (household_state, favoritos y
+// descartes en household_recipe_discards) cuelga de households, que cae con
+// su titular: por eso antes se hereda (prepare_account_deletion, abajo).
 //
 // Must run server-side: deleting another user's auth account requires the
 // service-role key, which can never be shipped to the browser. The caller's

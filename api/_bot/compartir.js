@@ -20,6 +20,7 @@
 
 import { COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
 import * as ids from "../../src/lib/ids.js";
+import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, prepararRecetas, grupos, DIAS, recetasDeCasa, deSerieDelMotor } from "./menu.js";
@@ -106,7 +107,9 @@ export async function enlacesReceta(householdId, recetaId, base) {
 export async function enlacesSemana(householdId, base) {
   const casa = await cargarCasa(householdId);
   const data = casa?.state?.data ?? {};
-  const menuId = data.activeMenuId ?? casa?.menu?.id;
+  // El de la tabla (cargarCasa lee user_menus.is_active), que es del que sale
+  // `casa.semana`; data.activeMenuId es solo caché y puede ir por detrás.
+  const menuId = menuActivoDe(casa?.menu ? [{ id: casa.menu.id, isActive: true }] : [], data.activeMenuId);
   if (!casa?.semana?.plan || !menuId) return null;
   const dueno = await duenoDe(householdId);
   const m = await prepararRecetas(casa);

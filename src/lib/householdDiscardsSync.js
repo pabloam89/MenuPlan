@@ -1,5 +1,9 @@
 import { supabase } from "./supabase.js";
-import { upsertRecipeDiscards } from "./recipeDiscardsSync.js";
+
+// Descartes de recetas en la nube: `household_recipe_discards` (0017), una
+// fila por (casa, receta). Leen todos los miembros; escriben titular y
+// cotitular (RLS de la 0071). El lector no escribe: App.jsx ni lo intenta.
+// Sin cliente o sin casa, todo es no-op y manda la copia local.
 
 /** @typedef {{ forever: string[], cooldownUntil: Record<string, number> }} DiscardsState */
 
@@ -66,18 +70,16 @@ export async function deleteHouseholdDiscard(householdId, recipeId) {
 
 /**
  * Sube de una vez los descartes que la nube aún no tiene (primera carga en un
- * dispositivo, o los del blob antiguo). Con casa van a la tabla de la casa, la
- * misma de la que se leen al cargar (loadHouseholdDiscards); sin casa, a los
- * del usuario. Antes iban siempre a los del usuario: con casa no los veía
- * nadie y se volvían a subir en cada carga.
+ * dispositivo, o los del blob antiguo), a la tabla de la casa: la misma de la
+ * que se leen al cargar (loadHouseholdDiscards). Sin casa no sube nada: se
+ * quedan en el dispositivo y suben en la carga siguiente, ya con casa. La
+ * tabla por usuario (`user_recipe_discards`, 0010) no existe en producción.
  *
  * @param {string|null} householdId
- * @param {string} userId
  * @param {DiscardsState} discards
  */
-export async function subirDescartesPendientes(householdId, userId, discards) {
-  if (!householdId) return upsertRecipeDiscards(userId, discards);
-  if (!supabase) return;
+export async function subirDescartesPendientes(householdId, discards) {
+  if (!supabase || !householdId) return;
   const forever = discards?.forever ?? [];
   const cooldownUntil = discards?.cooldownUntil ?? {};
   const rows = [

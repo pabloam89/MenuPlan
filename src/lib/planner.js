@@ -18,6 +18,7 @@ import {
 } from "./recipeDiversity.js";
 import { maxCookTime } from "./cookTime.js";
 import { DIAS } from "./vocabularios.js";
+import { alergiasParaMenu } from "./alergias.js";
 import { platoVetado, vetosDe } from "./vetos.js";
 
 // La lista vive en vocabularios.js (fuente única); aquí con su nombre de siempre.
@@ -495,7 +496,7 @@ export function generateMenu(data) {
 
     // Aggregate per-member allergies + dislikes for this group.
     const groupAllergies = Array.from(
-      new Set(groupMembers.flatMap((m) => m.allergies ?? []))
+      new Set(groupMembers.flatMap((m) => alergiasParaMenu(data, m)))
     );
     const groupDislikes = vetosDe(data, { grupo: group });
 

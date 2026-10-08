@@ -15,14 +15,14 @@ tabla de abajo.
 ## Resumen
 
 Contado el 7 oct 2026 sobre la rama `staging` (0001–0086, sin la 0085, que está
-en otra rama):
+en otra rama); el 8 oct se suma la 0087, sin aplicar:
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **88** |
+| Ficheros en `supabase/migrations/` | **89** |
 | Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
 | Aplicadas | **84** |
-| **Sin aplicar** | **4** — `0021_store_products`, `0080_bot_tareas_v2`, `0083_bot_tareas_fk_persona`, `0086_vocabulario_de_la_app` |
+| **Sin aplicar** | **5** — `0021_store_products`, `0080_bot_tareas_v2`, `0083_bot_tareas_fk_persona`, `0086_vocabulario_de_la_app`, `0087_menu_activo_y_casa_propia` |
 | En otras ramas | `0085` (sin aplicar), en `datos/sistematizar` |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
@@ -43,7 +43,7 @@ están en producción solo en parte. Ninguna se ha tocado; se deciden aparte:
 
 | Migración | Lo que falta en producción | Qué significa |
 |---|---|---|
-| `0010_recipe_discards` | **la tabla `user_recipe_discards` entera** | **Fallo real.** `src/lib/recipeDiscardsSync.js` lee y escribe en ella, así que los descartes no se guardan en la nube. Las RPC que la leen (`ensure_user_household`) lo hacen dentro de un `exception when others` y siguen sin ella |
+| `0010_recipe_discards` | **la tabla `user_recipe_discards` entera** | **Resuelto por código (8 oct 2026, rama `datos/descartes-de-casa`); la tabla sigue sin existir a propósito y no se va a crear.** Los descartes son de la casa: la app solo lee y escribe `household_recipe_discards` (0017, RLS de la 0071) con el `household_id` de la casa activa; sin casa se quedan en el dispositivo y suben al cargar la casa. `householdDiscardsSync.test.js` falla si alguien vuelve a consultar `user_recipe_discards`. **Queda un fallo en la base:** `ensure_user_household` (0071) la lee dentro de un `begin … exception when others`, así que ese bloque entero se deshace siempre: las casas nuevas nunca copian `user_state`, despensa, menús ni favoritos ni pasan a `active` (el 8 oct, 31 `dormant`, 4 `invite_ready`, 0 `active`). Pendiente de decidir una migración que quite esa línea |
 | `0008_meal_extras_catalog` | la columna `user_recipes.product_aliases` | Ya se sabía (ver `scripts/generate-supabase-seed.mjs`). `recipeRow.js` la lee como opcional, así que no rompe nada. Está en la lista de limpieza para quitarla del repo |
 | `0017_households` | la política `household_members` «Users insert self as viewer» | Nadie la recrea ni la quita en otra migración: se quitó a mano. Unirse a una casa va por la RPC `join_household_by_token` (security definer), así que no hace falta. Queda que una migración lo diga |
 | `0003_analytics_feedback_votes` | las políticas de `user_profiles`, `user_events` y `app_feedback`, y dos índices de `user_events` | Las tablas se crearon desde el panel antes que el fichero, con otros nombres (las políticas se llaman «insert own» y «select own»: las retoca la 0011). El fichero no es lo que se ejecutó |
@@ -69,6 +69,7 @@ Sin testigo, y por tanto sin comprobar por el script: 0011, 0038, 0043, 0047,
 | `0084_bot_codigo_alta` | aplicada, versión final (comprobado el 7 oct 2026) | testigos de la versión de `f2187d4`: `bot_codigos_tipo_check` con `vincular`, `entrar` y `alta`, y `bot_codigos_alta_check` (`tipo <> 'alta' or external_id is not null`), los dos validados |
 | `0085_bot_vocabulario_cerrado` | **sin aplicar** (comprobado el 7 oct 2026) | en la rama `datos/sistematizar`; 5 CHECK NOT VALID. No existen los `*_channel_check` de `bot_messages`/`bot_reminders`/`bot_tareas`/`bot_cola` ni `bot_reminders.tipo`, y `bot_deshacer.descripcion` sigue |
 | `0086_vocabulario_de_la_app` | **sin aplicar** (comprobado el 7 oct 2026) | 5 CHECK NOT VALID; las consultas previas, en su cabecera. No hay ninguna constraint `*_vocabulario` |
+| `0087_menu_activo_y_casa_propia` | **sin aplicar** (escrita el 8 oct 2026, rama `datos/menu-activo`) | solo `create or replace` de 4 funciones: `household_shopping_mark` mira `user_menus.is_active` en vez de `data.activeMenuId`; `ensure_user_household`, `_unirse` y `_despedir` eligen la casa propia con `order by propia desc, created_at`, y `ensure_user_household` devuelve `'propia'`. Testigo: ese `order by` en `pg_proc.prosrc` de `_despedir` |
 
 ## La 0074 y la 0075, aplicadas el 2 oct 2026
 

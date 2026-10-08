@@ -142,3 +142,34 @@ union all select 'bot_cola',      count(*) from public.bot_cola      where chann
 ```sql
 select count(*) from public.bot_reminders where tipo not in ('libre','vispera');
 ```
+
+# Transiciones declaradas (no son constraints)
+
+Datos que hoy viven en un sitio provisional a sabiendas. Cada uno dice dónde
+tiene que acabar, cuándo y qué lo lee mientras tanto.
+
+## «Quién soy» en la familia: `accountMemberIdByUser` → `household_members.persona_id`
+
+Hoy: `state.data.accountMemberIdByUser[userId]` en el JSON de la casa
+(`household_state`), leído por `miembroDeCuentaId` en `src/lib/stages.js`.
+Sustituye a `data.accountMemberId`, que era uno solo para toda la casa y
+titular y cotitular se pisaban; ese valor viejo queda de respaldo solo para el
+titular.
+
+Destino: una columna `household_members.persona_id` con FK compuesta
+`(household_id, persona_id) → persona (household_id, id)`, con su `on delete
+set null`. Cuándo: DESPUÉS de la migración de menuplan-1e que pasa los ids de
+persona a uuid (bloque 0120+), para no crear una FK sobre un tipo que va a
+cambiar. Ese día se copia el mapa a la columna y el mapa deja de escribirse.
+Hasta entonces el mapa es una caché declarada.
+
+## Desactivar el menú de la casa por RPC
+
+`ponerMenuActivo(null, …)` (`src/lib/menusSync.js`), al empezar «Otro grupo»,
+desactiva con un UPDATE directo a `user_menus` (la RLS deja a titular y
+cotitular). No hay ninguna RPC que desactive sin activar otro
+(`activate_household_menu` y `bot_save_casa_activando` piden un menú), y este
+UPDATE no sube `household_state.bot_rev`: otra app abierta no se entera hasta
+recargar. Arreglo: una RPC `deactivate_household_menu(p_household_id)`
+(security definer, `is_household_editor`, sube `bot_rev`) en una migración
+nueva, y que `ponerMenuActivo` la llame.

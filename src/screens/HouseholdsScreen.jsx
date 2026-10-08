@@ -28,6 +28,8 @@ import {
   extractInviteToken,
   loadHouseholdMembers,
   setHouseholdMemberRole,
+  esTitular,
+  casaPropia,
 } from "../lib/householdsSync.js";
 import { NOMBRE_PAPEL, papelDe, puede } from "../lib/papeles.js";
 import { BOT_URL } from "../lib/frontalBot.js";
@@ -314,13 +316,14 @@ function HouseholdAccessList({
 
 function buildSlots(households, activeHousehold, user) {
   let owner =
-    households.find((h) => h.role === "owner" && h.isOwn) ??
+    casaPropia(households) ??
     households.find((h) => h.role === "owner");
   if (!owner && user && activeHousehold?.role === "owner") {
     owner = activeHousehold;
   }
-  // Las casas de otros, como cotitular o como lector.
-  const ajenas = households.filter((h) => h !== owner && h.role !== "owner");
+  // Las casas de otros, como cotitular o como lector. Y una heredada (0075):
+  // también es suya, pero no la que le nació, y si no va aquí no sale.
+  const ajenas = households.filter((h) => h !== owner && h.id !== owner?.id);
   const hueco = (h, i) => ({
     kind: "viewer",
     household: h ?? null,
@@ -848,7 +851,7 @@ function SlotCard({
   const ownerPending = slot.kind === "owner" && userLoggedIn && empty;
   const slotInviteUrl = h?.inviteToken ? buildInviteUrl(h.inviteToken) : null;
   const slotCanShare = Boolean(h && canShareHouseholdInvite(h));
-  const needsSetup = Boolean(h && h.role === "owner" && h.isOwn && h.setupStatus === "dormant");
+  const needsSetup = Boolean(h && esTitular(h) && h.setupStatus === "dormant");
 
   let emptyHint = null;
   if (empty && !userLoggedIn) {
@@ -883,7 +886,7 @@ function SlotCard({
     if (isGlobalActive && onCreateInvite && puede(h.role, "invitar_lector")) {
       items.push({ id: "invite-viewer-en", icon: Share2, label: "Invitar lector en inglés", onClick: () => onCreateInvite(h.id, "viewer", "en") });
     }
-    if (h.role === "owner" && h.isOwn && isGlobalActive) {
+    if (esTitular(h) && isGlobalActive) {
       items.push({
         id: "destroy",
         icon: Trash2,
@@ -1419,7 +1422,7 @@ export function HouseholdsScreen({
   const effectiveActiveId =
     activeHouseholdId ??
     activeHousehold?.id ??
-    households.find((h) => h.role === "owner" && h.isOwn)?.id ??
+    casaPropia(households)?.id ??
     households[0]?.id ??
     null;
 

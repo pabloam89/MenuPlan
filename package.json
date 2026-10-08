@@ -9,6 +9,7 @@
     "prebuild": "node scripts/validate-catalog.mjs && npm run check:tdz",
     "build": "vite build && node scripts/build-bot-core.mjs",
     "lint": "eslint .",
+    "lint:base": "node scripts/lint-base.mjs",
     "preview": "vite preview",
     "pretest": "node scripts/validate-catalog.mjs",
     "test": "vitest run",
