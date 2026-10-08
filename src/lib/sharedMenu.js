@@ -1,5 +1,5 @@
 import { DAYS } from "./planner.js";
-import { stageForAge, resolveMemberAge, memberIllustratedAvatarSrc } from "./stages.js";
+import { etapaDe, memberIllustratedAvatarSrc } from "./stages.js";
 
 /**
  * Construye la proyección de un menú para publicarlo (contrato v1, definido en
@@ -120,9 +120,8 @@ function membersUsedIn(days, members) {
 
 /** "bebe" | "nino" | "adulto" — el único contexto de quién come que se publica. */
 function roleOf(member) {
-  const stage = stageForAge(resolveMemberAge(member)).id;
-  if (stage === "baby") return "bebe";
-  return stage === "infantil" || stage === "primaria" ? "nino" : "adulto";
+  const { etapa } = etapaDe(member);
+  return etapa === "bebe" || etapa === "nino" ? etapa : "adulto";
 }
 
 /**

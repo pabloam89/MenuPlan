@@ -37,7 +37,7 @@ import {
   slotKey,
 } from "./planner.js";
 import { isBabyMenuGroup, membersOfGroup } from "./groups.js";
-import { resolveMemberAge, stageForAge } from "./stages.js";
+import { esNino } from "./stages.js";
 
 /**
  * ¿Está encendida? Apagada por defecto, igual que el solver y por el mismo
@@ -72,10 +72,7 @@ export function pizarraActiva() {
 
 /** Los niños que cuentan para la merienda: ni bebés ni adultos. */
 function tieneNinos(miembros) {
-  return miembros.some((m) => {
-    const s = stageForAge(resolveMemberAge(m)).id;
-    return s === "infantil" || s === "primaria";
-  });
+  return miembros.some((m) => esNino(m));
 }
 
 /**

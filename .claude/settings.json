@@ -22,6 +22,10 @@
       "Bash(gh pr checks *)",
       "Bash(gh run list *)",
       "Bash(gh run view *)",
+      "Bash(gh pr create *)",
+      "Bash(node scripts/verificar-estado.mjs)",
+      "Bash(node scripts/verificar-estado.mjs *)",
+      "Bash(node scripts/apply-migration.mjs *)",
       "WebSearch"
     ],
     "deny": [
@@ -36,7 +40,14 @@
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/arranque.mjs\"", "timeout": 20 }
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/arranque.mjs\"", "timeout": 30 }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/fin.mjs\"", "timeout": 10 }
         ]
       }
     ],

@@ -77,25 +77,28 @@ JSON versionado en git (`src/data/`). Hosting en Vercel.
 **Una sesión = una carpeta = una rama = una tarea.**
 
 ```
-git fetch origin
-git worktree add ../MenuPlan-<tarea> -b <area>/<tarea> origin/staging
-cp ../MenuPlan/.env.local ../MenuPlan-<tarea>/.env.local   # git no lo trae
+npm run tarea -- datos/descartes      # abre C:\dev\MenuPlan-descartes
+npm run retirar -- descartes          # la cierra, solo si no se pierde nada
 ```
 
-- `.env.local` no viaja con el worktree: sin él no hay Supabase ni Anthropic.
-- Para ver la app como en staging (solver y pizarra), crea
-  `.env.development.local` con `VITE_MOTOR=solver` y `VITE_PIZARRA=on`. **No**
-  los pongas en `.env.local`: vitest también lo lee y rompe tests.
-- Levanta la app en un puerto libre tuyo (mira antes cuáles escuchan). Si Pablo
-  pide verla en local, dale las dos URLs (localhost y la IP de la wifi con
-  `vite --host`) y nada más.
+- `tarea` crea el worktree y la rama desde `origin/staging` (o retoma la de
+  GitHub si ya existe), sin enganche a staging. Copia `.env.local`, crea
+  `.env.development.local` con solver y pizarra (como en staging; en
+  `.env.local` romperían tests), instala dependencias y busca un puerto libre.
+- `retirar` se niega si hay cambios sin commitear, commits que no están en
+  GitHub ni en staging, o una sesión activa en esa carpeta. Con `--ensayo`
+  solo dice qué haría. Nada de borrar worktrees a mano.
+- El primer push de una rama nueva: `git push -u origin <rama>`.
+- Si Pablo pide ver la app en local, dale las dos URLs (localhost y la IP de la
+  wifi) y nada más. El login con Google solo vuelve al puerto 5176.
+- Al abrir sesión, el arranque dice qué otras sesiones hay activas y en qué
+  rama, y qué números de migración están cogidos (staging, otros worktrees y
+  PR abiertos). Si avisa de otra sesión en tu misma carpeta, no trabajes ahí.
 - **Nunca `git stash`**: es uno para todos los worktrees y se cruza con otras
   sesiones. Para comparar, `git show origin/staging:<ruta>` o un worktree
   aparte.
 - No cambies de rama en una carpeta con cambios sin commitear.
-- En Windows, `git worktree remove` puede fallar con «Filename too long»; los
-  borrados de carpetas y ramas se le dan a Pablo como comandos para que los
-  lance él.
+- Saltos de línea: LF siempre (`.gitattributes`), también en Windows.
 
 ## Antes de commitear y de abrir el PR
 
@@ -117,16 +120,19 @@ cp ../MenuPlan/.env.local ../MenuPlan-<tarea>/.env.local   # git no lo trae
 escriben en ella. Cada migración es un cambio en producción.
 
 - **Una sola vía para aplicar:** `node scripts/apply-migration.mjs <nombre>`
-  (ensayo, hace ROLLBACK) y luego `--si` con el OK de Pablo. En el mismo PR o
-  justo después, apúntala en `supabase/ESTADO.md` con su objeto testigo.
+  (ensayo, hace ROLLBACK; lo puede lanzar la sesión). El `--si` lo lanza
+  **Pablo** con `!` en su terminal: la guardia lo niega a cualquier sesión. Se
+  le enseña el ensayo y se le da el comando listo. En el mismo PR o justo
+  después, apúntala en `supabase/ESTADO.md` con su objeto testigo.
 - **¿Está aplicada?** `node scripts/verificar-estado.mjs` (o `--solo 0080`)
   compara cada migración con el catálogo de producción, en solo lectura, y
   avisa de lo que no cuadra con ESTADO.md.
 - **Una migración aplicada no se edita nunca**: se escribe otra. La que está
   en staging y ESTADO.md da por «sin aplicar» todavía se puede tocar.
-- Número: el siguiente libre de `origin/staging`, comprobado justo antes del
-  PR (hay sesiones cogiendo números). `supabase/migrations.test.js` vigila los
-  repetidos.
+- Número: el «siguiente libre» que da el arranque de la sesión (cuenta
+  staging, los otros worktrees y los PR abiertos); vuelve a mirarlo justo
+  antes del PR. La guardia niega crear una migración con un número que
+  staging ya usa, y `supabase/migrations.test.js` vigila los repetidos.
 - **El código no puede depender de que la migración ya esté**: la rama se
   despliega antes de que alguien la aplique. Plan B siempre.
 - `drop constraint` **sin** `if exists`, con el nombre leído de
@@ -184,12 +190,22 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
 (personal, fuera de git).
 
 - **`arranque.mjs`** (al abrir sesión): carpeta, rama, si falta `.env.local`,
-  si vas por detrás de staging y qué migraciones siguen sin aplicar.
-- **`guardia.mjs`** (antes de cada comando o edición): niega push a `main`,
-  push directo a staging, `git stash`, `git add .`/`-A`, `vite build` a secas,
-  `Set-Content` y editar una migración aplicada; pregunta antes de aplicar una
-  migración, de SQL que escribe, de un push forzado y de tocar permisos o
-  hooks; `gh pr merge` solo a staging.
+  si vas por detrás de staging, qué otras sesiones están activas, números de
+  migración cogidos y el siguiente libre, y qué migraciones siguen sin
+  aplicar. Apunta la sesión en el registro (`sesiones.mjs`, en la carpeta
+  común de git); `fin.mjs` la borra al cerrarse.
+- **`guardia.mjs`** (antes de cada comando o edición). **Niega:** push a
+  `main`, push directo a staging, `git stash`, `git add .`/`-A`, `vite build` a
+  secas, `Set-Content`, editar una migración aplicada, crear una con un número
+  que staging ya usa, y cualquier escritura en producción (`--si` o SQL que
+  escribe: eso lo lanza Pablo con `!`). **Pregunta:** push forzado y tocar
+  permisos o hooks. `gh pr merge`, solo a staging.
+- **GitHub:** `main` solo por PR con `tests` en verde; `main` y `staging` sin
+  force push ni borrado. **Secret scanning** con push protection activado.
+- **Permitidos sin preguntar** (`settings.json`): lecturas de git y gh, los
+  `npm run` (incluidos `tarea` y `retirar`, que se protegen solos), el ensayo de
+  migraciones y `verificar-estado`. En modo auto el clasificador para por su
+  cuenta lo destructivo que no esté en esa lista.
 
 Cada regla de la guardia tiene su porqué y su test en
 `.claude/hooks/guardia.test.js`. Si una estorba, se cambia ahí con su test,

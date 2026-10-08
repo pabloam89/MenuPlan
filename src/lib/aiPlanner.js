@@ -7,7 +7,7 @@ import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { resolverConReintentos, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { HOLGURA_TOPES, presupuestoDeTopes, repartoAFreqs, freqsAReparto } from "./reparto.js";
-import { stageForAge } from "./stages.js";
+import { esMenor, esNino } from "./stages.js";
 import { racionesDe } from "./raciones.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType } from "../utils/filterRecipes.js";
@@ -475,12 +475,8 @@ export function buildGroupContext(data, group) {
   const meals = getMeals(data);
   const groupMembers = membersOfGroup(group, data.members);
   const isBabyGroup = isBabyMenuGroup(group, data.members);
-  const hasKids =
-    !isBabyGroup &&
-    groupMembers.some((m) => {
-      const s = stageForAge(resolveMemberAge(m)).id;
-      return s === "infantil" || s === "primaria";
-    });
+  // Niños de 3 a 11 (etapaDe): el filtro kidFriendly y el de alcohol.
+  const hasKids = !isBabyGroup && groupMembers.some((m) => esNino(m));
   const allergies = Array.from(new Set(groupMembers.flatMap((m) => m.allergies ?? [])));
   // Predefined intolerances + temporary dietary states (embarazo/lactancia)
   // are aggregated together and handled by filterRecipes via lib/intolerances.js
@@ -530,7 +526,7 @@ export function buildGroupContext(data, group) {
   const isKidsGroup = tipoDeGrupo(group) === "ninos";
   const schoolSourceMembers =
     linkKidDinner && isAdultsGroup
-      ? (data.members ?? []).filter((m) => stageForAge(resolveMemberAge(m)).id !== "adulto")
+      ? (data.members ?? []).filter((m) => esMenor(m))
       : groupMembers;
 
   for (const day of planDays) {
@@ -2117,10 +2113,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
     const estado = data.schedule?.[slotKey(m.id, dia, comida)] ?? "casa";
     return estado === "casa" || estado === "tupper";
   });
-  const kids = members.filter((m) => {
-    const s = stageForAge(resolveMemberAge(m)).id;
-    return s === "infantil" || s === "primaria";
-  });
+  const kids = members.filter((m) => esNino(m));
   const hasKids = kids.length > 0;
 
   const safety = {

@@ -262,6 +262,12 @@ export default defineConfig(({ mode }) => {
       // Un porcentaje y no un número fijo para que una máquina de CI con más
       // núcleos siga aprovechándolos.
       maxWorkers: "50%",
+      // Y el tiempo por test. Medido el 8 oct 2026: los tests que recorren el
+      // catálogo entero (axisRegistry, aiPlanner, nutricion del bot) tardan
+      // 4-6 s con el PC cargado (varias sesiones, servidores de Vite), y el
+      // corte por defecto de vitest es 5 s. Fallaba uno distinto cada vez,
+      // con `STACK_TRACE_ERROR` y sin aserción: era el reloj, no el código.
+      testTimeout: 30_000,
     },
     server: {
       port: 5176,

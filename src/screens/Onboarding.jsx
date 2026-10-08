@@ -97,7 +97,7 @@ import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { StoreBadge } from "./SpendPanel.jsx";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
-import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, isFamilyGroup, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc, avatarThumbSrcByKey } from "../lib/stages.js";
+import { HOUSEHOLD_ROLES, esMenor, esNino, stageForAge, suggestHomeRole, migrateHomeRole, isFamilyGroup, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc, avatarThumbSrcByKey } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
 import { marcarRevisadas, conMiembroNuevo } from "../lib/alergias.js";
@@ -1530,17 +1530,16 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
 // assignment bubble) but as a compact segmented control instead of a full
 // onboarding step, so it can live at the bottom of "Gestionar familia".
 function FamilyMenuModelSection({ data, setData }) {
-  const membersWithAge = data.members.map((m) => ({ ...m, age: memberAge(m) }));
-  const showBabyHint = hasBabyMember(membersWithAge);
+  const showBabyHint = hasBabyMember(data.members);
   const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [draftGroups, setDraftGroups] = useState(null);
 
   // `viejos`: los grupos de ahora; los rehechos heredan sus ids (conservarIds).
   const buildGroups = (members, modelId, viejos) =>
     migrateGroupsForBabies(
-      members.map((m) => ({ ...m, age: memberAge(m) })),
+      members,
       groupsFromModel(
-        members.map((m) => ({ ...m, age: memberAge(m) })),
+        members,
         modelId,
         viejos
       ),
@@ -3751,17 +3750,16 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
     },
   ];
 
-  const membersWithAge = data.members.map((m) => ({ ...m, age: memberAge(m) }));
-  const showBabyHint = hasBabyMember(membersWithAge);
+  const showBabyHint = hasBabyMember(data.members);
   const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [draftGroups, setDraftGroups] = useState(null);
 
   // `viejos`: los grupos de ahora; los rehechos heredan sus ids (conservarIds).
   const buildGroups = (members, modelId, viejos) =>
     migrateGroupsForBabies(
-      members.map((m) => ({ ...m, age: memberAge(m) })),
+      members,
       groupsFromModel(
-        members.map((m) => ({ ...m, age: memberAge(m) })),
+        members,
         modelId,
         viejos
       ),
@@ -4221,9 +4219,9 @@ export function OnboardingKidsDinner({ data, setData, onNext, onBack, onFinish, 
       const next = { ...d, kidDinnerConfig: { byMember } };
       const model = deriveKidsMenuModel(next);
       if (model) {
-        const withAge = (next.members ?? []).map((m) => ({ ...m, age: memberAge(m) }));
+        const miembros = next.members ?? [];
         next.menuModel = model;
-        next.groups = migrateGroupsForBabies(withAge, groupsFromModel(withAge, model, d.groups), model);
+        next.groups = migrateGroupsForBabies(miembros, groupsFromModel(miembros, model, d.groups), model);
       }
       return next;
     });
@@ -4440,7 +4438,7 @@ export function OnboardingKidsDinner({ data, setData, onNext, onBack, onFinish, 
         {/* Los bebés van DEBAJO de los niños y solo en modo completo. En el modo
             corto sobra: "mixto" ya sirve las dos listas y es la única respuesta
             que no se equivoca si nadie contesta. */}
-        {data.expertMode && hasBabyMember(data.members.map((m) => ({ ...m, age: memberAge(m) }))) && (
+        {data.expertMode && hasBabyMember(data.members) && (
           <section style={{ paddingTop: 18, borderTop: "1px solid #eef3f0" }}>
             <SectionTitle Icon={Baby} color={CARD_ACCENT}>¿Y los bebés?</SectionTitle>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
@@ -4667,9 +4665,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
   const subjectMemberIds = useMemo(() => memberList.map((m) => m.id), [memberList]);
   const subjectMembers = memberList;
-  const allowCole = memberList.some(
-    (m) => stageForAge(memberAge(m)).id !== "adulto"
-  );
+  const allowCole = memberList.some((m) => esMenor(m));
 
   // Sheet state: { day, meal | null } — when meal is null, the sheet is in
   // "day mode" (only row-level actions, no per-member edition for a slot).
@@ -5128,7 +5124,7 @@ function ScheduleSlotSheet({
           {members.map((m) => {
             const raw = schedule[`${m.id}|${day}|${meal}`] ?? "casa";
             const cur = raw === "off" ? "casa" : raw;
-            const kid = stageForAge(memberAge(m)).id !== "adulto";
+            const kid = esMenor(m);
             return (
               <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 54, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -6513,9 +6509,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       const sm = d.schoolMenus ?? {};
       const schedule = { ...d.schedule };
       let changed = false;
-      const kids = (d.members ?? []).filter(
-        (m) => stageForAge(memberAge(m)).id !== "adulto"
-      );
+      const kids = (d.members ?? []).filter((m) => esMenor(m));
       for (const kid of kids) {
         for (const day of SCHOOL_DAYS) {
           const key = `${kid.id}|${day}|Comida`;
@@ -8529,9 +8523,7 @@ function OnboardingMealExtrasShared({ data, setData, onNext, onBack, onFinish, o
   const setExtraMeal = (key, val) =>
     setData((d) => ({ ...d, extraMeals: { ...(d.extraMeals ?? {}), [key]: val } }));
   const optDesayunoOn = Boolean(em.desayuno && em.desayuno !== "off");
-  const optHasKids = (data.members ?? []).some((m) =>
-    ["infantil", "primaria"].includes(stageForAge(memberAge(m)).id),
-  );
+  const optHasKids = (data.members ?? []).some((m) => esNino(m));
 
   // Postre is a multi-select of comida/cena mapped onto the enum the planner
   // already understands (off | comida | cena | ambas) — no separate "ambas" UI.
