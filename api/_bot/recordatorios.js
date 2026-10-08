@@ -8,6 +8,7 @@
  * Las horas se hablan en hora de España; la tabla guarda UTC.
  */
 
+import { fallaCon } from "./avisar.js";
 import { select, insert, update, eq } from "./db.js";
 
 const ZONA = "Europe/Madrid";
@@ -112,7 +113,7 @@ export async function enviarPendientes(mandar) {
     const cambios = paso
       ? { due_at: madridMismaHora(r.due_at, siguiente).toISOString(), sent_at: ahora }
       : { status: "sent", sent_at: ahora };
-    const reclamado = await update("bot_reminders", `id=${eq(r.id)}&status=eq.pending&due_at=eq.${encodeURIComponent(r.due_at)}`, cambios).catch(() => []);
+    const reclamado = await update("bot_reminders", `id=${eq(r.id)}&status=eq.pending&due_at=eq.${encodeURIComponent(r.due_at)}`, cambios).catch(fallaCon("recordatorios/reclamar", []));
     if (!reclamado?.length) continue;
     try {
       await mandar(r);

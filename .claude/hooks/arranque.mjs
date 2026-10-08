@@ -9,12 +9,15 @@
  * más se repiten y lo que está sin clasificar).
  * Además apunta esta sesión en el registro (sesiones.mjs).
  * Nunca rompe el arranque: si algo no se puede mirar, sigue con lo demás. Lo
- * que no pudo mirar lo dice cuando callarlo engañaría (los issues).
+ * que no pudo mirar lo dice cuando callarlo engañaría (los issues, el registro
+ * de sesiones y lo que la limpieza de carpetas no pudo borrar). Cada `catch`
+ * que se calla lleva su `a propósito:` (scripts/sinErroresTragados.test.js).
  */
 import { execFile, execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
+import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/limpiar-worktrees.mjs";
 import { sinAplicar } from "./guardia.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
@@ -25,7 +28,7 @@ try {
   if (!process.stdin.isTTY) for await (const trozo of process.stdin) crudo += trozo;
   entrada = crudo ? JSON.parse(crudo) : {};
 } catch {
-  // sin entrada: se sigue con lo que hay
+  // a propósito: sin entrada (o ilegible) se sigue con lo que hay; el cwd sale de process.cwd()
 }
 
 const raiz = entrada.cwd || process.cwd();
@@ -42,6 +45,8 @@ const git = (...args) => {
   try {
     return execFileSync("git", ["-C", raiz, ...args], { encoding: "utf8", timeout: red ? RED_MS : LOCAL_MS, stdio: ["ignore", "pipe", "ignore"] }).trim();
   } catch {
+    // a propósito: null es «no se sabe» (sin red, sin repo, fuera de tiempo) y
+    // cada uso lo trata: rama «?», sin aviso de atraso. El arranque no se rompe.
     return null;
   }
 };
@@ -78,8 +83,22 @@ try {
     const h = (x) => (x < 1 ? `${Math.round(x * 60)} min` : `${x.toFixed(1)} h`);
     avisos.push(`Otras sesiones activas: ${otras.map((s) => `${basename(s.cwd)} (${s.rama}, hace ${h(s.horas)})`).join("; ")}.`);
   }
-} catch {
-  // el registro es una ayuda, no un requisito
+} catch (e) {
+  // El registro es una ayuda, no un requisito, pero callarlo engaña: sin él no
+  // sale el aviso de «otra sesión en esta misma carpeta» (#177).
+  avisos.push(`Sesiones: no he podido leer el registro (${String(e?.message ?? e).split("\n")[0]}); no sé si hay otra sesión en esta carpeta.`);
+}
+
+// ── Carpetas que la limpieza no pudo borrar (#141) ─────────────────────────
+// La limpieza (hook de usuario limpiar-worktrees) corre en silencio al
+// arrancar; lo que no pudo borrar lo apunta y aquí se enseña.
+try {
+  const comun = git("rev-parse", "--path-format=absolute", "--git-common-dir");
+  // Sin la lista de worktrees no se avisa: podría mandar borrar uno vivo.
+  const lista = git("worktree", "list", "--porcelain");
+  if (comun && lista !== null) avisos.push(...avisosDeLimpieza(leerPendientes(comun), existsSync, worktreesVivos(lista)));
+} catch (e) {
+  avisos.push(`Limpieza de carpetas: no he podido leer lo que dejó pendiente (${String(e?.message ?? e).split("\n")[0]}).`);
 }
 
 // ── Staging y migraciones ──────────────────────────────────────────────────

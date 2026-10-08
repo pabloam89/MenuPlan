@@ -26,7 +26,7 @@ export function dirSesiones(desde) {
     }).trim();
     return join(comun, "claude-sesiones");
   } catch {
-    return null;
+    return null; // a propósito: fuera de un repo no hay registro; apuntar, tocar y listar no hacen nada con null
   }
 }
 

@@ -147,7 +147,9 @@ export async function clasificar({ texto, contexto }, { signal, reglas = REGLAS 
     }
     return { modo, confianza, datos, ms: Date.now() - t0, uso: r.usage };
   } catch (err) {
-    // Si el enrutador falla, Lola: nunca se queda un mensaje sin contestar.
+    // A propósito: si el enrutador falla, Lola; nunca se queda un mensaje sin
+    // contestar. El error queda también en bot_route.
+    console.warn("[router]", String(err?.message ?? err).slice(0, 200));
     return { modo: "lola", confianza: 0, datos: {}, ms: Date.now() - t0, error: String(err?.message ?? err).slice(0, 200) };
   }
 }
