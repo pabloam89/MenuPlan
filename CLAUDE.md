@@ -114,8 +114,9 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 (`api/_bot/`, `api/bot/`), `catalogo` (`src/data/`, `src/utils/`, `src/lib/`,
 `api/_bot/`), `tests` (`*.test.{js,jsx,mjs}`) y
 `api` (`api/*.js`). Las skills (`.claude/skills/`) son runbooks que se abren
-por su nombre: `1password`; en camino, `vercel`, `supabase`, `github` y
-`telegram`.
+por su nombre: `1password`, `vercel`, `supabase`, `github` y `telegram`
+(precargadas en `gobierno` y `lola`). Un proveedor nuevo estrena su runbook
+con su primera lección, no antes.
 
 ## Código
 
