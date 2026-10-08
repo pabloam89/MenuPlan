@@ -285,7 +285,7 @@ export async function activateMenu(menuId) {
 const activationQueues = new Map();
 
 /**
- * Lo que está subiendo saveAndActivateMenu (o ponerMenuActivo) para esa casa,
+ * Lo que está subiendo saveAndActivateMenu para esa casa,
  * o ese usuario sin casa. En una casa, por prefijo: la semana se guarda con el
  * user_id de quien generó el menú, y la cola va por el de quien lo sube.
  */
