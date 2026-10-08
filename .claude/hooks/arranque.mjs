@@ -5,9 +5,11 @@
  * que se hace a continuación: en qué carpeta y rama estás, si te falta el
  * entorno, si vas por detrás de staging, qué otras sesiones hay abiertas, qué
  * números de migración están cogidos, cuáles siguen sin aplicar y qué issues
- * esperan a alguien (decisiones de Pablo, encargos, lecciones sin su test).
+ * esperan a alguien (decisiones de Pablo, encargos, los problemas de fondo que
+ * más se repiten y lo que está sin clasificar).
  * Además apunta esta sesión en el registro (sesiones.mjs).
- * Nunca falla: si algo no se puede mirar, se calla.
+ * Nunca rompe el arranque: si algo no se puede mirar, sigue con lo demás. Lo
+ * que no pudo mirar lo dice cuando callarlo engañaría (los issues).
  */
 import { execFile, execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -115,6 +117,6 @@ const lineasIssues = (await issues)?.split("\n").map((l) => l.trim()).filter(Boo
 if (lineasIssues) avisos.push(...lineasIssues);
 // Sin respuesta (sin gh, sin red o tarda más de 10 s) no se calla: se dice, para
 // que nadie crea que no hay nada pendiente.
-else avisos.push("Issues: GitHub no ha contestado a tiempo; míralos con `npm run issues`.");
+else avisos.push("Issues: no he podido leerlos (GitHub no contesta, gh sin sesión o un fallo del script); míralos con `npm run issues`.");
 
 process.stdout.write(`[arranque MenuPlan]\n- ${avisos.join("\n- ")}\n`);

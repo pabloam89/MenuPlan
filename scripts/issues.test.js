@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  GRUPOS, agenteDe, avisoDeArranque, etiquetas, etiquetasDeFormulario, etiquetasSobrantes,
+  GRUPOS, agenteDe, avisoDeArranque, debeReabrir, etiquetas, etiquetasDeFormulario, etiquetasQueFaltan, etiquetasSobrantes,
   faltas, fondoDeFormulario, justificaPuntual, leerIssue, resumen,
 } from "./lib/issues.mjs";
 
@@ -133,6 +133,44 @@ describe("el problema de fondo", () => {
     const f = (number, n, state = "OPEN") => leerIssue(nodo(FONDO, { number, state, body: "Arreglo general",
       subIssues: { nodes: Array.from({ length: n }, (_, i) => hijo(100 + i, ["tipo:caso"])) } }));
     expect(resumen([f(1, 1), f(2, 5, "CLOSED"), f(3, 3)]).fondos.map((x) => x.number)).toEqual([3, 1, 2]);
+  });
+});
+
+describe("reordenar no inventa fallos (notas del revisor, PR #173)", () => {
+  const fondoCerrado = leerIssue(nodo(FONDO, { number: 154, state: "CLOSED", closedAt: "2026-10-08T15:39:00Z", body: "Arreglo general" }));
+  const caso = (createdAt, analisis = "abierto") => leerIssue(nodo(["tipo:caso", `analisis:${analisis}`, "area:ops"], { createdAt }));
+
+  it("colgar un caso viejo de un fondo cerrado no lo reabre; uno posterior al cierre, sí", () => {
+    expect(debeReabrir(caso("2026-10-08T15:30:00Z"), fondoCerrado)).toBe(false);
+    expect(debeReabrir(caso("2026-10-09T10:00:00Z"), fondoCerrado)).toBe(true);
+    // Ya analizado como «no aguantó»: reabre aunque sea anterior (alguien lo decidió).
+    expect(debeReabrir(caso("2026-10-08T15:30:00Z", "no-aguanto-corto"), fondoCerrado)).toBe(true);
+    // Un encargo nunca reabre; un fondo abierto no se reabre.
+    expect(debeReabrir(leerIssue(nodo(["tipo:encargo", "area:ops"], { createdAt: "2026-10-09T10:00:00Z" })), fondoCerrado)).toBe(false);
+    expect(debeReabrir(caso("2026-10-09T10:00:00Z"), leerIssue(nodo(FONDO, { body: "Arreglo general" })))).toBe(false);
+  });
+
+  it("--ordenar solo rellena los grupos que faltan: no pisa un análisis cambiado a mano", () => {
+    const body = "### Análisis\n\nnuevo — x\n\n### Área\n\nops — x";
+    const retocado = leerIssue(nodo(["tipo:caso", "analisis:no-aguanto-roto"], { body }));
+    expect(etiquetasQueFaltan(retocado)).toEqual(["area:ops"]);
+  });
+
+  it("dos análisis, o un puntual colgado de un fondo, salen como error", () => {
+    expect(faltas(leerIssue(nodo(["tipo:caso", "analisis:nuevo", "analisis:no-aguanto-roto", "area:ops"], { parent: hijo(1, FONDO) })))).toContain("analisis (más de uno)");
+    const puntualColgado = leerIssue(nodo(["tipo:caso", "analisis:puntual", "causa:entorno", "area:ops"], { body: "Puntual porque x", parent: hijo(154, FONDO) }));
+    expect(faltas(puntualColgado)).toEqual([expect.stringMatching(/^puntual pero cuelga de #154/)]);
+  });
+
+  it("quién arregló un fondo cerrado a mano sale del PR de su último encargo", () => {
+    const encargo = (n, agente) => ({ ...hijo(n, ["tipo:encargo"], "CLOSED"), closedByPullRequestsReferences: { nodes: [{ mergedAt: "2026-10-09T00:00:00Z", body: `Agente: ${agente}` }] } });
+    const f = leerIssue(nodo(FONDO, { state: "CLOSED", closedAt: "2026-10-10T00:00:00Z", body: "Arreglo general",
+      comments: { nodes: [{ body: "Cerrado: queda en el PR #200." }] }, subIssues: { nodes: [encargo(1, "datos"), encargo(2, "gobierno")] } }));
+    expect(resumen([f]).fondos[0].agente).toBe("gobierno");
+  });
+
+  it("el arranque avisa de lo que hay que reclasificar", () => {
+    expect(avisoDeArranque([leerIssue(nodo(["tipo:leccion", "area:ops"]))]).join("\n")).toMatch(/1 issues con etiquetas que ya no existen/);
   });
 });
 

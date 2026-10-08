@@ -25,8 +25,8 @@
  */
 import { execFileSync } from "node:child_process";
 import {
-  CONSULTA, avisoDeArranque, etiquetas, etiquetasDeFormulario, etiquetasSobrantes,
-  fondoDeFormulario, leerIssue, porGrupo, resumen,
+  CONSULTA, avisoDeArranque, etiquetas, etiquetasSobrantes,
+  debeReabrir, etiquetasQueFaltan, fondoDeFormulario, leerIssue, porGrupo, resumen,
 } from "./lib/issues.mjs";
 
 const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
@@ -46,29 +46,29 @@ function todos() {
   return out;
 }
 
-/** Cuelga `hijo` de `fondo` y, si hace falta, reabre el fondo. */
+/** Cuelga `hijo` de `fondo` y, si el caso prueba que su arreglo no aguantó, reabre el fondo. */
 function colgar(issues, hijoN, fondoN) {
   const hijo = issues.find((i) => i.number === hijoN);
   const fondo = issues.find((i) => i.number === fondoN);
   if (!hijo || !fondo) throw new Error(`No encuentro #${hijo ? fondoN : hijoN}`);
   if (!porGrupo(fondo.labels.map((l) => l.name)).tipo.has("fondo")) throw new Error(`#${fondoN} no es un problema de fondo (tipo:fondo)`);
+  const tipoHijo = porGrupo(hijo.labels.map((l) => l.name)).tipo;
+  if (!tipoHijo.has("caso") && !tipoHijo.has("encargo")) throw new Error(`#${hijoN} no es un caso ni un encargo: de un fondo solo cuelgan esos`);
   if (hijo.padre?.number === fondoN) {
     console.log(`#${hijoN} ya cuelga de #${fondoN}.`);
   } else {
-    if (hijo.padre) {
-      gh("api", "graphql", "-f", "query=mutation($i:ID!,$s:ID!){removeSubIssue(input:{issueId:$i,subIssueId:$s}){issue{number}}}",
-        "-f", `i=${issues.find((i) => i.number === hijo.padre.number).id}`, "-f", `s=${hijo.id}`);
-    }
-    gh("api", "graphql", "-f", "query=mutation($i:ID!,$s:ID!){addSubIssue(input:{issueId:$i,subIssueId:$s}){issue{number}}}",
+    // replaceParent: si ya colgaba de otro, lo mueve en un solo paso (no queda suelto a medias).
+    gh("api", "graphql", "-f", "query=mutation($i:ID!,$s:ID!){addSubIssue(input:{issueId:$i,subIssueId:$s,replaceParent:true}){issue{number}}}",
       "-f", `i=${fondo.id}`, "-f", `s=${hijo.id}`);
-    console.log(`#${hijoN} cuelga ahora de #${fondoN}.`);
+    console.log(`#${hijoN} cuelga ahora de #${fondoN}${hijo.padre ? ` (antes de #${hijo.padre.number})` : ""}.`);
   }
-  const esCaso = porGrupo(hijo.labels.map((l) => l.name)).tipo.has("caso");
-  if (esCaso && fondo.state === "CLOSED") {
+  if (debeReabrir(hijo, fondo)) {
     const pr = fondo.prs.at(-1);
     gh("issue", "reopen", String(fondoN), "--comment",
       `Reabierto por #${hijoN}: el arreglo${pr ? ` del PR #${pr.number}` : ""} no aguantó. Analiza si se rompió (\`analisis:no-aguanto-roto\`) o se quedó corto (\`analisis:no-aguanto-corto\`) y pónselo a #${hijoN}.`);
     console.log(`#${fondoN} estaba cerrado: reabierto.`);
+  } else if (fondo.state === "CLOSED") {
+    console.log(`#${fondoN} está cerrado y #${hijoN} es anterior a su cierre: no se reabre (es reordenar, no un fallo nuevo).`);
   }
 }
 
@@ -96,22 +96,31 @@ if (args.includes("--etiquetas")) {
   console.log(`${etiquetas().length} etiquetas al día.`);
 } else if (args.includes("--colgar")) {
   const [hijo, fondo] = args.slice(args.indexOf("--colgar") + 1).map((x) => Number(String(x).replace("#", "")));
-  if (!hijo || !fondo) throw new Error("Uso: npm run issues -- --colgar <caso o encargo> <problema de fondo>");
-  colgar(todos(), hijo, fondo);
+  if (!hijo || !fondo) {
+    console.error("Uso: npm run issues -- --colgar <caso o encargo> <problema de fondo>");
+    process.exit(1);
+  }
+  try {
+    colgar(todos(), hijo, fondo);
+  } catch (e) {
+    console.error(motivo(e));
+    process.exit(1);
+  }
 } else if (args.includes("--ordenar")) {
   const issues = todos();
   let n = 0;
   for (const i of issues) {
-    const tiene = new Set(i.labels.map((l) => l.name));
-    const faltan = etiquetasDeFormulario(i.body).filter((e) => !tiene.has(e));
-    const fondo = fondoDeFormulario(i.body);
+    // Solo rellena lo que falta: lo que se cambió a mano después (otro análisis,
+    // otro padre) manda sobre lo que se escribió en el formulario al abrirlo.
+    const faltan = etiquetasQueFaltan(i);
+    const fondo = i.padre ? null : fondoDeFormulario(i.body);
     try {
       if (faltan.length) {
         gh("issue", "edit", String(i.number), "--add-label", faltan.join(","));
         console.log(`  #${i.number}: ${faltan.join(", ")}`);
         n++;
       }
-      if (fondo && i.padre?.number !== fondo) {
+      if (fondo) {
         colgar(issues, i.number, fondo);
         n++;
       }

@@ -148,12 +148,14 @@ export function faltas(issue) {
     if ((pide || pideAlCerrar) && g[grupo].size === 0) no.push(grupo);
   }
   if (g.tipo.size > 1) no.push("tipo (más de uno)");
+  if (g.analisis.size > 1) no.push("analisis (más de uno)");
   const viejas = etiquetasSobrantes(nombres(issue.labels));
   if (viejas.length) no.push(`reclasificar: ${viejas.join(", ")} ya no existe${viejas.length > 1 ? "n" : ""}`);
 
   if (g.tipo.has("caso")) {
     if (g.analisis.has("puntual")) {
       if (!justificaPuntual(issue.body)) no.push("por qué es puntual («Puntual porque …»)");
+      if (issue.padre) no.push(`puntual pero cuelga de #${issue.padre.number}: o no es puntual, o descuélgalo`);
     } else if (g.analisis.size && issue.padre !== undefined) {
       // Analizado como parte de algo: tiene que colgar de su problema de fondo.
       if (!issue.padre || issue.padre.tipo !== "fondo") no.push("su problema de fondo (npm run issues -- --colgar <caso> <fondo>)");
@@ -188,6 +190,26 @@ export function etiquetasDeFormulario(body) {
   return out;
 }
 
+/**
+ * Al colgar un caso de un fondo cerrado, ¿se reabre el fondo? Solo si el caso
+ * es la prueba de que el arreglo no aguantó: pasó después de cerrarlo, o
+ * alguien ya lo analizó como `no-aguanto-*`. Un caso viejo que se reordena
+ * (reclasificar lecciones, juntar fondos) no reabre nada: la reapertura queda
+ * para siempre en el historial y contaría un «no aguantó» que no pasó.
+ */
+export function debeReabrir(hijo, fondo) {
+  const g = grupos(hijo);
+  if (!g.tipo.has("caso") || !cerrado(fondo)) return false;
+  if ([...g.analisis].some((a) => a.startsWith("no-aguanto"))) return true;
+  return Boolean(fondo.closedAt && hijo.createdAt && new Date(hijo.createdAt) > new Date(fondo.closedAt));
+}
+
+/** Etiquetas del formulario que faltan, solo de los grupos que el issue aún no tiene. */
+export function etiquetasQueFaltan(issue) {
+  const g = grupos(issue);
+  return etiquetasDeFormulario(issue.body).filter((e) => g[e.split(":")[0]].size === 0);
+}
+
 /** El «#n» del campo «De qué problema de fondo» de un formulario, o null. */
 export function fondoDeFormulario(body) {
   const m = /^###\s+De qué problema de fondo\s*\n+\s*#?(\d+)/im.exec(String(body ?? ""));
@@ -211,7 +233,12 @@ export const CONSULTA = `query($cursor: String) {
         }
         comments(last: 3) { nodes { body } }
         parent { number state labels(first: 20) { nodes { name } } }
-        subIssues(first: 50) { nodes { number state labels(first: 20) { nodes { name } } } }
+        subIssues(first: 50) {
+          nodes {
+            number state createdAt labels(first: 20) { nodes { name } }
+            closedByPullRequestsReferences(first: 3, includeClosedPrs: true) { nodes { mergedAt body } }
+          }
+        }
       }
     }
   }
@@ -241,7 +268,13 @@ export function leerIssue(n) {
     const citados = (n.comments?.nodes ?? []).flatMap((c) => [...String(c.body).matchAll(/\bPR\s+#(\d+)/gi)].map((m) => Number(m[1])));
     prs = [...new Set(citados)].map((number) => ({ number, rama: null, autor: null, agente: null, mergedAt: null }));
   }
-  const ref = (x) => ({ number: x.number, state: x.state, tipo: tipoDe(x.labels?.nodes), labels: (x.labels?.nodes ?? []).map((l) => ({ name: l.name })) });
+  const ref = (x) => ({
+    number: x.number, state: x.state, createdAt: x.createdAt ?? null, tipo: tipoDe(x.labels?.nodes),
+    labels: (x.labels?.nodes ?? []).map((l) => ({ name: l.name })),
+    // El agente del PR fusionado que cerró este hijo (un encargo): de ahí sale
+    // quién arregló el fondo cuando el fondo se cierra a mano.
+    agente: (x.closedByPullRequestsReferences?.nodes ?? []).filter((p) => p.mergedAt).map((p) => agenteDe(p.body)).at(-1) ?? null,
+  });
   return {
     id: n.id,
     number: n.number,
@@ -272,11 +305,15 @@ function mediana(xs) {
 
 /** Un problema de fondo con lo que cuelga de él. */
 export function fichaDeFondo(f) {
-  const casos = f.hijos.filter((h) => h.tipo === "caso");
-  const encargos = f.hijos.filter((h) => h.tipo === "encargo");
+  const hijos = f.hijos ?? [];
+  const casos = hijos.filter((h) => h.tipo === "caso");
+  const encargos = hijos.filter((h) => h.tipo === "encargo");
   const analisis = (h) => porGrupo(nombres(h.labels)).analisis;
   const g = grupos(f);
-  const pr = (f.prs ?? []).filter((p) => p.agente).at(-1) ?? null;
+  // Quién lo arregló: el PR que cerró el fondo o, si se cerró a mano (lo
+  // normal: se cierra al acabar sus encargos), el del último encargo cerrado.
+  const agente = (f.prs ?? []).filter((p) => p.agente).at(-1)?.agente
+    ?? encargos.filter((h) => cerrado(h) && h.agente).at(-1)?.agente ?? null;
   return {
     number: f.number,
     title: f.title,
@@ -292,7 +329,7 @@ export function fichaDeFondo(f) {
       roto: casos.filter((h) => analisis(h).has("no-aguanto-roto")).length,
       corto: casos.filter((h) => analisis(h).has("no-aguanto-corto")).length,
     },
-    agente: pr?.agente ?? null,
+    agente,
     diasCierre: cerrado(f) && f.closedAt ? dias(f.createdAt, f.closedAt) : null,
   };
 }
@@ -358,5 +395,7 @@ export function avisoDeArranque(issues) {
   if (top.length) lineas.push(`Problemas de fondo que más se repiten: ${top.map((f) => `#${f.number} ${f.title.replace(/^\[[^\]]+\]\s*/, "")} (${f.casos} casos)`).join("; ")}. Si lo que haces toca uno, arregla el fondo, no solo el caso.`);
   const sueltos = r.malClasificados.filter((m) => m.faltan.some((x) => x.startsWith("su problema de fondo"))).length;
   if (sueltos) lineas.push(`${sueltos} casos sin colgar de su problema de fondo: \`npm run issues\`.`);
+  const viejos = r.malClasificados.filter((m) => m.faltan.some((x) => x.startsWith("reclasificar"))).length;
+  if (viejos) lineas.push(`${viejos} issues con etiquetas que ya no existen, por reclasificar: \`npm run issues\`.`);
   return lineas;
 }
