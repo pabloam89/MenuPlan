@@ -20,7 +20,9 @@
 -- Qué copia: SOLO la familia activa (data.members / data.groups). Desde el
 -- 8 oct 2026 no hay varios rosters: los aparcados en data.rosters no se copian
 -- (si están en la tabla, el primer guardado los borra), ni los invitados de las
--- reglas (`invitado: true`, ids `inv_…`).
+-- reglas (`invitado: true`, ids `inv_…`). Y si la casa tiene activo otro roster
+-- que no es `default` (una PWA vieja en caché aún puede cambiar a «Otro grupo»),
+-- no se copia nada: data.members sería ese grupo y borraría a la familia real.
 --
 -- Rompe a la vista el principio 11 (una transacción, un módulo): la conversión
 -- JSON → filas existe dos veces, src/lib/personasTabla.js (filasDeCasa, la
@@ -32,19 +34,23 @@
 -- familia vacía no hace nada (la 0082 rechazaría vaciar la casa), y si la copia
 -- falla, avisa con un WARNING en el log de Postgres y el guardado sigue.
 --
--- Al final pone al día todas las casas una vez. OJO: borra de persona a quien
--- ya no está en data.members, y con la FK de la 0083 en cascada, sus tareas.
--- Antes de aplicar, en el SQL editor, cuántas tareas se irían (debería dar 0):
---   select count(*) from public.bot_tareas t
---     join public.household_state s using (household_id)
---    where t.persona_id is not null
---      and jsonb_typeof(s.state->'data'->'members') = 'array'
---      and not exists (select 1 from jsonb_array_elements(s.state->'data'->'members') m
---                       where m->>'id' = t.persona_id);
+-- Quitar a alguien de la familia: cada guardado que lo quita borra su fila de
+-- persona y, en cascada, su salud (persona_alergia, _intolerancia, _estado,
+-- _perfil_salud: dato de salud, debe irse). Sus tareas NO: la FK de la 0083
+-- pasa aquí de `on delete cascade` a `on delete set null (persona_id)`. La
+-- 0083 decía que «una baja lógica no borra la fila»; con la sincronización por
+-- clave (0081) no era verdad, y quitar a alguien se llevaba sus tareas. Las
+-- tareas sobre una persona que ya no está las descarta el código
+-- (api/_bot/estadoCasa.js, estadoDeClave → «sin_persona» → descartada).
+-- La FK nueva va NOT VALID; su validate, en PENDIENTES.md.
+--
+-- Al final pone al día todas las casas una vez (las de roster `default`):
+-- borra de persona a quien ya no está en data.members (con su salud; sus
+-- tareas se quedan con persona_id a null).
 --
 -- Idempotente. SIN APLICAR.
 
-set lock_timeout = '5s';
+set local lock_timeout = '5s';
 
 -- Precondición: la sincronización por clave (0081) con sus guardas (0082). Sin
 -- ellas, una lista vacía vaciaría la casa y, con la FK, sus tareas.
@@ -56,8 +62,23 @@ begin
   if pg_get_functiondef('public.persona_sincronizar_casa(uuid, jsonb)'::regprocedure) not ilike '%lista de personas vacía%' then
     raise exception '0089 necesita las guardas de la 0082 en persona_sincronizar_casa: aplícala antes';
   end if;
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = 'public' and table_name = 'bot_tareas' and column_name = 'persona_id') then
+    raise exception '0089 necesita bot_tareas.persona_id (0080): aplícala antes';
+  end if;
 end;
 $$;
+
+-- Tareas → persona: quitar a alguien de la familia no borra sus tareas (ver
+-- cabecera). Misma FK compuesta que la 0083; solo cambia el on delete. Se
+-- quita y se pone en la misma sentencia. El índice ya lo creó la 0083.
+create index if not exists bot_tareas_persona
+  on public.bot_tareas (household_id, persona_id) where persona_id is not null;
+alter table public.bot_tareas
+  drop constraint if exists bot_tareas_persona_fk,
+  add constraint bot_tareas_persona_fk
+    foreign key (household_id, persona_id) references public.persona(household_id, id)
+    on delete set null (persona_id) not valid;
 
 -- Una fecha ISO que existe, o null. «2020-02-30» tiene la forma pero no
 -- convierte a date, y haría fallar la fila entera.
@@ -88,9 +109,11 @@ stable
 set search_path = public, pg_temp
 as $$
   with miembros as (
-    -- Con id, que no sean invitados; si un id se repite, gana el primero.
+    -- Con id, que no sean invitados; si un id se repite, gana el primero. Con
+    -- otro roster activo (cliente viejo en «Otro grupo»), nadie.
     select distinct on (t.x->>'id') t.x as m, t.x->>'id' as id
       from jsonb_array_elements(case when jsonb_typeof(p_state->'data'->'members') = 'array'
+                                      and coalesce(p_state->'data'->>'activeRosterId', 'default') = 'default'
                                      then p_state->'data'->'members' else '[]'::jsonb end)
            with ordinality as t(x, ord)
      where jsonb_typeof(t.x) = 'object'
@@ -149,6 +172,7 @@ as $$
     -- El orden es la posición en la lista original, como en JS.
     select distinct on (t.g->>'id') t.g->>'id' as id, t.g, (t.ord - 1)::int as orden
       from jsonb_array_elements(case when jsonb_typeof(p_state->'data'->'groups') = 'array'
+                                      and coalesce(p_state->'data'->>'activeRosterId', 'default') = 'default'
                                      then p_state->'data'->'groups' else '[]'::jsonb end)
            with ordinality as t(g, ord)
      where jsonb_typeof(t.g) = 'object'
@@ -205,13 +229,18 @@ begin
   if jsonb_typeof(new.state->'data'->'members') is distinct from 'array' then
     return null;
   end if;
-  v_filas := public._persona_filas_de_estado(new.state);
-  -- Familia vacía (casa recién creada, «Reiniciar»): no se vacía la tabla al
-  -- guardar; la 0082 lo rechazaría igual.
-  if jsonb_array_length(v_filas->'personas') = 0 then
+  -- Un cliente viejo en «Otro grupo»: data.members no es la familia de la casa.
+  if coalesce(new.state->'data'->>'activeRosterId', 'default') <> 'default' then
     return null;
   end if;
+  -- Todo lo demás, dentro del bloque: nada de aquí puede tumbar un guardado.
   begin
+    v_filas := public._persona_filas_de_estado(new.state);
+    -- Familia vacía (casa recién creada, «Reiniciar»): no se vacía la tabla al
+    -- guardar; la 0082 lo rechazaría igual.
+    if jsonb_array_length(v_filas->'personas') = 0 then
+      return null;
+    end if;
     perform public.persona_sincronizar_casa(new.household_id, v_filas);
   exception when others then
     raise warning '_personas_al_guardar: casa %, la copia a persona falló (% %); el guardado sigue',
@@ -247,10 +276,11 @@ begin
   for r in
     select household_id, state from public.household_state
      where jsonb_typeof(state->'data'->'members') = 'array'
+       and coalesce(state->'data'->>'activeRosterId', 'default') = 'default'
   loop
-    v_filas := public._persona_filas_de_estado(r.state);
-    continue when jsonb_array_length(v_filas->'personas') = 0;
     begin
+      v_filas := public._persona_filas_de_estado(r.state);
+      continue when jsonb_array_length(v_filas->'personas') = 0;
       perform public.persona_sincronizar_casa(r.household_id, v_filas);
     exception when others then
       raise warning '0089: casa %, la copia a persona falló (% %)', r.household_id, sqlstate, sqlerrm;

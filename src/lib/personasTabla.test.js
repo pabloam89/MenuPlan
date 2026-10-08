@@ -120,6 +120,21 @@ describe("filasDeCasa", () => {
     expect(f.grupos.map((g) => g.id)).toEqual(["g1"]);
   });
 
+  // Una PWA vieja aún puede cambiar a «Otro grupo»: entonces data.members es
+  // ese grupo, no la familia, y copiarlo borraría a la familia de la tabla.
+  it("con otro roster activo no copia nada (ni personas ni grupos)", () => {
+    const f = filasDeCasa(CASA, {
+      data: {
+        activeRosterId: "other",
+        members: [{ id: "x", name: "Suegra" }],
+        groups: [{ id: "g9", label: "Otro", memberIds: ["x"] }],
+      },
+    });
+    expect(f.personas).toEqual([]);
+    expect(f.grupos).toEqual([]);
+    expect(f.avisos[0]).toMatch(/roster/);
+  });
+
   it("los invitados de las reglas no son personas de la casa", () => {
     const f = filasDeCasa(CASA, {
       data: {

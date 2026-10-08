@@ -55,12 +55,33 @@ describe("0089: el trigger no rompe un guardado", () => {
   it("sin lista de comensales (guardado parcial), no toca nada", () => {
     expect(f).toMatch(/jsonb_typeof\(new\.state->'data'->'members'\) is distinct from 'array' then\s+return null/);
   });
+  it("con otro roster activo (PWA vieja en «Otro grupo»), no toca nada", () => {
+    expect(f).toMatch(/if coalesce\(new\.state->'data'->>'activeRosterId', 'default'\) <> 'default' then\s+return null/);
+  });
   it("con la familia vacía no llama (la 0082 lo rechazaría)", () => {
     expect(f).toMatch(/jsonb_array_length\(v_filas->'personas'\) = 0 then\s+return null/);
   });
-  it("llama a persona_sincronizar_casa y, si falla, avisa y deja seguir el guardado", () => {
-    expect(f).toMatch(/perform public\.persona_sincronizar_casa\(new\.household_id, v_filas\)/);
-    expect(f).toMatch(/exception when others then\s+raise warning/);
+  it("convertir, comprobar y sincronizar van DENTRO del begin…exception", () => {
+    const bloque = /\bbegin\s+v_filas := public\._persona_filas_de_estado\(new\.state\);[\s\S]*?exception when others then\s+raise warning/.exec(f)?.[0] ?? "";
+    expect(bloque).toMatch(/jsonb_array_length\(v_filas->'personas'\) = 0/);
+    expect(bloque).toMatch(/perform public\.persona_sincronizar_casa\(new\.household_id, v_filas\)/);
+    // Y fuera del bloque, nada que pueda fallar.
+    expect(f.slice(0, f.indexOf("v_filas := "))).not.toMatch(/_persona_filas_de_estado|persona_sincronizar_casa/);
+  });
+});
+
+describe("0089: quitar a alguien no borra sus tareas", () => {
+  it("la FK de bot_tareas pasa a on delete set null (persona_id), not valid, en una sola sentencia", () => {
+    expect(sinComentarios).toMatch(/alter table public\.bot_tareas\s+drop constraint if exists bot_tareas_persona_fk,\s+add constraint bot_tareas_persona_fk\s+foreign key \(household_id, persona_id\) references public\.persona\(household_id, id\)\s+on delete set null \(persona_id\) not valid;/);
+    expect(sinComentarios).not.toMatch(/bot_tareas_persona_fk[\s\S]{0,200}on delete cascade/);
+  });
+  it("la cabecera lo dice: se va la persona y su salud, no sus tareas", () => {
+    expect(sql).toMatch(/borra su fila de\s+--\s+persona y, en cascada, su salud/);
+    expect(sql).toMatch(/Sus tareas NO/);
+  });
+  it("el validate pendiente está apuntado en PENDIENTES.md con la 0089", () => {
+    const pendientes = fs.readFileSync(path.join(AQUI, "PENDIENTES.md"), "utf8");
+    expect(pendientes).toMatch(/0089[^\n]*\n[\s\S]{0,400}bot_tareas_persona_fk[\s\S]{0,400}on delete set null/);
   });
 });
 
@@ -68,6 +89,8 @@ describe("0089: el gemelo en SQL de filasDeCasa", () => {
   const f = funcion("_persona_filas_de_estado");
   it("lee solo la familia activa: ni rosters aparcados ni invitados", () => {
     expect(f).toMatch(/p_state->'data'->'members'/);
+    // Con otro roster activo, ni miembros ni grupos (como filasDeCasa).
+    expect(f.match(/coalesce\(p_state->'data'->>'activeRosterId', 'default'\) = 'default'/g)?.length).toBe(2);
     expect(f).toMatch(/p_state->'data'->'groups'/);
     expect(f).not.toMatch(/rosters/);
     expect(f).toMatch(/'invitado' is distinct from 'true'::jsonb/);
@@ -87,7 +110,8 @@ describe("0089: el gemelo en SQL de filasDeCasa", () => {
 describe("0089: pone al día las casas que ya hay", () => {
   it("recorre household_state y sincroniza cada casa, sin parar si una falla", () => {
     const fin = sinComentarios.slice(sinComentarios.lastIndexOf("create or replace trigger"));
-    expect(fin).toMatch(/for r in\s+select household_id, state from public\.household_state/);
+    expect(fin).toMatch(/for r in\s+select household_id, state from public\.household_state\s+where jsonb_typeof\(state->'data'->'members'\) = 'array'\s+and coalesce\(state->'data'->>'activeRosterId', 'default'\) = 'default'/);
+    expect(fin).toMatch(/begin\s+v_filas := public\._persona_filas_de_estado\(r\.state\);/);
     expect(fin).toMatch(/perform public\.persona_sincronizar_casa\(r\.household_id, v_filas\)[\s\S]*exception when others then\s+raise warning/);
   });
 });

@@ -11,7 +11,8 @@
  *
  * Solo la familia activa (data.members / data.groups). Desde el 8 oct 2026 no
  * hay varios rosters: los aparcados en data.rosters son datos viejos que no se
- * copian, y los invitados de las reglas (`invitado: true`) no son de la casa.
+ * copian, con otro roster activo no se copia nada, y los invitados de las
+ * reglas (`invitado: true`) no son de la casa.
  *
  * Lo que no tiene columna propia se queda en `resto` (jsonb), así que no se
  * pierde nada si los consumidores aún no lo leen de la tabla.
@@ -62,6 +63,13 @@ export function filasDeCasa(householdId, state) {
   const estados = [];
   const perfilesSalud = [];
   const idsVistos = new Set();
+
+  // Una PWA vieja aún puede cambiar a «Otro grupo»: entonces data.members es
+  // ese grupo, no la familia, y copiarlo borraría a la familia de la tabla.
+  if ((data.activeRosterId ?? "default") !== "default") {
+    avisos.push(`roster activo «${data.activeRosterId}» y no «default»: no se copia nada`);
+    return { personas, alergias, intolerancias, estados, perfilesSalud, grupos: [], grupoPersona: [], avisos };
+  }
 
   for (const m of lista(data.members)) {
     if (m?.id == null || textoLimpio(m.id) === "") {
