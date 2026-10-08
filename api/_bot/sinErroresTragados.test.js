@@ -141,7 +141,8 @@ function ficheros(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const ruta = path.join(dir, e.name);
     if (e.isDirectory()) return e.name === "__snapshots__" ? [] : ficheros(ruta);
-    return /\.(m?js)$/.test(e.name) && !/\.test\.m?js$/.test(e.name) ? [ruta] : [];
+    // Solo .js: core.mjs es el motor empaquetado por el build (no es del bot).
+    return e.name.endsWith(".js") && !e.name.endsWith(".test.js") ? [ruta] : [];
   });
 }
 

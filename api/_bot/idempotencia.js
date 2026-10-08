@@ -50,6 +50,7 @@ export async function unaVez({ householdId, clave, rpc }, correr) {
     throw e;
   }
   // Lo que contestó, para devolverlo igual si se repite. Se purga a los 7 días.
+  // a propósito: sin el resultado guardado, el repetido contesta YA_HECHO.
   await update("bot_idempotencia", filtro, { resultado: { texto: typeof r === "string" ? r : JSON.stringify(r) } }).catch(seguirCon("idempotencia/guardar resultado"));
   return r;
 }

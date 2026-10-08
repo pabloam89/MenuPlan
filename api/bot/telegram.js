@@ -706,7 +706,7 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
       if (!suyo || !frase || haEscrito || signal?.aborted) return;
       visto();
       vivo.escribir(frase, { aviso: true });
-    }).catch(seguirCon("aviso del enrutador"));
+    }).catch(seguirCon("aviso del enrutador")); // a propósito: el aviso es adorno
   }
   const alEscribir = (parcial, extra) => {
     haEscrito = true;
@@ -721,7 +721,7 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
       if (!suyo || contestado || algoVisto || haEscrito || signal?.aborted) return;
       if (medir) medir.espera ??= Date.now();
       vivo.escribir(AVISO_ESPERA, { aviso: true });
-    }).catch(seguirCon("aviso de espera"));
+    }).catch(seguirCon("aviso de espera")); // a propósito: el aviso es adorno
   }, tope);
   let r;
   try {
@@ -1253,7 +1253,7 @@ async function pulsado(cq, base, host = "") {
     chat_id: cq.message.chat.id,
     message_id: cq.message.message_id,
     reply_markup: { inline_keyboard: [] },
-  }).catch(seguirCon("botón/quitar"));
+  }).catch(seguirCon("botón/quitar")); // a propósito: si no se quitan, el botón viejo se puede pulsar otra vez y no rompe nada
   if (conecta) return conectarGrupo(cq, chatId);
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
 
