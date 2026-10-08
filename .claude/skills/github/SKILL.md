@@ -19,7 +19,7 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 
 | Workflow | Cuándo | Qué hace |
 |---|---|---|
-| `tests.yml` | PR a `staging` o `main`, push a `staging`, a mano | lint con línea base, tests y build. Es el check `tests` |
+| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | la línea «Runbook:» del PR, lint con línea base, tests y build. Es el check `tests` |
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano | precios de Mercadona; commitea y **empuja a `staging`** |
 | `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |
 | `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola |
@@ -38,6 +38,19 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
   retirar` las cierra. Un hook personal de Pablo (`~/.claude/hooks/limpiar-worktrees.mjs`)
   borra solo las que ve **fusionadas y limpias**, tras cada `gh pr merge` y al
   abrir cualquier sesión.
+- **Las skills, por obligación** (#164; mapa `.claude/dominios-skills.json`, cruzado por test con `.claude/skills/`):
+  - **Puerta de lectura** (`guardia.mjs`): el primer comando de riesgo de un dominio en la
+    sesión (`apply-migration`, `telegram-webhook.mjs set`, `vercel env`, `op item|read`, `ssh`
+    al panel, `gh api -X POST`…) se niega con «abre antes la skill X y reintenta»; al
+    reintentar pasa, y a la primera si la sesión ya abrió la skill (`Skill` o `Read` de su
+    `SKILL.md`; lo anota `skill-abierta.mjs`) o el subagente la trae en su `skills:`. Sin registro, no bloquea.
+  - **Puede avisar de más** («ante la duda, niega»; un reintento; fijado en el test del
+    mapa): un `git commit -m` que nombra `apply-migration`, `gh workflow run`, `gh api
+    graphql -f`, un `docker … -U panel` local, una `ssh` con la IP.
+  - **Línea «Runbook:» del PR** (`scripts/runbook-pr.mjs`, tercer paso del job `tests`): si
+    el PR toca rutas de un dominio, `Runbook: actualizado (skill X)` (y tocar esa skill) o
+    `Runbook: sin novedades`; todas las líneas valen, las de bloques de código no cuentan.
+    Exentos solo los PR de un bot; editar el cuerpo relanza el check.
 
 ## Claves y accesos
 
@@ -64,6 +77,7 @@ CLI `gh` va con la sesión de Pablo (`gh auth status`).
 | Borrarlas (OK) | `npm run podar -- --si` | GitHub y locales con `-d`; lo no fusionado sale como «decide Pablo» |
 | ¿Está en staging? | `git fetch origin` y mirar `origin/staging`, nunca el upstream de tu rama | el commit o la ausencia |
 | CI en rojo: reproducir un test | `npx vitest run <fichero>` | el mismo fallo que en el CI |
+| Probar a mano la línea «Runbook:» | `git diff --name-only origin/staging... > $TEMP/f.txt` y `PR_BODY="$(gh pr view <n> --json body -q .body)" node scripts/runbook-pr.mjs $TEMP/f.txt` | `Runbook: ok`, o `FALLA` con la línea a poner (se arregla con `gh pr edit <n> --body-file <f>`) |
 
 - **Ramas viejas:** GitHub borra la rama al fusionar el PR
   (`delete_branch_on_merge`), pero las de antes del 8 oct 2026 se quedaron.
@@ -115,11 +129,14 @@ uno solo, con un dueño y un juez por superficie, cuando es una pieza común
 acaban sus encargos y el test de la clase está en verde.
 
 ```
-gh issue create --title "[caso] …" --label tipo:caso,analisis:abierto,area:ops --body-file <fichero>
-gh issue create --title "[fondo] …" --label tipo:fondo,causa:error-silencioso,area:datos --body-file <fichero>
-gh issue create --title "[encargo] …" --label tipo:encargo,area:datos --body-file <fichero>
-gh issue create --title "[decisión] …" --label tipo:decision,area:datos --body-file <fichero>
+npm run issues -- --nuevo "…" --tipo caso --analisis abierto --area ops --cuerpo <f.md> --padre <fondo>
+npm run issues -- --nuevo "…" --tipo fondo --causa error-silencioso --area datos --cuerpo <f.md>
+npm run issues -- --nuevo "…" --tipo encargo --area datos --cuerpo <f.md> [--padre <fondo>]
+npm run issues -- --nuevo "…" --tipo decision --area datos --cuerpo <f.md>   # se asigna a Pablo
+#   antes de crear enseña los parecidos y para; si no es ninguno, --crear-igual
+#   (la guardia niega `gh issue create` a pelo: el 8 oct se abrió tres veces el mismo fallo)
 npm run issues -- --colgar <caso o encargo> <fondo>   # cuelga; si el fondo estaba cerrado, lo reabre
+npm run tarea -- ops/x 193                  # tarea de un issue: rama ops/193-x; el PR pide Closes #193
 gh issue edit <n> --add-assignee @me        # coger un encargo (o «Quién lo coge» en el cuerpo)
 gh issue close <n> --comment "Queda en el PR #n"     # solo si no lo cerró el PR; un fondo, antes con --add-label arreglo:test
 npm run issues                              # fondos por casos, encargos, puntuales, por causa y agente, sin trazar
@@ -146,6 +163,14 @@ npm run issues -- --etiquetas               # crear o retirar etiquetas en GitHu
   seguridad que se pueda aprovechar. Eso va a Pablo en privado.
 - **Antes de empezar un encargo**, `npm run issues`: si ya está cogido, no se
   duplica.
+- **Pablo ve sus decisiones** porque se le asignan (le llegan por correo y en
+  la app de GitHub): lista en
+  `github.com/pabloam89/MenuPlan/issues?q=is:open+label:tipo:decision`.
+- **Avisos que llegan solos:** al editar un fichero, el hook `avisos.mjs`
+  cuenta los issues abiertos que lo nombran (una vez por sesión y fichero);
+  al terminar de responder, `pendientes.mjs` frena una vez a la sesión que
+  deja decisiones o pendientes sin ningún issue. `npm run podar` lista las
+  ramas huérfanas (sin PR ni issue, de más de 3 días).
 
 ## Lo que falló y por qué
 
@@ -202,4 +227,4 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://cli.github.com/manual/
 - https://docs.github.com/code-security/dependabot
 
-Comprobado el 2026-10-08: la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.
+Comprobado el 2026-10-08: la comprobación del runbook y la puerta de lectura, con sus tests y a mano en local (sin probarlas aún en un PR real de GitHub ni con el campo `agent_type` de un subagente de verdad); la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.

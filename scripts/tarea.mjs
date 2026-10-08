@@ -3,6 +3,7 @@
  *
  *   npm run tarea -- datos/descartes           # rama nueva desde origin/staging
  *   npm run tarea -- datos/descartes --sin-deps # sin npm ci (si solo vas a leer)
+ *   npm run tarea -- datos/descartes 193       # del issue #193: rama datos/193-descartes
  *
  * Crea `C:\dev\MenuPlan-<nombre>` con la rama `<area>/<nombre>`. Si la rama ya
  * existe en GitHub, la retoma en vez de crearla. Copia `.env.local` (git no lo
@@ -26,12 +27,20 @@ import { dirname, join } from "node:path";
 
 export const AREAS = ["bot", "datos", "ux", "fix", "feat", "ops", "motor", "lola", "roles"];
 
-/** «datos/descartes» → { rama, nombre }, o un error en castellano. */
-export function leerRama(texto) {
+/**
+ * «datos/descartes» → { rama, nombre }, o un error en castellano. Con el número
+ * de su issue, la rama lo lleva delante del nombre (`datos/193-descartes`) y la
+ * guardia pide `Closes #193` al abrir el PR; la carpeta no cambia.
+ */
+export function leerRama(texto, issue) {
   const m = String(texto ?? "").match(/^([a-z]+)\/([a-z0-9][a-z0-9-]{1,40})$/);
   if (!m) return { error: "Pon la rama como <area>/<nombre>, en minúsculas y con guiones: `npm run tarea -- datos/descartes`." };
   if (!AREAS.includes(m[1])) return { error: `El área «${m[1]}» no existe. Vale: ${AREAS.join(", ")}.` };
-  return { rama: texto, nombre: m[2] };
+  if (issue == null) return { rama: texto, nombre: m[2] };
+  const n = String(issue).replace(/^#/, "");
+  if (!/^\d+$/.test(n)) return { error: `«${issue}» no es un número de issue: \`npm run tarea -- datos/descartes 193\`.` };
+  const nombre = m[2].replace(new RegExp(`^${n}-`), "");
+  return { rama: `${m[1]}/${n}-${nombre}`, nombre, issue: Number(n) };
 }
 
 /** Una línea de `git log --oneline` que es el commit inicial de una tarea. */
@@ -73,8 +82,8 @@ const libre = (puerto) =>
   });
 
 async function main() {
-  const arg = process.argv.slice(2).find((a) => !a.startsWith("--"));
-  const { rama, nombre, error } = leerRama(arg);
+  const [arg, numero] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+  const { rama, nombre, issue, error } = leerRama(arg, numero);
   if (error) {
     console.error(error);
     process.exit(1);
@@ -130,6 +139,7 @@ Lista: ${destino}
   rama    ${rama}${enRemoto ? " (retomada de GitHub)" : " (nueva, desde origin/staging)"}
   app     npm run dev -- --port ${puerto ?? "<libre>"} --host   (el login con Google solo vuelve al 5176)
   cerrar  npm run retirar -- ${nombre}
+  issue   ${issue ? `#${issue}: el PR lleva \`Closes #${issue}\` (la guardia lo pide)` : "ninguno. Si lo hay, mejor `npm run tarea -- <rama> <número>`; si no, ¿hace falta uno? (`npm run issues`)"}
 
 Abre la sesión de Claude en esa carpeta: cd "${destino}" y luego claude.`);
 }
