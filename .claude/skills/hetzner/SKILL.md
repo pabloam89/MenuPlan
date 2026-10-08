@@ -24,8 +24,6 @@ description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a
 - **Pendiente:**
   - **Copia fuera del servidor.** Las copias están en el mismo disco: si se pierde
     el servidor, se pierden con él.
-  - **Restaurar una copia de verdad** está sin ensayar en este servidor (ver
-    «Fuentes y comprobación»).
   - Usuario sin privilegios y el repo del panel, que aún no existe.
 
 ## Claves y accesos
@@ -59,7 +57,7 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
 | Copia ahora | `systemctl start panel-backup.service` | un `panel-….dump` nuevo en `/var/backups/panel` |
 | Últimas copias | `ls -lt /var/backups/panel \| head -3` | una por día (03:30 UTC), con 14 días de historia |
 | Ver el temporizador | `systemctl list-timers panel-backup.timer` | la próxima ejecución |
-| Restaurar en una base nueva (OK) | `cd /opt/panel && docker compose exec -T db pg_restore -U panel -d <base_nueva> --no-owner < <fichero.dump>` | sin errores; los datos están en la base nueva |
+| Restaurar en una base nueva (OK) | `cd /opt/panel && docker compose exec -T db pg_restore -U panel -d <base_nueva> --no-owner < <fichero.dump>` | sin errores y los datos en la base nueva. Ensayado el 2026-10-08 con una tabla de prueba (un valor guardado, copiado con `backup.sh`, restaurado en otra base y leído igual); la prueba se limpió |
 | ¿Se ve el puerto desde fuera? | `bash -c 'echo > /dev/tcp/188.245.14.194/5432'` desde cualquier PC | no conecta (timeout) |
 
 - **Cortafuegos con red de seguridad.** Antes de tocar `ufw` o `sshd`, armar un
@@ -92,7 +90,10 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
   y no distingue entre Supabase y esta base. Arreglo: la guardia deja pasar un
   `psql` que va dentro de `docker compose exec` (o `docker exec`) sin URL ni host
   en su tramo, y sigue negando cualquier otro; con test en
-  `.claude/hooks/guardia.test.js`. No ve el SQL que va dentro de un fichero.
+  `.claude/hooks/guardia.test.js`. No ve el SQL que va dentro de un fichero. La
+  guardia que corre es la de la **carpeta principal** (`C:\dev\MenuPlan`): hasta
+  que esa carpeta se adelanta con `git merge --ff-only origin/staging`, la regla
+  nueva no vale aunque ya esté fusionada.
 - **2026-10-08 · SSH aceptaba contraseñas** (`passwordauthentication yes`).
   Causa: es el valor por defecto de Ubuntu. Arreglo: el fichero
   `/etc/ssh/sshd_config.d/10-solo-llaves.conf`, validado con `sshd -t` y aplicado
@@ -130,4 +131,4 @@ la swap de 2 GB como colchón; si Postgres y el panel no caben, se sube a la CPX
 - https://docs.docker.com/engine/network/packet-filtering-firewalls/
 - https://ubuntu.com/server/docs/how-to/software/automatic-updates/
 
-Comprobado el 2026-10-08: entrada por SSH (por la red privada y, antes de cerrarlo, por la pública), actualización, reinicio con la swap activa, `ufw` activo con la pública sin respuesta en el 22 y el 5432, Postgres sano, copia diaria creada y `sshd` sin contraseñas. Sin comprobar: restaurar una copia en una base nueva, las actualizaciones automáticas de seguridad más allá de ver sus dos líneas activas y la copia fuera del servidor (no existe).
+Comprobado el 2026-10-08: entrada por SSH (por la red privada y, antes de cerrarlo, por la pública), actualización, reinicio con la swap activa, `ufw` activo con la pública sin respuesta en el 22 y el 5432, Postgres sano, copia diaria creada, **restauración de una copia en una base nueva con el dato intacto** y `sshd` sin contraseñas. Sin comprobar: restaurar con la base `panel` llena de datos de verdad (hoy está vacía), las actualizaciones automáticas de seguridad más allá de ver sus dos líneas activas y la copia fuera del servidor (no existe).
