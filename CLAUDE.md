@@ -54,8 +54,9 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
 `npm run tarea -- datos/descartes` abre `C:\dev\MenuPlan-descartes` (rama
 desde `origin/staging`, `.env.local`, flags de staging, dependencias y
 puerto); `npm run retirar -- descartes` la cierra solo si no se pierde nada.
-Nada de borrar worktrees a mano; si el arranque avisa de otra sesión en tu
-carpeta, no trabajes ahí. App en local: localhost y la IP de la wifi, nada más
+En la carpeta principal (`C:\dev\MenuPlan`) no se trabaja: la guardia no deja
+editar, commitear ni cambiar de rama en ella. Nada de borrar worktrees a mano;
+si el arranque avisa de otra sesión en tu carpeta, no trabajes ahí. App en local: localhost y la IP de la wifi, nada más
 (el login con Google solo vuelve al puerto 5176). Primer push: `git push -u
 origin <rama>`. **Al fusionar tu PR:** `npm run retirar -- <tarea>` en la misma
 sesión (la rama de GitHub la borra GitHub sola). Ramas viejas ya fusionadas:
@@ -65,12 +66,16 @@ en staging.
 ## Antes del PR (lo que no vigila la guardia)
 
 1. Fusiona `origin/staging` en tu rama y resuelve: hay sesiones en paralelo.
+   La guardia no deja abrir ni fusionar un PR con la rama atrasada; si al
+   fusionar ya va por detrás, `gh pr update-branch <n>` y espera el CI.
 2. `git status --short` y añade por nombre solo lo tuyo; si un fichero mezcla
    lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera.
 3. `npm test` y `npm run build`. Con el lint, `npm run lint:base`: cuenta la
    **lista** de errores, no el recuento.
 4. Un test nuevo se ve fallar una vez antes de creértelo (detalle en la regla
    `tests`).
+5. En el cuerpo del PR, `Closes #n` por cada issue que arregla y una línea
+   `Agente: <nombre>` (o `sesión`): de ahí sale quién arregló qué y si aguantó.
 
 ## Base de datos
 
@@ -152,12 +157,14 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
 ## Lo que hace cumplir esto
 
 - **`arranque.mjs`** al abrir sesión: carpeta, rama, sesiones activas, números
-  de migración cogidos y migraciones sin aplicar.
+  de migración cogidos, migraciones sin aplicar e issues que esperan.
 - **`guardia.mjs`** antes de cada comando o edición: niega push a `main` o
   directo a staging, `git stash`, `git add .`, `vite build` a secas,
   `Set-Content`, tocar una migración aplicada (también por terminal), crear
   una con un número que staging ya usa, SQL a mano contra producción y
-  `apply-migration --pablo` (solo de Pablo); pregunta
+  `apply-migration --pablo` (solo de Pablo), abrir o fusionar un PR con
+  la rama atrasada respecto a staging y trabajar en la carpeta principal;
+  pregunta
   antes de un push forzado, de tocar permisos y hooks y de escribir por
   terminal lo que lee Lola. Cada regla,
   con su porqué y su test en `.claude/hooks/guardia.test.js`.
@@ -165,4 +172,9 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
 - Las reglas por carpeta solo saltan con Read, Write o Edit, no por terminal:
   lo crítico va en la guardia.
 - **Cuando algo falla, la lección va a un test o a la guardia; si no se puede,
-  a una regla o una skill; a la memoria, nunca.**
+  a una regla o una skill; a la memoria, nunca.** Si no se arregla en el
+  momento, se abre un issue `tipo:leccion` (con causa y área) y se cierra con
+  la etiqueta `arreglo:` de dónde quedó. Decisiones pendientes y trabajo por
+  coger, también como issues (`tipo:decision`, `tipo:encargo`), no en el
+  chat ni en mensajes entre sesiones. `npm run issues` lo cuenta; el cómo, en
+  la skill `github`. El repo es público: nada sensible en un issue.

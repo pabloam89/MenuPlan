@@ -70,19 +70,71 @@ CLI `gh` va con la sesión de Pablo (`gh auth status`).
   `scripts/podar.mjs` borra solo las fusionadas enteras en `origin/staging`,
   sin PR abierto, de hace más de 1 día y sin worktree.
 
+### Issues: lecciones, decisiones y encargos
+
+Lo que no se cierra en una sesión vive en un issue: sobrevive al reinicio, lo
+ven Álvaro y las sesiones de la nube, y con las mismas etiquetas siempre se
+puede contar qué falla más. La clasificación tiene una sola fuente,
+`scripts/lib/issues.mjs`; los formularios de `.github/ISSUE_TEMPLATE/` salen
+de ella y `scripts/issues.test.js` vigila que no se separen.
+
+| Grupo | Valores | Cuándo |
+|---|---|---|
+| `tipo:` | `leccion`, `decision`, `encargo` | siempre, uno |
+| `causa:` | `vigilante-falso`, `vigilante-hueco`, `entorno`, `limpieza`, `coordinacion`, `modelo-datos`, `codigo` | toda lección |
+| `area:` | `datos`, `lola`, `ui`, `catalogo`, `motor`, `ops` | siempre |
+| `arreglo:` | `test`, `guardia`, `script`, `regla`, `skill`, `ninguno` | al cerrar una lección: dónde quedó |
+
+```
+gh issue create --title "[lección] …" --label tipo:leccion,causa:entorno,area:ops --body-file <fichero>
+gh issue create --title "[decisión] …" --label tipo:decision,area:datos --body-file <fichero>
+gh issue edit <n> --add-assignee @me        # coger un encargo (o «Quién lo coge» en el cuerpo)
+gh issue close <n> --comment "Queda en el PR #n"     # solo si no lo cerró el PR; antes: --add-label arreglo:test
+gh issue reopen <n> --comment "Vuelve a pasar: …"     # una lección que reincide se reabre, no se duplica
+npm run issues                              # abiertos, lecciones por causa y por agente, sin trazar
+npm run issues -- --ordenar                 # etiquetas que faltan, leídas de un formulario
+npm run issues -- --etiquetas               # crear las etiquetas en GitHub (OK de Pablo)
+```
+
+- **El cuerpo de una lección:** cuándo, qué pasó (esperado frente a real),
+  evidencia (comando y salida, PR, fichero:línea) y dónde debería quedar el
+  arreglo. El de una decisión: la pregunta en llano, las opciones con la
+  recomendada primero y qué pasa si no se decide.
+- **La traza no se rellena: se deduce.** Fechas, reaperturas, asignados y el
+  issue padre los guarda GitHub. Quién arregló sale del PR que cierra: lleva
+  `Closes #n` y una línea `Agente: <nombre>` (o `sesión`); la plantilla de PR
+  los trae. Si se cierra a mano, «PR #n» en el comentario de cierre. Un
+  seguimiento que deja una lección se abre como sub-issue de ella.
+- **Si una lección vuelve a pasar, se reabre la misma.** Las reaperturas son
+  la cuenta de «arreglo que no aguantó», por causa y por agente.
+- **Una categoría nueva** se añade en `scripts/lib/issues.mjs` con su
+  descripción, se regeneran las etiquetas y se pone en el formulario. Si algo
+  no encaja en ninguna causa, primero se mira si es una de las que hay; una
+  clasificación que crece sin control deja de servir para contar.
+- **El repo es público:** ni claves, ni datos de familias, ni un fallo de
+  seguridad que se pueda aprovechar. Eso va a Pablo en privado.
+- **Antes de empezar un encargo**, `npm run issues`: si ya está cogido, no se
+  duplica.
+
 ## Lo que falló y por qué
 
 - **2026-10-08 · la carpeta de trabajo recién creada desaparece sola y queda un
-  directorio huérfano sin `.git`, con `node_modules` a medio borrar.** Causa:
+  directorio huérfano sin `.git`, con `node_modules` a medio borrar.** Pasó dos
+  veces; la segunda, con `npm ci` todavía instalando. Causa:
   `limpiar-worktrees.mjs` da por «fusionada» cualquier rama que sea ancestro de
   `origin/staging`, y una rama nueva sin commits lo es. Se ejecuta al abrir
   *cualquier* sesión, así que otra sesión arrancando se la lleva por delante.
-  Arreglo: hacer un commit en el mismo instante de crearla
-  (`git commit --allow-empty`), porque con un commit propio ya no es ancestro.
-  Sin resolver de raíz: `npm run tarea` debería hacer ese commit solo, y el hook
-  debería exigir un PR fusionado de verdad (cambia un hook: OK de Pablo). Los
-  restos huérfanos no los trata ni `tarea` ni `retirar`: los borra Pablo, tras
-  mirar que `node_modules` no es una unión.
+  Arreglo: `npm run tarea` hace ahora un commit vacío (`tarea: arranca <rama>`)
+  nada más crear la rama, antes de copiar el entorno y de instalar nada, y
+  `retirar` no lo cuenta como trabajo sin subir (test en `scripts/tarea.test.js`).
+  Para una carpeta anterior a ese cambio, a mano:
+  `git commit --allow-empty -m "tarea: arranca <rama>"`. Y el hook ya solo borra
+  ramas que se subieron con su nombre (`git push -u`) y luego se fusionaron
+  (`scripts/limpiar-worktrees.test.js`); la copia que corre está en
+  `~/.claude/hooks/` de cada PC y se actualiza a mano desde `scripts/`.
+  Si pasa igual, los restos huérfanos no los trata ni `tarea` ni `retirar`: los
+  borra Pablo, tras mirar que `node_modules` no es una unión, y antes hay que
+  parar el `npm ci` que siga vivo (`taskkill /T` sobre su `tarea.mjs`).
 - **2026-10 · el PR que abre el token de Actions no lanza `tests.yml`.** Causa:
   un PR abierto con `GITHUB_TOKEN` no dispara otros workflows. Arreglo: lanzarlo
   a mano con `gh workflow run tests.yml --ref <rama>`. Es lo que frena la
@@ -119,4 +171,4 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://cli.github.com/manual/
 - https://docs.github.com/code-security/dependabot
 
-Comprobado el 2026-10-08: la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Sin probar: que un commit vacío evite de verdad el borrado en la próxima apertura de sesión.
+Comprobado el 2026-10-08: la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.
