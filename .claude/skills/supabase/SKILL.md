@@ -13,12 +13,21 @@ description: Úsala para operar la base de datos de MenuPlan en Supabase: una co
 - **De quién es**: cuelga del equipo de Vercel por el Marketplace (org
   `vercel_icfg_…`). El dueño y el que paga es el equipo de Vercel; no hay
   cuenta propia que transferir (comprobado el 7 oct 2026).
+- **Plan: «Supabase Free Plan»** (visto en Vercel y en Supabase el 2026-10-08):
+  500 MB de base de datos, 500 MB de RAM, CPU compartida, 5 GB de ancho de
+  banda, Frankfurt. **No incluye copias de seguridad** y tampoco la vuelta a un
+  minuto (PITR, que además exige Pro y un extra de pago). En Supabase el
+  proyecto cuelga de una organización que se llama «pabloartinano's projects»;
+  en Vercel, de la integración `icfg_qokeOhoFb9v7MHJ1bq8Yl050`, enlazada al
+  proyecto `dish-gallery-menuplan`. Los otros dos proyectos de Supabase de la
+  cuenta (`menuplan-staging`, `supabase-coffee-flame`) están suspendidos.
 - **Qué da**: Postgres, Auth (login con Google) y RLS. El código depende de
   las tres, por eso irse de Supabase no es un cambio de proveedor sin más.
 - **Escribir migraciones** no es de esta skill: `.claude/rules/migraciones.md`,
   `docs/datos/PRINCIPIOS.md` y el agente `datos`.
-- **Pendiente:** las copias continuas están activas (ver «Coste y límites»),
-  pero falta saber cuántos días guardan y no hay una restauración ensayada.
+- **Pendiente: no hay ninguna copia utilizable de esta base.** Ni la de Supabase
+  (plan Free) ni una propia. Es el hueco más grande del plano 8; la decisión está
+  en el issue #156.
 
 ## Claves y accesos
 
@@ -36,7 +45,7 @@ cuelga del equipo de Vercel.
 | Ensayar una migración | `node scripts/apply-migration.mjs <nombre>` (sin `--si`) | ejecuta y hace ROLLBACK |
 | Aplicar una migración (OK, o Pablo con `!`) | `node scripts/apply-migration.mjs <nombre> --si` | exige estar en staging, un ensayo de menos de una hora y el OK de `auditor-datos` en la cabecera |
 | Consulta a producción | como `scripts/verificar-estado.mjs`: `set session characteristics as transaction read only`, `begin read only`, solo `select`, `rollback` | filas o recuentos; aunque se colara un `update`, Postgres lo rechaza |
-| ¿Hay copias continuas? (pista, solo lectura) | `select archived_count, failed_count, last_archived_time from pg_stat_archiver` | `archived_count` que crece, `failed_count` en 0 y `last_archived_time` de hace unos minutos. El 2026-10-08: 8.620, 0, y hace menos de 15 minutos |
+| ¿Qué plan y qué copias tiene? | En el navegador: Vercel → Storage → «MenuPlan» → **Open in Supabase** → Database → Backups (pestañas «Scheduled backups» y «Point in time»). Sin sesión de Supabase propia, esa es la única entrada | el plan, y o la lista de copias o el aviso «Free Plan does not include project backups». El 2026-10-08 salió ese aviso |
 | Ver los jobs de `pg_cron` | `select jobname, schedule from cron.job` en solo lectura | `bot-recordatorios` y `bot-retencion` |
 | Programar o quitar el cron de recordatorios | `node scripts/bot-cron.mjs [url] [--quitar]` (por defecto, contra staging) | el job creado o quitado; el mismo `BOT_CRON_SECRET` tiene que estar en Vercel |
 | Ver quién es `anon` en una función | `select proname, proacl from pg_proc where proname = '<función>'` en solo lectura | `anon` ni `public` en el ACL |
@@ -59,6 +68,14 @@ cuelga del equipo de Vercel.
 
 ## Lo que falló y por qué
 
+- **2026-10-08 · esta skill daba por buena una «pista» de copias continuas y no
+  había ninguna copia.** La consulta de solo lectura `pg_stat_archiver` salía
+  sana (`archive_mode = on`, `wal-g`, 8.620 ficheros, 0 fallidos) y se tomó por la
+  señal de que Supabase guardaba el historial. Causa: ese archivado es de la
+  plataforma, y que funcione no quiere decir que el cliente pueda restaurar nada;
+  el panel dice que el plan Free no incluye copias. Arreglo: se miró el panel
+  (Vercel → Storage → MenuPlan → Open in Supabase → Backups) y la skill dejó de
+  citar el archivado como prueba. Un ajuste del servidor no sustituye al panel.
 - **2026-10-07 · el código usaba `user_recipe_discards` y la tabla no existía
   en producción.** Causa: nadie comprobaba el código contra el catálogo real; lo
   encontró `verificar-estado` el primer día. Arreglo: el 8 oct los descartes pasaron a ser
@@ -83,23 +100,28 @@ cuelga del equipo de Vercel.
   que ya existía. El SQL a mano que escribe, siempre negado.
 - Cambiar ajustes del panel: Auth, proveedores, URLs de retorno, plan, crons
   fuera de `scripts/bot-cron.mjs`.
-- Comprobar las copias en el panel (Database → Backups): qué plan hay, si hay
-  PITR y cuántos días guarda.
+- Subir de plan (Pro) o dar de alta cualquier gasto de Supabase.
+- Una copia propia de esta base: son datos de salud de familias (alergias, RGPD
+  art. 9) fuera de Supabase. Va cifrada y la decide él; la prepara `datos`.
 
 ## Coste y límites
 
 Lo paga el equipo de Vercel por el Marketplace. La base pesa 65 MB (2026-10-08).
 
-**Copias.** Hay archivado continuo de la bitácora de la base (`archive_mode = on`,
-`archive_command` con `wal-g`, `archive_timeout = 120`): 8.620 ficheros archivados,
-ninguno fallido, el último de hace minutos. Es la señal de que Supabase guarda el
-historial para volver a un minuto concreto (PITR), pero **no es una prueba**: no
-se ha visto el plan, ni cuántos días guarda, ni se ha restaurado nunca. La
-integración no aparece en la lista del conector de Vercel, así que el plan solo se
-ve en el panel de Supabase (Database → Backups). Hoy **no hay copia propia** de esta base: una
-copia diaria nuestra, restaurable en nuestro propio Postgres, sería la única que
-se podría ensayar (plano 8 de `ops/PLANOS.md`). Son datos de salud de familias
-(alergias, RGPD art. 9) en otro sitio: la decide Pablo, y iría cifrada.
+**Copias: ninguna.** El plan Free no las incluye. Las salidas, de menos a más
+coste:
+- **Copia propia diaria** (`pg_dump` de solo lectura, cifrado, al servidor de
+  Hetzner y de ahí al PC de Pablo): sin coste nuevo y restaurable en el Postgres
+  del panel, que ya se ensayó. Pide un rol de solo lectura en Supabase y una
+  decisión sobre datos de salud fuera de Supabase.
+- **Plan Pro**: hasta 7 días de copias diarias con restauración desde el panel.
+  Comprobar el precio en la pantalla de «Upgrade» antes de decidir.
+- **PITR** (volver a un segundo concreto): extra de pago encima de Pro, desde unos
+  100 $ al mes según el panel el 2026-10-08. No hace falta ahora.
+
+Otros límites del Free que muerden: 500 MB de base (hoy pesa 65 MB) y que los
+proyectos sin actividad se suspenden (los dos de pruebas lo están). La base de las
+familias es la única activa. Plano 8 de `ops/PLANOS.md`.
 
 ## Fuentes y comprobación
 
@@ -107,4 +129,4 @@ se podría ensayar (plano 8 de `ops/PLANOS.md`). Son datos de salud de familias
 - https://supabase.com/docs/guides/database/postgres/row-level-security
 - https://supabase.com/docs/guides/database/extensions/pg_cron
 
-Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; salvo el archivado de copias, que se consultó hoy en solo lectura contra producción (`pg_stat_archiver` y `pg_settings`). Sin comprobar: el plan de Supabase, los días que guarda, y restaurar.
+Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; salvo el plan y las copias, que se leyeron hoy en el panel de Vercel y en el de Supabase (Database → Backups, pestañas de copias programadas y de PITR), sin tocar nada. Sin comprobar: el precio del plan Pro, y restaurar una copia de Supabase (no hay ninguna).

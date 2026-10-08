@@ -47,12 +47,12 @@ jobs:
             echo "listo=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.config.outputs.listo == 'true'
         with:
           ref: staging
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         if: steps.config.outputs.listo == 'true'
         with:
           node-version: 22
