@@ -791,7 +791,8 @@ const detalleDe = (r, estilo) => [cambiosDe(r), r.time ? `${r.time} min` : "", e
  * Rasgos que piden en voz alta: «algo reconfortante», «de cuchara», «que no
  * pique», «algo barato». Salen de los atributos del Recetario Estrella
  * (connotacion, textura, picante, sabor: scripts/recetas-atributos-blandos.mjs;
- * costeNivel: derive/coste.js; caloriasNivel). Una receta sin el dato NO pasa
+ * costeNivel: lib/coste.js en modo granel, el mismo € por ración de la ficha;
+ * caloriasNivel). Una receta sin el dato NO pasa
  * el filtro: decir «barata» de una que no sabemos sería mentir.
  *
  * Si ninguna cumple, se devuelven las de siempre con un aviso para que Lola lo
