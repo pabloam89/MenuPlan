@@ -19,7 +19,7 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 
 | Workflow | Cuándo | Qué hace |
 |---|---|---|
-| `tests.yml` | PR a `staging` o `main`, push a `staging`, a mano | lint con línea base, tests y build. Es el check `tests` |
+| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | la línea «Runbook:» del PR, lint con línea base, tests y build. Es el check `tests` |
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano | precios de Mercadona; commitea y **empuja a `staging`** |
 | `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |
 | `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola |
@@ -38,6 +38,27 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
   retirar` las cierra. Un hook personal de Pablo (`~/.claude/hooks/limpiar-worktrees.mjs`)
   borra solo las que ve **fusionadas y limpias**, tras cada `gh pr merge` y al
   abrir cualquier sesión.
+
+- **Las skills se consultan y se rellenan por obligación, no por memoria**
+  (issue #164). El mapa único es `.claude/dominios-skills.json`: por skill, los
+  comandos de riesgo y las rutas del repo. Lo cruza `.claude/dominios-skills.test.js`
+  con `.claude/skills/`; una skill nueva se añade al mapa o el test falla. Dos
+  obstáculos lo leen:
+  - **Puerta de lectura** (`guardia.mjs`): la primera vez que una sesión lanza un
+    comando de riesgo de un dominio (`apply-migration`, `telegram-webhook.mjs set`,
+    `vercel env`, `op item`, `ssh` al panel, `gh api -X POST`…), se le niega con «abre
+    antes la skill X y reintenta». Si ya la abrió (herramienta `Skill` o `Read` de su
+    `SKILL.md`, que anota `skill-abierta.mjs`), pasa a la primera. Una vez por
+    skill y sesión: es un obstáculo, no un candado. Un subagente con la skill en
+    su `skills:` (gobierno, lola) no la necesita; si el hook no sabe qué agente
+    es, el coste es un reintento. Sin registro legible, no bloquea. Lo abierto
+    vive en `.git/claude-sesiones/skills/`.
+  - **Línea «Runbook:» del PR** (`scripts/runbook-pr.mjs`, primer paso del job
+    `tests`): si el PR toca rutas de un dominio, su cuerpo debe decir `Runbook:
+    actualizado (skill X)` (y el PR tocar `.claude/skills/X/`) o `Runbook: sin
+    novedades`. Sin dominio tocado, no hace falta. Dependabot y los bots quedan
+    exentos, y los push a `staging` (cron de Mercadona) no pasan por aquí. El
+    revisor mira si «sin novedades» es verdad.
 
 ## Claves y accesos
 
@@ -64,6 +85,8 @@ CLI `gh` va con la sesión de Pablo (`gh auth status`).
 | Borrarlas (OK) | `npm run podar -- --si` | GitHub y locales con `-d`; lo no fusionado sale como «decide Pablo» |
 | ¿Está en staging? | `git fetch origin` y mirar `origin/staging`, nunca el upstream de tu rama | el commit o la ausencia |
 | CI en rojo: reproducir un test | `npx vitest run <fichero>` | el mismo fallo que en el CI |
+| Comprobar a mano la línea «Runbook:» | `git diff --name-only origin/staging... > $TEMP/f.txt` y `PR_BODY="$(gh pr view <n> --json body -q .body)" node scripts/runbook-pr.mjs $TEMP/f.txt` | `Runbook: ok` y el motivo, o `FALLA` con qué línea poner |
+| El check `tests` falla en «Runbook del PR» | editar el cuerpo del PR (`gh pr edit <n> --body-file <f>`) y añadir la línea | el check vuelve a correr solo (el evento `edited`) |
 
 - **Ramas viejas:** GitHub borra la rama al fusionar el PR
   (`delete_branch_on_merge`), pero las de antes del 8 oct 2026 se quedaron.
@@ -171,4 +194,4 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://cli.github.com/manual/
 - https://docs.github.com/code-security/dependabot
 
-Comprobado el 2026-10-08: la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.
+Comprobado el 2026-10-08: la comprobación del runbook y la puerta de lectura, con sus tests y a mano en local (sin probarlas aún en un PR real de GitHub ni con el campo `agent_type` de un subagente de verdad); la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.

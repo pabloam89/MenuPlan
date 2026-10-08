@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { carpetaDe, decidir, sinAplicar } from "./guardia.mjs";
+import { cargarMapa } from "./dominios.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ESTADO_REAL = readFileSync(join(RAIZ, "supabase", "ESTADO.md"), "utf8");
@@ -291,5 +292,113 @@ describe("ESTADO.md de verdad", () => {
     expect(libres.size).toBeGreaterThan(0);
     const sinFichero = [...libres].filter((n) => !existsSync(join(RAIZ, "supabase", "migrations", `${n}.sql`)));
     expect(sinFichero).toEqual([]);
+  });
+});
+
+// ── La puerta de lectura de las skills ─────────────────────────────────────
+
+describe("puerta de lectura: abre la skill antes del primer comando de riesgo", () => {
+  const mapa = cargarMapa(RAIZ);
+  /** Un contexto con estado, como el registro real: lo abierto y lo avisado. */
+  const sesion = ({ abiertas = [], marcaOk = true, extra = {} } = {}) => {
+    const vistas = new Set(abiertas);
+    return ctx({
+      dominios: mapa,
+      skillAbierta: (s) => vistas.has(s),
+      marcarSkill: (s) => {
+        if (!marcaOk) return false;
+        vistas.add(s);
+        return true;
+      },
+      ...extra,
+    });
+  };
+
+  it("la primera vez niega y dice qué skill abrir; el reintento pasa", () => {
+    const c = sesion();
+    const r = decidir({ tool_name: "Bash", tool_input: { command: "node scripts/telegram-webhook.mjs set https://x.app/api/bot/telegram" } }, c);
+    expect(r.decision).toBe("deny");
+    expect(r.motivo).toMatch(/skill `telegram`/);
+    expect(r.motivo).toMatch(/reintenta/i);
+    expect(bash("node scripts/telegram-webhook.mjs set https://x.app/api/bot/telegram", c)).toBe(null);
+  });
+
+  it("si ya la abrió, pasa a la primera", () =>
+    expect(bash("node scripts/telegram-webhook.mjs delete", sesion({ abiertas: ["telegram"] }))).toBe(null));
+
+  it("la puerta es por skill: abrir una no abre las demás", () => {
+    const c = sesion({ abiertas: ["telegram"] });
+    expect(bash("vercel env add FOO", c)).toBe("deny");
+    expect(bash("vercel env add FOO", c)).toBe(null);
+  });
+
+  it("si el comando toca dos dominios, pide las dos de una vez", () => {
+    const r = decidir({ tool_name: "Bash", tool_input: { command: "ssh root@100.73.252.32 'tailscale up'" } }, sesion());
+    expect(r.decision).toBe("deny");
+    expect(r.motivo).toMatch(/`hetzner`/);
+    expect(r.motivo).toMatch(/`tailscale`/);
+  });
+
+  it("PowerShell también", () =>
+    expect(decidir({ tool_name: "PowerShell", tool_input: { command: "node scripts/telegram-perfil.mjs aplicar" } }, sesion())?.decision).toBe("deny"));
+
+  it("falla abierta: si no puede anotar que avisó, no bloquea (atascaría la sesión)", () =>
+    expect(bash("node scripts/telegram-webhook.mjs delete", sesion({ marcaOk: false }))).toBe(null));
+
+  it("sin mapa o sin registro, no hay puerta", () => {
+    expect(bash("node scripts/telegram-webhook.mjs delete")).toBe(null);
+    expect(bash("node scripts/telegram-webhook.mjs delete", ctx({ dominios: mapa }))).toBe(null);
+  });
+
+  it("las lecturas y lo de cada día no tienen puerta", () => {
+    const c = sesion();
+    for (const cmd of ["node scripts/verificar-estado.mjs", "git status --short", "gh pr view 3", "gh pr checks 3", "node scripts/telegram-webhook.mjs info", "npm test"]) {
+      expect(bash(cmd, c), cmd).toBe(null);
+    }
+  });
+
+  it("una regla que ya niega gana y no gasta la puerta", () => {
+    const c = sesion();
+    expect(bash("node scripts/apply-migration.mjs 0090_x --pablo", c)).toBe("deny");
+    const r = decidir({ tool_name: "Bash", tool_input: { command: "node scripts/apply-migration.mjs 0090_x" } }, c);
+    expect(r.motivo).toMatch(/skill `supabase`/);
+  });
+
+  // Lo que dejó colar la guardia dos veces: mirar un tramo y no el comando. La
+  // puerta mira el comando ENTERO; todo esto sigue pidiendo la skill.
+  describe.each([
+    ["tras un &&", "git fetch && node scripts/telegram-webhook.mjs delete"],
+    ["tras un ;", "echo hola; node scripts/telegram-webhook.mjs delete"],
+    ["tras un pipe", "echo y | node scripts/telegram-webhook.mjs delete"],
+    ["en otra línea", "git fetch\nnode scripts/telegram-webhook.mjs delete"],
+    ["con continuación de línea", "node scripts/telegram-webhook.mjs \\\n  delete"],
+    ["con continuación de PowerShell", "node scripts/telegram-webhook.mjs `\r\n  delete"],
+    ["dentro de bash -c", `bash -c "cd x; node scripts/telegram-webhook.mjs delete"`],
+    ["tras un ; dentro de comillas", `echo "a;b" && node scripts/telegram-webhook.mjs delete`],
+    ["en mayúsculas", "NODE SCRIPTS/TELEGRAM-WEBHOOK.MJS DELETE"],
+    ["con barras de Windows", "node scripts\\telegram-webhook.mjs delete"],
+    ["con la ruta absoluta", "node C:/dev/MenuPlan-x/scripts/telegram-webhook.mjs   set   https://x"],
+    ["en una variable", "X=delete; node scripts/telegram-webhook.mjs $X"],
+  ])("sigue negado %s", (_, cmd) => {
+    it(cmd.replace(/\s+/g, " "), () => expect(bash(cmd, sesion())).toBe("deny"));
+  });
+
+  it("gh api con método que escribe niega, y con -q de lectura no", () => {
+    expect(bash("gh api -X DELETE repos/o/r/branches/x", sesion())).toBe("deny");
+    expect(bash("gh api repos/o/r --method PATCH -f a=b", sesion())).toBe("deny");
+    expect(bash("gh api repos/pabloam89/MenuPlan -q .security_and_analysis", sesion())).toBe(null);
+  });
+
+  describe("skills precargadas de un agente", () => {
+    const delAgente = (agent_type) =>
+      decidir(
+        { tool_name: "Bash", agent_type, tool_input: { command: "ssh root@100.73.252.32 hostname" } },
+        sesion({ extra: { skillsDelAgente: (t) => (t === "gobierno" ? ["github", "hetzner", "tailscale"] : []) } }),
+      )?.decision ?? null;
+    it("gobierno ya trae hetzner: pasa", () => expect(delAgente("gobierno")).toBe(null));
+    it("otro agente, o sin saber cuál, paga un reintento", () => {
+      expect(delAgente("lola")).toBe("deny");
+      expect(delAgente(undefined)).toBe("deny");
+    });
   });
 });

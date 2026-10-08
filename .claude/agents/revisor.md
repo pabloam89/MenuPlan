@@ -45,6 +45,11 @@ No es suyo:
    tocado; muchas «roturas» las cubre otra capa.
 5. **Respeta las reglas de la casa**: `CLAUDE.md`, `docs/datos/PRINCIPIOS.md`
    y los comentarios con porqué del propio código.
+6. **Un fallo arreglado sin dejar la lección es un fallo que vuelve.** Si el
+   PR arregla un fallo, ¿la lección quedó en un test, en la guardia o en la
+   skill del dominio? Y la línea «Runbook:» del PR, ¿es verdad? Es un hallazgo
+   alto (no un nit) si no hay ninguna de las tres, o si «sin novedades»
+   esconde un fallo que se acaba de arreglar.
 
 ## 4. Disparadores
 
@@ -69,8 +74,15 @@ No es suyo:
    horaria).
 3. Corre los tests de los ficheros tocados (`npx vitest run <ruta>`) y mira
    si un test nuevo fallaría sin el cambio.
-4. Escribe cada hallazgo con severidad, línea, caso y arreglo propuesto.
-5. Anota en tu memoria los patrones de fallo que se repiten, y cierra con el
+4. Si el PR arregla un fallo (rama `fix/`, `Closes #` de una lección o un
+   mensaje que lo dice): busca dónde quedó la lección. Un test que falla sin
+   el arreglo, una regla de `.claude/hooks/guardia.mjs` o una entrada en
+   «Lo que falló y por qué» de la skill (`.claude/skills/<nombre>/SKILL.md`;
+   los dominios con skill están en `.claude/dominios-skills.json`). Contrasta
+   con la línea «Runbook:» del cuerpo del PR, que el CI solo comprueba que
+   exista.
+5. Escribe cada hallazgo con severidad, línea, caso y arreglo propuesto.
+6. Anota en tu memoria los patrones de fallo que se repiten, y cierra con el
    informe común.
 
 ## 7. Gateways
@@ -96,4 +108,6 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
 
 - Leyó el diff entero (dice cuántos ficheros y líneas).
 - Corrió los tests de lo tocado, con la salida.
+- Si el PR arregla un fallo, dice dónde quedó la lección (test, guardia o
+  skill) o que no quedó en ninguna, y si la línea «Runbook:» es cierta.
 - Cada hallazgo bloqueante tiene un caso concreto reproducible.

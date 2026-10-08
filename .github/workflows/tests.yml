@@ -14,6 +14,8 @@ name: Tests
 on:
   pull_request:
     branches: [staging, main]
+    # edited: editar el cuerpo del PR (la línea «Runbook:») vuelve a lanzarlo.
+    types: [opened, synchronize, reopened, edited]
   push:
     branches: [staging]
   workflow_dispatch:
@@ -31,10 +33,38 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Dos commits: en un PR, HEAD es la fusión con la base y HEAD^1 la base;
+          # su diferencia son los ficheros del PR (para el paso del runbook).
+          fetch-depth: 2
       - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
+      # Cada PR que toca un dominio con skill (supabase, github, vercel,
+      # 1password, telegram…) dice en su cuerpo «Runbook: actualizado (skill X)»
+      # o «Runbook: sin novedades». La lógica está en scripts/runbook-pr.mjs y
+      # el mapa de dominios en .claude/dominios-skills.json; aquí solo se
+      # alimenta. Va dentro del job `tests` porque es el único check obligatorio
+      # en main. Solo en pull_request: el push a staging (cron de Mercadona) y
+      # el lanzamiento a mano no tienen cuerpo de PR. Dependabot y los bots
+      # quedan exentos dentro del script. Va antes de npm ci: no necesita nada.
+      - name: Runbook del PR
+        if: github.event_name == 'pull_request'
+        run: |
+          # Si no se puede listar, el paso no bloquea (lista vacía): un check
+          # obligatorio que falla por la infraestructura bloquearía todos los PR.
+          git diff --name-only HEAD^1 HEAD > "$RUNNER_TEMP/ficheros-del-pr.txt" || {
+            echo "::warning::No he podido listar los ficheros del PR; no se comprueba el runbook."
+            : > "$RUNNER_TEMP/ficheros-del-pr.txt"
+          }
+          node scripts/runbook-pr.mjs "$RUNNER_TEMP/ficheros-del-pr.txt"
+        env:
+          # Por entorno y nunca interpolado en el script: el cuerpo lo escribe
+          # cualquiera y se ejecutaría como shell.
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
+          PR_RAMA: ${{ github.event.pull_request.head.ref }}
       - run: npm ci
       # Falla solo con errores de lint NUEVOS respecto a lint-base.json (ver
       # scripts/lint-base.mjs); los viejos se arreglan cuando se toca el fichero.
