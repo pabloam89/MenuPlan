@@ -8,6 +8,12 @@
  *
  * Detrás de BOT_TAREAS_V2: apagado, no se lee ni se escribe bot_idempotencia
  * (la 0080 puede no estar aplicada) y todo se comporta como antes.
+ *
+ * El mismo interruptor enciende la fase T2 de tareas.js (tipo, campo,
+ * persona_id y «aplazada»). Para encenderlo: 0080 aplicada, el índice de
+ * supabase/manual/0080b_indice_concurrente.sql creado, bot-evals pasadas (cambia
+ * cerrar_tarea) y en Production y Preview a la vez: comparten base, y un bot
+ * apagado no ve las aplazadas ni las cierra.
  */
 
 import { select, insert, update, borrar, eq } from "./db.js";

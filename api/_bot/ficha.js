@@ -31,6 +31,7 @@ import { describirRegla } from "../../src/lib/reglasTexto.js";
 import { hayTandasPedidas, minutosDeTanda, enHoras } from "../../src/lib/cookTime.js";
 import { SEMI, COCINADO } from "../../src/lib/tandaFamiliasDefs.js";
 import { comidasDeLaCasa, comida as comidaDelCatalogo } from "../../src/lib/comidas.js";
+import { claveDeTarea } from "../../src/lib/registroTareas.js";
 import { select, eq } from "./db.js";
 import { propiasDe } from "./propias.js";
 
@@ -105,8 +106,9 @@ export const alergiasRevisadas = (data, m) => m?.alergiasRevisadas ?? data?.alle
 export function preguntasPendientes(data = {}, calladas = new Set()) {
   return (data.members ?? [])
     .filter((m) => !alergiasRevisadas(data, m) && !(m.allergies ?? []).length)
-    .map((m) => ({ clave: `alergias:${m.id ?? m.name}`, nombre: m.name }))
-    // «No quiero decirlo» (bot_tareas rechazada): no se vuelve a pedir.
+    .map((m) => ({ clave: claveDeTarea({ tipo: "falta_saber", campo: "alergias", personaId: m.id ?? m.name }), nombre: m.name }))
+    // «No quiero decirlo» (bot_tareas rechazada), o «ahora te digo» aún sin
+    // vencer (aplazada, con BOT_TAREAS_V2): no se vuelve a pedir.
     .filter((p) => !calladas.has(p.clave));
 }
 
