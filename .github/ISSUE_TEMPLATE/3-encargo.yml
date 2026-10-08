@@ -1,0 +1,42 @@
+# Generado con la clasificación de scripts/lib/issues.mjs: las opciones de los
+# desplegables las vigila scripts/issues.test.js.
+name: Encargo
+description: Trabajo por hacer. Quien lo coge se asigna o lo dice aquí, para que otra sesión no lo haga a la vez.
+title: "[encargo] "
+labels: ["tipo:encargo"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        El repo es **público**: nada de claves, datos de familias ni fallos de seguridad que se puedan aprovechar. Eso va a Pablo en privado.
+  - type: textarea
+    id: que
+    attributes:
+      label: Qué
+      description: Qué hay que hacer y cuándo está hecho.
+    validations:
+      required: true
+  - type: input
+    id: quien
+    attributes:
+      label: Quién lo coge
+      description: Persona o sesión y rama (p. ej. «sesión de Pablo, ops/issues»). Vacío si está libre.
+  - type: textarea
+    id: ficheros
+    attributes:
+      label: Ficheros que toca
+      description: Para ver si choca con otro encargo en curso.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      description: La zona donde pasó o donde va el trabajo.
+      options:
+        - "datos — Esquema, migraciones, Supabase"
+        - "lola — El bot"
+        - "ui — La app: pantallas e iconos"
+        - "catalogo — Recetas, alimentos y nutrición"
+        - "motor — Planificador y solver"
+        - "ops — Git, CI, hooks, scripts, servicios"
+    validations:
+      required: true
