@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { leerTranscript, pendientesSinIssue } from "./pendientes.mjs";
+import { aMirar, leerTranscript, pendientesSinIssue } from "./pendientes.mjs";
 
 const linea = (content) => JSON.stringify({ type: "assistant", message: { content } });
 
@@ -27,6 +27,18 @@ describe("pendientes al terminar (#207)", () => {
     expect(pendientesSinIssue({ ultimo: "Queda pendiente el #94", comandos: ["gh issue comment 94 --body x"] })).toBe(false);
   });
   it("sin pendientes, no", () => expect(pendientesSinIssue({ ultimo: "Fusionado y retirado.", comandos: [] })).toBe(false));
+
+  // El transcript se escribe con retraso: al saltar Stop puede no llevar aún el
+  // mensaje final. Manda `last_assistant_message`; el transcript es respaldo.
+  it("el último mensaje sale de last_assistant_message, no del transcript atrasado", () => {
+    const atrasado = linea([{ type: "text", text: "Mientras tanto compruebo una cosa." }]);
+    const r = aMirar({ last_assistant_message: "Decisiones para Pablo:\n- rescatar el emparejador" }, atrasado);
+    expect(r.ultimo).toMatch(/emparejador/);
+    expect(pendientesSinIssue(r)).toBe(true);
+  });
+  it("sin el campo (versión vieja), el último texto del transcript", () =>
+    expect(aMirar({}, linea([{ type: "text", text: "hola" }])).ultimo).toBe("hola"));
+  it("sin transcript, comandos vacíos y sin romperse", () => expect(aMirar({ last_assistant_message: "x" }, "")).toEqual({ ultimo: "x", comandos: [] }));
 
   it("lee el último texto y los comandos del transcript", () => {
     const jsonl = [

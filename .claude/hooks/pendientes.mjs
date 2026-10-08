@@ -6,7 +6,8 @@
  * pidió. Si la sesión se hubiera cerrado, se perdían (encargo #207, de #185).
  *
  * Claude Code lo ejecuta cuando la sesión termina de responder (Stop, ver
- * .claude/settings.json). Si su último mensaje deja decisiones o pendientes y
+ * .claude/settings.json). Si su último mensaje (`last_assistant_message`, ver
+ * `aMirar`) deja decisiones o pendientes y
  * en toda la sesión no se ha creado ni comentado ningún issue, la frena UNA vez
  * con el recordatorio; la sesión decide si pasarlos a issues o explicar por qué
  * no hace falta. Nunca dos veces por sesión, ni en bucle (`stop_hook_active`).
@@ -72,6 +73,18 @@ export const RECORDATORIO = "[pendientes] Tu último mensaje deja decisiones o p
   + "El chat se pierde al cerrar: pasa cada decisión a un issue (`npm run issues -- --nuevo \"…\" --tipo decision --area … --cuerpo <fichero>`, que se asigna a Pablo) "
   + "y cada trabajo por hacer a un encargo, o di en una línea por qué no hace falta. Este aviso sale una sola vez por sesión.";
 
+/**
+ * Qué mirar, de lo que llega por stdin y del transcript. El último mensaje sale
+ * de `last_assistant_message`: el transcript se escribe con retraso y puede no
+ * llevar aún el mensaje final del turno (lo dice la documentación de hooks,
+ * sección Stop). El transcript solo da los comandos de la sesión y, si el campo
+ * no viene (una versión vieja de Claude Code), el último texto como respaldo.
+ */
+export function aMirar(entrada, transcript) {
+  const t = leerTranscript(transcript ?? "");
+  return { ultimo: entrada.last_assistant_message ?? t.ultimo, comandos: t.comandos };
+}
+
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 
 if (esPrincipal) {
@@ -79,12 +92,13 @@ if (esPrincipal) {
     let crudo = "";
     for await (const trozo of process.stdin) crudo += trozo;
     const entrada = JSON.parse(crudo);
-    if (entrada.stop_hook_active || !entrada.transcript_path || !existsSync(entrada.transcript_path)) process.exit(0);
+    if (entrada.stop_hook_active) process.exit(0);
     const dir = join(tmpdir(), "menuplan-pendientes");
     mkdirSync(dir, { recursive: true });
     const marca = join(dir, `${String(entrada.session_id ?? "x").replace(/\W/g, "")}.hecho`);
     if (existsSync(marca)) process.exit(0);
-    if (pendientesSinIssue(leerTranscript(readFileSync(entrada.transcript_path, "utf8")))) {
+    const transcript = entrada.transcript_path && existsSync(entrada.transcript_path) ? readFileSync(entrada.transcript_path, "utf8") : "";
+    if (pendientesSinIssue(aMirar(entrada, transcript))) {
       writeFileSync(marca, new Date().toISOString());
       process.stdout.write(JSON.stringify({ decision: "block", reason: RECORDATORIO }));
     }
