@@ -19,10 +19,10 @@ en otra rama); el 8 oct se suma la 0087, sin aplicar:
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **92** (con la 0090) |
+| Ficheros en `supabase/migrations/` | **93** (con la 0091) |
 | Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
 | Aplicadas | **84** |
-| **Sin aplicar** | **1** — `0021_store_products` (el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086, 0087, 0088, 0089 y 0090) |
+| **Sin aplicar** | **2** — `0021_store_products` y `0091_ids_persona_grupo_a_uuid` (esta, en la rama `datos/194-ids-uuid-migrar`; el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086, 0087, 0088, 0089 y 0090) |
 | En otras ramas | — |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
@@ -73,6 +73,7 @@ Sin testigo, y por tanto sin comprobar por el script: 0011, 0038, 0043, 0047,
 | `0088_bot_entradas` | aplicada el 8 oct 2026 (Pablo, con `--pablo` por el `delete` de la purga); `verificar-estado --solo 0088`: 3/3 | tabla `bot_entradas` (update_id de Telegram, una vez) y el job `bot-entradas-purga`. Aditiva; el código funciona sin ella. Testigo: la tabla y el job en `cron.job` |
 | `0089_personas_al_guardar` | **aplicada el 8 oct 2026** (la lanzó Pablo con `--pablo`; auditada por auditor-datos). Tras la puesta al día, las 35 casas cuadran: 92 personas en el JSON y 92 filas en `persona` | triggers `personas_al_crear` y `personas_al_guardar` sobre `household_state`: cada guardado copia la familia activa (`data.members`/`data.groups`, sin rosters aparcados ni invitados) a persona/grupo con `persona_sincronizar_casa`, en la misma transacción; si falla, WARNING y el guardado sigue. Al aplicarse, pone al día todas las casas (borra de persona a quien ya no está en el JSON, con sus tareas por la FK de la 0083: consulta previa en la cabecera). Necesita 0081 y 0082. Testigo: `select tgname from pg_trigger where tgname like 'personas_al_%'` |
 | `0090_casa_nueva_completa` | aplicada el 8 oct 2026 (Pablo, con `--pablo` por `security definer`); `verificar-estado --solo 0090`: 1/1 | `ensure_user_household` sin la copia de `user_recipe_discards` (no existe), que deshacía siempre el bloque de preparar la casa; si vuelve a fallar, WARNING en el log. Solo `create or replace` de la función; las casas ya a medias no se tocan. Testigo: `pg_proc.prosrc` de `ensure_user_household` contiene «no se pudo preparar la casa» |
+| `0091_ids_persona_grupo_a_uuid` | **sin aplicar** (rama `datos/194-ids-uuid-migrar`, issue #194). Ensayo del 8 oct 2026: 163 ids viejos (92 personas, 34 grupos, 37 solo en JSON), todas las comprobaciones en verde. La lanza Pablo con `--pablo` (reescribe y borra filas, SQL dinámico) | ids viejos de persona y grupo a UUID: copia persona/grupo con el id nuevo, mueve a la copia todas las FK que les apuntan (leídas de `pg_constraint`), borra la vieja ya sin nada colgando, y reescribe como token las columnas sin FK de su INVENTARIO (household_state con `bot_rev + 1`, user_state, user_menu_weeks, user_menu_recipes, cookings, shared_menus, bot_tareas, bot_messages sin el texto, bot_deshacer, user_events). Aborta si queda un id viejo en cualquier columna de texto o JSON de public o si cambia algún recuento. Crea `ids_uuid_equivalencias` (el mapa). Testigo: la tabla `ids_uuid_equivalencias`, y ninguna `persona.id` sin forma de UUID |
 
 ## La 0074 y la 0075, aplicadas el 2 oct 2026
 

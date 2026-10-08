@@ -180,7 +180,33 @@ titular.
 
 Destino: una columna `household_members.persona_id` con FK compuesta
 `(household_id, persona_id) → persona (household_id, id)`, con su `on delete
-set null`. Cuándo: DESPUÉS de la migración de menuplan-1e que pasa los ids de
-persona a uuid (bloque 0120+), para no crear una FK sobre un tipo que va a
-cambiar. Ese día se copia el mapa a la columna y el mapa deja de escribirse.
-Hasta entonces el mapa es una caché declarada.
+set null`. Cuándo: DESPUÉS de que persona.id pase a `uuid` (la transición de
+abajo), para no crear una FK sobre un tipo que va a cambiar. Ese día se copia
+el mapa a la columna y el mapa deja de escribirse. Hasta entonces el mapa es una
+caché declarada.
+
+## Ids de persona y grupo: valores UUID (0091) → columnas `uuid`
+
+Hoy (sin aplicar la 0091): persona.id, grupo.id, sus FK (`persona_alergia`,
+`persona_intolerancia`, `persona_estado`, `persona_perfil_salud`,
+`grupo_persona`, `bot_tareas.persona_id`) y `bot_tareas.para_member` /
+`asignado_member` son `text`, con 92 + 34 ids viejos el 8 oct 2026.
+`src/lib/ids.js` acepta las formas viejas a propósito.
+
+Paso 1: la 0091 pasa los VALORES a UUID en toda la base, con el mapa en
+`ids_uuid_equivalencias`. Paso 2, otra migración: los TIPOS de esas columnas a
+`uuid` (soltar y volver a poner las FK compuestas; `persona_sincronizar_casa` y
+`_persona_filas_de_estado` tienen que convertir `x->>'id'` a uuid, y saltar un
+id que no lo sea en vez de tumbar la copia). Paso 3: `ids.js` deja de aceptar
+`VIEJO_PERSONA` y `VIEJO_GRUPO`.
+
+Condición para el paso 2: la 0091 aplicada y una semana sin que reaparezca un id
+viejo (una PWA antigua guarda sin `p_bot_rev` y puede devolverlos). Debe dar 0:
+```sql
+select (select count(*) from public.persona where id !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
+     + (select count(*) from public.grupo   where id !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
+```
+Si no da 0, se vuelve a lanzar la 0091 tal cual (es idempotente y reutiliza
+el mismo UUID de `ids_uuid_equivalencias` para cada id viejo). Las columnas que
+guardan estos ids están en el INVENTARIO de la 0091, vigilado por
+`supabase/idsPersonaGrupo.test.js`.

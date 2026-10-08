@@ -70,6 +70,9 @@ const client = new pg.Client({
   ssl: { rejectUnauthorized: false },
 });
 await client.connect();
+// Lo que la migración cuenta con `raise notice` (filas tocadas, comprobaciones)
+// sale aquí; sin esto, el ensayo solo decía «válido».
+client.on("notice", (n) => console.log(`   [${n.severity ?? "NOTICE"}] ${n.message}`));
 
 const uno = async (q) => (await client.query(q)).rows[0];
 const antes = await uno("select count(*)::int n from information_schema.columns where table_name = 'recipes'");
