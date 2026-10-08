@@ -150,7 +150,7 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
 ## Lo que hace cumplir esto
 
 - **`arranque.mjs`** al abrir sesión: carpeta, rama, sesiones activas, números
-  de migración cogidos y migraciones sin aplicar.
+  de migración cogidos, migraciones sin aplicar e issues que esperan.
 - **`guardia.mjs`** antes de cada comando o edición: niega push a `main` o
   directo a staging, `git stash`, `git add .`, `vite build` a secas,
   `Set-Content`, tocar una migración aplicada (también por terminal), crear
@@ -163,4 +163,9 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
 - Las reglas por carpeta solo saltan con Read, Write o Edit, no por terminal:
   lo crítico va en la guardia.
 - **Cuando algo falla, la lección va a un test o a la guardia; si no se puede,
-  a una regla o una skill; a la memoria, nunca.**
+  a una regla o una skill; a la memoria, nunca.** Si no se arregla en el
+  momento, se abre un issue `tipo:leccion` (con causa y área) y se cierra con
+  la etiqueta `arreglo:` de dónde quedó. Decisiones pendientes y trabajo por
+  coger, también como issues (`tipo:decision`, `tipo:encargo`), no en el
+  chat ni en mensajes entre sesiones. `npm run issues` lo cuenta; el cómo, en
+  la skill `github`. El repo es público: nada sensible en un issue.
