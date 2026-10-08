@@ -89,6 +89,9 @@ let borrados = 0;
 for (const w of bloques.slice(1)) {
   const dir = resolve(w.worktree);
   if (dir === principal || !existsSync(dir)) continue;
+  // Los de un scratchpad (AppData\Local\Temp\claude\…) son de una sesión que
+  // puede estar usándolos ahora mismo para comparar: no se tocan.
+  if (/[\\/]AppData[\\/]Local[\\/]Temp[\\/]/i.test(dir)) continue;
   const rama = typeof w.branch === "string" ? w.branch.replace("refs/heads/", "") : null;
   // Desconectado (detached): se trata como mergeado si su HEAD está en staging/main.
   const sinSubir = rama ? intenta(() => git(["log", "--oneline", rama, "--not", "--remotes"], raiz)) : "";
