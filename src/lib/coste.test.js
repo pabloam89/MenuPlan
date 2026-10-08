@@ -35,11 +35,13 @@ describe("costeReceta: un número por receta y modo, lo lea quien lo lea", () =>
   });
 
   it("la tabla es el cálculo a granel sobre los precios de Mercadona, no otro número", () => {
-    for (const r of conPrecio.slice(0, 60)) {
+    // Una de cada 40: emparejar contra 3.000 productos es caro y basta con
+    // repartir la muestra por todo el catálogo.
+    for (const r of conPrecio.filter((_, i) => i % 40 === 0)) {
       const vivo = costeReceta({ ingredients: r.ingredients, baseServings: r.baseServings }, { modo: "granel", precios: MERCADONA });
       expect(vivo.porRacion, r.id).toBe(r.costeRacion);
     }
-  });
+  }, 120_000); // el primer emparejamiento indexa 3.000 productos: holgura con la suite entera
 
   it("una receta fuera de la tabla, a granel, da lo mismo por ración sea cual sea el número de comensales", () => {
     const receta = { ingredients: [{ name: "Merluza", unit: "g", amount: 500 }, { name: "Aceite de oliva", unit: "ml", amount: 30 }], baseServings: 4 };
