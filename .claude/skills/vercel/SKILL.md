@@ -67,6 +67,12 @@ arriba). La CLI `vercel` no está instalada en este PC.
 - **2026-10-01 · los vectores no funcionan en una preview.** Causa: la clave del
   gateway no está en Preview (ver «Claves y accesos»); no es un fallo. Arreglo:
   ninguno; el buscador cae a rasgos + Haiku.
+- **2026-10-08 · `vercel logs` devuelve como mucho 50 peticiones**, aunque se
+  pida `--limit 2000` (CLI 62.1.0), y sin avisar. Las da de la más nueva a la
+  más vieja, y `--until` incluye el instante límite. Arreglo: paginar hacia
+  atrás con `--since`/`--until` en ISO y quitar repetidos por `id`, como hace
+  `scripts/bot-fallos.mjs` (`paginar`). En producción puede no haber tráfico
+  reciente: el informe dice qué entorno y qué rango ha cubierto.
 
 ## Qué requiere el OK de Pablo
 
