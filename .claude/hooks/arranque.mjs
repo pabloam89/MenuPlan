@@ -17,6 +17,7 @@ import { execFile, execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
+import { ahoraEnMadrid } from "../../scripts/lib/hora.mjs";
 import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/limpiar-worktrees.mjs";
 import { sinAplicar } from "./guardia.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
@@ -55,6 +56,9 @@ const avisos = [];
 const rama = git("rev-parse", "--abbrev-ref", "HEAD");
 const esWorktree = git("rev-parse", "--git-dir") !== git("rev-parse", "--git-common-dir");
 
+// La hora real de Madrid (scripts/lib/hora.mjs, una sola fuente). En Git Bash
+// `TZ=Europe/Madrid date` da UTC sin avisar (#210).
+avisos.push(`Hora: ${ahoraEnMadrid()}. Durante la sesión, \`npm run hora\`; nunca \`date\` en Git Bash.`);
 avisos.push(`Carpeta: ${raiz} · rama: ${rama ?? "?"}${esWorktree ? " (worktree)" : ""}`);
 
 if (/onedrive/i.test(raiz)) {

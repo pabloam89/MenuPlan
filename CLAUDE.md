@@ -142,6 +142,25 @@ no antes.
 - Modelos: **Gemini para imágenes, Anthropic para texto.** Mira qué genera un
   script, no qué proveedor trae escrito.
 - No cambies de rama en una carpeta con cambios sin commitear.
+- **La hora es la de Madrid y sale de `npm run hora`** (o del arranque), nunca
+  de `date`: en Git Bash `TZ=Europe/Madrid date` da UTC sin avisar (#210).
+  Una hora límite que se le da a Pablo la calcula el script que la impone.
+
+## Pensar en datos
+
+Lo que se repite se diseña para poder contarse; todo se analiza mejor con
+cifras que con impresiones.
+
+- **Vocabulario cerrado, no texto libre**, para todo lo que se vaya a agrupar:
+  motivos de fallo, estados, causas, tipos, sitios. Una constante en JS (y un
+  CHECK si va a SQL) con su test, como `src/lib/vocabularios.js`.
+- **Cada cosa que pasa deja una línea estructurada** (`campo: valor`, sin datos
+  de familias) que un script pueda contar. Lo que no deja rastro no se mide, y
+  lo que no se mide no mejora.
+- **La clase, no el caso**: se arregla el caso y se ataca su problema de fondo
+  («Cuando algo falla», abajo). Una regla, un dato, una fuente que el resto usa.
+- **La cifra antes y después**: cuántos casos, desde cuándo y dónde, antes de
+  proponer un arreglo; la misma cifra después, para saber si sirvió.
 
 ## Acciones que SIEMPRE requieren un OK explícito de Pablo
 
