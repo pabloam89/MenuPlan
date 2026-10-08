@@ -66,8 +66,9 @@ en staging.
 ## Antes del PR (lo que no vigila la guardia)
 
 1. Fusiona `origin/staging` en tu rama y resuelve: hay sesiones en paralelo.
-   La guardia no deja abrir ni fusionar un PR con la rama atrasada; si al
-   fusionar ya va por detrás, `gh pr update-branch <n>` y espera el CI.
+   La guardia no deja abrir un PR con la rama atrasada, ni fusionarlo si
+   staging ha cambiado sus mismos ficheros desde entonces: en ese caso,
+   `gh pr update-branch <n>` (en un comando aparte) y espera el CI.
 2. `git status --short` y añade por nombre solo lo tuyo; si un fichero mezcla
    lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera.
 3. `npm test` y `npm run build`. Con el lint, `npm run lint:base`: cuenta la
@@ -162,8 +163,9 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
   directo a staging, `git stash`, `git add .`, `vite build` a secas,
   `Set-Content`, tocar una migración aplicada (también por terminal), crear
   una con un número que staging ya usa, SQL a mano contra producción y
-  `apply-migration --pablo` (solo de Pablo), abrir o fusionar un PR con
-  la rama atrasada respecto a staging y trabajar en la carpeta principal;
+  `apply-migration --pablo` (solo de Pablo), abrir un PR con la rama
+  atrasada o fusionarlo si staging pisó sus ficheros, y trabajar en la
+  carpeta principal;
   pregunta
   antes de un push forzado, de tocar permisos y hooks y de escribir por
   terminal lo que lee Lola. Cada regla,
