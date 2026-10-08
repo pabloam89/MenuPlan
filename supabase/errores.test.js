@@ -16,8 +16,8 @@ import { fileURLToPath } from "node:url";
  * Todo manejador cuya condición lleve `others` (también `… or others`) tiene,
  * en el nivel de arriba del manejador, un `raise` que llegue al log de
  * Supabase, que guarda de warning para arriba: `raise warning`, `raise
- * exception`, `raise;`, `raise '…'` sin nivel, `raise sqlstate …` o `raise
- * using …`. Un `raise notice` (o debug, log, info) no vale: repetiría #177 con
+ * exception`, `raise;`, `raise '…'` sin nivel, `raise sqlstate …`, `raise
+ * using …` o `raise <condición>` (`raise unique_violation`). Un `raise notice` (o debug, log, info) no vale: repetiría #177 con
  * el test en verde. Tampoco vale uno dentro de un `if`, `case`, `loop` o
  * bloque anidado, porque no siempre se ejecuta. Si se traga el error a
  * propósito, lo dice al lado con `-- a propósito: <porqué>`: dentro del
@@ -160,9 +160,11 @@ const ABRE_SENTENCIA = new Set([";", "then", "else", "loop", "begin"]);
 /**
  * Un `raise` que deja rastro en el log de Supabase, que guarda de warning para
  * arriba: `warning`, `exception`, `raise;` (relanza), sin nivel (es exception),
- * `sqlstate …` y `using …`. Notice, debug, log e info no llegan.
+ * `sqlstate …`, `using …` y el nombre de una condición (`raise
+ * unique_violation`, que es un error). Notice, debug, log e info no llegan.
  */
-const RAISE_QUE_AVISA = new Set(["warning", "exception", "sqlstate", "using", ";", "'"]);
+const RAISE_BAJO = new Set(["notice", "debug", "log", "info"]);
+const raiseAvisa = (sig) => sig[1] === ";" || sig[1] === "'" || (/^\w+$/.test(sig[1]) && !RAISE_BAJO.has(sig[1]));
 
 /**
  * Los manejadores del bloque `exception` que empieza en `pos`:
@@ -201,7 +203,7 @@ function manejadores(codigo, pos) {
       if (ABRE_SENTENCIA.has(anterior(codigo, m.index))) prof++;
     } else if (w === "raise" && prof === 0 && cur) {
       const sig = siguiente(codigo, re.lastIndex);
-      if (sig && RAISE_QUE_AVISA.has(sig[1])) cur.avisa = true;
+      if (sig && raiseAvisa(sig)) cur.avisa = true;
     }
   }
   if (cur) { cur.fin = m ? m.index : codigo.length; r.push(cur); }
@@ -293,7 +295,7 @@ describe("el lector de manejadores", () => {
     expect(mudos(fn("  begin perform 1;\n  exception when others then null;\n  end;"))).toHaveLength(1);
   });
 
-  it("acepta raise warning, exception, raise;, sin nivel, sqlstate y using", () => {
+  it("acepta raise warning, exception, raise;, sin nivel, sqlstate, using y una condición", () => {
     const buenos = [
       "raise warning 'x %', sqlerrm;",
       "raise exception 'x';",
@@ -301,6 +303,8 @@ describe("el lector de manejadores", () => {
       "raise 'x %', sqlerrm;",
       "raise sqlstate '22012';",
       "raise using message = 'x';",
+      "raise unique_violation;",
+      "raise division_by_zero using message = 'x';",
     ];
     for (const r of buenos) {
       expect(mudos(fn(`  perform 1;\nexception when others then\n  ${r}`))).toEqual([]);
@@ -311,6 +315,8 @@ describe("el lector de manejadores", () => {
     for (const nivel of ["notice", "debug", "log", "info"]) {
       expect(mudos(fn(`  perform 1;\nexception when others then\n  raise ${nivel} 'x %', sqlerrm;`))).toHaveLength(1);
     }
+    // Un nivel bajo sigue fallando aunque al lado se relance por nombre en otro manejador.
+    expect(mudos(fn("  perform 1;\nexception\n  when unique_violation then raise unique_violation;\n  when others then raise notice 'x';"))).toHaveLength(1);
   });
 
   it("others junto a otra condición con or también cuenta", () => {
