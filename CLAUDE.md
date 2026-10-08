@@ -153,7 +153,18 @@ escriben en ella. Cada migración es un cambio en producción.
   nunca se editan a mano ambos.
 - Cambios de modelo: primero el modelo (entidades, relaciones con `on delete`
   justificado, ciclo de vida, invariantes), luego el código. Lo lleva el
-  agente `datos`.
+  agente `datos` y lo juzga `auditor-datos` antes de aplicar.
+- **Todas las tablas con los mismos criterios** (`docs/datos/PRINCIPIOS.md`):
+  tercera forma normal, se guarda el id y no una copia del nombre, clave
+  natural `unique`, `not null` salvo decisión comentada, `timestamptz`, `text`
+  sin `varchar`, céntimos en `integer`, la unidad en el nombre de la columna,
+  `comment on table` en cada tabla nueva, índice en cada FK, y las secciones
+  17-21: salud (RGPD), quién y por dónde, cada orden una vez, el día de la casa
+  y estados con su fecha.
+- **Una tabla, un módulo dueño.** El código toca cada tabla desde un solo
+  módulo; nada de nombres de tabla, columnas o filtros PostgREST a mano por
+  ahí. `supabase/cableado.test.js` falla si un fichero nuevo se pone a tocar
+  una tabla (`node scripts/cableado.mjs` da el mapa).
 
 ## Código
 
@@ -215,12 +226,35 @@ nunca se desactiva sin decirlo.
 ## Agentes
 
 En `.claude/agents/`, todos con la misma estructura
-(`.claude/PLANTILLA-AGENTE.md`, vigilada por `.claude/agentes.test.js`):
+(`.claude/PLANTILLA-AGENTE.md`, vigilada por `.claude/agentes.test.js`). Cada
+uno es **constructor** (escribe) o **juez** (solo lee y opina): quien
+construye algo no lo juzga.
 
+Constructores:
 - **`gobierno`**: git, ramas, worktrees, CI, despliegues, permisos, hooks,
-  secretos y servicios. Custodia los gateways y lleva `ops/DECISIONES.md`.
+  secretos y servicios. Custodia los gateways y lleva `ops/DECISIONES.md` y
+  `ops/PLANOS.md`.
 - **`datos`**: esquema, migraciones, ESTADO.md, principios y modelo de datos.
   Propone y ensaya; aplicar en producción pasa por el gateway.
+- **`diseno`**: pantallas, tokens, design system, iconos y assets
+  (diagnóstico y plan en `docs/diseno/ESTADO.md`).
+- **`lola`**: el bot — herramientas, conocimiento, enrutador, coste por turno.
 
-Un subagente no puede preguntar a mitad de trabajo: devuelve sus decisiones
-pendientes y es la sesión principal la que se las plantea a Pablo.
+Jueces (sin Edit ni Write, pero con Bash: no escribir es convención, y el
+`revisor` lo vigila en el diff):
+- **`revisor`**: fallos reales en un diff, antes de fusionar.
+- **`qa`**: la app en el navegador, con capturas a 375 y 420 px.
+- **`evaluador`**: evals de Lola antes y después de cada cambio.
+- **`seguridad`**: RLS, endpoints, secretos, inyección en prompts.
+- **`auditor-datos`**: el modelo de datos con los mismos criterios para
+  todas las tablas — normalización, nombres y tipos, duplicados entre SQL,
+  JSON y constantes, y el cableado del código a cada tabla.
+
+Para encargos que necesitan más de un agente: **`/orquestar <encargo>`**
+(`.claude/commands/orquestar.md`) elige el pipeline, escribe el brief de cada
+agente y junta sus informes. Un subagente no puede preguntar a mitad de
+trabajo ni lanza otros agentes: devuelve sus decisiones pendientes y es la
+sesión principal la que se las plantea a quien lanzó la sesión.
+
+Aparcados en `.claude/agentes-aparcados/` (vuelven cuando haya trabajo
+para ellos): rendimiento y arquitecto.

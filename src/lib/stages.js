@@ -310,6 +310,38 @@ export function resolveAccountMember(members, accountMemberId, accountName) {
   return findAccountMember(members, accountName);
 }
 
+/**
+ * El `accountMemberId` marcado por ESTA cuenta.
+ *
+ * `data.accountMemberId` vive en el JSON de la casa, que es compartido: el
+ * titular y la cotitular pisaban el mismo valor y la segunda «era» el primero.
+ * Ahora cada cuenta guarda el suyo en `data.accountMemberIdByUser[userId]` (va
+ * con la casa a todos los dispositivos, y cada casa tiene su mapa). El valor
+ * viejo compartido solo vale de respaldo para el titular, que es quien lo
+ * marcaba antes de que hubiera cotitulares; a los demás les toca la adivinanza
+ * por nombre hasta que marquen el suyo.
+ *
+ * TRANSICIÓN (ver supabase/PENDIENTES.md): el sitio de verdad es
+ * `household_members.persona_id`, con FK compuesta a `persona`. Se hará
+ * DESPUÉS de que menuplan-1e pase los ids de persona a uuid (bloque 0120+),
+ * para no chocar con ese cambio de tipo. Hasta entonces este mapa es una caché
+ * declarada en el JSON de la casa, y el día de la columna se copia de aquí.
+ * @returns {string|null}
+ */
+export function miembroDeCuentaId(data, userId, { esTitular = true } = {}) {
+  const porUsuario = data?.accountMemberIdByUser;
+  if (userId && porUsuario && Object.prototype.hasOwnProperty.call(porUsuario, userId)) {
+    return porUsuario[userId] ?? null;
+  }
+  return (!userId || esTitular) && typeof data?.accountMemberId === "string" ? data.accountMemberId : null;
+}
+
+/** Marca (o desmarca con null) quién es esta cuenta en la familia. */
+export function conMiembroDeCuenta(data, userId, memberId) {
+  if (!userId) return { ...data, accountMemberId: memberId };
+  return { ...data, accountMemberIdByUser: { ...(data?.accountMemberIdByUser ?? {}), [userId]: memberId ?? null } };
+}
+
 export function findAccountMember(members, accountName) {
   const target = firstNameOf(accountName);
   if (!target) return null;

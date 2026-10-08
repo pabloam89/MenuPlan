@@ -1,12 +1,12 @@
 /**
- * Cada mensaje que llega de fuera se atiende una sola vez (0087).
+ * Cada mensaje que llega de fuera se atiende una sola vez (0088).
  *
  * Telegram reintenta una actualización si no le llega un 200 a tiempo, con el
  * mismo `update_id`. Sin esto, Lola atendía las dos: dos veces lo mismo en la
  * compra o en las tareas. Al llegar se apunta el id; si ya estaba, es un
  * reintento y no se hace nada.
  *
- * El código no depende de que la 0087 esté aplicada: si la tabla no existe o
+ * El código no depende de que la 0088 esté aplicada: si la tabla no existe o
  * la base falla, se atiende el mensaje como antes. Mejor un repetido raro que
  * un mensaje perdido.
  */

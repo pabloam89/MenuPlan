@@ -20,6 +20,7 @@ import { NOMBRE_PAPEL, papelDe, puede } from "./papeles.js";
  * @property {string} joinedAt
  * @property {string} createdAt
  * @property {boolean} isOwn
+ * @property {boolean|null} propia
  */
 
 /**
@@ -40,7 +41,37 @@ export function parseHouseholdRow(row) {
     joinedAt: String(r.joinedAt ?? r.joined_at ?? ""),
     createdAt: String(r.createdAt ?? r.created_at ?? ""),
     isOwn: Boolean(r.isOwn ?? r.is_own),
+    // La casa que le nació (households.propia, 0075). null mientras
+    // ensure_user_household no lo devuelva.
+    propia: r.propia == null ? null : Boolean(r.propia),
   };
+}
+
+/**
+ * ¿Soy el titular de esta casa? Un solo criterio para toda la app.
+ *
+ * La titularidad estaba en cuatro sitios: households.owner_user_id,
+ * household_members.role = 'owner', households.propia y el `isOwn` que calcula
+ * ensure_user_household. MANDA households.owner_user_id: es lo que mira la RLS
+ * (is_household_owner) y de él sale `isOwn`. `role` es su espejo (lo mantiene
+ * _transfer_household_ownership) y `propia` no dice quién manda, sino cuál de
+ * sus casas le nació (ver casaPropia).
+ * @param {HouseholdSummary|null|undefined} household
+ */
+export function esTitular(household) {
+  return Boolean(household?.isOwn);
+}
+
+/**
+ * Su casa propia: la que le nació, no cualquiera de la que sea titular. Tras
+ * heredar (0075) tiene dos, y la heredada suele ser la más antigua. Si
+ * ensure_user_household aún no manda `propia`, la primera de las suyas.
+ * @param {HouseholdSummary[]} households
+ * @returns {HouseholdSummary|null}
+ */
+export function casaPropia(households) {
+  const suyas = (households ?? []).filter(esTitular);
+  return suyas.find((h) => h.propia === true) ?? suyas.find((h) => h.propia !== false) ?? suyas[0] ?? null;
 }
 
 /**
@@ -334,7 +365,7 @@ export function resolveActiveHousehold(households, activeId) {
     const hit = households.find((h) => h.id === activeId);
     if (hit) return hit;
   }
-  return households.find((h) => h.role === "owner") ?? households[0];
+  return casaPropia(households) ?? households.find((h) => h.role === "owner") ?? households[0];
 }
 
 /**

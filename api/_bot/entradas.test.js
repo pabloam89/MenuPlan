@@ -1,5 +1,5 @@
 /**
- * El mismo update_id de Telegram se atiende una sola vez (0087), y sin la
+ * El mismo update_id de Telegram se atiende una sola vez (0088), y sin la
  * tabla todo sigue como antes. La base es un array en memoria.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -46,7 +46,7 @@ describe("primeraVez", () => {
     expect(filas).toEqual([]);
   });
 
-  it("sin la 0087 aplicada (o con la base caída) se atiende como antes", async () => {
+  it("sin la 0088 aplicada (o con la base caída) se atiende como antes", async () => {
     falla = 'POST /rest/v1/bot_entradas → 404 {"code":"42P01","message":"relation does not exist"}';
     expect(await primeraVez("telegram", 5)).toBe(true);
     expect(await primeraVez("telegram", 5)).toBe(true);

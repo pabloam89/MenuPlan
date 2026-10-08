@@ -15,6 +15,12 @@ import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 // ninguna aserción.
 vi.setConfig({ testTimeout: 20000 });
 
+// Todas las casas de este fichero llevan `allergiesReviewed: true`. Desde el
+// 8 oct 2026, alguien con las alergias sin revisar recibe un menú sin los 14
+// alérgenos (alergiasParaMenu en alergias.js, probado en alergiasMenu.test.js),
+// y estos tests son anteriores a eso: querían decir «sin alergias», no «no lo
+// sabemos».
+
 import {
   buildUserMessage,
   buildGroupContext,
@@ -95,7 +101,7 @@ describe("compact planner format", () => {
 
   it("generateMenuWithAI asks for planner-compact and accepts the slotId→recipeId map", async () => {
     const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 1 };
-    const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+    const data = { members: [{ id: "m1", age: 35 }], allergiesReviewed: true, groups: [group], schedule: {} };
     const ctx = buildGroupContext(data, group);
     const { recipes: pool } = filterRecipes(ctx.filterOpts);
     const primero = pool.find((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico"));
@@ -120,7 +126,7 @@ describe("buildGroupContext intolerances aggregation", () => {
   const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
 
   function dataWith(member) {
-    return { members: [{ id: "m1", age: 30, ...member }], groups: [group], schedule: {} };
+    return { members: [{ id: "m1", age: 30, ...member }], allergiesReviewed: true, groups: [group], schedule: {} };
   }
 
   it("passes through plain intolerances untouched", () => {
@@ -159,7 +165,7 @@ describe("buildGroupContext school menu avoidance (protein + carb)", () => {
   function dataWithSchoolMenu(courses) {
     return {
       members: [{ id: "m1", age: 10 }],
-      groups: [group],
+      allergiesReviewed: true, groups: [group],
       schedule: {},
       schoolMenus: { shared: {}, byMember: { m1: courses } },
     };
@@ -209,7 +215,7 @@ describe("pickCatalogReplacement respects school-menu avoidance", () => {
   function dataWithSchoolMenu(courses, extra = {}) {
     return {
       members: [{ id: "m1", age: 35 }],
-      groups: [group],
+      allergiesReviewed: true, groups: [group],
       schedule: {},
       schoolMenus: { shared: {}, byMember: { m1: courses } },
       ...extra,
@@ -291,7 +297,7 @@ describe("pickCatalogReplacement derives the target role from slot shape, not fr
   // that same wrong role and kept placing more primero-only dishes there —
   // reported as two ensaladas shown as 1º and 2º of the same comida.
   const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
-  const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+  const data = { members: [{ id: "m1", age: 35 }], allergiesReviewed: true, groups: [group], schedule: {} };
 
   it("never proposes a primero-only dish for a segundo slot, even when one is already incorrectly sitting there", () => {
     const misplacedPrimero = Object.values(recipeCatalogById).find(
@@ -340,7 +346,7 @@ describe("pickCatalogReplacement varies legume/marisco subtype across the whole 
   const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
 
   it("does not repeat the garbanzo subtype on a non-adjacent day when lentejas/alubias are available", () => {
-    const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {}, timeWeekday: 90, timeWeekend: 90 };
+    const data = { members: [{ id: "m1", age: 35 }], allergiesReviewed: true, groups: [group], schedule: {}, timeWeekday: 90, timeWeekend: 90 };
     const all = Object.values(recipeCatalogById);
     const garbanzoDishes = all.filter(
       (r) => legumeSubtypeOf(r) === "garbanzo" && r.mealRole?.includes("plato_unico") && r.time <= 90,
@@ -377,7 +383,7 @@ describe("pickCatalogReplacement varies legume/marisco subtype across the whole 
   });
 
   it("does not repeat the molusco subtype (mejillones/navajas/almejas) on a non-adjacent day when other cena options exist", () => {
-    const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {}, timeWeekday: 90, timeWeekend: 90 };
+    const data = { members: [{ id: "m1", age: 35 }], allergiesReviewed: true, groups: [group], schedule: {}, timeWeekday: 90, timeWeekend: 90 };
     const all = Object.values(recipeCatalogById);
     const moluscoCenas = all.filter(
       (r) => mariscoSubtypeOf(r) === "molusco" && r.mealRole?.includes("cena") && r.time <= 90,
@@ -430,7 +436,7 @@ describe("pickCatalogReplacement keeps the same-day protein group separated (rul
     // survive one tier longer than the neighbour-day preference.
     const data = {
       members: [{ id: "m1", age: 35 }],
-      groups: [group],
+      allergiesReviewed: true, groups: [group],
       schedule: {},
       timeWeekday: 90,
       timeWeekend: 90,
@@ -497,7 +503,7 @@ describe("generateGroupMenu: a forced fixed dish must not reintroduce a same-day
 
     const data = {
       members: [{ id: "m1", age: 35 }],
-      groups: [group],
+      allergiesReviewed: true, groups: [group],
       schedule: {},
       timeWeekday: 90,
       timeWeekend: 90,
@@ -585,7 +591,7 @@ describe("generateGroupMenu: a fixed dish forced after the freq cap is already m
 
     const data = {
       members: [{ id: "m1", age: 35 }],
-      groups: [group],
+      allergiesReviewed: true, groups: [group],
       schedule: {},
       timeWeekday: 90,
       timeWeekend: 90,
@@ -711,7 +717,7 @@ describe("generateGroupMenu baby group", () => {
   function babyData(memberOverrides) {
     return {
       members: [{ id: "baby1", age: 1, ...memberOverrides }],
-      groups: [group],
+      allergiesReviewed: true, groups: [group],
       schedule: {},
     };
   }
@@ -786,7 +792,7 @@ describe("pool exhaustion from MULTIPLE members' restrictions (filterRecipes err
       { id: "kid2", age: 6, allergies: ["Leche"], intolerances: ["sorbitol"] },
       { id: "kid3", age: 10, allergies: ["Huevos", "Pescado"], intolerances: ["vegano"] },
     ],
-    groups: [group],
+    allergiesReviewed: true, groups: [group],
     schedule: {},
     timeWeekday: 30,
     timeWeekend: 30,
@@ -805,7 +811,7 @@ describe("pool exhaustion from MULTIPLE members' restrictions (filterRecipes err
     // a pure/offline assertion: a non-exhausted pool would otherwise proceed
     // to call the LLM, which this test suite never mocks.
     const oneKidGroup = { id: "g1", label: "Niños", memberIds: ["kid1"] };
-    const oneKidData = { ...threeKidsData, members: [threeKidsData.members[0]], groups: [oneKidGroup] };
+    const oneKidData = { ...threeKidsData, members: [threeKidsData.members[0]], allergiesReviewed: true, groups: [oneKidGroup] };
     const ctx = buildGroupContext(oneKidData, oneKidGroup);
     const { error } = filterRecipes(ctx.filterOpts);
     expect(error).toBeNull();
@@ -813,7 +819,7 @@ describe("pool exhaustion from MULTIPLE members' restrictions (filterRecipes err
 
   it("does NOT exhaust the pool for kid3 (vegano) alone either", () => {
     const kid3Group = { id: "g1", label: "Niños", memberIds: ["kid3"] };
-    const kid3Data = { ...threeKidsData, members: [threeKidsData.members[2]], groups: [kid3Group] };
+    const kid3Data = { ...threeKidsData, members: [threeKidsData.members[2]], allergiesReviewed: true, groups: [kid3Group] };
     const ctx = buildGroupContext(kid3Data, kid3Group);
     const { error } = filterRecipes(ctx.filterOpts);
     expect(error).toBeNull();
@@ -860,7 +866,7 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 2 };
     const data = {
       members: [{ id: "m1", age: 35, allergies: ["Gluten"] }],
-      groups: [group],
+      allergiesReviewed: true, groups: [group],
       schedule: {},
       timeWeekday: 90,
       timeWeekend: 90,
@@ -988,7 +994,7 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
 
     const data = {
       members: [{ id: "m1", age: 35, allergies: ["Marisco"] }],
-      groups: [group],
+      allergiesReviewed: true, groups: [group],
       schedule: {},
       timeWeekday: 90,
       timeWeekend: 90,
@@ -1116,7 +1122,7 @@ describe("generateMenuWithAI extra meals (desayuno/merienda/postre) for a normal
         { id: "m1", age: 35 },
         { id: "kid1", age: 8 },
       ],
-      groups: [group],
+      allergiesReviewed: true, groups: [group],
       schedule: {},
       extraMeals: { desayuno: "variado", merienda: "semana", postre: "cena" },
     };
@@ -1173,7 +1179,7 @@ describe("generateMenuWithAI extra meals (desayuno/merienda/postre) for a normal
         { id: "m1", age: 35 },
         { id: "kid1", age: 8 },
       ],
-      groups: [group],
+      allergiesReviewed: true, groups: [group],
       schedule: {},
       extraMeals: { desayuno: "variado", merienda: "semana", postre: "cena" },
     };
@@ -1241,7 +1247,7 @@ describe("generateMenuWithAI extra meals (desayuno/merienda/postre) for a normal
     const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 1 };
     const data = {
       members: [{ id: "m1", age: 35 }],
-      groups: [group],
+      allergiesReviewed: true, groups: [group],
       schedule: {},
       extraMeals: { desayuno: "variado", postre: "cena" },
     };
@@ -1425,7 +1431,7 @@ describe("generateMenuWithAI groupCache", () => {
 
   it("reuses groups that already came back instead of calling the model again", async () => {
     const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 1 };
-    const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+    const data = { members: [{ id: "m1", age: 35 }], allergiesReviewed: true, groups: [group], schedule: {} };
     const ctx = buildGroupContext(data, group);
     const { recipes: pool } = filterRecipes(ctx.filterOpts);
     const primero = pool.find((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico"));
@@ -1455,7 +1461,7 @@ describe("generateMenuWithAI groupCache", () => {
 
   it("records calls, tokens and reused groups in the stats object", async () => {
     const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 1 };
-    const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+    const data = { members: [{ id: "m1", age: 35 }], allergiesReviewed: true, groups: [group], schedule: {} };
     const ctx = buildGroupContext(data, group);
     const { recipes: pool } = filterRecipes(ctx.filterOpts);
     const primero = pool.find((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico"));
@@ -1629,7 +1635,7 @@ describe("validarNinosConCopias — las cenas de los niños ven sus comidas copi
   const kids = { id: "gk", label: "Niños", memberIds: ["k1"] };
   const data = {
     members: [{ id: "a1", age: 40 }, { id: "k1", age: 8 }],
-    groups: [adults, kids],
+    allergiesReviewed: true, groups: [adults, kids],
     schedule: {},
     // Mediodía en familia (se copia de los adultos), cena aparte (se genera).
     kidDinnerConfig: { byMember: { k1: { weekdayLunch: "together", dinner: "different", weekend: "together" } } },
@@ -1689,7 +1695,7 @@ describe("pickCatalogReplacement no repite la base del día", () => {
   // horno de cena. Son dos proteínas distintas, así que la guardia de
   // proteínas no las veía — y es la misma cena dos veces.
   const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
-  const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+  const data = { members: [{ id: "m1", age: 35 }], allergiesReviewed: true, groups: [group], schedule: {} };
 
   it("con pasta en la comida, la cena no propone pasta", () => {
     const pasta = Object.values(recipeCatalogById).find(
@@ -1737,7 +1743,7 @@ describe("pickCatalogReplacement devuelve las sugerencias del hueco con `candida
   // la app tendría dos ideas distintas de "qué cabe aquí" y acabaría
   // proponiendo platos que su propio botón descarta.
   const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
-  const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+  const data = { members: [{ id: "m1", age: 35 }], allergiesReviewed: true, groups: [group], schedule: {} };
   const huecoVacio = { [group.id]: { "Lun-Cena": { recipeId: null, eaters: 2, cleared: true } } };
 
   it("devuelve como mucho N candidatos, y son recetas del catálogo", () => {
@@ -1787,7 +1793,7 @@ describe("las franjas de fuera de menú se sirven de su propio pool", () => {
   // de roles es de comida/cena; desayuno, merienda y postre tienen pools
   // propios en el catálogo, los mismos que usa el generador.
   const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
-  const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+  const data = { members: [{ id: "m1", age: 35 }], allergiesReviewed: true, groups: [group], schedule: {} };
   const hueco = (meal) => ({ [group.id]: { [`Lun-${meal}`]: { recipeId: null, eaters: 2, cleared: true } } });
 
   for (const [meal, categoria] of [["Desayuno", "desayunos"], ["Merienda", "meriendas"], ["Postre", "postres"]]) {
@@ -1822,7 +1828,7 @@ describe("pickCatalogReplacement con ids que no son del catálogo en el día", (
   // pedir un segundo cuando la comida lleva primero; el motor buscaba «_» en el
   // catálogo y getCarbType(undefined) rompía (staging, 2 oct 2026).
   it("no rompe y da candidatas", () => {
-    const data = { members: [{ id: "m1", age: 36 }], groups: [{ id: "g1", label: "Familia", memberIds: ["m1"] }], schedule: {} };
+    const data = { members: [{ id: "m1", age: 36 }], allergiesReviewed: true, groups: [{ id: "g1", label: "Familia", memberIds: ["m1"] }], schedule: {} };
     const plan = { g1: { "Jue-Comida": { recipeId: null, firstRecipeId: "_", eaters: 2 } } };
     const r = pickCatalogReplacement(data, plan, { groupId: "g1", day: "Jue", meal: "Comida", course: "main", candidatos: 10 });
     expect(r?.candidatos?.length).toBeGreaterThan(0);

@@ -99,7 +99,7 @@ export default async function handler(req, res) {
   waitUntil((async () => {
     try {
       // Y aun así a veces llega dos veces (una cola, un corte de red): el mismo
-      // update_id solo se atiende una (0087, entradas.js).
+      // update_id solo se atiende una (0088, entradas.js).
       if (!(await primeraVez("telegram", upd.update_id))) return;
       if (upd.callback_query) await pulsado(upd.callback_query, base, host);
       else if (upd.message) await atender(upd.message, base, host);

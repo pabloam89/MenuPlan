@@ -1,4 +1,4 @@
--- 0087: cada mensaje que llega de fuera se atiende una sola vez.
+-- 0088: cada mensaje que llega de fuera se atiende una sola vez.
 --
 -- Telegram reintenta una actualización si no recibe un 200 a tiempo (el
 -- webhook contesta enseguida, pero una cola de Vercel o un corte de red bastan)
@@ -18,6 +18,8 @@
 -- Normas 17-21 de PRINCIPIOS (en camino, ops/cimientos): clave identity,
 -- created_at, unique (proveedor, *_xid), texto sin espacios sobrantes, comment
 -- con el plazo de conservación.
+--
+-- Se escribió como 0087; otra rama cogió ese número antes (0087_menu_activo).
 
 set lock_timeout = '5s';
 
@@ -37,7 +39,7 @@ alter table public.bot_entradas enable row level security;
 revoke all on table public.bot_entradas from anon, authenticated;
 
 comment on table public.bot_entradas is
-  'Ids de lo que llega de fuera (update_id de Telegram; el de WhatsApp cuando llegue) para atender cada uno una sola vez. Solo servidor. Sin datos de la casa ni de la persona. Se conserva 7 días (job bot-entradas-purga). 0087.';
+  'Ids de lo que llega de fuera (update_id de Telegram; el de WhatsApp cuando llegue) para atender cada uno una sola vez. Solo servidor. Sin datos de la casa ni de la persona. Se conserva 7 días (job bot-entradas-purga). 0088.';
 comment on column public.bot_entradas.entrada_xid is
   'Id externo que pone el proveedor (Telegram update_id). Sin FK: es de fuera.';
 
