@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { vetosDe, vetosDeCasa, platoVetado } from "./vetos.js";
 import { libretaVacia, poner } from "./notepad.js";
 import { proyectarReglas } from "./reglas.js";
-import { buildGroupContext } from "./aiPlanner.js";
+import { buildGroupContext, pickCatalogReplacement } from "./aiPlanner.js";
 import { generateMenu } from "./planner.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { filterRecipes, filterOffMenuRecipes } from "../utils/filterRecipes.js";
@@ -152,6 +152,63 @@ describe("el bot y la app dicen lo mismo", () => {
     const nunca = estable.split("\n").find((l) => l.startsWith("- Nunca:"));
     expect(nunca).toBe(`- Nunca: ${vetosDeCasa(data, { hoy: HOY }).join(", ")}.`);
     expect(estable).not.toContain("coliflor");
+  });
+});
+
+describe("un veto caducado deja de vetar también al cambiar un plato", () => {
+  const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
+  const plan = { g1: { "Lun-Postre": { recipeId: "__ninguno__", eaters: 1 } } };
+  const conVeto = (hasta) => ({
+    members: [{ id: "m1", age: 40 }],
+    groups: [group],
+    schedule: {},
+    notepad: dicho(libretaVacia(), "excluidos.mantequilla", true, { hasta }),
+  });
+  const conMantequilla = (res) => (res?.candidatos ?? []).filter((r) => platoVetado(r, ["mantequilla"]));
+
+  it("con `hoy` explícito: dentro de la ventana veta, fuera no", () => {
+    const pedir = (hoy) => pickCatalogReplacement(conVeto("2026-10-31"), plan, { groupId: "g1", day: "Lun", meal: "Postre", candidatos: 60, hoy });
+    expect(conMantequilla(pedir("2026-10-20"))).toEqual([]);
+    expect(conMantequilla(pedir("2026-11-03")).length).toBeGreaterThan(0);
+  });
+
+  it("sin `hoy`, la fecha de hoy: lo que caducó hace años no veta", () => {
+    const res = pickCatalogReplacement(conVeto("2001-01-01"), plan, { groupId: "g1", day: "Lun", meal: "Postre", candidatos: 60 });
+    expect(conMantequilla(res).length).toBeGreaterThan(0);
+  });
+});
+
+describe("el ámbito de la libreta (@ninos, @adultos, @bebes) se respeta", () => {
+  const adultos = { id: "ga", label: "Adultos", memberIds: ["a"] };
+  const ninos = { id: "gn", label: "Niños", memberIds: ["k"] };
+  const data = {
+    members: [{ id: "a", name: "Ana", age: 40, homeRole: "Mamá" }, { id: "k", name: "Leo", age: 8, homeRole: "Hijo/a" }],
+    groups: [adultos, ninos],
+    schedule: {},
+    notepad: dicho(dicho(libretaVacia(), "excluidos.cebolla.@ninos", true), "excluidos.cilantro", true),
+  };
+
+  it("un veto de los niños no llega al menú de los mayores", () => {
+    expect(vetosDe(data, { grupo: adultos })).toEqual(["cilantro"]);
+    expect(vetosDe(data, { grupo: ninos })).toEqual(["cilantro", "cebolla"]);
+    expect(vetosDe(data, { persona: "a" })).toEqual(["cilantro"]);
+    expect(vetosDe(data, { persona: "k" })).toEqual(["cilantro", "cebolla"]);
+    expect(vetosDeCasa(data)).toEqual(["cilantro"]);
+  });
+
+  it("el motor lo ve igual, grupo a grupo", () => {
+    expect(buildGroupContext(data, adultos).filterOpts.dislikes).toEqual(["cilantro"]);
+    expect(buildGroupContext(data, ninos).filterOpts.dislikes).toEqual(["cilantro", "cebolla"]);
+  });
+
+  it("si comparten menú, el del niño alcanza al grupo (como los de una persona)", () => {
+    const familia = { id: "gf", label: "Familia", memberIds: ["a", "k"] };
+    expect(vetosDe({ ...data, groups: [familia] }, { grupo: familia })).toEqual(["cilantro", "cebolla"]);
+  });
+
+  it("la ficha del bot lo nombra con su ámbito", () => {
+    const { estable } = montarFicha({ state: { data } }, {}, HOY);
+    expect(estable).toContain("- Nunca: cilantro, cebolla (niños).");
   });
 });
 

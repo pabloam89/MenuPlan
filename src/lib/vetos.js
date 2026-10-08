@@ -13,7 +13,8 @@
  * ── De dónde salen ─────────────────────────────────────────────────────────
  *   · La libreta (`data.notepad`, claves `excluidos.<x>`): la fuente de verdad
  *     de la casa. Solo lo DICHO veta; lo visto o supuesto solo sesga
- *     (`proyectar`, lib/notepad.js). Se proyecta aquí, al leer, con la fecha.
+ *     (`proyectar`, lib/notepad.js). Se lee aquí, al leer, con la fecha y con
+ *     su ámbito: «a los niños, sin cebolla» no llega al menú de los mayores.
  *   · Las reglas de la casa (`data.excluidosReglas`): el delta de UNA
  *     generación (lib/reglas.js), nunca se guarda.
  *   · `members[].dislikes`: lo de una persona. Hoy solo lo escribe el delta de
@@ -38,8 +39,35 @@
  * Módulo ligero a propósito: la ficha del bot lo importa sin cargar el motor.
  */
 
-import { proyectar } from "./notepad.js";
+import { matizDe, vigente } from "./notepad.js";
 import { sinTildes } from "./rasgosBusqueda.js";
+import { tierForMember } from "./groups.js";
+
+// El ámbito de la libreta (`excluidos.x.@ninos`) contra el tramo de cada persona.
+const TRAMO_DE_AMBITO = { ninos: "child", adultos: "adult", bebes: "baby" };
+const NOMBRE_DE_AMBITO = { ninos: "niños", adultos: "adultos", bebes: "bebés" };
+
+/**
+ * Los vetos de la libreta CON su ámbito: `[{ valor, ambito }]`, «todos» si no
+ * lleva. Misma regla que `proyectar` (lib/notepad.js): solo lo dicho, con
+ * valor y vigente en `hoy` (sin `hoy`, sin calendario). Se lee aquí y no de
+ * `proyectar` porque esa pierde el ámbito, y cambiarla tocaría a sus otros
+ * lectores. El servicio (`#comida`/`#cena`) no se distingue: se veta en los
+ * dos, más estricto que lo pedido.
+ */
+function vetosDeLibreta(notepad, hoy) {
+  const out = [];
+  for (const [path, campo] of Object.entries(notepad?.campos ?? {})) {
+    const [campoId, valor, ...resto] = path.split(".");
+    if (campoId !== "excluidos" || !valor) continue;
+    if (!campo || campo.delegado || !campo.valor || matizDe(campo) !== "dicho") continue;
+    if (!vigente(campo, hoy)) continue;
+    out.push({ valor, ambito: resto.find((p) => p.startsWith("@"))?.slice(1) ?? "todos" });
+  }
+  return out;
+}
+
+const fechaDe = (data, hoy) => hoy ?? data?.vigenteEn ?? undefined;
 
 const escapar = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const clave = (s) => sinTildes(String(s ?? "").trim()).replace(/\s+/g, " ");
@@ -64,17 +92,31 @@ export function vetosDePersona(m) {
 }
 
 /**
- * Los vetos de la casa entera, sin los de cada persona.
+ * Los vetos de la casa entera: sin los de cada persona y sin los de la
+ * libreta con ámbito (`@ninos`…), que solo valen para quien toca.
  *
  * @param {object} data
  * @param {{ hoy?: string }} [opts] ISO. Sin él vale `data.vigenteEn` (la fecha
- *   de la semana que se genera, la pone prepararSemana); sin ninguno, no se
- *   mira el calendario, como la proyección de siempre.
+ *   de la semana que se genera, la pone prepararSemana; o la de hoy en un
+ *   cambio de plato, la pone pickCatalogReplacement); sin ninguno, no se
+ *   mira el calendario.
  */
 export function vetosDeCasa(data, { hoy } = {}) {
-  const fecha = hoy ?? data?.vigenteEn ?? undefined;
-  const libreta = data?.notepad ? proyectar(data.notepad, { hoy: fecha }).excluidos : [];
+  const libreta = vetosDeLibreta(data?.notepad, fechaDe(data, hoy))
+    .filter((v) => v.ambito === "todos")
+    .map((v) => v.valor);
   return unicos([...libreta, ...(data?.excluidosReglas ?? []), ...(data?.dislikes ?? [])]);
+}
+
+/** Los de la casa y los de la libreta con ámbito, para pintarlos: «cebolla (niños)». */
+export function vetosConAmbito(data, { hoy } = {}) {
+  const conAmbito = vetosDeLibreta(data?.notepad, fechaDe(data, hoy)).filter((v) => v.ambito !== "todos");
+  return [...vetosDeCasa(data, { hoy }).map((valor) => ({ valor, ambito: "todos" })), ...conAmbito];
+}
+
+/** «cebolla» o «cebolla (niños)». */
+export function textoDeVeto({ valor, ambito }) {
+  return ambito && ambito !== "todos" ? `${valor} (${NOMBRE_DE_AMBITO[ambito] ?? ambito})` : valor;
 }
 
 /**
@@ -95,7 +137,14 @@ export function vetosDe(data, { grupo, persona, hoy } = {}) {
     const id = typeof persona === "string" ? persona : persona.id;
     gente = gente.filter((m) => m.id === id);
   }
-  return unicos([...vetosDeCasa(data, { hoy }), ...gente.flatMap(vetosDePersona)]);
+  // Los de la libreta con ámbito («a los niños, sin cebolla»): solo si en ese
+  // grupo come alguien de ese tramo (lib/groups.js#tierForMember). Si comparten
+  // menú, alcanza al grupo entero, igual que el veto de una persona.
+  const tramos = new Set(gente.map((m) => tierForMember(m)));
+  const conAmbito = vetosDeLibreta(data?.notepad, fechaDe(data, hoy))
+    .filter((v) => v.ambito !== "todos" && tramos.has(TRAMO_DE_AMBITO[v.ambito]))
+    .map((v) => v.valor);
+  return unicos([...vetosDeCasa(data, { hoy }), ...conAmbito, ...gente.flatMap(vetosDePersona)]);
 }
 
 const patrones = new Map();

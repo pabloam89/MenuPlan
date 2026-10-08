@@ -48,6 +48,7 @@ import { lowerFirst } from "./dishNaming.js";
 import { aporteDe, fundirMicros } from "./derive/aporteAcompanamiento.js";
 import { computeRecipeNutrition } from "./ingredients.js";
 import { vetosDe } from "./vetos.js";
+import { isoLocalDate } from "./weekCalendar.js";
 
 /**
  * Los nombres por ración de los 24 micronutrientes. Los cuatro macros
@@ -3142,7 +3143,11 @@ const POOL_DE_FRANJA = {
   Postre: "postres",
 };
 
-export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false }) {
+export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false, pedido = false, hoy = null }) {
+  // Los vetos de la libreta se leen con fecha (lib/vetos.js): un cambio de
+  // plato es HOY, salvo que quien llama diga otra cosa (el bot pasa la de
+  // Madrid). Sin esto, un «sin X hasta el día 31» seguía vetando en noviembre.
+  if (hoy || !data?.vigenteEn) data = { ...data, vigenteEn: hoy ?? isoLocalDate(new Date()) };
   const group = (data?.groups ?? []).find((g) => g.id === groupId);
   if (!group) return null;
 

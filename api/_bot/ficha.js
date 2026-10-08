@@ -32,7 +32,7 @@ import { hayTandasPedidas, minutosDeTanda, enHoras } from "../../src/lib/cookTim
 import { SEMI, COCINADO } from "../../src/lib/tandaFamiliasDefs.js";
 import { comidasDeLaCasa, comida as comidaDelCatalogo } from "../../src/lib/comidas.js";
 import { claveDeTarea } from "../../src/lib/registroTareas.js";
-import { vetosDeCasa, vetosDePersona } from "../../src/lib/vetos.js";
+import { vetosConAmbito, textoDeVeto, vetosDePersona } from "../../src/lib/vetos.js";
 import { select, eq } from "./db.js";
 import { propiasDe } from "./propias.js";
 
@@ -307,9 +307,9 @@ function cocinaBloque(data, hoy) {
   // Las reglas de siempre («En casa sin carne los Lun»); las que caducan van en AHORA.
   const fijas = (data.reglas ?? []).filter((r) => !r?.vigencia?.hasta);
   if (fijas.length) lineas.push(`- Reglas: ${fijas.slice(0, 3).map((r) => describirRegla(r, data)).join("; ")}${fijas.length > 3 ? `; +${fijas.length - 3} (ver_ajustes)` : ""}.`);
-  // Los de la casa, de la libreta y con la fecha de hoy (lib/vetos.js); los de
-  // cada persona ya salen en CASA.
-  const nunca = vetosDeCasa(data, { hoy });
+  // Los de la casa, de la libreta, con la fecha de hoy y con su ámbito
+  // («cebolla (niños)», lib/vetos.js); los de cada persona ya salen en CASA.
+  const nunca = vetosConAmbito(data, { hoy }).map(textoDeVeto);
   if (nunca.length) lineas.push(`- Nunca: ${nunca.slice(0, 6).join(", ")}${nunca.length > 6 ? `, +${nunca.length - 6}` : ""}.`);
   const fijos = (data.fixedDishes ?? []).map((f) => f?.name ?? f?.nombre ?? f?.recipeName).filter(Boolean);
   if (fijos.length) lineas.push(`- Fijos: ${fijos.slice(0, 4).join(", ")}.`);

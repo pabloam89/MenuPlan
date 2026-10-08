@@ -614,7 +614,7 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos, ejes, perfil }, fotos, out);
   const m = await prepararRecetas(casa);
   const res = m.pickCatalogReplacement(conQuienViene(casa.state?.data ?? {}, [h.g.id], rf), casa.semana.plan, {
-    groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR, pedido: !!parecidoA,
+    hoy: hoyISO(), groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR, pedido: !!parecidoA,
   });
   // Rasgos, ejes y perfil filtran ANTES de ordenar y variar: variadas() elige
   // entre lo que ya cumple, no al revés.
@@ -1040,7 +1040,7 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
   let num = 0;
   for (const g of elegidos) {
     const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
-    const res = m.pickCatalogReplacement(conQuienViene(data, [g.id], deFuera), plan, { groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: POOL_PARA_VARIAR });
+    const res = m.pickCatalogReplacement(conQuienViene(data, [g.id], deFuera), plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: POOL_PARA_VARIAR });
     const nut = await prepararNutricion();
     const filtro = filtrarCandidatas(res?.candidatos ?? [], { rasgos, ejes, perfil, cual }, null, nut);
     if (filtro.aviso) bloques.push(filtro.aviso);
@@ -1097,11 +1097,11 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     let aproximada = false;
     let notaEjes = "";
     if (receta) {
-      const pool = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
+      const pool = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
       forcedRecipe = candidataPorNombre(pool?.candidatos ?? [], receta);
       if (!forcedRecipe) {
         // No está tal cual: la más parecida de todo lo que encaja en el hueco.
-        const grande = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_APROXIMAR, pedido: true });
+        const grande = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_APROXIMAR, pedido: true });
         forcedRecipe = masParecida(grande?.candidatos ?? [], receta);
         aproximada = !!forcedRecipe;
       }
@@ -1109,7 +1109,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     }
     const pideEjes = normalizarEjes(ejes);
     if (!receta && (rasgos || pideEjes.pedidos.length || pideEjes.invalidos || perfil)) {
-      const pool = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
+      const pool = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course, candidatos: POOL_PARA_ELEGIR });
       const nut = await prepararNutricion();
       const base = baseDelHueco(m, hueco, course, nut);
       const filtro = filtrarCandidatas(pool?.candidatos ?? [], { rasgos, ejes, perfil, cual: course === "first" ? "primero" : "principal" }, base, nut);
@@ -1119,7 +1119,7 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
       forcedRecipe = entre[Math.floor(Math.random() * entre.length)];
       if (pideEjes.pedidos.length && !base) notaEjes = " No había plato en ese hueco con el que comparar: he puesto una de las que más se ajustan a lo pedido. Dilo así.";
     }
-    const elegido = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
+    const elegido = m.pickCatalogReplacement(paraElegir, casa.semana.plan, { hoy: hoyISO(), groupId: g.id, day: dia, meal: franja, course, forcedRecipe });
     if (!elegido?.recipeId) { texto = "No he encontrado otro plato que encaje en ese hueco con vuestras preferencias."; return null; }
     const antes = m.RECIPES_BY_ID[course === "first" ? hueco.firstRecipeId : hueco.recipeId]?.name;
     m.registerRecipes([elegido.frontendRecipe]);
@@ -1146,9 +1146,9 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
         // El mismo plato que se pide: un entrante se añade también a los demás,
         // nunca se les cambia el principal.
         const curso = course;
-        const permitidas = m.pickCatalogReplacement(paraElegir, plan, { groupId: x.id, day: dia, meal: franja, course: curso, candidatos: POOL_PARA_APROXIMAR, pedido: true })?.candidatos ?? [];
+        const permitidas = m.pickCatalogReplacement(paraElegir, plan, { hoy: hoyISO(), groupId: x.id, day: dia, meal: franja, course: curso, candidatos: POOL_PARA_APROXIMAR, pedido: true })?.candidatos ?? [];
         if (!permitidas.some((r) => base(r.id) === base(elegido.recipeId))) { sinCambiar.push(x.label); continue; }
-        const suyoElegido = m.pickCatalogReplacement(paraElegir, plan, { groupId: x.id, day: dia, meal: franja, course: curso, forcedRecipe: elegido.frontendRecipe });
+        const suyoElegido = m.pickCatalogReplacement(paraElegir, plan, { hoy: hoyISO(), groupId: x.id, day: dia, meal: franja, course: curso, forcedRecipe: elegido.frontendRecipe });
         if (!suyoElegido?.recipeId) { sinCambiar.push(x.label); continue; }
         m.registerRecipes([suyoElegido.frontendRecipe]);
         plan[x.id][clave] = { ...suyo, [curso === "first" ? "firstRecipeId" : "recipeId"]: suyoElegido.recipeId, warnings: [] };
