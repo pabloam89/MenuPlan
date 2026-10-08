@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeAllergenId, recipeIngredientsHitAllergens } from "./allergensCore.js";
+import { normalizeAllergenId, recipeIngredientIdsHitFreeAllergy, recipeIngredientsHitAllergens } from "./allergensCore.js";
 import { filterGarnishes, filterRecipes, recipeViolatesHardSafety } from "../utils/filterRecipes.js";
 
 // Hueco de seguridad real en producción (aviso de menuplan-05): una persona
@@ -109,6 +109,47 @@ describe("alergias libres: plural, texto raro y todos los caminos", () => {
 
   it("un texto larguísimo se acota en vez de compilar un regex enorme", () => {
     expect(() => caso("pimiento ".repeat(500), "Pimiento rojo")).not.toThrow();
+  });
+
+  it("la puntuación pegada y las listas no dejan la alergia sin efecto", () => {
+    expect(caso("Tomates.", "Tomate frito")).toBe(true);
+    expect(caso("tomate/pimiento", "Pimiento rojo")).toBe(true);
+    expect(caso("Fresas, kiwi", "Fresa")).toBe(true);
+    expect(caso("Fresas, kiwi", "Kiwi")).toBe(true);
+    expect(caso("Kiwi y fresa", "Fresa")).toBe(true);
+    expect(caso("Fresas; kiwi", "Brócoli")).toBe(false);
+  });
+
+  it("lo de entre paréntesis es una nota, no el ingrediente", () => {
+    expect(caso("Tomate (crudo)", "Tomate frito")).toBe(true);
+    expect(caso("Tomate (crudo)", "Crudo de ternera")).toBe(false);
+    expect(caso("Fresa (leve", "Fresa")).toBe(true);
+  });
+
+  it("una letra suelta no bloquea todo lo que empiece por ella", () => {
+    expect(caso("a", "Ajo")).toBe(false);
+    expect(caso("(a|a)*b", "Brócoli")).toBe(false);
+  });
+
+  it("el nivel 2 recorta el texto y resuelve cada alergia una sola vez", () => {
+    const llamadas = [];
+    const resolutor = (texto) => {
+      llamadas.push(texto);
+      return texto.startsWith("brocoli") ? "brocoli" : null;
+    };
+    const ingredientes = [{ name: "x", ingredientId: "brocoli" }];
+    const largo = `brocoli ${"relleno ".repeat(2000)}`;
+    for (let i = 0; i < 50; i += 1) {
+      expect(recipeIngredientIdsHitFreeAllergy([largo], ingredientes, resolutor)).toBe(true);
+    }
+    expect(llamadas).toHaveLength(1);
+    expect(llamadas[0].length).toBeLessThanOrEqual(60);
+  });
+
+  it("el nivel 2 resuelve cada alternativa de una lista", () => {
+    const resolutor = (texto) => (texto === "kiwi" ? "kiwi" : texto === "fresa" ? "fresa" : null);
+    expect(recipeIngredientIdsHitFreeAllergy(["Fresa, kiwi"], [{ ingredientId: "kiwi" }], resolutor)).toBe(true);
+    expect(recipeIngredientIdsHitFreeAllergy(["Fresa, kiwi"], [{ ingredientId: "mango" }], resolutor)).toBe(false);
   });
 
   it("el generador principal (filterRecipes) deja fuera «Tomates», «Judía verde» y «Pimientos», que antes se colaban", () => {

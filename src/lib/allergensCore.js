@@ -167,17 +167,37 @@ function raizSinPlural(palabra) {
   return palabra;
 }
 
+/**
+ * El texto libre de una alergia como lista de ALTERNATIVAS, cada una una lista
+ * de palabras: «Fresas, kiwi» son dos («fresas» y «kiwi»), «Tomate (crudo)» es
+ * una sola («tomate»; lo de entre paréntesis es una nota, no el ingrediente) y
+ * la puntuación pegada («Tomates.») no se queda en la palabra. Sirve igual al
+ * id normalizado (con «_») que al texto original. Tokens de una letra fuera:
+ * no son un alimento y bloquearían todo lo que empiece por ella.
+ * @param {string} texto
+ * @returns {string[][]}
+ */
+function alternativasDeAlergiaLibre(texto) {
+  return normalizeText(String(texto ?? "").slice(0, MAX_CARACTERES_ALERGIA_LIBRE).replace(/_/g, " "))
+    .replace(/\([^)]*\)?/g, " ")
+    .split(/[,;/+]|\s(?:y|o|e)\s/)
+    .map((alt) => alt.split(/[^\p{L}\p{N}]+/u).filter((p) => p.length >= 2).slice(0, MAX_PALABRAS_ALERGIA_LIBRE))
+    .filter((palabras) => palabras.length > 0);
+}
+
+// Tope de lo que se recuerda: son pocas alergias por casa, pero el texto es
+// libre y el servidor vive mucho.
+const MAX_ENTRADAS_CACHE = 500;
 const regexDeAlergiaLibre = new Map();
 function regexParaAlergiaLibre(id) {
   if (regexDeAlergiaLibre.has(id)) return regexDeAlergiaLibre.get(id);
-  const palabras = normalizeText(String(id).slice(0, MAX_CARACTERES_ALERGIA_LIBRE).replace(/_/g, " "))
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, MAX_PALABRAS_ALERGIA_LIBRE)
-    .map((p) => escaparParaRegex(raizSinPlural(p)));
-  // «\w*\s+» entre palabras deja que una lleve plural («judias verdes»
-  // encuentra «judia verde») sin saltar de una palabra a otra a ciegas.
-  const re = palabras.length ? new RegExp(`\\b${palabras.join("\\w*\\s+")}`) : null;
+  const alternativas = alternativasDeAlergiaLibre(id).map((palabras) =>
+    // «\w*\s+» entre palabras deja que una lleve plural («judias verdes»
+    // encuentra «judia verde») sin saltar de una palabra a otra a ciegas.
+    palabras.map((p) => escaparParaRegex(raizSinPlural(p))).join("\\w*\\s+"),
+  );
+  const re = alternativas.length ? new RegExp(`\\b(?:${alternativas.join("|")})`) : null;
+  if (regexDeAlergiaLibre.size >= MAX_ENTRADAS_CACHE) regexDeAlergiaLibre.clear();
   regexDeAlergiaLibre.set(id, re);
   return re;
 }
@@ -232,10 +252,30 @@ export function recipeIngredientIdsHitFreeAllergy(allergiesRaw, recipeIngredient
   for (const raw of allergiesRaw ?? []) {
     const normalizado = normalizeAllergenId(raw);
     if (EU_ALLERGENS[normalizado] || INGREDIENT_ALLERGEN_KEYWORDS[normalizado]) continue;
-    const resuelto = resolveIngredientIdFn(raw);
-    if (resuelto && ids.has(resuelto)) return true;
+    if (idsDeAlergiaLibre(raw, resolveIngredientIdFn).some((id) => ids.has(id))) return true;
   }
   return false;
+}
+
+// Resolver una alergia cuesta (el resolutor prueba alias, raíz y recortes), y
+// se llama una vez por receta y por alergia en cada filterRecipes: se resuelve
+// una sola vez y se recuerda. Acotado como el resto: el texto se recorta y la
+// lista de alternativas también (ver alternativasDeAlergiaLibre).
+const idsResueltosPorResolutor = new WeakMap();
+function idsDeAlergiaLibre(raw, resolveIngredientIdFn) {
+  let recuerdo = idsResueltosPorResolutor.get(resolveIngredientIdFn);
+  if (!recuerdo) {
+    recuerdo = new Map();
+    idsResueltosPorResolutor.set(resolveIngredientIdFn, recuerdo);
+  }
+  const clave = String(raw);
+  if (recuerdo.has(clave)) return recuerdo.get(clave);
+  const resueltos = alternativasDeAlergiaLibre(raw)
+    .map((palabras) => resolveIngredientIdFn(palabras.join(" ")))
+    .filter(Boolean);
+  if (recuerdo.size >= MAX_ENTRADAS_CACHE) recuerdo.clear();
+  recuerdo.set(clave, resueltos);
+  return resueltos;
 }
 
 /**
