@@ -180,6 +180,11 @@ describe("el ingrediente es el núcleo aunque no vaya en cabeza tal cual", () =>
     ["rodaballo", "Filete de rodaballo"],
     ["pimiento choricero", "Carne de pimiento choricero Hacendado"],
     ["anchoas", "Filetes de anchoa en aceite de oliva Hacendado"],
+    // semillas delante, con o sin «de» (la lista de la compra, nombre crudo)
+    ["sesamo tostado", "Semillas sésamo tostado Hacendado"],
+    ["chia", "Semillas de chía Hacendado"],
+    ["lino", "Semillas lino dorado Hacendado"],
+    ["semillas de lino", "Semillas lino dorado Hacendado"],
     // el número
     ["almejas", "Almeja Hacendado congelada"],
     ["alcachofas", "Alcachofa troceada Hacendado ultracongelada"],
@@ -212,5 +217,19 @@ describe("el ingrediente es el núcleo aunque no vaya en cabeza tal cual", () =>
     expect(shouldSkipProduct("garbanzos", { name: "Garbanzos a la jardinera Hacendado" })).toBe(true);
     expect(shouldSkipProduct("macarrones", { name: "Macarrones Mac & Cheese Bacon Hacendado gratinados" })).toBe(true);
     expect(shouldSkipProduct("langostinos", { name: "Langostino caballitos rebozados Hacendado ultracongelados" })).toBe(true);
+    // pero la masa de empanada sí es «empanada»
+    expect(shouldSkipProduct("masa de empanada", { name: "Masa fresca empanada Hacendado" })).toBe(false);
+  });
+
+  // La lista de la compra empareja el nombre tal cual, sin la cadena de nombres
+  // del coste: estos dos se quedaban por debajo de la confianza alta.
+  it.each([
+    ["Carne picada", "Preparado de carne picada vacuno y cerdo", ["Preparado de carne picada pollo", "Tocino de cerdo"]],
+    ["Pollo", "Pollo entero", ["Pollo teriyaki", "Pollo asado Hacendado"]],
+  ])("la lista lleva «%s» a «%s»", (ingrediente, bueno, otros) => {
+    const catalogo = [bueno, ...otros].map((name, i) => ({ id: String(i), name, price: 10 - i }));
+    const m = matchProductForIngredient(ingrediente, catalogo);
+    expect(m.product.name).toBe(bueno);
+    expect(m.confidence).toBeGreaterThanOrEqual(0.7);
   });
 });

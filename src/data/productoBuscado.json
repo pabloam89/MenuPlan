@@ -4,7 +4,7 @@
     "porque": "Hay dos maneras de fallar al emparejar un ingrediente con un producto, y solo una la arregla el algoritmo. Los FALSOS POSITIVOS —«Atún fresco» acabando en «Butifarra fresca»— son un defecto del emparejador y se corrigieron en productMatcher.js. Los FALSOS NEGATIVOS no: el morcillo existe en Mercadona, pero se vende como «Trozo de vacuno para cocido», y no hay medida de parecido entre cadenas que una esas dos cosas. Eso lo sabe una persona o no lo sabe nadie.",
     "porque_terminos_y_no_ids": "El catálogo se refresca por cron y los identificadores de producto cambian con él; los nombres comerciales no. Fijar el término de búsqueda sobrevive al refresco y fijar el id no. Además un término puede seguir acertando cuando el súper cambia de proveedor, y un id caducado no falla: desaparece en silencio.",
     "como": "Clave = nombre del ingrediente normalizado (minúsculas, sin tildes). `buscar` son términos adicionales que se suman al nombre propio, no lo sustituyen. `motivo` es obligatorio: si nadie sabe por qué está una línea, nadie se atreve a tocarla.",
-    "verificado": "2026-09-21 contra public/store/mercadona.json. El test productoBuscado.test.js comprueba que cada clave es un ingrediente real y que cada término sigue encontrando algo en el catálogo."
+    "verificado": "2026-10-08 contra public/store/mercadona.json. El test productoBuscado.test.js comprueba que cada clave es un ingrediente real y que cada término sigue encontrando algo en el catálogo."
   },
 
   "ajetes": {
@@ -146,8 +146,20 @@
     "motivo": "«Ensalada queso de cabra» puntuaba más que cualquier queso. El que piden las recetas, a la plancha o gratinado, es el rulo."
   },
   "nueces": {
-    "buscar": ["nuez natural"],
-    "motivo": "El súper las vende en singular, «Nuez natural». En plural solo salen helados y trenzas con nueces."
+    "buscar": ["nuez natural pelada"],
+    "motivo": "El súper las vende en singular, «Nuez natural». En plural solo salen helados y trenzas con nueces. Pelada, porque la receta pesa la nuez sin cáscara: la de cáscara costaba la mitad por kilo y sacaba la ración a mitad de precio."
+  },
+  "menta fresca": {
+    "buscar": ["hierbabuena"],
+    "motivo": "La menta fresca de las recetas se vende como «Hierbabuena», en manojo. Antes se llevaba la «Infusión Menta Poleo»."
+  },
+  "salmon fresco": {
+    "buscar": ["filete de salmon"],
+    "motivo": "El fresco de pescadería es «Filete de salmón». Antes salía «Salmón marinado» (otro producto) o el paté. No «Lomos de salmón», que es congelado."
+  },
+  "maiz": {
+    "buscar": ["maiz dulce"],
+    "motivo": "El maíz de las recetas (y sus alias «Maíz cocido», «Maíz dulce») es el de lata o bolsa, «Maíz dulce». «Maíz» a secas empataba con «Maíz frito crujiente» y las palomitas."
   },
   "frutos rojos": {
     "buscar": ["mix frutos rojos"],

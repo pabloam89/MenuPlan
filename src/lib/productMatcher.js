@@ -31,6 +31,14 @@ export const MERCADONA_SEARCH_ALIASES = {
   endivia: ["endibia", "endibias"],
   tirabuzones: ["fusilli", "helices", "espiral"],
   nabo: ["nabo"],
+  // La lista de la compra empareja el nombre tal como lo escribe la casa, y
+  // «Carne picada» a secas no es un ingrediente del catálogo, así que no puede
+  // ir en productoBuscado.json. El súper la vende como «Preparado de carne
+  // picada …», con la picada detrás; la mixta es la genérica.
+  "carne picada": ["preparado de carne picada vacuno y cerdo"],
+  // Lo mismo con «Pollo» a secas (en el catálogo es «Pollo troceado»): empataba
+  // a 0,75 con «Pollo teriyaki» y «Pollo asado», y ganaba el envase barato.
+  pollo: ["pollo entero"],
 };
 
 // «preparado de» lleva un hueco a propósito: Mercadona llama «Preparado de
@@ -227,10 +235,14 @@ const CLASES = new Set(["pasta", "queso", "bebida"]);
  *
  * Los adjetivos de MODIFICADORES no entran aquí: «Dulce de leche» no es leche.
  * Tampoco «patas» ni «tiras», medidas en el catálogo: «Patas de pollo» no es
- * el pollo de una receta y «Tiras de maíz frito» es un aperitivo.
+ * el pollo de una receta y «Tiras de maíz frito» es un aperitivo. Ni
+ * «preparado»: «Preparado de coco» no es coco.
+ *
+ * «Semillas» sí: «Semillas sésamo tostado», «Semillas de chía» y «Semillas
+ * lino dorado» son el sésamo, la chía y el lino de la lista de la compra.
  */
 const PARTES = new Set([
-  "filete", "filetes", "lomo", "lomos", "cola", "colas",
+  "filete", "filetes", "lomo", "lomos", "cola", "colas", "semilla", "semillas",
   "carne", "pulpa", "hoja", "hojas", "trozo", "trozos", "taco", "tacos",
   "dado", "dados", "rodaja", "rodajas", "loncha", "lonchas",
   "medallon", "medallones", "pieza", "piezas",
@@ -271,9 +283,14 @@ function vaEnCabeza(normProducto, probeId) {
   if (!q.length || p.length < q.length) return 0;
 
   if (q.every((t, j) => t === p[j])) return SUELO_EXACTO;
-  const casaEn = (i) =>
-    p.length - i >= q.length &&
-    q.every((t, j) => mismoLema(t, p[i + j]) || (j > 0 && concuerda(t, p[i + j])));
+  // El «de» de dentro del nombre no cuenta: el súper lo come a menudo
+  // («Semillas lino dorado» son «Semillas de lino»).
+  const qSinDe = q.filter((t) => !PREPOSICION_DE.has(t));
+  const casaEn = (i) => {
+    const resto = p.slice(i).filter((t) => !PREPOSICION_DE.has(t));
+    return resto.length >= qSinDe.length &&
+      qSinDe.every((t, j) => mismoLema(t, resto[j]) || (j > 0 && concuerda(t, resto[j])));
+  };
   if (casaEn(0)) return SUELO_HOLGURA;
 
   const cabeza = p[0];
@@ -285,7 +302,11 @@ function vaEnCabeza(normProducto, probeId) {
   if (mismoLema(q[0], cabeza)) return 0;
   let i = 1;
   while (i < p.length && ADJETIVOS_INTERMEDIOS.has(p[i])) i++;
-  if (esParte && PREPOSICION_DE.has(p[i])) i++;
+  if (PREPOSICION_DE.has(p[i])) {
+    // Clase + «de» es materia, no especie: «Bebida de almendras».
+    if (!esParte) return 0;
+    i++;
+  }
   return casaEn(i) ? SUELO_HOLGURA : 0;
 }
 
@@ -400,7 +421,8 @@ export function shouldSkipProduct(ingredientId, product) {
     isPerishableAisle(aisle) ||
     /carne|pollo|ternera|cerdo|merluza|atun|emperador|pescad|lomo|secreto|gamb|calamar|bonito|salmon/.test(ing)
   ) {
-    if (PREPARED_DISH_RE.test(name)) return true;
+    // Salvo que el ingrediente sea lo mismo: la masa de empanada es «empanada».
+    if (PREPARED_DISH_RE.test(name) && !(/empanad/.test(ing) && /empanad/.test(name))) return true;
     if (/arroz|pasta|fideos|cous|spaghetti|macarron|lasaña/.test(name) && !/arroz|pasta|fideos|cous|spaghetti|macarron|lasaña/.test(ing)) {
       return true;
     }
