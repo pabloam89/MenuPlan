@@ -25,7 +25,11 @@ vi.mock("../_bot/telegram.js", () => ({
   escaparHtml: (s) => s, nombreDelBot: async () => "lola", TECLADO: {},
 }));
 vi.mock("../_bot/agente.js", () => ({ responder: vi.fn(async () => ({ texto: "respuesta de Lola", fotos: [] })), cortarCharla: vi.fn(), esCaida: () => false, AVISO_LENTO: {} }));
-vi.mock("../_bot/embudo.js", () => ({ registrar: vi.fn(async () => {}), rastro: vi.fn(async () => {}), EMBUDO: {}, duenoDe: vi.fn(async () => "u1") }));
+// duenoDeEstricto, la de verdad (con la base de mentira): con households rota tiene que lanzar.
+vi.mock("../_bot/embudo.js", async (original) => {
+  const real = await original();
+  return { registrar: vi.fn(async () => {}), rastro: vi.fn(async () => {}), EMBUDO: {}, duenoDe: vi.fn(async () => "u1"), duenoDeEstricto: real.duenoDeEstricto };
+});
 vi.mock("../_bot/router.js", () => ({ clasificar: vi.fn(async () => ({ modo: "consulta", confianza: 0.95, datos: {}, ms: 1, uso: {} })), vaPorLaRapida: () => true, permitidoEn: () => true }));
 vi.mock("../_bot/turno.js", () => ({ viaRapida: vi.fn(async () => ({ texto: "Hoy: tortilla" })), eleccionDe: () => null, aplicarEleccion: vi.fn(), contextoDe: vi.fn(async () => ({})) }));
 vi.mock("../_bot/uso.js", () => ({ fueraDeLimite: vi.fn(async () => null), contarUso: vi.fn(async () => 1) }));

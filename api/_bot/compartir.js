@@ -25,7 +25,7 @@ import { menuActivoDe } from "../../src/lib/menuActivo.js";
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, prepararRecetas, grupos, DIAS, recetasDeCasa, deSerieDelMotor } from "./menu.js";
-import { duenoDe, rastro } from "./embudo.js";
+import { duenoDe, duenoDeEstricto, rastro } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { nombreDelBot } from "./telegram.js";
 import { DIA_LARGO } from "../../src/lib/dias.js";
@@ -64,8 +64,8 @@ export async function cuentasDeQuien({ fromId, householdId }) {
     : [];
   // El dueño, sin tragarse el error (duenoDe sí lo hace): sin él no se puede
   // comprobar el bloqueo, y quien llama tiene que saberlo para decirlo (#208).
-  const [hogar] = householdId ? await select("households", `id=${eq(householdId)}`, "owner_user_id") : [];
-  return [ident?.user_id, hogar?.owner_user_id].filter(Boolean);
+  const dueno = householdId ? await duenoDeEstricto(householdId) : null;
+  return [ident?.user_id, dueno].filter(Boolean);
 }
 
 /** Una receta del catálogo con la forma de la app (ingredientes y pasos). */
