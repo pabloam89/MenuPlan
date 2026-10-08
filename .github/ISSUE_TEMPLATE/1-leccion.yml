@@ -58,17 +58,8 @@ body:
         - "ops — Git, CI, hooks, scripts, servicios"
     validations:
       required: true
-  - type: dropdown
-    id: arreglo
+  - type: textarea
+    id: donde
     attributes:
-      label: Arreglo
-      description: Dónde debería quedar para que no vuelva a pasar. Al cerrar, que sea donde quedó de verdad.
-      options:
-        - "test — Quedó en un test"
-        - "guardia — Quedó en la guardia (.claude/hooks/guardia.mjs)"
-        - "script — Quedó en un script que lo comprueba (tarea, retirar, apply-migration…)"
-        - "regla — Quedó en CLAUDE.md o en .claude/rules/"
-        - "skill — Quedó en un runbook de .claude/skills/"
-        - "ninguno — No hace falta, y el issue dice por qué"
-    validations:
-      required: true
+      label: Dónde debería quedar
+      description: Test, guardia, script, regla o skill, y cuál. La etiqueta arreglo se pone al cerrar, con dónde quedó de verdad.

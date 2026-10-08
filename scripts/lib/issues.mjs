@@ -53,9 +53,10 @@ export const GRUPOS = {
     },
   },
   arreglo: {
-    titulo: "Arreglo",
     color: "5319e7",
-    // Se pone al cerrar una lección: dónde quedó para que no vuelva a pasar.
+    // Se pone al cerrar una lección: dónde QUEDÓ, no dónde se pensaba ponerlo.
+    // Por eso no tiene `titulo` (no sale de un desplegable del formulario):
+    // si se pusiera al abrir, la tabla contaría intenciones y no resultados.
     obligatorioAlCerrar: (tipos) => tipos.has("leccion"),
     valores: {
       test: "Quedó en un test",
@@ -138,9 +139,11 @@ export function resumen(issues) {
     for (const c of g.causa.size ? g.causa : ["(sin causa)"]) {
       const fila = (causas[c] ??= { total: 0, abiertas: 0, diasCierre: [], arreglos: {} });
       fila.total++;
-      if (i.closedAt) fila.diasCierre.push(dias(i.createdAt, i.closedAt));
-      else fila.abiertas++;
-      for (const a of g.arreglo) fila.arreglos[a] = (fila.arreglos[a] ?? 0) + 1;
+      // Por el estado, no por closedAt: uno reabierto puede conservarlo.
+      if (String(i.state).toUpperCase() === "CLOSED" && i.closedAt) {
+        fila.diasCierre.push(dias(i.createdAt, i.closedAt));
+        for (const a of g.arreglo) fila.arreglos[a] = (fila.arreglos[a] ?? 0) + 1;
+      } else fila.abiertas++;
     }
   }
   for (const f of Object.values(causas)) f.medianaDias = mediana(f.diasCierre);

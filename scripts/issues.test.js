@@ -40,8 +40,10 @@ describe("clasificación de issues", () => {
   });
 
   it("lee lo rellenado en un formulario, como lo deja GitHub", () => {
-    const body = "### Cuándo\n\n2026-10-08\n\n### Causa\n\nvigilante-falso — Un vigilante bloqueó\n\n### Área\n\ndatos — Esquema\n\n### Arreglo\n\n_No response_";
+    const body = "### Cuándo\n\n2026-10-08\n\n### Causa\n\nvigilante-falso — Un vigilante bloqueó\n\n### Área\n\ndatos — Esquema\n\n### Dónde debería quedar\n\n_No response_";
     expect(etiquetasDeFormulario(body)).toEqual(["causa:vigilante-falso", "area:datos"]);
+    // El arreglo es dónde quedó: no se lee del formulario aunque alguien lo escriba.
+    expect(etiquetasDeFormulario("### Arreglo\n\ntest — x")).toEqual([]);
     expect(etiquetasDeFormulario("### Causa\n\ninventada — x")).toEqual([]);
   });
 
@@ -60,9 +62,11 @@ describe("clasificación de issues", () => {
       i(["tipo:leccion", "causa:entorno", "area:ops", "arreglo:test"], "2026-10-01", "2026-10-02"),
       i(["tipo:leccion", "causa:entorno", "area:ops", "arreglo:script"], "2026-10-01", "2026-10-04"),
       i(["tipo:leccion", "causa:entorno", "area:ops"], "2026-10-05"),
+      // Reabierta: conserva closedAt, pero cuenta como abierta.
+      { ...i(["tipo:leccion", "causa:entorno", "area:ops", "arreglo:regla"], "2026-10-01", "2026-10-02"), state: "OPEN" },
       i(["tipo:decision", "area:datos"], "2026-10-05"),
     ]);
-    expect(r.porTipo).toEqual({ leccion: 1, decision: 1 });
-    expect(r.causas.entorno).toMatchObject({ total: 3, abiertas: 1, medianaDias: 2, arreglos: { test: 1, script: 1 } });
+    expect(r.porTipo).toEqual({ leccion: 2, decision: 1 });
+    expect(r.causas.entorno).toMatchObject({ total: 4, abiertas: 2, medianaDias: 2, arreglos: { test: 1, script: 1 } });
   });
 });

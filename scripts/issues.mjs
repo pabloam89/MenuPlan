@@ -37,9 +37,14 @@ if (args.includes("--etiquetas")) {
     const tiene = new Set(i.labels.map((l) => l.name));
     const faltan = etiquetasDeFormulario(i.body).filter((e) => !tiene.has(e));
     if (!faltan.length) continue;
-    gh("issue", "edit", String(i.number), "--add-label", faltan.join(","));
-    console.log(`  #${i.number}: ${faltan.join(", ")}`);
-    n++;
+    try {
+      gh("issue", "edit", String(i.number), "--add-label", faltan.join(","));
+      console.log(`  #${i.number}: ${faltan.join(", ")}`);
+      n++;
+    } catch (e) {
+      // Lo normal: la etiqueta aún no existe en GitHub (`--etiquetas`). Se sigue con los demás.
+      console.log(`  #${i.number}: no pude poner ${faltan.join(", ")} (${String(e.stderr ?? e.message).trim().split("\n")[0]})`);
+    }
   }
   console.log(n ? `${n} issues etiquetados.` : "Nada que ordenar.");
 } else {
