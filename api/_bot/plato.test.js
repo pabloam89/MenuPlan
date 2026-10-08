@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { comidasDelDia, comidaElegida, faltaPara, quiereApuntar, preguntaComida } from "./plato.js";
+import { comidasDelDia, comidaElegida, faltaPara, quiereApuntar, preguntaComida, grupoDe } from "./plato.js";
 import { cuandoPorDefecto } from "./menu.js";
 import { vaPorLaRapida } from "./router.js";
 
@@ -72,5 +72,22 @@ describe("política de las plantillas nuevas", () => {
     expect(vaPorLaRapida(d("ausencia", { dia: "hoy", comida: "cena" }, 0.95))).toBe(true);
     expect(vaPorLaRapida(d("ausencia", { dia: "mañana" }, 0.85))).toBe(true);
     expect(vaPorLaRapida(d("ausencia", {}, 0.95))).toBe(false);
+  });
+});
+
+describe("el grupo que se mira", () => {
+  const casaCon = (groups, members) => ({ state: { data: { groups, members } } });
+
+  it("sin nombrarlo, el primero que no es del bebé: por sus personas, no por la etiqueta", () => {
+    const casa = casaCon(
+      [{ id: "p", label: "Peque", memberIds: ["m1"] }, { id: "f", label: "Familia", memberIds: ["m1", "m2"] }],
+      [{ id: "m1", name: "Vega", age: 1 }, { id: "m2", name: "Pablo", age: 39 }],
+    );
+    expect(grupoDe(casa, null)?.id).toBe("f");
+  });
+
+  it("sin personas a la vista, por la etiqueta como antes", () => {
+    const casa = casaCon([{ id: "b", label: "Bebé" }, { id: "t", label: "Todos" }], []);
+    expect(grupoDe(casa, null)?.id).toBe("t");
   });
 });

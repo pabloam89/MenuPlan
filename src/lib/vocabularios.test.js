@@ -11,6 +11,36 @@ import { USAGE_TAGS, USAGE_TAG_IDS } from "./userRecipes.js";
 import { BUILT_IN_COLLECTIONS, BUILT_IN_IDS } from "./recipeCollections.js";
 import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
 import { tipoDeGrupo } from "./groups.js";
+import { readFileSync, readdirSync } from "node:fs";
+
+/**
+ * Cada CHECK que se llame <tabla>_<col>_vocabulario → el nombre de su lista en
+ * VOCABULARIOS (y lo que admite de más, que no es un valor de la lista).
+ */
+const CHECK_A_VOCABULARIO = {
+  user_menu_weeks_active_days_vocabulario: { lista: "dias" },
+  user_pantry_pack_kind_vocabulario: { lista: "envases" },
+  user_recipes_required_appliances_vocabulario: { lista: "aparatos" },
+  user_recipes_usage_tags_vocabulario: { lista: "usos_receta" },
+  recipe_collections_collection_id_vocabulario: { lista: "carpetas_fijas", extra: ["fld\\_%"] },
+  bot_entradas_proveedor_vocabulario: { lista: "canales" },
+};
+
+/** { constraint: [literales] } de todas las migraciones; si una se redefine, gana la última. */
+function checksDeVocabulario() {
+  const dir = new URL("../../supabase/migrations/", import.meta.url);
+  const out = {};
+  for (const f of readdirSync(dir).filter((x) => x.endsWith(".sql")).sort()) {
+    const sql = readFileSync(new URL(f, dir), "utf8").split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
+    for (const m of sql.matchAll(/constraint\s+(\w+_vocabulario)\s+check\s*\(/gi)) {
+      // Hasta el paréntesis que cierra el check (…).
+      let i = m.index + m[0].length, nivel = 1;
+      while (i < sql.length && nivel > 0) nivel += sql[i] === "(" ? 1 : sql[i] === ")" ? -1 : 0, i++;
+      out[m[1]] = [...sql.slice(m.index + m[0].length, i - 1).matchAll(/'([^']*)'/g)].map((x) => x[1]);
+    }
+  }
+  return out;
+}
 
 describe("vocabularios: una lista, un sitio", () => {
   it("cada lista sin repetidos, sin vacíos y en NFC (los CHECK comparan bytes)", () => {
@@ -39,6 +69,17 @@ describe("vocabularios: una lista, un sitio", () => {
     expect(TIPOS_GRUPO).toContain(tipoDeGrupo({ label: "Dieta blanda", adHoc: true }));
   });
 
+  it("cada CHECK <tabla>_<col>_vocabulario de las migraciones dice lo mismo que su lista", () => {
+    const encontrados = checksDeVocabulario();
+    // Un CHECK de vocabulario nuevo sin entrada en CHECK_A_VOCABULARIO falla aquí: hay que decir su lista.
+    expect(Object.keys(encontrados).sort()).toEqual(Object.keys(CHECK_A_VOCABULARIO).sort());
+    for (const [constraint, literales] of Object.entries(encontrados)) {
+      const { lista, extra = [] } = CHECK_A_VOCABULARIO[constraint];
+      expect(vocabulario(lista), `${constraint}: no existe la lista ${lista}`).not.toBe(null);
+      expect([...literales].sort(), constraint).toEqual([...vocabulario(lista), ...extra].sort());
+    }
+  });
+
   it("vocabulario() devuelve la lista o null", () => {
     expect(vocabulario("dias")).toBe(VOCABULARIOS.dias);
     expect(vocabulario("no_existe")).toBe(null);
@@ -65,7 +106,7 @@ describe("registroCampos: la fuente de registro_campo", () => {
   it("registroTareas sigue viendo los mismos campos (CAMPOS y el enum de bot_tareas.campo)", () => {
     expect(CAMPOS).toBe(REGISTRO_CAMPOS);
     expect(CAMPOS_PREGUNTABLES).toEqual(["alergias", "etapaBebe"]);
-    if (ENUMS["bot_tareas.campo"]) expect(ENUMS["bot_tareas.campo"]).toEqual(CAMPOS_PREGUNTABLES);
+    expect(ENUMS["bot_tareas.campo"]).toEqual(CAMPOS_PREGUNTABLES);
     expect(CAMPOS.alergias.seguridad).toBe(true);
     expect(CAMPOS.etapaBebe.caduca_dias).toBe(21);
   });

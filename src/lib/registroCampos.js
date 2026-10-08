@@ -47,5 +47,8 @@ export const TIPOS_CAMPO = ["enum", "lista_enum", "int", "float", "bool", "fecha
 export const VOCABULARIOS_PENDIENTES = ["alergenos", "estados"];
 export const POLITICAS = ["nunca", "solo_si_lo_piden", "antes_de_usarlo", "de_pasada", "una_vez"];
 
-/** Los campos sobre los que una tarea puede preguntar (CHECK de bot_tareas.campo en 0080). */
+/**
+ * Los campos sobre los que una tarea puede preguntar: la lista del CHECK
+ * bot_tareas_campo_check de 0080 (aplicada, NOT VALID hasta el VALIDATE a mano).
+ */
 export const CAMPOS_PREGUNTABLES = Object.keys(REGISTRO_CAMPOS).filter((c) => REGISTRO_CAMPOS[c].politica !== "nunca");

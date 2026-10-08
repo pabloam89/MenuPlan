@@ -17,7 +17,7 @@
 
 import { select, eq } from "./db.js";
 import { cargarCasa } from "./casa.js";
-import { resolverDia, prepararRecetas, prepararNutricion, grupos, normal, DIA_LARGO } from "./menu.js";
+import { resolverDia, prepararRecetas, prepararNutricion, grupos, normal, papelEnElMenu, DIA_LARGO } from "./menu.js";
 import { COMIDAS_PRINCIPALES, articuloDe } from "../../src/lib/comidas.js";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -39,14 +39,15 @@ export function comidasDelDia(plan, dia) {
 }
 
 /** El grupo que se mira: el que nombran, o el primero que no es solo de bebé. */
-function grupoDe(casa, para) {
+export function grupoDe(casa, para) {
   const gs = grupos(casa);
   if (para) {
     const q = normal(para);
     const g = gs.find((x) => normal(x.label).includes(q) || q.includes(normal(x.label)));
     if (g) return g;
   }
-  return gs.find((g) => !/beb/i.test(g.label ?? "")) ?? gs[0] ?? null;
+  const members = casa.state?.data?.members ?? [];
+  return gs.find((g) => papelEnElMenu(g, members) !== "bebe") ?? gs[0] ?? null;
 }
 
 /**
