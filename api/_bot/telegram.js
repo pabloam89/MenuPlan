@@ -4,6 +4,8 @@
  * fichero y el adaptador, no el agente.
  */
 
+import { seguirCon } from "./avisar.js";
+
 const API = "https://api.telegram.org";
 
 // El teclado fijo de los chats privados: lo de todos los días a un toque. Cada
@@ -160,5 +162,5 @@ export async function nombreDelBot() {
 }
 
 export const escaparHtml = (s) =>
-  String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");import { seguirCon } from "./avisar.js";
+  String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 

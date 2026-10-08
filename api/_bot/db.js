@@ -40,6 +40,18 @@ export function config() {
   return { url, key, headers };
 }
 
+/**
+ * Lo que se guarda de un error de PostgREST: solo `code` y `message`. Fuera
+ * `details` y `hint`: el DETAIL de Postgres puede llevar la fila entera (un
+ * token de enlace, por ejemplo) y el mensaje acaba en los logs.
+ */
+export function resumenDeError(text) {
+  let j = null;
+  try { j = JSON.parse(text); } catch { /* a propósito: no es JSON; abajo, el texto recortado */ }
+  if (j && typeof j === "object" && (j.code || j.message)) return [j.code, j.message].filter(Boolean).join(" ").slice(0, 300);
+  return String(text ?? "").slice(0, 300);
+}
+
 async function pedir(ruta, { method = "GET", body, prefer } = {}) {
   const { url, headers } = config();
   const ctrl = new AbortController();
@@ -52,7 +64,7 @@ async function pedir(ruta, { method = "GET", body, prefer } = {}) {
       signal: ctrl.signal,
     });
     const text = await res.text();
-    if (!res.ok) throw new Error(`${method} ${ruta.split("?")[0]} → ${res.status} ${text.slice(0, 300)}`);
+    if (!res.ok) throw new Error(`${method} ${ruta.split("?")[0]} → ${res.status} ${resumenDeError(text)}`);
     const datos = text ? JSON.parse(text) : null;
     // Un rpc que guarda contesta { ok }: solo cuenta si fue ok (un choque de
     // versión no es una escritura). Un PATCH que no tocó ninguna fila, tampoco.

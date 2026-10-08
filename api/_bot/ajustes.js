@@ -658,6 +658,7 @@ export async function sembrarCasa(householdId) {
 // Calculados en el build (scripts/build-bot-core.mjs). Si no está el fichero
 // (pruebas sin build), se calculan con el motor, como antes.
 let dominiosHechos = null;
+let avisadoSinDominios = false;
 export async function dominiosDeGustos() {
   if (dominiosHechos) return dominiosHechos;
   try {
@@ -666,7 +667,8 @@ export async function dominiosDeGustos() {
     if (dominiosHechos) return dominiosHechos;
   } catch (e) {
     // a propósito: sin build (en local y en los tests) no hay fichero; con el motor.
-    console.warn("[ajustes] sin dominiosGustos.json, con el motor:", e?.message);
+    if (!avisadoSinDominios) console.warn("[ajustes] sin dominiosGustos.json, con el motor:", e?.message);
+    avisadoSinDominios = true;
   }
   const m = await motor();
   return m.CAMPOS.filter((c) => c.panel !== false).map((c) =>

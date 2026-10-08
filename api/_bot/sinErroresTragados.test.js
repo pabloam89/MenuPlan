@@ -9,6 +9,13 @@
 // Tragarse un error a propósito se puede, pero escrito: el comentario
 // «a propósito: …» en la línea del catch, en la de antes o dentro, y si el
 // error no sale por otro lado, un console.warn con el motivo.
+//
+// Límites conocidos (los cierra el detector común sobre AST, #202; no se
+// parchean aquí):
+// - No ve el segundo argumento de `.then(ok, rechazo)`.
+// - «a propósito», `throw` o `console.warn` dentro de un comentario o una
+//   cadena del cuerpo cuentan como aviso.
+// - Un `.catch(nombre)` se da por bueno sin mirar qué hace el manejador.
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";

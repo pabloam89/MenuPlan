@@ -416,8 +416,8 @@ const RUTA = "bot_route";
 /** Lo último que dijo Lola en este chat (y su propuesta de opciones, si la hubo). */
 async function ultimaDeLola(chatId) {
   // Pregunta y respuesta comparten created_at: el id desempata (memoria.js).
-  // a propósito: sin la última, el turno va sin ella
-  const filas = await select("bot_messages", `channel=eq.telegram&chat_id=${eq(chatId)}&order=created_at.desc,id.desc&limit=2`, "role,content").catch(seguirCon("última de Lola", []));
+  // Sin la última, el turno sigue sin ella (sin aclaraciones ni elecciones), pero es un fallo.
+  const filas = await select("bot_messages", `channel=eq.telegram&chat_id=${eq(chatId)}&order=created_at.desc,id.desc&limit=2`, "role,content").catch(fallaCon("última de Lola", []));
   const f = filas.find((x) => x.role === "assistant");
   // Tras un /nueva (marcador de corte) no hay «último» que valga.
   if (!f || filas[0]?.content?.corte) return null;
@@ -502,8 +502,8 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   if (prop?.tipo === "aclarar" && permitidoEn(prop.modo, chatDe)) {
     const comida = comidaElegida(texto);
     if (comida) {
-      // a propósito: sin plantilla, el turno pasa a Lola
-      const r = await viaRapida({ modo: prop.modo, datos: { ...prop.datos, comida } }, householdId, { autor }).catch(seguirCon("aclarar/vía rápida", null));
+      // Sin plantilla el turno pasa a Lola, pero la vía rápida escribe: que se vea.
+      const r = await viaRapida({ modo: prop.modo, datos: { ...prop.datos, comida } }, householdId, { autor }).catch(fallaCon("aclarar/vía rápida", null));
       marca("aclaración aplicada");
       if (r) {
         await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
@@ -512,8 +512,8 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
     }
   }
   if (prop?.tipo === "apuntar" && permitidoEn("compra_anadir", chatDe) && quiereApuntar(texto)) {
-    // a propósito: sin plantilla, el turno pasa a Lola
-    const r = await viaRapida({ modo: "compra_anadir", datos: { productos: prop.productos ?? [] } }, householdId, { autor }).catch(seguirCon("apuntar falta/vía rápida", null));
+    // Sin plantilla el turno pasa a Lola, pero escribe en la compra: que se vea.
+    const r = await viaRapida({ modo: "compra_anadir", datos: { productos: prop.productos ?? [] } }, householdId, { autor }).catch(fallaCon("apuntar falta/vía rápida", null));
     if (r) {
       await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
       return apuntarRuta(householdId, { modo: "apuntar_falta", rapida: true, ms: Date.now() - t0, ...donde });
@@ -524,8 +524,8 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   if (!sombra && permitidoEn("eleccion", chatDe) && ultima?.propuesta) {
     const eleccion = eleccionDe(texto, ultima.propuesta);
     if (eleccion) {
-      // a propósito: sin plantilla, el turno pasa a Lola
-      const r = await aplicarEleccion(eleccion, ultima.propuesta, householdId).catch(seguirCon("elección/vía rápida", null));
+      // Sin plantilla el turno pasa a Lola, pero la elección escribe: que se vea.
+      const r = await aplicarEleccion(eleccion, ultima.propuesta, householdId).catch(fallaCon("elección/vía rápida", null));
       marca("elección aplicada");
       if (r) {
         await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
@@ -879,7 +879,7 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
     if (!id || !provisional) return;
     // Si Telegram no deja borrarlo, se queda el id y se edita encima: mejor
     // sin álbum que con un aviso huérfano encima de la respuesta.
-    const borrado = await llamar("deleteMessage", { chat_id: chatId, message_id: id }).then(() => true, () => false);
+    const borrado = await llamar("deleteMessage", { chat_id: chatId, message_id: id }).then(() => true, fallaCon("vivo/borrar aviso", false));
     if (!borrado) return;
     id = null;
     provisional = false;
