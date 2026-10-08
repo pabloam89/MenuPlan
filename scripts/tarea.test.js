@@ -10,6 +10,13 @@ import { commitInicial, leerRama } from "./tarea.mjs";
 describe("tarea: el nombre de la rama", () => {
   it.each(["datos/descartes", "ops/oficio", "fix/iconos-alergenos"])("acepta %s", (r) => expect(leerRama(r).rama).toBe(r));
   it("saca el nombre de la carpeta", () => expect(leerRama("datos/descartes").nombre).toBe("descartes"));
+  it("con issue, el número va delante del nombre y la carpeta no cambia (#206)", () =>
+    expect(leerRama("ops/dependabot", "193")).toEqual({ rama: "ops/193-dependabot", nombre: "dependabot", issue: 193 }));
+  it("acepta #193 y no lo duplica si ya venía", () => {
+    expect(leerRama("ops/dependabot", "#193").rama).toBe("ops/193-dependabot");
+    expect(leerRama("ops/193-dependabot", "193").rama).toBe("ops/193-dependabot");
+  });
+  it("un issue que no es número, error", () => expect(leerRama("ops/x", "abc").error).toBeTruthy());
   it.each(["descartes", "Datos/Descartes", "datos/con espacio", "cosas/x", "datos/", "staging", "../fuera"])("rechaza %s", (r) =>
     expect(leerRama(r).error).toBeTruthy());
 });

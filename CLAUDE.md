@@ -54,6 +54,8 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
 `npm run tarea -- datos/descartes` abre `C:\dev\MenuPlan-descartes` (rama
 desde `origin/staging`, `.env.local`, flags de staging, dependencias y
 puerto); `npm run retirar -- descartes` la cierra solo si no se pierde nada.
+Si la tarea es de un issue, su número detrás (`… datos/descartes 193`): la
+rama queda `datos/193-descartes` y el PR lleva `Closes #193`.
 En la carpeta principal (`C:\dev\MenuPlan`) no se trabaja: la guardia no deja
 editar, commitear ni cambiar de rama en ella. Nada de borrar worktrees a mano;
 si el arranque avisa de otra sesión en tu carpeta, no trabajes ahí. App en local: localhost y la IP de la wifi, nada más
@@ -184,12 +186,16 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
   `Set-Content`, tocar una migración aplicada (también por terminal), crear
   una con un número que staging ya usa, SQL a mano contra producción y
   `apply-migration --pablo` (solo de Pablo), abrir un PR con la rama
-  atrasada o fusionarlo si staging pisó sus ficheros, y trabajar en la
-  carpeta principal;
+  atrasada, o sin `Closes` si la rama es de un issue, fusionarlo si staging
+  pisó sus ficheros, trabajar en la carpeta principal y `gh issue create` a
+  pelo (se crea con `npm run issues -- --nuevo`, que busca los parecidos);
   pregunta
   antes de un push forzado, de tocar permisos y hooks y de escribir por
   terminal lo que lee Lola. Cada regla,
   con su porqué y su test en `.claude/hooks/guardia.test.js`.
+- **`avisos.mjs`** tras editar un fichero: los issues abiertos que lo nombran.
+  **`pendientes.mjs`** al terminar de responder: frena una vez si dejas
+  decisiones o pendientes sin ningún issue. Las decisiones se asignan a Pablo.
 - **GitHub**: `main` solo por PR con `tests`; secret scanning y Dependabot.
 - **Las skills, por obligación** (`.claude/dominios-skills.json`): la primera
   vez que una sesión lanza un comando de riesgo de un dominio con skill
