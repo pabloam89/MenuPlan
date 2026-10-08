@@ -1,6 +1,6 @@
 /**
- * La ficha y las tareas de Lola por la RPC ficha_casa (0120), detrás de
- * BOT_FICHA_RPC. Producción y staging comparten base y la 0120 aún no está
+ * La ficha y las tareas de Lola por la RPC ficha_casa (0097), detrás de
+ * BOT_FICHA_RPC. Producción y staging comparten base y la 0097 aún no está
  * aplicada: con el interruptor apagado, lo que lee el modelo tiene que ser byte
  * a byte lo de antes. Eso lo fija la foto (snapshot) de los bloques que llegan
  * al modelo en un turno entero de responder(), sacada del código de antes de
@@ -54,13 +54,13 @@ const PERSONAS = () => [
 ];
 
 /**
- * ficha_casa (0120) de mentira, con su misma lógica sobre `filas`: tareas
+ * ficha_casa (0097) de mentira, con su misma lógica sobre `filas`: tareas
  * abiertas (y aplazadas a las que les toca volver) de la casa o personales de
  * p_usuario; de seguridad todas, del resto p_max_tareas; «faltan» sin mirar la
  * etapa (aplica va en bruto) ni si ya tiene alergias; «callados», lo rechazado
  * o descartado en 24 h y lo aplazado a futuro.
  */
-function fichaCasa0120({ p_casa, p_usuario = null, p_canal = null, p_max_tareas = 8 }, personas = PERSONAS()) {
+function fichaCasa0097({ p_casa, p_usuario = null, p_canal = null, p_max_tareas = 8 }, personas = PERSONAS()) {
   const ahora = Date.now();
   const seguridad = (t) => t.campo === "alergias" || t.campo === "etapaBebe";
   const visibles = filas.filter((t) => t.household_id === p_casa
@@ -208,7 +208,7 @@ describe("con BOT_FICHA_RPC encendido, ficha y tareas de ficha_casa en una ida",
   beforeEach(async () => {
     fichaRpc = await import("./fichaRpc.js").catch(() => null);
     fichaRpc?.olvidarFicha(CASA);
-    rpcFicha = (args) => fichaCasa0120(args);
+    rpcFicha = (args) => fichaCasa0097(args);
     errores = vi.spyOn(console, "error").mockImplementation(() => {});
   });
   afterEach(() => errores.mockRestore());
@@ -243,7 +243,7 @@ describe("con BOT_FICHA_RPC encendido, ficha y tareas de ficha_casa en una ida",
     expect(t.ficha[1]).toMatch(/PENDIENTE\n- ¿Vega tiene alguna alergia o intolerancia\?$/);
   });
 
-  it("sin la RPC (0120 sin aplicar): se lee del JSON como siempre, y queda en el log", async () => {
+  it("sin la RPC (0097 sin aplicar): se lee del JSON como siempre, y queda en el log", async () => {
     const antes = await apagado();
     encender();
     rpcFicha = () => { throw new Error('POST /rest/v1/rpc/ficha_casa → 404 {"code":"PGRST202","message":"Could not find the function public.ficha_casa"}'); };
@@ -256,7 +256,7 @@ describe("con BOT_FICHA_RPC encendido, ficha y tareas de ficha_casa en una ida",
   it("con otra versión del contrato (v=2): del JSON, y queda en el log", async () => {
     const antes = await apagado();
     encender();
-    rpcFicha = (args) => ({ ...fichaCasa0120(args), v: 2 });
+    rpcFicha = (args) => ({ ...fichaCasa0097(args), v: 2 });
     const t = await turno();
     expect(t).toEqual(antes);
     expect(logDe(/\[fichaRpc\].*v=2/)).toBe(true);
@@ -266,7 +266,7 @@ describe("con BOT_FICHA_RPC encendido, ficha y tareas de ficha_casa en una ida",
     const antes = await apagado();
     encender();
     // La copia a persona va por detrás: a Lucas aún no le consta la alergia.
-    rpcFicha = (args) => fichaCasa0120(args, PERSONAS().map((p) => (p.id === "l" ? { ...p, alergias: [] } : p)));
+    rpcFicha = (args) => fichaCasa0097(args, PERSONAS().map((p) => (p.id === "l" ? { ...p, alergias: [] } : p)));
     const t = await turno();
     expect(t.ficha).toEqual(antes.ficha);
     expect(t.ficha[0]).toMatch(/Lucas: alergia a frutos de cáscara/);
@@ -288,7 +288,7 @@ describe("leerFichaCasa y su adaptación (puras)", () => {
   beforeEach(async () => {
     fichaRpc = await import("./fichaRpc.js");
     fichaRpc.olvidarFicha(CASA);
-    rpcFicha = (args) => fichaCasa0120(args);
+    rpcFicha = (args) => fichaCasa0097(args);
   });
 
   it("guarda lo leído por (casa, usuario, versión): con la misma versión no vuelve a ir; con otra, sí", async () => {
@@ -300,7 +300,7 @@ describe("leerFichaCasa y su adaptación (puras)", () => {
     await fichaRpc.leerFichaCasa({ ...ctx, userId: OTRO });
     expect(llamadas.filter(([, f]) => f === "ficha_casa")).toHaveLength(2);
     // Leída con bot_rev 40 y la casa ya va por la 41: lo guardado no vale, se vuelve a ir cada vez.
-    rpcFicha = (args) => ({ ...fichaCasa0120(args), casa: { id: CASA, rev: 40 } });
+    rpcFicha = (args) => ({ ...fichaCasa0097(args), casa: { id: CASA, rev: 40 } });
     fichaRpc.olvidarFicha(CASA);
     await fichaRpc.leerFichaCasa(ctx);
     await fichaRpc.leerFichaCasa(ctx);
@@ -308,7 +308,7 @@ describe("leerFichaCasa y su adaptación (puras)", () => {
   });
 
   it("la etapa del bebé solo falta para quien es bebé (etapaDe) y si la casa aún no la sabe", () => {
-    const ficha = fichaCasa0120({ p_casa: CASA, p_usuario: YO });
+    const ficha = fichaCasa0097({ p_casa: CASA, p_usuario: YO });
     const sinEtapa = { ...structuredClone(DATA), etapaBebe: null };
     const faltan = fichaRpc.faltanDeFicha(ficha, sinEtapa, new Set());
     expect(faltan.filter((f) => f.campo === "etapaBebe").map((f) => f.personaId)).toEqual(["v"]);
@@ -319,7 +319,7 @@ describe("leerFichaCasa y su adaptación (puras)", () => {
   });
 
   it("una tarea de la RPC queda con la forma que leen tareas.js y la ficha", () => {
-    const ficha = fichaCasa0120({ p_casa: CASA, p_usuario: YO });
+    const ficha = fichaCasa0097({ p_casa: CASA, p_usuario: YO });
     const tareas = fichaRpc.tareasDeFicha(ficha, { userId: YO, privado: true });
     const vega = tareas.find((t) => t.campo === "alergias");
     expect(vega).toMatchObject({ kind: "pregunta", tipo: "falta_saber", clave: "alergias:v", persona_id: "v", para_member: null, chat_id: null });
@@ -330,7 +330,7 @@ describe("leerFichaCasa y su adaptación (puras)", () => {
 
   it("cerrar una tarea que vino de la RPC (sin chat_id) no dice que se pidió en otro chat", async () => {
     const { cerrarTarea } = await import("./tareas.js");
-    const tareas = fichaRpc.tareasDeFicha(fichaCasa0120({ p_casa: CASA, p_usuario: YO }), { userId: YO, privado: true });
+    const tareas = fichaRpc.tareasDeFicha(fichaCasa0097({ p_casa: CASA, p_usuario: YO }), { userId: YO, privado: true });
     const pan = tareas.find((t) => t.texto.startsWith("Comprar pan"));
     const r = await cerrarTarea({ householdId: CASA, chatId: "100", userId: YO }, tareas, pan.id.slice(0, 8));
     expect(r).toBe("Cerrada: Comprar pan sin gluten para el sábado.");

@@ -1,5 +1,5 @@
 /**
- * La ficha y las tareas abiertas de Lola en una ida: la RPC ficha_casa (0120),
+ * La ficha y las tareas abiertas de Lola en una ida: la RPC ficha_casa (0097),
  * detrás de BOT_FICHA_RPC.
  *
  * Sin ella, cada turno lee las tareas abiertas y las calladas en dos consultas
@@ -9,7 +9,7 @@
  * que no se repregunta. El resto de la ficha (horario, estructura, vetos,
  * reglas, menú y semana) sigue saliendo del JSON, como hoy (contrato v1).
  *
- * Producción y staging comparten base, y la 0120 (que pide la 0080) puede no
+ * Producción y staging comparten base, y la 0097 (que pide la 0080) puede no
  * estar aplicada: si la RPC no existe, falla o contesta otra versión del
  * contrato, se lee como siempre y queda en el log. Nunca rompe el turno.
  *
@@ -50,7 +50,7 @@ export function olvidarFicha(householdId) {
   for (const k of recientes.keys()) if (k.startsWith(`${householdId}|`)) recientes.delete(k);
 }
 
-// La 0120 sin aplicar: PostgREST no encuentra la función (404 PGRST202) o Postgres no la tiene (42883).
+// La 0097 sin aplicar: PostgREST no encuentra la función (404 PGRST202) o Postgres no la tiene (42883).
 const noExiste = (e) => /PGRST202|42883|\b404\b|could not find the function/i.test(String(e?.message ?? e));
 
 /** Pura. ¿Es la ficha que sabemos leer? Lo que falta o tiene otra forma, no. */
@@ -64,7 +64,7 @@ function validar(f) {
 /**
  * La ficha de la casa de la RPC, o null (y en el log por qué) si hay que leer
  * del JSON. Nunca lanza. La service role pasa quién escribe en p_usuario: es lo
- * que filtra sus tareas personales (0120).
+ * que filtra sus tareas personales (0097).
  * @param {{ householdId: string, userId?: string|null, canal?: string|null }} ctx
  */
 export async function leerFichaCasa({ householdId, userId = null, canal = null }) {
@@ -81,7 +81,7 @@ export async function leerFichaCasa({ householdId, userId = null, canal = null }
   try {
     ficha = await rpc("ficha_casa", { p_casa: householdId, p_usuario: userId, p_canal: canal, p_max_tareas: LIMITE_ABIERTAS });
   } catch (e) {
-    console.error(`[fichaRpc] ${noExiste(e) ? "no está la RPC (¿0120 sin aplicar?)" : "falló"}, se lee del JSON:`, String(e?.message ?? e).slice(0, 200));
+    console.error(`[fichaRpc] ${noExiste(e) ? "no está la RPC (¿0097 sin aplicar?)" : "falló"}, se lee del JSON:`, String(e?.message ?? e).slice(0, 200));
     return null;
   }
   const mal = validar(ficha);

@@ -2046,6 +2046,57 @@
           "texto": "Solo la usa la app; el servidor no la toca."
         }
       }
+    },
+    "registro_campo": {
+      "dueno": "ficha-para-lola",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "La app no la toca: es de la ficha que lee Lola (servidor)."
+        },
+        "servidor": {
+          "motivo": "por_rpc",
+          "texto": "Se escribe en la migración 0097, generada de src/lib/registroCampos.js (registroCampos.test.js compara los dos); el servidor la lee solo por la RPC ficha_casa (api/_bot/fichaRpc.js), sin .from()."
+        }
+      }
+    },
+    "sobre": {
+      "dueno": "ficha-para-lola",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "La app no la toca: es de la ficha que lee Lola (servidor)."
+        },
+        "servidor": {
+          "motivo": "por_rpc",
+          "texto": "Aún nadie la escribe (la primera escritura será de la sesión de la ficha); el servidor la lee solo por la RPC ficha_casa (api/_bot/fichaRpc.js), sin .from(). Cuando haya escritor, será su puerta."
+        }
+      }
+    },
+    "cambio": {
+      "dueno": "ficha-para-lola",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "La app no la toca: es de la ficha que lee Lola (servidor)."
+        },
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector ni escritor todavía (0097): historial de solo añadir de la ficha, a la espera de quien lo escriba."
+        }
+      }
     }
   },
   "tablas_fuera_de_migraciones": [
