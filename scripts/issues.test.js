@@ -10,7 +10,7 @@ const PLANTILLAS = join(RAIZ, ".github", "ISSUE_TEMPLATE");
 /** Desplegables de un formulario: { titulo: [primera palabra de cada opción] }. */
 function desplegables(yml) {
   const out = {};
-  for (const bloque of yml.split(/\n  - type: /).filter((b) => b.startsWith("dropdown"))) {
+  for (const bloque of yml.split(/\n {2}- type: /).filter((b) => b.startsWith("dropdown"))) {
     const titulo = /\n\s+label: (.+)/.exec(bloque)[1].trim();
     out[titulo] = [...bloque.matchAll(/\n\s+- "([\w-]+) — /g)].map((m) => m[1]);
   }
