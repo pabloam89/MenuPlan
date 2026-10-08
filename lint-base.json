@@ -5,7 +5,6 @@
   "src/App.jsx | no-unused-vars | 'canShareInvite' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.": 1,
   "src/App.jsx | no-unused-vars | 'localRecipes' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u.": 1,
   "src/App.jsx | no-unused-vars | 'mergeUserRecipesById' is defined but never used. Allowed unused vars must match /^[A-Z_]/u.": 1,
-  "src/App.jsx | react-hooks/rules-of-hooks | React Hook \"useRoster\" is called in function \"onClick\" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word \"use\".": 1,
   "src/components/CommentThread.jsx | react-hooks/set-state-in-effect | Error: Calling setState synchronously within an effect can trigger cascading renders": 1,
   "src/components/DiscoverPeopleSheet.jsx | react-hooks/set-state-in-effect | Error: Calling setState synchronously within an effect can trigger cascading renders": 2,
   "src/components/FavoriteScopeModal.jsx | no-unused-vars | 'recipeName' is defined but never used. Allowed unused args must match /^[A-Z_]|^_/u.": 1,
