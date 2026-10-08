@@ -89,9 +89,10 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
   (detalle en la skill `1password`).
 - **2026-10-08 · la guardia niega `create table` y `drop` aunque sean sobre el
   Postgres del panel.** Causa: la regla de «SQL contra producción» mira el texto
-  y no distingue entre Supabase y esta base. Arreglo: el SQL va en un fichero y
-  lo lanza Pablo con `!`. Sin resolver de raíz: enseñar a la guardia a distinguir
-  (toca un hook: OK de Pablo, y su test).
+  y no distingue entre Supabase y esta base. Arreglo: la guardia deja pasar un
+  `psql` que va dentro de `docker compose exec` (o `docker exec`) sin URL ni host
+  en su tramo, y sigue negando cualquier otro; con test en
+  `.claude/hooks/guardia.test.js`. No ve el SQL que va dentro de un fichero.
 - **2026-10-08 · SSH aceptaba contraseñas** (`passwordauthentication yes`).
   Causa: es el valor por defecto de Ubuntu. Arreglo: el fichero
   `/etc/ssh/sshd_config.d/10-solo-llaves.conf`, validado con `sshd -t` y aplicado

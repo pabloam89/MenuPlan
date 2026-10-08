@@ -111,16 +111,19 @@ npm run issues -- --etiquetas               # crear las etiquetas en GitHub (OK 
 ## Lo que falló y por qué
 
 - **2026-10-08 · la carpeta de trabajo recién creada desaparece sola y queda un
-  directorio huérfano sin `.git`, con `node_modules` a medio borrar.** Causa:
+  directorio huérfano sin `.git`, con `node_modules` a medio borrar.** Pasó dos
+  veces; la segunda, con `npm ci` todavía instalando. Causa:
   `limpiar-worktrees.mjs` da por «fusionada» cualquier rama que sea ancestro de
   `origin/staging`, y una rama nueva sin commits lo es. Se ejecuta al abrir
   *cualquier* sesión, así que otra sesión arrancando se la lleva por delante.
-  Arreglo: hacer un commit en el mismo instante de crearla
-  (`git commit --allow-empty`), porque con un commit propio ya no es ancestro.
-  Sin resolver de raíz: `npm run tarea` debería hacer ese commit solo, y el hook
-  debería exigir un PR fusionado de verdad (cambia un hook: OK de Pablo). Los
-  restos huérfanos no los trata ni `tarea` ni `retirar`: los borra Pablo, tras
-  mirar que `node_modules` no es una unión.
+  Arreglo: `npm run tarea` hace ahora un commit vacío (`tarea: arranca <rama>`)
+  nada más crear la rama, antes de copiar el entorno y de instalar nada, y
+  `retirar` no lo cuenta como trabajo sin subir (test en `scripts/tarea.test.js`).
+  Para una carpeta anterior a ese cambio, a mano:
+  `git commit --allow-empty -m "tarea: arranca <rama>"`. El hook no se ha tocado.
+  Si pasa igual, los restos huérfanos no los trata ni `tarea` ni `retirar`: los
+  borra Pablo, tras mirar que `node_modules` no es una unión, y antes hay que
+  parar el `npm ci` que siga vivo (`taskkill /T` sobre su `tarea.mjs`).
 - **2026-10 · el PR que abre el token de Actions no lanza `tests.yml`.** Causa:
   un PR abierto con `GITHUB_TOKEN` no dispara otros workflows. Arreglo: lanzarlo
   a mano con `gh workflow run tests.yml --ref <rama>`. Es lo que frena la
@@ -157,4 +160,4 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://cli.github.com/manual/
 - https://docs.github.com/code-security/dependabot
 
-Comprobado el 2026-10-08: la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Sin probar: que un commit vacío evite de verdad el borrado en la próxima apertura de sesión.
+Comprobado el 2026-10-08: la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.
