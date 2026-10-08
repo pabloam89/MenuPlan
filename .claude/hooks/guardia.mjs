@@ -82,12 +82,47 @@ const PABLO_EN_APLICAR = {
   da: () => deny("`--pablo` es solo de Pablo: borra algo con datos o cambia RLS o permisos. Enséñale el ensayo y el veredicto del juez, y dale el comando para que lo lance con `!`."),
 };
 
+// El Postgres del panel (Hetzner) corre en un contenedor y no es producción:
+// `docker compose exec -T db psql -U panel …`. Solo ESE psql tiene excepción, y
+// la excepción es en positivo: el tramo tiene que ser exactamente un `docker
+// [compose [-f x]] exec … (db|panel-db-1) psql … -U panel`, y en TODO el comando
+// no puede haber nada que lo lleve a otra base. Se mira el comando entero y no
+// el tramo: un `;` dentro del SQL entrecomillado, o un `\` al final de línea,
+// partían el comando y dejaban el host en un tramo que nadie miraba (juez de
+// seguridad, 8 oct 2026). Lo dudoso se niega: es mejor un falso positivo que un
+// psql contra producción. Las variables de producción (SUPABASE_DB_URL…) se
+// niegan siempre, vayan donde vayan.
+const PSQL_DEL_PANEL = /\bdocker\s+(?:compose\s+(?:-f\s+\S+\s+)?)?exec\b[^|;&\n]*?\b(?:db|panel-db-1)\s+psql\b/i;
+const ES_USUARIO_PANEL = /\s-U\s+panel\b/;
+const OTRA_BASE = new RegExp(
+  [
+    String.raw`postgres(?:ql)?:\/\/`, // una URL
+    String.raw`(?:^|\s)(?:-h|--host)`, // -h, --host, y -h10.1.2.3 pegado
+    String.raw`\bhost(?:addr)?\s*=`, // cadena de conexión clave=valor
+    String.raw`\bPG(?:HOST|HOSTADDR|SERVICE|SERVICEFILE|PASSFILE)\b`, // destino por entorno
+    "supabase",
+    String.raw`\$\{?\w*(?:URL|DSN|CONN)\w*`, // una variable de conexión con otro nombre
+    "dblink|postgres_fdw",
+    String.raw`\$\(|\x60`, // sustitución de comandos: no se ve a dónde va
+  ].join("|"),
+  "i",
+);
+// Las continuaciones de línea (`\` o acento grave de PowerShell) se unen antes de partir.
+const unirContinuaciones = (o) => o.replace(/[\\\x60]\r?\n\s*/g, " ");
+const psqlFueraDelPanel = (o) => {
+  const c = unirContinuaciones(o);
+  const sinOtraBase = !OTRA_BASE.test(c);
+  return c
+    .split(/&&|\|\||[;|\n]/)
+    .some((tramo) => /\bpsql\b/i.test(tramo) && !(PSQL_DEL_PANEL.test(tramo) && ES_USUARIO_PANEL.test(tramo) && sinOtraBase));
+};
+
 // El SQL a mano contra la base se niega siempre, no se pregunta: en modo auto
 // un «ask» puede resolverlo el clasificador en vez de una persona.
 const REGLAS_SQL = [
   {
     // SQL que escribe o cambia permisos contra una base real.
-    si: (o) => /\b(psql|SUPABASE_DB_URL|OPS_DB_URL|pg\.Client|new\s+Client)\b/.test(o)
+    si: (o) => (/\b(SUPABASE_DB_URL|OPS_DB_URL|pg\.Client|new\s+Client)\b/.test(o) || psqlFueraDelPanel(o))
       && /\b(drop\s+(table|schema|column|function|policy|constraint|index|view|type|trigger)|truncate|delete\s+from|alter\s+(table|type|function|policy)|update\s+[\w."]+\s+set|insert\s+into|grant|revoke|create\s+(table|policy|function|or\s+replace))\b/i.test(o),
     da: () => deny("SQL que escribe, borra o cambia permisos contra producción (es la única base). Va en una migración por `scripts/apply-migration.mjs`; si de verdad hace falta a mano, dale el comando a Pablo para que lo lance con `!`."),
   },
@@ -195,6 +230,26 @@ function contextoReal(raiz) {
         return null;
       }
     },
+    // Commits de origin/staging que le faltan a tu rama (tras traerlo). null si no se puede saber.
+    atrasoLocal: () => {
+      try {
+        execFileSync("git", ["-C", raiz, "fetch", "-q", "origin", "staging"], { stdio: "ignore", timeout: 30000 });
+        return Number(execFileSync("git", ["-C", raiz, "rev-list", "--count", "HEAD..origin/staging"], { encoding: "utf8" }).trim());
+      } catch {
+        return null;
+      }
+    },
+    // Lo mismo para la rama de un PR, preguntado a GitHub (la rama puede no estar en local).
+    atrasoDelPr: (numero) => {
+      try {
+        const opts = { cwd: raiz, encoding: "utf8", timeout: 15000 };
+        const cabeza = execFileSync("gh", ["pr", "view", ...(numero ? [numero] : []), "--json", "headRefOid", "-q", ".headRefOid"], opts).trim();
+        const n = Number(execFileSync("gh", ["api", `repos/{owner}/{repo}/compare/staging...${cabeza}`, "-q", ".behind_by"], opts).trim());
+        return Number.isFinite(n) ? n : null;
+      } catch {
+        return null;
+      }
+    },
   };
 }
 
@@ -214,13 +269,26 @@ export function decidir(entrada, ctx) {
     for (const o of ordenes(cmd)) {
       for (const r of REGLAS_COMANDO) if (r.si(o)) return r.da(o);
 
+      // Un PR con la rama atrasada respecto a staging choca con lo que acaban
+      // de meter otras sesiones, o pasa el CI sin haberlo probado junto (el 8
+      // oct 2026, el cableado). Se mira al abrirlo y otra vez al fusionarlo.
+      if (/^gh\s+pr\s+create\b/.test(o)) {
+        const atraso = ctx.atrasoLocal();
+        if (atraso === null) return ask("No he podido comprobar si tu rama tiene lo último de staging. Haz `git fetch origin staging` y `git merge origin/staging` antes de abrir el PR.");
+        if (atraso > 0) return deny(`Tu rama va ${atraso} commit(s) por detrás de staging. Antes de abrir el PR: \`git fetch origin staging\`, \`git merge origin/staging\`, resuelve, pasa los tests y empuja.`);
+        continue;
+      }
+
       // gh pr merge: solo a staging (lo permite settings.local.json de Pablo).
       const merge = o.match(/^gh\s+pr\s+merge\b\s*(\d+)?/);
       if (merge) {
         const base = ctx.baseDelPr(merge[1]);
-        if (base === "staging") continue;
         if (base === null) return ask("No he podido leer la rama base de este PR. Si no es staging, solo Pablo lo fusiona.");
-        return deny(`Este PR va contra ${base}, no contra staging. Fusionar fuera de staging solo lo hace Pablo.`);
+        if (base !== "staging") return deny(`Este PR va contra ${base}, no contra staging. Fusionar fuera de staging solo lo hace Pablo.`);
+        const atraso = ctx.atrasoDelPr(merge[1]);
+        if (atraso === null) return ask("No he podido comprobar si la rama del PR tiene lo último de staging. Míralo antes de fusionar.");
+        if (atraso > 0) return deny(`La rama del PR va ${atraso} commit(s) por detrás de staging: el CI no ha probado tu cambio junto a lo último. Ponla al día (\`gh pr update-branch${merge[1] ? ` ${merge[1]}` : ""}\` o merge de origin/staging y push), espera el CI en verde y fusiona.`);
+        continue;
       }
     }
     // El SQL se mira en el comando entero: un `node -e` lleva sus propios `;`.

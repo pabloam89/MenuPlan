@@ -13,6 +13,8 @@ const ctx = (extra = {}) => ({
   enStaging: (n) => ["0079_personas_y_grupos", "0080_bot_tareas_v2"].includes(n),
   estadoMd: ESTADO,
   baseDelPr: () => "staging",
+  atrasoLocal: () => 0,
+  atrasoDelPr: () => 0,
   ...extra,
 });
 const bash = (command, c = ctx()) => decidir({ tool_name: "Bash", tool_input: { command } }, c)?.decision ?? null;
@@ -93,6 +95,51 @@ describe("la base es producción", () => {
     'psql "$OPS_DB_URL" -c "grant select on x to anon"',
   ])("SQL que escribe, negado: %s", (c) => expect(bash(c)).toBe("deny"));
   it("una lectura pasa", () => expect(bash('psql "$SUPABASE_DB_URL" -c "select count(*) from households"')).toBe(null));
+
+  // El Postgres del panel (Hetzner) corre en un contenedor y no es producción:
+  // la regla lo confundía por ver `psql` y `create table` (8 oct 2026).
+  describe("un Postgres propio dentro de un contenedor no es producción", () => {
+    it.each([
+      `ssh root@100.73.252.32 'cd /opt/panel && docker compose exec -T db psql -U panel -d panel -c "create table prueba(id int)"'`,
+      `docker compose exec -T db psql -U panel -d panel -c "insert into prueba values (1)"`,
+      `docker exec panel-db-1 psql -U panel -d panel -c "drop table prueba"`,
+      // con -f, y con la orden partida en líneas
+      `docker compose -f /opt/panel/compose.yaml exec -T db psql -U panel -d panel -c "create table prueba(id int)"`,
+      "docker compose exec -T db \\\n  psql -U panel -d panel -c \"insert into prueba values (1)\"",
+      // un ; dentro del SQL no parte nada que importe
+      `docker compose exec -T db psql -U panel -d panel -c "select 1; drop table prueba"`,
+    ])("pasa: %s", (c) => expect(bash(c)).toBe(null));
+
+    it.each([
+      // con una URL o un host de por medio ya no es el contenedor
+      `docker compose exec -T db psql postgresql://u:p@db.x.supabase.co/postgres -c "drop table t"`,
+      `docker exec db psql -h db.abc.supabase.co -U postgres -c "delete from t"`,
+      // el contenedor no tapa lo que va pegado detrás
+      `docker compose exec db true && psql "$SUPABASE_DB_URL" -c "drop table x"`,
+      `docker compose exec -T db psql -U panel -c "select 1"; psql -c "drop table x"`,
+      `docker exec db sh -c 'psql "$SUPABASE_DB_URL" -c "drop table x"'`,
+      // sin contenedor, como siempre
+      `psql -U panel -d panel -c "create table prueba(id int)"`,
+      `PSQL -U panel -c "drop table t"`,
+      // (juez de seguridad, 8 oct) el host o la URL caen en otra línea
+      "docker compose exec -T db psql -U panel \\\n  -h db.abc.supabase.co -c \"drop table t\"",
+      "docker compose exec -T db psql -U panel \\\n  \"postgresql://u@db.abc.supabase.co/postgres\" -c \"drop table t\"",
+      // … o detrás de un ; que va dentro de las comillas del SQL
+      `docker compose exec -T db psql -U panel -c "select 1; drop table t" -h db.abc.supabase.co`,
+      `docker compose exec -T db psql -U panel -c "select 1;" -h db.abc.supabase.co -c "drop table t"`,
+      // el destino sale de otro sitio: otra variable, host=, -h pegado, PGHOST, PGSERVICE
+      `docker compose exec -T db psql -U panel "$DATABASE_URL" -c "drop table t"`,
+      `docker compose exec -T db psql -U panel -d "host=10.1.2.3 user=postgres" -c "drop table t"`,
+      `docker compose exec -T db psql -U panel -h10.1.2.3 -c "drop table t"`,
+      `docker compose exec -e PGHOST=10.1.2.3 -T db psql -U panel -c "drop table t"`,
+      `docker compose exec -e PGSERVICE=prod -T db psql -U panel -c "delete from t"`,
+      // otro contenedor (uno que ya esté conectado a Supabase), no el de la base del panel
+      `docker exec panel-app-1 psql -U panel -c "delete from households"`,
+      // desde la base del panel a otra: dblink y sustituciones de comando
+      `docker compose exec -T db psql -U panel -c "select dblink_exec('host=x','drop table t')"`,
+      `docker compose exec -T db psql -U panel -c "drop table t" -d $(cat /root/destino)`,
+    ])("sigue negado: %s", (c) => expect(bash(c)).toBe("deny"));
+  });
 });
 
 describe("migraciones aplicadas no se editan", () => {
@@ -161,6 +208,20 @@ describe("gh pr merge", () => {
   it("a staging pasa", () => expect(bash("gh pr merge 90 --squash")).toBe(null));
   it("a main, no", () => expect(bash("gh pr merge 90", ctx({ baseDelPr: () => "main" }))).toBe("deny"));
   it("sin poder leer la base, pregunta", () => expect(bash("gh pr merge", ctx({ baseDelPr: () => null }))).toBe("ask"));
+  it("con la rama atrasada, no", () => expect(bash("gh pr merge 90 --squash", ctx({ atrasoDelPr: () => 3 }))).toBe("deny"));
+  it("sin poder saber el atraso, pregunta", () => expect(bash("gh pr merge 90", ctx({ atrasoDelPr: () => null }))).toBe("ask"));
+  it("a main ni se mira el atraso", () => {
+    let mirado = false;
+    expect(bash("gh pr merge 90", ctx({ baseDelPr: () => "main", atrasoDelPr: () => ((mirado = true), 0) }))).toBe("deny");
+    expect(mirado).toBe(false);
+  });
+});
+
+describe("gh pr create con la rama al día", () => {
+  it("al día pasa", () => expect(bash('gh pr create --base staging --title "x" --body "y"')).toBe(null));
+  it("atrasada, no", () => expect(bash("git push -u origin ops/x && gh pr create --base staging", ctx({ atrasoLocal: () => 2 }))).toBe("deny"));
+  it("sin poder saberlo, pregunta", () => expect(bash("gh pr create", ctx({ atrasoLocal: () => null }))).toBe("ask"));
+  it("otros gh pr no lo miran", () => expect(bash("gh pr view 90", ctx({ atrasoLocal: () => 5, atrasoDelPr: () => 5 }))).toBe(null));
 });
 
 it("cambiar permisos o hooks compartidos pregunta", () => {
