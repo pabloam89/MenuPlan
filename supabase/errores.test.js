@@ -41,6 +41,8 @@ import { fileURLToPath } from "node:url";
  *   arriba del manejador se lee como el siguiente manejador; y un `merge` con
  *   sus `when matched then` dentro de un manejador, igual. Ninguna migración
  *   los usa ahí; si aparecen, el lector corta el manejador antes de tiempo.
+ * - Un cuerpo de función entre comillas simples (`as 'begin … end;'`) se lee
+ *   como texto y no se mira. Todas las migraciones usan $$…$$.
  */
 const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "migrations");
 
@@ -240,7 +242,10 @@ export function mudos(sql) {
   const r = [];
   for (const e of codigo.matchAll(/\bexception\b/g)) {
     if (anterior(codigo, e.index) === "raise") continue;
-    if (!/^\s+when\b/.test(codigo.slice(e.index + 9, e.index + 40))) continue;
+    // Sin ventana: los comentarios ya son espacios, y puede haber muchos.
+    const trasWhen = /\s+when\b/y;
+    trasWhen.lastIndex = e.index + "exception".length;
+    if (!trasWhen.test(codigo)) continue;
     manejadores(codigo, e.index).forEach((h, k) => {
       if (!/\bothers\b/.test(h.cond) || h.avisa) return;
       // El primero puede llevar el comentario encima del `exception`.
@@ -356,6 +361,12 @@ describe("el lector de manejadores", () => {
     expect(mudos(`comment on function public.f() is $c$it's$c$;\n${malo}`)).toHaveLength(1);
     expect(mudos(`select E'it\\'s';\n${malo}`)).toHaveLength(1);
     expect(mudos("comment on function public.f() is $c$begin exception when others then null; end$c$;")).toEqual([]);
+  });
+
+  it("un comentario o mucho espacio entre exception y when no esconde el bloque", () => {
+    const cuerpo = "  perform 1;\nexception\n  -- Si falla, la casa queda vacía y se reintenta luego\n  when others then null;";
+    expect(mudos(fn(cuerpo))).toHaveLength(1);
+    expect(mudos(fn(`  perform 1;\nexception${" ".repeat(60)}when others then null;`))).toHaveLength(1);
   });
 
   it("do language plpgsql $$ también es un bloque do", () => {
