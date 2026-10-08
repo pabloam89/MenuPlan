@@ -27,13 +27,19 @@
  *   node scripts/limpiar-worktrees.mjs --si --silencio   # al empezar sesión
  *   node scripts/limpiar-worktrees.mjs --hook            # tras un `gh pr merge`
  *
+ * Lo que NO pudo borrar se dice siempre, también con --silencio (#141: dejaba
+ * carpetas a medias y, como al arrancar va en silencio, nadie se enteraba). Lo
+ * imprime y además lo apunta en la carpeta común de git
+ * (`.git/claude-limpieza.json`); el arranque de la sesión (arranque.mjs) lo
+ * enseña mientras la carpeta siga en disco.
+ *
  * Dónde está enganchado: el hook de Claude Code en el settings.json de usuario
  * de cada máquina (PostToolUse tras un merge, y SessionStart para lo que se
  * mergeó desde la web), que llama a una copia de este fichero en
  * ~/.claude/hooks/. Si cambias este, copia el nuevo allí.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, lstatSync, readlinkSync, rmdirSync, unlinkSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync, readlinkSync, rmdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -48,6 +54,69 @@ export function terminada({ rama, subida, contenida, remotaBorrada, sinSubir }) 
   return Boolean(contenida || (remotaBorrada && !sinSubir));
 }
 
+// ── Lo que no se pudo borrar (#141) ────────────────────────────────────────
+// Un registro en la carpeta común de git, que comparten todos los worktrees y
+// que git no versiona (como el de sesiones).
+export const ficheroPendientes = (comun) => join(comun, "claude-limpieza.json");
+
+/** El registro, o [] si no hay. Si está corrupto, lanza: quien lo lee avisa. */
+export function leerPendientes(comun) {
+  const f = ficheroPendientes(comun);
+  if (!existsSync(f)) return [];
+  const lista = JSON.parse(readFileSync(f, "utf8"));
+  return Array.isArray(lista) ? lista : [];
+}
+
+/**
+ * Junta lo que quedaba pendiente con lo nuevo de esta pasada. Se queda solo lo
+ * que sigue en disco (`existe`); si una carpeta sale dos veces, vale la nueva.
+ */
+export function fusionarPendientes(previos, nuevos, existe) {
+  const porCarpeta = new Map();
+  for (const p of [...previos, ...nuevos]) porCarpeta.set(String(p.dir).toLowerCase(), p);
+  return [...porCarpeta.values()].filter((p) => existe(p.dir));
+}
+
+/**
+ * ¿Quedó algo tras intentar borrar? Se mira el disco, no lo que dice git: git
+ * puede quitar el worktree de su lista y dejar la carpeta (un fichero
+ * bloqueado, rutas largas en node_modules), y el `worktree prune` del final
+ * borra la entrada aunque el remove fallara. Eso fue #141.
+ */
+export function problemaDelBorrado({ dir, rama, quitado, sigue }, ahora = new Date()) {
+  if (!sigue) return null;
+  return {
+    dir,
+    rama,
+    motivo: quitado ? "git la quitó de su lista, pero la carpeta sigue en disco" : "falló `git worktree remove`",
+    cuando: ahora.toISOString(),
+  };
+}
+
+/**
+ * Lo que se imprime de lo que no se pudo borrar. No depende de --silencio: se
+ * dice siempre. Tras un merge (PostToolUse, `hook`), lo que se imprime sin más
+ * no llega a la sesión y va como contexto adicional; al arrancar
+ * (SessionStart), el texto llano sí llega.
+ */
+export function salidaDeProblemas(problemas, { hook = false } = {}) {
+  if (!problemas.length) return "";
+  const texto = problemas.map((p) => `⚠ no pude borrar ${p.dir} (${p.rama}): ${p.motivo}`).join("\n");
+  if (hook) return JSON.stringify({ hookSpecificOutput: { hookEventName: "PostToolUse", additionalContext: texto } });
+  return `${texto}\n`;
+}
+
+/** Las líneas de aviso para el arranque, una por carpeta que sigue en disco. */
+export function avisosDeLimpieza(pendientes, existe = existsSync) {
+  return pendientes
+    .filter((p) => existe(p.dir))
+    .map(
+      (p) =>
+        `AVISO: la limpieza de carpetas no pudo borrar ${p.dir}${p.rama ? ` (${p.rama})` : ""}: ${p.motivo}. ` +
+        "La borra Pablo (con `!`), tras mirar que su node_modules no es una unión; si lo es, se quita antes la unión.",
+    );
+}
+
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 
 if (esPrincipal) {
@@ -57,7 +126,13 @@ if (esPrincipal) {
   if (HOOK) {
     let entrada = "";
     for await (const trozo of process.stdin) entrada += trozo;
-    const comando = (() => { try { return JSON.parse(entrada)?.tool_input?.command ?? ""; } catch { return ""; } })();
+    const comando = (() => {
+      try {
+        return JSON.parse(entrada)?.tool_input?.command ?? "";
+      } catch {
+        return ""; // a propósito: sin entrada legible no es un merge y no hay nada que limpiar
+      }
+    })();
     if (!/\bgh\s+pr\s+merge\b|\bgit\s+(merge|pull)\b/.test(comando)) process.exit(0);
   }
   const SI = HOOK || process.argv.includes("--si");
@@ -65,7 +140,17 @@ if (esPrincipal) {
   const log = (...a) => { if (!SILENCIO) console.log(...a); };
 
   const git = (args, cwd) => execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
-  const intenta = (f) => { try { return f(); } catch { return null; } };
+  const intenta = (f) => {
+    try {
+      return f();
+    } catch {
+      // a propósito: git dice «no» saliendo con error (una ref que no existe, una
+      // rama sin remota); quien llama trata el null. Lo que no se pudo BORRAR no
+      // se queda aquí: se mira el disco y va a `problemas`.
+      return null;
+    }
+  };
+  const problemas = [];
 
   // El hook es de usuario (vale en cualquier carpeta): fuera de un repo, nada.
   const comun = intenta(() => git(["rev-parse", "--path-format=absolute", "--git-common-dir"], process.cwd()));
@@ -143,11 +228,32 @@ if (esPrincipal) {
     if (!SI) continue;
     soltarUniones(dir);
     intenta(() => git(["checkout", "--", "."], dir));
-    if (intenta(() => (git(["worktree", "remove", "--force", dir], raiz), true))) {
+    const quitado = Boolean(intenta(() => (git(["worktree", "remove", "--force", dir], raiz), true)));
+    const problema = problemaDelBorrado({ dir, rama, quitado, sigue: existsSync(dir) });
+    if (problema) problemas.push(problema);
+    else {
       borrados++;
       intenta(() => git(["branch", "-D", rama], raiz));
-    } else log(`  ⚠ no pude borrar ${dir}`);
+    }
   }
   intenta(() => git(["worktree", "prune"], raiz));
   log(SI ? `${borrados} worktrees borrados.` : "Ensayo: repite con --si para borrar.");
+
+  // Lo que no se pudo borrar se dice SIEMPRE, también en silencio, y se apunta
+  // para que el arranque lo siga enseñando mientras la carpeta exista.
+  let previos = [];
+  try {
+    previos = leerPendientes(comun);
+  } catch (e) {
+    console.error(`⚠ limpiar-worktrees: no he podido leer ${ficheroPendientes(comun)} (${e.message}); lo reescribo.`);
+  }
+  const pendientes = fusionarPendientes(previos, problemas, existsSync);
+  if (pendientes.length || previos.length) {
+    try {
+      writeFileSync(ficheroPendientes(comun), JSON.stringify(pendientes, null, 2));
+    } catch (e) {
+      console.error(`⚠ limpiar-worktrees: no he podido apuntar lo pendiente (${e.message}).`);
+    }
+  }
+  process.stdout.write(salidaDeProblemas(problemas, { hook: HOOK }));
 }

@@ -10,5 +10,5 @@ try {
   const { session_id: id, cwd } = JSON.parse(crudo);
   quitar(dirSesiones(cwd || process.cwd()), id);
 } catch {
-  // sin entrada legible no hay nada que borrar
+  // a propósito: sin entrada legible no hay nada que borrar; la ficha caduca sola (sesiones.mjs)
 }
