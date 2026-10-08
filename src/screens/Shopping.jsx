@@ -105,6 +105,7 @@ import { shareShoppingList } from "../lib/menuExport.js";
 import { priceShoppingList } from "../lib/listPricing.js";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
 import { PantryPrefsSheet } from "../components/ModeSheets.jsx";
+import { hoyISO } from "../lib/hoy.js";
 
 // Lazy (not a top-level import): Pantry.jsx already imports SwipePurchaseShell
 // from this very file, so a plain top-level import here would be circular.
@@ -3256,7 +3257,7 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
   const [storeSel, setStoreSel] = useState(knownStore ?? "");
   const [storeOther, setStoreOther] = useState(knownStore ? "" : detectedStore);
   const store = storeSel === "__other" ? storeOther : storeSel;
-  const [date, setDate] = useState(detail.date ?? new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => detail.date ?? hoyISO());
   const [lines, setLines] = useState(initialLines);
   const [step, setStep] = useState(0);
   // "Aclara productos" is answered one line at a time (select-a-candidate),

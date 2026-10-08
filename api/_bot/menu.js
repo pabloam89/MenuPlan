@@ -17,6 +17,7 @@
 
 import { select, insert, eq } from "./db.js";
 import { conCasa, cargarCasa, hoyISO } from "./casa.js";
+import { indiceDiaHoy } from "../../src/lib/hoy.js";
 import { propiasDe } from "./propias.js";
 import { rastro } from "./embudo.js";
 import { IDS_COMIDAS, COMIDAS_PRINCIPALES, COMIDAS, comidaDe } from "../../src/lib/comidas.js";
@@ -112,8 +113,7 @@ export function diaDe(texto) {
 
 /** El día de hoy en España, con las claves de la app. */
 export function hoy() {
-  const n = new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: "Europe/Madrid" }).format(new Date());
-  return { Mon: "Lun", Tue: "Mar", Wed: "Mié", Thu: "Jue", Fri: "Vie", Sat: "Sáb", Sun: "Dom" }[n];
+  return DIAS[indiceDiaHoy()];
 }
 
 // ── Fechas ──────────────────────────────────────────────────────────────────

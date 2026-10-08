@@ -17,14 +17,13 @@
  */
 
 import { COMIDAS_PLANIFICABLES, COMIDAS_PRINCIPALES } from "../../src/lib/comidas.js";
-import { conCasa } from "./casa.js";
+import { conCasa, hoyISO } from "./casa.js";
 import { motor, normal, diaDe, DIAS, DIA_LARGO } from "./menu.js";
 import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
 import { cerrarPorEstado, abrirPreguntaDeEstado } from "./tareas.js";
 import * as ids from "../../src/lib/ids.js";
 import { etapaDe, esMenor } from "../../src/lib/stages.js";
 
-const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
 // Del catálogo de comidas (src/lib/comidas.js).
 const COMIDAS = COMIDAS_PLANIFICABLES;
 

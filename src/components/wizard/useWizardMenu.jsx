@@ -10,6 +10,7 @@ import { contextoParaElModelo } from "../../lib/panelSuggestions.js";
 import { respuestaDeGuarda, validarRespuesta } from "../../lib/panelParser.js";
 import { aplicarAjustes, dataConLibreta } from "../../lib/libretaEnData.js";
 import { recipeCatalogById } from "../../data/recipeCatalog.js";
+import { hoyISO } from "../../lib/hoy.js";
 
 /**
  * Todo el wizard generativo, enganchado al menú de siempre.
@@ -118,7 +119,7 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
   }, [recuento, notepad]);
 
   const aplicarPanel = useCallback((opcion, frase) => {
-    const fecha = new Date().toISOString().slice(0, 10);
+    const fecha = hoyISO();
     // Mismo camino que el bot de Telegram (lib/libretaEnData.js#aplicarAjustes).
     const { libreta, tocadas } = aplicarAjustes(data, notepad, opcion?.ajustes ?? [], { frase, fecha });
     setMovidas(tocadas);

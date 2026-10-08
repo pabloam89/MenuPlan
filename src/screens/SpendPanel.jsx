@@ -51,6 +51,7 @@ import { aisleImageSrc } from "../lib/ingredientImages.js";
 import { useAuth } from "../lib/useAuth.js";
 import { removePantryItem } from "../lib/pantry.js";
 import * as ids from "../lib/ids.js";
+import { hoyISO } from "../lib/hoy.js";
 
 const GREEN = "#2d5a3d";
 
@@ -1333,7 +1334,7 @@ export function ManualEntryModal({
   const [storeSel, setStoreSel] = useState("");
   const [storeOther, setStoreOther] = useState("");
   const store = storeSel === "__other" ? storeOther : storeSel;
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => hoyISO());
   const disabled = !name.trim() || !(parseFloat(price) > 0);
   // Bulk weight/volume (500 g, 1 L) is already fully specified by qty+unit, so
   // the "medida" (size per unit) box only shows for ud/containers where a

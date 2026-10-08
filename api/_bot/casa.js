@@ -14,9 +14,11 @@
 
 import { select, insert, update, rpc, eq } from "./db.js";
 import { recetasPropiasDeCasa } from "./propias.js";
+import { hoyISO as hoyDeLaCasa } from "../../src/lib/hoy.js";
 
 // En hora de España: a las 00:30 del jueves, «hoy» es jueves, no el miércoles de UTC.
-export const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+// Se llama sin argumentos (Madrid); la función única vive en src/lib/hoy.js.
+export const hoyISO = () => hoyDeLaCasa();
 
 const aSemana = (s) => ({
   menuId: s.menu_id, weekStart: s.week_start, weekEnd: s.week_end, startDayIdx: s.start_day_idx ?? 0,

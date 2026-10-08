@@ -28,12 +28,9 @@ import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO }
 import { propiasDe } from "./propias.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
+import { hoyISO, indiceDiaHoy } from "../../src/lib/hoy.js";
 
-const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
-const indiceHoy = () => {
-  const d = new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: "Europe/Madrid" }).format(new Date());
-  return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(d);
-};
+const indiceHoy = () => indiceDiaHoy();
 
 /**
  * @param {"esta" | "siguiente"} cual

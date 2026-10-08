@@ -13,6 +13,7 @@ import { PanelCoach } from "../components/PanelCoach.jsx";
 import { sugerenciasDelMenu } from "../lib/panelSuggestions.js";
 import { libretaVacia, poner } from "../lib/notepad.js";
 import { aplicarOpcion, validarRespuesta, respuestaDeGuarda } from "../lib/panelParser.js";
+import { hoyISO } from "../lib/hoy.js";
 
 const RECUENTO = {
   familias: { carne: 4, pescado: 4, verdura: 3, legumbres: 2, pasta_arroz: 1 },
@@ -152,7 +153,7 @@ export function PanelPlayground() {
   };
 
   const aplicar = (opcion, frase) => {
-    setNotepad(aplicarOpcion(notepad, opcion, { frase, fecha: new Date().toISOString().slice(0, 10) }));
+    setNotepad(aplicarOpcion(notepad, opcion, { frase, fecha: hoyISO() }));
   };
 
   return (

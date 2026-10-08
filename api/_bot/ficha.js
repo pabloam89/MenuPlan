@@ -32,6 +32,7 @@ import { hayTandasPedidas, minutosDeTanda, enHoras } from "../../src/lib/cookTim
 import { SEMI, COCINADO } from "../../src/lib/tandaFamiliasDefs.js";
 import { comidasDeLaCasa, comida as comidaDelCatalogo } from "../../src/lib/comidas.js";
 import { claveDeTarea } from "../../src/lib/registroTareas.js";
+import { hoyISO } from "../../src/lib/hoy.js";
 import { select, eq } from "./db.js";
 import { propiasDe } from "./propias.js";
 
@@ -390,7 +391,7 @@ function delDiaBloque(casa, extras, hoy) {
  * @param {string} [hoy] ISO, para las pruebas
  * @returns {{ estable: string, delDia: string }}
  */
-export function montarFicha(casa, extras = {}, hoy = hoyMadrid()) {
+export function montarFicha(casa, extras = {}, hoy = hoyISO()) {
   const data = casa?.state?.data ?? {};
   if (!(data.members ?? []).length) {
     return { estable: "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas", delDia: cabeceraDia(hoy) };
@@ -426,7 +427,6 @@ export function montarFicha(casa, extras = {}, hoy = hoyMadrid()) {
   return f;
 }
 
-const hoyMadrid = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
 
 /**
  * Lo que la ficha necesita y no está en el JSON de la casa: lo cocinado que

@@ -11,6 +11,7 @@ import { enviarPendientes } from "../_bot/recordatorios.js";
 import { enviar, escaparHtml } from "../_bot/telegram.js";
 import { VISPERA, avisoDeVisperaDe } from "../_bot/vispera.js";
 import { rpc } from "../_bot/db.js";
+import { hoyISO } from "../../src/lib/hoy.js";
 
 function autorizado(cabecera) {
   const secreto = process.env.BOT_CRON_SECRET || process.env.CRON_SECRET;
@@ -28,7 +29,7 @@ export default async function handler(req, res) {
     // El aviso de la víspera (api/_bot/vispera.js): se monta ahora, con el menú
     // de mañana, y si no hay nada que preparar no se manda nada.
     if (r.text === VISPERA) {
-      const hoy = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+      const hoy = hoyISO();
       const aviso = r.household_id ? await avisoDeVisperaDe(r.household_id, hoy) : null;
       if (aviso) await enviar(r.chat_id, aviso);
       return;
