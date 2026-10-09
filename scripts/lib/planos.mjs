@@ -65,6 +65,16 @@ export const REGLAS_GITHUB = {
 };
 
 /**
+ * Parámetros que una regla admite pero no exige. `excepciones` de
+ * environment_solo_rama: { environment: rama } para los pocos que no son de
+ * staging, con su rama por nombre (#299: `ios-testflight` publica desde main).
+ * Cada uno sigue admitiendo una sola rama: la excepción cambia cuál, no cuántas.
+ */
+export const REGLAS_GITHUB_OPCIONALES = {
+  environment_solo_rama: ["excepciones"],
+};
+
+/**
  * Quién puede saltarse un ruleset sin que el check deje de contar como
  * obligatorio. Solo la deploy key del cron de Mercadona (PR #240), y es deuda
  * apuntada en #263: el 9 oct dejó staging en rojo. Añadir otro aquí es abrir
@@ -271,7 +281,8 @@ export function evaluarReglaGithub(c, { repo, gh }) {
         const p = gh(`repos/${repo}/environments/${nombre}/deployment-branch-policies`);
         if (!p.ok) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: no se pudo leer la política de ramas` };
         const lista = p.json?.branch_policies ?? [];
-        const bien = lista.length === 1 && lista[0].name === c.rama && (lista[0].type ?? "branch") === "branch";
+        const rama = Object.hasOwn(c.excepciones ?? {}, e.name) ? c.excepciones[e.name] : c.rama;
+        const bien = lista.length === 1 && lista[0].name === rama && (lista[0].type ?? "branch") === "branch";
         if (!bien) fuera++;
       }
       return { estado: fuera ? "no_cumple" : "cumple", detalle: `${cuadra(c, fuera)}: ${fuera} de ${conSecretos} fuera de la política` };
