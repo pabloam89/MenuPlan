@@ -19,6 +19,20 @@ export const VAR_ADMIN = "SUPABASE_DB_URL";
 export const FICHA_LECTURA = "Supabase lectura";
 export const OP_LECTURA = `op://HoMenu/${FICHA_LECTURA}/${VAR_LECTURA}`;
 
+/**
+ * Qué dice `op item get <ficha>`: "existe", "no-existe" o "error". Solo cuenta
+ * como «no existe» el mensaje exacto de `op` (visto con op 2.40 el 9 oct 2026:
+ * `"X" isn't an item in the "HoMenu" vault`). Cualquier otro fallo (sin `op`,
+ * sin acceso, sin red) es "error": crear la ficha a ciegas podría duplicarla y
+ * dejar la dirección op:// ambigua.
+ * @param {{ status: number|null, stderr?: string, error?: Error }} r  lo que devuelve spawnSync
+ */
+export function estadoFicha(r) {
+  if (r.error) return "error";
+  if (r.status === 0) return "existe";
+  return /isn't an item in the "[^"]+" vault/.test(String(r.stderr ?? "")) ? "no-existe" : "error";
+}
+
 /** La ficha de 1Password, en JSON para `op item create --vault HoMenu -`. */
 export const fichaLectura = (clave, url) => JSON.stringify({
   title: FICHA_LECTURA,
@@ -65,6 +79,17 @@ export function urlLectura(urlAdmin, clave) {
 }
 
 /**
+ * Con la dirección de lectura, la sesión tiene que ser de `consulta_lectura`.
+ * Si no (p. ej. SUPABASE_DB_URL_LECTURA apuntando por error a la de
+ * administrador), el motivo para no seguir; null si cuadra o si no se esperaba
+ * ningún rol (plan B, que ya avisa).
+ */
+export function motivoUsuarioIncorrecto(esperado, actual) {
+  if (!esperado || actual === esperado) return null;
+  return `${VAR_LECTURA} entra como «${actual}», no como «${esperado}». No sigo: corrige la dirección en 1Password.`;
+}
+
+/**
  * Qué dirección usa `npm run consulta`: la de lectura si existe; si la variable
  * no está, la del administrador con un aviso (plan B mientras la 0092 no esté
  * aplicada o la contraseña no esté en 1Password). Si está pero no se puede
@@ -81,9 +106,10 @@ export function conexionDeConsulta(leer) {
     // usuario con una dirección mala (juez de seguridad de la 0092).
     throw new Error(`${VAR_LECTURA} está configurada pero no la puedo leer (${e.message}). No cambio al administrador: arréglala o quítala.`);
   }
-  if (lectura) return { url: lectura, aviso: null };
+  if (lectura) return { url: lectura, aviso: null, rol: ROL_LECTURA };
   return {
     url: leer(VAR_ADMIN),
+    rol: null,
     aviso: `Aviso: no hay ${VAR_LECTURA}. Entro como administrador; solo me protegen el filtro de texto y la transacción read only (issue #233).`,
   };
 }

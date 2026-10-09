@@ -23,10 +23,10 @@
  * vuelve a lanzar. Si se corta entre el paso 3 y el 4, igual: archivar y
  * relanzar.
  */
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import pg from "pg";
 import { entornoOp, leerEnv } from "./lib/env.mjs";
-import { FICHA_LECTURA, OP_LECTURA, ROL_LECTURA, VAR_ADMIN, VAR_LECTURA, claveNueva, fichaLectura, urlLectura, verificadorScram } from "./lib/rolLectura.mjs";
+import { FICHA_LECTURA, OP_LECTURA, ROL_LECTURA, VAR_ADMIN, VAR_LECTURA, claveNueva, estadoFicha, fichaLectura, urlLectura, verificadorScram } from "./lib/rolLectura.mjs";
 
 const SI = process.argv.includes("--si");
 const ssl = { rejectUnauthorized: false };
@@ -39,15 +39,17 @@ if (!SI) {
   process.exit(0);
 }
 
-// ¿Ya hay ficha? Con la service account, que lee sin preguntar.
-let existe = true;
-try {
-  execFileSync("op", ["item", "get", FICHA_LECTURA, "--vault", "HoMenu", "--format", "json"], { env: entornoOp(), stdio: ["ignore", "ignore", "ignore"] });
-} catch {
-  existe = false;
-}
-if (existe) {
+// ¿Ya hay ficha? Con la service account, que lee sin preguntar. Solo se sigue
+// con un «no existe» claro: cualquier otro fallo podría acabar en una ficha
+// duplicada y una dirección op:// ambigua.
+const busca = spawnSync("op", ["item", "get", FICHA_LECTURA, "--vault", "HoMenu", "--format", "json"], { env: entornoOp(), encoding: "utf8", stdio: ["ignore", "ignore", "pipe"] });
+const ficha = estadoFicha(busca);
+if (ficha === "existe") {
   console.error(`Ya existe la ficha «${FICHA_LECTURA}» en HoMenu. Para rotar la contraseña, archívala en 1Password y vuelve a lanzarlo.`);
+  process.exit(1);
+}
+if (ficha === "error") {
+  console.error(`No sé si la ficha «${FICHA_LECTURA}» existe (${busca.error ? busca.error.code : errorDeOp(busca)}). No creo nada; la base no se ha tocado.`);
   process.exit(1);
 }
 
@@ -86,6 +88,7 @@ try {
     try {
       await c.connect();
       const { rows: [r] } = await c.query("select current_user as yo, current_setting('default_transaction_read_only') as ro, current_setting('statement_timeout') as tope");
+      if (r.yo !== ROL_LECTURA) throw new Error(`entra como ${r.yo}`);
       console.log(`OK: entra como ${r.yo}, read only ${r.ro}, tope ${r.tope}. Añade (o descomenta) en tu .env.local: ${VAR_LECTURA}=${OP_LECTURA}`);
       ultimo = null;
       break;
@@ -97,8 +100,8 @@ try {
     }
   }
   if (ultimo) {
-    // Solo el código: el mensaje de pg no lleva la contraseña, pero así no hay duda.
-    console.error(`La contraseña está puesta, pero no consigo entrar con ella (${ultimo.code ?? "sin código"}). Vuelve a probar en un minuto con npm run consulta.`);
+    // El código de pg, o nuestro propio motivo; nunca la dirección.
+    console.error(`La contraseña está puesta, pero no consigo entrar con ella (${ultimo.code ?? (ultimo.message.startsWith("entra como") ? ultimo.message : "sin código")}). Vuelve a probar en un minuto con npm run consulta.`);
     process.exitCode = 1;
   }
 } finally {

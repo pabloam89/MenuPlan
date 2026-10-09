@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import sasl from "pg/lib/crypto/sasl";
-import { OP_LECTURA, ROL_LECTURA, VAR_ADMIN, VAR_LECTURA, claveNueva, conexionDeConsulta, fichaLectura, urlLectura, verificadorScram } from "./lib/rolLectura.mjs";
+import { OP_LECTURA, ROL_LECTURA, VAR_ADMIN, VAR_LECTURA, claveNueva, conexionDeConsulta, estadoFicha, fichaLectura, motivoUsuarioIncorrecto, urlLectura, verificadorScram } from "./lib/rolLectura.mjs";
 
 /**
  * Hace de servidor Postgres con el verificador y deja que el cliente SCRAM de
@@ -61,10 +61,31 @@ describe("usuario de solo lectura (0092, issue #233)", () => {
 
   it("plan B: sin la conexión de lectura, la de administrador con aviso", () => {
     const env = (v) => (k) => v[k];
-    expect(conexionDeConsulta(env({ [VAR_LECTURA]: "L", [VAR_ADMIN]: "A" }))).toEqual({ url: "L", aviso: null });
+    expect(conexionDeConsulta(env({ [VAR_LECTURA]: "L", [VAR_ADMIN]: "A" }))).toEqual({ url: "L", aviso: null, rol: ROL_LECTURA });
     const sin = conexionDeConsulta(env({ [VAR_ADMIN]: "A" }));
     expect(sin.url).toBe("A");
     expect(sin.aviso).toMatch(/administrador/);
+  });
+
+  it("con la dirección de lectura, solo vale entrar como consulta_lectura (juez de seguridad)", () => {
+    // SUPABASE_DB_URL_LECTURA=op://HoMenu/Supabase/SUPABASE_DB_URL entraría como postgres.
+    const { rol } = conexionDeConsulta((k) => (k === VAR_LECTURA ? "L" : "A"));
+    expect(motivoUsuarioIncorrecto(rol, "postgres")).toMatch(/como «postgres»/);
+    expect(motivoUsuarioIncorrecto(rol, ROL_LECTURA)).toBe(null);
+    // Plan B: no se espera ningún rol (ya avisa de que entra como administrador).
+    const sin = conexionDeConsulta((k) => (k === VAR_ADMIN ? "A" : undefined));
+    expect(motivoUsuarioIncorrecto(sin.rol, "postgres")).toBe(null);
+  });
+
+  it("op item get: solo un «no existe» claro deja crear la ficha", () => {
+    expect(estadoFicha({ status: 0, stderr: "" })).toBe("existe");
+    expect(estadoFicha({ status: 1, stderr: '[ERROR] 2026/10/09 06:59:14 "Supabase lectura" isn\'t an item in the "HoMenu" vault. Specify the item with its UUID, name, or domain.' })).toBe("no-existe");
+    for (const r of [
+      { status: 1, stderr: '[ERROR] "NoExisteBoveda" isn\'t a vault in this account.' },
+      { status: 1, stderr: "[ERROR] You are not currently signed in." },
+      { status: 1, stderr: "" },
+      { status: null, error: Object.assign(new Error("spawn op ENOENT"), { code: "ENOENT" }) },
+    ]) expect(estadoFicha(r), JSON.stringify(r)).toBe("error");
   });
 
   it("configurada pero ilegible: falla, no cae al administrador (juez de seguridad)", () => {

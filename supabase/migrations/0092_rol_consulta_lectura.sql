@@ -48,9 +48,11 @@
 --   - `notify pgrst` (recarga de PostgREST) y tablas temporales.
 -- Por `consulta.mjs` nada de esto pasa: protocolo extendido de una sentencia,
 -- `begin read only` antes de la consulta, filtro de texto y rollback. Es un
--- riesgo aceptado, pendiente de Pablo: la URL vive solo en 1Password y en
--- `.env.local` del PC de Pablo, igual que hoy la de administrador, que puede
--- todo eso y más. La comprobación del final cuenta lo de `net` (NOTICE) y
+-- riesgo aceptado, pendiente de Pablo: la URL vive en 1Password (bóveda
+-- HoMenu); el `.env.local` del PC de Pablo guarda solo la dirección `op://`,
+-- pero cualquier sesión de ese PC la resuelve sin preguntar con la service
+-- account, que lee toda la bóveda HoMenu (también la URL de administrador, que
+-- puede todo eso y más). La comprobación del final cuenta lo de `net` (NOTICE) y
 -- falla si aparece cualquier otra escritura.
 --
 -- Pooler: Supavisor admite roles propios; el usuario de la conexión es

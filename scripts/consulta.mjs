@@ -13,7 +13,7 @@
 import pg from "pg";
 import { leerEnv } from "./lib/env.mjs";
 import { motivoParaNoLeer } from "./lib/consulta.mjs";
-import { conexionDeConsulta } from "./lib/rolLectura.mjs";
+import { conexionDeConsulta, motivoUsuarioIncorrecto } from "./lib/rolLectura.mjs";
 
 const sql = process.argv.slice(2).join(" ").trim();
 const no = motivoParaNoLeer(sql);
@@ -26,8 +26,9 @@ if (no) {
 // un aviso: el script no depende de que la migración ya esté aplicada.
 let url;
 let aviso;
+let rol;
 try {
-  ({ url, aviso } = conexionDeConsulta((k) => leerEnv(k)));
+  ({ url, aviso, rol } = conexionDeConsulta((k) => leerEnv(k)));
 } catch (e) {
   console.error(e.message);
   process.exit(1);
@@ -39,6 +40,15 @@ if (!url) {
 }
 const client = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
 await client.connect();
+// Con la dirección de lectura, que de verdad sea consulta_lectura (juez de
+// seguridad de la 0092): una dirección de administrador ahí no pasa callada.
+const { rows: [quien] } = await client.query("select current_user as yo");
+const malUsuario = motivoUsuarioIncorrecto(rol, quien.yo);
+if (malUsuario) {
+  console.error(malUsuario);
+  await client.end();
+  process.exit(1);
+}
 try {
   await client.query("set session characteristics as transaction read only");
   await client.query("begin read only");
