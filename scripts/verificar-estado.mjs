@@ -172,7 +172,9 @@ export function testigos(sql) {
     for (const c of s.matchAll(/cron\.schedule\s*\(\s*'([^']+)'/gi)) crea.push({ tipo: "cron", id: c[1] });
     for (const c of s.matchAll(/cron\.unschedule\s*\(\s*'([^']+)'/gi)) quita.push({ tipo: "cron", id: c[1] });
   }
-  return { crea, quita };
+  // Lo de pg_temp muere con la sesión que aplica la migración: nunca está.
+  const duradero = (t) => !/^pg_temp(?:_\d+)?\./i.test(t.id);
+  return { crea: crea.filter(duradero), quita: quita.filter(duradero) };
 }
 
 // ── Decidir con el catálogo ────────────────────────────────────────────────
