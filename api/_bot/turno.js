@@ -18,6 +18,7 @@ import {
   proponerPlatos, cambiarPlato, anadirCompra, marcarCompra, normal, DIA_LARGO, grupos, quienesDe, cambiosDe,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
+import { conRecordatorio } from "./silencio.js";
 import { respuestaCompra, respuestaMenu, rangoDeFechas } from "./rapido.js";
 import { fechasDe } from "./cuando.js";
 import { filtrosTrasGenerar, filtrosTrasCambiar } from "./pintar.js";
@@ -169,7 +170,8 @@ export async function generar(householdId, x) {
   const pedidos = sinSitio.length ? `\n\n${sinSitio.map((l) => `• ${esc(aPersona(l))}`).join("\n")}` : "";
   const destacados = (out.colocados ?? []).length ? " Lo que pediste va marcado con ✨." : "";
   return {
-    texto: `🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${pedidos}`,
+    // El primer menú con alergias por silencio lo recuerda una vez (#229).
+    texto: conRecordatorio(`🎉 <b>¡Menú listo!</b> Del <b>${rangoDeFechas(out.desde, out.hasta)}</b>.${destacados}${pedidos}`, out.recordarSilencio),
     fotos: [], deshacible: false, ir: "semana",
     pintar: filtrosTrasGenerar(out),
   };

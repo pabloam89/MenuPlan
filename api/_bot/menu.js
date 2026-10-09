@@ -29,6 +29,7 @@ import { EJES } from "./esquemas.js";
 import { PERFILES, ordenarPorPerfil } from "../../src/lib/derive/perfiles.js";
 import { etapaDe } from "../../src/lib/stages.js";
 import { vetosDePersona } from "../../src/lib/vetos.js";
+import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 
 let motorCargado = null;
 // Las recetas que trae el motor de serie (antes de registrar ninguna casa).
@@ -270,7 +271,9 @@ export function describirCasa(casa) {
     const alergias = [...(p.allergies ?? []), ...(p.intolerances ?? [])].filter(Boolean);
     const cuerpo = p.pesoKg && p.alturaCm ? `, ${p.pesoKg} kg y ${p.alturaCm} cm` : "";
     const noLeGusta = vetosDePersona(p);
-    return `• ${p.name ?? "(sin nombre)"}${p.age != null ? `, ${p.age} años` : ""}${cuerpo}${alergias.length ? ` — alergias/intolerancias: ${alergias.join(", ")}` : ""}${noLeGusta.length ? ` — no le gusta: ${noLeGusta.join(", ")}` : ""}`;
+    // Por silencio (#229) no es un «ninguna» confirmado: que se vea.
+    const silencio = !alergias.length && alergiasPorSilencio(d, p) ? " — alergias: ninguna por silencio (no lo confirmaron)" : "";
+    return `• ${p.name ?? "(sin nombre)"}${p.age != null ? `, ${p.age} años` : ""}${cuerpo}${alergias.length ? ` — alergias/intolerancias: ${alergias.join(", ")}` : ""}${silencio}${noLeGusta.length ? ` — no le gusta: ${noLeGusta.join(", ")}` : ""}`;
   });
   return [
     `Miembros:\n${miembros.join("\n") || "(ninguno todavía)"}`,
