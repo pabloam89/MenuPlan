@@ -55,8 +55,9 @@ cuelga del equipo de Vercel.
 
 `npm run consulta` entra con `SUPABASE_DB_URL_LECTURA`, el rol
 `consulta_lectura` de la 0092 (solo `select` en `public` y `ops`, sin `auth`,
-`cron`, `vault` ni `storage`). Si la variable no está, entra con la de
-administrador y lo avisa; si está pero no se puede leer, falla. Su contraseña
+`cron`, `vault` ni `storage`). A todo o nada (#238): si la variable no está o
+no se puede leer, falla; como administrador solo entra con `--admin` explícito
+(`npm run consulta -- --admin "select …"`), y lo avisa. Su contraseña
 la pone `node scripts/clave-consulta-lectura.mjs --si` (Pablo, con `!`): la
 genera, crea la ficha «Supabase lectura» en HoMenu por stdin y a la base solo
 le manda el verificador SCRAM. Lo que esté fuera de `public` y `ops` (p. ej.

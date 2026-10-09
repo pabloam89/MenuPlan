@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import sasl from "pg/lib/crypto/sasl";
-import { OP_LECTURA, ROL_LECTURA, VAR_ADMIN, VAR_LECTURA, claveNueva, conexionDeConsulta, estadoFicha, fichaLectura, motivoUsuarioIncorrecto, urlLectura, verificadorScram } from "./lib/rolLectura.mjs";
+import {
+  ARG_ADMIN, OP_COPIA, OP_LECTURA, PERFILES, ROL_COPIA, ROL_LECTURA, VAR_ADMIN, VAR_LECTURA,
+  argumentosDeConsulta, claveNueva, conexionDeConsulta, direccionOp, estadoFicha, fichaDeRol, fichaLectura, motivoUsuarioIncorrecto, urlDeRol, urlLectura, verificadorScram,
+} from "./lib/rolLectura.mjs";
+import { BOVEDA_COPIAS } from "./lib/copias.mjs";
 
 /**
  * Hace de servidor Postgres con el verificador y deja que el cliente SCRAM de
@@ -59,12 +63,39 @@ describe("usuario de solo lectura (0092, issue #233)", () => {
     expect(ficha.fields.find((f) => f.label === campo)).toMatchObject({ type: "CONCEALED", value: "postgresql://u:clave@h/db" });
   });
 
-  it("plan B: sin la conexión de lectura, la de administrador con aviso", () => {
+  it("con la variable de lectura, la de lectura y sin aviso", () => {
     const env = (v) => (k) => v[k];
     expect(conexionDeConsulta(env({ [VAR_LECTURA]: "L", [VAR_ADMIN]: "A" }))).toEqual({ url: "L", aviso: null, rol: ROL_LECTURA });
-    const sin = conexionDeConsulta(env({ [VAR_ADMIN]: "A" }));
-    expect(sin.url).toBe("A");
-    expect(sin.aviso).toMatch(/administrador/);
+  });
+
+  it("a todo o nada (#238): sin la variable de lectura falla, no cae al administrador", () => {
+    const leidas = [];
+    const leer = (k) => {
+      leidas.push(k);
+      return k === VAR_ADMIN ? "A" : undefined;
+    };
+    expect(() => conexionDeConsulta(leer)).toThrow(new RegExp(`Falta ${VAR_LECTURA}.*${ARG_ADMIN}`));
+    expect(leidas).not.toContain(VAR_ADMIN);
+  });
+
+  it("con --admin explícito, el administrador con aviso, sin leer la de lectura", () => {
+    const leidas = [];
+    const leer = (k) => {
+      leidas.push(k);
+      return k === VAR_ADMIN ? "A" : "L";
+    };
+    const r = conexionDeConsulta(leer, { admin: true });
+    expect(r).toMatchObject({ url: "A", rol: null });
+    expect(r.aviso).toMatch(/administrador/);
+    expect(leidas).toEqual([VAR_ADMIN]);
+    expect(() => conexionDeConsulta(() => undefined, { admin: true })).toThrow(new RegExp(VAR_ADMIN));
+  });
+
+  it("--admin solo cuenta como argumento exacto, no dentro de la consulta", () => {
+    expect(argumentosDeConsulta(["--admin", "select 1"])).toEqual({ admin: true, sql: "select 1" });
+    expect(argumentosDeConsulta(["select", "1", "--admin"])).toEqual({ admin: true, sql: "select 1" });
+    expect(argumentosDeConsulta(["select '--admin'"])).toEqual({ admin: false, sql: "select '--admin'" });
+    expect(argumentosDeConsulta(["select 1"])).toEqual({ admin: false, sql: "select 1" });
   });
 
   it("con la dirección de lectura, solo vale entrar como consulta_lectura (juez de seguridad)", () => {
@@ -72,9 +103,9 @@ describe("usuario de solo lectura (0092, issue #233)", () => {
     const { rol } = conexionDeConsulta((k) => (k === VAR_LECTURA ? "L" : "A"));
     expect(motivoUsuarioIncorrecto(rol, "postgres")).toMatch(/como «postgres»/);
     expect(motivoUsuarioIncorrecto(rol, ROL_LECTURA)).toBe(null);
-    // Plan B: no se espera ningún rol (ya avisa de que entra como administrador).
-    const sin = conexionDeConsulta((k) => (k === VAR_ADMIN ? "A" : undefined));
-    expect(motivoUsuarioIncorrecto(sin.rol, "postgres")).toBe(null);
+    // Con --admin no se espera ningún rol (ya avisa de que entra como administrador).
+    const adm = conexionDeConsulta((k) => (k === VAR_ADMIN ? "A" : undefined), { admin: true });
+    expect(motivoUsuarioIncorrecto(adm.rol, "postgres")).toBe(null);
   });
 
   it("op item get: solo un «no existe» claro deja crear la ficha", () => {
@@ -98,5 +129,37 @@ describe("usuario de solo lectura (0092, issue #233)", () => {
     };
     expect(() => conexionDeConsulta(leer)).toThrow(/no la puedo leer/);
     expect(leidas).not.toContain(VAR_ADMIN);
+  });
+});
+
+describe("usuario de las copias (0094, issue #273)", () => {
+  const copia = PERFILES[ROL_COPIA];
+
+  it("su ficha va a «Panel HoMenu», que la service account del PC no lee", () => {
+    expect(copia.boveda).toBe(BOVEDA_COPIAS);
+    expect(copia.boveda).not.toBe(PERFILES[ROL_LECTURA].boveda);
+    expect(copia.servicio).toBe(false);
+    expect(direccionOp(copia)).toBe(OP_COPIA);
+    // La de consulta sigue donde estaba: la plantilla de .env.local la nombra.
+    expect(direccionOp(PERFILES[ROL_LECTURA])).toBe(OP_LECTURA);
+  });
+
+  it("la ficha lleva la dirección en el campo que lee OP_COPIA, y nombra su migración", () => {
+    const ficha = JSON.parse(fichaDeRol(copia, "clave", "postgresql://u:clave@h/db"));
+    const [, , titulo, campo] = /^op:\/\/([^/]+)\/([^/]+)\/(.+)$/.exec(OP_COPIA);
+    expect(ficha.title).toBe(titulo);
+    expect(ficha.fields.find((f) => f.label === campo)).toMatchObject({ type: "CONCEALED", value: "postgresql://u:clave@h/db" });
+    expect(ficha.notesPlain).toMatch(/0094/);
+    expect(ficha.notesPlain).toMatch(/#273/);
+  });
+
+  it("su dirección por el pooler es copia_lectura.<ref>", () => {
+    const u = new URL(urlDeRol("postgresql://postgres.abcdefghij:viejo@aws-1-x.pooler.supabase.com:5432/postgres", ROL_COPIA, "nueva"));
+    expect(decodeURIComponent(u.username)).toBe(`${ROL_COPIA}.abcdefghij`);
+    expect(u.password).toBe("nueva");
+  });
+
+  it("tras poner la contraseña comprueba que lee el esquema copia", () => {
+    expect(copia.prueba).toMatch(/\bcopia\.auth_usuarios\b/);
   });
 });
