@@ -175,7 +175,9 @@ export function testigos(sql) {
     for (const c of s.matchAll(new RegExp(String.raw`\bcreate\s+role\s+(${ID})`, "gi"))) crea.push({ tipo: "rol", id: nombre(c[1]).nombre });
     for (const c of s.matchAll(new RegExp(String.raw`\bdrop\s+role\s+(?:if\s+exists\s+)?(${ID})`, "gi"))) quita.push({ tipo: "rol", id: nombre(c[1]).nombre });
   }
-  return { crea, quita };
+  // Lo de pg_temp muere con la sesión que aplica la migración: nunca está.
+  const duradero = (t) => !/^pg_temp(?:_\d+)?\./i.test(t.id);
+  return { crea: crea.filter(duradero), quita: quita.filter(duradero) };
 }
 
 // ── Decidir con el catálogo ────────────────────────────────────────────────

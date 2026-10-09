@@ -187,10 +187,11 @@ caché declarada.
 
 ## Ids de persona y grupo: valores UUID (0091) → columnas `uuid`
 
-Hoy (sin aplicar la 0091): persona.id, grupo.id, sus FK (`persona_alergia`,
+La 0091 se aplicó el 9 oct 2026: los valores ya son UUID (163 ids viejos
+mapeados). Los TIPOS siguen siendo `text`: persona.id, grupo.id, sus FK (`persona_alergia`,
 `persona_intolerancia`, `persona_estado`, `persona_perfil_salud`,
 `grupo_persona`, `bot_tareas.persona_id`) y `bot_tareas.para_member` /
-`asignado_member` son `text`, con 92 + 34 ids viejos el 8 oct 2026.
+`asignado_member`.
 `src/lib/ids.js` acepta las formas viejas a propósito.
 
 Paso 1: la 0091 pasa los VALORES a UUID en toda la base, con el mapa en
@@ -206,8 +207,8 @@ aceptar `VIEJO_PERSONA` y `VIEJO_GRUPO`, y en esa misma tanda se borra
 repasar se queda sin lector (decidir antes si se guarda fuera una copia del mapa
 para poder deshacer).
 
-Condición para el paso 2: la 0091 aplicada y una semana sin que reaparezca un id
-viejo (una PWA antigua guarda sin `p_bot_rev` y puede devolverlos). Mira persona
+Condición para el paso 2: una semana sin que reaparezca un id viejo (como
+pronto, el 16 oct 2026) (una PWA antigua guarda sin `p_bot_rev` y puede devolverlos). Mira persona
 y grupo y TAMBIÉN el JSON de la casa: con `activeRosterId` distinto de `default`
 el trigger de la 0089 no copia nada, y persona daría 0 aunque el JSON tuviera
 ids viejos. Son las mismas listas que lee `_ids_de_estado` en la 0091 (familia,
