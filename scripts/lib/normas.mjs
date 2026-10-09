@@ -145,6 +145,23 @@ export function problemasDeDureza(n, ctx) {
   return malos;
 }
 
+/**
+ * Reglas del registro entero (#351). Una comprobación de la medición de planos
+ * (`planos:<regla>[:<rama>]`) es un hecho de GitHub concreto: si dos normas la
+ * dan como test, son el mismo hecho dicho dos veces, y acaban con dos
+ * veredictos distintos (pasó con «staging exige tests», tres normas). Un
+ * fichero de test no cuenta: guardia.test.js vigila muchas normas distintas.
+ */
+export function problemasDeConjunto(normas) {
+  const porHecho = new Map();
+  for (const n of normas) {
+    if (!esReferenciaPlanos(n.test)) continue;
+    porHecho.set(n.test, [...(porHecho.get(n.test) ?? []), n.id]);
+  }
+  return [...porHecho].filter(([, ids]) => ids.length > 1)
+    .map(([hecho, ids]) => `${ids.join(", ")}: el mismo hecho (${hecho}) en ${ids.length} normas; deja una sola, con un solo veredicto`);
+}
+
 // ── Frases normativas ─────────────────────────────────────────────────────
 
 /**
