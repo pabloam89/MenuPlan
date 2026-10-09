@@ -1,0 +1,64 @@
+# Los controles del problema de fondo, sobre eventos de GitHub (#337, fase B
+# del plan #334). Antes `faltas()` y `debeReabrir()` solo corrían al lanzar
+# `npm run issues`; aquí reaccionan a cualquier vía de entrada (CLI, MCP, web):
+#
+# - issues (alta, edición, etiquetas, cierre, reapertura) de un fondo, de un
+#   caso o de un encargo: valida la ficha del fondo (bloque `fondo` del
+#   cuerpo), deja UN comentario con la marca `<!-- menuplan:fondo -->` (lo
+#   actualiza, no apila) y pone la etiqueta `control:ok` o `control:falla`.
+#   Reabre un fondo cerrado sin aprendizaje o con un caso que no aguantó.
+# - schedule (diario): las ventanas de observación vencidas; sin casos nuevos
+#   cierra el fondo como cerrado-eficaz, con ellos lo reabre.
+#
+# Seguridad: el cuerpo de un issue lo escribe cualquiera (repo público). Nada
+# del issue entra en un `run:`; el script lee el issue por la API, con el
+# parser acotado de scripts/lib/fondos.mjs, y solo escribe comentarios del
+# propio bot, etiquetas, el estado del issue y la línea de estado de la ficha.
+# Sin `pull_request_target`, sin secretos, sin `npm ci` (el script no tiene
+# dependencias). Si la API no responde, falla con la causa y sin culpar al
+# autor: se relanza el run.
+#
+# Los cambios que hace el token del workflow no lanzan otro run (GitHub no
+# encadena workflows con GITHUB_TOKEN): no hay bucle.
+
+name: Fondos
+
+on:
+  issues:
+    types: [opened, edited, labeled, closed, reopened]
+  schedule:
+    # 06:35 UTC cada día; no en punto, que los cron de GitHub se atascan.
+    - cron: "35 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read # leer el fichero de la verificación en staging
+  issues: write # comentar, etiquetar, reabrir o cerrar
+
+# Un run por issue a la vez; el pase diario, aparte. No se cancela ninguno:
+# a medias dejaría el comentario o el estado sin poner al día.
+concurrency:
+  group: fondos-${{ github.event.issue.number || 'diario' }}
+  cancel-in-progress: false
+
+jobs:
+  controlar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # La rama por defecto, nunca código de otra parte: el run lleva permiso de escritura.
+      - uses: actions/checkout@v7
+        with:
+          ref: staging
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Controlar
+        run: node scripts/fondos-evento.mjs
+        env:
+          # Por entorno y nunca interpolado en el script. Son el número y el
+          # tipo de evento, no texto del autor.
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          EVENT_ACTION: ${{ github.event.action }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
