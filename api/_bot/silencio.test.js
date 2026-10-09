@@ -98,10 +98,16 @@ const CON_SENAL = [
   "ahora te digo", "prefiero no decirlo", "déjame que lo mire", "luego te lo digo", "wait", "let me check",
   // un no: lo guarda Lola con ajustar_alergias, por persona (ajustes.js)
   "no", "nada", "ninguna", "nadie tiene", "no tenemos", "Ana no", "[nota de voz] no, nada",
+  // tercera ronda de los jueces
+  "le salen ronchas", "lleva siempre el epipen", "le pusieron adrenalina", "lupino", "es celi", "she's gf",
+  "el atún", "salmón no", "merluza", "gambones", "crevettes", "arachidi", "Erdnüsse", "noci", "ahora te digo algo",
+  "Leo, güebo",
 ];
 const SIN_SENAL = [
   "Hazme el menú de la semana que viene", "¿qué cenamos hoy?", "prepárame ya el menú", "vale, gracias",
   "perfecto", "genial, ¿y para mañana?", "somos dos", "Pablo 36 y Marta 34, prepárame ya el menú",
+  // el alta: «una», «uno», «tenemos» en un mensaje largo no son un sí
+  "Pablo 36, Marta 34 y una niña de 2", "tenemos un hijo de 4", "somos una familia de cuatro",
 ];
 
 describe("haySenal: ante la duda, no es silencio", () => {
@@ -125,6 +131,23 @@ describe("decidirSilencio", () => {
       expect(decidirSilencio({ ultimaDeLola: PREGUNTA, texto: "hazme el menú", llamadas: ["ver_menu", h] }), h).toBe(null);
     }
   });
+  it("con ajustar_gustos en el turno («Ana, aguacate y cítricos», «Ana, cebolla»), no se marca", () => {
+    for (const texto of ["Ana, aguacate y cítricos", "Ana, cebolla"]) {
+      expect(decidirSilencio({ ultimaDeLola: PREGUNTA, texto, nombres: NOMBRES, llamadas: ["ajustar_gustos"] }), texto).toBe(null);
+    }
+  });
+  it("Lola aclara sin herramienta («¿Quieres decir que Leo es alérgico al huevo?»): no se marca", () => {
+    const base = { ultimaDeLola: PREGUNTA, texto: "hazme el menú", nombres: NOMBRES };
+    expect(decidirSilencio({ ...base, respuestaDeLola: "¿Quieres decir que Leo es alérgico al huevo?" })).toBe(null);
+    // Habla del tema sin preguntar.
+    expect(decidirSilencio({ ...base, respuestaDeLola: "Vale. Lo de las intolerancias lo vemos luego." })).toBe(null);
+    // Acaba en pregunta (con botones detrás).
+    expect(decidirSilencio({ ...base, respuestaDeLola: "Te lo preparo. ¿Para esta semana o la que viene?\n[[Esta]] [[La que viene]]" })).toBe(null);
+    // Ha vuelto a preguntar con aviso: el que cuenta es el nuevo, en el turno siguiente.
+    expect(decidirSilencio({ ...base, respuestaDeLola: `¿Y alguna alergia? ${AVISO_SILENCIO}` })).toBe(null);
+    // Contesta a lo suyo: silencio.
+    expect(decidirSilencio({ ...base, respuestaDeLola: "🎉 ¡Menú listo! Te lo dejo abajo." })).toBe("por_silencio");
+  });
   it("las herramientas que contestan incluyen alergias, salud y gustos", () => {
     expect(HERRAMIENTAS_QUE_CONTESTAN).toEqual(expect.arrayContaining(["ajustar_alergias", "ajustar_salud", "ajustar_gustos"]));
   });
@@ -142,7 +165,12 @@ describe("destinatarios: solo por quien se preguntó", () => {
   it("a quien ya estaba revisado no se le toca", () => {
     const d = { members: [{ id: "a", name: "Ana", alergiasRevisadas: true, allergies: [] }, { id: "b", name: "Pablo", alergiasRevisadas: false }] };
     expect(destinatarios(PREGUNTA, d)).toEqual(["b"]);
-    expect(destinatarios(`¿Ana tiene alguna alergia? ${AVISO_SILENCIO}`, d)).toEqual([]);
+    // Nombra solo a quien ya estaba: la pregunta va por los que faltan.
+    expect(destinatarios(`¿Ana tiene alguna alergia? ${AVISO_SILENCIO}`, d)).toEqual(["b"]);
+  });
+  it("«Lucas ya está… ¿Alguien más…?»: los que faltan, no []", () => {
+    const d = { members: [{ id: "a", name: "Ana", alergiasRevisadas: false }, { id: "l", name: "Lucas", alergiasRevisadas: true, allergies: ["Huevos"] }] };
+    expect(destinatarios(`Lucas ya está apuntado. ¿Alguien más tiene alguna alergia? ${AVISO_SILENCIO}`, d)).toEqual(["a"]);
   });
 });
 

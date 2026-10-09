@@ -63,14 +63,15 @@ import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.
 
 /**
  * Las alergias por silencio del turno (silencio.js): con lo último que dijo
- * Lola, el mensaje, las herramientas pedidas hasta ahora y quién había antes.
+ * Lola, el mensaje, las herramientas pedidas hasta ahora, quién había antes y,
+ * al cerrar el turno, lo que contestó Lola (en generar_menu aún no lo hay).
  * Sin aviso pendiente es una regex y no toca la base.
  */
-function silencioDelTurno(chat) {
+function silencioDelTurno(chat, respuestaDeLola = null) {
   if (!chat?.householdId) return null;
   return apuntarSilencio({
     householdId: chat.householdId, ultimaDeLola: chat.anterior, texto: chat.texto, papel: chat.papel,
-    canal: chat.channel, userId: chat.userId ?? null, nombres: chat.nombresAntes ?? [],
+    canal: chat.channel, userId: chat.userId ?? null, nombres: chat.nombresAntes ?? [], respuestaDeLola,
     // Las ya ejecutadas y las PEDIDAS en el bloque en curso: si el modelo pide
     // a la vez generar_menu y ajustar_alergias, generar no aplica el silencio
     // aunque le toque correr primero (el menú sale con el filtro).
@@ -1163,7 +1164,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     // Alergias por silencio (#229): se decide aquí, cuando Lola ya ha leído
     // el mensaje y se sabe a qué herramientas llamó (silencio.js). Tras la
     // promoción de preguntas, para que cerrarlas no se cruce con abrirlas.
-    promocion.then(() => silencioDelTurno(chat)),
+    // Con lo que contestó Lola: si aclaraba o preguntaba, no es silencio.
+    promocion.then(() => silencioDelTurno(chat, visible)),
   ]).then((r) => { if (tablas) olvidarFicha(householdId); return r; });
   // Lo leído de ficha_casa no vale para el turno siguiente: este puede haber
   // anotado o cerrado tareas sin que cambie bot_rev. Se olvida ya y otra vez al
@@ -1199,9 +1201,14 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
 const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
 // «No tenéis ninguna alergia apuntada» es leer lo que hay, no decir que guardó:
 // saltaba el aviso y costaba otra vuelta de ~3 s en cada consulta (#229). Se
-// quita el «apuntad…» que va detrás de una negación en la misma frase.
+// quita el «apuntad…» que va detrás de una negación en la misma frase, salvo
+// que sea «he apuntado» y el «no» no vaya con él («No olvides que te he
+// apuntado leche» sí dice que guardó; «No te he apuntado nada», no).
 const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\bapuntad[oa]s?\b/gi;
-export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(String(texto ?? "").replace(APUNTADO_NEGADO, ""));
+const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+apuntad/i;
+const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+apuntad/i;
+const sinNegados = (texto) => texto.replace(APUNTADO_NEGADO, (m) => (HE_APUNTADO.test(m) && !NO_HE_APUNTADO.test(m) ? m : ""));
+export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(sinNegados(String(texto ?? "")));
 // Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
 // mientras corren, la persona ve al momento una frase de Lola en el mensaje
 // que se va escribiendo, y lo que Lola escriba después la sustituye en ese

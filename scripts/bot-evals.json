@@ -2203,6 +2203,18 @@
         "estable": "SEGURIDAD\n- Ana y Pablo: ninguna (por silencio).\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
         "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno."
       }
+    },
+    {
+      "nombre": "alergia por silencio: si preguntan, no dice que contestaron «ninguna» (#229)",
+      "entrada": "¿Qué alergias tenemos apuntadas?",
+      "noLlama": [
+        "ajustar_alergias"
+      ],
+      "sinTexto": "(me|os|nos) (contest|dij)\\w* que ninguna|dijisteis que (no|ninguna)|has dicho que (no|ninguna)",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana y Pablo: ninguna (por silencio).\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
+        "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno."
+      }
     }
   ]
 }

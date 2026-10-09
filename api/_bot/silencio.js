@@ -77,21 +77,28 @@ export function preguntoConAviso(textoDeLola) {
 // y Lola vuelve a preguntar; un falso negativo da por sano a un alérgico.
 const SENALES = [
   // Salud, con y sin la palabra «alergia».
-  /\b(alergi|alergic|allerg|intoleran|celiac|celiaqu|coeliac|aplv|histamin|dermatitis|eccema|eczema|urticaria|anafilax|anaphyla|sensibilidad|hives|rash)/,
+  /\b(alergi|alergic|allerg|intoleran|celiac|celiaqu|coeliac|aplv|histamin|dermatitis|eccema|eczema|urticaria|anafilax|anaphyla|sensibilidad|hives|rash|ronch|epipen|adrenalin)/,
+  /\b(celi|gf)\b/,
   // Reacciones: «no toma», «le sienta mal», «se pone malo», «can't have».
   /\b(no (toma|tomo|come|como|puede|puedo|tolera|tolero|soporta|prueba|bebe)|(le|les|me|te) (sienta|sientan|da|dan|pica|pican|hace dano)|reacci|se pone mal|se le hincha|se hincha|hinchaz|picor|vomit|can'?t (have|eat|drink|take)|cannot (have|eat|drink|take)|reaction|intolerant|sick)/,
   // Alérgenos y lo que más da alergia, en castellano (raíces).
-  /\b(gluten|trigo|cebada|centeno|espelta|avena|harina|lact|leche|queso|yogur|nata|mantequilla|huevo|guevo|mahonesa|mayonesa|pescado|marisco|crustace|gamba|langostin|camaron|cigala|cangrej|bogavante|cacahuet|soja|frutos? secos|cascara|nuez|nueces|almendra|avellana|pistacho|anacardo|apio|mostaza|sesamo|ajonjoli|sulfito|altramu|molusco|mejillon|almeja|berberecho|ostra|calamar|pulpo|sepia|kiwi|melocoton|fresa|melon|platano|pina|tomate)/,
+  /\b(gluten|trigo|cebada|centeno|espelta|avena|harina|lact|leche|queso|yogur|nata|mantequilla|huevo|guevo|guebo|mahonesa|mayonesa|pescad|atun|salmon|merluza|bacalao|marisco|crustace|gamba|gambon|crevett|langostin|camaron|cigala|cangrej|bogavante|cacahuet|soja|frutos? secos|cascara|nuez|nueces|almendra|avellana|pistacho|anacardo|apio|mostaza|sesamo|ajonjoli|sulfito|altramu|lupin|arachid|erdnu|noci|molusco|mejillon|almeja|berberecho|ostra|calamar|pulpo|sepia|kiwi|melocoton|fresa|melon|platano|pina|tomate)/,
   /\bmani\b/,
   // Y en inglés, palabras enteras («nut» no salta con «nutrición»).
   /\b(peanuts?|nuts?|almonds?|walnuts?|hazelnuts?|cashews?|pistachios?|eggs?|milk|dairy|lactose|wheat|shellfish|shrimps?|prawns?|crabs?|lobsters?|fish|sesame|soy|soya|celery|mustard|lupin|molluscs?|mussels?|squid|strawberr\w*|tomato\w*)\b/,
-  // Afirmaciones: «sí», «Lucas sí», «tenemos alguna», «una».
-  /\b(si|yes|yeah|yep|tiene|tienen|tenemos|tengo|alguno|alguna|algunos|algunas|uno|una)\b/,
+  // «Tenemos alguna», «alguno»: siempre. El resto de afirmaciones, abajo.
+  /\b(alguno|alguna|algunos|algunas)\b/,
   // Aplazamientos: «espera», «pregunto a mi mujer», «lo consulto», «luego».
-  /\b(espera|esperate|un momento|momentito|un segundo|pregunt|consult|miro|mirar|mire|luego|despues|mas tarde|ahora te|ahora lo|ni idea|dejame|prefiero no|no quiero|no estoy segur|later|wait|hold on|check|ask|not sure|don'?t know|dunno|rather not)/,
+  /\b(espera|esperate|un momento|momentito|un segundo|pregunt|consult|miro|mirar|mire|luego|despues|mas tarde|ahora te|ahora lo|te digo|ni idea|dejame|prefiero no|no quiero|no estoy segur|later|wait|hold on|check|ask|not sure|don'?t know|dunno|rather not)/,
   // Un no: lo guarda Lola (ajustar_alergias, por persona), no el código.
   /\b(no|nada|ninguna|ninguno|ningun|nadie|none|nope|nobody|nothing)\b/,
 ];
+// «Sí», «Lucas sí», «una»: afirmaciones solo en un mensaje corto. En uno largo
+// («Pablo 36, Marta 34 y una niña de 2», «tenemos un hijo de 4») no son un sí,
+// y en el alta dejaban la casa con 27 platos. Pegadas a «alguna» o a
+// «alergia» ya dan señal arriba.
+const AFIRMA = new Set(["si", "yes", "yeah", "yep", "uno", "una", "tiene", "tienen", "tenemos", "tengo"]);
+const CORTO = 4;
 const UNION = new Set(["y", "e", "and"]);
 const primerNombre = (n) => limpio(n).trim().split(/\s+/)[0] ?? "";
 
@@ -106,7 +113,9 @@ export function haySenal(texto, { nombres = [] } = {}) {
   if (SENALES.some((re) => re.test(t))) return true;
   const casa = new Set(nombres.map(primerNombre).filter(Boolean));
   const palabras = t.replace(/[^\p{L}\p{N}' ]/gu, " ").split(/\s+/).filter((p) => p && !UNION.has(p));
-  return palabras.length > 0 && palabras.every((p) => casa.has(p));
+  const sinNombres = palabras.filter((p) => !casa.has(p));
+  if (sinNombres.length <= CORTO && sinNombres.some((p) => AFIRMA.has(p))) return true;
+  return palabras.length > 0 && !sinNombres.length;
 }
 
 const escapar = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -119,22 +128,35 @@ export function destinatarios(textoDeLola, data = {}) {
   const t = limpio(textoDeLola);
   const miembros = data.members ?? [];
   const falta = (m) => !alergiasRevisadas(data, m) && !(m.allergies ?? []).length;
-  const nombrados = miembros.filter((m) => {
+  const faltan = miembros.filter(falta);
+  // Solo entre los que faltan: «Lucas ya está… ¿Alguien más…?» va por el resto.
+  const nombrados = faltan.filter((m) => {
     const n = primerNombre(m.name ?? "");
     return n && new RegExp(`(^|[^\\p{L}])${escapar(n)}($|[^\\p{L}])`, "u").test(t);
   });
-  return (nombrados.length ? nombrados : miembros).filter(falta).map((m) => m.id);
+  return (nombrados.length ? nombrados : faltan).map((m) => m.id);
+}
+
+// Lo que Lola contestó en ESTE turno: si habla de salud o acaba en pregunta,
+// el mensaje pudo ser una respuesta que está aclarando («Leo, güebo» →
+// «¿Quieres decir que Leo es alérgico al huevo?»), aunque no llamara a nada.
+const TEMA_SALUD_RE = /\b(alergi|alergic|allerg|intoleran|celiac|celiaqu|coeliac|salud|anafil|embaraz|lactancia)/;
+function lolaSigueConElTema(respuesta) {
+  const t = limpio(respuesta).replace(/<[^>]+>/g, "").replace(/(\s*\[\[[^\]]*\]\])+\s*$/, "").replace(/[^\p{L}\p{N}?]+$/u, "");
+  return TEMA_SALUD_RE.test(t) || t.endsWith("?") || preguntoConAviso(respuesta);
 }
 
 /**
  * Pura. `por_silencio` si toca apuntar «ninguna», o null: sin aviso en lo
  * último de Lola, si en el turno llamó a algo que contesta, o si el mensaje
- * trae alguna señal.
+ * trae alguna señal. `respuestaDeLola` (al cerrar el turno; dentro de
+ * generar_menu aún no la hay): si sigue con el tema o pregunta, tampoco.
  */
-export function decidirSilencio({ ultimaDeLola, texto, llamadas = [], nombres = [] }) {
+export function decidirSilencio({ ultimaDeLola, texto, llamadas = [], nombres = [], respuestaDeLola = null }) {
   if (!preguntoConAviso(ultimaDeLola)) return null;
   if (llamadas.some((h) => HERRAMIENTAS_QUE_CONTESTAN.includes(h))) return null;
   if (haySenal(texto, { nombres })) return null;
+  if (respuestaDeLola != null && lolaSigueConElTema(respuestaDeLola)) return null;
   return POR_SILENCIO;
 }
 
@@ -153,9 +175,9 @@ export const apuntarRecordatorio = (canal = "telegram") =>
  * Sin aviso, ni lee la base. Nunca tumba el turno: si falla, sin revisar.
  * @returns {Promise<{ origen: string, personas: number } | null>}
  */
-export async function apuntarSilencio({ householdId, ultimaDeLola, texto, papel, canal = "telegram", userId = null, llamadas = [], nombres = [] }) {
+export async function apuntarSilencio({ householdId, ultimaDeLola, texto, papel, canal = "telegram", userId = null, llamadas = [], nombres = [], respuestaDeLola = null }) {
   if (!householdId || !puede(papel, "editar_casa")) return null;
-  const origen = decidirSilencio({ ultimaDeLola, texto, llamadas, nombres });
+  const origen = decidirSilencio({ ultimaDeLola, texto, llamadas, nombres, respuestaDeLola });
   if (!origen) return null;
   let ids = [];
   let nueva = null;

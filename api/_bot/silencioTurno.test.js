@@ -94,6 +94,12 @@ describe("responder y las alergias por silencio", () => {
     });
   });
 
+  it("al cerrar el turno pasa lo que contestó Lola; dentro de generar_menu, todavía nada", async () => {
+    t.herramientas = [{ nombre: "generar_menu", args: { semana: "esta" } }];
+    await turno();
+    expect(t.vistas.map((v) => v.respuestaDeLola ?? null)).toEqual([null, "Vale."]);
+  });
+
   it("(b) generar_menu aplica el silencio ANTES de generar", async () => {
     t.herramientas = [{ nombre: "generar_menu", args: { semana: "esta" } }];
     await turno();

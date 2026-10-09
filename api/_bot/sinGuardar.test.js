@@ -51,6 +51,12 @@ describe("lo que suena a «ya está guardado»", () => {
     expect(diceQueGuardo("No pasa nada. ✅ Apuntado: Leo, sin huevo.")).toBe(true);
     expect(diceQueGuardo("Apuntado que nadie tiene alergias.")).toBe(true);
     expect(diceQueGuardo("No te preocupes, ya está apuntado.")).toBe(true);
+    // El «no» niega otra cosa: «te he apuntado» es decir que guardó.
+    expect(diceQueGuardo("No olvides que te he apuntado leche")).toBe(true);
+    expect(diceQueGuardo("Nada más: os he apuntado el pan")).toBe(true);
+    // Y negado de verdad, no.
+    expect(diceQueGuardo("No te he apuntado nada todavía")).toBe(false);
+    expect(diceQueGuardo("No lo he apuntado")).toBe(false);
   });
 });
 
