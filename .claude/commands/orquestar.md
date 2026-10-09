@@ -131,7 +131,7 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    la sesión `pendientes.mjs` frena una vez si hubo fallos y no registraste nada.
    Una decisión que no se toma hoy → `tipo:decision`; trabajo que alguien
    tiene que coger → `tipo:encargo`, colgando de su fondo si es parte de un
-   arreglo. Detalle y comandos: skill `github`, «Issues». El chat se pierde
+   arreglo. Detalle y comandos: skill `issues`. El chat se pierde
    al cerrar la sesión; el issue no. Y al revés: el PR lleva `Closes #n` de
    los encargos o fondos que cierra y `Agente:` con el constructor.
    Si el encargo era arreglar un problema de fondo, el juez comprueba que el

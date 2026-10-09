@@ -4,7 +4,7 @@ description: Revisión semanal de los issues — juntar casos en problemas de fo
 
 Mira el conjunto de los issues, que caso a caso no se ve. Es una revisión
 CONJUNTA: propones, la persona decide. Las reglas, en CLAUDE.md («Cuando algo
-falla») y en la skill `github` («Issues»).
+falla») y en la skill `issues`.
 
 1. Corre `npm run issues` y resume en tres líneas: qué problemas de fondo
    tienen más casos, cuáles se reabrieron (¿roto o corto?) y qué ha entrado

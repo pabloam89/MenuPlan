@@ -58,16 +58,22 @@ export function hideRecipe(userId, id) {
 
 // ── Perfil propio ───────────────────────────────────────────────────────────
 
-/** Fila de social_profiles del usuario, o null si aún no ha hecho opt-in. */
+/**
+ * Tu perfil público: la fila de social_profiles. `data` null si aún no has
+ * hecho opt-in; si es que no se pudo leer,
+ * además `error` (#317): ensureSocialProfile creaba un perfil nuevo encima
+ * del que ya tenías (otro @) cuando la lectura fallaba.
+ * @returns {Promise<{ data: object|null, error: object|null }>}
+ */
 export async function loadMyProfile(userId) {
-  if (!ok() || !userId) return null;
+  if (!ok() || !userId) return { data: null, error: null };
   const { data, error } = await supabase
     .from("social_profiles")
     .select("user_id, username, display_name, avatar_url, bio, visibility")
     .eq("user_id", userId)
     .maybeSingle();
-  if (warn("loadMyProfile", error)) return null;
-  return data ?? null;
+  if (warn("loadMyProfile", error)) return { data: null, error };
+  return { data: data ?? null, error: null };
 }
 
 /**
@@ -204,7 +210,10 @@ export async function suggestUsername(name) {
  */
 export async function ensureSocialProfile(userId, fallbackName = "", avatar = null) {
   if (!userId) return null;
-  const current = ok() ? await loadMyProfile(userId) : null;
+  const carga = ok() ? await loadMyProfile(userId) : { data: null, error: null };
+  // Sin saber si ya tienes perfil no se crea otro encima (#317).
+  if (carga.error) return null;
+  const current = carga.data;
   if (current?.username) {
     if (current.avatar_url || !avatar || !ok()) return current;
     const filled = await saveMyProfile(userId, { avatar_url: avatar });

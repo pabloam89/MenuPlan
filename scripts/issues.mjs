@@ -33,7 +33,7 @@
  *                                           ajustes del repo: OK de Pablo)
  *
  * La clasificación, el porqué y las cuatro respuestas del análisis, en
- * scripts/lib/issues.mjs; el procedimiento, en la skill `github`.
+ * scripts/lib/issues.mjs; el procedimiento, en la skill `issues`.
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -312,6 +312,6 @@ if (args.includes("--etiquetas")) {
   if (r.malClasificados.length) {
     console.log("Sin clasificar o sin trazar (falta):");
     for (const m of r.malClasificados) console.log(`  #${m.number}  ${corto(m.title)}: ${m.faltan.join("; ")}`);
-    console.log("Ver la skill github, «Issues».");
+    console.log("Ver la skill issues.");
   }
 }
