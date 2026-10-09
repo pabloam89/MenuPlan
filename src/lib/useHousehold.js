@@ -327,7 +327,11 @@ export function useHousehold({ user, loading: authLoading }) {
 
       if (!pending) return;
 
-      const preview = await previewHouseholdInvite(pending);
+      const { data: preview, error: previewError } = await previewHouseholdInvite(pending);
+
+      // Sin red no se sabe si la invitación vale: se deja guardada y se
+      // vuelve a mirar en el próximo arranque (#317). Antes se borraba.
+      if (previewError) return;
 
       if (!preview) {
         if (user.id) await clearPendingInviteToken(user.id);

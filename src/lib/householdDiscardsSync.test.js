@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // filas. Las lecturas devuelven `filasNube`.
 const llamadas = [];
 let filasNube = [];
+let errorNube = null;
 vi.mock("./supabase.js", () => {
   const consulta = (tabla) => {
     const c = { tabla, op: null, filtros: [], filas: null, opciones: null };
@@ -13,7 +14,7 @@ vi.mock("./supabase.js", () => {
       delete: () => { c.op = "delete"; return q; },
       upsert: async (filas, opciones) => { c.op = "upsert"; c.filas = filas; c.opciones = opciones; return { error: null }; },
       eq: (col, val) => { c.filtros.push([col, val]); return q; },
-      then: (ok) => ok(c.op === "select" ? { data: filasNube, error: null } : { error: null }),
+      then: (ok) => ok(c.op === "select" ? (errorNube ? { data: null, error: errorNube } : { data: filasNube, error: null }) : { error: null }),
     };
     return q;
   };
@@ -25,7 +26,7 @@ const { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, sub
 
 const descartes = { forever: ["r-1"], cooldownUntil: { "r-2": Date.parse("2026-11-01T00:00:00Z") } };
 
-beforeEach(() => { llamadas.length = 0; filasNube = []; });
+beforeEach(() => { llamadas.length = 0; filasNube = []; errorNube = null; });
 
 // Los descartes son de la casa: household_recipe_discards con household_id.
 // La tabla por usuario (user_recipe_discards, 0010) no existe en producción:
@@ -37,7 +38,8 @@ describe("descartes en la nube, siempre de la casa", () => {
       { recipe_id: "r-2", is_permanent: false, cooldown_until: "2999-01-01T00:00:00Z" },
       { recipe_id: "r-3", is_permanent: false, cooldown_until: "2000-01-01T00:00:00Z" },
     ];
-    const r = await loadHouseholdDiscards("casa-1");
+    const { data: r, error } = await loadHouseholdDiscards("casa-1");
+    expect(error).toBeNull();
     expect(llamadas).toHaveLength(1);
     expect(llamadas[0]).toMatchObject({ tabla: "household_recipe_discards", op: "select", filtros: [["household_id", "casa-1"]] });
     expect(r.forever).toEqual(["r-1"]);
@@ -75,7 +77,7 @@ describe("descartes en la nube, siempre de la casa", () => {
   });
 
   it("sin casa no toca la nube: ni la casa ni la tabla por usuario", async () => {
-    const r = await loadHouseholdDiscards(null);
+    const { data: r } = await loadHouseholdDiscards(null);
     await saveHouseholdDiscard(null, "r-1", { isPermanent: true });
     await deleteHouseholdDiscard(null, "r-1");
     await subirDescartesPendientes(null, descartes);
@@ -110,32 +112,62 @@ describe("subirDescartesUnaVez", () => {
   it("no sube un enfriamiento de una receta que la casa tiene descartada para siempre", async () => {
     const local = { forever: [], cooldownUntil: { "r-1": futuro } };
     const nube = { forever: ["r-1"], cooldownUntil: {} };
-    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, remote: nube, now: ahora });
+    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, carga: { data: nube, error: null }, now: ahora });
     expect(llamadas.filter((c) => c.op === "upsert")).toHaveLength(0);
   });
 
   it("no sube enfriamientos vencidos", async () => {
     const local = { forever: [], cooldownUntil: { "r-2": pasado, "r-3": futuro } };
-    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, remote: { forever: [], cooldownUntil: {} }, now: ahora });
+    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, carga: { data: { forever: [], cooldownUntil: {} }, error: null }, now: ahora });
     expect(llamadas[0].filas.map((f) => f.recipe_id)).toEqual(["r-3"]);
   });
 
   it("sube lo local una sola vez: lo que otro sacó de descartes no vuelve en la carga siguiente", async () => {
     const local = { forever: ["r-1"], cooldownUntil: {} };
     const vacia = { forever: [], cooldownUntil: {} };
-    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, remote: vacia, now: ahora });
+    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, carga: { data: vacia, error: null }, now: ahora });
     expect(llamadas.filter((c) => c.op === "upsert")).toHaveLength(1);
     // Otro miembro recupera r-1; este dispositivo vuelve a cargar con r-1 en local.
-    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, remote: vacia, now: ahora });
+    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, carga: { data: vacia, error: null }, now: ahora });
     expect(llamadas.filter((c) => c.op === "upsert")).toHaveLength(1);
+  });
+
+  // #316: si la carga de la casa fallaba, devolvía «vacío»; el dispositivo
+  // subía su enfriamiento con is_permanent:false encima del «para siempre» de
+  // la casa y se marcaba como «ya subido», así que ni la carga siguiente lo
+  // arreglaba.
+  it("si la carga de la casa falló, ni sube ni marca; en la siguiente buena, sí", async () => {
+    const local = { forever: ["r-1"], cooldownUntil: { "r-2": futuro } };
+    errorNube = { message: "503 Service Unavailable" };
+    const fallida = await loadHouseholdDiscards("casa-1");
+    expect(fallida.error).toBeTruthy();
+    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, carga: fallida, now: ahora });
+    expect(llamadas.filter((c) => c.op === "upsert")).toHaveLength(0);
+    expect(guardado.size).toBe(0);
+
+    errorNube = null;
+    filasNube = [{ recipe_id: "r-2", is_permanent: true, cooldown_until: null }];
+    const buena = await loadHouseholdDiscards("casa-1");
+    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, carga: buena, now: ahora });
+    const subidas = llamadas.filter((c) => c.op === "upsert");
+    expect(subidas).toHaveLength(1);
+    // r-2 la casa la tiene para siempre: no se vuelve temporal.
+    expect(subidas[0].filas.map((f) => f.recipe_id)).toEqual(["r-1"]);
+    expect(guardado.size).toBe(1);
+  });
+
+  it("sin carga (nadie la pasó) tampoco sube ni marca", async () => {
+    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local: { forever: ["r-1"], cooldownUntil: {} }, now: ahora });
+    expect(llamadas).toHaveLength(0);
+    expect(guardado.size).toBe(0);
   });
 
   it("sin casa no sube ni marca: se sube en la primera carga ya con casa", async () => {
     const local = { forever: ["r-1"], cooldownUntil: {} };
     const vacia = { forever: [], cooldownUntil: {} };
-    await subirDescartesUnaVez({ userId: "u-1", householdId: null, local, remote: vacia, now: ahora });
+    await subirDescartesUnaVez({ userId: "u-1", householdId: null, local, carga: { data: vacia, error: null }, now: ahora });
     expect(llamadas).toHaveLength(0);
-    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, remote: vacia, now: ahora });
+    await subirDescartesUnaVez({ userId: "u-1", householdId: "casa-1", local, carga: { data: vacia, error: null }, now: ahora });
     expect(llamadas.filter((c) => c.op === "upsert")).toHaveLength(1);
   });
 });
