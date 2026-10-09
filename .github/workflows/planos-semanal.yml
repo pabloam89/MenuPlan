@@ -1,0 +1,74 @@
+# Los planos se vuelven a medir cada semana (#248).
+#
+# Lanza `node scripts/planos.mjs --red` sobre staging y, si un nivel ya no
+# cuadra con la medición guardada en ops/planos.json o un juicio (`a_juicio`)
+# tiene más de `caducidad_juicio_dias`, abre un issue o comenta en el que ya
+# está abierto. Si todo cuadra, no hace nada.
+#
+# - Sin tokens de Claude ni secretos: solo el token del propio workflow, que
+#   lee GitHub y escribe issues. No escribe en el repo.
+# - Con ese token, lo que solo ve un administrador (protección clásica de
+#   ramas, alertas de Dependabot, secret scanning) sale «sin comprobar», y eso
+#   nunca cambia un nivel: no hay falsas alarmas por permisos. Lo comprueba de
+#   verdad `npm run planos -- --red` con la sesión de Pablo, en
+#   /revision-issues.
+# - Sin `npm ci`: el script no tiene dependencias.
+
+name: Planos semanal
+
+on:
+  schedule:
+    # Lunes 06:50 UTC: después del cron de Mercadona (06:15) y de sus tests.
+    # En punto no: los cron de GitHub se atascan en las horas redondas.
+    - cron: "50 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read # ver si los workflows están activos
+  issues: write # abrir o comentar el issue de la medición
+
+concurrency:
+  group: planos-semanal
+  cancel-in-progress: false
+
+jobs:
+  medir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: staging
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Medir
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/planos.mjs --red --issue "$RUNNER_TEMP/planos.md" | tee "$RUNNER_TEMP/salida.txt"
+          { echo '```'; cat "$RUNNER_TEMP/salida.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Abrir o actualizar el issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ ! -s "$RUNNER_TEMP/planos.md" ]; then
+            echo "Todo cuadra: sin issue."
+            exit 0
+          fi
+          printf '\n%s\n' "Run: $RUN_URL" >> "$RUNNER_TEMP/planos.md"
+          titulo="Planos: la medición semanal no cuadra"
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "\"$titulo\" in:title" --json number --jq '.[0].number // empty' || true)
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/planos.md"
+            echo "Comentado en el issue #$issue"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" \
+              --label "tipo:encargo" --label "area:ops" --assignee pabloam89 \
+              --body-file "$RUNNER_TEMP/planos.md" \
+            || gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" \
+              --body-file "$RUNNER_TEMP/planos.md"
+          fi
