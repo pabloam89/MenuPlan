@@ -13,6 +13,8 @@ falla si el JSON se sale del vocabulario, si cita un fichero o un test que no
 existe, si una obligación se dice dura sin serlo o si las tablas no coinciden.
 El vocabulario de las clases de issue (tipo, análisis, causa, área, arreglo)
 tiene **una sola fuente**: `scripts/lib/issues.mjs`. Aquí no se repite.
+Los presupuestos por alcance y causa tienen la suya: [`ops/presupuestos.json`](../../ops/presupuestos.json)
+(`ops/presupuestos.test.js`); su tabla de abajo también sale de él.
 
 ## El invariante (el objetivo, no el estado de hoy)
 
@@ -93,8 +95,8 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P02.4 | Nada sensible en un issue: el repo es público | nada · `CLAUDE.md` | blanda | `repo-publico-sin-detalle` | #300 |
 | P02.5 | Al terminar, una sesión con fallos y sin casos registrados es frenada una vez | guardia · `.claude/hooks/pendientes.mjs` | semidura | — | — |
 | **Triaje** · blanda | | | | | |
-| P03.1 | Se fija el alcance y el tipo de causa antes de gastar esfuerzo | nada · no escrita aún | blanda | — | #339 |
-| P03.2 | El esfuerzo sale del presupuesto de su alcance, no de lo que decida la sesión | nada · no escrita aún | blanda | — | #339 |
+| P03.1 | Se fija el alcance y el tipo de causa antes de gastar esfuerzo | nada · `.claude/commands/orquestar.md` | blanda | — | #340 |
+| P03.2 | El esfuerzo sale del presupuesto de su alcance, no de lo que decida la sesión | nada · `.claude/commands/orquestar.md` | blanda | `presupuesto-por-alcance` | #340 |
 | **Diagnosticar** · blanda | | | | | |
 | P04.1 | El caso acaba en una de las cuatro respuestas (nuevo, abierto, no aguantó, puntual) y cuelga de su fondo | script_propio · `scripts/lib/issues.mjs` | semidura | — | #341 |
 | P04.2 | Se busca el fondo que ya existe antes de abrir uno | script_propio · `scripts/issues.mjs` | semidura | — | #337 |
@@ -113,8 +115,8 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | **Ejecutar** · blanda | | | | | |
 | P07.1 | Un encargo es una rama con el número de su issue, y se ve quién lo lleva | script_propio · `scripts/tarea.mjs` | semidura | — | #337 |
 | P07.2 | Un PR de una rama con número de issue lleva Closes de ese issue | guardia · `.claude/hooks/guardia.mjs` | semidura | `pr-al-dia-y-closes` | #337 |
-| P07.3 | Quien construye no juzga | nada · `CLAUDE.md` | blanda | `quien-construye-no-juzga` | #339 |
-| P07.4 | Como mucho dos rondas constructor y juez; a la tercera decide una persona | nada · no escrita aún | blanda | — | #339 |
+| P07.3 | Quien construye no juzga | nada · `CLAUDE.md` | blanda | `quien-construye-no-juzga` | #341 |
+| P07.4 | Como mucho las rondas del presupuesto de constructor y juez; después decide una persona | script_propio · `scripts/lib/fondos.mjs` | semidura | `rondas-tope-duro` | #340 |
 | P07.5 | Todo agente sigue la plantilla: tipo, planos, método e informe común | ci · `.claude/PLANTILLA-AGENTE.md` | dura | — | — |
 | P07.6 | main solo entra por PR con el check tests en verde | github_regla · `ops/DECISIONES.md` | semidura | `main-solo-por-pr-con-tests` | #330 |
 | P07.7 | Nadie cambia las propias reglas (protecciones, permisos, guardia) con credenciales de sesión | nada · no escrita aún | blanda | — | #326 |
@@ -122,6 +124,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P07.9 | Cada PR dice quién lo construyó (línea Agente:) | ci · `scripts/fondos-pr.mjs` | semidura | `pr-agente-y-closes-en-ci` | — |
 | P07.10 | Un juez no puede escribir: ni Edit ni Write, contando las que da la memoria | ci · `CLAUDE.md` | dura | `jueces-sin-escritura` | — |
 | P07.11 | Un PR de una rama con número de issue lleva Closes de ese issue, para cualquiera que lo abra | ci · `scripts/fondos-pr.mjs` | semidura | `pr-agente-y-closes-en-ci` | — |
+| P07.12 | Cada ciclo de un fallo lleva al menos los jueces de su presupuesto, incluidos los que exige su causa | nada · `.claude/commands/orquestar.md` | blanda | — | #340 |
 | **Verificar** · blanda | | | | | |
 | P08.1 | El CI corre tests, lint y build en cada PR | ci · `.github/workflows/tests.yml` | dura | — | — |
 | P08.2 | Un test de clase, no solo del caso, vigila el arreglo de un fondo | persona · `.claude/commands/orquestar.md` | blanda | — | #341 |
@@ -146,7 +149,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P12.4 | Los presupuestos se recalibran cada semana con lo medido | nada · no escrita aún | blanda | — | #340 |
 | P12.5 | Las normas del proceso que se incumplen se cuentan cada semana | script_propio · `scripts/lib/normas.mjs` | semidura | — | #341, #185 |
 
-**51 obligaciones:** 5 duras · 26 semiduras · 20 blandas · 0 rotas. 19 están enlazadas con su norma del registro.
+**52 obligaciones:** 5 duras · 27 semiduras · 20 blandas · 0 rotas. 21 están enlazadas con su norma del registro.
 <!-- flujo:pasos:fin -->
 
 ## Lo que ya existía
@@ -193,7 +196,7 @@ sitios, y por eso la especificación va antes de construir:
 
 | Capa | Pregunta | Qué contiene | Dónde |
 |---|---|---|---|
-| **Catálogos** | ¿Qué existe? | Registros estructurados, cada hecho una sola vez: vocabularios, mapas, planos, normas, mecanismos, técnicas y presupuestos | `scripts/lib/issues.mjs`, `ops/MODULOS.json`, `ops/planos.json`, `ops/flujo.json` |
+| **Catálogos** | ¿Qué existe? | Registros estructurados, cada hecho una sola vez: vocabularios, mapas, planos, normas, mecanismos, técnicas y presupuestos | `scripts/lib/issues.mjs`, `ops/MODULOS.json`, `ops/planos.json`, `ops/flujo.json`, `ops/presupuestos.json` |
 | **Skills** | ¿Cómo se hace? | Método, técnicas, referencias, scripts y plantillas. De herramienta (cómo se opera un servicio) y de oficio (cómo se piensa un tipo de problema) | `.claude/skills`, `.claude/PLANTILLA-SKILL.md` |
 | **Agentes** | ¿Quién lo hace y con qué permisos? | Rol, permisos y qué skills cargan. No llevan método: lo toman de las skills | `.claude/agents`, `.claude/PLANTILLA-AGENTE.md` |
 | **Orquestación y reglas duras** | ¿Cuándo, en qué orden y cuánto? | Pipelines, presupuestos, tope de rondas y las reglas que impone un mecanismo | `.claude/commands/orquestar.md`, `.claude/hooks/guardia.mjs`, `.github/workflows/tests.yml` |
@@ -223,15 +226,24 @@ De más a menos duradero. Un fondo grave o repetido se cierra con un escalón 1 
 | **investigacion** | Cómo buscar fuera y destilar (radar de mercado, investigación técnica) | reservado | #336 |
 | **meta** | Cómo crear, probar y podar las propias piezas | reservado | #336 |
 
-### Presupuesto inicial por alcance
+### Presupuestos por alcance y causa (`ops/presupuestos.json`)
 
-Valores iniciales de F0, a ojo y marcados como tales. La fase D los convierte en el catálogo que lee /orquestar y la fase F los recalibra cada semana con lo medido.
+Valores iniciales de F0, a ojo y marcados como tales. La fase F los recalibra cada semana con lo medido (hueco `recalibracion` y fecha `calibrado_el` de `ops/presupuestos.json`).
 
-| Alcance | Diagnostica | Hipótesis en paralelo (máx.) | Jueces (mín.) | Rondas (máx.) | Minutos orientativos |
-|---|---|---|---|---|---|
-| **local** | agente_dominio | 1 | 1 | 2 | 15 |
-| **modulo** | agente_dominio | 1 | 1 | 2 | 30 |
-| **transversal** | orquestador_con_diagnosticadores | 3 | 2 | 2 | 60 |
+| Alcance | Diagnostica | ES / NO ES | Hipótesis en paralelo (máx.) | Jueces (mín.) | Rondas (máx.) | Minutos orientativos |
+|---|---|---|---|---|---|---|
+| **local** | agente_dominio | no | 1 | 1 | 2 | 15 |
+| **modulo** | agente_dominio | sí | 1 | 1 | 2 | 30 |
+| **transversal** | orquestador_con_diagnosticadores | sí | 3 | 2 | 2 | 60 |
+
+Una causa puede sobrescribir al alcance (`por_causa`):
+
+| Causa | Sobrescribe |
+|---|---|
+| **modelo-datos** | jueces_obligatorios: auditor-datos |
+| **vigilante-falso** | jueces_obligatorios: revisor |
+| **vigilante-hueco** | jueces_obligatorios: revisor |
+| **entorno** | reproducir_en_ci: true |
 <!-- flujo:catalogos:fin -->
 
 La **regla de parada** para toda pieza nueva (catálogo, skill o agente) es
@@ -242,26 +254,37 @@ no se usa se aparca (`arquitecto` y `rendimiento` están en
 
 ## Proporcionalidad: cuánto esfuerzo, y cuándo parar (objetivo de las fases D y F)
 
-**Esta sección es el objetivo, no el estado de hoy**: ningún punto de ella lo
-impone todavía un mecanismo (ver P03.1, P03.2, P07.4 y P09.2 en la tabla).
+**Esta sección mezcla lo que ya existe (fase D, #339) y lo que aún es objetivo.**
+Existe el catálogo de presupuestos (`ops/presupuestos.json`, con test), el
+comando que lo consulta (`npm run presupuesto -- <alcance> <causa>`), el paso de
+triaje en `/orquestar` y el control `rondas-excedidas` de la ficha del fondo
+(P03.1, P03.2, P07.4, P07.12). Sigue siendo objetivo que alguien lo cumpla sin
+que se lo recuerden: `/orquestar` es un comando que la sesión lee y el
+contador de rondas lo escribe la sesión.
 
-El triaje fijará el **alcance** (local, módulo o transversal; definiciones en
-`ops/flujo.json`) y el tipo de causa antes de gastar nada. De ahí saldrán la
-técnica, los jueces y el tope.
+El triaje fija el **alcance** (local, módulo o transversal; definiciones en
+`ALCANCES_FALLO` de `scripts/lib/flujo.mjs`) y el tipo de causa antes de gastar
+nada. De ahí salen quién diagnostica, las hipótesis, los jueces y el tope.
 
 - **El presupuesto es un dato, no una opinión.** Los valores de arriba son
-  iniciales y a ojo; la fase F los comparará cada semana con lo medido (rondas,
-  tiempo, coste, si aguantó, por alcance y tipo de causa) y propondrá
-  recalibrarlos. Una persona los aplicará.
+  iniciales y a ojo (`valores_iniciales` y `calibrado_el` de
+  `ops/presupuestos.json`; `recalibracion` es el hueco para la fase F). La fase F
+  los comparará cada semana con lo medido (rondas, tiempo, coste, si aguantó,
+  por alcance y tipo de causa) y propondrá recalibrarlos. Una persona los
+  aplicará. Una causa puede sobrescribir al alcance (p. ej. `modelo-datos` pide
+  siempre `auditor-datos`); la celda alcance × causa la resuelve el comando.
 - **El diagnóstico se parará por criterio, no por cansancio.** Se dejará de
   preguntar «¿por qué?» cuando se llega a algo que se puede cambiar con un
   mecanismo; cuando se llega a algo fuera de nuestro control (se pone una
   barrera de nuestro lado); o cuando se acaba la evidencia (se marca como
   hipótesis, con lo que habría que observar para confirmarla; nunca se inventa
   la cadena).
-- **Dos rondas como máximo** de constructor y juez (P07.4, sin mecanismo
-  todavía). Si el juez sigue bloqueando tras la segunda, no habrá tercera
-  vuelta: decidirá una persona, con un issue de decisión.
+- **Las rondas del presupuesto como máximo** de constructor y juez (P07.4).
+  Si el juez sigue bloqueando tras la última, no hay otra vuelta: decide una
+  persona, con un issue de decisión. El conteo vive en el campo `rondas` de la
+  ficha del fondo y la regla `rondas-excedidas` del workflow `fondos` falla la
+  ficha que se pasa. Semidura: el contador lo escribe la sesión y el workflow
+  no abre la decisión.
 - **Si el diagnóstico se queda corto, el sistema lo corregirá solo** (P09.2).
   Un caso que vuelva dentro de la ventana de observación reabrirá su fondo y
   **subirá un nivel de alcance**: lo que se creyó local y vuelve se tratará

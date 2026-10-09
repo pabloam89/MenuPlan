@@ -37,6 +37,7 @@
     "planos": "node scripts/planos.mjs",
     "flujo": "node scripts/flujo.mjs",
     "skills-prueba": "node scripts/skills-prueba.mjs",
+    "presupuesto": "node scripts/presupuesto.mjs",
     "hora": "node scripts/hora.mjs",
     "consulta": "node scripts/consulta.mjs",
     "verificar:estado": "node scripts/verificar-estado.mjs",

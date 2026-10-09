@@ -49,6 +49,7 @@ body:
         estado: abierto, diagnosticado, plan, en-curso, en-observacion, cerrado-eficaz, reabierto
         capa_agente: auditor-datos, datos, diseno, evaluador, gobierno, lola, qa, revisor, seguridad, sesión
         barrera: bloqueo, test_ci, script, skill, texto
+        rondas: número entero de rondas de constructor y juez ya gastadas en el arreglo (empieza en 0; el máximo está en ops/presupuestos.json y, al pasarlo, el control falla y pide una decisión)
         Texto libre (hasta 400 caracteres): mecanismo, causa_escape, clase, barrido, solucion_temporal, matiz, aprendizaje.
         Sin diagnóstico (mecanismo y causa_escape) no hay encargos; en-observacion pide verificacion (un fichero que ya esté en staging) ventana_desde y ventana_hasta (AAAA-MM-DD); sin aprendizaje no se cierra. verificacion tiene que ser un fichero de la barrera (un *.test.js para test_ci), nunca una carpeta.
       value: |
@@ -64,6 +65,7 @@ body:
         barrido:
         solucion_temporal:
         barrera:
+        rondas:
         verificacion:
         ventana_desde:
         ventana_hasta:
