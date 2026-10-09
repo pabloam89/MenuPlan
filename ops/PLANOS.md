@@ -140,8 +140,5 @@ producción ni vuelta atrás ensayada. La app iOS sale por
 `ios-testflight.yml`, a mano. *Siguiente* (2): decidir el paso de `staging` a
 producción (pendiente 9) y ensayar una vuelta atrás.
 
-**13 · Diseño y experiencia (1).** `DESIGN_SYSTEM.md` describe lo observado,
-pero no hay tokens: 764 colores distintos, 29 tamaños de letra, 3.781 estilos
-inline, catálogo de 6,45 MB en el chunk inicial. Diagnóstico completo en
-`docs/diseno/ESTADO.md`. *Siguiente* (2): decidir el color de marca, crear los
-tokens y la regla de lint con línea base que solo baja.
+**13 · Diseño y experiencia (1).** Diagnóstico, decisiones, cifras y orden de
+trabajo, en `docs/diseno/ESTADO.md` (único sitio: aquí no se copian).
