@@ -3,7 +3,7 @@
     "que": "Cómo llama el súper a un ingrediente cuando no lo llama por su nombre.",
     "porque": "Hay dos maneras de fallar al emparejar un ingrediente con un producto, y solo una la arregla el algoritmo. Los FALSOS POSITIVOS —«Atún fresco» acabando en «Butifarra fresca»— son un defecto del emparejador y se corrigieron en productMatcher.js. Los FALSOS NEGATIVOS no: el morcillo existe en Mercadona, pero se vende como «Trozo de vacuno para cocido», y no hay medida de parecido entre cadenas que una esas dos cosas. Eso lo sabe una persona o no lo sabe nadie.",
     "porque_terminos_y_no_ids": "El catálogo se refresca por cron y los identificadores de producto cambian con él; los nombres comerciales no. Fijar el término de búsqueda sobrevive al refresco y fijar el id no. Además un término puede seguir acertando cuando el súper cambia de proveedor, y un id caducado no falla: desaparece en silencio.",
-    "como": "Clave = nombre del ingrediente normalizado (minúsculas, sin tildes). `buscar` son términos adicionales que se suman al nombre propio, no lo sustituyen. `motivo` es obligatorio: si nadie sabe por qué está una línea, nadie se atreve a tocarla.",
+    "como": "Clave = nombre del ingrediente normalizado (minúsculas, sin tildes). `buscar` son términos adicionales que se suman al nombre propio, no lo sustituyen. `motivo` es obligatorio: si nadie sabe por qué está una línea, nadie se atreve a tocarla. `puedeFaltar: true` para lo de temporada que el súper quita y vuelve a poner (hierbas frescas): esa semana no hay producto, y es mejor ninguno que uno equivocado.",
     "verificado": "2026-10-08 contra public/store/mercadona.json. El test productoBuscado.test.js comprueba que cada clave es un ingrediente real y que cada término sigue encontrando algo en el catálogo."
   },
 
@@ -151,7 +151,8 @@
   },
   "menta fresca": {
     "buscar": ["hierbabuena"],
-    "motivo": "La menta fresca de las recetas se vende como «Hierbabuena», en manojo. Antes se llevaba la «Infusión Menta Poleo»."
+    "puedeFaltar": true,
+    "motivo": "La menta fresca de las recetas se vende como «Hierbabuena», en manojo. Antes se llevaba la «Infusión Menta Poleo». Es de temporada: el 9 oct 2026 desapareció del catálogo y staging se puso en rojo."
   },
   "salmon fresco": {
     "buscar": ["filete de salmon"],
