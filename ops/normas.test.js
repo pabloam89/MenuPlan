@@ -5,8 +5,9 @@ import { fileURLToPath } from "node:url";
 import {
   ALCANCES, ANTE_FALLO, EJECUTORES, EJECUTORES_DEL_SISTEMA, RIESGOS, VEREDICTOS,
   RUTA_BASE, contarFrases, ficherosNormativos, leerRegistro, medirFrases, nuevaBase, problemasDeDureza, problemasDeForma, recuento,
-  subidas, totalBase,
+  CIFRAS_FONDO, medirFondo, subidas, totalBase,
 } from "../scripts/lib/normas.mjs";
+import { MEDIDORES, evaluarCriterio } from "../scripts/lib/planos.mjs";
 
 /**
  * El registro de normas (#296). Falla si una norma que se dice dura no lo es,
@@ -93,6 +94,38 @@ describe("el trinquete de frases normativas", () => {
     expect(nuevaBase({ a: { solo: 1 } }, base0)).toEqual({ a: { solo: 1 } });
     expect(nuevaBase({ a: { solo: 3, nunca: 1 } }, base0)).toEqual({ a: { solo: 2 } });
     expect(nuevaBase({ a: { solo: 3 } }, base0, { subir: true })).toEqual({ a: { solo: 3 } });
+  });
+});
+
+describe("la medición del fondo", () => {
+  const caso = (n, extra = {}) => ({ number: n, state: "OPEN", labels: [{ name: "tipo:caso" }], padre: null, hijos: [], ...extra });
+  const fondo = (n, extra = {}) => ({ number: n, state: "OPEN", labels: [{ name: "tipo:fondo" }], padre: null, hijos: [], ...extra });
+
+  it("cuenta cada cifra solo con lo que le toca, y nada en vacío", () => {
+    expect(medirFondo([])).toEqual({ casos_sin_fondo: 0, fondos_sin_encargo: 0, fondos_cerrados_sin_test: 0 });
+    const issues = [
+      caso(1), // sin fondo: cuenta
+      caso(2, { labels: [{ name: "tipo:caso" }, { name: "analisis:puntual" }] }), // puntual: no
+      caso(3, { padre: { number: 10, tipo: "fondo" } }), // colgado: no
+      caso(4, { padre: { number: 99, tipo: "encargo" } }), // colgado de algo que no es un fondo: cuenta
+      caso(5, { state: "CLOSED" }), // cerrado: no
+      fondo(10, { hijos: [{ number: 3, tipo: "caso" }] }), // sin encargo: cuenta
+      fondo(11, { hijos: [{ number: 12, tipo: "encargo", state: "CLOSED" }] }), // con encargo: no
+      fondo(13, { state: "CLOSED", labels: [{ name: "tipo:fondo" }, { name: "arreglo:regla" }] }), // cerrado sin test: cuenta
+      fondo(14, { state: "CLOSED", labels: [{ name: "tipo:fondo" }] }), // cerrado sin etiqueta: cuenta
+      fondo(15, { state: "CLOSED", labels: [{ name: "tipo:fondo" }, { name: "arreglo:test" }] }), // con test: no
+      fondo(16, { state: "CLOSED", labels: [{ name: "tipo:fondo" }, { name: "arreglo:guardia" }] }), // regla de la guardia: no
+    ];
+    expect(medirFondo(issues)).toEqual({ casos_sin_fondo: 2, fondos_sin_encargo: 1, fondos_cerrados_sin_test: 2 });
+  });
+
+  it("cada cifra tiene su definición y su medidor en planos, y sin red sale sin comprobar", () => {
+    for (const k of Object.keys(CIFRAS_FONDO)) expect(Object.keys(MEDIDORES)).toContain(k);
+    const sinRed = evaluarCriterio({ tipo: "cifra_umbral", medidor: "casos_sin_fondo", operador: "<=", umbral: 0, que: "x" }, { raiz: RAIZ });
+    expect(sinRed.estado).toBe("sin_comprobar");
+    const conRed = { raiz: RAIZ, leerIssues: () => [caso(1), caso(2)] };
+    expect(evaluarCriterio({ tipo: "cifra_umbral", medidor: "casos_sin_fondo", operador: "<=", umbral: 1, que: "x" }, conRed).estado).toBe("no_cumple");
+    expect(evaluarCriterio({ tipo: "cifra_umbral", medidor: "casos_sin_fondo", operador: "<=", umbral: 2, que: "x" }, { ...conRed, fondo: undefined }).estado).toBe("cumple");
   });
 });
 

@@ -253,6 +253,38 @@ export function totalBase(base) {
   return Object.values(base).reduce((a, c) => a + Object.values(c).reduce((x, y) => x + y, 0), 0);
 }
 
+// ── La medición del fondo (#185) ──────────────────────────────────────────
+
+/**
+ * Cifras de si la norma «Cuando algo falla: hasta el problema de fondo» se
+ * cumple, sacadas de las etiquetas y del padre/hijos de GitHub. La línea
+ * «Casos:» de los PR la mide otra pieza (rama ops/casos-obligatorios); esto
+ * mide lo que queda colgando después. Solo cuentas: nada de detalle.
+ */
+export const CIFRAS_FONDO = {
+  casos_sin_fondo: "Casos abiertos que no son puntuales y no cuelgan de un problema de fondo",
+  fondos_sin_encargo: "Problemas de fondo abiertos sin ningún encargo colgando",
+  fondos_cerrados_sin_test: "Problemas de fondo cerrados sin la etiqueta arreglo:test ni arreglo:guardia (las reglas de la guardia van con su test); es la etiqueta, no el test: un aproximado",
+};
+
+/** Lo que cubre la clase al cerrar un fondo: un test, o una regla de la guardia con el suyo. */
+export const ARREGLOS_CON_TEST = ["arreglo:test", "arreglo:guardia"];
+
+const etiquetasDe = (i) => (i.labels ?? []).map((l) => (typeof l === "string" ? l : l.name));
+const tipoDeIssue = (i) => i.tipo ?? etiquetasDe(i).find((l) => l.startsWith("tipo:"))?.slice(5) ?? null;
+const abierto = (i) => String(i.state).toUpperCase() === "OPEN";
+
+/** Las tres cifras, de issues con la forma de `leerIssue` (scripts/lib/issues.mjs). */
+export function medirFondo(issues) {
+  const casos = issues.filter((i) => abierto(i) && tipoDeIssue(i) === "caso");
+  const fondos = issues.filter((i) => tipoDeIssue(i) === "fondo");
+  return {
+    casos_sin_fondo: casos.filter((i) => !etiquetasDe(i).includes("analisis:puntual") && tipoDeIssue(i.padre ?? {}) !== "fondo").length,
+    fondos_sin_encargo: fondos.filter((f) => abierto(f) && !(f.hijos ?? []).some((h) => tipoDeIssue(h) === "encargo")).length,
+    fondos_cerrados_sin_test: fondos.filter((f) => !abierto(f) && !etiquetasDe(f).some((l) => ARREGLOS_CON_TEST.includes(l))).length,
+  };
+}
+
 /** Recuento por veredicto y por riesgo: las cifras de partida. */
 export function recuento(normas) {
   const por = (campo, vocab) => Object.fromEntries(Object.keys(vocab).map((k) => [k, normas.filter((n) => n[campo] === k).length]));

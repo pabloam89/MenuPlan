@@ -17,7 +17,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
-import { RUTA_BASE as BASE_NORMAS, totalBase } from "./normas.mjs";
+import { RUTA_BASE as BASE_NORMAS, medirFondo, totalBase } from "./normas.mjs";
+import { CONSULTA, leerIssue } from "./issues.mjs";
 
 /** Tipos de criterio. La definición larga vive en `vocabularios.tipos_criterio` de ops/planos.json (un test las compara). */
 export const TIPOS_CRITERIO = [
@@ -86,7 +87,33 @@ export const MEDIDORES = {
   },
   /** Frases normativas que no citan ninguna norma (ops/normas-base.json, #296): el trinquete solo baja. */
   frases_normativas_base: (raiz) => totalBase(JSON.parse(readFileSync(join(raiz, BASE_NORMAS), "utf8"))),
+  // Las del fondo (#185, #296) necesitan los issues de GitHub: sin red, null y
+  // el criterio sale «sin comprobar». Las define CIFRAS_FONDO de normas.mjs.
+  casos_sin_fondo: (raiz, ctx) => cifraDeFondo("casos_sin_fondo", ctx),
+  fondos_sin_encargo: (raiz, ctx) => cifraDeFondo("fondos_sin_encargo", ctx),
+  fondos_cerrados_sin_test: (raiz, ctx) => cifraDeFondo("fondos_cerrados_sin_test", ctx),
 };
+
+/** Una cifra del fondo, o null si no hay issues que leer (sin red). La lectura se hace una vez por medición. */
+function cifraDeFondo(cifra, ctx) {
+  if (!ctx?.leerIssues) return null;
+  ctx.fondo ??= medirFondo(ctx.leerIssues());
+  return ctx.fondo[cifra];
+}
+
+/** Todos los issues con padre e hijos, por GraphQL (la consulta de scripts/lib/issues.mjs). */
+export function leerIssuesGh() {
+  const out = [];
+  let cursor = null;
+  do {
+    const args = ["api", "graphql", "-f", `query=${CONSULTA}`];
+    if (cursor) args.push("-f", `cursor=${cursor}`);
+    const pag = JSON.parse(execFileSync("gh", args, { encoding: "utf8", timeout: 60_000, stdio: ["ignore", "pipe", "pipe"] })).data.repository.issues;
+    out.push(...pag.nodes.map(leerIssue));
+    cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
+  } while (cursor);
+  return out;
+}
 
 /** «2026-10-09» en Madrid (la hora sale de Node, nunca de `date`: #210). */
 export function hoyMadrid(fecha = new Date()) {
@@ -244,7 +271,8 @@ export function evaluarCriterio(c, ctx) {
       if (!medir) return { estado: "no_cumple", detalle: `medidor desconocido: ${c.medidor}` };
       let valor;
       try {
-        valor = medir(raiz);
+        valor = medir(raiz, ctx);
+        if (valor === null) return { estado: "sin_comprobar", detalle: `${c.medidor}: necesita red` };
       } catch (e) {
         console.warn(`[planos] ${c.medidor}: no se pudo medir: ${e.message}`);
         return { estado: "no_cumple", detalle: `${c.medidor}: no se pudo medir (${e.message})` };
@@ -297,8 +325,8 @@ export function nivelDe(estadosPorNivel) {
  *   criterios: [{ nivel, tipo, que, estado, detalle, caducado }] }],
  *   desajustes, caducados }.
  */
-export function medir(datos, { raiz, gh = null, hoy = hoyMadrid() }) {
-  const ctx = { raiz, gh, hoy, repo: datos.repo, caducidad: datos.caducidad_juicio_dias };
+export function medir(datos, { raiz, gh = null, hoy = hoyMadrid(), leerIssues = gh ? leerIssuesGh : null }) {
+  const ctx = { raiz, gh, hoy, repo: datos.repo, caducidad: datos.caducidad_juicio_dias, leerIssues };
   const planos = datos.planos.map((p) => {
     const criterios = [];
     const estadosPorNivel = {};

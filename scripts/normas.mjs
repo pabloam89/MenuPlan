@@ -5,6 +5,7 @@
  *   npm run normas                     recuento del registro y frases normativas
  *                                      que no citan norma ni están en la base
  *                                      (sale con 1 si hay alguna)
+ *   npm run normas -- --fondo          las cifras del fondo (#185), con red
  *   npm run normas -- --base           reescribe ops/normas-base.json: solo baja
  *   npm run normas -- --base --subir   la deja en lo de hoy aunque suba (a
  *                                      propósito: se ve en el diff del PR y el
@@ -18,7 +19,8 @@
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { RUTA_BASE, leerRegistro, medirFrases, nuevaBase, recuento, subidas, totalBase } from "./lib/normas.mjs";
+import { RUTA_BASE, leerRegistro, medirFondo, medirFrases, nuevaBase, recuento, subidas, totalBase } from "./lib/normas.mjs";
+import { leerIssuesGh } from "./lib/planos.mjs";
 
 const RAIZ = resolve(import.meta.dirname, "..");
 const args = process.argv.slice(2);
@@ -27,6 +29,13 @@ const ids = new Set(registro.normas.map((n) => n.id));
 const rutaBase = join(RAIZ, RUTA_BASE);
 const base = existsSync(rutaBase) ? JSON.parse(readFileSync(rutaBase, "utf8")) : null;
 const { actual, citasMalas } = medirFrases(RAIZ, ids);
+
+if (args.includes("--fondo")) {
+  // Las tres cifras del fondo, con red (las mismas que mide `npm run planos -- --red`).
+  const m = medirFondo(leerIssuesGh());
+  for (const [k, v] of Object.entries(m)) console.log(`fondo ${k}: ${v}`);
+  process.exit(0);
+}
 
 if (args.includes("--base")) {
   // La primera vez no hay base: se toma la de hoy.
