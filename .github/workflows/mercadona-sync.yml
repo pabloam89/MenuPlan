@@ -29,6 +29,11 @@
 # instalado llegue a leerla. Si el secreto no existe, empuja con el token como
 # antes (plan B mientras no se cree la key; con el ruleset puesto, fallaría).
 # Un push con deploy key sí lanza `tests.yml` (el de GITHUB_TOKEN no).
+#
+# El secreto vive en el environment `mercadona-sync`, que solo admite la rama
+# staging: si fuera de repo, cualquier rama podría lanzar su propia versión de
+# este workflow (`gh workflow run --ref <rama>`) y empujar con la key a staging
+# saltándose el ruleset. Lanzado desde otra rama, el job ni arranca.
 
 name: Sync catálogo Mercadona
 
@@ -57,6 +62,8 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # De aquí sale MERCADONA_DEPLOY_KEY; su política de ramas solo deja staging.
+    environment: mercadona-sync
 
     steps:
       - uses: actions/checkout@v7
@@ -107,6 +114,8 @@ jobs:
       - name: Commitear si ha cambiado algo
         env:
           DEPLOY_KEY: ${{ secrets.MERCADONA_DEPLOY_KEY }}
+          # Para api.github.com/meta: sin token, 60 llamadas por hora y por IP.
+          GH_TOKEN: ${{ github.token }}
           # En el cron no hay inputs: queda vacío y no prueba nada.
           PROBAR_PUSH: ${{ inputs.probar_push }}
         run: |
@@ -136,7 +145,7 @@ jobs:
           HOSTS="$RUNNER_TEMP/github_known_hosts"
           trap 'rm -f "$KEY"' EXIT
           ( umask 077; printf '%s\n' "$DEPLOY_KEY" > "$KEY" )
-          curl -fsS https://api.github.com/meta | jq -r '.ssh_keys[] | "github.com " + .' > "$HOSTS"
+          curl -fsS --retry 3 -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/meta | jq -r '.ssh_keys[] | "github.com " + .' > "$HOSTS"
           echo "Empujo con la deploy key a $GITHUB_REF_NAME"
           GIT_SSH_COMMAND="ssh -i $KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOSTS" \
             git push "git@github.com:${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${GITHUB_REF_NAME}"

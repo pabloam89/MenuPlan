@@ -15,7 +15,8 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
   - `staging`: sin force push ni borrado (protección clásica) y el **ruleset
     «staging: tests obligatorios»**: nada entra sin `tests` en verde, ni por PR
     ni por push, tampoco Pablo. Solo se lo saltan las deploy keys, y la única
-    es la del cron de Mercadona. Decidido el 9 oct 2026; **hasta crear el
+    es la del cron de Mercadona, cuyo secreto vive en el environment
+    `mercadona-sync` (solo rama staging). Decidido el 9 oct 2026; **hasta crear el
     ruleset**, staging admite push directo y el «solo por PR» es de la guardia.
 - **Workflows** (`.github/workflows/`):
 
@@ -74,7 +75,8 @@ CLI `gh` va con la sesión de Pablo (`gh auth status`).
 | Fusionar un PR a `staging` | `gh pr merge <n> --merge` | `Merged`; la guardia vigila que no sea a `main` |
 | Reglas que aplican a `staging` | `gh api repos/pabloam89/MenuPlan/rules/branches/staging` | un `required_status_checks` con `tests` (más los de la protección clásica) |
 | Deploy keys del repo | `gh repo deploy-key list` | una, «mercadona-sync: cron, push a staging», `read-write` |
-| Probar el push del cron sin esperar al lunes | `gh workflow run mercadona-sync.yml --ref staging -f probar_push=true` y `gh run watch` | el paso «Commitear» dice `Empujo con la deploy key a staging`, aparece un commit «prueba de push» en `origin/staging` y un run de `tests` con evento `push` sobre él |
+| Environment del cron | `gh api repos/pabloam89/MenuPlan/environments/mercadona-sync/deployment-branch-policies -q '.branch_policies[].name'` y `gh secret list --env mercadona-sync` | `staging` y `MERCADONA_DEPLOY_KEY`. Si un workflow nombra un environment que no existe, GitHub lo crea **sin política**: se crea antes a mano |
+| Probar el push del cron sin esperar al lunes | `gh workflow run mercadona-sync.yml --ref staging -f probar_push=true` y `gh run watch` | el paso «Commitear» dice `Empujo con la deploy key a staging`, aparece en `origin/staging` el commit «prueba de push» (o el del catálogo, si hay precios nuevos) y un run de `tests` con evento `push` sobre él |
 | Ver la seguridad del repo | `gh api repos/pabloam89/MenuPlan -q .security_and_analysis` | secret scanning y push protection en `enabled` |
 | Ramas fusionadas que se borrarían (ensayo) | `npm run podar` | la lista, sin borrar nada |
 | Borrarlas (OK) | `npm run podar -- --si` | GitHub y locales con `-d`; lo no fusionado sale como «decide Pablo» |
@@ -230,9 +232,8 @@ npm run issues -- --etiquetas               # crear o retirar etiquetas en GitHu
 ## Qué requiere el OK de Pablo
 
 - Cualquier ajuste del repo: protección de ramas y rulesets, visibilidad, rama
-  por defecto, Dependabot o secret scanning, deploy keys y los secretos de
-  Actions. Una deploy key de escritura se salta el ruleset de `staging`: no se
-  crea otra sin decidirlo.
+  por defecto, Dependabot, secret scanning, environments, secretos y deploy keys
+  (una de escritura se salta el ruleset de `staging`: no se crea otra sin más).
 - Subir o fusionar a `main`.
 - Borrar ramas, y borrar un directorio huérfano de una carpeta de trabajo.
 - Cambiar un workflow que escribe en el repo o usa secretos.
