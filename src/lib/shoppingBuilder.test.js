@@ -4,6 +4,45 @@ import { registerRecipes } from "../data/recipes.js";
 
 const GROUPS = [{ id: "g1", label: "Familia" }];
 
+// Recetas de prueba propias. Estas tres eran de BASE_RECIPES (las 29 del
+// prototipo, retiradas el 9 oct 2026, #286) y el test las daba por registradas;
+// ahora se registran aquí, con los mismos ingredientes de entonces.
+const POLLO = "test_shopping_pollo_horno";
+const TORTILLA = "test_shopping_tortilla";
+const LENTEJAS = "test_shopping_lentejas";
+registerRecipes([
+  {
+    id: POLLO, name: "Pollo al horno con patatas", servings: 4, mealTypes: ["comida"], tags: ["carne"],
+    ingredients: [
+      { id: "pollo", name: "Pollo entero", category: "Carnes y pescados", qty: 1500, unit: "g", pricePerUnit: 0.0036 },
+      { id: "patata", name: "Patatas", category: "Verduras y frutas", qty: 4, unit: "ud", pricePerUnit: 0.25 },
+      { id: "cebolla", name: "Cebolla", category: "Verduras y frutas", qty: 1, unit: "ud", pricePerUnit: 0.4 },
+      { id: "limon", name: "Limón", category: "Verduras y frutas", qty: 1, unit: "ud", pricePerUnit: 0.4 },
+      { id: "aceite-oliva", name: "Aceite de oliva", category: "Despensa", qty: 30, unit: "ml", pricePerUnit: 0.01 },
+    ],
+  },
+  {
+    id: TORTILLA, name: "Tortilla francesa + ensalada", servings: 2, mealTypes: ["cena"], tags: ["huevos"],
+    ingredients: [
+      { id: "huevos", name: "Huevos", category: "Lácteos y huevos", qty: 4, unit: "ud", pricePerUnit: 0.2 },
+      { id: "lechuga", name: "Lechuga", category: "Verduras y frutas", qty: 1, unit: "ud", pricePerUnit: 0.99 },
+      { id: "tomate", name: "Tomates", category: "Verduras y frutas", qty: 2, unit: "ud", pricePerUnit: 0.5 },
+      { id: "aceite-oliva", name: "Aceite de oliva", category: "Despensa", qty: 15, unit: "ml", pricePerUnit: 0.01 },
+    ],
+  },
+  {
+    id: LENTEJAS, name: "Lentejas con verduras", servings: 4, mealTypes: ["comida"], tags: ["legumbres"],
+    ingredients: [
+      { id: "lentejas", name: "Lentejas", category: "Legumbres y pasta", qty: 400, unit: "g", pricePerUnit: 0.0025 },
+      { id: "cebolla", name: "Cebolla", category: "Verduras y frutas", qty: 1, unit: "ud", pricePerUnit: 0.4 },
+      { id: "zanahoria", name: "Zanahoria", category: "Verduras y frutas", qty: 2, unit: "ud", pricePerUnit: 0.3 },
+      { id: "patata", name: "Patatas", category: "Verduras y frutas", qty: 2, unit: "ud", pricePerUnit: 0.25 },
+      { id: "pimiento-rojo", name: "Pimiento rojo", category: "Verduras y frutas", qty: 1, unit: "ud", pricePerUnit: 0.9 },
+      { id: "aceite-oliva", name: "Aceite de oliva", category: "Despensa", qty: 30, unit: "ml", pricePerUnit: 0.01 },
+    ],
+  },
+]);
+
 function planWith(day, meal, recipeId, eaters = 2) {
   return {
     g1: {
@@ -14,7 +53,7 @@ function planWith(day, meal, recipeId, eaters = 2) {
 
 describe("buildShoppingList pantry discount (Phase 6)", () => {
   it("without a pantry, nothing is discounted and pantryItems is empty", () => {
-    const plan = planWith("Lun", "Comida", "pollo-horno-patatas");
+    const plan = planWith("Lun", "Comida", POLLO);
     const sh = buildShoppingList(plan, GROUPS, ["Comida"]);
     expect(sh.pantryItems).toEqual([]);
     const all = sh.byCategory.flatMap((c) => c.items);
@@ -23,7 +62,7 @@ describe("buildShoppingList pantry discount (Phase 6)", () => {
   });
 
   it("moves matched ingredients to pantryItems and out of byCategory", () => {
-    const plan = planWith("Lun", "Comida", "pollo-horno-patatas");
+    const plan = planWith("Lun", "Comida", POLLO);
     const pantry = [{ ingredientName: "pollo", ingredientNormalized: "pollo" }];
     const sh = buildShoppingList(plan, GROUPS, ["Comida"], pantry);
 
@@ -37,14 +76,14 @@ describe("buildShoppingList pantry discount (Phase 6)", () => {
   });
 
   it("handles simple singular/plural matching (tomate ~ Tomates)", () => {
-    const plan = planWith("Mar", "Cena", "tortilla-francesa");
+    const plan = planWith("Mar", "Cena", TORTILLA);
     const pantry = [{ ingredientName: "tomate", ingredientNormalized: "tomate" }];
     const sh = buildShoppingList(plan, GROUPS, ["Cena"], pantry);
     expect(sh.pantryItems.map((it) => it.name)).toContain("Tomates");
   });
 
   it("does not remove pantry items — they're returned, just excluded from total", () => {
-    const plan = planWith("Lun", "Comida", "pollo-horno-patatas");
+    const plan = planWith("Lun", "Comida", POLLO);
     const withoutPantry = buildShoppingList(plan, GROUPS, ["Comida"]);
     const withPantry = buildShoppingList(plan, GROUPS, ["Comida"], [
       { ingredientName: "pollo", ingredientNormalized: "pollo" },
@@ -66,7 +105,7 @@ describe("buildShoppingList pantry discount (Phase 6)", () => {
 
   it("does not false-positive match 'pollo' against unrelated ingredients", () => {
     // "Aceite de oliva" / "Cebolla" / "Limón" share no words with "pollo".
-    const plan = planWith("Lun", "Comida", "pollo-horno-patatas");
+    const plan = planWith("Lun", "Comida", POLLO);
     const pantry = [{ ingredientName: "cebolla", ingredientNormalized: "cebolla" }];
     const sh = buildShoppingList(plan, GROUPS, ["Comida"], pantry);
     const pantryNames = sh.pantryItems.map((it) => it.name);
@@ -119,7 +158,7 @@ describe("buildShoppingList adapted-ingredient flag", () => {
   });
 
   it("does not flag ingredients from a recipe with no adaptations", () => {
-    const plan = planWith("Lun", "Comida", "pollo-horno-patatas");
+    const plan = planWith("Lun", "Comida", POLLO);
     const sh = buildShoppingList(plan, GROUPS, ["Comida"]);
     const all = sh.byCategory.flatMap((c) => c.items);
     expect(all.every((it) => it.adapted === false)).toBe(true);
@@ -205,11 +244,11 @@ describe("buildShoppingList aggregation across recipes (Fase 5 audit)", () => {
   });
 
   it("rounds a fractional 'ud' quantity (not covered by any pack-size rule) up to a whole, purchasable count", () => {
-    // Real catalog case: "lentejas-verduras" lists onion/potato/pepper/carrot
+    // Real catalog case: LENTEJAS lists onion/potato/pepper/carrot
     // directly in "ud" (not "g"), so the g→ud PACK_SIZES rules never apply.
     // Scaled down to 1 eater, some lines come out as fractions of a unit
     // (e.g. 0.25 cebolla) — you can't buy a quarter onion.
-    const plan = planWith("Lun", "Comida", "lentejas-verduras", 1);
+    const plan = planWith("Lun", "Comida", LENTEJAS, 1);
     const sh = buildShoppingList(plan, GROUPS, ["Comida"]);
     const all = sh.byCategory.flatMap((c) => c.items);
     const udItems = all.filter((it) => it.unit === "ud");

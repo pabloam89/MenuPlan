@@ -265,8 +265,8 @@ const MENU_DEMO_PLAN = {
   },
 };
 
-// RECIPES_BY_ID se construye desde BASE_RECIPES (recetas legacy), NO desde el
-// catálogo — el catálogo solo entra en runtime vía `registerRecipes` (planner).
+// RECIPES_BY_ID arranca vacío — el catálogo solo entra en runtime vía
+// `registerRecipes`.
 // En el carrusel de bienvenida el planner no corre, así que registramos aquí las
 // recetas de catálogo que usa el menú demo, para que resuelvan nombre + FOTO.
 const DEMO_MENU_RECIPE_IDS = Array.from(
