@@ -51,11 +51,17 @@ describe("productoBuscado.json", () => {
   it.each(entradas.filter(([, v]) => v.puedeFaltar))("«%s» (de temporada) se lleva el suyo o ninguno", (clave, valor) => {
     const ing = ingredients.find((i) => normalizeName(i.name) === clave);
     const hit = matchProductForIngredient(ing.name, productos);
-    if (hit) expect(valor.buscar.some((t) => scoreProductName(hit.product.name, normalizeName(t)) >= 0.7)).toBe(true);
+    const suyos = [...valor.buscar, ing.name].map((t) => normalizeName(t));
+    if (hit) expect(suyos.some((t) => scoreProductName(hit.product.name, t) >= 0.7)).toBe(true);
   });
 
-  it("puedeFaltar solo vale true", () => {
-    for (const [, v] of entradas) if ("puedeFaltar" in v) expect(v.puedeFaltar).toBe(true);
+  // Que no sirva para callar un rojo: solo true, y con su porqué de temporada.
+  it("puedeFaltar solo vale true y su motivo dice «temporada»", () => {
+    for (const [clave, v] of entradas) {
+      if (!("puedeFaltar" in v)) continue;
+      expect(v.puedeFaltar, clave).toBe(true);
+      expect(v.motivo, clave).toMatch(/temporada/i);
+    }
   });
 });
 
