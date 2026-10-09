@@ -10,15 +10,23 @@
 -- seguridad del PR #223 encontró, sin escribir datos, formas de cortar
 -- conexiones ajenas, crear slots de replicación o esconder funciones al filtro.
 -- Con este rol lo niega la base por permisos, no por texto:
---   - no tiene permiso de escribir en ninguna tabla (solo `select`), ni de
---     crear nada en ningún esquema ni en la base;
+--   - no tiene permiso de escribir en ninguna tabla ni secuencia de la app
+--     (solo `select`), ni de crear nada en ningún esquema ni en la base;
 --   - no es miembro de ningún rol: ni `pg_signal_backend` (solo puede cortar sus
 --     propias conexiones), ni `pg_read_server_files`, ni `pg_monitor`, ni
 --     `postgres`; sin `replication` (no crea slots), sin `superuser`,
 --     `createrole` ni `createdb`;
---   - no entra en `cron`, `vault`, `auth`, `storage` ni `extensions`;
---   - `statement_timeout` de 15 s (para `pg_sleep` y consultas largas) y
---     `default_transaction_read_only = on` como segunda barrera.
+--   - no entra en `cron`, `vault`, `auth`, `storage` ni `extensions`.
+--
+-- Valores por defecto, NO barreras: `default_transaction_read_only = on`,
+-- `statement_timeout` 15 s, `idle_in_transaction_session_timeout` 30 s e
+-- `idle_session_timeout` 60 s. La propia sesión los puede cambiar (`begin read
+-- write`, `set …`); solo acotan a quien no los toque, como `consulta.mjs`.
+--
+-- Precedente: `ops_reader` (0051), para el agente de fallos de GitHub. Aquel
+-- solo ve una vista anonimizada de `ops` y no salta la RLS; este lee las tablas
+-- de `public` tal cual, como hoy `postgres`, porque es para consultas de
+-- diagnóstico desde el PC de Pablo, no para un servicio fuera.
 --
 -- RLS: `bypassrls`. Lee lo mismo que hoy lee `postgres` (que también la
 -- salta), ni más ni menos en `public`. La otra salida, una política
@@ -26,14 +34,24 @@
 -- tablas con datos de familias y habría que acordarse en cada tabla nueva.
 -- Menos que hoy: sin `auth` (emails), `cron`, `vault` ni `storage`.
 --
--- Lo que la base NO puede negar a este rol (concesiones de Supabase a PUBLIC,
--- de objetos cuyo dueño es `supabase_admin`, que `postgres` no puede revocar):
---   - `net.http_*` (pg_net): PUBLIC tiene `usage` en `net` y escritura en
---     `net.http_request_queue`. Solo funciona en una transacción de escritura,
---     y `consulta.mjs` siempre abre `begin read only`;
---   - `lo_create` y tablas temporales, también solo en escritura;
---   - `pg_sleep` y los bloqueos consultivos, acotados por `statement_timeout`.
--- La comprobación del final lo cuenta (NOTICE) y falla si aparece algo más.
+-- La frontera es la URL, no el rol. Quien tenga `SUPABASE_DB_URL_LECTURA` y
+-- abra su propia sesión (con `begin read write` o cambiando los valores por
+-- defecto) puede, porque son concesiones de Supabase y de Postgres a PUBLIC
+-- en objetos de `supabase_admin` que `postgres` no puede revocar:
+--   - `net.http_post`/`http_get`: sacar datos que lee hacia fuera (PUBLIC tiene
+--     `usage` en `net` y escritura en su cola);
+--   - `update`, `truncate` o `lock` sobre la cola de `net` (MAINTAIN de PUBLIC);
+--   - `lo_from_bytea`/`lo_create`: escribir objetos grandes hasta llenar el disco;
+--   - sin escribir nada, `pg_advisory_lock` con la clave `bot_tareas:<id>`, que
+--     deja esperando los triggers de bot_tareas mientras siga conectado
+--     (`idle_session_timeout` lo acota solo si no lo cambia);
+--   - `notify pgrst` (recarga de PostgREST) y tablas temporales.
+-- Por `consulta.mjs` nada de esto pasa: protocolo extendido de una sentencia,
+-- `begin read only` antes de la consulta, filtro de texto y rollback. Es un
+-- riesgo aceptado, pendiente de Pablo: la URL vive solo en 1Password y en
+-- `.env.local` del PC de Pablo, igual que hoy la de administrador, que puede
+-- todo eso y más. La comprobación del final cuenta lo de `net` (NOTICE) y
+-- falla si aparece cualquier otra escritura.
 --
 -- Pooler: Supavisor admite roles propios; el usuario de la conexión es
 -- `consulta_lectura.mdzwbrworucnummibxrq` (como `postgres.<ref>` hoy).
@@ -67,6 +85,7 @@ alter role consulta_lectura with login nocreatedb nocreaterole noinherit norepli
 alter role consulta_lectura set default_transaction_read_only = on;
 alter role consulta_lectura set statement_timeout = '15s';
 alter role consulta_lectura set idle_in_transaction_session_timeout = '30s';
+alter role consulta_lectura set idle_session_timeout = '60s';
 
 comment on role consulta_lectura is
   'Solo lectura para npm run consulta (scripts/consulta.mjs, issue #233). Select en public y ops, bypassrls, sin pertenencias. Contraseña en 1Password (HoMenu), nunca en el repo.';
@@ -112,10 +131,22 @@ begin
      and c.oid <> 'pg_catalog.pg_settings'::regclass
      and n.nspname not like 'pg_temp%' and n.nspname not like 'pg_toast%'
      and has_schema_privilege(r.oid, n.oid, 'USAGE')
-     and (has_table_privilege(r.oid, c.oid, 'INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+     and (has_table_privilege(r.oid, c.oid, 'INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN')
           or has_any_column_privilege(r.oid, c.oid, 'INSERT, UPDATE, REFERENCES'));
   if v_lista is not null then
     raise exception '0092: consulta_lectura puede escribir en %', left(v_lista, 500);
+  end if;
+
+  -- Ni avanzar secuencias (nextval/setval), fuera de `net` por lo mismo.
+  select string_agg(c.oid::regclass::text, ', ') into v_lista
+    from pg_class c join pg_namespace n on n.oid = c.relnamespace
+   where c.relkind = 'S'
+     and n.nspname <> 'net'
+     and has_schema_privilege(r.oid, n.oid, 'USAGE')
+     -- el case evita que el planificador la evalúe sobre filas que no son secuencias
+     and case when c.relkind = 'S' then has_sequence_privilege(r.oid, c.oid, 'USAGE, UPDATE') else false end;
+  if v_lista is not null then
+    raise exception '0092: consulta_lectura puede avanzar las secuencias %', left(v_lista, 500);
   end if;
 
   -- Ningún esquema donde pueda crear, ni la base.
@@ -170,6 +201,6 @@ begin
    where n.nspname = 'net' and c.relkind in ('r', 'p')
      and has_schema_privilege(r.oid, n.oid, 'USAGE')
      and has_table_privilege(r.oid, c.oid, 'INSERT, UPDATE, DELETE');
-  raise notice '0092: tablas de net con escritura por PUBLIC (Supabase, solo en read write): %', v_n;
+  raise notice '0092: tablas de net con escritura por PUBLIC (Supabase; riesgo aceptado, ver cabecera): %', v_n;
 end
 $$;

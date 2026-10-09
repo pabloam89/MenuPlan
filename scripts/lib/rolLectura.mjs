@@ -11,8 +11,24 @@ import { createHash, createHmac, pbkdf2Sync, randomBytes } from "node:crypto";
 export const ROL_LECTURA = "consulta_lectura";
 export const VAR_LECTURA = "SUPABASE_DB_URL_LECTURA";
 export const VAR_ADMIN = "SUPABASE_DB_URL";
-/** Dónde vive en 1Password (bóveda HoMenu, ficha Supabase). */
-export const OP_LECTURA = `op://HoMenu/Supabase/${VAR_LECTURA}`;
+/**
+ * Dónde vive en 1Password: una ficha propia en HoMenu, porque se crea con la
+ * plantilla JSON por stdin (`op item create -`), y `op item edit` solo admite
+ * plantillas desde un fichero o valores como argumento.
+ */
+export const FICHA_LECTURA = "Supabase lectura";
+export const OP_LECTURA = `op://HoMenu/${FICHA_LECTURA}/${VAR_LECTURA}`;
+
+/** La ficha de 1Password, en JSON para `op item create --vault HoMenu -`. */
+export const fichaLectura = (clave, url) => JSON.stringify({
+  title: FICHA_LECTURA,
+  category: "PASSWORD",
+  notesPlain: `Rol ${ROL_LECTURA} de Supabase (migración 0092, issue #233). La pone y la rota scripts/clave-consulta-lectura.mjs.`,
+  fields: [
+    { id: "password", type: "CONCEALED", purpose: "PASSWORD", label: "password", value: clave },
+    { id: VAR_LECTURA, type: "CONCEALED", label: VAR_LECTURA, value: url },
+  ],
+});
 
 /** Una contraseña larga, aleatoria y solo con caracteres seguros en una URL. */
 export const claveNueva = () => randomBytes(32).toString("base64url");
@@ -49,23 +65,25 @@ export function urlLectura(urlAdmin, clave) {
 }
 
 /**
- * Qué dirección usa `npm run consulta`: la de lectura si existe; si no, la del
- * administrador con un aviso (plan B mientras la 0092 no esté aplicada o la
- * contraseña no esté en 1Password).
+ * Qué dirección usa `npm run consulta`: la de lectura si existe; si la variable
+ * no está, la del administrador con un aviso (plan B mientras la 0092 no esté
+ * aplicada o la contraseña no esté en 1Password). Si está pero no se puede
+ * leer, lanza: nunca cambia de usuario por un fallo.
  * @param {(clave: string) => string | undefined} leer
  */
 export function conexionDeConsulta(leer) {
   let lectura;
-  let motivo = `no hay ${VAR_LECTURA}`;
   try {
     lectura = leer(VAR_LECTURA);
   } catch (e) {
-    // La dirección op:// está en .env.local pero la ficha aún no tiene el campo.
-    motivo = `no pude leer ${VAR_LECTURA} (${e.message})`;
+    // Configurada pero ilegible (p. ej. una dirección op:// que no existe): se
+    // para aquí. Caer al administrador dejaría a cualquiera forzar el cambio de
+    // usuario con una dirección mala (juez de seguridad de la 0092).
+    throw new Error(`${VAR_LECTURA} está configurada pero no la puedo leer (${e.message}). No cambio al administrador: arréglala o quítala.`);
   }
   if (lectura) return { url: lectura, aviso: null };
   return {
     url: leer(VAR_ADMIN),
-    aviso: `Aviso: ${motivo}. Entro como administrador; solo me protegen el filtro de texto y la transacción read only (issue #233).`,
+    aviso: `Aviso: no hay ${VAR_LECTURA}. Entro como administrador; solo me protegen el filtro de texto y la transacción read only (issue #233).`,
   };
 }

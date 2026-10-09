@@ -24,7 +24,14 @@ if (no) {
 
 // Con el usuario de solo lectura (0092) si está; si no, con el administrador y
 // un aviso: el script no depende de que la migración ya esté aplicada.
-const { url, aviso } = conexionDeConsulta((k) => leerEnv(k));
+let url;
+let aviso;
+try {
+  ({ url, aviso } = conexionDeConsulta((k) => leerEnv(k)));
+} catch (e) {
+  console.error(e.message);
+  process.exit(1);
+}
 if (aviso) console.error(aviso);
 if (!url) {
   console.error("Falta SUPABASE_DB_URL_LECTURA o SUPABASE_DB_URL en .env.local (o en el entorno).");

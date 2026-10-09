@@ -1,37 +1,54 @@
 #!/usr/bin/env node
 /**
- * Pone (o rota) la contraseña del usuario de solo lectura `consulta_lectura`
- * (migración 0092, issue #233) sin que la contraseña pase por la pantalla, la
- * conversación ni el log de Postgres. Lo lanza Pablo, con `!`, después de
- * aplicar la 0092:
+ * Pone la contraseña del usuario de solo lectura `consulta_lectura` (migración
+ * 0092, issue #233) sin que la contraseña pase por la pantalla, la
+ * conversación, los argumentos de un proceso ni el log de Postgres. Lo lanza
+ * Pablo, con `!`, después de aplicar la 0092:
  *
  *   node scripts/clave-consulta-lectura.mjs        # dice lo que haría
  *   node scripts/clave-consulta-lectura.mjs --si   # lo hace
  *
  * Qué hace con --si:
- *   1. Comprueba con la conexión de administrador que el rol existe.
+ *   1. Comprueba con la conexión de administrador que el rol existe y que la
+ *      ficha «Supabase lectura» aún no está en 1Password.
  *   2. Genera una contraseña aleatoria en memoria.
- *   3. Guarda la dirección completa en 1Password, campo SUPABASE_DB_URL_LECTURA
- *      de la ficha Supabase (bóveda HoMenu). Va por la app de escritorio, no por
+ *   3. Crea la ficha en la bóveda HoMenu con la plantilla JSON por stdin
+ *      (`op item create --vault HoMenu -`), por la app de escritorio y no por
  *      la service account (que solo lee): sale una ventana para aprobar.
  *   4. `alter role consulta_lectura password '<verificador SCRAM>'`: a la base
  *      solo llega el verificador, no la contraseña.
  *   5. Entra con la dirección nueva y comprueba quién es y que va en read only.
- * Si algo falla a medias, se vuelve a lanzar: la contraseña nueva pisa la vieja
- * en los dos sitios.
+ *
+ * Para rotarla: Pablo archiva la ficha «Supabase lectura» en 1Password y lo
+ * vuelve a lanzar. Si se corta entre el paso 3 y el 4, igual: archivar y
+ * relanzar.
  */
 import { execFileSync } from "node:child_process";
 import pg from "pg";
-import { leerEnv } from "./lib/env.mjs";
-import { OP_LECTURA, ROL_LECTURA, VAR_ADMIN, VAR_LECTURA, claveNueva, urlLectura, verificadorScram } from "./lib/rolLectura.mjs";
+import { entornoOp, leerEnv } from "./lib/env.mjs";
+import { FICHA_LECTURA, OP_LECTURA, ROL_LECTURA, VAR_ADMIN, VAR_LECTURA, claveNueva, fichaLectura, urlLectura, verificadorScram } from "./lib/rolLectura.mjs";
 
 const SI = process.argv.includes("--si");
 const ssl = { rejectUnauthorized: false };
+/** Solo la primera línea de stderr de `op`: el mensaje de error nunca lleva la entrada. */
+const errorDeOp = (e) => String(e.stderr || "sin detalle").trim().split("\n")[0];
 
 if (!SI) {
   console.log(`Ensayo: con --si pondría una contraseña nueva a ${ROL_LECTURA}, la guardaría en ${OP_LECTURA} y comprobaría que entra.`);
   console.log("Antes tiene que estar aplicada la 0092_rol_consulta_lectura.");
   process.exit(0);
+}
+
+// ¿Ya hay ficha? Con la service account, que lee sin preguntar.
+let existe = true;
+try {
+  execFileSync("op", ["item", "get", FICHA_LECTURA, "--vault", "HoMenu", "--format", "json"], { env: entornoOp(), stdio: ["ignore", "ignore", "ignore"] });
+} catch {
+  existe = false;
+}
+if (existe) {
+  console.error(`Ya existe la ficha «${FICHA_LECTURA}» en HoMenu. Para rotar la contraseña, archívala en 1Password y vuelve a lanzarlo.`);
+  process.exit(1);
 }
 
 const admin = leerEnv(VAR_ADMIN, { obligatoria: true });
@@ -47,19 +64,20 @@ try {
   const clave = claveNueva();
   const url = urlLectura(admin, clave);
 
-  // 1Password primero: si Pablo no aprueba la ventana, la base no cambia.
+  // 1Password primero: si Pablo no aprueba la ventana, la base no cambia. Sin
+  // la service account (solo lee) y con la ficha por stdin, no en argumentos.
   const env = { ...process.env };
   delete env.OP_SERVICE_ACCOUNT_TOKEN;
   try {
-    execFileSync("op", ["item", "edit", "Supabase", "--vault", "HoMenu", `${VAR_LECTURA}[concealed]=${url}`], { env, stdio: ["ignore", "ignore", "pipe"] });
+    execFileSync("op", ["item", "create", "--vault", "HoMenu", "-"], { env, input: fichaLectura(clave, url), stdio: ["pipe", "ignore", "pipe"] });
   } catch (e) {
-    console.error(`No pude guardar en 1Password: ${String(e.stderr || e.message).trim().split("\n")[0]}. La base no se ha tocado.`);
+    console.error(`No pude guardar en 1Password: ${errorDeOp(e)}. La base no se ha tocado.`);
     process.exit(1);
   }
   console.log(`Guardada en ${OP_LECTURA}.`);
 
   await db.query(`alter role ${ROL_LECTURA} password ${db.escapeLiteral(verificadorScram(clave))}`);
-  console.log(`Contraseña de ${ROL_LECTURA} cambiada en la base (solo el verificador SCRAM).`);
+  console.log(`Contraseña de ${ROL_LECTURA} puesta en la base (solo el verificador SCRAM).`);
 
   // El pooler puede tardar unos segundos en ver la contraseña nueva.
   let ultimo;
@@ -68,7 +86,7 @@ try {
     try {
       await c.connect();
       const { rows: [r] } = await c.query("select current_user as yo, current_setting('default_transaction_read_only') as ro, current_setting('statement_timeout') as tope");
-      console.log(`OK: entra como ${r.yo}, read only ${r.ro}, tope ${r.tope}. Añade a tu .env.local: ${VAR_LECTURA}=${OP_LECTURA}`);
+      console.log(`OK: entra como ${r.yo}, read only ${r.ro}, tope ${r.tope}. Añade (o descomenta) en tu .env.local: ${VAR_LECTURA}=${OP_LECTURA}`);
       ultimo = null;
       break;
     } catch (e) {
@@ -79,7 +97,8 @@ try {
     }
   }
   if (ultimo) {
-    console.error(`La contraseña está puesta, pero no consigo entrar con ella: ${ultimo.message}. Vuelve a lanzarlo en un minuto.`);
+    // Solo el código: el mensaje de pg no lleva la contraseña, pero así no hay duda.
+    console.error(`La contraseña está puesta, pero no consigo entrar con ella (${ultimo.code ?? "sin código"}). Vuelve a probar en un minuto con npm run consulta.`);
     process.exitCode = 1;
   }
 } finally {

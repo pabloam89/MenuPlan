@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import sasl from "pg/lib/crypto/sasl";
-import { ROL_LECTURA, VAR_ADMIN, VAR_LECTURA, claveNueva, conexionDeConsulta, urlLectura, verificadorScram } from "./lib/rolLectura.mjs";
+import { OP_LECTURA, ROL_LECTURA, VAR_ADMIN, VAR_LECTURA, claveNueva, conexionDeConsulta, fichaLectura, urlLectura, verificadorScram } from "./lib/rolLectura.mjs";
 
 /**
  * Hace de servidor Postgres con el verificador y deja que el cliente SCRAM de
@@ -51,18 +51,31 @@ describe("usuario de solo lectura (0092, issue #233)", () => {
     expect(directa.username).toBe(ROL_LECTURA);
   });
 
+  it("la ficha de 1Password lleva la dirección en el campo que lee OP_LECTURA", () => {
+    const ficha = JSON.parse(fichaLectura("clave", "postgresql://u:clave@h/db"));
+    const [, boveda, titulo, campo] = /^op:\/\/([^/]+)\/([^/]+)\/(.+)$/.exec(OP_LECTURA);
+    expect(boveda).toBe("HoMenu");
+    expect(ficha.title).toBe(titulo);
+    expect(ficha.fields.find((f) => f.label === campo)).toMatchObject({ type: "CONCEALED", value: "postgresql://u:clave@h/db" });
+  });
+
   it("plan B: sin la conexión de lectura, la de administrador con aviso", () => {
     const env = (v) => (k) => v[k];
     expect(conexionDeConsulta(env({ [VAR_LECTURA]: "L", [VAR_ADMIN]: "A" }))).toEqual({ url: "L", aviso: null });
     const sin = conexionDeConsulta(env({ [VAR_ADMIN]: "A" }));
     expect(sin.url).toBe("A");
     expect(sin.aviso).toMatch(/administrador/);
-    // La dirección op:// está en .env.local pero 1Password aún no tiene el campo.
-    const rota = conexionDeConsulta((k) => {
+  });
+
+  it("configurada pero ilegible: falla, no cae al administrador (juez de seguridad)", () => {
+    // SUPABASE_DB_URL_LECTURA=op://HoMenu/Supabase/no-existe npm run consulta
+    const leidas = [];
+    const leer = (k) => {
+      leidas.push(k);
       if (k === VAR_LECTURA) throw new Error("No pude leer de 1Password");
       return "A";
-    });
-    expect(rota.url).toBe("A");
-    expect(rota.aviso).toMatch(/no pude leer/);
+    };
+    expect(() => conexionDeConsulta(leer)).toThrow(/no la puedo leer/);
+    expect(leidas).not.toContain(VAR_ADMIN);
   });
 });

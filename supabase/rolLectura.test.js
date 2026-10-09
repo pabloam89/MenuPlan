@@ -11,8 +11,11 @@ import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "migrations");
-const ROL = "consulta_lectura";
+import { OP_LECTURA, ROL_LECTURA, VAR_LECTURA } from "../scripts/lib/rolLectura.mjs";
+
+const AQUI = path.dirname(fileURLToPath(import.meta.url));
+const DIR = path.join(AQUI, "migrations");
+const ROL = ROL_LECTURA;
 
 // Atributos de rol que no puede tener (sin el prefijo `no`).
 const ATRIBUTOS = ["superuser", "createrole", "createdb", "replication", "inherit"];
@@ -93,10 +96,17 @@ describe("consulta_lectura solo lee", () => {
     const sql = fs.readFileSync(path.join(DIR, conRol[0]), "utf8");
     expect(sql).toMatch(/^alter role consulta_lectura set default_transaction_read_only = on;/m);
     expect(sql).toMatch(/^alter role consulta_lectura set statement_timeout = '\d+s';/m);
+    expect(sql).toMatch(/^alter role consulta_lectura set idle_session_timeout = '\d+s';/m);
     // El bloque de comprobación: cada «no» de la base, con su raise exception.
     for (const pieza of ["pg_auth_members", "has_table_privilege", "has_schema_privilege(r.oid, n.oid, 'CREATE')", "prosecdef", "rolreplication"]) {
       expect(sql, pieza).toContain(pieza);
     }
+  });
+
+  it("la plantilla de .env.local trae la dirección, comentada (op inject falla entero si el campo no existe)", () => {
+    const plantilla = fs.readFileSync(path.join(AQUI, "..", "ops", "env.1password"), "utf8");
+    expect(plantilla).toContain(`# ${VAR_LECTURA}=${OP_LECTURA}`);
+    expect(plantilla).not.toMatch(new RegExp(`^${VAR_LECTURA}=`, "m"));
   });
 
   it("caza lo que no debe pasar (cada caso, una cosa)", () => {
