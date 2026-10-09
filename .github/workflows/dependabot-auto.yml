@@ -1,0 +1,123 @@
+# Fusiona solos en staging los PR de Dependabot de parche o menor con `tests`
+# en verde; los de versión mayor se quedan para una sesión. Encargo #193.
+#
+# Seguridad (workflow_run corre con permisos del repo, aunque lo lance un PR):
+# - NUNCA hace checkout del PR ni ejecuta nada suyo. Saca de staging (la rama
+#   por defecto, de confianza) un solo fichero, scripts/dependabot-auto.mjs,
+#   que lee el PR por la API.
+# - Acciones fijadas por SHA; permisos mínimos y solo en cada job.
+# - Quién es el autor, de qué SHA es el check, quién ha empujado y qué
+#   ficheros toca lo comprueba el script por la API, no por el nombre de la
+#   rama (el filtro de abajo solo ahorra runs). La fusión lleva el head SHA
+#   comprobado: si el PR cambia entre medias, GitHub la rechaza.
+#
+# Dos jobs:
+# - `pasada` (sin environment ni clave): fusiona npm con el GITHUB_TOKEN (su
+#   fusión no lanza `tests` sobre staging; Vercel despliega igual, va por su
+#   app de GitHub), pide rebases y apunta el primer PR de actions fusionable.
+# - `fusionar-app`: solo si hay uno apuntado. Es el único que ve el environment
+#   dependabot-auto (solo staging) y la clave de la GitHub App
+#   homenu-dependabot-merge, con la que fusiona: el GITHUB_TOKEN no puede
+#   tocar .github/workflows. Un PR de actions que toque este workflow o uno con
+#   environment no llega aquí (lo mira una sesión).
+#
+# Por qué también `schedule`: la documentación de GitHub dice que un
+# workflow_run «puede acceder a secretos» aunque el anterior no pudiera, y
+# también que lo que dispara Dependabot solo ve los secretos de Dependabot; no
+# aclara cuál gana cuando el run de Tests era de Dependabot. Si el workflow_run
+# no ve la clave, sale `motivo: sin-clave-app` sin fallar y lo fusiona la
+# pasada programada, que no es un evento de Dependabot.
+
+name: Dependabot auto
+
+on:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+  schedule:
+    - cron: "23 */3 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  pasada:
+    if: >-
+      github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'pull_request' &&
+       github.event.workflow_run.path == '.github/workflows/tests.yml' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
+       startsWith(github.event.workflow_run.head_branch, 'dependabot/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Dentro del job: los runs que se saltan el job no cancelan la pasada que
+    # espera. Cada pasada repasa todos los PR abiertos de Dependabot, así que si
+    # se cancela una que esperaba, la siguiente hace su trabajo.
+    concurrency:
+      group: dependabot-auto
+      cancel-in-progress: false
+    permissions:
+      contents: write # fusionar los PR de npm
+      pull-requests: write # fusionar y comentar «@dependabot rebase»
+      checks: read # el check `tests` del head SHA
+    outputs:
+      app_pr: ${{ steps.pasada.outputs.app_pr }}
+      app_sha: ${{ steps.pasada.outputs.app_sha }}
+    steps:
+      - name: Sacar el script de staging (no el PR)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: staging
+          persist-credentials: false
+          sparse-checkout: scripts/dependabot-auto.mjs
+          sparse-checkout-cone-mode: false
+      - name: Fusionar npm, pedir rebases y apuntar el de actions
+        id: pasada
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/dependabot-auto.mjs --si
+
+  fusionar-app:
+    needs: pasada
+    if: needs.pasada.outputs.app_pr != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: dependabot-auto
+    concurrency:
+      group: dependabot-auto-app
+      cancel-in-progress: false
+    permissions:
+      contents: read # leer el PR y el workflow en staging
+      pull-requests: read
+      checks: read
+    env:
+      # Solo un sí o un no; el valor no sale de aquí.
+      HAY_CLAVE: ${{ secrets.DEPENDABOT_APP_KEY != '' && vars.DEPENDABOT_APP_ID != '' }}
+    steps:
+      - name: Sacar el script de staging (no el PR)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: staging
+          persist-credentials: false
+          sparse-checkout: scripts/dependabot-auto.mjs
+          sparse-checkout-cone-mode: false
+      - name: Token de la App
+        id: app
+        if: env.HAY_CLAVE == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.DEPENDABOT_APP_ID }}
+          private-key: ${{ secrets.DEPENDABOT_APP_KEY }}
+          owner: pabloam89
+          repositories: MenuPlan
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+      - name: Fusionar el de actions con la App
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+          APP_PR: ${{ needs.pasada.outputs.app_pr }}
+          APP_SHA: ${{ needs.pasada.outputs.app_sha }}
+        run: node scripts/dependabot-auto.mjs --fusionar-app "$APP_PR" --sha "$APP_SHA"

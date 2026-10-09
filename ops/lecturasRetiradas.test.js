@@ -17,7 +17,8 @@ import { ES_CODIGO, SIMBOLOS_DEPRECADAS, deprecadas, lecturasDeprecadas, lectura
  *    `/rest/v1/t`, `select("t", …)` del bot, SQL embebido, ruta del fichero),
  *    salvo los que el propio registro declara (productor/consumidores) y los
  *    de LEE_RETIRADAS_ADMITIDO, cada uno con su motivo.
- *  - Fuente `deprecado` (recetasPrototipo): solo la leen sus `consumidores`.
+ *  - Fuente retirada cuyo fichero es código (recetasPrototipo, retirada el 9 oct
+ *    2026, #286): nadie la lee, ni aunque fuera `deprecado` con sus `consumidores`.
  *    Se vigila por SÍMBOLO (SIMBOLOS_DEPRECADAS) y solo en código: un comentario,
  *    un string o un texto JSX que nombre el símbolo no cuenta.
  *
@@ -173,7 +174,8 @@ describe("lecturas de fuentes retiradas: el detector ve lo que tiene que ver", (
     for (const f of ["src/App.jsx", "api/_bot/db.js", "src/lib/planner.js", "scripts/run-seed.mjs"]) expect(CODIGO, f).toContain(f);
     expect(CODIGO.length).toBeGreaterThan(300);
     expect(retiradas(TABLAS).length).toBeGreaterThan(0);
-    expect(deprecadas(TABLAS).length).toBeGreaterThan(0);
+    // Hoy no queda ninguna deprecada; lo que se vigila por símbolo es una retirada (recetasPrototipo).
+    expect(porSimbolo(TABLAS).map((f) => f.id)).toContain("recetasPrototipo");
   });
 });
 
