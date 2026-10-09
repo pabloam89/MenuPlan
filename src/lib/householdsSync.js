@@ -114,27 +114,34 @@ export async function loadHouseholdMembers(householdId, currentUserId) {
 }
 
 /**
+ * Qué casa abre una invitación. `data` es null si la invitación no vale
+ * (caducada, revocada, no existe); si es que no se pudo preguntar, viene
+ * además `error` (#317): con un corte de red, useHousehold daba la invitación
+ * por mala y la borraba del perfil.
  * @param {string} token
- * @returns {Promise<{ householdId: string, householdName: string, role: HouseholdRole, ownerName: string|null, lang: string|null }|null>}
+ * @returns {Promise<{ data: { householdId: string, householdName: string, role: HouseholdRole, ownerName: string|null, lang: string|null }|null, error: object|null }>}
  */
 export async function previewHouseholdInvite(token) {
-  if (!supabase || !token?.trim()) return null;
+  if (!supabase || !token?.trim()) return { data: null, error: null };
   const { data, error } = await supabase.rpc("preview_household_invite", {
     p_token: token.trim(),
   });
-  if (error || !data) {
-    console.warn("[householdsSync] preview invite failed", error?.message);
-    return null;
+  if (error) {
+    console.warn("[householdsSync] preview invite failed", error.message);
+    return { data: null, error };
   }
-  const id = data.householdId ?? data.household_id;
-  const name = data.householdName ?? data.household_name;
-  if (!id || !name) return null;
+  const id = data?.householdId ?? data?.household_id;
+  const name = data?.householdName ?? data?.household_name;
+  if (!id || !name) return { data: null, error: null };
   return {
-    householdId: String(id),
-    householdName: String(name),
-    role: papelDe(data.role),
-    ownerName: data.ownerName ? String(data.ownerName) : null,
-    lang: data.lang ?? null,
+    data: {
+      householdId: String(id),
+      householdName: String(name),
+      role: papelDe(data.role),
+      ownerName: data.ownerName ? String(data.ownerName) : null,
+      lang: data.lang ?? null,
+    },
+    error: null,
   };
 }
 
@@ -412,20 +419,26 @@ export async function createHouseholdInvite(householdId, role, lang = null) {
   return { token: String(data.token), role: papelDe(data.role), expiresAt: String(data.expiresAt) };
 }
 
-/** @param {string} householdId */
+/**
+ * Las invitaciones vivas de una casa; en error, `data` null y `error` (#317).
+ * @param {string} householdId
+ */
 export async function listHouseholdInvites(householdId) {
-  if (!supabase || !householdId) return [];
+  if (!supabase || !householdId) return { data: [], error: null };
   const { data, error } = await supabase.rpc("list_household_invites", { p_household_id: householdId });
   if (error) {
     console.warn("[householdsSync] list invites failed", error.message);
-    return [];
+    return { data: null, error };
   }
-  return (Array.isArray(data) ? data : []).map((i) => ({
-    token: String(i.token),
-    role: papelDe(i.role),
-    lang: i.lang ?? null,
-    expiresAt: String(i.expiresAt),
-  }));
+  return {
+    data: (Array.isArray(data) ? data : []).map((i) => ({
+      token: String(i.token),
+      role: papelDe(i.role),
+      lang: i.lang ?? null,
+      expiresAt: String(i.expiresAt),
+    })),
+    error: null,
+  };
 }
 
 /** @param {string} token */

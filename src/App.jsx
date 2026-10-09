@@ -169,6 +169,7 @@ import { useHousehold } from "./lib/useHousehold.js";
 import { esTitular } from "./lib/householdsSync.js";
 import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
 import {
+  loadDeletedRecipeIds,
   rememberDeletedRecipeId,
   reconcileDeletedRecipeIds,
   withoutDeletedRecipes,
@@ -176,7 +177,7 @@ import {
 import {
   loadUserRecipes,
   upsertUserRecipe,
-  upsertUserRecipes,
+  subirRecetasSoloLocales,
   updateRecipeVisibility,
   deleteUserRecipe,
   loadPublicRecipe,
@@ -1460,15 +1461,21 @@ export default function App() {
       // Descartes: siempre de la casa (aquí la casa ya está cargada).
       const loadDiscards = () => loadHouseholdDiscards(householdId);
 
-      const [remoteState, remoteRecipes, remoteVotes, remoteDiscards, remoteHouseholdFavs, remoteCollections, remoteFolders] = await Promise.all([
+      // Recetas, descartes y favoritas de la casa vuelven como `{ data, error }`
+      // (#317): si una falló, se trabaja con lo local y no se sube nada
+      // comparando con una nube que no se ha podido leer.
+      const [remoteState, cargaRecetas, remoteVotes, cargaDescartes, cargaFavsCasa, remoteCollections, remoteFolders] = await Promise.all([
         loadState(),
         loadUserRecipes(householdReadOnly ? menuUserId : user.id),
         loadRecipeVotes(user.id),
         loadDiscards(),
-        householdId ? loadHouseholdFavorites(householdId) : Promise.resolve({}),
+        householdId ? loadHouseholdFavorites(householdId) : Promise.resolve({ data: {}, error: null }),
         loadRecipeCollections(user.id),
         loadRecipeFolders(user.id),
       ]);
+      const remoteRecipes = cargaRecetas.data ?? [];
+      const remoteDiscards = cargaDescartes.data ?? { forever: [], cooldownUntil: {} };
+      const remoteHouseholdFavs = cargaFavsCasa.data ?? {};
       if (cancelled) return;
       // Sin red, y con lo de memoria de otra casa: no hay nada bueno que
       // enseñar ni que subir. Se queda sin marcar como cargada (no se guarda
@@ -1480,7 +1487,9 @@ export default function App() {
         return;
       }
 
-      const deletedRecipeIds = reconcileDeletedRecipeIds(remoteRecipes);
+      // Las lápidas solo se concilian con una carga buena: con la nube sin
+      // leer no se sabe qué sigue allí.
+      const deletedRecipeIds = cargaRecetas.error ? loadDeletedRecipeIds() : reconcileDeletedRecipeIds(remoteRecipes);
 
       const mergedCollections = mergeCollections(localCollections, remoteCollections);
       const mergedFolders = mergeFolders(localFolders, remoteFolders);
@@ -1562,13 +1571,9 @@ export default function App() {
           deletedRecipeIds,
         );
 
-        // Backfill local-only rows the cloud doesn't have yet (live state, not stale snapshot).
-        const remoteIds = new Set(remoteRecipes.map((r) => r.id));
-        const localOnly = withoutDeletedRecipes(
-          localRecipesNow.filter((r) => r.id && !remoteIds.has(r.id)),
-          deletedRecipeIds,
-        );
-        if (localOnly.length) upsertUserRecipes(user.id, localOnly);
+        // Backfill local-only rows the cloud doesn't have yet (live state, not
+        // stale snapshot). Si la carga falló, no sube nada (#317).
+        subirRecetasSoloLocales({ userId: user.id, local: localRecipesNow, carga: cargaRecetas, deletedIds: deletedRecipeIds });
 
         return {
           ...(useRemote ? { ...INITIAL_DATA, ...(remoteData ?? {}) } : d),
@@ -1607,14 +1612,19 @@ export default function App() {
       // dispositivo (subirDescartesUnaVez): después manda la tabla.
       // A la tabla de la que se acaba de leer: la de la casa si hay casa. Un
       // lector no escribe en la casa ajena (RLS lo rechazaría igual).
-      if (!householdReadOnly) subirDescartesUnaVez({ userId: user.id, householdId, local: mergedDiscards, remote: remoteDiscards });
+      // Si la carga de descartes falló, ni sube ni marca (#317).
+      if (!householdReadOnly) subirDescartesUnaVez({ userId: user.id, householdId, local: mergedDiscards, carga: cargaDescartes });
 
-      const cloudSummaries = await loadMenuSummariesRemote(menuUserId, householdId);
+      const { data: cloudSummaries, error: errorMenus } = await loadMenuSummariesRemote(menuUserId, householdId);
       if (cancelled) return;
 
-      // El backfill solo en tu casa y con lo de tu casa: es lo que el 19 de
-      // agosto copió los menús de una casa ajena en la propia (C-1).
-      if (cloudSummaries.length === 0 && esMia && !soloNube) {
+      if (errorMenus) {
+        // Sin la lista de menús de la nube no se sabe si está vacía: ni se
+        // sube el blob (lo pisaría) ni se toca el archivo ni el plan de aquí
+        // (#317). Se queda lo local hasta la próxima carga.
+      } else if (cloudSummaries.length === 0 && esMia && !soloNube) {
+        // El backfill solo en tu casa y con lo de tu casa: es lo que el 19 de
+        // agosto copió los menús de una casa ajena en la propia (C-1).
         // One-time backfill: an account that never wrote to the new menú
         // tables (pre-existing user, or a device that only ever wrote to
         // user_state) has real history sitting in the JSONB blob. Only
@@ -1647,11 +1657,17 @@ export default function App() {
         // switcher (switchActiveWeek) needs it right away. Any OTHER
         // historic menú's full detail is fetched lazily, on demand, by
         // reuseMenu() only when the user actually taps "Repetir" on it.
-        const weekRanges = await loadMenuWeekRangesRemote(menuUserId, householdId);
+        const cargaRangos = await loadMenuWeekRangesRemote(menuUserId, householdId);
         if (cancelled) return;
+        const weekRanges = cargaRangos.data ?? {};
 
+        // Si los rangos fallaron, cada menú conserva las semanas que ya tenía
+        // aquí en vez de quedarse sin ninguna (#317).
         const cloudMenus = {};
-        for (const s of cloudSummaries) cloudMenus[s.id] = { ...s, weeks: weekRanges[s.id] ?? {} };
+        for (const s of cloudSummaries) {
+          const semanas = weekRanges[s.id] ?? (cargaRangos.error ? localMenus[s.id]?.weeks : null) ?? {};
+          cloudMenus[s.id] = { ...s, weeks: semanas };
+        }
 
         const nowD = new Date();
         nowD.setHours(0, 0, 0, 0);
@@ -1661,9 +1677,11 @@ export default function App() {
         const activeCloudId = menuActivoDe(cloudSummaries);
         const activeSummary = cloudSummaries.find((s) => s.id === activeCloudId) ?? null;
         let activeWeek = null;
+        let errorDetalle = null;
         if (activeSummary) {
-          const detail = await loadMenuDetailRemote(menuUserId, activeSummary.id, householdId);
+          const { data: detail, error } = await loadMenuDetailRemote(menuUserId, activeSummary.id, householdId);
           if (cancelled) return;
+          errorDetalle = error;
           if (detail) {
             cloudMenus[activeSummary.id] = { ...cloudMenus[activeSummary.id], weeks: detail.menu.weeks };
             if (detail.recipes.length) registerRecipes(detail.recipes);
@@ -1687,7 +1705,9 @@ export default function App() {
             }
           }
         }
-        if (!activeWeek && !activeMenuIdRef.current) {
+        // Con el detalle del activo sin leer (red), no se vacía nada: el
+        // guardado del perfil subiría ese plan vacío a la casa (#317).
+        if (!activeWeek && !activeMenuIdRef.current && !errorDetalle) {
           // No cloud menú marked active (activeSummary null — e.g. the user
           // deleted their active menú but kept older history), and no
           // not-yet-synced local one either (activeMenuIdRef). The live
@@ -3308,7 +3328,7 @@ export default function App() {
     // of eagerly fetching every historic menú's full JSON up front.
     const isLazy = Object.values(old.weeks ?? {}).some((w) => w && w.schedule === undefined);
     if (isLazy && user) {
-      const detail = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
+      const { data: detail } = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
       if (detail) {
         old = { ...old, weeks: detail.menu.weeks };
         if (detail.recipes.length) {
@@ -3427,7 +3447,7 @@ export default function App() {
     if (!m) return;
     const isLazy = Object.values(m.weeks ?? {}).some((w) => w && w.schedule === undefined);
     if (isLazy && user) {
-      const detail = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
+      const { data: detail } = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
       if (!detail) {
         showToast("No se pudo cargar este menú del histórico. Inténtalo de nuevo.");
         return;
