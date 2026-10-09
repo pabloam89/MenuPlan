@@ -34,8 +34,9 @@
  *   derivado          se CALCULA de otras fuentes con un operador determinista
  *                     (o es una salida que se pinta). Si se materializa, lleva
  *                     el hash de sus entradas y un test la marca caducada.
- *   copia_retirada    copia que alguna vez se leyó y ya no. No se usa para nada
- *                     nuevo; `sustituido_por` dice dónde vive ahora el dato.
+ *   copia_retirada    copia que se leyó y ya no, o que se sembró para leerse y
+ *                     nunca se leyó. No se usa para nada nuevo; `sustituido_por`
+ *                     dice dónde vive ahora el dato.
  *
  * ── Ciclo de vida con fecha ───────────────────────────────────────────────
  *   estado          vivo | deprecado | retirado (ESTADOS_FUENTE).
@@ -525,6 +526,20 @@ const DECLARADAS = [
     nota: "Solo vectoriza el Recetario (estrella:true).",
   },
   {
+    id: "fotosPlatosDerivadas",
+    rol: "derivado",
+    ruta: "src/assets/dishes/dishImageDerivatives.json",
+    ficheros: ["src/assets/dishes/dishImageDerivatives.json"],
+    clave: "recipeId",
+    actualizacion: "build",
+    procedencia: "versiones optimizadas de las fotos de los platos",
+    productor: ["scripts/backfill-dish-derivatives.mjs"],
+    consumidores: ["src/lib/dishPhotoOptimize.js"],
+    esquema: null,
+    campos: [],
+    nota: "Se lee en producción; se regenera desde fotosPlatos.",
+  },
+  {
     id: "catalogoGaleria",
     rol: "derivado",
     estado: "vivo",
@@ -597,7 +612,7 @@ const DECLARADAS = [
     rol: "copia_retirada",
     estado: "retirado",
     retirar_el: "2026-09-30",
-    sustituido_por: "recetas",
+    sustituido_por: null,
     ruta: "supabase/seed_*.sql",
     ficheros: ["supabase/seed_*.sql"],
     clave: "id",
@@ -607,7 +622,7 @@ const DECLARADAS = [
     consumidores: [],
     esquema: "supabase/migrations/0001_recipe_catalog.sql",
     campos: [],
-    nota: "Sin lectores desde la 0064: no se vuelve a ejecutar. Sus restos están registrados aparte (copiaRecetasSupabase… y recipeRow).",
+    nota: "Sin sustituto único: los seeds sembraban recetas, ingredientes, fotos y sustituciones, y cada tabla copia dice el suyo. Sin lectores desde la 0064: no se vuelve a ejecutar. Sus restos están registrados aparte (copiaRecetasSupabase… y recipeRow).",
   },
   {
     id: "recipeRow",
@@ -664,7 +679,7 @@ const DECLARADAS = [
     id: "copiaIngredientesSupabase",
     rol: "copia_retirada",
     estado: "retirado",
-    retirar_el: "2026-09-30",
+    retirar_el: "2026-09-01",
     sustituido_por: "ingredientes",
     ruta: "supabase: ingredients, ingredient_aliases",
     tablas: ["ingredients", "ingredient_aliases"],
@@ -675,13 +690,13 @@ const DECLARADAS = [
     consumidores: [],
     esquema: "supabase/migrations/0029_ingredients.sql",
     campos: [],
-    nota: "Sin lector en src/ ni api/. La 0064 la dejó sin marcar creyendo que la despensa apuntaba a ella: es un error. user_pantry.ingredient_id (0041) es text SIN references y guarda ids de ingredients.json, no de esta tabla.",
+    nota: "Nunca tuvo lector (nació con c6767be, 1 sep 2026). La 0064 la dejó sin marcar creyendo que la despensa apuntaba a ella: es un error. user_pantry.ingredient_id (0041) es text SIN references y guarda ids de ingredients.json, no de esta tabla.",
   },
   {
     id: "copiaSustitucionesSupabase",
     rol: "copia_retirada",
     estado: "retirado",
-    retirar_el: "2026-09-30",
+    retirar_el: "2026-09-01",
     sustituido_por: "sustituciones",
     ruta: "supabase: ingredient_substitutions y la vista recipe_substitution_options",
     tablas: ["ingredient_substitutions"],
@@ -693,13 +708,13 @@ const DECLARADAS = [
     consumidores: [],
     esquema: "supabase/migrations/0031_ingredient_substitutions.sql",
     campos: [],
-    nota: "La app lee src/data/ingredientSubstitutions.json.",
+    nota: "Nunca tuvo lector (1 sep 2026). La app lee src/data/ingredientSubstitutions.json.",
   },
   {
     id: "copiaAlergenosSupabase",
     rol: "copia_retirada",
     estado: "retirado",
-    retirar_el: "2026-09-30",
+    retirar_el: "2026-09-01",
     sustituido_por: "recetas",
     ruta: "supabase: vista recipe_derived_allergens",
     vistas: ["recipe_derived_allergens"],
@@ -710,7 +725,7 @@ const DECLARADAS = [
     consumidores: [],
     esquema: "supabase/migrations/0030_recipe_ingredients.sql",
     campos: [],
-    nota: "Los alérgenos se calculan hoy al cargar el catálogo (recipeCatalog.js), no en un script de derivados.",
+    nota: "Nunca tuvo lector (1 sep 2026). Los alérgenos se calculan hoy al cargar el catálogo (recipeCatalog.js), no en un script de derivados.",
   },
   {
     id: "recetasPrototipo",
@@ -724,10 +739,10 @@ const DECLARADAS = [
     actualizacion: "release",
     procedencia: "BASE_RECIPES: las recetas semilla del prototipo, escritas a mano dentro del código",
     productor: [],
-    consumidores: ["src/data/recipes.js (RECIPES)"],
+    consumidores: ["src/data/recipes.js (RECIPES)", "src/lib/planner.js (generateMenu, que nadie importa)"],
     esquema: null,
     campos: [],
-    nota: "Sin sustituto: se borra el array BASE_RECIPES; ninguno de sus ids está en el JSON. NO se borra el registro RECIPES_BY_ID, que llena registerRecipes (App.jsx) con recetas de usuario o de IA y leen App.jsx, consumptionInsights.js, menuExport.js y menuInsights.js. recipes.js también exporta INGREDIENT_CATEGORIES (lo importan ingredientSchema.js e ingredientCategories.js).",
+    nota: "Sin sustituto: se borra el array BASE_RECIPES; ninguno de sus ids está en el JSON. NO se borra el registro RECIPES_BY_ID, que llena registerRecipes (App.jsx) con recetas de usuario o de IA y leen App.jsx, consumptionInsights.js, menuExport.js y menuInsights.js. src/lib/planner.js importa RECIPES (generateMenu, líneas 371-406; nadie lo llama): se borra con el array. recipes.js también exporta INGREDIENT_CATEGORIES (lo importan ingredientSchema.js e ingredientCategories.js).",
   },
   {
     id: "menu",
@@ -736,6 +751,7 @@ const DECLARADAS = [
     clave: "grupo × dia × comida",
     actualizacion: "runtime",
     procedencia: "resolverMenu (solver) o planner LLM, validado por validateMenu",
+    nota: "Salida: la persona lo edita y se guarda en user_menus; no se regenera, por eso el rol «derivado» es solo el más cercano.",
     productor: ["src/lib/solver.js", "src/lib/aiPlanner.js", "src/utils/validateMenu.js"],
     consumidores: ["src/screens/Menu.jsx", "src/lib/shoppingBuilder.js"],
     esquema: null,
@@ -748,6 +764,7 @@ const DECLARADAS = [
     clave: "ingrediente × unidad",
     actualizacion: "runtime",
     procedencia: "agrega líneas escaladas; ud→g solo si el ingrediente aparece en las dos unidades",
+    nota: "Salida calculada en memoria cada vez; no se guarda como tabla propia.",
     productor: ["src/lib/shoppingBuilder.js"],
     consumidores: ["src/screens/Shopping.jsx"],
     esquema: null,

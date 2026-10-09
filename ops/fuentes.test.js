@@ -126,10 +126,10 @@ describe("fuentes: lo que cita existe y nada queda sin registrar", () => {
 
   /** Un JSON de datos sin fuente solo se admite aquí, con su motivo. Hoy ninguno. */
   const SIN_FUENTE = {};
-  it("todo JSON de src/data, src/data/derived, src/data/recipes y public/store pertenece a una fuente registrada", () => {
+  it("todo JSON de src/data, derived, recipes, src/assets/dishes, api/_bot y public/store pertenece a una fuente registrada", () => {
     const registrados = new Set(TABLAS.flatMap((f) => f.ficheros.flatMap(expandir)));
     const sueltos = [];
-    for (const d of ["src/data", "src/data/derived", "src/data/recipes", "public/store"]) {
+    for (const d of ["src/data", "src/data/derived", "src/data/recipes", "src/assets/dishes", "api/_bot", "public/store"]) {
       for (const e of readdirSync(join(RAIZ, d), { withFileTypes: true })) {
         const ruta = `${d}/${e.name}`;
         if (e.isFile() && e.name.endsWith(".json") && !registrados.has(ruta) && !SIN_FUENTE[ruta]) sueltos.push(ruta);

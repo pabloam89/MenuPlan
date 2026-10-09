@@ -26,13 +26,13 @@ registro) y la vigila `ops/fuentes.test.js`.
 
 | Rol de una fuente | Qué es |
 |---|---|
-| `ingesta` | Entra en bruto, de fuera (Mercadona, BEDCA, scripts de alta). Alimenta a la fuente de verdad. |
-| `fuente_de_verdad` | Lo único que se edita. Un dato vive aquí y en ningún otro sitio. |
-| `derivado` | Se regenera con un script; no se toca a mano. |
-| `copia_retirada` | Copia que ya no se lee (las tablas `recipes`… de Supabase). No se usa para nada nuevo. |
+| `ingesta` | Viene de fuera (BEDCA, CIQUAL, USDA, Mercadona) por un pipeline con revisión. Nunca se estima a mano. |
+| `fuente_de_verdad` | Se edita (a mano o por script) y se commitea. Un dato vive aquí y en ningún otro sitio. |
+| `derivado` | Se calcula de otras fuentes con un script o un operador; no se toca a mano. |
+| `copia_retirada` | Copia que se leyó y ya no, o que se sembró para leerse y nunca se leyó (las tablas `recipes`… de Supabase). No se usa para nada nuevo. |
 
-Estado: `vivo`, `deprecado` (con `retirar_el`: pasada la fecha, el test se pone
-rojo) o `retirado`.
+Estado: `vivo`, `deprecado` (con `retirar_el`: pasada la fecha, avisa y lo
+cuenta `fuentesVencidas`; el aviso lo enseñará el panel, #253) o `retirado`.
 
 Recetas: el **Recetario** son las recetas con `estrella:true` (las únicas que
 Lola y el motor proponen); la **Reserva**, todas las demás (sin bandera o

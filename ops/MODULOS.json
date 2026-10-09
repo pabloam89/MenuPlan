@@ -549,7 +549,7 @@
           "nombre": "Alimentos e ingredientes",
           "hace": "Los alimentos con su nutrición, densidades, fotos, equivalencias y sustituciones; base de la despensa, la compra y la nutrición.",
           "grado": "usable",
-          "motivo_grado": "Datos y tests sólidos (BEDCA, Ciqual, USDA); la tabla `ingredients` sigue viva solo porque la despensa apunta a ella.",
+          "motivo_grado": "Datos y tests sólidos (BEDCA, Ciqual, USDA); la tabla `ingredients` es copia retirada (ver `copiaIngredientesSupabase` en src/data/model.js).",
           "ficheros": [
             "src/data/alimentos.json",
             "src/data/ingredients.json",

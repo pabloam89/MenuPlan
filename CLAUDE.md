@@ -137,15 +137,10 @@ no antes.
 
 ## Vocabulario del catálogo
 
-Nombres fijos; "antiguo" y "nuevo" no se usan para esto (#249). Definiciones
-en `specs/INDEX.md`; cada fuente, con su estado y fecha, en `src/data/model.js`
-(`TABLAS`, vigilado por `ops/fuentes.test.js`).
-
-- **Roles**: `ingesta` (entra en bruto), `fuente_de_verdad` (lo único que se
-  edita), `derivado` (se regenera, no se toca), `copia_retirada` (ya no se lee).
-- **Recetario**: recetas con `estrella:true`. **Reserva**: el resto.
-- Recetas, ingredientes y alimentos viven en JSON de `src/data/`; las tablas
-  `recipes`, `ingredients`… de Supabase son `copia_retirada`.
+"Antiguo" y "nuevo" no se usan para el catálogo (#249). Los roles de una fuente
+(`ingesta`, `fuente_de_verdad`, `derivado`, `copia_retirada`), **Recetario** y
+**Reserva** se definen una vez, en `specs/INDEX.md`. Cada fuente, con su estado
+y su fecha, está en `src/data/model.js` (`TABLAS`, vigilado por `ops/fuentes.test.js`).
 
 ## Código
 
