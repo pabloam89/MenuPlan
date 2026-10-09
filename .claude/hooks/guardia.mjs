@@ -445,8 +445,28 @@ export function decidir(entrada, ctx) {
         continue;
       }
 
-      // gh pr merge: solo a staging (lo permite settings.local.json de Pablo).
-      const merge = o.match(/^gh\s+pr\s+merge\b\s*(\d+)?/);
+      // gh -R/--repo … pr merge: la base no se puede leer de la rama actual.
+      if (/^gh\s+(?:-R|--repo)\b[\s\S]*\bpr\s+merge\b/.test(o)) {
+        return deny("`gh -R … pr merge` no deja comprobar la base del PR. Fusiona desde la carpeta del repo, con el número del PR.");
+      }
+      // gh pr edit --base: cambiar la base de un PR a algo que no es staging lo
+      // lleva a producción al fusionarlo (juez de seguridad del PR #223).
+      const nuevaBase = /^gh\s+pr\s+edit\b/.test(o) ? o.match(/(?:--base|-B)(?:\s+|=)["']?([^\s"']+)/) : null;
+      if (nuevaBase && nuevaBase[1] !== "staging") {
+        return deny(`Cambiar la base de un PR a ${nuevaBase[1]} lo llevaría fuera de staging. Eso solo lo hace Pablo.`);
+      }
+      // Borrar issues o etiquetas no tiene vuelta atrás.
+      if (/^gh\s+(?:issue\s+(?:delete|transfer)|label\s+delete)\b/.test(o)) {
+        return deny("Borrar o trasladar un issue, o borrar una etiqueta, no tiene vuelta atrás. Ciérralo o retírala con `npm run issues -- --etiquetas`.");
+      }
+      // gh pr merge: solo a staging. El número (o la URL) puede ir en cualquier
+      // sitio de la orden: `gh pr merge --squash 230` también cuenta.
+      const merge = /^gh\s+pr\s+merge\b/.test(o)
+        ? [o, (o.match(/\/pull\/(\d+)/) ?? o.match(/(?:^|\s)(\d+)(?=\s|$)/))?.[1]]
+        : null;
+      if (merge && /(?:^|\s)--auto\b/.test(o)) {
+        return deny("`gh pr merge --auto` fusiona más tarde, cuando nadie mira la base. Fusiona a mano con el CI en verde.");
+      }
       if (merge) {
         const base = ctx.baseDelPr(merge[1]);
         if (base === null) return ask("No he podido leer la rama base de este PR. Si no es staging, solo Pablo lo fusiona.");
@@ -489,11 +509,12 @@ export function decidir(entrada, ctx) {
       if (motivo) return deny(motivo);
     }
     if (ctx.rutaEnPrincipal(ruta)) return deny(EN_LA_PRINCIPAL);
-    // Solo los permisos: ampliarlos es lo único de aquí que Pablo quiere decidir
-    // (CLAUDE.md, «Qué se le pregunta a Pablo», 8 oct 2026). Los hooks se
-    // cambian por PR con juez y CI, y no tienen efecto hasta fusionarlos.
-    if (/[\\/]\.claude[\\/]settings\.json$/.test(ruta)) {
-      return ask("Esto cambia los permisos compartidos de todas las sesiones. Ampliarlos es de Pablo: pídele el OK.");
+    // Los permisos y el código que vigila cada orden (la guardia y lo que
+    // importa, y skill-abierta) preguntan: en una carpeta de trabajo hacen
+    // efecto en la orden siguiente, sin PR ni juez (juez de seguridad del PR
+    // #223). El resto de hooks y sus tests van por PR sin preguntar.
+    if (/[\\/]\.claude[\\/](?:settings\.json|hooks[\\/](?:guardia|dominios|migraciones|sesiones|skill-abierta)\.mjs)$/.test(ruta)) {
+      return ask("Esto cambia los permisos o el código que vigila cada orden, y en tu carpeta hace efecto ya. Pídele el OK a Pablo.");
     }
     return null;
   }
