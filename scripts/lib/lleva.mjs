@@ -35,6 +35,15 @@ import { raices } from "./issues.mjs";
  */
 export const HORAS_PARADA = 4;
 
+/**
+ * Días a partir de los cuales una marca cuya rama ya no se ve (ni carpeta ni
+ * GitHub) deja de contar como «lo lleva»: la carpeta la retiró el hook
+ * limpiar-worktrees y no `retirar`. Medido el 9 oct 2026 sobre 164 PR
+ * fusionados en 30 días: del primer commit al merge, mediana 0 días, percentil
+ * 95 en 0,3 y máximo 12,3. A 3 días caben todos menos las excepciones.
+ */
+export const DIAS_MARCA_ANTIGUA = 3;
+
 /** Ramas que no son de nadie: no se cruzan con encargos ni cuentan como «sin número». */
 const AJENAS = /^(main|staging|HEAD)$|^(dependabot|pr|rescate)\/|^ccr-/;
 
@@ -193,11 +202,24 @@ export function cruce(issues, ramas, ahora = new Date(), horasParada = HORAS_PAR
   for (const i of abiertos.values()) {
     for (const m of i.marcas ?? []) {
       const vista = ramas.find((r) => r.rama === m.rama);
+      // Una marca vieja sin rama es un resto, no «lo lleva» ni «parada» (ver marcasHuerfanas).
+      if (!vista && horasDesde(m.desde, ahora) > DIAS_MARCA_ANTIGUA * 24) continue;
       const horas = vista ? horasDesde(vista.ultimo, ahora) : horasDesde(m.desde, ahora);
       poner(i.number, { rama: m.rama, carpeta: m.carpeta, horas, parada: horas != null && horas > horasParada, marcada: true, vista: Boolean(vista) });
     }
   }
   return [...out.entries()].map(([number, lista]) => ({ number, ramas: lista })).sort((a, b) => a.number - b.number);
+}
+
+/**
+ * Marcas de issues (abiertos o cerrados) cuya rama no se ve y que tienen más de
+ * DIAS_MARCA_ANTIGUA días: [{ issue, rama, carpeta, dias }]. Solo se listan;
+ * borrar un comentario de un issue es de quien lo pida.
+ */
+export function marcasHuerfanas(issues, ramas, ahora = new Date()) {
+  return issues.flatMap((i) => (i.marcas ?? [])
+    .filter((m) => !ramas.some((r) => r.rama === m.rama) && horasDesde(m.desde, ahora) > DIAS_MARCA_ANTIGUA * 24)
+    .map((m) => ({ issue: i.number, rama: m.rama, carpeta: m.carpeta, dias: Math.floor(horasDesde(m.desde, ahora) / 24) })));
 }
 
 /** Ramas de trabajo sin número de issue: la excepción que tiene que verse. */

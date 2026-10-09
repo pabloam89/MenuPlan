@@ -20,6 +20,8 @@
  *                                           guardia niega `gh issue create`
  *   npm run issues -- --ordenar             etiquetas y padre que se deducen
  *                                           de lo rellenado en un formulario
+ *   npm run issues -- --marcas-huerfanas    lista (sin borrar) las marcas «lo lleva»
+ *                                           de ramas que ya no existen
  *   npm run issues -- --arranque            las líneas cortas del arranque
  *
  * Cada encargo enseña quién lo lleva (rama, carpeta y antigüedad del último
@@ -40,7 +42,7 @@ import {
   CONSULTA, GRUPOS, PABLO, avisoDeArranque, etiquetas, etiquetasSobrantes,
   debeReabrir, etiquetasQueFaltan, fondoDeFormulario, leerIssue, parecidos, porGrupo, resumen,
 } from "./lib/issues.mjs";
-import { cruce, leerInventario, leerMarcas, lineaParecida, lineasDeLleva, parecidosEnGit, sinNumero, textoDeRama } from "./lib/lleva.mjs";
+import { cruce, leerInventario, marcasHuerfanas, leerMarcas, lineaParecida, lineasDeLleva, parecidosEnGit, sinNumero, textoDeRama } from "./lib/lleva.mjs";
 
 const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
 const motivo = (e) => String(e.stderr ?? e.message).trim().split("\n")[0];
@@ -215,6 +217,11 @@ if (args.includes("--etiquetas")) {
     }
   }
   console.log(n ? `${n} cambios.` : "Nada que ordenar.");
+} else if (args.includes("--marcas-huerfanas")) {
+  // Solo lista: borrar comentarios de un issue es de quien lo pida (`gh api -X DELETE …/issues/comments/<id>`).
+  const huerfanas = marcasHuerfanas(todos(), ramasVivas());
+  for (const m of huerfanas) console.log(`  #${m.issue}  ${m.rama} (${m.carpeta}), marca de hace ${m.dias} días y sin rama`);
+  console.log(huerfanas.length ? `${huerfanas.length} marcas huérfanas: son comentarios «Lo lleva» de issues; no se ha borrado nada.` : "Ninguna marca huérfana.");
 } else if (args.includes("--arranque")) {
   const issues = todos();
   for (const l of avisoDeArranque(issues)) console.log(l);

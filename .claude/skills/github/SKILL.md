@@ -165,7 +165,7 @@ npm run issues -- --etiquetas               # crear o retirar etiquetas en GitHu
 - **Quién lleva qué** (#271, `scripts/lib/lleva.mjs`): `tarea <rama> <n>` comenta
   en el issue `<!-- menuplan:lleva rama=… -->` (uno por rama) y `retirar` lo borra;
   `npm run issues` y el arranque cruzan encargo → rama → último commit
-  («posiblemente parada» a las 4 h) y enseñan las ramas sin número.
+  («parada» a las 4 h), las ramas sin número y `--marcas-huerfanas` (lista, no borra).
 - **Pablo ve sus decisiones** porque se le asignan (correo y app de GitHub):
   `github.com/pabloam89/MenuPlan/issues?q=is:open+label:tipo:decision`.
 - **Avisos que llegan solos:** al editar un fichero, el hook `avisos.mjs`

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  HORAS_PARADA, cruce, desmarcar, inventario, leerMarcas, leerWorktrees, lineasDeLleva, marcar, numeroDeRama, parecidosEnGit, sinNumero, textoDeRama,
+  DIAS_MARCA_ANTIGUA, HORAS_PARADA, cruce, marcasHuerfanas, desmarcar, inventario, leerMarcas, leerWorktrees, lineasDeLleva, marcar, numeroDeRama, parecidosEnGit, sinNumero, textoDeRama,
 } from "./lib/lleva.mjs";
 
 const AHORA = new Date("2026-10-09T08:00:00Z");
@@ -218,5 +218,27 @@ describe("lleva: sin número de issue, la tarea lo dice claro", () => {
     expect(texto).toMatch(/git worktree list/);
     expect(texto).toMatch(/git branch -r/);
     expect(texto).toMatch(/npm run tarea -- <area>\/<nombre> <n>/);
+  });
+});
+
+describe("lleva: marcas viejas sin rama (la carpeta la retiró el hook, no retirar)", () => {
+  const issue = (marcas) => ({ number: 9, state: "OPEN", labels: [], marcas });
+  const vieja = { rama: "ops/9-x", carpeta: "MenuPlan-x", desde: hace(DIAS_MARCA_ANTIGUA * 24 + 5) };
+
+  it("no cuenta como «lo lleva» ni como parada, y se lista como huérfana", () => {
+    expect(cruce([issue([vieja])], [], AHORA)).toEqual([]);
+    expect(marcasHuerfanas([issue([vieja])], [], AHORA)).toEqual([{ issue: 9, rama: "ops/9-x", carpeta: "MenuPlan-x", dias: 3 }]);
+  });
+
+  it("una marca reciente sin rama sigue contando (carpeta de otro PC)", () => {
+    const reciente = { ...vieja, desde: hace(5) };
+    expect(cruce([issue([reciente])], [], AHORA)[0].ramas[0].marcada).toBe(true);
+    expect(marcasHuerfanas([issue([reciente])], [], AHORA)).toEqual([]);
+  });
+
+  it("una marca vieja con su rama viva no es huérfana", () => {
+    const ramas = [{ rama: "ops/9-x", carpeta: "MenuPlan-x", ultimo: hace(1), numero: 9 }];
+    expect(marcasHuerfanas([issue([vieja])], ramas, AHORA)).toEqual([]);
+    expect(cruce([issue([vieja])], ramas, AHORA)[0].ramas[0].parada).toBe(false);
   });
 });
