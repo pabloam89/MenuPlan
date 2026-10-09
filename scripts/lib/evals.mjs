@@ -45,7 +45,7 @@ export function erroresDeCasos(casos) {
     if (!ORIGENES_CASO.includes(c.origen)) errores.push(`${quien}: origen ${JSON.stringify(c.origen)} fuera de lista`);
     if (c.nucleo !== undefined && c.nucleo !== true) errores.push(`${quien}: nucleo solo puede ser true o no estar`);
     if (c.dependeDeFecha !== undefined && c.dependeDeFecha !== true) errores.push(`${quien}: dependeDeFecha solo puede ser true o no estar`);
-    else if (!c.dependeDeFecha && mencionaFecha(c)) errores.push(`${quien}: habla de días o fechas y le falta "dependeDeFecha": true`);
+    else if (!c.dependeDeFecha && dependeDelDia(c)) errores.push(`${quien}: habla de días o fechas y le falta "dependeDeFecha": true`);
   });
   return errores;
 }
@@ -266,12 +266,23 @@ export const CAMPOS_DE_ETIQUETA = ["id", "nombre", "tipo", "dominio", "origen", 
 // y su resultado guardado solo vale el mismo día (en Madrid).
 
 /** Palabras que atan un caso al día en que corre (sobre el texto sin tildes ni mayúsculas). */
-export const MENCIONA_FECHA = /\b(hoy|manana|ayer|pasado|lunes|martes|miercoles|jueves|viernes|sabado|domingo|finde|fin de semana|semana|esta noche|esta tarde|fecha)\b/;
+export const MENCIONA_FECHA = /\b(hoy|manana|ayer|pasado|ahora|lunes|martes|miercoles|jueves|viernes|sabado|domingo|finde|fin de semana|semana|este mes|cada dia|esta noche|esta tarde|fecha|hasta el \d+)\b/;
+
+/**
+ * Herramientas que trabajan sobre días del menú: un caso que ESPERA una de
+ * ellas (llama, llamaAlguna o args) depende del día de la ficha aunque no lo
+ * nombre. Prohibirlas (noLlama) no ata al día.
+ */
+export const HERRAMIENTAS_DEL_DIA = ["generar_menu", "cambiar_plato", "proponer_platos", "ver_menu", "fuera_de_casa"];
+const esperaHerramientaDelDia = (caso) => [...(caso.llama ?? []), ...(caso.llamaAlguna ?? []), ...Object.keys(caso.args ?? {})].some((n) => HERRAMIENTAS_DEL_DIA.includes(n));
 /** Dónde se mira: lo que se dice y lo que se comprueba (no las respuestas de mentira, que son fijas). */
 export const CAMPOS_CON_FECHA = ["entrada", "historia", "args", "noLlamaCon", "texto", "sinTexto", "pendientes", "tareas", "pista"];
 
 const sinTildes = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 export const mencionaFecha = (caso) => MENCIONA_FECHA.test(sinTildes(JSON.stringify(CAMPOS_CON_FECHA.map((k) => caso[k] ?? ""))));
+
+/** La regla de `dependeDeFecha`: lo dice, o espera una herramienta del menú. */
+export const dependeDelDia = (caso) => mencionaFecha(caso) || esperaHerramientaDelDia(caso);
 
 export function casoHash(caso) {
   const medido = Object.fromEntries(Object.entries(caso).filter(([k]) => !CAMPOS_DE_ETIQUETA.includes(k)));
@@ -403,8 +414,9 @@ export const CAMPOS_FILA = [
 
 /**
  * La pasada con la que comparar: la pedida (--referencia=ID), o si no la
- * última del mismo modelo con OTRA versión (prompt_hash o codigo_hash
- * distintos: el «antes» del cambio). null si no hay.
+ * última del mismo nivel y modelo con OTRA versión (prompt_hash o codigo_hash
+ * distintos: el «antes» del cambio) que no paró el tope (una cortada no dice
+ * nada de los casos que no corrió). null si no hay.
  */
 export function elegirReferencia(pasadas, { pedida = null, actual }) {
   if (pedida) {
@@ -413,18 +425,27 @@ export function elegirReferencia(pasadas, { pedida = null, actual }) {
     return p;
   }
   const otras = pasadas.filter((x) => x.modelo === actual.modelo && x.esfuerzo === actual.esfuerzo
+    && x.nivel === actual.nivel && !x.parado_por_tope
     && (x.prompt_hash !== actual.prompt_hash || x.codigo_hash !== actual.codigo_hash));
   return otras.at(-1) ?? null;
 }
 
-/** { regresiones, mejoras } por caso_id entre dos mapas { caso_id: estado }. Solo los casos que están en los dos. */
+const MEDIDOS = ["aprobado", "inestable", "fallido"];
+
+/**
+ * { regresiones, mejoras, faltan } por caso_id entre dos mapas { caso_id: estado }.
+ * `faltan`: los casos de ahora que la referencia no midió (no estaban, o sin
+ * correr o incompletos): de esos no se puede decir si empeoraron.
+ */
 export function compararEstados(referencia, actual) {
   const regresiones = [];
   const mejoras = [];
+  const faltan = [];
   for (const [id, ahora] of Object.entries(actual)) {
     const antes = referencia[id];
+    if (!MEDIDOS.includes(antes)) faltan.push(id);
     if (antes === "aprobado" && (ahora === "inestable" || ahora === "fallido")) regresiones.push({ caso_id: id, antes, ahora });
     if ((antes === "inestable" || antes === "fallido") && ahora === "aprobado") mejoras.push({ caso_id: id, antes, ahora });
   }
-  return { regresiones, mejoras };
+  return { regresiones, mejoras, faltan };
 }

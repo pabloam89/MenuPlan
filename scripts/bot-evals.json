@@ -286,6 +286,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "tanda: dejarlo",
       "entrada": "ya no cocino en tanda, cada día cocino lo del día",
       "llama": [
@@ -412,6 +413,7 @@
       "tipo": "herramienta",
       "dominio": "ficha",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "matiz: norma clara con fecha de fin",
       "entrada": "este mes estoy a dieta: nada de fritos hasta el 31",
       "llama": [
@@ -1159,6 +1161,7 @@
       "tipo": "multiturno",
       "dominio": "alta",
       "origen": "conversacion_real",
+      "dependeDeFecha": true,
       "nombre": "tester: Manuel «como los demás» → dice que de momento no puede, sin fingir que lo apunta",
       "ficha": {
         "estable": "SEGURIDAD\n- Manu, Marina, Carmen, Manuel: ninguna.\n- Manuel (2): come purés.\nCASA\n- Manu 38 · Marina 36 · Carmen 4 · Manuel 2.\n- Grupos: «Familia» (Manu, Marina), «Niños» (Carmen) y «Bebé» (Manuel).\nCOCINA\n- Comida y cena: plato único.",
@@ -1199,6 +1202,7 @@
       "tipo": "herramienta",
       "dominio": "ficha",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "ajuste de la semana en curso: lo apunta y ofrece rehacer, sin regenerar",
       "entrada": "a partir de ahora nada de coliflor",
       "llama": [

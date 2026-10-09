@@ -310,7 +310,7 @@ const suma = { entrada: 0, salida: 0, cache_leida: 0, cache_escrita: 0, vueltas:
 // La referencia se elige ANTES de gastar: una --referencia que no existe no corre nada.
 let referencia = null;
 try {
-  referencia = elegirReferencia(leerJsonl(PASADAS), { pedida: REFERENCIA, actual: { modelo: MEDIDO, esfuerzo: ESFUERZO, prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH } });
+  referencia = elegirReferencia(leerJsonl(PASADAS), { pedida: REFERENCIA, actual: { nivel: NIVEL, modelo: MEDIDO, esfuerzo: ESFUERZO, prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH } });
 } catch (e) {
   console.error(e.message);
   process.exit(SALIDA.entrada);
@@ -387,11 +387,12 @@ const resumen = {
 };
 let regresiones = [];
 if (!referencia) {
-  console.log("Sin referencia: no hay pasada guardada de otra versión con este modelo; los inestables no se pueden juzgar como regresión.");
+  console.log("Sin referencia: no hay pasada entera guardada de otra versión con este nivel y modelo; los inestables no se pueden juzgar como regresión.");
 } else {
   const c = compararEstados(referencia.estados ?? {}, porCaso);
   regresiones = c.regresiones;
   console.log(`Referencia ${referencia.pasada_id} (prompt ${referencia.prompt_hash} · código ${referencia.codigo_hash} · ${referencia.git_sha ?? "sin sha"}): ${regresiones.length} regresiones, ${c.mejoras.length} mejoras`);
+  if (c.faltan.length) console.log(`    La referencia no cubre ${c.faltan.length} de ${Object.keys(porCaso).length} casos: de esos no se sabe si empeoraron.`);
   for (const x of regresiones) console.log(`    REGRESIÓN ${x.caso_id}: ${x.antes} → ${x.ahora}`);
   for (const x of c.mejoras) console.log(`    mejora ${x.caso_id}: ${x.antes} → ${x.ahora}`);
 }

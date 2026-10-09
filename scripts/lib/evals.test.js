@@ -53,6 +53,16 @@ describe("erroresDeCasos: una cosa mal, un error", () => {
   it("dependeDeFecha que no es true", () => expect(errores({ dependeDeFecha: "si" })).toEqual([expect.stringMatching(/dependeDeFecha solo/)]));
   it("habla de un día sin dependeDeFecha", () => expect(errores({ entrada: "¿qué cenamos el jueves?" })).toEqual([expect.stringMatching(/le falta "dependeDeFecha"/)]));
   it("habla de un día y lo lleva: bien", () => expect(errores({ entrada: "¿qué cenamos mañana?", dependeDeFecha: true })).toEqual([]));
+  it("«ahora», «este mes», «cada día» y «hasta el 31» también atan al día", () => {
+    for (const entrada of ["a partir de ahora nada de coliflor", "este mes estoy a dieta", "cada día cocino lo del día", "nada de fritos hasta el 31"]) {
+      expect(errores({ entrada }), entrada).toEqual([expect.stringMatching(/le falta "dependeDeFecha"/)]);
+    }
+  });
+  it("espera una herramienta del menú (que lee el día de la ficha) aunque no nombre el día", () => {
+    expect(errores({ entrada: "otra cosa, porfa", llama: ["proponer_platos"] })).toEqual([expect.stringMatching(/le falta "dependeDeFecha"/)]);
+    expect(errores({ entrada: "otra cosa, porfa", args: { cambiar_plato: { receta: "x" } } })).toEqual([expect.stringMatching(/le falta "dependeDeFecha"/)]);
+    expect(errores({ entrada: "otra cosa, porfa", noLlama: ["generar_menu"] })).toEqual([]);
+  });
 });
 
 describe("vocabularios", () => {
@@ -247,6 +257,21 @@ describe("referencia: lo que pasaba y ahora no, es regresión", () => {
     );
     expect(regresiones.map((r) => r.caso_id)).toEqual(["a", "b"]);
     expect(mejoras.map((r) => r.caso_id)).toEqual(["c"]);
+  });
+  it("dice cuántos casos no cubre la referencia", () => {
+    const { faltan } = compararEstados({ a: "aprobado", b: "sin_correr" }, { a: "aprobado", b: "aprobado", c: "fallido" });
+    expect(faltan).toEqual(["b", "c"]);
+  });
+  it("solo vale una referencia del mismo nivel y que no paró el tope", () => {
+    const actual = { modelo: "m", esfuerzo: "e", prompt_hash: "p2", codigo_hash: "k", nivel: "pr" };
+    const otra = { modelo: "m", esfuerzo: "e", prompt_hash: "p1", codigo_hash: "k" };
+    const pasadas = [
+      { ...otra, pasada_id: "buena", nivel: "pr", parado_por_tope: false },
+      { ...otra, pasada_id: "otro-nivel", nivel: "completo", parado_por_tope: false },
+      { ...otra, pasada_id: "cortada", nivel: "pr", parado_por_tope: true },
+    ];
+    expect(elegirReferencia(pasadas, { actual }).pasada_id).toBe("buena");
+    expect(elegirReferencia(pasadas.slice(1), { actual })).toBe(null);
   });
   it("sin pedirla, la última del mismo modelo con otra versión; si no hay, null", () => {
     const actual = { modelo: "m", esfuerzo: "e", prompt_hash: "p2", codigo_hash: "k" };
