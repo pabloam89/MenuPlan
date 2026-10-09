@@ -119,7 +119,7 @@ function cifraDeFondo(cifra, ctx) {
  * un fondo cerrado como «no se hará» o duplicado no es un arreglo sin test).
  * Se añade aquí para no tocar issues.mjs, que cambia otra rama a la vez.
  */
-const CONSULTA_CON_MOTIVO = CONSULTA.replace("id number title state ", "id number title state stateReason ");
+export const CONSULTA_CON_MOTIVO = CONSULTA.replace("id number title state ", "id number title state stateReason ");
 
 /** Todos los issues con padre e hijos, por GraphQL (la consulta de scripts/lib/issues.mjs). */
 export function leerIssuesGh() {

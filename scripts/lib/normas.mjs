@@ -270,14 +270,19 @@ export function totalFrases(medida) {
 /**
  * Las líneas añadidas de un diff unificado (`git diff -U0`), en los ficheros
  * vigilados: [{ ruta, linea, texto }]. Un fichero renombrado solo trae lo que
- * cambió, y una línea borrada no cuenta: nada que regenerar.
+ * cambió, y una línea borrada no cuenta: nada que regenerar. «+++ » solo es
+ * cabecera justo después de «--- »: dentro de un trozo es una línea añadida
+ * que empieza por «++ » (#351).
  */
 export function lineasAnadidas(diff) {
   const fuera = [];
   let ruta = null;
   let n = 0;
+  let anterior = "";
   for (const l of String(diff ?? "").replace(/\r/g, "").split("\n")) {
-    if (l.startsWith("+++ ")) {
+    const tras = anterior;
+    anterior = l;
+    if (l.startsWith("+++ ") && tras.startsWith("--- ")) {
       const r = l.slice(4).trim();
       ruta = r === "/dev/null" ? null : r.replace(/^b\//, "");
       continue;
