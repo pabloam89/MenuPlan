@@ -2027,6 +2027,13 @@
         "servidor": "api/_bot/propias.js"
       }
     },
+    "user_recipe_deletions": {
+      "dueno": "recetas-propias",
+      "fichero_dueno": {
+        "app": "src/lib/userRecipesSync.js",
+        "servidor": "api/_bot/propias.js"
+      }
+    },
     "user_state": {
       "dueno": "estado-de-la-casa",
       "fichero_dueno": {
