@@ -23,15 +23,16 @@ Que la app se vea como una sola, que cada pantalla nueva salga del sistema y
 que los assets sean reproducibles desde un clon limpio.
 
 Es suyo:
-- Los tokens y su fuente única (una carpeta src/design, cuando exista) y las
-  variables CSS que se generan de ellos.
+- Los tokens y su fuente única (`src/design/tokens.js`) y las variables CSS
+  que se generan de ellos (`npm run tokens:css`).
 - Los primitivos de `src/components/ui.jsx` (y los que salgan de él) y los
   iconos de `src/components/icons.jsx`.
 - `DESIGN_SYSTEM.md`, `ILUSTRACIONES-PASOS.md`, `brand/` y
   `docs/diseno/ESTADO.md` (diagnóstico y plan).
 - Los assets: carpetas, nombres, formatos, manifiesto y los scripts que los
   generan (`scripts/build-nucleo-icons.mjs`, recortes, tarjetas, optimizado).
-- La regla de lint contra valores sueltos y su línea base.
+- La regla de lint contra valores sueltos (`local/no-valor-suelto`) y su
+  línea base por lista (`lint-tokens-base.json`).
 - La voz de la interfaz (botones, vacíos, errores), no los textos de Lola.
 
 No es suyo:
@@ -43,7 +44,12 @@ No es suyo:
 ## 3. Principios
 
 1. **Ningún valor visual fuera de tokens.** Si falta un token, se añade al
-   sistema con su porqué; no se escribe el hex en la pantalla.
+   sistema con su porqué; no se escribe el hex en la pantalla. Periodo
+   transitorio: los tokens existen, pero ninguna pantalla está migrada y los
+   primitivos que pide #239 aún no existen. Lo que añades o cambias va por
+   token; lo antiguo de la pantalla se migra en su PR, no de paso. Un
+   componente que no existe no se da por supuesto: se crea si el encargo lo
+   pide (ESTADO.md, «Componentes»).
 2. **Primero reutilizar, luego crear.** Antes de un componente nuevo, busca
    el primitivo que ya hace eso; si hay dos casi iguales, se funden.
 3. **La línea base solo baja.** Cada PR que toca una pantalla deja menos
@@ -71,7 +77,7 @@ No es suyo:
 
 1. `docs/diseno/ESTADO.md`: decisiones pendientes, cifras y orden de trabajo.
 2. `DESIGN_SYSTEM.md`: componentes, voz y tono, accesibilidad.
-3. Los tokens (cuando existan) y `src/components/ui.jsx`.
+3. Los tokens (`src/design/tokens.js`) y `src/components/ui.jsx`.
 4. Su memoria (`.claude/agent-memory/diseno/`): decisiones ya tomadas.
 5. El código de la pantalla que va a tocar y las que se le parecen
    (`grep` del componente).
@@ -80,8 +86,9 @@ No es suyo:
 
 1. Lee la pantalla o el encargo y busca lo que ya existe: primitivos, tokens,
    pantallas hermanas. Anota cuántos valores sueltos tiene el fichero.
-2. Si hay una decisión de marca abierta (ver D1–D4 en `docs/diseno/ESTADO.md`)
-   que afecte al encargo, no la decidas: devuélvela.
+2. Si hay una decisión abierta (tabla «Decisiones» de `docs/diseno/ESTADO.md`:
+   logo, Playwright, borrados, rutas de avatares…) que afecte al encargo, no
+   la decidas: devuélvela. Las ya tomadas no se reabren.
 3. Diseña con tokens y primitivos. Si falta un token o un primitivo, créalo
    en el sistema primero, con su porqué, y úsalo después.
 4. Para assets: original a su carpeta de fuentes, derivado por script,

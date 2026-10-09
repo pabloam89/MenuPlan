@@ -3,9 +3,22 @@
 Auditoría del 9 oct 2026 (issue #239) sobre la rama `ux/239-auditoria-ui`.
 Lo mantiene el agente `diseno`: cuando una cifra cambie, se actualiza aquí
 con su fecha. `DESIGN_SYSTEM.md` describe criterio y voz; este fichero dice
-qué falta, con qué valores y en qué orden. **Hoy es solo plan: no hay
-`src/design/`, ni tokens, ni regla de lint.** Los valores de «Tokens
-propuestos» salen del código real y son propuesta, no decisión.
+qué falta y en qué orden. **Desde el PR del encargo #258 (9 oct 2026) existen
+`src/design/tokens.js` (los 77 valores, fuente única), `src/design/tokens.css`
+(generado, `npm run tokens:css`), la regla `local/no-valor-suelto` en aviso y
+`lint-tokens-base.json`; ninguna pantalla está migrada todavía.** Los valores
+de «Tokens propuestos» son los que quedaron en el módulo; los marcados
+provisionales (interlineado de los roles de texto, `margen-pantalla` = 16,
+`separacion-lista` = 8) se confirman al migrar la primera pantalla. Las
+`--pz-*` de `index.css` (tema oscuro de la pizarra) son excepción declarada: no
+se absorben en los tokens.
+
+**Cifra de la regla (9 oct 2026, antes de migrar nada):** 12.768 valores
+sueltos en 4.539 entradas `fichero | tipo | valor` y 83 ficheros — color 4.581,
+espaciado 3.637, fuente 1.289, radio 1.187, peso 1.175, movimiento 448,
+sombra 307, capa 144 — y 0 `eslint-disable` de la regla. Se regenera con
+`npm run lint:base`; sustituye a la tabla de regex de «Lo que hay» (que sigue
+siendo la medida de la auditoría, con otro alcance).
 
 ## Decisiones
 
@@ -423,14 +436,21 @@ scripts/diseno/             recorte, tarjetas, optimizado, iconos, logo
 ## Cumplimiento
 
 1. Regla local `no-valor-suelto` (en `eslint-rules/`) en `warn`, dentro de
-   `lint-base.mjs` (un solo recorrido). **Alcance:** `src/**/*.jsx`, los 15
-   `.js` de `src` con hex (tabla de «Lo que hay») e `index.css`, salvo
-   `src/design/`, `src/data/` y los tests. Excepción por escrito: `menuExport.js`
-   (HTML exportado, sin CSS de la app) importa los primitivos del módulo de
-   tokens en lugar de `var(--…)`.
-2. Línea base por **lista** `fichero | tipo | valor`, no por recuento (el
-   recuento se deja engañar: extraer `const GAP = 13` baja el contador sin
-   tocar ningún token). Solo puede bajar.
+   `lint-base.mjs` (un solo recorrido). **Alcance (hecho):** `src/**/*.jsx` y
+   17 `.js` de `src` con color escrito a mano (lista en `eslint.config.js`; la
+   tabla de «Lo que hay» decía 15), salvo `src/design/`, `src/data/` y los
+   tests. **`index.css` queda fuera**: ESLint no lee CSS; sus 11 hex y 4 `rgba`
+   se vigilan al migrar (pendiente: una pasada de regex sobre él en
+   `lint-base`). Excepción por escrito: `menuExport.js` (HTML exportado, sin
+   CSS de la app) importa los primitivos del módulo de tokens en lugar de
+   `var(--…)`. Un valor suelto nuevo **avisa** y no rompe el CI; `lint-base.mjs
+   --estricto` lo hace fallar y se activa en el CI cuando se migre la primera
+   pantalla.
+2. Línea base por **lista** `fichero | tipo | valor` → cuenta
+   (`lint-tokens-base.json`), no por recuento (el recuento se deja engañar:
+   extraer `const GAP = 13` baja el contador sin tocar ningún token). Solo
+   puede bajar: `--actualizar` se niega a subirla y un test fija el tope.
+   Renombrar o mover un fichero no cuenta como nuevo.
 3. Lista blanca: `0`, `1`, `±1px`, `100%`, `50%`, `none`, `transparent`,
    `currentColor`, `inherit`.
 4. Se cuentan los `eslint-disable` de esa regla. La cifra «antes» es la de la
@@ -442,7 +462,9 @@ scripts/diseno/             recorte, tarjetas, optimizado, iconos, logo
 
 ## Orden de trabajo
 
-0. D1 hecha. Abiertas: D4, D9, D10, D11, D12, D13.
+0. D1 hecha. Abiertas: D4, D9, D10, D12, D13 (D11 decidida por Pablo). Pasos 2 y
+   3 hechos en el PR de #258 (9 oct 2026); queda por hacer lo que dice cada
+   punto sobre la migración.
 1. **Capturas mínimas antes de migrar nada**, a 375×812 y 420×900. Herramienta:
    Playwright, que **no está instalado** y depende de D9; sin ella, capturas
    manuales de `qa`. Es la referencia de regresión: la escala cambia píxeles y

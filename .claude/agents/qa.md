@@ -25,8 +25,10 @@ Es suyo:
   recorrer el flujo tocado.
 - Capturas a 375×812 y 420×900 de cada pantalla afectada, y del estado vacío,
   de carga y de error.
-- Comprobar contra `DESIGN_SYSTEM.md` y `docs/diseno/ESTADO.md`: tokens,
-  primitivos, objetivos táctiles, contraste, `prefers-reduced-motion`.
+- Comprobar contra los tokens (`src/design/tokens.js`), `DESIGN_SYSTEM.md` y
+  `docs/diseno/ESTADO.md`: roles de token en lugar de valores sueltos,
+  primitivos, objetivos táctiles (≥ 40 px, que la regla de lint no mide),
+  contraste, `prefers-reduced-motion`.
 - Errores y avisos en la consola del navegador.
 
 No es suyo:
@@ -57,7 +59,7 @@ No es suyo:
 
 1. El diff (`git diff origin/staging...HEAD --stat`) para saber qué pantallas
    tocar.
-2. `DESIGN_SYSTEM.md` y `docs/diseno/ESTADO.md`.
+2. `src/design/tokens.js`, `DESIGN_SYSTEM.md` y `docs/diseno/ESTADO.md`.
 3. `.claude/launch.json` (puerto y comandos de arranque).
 4. La app en marcha: lo que se ve manda sobre lo que dice el código.
 
@@ -70,8 +72,11 @@ No es suyo:
    ninguno, dilo y limita el informe a lo que pudo comprobar.
 3. Recorre cada flujo en los dos anchos y en los cuatro estados; captura cada
    paso y guarda las capturas en una carpeta temporal.
-4. Compara con el design system: valores sueltos visibles, componentes que no
-   son primitivos, tamaños táctiles, contraste.
+4. Compara con el design system: valores sueltos visibles (la cifra de
+   `npm run lint:base` baja en la pantalla migrada), componentes que no son
+   primitivos, tamaños táctiles, contraste. En una pantalla migrada a tokens
+   «exacta» no debe cambiar ningún píxel: la captura de antes y de después
+   coinciden.
 5. Recoge errores de consola y peticiones fallidas.
 6. Cierra con el informe común, con la ruta de cada captura.
 
