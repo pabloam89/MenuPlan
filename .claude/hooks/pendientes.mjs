@@ -69,6 +69,89 @@ export function leerTranscript(jsonl) {
   return { ultimo, comandos };
 }
 
+// ── El freno de los casos (#185) ──────────────────────────────────────────────
+//
+// «Cuando algo falla: hasta el problema de fondo» (CLAUDE.md) pide registrar
+// cada fallo del camino como un caso. El 9 oct 2026 una sesión de siete PR no
+// registró ninguno hasta que Pablo lo preguntó. La puerta firme es la línea
+// «Casos:» del PR (guardia y CI); esto frena una vez, al terminar, a la sesión
+// que tuvo señales de fallo y no dejó rastro de haber registrado nada.
+
+/** Un `[guardia]` que no es un fallo: la puerta de las skills y la de «Casos:» piden algo, no han roto nada. */
+const GUARDIA_DE_TRAMITE = /abre antes (?:la|las) skills?|línea «Casos:»|falta la línea|«Casos:/i;
+/** Comandos y escritos que dejan un caso registrado, o dicen por qué no lo hay. */
+const CASO_REGISTRADO = /--nuevo[\s\S]*--tipo\s+caso|--tipo\s+caso[\s\S]*--nuevo|--colgar|gh\s+issue\s+comment|\bCasos\s*:\s*(?:#\d|ninguno)/i;
+
+const sinColor = (s) => String(s).replace(/\u001b\[[0-9;]*m/g, "");
+const nombreDe = (ruta) => String(ruta).split(/[\\/]/).pop();
+const textoDe = (c) => (typeof c === "string" ? c : Array.isArray(c) ? c.map((x) => x?.text ?? "").join("\n") : "");
+
+/**
+ * Del transcript: las señales de fallo de la sesión y si dejó rastro de haber
+ * registrado casos. Señales (cada una con su origen, para decirlas):
+ *  - informe de un agente con `ESTADO: bloqueado|fallo` o un hallazgo `[bloqueante]`;
+ *  - vitest en rojo (`FAIL fichero`) en un fichero que la sesión no tocó: un test
+ *    que falla y no es el tuyo es un caso; el nuevo que ves fallar, no;
+ *  - una denegación de la guardia (salvo las de trámite).
+ * → { senales: string[], registrado: boolean }
+ */
+export function senalesDeFallo(jsonl) {
+  const usos = new Map(); // id → { name, command }
+  const tocados = new Set();
+  const escritos = [];
+  const resultados = [];
+  for (const linea of String(jsonl).split("\n")) {
+    let e;
+    try {
+      e = JSON.parse(linea);
+    } catch {
+      // a propósito: una línea del transcript que no es JSON (cortada al escribir) se salta
+      continue;
+    }
+    const partes = Array.isArray(e?.message?.content) ? e.message.content : [];
+    for (const p of partes) {
+      if (e.type === "assistant" && p.type === "tool_use") {
+        usos.set(p.id, { name: p.name, command: p.input?.command ?? "" });
+        if (p.input?.command) escritos.push(p.input.command);
+        if (p.input?.content) escritos.push(String(p.input.content));
+        const f = p.input?.file_path;
+        if (f) tocados.add(nombreDe(f));
+      } else if (e.type === "user" && p.type === "tool_result") {
+        resultados.push({ uso: usos.get(p.tool_use_id), texto: sinColor(textoDe(p.content)), error: p.is_error === true });
+      }
+    }
+  }
+  const senales = [];
+  for (const { uso, texto, error } of resultados) {
+    if (!uso) continue;
+    if (/^(?:Agent|Task)$/.test(uso.name)) {
+      const m = texto.match(/^\s*ESTADO:\s*(bloqueado|fallo)\b/im);
+      if (m) senales.push(`informe de un agente con ESTADO: ${m[1]}`);
+      else if (/^\s*-\s*\[bloqueante\]/im.test(texto)) senales.push("informe de un agente con un hallazgo bloqueante");
+    } else if (/^(?:Bash|PowerShell)$/.test(uso.name)) {
+      if (/vitest|npm\s+(?:run\s+)?test|npx\s+vitest/i.test(uso.command)) {
+        const ajenos = [...texto.matchAll(/^\s*FAIL\s+(\S+)/gm)].map((m) => nombreDe(m[1])).filter((f) => !tocados.has(f));
+        if (ajenos.length) senales.push(`vitest en rojo en ${[...new Set(ajenos)].slice(0, 3).join(", ")}, que no tocaste`);
+      }
+    }
+    if (error && /^(?:Bash|PowerShell|Edit|Write|MultiEdit)$/.test(uso.name) && texto.includes("[guardia]") && !GUARDIA_DE_TRAMITE.test(texto)) {
+      senales.push(`la guardia te negó un ${uso.name === "Edit" || uso.name === "Write" || uso.name === "MultiEdit" ? "edit" : "comando"}`);
+    }
+  }
+  return { senales: [...new Set(senales)], registrado: escritos.some((c) => CASO_REGISTRADO.test(c)) };
+}
+
+/** El mensaje del freno: las señales y qué hacer. Sale una sola vez por sesión. */
+export function recordatorioDeCasos(senales) {
+  return "[casos] En esta sesión hubo señales de fallo y no hay rastro de ningún caso registrado ni de una línea «Casos:» en un PR:\n"
+    + senales.slice(0, 5).map((s) => `- ${s}`).join("\n")
+    + "\nCada fallo del camino es un caso (CLAUDE.md, «Cuando algo falla»): analiza su problema de fondo y regístralo con "
+    + "`npm run issues -- --nuevo \"…\" --tipo caso --analisis <nuevo|abierto|no-aguanto-roto|no-aguanto-corto|puntual> --area … --cuerpo <fichero>` "
+    + "(un puntual lleva su «Puntual porque …»), y pon «Casos: #n» en el PR. "
+    + "Si ninguna es un fallo de verdad (un test que viste fallar a propósito, un obstáculo que ya estaba resuelto), "
+    + "di en una línea por qué y termina: este aviso no vuelve a salir.";
+}
+
 export const RECORDATORIO = "[pendientes] Tu último mensaje deja decisiones o pendientes, y en esta sesión no has creado ni comentado ningún issue. "
   + "El chat se pierde al cerrar: pasa cada decisión a un issue (`npm run issues -- --nuevo \"…\" --tipo decision --area … --cuerpo <fichero>`, que se asigna a Pablo) "
   + "y cada trabajo por hacer a un encargo, o di en una línea por qué no hace falta. Este aviso sale una sola vez por sesión.";
@@ -95,12 +178,20 @@ if (esPrincipal) {
     if (entrada.stop_hook_active) process.exit(0);
     const dir = join(tmpdir(), "menuplan-pendientes");
     mkdirSync(dir, { recursive: true });
-    const marca = join(dir, `${String(entrada.session_id ?? "x").replace(/\W/g, "")}.hecho`);
-    if (existsSync(marca)) process.exit(0);
+    const id = String(entrada.session_id ?? "x").replace(/\W/g, "");
+    const marca = join(dir, `${id}.hecho`);
+    const marcaCasos = join(dir, `${id}.casos`);
     const transcript = entrada.transcript_path && existsSync(entrada.transcript_path) ? readFileSync(entrada.transcript_path, "utf8") : "";
-    if (pendientesSinIssue(aMirar(entrada, transcript))) {
+    // Cada freno sale una vez por sesión y con su marca; si salen los dos a la vez, primero los pendientes.
+    if (!existsSync(marca) && pendientesSinIssue(aMirar(entrada, transcript))) {
       writeFileSync(marca, new Date().toISOString());
       process.stdout.write(JSON.stringify({ decision: "block", reason: RECORDATORIO }));
+    } else if (!existsSync(marcaCasos)) {
+      const { senales, registrado } = senalesDeFallo(transcript);
+      if (senales.length && !registrado) {
+        writeFileSync(marcaCasos, new Date().toISOString());
+        process.stdout.write(JSON.stringify({ decision: "block", reason: recordatorioDeCasos(senales) }));
+      }
     }
   } catch {
     // a propósito: un recordatorio, no un vigilante; si falla, la sesión termina normal

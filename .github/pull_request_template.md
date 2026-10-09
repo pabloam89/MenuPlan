@@ -11,6 +11,16 @@ caso del mismo (npm run issues -- --colgar) y el fondo se reabre.
 Agente: el que lo construyó (gobierno, datos, diseno o lola), o «sesión» si
 lo hizo la sesión principal sin agente.
 
+Casos (obligatoria en TODO PR; la guardia y el CI la piden): los fallos del
+camino de este trabajo (un test rojo que no era tuyo, un dato falso que se
+había copiado, un vigilante que bloqueó algo bueno, algo del entorno) se
+registran como issues tipo:caso, cada uno con su problema de fondo
+(npm run issues -- --nuevo "…" --tipo caso --analisis …). A la derecha de
+«Casos:», una de dos:
+  #301, #305                     → los casos que dejas registrados
+  ninguno — <por qué>            → no ha habido ningún fallo; el motivo, de verdad
+                                   (mínimo 25 caracteres; «n/a» no vale)
+
 Runbook (obligatoria si el PR toca ficheros de un dominio con skill: supabase,
 github, vercel, 1password, telegram; el mapa está en .claude/dominios-skills.json
 y el CI lo comprueba). Escribe una de estas dos, a la derecha de «Runbook:»:
@@ -24,5 +34,7 @@ como está.
 Closes #
 
 Agente: sesión
+
+Casos:
 
 Runbook:
