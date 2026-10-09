@@ -162,7 +162,7 @@ export async function globalLimit({ bucket, limit, windowSec }, { redis = getRed
 // defecto: solo se cuentan si alguien les pone la variable.
 export const TOPE_DIARIO_POR_DEFECTO = Object.freeze({
   generate: 100,
-  "recipe-steps": 200,
+  "recipe-steps": 100,
   moderate: 300,
   "dish-photo": 30,
 });
