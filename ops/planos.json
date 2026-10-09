@@ -535,9 +535,10 @@
           },
           {
             "tipo": "regla_github",
-            "que": "Los environments con secretos solo admiten la rama staging (#351)",
+            "que": "Los environments con secretos solo admiten la rama staging (#351); el de publicar iOS, solo main (#299)",
             "regla": "environment_solo_rama",
             "rama": "staging",
+            "excepciones": { "ios-testflight": "main" },
             "norma": "secretos-en-environments"
           }
         ],

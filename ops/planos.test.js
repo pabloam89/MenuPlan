@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  CAMPOS_POR_TIPO, DISPARADORES, ESTADOS_CRITERIO, MEDIDORES, NIVELES, OPERADORES, PERSONAS, REGLAS_GITHUB, TIPOS_CRITERIO,
+  CAMPOS_POR_TIPO, DISPARADORES, ESTADOS_CRITERIO, MEDIDORES, NIVELES, OPERADORES, PERSONAS, REGLAS_GITHUB, REGLAS_GITHUB_OPCIONALES, TIPOS_CRITERIO,
   cuerpoIssue, diasEntre, evaluarCriterio, evaluarReglaGithub, generarTabla, medir, nivelDe, sustituirTabla, tablaActual,
 } from "../scripts/lib/planos.mjs";
 
@@ -55,7 +55,7 @@ describe("planos.json: forma y vocabulario cerrado", () => {
       if (!TIPOS_CRITERIO.includes(c.tipo)) { malos.push(`${donde(x)}: tipo desconocido «${c.tipo}»`); continue; }
       if (typeof c.que !== "string" || c.que.length < 10) malos.push(`${donde(x)}: falta \`que\`, la frase en llano`);
       for (const k of CAMPOS_POR_TIPO[c.tipo]) if (c[k] === undefined || c[k] === "") malos.push(`${donde(x)}: falta \`${k}\``);
-      const deLaRegla = c.tipo === "regla_github" ? [...(REGLAS_GITHUB[c.regla] ?? []), "norma"] : [];
+      const deLaRegla = c.tipo === "regla_github" ? [...(REGLAS_GITHUB[c.regla] ?? []), ...(REGLAS_GITHUB_OPCIONALES[c.regla] ?? []), "norma"] : [];
       const sobran = Object.keys(c).filter((k) => !["tipo", "que", "patron", "rama", "check", "issue", ...CAMPOS_POR_TIPO[c.tipo], ...deLaRegla].includes(k));
       if (sobran.length) malos.push(`${donde(x)}: campos que nadie lee: ${sobran.join(", ")}`);
     }
@@ -254,6 +254,19 @@ describe("las reglas de GitHub, con un gh de mentira", () => {
       const conD = { "repos/x/y/environments?per_page=100": lista(...base["repos/x/y/environments?per_page=100"].json.environments, { name: "d", deployment_branch_policy: null }),
         "repos/x/y/environments/d/secrets?per_page=100": secretos(1) };
       expect(envs(conD)).toMatchObject({ estado: "no_cumple", detalle: "norma secretos-en-environments no cuadra: 1 de 3 fuera de la política" });
+    });
+
+    it("environment_solo_rama: una excepción declarada cambia cuál rama, no cuántas (#299)", () => {
+      const conExcepcion = (cambios) => evaluarReglaGithub({ regla: "environment_solo_rama", rama: "staging", excepciones: { b: "main" }, norma: "secretos-en-environments" },
+        { repo, gh: gh({ "repos/x/y": admin, ...base, ...cambios }) });
+      expect(conExcepcion({ "repos/x/y/environments/b/deployment-branch-policies": politica("main") }).estado).toBe("cumple");
+      // La excepción de b no le vale a staging: b con staging ya no cuadra.
+      expect(conExcepcion({}).estado).toBe("no_cumple");
+      expect(conExcepcion({ "repos/x/y/environments/b/deployment-branch-policies": politica("main", "staging") }).estado).toBe("no_cumple");
+      // Ni le vale a a, que sigue con su rama.
+      expect(conExcepcion({ "repos/x/y/environments/a/deployment-branch-policies": politica("main"), "repos/x/y/environments/b/deployment-branch-policies": politica("main") }).estado).toBe("no_cumple");
+      // Sin la excepción, main en b no cuadra.
+      expect(envs({ "repos/x/y/environments/b/deployment-branch-policies": politica("main") }).estado).toBe("no_cumple");
     });
 
     it("environment_solo_rama: sin poder leer la lista o los secretos, sin comprobar (nunca cumple)", () => {

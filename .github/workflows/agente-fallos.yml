@@ -18,8 +18,14 @@
 #   display_report / show_full_output se quedan en su valor por defecto (off).
 # - El agente solo crea ramas claude/ y PRs en borrador. Protege main y
 #   staging en GitHub para que eso no dependa solo de las instrucciones.
+# - Sus secretos (ANTHROPIC_API_KEY, OPS_DB_URL y, si se pone,
+#   CALLMEBOT_DESTINOS) viven en el environment `agente-fallos`, cuya política
+#   solo deja la rama `staging` (#299): un workflow lanzado desde otra rama no
+#   los ve. El environment lo crea antes `mover-secretos` (skill github): si
+#   un workflow nombra uno que no existe, GitHub lo crea sin política.
 #
-# Sin los secretos configurados el workflow se salta a sí mismo sin fallar.
+# Sin ANTHROPIC_API_KEY u OPS_DB_URL el workflow FALLA y dice cuál falta y
+# dónde ponerlo: saltarse en silencio escondía que llevaba días sin correr.
 
 name: Agente de fallos de generación
 
@@ -43,6 +49,7 @@ jobs:
   revisar:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    environment: agente-fallos
 
     steps:
       - name: Comprobar secretos
@@ -55,11 +62,11 @@ jobs:
           [ -n "$ANTHROPIC_API_KEY" ] || missing="$missing ANTHROPIC_API_KEY"
           [ -n "$OPS_DB_URL" ] || missing="$missing OPS_DB_URL"
           if [ -n "$missing" ]; then
-            echo "::warning::Agente desactivado: faltan los secretos$missing"
-            echo "listo=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "listo=true" >> "$GITHUB_OUTPUT"
+            echo "::error::Faltan los secretos$missing en el environment agente-fallos (solo rama staging). Los pone mover-secretos (skill github, «Secretos de repo a environments»)."
+            echo "secretos_faltan:$missing environment: agente-fallos"
+            exit 1
           fi
+          echo "listo=true" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v7
         if: steps.config.outputs.listo == 'true'

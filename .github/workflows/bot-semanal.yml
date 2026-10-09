@@ -10,8 +10,11 @@
 # - El informe son solo números (scripts/lib/bot-semana.mjs, informe()). Los
 #   huecos con su frase se revisan en local (scripts/lola-feedback.mjs).
 # - Sin modelo de IA: no gasta clave de Anthropic.
+# - OPS_DB_URL vive en el environment `bot-semanal`, cuya política solo deja
+#   la rama `staging` (#299); lo crea antes `mover-secretos` (skill github).
 #
-# Sin el secreto configurado el workflow se salta a sí mismo sin fallar.
+# Sin OPS_DB_URL el workflow FALLA y dice dónde ponerlo: saltarse en silencio
+# escondía que no había informe.
 
 name: Informe semanal de Lola
 
@@ -33,6 +36,7 @@ jobs:
   informe:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: bot-semanal
 
     steps:
       - name: Comprobar secretos
@@ -41,11 +45,11 @@ jobs:
           OPS_DB_URL: ${{ secrets.OPS_DB_URL }}
         run: |
           if [ -z "$OPS_DB_URL" ]; then
-            echo "::warning::Informe desactivado: falta el secreto OPS_DB_URL"
-            echo "listo=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "listo=true" >> "$GITHUB_OUTPUT"
+            echo "::error::Falta el secreto OPS_DB_URL en el environment bot-semanal (solo rama staging). Lo pone mover-secretos (skill github, «Secretos de repo a environments»)."
+            echo "secretos_faltan: OPS_DB_URL environment: bot-semanal"
+            exit 1
           fi
+          echo "listo=true" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v7
         if: steps.config.outputs.listo == 'true'
