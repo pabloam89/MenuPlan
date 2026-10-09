@@ -1,0 +1,2214 @@
+{
+  "version": 1,
+  "actualizado": "2026-10-09",
+  "leeme": "Mapa de módulos de MenuPlan (issue #157). Lo lee un script (el panel de la factoría, #158) y lo vigila ops/modulos.test.js: si pasa algo que lo deja viejo (una tabla nueva, un fichero que desaparece, un grado inventado) el test se pone rojo y dice qué tocar. JSON y no markdown porque lo consume una máquina; `leeme` y `hace` van en castellano llano para que lo lea también una persona. Las tablas de cada módulo no se repiten en él: el dueño vive solo en `tablas` y el panel deriva «tablas de un módulo» de ahí. «Acceso» (cuántos ficheros tocan cada tabla) tampoco se guarda: el panel lo calcula de supabase/cableado.json. `fichero_dueno` son las dos puertas de PRINCIPIOS §15 (app y servidor); si una es null, `sin_puerta` dice por qué con un motivo del vocabulario cerrado `motivos_sin_puerta` (más un texto). Un fichero solo está en una unidad, salvo los de `ficheros_compartidos` (con motivo). `ficheros_sin_modulo` agrupa, con motivo, el código que no pertenece a ningún módulo.",
+  "vocabularios": {
+    "grados_desarrollo": {
+      "idea": "No hay código en staging: solo una spec, una nota o una rama sin fusionar. Criterio: `ficheros` vacío (o solo specs).",
+      "en_marcha": "Hay código en staging pero no sirve de punta a punta, o está apagado detrás de un interruptor. Criterio: `ficheros` con algo; si `apagado` es true, nunca pasa de aquí.",
+      "usable": "Funciona de punta a punta en staging, con tests propios y sin interruptor apagado. Puede tener huecos conocidos o no medirse todavía. Criterio: `tests` con algo y `apagado` false.",
+      "estable": "Usable, y además hoy se mide su uso. Criterio: lo de usable más al menos una métrica `medida`. Una migración propia sin aplicar no la ve el test: si la hay, `motivo_grado` lo dice y el grado no pasa de usable."
+    },
+    "ambitos_modulo": {
+      "app": "Solo lo usa la app (React + Vite).",
+      "lola": "Solo lo usa el bot (Telegram hoy, WhatsApp después).",
+      "compartido": "Lo usan los dos, o es un dato/motor común."
+    },
+    "estados_metrica": {
+      "medida": "Hoy deja rastro y se puede sacar: `donde` dice de dónde. Si trae `evento`, el test comprueba que se emite en el código.",
+      "posible": "Hoy no se mide; `donde` dice dónde se sacaría o qué habría que añadir."
+    },
+    "motivos_sin_puerta": {
+      "no_la_usa": "Ese lado (app o servidor) no toca la tabla en absoluto.",
+      "por_rpc": "Ese lado la toca solo llamando a una RPC; no hay un fichero con .from() que sea la puerta.",
+      "por_trigger": "Se escribe dentro de la base (trigger o función SQL) y ningún fichero JS la toca.",
+      "fuera_del_dueno": "Sí la toca código de ese lado, pero de OTRO módulo: el dueño no tiene puerta propia. Es deuda de PRINCIPIOS §15.",
+      "en_desuso": "La tabla sigue en la base pero nadie la lee ni la escribe."
+    }
+  },
+  "modulos": [
+    {
+      "id": "cuenta-y-casa",
+      "nombre": "Cuenta y casa",
+      "ambito": "compartido",
+      "hace": "Quién eres y a qué casa perteneces: entrar, crear o borrar la cuenta, y compartir una casa con otros.",
+      "grado": "usable",
+      "motivo_grado": "Funciona y tiene tests, pero las migraciones de casa se han tocado hasta el 8 oct.",
+      "ficheros": [],
+      "tests": [],
+      "metricas": [],
+      "submodulos": [
+        {
+          "id": "acceso",
+          "nombre": "Entrar y perfil",
+          "hace": "Iniciar sesión (Google, correo), la portada de bienvenida y el perfil de la persona.",
+          "grado": "en_marcha",
+          "motivo_grado": "Es la puerta de la app y funciona, pero ningún test cubre el login ni el perfil (vocabularioApp.test.js compara SQL de la 0086 con JS y no lo toca).",
+          "ficheros": [
+            "src/lib/useAuth.js",
+            "src/lib/supabase.js",
+            "src/screens/ValueProps.jsx",
+            "src/screens/Onboarding.jsx",
+            "src/screens/ScopePickerScreen.jsx",
+            "src/screens/onboardingProgressContext.js"
+          ],
+          "tests": [],
+          "metricas": [
+            {
+              "id": "alta_arranque",
+              "que": "Cuánta gente empieza el alta",
+              "estado": "medida",
+              "donde": "user_events screen=funnel (src/lib/embudo.js)",
+              "evento": "funnel_start"
+            },
+            {
+              "id": "altas_por_dia",
+              "que": "Cuentas nuevas por día",
+              "estado": "posible",
+              "donde": "count de user_profiles por created_at"
+            }
+          ]
+        },
+        {
+          "id": "borrar-cuenta",
+          "nombre": "Borrar la cuenta",
+          "hace": "Borra la cuenta y sus datos (exigido por Apple), y pasa la casa a otro titular si hay alguien más.",
+          "grado": "usable",
+          "motivo_grado": "api/delete-account.js con su test; la herencia de la casa está en la migración 0075 aplicada.",
+          "ficheros": [
+            "api/delete-account.js"
+          ],
+          "tests": [
+            "api/delete-account.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "bajas",
+              "que": "Cuentas borradas por mes",
+              "estado": "posible",
+              "donde": "evento nuevo en api/delete-account.js (hoy no deja rastro contable)"
+            }
+          ]
+        },
+        {
+          "id": "casas-y-miembros",
+          "nombre": "Casas, miembros e invitaciones",
+          "hace": "Una casa con titular, cotitulares y lectores; invitar por enlace, cambiar de casa, salir.",
+          "grado": "usable",
+          "motivo_grado": "Tres papeles y RLS aplicados (0071); tests de papeles y de sincronización.",
+          "ficheros": [
+            "src/screens/HouseholdsScreen.jsx",
+            "src/lib/householdsSync.js",
+            "src/lib/useHousehold.js",
+            "src/lib/papeles.js",
+            "api/_bot/papel.js",
+            "api/_bot/invitacion.js"
+          ],
+          "tests": [
+            "src/lib/papeles.test.js",
+            "src/lib/householdsSync.test.js",
+            "api/_bot/papel.test.js",
+            "api/_bot/invitacion.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "miembros_por_casa",
+              "que": "Cuántas casas tienen más de una persona con cuenta",
+              "estado": "posible",
+              "donde": "count de household_members por household_id"
+            },
+            {
+              "id": "invitaciones_aceptadas",
+              "que": "Invitaciones creadas frente a aceptadas",
+              "estado": "posible",
+              "donde": "household_invites (hoy sin rastro de aceptación)"
+            }
+          ]
+        },
+        {
+          "id": "estado-de-la-casa",
+          "nombre": "Estado guardado de la casa",
+          "hace": "El bloque de datos de la casa (ajustes, despensa, menú activo) que la app y Lola leen y escriben con control de versiones.",
+          "grado": "usable",
+          "motivo_grado": "Versión por escritura (0068) y tests; el JSON de `data` aún mezcla muchas cosas (ver modelo-datos.md).",
+          "ficheros": [
+            "src/lib/householdState.js",
+            "src/lib/userState.js",
+            "src/lib/versionCasa.js",
+            "api/_bot/casa.js"
+          ],
+          "tests": [
+            "src/lib/versionCasa.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "conflictos_version",
+              "que": "Cuántas veces una escritura choca por versión (app y Lola a la vez)",
+              "estado": "posible",
+              "donde": "log estructurado nuevo en versionCasa.js"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ficha-de-la-casa",
+      "nombre": "Ficha de la casa",
+      "ambito": "compartido",
+      "hace": "Quién come en casa y qué necesita cada uno: personas, grupos, alergias, intolerancias, salud, gustos y vetos.",
+      "grado": "usable",
+      "motivo_grado": "Personas y grupos pasaron a tablas (0079-0089) y funcionan; los ids viejos aún se migran a uuid (0091 sin aplicar).",
+      "ficheros": [],
+      "tests": [],
+      "metricas": [],
+      "submodulos": [
+        {
+          "id": "personas-y-grupos",
+          "nombre": "Personas y grupos",
+          "hace": "Cada comensal (edad, etapa, cole, horarios) y los grupos de menú (familia, adultos, niños, bebé).",
+          "grado": "usable",
+          "motivo_grado": "Tablas aplicadas y las 35 casas cuadran; queda la migración de ids a uuid (0091, sin aplicar), por eso no es estable.",
+          "ficheros": [
+            "src/lib/personasTabla.js",
+            "src/lib/groups.js",
+            "src/screens/HomeProfileScreen.jsx",
+            "src/components/PersonSheet.jsx",
+            "src/lib/babyStage.js",
+            "src/lib/stages.js",
+            "src/lib/profileMerge.js",
+            "src/lib/profileSummary.js",
+            "src/lib/avatarImage.js",
+            "src/lib/mealTimes.js",
+            "src/lib/comidas.js",
+            "src/lib/ids.js",
+            "src/lib/dias.js",
+            "src/lib/schedulePresets.js"
+          ],
+          "tests": [
+            "src/lib/personasTabla.test.js",
+            "src/lib/groups.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "personas_por_casa",
+              "que": "Personas por casa y su reparto por etapa",
+              "estado": "posible",
+              "donde": "count de persona por household_id y etapa"
+            }
+          ]
+        },
+        {
+          "id": "alergias-y-salud",
+          "nombre": "Alergias, intolerancias y salud",
+          "hace": "Lo que alguien no puede comer por seguridad: alérgenos, intolerancias, celiaquía y perfiles de salud; filtra recetas y avisa de conflictos.",
+          "grado": "usable",
+          "motivo_grado": "Muchos tests de seguridad (gluten, alérgenos, aptitud para niños); datos de salud sensibles (RGPD art. 9).",
+          "ficheros": [
+            "src/lib/alergias.js",
+            "src/lib/allergens.js",
+            "src/lib/allergensCore.js",
+            "src/lib/intolerances.js",
+            "src/lib/healthFlags.js",
+            "src/lib/healthProfileMatch.js",
+            "src/lib/aptoNinos.js",
+            "src/components/RestrictionConflictBanner.jsx",
+            "src/lib/restriccionesReceta.js"
+          ],
+          "tests": [
+            "src/lib/alergias.test.js",
+            "src/lib/gluten.seguridad.test.js",
+            "src/lib/intolerances.test.js",
+            "src/lib/healthFlags.test.js",
+            "src/lib/aptoNinos.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "alergias_declaradas",
+              "que": "Casas con alguna alergia o intolerancia declarada",
+              "estado": "medida",
+              "donde": "user_events funnel_allergies_done (solo alta de la app)",
+              "evento": "funnel_allergies_done"
+            },
+            {
+              "id": "bloqueos_seguridad",
+              "que": "Veces que se frena un plato por alergia",
+              "estado": "posible",
+              "donde": "contar en api/_bot/supervisor.js y en el solver de la app"
+            }
+          ]
+        },
+        {
+          "id": "gustos-y-vetos",
+          "nombre": "Gustos y «no me pongas X»",
+          "hace": "Lo que la familia no quiere comer (vetos, con caducidad) y los gustos que se le han dicho a Lola; descarta recetas sin romper menús.",
+          "grado": "usable",
+          "motivo_grado": "vetos.js es la fuente única desde el 8 oct y tiene tests; la pantalla «Qué no os gusta» sigue sin fusionar (ver «dislikes»).",
+          "ficheros": [
+            "src/lib/vetos.js",
+            "src/lib/excluirHueco.js",
+            "src/lib/recipeDiscardsSync.js",
+            "src/lib/householdDiscardsSync.js",
+            "src/lib/reglas.js",
+            "src/lib/reglasTexto.js",
+            "src/lib/deletedRecipeIds.js"
+          ],
+          "tests": [
+            "src/lib/vetos.test.js",
+            "src/lib/excluirHueco.test.js",
+            "src/lib/householdDiscardsSync.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "platos_descartados",
+              "que": "Platos descartados y su motivo",
+              "estado": "medida",
+              "donde": "user_events dish_discarded (metadata.reason)",
+              "evento": "dish_discarded"
+            }
+          ]
+        },
+        {
+          "id": "ficha-para-lola",
+          "nombre": "Ficha que lee Lola",
+          "hace": "El resumen corto de cada casa que Lola recibe en cada mensaje: lo que ya sabe y lo que aún falta preguntar.",
+          "grado": "usable",
+          "motivo_grado": "Ficha por RPC (ficha_casa) con tests; la spec marca fases por hacer (analista nocturno, definitivos).",
+          "ficheros": [
+            "api/_bot/ficha.js",
+            "api/_bot/fichaRpc.js",
+            "api/_bot/estadoCasa.js",
+            "src/lib/registroCampos.js",
+            "src/lib/registroTareas.js"
+          ],
+          "tests": [
+            "api/_bot/ficha.test.js",
+            "api/_bot/fichaRpc.test.js",
+            "src/lib/registroTareas.test.js",
+            "api/_bot/recetasPropias.test.js",
+            "api/_bot/estadoCasa.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "huecos_de_ficha",
+              "que": "Campos de la ficha por rellenar por casa",
+              "estado": "posible",
+              "donde": "estadoCasa.js ya los calcula; falta guardar la cifra"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "menu-semanal",
+      "nombre": "Menú semanal",
+      "ambito": "compartido",
+      "hace": "Montar, ver, cambiar y guardar el menú de la semana de una casa.",
+      "grado": "usable",
+      "motivo_grado": "Es el núcleo del producto y funciona en app y bot; el generador de la app es estable, la pizarra sigue cambiando.",
+      "ficheros": [],
+      "tests": [],
+      "metricas": [],
+      "submodulos": [
+        {
+          "id": "generador",
+          "nombre": "Generador de menú",
+          "hace": "Elige los platos de la semana con un solver propio y la IA, respetando alergias, gustos, tiempo y aparatos.",
+          "grado": "estable",
+          "motivo_grado": "Muchos tests (solver, planner, validación), se mide cada generación y no tiene migración propia pendiente.",
+          "ficheros": [
+            "src/lib/aiPlanner.js",
+            "src/lib/solver.js",
+            "src/lib/planner.js",
+            "src/utils/validateMenu.js",
+            "src/utils/filterRecipes.js",
+            "src/screens/GeneratingScreen.jsx",
+            "api/generate.js",
+            "api/_prompts.js",
+            "src/lib/aiModels.js",
+            "src/lib/prepararGeneracion.js",
+            "src/lib/freqBudget.js",
+            "src/lib/defaultFreqs.js",
+            "src/lib/cuotaCocinas.js",
+            "src/lib/cocinaTopes.js",
+            "src/lib/reparto.js",
+            "src/lib/sesgos.js",
+            "src/lib/adelanto.js",
+            "src/lib/recipeDiversity.js",
+            "src/lib/tandaDelPlato.js",
+            "src/lib/tandaFamilias.js",
+            "src/lib/tandaFamiliasDefs.js",
+            "src/lib/postres.js",
+            "src/lib/fixedDishes.js",
+            "src/lib/recientes.js",
+            "src/lib/caloriasNivel.js",
+            "src/lib/raciones.js",
+            "src/lib/casqueria.js"
+          ],
+          "tests": [
+            "src/lib/aiPlanner.test.js",
+            "src/lib/solver.test.js",
+            "src/utils/validateMenu.test.js",
+            "src/utils/filterRecipes.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "menus_generados",
+              "que": "Menús generados",
+              "estado": "medida",
+              "donde": "user_events menu_generated (app); funnel_first_menu en app y bot",
+              "evento": "menu_generated"
+            },
+            {
+              "id": "generacion_fallida",
+              "que": "Generaciones que fallan",
+              "estado": "medida",
+              "donde": "user_events generation_failed",
+              "evento": "generation_failed"
+            },
+            {
+              "id": "coste_ia_menu",
+              "que": "Coste de IA por menú generado",
+              "estado": "posible",
+              "donde": "api/generate.js no guarda tokens por llamada"
+            }
+          ]
+        },
+        {
+          "id": "pizarra",
+          "nombre": "Pizarra del menú",
+          "hace": "Ver la semana y cambiarla a mano: poner, mover, quitar y repetir platos, congelador, estructura de cada comida y la burbuja de órdenes. Incluye el botón «¡Cocinado!» de la ficha del plato: descuenta la despensa (o el congelador), guarda el plato como cocinado y deja rastro.",
+          "grado": "usable",
+          "motivo_grado": "Funciona y se mide, pero se está rediseñando (frontal de Lola) y la pantalla principal vive en un App.jsx de 6000 líneas. «¡Cocinado!» funciona hoy fuera de Gente (src/screens/Menu.jsx), guarda `cookedDishes` en el estado de la casa y no usa la tabla `cookings`.",
+          "ficheros": [
+            "src/screens/Menu.jsx",
+            "src/lib/pizarra.js",
+            "src/lib/pizarraIA.js",
+            "src/screens/PizarraControles.jsx",
+            "src/components/PizarraBurbuja.jsx",
+            "src/components/wizard/useWizardMenu.jsx",
+            "src/lib/freezer.js",
+            "src/App.jsx",
+            "src/screens/AnadirHuecoSheet.jsx",
+            "src/screens/SlotTypePickerSheet.jsx",
+            "src/lib/slotEaters.js",
+            "src/lib/huecosVivos.js",
+            "src/lib/sugerenciasDeHueco.js",
+            "src/lib/semanaDias.js",
+            "src/lib/weekCalendar.js"
+          ],
+          "tests": [
+            "src/lib/pizarra.test.js",
+            "src/lib/pizarraIA.test.js",
+            "src/lib/freezer.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "cambios_de_plato",
+              "que": "Platos cambiados a mano",
+              "estado": "medida",
+              "donde": "user_events dish_swapped / dish_replaced",
+              "evento": "dish_swapped"
+            },
+            {
+              "id": "uso_pizarra",
+              "que": "Veces que se abre la pizarra",
+              "estado": "medida",
+              "donde": "user_events pizarra_started",
+              "evento": "pizarra_started"
+            },
+            {
+              "id": "plato_marcado_cocinado",
+              "que": "Veces que se marca un plato como cocinado desde la ficha del plato (no escribe en `cookings`)",
+              "estado": "medida",
+              "donde": "user_events dish_cooked (RASTRO.COCINADO), emitido desde src/screens/Menu.jsx",
+              "evento": "dish_cooked"
+            }
+          ]
+        },
+        {
+          "id": "menus-guardados",
+          "nombre": "Menús guardados e historial",
+          "hace": "Guarda cada semana (activa y pasadas), el historial, la exportación a PDF y el archivo.",
+          "grado": "usable",
+          "motivo_grado": "Tablas en uso desde hace tiempo y tests; el menú activo se movió a is_active en 0087.",
+          "ficheros": [
+            "src/lib/menusSync.js",
+            "src/lib/menuActivo.js",
+            "src/lib/menuArchive.js",
+            "src/lib/menuExport.js",
+            "src/screens/MenusScreen.jsx",
+            "src/screens/MenuHistoryView.jsx",
+            "src/components/MenuPdfExportModal.jsx",
+            "src/lib/menuParser.js"
+          ],
+          "tests": [
+            "src/lib/menusSync.test.js",
+            "src/lib/menuActivo.test.js",
+            "src/lib/menuArchive.test.js",
+            "src/lib/menuExport.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "menus_por_casa",
+              "que": "Menús guardados por casa y semana",
+              "estado": "posible",
+              "donde": "count de user_menus por household_id"
+            },
+            {
+              "id": "pdf_exportados",
+              "que": "Exportaciones a PDF",
+              "estado": "posible",
+              "donde": "evento nuevo en MenuPdfExportModal"
+            }
+          ]
+        },
+        {
+          "id": "menu-del-cole",
+          "nombre": "Menú del cole",
+          "hace": "Lee el menú del colegio (foto o PDF) y deja la comida de los niños cuadrada con él.",
+          "grado": "usable",
+          "motivo_grado": "Importador con tests en la app y vía rápida en Lola (cole.js); depende de la lectura por visión, que falla con fotos malas.",
+          "ficheros": [
+            "src/lib/schoolMenu.js",
+            "src/lib/schoolMenuImport.js",
+            "src/screens/SchoolMenuDeck.jsx",
+            "api/_bot/cole.js",
+            "src/lib/kidsMenu.js"
+          ],
+          "tests": [
+            "src/lib/schoolMenuImport.test.js",
+            "src/lib/schoolMenuReplace.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "menus_cole_importados",
+              "que": "Menús de cole importados",
+              "estado": "posible",
+              "donde": "evento nuevo en schoolMenuImport.js y api/_bot/cole.js"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "recetas",
+      "nombre": "Recetas y catálogo",
+      "ambito": "compartido",
+      "hace": "Todo lo que es una receta: el catálogo curado en JSON, las propias de cada casa, carpetas, favoritos y lo cocinado.",
+      "grado": "usable",
+      "motivo_grado": "El catálogo es estable; las partes de usuario son usables y la pantalla de dislikes no existe aún.",
+      "ficheros": [],
+      "tests": [],
+      "metricas": [],
+      "submodulos": [
+        {
+          "id": "catalogo-recetas",
+          "nombre": "Catálogo de recetas (JSON en git)",
+          "hace": "Las recetas curadas por nosotros, con ingredientes, pasos, alérgenos y nutrición derivados; se leen del paquete, no de la base.",
+          "grado": "estable",
+          "motivo_grado": "Muchos tests de datos, una sola fuente (catalogoUnaFuente.test.js) y se mide qué platos se ven. Las tablas SQL heredadas están en desuso (0064).",
+          "ficheros": [
+            "src/data/recipeCatalog.js",
+            "src/data/recipes.js",
+            "src/data/recipeSchema.js",
+            "src/data/recipeRow.js",
+            "src/data/model.js",
+            "src/lib/recipeSteps.js",
+            "api/recipe-steps.js",
+            "src/screens/CatalogBrowserSheet.jsx",
+            "src/lib/recipeText.js",
+            "src/lib/dishNaming.js",
+            "src/lib/dishSubtype.js",
+            "src/lib/dominantComponent.js",
+            "src/lib/applianceMethods.js",
+            "src/lib/cookTime.js",
+            "src/lib/dishPhotoOptimize.js"
+          ],
+          "tests": [
+            "src/data/recipeCatalog.test.js",
+            "src/data/recipes.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "platos_vistos",
+              "que": "Recetas más vistas",
+              "estado": "medida",
+              "donde": "user_events dish_viewed (metadata.recipeId)",
+              "evento": "dish_viewed"
+            },
+            {
+              "id": "recetas_sin_usar",
+              "que": "Recetas del catálogo que nadie ha visto ni cocinado",
+              "estado": "posible",
+              "donde": "cruzar dish_viewed con el catálogo"
+            }
+          ]
+        },
+        {
+          "id": "catalogo-ingredientes",
+          "nombre": "Alimentos e ingredientes",
+          "hace": "Los alimentos con su nutrición, densidades, fotos, equivalencias y sustituciones; base de la despensa, la compra y la nutrición.",
+          "grado": "usable",
+          "motivo_grado": "Datos y tests sólidos (BEDCA, Ciqual, USDA); la tabla `ingredients` sigue viva solo porque la despensa apunta a ella.",
+          "ficheros": [
+            "src/data/alimentos.json",
+            "src/data/ingredients.json",
+            "src/data/alimentoSchema.js",
+            "src/data/ingredientSchema.js",
+            "src/lib/ingredients.js",
+            "src/lib/ingredientResolver.js",
+            "src/lib/substitutions.js",
+            "src/data/nutrientes.js",
+            "src/lib/ingredientCategories.js",
+            "src/lib/ingredientImageIds.js",
+            "src/lib/ingredientImages.js",
+            "src/lib/ingredientUnits.js",
+            "src/lib/kitchenUnits.js",
+            "src/lib/medidasDeIngrediente.js",
+            "src/lib/packUnits.js",
+            "src/lib/foodGroups.js",
+            "src/lib/nutricionPlato.js",
+            "src/lib/aporte.js"
+          ],
+          "tests": [
+            "src/data/alimentos.test.js",
+            "src/data/ingredientSchema.test.js",
+            "src/lib/ingredients.test.js",
+            "src/lib/substitutions.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "ingredientes_sin_resolver",
+              "que": "Ingredientes escritos por la gente que no casan con ningún alimento",
+              "estado": "posible",
+              "donde": "ingredientResolver.js, log estructurado nuevo"
+            }
+          ]
+        },
+        {
+          "id": "recetas-propias",
+          "nombre": "Recetas propias",
+          "hace": "Crear, editar y fotografiar recetas propias de la casa, también desde el chat con Lola.",
+          "grado": "usable",
+          "motivo_grado": "Funciona en app y en bot, con tests de sincronización; la tabla es por usuario y no por casa (deuda de PRINCIPIOS §1).",
+          "ficheros": [
+            "src/lib/userRecipes.js",
+            "src/lib/userRecipesSync.js",
+            "src/lib/userRecipesFila.js",
+            "src/lib/recipePhotos.js",
+            "src/screens/RecipePlanner.jsx",
+            "src/screens/RecipesScreen.jsx",
+            "api/_bot/propias.js",
+            "api/generate-dish-photo.js"
+          ],
+          "tests": [
+            "src/lib/userRecipes.test.js",
+            "src/lib/userRecipesSync.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "recetas_guardadas",
+              "que": "Recetas guardadas por origen (creada en app, en bot, copiada)",
+              "estado": "medida",
+              "donde": "user_events recipe_saved (metadata.origen)",
+              "evento": "recipe_saved"
+            }
+          ]
+        },
+        {
+          "id": "carpetas",
+          "nombre": "Carpetas de recetas",
+          "hace": "Agrupar recetas en carpetas fijas (día a día, ocasión especial…) y propias.",
+          "grado": "usable",
+          "motivo_grado": "Con tests y migración 0086 de vocabulario aplicada.",
+          "ficheros": [
+            "src/lib/recipeCollections.js",
+            "src/lib/carpetasDelHueco.js",
+            "src/screens/BibliotecaScreen.jsx"
+          ],
+          "tests": [
+            "src/lib/recipeCollections.test.js",
+            "src/lib/carpetasDelHueco.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "uso_carpetas",
+              "que": "Casas que usan carpetas propias",
+              "estado": "posible",
+              "donde": "count de recipe_folders por household"
+            }
+          ]
+        },
+        {
+          "id": "favoritos-y-valoraciones",
+          "nombre": "Favoritos y me gusta",
+          "hace": "Marcar una receta como favorita de la casa y votarla; los votos alimentan el planner.",
+          "grado": "usable",
+          "motivo_grado": "Favoritos en tabla de casa con tests; los votos (`recipe_votes`) los usa el planner pero la comunidad que los veía (Gente) está apagada.",
+          "ficheros": [
+            "src/lib/householdFavoritesSync.js",
+            "src/components/FavoriteScopeModal.jsx",
+            "src/lib/recipeVotes.js"
+          ],
+          "tests": [
+            "src/lib/householdFavoritesSync.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "favoritas_por_casa",
+              "que": "Favoritas por casa",
+              "estado": "posible",
+              "donde": "count de household_favorites"
+            }
+          ]
+        },
+        {
+          "id": "cocinado",
+          "nombre": "Historias de lo cocinado (apagado con Gente)",
+          "hace": "Contar que se ha cocinado un plato (con nota o foto) en un hilo para compartir. Vive en Gente, que está apagada.",
+          "grado": "en_marcha",
+          "motivo_grado": "`cookings` solo la escribe src/screens/FeedScreen.jsx (Gente, apagada por GENTE_ACTIVA): hoy nadie puede crear una historia. El botón «¡Cocinado!» del menú NO es esto: está en pizarra.",
+          "ficheros": [
+            "src/lib/cookings.js",
+            "src/lib/cookingsSync.js",
+            "src/components/CookingComposer.jsx",
+            "src/components/CookingStory.jsx"
+          ],
+          "tests": [],
+          "metricas": [],
+          "apagado": true,
+          "apagado_por": {
+            "constante": "GENTE_ACTIVA",
+            "fichero": "src/lib/frontalBot.js",
+            "valor": false
+          }
+        },
+        {
+          "id": "dislikes",
+          "nombre": "Pantalla «Qué no os gusta» (aparcada)",
+          "hace": "Una pantalla para decir con calma qué no os gusta. Aparcada por Pablo; antes hay que quitar el match por substring.",
+          "grado": "idea",
+          "motivo_grado": "Solo existe como WIP en la rama origin/rescate/dislikes (commit f251d5b); en staging no hay pantalla. vetos.js ya arregló el match.",
+          "ficheros": [],
+          "tests": [],
+          "metricas": []
+        }
+      ]
+    },
+    {
+      "id": "despensa-y-compra",
+      "nombre": "Despensa y compra",
+      "ambito": "compartido",
+      "hace": "Qué hay en casa y qué falta comprar esta semana.",
+      "grado": "usable",
+      "motivo_grado": "Funciona en app y bot; pasar la lista a Mercadona sigue sin fusionar.",
+      "ficheros": [],
+      "tests": [],
+      "metricas": [],
+      "submodulos": [
+        {
+          "id": "despensa",
+          "nombre": "Despensa",
+          "hace": "Apuntar lo que hay en casa (a mano, por foto o hablando con Lola) con cantidades, envases y caducidad.",
+          "grado": "usable",
+          "motivo_grado": "Tests de sincronización y de normalización; la tabla es por usuario (deuda PRINCIPIOS §1).",
+          "ficheros": [
+            "src/lib/pantry.js",
+            "src/lib/pantryDeltas.js",
+            "src/screens/Pantry.jsx",
+            "src/components/PantryInput.jsx",
+            "src/utils/normalizePantryInput.js",
+            "api/_bot/despensa.js",
+            "src/lib/cookPantry.js",
+            "src/lib/productMatcher.js"
+          ],
+          "tests": [
+            "src/lib/pantry.test.js",
+            "src/lib/pantryDeltas.test.js",
+            "src/utils/normalizePantryInput.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "articulos_despensa",
+              "que": "Artículos en la despensa por casa",
+              "estado": "posible",
+              "donde": "count de user_pantry por household_id"
+            }
+          ]
+        },
+        {
+          "id": "tickets",
+          "nombre": "Tickets y fotos de despensa",
+          "hace": "Lee un ticket de compra o una foto de la nevera con visión por IA y rellena la despensa.",
+          "grado": "usable",
+          "motivo_grado": "Parser con tests y flujo completo; la calidad depende de la IA de visión.",
+          "ficheros": [
+            "src/screens/PantryReceiptFlow.jsx",
+            "src/lib/receiptParser.js",
+            "src/lib/visionImage.js",
+            "src/lib/photoDisambiguation.js"
+          ],
+          "tests": [
+            "src/lib/receiptParser.test.js",
+            "src/lib/photoDisambiguation.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "tickets_leidos",
+              "que": "Tickets leídos y artículos aceptados",
+              "estado": "posible",
+              "donde": "evento nuevo en PantryReceiptFlow.jsx"
+            }
+          ]
+        },
+        {
+          "id": "lista-compra",
+          "nombre": "Lista de la compra",
+          "hace": "Saca la lista de la semana del menú, descuenta la despensa, agrupa por sección y se puede ir tachando (también el lector de la casa).",
+          "grado": "estable",
+          "motivo_grado": "Vista derivada con tests; household_shopping_mark ya aplicado (0072, 0087) y se mide su apertura.",
+          "ficheros": [
+            "src/screens/Shopping.jsx",
+            "src/lib/shoppingBuilder.js",
+            "src/lib/shoppingListUtils.js",
+            "src/lib/tacharLector.js"
+          ],
+          "tests": [
+            "src/lib/shoppingBuilder.test.js",
+            "src/lib/shoppingListUtils.test.js",
+            "src/lib/tacharLector.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "lista_abierta",
+              "que": "Veces que se abre la lista",
+              "estado": "medida",
+              "donde": "user_events shopping_opened",
+              "evento": "shopping_opened"
+            },
+            {
+              "id": "compra_tachada",
+              "que": "Artículos tachados",
+              "estado": "medida",
+              "donde": "user_events shopping_marked",
+              "evento": "shopping_marked"
+            }
+          ]
+        },
+        {
+          "id": "precios-y-coste",
+          "nombre": "Precios y coste por ración",
+          "hace": "El € por ración de cada receta y el total de la lista, con los precios del catálogo semanal de Mercadona.",
+          "grado": "usable",
+          "motivo_grado": "El cálculo y los datos derivados están en staging con tests; la tabla `store_products` (0021) no está aplicada y el panel de gasto es solo informativo.",
+          "ficheros": [
+            "src/lib/coste.js",
+            "src/lib/derive/coste.js",
+            "src/lib/listPricing.js",
+            "src/lib/priceHistory.js",
+            "src/screens/SpendPanel.jsx",
+            "scripts/mercadona-sync.mjs",
+            "src/lib/storeCatalog.js"
+          ],
+          "tests": [
+            "src/lib/coste.test.js",
+            "src/lib/listPricing.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "gasto_declarado",
+              "que": "Gasto semanal estimado por casa",
+              "estado": "posible",
+              "donde": "listPricing.js calcula el total; no se guarda"
+            }
+          ]
+        },
+        {
+          "id": "lista-a-mercadona",
+          "nombre": "Pasar la lista a Mercadona (aparcada)",
+          "hace": "Llevar la lista de la compra a Mercadona (bookmarklet; no un carrito), también desde Lola.",
+          "grado": "idea",
+          "motivo_grado": "Solo existe en la rama origin/bot/mercadona-lista (commit a1d60ff), sin fusionar ni probar con una cuenta real; en staging no hay nada.",
+          "ficheros": [],
+          "tests": [],
+          "metricas": []
+        },
+        {
+          "id": "escaner-codigos",
+          "nombre": "Escáner de códigos de barras (aparcado)",
+          "hace": "Apuntar la despensa escaneando el código de barras del producto.",
+          "grado": "idea",
+          "motivo_grado": "Aparcado el 8 sep 2026. En el código solo hay una mención en alimentoSchema.js («producto: lo que tiene código de barras»); ninguna pantalla ni función.",
+          "ficheros": [],
+          "tests": [],
+          "metricas": []
+        }
+      ]
+    },
+    {
+      "id": "compartir",
+      "nombre": "Compartir por enlace",
+      "ambito": "compartido",
+      "hace": "Mandar un menú o una receta por WhatsApp o Telegram con un enlace privado y una vista previa.",
+      "grado": "usable",
+      "motivo_grado": "Enlaces y previews con tests en app y bot; los enlaces dependen de que Gente siga apagada para la parte social.",
+      "ficheros": [
+        "api/share-menu.js",
+        "api/share-recipe.js",
+        "api/_bot/compartir.js",
+        "src/lib/shareLink.js",
+        "src/lib/sharedMenu.js",
+        "src/components/ShareMenuSheet.jsx",
+        "src/components/ShareRecipeSheet.jsx",
+        "src/components/SharedMenuCard.jsx"
+      ],
+      "tests": [
+        "api/share-menu.test.js",
+        "api/share-recipe.test.js",
+        "src/lib/shareLink.test.js",
+        "api/_bot/compartirBloqueo.test.js"
+      ],
+      "metricas": [
+        {
+          "id": "menus_compartidos",
+          "que": "Menús compartidos por enlace",
+          "estado": "medida",
+          "donde": "user_events menu_link_compartido",
+          "evento": "menu_link_compartido"
+        },
+        {
+          "id": "compartidos_recibidos",
+          "que": "Menús o recetas recibidos y guardados",
+          "estado": "medida",
+          "donde": "user_events share_received",
+          "evento": "share_received"
+        }
+      ],
+      "submodulos": []
+    },
+    {
+      "id": "gente",
+      "nombre": "Gente (lo social, apagado)",
+      "ambito": "app",
+      "hace": "Perfiles, seguir, publicar menús y recetas, me gusta y comentarios entre familias. Apagado desde el 7 oct 2026.",
+      "grado": "en_marcha",
+      "motivo_grado": "Está todo el código, pero GENTE_ACTIVA = !FRONTAL_BOT está en false (specs/gente-apagada.md): nadie lo ve, no se crean perfiles sociales nuevos.",
+      "apagado": true,
+      "ficheros": [
+        "src/lib/social.js",
+        "src/lib/socialNotifications.js",
+        "src/lib/socialUi.js",
+        "src/lib/socialBadge.js",
+        "src/screens/FeedScreen.jsx",
+        "src/components/CommentThread.jsx",
+        "src/components/DiscoverPeopleSheet.jsx",
+        "src/components/FollowListSheet.jsx",
+        "src/components/NotificationsPopover.jsx",
+        "src/components/ReportSheet.jsx",
+        "api/moderate.js",
+        "api/moderate-takedown.js",
+        "api/report-alert.js",
+        "api/_moderation.js",
+        "src/lib/socialFixtures.js"
+      ],
+      "tests": [
+        "src/lib/social.test.js",
+        "src/lib/social.blocking.test.js",
+        "src/lib/socialNotifications.test.js",
+        "api/_moderation.test.js"
+      ],
+      "metricas": [
+        {
+          "id": "perfiles_sociales",
+          "que": "Perfiles sociales y seguidores",
+          "estado": "posible",
+          "donde": "count de social_profiles / user_follows (hoy congelado)"
+        },
+        {
+          "id": "reportes",
+          "que": "Contenido reportado y retirado",
+          "estado": "posible",
+          "donde": "count de content_reports"
+        }
+      ],
+      "submodulos": [],
+      "apagado_por": {
+        "constante": "GENTE_ACTIVA",
+        "fichero": "src/lib/frontalBot.js",
+        "valor": false
+      }
+    },
+    {
+      "id": "ajustes-e-idioma",
+      "nombre": "Ajustes e idioma",
+      "ambito": "compartido",
+      "hace": "Preferencias de la casa (cocina, aparatos, horarios, modelo de menú) y el idioma (español o inglés) de la app y de Lola.",
+      "grado": "usable",
+      "motivo_grado": "Pantallas y ajustes por chat con tests; el inglés cubre lo pintado por el código con caché de traducciones.",
+      "ficheros": [
+        "src/screens/Settings.jsx",
+        "api/_bot/ajustes.js",
+        "api/_bot/traducir.js",
+        "src/lib/electrodomesticos.js",
+        "src/lib/mealSlots.js"
+      ],
+      "tests": [
+        "api/_bot/traducir.test.js",
+        "src/lib/mealSlots.test.js",
+        "api/_bot/horarioCole.test.js"
+      ],
+      "metricas": [
+        {
+          "id": "idioma_elegido",
+          "que": "Casas en inglés frente a español",
+          "estado": "posible",
+          "donde": "count de user_profiles por ui_lang"
+        }
+      ],
+      "submodulos": []
+    },
+    {
+      "id": "medicion-y-feedback",
+      "nombre": "Medición y comentarios",
+      "ambito": "compartido",
+      "hace": "Dejar rastro de lo que se hace (eventos de uso, embudo de alta) y recoger lo que la gente dice desde el botón de comentarios.",
+      "grado": "usable",
+      "motivo_grado": "Eventos con test y panel de Lola en local; el panel de la factoría (#158) aún no los lee.",
+      "ficheros": [
+        "src/lib/analytics.js",
+        "api/track.js",
+        "src/lib/embudo.js",
+        "src/lib/rastro.js",
+        "api/_bot/embudo.js",
+        "src/lib/feedback.js",
+        "src/components/FeedbackFAB.jsx",
+        "src/screens/Analytics.jsx",
+        "src/screens/UserStatsScreen.jsx",
+        "src/lib/menuStats.js",
+        "src/lib/menuRecuento.js",
+        "src/lib/menuInsights.js",
+        "src/lib/consumptionInsights.js"
+      ],
+      "tests": [
+        "api/track.test.js"
+      ],
+      "metricas": [
+        {
+          "id": "eventos_por_dia",
+          "que": "Eventos de uso por día y canal",
+          "estado": "medida",
+          "donde": "user_events (app con cuenta, /api/track para invitados, bot vía embudo.js)"
+        },
+        {
+          "id": "comentarios_recibidos",
+          "que": "Comentarios enviados por el botón",
+          "estado": "posible",
+          "donde": "count de app_feedback"
+        }
+      ],
+      "submodulos": []
+    },
+    {
+      "id": "lola-conversacion",
+      "nombre": "Lola: conversación",
+      "ambito": "lola",
+      "hace": "Recibe los mensajes de Telegram, decide qué hacer (vía rápida o modelo), responde y no repite ni pierde turnos.",
+      "grado": "usable",
+      "motivo_grado": "En uso con familias de prueba y muchos tests; cambia cada semana y WhatsApp no existe.",
+      "ficheros": [],
+      "tests": [],
+      "metricas": [],
+      "submodulos": [
+        {
+          "id": "lola-canal-telegram",
+          "nombre": "Canal de Telegram",
+          "hace": "El webhook de Telegram, el envío de mensajes, las notas de voz y las fotos o PDFs que llegan.",
+          "grado": "usable",
+          "motivo_grado": "Webhook con tests; WhatsApp está previsto pero no hay código.",
+          "ficheros": [
+            "api/bot/telegram.js",
+            "api/_bot/telegram.js",
+            "api/_bot/loginTelegram.js",
+            "api/_bot/voz.js",
+            "api/_bot/adjuntos.js"
+          ],
+          "tests": [
+            "api/bot/telegram.test.js",
+            "api/_bot/voz.test.js",
+            "api/_bot/loginTelegram.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "mensajes_recibidos",
+              "que": "Mensajes recibidos por casa y día",
+              "estado": "medida",
+              "donde": "bot_usage.messages (por casa y mes) y ops.bot_events"
+            }
+          ]
+        },
+        {
+          "id": "lola-turnos",
+          "nombre": "Turnos, entradas e idempotencia",
+          "hace": "Un turno a la vez por chat, los mensajes seguidos juntos, cada mensaje de fuera atendido una vez y cada orden sin repetirse.",
+          "grado": "usable",
+          "motivo_grado": "Tablas aplicadas (0063, 0088) con tests; la cola se purga cada noche.",
+          "ficheros": [
+            "api/_bot/turnos.js",
+            "api/_bot/entradas.js",
+            "api/_bot/idempotencia.js"
+          ],
+          "tests": [
+            "api/_bot/turnos.test.js",
+            "api/_bot/entradas.test.js",
+            "api/_bot/idempotencia.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "duplicados_evitados",
+              "que": "Mensajes repetidos descartados",
+              "estado": "posible",
+              "donde": "entradas.js, línea de log estructurada nueva"
+            }
+          ]
+        },
+        {
+          "id": "lola-enrutador",
+          "nombre": "Enrutador y vías rápidas",
+          "hace": "Antes del modelo grande, decide si un mensaje se contesta al momento (botones, plantillas) o necesita a Lola.",
+          "grado": "usable",
+          "motivo_grado": "Ejemplos etiquetados y tests; se evalúa con scripts/bot-evals.mjs.",
+          "ficheros": [
+            "api/_bot/router.js",
+            "api/_bot/routerEjemplos.js",
+            "api/_bot/rapido.js",
+            "api/_bot/pista.js",
+            "api/_bot/cuando.js",
+            "api/_bot/plato.js",
+            "api/_bot/turno.js"
+          ],
+          "tests": [
+            "api/_bot/cuando.test.js",
+            "api/_bot/pista.test.js",
+            "api/_bot/plato.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "via_rapida",
+              "que": "Mensajes resueltos sin modelo grande",
+              "estado": "medida",
+              "donde": "scripts/bot-semanal.mjs (user_events del bot)"
+            }
+          ]
+        },
+        {
+          "id": "lola-agente",
+          "nombre": "El agente de Lola",
+          "hace": "Conversa con el modelo, recuerda la charla, usa herramientas y pasa por un supervisor lo que quita protección.",
+          "grado": "usable",
+          "motivo_grado": "Tests y evals; es el módulo que más cambia y el que más cuesta.",
+          "ficheros": [
+            "api/_bot/agente.js",
+            "api/_bot/memoria.js",
+            "api/_bot/supervisor.js",
+            "api/_bot/esquemas.js",
+            "api/_bot/conocimiento.md",
+            "api/_bot/noPude.js"
+          ],
+          "tests": [
+            "api/_bot/memoria.test.js",
+            "api/_bot/supervisor.test.js",
+            "api/_bot/esquemas.test.js",
+            "api/_bot/deshacerSeguro.test.js"
+          ],
+          "metricas": [
+            {
+              "id": "turnos_con_modelo",
+              "que": "Turnos que usan el modelo y sus herramientas más lentas",
+              "estado": "medida",
+              "donde": "npm run bot:panel y scripts/bot-semanal.mjs"
+            },
+            {
+              "id": "fallos_lola",
+              "que": "Fallos por motivo y sitio",
+              "estado": "medida",
+              "donde": "línea de log bot_fallo (api/_bot/avisar.js), npm run fallos",
+              "evento": "bot_fallo",
+              "emision": "log"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lola-alta-y-enlace",
+      "nombre": "Lola: alta y enlace con la casa",
+      "ambito": "lola",
+      "hace": "Que alguien empiece con Lola, la una a su cuenta o a una casa, y pueda borrarse.",
+      "grado": "usable",
+      "motivo_grado": "Altas por Telegram, códigos de un solo uso y borrado con tests; el embudo está medido.",
+      "ficheros": [
+        "api/_bot/enlace.js",
+        "api/_bot/altaTelegram.js",
+        "api/_bot/cuentas.js",
+        "api/_bot/borrar.js",
+        "api/bot/link.js",
+        "api/bot/entrar.js",
+        "src/components/BotEnlace.jsx",
+        "src/lib/botRevVisto.js",
+        "src/lib/destinoBot.js",
+        "src/lib/pedidoLola.js",
+        "src/lib/llaveLola.js"
+      ],
+      "tests": [
+        "api/_bot/enlace.test.js",
+        "api/bot/link.test.js",
+        "api/bot/entrar.test.js",
+        "api/_bot/borrar.test.js",
+        "src/lib/llaveLola.test.js"
+      ],
+      "metricas": [
+        {
+          "id": "embudo_lola",
+          "que": "Embudo del alta por Telegram (arranque, enlace, cimientos, primer menú, segunda semana)",
+          "estado": "medida",
+          "donde": "user_events screen=funnel canal=telegram (api/_bot/embudo.js)",
+          "evento": "funnel_week2_return"
+        },
+        {
+          "id": "chats_activos",
+          "que": "Chats enlazados activos",
+          "estado": "posible",
+          "donde": "count de bot_chats con mensajes recientes"
+        }
+      ],
+      "submodulos": []
+    },
+    {
+      "id": "lola-menu-y-compra",
+      "nombre": "Lola: menú, compra y despensa por chat",
+      "ambito": "lola",
+      "hace": "Generar, ver, cambiar y compartir el menú; la lista y la despensa desde el chat; y deshacer lo último.",
+      "grado": "usable",
+      "motivo_grado": "Funciona de punta a punta con deshacer; las escrituras siguen estando repartidas entre varios ficheros del bot.",
+      "ficheros": [
+        "api/_bot/menu.js",
+        "api/_bot/generar.js",
+        "api/_bot/pintar.js",
+        "api/_bot/presentes.js",
+        "api/_bot/deFuera.js"
+      ],
+      "tests": [
+        "api/_bot/menu.test.js",
+        "api/_bot/generar.test.js",
+        "api/_bot/pintar.test.js",
+        "api/_bot/rehacerCompra.test.js"
+      ],
+      "metricas": [
+        {
+          "id": "menus_por_lola",
+          "que": "Menús generados por Lola",
+          "estado": "medida",
+          "donde": "user_events menu_generated / funnel_first_menu con canal=telegram",
+          "evento": "funnel_first_menu"
+        },
+        {
+          "id": "deshacer",
+          "que": "Veces que se deshace lo último",
+          "estado": "posible",
+          "donde": "count de bot_deshacer"
+        }
+      ],
+      "submodulos": []
+    },
+    {
+      "id": "lola-recetas",
+      "nombre": "Lola: recetas",
+      "ambito": "lola",
+      "hace": "Buscar recetas por lo que se quiere (rasgos y significado) y crear recetas propias hablando.",
+      "grado": "usable",
+      "motivo_grado": "Buscador híbrido con vectores y examen de calidad (scripts/buscador-examen.mjs).",
+      "ficheros": [
+        "api/_bot/recetas.js",
+        "api/_bot/buscador.js",
+        "api/_bot/vectores.js",
+        "api/_bot/significado.js",
+        "api/_bot/recetasVectores.json",
+        "src/lib/rasgosBusqueda.js",
+        "src/lib/vectores.js"
+      ],
+      "tests": [
+        "api/_bot/recetas.test.js",
+        "api/_bot/buscador.test.js",
+        "api/_bot/vectores.test.js"
+      ],
+      "metricas": [
+        {
+          "id": "busquedas_sin_resultado",
+          "que": "Búsquedas que no devuelven recetas",
+          "estado": "posible",
+          "donde": "log estructurado nuevo en buscador.js"
+        }
+      ],
+      "submodulos": []
+    },
+    {
+      "id": "lola-recordatorios-y-tareas",
+      "nombre": "Lola: recordatorios y tareas abiertas",
+      "ambito": "lola",
+      "hace": "Recordatorios («recuérdame el domingo…»), el aviso de la víspera, y las preguntas o seguimientos que Lola deja abiertos.",
+      "grado": "usable",
+      "motivo_grado": "Dos tablas y un cron (cada 5 min) con muchos tests; tareas v2 y su FK aplicadas el 8 oct, con constraints aún NOT VALID (supabase/PENDIENTES.md), por eso no es estable.",
+      "ficheros": [
+        "api/_bot/recordatorios.js",
+        "api/bot/recordatorios.js",
+        "api/_bot/vispera.js",
+        "api/_bot/tareas.js",
+        "api/_bot/pendientes.js",
+        "scripts/bot-cron.mjs"
+      ],
+      "tests": [
+        "api/_bot/recordatorios.test.js",
+        "api/_bot/vispera.test.js",
+        "api/_bot/tareas.test.js",
+        "api/_bot/pendientes.test.js"
+      ],
+      "metricas": [
+        {
+          "id": "recordatorios_enviados",
+          "que": "Recordatorios enviados y fallidos",
+          "estado": "posible",
+          "donde": "el cron devuelve {enviados}; no se guarda la cifra"
+        },
+        {
+          "id": "tareas_cerradas",
+          "que": "Tareas abiertas que se resuelven frente a las que caducan",
+          "estado": "posible",
+          "donde": "estado de bot_tareas"
+        }
+      ],
+      "submodulos": []
+    },
+    {
+      "id": "lola-coste-y-limites",
+      "nombre": "Lola: uso y coste",
+      "ambito": "lola",
+      "hace": "Cuenta mensajes y tokens por casa y mes y aplica el límite gratis.",
+      "grado": "en_marcha",
+      "motivo_grado": "bot_usage con suma atómica (0061) y script de coste, pero api/_bot/uso.js no tiene test propio (llaveLola.test.js es de la llave de enlace, no del límite).",
+      "ficheros": [
+        "api/_bot/uso.js",
+        "scripts/bot-coste.mjs"
+      ],
+      "tests": [],
+      "metricas": [
+        {
+          "id": "tokens_por_casa",
+          "que": "Mensajes y tokens por casa y mes",
+          "estado": "medida",
+          "donde": "bot_usage; scripts/bot-coste.mjs"
+        }
+      ],
+      "submodulos": []
+    },
+    {
+      "id": "lola-calidad",
+      "nombre": "Lola: calidad y señales",
+      "ambito": "lola",
+      "hace": "Detectar turnos que salieron mal, contar los fallos por motivo y medir cada semana contra los objetivos.",
+      "grado": "usable",
+      "motivo_grado": "Informe semanal, panel local y registro de fallos funcionan; no hay alerta en tiempo real (plano 6).",
+      "ficheros": [
+        "api/_bot/senales.js",
+        "api/_bot/avisar.js",
+        "scripts/bot-fallos.mjs",
+        "scripts/bot-semanal.mjs",
+        "scripts/bot-panel.mjs",
+        "scripts/bot-evals.mjs",
+        "scripts/bot-objetivos.json"
+      ],
+      "tests": [
+        "api/_bot/senales.test.js",
+        "api/_bot/avisar.test.js",
+        "scripts/bot-fallos.test.js"
+      ],
+      "metricas": [
+        {
+          "id": "semaforo_semanal",
+          "que": "Semáforo de objetivos de Lola, semana contra semana",
+          "estado": "medida",
+          "donde": "scripts/bot-semanal.mjs → .ops/informe-semanal.md"
+        }
+      ],
+      "submodulos": []
+    }
+  ],
+  "tablas": {
+    "app_feedback": {
+      "dueno": "medicion-y-feedback",
+      "fichero_dueno": {
+        "app": "src/lib/feedback.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    },
+    "apple_auth_tokens": {
+      "dueno": "borrar-cuenta",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/delete-account.js"
+      },
+      "nota": "Creada a mano en el panel, sin migración; la lee api/delete-account.js por REST directo (no por db.js, por eso cableado.json no la ve). api/delete-account.js la lee por fetch a /rest/v1/ (punto ciego de cableado.mjs).",
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Ningún fichero de src/ la toca (el cliente no la escribe hoy)."
+        }
+      }
+    },
+    "blocked_users": {
+      "dueno": "gente",
+      "fichero_dueno": {
+        "app": "src/lib/social.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "fuera_del_dueno",
+          "texto": "El bot la lee desde api/_bot/compartir.js (módulo compartir), que no es del dueño: debería ir por la RPC is_blocked. Sin puerta de servidor propia."
+        }
+      }
+    },
+    "bot_candados": {
+      "dueno": "lola-turnos",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/turnos.js"
+      },
+      "nota": "Solo por las RPC bot_tomar_candado y bot_soltar_candado.",
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_chats": {
+      "dueno": "lola-alta-y-enlace",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/enlace.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_codigos": {
+      "dueno": "lola-alta-y-enlace",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/enlace.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_cola": {
+      "dueno": "lola-turnos",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/turnos.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_deshacer": {
+      "dueno": "estado-de-la-casa",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/casa.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_entradas": {
+      "dueno": "lola-turnos",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/entradas.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_idempotencia": {
+      "dueno": "lola-turnos",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/idempotencia.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_identities": {
+      "dueno": "lola-alta-y-enlace",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/enlace.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_link_tokens": {
+      "dueno": "lola-alta-y-enlace",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/bot/link.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_messages": {
+      "dueno": "lola-agente",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/agente.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_reminders": {
+      "dueno": "lola-recordatorios-y-tareas",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/recordatorios.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_tareas": {
+      "dueno": "lola-recordatorios-y-tareas",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/tareas.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "bot_usage": {
+      "dueno": "lola-coste-y-limites",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/uso.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "catalog_meta": {
+      "dueno": "catalogo-recetas",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "nota": "En desuso desde la 0064: el catálogo se lee del JSON.",
+      "sin_puerta": {
+        "app": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
+        },
+        "servidor": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064."
+        }
+      }
+    },
+    "content_reports": {
+      "dueno": "gente",
+      "fichero_dueno": {
+        "app": "src/lib/social.js",
+        "servidor": "api/moderate-takedown.js"
+      },
+      "nota": "cableado.json solo ve src/lib/social.js; también la leen y escriben por REST a mano api/moderate-takedown.js y api/report-alert.js (punto ciego de scripts/cableado.mjs, que no ve fetch a /rest/v1/)."
+    },
+    "content_translations": {
+      "dueno": "ajustes-e-idioma",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/traducir.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
+      }
+    },
+    "cookings": {
+      "dueno": "cocinado",
+      "fichero_dueno": {
+        "app": "src/lib/cookingsSync.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    },
+    "dish_images": {
+      "dueno": "catalogo-recetas",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "nota": "En desuso desde la 0064.",
+      "sin_puerta": {
+        "app": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
+        },
+        "servidor": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064."
+        }
+      }
+    },
+    "grupo": {
+      "dueno": "personas-y-grupos",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "nota": "Se escribe por RPC persona_sincronizar_casa y por el trigger de la 0089.",
+      "sin_puerta": {
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
+      }
+    },
+    "grupo_persona": {
+      "dueno": "personas-y-grupos",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "nota": "Igual que grupo.",
+      "sin_puerta": {
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
+      }
+    },
+    "household_favorites": {
+      "dueno": "favoritos-y-valoraciones",
+      "fichero_dueno": {
+        "app": "src/lib/householdFavoritesSync.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    },
+    "household_invites": {
+      "dueno": "casas-y-miembros",
+      "fichero_dueno": {
+        "app": "src/lib/householdsSync.js",
+        "servidor": "api/_bot/invitacion.js"
+      },
+      "nota": "Solo por RPC (create_household_invite, list_household_invites…)."
+    },
+    "household_members": {
+      "dueno": "casas-y-miembros",
+      "fichero_dueno": {
+        "app": "src/lib/householdsSync.js",
+        "servidor": "api/_bot/papel.js"
+      },
+      "nota": "La app va por RPC (householdsSync.js); el bot la toca directo en tres ficheros."
+    },
+    "household_recipe_discards": {
+      "dueno": "gustos-y-vetos",
+      "fichero_dueno": {
+        "app": "src/lib/householdDiscardsSync.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    },
+    "household_state": {
+      "dueno": "estado-de-la-casa",
+      "fichero_dueno": {
+        "app": "src/lib/householdState.js",
+        "servidor": "api/_bot/casa.js"
+      }
+    },
+    "households": {
+      "dueno": "casas-y-miembros",
+      "fichero_dueno": {
+        "app": "src/lib/householdsSync.js",
+        "servidor": "api/_bot/invitacion.js"
+      },
+      "nota": "La app va por RPC (householdsSync.js, que no usa .from); el bot la toca directo en siete ficheros."
+    },
+    "ids_uuid_equivalencias": {
+      "dueno": "personas-y-grupos",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Tabla puente temporal de la 0091."
+        },
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Tabla puente temporal de la 0091."
+        }
+      },
+      "nota": "La crea la 0091 (sin aplicar, rama datos/194-ids-uuid-migrar): guarda viejo → uuid para poder repasar el paso de ids; se borrará cuando termine la migración."
+    },
+    "ingredient_aliases": {
+      "dueno": "catalogo-ingredientes",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "nota": "Ningún fichero de src/ ni api/ la lee: solo scripts de construcción del catálogo (candidata a quitar por PRINCIPIOS: ningún dato sin lector).",
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en src/: la app lee el JSON."
+        },
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en api/."
+        }
+      }
+    },
+    "ingredient_substitutions": {
+      "dueno": "catalogo-ingredientes",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "nota": "La app lee las sustituciones del JSON (src/data/ingredientSubstitutions.json); la tabla no tiene lector en src/ ni api/.",
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en src/: la app lee el JSON."
+        },
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en api/."
+        }
+      }
+    },
+    "ingredients": {
+      "dueno": "catalogo-ingredientes",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "nota": "Sigue viva solo porque la despensa apunta a ella (0064).",
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en src/: la app lee el JSON."
+        },
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en api/."
+        }
+      }
+    },
+    "menu_share_links": {
+      "dueno": "compartir",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/compartir.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "por_rpc",
+          "texto": "La app va por RPC (menu_share_token…) desde los sheets de compartir; sin puerta propia en JS de la tabla."
+        }
+      }
+    },
+    "persona": {
+      "dueno": "personas-y-grupos",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "nota": "Por RPC y trigger al guardar la casa.",
+      "sin_puerta": {
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
+      }
+    },
+    "persona_alergia": {
+      "dueno": "alergias-y-salud",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
+      }
+    },
+    "persona_estado": {
+      "dueno": "personas-y-grupos",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
+      }
+    },
+    "persona_intolerancia": {
+      "dueno": "alergias-y-salud",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
+      }
+    },
+    "persona_perfil_salud": {
+      "dueno": "alergias-y-salud",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
+      }
+    },
+    "recipe_collections": {
+      "dueno": "carpetas",
+      "fichero_dueno": {
+        "app": "src/lib/recipeCollections.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    },
+    "recipe_folders": {
+      "dueno": "carpetas",
+      "fichero_dueno": {
+        "app": "src/lib/recipeCollections.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    },
+    "recipe_ingredients": {
+      "dueno": "catalogo-recetas",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "nota": "En desuso desde la 0064.",
+      "sin_puerta": {
+        "app": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
+        },
+        "servidor": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064."
+        }
+      }
+    },
+    "recipe_share_links": {
+      "dueno": "compartir",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "api/_bot/compartir.js"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "por_rpc",
+          "texto": "La app va por RPC (recipe_share_token…); sin puerta propia en JS de la tabla."
+        }
+      }
+    },
+    "recipe_votes": {
+      "dueno": "favoritos-y-valoraciones",
+      "fichero_dueno": {
+        "app": "src/lib/recipeVotes.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    },
+    "recipes": {
+      "dueno": "catalogo-recetas",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": null
+      },
+      "nota": "En desuso desde la 0064.",
+      "sin_puerta": {
+        "app": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
+        },
+        "servidor": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064."
+        }
+      }
+    },
+    "shared_menus": {
+      "dueno": "gente",
+      "fichero_dueno": {
+        "app": "src/lib/social.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "fuera_del_dueno",
+          "texto": "El bot la toca desde api/_bot/compartir.js (módulo compartir), que no es del dueño. Sin puerta de servidor propia."
+        }
+      }
+    },
+    "social_comment_likes": {
+      "dueno": "gente",
+      "fichero_dueno": {
+        "app": "src/lib/social.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    },
+    "social_comments": {
+      "dueno": "gente",
+      "fichero_dueno": {
+        "app": "src/lib/social.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    },
+    "social_profiles": {
+      "dueno": "gente",
+      "fichero_dueno": {
+        "app": "src/lib/social.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    },
+    "store_products": {
+      "dueno": "precios-y-coste",
+      "fichero_dueno": {
+        "app": null,
+        "servidor": "scripts/mercadona-sync.mjs"
+      },
+      "sin_puerta": {
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "La app no la lee: los precios salen del catálogo semanal en JSON (public/store/mercadona.json)."
+        }
+      },
+      "nota": "La migración 0021 NO está aplicada (supabase/ESTADO.md); el script la escribe por REST solo si hay clave. cableado.json no la ve por ser un script."
+    },
+    "user_events": {
+      "dueno": "medicion-y-feedback",
+      "fichero_dueno": {
+        "app": "src/lib/analytics.js",
+        "servidor": "api/track.js"
+      },
+      "nota": "cableado.json no ve api/track.js (invitados, por fetch a /rest/v1/) ni el fetch de src/lib/analytics.js; son otras puertas reales además de las que lista."
+    },
+    "user_follows": {
+      "dueno": "gente",
+      "fichero_dueno": {
+        "app": "src/lib/social.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    },
+    "user_menu_recipes": {
+      "dueno": "menus-guardados",
+      "fichero_dueno": {
+        "app": "src/lib/menusSync.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "fuera_del_dueno",
+          "texto": "El bot las escribe desde api/_bot/casa.js, generar.js y menu.js (módulos de Lola), no desde un módulo de menus-guardados."
+        }
+      }
+    },
+    "user_menu_weeks": {
+      "dueno": "menus-guardados",
+      "fichero_dueno": {
+        "app": "src/lib/menusSync.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "fuera_del_dueno",
+          "texto": "El bot las escribe desde api/_bot/casa.js, generar.js y menu.js (módulos de Lola), no desde un módulo de menus-guardados."
+        }
+      }
+    },
+    "user_menus": {
+      "dueno": "menus-guardados",
+      "fichero_dueno": {
+        "app": "src/lib/menusSync.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "fuera_del_dueno",
+          "texto": "El bot las escribe desde api/_bot/casa.js, generar.js y menu.js (módulos de Lola), no desde un módulo de menus-guardados."
+        }
+      }
+    },
+    "user_pantry": {
+      "dueno": "despensa",
+      "fichero_dueno": {
+        "app": "src/lib/pantry.js",
+        "servidor": "api/_bot/despensa.js"
+      }
+    },
+    "user_profiles": {
+      "dueno": "casas-y-miembros",
+      "fichero_dueno": {
+        "app": "src/lib/householdsSync.js",
+        "servidor": "api/_bot/papel.js"
+      },
+      "nota": "Siete ficheros la tocan (perfil, idioma, papel, enlace con el bot); no hay una puerta natural, se ha elegido una por lado."
+    },
+    "user_recipes": {
+      "dueno": "recetas-propias",
+      "fichero_dueno": {
+        "app": "src/lib/userRecipesSync.js",
+        "servidor": "api/_bot/propias.js"
+      }
+    },
+    "user_state": {
+      "dueno": "estado-de-la-casa",
+      "fichero_dueno": {
+        "app": "src/lib/userState.js",
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
+      }
+    }
+  },
+  "tablas_fuera_de_migraciones": [
+    "apple_auth_tokens"
+  ],
+  "tablas_excepciones": [
+    {
+      "tabla": "user_recipe_discards",
+      "motivo": "Su migración 0010 no está en producción y no se va a crear: los descartes viven en household_recipe_discards (ESTADO.md, 8 oct 2026)."
+    }
+  ],
+  "ficheros_sin_modulo": [
+    {
+      "motivo": "Plomería compartida del bot (cliente REST a Supabase): la usan todos los módulos de Lola, no es de ninguno.",
+      "ficheros": [
+        "api/_bot/db.js"
+      ]
+    },
+    {
+      "motivo": "Utilidades de interfaz sin dominio (animación, almacenamiento local, gesto de zoom, máquina de escribir).",
+      "ficheros": [
+        "src/lib/motion.js",
+        "src/lib/storage.js",
+        "src/lib/useZoomPellizco.js",
+        "src/lib/typewriter.js"
+      ]
+    },
+    {
+      "motivo": "Pantalla de inicio (Dashboard): reúne a todos los módulos y no pertenece a uno. Candidata a módulo propio «Inicio».",
+      "ficheros": [
+        "src/screens/Dashboard.jsx"
+      ]
+    },
+    {
+      "motivo": "La libreta y la burbuja de órdenes del panel (motor de reglas del menú, specs/menu-generation.md). Candidata a módulo propio «Libreta y panel».",
+      "ficheros": [
+        "src/lib/notepad.js",
+        "src/lib/notepadFields.js",
+        "src/lib/panelParser.js",
+        "src/lib/panelSuggestions.js",
+        "src/lib/wizardRegistry.js",
+        "src/lib/wizardServices.js",
+        "src/lib/libretaEnData.js"
+      ]
+    },
+    {
+      "motivo": "Bases / batch cooking (specs/batch-cooking.md): cocinar una vez para varios platos. Candidata a módulo propio «Bases».",
+      "ficheros": [
+        "src/lib/bases.js",
+        "src/lib/basesUI.js",
+        "src/lib/recetaConBases.js"
+      ]
+    },
+    {
+      "motivo": "Datos de prueba: casas aleatorias y fixtures que solo usan los tests y los bancos de prueba.",
+      "ficheros": [
+        "src/lib/casasAleatorias.js",
+        "src/lib/receiptFixtures.js"
+      ]
+    },
+    {
+      "motivo": "Plomería compartida entre módulos: el guard anti-abuso de los endpoints de IA y los vocabularios cerrados del modelo de datos.",
+      "ficheros": [
+        "api/_guard.js",
+        "src/lib/vocabularios.js"
+      ]
+    },
+    {
+      "motivo": "Interruptores y avisos transversales (FRONTAL_BOT, GENTE_ACTIVA, GUIAS_ACTIVAS): los leen casi todas las pantallas y no son de un módulo.",
+      "ficheros": [
+        "src/lib/frontalBot.js"
+      ]
+    }
+  ],
+  "tests_ajenos_admitidos": [],
+  "ficheros_compartidos": []
+}
