@@ -14,7 +14,7 @@ import { supabase } from "./supabase.js";
 
 /**
  * @param {string} userId
- * @returns {Promise<{ state: any, updatedAt: string } | null>}
+ * @returns {Promise<{ state: any, updatedAt: string|null, error?: boolean } | null>}
  */
 export async function loadUserState(userId) {
   if (!supabase || !userId) return null;
@@ -25,7 +25,8 @@ export async function loadUserState(userId) {
     .maybeSingle();
   if (error) {
     console.warn("[userState] load failed", error.message);
-    return null;
+    // Como loadHouseholdState: no es lo mismo «sin fila» que «sin red» (#317).
+    return { state: null, updatedAt: null, error: true };
   }
   if (!data) return null;
   return { state: data.state ?? null, updatedAt: data.updated_at };

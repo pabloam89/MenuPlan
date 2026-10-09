@@ -81,7 +81,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
 
   const refresh = useCallback(async () => {
     const uid = user?.id;
-    const [prof, cts, reqs, snt, fols, fing, coms, mine, blk] = await Promise.all([
+    const [cargaPerfil, cts, reqs, snt, fols, fing, coms, mine, blk] = await Promise.all([
       loadMyProfile(uid),
       loadProfileCounts(uid),
       loadFollowRequests(uid),
@@ -98,7 +98,8 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     const finalSent = useFx ? FIXTURE_SENT : snt;
     const finalComs = useFx ? FIXTURE_COMMENTS : coms;
 
-    setProfile(prof);
+    // Si el perfil no se pudo leer, se queda el que ya se veía.
+    if (!cargaPerfil.error) setProfile(cargaPerfil.data);
     setCounts(useFx && cts.followers === 0 ? { followers: 12, following: 8, recipes: 5, menus: 1 } : cts);
     setCookCount(await countOwnerCookings(user?.id));
     setRequests(finalReqs);

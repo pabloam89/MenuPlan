@@ -62,11 +62,13 @@ export async function subirRecetasSoloLocales({ userId, local, carga, deletedIds
 /**
  * Una receta ajena que este usuario puede leer: la RLS de user_recipes deja
  * pasar las 'public' a cualquiera y las 'friends' a seguidores mutuos. Si no
- * tienes permiso no da error, devuelve null — y el que copia se entera de
- * que ya no está disponible, no de que existe.
+ * tienes permiso no da error, `data` es null — y el que copia se entera de
+ * que ya no está disponible, no de que existe. Si la lectura falla, viene
+ * además `error`, para decir «sin conexión» y no «ya no está» (#317).
+ * @returns {Promise<{ data: object|null, error: object|null }>}
  */
 export async function loadPublicRecipe(recipeId) {
-  if (!supabase || !recipeId) return null;
+  if (!supabase || !recipeId) return { data: null, error: null };
   const { data, error } = await supabase
     .from("user_recipes")
     .select("*")
@@ -74,9 +76,9 @@ export async function loadPublicRecipe(recipeId) {
     .maybeSingle();
   if (error) {
     console.warn("[userRecipes] public load failed", error.message);
-    return null;
+    return { data: null, error };
   }
-  return data ? rowToRecipe(data) : null;
+  return { data: data ? rowToRecipe(data) : null, error: null };
 }
 
 /**

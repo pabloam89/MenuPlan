@@ -142,7 +142,7 @@ import {
   loadRecipeVotes,
   saveRecipeVote,
   deleteRecipeVote,
-  upsertRecipeVotes,
+  subirVotosSoloLocales,
 } from "./lib/recipeVotes.js";
 import {
   setRecipeCollections,
@@ -1461,10 +1461,10 @@ export default function App() {
       // Descartes: siempre de la casa (aquí la casa ya está cargada).
       const loadDiscards = () => loadHouseholdDiscards(householdId);
 
-      // Recetas, descartes y favoritas de la casa vuelven como `{ data, error }`
+      // Recetas, votos, carpetas, descartes y favoritas de la casa vuelven como `{ data, error }`
       // (#317): si una falló, se trabaja con lo local y no se sube nada
       // comparando con una nube que no se ha podido leer.
-      const [remoteState, cargaRecetas, remoteVotes, cargaDescartes, cargaFavsCasa, remoteCollections, remoteFolders] = await Promise.all([
+      const [remoteState, cargaRecetas, cargaVotos, cargaDescartes, cargaFavsCasa, cargaColecciones, cargaCarpetas] = await Promise.all([
         loadState(),
         loadUserRecipes(householdReadOnly ? menuUserId : user.id),
         loadRecipeVotes(user.id),
@@ -1474,6 +1474,9 @@ export default function App() {
         loadRecipeFolders(user.id),
       ]);
       const remoteRecipes = cargaRecetas.data ?? [];
+      const remoteVotes = cargaVotos.data ?? {};
+      const remoteCollections = cargaColecciones.data ?? {};
+      const remoteFolders = cargaCarpetas.data ?? [];
       const remoteDiscards = cargaDescartes.data ?? { forever: [], cooldownUntil: {} };
       const remoteHouseholdFavs = cargaFavsCasa.data ?? {};
       if (cancelled) return;
@@ -1599,11 +1602,8 @@ export default function App() {
         }
       }
 
-      const votesBackfill = {};
-      for (const [rid, v] of Object.entries(localVotes)) {
-        if (!(rid in remoteVotes)) votesBackfill[rid] = v;
-      }
-      upsertRecipeVotes(user.id, votesBackfill);
+      // Los votos que la nube no tiene; si la carga falló, ninguno (#317).
+      subirVotosSoloLocales({ userId: user.id, local: localVotes, carga: cargaVotos });
       // Backfill from the full merge (local + state blob), not just local —
       // an account whose only record of a discard sits in the blob needs it
       // pushed to household_recipe_discards too, not only kept in memory.
@@ -4109,7 +4109,8 @@ export default function App() {
    */
   const handleCopyRecipeFromFeed = useCallback(async (recipeId, ownerId) => {
     if (householdReadOnly) { showToast("Solo lectura: no puedes copiar aquí"); return null; }
-    const src = await loadPublicRecipe(recipeId);
+    const { data: src, error: errorReceta } = await loadPublicRecipe(recipeId);
+    if (errorReceta) { showToast("No se pudo cargar la receta. Revisa la conexión."); return null; }
     if (!src) { showToast("Esa receta ya no está disponible"); return null; }
     const copy = {
       ...src,
@@ -4147,7 +4148,7 @@ export default function App() {
       handleOpenCatalogRecipe(recipeCatalogById[row.id]);
       return;
     }
-    const full = (await loadPublicRecipe(row.id)) ?? {
+    const full = (await loadPublicRecipe(row.id)).data ?? {
       id: row.id,
       name: row.name,
       category: row.category,

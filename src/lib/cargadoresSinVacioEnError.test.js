@@ -1,4 +1,5 @@
-// Ningún cargador de src/lib/*Sync.js devuelve en error lo mismo que en vacío.
+// Ningún cargador de src/lib/ que lea de Supabase devuelve en error lo mismo
+// que en vacío.
 //
 // Encargo #317, caso #316, colgado del fondo #177 («errores que se tragan»).
 // La forma de esta clase no es callarse el error: es CONVERTIRLO en un estado
@@ -26,6 +27,8 @@ import { describe, expect, it } from "vitest";
 const LIB = import.meta.dirname;
 
 // fichero → funciones que aún devuelven vacío en error. No se añade nada.
+// Qué ficheros se miran no va en lista: todo src/lib/ que importa el cliente
+// (leeDeSupabase).
 const CONOCIDOS = {
   "cookingsSync.js": [
     "loadRowCookings", // la fila del feed: solo se pinta
@@ -37,12 +40,44 @@ const CONOCIDOS = {
     "loadHouseholdMembers", // la lista de miembros en Casas: solo se pinta
     "loadPendingInviteToken", // sin token no se hace nada (useHousehold)
   ],
-  "userRecipesSync.js": [
-    "loadPublicRecipe", // copiar o abrir una receta ajena: sin ella, se avisa y no se escribe
+  "householdState.js": [
+    "loadHouseholdBotRev", // sondeo: con null no se recarga ni se escribe
+  ],
+  // Gente (apagada con el frontal de Lola, GENTE_ACTIVA): lecturas que pintan
+  // el feed, perfiles, comentarios y seguidores. Repasadas por encima, no una
+  // a una: ninguna lleva a una subida como las de #316, pero un botón
+  // «Seguir» puede salir mal con la lectura caída. loadMyProfile sí escribía
+  // (ensureSocialProfile) y ya está arreglado.
+  "social.js": [
+    "loadProfileById",
+    "loadFollowing",
+    "loadFollowRequests",
+    "loadFollowers",
+    "loadSentRequests",
+    "loadMyRecipeStats",
+    "loadCommentInbox",
+    "loadComments",
+    "loadCommentLikes",
+    "loadSuggestedProfiles",
+    "loadRecentProfiles",
+    "loadFollowList",
+    "loadProfileCounts",
+    "loadRecipeStats",
+    "loadBlockedIds",
+    "loadSharedMenu",
+    "loadMyPublishedMenus",
   ],
 };
 
 const ES_CARGADOR = /^(load|list|count|preview|fetch|get)[A-Z]/;
+
+/**
+ * El módulo habla con Supabase: importa el cliente (`./supabase.js`). Así entra
+ * solo cualquier módulo nuevo de src/lib/ que lea de la base, sin lista a mano.
+ */
+function leeDeSupabase(src) {
+  return /\bfrom\s+["']\.\/supabase(\.js)?["']/.test(src);
+}
 
 /** ¿El nodo menciona un error (`error`, `err`, `x.error`)? */
 function mencionaError(nodo) {
@@ -124,14 +159,20 @@ const resta = (a, b) => {
   });
 };
 
-describe("src/lib/*Sync.js: ningún cargador devuelve vacío en error (#317)", () => {
-  const ficheros = readdirSync(LIB).filter((f) => /Sync\.js$/.test(f));
-  const hoy = Object.fromEntries(
-    ficheros.map((f) => [f, [...new Set(cargadoresVaciosEnError(readFileSync(join(LIB, f), "utf8")))]]),
+describe("src/lib/ (lo que lee de Supabase): ningún cargador devuelve vacío en error (#317)", () => {
+  const fuentes = Object.fromEntries(
+    readdirSync(LIB)
+      .filter((f) => /\.(js|jsx)$/.test(f) && !/\.test\./.test(f))
+      .map((f) => [f, readFileSync(join(LIB, f), "utf8")]),
   );
+  const ficheros = Object.keys(fuentes).filter((f) => leeDeSupabase(fuentes[f]));
+  const hoy = Object.fromEntries(ficheros.map((f) => [f, [...new Set(cargadoresVaciosEnError(fuentes[f]))]]));
 
-  it("hay ficheros que mirar (si el patrón deja de casar, el test no vigila nada)", () => {
-    expect(ficheros.length).toBeGreaterThanOrEqual(7);
+  it("hay ficheros que mirar (si el criterio deja de casar, el test no vigila nada)", () => {
+    // Los *Sync.js, recipeVotes.js y recipeCollections.js como mínimo.
+    for (const f of ["userRecipesSync.js", "householdDiscardsSync.js", "menusSync.js", "recipeVotes.js", "recipeCollections.js"]) {
+      expect(ficheros, f).toContain(f);
+    }
   });
 
   it("no hay ninguno nuevo fuera de CONOCIDOS", () => {
