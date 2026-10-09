@@ -44,7 +44,8 @@ están en producción solo en parte. Ninguna se ha tocado; se deciden aparte:
 | Migración | Lo que falta en producción | Qué significa |
 |---|---|---|
 | `0010_recipe_discards` | **la tabla `user_recipe_discards` entera** | **Resuelto por código (8 oct 2026, rama `datos/descartes-de-casa`); la tabla sigue sin existir a propósito y no se va a crear.** Los descartes son de la casa: la app solo lee y escribe `household_recipe_discards` (0017, RLS de la 0071) con el `household_id` de la casa activa; sin casa se quedan en el dispositivo y suben al cargar la casa. `householdDiscardsSync.test.js` falla si alguien vuelve a consultar `user_recipe_discards`. **Queda un fallo en la base:** `ensure_user_household` (0071) la lee dentro de un `begin … exception when others`, así que ese bloque entero se deshace siempre: las casas nuevas nunca copian `user_state`, despensa, menús ni favoritos ni pasan a `active` (el 8 oct, 31 `dormant`, 4 `invite_ready`, 0 `active`). La quita la `0090_casa_nueva_completa` (issue #144); completar las casas que ya se quedaron a medias va aparte |
-| `0008_meal_extras_catalog` | la columna `user_recipes.product_aliases` | Ya se sabía (la sembraba `scripts/generate-supabase-seed.mjs`, borrado el 9 oct 2026 con el resto del seed, #303; `recipeRow.js`, que la leía como opcional, se borró antes). Nadie la lee ni la escribe: es una columna sin lector, pendiente de quitar en una migración aparte |
+| `0008_meal_extras_catalog` | la columna `user_recipes.product_aliases` | **No existe en producción y nunca existió**: solo existía `recipes.product_aliases`, que se va con la 0093 al borrar `recipes`. La deriva está en el fichero 0008, que declara una columna que la base no tiene; no hay nada que quitar de la base. Nadie la lee (`recipeRow.js`, que la leía como opcional, se borró antes; la sembraba `scripts/generate-supabase-seed.mjs`, borrado el 9 oct 2026, #303) |
+| `0001_recipe_catalog` / seed (valores de enum) | los valores `salsas` (`recipe_category`), `salsa` (`meal_role`) y `salsa` (`recipe_type`) | Existen en producción y desde que se borró `seed_0_setup.sql` (#303) **ya no los declara ningún fichero del repo**: si hubiera que reconstruir la base desde las migraciones, faltarían. Migración que los declara, pendiente en #366 |
 | `0017_households` | la política `household_members` «Users insert self as viewer» | Nadie la recrea ni la quita en otra migración: se quitó a mano. Unirse a una casa va por la RPC `join_household_by_token` (security definer), así que no hace falta. Queda que una migración lo diga |
 | `0003_analytics_feedback_votes` | las políticas de `user_profiles`, `user_events` y `app_feedback`, y dos índices de `user_events` | Las tablas se crearon desde el panel antes que el fichero, con otros nombres (las políticas se llaman «insert own» y «select own»: las retoca la 0011). El fichero no es lo que se ejecutó |
 | `0003_user_data` | la política `recipe_votes` «Votes are publicly readable» | Igual que la anterior: nombre distinto o quitada a mano. Sin efecto visible |
@@ -168,7 +169,9 @@ filas y sha256, ESQUEMA y LEEME de cómo restaurar). En el mismo PR se borran lo
 consulta `catalog_meta` en cada carga y, si falla, usa el bundle: una petición más
 por carga. Testigo (negativo): `recipes` y las otras 8 ya no están en `pg_class`
 (`node scripts/verificar-estado.mjs --solo 0093`). Al aplicarla: moverla de «Sin
-aplicar» a aplicada y anotar la fecha.
+aplicar» a aplicada y anotar la fecha. Al aplicarla, el ensayo de copias
+(`copias-ensayo`) dará `tablas-distintas` una sola vez si restaura una copia
+anterior al borrado; repetir la copia tras aplicar.
 
 ## La 0064, aplicada el 30 sep 2026
 

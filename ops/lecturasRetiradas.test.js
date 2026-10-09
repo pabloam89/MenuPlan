@@ -98,8 +98,8 @@ describe("lecturas de fuentes retiradas: el detector ve lo que tiene que ver", (
     expect(ve(`await select("bot_messages", "x", "y")`)).toEqual([]);
     expect(ve(`const ayuda = "recetas e ingredients"; const x = obj.recipes;`)).toEqual([]);
     expect(ve(`// supabase.from("recipes") y /rest/v1/dish_images\nconst a = 1;`)).toEqual([]);
-    expect(ve(`/* supabase.from('ingredients')\n   leer supabase/seed_x.sql */ const a = 1;`)).toEqual([]);
-    expect(ve(` * ver seed_ingredients.sql, select * from recipes`)).toEqual([]);
+    expect(ve(`/* supabase.from('ingredients')\n   y /rest/v1/ingredient_aliases */ const a = 1;`)).toEqual([]);
+    expect(ve(` * ver /rest/v1/catalog_meta, select * from recipes`)).toEqual([]);
     // una URL en un string no abre un comentario
     expect(ve(`const u = "https://x.es"; fetch(u + "/rest/v1/recipes")`)).toContain("recipes");
     // un EJEMPLO de lectura dentro de un string (un test, un mensaje) no es una lectura

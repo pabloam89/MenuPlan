@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ficherosDeGit, directosDe } from "./ficherosGit.js";
 import { isoDeCasa } from "../src/lib/dias.js";
-import { eventosTabla } from "../scripts/lib/migraciones.mjs";
+import { eventosTabla, sentencias } from "../scripts/lib/migraciones.mjs";
 import { ESTADOS_FUENTE, ROLES_FUENTE, TABLAS, esFechaIso, fuentesVencidas } from "../src/data/model.js";
 
 /**
@@ -156,7 +156,13 @@ describe("fuentes: una tabla borrada lo dice, y lo dice la migración que la bor
     const ult = new Map();
     for (const f of ficheros) {
       const num = f.split("/").pop().slice(0, 4);
-      for (const e of eventosTabla(lee(f))) if (e.esquema === "public") ult.set(e.nombre, { estado: e.accion === "borra" ? "borrada" : "viva", migracion: num });
+      // Sentencia a sentencia y en orden: eventosTabla no ve `create [or replace] view`, y una vista
+      // recreada en una migración posterior vuelve a estar viva.
+      for (const s of sentencias(lee(f))) {
+        const v = /^create\s+(?:or\s+replace\s+)?(?:temp(?:orary)?\s+)?(?:recursive\s+)?view\s+(?:(\w+|"[^"]+")\s*\.\s*)?(\w+|"[^"]+")/i.exec(s.trim());
+        const eventos = v ? [{ accion: "crea", esquema: (v[1] ?? "public").replace(/"/g, "").toLowerCase(), nombre: v[2].replace(/"/g, "").toLowerCase() }] : eventosTabla(s);
+        for (const e of eventos) if (e.esquema === "public") ult.set(e.nombre, { estado: e.accion === "borra" ? "borrada" : "viva", migracion: num });
+      }
     }
     return ult;
   }
@@ -184,6 +190,9 @@ describe("fuentes: una tabla borrada lo dice, y lo dice la migración que la bor
     const ult = ultimoEvento(Object.keys(sql), (f) => sql[f]);
     expect(ult.get("a")).toEqual({ estado: "borrada", migracion: "0006" });
     expect(ult.get("c")).toEqual({ estado: "viva", migracion: "0006" }); // borrada y recreada: viva
+    // una vista borrada y recreada en una migración posterior vuelve a estar viva
+    const vistas = { "m/0001_v.sql": "create view public.v as select 1;", "m/0002_v.sql": "drop view public.v;", "m/0003_v.sql": "create or replace view public.v as select 2;" };
+    expect(ultimoEvento(Object.keys(vistas), (f) => vistas[f]).get("v")).toEqual({ estado: "viva", migracion: "0003" });
     const f = (id, tablas, nota) => ({ id, tablas, vistas: [], nota });
     expect(revisarBorradas([f("ok", ["a"], "Borrada en la 0006."), f("viva", ["c"], "sigue")], ult)).toEqual([]);
     expect(revisarBorradas([f("miente", ["b"], "Borrada en la 0006.")], ult)).toEqual([expect.stringContaining("ninguna migración deja «b» borrada")]);
