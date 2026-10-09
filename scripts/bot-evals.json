@@ -2170,7 +2170,35 @@
         "ajustar_alergias"
       ],
       "texto": "no (me )?(lo )?(dij|dec|hab[eé]is dicho|has dicho|contest)|por hecho|supu|entiend|entend[ií]|tom[eé] como",
-      "sinTexto": "confirmad",
+      "sinTexto": "me lo (has |hab[eé]is )?confirma|(?<!no )(est[aá]n?|queda) confirmad",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana y Pablo: ninguna (por silencio).\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
+        "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno."
+      }
+    },
+    {
+      "nombre": "alergia por silencio: «Ana no tolera el tomate» lo apunta con una herramienta (#229)",
+      "entrada": "Ana no tolera el tomate",
+      "llamaAlguna": [
+        "ajustar_alergias",
+        "ajustar_salud",
+        "ajustar_gustos"
+      ],
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana y Pablo: ninguna (por silencio).\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
+        "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno."
+      }
+    },
+    {
+      "nombre": "alergia por silencio: el recordatorio lo pone el código, Lola no lo repite (#229)",
+      "entrada": "Hazme el menú de la semana que viene",
+      "llama": [
+        "generar_menu"
+      ],
+      "respuestas": {
+        "generar_menu": "Menú nuevo generado y activado: del 2026-10-12 al 2026-10-18, 14 huecos con plato.\n(Debajo de tu mensaje sale solo el aviso de que se ha dado por hecho que nadie tiene alergias: no lo digas tú.)"
+      },
+      "sinTexto": "alergi|por hecho",
       "ficha": {
         "estable": "SEGURIDAD\n- Ana y Pablo: ninguna (por silencio).\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
         "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno."

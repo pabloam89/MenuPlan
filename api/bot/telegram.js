@@ -59,7 +59,7 @@ import { payloadStart } from "../../src/lib/ids.js";
 import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cuentas.js";
 import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
-import { apuntarSilencio } from "../_bot/silencio.js";
+import { preguntoConAviso } from "../_bot/silencio.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
 
@@ -456,11 +456,9 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // sombra, o porque quien escribe eligió inglés) también se apuntan, con sus
   // tiempos y dónde ocurren: antes no dejaban bot_route y eran invisibles al
   // medir, justo los de los grupos con el enrutador apagado (3 oct 2026).
-  // `silencio`: si Lola aún tiene que mirar las alergias por silencio (#229);
-  // tras el paso de abajo (apuntarSilencio) ya está hecho y no se repite.
-  const soloLola = async (porQue, desdeMs = Date.now(), silencio = true) => {
+  const soloLola = async (porQue, desdeMs = Date.now()) => {
     const medir = {};
-    await conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, medir, silencio });
+    await conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, medir });
     return apuntarRuta(householdId, {
       chat: String(chatId), esGrupo: Boolean(esGrupo), variosAutores: Boolean(variosAutores),
       modo: "lola", rapida: false, sin_enrutador: porQue, ms: Date.now() - desdeMs, ...medida(medir, {}, desdeMs),
@@ -497,18 +495,17 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   const [ultima, contexto, quien, idioma] = await Promise.all([ultimaDeLola(chatId), contextoDe(householdId), papelP, idiomaP]);
   if (quien === SIN_LEER) return enviar(chatId, noPude("papel", idioma ?? from?.language_code), { responderA });
   chatDe.papel = quien.papel;
-  // Alergias por silencio (#229, api/_bot/silencio.js): si Lola acaba de
-  // preguntarlas con el aviso y esto no dice ninguna, «ninguna» ANTES del
-  // enrutador y de Lola: el menú de este mismo turno (también el de la vía
-  // rápida) ya sale con todas las recetas. Sin el aviso en lo último de Lola,
-  // ni lee ni escribe (una regex). Con el enrutador apagado lo hace responder().
-  await apuntarSilencio({ householdId, ultimaDeLola: ultima?.texto, texto, papel: quien.papel, userId: quien.userId ?? null });
+  // Alergias por silencio (#229, api/_bot/silencio.js): si lo último de Lola
+  // fue la pregunta con aviso, este mensaje puede ser la respuesta (o no
+  // serlo). Eso solo lo sabe Lola al leerlo: nada de vía rápida este turno.
+  const avisoPendiente = preguntoConAviso(ultima?.texto);
+  const rapida = (d) => vaPorLaRapida(d, chatDe) && !avisoPendiente;
   // Lo que tarda el turno en estar listo para arrancar al enrutador y a Lola
   // (bot_route contexto_ms): es tiempo que suma al primer texto de todos.
   const contextoMs = Date.now() - t0;
   // Quien eligió inglés: contesta Lola, que traduce. La vía rápida y sus
   // plantillas están en castellano.
-  if (idioma === "en") return soloLola("idioma", t0, false);
+  if (idioma === "en") return soloLola("idioma", t0);
   marca("contexto");
 
   // 0. Estado: contestar a una pregunta de la vía rápida.
@@ -560,7 +557,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       texto: String(texto).slice(0, 120), datos: d.datos, chat: String(chatId), esGrupo: Boolean(esGrupo), variosAutores: Boolean(variosAutores),
     }));
     // El turno de verdad (el que ve la persona) lo contesta Lola: se mide aparte.
-    return soloLola("sombra", t0, false);
+    return soloLola("sombra", t0);
   }
 
   // on: Lola arranca ya, con la puerta cerrada.
@@ -572,12 +569,12 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   const medir = {};
   // La pista (BOT_PISTA): la decisión del enrutador, solo si el turno no va por
   // la vía rápida. Lola no la espera: si llega a tiempo, la usa (pista.js).
-  const pista = PISTA() ? decisionP.then((d) => (vaPorLaRapida(d, chatDe) ? null : d)) : null;
+  const pista = PISTA() ? decisionP.then((d) => (rapida(d) ? null : d)) : null;
   // El aviso de lo que va a tardar, en cuanto el enrutador sabe qué se pide y
   // no cuando Lola llega a llamar a la herramienta (ver avisoDelModo).
   // a propósito: el aviso es adorno
-  const aviso = decisionP.then((d) => (vaPorLaRapida(d, chatDe) ? null : avisoDelModo(d))).catch(seguirCon("aviso_del_modo", null));
-  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista, aviso, silencio: false });
+  const aviso = decisionP.then((d) => (rapida(d) ? null : avisoDelModo(d))).catch(seguirCon("aviso_del_modo", null));
+  const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista, aviso });
 
   const d = await decisionP;
   marca(`enrutador (${d.modo} ${d.confianza}, ${d.ms} ms)`);
@@ -587,7 +584,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // `corrige` (api/_bot/senales.js) se apunta ya, sin texto: así sigue
   // midiéndose cuando la retención borre la frase (scripts/bot-semanal.mjs).
   const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId), esGrupo, variosAutores, corrige: esCorreccion(texto, ultima?.texto) };
-  if (vaPorLaRapida(d, chatDe) && !(await limiteP)) {
+  if (rapida(d) && !(await limiteP)) {
     // Lo que tarda también por la vía rápida (generar: 3-5 s de motor, medido
     // el 3 oct 2026) avisa igual que con Lola: la frase sale al decidir el
     // enrutador y la plantilla la sustituye en el mismo mensaje.
@@ -698,7 +695,7 @@ export const AVISO_ESPERA = "Dame un momento, que lo miro";
 const esperaMs = () => (process.env.BOT_AVISO_LENTO === "off" ? null : Number(process.env.BOT_AVISO_ESPERA_MS) || 3000);
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, desde = null, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null, aviso = null, silencio = true }) {
+async function conversar({ chatId, householdId, texto, from, desde = null, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null, aviso = null }) {
   // a propósito: «escribiendo…» es adorno
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
   const eco = oido ? `🎙️ «${oido}»\n\n` : "";
@@ -748,7 +745,7 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
     const paraLola = !oido ? texto
       : texto.startsWith("[alta]") ? texto.replace("Mi primer mensaje:", "Mi primer mensaje (nota de voz):")
         : `[nota de voz] ${texto}`;
-    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, desde: desde ?? (from ? [idDePersona(from)].filter(Boolean) : []), adjunto, alEscribir, puerta, signal, pista, silencio }).finally(() => { contestado = true; clearTimeout(reloj); });
+    r = await responder({ chatId, householdId, texto: paraLola, autor: esGrupo ? nombreDe(from) : null, esGrupo, desde: desde ?? (from ? [idDePersona(from)].filter(Boolean) : []), adjunto, alEscribir, puerta, signal, pista }).finally(() => { contestado = true; clearTimeout(reloj); });
     if (puerta && !(await puerta)) { if (medir) { medir.cancelada = true; medir.lola = r?.medida ?? null; } return; } // el turno fue de la vía rápida
   } catch (err) {
     // Cancelada porque el turno era de la vía rápida: nada que decir.

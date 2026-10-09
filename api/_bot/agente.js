@@ -61,6 +61,19 @@ import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
 import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
 
+/**
+ * Las alergias por silencio del turno (silencio.js): con lo último que dijo
+ * Lola, el mensaje, las herramientas pedidas hasta ahora y quién había antes.
+ * Sin aviso pendiente es una regex y no toca la base.
+ */
+function silencioDelTurno(chat) {
+  if (!chat?.householdId) return null;
+  return apuntarSilencio({
+    householdId: chat.householdId, ultimaDeLola: chat.anterior, texto: chat.texto, papel: chat.papel,
+    canal: chat.channel, userId: chat.userId ?? null, llamadas: chat.llamadas ?? [], nombres: chat.nombresAntes ?? [],
+  });
+}
+
 // Modelo y esfuerzo, configurables para medir velocidad contra calidad con
 // scripts/bot-evals.mjs (BOT_MODELO, BOT_EFFORT) sin tocar código.
 // Medido el 1 oct 2026 (100 casos, una pasada cada uno): sonnet-5/medium
@@ -205,6 +218,7 @@ export async function herramientas(chat) {
   }));
 
   async function ejecutarUna(t, args, llamada) {
+      chat.llamadas?.push(t.name);
       // Por si acaso: el papel se vuelve a mirar al ejecutar.
       if (!permitida(chat, t)) {
         return "Eso no lo puede cambiar quien te escribe (es de solo consulta en esta casa). Díselo con amabilidad y que se lo pida a quien gestiona la casa.";
@@ -620,6 +634,9 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["semana"]),
       run: async ({ semana, fijos }) => {
         // La semana generada sale pintada debajo del mensaje de Lola (entregar()).
+        // Alergias por silencio (#229): antes de generar, para que el menú de
+        // este mismo turno ya salga con todo el catálogo.
+        await silencioDelTurno(chat);
         const out = {};
         const texto = await generarMenu(householdId, semana, fijos ?? [], out);
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
@@ -961,12 +978,13 @@ export function conQuienEscribe(ficha, papel, idioma = null) {
  *   este turno (sin bots ni anónimos): de ahí sale su papel en la casa
  *   (papel.js). Sin ellos, como alguien sin cuenta: solo consulta.
  */
-export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, desde = [], adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null, silencio = true }) {
+export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo, desde = [], adjunto = null, alEscribir = null, puerta = null, signal = null, pista = null }) {
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
   // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined };
+  // `llamadas`: las herramientas que Lola pide en el turno, en orden (silencio.js).
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [] };
   // El papel de quien escribe, en cada turno (no se guarda: quitar a alguien
   // vale para el mensaje siguiente). Las herramientas se filtran con él.
   const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })
@@ -989,7 +1007,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     : Promise.resolve(null);
   // Todo a la vez: no depende entre sí, y en serie eran varias idas a la base.
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
-  const [tope, mem, tools, casaLeida, extrasBase, tareas, calladas, tablas] = await Promise.all([
+  const [tope, mem, tools, casa, extrasBase, tareas, calladas, tablas] = await Promise.all([
     fueraDeLimite(householdId), memoria(channel, chatId), conPapel.then(() => herramientas(chat)),
     cargarCasa(householdId).catch(fallaCon("agente_casa", SIN_LEER)), extrasDeFicha(householdId, chatId),
     conPapel.then(() => deTablas).then((f) => (f ? tareasDeFicha(f, { userId: chat.userId, privado: !esGrupo }) : tareasAbiertas(householdId, { userId: chat.userId, privado: !esGrupo }))).catch((e) => { console.error("[agente] tareas", e?.message); return []; }),
@@ -1000,23 +1018,13 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // casa contestaría sin alergias ni menú, como si estuviera vacía; sin el
   // papel, como a alguien de fuera. Una casa que de verdad no existe es null,
   // no SIN_LEER, y sigue como siempre.
-  if (casaLeida === SIN_LEER || chat.sinPapel) {
-    return { texto: noPude(casaLeida === SIN_LEER ? "casa" : "papel", chat.idioma), fotos: [], deshacible: false, ir: null };
+  if (casa === SIN_LEER || chat.sinPapel) {
+    return { texto: noPude(casa === SIN_LEER ? "casa" : "papel", chat.idioma), fotos: [], deshacible: false, ir: null };
   }
+  const deLaFicha = tablas && casa ? conLaFicha(casa, tablas, calladas) : { casa };
+  const extras = { ...extrasBase, calladas, ...(deLaFicha.pendientes ? { pendientes: deLaFicha.pendientes } : {}) };
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
   const { historia, pendientes: guardadas } = mem;
-  // Alergias por silencio (#229, silencio.js): si lo último de Lola fue la
-  // pregunta con aviso y esto no dice ninguna, «ninguna» antes del modelo, y
-  // la casa se vuelve a leer para que la ficha y el menú ya lo tengan. El
-  // webhook lo hace antes del enrutador y entonces llega `silencio: false`.
-  const anteriorDeLola = historia.findLast((m) => m.role === "assistant")?.content ?? "";
-  const silencioApuntado = silencio && casaLeida
-    ? await apuntarSilencio({ householdId, ultimaDeLola: anteriorDeLola, texto, papel: chat.papel, canal: channel, userId: chat.userId })
-    : null;
-  const casa = silencioApuntado ? (await cargarCasa(householdId).catch(fallaCon("agente_casa", null))) ?? casaLeida : casaLeida;
-  // Recién escrita, las tablas aún no lo reflejan: esa vez, la ficha sale del JSON.
-  const deLaFicha = tablas && casa && !silencioApuntado ? conLaFicha(casa, tablas, calladas) : { casa };
-  const extras = { ...extrasBase, calladas, ...(deLaFicha.pendientes ? { pendientes: deLaFicha.pendientes } : {}) };
   // El estado de la casa es la fuente de verdad: lo que ya resolvió se cierra
   // solo (las de la tabla, en segundo plano) y no se le enseña al modelo.
   const data = casa?.state?.data ?? {};
@@ -1036,7 +1044,9 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const bloque = bloqueDe(abiertas);
   const entradaModelo = [bloqueDeTareas(tareasVivas, { data, chatId }), bloque, entrada].filter(Boolean).join("\n\n");
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
-  chat.anterior = anteriorDeLola;
+  chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
+  // Para las alergias por silencio (silencio.js): quién había ANTES del turno.
+  chat.nombresAntes = (data.members ?? []).map((m) => m.name).filter(Boolean);
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
   const ficha = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
   let dicho, uso, corregido, medida, sigueSinGuardar = false;
@@ -1145,13 +1155,10 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     // a propósito: es una señal del embudo; no toca la charla
     segundaSemana(householdId).catch(seguirCon("agente_segunda_semana")),
     cierresPorEstado,
-    // Alta (#229): «¿Quiénes coméis…? Si no me dices nada, entiendo que
-    // ninguna» y contestan solo nombres. Los que se acaban de añadir aún no
-    // estaban al mirar antes del modelo: se vuelve a mirar, tras la promoción
-    // de preguntas para que cerrarlas no se cruce con abrirlas.
-    (medida?.herramientas ?? []).some((h) => h.n === "anadir_comensal")
-      ? promocion.then(() => apuntarSilencio({ householdId, ultimaDeLola: anteriorDeLola, texto, papel: chat.papel, canal: channel, userId: chat.userId }))
-      : promocion,
+    // Alergias por silencio (#229): se decide aquí, cuando Lola ya ha leído
+    // el mensaje y se sabe a qué herramientas llamó (silencio.js). Tras la
+    // promoción de preguntas, para que cerrarlas no se cruce con abrirlas.
+    promocion.then(() => silencioDelTurno(chat)),
   ]).then((r) => { if (tablas) olvidarFicha(householdId); return r; });
   // Lo leído de ficha_casa no vale para el turno siguiente: este puede haber
   // anotado o cerrado tareas sin que cambie bot_rev. Se olvida ya y otra vez al
@@ -1185,7 +1192,11 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
 // decir que guardó: «hola, ¿qué sabes hacer?» pasaba por el aviso y una
 // segunda llamada al modelo (staging, 2 oct 2026: 8,2 s para un saludo).
 const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
-export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(String(texto ?? ""));
+// «No tenéis ninguna alergia apuntada» es leer lo que hay, no decir que guardó:
+// saltaba el aviso y costaba otra vuelta de ~3 s en cada consulta (#229). Se
+// quita el «apuntad…» que va detrás de una negación en la misma frase.
+const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\bapuntad[oa]s?\b/gi;
+export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(String(texto ?? "").replace(APUNTADO_NEGADO, ""));
 // Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
 // mientras corren, la persona ve al momento una frase de Lola en el mensaje
 // que se va escribiendo, y lo que Lola escriba después la sustituye en ese

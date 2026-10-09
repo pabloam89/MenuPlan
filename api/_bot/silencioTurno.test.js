@@ -1,13 +1,12 @@
 /**
- * Las alergias por silencio en el turno de Lola (responder, #229): lo decide
- * el código con lo último que dijo Lola, no el modelo. Con el enrutador
- * apagado (BOT_ROUTER=off, por defecto) es responder quien lo mira; si el
- * webhook ya lo hizo, llega `silencio: false` y no se repite. En el alta, los
- * que se añaden en ese mismo turno también cuentan.
+ * Las alergias por silencio en el turno de Lola (responder, #229). El
+ * silencio nunca se decide antes de que el modelo lea el mensaje: se mira al
+ * acabar el turno, con las herramientas que Lola pidió, y dentro de
+ * generar_menu justo antes de generar (así el menú de ese turno sale entero).
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const t = vi.hoisted(() => ({ memoria: [], herramienta: null, casa: null }));
+const t = vi.hoisted(() => ({ memoria: [], herramientas: [], casa: null, orden: [], silencioAlLeer: null }));
 
 vi.mock("./db.js", () => ({
   eq: (v) => `eq.${v}`,
@@ -22,19 +21,27 @@ vi.mock("./papel.js", () => ({ papelDeQuien: vi.fn(async () => ({ papel: "owner"
 vi.mock("./ajustes.js", async (original) => ({
   ...(await original()),
   dominiosDeGustos: async () => "favoritos (Lo que os gusta)",
-  anadirComensal: vi.fn(async () => "Añadido a la casa: Ana."),
+  ajustarAlergias: vi.fn(async () => { t.orden.push("ajustar_alergias"); return "Anotado."; }),
+}));
+vi.mock("./generar.js", async (original) => ({
+  ...(await original()),
+  generarMenu: vi.fn(async (_h, _s, _f, out) => { t.orden.push("generarMenu"); Object.assign(out, { ok: false }); return "Menú nuevo generado."; }),
 }));
 vi.mock("./uso.js", () => ({ fueraDeLimite: async () => null, contarUso: async () => 0, avisoDeLimite: () => "" }));
 vi.mock("./embudo.js", () => ({ registrar: vi.fn(async () => {}), rastro: vi.fn(async () => {}), EMBUDO: {}, duenoDe: vi.fn(async () => null), cimientosCompletos: () => false }));
-vi.mock("./silencio.js", async (original) => ({ ...(await original()), apuntarSilencio: vi.fn(async () => null) }));
+vi.mock("./silencio.js", async (original) => ({
+  ...(await original()),
+  apuntarSilencio: vi.fn(async (a) => { t.orden.push(`silencio:${a.llamadas.join("+")}`); return null; }),
+}));
 vi.mock("@anthropic-ai/sdk", async (original) => {
   const real = await original();
   class Falsa extends real.default {
     constructor() {
       super({ apiKey: "prueba" });
       this.beta = { messages: { toolRunner: (params) => (async function* () {
-        const h = t.herramienta && params.tools.find((x) => x.name === t.herramienta.nombre);
-        if (h) await h.run(t.herramienta.args);
+        // Cuántas veces se había mirado el silencio cuando el modelo empieza a leer.
+        t.silencioAlLeer ??= t.orden.filter((x) => x.startsWith("silencio:")).length;
+        for (const h of t.herramientas) await params.tools.find((x) => x.name === h.nombre).run(h.args, { toolUse: { id: h.nombre } });
         yield { content: [{ type: "text", text: "Vale." }], usage: {} };
       })() } };
     }
@@ -43,15 +50,15 @@ vi.mock("@anthropic-ai/sdk", async (original) => {
 });
 
 const { responder } = await import("./agente.js");
-const { apuntarSilencio, AVISO_SILENCIO } = await import("./silencio.js");
+const { apuntarSilencio, decidirSilencio, AVISO_SILENCIO } = await import("./silencio.js");
 
 const PREGUNTA = `¿Alguien tiene alguna alergia o intolerancia? ${AVISO_SILENCIO}`;
 const CASA = {
   householdId: "h1", botRev: 1, recetasPropias: [], menu: null, semana: null, semanas: [], semanaViva: null,
   state: { data: { members: [{ id: "a", name: "Ana", allergies: [], alergiasRevisadas: false }] } },
 };
-const turno = async (extra = {}) => {
-  const r = await responder({ channel: "telegram", chatId: "100", householdId: "h1", texto: "hazme el menú", desde: ["9"], ...extra });
+const turno = async (texto = "hazme el menú") => {
+  const r = await responder({ channel: "telegram", chatId: "100", householdId: "h1", texto, desde: ["9"] });
   await r.guardado;
   return r;
 };
@@ -59,7 +66,9 @@ const turno = async (extra = {}) => {
 beforeEach(() => {
   vi.clearAllMocks();
   t.casa = structuredClone(CASA);
-  t.herramienta = null;
+  t.herramientas = [];
+  t.orden = [];
+  t.silencioAlLeer = null;
   t.memoria = [
     { id: 2, role: "assistant", content: { texto: PREGUNTA }, created_at: new Date().toISOString() },
     { id: 1, role: "user", content: { texto: "hola" }, created_at: new Date().toISOString() },
@@ -69,26 +78,31 @@ beforeEach(() => {
 });
 
 describe("responder y las alergias por silencio", () => {
-  it("mira lo último que dijo Lola antes del modelo, con el papel de quien escribe", async () => {
+  it("nunca antes de que el modelo lea el mensaje: al acabar, con lo último de Lola y quién había", async () => {
     await turno();
+    expect(t.silencioAlLeer).toBe(0);
     expect(apuntarSilencio).toHaveBeenCalledTimes(1);
-    expect(apuntarSilencio.mock.calls[0][0]).toMatchObject({ householdId: "h1", ultimaDeLola: PREGUNTA, texto: "hazme el menú", papel: "owner", userId: "u1" });
+    expect(apuntarSilencio.mock.calls[0][0]).toMatchObject({
+      householdId: "h1", ultimaDeLola: PREGUNTA, texto: "hazme el menú", papel: "owner", userId: "u1", llamadas: [], nombres: ["Ana"],
+    });
   });
 
-  it("si el webhook ya lo hizo (silencio: false), no lo repite", async () => {
-    await turno({ silencio: false });
-    expect(apuntarSilencio).not.toHaveBeenCalled();
+  it("(b) generar_menu aplica el silencio ANTES de generar", async () => {
+    t.herramientas = [{ nombre: "generar_menu", args: { semana: "esta" } }];
+    await turno();
+    expect(t.orden.slice(0, 2)).toEqual(["silencio:generar_menu", "generarMenu"]);
   });
 
-  it("en el alta, tras añadir a alguien en este turno, lo vuelve a mirar para los nuevos", async () => {
-    t.herramienta = { nombre: "anadir_comensal", args: { nombre: "Pablo" } };
-    await turno({ silencio: false, texto: "somos Ana y Pablo" });
-    expect(apuntarSilencio).toHaveBeenCalledTimes(1);
-    expect(apuntarSilencio.mock.calls[0][0]).toMatchObject({ ultimaDeLola: PREGUNTA, texto: "somos Ana y Pablo" });
-  });
-
-  it("sin añadir a nadie, no hay segunda mirada", async () => {
-    await turno({ silencio: false, texto: "somos Ana y Pablo" });
-    expect(apuntarSilencio).not.toHaveBeenCalled();
+  it("(c) si en el turno Lola llamó a ajustar_alergias, lo que llega a decidir no marca", async () => {
+    t.herramientas = [
+      { nombre: "ajustar_alergias", args: { persona: "Ana", ninguna: true, confirmado: true } },
+      { nombre: "generar_menu", args: { semana: "esta" } },
+    ];
+    await turno("Ana no tiene nada, hazme el menú");
+    expect(apuntarSilencio).toHaveBeenCalled();
+    for (const [a] of apuntarSilencio.mock.calls) {
+      expect(a.llamadas).toContain("ajustar_alergias");
+      expect(decidirSilencio(a)).toBe(null);
+    }
   });
 });

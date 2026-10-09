@@ -70,11 +70,13 @@ export function marcarRevisadas(data, ids = null) {
  * que siguen sin revisar y sin alergias pasan a revisados, con la marca
  * `alergiasOrigen: "por_silencio"`. Para el menú es «ninguna»; la ficha lo
  * enseña como no confirmado. Sin nadie que marcar, el mismo objeto.
+ * `soloIds`: solo esas personas (por las que se preguntó); null, todas.
  * @returns {{ data: object, ids: string[] }}
  */
-export function marcarPorSilencio(data) {
+export function marcarPorSilencio(data, soloIds = null) {
   const ids = (data?.members ?? [])
     .filter((m) => !alergiasRevisadas(data, m) && !(m.allergies ?? []).length)
+    .filter((m) => soloIds == null || soloIds.includes(m.id))
     .map((m) => m.id);
   if (!ids.length) return { data, ids };
   const members = (data.members ?? []).map((m) => (ids.includes(m.id)

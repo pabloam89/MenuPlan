@@ -7,11 +7,23 @@
  * mayoría de la gente no tiene alergias: no contestar también es contestar,
  * SIEMPRE QUE Lola lo haya avisado al preguntar.
  *
- * Lo decide el código, no el modelo: si lo último que dijo Lola en el chat fue
- * la pregunta de alergias con el aviso (AVISO_SILENCIO) y el mensaje que llega
- * no dice ninguna alergia, se apunta «ninguna» a los que faltaban con la marca
- * `por_silencio` (src/lib/alergiasBase.js). Pasa ANTES del enrutador y de
- * Lola (api/bot/telegram.js), así el menú de ese mismo turno ya sale entero.
+ * Cuándo cuenta como silencio, y por qué así (jueces de #229):
+ *   1. Lo último que dijo Lola terminó con el aviso (AVISO_SILENCIO, como
+ *      frase final) en un mensaje que pregunta por alergias.
+ *   2. Lola ya ha leído el mensaje que llega y NO ha llamado a ninguna
+ *      herramienta que conteste a eso (HERRAMIENTAS_QUE_CONTESTAN). El silencio
+ *      nunca se decide antes del modelo: una lista de palabras no cierra la
+ *      clase («no toma queso», «APLV», «se pone malo con el pimiento»…).
+ *   3. Y además el mensaje no trae ninguna señal (haySenal, deliberadamente
+ *      ancha: alergias, reacciones, alérgenos, afirmaciones, aplazamientos,
+ *      un «no»). Ante la duda, no se marca: se sigue sin revisar.
+ * Un «no» o «nadie tiene» no lo guarda el código: lo guarda Lola con
+ * ajustar_alergias, que ya sabe hacerlo por persona.
+ *
+ * Solo se marca a quien se preguntó (destinatarios). Lo llama responder()
+ * al acabar el turno, y generar_menu justo antes de generar, para que el menú
+ * de ese mismo turno ya salga entero. Con un aviso pendiente, el webhook no
+ * toma la vía rápida (api/bot/telegram.js): el turno pasa por Lola.
  *
  * Por silencio solo vale para filtrar el menú: la ficha lo enseña como
  * «ninguna (por silencio)», y el primer menú lo recuerda una vez
@@ -23,9 +35,9 @@ import { cerrarPorEstado } from "./tareas.js";
 import { fallaCon } from "./avisar.js";
 import { puede } from "../../src/lib/papeles.js";
 import { ORIGEN_ALERGIAS, ACCIONES_ALERGIAS } from "../../src/lib/vocabularios.js";
-import { sinTildes, pareceAlergia, alergiasRevisadas, marcarRevisadas, marcarPorSilencio } from "../../src/lib/alergiasBase.js";
+import { sinTildes, alergiasRevisadas, marcarPorSilencio } from "../../src/lib/alergiasBase.js";
 
-const [DICHA, POR_SILENCIO] = ORIGEN_ALERGIAS;
+const [, POR_SILENCIO] = ORIGEN_ALERGIAS;
 const [APUNTADA, RECORDADA] = ACCIONES_ALERGIAS;
 
 /** La frase del aviso, la misma que pide conocimiento.md. */
@@ -37,54 +49,93 @@ export const RECORDATORIO_SILENCIO = {
   en: "ℹ️ I've assumed nobody has allergies; if anyone does, just tell me.",
 };
 
-// El aviso con sus variantes de persona («si no me decís nada») y en inglés.
-// Va con el tema en el mismo mensaje: «si no me dices nada, te lo cambio» no es.
-const AVISO_RE = /\bsi no me (dices|decis|dice|dicen|contestas|contestais|respondes|respondeis) nada\b|\bif you don'?t (tell me|say) anything\b/;
+/** Para Lola, en lo que devuelve generar_menu: que no lo diga ella también. */
+export const NOTA_RECORDATORIO = "(Debajo de tu mensaje sale solo el aviso de que se ha dado por hecho que nadie tiene alergias: no lo digas tú.)";
+
+/**
+ * Si Lola llamó a alguna de estas en el turno, el mensaje contestaba a algo
+ * de salud o de gustos (o lo aplazaba con una tarea): no es silencio.
+ */
+export const HERRAMIENTAS_QUE_CONTESTAN = ["ajustar_alergias", "ajustar_salud", "ajustar_gustos", "descartar_supuesto", "anotar_tarea"];
+
+const limpio = (s) => sinTildes(s).replace(/[’`´]/g, "'");
+
+// La cola exacta del aviso, como ÚLTIMA frase del mensaje (quitados los
+// botones [[…]], el HTML y lo que no son letras al final). «Si no me dices
+// nada, lo dejo así» no es; un aviso seguido de otra pregunta, tampoco.
+const COLA_RE = /(si no me (dices|decis|contais|cuentas|dice|dicen) nada,? entiendo que (ningun[oa]s?|nadie)|if you don'?t tell me anything,? i'?ll assume (none|no ?one|nobody))[^.?!¿]{0,30}[.!]?[^\p{L}\p{N}]*$/u;
 const TEMA_RE = /\b(alergi|intoleran|allerg)/;
 
-/** ¿Este mensaje de Lola preguntó por alergias con el aviso? */
+/** ¿Este mensaje de Lola preguntó por alergias y terminó con el aviso? */
 export function preguntoConAviso(textoDeLola) {
-  const t = sinTildes(textoDeLola).replace(/[’`]/g, "'");
-  return AVISO_RE.test(t) && TEMA_RE.test(t);
+  const t = limpio(textoDeLola).replace(/<[^>]+>/g, "").replace(/(\s*\[\[[^\]]*\]\])+\s*$/, "").trim();
+  return COLA_RE.test(t) && TEMA_RE.test(t);
 }
 
-// Un alérgeno nombrado a secas («Ana, el huevo») también es una alergia: ante
-// la duda, no es silencio (lo apunta Lola o vuelve a preguntar). Ancha a
-// propósito: el lado seguro es no marcar. En inglés, palabras enteras («nut»
-// no puede saltar con «nutrición»); «soy» no está: en castellano es «yo soy».
-const ALERGENO_ES_RE = /\b(gluten|trigo|lact|leche|huevo|pescado|marisco|crustace|gamba|langostin|cigala|cangrej|cacahuet|soja|frutos? secos|cascara|nuez|nueces|almendra|avellana|pistacho|anacardo|apio|mostaza|sesamo|sulfito|altramu|molusco|mejillon|almeja|calamar|pulpo|sepia|kiwi|melocoton|fresa)/;
-const ALERGENO_EN_RE = /\b(peanuts?|nuts?|eggs?|milk|dairy|shellfish|fish|sesame|coeliac|celiac)\b/;
-// «Ahora te digo», «prefiero no decirlo», «no lo sé»: no es «ninguna».
-const APLAZA_RE = /\b(ahora te (lo )?dig|luego te (lo )?dig|despues te (lo )?dig|mas tarde|te lo miro|lo miro|lo tengo que mirar|dejame (que )?(lo )?mir|tengo que preguntar|lo pregunto|prefiero no|no quiero decir|no te lo (digo|voy a decir)|no lo se\b|ni idea|no estoy segur|later|let me check|not sure|i don'?t know|rather not)/;
-const NEGATIVAS = new Set(["no", "nada", "ninguna", "ninguno", "ningun", "nadie", "none", "nope", "nobody"]);
-const RELLENO = new Set(["tranquila", "tranquilo", "gracias", "de", "thanks", "one", "lola"]);
+// ── Señales: lo que hace que un mensaje NO sea silencio ─────────────────────
+// Ancho a propósito: un falso positivo deja a la casa sin revisar (como antes)
+// y Lola vuelve a preguntar; un falso negativo da por sano a un alérgico.
+const SENALES = [
+  // Salud, con y sin la palabra «alergia».
+  /\b(alergi|alergic|allerg|intoleran|celiac|celiaqu|coeliac|aplv|histamin|dermatitis|eccema|eczema|urticaria|anafilax|anaphyla|sensibilidad|hives|rash)/,
+  // Reacciones: «no toma», «le sienta mal», «se pone malo», «can't have».
+  /\b(no (toma|tomo|come|como|puede|puedo|tolera|tolero|soporta|prueba|bebe)|(le|les|me|te) (sienta|sientan|da|dan|pica|pican|hace dano)|reacci|se pone mal|se le hincha|se hincha|hinchaz|picor|vomit|can'?t (have|eat|drink|take)|cannot (have|eat|drink|take)|reaction|intolerant|sick)/,
+  // Alérgenos y lo que más da alergia, en castellano (raíces).
+  /\b(gluten|trigo|cebada|centeno|espelta|avena|harina|lact|leche|queso|yogur|nata|mantequilla|huevo|guevo|mahonesa|mayonesa|pescado|marisco|crustace|gamba|langostin|camaron|cigala|cangrej|bogavante|cacahuet|soja|frutos? secos|cascara|nuez|nueces|almendra|avellana|pistacho|anacardo|apio|mostaza|sesamo|ajonjoli|sulfito|altramu|molusco|mejillon|almeja|berberecho|ostra|calamar|pulpo|sepia|kiwi|melocoton|fresa|melon|platano|pina|tomate)/,
+  /\bmani\b/,
+  // Y en inglés, palabras enteras («nut» no salta con «nutrición»).
+  /\b(peanuts?|nuts?|almonds?|walnuts?|hazelnuts?|cashews?|pistachios?|eggs?|milk|dairy|lactose|wheat|shellfish|shrimps?|prawns?|crabs?|lobsters?|fish|sesame|soy|soya|celery|mustard|lupin|molluscs?|mussels?|squid|strawberr\w*|tomato\w*)\b/,
+  // Afirmaciones: «sí», «Lucas sí», «tenemos alguna», «una».
+  /\b(si|yes|yeah|yep|tiene|tienen|tenemos|tengo|alguno|alguna|algunos|algunas|uno|una)\b/,
+  // Aplazamientos: «espera», «pregunto a mi mujer», «lo consulto», «luego».
+  /\b(espera|esperate|un momento|momentito|un segundo|pregunt|consult|miro|mirar|mire|luego|despues|mas tarde|ahora te|ahora lo|ni idea|dejame|prefiero no|no quiero|no estoy segur|later|wait|hold on|check|ask|not sure|don'?t know|dunno|rather not)/,
+  // Un no: lo guarda Lola (ajustar_alergias, por persona), no el código.
+  /\b(no|nada|ninguna|ninguno|ningun|nadie|none|nope|nobody|nothing)\b/,
+];
+const UNION = new Set(["y", "e", "and"]);
+const primerNombre = (n) => limpio(n).trim().split(/\s+/)[0] ?? "";
 
 /**
- * Qué es el mensaje que llega tras la pregunta con aviso: `alergia` (dice
- * una, o nombra un alérgeno), `aplaza` (luego, no lo sé, prefiero no), `no`
- * (un no a secas: la respuesta dicha) u `otra` (siguen con lo suyo: silencio).
+ * ¿El mensaje trae algo que pueda ser una respuesta a la pregunta de
+ * alergias? `nombres`: los de la casa ANTES del turno («Lucas» a secas es
+ * decir quién; en el alta los nombres nuevos no cuentan).
  */
-export function respuestaAlAviso(texto) {
+export function haySenal(texto, { nombres = [] } = {}) {
   // Sin la marca de delante que pone el webhook («[nota de voz] no»).
-  const t = sinTildes(texto).replace(/[’`]/g, "'").replace(/^\s*\[[^\]]*\]\s*/, "");
-  if (pareceAlergia(t) || ALERGENO_ES_RE.test(t) || ALERGENO_EN_RE.test(t)) return "alergia";
-  if (APLAZA_RE.test(t)) return "aplaza";
-  const palabras = t.replace(/[^\p{L}\p{N}' ]/gu, " ").split(/\s+/).filter(Boolean);
-  if (palabras.length && palabras.some((p) => NEGATIVAS.has(p)) && palabras.every((p) => NEGATIVAS.has(p) || RELLENO.has(p))) return "no";
-  return "otra";
+  const t = limpio(texto).replace(/^\s*\[[^\]]*\]\s*/, "");
+  if (SENALES.some((re) => re.test(t))) return true;
+  const casa = new Set(nombres.map(primerNombre).filter(Boolean));
+  const palabras = t.replace(/[^\p{L}\p{N}' ]/gu, " ").split(/\s+/).filter((p) => p && !UNION.has(p));
+  return palabras.length > 0 && palabras.every((p) => casa.has(p));
+}
+
+const escapar = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Por quién se preguntó: los de la casa nombrados en el mensaje de Lola que
+ * siguen sin revisar; si no nombra a nadie, todos los que faltan.
+ */
+export function destinatarios(textoDeLola, data = {}) {
+  const t = limpio(textoDeLola);
+  const miembros = data.members ?? [];
+  const falta = (m) => !alergiasRevisadas(data, m) && !(m.allergies ?? []).length;
+  const nombrados = miembros.filter((m) => {
+    const n = primerNombre(m.name ?? "");
+    return n && new RegExp(`(^|[^\\p{L}])${escapar(n)}($|[^\\p{L}])`, "u").test(t);
+  });
+  return (nombrados.length ? nombrados : miembros).filter(falta).map((m) => m.id);
 }
 
 /**
- * Pura. El origen con que se apunta «ninguna» a los que faltan, o null si no
- * toca apuntar nada: sin aviso en lo último que dijo Lola, o si dicen una
- * alergia (la apunta Lola con ajustar_alergias, como siempre) o lo aplazan.
+ * Pura. `por_silencio` si toca apuntar «ninguna», o null: sin aviso en lo
+ * último de Lola, si en el turno llamó a algo que contesta, o si el mensaje
+ * trae alguna señal.
  */
-export function decidirSilencio({ ultimaDeLola, texto }) {
+export function decidirSilencio({ ultimaDeLola, texto, llamadas = [], nombres = [] }) {
   if (!preguntoConAviso(ultimaDeLola)) return null;
-  const r = respuestaAlAviso(texto);
-  if (r === "otra") return POR_SILENCIO;
-  if (r === "no") return DICHA;
-  return null;
+  if (llamadas.some((h) => HERRAMIENTAS_QUE_CONTESTAN.includes(h))) return null;
+  if (haySenal(texto, { nombres })) return null;
+  return POR_SILENCIO;
 }
 
 /** La línea de log contable, sin datos de la familia (ni casa, ni nombres). */
@@ -96,25 +147,21 @@ export const apuntarRecordatorio = (canal = "telegram") =>
   console.info(lineaDeAlergias({ accion: RECORDADA, origen: POR_SILENCIO, canal }));
 
 /**
- * Antes del turno: si toca (decidirSilencio), apunta «ninguna» a los de la
- * casa que faltaban y cierra sus preguntas abiertas. Solo quien puede editar
- * la casa: un lector o alguien de fuera del grupo no cambia lo de seguridad.
- * Nunca tumba el turno: si falla, se sigue como antes (sin revisar).
+ * Si toca (decidirSilencio), apunta «ninguna» por silencio a las personas por
+ * las que se preguntó y cierra sus preguntas abiertas. Solo quien puede
+ * editar la casa: un lector o alguien de fuera no cambia lo de seguridad.
+ * Sin aviso, ni lee la base. Nunca tumba el turno: si falla, sin revisar.
  * @returns {Promise<{ origen: string, personas: number } | null>}
  */
-export async function apuntarSilencio({ householdId, ultimaDeLola, texto, papel, canal = "telegram", userId = null }) {
+export async function apuntarSilencio({ householdId, ultimaDeLola, texto, papel, canal = "telegram", userId = null, llamadas = [], nombres = [] }) {
   if (!householdId || !puede(papel, "editar_casa")) return null;
-  const origen = decidirSilencio({ ultimaDeLola, texto });
+  const origen = decidirSilencio({ ultimaDeLola, texto, llamadas, nombres });
   if (!origen) return null;
   let ids = [];
   let nueva = null;
   const r = await conCasa(householdId, (casa) => {
     const data = casa.state?.data ?? {};
-    if (origen === POR_SILENCIO) ({ data: nueva, ids } = marcarPorSilencio(data));
-    else {
-      ids = (data.members ?? []).filter((m) => !alergiasRevisadas(data, m) && !(m.allergies ?? []).length).map((m) => m.id);
-      nueva = ids.length ? marcarRevisadas(data, ids) : data;
-    }
+    ({ data: nueva, ids } = marcarPorSilencio(data, destinatarios(ultimaDeLola, data)));
     if (!ids.length) return null;
     // No es algo que hayan pedido: no deja foto para «deshaz».
     return { state: { ...casa.state, data: nueva }, sinDeshacer: true };
@@ -126,9 +173,6 @@ export async function apuntarSilencio({ householdId, ultimaDeLola, texto, papel,
   console.info(lineaDeAlergias({ accion: APUNTADA, origen, personas: ids.length, canal }));
   return { origen, personas: ids.length };
 }
-
-/** Para Lola, en lo que devuelve generar_menu: que no lo diga ella también. */
-export const NOTA_RECORDATORIO = "(Debajo de tu mensaje sale solo el aviso de que se ha dado por hecho que nadie tiene alergias: no lo digas tú.)";
 
 /** El texto con el recordatorio del primer menú al final, si toca. */
 export const conRecordatorio = (texto, recordar, idioma = "es") =>
