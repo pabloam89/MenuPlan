@@ -34,14 +34,14 @@ describe("no-valor-suelto", () => {
       ],
       invalid: [
         { code: 'const a = { color: "#2D5A3D" };', errors: [suelto("color", "#2d5a3d")] },
-        { code: 'const GREEN = "#fff";', errors: [suelto("color", "#fff")] },
-        { code: '<svg fill="#fff" />;', errors: [suelto("color", "#fff")] },
+        { code: 'const GREEN = "#fff";', errors: [suelto("color", "#ffffff")] },
+        { code: '<svg fill="#fff" />;', errors: [suelto("color", "#ffffff")] },
         {
           // Un degradado son tres colores, tres valores sueltos.
           code: 'const a = { background: "linear-gradient(135deg, #2d5a3d 0%, rgba(76, 186, 110, .5) 100%)" };',
           errors: [suelto("color", "#2d5a3d"), suelto("color", "rgba(76,186,110,.5)")],
         },
-        { code: "const a = { fontSize: 13 };", errors: [suelto("fuente", "13")] },
+        { code: "const a = { fontSize: 13 };", errors: [suelto("tamano-letra", "13")] },
         { code: "const a = { fontWeight: 800 };", errors: [suelto("peso", "800")] },
         { code: "const a = { borderRadius: 16 };", errors: [suelto("radio", "16")] },
         { code: 'const a = { borderRadius: "20px 20px 0 0" };', errors: [suelto("radio", "20"), suelto("radio", "20")] },
@@ -56,12 +56,15 @@ describe("no-valor-suelto", () => {
         },
         {
           code: 'const a = { transition: "all .2s cubic-bezier(.4, 0, .2, 1)" };',
-          errors: [suelto("movimiento", "cubic-bezier(.4,0,.2,1)"), suelto("movimiento", ".2s")],
+          errors: [suelto("movimiento", "cubic-bezier(.4,0,.2,1)"), suelto("movimiento", "0.2s")],
         },
         { code: "const a = `0 0 0 2px #0f766e`;", errors: [suelto("color", "#0f766e")] },
+        // Normalización: el mismo valor se cuenta igual escrito de otra forma.
+        { code: "const a = { transition: \"opacity 150ms\" };", errors: [suelto("movimiento", "0.15s")] },
+        { code: "const a = { background: \"#FFF\" };", errors: [suelto("color", "#ffffff")] },
         // Plantilla con expresión: el trozo literal sí se mira.
         { code: "const a = { padding: `${n}px 13px` };", errors: [suelto("espaciado", "13")] },
-        { code: "const a = { transition: `all ${t}s .3s` };", errors: [suelto("movimiento", ".3s")] },
+        { code: "const a = { transition: `all ${t}s .3s` };", errors: [suelto("movimiento", "0.3s")] },
       ],
     });
   });

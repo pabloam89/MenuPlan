@@ -9,15 +9,17 @@
 // mismo tipo y valor. Un valor suelto añadido de verdad sigue saliendo como
 // nuevo.
 
+import { TIPOS_SUELTO } from '../../eslint-rules/no-valor-suelto.js'
+
 export const RUTA_BASE = 'lint-tokens-base.json'
 export const ID_REGLA = 'local/no-valor-suelto'
 
 const MENSAJE_RE = /^Valor suelto \[([^\]]+)\] (.*): usa un token/s
 
-/** `{ tipo, valor }` de un mensaje de la regla, o null si no es suyo. */
+/** `{ tipo, valor }` de un mensaje de la regla, o null si no es suyo o su tipo no está en TIPOS_SUELTO. */
 export function leerMensaje(mensaje) {
   const m = MENSAJE_RE.exec(mensaje)
-  return m ? { tipo: m[1], valor: m[2] } : null
+  return m && Object.hasOwn(TIPOS_SUELTO, m[1]) ? { tipo: m[1], valor: m[2] } : null
 }
 
 export const claveSuelto = (fichero, tipo, valor) => `${fichero} | ${tipo} | ${valor}`

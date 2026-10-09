@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
+import { TIPOS_SUELTO } from '../../eslint-rules/no-valor-suelto.js'
+import { familias } from '../../src/design/tokens.js'
 import { RUTA_BASE, claveSuelto, compararSueltos, leerMensaje, totalDe } from './sueltos-base.mjs'
 
 /**
@@ -31,6 +33,8 @@ describe('la regla y su mensaje', () => {
       valor: '0 1px 3px rgba(0,0,0,.1)',
     })
     expect(leerMensaje('otra cosa')).toBeNull()
+    // Un tipo que la regla no declara no entra en la base.
+    expect(leerMensaje('Valor suelto [fuente] 13: usa un token (src/design/tokens.js)')).toBeNull()
   })
 })
 
@@ -83,6 +87,12 @@ describe('comparar con la base', () => {
   })
 })
 
+describe('los tipos de la regla', () => {
+  it('cada tipo apunta a una familia de tokens que existe', () => {
+    for (const [tipo, familia] of Object.entries(TIPOS_SUELTO)) expect(Object.keys(familias), tipo).toContain(familia)
+  })
+})
+
 describe('la base commiteada', () => {
   const base = JSON.parse(readFileSync(new URL(`../../${RUTA_BASE}`, import.meta.url), 'utf8'))
 
@@ -91,6 +101,7 @@ describe('la base commiteada', () => {
     for (const [k, n] of Object.entries(base.sueltos)) {
       expect(k.split(' | ').length, k).toBeGreaterThanOrEqual(3)
       expect(Number.isInteger(n) && n > 0, k).toBe(true)
+      expect(Object.keys(TIPOS_SUELTO), k).toContain(k.split(' | ')[1])
     }
   })
 

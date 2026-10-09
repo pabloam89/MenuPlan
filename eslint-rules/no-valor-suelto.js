@@ -5,7 +5,7 @@
  * `eslint.config.js`:
  *
  *   · color      cualquier hex, `rgb()/rgba()/hsl()/hsla()` escrito a mano
- *   · fuente     `fontSize` numérico
+ *   · tamano-letra `fontSize` numérico
  *   · peso       `fontWeight` numérico
  *   · radio      `borderRadius` (y sus esquinas), por cada número
  *   · espaciado  `padding*`, `margin*`, `gap`, `rowGap`, `columnGap`
@@ -29,7 +29,7 @@ const COLOR_RE = /(?<![\w&])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-
 
 // propiedad de estilo → tipo
 const TIPO_POR_PROPIEDAD = {
-  fontSize: 'fuente',
+  fontSize: 'tamano-letra',
   fontWeight: 'peso',
   borderRadius: 'radio',
   borderTopLeftRadius: 'radio',
@@ -52,7 +52,34 @@ for (const p of ['gap', 'rowGap', 'columnGap']) TIPO_POR_PROPIEDAD[p] = 'espacia
 const PALABRAS_BLANCAS = new Set(['none', 'auto', 'transparent', 'currentcolor', 'inherit', 'initial', 'unset', 'normal'])
 const TOKEN_FUNC_RE = /\b(?:var|calc|env|min|max|clamp)\(/
 
-const normalizarColor = (c) => c.toLowerCase().replace(/\s+/g, '')
+/** Un mismo color se cuenta igual escrito de cualquier forma: #fff = #ffffff. */
+const normalizarColor = (c) => {
+  const t = c.toLowerCase().replace(/\s+/g, '')
+  return /^#[0-9a-f]{3,4}$/.test(t) ? '#' + [...t.slice(1)].map((h) => h + h).join('') : t
+}
+
+/** Un mismo tiempo se cuenta igual: .15s = 0.15s = 150ms. */
+function normalizarTiempo(numero, unidad) {
+  const segundos = unidad === 'ms' ? Number(numero) / 1000 : Number(numero)
+  return `${Number(segundos.toFixed(3))}s`
+}
+const normalizarCurva = (c) => c.replace(/\s+/g, '').replace(/(?<!\d)0\./g, '.')
+
+/**
+ * Los tipos de valor suelto que cuenta la regla y la familia de token a la que
+ * pertenecen (claves de `familias` en src/design/tokens.js). La base de
+ * `lint-tokens-base.json` solo admite estos.
+ */
+export const TIPOS_SUELTO = {
+  color: 'color',
+  'tamano-letra': 'tipografia',
+  peso: 'tipografia',
+  radio: 'radio',
+  espaciado: 'espaciado',
+  capa: 'capa',
+  sombra: 'sombra',
+  movimiento: 'movimiento',
+}
 
 /** Números sueltos de un texto («14px 16px» → ['14','16']), sin la lista blanca. */
 function numerosDeTexto(texto) {
@@ -75,12 +102,12 @@ function numerosDeTexto(texto) {
 function movimientoDeTexto(texto) {
   const sueltos = []
   const sinCurvas = texto.replace(/cubic-bezier\([^)]*\)/g, (c) => {
-    sueltos.push(c.replace(/\s+/g, ''))
+    sueltos.push(normalizarCurva(c))
     return ' '
   })
   for (const m of sinCurvas.matchAll(/(?<![\w.-])(\d*\.?\d+)(ms|s)\b/g)) {
     if (Number(m[1]) === 0) continue
-    sueltos.push(`${m[1]}${m[2]}`)
+    sueltos.push(normalizarTiempo(m[1], m[2]))
   }
   return sueltos
 }
@@ -132,7 +159,7 @@ export const noValorSuelto = {
     // Valores sueltos de un texto, según el tipo de propiedad.
     function valoresDe(tipo, t) {
       if (tipo === 'movimiento') return movimientoDeTexto(t)
-      if (tipo === 'peso' || tipo === 'capa' || tipo === 'fuente') {
+      if (tipo === 'peso' || tipo === 'capa' || tipo === 'tamano-letra') {
         const n = Number(t.replace(/px$/, ''))
         if (Number.isNaN(n)) return numerosDeTexto(t)
         return n !== 0 && Math.abs(n) !== 1 ? [String(n)] : []
