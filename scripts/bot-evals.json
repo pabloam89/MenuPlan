@@ -2126,6 +2126,55 @@
       "noLlama": [
         "cambiar_plato"
       ]
+    },
+    {
+      "nombre": "alergia sin preguntar: la pregunta lleva el aviso del silencio (#229)",
+      "entrada": "Hazme el menú de la semana que viene",
+      "llama": [],
+      "texto": "si no me (dices|decís|decis) nada",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana y Pablo: SIN PREGUNTAR.\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
+        "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno.\nPENDIENTE\n- ¿Ana y Pablo tienen alguna alergia o intolerancia?"
+      }
+    },
+    {
+      "nombre": "alta: la pregunta de quiénes coméis lleva el aviso de alergia (#229)",
+      "entrada": "[alta] Casa recién creada desde Telegram. Mi primer mensaje: hola",
+      "llama": [],
+      "texto": "si no me (dices|decís|decis) nada",
+      "ficha": {
+        "estable": "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas",
+        "delDia": "vie 9 oct (2026-10-09)"
+      }
+    },
+    {
+      "nombre": "alergia por silencio: no la vuelve a preguntar y genera (#229)",
+      "entrada": "Hazme el menú de la semana que viene",
+      "llama": [
+        "generar_menu"
+      ],
+      "noLlama": [
+        "ajustar_alergias"
+      ],
+      "sinTexto": "alergi",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana y Pablo: ninguna (por silencio).\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
+        "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno."
+      }
+    },
+    {
+      "nombre": "alergia por silencio: si preguntan, dice que lo dio por hecho (#229)",
+      "entrada": "¿Qué alergias tenemos apuntadas?",
+      "llama": [],
+      "noLlama": [
+        "ajustar_alergias"
+      ],
+      "texto": "no (me )?(lo )?(dij|dec|hab[eé]is dicho|has dicho|contest)|por hecho|supu|entiend|entend[ií]|tom[eé] como",
+      "sinTexto": "confirmad",
+      "ficha": {
+        "estable": "SEGURIDAD\n- Ana y Pablo: ninguna (por silencio).\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
+        "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno."
+      }
     }
   ]
 }

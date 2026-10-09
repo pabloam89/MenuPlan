@@ -105,6 +105,42 @@ describe("generar menú: todo o nada", () => {
   });
 });
 
+describe("(d) el recordatorio de alergias por silencio (#229)", () => {
+  const porSilencio = (extra = {}) => ({
+    ...structuredClone(casaVieja),
+    state: {
+      ...casaVieja.state,
+      data: { ...casaVieja.state.data, members: [{ id: "p1", allergies: [], alergiasRevisadas: true, alergiasOrigen: "por_silencio" }], ...extra },
+    },
+  });
+
+  it("el primer menú lo pide, y la marca va en la MISMA escritura que el menú", async () => {
+    let cambios;
+    conCasa.mockImplementation(async (_h, cambiar) => { cambios = await cambiar(porSilencio()); return { ok: true }; });
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const out = {};
+    await generarMenu("h1", "esta", [], out);
+    expect(out.recordarSilencio).toBe(true);
+    expect(cambios.state.data.alergiasSilencioRecordado).toBe(true);
+    expect(info.mock.calls.map(([l]) => JSON.parse(l))).toEqual([{ evento: "bot_alergias", accion: "recordada", origen: "por_silencio", canal: "telegram" }]);
+    info.mockRestore();
+  });
+
+  it("el segundo, no: sale una vez y no dos", async () => {
+    conCasa.mockImplementation(async (_h, cambiar) => { await cambiar(porSilencio({ alergiasSilencioRecordado: true })); return { ok: true }; });
+    const out = {};
+    await generarMenu("h1", "esta", [], out);
+    expect(out.recordarSilencio).toBe(false);
+  });
+
+  it("sin nadie por silencio, tampoco", async () => {
+    conCasa.mockImplementation(async (_h, cambiar) => { await cambiar(structuredClone(casaVieja)); return { ok: true }; });
+    const out = {};
+    await generarMenu("h1", "esta", [], out);
+    expect(out.recordarSilencio).toBe(false);
+  });
+});
+
 describe("generar menú con las recetas propias", () => {
   it("el motor recibe las de user_recipes (las de la app), no solo las del JSON", async () => {
     const propia = { id: "user_app1", name: "Tortilla de la abuela", source: "user" };
