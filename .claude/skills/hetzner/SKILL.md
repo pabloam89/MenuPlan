@@ -33,7 +33,7 @@ description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a
   - Una línea por copia en `copias.log` y el journal (`copia-base … resultado:
     ok|fallo motivo: <paso> … aviso: ok|fallo|sin-canal`); vocabulario en
     `scripts/lib/copias.mjs`, cruzado por test con el script.
-  - Solo con `copia_lectura` (0095, #273; nunca `consulta_lectura`): con otro
+  - Solo con `copia_lectura` (0095, #273; nunca `consulta_lectura`) <!-- norma:copias-solo-con-su-rol -->: con otro
     usuario o si puede escribir, para por `config`; sin las dos vistas de
     `copia`, por `auth`; con menos de 100 KB o la mitad de la última, `incompleta`.
 - **Pendiente:**
