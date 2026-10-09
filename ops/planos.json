@@ -297,6 +297,12 @@
         ],
         "4": [
           {
+            "tipo": "test_existe",
+            "que": "Cada norma dura tiene un ejecutor comprobable que falla cerrado (registro de normas, #296)",
+            "ruta": "ops/normas.test.js",
+            "patron": "ninguna norma se dice más dura de lo que es"
+          },
+          {
             "tipo": "por_definir",
             "que": "Cada negación de la guardia deja una línea contable (hoy no queda rastro)"
           },
