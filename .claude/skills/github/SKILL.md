@@ -7,8 +7,7 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 
 ## Qué es y dónde
 
-- **Repo** `pabloam89/MenuPlan`, **público**. Rama por defecto: `staging`
-  (desde el 7 oct 2026). `main` es producción.
+- **Repo** `pabloam89/MenuPlan`, **público**. Rama por defecto: `staging` (desde el 7 oct 2026). `main` es producción.
 - **Protección de ramas** (desde el 7 oct, también para administradores):
   - `main`: solo por PR con el check `tests` en verde; sin force push ni
     borrado.
@@ -26,6 +25,7 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano (con `probar_push`, un commit vacío si no hay precios nuevos) | precios de Mercadona; commitea y **empuja a `staging` con la deploy key** (sin el secreto, con el token). Ese push sí lanza `tests` |
 | `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |
 | `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola |
+| `planos-semanal.yml` | lunes 06:50 UTC, a mano | `npm run planos -- --red` con el token del workflow (sin secretos ni Claude); si un nivel no cuadra o un juicio caduca, abre o comenta el issue «Planos: la medición semanal no cuadra». Lo que solo ve un administrador sale «sin comprobar» y no cambia ningún nivel |
 | `ios-testflight.yml` | solo a mano | build de iOS a TestFlight |
 
 - **`tests.yml` en detalle:** Node 24 y 20 minutos de tope. El lint
