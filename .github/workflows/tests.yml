@@ -4,10 +4,6 @@
 #
 # Sin secretos: los tests usan bases y claves de mentira, y la build no los
 # necesita (sin VITE_SUPABASE_* solo avisa).
-#
-# src/lib/solver.test.js va fuera: falla desde antes del 1 oct 2026 (también
-# en main), el solver está apagado por defecto (VITE_MOTOR=solver) y no tiene
-# dueño ahora mismo. Cuando se arregle, quitar el --exclude.
 
 name: Tests
 
@@ -73,7 +69,7 @@ jobs:
       - name: Lint
         run: npm run lint:base
       - name: Tests
-        run: npm test -- --exclude "src/lib/solver.test.js"
+        run: npm test
         env:
           TZ: Europe/Madrid
       - name: Build
