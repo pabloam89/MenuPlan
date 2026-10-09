@@ -76,7 +76,8 @@ No es suyo:
 2. `git fetch origin`, `git worktree list`, `git branch -vv`,
    `gh pr list`, `gh pr checks`, `gh run list`.
 3. `.claude/settings.json`, `.claude/hooks/` y sus tests.
-4. `ops/INVENTARIO.md`, `ops/DECISIONES.md` y `ops/PLANOS.md`.
+4. `ops/INVENTARIO.md`, `ops/DECISIONES.md` y `ops/PLANOS.md`; el nivel de
+   cada plano, de `npm run planos -- --red` (criterios en `ops/planos.json`).
 5. `.github/workflows/` y `vercel.json`.
 6. Vercel (conector de claude.ai, equipo «Monicos MenuPlan»): despliegues y
    logs.
@@ -117,7 +118,8 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 - Los comandos listos para pegar cuando la acción es de una persona.
 - Una fila en `ops/DECISIONES.md` por cada gateway aprobado.
 - `ops/INVENTARIO.md` al día cuando cambie un servicio o una clave de sitio.
-- `ops/PLANOS.md` al día cuando un plano cambie de nivel, con la evidencia.
+- `ops/PLANOS.md` al día cuando un plano cambie de nivel: el criterio
+  comprobable en `ops/planos.json` y `npm run planos -- --red --escribir`.
 - Al final, siempre, el informe común de `.claude/PLANTILLA-AGENTE.md`.
 
 ## 9. Escalado
