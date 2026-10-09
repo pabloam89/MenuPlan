@@ -70,7 +70,11 @@ function silencioDelTurno(chat) {
   if (!chat?.householdId) return null;
   return apuntarSilencio({
     householdId: chat.householdId, ultimaDeLola: chat.anterior, texto: chat.texto, papel: chat.papel,
-    canal: chat.channel, userId: chat.userId ?? null, llamadas: chat.llamadas ?? [], nombres: chat.nombresAntes ?? [],
+    canal: chat.channel, userId: chat.userId ?? null, nombres: chat.nombresAntes ?? [],
+    // Las ya ejecutadas y las PEDIDAS en el bloque en curso: si el modelo pide
+    // a la vez generar_menu y ajustar_alergias, generar no aplica el silencio
+    // aunque le toque correr primero (el menú sale con el filtro).
+    llamadas: [...new Set([...(chat.llamadas ?? []), ...(chat.pedidas ?? [])])],
   });
 }
 
@@ -984,7 +988,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
   // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
   // `llamadas`: las herramientas que Lola pide en el turno, en orden (silencio.js).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [] };
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [] };
   // El papel de quien escribe, en cada turno (no se guarda: quitar a alguien
   // vale para el mensaje siguiente). Las herramientas se filtran con él.
   const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })
@@ -1067,6 +1071,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     if (leido) medidaPista = { ...medidaPista, modo: d.modo, confianza: d.confianza, adelanto: leido.nombre, reinicio };
     return ejecutar({
       historia, entrada: entradaModelo, tools: conAdelanto, adjunto, signal: sig, ficha, progreso,
+      alPedir: (nombres) => chat.pedidas.push(...nombres),
       guardados: () => chat.guardados ?? 0,
       pista: leido ? textoPista(d, leido) : null,
       alEscribir: alEscribir ? (parcial, extra) => {
@@ -1224,7 +1229,7 @@ const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En t
  *   en el turno (responder lo saca de db.js). Sin él (pruebas con herramientas
  *   de mentira) vale lo intentado.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null }) {
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null, alPedir = null }) {
   // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
@@ -1259,7 +1264,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     try {
       if (i > 0) alReintentar?.();
       const comun = {
-        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso,
+        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso, alPedir,
         signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
@@ -1320,7 +1325,7 @@ export function esCaida(err) {
 // los puntos de 1 h vayan antes que los de 5 min.
 const CACHE_FIJA = { type: "ephemeral", ttl: "1h" };
 
-async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null }) {
+async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null, alPedir = null }) {
   // Con cache_control en el último bloque: la segunda vuelta del turno (tras
   // una herramienta) y las siguientes leen de caché todo lo anterior —
   // instrucciones, historia y el mensaje— en vez de volver a procesarlo.
@@ -1383,6 +1388,9 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
       mensaje = await vuelta.finalMessage();
     }
     final = mensaje;
+    // El bloque de herramientas que pide esta vuelta, ANTES de que el runner
+    // las ejecute (lo hace al acabar este cuerpo; sin runToolsEagerly).
+    alPedir?.((mensaje.content ?? []).filter((b) => b.type === "tool_use").map((b) => b.name));
     llamadas.push([Date.now() - desde, mensaje.usage?.output_tokens ?? 0, primerTrozo]);
     desde = Date.now();
     vueltas++;

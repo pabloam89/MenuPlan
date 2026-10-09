@@ -6,7 +6,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const t = vi.hoisted(() => ({ memoria: [], herramientas: [], casa: null, orden: [], silencioAlLeer: null }));
+const t = vi.hoisted(() => ({ memoria: [], herramientas: [], casa: null, orden: [], silencioAlLeer: null, vistas: [] }));
 
 vi.mock("./db.js", () => ({
   eq: (v) => `eq.${v}`,
@@ -31,7 +31,8 @@ vi.mock("./uso.js", () => ({ fueraDeLimite: async () => null, contarUso: async (
 vi.mock("./embudo.js", () => ({ registrar: vi.fn(async () => {}), rastro: vi.fn(async () => {}), EMBUDO: {}, duenoDe: vi.fn(async () => null), cimientosCompletos: () => false }));
 vi.mock("./silencio.js", async (original) => ({
   ...(await original()),
-  apuntarSilencio: vi.fn(async (a) => { t.orden.push(`silencio:${a.llamadas.join("+")}`); return null; }),
+  // Copia de lo que vio en ESE momento (la lista del turno sigue creciendo).
+  apuntarSilencio: vi.fn(async (a) => { t.orden.push(`silencio:${a.llamadas.join("+")}`); t.vistas.push({ ...a, llamadas: [...a.llamadas] }); return null; }),
 }));
 vi.mock("@anthropic-ai/sdk", async (original) => {
   const real = await original();
@@ -41,7 +42,12 @@ vi.mock("@anthropic-ai/sdk", async (original) => {
       this.beta = { messages: { toolRunner: (params) => (async function* () {
         // Cuántas veces se había mirado el silencio cuando el modelo empieza a leer.
         t.silencioAlLeer ??= t.orden.filter((x) => x.startsWith("silencio:")).length;
-        for (const h of t.herramientas) await params.tools.find((x) => x.name === h.nombre).run(h.args, { toolUse: { id: h.nombre } });
+        // Como el runner de verdad: primero el mensaje con el bloque de
+        // llamadas, y las herramientas se ejecutan DESPUÉS, todas a la vez.
+        if (t.herramientas.length) {
+          yield { content: t.herramientas.map((h) => ({ type: "tool_use", id: h.nombre, name: h.nombre, input: h.args })), usage: {} };
+          for (const h of t.herramientas) await params.tools.find((x) => x.name === h.nombre).run(h.args, { toolUse: { id: h.nombre } });
+        }
         yield { content: [{ type: "text", text: "Vale." }], usage: {} };
       })() } };
     }
@@ -69,6 +75,7 @@ beforeEach(() => {
   t.herramientas = [];
   t.orden = [];
   t.silencioAlLeer = null;
+  t.vistas = [];
   t.memoria = [
     { id: 2, role: "assistant", content: { texto: PREGUNTA }, created_at: new Date().toISOString() },
     { id: 1, role: "user", content: { texto: "hola" }, created_at: new Date().toISOString() },
@@ -91,6 +98,20 @@ describe("responder y las alergias por silencio", () => {
     t.herramientas = [{ nombre: "generar_menu", args: { semana: "esta" } }];
     await turno();
     expect(t.orden.slice(0, 2)).toEqual(["silencio:generar_menu", "generarMenu"]);
+  });
+
+  it("bloque en paralelo [generar_menu, ajustar_alergias]: nada se marca antes de generar (seguridad alimentaria)", async () => {
+    t.herramientas = [
+      { nombre: "generar_menu", args: { semana: "esta" } },
+      { nombre: "ajustar_alergias", args: { persona: "Ana", alergenos: ["huevos"], confirmado: true } },
+    ];
+    await turno();
+    const antesDeGenerar = t.vistas.slice(0, t.orden.filter((x, i) => i < t.orden.indexOf("generarMenu") && x.startsWith("silencio:")).length);
+    expect(antesDeGenerar.length).toBeGreaterThan(0);
+    for (const a of antesDeGenerar) {
+      expect(a.llamadas).toContain("ajustar_alergias");
+      expect(decidirSilencio(a)).toBe(null);
+    }
   });
 
   it("(c) si en el turno Lola llamó a ajustar_alergias, lo que llega a decidir no marca", async () => {
