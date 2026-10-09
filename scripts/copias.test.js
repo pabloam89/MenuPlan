@@ -17,7 +17,7 @@ import { delimiter, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-  AVISOS, MOTIVOS_COPIA, NOMBRE_COPIA, RELACIONES_COPIA, RESULTADOS, SECUENCIAS, TABLAS_SIN_COPIA,
+  AVISOS, MOTIVOS_COPIA, NOMBRE_COPIA, RELACIONES_COPIA, RESULTADOS, SECUENCIAS, NOMBRES_SIN_COPIA,
   camposRegistroEnsayo, clavesAjenasAAuth, columnasCopiaQueNoCuadran, comprobarDestinatarios, fechaDeCopia, leerLinea, lineaEstructurada, lineaRegistroEnsayo,
   sqlAuthDeMentira, sqlHuerfanos, veredicto,
 } from "./lib/copias.mjs";
@@ -165,7 +165,7 @@ describe("copia-base.sh: sintaxis y vocabulario", () => {
 
   it("las tablas que el script deja fuera son TABLAS_SIN_COPIA", () => {
     const texto = readFileSync(SCRIPT, "utf8");
-    expect(/^TABLAS_SIN_COPIA="([^"]*)"$/m.exec(texto)?.[1].split(" ").sort()).toEqual([...TABLAS_SIN_COPIA].sort());
+    expect(/^TABLAS_SIN_COPIA="([^"]*)"$/m.exec(texto)?.[1].split(" ").sort()).toEqual([...NOMBRES_SIN_COPIA].sort());
   });
 
   it("el usuario y las vistas que exige el script son ROL_COPIA y RELACIONES_COPIA", () => {
@@ -351,7 +351,7 @@ describe.skipIf(!hayBash)("copia-base.sh con binarios falsos", () => {
     const r = correr(s);
     expect(r.status, r.stderr).toBe(0);
     const dump = r.argv.split("\n").find((l) => l.startsWith("pg_dump "));
-    for (const t of TABLAS_SIN_COPIA) expect(dump).toContain(`--exclude-table=${t}`);
+    for (const t of NOMBRES_SIN_COPIA) expect(dump).toContain(`--exclude-table=${t}`);
   });
 
   it("con una secuencia que no puede leer, la copia sigue y lo dice: secuencias: sin-valor", () => {

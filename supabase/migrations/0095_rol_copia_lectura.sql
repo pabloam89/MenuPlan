@@ -23,15 +23,24 @@
 --     mágico. La lista vive también en `scripts/lib/copias.mjs`
 --     (`RELACIONES_COPIA`), y `supabase/rolLectura.test.js` la cruza con esta.
 --
--- Fuera: dos tablas de códigos efímeros que no hacen falta para restaurar
--- (`bot_link_tokens` y `household_invites`). `copia_lectura` no las lee, y
+-- Fuera: tres tablas de códigos efímeros que no hacen falta para restaurar
+-- (`bot_link_tokens`, `household_invites` y `bot_codigos`; ninguna clave ajena
+-- apunta a ellas). `copia_lectura` no las lee, y
 -- `copia-base.sh` las deja fuera del volcado con `--exclude-table` (no basta
 -- `--exclude-table-data`: `pg_dump` bloquea con `lock … access share` toda tabla
 -- cuya definición vuelca, y eso pide `select`). Al restaurar se recrean vacías
 -- con sus migraciones. La lista vive también en `TABLAS_SIN_COPIA`
--- (`scripts/lib/copias.mjs`), cruzada por test. A `consulta_lectura` (0092) se
--- le quita la columna del código de esas dos tablas y conserva las demás, para
--- seguir contando y diagnosticando.
+-- (`scripts/lib/copias.mjs`), cruzada por test. Algunas columnas con códigos
+-- siguen legibles por este rol hasta #374 (`pg_dump` necesita la tabla entera).
+-- `recipe_share_links`, `menu_share_links` y `households.invite_token` se
+-- quedan en la copia: los enlaces que ya se repartieron tienen que seguir
+-- funcionando tras restaurar (#374).
+--
+-- `consulta_lectura` (0092) deja de leer seis columnas con códigos (la del
+-- código de esas tres tablas, `households.invite_token`,
+-- `user_profiles.pending_invite_token` y `apple_auth_tokens.refresh_token`) y
+-- conserva las demás, para seguir contando y diagnosticando. Va por columnas:
+-- en esas seis tablas, `select *` falla y hay que nombrar las columnas.
 --
 -- Por qué. Las copias (`ops/copias/copia-base.sh`, PR #285) iban a usar
 -- `consulta_lectura` (0092), que se aprobó para consultas desde el PC de Pablo
@@ -116,12 +125,42 @@ alter default privileges for role postgres in schema public, ops grant select on
 alter default privileges for role postgres in schema public, ops grant select on sequences to copia_lectura;
 
 -- 2b. Tablas de códigos efímeros que no hacen falta para restaurar (cabecera):
---     copia_lectura no las lee; consulta_lectura lee todas sus columnas menos
---     la del código.
-revoke select on public.bot_link_tokens, public.household_invites from copia_lectura;
-revoke select on public.bot_link_tokens, public.household_invites from consulta_lectura;
-grant select (user_id, household_id, expires_at, used_at, created_at) on public.bot_link_tokens to consulta_lectura;
-grant select (household_id, role, created_by, lang, max_uses, uses, expires_at, revoked_at, created_at) on public.household_invites to consulta_lectura;
+--     copia_lectura no las lee.
+revoke select on public.bot_link_tokens, public.household_invites, public.bot_codigos from copia_lectura;
+
+-- 2c. Columnas con códigos que consulta_lectura deja de leer: pierde el select
+--     de la tabla y lo recupera columna a columna, todas menos esa. Las
+--     columnas se leen del catálogo (no se copian aquí). La misma lista vive en
+--     COLUMNAS_SIN_CONSULTA (scripts/lib/rolLectura.mjs), cruzada por test.
+--     Las columnas que se añadan después a esas tablas no las verá
+--     consulta_lectura hasta que se le den: es el lado seguro.
+do $$
+declare
+  v record;
+  v_cols text;
+begin
+  for v in
+    select x.tabla::regclass as tabla, x.columna
+      from (values
+        ('public.bot_link_tokens', 'token'),
+        ('public.household_invites', 'token'),
+        ('public.bot_codigos', 'codigo'),
+        ('public.households', 'invite_token'),
+        ('public.user_profiles', 'pending_invite_token'),
+        ('public.apple_auth_tokens', 'refresh_token')
+      ) as x(tabla, columna)
+  loop
+    if not exists (select 1 from pg_attribute where attrelid = v.tabla and attname = v.columna and not attisdropped) then
+      raise exception 'rol copia_lectura: no existe la columna %.%', v.tabla, v.columna;
+    end if;
+    select string_agg(quote_ident(attname), ', ' order by attnum) into v_cols
+      from pg_attribute
+     where attrelid = v.tabla and attnum > 0 and not attisdropped and attname <> v.columna;
+    execute format('revoke select on %s from consulta_lectura', v.tabla);
+    execute format('grant select (%s) on %s to consulta_lectura', v_cols, v.tabla);
+  end loop;
+end
+$$;
 
 -- 3. El esquema copia: lo justo de auth para restaurar las claves ajenas.
 create schema if not exists copia;
@@ -309,16 +348,33 @@ begin
   perform 1 from copia.auth_usuarios limit 1;
   perform 1 from copia.auth_identidades limit 1;
 
-  -- Las tablas de códigos efímeros: copia_lectura no lee nada de ellas, y
-  -- consulta_lectura lee todo menos la columna del código.
+  -- Las tablas de códigos efímeros: copia_lectura no lee nada de ellas.
   select string_agg(t::text, ', ') into v_lista
-    from unnest(array['public.bot_link_tokens'::regclass, 'public.household_invites'::regclass]) t
-   where has_table_privilege(r.oid, t, 'SELECT') or has_any_column_privilege(r.oid, t, 'SELECT')
-      or has_table_privilege('consulta_lectura', t, 'SELECT')
-      or has_column_privilege('consulta_lectura', t, 'token', 'SELECT')
-      or not has_any_column_privilege('consulta_lectura', t, 'SELECT');
+    from unnest(array['public.bot_link_tokens'::regclass, 'public.household_invites'::regclass, 'public.bot_codigos'::regclass]) t
+   where has_table_privilege(r.oid, t, 'SELECT') or has_any_column_privilege(r.oid, t, 'SELECT');
   if v_lista is not null then
-    raise exception 'rol copia_lectura: permisos sobre tablas de códigos efímeros que no son los acordados: %', v_lista;
+    raise exception 'rol copia_lectura: copia_lectura lee tablas de códigos efímeros: %', v_lista;
+  end if;
+
+  -- consulta_lectura: sin select de tabla ni de la columna del código, y con
+  -- todas las demás columnas de esas tablas.
+  select string_agg(x.tabla || '.' || x.columna, ', ') into v_lista
+    from (values
+      ('public.bot_link_tokens', 'token'),
+      ('public.household_invites', 'token'),
+      ('public.bot_codigos', 'codigo'),
+      ('public.households', 'invite_token'),
+      ('public.user_profiles', 'pending_invite_token'),
+      ('public.apple_auth_tokens', 'refresh_token')
+    ) as x(tabla, columna)
+   where has_table_privilege('consulta_lectura', x.tabla::regclass, 'SELECT')
+      or has_column_privilege('consulta_lectura', x.tabla::regclass, x.columna, 'SELECT')
+      or exists (
+        select 1 from pg_attribute a
+         where a.attrelid = x.tabla::regclass and a.attnum > 0 and not a.attisdropped and a.attname <> x.columna
+           and not has_column_privilege('consulta_lectura', x.tabla::regclass, a.attnum, 'SELECT'));
+  if v_lista is not null then
+    raise exception 'rol copia_lectura: los permisos de consulta_lectura por columnas no son los acordados en %', v_lista;
   end if;
 
   select count(*) into v_n

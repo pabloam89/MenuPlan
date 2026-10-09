@@ -56,6 +56,21 @@ export const PERFILES = {
   },
 };
 
+/**
+ * Columnas con códigos que `consulta_lectura` no lee (la migración del rol
+ * copia_lectura, #374 para el fondo): [tabla, columna]. En esas tablas tiene
+ * `select` solo por columnas, así que `select *` falla y hay que nombrarlas.
+ * Un test cruza esta lista con la migración.
+ */
+export const COLUMNAS_SIN_CONSULTA = [
+  ["public.bot_link_tokens", "token"],
+  ["public.household_invites", "token"],
+  ["public.bot_codigos", "codigo"],
+  ["public.households", "invite_token"],
+  ["public.user_profiles", "pending_invite_token"],
+  ["public.apple_auth_tokens", "refresh_token"],
+];
+
 /** La dirección op:// de la URL de un perfil. */
 export const direccionOp = (p) => `op://${p.boveda}/${p.ficha}/${p.variable}`;
 

@@ -45,7 +45,7 @@ import pg from "pg";
 
 import { RAIZ } from "./lib/env.mjs";
 import {
-  CLAVE_PRIVADA, DIR_SERVIDOR, NOMBRE_COPIA, OP_CLAVE_COPIAS, RELACIONES_COPIA, SERVIDOR, SQL_SECUENCIAS, TABLAS_SIN_COPIA,
+  CLAVE_PRIVADA, DIR_SERVIDOR, NOMBRE_COPIA, OP_CLAVE_COPIAS, RELACIONES_COPIA, SERVIDOR, SQL_SECUENCIAS, NOMBRES_SIN_COPIA,
   clavesAjenasAAuth, columnasCopiaQueNoCuadran, fechaDeCopia, lineaEstructurada, lineaRegistroEnsayo, sqlAuthDeMentira, sqlHuerfanos, veredicto,
 } from "./lib/copias.mjs";
 import { OP_COPIA, PERFILES, ROL_COPIA, VAR_COPIA } from "./lib/rolLectura.mjs";
@@ -221,7 +221,7 @@ async function contar(client) {
   const { rows } = await client.query(SQL_TABLAS);
   const filas = {};
   // Las de TABLAS_SIN_COPIA no van en la copia (ni copia_lectura puede leerlas).
-  for (const { t } of rows.filter(({ t }) => !TABLAS_SIN_COPIA.includes(t))) filas[t] = Number((await client.query(`select count(*)::bigint as n from ${t}`)).rows[0].n);
+  for (const { t } of rows.filter(({ t }) => !NOMBRES_SIN_COPIA.includes(t))) filas[t] = Number((await client.query(`select count(*)::bigint as n from ${t}`)).rows[0].n);
   return filas;
 }
 

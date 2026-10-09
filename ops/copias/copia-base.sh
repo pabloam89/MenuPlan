@@ -81,7 +81,7 @@ RELACIONES_COPIA="auth_usuarios auth_identidades"
 # Tablas de códigos efímeros que no hacen falta para restaurar: fuera del
 # volcado entero (TABLAS_SIN_COPIA de scripts/lib/copias.mjs; ver allí por qué
 # no basta con dejar fuera sus datos).
-TABLAS_SIN_COPIA="public.bot_link_tokens public.household_invites"
+TABLAS_SIN_COPIA="public.bot_link_tokens public.household_invites public.bot_codigos"
 NOMBRE_RE='^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{6}Z$'
 
 INICIO=$(date -u +%s)

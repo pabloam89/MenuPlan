@@ -74,7 +74,9 @@ export const RELACIONES_COPIA = {
  * restaurar se recrean vacías con sus migraciones. Un test cruza esta lista con
  * el script y con la migración.
  */
-export const TABLAS_SIN_COPIA = ["public.bot_link_tokens", "public.household_invites"];
+export const TABLAS_SIN_COPIA = [["public.bot_link_tokens", "token"], ["public.household_invites", "token"], ["public.bot_codigos", "codigo"]];
+/** Solo los nombres de TABLAS_SIN_COPIA. */
+export const NOMBRES_SIN_COPIA = TABLAS_SIN_COPIA.map(([t]) => t);
 
 /** El `data_type` de information_schema.columns de cada tipo de RELACIONES_COPIA. */
 const DATA_TYPE = { uuid: "uuid", text: "text", timestamptz: "timestamp with time zone", boolean: "boolean", jsonb: "jsonb" };

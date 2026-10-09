@@ -33,8 +33,9 @@ description: Úsala para operar la base de datos de MenuPlan en Supabase: una co
   - Lo hace el usuario propio `copia_lectura` (0095, #273): `select` en
     `public`, `ops` y sus secuencias (`secuencias: con-valor`), `bypassrls`
     (sin él `pg_dump` se para con la RLS), una sola conexión. Sin
-    `bot_link_tokens` ni `household_invites` (códigos efímeros que no hacen
-    falta): al restaurar se recrean vacías con sus migraciones.
+    `bot_link_tokens`, `household_invites` ni `bot_codigos` (códigos efímeros
+    que no hacen falta; `TABLAS_SIN_COPIA`): al restaurar se recrean vacías
+    con sus migraciones.
   - **Lleva lo justo de `auth`** (`auth: si`): el esquema `copia` tiene dos
     vistas, `auth_usuarios` (id, email, teléfono, confirmaciones, anónimo, alta)
     y `auth_identidades` (id, user_id, provider, provider_id, alta), sin
@@ -68,6 +69,12 @@ la pone `node scripts/clave-consulta-lectura.mjs --si` (Pablo, con `!`): la
 genera, crea la ficha «Supabase lectura» en HoMenu por stdin y a la base solo
 le manda el verificador SCRAM. Lo que esté fuera de `public` y `ops` (p. ej.
 `cron.job`) se mira con `verificar-estado` o con la de administrador.
+Desde la 0095 hay columnas con códigos que no lee (`COLUMNAS_SIN_CONSULTA` de
+`scripts/lib/rolLectura.mjs`). En sus seis tablas (`households`,
+`user_profiles`, `apple_auth_tokens`, `bot_link_tokens`, `household_invites`,
+`bot_codigos`) solo tiene `select` por columnas: **`select *` falla**, hay que
+nombrar las columnas (`count(*)` sí vale). Una columna nueva en ellas no la ve
+hasta que se le da.
 **La frontera es la URL, no el rol**: el read only y los tiempos límite son
 valores por defecto que la sesión puede cambiar, y con su propia sesión quien
 tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos

@@ -11,7 +11,7 @@ import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { OP_LECTURA, PERFILES, ROL_COPIA, ROL_LECTURA, VAR_LECTURA } from "../scripts/lib/rolLectura.mjs";
+import { COLUMNAS_SIN_CONSULTA, OP_LECTURA, PERFILES, ROL_COPIA, ROL_LECTURA, VAR_LECTURA } from "../scripts/lib/rolLectura.mjs";
 import { RELACIONES_COPIA, TABLAS_SIN_COPIA } from "../scripts/lib/copias.mjs";
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
@@ -201,17 +201,29 @@ describe("copia_lectura solo lee, y de auth solo lo acordado", () => {
     }
   });
 
-  it("las tablas de TABLAS_SIN_COPIA: copia_lectura no las lee y consulta_lectura no lee su columna token", () => {
+  it("copia_lectura no lee las tablas de TABLAS_SIN_COPIA, y el bloque final lo comprueba", () => {
     const plano = codigoPlano(sql).replace(/\s+/g, " ");
-    for (const t of TABLAS_SIN_COPIA) {
-      expect(plano, t).toMatch(new RegExp(String.raw`revoke select on [^;]*\b${t.replace(".", "\\.")}\b[^;]* from copia_lectura;`));
-      expect(plano, t).toMatch(new RegExp(String.raw`revoke select on [^;]*\b${t.replace(".", "\\.")}\b[^;]* from consulta_lectura;`));
-      const g = new RegExp(String.raw`grant select \(([^)]*)\) on ${t.replace(".", "\\.")} to consulta_lectura;`).exec(plano);
-      expect(g, t).toBeTruthy();
-      expect(g[1].split(",").map((c) => c.trim())).not.toContain("token");
-    }
-    // Y el bloque final lo comprueba en el catálogo.
-    expect(sql).toContain("has_column_privilege('consulta_lectura', t, 'token', 'SELECT')");
+    const revoke = /revoke select on ([^;]*) from copia_lectura;/.exec(plano);
+    expect(revoke).toBeTruthy();
+    expect(revoke[1].split(",").map((t) => t.trim()).sort()).toEqual(TABLAS_SIN_COPIA.map(([t]) => t).sort());
+    for (const [t] of TABLAS_SIN_COPIA) expect(sql, t).toContain(`'${t}'::regclass`);
+  });
+
+  it("la columna del código de cada tabla de TABLAS_SIN_COPIA tampoco la lee consulta_lectura", () => {
+    const sinConsulta = COLUMNAS_SIN_CONSULTA.map(([t, c]) => `${t}.${c}`);
+    for (const [t, c] of TABLAS_SIN_COPIA) expect(sinConsulta, `${t}.${c}`).toContain(`${t}.${c}`);
+  });
+
+  it("consulta_lectura pierde justo COLUMNAS_SIN_CONSULTA, al quitarlas y al comprobarlas", () => {
+    // Las dos listas `values (…)` de la migración: la que quita y la que comprueba.
+    const listas = [...sql.matchAll(/from \(values\s*([\s\S]*?)\)\s*as x\(tabla, columna\)/g)]
+      .map((m) => [...m[1].matchAll(/\('([\w.]+)', '(\w+)'\)/g)].map(([, t, c]) => [t, c]));
+    expect(listas).toHaveLength(2);
+    for (const l of listas) expect(l).toEqual(COLUMNAS_SIN_CONSULTA);
+    // Se quita la tabla entera y se devuelve columna a columna, sin la del código.
+    expect(sql).toContain("execute format('revoke select on %s from consulta_lectura', v.tabla);");
+    expect(sql).toMatch(/attname <> v\.columna;\s*execute format\('revoke/);
+    expect(sql).toContain("has_column_privilege('consulta_lectura', x.tabla::regclass, x.columna, 'SELECT')");
   });
 
   it("una lista de columnas no cuenta como privilegios, y token en ella sí se ve", () => {
