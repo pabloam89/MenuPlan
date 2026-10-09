@@ -15,10 +15,11 @@
  * FK, cuenta la última (por eso la 0083 no falla).
  */
 import { describe, it, expect } from "vitest";
-import { readFileSync, readdirSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { borrados } from "../scripts/lib/migraciones.mjs";
+import { tmpdir } from "node:os";
+import { eventosTabla, sentencias } from "../scripts/lib/migraciones.mjs";
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), "migrations");
 
@@ -58,16 +59,19 @@ export function fksAPersona(sql) {
 }
 
 /** Estado final tras todas las migraciones: la última definición de cada FK gana. */
-function estadoFinal() {
+export function estadoFinal(dir = DIR) {
   const fks = new Map();
-  for (const f of readdirSync(DIR).filter((n) => /^\d{4}.*\.sql$/.test(n)).sort()) {
-    const sql = readFileSync(join(DIR, f), "utf8");
-    for (const fk of fksAPersona(sql)) {
-      fks.set(`${fk.tabla}:${fk.nombre ?? "persona"}`, { ...fk, fichero: f });
-    }
-    // Una tabla que borra un `drop table` se lleva sus FK.
-    for (const b of borrados(sql)) {
-      if (b.tipo === "tabla") for (const k of [...fks.keys()]) if (k.startsWith(`${b.nombre}:`)) fks.delete(k);
+  for (const f of readdirSync(dir).filter((n) => /^\d{4}.*\.sql$/.test(n)).sort()) {
+    // Sentencia a sentencia y en orden: un `drop table x` se lleva las FK de x que había
+    // hasta ahí, y un `create table x` posterior las vuelve a declarar.
+    for (const s of sentencias(readFileSync(join(dir, f), "utf8"))) {
+      for (const e of eventosTabla(s)) {
+        if (e.accion !== "borra" || e.tipo !== "tabla" || e.esquema !== "public") continue;
+        for (const k of [...fks.keys()]) if (k.startsWith(`${e.nombre}:`)) fks.delete(k);
+      }
+      for (const fk of fksAPersona(s)) {
+        fks.set(`${fk.tabla}:${fk.nombre ?? "persona"}`, { ...fk, fichero: f });
+      }
     }
   }
   return [...fks.values()];
@@ -101,5 +105,26 @@ describe("cascada hacia persona", () => {
       .filter((f) => f.onDelete === "cascade" && !CASCADA_PERMITIDA.has(f.tabla))
       .map((f) => `${f.fichero}: ${f.tabla}${f.nombre ? ` (${f.nombre})` : ""}`);
     expect(malas, "Estas FKs borran en cascada al quitar a alguien de la familia. Usa `on delete set null` o `restrict`, o añádela a CASCADA_PERMITIDA con su porqué").toEqual([]);
+  });
+
+  describe("un drop table (#302)", () => {
+    const CREA = "create table public.cosa_nueva (id uuid primary key, persona_id uuid references public.persona(id) on delete cascade);";
+    const carpeta = (migraciones) => {
+      const d = mkdtempSync(join(tmpdir(), "menuplan-cascada-"));
+      for (const [n, sql] of Object.entries(migraciones)) writeFileSync(join(d, `${n}.sql`), sql);
+      return d;
+    };
+    const tablasDe = (d) => { const t = estadoFinal(d).map((f) => f.tabla); rmSync(d, { recursive: true }); return t; };
+
+    it("una tabla borrada por una migración posterior se lleva sus FK", () => {
+      expect(tablasDe(carpeta({ "0001_a": CREA, "0002_b": "drop table public.cosa_nueva;" }))).toEqual([]);
+    });
+    it("drop + create en el mismo fichero: la tabla vive y su FK cuenta", () => {
+      expect(tablasDe(carpeta({ "0001_a": "drop table if exists public.cosa_nueva;\n" + CREA }))).toEqual(["cosa_nueva"]);
+    });
+    it("create + drop en el mismo fichero: no vive; el drop de otro esquema no la quita", () => {
+      expect(tablasDe(carpeta({ "0001_a": CREA + "\ndrop table public.cosa_nueva;" }))).toEqual([]);
+      expect(tablasDe(carpeta({ "0001_a": CREA + "\ndrop table otro.cosa_nueva;" }))).toEqual(["cosa_nueva"]);
+    });
   });
 });

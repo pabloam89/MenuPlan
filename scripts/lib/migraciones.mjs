@@ -4,37 +4,45 @@
  * Hasta el borrado del catálogo en SQL (#302, #303) el repo nunca había tenido
  * un `drop table`, y varias herramientas recorren las migraciones suponiendo
  * que toda tabla creada sigue existiendo. Aquí vive, en un solo sitio, la
- * lectura de «qué tablas y vistas borra este SQL», para que verificar-estado,
- * cableado y los tests que recorren las migraciones no copien la regex: la
- * regex es la de `testigos()` de verificar-estado, y esto solo la filtra.
+ * lectura de «qué le pasa a las tablas en este SQL», para que cableado y los
+ * tests que recorren las migraciones no copien la regex: la lectura es
+ * `eventosTabla()` de verificar-estado (que ya sabe partir en sentencias sin
+ * comentarios ni cadenas) y esto solo la aplica.
  *
- * Reconoce sentencias sueltas `drop table [if exists] a [, b] [cascade]` y
- * `drop view [if exists] …` (también `materialized view`), con mayúsculas y
- * esquema opcional. Ignora comentarios SQL y todo lo que va dentro de una
- * cadena o de un cuerpo `$$ … $$` (límite documentado: un `drop table` dentro
- * de un `do $$ … $$` no cuenta; hoy ninguna migración lo hace así).
+ * Qué cuenta, sentencia a sentencia y en orden: `create table`, `drop table
+ * [if exists] a [, b] [cascade]`, `drop view` (también `materialized view`),
+ * `alter table … rename to` y `alter table … set schema` (la de antes deja de
+ * existir como en un drop). Con mayúsculas, esquema opcional y comillas.
+ *
+ * Límites, a propósito: lo que va dentro de un cuerpo `$$ … $$` (una función o
+ * un `do $$`) no se ve, ni `alter view … rename`. Lo vigila el test «un drop
+ * dentro de $$» de migraciones.test.js, que falla si una migración real trae
+ * un `drop table` que esto no lee.
  */
-import { testigos } from "../verificar-estado.mjs";
+import { eventosTabla, sentencias } from "../verificar-estado.mjs";
+
+export { eventosTabla, sentencias };
 
 /**
  * Las tablas y vistas que borra un SQL, en orden:
  * [{ tipo: "tabla"|"vista", esquema, nombre }].
  */
 export function borrados(sql) {
-  return testigos(sql).quita
-    .filter((t) => t.tipo === "tabla" || t.tipo === "vista")
-    .map((t) => {
-      const i = t.id.indexOf(".");
-      return { tipo: t.tipo, esquema: t.id.slice(0, i), nombre: t.id.slice(i + 1) };
-    });
+  return eventosTabla(sql)
+    .filter((e) => e.accion === "borra")
+    .map(({ tipo, esquema, nombre }) => ({ tipo, esquema, nombre }));
 }
 
 /**
- * Quita de `vivas` (Set de nombres de tabla en `public`) las que borra este SQL.
- * Se llama tras anotar lo que crea la misma migración, y en orden de número:
- * si una migración posterior la vuelve a crear, vuelve a contar.
+ * Aplica a `vivas` (Set de nombres de tabla del esquema `public`) lo que hace
+ * este SQL, EN ORDEN: `drop table x; create table x (…)` deja x viva y
+ * `create table x (…); drop table x` no. Las de otro esquema no se tocan.
  */
-export function quitarBorradas(vivas, sql) {
-  for (const b of borrados(sql)) if (b.tipo === "tabla" && b.esquema === "public") vivas.delete(b.nombre);
+export function aplicarATablas(vivas, sql) {
+  for (const e of eventosTabla(sql)) {
+    if (e.tipo !== "tabla" || e.esquema !== "public") continue;
+    if (e.accion === "crea") vivas.add(e.nombre);
+    else vivas.delete(e.nombre);
+  }
   return vivas;
 }

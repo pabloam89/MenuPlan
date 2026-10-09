@@ -19,7 +19,7 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { quitarBorradas } from "./lib/migraciones.mjs";
+import { aplicarATablas } from "./lib/migraciones.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CARPETAS = ["src", "api"];
@@ -31,10 +31,8 @@ export function tablas(raiz = RAIZ) {
   const dir = join(raiz, "supabase", "migrations");
   const t = new Set();
   for (const f of readdirSync(dir).filter((x) => x.endsWith(".sql")).sort()) {
-    const crudo = readFileSync(join(dir, f), "utf8");
-    for (const m of crudo.toLowerCase().matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?"?([a-z_][a-z0-9_]*)"?/g)) t.add(m[1]);
-    // En orden de número: lo que esta migración borra deja de existir hasta que otra lo cree.
-    quitarBorradas(t, crudo);
+    // Sentencia a sentencia y en orden: un drop seguido de un create deja la tabla viva.
+    aplicarATablas(t, readFileSync(join(dir, f), "utf8"));
   }
   return t;
 }
