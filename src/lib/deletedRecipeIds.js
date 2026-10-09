@@ -1,4 +1,10 @@
-/** Tombstones for user_recipes deleted locally — stops hydration/backfill from reviving them. */
+/**
+ * Tombstones for user_recipes deleted locally — stops hydration/backfill from reviving them.
+ *
+ * Son las de ESTE dispositivo (también sin red o sin cuenta). Las de los demás
+ * dispositivos están en la nube (user_recipe_deletions, 0094, #355) y se suman
+ * al cargar con lapidasDeRecetas (userRecipesSync.js).
+ */
 
 const KEY = "menuplan.deletedRecipeIds.v1";
 

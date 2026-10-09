@@ -12,6 +12,11 @@
  * Lo que aún quede en el JSON (casas de antes, o lo que el bot apuntó ahí) va
  * detrás, solo si su id no está en la tabla. Si la tabla falla, el JSON entero.
  *
+ * Las borradas no salen (#355): borrar en la app quita la fila y deja su
+ * lápida en `user_recipe_deletions` (0094). Sin mirarla, la copia que quedaba
+ * en el JSON volvía como «de antes». Si las lápidas no se pueden leer (o la
+ * 0094 aún no está aplicada), todo como antes, con la línea en el log.
+ *
  * Se lee una vez al cargar la casa (casa.js) y viaja en `casa.recetasPropias`,
  * fuera de `state`: así no se escribe de vuelta en household_state.
  */
@@ -19,6 +24,7 @@
 import { select } from "./db.js";
 import { quienesLlevanLaCasa } from "./papel.js";
 import { rowToRecipe } from "../../src/lib/userRecipesFila.js";
+import { recetaPropia } from "../../src/lib/ids.js";
 
 /** Las columnas que lee rowToRecipe, y ni una más. */
 const COLUMNAS = [
@@ -28,10 +34,45 @@ const COLUMNAS = [
   "nutrition_source", "base_servings", "kid_friendly", "tupper_friendly", "allergens", "ingredients", "steps",
   "steps_rich", "montaje", "apetecible", "can_be_garnish", "main_ingredients", "sauce_id", "description",
   "methods", "photo", "owner_snapshot", "visibility", "copied_from_recipe_id", "copied_from_owner_id", "created_at",
+  // Y owner_id, que rowToRecipe no lee: cada fila se cruza con las lápidas de su dueño.
+  "owner_id",
 ].join(",");
 
 /** Tope de recetas propias por casa: las más recientes, si alguna vez hubiera más. */
 export const TOPE_PROPIAS = 500;
+
+/** Cuántos ids van en cada consulta de lápidas, para no alargar la URL. */
+const IDS_POR_CONSULTA = 100;
+
+const pareja = (dueno, id) => `${dueno} ${id}`;
+
+/**
+ * Las lápidas de esos autores para esos ids, como parejas «dueño id» (vacío si
+ * no se pueden leer). Sin tope de «las N más recientes» a propósito (la app sí
+ * lo tiene, TOPE_LAPIDAS en src/lib/userRecipesSync.js): pidiendo solo los ids
+ * que hay delante, nadie puede empujar fuera de la ventana una lápida buena
+ * llenándola de falsas. Solo los ids con formato de receta propia: los demás
+ * no pueden tener lápida (CHECK de la 0094) y romperían el in.(…).
+ */
+async function lapidasDe(quienes, ids) {
+  const conFormato = [...new Set(ids)].filter((id) => recetaPropia.es(id));
+  const parejas = new Set();
+  try {
+    for (let i = 0; i < conFormato.length; i += IDS_POR_CONSULTA) {
+      const trozo = conFormato.slice(i, i + IDS_POR_CONSULTA).map((id) => encodeURIComponent(id)).join(",");
+      const filas = await select(
+        "user_recipe_deletions",
+        `owner_id=in.(${quienes})&recipe_id=in.(${trozo})&limit=${IDS_POR_CONSULTA * quienes.split(",").length}`,
+        "owner_id,recipe_id",
+      );
+      for (const f of filas ?? []) parejas.add(pareja(f.owner_id, f.recipe_id));
+    }
+  } catch (e) {
+    console.error("[propias] user_recipe_deletions", e?.message);
+    return new Set();
+  }
+  return parejas;
+}
 
 /** Las recetas propias de una casa ya cargada (sin consultas). */
 export const propiasDe = (casa) => casa?.recetasPropias ?? casa?.state?.data?.userRecipes ?? [];
@@ -57,16 +98,23 @@ export async function recetasPropiasDeCasa(householdId, dueno, delJson = []) {
   const json = Array.isArray(delJson) ? delJson.filter((r) => r?.id) : [];
   const autores = await autoresDeCasa(householdId, dueno);
   if (!autores.length) return json;
-  let filas;
+  const quienes = autores.map((u) => encodeURIComponent(u)).join(",");
+  let filas = null;
   try {
-    const quienes = autores.map((u) => encodeURIComponent(u)).join(",");
     filas = await select("user_recipes", `owner_id=in.(${quienes})&order=created_at.desc&limit=${TOPE_PROPIAS}`, COLUMNAS);
   } catch (e) {
     console.error("[propias] user_recipes", e?.message);
-    return json;
   }
-  // Las más recientes bajo el tope, pero en el orden de siempre (de la más antigua).
-  const deTabla = [...filas].reverse().map(rowToRecipe);
+  const lapidas = await lapidasDe(quienes, [...(filas ?? []).map((f) => f.id), ...json.map((r) => r.id)]);
+  // Lo del JSON no dice de quién es: se va si lo borró cualquiera de los que
+  // llevan la casa (pueden editarla igual, no es más poder que el que tienen).
+  const vivaDelJson = (r) => !autores.some((a) => lapidas.has(pareja(a, r.id)));
+  if (!filas) return json.filter(vivaDelJson);
+  // Cada fila, solo con las lápidas de SU dueño. Las más recientes bajo el
+  // tope, pero en el orden de siempre (de la más antigua).
+  const deTabla = [...filas].reverse()
+    .filter((f) => !lapidas.has(pareja(f.owner_id, f.id)))
+    .map(rowToRecipe);
   const enTabla = new Set(deTabla.map((r) => r.id));
-  return [...deTabla, ...json.filter((r) => !enTabla.has(r.id))];
+  return [...deTabla, ...json.filter((r) => vivaDelJson(r) && !enTabla.has(r.id))];
 }

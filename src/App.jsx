@@ -167,17 +167,19 @@ import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, su
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
 import { esTitular } from "./lib/householdsSync.js";
-import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
+import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById } from "./lib/profileMerge.js";
 import {
   loadDeletedRecipeIds,
   rememberDeletedRecipeId,
   reconcileDeletedRecipeIds,
-  withoutDeletedRecipes,
 } from "./lib/deletedRecipeIds.js";
 import {
   loadUserRecipes,
   upsertUserRecipe,
   subirRecetasSoloLocales,
+  loadRecetasBorradas,
+  lapidasDeRecetas,
+  recetasTrasCarga,
   updateRecipeVisibility,
   deleteUserRecipe,
   loadPublicRecipe,
@@ -1465,7 +1467,7 @@ export default function App() {
       // Recetas, votos, carpetas, descartes y favoritas de la casa vuelven como `{ data, error }`
       // (#317): si una falló, se trabaja con lo local y no se sube nada
       // comparando con una nube que no se ha podido leer.
-      const [remoteState, cargaRecetas, cargaVotos, cargaDescartes, cargaFavsCasa, cargaColecciones, cargaCarpetas] = await Promise.all([
+      const [remoteState, cargaRecetas, cargaVotos, cargaDescartes, cargaFavsCasa, cargaColecciones, cargaCarpetas, cargaLapidas] = await Promise.all([
         loadState(),
         loadUserRecipes(householdReadOnly ? menuUserId : user.id),
         loadRecipeVotes(user.id),
@@ -1473,6 +1475,9 @@ export default function App() {
         householdId ? loadHouseholdFavorites(householdId) : Promise.resolve({ data: {}, error: null }),
         loadRecipeCollections(user.id),
         loadRecipeFolders(user.id),
+        // Las recetas borradas en cualquier dispositivo (0094, #355). Siempre
+        // las de tu cuenta: son tus copias locales las que se quitan.
+        loadRecetasBorradas(user.id),
       ]);
       const remoteRecipes = cargaRecetas.data ?? [];
       const remoteVotes = cargaVotos.data ?? {};
@@ -1493,7 +1498,12 @@ export default function App() {
 
       // Las lápidas solo se concilian con una carga buena: con la nube sin
       // leer no se sabe qué sigue allí.
-      const deletedRecipeIds = cargaRecetas.error ? loadDeletedRecipeIds() : reconcileDeletedRecipeIds(remoteRecipes);
+      // A las de este dispositivo se suman las de la nube (#355): lo que se
+      // borró en otro no se queda aquí ni se vuelve a subir.
+      const deletedRecipeIds = lapidasDeRecetas(
+        cargaRecetas.error ? loadDeletedRecipeIds() : reconcileDeletedRecipeIds(remoteRecipes),
+        cargaLapidas,
+      );
 
       const mergedCollections = mergeCollections(localCollections, remoteCollections);
       const mergedFolders = mergeFolders(localFolders, remoteFolders);
@@ -1569,15 +1579,11 @@ export default function App() {
         // Con lo de otra casa en memoria (las recetas de su titular, si eras
         // lector), ni se mezclan ni se suben a tu cuenta.
         const localRecipesNow = soloNube ? [] : (d.userRecipes ?? []);
-        const mergedUserRecipes = mergeUserRecipesAfterCloudLoad(
-          withoutDeletedRecipes(localRecipesNow, deletedRecipeIds),
-          remoteRecipes,
-          deletedRecipeIds,
-        );
+        const mergedUserRecipes = recetasTrasCarga(localRecipesNow, remoteRecipes, deletedRecipeIds);
 
         // Backfill local-only rows the cloud doesn't have yet (live state, not
         // stale snapshot). Si la carga falló, no sube nada (#317).
-        subirRecetasSoloLocales({ userId: user.id, local: localRecipesNow, carga: cargaRecetas, deletedIds: deletedRecipeIds });
+        subirRecetasSoloLocales({ userId: user.id, local: localRecipesNow, carga: cargaRecetas, cargaLapidas, deletedIds: deletedRecipeIds });
 
         return {
           ...(useRemote ? { ...INITIAL_DATA, ...(remoteData ?? {}) } : d),
