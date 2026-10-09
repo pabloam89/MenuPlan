@@ -181,9 +181,37 @@ const TANDA = 50;
 // proceso (los del vigía) no llegan a la CLI.
 const DEL_ENTORNO = ["PATH", "Path", "PATHEXT", "HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "SystemRoot", "ComSpec", "TEMP", "TMP", "VERCEL_TOKEN"];
 
-/** El entorno mínimo para la CLI de Vercel. */
+// El equipo y el proyecto por su id, como los da `vercel project inspect
+// homenu --scope menuplan` (9 oct 2026) y ops/INVENTARIO.md. No son secretos.
+// Van en el entorno (VERCEL_ORG_ID, VERCEL_PROJECT_ID), que es como la CLI
+// sabe el proyecto sin `.vercel/project.json`: en el runner del vigía el
+// checkout es parcial y no hay carpeta enlazada.
+export const IDS_VERCEL = Object.freeze({ VERCEL_ORG_ID: "team_sV2KePPHNXRWD9JsNQCfGwwV", VERCEL_PROJECT_ID: "prj_cqh6onN1fsRWGxbcbmDkA34ukefH" });
+
+/** El entorno mínimo para la CLI de Vercel: lo de arrancar, el token y los ids del proyecto. */
 export function entornoDeVercel(env = process.env) {
-  return Object.fromEntries(DEL_ENTORNO.filter((k) => env[k] != null).map((k) => [k, env[k]]));
+  return { ...Object.fromEntries(DEL_ENTORNO.filter((k) => env[k] != null).map((k) => [k, env[k]])), ...IDS_VERCEL };
+}
+
+/**
+ * Por qué no ha ido la CLI, con un motivo de los vocabularios
+ * (src/lib/vocabularios.js) y sin copiar nada de su salida. `sin_configurar`
+ * solo cuando no hay CLI (ENOENT, o la shell no la encuentra); lo demás
+ * (sin sesión, proyecto que no ve, permisos…) es otra cosa y se dice.
+ * @param {{ error?: { code?: string }, status?: number|null, stderr?: string }} r  lo que devuelve spawnSync
+ */
+export function motivoDeCli(r) {
+  if (r?.error?.code === "ENOENT") return "sin_configurar";
+  const s = String(r?.stderr ?? "");
+  if (/is not recognized|no se reconoce|vercel: (?:command )?not found|command not found/i.test(s)) return "sin_configurar";
+  if (r?.error?.code === "ETIMEDOUT" || /ETIMEDOUT|timed? ?out/i.test(s)) return "tiempo";
+  if (/ENOTFOUND|ECONNRESET|ECONNREFUSED|EAI_AGAIN|network/i.test(s)) return "red";
+  if (/token|credentials|not logged in|vercel login|unauthori[sz]ed|\b401\b/i.test(s)) return "sin_sesion";
+  if (/forbidden|permission|not have access|not authori[sz]ed to|\b403\b/i.test(s)) return "permiso";
+  if (/not found|does not exist|\b404\b/i.test(s)) return "no_existe";
+  if (/rate limit|too many requests|\b429\b/i.test(s)) return "limite";
+  if (/\b5\d\d\b|internal server error/i.test(s)) return "servidor";
+  return "otro";
 }
 
 /**
@@ -202,7 +230,9 @@ export function tandaDeVercel(entorno) {
       ? spawnSync(`vercel ${args.join(" ")}`, { ...opciones, shell: true })
       : spawnSync("vercel", args, opciones);
     if (r.error || r.status !== 0) {
-      throw new Error(`vercel logs no ha ido (${r.error?.message ?? `salida ${r.status}`}). ¿Está instalada la CLI y con sesión (vercel login)?\n${String(r.stderr ?? "").slice(0, 500)}`);
+      // `motivo` para el vigía (sin la salida de la CLI, que su log es público);
+      // el mensaje, con la salida, para quien lo corre a mano.
+      throw Object.assign(new Error(`vercel logs no ha ido (${r.error?.message ?? `salida ${r.status}`}). ¿Está instalada la CLI y con sesión (vercel login)?\n${String(r.stderr ?? "").slice(0, 500)}`), { motivo: motivoDeCli(r) });
     }
     return r.stdout;
   };

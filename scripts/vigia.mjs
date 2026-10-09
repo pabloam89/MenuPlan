@@ -540,16 +540,22 @@ export async function entregar({ cola, enlaces = {}, telegram = {}, config = VIG
 }
 
 /** Los fallos de producción de los últimos `minutos`, o por qué no se han podido leer. */
-function leerLogs({ fichero, ahora, minutos, entorno }) {
+export function leerLogs({ fichero, ahora, minutos, entorno, env = process.env, pedirTanda = tandaDeVercel(entorno), log = console.log }) {
   if (fichero) return { fallos: fallosDe(readFileSync(fichero, "utf8")), logs: "ok" };
-  if (!process.env.VERCEL_TOKEN && process.env.GITHUB_ACTIONS) return { fallos: null, logs: "sin_configurar" };
+  // `sin_configurar` es solo esto (falta el token) o que no haya CLI (motivoDeCli).
+  if (!env.VERCEL_TOKEN && env.GITHUB_ACTIONS) {
+    log(JSON.stringify({ evento: "vigia_logs", ok: false, motivo: "sin_configurar" }));
+    return { fallos: null, logs: "sin_configurar" };
+  }
   try {
-    const r = paginar(tandaDeVercel(entorno), { desde: ahora - minutos * MIN, hasta: ahora });
+    const r = paginar(pedirTanda, { desde: ahora - minutos * MIN, hasta: ahora });
     return { fallos: fallosDe(r.contenido), logs: "ok", completo: r.completo };
   } catch (e) {
-    // El mensaje lleva el stderr de la CLI: al log no, que es público; solo que falló.
-    console.error("[vigia] logs: no se han podido leer");
-    return { fallos: null, logs: /ENOENT|not found|no se reconoce/i.test(String(e?.message)) ? "sin_configurar" : "otro" };
+    // El mensaje lleva la salida de la CLI: al log no, que es público. Solo
+    // el motivo, del vocabulario (motivoDeCli, scripts/bot-fallos.mjs).
+    const motivo = MOTIVOS_TODOS.includes(e?.motivo) ? e.motivo : "otro";
+    log(JSON.stringify({ evento: "vigia_logs", ok: false, motivo }));
+    return { fallos: null, logs: motivo };
   }
 }
 
