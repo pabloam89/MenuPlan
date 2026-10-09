@@ -21,7 +21,7 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 
 | Workflow | Cuándo | Qué hace |
 |---|---|---|
-| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | la línea «Runbook:» del PR, lint con línea base, tests y build. Es el check `tests` |
+| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | las líneas «Runbook:» y «Casos:» del PR, lint con línea base, tests y build. Es el check `tests` |
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano (con `probar_push`, un commit vacío si no hay precios nuevos) | precios de Mercadona; commitea y **empuja a `staging` con la deploy key** (sin el secreto, con el token). Ese push sí lanza `tests` |
 | `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |
 | `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola |
@@ -52,6 +52,10 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
     el PR toca rutas de un dominio, `Runbook: actualizado (skill X)` (y tocar esa skill) o
     `Runbook: sin novedades`; todas las líneas valen, las de bloques de código no cuentan.
     Exentos solo los PR de un bot; editar el cuerpo relanza el check.
+  - **Línea «Casos:» del PR** (#185; `scripts/casos-pr.mjs`): `Casos: #n, #m` (issues
+    `tipo:caso` con `analisis:`) o `Casos: ninguno — <motivo>` (25 caracteres o más). La guardia
+    niega `gh pr create` sin ella; el CI consulta la API (`issues: read`) y, **si no responde,
+    falla con la causa**: se relanza el check. `npm run issues` la cuenta en los últimos 50 PR.
 
 ## Claves y accesos
 
@@ -171,11 +175,14 @@ npm run issues -- --etiquetas               # crear o retirar etiquetas en GitHu
 - **Avisos que llegan solos:** al editar un fichero, el hook `avisos.mjs`
   cuenta los issues abiertos que lo nombran (una vez por sesión y fichero);
   al terminar de responder, `pendientes.mjs` frena una vez a la sesión que
-  deja decisiones o pendientes sin ningún issue. `npm run podar` lista las
+  deja decisiones o pendientes sin ningún issue, o fallos sin ningún caso registrado. `npm run podar` lista las
   ramas huérfanas (sin PR ni issue, de más de 3 días).
 
 ## Lo que falló y por qué
 
+- **2026-10-09 · 7 PR de una sesión arreglaron fallos sin registrar ningún caso (#185).**
+  Causa: la norma era solo texto. Arreglo: la línea `Casos:` del PR (guardia + CI) y el
+  freno de `pendientes.mjs`; tests en `casos.test.js` y `casos-pr.test.js`. Antes: 0 de 7.
 - **2026-10-09 · exigir `tests` en `staging` con la protección clásica: 404
   «Required status checks not enabled».** Causa: el PATCH a
   `branches/staging/protection/required_status_checks` solo edita checks que ya
@@ -255,5 +262,7 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://docs.github.com/rest/repos/rules (bypass_actors y `DeployKey`)
 - https://docs.github.com/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow
 - https://github.com/actions/checkout (`ssh-key`)
+
+Comprobado el 2026-10-09: la línea «Casos:» (#185), con tests y datos sintéticos en local, sin probarla aún en un PR real de GitHub ni la API desde el runner.
 
 Comprobado el 2026-10-09: en #193, `dependabot-auto.yml` pasa `actionlint` 1.7.12; en ensayo contra el repo, #169 sale `grupo-manual` y #288 (en `/dish-gallery`) `ficheros-fuera`, y los cerrados #165 y #167 salen menores con commits limpios; en la documentación de GitHub, que `cooldown` solo afecta a las de versión y que el primer grupo que nombra una dependencia se la queda; el ruleset 24770007 de `staging` activo, exige `tests` y no pide la rama al día. Sin comprobar: si un `workflow_run` tras un run de Dependabot ve los secretos del environment (la documentación no lo aclara; por eso la pasada de cada 3 h), una fusión real, que Dependabot obedezca un `@dependabot rebase` de `github-actions[bot]`. Comprobado el 2026-10-09: el formato del bypass por deploy key (`actor_id` null) en la REST de rulesets; que `actions/checkout` v7 con `ssh-key` vacío usa HTTPS y el token (su `url-helper`), aunque el cron ya no lo usa así; que hoy hay 0 rulesets y 0 deploy keys, y que el check de `main` es `tests` de la app 15368. Sin comprobar: el ruleset y la deploy key creados de verdad, y que el push de la key lance `tests` (lo dirá la prueba con `probar_push`). Comprobado el 2026-10-08: la comprobación del runbook y la puerta de lectura, con sus tests y a mano en local (sin probarlas aún en un PR real de GitHub ni con el campo `agent_type` de un subagente de verdad); la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.

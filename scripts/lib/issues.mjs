@@ -384,6 +384,40 @@ export function resumen(issues) {
   };
 }
 
+// ── La línea «Casos:» de los PR fusionados (#185) ────────────────────────────
+
+/** Consulta de los últimos PR fusionados: solo número, cuerpo y fecha. */
+export const CONSULTA_PR = `query {
+  repository(owner: "pabloam89", name: "MenuPlan") {
+    pullRequests(first: 50, states: MERGED, orderBy: { field: UPDATED_AT, direction: DESC }) {
+      nodes { number body mergedAt author { login } }
+    }
+  }
+}`;
+
+/**
+ * Cuántos PR fusionados registran casos, cuántos dicen «ninguno» y cuántos no
+ * tienen la línea (los anteriores a la norma, o de un bot). Es la medida de si
+ * el paso «Cuando algo falla» se cumple: un porcentaje alto de «ninguno» pide
+ * mirar los motivos. `analizar` es analizarCasos (se inyecta para no atar la
+ * lib a los hooks).
+ */
+export function medirCasos(prs, analizar) {
+  const r = { total: 0, conCasos: 0, ninguno: 0, sinLinea: 0, casosCitados: 0 };
+  for (const p of prs) {
+    if (/\[bot\]$/.test(p.author?.login ?? "")) continue;
+    r.total++;
+    const a = analizar(p.body);
+    if (!a.valida) r.sinLinea++;
+    else if (a.ninguno) r.ninguno++;
+    else {
+      r.conCasos++;
+      r.casosCitados += a.numeros.length;
+    }
+  }
+  return r;
+}
+
 // ── Antes de crear: los parecidos ─────────────────────────────────────────────
 //
 // El 8 oct 2026 tres sesiones abrieron el mismo fallo (#153, #154, #159) con el

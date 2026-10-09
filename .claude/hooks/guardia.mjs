@@ -19,6 +19,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { AYUDA as AYUDA_CASOS, analizarCasos } from "./casos.mjs";
 import { cargarMapa, skillsDeComando, unirContinuaciones } from "./dominios.mjs";
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
 import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
@@ -439,6 +440,13 @@ export function decidir(entrada, ctx) {
             return deny(`Tu rama es del issue #${issue}: pon \`Closes #${issue}\` en el cuerpo del PR (y la línea \`Agente: <nombre>\`), para que se cierre al fusionar y quede la traza.`);
           }
         }
+        // La línea «Casos:» (#185): cada PR dice qué fallos del camino ha
+        // registrado como casos, o por qué no hubo. Solo la forma, sin red: el CI
+        // (scripts/casos-pr.mjs) comprueba además que los #n son casos de verdad.
+        const ficheroCasos = o.match(/(?:-F|--body-file)(?:\s+|=)(?:"([^"]+)"|'([^']+)'|(\S+))/);
+        const cuerpoCasos = ficheroCasos ? ctx.leer(windows(ficheroCasos[1] ?? ficheroCasos[2] ?? ficheroCasos[3]), dir) ?? "" : "";
+        const casos = analizarCasos(`${cmd}\n${cuerpoCasos}`, { enComando: true });
+        if (!casos.valida) return deny(`${casos.motivo} ${AYUDA_CASOS} (El CI lo vuelve a comprobar.)`);
         const atraso = ctx.atrasoLocal(dir);
         if (atraso === null) return ask("No he podido comprobar si tu rama tiene lo último de staging. Haz `git fetch origin staging` y `git merge origin/staging` antes de abrir el PR.");
         if (atraso > 0) return deny(`Tu rama va ${atraso} commit(s) por detrás de staging. Antes de abrir el PR: \`git fetch origin staging\`, \`git merge origin/staging\`, resuelve, pasa los tests y empuja.`);

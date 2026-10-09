@@ -28,8 +28,9 @@ const MAX_DESCRIPCION = 600;
 // 260 y no 220 desde el 8 oct 2026: la skill `github` pasó de 220 porque dos
 // sesiones la ampliaron a la vez (la puerta de lectura y el sistema de issues),
 // y son dos temas. Partirla (issues como skill propia) está pedido en el issue
-// #219; cuando se parta, este tope vuelve a 220.
-const MAX_LINEAS = 260;
+// #219; cuando se parta, este tope vuelve a 220. 270 desde la línea «Casos:»
+// del PR (#185): también es de la skill `github` y no cabía en 260.
+const MAX_LINEAS = 270;
 // Patrones de secretos que no deben aparecer nunca en un runbook.
 const SECRETOS = [
   /sk-[A-Za-z0-9_-]{20,}/,
