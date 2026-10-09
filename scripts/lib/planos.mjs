@@ -242,8 +242,9 @@ export function evaluarCriterio(c, ctx) {
       let valor;
       try {
         valor = medir(raiz);
-      } catch {
-        return { estado: "no_cumple", detalle: `${c.medidor}: no se pudo medir` };
+      } catch (e) {
+        console.warn(`[planos] ${c.medidor}: no se pudo medir: ${e.message}`);
+        return { estado: "no_cumple", detalle: `${c.medidor}: no se pudo medir (${e.message})` };
       }
       const bien = OPERADORES[c.operador]?.(valor, c.umbral) ?? false;
       return { estado: bien ? "cumple" : "no_cumple", detalle: `${c.medidor} = ${valor} (debe ser ${c.operador} ${c.umbral})`, valor };
