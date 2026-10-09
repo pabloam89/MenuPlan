@@ -46,7 +46,7 @@ export async function loadUserRecipes(userId) {
 // Al borrar, borrar_receta_propia quita la fila y deja la lápida en la misma
 // transacción. Cada dispositivo las lee al cargar y quita su copia local: si
 // no, el que no borró la volvía a subir como «solo local». La base, además,
-// no deja volver a entrar un id con lápida (trigger user_recipes_no_revivir).
+// no deja volver a entrar un id con lápida (trigger trg_user_recipes_no_revivir).
 
 /**
  * Tope de lápidas que se leen: las más recientes. No se purgan (0094): si

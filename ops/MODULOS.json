@@ -553,7 +553,7 @@
           "nombre": "Alimentos e ingredientes",
           "hace": "Los alimentos con su nutrición, densidades, fotos, equivalencias y sustituciones; base de la despensa, la compra y la nutrición.",
           "grado": "usable",
-          "motivo_grado": "Datos y tests sólidos (BEDCA, Ciqual, USDA); la tabla `ingredients` es copia retirada (ver `copiaIngredientesSupabase` en src/data/model.js).",
+          "motivo_grado": "Datos y tests sólidos (BEDCA, Ciqual, USDA); las copias de Supabase se borran en la 0093 (ver `copiaIngredientesSupabase` en src/data/model.js).",
           "ficheros": [
             "src/data/alimentos.json",
             "src/data/ingredients.json",
@@ -1583,24 +1583,6 @@
         }
       }
     },
-    "catalog_meta": {
-      "dueno": "catalogo-recetas",
-      "fichero_dueno": {
-        "app": null,
-        "servidor": null
-      },
-      "nota": "En desuso desde la 0064: el catálogo se lee del JSON.",
-      "sin_puerta": {
-        "app": {
-          "motivo": "en_desuso",
-          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
-        },
-        "servidor": {
-          "motivo": "en_desuso",
-          "texto": "En desuso desde la 0064."
-        }
-      }
-    },
     "content_reports": {
       "dueno": "gente",
       "fichero_dueno": {
@@ -1632,24 +1614,6 @@
         "servidor": {
           "motivo": "no_la_usa",
           "texto": "Solo la usa la app; el servidor no la toca."
-        }
-      }
-    },
-    "dish_images": {
-      "dueno": "catalogo-recetas",
-      "fichero_dueno": {
-        "app": null,
-        "servidor": null
-      },
-      "nota": "En desuso desde la 0064.",
-      "sin_puerta": {
-        "app": {
-          "motivo": "en_desuso",
-          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
-        },
-        "servidor": {
-          "motivo": "en_desuso",
-          "texto": "En desuso desde la 0064."
         }
       }
     },
@@ -1763,60 +1727,6 @@
         }
       },
       "nota": "La crea la 0091 (sin aplicar, rama datos/194-ids-uuid-migrar): guarda viejo → uuid para poder repasar el paso de ids; se borrará cuando termine la migración."
-    },
-    "ingredient_aliases": {
-      "dueno": "catalogo-ingredientes",
-      "fichero_dueno": {
-        "app": null,
-        "servidor": null
-      },
-      "nota": "Copia retirada: ver `copiaIngredientesSupabase` / `copiaSustitucionesSupabase` en src/data/model.js.",
-      "sin_puerta": {
-        "app": {
-          "motivo": "en_desuso",
-          "texto": "Copia retirada sin lector en src/: la app lee el JSON."
-        },
-        "servidor": {
-          "motivo": "en_desuso",
-          "texto": "Copia retirada sin lector en api/."
-        }
-      }
-    },
-    "ingredient_substitutions": {
-      "dueno": "catalogo-ingredientes",
-      "fichero_dueno": {
-        "app": null,
-        "servidor": null
-      },
-      "nota": "Copia retirada: ver `copiaIngredientesSupabase` / `copiaSustitucionesSupabase` en src/data/model.js.",
-      "sin_puerta": {
-        "app": {
-          "motivo": "en_desuso",
-          "texto": "Copia retirada sin lector en src/: la app lee el JSON."
-        },
-        "servidor": {
-          "motivo": "en_desuso",
-          "texto": "Copia retirada sin lector en api/."
-        }
-      }
-    },
-    "ingredients": {
-      "dueno": "catalogo-ingredientes",
-      "fichero_dueno": {
-        "app": null,
-        "servidor": null
-      },
-      "nota": "Copia retirada: ver `copiaIngredientesSupabase` / `copiaSustitucionesSupabase` en src/data/model.js.",
-      "sin_puerta": {
-        "app": {
-          "motivo": "en_desuso",
-          "texto": "Copia retirada sin lector en src/: la app lee el JSON."
-        },
-        "servidor": {
-          "motivo": "en_desuso",
-          "texto": "Copia retirada sin lector en api/."
-        }
-      }
     },
     "menu_share_links": {
       "dueno": "compartir",
@@ -1943,24 +1853,6 @@
         }
       }
     },
-    "recipe_ingredients": {
-      "dueno": "catalogo-recetas",
-      "fichero_dueno": {
-        "app": null,
-        "servidor": null
-      },
-      "nota": "En desuso desde la 0064.",
-      "sin_puerta": {
-        "app": {
-          "motivo": "en_desuso",
-          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
-        },
-        "servidor": {
-          "motivo": "en_desuso",
-          "texto": "En desuso desde la 0064."
-        }
-      }
-    },
     "recipe_share_links": {
       "dueno": "compartir",
       "fichero_dueno": {
@@ -1984,24 +1876,6 @@
         "servidor": {
           "motivo": "no_la_usa",
           "texto": "Solo la usa la app; el servidor no la toca."
-        }
-      }
-    },
-    "recipes": {
-      "dueno": "catalogo-recetas",
-      "fichero_dueno": {
-        "app": null,
-        "servidor": null
-      },
-      "nota": "En desuso desde la 0064.",
-      "sin_puerta": {
-        "app": {
-          "motivo": "en_desuso",
-          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
-        },
-        "servidor": {
-          "motivo": "en_desuso",
-          "texto": "En desuso desde la 0064."
         }
       }
     },
@@ -2147,6 +2021,13 @@
       "nota": "Siete ficheros la tocan (perfil, idioma, papel, enlace con el bot); no hay una puerta natural, se ha elegido una por lado."
     },
     "user_recipes": {
+      "dueno": "recetas-propias",
+      "fichero_dueno": {
+        "app": "src/lib/userRecipesSync.js",
+        "servidor": "api/_bot/propias.js"
+      }
+    },
+    "user_recipe_deletions": {
       "dueno": "recetas-propias",
       "fichero_dueno": {
         "app": "src/lib/userRecipesSync.js",

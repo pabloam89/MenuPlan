@@ -607,23 +607,11 @@ const DECLARADAS = [
   },
 
   // ── SALIDAS ───────────────────────────────────────────────────────────────
-  {
-    id: "seedPostgres",
-    rol: "copia_retirada",
-    estado: "retirado",
-    retirar_el: "2026-09-30",
-    sustituido_por: null,
-    ruta: "supabase/seed_*.sql",
-    ficheros: ["supabase/seed_*.sql"],
-    clave: "id",
-    actualizacion: "release",
-    procedencia: "scripts/generate-supabase-seed.mjs volcaba recetas + ingredientes a las tablas copia de Supabase",
-    productor: ["scripts/generate-supabase-seed.mjs"],
-    consumidores: ["scripts/run-seed.mjs (ejecuta los seed_*.sql; dormido)"],
-    esquema: "supabase/migrations/0001_recipe_catalog.sql",
-    campos: [],
-    nota: "Sin sustituto único: los seeds sembraban recetas, ingredientes, fotos y sustituciones, y cada tabla copia dice el suyo. Sin lectores desde la 0064: no se vuelve a ejecutar. Sus restos están registrados aparte (copiaRecetasSupabase…). El traductor de filas de recipes (recipeRow.js) se borró el 9 oct 2026: nadie lo importaba salvo su test.",
-  },
+  // Las 5 copias de Supabase se quedan registradas como «retirado» con la nota «borrada en la 0093»:
+  // las tablas ya no existen, pero la entrada es lo que hace que ops/lecturasRetiradas.test.js siga
+  // bloqueando un `.from("recipes")` nuevo, y ops/fuentes.test.js comprueba que esa migración las borra.
+  // La fuente «seedPostgres» (supabase/seed_*.sql y sus dos scripts) se quitó con ellos (#303): ya no hay
+  // nada que sembrar ni fichero que vigilar.
   {
     id: "copiaRecetasSupabase",
     rol: "copia_retirada",
@@ -635,11 +623,11 @@ const DECLARADAS = [
     clave: "id",
     actualizacion: "release",
     procedencia: "copia del catálogo de recetas parada en la v27 (8 sep 2026)",
-    productor: ["scripts/generate-supabase-seed.mjs (seed, dormido)", "scripts/run-seed.mjs (seed, dormido)"],
+    productor: [],
     consumidores: [],
     esquema: "supabase/migrations/0064_catalogo_una_fuente.sql",
     campos: [],
-    nota: "Sin lector desde la 0064 (30 sep 2026). Siguen en la base; borrarlas es decisión de Pablo.",
+    nota: "Borradas en la 0093 (9 oct 2026, #303; el borrado lo decidió Pablo y lo lanza él). Sin lector desde la 0064 (30 sep 2026). Copia previa fuera del repo: C:\\dev\\copias-previas\\2026-10-09-catalogo-copia. Esta entrada se queda para que ops/lecturasRetiradas.test.js impida volver a leerlas.",
   },
   {
     id: "copiaFotosSupabase",
@@ -652,11 +640,11 @@ const DECLARADAS = [
     clave: "id",
     actualizacion: "release",
     procedencia: "copia de las fotos de los platos",
-    productor: ["scripts/run-seed.mjs (seed, dormido)", "scripts/generate-supabase-seed.mjs (seed, dormido)"],
+    productor: [],
     consumidores: [],
     esquema: "supabase/migrations/0064_catalogo_una_fuente.sql",
     campos: [],
-    nota: "Las fotos salen de src/assets/dishes/dishImages.json (0064).",
+    nota: "Borrada en la 0093 (9 oct 2026, #303). Las fotos salen de src/assets/dishes/dishImages.json (0064).",
   },
   {
     id: "copiaIngredientesSupabase",
@@ -669,11 +657,11 @@ const DECLARADAS = [
     clave: "id",
     actualizacion: "release",
     procedencia: "copia de los ingredientes y sus alias",
-    productor: ["scripts/generate-supabase-seed.mjs (seed, dormido)", "scripts/run-seed.mjs (seed, dormido)"],
+    productor: [],
     consumidores: [],
     esquema: "supabase/migrations/0029_ingredients.sql",
     campos: [],
-    nota: "Nunca tuvo lector (nació con c6767be, 1 sep 2026). La 0064 la dejó sin marcar creyendo que la despensa apuntaba a ella: es un error. user_pantry.ingredient_id (0041) es text SIN references y guarda ids de ingredients.json, no de esta tabla.",
+    nota: "Borradas en la 0093 (9 oct 2026, #303). Nunca tuvo lector (nació con c6767be, 1 sep 2026). La 0064 la dejó sin marcar creyendo que la despensa apuntaba a ella: es un error. user_pantry.ingredient_id (0041) es text SIN references y guarda ids de ingredients.json, no de esta tabla.",
   },
   {
     id: "copiaSustitucionesSupabase",
@@ -687,11 +675,11 @@ const DECLARADAS = [
     clave: "ingredientId × restriccion",
     actualizacion: "release",
     procedencia: "copia de las sustituciones y la vista que las cruzaba con las recetas",
-    productor: ["scripts/generate-supabase-seed.mjs (seed, dormido)", "scripts/run-seed.mjs (seed, dormido)"],
+    productor: [],
     consumidores: [],
     esquema: "supabase/migrations/0031_ingredient_substitutions.sql",
     campos: [],
-    nota: "Nunca tuvo lector (1 sep 2026). La app lee src/data/ingredientSubstitutions.json.",
+    nota: "Borradas en la 0093 (9 oct 2026, #303), tabla y vista. Nunca tuvo lector (1 sep 2026). La app lee src/data/ingredientSubstitutions.json.",
   },
   {
     id: "copiaAlergenosSupabase",
@@ -708,7 +696,7 @@ const DECLARADAS = [
     consumidores: [],
     esquema: "supabase/migrations/0030_recipe_ingredients.sql",
     campos: [],
-    nota: "Nunca tuvo lector (1 sep 2026). Los alérgenos se calculan hoy al cargar el catálogo (recipeCatalog.js), no en un script de derivados.",
+    nota: "Borrada en la 0093 (9 oct 2026, #303). Nunca tuvo lector (1 sep 2026). Los alérgenos se calculan hoy al cargar el catálogo (recipeCatalog.js), no en un script de derivados.",
   },
   {
     id: "recetasPrototipo",

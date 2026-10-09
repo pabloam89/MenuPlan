@@ -1,0 +1,123 @@
+/* GENERADO por scripts/diseno/generar-tokens-css.mjs desde src/design/tokens.js.
+   No se edita a mano: cambia el token y ejecuta `npm run tokens:css`.
+   Las --pz-* de la pizarra (index.css) son una excepción declarada. */
+:root {
+  /* color */
+  --color-marca: #2d5a3d;
+  --color-marca-viva: #4cba6e;
+  --color-marca-fondo: #eaf6ee;
+  --color-seleccionado: #0f766e;
+  --color-seleccionado-fondo: #eef6f4;
+  --color-tinta: #142f1d;
+  --color-tinta-media: #42594c;
+  --color-tinta-suave: #5a7066;
+  --color-tinta-tenue: #7a9485;
+  --color-tinta-palida: #9ab0a1;
+  --color-superficie: #ffffff;
+  --color-fondo-pantalla: #f5f9f6;
+  --color-fondo-suave: #f0f4f1;
+  --color-linea-suave: #eef3f0;
+  --color-linea: #e0eae3;
+  --color-linea-fuerte: #cdd8d0;
+  --color-peligro: #c0392b;
+  --color-peligro-fondo: #fdecea;
+  --color-favorito: #e0405a;
+  --color-aviso: #b45309;
+  --color-aviso-fondo: #fff8e7;
+  --color-info: #2f6d8a;
+  --color-info-fondo: rgba(47,109,138,.1);
+  --color-scrim: rgba(0,0,0,.45);
+  --color-velo: rgba(255,255,255,.92);
+
+  /* tipografia */
+  --tipo-familia: 'DM Sans', 'Helvetica Neue', sans-serif;
+  --tipo-paso-10: 10px;
+  --tipo-paso-11: 11px;
+  --tipo-paso-12: 12px;
+  --tipo-paso-13: 13px;
+  --tipo-paso-14: 14px;
+  --tipo-paso-16: 16px;
+  --tipo-paso-20: 20px;
+  --tipo-paso-26: 26px;
+  --tipo-peso-700: 700;
+  --tipo-peso-800: 800;
+  --tipo-peso-900: 900;
+
+  /* espaciado */
+  --esp-2: 2px;
+  --esp-4: 4px;
+  --esp-6: 6px;
+  --esp-8: 8px;
+  --esp-12: 12px;
+  --esp-16: 16px;
+  --esp-20: 20px;
+  --esp-24: 24px;
+  --esp-32: 32px;
+
+  /* radio */
+  --radio-mini: 4px;
+  --radio-chico: 8px;
+  --radio-control: 12px;
+  --radio-tarjeta: 16px;
+  --radio-panel: 20px;
+  --radio-modal: 26px;
+  --radio-pildora: 999px;
+
+  /* sombra */
+  --sombra-0: 0 1px 3px rgba(20,47,29,.05);
+  --sombra-1: 0 6px 16px -12px rgba(20,47,29,.3);
+  --sombra-2: 0 6px 20px rgba(0,0,0,.12);
+  --sombra-3: 0 24px 60px rgba(0,0,0,.25);
+
+  /* capa */
+  --capa-local: 5;
+  --capa-nav: 100;
+  --capa-flotante: 150;
+  --capa-hoja: 300;
+  --capa-hoja-2: 320;
+  --capa-toast: 330;
+  --capa-emergente: 1000;
+  --capa-tutorial: 1200;
+
+  /* movimiento */
+  --mov-rapida: .15s;
+  --mov-media: .22s;
+  --mov-lenta: .35s;
+  --mov-curva: cubic-bezier(.4,0,.2,1);
+
+  /* tamano */
+  --tam-tactil: 40px;
+  --tam-icono-14: 14px;
+  --tam-icono-16: 16px;
+  --tam-icono-18: 18px;
+  --tam-icono-20: 20px;
+  --tam-icono-24: 24px;
+  --tam-columna: 420px;
+  --tam-nav: 80px;
+
+  /* roles de texto y de espaciado, y alias */
+  --texto-titulo-tam: 26px;
+  --texto-titulo-peso: 900;
+  --texto-titulo-interlineado: 1.2;
+  --texto-cuerpo-tam: 14px;
+  --texto-cuerpo-peso: 700;
+  --texto-cuerpo-interlineado: 1.45;
+  --texto-etiqueta-tam: 11px;
+  --texto-etiqueta-peso: 800;
+  --texto-etiqueta-interlineado: 1.25;
+  --texto-mini-tam: 10px;
+  --texto-mini-peso: 800;
+  --texto-mini-interlineado: 1;
+  --margen-pantalla: 16px;
+  --separacion-lista: 8px;
+  --color-acento: var(--color-seleccionado);
+}
+
+/* prefers-reduced-motion respetado por defecto: las duraciones caen a un fade. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --mov-rapida: .01s;
+    --mov-media: .01s;
+    --mov-lenta: .01s;
+  }
+}

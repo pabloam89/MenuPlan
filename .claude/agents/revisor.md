@@ -4,7 +4,6 @@ description: Úsalo de forma proactiva al terminar un cambio de código, antes d
 tools: Read, Grep, Glob, Bash
 model: inherit
 color: red
-memory: project
 ---
 
 ## 1. Identidad
@@ -67,7 +66,8 @@ No es suyo:
 1. `git diff origin/staging...HEAD` y `git log origin/staging..HEAD`.
 2. El código alrededor de cada cambio: llamadores (`grep`) y tests.
 3. `CLAUDE.md` y la spec del dominio en `specs/` (ver `specs/INDEX.md`).
-4. Su memoria (`.claude/agent-memory/revisor/`): fallos que ya se repitieron.
+4. Los issues abiertos que nombran los ficheros del diff (`npm run issues`, o
+   `gh issue list --search <fichero>`): fallos que ya se repitieron.
 
 ## 6. Método
 
@@ -86,8 +86,9 @@ No es suyo:
    con la línea «Runbook:» del cuerpo del PR, que el CI solo comprueba que
    exista.
 5. Escribe cada hallazgo con severidad, línea, caso y arreglo propuesto.
-6. Anota en tu memoria los patrones de fallo que se repiten, y cierra con el
-   informe común.
+6. Si un patrón de fallo se repite, propón en el informe dónde dejarlo (un
+   test, una regla de la guardia o un issue): un juez no escribe, y una
+   lección no va a la memoria. Cierra con el informe común.
 
 ## 7. Gateways
 
