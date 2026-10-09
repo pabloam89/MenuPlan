@@ -12,14 +12,12 @@
 //      so the expensive "free unlimited LLM" payoff disappears;
 //   2. this module rate-limits per IP, so bulk abuse is throttled;
 //   3. this module rejects obvious cross-origin calls;
-//   4. an OPTIONAL global daily budget per bucket (see dailyBudget below) caps
-//      worst-case platform-wide cost regardless of how many different IPs a
-//      sustained abuse pattern spreads across — the per-IP limit alone can't
-//      catch that, since a botnet or a rotating-IP script never trips it.
+//   4. a global daily cap per AI bucket (see dailyBudget below) bounds the
+//      platform-wide cost per day, whatever the number of callers.
 //
-// Rate limiting fails OPEN (allows the request) when Redis is unavailable: a
-// Redis blip must not take menu generation down for real users, and points 1+3
-// still stand on their own.
+// The per-IP rate limit fails OPEN (allows the request) when Redis is
+// unavailable: a Redis blip must not take the app down for real users. The
+// daily cap is a spending ceiling and fails CLOSED, like globalLimit.
 
 import { Redis } from "@upstash/redis";
 
@@ -151,46 +149,57 @@ export async function globalLimit({ bucket, limit, windowSec }, { redis = getRed
   }
 }
 
-// Global, cross-IP daily circuit breaker — off by default.
+// Tope diario GLOBAL por bucket de IA: peticiones por día UTC, sumando a todo
+// el mundo. Es un techo de gasto, así que falla CERRADO (sin Redis, o con
+// Redis fallando, no deja pasar), igual que globalLimit.
 //
-// The per-IP window above (rateLimit) protects against ONE abusive caller,
-// but does nothing against cost spread across many IPs (rotating-IP script,
-// small botnet, or just an unexpectedly viral spike): each IP individually
-// stays under its own limit while the total bill keeps climbing all day with
-// no ceiling anywhere in the code.
+// Cada bucket de IA tiene un tope por defecto aquí, bajo a propósito. La
+// variable AI_DAILY_BUDGET_<BUCKET> (en mayúsculas y con _ por -, p. ej.
+// AI_DAILY_BUDGET_RECIPE_STEPS) lo cambia sin tocar código; si falta o no es
+// un número positivo, vale el de aquí, nunca «sin tope».
 //
-// This adds an optional platform-wide cap per bucket, read from
-// AI_DAILY_BUDGET_<BUCKET> (bucket uppercased, e.g. AI_DAILY_BUDGET_GENERATE).
-// Unset (the default) = no check at all, zero behavior change from before —
-// deliberately opt-in, since the right number depends on real traffic/cost
-// tolerance this code has no way to know. Set it once that's known, no
-// redeploy of anything else required.
-function dailyBudgetEnvLimit(bucket) {
-  const raw = process.env[`AI_DAILY_BUDGET_${bucket.toUpperCase().replace(/-/g, "_")}`];
-  const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
+// Los buckets que no gastan IA (track, report-alert) no tienen tope por
+// defecto: solo se cuentan si alguien les pone la variable.
+export const TOPE_DIARIO_POR_DEFECTO = Object.freeze({
+  generate: 100,
+  "recipe-steps": 200,
+  moderate: 300,
+  "dish-photo": 30,
+});
+
+export function topeDiario(bucket, env = process.env) {
+  const n = Number(env[`AI_DAILY_BUDGET_${bucket.toUpperCase().replace(/-/g, "_")}`]);
+  if (Number.isFinite(n) && n > 0) return Math.floor(n);
+  return TOPE_DIARIO_POR_DEFECTO[bucket] ?? null;
 }
 
-/** @returns {Promise<{ok: boolean}>} */
-export async function dailyBudget(bucket) {
-  const limit = dailyBudgetEnvLimit(bucket);
-  if (limit == null) return { ok: true }; // not configured — no-op, see note above
+// Una línea contable por corte, sin nada de quien llama: bucket y motivo
+// (MOTIVOS_TOPE_DIARIO en src/lib/vocabularios.js).
+function cortar(bucket, motivo) {
+  console.warn(JSON.stringify({ tag: "tope_diario", bucket, motivo }));
+  return { ok: false, motivo };
+}
 
-  const redis = getRedis();
-  if (!redis) return { ok: true }; // same fail-open policy as rateLimit
+/**
+ * @returns {Promise<{ok: boolean, motivo?: "tope_alcanzado" | "sin_redis" | "error_redis"}>}
+ */
+export async function dailyBudget(bucket, { redis, env = process.env } = {}) {
+  const limit = topeDiario(bucket, env);
+  if (limit == null) return { ok: true }; // bucket sin IA y sin variable: no se cuenta
 
-  // UTC calendar day: coarse on purpose, this is a cost ceiling, not a
-  // precise 24h sliding window.
+  const r = redis === undefined ? getRedis() : redis;
+  if (!r) return cortar(bucket, "sin_redis");
+
+  // Día UTC: grueso a propósito, es un techo de gasto y no una ventana exacta.
   const day = new Date().toISOString().slice(0, 10);
   const key = `budget:${bucket}:${day}`;
   try {
-    const count = await redis.incr(key);
-    if (count === 1) await redis.expire(key, 172800); // 2 days: safety margin past midnight-UTC edge
-    if (count > limit) return { ok: false };
+    const count = await r.incr(key);
+    if (count === 1) await r.expire(key, 172800); // 2 días: margen pasada la medianoche UTC
+    if (count > limit) return cortar(bucket, "tope_alcanzado");
     return { ok: true };
-  } catch (err) {
-    console.warn("[guard] daily budget check failed, allowing:", err?.message);
-    return { ok: true };
+  } catch {
+    return cortar(bucket, "error_redis");
   }
 }
 
@@ -212,7 +221,6 @@ export async function blocked(req, res, opts) {
   }
   const budget = await dailyBudget(opts.bucket);
   if (!budget.ok) {
-    console.warn(`[guard] daily budget exceeded for bucket "${opts.bucket}"`);
     res.status(503).json({ error: "Servicio de IA saturado por hoy. Vuelve a intentarlo mañana." });
     return true;
   }
