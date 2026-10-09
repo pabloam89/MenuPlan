@@ -1,6 +1,8 @@
 # Logs
 logs
 *.log
+# Sí va al repo: el registro de los ensayos de restauración de las copias (#247).
+!ops/copias/ensayos.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

@@ -73,6 +73,10 @@ describe("qué comandos tienen puerta", () => {
       "scp x.sh root@100.73.252.32:/root/",
       "ufw allow 22",
       "docker compose exec -T db psql -U panel -c 'select 1'",
+      "node scripts/copias-ensayo.mjs",
+      "node scripts/copias-ensayo.mjs --copia descarga/2026-10-10T024312Z --clave-fichero k.txt --sin-produccion",
+      "systemctl start menuplan-copia.service",
+      "journalctl -u menuplan-copia --since today",
     ],
     telegram: [
       "node scripts/telegram-webhook.mjs set https://x.vercel.app/api/bot/telegram",
@@ -80,7 +84,7 @@ describe("qué comandos tienen puerta", () => {
       "node scripts/telegram-perfil.mjs aplicar",
     ],
     vercel: ["vercel env add FOO", "npx vercel deploy --prod", "node scripts/upload-to-blob.mjs", "node scripts/build-vectores.mjs"],
-    "1password": ["op item create --vault HoMenu -", "env -u OP_SERVICE_ACCOUNT_TOKEN op vault list", "op service-account create x", "npm run op -- item get x", "op read op://HoMenu/Supabase/X", "op inject -i ops/env.1password", "npm run op -- read op://HoMenu/X/Y"],
+    "1password": ["op item create --vault HoMenu -", "env -u OP_SERVICE_ACCOUNT_TOKEN op vault list", "op service-account create x", "npm run op -- item get x", "op read op://HoMenu/Supabase/X", "op inject -i ops/env.1password", "npm run op -- read op://HoMenu/X/Y", "node scripts/copias-clave.mjs", "node scripts/copias-clave.mjs --si"],
     tailscale: ['"C:\\Program Files\\Tailscale\\tailscale.exe" up', "tailscale set --ssh", "tailscale serve 3000"],
     github: ["gh api -X POST repos/o/r/issues", "gh api repos/o/r/labels --method=PATCH", "gh api repos/o/r/x -f a=b", "gh workflow run tests.yml --ref x", "gh secret set X", "gh repo edit --visibility private"],
   };
@@ -131,9 +135,15 @@ describe("qué ficheros piden la línea del PR", () => {
     ["vercel.json", "vercel"],
     ["scripts/upload-to-blob.mjs", "vercel"],
     ["ops/env.1password", "1password"],
+    ["ops/copias/copia-base.sh", "hetzner"],
+    ["ops/copias/menuplan-copia.timer", "hetzner"],
+    ["ops/copias/destinatarios.txt", "hetzner"],
+    ["scripts/copias-ensayo.mjs", "hetzner"],
+    ["scripts/copias-clave.mjs", "hetzner"],
+    ["scripts/lib/copias.mjs", "hetzner"],
   ])("%s -> %s", (f, skill) => expect(skillsDeFicheros([f], mapa)).toContain(skill));
 
-  it.each([["src/App.jsx"], ["api/bot/telegram-extra.js"], ["package.json"], ["ops/INVENTARIO.md"], ["src/data/recipes.json"], ["docs/supabase/x.md"]])(
+  it.each([["src/App.jsx"], ["api/bot/telegram-extra.js"], ["package.json"], ["ops/INVENTARIO.md"], ["src/data/recipes.json"], ["docs/supabase/x.md"], ["scripts/copias.test.js"], ["ops/copiasx.md"]])(
     "%s no pide nada",
     (f) => expect(skillsDeFicheros([f], mapa)).toEqual([]),
   );

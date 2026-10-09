@@ -40,7 +40,8 @@
     },
     "1password": {
       "comandos": [
-        "(?:^|[\\s\"'=;&|(])op(?:\\.exe)?(?:\\s+--)?\\s+(?:item|vault|service-account|user|group|document|connect|account|read|inject)\\b"
+        "(?:^|[\\s\"'=;&|(])op(?:\\.exe)?(?:\\s+--)?\\s+(?:item|vault|service-account|user|group|document|connect|account|read|inject)\\b",
+        "copias-clave\\.mjs"
       ],
       "rutas": [
         "^ops/env\\.1password$",
@@ -64,9 +65,15 @@
         "(?:100\\.73\\.252\\.32|188\\.245\\.14\\.194|homenu-panel)[\\s\\S]{0,1000}\\b(?:ssh|scp|sftp|rsync)\\b",
         "\\bufw\\b",
         "\\bdocker\\b[\\s\\S]{0,1000}(?:\\bpanel-db-1\\b|-U\\s+panel\\b)",
-        "/opt/panel\\b"
+        "/opt/panel\\b",
+        "copias-ensayo\\.mjs",
+        "menuplan-copia\\b"
       ],
-      "rutas": []
+      "rutas": [
+        "^ops/copias/",
+        "^scripts/copias-[\\w-]+\\.mjs$",
+        "^scripts/lib/copias\\.mjs$"
+      ]
     },
     "tailscale": {
       "comandos": [
