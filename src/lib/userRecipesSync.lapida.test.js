@@ -164,6 +164,17 @@ describe("plan B: la 0094 aún no está aplicada", () => {
     expect(llamadas.some((c) => c.op === "delete" && c.tabla === "user_recipes")).toBe(true);
   });
 
+  it("un id viejo fuera de formato no pasa por la lápida: borrado de siempre", async () => {
+    // El CHECK de la 0094 lo rechazaría y el borrado fallaría entero.
+    const raro = { id: "user_Mayus_y_más", name: "Id de antes" };
+    nube.filas.set(raro.id, fila(raro));
+    en(movil);
+    expect(await deleteUserRecipe("u-1", raro.id)).toBe(true);
+    expect(llamadas.some((c) => c.rpc)).toBe(false);
+    expect(nube.filas.has(raro.id)).toBe(false);
+    expect(nube.lapidas.has(raro.id)).toBe(false);
+  });
+
   it("un error de la función que no es «no existe» no se toma por plan B", async () => {
     en(movil);
     const { supabase } = await import("./supabase.js");

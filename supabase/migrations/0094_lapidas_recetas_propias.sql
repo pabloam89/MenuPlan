@@ -1,5 +1,4 @@
 -- 0094 · Lápidas de las recetas propias en la nube: lo borrado no resucita.
--- AUDITADA: auditor-datos 2026-10-09 OK
 --
 -- Qué pasa hoy (issue #355, diagnóstico en #316): borrar una receta propia en
 -- el móvil quita su fila de user_recipes y deja la «lápida» solo en el
@@ -14,7 +13,7 @@
 --    escribe desde el cliente.
 -- 2. RPC borrar_receta_propia(p_receta): en una transacción, apunta la lápida
 --    y borra la fila. Es el único camino que escribe lápidas.
--- 3. Trigger user_recipes_no_revivir (before insert): si el id tiene lápida de
+-- 3. Trigger trg_user_recipes_no_revivir (before insert): si el id tiene lápida de
 --    ese mismo dueño, la fila no entra (return null, sin error, para no tumbar
 --    el upsert en bloque de un dispositivo viejo que trae otras recetas
 --    buenas). Así la base mantiene la invariante «un id con lápida no está en
@@ -37,9 +36,9 @@
 -- (excepción congelada); cuelga del mismo dueño y se borra con él.
 --
 -- Ciclo de vida de una lápida: nace al borrar (solo por la RPC), no se edita
--- nunca, y muere con la cuenta (on delete cascade desde auth.users) o con la
--- purga de las viejas, cuyo plazo decide Pablo (#355; no la hace esta
--- migración). Una receta editada en otro dispositivo después de borrada no
+-- nunca, y muere con la cuenta (on delete cascade desde auth.users). No se
+-- purga: se revisa si algún dueño se acerca a 2000 lápidas (el tope de lectura
+-- de la app, TOPE_LAPIDAS en src/lib/userRecipesSync.js). Una receta editada en otro dispositivo después de borrada no
 -- vuelve: el borrado gana (el upsert de la edición lo para el trigger y ese
 -- dispositivo quita su copia en la siguiente carga).
 --
@@ -53,13 +52,15 @@
 --
 -- Al final, una autoprueba dentro de un subbloque que se deshace siempre: con
 -- un dueño real cualquiera, crea una receta de prueba, la borra con la RPC,
--- intenta resubirla y comprueba que no entra. No deja nada escrito.
+-- intenta resubirla y comprueba que no entra, todo con el rol authenticated
+-- (pasa por la RLS, como la app). No deja nada escrito.
 --
--- No toca la RLS ni los permisos de nada que ya existiera; sí crea los de la
--- tabla y la función nuevas (seguridad debería mirarlos).
+-- No toca la RLS ni los permisos de nada que ya existiera, pero crea una
+-- función security definer y hace revoke on function: LA LANZA PABLO con
+-- --pablo (revisada por seguridad y auditor-datos el 9 oct 2026).
 --
 -- Testigo: la tabla public.user_recipe_deletions y el trigger
--- user_recipes_no_revivir en public.user_recipes.
+-- trg_user_recipes_no_revivir en public.user_recipes.
 --
 -- SIN APLICAR.
 
@@ -76,7 +77,8 @@ begin
   if exists (select 1 from pg_proc where proname in ('borrar_receta_propia', 'user_recipes_no_revivir')) then
     raise exception '0094: ya hay una función borrar_receta_propia o user_recipes_no_revivir';
   end if;
-  -- El check de recipe_id usa el formato de ids.recetaPropia (src/lib/ids.js):
+  -- El check de recipe_id es ids.recetaPropia.viejo (src/lib/ids.js), que
+  -- abarca también los nuevos (lo compara supabase/lapidasFormato.test.js):
   -- si alguna receta viva no lo cumple, su borrado fallaría.
   if exists (select 1 from public.user_recipes where id !~ '^user_[0-9a-z-]{1,40}$') then
     raise exception '0094: hay recetas propias con un id fuera del formato de ids.recetaPropia';
@@ -97,7 +99,7 @@ create table public.user_recipe_deletions (
 comment on table public.user_recipe_deletions is
   'Lápidas de recetas propias borradas (#355): que una receta borrada en un dispositivo no la vuelva a subir otro. '
   'La escribe solo borrar_receta_propia (0094), en la misma transacción que borra la fila de user_recipes; '
-  'la leen userRecipesSync.js (app) y api/_bot/propias.js (Lola). El trigger user_recipes_no_revivir impide '
+  'la leen userRecipesSync.js (app) y api/_bot/propias.js (Lola). El trigger trg_user_recipes_no_revivir impide '
   'que un id con lápida vuelva a entrar en user_recipes. Inmutable; se va con la cuenta.';
 comment on column public.user_recipe_deletions.owner_id is
   'Dueño de la receta borrada (el mismo owner_id que tenía en user_recipes). Cascada: la lápida se va con la cuenta.';
@@ -133,9 +135,10 @@ begin
   if v_yo is null then
     raise exception 'borrar_receta_propia: hace falta sesión' using errcode = '42501';
   end if;
-  -- La lápida va a nombre de quien llama, no del dueño de la fila: llamarla
-  -- con el id de una receta ajena no borra nada y la lápida solo frena a
-  -- quien la puso.
+  -- El id de una receta ajena no se toca ni deja lápida.
+  if exists (select 1 from public.user_recipes where id = p_receta and owner_id <> v_yo) then
+    return false;
+  end if;
   insert into public.user_recipe_deletions (owner_id, recipe_id)
   values (v_yo, p_receta)
   on conflict (owner_id, recipe_id) do nothing;
@@ -184,7 +187,7 @@ comment on function public.user_recipes_no_revivir() is
 
 revoke all on function public.user_recipes_no_revivir() from public, anon, authenticated;
 
-create trigger user_recipes_no_revivir
+create trigger trg_user_recipes_no_revivir
   before insert on public.user_recipes
   for each row execute function public.user_recipes_no_revivir();
 
@@ -202,9 +205,13 @@ begin
     return;
   end if;
   begin
-    -- Como si llamara el dueño desde la app. set_config local se deshace con
-    -- el subbloque.
+    -- Como si llamara el dueño desde la app, con su rol y su RLS. set_config
+    -- local se deshace con el subbloque.
     perform set_config('request.jwt.claims', json_build_object('sub', v_dueno, 'role', 'authenticated')::text, true);
+    perform set_config('role', 'authenticated', true);
+    if current_user <> 'authenticated' then
+      raise exception '0094 autoprueba: no se pudo pasar a authenticated';
+    end if;
     insert into public.user_recipes (id, owner_id, name, category, type)
     values (v_id, v_dueno, 'Autoprueba 0094', 'huevos', 'completo');
 

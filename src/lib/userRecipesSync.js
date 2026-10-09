@@ -3,6 +3,7 @@ import { uploadRecipePhoto, deleteRecipePhoto, isDataUrl } from "./recipePhotos.
 import { recipeToRow, rowToRecipe } from "./userRecipesFila.js";
 import { mergeUserRecipesAfterCloudLoad } from "./profileMerge.js";
 import { withoutDeletedRecipes } from "./deletedRecipeIds.js";
+import { recetaPropia } from "./ids.js";
 
 /**
  * Cloud persistence for user-created recipes (see user_recipes in
@@ -47,7 +48,11 @@ export async function loadUserRecipes(userId) {
 // no, el que no borró la volvía a subir como «solo local». La base, además,
 // no deja volver a entrar un id con lápida (trigger user_recipes_no_revivir).
 
-/** Tope de lápidas que se leen: las más recientes. */
+/**
+ * Tope de lápidas que se leen: las más recientes. No se purgan (0094): si
+ * algún dueño se acerca, se revisa. Lola no usa tope: pide solo las lápidas
+ * de los ids que tiene delante (api/_bot/propias.js).
+ */
 export const TOPE_LAPIDAS = 2000;
 
 // Sin la 0094 aplicada, PostgREST contesta que la tabla o la función no
@@ -249,13 +254,18 @@ export async function deleteUserRecipe(userId, recipeId) {
   await deleteRecipePhoto(userId, recipeId);
   // Borra y deja la lápida en la nube en una sola transacción (0094, #355),
   // para que los demás dispositivos no la vuelvan a subir.
-  const borrado = await supabase.rpc("borrar_receta_propia", { p_receta: recipeId });
-  if (!borrado.error) return true;
-  if (!noExiste(borrado.error)) {
-    console.warn("[userRecipes] delete failed", borrado.error.message);
-    return false;
+  // Un id fuera del formato de ids.recetaPropia no cabe en la lápida (CHECK
+  // de la 0094): ese va directo al borrado de siempre.
+  if (recetaPropia.es(recipeId)) {
+    const borrado = await supabase.rpc("borrar_receta_propia", { p_receta: recipeId });
+    if (!borrado.error) return true;
+    if (!noExiste(borrado.error)) {
+      console.warn("[userRecipes] delete failed", borrado.error.message);
+      return false;
+    }
   }
-  // Plan B: sin la 0094 aplicada, el borrado de siempre (sin lápida en la nube).
+  // Plan B: sin la 0094 aplicada (o con un id viejo fuera de formato), el
+  // borrado de siempre, sin lápida en la nube.
   const { error } = await supabase
     .from("user_recipes")
     .delete()
