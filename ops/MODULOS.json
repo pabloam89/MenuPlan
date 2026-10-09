@@ -719,6 +719,7 @@
           "ficheros": [
             "src/lib/pantry.js",
             "src/lib/pantryDeltas.js",
+            "src/lib/barridoDia.js",
             "src/screens/Pantry.jsx",
             "src/components/PantryInput.jsx",
             "src/utils/normalizePantryInput.js",
@@ -729,6 +730,7 @@
           "tests": [
             "src/lib/pantry.test.js",
             "src/lib/pantryDeltas.test.js",
+            "src/lib/barridoDia.test.js",
             "src/utils/normalizePantryInput.test.js"
           ],
           "metricas": [
