@@ -17,14 +17,16 @@ export const ES_CODIGO = /\.(m?js|jsx|cjs|ts|tsx)$/;
  * (= BASE_RECIPES con campos añadidos). `RECIPES_BY_ID`, `registerRecipes` e
  * `INGREDIENT_CATEGORIES` son otras cosas, vivas, y NO se vigilan: por eso estas
  * fuentes se vigilan por SÍMBOLO y no por el nombre del fichero (reglasDe()
- * salta los `ficheros` que son código). `generateMenu` (planner.js) es la puerta
- * de atrás: lee RECIPES por dentro.
+ * salta los `ficheros` que son código). `generateMenu` (planner.js) era la puerta
+ * de atrás: leía RECIPES por dentro (ya borrada; el símbolo se vigila por si vuelve).
  *
  * `re` va sobre el código sin comentarios, strings ni regex (soloCodigo);
  * `confirma`, si existe, sobre el mismo tramo con los strings a la vista.
  * `clave` de cada símbolo (la primera palabra del nombre) es un filtro rápido.
- * Vale para una fuente `deprecado` y, cuando se retire, para `retirado`:
- * la entrada se quita solo al borrar el fichero y la fuente; mientras tanto el
+ * Vale para una fuente `deprecado` y para una `retirado`: recetasPrototipo se
+ * retiró el 9 oct 2026 (#286) y su entrada se queda como alarma, porque
+ * recipes.js sigue existiendo (con RECIPES_BY_ID e INGREDIENT_CATEGORIES). La
+ * entrada se quita solo al borrar el fichero y la fuente; mientras tanto el
  * test cruza la lista con el registro en los dos sentidos.
  */
 export const SIMBOLOS_DEPRECADAS = {

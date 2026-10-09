@@ -155,9 +155,14 @@ async function atender(msg, base, host = "") {
       // no es para ella, se tira tal cual (nadie contesta ni queda rastro).
       const audio = !msg.caption && (msg.voice ?? msg.audio);
       if (!audio) return;
+      const [paraOir] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
+      // Sin casa vinculada, o con la casa ya pasada de su límite del mes, no
+      // se paga una transcripción para algo que no va a contestar.
+      if (!paraOir?.household_id) return;
+      // a propósito: sin poder leer el uso, mejor contestar que bloquear (como el turno)
+      if (await fueraDeLimite(paraOir.household_id).catch(seguirCon("limite", null))) return;
       // a propósito: «escribiendo…» es adorno
       llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
-      const [paraOir] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
       // a propósito: solo es para saber si le hablan; sin oírla, no contesta
       oidoDeGrupo = await transcribir(audio, { householdId: paraOir?.household_id }).catch(seguirCon("grupo_voz", null));
       if (!oidoDeGrupo?.texto || !NOMBRADA.test(oidoDeGrupo.texto.trim())) return;
@@ -282,6 +287,13 @@ async function atender(msg, base, host = "") {
   // empieza con lo que se entendió, para que un error de oído se vea.
   const audio = msg.voice ?? msg.audio;
   if (!texto && audio) {
+    // Pasada del límite del mes, no se transcribe: se contesta el aviso del
+    // límite sin pagar Groq (el de grupo ya lo miró antes de oír).
+    if (!oidoDeGrupo) {
+      // a propósito: sin poder leer el uso, mejor contestar que bloquear (como el turno)
+      const fuera = await fueraDeLimite(chat.household_id).catch(seguirCon("limite", null));
+      if (fuera) return enviar(chatId, fuera, { responderA: esGrupo ? msg.message_id : undefined });
+    }
     // La del filtro de grupo ya se transcribió para saber si era para ella:
     // no se vuelve a pagar Groq por el mismo audio.
     const t = oidoDeGrupo ?? await (async () => {
@@ -506,6 +518,10 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // Quien eligió inglés: contesta Lola, que traduce. La vía rápida y sus
   // plantillas están en castellano.
   if (idioma === "en") return soloLola("idioma", t0);
+  // Pasada del límite del mes, ni el enrutador (también un modelo) ni la vía
+  // rápida (que puede buscar recetas con IA): contesta Lola con el aviso del
+  // límite, que no llama al modelo (api/_bot/uso.js).
+  if (await limiteP) return soloLola("limite", t0);
   marca("contexto");
 
   // 0. Estado: contestar a una pregunta de la vía rápida.

@@ -32,6 +32,7 @@
     "retirar": "node scripts/retirar.mjs",
     "podar": "node scripts/podar.mjs",
     "issues": "node scripts/issues.mjs",
+    "normas": "node scripts/normas.mjs",
     "planos": "node scripts/planos.mjs",
     "hora": "node scripts/hora.mjs",
     "consulta": "node scripts/consulta.mjs",

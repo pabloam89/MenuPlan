@@ -1,4 +1,4 @@
-import { blocked, cors } from "./_guard.js";
+import { blocked, cors, topeDiarioAgotado } from "./_guard.js";
 
 // Filtro de contenido para lo que la gente publica: comentarios, nombre
 // visible, handle y biografía.
@@ -59,6 +59,9 @@ export default async function handler(req, res) {
 
   const text = String(req.body?.text ?? "").trim().slice(0, MAX_LEN);
   if (!text) return res.status(200).json({ ok: true });
+
+  // El tope diario, ya validado el cuerpo: solo cuenta lo que llega al modelo.
+  if (await topeDiarioAgotado(res, "moderate")) return;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
