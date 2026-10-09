@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ficherosDeGit, directosDe } from "./ficherosGit.js";
 import { isoDeCasa } from "../src/lib/dias.js";
+import { eventosTabla } from "../scripts/lib/migraciones.mjs";
 import { ESTADOS_FUENTE, ROLES_FUENTE, TABLAS, esFechaIso, fuentesVencidas } from "../src/data/model.js";
 
 /**
@@ -139,6 +140,55 @@ describe("fuentes: lo que cita existe y nada queda sin registrar", () => {
       }
     }
     expect(sueltos, `JSON sin fuente: ${sueltos.join(", ")}. Registra cada uno en TABLAS de src/data/model.js con su rol (ingesta, fuente_de_verdad, derivado o copia_retirada) y sus \`ficheros\`.`).toEqual([]);
+  });
+});
+
+describe("fuentes: una tabla borrada lo dice, y lo dice la migración que la borra (#303)", () => {
+  // `creaTabla` y `creaVista` siguen dando verde para una tabla que ya no existe, porque el CREATE sigue en
+  // git. Esto cierra el hueco: la última cosa que le pasa a la tabla en las migraciones tiene que casar con
+  // la nota de su fuente. Una fuente «borrada en la NNNN» exige que esa migración la borre (y que nadie la
+  // vuelva a crear después); y una tabla que las migraciones borran exige que su fuente lo diga.
+  const RE_BORRADA = /borrad[ao]s? en la (\d{4})/i;
+  const DIR_MIGRACIONES = directosDe(FICHEROS, "supabase/migrations").filter((f) => f.endsWith(".sql")).sort();
+
+  /** Qué es de cada tabla o vista tras todas las migraciones: { estado: "viva"|"borrada", migracion: "0093" } del último evento. */
+  function ultimoEvento(ficheros = DIR_MIGRACIONES, lee = leer) {
+    const ult = new Map();
+    for (const f of ficheros) {
+      const num = f.split("/").pop().slice(0, 4);
+      for (const e of eventosTabla(lee(f))) if (e.esquema === "public") ult.set(e.nombre, { estado: e.accion === "borra" ? "borrada" : "viva", migracion: num });
+    }
+    return ult;
+  }
+  /** Defectos de un registro frente a lo que hacen las migraciones. */
+  function revisarBorradas(registro, ult) {
+    const malos = [];
+    for (const f of registro) {
+      const dice = RE_BORRADA.exec(f.nota ?? "")?.[1] ?? null;
+      for (const t of [...(f.tablas ?? []), ...(f.vistas ?? [])]) {
+        const real = ult.get(t);
+        if (dice && real?.estado !== "borrada") malos.push(`${f.id}: la nota dice «borrada en la ${dice}», pero ninguna migración deja «${t}» borrada (último: ${real ? `${real.estado} en la ${real.migracion}` : "nada"})`);
+        else if (dice && real.migracion !== dice) malos.push(`${f.id}: «${t}» la borra la ${real.migracion}, no la ${dice}`);
+        else if (!dice && real?.estado === "borrada") malos.push(`${f.id}: la ${real.migracion} borra «${t}» y la nota no lo dice (escribe «borrada en la ${real.migracion}»)`);
+      }
+    }
+    return malos;
+  }
+
+  it("la nota «borrada en la NNNN» y las migraciones cuentan lo mismo", () => {
+    expect(revisarBorradas(TABLAS, ultimoEvento())).toEqual([]);
+  });
+
+  it("revisarBorradas ve los tres defectos (con un registro y unas migraciones de mentira)", () => {
+    const sql = { "m/0005_a.sql": "create table public.a (id int);create table public.b (id int);create table public.c (id int);", "m/0006_b.sql": "drop table public.a;\ndrop table public.c;\ncreate table public.c (id int);" };
+    const ult = ultimoEvento(Object.keys(sql), (f) => sql[f]);
+    expect(ult.get("a")).toEqual({ estado: "borrada", migracion: "0006" });
+    expect(ult.get("c")).toEqual({ estado: "viva", migracion: "0006" }); // borrada y recreada: viva
+    const f = (id, tablas, nota) => ({ id, tablas, vistas: [], nota });
+    expect(revisarBorradas([f("ok", ["a"], "Borrada en la 0006."), f("viva", ["c"], "sigue")], ult)).toEqual([]);
+    expect(revisarBorradas([f("miente", ["b"], "Borrada en la 0006.")], ult)).toEqual([expect.stringContaining("ninguna migración deja «b» borrada")]);
+    expect(revisarBorradas([f("otra", ["a"], "Borrada en la 0005.")], ult)).toEqual([expect.stringContaining("la borra la 0006, no la 0005")]);
+    expect(revisarBorradas([f("calla", ["a"], "sin lector")], ult)).toEqual([expect.stringContaining("la nota no lo dice")]);
   });
 });
 
