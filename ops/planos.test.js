@@ -253,6 +253,37 @@ describe("las reglas de GitHub, con un gh de mentira", () => {
       expect(r.detalle).toBe("norma secretos-en-environments no cuadra: 1 de 2 fuera de la política");
       expect(r.detalle).not.toMatch(/\bb\b|main/);
     });
+
+    const contar = (regla, respuesta, quien = admin, extra = {}) => evaluarReglaGithub({ regla, maximo: 1, ...extra }, { repo, gh: gh({ "repos/x/y": quien, ...respuesta }) });
+
+    it("secretos_de_repo y deploy_keys_escritura cuentan contra su tope; sin ser admin, sin comprobar", () => {
+      const secretos = (n) => ({ "repos/x/y/actions/secrets?per_page=100": ok({ total_count: n, secrets: [] }) });
+      expect(contar("secretos_de_repo", secretos(1)).estado).toBe("cumple");
+      expect(contar("secretos_de_repo", secretos(2))).toMatchObject({ estado: "no_cumple", detalle: "norma secretos_de_repo no cuadra: 2 (tope 1)" });
+      expect(contar("secretos_de_repo", secretos(0), admin, { maximo: 0 }).estado).toBe("cumple");
+      expect(contar("secretos_de_repo", {}, token).estado).toBe("sin_comprobar");
+      const llaves = (...ro) => ({ "repos/x/y/keys?per_page=100": ok(ro.map((read_only) => ({ read_only, title: "secreta" }))) });
+      expect(contar("deploy_keys_escritura", llaves(false, true, true)).estado).toBe("cumple");
+      const dos = contar("deploy_keys_escritura", llaves(false, false), admin, { norma: "una-llave" });
+      expect(dos).toMatchObject({ estado: "no_cumple", detalle: "norma una-llave no cuadra: 2 (tope 1)" });
+      expect(dos.detalle).not.toMatch(/secreta/);
+      expect(contar("deploy_keys_escritura", {}, token).estado).toBe("sin_comprobar");
+    });
+
+    it("aprobaciones_requeridas: manda el mayor entre la protección clásica y los rulesets", () => {
+      const aprob = (clasica, ruleset, quien = admin) => evaluarReglaGithub({ regla: "aprobaciones_requeridas", rama: "main", minimo: 1 }, { repo, gh: gh({
+        "repos/x/y": quien,
+        "repos/x/y/branches/main/protection": ok({ required_pull_request_reviews: clasica === null ? undefined : { required_approving_review_count: clasica } }),
+        "repos/x/y/rules/branches/main": ok(ruleset === null ? [] : [{ type: "pull_request", parameters: { required_approving_review_count: ruleset } }]),
+      }) });
+      expect(aprob(0, null).estado).toBe("no_cumple");
+      expect(aprob(null, null).estado).toBe("no_cumple");
+      expect(aprob(1, null).estado).toBe("cumple");
+      expect(aprob(0, 2).estado).toBe("cumple");
+      expect(aprob(0, null).detalle).toBe("norma aprobaciones_requeridas no cuadra: 0 (mínimo 1)");
+      const sinProteccion = evaluarReglaGithub({ regla: "aprobaciones_requeridas", rama: "main", minimo: 1 }, { repo, gh: gh({ "repos/x/y": token }) });
+      expect(sinProteccion.estado).toBe("sin_comprobar");
+    });
   });
 
   it("sin red ni gh, nada", () => {

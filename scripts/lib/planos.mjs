@@ -59,6 +59,9 @@ export const REGLAS_GITHUB = {
   // #351. El detalle de estas reglas es neutro (repo público, #300): la norma y
   // una cifra, nunca qué environment, qué secreto ni qué llave.
   environment_solo_rama: ["environments", "rama"],
+  secretos_de_repo: ["maximo"],
+  deploy_keys_escritura: ["maximo"],
+  aprobaciones_requeridas: ["rama", "minimo"],
 };
 
 /**
@@ -266,6 +269,25 @@ export function evaluarReglaGithub(c, { repo, gh }) {
         if (!bien) fuera++;
       }
       return { estado: fuera ? "no_cumple" : "cumple", detalle: `${cuadra(c, fuera)}: ${fuera} de ${c.environments.length} fuera de la política` };
+    }
+    case "secretos_de_repo":
+    case "deploy_keys_escritura": {
+      const r = gh(c.regla === "secretos_de_repo" ? `repos/${repo}/actions/secrets?per_page=100` : `repos/${repo}/keys?per_page=100`);
+      if (!r.ok) {
+        if (sinPermiso(r)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: solo lo ve un administrador` };
+        return { estado: "no_cumple", detalle: `${cuadra(c)}: no se pudo contar` };
+      }
+      const n = c.regla === "secretos_de_repo" ? Number(r.json?.total_count ?? 0) : (r.json ?? []).filter((k) => k.read_only === false).length;
+      return { estado: n <= c.maximo ? "cumple" : "no_cumple", detalle: `${cuadra(c, n > c.maximo)}: ${n} (tope ${c.maximo})`, valor: n };
+    }
+    case "aprobaciones_requeridas": {
+      // Lo que exija la protección clásica o cualquier ruleset de la rama: manda el mayor.
+      const p = proteccion(c.rama);
+      if (sinPermiso(p)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: la protección de rama solo la lee un administrador` };
+      const r = reglas(c.rama);
+      const deRulesets = r.ok ? (r.json ?? []).filter((x) => x.type === "pull_request").map((x) => Number(x.parameters?.required_approving_review_count ?? 0)) : [];
+      const n = Math.max(p.ok ? Number(p.json?.required_pull_request_reviews?.required_approving_review_count ?? 0) : 0, ...deRulesets);
+      return { estado: n >= c.minimo ? "cumple" : "no_cumple", detalle: `${cuadra(c, n < c.minimo)}: ${n} (mínimo ${c.minimo})`, valor: n };
     }
     default:
       return { estado: "no_cumple", detalle: `regla desconocida: ${c.regla}` };
