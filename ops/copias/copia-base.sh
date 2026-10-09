@@ -9,9 +9,13 @@
 # El volcado en claro no toca nunca el disco: va de `pg_dump` a `age` por una
 # tubería.
 #
-# Si existe el esquema `copia` (vistas de auth.users y auth.identities, pendiente
-# de `datos`), cada relación legible de él sale además en CSV cifrado. Sin él,
-# la copia sigue y lo dice (`auth: no`): el script no depende de la migración.
+# Entra con el usuario propio de las copias, `copia_lectura` (migración 0094,
+# #273): con cualquier otro (también `consulta_lectura`, que se aprobó para el
+# PC de Pablo y no ve `auth`) para en `config` sin volcar nada. Ese usuario lee
+# además el esquema `copia` (vistas de auth.users y auth.identities sin tokens
+# ni secretos), y cada vista sale en CSV cifrado (`auth: si`). Si falta alguna
+# de las de RELACIONES_COPIA, para en `auth`: una copia sin usuarios, restaurada
+# en un proyecto nuevo, deja las casas sin dueño.
 #
 # Cada ejecución deja UNA línea estructurada en $COPIA_DIR/copias.log y en el
 # journal, con vocabulario cerrado (scripts/lib/copias.mjs, que la cuenta):
@@ -27,7 +31,8 @@
 #
 # Configuración: variables de entorno (systemd las carga de
 # /etc/menuplan-copia/copia.env, permisos 600, NUNCA en el repo):
-#   COPIA_DB_URL         obligatoria. Usuario de solo lectura (nunca postgres).
+#   COPIA_DB_URL         obligatoria. La de `copia_lectura` (ficha «Supabase copia»
+#                        de Panel HoMenu; la pone scripts/clave-copia-lectura.mjs).
 #                        Su contraseña no viaja en ningún argv (ni en el de
 #                        docker ni en el de pg_dump o psql, que se ven en el
 #                        `ps` del host): va a un passfile 600 del temporal,
@@ -69,6 +74,10 @@ COPIA_AGE=${COPIA_AGE:-age}
 COPIA_CURL=${COPIA_CURL:-curl}
 COPIA_MIN_BYTES=${COPIA_MIN_BYTES:-100000}
 REGISTRO="$COPIA_DIR/copias.log"
+# El usuario y las vistas de la 0094; un test los cruza con ROL_COPIA
+# (scripts/lib/rolLectura.mjs) y RELACIONES_COPIA (scripts/lib/copias.mjs).
+ROL_COPIA=copia_lectura
+RELACIONES_COPIA="auth_usuarios auth_identidades"
 NOMBRE_RE='^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{6}Z$'
 
 INICIO=$(date -u +%s)
@@ -218,17 +227,19 @@ ESCRIBE=$(awk -F'\t' '$1=="escribe"{print $2}' "$TMP/estado.tsv")
 TABLAS=$(awk -F'\t' '$1=="tablas"{print $2}' "$TMP/estado.tsv")
 [ -n "$USUARIO" ] && [ -n "$TABLAS" ] || { echo "La comprobación previa no devolvió nada" >&2; false; }
 
-# La credencial del servidor tiene que ser de solo lectura: si alguien pega la
-# de administrador, se para aquí (motivo config), antes de volcar nada.
+# La credencial del servidor tiene que ser la de copia_lectura, que solo lee:
+# si alguien pega la de administrador, o la de consulta_lectura, se para aquí
+# (motivo config), antes de volcar nada.
 paso config
-if [ "$USUARIO" = postgres ] || [ "$USUARIO" = supabase_admin ] || [ "${ESCRIBE:-0}" != 0 ]; then
-  echo "COPIA_DB_URL entra como «$USUARIO» y puede escribir en ${ESCRIBE:-?} tablas: aquí solo vale un usuario de solo lectura." >&2
+if [ "$USUARIO" != "$ROL_COPIA" ] || [ "${ESCRIBE:-0}" != 0 ]; then
+  echo "COPIA_DB_URL entra como «$USUARIO» y puede escribir en ${ESCRIBE:-?} tablas: aquí solo vale $ROL_COPIA, de solo lectura (migración 0094)." >&2
   false
 fi
 
 # Secuencias que el usuario no puede leer: se vuelca su definición pero no su
-# valor (plan B con consulta_lectura). Tras restaurar hay que ponerlas al día
-# con setval (lo hace el ensayo y lo dice el runbook).
+# valor. Con copia_lectura no debería haber ninguna (la 0094 le da `select`);
+# si las hay, la copia lo dice (`secuencias: sin-valor`) y tras restaurar hay
+# que ponerlas al día con setval (lo hace el ensayo y lo dice el runbook).
 EXCLUIR=()
 while IFS= read -r s; do
   [ -n "$s" ] && EXCLUIR+=("--exclude-table-data=$s")
@@ -247,8 +258,12 @@ pg sh -c 'exec pg_dump --dbname="$PGURL" "$@"' pg_dump -Fc -Z 6 -n public -n ops
 paso cifrado
 [ "$(head -c 21 "$PARCIAL/base.dump.age")" = "age-encryption.org/v1" ] || { echo "base.dump.age no tiene la cabecera de age" >&2; false; }
 
-# ── auth (si existe el esquema copia) ───────────────────────────────────
+# ── auth (el esquema copia de la 0094) ──────────────────────────────────
 paso auth
+for rel in $RELACIONES_COPIA; do
+  awk -F'\t' -v r="$rel" '$1=="copia" && $2==r{f=1} END{exit !f}' "$TMP/estado.tsv" || {
+    echo "$ROL_COPIA no puede leer copia.$rel: sin ella, la copia no sirve para restaurar en un proyecto nuevo (¿aplicada la 0094?)" >&2; false; }
+done
 while IFS= read -r rel; do
   [ -n "$rel" ] || continue
   [[ "$rel" =~ ^[a-z_][a-z0-9_]*$ ]] || { echo "Nombre raro en el esquema copia: $rel" >&2; false; }

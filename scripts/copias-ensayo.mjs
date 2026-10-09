@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Ensayo de restauración de una copia de la base (encargo #247). Lo lanza
- * Pablo con `!`: pide aprobar dos veces en 1Password (la SSH al servidor y la
- * clave privada).
+ * Pablo con `!`: pide aprobar tres veces en 1Password (la SSH al servidor, la
+ * clave privada y la dirección de `copia_lectura`, todas en «Panel HoMenu»).
  *
  *   node scripts/copias-ensayo.mjs                  la última copia diaria del servidor
  *   node scripts/copias-ensayo.mjs --copia <dir>    una copia ya descargada (carpeta con base.dump.age)
@@ -15,12 +15,16 @@
  * Qué hace: comprueba que cada fichero se descifra entero (a ninguna parte),
  * levanta un Postgres 17 desechable (initdb en una carpeta temporal, solo en
  * 127.0.0.1), crea lo mínimo de Supabase que el volcado nombra (roles,
- * auth.uid(), un auth.users con los ids que hacen falta) y restaura con
- * `--exit-on-error`: `age -d` por tubería a `pg_restore`, una vez por sección,
- * así que el volcado en claro no se escribe nunca. Pone las secuencias al día y
- * cuenta las filas de cada tabla. Luego cuenta las mismas tablas en producción
- * con el usuario de solo lectura (`consulta_lectura`, en una transacción read
- * only) y compara (`veredicto` de scripts/lib/copias.mjs).
+ * auth.uid(), auth.users y auth.identities con las columnas del esquema `copia`)
+ * y restaura con `--exit-on-error`: `age -d` por tubería a `pg_restore`, una vez
+ * por sección, así que el volcado en claro no se escribe nunca. Carga los CSV de
+ * `copia` (usuarios e identidades) en ese auth, cuenta cuántos dueños faltarían
+ * (`huerfanos:`) y rellena con ids sueltos los que falten, para que las claves
+ * ajenas se comprueben. Pone las secuencias al día y cuenta las filas de cada
+ * tabla. Luego cuenta lo mismo en producción con el usuario de las copias
+ * (`copia_lectura`, 0094, en una transacción read only), también las vistas de
+ * `copia`, y compara (`veredicto` de scripts/lib/copias.mjs): una copia sin
+ * auth sale `tablas-distintas`.
  *
  * OJO: mientras dura, el datadir del Postgres desechable SÍ tiene la base en
  * claro (es una base de verdad). Al final, o con Ctrl+C, Ctrl+Break o al cerrar
@@ -28,8 +32,9 @@
  * impide, lo dice («OJO: no pude borrar…») y el siguiente ensayo la borra al
  * empezar (`limpiarRestos`).
  *
- * Deja una línea `ensayo-copia …` en ops/copias/ensayos.log (sin datos de
- * familias: nombres de tablas y recuentos). Cadencia: skill hetzner.
+ * Deja una línea `ensayo-copia …` en ops/copias/ensayos.log (repo público: sin
+ * datos de familias ni el tamaño de la base, solo `recuento: ok|fallo` y el
+ * cociente; `lineaRegistroEnsayo`, #273). Cadencia: skill hetzner.
  */
 import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, mkdirSync } from "node:fs";
@@ -38,19 +43,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import pg from "pg";
 
-import { RAIZ, leerEnv } from "./lib/env.mjs";
+import { RAIZ } from "./lib/env.mjs";
 import {
-  CLAVE_PRIVADA, DIR_SERVIDOR, NOMBRE_COPIA, OP_CLAVE_COPIAS, SERVIDOR, SQL_SECUENCIAS,
-  camposRegistroEnsayo, clavesAjenasAAuth, fechaDeCopia, lineaEstructurada, veredicto,
+  CLAVE_PRIVADA, DIR_SERVIDOR, NOMBRE_COPIA, OP_CLAVE_COPIAS, RELACIONES_COPIA, SERVIDOR, SQL_SECUENCIAS,
+  clavesAjenasAAuth, fechaDeCopia, lineaEstructurada, lineaRegistroEnsayo, sqlAuthDeMentira, sqlHuerfanos, veredicto,
 } from "./lib/copias.mjs";
-import { VAR_LECTURA } from "./lib/rolLectura.mjs";
-
-/**
- * ops/copias/ensayos.log está en un repo público. false: la línea va entera
- * (con el total de filas). true: solo `recuento: ok|fallo` y el cociente
- * (`camposRegistroEnsayo`). Lo decide Pablo (#273); no se cambia sin su sí.
- */
-const REGISTRO_SOLO_COCIENTE = false;
+import { OP_COPIA, ROL_COPIA, VAR_COPIA } from "./lib/rolLectura.mjs";
 
 const SSH = "C:\\Windows\\System32\\OpenSSH\\ssh.exe";
 const REGISTRO = join(RAIZ, "ops", "copias", "ensayos.log");
@@ -208,7 +206,7 @@ create schema auth;
 create schema extensions;
 create extension if not exists pgcrypto schema extensions;
 create extension if not exists "uuid-ossp" schema extensions;
-create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb, raw_app_meta_data jsonb, created_at timestamptz);
+${sqlAuthDeMentira()}
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
 create function auth.role() returns text language sql stable as $$ select nullif(current_setting('request.jwt.claim.role', true), '') $$;
 create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
@@ -226,22 +224,38 @@ async function contar(client) {
   return filas;
 }
 
-async function contarProduccion() {
-  let url;
+/**
+ * La dirección del usuario de las copias (`copia_lectura`, 0094): de la variable
+ * de entorno si alguien la pone (`op run`), o de su ficha en «Panel HoMenu» con
+ * la app de 1Password (pide aprobar; la service account no llega a esa bóveda).
+ */
+function urlProduccion() {
+  if (process.env[VAR_COPIA]) return process.env[VAR_COPIA];
+  const env = { ...process.env };
+  delete env.OP_SERVICE_ACCOUNT_TOKEN;
   try {
-    url = await leerEnv(VAR_LECTURA);
+    return execFileSync("op", ["read", OP_COPIA], { encoding: "utf8", env, stdio: ["ignore", "pipe", "pipe"] }).trim();
   } catch (e) {
-    fallo("produccion", e.message);
+    fallo("produccion", `No pude leer ${OP_COPIA} (${(e.stderr || e.message).trim().split("\n")[0]}). ¿Está aplicada la 0094 y puesta su contraseña (scripts/clave-copia-lectura.mjs)? Sin ella, --sin-produccion.`);
   }
-  if (!url) fallo("produccion", `Falta ${VAR_LECTURA}: el ensayo solo compara con el usuario de solo lectura.`);
+}
+
+/** Filas de las tablas de public y ops y de las vistas de `copia`, en producción. */
+async function contarProduccion() {
+  const url = urlProduccion();
+  if (!url) fallo("produccion", `${OP_COPIA} está vacía.`);
   const client = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
   try {
     await client.connect();
     const { rows: [q] } = await client.query("select current_user as yo");
-    if (q.yo !== "consulta_lectura") fallo("produccion", `${VAR_LECTURA} entra como ${q.yo}, no como consulta_lectura`);
+    if (q.yo !== ROL_COPIA) fallo("produccion", `La dirección de las copias entra como ${q.yo}, no como ${ROL_COPIA}`);
     await client.query("begin read only");
     await client.query("set local statement_timeout = '15s'");
-    return await contar(client);
+    const filas = await contar(client);
+    for (const rel of Object.keys(RELACIONES_COPIA)) {
+      filas[`copia.${rel}`] = Number((await client.query(`select count(*)::bigint as n from copia.${rel}`)).rows[0].n);
+    }
+    return filas;
   } catch (e) {
     if (e instanceof FalloEnsayo) throw e;
     fallo("produccion", e.message);
@@ -279,7 +293,7 @@ async function main() {
     if (!(e instanceof FalloEnsayo)) throw e;
     limpiarRestos(null); // sin pg_ctl: borra lo que no tenga un Postgres vivo
   }
-  const campos = { fecha: new Date().toISOString().replace(/\.\d+Z$/, "Z"), resultado: "fallo", motivo: "-", copia: "-", edad_h: "-", tablas: "-", filas_copia: "-", filas_prod: "-", diferencias: "-", auth: "no", segundos: "-" };
+  const campos = { fecha: new Date().toISOString().replace(/\.\d+Z$/, "Z"), resultado: "fallo", motivo: "-", copia: "-", edad_h: "-", tablas: "-", filas_copia: "-", filas_prod: "-", diferencias: "-", auth: "no", huerfanos: "-", segundos: "-" };
   const tmp = mkdtempSync(join(tmpdir(), "menuplan-ensayo-"));
   const datos = join(tmp, "pg");
   let pgctl = null;
@@ -304,7 +318,6 @@ async function main() {
     // parte (clave y fichero sanos) y el volcado, después, por tubería.
     const cifrados = readdirSync(dirCopia).filter((x) => x.endsWith(".age"));
     for (const f of cifrados) comprobarDescifrado(age, clave, join(dirCopia, f));
-    if (cifrados.some((x) => x.endsWith(".csv.age"))) campos.auth = "si";
     const dump = join(dirCopia, "base.dump.age");
     console.log(`Copia ${nombre} comprobada (${(statSync(dump).size / 1e6).toFixed(1)} MB cifrada); se restaura por tubería, sin escribirla en claro.`);
 
@@ -321,6 +334,8 @@ async function main() {
     }
     const conexion = ["-h", "127.0.0.1", "-p", String(puerto), "-U", "ensayo", "-d", "postgres"];
     const psql = (motivo, sql) => correr(motivo, pgBin("psql"), [...conexion, "-X", "-q", "-v", "ON_ERROR_STOP=1"], { input: sql });
+    // Un solo número (una fila, una columna), sin cabeceras.
+    const numero = (sql) => Number(correr("restauracion", pgBin("psql"), [...conexion, "-X", "-q", "-A", "-t", "-v", "ON_ERROR_STOP=1"], { input: sql }).trim());
 
     psql("restauracion", SQL_STUB);
     // pg_restore lee de stdin (sin fichero): una pasada de age por sección. La
@@ -333,6 +348,25 @@ async function main() {
     // Antes de las claves ajenas: los ids que piden las que apuntan a auth.users.
     const post = await desdeCopia(["--section=post-data", "--no-owner", "--no-acl", "-f", "-"]);
     const fks = clavesAjenasAAuth(post);
+    // Los usuarios e identidades de la copia (esquema copia, 0094), por tubería
+    // al auth de mentira. Se cuentan antes de rellenar huecos: es lo que la
+    // copia trae de verdad, y lo que se compara con producción.
+    const filasAuth = {};
+    for (const [rel, { origen, columnas }] of Object.entries(RELACIONES_COPIA)) {
+      const csv = join(dirCopia, `copia.${rel}.csv.age`);
+      if (!existsSync(csv)) continue;
+      const copy = `\\copy ${origen} (${columnas.map(([c]) => c).join(", ")}) from pstdin with (format csv, header)`;
+      await descifrarA("restauracion", age, clave, csv, pgBin("psql"), [...conexion, "-X", "-q", "-v", "ON_ERROR_STOP=1", "-c", copy]);
+      filasAuth[`copia.${rel}`] = numero(`select count(*) from ${origen};`);
+    }
+    if (Object.keys(filasAuth).length) {
+      campos.auth = "si";
+      // Con auth cargado: cuántos dueños de algo faltan en la copia de auth.users.
+      campos.huerfanos = numero(`${sqlHuerfanos(fks)};`);
+      if (campos.huerfanos > 0) console.warn(`OJO: ${campos.huerfanos} id(s) de usuario de public/ops no están en la copia de auth.users (creados entre el volcado y el CSV, o la copia de auth está mal).`);
+    }
+    // Lo que falte (sin copia de auth, todos), con ids sueltos: así las demás
+    // claves ajenas se comprueban de verdad al restaurar.
     psql("restauracion", fks.map((f) => `insert into auth.users (id) select distinct ${f.columna} from ${f.tabla} where ${f.columna} is not null on conflict do nothing;`).join("\n"));
     await restaurar("post-data");
     psql("restauracion", SQL_SECUENCIAS);
@@ -342,7 +376,7 @@ async function main() {
     await local.connect();
     let copia;
     try {
-      copia = await contar(local);
+      copia = { ...(await contar(local)), ...filasAuth };
     } finally {
       await local.end();
     }
@@ -391,8 +425,7 @@ async function main() {
   const linea = lineaEstructurada("ensayo-copia", campos);
   console.log(`\n${linea}`);
   if (!tiene("--no-registrar")) {
-    const publica = lineaEstructurada("ensayo-copia", camposRegistroEnsayo(campos, { soloCociente: REGISTRO_SOLO_COCIENTE }));
-    appendFileSync(REGISTRO, `${publica}\n`);
+    appendFileSync(REGISTRO, `${lineaRegistroEnsayo(campos)}\n`);
   }
   if (campos.resultado !== "ok") process.exitCode = 1;
 }
