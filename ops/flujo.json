@@ -236,7 +236,7 @@
       "entra": "Una señal de fallo",
       "sale": "Un issue tipo:caso con su área, buscado antes entre los parecidos",
       "quien": ["agente_dominio", "orquestador", "automatico"],
-      "skill": "github",
+      "skill": "issues",
       "skill_fase": [],
       "mide": [
         { "indicador": "casos abiertos por área y tipo", "estado": "existe", "donde": "scripts/lib/issues.mjs" },

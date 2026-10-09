@@ -62,7 +62,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | # | Paso | Entra | Sale | Quién | Skill | Se mide |
 |---|---|---|---|---|---|---|
 | 1 | Detectar | Un fallo en producción, en el CI o en el trabajo de una sesión | Una señal que alguien ve: un aviso, un check rojo, un hallazgo de un juez | automatico, juez, persona | (—) | ○ fallos detectados por fuente (vigía, agente de fallos, jueces) (#340) |
-| 2 | Registrar el caso | Una señal de fallo | Un issue tipo:caso con su área, buscado antes entre los parecidos | agente_dominio, orquestador, automatico | `github` | ✓ casos abiertos por área y tipo; ✓ PR con casos frente a PR con «ninguno» |
+| 2 | Registrar el caso | Una señal de fallo | Un issue tipo:caso con su área, buscado antes entre los parecidos | agente_dominio, orquestador, automatico | `issues` | ✓ casos abiertos por área y tipo; ✓ PR con casos frente a PR con «ninguno» |
 | 3 | Triaje | Un caso registrado | Alcance (local, módulo o transversal) y tipo de causa fijados | orquestador, agente_dominio | (#338) | ○ casos por alcance (#337) |
 | 4 | Diagnosticar | Un caso con alcance y tipo | Mecanismo, causa de escape y clase del fallo; o una hipótesis marcada como tal | agente_dominio, juez, orquestador | (#338) | ✓ fondos y casos por causa; ✓ casos puntuales, para ver si eran un patrón |
 | 5 | Fondo | Un diagnóstico | Un issue tipo:fondo con su arreglo general, su causa y cómo se probará | agente_dominio, orquestador | (#338) | ✓ fondos ordenados por casos (dónde duele) |
