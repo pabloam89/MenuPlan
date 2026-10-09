@@ -1,6 +1,6 @@
 ---
 name: supabase
-description: Úsala para operar la base de datos de MenuPlan en Supabase: una consulta a producción, «¿está aplicada?», pg_cron y los crons del bot, el login y Auth (Google), copias o backup, o cuando algo de la base no cuadra con el repo. No para: escribir una migración (regla migraciones y agente datos) ni el Postgres del panel en Hetzner (hetzner).
+description: Úsala para operar la base de datos de MenuPlan en Supabase: una consulta a producción, «¿está aplicada?», pg_cron y los crons del bot, el login y Auth (Google), copias o backup (lo que llevan; el cómo, hetzner), o cuando algo de la base no cuadra con el repo. No para: escribir una migración (regla migraciones y agente datos) ni el Postgres del panel en Hetzner (hetzner).
 ---
 
 # Supabase
@@ -25,9 +25,25 @@ description: Úsala para operar la base de datos de MenuPlan en Supabase: una co
   las tres, por eso irse de Supabase no es un cambio de proveedor sin más.
 - **Escribir migraciones** no es de esta skill: `.claude/rules/migraciones.md`,
   `docs/datos/PRINCIPIOS.md` y el agente `datos`.
-- **Pendiente: no hay ninguna copia utilizable de esta base.** Ni la de Supabase
-  (plan Free) ni una propia. Es el hueco más grande del plano 8; la decisión está
-  en el issue #156.
+- **Copias: propias, no de Supabase.** Decidido el 9 oct 2026 (#156): una copia
+  cifrada cada noche en el servidor de Hetzner (encargo #247). Cómo se hace, se
+  instala, se ensaya y se restaura: skill `hetzner`. Lo que lleva y lo que no:
+  - Lleva `public` y `ops` enteros (esquema y datos), con `pg_dump` de solo
+    lectura.
+  - **No lleva `auth.users`** mientras se haga con `consulta_lectura`, que no
+    ve `auth` (#273, punto 2). Restaurar en **esta misma** base (se rompió una
+    tabla, un borrado de más) sirve igual: los usuarios siguen en `auth`.
+    Restaurar en un **proyecto nuevo** deja las casas sin dueño: 34 claves ajenas
+    de 29 tablas apuntan a `auth.users`, y el login de Google crearía usuarios
+    con otros ids. Para eso hace falta el usuario `copia_lectura` con vistas de
+    `auth.users` y `auth.identities` (sin tokens) en un esquema `copia`; el
+    script ya las saca si existen (`auth: si`).
+  - **Ni el valor de las secuencias** con `consulta_lectura`
+    (`secuencias: sin-valor`): al restaurar se ponen al máximo de su columna
+    con `SQL_SECUENCIAS` de `scripts/lib/copias.mjs`, o el siguiente insert
+    chocaría.
+- **Pendiente:** instalar las copias en el servidor y su primer ensayo (#247), y
+  las decisiones de #273 (aviso, `copia_lectura`, segunda copia de la clave).
 
 ## Claves y accesos
 
@@ -115,19 +131,20 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 - Cambiar ajustes del panel: Auth, proveedores, URLs de retorno, plan, crons
   fuera de `scripts/bot-cron.mjs`.
 - Subir de plan (Pro) o dar de alta cualquier gasto de Supabase.
-- Una copia propia de esta base: son datos de salud de familias (alergias, RGPD
-  art. 9) fuera de Supabase. Va cifrada y la decide él; la prepara `datos`.
+- Lo que cambie las copias propias: otro usuario para la copia (`copia_lectura`
+  toca permisos: `--pablo`), sacar más esquemas (`auth`) o llevarlas a otro
+  sitio. Son datos de salud de familias (alergias, RGPD art. 9) fuera de
+  Supabase, siempre cifrados.
+- Restaurar una copia sobre esta base, aunque sea una tabla.
 
 ## Coste y límites
 
 Lo paga el equipo de Vercel por el Marketplace. La base pesa 65 MB (2026-10-08).
 
-**Copias: ninguna.** El plan Free no las incluye. Las salidas, de menos a más
-coste:
-- **Copia propia diaria** (`pg_dump` de solo lectura, cifrado, al servidor de
-  Hetzner y de ahí al PC de Pablo): sin coste nuevo y restaurable en el Postgres
-  del panel, que ya se ensayó. Pide un rol de solo lectura en Supabase y una
-  decisión sobre datos de salud fuera de Supabase.
+**Copias:** las de Supabase, ninguna (el plan Free no las incluye). Las propias
+(elegidas el 9 oct, #156) no cuestan nada nuevo: ~9,1 MB y 14 s por copia
+medidos ese día, y `pg_dump` usa una de las 3 conexiones de `consulta_lectura`
+unos segundos a las 02:40 UTC. Lo que se descartó, por si hace falta más:
 - **Plan Pro**: hasta 7 días de copias diarias con restauración desde el panel.
   Comprobar el precio en la pantalla de «Upgrade» antes de decidir.
 - **PITR** (volver a un segundo concreto): extra de pago encima de Pro, desde unos
@@ -143,4 +160,4 @@ familias es la única activa. Plano 8 de `ops/PLANOS.md`.
 - https://supabase.com/docs/guides/database/postgres/row-level-security
 - https://supabase.com/docs/guides/database/extensions/pg_cron
 
-Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; salvo el plan y las copias, que se leyeron hoy en el panel de Vercel y en el de Supabase (Database → Backups, pestañas de copias programadas y de PITR), sin tocar nada. Sin comprobar: el precio del plan Pro, y restaurar una copia de Supabase (no hay ninguna).
+Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; salvo el plan y las copias, que se leyeron hoy en el panel de Vercel y en el de Supabase (Database → Backups, pestañas de copias programadas y de PITR), sin tocar nada. Sin comprobar: el precio del plan Pro, y restaurar una copia de Supabase (no hay ninguna). Comprobado el 2026-10-09, en el encargo #247: tamaño y duración de un `pg_dump` de `public` y `ops` y las 34 claves ajenas a `auth.users` (las contó `gobierno`; #273). Sin comprobar: una copia hecha por el servidor y restaurada.

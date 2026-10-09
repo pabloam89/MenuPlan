@@ -1,6 +1,6 @@
 ---
 name: hetzner
-description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a la máquina, el cortafuegos y los puertos, actualizar o reiniciar, Docker y el Postgres del panel, las copias y restaurarlas, el disco o la memoria, o crear otro servidor. No para: la red privada y quién puede entrar (tailscale), las claves y la llave SSH (1password) ni la base de MenuPlan (supabase).
+description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a la máquina, el cortafuegos y los puertos, actualizar o reiniciar, Docker y el Postgres del panel, las copias y restaurarlas (también la copia nocturna cifrada de la base de MenuPlan y su ensayo), el disco o la memoria, o crear otro servidor. No para: la red privada y quién puede entrar (tailscale), las claves y la llave SSH (1password) ni la base de MenuPlan (supabase).
 ---
 
 # Hetzner (servidor propio)
@@ -21,9 +21,38 @@ description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a
   - `ufw`: todo lo que entra se deniega salvo lo que llega por `tailscale0`.
   - `sshd`: solo llaves, sin contraseña (`/etc/ssh/sshd_config.d/10-solo-llaves.conf`).
   - Postgres escucha **solo** en `100.73.252.32:5432`.
+- **Copias de la base de MenuPlan (#247).** El servidor también guarda la copia
+  nocturna de la base de producción de Supabase, cifrada:
+  - `ops/copias/copia-base.sh`, instalado como `/usr/local/sbin/menuplan-copia`,
+    con `menuplan-copia.service` y `menuplan-copia.timer` (02:40 UTC, hasta 10
+    min de retraso aleatorio, `Persistent`).
+  - `pg_dump -Fc` de `public` y `ops` en un contenedor `postgres:17`, por
+    tubería a `age` con la clave pública de `/etc/menuplan-copia/destinatarios.txt`
+    (copia de `ops/copias/destinatarios.txt`). El volcado en claro no toca el
+    disco, y **el servidor no puede leer sus copias**: la privada está solo en
+    1Password (`Panel HoMenu` → «Copias de la base»).
+  - En `/var/backups/menuplan`: `diaria/<sello>/base.dump.age` (7) y
+    `semanal/` (4, enlaces duros a la diaria: no ocupan el doble). Se poda solo
+    tras una copia buena.
+  - Una línea por copia en `/var/backups/menuplan/copias.log` y en el journal:
+    `copia-base fecha: … resultado: ok|fallo motivo: <paso> bytes: … segundos:
+    … secuencias: con-valor|sin-valor auth: si|no … aviso: ok|fallo|sin-canal`.
+    El vocabulario, en `scripts/lib/copias.mjs` (un test lo cruza con el script).
+  - Para por `config`, antes de volcar, si la URL entra como `postgres` o con
+    permiso de escribir; y por `incompleta` si pesa menos de 100 KB o menos de la
+    mitad que la última buena.
+  - **Plan B mientras no exista `copia_lectura` (#273):** entra con
+    `consulta_lectura` (la URL de `npm run consulta`), que no lee el valor de las
+    secuencias (`secuencias: sin-valor`; al restaurar, `SQL_SECUENCIAS` de
+    `scripts/lib/copias.mjs`) ni `auth.users` (`auth: no`; skill `supabase`).
 - **Pendiente:**
-  - **Copia fuera del servidor.** Las copias están en el mismo disco: si se pierde
-    el servidor, se pierden con él.
+  - **Copia fuera del servidor.** Las copias (las del panel y las de MenuPlan)
+    están en el mismo disco: si se pierde el servidor, se pierden con él (#273,
+    punto 4).
+  - **Aviso de las copias** (Healthchecks, #273): sin `COPIA_AVISO_URL` la copia
+    sale con `aviso: sin-canal` y nadie se entera de un fallo salvo mirando.
+  - **Instalar las copias** en el servidor: los ficheros están en el repo, pero
+    hoy (9 oct 2026) no hay nada instalado ni clave creada.
   - Usuario sin privilegios y el repo del panel, que aún no existe.
 
 ## Claves y accesos
@@ -37,6 +66,12 @@ description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a
   `Panel HoMenu`, y su copia en `/opt/panel/.env` del servidor (permisos 600).
   Ninguna se imprime nunca.
 - **Nada en `ops/env.1password`:** el panel todavía no es parte de MenuPlan.
+- **Copias de la base:** `/etc/menuplan-copia/copia.env` (root, 600) con
+  `COPIA_DB_URL` (hoy la de `SUPABASE_DB_URL_LECTURA`, ficha `Supabase lectura`
+  de `HoMenu`) y, si se decide (#273), `COPIA_AVISO_URL` de Healthchecks. Se
+  escribe por tubería desde 1Password, nunca a mano en un comando. La clave
+  privada de `age` **no** va al servidor: ficha «Copias de la base» de
+  `Panel HoMenu` (skill `1password`).
 
 ## Operaciones habituales
 
@@ -59,6 +94,69 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
 | Ver el temporizador | `systemctl list-timers panel-backup.timer` | la próxima ejecución |
 | Restaurar en una base nueva (OK) | `cd /opt/panel && docker compose exec -T db pg_restore -U panel -d <base_nueva> --no-owner < <fichero.dump>` | sin errores y los datos en la base nueva. Ensayado el 2026-10-08 con una tabla de prueba (un valor guardado, copiado con `backup.sh`, restaurado en otra base y leído igual); la prueba se limpió |
 | ¿Se ve el puerto desde fuera? | `bash -c 'echo > /dev/tcp/188.245.14.194/5432'` desde cualquier PC | no conecta (timeout) |
+| Última copia de la base | `ssh 'tail -n 3 /var/backups/menuplan/copias.log'` | una línea `copia-base … resultado: ok` de esta noche, con `bytes:` parecido al de ayer (~9 MB el 9 oct) |
+| Copias de la base guardadas | `ssh 'ls /var/backups/menuplan/diaria /var/backups/menuplan/semanal'` | hasta 7 y hasta 4 carpetas `AAAA-MM-DDTHHMMSSZ` |
+| Temporizador de la base | `ssh 'systemctl list-timers menuplan-copia.timer'` | la próxima a las 02:40 UTC (más hasta 10 min) |
+| Copia de la base ahora | `ssh 'systemctl start --no-block menuplan-copia.service'` y, al minuto, `ssh 'journalctl -u menuplan-copia -n 20 --no-pager'` | la línea `copia-base … resultado: ok`; si `fallo`, el `motivo:` dice el paso |
+| ¿Falló alguna? | `ssh 'grep -c "resultado: fallo" /var/backups/menuplan/copias.log; systemctl is-failed menuplan-copia.service'` | `0` e `inactive` |
+| Ensayo de restauración (Pablo, `!`) | `node scripts/copias-ensayo.mjs` desde una carpeta de tarea | `ensayo-copia … resultado: ok motivo: -`, y esa línea añadida a `ops/copias/ensayos.log` |
+| Ensayo sin tocar producción (una copia ya bajada y una clave de ensayo) | `node scripts/copias-ensayo.mjs --copia <carpeta> --clave-fichero <f> --sin-produccion --no-registrar` | `resultado: ok`; ni red ni 1Password |
+
+### Copias de la base: instalar (OK; lo lanza Pablo con `!`)
+
+Antes: la clave creada (`node scripts/copias-clave.mjs --si`, skill `1password`)
+y `destinatarios.txt` con su pública commiteado. `SSH` es la ruta de arriba,
+entre comillas dobles; `R` es la carpeta del repo con la rama de las copias.
+
+1. Herramientas: `"$SSH" root@100.73.252.32 'apt-get install -y age && age --version'`
+   → una versión `v1.x`.
+2. Ficheros: `"$SSH" root@100.73.252.32 'install -d -m 700 /etc/menuplan-copia /var/backups/menuplan'`;
+   luego, uno por llamada, `"$SSH" root@100.73.252.32 'cat > /usr/local/sbin/menuplan-copia' < "$R/ops/copias/copia-base.sh"`
+   y lo mismo para `destinatarios.txt` (a `/etc/menuplan-copia/`) y las dos
+   unidades (a `/etc/systemd/system/`). Después
+   `"$SSH" root@100.73.252.32 'chmod 700 /usr/local/sbin/menuplan-copia && sed -i "s/\r$//" /usr/local/sbin/menuplan-copia /etc/menuplan-copia/destinatarios.txt /etc/systemd/system/menuplan-copia.* && bash -n /usr/local/sbin/menuplan-copia && systemctl daemon-reload'`
+   → sin salida.
+3. La URL, por tubería y sin verla:
+   `npm run --silent op -- read "op://HoMenu/Supabase lectura/SUPABASE_DB_URL_LECTURA" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_DB_URL=%s\n" "$v" > /etc/menuplan-copia/copia.env; wc -c < /etc/menuplan-copia/copia.env'`
+   → un número mayor que 60. Si es 14, llegó vacía: no seguir.
+4. Primera copia a mano (fila «Copia de la base ahora») → `resultado: ok`,
+   `secuencias: sin-valor`, `auth: no`, `aviso: sin-canal`. La primera vez baja
+   la imagen `postgres:17` (~150 MB), así que tarda más.
+5. Solo con el paso 4 en `ok`: `"$SSH" root@100.73.252.32 'systemctl enable --now menuplan-copia.timer'`
+   → la fila «Temporizador de la base» da la próxima.
+6. Ensayo de restauración (abajo) con esa copia.
+
+Healthchecks (si se decide en #273): crear el check (diario, gracia 2 h) y
+añadir la línea `COPIA_AVISO_URL=<url de ping>` a `copia.env` como en el paso 3.
+Desde entonces la línea dice `aviso: ok` y un fallo llega por correo con `/fail`.
+
+### Copias de la base: ensayo de restauración
+
+- **Cadencia: el primer lunes de cada mes**, y además tras cambiar
+  `copia-base.sh`, el usuario de la copia (`COPIA_DB_URL` o sus permisos) o la
+  versión de Postgres de Supabase. Una copia que no se ha restaurado no cuenta.
+- Lo lanza Pablo con `!` en una carpeta de tarea (`npm run tarea -- ops/ensayo-copias`),
+  porque añade su línea a `ops/copias/ensayos.log`, que se sube por PR.
+- Necesita en el PC `age` (`winget install FiloSottile.age`) y los binarios de
+  Postgres 17 (el zip de EnterpriseDB, «PostgreSQL binaries», descomprimido
+  en `C:\dev\herramientas\pgsql`; o `--pg-bin <carpeta>`). El 9 oct 2026 no
+  estaba ninguno de los dos en el PATH de Pablo.
+- Qué hace: baja la última diaria por SSH, la descifra con la clave de
+  1Password (pide aprobar), la restaura en un Postgres desechable en `127.0.0.1`,
+  pone las secuencias al día y compara tablas y filas con producción (con
+  `consulta_lectura`, `begin read only`). Borra la carpeta temporal al acabar,
+  también si falla; si avisa «OJO: no pude borrar», se borra a mano.
+- `resultado: fallo` con `motivo: recuento` o `tablas-distintas` es una copia
+  que no sirve: se abre un caso (`npm run issues -- --nuevo`) antes de nada.
+
+### Copias de la base: rotar la clave (OK)
+
+Sin script todavía: `copias-clave.mjs` se niega si la ficha ya existe, a
+propósito. Las copias viejas siguen necesitando la privada vieja, así que el
+camino es otra ficha con otro nombre, su pública añadida a `destinatarios.txt`
+(las dos a la vez durante 28 días, lo que dura la semanal más vieja) y subida al
+servidor; luego se quita la línea vieja. La ficha vieja no se borra sin el OK de
+Pablo. Hacerlo es un encargo de `gobierno`, no una operación suelta.
 
 - **Cortafuegos con red de seguridad.** Antes de tocar `ufw` o `sshd`, armar un
   temporizador que lo deshaga solo:
@@ -71,6 +169,17 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
 
 ## Lo que falló y por qué
 
+- **2026-10-09 · con `pg_dump` caído, `age` dejó un `base.dump.age` válido
+  (cabecera buena, se descifra) que parecía una copia.** Causa: `age` cifra
+  también una entrada vacía y sale con 0. Arreglo: `set -o pipefail` en
+  `copia-base.sh` (si falla un tramo, falla la tubería) y, de segunda red, el
+  tope de tamaño (motivo `incompleta`). Test en `scripts/copias.test.js`; sin
+  `pipefail` el test de `dump` falla (visto el 9 oct).
+- **2026-10-09 · el ensayo se quedaba colgado en `pg_ctl start` (Windows).**
+  Causa: el postmaster hereda las tuberías de stdout y stderr y `spawnSync`
+  espera a que se cierren, que es nunca. Arreglo: `stdio: "ignore"` en el
+  arranque y el log en `pg.log` (`scripts/copias-ensayo.mjs`), con tope de
+  90 s; y al empezar, `limpiarRestos` para y borra lo de un ensayo cortado.
 - **2026-10-08 · una orden larga por SSH no vuelve y se corta a los 300 s
   (`apt upgrade`, `ufw` con varios pasos).** Causa: la orden depende de que la
   conexión siga viva y esperando; no se llegó a determinar si fue la aprobación
@@ -113,6 +222,9 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
 - `docker compose down -v` o borrar el volumen `pgdata` (se pierden los datos), y
   restaurar sobre la base `panel`.
 - Rotar la contraseña del Postgres (es un secreto: skill `1password`).
+- Copias de la base: instalarlas o cambiarlas en el servidor, escribir
+  `copia.env`, activar el temporizador, borrar copias a mano y lanzar el ensayo
+  (baja una copia y lee producción). Los datos son de salud de familias.
 
 ## Coste y límites
 
@@ -124,11 +236,18 @@ la swap de 2 GB como colchón; si Postgres y el panel no caben, se sube a la CPX
 «solo CPU y RAM» al redimensionar. Hetzner subió precios en abril y en junio de
 2026: confirmar la cifra en la consola antes de crear nada.
 
+Copias de la base: sin coste nuevo. ~9,1 MB y 14 s por copia (medido el 9 oct
+2026): 11 copias son ~100 MB de los 19 GB del disco. La imagen `postgres:17`,
+~150 MB más. Healthchecks, si se usa, en su plan gratuito.
+
 ## Fuentes y comprobación
 
 - https://docs.hetzner.com/cloud/servers/overview/
 - https://docs.hetzner.com/cloud/servers/backups-snapshots/overview/
 - https://docs.docker.com/engine/network/packet-filtering-firewalls/
 - https://ubuntu.com/server/docs/how-to/software/automatic-updates/
+- https://github.com/FiloSottile/age
+- https://www.postgresql.org/docs/17/app-pgdump.html
+- https://healthchecks.io/docs/
 
-Comprobado el 2026-10-08: entrada por SSH (por la red privada y, antes de cerrarlo, por la pública), actualización, reinicio con la swap activa, `ufw` activo con la pública sin respuesta en el 22 y el 5432, Postgres sano, copia diaria creada, **restauración de una copia en una base nueva con el dato intacto** y `sshd` sin contraseñas. Sin comprobar: restaurar con la base `panel` llena de datos de verdad (hoy está vacía), las actualizaciones automáticas de seguridad más allá de ver sus dos líneas activas y la copia fuera del servidor (no existe).
+Comprobado el 2026-10-08: entrada por SSH (por la red privada y, antes de cerrarlo, por la pública), actualización, reinicio con la swap activa, `ufw` activo con la pública sin respuesta en el 22 y el 5432, Postgres sano, copia diaria creada, **restauración de una copia en una base nueva con el dato intacto** y `sshd` sin contraseñas. Sin comprobar: restaurar con la base `panel` llena de datos de verdad (hoy está vacía), las actualizaciones automáticas de seguridad más allá de ver sus dos líneas activas y la copia fuera del servidor (no existe). Comprobado el 2026-10-09: `copia-base.sh` con docker, age y curl falsos (`scripts/copias.test.js`: copia buena, poda 7+4, cada motivo de fallo, `/fail` y código de salida). Sin comprobar: las copias de la base instaladas en el servidor, el temporizador de verdad, Healthchecks y un ensayo de restauración con una copia hecha por el servidor (no hay clave todavía).
