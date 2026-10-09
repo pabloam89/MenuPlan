@@ -1,0 +1,29 @@
+chore(ci): Bump the actions-semanal group across 1 directory with 2 updates
+
+Bumps the actions-semanal group with 2 updates in the / directory: [actions/checkout](https://github.com/actions/checkout) and [actions/setup-node](https://github.com/actions/setup-node).
+
+
+Updates `actions/checkout` from 4 to 7
+- [Release notes](https://github.com/actions/checkout/releases)
+- [Changelog](https://github.com/actions/checkout/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/actions/checkout/compare/v4...v7)
+
+Updates `actions/setup-node` from 4 to 6
+- [Release notes](https://github.com/actions/setup-node/releases)
+- [Commits](https://github.com/actions/setup-node/compare/v4...v6)
+
+---
+updated-dependencies:
+- dependency-name: actions/checkout
+  dependency-version: '7'
+  dependency-type: direct:production
+  update-type: version-update:semver-major
+  dependency-group: actions-semanal
+- dependency-name: actions/setup-node
+  dependency-version: '6'
+  dependency-type: direct:production
+  update-type: version-update:semver-major
+  dependency-group: actions-semanal
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>

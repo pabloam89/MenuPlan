@@ -11,9 +11,20 @@
 #   rama (el filtro de abajo solo ahorra runs). La fusión lleva el head SHA
 #   comprobado: si el PR cambia entre medias, GitHub la rechaza.
 #
-# Con GITHUB_TOKEN: su fusión no lanza `tests` sobre staging (Vercel sí
-# despliega: va por su app de GitHub, no por Actions), y no puede fusionar un
-# PR que cambie .github/workflows (eso queda para una sesión).
+# npm se fusiona con el GITHUB_TOKEN: su fusión no lanza `tests` sobre staging
+# (Vercel despliega igual: va por su app de GitHub, no por Actions).
+# Actions cambia .github/workflows y el GITHUB_TOKEN no puede: para esos, y
+# solo en el paso de fusión, un token de la GitHub App homenu-dependabot-merge
+# (DEPENDABOT_APP_ID y DEPENDABOT_APP_KEY, en el environment dependabot-auto,
+# solo staging), con los tres permisos justos; caduca en una hora y la acción
+# lo revoca al acabar el job.
+#
+# Por qué también `schedule`: la documentación de GitHub dice que un
+# workflow_run «puede acceder a secretos» aunque el anterior no pudiera, y
+# también que lo que dispara Dependabot solo ve los secretos de Dependabot; no
+# aclara cuál gana cuando el run de Tests era de Dependabot. Si el workflow_run
+# no ve la clave, el PR de actions sale `motivo: sin-clave-app` y lo fusiona la
+# pasada programada, que no es un evento de Dependabot.
 
 name: Dependabot auto
 
@@ -21,6 +32,8 @@ on:
   workflow_run:
     workflows: [Tests]
     types: [completed]
+  schedule:
+    - cron: "23 */3 * * *"
   workflow_dispatch:
 
 permissions: {}
@@ -34,7 +47,7 @@ concurrency:
 jobs:
   fusionar:
     if: >-
-      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'pull_request' &&
        github.event.workflow_run.path == '.github/workflows/tests.yml' &&
@@ -42,8 +55,9 @@ jobs:
        startsWith(github.event.workflow_run.head_branch, 'dependabot/'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: dependabot-auto
     permissions:
-      contents: write # fusionar el PR
+      contents: write # fusionar los PR de npm
       pull-requests: write # fusionar y comentar «@dependabot rebase»
       checks: read # el check `tests` del head SHA
     steps:
@@ -54,7 +68,29 @@ jobs:
           persist-credentials: false
           sparse-checkout: scripts/dependabot-auto.mjs
           sparse-checkout-cone-mode: false
-      - name: Fusionar los pequeños y pedir rebase a los atrasados
+      - name: Fusionar npm, pedir rebases y apuntar el de actions
+        id: pasada
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          HAY_CLAVE_APP: ${{ secrets.DEPENDABOT_APP_KEY != '' && vars.DEPENDABOT_APP_ID != '' }}
         run: node scripts/dependabot-auto.mjs --si
+      - name: Token de la App (solo si hay un PR de actions apuntado)
+        id: app
+        if: steps.pasada.outputs.app_pr != ''
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.DEPENDABOT_APP_ID }}
+          private-key: ${{ secrets.DEPENDABOT_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+      - name: Fusionar el de actions con la App
+        if: steps.pasada.outputs.app_pr != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          APP_TOKEN: ${{ steps.app.outputs.token }}
+          APP_PR: ${{ steps.pasada.outputs.app_pr }}
+          APP_SHA: ${{ steps.pasada.outputs.app_sha }}
+        run: node scripts/dependabot-auto.mjs --fusionar-app "$APP_PR" --sha "$APP_SHA"
