@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { Redis } from "@upstash/redis";
-import { blocked, cors } from "./_guard.js";
+import { blocked, cors, topeDiarioAgotado } from "./_guard.js";
 
 // Lazy, server-side cache of appliance-adapted recipe steps.
 //
@@ -272,7 +272,9 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2) Generate
+  // 2) Generate. El tope diario solo aquí, con la caché ya fallada: un
+  // acierto de caché no le cuesta nada a nadie.
+  if (await topeDiarioAgotado(res, "recipe-steps")) return;
   let steps;
   try {
     steps = await generateSteps({

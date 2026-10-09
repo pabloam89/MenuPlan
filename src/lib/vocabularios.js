@@ -191,6 +191,13 @@ export const MOTIVOS_SIN_PUERTA = ["no_la_usa", "por_rpc", "por_trigger", "fuera
 export const ACCIONES_ALERGIAS = ["apuntada", "recordada"];
 
 /**
+ * Por qué el tope diario de IA (api/_guard.js, dailyBudget) no deja pasar, en
+ * la línea de log `tope_diario`: `tope_alcanzado`, ya se gastó lo del día;
+ * `sin_redis` y `error_redis`, no se puede contar y el tope falla cerrado.
+ */
+export const MOTIVOS_TOPE_DIARIO = ["tope_alcanzado", "sin_redis", "error_redis"];
+
+/**
  * El mapa nombre → lista. Es lo que referencia `registro_campo.vocabulario`
  * (la ficha): guarda el nombre, nunca una copia de los valores.
  */
