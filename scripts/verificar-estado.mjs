@@ -132,7 +132,7 @@ export function testigos(sql) {
     } else if ((m = s.match(new RegExp(String.raw`^create\s+(?:or\s+replace\s+)?function\s+(${QID})\s*\(([\s\S]*?)\)\s*returns[\s\S]*?\bas\s+(\$[A-Za-z_]*\$)([\s\S]*?)\3`, "i")))) {
       crea.push({ tipo: "función", id: clave(nombre(m[1])), cuerpo: normaliza(m[4]) });
     } else if ((m = s.match(new RegExp(String.raw`^create\s+(?:unique\s+)?index\s+(?:concurrently\s+)?(?:if\s+not\s+exists\s+)?(${ID})\s+on\s+(?:only\s+)?(${QID})`, "i")))) {
-      crea.push({ tipo: "índice", id: `${nombre(m[2]).esquema}.${nombre(m[1]).nombre}` });
+      crea.push({ tipo: "índice", id: `${nombre(m[2]).esquema}.${nombre(m[1]).nombre}`, de: clave(nombre(m[2])) });
     } else if ((m = s.match(new RegExp(String.raw`^create\s+policy\s+(${ID})\s+on\s+(${QID})`, "i")))) {
       crea.push({ tipo: "política", id: `${clave(nombre(m[2]))}:${nombre(m[1]).nombre}` });
     } else if ((m = s.match(new RegExp(String.raw`^create\s+(?:or\s+replace\s+)?(?:constraint\s+)?trigger\s+(${ID})[\s\S]*?\bon\s+(${QID})`, "i")))) {
@@ -147,6 +147,11 @@ export function testigos(sql) {
       crea.push({ tipo: "valor", id: `${clave(nombre(m[1]))}:${m[2]}` });
     } else if ((m = s.match(new RegExp(String.raw`^alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?(${QID})\s+([\s\S]*)$`, "i")))) {
       const t = clave(nombre(m[1]));
+      // Renombrar o cambiar de esquema: la tabla de antes deja de existir, como en un drop.
+      const rn = m[2].match(new RegExp(String.raw`^rename\s+to\s+(${ID})`, "i"));
+      const sc = m[2].match(new RegExp(String.raw`^set\s+schema\s+(${ID})`, "i"));
+      if (rn) { quita.push({ tipo: "tabla", id: t }); crea.push({ tipo: "tabla", id: clave({ esquema: nombre(m[1]).esquema, nombre: nombre(rn[1]).nombre }) }); }
+      if (sc) { quita.push({ tipo: "tabla", id: t }); crea.push({ tipo: "tabla", id: clave({ esquema: nombre(sc[1]).nombre, nombre: nombre(m[1]).nombre }) }); }
       // Una alter table puede llevar varias acciones separadas por comas.
       for (const a of m[2].matchAll(new RegExp(String.raw`add\s+column\s+(?:if\s+not\s+exists\s+)?(${ID})`, "gi"))) {
         crea.push({ tipo: "columna", id: `${t}.${nombre(a[1]).nombre}` });
@@ -161,9 +166,10 @@ export function testigos(sql) {
       for (const a of m[2].matchAll(new RegExp(String.raw`drop\s+constraint\s+(?:if\s+exists\s+)?(${ID})`, "gi"))) {
         quita.push({ tipo: "constraint", id: `${t}:${nombre(a[1]).nombre}` });
       }
-    } else if ((m = s.match(new RegExp(String.raw`^drop\s+(table|view|materialized\s+view|function|type|index)\s+(?:concurrently\s+)?(?:if\s+exists\s+)?(${QID})`, "i")))) {
+    } else if ((m = s.match(new RegExp(String.raw`^drop\s+(table|view|materialized\s+view|function|type|index)\s+(?:concurrently\s+)?(?:if\s+exists\s+)?(${QID}(?:\s*,\s*${QID})*)`, "i")))) {
       const tipo = { table: "tabla", view: "vista", function: "función", type: "tipo", index: "índice" }[m[1].toLowerCase().split(/\s+/).pop()];
-      quita.push({ tipo, id: clave(nombre(m[2])) });
+      // `drop table a, b` borra las dos: un testigo por nombre.
+      for (const q of m[2].match(new RegExp(QID, "g"))) quita.push({ tipo, id: clave(nombre(q)) });
     } else if ((m = s.match(new RegExp(String.raw`^drop\s+policy\s+(?:if\s+exists\s+)?(${ID})\s+on\s+(${QID})`, "i")))) {
       quita.push({ tipo: "política", id: `${clave(nombre(m[2]))}:${nombre(m[1]).nombre}` });
     } else if ((m = s.match(new RegExp(String.raw`^drop\s+trigger\s+(?:if\s+exists\s+)?(${ID})\s+on\s+(${QID})`, "i")))) {
@@ -180,6 +186,35 @@ export function testigos(sql) {
   return { crea: crea.filter(duradero), quita: quita.filter(duradero) };
 }
 
+/**
+ * Lo que le pasa a las tablas y vistas, sentencia a sentencia y EN ORDEN:
+ * [{ accion: "crea"|"borra", tipo: "tabla"|"vista", esquema, nombre }].
+ * El orden importa: `drop table if exists x; create table x (…)` deja la tabla
+ * viva y `create table x (…); drop table x` no. Cuenta `create table`,
+ * `drop table|view` (con lista), `alter table … rename to` y
+ * `alter table … set schema` (la de antes borra y la de después crea).
+ * Límite: lo que va dentro de un `do $$ … $$` o de una función no se ve, y
+ * `alter view … rename` tampoco.
+ */
+export function eventosTabla(sql) {
+  const out = [];
+  for (const s of sentencias(sql)) {
+    let m;
+    if ((m = s.match(new RegExp(String.raw`^create\s+(?:unlogged\s+)?table\s+(?:if\s+not\s+exists\s+)?(${QID})`, "i")))) {
+      out.push({ accion: "crea", tipo: "tabla", ...nombre(m[1]) });
+    } else if ((m = s.match(new RegExp(String.raw`^drop\s+(table|(?:materialized\s+)?view)\s+(?:if\s+exists\s+)?(${QID}(?:\s*,\s*${QID})*)`, "i")))) {
+      const tipo = m[1].toLowerCase() === "table" ? "tabla" : "vista";
+      for (const q of m[2].match(new RegExp(QID, "g"))) out.push({ accion: "borra", tipo, ...nombre(q) });
+    } else if ((m = s.match(new RegExp(String.raw`^alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?(${QID})\s+(rename\s+to|set\s+schema)\s+(${ID})`, "i")))) {
+      const de = nombre(m[1]);
+      out.push({ accion: "borra", tipo: "tabla", ...de });
+      const a = nombre(m[3]).nombre;
+      out.push({ accion: "crea", tipo: "tabla", ...(/^rename/i.test(m[2]) ? { esquema: de.esquema, nombre: a } : { esquema: a, nombre: de.nombre }) });
+    }
+  }
+  return out;
+}
+
 // ── Decidir con el catálogo ────────────────────────────────────────────────
 
 const k = (t) => `${t.tipo}|${t.id}`;
@@ -189,16 +224,44 @@ export const SOBRECARGA = "\u0000";
  * Cruza los testigos de todas las migraciones con el catálogo.
  * Un testigo que una migración POSTERIOR quita o redefine no cuenta (sale
  * como «después»): la base ya no tiene por qué tenerlo así.
+ * Y si una migración POSTERIOR borra una tabla o vista, también cuenta como
+ * quitado todo lo que colgaba de ella (columnas, constraints, índices,
+ * políticas, triggers) en las migraciones anteriores: el `drop table` se lo
+ * lleva por delante aunque la migración no lo nombre.
  */
 export function veredictos(migraciones, catalogo, sinAplicar) {
-  const ultimaQueToca = new Map(); // testigo → índice de la última migración que lo crea o lo quita
+  // Una migración que ESTADO.md da por sin aplicar no cuenta como «posterior».
+  const activa = (m) => !sinAplicar.has(m.nombre);
+  const esObjeto = (t) => t.tipo === "tabla" || t.tipo === "vista";
+  const ausente = (t) => catalogo[t.tipo]?.get(t.id) === undefined;
+  // ¿Lo crea una migración activa desde la j (incluida) en adelante?
+  const creadoDesde = (t, j) => migraciones.findIndex((m, l) => l >= j && activa(m) && m.crea.some((c) => c.tipo === t.tipo && c.id === t.id));
+  // Un drop de tabla o vista solo cuenta cuando está APLICADO (falta en la base) y nadie la recrea.
+  const dropAplicado = (t, j) => esObjeto(t) && ausente(t) && creadoDesde(t, j) === -1;
+
+  const ultimaQueToca = new Map(); // testigo → índice de la última migración activa que lo crea o lo quita
+  const borradaEn = new Map(); // tabla o vista → índices de las migraciones que la borran (aplicadas)
   migraciones.forEach((m, i) => {
-    for (const t of [...m.crea, ...m.quita]) ultimaQueToca.set(k(t), i);
+    if (!activa(m)) return;
+    for (const t of m.crea) ultimaQueToca.set(k(t), i);
+    for (const t of m.quita) {
+      if (esObjeto(t)) {
+        if (!dropAplicado(t, i)) continue;
+        borradaEn.set(t.id, [...(borradaEn.get(t.id) ?? []), i]);
+      }
+      ultimaQueToca.set(k(t), i);
+    }
   });
+  const borraLaTabla = (t, i) => {
+    const tabla = t.tipo === "columna" ? t.id.slice(0, t.id.lastIndexOf("."))
+      : ["constraint", "política", "trigger"].includes(t.tipo) ? t.id.slice(0, t.id.indexOf(":"))
+      : t.tipo === "índice" ? t.de : null;
+    return tabla ? (borradaEn.get(tabla) ?? []).find((j) => j > i) : undefined;
+  };
 
   return migraciones.map((m, i) => {
     const filas = m.crea.map((t) => {
-      const ultima = ultimaQueToca.get(k(t));
+      const ultima = Math.max(ultimaQueToca.get(k(t)) ?? -1, borraLaTabla(t, i) ?? -1);
       if (ultima > i) return { ...t, resultado: "después", por: migraciones[ultima].nombre };
       const hay = catalogo[t.tipo]?.get(t.id);
       if (hay === undefined) return { ...t, resultado: "falta" };
@@ -209,6 +272,14 @@ export function veredictos(migraciones, catalogo, sinAplicar) {
       if (t.tipo === "constraint" && t.literales?.some((l) => !hay.includes(`'${l}'`))) return { ...t, resultado: "distinto" };
       return { ...t, resultado: "está" };
     });
+    // Testigo NEGATIVO: el drop de una tabla o vista «está» si el objeto falta de la base.
+    // Si la misma migración lo recrea no se mide; si una posterior lo recrea, sale «después».
+    for (const t of m.quita.filter(esObjeto)) {
+      const nueva = creadoDesde(t, i);
+      if (nueva === i) continue;
+      if (nueva > i) filas.push({ ...t, negativo: true, resultado: "después", por: migraciones[nueva].nombre });
+      else filas.push({ ...t, negativo: true, resultado: ausente(t) ? "está" : "falta" });
+    }
     const vivos = filas.filter((f) => f.resultado !== "después");
     const esta = vivos.filter((f) => f.resultado === "está").length;
     let estado;
