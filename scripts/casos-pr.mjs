@@ -34,9 +34,10 @@ export class ErrorDeApi extends Error {
 /** ¿Es el issue un caso bien analizado? → null si vale, o el porqué. */
 export function falloDeCaso(n, issue) {
   if (!issue) return `#${n} no existe`;
-  if (issue.pull_request) return `#${n} es un PR, no un issue`;
+  const referencia = `#${n} aparece en la línea Casos: pero no es un caso. Si solo es una referencia en el texto, escríbela sin # (por ejemplo PR 15, issue 15)`;
+  if (issue.pull_request) return `#${n} es un PR, no un issue. ${referencia}`;
   const g = porGrupo((issue.labels ?? []).map((l) => (typeof l === "string" ? l : l.name)));
-  if (!g.tipo.has("caso")) return `#${n} no es tipo:caso (${[...g.tipo].join(", ") || "sin tipo"})`;
+  if (!g.tipo.has("caso")) return `#${n} no es tipo:caso (${[...g.tipo].join(", ") || "sin tipo"}). ${referencia}`;
   if (!g.analisis.size) return `#${n} no tiene etiqueta analisis: (${ANALISIS.join(", ")})`;
   if (g.analisis.size > 1) return `#${n} tiene más de un analisis:`;
   const raro = [...g.analisis].find((a) => !ANALISIS.includes(a));

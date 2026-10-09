@@ -28,14 +28,20 @@ describe("scripts/casos-pr.mjs: la línea «Casos:» en el CI (#185)", () => {
     expect(r.motivo).toMatch(/Falta la línea «Casos:»[\s\S]*Casos: #n, #m/);
   });
 
+  it("una línea de más de 2000 caracteres falla y dice cómo arreglarla", async () => {
+    const r = await comprobar({ cuerpo: `Casos: #5 ${"x".repeat(2100)}`, consultar: consultaDe({ 5: CASO }) });
+    expect(r.ok).toBe(false);
+    expect(r.motivo).toMatch(/demasiado larga[\s\S]*lista de #n en una línea corta y los detalles en otra/);
+  });
+
   it("ninguno sin motivo, falla", async () => {
     expect((await comprobar({ cuerpo: "Casos: ninguno", consultar: consultaDe({}) })).ok).toBe(false);
   });
 
   it.each([
     ["no existe", {}, /#5 no existe/],
-    ["es un PR", { 5: issue(["tipo:caso", "analisis:nuevo"], { pull_request: {} }) }, /es un PR/],
-    ["no es tipo:caso", { 5: issue(["tipo:encargo", "area:ops"]) }, /no es tipo:caso/],
+    ["es un PR", { 5: issue(["tipo:caso", "analisis:nuevo"], { pull_request: {} }) }, /es un PR[\s\S]*escríbela sin # \(por ejemplo PR 15, issue 15\)/],
+    ["no es tipo:caso", { 5: issue(["tipo:encargo", "area:ops"]) }, /no es tipo:caso[\s\S]*#5 aparece en la línea Casos: pero no es un caso[\s\S]*escríbela sin #/],
     ["sin analisis", { 5: issue(["tipo:caso", "area:ops"]) }, /no tiene etiqueta analisis/],
     ["dos analisis", { 5: issue(["tipo:caso", "analisis:nuevo", "analisis:abierto"]) }, /más de un analisis/],
     ["analisis inventado", { 5: issue(["tipo:caso", "analisis:quiensabe"]) }, /no es de la lista/],

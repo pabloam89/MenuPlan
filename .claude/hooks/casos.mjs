@@ -54,7 +54,7 @@ export function analizarCasos(cuerpo, { enComando = false } = {}) {
   for (const entera of lineas) {
     // Tope de largo: una línea de megas no debe costar tiempo de regex, ni
     // esconder números más allá de lo que se mira.
-    if (entera.length > 2000) return { valida: false, motivo: "La línea «Casos:» es demasiado larga (más de 2000 caracteres)." };
+    if (entera.length > 2000) return { valida: false, motivo: "La línea «Casos:» es demasiado larga (más de 2000 caracteres). Pon la lista de #n en una línea corta y los detalles en otra." };
     const crudo = entera;
     if (!crudo) return { valida: false, motivo: "La línea «Casos:» está vacía." };
     const lista = crudo.match(/^(#\d+(?:\s*(?:,|;|\sy\s|\se\s)\s*#\d+)*)\s*\.?\s*(.*)$/i);
