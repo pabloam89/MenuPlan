@@ -20,7 +20,7 @@ description: <QUÉ hace y CUÁNDO usarlo, empezando por el disparador. Termina c
 tools: <lista cerrada: solo las que necesita. Un juez no lleva Edit, Write ni NotebookEdit>
 model: <inherit | opus | sonnet | haiku>
 color: <red, blue, green, yellow, purple, orange, pink, cyan>
-memory: <opcional: project, si acumula criterio entre sesiones>
+memory: <opcional y solo para constructores: project, si acumula criterio entre sesiones. A un juez le daría Write y Edit (#351)>
 ---
 
 ## 1. Identidad

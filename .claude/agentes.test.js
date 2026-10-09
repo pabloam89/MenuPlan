@@ -26,6 +26,31 @@ const MAX_DESCRIPCION = 600;
 
 const agentes = readdirSync(DIR).filter((f) => f.endsWith(".md"));
 
+/**
+ * Las herramientas que el agente tiene de verdad, no las que lista (#351). En
+ * Claude Code (code.claude.com/docs/en/sub-agents): sin `tools` hereda todas;
+ * con `memory` se le activan Read, Write y Edit para llevar su memoria, y el
+ * frontmatter no puede limitarlas a esa carpeta; `disallowedTools` quita.
+ */
+function herramientasEfectivas(meta) {
+  const lista = (v) => String(v ?? "").replace(/^\[|\]$/g, "").split(",").map((t) => t.trim()).filter(Boolean);
+  const base = meta.tools === undefined ? [...HERRAMIENTAS] : lista(meta.tools);
+  const conMemoria = meta.memory ? [...base, "Read", "Write", "Edit"] : base;
+  const quitadas = lista(meta.disallowedTools);
+  return [...new Set(conMemoria)].filter((t) => !quitadas.includes(t));
+}
+
+describe("herramientas efectivas", () => {
+  it("la memoria da escritura, sin tools se heredan todas y disallowedTools quita", () => {
+    const escribe = (meta) => herramientasEfectivas(meta).filter((t) => ESCRITURA.includes(t));
+    expect(escribe({ tools: "Read, Grep, Bash" })).toEqual([]);
+    expect(escribe({ tools: "Read, Grep, Bash", memory: "project" }).sort()).toEqual(["Edit", "Write"]);
+    expect(escribe({}).sort()).toEqual(["Edit", "NotebookEdit", "Write"]);
+    expect(escribe({ disallowedTools: "Edit, Write, NotebookEdit" })).toEqual([]);
+    expect(escribe({ tools: "Read", memory: "project", disallowedTools: "Write, Edit" })).toEqual([]);
+  });
+});
+
 function leer(fichero) {
   const texto = readFileSync(join(DIR, fichero), "utf8").replace(/\r\n/g, "\n");
   const m = texto.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
@@ -79,9 +104,12 @@ describe.each(agentes)("%s", (fichero) => {
     for (const s of SECCIONES) expect(seccion(cuerpo, s).trim().length, s).toBeGreaterThan(40);
   });
 
-  it("declara su tipo, y un juez no puede escribir", () => {
+  it("declara su tipo, y un juez no puede escribir (mirando las herramientas efectivas, memoria incluida)", () => {
     expect(tipo).toBeDefined();
-    if (tipo === "juez") expect(tools.filter((t) => ESCRITURA.includes(t))).toEqual([]);
+    if (tipo === "juez") {
+      const aviso = "Un juez no escribe: quita Edit/Write de tools, no le pongas memory (le da Write y Edit) y no dejes tools vacío (hereda todas).";
+      expect(herramientasEfectivas(meta).filter((t) => ESCRITURA.includes(t)), aviso).toEqual([]);
+    }
   });
 
   it("declara los planos a los que sirve, y existen", () => {
