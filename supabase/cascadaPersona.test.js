@@ -18,6 +18,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { borrados } from "../scripts/lib/migraciones.mjs";
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), "migrations");
 
@@ -60,8 +61,13 @@ export function fksAPersona(sql) {
 function estadoFinal() {
   const fks = new Map();
   for (const f of readdirSync(DIR).filter((n) => /^\d{4}.*\.sql$/.test(n)).sort()) {
-    for (const fk of fksAPersona(readFileSync(join(DIR, f), "utf8"))) {
+    const sql = readFileSync(join(DIR, f), "utf8");
+    for (const fk of fksAPersona(sql)) {
       fks.set(`${fk.tabla}:${fk.nombre ?? "persona"}`, { ...fk, fichero: f });
+    }
+    // Una tabla que borra un `drop table` se lleva sus FK.
+    for (const b of borrados(sql)) {
+      if (b.tipo === "tabla") for (const k of [...fks.keys()]) if (k.startsWith(`${b.nombre}:`)) fks.delete(k);
     }
   }
   return [...fks.values()];

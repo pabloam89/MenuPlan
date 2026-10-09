@@ -20,6 +20,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { borrados } from "../scripts/lib/migraciones.mjs";
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), "migrations");
 const MIGRACION = "0091_ids_persona_grupo_a_uuid.sql";
@@ -106,7 +107,8 @@ export function columnasDe(sql) {
     }
     if (tabla) for (const m of s.matchAll(RE_FK)) fks.add(`${tabla}.${m[1]}`);
   }
-  return { cols, fks };
+  const borradas = new Set(borrados(sql).filter((b) => b.tipo === "tabla").map((b) => b.nombre));
+  return { cols, fks, borradas };
 }
 
 /** El INVENTARIO de la 0091: [tabla, columna, modo]. */
@@ -123,6 +125,11 @@ function todas() {
     const r = columnasDe(readFileSync(join(DIR, f), "utf8"));
     for (const [k, v] of r.cols) cols.set(k, v);
     for (const k of r.fks) fks.add(k);
+    // Un `drop table` posterior se lleva las columnas de esa tabla (si se recrea, las trae su create).
+    for (const t of r.borradas) {
+      for (const k of [...cols.keys()]) if (k.startsWith(`${t}.`)) cols.delete(k);
+      for (const k of [...fks]) if (k.startsWith(`${t}.`)) fks.delete(k);
+    }
   }
   return { cols, fks };
 }
@@ -194,5 +201,12 @@ describe("ids de persona y grupo: ninguna columna fuera del paso a UUID", () => 
     const { cols } = todas();
     const sobran = [...NO_LLEVAN.keys()].filter((k) => !cols.has(k) || enInventario.has(k));
     expect(sobran).toEqual([]);
+  });
+});
+
+describe("columnasDe() y el drop table (#302)", () => {
+  it("devuelve las tablas que borra, sin contar comentarios", () => {
+    const r = columnasDe("create table public.a (x int);\n-- drop table public.z;\ndrop table if exists public.a, public.b;");
+    expect([...r.borradas].sort()).toEqual(["a", "b"]);
   });
 });

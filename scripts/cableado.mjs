@@ -19,19 +19,22 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { quitarBorradas } from "./lib/migraciones.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CARPETAS = ["src", "api"];
 const GENERADOS = new Set(["api/_bot/core.mjs"]);
 export const BASE = join(RAIZ, "supabase", "cableado.json");
 
-/** Las tablas que crea alguna migración. */
+/** Las tablas que crea alguna migración y no borra una posterior (`drop table`). */
 export function tablas(raiz = RAIZ) {
   const dir = join(raiz, "supabase", "migrations");
   const t = new Set();
-  for (const f of readdirSync(dir).filter((x) => x.endsWith(".sql"))) {
-    const sql = readFileSync(join(dir, f), "utf8").toLowerCase();
-    for (const m of sql.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?"?([a-z_][a-z0-9_]*)"?/g)) t.add(m[1]);
+  for (const f of readdirSync(dir).filter((x) => x.endsWith(".sql")).sort()) {
+    const crudo = readFileSync(join(dir, f), "utf8");
+    for (const m of crudo.toLowerCase().matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?"?([a-z_][a-z0-9_]*)"?/g)) t.add(m[1]);
+    // En orden de número: lo que esta migración borra deja de existir hasta que otra lo cree.
+    quitarBorradas(t, crudo);
   }
   return t;
 }
