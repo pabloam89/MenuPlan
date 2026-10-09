@@ -216,7 +216,7 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
   `Set-Content`, tocar una migración aplicada (también por terminal), crear
   una con un número que staging ya usa, SQL a mano contra producción y
   `apply-migration --pablo` (solo de Pablo), abrir un PR con la rama
-  atrasada, o sin `Closes` si la rama es de un issue, fusionarlo si staging
+  atrasada, sin `Casos:`, o sin `Closes` si la rama es de un issue, fusionarlo si staging
   pisó sus ficheros, trabajar en la carpeta principal y `gh issue create` a
   pelo (se crea con `npm run issues -- --nuevo`, que busca los parecidos);
   pregunta
@@ -225,7 +225,8 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
   con su porqué y su test en `.claude/hooks/guardia.test.js`.
 - **`avisos.mjs`** tras editar un fichero: los issues abiertos que lo nombran.
   **`pendientes.mjs`** al terminar de responder: frena una vez si dejas
-  decisiones o pendientes sin ningún issue. Las decisiones se asignan a Pablo.
+  decisiones o pendientes sin ningún issue, o fallos sin ningún caso (#185).
+  Las decisiones se asignan a Pablo.
 - **GitHub**: `main` solo por PR con `tests`; secret scanning y Dependabot.
 - **Las skills, por obligación** (`.claude/dominios-skills.json`): la primera
   vez que una sesión lanza un comando de riesgo de un dominio con skill
@@ -245,7 +246,11 @@ Ningún fallo se cierra como suelto. Se arregla el caso si urge y se analiza
 de qué **problema de fondo** es síntoma (`tipo:fondo`). El caso acaba en una
 respuesta de `analisis:` —nuevo, abierto, no aguantó o puntual— y se cuelga de
 su fondo; el arreglo se hace en el fondo, no en el caso: uno o varios encargos
-colgando de él, y se cierra cuando acaban y un test cubre la clase.
+colgando de él, y se cierra cuando acaban y un test cubre la clase. **Esto no
+depende de acordarse**: todo PR lleva `Casos: #n, #m` o `Casos: ninguno — <por
+qué>` (la guardia no deja abrirlo sin ella y el CI comprueba que son casos de
+verdad), y al terminar `pendientes.mjs` frena una vez si hubo fallos y no
+registraste nada.
 
 - **El camino completo** (detectar, registrar, triaje, diagnosticar, fondo,
   plan, ejecutar, verificar, observar, cerrar, aprender, medir), qué obligación
