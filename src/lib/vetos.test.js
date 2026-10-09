@@ -3,10 +3,9 @@ import { vetosDe, vetosDeCasa, platoVetado } from "./vetos.js";
 import { libretaVacia, poner } from "./notepad.js";
 import { proyectarReglas } from "./reglas.js";
 import { buildGroupContext, pickCatalogReplacement } from "./aiPlanner.js";
-import { generateMenu } from "./planner.js";
-import { RECIPES_BY_ID } from "../data/recipes.js";
+import { resolverMenu } from "./solver.js";
 import { filterRecipes, filterOffMenuRecipes } from "../utils/filterRecipes.js";
-import { recipeCatalog } from "../data/recipeCatalog.js";
+import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import { chocaConHueco } from "./excluirHueco.js";
 
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
@@ -105,11 +104,14 @@ describe("el motor lee los vetos de la libreta", () => {
     expect(buildGroupContext(data, group).filterOpts.dislikes).toEqual(vetosDe(data, { grupo: group }));
   });
 
-  it("el planner local no pone ni un plato con cebolla", () => {
-    const plan = generateMenu(data);
-    const elegidos = Object.values(plan.g1).filter(Boolean).flatMap((s) => [s.recipeId, s.firstRecipeId]).filter(Boolean);
-    expect(elegidos.length).toBeGreaterThan(0);
-    const conCebolla = elegidos.map((id) => RECIPES_BY_ID[id]).filter((r) => platoVetado(r, ["cebolla"]));
+  it("el motor de verdad (solver sobre el pool filtrado) no pone ni un plato con cebolla", () => {
+    // Antes esto lo probaba generateMenu sobre las 29 recetas de prototipo (retirado, #286):
+    // ahora es el mismo camino que usa la app, con el catálogo real.
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    const { asignaciones } = resolverMenu(ctx.slots, pool, {});
+    expect(asignaciones.length).toBeGreaterThan(0);
+    const conCebolla = asignaciones.map((a) => recipeCatalogById[a.recipeId]).filter((r) => platoVetado(r, ["cebolla"]));
     expect(conCebolla.map((r) => r.name)).toEqual([]);
   });
 

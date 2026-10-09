@@ -941,8 +941,9 @@ veces). El espejo `recipes` está muerto desde la
   plato sigue siendo ese plato sin ella. Si el líquido cocinó el principal, es
   principal.
 - `sauceId` es del usuario (`fixedDishes.sauceId`), no un campo muerto.
-- El scorer de `lib/planner.js` es código muerto anterior al LLM, pendiente
-  de retirar.
+- El scorer de `lib/planner.js` (`generateMenu` y compañía) y las 29 recetas de
+  prototipo (`BASE_RECIPES`) se retiraron el 9 oct 2026 (#286). La demo
+  (`?demo=1`) es una lista fija de platos Estrella (`src/dev/demoMenu.js`).
 
 **Copias de la casa sin borrar en cascada.** `persona_reemplazar_casa` (0079)
 borraba e insertaba todas las personas; desde la 0081 se sincroniza por clave
