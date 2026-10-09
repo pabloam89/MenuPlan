@@ -167,6 +167,10 @@
     "src/lib/analytics.js",
     "src/lib/householdsSync.js"
   ],
+  "user_recipe_deletions": [
+    "api/_bot/propias.js",
+    "src/lib/userRecipesSync.js"
+  ],
   "user_recipes": [
     "api/_bot/compartir.js",
     "api/_bot/propias.js",

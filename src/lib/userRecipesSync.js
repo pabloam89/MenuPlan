@@ -1,6 +1,9 @@
 import { supabase } from "./supabase.js";
 import { uploadRecipePhoto, deleteRecipePhoto, isDataUrl } from "./recipePhotos.js";
 import { recipeToRow, rowToRecipe } from "./userRecipesFila.js";
+import { mergeUserRecipesAfterCloudLoad } from "./profileMerge.js";
+import { withoutDeletedRecipes } from "./deletedRecipeIds.js";
+import { recetaPropia } from "./ids.js";
 
 /**
  * Cloud persistence for user-created recipes (see user_recipes in
@@ -38,6 +41,74 @@ export async function loadUserRecipes(userId) {
   return { data: (data ?? []).map(rowToRecipe), error: null };
 }
 
+// ── Lápidas en la nube (user_recipe_deletions, 0094, #355) ──────────────
+//
+// Al borrar, borrar_receta_propia quita la fila y deja la lápida en la misma
+// transacción. Cada dispositivo las lee al cargar y quita su copia local: si
+// no, el que no borró la volvía a subir como «solo local». La base, además,
+// no deja volver a entrar un id con lápida (trigger trg_user_recipes_no_revivir).
+
+/**
+ * Tope de lápidas que se leen: las más recientes. No se purgan (0094): si
+ * algún dueño se acerca, se revisa. Lola no usa tope: pide solo las lápidas
+ * de los ids que tiene delante (api/_bot/propias.js).
+ */
+export const TOPE_LAPIDAS = 2000;
+
+// Sin la 0094 aplicada, PostgREST contesta que la tabla o la función no
+// existen. Eso no es un fallo de red: es «todavía no hay lápidas en la nube»,
+// y todo sigue como antes (plan B).
+const NO_EXISTE = new Set(["PGRST205", "PGRST202", "42P01", "42883"]);
+const noExiste = (error) => NO_EXISTE.has(error?.code);
+
+/**
+ * Los ids de las recetas propias borradas, según la nube.
+ * - Bien: `{ data: Set, error: null }`.
+ * - Sin la 0094 aplicada: `{ data: Set vacío, error: null }`, como hasta ahora.
+ * - Fallo de lectura: `{ data: null, error }`; quien suba algo mira `error`.
+ * @returns {Promise<{ data: Set<string>|null, error: object|null }>}
+ */
+export async function loadRecetasBorradas(userId) {
+  if (!supabase || !userId) return { data: new Set(), error: null };
+  const { data, error } = await supabase
+    .from("user_recipe_deletions")
+    .select("recipe_id")
+    .eq("owner_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(TOPE_LAPIDAS);
+  if (error) {
+    if (noExiste(error)) return { data: new Set(), error: null };
+    console.warn("[userRecipes] deletions load failed", error.message);
+    return { data: null, error };
+  }
+  return { data: new Set((data ?? []).map((f) => f.recipe_id).filter(Boolean)), error: null };
+}
+
+/**
+ * Las lápidas con las que trabaja la carga: las de este dispositivo más las
+ * de la nube (si se pudieron leer).
+ * @param {Set<string>} locales  las de deletedRecipeIds.js
+ * @param {{ data: Set<string>|null }} [cargaLapidas]  lo de loadRecetasBorradas
+ */
+export function lapidasDeRecetas(locales, cargaLapidas) {
+  const nube = cargaLapidas?.data;
+  if (!nube?.size) return locales ?? new Set();
+  return new Set([...(locales ?? []), ...nube]);
+}
+
+/**
+ * Las recetas que se quedan tras cargar: las de la nube y las solo locales,
+ * sin ninguna con lápida (ni la copia local de una que se borró en otro
+ * dispositivo).
+ */
+export function recetasTrasCarga(local, remote, lapidas) {
+  return mergeUserRecipesAfterCloudLoad(
+    withoutDeletedRecipes(local ?? [], lapidas),
+    withoutDeletedRecipes(remote ?? [], lapidas),
+    lapidas,
+  );
+}
+
 /**
  * Sube las recetas que este dispositivo tiene y la nube no (primer login en
  * el dispositivo, o creadas sin red). `carga` es lo que acaba de devolver
@@ -49,8 +120,11 @@ export async function loadUserRecipes(userId) {
  * @param {{ userId: string, local: object[], carga: { data: object[]|null, error: object|null },
  *   deletedIds?: Set<string> }} args
  */
-export async function subirRecetasSoloLocales({ userId, local, carga, deletedIds = new Set() }) {
+export async function subirRecetasSoloLocales({ userId, local, carga, cargaLapidas, deletedIds = new Set() }) {
   if (!carga || carga.error || !carga.data) return 0;
+  // Sin poder leer las lápidas de la nube no se sabe si una «solo local» es
+  // nueva o la borró otro dispositivo (#355): mejor no subir nada esta vez.
+  if (cargaLapidas?.error) return 0;
   const enNube = new Set(carga.data.map((r) => r.id));
   const soloLocales = (local ?? []).filter(
     (r) => r.id && !enNube.has(r.id) && !deletedIds.has(r.id ?? r.name),
@@ -178,6 +252,20 @@ export async function deleteUserRecipe(userId, recipeId) {
   // Primero el fichero: si se borra la fila y falla esto, la foto se queda
   // para siempre en el cubo sin nadie que sepa a que receta pertenecia.
   await deleteRecipePhoto(userId, recipeId);
+  // Borra y deja la lápida en la nube en una sola transacción (0094, #355),
+  // para que los demás dispositivos no la vuelvan a subir.
+  // Un id fuera del formato de ids.recetaPropia no cabe en la lápida (CHECK
+  // de la 0094): ese va directo al borrado de siempre.
+  if (recetaPropia.es(recipeId)) {
+    const borrado = await supabase.rpc("borrar_receta_propia", { p_receta: recipeId });
+    if (!borrado.error) return true;
+    if (!noExiste(borrado.error)) {
+      console.warn("[userRecipes] delete failed", borrado.error.message);
+      return false;
+    }
+  }
+  // Plan B: sin la 0094 aplicada (o con un id viejo fuera de formato), el
+  // borrado de siempre, sin lápida en la nube.
   const { error } = await supabase
     .from("user_recipes")
     .delete()

@@ -1,4 +1,4 @@
--- 0094 · Un usuario propio para las copias nocturnas, que además vea quién es dueño de cada casa (issue #273).
+-- 0095 · Un usuario propio para las copias nocturnas, que además vea quién es dueño de cada casa (issue #273).
 --
 -- Qué hace. Crea el rol `copia_lectura`, con login y SIN contraseña (el repo es
 -- público: la pone Pablo después con `scripts/clave-copia-lectura.mjs`, que
@@ -22,6 +22,16 @@
 --     teléfono, porque sin ellos el usuario no puede volver a entrar por enlace
 --     mágico. La lista vive también en `scripts/lib/copias.mjs`
 --     (`RELACIONES_COPIA`), y `supabase/rolLectura.test.js` la cruza con esta.
+--
+-- Fuera: dos tablas de códigos efímeros que no hacen falta para restaurar
+-- (`bot_link_tokens` y `household_invites`). `copia_lectura` no las lee, y
+-- `copia-base.sh` las deja fuera del volcado con `--exclude-table` (no basta
+-- `--exclude-table-data`: `pg_dump` bloquea con `lock … access share` toda tabla
+-- cuya definición vuelca, y eso pide `select`). Al restaurar se recrean vacías
+-- con sus migraciones. La lista vive también en `TABLAS_SIN_COPIA`
+-- (`scripts/lib/copias.mjs`), cruzada por test. A `consulta_lectura` (0092) se
+-- le quita la columna del código de esas dos tablas y conserva las demás, para
+-- seguir contando y diagnosticando.
 --
 -- Por qué. Las copias (`ops/copias/copia-base.sh`, PR #285) iban a usar
 -- `consulta_lectura` (0092), que se aprobó para consultas desde el PC de Pablo
@@ -105,11 +115,19 @@ grant select on all sequences in schema public, ops to copia_lectura;
 alter default privileges for role postgres in schema public, ops grant select on tables to copia_lectura;
 alter default privileges for role postgres in schema public, ops grant select on sequences to copia_lectura;
 
+-- 2b. Tablas de códigos efímeros que no hacen falta para restaurar (cabecera):
+--     copia_lectura no las lee; consulta_lectura lee todas sus columnas menos
+--     la del código.
+revoke select on public.bot_link_tokens, public.household_invites from copia_lectura;
+revoke select on public.bot_link_tokens, public.household_invites from consulta_lectura;
+grant select (user_id, household_id, expires_at, used_at, created_at) on public.bot_link_tokens to consulta_lectura;
+grant select (household_id, role, created_by, lang, max_uses, uses, expires_at, revoked_at, created_at) on public.household_invites to consulta_lectura;
+
 -- 3. El esquema copia: lo justo de auth para restaurar las claves ajenas.
 create schema if not exists copia;
 revoke all on schema copia from public;
 comment on schema copia is
-  'Vistas de auth para las copias nocturnas (0094, issue #273): sin contraseñas, tokens ni metadatos. Solo las lee copia_lectura; las vuelca ops/copias/copia-base.sh.';
+  'Vistas de auth para las copias nocturnas (issue #273): sin contraseñas, tokens ni metadatos. Solo las lee copia_lectura; las vuelca ops/copias/copia-base.sh.';
 
 create or replace view copia.auth_usuarios with (security_invoker = false) as
   select u.id, u.email, u.phone, u.email_confirmed_at, u.phone_confirmed_at, u.is_anonymous, u.created_at
@@ -140,7 +158,7 @@ begin
 
   if r.rolsuper or r.rolcreaterole or r.rolcreatedb or r.rolreplication or r.rolinherit
      or not r.rolcanlogin or not r.rolbypassrls or r.rolconnlimit <> 1 then
-    raise exception '0094: copia_lectura tiene atributos que no tocan (super, createrole, createdb, replication, inherit), le faltan login/bypassrls o su límite de conexiones no es 1';
+    raise exception 'rol copia_lectura: copia_lectura tiene atributos que no tocan (super, createrole, createdb, replication, inherit), le faltan login/bypassrls o su límite de conexiones no es 1';
   end if;
 
   -- Ninguna pertenencia: ni pg_signal_backend, ni pg_read_server_files, ni pg_monitor, ni nada.
@@ -148,7 +166,7 @@ begin
     from pg_auth_members m join pg_roles g on g.oid = m.roleid
    where m.member = r.oid;
   if v_lista is not null then
-    raise exception '0094: copia_lectura es miembro de %', v_lista;
+    raise exception 'rol copia_lectura: copia_lectura es miembro de %', v_lista;
   end if;
 
   -- Ninguna tabla en la que pueda escribir, en un esquema al que llega. `net` y
@@ -163,7 +181,7 @@ begin
      and (has_table_privilege(r.oid, c.oid, 'INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN')
           or has_any_column_privilege(r.oid, c.oid, 'INSERT, UPDATE, REFERENCES'));
   if v_lista is not null then
-    raise exception '0094: copia_lectura puede escribir en %', left(v_lista, 500);
+    raise exception 'rol copia_lectura: copia_lectura puede escribir en %', left(v_lista, 500);
   end if;
 
   -- Ni avanzar secuencias (nextval/setval): `select` sí, `usage` y `update` no.
@@ -175,7 +193,7 @@ begin
      -- el case evita que el planificador la evalúe sobre filas que no son secuencias
      and case when c.relkind = 'S' then has_sequence_privilege(r.oid, c.oid, 'USAGE, UPDATE') else false end;
   if v_lista is not null then
-    raise exception '0094: copia_lectura puede avanzar las secuencias %', left(v_lista, 500);
+    raise exception 'rol copia_lectura: copia_lectura puede avanzar las secuencias %', left(v_lista, 500);
   end if;
 
   -- Ningún esquema donde pueda crear, ni la base.
@@ -184,7 +202,7 @@ begin
    where n.nspname not like 'pg_temp%' and n.nspname not like 'pg_toast%'
      and has_schema_privilege(r.oid, n.oid, 'CREATE');
   if v_lista is not null or has_database_privilege(r.oid, current_database(), 'CREATE') then
-    raise exception '0094: copia_lectura puede crear objetos en % (o en la base)', coalesce(v_lista, '-');
+    raise exception 'rol copia_lectura: copia_lectura puede crear objetos en % (o en la base)', coalesce(v_lista, '-');
   end if;
 
   -- Fuera de cron, vault, auth, storage y extensions: auth lo ve solo por las vistas.
@@ -193,7 +211,7 @@ begin
    where n.nspname in ('cron', 'vault', 'auth', 'storage', 'extensions', 'supabase_migrations', 'pgbouncer')
      and has_schema_privilege(r.oid, n.oid, 'USAGE');
   if v_lista is not null then
-    raise exception '0094: copia_lectura entra en %', v_lista;
+    raise exception 'rol copia_lectura: copia_lectura entra en %', v_lista;
   end if;
 
   -- Ninguna función security definer volátil a su alcance.
@@ -204,7 +222,7 @@ begin
      and has_schema_privilege(r.oid, p.pronamespace, 'USAGE')
      and has_function_privilege(r.oid, p.oid, 'EXECUTE');
   if v_lista is not null then
-    raise exception '0094: copia_lectura puede ejecutar funciones security definer que escriben: %', left(v_lista, 500);
+    raise exception 'rol copia_lectura: copia_lectura puede ejecutar funciones security definer que escriben: %', left(v_lista, 500);
   end if;
 
   -- Ficheros del servidor, configuración y replicación: sin execute.
@@ -214,21 +232,21 @@ begin
     'pg_reload_conf()', 'pg_rotate_logfile()', 'pg_promote(boolean,integer)', 'pg_switch_wal()'
   ] loop
     if to_regprocedure(v_fn) is not null and has_function_privilege(r.oid, to_regprocedure(v_fn), 'EXECUTE') then
-      raise exception '0094: copia_lectura puede ejecutar %', v_fn;
+      raise exception 'rol copia_lectura: copia_lectura puede ejecutar %', v_fn;
     end if;
   end loop;
 
   -- El esquema copia: de postgres, con justo las dos vistas, sin
   -- security_invoker, sin columnas de secretos y sin nadie más que lea.
   if (select nspowner from pg_namespace where nspname = 'copia') <> 'postgres'::regrole then
-    raise exception '0094: el esquema copia no es de postgres';
+    raise exception 'rol copia_lectura: el esquema copia no es de postgres';
   end if;
 
   select string_agg(c.relname || ':' || c.relkind::text, ', ' order by c.relname) into v_lista
     from pg_class c join pg_namespace n on n.oid = c.relnamespace
    where n.nspname = 'copia';
   if v_lista is distinct from 'auth_identidades:v, auth_usuarios:v' then
-    raise exception '0094: el esquema copia tiene %, no justo las dos vistas', coalesce(v_lista, 'nada');
+    raise exception 'rol copia_lectura: el esquema copia tiene %, no justo las dos vistas', coalesce(v_lista, 'nada');
   end if;
 
   select string_agg(c.relname, ', ') into v_lista
@@ -237,7 +255,7 @@ begin
      and (c.relowner <> 'postgres'::regrole
           or coalesce(c.reloptions, '{}') && array['security_invoker=true', 'security_invoker=on', 'security_invoker=1']);
   if v_lista is not null then
-    raise exception '0094: vistas de copia que no son de postgres o van con security_invoker: %', v_lista;
+    raise exception 'rol copia_lectura: vistas de copia que no son de postgres o van con security_invoker: %', v_lista;
   end if;
 
   -- Columnas exactas (la misma lista que RELACIONES_COPIA en scripts/lib/copias.mjs).
@@ -247,7 +265,7 @@ begin
   if v_lista is distinct from
      'auth_identidades.id, auth_identidades.user_id, auth_identidades.provider, auth_identidades.provider_id, auth_identidades.created_at, '
      || 'auth_usuarios.id, auth_usuarios.email, auth_usuarios.phone, auth_usuarios.email_confirmed_at, auth_usuarios.phone_confirmed_at, auth_usuarios.is_anonymous, auth_usuarios.created_at' then
-    raise exception '0094: las columnas del esquema copia no son las acordadas: %', v_lista;
+    raise exception 'rol copia_lectura: las columnas del esquema copia no son las acordadas: %', v_lista;
   end if;
 
   -- Por si alguien cambia la lista de arriba sin mirar: nada que huela a secreto.
@@ -256,7 +274,7 @@ begin
    where n.nspname = 'copia' and a.attnum > 0 and not a.attisdropped
      and a.attname ~ '(password|token|secret|meta_data|identity_data|code|nonce|hash)';
   if v_lista is not null then
-    raise exception '0094: el esquema copia saca columnas con secretos: %', v_lista;
+    raise exception 'rol copia_lectura: el esquema copia saca columnas con secretos: %', v_lista;
   end if;
 
   -- Nadie más que postgres y copia_lectura con permisos en el esquema ni en las
@@ -271,12 +289,12 @@ begin
     left join pg_roles g on g.oid = x.grantee
    where x.grantee not in ('postgres'::regrole, r.oid);
   if v_lista is not null then
-    raise exception '0094: el esquema copia lo pueden leer también: %', v_lista;
+    raise exception 'rol copia_lectura: el esquema copia lo pueden leer también: %', v_lista;
   end if;
 
   if not has_table_privilege(r.oid, 'copia.auth_usuarios', 'SELECT')
      or not has_table_privilege(r.oid, 'copia.auth_identidades', 'SELECT') then
-    raise exception '0094: copia_lectura no puede leer las vistas del esquema copia';
+    raise exception 'rol copia_lectura: copia_lectura no puede leer las vistas del esquema copia';
   end if;
 
   -- Las vistas leen auth como postgres: tiene que poder, y saltarse su RLS si la hay.
@@ -286,23 +304,35 @@ begin
      and (not has_table_privilege('postgres', c.oid, 'SELECT')
           or (c.relrowsecurity and not (select rolbypassrls from pg_roles where rolname = 'postgres')));
   if v_lista is not null then
-    raise exception '0094: postgres no puede leer % entero: las vistas de copia saldrían vacías', v_lista;
+    raise exception 'rol copia_lectura: postgres no puede leer % entero: las vistas de copia saldrían vacías', v_lista;
   end if;
   perform 1 from copia.auth_usuarios limit 1;
   perform 1 from copia.auth_identidades limit 1;
+
+  -- Las tablas de códigos efímeros: copia_lectura no lee nada de ellas, y
+  -- consulta_lectura lee todo menos la columna del código.
+  select string_agg(t::text, ', ') into v_lista
+    from unnest(array['public.bot_link_tokens'::regclass, 'public.household_invites'::regclass]) t
+   where has_table_privilege(r.oid, t, 'SELECT') or has_any_column_privilege(r.oid, t, 'SELECT')
+      or has_table_privilege('consulta_lectura', t, 'SELECT')
+      or has_column_privilege('consulta_lectura', t, 'token', 'SELECT')
+      or not has_any_column_privilege('consulta_lectura', t, 'SELECT');
+  if v_lista is not null then
+    raise exception 'rol copia_lectura: permisos sobre tablas de códigos efímeros que no son los acordados: %', v_lista;
+  end if;
 
   select count(*) into v_n
     from pg_class c join pg_namespace n on n.oid = c.relnamespace
    where n.nspname in ('public', 'ops') and c.relkind in ('r', 'p', 'v', 'm', 'f')
      and has_table_privilege(r.oid, c.oid, 'SELECT');
-  raise notice '0094: copia_lectura lee % tablas y vistas de public y ops', v_n;
+  raise notice 'rol copia_lectura: copia_lectura lee % tablas y vistas de public y ops', v_n;
 
   select count(*) into v_n
     from pg_class c join pg_namespace n on n.oid = c.relnamespace
    where n.nspname in ('public', 'ops') and c.relkind = 'S'
      and case when c.relkind = 'S' then not has_sequence_privilege(r.oid, c.oid, 'SELECT') else false end;
   if v_n > 0 then
-    raise exception '0094: copia_lectura no puede leer % secuencias de public y ops', v_n;
+    raise exception 'rol copia_lectura: copia_lectura no puede leer % secuencias de public y ops', v_n;
   end if;
 
   select count(*) into v_n
@@ -310,6 +340,6 @@ begin
    where n.nspname = 'net' and c.relkind in ('r', 'p')
      and has_schema_privilege(r.oid, n.oid, 'USAGE')
      and has_table_privilege(r.oid, c.oid, 'INSERT, UPDATE, DELETE');
-  raise notice '0094: tablas de net con escritura por PUBLIC (Supabase; riesgo aceptado, ver la 0092): %', v_n;
+  raise notice 'rol copia_lectura: tablas de net con escritura por PUBLIC (Supabase; riesgo aceptado, ver la 0092): %', v_n;
 end
 $$;
