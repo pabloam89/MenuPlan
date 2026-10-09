@@ -926,10 +926,11 @@ Falta modelar los líquidos que se tiran (bisque, court-bouillon, escabeches).
 Una clave de estos ficheros que no casa con ningún `ingredientId` no falla,
 no hace nada: lo vigila `src/data/alimentos.test.js`.
 
-**El fusible del espejo.** `src/data/recipeRow.test.js` compara los campos
-del esquema con lo que sale del mapeador, y `NO_VIAJAN` declara con su razón
-lo que no viaja a propósito. Nació porque un campo nuevo se perdía en silencio
-al pasar por el puente (cinco veces). El espejo `recipes` está muerto desde la
+**El fusible del espejo.** `recipeRow.test.js` (retirado el 9 oct 2026 con su
+mapeador) comparaba los campos del esquema con lo que salía de él, y
+`NO_VIAJAN` declaraba con su razón lo que no viajaba a propósito. Nació
+porque un campo nuevo se perdía en silencio al pasar por el puente (cinco
+veces). El espejo `recipes` está muerto desde la
 0064, pero el patrón vale para cualquier puente campo a campo.
 
 **Decisiones de Pablo que no salen del código:**

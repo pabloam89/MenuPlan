@@ -516,7 +516,6 @@
             "src/data/recipeCatalog.js",
             "src/data/recipes.js",
             "src/data/recipeSchema.js",
-            "src/data/recipeRow.js",
             "src/data/model.js",
             "src/lib/recipeSteps.js",
             "api/recipe-steps.js",
