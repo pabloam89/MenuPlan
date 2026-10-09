@@ -21,6 +21,7 @@ import {
   soloCambiaUses,
   textoFiable,
   usaEnvironment,
+  usaSecretos,
 } from "./dependabot-auto.mjs";
 
 const REPO = "pabloam89/MenuPlan";
@@ -317,6 +318,30 @@ describe("dependabot-auto: workflows con environment del repo", () => {
     expect(con).toEqual(expect.arrayContaining(["dependabot-auto.yml", "mercadona-sync.yml", "vigia-lola.yml"]));
     expect(usaEnvironment("# el environment: vigia\njobs:\n  x:\n    runs-on: u\n")).toBe(false);
     expect(usaEnvironment(null)).toBe(true);
+  });
+  it("usaSecretos: cualquier secrets. (del repo o de un environment); sin contenido, sí", () => {
+    const agente = readFileSync(new URL("agente-fallos.yml", dir), "utf8");
+    expect(usaSecretos(agente)).toBe(true);
+    expect(usaSecretos(readFileSync(new URL("tests.yml", dir), "utf8"))).toBe(false);
+    expect(usaSecretos("# secrets.X en un comentario\njobs: {}\n")).toBe(false);
+    expect(usaSecretos(null)).toBe(true);
+  });
+  it("en un workflow con secretos, una acción de un tercero (claude-code-action) no entra sola", () => {
+    const parche = [
+      "@@ -97,7 +97,7 @@ jobs:",
+      "-        uses: anthropics/claude-code-action@1111111111111111111111111111111111111111 # v1",
+      "+        uses: anthropics/claude-code-action@2222222222222222222222222222222222222222 # v1.1.0",
+    ].join("\n");
+    const agente = ".github/workflows/agente-fallos.yml";
+    expect(revisarFicheros([{ filename: agente, patch: parche }], [], [agente]).motivo).toBe("tercero-con-secretos");
+    // la misma acción en un workflow sin secretos pasa ese filtro
+    expect(revisarFicheros([{ filename: ".github/workflows/tests.yml", patch: parche }], [], [agente]).motivo).toBe(null);
+  });
+  it("en ese mismo workflow con secretos, actions/checkout (o github/…) pasa ese filtro", () => {
+    const agente = ".github/workflows/agente-fallos.yml";
+    expect(revisarFicheros([{ filename: agente, patch: PARCHE_USES }], [], [agente]).motivo).toBe(null);
+    const deGithub = PARCHE_USES.replaceAll("actions/checkout", "github/codeql-action/init");
+    expect(revisarFicheros([{ filename: agente, patch: deGithub }], [], [agente]).motivo).toBe(null);
   });
   it("un PR de actions que toca este workflow, o uno con environment, no entra solo", () => {
     expect(revisarFicheros([{ filename: ESTE_WORKFLOW, patch: PARCHE_USES }]).motivo).toBe("toca-este-workflow");

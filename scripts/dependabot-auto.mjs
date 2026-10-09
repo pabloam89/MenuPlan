@@ -33,8 +33,9 @@
 // JOB (el único que ve el environment y la clave), saca un token de la GitHub
 // App `homenu-dependabot-merge` y llama a `--fusionar-app`, que lo vuelve a
 // comprobar todo y solo usa ese token para la fusión. Un PR de actions que
-// toque este workflow, o uno que use un environment (sus secretos), no entra
-// por aquí: lo mira una sesión.
+// toque este workflow, o uno que use un environment, no entra por aquí; en
+// un workflow con secretos solo entran acciones de actions/ y github/
+// (`tercero-con-secretos`). Lo demás lo mira una sesión.
 // Las 0.x directas (CERO) van al grupo npm-cero de dependabot.yml; un PR de
 // seguridad suelto de una de ellas también espera (`grupo-manual`). El test
 // cruza CERO con dependabot.yml y con package.json.
@@ -71,6 +72,7 @@ export const MOTIVOS = [
   "cambia-mas-que-uses", // en un workflow cambia algo más que una línea `uses:` de la misma acción
   "toca-este-workflow", // actualiza una acción de dependabot-auto.yml: se fusionaría a sí mismo
   "toca-workflow-con-environment", // actualiza una acción de un workflow con environment (sus secretos)
+  "tercero-con-secretos", // en un workflow con secretos, cambia una acción que no es de actions/ ni github/
   "mayor", // salto de versión mayor (o de menor en 0.x)
   "grupo-manual", // un grupo que no es -menores, o una dependencia de CERO: lo mira una sesión
   "version-desconocida", // no se ha podido leer de qué versión a cuál va
@@ -187,15 +189,37 @@ export function usaEnvironment(contenido) {
   return /^\s*environment:/m.test(sinComentarios);
 }
 
-// ficheros: [{ filename, patch }]; conEnvironment: los workflows de la lista
-// que declaran un environment. Devuelve { ruta: "npm" | "actions" | null, motivo }.
-export function revisarFicheros(ficheros, conEnvironment = []) {
+// ¿El workflow (en staging) usa algún secreto, del repo o de un environment?
+// Sin contenido, sí.
+export function usaSecretos(contenido) {
+  if (typeof contenido !== "string") return true;
+  return /\bsecrets\./.test(contenido.replace(/(^|\s)#.*$/gm, "$1"));
+}
+
+// Los dueños de confianza: GitHub. Cualquier otro, en un workflow con
+// secretos, lo mira una persona (`tercero-con-secretos`).
+export const DUENOS_DE_CONFIANZA = ["actions", "github"];
+function duenosQueCambia(patch) {
+  return String(patch ?? "")
+    .split("\n")
+    .filter((l) => /^[+-]/.test(l))
+    .map((l) => LINEA_USES.exec(l.slice(1))?.[1]?.split("/")[0] ?? null);
+}
+
+// ficheros: [{ filename, patch }]; conEnvironment / conSecretos: los workflows
+// de la lista que declaran un environment / usan algún secreto.
+// Devuelve { ruta: "npm" | "actions" | null, motivo }.
+export function revisarFicheros(ficheros, conEnvironment = [], conSecretos = []) {
   const nombres = ficheros.map((f) => f.filename);
   if (nombres.length > 0 && nombres.every((f) => NPM.test(f))) return { ruta: "npm", motivo: null };
   if (nombres.length > 0 && nombres.every((f) => WORKFLOW.test(f))) {
     if (!ficheros.every((f) => soloCambiaUses(f.patch))) return { ruta: "actions", motivo: "cambia-mas-que-uses" };
     if (nombres.includes(ESTE_WORKFLOW)) return { ruta: "actions", motivo: "toca-este-workflow" };
     if (nombres.some((f) => conEnvironment.includes(f))) return { ruta: "actions", motivo: "toca-workflow-con-environment" };
+    const tercero = ficheros.some(
+      (f) => conSecretos.includes(f.filename) && duenosQueCambia(f.patch).some((d) => !DUENOS_DE_CONFIANZA.includes(d)),
+    );
+    if (tercero) return { ruta: "actions", motivo: "tercero-con-secretos" };
     return { ruta: "actions", motivo: null };
   }
   return { ruta: null, motivo: "ficheros-fuera" };
@@ -234,11 +258,11 @@ export function dependenciasDe({ titulo = "", textos = [] } = {}) {
 
 // --- La decisión, sin red ----------------------------------------------
 // datos: { repo, pr, commits, ficheros: [{ filename, patch }], checks,
-//          staging: { atrasado, ficheros, truncado }, rebasePedido, conEnvironment }
+//          staging: { atrasado, ficheros, truncado }, rebasePedido, conEnvironment, conSecretos }
 // Devuelve { decision, motivo, tipo, ruta }. «fusionado» con ruta "actions"
 // quiere decir «fusionable con la App»: quien llama decide cómo.
 export function decidir(datos) {
-  const { repo, pr, commits, ficheros, checks, staging, rebasePedido, conEnvironment = [] } = datos;
+  const { repo, pr, commits, ficheros, checks, staging, rebasePedido, conEnvironment = [], conSecretos = [] } = datos;
   let ruta = null;
   const espera = (motivo, tipo = null) => ({ decision: "espera", motivo, tipo, ruta });
 
@@ -246,7 +270,7 @@ export function decidir(datos) {
   if (pr.base?.ref !== BASE) return espera("base");
   if (pr.head?.repo?.full_name !== repo) return espera("rama-ajena");
   if (!commitsDeDependabot(commits)) return espera("commits-ajenos");
-  const revision = revisarFicheros(ficheros, conEnvironment);
+  const revision = revisarFicheros(ficheros, conEnvironment, conSecretos);
   ruta = revision.ruta;
   if (revision.motivo) return espera(revision.motivo);
 
@@ -342,8 +366,12 @@ async function leerPr({ api, paginas, esperar = dormir }, n) {
   const commits = await paginas(`/pulls/${n}/commits`);
   const ficheros = (await paginas(`/pulls/${n}/files`)).map((f) => ({ filename: f.filename, patch: f.patch }));
   const conEnvironment = [];
+  const conSecretos = [];
   for (const { filename } of ficheros) {
-    if (WORKFLOW.test(filename) && usaEnvironment(await workflowEnStaging(api, filename))) conEnvironment.push(filename);
+    if (!WORKFLOW.test(filename)) continue;
+    const contenido = await workflowEnStaging(api, filename);
+    if (usaEnvironment(contenido)) conEnvironment.push(filename);
+    if (usaSecretos(contenido)) conSecretos.push(filename);
   }
   const checks = await paginas(`/commits/${pr.head.sha}/check-runs?check_name=${CHECK}`, "check_runs");
   const cmp = await api(`/compare/${pr.head.sha}...${BASE}`);
@@ -357,7 +385,7 @@ async function leerPr({ api, paginas, esperar = dormir }, n) {
   const rebasePedido = comentarios.some(
     (c) => c.user?.login === "github-actions[bot]" && /^@dependabot rebase\b/.test(c.body ?? "") && c.created_at > ultimoCommit,
   );
-  return { pr, commits, ficheros, checks, staging, rebasePedido, conEnvironment };
+  return { pr, commits, ficheros, checks, staging, rebasePedido, conEnvironment, conSecretos };
 }
 
 // La pasada del primer job: no ve la clave de la App ni el environment. Fusiona
