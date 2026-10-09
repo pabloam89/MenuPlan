@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  ALCANCES, BARRERAS, CAMPOS_FICHA, CAPAS_AGENTE, ESTADOS, FICHA_DESDE, MARCA, MARCA_HIJO, MAX_BLOQUE, MAX_LINEAS, MAX_LISTA, MAX_TEXTO,
+  ALCANCES, BARRERAS, CAMPOS_FICHA, CAPAS_AGENTE, ESTADOS, FICHA_DESDE, MARCA, MARCA_HIJO,
   SEVERIDADES, TIPOS_CAUSA, aprendizajeValido, arregloDeBarrera, comentario, esComentarioNuestro, falla, fijarCampos, informeFichas,
   leerFicha, leerSubidos, limpio, subirAlcance, validarFicha, validarHijo,
 } from "./lib/fondos.mjs";
@@ -115,11 +115,11 @@ describe("leerFicha", () => {
   // Cuerpos hostiles: repo público, el cuerpo lo escribe cualquiera.
   it.each([
     ["un bloque gigante", () => bloque(Array.from({ length: 5000 }, (_, i) => `matiz: ${"x".repeat(100)}${i}`)), /demasiado grande/],
-    ["más líneas que el tope", () => bloque(Array.from({ length: MAX_LINEAS + 1 }, () => "estado: plan")), /demasiado grande/],
-    ["más caracteres que el tope", () => bloque([`matiz: ${"a".repeat(MAX_BLOQUE)}`]), /demasiado grande/],
+    ["más líneas que el tope (31)", () => bloque(Array.from({ length: 31 }, () => "estado: plan")), /demasiado grande/],
+    ["más caracteres que el tope (30 líneas de 150 = 4.800)", () => bloque(Array.from({ length: 30 }, () => `mecanismo: ${"a".repeat(150)}`)), /demasiado grande/],
     ["una línea de megas", () => bloque([`matiz: ${"a".repeat(2_000_000)}`]), /demasiado grande/],
     ["una línea larga dentro del tope de líneas", () => bloque(["estado: plan", `mecanismo: ${"a".repeat(700)}`]), /pasa de 600/],
-    ["un texto de 401 caracteres", () => bloque([`mecanismo: ${"a".repeat(MAX_TEXTO + 1)}`]), /pasa de 400/],
+    ["un texto de 401 caracteres", () => bloque([`mecanismo: ${"a".repeat(401)}`]), /pasa de 400/],
     ["una clave repetida", () => bloque(["estado: plan", "estado: abierto"]), /«estado» está repetida/],
     ["una clave repetida cuya primera vez estaba vacía", () => bloque(["matiz:", "matiz: algo"]), /«matiz» está repetida/],
     ["una clave que no existe", () => bloque(["admin: si"]), /clave «admin» no existe/],
@@ -130,8 +130,9 @@ describe("leerFicha", () => {
     ["caracteres de control", () => bloque(["mecanismo: a\u0007b"]), /control/],
     ["un #n enorme en una lista", () => bloque(["casos: #99999999999"]), /números de issue/],
     ["un #0", () => bloque(["casos: #0"]), /números de issue/],
+    ["un #n de 8 cifras que pasa del tope de issues", () => bloque(["casos: #99999999"]), /números de issue/],
     ["una lista con basura", () => bloque(["casos: #1, <script>alert(1)</script>"]), /números de issue/],
-    ["más elementos de los permitidos", () => bloque([`casos: ${Array.from({ length: MAX_LISTA + 1 }, (_, i) => `#${i + 1}`).join(", ")}`]), /más de 30/],
+    ["más elementos de los permitidos (31)", () => bloque([`casos: ${Array.from({ length: 31 }, (_, i) => `#${i + 1}`).join(", ")}`]), /más de 30/],
     ["un valor de vocabulario inventado", () => bloque(["estado: hackeado"]), /no es de la lista/],
     ["Markdown y HTML en un vocabulario", () => bloque(["alcance: <img src=x onerror=alert(1)> [x](http://evil.example)"]), /no es de la lista/],
     ["una fecha imposible", () => bloque(["ventana_hasta: 2026-02-30"]), /fecha AAAA-MM-DD real/],
