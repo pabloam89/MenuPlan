@@ -219,6 +219,26 @@ describe("gh pr merge, las formas que se colaban (juez de seguridad del PR #223)
   it("con -B=main", () => expect(bash("gh pr edit 231 -B=main")).toBe("deny"));
   it("la base a staging sí se puede cambiar", () => expect(bash("gh pr edit 231 --base staging")).toBe(null));
   it("--auto, nunca", () => expect(bash("gh pr merge 90 --auto --squash")).toBe("deny"));
+  // Re-juicio: la guardia miraba un PR y gh fusionaba otro.
+  it.each([
+    'gh pr merge --squash --subject "arregla 200 cosas" 231',
+    'gh pr merge --squash --body "va con el 12" 231',
+    "gh pr merge '#231' --squash",
+    "gh pr merge ops/rama-a-main --squash",
+    "gh pr merge --squash",
+    "gh pr merge https://github.com/otro/repo/pull/90",
+  ])("niega %s", (c) => expect(bash(c, aMain)).toBe("deny"));
+  it.each(["gh pr merge 90 --squash", "gh pr merge '#90' --squash", "gh pr merge https://github.com/pabloam89/MenuPlan/pull/90 --squash"])(
+    "deja %s si va a staging", (c) => expect(bash(c, aMain)).toBe(null));
+  it("con #231 mira el 231", () => expect(bash("gh pr merge '#231' --squash --subject x", aMain)).toBe("deny"));
+  it("-Bmain, con el valor pegado", () => expect(bash("gh pr edit 5 -Bmain")).toBe("deny"));
+  it.each([
+    "gh api -X PUT repos/pabloam89/MenuPlan/pulls/231/merge",
+    "gh api repos/pabloam89/MenuPlan/pulls/231 -X PATCH -f base=main",
+    "gh api graphql -f query='mutation { mergePullRequest(input:{pullRequestId:\"x\"}) { clientMutationId } }'",
+    "gh api --method DELETE repos/pabloam89/MenuPlan/git/refs/heads/x",
+  ])("gh api: niega %s", (c) => expect(bash(c)).toBe("deny"));
+  it("gh api de lectura, sí", () => expect(bash("gh api repos/pabloam89/MenuPlan/pulls/231 -q .base.ref")).toBe(null));
   it("-R, nunca", () => expect(bash("gh -R pabloam89/MenuPlan pr merge 90")).toBe("deny"));
   it("borrar issues o etiquetas, nunca", () => {
     expect(bash("gh issue delete 12 --yes")).toBe("deny");
@@ -231,7 +251,7 @@ describe("gh pr merge, las formas que se colaban (juez de seguridad del PR #223)
 describe("gh pr merge", () => {
   it("a staging pasa", () => expect(bash("gh pr merge 90 --squash")).toBe(null));
   it("a main, no", () => expect(bash("gh pr merge 90", ctx({ baseDelPr: () => "main" }))).toBe("deny"));
-  it("sin poder leer la base, pregunta", () => expect(bash("gh pr merge", ctx({ baseDelPr: () => null }))).toBe("ask"));
+  it("sin poder leer la base, pregunta", () => expect(bash("gh pr merge 90", ctx({ baseDelPr: () => null }))).toBe("ask"));
   it("si staging ha tocado sus mismos ficheros, no", () =>
     expect(bash("gh pr merge 90 --squash", ctx({ choquesDelPr: () => ["src/App.jsx"] }))).toBe("deny"));
   it("atrasada pero sin pisarse (choques vacíos), pasa", () =>

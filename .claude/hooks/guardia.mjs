@@ -451,19 +451,30 @@ export function decidir(entrada, ctx) {
       }
       // gh pr edit --base: cambiar la base de un PR a algo que no es staging lo
       // lleva a producción al fusionarlo (juez de seguridad del PR #223).
-      const nuevaBase = /^gh\s+pr\s+edit\b/.test(o) ? o.match(/(?:--base|-B)(?:\s+|=)["']?([^\s"']+)/) : null;
+      const nuevaBase = /^gh\s+pr\s+edit\b/.test(o) ? o.match(/(?:^|\s)(?:--base|-B)(?:\s+|=)?["']?([^\s"']+)/) : null;
       if (nuevaBase && nuevaBase[1] !== "staging") {
         return deny(`Cambiar la base de un PR a ${nuevaBase[1]} lo llevaría fuera de staging. Eso solo lo hace Pablo.`);
+      }
+      // gh api: fusionar, cambiar la base o borrar por la API se salta todo lo
+      // de aquí, también con la skill abierta (re-juicio del PR #223).
+      if (/^gh\s+api\b/.test(o) && /\/pulls\/\d+\/merge\b|mergePullRequest|baseRefName|\bbase=|(?:-X|--method)[\s=]*DELETE\b/i.test(o)) {
+        return deny("Fusionar, cambiar la base de un PR o borrar por `gh api` se salta la guardia. Usa `gh pr merge <n>` (a staging) o pídeselo a Pablo.");
       }
       // Borrar issues o etiquetas no tiene vuelta atrás.
       if (/^gh\s+(?:issue\s+(?:delete|transfer)|label\s+delete)\b/.test(o)) {
         return deny("Borrar o trasladar un issue, o borrar una etiqueta, no tiene vuelta atrás. Ciérralo o retírala con `npm run issues -- --etiquetas`.");
       }
-      // gh pr merge: solo a staging. El número (o la URL) puede ir en cualquier
-      // sitio de la orden: `gh pr merge --squash 230` también cuenta.
-      const merge = /^gh\s+pr\s+merge\b/.test(o)
-        ? [o, (o.match(/\/pull\/(\d+)/) ?? o.match(/(?:^|\s)(\d+)(?=\s|$)/))?.[1]]
-        : null;
+      // gh pr merge: solo a staging, y con el PR justo detrás de `merge`
+      // (número, #número o la URL de este repo). Buscarlo en otro sitio se
+      // engañaba con un número en --subject, con '#231' o con el nombre de una
+      // rama (re-juicio del PR #223); gh no admite un segundo PR.
+      let merge = null;
+      if (/^gh\s+pr\s+merge\b/.test(o)) {
+        const tras = [...o.replace(/^gh\s+pr\s+merge\b/, "").matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3]);
+        const pr = tras[0]?.match(/^(?:#?(\d+)|https:\/\/github\.com\/pabloam89\/MenuPlan\/pull\/(\d+)\/?)$/i);
+        if (!pr) return deny("Pon el número del PR justo detrás de `merge` (`gh pr merge 230 --squash`): así la guardia mira el mismo PR que fusiona gh.");
+        merge = [o, pr[1] ?? pr[2]];
+      }
       if (merge && /(?:^|\s)--auto\b/.test(o)) {
         return deny("`gh pr merge --auto` fusiona más tarde, cuando nadie mira la base. Fusiona a mano con el CI en verde.");
       }
