@@ -205,6 +205,9 @@ export const movimiento = {
   'mov-curva': 'cubic-bezier(.4,0,.2,1)',
 }
 
+/** Duración a la que caen las tres duraciones con `prefers-reduced-motion`. */
+export const movimientoReducido = '.01s'
+
 // ── Tamaños (8 valores) ──────────────────────────────────────────────────────
 export const tamano = {
   'tam-tactil': 40, // área táctil mínima, independiente del tamaño visual
