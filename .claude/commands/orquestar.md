@@ -20,6 +20,16 @@ varios en paralelo, mucho más. Escala el esfuerzo al encargo:
 Si el encargo es ambiguo (no está claro el objetivo, qué queda fuera, o cómo
 se sabrá que está bien), pregunta antes de lanzar nada.
 
+**Antes de empezar, mira quién lo lleva ya** (#271): no solo los issues. Corre
+`npm run issues` (cada encargo dice qué rama y carpeta lo lleva y desde cuándo
+no tiene commits; «posiblemente parada» pasadas 4 h) y `git worktree list` con
+`git branch -r`. Si una rama o carpeta viva se parece a lo que vas a hacer
+(`npm run issues -- --nuevo` las enseña junto a los issues parecidos), no
+empieces otra: pregunta a Pablo de quién es, o coge el relevo si está parada.
+Cada constructor trabaja en una rama **con número de issue**
+(`npm run tarea -- <area>/<nombre> <n>`), que es lo que deja escrito quién la
+lleva; si el encargo no tiene issue y no es trivial, ábrelo primero.
+
 ## 2. Catálogo
 
 | Agente | Tipo | Planos | Para |

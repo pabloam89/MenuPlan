@@ -138,7 +138,7 @@ npm run issues -- --nuevo "…" --tipo caso --analisis abierto --area ops --cuer
 npm run issues -- --nuevo "…" --tipo fondo --causa error-silencioso --area datos --cuerpo <f.md>
 npm run issues -- --nuevo "…" --tipo encargo --area datos --cuerpo <f.md> [--padre <fondo>]
 npm run issues -- --nuevo "…" --tipo decision --area datos --cuerpo <f.md>   # se asigna a Pablo
-#   antes de crear enseña los parecidos y para; si no es ninguno, --crear-igual
+#   antes de crear enseña los parecidos (issues y también carpetas y ramas vivas con palabras del título) y para; si no es ninguno, --crear-igual
 #   (la guardia niega `gh issue create` a pelo: el 8 oct se abrió tres veces el mismo fallo)
 npm run issues -- --colgar <caso o encargo> <fondo>   # cuelga; si el fondo estaba cerrado, lo reabre
 npm run tarea -- ops/x 193                  # tarea de un issue: rama ops/193-x; el PR pide Closes #193
@@ -151,25 +151,22 @@ npm run issues -- --etiquetas               # crear o retirar etiquetas en GitHu
 
 - **El cuerpo de un caso:** cuándo, qué pasó (esperado frente a real),
   evidencia (comando y salida, PR, fichero:línea) y el análisis. El de una
-  decisión: la pregunta en llano, las opciones con la recomendada primero y
-  qué pasa si no se decide.
+  decisión: la pregunta en llano, las opciones (la recomendada primero) y qué
+  pasa si no se decide.
 - **La traza no se rellena: se deduce.** Fechas, reaperturas, asignados,
   padre e hijos los guarda GitHub. Quién arregló sale del PR que cierra: lleva
   `Closes #n` y una línea `Agente: <nombre>` (o `sesión`); la plantilla de PR
   los trae. Si se cierra a mano, «PR #n» en el comentario de cierre.
-- **Cada semana**, `/revision-issues` mira el conjunto: puntuales que se
-  parecen (tres «puntuales» parecidos son un fondo), casos colgados del fondo
-  equivocado, dos fondos que son el mismo y fondos sin encargos.
-- **Una categoría nueva** se añade en `scripts/lib/issues.mjs` con su
-  descripción, se regeneran las etiquetas y se pone en el formulario. Si algo
-  no encaja en ninguna causa, primero se mira si es una de las que hay; una
-  clasificación que crece sin control deja de servir para contar.
-- **El repo es público:** ni claves, ni datos de familias, ni un fallo de
-  seguridad que se pueda aprovechar. Eso va a Pablo en privado.
-- **Antes de empezar un encargo**, `npm run issues`: si ya está cogido, no se
-  duplica.
-- **Pablo ve sus decisiones** porque se le asignan (le llegan por correo y en
-  la app de GitHub): lista en
+- **Cada semana**, `/revision-issues`: puntuales que se parecen (tres son un
+  fondo), casos en el fondo equivocado, fondos repetidos y fondos sin encargos.
+- **Una categoría nueva** se añade en `scripts/lib/issues.mjs`, se regeneran
+  las etiquetas y se pone en el formulario; antes, mira si encaja en una existente.
+- **El repo es público:** ni claves, ni datos de familias, ni fallos aprovechables (a Pablo, en privado).
+- **Quién lleva qué** (#271, `scripts/lib/lleva.mjs`): `tarea <rama> <n>` comenta
+  en el issue `<!-- menuplan:lleva rama=… -->` (uno por rama) y `retirar` lo borra;
+  `npm run issues` y el arranque cruzan encargo → rama → último commit
+  («parada» a las 4 h), las ramas sin número y `--marcas-huerfanas` (lista, no borra).
+- **Pablo ve sus decisiones** porque se le asignan (correo y app de GitHub):
   `github.com/pabloam89/MenuPlan/issues?q=is:open+label:tipo:decision`.
 - **Avisos que llegan solos:** al editar un fichero, el hook `avisos.mjs`
   cuenta los issues abiertos que lo nombran (una vez por sesión y fichero);
@@ -206,14 +203,12 @@ npm run issues -- --etiquetas               # crear o retirar etiquetas en GitHu
   Arreglo: `npm run tarea` hace ahora un commit vacío (`tarea: arranca <rama>`)
   nada más crear la rama, antes de copiar el entorno y de instalar nada, y
   `retirar` no lo cuenta como trabajo sin subir (test en `scripts/tarea.test.js`).
-  Para una carpeta anterior a ese cambio, a mano:
-  `git commit --allow-empty -m "tarea: arranca <rama>"`. Y el hook ya solo borra
-  ramas que se subieron con su nombre (`git push -u`) y luego se fusionaron
-  (`scripts/limpiar-worktrees.test.js`); la copia que corre está en
-  `~/.claude/hooks/` de cada PC y se actualiza a mano desde `scripts/`.
-  Si pasa igual, los restos huérfanos no los trata ni `tarea` ni `retirar`: los
-  borra Pablo, tras mirar que `node_modules` no es una unión, y antes hay que
-  parar el `npm ci` que siga vivo (`taskkill /T` sobre su `tarea.mjs`).
+  Para una carpeta anterior, a mano: `git commit --allow-empty -m "tarea: arranca
+  <rama>"`. El hook ya solo borra ramas subidas con su nombre (`git push -u`) y
+  luego fusionadas (`scripts/limpiar-worktrees.test.js`); su copia está en
+  `~/.claude/hooks/` de cada PC y se actualiza a mano desde `scripts/`. Los restos
+  huérfanos los borra Pablo, tras mirar que `node_modules` no es una unión y
+  parar el `npm ci` vivo (`taskkill /T` sobre su `tarea.mjs`).
 - **2026-10 · el PR que abre el token de Actions no lanza `tests.yml`.** Causa:
   un PR abierto con `GITHUB_TOKEN` no dispara otros workflows. Arreglo: lanzarlo
   a mano con `gh workflow run tests.yml --ref <rama>`. La documentación de
@@ -221,6 +216,11 @@ npm run issues -- --etiquetas               # crear o retirar etiquetas en GitHu
   esperando a que alguien con escritura pulse «Approve workflows to run»; sin
   probar aquí. La pendiente 11 de `ops/INVENTARIO.md` (que el cron abra PR) la
   sustituyó la deploy key.
+- **2026-10-09 · nadie sabía quién llevaba #255 (caso #270 del fondo #143).**
+  Causa: el listado solo enseñaba el asignado de GitHub y una rama sin número
+  no se enlazaba con nada. Arreglo: (#271) la marca, el cruce y «posiblemente
+  parada»; test en `scripts/lleva.test.js`. Antes: 3 de 11 carpetas sin número
+  y 0 de 6 encargos con rama enseñados como «lo lleva».
 - **2026-10-08 · `gh` colgado con «TLS handshake timeout»** al activar
   Dependabot. Causa: la red, no el comando. Arreglo: reintentar; si un `gh` pasa
   de 60 s sin responder, se corta con `timeout 60 gh …` y se repite.

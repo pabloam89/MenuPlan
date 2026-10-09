@@ -232,7 +232,7 @@ export const CONSULTA = `query($cursor: String) {
         closedByPullRequestsReferences(first: 5, includeClosedPrs: true) {
           nodes { number headRefName mergedAt body author { login } }
         }
-        comments(last: 3) { nodes { body } }
+        comments(last: 10) { nodes { body } }
         parent { number state labels(first: 20) { nodes { name } } }
         subIssues(first: 50) {
           nodes {
