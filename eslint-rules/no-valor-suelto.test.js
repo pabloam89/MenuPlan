@@ -25,6 +25,10 @@ describe("no-valor-suelto", () => {
         "const a = <div style={{ flex: 1, opacity: 0.5, width: 24 }} />;",
         'const a = { transition: "none", animation: "none" };',
         "const a = { fontSize: 1 };",
+        // Plantilla: lo que depende de la expresión no se marca.
+        "const a = { padding: `${n}px` };",
+        "const a = { padding: `calc(${n}px + 13px)` };",
+        "const a = { boxShadow: `0 0 0 ${n}px red` };",
         // Un id con # que no es un color.
         'const a = "#abcdefg"; const b = "pedido &#39;";',
       ],
@@ -55,6 +59,9 @@ describe("no-valor-suelto", () => {
           errors: [suelto("movimiento", "cubic-bezier(.4,0,.2,1)"), suelto("movimiento", ".2s")],
         },
         { code: "const a = `0 0 0 2px #0f766e`;", errors: [suelto("color", "#0f766e")] },
+        // Plantilla con expresión: el trozo literal sí se mira.
+        { code: "const a = { padding: `${n}px 13px` };", errors: [suelto("espaciado", "13")] },
+        { code: "const a = { transition: `all ${t}s .3s` };", errors: [suelto("movimiento", ".3s")] },
       ],
     });
   });

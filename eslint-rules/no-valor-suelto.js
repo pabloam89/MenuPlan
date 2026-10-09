@@ -129,27 +129,43 @@ export const noValorSuelto = {
       for (const q of nodo.quasis ?? []) manejados.add(q)
     }
 
+    // Valores sueltos de un texto, según el tipo de propiedad.
+    function valoresDe(tipo, t) {
+      if (tipo === 'movimiento') return movimientoDeTexto(t)
+      if (tipo === 'peso' || tipo === 'capa' || tipo === 'fuente') {
+        const n = Number(t.replace(/px$/, ''))
+        if (Number.isNaN(n)) return numerosDeTexto(t)
+        return n !== 0 && Math.abs(n) !== 1 ? [String(n)] : []
+      }
+      return numerosDeTexto(t)
+    }
+
     function revisarPropiedad(node, tipo) {
       for (const hoja of hojas(node.value)) {
         marcarArbol(hoja)
         const texto = textoEstatico(hoja)
-        if (texto == null) continue
+        if (texto == null) {
+          // Plantilla con expresiones: se miran solo los trozos de texto
+          // literal (`${n}px 13px` → el 13); lo que dependa de la expresión no
+          // se marca. Un calc()/var()/env() en cualquier trozo la deja pasar
+          // entera, y una sombra con partes dinámicas no es un valor estático.
+          if (hoja.type !== 'TemplateLiteral' || tipo === 'sombra') continue
+          const trozos = hoja.quasis.map((q) => q.value.cooked ?? '')
+          if (trozos.some((t) => TOKEN_FUNC_RE.test(t))) continue
+          hoja.quasis.forEach((q, i) => {
+            const t = trozos[i].trim()
+            if (PALABRAS_BLANCAS.has(t.toLowerCase())) return
+            for (const v of valoresDe(tipo, t)) informar(q, tipo, v)
+          })
+          continue
+        }
         const t = texto.trim()
         if (PALABRAS_BLANCAS.has(t.toLowerCase()) || TOKEN_FUNC_RE.test(t)) continue
         if (tipo === 'sombra') {
           // La sombra entera es el valor; sus colores van dentro y no se cuentan aparte.
           informar(hoja, tipo, t.replace(/\s+/g, ' '))
-        } else if (tipo === 'movimiento') {
-          for (const v of movimientoDeTexto(t)) informar(hoja, tipo, v)
-        } else if (tipo === 'peso' || tipo === 'capa' || tipo === 'fuente') {
-          const n = Number(t.replace(/px$/, ''))
-          if (Number.isNaN(n)) {
-            for (const v of numerosDeTexto(t)) informar(hoja, tipo, v)
-          } else if (n !== 0 && Math.abs(n) !== 1) {
-            informar(hoja, tipo, String(n))
-          }
         } else {
-          for (const v of numerosDeTexto(t)) informar(hoja, tipo, v)
+          for (const v of valoresDe(tipo, t)) informar(hoja, tipo, v)
         }
       }
     }

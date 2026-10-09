@@ -7,13 +7,17 @@ import { RUTA_BASE, claveSuelto, compararSueltos, leerMensaje, totalDe } from '.
  * solo puede bajar. Este test lo cierra por dos lados:
  *
  *   · la lógica de comparar (nuevo = fallo, renombrar un fichero = no);
- *   · la cifra de la base commiteada no supera el tope de aquí. Quien baja la
- *     base con `npm run lint:base -- --actualizar` baja también el tope; subirlo
+ *   · la cifra de la base commiteada es IGUAL al tope de aquí: ni por encima
+ *     (se subió la base) ni por debajo (se bajó sin bajar el tope, y el tope
+ *     sobrante dejaría subir luego). Quien baja la base con
+ *     `npm run lint:base -- --actualizar` baja también el tope; subirlo
  *     tiene que verse en el diff de este fichero, junto a su porqué.
  */
 
 // Medido el 9 oct 2026 con la regla local/no-valor-suelto (ver ESTADO.md).
-const TOPE_VALORES_SUELTOS = 12768
+// 12.768 → 12.793 el mismo día: la regla empezó a mirar los trozos literales
+// de las plantillas con expresiones (`${n}px 13px`); es detección, no deriva.
+const TOPE_VALORES_SUELTOS = 12793
 const TOPE_ESLINT_DISABLE = 0
 
 const siempre = () => true
@@ -90,8 +94,8 @@ describe('la base commiteada', () => {
     }
   })
 
-  it('solo baja: no supera el tope', () => {
-    expect(totalDe(base.sueltos)).toBeLessThanOrEqual(TOPE_VALORES_SUELTOS)
+  it('solo baja: el tope es la base, ni más ni menos', () => {
+    expect(totalDe(base.sueltos)).toBe(TOPE_VALORES_SUELTOS)
     expect(base.eslintDisable).toBeLessThanOrEqual(TOPE_ESLINT_DISABLE)
   })
 })

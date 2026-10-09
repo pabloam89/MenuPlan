@@ -61,6 +61,9 @@ async function erroresActuales() {
 }
 
 const ordenar = (obj) => Object.fromEntries(Object.entries(obj).sort(([a], [b]) => a.localeCompare(b)))
+// Orden por código, igual en cualquier PC e idioma: para la base nueva
+// (lint-base.json conserva el suyo para no reescribirlo entero).
+const ordenarPorCodigo = (obj) => Object.fromEntries(Object.entries(obj).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
 const total = (obj) => Object.values(obj).reduce((s, n) => s + n, 0)
 
 const { cuenta: actual, sueltos, disables } = await erroresActuales()
@@ -108,7 +111,7 @@ if (actualizar) {
   console.log(`lint-base.json: ${total(actual)} errores (antes ${total(base)}).`)
   writeFileSync(
     BASE_TOKENS,
-    JSON.stringify({ eslintDisable: disables, sueltos: ordenar(sueltos) }, null, 2) + '\n',
+    JSON.stringify({ eslintDisable: disables, sueltos: ordenarPorCodigo(sueltos) }, null, 2) + '\n',
   )
   console.log(`${RUTA_BASE}: ${totalDe(sueltos)} valores sueltos (antes ${totalDe(baseTokens.sueltos)}).`)
   process.exit(0)

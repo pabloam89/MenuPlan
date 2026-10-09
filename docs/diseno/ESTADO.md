@@ -13,9 +13,9 @@ provisionales (interlineado de los roles de texto, `margen-pantalla` = 16,
 `--pz-*` de `index.css` (tema oscuro de la pizarra) son excepción declarada: no
 se absorben en los tokens.
 
-**Cifra de la regla (9 oct 2026, antes de migrar nada):** 12.768 valores
-sueltos en 4.539 entradas `fichero | tipo | valor` y 83 ficheros — color 4.581,
-espaciado 3.637, fuente 1.289, radio 1.187, peso 1.175, movimiento 448,
+**Cifra de la regla (9 oct 2026, antes de migrar nada):** 12.793 valores
+sueltos en 4.548 entradas `fichero | tipo | valor` y 83 ficheros — color 4.581,
+espaciado 3.650, fuente 1.289, radio 1.187, peso 1.175, movimiento 460,
 sombra 307, capa 144 — y 0 `eslint-disable` de la regla. Se regenera con
 `npm run lint:base`; sustituye a la tabla de regex de «Lo que hay» (que sigue
 siendo la medida de la auditoría, con otro alcance).
