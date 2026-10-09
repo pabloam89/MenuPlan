@@ -1,4 +1,5 @@
 -- 0092 · Un usuario de solo lectura para `npm run consulta`: que diga «no» la base (issue #233).
+-- AUDITADA: auditor-datos 2026-10-09 OK
 --
 -- Qué hace. Crea el rol `consulta_lectura`, con login y SIN contraseña (el repo
 -- es público: la contraseña la pone Pablo después, desde 1Password, con
