@@ -4,8 +4,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   ALCANCES, ANTE_FALLO, EJECUTORES, EJECUTORES_DEL_SISTEMA, RIESGOS, VEREDICTOS,
-  RUTA_BASE, contarFrases, ficherosNormativos, leerRegistro, medirFrases, nuevaBase, problemasDeDureza, problemasDeForma, recuento,
-  CIFRAS_FONDO, medirFondo, subidas, totalBase,
+  comprobarNormasPr, contarFrases, esVigilado, ficherosNormativos, leerRegistro, lineaNormas, lineasAnadidas, medirFrases,
+  problemasDeDureza, problemasDeForma, recuento, CIFRAS_FONDO, medirFondo,
 } from "../scripts/lib/normas.mjs";
 import { MEDIDORES, evaluarCriterio } from "../scripts/lib/planos.mjs";
 
@@ -56,44 +56,77 @@ describe("ops/normas.json", () => {
   });
 });
 
-describe("el trinquete de frases normativas", () => {
+describe("frases normativas", () => {
   const ids = new Set(registro.normas.map((n) => n.id));
-  const base = JSON.parse(readFileSync(join(RAIZ, RUTA_BASE), "utf8"));
 
-  it("ninguna frase nueva con «nunca», «siempre», «solo»… sin citar una norma, y ninguna cita a una norma que no existe", () => {
-    const { actual, citasMalas } = medirFrases(RAIZ, ids);
-    const aviso = "Cita la norma en la misma línea (<!-- norma:<id> -->), dala de alta en ops/normas.json o reescribe la frase. `npm run normas` lo detalla.";
-    expect(subidas(actual, base).map((s) => `${s.ruta} «${s.palabra}»: ${s.base} -> ${s.actual}`), aviso).toEqual([]);
-    expect(citasMalas, aviso).toEqual([]);
+  it("ninguna cita del repo apunta a una norma que no existe", () => {
+    expect(medirFrases(RAIZ, ids).citasMalas, "Corrige el id o da de alta la norma en ops/normas.json").toEqual([]);
   });
 
-  it("la base no guarda más de lo que hay hoy: lo que baja, se baja (npm run normas -- --base)", () => {
-    const { actual } = medirFrases(RAIZ, ids);
-    expect(totalBase(nuevaBase(actual, base)), "Ejecuta `npm run normas -- --base` y commitea ops/normas-base.json").toBe(totalBase(base));
-  });
-
-  it("recorre CLAUDE.md, las reglas, skills, agentes y comandos, PRINCIPIOS y ops/*.md", () => {
+  it("recorre CLAUDE.md, las reglas, skills, agentes y comandos, PRINCIPIOS y ops/*.md, y esVigilado dice lo mismo", () => {
     const f = ficherosNormativos(RAIZ);
     for (const r of ["CLAUDE.md", "docs/datos/PRINCIPIOS.md", "ops/PLANOS.md", ".claude/rules/tests.md", ".claude/skills/github/SKILL.md", ".claude/agents/gobierno.md", ".claude/commands/orquestar.md"]) expect(f).toContain(r);
     expect(f.some((r) => r.startsWith("ops/copias/"))).toBe(false);
+    expect(f.filter((r) => !esVigilado(r))).toEqual([]);
+    for (const r of ["ops/copias/LEEME.md", "src/x.md", ".claude/hooks/x.md", "ops/normas.json"]) expect(esVigilado(r)).toBe(false);
   });
 
-  it("una frase nueva sube la cuenta; citando una norma que existe, no", () => {
-    const ids1 = new Set(["main-solo-pablo"]);
+  it("cuenta las palabras fuertes (sin «solo») y una cita cubre su palabra, no la línea entera", () => {
+    const ids1 = new Set(["main-solo-pablo", "sin-git-stash"]);
     expect(contarFrases("Nunca se fusiona a main.", ids1).cuenta).toEqual({ nunca: 1 });
     expect(contarFrases("Nunca se fusiona a main. <!-- norma:main-solo-pablo -->", ids1).cuenta).toEqual({});
+    expect(contarFrases("Nunca a main <!-- norma:main-solo-pablo --> y siempre con tests.", ids1).cuenta).toEqual({ siempre: 1 });
+    expect(contarFrases("Nunca a main <!-- norma:main-solo-pablo --> y nunca stash <!-- norma:sin-git-stash -->", ids1).cuenta).toEqual({});
     expect(contarFrases("Nunca. <!-- norma:inventada -->", ids1)).toEqual({ cuenta: { nunca: 1 }, citasMalas: ["inventada"] });
     expect(contarFrases("Sólo, MÁXIMO, topes, obligatoria, exigen, OK de Pablo, siempre", ids1).cuenta)
-      .toEqual({ solo: 1, maximo: 1, tope: 1, obligatorio: 1, exige: 1, ok_de_pablo: 1, siempre: 1 });
-    expect(contarFrases("soloista, topetazo, inexigente", ids1).cuenta).toEqual({});
-    expect(subidas({ "CLAUDE.md": { nunca: 3 } }, { "CLAUDE.md": { nunca: 2 } })).toEqual([{ ruta: "CLAUDE.md", palabra: "nunca", actual: 3, base: 2 }]);
+      .toEqual({ maximo: 1, tope: 1, obligatorio: 1, exige: 1, ok_de_pablo: 1, siempre: 1 });
+    expect(contarFrases("soloista, topetazo, inexigente, nuncamente", ids1).cuenta).toEqual({});
+  });
+});
+
+describe("el paso del CI: solo las líneas añadidas del PR (scripts/normas-pr.mjs)", () => {
+  const ids = new Set(["main-solo-pablo"]);
+  const diffDe = (ruta, anadidas, quitadas = []) => [
+    `diff --git a/${ruta} b/${ruta}`, `--- a/${ruta}`, `+++ b/${ruta}`, "@@ -10,1 +10,2 @@",
+    ...quitadas.map((l) => `-${l}`), ...anadidas.map((l) => `+${l}`),
+  ].join("\n");
+
+  it("una línea nueva con «nunca» sin cita falla, con su fichero y su línea", () => {
+    const r = comprobarNormasPr({ diff: diffDe("CLAUDE.md", ["Nunca se despliega un viernes."]), ids });
+    expect(r.ok).toBe(false);
+    expect(r.sueltas).toEqual([{ ruta: "CLAUDE.md", linea: 10, palabras: ["nunca"] }]);
+    expect(r.motivo).toMatch(/CLAUDE\.md:10/);
+    expect(r.motivo).toMatch(/Normas: sin novedades/);
   });
 
-  it("la base solo baja salvo que se pida subirla", () => {
-    const base0 = { a: { solo: 2 } };
-    expect(nuevaBase({ a: { solo: 1 } }, base0)).toEqual({ a: { solo: 1 } });
-    expect(nuevaBase({ a: { solo: 3, nunca: 1 } }, base0)).toEqual({ a: { solo: 2 } });
-    expect(nuevaBase({ a: { solo: 3 } }, base0, { subir: true })).toEqual({ a: { solo: 3 } });
+  it("con la cita pasa; con «Normas: sin novedades — motivo» pasa; sin motivo, no", () => {
+    expect(comprobarNormasPr({ diff: diffDe("CLAUDE.md", ["Nunca a main. <!-- norma:main-solo-pablo -->"]), ids }).ok).toBe(true);
+    const diff = diffDe("CLAUDE.md", ["Nunca se despliega un viernes."]);
+    expect(comprobarNormasPr({ diff, cuerpo: "Texto\n\nNormas: sin novedades — es una lección, no una norma\n", ids }).ok).toBe(true);
+    expect(comprobarNormasPr({ diff, cuerpo: "Normas: sin novedades - consejo de estilo", ids }).ok).toBe(true);
+    expect(comprobarNormasPr({ diff, cuerpo: "Normas: sin novedades", ids }).ok).toBe(false);
+    expect(comprobarNormasPr({ diff, cuerpo: "<!-- Normas: sin novedades — ejemplo de la plantilla -->", ids }).ok).toBe(false);
+    expect(comprobarNormasPr({ diff, cuerpo: "```\nNormas: sin novedades — en un bloque\n```", ids }).ok).toBe(false);
+  });
+
+  it("no mira lo borrado, ni ficheros fuera de la lista, ni «solo»; exentos los bots", () => {
+    expect(comprobarNormasPr({ diff: diffDe("CLAUDE.md", ["Una línea neutra."], ["Nunca jamás."]), ids }).ok).toBe(true);
+    expect(comprobarNormasPr({ diff: diffDe("src/App.jsx", ["// nunca"]), ids }).ok).toBe(true);
+    expect(comprobarNormasPr({ diff: diffDe("ops/copias/LEEME.md", ["Nunca."]), ids }).ok).toBe(true);
+    expect(comprobarNormasPr({ diff: diffDe(".claude/skills/github/SKILL.md", ["Solo lo lanza Pablo."]), ids }).ok).toBe(true);
+    expect(comprobarNormasPr({ diff: diffDe("CLAUDE.md", ["Nunca."]), autor: "dependabot[bot]", ids }).ok).toBe(true);
+  });
+
+  it("una cita a una norma que no existe falla aunque el PR diga «sin novedades»", () => {
+    const r = comprobarNormasPr({ diff: diffDe("CLAUDE.md", ["Nunca. <!-- norma:inventada -->"]), cuerpo: "Normas: sin novedades — x y z", ids });
+    expect(r.ok).toBe(false);
+    expect(r.motivo).toMatch(/inventada/);
+  });
+
+  it("lineasAnadidas lleva la cuenta de la línea y salta ficheros borrados", () => {
+    const diff = ["+++ b/CLAUDE.md", "@@ -1,0 +5,2 @@", "+a", "+b", "+++ /dev/null", "@@ -1 +0,0 @@", "-c"].join("\n");
+    expect(lineasAnadidas(diff)).toEqual([{ ruta: "CLAUDE.md", linea: 5, texto: "a" }, { ruta: "CLAUDE.md", linea: 6, texto: "b" }]);
+    expect(lineaNormas("**Normas:** sin novedades — x y z")).toEqual({ presente: true, motivo: "x y z" });
   });
 });
 
@@ -115,6 +148,8 @@ describe("la medición del fondo", () => {
       fondo(14, { state: "CLOSED", labels: [{ name: "tipo:fondo" }] }), // cerrado sin etiqueta: cuenta
       fondo(15, { state: "CLOSED", labels: [{ name: "tipo:fondo" }, { name: "arreglo:test" }] }), // con test: no
       fondo(16, { state: "CLOSED", labels: [{ name: "tipo:fondo" }, { name: "arreglo:guardia" }] }), // regla de la guardia: no
+      fondo(17, { state: "CLOSED", stateReason: "NOT_PLANNED" }), // «no se hará»: no es un arreglo, no cuenta
+      fondo(18, { state: "CLOSED", stateReason: "DUPLICATE" }), // duplicado: no cuenta
     ];
     expect(medirFondo(issues)).toEqual({ casos_sin_fondo: 2, fondos_sin_encargo: 1, fondos_cerrados_sin_test: 2 });
   });

@@ -145,17 +145,23 @@ export function problemasDeDureza(n, ctx) {
   return malos;
 }
 
-// ── El trinquete de frases normativas ─────────────────────────────────────
+// ── Frases normativas ─────────────────────────────────────────────────────
 
 /**
- * Palabras que suelen anunciar una norma. Cada una con su clave (sin tildes ni
- * plurales) para contarlas. Una aparición pasa si su línea cita una norma del
- * registro (`<!-- norma:<id> -->`) o si está en la línea base, que solo baja.
+ * Palabras fuertes, que suelen anunciar una norma. Cada una con su clave (sin
+ * tildes ni plurales) para contarlas. «solo» no está: es demasiado común y
+ * daba ruido en cada PR (revisión del PR #349).
+ *
+ * Dos usos:
+ * - El CI (scripts/normas-pr.mjs) mira solo las líneas AÑADIDAS por un PR en
+ *   los ficheros vigilados: cada palabra fuerte cita su norma
+ *   (`<!-- norma:<id> -->`) o el PR dice «Normas: sin novedades — <motivo>».
+ * - La medición semanal (`npm run planos`) cuenta las que quedan sin citar en
+ *   todo el repo, como una cifra que solo debe bajar.
  */
 export const PALABRAS_NORMATIVAS = [
   ["nunca", "nunca"],
   ["siempre", "siempre"],
-  ["solo", "s[oó]lo"],
   ["maximo", "m[aá]xim[oa]s?"],
   ["tope", "topes?"],
   ["obligatorio", "obligatori[oa]s?"],
@@ -166,7 +172,13 @@ const LETRA = "[\\p{L}\\p{N}_]";
 const REGEX_PALABRAS = PALABRAS_NORMATIVAS.map(([clave, p]) => [clave, new RegExp(`(?<!${LETRA})(?:${p})(?!${LETRA})`, "giu")]);
 const REGEX_CITA = /<!--\s*norma:([a-z0-9-]+)\s*-->/g;
 
-export const RUTA_BASE = "ops/normas-base.json";
+/** ¿Vigila el trinquete esta ruta? La misma lista que recorre `ficherosNormativos`. */
+export function esVigilado(ruta) {
+  const r = String(ruta).replace(/\\/g, "/");
+  if (r === "CLAUDE.md" || r === "docs/datos/PRINCIPIOS.md") return true;
+  if (/^\.claude\/(rules|skills|agents|commands)\/.+\.md$/.test(r)) return true;
+  return /^ops\/[^/]+\.md$/.test(r);
+}
 
 /** Ficheros donde se buscan frases normativas, relativos a la raíz y con «/». */
 export function ficherosNormativos(raiz) {
@@ -187,21 +199,34 @@ export function ficherosNormativos(raiz) {
 }
 
 /**
- * Cuenta las apariciones que no citan una norma, por palabra. Las citas a un
- * id que no está en el registro no valen y se devuelven aparte.
+ * Las palabras fuertes de una línea que no cubre ninguna cita. Cada cita
+ * válida cubre UNA palabra: la última sin cubrir antes de ella (o, si no hay,
+ * la primera después). Así una cita al final de una línea con dos normas no
+ * tapa la segunda. Las citas a un id que no está en el registro no cubren
+ * nada y se devuelven aparte.
+ * { sueltas: [clave, …], citasMalas: [id, …] }
  */
+export function frasesDeLinea(linea, ids) {
+  const palabras = REGEX_PALABRAS.flatMap(([clave, re]) => [...linea.matchAll(re)].map((m) => ({ clave, pos: m.index, cubierta: false })))
+    .sort((a, b) => a.pos - b.pos);
+  const citasMalas = [];
+  for (const m of linea.matchAll(REGEX_CITA)) {
+    if (!ids.has(m[1])) { citasMalas.push(m[1]); continue; }
+    const antes = palabras.filter((p) => !p.cubierta && p.pos < m.index).at(-1);
+    const objetivo = antes ?? palabras.find((p) => !p.cubierta && p.pos > m.index);
+    if (objetivo) objetivo.cubierta = true;
+  }
+  return { sueltas: palabras.filter((p) => !p.cubierta).map((p) => p.clave), citasMalas };
+}
+
+/** Cuenta, por palabra, las apariciones que no cubre ninguna cita en un texto entero. */
 export function contarFrases(texto, ids) {
   const cuenta = {};
   const citasMalas = [];
   for (const linea of texto.split("\n")) {
-    const citas = [...linea.matchAll(REGEX_CITA)].map((m) => m[1]);
-    for (const c of citas) if (!ids.has(c)) citasMalas.push(c);
-    const citada = citas.some((c) => ids.has(c));
-    if (citada) continue;
-    for (const [clave, re] of REGEX_PALABRAS) {
-      const n = (linea.match(re) ?? []).length;
-      if (n) cuenta[clave] = (cuenta[clave] ?? 0) + n;
-    }
+    const r = frasesDeLinea(linea, ids);
+    for (const c of r.sueltas) cuenta[c] = (cuenta[c] ?? 0) + 1;
+    citasMalas.push(...r.citasMalas);
   }
   return { cuenta, citasMalas };
 }
@@ -218,39 +243,76 @@ export function medirFrases(raiz, ids) {
   return { actual, citasMalas };
 }
 
-/** Lo que sube respecto a la base: [{ ruta, palabra, actual, base }]. */
-export function subidas(actual, base) {
+/** Total de apariciones de { ruta: { palabra: n } }. */
+export function totalFrases(medida) {
+  return Object.values(medida).reduce((a, c) => a + Object.values(c).reduce((x, y) => x + y, 0), 0);
+}
+
+// ── El paso del CI: solo las líneas añadidas del PR ───────────────────────
+
+/**
+ * Las líneas añadidas de un diff unificado (`git diff -U0`), en los ficheros
+ * vigilados: [{ ruta, linea, texto }]. Un fichero renombrado solo trae lo que
+ * cambió, y una línea borrada no cuenta: nada que regenerar.
+ */
+export function lineasAnadidas(diff) {
   const fuera = [];
-  for (const [ruta, cuenta] of Object.entries(actual)) {
-    for (const [palabra, n] of Object.entries(cuenta)) {
-      const b = base[ruta]?.[palabra] ?? 0;
-      if (n > b) fuera.push({ ruta, palabra, actual: n, base: b });
+  let ruta = null;
+  let n = 0;
+  for (const l of String(diff ?? "").replace(/\r/g, "").split("\n")) {
+    if (l.startsWith("+++ ")) {
+      const r = l.slice(4).trim();
+      ruta = r === "/dev/null" ? null : r.replace(/^b\//, "");
+      continue;
     }
+    const h = l.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+    if (h) { n = Number(h[1]); continue; }
+    if (l.startsWith("+") && ruta && esVigilado(ruta)) fuera.push({ ruta, linea: n++, texto: l.slice(1) });
+    else if (l.startsWith(" ")) n++;
   }
   return fuera;
+}
+
+const BOTS = new Set(["dependabot[bot]", "github-actions[bot]"]);
+
+/**
+ * La línea «Normas: sin novedades — <motivo>» del cuerpo del PR, sin contar
+ * comentarios HTML ni bloques de código (la plantilla puede traer ejemplos).
+ * { presente: false } | { presente: true, motivo } | { presente: true, error }.
+ */
+export function lineaNormas(cuerpo) {
+  const texto = String(cuerpo ?? "")
+    .replace(/\r/g, "")
+    .replace(/<!--[\s\S]*?(?:-->|$)/g, "")
+    .replace(/^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?(?:^[ \t]*\1[ \t]*$|$(?![\s\S]))/gm, "");
+  const m = texto.match(/^[ \t>*-]*(?:\*\*)?Normas(?:\*\*)?[ \t]*:(?:\*\*)?[ \t]*(.*)$/im);
+  if (!m) return { presente: false };
+  const v = m[1].trim().match(/^sin novedades\s*(?:—|–|-|:)\s*(.{3,})$/i);
+  if (!v) return { presente: true, error: `«Normas: ${m[1].trim()}» no vale: tiene que ser «Normas: sin novedades — <motivo>».` };
+  return { presente: true, motivo: v[1].trim() };
 }
 
 /**
- * La base nueva. Sin `subir`, cada cifra es la menor entre la de hoy y la
- * guardada: solo baja. Con `subir` (a propósito, se ve en el diff del PR),
- * la de hoy.
+ * Decide el paso del CI. `diff` es el de la base del PR a su cabeza; `ids`,
+ * los de ops/normas.json. { ok, motivo, sueltas: [{ ruta, linea, palabras }] }.
  */
-export function nuevaBase(actual, base, { subir = false } = {}) {
-  const fuera = {};
-  for (const ruta of Object.keys(actual).sort()) {
-    for (const palabra of Object.keys(actual[ruta]).sort()) {
-      const n = actual[ruta][palabra];
-      const b = base[ruta]?.[palabra] ?? 0;
-      const v = subir ? n : Math.min(n, b);
-      if (v > 0) (fuera[ruta] ??= {})[palabra] = v;
-    }
+export function comprobarNormasPr({ diff, cuerpo = "", autor = "", ids }) {
+  if (BOTS.has(String(autor).toLowerCase())) return { ok: true, motivo: "PR de un bot: exento.", sueltas: [] };
+  const sueltas = [];
+  const citasMalas = [];
+  for (const a of lineasAnadidas(diff)) {
+    const r = frasesDeLinea(a.texto, ids);
+    if (r.sueltas.length) sueltas.push({ ruta: a.ruta, linea: a.linea, palabras: r.sueltas });
+    for (const c of r.citasMalas) citasMalas.push(`${a.ruta}:${a.linea} norma:${c}`);
   }
-  return fuera;
-}
-
-/** Total de apariciones de una base. */
-export function totalBase(base) {
-  return Object.values(base).reduce((a, c) => a + Object.values(c).reduce((x, y) => x + y, 0), 0);
+  // Una cita a una norma que no existe falla siempre: «sin novedades» no la arregla.
+  if (citasMalas.length) return { ok: false, motivo: `Cita a una norma que no está en ops/normas.json: ${citasMalas.join(", ")}.`, sueltas };
+  if (!sueltas.length) return { ok: true, motivo: "Ninguna línea añadida con palabras fuertes sin citar.", sueltas };
+  const l = lineaNormas(cuerpo);
+  if (l.presente && l.motivo) return { ok: true, motivo: `Normas: sin novedades — ${l.motivo} (${sueltas.length} líneas)`, sueltas };
+  const donde = sueltas.slice(0, 5).map((s) => `${s.ruta}:${s.linea} («${s.palabras.join("», «")}»)`).join("; ");
+  const ayuda = "Cita la norma en la misma línea (<!-- norma:<id> -->, alta en ops/normas.json si no está) o, si no es una norma, pon en el cuerpo del PR «Normas: sin novedades — <motivo>».";
+  return { ok: false, motivo: `${l.error ? `${l.error} ` : ""}${sueltas.length} líneas añadidas con palabras fuertes sin citar norma: ${donde}. ${ayuda}`, sueltas };
 }
 
 // ── La medición del fondo (#185) ──────────────────────────────────────────
@@ -270,6 +332,9 @@ export const CIFRAS_FONDO = {
 /** Lo que cubre la clase al cerrar un fondo: un test, o una regla de la guardia con el suyo. */
 export const ARREGLOS_CON_TEST = ["arreglo:test", "arreglo:guardia"];
 
+/** Cierres de GitHub (`stateReason`) que no son un arreglo: no se cuentan como fondos sin test. */
+export const CIERRES_SIN_ARREGLO = ["NOT_PLANNED", "DUPLICATE"];
+
 const etiquetasDe = (i) => (i.labels ?? []).map((l) => (typeof l === "string" ? l : l.name));
 const tipoDeIssue = (i) => i.tipo ?? etiquetasDe(i).find((l) => l.startsWith("tipo:"))?.slice(5) ?? null;
 const abierto = (i) => String(i.state).toUpperCase() === "OPEN";
@@ -281,7 +346,8 @@ export function medirFondo(issues) {
   return {
     casos_sin_fondo: casos.filter((i) => !etiquetasDe(i).includes("analisis:puntual") && tipoDeIssue(i.padre ?? {}) !== "fondo").length,
     fondos_sin_encargo: fondos.filter((f) => abierto(f) && !(f.hijos ?? []).some((h) => tipoDeIssue(h) === "encargo")).length,
-    fondos_cerrados_sin_test: fondos.filter((f) => !abierto(f) && !etiquetasDe(f).some((l) => ARREGLOS_CON_TEST.includes(l))).length,
+    fondos_cerrados_sin_test: fondos.filter((f) => !abierto(f) && !CIERRES_SIN_ARREGLO.includes(String(f.stateReason ?? "").toUpperCase())
+      && !etiquetasDe(f).some((l) => ARREGLOS_CON_TEST.includes(l))).length,
   };
 }
 

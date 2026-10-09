@@ -17,7 +17,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
-import { RUTA_BASE as BASE_NORMAS, medirFondo, totalBase } from "./normas.mjs";
+import { leerRegistro, medirFondo, medirFrases, totalFrases } from "./normas.mjs";
 import { CONSULTA, leerIssue } from "./issues.mjs";
 
 /** Tipos de criterio. La definición larga vive en `vocabularios.tipos_criterio` de ops/planos.json (un test las compara). */
@@ -85,8 +85,15 @@ export const MEDIDORES = {
     const base = JSON.parse(readFileSync(join(raiz, "lint-base.json"), "utf8"));
     return Object.values(base).reduce((a, n) => a + Number(n), 0);
   },
-  /** Frases normativas que no citan ninguna norma (ops/normas-base.json, #296): el trinquete solo baja. */
-  frases_normativas_base: (raiz) => totalBase(JSON.parse(readFileSync(join(raiz, BASE_NORMAS), "utf8"))),
+  /**
+   * Palabras fuertes que no citan ninguna norma en CLAUDE.md, .claude/, PRINCIPIOS
+   * y ops/*.md (#296). Se cuenta en el repo, sin base guardada: es medición
+   * semanal, no rojo en cada PR (eso lo hace scripts/normas-pr.mjs con lo añadido).
+   */
+  frases_normativas: (raiz) => {
+    const ids = new Set(leerRegistro(raiz).normas.map((n) => n.id));
+    return totalFrases(medirFrases(raiz, ids).actual);
+  },
   // Las del fondo (#185, #296) necesitan los issues de GitHub: sin red, null y
   // el criterio sale «sin comprobar». Las define CIFRAS_FONDO de normas.mjs.
   casos_sin_fondo: (raiz, ctx) => cifraDeFondo("casos_sin_fondo", ctx),
@@ -101,15 +108,22 @@ function cifraDeFondo(cifra, ctx) {
   return ctx.fondo[cifra];
 }
 
+/**
+ * La consulta de scripts/lib/issues.mjs más el motivo de cierre (`stateReason`:
+ * un fondo cerrado como «no se hará» o duplicado no es un arreglo sin test).
+ * Se añade aquí para no tocar issues.mjs, que cambia otra rama a la vez.
+ */
+const CONSULTA_CON_MOTIVO = CONSULTA.replace("id number title state ", "id number title state stateReason ");
+
 /** Todos los issues con padre e hijos, por GraphQL (la consulta de scripts/lib/issues.mjs). */
 export function leerIssuesGh() {
   const out = [];
   let cursor = null;
   do {
-    const args = ["api", "graphql", "-f", `query=${CONSULTA}`];
+    const args = ["api", "graphql", "-f", `query=${CONSULTA_CON_MOTIVO}`];
     if (cursor) args.push("-f", `cursor=${cursor}`);
     const pag = JSON.parse(execFileSync("gh", args, { encoding: "utf8", timeout: 60_000, stdio: ["ignore", "pipe", "pipe"] })).data.repository.issues;
-    out.push(...pag.nodes.map(leerIssue));
+    out.push(...pag.nodes.map((n) => ({ ...leerIssue(n), stateReason: n.stateReason ?? null })));
     cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
   } while (cursor);
   return out;
