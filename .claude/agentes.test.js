@@ -119,10 +119,13 @@ it("el informe común lleva CASOS: y /orquestar los pasa a la línea «Casos:» 
   const orquestar = readFileSync(join(AQUI, "commands", "orquestar.md"), "utf8");
   expect(orquestar).toMatch(/`CASOS:`/);
   expect(orquestar).toMatch(/Casos: #n, #m/);
-  // Cada agente termina con el informe común (otro test); aquí, que ninguno lo redefine sin el campo.
+  // Cada agente remite al informe común de la plantilla (de ahí hereda CASOS:)
+  // o, si define el suyo, lo incluye.
   for (const f of agentes) {
     const { cuerpo } = leer(f);
-    if (/^ESTADO:/m.test(cuerpo)) expect(cuerpo, `${f} define su propio informe sin CASOS:`).toMatch(/^CASOS:/m);
+    const remite = /informe común/i.test(seccion(cuerpo, "Entregables"));
+    const propio = /^CASOS:/m.test(cuerpo);
+    expect(remite || propio, `${f}: ni remite al informe común ni lleva CASOS:`).toBe(true);
   }
 });
 

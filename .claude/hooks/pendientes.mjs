@@ -79,8 +79,44 @@ export function leerTranscript(jsonl) {
 
 /** Un `[guardia]` que no es un fallo: la puerta de las skills y la de «Casos:» piden algo, no han roto nada. */
 const GUARDIA_DE_TRAMITE = /abre antes (?:la|las) skills?|línea «Casos:»|falta la línea|«Casos:/i;
-/** Comandos y escritos que dejan un caso registrado, o dicen por qué no lo hay. */
-const CASO_REGISTRADO = /--nuevo[\s\S]*--tipo\s+caso|--tipo\s+caso[\s\S]*--nuevo|--colgar|gh\s+issue\s+comment|\bCasos\s*:\s*(?:#\d|ninguno)/i;
+
+/** Excepciones conocidas: tests flaky ya registrados como caso, que no cuentan como señal. */
+export const FLAKY_CONOCIDOS = { "dominios-skills.test.js": "#307" };
+
+/** Las órdenes de un comando, sin ejecutarlo: lo que hay entre `&&`, `;`, `|` y saltos de línea. */
+const ordenesDe = (cmd) => String(cmd).split(/&&|\|\||;|\||\n/).map((s) => s.trim()).filter(Boolean);
+const LANZA_TESTS = /^(?:\w+=\S+\s+)*(?:npx\s+vitest|npm\s+(?:run\s+)?test|vitest)\b/;
+const ES_ISSUES = /^(?:\w+=\S+\s+)*(?:npm\s+run\s+(?:--silent\s+)?issues|node\s+scripts\/issues\.mjs)\b/;
+const ES_PR = /^(?:\w+=\S+\s+)*gh\s+pr\s+(?:create|edit)\b/;
+const LINEA_CASOS = /\bCasos\s*:\s*(?:#\d|ninguno)/i;
+
+/** ¿Ejecuta este comando de Bash vitest o npm test? (no un grep que los nombre) */
+const lanzaTests = (cmd) => ordenesDe(cmd).some((o) => LANZA_TESTS.test(o));
+
+/**
+ * ¿Deja este comando un caso registrado? Solo lo que se EJECUTA cuenta:
+ *  - `npm run issues -- --nuevo … --tipo caso` o `--colgar`;
+ *  - `gh issue comment N` si algún resultado de la sesión mostró ese #N como tipo:caso;
+ *  - un `gh pr create|edit` con la línea `Casos:` en el comando o en el fichero de
+ *    `--body-file` que la sesión escribió (`escritos`: nombre de fichero → contenido).
+ * Escribir `--colgar` en un fichero o buscar «Casos: ninguno» con grep no es rastro.
+ */
+function dejaCaso(cmd, { escritos, vistosCaso }) {
+  for (const o of ordenesDe(cmd)) {
+    if (ES_ISSUES.test(o)) {
+      if (/--colgar\b/.test(o)) return true;
+      if (/--nuevo\b/.test(o) && /--tipo\s+caso\b/.test(o)) return true;
+    }
+    const c = o.match(/^gh\s+issue\s+comment\s+#?(\d+)/);
+    if (c && vistosCaso.has(c[1])) return true;
+    if (ES_PR.test(o)) {
+      if (LINEA_CASOS.test(cmd)) return true;
+      const f = o.match(/(?:-F|--body-file)(?:\s+|=)["']?([^\s"']+)/)?.[1];
+      if (f && LINEA_CASOS.test(escritos.get(nombreDe(f)) ?? "")) return true;
+    }
+  }
+  return false;
+}
 
 const sinColor = (s) => String(s).replace(/\u001b\[[0-9;]*m/g, "");
 const nombreDe = (ruta) => String(ruta).split(/[\\/]/).pop();
@@ -98,7 +134,8 @@ const textoDe = (c) => (typeof c === "string" ? c : Array.isArray(c) ? c.map((x)
 export function senalesDeFallo(jsonl) {
   const usos = new Map(); // id → { name, command }
   const tocados = new Set();
-  const escritos = [];
+  const comandos = [];
+  const escritos = new Map(); // nombre de fichero → lo último que se escribió con Write
   const resultados = [];
   for (const linea of String(jsonl).split("\n")) {
     let e;
@@ -112,8 +149,8 @@ export function senalesDeFallo(jsonl) {
     for (const p of partes) {
       if (e.type === "assistant" && p.type === "tool_use") {
         usos.set(p.id, { name: p.name, command: p.input?.command ?? "" });
-        if (p.input?.command) escritos.push(p.input.command);
-        if (p.input?.content) escritos.push(String(p.input.content));
+        if (p.input?.command && /^(?:Bash|PowerShell)$/.test(p.name)) comandos.push(p.input.command);
+        if (p.input?.content && p.input?.file_path) escritos.set(nombreDe(p.input.file_path), String(p.input.content));
         const f = p.input?.file_path;
         if (f) tocados.add(nombreDe(f));
       } else if (e.type === "user" && p.type === "tool_result") {
@@ -129,8 +166,8 @@ export function senalesDeFallo(jsonl) {
       if (m) senales.push(`informe de un agente con ESTADO: ${m[1]}`);
       else if (/^\s*-\s*\[bloqueante\]/im.test(texto)) senales.push("informe de un agente con un hallazgo bloqueante");
     } else if (/^(?:Bash|PowerShell)$/.test(uso.name)) {
-      if (/vitest|npm\s+(?:run\s+)?test|npx\s+vitest/i.test(uso.command)) {
-        const ajenos = [...texto.matchAll(/^\s*FAIL\s+(\S+)/gm)].map((m) => nombreDe(m[1])).filter((f) => !tocados.has(f));
+      if (lanzaTests(uso.command)) {
+        const ajenos = [...texto.matchAll(/^\s*FAIL\s+(\S+)/gm)].map((m) => nombreDe(m[1])).filter((f) => !tocados.has(f) && !Object.hasOwn(FLAKY_CONOCIDOS, f));
         if (ajenos.length) senales.push(`vitest en rojo en ${[...new Set(ajenos)].slice(0, 3).join(", ")}, que no tocaste`);
       }
     }
@@ -138,7 +175,13 @@ export function senalesDeFallo(jsonl) {
       senales.push(`la guardia te negó un ${uso.name === "Edit" || uso.name === "Write" || uso.name === "MultiEdit" ? "edit" : "comando"}`);
     }
   }
-  return { senales: [...new Set(senales)], registrado: escritos.some((c) => CASO_REGISTRADO.test(c)) };
+  // Los #N que algún resultado de la sesión mostró como tipo:caso (para `gh issue comment N`).
+  const vistosCaso = new Set();
+  for (const { texto } of resultados) {
+    if (!texto.includes("tipo:caso")) continue;
+    for (const m of texto.matchAll(/(?<!\d)#?(\d{1,8})(?!\d)/g)) vistosCaso.add(m[1]);
+  }
+  return { senales: [...new Set(senales)], registrado: comandos.some((c) => dejaCaso(c, { escritos, vistosCaso })) };
 }
 
 /** El mensaje del freno: las señales y qué hacer. Sale una sola vez por sesión. */

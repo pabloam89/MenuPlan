@@ -326,6 +326,11 @@ describe("gh pr create lleva la línea «Casos:» (#185)", () => {
     expect(r.motivo).toMatch(/ninguno — /);
   });
   it.each(['gh pr create --body "Casos: #301, #305"', `gh pr create --body "${CASOS}"`])("con ella, pasa: %s", (c) => expect(bash(c)).toBe(null));
+  it("admite texto tras la lista (mismo criterio que el CI) pero no 21 números", () => {
+    expect(bash('gh pr create --body "Casos: #12 (el test rojo)"')).toBe(null);
+    const lista = Array.from({ length: 21 }, (_, i) => `#${i + 1}`).join(", ");
+    expect(bash(`gh pr create --body "Casos: ${lista}"`)).toBe("deny");
+  });
   it("la lee del --body-file", () => {
     expect(bash("gh pr create --body-file pr.md", ctx({ leer: () => "Closes #1\nCasos: #301" }))).toBe(null);
     expect(bash("gh pr create --body-file pr.md", ctx({ leer: () => "Closes #1" }))).toBe("deny");

@@ -20,7 +20,26 @@ describe("la línea «Casos:» del PR (#185)", () => {
     expect(r.ninguno).toBe(false);
   });
 
-  it.each([`Casos: ninguno — ${MOTIVO}`, `Casos: ninguno - ${MOTIVO}.`, `Casos: Ninguno: ${MOTIVO}`])("«ninguno» con motivo vale: %s", (c) => {
+  // Un solo criterio para la guardia y el CI: el texto tras la lista se admite y solo cuentan los números.
+  it.each([
+    ["Casos: #12 (el test rojo)", [12]],
+    ["Casos: #12, #13 — dos fallos del entorno, ver #99", [12, 13]],
+    ["Casos: #12 el test rojo de #99", [12]],
+  ])("texto tras la lista, en el cuerpo: %j", (cuerpo, numeros) => {
+    expect(analizarCasos(cuerpo).numeros).toEqual(numeros);
+    expect(analizarCasos(`gh pr create --body "${cuerpo}"`, { enComando: true }).numeros).toEqual(numeros);
+  });
+  it("20 números exactos todavía valen", () => {
+    const lista = Array.from({ length: 20 }, (_, i) => `#${i + 1}`).join(", ");
+    expect(analizarCasos(`Casos: ${lista}`).valida).toBe(true);
+  });
+  it("una línea enorme no cuelga el análisis", () => {
+    const t0 = Date.now();
+    analizarCasos(`Casos: ${"#1, ".repeat(200_000)}`);
+    expect(Date.now() - t0).toBeLessThan(1000);
+  });
+
+  it.each([`Casos: ninguno — ${MOTIVO}`, `Casos: ninguno -${MOTIVO}.`, `Casos: Ninguno: ${MOTIVO}`])("«ninguno» con motivo vale: %s", (c) => {
     const r = analizarCasos(c);
     expect(r.valida).toBe(true);
     expect(r.ninguno).toBe(true);
@@ -38,7 +57,10 @@ describe("la línea «Casos:» del PR (#185)", () => {
     ["ninguno con pocas palabras", "Casos: ninguno — noseguntalcomoyquetal123"],
     ["texto que no es número", "Casos: varios"],
     ["número sin almohadilla", "Casos: 301"],
-    ["números con cola", "Casos: #301 más cosas que no son números"],
+    ["más de 20 números", `Casos: ${Array.from({ length: 21 }, (_, i) => `#${i + 1}`).join(", ")}`],
+    ["miles de números en varias líneas", Array.from({ length: 300 }, (_, i) => `Casos: #${i + 1}`).join("\n")],
+    ["un número mayor de 10^7", "Casos: #10000001"],
+    ["un número gigante", `Casos: #${"9".repeat(40)}`],
     ["ninguno y números a la vez", `Casos: #301\nCasos: ninguno — ${MOTIVO}`],
     ["una buena y otra rota", "Casos: #301\nCasos: "],
   ])("no vale: %s", (_, cuerpo) => {

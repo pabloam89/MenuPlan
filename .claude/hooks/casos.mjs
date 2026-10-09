@@ -7,6 +7,7 @@
  * línea, qué casos (issues `tipo:caso`) deja registrados o por qué no hay:
  *
  *   Casos: #301, #305
+ *   Casos: #12 (el test rojo)     ← el texto tras la lista se admite; solo cuentan los números
  *   Casos: ninguno — solo mueve ficheros de sitio, no se ha visto ningún fallo
  *
  * La misma lógica la usan la guardia (al abrir el PR, solo la forma, sin red) y
@@ -16,6 +17,9 @@
 /** Longitud mínima del motivo de «ninguno»: «n/a» o «nada» no es un motivo. */
 export const MIN_MOTIVO = 25;
 const MIN_PALABRAS = 4;
+/** Tope de casos por PR y número de issue más alto que se acepta. */
+export const MAX_CASOS = 20;
+export const MAX_NUMERO = 10_000_000;
 
 export const AYUDA =
   "Añade al cuerpo del PR una línea «Casos: #n, #m» con los issues `tipo:caso` que has registrado " +
@@ -47,13 +51,12 @@ export function analizarCasos(cuerpo, { enComando = false } = {}) {
 
   const numeros = [];
   let ninguno = false;
-  for (const crudo of lineas) {
+  for (const entera of lineas) {
+    // Tope de largo: una línea de megas no debe costar tiempo de regex.
+    const crudo = entera.slice(0, 2000);
     if (!crudo) return { valida: false, motivo: "La línea «Casos:» está vacía." };
     const lista = crudo.match(/^(#\d+(?:\s*(?:,|;|\sy\s|\se\s)\s*#\d+)*)\s*\.?\s*(.*)$/i);
     if (lista) {
-      if (lista[2] && !enComando) {
-        return { valida: false, motivo: `«Casos: ${crudo}» no vale: tras los números no puede ir nada más (${lista[2].slice(0, 30)}…).` };
-      }
       numeros.push(...[...lista[1].matchAll(/#(\d+)/g)].map((m) => Number(m[1])));
       continue;
     }
@@ -71,6 +74,10 @@ export function analizarCasos(cuerpo, { enComando = false } = {}) {
       continue;
     }
     return { valida: false, motivo: `«Casos: ${crudo.slice(0, 60)}» no vale: tiene que ser «#n, #m» o «ninguno — <motivo>».` };
+  }
+  // Tope: cada número es una petición a la API en el CI; miles agotarían el límite del token.
+  if (numeros.length > MAX_CASOS || numeros.some((n) => n > MAX_NUMERO)) {
+    return { valida: false, motivo: `«Casos:» cita demasiados issues o números que no son de un issue (máximo ${MAX_CASOS} casos, números hasta ${MAX_NUMERO}).` };
   }
   if (ninguno && numeros.length) {
     return { valida: false, motivo: "«Casos» dice a la vez «ninguno» y una lista de issues: o hay casos o no los hay." };

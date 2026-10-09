@@ -23,7 +23,13 @@ const BOTS = new Set(["dependabot[bot]", "github-actions[bot]"]);
 const ANALISIS = Object.keys(GRUPOS.analisis.valores);
 
 /** Error de la API (no del PR): el mensaje dice la causa. */
-export class ErrorDeApi extends Error {}
+export class ErrorDeApi extends Error {
+  /** `permisos`: 401, el token no sirve; relanzar no lo arregla. */
+  constructor(mensaje, { permisos = false } = {}) {
+    super(mensaje);
+    this.permisos = permisos;
+  }
+}
 
 /** ¿Es el issue un caso bien analizado? → null si vale, o el porqué. */
 export function falloDeCaso(n, issue) {
@@ -54,6 +60,9 @@ export async function comprobar({ cuerpo, autor = "", consultar }) {
       issue = await consultar(n);
     } catch (e) {
       if (!(e instanceof ErrorDeApi)) throw e;
+      if (e.permisos) {
+        return { ok: false, api: true, motivo: `La API de GitHub rechaza el token del workflow (${e.message}) al leer #${n}: no es culpa del PR ni sirve relanzar. Revisa que tests.yml tenga «permissions: issues: read» y que el token no haya caducado.` };
+      }
       return { ok: false, api: true, motivo: `No he podido consultar #${n} en la API de GitHub (${e.message}). No es culpa del PR: relanza el check.` };
     }
     const f = falloDeCaso(n, issue);
@@ -69,6 +78,7 @@ export async function comprobar({ cuerpo, autor = "", consultar }) {
 export function consultaReal({ token, repo, fetchFn = globalThis.fetch, espera = (ms) => new Promise((r) => setTimeout(r, ms)), intentos = 3 }) {
   return async (n) => {
     let causa = "";
+    let permisos = false;
     for (let i = 1; i <= intentos; i++) {
       try {
         const r = await fetchFn(`https://api.github.com/repos/${repo}/issues/${n}`, {
@@ -78,13 +88,16 @@ export function consultaReal({ token, repo, fetchFn = globalThis.fetch, espera =
         if (r.status === 404) return null;
         if (r.ok) return await r.json();
         causa = `HTTP ${r.status}`;
-        if (r.status === 401) break; // el token no vale: reintentar no lo arregla
+        if (r.status === 401) {
+          permisos = true; // el token no vale: reintentar no lo arregla
+          break;
+        }
       } catch (e) {
         causa = e?.message ?? String(e);
       }
       if (i < intentos) await espera(1000 * i);
     }
-    throw new ErrorDeApi(causa);
+    throw new ErrorDeApi(causa, { permisos });
   };
 }
 

@@ -63,7 +63,7 @@ describe("freno de los casos: lo que cuenta como rastro", () => {
     'npm run issues -- --nuevo "x" --tipo caso --analisis abierto --area ops --cuerpo f.md',
     'npm run issues -- --nuevo "x" --area ops --tipo caso --cuerpo f.md',
     "npm run issues -- --colgar 301 185",
-    "gh issue comment 301 --body x",
+    'cd /c/dev/X && npm run issues -- --colgar 301 185 && git status',
     'gh pr create --body "Casos: #301"',
     'gh pr edit 5 --body "Casos: ninguno — solo documentación, nada se ha roto"',
   ])("con rastro (%s), no frena", (command) => {
@@ -71,8 +71,45 @@ describe("freno de los casos: lo que cuenta como rastro", () => {
     expect(r.senales).toHaveLength(1);
     expect(r.registrado).toBe(true);
   });
-  it("el rastro en un cuerpo de PR escrito con Write también cuenta", () => {
-    expect(senalesDeFallo(sesion(uso("a", "Write", { file_path: "pr.md", content: "Closes #1\nCasos: #5" }))).registrado).toBe(true);
+  it("el cuerpo de PR escrito con Write cuenta solo si un gh pr create lo usa con --body-file", () => {
+    const escribe = uso("a", "Write", { file_path: "C:\\dev\\X\\pr.md", content: "Closes #1\nCasos: #5" });
+    expect(senalesDeFallo(sesion(escribe)).registrado).toBe(false);
+    expect(senalesDeFallo(sesion(escribe, uso("b", "Bash", { command: "gh pr create --body-file pr.md" }))).registrado).toBe(true);
+    expect(senalesDeFallo(sesion(escribe, uso("b", "Bash", { command: "gh pr create --body-file otro.md" }))).registrado).toBe(false);
+  });
+
+  // Lo que NO es rastro: escribir o buscar el texto no registra nada (revisor, ronda 2).
+  it.each([
+    ["escribir un fichero con --colgar", uso("a", "Write", { file_path: "x.md", content: "npm run issues -- --colgar 1 2" })],
+    ["escribir una línea Casos: en un fichero", uso("a", "Write", { file_path: "x.md", content: "Casos: #5" })],
+    ["un grep de Casos: ninguno", uso("a", "Bash", { command: "grep -rn 'Casos: ninguno' docs" })],
+    ["un echo de --colgar", uso("a", "Bash", { command: 'echo "npm run issues -- --colgar 1 2"' })],
+    ["un cat de gh pr create con Casos", uso("a", "Bash", { command: 'cat x.md # gh pr create "Casos: #4"' })],
+    ["gh issue comment sobre un issue que no se vio como caso", uso("a", "Bash", { command: "gh issue comment 301 --body x" })],
+  ])("no cuenta: %s", (_, accion) => {
+    expect(senalesDeFallo(sesion(accion)).registrado).toBe(false);
+  });
+  it("gh issue comment sí cuenta sobre un issue que la sesión vio como tipo:caso", () => {
+    const t = sesion(
+      uso("v", "Bash", { command: "gh issue view 301 --json labels" }), res("v", '{"number":301,"labels":["tipo:caso"]}'),
+      uso("c", "Bash", { command: "gh issue comment 301 --body mas evidencia" }),
+    );
+    expect(senalesDeFallo(t).registrado).toBe(true);
+  });
+  it("un grep que nombra npm test o vitest no es lanzar tests", () => {
+    const t = sesion(uso("a", "Bash", { command: "grep -rn 'npm test' docs" }), res("a", " FAIL  docs/x.test.js"));
+    expect(senalesDeFallo(t).senales).toEqual([]);
+  });
+  it("npm test con cd delante y variables sí lo es", () => {
+    const t = sesion(uso("a", "Bash", { command: "cd /c/dev/X && TZ=UTC npm test" }), res("a", " FAIL  src/z.test.js"));
+    expect(senalesDeFallo(t).senales[0]).toMatch(/z\.test\.js/);
+  });
+  it("el flaky conocido de dominios-skills (#307) no cuenta como señal, otro test rojo sí", () => {
+    const flaky = sesion(uso("a", "Bash", { command: "npx vitest run .claude" }), res("a", " FAIL  .claude/dominios-skills.test.js > razon"));
+    expect(senalesDeFallo(flaky).senales).toEqual([]);
+    const otro = sesion(uso("a", "Bash", { command: "npx vitest run .claude" }), res("a", " FAIL  .claude/dominios-skills.test.js > razon\n FAIL  .claude/otro.test.js > x"));
+    expect(senalesDeFallo(otro).senales[0]).toMatch(/otro\.test\.js/);
+    expect(senalesDeFallo(otro).senales[0]).not.toMatch(/dominios-skills/);
   });
   it("un issue de otro tipo (decisión) no es rastro de un caso", () => {
     expect(senalesDeFallo(sesion(uso("b", "Bash", { command: 'npm run issues -- --nuevo "x" --tipo decision --area ops' }))).registrado).toBe(false);
