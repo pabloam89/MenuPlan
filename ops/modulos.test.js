@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { tablas as tablasDeMigraciones } from "../scripts/cableado.mjs";
-import { GRADOS_DESARROLLO, AMBITOS_MODULO, ESTADOS_METRICA, ACCESOS_TABLA } from "../src/lib/vocabularios.js";
+import { GRADOS_DESARROLLO, AMBITOS_MODULO, ESTADOS_METRICA } from "../src/lib/vocabularios.js";
 
 /**
  * El mapa de módulos (ops/MODULOS.json, issue #157) no se puede quedar viejo.
@@ -22,15 +22,26 @@ const cableado = JSON.parse(leer("supabase/cableado.json"));
 const unidades = mapa.modulos.flatMap((m) => [{ ...m, padre: null }, ...(m.submodulos ?? []).map((s) => ({ ...s, ambito: m.ambito, padre: m.id }))]);
 const porId = new Map(unidades.map((u) => [u.id, u]));
 const hojas = unidades.filter((u) => !(u.submodulos?.length));
+const EXT = ["", ".js", ".jsx", ".mjs", "/index.js"];
 
-const LISTA_O_VACIA = (v) => Array.isArray(v);
+/** Los ficheros a los que un fichero de test se refiere con import, require, mock o URL relativa. */
+function refsDeTest(ruta) {
+  const texto = leer(ruta);
+  const dir = dirname(ruta);
+  const salida = new Set();
+  for (const m of texto.matchAll(/["'`](\.{1,2}\/[^"'`\s]+)["'`]/g)) {
+    const base = join(dir, m[1]).replace(/\\/g, "/");
+    for (const e of EXT) if (existsSync(join(RAIZ, base + e))) salida.add(base + e);
+  }
+  return salida;
+}
 
 describe("MODULOS.json: forma y vocabulario cerrado", () => {
   it("las definiciones del JSON dicen lo mismo que las constantes de src/lib/vocabularios.js", () => {
     const aviso = "Si añades un valor, ponlo en la constante de src/lib/vocabularios.js Y en `vocabularios` de ops/MODULOS.json con su definición.";
     expect(Object.keys(mapa.vocabularios.grados_desarrollo), aviso).toEqual(GRADOS_DESARROLLO);
     expect(Object.keys(mapa.vocabularios.ambitos_modulo), aviso).toEqual(AMBITOS_MODULO);
-    expect(Object.keys(mapa.vocabularios.accesos_tabla), aviso).toEqual(ACCESOS_TABLA);
+    expect(Object.keys(mapa.vocabularios.estados_metrica), aviso).toEqual(ESTADOS_METRICA);
   });
 
   it("los ids son únicos y con forma de id (minúsculas, números y guiones)", () => {
@@ -50,9 +61,10 @@ describe("MODULOS.json: forma y vocabulario cerrado", () => {
       for (const c of ["id", "nombre", "ambito", "hace", "grado", "motivo_grado"]) {
         if (typeof u[c] !== "string" || !u[c].trim()) faltan.push(`${u.id}: falta «${c}» (texto no vacío)`);
       }
-      for (const c of ["ficheros", "tests", "tablas", "metricas"]) {
-        if (!LISTA_O_VACIA(u[c])) faltan.push(`${u.id}: «${c}» debe ser una lista (vacía si no hay nada)`);
+      for (const c of ["ficheros", "tests", "metricas"]) {
+        if (!Array.isArray(u[c])) faltan.push(`${u.id}: «${c}» debe ser una lista (vacía si no hay nada)`);
       }
+      if ("tablas" in u) faltan.push(`${u.id}: «tablas» no se guarda en el módulo; el dueño vive solo en el mapa \`tablas\``);
     }
     expect(faltan, "Rellena el campo que falta en ops/MODULOS.json; `hace` es una frase de castellano llano.").toEqual([]);
   });
@@ -89,15 +101,56 @@ describe("MODULOS.json: el grado se justifica con algo comprobable", () => {
     }
     expect(malos).toEqual([]);
   });
+
+  it("cada test de una unidad prueba algo de esa unidad (importa o se refiere a uno de sus `ficheros`), salvo excepciones con motivo", () => {
+    const excepciones = new Set((mapa.tests_ajenos_admitidos ?? []).map((e) => `${e.unidad}|${e.test}`));
+    const malos = [];
+    for (const u of unidades) {
+      const suyos = new Set(u.ficheros);
+      for (const t of u.tests) {
+        if (!existsSync(join(RAIZ, t))) continue; // ya lo dice el test de ficheros
+        if (excepciones.has(`${u.id}|${t}`)) continue;
+        if (![...refsDeTest(t)].some((r) => suyos.has(r))) malos.push(`${u.id}: «${t}» no importa ningún fichero de su unidad`);
+      }
+    }
+    expect(malos, "Un test solo cuenta como evidencia si toca código de la unidad. Cita otro test que sí lo haga, baja el grado, o añádelo a `tests_ajenos_admitidos` con unidad, test y motivo.").toEqual([]);
+  });
+
+  it("las excepciones de tests ajenos llevan motivo y apuntan a algo que existe", () => {
+    const malos = (mapa.tests_ajenos_admitidos ?? []).flatMap((e) => {
+      const u = porId.get(e.unidad);
+      if (!u) return [`${e.unidad}: la unidad no existe`];
+      if (!u.tests.includes(e.test)) return [`${e.unidad}: ya no cita «${e.test}»; quita la excepción`];
+      if (typeof e.motivo !== "string" || e.motivo.trim().length < 15) return [`${e.unidad}/${e.test}: falta el motivo`];
+      return [];
+    });
+    expect(malos).toEqual([]);
+  });
+
+  it("lo apagado nombra su interruptor, y ese interruptor existe y vale lo que dice", async () => {
+    const malos = [];
+    for (const u of unidades.filter((x) => x.apagado)) {
+      const a = u.apagado_por;
+      if (!a?.constante || !a?.fichero || a.valor === undefined) { malos.push(`${u.id}: apagado sin \`apagado_por\` {constante, fichero, valor}`); continue; }
+      if (!existsSync(join(RAIZ, a.fichero))) { malos.push(`${u.id}: no existe «${a.fichero}»`); continue; }
+      const modulo = await import(pathToFileURL(join(RAIZ, a.fichero)).href);
+      if (!(a.constante in modulo)) malos.push(`${u.id}: ${a.fichero} no exporta ${a.constante}`);
+      else if (modulo[a.constante] !== a.valor) malos.push(`${u.id}: ${a.constante} vale ${modulo[a.constante]} y el mapa dice ${a.valor} (¿se volvió a encender? cambia grado y quita \`apagado\`)`);
+      else if (a.valor !== false) malos.push(`${u.id}: un módulo apagado tiene su interruptor en false`);
+    }
+    for (const u of unidades) if (u.apagado_por && !u.apagado) malos.push(`${u.id}: tiene \`apagado_por\` pero no \`apagado: true\``);
+    expect(malos, "Si el interruptor cambió, actualiza `apagado`/`apagado_por` y el grado del módulo.").toEqual([]);
+  });
 });
 
-describe("MODULOS.json: los ficheros existen", () => {
+describe("MODULOS.json: los ficheros existen y no queda código sin dueño", () => {
   it("todo fichero citado (código y tests) existe", () => {
     const faltan = [];
-    for (const u of unidades) {
-      for (const f of [...u.ficheros, ...u.tests]) {
-        if (typeof f !== "string" || f.startsWith("/") || f.includes("\\") || f.includes("..")) faltan.push(`${u.id}: ruta mal escrita «${f}» (relativa y con /)`);
-        else if (!existsSync(join(RAIZ, f))) faltan.push(`${u.id}: no existe «${f}»`);
+    const todos = [...unidades.map((u) => [u.id, [...u.ficheros, ...u.tests]]), ...(mapa.ficheros_sin_modulo ?? []).map((g, i) => [`ficheros_sin_modulo[${i}]`, g.ficheros])];
+    for (const [id, lista] of todos) {
+      for (const f of lista) {
+        if (typeof f !== "string" || f.startsWith("/") || f.includes("\\") || f.includes("..")) faltan.push(`${id}: ruta mal escrita «${f}» (relativa y con /)`);
+        else if (!existsSync(join(RAIZ, f))) faltan.push(`${id}: no existe «${f}»`);
       }
     }
     expect(faltan, "Se movió o se borró un fichero: corrige la ruta en ops/MODULOS.json (o quítala si ya no es de ese módulo).").toEqual([]);
@@ -107,9 +160,27 @@ describe("MODULOS.json: los ficheros existen", () => {
     const malos = unidades.flatMap((u) => u.tests.filter((t) => !/\.test\.(js|jsx|mjs)$/.test(t)).map((t) => `${u.id}: «${t}»`));
     expect(malos, "`tests` solo lleva ficheros *.test.js; el código va en `ficheros`.").toEqual([]);
   });
+
+  it("todo fichero de api/ y de src/screens y src/lib está en algún módulo o en ficheros_sin_modulo (con motivo)", () => {
+    const enModulo = new Set(unidades.flatMap((u) => u.ficheros));
+    const grupos = mapa.ficheros_sin_modulo ?? [];
+    const sinModulo = new Set(grupos.flatMap((g) => g.ficheros));
+    const sinMotivo = grupos.filter((g) => typeof g.motivo !== "string" || g.motivo.trim().length < 15).map((g) => g.ficheros.join(", "));
+    const hay = [];
+    for (const d of ["api", "api/_bot", "api/bot", "src/screens", "src/lib"]) {
+      for (const e of readdirSync(join(RAIZ, d), { withFileTypes: true })) {
+        if (e.isFile() && /\.(js|jsx|mjs)$/.test(e.name) && !/\.test\./.test(e.name)) hay.push(`${d}/${e.name}`);
+      }
+    }
+    const nuevos = hay.filter((f) => !enModulo.has(f) && !sinModulo.has(f));
+    const dobles = hay.filter((f) => enModulo.has(f) && sinModulo.has(f));
+    expect(nuevos, `Código sin módulo: ${nuevos.join(", ")}. Añádelo a \`ficheros\` del módulo al que pertenece en ops/MODULOS.json o, si de verdad no es de ninguno, a un grupo de \`ficheros_sin_modulo\` con su motivo.`).toEqual([]);
+    expect(dobles, "Está en un módulo Y en ficheros_sin_modulo: quítalo de la lista de sin módulo.").toEqual([]);
+    expect(sinMotivo, "Cada grupo de ficheros_sin_modulo dice por qué (una frase).").toEqual([]);
+  });
 });
 
-describe("MODULOS.json: cada tabla tiene un único módulo dueño", () => {
+describe("MODULOS.json: cada tabla tiene un único módulo dueño y sus dos puertas", () => {
   const enMigraciones = tablasDeMigraciones(RAIZ);
   const universo = new Set([...enMigraciones, ...Object.keys(cableado), ...(mapa.tablas_fuera_de_migraciones ?? [])]);
   const excepciones = new Map((mapa.tablas_excepciones ?? []).map((e) => [e.tabla, e.motivo]));
@@ -118,18 +189,8 @@ describe("MODULOS.json: cada tabla tiene un único módulo dueño", () => {
     const sinModulo = [...universo].filter((t) => !mapa.tablas[t] && !excepciones.has(t)).sort();
     expect(
       sinModulo,
-      `Tablas sin módulo: ${sinModulo.join(", ")}. Añádelas a \`tablas\` de ops/MODULOS.json (con su dueño, y en el \`tablas\` de ese módulo) o, si de verdad no pertenecen a ninguno, a \`tablas_excepciones\` con el motivo.`,
+      `Tablas sin módulo: ${sinModulo.join(", ")}. Añádelas a \`tablas\` de ops/MODULOS.json (con su dueño y sus puertas) o, si de verdad no pertenecen a ninguno, a \`tablas_excepciones\` con el motivo. Una tabla cuya migración aún no está aplicada también puede tener dueño.`,
     ).toEqual([]);
-  });
-
-  it("cada tabla citada en supabase/ESTADO.md (entre comillas invertidas) tiene dueño o excepción", () => {
-    // ESTADO.md no tiene una lista parseable de tablas: es prosa. La fuente
-    // fiable es migraciones + cableado.json (test de arriba); esto añade las
-    // que ESTADO.md nombra a mano, por si una tabla vive solo allí.
-    const nombres = new Set([...leer("supabase/ESTADO.md").matchAll(/`([a-z][a-z0-9_]*)`/g)].map((m) => m[1]));
-    const citadas = [...nombres].filter((n) => enMigraciones.has(n));
-    const sinModulo = citadas.filter((t) => !mapa.tablas[t] && !excepciones.has(t)).sort();
-    expect(sinModulo, `ESTADO.md nombra tablas sin módulo: ${sinModulo.join(", ")}. Añádelas a ops/MODULOS.json.`).toEqual([]);
   });
 
   it("una tabla no está a la vez con dueño y en excepciones, y las excepciones llevan motivo", () => {
@@ -144,47 +205,42 @@ describe("MODULOS.json: cada tabla tiene un único módulo dueño", () => {
     expect(fantasmas, `Tablas del mapa que nadie crea ni toca: ${fantasmas.join(", ")}. Quítalas de ops/MODULOS.json (o añádelas a \`tablas_fuera_de_migraciones\` si existen en la base sin migración).`).toEqual([]);
   });
 
-  it("el dueño de cada tabla existe, la lista en su `tablas`, y ningún otro módulo se la queda", () => {
+  it("el dueño de cada tabla existe", () => {
+    const malos = Object.entries(mapa.tablas).filter(([, i]) => !porId.has(i.dueno)).map(([t, i]) => `${t}: el dueño «${i.dueno}» no existe`);
+    expect(malos, "PRINCIPIOS §15: una tabla, un módulo dueño (campo `dueno`, un id de módulo o submódulo).").toEqual([]);
+  });
+
+  it("las dos puertas de cada tabla (app y servidor) están en `ficheros` del dueño, o son null con motivo en `sin_puerta`", () => {
     const malos = [];
     for (const [t, info] of Object.entries(mapa.tablas)) {
       const dueno = porId.get(info.dueno);
-      if (!dueno) { malos.push(`${t}: el dueño «${info.dueno}» no existe`); continue; }
-      if (!dueno.tablas.includes(t)) malos.push(`${t}: ${dueno.id} es su dueño pero no la lista en su \`tablas\``);
-    }
-    for (const u of unidades) {
-      for (const t of u.tablas) {
-        const info = mapa.tablas[t];
-        if (!info) malos.push(`${u.id}: lista «${t}», que no está en \`tablas\` (el mapa de dueños)`);
-        else if (info.dueno !== u.id) malos.push(`${u.id}: lista «${t}», pero su dueño es ${info.dueno} (una tabla, un dueño; si ${u.id} solo la usa, no la listes aquí)`);
+      const puertas = info.fichero_dueno;
+      if (!puertas || !("app" in puertas) || !("servidor" in puertas)) { malos.push(`${t}: \`fichero_dueno\` debe ser { app, servidor }`); continue; }
+      for (const lado of ["app", "servidor"]) {
+        const f = puertas[lado];
+        if (f === null) {
+          if (typeof info.sin_puerta?.[lado] !== "string" || info.sin_puerta[lado].trim().length < 10) malos.push(`${t}: puerta ${lado} null sin motivo en \`sin_puerta.${lado}\``);
+          continue;
+        }
+        if (info.sin_puerta?.[lado]) malos.push(`${t}: puerta ${lado} definida pero con motivo de \`sin_puerta.${lado}\`; quita uno`);
+        if (!existsSync(join(RAIZ, f))) malos.push(`${t}: no existe la puerta ${lado} «${f}»`);
+        else if (dueno && !dueno.ficheros.includes(f)) malos.push(`${t}: la puerta ${lado} «${f}» no está en \`ficheros\` de su dueño (${info.dueno}); o el dueño es otro o la puerta es otra`);
+        const deApp = f.startsWith("src/");
+        if (lado === "app" && !deApp) malos.push(`${t}: la puerta app «${f}» debería estar en src/`);
+        if (lado === "servidor" && deApp) malos.push(`${t}: la puerta servidor «${f}» no debería estar en src/`);
       }
     }
-    expect(malos, "PRINCIPIOS §15: una tabla, un módulo dueño. `tablas` de un módulo lleva solo las que posee.").toEqual([]);
+    expect(malos, "PRINCIPIOS §15 pide una puerta por lado. Si una no existe de verdad, ponla a null y explica por qué: no inventes.").toEqual([]);
   });
 
-  it("`acceso` de cada tabla cuadra con supabase/cableado.json (cuántos ficheros la tocan)", () => {
-    const malos = [];
-    for (const [t, info] of Object.entries(mapa.tablas)) {
-      if (!ACCESOS_TABLA.includes(info.acceso)) { malos.push(`${t}: acceso «${info.acceso}» fuera del vocabulario`); continue; }
-      const n = (cableado[t] ?? []).length;
-      const real = n === 0 ? "sin_fichero" : n === 1 ? "unico" : "repartido";
-      if (info.acceso !== real) malos.push(`${t}: dice «${info.acceso}» pero cableado.json tiene ${n} fichero(s) → «${real}»`);
-      if (real === "unico" && info.fichero_dueno !== cableado[t][0]) malos.push(`${t}: su único fichero es ${cableado[t][0]}, no ${info.fichero_dueno}`);
-    }
-    expect(malos, "Cambia `acceso` en ops/MODULOS.json (el cableado cambió: un PR sacó o añadió un fichero de esa tabla).").toEqual([]);
-  });
-
-  it("`fichero_dueno` (la única puerta) existe, o es null con una nota", () => {
-    const malos = [];
-    for (const [t, info] of Object.entries(mapa.tablas)) {
-      if (info.fichero_dueno === null) { if (!info.nota) malos.push(`${t}: sin fichero_dueno y sin nota que lo explique`); continue; }
-      if (!existsSync(join(RAIZ, info.fichero_dueno))) malos.push(`${t}: no existe «${info.fichero_dueno}»`);
-    }
-    expect(malos, "Pon el fichero que debe ser la única puerta a la tabla, o null con una nota (en desuso, solo RPC…).").toEqual([]);
+  it("`acceso` no se guarda: lo calcula el panel de supabase/cableado.json", () => {
+    const guardado = Object.entries(mapa.tablas).filter(([, i]) => "acceso" in i).map(([t]) => t);
+    expect(guardado, "Quita `acceso`: cuántos ficheros tocan una tabla sale de supabase/cableado.json, no se copia.").toEqual([]);
   });
 });
 
 describe("MODULOS.json: métricas", () => {
-  /** Todo el texto del producto y sus scripts, sin tests, para buscar nombres de evento. */
+  /** Todo el código del producto y sus scripts, sin tests. */
   const codigo = (() => {
     const trozos = [];
     const rec = (dir) => {
@@ -197,6 +253,15 @@ describe("MODULOS.json: métricas", () => {
     for (const d of ["src", "api", "scripts"]) rec(d);
     return trozos.join("\n");
   })();
+  const EMISION = "(?:trackEvent|registrar|rastro)";
+
+  /** ¿Se emite este evento? En una llamada de emisión, directo o por su constante EMBUDO/RASTRO; o, si es de log, en la línea `evento: "…"`. */
+  const seEmite = (ev, forma) => {
+    if (forma === "log") return new RegExp(`evento:\\s*["']${ev}["']`).test(codigo);
+    if (new RegExp(`${EMISION}\\([^;]{0,200}?["']${ev}["']`).test(codigo)) return true;
+    const claves = [...codigo.matchAll(new RegExp(`\\b([A-Z][A-Z_]+):\\s*["']${ev}["']`, "g"))].map((m) => m[1]);
+    return claves.some((k) => new RegExp(`${EMISION}\\([^;]{0,200}?\\b(?:RASTRO|EMBUDO)\\.${k}\\b`).test(codigo));
+  };
 
   it("cada métrica tiene id, qué mide, estado del vocabulario y dónde se saca", () => {
     const malos = [];
@@ -213,11 +278,11 @@ describe("MODULOS.json: métricas", () => {
     expect(malos, "Una métrica es «medida» si hoy deja rastro y dice dónde; si no, «posible» y dice dónde se sacaría.").toEqual([]);
   });
 
-  it("un `evento` citado como medido existe de verdad en el código", () => {
+  it("un `evento` citado como medido se emite de verdad (trackEvent, registrar o rastro; o línea de log si dice emision: log)", () => {
     const malos = [];
     for (const u of unidades) {
       for (const m of u.metricas) {
-        if (m.evento && !codigo.includes(`"${m.evento}"`)) malos.push(`${u.id}/${m.id}: no encuentro el evento «${m.evento}» en src/, api/ ni scripts/ (¿se renombró? ¿se dejó de medir? pásala a «posible»)`);
+        if (m.evento && !seEmite(m.evento, m.emision)) malos.push(`${u.id}/${m.id}: nadie emite el evento «${m.evento}» en una llamada trackEvent/registrar/rastro (¿se renombró? ¿se dejó de medir? pásala a «posible»)`);
       }
     }
     expect(malos).toEqual([]);
