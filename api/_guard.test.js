@@ -77,17 +77,38 @@ describe("dailyBudget", () => {
 
 // La clase, no el caso: todo fichero de api/ que llama a un modelo pasa por el
 // tope diario, después de validar el cuerpo, o está aquí con su porqué.
-const IA = /api\.anthropic\.com|@anthropic-ai\/sdk|generativelanguage|@google\/genai/;
+const IA = /api\.anthropic\.com|@anthropic-ai\/sdk|generativelanguage|@google\/genai|api\.groq\.com|ai-gateway\.vercel\.sh/;
+
+// Lo que no lleva topeDiarioAgotado, y por qué. Todo lo de _bot/ solo se llega
+// desde el webhook de Telegram (con su secreto) con una casa vinculada, o desde
+// el canario (secreto y globalLimit propio); y el webhook no lanza ni el
+// enrutador ni la vía rápida ni a Lola con modelo si la casa pasó su límite
+// del mes (api/bot/telegram.js, `limiteP`; api/_bot/uso.js). Probado en
+// api/bot/vozLimite.test.js y api/bot/turnoRapido.test.js.
 const SIN_TOPE_DIARIO = {
-  // El turno de Lola: solo con el secreto del webhook y una casa vinculada, y
-  // con su propio tope mensual por casa (api/_bot/uso.js, BOT_LIMITE_MENSUAL).
-  "_bot/agente.js": "turno de Lola, tope mensual por casa",
-  "_bot/router.js": "turno de Lola, tope mensual por casa",
-  "_bot/significado.js": "turno de Lola, tope mensual por casa",
-  "_bot/traducir.js": "turno de Lola, tope mensual por casa",
-  "_bot/recetas.js": "turno de Lola, tope mensual por casa",
-  // Solo importa las clases de error del SDK, no llama al modelo.
-  "_bot/avisar.js": "no llama al modelo",
+  "_bot/agente.js": "turno de Lola: mira fueraDeLimite antes del modelo",
+  "_bot/router.js": "enrutador: el webhook no lo lanza con el límite del mes pasado",
+  "_bot/significado.js": "búsqueda de recetas, solo desde el turno o la vía rápida, tras el límite del mes",
+  "_bot/vectores.js": "búsqueda de recetas, solo desde el turno o la vía rápida, tras el límite del mes",
+  "_bot/recetas.js": "herramientas de Lola, solo desde el turno, tras el límite del mes",
+  "_bot/traducir.js": "traduce la respuesta de la vía rápida, que va tras el límite del mes",
+  "_bot/avisar.js": "solo importa las clases de error del SDK, no llama al modelo",
+};
+
+// Lo que lleva un globalLimit propio en vez del tope diario de buckets: la
+// llamada `globalLimit` (o el `limite` inyectable que la usa por defecto) va
+// antes de la URL del proveedor.
+const CON_LIMITE_GLOBAL = {
+  "_bot/voz.js": { limite: "await limite({ bucket: \"bot_voz_dia\"", proveedor: "api.groq.com" },
+};
+
+// Lo que tiene que ir ANTES del tope en cada endpoint: el límite por IP y la
+// validación del cuerpo (y la caché, si la hay). Cada ancla tiene que existir.
+const ANCLAS = {
+  "generate.js": ["await blocked(", "problemaDeMensajes(messages)", "Unknown task"],
+  "recipe-steps.js": ["await blocked(", "are required", ".hget("],
+  "moderate.js": ["await blocked(", "if (!text)"],
+  "generate-dish-photo.js": ["await blocked(", "dishName is required"],
 };
 
 function ficherosDeApi(dir = new URL("./", import.meta.url), prefijo = "") {
@@ -105,21 +126,33 @@ function ficherosDeApi(dir = new URL("./", import.meta.url), prefijo = "") {
 describe("tope diario: todo lo que llama a la IA en api/", () => {
   const conIA = ficherosDeApi().filter((f) => IA.test(f.src));
 
-  it("cada fichero con IA pasa por el tope o está en las excepciones", () => {
-    for (const { ruta, src } of conIA) {
-      if (SIN_TOPE_DIARIO[ruta]) continue;
+  const conTope = conIA.filter((f) => !SIN_TOPE_DIARIO[f.ruta] && !CON_LIMITE_GLOBAL[f.ruta]);
+
+  it("cada fichero con IA pasa por el tope, por un globalLimit propio o está en las excepciones", () => {
+    for (const { ruta, src } of conTope) {
       const m = src.match(/topeDiarioAgotado\(res, "([^"]+)"\)/);
       expect(m, `${ruta} llama a la IA sin topeDiarioAgotado() ni excepción`).not.toBe(null);
       expect(TOPE_DIARIO_POR_DEFECTO[m[1]], `${ruta} (${m[1]}) sin tope por defecto`).toBeGreaterThan(0);
     }
+    for (const { ruta, src } of conIA.filter((f) => CON_LIMITE_GLOBAL[f.ruta])) {
+      const { limite, proveedor } = CON_LIMITE_GLOBAL[ruta];
+      expect(src, `${ruta}: sin globalLimit`).toContain("globalLimit");
+      const i = src.indexOf(limite);
+      expect(i, `${ruta}: no encuentro «${limite}»`).toBeGreaterThanOrEqual(0);
+      expect(i, `${ruta}: el límite va después de la llamada al proveedor`).toBeLessThan(src.indexOf(proveedor));
+    }
   });
 
   it("el tope va después del límite por IP, de la validación y de la caché", () => {
-    for (const { ruta, src } of conIA) {
-      if (SIN_TOPE_DIARIO[ruta]) continue;
+    for (const { ruta, src } of conTope) {
+      const anclas = ANCLAS[ruta];
+      expect(anclas, `${ruta}: di en ANCLAS qué va antes del tope`).toBeDefined();
       const tope = src.indexOf("topeDiarioAgotado(res");
-      const antes = [src.indexOf("await blocked("), src.lastIndexOf(".status(400)"), src.lastIndexOf(".hget(")];
-      for (const i of antes) expect(tope, `${ruta}: el tope va antes de algo que debe precederlo`).toBeGreaterThan(i);
+      for (const a of anclas) {
+        const i = src.lastIndexOf(a);
+        expect(i, `${ruta}: no encuentro «${a}»`).toBeGreaterThanOrEqual(0);
+        expect(tope, `${ruta}: el tope va antes de «${a}»`).toBeGreaterThan(i);
+      }
     }
   });
 
@@ -127,7 +160,7 @@ describe("tope diario: todo lo que llama a la IA en api/", () => {
     const usados = conIA.map((f) => f.src.match(/topeDiarioAgotado\(res, "([^"]+)"\)/)?.[1]).filter(Boolean);
     expect([...new Set(usados)].sort()).toEqual(Object.keys(TOPE_DIARIO_POR_DEFECTO).sort());
     const rutas = conIA.map((f) => f.ruta);
-    for (const ruta of Object.keys(SIN_TOPE_DIARIO)) expect(rutas, `excepción sin uso: ${ruta}`).toContain(ruta);
+    for (const ruta of [...Object.keys(SIN_TOPE_DIARIO), ...Object.keys(CON_LIMITE_GLOBAL)]) expect(rutas, `excepción sin uso: ${ruta}`).toContain(ruta);
   });
 });
 
