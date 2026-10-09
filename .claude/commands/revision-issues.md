@@ -20,7 +20,11 @@ falla») y en la skill `issues`.
    grande y el pequeño se cierra con `arreglo:ninguno` y un enlace).
 5. **Fondos sin arreglo en marcha.** Los abiertos sin encargos, o con
    encargos que nadie ha cogido. Para cada uno, propón los encargos (uno por
-   superficie, o uno solo si es una pieza común) con su agente.
+   superficie, o uno solo si es una pieza común) con su agente. Mira también
+   el informe de fichas de `npm run issues` (#337): fondos sin ficha, sin
+   diagnóstico o con la ventana vencida, y los `matiz` repetidos: si dos
+   fondos distintos necesitan el mismo matiz, falta un valor en el vocabulario
+   (propón añadirlo en `scripts/lib/fondos.mjs`).
 6. **Arreglos que no aguantaron.** Por agente: si a uno se le reabren fondos
    por «corto» a menudo, su forma de arreglar se queda en los casos; propón
    qué cambiar en su fichero de `.claude/agents/` (lo cambia `gobierno`).

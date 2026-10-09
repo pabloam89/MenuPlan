@@ -8,7 +8,7 @@ Si arregla un problema de fondo, di qué test cubre la clase entera, no solo
 los casos conocidos. Si un fallo vuelve, no se abre otro fondo: se cuelga el
 caso del mismo (npm run issues -- --colgar) y el fondo se reabre.
 
-Agente: el que lo construyó (gobierno, datos, diseno o lola), o «sesión» si
+Agente (el CI la pide; el nombre solo, sin puntos ni adornos: «Agente: gobierno»): el que lo construyó (gobierno, datos, diseno o lola), o «sesión» si
 lo hizo la sesión principal sin agente.
 
 Casos (obligatoria en TODO PR; la guardia y el CI la piden): los fallos del
