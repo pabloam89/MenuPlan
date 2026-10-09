@@ -129,6 +129,31 @@ export const SITIOS_FALLO = [
   "voz_json",
 ];
 
+// ── Los del mapa de módulos (ops/MODULOS.json, #157). No van a ninguna tabla:
+// los lee el panel de la factoría (#158) y ops/modulos.test.js.
+
+/**
+ * Cuánto está hecho un módulo. Criterio objetivo (el test ops/modulos.test.js
+ * hace cumplir lo comprobable; la definición completa vive en MODULOS.json):
+ *  - idea: no hay código en staging (solo spec, nota o una rama sin fusionar).
+ *  - en_marcha: hay código en staging, pero no sirve de punta a punta o está
+ *    apagado detrás de un interruptor.
+ *  - usable: de punta a punta en staging, con tests propios, sin interruptor
+ *    apagado. Puede tener huecos conocidos o no medirse todavía.
+ *  - estable: usable, y además se mide su uso hoy y no le queda ninguna
+ *    migración propia por aplicar.
+ */
+export const GRADOS_DESARROLLO = ["idea", "en_marcha", "usable", "estable"];
+
+/** De quién es un módulo: la app, Lola, o lo que usan los dos. */
+export const AMBITOS_MODULO = ["app", "lola", "compartido"];
+
+/** Si una métrica de uso ya se mide hoy o sería posible medirla. */
+export const ESTADOS_METRICA = ["medida", "posible"];
+
+/** Cuántos ficheros tocan una tabla hoy (se calcula de supabase/cableado.json). */
+export const ACCESOS_TABLA = ["unico", "repartido", "sin_fichero"];
+
 /**
  * El mapa nombre → lista. Es lo que referencia `registro_campo.vocabulario`
  * (la ficha): guarda el nombre, nunca una copia de los valores.
@@ -156,6 +181,10 @@ export const VOCABULARIOS = Object.freeze({
   patron_semanas: PATRON_SEMANAS,
   motivos_fallo: MOTIVOS_FALLO,
   sitios_fallo: SITIOS_FALLO,
+  grados_desarrollo: GRADOS_DESARROLLO,
+  ambitos_modulo: AMBITOS_MODULO,
+  estados_metrica: ESTADOS_METRICA,
+  accesos_tabla: ACCESOS_TABLA,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */

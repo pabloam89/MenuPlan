@@ -28,6 +28,10 @@ lectura, para el plano 8).
 | 12 | Release y vuelta atrás | ¿Cómo subo y cómo deshago? | 1 | 3 | 4 | gobierno |
 | 13 | Diseño y experiencia | ¿Se ve, se siente y responde como debe? | 1 | 3 | 4 | diseno, qa |
 
+El mapa de módulos del producto (qué hace cada uno, sus tablas, ficheros,
+grado de desarrollo y métricas) está en `ops/MODULOS.json`; lo vigila
+`ops/modulos.test.js` y lo leerá el panel de la factoría (#158).
+
 ## Por qué cada nivel, y el siguiente paso
 
 **1 · Flujo (3).** Ramas protegidas, PR, worktrees, CI. *Siguiente*: exigir
