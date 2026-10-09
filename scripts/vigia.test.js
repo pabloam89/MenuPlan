@@ -276,6 +276,37 @@ describe("vigía: lo que pidieron revisor y seguridad (PR #276)", () => {
     expect(avisos.map((a) => `${a.tipo}:${a.clave}`)).toEqual(["incidente_abierto:modelo", "incidente_resuelto:modelo"]);
   });
 
+  describe("«todos» callado no se queda así cuando la concreta se cierra (segunda vuelta del PR #276)", () => {
+    const n = 12;
+    // Pasada 0: un golpe de «modelo» que abre las dos. Luego, ni un «modelo» más.
+    const golpe = (ahora) => varios(Math.max(regla("todos").abrirDesde, regla("modelo").abrirDesde), ahora, "modelo");
+    const correr = (deFondo) => {
+      const fallos = [];
+      return pasadas(n, (ahora, i) => {
+        fallos.push(...(i === 0 ? golpe(ahora) : deFondo(ahora)));
+        return fallos;
+      });
+    };
+
+    it("si sigue por encima de su umbral, avisa al cerrarse la concreta", () => {
+      // 15 graves cada pasada, repartidos para que ninguna regla concreta abra.
+      const reparto = { telegram: 4, tiempo: 4, otro: 2, limite: 2, no_existe: 1, sin_sesion: 1, permiso: 1 };
+      expect(Object.values(reparto).reduce((a, b) => a + b, 0)).toBeGreaterThanOrEqual(regla("todos").abrirDesde);
+      const { avisos } = correr((ahora) => Object.entries(reparto).flatMap(([m, k]) => varios(k, ahora - 1000, m)));
+      const claves = avisos.map((a) => `${a.tipo}:${a.clave}`);
+      expect(claves.slice(0, 2)).toEqual(["incidente_abierto:modelo", "incidente_resuelto:modelo"]);
+      expect(claves).toContain("incidente_abierto:todos");
+      expect(claves.filter((c) => c.startsWith("incidente_abierto:") && c !== "incidente_abierto:todos")).toEqual(["incidente_abierto:modelo"]);
+    });
+
+    it("si ya está por debajo de su umbral, se cierra en silencio y no queda abierto", () => {
+      // Pocos, pero más de los que dejan cerrar «todos» por calma.
+      const { avisos, estado } = correr((ahora) => varios(3, ahora - 1000, "telegram"));
+      expect(avisos.map((a) => `${a.tipo}:${a.clave}`)).toEqual(["incidente_abierto:modelo", "incidente_resuelto:modelo"]);
+      expect(estado.abiertos.todos).toBeUndefined();
+    });
+  });
+
   it("el resumen cuenta los incidentes cerrados en el día, aunque empezaran antes", () => {
     const ahora = Date.parse("2026-10-08T07:00:00Z");
     const estado = { ...estadoVacio(), historia: { pasadas: [], canario: [], incidentes: [{ clave: "modelo", desde: ahora - 30 * 60 * MIN, hasta: ahora - 60 * MIN }] } };

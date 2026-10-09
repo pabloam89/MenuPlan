@@ -188,6 +188,20 @@ export function evaluarReglas({ fallos, ahora, reglas = VIGIA.reglas, abiertos =
       avisos.splice(avisos.indexOf(a), 1);
     }
   }
+  // Callada solo mientras hay una concreta abierta que lo dice. Si ya no queda
+  // ninguna: si sigue por encima de su umbral, ahora sí avisa; si no, se
+  // cierra en silencio (nadie supo de ella). Sin esto quedaba callada para siempre.
+  const quedaConcreta = reglas.some((r) => !generales.has(r.clave) && siguen[r.clave]);
+  for (const r of reglas.filter((x) => generales.has(x.clave) && siguen[x.clave]?.callado)) {
+    if (quedaConcreta) continue;
+    const enVentana = deLaRegla(fallos, r, ahora - r.ventanaMin * MIN, ahora);
+    if (enVentana.length >= r.abrirDesde) {
+      siguen[r.clave] = { desde: ahora, pico: enVentana.length };
+      avisos.push({ tipo: "incidente_abierto", clave: r.clave, n: enVentana.length, ventanaMin: r.ventanaMin, umbral: r.abrirDesde, sitios: sitiosTop(enVentana), motivos: r.motivos });
+    } else {
+      delete siguen[r.clave];
+    }
+  }
   return { avisos, abiertos: siguen, cerrados };
 }
 

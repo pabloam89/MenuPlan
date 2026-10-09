@@ -145,6 +145,7 @@ describe("canario", () => {
     const { req, res } = llamada({ nivel: "modelo" });
     await handler(req, res);
     expect(res.code).toBe(429);
+    expect(res.body.chequeos).toEqual([{ chequeo: "modelo", ok: false, motivo: "limite" }]);
     expect(ejecutar).not.toHaveBeenCalled();
   });
 });
