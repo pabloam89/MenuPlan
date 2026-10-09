@@ -1,4 +1,6 @@
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
 /**
  * Los ficheros del repo según git: los versionados más los nuevos sin
@@ -16,7 +18,8 @@ export function ficherosDeGit(raiz) {
   } catch (e) {
     throw new Error(`No puedo listar los ficheros con git (git ls-files en ${raiz}): ${e.message}. Estos tests necesitan git y el checkout con .git.`);
   }
-  const lista = [...new Set(salida.split("\0").filter(Boolean))];
+  // --cached también lista lo borrado o renombrado sin commitear: fuera.
+  const lista = [...new Set(salida.split("\0").filter(Boolean))].filter((f) => existsSync(join(raiz, f)));
   if (!lista.length) throw new Error(`git ls-files no devolvió ningún fichero en ${raiz}: ¿no es un repositorio git?`);
   return lista;
 }
