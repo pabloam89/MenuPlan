@@ -928,8 +928,9 @@ no hace nada: lo vigila `src/data/alimentos.test.js`.
 
 **El fusible del espejo.** `recipeRow.test.js` (retirado el 9 oct 2026 con su
 mapeador) comparaba los campos del esquema con lo que salía de él, y
-`NO_VIAJAN` declaraba con su razón lo que no viajaba a propósito. Nació porque un campo nuevo se perdía en silencio
-al pasar por el puente (cinco veces). El espejo `recipes` está muerto desde la
+`NO_VIAJAN` declaraba con su razón lo que no viajaba a propósito. Nació
+porque un campo nuevo se perdía en silencio al pasar por el puente (cinco
+veces). El espejo `recipes` está muerto desde la
 0064, pero el patrón vale para cualquier puente campo a campo.
 
 **Decisiones de Pablo que no salen del código:**

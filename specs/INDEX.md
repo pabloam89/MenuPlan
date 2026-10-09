@@ -92,7 +92,7 @@ Veredicto del motor de reglas: «El notepad es el 5 % del esfuerzo;
 
 | Si cambia... | Rompe (directamente) | Por qué |
 |---|---|---|
-| `recipeSchema.js` (forma de una receta) | `recipe-catalog`, `menu-generation` (prompt server-side), `receipt-ocr` no afectado | 3 sitios sincronizados a mano: JSON bundleado, `UserRecipeDraftSchema`, prompt `structure-recipe` (el mapper `rowToRecipe` es copia retirada) |
+| `recipeSchema.js` (forma de una receta) | `recipe-catalog`, `menu-generation` (prompt server-side), `receipt-ocr` no afectado | 3 sitios sincronizados a mano: JSON bundleado, `UserRecipeDraftSchema`, prompt `structure-recipe` (el mapper `rowToRecipe` de la copia de Supabase se borró el 9 oct 2026) |
 | `aiModels.js` (ids de modelo) | `menu-generation`, `recipe-catalog` | `api/generate.js` tiene su propia lista `ALLOWED_MODELS` duplicada a mano; `api/recipe-steps.js` tiene una tercera constante propia |
 | `api/_guard.js` (rate limit / guard) | `menu-generation`, `recipe-catalog`, `receipt-ocr` | los tres llaman a `/api/generate` o `/api/recipe-steps`, ambos protegidos por el mismo guard compartido |
 | `api/_prompts.js` | `menu-generation` (planner, school-menu), `recipe-catalog` (structure-recipe, suggest-ingredients), `recipe-catalog`/API propia (steps) | única fuente server-side de los 5 prompts activos desde esta sesión |
