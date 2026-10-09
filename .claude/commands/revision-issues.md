@@ -24,10 +24,16 @@ falla») y en la skill `github` («Issues»).
 6. **Arreglos que no aguantaron.** Por agente: si a uno se le reabren fondos
    por «corto» a menudo, su forma de arreglar se queda en los casos; propón
    qué cambiar en su fichero de `.claude/agents/` (lo cambia `gobierno`).
-7. Enseña una tabla corta con las propuestas y pregunta cuáles se aprueban.
+7. **Planos.** Corre `npm run planos -- --red` (y mira si el workflow
+   `planos-semanal.yml` dejó abierto «Planos: la medición semanal no
+   cuadra»). Si un nivel no cuadra, di si es real (se guarda con
+   `--escribir` en un PR) o un fallo (encargo para arreglarlo); repasa los
+   juicios caducados; y del plano más lejos de su objetivo de «Lanzar»,
+   propón como encargo su primer `por_definir`.
+8. Enseña una tabla corta con las propuestas y pregunta cuáles se aprueban.
    Aplica SOLO las aprobadas: `npm run issues -- --colgar`, crear fondos y
    encargos, `gh issue edit` para el análisis.
-8. Termina con el orden de ataque recomendado: los tres fondos que más casos
+9. Termina con el orden de ataque recomendado: los tres fondos que más casos
    o más daño tienen, con quién los coge.
 
 No cambies código en esta revisión: lo que salga son issues y encargos.
