@@ -23,9 +23,13 @@ describe("la línea «Casos:» del PR (#185)", () => {
   // Un solo criterio para la guardia y el CI: el texto tras la lista se admite y solo cuentan los números.
   it.each([
     ["Casos: #12 (el test rojo)", [12]],
-    ["Casos: #12, #13 — dos fallos del entorno, ver #99", [12, 13]],
-    ["Casos: #12 el test rojo de #99", [12]],
-  ])("texto tras la lista, en el cuerpo: %j", (cuerpo, numeros) => {
+    ["Casos: #12, #13 — dos fallos del entorno, ver #99", [12, 13, 99]],
+    ["Casos: #12 el test rojo de #99", [12, 99]],
+    // Huecos en la lista: antes los números tras el hueco no se contaban ni se verificaban.
+    ["Casos: #301 #305", [301, 305]],
+    ["Casos: #1, #2, y #3", [1, 2, 3]],
+    ["Casos: #1 / #2 y también #3.", [1, 2, 3]],
+  ])("todos los #n de la línea cuentan: %j", (cuerpo, numeros) => {
     expect(analizarCasos(cuerpo).numeros).toEqual(numeros);
     expect(analizarCasos(`gh pr create --body "${cuerpo}"`, { enComando: true }).numeros).toEqual(numeros);
   });
@@ -33,9 +37,14 @@ describe("la línea «Casos:» del PR (#185)", () => {
     const lista = Array.from({ length: 20 }, (_, i) => `#${i + 1}`).join(", ");
     expect(analizarCasos(`Casos: ${lista}`).valida).toBe(true);
   });
-  it("una línea enorme no cuelga el análisis", () => {
+  it("el tope de 20 vale también con huecos y texto en medio", () => {
+    const sueltos = Array.from({ length: 21 }, (_, i) => `#${i + 1}`).join(" ");
+    expect(analizarCasos(`Casos: #1, #2, y ${sueltos}`).valida).toBe(false);
+  });
+  it("una línea enorme se rechaza rápido, sin colgar el análisis ni dejar números sin mirar", () => {
     const t0 = Date.now();
-    analizarCasos(`Casos: ${"#1, ".repeat(200_000)}`);
+    const r = analizarCasos(`Casos: ${"#1, ".repeat(200_000)}`);
+    expect(r.valida).toBe(false);
     expect(Date.now() - t0).toBeLessThan(1000);
   });
 

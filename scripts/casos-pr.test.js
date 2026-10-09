@@ -77,12 +77,18 @@ describe("scripts/casos-pr.mjs: la línea «Casos:» en el CI (#185)", () => {
   });
 
   // Mismo criterio que la guardia: el texto tras la lista se admite y solo cuentan los números.
-  it("texto tras la lista: el CI lo admite y consulta solo el número", async () => {
+  it("texto tras la lista: el CI lo admite y verifica TODOS los #n de la línea", async () => {
     const pedidos = [];
     const consultar = async (n) => (pedidos.push(n), CASO);
     const r = await comprobar({ cuerpo: "Casos: #5 (el test rojo de #99)", consultar });
     expect(r.ok).toBe(true);
-    expect(pedidos).toEqual([5]);
+    expect(pedidos).toEqual([5, 99]);
+  });
+
+  it.each(["Casos: #5 #6", "Casos: #5, y #6"])("un hueco en la lista no deja números sin verificar: %s", async (cuerpo) => {
+    const r = await comprobar({ cuerpo, consultar: consultaDe({ 5: CASO, 6: issue(["tipo:decision"]) }) });
+    expect(r.ok).toBe(false);
+    expect(r.motivo).toMatch(/#6/);
   });
 
   it("más de 20 casos o un número descomunal se rechazan antes de llamar a la API", async () => {

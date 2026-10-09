@@ -52,12 +52,16 @@ export function analizarCasos(cuerpo, { enComando = false } = {}) {
   const numeros = [];
   let ninguno = false;
   for (const entera of lineas) {
-    // Tope de largo: una línea de megas no debe costar tiempo de regex.
-    const crudo = entera.slice(0, 2000);
+    // Tope de largo: una línea de megas no debe costar tiempo de regex, ni
+    // esconder números más allá de lo que se mira.
+    if (entera.length > 2000) return { valida: false, motivo: "La línea «Casos:» es demasiado larga (más de 2000 caracteres)." };
+    const crudo = entera;
     if (!crudo) return { valida: false, motivo: "La línea «Casos:» está vacía." };
     const lista = crudo.match(/^(#\d+(?:\s*(?:,|;|\sy\s|\se\s)\s*#\d+)*)\s*\.?\s*(.*)$/i);
     if (lista) {
-      numeros.push(...[...lista[1].matchAll(/#(\d+)/g)].map((m) => Number(m[1])));
+      // Todos los #n de la línea, no solo los de la lista: `#1, #2, y #3` o `#301 #305`
+      // dejarían números sin contar ni verificar. El tope (más abajo) cubre el total.
+      numeros.push(...[...crudo.matchAll(/#(\d+)/g)].map((m) => Number(m[1])));
       continue;
     }
     const ning = crudo.match(/^ninguno\b\s*(?:[—–:;,-]+\s*)?(.*)$/i);

@@ -83,10 +83,16 @@ const GUARDIA_DE_TRAMITE = /abre antes (?:la|las) skills?|línea «Casos:»|falt
 /** Excepciones conocidas: tests flaky ya registrados como caso, que no cuentan como señal. */
 export const FLAKY_CONOCIDOS = { "dominios-skills.test.js": "#307" };
 
-/** Las órdenes de un comando, sin ejecutarlo: lo que hay entre `&&`, `;`, `|` y saltos de línea. */
+/**
+ * Las órdenes de un comando, sin ejecutarlo: lo que hay entre `&&`, `;`, `|` y
+ * saltos de línea. DEUDA CONOCIDA: parte sin respetar comillas, así que un
+ * título con `;`, `|` o `&&` dentro (`--nuevo "a; b" --tipo caso`) se corta y
+ * puede no contar como rastro; el coste es que el freno salte una vez de más
+ * (y salir de él cuesta una línea). Parsear comillas bien no compensa.
+ */
 const ordenesDe = (cmd) => String(cmd).split(/&&|\|\||;|\||\n/).map((s) => s.trim()).filter(Boolean);
 const LANZA_TESTS = /^(?:\w+=\S+\s+)*(?:npx\s+vitest|npm\s+(?:run\s+)?test|vitest)\b/;
-const ES_ISSUES = /^(?:\w+=\S+\s+)*(?:npm\s+run\s+(?:--silent\s+)?issues|node\s+scripts\/issues\.mjs)\b/;
+const ES_ISSUES = /^(?:\w+=\S+\s+)*(?:npm\s+run\s+(?:--silent\s+)?issues|node\s+["']?(?:[A-Za-z]:)?(?:\.?[\\/])?(?:[\w.-]+[\\/])*scripts[\\/]issues\.mjs)(?![\w.-])/;
 const ES_PR = /^(?:\w+=\S+\s+)*gh\s+pr\s+(?:create|edit)\b/;
 const LINEA_CASOS = /\bCasos\s*:\s*(?:#\d|ninguno)/i;
 
@@ -104,8 +110,11 @@ const lanzaTests = (cmd) => ordenesDe(cmd).some((o) => LANZA_TESTS.test(o));
 function dejaCaso(cmd, { escritos, vistosCaso }) {
   for (const o of ordenesDe(cmd)) {
     if (ES_ISSUES.test(o)) {
-      if (/--colgar\b/.test(o)) return true;
-      if (/--nuevo\b/.test(o) && /--tipo\s+caso\b/.test(o)) return true;
+      // Las opciones se miran sin lo que va entre comillas: `--cuerpo "usa --tipo caso"`
+      // no es un tipo. Solo se salva `--tipo "caso"`, que se normaliza antes.
+      const opciones = o.replace(/--tipo\s+["'](\w+)["']/g, "--tipo $1").replace(/"[^"]*"|'[^']*'/g, '""');
+      if (/--colgar\b/.test(opciones)) return true;
+      if (/--nuevo\b/.test(opciones) && /--tipo\s+caso\b/.test(opciones)) return true;
     }
     const c = o.match(/^gh\s+issue\s+comment\s+#?(\d+)/);
     if (c && vistosCaso.has(c[1])) return true;
