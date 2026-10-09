@@ -30,20 +30,27 @@ description: Úsala para operar la base de datos de MenuPlan en Supabase: una co
   instala, se ensaya y se restaura: skill `hetzner`. Lo que lleva y lo que no:
   - Lleva `public` y `ops` enteros (esquema y datos), con `pg_dump` de solo
     lectura.
-  - **No lleva `auth.users`** mientras se haga con `consulta_lectura`, que no
-    ve `auth` (#273, punto 2). Restaurar en **esta misma** base (se rompió una
-    tabla, un borrado de más) sirve igual: los usuarios siguen en `auth`.
-    Restaurar en un **proyecto nuevo** deja las casas sin dueño: 34 claves ajenas
-    de 29 tablas apuntan a `auth.users`, y el login de Google crearía usuarios
-    con otros ids. Para eso hace falta el usuario `copia_lectura` con vistas de
-    `auth.users` y `auth.identities` (sin tokens) en un esquema `copia`; el
-    script ya las saca si existen (`auth: si`).
-  - **Ni el valor de las secuencias** con `consulta_lectura`
-    (`secuencias: sin-valor`): al restaurar se ponen al máximo de su columna
-    con `SQL_SECUENCIAS` de `scripts/lib/copias.mjs`, o el siguiente insert
-    chocaría.
-- **Pendiente:** instalar las copias en el servidor y su primer ensayo (#247), y
-  las decisiones de #273 (aviso, `copia_lectura`, segunda copia de la clave).
+  - Lo hace el usuario propio `copia_lectura` (0095, #273): `select` en
+    `public`, `ops` y sus secuencias (`secuencias: con-valor`), `bypassrls`
+    (sin él `pg_dump` se para con la RLS), una sola conexión. Sin
+    `bot_link_tokens`, `household_invites` ni `bot_codigos` (códigos efímeros
+    que no hacen falta; `TABLAS_SIN_COPIA`): al restaurar se recrean vacías
+    con sus migraciones.
+  - **Lleva lo justo de `auth`** (`auth: si`): el esquema `copia` tiene dos
+    vistas, `auth_usuarios` (id, email, teléfono, confirmaciones, anónimo, alta)
+    y `auth_identidades` (id, user_id, provider, provider_id, alta), sin
+    contraseñas, tokens ni metadatos; salen en CSV cifrado. Restaurar en
+    **esta misma** base no las necesita (los usuarios siguen en `auth`). En un
+    **proyecto nuevo** sí: 34 claves ajenas de 29 tablas apuntan a
+    `auth.users`, y sin la identidad el login de Google crearía usuarios con
+    otros ids. Al cargarlas en un `auth` de verdad faltan columnas que la copia
+    no lleva a propósito: `aud` y `role` (`authenticated`) e `identity_data`
+    (al menos `sub` = `provider_id` y el email). Sin ensayar todavía.
+  - Si una copia sale `secuencias: sin-valor`, al restaurar se ponen al máximo
+    de su columna con `SQL_SECUENCIAS` de `scripts/lib/copias.mjs`, o el
+    siguiente insert chocaría.
+- **Pendiente:** aplicar la 0095 y poner su contraseña, instalar las copias en
+  el servidor y su primer ensayo (#247, #273).
 
 ## Claves y accesos
 
@@ -55,12 +62,19 @@ cuelga del equipo de Vercel.
 
 `npm run consulta` entra con `SUPABASE_DB_URL_LECTURA`, el rol
 `consulta_lectura` de la 0092 (solo `select` en `public` y `ops`, sin `auth`,
-`cron`, `vault` ni `storage`). Si la variable no está, entra con la de
-administrador y lo avisa; si está pero no se puede leer, falla. Su contraseña
+`cron`, `vault` ni `storage`). A todo o nada (#238): si la variable no está o
+no se puede leer, falla; como administrador solo entra con `--admin` explícito
+(`npm run consulta -- --admin "select …"`), y lo avisa. Su contraseña
 la pone `node scripts/clave-consulta-lectura.mjs --si` (Pablo, con `!`): la
 genera, crea la ficha «Supabase lectura» en HoMenu por stdin y a la base solo
 le manda el verificador SCRAM. Lo que esté fuera de `public` y `ops` (p. ej.
 `cron.job`) se mira con `verificar-estado` o con la de administrador.
+Desde la 0095 hay columnas con códigos que no lee (`COLUMNAS_SIN_CONSULTA` de
+`scripts/lib/rolLectura.mjs`). En sus seis tablas (`households`,
+`user_profiles`, `apple_auth_tokens`, `bot_link_tokens`, `household_invites`,
+`bot_codigos`) solo tiene `select` por columnas: **`select *` falla**, hay que
+nombrar las columnas (`count(*)` sí vale). Una columna nueva en ellas no la ve
+hasta que se le da.
 **La frontera es la URL, no el rol**: el read only y los tiempos límite son
 valores por defecto que la sesión puede cambiar, y con su propia sesión quien
 tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
@@ -155,9 +169,9 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 - Cambiar ajustes del panel: Auth, proveedores, URLs de retorno, plan, crons
   fuera de `scripts/bot-cron.mjs`.
 - Subir de plan (Pro) o dar de alta cualquier gasto de Supabase.
-- Lo que cambie las copias propias: otro usuario para la copia (`copia_lectura`
-  toca permisos: `--pablo`), sacar más esquemas (`auth`) o llevarlas a otro
-  sitio. Son datos de salud de familias (alergias, RGPD art. 9) fuera de
+- Lo que cambie las copias propias: los permisos de `copia_lectura` o las
+  columnas de `auth` que saca el esquema `copia` (tocan permisos: `--pablo`),
+  sacar más esquemas o llevarlas a otro sitio. Son datos de salud de familias (alergias, RGPD art. 9) fuera de
   Supabase, siempre cifrados.
 - Restaurar una copia sobre esta base, aunque sea una tabla.
 
@@ -167,8 +181,8 @@ Lo paga el equipo de Vercel por el Marketplace. La base pesa 65 MB (2026-10-08).
 
 **Copias:** las de Supabase, ninguna (el plan Free no las incluye). Las propias
 (elegidas el 9 oct, #156) no cuestan nada nuevo: ~9,1 MB y 14 s por copia
-medidos ese día, y `pg_dump` usa una de las 3 conexiones de `consulta_lectura`
-unos segundos a las 02:40 UTC. Lo que se descartó, por si hace falta más:
+medidos ese día, y `pg_dump` usa la única conexión de `copia_lectura` unos
+segundos a las 02:40 UTC. Lo que se descartó, por si hace falta más:
 - **Plan Pro**: hasta 7 días de copias diarias con restauración desde el panel.
   Comprobar el precio en la pantalla de «Upgrade» antes de decidir.
 - **PITR** (volver a un segundo concreto): extra de pago encima de Pro, desde unos

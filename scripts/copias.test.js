@@ -17,14 +17,18 @@ import { delimiter, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-  AVISOS, MOTIVOS_COPIA, NOMBRE_COPIA, RESULTADOS, SECUENCIAS,
-  camposRegistroEnsayo, clavesAjenasAAuth, comprobarDestinatarios, fechaDeCopia, leerLinea, lineaEstructurada, veredicto,
+  AVISOS, MOTIVOS_COPIA, NOMBRE_COPIA, RELACIONES_COPIA, RESULTADOS, SECUENCIAS, NOMBRES_SIN_COPIA,
+  camposRegistroEnsayo, clavesAjenasAAuth, columnasCopiaQueNoCuadran, comprobarDestinatarios, fechaDeCopia, leerLinea, lineaEstructurada, lineaRegistroEnsayo,
+  sqlAuthDeMentira, sqlHuerfanos, veredicto,
 } from "./lib/copias.mjs";
+import { ROL_COPIA } from "./lib/rolLectura.mjs";
 
 const SCRIPT = join(import.meta.dirname, "..", "ops", "copias", "copia-base.sh");
 const hayBash = spawnSync("bash", ["--version"], { encoding: "utf8" }).status === 0;
 const CLAVE = `age1${"q".repeat(58)}`;
-const ESTADO_LECTURA = "usuario\tconsulta_lectura\nescribe\t0\ntablas\t58\nsecuencia\tpublic.bot_cola_id_seq\n";
+// Lo que devuelve la consulta de catálogo del script con copia_lectura:
+// lee todas las secuencias y las dos vistas del esquema copia.
+const ESTADO_COPIA = "usuario\tcopia_lectura\nescribe\t0\ntablas\t58\ncopia\tauth_usuarios\ncopia\tauth_identidades\n";
 
 // docker falso: registra su argv, entiende `run` (con --rm, -i, --label, -e y
 // -v), `ps` y `rm`, y ejecuta la orden del contenedor con SOLO el entorno que
@@ -119,14 +123,14 @@ const rutaBash = (p) => (process.platform === "win32" ? p.replace(/^([A-Za-z]):/
 function entorno(s) {
   return {
       PATH: `${s.bin}${delimiter}${process.env.PATH}`,
-      COPIA_DB_URL: "postgresql://consulta_lectura.x:secreta@pooler.ejemplo:5432/postgres",
+      COPIA_DB_URL: "postgresql://copia_lectura.x:secreta@pooler.ejemplo:5432/postgres",
       COPIA_AVISO_URL: "https://hc-ping.ejemplo/uuid",
       COPIA_DESTINATARIOS: rutaBash(join(s.raiz, "destinatarios.txt")),
       COPIA_DIR: rutaBash(s.dir),
       COPIA_DOCKER: rutaBash(join(s.bin, "docker")),
       COPIA_AGE: rutaBash(join(s.bin, "age")),
       COPIA_CURL: rutaBash(join(s.bin, "curl")),
-      FALSO_ESTADO: ESTADO_LECTURA,
+      FALSO_ESTADO: ESTADO_COPIA,
       FALSO_CURL_LOG: rutaBash(s.curlLog),
       FALSO_ARGV_LOG: rutaBash(s.argvLog),
   };
@@ -159,6 +163,17 @@ describe("copia-base.sh: sintaxis y vocabulario", () => {
     expect(pasos).toEqual([...MOTIVOS_COPIA].sort());
   });
 
+  it("las tablas que el script deja fuera son TABLAS_SIN_COPIA", () => {
+    const texto = readFileSync(SCRIPT, "utf8");
+    expect(/^TABLAS_SIN_COPIA="([^"]*)"$/m.exec(texto)?.[1].split(" ").sort()).toEqual([...NOMBRES_SIN_COPIA].sort());
+  });
+
+  it("el usuario y las vistas que exige el script son ROL_COPIA y RELACIONES_COPIA", () => {
+    const texto = readFileSync(SCRIPT, "utf8");
+    expect(/^ROL_COPIA=(\S+)$/m.exec(texto)?.[1]).toBe(ROL_COPIA);
+    expect(/^RELACIONES_COPIA="([^"]*)"$/m.exec(texto)?.[1].split(" ").sort()).toEqual(Object.keys(RELACIONES_COPIA).sort());
+  });
+
   it("la línea que escribe el script lleva los campos que lee leerLinea", () => {
     const texto = readFileSync(SCRIPT, "utf8");
     const formato = /printf 'copia-base ([^']+)\\n'/.exec(texto)[1];
@@ -172,7 +187,7 @@ describe.skipIf(!hayBash)("copia-base.sh con binarios falsos", () => {
     const s = montar();
     const r = correr(s);
     expect(r.status, r.stderr).toBe(0);
-    expect(r.ultima.campos).toMatchObject({ resultado: "ok", motivo: "-", tablas: "58", secuencias: "sin-valor", auth: "no", semanal: "si", diarias: "1", semanales: "1", aviso: "ok" });
+    expect(r.ultima.campos).toMatchObject({ resultado: "ok", motivo: "-", tablas: "58", secuencias: "con-valor", auth: "si", semanal: "si", diarias: "1", semanales: "1", aviso: "ok" });
     const [copia] = copiasEn(join(s.dir, "diaria"));
     expect(readFileSync(join(s.dir, "diaria", copia, "base.dump.age"), "utf8").startsWith("age-encryption.org/v1")).toBe(true);
     expect(r.curl).not.toMatch(/\/fail/);
@@ -184,7 +199,7 @@ describe.skipIf(!hayBash)("copia-base.sh con binarios falsos", () => {
     const s = montar();
     const r = correr(s);
     expect(r.status, r.stderr).toBe(0);
-    expect(r.argv).toMatch(/^pg_dump .*postgresql:\/\/consulta_lectura\.x@pooler\.ejemplo:5432\/postgres/m);
+    expect(r.argv).toMatch(/^pg_dump .*postgresql:\/\/copia_lectura\.x@pooler\.ejemplo:5432\/postgres/m);
     expect(r.argv).toMatch(/^psql /m);
     expect(r.argv).not.toMatch(/secreta/);
     const argvCurl = r.curl.split("\n").filter((l) => l.startsWith("ARGV"));
@@ -210,7 +225,7 @@ describe.skipIf(!hayBash)("copia-base.sh con binarios falsos", () => {
   it("una contraseña con %xx, dos puntos y barra llega decodificada y escapada al passfile", () => {
     const s = montar();
     const r = correr(s, {
-      COPIA_DB_URL: "postgresql://consulta_lectura.x:se%3Acr%40e%5Cta@pooler.ejemplo:5432/postgres",
+      COPIA_DB_URL: "postgresql://copia_lectura.x:se%3Acr%40e%5Cta@pooler.ejemplo:5432/postgres",
       FALSO_PASS_LINEA: String.raw`*:*:*:*:se\:cr@e\\ta`,
     });
     expect(r.status, r.stderr).toBe(0);
@@ -219,7 +234,7 @@ describe.skipIf(!hayBash)("copia-base.sh con binarios falsos", () => {
 
   it("una URL sin contraseña: motivo config, sin volcar", () => {
     const s = montar();
-    const r = correr(s, { COPIA_DB_URL: "postgresql://consulta_lectura.x@pooler.ejemplo:5432/postgres" });
+    const r = correr(s, { COPIA_DB_URL: "postgresql://copia_lectura.x@pooler.ejemplo:5432/postgres" });
     expect(r.status).toBe(1);
     expect(r.ultima.campos.motivo).toBe("config");
     expect(r.argv).not.toMatch(/pg_dump/);
@@ -227,7 +242,7 @@ describe.skipIf(!hayBash)("copia-base.sh con binarios falsos", () => {
 
   it("con dos relaciones en el esquema copia salen las dos (docker -i no se come el bucle)", () => {
     const s = montar();
-    const r = correr(s, { FALSO_ESTADO: `${ESTADO_LECTURA}copia\tauth_usuarios\ncopia\tauth_identidades\n` });
+    const r = correr(s);
     expect(r.status, r.stderr).toBe(0);
     const [copia] = copiasEn(join(s.dir, "diaria"));
     const csvs = readdirSync(join(s.dir, "diaria", copia)).filter((f) => f.endsWith(".csv.age")).sort();
@@ -331,20 +346,37 @@ describe.skipIf(!hayBash)("copia-base.sh con binarios falsos", () => {
     expect(r.ultima.campos).toMatchObject({ resultado: "fallo", motivo: "config" });
   });
 
-  it("con secuencias legibles, secuencias: con-valor", () => {
+  it("pg_dump deja fuera entera cada tabla de TABLAS_SIN_COPIA (sin ella no puede bloquearla)", () => {
     const s = montar();
-    const r = correr(s, { FALSO_ESTADO: "usuario\tcopia_lectura\nescribe\t0\ntablas\t58\n" });
+    const r = correr(s);
     expect(r.status, r.stderr).toBe(0);
-    expect(r.ultima.campos.secuencias).toBe("con-valor");
+    const dump = r.argv.split("\n").find((l) => l.startsWith("pg_dump "));
+    for (const t of NOMBRES_SIN_COPIA) expect(dump).toContain(`--exclude-table=${t}`);
   });
 
-  it("con el esquema copia, saca su CSV cifrado y auth: si", () => {
+  it("con una secuencia que no puede leer, la copia sigue y lo dice: secuencias: sin-valor", () => {
     const s = montar();
-    const r = correr(s, { FALSO_ESTADO: `${ESTADO_LECTURA}copia\tauth_usuarios\n` });
+    const r = correr(s, { FALSO_ESTADO: `${ESTADO_COPIA}secuencia\tpublic.bot_cola_id_seq\n` });
     expect(r.status, r.stderr).toBe(0);
-    expect(r.ultima.campos.auth).toBe("si");
-    const [copia] = copiasEn(join(s.dir, "diaria"));
-    expect(existsSync(join(s.dir, "diaria", copia, "copia.auth_usuarios.csv.age"))).toBe(true);
+    expect(r.ultima.campos.secuencias).toBe("sin-valor");
+    expect(r.argv).toMatch(/--exclude-table-data=public\.bot_cola_id_seq/);
+  });
+
+  it("con consulta_lectura (aprobado para el PC, no para el servidor): motivo config, sin volcar (#273)", () => {
+    const s = montar();
+    const r = correr(s, { FALSO_ESTADO: ESTADO_COPIA.replace("copia_lectura", "consulta_lectura") });
+    expect(r.status).toBe(1);
+    expect(r.ultima.campos).toMatchObject({ resultado: "fallo", motivo: "config" });
+    expect(r.argv).not.toMatch(/pg_dump/);
+  });
+
+  it.each(["auth_usuarios", "auth_identidades"])("si copia_lectura no ve copia.%s: motivo auth, sin copia que parezca buena", (rel) => {
+    const s = montar();
+    const r = correr(s, { FALSO_ESTADO: ESTADO_COPIA.replace(`copia\t${rel}\n`, "") });
+    expect(r.status).toBe(1);
+    expect(r.ultima.campos).toMatchObject({ resultado: "fallo", motivo: "auth" });
+    expect(r.stderr).toMatch(new RegExp(`copia\\.${rel}`));
+    expect(copiasEn(join(s.dir, "diaria"))).toEqual([]);
   });
 
   it("una copia de menos de la mitad que la última buena: motivo incompleta", () => {
@@ -453,7 +485,73 @@ describe("comprobarDestinatarios", () => {
   });
 });
 
-describe("camposRegistroEnsayo (preparado para #273, apagado)", () => {
+describe("ensayos.log, en el repo público, sin el tamaño de la base (#273)", () => {
+  const campos = { fecha: "2026-10-10T090000Z", resultado: "ok", motivo: "-", copia: "2026-10-10T024312Z", edad_h: 6, tablas: 58, filas_copia: 98765, filas_prod: 100321, diferencias: 3, auth: "si", huerfanos: 0, segundos: 40 };
+
+  it("la línea que se añade no lleva tablas ni filas, sí recuento y cociente", () => {
+    const { campos: c } = leerLinea(lineaRegistroEnsayo(campos));
+    for (const k of ["tablas", "filas_copia", "filas_prod", "diferencias"]) expect(c, k).not.toHaveProperty(k);
+    expect(lineaRegistroEnsayo(campos)).not.toMatch(/98765|100321/);
+    expect(c).toMatchObject({ resultado: "ok", recuento: "ok", cociente: "0.98", auth: "si" });
+  });
+
+  it("ninguna línea ya escrita en ops/copias/ensayos.log lleva filas", () => {
+    const log = readFileSync(join(import.meta.dirname, "..", "ops", "copias", "ensayos.log"), "utf8");
+    const malas = log.split(/\r?\n/).filter((l) => /^ensayo-copia /.test(l) && /\b(filas_copia|filas_prod|tablas): \d/.test(l));
+    expect(malas).toEqual([]);
+  });
+
+  it("el ensayo escribe con lineaRegistroEnsayo, no con la línea entera", () => {
+    const texto = readFileSync(join(import.meta.dirname, "copias-ensayo.mjs"), "utf8");
+    expect(texto).toMatch(/appendFileSync\(REGISTRO, `\$\{lineaRegistroEnsayo\(campos\)\}\\n`\)/);
+    expect(texto).not.toMatch(/soloCociente:\s*false/);
+  });
+});
+
+describe("columnasCopiaQueNoCuadran (el ensayo contra information_schema de copia)", () => {
+  const TIPO = { uuid: "uuid", text: "text", timestamptz: "timestamp with time zone", boolean: "boolean" };
+  const buenas = Object.entries(RELACIONES_COPIA).flatMap(([rel, { columnas }]) =>
+    columnas.map(([c, t], i) => ({ table_name: rel, column_name: c, data_type: TIPO[t], ordinal_position: i + 1 })));
+
+  it("cuadra con lo que dice RELACIONES_COPIA, aunque lleguen desordenadas", () => {
+    expect(columnasCopiaQueNoCuadran([...buenas].reverse())).toEqual([]);
+  });
+  it("un tipo distinto no cuadra", () => {
+    const mal = buenas.map((f) => (f.column_name === "is_anonymous" ? { ...f, data_type: "text" } : f));
+    expect(columnasCopiaQueNoCuadran(mal)).toEqual([expect.stringMatching(/copia\.auth_usuarios/)]);
+  });
+  it("una columna de más no cuadra", () => {
+    const mal = [...buenas, { table_name: "auth_identidades", column_name: "identity_data", data_type: "jsonb", ordinal_position: 99 }];
+    expect(columnasCopiaQueNoCuadran(mal)).toEqual([expect.stringMatching(/copia\.auth_identidades/)]);
+  });
+  it("sin la vista no cuadra", () => {
+    expect(columnasCopiaQueNoCuadran(buenas.filter((f) => f.table_name !== "auth_usuarios"))).toEqual([expect.stringMatching(/hay \(nada\)/)]);
+  });
+});
+
+describe("auth de mentira del ensayo y huérfanos", () => {
+  it("auth.users y auth.identities llevan las columnas de RELACIONES_COPIA, con id como clave", () => {
+    const sql = sqlAuthDeMentira();
+    for (const { origen, columnas } of Object.values(RELACIONES_COPIA)) {
+      const def = new RegExp(String.raw`create table ${origen.replace(".", "\\.")} \(([^;]*)\);`).exec(sql)?.[1];
+      expect(def, origen).toBeTruthy();
+      for (const [c, t] of columnas) expect(def, `${origen}.${c}`).toMatch(new RegExp(String.raw`(^|, )${c} ${t}\b`));
+      expect(def).toMatch(/(^|, )id uuid primary key/);
+    }
+    // Las funciones del volcado nombran los metadatos: siguen en el auth de mentira.
+    expect(sql).toMatch(/raw_user_meta_data jsonb/);
+  });
+
+  it("sqlHuerfanos cuenta ids de todas las claves ajenas que no están en auth.users", () => {
+    const sql = sqlHuerfanos([{ tabla: "public.households", columna: "owner_id" }, { tabla: "public.bot_messages", columna: "user_id" }]);
+    expect(sql).toMatch(/select owner_id as id from public\.households where owner_id is not null/);
+    expect(sql).toMatch(/select user_id as id from public\.bot_messages/);
+    expect(sql).toMatch(/not exists \(select 1 from auth\.users u where u\.id = x\.id\)/);
+    expect(sqlHuerfanos([])).toBe("select 0 as n");
+  });
+});
+
+describe("camposRegistroEnsayo", () => {
   const campos = { fecha: "2026-10-10T090000Z", resultado: "ok", motivo: "-", tablas: 58, filas_copia: 980, filas_prod: 1000, diferencias: 3, auth: "no" };
   it("por defecto no cambia nada", () => {
     expect(camposRegistroEnsayo(campos)).toEqual(campos);

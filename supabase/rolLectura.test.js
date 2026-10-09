@@ -11,7 +11,8 @@ import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { OP_LECTURA, ROL_LECTURA, VAR_LECTURA } from "../scripts/lib/rolLectura.mjs";
+import { COLUMNAS_SIN_CONSULTA, OP_LECTURA, PERFILES, ROL_COPIA, ROL_LECTURA, VAR_LECTURA } from "../scripts/lib/rolLectura.mjs";
+import { RELACIONES_COPIA, TABLAS_SIN_COPIA } from "../scripts/lib/copias.mjs";
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const DIR = path.join(AQUI, "migrations");
@@ -49,18 +50,26 @@ export function codigoPlano(sql) {
   return out.toLowerCase();
 }
 
-const nombra = (s) => new RegExp(String.raw`(?<![\w$])${ROL}(?![\w$])`).test(s);
-
-/** Lo que no puede pasar en el SQL para este rol. Vacío = bien. */
-export function fallosDelRol(sqlCrudo) {
+/**
+ * Lo que no puede pasar en el SQL para un rol de solo lectura
+ * (`consulta_lectura` por defecto; también `copia_lectura`). Vacío = bien.
+ */
+export function fallosDelRol(sqlCrudo, rol = ROL_LECTURA) {
+  const ROL = rol; // a propósito tapa el de fuera: las reglas de abajo valen para cualquier rol
+  const nombra = (s) => new RegExp(String.raw`(?<![\w$])${ROL}(?![\w$])`).test(s);
   const f = [];
   const sents = codigoPlano(sqlCrudo).split(";").map((s) => s.replace(/\s+/g, " ").trim()).filter(Boolean);
   for (const s of sents) {
     if (!nombra(s)) continue;
-    // grant <privilegios> on … to consulta_lectura: solo select y usage.
+    // grant <privilegios> on … to <rol>: solo select y usage, y usage nunca en
+    // secuencias (deja hacer nextval, que las avanza).
     const g = /\bgrant (.+?) on (.+?) to (.+)$/.exec(s);
     if (g && nombra(g[3])) {
-      for (const p of g[1].split(",").map((x) => x.trim().split(" ")[0])) if (!["select", "usage"].includes(p)) f.push(`concede ${p}`);
+      // `select (col, col)`: la lista de columnas no son privilegios.
+      for (const p of g[1].replace(/\([^)]*\)/g, "").split(",").map((x) => x.trim().split(" ")[0])) {
+        if (!["select", "usage"].includes(p)) f.push(`concede ${p}`);
+        else if (p === "usage" && /\bsequences?\b/.test(g[2])) f.push("concede usage en secuencias");
+      }
     }
     // grant <rol> to consulta_lectura: ninguna pertenencia (pg_signal_backend, pg_monitor…).
     const m = /\bgrant ([\w", ]+) to (.+)$/.exec(s);
@@ -130,5 +139,101 @@ describe("consulta_lectura solo lee", () => {
     }
     // Con «no» delante, los atributos están bien.
     expect(fallosDelRol("alter role consulta_lectura with login nocreatedb nocreaterole noinherit noreplication bypassrls;")).toEqual([]);
+  });
+
+  it("usage en secuencias no, select sí (usage deja hacer nextval)", () => {
+    expect(fallosDelRol("grant select on all sequences in schema public to consulta_lectura;")).toEqual([]);
+    expect(fallosDelRol("grant usage on all sequences in schema public to consulta_lectura;")).toEqual(["concede usage en secuencias"]);
+    expect(fallosDelRol("alter default privileges for role postgres in schema public grant usage on sequences to consulta_lectura;")).toEqual(["concede usage en secuencias"]);
+    expect(fallosDelRol("grant usage on schema public to consulta_lectura;")).toEqual([]);
+  });
+});
+
+// ── copia_lectura (issue #273): el usuario de las copias nocturnas ──
+
+/** Las columnas de una vista `copia.<nombre>` en el SQL de la migración, en orden. */
+export function columnasDeVista(sql, nombre) {
+  const m = new RegExp(String.raw`create or replace view copia\.${nombre}\b[^;]*?\bas\s+select (.+?)\s+from `, "is").exec(sql);
+  return m ? m[1].split(",").map((c) => c.trim().replace(/^\w+\./, "")) : null;
+}
+
+const conCopia = migraciones.filter((f) => new RegExp(String.raw`\b${ROL_COPIA}\b`).test(fs.readFileSync(path.join(DIR, f), "utf8")));
+
+describe("copia_lectura solo lee, y de auth solo lo acordado", () => {
+  it("lo crea la migración que dice PERFILES", () => {
+    expect(conCopia[0]).toBe(`${PERFILES[ROL_COPIA].migracion}.sql`);
+  });
+
+  for (const f of conCopia) {
+    it(`${f}: ni escribe, ni es miembro de nada, ni lleva contraseña`, () => {
+      expect(fallosDelRol(fs.readFileSync(path.join(DIR, f), "utf8"), ROL_COPIA)).toEqual([]);
+    });
+  }
+
+  const sql = fs.readFileSync(path.join(DIR, conCopia[0]), "utf8");
+
+  it("una sola conexión, bypassrls (pg_dump) y las barreras de sesión", () => {
+    expect(sql).toMatch(/^alter role copia_lectura with login nocreatedb nocreaterole noinherit noreplication bypassrls connection limit 1;/m);
+    expect(sql).toMatch(/^alter role copia_lectura set default_transaction_read_only = on;/m);
+    expect(sql).toMatch(/^alter role copia_lectura set idle_session_timeout = '\d+s';/m);
+  });
+
+  it("comprueba el catálogo al aplicarse: escritura, pertenencias, secuencias y quién más lee copia", () => {
+    for (const pieza of ["pg_auth_members", "has_table_privilege", "has_schema_privilege(r.oid, n.oid, 'CREATE')", "prosecdef", "rolreplication", "rolconnlimit <> 1", "aclexplode", "security_invoker"]) {
+      expect(sql, pieza).toContain(pieza);
+    }
+  });
+
+  it("las vistas de copia sacan justo las columnas de RELACIONES_COPIA, de la tabla de auth que dice", () => {
+    for (const [nombre, { origen, columnas }] of Object.entries(RELACIONES_COPIA)) {
+      expect(columnasDeVista(sql, nombre), nombre).toEqual(columnas.map(([c]) => c));
+      expect(sql).toMatch(new RegExp(String.raw`create or replace view copia\.${nombre}\b[^;]*from ${origen.replace(".", "\\.")}\b`, "s"));
+    }
+    // La lista exacta que comprueba el bloque final, también la misma.
+    const esperada = Object.keys(RELACIONES_COPIA).sort()
+      .flatMap((n) => RELACIONES_COPIA[n].columnas.map(([c]) => `${n}.${c}`)).join(", ");
+    expect(sql.replace(/'\s*\|\|\s*'/g, "")).toContain(`'${esperada}'`);
+  });
+
+  it("ninguna columna de copia huele a secreto (contraseñas, tokens, metadatos)", () => {
+    for (const { columnas } of Object.values(RELACIONES_COPIA)) {
+      for (const [c] of columnas) expect(c).not.toMatch(/password|token|secret|meta_data|identity_data|code|nonce|hash/);
+    }
+  });
+
+  it("copia_lectura no lee las tablas de TABLAS_SIN_COPIA, y el bloque final lo comprueba", () => {
+    const plano = codigoPlano(sql).replace(/\s+/g, " ");
+    const revoke = /revoke select on ([^;]*) from copia_lectura;/.exec(plano);
+    expect(revoke).toBeTruthy();
+    expect(revoke[1].split(",").map((t) => t.trim()).sort()).toEqual(TABLAS_SIN_COPIA.map(([t]) => t).sort());
+    for (const [t] of TABLAS_SIN_COPIA) expect(sql, t).toContain(`'${t}'::regclass`);
+  });
+
+  it("la columna del código de cada tabla de TABLAS_SIN_COPIA tampoco la lee consulta_lectura", () => {
+    const sinConsulta = COLUMNAS_SIN_CONSULTA.map(([t, c]) => `${t}.${c}`);
+    for (const [t, c] of TABLAS_SIN_COPIA) expect(sinConsulta, `${t}.${c}`).toContain(`${t}.${c}`);
+  });
+
+  it("consulta_lectura pierde justo COLUMNAS_SIN_CONSULTA, al quitarlas y al comprobarlas", () => {
+    // Las dos listas `values (…)` de la migración: la que quita y la que comprueba.
+    const listas = [...sql.matchAll(/from \(values\s*([\s\S]*?)\)\s*as x\(tabla, columna\)/g)]
+      .map((m) => [...m[1].matchAll(/\('([\w.]+)', '(\w+)'\)/g)].map(([, t, c]) => [t, c]));
+    expect(listas).toHaveLength(2);
+    for (const l of listas) expect(l).toEqual(COLUMNAS_SIN_CONSULTA);
+    // Se quita la tabla entera y se devuelve columna a columna, sin la del código.
+    expect(sql).toContain("execute format('revoke select on %s from consulta_lectura', v.tabla);");
+    expect(sql).toMatch(/attname <> v\.columna;\s*execute format\('revoke/);
+    expect(sql).toContain("has_column_privilege('consulta_lectura', x.tabla::regclass, x.columna, 'SELECT')");
+  });
+
+  it("una lista de columnas no cuenta como privilegios, y token en ella sí se ve", () => {
+    expect(fallosDelRol("grant select (household_id, role) on public.household_invites to consulta_lectura;")).toEqual([]);
+    expect(fallosDelRol("grant select (token), insert on public.household_invites to consulta_lectura;")).toEqual(["concede insert"]);
+  });
+
+  it("columnasDeVista caza una columna de más", () => {
+    const malo = sql.replace("u.is_anonymous, u.created_at\n", "u.is_anonymous, u.created_at, u.encrypted_password\n");
+    expect(malo).not.toBe(sql);
+    expect(columnasDeVista(malo, "auth_usuarios")).toContain("encrypted_password");
   });
 });

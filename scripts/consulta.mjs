@@ -6,38 +6,36 @@
  * lee y no escribe. Cuatro barreras: el usuario `consulta_lectura` (0092), que
  * solo tiene permiso de leer; el texto (scripts/lib/consulta.mjs); una
  * transacción `read only` que Postgres hace cumplir aunque algo se colara, y un
- * rollback al final. Sin SUPABASE_DB_URL_LECTURA entra como administrador y lo
- * avisa (scripts/lib/rolLectura.mjs). Tope de 15 s y de 200 filas. Sin datos de familias en un
+ * rollback al final. Sin SUPABASE_DB_URL_LECTURA no entra (#238); como
+ * administrador, solo con `--admin` explícito y un aviso
+ * (`npm run consulta -- --admin "select …"`; scripts/lib/rolLectura.mjs).
+ * Tope de 15 s y de 200 filas. Sin datos de familias en un
  * issue ni en un PR: lo que salga se resume en cifras.
  */
 import pg from "pg";
 import { leerEnv } from "./lib/env.mjs";
 import { motivoParaNoLeer } from "./lib/consulta.mjs";
-import { conexionDeConsulta, motivoUsuarioIncorrecto } from "./lib/rolLectura.mjs";
+import { argumentosDeConsulta, conexionDeConsulta, motivoUsuarioIncorrecto } from "./lib/rolLectura.mjs";
 
-const sql = process.argv.slice(2).join(" ").trim();
+const { admin, sql } = argumentosDeConsulta(process.argv.slice(2));
 const no = motivoParaNoLeer(sql);
 if (no) {
   console.error(`No la lanzo: ${no}`);
   process.exit(1);
 }
 
-// Con el usuario de solo lectura (0092) si está; si no, con el administrador y
-// un aviso: el script no depende de que la migración ya esté aplicada.
+// Con el usuario de solo lectura (0092). Sin él, no entra: el administrador,
+// solo con --admin (a todo o nada, #238).
 let url;
 let aviso;
 let rol;
 try {
-  ({ url, aviso, rol } = conexionDeConsulta((k) => leerEnv(k)));
+  ({ url, aviso, rol } = conexionDeConsulta((k) => leerEnv(k), { admin }));
 } catch (e) {
   console.error(e.message);
   process.exit(1);
 }
 if (aviso) console.error(aviso);
-if (!url) {
-  console.error("Falta SUPABASE_DB_URL_LECTURA o SUPABASE_DB_URL en .env.local (o en el entorno).");
-  process.exit(1);
-}
 const client = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
 await client.connect();
 // Con la dirección de lectura, que de verdad sea consulta_lectura (juez de

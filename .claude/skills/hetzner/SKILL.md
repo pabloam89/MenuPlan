@@ -33,11 +33,9 @@ description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a
   - Una línea por copia en `copias.log` y el journal (`copia-base … resultado:
     ok|fallo motivo: <paso> … aviso: ok|fallo|sin-canal`); vocabulario en
     `scripts/lib/copias.mjs`, cruzado por test con el script.
-  - Para por `config` si la URL entra como `postgres` o puede escribir, y por
-    `incompleta` con menos de 100 KB o menos de la mitad que la última buena.
-  - **Plan B sin `copia_lectura` (#273):** usa `consulta_lectura`, que no lee las
-    secuencias (`sin-valor`; al restaurar, `SQL_SECUENCIAS`) ni `auth.users`
-    (`auth: no`; skill `supabase`).
+  - Solo con `copia_lectura` (0095, #273; nunca `consulta_lectura`) <!-- norma:copias-solo-con-su-rol -->: con otro
+    usuario o si puede escribir, para por `config`; sin las dos vistas de
+    `copia`, por `auth`; con menos de 100 KB o la mitad de la última, `incompleta`.
 - **Pendiente:**
   - **Copia fuera del servidor** (#273, punto 4): las del panel y las de MenuPlan
     están en el mismo disco.
@@ -57,8 +55,9 @@ description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a
   Ninguna se imprime nunca.
 - **Nada en `ops/env.1password`:** el panel todavía no es parte de MenuPlan.
 - **Copias de la base:** `/etc/menuplan-copia/copia.env` (root, 600) con
-  `COPIA_DB_URL` (hoy la de `SUPABASE_DB_URL_LECTURA`, ficha `Supabase lectura`
-  de `HoMenu`) y, si se decide (#273), `COPIA_AVISO_URL` de Healthchecks. Se
+  `COPIA_DB_URL` (la de `copia_lectura`, ficha «Supabase copia» de
+  `Panel HoMenu`, campo `SUPABASE_DB_URL_COPIA`; la crea
+  `scripts/clave-copia-lectura.mjs`) y `COPIA_AVISO_URL` de Healthchecks. Se
   escribe por tubería desde 1Password, nunca a mano en un comando. La clave
   privada de `age` **no** va al servidor: ficha «Copias de la base» de
   `Panel HoMenu` (skill `1password`).
@@ -95,7 +94,8 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
 ### Copias de la base: instalar (OK; lo lanza Pablo con `!`)
 
 Antes: la clave creada (`node scripts/copias-clave.mjs --si`, skill `1password`)
-y la pública commiteada. `SSH` es la ruta de arriba, entre comillas dobles; `R`,
+y la pública commiteada; la 0095 aplicada (`--pablo`) y la contraseña de
+`copia_lectura` puesta (`node scripts/clave-copia-lectura.mjs --si`). `SSH` es la ruta de arriba, entre comillas dobles; `R`,
 la carpeta del repo con la rama de las copias. Cada paso, una llamada.
 
 1. **Requisito:** `node scripts/copias-clave.mjs --comprobar` → `COINCIDEN`.
@@ -105,12 +105,12 @@ la carpeta del repo con la rama de las copias. Cada paso, una llamada.
    y así `destinatarios.txt` (a `/etc/menuplan-copia/`) y las dos unidades (a
    `/etc/systemd/system/`). Luego `"$SSH" root@100.73.252.32 'chmod 700 /usr/local/sbin/menuplan-copia && sed -i "s/\r$//" /usr/local/sbin/menuplan-copia /etc/menuplan-copia/destinatarios.txt /etc/systemd/system/menuplan-copia.* && bash -n /usr/local/sbin/menuplan-copia && systemctl daemon-reload'` → sin salida.
 4. La URL, por tubería y sin verla (`>`: crea el fichero):
-   `npm run --silent op -- read "op://HoMenu/Supabase lectura/SUPABASE_DB_URL_LECTURA" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_DB_URL=%s\n" "$v" > /etc/menuplan-copia/copia.env; wc -c < /etc/menuplan-copia/copia.env'`
-   → más de 60; 14 es que llegó vacía. La contraseña no sale en ningún `ps`:
+   `op read "op://c64ol4a3oewjeue3szoafrrr6q/Supabase copia/SUPABASE_DB_URL_COPIA" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_DB_URL=%s\n" "$v" > /etc/menuplan-copia/copia.env; wc -c < /etc/menuplan-copia/copia.env'`
+   → más de 60; 14 es que llegó vacía. `op` a pelo: la service account no ve `Panel HoMenu`. La contraseña no sale en ningún `ps`:
    el script la pasa a un passfile en `/run/menuplan-copia` (tmpfs; systemd lo borra al parar), montado `:ro` en el
    contenedor (`PGPASSFILE`), y usa la URL sin ella.
 5. Primera copia (fila «Copia de la base ahora») → `resultado: ok`,
-   `secuencias: sin-valor`, `auth: no`, `aviso: sin-canal`. Baja la imagen la
+   `secuencias: con-valor`, `auth: si`, `aviso: sin-canal` (u `ok` con Healthchecks). Baja la imagen la
    primera vez (~150 MB).
 6. Solo con el 5 en `ok`: `"$SSH" root@100.73.252.32 'systemctl enable --now menuplan-copia.timer'`.
 7. El ensayo (abajo) con esa copia.
@@ -135,15 +135,15 @@ la carpeta del repo con la rama de las copias. Cada paso, una llamada.
 - **Cadencia: el primer lunes de cada mes**, y tras cambiar `copia-base.sh`, el
   usuario de la copia o la versión de Postgres de Supabase.
 - Lo lanza Pablo con `!` en una carpeta de tarea: añade su línea a
-  `ops/copias/ensayos.log`, que va por PR (repo público: hoy con el total de
-  filas; `REGISTRO_SOLO_COCIENTE` en el script lo deja en el cociente, #273).
+  `ops/copias/ensayos.log`, por PR (repo público: solo `recuento` y cociente,
+  #273). Pide aprobar 3 veces: SSH, clave privada y URL de `copia_lectura`.
 - Necesita `age` (`winget install FiloSottile.age`) y Postgres 17 (zip
   «PostgreSQL binaries» de EnterpriseDB en `C:\dev\herramientas\pgsql`, o
   `--pg-bin`). El 9 oct 2026 no estaba ninguno.
 - Qué hace: baja la última diaria, comprueba que cada `.age` se descifra entero
   (sin guardarlo), y restaura por tubería (`age -d | pg_restore`, una pasada por
-  sección) en un Postgres desechable en `127.0.0.1`; secuencias al día y tablas
-  y filas contra producción (`consulta_lectura`, `begin read only`).
+  sección) en un Postgres desechable en `127.0.0.1`, con los CSV de `copia` en
+  un `auth` de mentira (`huerfanos: 0`); y compara con producción (`copia_lectura`).
 - **Mientras dura, el datadir del Postgres desechable tiene la base en claro**
   (en `%TEMP%\menuplan-ensayo-*`). Al acabar, al fallar y con Ctrl+C, Ctrl+Break
   o cerrando la ventana, se para (`-m immediate`) y se borra; si dice «OJO: no
