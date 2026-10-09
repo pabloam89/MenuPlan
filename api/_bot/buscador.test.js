@@ -34,6 +34,14 @@ describe("buscarHibrido", () => {
     expect(parecidos).not.toHaveBeenCalled();
   });
 
+  it("solo entra el Recetario Estrella: una receta con estrella undefined o false no se cuela", async () => {
+    const cat = [...catalogo, receta("reserva_a", { estrella: undefined }), receta("reserva_b", { estrella: false })];
+    const r = await buscarHibrido("algo de cuchara", { catalogo: cat, carpetaDe, deps: { parecidos: vector(["reserva_a", "reserva_b", "lentejas"]), haiku: vi.fn() } });
+    expect(ids(r)).toContain("lentejas");
+    expect(ids(r)).not.toContain("reserva_a");
+    expect(ids(r)).not.toContain("reserva_b");
+  });
+
   it("una negación que no se entiende va a Haiku, y lo que trae Haiku respeta la carpeta del que llama", async () => {
     const haiku = vi.fn(async () => ["merluza_horno", "lentejas", "garbanzos"]);
     const r = await buscarHibrido("algo que no sea muy pesado", { catalogo, carpetaDe, categoria: "legumbres", deps: { parecidos: vector([]), haiku } });
