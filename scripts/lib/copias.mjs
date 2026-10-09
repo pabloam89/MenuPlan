@@ -32,6 +32,7 @@ export const MOTIVOS_ENSAYO = [
   "restauracion", // pg_restore falla
   "produccion", // no se pudo leer producción para comparar
   "tablas-distintas", // la copia y producción no tienen las mismas tablas
+  "columnas-copia", // las vistas de `copia` en producción no tienen las columnas de RELACIONES_COPIA
   "recuento", // las filas no cuadran (ver `veredicto`)
 ];
 
@@ -45,6 +46,95 @@ export const BOVEDA_COPIAS = "c64ol4a3oewjeue3szoafrrr6q";
 export const FICHA_COPIAS = "Copias de la base";
 export const CAMPO_CLAVE = "clave_privada_age";
 export const OP_CLAVE_COPIAS = `op://${BOVEDA_COPIAS}/${FICHA_COPIAS}/${CAMPO_CLAVE}`;
+
+/**
+ * Las vistas del esquema `copia` (migración del rol copia_lectura): de qué tabla de `auth` sale
+ * cada una y sus columnas con su tipo, en el orden de la vista. Sin
+ * contraseñas, tokens ni metadatos. Las usan `copia-base.sh` (exige las dos:
+ * sin ellas, una copia restaurada en un proyecto nuevo deja las casas sin
+ * dueño) y el ensayo (que crea esas columnas en su `auth` de mentira y carga
+ * los CSV). `supabase/rolLectura.test.js` cruza esta lista con la de esa migración.
+ */
+export const RELACIONES_COPIA = {
+  auth_usuarios: {
+    origen: "auth.users",
+    columnas: [["id", "uuid"], ["email", "text"], ["phone", "text"], ["email_confirmed_at", "timestamptz"], ["phone_confirmed_at", "timestamptz"], ["is_anonymous", "boolean"], ["created_at", "timestamptz"]],
+  },
+  auth_identidades: {
+    origen: "auth.identities",
+    columnas: [["id", "uuid"], ["user_id", "uuid"], ["provider", "text"], ["provider_id", "text"], ["created_at", "timestamptz"]],
+  },
+};
+
+/**
+ * Tablas de códigos efímeros que no hacen falta para restaurar: la migración del
+ * rol copia_lectura le quita el `select` sobre ellas, `copia-base.sh` las deja
+ * fuera del volcado (`--exclude-table`, porque pg_dump bloquea toda tabla cuya
+ * definición vuelca y eso pide `select`) y el ensayo no las cuenta. Al
+ * restaurar se recrean vacías con sus migraciones. Un test cruza esta lista con
+ * el script y con la migración.
+ */
+export const TABLAS_SIN_COPIA = [["public.bot_link_tokens", "token"], ["public.household_invites", "token"], ["public.bot_codigos", "codigo"]];
+/** Solo los nombres de TABLAS_SIN_COPIA. */
+export const NOMBRES_SIN_COPIA = TABLAS_SIN_COPIA.map(([t]) => t);
+
+/** El `data_type` de information_schema.columns de cada tipo de RELACIONES_COPIA. */
+const DATA_TYPE = { uuid: "uuid", text: "text", timestamptz: "timestamp with time zone", boolean: "boolean", jsonb: "jsonb" };
+
+/**
+ * Lo que no cuadra entre RELACIONES_COPIA y las columnas reales de las vistas de
+ * `copia` en producción (filas de information_schema.columns con table_name,
+ * column_name, data_type y ordinal_position). Vacío = cuadra.
+ * @param {{ table_name: string, column_name: string, data_type: string, ordinal_position: number }[]} filas
+ */
+export function columnasCopiaQueNoCuadran(filas) {
+  const fallos = [];
+  for (const [rel, { columnas }] of Object.entries(RELACIONES_COPIA)) {
+    const reales = filas.filter((f) => f.table_name === rel).sort((a, b) => a.ordinal_position - b.ordinal_position);
+    const esperadas = columnas.map(([c, t]) => `${c} ${DATA_TYPE[t] ?? t}`);
+    const vistas = reales.map((f) => `${f.column_name} ${f.data_type}`);
+    if (esperadas.join(", ") !== vistas.join(", ")) fallos.push(`copia.${rel}: espero (${esperadas.join(", ")}) y hay (${vistas.join(", ") || "nada"})`);
+  }
+  return fallos;
+}
+
+/**
+ * El `auth` de mentira del ensayo: `auth.users` con las columnas del esquema
+ * `copia` más las que nombran las funciones del volcado (los metadatos, que la
+ * copia no lleva), y `auth.identities` con las suyas. Sin claves ajenas entre
+ * ellas: la copia saca cada vista en un momento distinto, y una identidad de un
+ * usuario creado entre medias no es un fallo de la copia.
+ */
+export function sqlAuthDeMentira() {
+  const tabla = (nombre, columnas) =>
+    `create table ${nombre} (${columnas.map(([c, t]) => `${c} ${t}${c === "id" ? " primary key" : ""}`).join(", ")});`;
+  const { auth_usuarios: u, auth_identidades: i } = RELACIONES_COPIA;
+  return [
+    tabla(u.origen, [...u.columnas, ["raw_user_meta_data", "jsonb"], ["raw_app_meta_data", "jsonb"]]),
+    tabla(i.origen, i.columnas),
+  ].join("\n");
+}
+
+/**
+ * Cuántos ids distintos de las claves ajenas a auth.users no están en el
+ * auth.users restaurado: con la copia de `auth` cargada, los usuarios que se
+ * quedarían sin fila (casas sin dueño) si se restaurase de verdad. Una consulta
+ * que devuelve una fila con `n`.
+ * @param {{ tabla: string, columna: string }[]} fks  lo que da clavesAjenasAAuth
+ */
+export function sqlHuerfanos(fks) {
+  if (!fks.length) return "select 0 as n";
+  const ids = fks.map((f) => `select ${f.columna} as id from ${f.tabla} where ${f.columna} is not null`).join("\n  union\n  ");
+  return `select count(*) as n from (\n  ${ids}\n) x where not exists (select 1 from auth.users u where u.id = x.id)`;
+}
+
+/**
+ * ops/copias/ensayos.log está en un repo PÚBLICO. true: solo `recuento:
+ * ok|fallo` y el cociente copia/producción, sin el número de tablas ni de filas
+ * (que sería una serie pública del crecimiento de la base). Lo decidió Pablo el
+ * 9 oct 2026 en #273; volver a false es cosa suya.
+ */
+export const REGISTRO_SOLO_COCIENTE = true;
 
 /** Dónde están las copias en el servidor del panel. */
 export const SERVIDOR = "root@100.73.252.32";
@@ -169,8 +259,8 @@ export function comprobarDestinatarios(texto, publicaFicha) {
 
 /**
  * Los campos de la línea del ensayo que van a `ops/copias/ensayos.log`, que está
- * en un repo PÚBLICO. Hoy van tal cual (con el total de filas). Si Pablo decide
- * no publicar el tamaño de la base (#273), `soloCociente` quita tablas y filas y
+ * en un repo PÚBLICO. Sin `soloCociente`, tal cual (con el total de filas). Con
+ * él (lo que se usa desde #273: REGISTRO_SOLO_COCIENTE), quita tablas y filas y
  * deja `recuento: ok|fallo` y el cociente copia/producción con dos decimales.
  * Lo que sale por pantalla no cambia.
  */
@@ -180,3 +270,7 @@ export function camposRegistroEnsayo(campos, { soloCociente = false } = {}) {
   const cociente = Number(fp) > 0 && Number.isFinite(Number(fc)) ? (Number(fc) / Number(fp)).toFixed(2) : "-";
   return { ...resto, recuento: campos.resultado === "ok" ? "ok" : "fallo", cociente };
 }
+
+/** La línea que el ensayo añade a `ops/copias/ensayos.log`, con lo que manda REGISTRO_SOLO_COCIENTE. */
+export const lineaRegistroEnsayo = (campos) =>
+  lineaEstructurada("ensayo-copia", camposRegistroEnsayo(campos, { soloCociente: REGISTRO_SOLO_COCIENTE }));

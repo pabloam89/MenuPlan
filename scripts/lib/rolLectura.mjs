@@ -1,12 +1,20 @@
 /**
- * El usuario de solo lectura de la base (`consulta_lectura`, migración 0092,
- * issue #233): su nombre, cómo se arma su dirección y cómo se guarda su
- * contraseña sin que viaje en claro.
+ * Los usuarios de solo lectura de la base: su nombre, cómo se arma su
+ * dirección y cómo se guarda su contraseña sin que viaje en claro.
  *
- * Lo usan `scripts/consulta.mjs` (para conectar) y
- * `scripts/clave-consulta-lectura.mjs` (para ponerle la contraseña).
+ *   - `consulta_lectura` (migración 0092, issue #233): `npm run consulta` desde
+ *     el PC de Pablo. Su dirección, en la bóveda HoMenu (la lee la service
+ *     account del PC sin preguntar).
+ *   - `copia_lectura` (issue #273): las copias nocturnas del
+ *     servidor (`ops/copias/copia-base.sh`) y el ensayo de restauración. Lee
+ *     también los usuarios de `auth` (esquema `copia`), así que su dirección va
+ *     a la bóveda «Panel HoMenu», donde cada lectura pide aprobar.
+ *
+ * Lo usan `scripts/consulta.mjs`, `scripts/copias-ensayo.mjs` y
+ * `scripts/lib/claveRol.mjs` (que pone la contraseña de cada uno).
  */
 import { createHash, createHmac, pbkdf2Sync, randomBytes } from "node:crypto";
+import { BOVEDA_COPIAS } from "./copias.mjs";
 
 export const ROL_LECTURA = "consulta_lectura";
 export const VAR_LECTURA = "SUPABASE_DB_URL_LECTURA";
@@ -18,6 +26,53 @@ export const VAR_ADMIN = "SUPABASE_DB_URL";
  */
 export const FICHA_LECTURA = "Supabase lectura";
 export const OP_LECTURA = `op://HoMenu/${FICHA_LECTURA}/${VAR_LECTURA}`;
+
+export const ROL_COPIA = "copia_lectura";
+export const VAR_COPIA = "SUPABASE_DB_URL_COPIA";
+export const FICHA_COPIA = "Supabase copia";
+/** Por el id de la bóveda «Panel HoMenu»: con el nombre, el espacio rompe `op` (skill 1password). */
+export const OP_COPIA = `op://${BOVEDA_COPIAS}/${FICHA_COPIA}/${VAR_COPIA}`;
+
+/**
+ * Cada usuario de solo lectura, con lo que necesita `claveRol.mjs` para ponerle
+ * la contraseña:
+ *   - `boveda`: dónde va su ficha; `servicio`: si la service account del PC
+ *     puede leerla (en «Panel HoMenu», no: se lee con la app, que pide aprobar);
+ *   - `prueba`: una consulta que, tras poner la contraseña, tiene que poder hacer;
+ *   - `despues`: qué hacer con la dirección nueva.
+ */
+export const PERFILES = {
+  [ROL_LECTURA]: {
+    rol: ROL_LECTURA, variable: VAR_LECTURA, ficha: FICHA_LECTURA, boveda: "HoMenu", servicio: true,
+    migracion: "0092_rol_consulta_lectura", issue: 233, script: "scripts/clave-consulta-lectura.mjs",
+    prueba: null,
+    despues: `Añade (o descomenta) en tu .env.local: ${VAR_LECTURA}=${OP_LECTURA}`,
+  },
+  [ROL_COPIA]: {
+    rol: ROL_COPIA, variable: VAR_COPIA, ficha: FICHA_COPIA, boveda: BOVEDA_COPIAS, servicio: false,
+    migracion: "0095_rol_copia_lectura", issue: 273, script: "scripts/clave-copia-lectura.mjs",
+    prueba: "select 1 from copia.auth_usuarios limit 1",
+    despues: "Súbela al servidor por tubería, sin verla: skill hetzner, «Copias de la base: instalar», paso 4.",
+  },
+};
+
+/**
+ * Columnas con códigos que `consulta_lectura` no lee (la migración del rol
+ * copia_lectura, #374 para el fondo): [tabla, columna]. En esas tablas tiene
+ * `select` solo por columnas, así que `select *` falla y hay que nombrarlas.
+ * Un test cruza esta lista con la migración.
+ */
+export const COLUMNAS_SIN_CONSULTA = [
+  ["public.bot_link_tokens", "token"],
+  ["public.household_invites", "token"],
+  ["public.bot_codigos", "codigo"],
+  ["public.households", "invite_token"],
+  ["public.user_profiles", "pending_invite_token"],
+  ["public.apple_auth_tokens", "refresh_token"],
+];
+
+/** La dirección op:// de la URL de un perfil. */
+export const direccionOp = (p) => `op://${p.boveda}/${p.ficha}/${p.variable}`;
 
 /**
  * Qué dice `op item get <ficha>`: "existe", "no-existe" o "error". Solo cuenta
@@ -33,16 +88,19 @@ export function estadoFicha(r) {
   return /isn't an item in the "[^"]+" vault/.test(String(r.stderr ?? "")) ? "no-existe" : "error";
 }
 
-/** La ficha de 1Password, en JSON para `op item create --vault HoMenu -`. */
-export const fichaLectura = (clave, url) => JSON.stringify({
-  title: FICHA_LECTURA,
+/** La ficha de 1Password de un perfil, en JSON para `op item create --vault <bóveda> -`. */
+export const fichaDeRol = (p, clave, url) => JSON.stringify({
+  title: p.ficha,
   category: "PASSWORD",
-  notesPlain: `Rol ${ROL_LECTURA} de Supabase (migración 0092, issue #233). La pone y la rota scripts/clave-consulta-lectura.mjs.`,
+  notesPlain: `Rol ${p.rol} de Supabase (migración ${p.migracion.slice(0, 4)}, issue #${p.issue}). La pone y la rota ${p.script}.`,
   fields: [
     { id: "password", type: "CONCEALED", purpose: "PASSWORD", label: "password", value: clave },
-    { id: VAR_LECTURA, type: "CONCEALED", label: VAR_LECTURA, value: url },
+    { id: p.variable, type: "CONCEALED", label: p.variable, value: url },
   ],
 });
+
+/** La de `consulta_lectura` (la firma de antes del rol de copias). */
+export const fichaLectura = (clave, url) => fichaDeRol(PERFILES[ROL_LECTURA], clave, url);
 
 /** Una contraseña larga, aleatoria y solo con caracteres seguros en una URL. */
 export const claveNueva = () => randomBytes(32).toString("base64url");
@@ -64,39 +122,59 @@ export function verificadorScram(clave, sal = randomBytes(16), iter = 4096) {
 }
 
 /**
- * La dirección del rol de lectura a partir de la del administrador: mismo
- * servidor, puerto y base. Por el pooler de Supabase (Supavisor) el usuario
- * lleva el proyecto detrás (`postgres.<ref>` → `consulta_lectura.<ref>`); en
- * conexión directa, el nombre a secas.
+ * La dirección de un rol a partir de la del administrador: mismo servidor,
+ * puerto y base. Por el pooler de Supabase (Supavisor) el usuario lleva el
+ * proyecto detrás (`postgres.<ref>` → `<rol>.<ref>`); en conexión directa, el
+ * nombre a secas.
  */
-export function urlLectura(urlAdmin, clave) {
+export function urlDeRol(urlAdmin, rol, clave) {
   const u = new URL(urlAdmin);
   const usuario = decodeURIComponent(u.username);
   const punto = usuario.indexOf(".");
-  u.username = punto > 0 ? `${ROL_LECTURA}${usuario.slice(punto)}` : ROL_LECTURA;
+  u.username = punto > 0 ? `${rol}${usuario.slice(punto)}` : rol;
   u.password = encodeURIComponent(clave);
   return u.toString();
 }
 
-/**
- * Con la dirección de lectura, la sesión tiene que ser de `consulta_lectura`.
- * Si no (p. ej. SUPABASE_DB_URL_LECTURA apuntando por error a la de
- * administrador), el motivo para no seguir; null si cuadra o si no se esperaba
- * ningún rol (plan B, que ya avisa).
- */
-export function motivoUsuarioIncorrecto(esperado, actual) {
-  if (!esperado || actual === esperado) return null;
-  return `${VAR_LECTURA} entra como «${actual}», no como «${esperado}». No sigo: corrige la dirección en 1Password.`;
-}
+/** La de `consulta_lectura`. */
+export const urlLectura = (urlAdmin, clave) => urlDeRol(urlAdmin, ROL_LECTURA, clave);
 
 /**
- * Qué dirección usa `npm run consulta`: la de lectura si existe; si la variable
- * no está, la del administrador con un aviso (plan B mientras la 0092 no esté
- * aplicada o la contraseña no esté en 1Password). Si está pero no se puede
- * leer, lanza: nunca cambia de usuario por un fallo.
- * @param {(clave: string) => string | undefined} leer
+ * Con la dirección de un rol, la sesión tiene que ser de ese rol. Si no (p. ej.
+ * SUPABASE_DB_URL_LECTURA apuntando por error a la de administrador), el motivo
+ * para no seguir; null si cuadra o si no se esperaba ningún rol (`--admin`).
  */
-export function conexionDeConsulta(leer) {
+export function motivoUsuarioIncorrecto(esperado, actual, variable = VAR_LECTURA) {
+  if (!esperado || actual === esperado) return null;
+  return `${variable} entra como «${actual}», no como «${esperado}». No sigo: corrige la dirección en 1Password.`;
+}
+
+/** El argumento con el que `npm run consulta` entra como administrador. */
+export const ARG_ADMIN = "--admin";
+
+/**
+ * Qué dirección usa `npm run consulta`. A todo o nada (decisión de Pablo en
+ * #238, 9 oct 2026):
+ *   - sin `--admin`, la de lectura; si la variable no está, lanza con un
+ *     mensaje claro. Nunca cae sola al administrador;
+ *   - si está pero no se puede leer, lanza también: un fallo no cambia de
+ *     usuario;
+ *   - con `--admin` explícito, la del administrador (sin leer la de lectura),
+ *     con un aviso.
+ * @param {(clave: string) => string | undefined} leer
+ * @param {{ admin?: boolean }} [opciones]
+ * @returns {{ url: string, rol: string | null, aviso: string | null }}
+ */
+export function conexionDeConsulta(leer, { admin = false } = {}) {
+  if (admin) {
+    const url = leer(VAR_ADMIN);
+    if (!url) throw new Error(`${ARG_ADMIN}: falta ${VAR_ADMIN} en .env.local (o en el entorno).`);
+    return {
+      url,
+      rol: null,
+      aviso: `Aviso: ${ARG_ADMIN}. Entro como administrador; solo me protegen el filtro de texto y la transacción read only (issue #233).`,
+    };
+  }
   let lectura;
   try {
     lectura = leer(VAR_LECTURA);
@@ -106,10 +184,22 @@ export function conexionDeConsulta(leer) {
     // usuario con una dirección mala (juez de seguridad de la 0092).
     throw new Error(`${VAR_LECTURA} está configurada pero no la puedo leer (${e.message}). No cambio al administrador: arréglala o quítala.`);
   }
-  if (lectura) return { url: lectura, aviso: null, rol: ROL_LECTURA };
-  return {
-    url: leer(VAR_ADMIN),
-    rol: null,
-    aviso: `Aviso: no hay ${VAR_LECTURA}. Entro como administrador; solo me protegen el filtro de texto y la transacción read only (issue #233).`,
-  };
+  if (!lectura) {
+    throw new Error(
+      `Falta ${VAR_LECTURA}: npm run consulta solo entra con el usuario de solo lectura (${ROL_LECTURA}). `
+      + `Añade en tu .env.local ${VAR_LECTURA}=${OP_LECTURA} (plantilla: ops/env.1password). `
+      + `Entrar como administrador es a propósito: ${ARG_ADMIN} (issue #238).`,
+    );
+  }
+  return { url: lectura, aviso: null, rol: ROL_LECTURA };
+}
+
+/**
+ * Separa `--admin` de lo demás en los argumentos de `consulta.mjs`. Solo cuenta
+ * el argumento exacto: un `--admin` dentro del texto de la consulta no es el
+ * argumento.
+ * @param {string[]} argv  los argumentos, sin `node` ni el script
+ */
+export function argumentosDeConsulta(argv) {
+  return { admin: argv.includes(ARG_ADMIN), sql: argv.filter((a) => a !== ARG_ADMIN).join(" ").trim() };
 }
