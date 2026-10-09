@@ -14,10 +14,10 @@ provisionales (interlineado de los roles de texto, `margen-pantalla` = 16,
 se absorben en los tokens.
 
 **Cifra de la regla (9 oct 2026, antes de migrar nada):** 12.793 valores
-sueltos en 4.548 entradas `fichero | tipo | valor` y 83 ficheros — color 4.581,
-espaciado 3.650, fuente 1.289, radio 1.187, peso 1.175, movimiento 460,
+sueltos en 4.545 entradas `fichero | tipo | valor` y 83 ficheros — color 4.581,
+espaciado 3.650, tamano-letra 1.289, radio 1.187, peso 1.175, movimiento 460,
 sombra 307, capa 144 — y 0 `eslint-disable` de la regla. Se regenera con
-`npm run lint:base`; sustituye a la tabla de regex de «Lo que hay» (que sigue
+`npm run lint:base -- --actualizar` (solo baja); sustituye a la tabla de regex de «Lo que hay» (que sigue
 siendo la medida de la auditoría, con otro alcance).
 
 ## Decisiones
@@ -26,12 +26,12 @@ siendo la medida de la auditoría, con otro alcance).
 
 | # | Decisión | Estado | Resultado |
 |---|---|---|---|
-| D1 | Color de marca | **Decidida por Pablo (9 oct 2026)** | Verde `#2d5a3d` = marca; teal `#0f766e` = acento de lo elegido; terracota fuera. La forma de los usos de teal que no son selección sigue abierta (D11) |
-| D2 | Nombre en docs | Decidida por la sesión (9 oct 2026), reversible | HoMenu (`index.html` y manifest ya lo dicen). Se aplica en el PR de tokens: título de `DESIGN_SYSTEM.md` y `README.md` |
+| D1 | Color de marca | **Decidida por Pablo (9 oct 2026)** | Verde `#2d5a3d` = marca; teal `#0f766e` = acento de lo elegido; terracota fuera. Los usos de teal que no son selección, resueltos en D11 |
+| D2 | Nombre en docs | Decidida por la sesión (9 oct 2026), reversible | HoMenu (`index.html` y manifest ya lo dicen). Aplicada al título de `DESIGN_SYSTEM.md` en el PR de tokens. **Pendiente:** el título de `README.md` (plantilla de Vite; fuera de ese PR) |
 | D3 | Idioma de carpetas de assets | Decidida por la sesión (9 oct 2026), reversible | Castellano, kebab-case ASCII: `diseno/`, `scripts/diseno/`, `public/img/<familia>/`. Excepción justificada: el módulo de código `src/design/` (nombre ya fijado en el encargo del agente y en #239; las carpetas de código `src/lib`, `src/components` no siguen D3, que habla de assets) |
 | D4 | Dónde viven los originales (1024 px, Midjourney) | **Decidida por Pablo (9 oct 2026)** | Vercel Blob, que ya guarda 1.035 fotos de platos; nunca `public/` ni el repo normal. Subir los originales sigue siendo un paso con su aviso (gasta espacio en un servicio externo) |
-| D5 | Textos de ayuda | Decidida por la sesión (9 oct 2026), reversible | Manda `.claude/rules/ui.md:16` (sin subtítulos explicativos ni texto de ayuda). Se retira la línea contraria `DESIGN_SYSTEM.md:336` en el PR de tokens |
-| D6 | Mapa de color de categoría | Decidida por la sesión (9 oct 2026), reversible | Manda `CATEGORY_META` de `src/screens/CatalogBrowserSheet.jsx:112`; pasa a datos aparte |
+| D5 | Textos de ayuda | Decidida por la sesión (9 oct 2026), reversible | Manda la regla «Sin textos que nadie pidió» de `.claude/rules/ui.md` (sin subtítulos explicativos ni texto de ayuda). Retirada la línea contraria de `DESIGN_SYSTEM.md` (§12) en el PR de tokens |
+| D6 | Mapa de color de categoría | Decidida por la sesión (9 oct 2026), reversible | Manda `CATEGORY_META` de `src/screens/CatalogBrowserSheet.jsx`; pasa a datos aparte |
 | D7 | Escala de tokens | Decidida por la sesión (9 oct 2026) | Medir primero (hecho) y ajustar a la escala en un PR aparte, con capturas |
 | D8 | Capturas de referencia | Decidida por la sesión (9 oct 2026) | Solo en local por ahora; CI de capturas más adelante y no obligatorio |
 | D9 | Playwright como devDependency | **Abierta**, cuando se llegue a capturas | Sin ella no hay capturas definitivas ni la herramienta del paso 1 (hoy no está instalado). Es añadir una dependencia: gateway de `diseno` |
@@ -39,11 +39,12 @@ siendo la medida de la auditoría, con otro alcance).
 | D11 | Usos de teal que no son selección | **Decidida por Pablo (9 oct 2026)** | Opción A (ver «Teal»): CTA a verde de marca; el teal queda para lo elegido y, en la zona social, como `acento` |
 | D12 | Logo: `brand/homenu-teal.*` es teal y `public/logo-homenu.svg` terracota | **Abierta**, cambiar el logo es gateway | Con D1 ninguno es el verde de marca. Recomendación: un único logo maestro en verde |
 | D13 | Rutas de avatares guardadas en base | **Abierta (`datos` y `auditor-datos`)** | Ver «Assets». Sin su decisión no se renombra ninguna ruta de avatar |
-| D14 | Placeholder | Decidida por la sesión (9 oct 2026), reversible | `#9ab0a1` (108 usos). Hoy `index.css:32` y `DESIGN_SYSTEM.md:75,323` dicen `#9aa8a0` (10 usos); se cambian en el PR de tokens |
+| D14 | Placeholder | Decidida por la sesión (9 oct 2026), reversible | `#9ab0a1` (108 usos). `index.css` (la regla global de `::placeholder` y la de `.mp-panel-input`) sigue diciendo `#9aa8a0` (10 usos): es un cambio visible mínimo, **se cambia al migrar**, no en el PR de tokens. `DESIGN_SYSTEM.md` §11 ya dice `#9ab0a1` |
 
 ## Lo que hay (medido el 9 oct 2026)
 
-**Tokens: no existen.** Sin Tailwind, sin variables CSS globales (solo
+**Tokens: existen desde el PR de #258, pero ninguna pantalla los usa.** Esta
+sección es la medida de ANTES: sin Tailwind, sin variables CSS globales (solo
 `--pz-*` de la pizarra en `src/index.css`), sin objeto de tema.
 
 Método de las cifras: expresiones regulares sobre `src/**/*.jsx` (74
@@ -88,19 +89,19 @@ Más hex por fichero (7 oct, sin remedir): `Onboarding.jsx` 535, `Menu.jsx`
   el mismo nivel que las hojas sobre hojas (`FollowListSheet`, `ReportSheet`…).
 - El doc cita `#1c4a2e` (verde oscuro) y `#47a066` como colores del sistema: se
   usan 5 y 1 veces.
-- Info: el doc dice `#2f6f9f` (`DESIGN_SYSTEM.md:81,83`, 4 usos); el azul de
+- Info: el doc dice `#2f6f9f` (`DESIGN_SYSTEM.md` §1, antes de corregirlo; 4 usos); el azul de
   info más usado es `#2f6d8a` (15).
-- Fondo de pantalla: el doc dice `#f4f8f5` y `#f7f9f7` (`DESIGN_SYSTEM.md:14,355`,
-  12 y 16 usos); el más usado entre los cuatro casi idénticos es `#f5f9f6` (21).
-- Peso de letra: `DESIGN_SYSTEM.md:15` dice 700/800/900, `:116` y `:360` dicen
-  600–900; el `Chip` documentado usa 500 (4 usos de 500 en todo el código).
+- Fondo de pantalla: el doc dice `#f4f8f5` y `#f7f9f7` (`DESIGN_SYSTEM.md` §0 y §14,
+  antes de corregirlo; 12 y 16 usos); el más usado entre los cuatro casi idénticos es `#f5f9f6` (21).
+- Peso de letra: `DESIGN_SYSTEM.md` §0.5 decía 700/800/900, y §2 y §14 decían
+  600–900 (corregido en el PR de tokens); el `Chip` documentado usa 500 (4 usos de 500 en todo el código).
 - Iconografía «única Nucleo»: `src/lib/menuExport.js` (HTML exportado) dibuja
   iconos a mano con nodos de estilo lucide. No hay dependencia lucide.
-- `DESIGN_SYSTEM.md` se titula MenuPlan (D2). `README.md` es la plantilla de
+- `DESIGN_SYSTEM.md` se titulaba MenuPlan (D2, corregido). `README.md` es la plantilla de
   Vite. `ILUSTRACIONES-PASOS.md` planifica 20 ilustraciones que no existen.
-- `ui.md:16` y `DESIGN_SYSTEM.md:336` sobre textos de ayuda (D5).
-- `DESIGN_SYSTEM.md` §0.3 (línea 13: «verde = todo lo interactivo/seleccionado»)
-  choca con D1 (teal = lo elegido).
+- La regla «Sin textos que nadie pidió» de `ui.md` y `DESIGN_SYSTEM.md` §12 sobre textos de ayuda (D5, corregido).
+- `DESIGN_SYSTEM.md` §0.3 («verde = todo lo interactivo/seleccionado») chocaba
+  con D1 (teal = lo elegido); corregido.
 - Colores de categoría: **legumbres** tiene 4 valores: `#b9770e`
   (`CatalogBrowserSheet`, `PizarraControles`, `RecipePlanner`), `#a06b2f`
   (`SliderReparto`), `#8b6914` (`Shopping`) y `#2d8a48` (`Analytics`,
@@ -121,27 +122,29 @@ constantes con otro nombre (`CARD_ACCENT_TEAL`, `SELECTED_TEAL`, `CASA_COLOR`,
 | CTA primario | `Onboarding.jsx:417,439` (Siguiente, Terminar), `CatalogBrowserSheet.jsx:3427` | No: es acción, choca con «verde = acción» |
 | Color de dato o de grupo | `Onboarding` `CASA_COLOR` y grupo «Todos», `cookings.js:88` (una opción de paleta), `NotificationsPopover:222`, color por defecto de `Avatar` en social, pista del slider de presupuesto, `Pantry` `EMPTY_ACCENT`, degradado de `FeedScreen:2549` | No |
 
-**Recomendación A (D11, sigue abierta):** `seleccionado` solo para lo elegido
+**Opción A (D11, decidida por Pablo el 9 oct 2026):** `seleccionado` solo para lo elegido
 (borde, check y su tinte); los CTA primarios de `Onboarding` y del catálogo
 pasan a `marca` (verde); la zona social conserva el teal con el rol `acento`;
 los colores de dato salen del mapa de categorías o de la paleta de grupos.
 Cambia píxeles en unos 5 sitios de CTA: va en su PR de pantalla, con capturas.
-Si Pablo elige otra opción, `acento` se quita del sistema.
+Si Pablo la revirtiera, `acento` se quitaría del sistema.
 
-**Regla de selección que fija el PR de tokens** (hoy el código mezcla):
-`seleccionado` (teal) marca **lo elegido en una lista, tesela u hoja de
-elección**; los controles de estado y acción (`Chip` activo, `Toggle`,
-`Segmented`, `BottomNav`, botón primario) siguen en `marca` (verde), como hoy.
-Ese PR reescribe `DESIGN_SYSTEM.md` §0.3, §1.1 y §14 (líneas 13, 24 y 353) y
-`ui.md:10-11`.
+**Regla de selección que fijó el PR de tokens** (el código de hoy aún mezcla):
+`seleccionado` es un **rol de color** (teal) y marca **lo elegido en una lista,
+tesela u hoja de elección**; los controles de estado y acción (`Chip`,
+`Toggle`, `Segmented`, `BottomNav`, botón primario) se pintan en `marca`
+(verde) y su estado se llama `activo`, no `seleccionado` (ver «Vocabulario de
+estados»). Ese PR reescribió `DESIGN_SYSTEM.md` §0.3, §1.1 y §14 y la regla de
+tokens de `ui.md`.
 
 ## Arquitectura del sistema
 
 1. **Dos capas de tokens.** Primitivos (valores crudos; solo existen en
-   `src/design/tokens`) y roles (`marca`, `tinta-suave`, `fondo-pantalla`,
+   `src/design/tokens.js` y **no se importan fuera de él**) y roles (`marca`, `tinta-suave`, `fondo-pantalla`,
    `superficie`, `linea`, `seleccionado`, `peligro`…). Los componentes usan
-   solo roles. No hay capa de tokens por componente salvo desvío real.
-2. **Fuente única: los tokens de `src/design/tokens`.** Las variables CSS son
+   solo roles; el HTML exportado (`menuExport.js`) importa los ROLES (`color`),
+   que ya llevan el hex. No hay capa de tokens por componente salvo desvío real.
+2. **Fuente única: los tokens de `src/design/tokens.js`.** Las variables CSS son
    una proyección **generada** de ellos (un script) y un test comprueba que lo
    generado coincide. El JS referencia `var(--…)`, que también resuelve alfa
    (`color-mix` o variables `-rgb`); donde no hay CSS (HTML exportado, PDF) usa
@@ -162,8 +165,9 @@ Ese PR reescribe `DESIGN_SYSTEM.md` §0.3, §1.1 y §14 (líneas 13, 24 y 353) y
 
 ## Tokens propuestos (77 valores)
 
-Suma: color 25 + tipografía 12 + espaciado 9 + radios 7 + sombras 4 + capas 8 +
-movimiento 4 + tamaños 8 = **77**. Los alias (`acento`, `exito`) y los roles de
+Los 77 valores y su reparto por familia los fija `src/design/tokens.test.js` (el
+reparto no se copia aquí). Los alias (`acento`, `exito`) y los roles de texto no
+cuentan: no añaden valor. Los alias (`acento`, `exito`) y los roles de
 texto no cuentan: no añaden valor.
 
 «Fusiona» cuenta hex distintos que caen en ese valor por cercanía RGB ≤ 12
@@ -199,7 +203,7 @@ pertenece a **un solo** rol.
 | `aviso` | `#b45309` | 9 | 1 / 5 | |
 | `aviso-fondo` | `#fff8e7` | 3 | 12 / 16 | |
 | `info` | `#2f6d8a` | 15 | 1 / 7 | el doc dice `#2f6f9f`; ese valor se queda en el mapa de categorías (pescados) |
-| `info-fondo` | derivado de `info` con alfa .10 | — | — | sin evidencia en el código: no se inventa un hex |
+| `info-fondo` | derivado de `info` con alfa .10 | — | — | **provisional**: sin evidencia en el código, no se inventa un hex |
 | `scrim` | `rgba(0,0,0,.45)` | 19 | 6 opacidades hoy | modal; `rgba(0,0,0,.5)` (22) y `rgba(20,47,29,.45)` (13) se fusionan aquí |
 | `velo` | `rgba(255,255,255,.92)` | 24 | — | cristal sobre imagen |
 
@@ -226,8 +230,8 @@ Fuera del sistema (a decidir al migrar):
 |---|---|---|
 | familia | DM Sans (1; Playfair Display ×5 sale o se decide) | `index.css:11` |
 | pasos (8) | `10 / 11 / 12 / 13 / 14 / 16 / 20 / 26` | ver tabla de snap |
-| pesos (3) | `700 / 800 / 900` | 86 % de los usos; 600 (145) sube a 700. `DESIGN_SYSTEM.md:15` ya lo dice; `:116` y `:360` se corrigen en el PR de tokens |
-| roles de texto | `titulo`, `cuerpo`, `etiqueta`, `mini` con interlineado | combinan lo anterior; `lineHeight` aparece en 287 sitios y no se ha medido |
+| pesos (3) | `700 / 800 / 900` | 86 % de los usos; 600 (145) sube a 700. `DESIGN_SYSTEM.md` §0.5 ya lo decía; §2 y §14 se corrigieron en el PR de tokens |
+| roles de texto | `titulo`, `cuerpo`, `etiqueta`, `mini` con interlineado | combinan lo anterior; interlineado **provisional** (los más usados de 287 `lineHeight`: ver `tokens.js`) |
 
 Divergencia: la escala de 8 pasos no tiene 15 (43 usos), 18 (17) ni nada por
 encima de 26 (28, 30, 32, 46: 6 usos; títulos de héroe). Esos 6 se dejan fuera
@@ -237,10 +241,10 @@ de la escala hasta mirarlos uno a uno.
 
 | Familia | Propuesta | Divergencia con el código |
 |---|---|---|
-| Espaciado (9) | `2 / 4 / 6 / 8 / 12 / 16 / 20 / 24 / 32` (2 y 6 son excepciones declaradas); roles `margen-pantalla` y `separacion-lista` | Sin las excepciones, 6, 10, 14, 18 y 22 sumarían unos 1.140 usos. Los valores de los roles no se han medido: se fijan en el PR de tokens. `0` va en la lista blanca |
-| Radios (7) | `4 mini · 8 chico · 12 control · 16 tarjeta · 20 panel · 26 modal · 999 pildora` | `control` 12 = botones e inputs (`DESIGN_SYSTEM.md:252,325`); `tarjeta` 16 (`:245`); `panel` 20 = esquinas altas de hoja (`20px 20px 0 0`, `:278`); `modal` 26 = tarjeta de `WizardSheet` (`:237`). `mini` 4 **no estaba en la propuesta**: 72 usos entre 2 y 7. `50%` (87 usos, círculos) en lista blanca |
+| Espaciado (9) | `2 / 4 / 6 / 8 / 12 / 16 / 20 / 24 / 32` (2 y 6 son excepciones declaradas); roles `margen-pantalla` y `separacion-lista` | Sin las excepciones, 6, 10, 14, 18 y 22 sumarían unos 1.140 usos. Los roles se midieron del código y son **provisionales**: `margen-pantalla` 16 (se usa más el 14, pero 16 está en la escala) y `separacion-lista` 8 (`tokens.js`). `0` va en la lista blanca |
+| Radios (7) | `4 mini · 8 chico · 12 control · 16 tarjeta · 20 panel · 26 modal · 999 pildora` | `control` 12 = botones e inputs; `tarjeta` 16; `panel` 20 = esquinas altas de hoja (`20px 20px 0 0`); `modal` 26 = tarjeta de `WizardSheet` (todo en `DESIGN_SYSTEM.md` §3.2 y §6). `mini` 4 **no estaba en la propuesta**: 72 usos entre 2 y 7. `50%` (87 usos, círculos) en lista blanca |
 | Sombras (4) | niveles `0–3` | 161 literales distintos. Por desenfoque (otra regex, 225 literales de una pieza): ≤ 4 px ×65, 5–12 ×39, 13–24 ×47, 25–40 ×24, > 40 ×39, `inset` ×6, `none` ×5. Se agrupan en 3 niveles por desenfoque |
-| Capas (8) | `capa-local` 1–5 · `capa-nav` 100 · `capa-flotante` 150 · `capa-hoja` 300 · `capa-hoja-2` 320 · `capa-toast` 330 · `capa-emergente` 1000 · `capa-tutorial` 1200 | 47 valores hoy. Regla: el toast va por encima de toda hoja (≥ `capa-hoja-2`). Otros valores en uso: 1150–1250 (tutorial y coach de `Menu`, `DishActionBar`, `Onboarding`), 1300, 3000 (`SchoolMenuDeck`) y 9999 (`InstallPwaBanner`) se reconducen a `capa-tutorial` o `capa-emergente` al migrar; 340–342 (`FeedScreen`) se miran uno a uno |
+| Capas (8) | `capa-local` 1–5 (**provisional**: el tope, 5) · `capa-nav` 100 · `capa-flotante` 150 · `capa-hoja` 300 · `capa-hoja-2` 320 · `capa-toast` 330 · `capa-emergente` 1000 · `capa-tutorial` 1200 | 47 valores hoy. Regla: el toast va por encima de toda hoja (≥ `capa-hoja-2`). Otros valores en uso: 1150–1250 (tutorial y coach de `Menu`, `DishActionBar`, `Onboarding`), 1300, 3000 (`SchoolMenuDeck`) y 9999 (`InstallPwaBanner`) se reconducen a `capa-tutorial` o `capa-emergente` al migrar; 340–342 (`FeedScreen`) se miran uno a uno |
 | Movimiento (4) | 3 duraciones: `rapida` .15 s · `media` .22 s · `lenta` .35 s; 1 curva `cubic-bezier(.4,0,.2,1)`; `prefers-reduced-motion` respetado por defecto | Duraciones medidas en `transition`/`animation` (primera de cada declaración, `.jsx` + `.js` + `index.css`): .22 s ×17, .12 ×10, .15 ×9, .2 ×8, .18 ×8, .16 ×7, .3 ×6, .34 ×6, .4 ×5, .26 ×5; se agrupan .12–.18 → rápida, .2–.26 → media, .3–.4 → lenta. Curva: `cubic-bezier(.4,0,.2,1)` 32 usos (26 + 6 escritos `0.4,0,0.2,1`), luego `.22,1,.36,1` 15 y `.25,.46,.45,.94` 14. `index.css` tiene 24 usos de 14 curvas y **no lee tokens hoy**; sus curvas de rebote en `@keyframes` (p. ej. `.34,1.4,.64,1`) quedan como excepción declarada, porque `ui.md:23-24` manda transcribir los keyframes, no sustituirlos. 5 reglas `prefers-reduced-motion` en `index.css` |
 | Tamaños (8) | táctil ≥ 40 · iconos `14 / 16 / 18 / 20 / 24` · columna 420 · nav 80 (más safe-area, que es `env()` y no un valor) | Columna 420 y nav 80 ya son constantes de `ui.jsx:72-73`. Iconos: `size=` medido sobre 771 usos: 16 ×117, 15 ×92, 18 ×84, 14 ×77, 13 ×61, 17 ×60, 12 ×50, 11 ×40, 20 ×25, 22 ×22. La escala original 16/20/24 cubre 158 (20 %); **14/16/18/20/24 cubre 319 (41 %)**. Lo demás (15, 13, 17, 12…) se mueve en el snap |
 
@@ -310,23 +314,42 @@ primitivo hoy** (`Button`, `Card`, `Field`, `Sheet` unificado, `HeaderPantalla`,
 
 Variantes cerradas (`variante`, `tamano` con `s / m / l`; nunca props de estilo
 libres). Cada uno tiene su entrada en `/catalogo` (solo DEV, tras unificar).
-Vocabulario único de estados: `reposo`, `pulsado`, `deshabilitado`, `cargando`,
-`peligro`, `seleccionado` (no «activo», no «error»).
+### Vocabulario de estados (único sitio)
+
+Es el vocabulario de todo el sistema; `DESIGN_SYSTEM.md`, `qa.md` y los
+componentes lo usan tal cual y no definen otro.
+
+| Estado | Significa |
+|---|---|
+| `reposo` | sin interacción |
+| `pulsado` | mientras se toca (`scale(.97)`) |
+| `activo` | un control de estado o de acción está encendido (`Chip`, `Segmented`, `BottomNav`, `Toggle`); se pinta en `marca` (verde) |
+| `deshabilitado` | no se puede usar |
+| `cargando` | esperando datos (`Skeleton`, `Spinner`); no «carga» |
+| `peligro` | acción destructiva o fallo; no «error» |
+| `vacío` | no hay datos que mostrar |
+| `sin-conexión` | no hay red |
+
+`seleccionado` **no es un estado de control**: es solo el rol de color (teal)
+con que se marca lo elegido en una lista, tesela u hoja de elección
+(`Card` `elegible`, `ListRow`). Un `Chip` activo está `activo`, no
+`seleccionado`.
+
 
 | Componente | Variantes | Estados | Hoy |
 |---|---|---|---|
 | `Button` | `primario`, `secundario`, `fantasma`, `peligro`; `tamano` s/m/l | todos; `cargando` con `Spinner` | botones sueltos; `GoogleButton`, `GhostPillButton` en `ui.jsx` |
 | `Card` | `plana`, `destacada` (borde marca), `elegible` | `reposo`, `seleccionado` | 4 `Card` locales (`Analytics`, `HomeProfileScreen`, `Settings`, `SpendPanel`), ver «Lo que hay» |
-| `Chip` / `Badge` | `neutro`, `marca`, `aviso`, `peligro` | `seleccionado`, quitable | `Chip` en `ui.jsx`, peso 500 |
+| `Chip` / `Badge` | `neutro`, `marca`, `aviso`, `peligro` | `activo`, quitable | `Chip` en `ui.jsx`, peso 500 |
 | `Toggle` | `tamano` s/m | encendido/apagado, `deshabilitado` | `ToggleSwitch` |
-| `Segmented` | `claro`, `oscuro`; con pestañas | `seleccionado` | `SegmentedControl`, `SegmentedTabBar` |
+| `Segmented` | `claro`, `oscuro`; con pestañas | `activo` | `SegmentedControl`, `SegmentedTabBar` |
 | `Field` | `texto`, `numero`, `buscar`; con etiqueta | `reposo`, foco, `peligro`, `deshabilitado` | inputs sueltos; placeholder en `index.css` |
 | `Sheet` | `abajo`, `centrada`; **un solo overlay** | abierta, cerrando | overlays propios y `*Sheet`/`*Modal` locales (ver «Lo que hay»), `WizardSheet` en `ui.jsx` |
-| `Toast` | `info`, `exito`, `peligro` | — | `App.jsx:7039`, fuera de `ui.jsx`. Choca con `ui.md` («sin toasts que nadie pidió»): se queda solo para los avisos que ya existen |
+| `Toast` | `info`, `exito`, `peligro` | — | `App.jsx` (busca `mp-toast-in`), fuera de `ui.jsx`. Hoy es **claro** (superficie tintada como `WizardSheet`; ver `DESIGN_SYSTEM.md` §9). Posible evolución, **sin decidir**: pasarlo a oscuro (`tinta`) sería un cambio visible y va en su PR con capturas. Choca con `ui.md` («sin toasts que nadie pidió»): se queda solo para los avisos que ya existen |
 | `Avatar` | `tamano` s/m/l; con foto o iniciales | — | `Avatar`, `AvatarStack` |
 | `HeaderPantalla` | con `atras`, con acción | — | 3 estilos de Atrás/Volver (qa) |
 | `ListRow` | con icono, con valor, con chevron | `pulsado`, `seleccionado` | filas hechas a mano |
-| `BottomNav` | — | `reposo`, `seleccionado` | `BottomNav` en `ui.jsx` |
+| `BottomNav` | — | `reposo`, `activo` | `BottomNav` en `ui.jsx` |
 | `EmptyState` | con o sin acción | — | `EmptyIllustration`, `EmptyState` en `Menu` y `MenusScreen` |
 | `Skeleton` | `texto`, `bloque` | `cargando` | sin primitivo |
 | `Spinner` | `tamano` s/m/l | `cargando` | sin primitivo |
@@ -442,8 +465,8 @@ scripts/diseno/             recorte, tarjetas, optimizado, iconos, logo
    tests. **`index.css` queda fuera**: ESLint no lee CSS; sus 11 hex y 4 `rgba`
    se vigilan al migrar (pendiente: una pasada de regex sobre él en
    `lint-base`). Excepción por escrito: `menuExport.js` (HTML exportado, sin
-   CSS de la app) importa los primitivos del módulo de tokens en lugar de
-   `var(--…)`. Un valor suelto nuevo **avisa** y no rompe el CI; `lint-base.mjs
+   CSS de la app) importa los roles (`color`) del módulo de tokens en lugar de
+   `var(--…)`; los primitivos no se importan fuera de `tokens.js`. Un valor suelto nuevo **avisa** y no rompe el CI; `lint-base.mjs
    --estricto` lo hace fallar y se activa en el CI cuando se migre la primera
    pantalla.
 2. Línea base por **lista** `fichero | tipo | valor` → cuenta
@@ -451,18 +474,18 @@ scripts/diseno/             recorte, tarjetas, optimizado, iconos, logo
    extraer `const GAP = 13` baja el contador sin tocar ningún token). Solo
    puede bajar: `--actualizar` se niega a subirla y un test fija el tope.
    Renombrar o mover un fichero no cuenta como nuevo.
-3. Lista blanca: `0`, `1`, `±1px`, `100%`, `50%`, `none`, `transparent`,
-   `currentColor`, `inherit`.
+3. Lista blanca: la que define la regla (`eslint-rules/no-valor-suelto.js`); es la
+   que manda y no se copia aquí.
 4. Se cuentan los `eslint-disable` de esa regla. La cifra «antes» es la de la
    regla, no la de esta página.
 5. Tests del PR de tokens: (a) las variables CSS generadas coinciden con los
    tokens; (b) las tablas de valores de `DESIGN_SYSTEM.md` coinciden con los
-   tokens (formato fijo); (c) favicon, manifest, `theme-color` y logo usan el
-   color de marca.
+   tokens (formato fijo); (c) favicon, manifest y `theme-color` usan el
+   color de marca de los tokens (`src/design/marca.test.js`; el logo sigue en D12).
 
 ## Orden de trabajo
 
-0. D1 hecha. Abiertas: D4, D9, D10, D12, D13 (D11 decidida por Pablo). Pasos 2 y
+0. Decididas por Pablo: D1, D4, D11. Abiertas: D9, D10, D12, D13. Pasos 2 y
    3 hechos en el PR de #258 (9 oct 2026); queda por hacer lo que dice cada
    punto sobre la migración.
 1. **Capturas mínimas antes de migrar nada**, a 375×812 y 420×900. Herramienta:
@@ -473,10 +496,10 @@ scripts/diseno/             recorte, tarjetas, optimizado, iconos, logo
    este paso**, tras `import.meta.env.DEV`, y es zona muy disputada.
 2. Tokens (`src/design/`) + variables CSS generadas + los tres tests de
    «Cumplimiento», en el mismo PR que corrige `DESIGN_SYSTEM.md` (nav, toast,
-   z-index, D2, D5, D14, §0.3, §1.1, §14, líneas 14, 75, 81/83, 116, 323, 336,
-   355 y 360) y cambia a la vez: `ui.md` (10-11), `diseno.md:83` (dice «D1–D4»),
-   `qa.md` (26, 28, 76), `CLAUDE.md:34` (fila «Reglas de UI») y
-   `ops/PLANOS.md:100-104` (plano 13), que se queda en un enlace a este fichero;
+   capas, D2, D5, §0.3, §1.1, §14, info, fondos, pesos y tamaños) y cambia a la
+   vez: la regla de tokens de `ui.md`, el método de `diseno.md` (ya no dice
+   «D1–D4»), `qa.md`, la fila «Reglas de UI» de `CLAUDE.md` y el plano 13 de
+   `ops/PLANOS.md`, que se queda en un enlace a este fichero;
    el dato «6,45 MB en el chunk inicial» ya está arriba.
 3. Regla de lint en `warn` + línea base por lista.
 4. Migración en dos pasos, una pantalla por PR y pasada por `qa`: primero
@@ -508,11 +531,9 @@ scripts/diseno/             recorte, tarjetas, optimizado, iconos, logo
 - Si los originales que faltan existen en algún PC o en Blob.
 - Cuántos controles táctiles miden menos de 40 px.
 - Peso real de los WebP tras convertir: los topes son propuesta.
-- Interlineado de los roles de texto y valores de `margen-pantalla` y
-  `separacion-lista`; `info-fondo`.
-- Las líneas de `ui.md`, `qa.md`, `diseno.md` y `CLAUDE.md` citadas en el orden
-  de trabajo vienen del encargo de la sesión; solo `ui.md:10-11,16,23-24` y
-  `diseno.md:83` se han leído.
+- Los valores provisionales (interlineado de los roles de texto,
+  `margen-pantalla`, `separacion-lista`, `capa-local`, `info-fondo`): salen de lo
+  más usado y se confirman al migrar la primera pantalla.
 - La clasificación de color por propiedad falla con estilos montados en varias
   líneas; sirve para el orden de magnitud. Las duraciones cuentan solo la primera
   de cada declaración.

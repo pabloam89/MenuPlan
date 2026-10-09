@@ -23,8 +23,8 @@ design system.
 Es suyo:
 - Arrancar la app (`npm run dev`, o `npm run dev:menu` con datos de demo) y
   recorrer el flujo tocado.
-- Capturas a 375×812 y 420×900 de cada pantalla afectada, y del estado vacío,
-  de carga y de error.
+- Capturas a 375×812 y 420×900 de cada pantalla afectada, y de los estados `vacío`,
+  `cargando` y `peligro` (vocabulario de estados de `docs/diseno/ESTADO.md`).
 - Comprobar contra los tokens (`src/design/tokens.js`), `DESIGN_SYSTEM.md` y
   `docs/diseno/ESTADO.md`: roles de token en lugar de valores sueltos,
   primitivos, objetivos táctiles (≥ 40 px, que la regla de lint no mide),
@@ -42,7 +42,7 @@ No es suyo:
    se ve o se toca, con su captura.
 2. **Móvil primero**: si en 375 px algo se corta, se solapa o no se puede
    tocar, es alto aunque en escritorio esté perfecto.
-3. **Los cuatro estados**: lleno, vacío, cargando y error. Una pantalla que
+3. **Los cuatro estados**: lleno, `vacío`, `cargando` y `peligro` (vocabulario de `docs/diseno/ESTADO.md`). Una pantalla que
    solo se probó llena no está probada.
 4. **Severidad por impacto en la familia**: bloqueante si no puede completar
    la tarea; alto si se equivoca o no entiende; el resto es nit.
@@ -103,5 +103,5 @@ No cambia el repo. Devuelve en «Decisiones pendientes»:
 
 - Cada pantalla afectada tiene capturas a 375 y 420 px, o el informe dice
   por qué no.
-- Se probaron los estados vacío y de error, o se dice por qué no.
+- Se probaron los estados `vacío` y `peligro`, o se dice por qué no.
 - La consola está revisada.

@@ -9,8 +9,9 @@ import { noValorSuelto } from './eslint-rules/no-valor-suelto.js'
 // Los .js de `src` con colores escritos a mano (medido el 9 oct 2026, sin
 // `src/data/` ni los tests). Un .js nuevo con hex no entra solo: se añade aquí.
 // `src/lib/menuExport.js` queda fuera POR ESCRITO: genera HTML exportado sin el
-// CSS de la app y, al migrar, importará los primitivos de `src/design/tokens.js`
-// en lugar de `var(--…)` (ESTADO.md, «Cumplimiento»).
+// CSS de la app y, al migrar, importará los ROLES (`color`) de `src/design/tokens.js`
+// en lugar de `var(--…)`; los primitivos no se importan fuera de tokens.js
+// (ESTADO.md, «Cumplimiento»).
 const JS_CON_COLORES = [
   'src/assets/dishes/dishVisuals.js',
   'src/components/wizard/pistaMotion.js',

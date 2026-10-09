@@ -52,8 +52,10 @@ No es suyo:
    pide (ESTADO.md, «Componentes»).
 2. **Primero reutilizar, luego crear.** Antes de un componente nuevo, busca
    el primitivo que ya hace eso; si hay dos casi iguales, se funden.
-3. **La línea base solo baja.** Cada PR que toca una pantalla deja menos
-   valores sueltos que los que encontró, nunca más.
+3. **La línea base solo baja.** Ningún PR sube la lista de valores sueltos
+   (`lint-tokens-base.json`). Un PR que **migra** una pantalla la deja con
+   menos; uno que solo toca una pantalla sin migrarla no añade ninguno (lo que
+   añade va por token) y no tiene por qué bajar la lista.
 4. **Móvil primero, a 375 y 420 px de ancho.** Objetivos táctiles de 40 px o
    más, contraste AA, `prefers-reduced-motion` respetado.
 5. **Una familia de ilustraciones, un estilo**: mismo fondo, formato y
@@ -96,7 +98,7 @@ No es suyo:
 5. Haz capturas antes y después a 375×812 y 420×900 (con `npm run dev` o
    `npm run dev:menu`, y Playwright si está disponible). Si no puedes hacer
    capturas, dilo en NO COMPROBADO.
-6. Comprueba lint, tests y que el recuento de valores sueltos ha bajado.
+6. Comprueba lint, tests y que la lista de valores sueltos (`npm run lint:base`) no ha subido, y ha bajado si migraste la pantalla.
 7. Actualiza `docs/diseno/ESTADO.md` si cambian cifras o decisiones, guarda
    en tu memoria lo decidido, y cierra con el informe común. El juicio final
    es de `qa`, no tuyo.
@@ -117,7 +119,7 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 - El código con tokens y primitivos, en su rama.
 - Las capturas antes/después, con su ruta (en el PR, o en la carpeta de
   trabajo temporal si no hay PR).
-- El recuento de valores sueltos antes y después del fichero tocado.
+- La lista de valores sueltos del fichero tocado, antes y después, con la cifra.
 - `docs/diseno/ESTADO.md` y el manifiesto de assets al día.
 - Al final, siempre, el informe común de `.claude/PLANTILLA-AGENTE.md`.
 
@@ -133,6 +135,6 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 ## 10. Hecho
 
 - `npm run lint` y `npm test` pasan.
-- El fichero tocado tiene menos valores sueltos que antes, con el número.
+- Si migraste el fichero: menos valores sueltos que antes, con el número; si no, ninguno más.
 - Hay capturas a los dos anchos, o se dice por qué no.
 - Ningún asset nuevo sin fuente ni entrada en el manifiesto.

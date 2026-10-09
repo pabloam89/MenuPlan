@@ -54,7 +54,7 @@ export const primitivos = {
   'azul-700': '#2f6d8a',
   // Derivado de `azul-700` con alfa .10: sin evidencia de un hex propio en el
   // código, no se inventa uno (ESTADO.md, «Color»).
-  'azul-700-alfa10': 'rgba(47,109,138,.1)',
+  'azul-700-alfa10': 'rgba(47,109,138,.1)', // PROVISIONAL (info-fondo)
   'negro-alfa45': 'rgba(0,0,0,.45)',
   'blanco-alfa92': 'rgba(255,255,255,.92)',
 }
@@ -64,7 +64,7 @@ export const primitivos = {
 const rolesColor = {
   marca: 'verde-700', // D1; favicon, theme-color y manifest ya lo usan
   'marca-viva': 'verde-400', // fin de degradado, «hecho»
-  'marca-fondo': 'verde-50', // tinte verde: badge, nav seleccionado, éxito
+  'marca-fondo': 'verde-50', // tinte verde: badge, nav activo, éxito
   seleccionado: 'teal-700', // D1: SOLO lo elegido en lista, tesela u hoja
   'seleccionado-fondo': 'teal-50', // el tinte de lo elegido (uno solo)
   tinta: 'salvia-950', // título y texto de máximo contraste
@@ -184,7 +184,7 @@ export const sombra = {
 
 // ── Capas (8 valores) ────────────────────────────────────────────────────────
 // Regla: el toast va por encima de toda hoja (≥ capa-hoja-2). `capa-local` es
-// el tope del 1–5 de contenido (cabeceras pegajosas dentro de una hoja).
+// el tope del 1–5 de contenido (cabeceras pegajosas dentro de una hoja); PROVISIONAL.
 export const capa = {
   'capa-local': 5,
   'capa-nav': 100,

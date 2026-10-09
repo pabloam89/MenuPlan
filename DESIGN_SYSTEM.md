@@ -12,7 +12,7 @@
 ## 0. Principios rectores
 
 1. **Todo es inline styles** (objetos `style={{}}` en JSX). No hay Tailwind ni CSS Modules; el CSS global (`index.css`) solo cubre reset, fuentes, animaciones keyframe y parches de inputs. Los estilos reutilizables se factorizan como **constantes de objeto** (`const pageTitle = {...}`) o **componentes** en `components/ui.jsx`.
-2. **Contenedor de app estrecho**: la UI vive en una columna de **máx. 420px** centrada (`APP_SHELL_MAX_WIDTH = 420`). Diseñar siempre para móvil.
+2. **Contenedor de app estrecho**: la UI vive en una columna de **máx. 420px** centrada (`APP_SHELL_MAX_WIDTH`, token `tam-columna`). Diseñar siempre para móvil.
 3. **Verde = marca y acción; teal = lo elegido.** El verde bosque (`marca`) es el color del botón primario y de los controles de estado (chip activo, toggle, segmented, nav). Lo **elegido** en una lista, tesela u hoja de elección se marca en `seleccionado` (teal, D1) con su tinte `seleccionado-fondo`. Lo demás es neutro y silencioso.
 4. **Blanco sobre verde muy claro.** El fondo de página es `fondo-pantalla` (un verde casi blanco, uno solo); las tarjetas son `superficie` (blanco puro). Nunca blanco sobre blanco: si un panel es blanco, el fondo debe tintarse (ej. `WizardSheet`) para que las tarjetas destaquen.
 5. **Jerarquía por peso, no por tamaño.** Se usan pesos muy altos (700/800/900) para jerarquizar; los tamaños se mueven poco (10–26px, los 8 pasos de §2).
@@ -33,10 +33,10 @@ Los componentes usan **roles**, nunca el hex. Un hex pertenece a un solo rol. Lo
 |---|---|---|
 | `marca` | `#2d5a3d` | Botón primario, controles de estado activos (chip, toggle, segmented, nav), iconos activos, texto de marca |
 | `marca-viva` | `#4cba6e` | Fin de degradados, estado "hecho" |
-| `marca-fondo` | `#eaf6ee` | Tinte verde: badge, nav seleccionado, éxito |
+| `marca-fondo` | `#eaf6ee` | Tinte verde: badge, nav activo, éxito |
 | `seleccionado` | `#0f766e` | Lo elegido en una lista, tesela u hoja de elección (borde, check). En la zona social, alias `acento` |
 | `seleccionado-fondo` | `#eef6f4` | El tinte de lo elegido (uno solo) |
-| `tinta` | `#142f1d` | Títulos y texto de máximo contraste; fondo del toast |
+| `tinta` | `#142f1d` | Títulos y texto de máximo contraste |
 | `tinta-media` | `#42594c` | Texto secundario oscuro |
 | `tinta-suave` | `#5a7066` | Texto terciario; color por defecto de categoría |
 | `tinta-tenue` | `#7a9485` | Texto atenuado y metadatos |
@@ -47,13 +47,13 @@ Los componentes usan **roles**, nunca el hex. Un hex pertenece a un solo rol. Lo
 | `linea-suave` | `#eef3f0` | Separadores y filas |
 | `linea` | `#e0eae3` | Bordes de tarjeta |
 | `linea-fuerte` | `#cdd8d0` | Checkbox, chevrons |
-| `peligro` | `#c0392b` | Texto/acción destructiva y estado de error |
+| `peligro` | `#c0392b` | Texto/acción destructiva y estado `peligro` |
 | `peligro-fondo` | `#fdecea` | Tinte de peligro |
 | `favorito` | `#e0405a` | Corazón activo |
 | `aviso` | `#b45309` | Atención |
 | `aviso-fondo` | `#fff8e7` | Tinte de aviso |
 | `info` | `#2f6d8a` | Información |
-| `info-fondo` | `rgba(47,109,138,.1)` | Tinte de info (derivado de `info`, alfa .10) |
+| `info-fondo` | `rgba(47,109,138,.1)` | Tinte de info (derivado de `info`, alfa .10; provisional) |
 | `scrim` | `rgba(0,0,0,.45)` | Fondo de modal |
 | `velo` | `rgba(255,255,255,.92)` | Cristal sobre imagen |
 
@@ -87,7 +87,7 @@ Overlay foto:  linear-gradient(to top, rgba(10,30,18,.78) 0%, rgba(10,30,18,0) 5
 - **Aviso / atención:** `aviso` sobre `aviso-fondo`.
 - **Info:** `info` sobre `info-fondo`.
 - **Privacidad:** Pública `#2d5a3d`/`#e6f3ea` · Amigos `#7a4e00`/`#fff8e7` · Privada `#5a2d7a`/`#f5edfc` (fuera del sistema hasta migrar `ShareMenuSheet`).
-- **Categorías de plato (icono + color):** legumbres `#b9770e`, carnes `#c0392b`, pescados `#2f6f9f`, huevos `#d4a017`, pasta/arroz `#cf7833`, sopas/cremas `#8a6cc4`, verduras `#3f9656`, platos únicos `#5a7066`, cenas rápidas `#d56b9a`, bebés `#6cb4c4`, desayunos `#c98a3a`, meriendas `#4a9d6b`, postres `#c463a0`. Color por defecto: `tinta-suave`. Estos colores son **datos**, no roles (D6): manda `CATEGORY_META` de `CatalogBrowserSheet.jsx`, que pasará a un fichero de datos aparte; `legumbres` tiene hoy cuatro valores y se reconduce a ese mapa.
+- **Categorías de plato (icono + color):** los colores están en `CATEGORY_META` de `src/screens/CatalogBrowserSheet.jsx` (no se copian aquí). Color por defecto: `tinta-suave`. Estos colores son **datos**, no roles (D6): manda `CATEGORY_META` de `CatalogBrowserSheet.jsx`, que pasará a un fichero de datos aparte; `legumbres` tiene hoy cuatro valores y se reconduce a ese mapa.
 - **Avatares de miembros:** color asignado por persona (`memberAvatarColor`), texto `superficie`.
 
 **Regla de contraste:** sobre `marca` siempre texto/icono `superficie`. Sobre fondos claros, texto `tinta`. Los estados atenuados usan la escala `tinta-*`, nunca gris puro frío.
@@ -145,7 +145,7 @@ Una familia, 8 pasos y 3 pesos. Los tamaños intermedios de hoy (9, 9.5, 10.5, 1
 
 ### 3.1 Escala de espaciado (9)
 
-Múltiplos de 4 con **dos excepciones declaradas, 2 y 6**. Roles: `margen-pantalla` (16) y `separacion-lista` (8), ambos **provisionales** (los más usados en el código: se confirman al migrar la primera pantalla).
+Múltiplos de 4 con **dos excepciones declaradas, 2 y 6**. Roles: `margen-pantalla` (16) y `separacion-lista` (8), ambos **provisionales** (medidos del código: el padding horizontal de tarjetas se reparte entre 14 y 16, y `gap: 8` es el más usado; 16 está en la escala. Se confirman al migrar la primera pantalla).
 
 <!-- tokens:espaciado -->
 | Token | Valor | Uso |
@@ -172,7 +172,7 @@ El radio interior es el exterior menos el padding: orienta al diseñar, no gener
 | `radio-control` | `12` | **Por defecto** de controles: segmented, botones-icono, inputs, botones |
 | `radio-tarjeta` | `16` | **Tarjetas** estándar |
 | `radio-panel` | `20` | Esquinas altas de hoja (`20 20 0 0`), bottom nav |
-| `radio-modal` | `26` | Tarjeta de `WizardSheet` y toast |
+| `radio-modal` | `26` | Tarjeta de `WizardSheet` |
 | `radio-pildora` | `999` | Toggles, avatares, dots, chips, "grabber" de sheet |
 
 ### 3.3 Tamaños y layout / shell (8)
@@ -191,10 +191,7 @@ El radio interior es el exterior menos el padding: orienta al diseñar, no gener
 | `tam-columna` | `420` | `APP_SHELL_MAX_WIDTH`: columna de app |
 | `tam-nav` | `80` | `BOTTOM_NAV_HEIGHT`, más safe-area (`env()`, que no es un valor) |
 
-```js
-export const APP_SHELL_MAX_WIDTH = 420; // columna de app
-export const BOTTOM_NAV_HEIGHT = 80;     // alto de la barra inferior
-```
+`APP_SHELL_MAX_WIDTH` y `BOTTOM_NAV_HEIGHT` (`src/components/ui.jsx`) valen lo que `tam-columna` y `tam-nav`; un test (`src/design/marca.test.js`) falla si dejan de coincidir.
 - **Safe areas iOS:** usar `env(safe-area-inset-bottom, 0px)` en barras/hojas fijas.
 - **Spacer inferior:** `bottomNavSpacer()` → `calc(80px + env(safe-area-inset-bottom, 0px))` para que el contenido no quede tapado por la nav.
 - **Overlays fijos** (`position: fixed`) centrados con `left: 50%; transform: translateX(-50%); max-width: 420`.
@@ -210,12 +207,12 @@ Cuatro niveles. Los 161 literales de hoy se agrupan por desenfoque en estos al m
 |---|---|---|
 | `sombra-0` | `0 1px 3px rgba(20,47,29,.05)` | Tarjetas planas, filas |
 | `sombra-1` | `0 6px 16px -12px rgba(20,47,29,.3)` | Tarjetas tocables, filas destacadas |
-| `sombra-2` | `0 6px 20px rgba(0,0,0,.12)` | Menús contextuales, toast |
+| `sombra-2` | `0 6px 20px rgba(0,0,0,.12)` | Menús contextuales |
 | `sombra-3` | `0 24px 60px rgba(0,0,0,.25)` | Sheets y modales |
 
 Sin token todavía (se deciden al migrar su pantalla): sombra de la nav inferior `0 -6px 24px rgba(20,47,29,.08)`, glow verde del CTA `0 4px 18px rgba(45,90,61,.25)` y "liquid glass" `inset 0 1px 0 rgba(255,255,255,.9), 0 10px 22px -14px rgba(31,74,48,.5)`.
 
-**Convención:** las sombras van tintadas de verde (`rgba(20,47,29,…)` / `rgba(45,90,61,…)`), no negro neutro, salvo overlays y toasts. Sombras "lifted" con **spread negativo** para un halo suave y difuso.
+**Convención:** las sombras van tintadas de verde (`rgba(20,47,29,…)` / `rgba(45,90,61,…)`), no negro neutro, salvo overlays. Sombras "lifted" con **spread negativo** para un halo suave y difuso.
 
 ---
 
@@ -227,7 +224,7 @@ Sin token todavía (se deciden al migrar su pantalla): sombra de la nav inferior
 - **Grosor:** `strokeWidth` por defecto `2`; **estado activo/énfasis `2.4`** (`2.2` en burbujas). El cambio de grosor es una señal de selección tan importante como el color.
 - **Color:** hereda el color de estado (verde activo `#2d5a3d`, inactivo `#9ab0a1`). Sobre verde, `#fff`.
 - **Burbuja de icono:** cuadrado redondeado (`radius 12–14`), fondo de color/tint, icono centrado; en momentos destacados con glow `0 4px 12px {color}55`.
-- **Iconos de categoría** mapeados 1:1 a su color de categoría (ver §1.6).
+- **Iconos de categoría** mapeados 1:1 a su color de categoría (ver §1.4).
 - SVG a medida solo para logos de marca ajenos (ej. glifo de Google multicolor).
 
 ---
@@ -235,9 +232,9 @@ Sin token todavía (se deciden al migrar su pantalla): sombra de la nav inferior
 ## 6. Componentes (biblioteca `components/ui.jsx`)
 
 ### 6.1 `Chip`
-Pill seleccionable. `padding: "6px 14px"`, `radius 20`, `fontSize 13`, `fontWeight 700` (hoy 500; sube al migrar).
-- No seleccionado: fondo `rgba(45,90,61,.08)`, texto verde, borde `1.5px rgba(45,90,61,.2)`.
-- Seleccionado: fondo `#2d5a3d`, texto `#fff`, borde verde. `transition: all .2s`.
+Pill que se enciende (`activo`). `padding: "6px 14px"`, `radius 20`, `fontSize 13`, `fontWeight 700` (hoy 500; sube al migrar).
+- Reposo: fondo `rgba(45,90,61,.08)`, texto verde, borde `1.5px rgba(45,90,61,.2)`.
+- `activo`: fondo `#2d5a3d`, texto `#fff`, borde verde. `transition: all .2s`.
 - `removable` añade una "×" cuando está activo.
 
 ### 6.2 `SegmentedControl`
@@ -309,7 +306,7 @@ Indicador de pasos: barras `flex:1` (`4–5px`, `radius 99`). Hecho `#2d5a3d`, a
 
 ## 7. Tablas y listas agrupadas
 
-MenuPlan no usa `<table>` HTML: son **filas flex/grid dentro de contenedores redondeados**.
+HoMenu no usa `<table>` HTML: son **filas flex/grid dentro de contenedores redondeados**.
 
 - **Contenedor de grupo:** fondo `#f6f9f7`, borde `1px #dfe9e2`, `radius 12`, `overflow: hidden`.
 - **Cabecera de grupo/tabla:** fondo `#dcebe1`, borde inferior `1px #c9ddd0`, `padding "9px 10px"`, con icono + label. Variante verde sólida: fondo `#2d5a3d`, texto blanco.
@@ -325,19 +322,19 @@ MenuPlan no usa `<table>` HTML: son **filas flex/grid dentro de contenedores red
 
 ## 8. Sheets, modales y overlays
 
-- **Bottom sheet:** `superficie` (o `fondo-pantalla`), `radio-panel` en las esquinas altas (`20 20 0 0`), `max-width` `tam-columna`, "grabber" superior (`38×4`, `radio-pildora`), header con el título (`17/900`; sin subtítulo explicativo, `ui.md`) y botón cerrar circular `fondo-suave`.
+- **Bottom sheet:** `superficie` (o `fondo-pantalla`), `radio-panel` en las esquinas altas (`20 20 0 0`), `max-width` `tam-columna`, "grabber" superior (`38×4`, `radio-pildora`), header con el título (`paso-16` / `peso-900`; sin subtítulo explicativo, `ui.md`) y botón cerrar circular `fondo-suave`.
 - **Sticky header dentro de sheet:** `position: sticky; top: 0; zIndex: capa-local; background: fondo-pantalla`.
 - **Overlay de fondo:** `scrim`, `position: fixed; inset: 0`, animación `mp-overlay-in`.
 - **Footer de sheet:** `borderTop: 1px solid linea-suave`, con padding que respeta `env(safe-area-inset-bottom)`.
 
 ### 8.1 Capas (z-index, 8)
 
-El **toast va por encima de toda hoja** (`capa-toast` > `capa-hoja-2` > `capa-hoja`); hoy el toast está en 320, igual que las hojas sobre hojas, y sube a 330 al migrar. Los 47 valores de `zIndex` de hoy se reconducen a estas 8 capas; los de 1150–1250 (tutorial, coach), 1300, 3000 y 9999 van a `capa-tutorial` o `capa-emergente`.
+El **toast va por encima de toda hoja** (`capa-toast` > `capa-hoja-2` > `capa-hoja`); hoy el toast (`App.jsx`) está en 320, igual que las hojas sobre hojas, y sube a `capa-toast` al migrar. Los 47 valores de `zIndex` de hoy se reconducen a estas 8 capas; los de 1150–1250 (tutorial, coach), 1300, 3000 y 9999 van a `capa-tutorial` o `capa-emergente`.
 
 <!-- tokens:capa -->
 | Token | Valor | Uso |
 |---|---|---|
-| `capa-local` | `5` | Contenido: cabeceras pegajosas dentro de una hoja (1–5) |
+| `capa-local` | `5` | Contenido: cabeceras pegajosas dentro de una hoja (1–5; valor provisional) |
 | `capa-nav` | `100` | Barra de navegación inferior |
 | `capa-flotante` | `150` | Elementos flotantes sobre la nav |
 | `capa-hoja` | `300` | Hojas y modales |
@@ -350,13 +347,20 @@ El **toast va por encima de toda hoja** (`capa-toast` > `capa-hoja-2` > `capa-ho
 
 ## 9. Toasts / feedback efímero
 
-```js
-position: fixed; bottom: tam-nav; left: 50%; transform: translateX(-50%);
-background: tinta; color: superficie; padding: "10px 18px"; borderRadius: radio-modal;
-fontSize: paso-13; fontWeight: peso-700; boxShadow: sombra-2;
-zIndex: capa-toast; maxWidth: 320; textAlign: center;
-```
-Valores en roles de token (hoy el toast de `App.jsx` los lleva sueltos: fondo `#1a3a24`, radio 24, peso 600, `zIndex` 320).
+El toast **real** (`App.jsx`, `mp-toast-in`) es **claro**, de la misma familia que `WizardSheet`. Valores de hoy y su token:
+
+| Propiedad | Valor de hoy | Token |
+|---|---|---|
+| posición | `fixed`, centrado, `bottom: calc(88px + env(safe-area-inset-bottom))` | `tam-nav` + 8 (sin token todavía) |
+| fondo | `#f3f8f4` (verde tintado, el de `WizardSheet`) | sin token todavía |
+| borde | `1.5px solid #e2ede5` | sin token todavía |
+| texto | `#142f1d`, 13.5 / 800, `lineHeight` 1.3 | `tinta`; tamaño al `paso-14` en el snap; `peso-800` |
+| relleno | `10px 14px 10px 10px`, `gap` 10 | sin token todavía |
+| radio | 22 | sin token (el snap lo lleva a `radio-panel`) |
+| sombra | `0 24px 60px -16px rgba(20,47,29,.5)` | sin token todavía (la más cercana, `sombra-3`) |
+| capa | `zIndex` 320 | `capa-toast` (330) al migrar |
+
+Pasarlo a oscuro (`tinta`) sería un cambio de diseño visible y no está decidido (`docs/diseno/ESTADO.md`, «Componentes»).
 - **Auto-dismiss ~2400ms** con timer limpiado en `unmount` (`clearTimeout`).
 - Entra con `mp-toast-in`.
 - **Copys de toast:** muy cortos, con comillas angulares para el objeto: `Añadido «Lentejas»`, `Quitado «…»`, `¡Cocinado!`. Nunca dobles mensajes si un sheet ya resume la acción.
@@ -433,13 +437,13 @@ Las ~80 duraciones de hoy se agrupan: .12–.18 s a `mov-rapida`, .2–.26 s a `
 
 - [ ] ¿Ningún color, tamaño, radio, sombra, capa ni tiempo escrito a mano? Todo sale de `src/design/tokens.js` (roles); si falta uno, se añade allí con su porqué.
 - [ ] ¿El fondo de página es `fondo-pantalla` y las tarjetas `superficie`?
-- [ ] ¿Controles de estado y acción (chip, toggle, segmented, nav, botón primario) en `marca`, y solo lo elegido en `seleccionado`?
+- [ ] ¿Controles de estado y acción (chip, toggle, segmented, nav, botón primario) en `marca` (estado `activo`), y solo lo elegido en `seleccionado` (el rol de color)?
 - [ ] ¿Radios por rol (`radio-control` / `radio-tarjeta` / `radio-panel` / `radio-modal` / `radio-pildora`)?
 - [ ] ¿Espaciado de la escala (múltiplos de 4, más 2 y 6), `tam-columna` de ancho máximo y objetivos táctiles de `tam-tactil` o más, a 375 y 420 px?
 - [ ] ¿Iconos de `components/icons.jsx` (Nucleo core outline), `strokeWidth 2` (2.4 si activo), tamaño `tam-icono-*`?
 - [ ] ¿Tipografía DM Sans, pesos 700/800/900, inputs a 16px, `fontFamily: "inherit"` en botones/inputs?
 - [ ] ¿Sombras de las cuatro `sombra-*` y capas de las `capa-*` (el toast sobre toda hoja)?
-- [ ] ¿Estados: seleccionado, deshabilitado, pulsado (`scale(.97)`), vacío?
+- [ ] ¿Estados del vocabulario de `docs/diseno/ESTADO.md` («Vocabulario de estados»): `reposo`, `pulsado` (`scale(.97)`), `activo`, `deshabilitado`, `cargando`, `peligro`, `vacío`, `sin-conexión`?
 - [ ] ¿Transiciones de `mov-rapida` a `mov-media` y respeto a `prefers-reduced-motion`?
 - [ ] ¿Copys cortos, cálidos, en español, sin subtítulos explicativos ni texto de ayuda, con eyebrows en mayúsculas?
 - [ ] ¿ARIA/labels en controles a medida y safe-area en elementos fijos?
