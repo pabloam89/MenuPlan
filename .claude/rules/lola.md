@@ -8,8 +8,14 @@ paths:
 
 - **Evals antes de mergear** si cambia lo que Lola lee: `api/_bot/conocimiento.md`,
   el SISTEMA de `api/_bot/agente.js` o los textos de las herramientas. Se
-  corre `node scripts/bot-evals.mjs` (~1,20 $) y un caso nuevo se ve fallar
-  antes del arreglo. Vitest y CI, siempre.
+  corre `node scripts/bot-evals.mjs --nivel=pr` (24 casos, ~0,6–0,8 $) y, antes
+  de cerrar, la pasada completa (~3,5 $; `--nivel=seguridad`, ~3,2–3,4 $, si toca
+  alergias, salud o papeles). Un caso nuevo se ve fallar antes del arreglo y
+  lleva `id`, `tipo`, `dominio`, `origen` y, si habla de días, `dependeDeFecha`
+  (`scripts/lib/evals.mjs`). Las
+  evals tienen un tope mensual duro (`PRESUPUESTO_MENSUAL_EUR`, en ese mismo
+  módulo y en ningún otro sitio) y cada pasada su `--tope`; lo ya
+  medido sin cambios no se vuelve a pagar (`.evals-out/`). Vitest y CI, siempre.
 - **Lo que no puede fallar va en la base o en código determinista, nunca solo
   en el prompt.** Cada vez que una garantía dependió del modelo, las evals
   fallaron 1 de cada 3 (las tareas abiertas: `bot_tareas` y `pendientes.js`).

@@ -6,7 +6,9 @@
  * entorno, si vas por detrás de staging, qué otras sesiones hay abiertas, qué
  * números de migración están cogidos, cuáles siguen sin aplicar y qué issues
  * esperan a alguien (decisiones de Pablo, encargos, los problemas de fondo que
- * más se repiten y lo que está sin clasificar).
+ * más se repiten y lo que está sin clasificar) y quién lleva qué: encargos con
+ * rama viva, carpetas posiblemente paradas y ramas sin número de issue (las
+ * líneas salen de `scripts/issues.mjs --arranque`, #271).
  * Además apunta esta sesión en el registro (sesiones.mjs).
  * Nunca rompe el arranque: si algo no se puede mirar, sigue con lo demás. Lo
  * que no pudo mirar lo dice cuando callarlo engañaría (los issues, el registro
@@ -18,6 +20,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
 import { ahoraEnMadrid } from "../../scripts/lib/hora.mjs";
+import { numeroDeRama } from "../../scripts/lib/lleva.mjs";
 import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/limpiar-worktrees.mjs";
 import { sinAplicar } from "./guardia.mjs";
 import { avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
@@ -62,6 +65,11 @@ const esWorktree = git("rev-parse", "--git-dir") !== git("rev-parse", "--git-com
 avisos.push(`Hora: ${ahoraEnMadrid()}. Durante la sesión, \`npm run hora\`; nunca \`date\` en Git Bash.`);
 avisos.push(`Carpeta: ${raiz} · rama: ${rama ?? "?"}${esWorktree ? " (worktree)" : ""}`);
 
+// Toda rama no trivial lleva número de issue (#271): sin él, nada del repo dice
+// que la llevas tú (caso #270). El cruce de las demás sale de `npm run issues`.
+if (esWorktree && rama && !["staging", "main", "HEAD"].includes(rama) && !numeroDeRama(rama)) {
+  avisos.push(`Tu rama ${rama} no lleva número de issue, así que nadie ve que la llevas tú. Si es más que una errata: \`npm run issues -- --nuevo …\` (busca parecidos) y renombra con el número.`);
+}
 if (/onedrive/i.test(raiz)) {
   avisos.push("AVISO: esta copia está dentro de OneDrive, que se retira. Trabaja en C:\\dev\\MenuPlan o en un worktree (`npm run tarea -- <area>/<nombre>`).");
 }
