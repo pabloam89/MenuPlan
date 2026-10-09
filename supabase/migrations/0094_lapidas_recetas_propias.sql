@@ -1,4 +1,5 @@
 -- 0094 · Lápidas de las recetas propias en la nube: lo borrado no resucita.
+-- AUDITADA: auditor-datos 2026-10-09 OK
 --
 -- Qué pasa hoy (issue #355, diagnóstico en #316): borrar una receta propia en
 -- el móvil quita su fila de user_recipes y deja la «lápida» solo en el
