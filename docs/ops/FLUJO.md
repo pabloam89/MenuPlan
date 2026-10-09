@@ -109,7 +109,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P06.2 | Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga | nada · no escrita aún | blanda | — | #337, #338 |
 | P06.3 | El arreglo usa el escalón más duradero posible de la escalera | nada · `docs/ops/FLUJO.md` | blanda | — | #338 |
 | P06.4 | Un fondo lleva como mucho tres encargos, al menos uno preventivo y automático | nada · `docs/ops/FLUJO.md` | blanda | — | #337 |
-| **Ejecutar** · rota | | | | | |
+| **Ejecutar** · blanda | | | | | |
 | P07.1 | Un encargo es una rama con el número de su issue, y se ve quién lo lleva | script_propio · `scripts/tarea.mjs` | semidura | — | #337 |
 | P07.2 | Un PR de una rama con número de issue lleva Closes de ese issue | guardia · `.claude/hooks/guardia.mjs` | semidura | `pr-al-dia-y-closes` | #337 |
 | P07.3 | Quien construye no juzga | nada · `CLAUDE.md` | blanda | `quien-construye-no-juzga` | #339 |
@@ -119,7 +119,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P07.7 | Nadie cambia las propias reglas (protecciones, permisos, guardia) con credenciales de sesión | nada · no escrita aún | blanda | — | #326 |
 | P07.8 | staging exige el check tests (no exige PR) | github_regla · `ops/DECISIONES.md` | semidura | `staging-exige-tests` | #263 |
 | P07.9 | Cada PR dice quién lo construyó (línea Agente:) | nada · `.github/pull_request_template.md` | blanda | — | #337 |
-| P07.10 | Un juez no puede escribir: ni Edit, ni Write, ni memoria | ci · `CLAUDE.md` | rota | `jueces-sin-escritura` | #298 |
+| P07.10 | Un juez no puede escribir: ni Edit ni Write, contando las que da la memoria | ci · `CLAUDE.md` | dura | `jueces-sin-escritura` | — |
 | **Verificar** · blanda | | | | | |
 | P08.1 | El CI corre tests, lint y build en cada PR | ci · `.github/workflows/tests.yml` | dura | — | — |
 | P08.2 | Un test de clase, no solo del caso, vigila el arreglo de un fondo | persona · `.claude/commands/orquestar.md` | blanda | — | #337 |
@@ -142,7 +142,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P12.4 | Los presupuestos se recalibran cada semana con lo medido | nada · no escrita aún | blanda | — | #340 |
 | P12.5 | Las normas del proceso que se incumplen se cuentan cada semana | script_propio · `scripts/lib/normas.mjs` | semidura | — | #341, #185 |
 
-**47 obligaciones:** 5 duras · 17 semiduras · 24 blandas · 1 rotas. 11 están enlazadas con su norma del registro.
+**47 obligaciones:** 6 duras · 17 semiduras · 24 blandas · 0 rotas. 11 están enlazadas con su norma del registro.
 <!-- flujo:pasos:fin -->
 
 ## Lo que ya existía

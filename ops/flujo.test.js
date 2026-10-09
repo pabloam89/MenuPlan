@@ -56,7 +56,7 @@ describe("flujo.json: forma, vocabulario y verdad", () => {
   it("la dureza de un paso es la de su obligación más débil", () => {
     const paso = datos.pasos.find((p) => p.id === "ejecutar");
     expect(paso.obligaciones.some((o) => o.dureza === "dura")).toBe(true);
-    expect(durezaDelPaso(paso)).toBe("rota");
+    expect(durezaDelPaso(paso)).toBe("blanda");
   });
 
   it("la cuenta de obligaciones por dureza suma todas", () => {
