@@ -810,19 +810,22 @@ export const TABLAS = DECLARADAS.map((t) => ({
 
 /**
  * Fuentes deprecadas cuya fecha de retirada ya pasó, para quien mida la deuda
- * (issue #253) y para el aviso de ops/fuentes.test.js. `hoy` es AAAA-MM-DD.
+ * (issue #253) y para el aviso de ops/fuentes.test.js. `hoy` es AAAA-MM-DD y es obligatorio:
+ * quien llama lo saca de isoDeCasa() (src/lib/dias.js); este fichero no importa nada.
  * Una fecha imposible (2026-13-45) no cuenta como vencida: la pilla el test
  * de forma, que sí se pone rojo.
  */
-export function fuentesVencidas(hoy = new Date().toISOString().slice(0, 10), tablas = TABLAS) {
+export function fuentesVencidas(hoy, tablas = TABLAS) {
+  if (!esFechaIso(hoy)) throw new Error(`fuentesVencidas necesita «hoy» en AAAA-MM-DD (usa isoDeCasa() de src/lib/dias.js); recibió ${JSON.stringify(hoy)}`);
   return tablas.filter((f) => f.estado === "deprecado" && esFechaIso(f.retirar_el) && f.retirar_el < hoy);
 }
 
 /** ¿Es una fecha ISO real? (rechaza 2026-13-45 y 2026-02-30). */
 export function esFechaIso(s) {
   if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
-  const d = new Date(`${s}T00:00:00Z`);
-  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+  const [a, m, dia] = s.split("-").map(Number);
+  const d = new Date(Date.UTC(a, m - 1, dia));
+  return d.getUTCFullYear() === a && d.getUTCMonth() === m - 1 && d.getUTCDate() === dia;
 }
 
 export const tablaPorId = (id) => TABLAS.find((t) => t.id === id) ?? null;

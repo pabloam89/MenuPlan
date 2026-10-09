@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { ficherosDeGit, directosDe } from "./ficherosGit.js";
+import { isoDeCasa } from "../src/lib/dias.js";
 import { ESTADOS_FUENTE, ROLES_FUENTE, TABLAS, esFechaIso, fuentesVencidas } from "../src/data/model.js";
 
 /**
@@ -16,20 +18,22 @@ const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const leer = (ruta) => readFileSync(join(RAIZ, ruta), "utf8");
 const mapa = JSON.parse(leer("ops/MODULOS.json"));
 const porId = new Map(TABLAS.map((f) => [f.id, f]));
-const HOY = new Date().toISOString().slice(0, 10);
+const HOY = isoDeCasa();
+/** Lo que git ve (versionado + nuevo, sin lo ignorado): lo generado por el build no cuenta. */
+const FICHEROS = ficherosDeGit(RAIZ);
+const SET = new Set(FICHEROS);
 
-const migraciones = readdirSync(join(RAIZ, "supabase", "migrations")).filter((f) => f.endsWith(".sql")).map((f) => leer(`supabase/migrations/${f}`).toLowerCase()).join("\n");
+const migraciones = directosDe(FICHEROS, "supabase/migrations").filter((f) => f.endsWith(".sql")).map((f) => leer(f).toLowerCase()).join("\n");
 const creaTabla = (t) => new RegExp(`create\\s+table\\s+(if\\s+not\\s+exists\\s+)?(public\\.)?${t}\\b`).test(migraciones);
 const creaVista = (v) => new RegExp(`create\\s+(or\\s+replace\\s+)?view\\s+(public\\.)?${v}\\b`).test(migraciones);
 
 /** Expande una ruta o un patrón con * en el último tramo a los ficheros que existen. */
 function expandir(ruta) {
-  if (!ruta.includes("*")) return existsSync(join(RAIZ, ruta)) ? [ruta] : [];
+  if (!ruta.includes("*")) return SET.has(ruta) ? [ruta] : [];
   const barra = ruta.lastIndexOf("/");
   const dir = ruta.slice(0, barra);
   const [pre, post] = ruta.slice(barra + 1).split("*");
-  if (!existsSync(join(RAIZ, dir))) return [];
-  return readdirSync(join(RAIZ, dir)).filter((f) => f.startsWith(pre) && f.endsWith(post)).map((f) => `${dir}/${f}`);
+  return directosDe(FICHEROS, dir).filter((f) => f.slice(dir.length + 1).startsWith(pre) && f.endsWith(post));
 }
 
 describe("fuentes: forma y vocabulario cerrado", () => {
@@ -130,9 +134,8 @@ describe("fuentes: lo que cita existe y nada queda sin registrar", () => {
     const registrados = new Set(TABLAS.flatMap((f) => f.ficheros.flatMap(expandir)));
     const sueltos = [];
     for (const d of ["src/data", "src/data/derived", "src/data/recipes", "src/assets/dishes", "api/_bot", "public/store"]) {
-      for (const e of readdirSync(join(RAIZ, d), { withFileTypes: true })) {
-        const ruta = `${d}/${e.name}`;
-        if (e.isFile() && e.name.endsWith(".json") && !registrados.has(ruta) && !SIN_FUENTE[ruta]) sueltos.push(ruta);
+      for (const ruta of directosDe(FICHEROS, d)) {
+        if (ruta.endsWith(".json") && !registrados.has(ruta) && !SIN_FUENTE[ruta]) sueltos.push(ruta);
       }
     }
     expect(sueltos, `JSON sin fuente: ${sueltos.join(", ")}. Registra cada uno en TABLAS de src/data/model.js con su rol (ingesta, fuente_de_verdad, derivado o copia_retirada) y sus \`ficheros\`.`).toEqual([]);
