@@ -26,6 +26,7 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano (con `probar_push`, un commit vacío si no hay precios nuevos) | precios de Mercadona; commitea y **empuja a `staging` con la deploy key** (sin el secreto, con el token). Ese push sí lanza `tests` |
 | `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |
 | `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola |
+| `vigia-lola.yml` | cada 15 min (`4,19,34,49`), a mano | el vigía de Lola (#267): fallos `bot_fallo` de los logs de Vercel, el canario y los avisos al grupo de Telegram «HoMenu avisos». Su estado va en la caché de Actions (`vigia-estado-*`); borrarla solo cuesta un aviso repetido. Sin `VERCEL_TOKEN` ni `BOT_CRON_SECRET` se salta |
 | `ios-testflight.yml` | solo a mano | build de iOS a TestFlight |
 
 - **`tests.yml` en detalle:** Node 24 y 20 minutos de tope. El lint
@@ -55,10 +56,9 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 
 ## Claves y accesos
 
-Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`,
-`CALLMEBOT_DESTINOS`, `MERCADONA_DEPLOY_KEY` y los de iOS) y qué workflow usa cada uno están en
-`ops/INVENTARIO.md`, que es la tabla que manda. `tests.yml` no usa ninguno. La
-CLI `gh` va con la sesión de Pablo (`gh auth status`).
+Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS`, `MERCADONA_DEPLOY_KEY`,
+los del vigía y los de iOS) y qué workflow usa cada uno están en `ops/INVENTARIO.md`, que es la tabla
+que manda. `tests.yml` no usa ninguno. La CLI `gh` va con la sesión de Pablo (`gh auth status`).
 
 ## Operaciones habituales
 

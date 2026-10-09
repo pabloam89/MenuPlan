@@ -129,6 +129,31 @@ export const SITIOS_FALLO = [
   "voz_json",
 ];
 
+// ── Los del vigía y el canario de Lola (#267). No van a ninguna tabla: van en
+// las líneas `vigia_aviso` y `canario` del log (scripts/vigia.mjs,
+// api/bot/canario.js), para contar cuántos avisos hubo y de qué.
+
+/**
+ * Qué aviso manda el vigía al grupo de avisos. `incidente_*`: una regla de
+ * scripts/lib/vigia-config.mjs se pasó (o volvió a su sitio); `vigia_parado`:
+ * hubo un hueco sin pasadas; `resumen_diario`: las cifras del día;
+ * `vigia_falla` y `vigia_vuelve`: la propia pasada rompió o vuelve a ir (los
+ * manda el workflow, .github/workflows/vigia-lola.yml).
+ */
+export const TIPOS_AVISO_VIGIA = ["incidente_abierto", "incidente_resuelto", "resumen_diario", "vigia_parado", "vigia_falla", "vigia_vuelve"];
+
+/**
+ * Qué comprueba el canario (api/bot/canario.js). `canario` es el propio
+ * endpoint, visto desde el vigía; `logs`, la lectura de logs del vigía.
+ */
+export const CHEQUEOS_CANARIO = ["canario", "webhook_guardia", "webhook_vivo", "webhook_info", "base", "via_rapida", "modelo", "logs"];
+
+/**
+ * Por qué falla un chequeo del canario cuando no es un error con motivo de
+ * MOTIVOS_FALLO: lo que devolvió no es lo esperado.
+ */
+export const MOTIVOS_CANARIO = ["respuesta_inesperada", "respuesta_vacia", "escribio", "lento", "webhook_otra_url", "webhook_atascado", "webhook_con_errores", "sin_configurar"];
+
 // ── Los del mapa de módulos (ops/MODULOS.json, #157). No van a ninguna tabla:
 // los lee el panel de la factoría (#158) y ops/modulos.test.js.
 
@@ -175,6 +200,9 @@ export const VOCABULARIOS = Object.freeze({
   patron_semanas: PATRON_SEMANAS,
   motivos_fallo: MOTIVOS_FALLO,
   sitios_fallo: SITIOS_FALLO,
+  tipos_aviso_vigia: TIPOS_AVISO_VIGIA,
+  chequeos_canario: CHEQUEOS_CANARIO,
+  motivos_canario: MOTIVOS_CANARIO,
   grados_desarrollo: GRADOS_DESARROLLO,
   ambitos_modulo: AMBITOS_MODULO,
   estados_metrica: ESTADOS_METRICA,

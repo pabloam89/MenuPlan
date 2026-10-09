@@ -86,9 +86,22 @@ export function fallosDe(contenido) {
     if (typeof pieza === "string" && pieza.trim().startsWith("{") && !pieza.includes(`{${MARCA}`)) {
       obj = intentar(pieza) ?? pieza; // si no es JSON, se busca la marca en el texto
     }
+    const antes = out.length;
     for (const c of cadenasDe(obj)) deTexto(c, out);
+    // Cuándo: el de la petición de Vercel, o la fecha ISO con que empieza una
+    // línea suelta. El vigía (scripts/vigia.mjs) cuenta por ventanas de tiempo.
+    const ts = cuandoDe(obj);
+    if (ts != null) for (let k = antes; k < out.length; k++) out[k].ts ??= ts;
   }
   return Object.assign(out.filter((f) => f?.evento === "bot_fallo"), { ilegibles: out.ilegibles ?? 0 });
+}
+
+/** El instante (ms) de una petición de Vercel o de una línea que empieza por una fecha ISO; null si no lo lleva. */
+function cuandoDe(obj) {
+  if (typeof obj?.timestamp === "number") return obj.timestamp;
+  const iso = typeof obj === "string" ? obj.match(/^\s*(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?Z)/)?.[1] : null;
+  const ms = iso ? Date.parse(iso) : NaN;
+  return Number.isFinite(ms) ? ms : null;
 }
 
 /** Cuenta por motivo, por sitio y por sitio y motivo. */
@@ -155,12 +168,19 @@ function argumentos(argv) {
 // pidas (comprobado el 8 oct 2026 con la CLI 62.1.0).
 const TANDA = 50;
 
-/** Una tanda de `vercel logs` entre dos instantes (ms), en JSON Lines. */
-function tandaDeVercel(entorno) {
+/**
+ * Una tanda de `vercel logs` entre dos instantes (ms), en JSON Lines. Con
+ * VERCEL_TOKEN en el entorno (el vigía, en GitHub Actions) entra con él; si
+ * no, con la sesión de `vercel login`.
+ */
+export function tandaDeVercel(entorno) {
   return ({ desde, hasta }) => {
     const args = ["logs", "--project", PROYECTO, "--scope", EQUIPO, "--environment", entorno,
       "--since", new Date(desde).toISOString(), "--until", new Date(hasta).toISOString(),
       "--query", "bot_fallo", "--json", "--limit", String(TANDA)];
+    // Como argumento y nunca impreso: en Actions el log es público. En Windows
+    // va por la shell (vercel.cmd), así que allí mejor `vercel login`.
+    if (process.env.VERCEL_TOKEN) args.push("--token", process.env.VERCEL_TOKEN);
     // En Windows la CLI es vercel.cmd: hace falta la shell. Los argumentos son fijos, fechas ISO o números ya comprobados.
     const opciones = { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 };
     const r = process.platform === "win32"

@@ -1,0 +1,146 @@
+# El vigía de Lola (#267): cada 15 min cuenta los fallos de producción
+# (líneas bot_fallo de los logs de Vercel), llama al canario
+# (api/bot/canario.js) y avisa al grupo de Telegram «HoMenu avisos» cuando se
+# abre o se cierra un incidente. Una vez al día, el resumen. Qué hace y con
+# qué umbrales: scripts/vigia.mjs y src/lib/vigia.js.
+#
+# ── Por qué aquí y no en un cron de Vercel ────────────────────────────────
+# - Coste: el repo es público y Actions no cobra los minutos.
+# - Logs: se leen con la CLI de Vercel (scripts/bot-fallos.mjs, paginar), lo
+#   único probado; una función de Vercel no tiene la CLI ni una API de logs
+#   documentada.
+# - Si Vercel cae, el vigía sigue en pie y lo cuenta.
+# - El estado (incidentes abiertos) va en la caché de Actions: sin tabla.
+# El precio: los cron de GitHub llegan tarde (5-20 min con carga) y alguna vez
+# se saltan una pasada. El vigía avisa de los huecos (vigia_parado) y el
+# resumen diario hace de latido.
+#
+# ── Seguridad: el repo es PÚBLICO y el log de Actions también ─────────────
+# - Ningún aviso lleva datos de familias: cifras, motivos, sitios y enlaces.
+#   El texto de los fallos «otro» no sale nunca del script.
+# - VERCEL_TOKEN va como argumento a la CLI, nunca impreso; GitHub enmascara
+#   los secretos si aun así aparecieran.
+# - El canario se llama con BOT_CRON_SECRET, el mismo del cron de
+#   recordatorios.
+#
+# Secretos (Settings → Secrets and variables → Actions):
+#   VERCEL_TOKEN, BOT_CRON_SECRET, AVISOS_TELEGRAM_TOKEN
+# Variables:
+#   AVISOS_TELEGRAM_CHAT (el chat_id del grupo); CANARIO_URL
+#   (https://<despliegue al que apunta el webhook de Lola>/api/bot/canario);
+#   VIGIA_ENTORNO (production o preview: el de ese despliegue; el 9 oct 2026
+#   el webhook apuntaba a staging, que en los logs de Vercel es preview)
+# Sin VERCEL_TOKEN ni BOT_CRON_SECRET, el workflow se salta a sí mismo. Sin el
+# token de avisos, avisa solo en el log (plan B).
+
+name: Vigía de Lola
+
+on:
+  schedule:
+    # Cada 15 min, no en punto (los cron de GitHub se atascan en las horas
+    # redondas). src/lib/vigia.js `cadaMin` dice lo mismo: lo vigila el test.
+    - cron: "4,19,34,49 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read # gh run list: si la pasada anterior falló, para no repetir el aviso
+
+concurrency:
+  group: vigia-lola
+  cancel-in-progress: false
+
+jobs:
+  vigilar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Comprobar configuración
+        id: config
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          BOT_CRON_SECRET: ${{ secrets.BOT_CRON_SECRET }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] && [ -z "$BOT_CRON_SECRET" ]; then
+            echo "::warning::Vigía desactivado: faltan VERCEL_TOKEN y BOT_CRON_SECRET"
+            echo "listo=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "listo=true" >> "$GITHUB_OUTPUT"
+          fi
+          [ -n "$VERCEL_TOKEN" ] && echo "logs=true" >> "$GITHUB_OUTPUT" || echo "logs=false" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        if: steps.config.outputs.listo == 'true'
+        with:
+          ref: staging
+          # Solo lo que usa el vigía: no hace falta npm ci.
+          sparse-checkout: |
+            scripts
+            src/lib
+
+      - uses: actions/setup-node@v6
+        if: steps.config.outputs.listo == 'true'
+        with:
+          node-version: 22
+
+      - name: CLI de Vercel
+        if: steps.config.outputs.logs == 'true'
+        # La misma versión con la que se comprobó el tope de 50 por llamada (skill vercel).
+        run: npm install -g vercel@62.1.0 --no-audit --no-fund --loglevel=error
+
+      - name: Recuperar el estado
+        if: steps.config.outputs.listo == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: .vigia
+          key: vigia-estado-${{ github.run_id }}
+          restore-keys: vigia-estado-
+
+      - name: Pasada
+        if: steps.config.outputs.listo == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          BOT_CRON_SECRET: ${{ secrets.BOT_CRON_SECRET }}
+          CANARIO_URL: ${{ vars.CANARIO_URL }}
+          AVISOS_TELEGRAM_TOKEN: ${{ secrets.AVISOS_TELEGRAM_TOKEN }}
+          AVISOS_TELEGRAM_CHAT: ${{ vars.AVISOS_TELEGRAM_CHAT }}
+          VIGIA_ENTORNO: ${{ vars.VIGIA_ENTORNO }}
+        run: node scripts/vigia.mjs --estado .vigia/estado.json
+
+      - name: Guardar el estado
+        if: always() && steps.config.outputs.listo == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .vigia
+          key: vigia-estado-${{ github.run_id }}-${{ github.run_attempt }}
+
+      # Si el propio vigía falla, se avisa una vez (no en cada pasada): solo
+      # cuando la pasada anterior no había fallado. Y al volver, otra vez.
+      - name: Avisar si el vigía falla o vuelve
+        if: always() && steps.config.outputs.listo == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ESTADO: ${{ job.status }}
+          AVISOS_TELEGRAM_TOKEN: ${{ secrets.AVISOS_TELEGRAM_TOKEN }}
+          AVISOS_TELEGRAM_CHAT: ${{ vars.AVISOS_TELEGRAM_CHAT }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          anterior=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow vigia-lola.yml --status completed \
+            --limit 1 --json conclusion --jq '.[0].conclusion // "success"' || echo "success")
+          if [ "$ESTADO" != "success" ] && [ "$anterior" != "failure" ]; then
+            tipo="vigia_falla"; texto="⚠️ El vigía de Lola ha fallado y no está vigilando. Run: $RUN_URL"
+          elif [ "$ESTADO" = "success" ] && [ "$anterior" = "failure" ]; then
+            tipo="vigia_vuelve"; texto="🟢 El vigía de Lola vuelve a funcionar. Run: $RUN_URL"
+          else
+            exit 0
+          fi
+          enviado=false
+          if [ -n "$AVISOS_TELEGRAM_TOKEN" ] && [ -n "$AVISOS_TELEGRAM_CHAT" ]; then
+            code=$(curl -sS -o /dev/null -w "%{http_code}" "https://api.telegram.org/bot${AVISOS_TELEGRAM_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=$AVISOS_TELEGRAM_CHAT" --data-urlencode "text=$texto" \
+              --data-urlencode "disable_web_page_preview=true" || echo "000")
+            [ "$code" = "200" ] && enviado=true
+          fi
+          echo "{\"evento\":\"vigia_aviso\",\"tipo\":\"$tipo\",\"clave\":null,\"enviado\":$enviado}"
+          [ "$enviado" = "true" ] || echo "$texto"

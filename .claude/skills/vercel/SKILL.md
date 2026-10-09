@@ -18,11 +18,18 @@ description: Úsala con un despliegue de Vercel — preview de un PR, staging o 
   `includeFiles` con `conocimiento.md`, `recetasVectores.json`,
   `dishImages.json` y dos que genera el propio build (core.mjs y
   dominiosGustos.json). Un fichero que el bot lea en tiempo de ejecución y no
-  esté en esa lista no viaja al despliegue.
+  esté en esa lista no viaja al despliegue. **El canario**
+  (`api/bot/canario.js`, #267) carga el mismo agente y lleva los mismos
+  `includeFiles` y `maxDuration`; `src/lib/vigia.test.js` falla si se
+  separan. Lo que importa una función desde `scripts/` no viaja
+  (`.vercelignore`): por eso la configuración del vigía vive en
+  `src/lib/vigia.js`.
 - **Blob**: las fotos de platos y sus derivados WebP
   (`scripts/upload-to-blob.mjs`).
 - **Crons**: en `vercel.json` no hay ninguno. Los de MenuPlan son de GitHub
-  Actions y de `pg_cron` (skills `github` y `supabase`).
+  Actions y de `pg_cron` (skills `github` y `supabase`). El vigía de Lola
+  (`vigia-lola.yml`) lee los logs de Vercel desde Actions con un
+  `VERCEL_TOKEN` y llama al canario cada 15 min.
 - **Supabase** cuelga del equipo como integración del Marketplace: Vercel es
   quien la paga.
 
@@ -74,6 +81,14 @@ arriba). La CLI `vercel` no está instalada en este PC.
   atrás con `--since`/`--until` en ISO y quitar repetidos por `id`, como hace
   `scripts/bot-fallos.mjs` (`paginar`). En producción puede no haber tráfico
   reciente: el informe dice qué entorno y qué rango ha cubierto.
+- **2026-10-09 · los logs de staging no están en `production` ni en
+  `staging-menuplan`.** Causa: `vercel logs --environment` solo acepta
+  `production` o `preview` (con otro valor: «Invalid environment»), y el
+  entorno personalizado de staging sale como `preview`. Medido ese día: en 24 h, 0 peticiones en
+  `production` y en `preview` las de `/api/bot/recordatorios` y
+  `/api/bot/telegram` (el webhook de Lola apuntaba a staging). Arreglo: el
+  vigía mira el entorno de la variable `VIGIA_ENTORNO`, que tiene que seguir al
+  webhook.
 
 ## Qué requiere el OK de Pablo
 
