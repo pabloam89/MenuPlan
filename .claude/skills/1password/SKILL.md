@@ -8,9 +8,15 @@ description: Úsala al tocar una clave o secreto de MenuPlan, al montar un .env.
 ## Qué es y dónde
 
 - **Cuenta** de Pablo en `my.1password.eu` (plan Familias, en prueba desde el
-  8 oct 2026). Cuatro bóvedas:
-  - **`HoMenu`**: las claves de MenuPlan, una ficha por servicio y un campo por
-    variable (`op://HoMenu/Supabase/SUPABASE_DB_URL`).
+  8 oct 2026). Cinco bóvedas (#328; `HoMenu-sesiones`, **pendiente de crear**
+  el 9 oct 2026):
+  - **`HoMenu`**: todas las claves de MenuPlan, también las de producción, una
+    ficha por servicio y un campo por variable
+    (`op://HoMenu/Supabase/SUPABASE_DB_URL`). Solo Pablo.
+  - **`HoMenu-sesiones`**: la copia de lo que leen las sesiones (desarrollo, IA,
+    la URL de solo lectura de la base), con los mismos títulos y campos; nada de
+    producción. Qué va a cada una: `ops/INVENTARIO.md` y la lista `COPIAR` de
+    `scripts/boveda-sesiones.mjs`.
   - **`Panel HoMenu`**: las del servidor del panel (skills `hetzner` y
     `tailscale`).
   - **`Private`**: lo personal de Pablo. Ninguna sesión escribe aquí, y la
@@ -23,8 +29,11 @@ description: Úsala al tocar una clave o secreto de MenuPlan, al montar un .env.
   scripts y `vite.config.js` en la app. En los tests no se resuelven: corren
   sin claves, como en el CI.
 - **Dos caminos con `op`, y no se mezclan**: con la service account (solo
-  lectura de `HoMenu`, sin ventanas) para leer; sin ella, por la app de
-  escritorio (pide aprobación), para escribir o tocar otras bóvedas.
+  lectura, sin ventanas) para leer; sin ella, por la app de escritorio (pide
+  aprobación a Pablo), para escribir o leer lo que la cuenta no ve. En los
+  scripts, `OP_SIN_SERVICIO=1` hace que `env.mjs` vaya por la app.
+- **Todas las direcciones de `.env.local` se resuelven en un solo `op inject`**
+  (`vite.config.js`): una que la cuenta no lea y fallan la app y los scripts.
 - **Agente SSH de 1Password**: activo desde el 8 oct 2026. Guarda la llave
   `HoMenu - Hetzner Panel` (Ed25519, en `Private`); cada conexión pide
   aprobar. Sirve a la `ssh` de Windows, no a la de Git for Windows.
@@ -35,10 +44,15 @@ description: Úsala al tocar una clave o secreto de MenuPlan, al montar un .env.
 - Los nombres, para qué sirve cada clave y quién es el dueño: `ops/INVENTARIO.md`,
   que es la tabla que manda. Las direcciones: `ops/env.1password`. No se
   repiten aquí.
-- **Service account «MenuPlan PC Pablo»**: solo lectura sobre `HoMenu`. Su token
-  vive en el llavero de Windows (Administrador de credenciales → credenciales
-  web, recurso `MenuPlan 1Password`, usuario `service-account`). `env.mjs` lo
-  coge de ahí para que `op` no pida la huella en cada comando.
+- **El token del llavero** de Windows (Administrador de credenciales →
+  credenciales web, recurso `MenuPlan 1Password`, usuario `service-account`):
+  `env.mjs` lo coge de ahí para que `op` no pida la huella en cada comando. Un
+  solo token: el de las sesiones. Cualquier proceso del PC puede leerlo.
+- **Service account «MenuPlan PC Pablo»**: lee toda `HoMenu`, URL de
+  administrador incluida. Es la del llavero hasta el cambio de #328; luego se
+  anula.
+- **Service account «MenuPlan sesiones»** (#328, **pendiente de crear**): solo
+  lectura de `HoMenu-sesiones`. Sustituye a la anterior en el llavero.
 - **Ficha `Postgres del panel`** (bóveda `Panel HoMenu`, id
   `c64ol4a3oewjeue3szoafrrr6q`): servidor, puerto, base, usuario y contraseña
   del Postgres del panel.
@@ -64,11 +78,13 @@ description: Úsala al tocar una clave o secreto de MenuPlan, al montar un .env.
 | Leer una clave desde un script nuevo | `leerEnv("NOMBRE")` de `scripts/lib/env.mjs`; nunca un `readFileSync(".env.local")` propio | el valor en memoria; en pantalla nada |
 | Lanzar algo que lee `process.env` (`node --env-file`, `vercel`…) | `npm run op -- run --env-file=.env.local -- <comando>` | el comando corre; si imprime una clave, sale `<concealed by 1Password>` |
 | Comprobar que una clave está bien | comparar a ciegas (`valor === otro`) e imprimir solo el sí o el no | `COINCIDEN` o `NO COINCIDEN`, nunca el valor |
-| Listar las bóvedas | `env -u OP_SERVICE_ACCOUNT_TOKEN op vault list` | las cuatro bóvedas con su id (ventana de aprobación la primera vez) |
-| Dar de alta una clave en `HoMenu` (OK) | un script lee el valor de donde esté y pasa la ficha en JSON por stdin a `op item create --vault HoMenu -`; después, la línea en `ops/env.1password` | `op` imprime el título y la bóveda de la ficha creada |
+| Listar las bóvedas | `env -u OP_SERVICE_ACCOUNT_TOKEN op vault list` | todas las bóvedas con su id (ventana de aprobación la primera vez) |
+| Dar de alta una clave (OK) | primero, a qué bóveda: si da acceso a producción (URL de administrador, bots o tokens de producción, Vercel con producción, claves de Apps), solo a `HoMenu` y nunca a `env.1password` (comentada, si acaso). Si es de desarrollo, a `HoMenu` y a `HoMenu-sesiones`: un script la pasa en JSON por stdin a `op item create --vault HoMenu -`, se añade a `COPIAR` y a `ops/env.1password` con `op://HoMenu-sesiones/…`, y `node scripts/boveda-sesiones.mjs --si` | ficha creada; `npx vitest run scripts/boveda-sesiones.test.js` en verde |
+| Copiar a `HoMenu-sesiones` (OK; Pablo, `!`) | `node scripts/boveda-sesiones.mjs` (ensayo) y `--si`; tras el cambio de token, con `OP_SIN_SERVICIO=1` delante | una línea por ficha: `copiada … COINCIDEN` o `salto … ya existe`; ningún valor |
+| ¿La cuenta de sesiones lee solo lo suyo? | `node scripts/boveda-sesiones.mjs --comprobar` | todo `BIEN`: ve solo `HoMenu-sesiones`, la URL de administrador **no** se lee y las de sesiones sí. El 9 oct 2026, con «MenuPlan PC Pablo»: 12 `MAL` |
 | Guardar algo en otra bóveda, p. ej. `Panel HoMenu` (OK) | como la anterior, **sin** el token de la service account y con el **id** de la bóveda: `env -u OP_SERVICE_ACCOUNT_TOKEN op item create --vault <id> --format json -` | ficha creada; ventana de 1Password a aprobar |
-| Rotar una clave (OK) | se genera la nueva en el servicio, se cambia en la ficha y, si el despliegue la usa, en Vercel | las direcciones no cambian: nadie toca su `.env.local` |
-| Token nuevo de la service account (OK) | `op service-account create "<nombre>" --vault HoMenu:read_items --raw`, con la salida directa a un script que la guarda en el llavero | la vieja se anula en 1Password.com → Developer → Service accounts |
+| Rotar una clave (OK) | se genera la nueva en el servicio, se cambia en la ficha (en las dos bóvedas si está en `COPIAR`) y, si el despliegue la usa, en Vercel | las direcciones no cambian: nadie toca su `.env.local` |
+| Token nuevo de la service account (OK; Pablo, `!`) | `op service-account create "MenuPlan sesiones" --vault HoMenu-sesiones:read_items --raw \| node scripts/boveda-sesiones.mjs --guardar-token` | `Token guardado en el llavero (…): COINCIDEN`; la vieja se anula en 1Password.com → Developer → Service accounts |
 | Crear la clave de las copias (OK; Pablo, `!`) | `node scripts/copias-clave.mjs` (ensayo) y luego `--si`; necesita `age-keygen` (`winget install FiloSottile.age`) | `Ficha «Copias de la base» creada en Panel HoMenu y comprobada (COINCIDEN)` y la pública añadida a `destinatarios.txt`; si la ficha ya existe, se niega |
 | ¿`destinatarios.txt` es la pública de la ficha? (sin leer la privada; **requisito antes de subirlo al servidor**) | `node scripts/copias-clave.mjs --comprobar` | `COINCIDEN`; si sale `NO COINCIDEN`, no se sube: las copias se cifrarían para otra clave |
 | Ver qué llaves sirve el agente SSH | `C:\Windows\System32\OpenSSH\ssh-add.exe -l` | una línea por llave, con su título, p. ej. `HoMenu - Hetzner Panel (ED25519)` |
@@ -138,3 +154,5 @@ bóvedas que se le dieron al crearla: para dar otra hay que crear una nueva.
 - https://developer.1password.com/docs/ssh/agent/
 
 Comprobado el 2026-10-08: lectura con service account, creación y lectura de una ficha en `Panel HoMenu` y agente SSH con una conexión real. Sin probar: caducidad del token ni el límite de peticiones. Sin probar (9 oct 2026): `copias-clave.mjs --si` y `--comprobar` contra 1Password, y la ficha «Copias de la base», que aún no existe. Tampoco si `op` acepta la etiqueta `clave_privada_age` en el campo de contraseña: si no, la relectura del script no coincide y no escribe la pública.
+
+Comprobado el 2026-10-09: en #328, el inventario de `HoMenu` (16 fichas, solo títulos y campos), el ensayo de `boveda-sesiones.mjs` (lee los 10 campos de las 9 fichas sin escribir), `--guardar-token` contra un recurso de prueba del llavero (`COINCIDEN`, reemplaza sin duplicar; borrado después) y `--comprobar` con «MenuPlan PC Pablo» (12 `MAL`). Sin probar: `--si` (la bóveda no existe), `op service-account create` con `HoMenu-sesiones` y `--comprobar` con la cuenta nueva.

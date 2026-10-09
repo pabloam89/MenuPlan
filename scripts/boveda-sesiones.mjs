@@ -1,0 +1,164 @@
+/**
+ * boveda-sesiones.mjs — separa en 1Password lo que leen las sesiones de lo que
+ * solo usa Pablo (#328, fondo #326, decisión #299).
+ *
+ *   node scripts/boveda-sesiones.mjs              ensayo: qué copiaría, sin escribir
+ *   node scripts/boveda-sesiones.mjs --si         copia a HoMenu-sesiones (Pablo, con `!`)
+ *   op service-account create "MenuPlan sesiones" --vault HoMenu-sesiones:read_items --raw \
+ *     | node scripts/boveda-sesiones.mjs --guardar-token
+ *                                                el token nuevo, al llavero (Pablo, con `!`)
+ *   node scripts/boveda-sesiones.mjs --comprobar  con el token del llavero: la URL de
+ *                                                administrador NO se lee y las de sesiones sí
+ *
+ * Copia, no mueve: la ficha de HoMenu sigue igual. Solo los campos de COPIAR:
+ * la ficha «Supabase» de sesiones lleva la URL y la anon key, no la URL de
+ * administrador. Si la ficha ya existe en el destino, la salta (dos fichas
+ * con el mismo título dejan la dirección op:// ambigua).
+ *
+ * Ningún valor sale por pantalla: se leen y se pasan por stdin a `op`, y se
+ * comparan a ciegas (COINCIDEN / NO COINCIDEN). Escribir en una bóveda pide la
+ * app de escritorio (la service account no escribe): `op` va sin el token.
+ *
+ * La lista y la plantilla `ops/env.1password` las ata `boveda-sesiones.test.js`.
+ */
+import { execFileSync, spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { pathToFileURL } from "node:url";
+import { LLAVERO, entornoOp, tokenServicio } from "./lib/env.mjs";
+import { estadoFicha } from "./lib/rolLectura.mjs";
+
+export const BOVEDA_PABLO = "HoMenu";
+export const BOVEDA_SESIONES = "HoMenu-sesiones";
+
+/** Lo que va a sesiones: ficha de HoMenu → campos (el título se conserva). */
+export const COPIAR = [
+  { ficha: "Anthropic", campos: ["ANTHROPIC_API_KEY"] },
+  { ficha: "Vercel AI Gateway", campos: ["AI_GATEWAY_API_KEY"] },
+  { ficha: "Vercel Blob", campos: ["BLOB_READ_WRITE_TOKEN"] },
+  { ficha: "fal", campos: ["FAL_KEY"] },
+  { ficha: "Gemini AI Studio", campos: ["GEMINI_AI_STUDIO_KEY"] },
+  { ficha: "Groq", campos: ["GROQ_API_KEY"] },
+  { ficha: "Tripo3D", campos: ["TRIPO3D_API_KEY"] },
+  { ficha: "Supabase", campos: ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"] },
+  { ficha: "Supabase lectura", campos: ["SUPABASE_DB_URL_LECTURA"] },
+];
+
+/** Lo que se queda con Pablo y la plantilla solo nombra en comentario. */
+export const SOLO_PABLO = [
+  { ficha: "Supabase", campo: "SUPABASE_DB_URL" },
+  { ficha: "Supabase", campo: "SUPABASE_ACCESS_TOKEN" },
+  { ficha: "Telegram", campo: "TELEGRAM_BOT_TOKEN" },
+  { ficha: "Telegram", campo: "TELEGRAM_WEBHOOK_SECRET" },
+  { ficha: "Telegram", campo: "TELEGRAM_BOT_USERNAME" },
+  { ficha: "Gmail SMTP", campo: "SMTP_GMAIL_USER" },
+  { ficha: "Gmail SMTP", campo: "SMTP_GMAIL_APP_PASSWORD" },
+];
+
+/** La ficha nueva: título, categoría y solo los campos pedidos (sin ids de bóveda, referencias ni secciones). */
+export function fichaCopia(origen, campos) {
+  const fields = [];
+  for (const c of campos) {
+    const f = (origen.fields ?? []).find((x) => x.label === c);
+    if (!f || f.value === undefined || f.value === "") throw new Error(`«${origen.title}» no tiene el campo ${c} (o está vacío)`);
+    fields.push({ id: f.id, type: f.type, label: f.label, value: f.value });
+  }
+  fields.sort((a, b) => a.label.localeCompare(b.label));
+  return { title: origen.title, category: origen.category, fields };
+}
+
+/** Un token de service account: empieza por ops_ y no lleva espacios. */
+export const pareceToken = (t) => /^ops_\S+$/.test(t);
+
+/** `op` con la service account del llavero (la que usan las sesiones). */
+const opServicio = (args, input) => spawnSync("op", args, { env: entornoOp(), encoding: "utf8", input });
+/** `op` por la app de escritorio, sin token: pide aprobar a Pablo. */
+function opApp(args, input) {
+  const { OP_SERVICE_ACCOUNT_TOKEN: _, ...env } = process.env;
+  return spawnSync("op", args, { env, encoding: "utf8", input });
+}
+const motivo = (r) => (r.error?.message || r.stderr || "").trim().split("\n")[0];
+
+/** Lee la ficha de HoMenu: con la service account y, si no puede, por la app. */
+function leerOrigen(ficha) {
+  const args = ["item", "get", ficha, "--vault", BOVEDA_PABLO, "--format", "json"];
+  let r = opServicio(args);
+  if (r.status !== 0) r = opApp(args);
+  if (r.status !== 0) throw new Error(`no puedo leer «${ficha}» de ${BOVEDA_PABLO}: ${motivo(r)}`);
+  return JSON.parse(r.stdout);
+}
+
+function copiar(si) {
+  let fallos = 0;
+  for (const { ficha, campos } of COPIAR) {
+    try {
+      const nueva = fichaCopia(leerOrigen(ficha), campos);
+      // El ensayo no mira el destino: eso pasa por la app y le saltaría una ventana a Pablo.
+      if (!si) { console.log(`copiaría «${ficha}» (${campos.join(", ")}) → ${BOVEDA_SESIONES}, si no existe ya`); continue; }
+      const destino = estadoFicha(opApp(["item", "get", ficha, "--vault", BOVEDA_SESIONES, "--format", "json"]));
+      if (destino === "existe") { console.log(`salto  «${ficha}»: ya existe en ${BOVEDA_SESIONES}`); continue; }
+      if (destino === "error") throw new Error(`no veo ${BOVEDA_SESIONES} (¿existe y está desbloqueada la app?)`);
+      const c = opApp(["item", "create", "--vault", BOVEDA_SESIONES, "--format", "json", "-"], JSON.stringify(nueva));
+      if (c.status !== 0) throw new Error(`op item create falló: ${motivo(c)}`);
+      const creada = JSON.parse(c.stdout);
+      const iguales = nueva.fields.every((f) => creada.fields?.find((x) => x.label === f.label)?.value === f.value);
+      console.log(`copiada «${ficha}» (${campos.join(", ")}): ${iguales ? "COINCIDEN" : "NO COINCIDEN"}`);
+      if (!iguales) fallos++;
+    } catch (e) {
+      console.error(`FALLA  «${ficha}»: ${e.message}`);
+      fallos++;
+    }
+  }
+  if (!si) console.log("Ensayo: no he escrito nada. Con --si, copia.");
+  return fallos;
+}
+
+/** recurso: el del llavero; otro solo para probar el script sin tocar el de verdad. */
+function guardarToken(recurso = LLAVERO.recurso) {
+  const t = readStdin().trim();
+  if (!pareceToken(t)) {
+    console.error("Lo que llega por la tubería no parece un token (ops_…): no toco el llavero. ¿Falló el `op service-account create`?");
+    return 1;
+  }
+  const ps = "[void][Windows.Security.Credentials.PasswordVault, Windows.Security.Credentials, ContentType = WindowsRuntime];"
+    + "[void][Windows.Security.Credentials.PasswordCredential, Windows.Security.Credentials, ContentType = WindowsRuntime];"
+    + " $t = [Console]::In.ReadToEnd().Trim(); $v = New-Object Windows.Security.Credentials.PasswordVault;"
+    + ` try { $v.Remove($v.Retrieve('${recurso}', '${LLAVERO.usuario}')) } catch {}`
+    + ` $v.Add((New-Object Windows.Security.Credentials.PasswordCredential('${recurso}', '${LLAVERO.usuario}', $t)));`
+    + ` $c = $v.Retrieve('${recurso}', '${LLAVERO.usuario}'); $c.RetrievePassword();`
+    + " if ($c.Password -eq $t) { 'COINCIDEN' } else { 'NO COINCIDEN' }";
+  const out = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { input: t, encoding: "utf8" }).trim();
+  console.log(`Token guardado en el llavero («${recurso}», usuario ${LLAVERO.usuario}): ${out}`);
+  return out === "COINCIDEN" ? 0 : 1;
+}
+
+function readStdin() {
+  try { return readFileSync(0, "utf8"); } catch { return ""; }
+}
+
+function comprobar() {
+  let mal = 0;
+  const linea = (ok, texto) => { console.log(`${ok ? "BIEN" : "MAL "}  ${texto}`); if (!ok) mal++; };
+  linea(Boolean(tokenServicio()), "hay token de service account en el llavero (sin él, `op` iría por la app y lo vería todo)");
+  const v = opServicio(["vault", "list", "--format", "json"]);
+  const nombres = v.status === 0 ? JSON.parse(v.stdout).map((b) => b.name) : [];
+  linea(nombres.length === 1 && nombres[0] === BOVEDA_SESIONES, `la cuenta solo ve ${BOVEDA_SESIONES} (ve: ${nombres.join(", ") || motivo(v)})`);
+  for (const { ficha, campo } of SOLO_PABLO.filter((s) => s.campo === "SUPABASE_DB_URL")) {
+    const r = opServicio(["read", `op://${BOVEDA_PABLO}/${ficha}/${campo}`]);
+    linea(r.status !== 0 && !r.stdout.trim(), `la URL de administrador (op://${BOVEDA_PABLO}/${ficha}/${campo}) NO se puede leer`);
+  }
+  for (const { ficha, campos } of COPIAR) for (const c of campos) {
+    const r = opServicio(["read", `op://${BOVEDA_SESIONES}/${ficha}/${c}`]);
+    linea(r.status === 0 && r.stdout.trim().length > 0, `op://${BOVEDA_SESIONES}/${ficha}/${c} se lee${r.status === 0 ? "" : `: ${motivo(r)}`}`);
+  }
+  console.log(mal ? `${mal} comprobaciones mal.` : "Todo bien: las sesiones leen lo suyo y no la URL de administrador.");
+  return mal ? 1 : 0;
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const args = process.argv.slice(2);
+  let codigo;
+  if (args.includes("--guardar-token")) codigo = guardarToken(args.includes("--recurso") ? args[args.indexOf("--recurso") + 1] : undefined);
+  else if (args.includes("--comprobar")) codigo = comprobar();
+  else codigo = copiar(args.includes("--si")) ? 1 : 0;
+  process.exit(codigo);
+}

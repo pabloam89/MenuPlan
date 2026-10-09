@@ -59,6 +59,12 @@ export function tokenServicio() {
 
 /** El entorno con el que lanzar `op` (con la service account si la hay). */
 export function entornoOp(base = process.env) {
+  // OP_SIN_SERVICIO=1: sin service account, por la app de escritorio, que pide
+  // aprobar a Pablo. Es como Pablo lee lo que solo está en HoMenu (#328).
+  if (base.OP_SIN_SERVICIO === "1") {
+    const { OP_SERVICE_ACCOUNT_TOKEN: _, ...resto } = base;
+    return resto;
+  }
   const t = tokenServicio();
   return t ? { ...base, OP_SERVICE_ACCOUNT_TOKEN: t } : { ...base };
 }

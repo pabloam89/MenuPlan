@@ -55,6 +55,18 @@ describe("leerEnv", () => {
     expect(llamadas[0].token).toBe("ops_de_prueba");
   });
 
+  it("con OP_SIN_SERVICIO=1 va sin token, por la app de escritorio (lo que solo está en HoMenu, #328)", () => {
+    process.env.OP_SIN_SERVICIO = "1";
+    try {
+      process.env.PRUEBA_C = "op://HoMenu/Pablo/PRUEBA_C";
+      expect(leerEnv("PRUEBA_C")).toBe("VALOR-de-op://HoMenu/Pablo/PRUEBA_C");
+      expect(llamadas).toHaveLength(1);
+      expect(llamadas[0].token).toBeUndefined();
+    } finally {
+      delete process.env.OP_SIN_SERVICIO;
+    }
+  });
+
   it("sin el comando op, el error lo dice en llano", () => {
     globalThis.__sinOp = true;
     process.env.PRUEBA_B = "op://HoMenu/Otro/PRUEBA_B";
