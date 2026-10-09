@@ -1,0 +1,40 @@
+{
+  "skill": "issues",
+  "casos": [
+    {
+      "id": "registrar-caso",
+      "peticion": "Ha vuelto a fallar el cron de recordatorios; quiero apuntarlo como caso colgado de su fondo.",
+      "skill": "issues",
+      "debe_salir": [
+        "Propone npm run issues -- --nuevo con --tipo caso, --analisis y --padre",
+        "Dice que no se crea con gh issue create a pelo",
+        "Pide elegir el análisis: nuevo, abierto, no-aguanto o puntual"
+      ]
+    },
+    {
+      "id": "ficha-sin-diagnostico",
+      "peticion": "El bot ha puesto control:falla en mi fondo con la regla sin-diagnostico. ¿Qué le falta?",
+      "skill": "issues",
+      "debe_salir": [
+        "Explica que faltan mecanismo y causa_escape en el bloque fondo de la ficha",
+        "Propone editar el cuerpo con gh issue edit <n> --body-file",
+        "Dice que el workflow fondos vuelve a comentar solo tras la edición"
+      ]
+    },
+    {
+      "id": "caso-puntual",
+      "peticion": "Este fallo fue porque GitHub estuvo caído un rato. ¿Lo apunto o lo dejo?",
+      "skill": "issues",
+      "debe_salir": [
+        "Lo clasifica como analisis:puntual con un cuerpo «Puntual porque …»",
+        "Pide la etiqueta causa: (por ejemplo entorno)",
+        "Dice que se registra igualmente y se cierra en el momento"
+      ]
+    },
+    {
+      "id": "frontera-log-ci",
+      "peticion": "¿Cómo veo solo el log de lo que falló en el CI del PR 400?",
+      "skill": "github"
+    }
+  ]
+}

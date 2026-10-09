@@ -1,0 +1,40 @@
+{
+  "skill": "vercel",
+  "casos": [
+    {
+      "id": "despliegue-blocked",
+      "peticion": "El despliegue sale Blocked, con duración 0 ms y sin poder cancelarlo. ¿Qué pasa?",
+      "skill": "vercel",
+      "debe_salir": [
+        "Relaciona Blocked con un autor del commit que no es miembro del equipo en un repo privado",
+        "Propone commitear con una identidad que ya sea miembro del equipo",
+        "Propone mirar antes el estado y los logs del despliegue"
+      ]
+    },
+    {
+      "id": "vectores-preview",
+      "peticion": "En la preview de mi PR el buscador de recetas no usa los vectores.",
+      "skill": "vercel",
+      "debe_salir": [
+        "Explica que AI_GATEWAY_API_KEY no está en el entorno Preview",
+        "Dice que es lo esperado y que el buscador cae a rasgos + Haiku",
+        "No propone añadir la variable sin el OK de Pablo"
+      ]
+    },
+    {
+      "id": "build-local",
+      "peticion": "Quiero comprobar en local que el build pasará en Vercel antes de subir.",
+      "skill": "vercel",
+      "debe_salir": [
+        "Propone npm run build",
+        "Dice que no se lance el build de Vite directamente, sin el prebuild",
+        "Menciona que el prebuild valida el catálogo o corre check:tdz"
+      ]
+    },
+    {
+      "id": "frontera-cron-recordatorios",
+      "peticion": "El cron de recordatorios del bot no está saltando cada 5 minutos.",
+      "skill": "supabase"
+    }
+  ]
+}

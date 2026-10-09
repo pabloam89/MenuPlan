@@ -1,6 +1,10 @@
 ---
 name: supabase
 description: Úsala para operar la base de datos de MenuPlan en Supabase: una consulta a producción, «¿está aplicada?», pg_cron y los crons del bot, el login y Auth (Google), copias o backup (lo que llevan; el cómo, hetzner), o cuando algo de la base no cuadra con el repo. No para: escribir una migración (regla migraciones y agente datos) ni el Postgres del panel en Hetzner (hetzner).
+metadata:
+  tipo: herramienta
+  dueno: gobierno
+  comprobado: 2026-10-09
 ---
 
 # Supabase

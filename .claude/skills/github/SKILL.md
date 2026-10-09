@@ -1,6 +1,10 @@
 ---
 name: github
 description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron de Actions falle o no arranque, haya que mirar los checks o los logs de un PR, una carpeta de trabajo desaparezca sola, o se toque la protección de ramas, Dependabot, el secret scanning o los secretos de Actions, o las líneas del PR (`Closes`, `Runbook:`, `Casos:`). No para: issues, casos y problemas de fondo (issues), despliegues (vercel) ni migraciones (agente datos).
+metadata:
+  tipo: herramienta
+  dueno: gobierno
+  comprobado: 2026-10-09
 ---
 
 # GitHub
