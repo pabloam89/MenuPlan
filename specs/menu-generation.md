@@ -97,10 +97,9 @@ por tanto, a menús reales.
 - Telemetría en `menu_generated`: `motor`, `solverNodos`, `solverMs`,
   `solverCompleto`, `solverRelajados`, `solverSemilla`.
 
-**`src/lib/solver.test.js` está roto desde el 23 sep 2026** (las 62 recetas
-nuevas del catálogo meten a la búsqueda en una semana sin salida). Está fuera
-del CI a propósito (`tests.yml`) hasta que se arregle; no es que la semana
-sea inviable, porque otras semillas la resuelven.
+`src/lib/solver.test.js` vuelve al CI el 9 oct 2026 (#140). Su casa de
+prueba lleva las alergias preguntadas: sin ellas, desde #107 el menú esquiva
+los 14 alérgenos, quedan 27 platos y la semana no cierra (#229).
 
 **Pendiente de producto:** una casa con 25 min entre semana y cocina básica
 solo tiene primeros de montaje, y la regla `cena_rapida_no_solicitada` los
