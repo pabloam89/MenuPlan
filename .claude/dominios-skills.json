@@ -21,10 +21,17 @@
         "\\bgh\\s+repo\\s+(?:edit|delete|rename|archive|transfer)\\b"
       ],
       "rutas": [
-        "^\\.github/",
-        "^scripts/(?:podar|retirar|tarea|issues|runbook-pr)\\.mjs$",
-        "^scripts/lib/issues\\.mjs$",
+        "^\\.github/(?!ISSUE_TEMPLATE/)",
+        "^scripts/(?:podar|retirar|tarea|runbook-pr)\\.mjs$",
         "^\\.claude/dominios-skills\\.json$"
+      ]
+    },
+    "issues": {
+      "comandos": [],
+      "rutas": [
+        "^\\.github/ISSUE_TEMPLATE/",
+        "^scripts/issues\\.mjs$",
+        "^scripts/lib/(?:issues|lleva)\\.mjs$"
       ]
     },
     "vercel": {

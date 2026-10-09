@@ -132,6 +132,10 @@ describe("qué ficheros piden la línea del PR", () => {
     ["scripts/apply-migration.mjs", "supabase"],
     [".github/workflows/tests.yml", "github"],
     [".github/pull_request_template.md", "github"],
+    ["scripts/issues.mjs", "issues"],
+    ["scripts/lib/issues.mjs", "issues"],
+    ["scripts/lib/lleva.mjs", "issues"],
+    [".github/ISSUE_TEMPLATE/1-caso.yml", "issues"],
     ["vercel.json", "vercel"],
     ["scripts/upload-to-blob.mjs", "vercel"],
     ["ops/env.1password", "1password"],
@@ -147,6 +151,12 @@ describe("qué ficheros piden la línea del PR", () => {
     "%s no pide nada",
     (f) => expect(skillsDeFicheros([f], mapa)).toEqual([]),
   );
+
+  it("los formularios y scripts de issues piden la skill issues, no la github (#219)", () => {
+    for (const f of ["scripts/issues.mjs", "scripts/lib/issues.mjs", ".github/ISSUE_TEMPLATE/2-fondo.yml"]) {
+      expect(skillsDeFicheros([f], mapa), f).toEqual(["issues"]);
+    }
+  });
 
   it("normaliza barras de Windows", () => expect(skillsDeFicheros(["scripts\\telegram-webhook.mjs"], mapa)).toContain("telegram"));
 });

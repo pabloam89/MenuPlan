@@ -128,8 +128,8 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 (`api/_bot/`, `api/bot/`), `catalogo` (`src/data/`, `src/utils/`, `src/lib/`,
 `api/_bot/`), `tests` (`*.test.{js,jsx,mjs}`) y
 `api` (`api/*.js`). Las skills (`.claude/skills/`) son runbooks que se abren
-por su nombre: `1password`, `vercel`, `supabase`, `github`, `telegram`,
-`hetzner` y `tailscale` (precargadas en `gobierno` y `lola`). Todas siguen
+por su nombre: `1password`, `vercel`, `supabase`, `github`, `issues`,
+`telegram`, `hetzner` y `tailscale` (precargadas en `gobierno` y `lola`). Todas siguen
 `.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: las mismas
 siete secciones, operaciones con lo que debe salir, y cada fallo con fecha,
 causa y arreglo. Un proveedor nuevo estrena su runbook con su primera lección,
@@ -264,5 +264,5 @@ encargos colgando de él (uno por superficie, o uno solo si es una pieza
 común). Se cierra cuando acaban sus encargos y un test cubre la clase.
 Decisiones pendientes y trabajo por coger, también como issues, no en el chat
 ni en mensajes entre sesiones. `npm run issues` lo cuenta y `--colgar` cuelga;
-el cómo, en la skill `github`; el repaso del conjunto, cada semana con
+el cómo, en la skill `issues`; el repaso del conjunto, cada semana con
 `/revision-issues`. El repo es público: nada sensible en un issue.

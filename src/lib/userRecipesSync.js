@@ -17,9 +17,15 @@ import { recipeToRow, rowToRecipe } from "./userRecipesFila.js";
 
 export { recipeToRow, rowToRecipe };
 
-/** Loads all recipes owned by the user. */
+/**
+ * Las recetas del usuario. Si la lectura falla, `data` es null y `error` lo
+ * dice: «no tienes ninguna en la nube» y «no se ha podido mirar» no son lo
+ * mismo, y tratarlos igual subía todas las locales encima de las de la nube
+ * (#316). Quien suba algo comparando con esto mira antes `error`.
+ * @returns {Promise<{ data: object[]|null, error: object|null }>}
+ */
 export async function loadUserRecipes(userId) {
-  if (!supabase || !userId) return [];
+  if (!supabase || !userId) return { data: [], error: null };
   const { data, error } = await supabase
     .from("user_recipes")
     .select("*")
@@ -27,19 +33,42 @@ export async function loadUserRecipes(userId) {
     .order("created_at", { ascending: true });
   if (error) {
     console.warn("[userRecipes] load failed", error.message);
-    return [];
+    return { data: null, error };
   }
-  return (data ?? []).map(rowToRecipe);
+  return { data: (data ?? []).map(rowToRecipe), error: null };
+}
+
+/**
+ * Sube las recetas que este dispositivo tiene y la nube no (primer login en
+ * el dispositivo, o creadas sin red). `carga` es lo que acaba de devolver
+ * loadUserRecipes: si falló, no sube nada (#317). Con la nube «vacía» por un
+ * 5xx, todas las locales parecían solo locales y el upsert por id pisaba la
+ * versión editada en otro dispositivo. Las borradas aquí (`deletedIds`) no se
+ * suben. Devuelve cuántas ha mandado subir.
+ *
+ * @param {{ userId: string, local: object[], carga: { data: object[]|null, error: object|null },
+ *   deletedIds?: Set<string> }} args
+ */
+export async function subirRecetasSoloLocales({ userId, local, carga, deletedIds = new Set() }) {
+  if (!carga || carga.error || !carga.data) return 0;
+  const enNube = new Set(carga.data.map((r) => r.id));
+  const soloLocales = (local ?? []).filter(
+    (r) => r.id && !enNube.has(r.id) && !deletedIds.has(r.id ?? r.name),
+  );
+  if (soloLocales.length) await upsertUserRecipes(userId, soloLocales);
+  return soloLocales.length;
 }
 
 /**
  * Una receta ajena que este usuario puede leer: la RLS de user_recipes deja
  * pasar las 'public' a cualquiera y las 'friends' a seguidores mutuos. Si no
- * tienes permiso no da error, devuelve null — y el que copia se entera de
- * que ya no está disponible, no de que existe.
+ * tienes permiso no da error, `data` es null — y el que copia se entera de
+ * que ya no está disponible, no de que existe. Si la lectura falla, viene
+ * además `error`, para decir «sin conexión» y no «ya no está» (#317).
+ * @returns {Promise<{ data: object|null, error: object|null }>}
  */
 export async function loadPublicRecipe(recipeId) {
-  if (!supabase || !recipeId) return null;
+  if (!supabase || !recipeId) return { data: null, error: null };
   const { data, error } = await supabase
     .from("user_recipes")
     .select("*")
@@ -47,9 +76,9 @@ export async function loadPublicRecipe(recipeId) {
     .maybeSingle();
   if (error) {
     console.warn("[userRecipes] public load failed", error.message);
-    return null;
+    return { data: null, error };
   }
-  return data ? rowToRecipe(data) : null;
+  return { data: data ? rowToRecipe(data) : null, error: null };
 }
 
 /**
