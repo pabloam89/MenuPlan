@@ -19,7 +19,7 @@ const ESCRIBE = /\b(insert|update|delete|merge|truncate|alter|drop|create|grant|
 // Funciones con efectos que una transacción read only no impide, o que salen
 // de la base: matar conexiones, slots de replicación, bloqueos, cambiar la
 // sesión, ficheros, red y cron.
-const PELIGROSAS = /\b(pg_terminate_backend|pg_cancel_backend|pg_reload_conf|pg_rotate_logfile|pg_promote|pg_create_\w*slot|pg_drop_replication_slot|pg_replication_slot_advance|pg_advisory\w*|pg_try_advisory\w*|set_config|pg_read_\w*|pg_ls_\w*|pg_stat_file|lo_\w+|dblink\w*|pg_sleep\w*|pg_notify|txid_current|pg_switch_wal|pg_backup_\w*|http\w*)\s*\(/i;
+const PELIGROSAS = /\b(pg_terminate_backend|pg_cancel_backend|pg_reload_conf|pg_rotate_logfile|pg_promote|pg_create_\w*slot|pg_drop_replication_slot|pg_replication_slot_advance|pg_advisory\w*|pg_try_advisory\w*|set_config|pg_read_\w*|pg_ls_\w*|pg_stat_file|lo_\w+|dblink\w*|pg_sleep\w*|pg_notify|txid_current|pg_switch_wal|pg_backup_\w*|http\w*|query_to_xml\w*|cursor_to_xml\w*)\s*\(/i;
 
 // Esquemas que salen de la base o programan trabajo: cualquier cosa suya.
 const ESQUEMAS = /\b(net|cron|vault|pgsodium|supabase_functions)\s*\./i;
@@ -67,6 +67,8 @@ export function motivoParaNoLeer(sql) {
   // Las cadenas con escapes (`E'\''`) se leen distinto aquí y en Postgres:
   // fuera, sin excepción (juez de seguridad del PR #223).
   if (sql.includes("\\")) return "Sin barras invertidas: las cadenas con escapes no se pueden comprobar.";
+  // Ni nombres con escapes Unicode (`U&"pg!005fsleep" UESCAPE '!'`), por lo mismo.
+  if (/\bu&|\buescape\b/i.test(sql)) return "Sin U& ni UESCAPE: los nombres con escapes no se pueden comprobar.";
   if (limpio.includes(";")) return "Una sola sentencia por consulta.";
   if (!LECTURA.test(limpio)) return "Solo lectura: tiene que empezar por select, with, show, explain, table o values.";
   if (ESCRIBE.test(limpio)) return "Lleva una palabra que escribe o cambia algo; esto es solo para leer.";

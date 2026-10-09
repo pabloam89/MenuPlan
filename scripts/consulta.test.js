@@ -44,6 +44,9 @@ describe("npm run consulta solo lee", () => {
       "select E'\\'' as a, pg_sleep(0)::text as b --'",
       'select "pg_sleep"(0)::text',
       "select 1 as x$$, pg_sleep(0)::text as y$$",
+      // Tercer juicio: un nombre con escape Unicode y SQL armado desde un texto.
+      `select U&"pg!005fsleep" UESCAPE '!' (0)::text as b`,
+      "select query_to_xml('select pg_' || 'sleep(0)::text as b', true, false, '')::text",
     ]) expect(motivoParaNoLeer(q), q).not.toBe(null);
   });
 
