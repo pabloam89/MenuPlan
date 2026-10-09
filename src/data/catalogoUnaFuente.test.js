@@ -8,9 +8,12 @@
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
+import { TABLAS as REGISTRO } from "./model.js";
 
 const RAIZ = path.resolve(__dirname, "../..");
-const TABLAS = ["recipes", "catalog_meta", "recipe_ingredients", "dish_images", "recipe_substitution_options"];
+// Las tablas y vistas copia salen del registro de fuentes (src/data/model.js,
+// rol copia_retirada): una lista, no tres.
+const TABLAS = REGISTRO.filter((f) => f.rol === "copia_retirada").flatMap((f) => [...f.tablas, ...f.vistas]);
 // supabase-js (`.from("recipes")`), PostgREST a mano (`/rest/v1/recipes`) y
 // los ayudantes del bot (api/_bot/db.js: `select("recipes", …)`).
 const T = TABLAS.join("|");

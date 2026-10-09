@@ -135,6 +135,13 @@ siete secciones, operaciones con lo que debe salir, y cada fallo con fecha,
 causa y arreglo. Un proveedor nuevo estrena su runbook con su primera lección,
 no antes.
 
+## Vocabulario del catálogo
+
+"Antiguo" y "nuevo" no se usan para el catálogo (#249). Los roles de una fuente
+(`ingesta`, `fuente_de_verdad`, `derivado`, `copia_retirada`), **Recetario** y
+**Reserva** se definen una vez, en `specs/INDEX.md`. Cada fuente, con su estado
+y su fecha, está en `src/data/model.js` (`TABLAS`, vigilado por `ops/fuentes.test.js`).
+
 ## Código
 
 - UTF-8 sin BOM, comentarios en castellano, saltos de línea LF. Edita con
