@@ -1,7 +1,36 @@
 import { describe, it, expect } from "vitest";
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
-const { pistaDe, limpiarTranscripcion, corregirNombres, palabrasDe } = await import("./voz.js");
+const { pistaDe, limpiarTranscripcion, corregirNombres, palabrasDe, transcribir, topeVozDia, TOPE_VOZ_DIA } = await import("./voz.js");
+
+// Tope diario de transcripciones de todo el bot: como el del canario, falla cerrado.
+describe("transcribir: tope diario de Groq", () => {
+  const AUDIO = { file_id: "f", duration: 5 };
+  const ENV = { GROQ_API_KEY: "x" };
+  const callado = async (fn) => {
+    const quieto = console.warn;
+    console.warn = () => {};
+    try { return await fn(); } finally { console.warn = quieto; }
+  };
+
+  it("sin variable válida, el tope por defecto", () => {
+    expect(topeVozDia({})).toBe(TOPE_VOZ_DIA);
+    expect(topeVozDia({ BOT_VOZ_DIA: "0" })).toBe(TOPE_VOZ_DIA);
+    expect(topeVozDia({ BOT_VOZ_DIA: "40" })).toBe(40);
+  });
+
+  it("sin cupo no llega a Groq, y pide el cupo del día con su tope", async () => {
+    const pedidos = [];
+    const limite = async (o) => { pedidos.push(o); return { ok: false }; };
+    expect(await callado(() => transcribir(AUDIO, {}, { limite, env: { ...ENV, BOT_VOZ_DIA: "9" } }))).toEqual({ error: "tope" });
+    expect(pedidos).toEqual([{ bucket: "bot_voz_dia", limit: 9, windowSec: 86400 }]);
+  });
+
+  it("sin Redis no se transcribe (falla cerrado)", async () => {
+    const r = await callado(() => transcribir(AUDIO, {}, { env: ENV }));
+    expect(r).toEqual({ error: "tope" });
+  });
+});
 
 describe("voz", () => {
   it("la pista: la cocina, las palabras de la casa y, al final, los nombres (Whisper se queda con el final)", () => {
