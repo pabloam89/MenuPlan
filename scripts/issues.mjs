@@ -20,7 +20,13 @@
  *                                           guardia niega `gh issue create`
  *   npm run issues -- --ordenar             etiquetas y padre que se deducen
  *                                           de lo rellenado en un formulario
+ *   npm run issues -- --marcas-huerfanas    lista (sin borrar) las marcas «lo lleva»
+ *                                           de ramas que ya no existen
  *   npm run issues -- --arranque            las líneas cortas del arranque
+ *
+ * Cada encargo enseña quién lo lleva (rama, carpeta y antigüedad del último
+ * commit; «posiblemente parada» pasadas 4 h) y, al final, las ramas sin número
+ * de issue. `--nuevo` mira además carpetas y ramas vivas con palabras del título.
  *   npm run issues -- --etiquetas           crea o pone al día en GitHub las
  *                                           etiquetas de scripts/lib/issues.mjs
  *                                           y retira las que sobran (cambia
@@ -31,10 +37,12 @@
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { dirname } from "node:path";
 import {
   CONSULTA, GRUPOS, PABLO, avisoDeArranque, etiquetas, etiquetasSobrantes,
   debeReabrir, etiquetasQueFaltan, fondoDeFormulario, leerIssue, parecidos, porGrupo, resumen,
 } from "./lib/issues.mjs";
+import { cruce, leerInventario, marcasHuerfanas, leerMarcas, lineaParecida, lineasDeLleva, parecidosEnGit, sinNumero, textoDeRama } from "./lib/lleva.mjs";
 
 const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
 const motivo = (e) => String(e.stderr ?? e.message).trim().split("\n")[0];
@@ -47,7 +55,8 @@ function todos() {
     const args = ["api", "graphql", "-f", `query=${CONSULTA}`];
     if (cursor) args.push("-f", `cursor=${cursor}`);
     const pag = JSON.parse(gh(...args)).data.repository.issues;
-    out.push(...pag.nodes.map(leerIssue));
+    // Las marcas «lo lleva» (scripts/lib/lleva.mjs) salen de los comentarios.
+    out.push(...pag.nodes.map((n) => ({ ...leerIssue(n), marcas: leerMarcas(n.comments?.nodes) })));
     cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
   } while (cursor);
   return out;
@@ -76,6 +85,17 @@ function colgar(issues, hijoN, fondoN) {
     console.log(`#${fondoN} estaba cerrado: reabierto.`);
   } else if (fondo.state === "CLOSED") {
     console.log(`#${fondoN} está cerrado y #${hijoN} es anterior a su cierre: no se reabre (es reordenar, no un fallo nuevo).`);
+  }
+}
+
+/** Ramas y carpetas vivas; sin git o fuera del repo, vacío (el listado sigue, solo sin el cruce). */
+function ramasVivas() {
+  try {
+    const comun = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 8000 }).trim();
+    return leerInventario(dirname(comun));
+  } catch {
+    // a propósito: fuera de un repo (o con git roto) el listado sale sin el cruce de ramas; no es un fallo de los issues
+    return [];
   }
 }
 
@@ -144,9 +164,15 @@ if (args.includes("--etiquetas")) {
   }
   const texto = readFileSync(cuerpo, "utf8");
   const hay = parecidos(issues, { titulo, cuerpo: texto });
-  if (hay.length && !args.includes("--crear-igual")) {
+  // También lo que ya se está haciendo sin issue: carpetas y ramas de GitHub con palabras del título (#271).
+  const enGit = parecidosEnGit(ramasVivas(), titulo);
+  if ((hay.length || enGit.length) && !args.includes("--crear-igual")) {
     console.log("Antes de crear: estos se parecen.\n");
     for (const p of hay) console.log(`  #${p.number}  ${p.state === "OPEN" ? "abierto" : "cerrado"}  ${p.title}`);
+    if (enGit.length) {
+      console.log(`${hay.length ? "\n" : ""}Y alguien ya trabaja en algo parecido (carpetas y ramas vivas):`);
+      for (const p of enGit) console.log(lineaParecida(p));
+    }
     console.log("\nSi es uno de estos, no abras otro: añade lo tuyo con `gh issue comment <n> --body-file <fichero>`"
       + " (si está cerrado y es un caso que vuelve, ábrelo como caso y cuélgalo con --padre: se reabre el fondo).\n"
       + "Si no es ninguno, repite con --crear-igual.");
@@ -191,8 +217,15 @@ if (args.includes("--etiquetas")) {
     }
   }
   console.log(n ? `${n} cambios.` : "Nada que ordenar.");
+} else if (args.includes("--marcas-huerfanas")) {
+  // Solo lista: borrar comentarios de un issue es de quien lo pida (`gh api -X DELETE …/issues/comments/<id>`).
+  const huerfanas = marcasHuerfanas(todos(), ramasVivas());
+  for (const m of huerfanas) console.log(`  #${m.issue}  ${m.rama} (${m.carpeta}), marca de hace ${m.dias} días y sin rama`);
+  console.log(huerfanas.length ? `${huerfanas.length} marcas huérfanas: son comentarios «Lo lleva» de issues; no se ha borrado nada.` : "Ninguna marca huérfana.");
 } else if (args.includes("--arranque")) {
-  for (const l of avisoDeArranque(todos())) console.log(l);
+  const issues = todos();
+  for (const l of avisoDeArranque(issues)) console.log(l);
+  for (const l of lineasDeLleva(issues, ramasVivas())) console.log(l);
 } else {
   const issues = todos();
   const r = resumen(issues);
@@ -201,6 +234,9 @@ if (args.includes("--etiquetas")) {
 
   console.log(`Abiertos: ${Object.entries(r.porTipo).map(([t, k]) => `${k} ${t}`).join(", ") || "ninguno clasificado"}\n`);
 
+  // Quién lleva qué: el cruce encargo → rama/carpeta → último commit (scripts/lib/lleva.mjs).
+  const ramas = ramasVivas();
+  const lleva = new Map(cruce(issues, ramas).map((f) => [f.number, f.ramas]));
   for (const [t, titulo] of [["decision", "Decisiones"], ["encargo", "Encargos"]]) {
     const de = deTipo(t);
     if (!de.length) continue;
@@ -208,7 +244,14 @@ if (args.includes("--etiquetas")) {
     for (const i of de) {
       const extra = [i.padre ? `de #${i.padre.number}` : "", i.asignados.length ? `lo lleva ${i.asignados.join(", ")}` : ""].filter(Boolean).join(" · ");
       console.log(`  #${i.number}  ${corto(i.title)}${extra ? `  (${extra})` : ""}`);
+      for (const f of lleva.get(i.number) ?? []) console.log(`        lo lleva: ${textoDeRama(f)}`);
     }
+    console.log("");
+  }
+  const sueltas = sinNumero(ramas);
+  if (sueltas.length) {
+    console.log("Ramas y carpetas sin número de issue (la excepción; toda rama no trivial lleva el suyo):");
+    for (const r of sueltas) console.log(`  ${r.rama}${r.carpeta ? ` en ${r.carpeta}` : " (solo en GitHub)"}`);
     console.log("");
   }
 
