@@ -205,6 +205,8 @@ export function problemas(datos, { existe, leer = () => null, existeTest = exist
         p.push(`ref-no-existe: ${id} cita ${o.ref}`);
       } else if (!(typeof o.contiene === "string" && o.contiene.trim())) {
         p.push(`ref-sin-contiene: ${id} cita ${o.ref} sin decir qué tiene que llevar`);
+      } else if (o.contiene.trim().length < 12) {
+        p.push(`ref-contiene-corto: ${id}: «${o.contiene}» es tan corta que cualquier fichero la llevaría (mínimo 12 caracteres): usa la frase o el nombre que ES el mecanismo`);
       } else if (!String(leer(o.ref) ?? "").toLowerCase().includes(o.contiene.toLowerCase())) {
         p.push(`ref-no-contiene: ${id}: ${o.ref} no contiene «${o.contiene}»`);
       }

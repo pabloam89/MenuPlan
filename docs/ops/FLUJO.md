@@ -62,7 +62,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | # | Paso | Entra | Sale | Quién | Skill | Se mide |
 |---|---|---|---|---|---|---|
 | 1 | Detectar | Un fallo en producción, en el CI o en el trabajo de una sesión | Una señal que alguien ve: un aviso, un check rojo, un hallazgo de un juez | automatico, juez, persona | (—) | ○ fallos detectados por fuente (vigía, agente de fallos, jueces) (#340) |
-| 2 | Registrar el caso | Una señal de fallo | Un issue tipo:caso con su área, buscado antes entre los parecidos | agente_dominio, orquestador, automatico | `github` | ✓ casos abiertos por área y tipo; ○ PR con casos frente a PR con «ninguno» (#312) |
+| 2 | Registrar el caso | Una señal de fallo | Un issue tipo:caso con su área, buscado antes entre los parecidos | agente_dominio, orquestador, automatico | `github` | ✓ casos abiertos por área y tipo; ✓ PR con casos frente a PR con «ninguno» |
 | 3 | Triaje | Un caso registrado | Alcance (local, módulo o transversal) y tipo de causa fijados | orquestador, agente_dominio | (#338) | ○ casos por alcance (#337) |
 | 4 | Diagnosticar | Un caso con alcance y tipo | Mecanismo, causa de escape y clase del fallo; o una hipótesis marcada como tal | agente_dominio, juez, orquestador | (#338) | ✓ fondos y casos por causa; ✓ casos puntuales, para ver si eran un patrón |
 | 5 | Fondo | Un diagnóstico | Un issue tipo:fondo con su arreglo general, su causa y cómo se probará | agente_dominio, orquestador | (#338) | ✓ fondos ordenados por casos (dónde duele) |
@@ -89,8 +89,9 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | **Registrar el caso** · blanda | | | | | |
 | P02.1 | Antes de crear un issue se buscan los parecidos | guardia · `.claude/hooks/guardia.mjs` | semidura | `issues-con-buscar-antes` | #325, #337 |
 | P02.2 | Las decisiones y pendientes que deja una sesión pasan a un issue | guardia · `.claude/hooks/pendientes.mjs` | semidura | `pendientes-a-issue` | #312 |
-| P02.3 | Todo fallo del camino queda como caso, y cada PR declara los casos que vio (línea Casos:) | nada · no escrita aún | blanda | — | #312 |
+| P02.3 | Cada PR declara los casos que vio (línea Casos:), y cada uno es un caso de verdad | ci · `scripts/casos-pr.mjs` | dura | — | — |
 | P02.4 | Nada sensible en un issue: el repo es público | nada · `CLAUDE.md` | blanda | `repo-publico-sin-detalle` | #300 |
+| P02.5 | Al terminar, una sesión con fallos y sin casos registrados es frenada una vez | guardia · `.claude/hooks/pendientes.mjs` | semidura | — | — |
 | **Triaje** · blanda | | | | | |
 | P03.1 | Se fija el alcance y el tipo de causa antes de gastar esfuerzo | nada · no escrita aún | blanda | — | #339 |
 | P03.2 | El esfuerzo sale del presupuesto de su alcance, no de lo que decida la sesión | nada · no escrita aún | blanda | — | #339 |
@@ -141,7 +142,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P12.4 | Los presupuestos se recalibran cada semana con lo medido | nada · no escrita aún | blanda | — | #340 |
 | P12.5 | Las normas del proceso que se incumplen se cuentan cada semana | script_propio · `scripts/lib/normas.mjs` | semidura | — | #341, #185 |
 
-**46 obligaciones:** 4 duras · 16 semiduras · 25 blandas · 1 rotas. 11 están enlazadas con su norma del registro.
+**47 obligaciones:** 5 duras · 17 semiduras · 24 blandas · 1 rotas. 11 están enlazadas con su norma del registro.
 <!-- flujo:pasos:fin -->
 
 ## Lo que ya existía
@@ -162,8 +163,9 @@ sitios, y por eso la especificación va antes de construir:
 - **La fase A ya está en staging** (PR #349): `ops/normas.json` con 58 normas y
   su vocabulario en `scripts/lib/normas.mjs`. No esperó a este documento. Las
   obligaciones de aquí se enlazan con su norma y no pueden contradecirla; lo que
-  falta de A está en #351. La línea `Casos:` del PR (#312) sigue en la rama
-  `ops/casos-obligatorios`, sin fusionar: hasta entonces P02.3 es blanda.
+  falta de A está en #351. La línea `Casos:` del PR (#312, PR #354) también ya
+  está en staging, y es dura: la comprueba el CI (`scripts/casos-pr.mjs`) y,
+  antes, la guardia. Por eso P02.3 ya no es blanda.
 - **Ya hay una identidad de máquina.** La App `homenu-dependabot-merge` (PR
   #342) fusiona en staging los PR de actions de Dependabot, con su clave en un
   environment de GitHub y no en una sesión. Es el primer caso del patrón de
