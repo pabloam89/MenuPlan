@@ -305,7 +305,7 @@ if (args.includes("--etiquetas")) {
     console.log(`Línea «Casos:» en los últimos ${m.total} PR fusionados: ${m.conCasos} con casos (${m.casosCitados} citados), ${m.ninguno} con «ninguno», ${m.sinLinea} sin la línea.
 `);
   } catch (e) {
-    console.log(`Línea «Casos:» de los PR: no he podido medirla (${motivo(e)}).
+    console.warn(`Línea «Casos:» de los PR: no he podido medirla (${motivo(e)}).
 `);
   }
 
