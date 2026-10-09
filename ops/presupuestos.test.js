@@ -200,6 +200,13 @@ describe("/orquestar: el triaje lee el catálogo y no lleva sus números", () =>
     expect(numerosSueltos(triaje, valores), "Quita el número de orquestar.md: sale de `npm run presupuesto`").toEqual([]);
   });
 
+  it("todo valor numérico del catálogo tiene su forma en letras en PALABRAS (salvo el 1, que son artículos)", () => {
+    for (const v of valoresNumericos(CATALOGO)) {
+      if (v !== 1) expect(PALABRAS[v], `el valor ${v} del catálogo no tiene su forma en letras en PALABRAS: el test no vería «${v}» escrito con letras`).toBeDefined();
+    }
+    // Nota: el resto de secciones de orquestar.md no se escanean (el 1, el 2 y el 3 son la tabla de planos y las listas numeradas: falsos positivos).
+  });
+
   it("el detector de números sueltos ve lo que debe y no se asusta de lo demás", () => {
     const v = [1, 2, 3, 15, 30, 60];
     expect(numerosSueltos("hasta 3 hipótesis", v)).toEqual(["3"]);
@@ -249,6 +256,17 @@ describe("npm run presupuesto", () => {
     expect(r.stderr).toContain("alcances:");
     expect(r.stderr).toContain("causas:");
     expect(r.stdout).toBe("");
+  });
+});
+
+describe("el test de cada norma del tope de rondas ejercita su regla", () => {
+  it("la norma rondas-tope-duro y P07.4 apuntan al test que nombra rondas-excedidas", () => {
+    const norma = JSON.parse(leerTexto("ops/normas.json")).normas.find((n) => n.id === "rondas-tope-duro");
+    const o = JSON.parse(leerTexto("ops/flujo.json")).pasos.flatMap((p) => p.obligaciones).find((x) => x.id === "P07.4");
+    for (const test of [norma.test, o.test]) {
+      expect(test).toBe("scripts/fondos-rondas.test.js");
+      expect(leerTexto(test), "el test de la obligación tiene que nombrar su regla").toContain(o.contiene);
+    }
   });
 });
 

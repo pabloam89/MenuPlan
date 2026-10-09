@@ -119,6 +119,19 @@ export function problemas(catalogo) {
   }
 
   // Todas las celdas se resuelven y ninguna pasa del tope ni se queda sin jueces suficientes.
+  // Y por CELDA ya resuelta: lo que una causa sobrescriba tampoco puede abaratar un alcance mayor.
+  if (JSON.stringify(alcances) === JSON.stringify(ALCANCES)) {
+    for (const causa of CAUSAS) {
+      for (let i = 1; i < ALCANCES.length; i++) {
+        const menor = presupuestoDe(ALCANCES[i - 1], causa, catalogo);
+        const mayor = presupuestoDe(ALCANCES[i], causa, catalogo);
+        for (const c of ["hipotesis_en_paralelo_max", "jueces_min", "minutos_orientativos"]) {
+          if (entero(menor?.[c]) && entero(mayor?.[c]) && mayor[c] < menor[c]) p.push(`monotonia-celda: ${ALCANCES[i]} × ${causa} «${c}» (${mayor[c]}) es menor que en ${ALCANCES[i - 1]} (${menor[c]})`);
+        }
+      }
+    }
+  }
+
   for (const { alcance, causa } of celdas()) {
     const r = presupuestoDe(alcance, causa, catalogo);
     if (!r) p.push(`celda: ${alcance} × ${causa} no sale con presupuesto`);
