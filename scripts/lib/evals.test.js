@@ -1,6 +1,7 @@
 // Evals de Lola (encargo #268): las etiquetas de los casos en vocabulario
 // cerrado, el tope de gasto, pass^k por niveles y la memoria por hashes.
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -10,6 +11,7 @@ import {
   PRESUPUESTO_MENSUAL_EUR, TIPOS_CASO, TIPOS_DE_SEGURIDAD, bloquea, cabeOtro, casoHash, casosDelNivel,
   casosVersion, canonico, claveMemo, costeUsd, erroresDeCasos, esDeSeguridad, estadoDe, estimadoSiguiente,
   kDe, memoria, opcionNumero, otroIntento, presupuestoMensualUsd, topeDePasada,
+  COSTE_PASADA_COMPLETA_USD, TOPE_COMPLETO_POR_FAMILIA, baseMemo, codigoHash, compararEstados, elegirReferencia, ficherosDelCodigo, grafoDeImports,
 } from "./evals.mjs";
 
 const RAIZ = new URL("../../", import.meta.url);
@@ -48,6 +50,9 @@ describe("erroresDeCasos: una cosa mal, un error", () => {
   it("dominio fuera de lista", () => expect(errores({ dominio: "otro" })).toEqual([expect.stringMatching(/dominio .* fuera de lista/)]));
   it("origen fuera de lista", () => expect(errores({ origen: "otro" })).toEqual([expect.stringMatching(/origen .* fuera de lista/)]));
   it("nucleo que no es true", () => expect(errores({ nucleo: "si" })).toEqual([expect.stringMatching(/nucleo/)]));
+  it("dependeDeFecha que no es true", () => expect(errores({ dependeDeFecha: "si" })).toEqual([expect.stringMatching(/dependeDeFecha solo/)]));
+  it("habla de un día sin dependeDeFecha", () => expect(errores({ entrada: "¿qué cenamos el jueves?" })).toEqual([expect.stringMatching(/le falta "dependeDeFecha"/)]));
+  it("habla de un día y lo lleva: bien", () => expect(errores({ entrada: "¿qué cenamos mañana?", dependeDeFecha: true })).toEqual([]));
 });
 
 describe("vocabularios", () => {
@@ -90,6 +95,13 @@ describe("tope de gasto", () => {
     expect(() => opcionNumero(["--tope=-1"], "tope")).toThrow();
     expect(opcionNumero(["--tope=0,5"], "tope")).toBe(0.5);
     expect(opcionNumero([], "tope")).toBe(null);
+  });
+  it("modelos-evals lanza cada modelo con un tope que le da para la pasada entera (Opus no se corta)", () => {
+    for (const [familia, coste] of Object.entries(COSTE_PASADA_COMPLETA_USD)) {
+      expect(TOPE_COMPLETO_POR_FAMILIA[familia], familia).toBeGreaterThanOrEqual(coste * 1.15);
+      expect(topeDePasada(TOPE_COMPLETO_POR_FAMILIA[familia]), familia).toBeGreaterThanOrEqual(coste * 1.15);
+    }
+    expect(readFileSync(new URL("scripts/modelos-evals.mjs", RAIZ), "utf8")).toMatch(/--tope=\$\{TOPE_COMPLETO_POR_FAMILIA\[familiaDe\(modelo\)\]\}/);
   });
   it("el presupuesto mensual vive en un solo sitio: los scripts lo importan, nadie lo repite", () => {
     expect(PRESUPUESTO_MENSUAL_EUR).toBeGreaterThan(0);
@@ -171,5 +183,81 @@ describe("hashes y memoria", () => {
     const m = memoria([{ ...base, aprobado: false }, { ...base, aprobado: true }, { ...base, prompt_hash: "p2", aprobado: true }, { ...base }]);
     expect(m.get(claveMemo(base))).toEqual([false, true]);
     expect(m.get(claveMemo({ ...base, prompt_hash: "p2" }))).toEqual([true]);
+  });
+});
+
+describe("memoria y fecha: un caso que depende del día no se reutiliza otro día", () => {
+  const conFecha = { id: "f", entrada: "¿qué cenamos hoy?", dependeDeFecha: true };
+  const sinFecha = { id: "s", entrada: "¿cuánto cuesta?" };
+  const version = { prompt_hash: "p", codigo_hash: "k", modelo: "m", esfuerzo: "e" };
+  const guardado = (caso, hoy) => memoria([{ ...baseMemo(caso, { ...version, hoy }), aprobado: true }]);
+  const previos = (m, caso, hoy) => m.get(claveMemo(baseMemo(caso, { ...version, hoy }))) ?? [];
+
+  it("los del núcleo que dependen de la fecha la llevan", () => {
+    for (const id of ["consulta-que-cenamos-de-la-ficha", "recordatorio-pedido", "ver-un-dia-entero", "habla-ausencias-en-lote"]) {
+      expect(casos.find((c) => c.id === id)?.dependeDeFecha, id).toBe(true);
+    }
+  });
+  it("dos pasadas en días distintos pagan dos veces", () => {
+    const m = guardado(conFecha, "2026-10-08");
+    expect(otroIntento(previos(m, conFecha, "2026-10-08"), { k: 1 })).toBe(false);
+    expect(otroIntento(previos(m, conFecha, "2026-10-09"), { k: 1 })).toBe(true);
+  });
+  it("uno que no depende de la fecha se reutiliza otro día", () => {
+    const m = guardado(sinFecha, "2026-10-08");
+    expect(otroIntento(previos(m, sinFecha, "2026-10-09"), { k: 1 })).toBe(false);
+  });
+});
+
+describe("codigo_hash sigue los imports", () => {
+  const dir = mkdtempSync(join(tmpdir(), "evals-grafo-"));
+  const escribir = (ruta, texto) => { mkdirSync(join(dir, ruta, ".."), { recursive: true }); writeFileSync(join(dir, ruta), texto); };
+  const lineas = (...l) => l.join("\n");
+  escribir("api/a.js", lineas('import { b } from "./b.js";', 'const t = await import("../lib/d.js");', "export const x = 1;"));
+  escribir("api/b.js", lineas('export { c } from "../lib/c.js";', 'import fs from "node:fs";', 'const md = fs.readFileSync(new URL("./saber.md", import.meta.url));'));
+  escribir("api/saber.md", "uno");
+  escribir("lib/c.js", "export const c = 1;");
+  escribir("lib/d.js", lineas('import "./e";', "export default 1;"));
+  escribir("lib/e.js", "export {};");
+  escribir("lib/suelto.js", "export const nadie = 1;");
+
+  it("llega a lo importado (estático, export from, dinámico, new URL, sin extensión) y a nada más", () => {
+    expect(grafoDeImports(dir, ["api/a.js"])).toEqual(["api/a.js", "api/b.js", "api/saber.md", "lib/c.js", "lib/d.js", "lib/e.js"]);
+  });
+  it("cambiar un fichero importado cambia el hash; uno suelto, no", () => {
+    const antes = codigoHash(dir, grafoDeImports(dir, ["api/a.js"]));
+    escribir("lib/suelto.js", "export const nadie = 2;");
+    expect(codigoHash(dir, grafoDeImports(dir, ["api/a.js"]))).toBe(antes);
+    escribir("lib/e.js", "export const cambio = 1;");
+    expect(codigoHash(dir, grafoDeImports(dir, ["api/a.js"]))).not.toBe(antes);
+  });
+  it("el de bot-evals llega a src/ y al corrector, y no a scripts/lib/evals.mjs (un precio no invalida la memoria)", () => {
+    const f = ficherosDelCodigo(fileURLToPath(RAIZ));
+    for (const x of ["api/_bot/agente.js", "api/_bot/supervisor.js", "api/_bot/conocimiento.md", "src/lib/papeles.js", "src/lib/allergensCore.js", "src/lib/vetos.js", "scripts/bot-evals.mjs"]) expect(f).toContain(x);
+    expect(f).not.toContain("api/_bot/core.mjs");
+    expect(f).not.toContain("scripts/lib/evals.mjs");
+  });
+});
+
+describe("referencia: lo que pasaba y ahora no, es regresión", () => {
+  it("aprobado → inestable o fallido es regresión; al revés, mejora", () => {
+    const { regresiones, mejoras } = compararEstados(
+      { a: "aprobado", b: "aprobado", c: "fallido", d: "inestable" },
+      { a: "inestable", b: "fallido", c: "aprobado", d: "inestable", nuevo: "fallido" },
+    );
+    expect(regresiones.map((r) => r.caso_id)).toEqual(["a", "b"]);
+    expect(mejoras.map((r) => r.caso_id)).toEqual(["c"]);
+  });
+  it("sin pedirla, la última del mismo modelo con otra versión; si no hay, null", () => {
+    const actual = { modelo: "m", esfuerzo: "e", prompt_hash: "p2", codigo_hash: "k" };
+    const pasadas = [
+      { pasada_id: "1", modelo: "m", esfuerzo: "e", prompt_hash: "p1", codigo_hash: "k" },
+      { pasada_id: "2", modelo: "m", esfuerzo: "e", prompt_hash: "p2", codigo_hash: "k" },
+      { pasada_id: "3", modelo: "otro", esfuerzo: "e", prompt_hash: "p0", codigo_hash: "k" },
+    ];
+    expect(elegirReferencia(pasadas, { actual }).pasada_id).toBe("1");
+    expect(elegirReferencia(pasadas.slice(1), { actual })).toBe(null);
+    expect(elegirReferencia(pasadas, { actual, pedida: "2" }).pasada_id).toBe("2");
+    expect(() => elegirReferencia(pasadas, { actual, pedida: "9" })).toThrow();
   });
 });

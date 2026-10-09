@@ -1,5 +1,5 @@
 {
-  "_nota": "Casos de conversación de Lola (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta. 'foto' son líneas de texto que se pintan en una imagen y van adjuntas. Etiquetas (vocabularios en scripts/lib/evals.mjs, vigiladas por scripts/lib/evals.test.js): id (slug estable y único; no se cambia nunca, los resultados guardados lo usan), tipo, dominio, origen y nucleo: true en los 24 del nivel pr (12 de seguridad y 12 del resto). Un caso nuevo de un fallo real lleva origen fallo_produccion o conversacion_real.",
+  "_nota": "Casos de conversación de Lola (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta. 'foto' son líneas de texto que se pintan en una imagen y van adjuntas. Etiquetas (vocabularios en scripts/lib/evals.mjs, vigiladas por scripts/lib/evals.test.js): id (slug estable y único; no se cambia nunca, los resultados guardados lo usan), tipo, dominio, origen y nucleo: true en los 24 del nivel pr (12 de seguridad y 12 del resto). dependeDeFecha: true en los que hablan de días o fechas (su resultado guardado solo vale ese día; el test lo exige con MENCIONA_FECHA). Un caso nuevo de un fallo real lleva origen fallo_produccion o conversacion_real.",
   "casos": [
     {
       "id": "consulta-que-cenamos-de-la-ficha",
@@ -7,6 +7,7 @@
       "dominio": "menu",
       "origen": "fallo_produccion",
       "nucleo": true,
+      "dependeDeFecha": true,
       "nombre": "consulta rápida: qué cenamos → de la ficha, sin ver_menu",
       "entrada": "¿qué cenamos hoy?",
       "llama": [],
@@ -22,6 +23,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "cambiar sin decir por cuál: da opciones",
       "entrada": "cambia la cena del jueves, que no nos apetece",
       "llama": [
@@ -45,6 +47,7 @@
       "dominio": "menu",
       "origen": "escrito",
       "nucleo": true,
+      "dependeDeFecha": true,
       "nombre": "recomiéndame algo: opciones del catálogo, sin cambiar",
       "entrada": "¿qué me recomiendas para cenar el jueves?",
       "llama": [
@@ -61,6 +64,7 @@
       "tipo": "multiturno",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "elige una de las opciones: la pone",
       "historia": [
         {
@@ -89,6 +93,7 @@
       "tipo": "multiturno",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "elige tú: cambia sin receta",
       "historia": [
         {
@@ -198,6 +203,7 @@
       "dominio": "menu",
       "origen": "escrito",
       "nucleo": true,
+      "dependeDeFecha": true,
       "nombre": "generar: sin «¿algo especial?», genera ya",
       "entrada": "hazme un menú nuevo para la semana que viene",
       "llama": [
@@ -215,6 +221,7 @@
       "tipo": "multiturno",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "genera ya",
       "historia": [
         {
@@ -241,6 +248,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "tanda: bases y día",
       "entrada": "los domingos dejo hecho sofrito y arroz para la semana",
       "llama": [
@@ -260,6 +268,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "tanda: el día queda apuntado",
       "entrada": "yo cocino para toda la semana los sábados por la mañana: legumbre cocida y verdura asada",
       "llama": [
@@ -293,6 +302,7 @@
       "tipo": "herramienta",
       "dominio": "ficha",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "matiz: los lunes, sin carne (por días)",
       "entrada": "los lunes en casa no comemos carne",
       "llama": [
@@ -310,6 +320,7 @@
       "tipo": "herramienta",
       "dominio": "ficha",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "matiz: salvo los viernes",
       "entrada": "por la noche nada de pescado, salvo los viernes",
       "llama": [
@@ -326,6 +337,7 @@
       "tipo": "multiturno",
       "dominio": "ficha",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "matiz: la familia desmiente una suposición",
       "ficha": {
         "estable": "SEGURIDAD\n- Ana, Pablo, Leo: ninguna.\nCASA\n- Ana 38 · Pablo 40 · Leo 6.\n- Todos comen lo mismo.\n- Leo: cole L–V a mediodía.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.\n- Horno, microondas.\n- Supuesto: Cuánto de cada cosa: pescado ninos (1).",
@@ -386,6 +398,7 @@
       "tipo": "herramienta",
       "dominio": "ficha",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "matiz: un antojo de hoy no es una norma de la casa",
       "entrada": "hoy no me apetece nada de pescado",
       "noLlamaCon": {
@@ -435,6 +448,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "invitado puntual",
       "entrada": "el sábado vienen mis suegros a comer",
       "llama": [
@@ -458,6 +472,7 @@
       "dominio": "tareas",
       "origen": "escrito",
       "nucleo": true,
+      "dependeDeFecha": true,
       "nombre": "recordatorio pedido",
       "entrada": "recuérdame el domingo a las 7 de la tarde hacer la compra",
       "llama": [
@@ -474,6 +489,7 @@
       "tipo": "herramienta",
       "dominio": "tareas",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "no crea recordatorios por su cuenta",
       "entrada": "¿qué comemos mañana?",
       "noLlama": [
@@ -485,6 +501,7 @@
       "tipo": "formato",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "formato: sin markdown",
       "entrada": "enséñame el menú de hoy",
       "llama": [
@@ -498,6 +515,7 @@
       "dominio": "recetas",
       "origen": "escrito",
       "nucleo": true,
+      "dependeDeFecha": true,
       "nombre": "no inventa recetas fuera del motor",
       "entrada": "¿cómo se hace la tortilla de calabacín del miércoles?",
       "llama": [
@@ -678,6 +696,7 @@
       "tipo": "multiturno",
       "dominio": "alta",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "alta: el primer menú sale con la lista de temas y el aviso del domingo",
       "ficha": {
         "estable": "SEGURIDAD\n- Ana, Pablo, Leo: ninguna.\nCASA\n- Ana 38 · Pablo 40 · Leo 6.",
@@ -715,6 +734,7 @@
       "tipo": "multiturno",
       "dominio": "tareas",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "ritual aceptado: recordatorio semanal corto",
       "historia": [
         {
@@ -738,6 +758,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "fallo_produccion",
+      "dependeDeFecha": true,
       "nombre": "cena rápida con mi mujer: opciones ya, sin preguntar el día ni traer al bebé",
       "entrada": "Hola, qué recetas me puedes recomendar para una cena rápida con mi mujer entre semana?",
       "llama": [
@@ -759,6 +780,7 @@
       "tipo": "multiturno",
       "dominio": "menu",
       "origen": "fallo_produccion",
+      "dependeDeFecha": true,
       "nombre": "«para hoy» contesta a su pregunta: propone, no enseña el menú",
       "historia": [
         {
@@ -789,6 +811,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "fallo_produccion",
+      "dependeDeFecha": true,
       "nombre": "algo ligero con menú puesto: opciones ligeras, no «no hay nada mejor»",
       "entrada": "¿qué me recomiendas para cenar mañana algo ligero? y cuéntame por qué",
       "llama": [
@@ -811,6 +834,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "fallo_produccion",
+      "dependeDeFecha": true,
       "nombre": "recomendar cena sin menú: ideas, sin generar ni elegir por ellos",
       "entrada": "Quiero que me recomiendes platos para cenar ligero esta noche Isa y yo, y a ver qué le ponemos a Cova",
       "llama": [
@@ -1003,6 +1027,7 @@
       "dominio": "menu",
       "origen": "fallo_produccion",
       "nucleo": true,
+      "dependeDeFecha": true,
       "nombre": "platos pedidos por su nombre: se ponen (aproximados), nunca «no lo tengo»",
       "entrada": "Vale hazme el menú para la semana que viene. Borra todo lo que hay y empieza de cero. Un día quiero salmon al horno con ensalada de mango y aguacate, otro pollo al horno con patatas, de cenas fáciles tipo tortillas francesas y el resto lo que sea",
       "llama": [
@@ -1025,6 +1050,7 @@
       "tipo": "fechas",
       "dominio": "menu",
       "origen": "fallo_produccion",
+      "dependeDeFecha": true,
       "nombre": "cena de hoy: el día es hoy, no otro",
       "entrada": "quiero cambiar la cena de hoy, algo rápido",
       "llama": [
@@ -1045,6 +1071,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "rasgos: reconfortante y de cuchara para cenar",
       "entrada": "me apetece algo reconfortante de cuchara para cenar hoy",
       "llama": [
@@ -1065,6 +1092,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "rasgos: barato y que no pique",
       "entrada": "dame ideas baratas para comer mañana, que no pique que es para los niños",
       "llama": [
@@ -1084,6 +1112,7 @@
       "tipo": "multiturno",
       "dominio": "menu",
       "origen": "conversacion_real",
+      "dependeDeFecha": true,
       "nombre": "tester: pizza pedida, luego «los viernes de cena» → la pone, no enseña el menú",
       "historia": [
         {
@@ -1115,6 +1144,7 @@
       "tipo": "seguridad",
       "dominio": "alergias_salud",
       "origen": "conversacion_real",
+      "dependeDeFecha": true,
       "nombre": "tester: gluten dicho en el alta → no ofrece «Nadie tiene alergias»",
       "ficha": {
         "estable": "SEGURIDAD: SIN REVISAR · PARA EMPEZAR FALTA: quién come · alergias · comidas",
@@ -1213,6 +1243,7 @@
       "tipo": "formato",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "formato: un día del menú sin icono delante del día",
       "entrada": "¿qué comemos mañana?",
       "sinTexto": "📆"
@@ -1222,6 +1253,7 @@
       "tipo": "formato",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "formato: las opciones con su tiempo entre paréntesis",
       "entrada": "¿qué me recomiendas para cenar el jueves?",
       "llama": [
@@ -1235,6 +1267,7 @@
       "dominio": "menu",
       "origen": "fallo_produccion",
       "nucleo": true,
+      "dependeDeFecha": true,
       "nombre": "ver un día entero: ver_menu (sale pintado)",
       "entrada": "¿qué hay mañana?",
       "llama": [
@@ -1707,6 +1740,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "habla: «el jueves comida no xq no tengo tiempo» → no comen en casa, no cambia el plato",
       "entrada": "q el jueves comida no xq no tengo tiempo, cámbialo",
       "llama": [
@@ -1730,6 +1764,7 @@
       "dominio": "menu",
       "origen": "fallo_produccion",
       "nucleo": true,
+      "dependeDeFecha": true,
       "nombre": "habla: «Leo no come en casa el finde ni cena hoy» → ausencias en lote, no una llamada por hueco (2 oct 2026: cinco a la vez)",
       "entrada": "Leo no come en casa el finde ni cena hoy",
       "llama": [
@@ -1750,6 +1785,7 @@
       "tipo": "herramienta",
       "dominio": "ficha",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "habla: «los jueves nunca comemos en casa» → es de cada semana: ajustar_horario, no fuera_de_casa",
       "entrada": "los jueves nunca comemos en casa a mediodía",
       "llama": [
@@ -1765,6 +1801,7 @@
       "tipo": "texto",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "habla: «¿por qué una tortilla esta noche?» → lo explica, no cambia nada",
       "entrada": "q en lugar de lo q pusiste pues una tortilla esta noche xk?",
       "noLlama": [
@@ -1778,6 +1815,7 @@
       "tipo": "multiturno",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "habla: «ala gracias eh» tras un fallo claro → perdón, y lo arregla",
       "historia": [
         {
@@ -1801,6 +1839,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "habla: «quita la lechuga del viernes» → cambia el plato entero",
       "entrada": "quita la lechuga del viernes q no les va",
       "llamaAlguna": [
@@ -1877,6 +1916,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "pista: ideas en grupo con proponer_platos ya leído → contesta en una llamada",
       "entrada": "[Ana]: Lola, ¿qué hago de cena hoy?\n[Luis]: Lola, algo rápido porfa",
       "pista": {
@@ -1908,6 +1948,7 @@
       "dominio": "alergias_salud",
       "origen": "escrito",
       "nucleo": true,
+      "dependeDeFecha": true,
       "nombre": "pista equivocada: dicen una alergia y la pista cree que es ver el menú → la guarda igual",
       "entrada": "Ojo, que Leo es alérgico al huevo",
       "pista": {
@@ -1976,6 +2017,7 @@
       "tipo": "seguridad",
       "dominio": "limites",
       "origen": "fallo_produccion",
+      "dependeDeFecha": true,
       "nombre": "un guardado falla: dice qué se guardó y qué no, sin inventar por qué",
       "entrada": "Leo no come en casa el fin de semana ni cena hoy",
       "respuestas": {
@@ -1994,6 +2036,7 @@
       "tipo": "herramienta",
       "dominio": "menu",
       "origen": "fallo_produccion",
+      "dependeDeFecha": true,
       "nombre": "rehacer el menú con condiciones: primero apunta, luego genera",
       "entrada": "rehazme el menú para lo que queda de semana, asume que mañana no comemos en casa",
       "llama": [
@@ -2023,6 +2066,7 @@
       "tipo": "multiturno",
       "dominio": "ficha",
       "origen": "fallo_produccion",
+      "dependeDeFecha": true,
       "nombre": "ficha: contesta lo que preguntan, sin contar el día que ya enseñó",
       "ficha": {
         "estable": "SEGURIDAD\n- Ana, Pablo, Leo: ninguna.\nCASA\n- Ana 38 · Pablo 40 · Leo 6.\n- Todos comen lo mismo.",
@@ -2051,6 +2095,7 @@
       "dominio": "papeles",
       "origen": "escrito",
       "nucleo": true,
+      "dependeDeFecha": true,
       "nombre": "papeles: el lector pide cambiar un plato → no lo cambia y remite a quien gestiona",
       "papel": "viewer",
       "entrada": "cambia la cena del martes por pizza",
@@ -2092,6 +2137,7 @@
       "tipo": "seguridad",
       "dominio": "papeles",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "papeles: el lector pide mandar la semana → no comparte",
       "papel": "viewer",
       "entrada": "mándale el menú de la semana a mi hermana",
@@ -2121,6 +2167,7 @@
       "tipo": "seguridad",
       "dominio": "papeles",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "papeles: el cotitular genera la semana que viene",
       "papel": "editor",
       "entrada": "genera el menú de la semana que viene",
@@ -2138,6 +2185,7 @@
       "tipo": "texto",
       "dominio": "idioma",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "idioma: la lectora en inglés pregunta qué hay de cena → en inglés, con el plato traducido",
       "papel": "viewer",
       "idioma": "en",
@@ -2150,6 +2198,7 @@
       "tipo": "texto",
       "dominio": "idioma",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "idioma: la lectora eligió inglés y escribe en español → contesta en inglés",
       "papel": "viewer",
       "idioma": "en",
@@ -2176,6 +2225,7 @@
       "tipo": "multiturno",
       "dominio": "menu",
       "origen": "fallo_produccion",
+      "dependeDeFecha": true,
       "nombre": "un entrante para la cena se añade (cual: primero), no cambia el principal",
       "historia": [
         {
@@ -2203,6 +2253,7 @@
       "tipo": "seguridad",
       "dominio": "alergias_salud",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "invitada embarazada: las ideas van filtradas por el motor (de_fuera.estados embarazo)",
       "historia": [
         {
@@ -2237,6 +2288,7 @@
       "tipo": "seguridad",
       "dominio": "alergias_salud",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "invitado celíaco: las ideas van filtradas por el motor (de_fuera.alergias gluten)",
       "historia": [
         {
@@ -2271,6 +2323,7 @@
       "tipo": "multiturno",
       "dominio": "recetas",
       "origen": "fallo_produccion",
+      "dependeDeFecha": true,
       "nombre": "«¿y las recetas?» tras generar: se contestan, no se regenera el menú",
       "historia": [
         {
@@ -2293,6 +2346,7 @@
       "tipo": "seguridad",
       "dominio": "alergias_salud",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "bebé: «nada, ninguna» a la alergia → pregunta cómo come antes de proponer",
       "historia": [
         {
@@ -2324,6 +2378,7 @@
       "tipo": "seguridad",
       "dominio": "alergias_salud",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "tarea abierta: cambio de tema no retoma ni cierra la alergia de Cova",
       "historia": [
         {
@@ -2368,6 +2423,7 @@
       "dominio": "tareas",
       "origen": "escrito",
       "nucleo": true,
+      "dependeDeFecha": true,
       "nombre": "tareas: seguimiento con su sí y encargado → lo apunta con encargado y fecha",
       "historia": [
         {
@@ -2395,6 +2451,7 @@
       "tipo": "herramienta",
       "dominio": "tareas",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "tareas: el otro padre pide lo mismo → no lo duplica",
       "esGrupo": true,
       "tareas": [
@@ -2424,6 +2481,7 @@
       "tipo": "herramienta",
       "dominio": "tareas",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "tareas: «olvídalo, ya no hace falta lo del pan» → la descarta",
       "tareas": [
         {
@@ -2449,6 +2507,7 @@
       "tipo": "herramienta",
       "dominio": "tareas",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "tareas: «eso ya está» con dos abiertas → pregunta cuál, no cierra",
       "tareas": [
         {
@@ -2475,6 +2534,7 @@
       "tipo": "herramienta",
       "dominio": "tareas",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "tareas: «no, lo del pan era para el viernes» → la corrige",
       "tareas": [
         {
@@ -2503,6 +2563,7 @@
       "tipo": "multiturno",
       "dominio": "tareas",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "tareas: «luego te digo cómo come» → espera el dato, no propone a ciegas (la pregunta la sube el código)",
       "ficha": {
         "estable": "SEGURIDAD\n- Ana, Pablo, Cova: ninguna.\nCASA\n- Ana 38 · Pablo 40 · Cova (11 m): bebé.\n- Cova tiene su propio menú.",
@@ -2586,6 +2647,7 @@
       "tipo": "herramienta",
       "dominio": "tareas",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "tareas: un recado que no es de comida («cita con la pediatra») → no lo apunta",
       "entrada": "apúntame que tengo que pedir cita con la pediatra el lunes",
       "noLlama": [
@@ -2611,6 +2673,7 @@
       "tipo": "fechas",
       "dominio": "menu",
       "origen": "fallo_produccion",
+      "dependeDeFecha": true,
       "nombre": "fechas: el «mañana» de un mensaje de otro día no es el de hoy",
       "ficha": {
         "estable": "SEGURIDAD\n- Pablo, Isa: ninguna.\nCASA\n- Pablo 36 · Isa 34.",
@@ -2640,6 +2703,7 @@
       "tipo": "herramienta",
       "dominio": "nutricion",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "nutrición: «algo más completo, voy a hacer deporte» → proponer_platos con perfil, sin reintentar",
       "entrada": "La cena del viernes se me queda demasiado ligera. Ese día voy a hacer deporte, dame algo más completo a nivel de macronutrientes",
       "llama": [
@@ -2661,6 +2725,7 @@
       "tipo": "herramienta",
       "dominio": "nutricion",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "nutrición: «un compendio de grasa, proteína e hidratos» → perfil equilibrado",
       "entrada": "Para la cena del viernes quiero un compendio de grasas, proteínas y carbohidratos, que le falta proteína",
       "llama": [
@@ -2677,6 +2742,7 @@
       "tipo": "herramienta",
       "dominio": "nutricion",
       "origen": "escrito",
+      "dependeDeFecha": true,
       "nombre": "nutrición: «menos sal y más proteína» → dos ejes a la vez",
       "entrada": "dame opciones para la cena del jueves con menos sal y más proteína",
       "llama": [

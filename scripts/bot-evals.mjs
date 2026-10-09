@@ -1,9 +1,9 @@
 /**
  * Pruebas de conversación de Lola: ¿llama a la herramienta que toca?
  *
- *   node scripts/bot-evals.mjs                     → todos los casos (nivel completo), ~3,45 $
- *   node scripts/bot-evals.mjs --nivel=pr          → el núcleo N1 (24 casos), ~0,65 $
- *   node scripts/bot-evals.mjs --nivel=seguridad   → los 32 de seguridad; alergias y salud k=5, el resto k=3; un fallo bloquea
+ *   node scripts/bot-evals.mjs                     → todos los casos (nivel completo), ~3,5 $
+ *   node scripts/bot-evals.mjs --nivel=pr          → el núcleo N1 (24 casos), ~0,6-0,8 $
+ *   node scripts/bot-evals.mjs --nivel=seguridad   → los 32 de seguridad; alergias y salud k=5, el resto k=3; un fallo bloquea, ~3,2-3,4 $
  *   node scripts/bot-evals.mjs alergia             → los que contengan «alergia» en el nombre o el id
  *   node scripts/bot-evals.mjs --reserva           → con el modelo del plan B (agente.js MODELO_RESERVA)
  *
@@ -14,6 +14,9 @@
  *   --k=N           cada caso tiene que pasar N veces (pass^k).
  *   --reintentos=N  un caso que falla con k=1 se repite N veces; si uno pasa, «inestable».
  *   --sin-memo      no reutiliza resultados guardados.
+ *   --referencia=ID compara con esa pasada (por defecto, la última del mismo
+ *                   modelo con otra versión de prompt o código): lo que pasaba y
+ *                   ahora es inestable o fallido es una regresión y bloquea.
  *   --simulado      sin modelo ni red: un modelo de mentira que contesta siempre lo
  *                   mismo, para probar el script (tope, memoria, JSONL) gratis.
  *
@@ -26,15 +29,18 @@
  *
  * Cada intento deja una línea en .evals-out/bot-evals.jsonl (fuera de git). Un
  * caso con el mismo caso_hash, prompt_hash, codigo_hash, modelo y esfuerzo que
- * uno ya guardado no vuelve a llamar al modelo: se reutiliza lo guardado.
+ * uno ya guardado (y el mismo día, si lleva "dependeDeFecha") no vuelve a
+ * llamar al modelo: se reutiliza lo guardado. El resumen de cada pasada (el
+ * estado de cada caso) va a .evals-out/pasadas.jsonl, para compararlas.
  */
 
 import fs from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { cargarEnv, RAIZ } from "./lib/env.mjs";
 import {
-  CORRECTORES, NIVELES, REINTENTOS_POR_NIVEL, SALIDA, VERSION_ESQUEMA, bloquea, cabeOtro, casoHash, casosDelNivel,
+  CORRECTORES, NIVELES, REINTENTOS_POR_NIVEL, SALIDA, VERSION_ESQUEMA, baseMemo, bloquea, cabeOtro, casosDelNivel, compararEstados, elegirReferencia, ficherosDelCodigo,
   casosVersion, claveMemo, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
   kDe, leerJsonl, memoria, opcion, opcionEntero, opcionNumero, otroIntento, promptHash, tokensDe, topeDePasada,
 } from "./lib/evals.mjs";
@@ -56,6 +62,7 @@ try {
   process.exit(SALIDA.entrada);
 }
 const SIN_MEMO = ARGV.includes("--sin-memo");
+const REFERENCIA = opcion(ARGV, "referencia");
 
 const malEtiquetados = erroresDeCasos(casos);
 if (malEtiquetados.length) {
@@ -180,12 +187,25 @@ const PROMPT_HASH = promptHash({
 // codigo_hash: lo que corre en la prueba además del prompt (el turno, el
 // supervisor, la pista, las tareas…) y este script con sus respuestas de
 // mentira. Sin core.mjs: es el motor empaquetado y aquí las herramientas son falsas.
-const CODIGO_HASH = codigoHash(RAIZ, ["api/_bot", "api/_prompts.js", "scripts/bot-evals.mjs", "scripts/lib/evals.mjs"], { fuera: ["core.mjs"] });
+const CODIGO_HASH = codigoHash(RAIZ, ficherosDelCodigo(RAIZ));
+// El commit con el que se midió (y si había cambios sin guardar): para volver a él.
+function gitSha() {
+  try {
+    const sha = execFileSync("git", ["rev-parse", "--short=12", "HEAD"], { cwd: RAIZ, encoding: "utf8" }).trim();
+    const sucio = execFileSync("git", ["status", "--porcelain", "--untracked-files=no"], { cwd: RAIZ, encoding: "utf8" }).trim();
+    return sucio ? `${sha}+cambios` : sha;
+  } catch (e) {
+    console.warn(`[bot-evals] sin git_sha: ${e.message}`);
+    return null;
+  }
+}
+const GIT_SHA = gitSha();
 const CASOS_VERSION = casosVersion(casos);
 
 const SALIDA_DIR = join(RAIZ, ".evals-out");
 const JSONL = join(SALIDA_DIR, SIMULADO ? "bot-evals-simulado.jsonl" : "bot-evals.jsonl");
 const MEMORIA = SIN_MEMO ? new Map() : memoria(leerJsonl(JSONL));
+const PASADAS = join(SALIDA_DIR, SIMULADO ? "pasadas-simulado.jsonl" : "pasadas.jsonl");
 const PASADA = `${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}-${randomUUID().slice(0, 6)}`;
 fs.mkdirSync(SALIDA_DIR, { recursive: true });
 
@@ -282,14 +302,25 @@ let paradoPorTope = false;
 const tiempos = [];
 const estados = {};
 let bloqueos = 0;
+const porCaso = {};
+const inestables = [];
 let deMemoria = 0;
 const suma = { entrada: 0, salida: 0, cache_leida: 0, cache_escrita: 0, vueltas: 0 };
+
+// La referencia se elige ANTES de gastar: una --referencia que no existe no corre nada.
+let referencia = null;
+try {
+  referencia = elegirReferencia(leerJsonl(PASADAS), { pedida: REFERENCIA, actual: { modelo: MEDIDO, esfuerzo: ESFUERZO, prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH } });
+} catch (e) {
+  console.error(e.message);
+  process.exit(SALIDA.entrada);
+}
 
 console.log(`Nivel ${NIVEL} · ${elegidos.length} casos · ${MEDIDO} · tope $${TOPE.toFixed(2)} · prompt ${PROMPT_HASH} · código ${CODIGO_HASH} · casos ${CASOS_VERSION}${SIN_MEMO ? " · sin memoria" : ""}\n`);
 for (const caso of elegidos) {
   const k = kDe(caso, NIVEL, K);
   const estricto = esEstricto(caso, NIVEL);
-  const base = { caso_hash: casoHash(caso), prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH, modelo: MEDIDO, esfuerzo: ESFUERZO };
+  const base = baseMemo(caso, { prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH, modelo: MEDIDO, esfuerzo: ESFUERZO, hoy: HOY_MADRID });
   const previos = MEMORIA.get(claveMemo(base)) ?? [];
   const nuevos = [];
   const resultados = () => [...previos, ...nuevos.map((n) => n.aprobado)];
@@ -306,7 +337,7 @@ for (const caso of elegidos) {
     const fila = {
       v: VERSION_ESQUEMA, pasada_id: PASADA, fecha: new Date().toISOString(), script: "bot-evals", nivel: NIVEL,
       caso_id: caso.id, tipo: caso.tipo, dominio: caso.dominio, origen: caso.origen, ...base,
-      casos_version: CASOS_VERSION, intento: previos.length + nuevos.length, k, corrector: CORRECTORES[0],
+      casos_version: CASOS_VERSION, git_sha: GIT_SHA, intento: previos.length + nuevos.length, k, corrector: CORRECTORES[0],
       aprobado: r.aprobado, puntuacion: r.aprobado ? 1 : 0,
       motivos: [...new Set(r.fallos.map((f) => f.motivo))], fallos: r.fallos.map((f) => f.detalle),
       esperado: Object.fromEntries(CAMPOS_ESPERADO.filter((c) => caso[c] !== undefined).map((c) => [c, caso[c]])),
@@ -319,6 +350,8 @@ for (const caso of elegidos) {
   const todos = resultados();
   const estado = estadoDe(todos, k);
   estados[estado] = (estados[estado] ?? 0) + 1;
+  porCaso[caso.id] = estado;
+  if (estado === "inestable") inestables.push(caso.id);
   if (bloquea(estado, estricto)) bloqueos++;
   if (!nuevos.length && previos.length) deMemoria++;
 
@@ -341,9 +374,32 @@ console.log(`\n${estados.aprobado ?? 0}/${elegidos.length} bien · ~$${gastado.t
 console.log(`Estados: ${Object.entries(estados).map(([e, n]) => `${e} ${n}`).join(" · ")} · de memoria ${deMemoria} · intentos pagados ${pagados}`);
 if (pagados) console.log(`Por intento: ${media(suma.entrada)} entrada · ${media(suma.salida)} salida · ${media(suma.cache_leida)} caché leída · ${media(suma.cache_escrita)} caché escrita · ${(suma.vueltas / pagados).toFixed(2)} vueltas · $${(gastado / pagados).toFixed(4)}`);
 console.log(`Resultados en ${JSONL.replace(RAIZ, ".").replace(/\\/g, "/")} (pasada ${PASADA})`);
+
+// Los «~» aparte: fuera de seguridad un inestable suelto no bloquea, pero no
+// se puede perder entre 135 líneas.
+console.log(inestables.length ? `Inestables (${inestables.length}): ${inestables.join(", ")}` : "Inestables: ninguno");
+
+// Comparar con la referencia: lo que pasaba y ahora no, bloquea.
+const resumen = {
+  v: VERSION_ESQUEMA, pasada_id: PASADA, fecha: new Date().toISOString(), fecha_madrid: HOY_MADRID, nivel: NIVEL,
+  modelo: MEDIDO, esfuerzo: ESFUERZO, prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH, casos_version: CASOS_VERSION,
+  git_sha: GIT_SHA, coste_usd: Number(gastado.toFixed(6)), parado_por_tope: paradoPorTope, estados: porCaso,
+};
+let regresiones = [];
+if (!referencia) {
+  console.log("Sin referencia: no hay pasada guardada de otra versión con este modelo; los inestables no se pueden juzgar como regresión.");
+} else {
+  const c = compararEstados(referencia.estados ?? {}, porCaso);
+  regresiones = c.regresiones;
+  console.log(`Referencia ${referencia.pasada_id} (prompt ${referencia.prompt_hash} · código ${referencia.codigo_hash} · ${referencia.git_sha ?? "sin sha"}): ${regresiones.length} regresiones, ${c.mejoras.length} mejoras`);
+  for (const x of regresiones) console.log(`    REGRESIÓN ${x.caso_id}: ${x.antes} → ${x.ahora}`);
+  for (const x of c.mejoras) console.log(`    mejora ${x.caso_id}: ${x.antes} → ${x.ahora}`);
+}
+fs.appendFileSync(PASADAS, `${JSON.stringify(resumen)}\n`);
+
 if (paradoPorTope) {
   console.log(`\nPARADO POR EL TOPE: gastado $${gastado.toFixed(3)} de $${TOPE.toFixed(2)}. Faltan casos por correr (salida ${SALIDA.tope}).`);
   process.exitCode = SALIDA.tope;
 } else {
-  process.exitCode = bloqueos ? SALIDA.fallos : SALIDA.bien;
+  process.exitCode = bloqueos || regresiones.length ? SALIDA.fallos : SALIDA.bien;
 }

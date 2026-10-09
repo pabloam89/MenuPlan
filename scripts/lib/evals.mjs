@@ -9,8 +9,8 @@
  * otro sitio, como src/lib/vocabularios.js para el modelo de datos.
  */
 import { createHash } from "node:crypto";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
 
 // ── Vocabularios de los casos (scripts/bot-evals.json) ─────────────────────
 
@@ -44,6 +44,8 @@ export function erroresDeCasos(casos) {
     if (!DOMINIOS_CASO.includes(c.dominio)) errores.push(`${quien}: dominio ${JSON.stringify(c.dominio)} fuera de lista`);
     if (!ORIGENES_CASO.includes(c.origen)) errores.push(`${quien}: origen ${JSON.stringify(c.origen)} fuera de lista`);
     if (c.nucleo !== undefined && c.nucleo !== true) errores.push(`${quien}: nucleo solo puede ser true o no estar`);
+    if (c.dependeDeFecha !== undefined && c.dependeDeFecha !== true) errores.push(`${quien}: dependeDeFecha solo puede ser true o no estar`);
+    else if (!c.dependeDeFecha && mencionaFecha(c)) errores.push(`${quien}: habla de días o fechas y le falta "dependeDeFecha": true`);
   });
   return errores;
 }
@@ -179,6 +181,15 @@ export const USD_POR_EUR = 1.05;
 /** Tope por pasada si no se pide otro con --tope. Una pasada completa cuesta ~3,45 $ (medido el 9 oct 2026). */
 export const TOPE_PASADA_USD = 5;
 
+/**
+ * Lo que cuesta una pasada completa de bot-evals por familia de modelo (por
+ * tokens, 9 oct 2026; Haiku, a ojo: un tercio de Sonnet), y el tope con el
+ * que la lanza scripts/modelos-evals.mjs: con el de por defecto (5 $), Opus
+ * se cortaba a medias.
+ */
+export const COSTE_PASADA_COMPLETA_USD = { haiku: 1.15, sonnet: 3.45, opus: 5.7 };
+export const TOPE_COMPLETO_POR_FAMILIA = { haiku: 2, sonnet: 5, opus: 7 };
+
 /** Lo que cuesta, a ojo, el primer intento de una pasada: escribe en caché las ~36k de instrucciones y herramientas (~0,22 $ con Sonnet). */
 export const ESTIMADO_PRIMER_INTENTO_USD = 0.25;
 /** Suelo de lo estimado para los siguientes (un caso medio, con caché, ~0,0255 $). */
@@ -241,8 +252,26 @@ export function canonico(v) {
   return JSON.stringify(v);
 }
 
-/** Lo que no cambia lo que se mide: la etiqueta y el nombre. Cambiarlos no invalida resultados. */
-export const CAMPOS_DE_ETIQUETA = ["id", "nombre", "tipo", "dominio", "origen", "nucleo"];
+/**
+ * Lo que no cambia lo que se mide: la etiqueta y el nombre. Cambiarlos no
+ * invalida resultados. `dependeDeFecha` tampoco: cambia la CLAVE de memoria
+ * (baseMemo le pone la fecha), no lo que se pregunta a Lola.
+ */
+export const CAMPOS_DE_ETIQUETA = ["id", "nombre", "tipo", "dominio", "origen", "nucleo", "dependeDeFecha"];
+
+// ── Casos que dependen de la fecha ─────────────────────────────────────────
+// La ficha lleva la fecha de hoy y el corrector acepta «hoy» por el día de la
+// semana (bot-evals.mjs, DIA_DE_HOY): un aprobado del jueves con «la cena del
+// jueves» no dice nada del viernes. Esos casos llevan `"dependeDeFecha": true`
+// y su resultado guardado solo vale el mismo día (en Madrid).
+
+/** Palabras que atan un caso al día en que corre (sobre el texto sin tildes ni mayúsculas). */
+export const MENCIONA_FECHA = /\b(hoy|manana|ayer|pasado|lunes|martes|miercoles|jueves|viernes|sabado|domingo|finde|fin de semana|semana|esta noche|esta tarde|fecha)\b/;
+/** Dónde se mira: lo que se dice y lo que se comprueba (no las respuestas de mentira, que son fijas). */
+export const CAMPOS_CON_FECHA = ["entrada", "historia", "args", "noLlamaCon", "texto", "sinTexto", "pendientes", "tareas", "pista"];
+
+const sinTildes = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+export const mencionaFecha = (caso) => MENCIONA_FECHA.test(sinTildes(JSON.stringify(CAMPOS_CON_FECHA.map((k) => caso[k] ?? ""))));
 
 export function casoHash(caso) {
   const medido = Object.fromEntries(Object.entries(caso).filter(([k]) => !CAMPOS_DE_ETIQUETA.includes(k)));
@@ -255,20 +284,76 @@ export const casosVersion = (casos) => hash(casos.map((c) => `${c.id}:${casoHash
 /** Lo que lee Lola: las instrucciones, las herramientas (nombre, descripción y esquema) y la ficha base. */
 export const promptHash = ({ sistema, herramientas, ficha }) => hash(canonico({ sistema, herramientas, ficha }));
 
-/** Hash de los ficheros de código que corren en la prueba (sin tests ni instantáneas). */
-export function codigoHash(raiz, rutas, { fuera = [] } = {}) {
-  const ficheros = [];
-  const recorrer = (ruta) => {
-    if (statSync(ruta).isDirectory()) {
-      for (const f of readdirSync(ruta).sort()) if (f !== "__snapshots__" && f !== "node_modules" && !fuera.includes(f)) recorrer(join(ruta, f));
-    } else if (/\.(m?js|md)$/.test(ruta) && !/\.test\.m?js$/.test(ruta)) ficheros.push(ruta);
-  };
-  for (const r of rutas) recorrer(join(raiz, r));
-  return hash(ficheros.map((f) => `${relative(raiz, f).replace(/\\/g, "/")}\n${readFileSync(f, "utf8").replace(/\r\n/g, "\n")}`).join("\n\0"));
+// Lo que puede importar un fichero, con el nombre escrito tal cual (relativo).
+const IMPORTS = [
+  /\b(?:import|export)\s[^;"'`]*?\bfrom\s*["']([^"']+)["']/g, // import x from "…" / export … from "…"
+  /\bimport\s*["']([^"']+)["']/g, // import "…"
+  /\bimport\(\s*["']([^"']+)["']\s*\)/g, // import("…")
+  /\bnew URL\(\s*["']([^"']+)["']\s*,\s*import\.meta\.url/g, // readFileSync(new URL("./x.md", import.meta.url))
+];
+
+function resolver(desde, nombre) {
+  const base = join(dirname(desde), nombre);
+  for (const r of [base, `${base}.js`, `${base}.mjs`, join(base, "index.js")]) {
+    if (existsSync(r) && statSync(r).isFile()) return r;
+  }
+  return null; // una carpeta (new URL("../migraciones/")) o un fichero que no existe: no es código que corra
 }
 
-/** La clave con la que un resultado guardado vale para otra pasada: mismo caso, mismo prompt, mismo código, mismo modelo. */
-export const claveMemo = (l) => [l.caso_hash, l.prompt_hash, l.codigo_hash, l.modelo, l.esfuerzo].join("|");
+/**
+ * Todos los ficheros a los que se llega desde `entradas` siguiendo los
+ * imports relativos (estáticos, dinámicos y `new URL(…, import.meta.url)`).
+ * Los paquetes de node_modules no se siguen. Rutas relativas a `raiz`, con /.
+ * `fuera`: ficheros que no se siguen ni cuentan (core.mjs, el motor empaquetado).
+ */
+export function grafoDeImports(raiz, entradas, { fuera = [] } = {}) {
+  const vistos = new Set();
+  const rel = (f) => relative(raiz, f).replace(/\\/g, "/");
+  const pendientes = entradas.map((e) => join(raiz, e));
+  while (pendientes.length) {
+    const f = pendientes.pop();
+    if (vistos.has(f) || fuera.includes(rel(f))) continue;
+    vistos.add(f);
+    if (!/\.m?js$/.test(f)) continue;
+    const fuente = readFileSync(f, "utf8");
+    for (const re of IMPORTS) {
+      for (const m of fuente.matchAll(re)) {
+        if (!m[1].startsWith(".")) continue;
+        const r = resolver(f, m[1]);
+        if (r && !vistos.has(r)) pendientes.push(r);
+      }
+    }
+  }
+  return [...vistos].map(rel).sort();
+}
+
+/**
+ * Lo que corre en bot-evals además del prompt: desde los módulos del bot que
+ * usa la prueba, todo lo que importan (también src/), y el script con su
+ * corrector y sus respuestas de mentira. Fuera, a propósito: core.mjs (el motor
+ * empaquetado; aquí las herramientas son falsas y sus descripciones ya van en
+ * prompt_hash) y este módulo (precios, niveles: retocarlos no cambia ningún
+ * resultado y no debe tirar la memoria).
+ */
+export const ENTRADAS_CODIGO = ["api/_bot/agente.js", "api/_bot/supervisor.js", "api/_bot/pista.js", "api/_bot/pendientes.js", "api/_bot/tareas.js"];
+export const ficherosDelCodigo = (raiz) => [...grafoDeImports(raiz, ENTRADAS_CODIGO, { fuera: ["api/_bot/core.mjs"] }), "scripts/bot-evals.mjs"];
+
+/** Hash del contenido de unos ficheros (rutas relativas a `raiz`), con su ruta. */
+export function codigoHash(raiz, ficheros) {
+  return hash([...ficheros].sort().map((f) => `${f}\n${readFileSync(join(raiz, f), "utf8").replace(/\r\n/g, "\n")}`).join("\n\0"));
+}
+
+/**
+ * Lo que identifica un resultado guardado de un caso: el caso, el prompt, el
+ * código, el modelo, el esfuerzo y, si el caso depende de la fecha, el día en
+ * Madrid. Va tal cual en cada fila del JSONL.
+ */
+export function baseMemo(caso, { prompt_hash, codigo_hash, modelo, esfuerzo, hoy }) {
+  return { caso_hash: casoHash(caso), prompt_hash, codigo_hash, modelo, esfuerzo, fecha_madrid: caso.dependeDeFecha ? hoy : null };
+}
+
+/** La clave con la que un resultado guardado vale para otra pasada (los campos de baseMemo). */
+export const claveMemo = (l) => [l.caso_hash, l.prompt_hash, l.codigo_hash, l.modelo, l.esfuerzo, l.fecha_madrid ?? ""].join("|");
 
 /** Las líneas de un JSONL. Una línea rota se avisa y se salta (no se da por buena). */
 export function leerJsonl(ruta) {
@@ -302,10 +387,44 @@ export function memoria(lineas) {
  * evaluador, con lo que ya se puede rellenar. Sin datos de familias (los
  * casos son de una casa inventada).
  */
-export const VERSION_ESQUEMA = 1;
+export const VERSION_ESQUEMA = 2;
 export const CAMPOS_FILA = [
-  "v", "pasada_id", "fecha", "script", "nivel", "caso_id", "tipo", "dominio", "origen",
-  "caso_hash", "casos_version", "prompt_hash", "codigo_hash", "modelo", "esfuerzo",
+  "v", "pasada_id", "fecha", "fecha_madrid", "script", "nivel", "caso_id", "tipo", "dominio", "origen",
+  "caso_hash", "casos_version", "prompt_hash", "codigo_hash", "git_sha", "modelo", "esfuerzo",
   "intento", "k", "corrector", "aprobado", "puntuacion", "motivos", "fallos",
   "esperado", "obtenido", "tokens", "vueltas", "llamadas_herramienta", "coste_usd", "latencia_ms",
 ];
+
+// ── Comparar con una referencia ────────────────────────────────────────────
+// Cada pasada deja su resumen (el estado de cada caso, también los de memoria)
+// en una línea de .evals-out/pasadas.jsonl. Contra una pasada de referencia,
+// un caso que estaba aprobado y ahora es inestable o fallido es una REGRESIÓN
+// y bloquea, aunque fuera de seguridad un inestable suelto no bloquee.
+
+/**
+ * La pasada con la que comparar: la pedida (--referencia=ID), o si no la
+ * última del mismo modelo con OTRA versión (prompt_hash o codigo_hash
+ * distintos: el «antes» del cambio). null si no hay.
+ */
+export function elegirReferencia(pasadas, { pedida = null, actual }) {
+  if (pedida) {
+    const p = pasadas.find((x) => x.pasada_id === pedida);
+    if (!p) throw new Error(`--referencia: no hay ninguna pasada ${pedida} guardada`);
+    return p;
+  }
+  const otras = pasadas.filter((x) => x.modelo === actual.modelo && x.esfuerzo === actual.esfuerzo
+    && (x.prompt_hash !== actual.prompt_hash || x.codigo_hash !== actual.codigo_hash));
+  return otras.at(-1) ?? null;
+}
+
+/** { regresiones, mejoras } por caso_id entre dos mapas { caso_id: estado }. Solo los casos que están en los dos. */
+export function compararEstados(referencia, actual) {
+  const regresiones = [];
+  const mejoras = [];
+  for (const [id, ahora] of Object.entries(actual)) {
+    const antes = referencia[id];
+    if (antes === "aprobado" && (ahora === "inestable" || ahora === "fallido")) regresiones.push({ caso_id: id, antes, ahora });
+    if ((antes === "inestable" || antes === "fallido") && ahora === "aprobado") mejoras.push({ caso_id: id, antes, ahora });
+  }
+  return { regresiones, mejoras };
+}

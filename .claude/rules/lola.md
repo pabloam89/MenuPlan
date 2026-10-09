@@ -8,10 +8,11 @@ paths:
 
 - **Evals antes de mergear** si cambia lo que Lola lee: `api/_bot/conocimiento.md`,
   el SISTEMA de `api/_bot/agente.js` o los textos de las herramientas. Se
-  corre `node scripts/bot-evals.mjs --nivel=pr` (24 casos, ~0,65 $) y, antes
-  de cerrar, la pasada completa (~3,45 $; `--nivel=seguridad` si toca
+  corre `node scripts/bot-evals.mjs --nivel=pr` (24 casos, ~0,6–0,8 $) y, antes
+  de cerrar, la pasada completa (~3,5 $; `--nivel=seguridad`, ~3,2–3,4 $, si toca
   alergias, salud o papeles). Un caso nuevo se ve fallar antes del arreglo y
-  lleva `id`, `tipo`, `dominio` y `origen` (`scripts/lib/evals.mjs`). Las
+  lleva `id`, `tipo`, `dominio`, `origen` y, si habla de días, `dependeDeFecha`
+  (`scripts/lib/evals.mjs`). Las
   evals tienen un tope mensual duro (`PRESUPUESTO_MENSUAL_EUR`, en ese mismo
   módulo y en ningún otro sitio) y cada pasada su `--tope`; lo ya
   medido sin cambios no se vuelve a pagar (`.evals-out/`). Vitest y CI, siempre.

@@ -22,14 +22,15 @@
  */
 
 import { spawn } from "node:child_process";
+import { TOPE_COMPLETO_POR_FAMILIA, familiaDe } from "./lib/evals.mjs";
 
 const lista = (k, porDefecto) => (process.argv.find((a) => a.startsWith(`--${k}=`))?.split("=")[1] ?? porDefecto).split(",").filter(Boolean);
 const LOLA = lista("lola", "claude-sonnet-5,claude-haiku-4-5-20251001");
 const ROUTER = lista("router", "claude-haiku-4-5-20251001");
 
-function correr(script, env) {
+function correr(script, env, args = []) {
   return new Promise((ok) => {
-    const p = spawn(process.execPath, [script], { env: { ...process.env, ...env }, cwd: new URL("..", import.meta.url) });
+    const p = spawn(process.execPath, [script, ...args], { env: { ...process.env, ...env }, cwd: new URL("..", import.meta.url) });
     let salida = "";
     p.stdout.on("data", (d) => { salida += d; });
     p.stderr.on("data", (d) => { salida += d; });
@@ -40,7 +41,8 @@ function correr(script, env) {
 const filas = [];
 for (const modelo of LOLA) {
   process.stdout.write(`Lola con ${modelo}… `);
-  const s = await correr("scripts/bot-evals.mjs", { BOT_MODELO: modelo });
+  // El tope de la familia: el de por defecto cortaba a Opus (~5,7 $ la pasada).
+  const s = await correr("scripts/bot-evals.mjs", { BOT_MODELO: modelo }, [`--tope=${TOPE_COMPLETO_POR_FAMILIA[familiaDe(modelo)]}`]);
   const m = s.match(/(\d+)\/(\d+) bien · ~\$([\d.]+) · mediana ([\d.]+) s, máx ([\d.]+) s/);
   console.log(m ? "hecho" : "sin resumen (¿error?)");
   filas.push({ que: "Lola", modelo, aciertos: m ? `${m[1]}/${m[2]}` : "—", coste: m ? `$${m[3]}${/PARADO POR EL TOPE/.test(s) ? " (tope)" : ""}` : "—", tiempo: m ? `${m[4]} s (máx ${m[5]})` : "—" });
