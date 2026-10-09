@@ -37,6 +37,42 @@ body:
       description: "Qué test o comprobación demuestra que la clase está cubierta, no solo los casos conocidos. Sin esto no se cierra."
     validations:
       required: true
+  - type: textarea
+    id: ficha
+    attributes:
+      label: "Ficha del fondo"
+      description: |
+        Bloque de líneas `clave: valor` (listas separadas por coma, issues como `#n`; deja vacío lo que aún no sepas). Un workflow lo valida y comenta aquí. Valores permitidos:
+        tipo_causa: vigilante-falso, vigilante-hueco, entorno, dos-fuentes, error-silencioso, coordinacion, modelo-datos, codigo, sin-comprobar
+        alcance: local, modulo, transversal
+        severidad: alto, medio, bajo
+        estado: abierto, diagnosticado, plan, en-curso, en-observacion, cerrado-eficaz, reabierto
+        capa_agente: auditor-datos, datos, diseno, evaluador, gobierno, lola, qa, revisor, seguridad, sesión
+        barrera: bloqueo, test_ci, script, skill, texto
+        Texto libre (hasta 400 caracteres): mecanismo, causa_escape, clase, barrido, solucion_temporal, matiz, aprendizaje.
+        Sin diagnóstico (mecanismo y causa_escape) no hay encargos; en-observacion pide verificacion (un fichero que ya esté en staging) y ventana_hasta (AAAA-MM-DD); sin aprendizaje no se cierra.
+      value: |
+        ```fondo
+        estado: abierto
+        tipo_causa:
+        alcance:
+        severidad:
+        capa_agente:
+        mecanismo:
+        causa_escape:
+        clase:
+        barrido:
+        solucion_temporal:
+        barrera:
+        verificacion:
+        ventana_hasta:
+        casos:
+        encargos:
+        matiz:
+        aprendizaje:
+        ```
+    validations:
+      required: true
   - type: dropdown
     id: causa
     attributes:

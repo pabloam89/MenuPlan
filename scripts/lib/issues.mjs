@@ -99,6 +99,15 @@ export const GRUPOS = {
       ninguno: "No hace falta, y el issue dice por qué",
     },
   },
+  control: {
+    color: "c5def5",
+    // Lo pone el workflow `fondos` (#337), no una persona: por eso no tiene
+    // `titulo` (no sale de un desplegable) ni es obligatoria.
+    valores: {
+      ok: "La ficha del fondo pasa los controles del workflow fondos",
+      falla: "La ficha del fondo tiene errores: el comentario del workflow fondos dice cuáles",
+    },
+  },
 };
 
 const PREFIJOS = Object.keys(GRUPOS);
