@@ -12,15 +12,17 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 - **Protección de ramas** (desde el 7 oct, también para administradores):
   - `main`: solo por PR con el check `tests` en verde; sin force push ni
     borrado.
-  - `staging`: sin force push ni borrado, pero **admite push directo**, porque
-    el cron de Mercadona empuja ahí. El «solo por PR» lo pone la guardia de
-    Claude, no GitHub.
+  - `staging`: sin force push ni borrado (protección clásica) y el **ruleset
+    «staging: tests obligatorios»**: nada entra sin `tests` en verde, ni por PR
+    ni por push, tampoco Pablo. Solo se lo saltan las deploy keys, y la única
+    es la del cron de Mercadona. Decidido el 9 oct 2026; **hasta crear el
+    ruleset**, staging admite push directo y el «solo por PR» es de la guardia.
 - **Workflows** (`.github/workflows/`):
 
 | Workflow | Cuándo | Qué hace |
 |---|---|---|
 | `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | la línea «Runbook:» del PR, lint con línea base, tests y build. Es el check `tests` |
-| `mercadona-sync.yml` | lunes 06:15 UTC, a mano | precios de Mercadona; commitea y **empuja a `staging`** |
+| `mercadona-sync.yml` | lunes 06:15 UTC, a mano (con `probar_push`, un commit vacío si no hay precios nuevos) | precios de Mercadona; commitea y **empuja a `staging` con la deploy key** (sin el secreto, con el token). Ese push sí lanza `tests` |
 | `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |
 | `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola |
 | `ios-testflight.yml` | solo a mano | build de iOS a TestFlight |
@@ -53,7 +55,7 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 ## Claves y accesos
 
 Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`,
-`CALLMEBOT_DESTINOS`, y los de iOS) y qué workflow usa cada uno están en
+`CALLMEBOT_DESTINOS`, `MERCADONA_DEPLOY_KEY` y los de iOS) y qué workflow usa cada uno están en
 `ops/INVENTARIO.md`, que es la tabla que manda. `tests.yml` no usa ninguno. La
 CLI `gh` va con la sesión de Pablo (`gh auth status`).
 
@@ -70,6 +72,9 @@ CLI `gh` va con la sesión de Pablo (`gh auth status`).
 | Relanzar lo que falló | `gh run rerun <run-id> --failed` | el run vuelve a `in_progress` |
 | Lanzar a mano un workflow | `gh workflow run tests.yml --ref <rama>` | `Created workflow_dispatch event` |
 | Fusionar un PR a `staging` | `gh pr merge <n> --merge` | `Merged`; la guardia vigila que no sea a `main` |
+| Reglas que aplican a `staging` | `gh api repos/pabloam89/MenuPlan/rules/branches/staging` | un `required_status_checks` con `tests` (más los de la protección clásica) |
+| Deploy keys del repo | `gh repo deploy-key list` | una, «mercadona-sync: cron, push a staging», `read-write` |
+| Probar el push del cron sin esperar al lunes | `gh workflow run mercadona-sync.yml --ref staging -f probar_push=true` y `gh run watch` | el paso «Commitear» dice `Empujo con la deploy key a staging`, aparece un commit «prueba de push» en `origin/staging` y un run de `tests` con evento `push` sobre él |
 | Ver la seguridad del repo | `gh api repos/pabloam89/MenuPlan -q .security_and_analysis` | secret scanning y push protection en `enabled` |
 | Ramas fusionadas que se borrarían (ensayo) | `npm run podar` | la lista, sin borrar nada |
 | Borrarlas (OK) | `npm run podar -- --si` | GitHub y locales con `-d`; lo no fusionado sale como «decide Pablo» |
@@ -172,6 +177,24 @@ npm run issues -- --etiquetas               # crear o retirar etiquetas en GitHu
 
 ## Lo que falló y por qué
 
+- **2026-10-09 · exigir `tests` en `staging` con la protección clásica: 404
+  «Required status checks not enabled».** Causa: el PATCH a
+  `branches/staging/protection/required_status_checks` solo edita checks que ya
+  existen; para activarlos hay que reescribir la protección entera con PUT. Y
+  aunque se hiciera, la protección clásica no tiene excepciones por actor: con
+  `enforce_admins` bloquearía el `git push` del cron de Mercadona. Arreglo: no
+  tocar la clásica y poner los checks en un ruleset, que sí admite excepciones.
+- **2026-10-09 · ruleset con la app de GitHub Actions como excepción: 422
+  «Actor GitHub Actions integration must be part of the ruleset source or owner
+  organization».** Causa: el repo es personal (`pabloam89`), no de una
+  organización, y en un repo personal no se puede eximir a la integración de
+  Actions (ni a `OrganizationAdmin`); eximir al rol de administrador tampoco
+  sirve, porque las sesiones usan el token de Pablo y se saltarían la regla.
+  Arreglo: el cron empuja con una **deploy key** de escritura y el ruleset
+  exime a `DeployKey` (`actor_id: null`, `bypass_mode: always`; `pull_request`
+  no vale para deploy keys). Fuente: «Create a repository ruleset» en la REST
+  de GitHub. De paso, el push con la deploy key sí lanza `tests` (el del
+  `GITHUB_TOKEN` no).
 - **2026-10-08 · la carpeta de trabajo recién creada desaparece sola y queda un
   directorio huérfano sin `.git`, con `node_modules` a medio borrar.** Pasó dos
   veces; la segunda, con `npm ci` todavía instalando. Causa:
@@ -191,9 +214,11 @@ npm run issues -- --etiquetas               # crear o retirar etiquetas en GitHu
   parar el `npm ci` que siga vivo (`taskkill /T` sobre su `tarea.mjs`).
 - **2026-10 · el PR que abre el token de Actions no lanza `tests.yml`.** Causa:
   un PR abierto con `GITHUB_TOKEN` no dispara otros workflows. Arreglo: lanzarlo
-  a mano con `gh workflow run tests.yml --ref <rama>`. Es lo que frena la
-  pendiente 11 de `ops/INVENTARIO.md` (que el cron de Mercadona abra PR en vez
-  de empujar).
+  a mano con `gh workflow run tests.yml --ref <rama>`. La documentación de
+  GitHub dice ahora (leída el 2026-10-09) que esos PR sí crean runs, pero
+  esperando a que alguien con escritura pulse «Approve workflows to run»; sin
+  probar aquí. La pendiente 11 de `ops/INVENTARIO.md` (que el cron abra PR) la
+  sustituyó la deploy key.
 - **2026-10-08 · `gh` colgado con «TLS handshake timeout»** al activar
   Dependabot. Causa: la red, no el comando. Arreglo: reintentar; si un `gh` pasa
   de 60 s sin responder, se corta con `timeout 60 gh …` y se repite.
@@ -204,8 +229,10 @@ npm run issues -- --etiquetas               # crear o retirar etiquetas en GitHu
 
 ## Qué requiere el OK de Pablo
 
-- Cualquier ajuste del repo: protección de ramas, visibilidad, rama por
-  defecto, Dependabot o secret scanning, y los secretos de Actions.
+- Cualquier ajuste del repo: protección de ramas y rulesets, visibilidad, rama
+  por defecto, Dependabot o secret scanning, deploy keys y los secretos de
+  Actions. Una deploy key de escritura se salta el ruleset de `staging`: no se
+  crea otra sin decidirlo.
 - Subir o fusionar a `main`.
 - Borrar ramas, y borrar un directorio huérfano de una carpeta de trabajo.
 - Cambiar un workflow que escribe en el repo o usa secretos.
@@ -224,5 +251,8 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://docs.github.com/actions
 - https://cli.github.com/manual/
 - https://docs.github.com/code-security/dependabot
+- https://docs.github.com/rest/repos/rules (bypass_actors y `DeployKey`)
+- https://docs.github.com/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow
+- https://github.com/actions/checkout (`ssh-key`)
 
-Comprobado el 2026-10-08: la comprobación del runbook y la puerta de lectura, con sus tests y a mano en local (sin probarlas aún en un PR real de GitHub ni con el campo `agent_type` de un subagente de verdad); la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.
+Comprobado el 2026-10-09: el formato del bypass por deploy key (`actor_id` null) en la REST de rulesets; que `actions/checkout` v7 con `ssh-key` vacío usa HTTPS y el token (`src/url-helper.ts`), aunque el cron ya no lo usa así; que hoy hay 0 rulesets y 0 deploy keys, y que el check de `main` es `tests` de la app 15368. Sin comprobar: el ruleset y la deploy key creados de verdad, y que el push de la key lance `tests` (lo dirá la prueba con `probar_push`). Comprobado el 2026-10-08: la comprobación del runbook y la puerta de lectura, con sus tests y a mano en local (sin probarlas aún en un PR real de GitHub ni con el campo `agent_type` de un subagente de verdad); la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.

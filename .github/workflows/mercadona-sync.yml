@@ -19,6 +19,16 @@
 #
 # Y no lleva credenciales de Supabase a propósito: el repo es PÚBLICO, y el
 # script se salta ese paso solo cuando no están (mercadona-sync.mjs#42).
+#
+# ── Cómo empuja a staging ─────────────────────────────────────────────────
+# Desde el 9 oct 2026 staging exige el check `tests` (un ruleset de GitHub), y
+# el único que se lo salta es una deploy key: el token de Actions no puede ser
+# excepción en un repo personal (422 al intentarlo). Así que el push va con la
+# deploy key del secreto MERCADONA_DEPLOY_KEY. La key se escribe en disco solo
+# en el último paso, después de `npm ci` y de los scripts, para que nada de lo
+# instalado llegue a leerla. Si el secreto no existe, empuja con el token como
+# antes (plan B mientras no se cree la key; con el ruleset puesto, fallaría).
+# Un push con deploy key sí lanza `tests.yml` (el de GITHUB_TOKEN no).
 
 name: Sync catálogo Mercadona
 
@@ -28,8 +38,14 @@ on:
     # horas redondas, cuando arranca medio mundo a la vez.
     - cron: "15 6 * * 1"
   workflow_dispatch: # para poder lanzarlo a mano desde la pestaña Actions
+    inputs:
+      probar_push:
+        description: "Si no hay precios nuevos, empuja un commit vacío para comprobar que el push a staging pasa"
+        type: boolean
+        default: false
 
 # Solo lo justo para commitear el JSON. Sin esto, el token es de solo lectura.
+# (Con la deploy key, el token ya no escribe; se queda en write por el plan B.)
 permissions:
   contents: write
 
@@ -89,14 +105,38 @@ jobs:
         run: node scripts/build-coste.mjs
 
       - name: Commitear si ha cambiado algo
+        env:
+          DEPLOY_KEY: ${{ secrets.MERCADONA_DEPLOY_KEY }}
+          # En el cron no hay inputs: queda vacío y no prueba nada.
+          PROBAR_PUSH: ${{ inputs.probar_push }}
         run: |
-          if git diff --quiet -- public/store/mercadona.json; then
-            echo "Sin cambios: los precios son los mismos que la semana pasada."
-            exit 0
-          fi
-          N=$(node -p "require('./public/store/mercadona.json').productCount")
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/store/mercadona.json src/data/derived/recipeCoste.json
-          git commit -m "chore(mercadona): catálogo semanal — ${N} productos"
-          git push
+          if git diff --quiet -- public/store/mercadona.json; then
+            if [ "$PROBAR_PUSH" != "true" ]; then
+              echo "Sin cambios: los precios son los mismos que la semana pasada."
+              exit 0
+            fi
+            git commit --allow-empty -m "chore(mercadona): prueba de push a staging (sin precios nuevos)"
+          else
+            N=$(node -p "require('./public/store/mercadona.json').productCount")
+            git add public/store/mercadona.json src/data/derived/recipeCoste.json
+            git commit -m "chore(mercadona): catálogo semanal — ${N} productos"
+          fi
+
+          if [ -z "$DEPLOY_KEY" ]; then
+            echo "::warning::Sin el secreto MERCADONA_DEPLOY_KEY: empujo con el token de Actions. Si staging ya exige tests, GitHub lo rechazará."
+            git push
+            exit 0
+          fi
+
+          # La key solo vive en disco lo que dura el push. Las claves de host de
+          # GitHub salen de su API por HTTPS, no de un ssh-keyscan a ciegas.
+          KEY="$RUNNER_TEMP/mercadona_deploy_key"
+          HOSTS="$RUNNER_TEMP/github_known_hosts"
+          trap 'rm -f "$KEY"' EXIT
+          ( umask 077; printf '%s\n' "$DEPLOY_KEY" > "$KEY" )
+          curl -fsS https://api.github.com/meta | jq -r '.ssh_keys[] | "github.com " + .' > "$HOSTS"
+          echo "Empujo con la deploy key a $GITHUB_REF_NAME"
+          GIT_SSH_COMMAND="ssh -i $KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOSTS" \
+            git push "git@github.com:${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${GITHUB_REF_NAME}"
