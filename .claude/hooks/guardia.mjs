@@ -445,8 +445,39 @@ export function decidir(entrada, ctx) {
         continue;
       }
 
-      // gh pr merge: solo a staging (lo permite settings.local.json de Pablo).
-      const merge = o.match(/^gh\s+pr\s+merge\b\s*(\d+)?/);
+      // gh -R/--repo … pr merge: la base no se puede leer de la rama actual.
+      if (/^gh\s+(?:-R|--repo)\b[\s\S]*\bpr\s+merge\b/.test(o)) {
+        return deny("`gh -R … pr merge` no deja comprobar la base del PR. Fusiona desde la carpeta del repo, con el número del PR.");
+      }
+      // gh pr edit --base: cambiar la base de un PR a algo que no es staging lo
+      // lleva a producción al fusionarlo (juez de seguridad del PR #223).
+      const nuevaBase = /^gh\s+pr\s+edit\b/.test(o) ? o.match(/(?:^|\s)(?:--base|-B)(?:\s+|=)?["']?([^\s"']+)/) : null;
+      if (nuevaBase && nuevaBase[1] !== "staging") {
+        return deny(`Cambiar la base de un PR a ${nuevaBase[1]} lo llevaría fuera de staging. Eso solo lo hace Pablo.`);
+      }
+      // gh api: fusionar, cambiar la base o borrar por la API se salta todo lo
+      // de aquí, también con la skill abierta (re-juicio del PR #223).
+      if (/^gh\s+api\b/.test(o) && /\/pulls\/\d+\/merge\b|mergePullRequest|baseRefName|\bbase=|(?:-X|--method)[\s=]*DELETE\b/i.test(o)) {
+        return deny("Fusionar, cambiar la base de un PR o borrar por `gh api` se salta la guardia. Usa `gh pr merge <n>` (a staging) o pídeselo a Pablo.");
+      }
+      // Borrar issues o etiquetas no tiene vuelta atrás.
+      if (/^gh\s+(?:issue\s+(?:delete|transfer)|label\s+delete)\b/.test(o)) {
+        return deny("Borrar o trasladar un issue, o borrar una etiqueta, no tiene vuelta atrás. Ciérralo o retírala con `npm run issues -- --etiquetas`.");
+      }
+      // gh pr merge: solo a staging, y con el PR justo detrás de `merge`
+      // (número, #número o la URL de este repo). Buscarlo en otro sitio se
+      // engañaba con un número en --subject, con '#231' o con el nombre de una
+      // rama (re-juicio del PR #223); gh no admite un segundo PR.
+      let merge = null;
+      if (/^gh\s+pr\s+merge\b/.test(o)) {
+        const tras = [...o.replace(/^gh\s+pr\s+merge\b/, "").matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3]);
+        const pr = tras[0]?.match(/^(?:#?(\d+)|https:\/\/github\.com\/pabloam89\/MenuPlan\/pull\/(\d+)\/?)$/i);
+        if (!pr) return deny("Pon el número del PR justo detrás de `merge` (`gh pr merge 230 --squash`): así la guardia mira el mismo PR que fusiona gh.");
+        merge = [o, pr[1] ?? pr[2]];
+      }
+      if (merge && /(?:^|\s)--auto\b/.test(o)) {
+        return deny("`gh pr merge --auto` fusiona más tarde, cuando nadie mira la base. Fusiona a mano con el CI en verde.");
+      }
       if (merge) {
         const base = ctx.baseDelPr(merge[1]);
         if (base === null) return ask("No he podido leer la rama base de este PR. Si no es staging, solo Pablo lo fusiona.");
@@ -489,8 +520,12 @@ export function decidir(entrada, ctx) {
       if (motivo) return deny(motivo);
     }
     if (ctx.rutaEnPrincipal(ruta)) return deny(EN_LA_PRINCIPAL);
-    if (/[\\/]\.claude[\\/](settings\.json|hooks[\\/])/.test(ruta)) {
-      return ask("Esto cambia los permisos o los hooks compartidos de todas las sesiones. Pide el OK de Pablo.");
+    // Los permisos y el código que vigila cada orden (la guardia y lo que
+    // importa, y skill-abierta) preguntan: en una carpeta de trabajo hacen
+    // efecto en la orden siguiente, sin PR ni juez (juez de seguridad del PR
+    // #223). El resto de hooks y sus tests van por PR sin preguntar.
+    if (/[\\/]\.claude[\\/](?:settings\.json|hooks[\\/](?:guardia|dominios|migraciones|sesiones|skill-abierta)\.mjs)$/.test(ruta)) {
+      return ask("Esto cambia los permisos o el código que vigila cada orden, y en tu carpeta hace efecto ya. Pídele el OK a Pablo.");
     }
     return null;
   }
