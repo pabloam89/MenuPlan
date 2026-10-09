@@ -78,7 +78,11 @@ metadata:
   los 90 días** (`PLAZO_COMPROBADO_DIAS`): un trimestre, lo mismo que la ventana
   máxima de observación de un fondo y que la vida de los tokens que antes
   caducan; los proveedores cambian antes que eso. Al caducar se vuelve a
-  comprobar, no se cambia la fecha sin más.
+  comprobar, no se cambia la fecha sin más. La caducidad no está en
+  `npm test` (el reloj pondría en rojo todos los PR): el paso «Skills del PR»
+  del CI (`scripts/skills-pr.mjs`) falla solo si el PR toca una skill
+  caducada; en local, `node scripts/skills-pr.mjs` avisa; y la medición semanal
+  (`npm run planos`) cuenta las caducadas y las que caducan en 14 días.
 
 ### Casos de prueba (`casos.json`)
 

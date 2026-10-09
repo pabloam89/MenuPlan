@@ -2,7 +2,7 @@
  * Las skills de `.claude/skills/` y sus dos niveles de prueba (#336).
  *
  * Nivel 1 (gratis, en el CI: `.claude/skills.test.js`): la forma. Tipo de un
- * vocabulario cerrado, dueño, fecha de «comprobado» sin caducar, secciones de
+ * vocabulario cerrado, dueño, fecha de «comprobado» bien puesta, secciones de
  * su tipo, tamaño, rutas citadas que existen, nada copiado entre skills y sus
  * casos de prueba. Cada regla es una función pura que devuelve faltas con un
  * nombre de `REGLAS`: el test las ve fallar una a una con skills de mentira.
@@ -64,7 +64,8 @@ export const REGLAS = {
   frontmatter: "name igual a la carpeta, description que enruta («Úsala …», «No para:»), y solo name, description y metadata",
   tipo: "metadata.tipo es uno de los ocho de ops/flujo.json",
   dueno: "metadata.dueno es un agente de .claude/agents/ que la carga en su `skills:`",
-  comprobado: "metadata.comprobado es una fecha AAAA-MM-DD, no futura, de hace como mucho PLAZO_COMPROBADO_DIAS, y el texto dice qué se comprobó ese día",
+  comprobado: "metadata.comprobado es una fecha AAAA-MM-DD, no futura, y el texto dice qué se comprobó ese día",
+  caducada: "una skill que toca el PR no tiene su comprobado de hace más de PLAZO_COMPROBADO_DIAS (lo mira scripts/skills-pr.mjs, no npm test)",
   secciones: "las secciones de su tipo, en orden y ninguna vacía",
   formato: "tabla de operaciones, fallos con fecha, causa y arreglo, registro de cambios fechado y última línea de comprobación",
   tamano: "SKILL.md de MAX_LINEAS líneas como mucho; el detalle va a ficheros aparte",
@@ -96,8 +97,20 @@ export const MAX_LINEAS = 220;
  *   haberse perdido dos cambios sin que nada avisara.
  * Volver a comprobar no exige reescribir: se repasa, se prueba lo que se pueda
  * y se pone la fecha con su línea «Comprobado el …».
+ *
+ * La caducidad NO va en `npm test`: una regla de reloj pondría en rojo todos los
+ * PR a la vez, también los que no tocan ninguna skill, y una regla que bloquea
+ * lo que no tiene que ver acaba saltándose. Va en tres sitios:
+ * - `scripts/skills-pr.mjs`, paso «Skills del PR» del CI: falla solo si el PR
+ *   toca una skill caducada (quien la toca la vuelve a comprobar);
+ * - el test del nivel 1 y `node scripts/skills-pr.mjs` sin lista: avisan, no fallan;
+ * - la medición semanal (`npm run planos`, medidor `skills_caducadas_o_proximas`):
+ *   las caducadas y las que caducan en AVISO_ANTES_DIAS, para verlas venir.
  */
 export const PLAZO_COMPROBADO_DIAS = 90;
+export const AVISO_ANTES_DIAS = 14;
+/** Estados de caducidad (vocabulario cerrado). */
+export const ESTADOS_CADUCIDAD = ["vigente", "proxima", "caducada", "sin_fecha"];
 
 export const MIN_CASOS = 4;
 export const MIN_PROPIOS = 3;
@@ -259,7 +272,6 @@ function reglaComprobado(m, texto, ctx) {
   const dias = Math.floor((ctx.hoy.getTime() - Date.parse(`${c}T00:00:00Z`)) / DIA_MS);
   const f = [];
   if (dias < -1) f.push(falta("comprobado", `${c} es futura`));
-  if (dias > PLAZO_COMPROBADO_DIAS) f.push(falta("comprobado", `${c} caducó: hace ${dias} días (plazo ${PLAZO_COMPROBADO_DIAS}); vuelve a comprobarla y pon la fecha con su línea «Comprobado el …»`));
   if (!texto.includes(`Comprobado el ${c}`)) f.push(falta("comprobado", `el texto no dice «Comprobado el ${c}: …» (qué se comprobó ese día)`));
   return f;
 }
@@ -406,6 +418,51 @@ export function nivel1(raiz = RAIZ, hoy = new Date()) {
   const fuera = Object.fromEntries(skills.map((s) => [s.nombre, faltasDeSkill(s, ctx)]));
   for (const c of faltasDeCopiado(skills)) for (const n of c.skills) fuera[n].push(c);
   return fuera;
+}
+
+// ── Caducidad: en el PR que toca la skill y en la medición semanal ───────
+
+/** { comprobado, dias, estado } de un texto de SKILL.md a una fecha. */
+export function caducidad(textoSkill, hoy = new Date()) {
+  const c = parsearSkill(textoSkill).meta?.metadata?.comprobado;
+  const ms = /^\d{4}-\d{2}-\d{2}$/.test(c ?? "") ? Date.parse(`${c}T00:00:00Z`) : NaN;
+  if (Number.isNaN(ms)) return { comprobado: c ?? null, dias: null, estado: "sin_fecha" };
+  const dias = Math.floor((hoy.getTime() - ms) / DIA_MS);
+  const estado = dias > PLAZO_COMPROBADO_DIAS ? "caducada" : dias > PLAZO_COMPROBADO_DIAS - AVISO_ANTES_DIAS ? "proxima" : "vigente";
+  return { comprobado: c, dias, estado };
+}
+
+/** La caducidad de todas las skills del repo: [{ nombre, comprobado, dias, estado }]. */
+export function caducidades(raiz = RAIZ, hoy = new Date()) {
+  return nombresDeSkills(raiz).map((nombre) => ({ nombre, ...caducidad(readFileSync(join(raiz, DIR_SKILLS, nombre, "SKILL.md"), "utf8"), hoy) }));
+}
+
+/** Las skills cuya carpeta toca una lista de ficheros cambiados. */
+export function skillsTocadas(ficheros) {
+  const fuera = new Set();
+  for (const f of ficheros) {
+    const m = String(f).trim().replace(/\\/g, "/").match(/^\.claude\/skills\/([^/]+)\//);
+    if (m) fuera.add(m[1]);
+  }
+  return [...fuera].sort();
+}
+
+/**
+ * El paso «Skills del PR»: falla (regla `caducada`) solo si el PR toca una
+ * skill caducada o sin fecha. Las que no toca no cuentan: no son suyas.
+ * { ok, tocadas, faltas: [{ regla, detalle }] }
+ */
+export function comprobarSkillsPr(ficheros, estados) {
+  const tocadas = skillsTocadas(ficheros);
+  const porNombre = new Map(estados.map((e) => [e.nombre, e]));
+  const faltas = [];
+  for (const n of tocadas) {
+    const e = porNombre.get(n);
+    if (!e) continue; // la carpeta se borra en el PR: no hay nada que comprobar
+    if (e.estado === "caducada") faltas.push(falta("caducada", `${n}: comprobada el ${e.comprobado}, hace ${e.dias} días (plazo ${PLAZO_COMPROBADO_DIAS}). Vuelve a comprobarla y pon la fecha nueva en metadata.comprobado con su línea «Comprobado el …»`));
+    if (e.estado === "sin_fecha") faltas.push(falta("caducada", `${n}: sin metadata.comprobado válida`));
+  }
+  return { ok: faltas.length === 0, tocadas, faltas };
 }
 
 // ── Nivel 2: lo que no necesita la API ───────────────────────────────────

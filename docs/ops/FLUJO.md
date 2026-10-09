@@ -136,7 +136,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P10.2 | Sin aprendizaje registrado, un fondo no se cierra | script_propio · `scripts/lib/fondos.mjs` | semidura | `fondo-con-ficha-y-controles` | #341 |
 | **Aprender** · blanda | | | | | |
 | P11.1 | Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria | nada · `CLAUDE.md` | blanda | `lecciones-a-un-test` | #337, #338 |
-| P11.2 | Toda skill sigue la plantilla de su tipo: tipo, dueño, comprobación sin caducar, secciones, tamaño, rutas y nada copiado | ci · `.claude/PLANTILLA-SKILL.md` | dura | — | — |
+| P11.2 | Toda skill sigue la plantilla de su tipo: tipo, dueño, fecha de comprobación (caducada solo falla en el PR que la toca), secciones, tamaño, rutas y nada copiado | ci · `.claude/PLANTILLA-SKILL.md` | dura | — | — |
 | P11.3 | Una skill se prueba con casos y sigue funcionando tras cambiarla | ci · `.claude/PLANTILLA-SKILL.md` | semidura | — | #341 |
 | P11.4 | Una pieza nueva (skill, catálogo o agente) solo se crea si cumple la regla de parada | nada · `docs/ops/FLUJO.md` | blanda | — | #341 |
 | **Medir** · blanda | | | | | |

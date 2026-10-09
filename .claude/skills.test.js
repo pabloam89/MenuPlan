@@ -4,13 +4,14 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   CAPAS, MAX_LINEAS, MIN_CASOS, PLAZO_COMPROBADO_DIAS, REGLAS, SECCIONES_POR_TIPO,
-  cargarContexto, cargarSkill, faltasDeCopiado, faltasDeSkill, nombresDeSkills, tiposDeFlujo,
+  caducidad, caducidades, cargarContexto, cargarSkill, comprobarSkillsPr, faltasDeCopiado, faltasDeSkill,
+  nombresDeSkills, tiposDeFlujo,
 } from "../scripts/lib/skills.mjs";
 
 /**
  * Nivel 1 de las skills (#336), gratis y en el CI. Todas siguen
  * `.claude/PLANTILLA-SKILL.md`: tipo de los ocho de `ops/flujo.json`, dueño que
- * la carga, fecha de comprobación sin caducar, las secciones de su tipo, un
+ * la carga, fecha de comprobación bien puesta, las secciones de su tipo, un
  * SKILL.md corto con el detalle en capas, rutas que existen, nada copiado entre
  * skills y sus casos de prueba en `casos.json`. Las reglas viven en
  * `scripts/lib/skills.mjs`; aquí se aplican a las de verdad y se ven fallar una
@@ -95,7 +96,7 @@ const MUTACIONES = [
   ["dueno", "un dueño que no es agente", { texto: herramienta({ meta: { dueno: "pablo" } }) }],
   ["dueno", "un dueño que no la carga", { texto: herramienta({ meta: { dueno: "lola" } }) }],
   ["comprobado", "sin fecha", { texto: herramienta({ meta: { comprobado: null } }) }],
-  ["comprobado", "una fecha caducada", { texto: herramienta({ meta: { comprobado: "2026-06-01" } }).replace("Comprobado el 2026-10-09", "Comprobado el 2026-06-01") }],
+  ["comprobado", "una fecha futura", { texto: herramienta({ meta: { comprobado: "2026-12-01" } }).replace("Comprobado el 2026-10-09", "Comprobado el 2026-12-01") }],
   ["comprobado", "una fecha que el texto no explica", { texto: herramienta({ meta: { comprobado: "2026-10-08" } }) }],
   ["secciones", "falta una sección", { texto: herramienta({ sinSeccion: "Coste y límites" }) }],
   ["secciones", "las secciones de otro tipo", { texto: herramienta({ meta: { tipo: "oficio" } }) }],
@@ -130,8 +131,23 @@ it("falla «copiado» con un párrafo largo igual en dos skills", () => {
   expect(delParrafo(faltasDeCopiado([a, { ...buena(), nombre: "otra" }]))).toEqual([]);
 });
 
+// La caducidad no es del nivel 1: el reloj no pone en rojo todos los PR. Aquí
+// solo avisa; falla en el paso «Skills del PR» si el PR toca la skill.
+it("una skill caducada no falla el nivel 1, y la regla «caducada» solo salta si el PR la toca", () => {
+  const vieja = herramienta({ meta: { comprobado: "2026-06-01" } }).replace("Comprobado el 2026-10-09", "Comprobado el 2026-06-01");
+  expect(ver(faltasDeSkill(buena({ texto: vieja }), FALSO))).toEqual([]);
+  const estados = [{ nombre: "prueba", ...caducidad(vieja, HOY) }];
+  expect(estados[0].estado).toBe("caducada");
+  expect(comprobarSkillsPr(["src/App.jsx"], estados).ok).toBe(true);
+  expect(comprobarSkillsPr([".claude/skills/prueba/casos.json"], estados).faltas.map((f) => f.regla)).toEqual(["caducada"]);
+});
+
+it("avisa (sin fallar) de las skills caducadas o a punto", () => {
+  for (const e of caducidades(RAIZ).filter((x) => x.estado !== "vigente")) console.warn(`[skills] ${e.nombre} ${e.estado}: comprobada el ${e.comprobado}, hace ${e.dias} días`);
+});
+
 it("cada regla del vocabulario se ve fallar aquí", () => {
-  const vistas = new Set([...MUTACIONES.map((m) => m[0]), "copiado"]);
+  const vistas = new Set([...MUTACIONES.map((m) => m[0]), "copiado", "caducada"]);
   expect(Object.keys(REGLAS).filter((r) => !vistas.has(r))).toEqual([]);
 });
 
