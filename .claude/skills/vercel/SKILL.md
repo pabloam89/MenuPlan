@@ -97,6 +97,13 @@ arriba). La CLI `vercel` no está instalada en este PC.
   `VERCEL_PROJECT_ID` en su entorno (`IDS_VERCEL`, `scripts/bot-fallos.mjs`;
   probado sin sesión, sin `.vercel/` y con token: lee el proyecto) y
   `motivoDeCli` da el motivo del vocabulario a la línea `vigia_logs`.
+  Con eso salió el motivo de verdad, `no_existe`: «User not found.».
+  Causa: el token se creó con scope del equipo («Monicos MenuPlan»), y la
+  CLI pregunta primero por el usuario (`/v2/user` da 404 con ese token,
+  aunque el API REST del proyecto responda 200). Arreglo: un token para la
+  CLI se crea con scope **«Full Account»**, que cubre la cuenta y el equipo,
+  y a 90 días (ficha «Vercel Vigía»). Comprobado: con él, `vercel logs` lee y
+  el vigía cerró el incidente.
 
 ## Qué requiere el OK de Pablo
 
