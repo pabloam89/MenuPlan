@@ -1,0 +1,163 @@
+{
+  ".claude/agents/auditor-datos.md": {
+    "nunca": 1,
+    "siempre": 1,
+    "solo": 2
+  },
+  ".claude/agents/datos.md": {
+    "exige": 1,
+    "nunca": 3,
+    "siempre": 5,
+    "solo": 11
+  },
+  ".claude/agents/diseno.md": {
+    "exige": 1,
+    "nunca": 2,
+    "siempre": 1,
+    "solo": 1
+  },
+  ".claude/agents/evaluador.md": {
+    "nunca": 1,
+    "siempre": 1,
+    "solo": 1
+  },
+  ".claude/agents/gobierno.md": {
+    "nunca": 4,
+    "siempre": 1,
+    "solo": 5
+  },
+  ".claude/agents/lola.md": {
+    "nunca": 1,
+    "siempre": 3,
+    "solo": 1,
+    "tope": 1
+  },
+  ".claude/agents/qa.md": {
+    "nunca": 1,
+    "siempre": 1,
+    "solo": 1
+  },
+  ".claude/agents/revisor.md": {
+    "siempre": 1,
+    "solo": 4
+  },
+  ".claude/agents/seguridad.md": {
+    "nunca": 2,
+    "siempre": 1,
+    "solo": 4
+  },
+  ".claude/commands/backend-review.md": {
+    "solo": 2
+  },
+  ".claude/commands/orquestar.md": {
+    "exige": 1,
+    "nunca": 1,
+    "solo": 6
+  },
+  ".claude/commands/revision-issues.md": {
+    "solo": 2
+  },
+  ".claude/commands/revision-semanal.md": {
+    "nunca": 2,
+    "solo": 1
+  },
+  ".claude/commands/update-specs.md": {
+    "nunca": 1,
+    "solo": 2
+  },
+  ".claude/rules/api.md": {
+    "nunca": 1
+  },
+  ".claude/rules/catalogo.md": {
+    "nunca": 1,
+    "siempre": 1,
+    "solo": 1
+  },
+  ".claude/rules/lola.md": {
+    "nunca": 1,
+    "siempre": 1,
+    "solo": 3,
+    "tope": 2
+  },
+  ".claude/rules/migraciones.md": {
+    "nunca": 2,
+    "siempre": 1,
+    "solo": 2
+  },
+  ".claude/rules/ui.md": {
+    "nunca": 1,
+    "solo": 1
+  },
+  ".claude/skills/1password/SKILL.md": {
+    "nunca": 6,
+    "ok_de_pablo": 1,
+    "siempre": 1,
+    "solo": 10
+  },
+  ".claude/skills/github/SKILL.md": {
+    "nunca": 1,
+    "obligatorio": 1,
+    "ok_de_pablo": 2,
+    "siempre": 4,
+    "solo": 18,
+    "tope": 2
+  },
+  ".claude/skills/hetzner/SKILL.md": {
+    "nunca": 5,
+    "ok_de_pablo": 1,
+    "solo": 10,
+    "tope": 2
+  },
+  ".claude/skills/supabase/SKILL.md": {
+    "exige": 2,
+    "maximo": 1,
+    "ok_de_pablo": 1,
+    "siempre": 3,
+    "solo": 13
+  },
+  ".claude/skills/tailscale/SKILL.md": {
+    "ok_de_pablo": 1,
+    "solo": 2
+  },
+  ".claude/skills/telegram/SKILL.md": {
+    "maximo": 2,
+    "ok_de_pablo": 1,
+    "solo": 9
+  },
+  ".claude/skills/vercel/SKILL.md": {
+    "nunca": 1,
+    "ok_de_pablo": 1,
+    "solo": 3,
+    "tope": 1
+  },
+  "CLAUDE.md": {
+    "exige": 2,
+    "nunca": 4,
+    "siempre": 4,
+    "solo": 14
+  },
+  "docs/datos/PRINCIPIOS.md": {
+    "exige": 1,
+    "nunca": 8,
+    "siempre": 1,
+    "solo": 17,
+    "tope": 3
+  },
+  "ops/DECISIONES.md": {
+    "exige": 1,
+    "nunca": 1,
+    "solo": 4
+  },
+  "ops/INVENTARIO.md": {
+    "exige": 1,
+    "nunca": 1,
+    "ok_de_pablo": 1,
+    "solo": 11
+  },
+  "ops/PLANOS.md": {
+    "exige": 3,
+    "nunca": 1,
+    "obligatorio": 1,
+    "solo": 7
+  }
+}

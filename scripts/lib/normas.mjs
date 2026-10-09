@@ -10,7 +10,7 @@
  * cumplir y su VEREDICTO. Nunca cómo se salta ni qué le falta exactamente;
  * eso va a Pablo en privado.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /** Quién hace cumplir la norma. Los cinco primeros son «del sistema»: no dependen de que alguien se acuerde. */
@@ -143,6 +143,114 @@ export function problemasDeDureza(n, ctx) {
     else if (!readFileSync(join(ctx.raiz, f.ruta), "utf8").includes(f.caso)) malos.push(`${n.id}: ${f.ruta} no nombra el caso «${f.caso}»`);
   }
   return malos;
+}
+
+// ── El trinquete de frases normativas ─────────────────────────────────────
+
+/**
+ * Palabras que suelen anunciar una norma. Cada una con su clave (sin tildes ni
+ * plurales) para contarlas. Una aparición pasa si su línea cita una norma del
+ * registro (`<!-- norma:<id> -->`) o si está en la línea base, que solo baja.
+ */
+export const PALABRAS_NORMATIVAS = [
+  ["nunca", "nunca"],
+  ["siempre", "siempre"],
+  ["solo", "s[oó]lo"],
+  ["maximo", "m[aá]xim[oa]s?"],
+  ["tope", "topes?"],
+  ["obligatorio", "obligatori[oa]s?"],
+  ["exige", "exigen?"],
+  ["ok_de_pablo", "ok de pablo"],
+];
+const LETRA = "[\\p{L}\\p{N}_]";
+const REGEX_PALABRAS = PALABRAS_NORMATIVAS.map(([clave, p]) => [clave, new RegExp(`(?<!${LETRA})(?:${p})(?!${LETRA})`, "giu")]);
+const REGEX_CITA = /<!--\s*norma:([a-z0-9-]+)\s*-->/g;
+
+export const RUTA_BASE = "ops/normas-base.json";
+
+/** Ficheros donde se buscan frases normativas, relativos a la raíz y con «/». */
+export function ficherosNormativos(raiz) {
+  const fuera = [];
+  const mds = (dir, recursivo) => {
+    const abs = join(raiz, dir);
+    if (!existsSync(abs)) return;
+    for (const e of readdirSync(abs, { withFileTypes: true })) {
+      const ruta = `${dir}/${e.name}`;
+      if (e.isDirectory() && recursivo) mds(ruta, true);
+      else if (e.isFile() && e.name.endsWith(".md")) fuera.push(ruta);
+    }
+  };
+  for (const f of ["CLAUDE.md", "docs/datos/PRINCIPIOS.md"]) if (existsSync(join(raiz, f))) fuera.push(f);
+  for (const d of [".claude/rules", ".claude/skills", ".claude/agents", ".claude/commands"]) mds(d, true);
+  mds("ops", false);
+  return fuera.sort();
+}
+
+/**
+ * Cuenta las apariciones que no citan una norma, por palabra. Las citas a un
+ * id que no está en el registro no valen y se devuelven aparte.
+ */
+export function contarFrases(texto, ids) {
+  const cuenta = {};
+  const citasMalas = [];
+  for (const linea of texto.split("\n")) {
+    const citas = [...linea.matchAll(REGEX_CITA)].map((m) => m[1]);
+    for (const c of citas) if (!ids.has(c)) citasMalas.push(c);
+    const citada = citas.some((c) => ids.has(c));
+    if (citada) continue;
+    for (const [clave, re] of REGEX_PALABRAS) {
+      const n = (linea.match(re) ?? []).length;
+      if (n) cuenta[clave] = (cuenta[clave] ?? 0) + n;
+    }
+  }
+  return { cuenta, citasMalas };
+}
+
+/** { ruta: { palabra: n } } de todo el repo, y las citas a ids que no existen. */
+export function medirFrases(raiz, ids) {
+  const actual = {};
+  const citasMalas = [];
+  for (const ruta of ficherosNormativos(raiz)) {
+    const r = contarFrases(readFileSync(join(raiz, ruta), "utf8"), ids);
+    if (Object.keys(r.cuenta).length) actual[ruta] = r.cuenta;
+    for (const c of r.citasMalas) citasMalas.push(`${ruta}: norma:${c}`);
+  }
+  return { actual, citasMalas };
+}
+
+/** Lo que sube respecto a la base: [{ ruta, palabra, actual, base }]. */
+export function subidas(actual, base) {
+  const fuera = [];
+  for (const [ruta, cuenta] of Object.entries(actual)) {
+    for (const [palabra, n] of Object.entries(cuenta)) {
+      const b = base[ruta]?.[palabra] ?? 0;
+      if (n > b) fuera.push({ ruta, palabra, actual: n, base: b });
+    }
+  }
+  return fuera;
+}
+
+/**
+ * La base nueva. Sin `subir`, cada cifra es la menor entre la de hoy y la
+ * guardada: solo baja. Con `subir` (a propósito, se ve en el diff del PR),
+ * la de hoy.
+ */
+export function nuevaBase(actual, base, { subir = false } = {}) {
+  const fuera = {};
+  for (const ruta of Object.keys(actual).sort()) {
+    for (const palabra of Object.keys(actual[ruta]).sort()) {
+      const n = actual[ruta][palabra];
+      const b = base[ruta]?.[palabra] ?? 0;
+      const v = subir ? n : Math.min(n, b);
+      if (v > 0) (fuera[ruta] ??= {})[palabra] = v;
+    }
+  }
+  return fuera;
+}
+
+/** Total de apariciones de una base. */
+export function totalBase(base) {
+  return Object.values(base).reduce((a, c) => a + Object.values(c).reduce((x, y) => x + y, 0), 0);
 }
 
 /** Recuento por veredicto y por riesgo: las cifras de partida. */

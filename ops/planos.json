@@ -286,6 +286,13 @@
             "que": "La protección de main vale también para administradores",
             "regla": "admins_incluidos",
             "rama": "main"
+          },
+          {
+            "tipo": "cifra_umbral",
+            "que": "Las frases normativas que no citan una norma solo bajan (290 el 9 oct, #296)",
+            "medidor": "frases_normativas_base",
+            "operador": "<=",
+            "umbral": 290
           }
         ],
         "4": [

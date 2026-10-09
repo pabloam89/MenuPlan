@@ -17,6 +17,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
+import { RUTA_BASE as BASE_NORMAS, totalBase } from "./normas.mjs";
 
 /** Tipos de criterio. La definición larga vive en `vocabularios.tipos_criterio` de ops/planos.json (un test las compara). */
 export const TIPOS_CRITERIO = [
@@ -83,6 +84,8 @@ export const MEDIDORES = {
     const base = JSON.parse(readFileSync(join(raiz, "lint-base.json"), "utf8"));
     return Object.values(base).reduce((a, n) => a + Number(n), 0);
   },
+  /** Frases normativas que no citan ninguna norma (ops/normas-base.json, #296): el trinquete solo baja. */
+  frases_normativas_base: (raiz) => totalBase(JSON.parse(readFileSync(join(raiz, BASE_NORMAS), "utf8"))),
 };
 
 /** «2026-10-09» en Madrid (la hora sale de Node, nunca de `date`: #210). */
