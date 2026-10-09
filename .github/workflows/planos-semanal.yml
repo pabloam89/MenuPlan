@@ -61,7 +61,7 @@ jobs:
           printf '\n%s\n' "Run: $RUN_URL" >> "$RUNNER_TEMP/planos.md"
           titulo="Planos: la medición semanal no cuadra"
           issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
-            --search "\"$titulo\" in:title" --json number --jq '.[0].number // empty' || true)
+            --search "\"$titulo\" in:title" --json number --jq '.[0].number // empty')
           if [ -n "$issue" ]; then
             gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/planos.md"
             echo "Comentado en el issue #$issue"

@@ -678,7 +678,8 @@
           {
             "tipo": "test_existe",
             "que": "El límite mensual tiene test",
-            "ruta": "api/_bot/uso.test.js"
+            "ruta": "api/_bot/uso.test.js",
+            "patron": "limiteMensual|BOT_LIMITE_MENSUAL"
           }
         ],
         "3": [
@@ -738,7 +739,7 @@
             "tipo": "fichero_contiene",
             "que": "La plantilla de PR trae Closes y Agente",
             "ruta": ".github/pull_request_template.md",
-            "patron": "Closes"
+            "patron": "^Closes #[\\s\\S]*^Agente:"
           }
         ],
         "3": [

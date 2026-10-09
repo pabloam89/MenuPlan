@@ -85,6 +85,11 @@ describe("planos.json: forma y vocabulario cerrado", () => {
     expect(malos).toEqual([]);
   });
 
+  it("cada regla de GitHub que el script sabe comprobar la usa algún criterio (sin código muerto)", () => {
+    const usadas = new Set(todos.filter((x) => x.c.tipo === "regla_github").map((x) => x.c.regla));
+    expect(Object.keys(REGLAS_GITHUB).filter((r) => !usadas.has(r))).toEqual([]);
+  });
+
   it("la medición guardada tiene fecha, autor y un nivel 0-4 para cada plano", () => {
     const { medicion } = datos;
     expect(medicion.fecha).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -162,7 +167,14 @@ describe("el cálculo del nivel", () => {
     expect(diasEntre("2026-09-01", "2026-10-09")).toBe(38);
     expect(evaluarCriterio({ tipo: "a_juicio", quien: "gobierno", fecha: "2026-09-01", cumple: true, nota: "n", que: "x" }, ctx).caducado).toBe(true);
     expect(evaluarCriterio({ tipo: "a_juicio", quien: "gobierno", fecha: "2026-10-01", cumple: true, nota: "n", que: "x" }, ctx).caducado).toBe(false);
+    expect(evaluarCriterio({ tipo: "a_juicio", quien: "gobierno", fecha: "2026-10-01", cumple: true, nota: "n", que: "x" }, ctx).estado).toBe("cumple");
     expect(evaluarCriterio({ tipo: "por_definir", que: "x" }, ctx).estado).toBe("no_cumple");
+  });
+
+  it("un juicio caducado que decía «cumple» ya no cuenta: sale sin comprobar (baja el nivel, no el techo)", () => {
+    const viejo = { tipo: "a_juicio", quien: "gobierno", fecha: "2026-09-01", cumple: true, nota: "n", que: "x" };
+    expect(evaluarCriterio(viejo, ctx).estado).toBe("sin_comprobar");
+    expect(evaluarCriterio({ ...viejo, cumple: false }, ctx).estado).toBe("no_cumple");
   });
 });
 
@@ -172,12 +184,29 @@ describe("las reglas de GitHub, con un gh de mentira", () => {
   const admin = { ok: true, status: 200, json: { permissions: { admin: true }, visibility: "public", security_and_analysis: { secret_scanning: { status: "enabled" } } } };
   const token = { ok: true, status: 200, json: { visibility: "public" } };
 
-  it("el check de un ruleset cuenta como obligatorio", () => {
-    const r = evaluarReglaGithub({ regla: "check_obligatorio", rama: "staging", check: "tests" }, { repo, gh: gh({
-      "repos/x/y": token,
-      "repos/x/y/rules/branches/staging": { ok: true, status: 200, json: [{ type: "required_status_checks", parameters: { required_status_checks: [{ context: "tests" }] } }] },
-    }) });
-    expect(r.estado).toBe("cumple");
+  const reglaTests = { ok: true, status: 200, json: [{ type: "required_status_checks", ruleset_id: 7, parameters: { required_status_checks: [{ context: "tests" }] } }] };
+  const ruleset = (bypass) => ({ ok: true, status: 200, json: bypass === undefined ? { id: 7 } : { id: 7, bypass_actors: bypass } });
+  const checkStaging = (respuestas) => evaluarReglaGithub({ regla: "check_obligatorio", rama: "staging", check: "tests" }, { repo, gh: gh({
+    "repos/x/y": token, "repos/x/y/rules/branches/staging": reglaTests, ...respuestas,
+  }) }).estado;
+
+  it("el check de un ruleset cuenta como obligatorio si nadie se lo salta, salvo la deploy key permitida", () => {
+    expect(checkStaging({ "repos/x/y/rulesets/7": ruleset([]) })).toBe("cumple");
+    expect(checkStaging({ "repos/x/y/rulesets/7": ruleset([{ actor_id: null, actor_type: "DeployKey", bypass_mode: "always" }]) })).toBe("cumple");
+  });
+
+  it("un ruleset con un bypass fuera de la lista (p. ej. el rol de administrador) no cumple", () => {
+    // Visto por un administrador: la protección clásica (404) tampoco lo exige.
+    const rol = ruleset([{ actor_id: 5, actor_type: "RepositoryRole", bypass_mode: "always" }]);
+    expect(checkStaging({ "repos/x/y": admin, "repos/x/y/rulesets/7": rol })).toBe("no_cumple");
+    expect(checkStaging({ "repos/x/y": admin, "repos/x/y/rulesets/7": ruleset([{ actor_id: 1, actor_type: "Integration", bypass_mode: "pull_request" }]) })).toBe("no_cumple");
+    // Con el token de Actions no se sabe si la protección clásica lo exige: sin comprobar, nunca cumple.
+    expect(checkStaging({ "repos/x/y/rulesets/7": rol })).toBe("sin_comprobar");
+  });
+
+  it("si no se pueden leer los bypass del ruleset, sin comprobar", () => {
+    expect(checkStaging({})).toBe("sin_comprobar");
+    expect(checkStaging({ "repos/x/y/rulesets/7": ruleset(undefined) })).toBe("sin_comprobar");
   });
 
   it("con el token de Actions (sin admin), lo que solo ve un administrador queda sin comprobar, no en «no cumple»", () => {
@@ -196,7 +225,7 @@ describe("las reglas de GitHub, con un gh de mentira", () => {
   });
 
   it("sin red ni gh, nada", () => {
-    const r = evaluarReglaGithub({ regla: "repo_privado" }, { repo, gh: () => ({ ok: false, status: null, json: null }) });
+    const r = evaluarReglaGithub({ regla: "secret_scanning" }, { repo, gh: () => ({ ok: false, status: null, json: null }) });
     expect(r.estado).toBe("sin_comprobar");
   });
 });

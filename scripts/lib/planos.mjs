@@ -54,8 +54,15 @@ export const REGLAS_GITHUB = {
   push_protection: [],
   dependabot_alertas: [],
   dependabot_seguridad: [],
-  repo_privado: [],
 };
+
+/**
+ * Quién puede saltarse un ruleset sin que el check deje de contar como
+ * obligatorio. Solo la deploy key del cron de Mercadona (PR #240), y es deuda
+ * apuntada en #263: el 9 oct dejó staging en rojo. Añadir otro aquí es abrir
+ * una puerta: decisión de Pablo.
+ */
+export const BYPASS_PERMITIDOS = ["DeployKey"];
 
 /** Disparadores de un workflow que se pueden exigir. */
 export const DISPARADORES = ["pull_request", "push", "schedule", "workflow_dispatch"];
@@ -134,6 +141,14 @@ export function evaluarReglaGithub(c, { repo, gh }) {
 
   const proteccion = (rama) => gh(`repos/${repo}/branches/${rama}/protection`);
   const reglas = (rama) => gh(`repos/${repo}/rules/branches/${rama}`);
+  const bypassDe = (id) => {
+    const rs = id == null ? { ok: false } : gh(`repos/${repo}/rulesets/${id}`);
+    const lista = rs.ok ? rs.json?.bypass_actors : undefined;
+    if (!Array.isArray(lista)) return { estado: "sin_comprobar", detalle: "no se pudieron leer sus bypass_actors" };
+    const fuera = lista.filter((a) => !BYPASS_PERMITIDOS.includes(a.actor_type));
+    if (fuera.length) return { estado: "no_cumple", detalle: `se lo salta ${fuera.map((a) => `${a.actor_type}${a.actor_id != null ? ` ${a.actor_id}` : ""}`).join(", ")}` };
+    return { estado: "cumple", detalle: lista.length ? `bypass solo de ${lista.map((a) => a.actor_type).join(", ")}` : "sin bypass" };
+  };
   const seguridad = (campo) => {
     const s = info.json?.security_and_analysis;
     if (!s) return { estado: "sin_comprobar", detalle: "security_and_analysis solo lo ve un administrador" };
@@ -144,13 +159,20 @@ export function evaluarReglaGithub(c, { repo, gh }) {
   switch (c.regla) {
     case "check_obligatorio": {
       const r = reglas(c.rama);
-      const enRuleset = r.ok && (r.json ?? []).some((x) => x.type === "required_status_checks"
-        && (x.parameters?.required_status_checks ?? []).some((k) => k.context === c.check));
-      if (enRuleset) return { estado: "cumple", detalle: `ruleset de ${c.rama} exige ${c.check}` };
+      const ids = r.ok ? [...new Set((r.json ?? []).filter((x) => x.type === "required_status_checks"
+        && (x.parameters?.required_status_checks ?? []).some((k) => k.context === c.check)).map((x) => x.ruleset_id))] : [];
+      // Un check que alguien se puede saltar no es obligatorio: se miran los bypass de cada ruleset.
+      const rulesets = ids.map((id) => ({ id, bypass: bypassDe(id) }));
+      const limpio = rulesets.find((x) => x.bypass.estado === "cumple");
+      if (limpio) return { estado: "cumple", detalle: `ruleset ${limpio.id} de ${c.rama} exige ${c.check}; ${limpio.bypass.detalle}` };
       const p = proteccion(c.rama);
       const enClasica = p.ok && (p.json?.required_status_checks?.contexts ?? []).includes(c.check);
       if (enClasica) return { estado: "cumple", detalle: `protección de ${c.rama} exige ${c.check}` };
+      const dudoso = rulesets.find((x) => x.bypass.estado === "sin_comprobar");
+      if (dudoso) return { estado: "sin_comprobar", detalle: `ruleset ${dudoso.id}: ${dudoso.bypass.detalle}` };
       if (!r.ok || sinPermiso(p)) return { estado: "sin_comprobar", detalle: "no se pudieron leer las reglas o la protección" };
+      const saltable = rulesets[0];
+      if (saltable) return { estado: "no_cumple", detalle: `ruleset ${saltable.id}: ${saltable.bypass.detalle}` };
       return { estado: "no_cumple", detalle: `${c.rama} no exige ${c.check}` };
     }
     case "sin_push_forzado":
@@ -177,8 +199,6 @@ export function evaluarReglaGithub(c, { repo, gh }) {
       if (sinPermiso(r)) return { estado: "sin_comprobar", detalle: "solo lo ve un administrador" };
       return { estado: "no_cumple", detalle: "alertas de Dependabot apagadas" };
     }
-    case "repo_privado":
-      return { estado: info.json?.visibility === "private" ? "cumple" : "no_cumple", detalle: `visibilidad: ${info.json?.visibility}` };
     default:
       return { estado: "no_cumple", detalle: `regla desconocida: ${c.regla}` };
   }
@@ -231,7 +251,9 @@ export function evaluarCriterio(c, ctx) {
     case "a_juicio": {
       const dias = diasEntre(c.fecha, ctx.hoy);
       const caducado = dias > ctx.caducidad;
-      return { estado: c.cumple ? "cumple" : "no_cumple", detalle: `${c.quien}, ${c.fecha} (hace ${dias} días)`, caducado };
+      // Un «sí» caducado deja de contar: sin comprobar hasta que alguien lo vuelva a juzgar.
+      const estado = !c.cumple ? "no_cumple" : caducado ? "sin_comprobar" : "cumple";
+      return { estado, detalle: `${c.quien}, ${c.fecha} (hace ${dias} días${caducado ? ", caducado" : ""})`, caducado };
     }
     case "por_definir":
       return { estado: "no_cumple", detalle: `por construir${c.issue ? ` (#${c.issue})` : ""}` };
