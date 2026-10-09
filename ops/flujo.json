@@ -7,7 +7,9 @@
   "issues_citables": {
     "185": "fondo: las normas de cómo trabajamos no fallan cuando se incumplen",
     "231": "fondo: se dan cosas por ciertas sin comprobarlas",
-    "296": "encargo A: registro de normas (en curso)",
+    "263": "fondo: lo que entra a staging con la llave de despliegue se salta el CI",
+    "296": "encargo A: registro de normas (en staging, PR #349; lo que falta, en #351)",
+    "298": "encargo: arreglos baratos de normas (jueces sin escritura, hash del veredicto)",
     "300": "caso: detalle de seguridad publicado en un repo público",
     "312": "encargo: la línea Casos: en cada PR (en curso)",
     "313": "fondo: el texto de fuera se trata como instrucciones",
@@ -17,6 +19,7 @@
     "321": "caso: los planos miden que el fichero existe, no que la protección resista",
     "325": "caso: buscar antes de crear solo cierra una vía",
     "326": "fondo: las sesiones actúan con la identidad de administrador",
+    "330": "encargo E4: reglas con revisión de dueño de código",
     "334": "fondo: este flujo",
     "335": "encargo F0: esta especificación",
     "336": "encargo C+: plantilla de skill ampliada y tests de dos niveles",
@@ -24,7 +27,9 @@
     "338": "encargo C: skills de oficio y catálogos de técnicas y mecanismos",
     "339": "encargo D: triaje, presupuestos y tope de rondas",
     "340": "encargo F: observabilidad de la fábrica y recalibración",
-    "341": "encargo E: tests periódicos de skills e indicadores de cumplimiento"
+    "341": "encargo E: tests periódicos de skills e indicadores de cumplimiento",
+    "351": "encargo: lo que falta de la fase A (registro de normas)",
+    "353": "decisión: cómo convive la App de Dependabot con la revisión de dueño de código"
   },
   "capas": [
     {
@@ -32,58 +37,179 @@
       "nombre": "Catálogos",
       "pregunta": "¿Qué existe?",
       "contiene": "Registros estructurados, cada hecho una sola vez: vocabularios, mapas, planos, normas, mecanismos, técnicas y presupuestos",
-      "donde": ["scripts/lib/issues.mjs", "ops/MODULOS.json", "ops/planos.json", "ops/flujo.json"]
+      "donde": [
+        "scripts/lib/issues.mjs",
+        "ops/MODULOS.json",
+        "ops/planos.json",
+        "ops/flujo.json"
+      ]
     },
     {
       "id": "skills",
       "nombre": "Skills",
       "pregunta": "¿Cómo se hace?",
       "contiene": "Método, técnicas, referencias, scripts y plantillas. De herramienta (cómo se opera un servicio) y de oficio (cómo se piensa un tipo de problema)",
-      "donde": [".claude/skills", ".claude/PLANTILLA-SKILL.md"]
+      "donde": [
+        ".claude/skills",
+        ".claude/PLANTILLA-SKILL.md"
+      ]
     },
     {
       "id": "agentes",
       "nombre": "Agentes",
       "pregunta": "¿Quién lo hace y con qué permisos?",
       "contiene": "Rol, permisos y qué skills cargan. No llevan método: lo toman de las skills",
-      "donde": [".claude/agents", ".claude/PLANTILLA-AGENTE.md"]
+      "donde": [
+        ".claude/agents",
+        ".claude/PLANTILLA-AGENTE.md"
+      ]
     },
     {
       "id": "orquestacion",
       "nombre": "Orquestación y reglas duras",
       "pregunta": "¿Cuándo, en qué orden y cuánto?",
       "contiene": "Pipelines, presupuestos, tope de rondas y las reglas que impone un mecanismo",
-      "donde": [".claude/commands/orquestar.md", ".claude/hooks/guardia.mjs", ".github/workflows/tests.yml"]
+      "donde": [
+        ".claude/commands/orquestar.md",
+        ".claude/hooks/guardia.mjs",
+        ".github/workflows/tests.yml"
+      ]
     }
   ],
   "escalera": [
-    { "id": "bloqueo", "que": "Un permiso, un hook, una regla de GitHub o una restricción de la base impide hacerlo", "arreglo": ["guardia"] },
-    { "id": "test_ci", "que": "Un test o un eval en el CI falla si vuelve", "arreglo": ["test"] },
-    { "id": "script", "que": "Un script lo comprueba, si alguien lo lanza", "arreglo": ["script"] },
-    { "id": "skill", "que": "Un runbook lo explica a quien lo abre", "arreglo": ["skill"] },
-    { "id": "texto", "que": "Una línea en CLAUDE.md o en una regla", "arreglo": ["regla"] }
+    {
+      "id": "bloqueo",
+      "que": "Un permiso, un hook, una regla de GitHub o una restricción de la base impide hacerlo",
+      "arreglo": [
+        "guardia"
+      ]
+    },
+    {
+      "id": "test_ci",
+      "que": "Un test o un eval en el CI falla si vuelve",
+      "arreglo": [
+        "test"
+      ]
+    },
+    {
+      "id": "script",
+      "que": "Un script lo comprueba, si alguien lo lanza",
+      "arreglo": [
+        "script"
+      ]
+    },
+    {
+      "id": "skill",
+      "que": "Un runbook lo explica a quien lo abre",
+      "arreglo": [
+        "skill"
+      ]
+    },
+    {
+      "id": "texto",
+      "que": "Una línea en CLAUDE.md o en una regla",
+      "arreglo": [
+        "regla"
+      ]
+    }
   ],
   "tipos_skill": [
-    { "id": "herramienta", "que": "Cómo se opera un servicio (supabase, vercel, telegram…)", "estado": "existe", "fase": [] },
-    { "id": "oficio", "que": "Cómo se piensa un tipo de problema (causa raíz, plan de arreglo, priorizar)", "estado": "en_plan", "fase": ["#338"] },
-    { "id": "dominio", "que": "El conocimiento del negocio (nutrición, alergias, cómo comen las familias)", "estado": "reservado", "fase": ["#336"] },
-    { "id": "estandar", "que": "Cómo deben quedar las cosas para ser consistentes (voz de Lola, design system)", "estado": "reservado", "fase": ["#336"] },
-    { "id": "receta_cambio", "que": "Los pasos de una acción que se repite (añadir una herramienta a Lola, una pantalla, recetas)", "estado": "reservado", "fase": ["#336"] },
-    { "id": "rubrica_juez", "que": "Qué mira un juez y cómo puntúa", "estado": "reservado", "fase": ["#336"] },
-    { "id": "investigacion", "que": "Cómo buscar fuera y destilar (radar de mercado, investigación técnica)", "estado": "reservado", "fase": ["#336"] },
-    { "id": "meta", "que": "Cómo crear, probar y podar las propias piezas", "estado": "reservado", "fase": ["#336"] }
+    {
+      "id": "herramienta",
+      "que": "Cómo se opera un servicio (supabase, vercel, telegram…)",
+      "estado": "existe",
+      "fase": []
+    },
+    {
+      "id": "oficio",
+      "que": "Cómo se piensa un tipo de problema (causa raíz, plan de arreglo, priorizar)",
+      "estado": "en_plan",
+      "fase": [
+        "#338"
+      ]
+    },
+    {
+      "id": "dominio",
+      "que": "El conocimiento del negocio (nutrición, alergias, cómo comen las familias)",
+      "estado": "reservado",
+      "fase": [
+        "#336"
+      ]
+    },
+    {
+      "id": "estandar",
+      "que": "Cómo deben quedar las cosas para ser consistentes (voz de Lola, design system)",
+      "estado": "reservado",
+      "fase": [
+        "#336"
+      ]
+    },
+    {
+      "id": "receta_cambio",
+      "que": "Los pasos de una acción que se repite (añadir una herramienta a Lola, una pantalla, recetas)",
+      "estado": "reservado",
+      "fase": [
+        "#336"
+      ]
+    },
+    {
+      "id": "rubrica_juez",
+      "que": "Qué mira un juez y cómo puntúa",
+      "estado": "reservado",
+      "fase": [
+        "#336"
+      ]
+    },
+    {
+      "id": "investigacion",
+      "que": "Cómo buscar fuera y destilar (radar de mercado, investigación técnica)",
+      "estado": "reservado",
+      "fase": [
+        "#336"
+      ]
+    },
+    {
+      "id": "meta",
+      "que": "Cómo crear, probar y podar las propias piezas",
+      "estado": "reservado",
+      "fase": [
+        "#336"
+      ]
+    }
   ],
   "regla_de_parada": {
     "texto": "Una pieza nueva (catálogo, skill o agente) solo se crea si cumple las tres: se usa al menos dos veces o la leen al menos dos consumidores; no repite nada que ya esté en otra; tiene dueño y test. Lo que no se usa se aparca, como arquitecto y rendimiento.",
-    "aplica_a": ["catalogo", "skill", "agente"]
+    "aplica_a": [
+      "catalogo",
+      "skill",
+      "agente"
+    ]
   },
   "presupuestos": {
     "nota": "Valores iniciales de F0, a ojo y marcados como tales. La fase D los convierte en el catálogo que lee /orquestar y la fase F los recalibra cada semana con lo medido.",
     "valores_iniciales": true,
     "por_alcance": {
-      "local": { "diagnostica": "agente_dominio", "hipotesis_en_paralelo_max": 1, "jueces_min": 1, "rondas_max": 2, "minutos_orientativos": 15 },
-      "modulo": { "diagnostica": "agente_dominio", "hipotesis_en_paralelo_max": 1, "jueces_min": 1, "rondas_max": 2, "minutos_orientativos": 30 },
-      "transversal": { "diagnostica": "orquestador_con_diagnosticadores", "hipotesis_en_paralelo_max": 3, "jueces_min": 2, "rondas_max": 2, "minutos_orientativos": 60 }
+      "local": {
+        "diagnostica": "agente_dominio",
+        "hipotesis_en_paralelo_max": 1,
+        "jueces_min": 1,
+        "rondas_max": 2,
+        "minutos_orientativos": 15
+      },
+      "modulo": {
+        "diagnostica": "agente_dominio",
+        "hipotesis_en_paralelo_max": 1,
+        "jueces_min": 1,
+        "rondas_max": 2,
+        "minutos_orientativos": 30
+      },
+      "transversal": {
+        "diagnostica": "orquestador_con_diagnosticadores",
+        "hipotesis_en_paralelo_max": 3,
+        "jueces_min": 2,
+        "rondas_max": 2,
+        "minutos_orientativos": 60
+      }
     }
   },
   "pasos": [
@@ -95,11 +221,13 @@
       "quien": ["automatico", "juez", "persona"],
       "skill": null,
       "skill_fase": [],
-      "mide": [{ "indicador": "fallos detectados por fuente (vigía, agente de fallos, jueces)", "estado": "pendiente", "fase": "#340" }],
+      "mide": [
+        { "indicador": "fallos detectados por fuente (vigía, agente de fallos, jueces)", "estado": "pendiente", "fase": "#340" }
+      ],
       "obligaciones": [
-        { "id": "P01.1", "texto": "Un fallo de Lola o de la generación en producción avisa en minutos", "ejecutor": "proveedor", "dureza": "semidura", "ref": ".github/workflows/vigia-lola.yml", "test": null, "fase": ["#315"], "norma": null, "nota": "El horario de GitHub Actions llega horas tarde" },
-        { "id": "P01.2", "texto": "Un fallo del resto de la app llega a alguien el mismo día", "ejecutor": "proveedor", "dureza": "semidura", "ref": ".github/workflows/agente-fallos.yml", "test": null, "fase": ["#315", "#313"], "norma": null, "nota": "Arranca tarde y lee texto que llega de fuera" },
-        { "id": "P01.3", "texto": "Toda sesión sabe al abrirse qué issues esperan y quién lleva qué", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/arranque.mjs", "test": null, "fase": [], "norma": null, "aceptada": true, "nota": "Es un aviso, no una puerta: informa y no impide" }
+        { "id": "P01.1", "texto": "Un fallo de Lola o de la generación en producción avisa en minutos", "ejecutor": "proveedor", "dureza": "semidura", "ref": ".github/workflows/vigia-lola.yml", "contiene": "cron", "test": null, "fase": ["#315"], "norma": null, "nota": "El horario de GitHub Actions llega horas tarde" },
+        { "id": "P01.2", "texto": "Un fallo del resto de la app llega a alguien el mismo día", "ejecutor": "proveedor", "dureza": "semidura", "ref": ".github/workflows/agente-fallos.yml", "contiene": "cron", "test": null, "fase": ["#315", "#313"], "norma": null, "nota": "Arranca tarde y lee texto que llega de fuera" },
+        { "id": "P01.3", "texto": "Toda sesión sabe al abrirse qué issues esperan y quién lleva qué", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/arranque.mjs", "contiene": "issues", "test": null, "fase": [], "norma": null, "aceptada": true, "nota": "Es un aviso, no una puerta: informa y no impide" }
       ]
     },
     {
@@ -115,10 +243,10 @@
         { "indicador": "PR con casos frente a PR con «ninguno»", "estado": "pendiente", "fase": "#312" }
       ],
       "obligaciones": [
-        { "id": "P02.1", "texto": "Antes de crear un issue se buscan los parecidos", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/guardia.mjs", "test": ".claude/hooks/guardia.test.js", "fase": ["#325", "#337"], "norma": null, "nota": "Cierra la orden gh issue create; hay otras vías de crear un issue que no ve" },
-        { "id": "P02.2", "texto": "Todo fallo del camino queda como caso y no solo en el chat", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/pendientes.mjs", "test": ".claude/hooks/pendientes.test.js", "fase": ["#312"], "norma": null, "nota": "Frena una vez por sesión y solo si el último mensaje deja pendientes" },
-        { "id": "P02.3", "texto": "Cada PR declara los casos que vio (línea Casos:)", "ejecutor": "nada", "dureza": "blanda", "ref": ".claude/commands/orquestar.md", "test": null, "fase": ["#312"], "norma": null, "nota": "En curso en la rama ops/casos-obligatorios" },
-        { "id": "P02.4", "texto": "Nada sensible en un issue: el repo es público", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "test": null, "fase": ["#300"], "norma": null }
+        { "id": "P02.1", "texto": "Antes de crear un issue se buscan los parecidos", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/guardia.mjs", "contiene": "npm run issues -- --nuevo", "test": ".claude/hooks/guardia.test.js", "fase": ["#325", "#337"], "norma": "issues-con-buscar-antes", "nota": "Cierra la orden gh issue create; hay otras vías de crear un issue que no ve" },
+        { "id": "P02.2", "texto": "Las decisiones y pendientes que deja una sesión pasan a un issue", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/pendientes.mjs", "contiene": "stop_hook_active", "test": ".claude/hooks/pendientes.test.js", "fase": ["#312"], "norma": "pendientes-a-issue", "nota": "Frena una vez por sesión, y solo si el último mensaje deja decisiones o pendientes; no vigila los fallos del camino (P02.3)" },
+        { "id": "P02.3", "texto": "Todo fallo del camino queda como caso, y cada PR declara los casos que vio (línea Casos:)", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#312"], "norma": null, "nota": "No escrita en staging: la línea Casos: y su control están en la rama ops/casos-obligatorios, sin fusionar (#312). El registro de normas la tiene como cuando-algo-falla" },
+        { "id": "P02.4", "texto": "Nada sensible en un issue: el repo es público", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "contiene": "nada sensible", "test": null, "fase": ["#300"], "norma": "repo-publico-sin-detalle" }
       ]
     },
     {
@@ -129,10 +257,12 @@
       "quien": ["orquestador", "agente_dominio"],
       "skill": null,
       "skill_fase": ["#338"],
-      "mide": [{ "indicador": "casos por alcance", "estado": "pendiente", "fase": "#337" }],
+      "mide": [
+        { "indicador": "casos por alcance", "estado": "pendiente", "fase": "#337" }
+      ],
       "obligaciones": [
-        { "id": "P03.1", "texto": "Se fija el alcance y el tipo de causa antes de gastar esfuerzo", "ejecutor": "nada", "dureza": "blanda", "ref": ".claude/commands/orquestar.md", "test": null, "fase": ["#339"], "norma": null, "nota": "/orquestar dimensiona el encargo (trivial, normal, grande), no el alcance del fallo" },
-        { "id": "P03.2", "texto": "El esfuerzo sale del presupuesto de su alcance, no de lo que decida la sesión", "ejecutor": "nada", "dureza": "blanda", "ref": "ops/flujo.json", "test": null, "fase": ["#339"], "norma": null }
+        { "id": "P03.1", "texto": "Se fija el alcance y el tipo de causa antes de gastar esfuerzo", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#339"], "norma": null, "nota": "No escrita aún: /orquestar dimensiona el encargo (trivial, normal, grande), no el alcance del fallo" },
+        { "id": "P03.2", "texto": "El esfuerzo sale del presupuesto de su alcance, no de lo que decida la sesión", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#339"], "norma": null, "nota": "No escrita aún: el presupuesto inicial de este documento es a ojo" }
       ]
     },
     {
@@ -148,11 +278,11 @@
         { "indicador": "casos puntuales, para ver si eran un patrón", "estado": "existe", "donde": "scripts/lib/issues.mjs" }
       ],
       "obligaciones": [
-        { "id": "P04.1", "texto": "El caso acaba en una de las cuatro respuestas (nuevo, abierto, no aguantó, puntual) y cuelga de su fondo", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/issues.mjs", "test": "scripts/issues.test.js", "fase": ["#337"], "norma": null, "nota": "faltas() lo comprueba al lanzar npm run issues; ningún workflow reacciona a un issue" },
-        { "id": "P04.2", "texto": "Se busca el fondo que ya existe antes de abrir uno", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/issues.mjs", "test": "scripts/issues.test.js", "fase": ["#337"], "norma": null },
-        { "id": "P04.3", "texto": "El diagnóstico llega a algo que se puede cambiar con un mecanismo y dice por qué nada lo detectó (causa de escape)", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "test": null, "fase": ["#338", "#337"], "norma": null },
-        { "id": "P04.4", "texto": "Lo que no se ha comprobado se marca como hipótesis y no se copia como hecho", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "test": null, "fase": ["#338"], "norma": null, "nota": "Es el fondo #231" },
-        { "id": "P04.5", "texto": "Antes de evaluar código, se mira lo ya apuntado en issues y encargos", "ejecutor": "nada", "dureza": "blanda", "ref": ".claude/hooks/avisos.mjs", "test": null, "fase": ["#320"], "norma": null, "nota": "avisos.mjs avisa al editar un fichero; los jueces no editan" }
+        { "id": "P04.1", "texto": "El caso acaba en una de las cuatro respuestas (nuevo, abierto, no aguantó, puntual) y cuelga de su fondo", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/issues.mjs", "contiene": "export function faltas", "test": "scripts/issues.test.js", "fase": ["#337"], "norma": null, "nota": "faltas() corre al lanzar npm run issues y en el arranque de cada sesión, solo para informar; ningún workflow reacciona a un issue" },
+        { "id": "P04.2", "texto": "Se busca el fondo que ya existe antes de abrir uno", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/issues.mjs", "contiene": "parecidos", "test": "scripts/issues.test.js", "fase": ["#337"], "norma": null },
+        { "id": "P04.3", "texto": "El diagnóstico llega a algo que se puede cambiar con un mecanismo y dice por qué nada lo detectó (causa de escape)", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#338", "#337"], "norma": null, "nota": "No escrita aún: la piden la fase B (campos del fondo) y la skill de causa raíz (fase C)" },
+        { "id": "P04.4", "texto": "Lo que no se ha comprobado se marca como hipótesis y no se copia como hecho", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#338"], "norma": null, "nota": "No escrita aún: es el fondo #231; la fase C la lleva a la skill de causa raíz" },
+        { "id": "P04.5", "texto": "Antes de evaluar código, se mira lo ya apuntado en issues y encargos", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#320"], "norma": null, "nota": "No escrita aún. avisos.mjs avisa de los issues de un fichero al editarlo, y los jueces no editan" }
       ]
     },
     {
@@ -163,10 +293,12 @@
       "quien": ["agente_dominio", "orquestador"],
       "skill": null,
       "skill_fase": ["#338"],
-      "mide": [{ "indicador": "fondos ordenados por casos (dónde duele)", "estado": "existe", "donde": "scripts/lib/issues.mjs" }],
+      "mide": [
+        { "indicador": "fondos ordenados por casos (dónde duele)", "estado": "existe", "donde": "scripts/lib/issues.mjs" }
+      ],
       "obligaciones": [
-        { "id": "P05.1", "texto": "Un fondo lleva arreglo general en el cuerpo y una causa de un vocabulario cerrado", "ejecutor": "script_propio", "dureza": "semidura", "ref": ".github/ISSUE_TEMPLATE/2-fondo.yml", "test": "scripts/issues.test.js", "fase": ["#337"], "norma": null },
-        { "id": "P05.2", "texto": "Sin diagnóstico (mecanismo y causa de escape) no hay encargos", "ejecutor": "nada", "dureza": "blanda", "ref": "scripts/lib/issues.mjs", "test": null, "fase": ["#337"], "norma": null }
+        { "id": "P05.1", "texto": "Un fondo lleva arreglo general en el cuerpo y una causa de un vocabulario cerrado", "ejecutor": "script_propio", "dureza": "semidura", "ref": ".github/ISSUE_TEMPLATE/2-fondo.yml", "contiene": "arreglo", "test": "scripts/issues.test.js", "fase": ["#337"], "norma": null },
+        { "id": "P05.2", "texto": "Sin diagnóstico (mecanismo y causa de escape) no hay encargos", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#337"], "norma": null, "nota": "No escrita aún (fase B)" }
       ]
     },
     {
@@ -177,12 +309,14 @@
       "quien": ["orquestador", "agente_dominio"],
       "skill": null,
       "skill_fase": ["#338"],
-      "mide": [{ "indicador": "encargos hechos frente a encargos por fondo", "estado": "existe", "donde": "scripts/lib/issues.mjs" }],
+      "mide": [
+        { "indicador": "encargos hechos frente a encargos por fondo", "estado": "existe", "donde": "scripts/lib/issues.mjs" }
+      ],
       "obligaciones": [
-        { "id": "P06.1", "texto": "El arreglo se parte en encargos colgados del fondo, uno por superficie", "ejecutor": "persona", "dureza": "blanda", "ref": ".claude/commands/revision-issues.md", "test": null, "fase": ["#337"], "norma": null, "nota": "La revisión semanal ve los fondos sin encargos" },
-        { "id": "P06.2", "texto": "Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga", "ejecutor": "nada", "dureza": "blanda", "ref": ".github/ISSUE_TEMPLATE/3-encargo.yml", "test": null, "fase": ["#337", "#338"], "norma": null },
-        { "id": "P06.3", "texto": "El arreglo usa el escalón más duradero posible de la escalera", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "test": null, "fase": ["#338"], "norma": null },
-        { "id": "P06.4", "texto": "Un fondo lleva como mucho tres encargos, al menos uno preventivo y automático", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "test": null, "fase": ["#337"], "norma": null }
+        { "id": "P06.1", "texto": "El arreglo se parte en encargos colgados del fondo, uno por superficie", "ejecutor": "persona", "dureza": "blanda", "ref": ".claude/commands/revision-issues.md", "contiene": "Fondos sin arreglo en marcha", "test": null, "fase": ["#337"], "norma": null, "nota": "La revisión semanal ve los fondos sin encargos" },
+        { "id": "P06.2", "texto": "Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#337", "#338"], "norma": null, "nota": "No escrita aún: la plantilla de encargo no tiene campo de dependencias ni de juez" },
+        { "id": "P06.3", "texto": "El arreglo usa el escalón más duradero posible de la escalera", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "contiene": "La escalera de durabilidad", "test": null, "fase": ["#338"], "norma": null },
+        { "id": "P06.4", "texto": "Un fondo lleva como mucho tres encargos, al menos uno preventivo y automático", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "contiene": "como mucho tres encargos", "test": null, "fase": ["#337"], "norma": null }
       ]
     },
     {
@@ -193,15 +327,20 @@
       "quien": ["agente_dominio", "juez", "orquestador"],
       "skill": null,
       "skill_fase": [],
-      "mide": [{ "indicador": "rondas, tiempo y coste por encargo", "estado": "pendiente", "fase": "#340" }],
+      "mide": [
+        { "indicador": "rondas, tiempo y coste por encargo", "estado": "pendiente", "fase": "#340" }
+      ],
       "obligaciones": [
-        { "id": "P07.1", "texto": "Un encargo es una rama con el número de su issue, y se ve quién lo lleva", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/tarea.mjs", "test": "scripts/lleva.test.js", "fase": ["#337"], "norma": null, "nota": "La guardia y el arranque cubren a las sesiones de Claude" },
-        { "id": "P07.2", "texto": "Un PR a staging lleva Closes del issue y la línea Agente:", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/guardia.mjs", "test": ".claude/hooks/guardia.test.js", "fase": ["#337"], "norma": null, "nota": "La guardia ve a las sesiones de Claude; el CI no lo comprueba" },
-        { "id": "P07.3", "texto": "Quien construye no juzga", "ejecutor": "persona", "dureza": "blanda", "ref": ".claude/agents/revisor.md", "test": null, "fase": ["#339"], "norma": null, "nota": "El revisor lo vigila por convención" },
-        { "id": "P07.4", "texto": "Como mucho dos rondas constructor y juez; a la tercera decide una persona", "ejecutor": "nada", "dureza": "blanda", "ref": ".claude/commands/orquestar.md", "test": null, "fase": ["#339"], "norma": null },
-        { "id": "P07.5", "texto": "Todo agente sigue la plantilla: tipo, planos, método e informe común", "ejecutor": "ci", "dureza": "dura", "ref": ".claude/PLANTILLA-AGENTE.md", "test": ".claude/agentes.test.js", "fase": [], "norma": null },
-        { "id": "P07.6", "texto": "Nada llega a main ni a staging sin PR y tests en verde", "ejecutor": "github_regla", "dureza": "dura", "ref": "ops/planos.json", "test": "ops/planos.test.js", "fase": [], "norma": null, "nota": "Lo mide cada semana planos-semanal.yml" },
-        { "id": "P07.7", "texto": "Nadie cambia las propias reglas (protecciones, permisos, guardia) con credenciales de sesión", "ejecutor": "nada", "dureza": "blanda", "ref": "ops/DECISIONES.md", "test": null, "fase": ["#326"], "norma": null, "nota": "Ya hay una App de GitHub con escritura en Workflows (PR #342): #330 decide cómo convive con la revisión de dueño de código" }
+        { "id": "P07.1", "texto": "Un encargo es una rama con el número de su issue, y se ve quién lo lleva", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/tarea.mjs", "contiene": "lleva", "test": "scripts/lleva.test.js", "fase": ["#337"], "norma": null, "nota": "La guardia y el arranque cubren a las sesiones de Claude" },
+        { "id": "P07.2", "texto": "Un PR de una rama con número de issue lleva Closes de ese issue", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/guardia.mjs", "contiene": "Closes #", "test": ".claude/hooks/guardia.test.js", "fase": ["#337"], "norma": "pr-al-dia-y-closes", "nota": "Solo ramas <area>/<n>-…, y solo lo ve la guardia (a las sesiones de Claude): el CI no lo comprueba" },
+        { "id": "P07.3", "texto": "Quien construye no juzga", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "contiene": "no juzga", "test": null, "fase": ["#339"], "norma": "quien-construye-no-juzga", "nota": "Es una convención: hoy no la comprueba nada" },
+        { "id": "P07.4", "texto": "Como mucho dos rondas constructor y juez; a la tercera decide una persona", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#339"], "norma": null, "nota": "No escrita aún (fase D)" },
+        { "id": "P07.5", "texto": "Todo agente sigue la plantilla: tipo, planos, método e informe común", "ejecutor": "ci", "dureza": "dura", "ref": ".claude/PLANTILLA-AGENTE.md", "contiene": "informe común", "test": ".claude/agentes.test.js", "fase": [], "norma": null },
+        { "id": "P07.6", "texto": "main solo entra por PR con el check tests en verde", "ejecutor": "github_regla", "dureza": "semidura", "ref": "ops/DECISIONES.md", "contiene": "solo por PR", "test": "planos:check_obligatorio:main", "fase": ["#330"], "norma": "main-solo-por-pr-con-tests", "nota": "El ruleset exige el check y cero aprobaciones; con el token del workflow semanal la protección clásica de main sale «sin comprobar»" },
+        { "id": "P07.7", "texto": "Nadie cambia las propias reglas (protecciones, permisos, guardia) con credenciales de sesión", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#326"], "norma": null, "nota": "No escrita aún: es la decisión #299 y el fondo #326. Ya hay una App de GitHub con escritura en Workflows (PR #342); la decisión #353 dice cómo convive" },
+        { "id": "P07.8", "texto": "staging exige el check tests (no exige PR)", "ejecutor": "github_regla", "dureza": "semidura", "ref": "ops/DECISIONES.md", "contiene": "no exige PR", "test": "planos:check_obligatorio:staging", "fase": ["#263"], "norma": "staging-exige-tests", "nota": "Una llave de despliegue entra sin pasar el CI (#263)" },
+        { "id": "P07.9", "texto": "Cada PR dice quién lo construyó (línea Agente:)", "ejecutor": "nada", "dureza": "blanda", "ref": ".github/pull_request_template.md", "contiene": "Agente:", "test": null, "fase": ["#337"], "norma": null, "nota": "La plantilla del PR la pide; la guardia pide Closes, no Agente:" },
+        { "id": "P07.10", "texto": "Un juez no puede escribir: ni Edit, ni Write, ni memoria", "ejecutor": "ci", "dureza": "rota", "ref": "CLAUDE.md", "contiene": "sin Edit ni Write", "test": ".claude/agentes.test.js", "fase": ["#298"], "norma": "jueces-sin-escritura", "nota": "El test mira las herramientas, no la memoria (memory: project), que les da escritura" }
       ]
     },
     {
@@ -212,12 +351,14 @@
       "quien": ["automatico", "juez"],
       "skill": null,
       "skill_fase": [],
-      "mide": [{ "indicador": "fondos cerrados con test de clase", "estado": "pendiente", "fase": "#341" }],
+      "mide": [
+        { "indicador": "fondos cerrados con test de clase", "estado": "pendiente", "fase": "#341" }
+      ],
       "obligaciones": [
-        { "id": "P08.1", "texto": "Tests, lint y build pasan antes de fusionar", "ejecutor": "ci", "dureza": "dura", "ref": ".github/workflows/tests.yml", "test": "ops/planos.test.js", "fase": [], "norma": null },
-        { "id": "P08.2", "texto": "Un test de clase, no solo del caso, vigila el arreglo de un fondo", "ejecutor": "persona", "dureza": "blanda", "ref": ".claude/agents/revisor.md", "test": null, "fase": ["#337"], "norma": null, "nota": "Lo mira el revisor; B exigirá que el test exista en staging antes de pasar a observación" },
-        { "id": "P08.3", "texto": "Un test nuevo se ha visto fallar antes de creérselo", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "test": null, "fase": ["#341"], "norma": null },
-        { "id": "P08.4", "texto": "Si el PR toca un dominio con skill, declara si actualizó su runbook", "ejecutor": "ci", "dureza": "semidura", "ref": "scripts/runbook-pr.mjs", "test": null, "fase": ["#337"], "norma": null, "nota": "Exige la línea Runbook:, no que la lección esté escrita" }
+        { "id": "P08.1", "texto": "El CI corre tests, lint y build en cada PR", "ejecutor": "ci", "dureza": "dura", "ref": ".github/workflows/tests.yml", "contiene": "npm test", "test": "ops/planos.test.js", "fase": [], "norma": null, "nota": "Que un PR se fusione sin el check es otra obligación (P07.6, P07.8)" },
+        { "id": "P08.2", "texto": "Un test de clase, no solo del caso, vigila el arreglo de un fondo", "ejecutor": "persona", "dureza": "blanda", "ref": ".claude/commands/orquestar.md", "contiene": "cubre la clase", "test": null, "fase": ["#337"], "norma": null, "nota": "Lo mira el revisor; B exigirá que el test exista en staging antes de pasar a observación" },
+        { "id": "P08.3", "texto": "Un test nuevo se ha visto fallar antes de creérselo", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "contiene": "se ve fallar", "test": null, "fase": ["#341"], "norma": "test-visto-fallar" },
+        { "id": "P08.4", "texto": "Si el PR toca un dominio con skill, declara si actualizó su runbook", "ejecutor": "ci", "dureza": "semidura", "ref": "scripts/runbook-pr.mjs", "contiene": "Runbook:", "test": "scripts/runbook-pr.test.js", "fase": ["#337"], "norma": "linea-runbook", "nota": "Exige la línea Runbook:, no que la lección esté escrita" }
       ]
     },
     {
@@ -228,10 +369,12 @@
       "quien": ["automatico", "persona"],
       "skill": null,
       "skill_fase": [],
-      "mide": [{ "indicador": "fondos que no aguantaron, rotos o cortos", "estado": "existe", "donde": "scripts/lib/issues.mjs" }],
+      "mide": [
+        { "indicador": "fondos que no aguantaron, rotos o cortos", "estado": "existe", "donde": "scripts/lib/issues.mjs" }
+      ],
       "obligaciones": [
-        { "id": "P09.1", "texto": "Tras cerrar un fondo hay una ventana sin casos nuevos antes de darlo por eficaz", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "test": null, "fase": ["#337"], "norma": null },
-        { "id": "P09.2", "texto": "Un caso que no aguantó reabre el fondo y sube un nivel de alcance", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/issues.mjs", "test": "scripts/issues.test.js", "fase": ["#337"], "norma": null, "nota": "debeReabrir() reabre al colgar con npm run issues -- --colgar; no sube el alcance ni reacciona a otras vías" }
+        { "id": "P09.1", "texto": "Tras cerrar un fondo hay una ventana sin casos nuevos antes de darlo por eficaz", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#337"], "norma": null, "nota": "No escrita aún (fase B)" },
+        { "id": "P09.2", "texto": "Un caso que no aguantó reabre el fondo y sube un nivel de alcance", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/issues.mjs", "contiene": "export function debeReabrir", "test": "scripts/issues.test.js", "fase": ["#337"], "norma": null, "nota": "debeReabrir() reabre al colgar con npm run issues -- --colgar; no sube el alcance ni reacciona a otras vías" }
       ]
     },
     {
@@ -242,9 +385,11 @@
       "quien": ["automatico", "persona"],
       "skill": null,
       "skill_fase": [],
-      "mide": [{ "indicador": "días hasta cerrar un fondo, por causa y por agente", "estado": "existe", "donde": "scripts/lib/issues.mjs" }],
+      "mide": [
+        { "indicador": "días hasta cerrar un fondo, por causa y por agente", "estado": "existe", "donde": "scripts/lib/issues.mjs" }
+      ],
       "obligaciones": [
-        { "id": "P10.1", "texto": "Un fondo no se cierra con encargos abiertos, sin el PR de su arreglo ni sin su etiqueta arreglo:", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/issues.mjs", "test": "scripts/issues.test.js", "fase": ["#337"], "norma": null }
+        { "id": "P10.1", "texto": "Un fondo no se cierra con encargos abiertos, sin el PR de su arreglo ni sin su etiqueta arreglo:", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/issues.mjs", "contiene": "encargos abiertos", "test": "scripts/issues.test.js", "fase": ["#337"], "norma": null }
       ]
     },
     {
@@ -255,12 +400,14 @@
       "quien": ["agente_dominio", "juez"],
       "skill": null,
       "skill_fase": ["#338"],
-      "mide": [{ "indicador": "fondos cerrados con aprendizaje registrado", "estado": "pendiente", "fase": "#337" }],
+      "mide": [
+        { "indicador": "fondos cerrados con aprendizaje registrado", "estado": "pendiente", "fase": "#337" }
+      ],
       "obligaciones": [
-        { "id": "P11.1", "texto": "Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "test": null, "fase": ["#337", "#338"], "norma": null, "nota": "El campo de aprendizaje y su control son de la fase B" },
-        { "id": "P11.2", "texto": "Toda skill de herramienta sigue la plantilla", "ejecutor": "ci", "dureza": "dura", "ref": ".claude/PLANTILLA-SKILL.md", "test": ".claude/skills.test.js", "fase": [], "norma": null },
-        { "id": "P11.3", "texto": "Una skill se prueba con casos y sigue funcionando tras cambiarla", "ejecutor": "nada", "dureza": "blanda", "ref": ".claude/skills.test.js", "test": null, "fase": ["#336", "#341"], "norma": null, "nota": "Hoy el test mira la forma de la skill, no que ayude" },
-        { "id": "P11.4", "texto": "Una pieza nueva (skill, catálogo o agente) solo se crea si cumple la regla de parada", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "test": null, "fase": ["#341"], "norma": null }
+        { "id": "P11.1", "texto": "Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "contiene": "a la memoria, nunca", "test": null, "fase": ["#337", "#338"], "norma": "lecciones-a-un-test", "nota": "El campo de aprendizaje y su control son de la fase B" },
+        { "id": "P11.2", "texto": "Toda skill de herramienta sigue la plantilla", "ejecutor": "ci", "dureza": "dura", "ref": ".claude/PLANTILLA-SKILL.md", "contiene": "## Forma", "test": ".claude/skills.test.js", "fase": [], "norma": null },
+        { "id": "P11.3", "texto": "Una skill se prueba con casos y sigue funcionando tras cambiarla", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#336", "#341"], "norma": null, "nota": "No escrita aún: hoy skills.test.js mira la forma de la skill, no que ayude" },
+        { "id": "P11.4", "texto": "Una pieza nueva (skill, catálogo o agente) solo se crea si cumple la regla de parada", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "contiene": "regla de parada", "test": null, "fase": ["#341"], "norma": null }
       ]
     },
     {
@@ -271,13 +418,15 @@
       "quien": ["automatico", "persona"],
       "skill": null,
       "skill_fase": [],
-      "mide": [{ "indicador": "presupuestado frente a real, por alcance y causa", "estado": "pendiente", "fase": "#340" }],
+      "mide": [
+        { "indicador": "presupuestado frente a real, por alcance y causa", "estado": "pendiente", "fase": "#340" }
+      ],
       "obligaciones": [
-        { "id": "P12.1", "texto": "El nivel de cada plano sale de criterios comprobables, no a ojo", "ejecutor": "ci", "dureza": "dura", "ref": "scripts/lib/planos.mjs", "test": "ops/planos.test.js", "fase": [], "norma": null },
-        { "id": "P12.2", "texto": "Los planos miden si la protección resiste, no si el fichero existe", "ejecutor": "nada", "dureza": "blanda", "ref": "ops/planos.json", "test": null, "fase": ["#321", "#341"], "norma": null },
-        { "id": "P12.3", "texto": "Rondas, tiempo y coste de cada ciclo se miden por número de issue", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "test": null, "fase": ["#340"], "norma": null },
-        { "id": "P12.4", "texto": "Los presupuestos se recalibran cada semana con lo medido", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "test": null, "fase": ["#340"], "norma": null },
-        { "id": "P12.5", "texto": "Las normas del proceso que se incumplen se cuentan", "ejecutor": "nada", "dureza": "blanda", "ref": "ops/PLANOS.md", "test": null, "fase": ["#296", "#185"], "norma": null, "nota": "El registro de normas está en curso en la rama ops/296-registro-normas" }
+        { "id": "P12.1", "texto": "El nivel de cada plano sale de criterios comprobables (los de juicio llevan fecha)", "ejecutor": "ci", "dureza": "dura", "ref": "scripts/lib/planos.mjs", "contiene": "export function medir", "test": "ops/planos.test.js", "fase": [], "norma": null },
+        { "id": "P12.2", "texto": "Los planos miden si la protección resiste, no si el fichero existe", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#321", "#341"], "norma": null, "nota": "No escrita aún: hoy los criterios miden sobre todo que el fichero existe (#321)" },
+        { "id": "P12.3", "texto": "Rondas, tiempo y coste de cada ciclo se miden por número de issue", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#340"], "norma": null, "nota": "No escrita aún (fase F)" },
+        { "id": "P12.4", "texto": "Los presupuestos se recalibran cada semana con lo medido", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#340"], "norma": null, "nota": "No escrita aún (fase F)" },
+        { "id": "P12.5", "texto": "Las normas del proceso que se incumplen se cuentan cada semana", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/normas.mjs", "contiene": "export function medirFondo", "test": "ops/normas.test.js", "fase": ["#341", "#185"], "norma": null, "nota": "npm run planos lo mide cada lunes (planos-semanal.yml): frases normativas sin citar, casos sin fondo, fondos sin encargo y fondos cerrados sin test; no cuenta el resto de normas incumplidas" }
       ]
     }
   ]

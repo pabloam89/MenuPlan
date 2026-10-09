@@ -14,7 +14,7 @@ existe, si una obligación se dice dura sin serlo o si las tablas no coinciden.
 El vocabulario de las clases de issue (tipo, análisis, causa, área, arreglo)
 tiene **una sola fuente**: `scripts/lib/issues.mjs`. Aquí no se repite.
 
-## El invariante
+## El invariante (el objetivo, no el estado de hoy)
 
 > Todo fallo detectado recorre el mismo camino, y cada paso lo impone un
 > mecanismo y no una frase. **Detectar → registrar el caso → triaje →
@@ -27,12 +27,15 @@ Un fondo (`tipo:fondo`) es el problema de fondo; cuelgan de él los casos
 un caso (nuevo, abierto, no aguantó, puntual) y su definición están en
 `scripts/lib/issues.mjs`; el principio, en `CLAUDE.md` («Cuando algo falla»).
 
+**Hoy ningún paso es duro de punta a punta.** La cuenta está debajo de la tabla
+de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subir.
+
 ## Cómo se lee
 
 - Un **paso** tiene **obligaciones**: lo que tiene que ser verdad para que el
   paso valga. Cada obligación dice **quién la hace cumplir** (el `ejecutor`,
-  con el mismo vocabulario que el registro de normas #296) y **cómo de dura es
-  hoy**:
+  con el vocabulario del registro de normas #296, que se importa de
+  `scripts/lib/normas.mjs` y no se copia) y **cómo de dura es hoy**:
   - **dura**: la hace cumplir el sistema (CI, regla de GitHub, la base…), a
     todos, y un test lo vigila;
   - **semidura**: tiene ejecutor, pero solo alcanza a las sesiones de Claude, a
@@ -43,6 +46,15 @@ un caso (nuevo, abierto, no aguantó, puntual) y su definición están en
   blando es blanda, aunque los demás sean duros.
 - Toda obligación que no es dura dice **qué fase la endurece** (`fase`), o se
   acepta como está y por qué (`aceptada`, solo para avisos que no son puertas).
+- `ref` es dónde vive el mecanismo o dónde está **escrita** la norma, y
+  `contiene` la frase que ese fichero tiene que llevar de verdad: el test la
+  busca, porque un fichero que existe no basta. Si la norma no está escrita en
+  ningún sitio, `ref` es nulo y la nota dice «No escrita aún».
+- Una obligación **enlazada con una norma** (`norma`) dice lo mismo que el
+  registro en ejecutor y en dureza, y el test lo exige. Una obligación sin norma
+  solo se declara dura con un `*.test.js` que nombre su fichero. **Límite
+  conocido:** que un test nombre un fichero es un indicio, no una prueba de que
+  lo vigile.
 
 ## Los doce pasos
 
@@ -68,65 +80,68 @@ un caso (nuevo, abierto, no aguantó, puntual) y su definición están en
 ## Obligaciones y qué las hace cumplir
 
 <!-- flujo:pasos:inicio -->
-| Paso | Obligación | Lo hace cumplir | Hoy | Fase que la endurece |
-|---|---|---|---|---|
-| **Detectar** · semidura | | | | |
-| P01.1 | Un fallo de Lola o de la generación en producción avisa en minutos | proveedor · `.github/workflows/vigia-lola.yml` | semidura | #315 |
-| P01.2 | Un fallo del resto de la app llega a alguien el mismo día | proveedor · `.github/workflows/agente-fallos.yml` | semidura | #315, #313 |
-| P01.3 | Toda sesión sabe al abrirse qué issues esperan y quién lleva qué | guardia · `.claude/hooks/arranque.mjs` | semidura | — |
-| **Registrar el caso** · blanda | | | | |
-| P02.1 | Antes de crear un issue se buscan los parecidos | guardia · `.claude/hooks/guardia.mjs` | semidura | #325, #337 |
-| P02.2 | Todo fallo del camino queda como caso y no solo en el chat | guardia · `.claude/hooks/pendientes.mjs` | semidura | #312 |
-| P02.3 | Cada PR declara los casos que vio (línea Casos:) | nada · `.claude/commands/orquestar.md` | blanda | #312 |
-| P02.4 | Nada sensible en un issue: el repo es público | nada · `CLAUDE.md` | blanda | #300 |
-| **Triaje** · blanda | | | | |
-| P03.1 | Se fija el alcance y el tipo de causa antes de gastar esfuerzo | nada · `.claude/commands/orquestar.md` | blanda | #339 |
-| P03.2 | El esfuerzo sale del presupuesto de su alcance, no de lo que decida la sesión | nada · `ops/flujo.json` | blanda | #339 |
-| **Diagnosticar** · blanda | | | | |
-| P04.1 | El caso acaba en una de las cuatro respuestas (nuevo, abierto, no aguantó, puntual) y cuelga de su fondo | script_propio · `scripts/lib/issues.mjs` | semidura | #337 |
-| P04.2 | Se busca el fondo que ya existe antes de abrir uno | script_propio · `scripts/issues.mjs` | semidura | #337 |
-| P04.3 | El diagnóstico llega a algo que se puede cambiar con un mecanismo y dice por qué nada lo detectó (causa de escape) | nada · `docs/ops/FLUJO.md` | blanda | #338, #337 |
-| P04.4 | Lo que no se ha comprobado se marca como hipótesis y no se copia como hecho | nada · `CLAUDE.md` | blanda | #338 |
-| P04.5 | Antes de evaluar código, se mira lo ya apuntado en issues y encargos | nada · `.claude/hooks/avisos.mjs` | blanda | #320 |
-| **Fondo** · blanda | | | | |
-| P05.1 | Un fondo lleva arreglo general en el cuerpo y una causa de un vocabulario cerrado | script_propio · `.github/ISSUE_TEMPLATE/2-fondo.yml` | semidura | #337 |
-| P05.2 | Sin diagnóstico (mecanismo y causa de escape) no hay encargos | nada · `scripts/lib/issues.mjs` | blanda | #337 |
-| **Plan** · blanda | | | | |
-| P06.1 | El arreglo se parte en encargos colgados del fondo, uno por superficie | persona · `.claude/commands/revision-issues.md` | blanda | #337 |
-| P06.2 | Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga | nada · `.github/ISSUE_TEMPLATE/3-encargo.yml` | blanda | #337, #338 |
-| P06.3 | El arreglo usa el escalón más duradero posible de la escalera | nada · `docs/ops/FLUJO.md` | blanda | #338 |
-| P06.4 | Un fondo lleva como mucho tres encargos, al menos uno preventivo y automático | nada · `docs/ops/FLUJO.md` | blanda | #337 |
-| **Ejecutar** · blanda | | | | |
-| P07.1 | Un encargo es una rama con el número de su issue, y se ve quién lo lleva | script_propio · `scripts/tarea.mjs` | semidura | #337 |
-| P07.2 | Un PR a staging lleva Closes del issue y la línea Agente: | guardia · `.claude/hooks/guardia.mjs` | semidura | #337 |
-| P07.3 | Quien construye no juzga | persona · `.claude/agents/revisor.md` | blanda | #339 |
-| P07.4 | Como mucho dos rondas constructor y juez; a la tercera decide una persona | nada · `.claude/commands/orquestar.md` | blanda | #339 |
-| P07.5 | Todo agente sigue la plantilla: tipo, planos, método e informe común | ci · `.claude/PLANTILLA-AGENTE.md` | dura | — |
-| P07.6 | Nada llega a main ni a staging sin PR y tests en verde | github_regla · `ops/planos.json` | dura | — |
-| P07.7 | Nadie cambia las propias reglas (protecciones, permisos, guardia) con credenciales de sesión | nada · `ops/DECISIONES.md` | blanda | #326 |
-| **Verificar** · blanda | | | | |
-| P08.1 | Tests, lint y build pasan antes de fusionar | ci · `.github/workflows/tests.yml` | dura | — |
-| P08.2 | Un test de clase, no solo del caso, vigila el arreglo de un fondo | persona · `.claude/agents/revisor.md` | blanda | #337 |
-| P08.3 | Un test nuevo se ha visto fallar antes de creérselo | nada · `CLAUDE.md` | blanda | #341 |
-| P08.4 | Si el PR toca un dominio con skill, declara si actualizó su runbook | ci · `scripts/runbook-pr.mjs` | semidura | #337 |
-| **Observar** · blanda | | | | |
-| P09.1 | Tras cerrar un fondo hay una ventana sin casos nuevos antes de darlo por eficaz | nada · `docs/ops/FLUJO.md` | blanda | #337 |
-| P09.2 | Un caso que no aguantó reabre el fondo y sube un nivel de alcance | script_propio · `scripts/lib/issues.mjs` | semidura | #337 |
-| **Cerrar** · semidura | | | | |
-| P10.1 | Un fondo no se cierra con encargos abiertos, sin el PR de su arreglo ni sin su etiqueta arreglo: | script_propio · `scripts/lib/issues.mjs` | semidura | #337 |
-| **Aprender** · blanda | | | | |
-| P11.1 | Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria | nada · `CLAUDE.md` | blanda | #337, #338 |
-| P11.2 | Toda skill de herramienta sigue la plantilla | ci · `.claude/PLANTILLA-SKILL.md` | dura | — |
-| P11.3 | Una skill se prueba con casos y sigue funcionando tras cambiarla | nada · `.claude/skills.test.js` | blanda | #336, #341 |
-| P11.4 | Una pieza nueva (skill, catálogo o agente) solo se crea si cumple la regla de parada | nada · `docs/ops/FLUJO.md` | blanda | #341 |
-| **Medir** · blanda | | | | |
-| P12.1 | El nivel de cada plano sale de criterios comprobables, no a ojo | ci · `scripts/lib/planos.mjs` | dura | — |
-| P12.2 | Los planos miden si la protección resiste, no si el fichero existe | nada · `ops/planos.json` | blanda | #321, #341 |
-| P12.3 | Rondas, tiempo y coste de cada ciclo se miden por número de issue | nada · `docs/ops/FLUJO.md` | blanda | #340 |
-| P12.4 | Los presupuestos se recalibran cada semana con lo medido | nada · `docs/ops/FLUJO.md` | blanda | #340 |
-| P12.5 | Las normas del proceso que se incumplen se cuentan | nada · `ops/PLANOS.md` | blanda | #296, #185 |
+| Paso | Obligación | Lo hace cumplir | Hoy | Norma | Fase que la endurece |
+|---|---|---|---|---|---|
+| **Detectar** · semidura | | | | | |
+| P01.1 | Un fallo de Lola o de la generación en producción avisa en minutos | proveedor · `.github/workflows/vigia-lola.yml` | semidura | — | #315 |
+| P01.2 | Un fallo del resto de la app llega a alguien el mismo día | proveedor · `.github/workflows/agente-fallos.yml` | semidura | — | #315, #313 |
+| P01.3 | Toda sesión sabe al abrirse qué issues esperan y quién lleva qué | guardia · `.claude/hooks/arranque.mjs` | semidura | — | — |
+| **Registrar el caso** · blanda | | | | | |
+| P02.1 | Antes de crear un issue se buscan los parecidos | guardia · `.claude/hooks/guardia.mjs` | semidura | `issues-con-buscar-antes` | #325, #337 |
+| P02.2 | Las decisiones y pendientes que deja una sesión pasan a un issue | guardia · `.claude/hooks/pendientes.mjs` | semidura | `pendientes-a-issue` | #312 |
+| P02.3 | Todo fallo del camino queda como caso, y cada PR declara los casos que vio (línea Casos:) | nada · no escrita aún | blanda | — | #312 |
+| P02.4 | Nada sensible en un issue: el repo es público | nada · `CLAUDE.md` | blanda | `repo-publico-sin-detalle` | #300 |
+| **Triaje** · blanda | | | | | |
+| P03.1 | Se fija el alcance y el tipo de causa antes de gastar esfuerzo | nada · no escrita aún | blanda | — | #339 |
+| P03.2 | El esfuerzo sale del presupuesto de su alcance, no de lo que decida la sesión | nada · no escrita aún | blanda | — | #339 |
+| **Diagnosticar** · blanda | | | | | |
+| P04.1 | El caso acaba en una de las cuatro respuestas (nuevo, abierto, no aguantó, puntual) y cuelga de su fondo | script_propio · `scripts/lib/issues.mjs` | semidura | — | #337 |
+| P04.2 | Se busca el fondo que ya existe antes de abrir uno | script_propio · `scripts/issues.mjs` | semidura | — | #337 |
+| P04.3 | El diagnóstico llega a algo que se puede cambiar con un mecanismo y dice por qué nada lo detectó (causa de escape) | nada · no escrita aún | blanda | — | #338, #337 |
+| P04.4 | Lo que no se ha comprobado se marca como hipótesis y no se copia como hecho | nada · no escrita aún | blanda | — | #338 |
+| P04.5 | Antes de evaluar código, se mira lo ya apuntado en issues y encargos | nada · no escrita aún | blanda | — | #320 |
+| **Fondo** · blanda | | | | | |
+| P05.1 | Un fondo lleva arreglo general en el cuerpo y una causa de un vocabulario cerrado | script_propio · `.github/ISSUE_TEMPLATE/2-fondo.yml` | semidura | — | #337 |
+| P05.2 | Sin diagnóstico (mecanismo y causa de escape) no hay encargos | nada · no escrita aún | blanda | — | #337 |
+| **Plan** · blanda | | | | | |
+| P06.1 | El arreglo se parte en encargos colgados del fondo, uno por superficie | persona · `.claude/commands/revision-issues.md` | blanda | — | #337 |
+| P06.2 | Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga | nada · no escrita aún | blanda | — | #337, #338 |
+| P06.3 | El arreglo usa el escalón más duradero posible de la escalera | nada · `docs/ops/FLUJO.md` | blanda | — | #338 |
+| P06.4 | Un fondo lleva como mucho tres encargos, al menos uno preventivo y automático | nada · `docs/ops/FLUJO.md` | blanda | — | #337 |
+| **Ejecutar** · rota | | | | | |
+| P07.1 | Un encargo es una rama con el número de su issue, y se ve quién lo lleva | script_propio · `scripts/tarea.mjs` | semidura | — | #337 |
+| P07.2 | Un PR de una rama con número de issue lleva Closes de ese issue | guardia · `.claude/hooks/guardia.mjs` | semidura | `pr-al-dia-y-closes` | #337 |
+| P07.3 | Quien construye no juzga | nada · `CLAUDE.md` | blanda | `quien-construye-no-juzga` | #339 |
+| P07.4 | Como mucho dos rondas constructor y juez; a la tercera decide una persona | nada · no escrita aún | blanda | — | #339 |
+| P07.5 | Todo agente sigue la plantilla: tipo, planos, método e informe común | ci · `.claude/PLANTILLA-AGENTE.md` | dura | — | — |
+| P07.6 | main solo entra por PR con el check tests en verde | github_regla · `ops/DECISIONES.md` | semidura | `main-solo-por-pr-con-tests` | #330 |
+| P07.7 | Nadie cambia las propias reglas (protecciones, permisos, guardia) con credenciales de sesión | nada · no escrita aún | blanda | — | #326 |
+| P07.8 | staging exige el check tests (no exige PR) | github_regla · `ops/DECISIONES.md` | semidura | `staging-exige-tests` | #263 |
+| P07.9 | Cada PR dice quién lo construyó (línea Agente:) | nada · `.github/pull_request_template.md` | blanda | — | #337 |
+| P07.10 | Un juez no puede escribir: ni Edit, ni Write, ni memoria | ci · `CLAUDE.md` | rota | `jueces-sin-escritura` | #298 |
+| **Verificar** · blanda | | | | | |
+| P08.1 | El CI corre tests, lint y build en cada PR | ci · `.github/workflows/tests.yml` | dura | — | — |
+| P08.2 | Un test de clase, no solo del caso, vigila el arreglo de un fondo | persona · `.claude/commands/orquestar.md` | blanda | — | #337 |
+| P08.3 | Un test nuevo se ha visto fallar antes de creérselo | nada · `CLAUDE.md` | blanda | `test-visto-fallar` | #341 |
+| P08.4 | Si el PR toca un dominio con skill, declara si actualizó su runbook | ci · `scripts/runbook-pr.mjs` | semidura | `linea-runbook` | #337 |
+| **Observar** · blanda | | | | | |
+| P09.1 | Tras cerrar un fondo hay una ventana sin casos nuevos antes de darlo por eficaz | nada · no escrita aún | blanda | — | #337 |
+| P09.2 | Un caso que no aguantó reabre el fondo y sube un nivel de alcance | script_propio · `scripts/lib/issues.mjs` | semidura | — | #337 |
+| **Cerrar** · semidura | | | | | |
+| P10.1 | Un fondo no se cierra con encargos abiertos, sin el PR de su arreglo ni sin su etiqueta arreglo: | script_propio · `scripts/lib/issues.mjs` | semidura | — | #337 |
+| **Aprender** · blanda | | | | | |
+| P11.1 | Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria | nada · `CLAUDE.md` | blanda | `lecciones-a-un-test` | #337, #338 |
+| P11.2 | Toda skill de herramienta sigue la plantilla | ci · `.claude/PLANTILLA-SKILL.md` | dura | — | — |
+| P11.3 | Una skill se prueba con casos y sigue funcionando tras cambiarla | nada · no escrita aún | blanda | — | #336, #341 |
+| P11.4 | Una pieza nueva (skill, catálogo o agente) solo se crea si cumple la regla de parada | nada · `docs/ops/FLUJO.md` | blanda | — | #341 |
+| **Medir** · blanda | | | | | |
+| P12.1 | El nivel de cada plano sale de criterios comprobables (los de juicio llevan fecha) | ci · `scripts/lib/planos.mjs` | dura | — | — |
+| P12.2 | Los planos miden si la protección resiste, no si el fichero existe | nada · no escrita aún | blanda | — | #321, #341 |
+| P12.3 | Rondas, tiempo y coste de cada ciclo se miden por número de issue | nada · no escrita aún | blanda | — | #340 |
+| P12.4 | Los presupuestos se recalibran cada semana con lo medido | nada · no escrita aún | blanda | — | #340 |
+| P12.5 | Las normas del proceso que se incumplen se cuentan cada semana | script_propio · `scripts/lib/normas.mjs` | semidura | — | #341, #185 |
 
-**43 obligaciones:** 5 duras · 13 semiduras · 25 blandas · 0 rotas.
+**46 obligaciones:** 4 duras · 16 semiduras · 25 blandas · 1 rotas. 11 están enlazadas con su norma del registro.
 <!-- flujo:pasos:fin -->
 
 ## Lo que ya existía
@@ -144,11 +159,11 @@ sitios, y por eso la especificación va antes de construir:
   `npm run issues`. Ningún workflow reacciona a un issue abierto, cerrado o
   colgado desde otra vía. La fase B (#337) **mueve** esos controles a los
   eventos de GitHub y añade los campos nuevos.
-- **A y la línea Casos: corren a la vez, no después.** El registro de normas
-  (#296) y la línea `Casos:` del PR (#312) ya tienen sesión y rama propias en
-  curso. No esperan a este documento: cuando entren, las obligaciones P02.3 y
-  P12.5 dejarán de ser blandas y el campo `norma` de cada obligación se
-  rellenará con su id.
+- **La fase A ya está en staging** (PR #349): `ops/normas.json` con 58 normas y
+  su vocabulario en `scripts/lib/normas.mjs`. No esperó a este documento. Las
+  obligaciones de aquí se enlazan con su norma y no pueden contradecirla; lo que
+  falta de A está en #351. La línea `Casos:` del PR (#312) sigue en la rama
+  `ops/casos-obligatorios`, sin fusionar: hasta entonces P02.3 es blanda.
 - **Ya hay una identidad de máquina.** La App `homenu-dependabot-merge` (PR
   #342) fusiona en staging los PR de actions de Dependabot, con su clave en un
   environment de GitHub y no en una sesión. Es el primer caso del patrón de
@@ -211,30 +226,36 @@ consumidores, no repite nada que ya esté en otra y tiene dueño y test. Lo que
 no se usa se aparca (`arquitecto` y `rendimiento` están en
 `.claude/agentes-aparcados/`).
 
-## Proporcionalidad: cuánto esfuerzo, y cuándo parar
+## Proporcionalidad: cuánto esfuerzo, y cuándo parar (objetivo de las fases D y F)
 
-El triaje fija el **alcance** (local, módulo o transversal; definiciones en
-`ops/flujo.json`) y el tipo de causa antes de gastar nada. De ahí salen la
+**Esta sección es el objetivo, no el estado de hoy**: ningún punto de ella lo
+impone todavía un mecanismo (ver P03.1, P03.2, P07.4 y P09.2 en la tabla).
+
+El triaje fijará el **alcance** (local, módulo o transversal; definiciones en
+`ops/flujo.json`) y el tipo de causa antes de gastar nada. De ahí saldrán la
 técnica, los jueces y el tope.
 
 - **El presupuesto es un dato, no una opinión.** Los valores de arriba son
-  iniciales y a ojo; la fase F los compara cada semana con lo medido (rondas,
-  tiempo, coste, si aguantó, por alcance y tipo de causa) y propone
-  recalibrarlos. Una persona los aplica.
-- **El diagnóstico se para por criterio, no por cansancio.** Se deja de
+  iniciales y a ojo; la fase F los comparará cada semana con lo medido (rondas,
+  tiempo, coste, si aguantó, por alcance y tipo de causa) y propondrá
+  recalibrarlos. Una persona los aplicará.
+- **El diagnóstico se parará por criterio, no por cansancio.** Se dejará de
   preguntar «¿por qué?» cuando se llega a algo que se puede cambiar con un
   mecanismo; cuando se llega a algo fuera de nuestro control (se pone una
   barrera de nuestro lado); o cuando se acaba la evidencia (se marca como
   hipótesis, con lo que habría que observar para confirmarla; nunca se inventa
   la cadena).
-- **Dos rondas como máximo** de constructor y juez. Si el juez sigue
-  bloqueando tras la segunda, no hay tercera vuelta: decide una persona, con un
-  issue de decisión.
-- **Si el diagnóstico se queda corto, el sistema lo corrige solo.** Un caso
-  que vuelve dentro de la ventana de observación reabre su fondo y **sube un
-  nivel de alcance**: lo que se creyó local y vuelve se trata como de módulo.
+- **Dos rondas como máximo** de constructor y juez (P07.4, sin mecanismo
+  todavía). Si el juez sigue bloqueando tras la segunda, no habrá tercera
+  vuelta: decidirá una persona, con un issue de decisión.
+- **Si el diagnóstico se queda corto, el sistema lo corregirá solo** (P09.2).
+  Un caso que vuelva dentro de la ventana de observación reabrirá su fondo y
+  **subirá un nivel de alcance**: lo que se creyó local y vuelve se tratará
+  como de módulo. Hoy solo se reabre el fondo, y solo al colgar el caso con
+  `npm run issues`; ni sube el alcance ni hay ventana.
 - **Un fondo, como mucho tres encargos**, y al menos uno preventivo y
-  automático. Muchas acciones se diluyen y no se cierran.
+  automático (P06.4, sin mecanismo todavía). Muchas acciones se diluyen y no
+  se cierran.
 
 ## Estructura y texto
 
@@ -261,6 +282,7 @@ Una obligación que pasa de blanda a dura **cambia de `ejecutor` y de `dureza`
 en el mismo PR que construye el mecanismo**, con su `test`. El test no deja
 declarar `dura` sin ejecutor del sistema y sin un test que exista.
 
-Al entrar el registro de normas (#296), `ops/flujo.test.js` comprueba solo que
-los vocabularios de ejecutor y de veredicto coinciden con los suyos, y que
-cada `norma` citada existe en `ops/normas.json`.
+El vocabulario de ejecutor y de veredicto se importa de `scripts/lib/normas.mjs`,
+y `ops/flujo.test.js` comprueba que cada obligación enlazada con una `norma` dice
+lo mismo que `ops/normas.json`: si el registro cambia un veredicto, cambia aquí
+en el mismo PR.
