@@ -30,7 +30,10 @@ describe("productoBuscado.json", () => {
   // Un término que ya no encuentra nada es una decisión muerta: el súper cambió
   // de nombre y nadie se enteró. El cron refresca el catálogo cada semana, así
   // que esto tiene que saltar solo.
-  it.each(entradas)("«%s» sigue encontrando su producto", (clave, valor) => {
+  // Menos lo de temporada (`puedeFaltar`): el 9 oct 2026 la hierbabuena fresca
+  // salió del catálogo y el cron dejó staging en rojo por algo correcto.
+  const fijas = entradas.filter(([, v]) => !v.puedeFaltar);
+  it.each(fijas)("«%s» sigue encontrando su producto", (clave, valor) => {
     for (const termino of valor.buscar) {
       const encuentra = productos.some((p) => scoreProductName(p.name, normalizeName(termino)) >= 0.7);
       expect(encuentra, `«${termino}» ya no encuentra nada en el catálogo`).toBe(true);
@@ -39,9 +42,20 @@ describe("productoBuscado.json", () => {
 
   // Y que el término gane de verdad: si el nombre del ingrediente sigue
   // llevándose el producto equivocado, la decisión no sirve de nada.
-  it.each(entradas)("«%s» se lleva un producto", (clave) => {
+  it.each(fijas)("«%s» se lleva un producto", (clave) => {
     const ing = ingredients.find((i) => normalizeName(i.name) === clave);
     expect(matchProductForIngredient(ing.name, productos)?.product).toBeTruthy();
+  });
+
+  // Lo de temporada: o se lleva su producto, o ninguno. Nunca otro.
+  it.each(entradas.filter(([, v]) => v.puedeFaltar))("«%s» (de temporada) se lleva el suyo o ninguno", (clave, valor) => {
+    const ing = ingredients.find((i) => normalizeName(i.name) === clave);
+    const hit = matchProductForIngredient(ing.name, productos);
+    if (hit) expect(valor.buscar.some((t) => scoreProductName(hit.product.name, normalizeName(t)) >= 0.7)).toBe(true);
+  });
+
+  it("puedeFaltar solo vale true", () => {
+    for (const [, v] of entradas) if ("puedeFaltar" in v) expect(v.puedeFaltar).toBe(true);
   });
 });
 
