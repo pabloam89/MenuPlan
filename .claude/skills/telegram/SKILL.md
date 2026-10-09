@@ -20,7 +20,7 @@ Esto es operar la plataforma. Cómo se escribe el código de Lola está en
   (`.github/workflows/vigia-lola.yml`, `scripts/vigia.mjs`). No tiene webhook
   ni lee nada; no es Lola. Manu no tiene acceso al repo: **ningún aviso lleva
   datos de familias**, solo cifras, motivos, sitios y enlaces. Token en
-  1Password (`HoMenu/Telegram avisos`) y en el secreto de Actions
+  1Password (`HoMenu/Telegram avisos`) y en el environment `vigia` de GitHub,
   `AVISOS_TELEGRAM_TOKEN`; el chat del grupo, en la variable
   `AVISOS_TELEGRAM_CHAT`.
 - **El canario** (`api/bot/canario.js`) llama al webhook de Lola de su propio

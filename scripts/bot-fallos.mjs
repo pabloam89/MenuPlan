@@ -43,19 +43,24 @@ function intentar(trozo) {
   }
 }
 
-/** Las líneas bot_fallo que hay dentro de un texto (una línea JSON de Vercel o una línea suelta). */
+// Lo que puede ir delante de la línea al copiarla de la consola de Vercel:
+// la fecha y el nivel («2026-10-08T10:00:00Z error »). Nada más.
+const PREFIJO_CONSOLA = /^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s+(?:[a-z]+\s+)?/i;
+const INICIO = `{${MARCA}`;
+
+/**
+ * Las líneas bot_fallo de un texto: solo las que son ENTERAS una línea de
+ * avisar.js, que empieza por `{"evento":"bot_fallo"` (con, como mucho, la
+ * fecha y el nivel delante). Una marca a mitad de otro texto (lo que alguien
+ * escribió y acabó en un log) no cuenta: el vigía avisa con lo que lee de aquí.
+ */
 function deTexto(texto, out) {
-  let i = texto.indexOf(MARCA);
-  while (i >= 0) {
-    const desde = texto.lastIndexOf("{", i);
-    // El primer «}» que cierra un JSON válido (el texto de un «otro» puede llevar llaves).
-    let leido = null;
-    for (let hasta = texto.indexOf("}", i), n = 0; hasta > desde && desde >= 0 && n < 20 && !leido; hasta = texto.indexOf("}", hasta + 1), n++) {
-      leido = intentar(texto.slice(desde, hasta + 1));
-    }
+  for (const cruda of texto.split(/\r?\n/)) {
+    const linea = cruda.trim().replace(PREFIJO_CONSOLA, "");
+    if (!linea.startsWith(INICIO)) continue;
+    const leido = intentar(linea);
     if (leido) out.push(leido);
     else out.ilegibles = (out.ilegibles ?? 0) + 1;
-    i = texto.indexOf(MARCA, i + MARCA.length);
   }
 }
 
@@ -168,6 +173,19 @@ function argumentos(argv) {
 // pidas (comprobado el 8 oct 2026 con la CLI 62.1.0).
 const TANDA = 50;
 
+// Lo único del entorno que ve la CLI de Vercel: dónde están los programas, la
+// carpeta de usuario (su sesión de `vercel login`) y VERCEL_TOKEN, que la CLI
+// lee del entorno (comprobado el 9 oct 2026 con la 62.1.0: con uno malo dice
+// «The token provided via VERCEL_TOKEN environment variable is not valid»).
+// Así el token no va en la línea de órdenes y el resto de secretos del
+// proceso (los del vigía) no llegan a la CLI.
+const DEL_ENTORNO = ["PATH", "Path", "PATHEXT", "HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "SystemRoot", "ComSpec", "TEMP", "TMP", "VERCEL_TOKEN"];
+
+/** El entorno mínimo para la CLI de Vercel. */
+export function entornoDeVercel(env = process.env) {
+  return Object.fromEntries(DEL_ENTORNO.filter((k) => env[k] != null).map((k) => [k, env[k]]));
+}
+
 /**
  * Una tanda de `vercel logs` entre dos instantes (ms), en JSON Lines. Con
  * VERCEL_TOKEN en el entorno (el vigía, en GitHub Actions) entra con él; si
@@ -178,11 +196,8 @@ export function tandaDeVercel(entorno) {
     const args = ["logs", "--project", PROYECTO, "--scope", EQUIPO, "--environment", entorno,
       "--since", new Date(desde).toISOString(), "--until", new Date(hasta).toISOString(),
       "--query", "bot_fallo", "--json", "--limit", String(TANDA)];
-    // Como argumento y nunca impreso: en Actions el log es público. En Windows
-    // va por la shell (vercel.cmd), así que allí mejor `vercel login`.
-    if (process.env.VERCEL_TOKEN) args.push("--token", process.env.VERCEL_TOKEN);
     // En Windows la CLI es vercel.cmd: hace falta la shell. Los argumentos son fijos, fechas ISO o números ya comprobados.
-    const opciones = { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 };
+    const opciones = { encoding: "utf8", maxBuffer: 256 * 1024 * 1024, env: entornoDeVercel() };
     const r = process.platform === "win32"
       ? spawnSync(`vercel ${args.join(" ")}`, { ...opciones, shell: true })
       : spawnSync("vercel", args, opciones);

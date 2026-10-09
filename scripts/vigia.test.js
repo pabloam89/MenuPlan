@@ -4,9 +4,9 @@
 import { describe, it, expect } from "vitest";
 import {
   pasada, evaluarReglas, evaluarSeguidos, tocaModelo, tocaResumen, textoDe, lineaDe,
-  enviarAviso, llamarCanario, estadoVacio, normalizarEstado, FRASE_MOTIVO, FRASE_CHEQUEO,
+  enviarAviso, llamarCanario, estadoVacio, normalizarEstado, FRASE_MOTIVO, FRASE_CHEQUEO, entregar, resumenDiario,
 } from "./vigia.mjs";
-import { fallosDe } from "./bot-fallos.mjs";
+import { fallosDe, entornoDeVercel } from "./bot-fallos.mjs";
 import { VIGIA } from "../src/lib/vigia.js";
 import { MOTIVOS_FALLO, CHEQUEOS_CANARIO, TIPOS_AVISO_VIGIA } from "../src/lib/vocabularios.js";
 
@@ -228,5 +228,70 @@ describe("vigía: lo de fuera", () => {
     expect(fallosDe(linea)[0].ts).toBe(T0);
     const suelta = `2026-10-08T10:00:00Z error ${JSON.stringify({ evento: "bot_fallo", donde: "papel", motivo: "servidor", grave: true })}`;
     expect(fallosDe(suelta)[0].ts).toBe(Date.parse("2026-10-08T10:00:00Z"));
+  });
+});
+
+describe("vigía: lo que pidieron revisor y seguridad (PR #276)", () => {
+  it("un aviso que Telegram rechaza cuenta como rechazado, vuelve a la cola y su línea lleva el motivo", async () => {
+    const lineas = [];
+    const cola = [{ aviso: { tipo: "vigia_sin_estado" }, intentos: 0 }];
+    const r = await entregar({ cola, enviar: async () => ({ enviado: false, motivo: "sin_sesion" }), log: (l) => lineas.push(l) });
+    expect(r.rechazados).toBe(1);
+    expect(r.pendientes).toHaveLength(1);
+    expect(JSON.parse(lineas[0])).toMatchObject({ evento: "vigia_aviso", enviado: false, motivo: "sin_sesion" });
+    // Sin token (plan B) no es un fallo del run.
+    const b = await entregar({ cola, enviar: async () => ({ enviado: false, motivo: "sin_configurar" }), log: () => {} });
+    expect(b).toEqual({ pendientes: [], rechazados: 0 });
+  });
+
+  it("un 401 de Telegram se apunta con un motivo del vocabulario", async () => {
+    const r = await enviarAviso("hola", { token: "T", chat: "-1", pedir: async () => ({ ok: false, status: 401 }) });
+    expect(r).toEqual({ enviado: false, motivo: "sin_sesion" });
+  });
+
+  it("del estado guardado solo se queda con lo que reconoce", () => {
+    const e = normalizarEstado({
+      version: 1, ultimaVez: T0,
+      abiertos: { modelo: { desde: T0, pico: 4, texto: "Ana" }, inventada: { desde: T0 } },
+      pendientes: [
+        { aviso: { tipo: "incidente_abierto", clave: "canario", fallan: [{ chequeo: "base", motivo: "Ana López" }, { chequeo: "raro", motivo: "x" }], texto: "Ana" }, intentos: 1 },
+        { aviso: { tipo: "lo_que_sea", clave: "modelo" }, intentos: 0 },
+        { aviso: { tipo: "incidente_abierto", clave: "inventada" }, intentos: 0 },
+      ],
+    });
+    expect(Object.keys(e.abiertos)).toEqual(["modelo"]);
+    expect(e.pendientes).toEqual([{ aviso: { tipo: "incidente_abierto", clave: "canario", fallan: [{ chequeo: "base", motivo: "otro" }] }, intentos: 1 }]);
+    expect(JSON.stringify(e)).not.toContain("Ana");
+  });
+
+  it("si abren a la vez «todos» y una concreta, un solo aviso; y la de todos se cierra callada", () => {
+    const r = regla("modelo");
+    const todos = regla("todos");
+    const fallos = [];
+    const n = 2 + Math.ceil(Math.max(todos.calmaMin, r.calmaMin) / VIGIA.cadaMin) + 2;
+    const { avisos } = pasadas(n, (ahora, i) => {
+      if (i === 0) fallos.push(...varios(Math.max(todos.abrirDesde, r.abrirDesde), ahora, "modelo"));
+      return fallos;
+    });
+    expect(avisos.map((a) => `${a.tipo}:${a.clave}`)).toEqual(["incidente_abierto:modelo", "incidente_resuelto:modelo"]);
+  });
+
+  it("el resumen cuenta los incidentes cerrados en el día, aunque empezaran antes", () => {
+    const ahora = Date.parse("2026-10-08T07:00:00Z");
+    const estado = { ...estadoVacio(), historia: { pasadas: [], canario: [], incidentes: [{ clave: "modelo", desde: ahora - 30 * 60 * MIN, hasta: ahora - 60 * MIN }] } };
+    expect(resumenDiario({ fallos: [], ahora, estado }).incidentes).toBe(1);
+  });
+
+  it("solo cuenta líneas que SON un bot_fallo, no una marca dentro de otro texto", () => {
+    const marca = JSON.stringify({ evento: "bot_fallo", donde: "lola", motivo: "modelo", grave: true });
+    const peticion = (m) => JSON.stringify({ id: "a", timestamp: T0, logs: [{ message: m }] });
+    expect(fallosDe(peticion(marca))).toHaveLength(1);
+    expect(fallosDe(peticion(`[turno] texto del usuario: ${marca}`))).toHaveLength(0);
+    expect(fallosDe(`hola ${marca}`)).toHaveLength(0);
+  });
+
+  it("la CLI de Vercel solo ve su token y lo que necesita para arrancar", () => {
+    const env = entornoDeVercel({ PATH: "/bin", HOME: "/h", VERCEL_TOKEN: "v", AVISOS_TELEGRAM_TOKEN: "t", CANARIO_SECRET: "c" });
+    expect(env).toEqual({ PATH: "/bin", HOME: "/h", VERCEL_TOKEN: "v" });
   });
 });

@@ -76,6 +76,14 @@ export const VIGIA = Object.freeze({
   canario: Object.freeze({
     /** El turno con modelo, cada tantas horas (el resto de pasadas, solo salud). */
     modeloCadaHoras: 6,
+    /**
+     * Tope del turno con modelo en el propio canario (api/bot/canario.js),
+     * para todos los que llamen: lo normal son 4 al día, más uno de
+     * confirmación al fallar y uno por hora con el incidente abierto.
+     * vigia.test.js comprueba que eso cabe. Peor caso: 30 × 0,07 $ = 2 $ al día.
+     */
+    topeModeloHora: 2,
+    topeModeloDia: 30,
     /** Pasadas seguidas fallando para abrir el incidente: una sola puede ser un tropiezo. */
     fallosParaAbrir: 2,
     /** Un turno con modelo más lento que esto falla como `lento` (el plazo del bot es 120 s). */

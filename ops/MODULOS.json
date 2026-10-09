@@ -1336,7 +1336,8 @@
         "scripts/bot-fallos.test.js",
         "scripts/vigia.test.js",
         "src/lib/vigia.test.js",
-        "api/bot/canario.test.js"
+        "api/bot/canario.test.js",
+        "api/bot/canarioSoloLectura.test.js"
       ],
       "metricas": [
         {

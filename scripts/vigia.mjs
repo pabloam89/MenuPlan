@@ -24,7 +24,7 @@
  *   node scripts/vigia.mjs --sin-canario          no llama al canario
  *   node scripts/vigia.mjs --seco                 no manda nada a Telegram, solo el log
  *
- * Del entorno: VERCEL_TOKEN (leer los logs), CANARIO_URL y BOT_CRON_SECRET
+ * Del entorno: VERCEL_TOKEN (leer los logs), CANARIO_URL y CANARIO_SECRET
  * (el canario), AVISOS_TELEGRAM_TOKEN y AVISOS_TELEGRAM_CHAT (el grupo de
  * avisos) y GITHUB_SERVER_URL, GITHUB_REPOSITORY y GITHUB_RUN_ID (el enlace
  * al run). Sin el token de avisos (plan B) todo sigue igual y el aviso sale
@@ -64,15 +64,79 @@ export function estadoVacio() {
   };
 }
 
-/** El estado guardado, completado con lo que le falte (una versión vieja, un JSON roto). */
-export function normalizarEstado(e) {
-  const v = estadoVacio();
-  if (!e || typeof e !== "object" || e.version !== 1) return v;
-  return { ...v, ...e, historia: { ...v.historia, ...(e.historia ?? {}) } };
-}
-
 const sitioLimpio = (s) => (SITIOS_FALLO.includes(s) ? s : "sin_sitio");
 const motivoLimpio = (m) => (MOTIVOS_FALLO.includes(m) ? m : "otro");
+const num = (x) => (typeof x === "number" && Number.isFinite(x) ? x : null);
+const MOTIVOS_TODOS = [...MOTIVOS_FALLO, ...MOTIVOS_CANARIO];
+const clavesConocidas = (config = VIGIA) => new Set([...config.reglas.map((r) => r.clave), ...CLAVES_PROPIAS]);
+
+/** Lo que falla, solo con chequeos y motivos de los vocabularios. */
+export function limpiarFallan(fallan) {
+  return (Array.isArray(fallan) ? fallan : [])
+    .filter((f) => CHEQUEOS_CANARIO.includes(f?.chequeo))
+    .map((f) => ({ chequeo: f.chequeo, motivo: MOTIVOS_TODOS.includes(f.motivo) ? f.motivo : "otro" }));
+}
+
+const CAMPOS_NUMERO = ["n", "ventanaMin", "umbral", "duroMin", "pico", "seguidos", "desde", "hasta", "minutos",
+  "total", "graves", "incidentes", "canarioUsd", "canarioTokens", "pasadas", "esperadas"];
+
+/**
+ * Un aviso rehecho solo con lo que se sabe pintar: tipo y clave conocidos,
+ * cifras, y listas de los vocabularios. Lo que venga del estado guardado (la
+ * caché de Actions) pasa por aquí antes de llegar a un texto. Null si no vale.
+ */
+export function limpiarAviso(a, config = VIGIA) {
+  if (!a || typeof a !== "object" || !TIPOS_AVISO_VIGIA.includes(a.tipo)) return null;
+  const claves = clavesConocidas(config);
+  const clave = claves.has(a.clave) ? a.clave : null;
+  if (a.tipo.startsWith("incidente_") && !clave) return null;
+  const l = { tipo: a.tipo, ...(clave ? { clave } : {}) };
+  for (const k of CAMPOS_NUMERO) if (num(a[k]) != null) l[k] = a[k];
+  if (Array.isArray(a.sitios)) l.sitios = a.sitios.map(sitioLimpio);
+  if (Array.isArray(a.motivos)) l.motivos = a.motivos.filter((m) => MOTIVOS_FALLO.includes(m));
+  if (a.fallan) l.fallan = limpiarFallan(a.fallan);
+  if (a.tipo === "resumen_diario") {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(a.fecha)) l.fecha = a.fecha;
+    l.logs = a.logs === "ok" || MOTIVOS_TODOS.includes(a.logs) ? a.logs : "otro";
+    l.porMotivo = (Array.isArray(a.porMotivo) ? a.porMotivo : []).filter((p) => MOTIVOS_FALLO.includes(p?.[0]) && num(p?.[1]) != null).map(([m, n]) => [m, n]);
+    l.sitios ??= [];
+    l.abiertos = (Array.isArray(a.abiertos) ? a.abiertos : []).filter((c) => claves.has(c));
+    for (const k of ["canarioSalud", "canarioModelo"]) l[k] = { ok: num(a[k]?.ok) ?? 0, total: num(a[k]?.total) ?? 0 };
+    for (const k of ["total", "graves", "incidentes", "canarioUsd", "canarioTokens", "pasadas", "esperadas"]) l[k] ??= 0;
+  }
+  return l;
+}
+
+/**
+ * El estado guardado, rehecho con lo que se reconoce: claves de incidente
+ * conocidas, cifras, avisos pendientes limpios (limpiarAviso). Lo de una
+ * versión vieja o un JSON roto, de cero.
+ */
+export function normalizarEstado(e, config = VIGIA) {
+  const v = estadoVacio();
+  if (!e || typeof e !== "object" || e.version !== 1) return v;
+  const claves = clavesConocidas(config);
+  const deClaves = (o, limpiar) => Object.fromEntries(Object.entries(o && typeof o === "object" ? o : {}).filter(([k]) => claves.has(k)).map(([k, x]) => [k, limpiar(x)]).filter(([, x]) => x != null));
+  const h = e.historia ?? {};
+  const lista = (x) => (Array.isArray(x) ? x : []);
+  return {
+    ...v,
+    ultimaVez: num(e.ultimaVez),
+    ultimoModelo: num(e.ultimoModelo),
+    ultimoResumen: /^\d{4}-\d{2}-\d{2}$/.test(e.ultimoResumen ?? "") ? e.ultimoResumen : null,
+    abiertos: deClaves(e.abiertos, (x) => (num(x?.desde) == null ? null : {
+      desde: x.desde, ...(num(x.pico) != null ? { pico: x.pico } : {}), ...(x.fallan ? { fallan: limpiarFallan(x.fallan) } : {}), ...(x.callado ? { callado: true } : {}),
+    })),
+    seguidos: deClaves(e.seguidos, (x) => num(x) ?? 0),
+    pendientes: lista(e.pendientes).map((p) => ({ aviso: limpiarAviso(p?.aviso, config), intentos: num(p?.intentos) ?? 0 })).filter((p) => p.aviso),
+    historia: {
+      pasadas: lista(h.pasadas).filter((t) => num(t) != null),
+      canario: lista(h.canario).filter((c) => num(c?.t) != null && ["salud", "modelo"].includes(c.nivel))
+        .map((c) => ({ t: c.t, nivel: c.nivel, ok: Boolean(c.ok), ...(num(c.tokens) ? { tokens: c.tokens } : {}), ...(num(c.usd) ? { usd: c.usd } : {}) })),
+      incidentes: lista(h.incidentes).filter((i) => claves.has(i?.clave) && num(i.desde) != null).map((i) => ({ clave: i.clave, desde: i.desde, hasta: num(i.hasta) ?? i.desde })),
+    },
+  };
+}
 
 /** Los fallos que cuenta una regla entre dos instantes. */
 function deLaRegla(fallos, regla, desde, hasta) {
@@ -105,10 +169,23 @@ export function evaluarReglas({ fallos, ahora, reglas = VIGIA.reglas, abiertos =
       avisos.push({ tipo: "incidente_abierto", clave: r.clave, n: enVentana.length, ventanaMin: r.ventanaMin, umbral: r.abrirDesde, sitios: sitiosTop(enVentana), motivos: r.motivos });
     } else if (abierto && enCalma < r.cerrarBajoDe) {
       delete siguen[r.clave];
-      cerrados.push({ clave: r.clave, desde: abierto.desde, hasta: ahora });
-      avisos.push({ tipo: "incidente_resuelto", clave: r.clave, duroMin: Math.round((ahora - abierto.desde) / MIN), pico: abierto.pico, ventanaMin: r.ventanaMin, motivos: r.motivos });
+      // El que se abrió callado (abajo) se cierra callado: nadie supo de él.
+      if (!abierto.callado) {
+        cerrados.push({ clave: r.clave, desde: abierto.desde, hasta: ahora });
+        avisos.push({ tipo: "incidente_resuelto", clave: r.clave, duroMin: Math.round((ahora - abierto.desde) / MIN), pico: abierto.pico, ventanaMin: r.ventanaMin, motivos: r.motivos });
+      }
     } else if (abierto) {
       siguen[r.clave] = { ...abierto, pico: Math.max(abierto.pico ?? 0, enVentana.length) };
+    }
+  }
+  // Si en la misma pasada abre una regla de todos los motivos y otra más
+  // concreta, la concreta ya lo dice: la general queda abierta, pero callada.
+  const generales = new Set(reglas.filter((r) => MOTIVOS_FALLO.every((m) => r.motivos.includes(m))).map((r) => r.clave));
+  const abiertas = avisos.filter((a) => a.tipo === "incidente_abierto");
+  if (abiertas.some((a) => !generales.has(a.clave))) {
+    for (const a of abiertas.filter((x) => generales.has(x.clave))) {
+      siguen[a.clave] = { ...siguen[a.clave], callado: true };
+      avisos.splice(avisos.indexOf(a), 1);
     }
   }
   return { avisos, abiertos: siguen, cerrados };
@@ -185,7 +262,7 @@ export function resumenDiario({ fallos, ahora, estado, config = VIGIA, logs = "o
     graves: dia.filter((f) => f.grave).length,
     porMotivo: Object.entries(porMotivo).sort((a, b) => b[1] - a[1]),
     sitios: sitiosTop(dia.filter((f) => f.grave)),
-    incidentes: h.incidentes.filter((i) => i.desde > ahora - DIA).length,
+    incidentes: h.incidentes.filter((i) => (i.hasta ?? i.desde) > ahora - DIA).length,
     abiertos: Object.keys(estado.abiertos),
     canarioSalud: { ok: canario.filter((c) => c.nivel === "salud" && c.ok).length, total: canario.filter((c) => c.nivel === "salud").length },
     canarioModelo: { ok: canario.filter((c) => c.nivel === "modelo" && c.ok).length, total: canario.filter((c) => c.nivel === "modelo").length },
@@ -220,7 +297,7 @@ export function pasada({ ahora, fallos, logs = "ok", canario = {}, estado: anter
   }
   const deLogs = evaluarSeguidos({
     clave: "logs", ahora, estado,
-    resultado: fallos ? { ok: true } : { ok: false, fallan: [{ chequeo: "logs", motivo: logs }] },
+    resultado: fallos ? { ok: true } : { ok: false, fallan: limpiarFallan([{ chequeo: "logs", motivo: logs }]) },
     // Sin configurar (falta el token de Vercel) no es un tropiezo: se dice ya.
     fallosParaAbrir: logs === "sin_configurar" ? 1 : config.canario.fallosParaAbrir,
   });
@@ -233,7 +310,7 @@ export function pasada({ ahora, fallos, logs = "ok", canario = {}, estado: anter
     const res = canario[nivel];
     if (nivel === "modelo" && res !== undefined) estado = { ...estado, ultimoModelo: ahora };
     if (!res || res.omitido) continue;
-    const fallan = (res.chequeos ?? []).filter((c) => !c.ok).map((c) => ({ chequeo: c.chequeo, motivo: c.motivo }));
+    const fallan = limpiarFallan((res.chequeos ?? []).filter((c) => !c.ok));
     const r = evaluarSeguidos({ clave, ahora, estado, resultado: { ok: Boolean(res.ok) && !fallan.length, fallan }, fallosParaAbrir: config.canario.fallosParaAbrir });
     avisos.push(...r.avisos);
     cerrados.push(...r.cerrados);
@@ -327,6 +404,8 @@ export function textoDe(aviso, enlaces = {}, config = VIGIA) {
       return con([`🟢 Resuelto: ${nombreDeClave(aviso.clave, config)}`, `Duró ${duracion(aviso.duroMin)}${aviso.pico != null ? `; el pico, ${aviso.pico} fallos en ${aviso.ventanaMin} min` : ""}.`]);
     case "vigia_parado":
       return con([`🟡 El vigía estuvo parado ${duracion(aviso.minutos)} (de ${horaMadrid(aviso.desde)} a ${horaMadrid(aviso.hasta)}).`, "Lo de ese rato no ha saltado como incidente: sale en el resumen del día."]);
+    case "vigia_sin_estado":
+      return con(["🟡 El vigía empieza sin estado (primera pasada, o se perdió su caché).", "Si había un incidente abierto, puede que su aviso llegue otra vez."]);
     case "resumen_diario": {
       const l = [`📋 Lola, últimas 24 h (${aviso.fecha})`];
       if (aviso.logs !== "ok") l.push(`Fallos: sin datos (${FRASE_CHEQUEO.logs}: ${aviso.logs}).`);
@@ -348,8 +427,9 @@ export function textoDe(aviso, enlaces = {}, config = VIGIA) {
 }
 
 /** La línea estructurada de un aviso: tipo, clave y cifras, para contar cuántos hubo. */
-export function lineaDe(aviso, enviado) {
+export function lineaDe(aviso, enviado, motivo = null) {
   const l = { evento: "vigia_aviso", tipo: TIPOS_AVISO_VIGIA.includes(aviso.tipo) ? aviso.tipo : "otro", clave: aviso.clave ?? null, enviado };
+  if (!enviado && motivo) l.motivo = MOTIVOS_TODOS.includes(motivo) ? motivo : "otro";
   if (aviso.n != null) l.n = aviso.n;
   if (aviso.duroMin != null) l.duro_min = aviso.duroMin;
   if (aviso.minutos != null) l.minutos = aviso.minutos;
@@ -375,7 +455,7 @@ export async function enviarAviso(texto, { token, chat, pedir = fetch } = {}) {
       signal: AbortSignal.timeout(15_000),
     });
     if (res.ok) return { enviado: true };
-    return { enviado: false, motivo: `http_${res.status}` };
+    return { enviado: false, motivo: motivoHttp(res.status) };
   } catch (e) {
     return { enviado: false, motivo: e?.name === "TimeoutError" ? "tiempo" : "red" };
   }
@@ -423,6 +503,28 @@ export function costeUsd(u, modelo = "") {
   return (n("in") * p[0] + n("out") * p[1] + n("cr") * p[2] + n("cw") * p[3]) / 1e6;
 }
 
+/**
+ * Manda la cola de avisos y deja una línea `vigia_aviso` por cada uno, con su
+ * motivo si no salió. Lo que Telegram rechaza vuelve a la cola (hasta
+ * `reintentosAviso`) y cuenta en `rechazados`: quien llama sale en rojo.
+ * Sin token o sin chat (plan B), el texto va al log y no es un fallo.
+ */
+export async function entregar({ cola, enlaces = {}, telegram = {}, config = VIGIA, enviar = enviarAviso, log = console.log }) {
+  const pendientes = [];
+  let rechazados = 0;
+  for (const { aviso, intentos } of cola) {
+    const texto = textoDe(aviso, enlaces, config);
+    const r = await enviar(texto, telegram);
+    log(lineaDe(aviso, r.enviado, r.motivo));
+    if (r.enviado) continue;
+    log(texto); // plan B: el aviso, en el log (sin datos de familias)
+    if (r.motivo === "sin_configurar") continue;
+    rechazados++;
+    if (intentos + 1 < config.reintentosAviso) pendientes.push({ aviso, intentos: intentos + 1 });
+  }
+  return { pendientes, rechazados };
+}
+
 /** Los fallos de producción de los últimos `minutos`, o por qué no se han podido leer. */
 function leerLogs({ fichero, ahora, minutos, entorno }) {
   if (fichero) return { fallos: fallosDe(readFileSync(fichero, "utf8")), logs: "ok" };
@@ -452,20 +554,22 @@ function argumentos(argv) {
   return a;
 }
 
+/** El estado guardado y si había alguno de verdad (`sinEstado`: no había, o no se pudo leer). */
 function leerEstado(ruta) {
-  if (!existsSync(ruta)) return estadoVacio();
+  if (!existsSync(ruta)) return { estado: estadoVacio(), sinEstado: true };
   try {
-    return normalizarEstado(JSON.parse(readFileSync(ruta, "utf8")));
+    const estado = normalizarEstado(JSON.parse(readFileSync(ruta, "utf8")));
+    return { estado, sinEstado: !estado.ultimaVez };
   } catch {
-    console.warn("[vigia] estado ilegible: se empieza de cero"); // a propósito: lo peor es un aviso repetido
-    return estadoVacio();
+    console.warn("[vigia] estado ilegible: se empieza de cero"); // a propósito: se avisa con vigia_sin_estado
+    return { estado: estadoVacio(), sinEstado: true };
   }
 }
 
 async function main() {
   const a = argumentos(process.argv.slice(2));
   const config = VIGIA;
-  const anterior = leerEstado(a.estado);
+  const { estado: anterior, sinEstado } = leerEstado(a.estado);
   const ahora = a.ahora;
   // Con resumen, las 24 h; si no, la ventana más larga de las reglas.
   const minutos = tocaResumen(anterior, ahora, config) ? config.retencionLogsMin : minutosALeer(config);
@@ -476,7 +580,7 @@ async function main() {
   if (!["production", "preview"].includes(entorno)) throw new Error("VIGIA_ENTORNO es production o preview");
   const { fallos, logs } = leerLogs({ fichero: a.fichero, ahora, minutos, entorno });
 
-  const destino = { url: process.env.CANARIO_URL, secreto: process.env.BOT_CRON_SECRET, config };
+  const destino = { url: process.env.CANARIO_URL, secreto: process.env.CANARIO_SECRET, config };
   const canario = {};
   if (a.canario) {
     canario.salud = await llamarCanario("salud", destino);
@@ -492,17 +596,11 @@ async function main() {
   const telegram = a.seco ? {} : { token: process.env.AVISOS_TELEGRAM_TOKEN, chat: process.env.AVISOS_TELEGRAM_CHAT };
 
   // Lo que no salió la vez anterior va primero, con su número de intentos.
-  const cola = [...(anterior.pendientes ?? []), ...avisos.map((aviso) => ({ aviso, intentos: 0 }))];
-  const pendientes = [];
-  for (const { aviso, intentos } of cola) {
-    const texto = textoDe(aviso, enlaces, config);
-    const r = await enviarAviso(texto, telegram);
-    console.log(lineaDe(aviso, r.enviado));
-    if (!r.enviado) {
-      console.log(texto); // plan B: el aviso, en el log (sin datos de familias)
-      if (r.motivo !== "sin_configurar" && intentos + 1 < config.reintentosAviso) pendientes.push({ aviso, intentos: intentos + 1 });
-    }
-  }
+  // Sin estado (primera vez, o la caché se perdió): se dice, porque un
+  // incidente que estaba abierto puede avisarse otra vez.
+  const deInicio = sinEstado ? [{ tipo: "vigia_sin_estado" }] : [];
+  const cola = [...(anterior.pendientes ?? []), ...[...deInicio, ...avisos].map((aviso) => ({ aviso, intentos: 0 }))];
+  const { pendientes, rechazados } = await entregar({ cola, enlaces, telegram, config });
 
   const canarioDe = (r) => (r === undefined ? "no_toca" : r === null ? "sin_configurar" : r.ok && !r.chequeos.some((c) => !c.ok) ? "ok" : "fallo");
   console.log(JSON.stringify({
@@ -512,6 +610,13 @@ async function main() {
 
   mkdirSync(dirname(a.estado), { recursive: true });
   writeFileSync(a.estado, JSON.stringify({ ...estado, pendientes }, null, 2));
+  // Un aviso que Telegram no aceptó (token o chat malos, red) no puede
+  // perderse con el run en verde: el estado ya está guardado (y el aviso, en
+  // la cola), y el run sale en rojo para que el workflow avise del fallo.
+  if (rechazados) {
+    console.error(`[vigia] ${rechazados} aviso(s) sin entregar a Telegram`);
+    process.exitCode = 1;
+  }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {

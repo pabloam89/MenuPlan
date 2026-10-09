@@ -53,6 +53,17 @@ describe("vigía: la configuración", () => {
     expect(VIGIA.huecoMin).toBeGreaterThan(2 * VIGIA.cadaMin);
   });
 
+  it("el workflow: secretos en el environment `vigia`, acciones por SHA y sin el secreto de los crons", () => {
+    const yml = leer(".github/workflows/vigia-lola.yml");
+    expect(yml).toMatch(/^ {4}environment: vigia$/m);
+    const usos = [...yml.matchAll(/uses:\s*(\S+)/g)].map((m) => m[1]);
+    expect(usos.length).toBeGreaterThan(0);
+    for (const u of usos) expect(u, u).toMatch(/@[0-9a-f]{40}$/);
+    // BOT_CRON_SECRET manda recordatorios a familias: no sale de Vercel.
+    expect(yml).not.toMatch(/secrets\.BOT_CRON_SECRET/);
+    expect(yml).toMatch(/secrets\.CANARIO_SECRET/);
+  });
+
   it("el canario cabe en su plazo y en el de la función de Vercel", () => {
     const vercel = JSON.parse(leer("vercel.json"));
     const canario = vercel.functions["api/bot/canario.js"];
@@ -66,5 +77,10 @@ describe("vigía: la configuración", () => {
     expect(c.plazoSaludMs).toBeLessThan(c.plazoModeloMs);
     expect(c.modeloCadaHoras * 60).toBeGreaterThan(VIGIA.cadaMin);
     expect(c.fallosParaAbrir).toBeGreaterThanOrEqual(1);
+    // El tope del canario deja pasar el ritmo normal del vigía: los de cada
+    // `modeloCadaHoras`, uno por hora con el incidente abierto y la confirmación.
+    expect(24 / c.modeloCadaHoras + 24).toBeLessThanOrEqual(c.topeModeloDia);
+    expect(c.topeModeloHora).toBeGreaterThanOrEqual(2);
+    expect(c.topeModeloDia).toBeLessThanOrEqual(48);
   });
 });

@@ -39,7 +39,9 @@ Bytask, migrar · ❓ sin confirmar.
 `CRON_SECRET`, `BOT_CRON_SECRET`, `MODERATION_SECRET`: valores inventados por
 nosotros para que solo nuestros crons puedan llamar a ciertos endpoints. Viven
 en Vercel (y `BOT_CRON_SECRET` también en el job de `pg_cron`, ver
-`scripts/bot-cron.mjs`, y en GitHub Actions para el vigía, `vigia-lola.yml`).
+`scripts/bot-cron.mjs`). `CANARIO_SECRET`: el del canario de Lola
+(`api/bot/canario.js`), solo suyo, en Vercel y en el environment `vigia` de
+GitHub; no abre nada más (el de los crons manda recordatorios a familias).
 `BOT_CANARIO_CASA` (Vercel, opcional): el id de la casa de prueba del canario;
 no es secreto.
 
@@ -48,7 +50,7 @@ no es secreto.
 | Secreto | Workflow |
 |---|---|
 | `ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS` | `agente-fallos.yml` |
-| `VERCEL_TOKEN` (leer los logs de Vercel; token del equipo «menuplan»), `BOT_CRON_SECRET` (el mismo valor que en Vercel: llama al canario `api/bot/canario.js`), `AVISOS_TELEGRAM_TOKEN`; variables `AVISOS_TELEGRAM_CHAT`, `CANARIO_URL` y `VIGIA_ENTORNO`. **Pendientes de crear** (9 oct 2026) | `vigia-lola.yml` |
+| **Del environment `vigia`** (política: solo la rama `staging`), no del repo: `VERCEL_TOKEN` (leer los logs; token del equipo «menuplan», **caduca a los 90 días**: anotar aquí la fecha al crearlo y rotarlo antes), `CANARIO_SECRET` (el mismo valor que en Vercel), `AVISOS_TELEGRAM_TOKEN`; variables `AVISOS_TELEGRAM_CHAT`, `CANARIO_URL` y `VIGIA_ENTORNO`. **Pendientes de crear** (9 oct 2026); caducidad del `VERCEL_TOKEN`: — | `vigia-lola.yml` |
 | `IOS_DIST_P12_BASE64`, `IOS_DIST_P12_PASSWORD`, `IOS_PROVISION_PROFILE_BASE64`, `APPSTORE_API_KEY_P8_BASE64` | `ios-testflight.yml` |
 | `MERCADONA_DEPLOY_KEY`: la privada de la deploy key de escritura «mercadona-sync: cron, push a staging» (la pública, en Settings → Deploy keys). **Secreto del environment `mercadona-sync`**, no del repo: su política de ramas solo deja `staging`. Sin copia fuera de GitHub: si se pierde, se crea otra. **Pendiente de crear** (9 oct 2026) | `mercadona-sync.yml` |
 

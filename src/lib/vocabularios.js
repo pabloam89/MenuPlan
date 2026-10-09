@@ -138,9 +138,10 @@ export const SITIOS_FALLO = [
  * scripts/lib/vigia-config.mjs se pasó (o volvió a su sitio); `vigia_parado`:
  * hubo un hueco sin pasadas; `resumen_diario`: las cifras del día;
  * `vigia_falla` y `vigia_vuelve`: la propia pasada rompió o vuelve a ir (los
- * manda el workflow, .github/workflows/vigia-lola.yml).
+ * manda el workflow, .github/workflows/vigia-lola.yml); `vigia_sin_estado`:
+ * empezó sin el estado de la pasada anterior (primera vez o caché perdida).
  */
-export const TIPOS_AVISO_VIGIA = ["incidente_abierto", "incidente_resuelto", "resumen_diario", "vigia_parado", "vigia_falla", "vigia_vuelve"];
+export const TIPOS_AVISO_VIGIA = ["incidente_abierto", "incidente_resuelto", "resumen_diario", "vigia_parado", "vigia_falla", "vigia_vuelve", "vigia_sin_estado"];
 
 /**
  * Qué comprueba el canario (api/bot/canario.js). `canario` es el propio
