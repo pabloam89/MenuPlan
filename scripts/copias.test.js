@@ -18,7 +18,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   AVISOS, MOTIVOS_COPIA, NOMBRE_COPIA, RESULTADOS, SECUENCIAS,
-  clavesAjenasAAuth, fechaDeCopia, leerLinea, lineaEstructurada, veredicto,
+  camposRegistroEnsayo, clavesAjenasAAuth, comprobarDestinatarios, fechaDeCopia, leerLinea, lineaEstructurada, veredicto,
 } from "./lib/copias.mjs";
 
 const SCRIPT = join(import.meta.dirname, "..", "ops", "copias", "copia-base.sh");
@@ -26,28 +26,70 @@ const hayBash = spawnSync("bash", ["--version"], { encoding: "utf8" }).status ==
 const CLAVE = `age1${"q".repeat(58)}`;
 const ESTADO_LECTURA = "usuario\tconsulta_lectura\nescribe\t0\ntablas\t58\nsecuencia\tpublic.bot_cola_id_seq\n";
 
+// docker falso: registra su argv, entiende `run` (con --rm, -i, --label, -e y
+// -v), `ps` y `rm`, y ejecuta la orden del contenedor con SOLO el entorno que
+// se le pasa con -e (más PATH y los FALSO_*). La ruta de un -v se traduce a la
+// del host. Así un pg_dump o psql falsos ven lo mismo que verían de verdad.
 const FALSO_DOCKER = `#!/usr/bin/env bash
-# docker run --rm -i -e COPIA_DB_URL -e PGSSLMODE <imagen> <orden…>
-shift 8
-todo="$*"
-case "$todo" in
-  *pg_dump*)
-    [ -n "\${FALSO_DUMP_FALLA:-}" ] && { echo "pg_dump: error: conexión" >&2; exit 1; }
-    head -c "\${FALSO_DUMP_BYTES:-300000}" /dev/zero | tr '\\0' 'x' ;;
-  *copy*) printf 'id,email\\n1,a\\n' ;;
-  *psql*)
+echo "docker $*" >> "$FALSO_ARGV_LOG"
+case "$1" in
+  ps) [ -n "\${FALSO_PS_IDS:-}" ] && echo "$FALSO_PS_IDS"; exit 0 ;;
+  rm) exit 0 ;;
+  run) shift ;;
+  *) echo "docker falso: no sé hacer $1" >&2; exit 2 ;;
+esac
+vars=("PATH=$PATH")
+for n in $(compgen -v FALSO_); do vars+=("$n=\${!n}"); done
+mapas=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --rm|-i) shift ;;
+    --label) shift 2 ;;
+    -e) case "$2" in *=*) vars+=("$2") ;; *) [ -n "\${!2+x}" ] && vars+=("$2=\${!2}") ;; esac; shift 2 ;;
+    -v) mapas+=("$2"); shift 2 ;;
+    -*) echo "docker falso: opción $1" >&2; exit 2 ;;
+    *) break ;;
+  esac
+done
+shift # la imagen
+for i in "\${!vars[@]}"; do
+  for m in "\${mapas[@]}"; do
+    IFS=: read -r h c _ <<< "$m"
+    vars[i]=\${vars[i]//"$c"/"$h"}
+  done
+done
+exec env -i "\${vars[@]}" "$@"
+`;
+// Lo que comparten pg_dump y psql falsos: registran su argv y solo «entran»
+// si el passfile de PGPASSFILE trae la línea esperada (la contraseña no va en la URL).
+const FALSO_PG_AUTH = `echo "$(basename "$0") $*" >> "$FALSO_ARGV_LOG"
+linea="\${FALSO_PASS_LINEA:-*:*:*:*:secreta}"
+if [ -z "\${PGPASSFILE:-}" ] || ! grep -qxF -- "$linea" "$PGPASSFILE"; then
+  echo "$(basename "$0"): error: password authentication failed" >&2; exit 2
+fi
+`;
+const FALSO_PG_DUMP = `#!/usr/bin/env bash
+${FALSO_PG_AUTH}[ -n "\${FALSO_DUMP_FALLA:-}" ] && { echo "pg_dump: error: conexión" >&2; exit 1; }
+[ -n "\${FALSO_DUMP_DUERME:-}" ] && { : > "$FALSO_DUMP_MARCA"; sleep "$FALSO_DUMP_DUERME"; }
+head -c "\${FALSO_DUMP_BYTES:-300000}" /dev/zero | tr '\0' 'x'
+`;
+const FALSO_PSQL = `#!/usr/bin/env bash
+${FALSO_PG_AUTH}case "$*" in
+  *copy*) cat > /dev/null; printf 'id,email\n1,a\n' ;;
+  *)
     cat > /dev/null
     [ -n "\${FALSO_PSQL_FALLA:-}" ] && { echo "psql: error: conexión" >&2; exit 2; }
     printf '%b' "$FALSO_ESTADO" ;;
-  *) echo "docker falso: no sé hacer $todo" >&2; exit 2 ;;
 esac
 `;
 const FALSO_AGE = `#!/usr/bin/env bash
 while [ $# -gt 0 ]; do case "$1" in -o) out=$2; shift 2 ;; *) shift ;; esac; done
 { echo "age-encryption.org/v1"; cat; } > "$out"
 `;
+// curl falso: el argv y lo que le llega por stdin (la configuración, con la URL), por separado.
 const FALSO_CURL = `#!/usr/bin/env bash
-echo "$@" >> "$FALSO_CURL_LOG"
+echo "ARGV $*" >> "$FALSO_CURL_LOG"
+echo "STDIN $(cat)" >> "$FALSO_CURL_LOG"
 [ -z "\${FALSO_CURL_FALLA:-}" ]
 `;
 
@@ -62,23 +104,20 @@ function montar({ destinatarios = `# comentario\n${CLAVE}\n` } = {}) {
   carpetas.push(raiz);
   const bin = join(raiz, "bin");
   mkdirSync(bin);
-  for (const [n, txt] of [["docker", FALSO_DOCKER], ["age", FALSO_AGE], ["curl", FALSO_CURL]]) {
+  for (const [n, txt] of [["docker", FALSO_DOCKER], ["age", FALSO_AGE], ["curl", FALSO_CURL], ["pg_dump", FALSO_PG_DUMP], ["psql", FALSO_PSQL]]) {
     writeFileSync(join(bin, n), txt.replace(/\r\n/g, "\n"));
     chmodSync(join(bin, n), 0o755);
   }
   writeFileSync(join(raiz, "destinatarios.txt"), destinatarios);
   const dir = join(raiz, "copias");
-  return { raiz, bin, dir, curlLog: join(raiz, "curl.log") };
+  return { raiz, bin, dir, curlLog: join(raiz, "curl.log"), argvLog: join(raiz, "argv.log") };
 }
 
 // Rutas en formato de bash también en Windows (C:\x → /c/x), para Git Bash.
 const rutaBash = (p) => (process.platform === "win32" ? p.replace(/^([A-Za-z]):/, (_, l) => `/${l.toLowerCase()}`).replace(/\\/g, "/") : p);
 
-function correr(s, env = {}) {
-  const r = spawnSync("bash", [rutaBash(SCRIPT)], {
-    encoding: "utf8",
-    env: {
-      ...process.env,
+function entorno(s) {
+  return {
       PATH: `${s.bin}${delimiter}${process.env.PATH}`,
       COPIA_DB_URL: "postgresql://consulta_lectura.x:secreta@pooler.ejemplo:5432/postgres",
       COPIA_AVISO_URL: "https://hc-ping.ejemplo/uuid",
@@ -89,12 +128,19 @@ function correr(s, env = {}) {
       COPIA_CURL: rutaBash(join(s.bin, "curl")),
       FALSO_ESTADO: ESTADO_LECTURA,
       FALSO_CURL_LOG: rutaBash(s.curlLog),
-      ...env,
-    },
+      FALSO_ARGV_LOG: rutaBash(s.argvLog),
+  };
+}
+
+function correr(s, env = {}, args = []) {
+  const r = spawnSync("bash", [rutaBash(SCRIPT), ...args], {
+    encoding: "utf8",
+    env: { ...process.env, ...entorno(s), ...env },
   });
   const registro = existsSync(join(s.dir, "copias.log")) ? readFileSync(join(s.dir, "copias.log"), "utf8").trim().split("\n") : [];
   const ultima = registro.length ? leerLinea(registro.at(-1)) : null;
-  return { ...r, registro, ultima, curl: existsSync(s.curlLog) ? readFileSync(s.curlLog, "utf8") : "" };
+  const leer = (p) => (existsSync(p) ? readFileSync(p, "utf8") : "");
+  return { ...r, registro, ultima, curl: leer(s.curlLog), argv: leer(s.argvLog) };
 }
 
 const copiasEn = (dir) => (existsSync(dir) ? readdirSync(dir).filter((d) => NOMBRE_COPIA.test(d)).sort() : []);
@@ -132,6 +178,82 @@ describe.skipIf(!hayBash)("copia-base.sh con binarios falsos", () => {
     expect(r.curl).not.toMatch(/\/fail/);
     // La URL de la base no sale ni en la línea ni en lo que se manda a Healthchecks.
     expect(r.registro.join("\n") + r.curl + r.stdout).not.toMatch(/secreta/);
+  });
+
+  it("la contraseña no sale en ningún argv (docker, pg_dump, psql) y la URL de ping tampoco", () => {
+    const s = montar();
+    const r = correr(s);
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.argv).toMatch(/^pg_dump .*postgresql:\/\/consulta_lectura\.x@pooler\.ejemplo:5432\/postgres/m);
+    expect(r.argv).toMatch(/^psql /m);
+    expect(r.argv).not.toMatch(/secreta/);
+    const argvCurl = r.curl.split("\n").filter((l) => l.startsWith("ARGV"));
+    expect(argvCurl.length).toBeGreaterThan(0);
+    expect(argvCurl.join("\n")).not.toMatch(/hc-ping/);
+    expect(r.curl).toMatch(/^STDIN url = "https:\/\/hc-ping\.ejemplo\/uuid"$/m);
+  });
+
+  it("una contraseña con %xx, dos puntos y barra llega decodificada y escapada al passfile", () => {
+    const s = montar();
+    const r = correr(s, {
+      COPIA_DB_URL: "postgresql://consulta_lectura.x:se%3Acr%40e%5Cta@pooler.ejemplo:5432/postgres",
+      FALSO_PASS_LINEA: String.raw`*:*:*:*:se\:cr@e\\ta`,
+    });
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.argv).not.toMatch(/se%3A|cr%40/);
+  });
+
+  it("una URL sin contraseña: motivo config, sin volcar", () => {
+    const s = montar();
+    const r = correr(s, { COPIA_DB_URL: "postgresql://consulta_lectura.x@pooler.ejemplo:5432/postgres" });
+    expect(r.status).toBe(1);
+    expect(r.ultima.campos.motivo).toBe("config");
+    expect(r.argv).not.toMatch(/pg_dump/);
+  });
+
+  it("con dos relaciones en el esquema copia salen las dos (docker -i no se come el bucle)", () => {
+    const s = montar();
+    const r = correr(s, { FALSO_ESTADO: `${ESTADO_LECTURA}copia\tauth_usuarios\ncopia\tauth_identidades\n` });
+    expect(r.status, r.stderr).toBe(0);
+    const [copia] = copiasEn(join(s.dir, "diaria"));
+    const csvs = readdirSync(join(s.dir, "diaria", copia)).filter((f) => f.endsWith(".csv.age")).sort();
+    expect(csvs).toEqual(["copia.auth_identidades.csv.age", "copia.auth_usuarios.csv.age"]);
+  });
+
+  it("con --aceptar-tamano, una copia de menos de la mitad pasa y se vuelve la referencia", () => {
+    const s = montar();
+    mkdirSync(s.dir, { recursive: true });
+    writeFileSync(join(s.dir, "copias.log"), "copia-base fecha: 2026-10-08T024000Z resultado: ok motivo: - bytes: 9000000 segundos: 14 tablas: 58\n");
+    const r = correr(s, {}, ["--aceptar-tamano"]);
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.ultima.campos.resultado).toBe("ok");
+    expect(r.stderr).toMatch(/--aceptar-tamano/);
+    expect(correr(s).status).toBe(0); // la siguiente ya compara con esta
+  });
+
+  it("un argumento desconocido: motivo config", () => {
+    const s = montar();
+    const r = correr(s, {}, ["--aceptar-todo"]);
+    expect(r.status).toBe(1);
+    expect(r.ultima.campos.motivo).toBe("config");
+  });
+
+  it("cortada con TERM a mitad del volcado: línea de fallo con el paso, /fail y quita sus contenedores", () => {
+    const s = montar();
+    // Como systemd: TERM a todo el grupo de procesos, no solo al script.
+    // Espera a que el pg_dump falso esté dentro (deja una marca) y entonces corta.
+    const marca = join(s.raiz, "dump-empezado");
+    const envolver = 'set -m; bash "$1" & p=$!; for i in $(seq 150); do [ -e "$2" ] && break; sleep 0.2; done; kill -TERM -- -$p 2>/dev/null || kill -TERM $p; wait $p';
+    const r = spawnSync("bash", ["-c", envolver, "envolver", rutaBash(SCRIPT), rutaBash(marca)], {
+      encoding: "utf8",
+      env: { ...process.env, ...entorno(s), FALSO_DUMP_DUERME: "5", FALSO_DUMP_MARCA: rutaBash(marca), FALSO_PS_IDS: "falso123" },
+    });
+    const registro = readFileSync(join(s.dir, "copias.log"), "utf8").trim().split("\n");
+    expect(r.status, r.stderr).not.toBe(0);
+    expect(leerLinea(registro.at(-1)).campos).toMatchObject({ resultado: "fallo", motivo: "dump" });
+    expect(readFileSync(s.argvLog, "utf8")).toMatch(/^docker rm -f falso123$/m);
+    expect(readFileSync(s.curlLog, "utf8")).toMatch(/\/fail/);
+    expect(copiasEn(join(s.dir, "diaria"))).toEqual([]);
   });
 
   it("poda a COPIA_DIARIAS y COPIA_SEMANALES sin tocar lo que no es una copia", () => {
@@ -296,5 +418,39 @@ describe("veredicto del ensayo", () => {
   });
   it("faltan más del 10 % de las filas: recuento", () => {
     expect(veredicto({ "public.a": 80, "public.b": 50, "public.c": 0 }, prod).motivo).toBe("recuento");
+  });
+});
+
+describe("comprobarDestinatarios", () => {
+  const A = `age1${"a".repeat(58)}`;
+  const B = `age1${"b".repeat(58)}`;
+  it("coincide si el fichero es justo la pública de la ficha (comentarios aparte)", () => {
+    expect(comprobarDestinatarios(`# cabecera\n\n${A}\n`, A).coincide).toBe(true);
+  });
+  it("no coincide si sobra otra clave, aunque la de la ficha esté", () => {
+    expect(comprobarDestinatarios(`${A}\n${B}\n`, A)).toMatchObject({ coincide: false, sobran: [B] });
+  });
+  it("no coincide si falta la de la ficha", () => {
+    expect(comprobarDestinatarios(`${B}\n`, A)).toMatchObject({ coincide: false, falta: true });
+  });
+  it("no coincide con un fichero sin claves ni con una pública vacía", () => {
+    expect(comprobarDestinatarios("# nada\n", A).coincide).toBe(false);
+    expect(comprobarDestinatarios("", "").coincide).toBe(false);
+  });
+});
+
+describe("camposRegistroEnsayo (preparado para #273, apagado)", () => {
+  const campos = { fecha: "2026-10-10T090000Z", resultado: "ok", motivo: "-", tablas: 58, filas_copia: 980, filas_prod: 1000, diferencias: 3, auth: "no" };
+  it("por defecto no cambia nada", () => {
+    expect(camposRegistroEnsayo(campos)).toEqual(campos);
+  });
+  it("con soloCociente quita tablas y filas y deja recuento y cociente", () => {
+    const r = camposRegistroEnsayo(campos, { soloCociente: true });
+    expect(r).toEqual({ fecha: campos.fecha, resultado: "ok", motivo: "-", auth: "no", recuento: "ok", cociente: "0.98" });
+    expect(lineaEstructurada("ensayo-copia", r)).not.toMatch(/980|1000/);
+  });
+  it("un ensayo fallido sin producción: recuento fallo y cociente -", () => {
+    const r = camposRegistroEnsayo({ ...campos, resultado: "fallo", filas_prod: "-" }, { soloCociente: true });
+    expect(r).toMatchObject({ recuento: "fallo", cociente: "-" });
   });
 });

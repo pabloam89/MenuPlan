@@ -44,7 +44,8 @@ description: Úsala al tocar una clave o secreto de MenuPlan, al montar un .env.
   del Postgres del panel.
 - **Ficha «Copias de la base»** (bóveda `Panel HoMenu`, la misma id; #247): la
   clave **privada** de `age` que abre todas las copias cifradas de la base
-  (campo `clave_privada_age`; la pública, en `clave_publica` y en
+  (una sola vez, en el campo de contraseña con la etiqueta `clave_privada_age`; la
+  pública, en `clave_publica` y en
   `ops/copias/destinatarios.txt`). En `Panel HoMenu` y no en `HoMenu` a
   propósito: la service account lee `HoMenu` sin preguntar, y esta se lee solo
   aprobando en la app. No va nunca al servidor ni a `.env.local`. La crea
@@ -69,7 +70,7 @@ description: Úsala al tocar una clave o secreto de MenuPlan, al montar un .env.
 | Rotar una clave (OK) | se genera la nueva en el servicio, se cambia en la ficha y, si el despliegue la usa, en Vercel | las direcciones no cambian: nadie toca su `.env.local` |
 | Token nuevo de la service account (OK) | `op service-account create "<nombre>" --vault HoMenu:read_items --raw`, con la salida directa a un script que la guarda en el llavero | la vieja se anula en 1Password.com → Developer → Service accounts |
 | Crear la clave de las copias (OK; Pablo, `!`) | `node scripts/copias-clave.mjs` (ensayo) y luego `--si`; necesita `age-keygen` (`winget install FiloSottile.age`) | `Ficha «Copias de la base» creada en Panel HoMenu y comprobada (COINCIDEN)` y la pública añadida a `destinatarios.txt`; si la ficha ya existe, se niega |
-| ¿Está la ficha de las copias? (sin leer la clave) | `env -u OP_SERVICE_ACCOUNT_TOKEN op item get "Copias de la base" --vault c64ol4a3oewjeue3szoafrrr6q --fields label=clave_publica` | la pública `age1…`, igual que la de `ops/copias/destinatarios.txt` |
+| ¿`destinatarios.txt` es la pública de la ficha? (sin leer la privada; **requisito antes de subirlo al servidor**) | `node scripts/copias-clave.mjs --comprobar` | `COINCIDEN`; si sale `NO COINCIDEN`, no se sube: las copias se cifrarían para otra clave |
 | Ver qué llaves sirve el agente SSH | `C:\Windows\System32\OpenSSH\ssh-add.exe -l` | una línea por llave, con su título, p. ej. `HoMenu - Hetzner Panel (ED25519)` |
 
 El valor de una clave **nunca va escrito en un comando**: quedaría en la
@@ -136,4 +137,4 @@ bóvedas que se le dieron al crearla: para dar otra hay que crear una nueva.
 - https://developer.1password.com/docs/service-accounts/
 - https://developer.1password.com/docs/ssh/agent/
 
-Comprobado el 2026-10-08: lectura con service account, creación y lectura de una ficha en `Panel HoMenu` y agente SSH con una conexión real. Sin probar: caducidad del token ni el límite de peticiones. Sin probar (9 oct 2026): `copias-clave.mjs --si` y la ficha «Copias de la base», que aún no existe.
+Comprobado el 2026-10-08: lectura con service account, creación y lectura de una ficha en `Panel HoMenu` y agente SSH con una conexión real. Sin probar: caducidad del token ni el límite de peticiones. Sin probar (9 oct 2026): `copias-clave.mjs --si` y `--comprobar` contra 1Password, y la ficha «Copias de la base», que aún no existe. Tampoco si `op` acepta la etiqueta `clave_privada_age` en el campo de contraseña: si no, la relectura del script no coincide y no escribe la pública.

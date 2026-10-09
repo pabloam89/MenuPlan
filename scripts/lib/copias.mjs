@@ -149,3 +149,34 @@ export function veredicto(copia, prod) {
   if (vacias.length || filasCopia < 0.9 * filasProd) return { resultado: "fallo", motivo: "recuento", vacias, ...base };
   return { resultado: "ok", motivo: "-", ...base };
 }
+
+/**
+ * ¿`destinatarios.txt` es justo la pública de la ficha de 1Password? Antes de
+ * subirlo al servidor (skill hetzner): si alguien cambiara el fichero del repo
+ * por su propia clave, las copias se cifrarían para él. Devuelve
+ * { coincide, claves, sobran, falta } (claves = las públicas del fichero).
+ */
+export function comprobarDestinatarios(texto, publicaFicha) {
+  const claves = String(texto)
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#"));
+  const publica = String(publicaFicha ?? "").trim();
+  const sobran = claves.filter((c) => c !== publica);
+  const falta = !CLAVE_PUBLICA.test(publica) || !claves.includes(publica);
+  return { coincide: !falta && sobran.length === 0, claves, sobran, falta };
+}
+
+/**
+ * Los campos de la línea del ensayo que van a `ops/copias/ensayos.log`, que está
+ * en un repo PÚBLICO. Hoy van tal cual (con el total de filas). Si Pablo decide
+ * no publicar el tamaño de la base (#273), `soloCociente` quita tablas y filas y
+ * deja `recuento: ok|fallo` y el cociente copia/producción con dos decimales.
+ * Lo que sale por pantalla no cambia.
+ */
+export function camposRegistroEnsayo(campos, { soloCociente = false } = {}) {
+  if (!soloCociente) return { ...campos };
+  const { tablas, filas_copia: fc, filas_prod: fp, diferencias, ...resto } = campos;
+  const cociente = Number(fp) > 0 && Number.isFinite(Number(fc)) ? (Number(fc) / Number(fp)).toFixed(2) : "-";
+  return { ...resto, recuento: campos.resultado === "ok" ? "ok" : "fallo", cociente };
+}

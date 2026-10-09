@@ -12,15 +12,21 @@
  *   …  --pg-bin <dir>        los binarios de Postgres 17 (o PG_BIN; si no, C:\dev\herramientas\pgsql\bin o el PATH)
  *   …  --age <ruta>          el binario de age (o AGE_BIN; si no, el PATH)
  *
- * Qué hace: descifra en una carpeta temporal, levanta un Postgres 17 desechable
- * (initdb en esa carpeta, solo en 127.0.0.1), crea lo mínimo de Supabase que el
- * volcado nombra (roles, auth.uid(), un auth.users con los ids que hacen falta),
- * restaura con `--exit-on-error`, pone las secuencias al día y cuenta las filas
- * de cada tabla. Luego cuenta las mismas tablas en producción con el usuario de
- * solo lectura (`consulta_lectura`, en una transacción read only) y compara
- * (`veredicto` de scripts/lib/copias.mjs). Al final para el Postgres y BORRA la
- * carpeta temporal, también si algo falla: los datos en claro no se quedan en el
- * disco.
+ * Qué hace: comprueba que cada fichero se descifra entero (a ninguna parte),
+ * levanta un Postgres 17 desechable (initdb en una carpeta temporal, solo en
+ * 127.0.0.1), crea lo mínimo de Supabase que el volcado nombra (roles,
+ * auth.uid(), un auth.users con los ids que hacen falta) y restaura con
+ * `--exit-on-error`: `age -d` por tubería a `pg_restore`, una vez por sección,
+ * así que el volcado en claro no se escribe nunca. Pone las secuencias al día y
+ * cuenta las filas de cada tabla. Luego cuenta las mismas tablas en producción
+ * con el usuario de solo lectura (`consulta_lectura`, en una transacción read
+ * only) y compara (`veredicto` de scripts/lib/copias.mjs).
+ *
+ * OJO: mientras dura, el datadir del Postgres desechable SÍ tiene la base en
+ * claro (es una base de verdad). Al final, o con Ctrl+C, Ctrl+Break o al cerrar
+ * la ventana, se para el Postgres y se BORRA la carpeta temporal; si algo lo
+ * impide, lo dice («OJO: no pude borrar…») y el siguiente ensayo la borra al
+ * empezar (`limpiarRestos`).
  *
  * Deja una línea `ensayo-copia …` en ops/copias/ensayos.log (sin datos de
  * familias: nombres de tablas y recuentos). Cadencia: skill hetzner.
@@ -35,8 +41,15 @@ import pg from "pg";
 import { RAIZ, leerEnv } from "./lib/env.mjs";
 import {
   CLAVE_PRIVADA, DIR_SERVIDOR, NOMBRE_COPIA, OP_CLAVE_COPIAS, SERVIDOR, SQL_SECUENCIAS,
-  clavesAjenasAAuth, fechaDeCopia, lineaEstructurada, veredicto,
+  camposRegistroEnsayo, clavesAjenasAAuth, fechaDeCopia, lineaEstructurada, veredicto,
 } from "./lib/copias.mjs";
+
+/**
+ * ops/copias/ensayos.log está en un repo público. false: la línea va entera
+ * (con el total de filas). true: solo `recuento: ok|fallo` y el cociente
+ * (`camposRegistroEnsayo`). Lo decide Pablo (#273); no se cambia sin su sí.
+ */
+const REGISTRO_SOLO_COCIENTE = false;
 import { VAR_LECTURA } from "./lib/rolLectura.mjs";
 
 const SSH = "C:\\Windows\\System32\\OpenSSH\\ssh.exe";
@@ -80,6 +93,66 @@ function correr(motivo, cmd, argv, opciones = {}) {
   }
   return r.stdout;
 }
+
+/**
+ * `age -d <fichero> | <cmd argv>`: descifra por tubería, sin escribir el claro en
+ * el disco, y devuelve la salida de `cmd`. Manda lo que diga `cmd`: si acaba
+ * bien, que `age` se queje de la tubería cerrada no cuenta (pg_restore deja de
+ * leer cuando ya tiene su sección); la integridad de cada fichero ya la
+ * comprobó `comprobarDescifrado`. Con tope de tiempo, como `correr`.
+ */
+async function descifrarA(motivo, age, clave, fichero, cmd, argv) {
+  const a = spawn(age, ["-d", "-i", "-", fichero], { stdio: ["pipe", "pipe", "pipe"] });
+  const b = spawn(cmd, argv, { stdio: ["pipe", "pipe", "pipe"] });
+  a.stdin.end(`${clave}\n`);
+  a.stdout.pipe(b.stdin);
+  b.stdin.on("error", () => {}); // pg_restore puede cerrar antes de que age acabe
+  a.stdout.on("error", () => {});
+  let salida = "";
+  let errores = "";
+  b.stdout.setEncoding("utf8").on("data", (d) => { salida += d; });
+  b.stderr.setEncoding("utf8").on("data", (d) => { errores += d; });
+  a.stderr.resume();
+  const tope = setTimeout(() => { a.kill(); b.kill(); }, 15 * 60_000);
+  const fin = (p) => new Promise((res) => { p.on("error", (e) => res(e.code ?? -1)); p.on("close", (c) => res(c)); });
+  const [, cb] = await Promise.all([fin(a), fin(b)]);
+  clearTimeout(tope);
+  if (cb !== 0) {
+    const detalle = errores.trim().split(/\r?\n/).slice(-6).join("\n");
+    fallo(motivo, `${cmd.split(/[\\/]/).pop()} salió con ${cb}:\n${detalle}`);
+  }
+  return salida;
+}
+
+/** Cada .age se descifra entero sin guardar nada: clave buena y fichero sano (age comprueba cada trozo). */
+function comprobarDescifrado(age, clave, fichero) {
+  const r = spawnSync(age, ["-d", "-i", "-", fichero], { input: `${clave}\n`, stdio: ["pipe", "ignore", "pipe"], encoding: "utf8", timeout: 15 * 60_000 });
+  if (r.error || r.status !== 0) fallo("descifrado", `age -d ${fichero.split(/[\\/]/).pop()} salió con ${r.status ?? r.error?.code}: ${(r.stderr || "").trim()}`);
+}
+
+/**
+ * Lo que hay que limpiar si cortan el ensayo. Con Ctrl+C (SIGINT), Ctrl+Break
+ * (SIGBREAK), al cerrar la ventana (SIGHUP; Windows da unos 10 s) o SIGTERM:
+ * para el Postgres en seco y borra la carpeta, todo síncrono, y sale. Sin esto,
+ * el datadir con la base en claro y un postmaster con `trust` se quedaban en
+ * %TEMP% (lo vio seguridad el 9 oct 2026).
+ */
+const vivo = { tmp: null, datos: null, pgctl: null };
+function limpiarYSalir(senal) {
+  console.error(`\nCortado (${senal}): paro el Postgres del ensayo y borro la carpeta temporal.`);
+  if (vivo.pgctl && vivo.datos && existsSync(join(vivo.datos, "postmaster.pid"))) {
+    spawnSync(vivo.pgctl, ["-D", vivo.datos, "-m", "immediate", "-w", "stop"], { stdio: "ignore", timeout: 30_000 });
+  }
+  if (vivo.tmp) {
+    try {
+      rmSync(vivo.tmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 300 });
+    } catch (e) {
+      console.error(`OJO: no pude borrar ${vivo.tmp} (${e.message}); tiene la base en claro. Bórrala a mano.`);
+    }
+  }
+  process.exit(130);
+}
+for (const s of ["SIGINT", "SIGTERM", "SIGHUP", "SIGBREAK"]) process.on(s, () => limpiarYSalir(s));
 
 /** Trae la última copia diaria del servidor a `destino` (tar por SSH) y devuelve su carpeta. */
 async function descargar(destino) {
@@ -211,10 +284,13 @@ async function main() {
   const datos = join(tmp, "pg");
   let pgctl = null;
   let detalle = null;
+  vivo.tmp = tmp;
+  vivo.datos = datos;
   try {
     const pgBin = binariosPg();
     const age = binarioAge();
     pgctl = pgBin("pg_ctl");
+    vivo.pgctl = pgctl;
 
     const dirCopia = opcion("--copia") ?? (await descargar(join(tmp, "descarga")));
     const nombre = dirCopia.split(/[\\/]/).filter(Boolean).pop();
@@ -224,14 +300,13 @@ async function main() {
     if (!existsSync(join(dirCopia, "base.dump.age"))) fallo("descarga", `no hay base.dump.age en ${dirCopia}`);
 
     const clave = clavePrivada();
-    const plano = join(tmp, "plano");
-    mkdirSync(plano);
-    for (const f of readdirSync(dirCopia).filter((x) => x.endsWith(".age"))) {
-      correr("descifrado", age, ["-d", "-i", "-", "-o", join(plano, f.replace(/\.age$/, "")), join(dirCopia, f)], { input: `${clave}\n` });
-    }
-    const csvs = readdirSync(plano).filter((x) => x.endsWith(".csv"));
-    if (csvs.length) campos.auth = "si";
-    console.log(`Copia ${nombre} descifrada (${(statSync(join(plano, "base.dump")).size / 1e6).toFixed(1)} MB en claro, en ${tmp}).`);
+    // Nada en claro en el disco: cada fichero se descifra entero a ninguna
+    // parte (clave y fichero sanos) y el volcado, después, por tubería.
+    const cifrados = readdirSync(dirCopia).filter((x) => x.endsWith(".age"));
+    for (const f of cifrados) comprobarDescifrado(age, clave, join(dirCopia, f));
+    if (cifrados.some((x) => x.endsWith(".csv.age"))) campos.auth = "si";
+    const dump = join(dirCopia, "base.dump.age");
+    console.log(`Copia ${nombre} comprobada (${(statSync(dump).size / 1e6).toFixed(1)} MB cifrada); se restaura por tubería, sin escribirla en claro.`);
 
     // Postgres desechable: solo escucha en 127.0.0.1, en un puerto libre.
     const puerto = await puertoLibre();
@@ -248,15 +323,18 @@ async function main() {
     const psql = (motivo, sql) => correr(motivo, pgBin("psql"), [...conexion, "-X", "-q", "-v", "ON_ERROR_STOP=1"], { input: sql });
 
     psql("restauracion", SQL_STUB);
-    const dump = join(plano, "base.dump");
-    const restaurar = (seccion) => correr("restauracion", pgBin("pg_restore"), [...conexion, "--no-owner", "--no-acl", "--exit-on-error", `--section=${seccion}`, dump]);
-    restaurar("pre-data");
-    restaurar("data");
+    // pg_restore lee de stdin (sin fichero): una pasada de age por sección. La
+    // copia se hizo a una tubería, sin índice de posiciones, así que pg_restore
+    // la lee en orden; con una sola tarea (sin -j) es lo que hace igual.
+    const desdeCopia = (argv) => descifrarA("restauracion", age, clave, dump, pgBin("pg_restore"), ["--format=custom", ...argv]);
+    const restaurar = (seccion) => desdeCopia([...conexion, "--no-owner", "--no-acl", "--exit-on-error", `--section=${seccion}`]);
+    await restaurar("pre-data");
+    await restaurar("data");
     // Antes de las claves ajenas: los ids que piden las que apuntan a auth.users.
-    const post = correr("restauracion", pgBin("pg_restore"), ["--section=post-data", "--no-owner", "--no-acl", "-f", "-", dump]);
+    const post = await desdeCopia(["--section=post-data", "--no-owner", "--no-acl", "-f", "-"]);
     const fks = clavesAjenasAAuth(post);
     psql("restauracion", fks.map((f) => `insert into auth.users (id) select distinct ${f.columna} from ${f.tabla} where ${f.columna} is not null on conflict do nothing;`).join("\n"));
-    restaurar("post-data");
+    await restaurar("post-data");
     psql("restauracion", SQL_SECUENCIAS);
     console.log(`Restaurada: ${fks.length} claves ajenas a auth.users atendidas, secuencias al día.`);
 
@@ -298,6 +376,7 @@ async function main() {
       console.error(`OJO: no pude borrar ${tmp} (${e.message}); tiene la base en claro. Bórrala a mano.`);
       process.exitCode = 1;
     }
+    vivo.tmp = vivo.datos = vivo.pgctl = null;
   }
 
   campos.segundos = Math.round((Date.now() - t0) / 1000);
@@ -311,7 +390,10 @@ async function main() {
 
   const linea = lineaEstructurada("ensayo-copia", campos);
   console.log(`\n${linea}`);
-  if (!tiene("--no-registrar")) appendFileSync(REGISTRO, `${linea}\n`);
+  if (!tiene("--no-registrar")) {
+    const publica = lineaEstructurada("ensayo-copia", camposRegistroEnsayo(campos, { soloCociente: REGISTRO_SOLO_COCIENTE }));
+    appendFileSync(REGISTRO, `${publica}\n`);
+  }
   if (campos.resultado !== "ok") process.exitCode = 1;
 }
 
