@@ -4,7 +4,7 @@ description: Úsala al conectar un PC o un servidor a la red privada, cuando no 
 metadata:
   tipo: herramienta
   dueno: gobierno
-  comprobado: 2026-10-08
+  comprobado: "2026-10-08"
 ---
 
 # Tailscale

@@ -4,7 +4,7 @@ description: Úsala al tocar una clave o secreto de MenuPlan, al montar un .env.
 metadata:
   tipo: herramienta
   dueno: gobierno
-  comprobado: 2026-10-08
+  comprobado: "2026-10-08"
 ---
 
 # 1Password

@@ -4,7 +4,7 @@ description: Úsala cuando haya que registrar un fallo como caso, abrir o colgar
 metadata:
   tipo: herramienta
   dueno: gobierno
-  comprobado: 2026-10-09
+  comprobado: "2026-10-09"
 ---
 
 # Issues

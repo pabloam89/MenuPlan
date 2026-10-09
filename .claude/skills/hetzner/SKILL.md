@@ -4,7 +4,7 @@ description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a
 metadata:
   tipo: herramienta
   dueno: gobierno
-  comprobado: 2026-10-09
+  comprobado: "2026-10-09"
 ---
 
 # Hetzner (servidor propio)

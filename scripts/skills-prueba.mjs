@@ -2,7 +2,7 @@
  * Nivel 2 de las skills (#336): ¿ayuda de verdad? Cuesta tokens.
  *
  *   npm run skills-prueba -- github supabase           → las dos, tope 1 $
- *   npm run skills-prueba -- github --tope=0.5         → otro tope (nunca más de lo que queda del mes)
+ *   npm run skills-prueba -- github --tope=0.5         → otro tope (el tope mensual sumado llega con #277: hoy cada pasada se limita sola)
  *   npm run skills-prueba -- github --ensayo           → qué correría y la cota de gasto, sin llamar a nadie
  *   npm run skills-prueba -- github --sin-guardar      → no escribe ops/skills-prueba/
  *

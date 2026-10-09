@@ -4,7 +4,7 @@ description: Úsala con un despliegue de Vercel — preview de un PR, staging o 
 metadata:
   tipo: herramienta
   dueno: gobierno
-  comprobado: 2026-10-08
+  comprobado: "2026-10-08"
 ---
 
 # Vercel

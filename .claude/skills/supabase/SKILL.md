@@ -4,7 +4,7 @@ description: Úsala para operar la base de datos de MenuPlan en Supabase: una co
 metadata:
   tipo: herramienta
   dueno: gobierno
-  comprobado: 2026-10-09
+  comprobado: "2026-10-09"
 ---
 
 # Supabase

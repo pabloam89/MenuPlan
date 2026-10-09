@@ -4,7 +4,7 @@ description: Úsala al operar el bot de Telegram: Lola no contesta, poner, mirar
 metadata:
   tipo: herramienta
   dueno: lola
-  comprobado: 2026-10-09
+  comprobado: "2026-10-09"
 ---
 
 # Telegram

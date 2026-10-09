@@ -150,6 +150,9 @@ const RUTA_CITADA = /`((?:\.claude|\.github|ops|supabase|docs|specs|src|scripts|
  * las suyas con dos espacios. No es YAML entero a propósito: lo que no casa
  * con esta forma no se lee, y el test lo da por ausente.
  */
+// Un valor YAML entre comillas ("2026-10-09") es la misma cadena sin ellas.
+const sinComillas = (v) => v.replace(/^(["'])(.*)\1$/, "$2");
+
 export function parsearSkill(texto) {
   const t = String(texto).replace(/\r\n/g, "\n");
   const m = t.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
@@ -158,7 +161,7 @@ export function parsearSkill(texto) {
   let dentro = null;
   for (const linea of m[1].split("\n")) {
     const hijo = linea.match(/^ {2}(\w+):\s*(.*)$/);
-    if (hijo && dentro) { meta[dentro][hijo[1]] = hijo[2].trim(); continue; }
+    if (hijo && dentro) { meta[dentro][hijo[1]] = sinComillas(hijo[2].trim()); continue; }
     const top = linea.match(/^(\w+):\s*(.*)$/);
     if (!top) { dentro = null; continue; }
     if (top[2].trim() === "") { meta[top[1]] = {}; dentro = top[1]; } else { meta[top[1]] = top[2].trim(); dentro = null; }

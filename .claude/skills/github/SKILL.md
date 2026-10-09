@@ -4,7 +4,7 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 metadata:
   tipo: herramienta
   dueno: gobierno
-  comprobado: 2026-10-09
+  comprobado: "2026-10-09"
 ---
 
 # GitHub
