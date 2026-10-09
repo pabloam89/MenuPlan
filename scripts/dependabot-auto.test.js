@@ -1,20 +1,26 @@
 // La fusión sola de Dependabot (#193): qué PR entra y cuál no, y que el
 // workflow no abra la puerta al código del PR.
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
+  CERO,
   clasificar,
   commitsDeDependabot,
   decidir,
   DECISIONES,
+  dependenciasDe,
+  ESTE_WORKFLOW,
+  fusionarConApp,
   linea,
   MOTIVOS,
+  pasada,
   revisarFicheros,
   saltoDe,
   soloCambiaUses,
   textoFiable,
+  usaEnvironment,
 } from "./dependabot-auto.mjs";
 
 const REPO = "pabloam89/MenuPlan";
@@ -202,6 +208,14 @@ describe("dependabot-auto: decidir", () => {
     expect(motivo({ pr: { title: "bump postcss from 8.5.15 to 8.5.29 in /dish-gallery" }, ficheros: [{ filename: "dish-gallery/package-lock.json" }] })).toBe("ficheros-fuera"));
   it("mayor: se queda", () => expect(motivo({ pr: { title: "bump vite from 5.4.21 to 8.3.4" } })).toBe("mayor"));
   it("grupo npm-cero: se queda", () => expect(motivo({ pr: { title: "bump the npm-cero group with 1 update" } })).toBe("grupo-manual"));
+  it("un PR suelto (de seguridad) de una dependencia de CERO: se queda, aunque sea parche", () => {
+    expect(motivo({ pr: { title: "chore(deps-dev): bump sharp from 0.35.5 to 0.35.6" } })).toBe("grupo-manual");
+    const yml = '---\nupdated-dependencies:\n- dependency-name: "@anthropic-ai/sdk"\n  dependency-version: 0.129.1\n...';
+    const pr = { title: "chore(deps): bump @anthropic-ai/sdk", body: "Bumps [@anthropic-ai/sdk](u) from 0.129.0 to 0.129.1." };
+    expect(motivo({ pr, commits: [commitBot(yml)] })).toBe("grupo-manual");
+    expect(dependenciasDe({ titulo: "bump x", textos: [yml] })).toEqual(["@anthropic-ai/sdk"]);
+    expect(dependenciasDe({ titulo: "bump @vitest/mocker and vitest", textos: ["Updates `vitest` from 4.1.7 to 4.1.11"] })).toEqual(["vitest"]);
+  });
   it("tests en rojo, o en verde pero de otro SHA (un run viejo): no", () => {
     expect(motivo({ checks: [{ ...verde, conclusion: "failure" }] })).toBe("tests-no-verde");
     expect(motivo({ checks: [{ ...verde, head_sha: "b".repeat(40) }] })).toBe("tests-no-verde");
@@ -231,51 +245,85 @@ describe("dependabot-auto: decidir", () => {
 describe("dependabot-auto.yml: no abre la puerta al PR", () => {
   const yml = readFileSync(new URL("../.github/workflows/dependabot-auto.yml", import.meta.url), "utf8");
   const sinComentarios = yml.replace(/\s#.*$/gm, "");
-  const pasos = sinComentarios.split(/\n {6}- /).slice(1);
+  const [, jobPasada = "", jobApp = ""] = sinComentarios.split(/^ {2}(?=[\w-]+:\n)/m).filter((b) => !b.startsWith("name:")).slice(-3);
+  const pasos = (job) => job.split(/\n {6}- /).slice(1);
+  const permisos = (job) =>
+    (/^ {4}permissions:\n((?: {6}\S.*\n)+)/m.exec(job)?.[1] ?? "").trim().split("\n").map((l) => l.trim()).sort();
 
+  it("dos jobs, pasada y fusionar-app, y este solo tras aquel y con un PR apuntado", () => {
+    expect(jobPasada).toMatch(/^pasada:\n/);
+    expect(jobApp).toMatch(/^fusionar-app:\n/);
+    expect(jobApp).toMatch(/^ {4}needs: pasada$/m);
+    expect(jobApp).toMatch(/^ {4}if: needs\.pasada\.outputs\.app_pr != ''$/m);
+  });
   it("solo workflow_run de Tests, programado y a mano; nunca pull_request_target", () => {
     expect(sinComentarios).not.toMatch(/pull_request_target/);
     expect(sinComentarios).toMatch(/workflow_run:\s*\n\s*workflows: \[Tests\]/);
   });
   it("cada acción fijada por SHA", () => {
     const usos = [...sinComentarios.matchAll(/uses:\s*(\S+)/g)].map((m) => m[1]);
-    expect(usos).toHaveLength(2);
+    expect(usos).toHaveLength(3);
     for (const u of usos) expect(u).toMatch(/@[0-9a-f]{40}$/);
   });
-  it("el único checkout es de la rama por defecto, sin credenciales y solo del script", () => {
-    expect(sinComentarios.match(/actions\/checkout@/g)).toHaveLength(1);
-    expect(sinComentarios).toMatch(/ref: \$\{\{ github\.event\.repository\.default_branch \}\}/);
-    expect(sinComentarios).toMatch(/persist-credentials: false/);
-    expect(sinComentarios).toMatch(/sparse-checkout: scripts\/dependabot-auto\.mjs\n/);
-    expect(sinComentarios).not.toMatch(/head_sha|head_branch\s*\}\}|pull_request\.head|refs\/pull/);
+  it("cada checkout es de staging (literal), sin credenciales y solo del script", () => {
+    for (const job of [jobPasada, jobApp]) {
+      expect(job.match(/actions\/checkout@/g)).toHaveLength(1);
+      expect(job).toMatch(/ref: staging\n/);
+      expect(job).toMatch(/persist-credentials: false/);
+      expect(job).toMatch(/sparse-checkout: scripts\/dependabot-auto\.mjs\n/);
+    }
+    expect(sinComentarios).not.toMatch(/head_sha|head_branch\s*\}\}|pull_request\.head|refs\/pull|default_branch/);
   });
-  it("permisos: ninguno arriba y en el job solo los tres que hacen falta", () => {
+  it("permisos: ninguno arriba; la pasada escribe con el GITHUB_TOKEN, el de la App solo lee con él", () => {
     expect(sinComentarios).toMatch(/^permissions: \{\}$/m);
-    const job = /^ {4}permissions:\n((?: {6}\S.*\n)+)/m.exec(sinComentarios)?.[1] ?? "";
-    const permisos = job.trim().split("\n").map((l) => l.trim()).sort();
-    expect(permisos).toEqual(["checks: read", "contents: write", "pull-requests: write"]);
+    expect(permisos(jobPasada)).toEqual(["checks: read", "contents: write", "pull-requests: write"]);
+    expect(permisos(jobApp)).toEqual(["checks: read", "contents: read", "pull-requests: read"]);
   });
-  it("la clave de la App solo entra en el paso del token, que solo corre con un PR de actions apuntado", () => {
-    const conClave = pasos.filter((p) => /secrets\.DEPENDABOT_APP_KEY\b(?! != '')/.test(p));
+  it("la pasada no ve el environment, ni secretos, ni variables", () => {
+    expect(jobPasada).not.toMatch(/environment:|secrets\.|vars\./);
+    expect(jobApp).toMatch(/^ {4}environment: dependabot-auto$/m);
+  });
+  it("la clave solo entra en el paso del token, por SHA, con repo literal y los tres permisos justos", () => {
+    const conClave = pasos(jobApp).filter((p) => /secrets\.DEPENDABOT_APP_KEY\b(?! != '')/.test(p));
     expect(conClave).toHaveLength(1);
     expect(conClave[0]).toMatch(/uses: actions\/create-github-app-token@[0-9a-f]{40}/);
-    expect(conClave[0]).toMatch(/if: steps\.pasada\.outputs\.app_pr != ''/);
-    // con los tres permisos justos, nada más
+    expect(conClave[0]).toMatch(/if: env\.HAY_CLAVE == 'true'/);
+    expect(conClave[0]).toMatch(/owner: pabloam89\n/);
+    expect(conClave[0]).toMatch(/repositories: MenuPlan\n/);
     expect([...conClave[0].matchAll(/permission-([\w-]+): (\w+)/g)].map((m) => `${m[1]}: ${m[2]}`).sort()).toEqual([
       "contents: write",
       "pull-requests: write",
       "workflows: write",
     ]);
-    // el token de la App solo lo ve el paso que fusiona el de actions
-    const conToken = pasos.filter((p) => p.includes("steps.app.outputs.token"));
+    const conToken = pasos(jobApp).filter((p) => p.includes("steps.app.outputs.token"));
     expect(conToken).toHaveLength(1);
-    expect(conToken[0]).toMatch(/if: steps\.pasada\.outputs\.app_pr != ''/);
     expect(conToken[0]).toMatch(/--fusionar-app/);
-    // el resto de secretos: ninguno
     expect([...sinComentarios.matchAll(/secrets\.(\w+)/g)].map((m) => m[1]).every((s) => s === "DEPENDABOT_APP_KEY")).toBe(true);
   });
-  it("con el environment dependabot-auto (sus secretos solo existen en staging)", () =>
-    expect(sinComentarios).toMatch(/^ {4}environment: dependabot-auto$/m));
+  it("concurrency dentro de cada job, no arriba (los runs que se saltan el job no cancelan la pasada que espera)", () => {
+    expect(sinComentarios).not.toMatch(/^concurrency:/m);
+    expect(jobPasada).toMatch(/^ {4}concurrency:\n {6}group: dependabot-auto\n {6}cancel-in-progress: false/m);
+    expect(jobApp).toMatch(/^ {4}concurrency:\n {6}group: dependabot-auto-app\n {6}cancel-in-progress: false/m);
+  });
+});
+
+describe("dependabot-auto: workflows con environment del repo", () => {
+  const dir = new URL("../.github/workflows/", import.meta.url);
+  const workflows = readdirSync(dir).filter((f) => /\.ya?ml$/.test(f));
+  it("usaEnvironment ve los que declaran uno (y no el que solo lo nombra en un comentario)", () => {
+    const con = workflows.filter((f) => usaEnvironment(readFileSync(new URL(f, dir), "utf8"))).sort();
+    const grep = workflows.filter((f) => /^\s+environment:/m.test(readFileSync(new URL(f, dir), "utf8"))).sort();
+    expect(con).toEqual(grep);
+    expect(con).toEqual(expect.arrayContaining(["dependabot-auto.yml", "mercadona-sync.yml", "vigia-lola.yml"]));
+    expect(usaEnvironment("# el environment: vigia\njobs:\n  x:\n    runs-on: u\n")).toBe(false);
+    expect(usaEnvironment(null)).toBe(true);
+  });
+  it("un PR de actions que toca este workflow, o uno con environment, no entra solo", () => {
+    expect(revisarFicheros([{ filename: ESTE_WORKFLOW, patch: PARCHE_USES }]).motivo).toBe("toca-este-workflow");
+    const vigia = { filename: ".github/workflows/vigia-lola.yml", patch: PARCHE_USES };
+    expect(revisarFicheros([...actions, vigia], [vigia.filename]).motivo).toBe("toca-workflow-con-environment");
+    expect(revisarFicheros(actions, [vigia.filename]).motivo).toBe(null);
+  });
 });
 
 describe("dependabot.yml: lo pequeño, lo grande y las 0.x, por separado", () => {
@@ -287,12 +335,12 @@ describe("dependabot.yml: lo pequeño, lo grande y las 0.x, por separado", () =>
       expect(yml).toMatch(new RegExp(`${eco}-mayores:\\n(?: {8}.*\\n)*? {8}update-types: \\[major\\]`));
     }
   });
-  it("cada dependencia directa en 0.x va a npm-cero y fuera de menores y mayores", () => {
+  it("CERO (la constante del script) son las 0.x directas, y va a npm-cero y fuera de menores y mayores", () => {
     const cero = Object.entries({ ...pkg.dependencies, ...pkg.devDependencies })
       .filter(([, v]) => /^[\^~]?0\./.test(v))
       .map(([n]) => n)
       .sort();
-    expect(cero.length).toBeGreaterThan(0);
+    expect([...CERO].sort()).toEqual(cero);
     const lista = (re) => JSON.parse(re.exec(yml)?.[1] ?? "[]").sort();
     expect(lista(/npm-cero:\n(?: {8}.*\n)*? {8}patterns: (\[.*\])/)).toEqual(cero);
     expect(lista(/npm-menores:\n(?: {8}.*\n)*? {8}exclude-patterns: (\[.*\])/)).toEqual(cero);
@@ -303,5 +351,104 @@ describe("dependabot.yml: lo pequeño, lo grande y las 0.x, por separado", () =>
   it("todo contra staging", () => {
     const ramas = [...yml.matchAll(/target-branch: (\S+)/g)].map((m) => m[1]);
     expect(ramas).toEqual(["staging", "staging"]);
+  });
+});
+
+describe("dependabot-auto: la pasada y la fusión con la App, con una API falsa", () => {
+  const prNpm = (n, extra = {}) => ({ ...datos().pr, number: n, ...extra });
+  const prActions = (n) => prNpm(n, { title: "chore(ci): bump the actions-menores group with 1 update", body: "Updates `actions/checkout` from 7.0.0 to 7.1.0" });
+  const WORKFLOW_SIN_ENV = "jobs:\n  tests:\n    runs-on: ubuntu-latest\n";
+
+  // prs: { n: { pr, ficheros, compare } }. Devuelve el cliente y lo que escribió.
+  function apiFalsa(prs) {
+    const escrito = [];
+    const api = async (ruta, { method = "GET", body } = {}) => {
+      if (method !== "GET") {
+        escrito.push({ method, ruta, body });
+        return {};
+      }
+      let m;
+      if ((m = /^\/pulls\/(\d+)$/.exec(ruta))) return prs[m[1]].pr;
+      if ((m = /^\/compare\/([0-9a-f]+)\.\.\.staging$/.exec(ruta))) {
+        const n = Object.keys(prs).find((k) => prs[k].pr.head.sha === m[1]);
+        return prs[n].compare ?? { ahead_by: 0, files: [] };
+      }
+      if (ruta.startsWith("/contents/")) return { content: Buffer.from(WORKFLOW_SIN_ENV).toString("base64") };
+      throw new Error(`ruta no prevista: ${ruta}`);
+    };
+    const paginas = async (ruta) => {
+      let m;
+      if (ruta.startsWith("/pulls?state=open")) return Object.values(prs).map((p) => p.pr);
+      if ((m = /^\/pulls\/(\d+)\/commits$/.exec(ruta))) return [commitBot()];
+      if ((m = /^\/pulls\/(\d+)\/files$/.exec(ruta))) return prs[m[1]].ficheros;
+      if (ruta.startsWith("/commits/")) return [{ ...verde, head_sha: /^\/commits\/(\w+)\//.exec(ruta)[1] }];
+      if (ruta.startsWith("/issues/")) return [];
+      throw new Error(`ruta no prevista: ${ruta}`);
+    };
+    return { api, paginas, escrito };
+  }
+  const sha = (c) => c.repeat(40);
+  const mundo = () => ({
+    1: { pr: prNpm(1, { head: { sha: sha("1"), repo: { full_name: REPO } } }), ficheros: npm },
+    2: {
+      pr: prNpm(2, { head: { sha: sha("2"), repo: { full_name: REPO } } }),
+      ficheros: npm,
+      compare: { ahead_by: 1, files: [{ filename: "package-lock.json" }] },
+    },
+    3: { pr: { ...prActions(3), head: { sha: sha("3"), repo: { full_name: REPO } } }, ficheros: actions },
+    4: { pr: { ...prActions(4), head: { sha: sha("4"), repo: { full_name: REPO } } }, ficheros: actions },
+  });
+  const sinRuido = { log: () => {}, esperar: async () => {} };
+
+  it("en ensayo no escribe nada: ni PUT, ni POST, ni salida para la App", async () => {
+    const f = apiFalsa(mundo());
+    const salidas = [];
+    const r = await pasada({ ...f, repo: REPO, si: false, salida: (k, v) => salidas.push([k, v]), ...sinRuido });
+    expect(f.escrito).toEqual([]);
+    expect(salidas).toEqual([]);
+    expect(r.lineas.map((l) => /haria: (\S+)/.exec(l)?.[1] ?? /motivo: (\S+)/.exec(l)[1])).toEqual(["fusionado", "rebase", "para-app", "app-ocupada"]);
+  });
+  it("con --si: fusiona npm con su SHA, pide rebase, apunta el primero de actions y el segundo, app-ocupada", async () => {
+    const f = apiFalsa(mundo());
+    const salidas = [];
+    const r = await pasada({ ...f, repo: REPO, si: true, salida: (k, v) => salidas.push([k, v]), ...sinRuido });
+    expect(f.escrito).toEqual([
+      { method: "PUT", ruta: "/pulls/1/merge", body: { sha: sha("1"), merge_method: "merge" } },
+      { method: "POST", ruta: "/issues/2/comments", body: { body: "@dependabot rebase" } },
+    ]);
+    expect(salidas).toEqual([["app_pr", 3], ["app_sha", sha("3")]]);
+    expect(r.lineas[2]).toMatch(/pr: 3 decision: para-app .*ruta: actions/);
+    expect(r.lineas[3]).toMatch(/pr: 4 decision: espera motivo: app-ocupada/);
+    expect(r.fallos).toBe(0);
+  });
+  it("fusionar con la App: sin clave no hace nada y no falla", async () => {
+    const f = apiFalsa(mundo());
+    const l = await fusionarConApp({ ...f, repo: REPO, appToken: "", ...sinRuido }, 3, sha("3"));
+    expect(l).toMatch(/motivo: sin-clave-app/);
+    expect(f.escrito).toEqual([]);
+  });
+  it("fusionar con la App: si el PR ya no está en el SHA apuntado, no", async () => {
+    const f = apiFalsa(mundo());
+    const conApp = [];
+    const clienteApp = () => ({ api: async (...a) => conApp.push(a) });
+    const l = await fusionarConApp({ ...f, repo: REPO, appToken: "t", clienteApp, ...sinRuido }, 3, sha("9"));
+    expect(l).toMatch(/motivo: sha-cambiado/);
+    expect(conApp).toEqual([]);
+  });
+  it("fusionar con la App: el bueno se fusiona con el token de la App (y no con el GITHUB_TOKEN)", async () => {
+    const f = apiFalsa(mundo());
+    const conApp = [];
+    const clienteApp = (token) => ({ api: async (ruta, o) => conApp.push({ token, ruta, ...o }) });
+    const l = await fusionarConApp({ ...f, repo: REPO, appToken: "t", clienteApp, ...sinRuido }, 3, sha("3"));
+    expect(l).toMatch(/pr: 3 decision: fusionado/);
+    expect(conApp).toEqual([{ token: "t", ruta: "/pulls/3/merge", method: "PUT", body: { sha: sha("3"), merge_method: "merge" } }]);
+    expect(f.escrito).toEqual([]);
+  });
+  it("fusionar con la App: uno de npm que llegara aquí, no", async () => {
+    const f = apiFalsa(mundo());
+    const conApp = [];
+    const l = await fusionarConApp({ ...f, repo: REPO, appToken: "t", clienteApp: () => ({ api: async (...a) => conApp.push(a) }), ...sinRuido }, 1, sha("1"));
+    expect(l).toMatch(/ruta: npm/);
+    expect(conApp).toEqual([]);
   });
 });

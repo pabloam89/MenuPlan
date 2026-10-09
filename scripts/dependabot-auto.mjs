@@ -29,14 +29,23 @@
 // la rechaza.
 //
 // npm se fusiona con el GITHUB_TOKEN. Actions no puede (cambia workflows): la
-// pasada lo deja en GITHUB_OUTPUT (`app_pr`, `app_sha`) y el workflow, en otro
-// paso, saca un token de la GitHub App `homenu-dependabot-merge` y llama a
-// `--fusionar-app`, que lo vuelve a comprobar todo y solo usa ese token para
-// la fusión.
+// pasada lo deja en GITHUB_OUTPUT (`app_pr`, `app_sha`) y el workflow, en OTRO
+// JOB (el único que ve el environment y la clave), saca un token de la GitHub
+// App `homenu-dependabot-merge` y llama a `--fusionar-app`, que lo vuelve a
+// comprobar todo y solo usa ese token para la fusión. Un PR de actions que
+// toque este workflow, o uno que use un environment (sus secretos), no entra
+// por aquí: lo mira una sesión.
+// Las 0.x directas (CERO) van al grupo npm-cero de dependabot.yml; un PR de
+// seguridad suelto de una de ellas también espera (`grupo-manual`). El test
+// cruza CERO con dependabot.yml y con package.json.
 //
 // Uso: node scripts/dependabot-auto.mjs                ensayo: dice qué haría, no escribe
 //      node scripts/dependabot-auto.mjs --si           fusiona npm, comenta rebases, apunta actions
 //      node scripts/dependabot-auto.mjs --fusionar-app <n> --sha <sha>   (con APP_TOKEN)
+// `--fusionar-app` escribe sin `--si` a propósito: solo lo llama el segundo
+// job del workflow con un PR que la pasada (con --si) ya apuntó, y sin
+// APP_TOKEN no hace nada (`sin-clave-app`). No hay ensayo de ese paso: el de
+// la pasada dice `haria: para-app`.
 // Necesita GITHUB_TOKEN (o GH_TOKEN) y GITHUB_REPOSITORY (por defecto pabloam89/MenuPlan).
 
 import { appendFileSync } from "node:fs";
@@ -45,6 +54,10 @@ import { pathToFileURL } from "node:url";
 export const BOT = "dependabot[bot]";
 export const BASE = "staging";
 export const CHECK = "tests";
+export const ESTE_WORKFLOW = ".github/workflows/dependabot-auto.yml";
+// Dependencias directas en 0.x: una «menor» puede romper. La misma lista va en
+// el grupo npm-cero de .github/dependabot.yml (lo vigila el test).
+export const CERO = ["@anthropic-ai/sdk", "eslint-plugin-react-refresh", "sharp"];
 
 // Vocabulario cerrado: lo que hace con cada PR y por qué.
 export const DECISIONES = ["fusionado", "para-app", "rebase", "espera", "error"];
@@ -56,15 +69,17 @@ export const MOTIVOS = [
   "commits-ajenos", // algún commit no es de Dependabot o no está firmado por GitHub
   "ficheros-fuera", // toca algo que no es package*.json de la raíz ni un workflow
   "cambia-mas-que-uses", // en un workflow cambia algo más que una línea `uses:` de la misma acción
+  "toca-este-workflow", // actualiza una acción de dependabot-auto.yml: se fusionaría a sí mismo
+  "toca-workflow-con-environment", // actualiza una acción de un workflow con environment (sus secretos)
   "mayor", // salto de versión mayor (o de menor en 0.x)
-  "grupo-manual", // un grupo que no es -menores (p. ej. npm-cero, las 0.x): lo mira una sesión
+  "grupo-manual", // un grupo que no es -menores, o una dependencia de CERO: lo mira una sesión
   "version-desconocida", // no se ha podido leer de qué versión a cuál va
   "tests-no-verde", // el último `tests` de su head SHA no está en verde
   "conflicto", // GitHub dice que no se puede fusionar (Dependabot lo rebasa solo)
   "mergeable-desconocido", // GitHub aún no ha calculado si se puede fusionar
   "rebase-ya-pedido", // ya se le pidió el rebase para este head SHA
   "app-ocupada", // ya hay otro de actions apuntado en esta pasada
-  "sin-clave-app", // es de actions y este run no ve la clave de la App
+  "sin-clave-app", // el job de la App no ve la clave (o no se pudo sacar el token)
   "sha-cambiado", // al ir a fusionar con la App, el PR ya no está en el SHA apuntado
   "ensayo", // lo habría hecho, pero sin --si
   "api", // la API de GitHub falló
@@ -164,12 +179,23 @@ export function soloCambiaUses(patch) {
   return quitadas.length > 0 && quitadas.length === puestas.length && quitadas.every((a, i) => a === puestas[i]);
 }
 
-// ficheros: [{ filename, patch }]. Devuelve { ruta: "npm" | "actions" | null, motivo }.
-export function revisarFicheros(ficheros) {
+// ¿El workflow (su versión en staging) declara un environment? Sin contenido
+// (no existe en staging), se da por sí: ante la duda, que lo mire una sesión.
+export function usaEnvironment(contenido) {
+  if (typeof contenido !== "string") return true;
+  const sinComentarios = contenido.replace(/(^|\s)#.*$/gm, "$1");
+  return /^\s*environment:/m.test(sinComentarios);
+}
+
+// ficheros: [{ filename, patch }]; conEnvironment: los workflows de la lista
+// que declaran un environment. Devuelve { ruta: "npm" | "actions" | null, motivo }.
+export function revisarFicheros(ficheros, conEnvironment = []) {
   const nombres = ficheros.map((f) => f.filename);
   if (nombres.length > 0 && nombres.every((f) => NPM.test(f))) return { ruta: "npm", motivo: null };
   if (nombres.length > 0 && nombres.every((f) => WORKFLOW.test(f))) {
     if (!ficheros.every((f) => soloCambiaUses(f.patch))) return { ruta: "actions", motivo: "cambia-mas-que-uses" };
+    if (nombres.includes(ESTE_WORKFLOW)) return { ruta: "actions", motivo: "toca-este-workflow" };
+    if (nombres.some((f) => conEnvironment.includes(f))) return { ruta: "actions", motivo: "toca-workflow-con-environment" };
     return { ruta: "actions", motivo: null };
   }
   return { ruta: null, motivo: "ficheros-fuera" };
@@ -193,13 +219,26 @@ export function seSolapan(ficherosPr, ficherosStaging) {
   return ficherosStaging.some((f) => mios.has(f));
 }
 
+// Qué dependencias nombra el PR: el YAML del commit, «Updates `x`», «Bumps [x]»
+// y el «bump x from» del título.
+export function dependenciasDe({ titulo = "", textos = [] } = {}) {
+  const todo = textos.join("\n");
+  const nombres = new Set();
+  for (const m of todo.matchAll(/^- dependency-name:\s*["']?([^"'\n]+?)["']?\s*$/gm)) nombres.add(m[1]);
+  for (const m of todo.matchAll(/^Updates `([^`]+)`/gm)) nombres.add(m[1]);
+  for (const m of todo.matchAll(/^Bumps \[([^\]]+)\]/gm)) nombres.add(m[1]);
+  const t = /\bbump\s+(\S+)\s+from\b/i.exec(titulo);
+  if (t) nombres.add(t[1]);
+  return [...nombres];
+}
+
 // --- La decisión, sin red ----------------------------------------------
 // datos: { repo, pr, commits, ficheros: [{ filename, patch }], checks,
-//          staging: { atrasado, ficheros, truncado }, rebasePedido }
+//          staging: { atrasado, ficheros, truncado }, rebasePedido, conEnvironment }
 // Devuelve { decision, motivo, tipo, ruta }. «fusionado» con ruta "actions"
 // quiere decir «fusionable con la App»: quien llama decide cómo.
 export function decidir(datos) {
-  const { repo, pr, commits, ficheros, checks, staging, rebasePedido } = datos;
+  const { repo, pr, commits, ficheros, checks, staging, rebasePedido, conEnvironment = [] } = datos;
   let ruta = null;
   const espera = (motivo, tipo = null) => ({ decision: "espera", motivo, tipo, ruta });
 
@@ -207,13 +246,15 @@ export function decidir(datos) {
   if (pr.base?.ref !== BASE) return espera("base");
   if (pr.head?.repo?.full_name !== repo) return espera("rama-ajena");
   if (!commitsDeDependabot(commits)) return espera("commits-ajenos");
-  const revision = revisarFicheros(ficheros);
+  const revision = revisarFicheros(ficheros, conEnvironment);
   ruta = revision.ruta;
   if (revision.motivo) return espera(revision.motivo);
 
-  const { tipo } = clasificar({ titulo: pr.title, textos: [pr.body ?? "", ...commits.map((c) => c.commit?.message ?? "")] });
+  const textos = [pr.body ?? "", ...commits.map((c) => c.commit?.message ?? "")];
+  const { tipo } = clasificar({ titulo: pr.title, textos });
   if (tipo === "mayor") return espera("mayor", tipo);
   if (tipo === "grupo-manual") return espera("grupo-manual", tipo);
+  if (ruta === "npm" && dependenciasDe({ titulo: pr.title, textos }).some((d) => CERO.includes(d))) return espera("grupo-manual", tipo);
   if (tipo !== "menor") return espera("version-desconocida", tipo);
 
   // El check del head SHA ACTUAL del PR: un run viejo en verde no cuenta.
@@ -276,19 +317,34 @@ function cliente(token, repo) {
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function salida(clave, valor) {
+function salidaGithub(clave, valor) {
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${clave}=${valor}\n`);
 }
 
+// El contenido de un workflow en staging, o null si no existe allí.
+async function workflowEnStaging(api, ruta) {
+  try {
+    const r = await api(`/contents/${ruta}?ref=${BASE}`);
+    return Buffer.from(r.content ?? "", "base64").toString("utf8");
+  } catch (e) {
+    if (e.status === 404) return null; // a propósito: no existe en staging, y usaEnvironment(null) lo trata como sensible
+    throw e;
+  }
+}
+
 // Todo lo que hace falta para decidir sobre un PR, leído con el token de lectura.
-async function leerPr({ api, paginas }, n) {
+async function leerPr({ api, paginas, esperar = dormir }, n) {
   let pr = await api(`/pulls/${n}`);
   for (let i = 0; i < 3 && pr.mergeable === null; i++) {
-    await dormir(3000);
+    await esperar(3000);
     pr = await api(`/pulls/${n}`);
   }
   const commits = await paginas(`/pulls/${n}/commits`);
   const ficheros = (await paginas(`/pulls/${n}/files`)).map((f) => ({ filename: f.filename, patch: f.patch }));
+  const conEnvironment = [];
+  for (const { filename } of ficheros) {
+    if (WORKFLOW.test(filename) && usaEnvironment(await workflowEnStaging(api, filename))) conEnvironment.push(filename);
+  }
   const checks = await paginas(`/commits/${pr.head.sha}/check-runs?check_name=${CHECK}`, "check_runs");
   const cmp = await api(`/compare/${pr.head.sha}...${BASE}`);
   const staging = {
@@ -301,68 +357,66 @@ async function leerPr({ api, paginas }, n) {
   const rebasePedido = comentarios.some(
     (c) => c.user?.login === "github-actions[bot]" && /^@dependabot rebase\b/.test(c.body ?? "") && c.created_at > ultimoCommit,
   );
-  return { pr, commits, ficheros, checks, staging, rebasePedido };
+  return { pr, commits, ficheros, checks, staging, rebasePedido, conEnvironment };
 }
 
-async function pasada({ api, paginas, repo, si }) {
-  const hayClaveApp = process.env.HAY_CLAVE_APP === "true";
+// La pasada del primer job: no ve la clave de la App ni el environment. Fusiona
+// npm, pide rebases y apunta (salida app_pr/app_sha) el primer PR de actions
+// fusionable; el segundo job decide si hay clave. Devuelve { fallos, lineas }.
+export async function pasada({ api, paginas, repo, si, salida = salidaGithub, log = console.log, esperar = dormir }) {
   let fallos = 0;
   let apuntado = null;
+  const lineas = [];
+  const decir = (l) => {
+    lineas.push(l);
+    log(l);
+  };
 
   const abiertos = (await paginas(`/pulls?state=open&base=${BASE}`)).filter((p) => p.user?.login === BOT);
-  console.log(`dependabot-auto abiertos: ${abiertos.length} modo: ${si ? "si" : "ensayo"} clave-app: ${hayClaveApp ? "si" : "no"}`);
+  log(`dependabot-auto abiertos: ${abiertos.length} modo: ${si ? "si" : "ensayo"}`);
 
   for (const resumen of abiertos) {
     const n = resumen.number;
     try {
-      const d = await leerPr({ api, paginas }, n);
+      const d = await leerPr({ api, paginas, esperar }, n);
       let r = decidir({ repo, ...d });
       if (r.decision === "fusionado" && r.ruta === "actions") {
-        if (apuntado) r = { ...r, decision: "espera", motivo: "app-ocupada" };
-        else if (si && !hayClaveApp) r = { ...r, decision: "espera", motivo: "sin-clave-app" };
-        else r = { ...r, decision: "para-app" };
+        r = apuntado ? { ...r, decision: "espera", motivo: "app-ocupada" } : { ...r, decision: "para-app" };
       }
       if (r.decision !== "espera" && !si) r = { ...r, decision: "espera", motivo: "ensayo", haria: r.decision };
       else if (r.decision === "fusionado") {
         await api(`/pulls/${n}/merge`, { method: "PUT", body: { sha: d.pr.head.sha, merge_method: "merge" } });
       } else if (r.decision === "rebase") {
         await api(`/issues/${n}/comments`, { method: "POST", body: { body: "@dependabot rebase" } });
-      } else if (r.decision === "para-app") {
-        apuntado = { n, sha: d.pr.head.sha };
+      }
+      // apuntado también en ensayo, para que el segundo de actions salga app-ocupada igual
+      if (r.decision === "para-app" || r.haria === "para-app") apuntado = { n, sha: d.pr.head.sha };
+      if (r.decision === "para-app") {
         salida("app_pr", n);
         salida("app_sha", d.pr.head.sha);
       }
-      console.log(linea({ pr: n, ...r }) + (r.haria ? ` haria: ${r.haria}` : ""));
+      decir(linea({ pr: n, ...r }) + (r.haria ? ` haria: ${r.haria}` : ""));
     } catch (e) {
       fallos++;
-      console.log(linea({ pr: n, decision: "error", motivo: "api", tipo: null, ruta: null }));
+      decir(linea({ pr: n, decision: "error", motivo: "api", tipo: null, ruta: null }));
       console.error(`PR #${n}: ${e.message}`);
     }
   }
-  return fallos;
+  return { fallos, lineas };
 }
 
-// Segundo paso del workflow: vuelve a comprobarlo todo con el token de lectura
-// y solo usa el de la App (APP_TOKEN) para la fusión.
-async function fusionarConApp({ api, paginas, repo }, n, sha) {
-  const appToken = process.env.APP_TOKEN;
-  if (!appToken) {
-    console.log(linea({ pr: n, decision: "espera", motivo: "sin-clave-app", tipo: null, ruta: "actions" }));
-    return 0;
-  }
-  const d = await leerPr({ api, paginas }, n);
+// El segundo job: vuelve a comprobarlo todo con el token de lectura y solo usa
+// el de la App (appToken) para la fusión. Sin token, no falla: `sin-clave-app`.
+// Devuelve la línea.
+export async function fusionarConApp({ api, paginas, repo, appToken, clienteApp = cliente, log = console.log, esperar = dormir }, n, sha) {
+  const decir = (l) => (log(l), l);
+  if (!appToken) return decir(linea({ pr: n, decision: "espera", motivo: "sin-clave-app", tipo: null, ruta: "actions" }));
+  const d = await leerPr({ api, paginas, esperar }, n);
   const r = decidir({ repo, ...d });
-  if (d.pr.head.sha !== sha) {
-    console.log(linea({ pr: n, decision: "espera", motivo: "sha-cambiado", tipo: r.tipo, ruta: r.ruta }));
-    return 0;
-  }
-  if (r.decision !== "fusionado" || r.ruta !== "actions") {
-    console.log(linea({ pr: n, ...r }));
-    return 0;
-  }
-  await cliente(appToken, repo).api(`/pulls/${n}/merge`, { method: "PUT", body: { sha, merge_method: "merge" } });
-  console.log(linea({ pr: n, ...r }));
-  return 0;
+  if (d.pr.head.sha !== sha) return decir(linea({ pr: n, decision: "espera", motivo: "sha-cambiado", tipo: r.tipo, ruta: r.ruta }));
+  if (r.decision !== "fusionado" || r.ruta !== "actions") return decir(linea({ pr: n, ...r }));
+  await clienteApp(appToken, repo).api(`/pulls/${n}/merge`, { method: "PUT", body: { sha, merge_method: "merge" } });
+  return decir(linea({ pr: n, ...r }));
 }
 
 async function main() {
@@ -383,9 +437,10 @@ async function main() {
       console.error("Uso: --fusionar-app <n> --sha <sha de 40>");
       process.exit(2);
     }
-    process.exit(await fusionarConApp(c, n, sha));
+    await fusionarConApp({ ...c, appToken: process.env.APP_TOKEN }, n, sha);
+    return;
   }
-  if ((await pasada(c)) > 0) process.exit(1);
+  if ((await pasada(c)).fallos > 0) process.exit(1);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
