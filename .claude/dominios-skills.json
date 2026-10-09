@@ -6,7 +6,7 @@
         "apply-migration",
         "bot-cron\\.mjs",
         "\\b(?:SUPABASE_DB_URL|OPS_DB_URL)\\b",
-        "(?:backfill-[\\w-]+|run-seed|mercadona-sync)\\.mjs",
+        "(?:backfill-[\\w-]+|mercadona-sync)\\.mjs",
         "\\bsupabase\\s+(?:db|migration)\\s+(?:push|reset|repair)\\b"
       ],
       "rutas": [

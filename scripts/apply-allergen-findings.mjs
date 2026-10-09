@@ -118,6 +118,5 @@ for (const [a, n] of [...perAllergen.entries()].sort((x, y) => y[1] - x[1])) {
 if (!DRY_RUN && changedRecipes > 0) {
   console.log("");
   console.log("SIGUIENTE PASO: sube BUNDLED_CATALOG_VERSION en src/data/catalogVersion.js");
-  console.log("y regenera la seed (node scripts/generate-supabase-seed.mjs), o Supabase");
-  console.log("seguirá sirviendo los alérgenos viejos.");
+  console.log("(la única fuente del catálogo es el JSON; la copia de Supabase se borró en la 0093).");
 }

@@ -617,7 +617,8 @@ dos se puede estimar: el pipeline lo prohíbe por diseño y con razón.
 > fuente de verdad de los alimentos es `src/data/alimentos.json` (rol
 > `fuente_de_verdad` en `src/data/model.js`, `TABLAS`); el ingrediente
 > (`ingredients.json`) es otra entidad, no una copia. Las tablas de Supabase del
-> catálogo (`recipes`, `ingredients`…) son *copia retirada* desde el 30 sep 2026.
+> catálogo (`recipes`, `ingredients`…) fueron *copia retirada* desde el 30 sep 2026
+> y la migración 0093 (#303) las borra.
 
 ### El diagnóstico, en una línea de código
 
