@@ -1,9 +1,24 @@
 # Dependabot: avisa de librerías desfasadas o con vulnerabilidades.
 #
-# Somos dos personas: un solo PR semanal agrupado por ecosistema, contra
-# staging (la rama por defecto), y como mucho 3 abiertos a la vez. Los PR de
-# seguridad (si se activan las alertas en los ajustes del repo) no esperan al
-# lunes: Dependabot los abre en cuanto sale el aviso.
+# Somos dos personas: PR semanales agrupados, contra staging (la rama por
+# defecto), y como mucho 3 abiertos a la vez por ecosistema. Cada ecosistema
+# en grupos (#193):
+#   - `*-menores` (parche y menor): los fusiona solo
+#     .github/workflows/dependabot-auto.yml cuando `tests` está en verde (los
+#     de actions, con el token de la GitHub App homenu-dependabot-merge).
+#   - `*-mayores` (mayor): se quedan abiertos para que los mire una sesión.
+#   - `npm-cero`: las dependencias directas en 0.x, donde una «menor» puede
+#     romper (0.129 → 0.131 del SDK de Anthropic). Las mira una sesión, y
+#     así no bloquean el grupo de menores cada semana. Una dependencia nueva
+#     en 0.x se añade aquí y en los dos `exclude-patterns`.
+# Un grupo coge una dependencia si es el primero que la nombra; los
+# `exclude-patterns` lo aseguran.
+#
+# cooldown: una versión no se propone hasta 5 días después de publicarse, por
+# si sale un parche malicioso y lo retiran. Según la documentación de GitHub
+# solo vale para las actualizaciones de versión: los PR de seguridad no
+# esperan (llegan en cuanto sale el aviso, uno por librería; también los de
+# /dish-gallery, que no está aquí a propósito y que el auto no fusiona).
 
 version: 2
 updates:
@@ -15,13 +30,25 @@ updates:
       day: monday
       time: "07:00"
       timezone: Europe/Madrid
+    cooldown:
+      default-days: 5
     open-pull-requests-limit: 3
     commit-message:
       prefix: "chore(deps)"
     groups:
-      npm-semanal:
+      npm-cero:
+        applies-to: version-updates
+        patterns: ["@anthropic-ai/sdk", "eslint-plugin-react-refresh", "sharp"]
+      npm-menores:
         applies-to: version-updates
         patterns: ["*"]
+        exclude-patterns: ["@anthropic-ai/sdk", "eslint-plugin-react-refresh", "sharp"]
+        update-types: [minor, patch]
+      npm-mayores:
+        applies-to: version-updates
+        patterns: ["*"]
+        exclude-patterns: ["@anthropic-ai/sdk", "eslint-plugin-react-refresh", "sharp"]
+        update-types: [major]
 
   - package-ecosystem: github-actions
     directory: /
@@ -31,10 +58,17 @@ updates:
       day: monday
       time: "07:00"
       timezone: Europe/Madrid
+    cooldown:
+      default-days: 5
     open-pull-requests-limit: 3
     commit-message:
       prefix: "chore(ci)"
     groups:
-      actions-semanal:
+      actions-menores:
         applies-to: version-updates
         patterns: ["*"]
+        update-types: [minor, patch]
+      actions-mayores:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [major]
