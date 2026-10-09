@@ -46,6 +46,7 @@ en Vercel (y `BOT_CRON_SECRET` también en el job de `pg_cron`, ver
 |---|---|
 | `ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS` | `agente-fallos.yml` |
 | `IOS_DIST_P12_BASE64`, `IOS_DIST_P12_PASSWORD`, `IOS_PROVISION_PROFILE_BASE64`, `APPSTORE_API_KEY_P8_BASE64` | `ios-testflight.yml` |
+| `MERCADONA_DEPLOY_KEY`: la privada de la deploy key de escritura «mercadona-sync: cron, push a staging» (la pública, en Settings → Deploy keys). **Secreto del environment `mercadona-sync`**, no del repo: su política de ramas solo deja `staging`. Sin copia fuera de GitHub: si se pierde, se crea otra. **Pendiente de crear** (9 oct 2026) | `mercadona-sync.yml` |
 
 ## Pendientes de la limpieza (abiertos el 7 oct 2026, al día ese mismo día)
 
@@ -57,7 +58,7 @@ en Vercel (y `BOT_CRON_SECRET` también en el job de `pg_cron`, ver
 | 13 | Retirar los worktrees ya fusionados del 7 oct (alergenos, fuente, grupos, ids, plan-semana, principios, ux, menuplan-ops, -gitignore, -0081 y `C:\dev\MenuPlan-claude-md`) cuando no tengan nada en vuelo: con `npm run retirar` o, si no salieron de `tarea`, con comandos que lanza Pablo | Pablo lanza, Claude prepara | abierto |
 | 4 | Identidad de git: Gmail en todo `C:\dev\` (`includeIf` → `~/.gitconfig-personal`) | Pablo | hecho (7 oct) |
 | 5 | Proteger `main` y `staging` en GitHub | Pablo + Claude | hecho (7 oct): `main` solo por PR con `tests` en verde; las dos sin force push ni borrado, también para administradores |
-| 11 | Que el cron de Mercadona abra un PR en vez de empujar a `staging`, para poder exigir PR también en `staging`. Ojo: un PR abierto con el token de Actions no lanza `tests.yml`; hay que dispararlo a mano (`workflow_dispatch`) | Claude, con OK de Pablo | abierto |
+| 11 | Que el cron de Mercadona abra un PR en vez de empujar a `staging`, para poder exigir PR también en `staging`. Ojo: un PR abierto con el token de Actions no lanza `tests.yml`; hay que dispararlo a mano (`workflow_dispatch`) | Claude, con OK de Pablo | sustituido (9 oct): el cron empuja con una deploy key, la única excepción del ruleset que exige `tests` en `staging` (skill `github`) |
 | 12 | Activar secret scanning y push protection (Settings → Code security) | Pablo | hecho (7 oct), comprobado con `gh api` |
 | 6 | Borrar las ~88 ramas ya fusionadas (las nuevas ya se borran solas) | Pablo lanza, Claude prepara | abierto, no urge |
 | 7 | ~~Reconciliar `main` y `staging`~~ — **no procede**: revisado el 7 oct, nada de `main` que portar | — | cerrado |
