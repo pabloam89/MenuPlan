@@ -138,6 +138,25 @@ export const SITIOS_FALLO = [
   "voz_json",
 ];
 
+// ── Los del mapa de módulos (ops/MODULOS.json, #157). No van a ninguna tabla:
+// los lee el panel de la factoría (#158) y ops/modulos.test.js.
+
+/**
+ * Cuánto está hecho un módulo. La definición y el criterio objetivo de cada
+ * grado viven UNA vez, en `vocabularios.grados_desarrollo` de ops/MODULOS.json;
+ * ops/modulos.test.js comprueba que las claves de allí son esta lista.
+ */
+export const GRADOS_DESARROLLO = ["idea", "en_marcha", "usable", "estable"];
+
+/** De quién es un módulo: la app, Lola, o lo que usan los dos. */
+export const AMBITOS_MODULO = ["app", "lola", "compartido"];
+
+/** Si una métrica de uso ya se mide hoy o sería posible medirla. */
+export const ESTADOS_METRICA = ["medida", "posible"];
+
+/** Por qué una tabla no tiene puerta (fichero único) en un lado, app o servidor (definiciones en ops/MODULOS.json). */
+export const MOTIVOS_SIN_PUERTA = ["no_la_usa", "por_rpc", "por_trigger", "fuera_del_dueno", "en_desuso"];
+
 /**
  * Qué pasó con las alergias en la línea de log `bot_alergias`
  * (api/_bot/silencio.js): `apuntada`, el «ninguna» que apunta el código tras
@@ -174,6 +193,10 @@ export const VOCABULARIOS = Object.freeze({
   motivos_fallo: MOTIVOS_FALLO,
   sitios_fallo: SITIOS_FALLO,
   acciones_alergias: ACCIONES_ALERGIAS,
+  grados_desarrollo: GRADOS_DESARROLLO,
+  ambitos_modulo: AMBITOS_MODULO,
+  estados_metrica: ESTADOS_METRICA,
+  motivos_sin_puerta: MOTIVOS_SIN_PUERTA,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */
