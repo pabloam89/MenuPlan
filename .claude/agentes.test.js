@@ -109,6 +109,26 @@ it("la plantilla lista las mismas secciones que exige este test", () => {
   expect(titulos).toEqual(SECCIONES);
 });
 
+it("el informe común lleva CASOS: y /orquestar los pasa a la línea «Casos:» del PR (#185)", () => {
+  // Los fallos del camino de cada agente se pierden si el informe no los pide.
+  // Un solo campo en la plantilla, no una sección por agente: una definición.
+  const plantilla = readFileSync(join(AQUI, "PLANTILLA-AGENTE.md"), "utf8");
+  const informe = plantilla.slice(plantilla.indexOf("## Informe común"));
+  expect(informe).toMatch(/^CASOS:/m);
+  expect(plantilla).toMatch(/^## Casos que he visto$/m);
+  const orquestar = readFileSync(join(AQUI, "commands", "orquestar.md"), "utf8");
+  expect(orquestar).toMatch(/`CASOS:`/);
+  expect(orquestar).toMatch(/Casos: #n, #m/);
+  // Cada agente remite al informe común de la plantilla (de ahí hereda CASOS:)
+  // o, si define el suyo, lo incluye.
+  for (const f of agentes) {
+    const { cuerpo } = leer(f);
+    const remite = /informe común/i.test(seccion(cuerpo, "Entregables"));
+    const propio = /^CASOS:/m.test(cuerpo);
+    expect(remite || propio, `${f}: ni remite al informe común ni lleva CASOS:`).toBe(true);
+  }
+});
+
 it("CLAUDE.md y /orquestar nombran a todos los agentes", () => {
   const claude = readFileSync(join(RAIZ, "CLAUDE.md"), "utf8");
   const orquestar = readFileSync(join(AQUI, "commands", "orquestar.md"), "utf8");

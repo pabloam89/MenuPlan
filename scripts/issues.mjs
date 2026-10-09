@@ -39,9 +39,10 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import {
-  CONSULTA, GRUPOS, PABLO, avisoDeArranque, etiquetas, etiquetasSobrantes,
-  debeReabrir, etiquetasQueFaltan, fondoDeFormulario, leerIssue, parecidos, porGrupo, resumen,
+  CONSULTA, CONSULTA_PR, GRUPOS, PABLO, avisoDeArranque, etiquetas, etiquetasSobrantes,
+  debeReabrir, etiquetasQueFaltan, fondoDeFormulario, leerIssue, medirCasos, parecidos, porGrupo, resumen,
 } from "./lib/issues.mjs";
+import { analizarCasos } from "../.claude/hooks/casos.mjs";
 import { cruce, leerInventario, marcasHuerfanas, leerMarcas, lineaParecida, lineasDeLleva, parecidosEnGit, sinNumero, textoDeRama } from "./lib/lleva.mjs";
 
 const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
@@ -295,6 +296,17 @@ if (args.includes("--etiquetas")) {
       console.log(`  ${a.padEnd(18)}  ${String(f.fondos).padStart(6)}  ${String(f.roto).padStart(16)}  ${String(f.corto).padStart(5)}  ${med(f.medianaDias).padStart(27)}`);
     }
     console.log("");
+  }
+
+  // La línea «Casos:» de los últimos 50 PR fusionados (una consulta más).
+  try {
+    const prs = JSON.parse(gh("api", "graphql", "-f", `query=${CONSULTA_PR}`)).data.repository.pullRequests.nodes;
+    const m = medirCasos(prs, analizarCasos);
+    console.log(`Línea «Casos:» en los últimos ${m.total} PR fusionados: ${m.conCasos} con casos (${m.casosCitados} citados), ${m.ninguno} con «ninguno», ${m.sinLinea} sin la línea.
+`);
+  } catch (e) {
+    console.warn(`Línea «Casos:» de los PR: no he podido medirla (${motivo(e)}).
+`);
   }
 
   if (r.malClasificados.length) {

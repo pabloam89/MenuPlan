@@ -286,9 +286,22 @@
             "que": "La protección de main vale también para administradores",
             "regla": "admins_incluidos",
             "rama": "main"
+          },
+          {
+            "tipo": "cifra_umbral",
+            "que": "Las palabras fuertes (nunca, siempre, tope…) que no citan una norma solo bajan (124 el 9 oct, sin «solo»; #296). Medición semanal; en cada PR, scripts/normas-pr.mjs mira lo añadido",
+            "medidor": "frases_normativas",
+            "operador": "<=",
+            "umbral": 124
           }
         ],
         "4": [
+          {
+            "tipo": "test_existe",
+            "que": "Cada norma dura tiene un ejecutor comprobable que falla cerrado (registro de normas, #296)",
+            "ruta": "ops/normas.test.js",
+            "patron": "ninguna norma se dice más dura de lo que es"
+          },
           {
             "tipo": "por_definir",
             "que": "Cada negación de la guardia deja una línea contable (hoy no queda rastro)"
@@ -758,6 +771,27 @@
             "que": "Repaso semanal con `npm run issues`",
             "ruta": ".claude/commands/revision-issues.md",
             "patron": "npm run issues"
+          },
+          {
+            "tipo": "cifra_umbral",
+            "que": "Casos abiertos no puntuales sin problema de fondo: solo bajan (1 el 9 oct, #296)",
+            "medidor": "casos_sin_fondo",
+            "operador": "<=",
+            "umbral": 1
+          },
+          {
+            "tipo": "cifra_umbral",
+            "que": "Problemas de fondo abiertos sin ningún encargo: solo bajan (4 de 13 el 9 oct, #296)",
+            "medidor": "fondos_sin_encargo",
+            "operador": "<=",
+            "umbral": 4
+          },
+          {
+            "tipo": "cifra_umbral",
+            "que": "Problemas de fondo cerrados sin arreglo:test ni arreglo:guardia (0 el 9 oct, ninguno cerrado aún; #296)",
+            "medidor": "fondos_cerrados_sin_test",
+            "operador": "<=",
+            "umbral": 0
           }
         ],
         "4": [
