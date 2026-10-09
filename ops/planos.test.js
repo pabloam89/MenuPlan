@@ -18,6 +18,7 @@ const leer = (ruta) => readFileSync(join(RAIZ, ruta), "utf8");
 const datos = JSON.parse(leer("ops/planos.json"));
 const md = leer("ops/PLANOS.md");
 const AGENTES = readdirSync(join(RAIZ, ".claude/agents")).map((f) => f.replace(/\.md$/, ""));
+const NORMAS = new Set(JSON.parse(leer("ops/normas.json")).normas.map((n) => n.id));
 const todos = datos.planos.flatMap((p) => NIVELES.flatMap((n) => (p.niveles[String(n)] ?? []).map((c) => ({ plano: p.id, nivel: n, c }))));
 const donde = ({ plano, nivel, c }) => `plano ${plano}, nivel ${nivel}: «${c.que}»`;
 
@@ -54,7 +55,8 @@ describe("planos.json: forma y vocabulario cerrado", () => {
       if (!TIPOS_CRITERIO.includes(c.tipo)) { malos.push(`${donde(x)}: tipo desconocido «${c.tipo}»`); continue; }
       if (typeof c.que !== "string" || c.que.length < 10) malos.push(`${donde(x)}: falta \`que\`, la frase en llano`);
       for (const k of CAMPOS_POR_TIPO[c.tipo]) if (c[k] === undefined || c[k] === "") malos.push(`${donde(x)}: falta \`${k}\``);
-      const sobran = Object.keys(c).filter((k) => !["tipo", "que", "patron", "rama", "check", "issue", ...CAMPOS_POR_TIPO[c.tipo]].includes(k));
+      const deLaRegla = c.tipo === "regla_github" ? [...(REGLAS_GITHUB[c.regla] ?? []), "norma"] : [];
+      const sobran = Object.keys(c).filter((k) => !["tipo", "que", "patron", "rama", "check", "issue", ...CAMPOS_POR_TIPO[c.tipo], ...deLaRegla].includes(k));
       if (sobran.length) malos.push(`${donde(x)}: campos que nadie lee: ${sobran.join(", ")}`);
     }
     expect(malos).toEqual([]);
@@ -69,7 +71,8 @@ describe("planos.json: forma y vocabulario cerrado", () => {
       if (c.tipo === "workflow_activo" && !DISPARADORES.includes(c.disparador)) malos.push(`${donde(x)}: disparador «${c.disparador}»`);
       if (c.tipo === "regla_github") {
         if (!(c.regla in REGLAS_GITHUB)) malos.push(`${donde(x)}: regla «${c.regla}»`);
-        else for (const k of REGLAS_GITHUB[c.regla]) if (!c[k]) malos.push(`${donde(x)}: la regla ${c.regla} pide \`${k}\``);
+        else for (const k of REGLAS_GITHUB[c.regla]) if (c[k] === undefined || c[k] === null || c[k] === "") malos.push(`${donde(x)}: la regla ${c.regla} pide \`${k}\``);
+        if (c.norma !== undefined && !NORMAS.has(c.norma)) malos.push(`${donde(x)}: la norma «${c.norma}» no está en ops/normas.json`);
       }
       if (c.tipo === "cifra_umbral") {
         if (!(c.medidor in MEDIDORES)) malos.push(`${donde(x)}: medidor «${c.medidor}»`);
@@ -222,6 +225,34 @@ describe("las reglas de GitHub, con un gh de mentira", () => {
     expect(evaluarReglaGithub({ regla: "check_obligatorio", rama: "main", check: "tests" }, { repo, gh: g }).estado).toBe("no_cumple");
     expect(evaluarReglaGithub({ regla: "dependabot_alertas" }, { repo, gh: g }).estado).toBe("no_cumple");
     expect(evaluarReglaGithub({ regla: "secret_scanning" }, { repo, gh: g }).estado).toBe("cumple");
+  });
+
+  describe("las reglas de #351, con detalle neutro", () => {
+    const ok = (json) => ({ ok: true, status: 200, json });
+    const soloStaging = ok({ deployment_branch_policy: { custom_branch_policies: true, protected_branches: false } });
+    const politica = (...ramas) => ok({ branch_policies: ramas.map((name) => ({ name, type: "branch" })) });
+    const envs = (respuestas, quien = token) => evaluarReglaGithub({ regla: "environment_solo_rama", environments: ["a", "b"], rama: "staging", norma: "secretos-en-environments" },
+      { repo, gh: gh({ "repos/x/y": quien, ...respuestas }) });
+    const bien = { "repos/x/y/environments/a": soloStaging, "repos/x/y/environments/a/deployment-branch-policies": politica("staging"),
+      "repos/x/y/environments/b": soloStaging, "repos/x/y/environments/b/deployment-branch-policies": politica("staging") };
+
+    it("environment_solo_rama: cumple solo si cada environment admite esa rama y nada más", () => {
+      expect(envs(bien).estado).toBe("cumple");
+      expect(envs({ ...bien, "repos/x/y/environments/b/deployment-branch-policies": politica("staging", "main") }).estado).toBe("no_cumple");
+      expect(envs({ ...bien, "repos/x/y/environments/b/deployment-branch-policies": politica("*") }).estado).toBe("no_cumple");
+      expect(envs({ ...bien, "repos/x/y/environments/b": ok({ deployment_branch_policy: null }) }).estado).toBe("no_cumple");
+      expect(envs({ ...bien, "repos/x/y/environments/b": ok({ deployment_branch_policy: { custom_branch_policies: false, protected_branches: true } }) }).estado).toBe("no_cumple");
+      // Un environment que no existe: GitHub lo crearía sin política al usarlo.
+      const { "repos/x/y/environments/b": _, ...sinB } = bien;
+      expect(envs(sinB, admin).estado).toBe("no_cumple");
+      expect(envs(sinB).estado).toBe("sin_comprobar");
+    });
+
+    it("el detalle dice la norma y una cifra, nunca qué environment", () => {
+      const r = envs({ ...bien, "repos/x/y/environments/b/deployment-branch-policies": politica("main") });
+      expect(r.detalle).toBe("norma secretos-en-environments no cuadra: 1 de 2 fuera de la política");
+      expect(r.detalle).not.toMatch(/\bb\b|main/);
+    });
   });
 
   it("sin red ni gh, nada", () => {

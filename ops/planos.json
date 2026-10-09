@@ -524,6 +524,14 @@
             "tipo": "test_existe",
             "que": "El rol de solo lectura consulta_lectura (0092) no ve auth ni vault",
             "ruta": "supabase/rolLectura.test.js"
+          },
+          {
+            "tipo": "regla_github",
+            "que": "Los environments con secretos solo admiten la rama staging (#351)",
+            "regla": "environment_solo_rama",
+            "environments": ["mercadona-sync", "vigia", "dependabot-auto"],
+            "rama": "staging",
+            "norma": "secretos-en-environments"
           }
         ],
         "3": [

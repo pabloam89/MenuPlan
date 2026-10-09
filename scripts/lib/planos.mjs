@@ -56,6 +56,9 @@ export const REGLAS_GITHUB = {
   push_protection: [],
   dependabot_alertas: [],
   dependabot_seguridad: [],
+  // #351. El detalle de estas reglas es neutro (repo público, #300): la norma y
+  // una cifra, nunca qué environment, qué secreto ni qué llave.
+  environment_solo_rama: ["environments", "rama"],
 };
 
 /**
@@ -243,9 +246,35 @@ export function evaluarReglaGithub(c, { repo, gh }) {
       if (sinPermiso(r)) return { estado: "sin_comprobar", detalle: "solo lo ve un administrador" };
       return { estado: "no_cumple", detalle: "alertas de Dependabot apagadas" };
     }
+    case "environment_solo_rama": {
+      // La política de ramas de cada environment: solo la rama dada, por nombre.
+      // «Ramas protegidas» o ninguna política dejan entrar a otras ramas.
+      let fuera = 0;
+      for (const env of c.environments) {
+        const e = gh(`repos/${repo}/environments/${encodeURIComponent(env)}`);
+        if (!e.ok) {
+          if (sinPermiso(e)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: no se pudieron leer los environments` };
+          fuera++;
+          continue;
+        }
+        const pol = e.json?.deployment_branch_policy;
+        if (!pol || pol.custom_branch_policies !== true || pol.protected_branches) { fuera++; continue; }
+        const p = gh(`repos/${repo}/environments/${encodeURIComponent(env)}/deployment-branch-policies`);
+        if (!p.ok) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: no se pudo leer la política de ramas` };
+        const lista = p.json?.branch_policies ?? [];
+        const bien = lista.length === 1 && lista[0].name === c.rama && (lista[0].type ?? "branch") === "branch";
+        if (!bien) fuera++;
+      }
+      return { estado: fuera ? "no_cumple" : "cumple", detalle: `${cuadra(c, fuera)}: ${fuera} de ${c.environments.length} fuera de la política` };
+    }
     default:
       return { estado: "no_cumple", detalle: `regla desconocida: ${c.regla}` };
   }
+}
+
+/** «norma X» o «norma X no cuadra»: lo único que publica el issue semanal de las reglas de #351. */
+function cuadra(c, mal = false) {
+  return `norma ${c.norma ?? c.regla}${mal ? " no cuadra" : ""}`;
 }
 
 // ── Un criterio ───────────────────────────────────────────────────────────
