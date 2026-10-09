@@ -27,9 +27,7 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 
 - **`tests.yml` en detalle:** Node 24 y 20 minutos de tope. El lint
   (`npm run lint:base`, `scripts/lint-base.mjs`) falla solo con errores
-  **nuevos** respecto a `lint-base.json`. Los tests corren sin
-  `src/lib/solver.test.js`, que está fuera a propósito. El build no usa
-  secretos.
+  **nuevos** respecto a `lint-base.json`. El build no usa secretos.
 - **Seguridad** (desde el 8 oct): secret scanning con push protection, alertas
   de Dependabot y PRs de seguridad automáticos. Las actualizaciones de versión
   van en `.github/dependabot.yml`: semanales, contra `staging`, agrupadas y con
@@ -104,7 +102,7 @@ problema de fondo (tipo:fondo)   qué falla de fondo, su arreglo general y cómo
 |---|---|---|
 | `tipo:` | `fondo`, `caso`, `encargo`, `decision` | siempre, uno |
 | `analisis:` | `nuevo`, `abierto`, `no-aguanto-roto`, `no-aguanto-corto`, `puntual` | todo caso |
-| `causa:` | `vigilante-falso`, `vigilante-hueco`, `entorno`, `dos-fuentes`, `error-silencioso`, `coordinacion`, `modelo-datos`, `codigo` | todo fondo, y el caso puntual |
+| `causa:` | `vigilante-falso`, `vigilante-hueco`, `entorno`, `dos-fuentes`, `error-silencioso`, `coordinacion`, `modelo-datos`, `codigo`, `sin-comprobar` | todo fondo, y el caso puntual |
 | `area:` | `datos`, `lola`, `ui`, `catalogo`, `motor`, `ops` | siempre |
 | `arreglo:` | `test`, `guardia`, `script`, `regla`, `skill`, `ninguno` | al cerrar un fondo: dónde quedó |
 

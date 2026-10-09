@@ -68,6 +68,7 @@ export const GRUPOS = {
       coordinacion: "Sesiones que se pisan, duplican trabajo o pierden un aviso",
       "modelo-datos": "Una tabla, una FK o un dato que no cuadra con su uso",
       codigo: "Un fallo de lógica en el producto",
+      "sin-comprobar": "Algo se dio por cierto (en un issue, un comentario o una respuesta) sin comprobarlo contra el código o los datos",
     },
   },
   area: {

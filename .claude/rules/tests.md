@@ -13,7 +13,5 @@ paths:
 - **No copies la verdad.** `expect(UMBRAL).toBe(4.2)` no vigila nada; fija
   suelos y relaciones (`expect(a).toBeLessThan(b)`).
 - Cada caso malo cambia **una** cosa y debe disparar exactamente esa regla.
-- `src/lib/solver.test.js` está fuera del CI a propósito (ver
-  `.github/workflows/tests.yml`).
 - Con varias sesiones o agentes en la misma carpeta, no lances la suite
   entera a la vez: la contención de CPU da timeouts falsos.
