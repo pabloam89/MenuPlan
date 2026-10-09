@@ -44,6 +44,17 @@ Aquí no se repiten. Una sola rareza que conviene saber:
   preview de un PR, el buscador cae a rasgos + Haiku. Es el comportamiento
   esperado, no un fallo. El gateway tiene crédito de pago desde el 1 oct 2026.
 
+**Un token de Vercel no se limita por acciones (#299).** Según la documentación
+(«Access tokens» y «Access Roles», leídas el 9 oct 2026), un token se limita
+por **alcance** (cuenta, equipo o un solo proyecto) y puede todo lo que pueda
+su dueño. Para que las sesiones lean logs sin promover a producción ni tocar
+variables de producción, el token tiene que ser de **otra cuenta** del equipo
+con rol **Developer** (Pro), sin el permiso «Full Production Deployment», y de
+alcance solo `homenu`. Developer aún despliega previews, cambia variables de
+preview y desarrollo y toca dominios; **Pro Viewer** (gratis) no ve logs, así
+que no sirve. Sin probar: el precio del asiento Developer y si la CLI acepta
+un token de un solo proyecto (con uno de equipo, `vercel logs` falló el 9 oct).
+
 El acceso a Vercel desde Claude es el conector de claude.ai (equipo y proyecto de
 arriba). La CLI `vercel` no está instalada en este PC.
 
@@ -127,3 +138,5 @@ no son miembros del equipo se bloquean y cuentan como asientos.
 - https://vercel.com/docs/instant-rollback
 
 Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; hoy no se ha vuelto a ejecutar lo que cita. Sin comprobar: un rollback real en producción.
+
+Comprobado el 2026-10-09: en #299, en la documentación de Vercel, que los tokens se limitan por alcance y no por acción, y qué puede cada rol (Developer, Pro Viewer). Sin probar con una cuenta Developer de verdad.

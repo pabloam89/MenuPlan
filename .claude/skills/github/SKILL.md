@@ -23,12 +23,12 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 |---|---|---|
 | `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | las líneas «Runbook:» y «Casos:» del PR, lint con línea base, tests y build. Es el check `tests` |
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano (con `probar_push`, un commit vacío si no hay precios nuevos) | precios de Mercadona; commitea y **empuja a `staging` con la deploy key** (sin el secreto, con el token). Ese push sí lanza `tests` |
-| `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |
-| `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola |
+| `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`). Environment `agente-fallos` (solo `staging`); sin sus secretos, falla y dice cuál (#299) |
+| `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola. Environment `bot-semanal` (solo `staging`); sin `OPS_DB_URL`, falla |
 | `vigia-lola.yml` | cada 15 min (`4,19,34,49`), a mano | el vigía de Lola (#267): fallos `bot_fallo` de los logs de Vercel, el canario y los avisos al grupo de Telegram «HoMenu avisos». Su estado va en la caché de Actions (`vigia-estado-*`); borrarla solo cuesta un aviso repetido. Sin `VERCEL_TOKEN` ni `CANARIO_SECRET` se salta. Sus secretos y variables, en el environment `vigia` (solo `staging`) |
 | `planos-semanal.yml` | lunes 06:50 UTC, a mano | `npm run planos -- --red` con el token del workflow (sin secretos ni Claude); si un nivel no cuadra o un juicio caduca, abre o comenta el issue «Planos: la medición semanal no cuadra». Lo que solo ve un administrador sale «sin comprobar» y no cambia ningún nivel. Desde #351 también mide la política de ramas de los environments con secretos (la lista sale de la API), los secretos a nivel de repo, las deploy keys de escritura y las aprobaciones de `main`, con detalle neutro («norma X no cuadra» y una cifra); las cuatro necesitan ver lo que solo ve un administrador, así que en el workflow salen «sin comprobar» y se miran con `npm run planos -- --red` en local |
 | `dependabot-auto.yml` | al acabar `Tests` en verde sobre una rama `dependabot/` de un PR, cada 3 h (`23 */3`), a mano | `scripts/dependabot-auto.mjs --si` (#193): fusiona en staging los PR de Dependabot de parche o menor y comenta `@dependabot rebase` a los atrasados cuyos ficheros pisó staging. Una línea por PR (`dependabot-auto pr: … decision: … motivo: … ruta: npm|actions`); reglas y motivos, en la cabecera del script. Nunca hace checkout del PR. npm (solo `package*.json` de la raíz) con el `GITHUB_TOKEN`, cuya fusión no lanza `tests` en staging (Vercel despliega igual). Actions (solo líneas `uses:` de `.github/workflows/*.yml`) con un token de la GitHub App `homenu-dependabot-merge`, en un segundo job, el único con el environment `dependabot-auto` y la clave; los que tocan `dependabot-auto.yml` o un workflow con environment esperan, y en un workflow con algún `secrets.` solo entran acciones de `actions/` y `github/` (otro dueño: `tercero-con-secretos`); si el `workflow_run` no ve la clave (`motivo: sin-clave-app`), lo fusiona la pasada de cada 3 h. Tamaño: `update-type` del commit (a los indirectos les falta) y, de respaldo, los «from A to B» fuera de `<details>`; gana el mayor. Ensayo: `GH_TOKEN="$(gh auth token)" node scripts/dependabot-auto.mjs` |
-| `ios-testflight.yml` | solo a mano | build de iOS a TestFlight |
+| `ios-testflight.yml` | solo a mano, desde `main` (ya no por etiqueta `ios-*`, #299) | build de iOS a TestFlight. Environment `ios-testflight` (solo `main`); sin sus secretos, falla antes de gastar el Mac |
 
 - **`tests.yml` en detalle:** Node 24 y 20 minutos de tope. El lint (`npm run lint:base`,
   `scripts/lint-base.mjs`) falla solo con errores **nuevos** respecto a `lint-base.json`. El build no usa secretos.
@@ -68,6 +68,8 @@ Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS`
 los del vigía, los de iOS y la clave de la App `homenu-dependabot-merge`) y qué workflow usa cada uno están en `ops/INVENTARIO.md`, que es la tabla
 que manda. `tests.yml` no usa ninguno. La CLI `gh` va con la sesión de Pablo (`gh auth status`).
 
+**Token de las sesiones (#299; pendiente de crear el 9 oct 2026).** Un *fine-grained* solo de `pabloam89/MenuPlan`. Permisos (documentación de GitHub, «Permissions required for fine-grained personal access tokens», leída el 9 oct): **Contents** escritura (push, `gh pr merge`), **Pull requests** escritura (`gh pr create|edit|merge|update-branch`), **Issues** escritura (`npm run issues`, etiquetas, subissues, la marca de `lleva.mjs`), **Actions** escritura (`gh workflow run`, `gh run rerun`; leer runs, cachés y environments), **Checks** y **Commit statuses** lectura (`gh pr checks`), Metadata lectura (viene de serie; también da `rules/branches` y `rulesets`). **Sin** Administration, Secrets, Environments, Variables, Deployments ni Workflows. Lo que eso cuesta: un PR que toca `.github/workflows/` lo empuja y lo fusiona Pablo con su sesión (sin Workflows, GitHub rechaza ese push), y `planos --red` da `sin_comprobar` en lo que solo lee un administrador (protección clásica, secretos, deploy keys, alertas de Dependabot, `security_and_analysis`): esa medición la lanza Pablo en su terminal, sin el token de sesiones. Sigue siendo **Pablo** para GitHub (autor de los PR, rol de administrador en los bypass): para una identidad aparte, la GitHub App de #327.
+
 ## Operaciones habituales
 
 | Qué | Comando | Debe salir |
@@ -92,6 +94,23 @@ que manda. `tests.yml` no usa ninguno. La CLI `gh` va con la sesión de Pablo (`
 | ¿Está en staging? | `git fetch origin` y mirar `origin/staging`, nunca el upstream de tu rama | el commit o la ausencia |
 | CI en rojo: reproducir un test | `npx vitest run <fichero>` | el mismo fallo que en el CI |
 | Probar a mano la línea «Runbook:» | `git diff --name-only origin/staging... > $TEMP/f.txt` y `PR_BODY="$(gh pr view <n> --json body -q .body)" node scripts/runbook-pr.mjs $TEMP/f.txt` | `Runbook: ok`, o `FALLA` con la línea a poner (se arregla con `gh pr edit <n> --body-file <f>`) |
+
+### Token de las sesiones (#299): pasos de Pablo
+
+1. github.com → foto → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token. Nombre `homenu-sesiones`, caducidad 90 días, dueño `pabloam89`, **Only select repositories** → `MenuPlan`.
+2. Repository permissions: los de «Claves y accesos», uno a uno; el resto en **No access**. Generate.
+3. Sin copiarlo a ningún chat: en 1Password, bóveda `HoMenu-sesiones`, ficha nueva «GitHub sesiones» (Credencial de API), campo `GH_TOKEN`, y la fecha de caducidad en la ficha.
+4. Que las sesiones lo usen (`GH_TOKEN` en su entorno y `gh auth setup-git` para el push) es el encargo E3 de #326: no se cambia nada más hoy.
+
+### Secretos de repo a environments (#299): pasos de Pablo
+
+El script «mover-secretos» (de un solo uso: lo deja `gobierno` en el informe de #299, fuera del repo). Lee cada valor de 1Password (`HoMenu`, ficha y campo con el nombre del secreto) sin imprimirlo y lo pasa a `gh secret set --env` por stdin. Plan: `ANTHROPIC_API_KEY` («Anthropic Actions») y `OPS_DB_URL` («Supabase ops_reader») → `agente-fallos`; `OPS_DB_URL` → `bot-semanal`; los cuatro de iOS («Apple TestFlight») → `ios-testflight` (solo `main`).
+
+1. Las tres fichas en `HoMenu`, cada campo con el nombre exacto del secreto (GitHub no deja leer los de ahora: si no tienes un valor, se genera otro en su servicio).
+2. `node "<ruta>\mover-secretos.mjs"` (ensayo) → cada secreto `leer resultado: ok`. Con una ficha que falte, lo dice y no borra nada.
+3. `--si`, **antes** de fusionar el PR de #299 (un environment que nombra un workflow y no existe se crea sin política) → `environment … creado rama: …` y `poner resultado: ok`.
+4. Fusionar el PR. Mientras, los workflows siguen leyendo el secreto del repo: nada se rompe.
+5. `--borrar-repo` → `borrado` solo si el environment ya lo tiene y el workflow, en su rama, lo declara. Los de iOS esperan a que `ios-testflight.yml` llegue a `main` (`motivo: …-en-main-sin-environment`). Al final, `npm run planos -- --red` (secretos_de_repo) y poner en `ops/planos.json` la cifra nueva.
 
 - **Ramas viejas:** GitHub borra la rama al fusionar el PR
   (`delete_branch_on_merge`), pero las de antes del 8 oct 2026 se quedaron.
@@ -177,7 +196,10 @@ la visibilidad. Dependabot, secret scanning y push protection no tienen coste.
 - https://docs.github.com/rest/repos/rules (bypass_actors y `DeployKey`)
 - https://docs.github.com/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow
 - https://github.com/actions/checkout (`ssh-key`)
+- https://docs.github.com/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens
 
 Comprobado el 2026-10-09: la línea «Casos:» (#185), con tests y datos sintéticos en local, sin probarla aún en un PR real de GitHub ni la API desde el runner.
 
 Comprobado el 2026-10-09: en #193, `dependabot-auto.yml` pasa `actionlint` 1.7.12; en ensayo contra el repo, #169 sale `grupo-manual` y #288 (en `/dish-gallery`) `ficheros-fuera`, y los cerrados #165 y #167 salen menores con commits limpios; en la documentación de GitHub, que `cooldown` solo afecta a las de versión y que el primer grupo que nombra una dependencia se la queda; el ruleset 24770007 de `staging` activo, exige `tests` y no pide la rama al día. Sin comprobar: si un `workflow_run` tras un run de Dependabot ve los secretos del environment (la documentación no lo aclara; por eso la pasada de cada 3 h), una fusión real, que Dependabot obedezca un `@dependabot rebase` de `github-actions[bot]`. Comprobado el 2026-10-09: el formato del bypass por deploy key (`actor_id` null) en la REST de rulesets; que `actions/checkout` v7 con `ssh-key` vacío usa HTTPS y el token (su `url-helper`), aunque el cron ya no lo usa así; que hoy hay 0 rulesets y 0 deploy keys, y que el check de `main` es `tests` de la app 15368. Sin comprobar: el ruleset y la deploy key creados de verdad, y que el push de la key lance `tests` (lo dirá la prueba con `probar_push`). Comprobado el 2026-10-08: la comprobación del runbook y la puerta de lectura, con sus tests y a mano en local (sin probarlas aún en un PR real de GitHub ni con el campo `agent_type` de un subagente de verdad); la causa del borrado de carpetas, leyendo el hook y comprobando que la rama no tenía commits propios; el resto viene de la versión anterior, reordenado sin cambiar los hechos. Con el hook en modo ensayo, una carpeta con commit propio no sale como borrable. Sin probar: el borrado real con una carpeta que tenga ese commit inicial, al abrir otra sesión.
+
+Comprobado el 2026-10-09: en #299, el permiso de cada ruta de `gh` que usan los scripts en la documentación de fine-grained (no con un token real); `actionlint` 1.7.12 sobre los workflows con su environment; el ensayo de `mover-secretos` contra GitHub y 1Password (6 secretos en el repo, 0 fichas, nada cambiado). Sin probar: un token fine-grained real, `--si` y `--borrar-repo`, y que un push sin Workflows se rechace al traer cambios de workflows desde staging.
