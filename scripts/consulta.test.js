@@ -39,6 +39,19 @@ describe("npm run consulta solo lee", () => {
     ]) expect(motivoParaNoLeer(q), q).not.toBe(null);
   });
 
+  it("las tres formas de esconder una función del re-juicio del PR #223", () => {
+    for (const q of [
+      "select E'\\'' as a, pg_sleep(0)::text as b --'",
+      'select "pg_sleep"(0)::text',
+      "select 1 as x$$, pg_sleep(0)::text as y$$",
+    ]) expect(motivoParaNoLeer(q), q).not.toBe(null);
+  });
+
+  it("case … end y explain analyze son lecturas", () => {
+    expect(motivoParaNoLeer("select case when 1 = 1 then 'a' end")).toBe(null);
+    expect(motivoParaNoLeer("explain analyze select 1")).toBe(null);
+  });
+
   it("el script manda la consulta por el protocolo extendido, que no admite varias sentencias", () => {
     const fuente = readFileSync(new URL("./consulta.mjs", import.meta.url), "utf8");
     expect(fuente).toMatch(/client\.query\(\{ text: sql, values: \[\] \}\)/);

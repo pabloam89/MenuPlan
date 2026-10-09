@@ -14,7 +14,7 @@
 const LECTURA = /^(select|with|show|explain|table|values)\b/i;
 
 // Escribe, cambia o controla la transacción o la sesión.
-const ESCRIBE = /\b(insert|update|delete|merge|truncate|alter|drop|create|grant|revoke|copy|call|do|commit|rollback|begin|end|start|savepoint|release|set|reset|discard|lock|listen|notify|prepare|execute|deallocate|vacuum|analyze|cluster|reindex|refresh|security|import|load)\b/i;
+const ESCRIBE = /\b(insert|update|delete|merge|truncate|alter|drop|create|grant|revoke|copy|call|do|commit|rollback|begin|start|savepoint|release|set|reset|discard|lock|listen|notify|prepare|execute|deallocate|vacuum|cluster|reindex|refresh|security|import|load)\b/i;
 
 // Funciones con efectos que una transacción read only no impide, o que salen
 // de la base: matar conexiones, slots de replicación, bloqueos, cambiar la
@@ -35,7 +35,7 @@ export function sinTexto(sql) {
       while (j < s.length && !(s[j] === "'" && s[j + 1] !== "'")) j += s[j] === "'" ? 2 : 1;
       out += "''";
       i = j + 1;
-    } else if (c === "$" && /^\$([a-z_]*)\$/i.test(s.slice(i))) { // texto entre dólares
+    } else if (c === "$" && !/[\w$]/.test(s[i - 1] ?? "") && /^\$([a-z_]*)\$/i.test(s.slice(i))) { // texto entre dólares (no dentro de un nombre: `x$$`)
       const tag = s.slice(i).match(/^\$([a-z_]*)\$/i)[0];
       const fin = s.indexOf(tag, i + tag.length);
       out += "''";
@@ -64,9 +64,15 @@ export function sinTexto(sql) {
 export function motivoParaNoLeer(sql) {
   const limpio = sinTexto(sql).trim().replace(/;\s*$/, "");
   if (!limpio) return "La consulta está vacía.";
+  // Las cadenas con escapes (`E'\''`) se leen distinto aquí y en Postgres:
+  // fuera, sin excepción (juez de seguridad del PR #223).
+  if (sql.includes("\\")) return "Sin barras invertidas: las cadenas con escapes no se pueden comprobar.";
   if (limpio.includes(";")) return "Una sola sentencia por consulta.";
   if (!LECTURA.test(limpio)) return "Solo lectura: tiene que empezar por select, with, show, explain, table o values.";
   if (ESCRIBE.test(limpio)) return "Lleva una palabra que escribe o cambia algo; esto es solo para leer.";
-  if (PELIGROSAS.test(limpio) || ESQUEMAS.test(limpio)) return "Llama a una función con efectos fuera de la consulta (conexiones, replicación, sesión, ficheros o red).";
+  // Las funciones se buscan también en el SQL en crudo, sin comillas dobles
+  // (`"pg_sleep"(0)`): mejor un falso positivo dentro de un texto que dejarla pasar.
+  const crudo = String(sql).replaceAll('"', "");
+  if ([limpio, crudo].some((t) => PELIGROSAS.test(t) || ESQUEMAS.test(t))) return "Llama a una función con efectos fuera de la consulta (conexiones, replicación, sesión, ficheros o red).";
   return null;
 }
