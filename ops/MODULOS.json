@@ -1,7 +1,7 @@
 {
   "version": 1,
   "actualizado": "2026-10-09",
-  "leeme": "Mapa de módulos de MenuPlan (issue #157). Lo lee un script (el panel de la factoría, #158) y lo vigila ops/modulos.test.js: si pasa algo que lo deja viejo (una tabla nueva, un fichero que desaparece, un grado inventado) el test se pone rojo y dice qué tocar. JSON y no markdown porque lo consume una máquina; `leeme` y `hace` van en castellano llano para que lo lea también una persona. Las tablas de cada módulo no se repiten en él: el dueño vive solo en `tablas` y el panel deriva «tablas de un módulo» de ahí. «Acceso» (cuántos ficheros tocan cada tabla) tampoco se guarda: el panel lo calcula de supabase/cableado.json. `fichero_dueno` son las dos puertas de PRINCIPIOS §15 (app y servidor); si una es null, `sin_puerta` dice por qué con un motivo del vocabulario cerrado `motivos_sin_puerta` (más un texto). Un fichero solo está en una unidad, salvo los de `ficheros_compartidos` (con motivo). `ficheros_sin_modulo` agrupa, con motivo, el código que no pertenece a ningún módulo. `fuentes_de_datos` (issue #249) dice, de cada fuente del catálogo (recetas, alimentos, copias de Supabase, restos), su `rol` y su `estado` con fecha; lo vigila ops/fuentes.test.js. Las definiciones de los roles viven en `vocabularios.roles_fuente` y se resumen en specs/INDEX.md («Vocabulario del catálogo»).",
+  "leeme": "Mapa de módulos de MenuPlan (issue #157). Lo lee un script (el panel de la factoría, #158) y lo vigila ops/modulos.test.js: si pasa algo que lo deja viejo (una tabla nueva, un fichero que desaparece, un grado inventado) el test se pone rojo y dice qué tocar. JSON y no markdown porque lo consume una máquina; `leeme` y `hace` van en castellano llano para que lo lea también una persona. Las tablas de cada módulo no se repiten en él: el dueño vive solo en `tablas` y el panel deriva «tablas de un módulo» de ahí. «Acceso» (cuántos ficheros tocan cada tabla) tampoco se guarda: el panel lo calcula de supabase/cableado.json. `fichero_dueno` son las dos puertas de PRINCIPIOS §15 (app y servidor); si una es null, `sin_puerta` dice por qué con un motivo del vocabulario cerrado `motivos_sin_puerta` (más un texto). Un fichero solo está en una unidad, salvo los de `ficheros_compartidos` (con motivo). `ficheros_sin_modulo` agrupa, con motivo, el código que no pertenece a ningún módulo.",
   "vocabularios": {
     "grados_desarrollo": {
       "idea": "No hay código en staging: solo una spec, una nota o una rama sin fusionar. Criterio: `ficheros` vacío (o solo specs).",
@@ -24,17 +24,6 @@
       "por_trigger": "Se escribe dentro de la base (trigger o función SQL) y ningún fichero JS la toca.",
       "fuera_del_dueno": "Sí la toca código de ese lado, pero de OTRO módulo: el dueño no tiene puerta propia. Es deuda de PRINCIPIOS §15.",
       "en_desuso": "La tabla sigue en la base pero nadie la lee ni la escribe."
-    },
-    "roles_fuente": {
-      "ingesta": "Entra en bruto, de fuera (un proveedor, un script de alta, un CSV). Nada la lee en producción: alimenta a la fuente de verdad.",
-      "fuente_de_verdad": "Lo único que se edita a mano o con un script de alta. Un dato vive aquí y en ningún otro sitio.",
-      "derivado": "Se regenera con un script desde la fuente de verdad. No se toca a mano: si está mal, se arregla la fuente y se regenera.",
-      "copia_retirada": "Copia que alguna vez se leyó y ya no: sigue ahí (o en git) pero nadie la lee. No se usa para nada nuevo; sustituido_por dice dónde está ahora el dato."
-    },
-    "estados_fuente": {
-      "vivo": "Se usa hoy. Sin fecha de retirada.",
-      "deprecado": "Aún se lee, pero ya hay sustituto y hay fecha para quitarla (`retirar_el`). Pasada la fecha sin retirarla, el test se pone rojo.",
-      "retirado": "Ya nadie la lee. Puede seguir existiendo (tabla, fichero) hasta que se borre; `sustituido_por` dice dónde vive el dato."
     }
   },
   "modulos": [
@@ -1353,242 +1342,6 @@
       "submodulos": []
     }
   ],
-  "fuentes_de_datos": [
-    {
-      "id": "recetas_json",
-      "que_es": "Las recetas (1033): una fila por receta, en 15 ficheros por familia. Recetario = las de estrella:true; Reserva = el resto.",
-      "rol": "fuente_de_verdad",
-      "estado": "vivo",
-      "retirar_el": null,
-      "sustituido_por": null,
-      "ficheros": [
-        "src/data/recipes"
-      ],
-      "nota": "Desde el 30 sep 2026 es la única fuente de recetas (migración 0064, src/data/catalogoUnaFuente.test.js)."
-    },
-    {
-      "id": "ingredientes_json",
-      "que_es": "Los ingredientes: el nombre con el que hablan las recetas (396).",
-      "rol": "fuente_de_verdad",
-      "estado": "vivo",
-      "retirar_el": null,
-      "sustituido_por": null,
-      "ficheros": [
-        "src/data/ingredients.json"
-      ],
-      "nota": "Ingrediente y alimento son dos entidades distintas con los mismos ids hoy (alimentoPorIngrediente es la identidad), no dos copias: el ingrediente es lo que pide la receta, el alimento es lo que se analiza."
-    },
-    {
-      "id": "alimentos_json",
-      "que_es": "Los alimentos con nutrición y procedencia (396): lo que existe y se puede analizar (Fase A de specs/modelo-datos.md).",
-      "rol": "fuente_de_verdad",
-      "estado": "vivo",
-      "retirar_el": null,
-      "sustituido_por": null,
-      "ficheros": [
-        "src/data/alimentos.json"
-      ],
-      "nota": "Lo escribe scripts/build-alimentos.mjs; los juicios a mano viven en los *Choices.json y familiaLabels.json (ver ingesta_alimentos)."
-    },
-    {
-      "id": "alimento_por_ingrediente",
-      "que_es": "El mapa ingrediente → alimento (hoy la identidad).",
-      "rol": "derivado",
-      "estado": "vivo",
-      "retirar_el": null,
-      "sustituido_por": null,
-      "ficheros": [
-        "src/data/alimentoPorIngrediente.json"
-      ],
-      "nota": "Lo maneja scripts/build-alimentos.mjs; no se edita a mano."
-    },
-    {
-      "id": "derivados_catalogo",
-      "que_es": "Coste, familias, nutrición y partes de cada receta, calculados.",
-      "rol": "derivado",
-      "estado": "vivo",
-      "retirar_el": null,
-      "sustituido_por": null,
-      "ficheros": [
-        "src/data/derived/_meta.json",
-        "src/data/derived/recipeCoste.json",
-        "src/data/derived/recipeFamilias.json",
-        "src/data/derived/recipeNutrition.json",
-        "src/data/derived/recipeParts.json"
-      ],
-      "nota": "Los escribe scripts/build-derived.mjs (nunca escribe en las fuentes); _meta.json guarda el hash de las fuentes."
-    },
-    {
-      "id": "alimentos_app",
-      "que_es": "La versión de alimentos que lee la app.",
-      "rol": "derivado",
-      "estado": "vivo",
-      "retirar_el": null,
-      "sustituido_por": null,
-      "ficheros": [
-        "src/data/derived/alimentosApp.json"
-      ],
-      "nota": "Lleva «NO SE EDITA»; lo genera scripts/build-alimentos.mjs desde alimentos_json."
-    },
-    {
-      "id": "vectores_recetas",
-      "que_es": "El índice de vectores del Recetario para la búsqueda por significado de Lola.",
-      "rol": "derivado",
-      "estado": "vivo",
-      "retirar_el": null,
-      "sustituido_por": null,
-      "ficheros": [
-        "api/_bot/recetasVectores.json"
-      ],
-      "nota": "Lo genera scripts/build-vectores.mjs; solo vectoriza el Recetario."
-    },
-    {
-      "id": "ingesta_alimentos",
-      "que_es": "Lo que entra en bruto para los alimentos: las consultas y elecciones contra BEDCA, CIQUAL, USDA y complemento.",
-      "rol": "ingesta",
-      "estado": "vivo",
-      "retirar_el": null,
-      "sustituido_por": null,
-      "ficheros": [
-        "scripts/build-alimentos.mjs",
-        "src/data/bedcaChoices.json",
-        "src/data/ciqualChoices.json",
-        "src/data/ciqualQueries.json",
-        "src/data/complementoChoices.json",
-        "src/data/complementoQueries.json",
-        "src/data/usdaChoices.json",
-        "src/data/usdaQueries.json"
-      ],
-      "nota": "build-alimentos.mjs también lee output/ (git-ignorado) como respaldo; las decisiones caras viven en estos JSON del repo."
-    },
-    {
-      "id": "ingesta_recetas",
-      "que_es": "Los scripts que dan de alta recetas y les añaden los pasos enriquecidos.",
-      "rol": "ingesta",
-      "estado": "vivo",
-      "retirar_el": null,
-      "sustituido_por": null,
-      "ficheros": [
-        "scripts/add-recipes-2026-09.mjs",
-        "scripts/add-recipes-bebes-solidos.mjs",
-        "scripts/add-recipes-bebes-solidos-2.mjs",
-        "scripts/add-recipes-cocinas-2026-09.mjs",
-        "scripts/enrich-recipe-steps.mjs"
-      ],
-      "nota": "Escriben en recetas_json; el resultado se revisa y se commitea."
-    },
-    {
-      "id": "ingesta_mercadona",
-      "que_es": "El catálogo semanal de Mercadona (productos y precios).",
-      "rol": "ingesta",
-      "estado": "vivo",
-      "retirar_el": null,
-      "sustituido_por": null,
-      "ficheros": [
-        "scripts/mercadona-sync.mjs",
-        "public/store/mercadona.json"
-      ],
-      "nota": "Se regenera cada semana; es lo que alimenta los precios y el coste."
-    },
-    {
-      "id": "tablas_copia_recetas",
-      "que_es": "Copia en Supabase del catálogo de recetas, parada en la v27 (8 sep 2026).",
-      "rol": "copia_retirada",
-      "estado": "retirado",
-      "retirar_el": null,
-      "sustituido_por": "recetas_json",
-      "tablas": [
-        "recipes",
-        "recipe_ingredients",
-        "dish_images",
-        "catalog_meta"
-      ],
-      "nota": "Sin lector desde la 0064 (30 sep 2026). Siguen en la base; borrarlas es decisión de Pablo."
-    },
-    {
-      "id": "tablas_copia_ingredientes",
-      "que_es": "Copia en Supabase de ingredientes, alias y sustituciones.",
-      "rol": "copia_retirada",
-      "estado": "retirado",
-      "retirar_el": null,
-      "sustituido_por": "ingredientes_json",
-      "tablas": [
-        "ingredients",
-        "ingredient_aliases",
-        "ingredient_substitutions"
-      ],
-      "nota": "Sin lector en src/ ni api/ (las sustituciones las lee src/data/ingredientSubstitutions.json). `ingredients` sigue viva solo porque la despensa apunta a ella (0064)."
-    },
-    {
-      "id": "vistas_copia_recetas",
-      "que_es": "Las dos vistas que se apoyaban en las tablas copia: alérgenos derivados y opciones de sustitución.",
-      "rol": "copia_retirada",
-      "estado": "retirado",
-      "retirar_el": null,
-      "sustituido_por": "derivados_catalogo",
-      "vistas": [
-        "recipe_derived_allergens",
-        "recipe_substitution_options"
-      ],
-      "nota": "Viven de tablas_copia_recetas y tablas_copia_ingredientes; nadie las lee."
-    },
-    {
-      "id": "base_recipes",
-      "que_es": "BASE_RECIPES: las 29 recetas semilla escritas a mano dentro de src/data/recipes.js.",
-      "rol": "copia_retirada",
-      "estado": "deprecado",
-      "retirar_el": "2026-12-31",
-      "sustituido_por": "recetas_json",
-      "ficheros": [
-        "src/data/recipes.js"
-      ],
-      "nota": "RECIPES_BY_ID aún lo leen App.jsx y consumptionInsights.js, por eso es deprecado y no retirado: pasar esos dos lectores al catálogo (recipeCatalog) y borrar BASE_RECIPES antes de la fecha. El fichero también exporta INGREDIENT_CATEGORIES, que sí vive."
-    },
-    {
-      "id": "recipe_row",
-      "que_es": "El traductor fila de Supabase → receta (rowToRecipe de src/data/recipeRow.js).",
-      "rol": "copia_retirada",
-      "estado": "retirado",
-      "retirar_el": null,
-      "sustituido_por": "recetas_json",
-      "ficheros": [
-        "src/data/recipeRow.js"
-      ],
-      "nota": "Solo lo importan sus tests y la doc de model.js; las filas que traducía eran de tablas_copia_recetas."
-    },
-    {
-      "id": "seeds_sql",
-      "que_es": "Los seeds SQL que volcaban el catálogo a las tablas copia.",
-      "rol": "copia_retirada",
-      "estado": "retirado",
-      "retirar_el": null,
-      "sustituido_por": "recetas_json",
-      "ficheros": [
-        "supabase/seed_0_setup.sql",
-        "supabase/seed_dish_images.sql",
-        "supabase/seed_ingredient_substitutions.sql",
-        "supabase/seed_ingredients.sql",
-        "supabase/seed_recipe_ingredients.sql",
-        "supabase/seed_recipes_1_de_4.sql",
-        "supabase/seed_recipes_2_de_4.sql",
-        "supabase/seed_recipes_3_de_4.sql",
-        "supabase/seed_recipes_4_de_4.sql"
-      ],
-      "nota": "Los genera scripts/generate-supabase-seed.mjs. No se vuelven a ejecutar: la base ya los tiene y quedó atrás."
-    },
-    {
-      "id": "dish_gallery_catalog",
-      "que_es": "El catalog.json de la galería de platos (dish-gallery), una copia plana con la foto de cada plato.",
-      "rol": "copia_retirada",
-      "estado": "retirado",
-      "retirar_el": null,
-      "sustituido_por": "recetas_json",
-      "ficheros": [
-        "dish-gallery/public/catalog.json"
-      ],
-      "nota": "Solo lo lee la herramienta aparte dish-gallery (revisión de fotos), nunca la app ni Lola; no se mantiene al ritmo de las recetas, así que no es una lista de recetas fiable."
-    }
-  ],
   "tablas": {
     "app_feedback": {
       "dueno": "medicion-y-feedback",
@@ -1987,15 +1740,15 @@
         "app": null,
         "servidor": null
       },
-      "nota": "Ningún fichero de src/ ni api/ la lee: solo scripts de construcción del catálogo (candidata a quitar por PRINCIPIOS: ningún dato sin lector).",
+      "nota": "Copia retirada: ver `copiaIngredientesSupabase` / `copiaSustitucionesSupabase` en src/data/model.js.",
       "sin_puerta": {
         "app": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en src/: la app lee el JSON."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en src/: la app lee el JSON."
         },
         "servidor": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en api/."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en api/."
         }
       }
     },
@@ -2005,15 +1758,15 @@
         "app": null,
         "servidor": null
       },
-      "nota": "La app lee las sustituciones del JSON (src/data/ingredientSubstitutions.json); la tabla no tiene lector en src/ ni api/.",
+      "nota": "Copia retirada: ver `copiaIngredientesSupabase` / `copiaSustitucionesSupabase` en src/data/model.js.",
       "sin_puerta": {
         "app": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en src/: la app lee el JSON."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en src/: la app lee el JSON."
         },
         "servidor": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en api/."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en api/."
         }
       }
     },
@@ -2023,15 +1776,15 @@
         "app": null,
         "servidor": null
       },
-      "nota": "Sigue viva solo porque la despensa apunta a ella (0064).",
+      "nota": "Copia retirada: ver `copiaIngredientesSupabase` / `copiaSustitucionesSupabase` en src/data/model.js.",
       "sin_puerta": {
         "app": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en src/: la app lee el JSON."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en src/: la app lee el JSON."
         },
         "servidor": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en api/."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en api/."
         }
       }
     },

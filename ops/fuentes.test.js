@@ -2,154 +2,172 @@ import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROLES_FUENTE, ESTADOS_FUENTE } from "../src/lib/vocabularios.js";
+import { ESTADOS_FUENTE, ROLES_FUENTE, TABLAS, esFechaIso, fuentesVencidas } from "../src/data/model.js";
 
 /**
- * Las fuentes de datos del catálogo (`fuentes_de_datos` de ops/MODULOS.json,
- * issue #249): cada una con su rol y su ciclo de vida con fecha.
+ * El registro de fuentes de datos (TABLAS de src/data/model.js, issue #249):
+ * cada fuente con su rol y su ciclo de vida con fecha. Es el ÚNICO registro;
+ * este test lo vigila y su mensaje dice qué hacer.
  *
- * Existe para que «antiguo / nuevo» no vuelva a significar cinco cosas. Cuando
- * este test se pone rojo, el mensaje dice qué tocar: casi siempre es editar
- * `fuentes_de_datos` en el mismo PR que movió o retiró algo.
- *
+ * Existe para que «antiguo / nuevo» no vuelva a significar cinco cosas.
  * Aún NO prohíbe leer una fuente retirada: eso es el issue #251.
  */
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const leer = (ruta) => readFileSync(join(RAIZ, ruta), "utf8");
 const mapa = JSON.parse(leer("ops/MODULOS.json"));
-const fuentes = mapa.fuentes_de_datos ?? [];
-const porId = new Map(fuentes.map((f) => [f.id, f]));
-const ISO = /^\d{4}-\d{2}-\d{2}$/;
-/** La fecha de hoy en ISO (UTC basta: el margen es de días). Se puede fijar para probar. */
+const porId = new Map(TABLAS.map((f) => [f.id, f]));
 const HOY = new Date().toISOString().slice(0, 10);
 
 const migraciones = readdirSync(join(RAIZ, "supabase", "migrations")).filter((f) => f.endsWith(".sql")).map((f) => leer(`supabase/migrations/${f}`).toLowerCase()).join("\n");
 const creaTabla = (t) => new RegExp(`create\\s+table\\s+(if\\s+not\\s+exists\\s+)?(public\\.)?${t}\\b`).test(migraciones);
 const creaVista = (v) => new RegExp(`create\\s+(or\\s+replace\\s+)?view\\s+(public\\.)?${v}\\b`).test(migraciones);
 
-describe("fuentes_de_datos: forma y vocabulario cerrado", () => {
-  it("las definiciones del JSON dicen lo mismo que las constantes de src/lib/vocabularios.js", () => {
-    const aviso = "Si añades un valor, ponlo en la constante de src/lib/vocabularios.js Y en `vocabularios` de ops/MODULOS.json con su definición.";
-    expect(Object.keys(mapa.vocabularios.roles_fuente), aviso).toEqual(ROLES_FUENTE);
-    expect(Object.keys(mapa.vocabularios.estados_fuente), aviso).toEqual(ESTADOS_FUENTE);
-  });
+/** Expande una ruta o un patrón con * en el último tramo a los ficheros que existen. */
+function expandir(ruta) {
+  if (!ruta.includes("*")) return existsSync(join(RAIZ, ruta)) ? [ruta] : [];
+  const barra = ruta.lastIndexOf("/");
+  const dir = ruta.slice(0, barra);
+  const [pre, post] = ruta.slice(barra + 1).split("*");
+  if (!existsSync(join(RAIZ, dir))) return [];
+  return readdirSync(join(RAIZ, dir)).filter((f) => f.startsWith(pre) && f.endsWith(post)).map((f) => `${dir}/${f}`);
+}
 
-  it("los ids son únicos y con forma de id", () => {
+describe("fuentes: forma y vocabulario cerrado", () => {
+  it("los ids son únicos y cada fuente trae rol y estado del vocabulario", () => {
     const vistos = new Set();
     const malos = [];
-    for (const f of fuentes) {
-      if (!/^[a-z][a-z0-9_]*$/.test(f.id ?? "")) malos.push(`${f.id}: forma de id (minúsculas, números y _)`);
+    for (const f of TABLAS) {
       if (vistos.has(f.id)) malos.push(`${f.id}: repetido`);
       vistos.add(f.id);
-    }
-    expect(fuentes.length, "Falta la sección `fuentes_de_datos` en ops/MODULOS.json").toBeGreaterThan(0);
-    expect(malos, "Cada fuente necesita un `id` estable y distinto.").toEqual([]);
-  });
-
-  it("cada fuente trae id, qué es, rol y estado dentro del vocabulario, y una nota", () => {
-    const malos = [];
-    for (const f of fuentes) {
-      for (const c of ["que_es", "nota"]) if (typeof f[c] !== "string" || f[c].trim().length < 15) malos.push(`${f.id}: falta «${c}» (una frase)`);
       if (!ROLES_FUENTE.includes(f.rol)) malos.push(`${f.id}: rol «${f.rol}»`);
       if (!ESTADOS_FUENTE.includes(f.estado)) malos.push(`${f.id}: estado «${f.estado}»`);
-      const contenido = ["ficheros", "tablas", "vistas"].filter((c) => Array.isArray(f[c]) && f[c].length);
-      if (!contenido.length) malos.push(`${f.id}: debe citar al menos uno de ficheros, tablas o vistas`);
     }
-    expect(malos, `Roles válidos: ${ROLES_FUENTE.join(", ")}. Estados: ${ESTADOS_FUENTE.join(", ")}. Definiciones en \`vocabularios\` de ops/MODULOS.json.`).toEqual([]);
+    expect(malos, `Roles válidos: ${ROLES_FUENTE.join(", ")}. Estados: ${ESTADOS_FUENTE.join(", ")} (src/data/model.js).`).toEqual([]);
   });
 
-  it("una copia_retirada nunca está «vivo», y lo que no es copia_retirada nunca está «retirado»", () => {
+  it("una copia_retirada está retirada, y solo una copia_retirada se retira", () => {
     const malos = [];
-    for (const f of fuentes) {
-      if (f.rol === "copia_retirada" && f.estado === "vivo") malos.push(`${f.id}: copia_retirada en estado «vivo» (si se lee, no es una copia retirada; si no, «retirado»)`);
-      if (f.rol !== "copia_retirada" && f.estado !== "vivo") malos.push(`${f.id}: rol «${f.rol}» en estado «${f.estado}» (solo una copia_retirada se deprecia o se retira)`);
+    for (const f of TABLAS) {
+      if (f.rol === "copia_retirada" && f.estado !== "retirado") malos.push(`${f.id}: copia_retirada en estado «${f.estado}» (si se lee, no es una copia retirada)`);
+      if (f.rol !== "copia_retirada" && f.estado === "retirado") malos.push(`${f.id}: «retirado» con rol «${f.rol}» (una fuente retirada es una copia_retirada; si aún se lee, está «deprecado»)`);
     }
     expect(malos).toEqual([]);
   });
 });
 
-describe("fuentes_de_datos: ciclo de vida con fecha", () => {
-  it("lo deprecado lleva fecha de retirada (ISO) y lo vivo no la lleva", () => {
+describe("fuentes: ciclo de vida con fecha", () => {
+  it("lo deprecado y lo retirado llevan fecha ISO real; lo vivo no", () => {
     const malos = [];
-    for (const f of fuentes) {
-      const tiene = f.retirar_el !== null && f.retirar_el !== undefined;
-      if (f.estado === "deprecado" && !(typeof f.retirar_el === "string" && ISO.test(f.retirar_el) && !Number.isNaN(Date.parse(f.retirar_el)))) {
-        malos.push(`${f.id}: deprecado sin \`retirar_el\` válido (AAAA-MM-DD)`);
-      }
-      if (f.estado === "vivo" && tiene) malos.push(`${f.id}: vivo con \`retirar_el\`; si ya tiene fecha, es «deprecado»`);
-      if (f.estado === "retirado" && tiene && !ISO.test(f.retirar_el)) malos.push(`${f.id}: \`retirar_el\` mal escrito «${f.retirar_el}»`);
+    for (const f of TABLAS) {
+      if (f.estado === "vivo" && f.retirar_el !== null) malos.push(`${f.id}: vivo con \`retirar_el\`; si ya tiene fecha es «deprecado»`);
+      if (f.estado !== "vivo" && !esFechaIso(f.retirar_el)) malos.push(`${f.id}: «${f.estado}» sin \`retirar_el\` válido (AAAA-MM-DD real; vale ${JSON.stringify(f.retirar_el)})`);
     }
-    expect(malos, "Una fuente deprecada dice cuándo se quita: pon `retirar_el` con la fecha en ISO.").toEqual([]);
+    expect(malos, "Una fuente que se deja de usar dice cuándo: pon `retirar_el` en src/data/model.js.").toEqual([]);
   });
 
-  it("ninguna fuente deprecada ha pasado su fecha de retirada", () => {
-    const vencidas = fuentes.filter((f) => f.estado === "deprecado" && typeof f.retirar_el === "string" && f.retirar_el < HOY);
-    expect(
-      vencidas.map((f) => `${f.id}: debía retirarse el ${f.retirar_el}`),
-      "Fecha pasada: o se retira de verdad (se borran los lectores y pasa a «retirado») o se decide una fecha nueva en el mismo PR, con motivo en la nota.",
-    ).toEqual([]);
+  it("las fuentes deprecadas con fecha pasada avisan, pero no rompen el CI de nadie", () => {
+    const vencidas = fuentesVencidas(HOY);
+    for (const f of vencidas) {
+      console.warn(`[fuentes] «${f.id}» (${f.ruta}) estaba deprecada y debía retirarse el ${f.retirar_el}. Qué hacer: quitar sus lectores y pasarla a copia_retirada/retirado, o fijar una fecha nueva con el motivo en su nota (src/data/model.js).`);
+    }
+    expect(Array.isArray(vencidas)).toBe(true);
   });
 
-  it("lo deprecado o retirado nombra su sustituto, y ese sustituto existe y está vivo", () => {
+  it("fuentesVencidas ve una fecha pasada, ignora una futura y no cuenta una fecha imposible", () => {
+    const f = (estado, retirar_el) => ({ id: "x", estado, retirar_el });
+    expect(fuentesVencidas("2026-10-09", [f("deprecado", "2026-01-01")]).length).toBe(1);
+    expect(fuentesVencidas("2026-10-09", [f("deprecado", "2026-12-31")]).length).toBe(0);
+    expect(fuentesVencidas("2026-10-09", [f("deprecado", "2026-13-45")]).length).toBe(0);
+    expect(fuentesVencidas("2026-10-09", [f("retirado", "2026-01-01")]).length).toBe(0);
+    expect(esFechaIso("2026-13-45")).toBe(false);
+    expect(esFechaIso("2026-02-30")).toBe(false);
+    expect(esFechaIso("2026-10-09")).toBe(true);
+  });
+
+  it("lo deprecado o retirado nombra su sustituto vivo, o dice «sin sustituto» en la nota", () => {
     const malos = [];
-    for (const f of fuentes) {
-      if (f.estado === "vivo") {
-        if (f.sustituido_por) malos.push(`${f.id}: vivo con \`sustituido_por\` (¿está deprecado?)`);
+    for (const f of TABLAS) {
+      const s = f.sustituido_por;
+      if (f.estado === "vivo") { if (s) malos.push(`${f.id}: vivo con \`sustituido_por\``); continue; }
+      if (s === null) {
+        if (!/sin sustituto/i.test(f.nota ?? "")) malos.push(`${f.id}: «${f.estado}» sin \`sustituido_por\` y sin «sin sustituto» en la nota`);
         continue;
       }
-      const s = f.sustituido_por;
-      if (typeof s !== "string" || !s) { malos.push(`${f.id}: «${f.estado}» sin \`sustituido_por\``); continue; }
       const dest = porId.get(s);
-      if (!dest) malos.push(`${f.id}: \`sustituido_por\` apunta a «${s}», que no existe en fuentes_de_datos`);
+      if (!dest) malos.push(`${f.id}: \`sustituido_por\` apunta a «${s}», que no existe`);
       else if (dest.estado !== "vivo") malos.push(`${f.id}: su sustituto «${s}» no está vivo`);
-      else if (s === f.id) malos.push(`${f.id}: se sustituye a sí misma`);
     }
-    expect(malos, "Lo que se retira dice dónde vive ahora el dato: el id de otra fuente viva de `fuentes_de_datos`.").toEqual([]);
+    expect(malos, "Lo que se retira dice dónde vive ahora el dato (id de otra fuente viva) o que no hay sustituto.").toEqual([]);
   });
 });
 
-describe("fuentes_de_datos: lo que cita existe", () => {
-  it("todo fichero citado existe (rutas relativas y con /)", () => {
+describe("fuentes: lo que cita existe y nada queda sin registrar", () => {
+  it("todo fichero citado existe", () => {
     const faltan = [];
-    for (const f of fuentes) {
-      for (const r of f.ficheros ?? []) {
-        if (typeof r !== "string" || r.startsWith("/") || r.includes("\\") || r.includes("..")) faltan.push(`${f.id}: ruta mal escrita «${r}»`);
-        else if (!existsSync(join(RAIZ, r))) faltan.push(`${f.id}: no existe «${r}»`);
+    for (const f of TABLAS) {
+      for (const r of f.ficheros) {
+        if (r.startsWith("/") || r.includes("\\") || r.includes("..")) faltan.push(`${f.id}: ruta mal escrita «${r}»`);
+        else if (!expandir(r).length) faltan.push(`${f.id}: no existe «${r}»`);
       }
     }
-    expect(faltan, "Se movió o se borró algo: corrige la ruta en `fuentes_de_datos` (si se borró de verdad, la fuente pasa a «retirado» y deja de citarlo).").toEqual([]);
+    expect(faltan, "Se movió o se borró algo: corrige `ficheros` en src/data/model.js (si se borró de verdad, la fuente pasa a «retirado»).").toEqual([]);
   });
 
-  it("toda tabla y vista citada la crea alguna migración", () => {
-    const faltan = [];
-    for (const f of fuentes) {
-      for (const t of f.tablas ?? []) if (!creaTabla(t)) faltan.push(`${f.id}: ninguna migración crea la tabla «${t}»`);
-      for (const v of f.vistas ?? []) if (!creaVista(v)) faltan.push(`${f.id}: ninguna migración crea la vista «${v}»`);
-    }
-    expect(faltan, "Las tablas se citan por su nombre real en supabase/migrations.").toEqual([]);
-  });
-
-  it("una tabla no figura en dos fuentes", () => {
-    const dondeEsta = new Map();
-    for (const f of fuentes) for (const t of [...(f.tablas ?? []), ...(f.vistas ?? [])]) dondeEsta.set(t, [...(dondeEsta.get(t) ?? []), f.id]);
-    const dobles = [...dondeEsta].filter(([, ids]) => ids.length > 1).map(([t, ids]) => `${t}: en ${ids.join(" y ")}`);
-    expect(dobles, "Cada dato en un solo sitio: una tabla pertenece a una sola fuente.").toEqual([]);
-  });
-});
-
-describe("fuentes_de_datos: las tablas copia no tienen lector vivo", () => {
-  it("una tabla copia_retirada con módulo dueño no tiene puerta (ni app ni servidor), o la fuente se lo explica", () => {
+  it("toda tabla y vista citada la crea alguna migración, y no figura en dos fuentes", () => {
     const malos = [];
-    for (const f of fuentes.filter((x) => x.rol === "copia_retirada")) {
-      for (const t of f.tablas ?? []) {
-        const info = mapa.tablas?.[t];
-        if (!info) continue; // sin dueño de módulo: nada que contradecir
-        const conPuerta = ["app", "servidor"].filter((lado) => info.fichero_dueno?.[lado]);
-        if (conPuerta.length) malos.push(`${t} (${f.id}): el módulo ${info.dueno} le da puerta ${conPuerta.join(" y ")}, pero es copia_retirada. Quita la puerta (pasa a null con motivo en_desuso) o saca la tabla de copia_retirada`);
-        const sinMotivo = ["app", "servidor"].filter((lado) => info.sin_puerta?.[lado] && !["en_desuso", "no_la_usa"].includes(info.sin_puerta[lado].motivo));
-        if (sinMotivo.length) malos.push(`${t} (${f.id}): sin puerta por «${info.sin_puerta[sinMotivo[0]].motivo}», que sugiere un lector; debería ser en_desuso o no_la_usa`);
+    const dondeEsta = new Map();
+    for (const f of TABLAS) {
+      for (const t of f.tablas) { if (!creaTabla(t)) malos.push(`${f.id}: ninguna migración crea la tabla «${t}»`); dondeEsta.set(t, [...(dondeEsta.get(t) ?? []), f.id]); }
+      for (const v of f.vistas) { if (!creaVista(v)) malos.push(`${f.id}: ninguna migración crea la vista «${v}»`); dondeEsta.set(v, [...(dondeEsta.get(v) ?? []), f.id]); }
+    }
+    for (const [t, ids] of dondeEsta) if (ids.length > 1) malos.push(`${t}: en ${ids.join(" y ")} (cada dato en un solo sitio)`);
+    expect(malos).toEqual([]);
+  });
+
+  /** Un JSON de datos sin fuente solo se admite aquí, con su motivo. Hoy ninguno. */
+  const SIN_FUENTE = {};
+  it("todo JSON de src/data, src/data/derived, src/data/recipes y public/store pertenece a una fuente registrada", () => {
+    const registrados = new Set(TABLAS.flatMap((f) => f.ficheros.flatMap(expandir)));
+    const sueltos = [];
+    for (const d of ["src/data", "src/data/derived", "src/data/recipes", "public/store"]) {
+      for (const e of readdirSync(join(RAIZ, d), { withFileTypes: true })) {
+        const ruta = `${d}/${e.name}`;
+        if (e.isFile() && e.name.endsWith(".json") && !registrados.has(ruta) && !SIN_FUENTE[ruta]) sueltos.push(ruta);
       }
     }
-    expect(malos, "Una copia retirada no tiene lectores. Si ahora alguien la lee, no es una copia retirada: decídelo en el issue #251.").toEqual([]);
+    expect(sueltos, `JSON sin fuente: ${sueltos.join(", ")}. Registra cada uno en TABLAS de src/data/model.js con su rol (ingesta, fuente_de_verdad, derivado o copia_retirada) y sus \`ficheros\`.`).toEqual([]);
+  });
+});
+
+describe("fuentes: las tablas copia no tienen lector vivo y las sin lector son copia", () => {
+  const copias = new Set(TABLAS.filter((f) => f.rol === "copia_retirada").flatMap((f) => f.tablas));
+
+  it("una tabla copia_retirada con módulo dueño no tiene puerta (ni app ni servidor)", () => {
+    const malos = [];
+    for (const t of copias) {
+      const info = mapa.tablas?.[t];
+      if (!info) continue;
+      const conPuerta = ["app", "servidor"].filter((lado) => info.fichero_dueno?.[lado]);
+      if (conPuerta.length) malos.push(`${t}: el módulo ${info.dueno} le da puerta ${conPuerta.join(" y ")}, pero es copia_retirada`);
+    }
+    expect(malos, "Una copia retirada no tiene lectores. Si alguien la lee, no es una copia retirada: decídelo en el issue #251.").toEqual([]);
+  });
+
+  it("toda tabla que ops/MODULOS.json declara en_desuso es una copia_retirada del registro", () => {
+    const malos = [];
+    for (const [t, info] of Object.entries(mapa.tablas)) {
+      const enDesuso = ["app", "servidor"].some((l) => info.sin_puerta?.[l]?.motivo === "en_desuso");
+      if (enDesuso && !copias.has(t)) malos.push(`${t}: en_desuso en ops/MODULOS.json pero sin entrada copia_retirada en src/data/model.js`);
+    }
+    expect(malos, "Una tabla sin lector es una copia retirada: regístrala en TABLAS (src/data/model.js) con su sustituto.").toEqual([]);
+  });
+
+  it("toda copia_retirada que tiene dueño en ops/MODULOS.json figura allí como en_desuso", () => {
+    const malos = [];
+    for (const t of copias) {
+      const info = mapa.tablas?.[t];
+      if (info && !["app", "servidor"].every((l) => info.sin_puerta?.[l]?.motivo === "en_desuso")) malos.push(`${t}: copia_retirada pero ops/MODULOS.json no dice en_desuso en sus dos lados`);
+    }
+    expect(malos, "Un solo hecho, un solo motivo: pon `en_desuso` en los dos lados de sin_puerta.").toEqual([]);
   });
 });

@@ -35,7 +35,7 @@ Todas con `household_id` (nullable, sin uso real — ver `auth.md`).
 RLS: `Users manage own menus/weeks/recipes` (`auth.uid() = user_id`), más las políticas `Household owners/members ...` inertes descritas en `auth.md`.
 
 ### Catálogo (`recipes` — ver detalle completo en `recipe-catalog.md`)
-**Corrección del 9 oct 2026** (issue #249): lo que aquí se describía —un hot-swap que dejaba a la tabla `recipes` de Supabase servir el catálogo si `catalog_meta.version` iba por delante— **ya no existe**. Desde el 30 sep 2026 (migración 0064) la generación se sirve **solo del JSON** bundleado (`src/data/recipes/*.json`), validado siempre, incondicionalmente, al importar `recipeCatalog.js`; si está roto, la app falla al arrancar. Las tablas `recipes`, `recipe_ingredients`, `dish_images` y `catalog_meta` son una *copia retirada* (v27, 8 sep 2026) que nadie lee; `src/data/catalogoUnaFuente.test.js` lo vigila. `aiPlanner.js` ve el resultado ya resuelto (`recipeCatalog`/`recipeCatalogById`). Qué recetas se proponen: el **Recetario** (`estrella:true`); la **Reserva** (el resto) no sale. Roles de cada fuente: `ops/MODULOS.json` (`fuentes_de_datos`).
+**Corrección del 9 oct 2026** (issue #249): lo que aquí se describía —un hot-swap que dejaba a la tabla `recipes` de Supabase servir el catálogo si `catalog_meta.version` iba por delante— **ya no existe**. Desde el 30 sep 2026 (migración 0064) la generación se sirve **solo del JSON** bundleado (`src/data/recipes/*.json`), validado siempre, incondicionalmente, al importar `recipeCatalog.js`; si está roto, la app falla al arrancar. Las tablas `recipes`, `recipe_ingredients`, `dish_images` y `catalog_meta` son una *copia retirada* (v27, 8 sep 2026) que nadie lee; `src/data/catalogoUnaFuente.test.js` lo vigila. `aiPlanner.js` ve el resultado ya resuelto (`recipeCatalog`/`recipeCatalogById`). Qué recetas se proponen: el **Recetario** (`estrella:true`); la **Reserva** (el resto) no sale. Roles de cada fuente: `src/data/model.js` (`TABLAS`).
 
 ## 3. Dependencias externas
 
@@ -59,7 +59,7 @@ RLS: `Users manage own menus/weeks/recipes` (`auth.uid() = user_id`), más las p
 
 1. **Duplicación de reglas de negocio** entre prompt (lenguaje natural, server-side) y código determinista (`validateMenu.js`, `filterRecipes.js`) — ver arriba. Alto riesgo de divergencia silenciosa con el tiempo.
 2. **Lista de modelos permitidos duplicada** entre `aiModels.js` (cliente) y `api/generate.js` (servidor) sin mecanismo de sincronización automática.
-3. **`recipes` (tabla Supabase) no se usa en el flujo real de generación** pese a existir con RLS y datos — coste de mantenimiento sin beneficio claro en este dominio. [AMBIGUO — preguntar si tiene otro consumidor no localizado.]
+3. **`recipes` (tabla Supabase) es copia retirada**: no se usa en la generación ni la lee nadie (0064, 30 sep 2026) pese a existir con RLS y datos. Pendiente de borrar, decisión de Pablo.
 4. ~~La invariante "solo un menú activo" vive en una función RPC, no en un constraint DB~~ — **descartado, ver §2**: sí hay un índice único parcial que la garantiza a nivel de motor.
 5. ~~Importación de menú escolar sin fallback determinista~~ — **descartado, ver §1**: sí cae a extracción de texto + regex sin IA; el riesgo real es que ese fallo es silencioso (el usuario no se entera de que el resultado es del fallback, más pobre, en vez de la lectura por IA).
 

@@ -138,8 +138,8 @@ no antes.
 ## Vocabulario del catálogo
 
 Nombres fijos; "antiguo" y "nuevo" no se usan para esto (#249). Definiciones
-en `specs/INDEX.md`; cada fuente, con su estado y fecha, en `ops/MODULOS.json`
-(`fuentes_de_datos`, vigilado por `ops/fuentes.test.js`).
+en `specs/INDEX.md`; cada fuente, con su estado y fecha, en `src/data/model.js`
+(`TABLAS`, vigilado por `ops/fuentes.test.js`).
 
 - **Roles**: `ingesta` (entra en bruto), `fuente_de_verdad` (lo único que se
   edita), `derivado` (se regenera, no se toca), `copia_retirada` (ya no se lee).

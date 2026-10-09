@@ -615,7 +615,7 @@ dos se puede estimar: el pipeline lo prohíbe por diseño y con razón.
 > **Esta fase está hecha** (21-22 sep 2026, commits 0dd6e53 y 299a091). Lo que
 > sigue es el diseño original, que se conserva para entender por qué. Hoy la
 > fuente de verdad de los alimentos es `src/data/alimentos.json` (rol
-> `fuente_de_verdad` en `ops/MODULOS.json`, `fuentes_de_datos`); el ingrediente
+> `fuente_de_verdad` en `src/data/model.js`, `TABLAS`); el ingrediente
 > (`ingredients.json`) es otra entidad, no una copia. Las tablas de Supabase del
 > catálogo (`recipes`, `ingredients`…) son *copia retirada* desde el 30 sep 2026.
 
