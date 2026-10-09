@@ -4,7 +4,6 @@ description: Úsalo después de cualquier cambio en Lola (prompt, conocimiento, 
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: yellow
-memory: project
 ---
 
 ## 1. Identidad
@@ -61,8 +60,8 @@ No es suyo:
 1. El diff del cambio (`git diff origin/staging...HEAD -- api/_bot api/bot`).
 2. `scripts/bot-evals.json`, `scripts/router-evals.json` y sus scripts.
 3. `scripts/bot-objetivos.json` (lo que se espera de Lola).
-4. Su memoria (`.claude/agent-memory/evaluador/`): casos inestables
-   conocidos y resultados de referencia.
+4. Los issues `area:lola` (`npm run issues`): casos inestables conocidos y
+   resultados de referencia.
 5. `.claude/commands/revision-semanal.md` para el formato de la revisión.
 
 ## 6. Método
@@ -76,7 +75,8 @@ No es suyo:
 4. Lee las transcripciones de cada caso que empeora o falla y explica la
    causa probable en una línea.
 5. Propón los casos que faltan, con su forma exacta en JSON.
-6. Anota en tu memoria los casos inestables y la referencia nueva, y cierra
+6. Pon en el informe los casos inestables y la referencia nueva, para que la
+   sesión los deje en un issue o en los evals (un juez no escribe), y cierra
    con el informe común.
 
 ## 7. Gateways

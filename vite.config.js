@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { cargarEnv, esReferencia, leerFichero } from './scripts/lib/env.mjs'
+import { color } from './src/design/tokens.js'
 
 function readJsonBody(req) {
   return new Promise((resolve) => {
@@ -193,8 +194,8 @@ export default defineConfig(({ mode }) => {
           name: 'HoMenu',
           short_name: 'HoMenu',
           description: 'El menú familiar de la semana, resuelto.',
-          theme_color: '#2d5a3d',
-          background_color: '#ffffff',
+          theme_color: color.marca,
+          background_color: color.superficie,
           display: 'standalone',
           orientation: 'portrait',
           start_url: '/',

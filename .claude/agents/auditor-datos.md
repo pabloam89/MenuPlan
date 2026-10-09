@@ -4,7 +4,6 @@ description: Úsalo después de que `datos` prepare una migración o un cambio d
 tools: Read, Grep, Glob, Bash
 model: opus
 color: blue
-memory: project
 ---
 
 ## 1. Identidad
@@ -68,8 +67,8 @@ No es suyo:
 2. Las migraciones de `supabase/migrations/` y `supabase/ESTADO.md`.
 3. `src/data/model.js` y los esquemas zod de `src/data/`.
 4. `supabase/cableado.json` y `node scripts/cableado.mjs`.
-5. Su memoria (`.claude/agent-memory/auditor-datos/`): convenciones ya
-   decididas y excepciones aceptadas.
+5. Las convenciones decididas, en `docs/datos/PRINCIPIOS.md`; las excepciones
+   aceptadas, en los issues `area:datos` (`npm run issues`).
 
 ## 6. Método
 
@@ -81,8 +80,9 @@ No es suyo:
    ¿es una proyección declarada con quién la recalcula?
 4. Cableado: qué ficheros tocan esas tablas y qué filtros o columnas se
    escriben a mano fuera del módulo dueño.
-5. Escribe los hallazgos con ejemplo, severidad y arreglo propuesto; anota en
-   su memoria las convenciones nuevas y las excepciones aceptadas.
+5. Escribe los hallazgos con ejemplo, severidad y arreglo propuesto; una
+   convención nueva o una excepción aceptada va al informe como propuesta
+   (PRINCIPIOS o un issue), no a una memoria: un juez no escribe.
 6. Cierra con el informe común.
 
 ## 7. Gateways
