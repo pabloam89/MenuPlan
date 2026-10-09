@@ -32,6 +32,7 @@ export const MOTIVOS_ENSAYO = [
   "restauracion", // pg_restore falla
   "produccion", // no se pudo leer producción para comparar
   "tablas-distintas", // la copia y producción no tienen las mismas tablas
+  "columnas-copia", // las vistas de `copia` en producción no tienen las columnas de RELACIONES_COPIA
   "recuento", // las filas no cuadran (ver `veredicto`)
 ];
 
@@ -47,12 +48,12 @@ export const CAMPO_CLAVE = "clave_privada_age";
 export const OP_CLAVE_COPIAS = `op://${BOVEDA_COPIAS}/${FICHA_COPIAS}/${CAMPO_CLAVE}`;
 
 /**
- * Las vistas del esquema `copia` (migración 0094): de qué tabla de `auth` sale
+ * Las vistas del esquema `copia` (migración del rol copia_lectura): de qué tabla de `auth` sale
  * cada una y sus columnas con su tipo, en el orden de la vista. Sin
  * contraseñas, tokens ni metadatos. Las usan `copia-base.sh` (exige las dos:
  * sin ellas, una copia restaurada en un proyecto nuevo deja las casas sin
  * dueño) y el ensayo (que crea esas columnas en su `auth` de mentira y carga
- * los CSV). `supabase/rolLectura.test.js` cruza esta lista con la de la 0094.
+ * los CSV). `supabase/rolLectura.test.js` cruza esta lista con la de esa migración.
  */
 export const RELACIONES_COPIA = {
   auth_usuarios: {
@@ -64,6 +65,36 @@ export const RELACIONES_COPIA = {
     columnas: [["id", "uuid"], ["user_id", "uuid"], ["provider", "text"], ["provider_id", "text"], ["created_at", "timestamptz"]],
   },
 };
+
+/**
+ * Tablas de códigos efímeros que no hacen falta para restaurar: la migración del
+ * rol copia_lectura le quita el `select` sobre ellas, `copia-base.sh` las deja
+ * fuera del volcado (`--exclude-table`, porque pg_dump bloquea toda tabla cuya
+ * definición vuelca y eso pide `select`) y el ensayo no las cuenta. Al
+ * restaurar se recrean vacías con sus migraciones. Un test cruza esta lista con
+ * el script y con la migración.
+ */
+export const TABLAS_SIN_COPIA = ["public.bot_link_tokens", "public.household_invites"];
+
+/** El `data_type` de information_schema.columns de cada tipo de RELACIONES_COPIA. */
+const DATA_TYPE = { uuid: "uuid", text: "text", timestamptz: "timestamp with time zone", boolean: "boolean", jsonb: "jsonb" };
+
+/**
+ * Lo que no cuadra entre RELACIONES_COPIA y las columnas reales de las vistas de
+ * `copia` en producción (filas de information_schema.columns con table_name,
+ * column_name, data_type y ordinal_position). Vacío = cuadra.
+ * @param {{ table_name: string, column_name: string, data_type: string, ordinal_position: number }[]} filas
+ */
+export function columnasCopiaQueNoCuadran(filas) {
+  const fallos = [];
+  for (const [rel, { columnas }] of Object.entries(RELACIONES_COPIA)) {
+    const reales = filas.filter((f) => f.table_name === rel).sort((a, b) => a.ordinal_position - b.ordinal_position);
+    const esperadas = columnas.map(([c, t]) => `${c} ${DATA_TYPE[t] ?? t}`);
+    const vistas = reales.map((f) => `${f.column_name} ${f.data_type}`);
+    if (esperadas.join(", ") !== vistas.join(", ")) fallos.push(`copia.${rel}: espero (${esperadas.join(", ")}) y hay (${vistas.join(", ") || "nada"})`);
+  }
+  return fallos;
+}
 
 /**
  * El `auth` de mentira del ensayo: `auth.users` con las columnas del esquema

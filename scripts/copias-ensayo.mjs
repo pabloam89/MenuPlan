@@ -22,7 +22,7 @@
  * (`huerfanos:`) y rellena con ids sueltos los que falten, para que las claves
  * ajenas se comprueben. Pone las secuencias al día y cuenta las filas de cada
  * tabla. Luego cuenta lo mismo en producción con el usuario de las copias
- * (`copia_lectura`, 0094, en una transacción read only), también las vistas de
+ * (`copia_lectura`, en una transacción read only), también las vistas de
  * `copia`, y compara (`veredicto` de scripts/lib/copias.mjs): una copia sin
  * auth sale `tablas-distintas`.
  *
@@ -45,10 +45,10 @@ import pg from "pg";
 
 import { RAIZ } from "./lib/env.mjs";
 import {
-  CLAVE_PRIVADA, DIR_SERVIDOR, NOMBRE_COPIA, OP_CLAVE_COPIAS, RELACIONES_COPIA, SERVIDOR, SQL_SECUENCIAS,
-  clavesAjenasAAuth, fechaDeCopia, lineaEstructurada, lineaRegistroEnsayo, sqlAuthDeMentira, sqlHuerfanos, veredicto,
+  CLAVE_PRIVADA, DIR_SERVIDOR, NOMBRE_COPIA, OP_CLAVE_COPIAS, RELACIONES_COPIA, SERVIDOR, SQL_SECUENCIAS, TABLAS_SIN_COPIA,
+  clavesAjenasAAuth, columnasCopiaQueNoCuadran, fechaDeCopia, lineaEstructurada, lineaRegistroEnsayo, sqlAuthDeMentira, sqlHuerfanos, veredicto,
 } from "./lib/copias.mjs";
-import { OP_COPIA, ROL_COPIA, VAR_COPIA } from "./lib/rolLectura.mjs";
+import { OP_COPIA, PERFILES, ROL_COPIA, VAR_COPIA } from "./lib/rolLectura.mjs";
 
 const SSH = "C:\\Windows\\System32\\OpenSSH\\ssh.exe";
 const REGISTRO = join(RAIZ, "ops", "copias", "ensayos.log");
@@ -220,12 +220,13 @@ const SQL_TABLAS = `select format('%I.%I', n.nspname, c.relname) as t
 async function contar(client) {
   const { rows } = await client.query(SQL_TABLAS);
   const filas = {};
-  for (const { t } of rows) filas[t] = Number((await client.query(`select count(*)::bigint as n from ${t}`)).rows[0].n);
+  // Las de TABLAS_SIN_COPIA no van en la copia (ni copia_lectura puede leerlas).
+  for (const { t } of rows.filter(({ t }) => !TABLAS_SIN_COPIA.includes(t))) filas[t] = Number((await client.query(`select count(*)::bigint as n from ${t}`)).rows[0].n);
   return filas;
 }
 
 /**
- * La dirección del usuario de las copias (`copia_lectura`, 0094): de la variable
+ * La dirección del usuario de las copias (`copia_lectura`): de la variable
  * de entorno si alguien la pone (`op run`), o de su ficha en «Panel HoMenu» con
  * la app de 1Password (pide aprobar; la service account no llega a esa bóveda).
  */
@@ -236,7 +237,7 @@ function urlProduccion() {
   try {
     return execFileSync("op", ["read", OP_COPIA], { encoding: "utf8", env, stdio: ["ignore", "pipe", "pipe"] }).trim();
   } catch (e) {
-    fallo("produccion", `No pude leer ${OP_COPIA} (${(e.stderr || e.message).trim().split("\n")[0]}). ¿Está aplicada la 0094 y puesta su contraseña (scripts/clave-copia-lectura.mjs)? Sin ella, --sin-produccion.`);
+    fallo("produccion", `No pude leer ${OP_COPIA} (${(e.stderr || e.message).trim().split("\n")[0]}). ¿Está aplicada la ${PERFILES[ROL_COPIA].migracion} y puesta su contraseña (scripts/clave-copia-lectura.mjs)? Sin ella, --sin-produccion.`);
   }
 }
 
@@ -251,6 +252,12 @@ async function contarProduccion() {
     if (q.yo !== ROL_COPIA) fallo("produccion", `La dirección de las copias entra como ${q.yo}, no como ${ROL_COPIA}`);
     await client.query("begin read only");
     await client.query("set local statement_timeout = '15s'");
+    // Las vistas de copia tienen que ser lo que el ensayo cree (nombres y tipos).
+    const { rows: cols } = await client.query(
+      "select table_name, column_name, data_type, ordinal_position from information_schema.columns where table_schema = 'copia'",
+    );
+    const noCuadran = columnasCopiaQueNoCuadran(cols);
+    if (noCuadran.length) fallo("columnas-copia", noCuadran.join("\n"));
     const filas = await contar(client);
     for (const rel of Object.keys(RELACIONES_COPIA)) {
       filas[`copia.${rel}`] = Number((await client.query(`select count(*)::bigint as n from copia.${rel}`)).rows[0].n);
@@ -348,7 +355,7 @@ async function main() {
     // Antes de las claves ajenas: los ids que piden las que apuntan a auth.users.
     const post = await desdeCopia(["--section=post-data", "--no-owner", "--no-acl", "-f", "-"]);
     const fks = clavesAjenasAAuth(post);
-    // Los usuarios e identidades de la copia (esquema copia, 0094), por tubería
+    // Los usuarios e identidades de la copia (esquema copia), por tubería
     // al auth de mentira. Se cuentan antes de rellenar huecos: es lo que la
     // copia trae de verdad, y lo que se compara con producción.
     const filasAuth = {};

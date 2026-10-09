@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Pone la contraseña del usuario de las copias `copia_lectura` (migración 0094,
+ * Pone la contraseña del usuario de las copias `copia_lectura` (migración del rol,
  * issue #273) y guarda su dirección en la ficha «Supabase copia» de la bóveda
  * «Panel HoMenu» (no en HoMenu: este rol lee los usuarios de auth, y la service
  * account del PC lee HoMenu sin preguntar). Lo lanza Pablo, con `!`, después de
- * aplicar la 0094; pide aprobar en 1Password:
+ * aplicar su migración (PERFILES); pide aprobar en 1Password:
  *
  *   node scripts/clave-copia-lectura.mjs        # dice lo que haría
  *   node scripts/clave-copia-lectura.mjs --si   # lo hace

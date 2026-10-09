@@ -9,7 +9,7 @@
 # El volcado en claro no toca nunca el disco: va de `pg_dump` a `age` por una
 # tubería.
 #
-# Entra con el usuario propio de las copias, `copia_lectura` (migración 0094,
+# Entra con el usuario propio de las copias, `copia_lectura` (su migración,
 # #273): con cualquier otro (también `consulta_lectura`, que se aprobó para el
 # PC de Pablo y no ve `auth`) para en `config` sin volcar nada. Ese usuario lee
 # además el esquema `copia` (vistas de auth.users y auth.identities sin tokens
@@ -74,10 +74,14 @@ COPIA_AGE=${COPIA_AGE:-age}
 COPIA_CURL=${COPIA_CURL:-curl}
 COPIA_MIN_BYTES=${COPIA_MIN_BYTES:-100000}
 REGISTRO="$COPIA_DIR/copias.log"
-# El usuario y las vistas de la 0094; un test los cruza con ROL_COPIA
+# El usuario y las vistas de la migración del rol copia_lectura; un test los cruza con ROL_COPIA
 # (scripts/lib/rolLectura.mjs) y RELACIONES_COPIA (scripts/lib/copias.mjs).
 ROL_COPIA=copia_lectura
 RELACIONES_COPIA="auth_usuarios auth_identidades"
+# Tablas de códigos efímeros que no hacen falta para restaurar: fuera del
+# volcado entero (TABLAS_SIN_COPIA de scripts/lib/copias.mjs; ver allí por qué
+# no basta con dejar fuera sus datos).
+TABLAS_SIN_COPIA="public.bot_link_tokens public.household_invites"
 NOMBRE_RE='^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{6}Z$'
 
 INICIO=$(date -u +%s)
@@ -232,12 +236,12 @@ TABLAS=$(awk -F'\t' '$1=="tablas"{print $2}' "$TMP/estado.tsv")
 # (motivo config), antes de volcar nada.
 paso config
 if [ "$USUARIO" != "$ROL_COPIA" ] || [ "${ESCRIBE:-0}" != 0 ]; then
-  echo "COPIA_DB_URL entra como «$USUARIO» y puede escribir en ${ESCRIBE:-?} tablas: aquí solo vale $ROL_COPIA, de solo lectura (migración 0094)." >&2
+  echo "COPIA_DB_URL entra como «$USUARIO» y puede escribir en ${ESCRIBE:-?} tablas: aquí solo vale $ROL_COPIA, de solo lectura (la migración del rol copia_lectura)." >&2
   false
 fi
 
 # Secuencias que el usuario no puede leer: se vuelca su definición pero no su
-# valor. Con copia_lectura no debería haber ninguna (la 0094 le da `select`);
+# valor. Con copia_lectura no debería haber ninguna (su migración le da `select`);
 # si las hay, la copia lo dice (`secuencias: sin-valor`) y tras restaurar hay
 # que ponerlas al día con setval (lo hace el ensayo y lo dice el runbook).
 EXCLUIR=()
@@ -245,6 +249,7 @@ while IFS= read -r s; do
   [ -n "$s" ] && EXCLUIR+=("--exclude-table-data=$s")
 done < <(awk -F'\t' '$1=="secuencia"{print $2}' "$TMP/estado.tsv")
 if [ "${#EXCLUIR[@]}" -gt 0 ]; then SECUENCIAS=sin-valor; else SECUENCIAS=con-valor; fi
+for t in $TABLAS_SIN_COPIA; do EXCLUIR+=("--exclude-table=$t"); done
 
 # ── dump + cifrado, por tubería ─────────────────────────────────────────
 mkdir "$PARCIAL"
@@ -258,11 +263,11 @@ pg sh -c 'exec pg_dump --dbname="$PGURL" "$@"' pg_dump -Fc -Z 6 -n public -n ops
 paso cifrado
 [ "$(head -c 21 "$PARCIAL/base.dump.age")" = "age-encryption.org/v1" ] || { echo "base.dump.age no tiene la cabecera de age" >&2; false; }
 
-# ── auth (el esquema copia de la 0094) ──────────────────────────────────
+# ── auth (el esquema copia del rol copia_lectura) ──────────────────────────────────
 paso auth
 for rel in $RELACIONES_COPIA; do
   awk -F'\t' -v r="$rel" '$1=="copia" && $2==r{f=1} END{exit !f}' "$TMP/estado.tsv" || {
-    echo "$ROL_COPIA no puede leer copia.$rel: sin ella, la copia no sirve para restaurar en un proyecto nuevo (¿aplicada la 0094?)" >&2; false; }
+    echo "$ROL_COPIA no puede leer copia.$rel: sin ella, la copia no sirve para restaurar en un proyecto nuevo (¿aplicada la migración del rol copia_lectura?)" >&2; false; }
 done
 while IFS= read -r rel; do
   [ -n "$rel" ] || continue

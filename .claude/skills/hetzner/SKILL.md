@@ -33,7 +33,7 @@ description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a
   - Una línea por copia en `copias.log` y el journal (`copia-base … resultado:
     ok|fallo motivo: <paso> … aviso: ok|fallo|sin-canal`); vocabulario en
     `scripts/lib/copias.mjs`, cruzado por test con el script.
-  - Solo con `copia_lectura` (0094, #273; nunca `consulta_lectura`): con otro
+  - Solo con `copia_lectura` (0095, #273; nunca `consulta_lectura`): con otro
     usuario o si puede escribir, para por `config`; sin las dos vistas de
     `copia`, por `auth`; con menos de 100 KB o la mitad de la última, `incompleta`.
 - **Pendiente:**
@@ -94,7 +94,7 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
 ### Copias de la base: instalar (OK; lo lanza Pablo con `!`)
 
 Antes: la clave creada (`node scripts/copias-clave.mjs --si`, skill `1password`)
-y la pública commiteada; la 0094 aplicada (`--pablo`) y la contraseña de
+y la pública commiteada; la 0095 aplicada (`--pablo`) y la contraseña de
 `copia_lectura` puesta (`node scripts/clave-copia-lectura.mjs --si`). `SSH` es la ruta de arriba, entre comillas dobles; `R`,
 la carpeta del repo con la rama de las copias. Cada paso, una llamada.
 

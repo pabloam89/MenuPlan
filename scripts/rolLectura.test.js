@@ -132,7 +132,7 @@ describe("usuario de solo lectura (0092, issue #233)", () => {
   });
 });
 
-describe("usuario de las copias (0094, issue #273)", () => {
+describe("usuario de las copias (issue #273)", () => {
   const copia = PERFILES[ROL_COPIA];
 
   it("su ficha va a «Panel HoMenu», que la service account del PC no lee", () => {
@@ -149,7 +149,7 @@ describe("usuario de las copias (0094, issue #273)", () => {
     const [, , titulo, campo] = /^op:\/\/([^/]+)\/([^/]+)\/(.+)$/.exec(OP_COPIA);
     expect(ficha.title).toBe(titulo);
     expect(ficha.fields.find((f) => f.label === campo)).toMatchObject({ type: "CONCEALED", value: "postgresql://u:clave@h/db" });
-    expect(ficha.notesPlain).toMatch(/0094/);
+    expect(ficha.notesPlain).toContain(copia.migracion.slice(0, 4));
     expect(ficha.notesPlain).toMatch(/#273/);
   });
 

@@ -30,9 +30,11 @@ description: Úsala para operar la base de datos de MenuPlan en Supabase: una co
   instala, se ensaya y se restaura: skill `hetzner`. Lo que lleva y lo que no:
   - Lleva `public` y `ops` enteros (esquema y datos), con `pg_dump` de solo
     lectura.
-  - Lo hace el usuario propio `copia_lectura` (0094, #273): `select` en
+  - Lo hace el usuario propio `copia_lectura` (0095, #273): `select` en
     `public`, `ops` y sus secuencias (`secuencias: con-valor`), `bypassrls`
-    (sin él `pg_dump` se para con la RLS), una sola conexión.
+    (sin él `pg_dump` se para con la RLS), una sola conexión. Sin
+    `bot_link_tokens` ni `household_invites` (códigos efímeros que no hacen
+    falta): al restaurar se recrean vacías con sus migraciones.
   - **Lleva lo justo de `auth`** (`auth: si`): el esquema `copia` tiene dos
     vistas, `auth_usuarios` (id, email, teléfono, confirmaciones, anónimo, alta)
     y `auth_identidades` (id, user_id, provider, provider_id, alta), sin
@@ -46,7 +48,7 @@ description: Úsala para operar la base de datos de MenuPlan en Supabase: una co
   - Si una copia sale `secuencias: sin-valor`, al restaurar se ponen al máximo
     de su columna con `SQL_SECUENCIAS` de `scripts/lib/copias.mjs`, o el
     siguiente insert chocaría.
-- **Pendiente:** aplicar la 0094 y poner su contraseña, instalar las copias en
+- **Pendiente:** aplicar la 0095 y poner su contraseña, instalar las copias en
   el servidor y su primer ensayo (#247, #273).
 
 ## Claves y accesos

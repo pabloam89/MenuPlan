@@ -11,8 +11,8 @@ import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { OP_LECTURA, ROL_COPIA, ROL_LECTURA, VAR_LECTURA } from "../scripts/lib/rolLectura.mjs";
-import { RELACIONES_COPIA } from "../scripts/lib/copias.mjs";
+import { OP_LECTURA, PERFILES, ROL_COPIA, ROL_LECTURA, VAR_LECTURA } from "../scripts/lib/rolLectura.mjs";
+import { RELACIONES_COPIA, TABLAS_SIN_COPIA } from "../scripts/lib/copias.mjs";
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const DIR = path.join(AQUI, "migrations");
@@ -65,7 +65,8 @@ export function fallosDelRol(sqlCrudo, rol = ROL_LECTURA) {
     // secuencias (deja hacer nextval, que las avanza).
     const g = /\bgrant (.+?) on (.+?) to (.+)$/.exec(s);
     if (g && nombra(g[3])) {
-      for (const p of g[1].split(",").map((x) => x.trim().split(" ")[0])) {
+      // `select (col, col)`: la lista de columnas no son privilegios.
+      for (const p of g[1].replace(/\([^)]*\)/g, "").split(",").map((x) => x.trim().split(" ")[0])) {
         if (!["select", "usage"].includes(p)) f.push(`concede ${p}`);
         else if (p === "usage" && /\bsequences?\b/.test(g[2])) f.push("concede usage en secuencias");
       }
@@ -148,7 +149,7 @@ describe("consulta_lectura solo lee", () => {
   });
 });
 
-// ── copia_lectura (0094, issue #273): el usuario de las copias nocturnas ──
+// ── copia_lectura (issue #273): el usuario de las copias nocturnas ──
 
 /** Las columnas de una vista `copia.<nombre>` en el SQL de la migración, en orden. */
 export function columnasDeVista(sql, nombre) {
@@ -159,8 +160,8 @@ export function columnasDeVista(sql, nombre) {
 const conCopia = migraciones.filter((f) => new RegExp(String.raw`\b${ROL_COPIA}\b`).test(fs.readFileSync(path.join(DIR, f), "utf8")));
 
 describe("copia_lectura solo lee, y de auth solo lo acordado", () => {
-  it("lo crea la 0094", () => {
-    expect(conCopia[0]).toMatch(/^0094_/);
+  it("lo crea la migración que dice PERFILES", () => {
+    expect(conCopia[0]).toBe(`${PERFILES[ROL_COPIA].migracion}.sql`);
   });
 
   for (const f of conCopia) {
@@ -198,6 +199,24 @@ describe("copia_lectura solo lee, y de auth solo lo acordado", () => {
     for (const { columnas } of Object.values(RELACIONES_COPIA)) {
       for (const [c] of columnas) expect(c).not.toMatch(/password|token|secret|meta_data|identity_data|code|nonce|hash/);
     }
+  });
+
+  it("las tablas de TABLAS_SIN_COPIA: copia_lectura no las lee y consulta_lectura no lee su columna token", () => {
+    const plano = codigoPlano(sql).replace(/\s+/g, " ");
+    for (const t of TABLAS_SIN_COPIA) {
+      expect(plano, t).toMatch(new RegExp(String.raw`revoke select on [^;]*\b${t.replace(".", "\\.")}\b[^;]* from copia_lectura;`));
+      expect(plano, t).toMatch(new RegExp(String.raw`revoke select on [^;]*\b${t.replace(".", "\\.")}\b[^;]* from consulta_lectura;`));
+      const g = new RegExp(String.raw`grant select \(([^)]*)\) on ${t.replace(".", "\\.")} to consulta_lectura;`).exec(plano);
+      expect(g, t).toBeTruthy();
+      expect(g[1].split(",").map((c) => c.trim())).not.toContain("token");
+    }
+    // Y el bloque final lo comprueba en el catálogo.
+    expect(sql).toContain("has_column_privilege('consulta_lectura', t, 'token', 'SELECT')");
+  });
+
+  it("una lista de columnas no cuenta como privilegios, y token en ella sí se ve", () => {
+    expect(fallosDelRol("grant select (household_id, role) on public.household_invites to consulta_lectura;")).toEqual([]);
+    expect(fallosDelRol("grant select (token), insert on public.household_invites to consulta_lectura;")).toEqual(["concede insert"]);
   });
 
   it("columnasDeVista caza una columna de más", () => {

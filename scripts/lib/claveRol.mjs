@@ -3,7 +3,7 @@
  * `rolLectura.mjs`) sin que la contraseña pase por la pantalla, la
  * conversación, los argumentos de un proceso ni el log de Postgres. Lo usan
  * `scripts/clave-consulta-lectura.mjs` (0092) y `scripts/clave-copia-lectura.mjs`
- * (0094); los lanza Pablo, con `!`, después de aplicar su migración.
+ * (la del rol copia_lectura); los lanza Pablo, con `!`, después de aplicar su migración.
  *
  * Qué hace con --si:
  *   1. Comprueba que la ficha del perfil aún no está en 1Password y, con la

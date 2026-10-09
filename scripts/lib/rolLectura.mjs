@@ -5,7 +5,7 @@
  *   - `consulta_lectura` (migración 0092, issue #233): `npm run consulta` desde
  *     el PC de Pablo. Su dirección, en la bóveda HoMenu (la lee la service
  *     account del PC sin preguntar).
- *   - `copia_lectura` (migración 0094, issue #273): las copias nocturnas del
+ *   - `copia_lectura` (issue #273): las copias nocturnas del
  *     servidor (`ops/copias/copia-base.sh`) y el ensayo de restauración. Lee
  *     también los usuarios de `auth` (esquema `copia`), así que su dirección va
  *     a la bóveda «Panel HoMenu», donde cada lectura pide aprobar.
@@ -50,7 +50,7 @@ export const PERFILES = {
   },
   [ROL_COPIA]: {
     rol: ROL_COPIA, variable: VAR_COPIA, ficha: FICHA_COPIA, boveda: BOVEDA_COPIAS, servicio: false,
-    migracion: "0094_rol_copia_lectura", issue: 273, script: "scripts/clave-copia-lectura.mjs",
+    migracion: "0095_rol_copia_lectura", issue: 273, script: "scripts/clave-copia-lectura.mjs",
     prueba: "select 1 from copia.auth_usuarios limit 1",
     despues: "Súbela al servidor por tubería, sin verla: skill hetzner, «Copias de la base: instalar», paso 4.",
   },
@@ -84,7 +84,7 @@ export const fichaDeRol = (p, clave, url) => JSON.stringify({
   ],
 });
 
-/** La de `consulta_lectura` (la firma de antes de la 0094). */
+/** La de `consulta_lectura` (la firma de antes del rol de copias). */
 export const fichaLectura = (clave, url) => fichaDeRol(PERFILES[ROL_LECTURA], clave, url);
 
 /** Una contraseña larga, aleatoria y solo con caracteres seguros en una URL. */

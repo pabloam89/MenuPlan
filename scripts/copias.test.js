@@ -17,8 +17,8 @@ import { delimiter, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-  AVISOS, MOTIVOS_COPIA, NOMBRE_COPIA, RELACIONES_COPIA, RESULTADOS, SECUENCIAS,
-  camposRegistroEnsayo, clavesAjenasAAuth, comprobarDestinatarios, fechaDeCopia, leerLinea, lineaEstructurada, lineaRegistroEnsayo,
+  AVISOS, MOTIVOS_COPIA, NOMBRE_COPIA, RELACIONES_COPIA, RESULTADOS, SECUENCIAS, TABLAS_SIN_COPIA,
+  camposRegistroEnsayo, clavesAjenasAAuth, columnasCopiaQueNoCuadran, comprobarDestinatarios, fechaDeCopia, leerLinea, lineaEstructurada, lineaRegistroEnsayo,
   sqlAuthDeMentira, sqlHuerfanos, veredicto,
 } from "./lib/copias.mjs";
 import { ROL_COPIA } from "./lib/rolLectura.mjs";
@@ -26,7 +26,7 @@ import { ROL_COPIA } from "./lib/rolLectura.mjs";
 const SCRIPT = join(import.meta.dirname, "..", "ops", "copias", "copia-base.sh");
 const hayBash = spawnSync("bash", ["--version"], { encoding: "utf8" }).status === 0;
 const CLAVE = `age1${"q".repeat(58)}`;
-// Lo que devuelve la consulta de catálogo del script con copia_lectura (0094):
+// Lo que devuelve la consulta de catálogo del script con copia_lectura:
 // lee todas las secuencias y las dos vistas del esquema copia.
 const ESTADO_COPIA = "usuario\tcopia_lectura\nescribe\t0\ntablas\t58\ncopia\tauth_usuarios\ncopia\tauth_identidades\n";
 
@@ -161,6 +161,11 @@ describe("copia-base.sh: sintaxis y vocabulario", () => {
     const texto = readFileSync(SCRIPT, "utf8");
     const pasos = [...new Set([...texto.matchAll(/^\s*paso ([a-z-]+)\s*$/gm)].map((m) => m[1]))].sort();
     expect(pasos).toEqual([...MOTIVOS_COPIA].sort());
+  });
+
+  it("las tablas que el script deja fuera son TABLAS_SIN_COPIA", () => {
+    const texto = readFileSync(SCRIPT, "utf8");
+    expect(/^TABLAS_SIN_COPIA="([^"]*)"$/m.exec(texto)?.[1].split(" ").sort()).toEqual([...TABLAS_SIN_COPIA].sort());
   });
 
   it("el usuario y las vistas que exige el script son ROL_COPIA y RELACIONES_COPIA", () => {
@@ -341,6 +346,14 @@ describe.skipIf(!hayBash)("copia-base.sh con binarios falsos", () => {
     expect(r.ultima.campos).toMatchObject({ resultado: "fallo", motivo: "config" });
   });
 
+  it("pg_dump deja fuera entera cada tabla de TABLAS_SIN_COPIA (sin ella no puede bloquearla)", () => {
+    const s = montar();
+    const r = correr(s);
+    expect(r.status, r.stderr).toBe(0);
+    const dump = r.argv.split("\n").find((l) => l.startsWith("pg_dump "));
+    for (const t of TABLAS_SIN_COPIA) expect(dump).toContain(`--exclude-table=${t}`);
+  });
+
   it("con una secuencia que no puede leer, la copia sigue y lo dice: secuencias: sin-valor", () => {
     const s = montar();
     const r = correr(s, { FALSO_ESTADO: `${ESTADO_COPIA}secuencia\tpublic.bot_cola_id_seq\n` });
@@ -492,6 +505,27 @@ describe("ensayos.log, en el repo público, sin el tamaño de la base (#273)", (
     const texto = readFileSync(join(import.meta.dirname, "copias-ensayo.mjs"), "utf8");
     expect(texto).toMatch(/appendFileSync\(REGISTRO, `\$\{lineaRegistroEnsayo\(campos\)\}\\n`\)/);
     expect(texto).not.toMatch(/soloCociente:\s*false/);
+  });
+});
+
+describe("columnasCopiaQueNoCuadran (el ensayo contra information_schema de copia)", () => {
+  const TIPO = { uuid: "uuid", text: "text", timestamptz: "timestamp with time zone", boolean: "boolean" };
+  const buenas = Object.entries(RELACIONES_COPIA).flatMap(([rel, { columnas }]) =>
+    columnas.map(([c, t], i) => ({ table_name: rel, column_name: c, data_type: TIPO[t], ordinal_position: i + 1 })));
+
+  it("cuadra con lo que dice RELACIONES_COPIA, aunque lleguen desordenadas", () => {
+    expect(columnasCopiaQueNoCuadran([...buenas].reverse())).toEqual([]);
+  });
+  it("un tipo distinto no cuadra", () => {
+    const mal = buenas.map((f) => (f.column_name === "is_anonymous" ? { ...f, data_type: "text" } : f));
+    expect(columnasCopiaQueNoCuadran(mal)).toEqual([expect.stringMatching(/copia\.auth_usuarios/)]);
+  });
+  it("una columna de más no cuadra", () => {
+    const mal = [...buenas, { table_name: "auth_identidades", column_name: "identity_data", data_type: "jsonb", ordinal_position: 99 }];
+    expect(columnasCopiaQueNoCuadran(mal)).toEqual([expect.stringMatching(/copia\.auth_identidades/)]);
+  });
+  it("sin la vista no cuadra", () => {
+    expect(columnasCopiaQueNoCuadran(buenas.filter((f) => f.table_name !== "auth_usuarios"))).toEqual([expect.stringMatching(/hay \(nada\)/)]);
   });
 });
 
