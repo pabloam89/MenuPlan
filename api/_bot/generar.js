@@ -30,6 +30,8 @@ import { propiasDe } from "./propias.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
 import { hoyDeCasa, isoDeCasa, DIAS_FINDE } from "../../src/lib/dias.js";
+import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
+import { apuntarRecordatorio } from "./silencio.js";
 
 const hoyISO = () => isoDeCasa();
 const indiceHoy = () => hoyDeCasa().indice;
@@ -270,8 +272,13 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const ponerSemanaNueva = !semanasQueSeQuedan.some((w) => w.week_start <= hoy && hoy <= w.week_end) || (startISO <= hoy && hoy <= endISO);
   const deHoy = semanasQueSeQuedan.find((w) => w.week_start <= hoy && hoy <= w.week_end);
   let compraFinal = shopping;
+  // Alergias por silencio (#229): el primer menú lo recuerda una vez. La marca
+  // va en esta misma escritura: dos menús seguidos no lo dan dos veces.
+  let recordarSilencio = false;
   const r = await conCasa(householdId, (fresca) => {
-    const d = fresca.state?.data ?? {};
+    const silencio = conRecordatorioDeSilencio(fresca.state?.data ?? {});
+    recordarSilencio = silencio.recordar;
+    const d = silencio.data;
     const porId = new Map((fresca.state?.aiRecipes ?? []).map((x) => [x.id, x]));
     for (const x of recipes) porId.set(x.id, x);
     const aManoAhora = (fresca.semana?.shopping?.items ?? fresca.state?.shopping?.items ?? []).filter((it) => it.manual && !it.have);
@@ -308,6 +315,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   }
 
   if (!previos.length) await registrar(EMBUDO.PRIMER_MENU, { userId: dueno, unaVez: true });
+  if (recordarSilencio) apuntarRecordatorio();
 
   const platos = Object.entries(plan).filter(([k]) => !k.startsWith("_")).reduce((n, [, h]) => n + Object.values(h ?? {}).filter((x) => x?.recipeId).length, 0);
   const avisos = (plan._warnings ?? []).length;
@@ -318,7 +326,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(fallaCon("generar_describir", ""));
   // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
   if (out) Object.assign(out, {
-    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas,
+    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, recordarSilencio,
     pedidos: pedidos.length ? dondeQuedaron(pedidos, plan, activeDays) : [],
     // Dónde quedó cada plato pedido («Jue-Comida»), para destacarlo al pintar.
     colocados: pedidos.map((p) => claveDelPedido(p.fijo, plan, activeDays)).filter(Boolean),

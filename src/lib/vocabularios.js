@@ -74,6 +74,15 @@ export const MODELO_MENU = ["same", "separate"];
 /** De dónde sale un dato de la ficha (registro «sobre»). */
 export const ORIGEN_DATO = ["dicho", "supuesto", "visto", "derivado", "por_defecto", "delegado", "no_quiere_decirlo"];
 
+/**
+ * De dónde sale el «ninguna» de las alergias de una persona (#229). `dicha`:
+ * lo dijo alguien (o lo marcó la app); `por_silencio`: Lola preguntó avisando
+ * («si no me dices nada, entiendo que ninguna») y no contestaron a eso. Solo
+ * se guarda `por_silencio` (member.alergiasOrigen); sin el campo, es dicha.
+ * `dicha` lo usa la línea de log `bot_alergias` (api/_bot/silencio.js).
+ */
+export const ORIGEN_ALERGIAS = ["dicha", "por_silencio"];
+
 /** A qué se refiere un «sobre» o un cambio: qué lo originó. */
 export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];
 
@@ -124,7 +133,7 @@ export const SITIOS_FALLO = [
   "generar_describir", "generar_despensa", "generar_recetas_propias",
   "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse",
   "menu_describir", "menu_foto_de_la_receta", "pintar_recetas", "pista_adelanto",
-  "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "telegram_json",
+  "recetas_busqueda", "recetas_subir_foto", "recordatorios_reclamar", "silencio_apuntar", "silencio_cerrar", "telegram_json",
   "traducir_memoria", "turno_casa", "turnos_soltar_candado", "uso_limite", "vispera_casa",
   "voz_json",
 ];
@@ -149,6 +158,13 @@ export const ESTADOS_METRICA = ["medida", "posible"];
 export const MOTIVOS_SIN_PUERTA = ["no_la_usa", "por_rpc", "por_trigger", "fuera_del_dueno", "en_desuso"];
 
 /**
+ * Qué pasó con las alergias en la línea de log `bot_alergias`
+ * (api/_bot/silencio.js): `apuntada`, el «ninguna» que apunta el código tras
+ * la pregunta con aviso; `recordada`, el recordatorio del primer menú.
+ */
+export const ACCIONES_ALERGIAS = ["apuntada", "recordada"];
+
+/**
  * El mapa nombre → lista. Es lo que referencia `registro_campo.vocabulario`
  * (la ficha): guarda el nombre, nunca una copia de los valores.
  */
@@ -169,12 +185,14 @@ export const VOCABULARIOS = Object.freeze({
   etapa_bebe: ETAPA_BEBE,
   modelo_menu: MODELO_MENU,
   origen_dato: ORIGEN_DATO,
+  origen_alergias: ORIGEN_ALERGIAS,
   ref_tipo: REF_TIPO,
   visibilidad: VISIBILIDAD,
   sexo: SEXO,
   patron_semanas: PATRON_SEMANAS,
   motivos_fallo: MOTIVOS_FALLO,
   sitios_fallo: SITIOS_FALLO,
+  acciones_alergias: ACCIONES_ALERGIAS,
   grados_desarrollo: GRADOS_DESARROLLO,
   ambitos_modulo: AMBITOS_MODULO,
   estados_metrica: ESTADOS_METRICA,
