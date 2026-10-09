@@ -215,13 +215,13 @@ describe("el arranque", () => {
 describe("la norma está escrita donde se lee", () => {
   // Si alguien la quita de CLAUDE.md, de /orquestar o de la skill, el sistema
   // vuelve a apuntar casos sueltos sin que nadie se dé cuenta.
-  it("CLAUDE.md, /orquestar y la skill github piden analizar hasta el problema de fondo", () => {
-    for (const f of ["CLAUDE.md", ".claude/commands/orquestar.md", ".claude/skills/github/SKILL.md"]) {
+  it("CLAUDE.md, /orquestar y la skill issues piden analizar hasta el problema de fondo", () => {
+    for (const f of ["CLAUDE.md", ".claude/commands/orquestar.md", ".claude/skills/issues/SKILL.md"]) {
       const t = leer(f);
       expect(t, f).toMatch(/problema de fondo/i);
       expect(t, f).toMatch(/puntual/i);
     }
-    const skill = leer(".claude/skills/github/SKILL.md");
+    const skill = leer(".claude/skills/issues/SKILL.md");
     for (const a of Object.keys(GRUPOS.analisis.valores)) expect(skill, `la skill explica analisis:${a}`).toContain(a);
   });
 
