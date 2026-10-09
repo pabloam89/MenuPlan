@@ -25,12 +25,14 @@ const SECCIONES = [
 const CABECERA_OPERACIONES = "| Qué | Comando | Debe salir |";
 const MAX_DESCRIPCION = 600;
 // Un runbook se lee con prisa: si crece sin parar, nadie lo lee entero.
-// 260 y no 220 desde el 8 oct 2026: la skill `github` pasó de 220 porque dos
-// sesiones la ampliaron a la vez (la puerta de lectura y el sistema de issues),
-// y son dos temas. Partirla (issues como skill propia) está pedido en el issue
-// #219; cuando se parta, este tope vuelve a 220. 270 desde la línea «Casos:»
-// del PR (#185): también es de la skill `github` y no cabía en 260.
-const MAX_LINEAS = 270;
+// El tope subió a 270 mientras la skill `github` cargaba también con el sistema
+// de issues; al partirla (#219, `issues` es skill propia) volvió a 220. Si una
+// skill vuelve a pasarse, se parte o se recorta; el tope no se sube.
+const MAX_LINEAS = 220;
+// Excepción con nombre, no un tope general: `hetzner` ya tenía 258 líneas cuando
+// el tope volvió a 220, porque las copias de la base (#247) viven dentro. La
+// salida es partir esas copias en su propia skill, no subir este número.
+const EXCEPCIONES_LINEAS = { hetzner: 260 };
 // Patrones de secretos que no deben aparecer nunca en un runbook.
 const SECRETOS = [
   /sk-[A-Za-z0-9_-]{20,}/,
@@ -122,7 +124,7 @@ describe.each(skills)("%s", (nombre) => {
   });
 
   it("cabe en una lectura con prisa", () => {
-    expect(texto.split("\n").length).toBeLessThanOrEqual(MAX_LINEAS);
+    expect(texto.split("\n").length).toBeLessThanOrEqual(EXCEPCIONES_LINEAS[nombre] ?? MAX_LINEAS);
   });
 
   it("no lleva ningún secreto", () => {
