@@ -1,4 +1,4 @@
-import { blocked, cors } from "./_guard.js";
+import { blocked, cors, topeDiarioAgotado } from "./_guard.js";
 import { SYSTEM_PROMPTS } from "./_prompts.js";
 
 // Server-side proxy to the Anthropic API.
@@ -59,6 +59,9 @@ export default async function handler(req, res) {
     const safeMaxTokens = Number.isFinite(requested)
       ? Math.min(Math.max(1, Math.floor(requested)), MAX_TOKENS_CAP)
       : 1024;
+
+    // El tope diario, ya validado el cuerpo: solo cuenta lo que llega al modelo.
+    if (await topeDiarioAgotado(res, "generate")) return;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

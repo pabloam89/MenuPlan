@@ -149,35 +149,37 @@ export async function globalLimit({ bucket, limit, windowSec }, { redis = getRed
   }
 }
 
-// Tope diario GLOBAL por bucket de IA: peticiones por día UTC, sumando a todo
-// el mundo. Es un techo de gasto, así que falla CERRADO (sin Redis, o con
-// Redis fallando, no deja pasar), igual que globalLimit.
+// Tope diario GLOBAL por bucket de IA: llamadas al modelo por día UTC, sumando
+// a todo el mundo. No va en blocked(): cada handler llama a topeDiarioAgotado()
+// justo antes de llamar al modelo, después de validar el cuerpo (y, si hay
+// caché, solo cuando falla), para que solo cuente lo que de verdad se paga.
+// Es un techo de gasto, así que desplegado falla CERRADO (sin Redis, o con
+// Redis fallando, no deja pasar), igual que globalLimit. Fuera de Vercel (sin
+// VERCEL_ENV, en local) y sin Redis deja pasar, con su línea.
 //
 // Cada bucket de IA tiene un tope por defecto aquí, bajo a propósito. La
 // variable AI_DAILY_BUDGET_<BUCKET> (en mayúsculas y con _ por -, p. ej.
 // AI_DAILY_BUDGET_RECIPE_STEPS) lo cambia sin tocar código; si falta o no es
-// un número positivo, vale el de aquí, nunca «sin tope».
-//
-// Los buckets que no gastan IA (track, report-alert) no tienen tope por
-// defecto: solo se cuentan si alguien les pone la variable.
+// un entero de 1 en adelante, vale el de aquí, nunca «sin tope».
 export const TOPE_DIARIO_POR_DEFECTO = Object.freeze({
-  generate: 100,
+  generate: 200,
   "recipe-steps": 100,
-  moderate: 300,
+  moderate: 100,
   "dish-photo": 30,
 });
 
 export function topeDiario(bucket, env = process.env) {
-  const n = Number(env[`AI_DAILY_BUDGET_${bucket.toUpperCase().replace(/-/g, "_")}`]);
-  if (Number.isFinite(n) && n > 0) return Math.floor(n);
+  const n = Math.floor(Number(env[`AI_DAILY_BUDGET_${bucket.toUpperCase().replace(/-/g, "_")}`]));
+  if (Number.isFinite(n) && n >= 1) return n;
   return TOPE_DIARIO_POR_DEFECTO[bucket] ?? null;
 }
 
-// Una línea contable por corte, sin nada de quien llama: bucket y motivo
-// (MOTIVOS_TOPE_DIARIO en src/lib/vocabularios.js).
-function cortar(bucket, motivo) {
-  console.warn(JSON.stringify({ tag: "tope_diario", bucket, motivo }));
-  return { ok: false, motivo };
+// Una línea contable por cada vez que no es «contado y dentro», sin nada de
+// quien llama: bucket, motivo (MOTIVOS_TOPE_DIARIO en src/lib/vocabularios.js)
+// y si corta. `detalle`, solo el mensaje de error de Redis.
+function apuntar(bucket, motivo, { corta = true, detalle } = {}) {
+  console.warn(JSON.stringify({ tag: "tope_diario", bucket, motivo, corta, ...(detalle ? { detalle } : {}) }));
+  return corta ? { ok: false, motivo } : { ok: true, motivo };
 }
 
 /**
@@ -185,10 +187,10 @@ function cortar(bucket, motivo) {
  */
 export async function dailyBudget(bucket, { redis, env = process.env } = {}) {
   const limit = topeDiario(bucket, env);
-  if (limit == null) return { ok: true }; // bucket sin IA y sin variable: no se cuenta
+  if (limit == null) return { ok: true }; // bucket sin tope por defecto ni variable: no se cuenta
 
   const r = redis === undefined ? getRedis() : redis;
-  if (!r) return cortar(bucket, "sin_redis");
+  if (!r) return apuntar(bucket, "sin_redis", { corta: Boolean(env.VERCEL_ENV) });
 
   // Día UTC: grueso a propósito, es un techo de gasto y no una ventana exacta.
   const day = new Date().toISOString().slice(0, 10);
@@ -196,15 +198,28 @@ export async function dailyBudget(bucket, { redis, env = process.env } = {}) {
   try {
     const count = await r.incr(key);
     if (count === 1) await r.expire(key, 172800); // 2 días: margen pasada la medianoche UTC
-    if (count > limit) return cortar(bucket, "tope_alcanzado");
+    if (count > limit) return apuntar(bucket, "tope_alcanzado");
     return { ok: true };
-  } catch {
-    return cortar(bucket, "error_redis");
+  } catch (err) {
+    return apuntar(bucket, "error_redis", { detalle: String(err?.message ?? "").slice(0, 120) });
   }
 }
 
 /**
- * Runs all checks and writes the error response itself when blocked.
+ * Para los handlers: justo antes de la llamada al modelo. Si no hay cupo,
+ * contesta 503 él mismo.
+ * @returns {Promise<boolean>} true si el handler debe parar.
+ */
+export async function topeDiarioAgotado(res, bucket, opciones) {
+  if ((await dailyBudget(bucket, opciones)).ok) return false;
+  res.status(503).json({ error: "Servicio de IA saturado por hoy. Vuelve a intentarlo mañana." });
+  return true;
+}
+
+/**
+ * Runs the per-request checks (origin, per-IP rate limit) and writes the error
+ * response itself when blocked. The daily AI cap is not here: see
+ * topeDiarioAgotado.
  * @returns {Promise<boolean>} true if the handler should stop.
  */
 export async function blocked(req, res, opts) {
@@ -217,11 +232,6 @@ export async function blocked(req, res, opts) {
     console.warn(`[guard] rate limited ${opts.bucket} for ${clientIp(req)}`);
     res.setHeader("Retry-After", String(retryAfter));
     res.status(429).json({ error: "Demasiadas peticiones. Inténtalo en un momento." });
-    return true;
-  }
-  const budget = await dailyBudget(opts.bucket);
-  if (!budget.ok) {
-    res.status(503).json({ error: "Servicio de IA saturado por hoy. Vuelve a intentarlo mañana." });
     return true;
   }
   return false;
