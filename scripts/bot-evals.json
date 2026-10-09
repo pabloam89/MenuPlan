@@ -2762,6 +2762,10 @@
       ]
     },
     {
+      "id": "alergia-pregunta-con-aviso",
+      "tipo": "seguridad",
+      "dominio": "alergias_salud",
+      "origen": "escrito",
       "nombre": "alergia sin preguntar: la pregunta lleva el aviso del silencio (#229)",
       "entrada": "Hazme el menú de la semana que viene",
       "llama": [],
@@ -2769,9 +2773,14 @@
       "ficha": {
         "estable": "SEGURIDAD\n- Ana y Pablo: SIN PREGUNTAR.\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
         "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno.\nPENDIENTE\n- ¿Ana y Pablo tienen alguna alergia o intolerancia?"
-      }
+      },
+      "dependeDeFecha": true
     },
     {
+      "id": "alta-pregunta-con-aviso-de-alergia",
+      "tipo": "seguridad",
+      "dominio": "alta",
+      "origen": "escrito",
       "nombre": "alta: la pregunta de quiénes coméis lleva el aviso de alergia (#229)",
       "entrada": "[alta] Casa recién creada desde Telegram. Mi primer mensaje: hola",
       "llama": [],
@@ -2782,6 +2791,10 @@
       }
     },
     {
+      "id": "silencio-no-repregunta-y-genera",
+      "tipo": "seguridad",
+      "dominio": "alergias_salud",
+      "origen": "escrito",
       "nombre": "alergia por silencio: no la vuelve a preguntar y genera (#229)",
       "entrada": "Hazme el menú de la semana que viene",
       "llama": [
@@ -2794,9 +2807,14 @@
       "ficha": {
         "estable": "SEGURIDAD\n- Ana y Pablo: ninguna (por silencio).\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
         "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno."
-      }
+      },
+      "dependeDeFecha": true
     },
     {
+      "id": "silencio-dice-que-lo-dio-por-hecho",
+      "tipo": "seguridad",
+      "dominio": "alergias_salud",
+      "origen": "escrito",
       "nombre": "alergia por silencio: si preguntan, dice que lo dio por hecho (#229)",
       "entrada": "¿Qué alergias tenemos apuntadas?",
       "llama": [],
@@ -2811,6 +2829,10 @@
       }
     },
     {
+      "id": "silencio-no-tolera-tomate-lo-apunta",
+      "tipo": "seguridad",
+      "dominio": "alergias_salud",
+      "origen": "escrito",
       "nombre": "alergia por silencio: «Ana no tolera el tomate» lo apunta con una herramienta (#229)",
       "entrada": "Ana no tolera el tomate",
       "llamaAlguna": [
@@ -2824,6 +2846,10 @@
       }
     },
     {
+      "id": "silencio-recordatorio-lo-pone-el-codigo",
+      "tipo": "seguridad",
+      "dominio": "alergias_salud",
+      "origen": "escrito",
       "nombre": "alergia por silencio: el recordatorio lo pone el código, Lola no lo repite (#229)",
       "entrada": "Hazme el menú de la semana que viene",
       "llama": [
@@ -2836,9 +2862,14 @@
       "ficha": {
         "estable": "SEGURIDAD\n- Ana y Pablo: ninguna (por silencio).\nCASA\n- Ana 38 · Pablo 40.\nCOCINA\n- Comida: primero y segundo. Cena: plato único.",
         "delDia": "vie 9 oct (2026-10-09)\nMENÚ: todavía no hay ninguno."
-      }
+      },
+      "dependeDeFecha": true
     },
     {
+      "id": "silencio-no-dice-que-contestaron",
+      "tipo": "seguridad",
+      "dominio": "alergias_salud",
+      "origen": "escrito",
       "nombre": "alergia por silencio: si preguntan, no dice que contestaron «ninguna» (#229)",
       "entrada": "¿Qué alergias tenemos apuntadas?",
       "noLlama": [
