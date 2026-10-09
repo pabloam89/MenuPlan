@@ -36,6 +36,7 @@ beforeEach(() => {
   tablas.households = [{ owner_user_id: "u1" }];
   tablas.user_menus = [];
   tablas.household_members = [];
+  tablas.user_recipe_deletions = [];
   // Como PostgREST: owner_id=in.(…) devuelve las de esos autores.
   tablas.user_recipes = (filtro) => [filaDeApp, filaDeCotitular, filaDeLectora].filter((f) => filtro.includes(f.owner_id));
 });
@@ -88,6 +89,32 @@ describe("las recetas propias de la casa", () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     await cargarCasa("casa-g");
     expect(log).toHaveBeenCalledWith("[casa] households", expect.anything());
+    log.mockRestore();
+  });
+
+  // #355: borrar una receta quita su fila de user_recipes y deja su lápida en
+  // user_recipe_deletions (0094). Lo que quedaba en el JSON de la casa con ese
+  // id volvía a salir para Lola, porque «no está en la tabla» se leía como
+  // «es de antes».
+  it("no ve las borradas: ni lo que queda en el JSON ni una fila con lápida", async () => {
+    tablas.user_recipe_deletions = (filtro) =>
+      [{ recipe_id: "user_viejo", owner_id: "u1" }, { recipe_id: "user_app1", owner_id: "u1" }]
+        .filter((f) => filtro.includes(f.owner_id));
+    const ficha = montarFicha(await cargarCasa("casa-h"), {}, "2026-10-07");
+    expect(ficha.estable).not.toMatch(/Lentejas de antes/);
+    expect(ficha.estable).not.toMatch(/Tortilla de la abuela/);
+    const lapidas = pedidas.filter((p) => p.tabla === "user_recipe_deletions");
+    expect(lapidas).toHaveLength(1);
+    expect(lapidas[0].filtro).toMatch(/owner_id=in\.\(u1\)/);
+    expect(lapidas[0].filtro).toMatch(/limit=\d+/);
+  });
+
+  it("plan B: sin la tabla de lápidas (0094 sin aplicar), todo como antes", async () => {
+    tablas.user_recipe_deletions = new Error("404 PGRST205");
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const ficha = montarFicha(await cargarCasa("casa-i"), {}, "2026-10-07");
+    expect(ficha.estable).toMatch(/Tortilla de la abuela/);
+    expect(ficha.estable).toMatch(/Lentejas de antes/);
     log.mockRestore();
   });
 

@@ -12,6 +12,11 @@
  * Lo que aún quede en el JSON (casas de antes, o lo que el bot apuntó ahí) va
  * detrás, solo si su id no está en la tabla. Si la tabla falla, el JSON entero.
  *
+ * Las borradas no salen (#355): borrar en la app quita la fila y deja su
+ * lápida en `user_recipe_deletions` (0094). Sin mirarla, la copia que quedaba
+ * en el JSON volvía como «de antes». Si las lápidas no se pueden leer (o la
+ * 0094 aún no está aplicada), todo como antes, con la línea en el log.
+ *
  * Se lee una vez al cargar la casa (casa.js) y viaja en `casa.recetasPropias`,
  * fuera de `state`: así no se escribe de vuelta en household_state.
  */
@@ -32,6 +37,24 @@ const COLUMNAS = [
 
 /** Tope de recetas propias por casa: las más recientes, si alguna vez hubiera más. */
 export const TOPE_PROPIAS = 500;
+
+/** Tope de lápidas que se leen por casa: las más recientes. */
+export const TOPE_LAPIDAS = 2000;
+
+/** Los ids de las recetas borradas de esos autores (vacío si no se pueden leer). */
+async function borradasDe(quienes) {
+  try {
+    const filas = await select(
+      "user_recipe_deletions",
+      `owner_id=in.(${quienes})&order=created_at.desc&limit=${TOPE_LAPIDAS}`,
+      "recipe_id",
+    );
+    return new Set((filas ?? []).map((f) => f.recipe_id));
+  } catch (e) {
+    console.error("[propias] user_recipe_deletions", e?.message);
+    return new Set();
+  }
+}
 
 /** Las recetas propias de una casa ya cargada (sin consultas). */
 export const propiasDe = (casa) => casa?.recetasPropias ?? casa?.state?.data?.userRecipes ?? [];
@@ -57,16 +80,20 @@ export async function recetasPropiasDeCasa(householdId, dueno, delJson = []) {
   const json = Array.isArray(delJson) ? delJson.filter((r) => r?.id) : [];
   const autores = await autoresDeCasa(householdId, dueno);
   if (!autores.length) return json;
+  const quienes = autores.map((u) => encodeURIComponent(u)).join(",");
+  const lapidas = borradasDe(quienes);
   let filas;
   try {
-    const quienes = autores.map((u) => encodeURIComponent(u)).join(",");
     filas = await select("user_recipes", `owner_id=in.(${quienes})&order=created_at.desc&limit=${TOPE_PROPIAS}`, COLUMNAS);
   } catch (e) {
     console.error("[propias] user_recipes", e?.message);
-    return json;
+    const borradas = await lapidas;
+    return json.filter((r) => !borradas.has(r.id));
   }
+  const borradas = await lapidas;
+  const viva = (r) => !borradas.has(r.id);
   // Las más recientes bajo el tope, pero en el orden de siempre (de la más antigua).
-  const deTabla = [...filas].reverse().map(rowToRecipe);
+  const deTabla = [...filas].reverse().map(rowToRecipe).filter(viva);
   const enTabla = new Set(deTabla.map((r) => r.id));
-  return [...deTabla, ...json.filter((r) => !enTabla.has(r.id))];
+  return [...deTabla, ...json.filter((r) => viva(r) && !enTabla.has(r.id))];
 }

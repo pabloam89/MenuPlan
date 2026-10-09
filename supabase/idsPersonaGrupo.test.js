@@ -50,6 +50,7 @@ export const NO_LLEVAN = new Map([
   ["user_recipes.owner_snapshot", "receta propia: quién la publicó (usuario, no persona de la casa)"],
   ["user_recipes.steps_rich", "receta propia: sus pasos"],
   ["household_recipe_discards.recipe_id", "id base de la receta, sin prefijo de grupo"],
+  ["user_recipe_deletions.recipe_id", "lápida de una receta propia (user_), no un plato del plan (0094)"],
   ["recipe_votes.recipe_id", "id base de la receta, sin prefijo de grupo"],
   ["recipe_share_links.recipe_id", "id base de la receta propia que se comparte"],
   ["household_favorites.recipe_id", "id base de la receta, sin prefijo de grupo"],
