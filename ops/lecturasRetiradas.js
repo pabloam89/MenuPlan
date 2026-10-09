@@ -30,8 +30,13 @@ export const ES_CODIGO = /\.(m?js|jsx|cjs|ts|tsx)$/;
 export const SIMBOLOS_DEPRECADAS = {
   recetasPrototipo: [
     { nombre: "BASE_RECIPES", re: /(?<![\w$])BASE_RECIPES(?![\w$])/ },
-    // `import { RECIPES, … } from "…/recipes.js"`: RECIPES suelto dentro de las llaves
-    { nombre: "RECIPES (de data/recipes.js)", re: /import\s*\{[^}]*(?<![\w$])RECIPES(?![\w$])[^}]*\}\s*from\s*["'`]\s*["'`]/, confirma: /\/recipes(\.js)?["'`]$/ },
+    // `import { RECIPES, … } from "…/recipes.js"` o `export { RECIPES } from "…/recipes.js"`: RECIPES suelto dentro de las llaves
+    { nombre: "RECIPES (de data/recipes.js)", re: /(?:import|export)\s*\{[^}]*(?<![\w$])RECIPES(?![\w$])[^}]*\}\s*from\s*["'`]\s*["'`]/, confirma: /\/recipes(\.js)?["'`]$/ },
+    // `const { RECIPES } = await import("…/recipes.js")`
+    { nombre: "RECIPES (de data/recipes.js)", re: /\{[^}]*(?<![\w$])RECIPES(?![\w$])[^}]*\}\s*=\s*(?:await\s+)?import\(\s*["'`]\s*["'`]/, confirma: /\/recipes(\.js)?["'`]$/ },
+    // `R.RECIPES` tras `import * as R from "…/recipes.js"`, o `(await import("…")).RECIPES`: acceso por punto
+    // a una propiedad llamada RECIPES (no hay otra en el repo; `RECIPES: …` como clave no cuenta)
+    { nombre: "RECIPES (acceso .RECIPES a recipes.js)", re: /\.RECIPES(?![\w$])/ },
     { nombre: "generateMenu (planner.js)", re: /(?<![\w$.])generateMenu(?![\w$])/ },
   ],
 };

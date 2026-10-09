@@ -113,6 +113,14 @@ describe("lecturas de fuentes retiradas: el detector ve lo que tiene que ver", (
     expect(d(`import { INGREDIENT_CATEGORIES } from "../data/recipes.js";`)).toEqual([]);
     expect(d(`import { generateMenuWithAI } from "./aiPlanner.js";`)).toEqual([]);
     expect(d(`await m.generateMenuWithAI(x); // BASE_RECIPES, generateMenu`)).toEqual([]);
+    // las otras formas de llegar a RECIPES: namespace, import dinámico, re-export
+    expect(d(`import * as R from "../data/recipes.js"; const a = R.RECIPES;`)).toHaveLength(1);
+    expect(d(`const b = (await import("../data/recipes.js")).RECIPES;`)).toHaveLength(1);
+    expect(d(`const { RECIPES } = await import("../data/recipes.js");`)).toHaveLength(1);
+    expect(d(`export { RECIPES } from "../data/recipes.js";`)).toHaveLength(1);
+    // y lo vivo del mismo fichero sigue sin saltar
+    expect(d(`export { RECIPES_BY_ID, INGREDIENT_CATEGORIES } from "../data/recipes.js";`)).toEqual([]);
+    expect(d(`const { RECIPES_BY_ID } = await import("../data/recipes.js"); const k = { RECIPES: 1 };`)).toEqual([]);
     // una importación de otro módulo con RECIPES no es la de recipes.js
     expect(d(`import { RECIPES } from "./otro.js";`)).toEqual([]);
   });
