@@ -176,7 +176,7 @@ export function evaluarReglaGithub(c, { repo, gh }) {
     const lista = rs.ok ? rs.json?.bypass_actors : undefined;
     if (!Array.isArray(lista)) return { estado: "sin_comprobar", detalle: "no se pudieron leer sus bypass_actors" };
     const fuera = lista.filter((a) => !BYPASS_PERMITIDOS.includes(a.actor_type));
-    if (fuera.length) return { estado: "no_cumple", detalle: `se lo salta ${fuera.map((a) => `${a.actor_type}${a.actor_id != null ? ` ${a.actor_id}` : ""}`).join(", ")}` };
+    if (fuera.length) return { estado: "no_cumple", detalle: `hay ${fuera.length} actor(es) con bypass fuera de la lista (el detalle, con npm run planos -- --red en local)` };
     return { estado: "cumple", detalle: lista.length ? `bypass solo de ${lista.map((a) => a.actor_type).join(", ")}` : "sin bypass" };
   };
   const seguridad = (campo) => {

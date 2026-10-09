@@ -289,10 +289,10 @@
           },
           {
             "tipo": "cifra_umbral",
-            "que": "Las frases normativas que no citan una norma solo bajan (290 el 9 oct, #296)",
+            "que": "Las frases normativas que no citan una norma solo bajan (299 el 9 oct, tras fusionar staging; #296)",
             "medidor": "frases_normativas_base",
             "operador": "<=",
-            "umbral": 290
+            "umbral": 299
           }
         ],
         "4": [

@@ -95,11 +95,12 @@
     "solo": 10
   },
   ".claude/skills/github/SKILL.md": {
-    "nunca": 1,
+    "exige": 1,
+    "nunca": 2,
     "obligatorio": 1,
     "ok_de_pablo": 2,
     "siempre": 4,
-    "solo": 18,
+    "solo": 22,
     "tope": 2
   },
   ".claude/skills/hetzner/SKILL.md": {
@@ -152,7 +153,7 @@
     "exige": 1,
     "nunca": 1,
     "ok_de_pablo": 1,
-    "solo": 11
+    "solo": 14
   },
   "ops/PLANOS.md": {
     "exige": 3,
