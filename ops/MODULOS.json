@@ -1,13 +1,13 @@
 {
   "version": 1,
   "actualizado": "2026-10-09",
-  "leeme": "Mapa de módulos de MenuPlan (issue #157). Lo lee un script (el panel de la factoría, #158) y lo vigila ops/modulos.test.js: si pasa algo que lo deja viejo (una tabla nueva, un fichero que desaparece, un grado inventado) el test se pone rojo y dice qué tocar. JSON y no markdown porque lo consume una máquina; `leeme` y `hace` van en castellano llano para que lo lea también una persona. Las tablas de cada módulo no se repiten en él: el dueño vive solo en `tablas` y el panel deriva «tablas de un módulo» de ahí. «Acceso» (cuántos ficheros tocan cada tabla) tampoco se guarda: el panel lo calcula de supabase/cableado.json. `fichero_dueno` son las dos puertas de PRINCIPIOS §15 (app y servidor); si una es null, `sin_puerta` dice por qué. `ficheros_sin_modulo` agrupa, con motivo, el código que no pertenece a ningún módulo.",
+  "leeme": "Mapa de módulos de MenuPlan (issue #157). Lo lee un script (el panel de la factoría, #158) y lo vigila ops/modulos.test.js: si pasa algo que lo deja viejo (una tabla nueva, un fichero que desaparece, un grado inventado) el test se pone rojo y dice qué tocar. JSON y no markdown porque lo consume una máquina; `leeme` y `hace` van en castellano llano para que lo lea también una persona. Las tablas de cada módulo no se repiten en él: el dueño vive solo en `tablas` y el panel deriva «tablas de un módulo» de ahí. «Acceso» (cuántos ficheros tocan cada tabla) tampoco se guarda: el panel lo calcula de supabase/cableado.json. `fichero_dueno` son las dos puertas de PRINCIPIOS §15 (app y servidor); si una es null, `sin_puerta` dice por qué con un motivo del vocabulario cerrado `motivos_sin_puerta` (más un texto). Un fichero solo está en una unidad, salvo los de `ficheros_compartidos` (con motivo). `ficheros_sin_modulo` agrupa, con motivo, el código que no pertenece a ningún módulo.",
   "vocabularios": {
     "grados_desarrollo": {
       "idea": "No hay código en staging: solo una spec, una nota o una rama sin fusionar. Criterio: `ficheros` vacío (o solo specs).",
       "en_marcha": "Hay código en staging pero no sirve de punta a punta, o está apagado detrás de un interruptor. Criterio: `ficheros` con algo; si `apagado` es true, nunca pasa de aquí.",
       "usable": "Funciona de punta a punta en staging, con tests propios y sin interruptor apagado. Puede tener huecos conocidos o no medirse todavía. Criterio: `tests` con algo y `apagado` false.",
-      "estable": "Usable, y además hoy se mide su uso y no le queda ninguna migración propia sin aplicar. Criterio: lo de usable más al menos una métrica `medida`."
+      "estable": "Usable, y además hoy se mide su uso. Criterio: lo de usable más al menos una métrica `medida`. Una migración propia sin aplicar no la ve el test: si la hay, `motivo_grado` lo dice y el grado no pasa de usable."
     },
     "ambitos_modulo": {
       "app": "Solo lo usa la app (React + Vite).",
@@ -17,6 +17,13 @@
     "estados_metrica": {
       "medida": "Hoy deja rastro y se puede sacar: `donde` dice de dónde. Si trae `evento`, el test comprueba que se emite en el código.",
       "posible": "Hoy no se mide; `donde` dice dónde se sacaría o qué habría que añadir."
+    },
+    "motivos_sin_puerta": {
+      "no_la_usa": "Ese lado (app o servidor) no toca la tabla en absoluto.",
+      "por_rpc": "Ese lado la toca solo llamando a una RPC; no hay un fichero con .from() que sea la puerta.",
+      "por_trigger": "Se escribe dentro de la base (trigger o función SQL) y ningún fichero JS la toca.",
+      "fuera_del_dueno": "Sí la toca código de ese lado, pero de OTRO módulo: el dueño no tiene puerta propia. Es deuda de PRINCIPIOS §15.",
+      "en_desuso": "La tabla sigue en la base pero nadie la lee ni la escribe."
     }
   },
   "modulos": [
@@ -42,10 +49,8 @@
             "src/lib/supabase.js",
             "src/screens/ValueProps.jsx",
             "src/screens/Onboarding.jsx",
-            "src/lib/analytics.js",
             "src/screens/ScopePickerScreen.jsx",
-            "src/screens/onboardingProgressContext.js",
-            "api/_bot/cuentas.js"
+            "src/screens/onboardingProgressContext.js"
           ],
           "tests": [],
           "metricas": [
@@ -97,8 +102,7 @@
             "src/lib/useHousehold.js",
             "src/lib/papeles.js",
             "api/_bot/papel.js",
-            "api/_bot/invitacion.js",
-            "api/_bot/casa.js"
+            "api/_bot/invitacion.js"
           ],
           "tests": [
             "src/lib/papeles.test.js",
@@ -131,12 +135,10 @@
             "src/lib/householdState.js",
             "src/lib/userState.js",
             "src/lib/versionCasa.js",
-            "api/_bot/casa.js",
-            "api/_bot/estadoCasa.js"
+            "api/_bot/casa.js"
           ],
           "tests": [
-            "src/lib/versionCasa.test.js",
-            "api/_bot/estadoCasa.test.js"
+            "src/lib/versionCasa.test.js"
           ],
           "metricas": [
             {
@@ -171,7 +173,6 @@
             "src/lib/groups.js",
             "src/screens/HomeProfileScreen.jsx",
             "src/components/PersonSheet.jsx",
-            "src/lib/householdsSync.js",
             "src/lib/babyStage.js",
             "src/lib/stages.js",
             "src/lib/profileMerge.js",
@@ -283,7 +284,8 @@
             "api/_bot/ficha.test.js",
             "api/_bot/fichaRpc.test.js",
             "src/lib/registroTareas.test.js",
-            "api/_bot/recetasPropias.test.js"
+            "api/_bot/recetasPropias.test.js",
+            "api/_bot/estadoCasa.test.js"
           ],
           "metricas": [
             {
@@ -322,7 +324,6 @@
             "src/screens/GeneratingScreen.jsx",
             "api/generate.js",
             "api/_prompts.js",
-            "api/_guard.js",
             "src/lib/aiModels.js",
             "src/lib/prepararGeneracion.js",
             "src/lib/freqBudget.js",
@@ -347,8 +348,7 @@
             "src/lib/aiPlanner.test.js",
             "src/lib/solver.test.js",
             "src/utils/validateMenu.test.js",
-            "src/utils/filterRecipes.test.js",
-            "api/_guard.test.js"
+            "src/utils/filterRecipes.test.js"
           ],
           "metricas": [
             {
@@ -376,9 +376,9 @@
         {
           "id": "pizarra",
           "nombre": "Pizarra del menú",
-          "hace": "Ver la semana y cambiarla a mano: poner, mover, quitar y repetir platos, congelador, estructura de cada comida y la burbuja de órdenes.",
+          "hace": "Ver la semana y cambiarla a mano: poner, mover, quitar y repetir platos, congelador, estructura de cada comida y la burbuja de órdenes. Incluye el botón «¡Cocinado!» de la ficha del plato: descuenta la despensa (o el congelador), guarda el plato como cocinado y deja rastro.",
           "grado": "usable",
-          "motivo_grado": "Funciona y se mide, pero se está rediseñando (frontal de Lola) y la pantalla principal vive en un App.jsx de 6000 líneas.",
+          "motivo_grado": "Funciona y se mide, pero se está rediseñando (frontal de Lola) y la pantalla principal vive en un App.jsx de 6000 líneas. «¡Cocinado!» funciona hoy fuera de Gente (src/screens/Menu.jsx), guarda `cookedDishes` en el estado de la casa y no usa la tabla `cookings`.",
           "ficheros": [
             "src/screens/Menu.jsx",
             "src/lib/pizarra.js",
@@ -415,6 +415,13 @@
               "estado": "medida",
               "donde": "user_events pizarra_started",
               "evento": "pizarra_started"
+            },
+            {
+              "id": "plato_marcado_cocinado",
+              "que": "Veces que se marca un plato como cocinado desde la ficha del plato (no escribe en `cookings`)",
+              "estado": "medida",
+              "donde": "user_events dish_cooked (RASTRO.COCINADO), emitido desde src/screens/Menu.jsx",
+              "evento": "dish_cooked"
             }
           ]
         },
@@ -432,8 +439,6 @@
             "src/screens/MenusScreen.jsx",
             "src/screens/MenuHistoryView.jsx",
             "src/components/MenuPdfExportModal.jsx",
-            "api/_bot/menu.js",
-            "api/_bot/casa.js",
             "src/lib/menuParser.js"
           ],
           "tests": [
@@ -659,28 +664,18 @@
         },
         {
           "id": "cocinado",
-          "nombre": "Lo cocinado",
-          "hace": "Apuntar que se ha cocinado un plato (con nota o foto) en el hilo de la casa. La composición vive en Gente, que está apagada.",
+          "nombre": "Historias de lo cocinado (apagado con Gente)",
+          "hace": "Contar que se ha cocinado un plato (con nota o foto) en un hilo para compartir. Vive en Gente, que está apagada.",
           "grado": "en_marcha",
-          "motivo_grado": "`cookings` solo la escribe src/screens/FeedScreen.jsx (Gente, apagada por GENTE_ACTIVA): nadie puede apuntar un cocinado hoy. Sin tests propios.",
+          "motivo_grado": "`cookings` solo la escribe src/screens/FeedScreen.jsx (Gente, apagada por GENTE_ACTIVA): hoy nadie puede crear una historia. El botón «¡Cocinado!» del menú NO es esto: está en pizarra.",
           "ficheros": [
             "src/lib/cookings.js",
             "src/lib/cookingsSync.js",
             "src/components/CookingComposer.jsx",
-            "src/components/CookingStory.jsx",
-            "src/screens/Menu.jsx",
-            "src/screens/FeedScreen.jsx"
+            "src/components/CookingStory.jsx"
           ],
           "tests": [],
-          "metricas": [
-            {
-              "id": "plato_marcado_cocinado",
-              "que": "Veces que se marca un plato como cocinado desde la ficha del plato (evento aparte: NO escribe en `cookings`)",
-              "estado": "medida",
-              "donde": "user_events dish_cooked, emitido desde src/screens/Menu.jsx",
-              "evento": "dish_cooked"
-            }
-          ],
+          "metricas": [],
           "apagado": true,
           "apagado_por": {
             "constante": "GENTE_ACTIVA",
@@ -910,7 +905,6 @@
         "src/components/FollowListSheet.jsx",
         "src/components/NotificationsPopover.jsx",
         "src/components/ReportSheet.jsx",
-        "src/lib/frontalBot.js",
         "api/moderate.js",
         "api/moderate-takedown.js",
         "api/report-alert.js",
@@ -956,12 +950,10 @@
         "api/_bot/ajustes.js",
         "api/_bot/traducir.js",
         "src/lib/electrodomesticos.js",
-        "src/lib/mealSlots.js",
-        "src/lib/vocabularios.js"
+        "src/lib/mealSlots.js"
       ],
       "tests": [
         "api/_bot/traducir.test.js",
-        "src/lib/vocabularios.test.js",
         "src/lib/mealSlots.test.js",
         "api/_bot/horarioCole.test.js"
       ],
@@ -1062,7 +1054,6 @@
           "motivo_grado": "Tablas aplicadas (0063, 0088) con tests; la cola se purga cada noche.",
           "ficheros": [
             "api/_bot/turnos.js",
-            "api/_bot/turno.js",
             "api/_bot/entradas.js",
             "api/_bot/idempotencia.js"
           ],
@@ -1092,7 +1083,8 @@
             "api/_bot/rapido.js",
             "api/_bot/pista.js",
             "api/_bot/cuando.js",
-            "api/_bot/plato.js"
+            "api/_bot/plato.js",
+            "api/_bot/turno.js"
           ],
           "tests": [
             "api/_bot/cuando.test.js",
@@ -1162,16 +1154,17 @@
         "api/bot/link.js",
         "api/bot/entrar.js",
         "src/components/BotEnlace.jsx",
-        "src/lib/frontalBot.js",
         "src/lib/botRevVisto.js",
         "src/lib/destinoBot.js",
-        "src/lib/pedidoLola.js"
+        "src/lib/pedidoLola.js",
+        "src/lib/llaveLola.js"
       ],
       "tests": [
         "api/_bot/enlace.test.js",
         "api/bot/link.test.js",
         "api/bot/entrar.test.js",
-        "api/_bot/borrar.test.js"
+        "api/_bot/borrar.test.js",
+        "src/lib/llaveLola.test.js"
       ],
       "metricas": [
         {
@@ -1200,12 +1193,9 @@
       "ficheros": [
         "api/_bot/menu.js",
         "api/_bot/generar.js",
-        "api/_bot/casa.js",
         "api/_bot/pintar.js",
         "api/_bot/presentes.js",
-        "api/_bot/deFuera.js",
-        "api/_bot/despensa.js",
-        "api/_bot/compartir.js"
+        "api/_bot/deFuera.js"
       ],
       "tests": [
         "api/_bot/menu.test.js",
@@ -1307,8 +1297,7 @@
       "motivo_grado": "bot_usage con suma atómica (0061) y script de coste, pero api/_bot/uso.js no tiene test propio (llaveLola.test.js es de la llave de enlace, no del límite).",
       "ficheros": [
         "api/_bot/uso.js",
-        "scripts/bot-coste.mjs",
-        "src/lib/llaveLola.js"
+        "scripts/bot-coste.mjs"
       ],
       "tests": [],
       "metricas": [
@@ -1361,7 +1350,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     },
     "apple_auth_tokens": {
@@ -1372,7 +1364,10 @@
       },
       "nota": "Creada a mano en el panel, sin migración; la lee api/delete-account.js por REST directo (no por db.js, por eso cableado.json no la ve). api/delete-account.js la lee por fetch a /rest/v1/ (punto ciego de cableado.mjs).",
       "sin_puerta": {
-        "app": "Ningún fichero de src/ la toca (el cliente no la escribe hoy)."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Ningún fichero de src/ la toca (el cliente no la escribe hoy)."
+        }
       }
     },
     "blocked_users": {
@@ -1382,7 +1377,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "El bot la lee desde api/_bot/compartir.js (módulo compartir), que no es del dueño: debería ir por la RPC is_blocked. Sin puerta de servidor propia."
+        "servidor": {
+          "motivo": "fuera_del_dueno",
+          "texto": "El bot la lee desde api/_bot/compartir.js (módulo compartir), que no es del dueño: debería ir por la RPC is_blocked. Sin puerta de servidor propia."
+        }
       }
     },
     "bot_candados": {
@@ -1393,7 +1391,10 @@
       },
       "nota": "Solo por las RPC bot_tomar_candado y bot_soltar_candado.",
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_chats": {
@@ -1403,7 +1404,10 @@
         "servidor": "api/_bot/enlace.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_codigos": {
@@ -1413,7 +1417,10 @@
         "servidor": "api/_bot/enlace.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_cola": {
@@ -1423,17 +1430,23 @@
         "servidor": "api/_bot/turnos.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_deshacer": {
-      "dueno": "lola-menu-y-compra",
+      "dueno": "estado-de-la-casa",
       "fichero_dueno": {
         "app": null,
         "servidor": "api/_bot/casa.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_entradas": {
@@ -1443,7 +1456,10 @@
         "servidor": "api/_bot/entradas.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_idempotencia": {
@@ -1453,7 +1469,10 @@
         "servidor": "api/_bot/idempotencia.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_identities": {
@@ -1463,7 +1482,10 @@
         "servidor": "api/_bot/enlace.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_link_tokens": {
@@ -1473,7 +1495,10 @@
         "servidor": "api/bot/link.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_messages": {
@@ -1483,7 +1508,10 @@
         "servidor": "api/_bot/agente.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_reminders": {
@@ -1493,7 +1521,10 @@
         "servidor": "api/_bot/recordatorios.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_tareas": {
@@ -1503,7 +1534,10 @@
         "servidor": "api/_bot/tareas.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "bot_usage": {
@@ -1513,7 +1547,10 @@
         "servidor": "api/_bot/uso.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "catalog_meta": {
@@ -1524,8 +1561,14 @@
       },
       "nota": "En desuso desde la 0064: el catálogo se lee del JSON.",
       "sin_puerta": {
-        "app": "En desuso desde la 0064: la app lee el catálogo del JSON.",
-        "servidor": "En desuso desde la 0064."
+        "app": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
+        },
+        "servidor": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064."
+        }
       }
     },
     "content_reports": {
@@ -1543,7 +1586,10 @@
         "servidor": "api/_bot/traducir.js"
       },
       "sin_puerta": {
-        "app": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa el servidor (el bot, con la clave de servicio); la app no la toca."
+        }
       }
     },
     "cookings": {
@@ -1553,7 +1599,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     },
     "dish_images": {
@@ -1564,8 +1613,14 @@
       },
       "nota": "En desuso desde la 0064.",
       "sin_puerta": {
-        "app": "En desuso desde la 0064: la app lee el catálogo del JSON.",
-        "servidor": "En desuso desde la 0064."
+        "app": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
+        },
+        "servidor": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064."
+        }
       }
     },
     "grupo": {
@@ -1576,8 +1631,14 @@
       },
       "nota": "Se escribe por RPC persona_sincronizar_casa y por el trigger de la 0089.",
       "sin_puerta": {
-        "app": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS.",
-        "servidor": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS."
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
       }
     },
     "grupo_persona": {
@@ -1588,8 +1649,14 @@
       },
       "nota": "Igual que grupo.",
       "sin_puerta": {
-        "app": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS.",
-        "servidor": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS."
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
       }
     },
     "household_favorites": {
@@ -1599,7 +1666,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     },
     "household_invites": {
@@ -1625,7 +1695,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     },
     "household_state": {
@@ -1639,7 +1712,7 @@
       "dueno": "casas-y-miembros",
       "fichero_dueno": {
         "app": "src/lib/householdsSync.js",
-        "servidor": "api/_bot/casa.js"
+        "servidor": "api/_bot/invitacion.js"
       },
       "nota": "La app va por RPC (householdsSync.js, que no usa .from); el bot la toca directo en siete ficheros."
     },
@@ -1650,8 +1723,14 @@
         "servidor": null
       },
       "sin_puerta": {
-        "app": "Tabla puente temporal de la 0091.",
-        "servidor": "Tabla puente temporal de la 0091."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Tabla puente temporal de la 0091."
+        },
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Tabla puente temporal de la 0091."
+        }
       },
       "nota": "La crea la 0091 (sin aplicar, rama datos/194-ids-uuid-migrar): guarda viejo → uuid para poder repasar el paso de ids; se borrará cuando termine la migración."
     },
@@ -1663,8 +1742,14 @@
       },
       "nota": "Ningún fichero de src/ ni api/ la lee: solo scripts de construcción del catálogo (candidata a quitar por PRINCIPIOS: ningún dato sin lector).",
       "sin_puerta": {
-        "app": "Sin lector en src/: la app lee el JSON.",
-        "servidor": "Sin lector en api/."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en src/: la app lee el JSON."
+        },
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en api/."
+        }
       }
     },
     "ingredient_substitutions": {
@@ -1675,8 +1760,14 @@
       },
       "nota": "La app lee las sustituciones del JSON (src/data/ingredientSubstitutions.json); la tabla no tiene lector en src/ ni api/.",
       "sin_puerta": {
-        "app": "Sin lector en src/: la app lee el JSON.",
-        "servidor": "Sin lector en api/."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en src/: la app lee el JSON."
+        },
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en api/."
+        }
       }
     },
     "ingredients": {
@@ -1687,8 +1778,14 @@
       },
       "nota": "Sigue viva solo porque la despensa apunta a ella (0064).",
       "sin_puerta": {
-        "app": "Sin lector en src/: la app lee el JSON.",
-        "servidor": "Sin lector en api/."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en src/: la app lee el JSON."
+        },
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Sin lector en api/."
+        }
       }
     },
     "menu_share_links": {
@@ -1698,7 +1795,10 @@
         "servidor": "api/_bot/compartir.js"
       },
       "sin_puerta": {
-        "app": "La app va por RPC (menu_share_token…) desde los sheets de compartir; sin puerta propia en JS de la tabla."
+        "app": {
+          "motivo": "por_rpc",
+          "texto": "La app va por RPC (menu_share_token…) desde los sheets de compartir; sin puerta propia en JS de la tabla."
+        }
       }
     },
     "persona": {
@@ -1709,8 +1809,14 @@
       },
       "nota": "Por RPC y trigger al guardar la casa.",
       "sin_puerta": {
-        "app": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS.",
-        "servidor": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS."
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
       }
     },
     "persona_alergia": {
@@ -1720,8 +1826,14 @@
         "servidor": null
       },
       "sin_puerta": {
-        "app": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS.",
-        "servidor": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS."
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
       }
     },
     "persona_estado": {
@@ -1731,8 +1843,14 @@
         "servidor": null
       },
       "sin_puerta": {
-        "app": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS.",
-        "servidor": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS."
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
       }
     },
     "persona_intolerancia": {
@@ -1742,8 +1860,14 @@
         "servidor": null
       },
       "sin_puerta": {
-        "app": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS.",
-        "servidor": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS."
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
       }
     },
     "persona_perfil_salud": {
@@ -1753,8 +1877,14 @@
         "servidor": null
       },
       "sin_puerta": {
-        "app": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS.",
-        "servidor": "Se escribe por trigger/RPC de SQL (0089, persona_sincronizar_casa) al guardar household_state; ningún fichero JS la toca, y src/lib/personasTabla.js es solo la proyección gemela en JS."
+        "app": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        },
+        "servidor": {
+          "motivo": "por_trigger",
+          "texto": "Se escribe por el trigger de la 0089 y la RPC persona_sincronizar_casa al guardar household_state; ningún fichero JS la toca (src/lib/personasTabla.js es solo la proyección gemela en JS). La RPC ficha_casa (api/_bot/fichaRpc.js) la lee, pero ese fichero es de ficha-para-lola y además lee tareas: no es puerta de personas-y-grupos."
+        }
       }
     },
     "recipe_collections": {
@@ -1764,7 +1894,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     },
     "recipe_folders": {
@@ -1774,7 +1907,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     },
     "recipe_ingredients": {
@@ -1785,8 +1921,14 @@
       },
       "nota": "En desuso desde la 0064.",
       "sin_puerta": {
-        "app": "En desuso desde la 0064: la app lee el catálogo del JSON.",
-        "servidor": "En desuso desde la 0064."
+        "app": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
+        },
+        "servidor": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064."
+        }
       }
     },
     "recipe_share_links": {
@@ -1796,7 +1938,10 @@
         "servidor": "api/_bot/compartir.js"
       },
       "sin_puerta": {
-        "app": "La app va por RPC (recipe_share_token…); sin puerta propia en JS de la tabla."
+        "app": {
+          "motivo": "por_rpc",
+          "texto": "La app va por RPC (recipe_share_token…); sin puerta propia en JS de la tabla."
+        }
       }
     },
     "recipe_votes": {
@@ -1806,7 +1951,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     },
     "recipes": {
@@ -1817,8 +1965,14 @@
       },
       "nota": "En desuso desde la 0064.",
       "sin_puerta": {
-        "app": "En desuso desde la 0064: la app lee el catálogo del JSON.",
-        "servidor": "En desuso desde la 0064."
+        "app": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064: la app lee el catálogo del JSON."
+        },
+        "servidor": {
+          "motivo": "en_desuso",
+          "texto": "En desuso desde la 0064."
+        }
       }
     },
     "shared_menus": {
@@ -1828,7 +1982,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "El bot la toca desde api/_bot/compartir.js (módulo compartir), que no es del dueño. Sin puerta de servidor propia."
+        "servidor": {
+          "motivo": "fuera_del_dueno",
+          "texto": "El bot la toca desde api/_bot/compartir.js (módulo compartir), que no es del dueño. Sin puerta de servidor propia."
+        }
       }
     },
     "social_comment_likes": {
@@ -1838,7 +1995,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     },
     "social_comments": {
@@ -1848,7 +2008,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     },
     "social_profiles": {
@@ -1858,7 +2021,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     },
     "store_products": {
@@ -1868,7 +2034,10 @@
         "servidor": "scripts/mercadona-sync.mjs"
       },
       "sin_puerta": {
-        "app": "La app no la lee: los precios salen del catálogo semanal en JSON (public/store/mercadona.json)."
+        "app": {
+          "motivo": "no_la_usa",
+          "texto": "La app no la lee: los precios salen del catálogo semanal en JSON (public/store/mercadona.json)."
+        }
       },
       "nota": "La migración 0021 NO está aplicada (supabase/ESTADO.md); el script la escribe por REST solo si hay clave. cableado.json no la ve por ser un script."
     },
@@ -1887,28 +2056,49 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     },
     "user_menu_recipes": {
       "dueno": "menus-guardados",
       "fichero_dueno": {
         "app": "src/lib/menusSync.js",
-        "servidor": "api/_bot/menu.js"
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "fuera_del_dueno",
+          "texto": "El bot las escribe desde api/_bot/casa.js, generar.js y menu.js (módulos de Lola), no desde un módulo de menus-guardados."
+        }
       }
     },
     "user_menu_weeks": {
       "dueno": "menus-guardados",
       "fichero_dueno": {
         "app": "src/lib/menusSync.js",
-        "servidor": "api/_bot/casa.js"
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "fuera_del_dueno",
+          "texto": "El bot las escribe desde api/_bot/casa.js, generar.js y menu.js (módulos de Lola), no desde un módulo de menus-guardados."
+        }
       }
     },
     "user_menus": {
       "dueno": "menus-guardados",
       "fichero_dueno": {
         "app": "src/lib/menusSync.js",
-        "servidor": "api/_bot/casa.js"
+        "servidor": null
+      },
+      "sin_puerta": {
+        "servidor": {
+          "motivo": "fuera_del_dueno",
+          "texto": "El bot las escribe desde api/_bot/casa.js, generar.js y menu.js (módulos de Lola), no desde un módulo de menus-guardados."
+        }
       }
     },
     "user_pantry": {
@@ -1919,10 +2109,10 @@
       }
     },
     "user_profiles": {
-      "dueno": "acceso",
+      "dueno": "casas-y-miembros",
       "fichero_dueno": {
-        "app": "src/lib/analytics.js",
-        "servidor": "api/_bot/cuentas.js"
+        "app": "src/lib/householdsSync.js",
+        "servidor": "api/_bot/papel.js"
       },
       "nota": "Siete ficheros la tocan (perfil, idioma, papel, enlace con el bot); no hay una puerta natural, se ha elegido una por lado."
     },
@@ -1940,7 +2130,10 @@
         "servidor": null
       },
       "sin_puerta": {
-        "servidor": "Solo la usa la app; el servidor no la toca."
+        "servidor": {
+          "motivo": "no_la_usa",
+          "texto": "Solo la usa la app; el servidor no la toca."
+        }
       }
     }
   },
@@ -2001,7 +2194,21 @@
         "src/lib/casasAleatorias.js",
         "src/lib/receiptFixtures.js"
       ]
+    },
+    {
+      "motivo": "Plomería compartida entre módulos: el guard anti-abuso de los endpoints de IA y los vocabularios cerrados del modelo de datos.",
+      "ficheros": [
+        "api/_guard.js",
+        "src/lib/vocabularios.js"
+      ]
+    },
+    {
+      "motivo": "Interruptores y avisos transversales (FRONTAL_BOT, GENTE_ACTIVA, GUIAS_ACTIVAS): los leen casi todas las pantallas y no son de un módulo.",
+      "ficheros": [
+        "src/lib/frontalBot.js"
+      ]
     }
   ],
-  "tests_ajenos_admitidos": []
+  "tests_ajenos_admitidos": [],
+  "ficheros_compartidos": []
 }

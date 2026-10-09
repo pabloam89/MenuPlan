@@ -145,6 +145,9 @@ export const AMBITOS_MODULO = ["app", "lola", "compartido"];
 /** Si una métrica de uso ya se mide hoy o sería posible medirla. */
 export const ESTADOS_METRICA = ["medida", "posible"];
 
+/** Por qué una tabla no tiene puerta (fichero único) en un lado, app o servidor (definiciones en ops/MODULOS.json). */
+export const MOTIVOS_SIN_PUERTA = ["no_la_usa", "por_rpc", "por_trigger", "fuera_del_dueno", "en_desuso"];
+
 /**
  * El mapa nombre → lista. Es lo que referencia `registro_campo.vocabulario`
  * (la ficha): guarda el nombre, nunca una copia de los valores.
@@ -175,6 +178,7 @@ export const VOCABULARIOS = Object.freeze({
   grados_desarrollo: GRADOS_DESARROLLO,
   ambitos_modulo: AMBITOS_MODULO,
   estados_metrica: ESTADOS_METRICA,
+  motivos_sin_puerta: MOTIVOS_SIN_PUERTA,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */

@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { tablas as tablasDeMigraciones } from "../scripts/cableado.mjs";
-import { GRADOS_DESARROLLO, AMBITOS_MODULO, ESTADOS_METRICA } from "../src/lib/vocabularios.js";
+import { GRADOS_DESARROLLO, AMBITOS_MODULO, ESTADOS_METRICA, MOTIVOS_SIN_PUERTA } from "../src/lib/vocabularios.js";
 
 /**
  * El mapa de módulos (ops/MODULOS.json, issue #157) no se puede quedar viejo.
@@ -42,6 +42,7 @@ describe("MODULOS.json: forma y vocabulario cerrado", () => {
     expect(Object.keys(mapa.vocabularios.grados_desarrollo), aviso).toEqual(GRADOS_DESARROLLO);
     expect(Object.keys(mapa.vocabularios.ambitos_modulo), aviso).toEqual(AMBITOS_MODULO);
     expect(Object.keys(mapa.vocabularios.estados_metrica), aviso).toEqual(ESTADOS_METRICA);
+    expect(Object.keys(mapa.vocabularios.motivos_sin_puerta), aviso).toEqual(MOTIVOS_SIN_PUERTA);
   });
 
   it("los ids son únicos y con forma de id (minúsculas, números y guiones)", () => {
@@ -161,6 +162,23 @@ describe("MODULOS.json: los ficheros existen y no queda código sin dueño", () 
     expect(malos, "`tests` solo lleva ficheros *.test.js; el código va en `ficheros`.").toEqual([]);
   });
 
+  it("ningún fichero está en más de una unidad, salvo los de `ficheros_compartidos` (con motivo)", () => {
+    const dondeEsta = new Map();
+    for (const u of unidades) for (const f of u.ficheros) dondeEsta.set(f, [...(dondeEsta.get(f) ?? []), u.id]);
+    const compartidos = new Map((mapa.ficheros_compartidos ?? []).map((c) => [c.fichero, c]));
+    const malos = [];
+    for (const [f, ids] of dondeEsta) {
+      if (ids.length > 1 && !compartidos.has(f)) malos.push(`${f}: en ${ids.join(" y ")}`);
+    }
+    for (const [f, c] of compartidos) {
+      const ids = dondeEsta.get(f) ?? [];
+      if (typeof c.motivo !== "string" || c.motivo.trim().length < 15) malos.push(`${f}: en ficheros_compartidos sin motivo`);
+      if (ids.length < 2) malos.push(`${f}: está en ficheros_compartidos pero solo en ${ids.length} unidad(es); quítalo de la lista`);
+      else if (JSON.stringify([...ids].sort()) !== JSON.stringify([...(c.unidades ?? [])].sort())) malos.push(`${f}: \`unidades\` dice ${(c.unidades ?? []).join(", ")} pero está en ${ids.join(", ")}`);
+    }
+    expect(malos, "Un fichero es de un solo módulo: asígnalo a su dueño natural o a ficheros_sin_modulo. Si de verdad es de dos, añádelo a `ficheros_compartidos` con { fichero, unidades, motivo }.").toEqual([]);
+  });
+
   it("todo fichero de api/ y de src/screens y src/lib está en algún módulo o en ficheros_sin_modulo (con motivo)", () => {
     const enModulo = new Set(unidades.flatMap((u) => u.ficheros));
     const grupos = mapa.ficheros_sin_modulo ?? [];
@@ -219,10 +237,12 @@ describe("MODULOS.json: cada tabla tiene un único módulo dueño y sus dos puer
       for (const lado of ["app", "servidor"]) {
         const f = puertas[lado];
         if (f === null) {
-          if (typeof info.sin_puerta?.[lado] !== "string" || info.sin_puerta[lado].trim().length < 10) malos.push(`${t}: puerta ${lado} null sin motivo en \`sin_puerta.${lado}\``);
+          const sp = info.sin_puerta?.[lado];
+          if (!sp || !MOTIVOS_SIN_PUERTA.includes(sp.motivo)) malos.push(`${t}: puerta ${lado} null sin \`sin_puerta.${lado}.motivo\` válido (${MOTIVOS_SIN_PUERTA.join(", ")})`);
+          else if (sp.texto !== undefined && (typeof sp.texto !== "string" || sp.texto.trim().length < 10)) malos.push(`${t}: el texto de sin_puerta.${lado} es demasiado corto`);
           continue;
         }
-        if (info.sin_puerta?.[lado]) malos.push(`${t}: puerta ${lado} definida pero con motivo de \`sin_puerta.${lado}\`; quita uno`);
+        if (info.sin_puerta?.[lado]) malos.push(`${t}: puerta ${lado} definida pero con \`sin_puerta.${lado}\`; quita uno`);
         if (!existsSync(join(RAIZ, f))) malos.push(`${t}: no existe la puerta ${lado} «${f}»`);
         else if (dueno && !dueno.ficheros.includes(f)) malos.push(`${t}: la puerta ${lado} «${f}» no está en \`ficheros\` de su dueño (${info.dueno}); o el dueño es otro o la puerta es otra`);
         const deApp = f.startsWith("src/");
@@ -251,16 +271,26 @@ describe("MODULOS.json: métricas", () => {
       }
     };
     for (const d of ["src", "api", "scripts"]) rec(d);
-    return trozos.join("\n");
+    // Sin comentarios: un evento nombrado solo en un comentario no se emite.
+    return trozos.join("\n").replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`])\/\/.*$/gm, "$1");
   })();
-  const EMISION = "(?:trackEvent|registrar|rastro)";
 
-  /** ¿Se emite este evento? En una llamada de emisión, directo o por su constante EMBUDO/RASTRO; o, si es de log, en la línea `evento: "…"`. */
+  /**
+   * Las llamadas de emisión del repo: trackEvent(user, EVENTO, …) y
+   * rastro(casa, EVENTO, …) llevan el evento de segundo argumento;
+   * registrar(EVENTO, …), de primero.
+   */
+  const llamadas = (arg) => [
+    new RegExp(`\\b(?:trackEvent|rastro)\\(\\s*[^,()]*,\\s*${arg}`),
+    new RegExp(`\\bregistrar\\(\\s*${arg}`),
+  ];
+
+  /** ¿Se emite este evento? Literal o por su constante EMBUDO/RASTRO en una llamada de emisión; o, si es de log, en la línea `evento: "…"`. */
   const seEmite = (ev, forma) => {
-    if (forma === "log") return new RegExp(`evento:\\s*["']${ev}["']`).test(codigo);
-    if (new RegExp(`${EMISION}\\([^;]{0,200}?["']${ev}["']`).test(codigo)) return true;
+    if (forma === "log") return new RegExp(`\\bevento:\\s*["']${ev}["']`).test(codigo);
+    if (llamadas(`["']${ev}["']`).some((r) => r.test(codigo))) return true;
     const claves = [...codigo.matchAll(new RegExp(`\\b([A-Z][A-Z_]+):\\s*["']${ev}["']`, "g"))].map((m) => m[1]);
-    return claves.some((k) => new RegExp(`${EMISION}\\([^;]{0,200}?\\b(?:RASTRO|EMBUDO)\\.${k}\\b`).test(codigo));
+    return claves.some((k) => llamadas(`(?:RASTRO|EMBUDO)\\.${k}\\b`).some((r) => r.test(codigo)));
   };
 
   it("cada métrica tiene id, qué mide, estado del vocabulario y dónde se saca", () => {
