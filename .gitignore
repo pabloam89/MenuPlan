@@ -72,6 +72,9 @@ vs-modelo.json
 scripts/router-evals-candidatos.json
 scripts/bot-evals-candidatos.json
 
+# Resultados de las evals de Lola, un intento por línea (scripts/bot-evals.mjs, #268)
+.evals-out/
+
 # Material de trabajo local que no es código de la app: el vídeo (descartado
 # el 7 oct) y las capturas y PDFs de feedback de UX.
 /video/
