@@ -20,6 +20,7 @@
     "audit:catalog": "vite-node scripts/audit-catalog.mjs",
     "audit:ingredients": "node scripts/build-ingredient-catalog.mjs",
     "build:icons": "node scripts/build-nucleo-icons.mjs",
+    "tokens:css": "node scripts/diseno/generar-tokens-css.mjs",
     "check:duplicates": "node scripts/detect-duplicate-dishes.mjs",
     "enrich:steps": "node scripts/enrich-recipe-steps.mjs",
     "check:wording": "node scripts/check-step-wording.mjs",
