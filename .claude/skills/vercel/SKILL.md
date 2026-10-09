@@ -90,6 +90,21 @@ arriba). La CLI `vercel` no está instalada en este PC.
   vigía mira el entorno de la variable `VIGIA_ENTORNO`, que tiene que seguir al
   webhook.
 
+- **2026-10-09 · el vigía no leía los logs en Actions** (`logs: sin_configurar`
+  con `VERCEL_TOKEN` puesto). Causa: en el runner no hay `.vercel/` (checkout
+  parcial) y cualquier error con «not found» se tomaba por «falta la CLI»,
+  sin decir cuál era. Arreglo: la CLI recibe `VERCEL_ORG_ID` y
+  `VERCEL_PROJECT_ID` en su entorno (`IDS_VERCEL`, `scripts/bot-fallos.mjs`;
+  probado sin sesión, sin `.vercel/` y con token: lee el proyecto) y
+  `motivoDeCli` da el motivo del vocabulario a la línea `vigia_logs`.
+  Con eso salió el motivo de verdad, `no_existe`: «User not found.».
+  Causa: el token se creó con scope del equipo («Monicos MenuPlan»), y la
+  CLI pregunta primero por el usuario (`/v2/user` da 404 con ese token,
+  aunque el API REST del proyecto responda 200). Arreglo: un token para la
+  CLI se crea con scope **«Full Account»**, que cubre la cuenta y el equipo,
+  y a 90 días (ficha «Vercel Vigía»). Comprobado: con él, `vercel logs` lee y
+  el vigía cerró el incidente.
+
 ## Qué requiere el OK de Pablo
 
 - Subir o promover a producción, y el rollback.

@@ -4,11 +4,11 @@
 import { describe, it, expect } from "vitest";
 import {
   pasada, evaluarReglas, evaluarSeguidos, tocaModelo, tocaResumen, textoDe, lineaDe,
-  enviarAviso, llamarCanario, estadoVacio, normalizarEstado, FRASE_MOTIVO, FRASE_CHEQUEO, entregar, resumenDiario,
+  enviarAviso, llamarCanario, estadoVacio, normalizarEstado, FRASE_MOTIVO, FRASE_CHEQUEO, entregar, resumenDiario, leerLogs,
 } from "./vigia.mjs";
-import { fallosDe, entornoDeVercel } from "./bot-fallos.mjs";
+import { fallosDe, entornoDeVercel, motivoDeCli, IDS_VERCEL } from "./bot-fallos.mjs";
 import { VIGIA } from "../src/lib/vigia.js";
-import { MOTIVOS_FALLO, CHEQUEOS_CANARIO, TIPOS_AVISO_VIGIA } from "../src/lib/vocabularios.js";
+import { MOTIVOS_FALLO, MOTIVOS_CANARIO, CHEQUEOS_CANARIO, TIPOS_AVISO_VIGIA } from "../src/lib/vocabularios.js";
 
 const MIN = 60_000;
 const DIA_MS = 24 * 60 * MIN;
@@ -323,6 +323,44 @@ describe("vigía: lo que pidieron revisor y seguridad (PR #276)", () => {
 
   it("la CLI de Vercel solo ve su token y lo que necesita para arrancar", () => {
     const env = entornoDeVercel({ PATH: "/bin", HOME: "/h", VERCEL_TOKEN: "v", AVISOS_TELEGRAM_TOKEN: "t", CANARIO_SECRET: "c" });
-    expect(env).toEqual({ PATH: "/bin", HOME: "/h", VERCEL_TOKEN: "v" });
+    expect(env).toEqual({ PATH: "/bin", HOME: "/h", VERCEL_TOKEN: "v", ...IDS_VERCEL });
+  });
+});
+
+// Primera pasada en Actions (9 oct 2026, 11:10 UTC): `logs: sin_configurar`
+// con VERCEL_TOKEN puesto. El runner no tiene `.vercel/` (checkout parcial) y
+// cualquier salida con «not found» se tomaba por «falta la CLI».
+describe("vigía: leer los logs desde el runner", () => {
+  it("la CLI sabe el proyecto por el entorno, sin carpeta enlazada", () => {
+    const env = entornoDeVercel({ PATH: "/bin" });
+    expect(env.VERCEL_ORG_ID).toMatch(/^team_/);
+    expect(env.VERCEL_PROJECT_ID).toMatch(/^prj_/);
+  });
+
+  it("sin_configurar solo si no hay CLI; lo demás, su motivo del vocabulario", () => {
+    expect(motivoDeCli({ error: { code: "ENOENT" } })).toBe("sin_configurar");
+    expect(motivoDeCli({ status: 1, stderr: "'vercel' is not recognized as an internal or external command" })).toBe("sin_configurar");
+    expect(motivoDeCli({ status: 1, stderr: "Error: Project not found ({\"name\":\"homenu\"})" })).toBe("no_existe");
+    expect(motivoDeCli({ status: 1, stderr: "Error: The token provided via VERCEL_TOKEN environment variable is not valid." })).toBe("sin_sesion");
+    expect(motivoDeCli({ status: 1, stderr: "Error: You do not have access to the specified account" })).toBe("permiso");
+    expect(motivoDeCli({ status: 1, stderr: "algo raro" })).toBe("otro");
+    for (const s of ["", "x", "Project not found", "403", "429", "ETIMEDOUT"]) {
+      expect([...MOTIVOS_FALLO, ...MOTIVOS_CANARIO]).toContain(motivoDeCli({ status: 1, stderr: s }));
+    }
+  });
+
+  it("un «Project not found» no es sin_configurar, y la línea del log no lleva la salida de la CLI", () => {
+    const lineas = [];
+    const pedirTanda = () => { throw Object.assign(new Error("vercel logs no ha ido\nError: Project not found homenu-secreto"), { motivo: "no_existe" }); };
+    const r = leerLogs({ ahora: T0, minutos: 60, env: { VERCEL_TOKEN: "v", GITHUB_ACTIONS: "true" }, pedirTanda, log: (l) => lineas.push(l) });
+    expect(r).toEqual({ fallos: null, logs: "no_existe" });
+    expect(lineas.map((l) => JSON.parse(l))).toEqual([{ evento: "vigia_logs", ok: false, motivo: "no_existe" }]);
+    expect(lineas.join("")).not.toContain("secreto");
+  });
+
+  it("sin token en Actions sí es sin_configurar; un error sin motivo, otro", () => {
+    const log = () => {};
+    expect(leerLogs({ ahora: T0, minutos: 60, env: { GITHUB_ACTIONS: "true" }, pedirTanda: () => "", log }).logs).toBe("sin_configurar");
+    expect(leerLogs({ ahora: T0, minutos: 60, env: { VERCEL_TOKEN: "v" }, pedirTanda: () => { throw new Error("x not found"); }, log }).logs).toBe("otro");
   });
 });

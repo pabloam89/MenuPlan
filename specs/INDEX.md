@@ -22,7 +22,10 @@ esto: hoy significaba cinco cosas (el fondo sin bandera, la copia de Supabase,
 las 19 cremas de bebé originales, `BASE_RECIPES`, ingredients frente a
 alimentos). Se dice el rol o el nombre de abajo. La lista de fuentes, con su
 estado y su fecha de retirada, vive en `src/data/model.js` (`TABLAS`, el único
-registro) y la vigila `ops/fuentes.test.js`.
+registro) y la vigila `ops/fuentes.test.js`. Leer una fuente `retirado` o
+`copia_retirada` (o usar una `deprecado` sin ser su consumidor declarado) pone
+rojo `ops/lecturasRetiradas.test.js` (issue #251), con qué leer en su lugar. Una fuente `deprecado` con la fecha vencida NO
+es rojo: es un aviso (lo cuenta `fuentesVencidas`, issue #253).
 
 | Rol de una fuente | Qué es |
 |---|---|
@@ -92,7 +95,7 @@ Veredicto del motor de reglas: «El notepad es el 5 % del esfuerzo;
 
 | Si cambia... | Rompe (directamente) | Por qué |
 |---|---|---|
-| `recipeSchema.js` (forma de una receta) | `recipe-catalog`, `menu-generation` (prompt server-side), `receipt-ocr` no afectado | 3 sitios sincronizados a mano: JSON bundleado, `UserRecipeDraftSchema`, prompt `structure-recipe` (el mapper `rowToRecipe` es copia retirada) |
+| `recipeSchema.js` (forma de una receta) | `recipe-catalog`, `menu-generation` (prompt server-side), `receipt-ocr` no afectado | 3 sitios sincronizados a mano: JSON bundleado, `UserRecipeDraftSchema`, prompt `structure-recipe` (el mapper `rowToRecipe` de la copia de Supabase se borró el 9 oct 2026) |
 | `aiModels.js` (ids de modelo) | `menu-generation`, `recipe-catalog` | `api/generate.js` tiene su propia lista `ALLOWED_MODELS` duplicada a mano; `api/recipe-steps.js` tiene una tercera constante propia |
 | `api/_guard.js` (rate limit / guard) | `menu-generation`, `recipe-catalog`, `receipt-ocr` | los tres llaman a `/api/generate` o `/api/recipe-steps`, ambos protegidos por el mismo guard compartido |
 | `api/_prompts.js` | `menu-generation` (planner, school-menu), `recipe-catalog` (structure-recipe, suggest-ingredients), `recipe-catalog`/API propia (steps) | única fuente server-side de los 5 prompts activos desde esta sesión |

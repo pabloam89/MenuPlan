@@ -154,7 +154,7 @@ deshecha: meter una fila en casa ajena se bloquea, en la propia pasa.
 `0064_catalogo_una_fuente` — solo comentarios: `recipes`, `catalog_meta`,
 `recipe_ingredients` y `dish_images` quedan marcadas EN DESUSO. La app ya no
 las lee (src/data/recipeCatalog.js carga solo el bundle; lo vigila
-src/data/catalogoUnaFuente.test.js). No se borra nada; `ingredients` no se
+src/data/catalogoUnaFuente.test.js, hoy ops/lecturasRetiradas.test.js). No se borra nada; `ingredients` no se
 toca (la 0064 creyó que la despensa apuntaba a ella: es falso, ver `copiaIngredientesSupabase` en src/data/model.js). Comprobado con `obj_description` tras
 aplicarla.
 

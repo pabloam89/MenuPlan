@@ -511,12 +511,11 @@
           "nombre": "Catálogo de recetas (JSON en git)",
           "hace": "Las recetas curadas por nosotros, con ingredientes, pasos, alérgenos y nutrición derivados; se leen del paquete, no de la base.",
           "grado": "estable",
-          "motivo_grado": "Muchos tests de datos, una sola fuente (catalogoUnaFuente.test.js) y se mide qué platos se ven. Las tablas SQL heredadas están en desuso (0064).",
+          "motivo_grado": "Muchos tests de datos, una sola fuente (ops/lecturasRetiradas.test.js) y se mide qué platos se ven. Las tablas SQL heredadas están en desuso (0064).",
           "ficheros": [
             "src/data/recipeCatalog.js",
             "src/data/recipes.js",
             "src/data/recipeSchema.js",
-            "src/data/recipeRow.js",
             "src/data/model.js",
             "src/lib/recipeSteps.js",
             "api/recipe-steps.js",

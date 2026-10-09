@@ -12,7 +12,7 @@ import { ESTADOS_FUENTE, ROLES_FUENTE, TABLAS, esFechaIso, fuentesVencidas } fro
  * este test lo vigila y su mensaje dice qué hacer.
  *
  * Existe para que «antiguo / nuevo» no vuelva a significar cinco cosas.
- * Aún NO prohíbe leer una fuente retirada: eso es el issue #251.
+ * Que nadie lea una fuente retirada lo vigila ops/lecturasRetiradas.test.js (#251).
  */
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const leer = (ruta) => readFileSync(join(RAIZ, ruta), "utf8");
@@ -153,7 +153,7 @@ describe("fuentes: las tablas copia no tienen lector vivo y las sin lector son c
       const conPuerta = ["app", "servidor"].filter((lado) => info.fichero_dueno?.[lado]);
       if (conPuerta.length) malos.push(`${t}: el módulo ${info.dueno} le da puerta ${conPuerta.join(" y ")}, pero es copia_retirada`);
     }
-    expect(malos, "Una copia retirada no tiene lectores. Si alguien la lee, no es una copia retirada: decídelo en el issue #251.").toEqual([]);
+    expect(malos, "Una copia retirada no tiene lectores. Si alguien la lee, no es una copia retirada: decídelo con ops/lecturasRetiradas.test.js (issue #251).").toEqual([]);
   });
 
   it("toda tabla que ops/MODULOS.json declara en_desuso es una copia_retirada del registro", () => {
