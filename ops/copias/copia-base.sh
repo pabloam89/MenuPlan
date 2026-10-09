@@ -151,7 +151,13 @@ RARAS=$(grep -vE '^(#|$)' "$COPIA_DESTINATARIOS" | grep -vcE '^age1[0-9a-z]{58}$
 command -v "$COPIA_DOCKER" >/dev/null || { echo "No encuentro $COPIA_DOCKER" >&2; false; }
 command -v "$COPIA_AGE" >/dev/null || { echo "No encuentro $COPIA_AGE" >&2; false; }
 mkdir -p "$COPIA_DIR/diaria" "$COPIA_DIR/semanal"
-TMP=$(mktemp -d)
+# Con systemd, dentro de RuntimeDirectory (tmpfs 700 que systemd borra al
+# parar, aunque nos maten con SIGKILL); a mano o en los tests, el /tmp de siempre.
+if [ -n "${RUNTIME_DIRECTORY:-}" ]; then
+  TMP=$(mktemp -d -p "${RUNTIME_DIRECTORY%%:*}")
+else
+  TMP=$(mktemp -d)
+fi
 
 # La contraseña sale de la URL a un passfile (600, en el temporal, que se borra
 # siempre) y la URL se queda sin ella: dentro del contenedor, pg_dump y psql la
@@ -176,9 +182,9 @@ export PGURL PGSSLMODE=require
 # Supabase (17): el formato custom de un pg_dump más nuevo no lo lee un
 # pg_restore más viejo. Al contenedor solo entran la URL sin contraseña (por el
 # entorno, -e NOMBRE) y el passfile, de solo lectura. La etiqueta es para
-# `cortar`.
+# `cortar`; --init, para que pg_dump no sea el PID 1 y muera con TERM.
 pg() {
-  "$COPIA_DOCKER" run --rm -i --label "menuplan-copia=$$" \
+  "$COPIA_DOCKER" run --rm -i --init --label "menuplan-copia=$$" \
     -e PGURL -e PGSSLMODE -e "PGPASSFILE=$PASSFILE_DENTRO" \
     -v "$TMP/pgpass:$PASSFILE_DENTRO:ro" "$COPIA_IMAGEN" "$@"
 }

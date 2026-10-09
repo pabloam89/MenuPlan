@@ -43,7 +43,7 @@ for n in $(compgen -v FALSO_); do vars+=("$n=\${!n}"); done
 mapas=()
 while [ $# -gt 0 ]; do
   case "$1" in
-    --rm|-i) shift ;;
+    --rm|-i|--init) shift ;;
     --label) shift 2 ;;
     -e) case "$2" in *=*) vars+=("$2") ;; *) [ -n "\${!2+x}" ] && vars+=("$2=\${!2}") ;; esac; shift 2 ;;
     -v) mapas+=("$2"); shift 2 ;;
@@ -191,6 +191,20 @@ describe.skipIf(!hayBash)("copia-base.sh con binarios falsos", () => {
     expect(argvCurl.length).toBeGreaterThan(0);
     expect(argvCurl.join("\n")).not.toMatch(/hc-ping/);
     expect(r.curl).toMatch(/^STDIN url = "https:\/\/hc-ping\.ejemplo\/uuid"$/m);
+  });
+
+  it("con RUNTIME_DIRECTORY (systemd), el passfile vive ahí y no queda nada al acabar", () => {
+    const s = montar();
+    const run = join(s.raiz, "run");
+    mkdirSync(run);
+    const r = correr(s, { RUNTIME_DIRECTORY: rutaBash(run) });
+    expect(r.status, r.stderr).toBe(0);
+    const docker = r.argv.split("\n").filter((l) => l.startsWith("docker run"));
+    expect(docker.length).toBeGreaterThan(0);
+    for (const l of docker) expect(l).toContain(`-v ${rutaBash(run)}/`);
+    // --init: pg_dump no es el PID 1 del contenedor y muere con TERM.
+    for (const l of docker) expect(l).toMatch(/ --init /);
+    expect(readdirSync(run)).toEqual([]);
   });
 
   it("una contraseña con %xx, dos puntos y barra llega decodificada y escapada al passfile", () => {

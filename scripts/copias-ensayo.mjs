@@ -43,6 +43,7 @@ import {
   CLAVE_PRIVADA, DIR_SERVIDOR, NOMBRE_COPIA, OP_CLAVE_COPIAS, SERVIDOR, SQL_SECUENCIAS,
   camposRegistroEnsayo, clavesAjenasAAuth, fechaDeCopia, lineaEstructurada, veredicto,
 } from "./lib/copias.mjs";
+import { VAR_LECTURA } from "./lib/rolLectura.mjs";
 
 /**
  * ops/copias/ensayos.log está en un repo público. false: la línea va entera
@@ -50,7 +51,6 @@ import {
  * (`camposRegistroEnsayo`). Lo decide Pablo (#273); no se cambia sin su sí.
  */
 const REGISTRO_SOLO_COCIENTE = false;
-import { VAR_LECTURA } from "./lib/rolLectura.mjs";
 
 const SSH = "C:\\Windows\\System32\\OpenSSH\\ssh.exe";
 const REGISTRO = join(RAIZ, "ops", "copias", "ensayos.log");

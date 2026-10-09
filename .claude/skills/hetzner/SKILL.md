@@ -107,7 +107,7 @@ la carpeta del repo con la rama de las copias. Cada paso, una llamada.
 4. La URL, por tubería y sin verla (`>`: crea el fichero):
    `npm run --silent op -- read "op://HoMenu/Supabase lectura/SUPABASE_DB_URL_LECTURA" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_DB_URL=%s\n" "$v" > /etc/menuplan-copia/copia.env; wc -c < /etc/menuplan-copia/copia.env'`
    → más de 60; 14 es que llegó vacía. La contraseña no sale en ningún `ps`:
-   el script la pasa a un passfile 600 del temporal, montado `:ro` en el
+   el script la pasa a un passfile en `/run/menuplan-copia` (tmpfs; systemd lo borra al parar), montado `:ro` en el
    contenedor (`PGPASSFILE`), y usa la URL sin ella.
 5. Primera copia (fila «Copia de la base ahora») → `resultado: ok`,
    `secuencias: sin-valor`, `auth: no`, `aviso: sin-canal`. Baja la imagen la
@@ -115,11 +115,11 @@ la carpeta del repo con la rama de las copias. Cada paso, una llamada.
 6. Solo con el 5 en `ok`: `"$SSH" root@100.73.252.32 'systemctl enable --now menuplan-copia.timer'`.
 7. El ensayo (abajo) con esa copia.
 
-- **Healthchecks** (si se decide en #273): check diario, gracia 2 h; la URL se
-  **añade** con `>>` (con `>` se borraría `COPIA_DB_URL`):
-  `printf '%s' "<url de ping>" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_AVISO_URL=%s\n" "$v" >> /etc/menuplan-copia/copia.env; grep -c ^COPIA_ /etc/menuplan-copia/copia.env'`
-  → `2`. Desde entonces, `aviso: ok`; un fallo llega con `/fail`. La URL va a
-  curl por stdin, no en su argv.
+- **Healthchecks** (si se decide en #273): check diario, gracia 2 h. Antes, la URL
+  de ping a la ficha `Healthchecks` de `HoMenu`, campo `COPIA_AVISO_URL` (OK;
+  skill `1password`), nunca tecleada en un comando. Se **añade** con `>>`:
+  `node scripts/op.mjs read "op://HoMenu/Healthchecks/COPIA_AVISO_URL" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_AVISO_URL=%s\n" "$v" >> /etc/menuplan-copia/copia.env; grep -c ^COPIA_ /etc/menuplan-copia/copia.env'`
+  → `2` (`>` borraría `COPIA_DB_URL`). Luego `aviso: ok`; un fallo llega con `/fail`.
 - **Tras una purga legítima** (la copia baja a menos de la mitad y para por
   `incompleta`): `"$SSH" root@100.73.252.32 'systemd-run --wait -p EnvironmentFile=/etc/menuplan-copia/copia.env /usr/local/sbin/menuplan-copia --aceptar-tamano'`
   → `resultado: ok`; esa pasa a ser la referencia. Solo si se sabe por qué bajó.
