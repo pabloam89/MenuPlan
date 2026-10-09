@@ -40,7 +40,6 @@ const TRAGADOS_CONOCIDOS = {
   "scripts/podar.mjs": ["} catch {"], // ~l.35
   "scripts/prompt-ab-test.mjs": ["} catch (err) {"], // ~l.153 (solo console.log)
   "scripts/retirar.mjs": ["} catch {"], // ~l.28
-  "scripts/run-seed.mjs": ['await c.query("rollback").catch(() => {});'], // ~l.108
   "scripts/tarea.mjs": ["} catch {"], // ~l.62
   "scripts/verificar-estado.mjs": ['await client.query("rollback").catch(() => {});', "} catch {"], // ~l.264 y ~l.283
 };

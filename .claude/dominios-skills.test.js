@@ -61,7 +61,6 @@ describe("qué comandos tienen puerta", () => {
       "node --env-file=.env.local x.mjs OPS_DB_URL",
       "node scripts/backfill-personas.mjs",
       "node scripts/backfill-pantry-ingredient-ids.mjs --si",
-      "node scripts/run-seed.mjs",
       "node scripts/mercadona-sync.mjs",
       "supabase db push",
       "npx supabase migration repair --status applied 0090",

@@ -12,8 +12,8 @@ import { ES_CODIGO, SIMBOLOS_DEPRECADAS, deprecadas, lecturasDeprecadas, lectura
  * registro de fuentes (TABLAS de src/data/model.js), para el catálogo y para
  * todo lo demás que se retire.
  *
- *  - Fuente `retirado` / `copia_retirada` (tablas Supabase copia, sus vistas,
- *    supabase/seed_*.sql): ningún fichero de código la lee (`.from("t")`,
+ *  - Fuente `retirado` / `copia_retirada` (tablas Supabase copia ya borradas en
+ *    la 0093, sus vistas, o un fichero que no es código): ningún fichero de código la lee (`.from("t")`,
  *    `/rest/v1/t`, `select("t", …)` del bot, SQL embebido, ruta del fichero),
  *    salvo los que el propio registro declara (productor/consumidores) y los
  *    de LEE_RETIRADAS_ADMITIDO, cada uno con su motivo.
@@ -79,11 +79,17 @@ describe("lecturas de fuentes retiradas: el detector ve lo que tiene que ver", (
     expect(ve(`.from("recipe_derived_allergens")`)).toContain("recipe_derived_allergens");
     expect(ve("c.query(`select count(*) from\n recipe_ingredients`)")).toContain("recipe_ingredients");
     expect(ve(`await c.query("delete from ingredient_substitutions")`)).toContain("ingredient_substitutions");
-    expect(ve(`readFileSync("supabase/seed_x.sql")`)).toContain("supabase/seed_*.sql");
-    expect(ve(`join(ROOT, "supabase", "seed_recipes_1_de_4.sql")`)).toContain("supabase/seed_*.sql");
     // el helper con el nombre de la tabla también si cuelga de un objeto (db.select, bd.upsert)
     expect(ve(`await db.select("recipes", "id=eq.1")`)).toContain("recipes");
     expect(ve(`await bd.upsert("catalog_meta", {})`)).toContain("catalog_meta");
+  });
+
+  it("detecta también un fichero retirado que no es código (registro de mentira: los seeds ya no existen)", () => {
+    const falso = [{ id: "seedFalso", rol: "copia_retirada", estado: "retirado", tablas: [], vistas: [], ficheros: ["supabase/seed_*.sql"] }];
+    const veFalso = (src) => lecturasRetiradas(src, reglasDe(falso)).map((h) => h.objeto);
+    expect(veFalso(`readFileSync("supabase/seed_x.sql")`)).toContain("supabase/seed_*.sql");
+    expect(veFalso(`join(ROOT, "supabase", "seed_recipes_1_de_4.sql")`)).toContain("supabase/seed_*.sql");
+    expect(veFalso(`// leer supabase/seed_x.sql\nconst a = 1;`)).toEqual([]);
   });
 
   it("no se dispara con lo parecido, con los comentarios ni con un ejemplo dentro de un string", () => {
@@ -92,8 +98,8 @@ describe("lecturas de fuentes retiradas: el detector ve lo que tiene que ver", (
     expect(ve(`await select("bot_messages", "x", "y")`)).toEqual([]);
     expect(ve(`const ayuda = "recetas e ingredients"; const x = obj.recipes;`)).toEqual([]);
     expect(ve(`// supabase.from("recipes") y /rest/v1/dish_images\nconst a = 1;`)).toEqual([]);
-    expect(ve(`/* supabase.from('ingredients')\n   leer supabase/seed_x.sql */ const a = 1;`)).toEqual([]);
-    expect(ve(` * ver seed_ingredients.sql, select * from recipes`)).toEqual([]);
+    expect(ve(`/* supabase.from('ingredients')\n   y /rest/v1/ingredient_aliases */ const a = 1;`)).toEqual([]);
+    expect(ve(` * ver /rest/v1/catalog_meta, select * from recipes`)).toEqual([]);
     // una URL en un string no abre un comentario
     expect(ve(`const u = "https://x.es"; fetch(u + "/rest/v1/recipes")`)).toContain("recipes");
     // un EJEMPLO de lectura dentro de un string (un test, un mensaje) no es una lectura
@@ -171,7 +177,7 @@ describe("lecturas de fuentes retiradas: el detector ve lo que tiene que ver", (
 
   it("examina de verdad el código de la app, del bot y de los scripts", () => {
     // Que no mida nada: tiene que estar en la lista lo que más importa vigilar.
-    for (const f of ["src/App.jsx", "api/_bot/db.js", "src/lib/planner.js", "scripts/run-seed.mjs"]) expect(CODIGO, f).toContain(f);
+    for (const f of ["src/App.jsx", "api/_bot/db.js", "src/lib/planner.js", "scripts/consulta.mjs"]) expect(CODIGO, f).toContain(f);
     expect(CODIGO.length).toBeGreaterThan(300);
     expect(retiradas(TABLAS).length).toBeGreaterThan(0);
     // Hoy no queda ninguna deprecada; lo que se vigila por símbolo es una retirada (recetasPrototipo).
@@ -214,26 +220,29 @@ describe("lecturas de fuentes retiradas: el repo", () => {
   it("revisarAdmitidas() ve los defectos de una excepción (se prueba con datos falsos)", () => {
     const motivo = "un motivo suficientemente largo para pasar";
     const malos = revisarAdmitidas([
-      { fichero: "scripts/run-seed.mjs", fuente: "seedPostgres", motivo }, // ya declarada en el registro
-      { fichero: "scripts/no-existe.mjs", fuente: "seedPostgres", motivo },
+      { fichero: "src/data/recipes.js", fuente: "recetasPrototipo", motivo }, // ya declarada en el registro
+      { fichero: "scripts/no-existe.mjs", fuente: "copiaRecetasSupabase", motivo },
       { fichero: "src/App.jsx", fuente: "recetas", motivo }, // no es una fuente retirada
-      { fichero: "src/App.jsx", fuente: "seedPostgres", motivo: "corto" },
-      { fichero: "src/App.jsx", fuente: "seedPostgres", motivo }, // no la lee
+      { fichero: "src/App.jsx", fuente: "copiaRecetasSupabase", motivo: "corto" },
+      { fichero: "src/App.jsx", fuente: "copiaRecetasSupabase", motivo }, // no la lee
     ]);
     expect(malos).toEqual([
-      expect.stringContaining("scripts/run-seed.mjs: ya está declarada"),
+      expect.stringContaining("src/data/recipes.js: ya está declarada"),
       expect.stringContaining("scripts/no-existe.mjs ya no existe"),
       expect.stringContaining("src/App.jsx: «recetas» no es una fuente"),
-      expect.stringContaining("src/App.jsx (seedPostgres): falta el motivo"),
-      expect.stringContaining("src/App.jsx ya no lee «seedPostgres»"),
+      expect.stringContaining("src/App.jsx (copiaRecetasSupabase): falta el motivo"),
+      expect.stringContaining("src/App.jsx ya no lee «copiaRecetasSupabase»"),
     ]);
   });
 
-  it("los scripts del seed están en el registro, no en una lista paralela", () => {
-    const seed = rutasDeclaradas(porId.get("seedPostgres"));
-    expect(seed.has("scripts/run-seed.mjs")).toBe(true);
-    expect(seed.has("scripts/generate-supabase-seed.mjs")).toBe(true);
-    for (const id of ["copiaRecetasSupabase", "copiaIngredientesSupabase"]) expect(rutasDeclaradas(porId.get(id)).has("scripts/run-seed.mjs"), id).toBe(true);
+  it("los seeds y sus dos scripts se borraron con las tablas (#303): ni existen ni los declara el registro", () => {
+    expect(porId.has("seedPostgres")).toBe(false);
+    for (const f of ["scripts/run-seed.mjs", "scripts/generate-supabase-seed.mjs"]) expect(FICHEROS, f).not.toContain(f);
+    expect(FICHEROS.filter((f) => /^supabase\/seed_[\w.-]*\.sql$/.test(f)), "supabase/seed_*.sql vuelve a existir").toEqual([]);
+    // las copias borradas no tienen quien las escriba ni quien las lea
+    for (const f of retiradas(TABLAS).filter((t) => (t.tablas?.length ?? 0) + (t.vistas?.length ?? 0) > 0)) {
+      expect([...(f.productor ?? []), ...(f.consumidores ?? [])], `${f.id}: una tabla borrada no tiene productor ni consumidor`).toEqual([]);
+    }
   });
 
   it("SIMBOLOS_DEPRECADAS y el registro se corresponden en los dos sentidos", () => {

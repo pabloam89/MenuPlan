@@ -19,10 +19,10 @@ en otra rama); el 8 oct se suma la 0087, sin aplicar:
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **95** (con la 0092) |
+| Ficheros en `supabase/migrations/` | **96** (con la 0093) |
 | Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
 | Aplicadas | **86** |
-| **Sin aplicar** | **1** — `0021_store_products` (el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086, 0087, 0088, 0089 y 0090; el 9 oct, 0091 y 0092) |
+| **Sin aplicar** | **2** — `0021_store_products` y `0093_borrar_copias_catalogo` (CONTRAE: la lanza Pablo con `--pablo`; el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086, 0087, 0088, 0089 y 0090; el 9 oct, 0091 y 0092) |
 | En otras ramas | — |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
@@ -44,7 +44,8 @@ están en producción solo en parte. Ninguna se ha tocado; se deciden aparte:
 | Migración | Lo que falta en producción | Qué significa |
 |---|---|---|
 | `0010_recipe_discards` | **la tabla `user_recipe_discards` entera** | **Resuelto por código (8 oct 2026, rama `datos/descartes-de-casa`); la tabla sigue sin existir a propósito y no se va a crear.** Los descartes son de la casa: la app solo lee y escribe `household_recipe_discards` (0017, RLS de la 0071) con el `household_id` de la casa activa; sin casa se quedan en el dispositivo y suben al cargar la casa. `householdDiscardsSync.test.js` falla si alguien vuelve a consultar `user_recipe_discards`. **Queda un fallo en la base:** `ensure_user_household` (0071) la lee dentro de un `begin … exception when others`, así que ese bloque entero se deshace siempre: las casas nuevas nunca copian `user_state`, despensa, menús ni favoritos ni pasan a `active` (el 8 oct, 31 `dormant`, 4 `invite_ready`, 0 `active`). La quita la `0090_casa_nueva_completa` (issue #144); completar las casas que ya se quedaron a medias va aparte |
-| `0008_meal_extras_catalog` | la columna `user_recipes.product_aliases` | Ya se sabía (ver `scripts/generate-supabase-seed.mjs`). `recipeRow.js` la lee como opcional, así que no rompe nada. Está en la lista de limpieza para quitarla del repo |
+| `0008_meal_extras_catalog` | la columna `user_recipes.product_aliases` | **No existe en producción y nunca existió**: solo existía `recipes.product_aliases`, que se va con la 0093 al borrar `recipes`. La deriva está en el fichero 0008, que declara una columna que la base no tiene; no hay nada que quitar de la base. Nadie la lee (`recipeRow.js`, que la leía como opcional, se borró antes; la sembraba `scripts/generate-supabase-seed.mjs`, borrado el 9 oct 2026, #303) |
+| `0001_recipe_catalog` / seed (valores de enum) | los valores `salsas` (`recipe_category`), `salsa` (`meal_role`) y `salsa` (`recipe_type`) | Existen en producción y desde que se borró `seed_0_setup.sql` (#303) **ya no los declara ningún fichero del repo**: si hubiera que reconstruir la base desde las migraciones, faltarían. Migración que los declara, pendiente en #366 |
 | `0017_households` | la política `household_members` «Users insert self as viewer» | Nadie la recrea ni la quita en otra migración: se quitó a mano. Unirse a una casa va por la RPC `join_household_by_token` (security definer), así que no hace falta. Queda que una migración lo diga |
 | `0003_analytics_feedback_votes` | las políticas de `user_profiles`, `user_events` y `app_feedback`, y dos índices de `user_events` | Las tablas se crearon desde el panel antes que el fichero, con otros nombres (las políticas se llaman «insert own» y «select own»: las retoca la 0011). El fichero no es lo que se ejecutó |
 | `0003_user_data` | la política `recipe_votes` «Votes are publicly readable» | Igual que la anterior: nombre distinto o quitada a mano. Sin efecto visible |
@@ -150,13 +151,37 @@ exigen además `is_household_owner(household_id)`; trigger
 incumplían. Comprobado después con usuarios simulados en una transacción
 deshecha: meter una fila en casa ajena se bloquea, en la propia pasa.
 
+## La 0093, SIN APLICAR (CONTRAE; la lanza Pablo con `--pablo`)
+
+`0093_borrar_copias_catalogo` (issue #303; Pablo decidió el 9 oct 2026 borrar ya,
+sin esperar a pasar staging a `main`) — borra las 7 tablas y 2 vistas copia del
+catálogo: `recipes` (1002 filas), `recipe_ingredients` (7140), `catalog_meta` (1,
+v27 del 8 sep), `dish_images` (2344), `ingredients` (383), `ingredient_aliases`
+(419), `ingredient_substitutions` (16) y las vistas `recipe_derived_allergens`
+(980) y `recipe_substitution_options` (327). Nadie las lee (el detector
+`ops/lecturasRetiradas.test.js`), la copia se quedó en la v27 y estaban abiertas a
+la API pública. Una sentencia por objeto, sin `cascade` ni `if exists`; empieza
+comprobando que los recuentos son los de la copia previa y acaba comprobando que
+`set_updated_at` y los enums de la 0001 siguen. Copia previa de los 9 objetos,
+fuera del repo: `C:\dev\copias-previas\2026-10-09-catalogo-copia\` (MANIFIESTO con
+filas y sha256, ESQUEMA y LEEME de cómo restaurar). En el mismo PR se borran los
+9 `supabase/seed_*.sql`, `scripts/generate-supabase-seed.mjs` y
+`scripts/run-seed.mjs`. Efecto en `main` (producción): `src/data/recipeCatalog.js`
+consulta `catalog_meta` en cada carga y, si falla, usa el bundle: una petición más
+por carga. Testigo (negativo): `recipes` y las otras 8 ya no están en `pg_class`
+(`node scripts/verificar-estado.mjs --solo 0093`). Al aplicarla: moverla de «Sin
+aplicar» a aplicada y anotar la fecha. Al aplicarla, el ensayo de copias
+(`copias-ensayo`) dará `tablas-distintas` una sola vez si restaura una copia
+anterior al borrado; repetir la copia tras aplicar.
+
 ## La 0064, aplicada el 30 sep 2026
 
 `0064_catalogo_una_fuente` — solo comentarios: `recipes`, `catalog_meta`,
 `recipe_ingredients` y `dish_images` quedan marcadas EN DESUSO. La app ya no
 las lee (src/data/recipeCatalog.js carga solo el bundle; lo vigila
-src/data/catalogoUnaFuente.test.js, hoy ops/lecturasRetiradas.test.js). No se borra nada; `ingredients` no se
-toca (la 0064 creyó que la despensa apuntaba a ella: es falso, ver `copiaIngredientesSupabase` en src/data/model.js). Comprobado con `obj_description` tras
+src/data/catalogoUnaFuente.test.js, hoy ops/lecturasRetiradas.test.js). No se
+borró nada entonces (las 7 tablas y 2 vistas las borra la 0093); `ingredients` no se
+tocó (la 0064 creyó que la despensa apuntaba a ella: es falso, ver `copiaIngredientesSupabase` en src/data/model.js). Comprobado con `obj_description` tras
 aplicarla.
 
 ## La 0063, aplicada el 30 sep 2026

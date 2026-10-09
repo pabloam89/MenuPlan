@@ -35,6 +35,7 @@
     "issues": "node scripts/issues.mjs",
     "normas": "node scripts/normas.mjs",
     "planos": "node scripts/planos.mjs",
+    "flujo": "node scripts/flujo.mjs",
     "hora": "node scripts/hora.mjs",
     "consulta": "node scripts/consulta.mjs",
     "verificar:estado": "node scripts/verificar-estado.mjs",

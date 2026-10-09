@@ -81,10 +81,28 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 | Aplicar una migración (OK, o Pablo con `!`) | `node scripts/apply-migration.mjs <nombre> --si` | exige estar en staging, un ensayo de menos de una hora y el OK de `auditor-datos` en la cabecera |
 | Consulta a producción | como `scripts/verificar-estado.mjs`: `set session characteristics as transaction read only`, `begin read only`, solo `select`, `rollback` | filas o recuentos; aunque se colara un `update`, Postgres lo rechaza |
 | ¿Qué plan y qué copias tiene? | En el navegador: Vercel → Storage → «MenuPlan» → **Open in Supabase** → Database → Backups (pestañas «Scheduled backups» y «Point in time»). Sin sesión de Supabase propia, esa es la única entrada | el plan, y o la lista de copias o el aviso «Free Plan does not include project backups». El 2026-10-08 salió ese aviso |
+| Borrar tablas o vistas (primer drop, #303) | los pasos de abajo; la migración la lanza Pablo con `--pablo` | `verificar-estado --solo 00XX` con los testigos negativos «está» (el objeto ya falta de la base) |
 | Ver los jobs de `pg_cron` | `select jobname, schedule from cron.job` en solo lectura | `bot-recordatorios` y `bot-retencion` |
 | Programar o quitar el cron de recordatorios | `node scripts/bot-cron.mjs [url] [--quitar]` (por defecto, contra staging) | el job creado o quitado; el mismo `BOT_CRON_SECRET` tiene que estar en Vercel |
 | Ver quién es `anon` en una función | `select proname, proacl from pg_proc where proname = '<función>'` en solo lectura | `anon` ni `public` en el ACL |
 
+- **Borrar tablas o vistas** (lo que enseñó la 0093, #303):
+  1. Copia previa de solo esos objetos, fuera del repo y de OneDrive
+     (`C:\dev\copias-previas\<fecha>-<tema>\`): un JSON por pieza, un esquema
+     (columnas, restricciones, políticas y `relacl` de `pg_class`), un manifiesto
+     con filas y sha256, y un LEEME de cómo restaurar. No es una copia de la base.
+  2. La migración empieza con un bloque que cuenta las filas y aborta si no coinciden
+     con la copia.
+  3. Las vistas primero y una sentencia por objeto, sin `cascade` ni `if exists`: si
+     algo depende, que falle en el ensayo. El `drop` va fuera de todo `do $$`, porque
+     las herramientas no lo ven (test `dropsSinLeer`).
+  4. En `src/data/model.js` la fuente queda `retirado` con la nota «Borrada en la
+     NNNN»; `ops/fuentes.test.js` comprueba en los dos sentidos que esa migración la
+     borra, y `ops/lecturasRetiradas.test.js` sigue vigilando que nadie la lea.
+  5. Orden: PR fusionado en staging, ensayo (vale una hora), Pablo la lanza,
+     `verificar-estado --solo`, y `supabase/ESTADO.md`.
+  6. Número: el contiguo a staging; el «siguiente libre» del arranque suma uno al número
+     más alto de los PR abiertos y deja huecos que `migrations.test.js` rechaza (#369).
 - **El registro de verdad es `supabase/ESTADO.md`**, no la tabla de
   migraciones de Supabase (`supabase_migrations.schema_migrations`), que solo
   tiene 12 filas: casi todo se aplicó a mano.
@@ -103,6 +121,12 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 
 ## Lo que falló y por qué
 
+- **2026-10-09 · primer drop de tablas (#303): las herramientas del repo daban
+  por hecho que toda tabla creada seguía existiendo.** Causa: era el primer
+  `drop table` del repo; los tests de fuentes, módulos y ids de persona seguían dando
+  verde o rojo por el CREATE antiguo, y el número que proponía el arranque dejaba
+  huecos. Arreglo: `scripts/lib/migraciones.mjs` lee los drops, el test de doble
+  sentido de `ops/fuentes.test.js`, la copia previa con manifiesto y esta operación.
 - **2026-10-08 · esta skill daba por buena una «pista» de copias continuas y no
   había ninguna copia.** La consulta de solo lectura `pg_stat_archiver` salía
   sana (`archive_mode = on`, `wal-g`, 8.620 ficheros, 0 fallidos) y se tomó por la

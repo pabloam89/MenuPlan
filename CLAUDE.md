@@ -243,26 +243,22 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 ## Cuando algo falla: hasta el problema de fondo
 
 Ningún fallo se cierra como suelto. Se arregla el caso si urge y se analiza
-de qué **problema de fondo** es síntoma; el análisis acaba en una de cuatro
-respuestas, que van en el issue del caso (`analisis:`). **Esto no depende de
-acordarse**: todo PR lleva `Casos: #n, #m` o `Casos: ninguno — <por qué>` (la
-guardia no deja abrirlo sin ella y el CI comprueba que son casos de verdad), y
-al terminar `pendientes.mjs` frena una vez si hubo fallos y no registraste nada.
+de qué **problema de fondo** es síntoma (`tipo:fondo`). El caso acaba en una
+respuesta de `analisis:` —nuevo, abierto, no aguantó o puntual— y se cuelga de
+su fondo; el arreglo se hace en el fondo, no en el caso: uno o varios encargos
+colgando de él, y se cierra cuando acaban y un test cubre la clase. **Esto no
+depende de acordarse**: todo PR lleva `Casos: #n, #m` o `Casos: ninguno — <por
+qué>` (la guardia no deja abrirlo sin ella y el CI comprueba que son casos de
+verdad), y al terminar `pendientes.mjs` frena una vez si hubo fallos y no
+registraste nada.
 
-1. **Nuevo**: no había problema de fondo. Se abre uno (`tipo:fondo`) con su
-   arreglo general y cómo se probará que la clase entera queda cubierta.
-2. **Abierto**: ya existe y sigue abierto. El caso se cuelga de él: más
-   evidencia, más prioridad.
-3. **No aguantó**: existía y lo cerró un PR. Se cuelga el caso, el fondo se
-   reabre y se dice si el arreglo **se rompió** (falta un test que lo proteja)
-   o **se quedó corto** (tapó casos, no la clase).
-4. **Puntual**: no puede repetirse, o repetirlo no hace daño, y se dice por
-   qué. «Alguien podría volver a hacerlo» no es puntual. Se apunta igual.
-
-El arreglo se hace en el problema de fondo, no en el caso: uno o varios
-encargos colgando de él (uno por superficie, o uno solo si es una pieza
-común). Se cierra cuando acaban sus encargos y un test cubre la clase.
-Decisiones pendientes y trabajo por coger, también como issues, no en el chat
-ni en mensajes entre sesiones. `npm run issues` lo cuenta y `--colgar` cuelga;
-el cómo, en la skill `issues`; el repaso del conjunto, cada semana con
-`/revision-issues`. El repo es público: nada sensible en un issue.
+- **El camino completo** (detectar, registrar, triaje, diagnosticar, fondo,
+  plan, ejecutar, verificar, observar, cerrar, aprender, medir), qué obligación
+  tiene cada paso y **qué la hace cumplir de verdad**: `docs/ops/FLUJO.md`.
+  `npm run flujo` da el resumen y dice qué pasos siguen blandos.
+- **Las definiciones** de cada respuesta del análisis, de las causas y de las
+  etiquetas: `scripts/lib/issues.mjs`, su única fuente. No se copian aquí.
+- Decisiones pendientes y trabajo por coger, también como issues, no en el chat
+  ni en mensajes entre sesiones. `npm run issues` lo cuenta y `--colgar` cuelga;
+  el cómo, en la skill `issues`; el repaso del conjunto, cada semana con
+  `/revision-issues`. El repo es público: nada sensible en un issue.
