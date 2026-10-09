@@ -5,9 +5,10 @@ import { fileURLToPath } from "node:url";
 import {
   ALCANCES, ANTE_FALLO, EJECUTORES, EJECUTORES_DEL_SISTEMA, RIESGOS, VEREDICTOS,
   comprobarNormasPr, contarFrases, esVigilado, ficherosNormativos, leerRegistro, lineaNormas, lineasAnadidas, medirFrases,
-  problemasDeDureza, problemasDeForma, recuento, CIFRAS_FONDO, medirFondo,
+  problemasDeConjunto, problemasDeDureza, problemasDeForma, recuento, CIFRAS_FONDO, medirFondo,
 } from "../scripts/lib/normas.mjs";
-import { MEDIDORES, evaluarCriterio } from "../scripts/lib/planos.mjs";
+import { CONSULTA_CON_MOTIVO, MEDIDORES, evaluarCriterio } from "../scripts/lib/planos.mjs";
+import { CONSULTA } from "../scripts/lib/issues.mjs";
 
 /**
  * El registro de normas (#296). Falla si una norma que se dice dura no lo es,
@@ -47,6 +48,10 @@ describe("ops/normas.json", () => {
   it("ninguna norma se dice más dura de lo que es", () => {
     const aviso = "O se arregla lo que falta (ejecutor, alcance, test, issue) o se baja el veredicto en ops/normas.json: una norma dura sin ejecutor es texto.";
     expect(registro.normas.flatMap((n) => problemasDeDureza(n, ctx)), aviso).toEqual([]);
+  });
+
+  it("un mismo hecho de GitHub no sostiene dos normas (dos veredictos para lo mismo)", () => {
+    expect(problemasDeConjunto(registro.normas)).toEqual([]);
   });
 
   it("el recuento cuadra con el total", () => {
@@ -124,9 +129,16 @@ describe("el paso del CI: solo las líneas añadidas del PR (scripts/normas-pr.m
   });
 
   it("lineasAnadidas lleva la cuenta de la línea y salta ficheros borrados", () => {
-    const diff = ["+++ b/CLAUDE.md", "@@ -1,0 +5,2 @@", "+a", "+b", "+++ /dev/null", "@@ -1 +0,0 @@", "-c"].join("\n");
+    const diff = ["--- a/CLAUDE.md", "+++ b/CLAUDE.md", "@@ -1,0 +5,2 @@", "+a", "+b", "--- a/ops/PLANOS.md", "+++ /dev/null", "@@ -1 +0,0 @@", "-c"].join("\n");
     expect(lineasAnadidas(diff)).toEqual([{ ruta: "CLAUDE.md", linea: 5, texto: "a" }, { ruta: "CLAUDE.md", linea: 6, texto: "b" }]);
     expect(lineaNormas("**Normas:** sin novedades — x y z")).toEqual({ presente: true, motivo: "x y z" });
+  });
+
+  it("una línea añadida que empieza por «++ » no se toma por la cabecera de otro fichero", () => {
+    // En el diff sale «+++ …»; solo es cabecera justo después de «--- ».
+    const diff = ["--- a/CLAUDE.md", "+++ b/CLAUDE.md", "@@ -1,0 +1,2 @@", "+++ Nunca se fusiona a main.", "+b"].join("\n");
+    expect(lineasAnadidas(diff)).toEqual([{ ruta: "CLAUDE.md", linea: 1, texto: "++ Nunca se fusiona a main." }, { ruta: "CLAUDE.md", linea: 2, texto: "b" }]);
+    expect(comprobarNormasPr({ diff, ids }).ok).toBe(false);
   });
 });
 
@@ -152,6 +164,11 @@ describe("la medición del fondo", () => {
       fondo(18, { state: "CLOSED", stateReason: "DUPLICATE" }), // duplicado: no cuenta
     ];
     expect(medirFondo(issues)).toEqual({ casos_sin_fondo: 2, fondos_sin_encargo: 1, fondos_cerrados_sin_test: 2 });
+  });
+
+  it("la consulta de issues de planos pide stateReason (si issues.mjs cambia, el replace no puede fallar en silencio)", () => {
+    expect(CONSULTA_CON_MOTIVO).not.toBe(CONSULTA);
+    expect(CONSULTA_CON_MOTIVO).toMatch(/\bstateReason\b/);
   });
 
   it("cada cifra tiene su definición y su medidor en planos, y sin red sale sin comprobar", () => {
@@ -185,6 +202,13 @@ describe("las reglas de dureza fallan cuando deben", () => {
   it("un test de planos vale si ops/planos.json tiene esa regla, y no si no", () => {
     expect(problemas({ ejecutor: "github_regla", test: "planos:check_obligatorio:staging", test_fallo: undefined })).toEqual([]);
     expect(problemas({ ejecutor: "github_regla", test: "planos:inventada", test_fallo: undefined }).join()).toMatch(/no existe/);
+  });
+
+  it("dos normas con la misma comprobación de planos son el mismo hecho; con un fichero de test, no", () => {
+    const a = { ...DURA, id: "a", test: "planos:check_obligatorio:staging" };
+    expect(problemasDeConjunto([a, { ...a, id: "b", veredicto: "semidura" }]).join()).toMatch(/a, b: el mismo hecho/);
+    expect(problemasDeConjunto([a, { ...a, id: "b", test: "planos:check_obligatorio:main" }])).toEqual([]);
+    expect(problemasDeConjunto([{ ...DURA, id: "a" }, { ...DURA, id: "b" }])).toEqual([]);
   });
 
   it("riesgo alto sin ser dura y sin issue", () => {

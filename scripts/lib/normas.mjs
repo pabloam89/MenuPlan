@@ -145,6 +145,23 @@ export function problemasDeDureza(n, ctx) {
   return malos;
 }
 
+/**
+ * Reglas del registro entero (#351). Una comprobación de la medición de planos
+ * (`planos:<regla>[:<rama>]`) es un hecho de GitHub concreto: si dos normas la
+ * dan como test, son el mismo hecho dicho dos veces, y acaban con dos
+ * veredictos distintos (pasó con «staging exige tests», tres normas). Un
+ * fichero de test no cuenta: guardia.test.js vigila muchas normas distintas.
+ */
+export function problemasDeConjunto(normas) {
+  const porHecho = new Map();
+  for (const n of normas) {
+    if (!esReferenciaPlanos(n.test)) continue;
+    porHecho.set(n.test, [...(porHecho.get(n.test) ?? []), n.id]);
+  }
+  return [...porHecho].filter(([, ids]) => ids.length > 1)
+    .map(([hecho, ids]) => `${ids.join(", ")}: el mismo hecho (${hecho}) en ${ids.length} normas; deja una sola, con un solo veredicto`);
+}
+
 // ── Frases normativas ─────────────────────────────────────────────────────
 
 /**
@@ -253,14 +270,19 @@ export function totalFrases(medida) {
 /**
  * Las líneas añadidas de un diff unificado (`git diff -U0`), en los ficheros
  * vigilados: [{ ruta, linea, texto }]. Un fichero renombrado solo trae lo que
- * cambió, y una línea borrada no cuenta: nada que regenerar.
+ * cambió, y una línea borrada no cuenta: nada que regenerar. «+++ » solo es
+ * cabecera justo después de «--- »: dentro de un trozo es una línea añadida
+ * que empieza por «++ » (#351).
  */
 export function lineasAnadidas(diff) {
   const fuera = [];
   let ruta = null;
   let n = 0;
+  let anterior = "";
   for (const l of String(diff ?? "").replace(/\r/g, "").split("\n")) {
-    if (l.startsWith("+++ ")) {
+    const tras = anterior;
+    anterior = l;
+    if (l.startsWith("+++ ") && tras.startsWith("--- ")) {
       const r = l.slice(4).trim();
       ruta = r === "/dev/null" ? null : r.replace(/^b\//, "");
       continue;
