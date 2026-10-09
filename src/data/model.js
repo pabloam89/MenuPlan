@@ -22,14 +22,33 @@
  *               (defaultUnit, pieza, baseServings, freezable, time)
  *   control     versionado y procedencia. (estrella, catalogVersion)
  *
- * ── Tipos de tabla ────────────────────────────────────────────────────────
- *   fuente      se edita (a mano o por script) y se commitea. Es la verdad.
- *   derivada    se CALCULA de una o más fuentes con un operador determinista.
- *               Si se materializa, lleva el hash de sus entradas y un test la
- *               marca caducada cuando la fuente cambia sin regenerarla.
- *   externa     viene de fuera (BEDCA, Mercadona) por un pipeline con
- *               revisión. Nunca se estima a mano: sin dato es sin dato.
- *   salida      lo que se pinta o se guarda para el usuario. No se edita.
+ * ── Rol de una fuente (issue #249) ────────────────────────────────────────
+ * Cada entrada de TABLAS es UNA fuente de datos y tiene un rol, de un
+ * vocabulario cerrado (ROLES_FUENTE). Es el ÚNICO registro de fuentes del
+ * repo; ops/fuentes.test.js lo vigila. Las definiciones en llano, para
+ * personas, están en specs/INDEX.md («Vocabulario del catálogo»).
+ *
+ *   ingesta           viene de fuera (BEDCA, Mercadona…) por un pipeline con
+ *                     revisión. Nunca se estima a mano: sin dato es sin dato.
+ *   fuente_de_verdad  se edita (a mano o por script) y se commitea. Es la verdad.
+ *   derivado          se CALCULA de otras fuentes con un operador determinista
+ *                     (o es una salida que se pinta). Si se materializa, lleva
+ *                     el hash de sus entradas y un test la marca caducada.
+ *   copia_retirada    copia que se leyó y ya no, o que se sembró para leerse y
+ *                     nunca se leyó. No se usa para nada nuevo; `sustituido_por`
+ *                     dice dónde vive ahora el dato.
+ *
+ * ── Ciclo de vida con fecha ───────────────────────────────────────────────
+ *   estado          vivo | deprecado | retirado (ESTADOS_FUENTE).
+ *   retirar_el      fecha ISO. Obligatoria si deprecado (cuándo se quita) y si
+ *                   retirado (cuándo se dejó de leer). Null si vivo.
+ *   sustituido_por  id de OTRA fuente viva, o null con «sin sustituto» en la
+ *                   nota. Obligatorio decidirlo si deprecado o retirado.
+ *   ficheros        rutas que la fuente posee: ficheros, o un patrón con * en
+ *                   el último tramo (src/data/recipes/*.json). Lo usa el test
+ *                   que exige que todo JSON de datos pertenezca a una fuente.
+ *   tablas, vistas  nombres en Supabase (los crea alguna migración).
+ * Lo omitido vale: estado «vivo», sin fecha ni sustituto, sin ficheros.
  *
  * ── Frecuencia de actualización ───────────────────────────────────────────
  *   release     cambia cuando entra una tanda de recetas o una corrección.
@@ -49,17 +68,22 @@
  */
 
 export const PLANOS = ["identidad", "nutricion", "funcion", "logistica", "control"];
-export const TIPOS_TABLA = ["fuente", "derivada", "externa", "salida"];
+/** Roles de una fuente (definiciones arriba y en specs/INDEX.md). La única definición. */
+export const ROLES_FUENTE = ["ingesta", "fuente_de_verdad", "derivado", "copia_retirada"];
+/** En qué punto de su vida está una fuente. */
+export const ESTADOS_FUENTE = ["vivo", "deprecado", "retirado"];
 export const FRECUENCIAS = ["release", "pipeline", "llm", "build", "carga", "runtime"];
 
-export const TABLAS = [
+const DECLARADAS = [
   // ── FUENTES ───────────────────────────────────────────────────────────────
   {
     id: "alimentos",
-    tipo: "fuente",
+    rol: "fuente_de_verdad",
     ruta: "src/data/alimentos.json",
     clave: "id",
     actualizacion: "pipeline",
+    ficheros: ["src/data/alimentos.json"],
+    nota: "Fuente de verdad SOLO del campo `nutricion` (y su procedencia, que viaja con él). El resto de la fila (ids, taxonomía, familia, dimensiones) se regenera con build-alimentos.mjs desde ingredients.json, familiaLabels.json y los *Choices.json.",
     procedencia: "LA TABLA MAESTRA del embudo de alimentos. BEDCA/CIQUAL/USDA entran por sus "
       + "decisiones curadas y desembocan aquí; el número y su procedencia viven juntos. Hasta el "
       + "22 sep 2026 la nutrición se copiaba de `ingredientes` y la copia que leía la app era "
@@ -88,8 +112,10 @@ export const TABLAS = [
   },
   {
     id: "ingredientes",
-    tipo: "fuente",
+    rol: "fuente_de_verdad",
     ruta: "src/data/ingredients.json",
+    ficheros: ["src/data/ingredients.json"],
+    nota: "Ingrediente y alimento son dos entidades con los mismos ids hoy (alimentoPorIngrediente es la identidad), no dos copias: el ingrediente es lo que pide la receta, el alimento es lo que se analiza.",
     clave: "id",
     actualizacion: "release",
     procedencia: "curado a mano. La NUTRICIÓN ya no vive aquí: es de la tabla `alimentos` (22 sep 2026)",
@@ -127,8 +153,10 @@ export const TABLAS = [
   },
   {
     id: "recetas",
-    tipo: "fuente",
+    rol: "fuente_de_verdad",
     ruta: "src/data/recipes/*.json",
+    ficheros: ["src/data/recipes/*.json"],
+    nota: "Desde el 30 sep 2026 (migración 0064) es la ÚNICA fuente de recetas. Recetario = las de estrella:true; Reserva = el resto. El patrón incluye bases.json, que además tiene su entrada propia (bases).",
     clave: "id",
     actualizacion: "release",
     procedencia: "generadas por LLM con contrato (api/_prompts.js) y curadas; ejes derivados por scripts deterministas",
@@ -189,8 +217,9 @@ export const TABLAS = [
   },
   {
     id: "bases",
-    tipo: "fuente",
+    rol: "fuente_de_verdad",
     ruta: "src/data/recipes/bases.json",
+    ficheros: ["src/data/recipes/bases.json"],
     clave: "baseKey ?? mainBase (claveDeBase)",
     actualizacion: "release",
     procedencia: "curado a mano",
@@ -201,8 +230,9 @@ export const TABLAS = [
   },
   {
     id: "sustituciones",
-    tipo: "fuente",
+    rol: "fuente_de_verdad",
     ruta: "src/data/ingredientSubstitutions.json",
+    ficheros: ["src/data/ingredientSubstitutions.json"],
     clave: "ingredientId × restriccion",
     actualizacion: "release",
     procedencia: "curado a mano",
@@ -213,8 +243,9 @@ export const TABLAS = [
   },
   {
     id: "pasosPorAparato",
-    tipo: "fuente",
+    rol: "fuente_de_verdad",
     ruta: "src/data/recipeStepsByAppliance.json",
+    ficheros: ["src/data/recipeStepsByAppliance.json"],
     clave: "recipeId × aparato",
     actualizacion: "llm",
     procedencia: "scripts/enrich-recipe-steps.mjs; contrato en applianceStepsContract.test.js",
@@ -224,10 +255,118 @@ export const TABLAS = [
     campos: [],
   },
 
+  {
+    id: "emparejamientoAlimentos",
+    rol: "fuente_de_verdad",
+    ruta: "src/data/*Choices.json",
+    ficheros: ["src/data/bedcaChoices.json", "src/data/ciqualChoices.json", "src/data/usdaChoices.json", "src/data/complementoChoices.json"],
+    clave: "ingredientId",
+    actualizacion: "pipeline",
+    procedencia: "decisiones humanas revisadas (con motivo): qué ficha de BEDCA, CIQUAL o USDA corresponde a cada ingrediente",
+    productor: ["scripts/ciqual-sync.mjs", "scripts/usda-sync.mjs", "scripts/apply-complemento.mjs"],
+    consumidores: ["scripts/build-alimentos.mjs"],
+    esquema: null,
+    campos: [],
+    nota: "Es la parte cara de la ingesta (el emparejamiento, no los números) y vive en el repo a propósito: output/ está en .gitignore.",
+  },
+  {
+    id: "consultasProveedores",
+    rol: "fuente_de_verdad",
+    ruta: "src/data/*Queries.json",
+    ficheros: ["src/data/ciqualQueries.json", "src/data/usdaQueries.json", "src/data/complementoQueries.json"],
+    clave: "ingredientId",
+    actualizacion: "pipeline",
+    procedencia: "traducciones curadas: con qué término buscar cada ingrediente en CIQUAL y USDA",
+    productor: [],
+    consumidores: ["scripts/ciqual-sync.mjs", "scripts/usda-sync.mjs"],
+    esquema: null,
+    campos: [],
+    nota: "Estar aquí no decide nada: solo hace que el ingrediente llegue a la puerta con candidatos. La decisión vive en emparejamientoAlimentos.",
+  },
+  {
+    id: "densidad",
+    rol: "fuente_de_verdad",
+    ruta: "src/data/densidad.json",
+    ficheros: ["src/data/densidad.json"],
+    clave: "ingredientId",
+    actualizacion: "release",
+    procedencia: "curado a mano: gramos por mililitro de los que se apartan de 1",
+    productor: [],
+    consumidores: ["scripts/build-alimentos.mjs (se copia a alimentos.densidad)", "src/lib/ingredients.js"],
+    esquema: null,
+    campos: [],
+  },
+  {
+    id: "fraccionComestible",
+    rol: "fuente_de_verdad",
+    ruta: "src/data/fraccionComestible.json",
+    ficheros: ["src/data/fraccionComestible.json"],
+    clave: "ingredientId",
+    actualizacion: "release",
+    procedencia: "curado a mano: qué fracción de lo comprado se come",
+    productor: [],
+    consumidores: ["scripts/build-alimentos.mjs (se copia a alimentos.fraccionComestible)", "src/lib/derive/masaServida.js"],
+    esquema: null,
+    campos: [],
+  },
+  {
+    id: "familiaLabels",
+    rol: "fuente_de_verdad",
+    ruta: "src/data/familiaLabels.json",
+    ficheros: ["src/data/familiaLabels.json"],
+    clave: "ingredientId",
+    actualizacion: "release",
+    procedencia: "juicios de familia y rol decididos a mano, con motivo",
+    productor: [],
+    consumidores: ["scripts/build-alimentos.mjs"],
+    esquema: null,
+    campos: [],
+  },
+  {
+    id: "stepPartsLabels",
+    rol: "fuente_de_verdad",
+    ruta: "src/data/stepPartsLabels.json",
+    ficheros: ["src/data/stepPartsLabels.json"],
+    clave: "recipeId",
+    actualizacion: "release",
+    procedencia: "partes de los pasos decididas a mano para validar al operador deriveStepParts",
+    productor: [],
+    consumidores: ["scripts/build-derived.mjs"],
+    esquema: null,
+    campos: [],
+  },
+  {
+    id: "productoBuscado",
+    rol: "fuente_de_verdad",
+    ruta: "src/data/productoBuscado.json",
+    ficheros: ["src/data/productoBuscado.json"],
+    clave: "ingredientId",
+    actualizacion: "release",
+    procedencia: "curado a mano: cómo llama el súper a un ingrediente cuando no lo llama por su nombre",
+    productor: [],
+    consumidores: ["src/lib/productMatcher.js", "scripts/medir-emparejador.mjs"],
+    esquema: null,
+    campos: [],
+  },
+  {
+    id: "fotosPlatos",
+    rol: "fuente_de_verdad",
+    ruta: "src/assets/dishes/dishImages.json",
+    ficheros: ["src/assets/dishes/dishImages.json"],
+    clave: "recipeId",
+    actualizacion: "release",
+    procedencia: "manifiesto de las fotos de los platos (URL en Blob); lo mantienen los scripts de fotos",
+    productor: ["scripts/regen-one-dish.mjs", "scripts/cachebust-fixed.mjs"],
+    consumidores: ["src/assets/dishes/dishImages.js", "api/share-recipe.js", "api/_bot/pintar.js"],
+    esquema: null,
+    campos: [],
+    nota: "Sustituye a la tabla dish_images de Supabase (migración 0064).",
+  },
+
   // ── EXTERNAS ──────────────────────────────────────────────────────────────
   {
     id: "bedca",
-    tipo: "externa",
+    rol: "ingesta",
     ruta: "https://www.bedca.net (informe local en output/bedca-*.json, no commiteado)",
     clave: "foodId",
     actualizacion: "pipeline",
@@ -239,14 +378,28 @@ export const TABLAS = [
     nota: "El pipeline NUNCA estima: propone candidatos, filtra por Atwater y estado de cocinado, y una decisión (humana o de bedca-select con lista cerrada) elige el foodId. 185 ingredientes siguen sin nutrición porque BEDCA no los tiene o no se ha decidido su match.",
   },
   {
+    id: "ciqualUsda",
+    rol: "ingesta",
+    ruta: "https://ciqual.anses.fr y https://fdc.nal.usda.gov (consultas locales en output/, no commiteadas)",
+    clave: "foodId",
+    actualizacion: "pipeline",
+    procedencia: "CIQUAL (ANSES) y USDA SR Legacy: segundo y tercer proveedor tras BEDCA",
+    productor: ["scripts/ciqual-sync.mjs", "scripts/usda-sync.mjs"],
+    consumidores: ["alimentos.nutricion (vía emparejamientoAlimentos)"],
+    esquema: null,
+    campos: [],
+  },
+  {
     id: "precios",
-    tipo: "externa",
-    ruta: "supabase: store_products (0021_store_products.sql); caché en output/mercadona-catalog.json",
+    rol: "ingesta",
+    ruta: "public/store/mercadona.json",
+    ficheros: ["public/store/mercadona.json"],
+    nota: "Se lee en producción (src/lib/storeCatalog.js). La tabla store_products (0021) no está aplicada en producción; la caché local es output/mercadona-catalog.json.",
     clave: "storeId × productId",
     actualizacion: "pipeline",
     procedencia: "scripts/mercadona-sync.mjs",
     productor: ["scripts/mercadona-sync.mjs"],
-    consumidores: ["src/lib/priceHistory.js", "src/lib/shoppingBuilder.js (price)"],
+    consumidores: ["src/lib/storeCatalog.js", "src/lib/priceHistory.js", "src/lib/shoppingBuilder.js (price)"],
     esquema: null,
     campos: [],
   },
@@ -254,8 +407,9 @@ export const TABLAS = [
   // ── DERIVADAS ─────────────────────────────────────────────────────────────
   {
     id: "recetaNutricion",
-    tipo: "derivada",
+    rol: "derivado",
     ruta: "src/data/derived/recipeNutrition.json",
+    ficheros: ["src/data/derived/recipeNutrition.json"],
     clave: "recipeId",
     actualizacion: "build",
     procedencia: "computeRecipeNutrition(receta, baseServings) sobre alimentos.nutricion, pesando por pieza del catálogo",
@@ -267,8 +421,9 @@ export const TABLAS = [
   },
   {
     id: "recetaPartes",
-    tipo: "derivada",
+    rol: "derivado",
     ruta: "src/data/derived/recipeParts.json",
+    ficheros: ["src/data/derived/recipeParts.json"],
     clave: "recipeId",
     actualizacion: "build",
     procedencia: "ingredientsByPart (curado, llm) o deriveStepParts (determinista, por FK) según la receta; vector de masa y macros por parte",
@@ -279,8 +434,129 @@ export const TABLAS = [
     nota: "Cada fila dice de dónde sale su `part`: curado (llm), derivado (operador) o monocomponente (no aplica). El operador se valida contra las curadas y la concordancia va en _meta.json: si no es alta, el derivado no se promociona a fuente.",
   },
   {
+    id: "recetaCoste",
+    rol: "derivado",
+    ruta: "src/data/derived/recipeCoste.json",
+    ficheros: ["src/data/derived/recipeCoste.json"],
+    clave: "recipeId",
+    actualizacion: "build",
+    procedencia: "coste por ración de cada receta (costeReceta, modo granel) sobre los precios de Mercadona",
+    productor: ["scripts/build-coste.mjs"],
+    consumidores: ["src/lib/coste.js"],
+    esquema: null,
+    campos: [],
+  },
+  {
+    id: "recetaFamilias",
+    rol: "derivado",
+    ruta: "src/data/derived/recipeFamilias.json",
+    ficheros: ["src/data/derived/recipeFamilias.json"],
+    clave: "recipeId",
+    actualizacion: "build",
+    procedencia: "gramos por familia de alimento de cada receta",
+    productor: ["scripts/build-derived.mjs"],
+    consumidores: ["src/data/recipeCatalog.js", "src/lib/menuRecuento.js"],
+    esquema: null,
+    campos: [],
+  },
+  {
+    id: "derivedMeta",
+    rol: "derivado",
+    ruta: "src/data/derived/_meta.json",
+    ficheros: ["src/data/derived/_meta.json"],
+    clave: "—",
+    actualizacion: "build",
+    procedencia: "hash de las fuentes con que se generaron los derivados y medidas de cobertura",
+    productor: ["scripts/build-derived.mjs"],
+    consumidores: ["src/data/derived.test.js"],
+    esquema: null,
+    campos: [],
+  },
+  {
+    id: "alimentosApp",
+    rol: "derivado",
+    ruta: "src/data/derived/alimentosApp.json",
+    ficheros: ["src/data/derived/alimentosApp.json"],
+    clave: "id",
+    actualizacion: "build",
+    procedencia: "la versión de alimentos que lee la app; lleva «NO SE EDITA»",
+    productor: ["scripts/build-alimentos.mjs"],
+    consumidores: ["src/lib/ingredients.js"],
+    esquema: null,
+    campos: [],
+  },
+  {
+    id: "alimentoPorIngrediente",
+    rol: "derivado",
+    ruta: "src/data/alimentoPorIngrediente.json",
+    ficheros: ["src/data/alimentoPorIngrediente.json"],
+    clave: "ingredientId",
+    actualizacion: "build",
+    procedencia: "mapa ingrediente → alimento (hoy la identidad), escrito por build-alimentos.mjs",
+    productor: ["scripts/build-alimentos.mjs"],
+    consumidores: ["src/lib/ingredients.js", "src/lib/derive/composicion.js", "src/lib/derive/ejesDePlato.js", "src/data/ingredientSchema.js"],
+    esquema: null,
+    campos: [],
+  },
+  {
+    id: "retencion",
+    rol: "derivado",
+    ruta: "src/data/retencion.json",
+    ficheros: ["src/data/retencion.json"],
+    clave: "técnica × nutriente",
+    actualizacion: "pipeline",
+    procedencia: "USDA Table of Nutrient Retention Factors R6 (dominio público), procesada por build-retencion.mjs a partir de un CSV que no está en el repo",
+    productor: ["scripts/build-retencion.mjs"],
+    consumidores: ["src/lib/derive/factorRetencion.js", "scripts/build-derived.mjs"],
+    esquema: null,
+    campos: [],
+  },
+  {
+    id: "vectoresRecetas",
+    rol: "derivado",
+    ruta: "api/_bot/recetasVectores.json",
+    ficheros: ["api/_bot/recetasVectores.json"],
+    clave: "recipeId",
+    actualizacion: "build",
+    procedencia: "vectores del Recetario para la búsqueda por significado de Lola",
+    productor: ["scripts/build-vectores.mjs"],
+    consumidores: ["api/_bot/vectores.js"],
+    esquema: null,
+    campos: [],
+    nota: "Solo vectoriza el Recetario (estrella:true).",
+  },
+  {
+    id: "fotosPlatosDerivadas",
+    rol: "derivado",
+    ruta: "src/assets/dishes/dishImageDerivatives.json",
+    ficheros: ["src/assets/dishes/dishImageDerivatives.json"],
+    clave: "recipeId",
+    actualizacion: "build",
+    procedencia: "versiones optimizadas de las fotos de los platos",
+    productor: ["scripts/backfill-dish-derivatives.mjs"],
+    consumidores: ["src/lib/dishPhotoOptimize.js"],
+    esquema: null,
+    campos: [],
+    nota: "Se lee en producción; se regenera desde fotosPlatos.",
+  },
+  {
+    id: "catalogoGaleria",
+    rol: "derivado",
+    estado: "vivo",
+    ruta: "dish-gallery/public/catalog.json",
+    ficheros: ["dish-gallery/public/catalog.json"],
+    clave: "combo_id",
+    actualizacion: "build",
+    procedencia: "copia plana de recetas con su foto para la herramienta aparte dish-gallery",
+    productor: ["scripts/build-catalog.mjs", "scripts/cachebust-fixed.mjs"],
+    consumidores: ["dish-gallery/src/App.jsx", "dish-gallery/build-sheets.mjs", "dish-gallery/read-approvals.mjs"],
+    esquema: null,
+    campos: [],
+    nota: "Parado en la v27, sin regenerar (último commit del 8 sep 2026). Solo lo leen las herramientas de dish-gallery, nunca la app ni Lola. Si la herramienta se retira, este fichero pasa a copia_retirada.",
+  },
+  {
     id: "healthFlags",
-    tipo: "derivada",
+    rol: "derivado",
     ruta: "(en memoria) recipe.healthFlags",
     clave: "recipeId",
     actualizacion: "carga",
@@ -293,7 +569,7 @@ export const TABLAS = [
   },
   {
     id: "aporte",
-    tipo: "derivada",
+    rol: "derivado",
     ruta: "(en memoria) aporteDe(receta)",
     clave: "recipeId",
     actualizacion: "runtime",
@@ -306,7 +582,7 @@ export const TABLAS = [
   },
   {
     id: "carbType",
-    tipo: "derivada",
+    rol: "derivado",
     ruta: "(en memoria) getCarbType(receta)",
     clave: "recipeId",
     actualizacion: "runtime",
@@ -318,7 +594,7 @@ export const TABLAS = [
   },
   {
     id: "recetaFrontend",
-    tipo: "derivada",
+    rol: "derivado",
     ruta: "(en memoria) catalogToFrontendRecipe(receta, comensales)",
     clave: "recipeId × comensales",
     actualizacion: "runtime",
@@ -333,24 +609,149 @@ export const TABLAS = [
   // ── SALIDAS ───────────────────────────────────────────────────────────────
   {
     id: "seedPostgres",
-    tipo: "salida",
-    ruta: "supabase/seed_recipes_*.sql",
+    rol: "copia_retirada",
+    estado: "retirado",
+    retirar_el: "2026-09-30",
+    sustituido_por: null,
+    ruta: "supabase/seed_*.sql",
+    ficheros: ["supabase/seed_*.sql"],
     clave: "id",
     actualizacion: "release",
-    procedencia: "scripts/generate-supabase-seed.mjs desde recetas + ingredientes; rowToRecipe (recipeRow.js) hace el viaje de vuelta",
+    procedencia: "scripts/generate-supabase-seed.mjs volcaba recetas + ingredientes a las tablas copia de Supabase",
     productor: ["scripts/generate-supabase-seed.mjs"],
-    consumidores: ["supabase (recipes, ingredients)", "src/data/recipeRow.js"],
+    consumidores: [],
     esquema: "supabase/migrations/0001_recipe_catalog.sql",
     campos: [],
-    nota: "recipeRow.test.js es el fusible: un campo nuevo en RecipeSchema que no viaje por rowToRecipe llega undefined desde la nube.",
+    nota: "Sin sustituto único: los seeds sembraban recetas, ingredientes, fotos y sustituciones, y cada tabla copia dice el suyo. Sin lectores desde la 0064: no se vuelve a ejecutar. Sus restos están registrados aparte (copiaRecetasSupabase… y recipeRow).",
+  },
+  {
+    id: "recipeRow",
+    rol: "copia_retirada",
+    estado: "retirado",
+    retirar_el: "2026-09-30",
+    sustituido_por: "recetas",
+    ruta: "src/data/recipeRow.js",
+    ficheros: ["src/data/recipeRow.js"],
+    clave: "id",
+    actualizacion: "release",
+    procedencia: "rowToRecipe: traducía una fila de la tabla recipes de Supabase a una receta del bundle",
+    productor: [],
+    consumidores: ["src/data/recipeRow.test.js"],
+    esquema: null,
+    campos: [],
+    nota: "Solo lo importan sus tests. El operador rowToRecipe de abajo describe lo que hacía.",
+  },
+  {
+    id: "copiaRecetasSupabase",
+    rol: "copia_retirada",
+    estado: "retirado",
+    retirar_el: "2026-09-30",
+    sustituido_por: "recetas",
+    ruta: "supabase: recipes, recipe_ingredients, catalog_meta",
+    tablas: ["recipes", "recipe_ingredients", "catalog_meta"],
+    clave: "id",
+    actualizacion: "release",
+    procedencia: "copia del catálogo de recetas parada en la v27 (8 sep 2026)",
+    productor: [],
+    consumidores: [],
+    esquema: "supabase/migrations/0064_catalogo_una_fuente.sql",
+    campos: [],
+    nota: "Sin lector desde la 0064 (30 sep 2026). Siguen en la base; borrarlas es decisión de Pablo.",
+  },
+  {
+    id: "copiaFotosSupabase",
+    rol: "copia_retirada",
+    estado: "retirado",
+    retirar_el: "2026-09-30",
+    sustituido_por: "fotosPlatos",
+    ruta: "supabase: dish_images",
+    tablas: ["dish_images"],
+    clave: "id",
+    actualizacion: "release",
+    procedencia: "copia de las fotos de los platos",
+    productor: [],
+    consumidores: [],
+    esquema: "supabase/migrations/0064_catalogo_una_fuente.sql",
+    campos: [],
+    nota: "Las fotos salen de src/assets/dishes/dishImages.json (0064).",
+  },
+  {
+    id: "copiaIngredientesSupabase",
+    rol: "copia_retirada",
+    estado: "retirado",
+    retirar_el: "2026-09-01",
+    sustituido_por: "ingredientes",
+    ruta: "supabase: ingredients, ingredient_aliases",
+    tablas: ["ingredients", "ingredient_aliases"],
+    clave: "id",
+    actualizacion: "release",
+    procedencia: "copia de los ingredientes y sus alias",
+    productor: [],
+    consumidores: [],
+    esquema: "supabase/migrations/0029_ingredients.sql",
+    campos: [],
+    nota: "Nunca tuvo lector (nació con c6767be, 1 sep 2026). La 0064 la dejó sin marcar creyendo que la despensa apuntaba a ella: es un error. user_pantry.ingredient_id (0041) es text SIN references y guarda ids de ingredients.json, no de esta tabla.",
+  },
+  {
+    id: "copiaSustitucionesSupabase",
+    rol: "copia_retirada",
+    estado: "retirado",
+    retirar_el: "2026-09-01",
+    sustituido_por: "sustituciones",
+    ruta: "supabase: ingredient_substitutions y la vista recipe_substitution_options",
+    tablas: ["ingredient_substitutions"],
+    vistas: ["recipe_substitution_options"],
+    clave: "ingredientId × restriccion",
+    actualizacion: "release",
+    procedencia: "copia de las sustituciones y la vista que las cruzaba con las recetas",
+    productor: [],
+    consumidores: [],
+    esquema: "supabase/migrations/0031_ingredient_substitutions.sql",
+    campos: [],
+    nota: "Nunca tuvo lector (1 sep 2026). La app lee src/data/ingredientSubstitutions.json.",
+  },
+  {
+    id: "copiaAlergenosSupabase",
+    rol: "copia_retirada",
+    estado: "retirado",
+    retirar_el: "2026-09-01",
+    sustituido_por: "recetas",
+    ruta: "supabase: vista recipe_derived_allergens",
+    vistas: ["recipe_derived_allergens"],
+    clave: "recipeId",
+    actualizacion: "release",
+    procedencia: "vista que sacaba los alérgenos de las recetas desde recipe_ingredients",
+    productor: [],
+    consumidores: [],
+    esquema: "supabase/migrations/0030_recipe_ingredients.sql",
+    campos: [],
+    nota: "Nunca tuvo lector (1 sep 2026). Los alérgenos se calculan hoy al cargar el catálogo (recipeCatalog.js), no en un script de derivados.",
+  },
+  {
+    id: "recetasPrototipo",
+    rol: "fuente_de_verdad",
+    estado: "deprecado",
+    retirar_el: "2026-12-31",
+    sustituido_por: null,
+    ruta: "src/data/recipes.js",
+    ficheros: ["src/data/recipes.js"],
+    clave: "id",
+    actualizacion: "release",
+    procedencia: "BASE_RECIPES: las recetas semilla del prototipo, escritas a mano dentro del código",
+    productor: [],
+    consumidores: ["src/data/recipes.js (RECIPES)", "src/lib/planner.js (generateMenu, que nadie importa)"],
+    esquema: null,
+    campos: [],
+    nota: "Sin sustituto: se borra el array BASE_RECIPES; ninguno de sus ids está en el JSON. NO se borra el registro RECIPES_BY_ID, que llena registerRecipes (App.jsx) con recetas de usuario o de IA y leen App.jsx, consumptionInsights.js, menuExport.js y menuInsights.js. src/lib/planner.js importa RECIPES (generateMenu, líneas 371-406; nadie lo llama): se borra con el array. recipes.js también exporta INGREDIENT_CATEGORIES (lo importan ingredientSchema.js e ingredientCategories.js).",
   },
   {
     id: "menu",
-    tipo: "salida",
+    rol: "derivado",
     ruta: "(en memoria / supabase menus) menuPlan",
     clave: "grupo × dia × comida",
     actualizacion: "runtime",
     procedencia: "resolverMenu (solver) o planner LLM, validado por validateMenu",
+    nota: "Salida: la persona lo edita y se guarda en user_menus; no se regenera, por eso el rol «derivado» es solo el más cercano.",
     productor: ["src/lib/solver.js", "src/lib/aiPlanner.js", "src/utils/validateMenu.js"],
     consumidores: ["src/screens/Menu.jsx", "src/lib/shoppingBuilder.js"],
     esquema: null,
@@ -358,11 +759,12 @@ export const TABLAS = [
   },
   {
     id: "listaCompra",
-    tipo: "salida",
+    rol: "derivado",
     ruta: "(en memoria) buildShoppingList(menuPlan)",
     clave: "ingrediente × unidad",
     actualizacion: "runtime",
     procedencia: "agrega líneas escaladas; ud→g solo si el ingrediente aparece en las dos unidades",
+    nota: "Salida calculada en memoria cada vez; no se guarda como tabla propia.",
     productor: ["src/lib/shoppingBuilder.js"],
     consumidores: ["src/screens/Shopping.jsx"],
     esquema: null,
@@ -391,5 +793,39 @@ export const OPERADORES = [
   { id: "rowToRecipe", tipo: "conversor", modulo: "src/data/recipeRow.js", entrada: ["seedPostgres"], salida: "recetas", determinista: true },
   { id: "buildShoppingList", tipo: "calculadora", modulo: "src/lib/shoppingBuilder.js", entrada: ["menu", "recetaFrontend", "ingredientes.pieza"], salida: "listaCompra", determinista: true },
 ];
+
+/**
+ * El registro con los valores por omisión puestos (ver «Ciclo de vida con
+ * fecha» arriba): lo que una entrada no dice, vale vivo y sin nada.
+ */
+export const TABLAS = DECLARADAS.map((t) => ({
+  estado: "vivo",
+  retirar_el: null,
+  sustituido_por: null,
+  ficheros: [],
+  tablas: [],
+  vistas: [],
+  ...t,
+}));
+
+/**
+ * Fuentes deprecadas cuya fecha de retirada ya pasó, para quien mida la deuda
+ * (issue #253) y para el aviso de ops/fuentes.test.js. `hoy` es AAAA-MM-DD y es obligatorio:
+ * quien llama lo saca de isoDeCasa() (src/lib/dias.js); este fichero no importa nada.
+ * Una fecha imposible (2026-13-45) no cuenta como vencida: la pilla el test
+ * de forma, que sí se pone rojo.
+ */
+export function fuentesVencidas(hoy, tablas = TABLAS) {
+  if (!esFechaIso(hoy)) throw new Error(`fuentesVencidas necesita «hoy» en AAAA-MM-DD (usa isoDeCasa() de src/lib/dias.js); recibió ${JSON.stringify(hoy)}`);
+  return tablas.filter((f) => f.estado === "deprecado" && esFechaIso(f.retirar_el) && f.retirar_el < hoy);
+}
+
+/** ¿Es una fecha ISO real? (rechaza 2026-13-45 y 2026-02-30). */
+export function esFechaIso(s) {
+  if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const [a, m, dia] = s.split("-").map(Number);
+  const d = new Date(Date.UTC(a, m - 1, dia));
+  return d.getUTCFullYear() === a && d.getUTCMonth() === m - 1 && d.getUTCDate() === dia;
+}
 
 export const tablaPorId = (id) => TABLAS.find((t) => t.id === id) ?? null;

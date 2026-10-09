@@ -96,6 +96,26 @@ describe("turno por la vía rápida", () => {
     expect(t.rutas[0].rapida).toBe(false);
   });
 
+  it("(a) con la pregunta de alergias con aviso pendiente no hay vía rápida: lo lee Lola (#229)", async () => {
+    const { select } = await import("../_bot/db.js");
+    select.mockImplementation(async (tabla) => (tabla === "bot_messages"
+      ? [{ role: "assistant", content: { texto: "¿Alguien tiene alguna alergia o intolerancia? Si no me dices nada, entiendo que ninguna." } }]
+      : []));
+    t.decision = { modo: "generar", confianza: 0.95 };
+    responder.mockImplementationOnce(async () => ({ texto: "Menú listo", fotos: [] }));
+    await turno({ chatId: 1, householdId: "h", esGrupo: false, base: "https://x", texto: "prepárame el menú", from: { id: 7, first_name: "Ana" }, responderA: 9 });
+    select.mockImplementation(async () => []);
+    expect(viaRapida).not.toHaveBeenCalled();
+    expect(responder).toHaveBeenCalledTimes(1);
+    expect(t.rutas[0].rapida).toBe(false);
+  });
+
+  it("sin aviso pendiente, la misma petición sí va por la vía rápida", async () => {
+    t.decision = { modo: "generar", confianza: 0.95 };
+    await turno({ chatId: 1, householdId: "h", esGrupo: false, base: "https://x", texto: "prepárame el menú", from: { id: 7, first_name: "Ana" }, responderA: 9 });
+    expect(viaRapida).toHaveBeenCalledTimes(1);
+  });
+
   it("quien eligió inglés va con Lola, sin enrutador", async () => {
     t.idioma = "en";
     responder.mockImplementationOnce(async () => ({ texto: "Tonight: omelette", fotos: [] }));

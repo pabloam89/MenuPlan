@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { ficherosDeGit, directosDe } from "./ficherosGit.js";
 import { tablas as tablasDeMigraciones } from "../scripts/cableado.mjs";
 import { GRADOS_DESARROLLO, AMBITOS_MODULO, ESTADOS_METRICA, MOTIVOS_SIN_PUERTA } from "../src/lib/vocabularios.js";
 
@@ -15,6 +16,8 @@ import { GRADOS_DESARROLLO, AMBITOS_MODULO, ESTADOS_METRICA, MOTIVOS_SIN_PUERTA 
  */
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const leer = (ruta) => readFileSync(join(RAIZ, ruta), "utf8");
+/** Lo que git ve (versionado + nuevo, sin lo ignorado): lo generado por el build no cuenta. */
+const FICHEROS = ficherosDeGit(RAIZ);
 const mapa = JSON.parse(leer("ops/MODULOS.json"));
 const cableado = JSON.parse(leer("supabase/cableado.json"));
 
@@ -186,8 +189,8 @@ describe("MODULOS.json: los ficheros existen y no queda código sin dueño", () 
     const sinMotivo = grupos.filter((g) => typeof g.motivo !== "string" || g.motivo.trim().length < 15).map((g) => g.ficheros.join(", "));
     const hay = [];
     for (const d of ["api", "api/_bot", "api/bot", "src/screens", "src/lib"]) {
-      for (const e of readdirSync(join(RAIZ, d), { withFileTypes: true })) {
-        if (e.isFile() && /\.(js|jsx|mjs)$/.test(e.name) && !/\.test\./.test(e.name)) hay.push(`${d}/${e.name}`);
+      for (const f of directosDe(FICHEROS, d)) {
+        if (/\.(js|jsx|mjs)$/.test(f) && !/\.test\./.test(f)) hay.push(f);
       }
     }
     const nuevos = hay.filter((f) => !enModulo.has(f) && !sinModulo.has(f));
@@ -263,14 +266,12 @@ describe("MODULOS.json: métricas", () => {
   /** Todo el código del producto y sus scripts, sin tests. */
   const codigo = (() => {
     const trozos = [];
-    const rec = (dir) => {
-      for (const e of readdirSync(join(RAIZ, dir), { withFileTypes: true })) {
-        const ruta = `${dir}/${e.name}`;
-        if (e.isDirectory()) { if (!["node_modules", "__snapshots__", "recipes"].includes(e.name)) rec(ruta); }
-        else if (/\.(js|jsx|mjs)$/.test(e.name) && !/\.test\./.test(e.name)) trozos.push(leer(ruta));
-      }
-    };
-    for (const d of ["src", "api", "scripts"]) rec(d);
+    const EXCLUIDOS = new Set(["node_modules", "__snapshots__", "recipes"]);
+    for (const f of FICHEROS) {
+      if (!/^(src|api|scripts)\//.test(f) || !/\.(js|jsx|mjs)$/.test(f) || /\.test\./.test(f)) continue;
+      if (f.split("/").some((p) => EXCLUIDOS.has(p))) continue;
+      trozos.push(leer(f));
+    }
     // Sin comentarios: un evento nombrado solo en un comentario no se emite.
     return trozos.join("\n").replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`])\/\/.*$/gm, "$1");
   })();

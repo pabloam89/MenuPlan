@@ -17,24 +17,16 @@
 
 import { EU_ALLERGENS, normalizeAllergenId } from "./allergens.js";
 import { EU_ALLERGEN_IDS } from "../data/ingredientSchema.js";
+import { alergiasRevisadas, marcarRevisadas } from "./alergiasBase.js";
+
+// Lo que no necesita el catálogo vive en alergiasBase.js (el bot lo usa sin
+// cargar el motor); aquí se reexporta para que la app siga importando de aquí.
+export {
+  pareceAlergia, alergiasRevisadas, alergiasPorSilencio, marcarRevisadas, marcarPorSilencio, conRecordatorioDeSilencio,
+} from "./alergiasBase.js";
 
 /** Aplicar a todos los de la casa. Mismo valor que usa la ficha de la app. */
 export const FAMILIA = "__familia__";
-
-// Se compara SIN tildes. La primera versión no lo hacía y se le escapaban
-// "soy alérgico" y "mi hija es celíaca" — o sea, las dos formas en que
-// cualquier español escribe esto.
-const sinTildes = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
-
-// Deliberadamente ancha: un falso positivo manda al usuario a la ficha de
-// alérgenos, que es donde debería ir de todas formas. Un falso negativo le deja
-// creer que está protegido.
-const ALERGIA_RE = /\b(alergi|alergic|intoleran|celiac|celiaqu|anafilax|sin gluten|sin lactosa|sin huevo|sin frutos secos|no puede tomar|le sienta mal|me sienta mal)/;
-
-/** ¿Esta frase habla de una alergia o intolerancia? Para cortar antes del modelo. */
-export function pareceAlergia(texto) {
-  return ALERGIA_RE.test(sinTildes(texto));
-}
 
 /**
  * Añade o quita alérgenos a un miembro (o a todos con `FAMILIA`).
@@ -79,18 +71,6 @@ export function aplicarAlergias(data, { memberId, ids = [], quitar = false, conf
 }
 
 /**
- * ── Revisión por persona ──────────────────────────────────────────────────
- * `allergiesReviewed` era de toda la casa y no se reseteaba al añadir a
- * alguien: entraba un bebé nuevo y la casa seguía «revisada» sin que nadie
- * hubiera preguntado por él. Ahora cada miembro lleva `alergiasRevisadas`, y
- * `data.allergiesReviewed` queda como resumen (todos revisados), que es lo que
- * siguen leyendo la app y el embudo.
- *
- * Un miembro sin el campo (datos de antes) hereda el valor de la casa.
- */
-export const alergiasRevisadas = (data, m) => m?.alergiasRevisadas ?? data?.allergiesReviewed === true;
-
-/**
  * Las alergias con las que el MENÚ filtra a una persona.
  *
  * Una lista vacía no dice lo mismo antes y después de preguntar: antes es «no
@@ -102,6 +82,9 @@ export const alergiasRevisadas = (data, m) => m?.alergiasRevisadas ?? data?.alle
  *
  * Solo para filtrar. No se guarda nunca ni se enseña como alergia de nadie:
  * las fichas, Lola y la explicación de un plato siguen leyendo `m.allergies`.
+ *
+ * «Por silencio» (#229) cuenta como revisada: el menú usa todas las recetas.
+ * Que no está confirmado lo dicen la ficha y Lola, no el filtro.
  */
 export function alergiasParaMenu(data, m) {
   const propias = m?.allergies ?? [];
@@ -112,19 +95,6 @@ export function alergiasParaMenu(data, m) {
 /** Los de la casa a los que nadie ha preguntado todavía por alergias. */
 export function pendientesDeAlergias(data) {
   return (data?.members ?? []).filter((m) => !alergiasRevisadas(data, m));
-}
-
-/**
- * Marca como revisados los miembros con esos ids (`null` = todos) y deja el
- * resto como estaba, pero escrito en cada uno: así cambiar el resumen de la
- * casa no cambia lo que hereda un miembro antiguo.
- */
-export function marcarRevisadas(data, ids = null) {
-  const members = (data?.members ?? []).map((m) => ({
-    ...m,
-    alergiasRevisadas: ids == null || ids.includes(m.id) ? true : alergiasRevisadas(data, m),
-  }));
-  return { ...data, members, allergiesReviewed: members.every((m) => m.alergiasRevisadas) };
 }
 
 /** Añade a alguien a la casa SIN revisar: hasta que se pregunte por él, la casa tampoco lo está. */

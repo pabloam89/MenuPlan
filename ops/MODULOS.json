@@ -212,14 +212,19 @@
             "src/lib/healthProfileMatch.js",
             "src/lib/aptoNinos.js",
             "src/components/RestrictionConflictBanner.jsx",
-            "src/lib/restriccionesReceta.js"
+            "src/lib/restriccionesReceta.js",
+            "src/lib/alergiasBase.js",
+            "api/_bot/silencio.js"
           ],
           "tests": [
             "src/lib/alergias.test.js",
             "src/lib/gluten.seguridad.test.js",
             "src/lib/intolerances.test.js",
             "src/lib/healthFlags.test.js",
-            "src/lib/aptoNinos.test.js"
+            "src/lib/aptoNinos.test.js",
+            "src/lib/alergiasSilencio.test.js",
+            "api/_bot/silencio.test.js",
+            "api/_bot/silencioTurno.test.js"
           ],
           "metricas": [
             {
@@ -549,7 +554,7 @@
           "nombre": "Alimentos e ingredientes",
           "hace": "Los alimentos con su nutrición, densidades, fotos, equivalencias y sustituciones; base de la despensa, la compra y la nutrición.",
           "grado": "usable",
-          "motivo_grado": "Datos y tests sólidos (BEDCA, Ciqual, USDA); la tabla `ingredients` sigue viva solo porque la despensa apunta a ella.",
+          "motivo_grado": "Datos y tests sólidos (BEDCA, Ciqual, USDA); la tabla `ingredients` es copia retirada (ver `copiaIngredientesSupabase` en src/data/model.js).",
           "ficheros": [
             "src/data/alimentos.json",
             "src/data/ingredients.json",
@@ -1764,15 +1769,15 @@
         "app": null,
         "servidor": null
       },
-      "nota": "Ningún fichero de src/ ni api/ la lee: solo scripts de construcción del catálogo (candidata a quitar por PRINCIPIOS: ningún dato sin lector).",
+      "nota": "Copia retirada: ver `copiaIngredientesSupabase` / `copiaSustitucionesSupabase` en src/data/model.js.",
       "sin_puerta": {
         "app": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en src/: la app lee el JSON."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en src/: la app lee el JSON."
         },
         "servidor": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en api/."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en api/."
         }
       }
     },
@@ -1782,15 +1787,15 @@
         "app": null,
         "servidor": null
       },
-      "nota": "La app lee las sustituciones del JSON (src/data/ingredientSubstitutions.json); la tabla no tiene lector en src/ ni api/.",
+      "nota": "Copia retirada: ver `copiaIngredientesSupabase` / `copiaSustitucionesSupabase` en src/data/model.js.",
       "sin_puerta": {
         "app": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en src/: la app lee el JSON."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en src/: la app lee el JSON."
         },
         "servidor": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en api/."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en api/."
         }
       }
     },
@@ -1800,15 +1805,15 @@
         "app": null,
         "servidor": null
       },
-      "nota": "Sigue viva solo porque la despensa apunta a ella (0064).",
+      "nota": "Copia retirada: ver `copiaIngredientesSupabase` / `copiaSustitucionesSupabase` en src/data/model.js.",
       "sin_puerta": {
         "app": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en src/: la app lee el JSON."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en src/: la app lee el JSON."
         },
         "servidor": {
-          "motivo": "no_la_usa",
-          "texto": "Sin lector en api/."
+          "motivo": "en_desuso",
+          "texto": "Copia retirada sin lector en api/."
         }
       }
     },

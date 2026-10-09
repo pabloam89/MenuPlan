@@ -155,7 +155,7 @@ deshecha: meter una fila en casa ajena se bloquea, en la propia pasa.
 `recipe_ingredients` y `dish_images` quedan marcadas EN DESUSO. La app ya no
 las lee (src/data/recipeCatalog.js carga solo el bundle; lo vigila
 src/data/catalogoUnaFuente.test.js). No se borra nada; `ingredients` no se
-toca (la despensa apunta a ella). Comprobado con `obj_description` tras
+toca (la 0064 creyó que la despensa apuntaba a ella: es falso, ver `copiaIngredientesSupabase` en src/data/model.js). Comprobado con `obj_description` tras
 aplicarla.
 
 ## La 0063, aplicada el 30 sep 2026

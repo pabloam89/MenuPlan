@@ -40,6 +40,24 @@ describe("lo que suena a «ya está guardado»", () => {
     // Lo que sabe hacer, con ✅ de viñeta (staging, 2 oct 2026).
     expect(diceQueGuardo("¡Hola! Puedo ayudarte con:\n• 🍽️ Enseñarte el menú\n• ✅ Cambiar un plato o generar el menú")).toBe(false);
   });
+
+  it("«apuntad…» negado o con «ninguna» es leer, no guardar (#229: otra vuelta de ~3 s)", () => {
+    // Las tres del evaluador, al preguntar qué alergias hay apuntadas.
+    expect(diceQueGuardo("De momento no tenéis ninguna alergia apuntada. Si alguien tiene alguna, dímelo cuando quieras y la aplico al momento.")).toBe(false);
+    expect(diceQueGuardo("No tenéis ninguna alergia apuntada: cuando os pregunté, no dijisteis nada, así que lo entendí como que no había ninguna.")).toBe(false);
+    expect(diceQueGuardo("No tenéis ninguna apuntada: no me dijisteis nada cuando os pregunté, así que lo di por hecho.")).toBe(false);
+    expect(diceQueGuardo("No hay nada apuntado todavía.")).toBe(false);
+    // Lo afirmado sigue contando aunque la frase lleve un «no» en otra parte.
+    expect(diceQueGuardo("No pasa nada. ✅ Apuntado: Leo, sin huevo.")).toBe(true);
+    expect(diceQueGuardo("Apuntado que nadie tiene alergias.")).toBe(true);
+    expect(diceQueGuardo("No te preocupes, ya está apuntado.")).toBe(true);
+    // El «no» niega otra cosa: «te he apuntado» es decir que guardó.
+    expect(diceQueGuardo("No olvides que te he apuntado leche")).toBe(true);
+    expect(diceQueGuardo("Nada más: os he apuntado el pan")).toBe(true);
+    // Y negado de verdad, no.
+    expect(diceQueGuardo("No te he apuntado nada todavía")).toBe(false);
+    expect(diceQueGuardo("No lo he apuntado")).toBe(false);
+  });
 });
 
 describe("ejecutar: si lo dice y no guardó, otra vuelta", () => {
