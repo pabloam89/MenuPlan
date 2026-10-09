@@ -17,19 +17,13 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { AYUDA, analizarCasos } from "../.claude/hooks/casos.mjs";
+import { ErrorDeApi, pedir } from "./lib/ghApi.mjs";
 import { GRUPOS, porGrupo } from "./lib/issues.mjs";
 
 const BOTS = new Set(["dependabot[bot]", "github-actions[bot]"]);
 const ANALISIS = Object.keys(GRUPOS.analisis.valores);
 
-/** Error de la API (no del PR): el mensaje dice la causa. */
-export class ErrorDeApi extends Error {
-  /** `permisos`: 401, el token no sirve; relanzar no lo arregla. */
-  constructor(mensaje, { permisos = false } = {}) {
-    super(mensaje);
-    this.permisos = permisos;
-  }
-}
+export { ErrorDeApi };
 
 /** ¿Es el issue un caso bien analizado? → null si vale, o el porqué. */
 export function falloDeCaso(n, issue) {
@@ -75,31 +69,9 @@ export async function comprobar({ cuerpo, autor = "", consultar }) {
   return { ok: true, motivo: `Casos: ${linea.numeros.map((n) => `#${n}`).join(", ")} (todos tipo:caso con analisis).` };
 }
 
-/** Consulta real a la API REST, con reintentos para fallos pasajeros. */
-export function consultaReal({ token, repo, fetchFn = globalThis.fetch, espera = (ms) => new Promise((r) => setTimeout(r, ms)), intentos = 3 }) {
-  return async (n) => {
-    let causa = "";
-    let permisos = false;
-    for (let i = 1; i <= intentos; i++) {
-      try {
-        const r = await fetchFn(`https://api.github.com/repos/${repo}/issues/${n}`, {
-          headers: { authorization: `Bearer ${token}`, accept: "application/vnd.github+json", "x-github-api-version": "2022-11-28" },
-          signal: AbortSignal.timeout(10_000),
-        });
-        if (r.status === 404) return null;
-        if (r.ok) return await r.json();
-        causa = `HTTP ${r.status}`;
-        if (r.status === 401) {
-          permisos = true; // el token no vale: reintentar no lo arregla
-          break;
-        }
-      } catch (e) {
-        causa = e?.message ?? String(e);
-      }
-      if (i < intentos) await espera(1000 * i);
-    }
-    throw new ErrorDeApi(causa, { permisos });
-  };
+/** Consulta real a la API REST, con reintentos para fallos pasajeros (cliente común: scripts/lib/ghApi.mjs). */
+export function consultaReal({ token, repo, fetchFn = globalThis.fetch, espera, intentos = 3 }) {
+  return (n) => pedir({ token, repo, ruta: `/issues/${n}`, fetchFn, espera, intentos });
 }
 
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
