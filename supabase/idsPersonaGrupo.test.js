@@ -17,9 +17,11 @@
  * NO_LLEVAN con su porqué. Una columna nueva sin clasificar pone el CI en rojo.
  */
 import { describe, expect, it } from "vitest";
-import { readFileSync, readdirSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { eventosTabla } from "../scripts/lib/migraciones.mjs";
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), "migrations");
 const MIGRACION = "0091_ids_persona_grupo_a_uuid.sql";
@@ -85,7 +87,16 @@ const RE_FK = /foreign\s+key\s*\(\s*household_id\s*,\s*"?(\w+)"?\s*\)\s*referenc
 export function columnasDe(sql) {
   const cols = new Map();
   const fks = new Set();
+  const borradas = new Set(); // tablas de `public` que borra este SQL (las de antes ya no existen)
   for (const s of limpiar(sql).split(";").map((x) => x.trim())) {
+    // En orden: un `drop table x` quita lo que este mismo fichero había declarado de x,
+    // y un `create table x` posterior lo vuelve a declarar más abajo.
+    for (const e of eventosTabla(s)) {
+      if (e.accion !== "borra" || e.tipo !== "tabla" || e.esquema !== "public") continue;
+      borradas.add(e.nombre);
+      for (const k of [...cols.keys()]) if (k.startsWith(`${e.nombre}.`)) cols.delete(k);
+      for (const k of [...fks]) if (k.startsWith(`${e.nombre}.`)) fks.delete(k);
+    }
     let tabla = null;
     const ct = /^create\s+(?:unlogged\s+)?table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?"?(\w+)"?\s*\(([\s\S]*)\)/.exec(s);
     const at = /^alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?(?:public\.)?"?(\w+)"?\s+([\s\S]*)$/.exec(s);
@@ -106,7 +117,7 @@ export function columnasDe(sql) {
     }
     if (tabla) for (const m of s.matchAll(RE_FK)) fks.add(`${tabla}.${m[1]}`);
   }
-  return { cols, fks };
+  return { cols, fks, borradas };
 }
 
 /** El INVENTARIO de la 0091: [tabla, columna, modo]. */
@@ -116,11 +127,17 @@ export function inventarioDe(sql) {
   return JSON.parse(m[1]);
 }
 
-function todas() {
+export function todas(dir = DIR) {
   const cols = new Map();
   const fks = new Set();
-  for (const f of readdirSync(DIR).filter((n) => /^\d{4}.*\.sql$/.test(n)).sort()) {
-    const r = columnasDe(readFileSync(join(DIR, f), "utf8"));
+  for (const f of readdirSync(dir).filter((n) => /^\d{4}.*\.sql$/.test(n)).sort()) {
+    const r = columnasDe(readFileSync(join(dir, f), "utf8"));
+    // Un `drop table` de este fichero se lleva lo que declararon los anteriores; lo que el
+    // propio fichero declara de esa tabla es posterior al drop (columnasDe ya lo ordenó).
+    for (const t of r.borradas) {
+      for (const k of [...cols.keys()]) if (k.startsWith(`${t}.`)) cols.delete(k);
+      for (const k of [...fks]) if (k.startsWith(`${t}.`)) fks.delete(k);
+    }
     for (const [k, v] of r.cols) cols.set(k, v);
     for (const k of r.fks) fks.add(k);
   }
@@ -194,5 +211,49 @@ describe("ids de persona y grupo: ninguna columna fuera del paso a UUID", () => 
     const { cols } = todas();
     const sobran = [...NO_LLEVAN.keys()].filter((k) => !cols.has(k) || enInventario.has(k));
     expect(sobran).toEqual([]);
+  });
+});
+
+describe("columnasDe() y el drop table (#302)", () => {
+  it("devuelve las tablas que borra, sin contar comentarios", () => {
+    const r = columnasDe("create table public.a (x int);\n-- drop table public.z;\ndrop table if exists public.a, public.b;");
+    expect([...r.borradas].sort()).toEqual(["a", "b"]);
+  });
+
+  /** Una carpeta de migraciones sintética: { "0001_a": sql, … }. */
+  const carpeta = (migraciones) => {
+    const d = mkdtempSync(join(tmpdir(), "menuplan-ids-"));
+    for (const [n, sql] of Object.entries(migraciones)) writeFileSync(join(d, `${n}.sql`), sql);
+    return d;
+  };
+  const COSA = "create table public.cosa_nueva (id uuid primary key, persona_id uuid references public.persona(id) on delete cascade, grupo_x jsonb);";
+
+  it("un drop de una migración posterior se lleva las columnas y FK de la tabla", () => {
+    const d = carpeta({ "0001_a": COSA, "0002_b": "drop table public.cosa_nueva;" });
+    const { cols, fks } = todas(d);
+    expect([...cols.keys(), ...fks]).toEqual([]);
+    rmSync(d, { recursive: true });
+  });
+
+  it("drop + create en el mismo fichero: la tabla vive con lo que declara el create", () => {
+    const d = carpeta({ "0001_a": "drop table if exists public.cosa_nueva;\n" + COSA });
+    const { cols, fks } = todas(d);
+    expect([...cols.keys()].sort()).toEqual(["cosa_nueva.grupo_x", "cosa_nueva.id", "cosa_nueva.persona_id"]);
+    expect([...fks]).toEqual(["cosa_nueva.persona_id"]);
+    rmSync(d, { recursive: true });
+  });
+
+  it("create + drop en el mismo fichero: la tabla no vive; y drop de otro esquema no cuenta", () => {
+    const d = carpeta({ "0001_a": COSA + "\ndrop table public.cosa_nueva;", "0002_b": COSA.replace("cosa_nueva", "otra") + "\ndrop table otro.otra;" });
+    const { cols } = todas(d);
+    expect([...cols.keys()].some((k) => k.startsWith("cosa_nueva."))).toBe(false);
+    expect([...cols.keys()].some((k) => k.startsWith("otra."))).toBe(true);
+    rmSync(d, { recursive: true });
+  });
+
+  it("recrear después de un drop en otro fichero: vuelve a contar solo lo nuevo", () => {
+    const d = carpeta({ "0001_a": COSA, "0002_b": "drop table public.cosa_nueva;", "0003_c": "create table public.cosa_nueva (id uuid primary key);" });
+    expect([...todas(d).cols.keys()]).toEqual(["cosa_nueva.id"]);
+    rmSync(d, { recursive: true });
   });
 });

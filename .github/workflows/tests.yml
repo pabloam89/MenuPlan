@@ -63,6 +63,22 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_AUTOR: ${{ github.event.pull_request.user.login }}
           PR_RAMA: ${{ github.event.pull_request.head.ref }}
+      # Las frases normativas nuevas (#296): cada «nunca», «siempre», «tope»…
+      # que el PR AÑADE en CLAUDE.md, .claude/, PRINCIPIOS u ops/*.md cita su
+      # norma (<!-- norma:<id> -->) o el cuerpo dice «Normas: sin novedades —
+      # <motivo>». Solo lo añadido: borrar o renombrar no cuenta. La lógica,
+      # en scripts/normas-pr.mjs; los bots, exentos dentro.
+      - name: Normas del PR
+        if: github.event_name == 'pull_request'
+        run: |
+          git -c core.quotePath=false diff -U0 HEAD^1 HEAD > "$RUNNER_TEMP/diff-del-pr.txt" || {
+            echo "::warning::No he podido sacar el diff del PR; no se comprueban las normas."
+            : > "$RUNNER_TEMP/diff-del-pr.txt"
+          }
+          node scripts/normas-pr.mjs "$RUNNER_TEMP/diff-del-pr.txt"
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
       - run: npm ci
       # Falla solo con errores de lint NUEVOS respecto a lint-base.json (ver
       # scripts/lint-base.mjs); los viejos se arreglan cuando se toca el fichero.
