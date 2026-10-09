@@ -15,6 +15,29 @@ Specs producidas por ingeniería inversa del código real (`src/`, `api/`, esque
 | [ficha-de-la-casa.md](ficha-de-la-casa.md) | PLAN (1 oct 2026): la ficha que ve Lola en cada mensaje (capas, dos bloques, topes), los menús «definitivos» sin pedir «me gusta», el analista nocturno con salida tabulada y cómo se convierte una observación en eje nuevo; huecos por orden |
 | [modelo-datos.md](modelo-datos.md) | Auditoría de normalización del modelo y plan: campos por plano, operadores y calculadoras, magnitudes (tiempo/gramos/macros/raciones/precio), el mapa de tablas por ámbito (global/hogar), sesgos y batch cooking; Fase A: esquema de `alimentos` (alimento/producto/ingrediente, siete dimensiones, procedencia BEDCA) y plan de curación de `familia`, `densidad` y `rendimiento` |
 
+## Vocabulario del catálogo
+
+Nombres fijos (issue #249). **La palabra «antiguo» no se usa** para nada de
+esto: hoy significaba cinco cosas (el fondo sin bandera, la copia de Supabase,
+las 19 cremas de bebé originales, `BASE_RECIPES`, ingredients frente a
+alimentos). Se dice el rol o el nombre de abajo. La lista de fuentes, con su
+estado y su fecha de retirada, vive en `ops/MODULOS.json` (`fuentes_de_datos`)
+y la vigila `ops/fuentes.test.js`.
+
+| Rol de una fuente | Qué es |
+|---|---|
+| `ingesta` | Entra en bruto, de fuera (Mercadona, BEDCA, scripts de alta). Alimenta a la fuente de verdad. |
+| `fuente_de_verdad` | Lo único que se edita. Un dato vive aquí y en ningún otro sitio. |
+| `derivado` | Se regenera con un script; no se toca a mano. |
+| `copia_retirada` | Copia que ya no se lee (las tablas `recipes`… de Supabase). No se usa para nada nuevo. |
+
+Estado: `vivo`, `deprecado` (con `retirar_el`: pasada la fecha, el test se pone
+rojo) o `retirado`.
+
+Recetas: el **Recetario** son las recetas con `estrella:true` (las únicas que
+Lola y el motor proponen); la **Reserva**, todas las demás (sin bandera o
+`false`). Una receta pasa de Reserva a Recetario cambiando esa bandera.
+
 ## Documentos de diseño fuera del repo
 
 Artefactos de claude.ai con decisiones que no se derivan del código. Léelos

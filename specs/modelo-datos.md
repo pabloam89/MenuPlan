@@ -583,9 +583,9 @@ aparte, en la fase G.
 Cada fase cierra con su test. Ninguna depende de red ni de clave de API.
 
 Antes que todas ellas existe una **Fase A** —partir `alimentos`/`productos`/
-`ingredientes` y cerrar L0 por ingesta— que está escrita en §14 y §15 y
-**no está arrancada**. Las fases 1–12 no dependen de ella: se puede hacer A
-primero o dejarla para después de la 1.
+`ingredientes` y cerrar L0 por ingesta— escrita en §14 y §15. **Está hecha en
+lo esencial** (21-22 sep 2026, commits 0dd6e53 y 299a091: `alimentos.json` con
+procedencia, `build-alimentos.mjs`). Las fases 1–12 no dependen de ella.
 
 | # | qué | por qué primero | riesgo |
 |---|---|---|---|
@@ -612,9 +612,12 @@ dos se puede estimar: el pipeline lo prohíbe por diseño y con razón.
 
 ## 14 · Fase A — `alimentos`: el esquema, y por qué la ingesta de hoy no vale
 
-> **Esta fase no está arrancada.** Queda escrita aquí para decidirla antes de
-> tocar el pipeline, no para ejecutarla. Las fases 1–12 de arriba no dependen
-> de ella.
+> **Esta fase está hecha** (21-22 sep 2026, commits 0dd6e53 y 299a091). Lo que
+> sigue es el diseño original, que se conserva para entender por qué. Hoy la
+> fuente de verdad de los alimentos es `src/data/alimentos.json` (rol
+> `fuente_de_verdad` en `ops/MODULOS.json`, `fuentes_de_datos`); el ingrediente
+> (`ingredients.json`) es otra entidad, no una copia. Las tablas de Supabase del
+> catálogo (`recipes`, `ingredients`…) son *copia retirada* desde el 30 sep 2026.
 
 ### El diagnóstico, en una línea de código
 

@@ -135,6 +135,18 @@ siete secciones, operaciones con lo que debe salir, y cada fallo con fecha,
 causa y arreglo. Un proveedor nuevo estrena su runbook con su primera lección,
 no antes.
 
+## Vocabulario del catálogo
+
+Nombres fijos; "antiguo" y "nuevo" no se usan para esto (#249). Definiciones
+en `specs/INDEX.md`; cada fuente, con su estado y fecha, en `ops/MODULOS.json`
+(`fuentes_de_datos`, vigilado por `ops/fuentes.test.js`).
+
+- **Roles**: `ingesta` (entra en bruto), `fuente_de_verdad` (lo único que se
+  edita), `derivado` (se regenera, no se toca), `copia_retirada` (ya no se lee).
+- **Recetario**: recetas con `estrella:true`. **Reserva**: el resto.
+- Recetas, ingredientes y alimentos viven en JSON de `src/data/`; las tablas
+  `recipes`, `ingredients`… de Supabase son `copia_retirada`.
+
 ## Código
 
 - UTF-8 sin BOM, comentarios en castellano, saltos de línea LF. Edita con

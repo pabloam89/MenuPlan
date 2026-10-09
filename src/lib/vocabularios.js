@@ -149,6 +149,16 @@ export const ESTADOS_METRICA = ["medida", "posible"];
 export const MOTIVOS_SIN_PUERTA = ["no_la_usa", "por_rpc", "por_trigger", "fuera_del_dueno", "en_desuso"];
 
 /**
+ * El papel de una fuente de datos del catálogo (issue #249). Definiciones en
+ * `vocabularios.roles_fuente` de ops/MODULOS.json y en specs/INDEX.md
+ * («Vocabulario del catálogo»); ops/fuentes.test.js comprueba que coinciden.
+ */
+export const ROLES_FUENTE = ["ingesta", "fuente_de_verdad", "derivado", "copia_retirada"];
+
+/** En qué punto de su vida está una fuente: viva, con fecha de retirada, o ya retirada. */
+export const ESTADOS_FUENTE = ["vivo", "deprecado", "retirado"];
+
+/**
  * El mapa nombre → lista. Es lo que referencia `registro_campo.vocabulario`
  * (la ficha): guarda el nombre, nunca una copia de los valores.
  */
@@ -179,6 +189,8 @@ export const VOCABULARIOS = Object.freeze({
   ambitos_modulo: AMBITOS_MODULO,
   estados_metrica: ESTADOS_METRICA,
   motivos_sin_puerta: MOTIVOS_SIN_PUERTA,
+  roles_fuente: ROLES_FUENTE,
+  estados_fuente: ESTADOS_FUENTE,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */
