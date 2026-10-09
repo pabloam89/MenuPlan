@@ -30,6 +30,7 @@ Bytask, migrar · ❓ sin confirmar.
 | **Groq** | Transcripción de voz del bot | ❓ | `GROQ_API_KEY` | Vercel |
 | **Resend** | Emails de moderación | ❓ | `RESEND_API_KEY`, `MODERATION_*` | Vercel |
 | **Telegram** (bot Lola) | Bot de mensajería | ❓ | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` | Vercel |
+| **Telegram** (bot «HoMenu avisos») | Avisos del vigía de Lola a un grupo con Pablo, Álvaro y Manu (#267). **Pendiente de crear** (9 oct 2026) | Pablo, con su cuenta de Telegram (@BotFather) | `AVISOS_TELEGRAM_TOKEN` (secreto) y `AVISOS_TELEGRAM_CHAT` (variable, el chat_id del grupo; no es secreto) | 1Password `HoMenu/Telegram avisos` + GitHub Actions |
 | **Google OAuth** | Login con Google | ❓ (Google Cloud Console) | — (configurado en Supabase Auth) | Supabase → Auth → Providers |
 | **Apple** (Sign in + App Store) | Login Apple, TestFlight | ❓ | `APPLE_*`, `IOS_*`, `APPSTORE_API_KEY_P8_BASE64` | Vercel + GitHub Actions |
 | **CallMeBot** | Avisos de fallos por WhatsApp | ❓ | `CALLMEBOT_DESTINOS` | GitHub Actions |
@@ -40,13 +41,18 @@ Bytask, migrar · ❓ sin confirmar.
 `CRON_SECRET`, `BOT_CRON_SECRET`, `MODERATION_SECRET`: valores inventados por
 nosotros para que solo nuestros crons puedan llamar a ciertos endpoints. Viven
 en Vercel (y `BOT_CRON_SECRET` también en el job de `pg_cron`, ver
-`scripts/bot-cron.mjs`).
+`scripts/bot-cron.mjs`). `CANARIO_SECRET`: el del canario de Lola
+(`api/bot/canario.js`), solo suyo, en Vercel y en el environment `vigia` de
+GitHub; no abre nada más (el de los crons manda recordatorios a familias).
+`BOT_CANARIO_CASA` (Vercel, opcional): el id de la casa de prueba del canario;
+no es secreto.
 
 ### Secretos de GitHub Actions
 
 | Secreto | Workflow |
 |---|---|
 | `ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS` | `agente-fallos.yml` |
+| **Del environment `vigia`** (política: solo la rama `staging`), no del repo: `VERCEL_TOKEN` (leer los logs; token del equipo «menuplan», **caduca a los 90 días**: anotar aquí la fecha al crearlo y rotarlo antes), `CANARIO_SECRET` (el mismo valor que en Vercel), `AVISOS_TELEGRAM_TOKEN`; variables `AVISOS_TELEGRAM_CHAT`, `CANARIO_URL` y `VIGIA_ENTORNO`. **Pendientes de crear** (9 oct 2026); caducidad del `VERCEL_TOKEN`: — | `vigia-lola.yml` |
 | `IOS_DIST_P12_BASE64`, `IOS_DIST_P12_PASSWORD`, `IOS_PROVISION_PROFILE_BASE64`, `APPSTORE_API_KEY_P8_BASE64` | `ios-testflight.yml` |
 | `MERCADONA_DEPLOY_KEY`: la privada de la deploy key de escritura «mercadona-sync: cron, push a staging» (la pública, en Settings → Deploy keys). **Secreto del environment `mercadona-sync`**, no del repo: su política de ramas solo deja `staging`. Sin copia fuera de GitHub: si se pierde, se crea otra. **Pendiente de crear** (9 oct 2026) | `mercadona-sync.yml` |
 

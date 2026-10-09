@@ -1321,7 +1321,7 @@
       "ambito": "lola",
       "hace": "Detectar turnos que salieron mal, contar los fallos por motivo y medir cada semana contra los objetivos.",
       "grado": "usable",
-      "motivo_grado": "Informe semanal, panel local y registro de fallos funcionan; no hay alerta en tiempo real (plano 6).",
+      "motivo_grado": "Informe semanal, panel local y registro de fallos funcionan; el vigía y el canario (#267) están hechos pero sin poner en marcha hasta que haya bot de avisos y secretos.",
       "ficheros": [
         "api/_bot/senales.js",
         "api/_bot/avisar.js",
@@ -1329,12 +1329,20 @@
         "scripts/bot-semanal.mjs",
         "scripts/bot-panel.mjs",
         "scripts/bot-evals.mjs",
-        "scripts/bot-objetivos.json"
+        "scripts/bot-objetivos.json",
+        "scripts/vigia.mjs",
+        "src/lib/vigia.js",
+        "api/bot/canario.js",
+        ".github/workflows/vigia-lola.yml"
       ],
       "tests": [
         "api/_bot/senales.test.js",
         "api/_bot/avisar.test.js",
-        "scripts/bot-fallos.test.js"
+        "scripts/bot-fallos.test.js",
+        "scripts/vigia.test.js",
+        "src/lib/vigia.test.js",
+        "api/bot/canario.test.js",
+        "api/bot/canarioSoloLectura.test.js"
       ],
       "metricas": [
         {
@@ -1342,6 +1350,22 @@
           "que": "Semáforo de objetivos de Lola, semana contra semana",
           "estado": "medida",
           "donde": "scripts/bot-semanal.mjs → .ops/informe-semanal.md"
+        },
+        {
+          "id": "avisos_vigia",
+          "que": "Avisos del vigía por tipo (incidentes abiertos y resueltos, huecos, resumen)",
+          "estado": "medida",
+          "donde": "línea de log vigia_aviso en los runs de vigia-lola.yml",
+          "evento": "vigia_aviso",
+          "emision": "log"
+        },
+        {
+          "id": "canario",
+          "que": "Pasadas del canario, chequeos que fallan y tokens del turno con modelo",
+          "estado": "medida",
+          "donde": "línea de log canario (api/bot/canario.js) y resumen diario del vigía",
+          "evento": "canario",
+          "emision": "log"
         }
       ],
       "submodulos": []

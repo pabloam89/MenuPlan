@@ -30,6 +30,30 @@ function contarEscritura(ruta) {
   if (!SOLO_REGISTRO.has(tabla)) cuenta.n++;
 }
 
+// Solo lectura (el canario, api/bot/canario.js, #267): nada de lo que corra
+// dentro llega a escribir en la base. Los registros (SOLO_REGISTRO: eventos,
+// memoria) se callan sin ir a la base, para no dejar basura; cualquier otra
+// escritura se niega con un error y se apunta, y quien llama lo da por fallo.
+// Las funciones de la base que solo leen pasan.
+const soloLectura = new AsyncLocalStorage();
+const RPC_DE_LECTURA = new Set(["ficha_casa"]);
+export async function enSoloLectura(correr) {
+  const nota = { negadas: [], calladas: 0 };
+  const r = await soloLectura.run(nota, correr);
+  return { r, negadas: nota.negadas, calladas: nota.calladas };
+}
+/** Si se corta una escritura en solo lectura: `{ callar: true }` para un registro; lanza para lo demás; null si pasa. */
+function cortarEnSoloLectura(ruta, method) {
+  const nota = soloLectura.getStore();
+  if (!nota || method === "GET") return null;
+  const esRpc = ruta.startsWith("/rest/v1/rpc/");
+  const nombre = ruta.split("?")[0].replace(/^\/rest\/v1\/(rpc\/)?/, "");
+  if (esRpc && RPC_DE_LECTURA.has(nombre)) return null;
+  if (!esRpc && SOLO_REGISTRO.has(nombre)) { nota.calladas++; return { callar: true }; }
+  nota.negadas.push(nombre);
+  throw Object.assign(new Error(`${method} ${nombre} → solo lectura`), { soloLectura: true });
+}
+
 export function config() {
   const url = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").replace(/\/$/, "");
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
@@ -61,6 +85,7 @@ export function codigoDeError(text) {
 }
 
 async function pedir(ruta, { method = "GET", body, prefer } = {}) {
+  if (cortarEnSoloLectura(ruta, method)?.callar) return [];
   const { url, headers } = config();
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);

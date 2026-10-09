@@ -1,5 +1,30 @@
 import { describe, it, expect } from "vitest";
-import { cors, isCrossOrigin } from "./_guard.js";
+import { cors, isCrossOrigin, globalLimit } from "./_guard.js";
+
+// Tope de gasto (el turno con modelo del canario, #267): falla CERRADO.
+describe("globalLimit", () => {
+  const opciones = { bucket: "prueba", limit: 2, windowSec: 60 };
+  const redisDe = (incr) => ({ incr, expire: async () => 1 });
+
+  it("cuenta para todos y corta pasado el límite", async () => {
+    let n = 0;
+    const redis = redisDe(async () => ++n);
+    const r = [];
+    for (let i = 0; i < 3; i++) r.push((await globalLimit(opciones, { redis })).ok);
+    expect(r).toEqual([true, true, false]);
+  });
+
+  it("sin Redis, o con Redis fallando, no deja pasar", async () => {
+    const quieto = console.warn;
+    console.warn = () => {};
+    try {
+      expect(await globalLimit(opciones, { redis: null })).toEqual({ ok: false, motivo: "sin_redis" });
+      expect(await globalLimit(opciones, { redis: redisDe(async () => { throw new Error("caído"); }) })).toEqual({ ok: false, motivo: "error_redis" });
+    } finally {
+      console.warn = quieto;
+    }
+  });
+});
 
 function fakeRes() {
   const res = { headers: {}, statusCode: null, ended: false };

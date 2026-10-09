@@ -10,10 +10,22 @@ Esto es operar la plataforma. Cómo se escribe el código de Lola está en
 
 ## Qué es y dónde
 
-- **Un solo bot**, «Lola de HoMenu». Su usuario sale de
+- **Un solo bot que habla con familias**, «Lola de HoMenu». Su usuario sale de
   `TELEGRAM_BOT_USERNAME`. Un bot tiene **un único webhook**: apunta a un
   despliegue (producción o staging) y no a los dos. Antes de tocarlo, mira a
-  cuál apunta (`info`, abajo).
+  cuál apunta (`info`, abajo). El 9 oct 2026 apuntaba a staging
+  (`homenu-staging.vercel.app`).
+- **Bot de avisos «HoMenu avisos»** (#267, pendiente de crear el 9 oct 2026):
+  solo escribe en un grupo con Pablo, Álvaro y Manu lo que manda el vigía
+  (`.github/workflows/vigia-lola.yml`, `scripts/vigia.mjs`). No tiene webhook
+  ni lee nada; no es Lola. Manu no tiene acceso al repo: **ningún aviso lleva
+  datos de familias**, solo cifras, motivos, sitios y enlaces. Token en
+  1Password (`HoMenu/Telegram avisos`) y en el environment `vigia` de GitHub,
+  `AVISOS_TELEGRAM_TOKEN`; el chat del grupo, en la variable
+  `AVISOS_TELEGRAM_CHAT`.
+- **El canario** (`api/bot/canario.js`) llama al webhook de Lola de su propio
+  despliegue con una actualización sin chat (`{"update_id":0}`): contesta 200
+  sin abrir la base. Si en los logs ve llamadas así cada 15 min, es él.
 - **El webhook** es `api/bot/telegram.js`. Contesta a Telegram al momento y
   trabaja después con `waitUntil`. En `vercel.json` tiene `maxDuration: 120` y
   los ficheros que necesita en `includeFiles`.
@@ -54,6 +66,10 @@ Todos leen la clave de `.env.local` con `scripts/lib/env.mjs`.
 | Quitar el webhook (OK) | `node scripts/telegram-webhook.mjs delete` | `info` sin URL |
 | Ver el perfil (nombre, About, descripción, comandos) | `node scripts/telegram-perfil.mjs` | los textos actuales y sus longitudes |
 | Subir el perfil y el menú «/» (OK) | `node scripts/telegram-perfil.mjs aplicar` | lo que hay en el script, ya en Telegram |
+| Crear el bot de avisos (Pablo, una vez) | @BotFather → `/newbot` → nombre `HoMenu avisos` → usuario acabado en `bot`; luego `/setjoingroups` → Enable | el token (`123456:ABC…`), que va a 1Password `HoMenu/Telegram avisos` y al secreto `AVISOS_TELEGRAM_TOKEN` |
+| Sacar el chat_id del grupo de avisos | meter al bot en el grupo, escribir `/hola@<usuario_del_bot>` en el grupo y abrir `https://api.telegram.org/bot<TOKEN>/getUpdates` en el navegador (el bot de avisos no tiene webhook, así que `getUpdates` funciona) | `"chat":{"id":-100…,"type":"supergroup"}`: ese número, con su signo, es `AVISOS_TELEGRAM_CHAT` |
+| Probar el aviso sin esperar a un fallo | `gh workflow run vigia-lola.yml --ref staging` | la pasada en Actions; la primera vez abre «El vigía, sin logs» si falta `VERCEL_TOKEN`, y ese aviso llega al grupo |
+| Si se mueve el webhook de Lola | cambiar a la vez las variables `CANARIO_URL` y `VIGIA_ENTORNO` del repo | si no, el canario avisa `webhook_info (webhook_otra_url)` y el vigía mira logs donde ya no hay nadie |
 
 - `set` y `delete` tiran los mensajes pendientes (`drop_pending_updates`). Lo
   que la gente escribió mientras tanto se pierde.
@@ -101,4 +117,9 @@ respuestas a sus mensajes.
 - https://core.telegram.org/bots/webhooks
 - https://core.telegram.org/bots/features#privacy-mode
 
-Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; hoy no se ha vuelto a ejecutar lo que cita. Sin comprobar: la checklist nativa (no está implementada) ni un bot de pruebas (no existe).
+**Ojo, sin aclarar (9 oct 2026):** `getMe` da `can_read_all_group_messages:
+true`, que en Telegram significa el modo privacidad **apagado**, en contra de lo
+que dice esta skill arriba. Mientras no se mire en @BotFather (`/setprivacy`),
+no te fíes de que en un grupo Lola solo vea comandos y menciones.
+
+Comprobado el 2026-10-09: `telegram-webhook.mjs info` (solo lectura) da el webhook en `https://homenu-staging.vercel.app/api/bot/telegram`, sin cola ni errores, y el canario (salud) pasó sus cuatro chequeos contra él; lo demás viene de la versión del 8 oct sin volver a ejecutarlo. Sin comprobar: la checklist nativa (no está implementada), un bot de pruebas (no existe), el bot de avisos y el chat_id de su grupo (no existen aún).

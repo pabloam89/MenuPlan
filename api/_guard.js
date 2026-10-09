@@ -127,6 +127,30 @@ export async function rateLimit(req, { bucket, limit, windowSec }) {
   }
 }
 
+/**
+ * Ventana fija GLOBAL (no por IP): para endpoints que solo llama un
+ * planificador y cuestan dinero, como el turno con modelo del canario
+ * (api/bot/canario.js). Es un tope de gasto, así que falla CERRADO, al revés
+ * que rateLimit: sin Redis, o si Redis da error, no deja pasar. Lo que se
+ * pierde es una pasada del canario; lo que se evita, gastar sin techo.
+ * @returns {Promise<{ok: boolean, motivo?: "sin_redis" | "error_redis"}>}
+ */
+export async function globalLimit({ bucket, limit, windowSec }, { redis = getRedis() } = {}) {
+  if (!redis) {
+    console.warn(`[guard] global limit ${bucket}: no Redis, denying`);
+    return { ok: false, motivo: "sin_redis" };
+  }
+  const key = `ratelimit:${bucket}:global:${Math.floor(Date.now() / 1000 / windowSec)}`;
+  try {
+    const count = await redis.incr(key);
+    if (count === 1) await redis.expire(key, windowSec);
+    return { ok: count <= limit };
+  } catch (err) {
+    console.warn(`[guard] global limit ${bucket} check failed, denying:`, err?.message);
+    return { ok: false, motivo: "error_redis" };
+  }
+}
+
 // Global, cross-IP daily circuit breaker — off by default.
 //
 // The per-IP window above (rateLimit) protects against ONE abusive caller,
