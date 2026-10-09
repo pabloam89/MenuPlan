@@ -6,7 +6,7 @@
  * casi todo se aplicó a mano. El registro que vale es `supabase/ESTADO.md`, y
  * este script comprueba que dice la verdad. De cada migración saca sus objetos
  * testigo (tablas, columnas, funciones con su cuerpo, constraints con su
- * definición, políticas, índices, triggers, tipos, vistas, crons), los busca
+ * definición, políticas, índices, triggers, tipos, vistas, crons, roles), los busca
  * en el catálogo de la base y compara con la lista «Sin aplicar» de ESTADO.md.
  *
  * ── Solo lee, y no puede escribir ──────────────────────────────────────────
@@ -171,6 +171,9 @@ export function testigos(sql) {
     }
     for (const c of s.matchAll(/cron\.schedule\s*\(\s*'([^']+)'/gi)) crea.push({ tipo: "cron", id: c[1] });
     for (const c of s.matchAll(/cron\.unschedule\s*\(\s*'([^']+)'/gi)) quita.push({ tipo: "cron", id: c[1] });
+    // Roles: también dentro de un `do $$ … $$` (así se crean, para que sea idempotente).
+    for (const c of s.matchAll(new RegExp(String.raw`\bcreate\s+role\s+(${ID})`, "gi"))) crea.push({ tipo: "rol", id: nombre(c[1]).nombre });
+    for (const c of s.matchAll(new RegExp(String.raw`\bdrop\s+role\s+(?:if\s+exists\s+)?(${ID})`, "gi"))) quita.push({ tipo: "rol", id: nombre(c[1]).nombre });
   }
   return { crea, quita };
 }
@@ -235,6 +238,7 @@ const CONSULTAS = {
   trigger: "select n.nspname||'.'||t.relname||':'||g.tgname as id, '' as v from pg_trigger g join pg_class t on t.oid=g.tgrelid join pg_namespace n on n.oid=t.relnamespace where not g.tgisinternal",
   tipo: "select n.nspname||'.'||t.typname as id, '' as v from pg_type t join pg_namespace n on n.oid=t.typnamespace",
   valor: "select n.nspname||'.'||t.typname||':'||e.enumlabel as id, '' as v from pg_enum e join pg_type t on t.oid=e.enumtypid join pg_namespace n on n.oid=t.typnamespace",
+  rol: "select rolname as id, '' as v from pg_roles",
 };
 
 async function leerCatalogo(url) {

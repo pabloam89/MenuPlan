@@ -3,14 +3,17 @@
  * Una consulta de solo lectura a producción: `npm run consulta -- "select …"`.
  *
  * Autorizada de forma permanente (CLAUDE.md, «Qué se le pregunta a Pablo»):
- * lee y no escribe. Tres barreras: el texto (scripts/lib/consulta.mjs), una
+ * lee y no escribe. Cuatro barreras: el usuario `consulta_lectura` (0092), que
+ * solo tiene permiso de leer; el texto (scripts/lib/consulta.mjs); una
  * transacción `read only` que Postgres hace cumplir aunque algo se colara, y un
- * rollback al final. Tope de 15 s y de 200 filas. Sin datos de familias en un
+ * rollback al final. Sin SUPABASE_DB_URL_LECTURA entra como administrador y lo
+ * avisa (scripts/lib/rolLectura.mjs). Tope de 15 s y de 200 filas. Sin datos de familias en un
  * issue ni en un PR: lo que salga se resume en cifras.
  */
 import pg from "pg";
 import { leerEnv } from "./lib/env.mjs";
 import { motivoParaNoLeer } from "./lib/consulta.mjs";
+import { conexionDeConsulta } from "./lib/rolLectura.mjs";
 
 const sql = process.argv.slice(2).join(" ").trim();
 const no = motivoParaNoLeer(sql);
@@ -19,7 +22,15 @@ if (no) {
   process.exit(1);
 }
 
-const client = new pg.Client({ connectionString: leerEnv("SUPABASE_DB_URL", { obligatoria: true }), ssl: { rejectUnauthorized: false } });
+// Con el usuario de solo lectura (0092) si está; si no, con el administrador y
+// un aviso: el script no depende de que la migración ya esté aplicada.
+const { url, aviso } = conexionDeConsulta((k) => leerEnv(k));
+if (aviso) console.error(aviso);
+if (!url) {
+  console.error("Falta SUPABASE_DB_URL_LECTURA o SUPABASE_DB_URL en .env.local (o en el entorno).");
+  process.exit(1);
+}
+const client = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
 await client.connect();
 try {
   await client.query("set session characteristics as transaction read only");
