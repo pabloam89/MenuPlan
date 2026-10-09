@@ -4,8 +4,9 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   GRUPOS, agenteDe, avisoDeArranque, debeReabrir, etiquetas, etiquetasDeFormulario, etiquetasQueFaltan, etiquetasSobrantes,
-  faltas, ficherosNombrados, fondoDeFormulario, issuesQueNombran, justificaPuntual, leerIssue, parecidos, resumen,
+  faltas, ficherosNombrados, fondoDeFormulario, issuesQueNombran, justificaPuntual, leerIssue, medirCasos, parecidos, resumen,
 } from "./lib/issues.mjs";
+import { analizarCasos } from "../.claude/hooks/casos.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PLANTILLAS = join(RAIZ, ".github", "ISSUE_TEMPLATE");
@@ -224,6 +225,19 @@ describe("la norma está escrita donde se lee", () => {
     for (const a of Object.keys(GRUPOS.analisis.valores)) expect(skill, `la skill explica analisis:${a}`).toContain(a);
   });
 
+  // #185: la norma no es solo texto; la cumple un mecanismo, y ninguna de sus
+  // piezas se puede quitar sin que esto falle.
+  it("la línea «Casos:» está en la plantilla del PR, en el CI, en CLAUDE.md, en /orquestar y en la skill", () => {
+    expect(leer(".github", "pull_request_template.md")).toMatch(/^Casos:/m);
+    expect(leer(".github", "workflows", "tests.yml")).toMatch(/scripts\/casos-pr\.mjs/);
+    expect(leer(".github", "workflows", "tests.yml")).toMatch(/issues: read/);
+    for (const f of ["CLAUDE.md", ".claude/commands/orquestar.md", ".claude/skills/github/SKILL.md"]) {
+      expect(leer(f), f).toMatch(/Casos:/);
+    }
+    expect(leer(".claude", "hooks", "guardia.mjs")).toMatch(/analizarCasos/);
+    expect(leer(".claude", "hooks", "pendientes.mjs")).toMatch(/senalesDeFallo/);
+  });
+
   it("hay revisión periódica que mira el conjunto", () => {
     expect(leer(".claude/commands/revision-issues.md")).toMatch(/puntual/i);
   });
@@ -264,5 +278,23 @@ describe("los ficheros que nombra un issue (#205)", () => {
     ];
     expect(issuesQueNombran(issues, String.raw`C:\dev\MenuPlan-x\.claude\hooks\guardia.mjs`).map((i) => i.number)).toEqual([1]);
     expect(issuesQueNombran(issues, "C:/dev/MenuPlan-x/CLAUDE.md")).toEqual([]);
+  });
+});
+
+describe("medida de la línea «Casos:» en los PR fusionados (#185)", () => {
+  const pr = (body, login = "pabloam89") => ({ number: 1, body, author: { login } });
+  it("cuenta con casos, con «ninguno», sin línea, y se salta a los bots", () => {
+    const m = medirCasos(
+      [
+        pr("Casos: #5, #6"),
+        pr("Casos: #7"),
+        pr("Casos: ninguno — solo mueve ficheros, no ha habido ningún fallo"),
+        pr("Closes #1"),
+        pr(null),
+        pr("", "dependabot[bot]"),
+      ],
+      analizarCasos,
+    );
+    expect(m).toEqual({ total: 5, conCasos: 2, ninguno: 1, sinLinea: 2, casosCitados: 3 });
   });
 });

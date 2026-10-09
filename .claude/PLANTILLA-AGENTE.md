@@ -92,6 +92,20 @@ Cómo comprueba que terminó bien antes de devolver el informe, con evidencia.
 - Cumple el `CLAUDE.md` entero; su sección de gateways también le obliga.
 - Habla como un colega: prosa corta, en castellano, sin relleno.
 
+## Casos que he visto
+
+Cada fallo real del camino va en el campo `CASOS:` del informe, con su clase
+en una línea: un test rojo que no era del cambio, un hecho falso que se había
+copiado, un vigilante (hook, lint, CI) que bloqueó algo bueno o dejó pasar algo
+malo, algo del entorno (rutas, Windows, red, la API). No es un hallazgo del
+diff que se juzga: es lo que le salió mal **al propio agente al trabajar**. Si
+no vio ninguno, escribe «ninguno» (es una respuesta, no un hueco). El
+orquestador los pasa a la línea `Casos:` del PR y los registra como issues
+`tipo:caso` antes de abrirlo (`/orquestar`, paso 6.4); sin eso, la guardia no
+deja abrir el PR y el CI lo tumba. Es un campo del informe y no una sección
+más del agente a propósito: una sola definición para todos, sin copias que se
+separen.
+
 ## Informe común
 
 Todos los agentes terminan con este bloque, igual, para que la sesión
@@ -102,6 +116,7 @@ va a un fichero y aquí solo su ruta.
 ## Informe
 ESTADO: ok | bloqueado | fallo
 RESUMEN: (3 líneas como mucho)
+CASOS: fallos reales del camino, uno por línea con su clase (o «ninguno»)
 CAMBIOS: ruta:línea — qué (o «ninguno»)
 EVIDENCIA: comando → resultado (o captura → ruta)
 HALLAZGOS:
