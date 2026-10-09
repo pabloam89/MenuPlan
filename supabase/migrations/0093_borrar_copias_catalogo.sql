@@ -1,5 +1,5 @@
 -- 0093 · Se borran las 7 tablas y las 2 vistas copia del catálogo (issue #303).
--- AUDITADA: pendiente del juez auditor-datos (él escribe aquí «auditor-datos AAAA-MM-DD OK»)
+-- AUDITADA: auditor-datos 2026-10-09 OK
 -- CONTRAE: borra recipes (1002 filas), recipe_ingredients (7140), catalog_meta (1), dish_images (2344),
 -- CONTRAE: ingredients (383), ingredient_aliases (419), ingredient_substitutions (16) y las vistas
 -- CONTRAE: recipe_derived_allergens (980) y recipe_substitution_options (327). Es de Pablo (`--pablo`).
