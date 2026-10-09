@@ -96,7 +96,7 @@ try {
       ultimo = e;
       await new Promise((ok) => setTimeout(ok, 3000));
     } finally {
-      await c.end().catch(() => {});
+      await c.end().catch((e) => console.warn(`cerrar la conexión de prueba: ${e.code ?? "error"}`));
     }
   }
   if (ultimo) {
