@@ -22,7 +22,9 @@ esto: hoy significaba cinco cosas (el fondo sin bandera, la copia de Supabase,
 las 19 cremas de bebé originales, `BASE_RECIPES`, ingredients frente a
 alimentos). Se dice el rol o el nombre de abajo. La lista de fuentes, con su
 estado y su fecha de retirada, vive en `src/data/model.js` (`TABLAS`, el único
-registro) y la vigila `ops/fuentes.test.js`.
+registro) y la vigila `ops/fuentes.test.js`. Leer una fuente `retirado` o
+`copia_retirada` (o usar una `deprecado` sin ser su consumidor declarado) pone
+rojo `ops/lecturasRetiradas.test.js` (issue #251), con qué leer en su lugar.
 
 | Rol de una fuente | Qué es |
 |---|---|
