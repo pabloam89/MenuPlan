@@ -183,7 +183,7 @@ en un issue (esos, a Pablo, en privado).
   `fondos-pr.test.js`, vistos fallar. Antes: 0 controles por evento y 0 fichas.
   Un `ISSUE_NUMBER` como `1e3` pasaba por número válido (`Number("1e3")` es
   1000): se lee con `^\d{1,8}$`, y hay test.
-- **2026-10-09 · el bot reabría en bucle un fondo antiguo con un hijo `no-aguanto-*`
+- **2026-10-09 · el bot reabría en bucle un fondo antiguo con un hijo no-aguanto
   (revisión de #337).** Causa: solo se anotaba en la marca lo que contaba el paso de
   subir alcance, no lo que reabría el paso de `debeReabrir()`; un fondo sin ficha o
   con la ficha rota reabría en cada cierre. Arreglo: lo que reabre se anota en
