@@ -103,10 +103,9 @@ describe("consulta_lectura solo lee", () => {
     }
   });
 
-  it("la plantilla de .env.local trae la dirección, comentada (op inject falla entero si el campo no existe)", () => {
+  it("la plantilla de .env.local trae la dirección del usuario de lectura (la ficha existe desde el 9 oct 2026)", () => {
     const plantilla = fs.readFileSync(path.join(AQUI, "..", "ops", "env.1password"), "utf8");
-    expect(plantilla).toContain(`# ${VAR_LECTURA}=${OP_LECTURA}`);
-    expect(plantilla).not.toMatch(new RegExp(`^${VAR_LECTURA}=`, "m"));
+    expect(plantilla.split(/\r?\n/)).toContain(`${VAR_LECTURA}=${OP_LECTURA}`);
   });
 
   it("caza lo que no debe pasar (cada caso, una cosa)", () => {
