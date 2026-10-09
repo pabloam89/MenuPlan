@@ -1508,9 +1508,9 @@ export function PantryScreen({
     }
     let active = true;
     setLoading(true);
-    loadPantry(user.id, pantryHouseholdId || null).then((rows) => {
+    loadPantry(user.id, pantryHouseholdId || null).then(({ data: rows }) => {
       if (active) {
-        setItems(rows);
+        setItems(rows ?? []);
         setLoading(false);
       }
     });
@@ -1532,7 +1532,7 @@ export function PantryScreen({
   };
 
   const handleSaved = async () => {
-    const next = user ? await loadPantry(user.id, pantryHouseholdId || null) : loadLocalPantry();
+    const next = user ? ((await loadPantry(user.id, pantryHouseholdId || null)).data ?? []) : loadLocalPantry();
     setItems(next);
     const focus = [...next].sort((a, b) => String(b.updatedAt ?? "").localeCompare(String(a.updatedAt ?? "")))[0];
     if (!focus?.id) return;

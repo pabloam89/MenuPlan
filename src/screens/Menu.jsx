@@ -7186,13 +7186,13 @@ export function DishDetail({
     if (!cookable) return;
     let active = true;
     (async () => {
-      const stock = user ? await loadPantry(user.id) : loadLocalPantry();
+      const stock = user ? ((await loadPantry(user.id)).data ?? []) : loadLocalPantry();
       if (active) setPantryStock(stock);
     })();
     return () => { active = false; };
   }, [cookable, user]);
   const reloadCookStock = async () => {
-    setPantryStock(user ? await loadPantry(user.id) : loadLocalPantry());
+    setPantryStock(user ? ((await loadPantry(user.id)).data ?? []) : loadLocalPantry());
     onPantryChanged?.();
   };
   // Which ingredients are already covered by real stock (drives the tick).

@@ -364,8 +364,9 @@ export function FeedScreen({
     // para nada que además acababa en "no disponible".
     const local = recipeCatalogById[id]
       ?? items.find((i) => i.kind === "recipe" && i.recipe.id === id)?.recipe;
-    const r = local ?? await loadPublicRecipe(id);
-    if (r) onOpenRecipe?.(r);
+    const carga = local ? { data: local, error: null } : await loadPublicRecipe(id);
+    if (carga.data) onOpenRecipe?.(carga.data);
+    else if (carga.error) onToast?.("No se pudo cargar la receta. Revisa la conexión.");
     else onToast?.("Esa receta ya no está disponible");
   };
 
@@ -408,7 +409,7 @@ export function FeedScreen({
       try {
         if (localStorage.getItem(VIS_PROMPT_KEY)) return;
       } catch { /* modo privado: se preguntara otra vez, mal menor */ }
-      const prof = await loadMyProfile(user.id);
+      const { data: prof } = await loadMyProfile(user.id);
       // Sin perfil todavia no se pregunta: el handle se crea al abrir Mi
       // perfil, y preguntar antes seria hablar de algo que aun no existe.
       if (!alive || !prof) return;

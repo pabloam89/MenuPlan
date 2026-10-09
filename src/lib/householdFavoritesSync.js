@@ -7,25 +7,27 @@ import { favScopeOf, isFavorite, voteOf } from "./recipeVotes.js";
  */
 
 /**
+ * Las favoritas de la casa. Si la lectura falla, `data` es null y `error` lo
+ * dice (#317): «la casa no tiene favoritas» no es lo mismo que «no se sabe».
  * @param {string} householdId
- * @returns {Promise<Record<string, { scope?: string|null }>>}
+ * @returns {Promise<{ data: Record<string, { scope?: string|null }>|null, error: object|null }>}
  */
 export async function loadHouseholdFavorites(householdId) {
-  if (!supabase || !householdId) return {};
+  if (!supabase || !householdId) return { data: {}, error: null };
   const { data, error } = await supabase
     .from("household_favorites")
     .select("recipe_id, scope")
     .eq("household_id", householdId);
   if (error) {
     console.warn("[householdFavoritesSync] load failed", error.message);
-    return {};
+    return { data: null, error };
   }
   /** @type {Record<string, { scope?: string|null }>} */
   const out = {};
   for (const row of data ?? []) {
     out[row.recipe_id] = { scope: row.scope ?? null };
   }
-  return out;
+  return { data: out, error: null };
 }
 
 // household_favorites.scope es texto, no text[] como recipe_votes.scope: null
