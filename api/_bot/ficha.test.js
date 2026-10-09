@@ -33,6 +33,16 @@ describe("la ficha de la casa", () => {
     expect(f.delDia).toMatch(/PENDIENTE\n- ¿Vega tiene alguna alergia/);
   });
 
+  it("SEGURIDAD: el «ninguna» por silencio se ve como tal, no como confirmado (#229)", () => {
+    const data = { members: [
+      { id: "p", name: "Pablo", allergies: [], alergiasRevisadas: true },
+      { id: "m", name: "Marta", allergies: [], alergiasRevisadas: true, alergiasOrigen: "por_silencio" },
+    ] };
+    const f = montarFicha(casaDe(data), {}, "2026-10-01");
+    expect(f.estable).toMatch(/Pablo: ninguna\. Marta: ninguna \(por silencio\)\./);
+    expect(f.delDia).not.toMatch(/PENDIENTE/);
+  });
+
   it("no inventa edades: quien no la tiene sale sin número", () => {
     const f = montarFicha(casaDe({ members: [{ id: "a", name: "Ana", age: null }, { id: "b", name: "Bea", age: 40 }] }), {}, "2026-10-01");
     expect(f.estable).toMatch(/- Ana · Bea 40\./);

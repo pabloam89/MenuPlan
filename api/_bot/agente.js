@@ -59,6 +59,25 @@ import { papelDeQuien, idiomaDe } from "./papel.js";
 import { herramientaPermitida } from "../../src/lib/papeles.js";
 import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
+import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
+
+/**
+ * Las alergias por silencio del turno (silencio.js): con lo último que dijo
+ * Lola, el mensaje, las herramientas pedidas hasta ahora, quién había antes y,
+ * al cerrar el turno, lo que contestó Lola (en generar_menu aún no lo hay).
+ * Sin aviso pendiente es una regex y no toca la base.
+ */
+function silencioDelTurno(chat, respuestaDeLola = null) {
+  if (!chat?.householdId) return null;
+  return apuntarSilencio({
+    householdId: chat.householdId, ultimaDeLola: chat.anterior, texto: chat.texto, papel: chat.papel,
+    canal: chat.channel, userId: chat.userId ?? null, nombres: chat.nombresAntes ?? [], respuestaDeLola,
+    // Las ya ejecutadas y las PEDIDAS en el bloque en curso: si el modelo pide
+    // a la vez generar_menu y ajustar_alergias, generar no aplica el silencio
+    // aunque le toque correr primero (el menú sale con el filtro).
+    llamadas: [...new Set([...(chat.llamadas ?? []), ...(chat.pedidas ?? [])])],
+  });
+}
 
 // Modelo y esfuerzo, configurables para medir velocidad contra calidad con
 // scripts/bot-evals.mjs (BOT_MODELO, BOT_EFFORT) sin tocar código.
@@ -204,6 +223,7 @@ export async function herramientas(chat) {
   }));
 
   async function ejecutarUna(t, args, llamada) {
+      chat.llamadas?.push(t.name);
       // Por si acaso: el papel se vuelve a mirar al ejecutar.
       if (!permitida(chat, t)) {
         return "Eso no lo puede cambiar quien te escribe (es de solo consulta en esta casa). Díselo con amabilidad y que se lo pida a quien gestiona la casa.";
@@ -619,10 +639,14 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["semana"]),
       run: async ({ semana, fijos }) => {
         // La semana generada sale pintada debajo del mensaje de Lola (entregar()).
+        // Alergias por silencio (#229): antes de generar, para que el menú de
+        // este mismo turno ya salga con todo el catálogo.
+        await silencioDelTurno(chat);
         const out = {};
         const texto = await generarMenu(householdId, semana, fijos ?? [], out);
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
-        return texto;
+        if (out.recordarSilencio) chat.recordarSilencio = true;
+        return out.recordarSilencio ? `${texto}\n${NOTA_RECORDATORIO}` : texto;
       },
     }),
   ];
@@ -964,7 +988,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
   // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined };
+  // `llamadas`: las herramientas que Lola pide en el turno, en orden (silencio.js).
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [] };
   // El papel de quien escribe, en cada turno (no se guarda: quitar a alguien
   // vale para el mensaje siguiente). Las herramientas se filtran con él.
   const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })
@@ -1025,6 +1050,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const entradaModelo = [bloqueDeTareas(tareasVivas, { data, chatId }), bloque, entrada].filter(Boolean).join("\n\n");
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
+  // Para las alergias por silencio (silencio.js): quién había ANTES del turno.
+  chat.nombresAntes = (data.members ?? []).map((m) => m.name).filter(Boolean);
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
   const ficha = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
   let dicho, uso, corregido, medida, sigueSinGuardar = false;
@@ -1045,6 +1072,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     if (leido) medidaPista = { ...medidaPista, modo: d.modo, confianza: d.confianza, adelanto: leido.nombre, reinicio };
     return ejecutar({
       historia, entrada: entradaModelo, tools: conAdelanto, adjunto, signal: sig, ficha, progreso,
+      alPedir: (nombres) => chat.pedidas.push(...nombres),
       guardados: () => chat.guardados ?? 0,
       pista: leido ? textoPista(d, leido) : null,
       alEscribir: alEscribir ? (parcial, extra) => {
@@ -1116,7 +1144,9 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     { householdId, channel, chatId, userId: chat.userId ?? null },
     pendientesNuevas.filter((p) => !enTabla.has(p.clave) && !calladas.has(p.clave)),
   ).catch((e) => console.error("[agente] promover", e?.message));
-  const respuesta = visible + avisoDeLimite(householdId, llevados);
+  // El recordatorio del primer menú por silencio lo pone el código, no el
+  // modelo (generar_menu lo marca en chat.recordarSilencio): sale una vez.
+  const respuesta = conRecordatorio(visible, chat.recordarSilencio, chat.idioma ?? "es") + avisoDeLimite(householdId, llevados);
 
   // Guardar la charla no tiene por qué retrasar la respuesta: va en
   // `guardado`, y quien entrega lo espera DESPUÉS de enviar y antes de soltar
@@ -1131,7 +1161,11 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     // a propósito: es una señal del embudo; no toca la charla
     segundaSemana(householdId).catch(seguirCon("agente_segunda_semana")),
     cierresPorEstado,
-    promocion,
+    // Alergias por silencio (#229): se decide aquí, cuando Lola ya ha leído
+    // el mensaje y se sabe a qué herramientas llamó (silencio.js). Tras la
+    // promoción de preguntas, para que cerrarlas no se cruce con abrirlas.
+    // Con lo que contestó Lola: si aclaraba o preguntaba, no es silencio.
+    promocion.then(() => silencioDelTurno(chat, visible)),
   ]).then((r) => { if (tablas) olvidarFicha(householdId); return r; });
   // Lo leído de ficha_casa no vale para el turno siguiente: este puede haber
   // anotado o cerrado tareas sin que cambie bot_rev. Se olvida ya y otra vez al
@@ -1165,7 +1199,16 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
 // decir que guardó: «hola, ¿qué sabes hacer?» pasaba por el aviso y una
 // segunda llamada al modelo (staging, 2 oct 2026: 8,2 s para un saludo).
 const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
-export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(String(texto ?? ""));
+// «No tenéis ninguna alergia apuntada» es leer lo que hay, no decir que guardó:
+// saltaba el aviso y costaba otra vuelta de ~3 s en cada consulta (#229). Se
+// quita el «apuntad…» que va detrás de una negación en la misma frase, salvo
+// que sea «he apuntado» y el «no» no vaya con él («No olvides que te he
+// apuntado leche» sí dice que guardó; «No te he apuntado nada», no).
+const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\bapuntad[oa]s?\b/gi;
+const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+apuntad/i;
+const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+apuntad/i;
+const sinNegados = (texto) => texto.replace(APUNTADO_NEGADO, (m) => (HE_APUNTADO.test(m) && !NO_HE_APUNTADO.test(m) ? m : ""));
+export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(sinNegados(String(texto ?? "")));
 // Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
 // mientras corren, la persona ve al momento una frase de Lola en el mensaje
 // que se va escribiendo, y lo que Lola escriba después la sustituye en ese
@@ -1193,7 +1236,7 @@ const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En t
  *   en el turno (responder lo saca de db.js). Sin él (pruebas con herramientas
  *   de mentira) vale lo intentado.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null }) {
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null, alPedir = null }) {
   // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
@@ -1228,7 +1271,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     try {
       if (i > 0) alReintentar?.();
       const comun = {
-        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso,
+        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso, alPedir,
         signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
@@ -1289,7 +1332,7 @@ export function esCaida(err) {
 // los puntos de 1 h vayan antes que los de 5 min.
 const CACHE_FIJA = { type: "ephemeral", ttl: "1h" };
 
-async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null }) {
+async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null, alPedir = null }) {
   // Con cache_control en el último bloque: la segunda vuelta del turno (tras
   // una herramienta) y las siguientes leen de caché todo lo anterior —
   // instrucciones, historia y el mensaje— en vez de volver a procesarlo.
@@ -1352,6 +1395,9 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
       mensaje = await vuelta.finalMessage();
     }
     final = mensaje;
+    // El bloque de herramientas que pide esta vuelta, ANTES de que el runner
+    // las ejecute (lo hace al acabar este cuerpo; sin runToolsEagerly).
+    alPedir?.((mensaje.content ?? []).filter((b) => b.type === "tool_use").map((b) => b.name));
     llamadas.push([Date.now() - desde, mensaje.usage?.output_tokens ?? 0, primerTrozo]);
     desde = Date.now();
     vueltas++;

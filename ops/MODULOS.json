@@ -212,14 +212,19 @@
             "src/lib/healthProfileMatch.js",
             "src/lib/aptoNinos.js",
             "src/components/RestrictionConflictBanner.jsx",
-            "src/lib/restriccionesReceta.js"
+            "src/lib/restriccionesReceta.js",
+            "src/lib/alergiasBase.js",
+            "api/_bot/silencio.js"
           ],
           "tests": [
             "src/lib/alergias.test.js",
             "src/lib/gluten.seguridad.test.js",
             "src/lib/intolerances.test.js",
             "src/lib/healthFlags.test.js",
-            "src/lib/aptoNinos.test.js"
+            "src/lib/aptoNinos.test.js",
+            "src/lib/alergiasSilencio.test.js",
+            "api/_bot/silencio.test.js",
+            "api/_bot/silencioTurno.test.js"
           ],
           "metricas": [
             {
