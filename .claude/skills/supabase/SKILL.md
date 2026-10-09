@@ -37,6 +37,20 @@ los scripts para conectar es `SUPABASE_DB_URL`, leída con `leerEnv` de
 `scripts/lib/env.mjs`. No hay cuenta propia de Supabase: el acceso al panel
 cuelga del equipo de Vercel.
 
+`npm run consulta` entra con `SUPABASE_DB_URL_LECTURA`, el rol
+`consulta_lectura` de la 0092 (solo `select` en `public` y `ops`, sin `auth`,
+`cron`, `vault` ni `storage`). Si la variable no está, entra con la de
+administrador y lo avisa; si está pero no se puede leer, falla. Su contraseña
+la pone `node scripts/clave-consulta-lectura.mjs --si` (Pablo, con `!`): la
+genera, crea la ficha «Supabase lectura» en HoMenu por stdin y a la base solo
+le manda el verificador SCRAM. Lo que esté fuera de `public` y `ops` (p. ej.
+`cron.job`) se mira con `verificar-estado` o con la de administrador.
+**La frontera es la URL, no el rol**: el read only y los tiempos límite son
+valores por defecto que la sesión puede cambiar, y con su propia sesión quien
+tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
+(concesiones de Supabase a todos; riesgo aceptado, cabecera de la 0092). Por
+`consulta.mjs` no.
+
 ## Operaciones habituales
 
 | Qué | Comando | Debe salir |

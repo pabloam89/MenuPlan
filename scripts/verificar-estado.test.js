@@ -48,6 +48,12 @@ describe("leer el SQL", () => {
     expect(f).toMatchObject({ tipo: "función", id: "public.g", cuerpo: "select x + 1" });
   });
 
+  it("saca el rol que se crea, también dentro de un do $$ (0051, 0092)", () => {
+    const sql = "do $$ begin if not exists (select 1 from pg_roles where rolname = 'consulta_lectura') then create role consulta_lectura; end if; end $$;\nalter role consulta_lectura with login;";
+    expect(ids(sql)).toEqual(["rol|consulta_lectura"]);
+    expect(testigos("drop role if exists consulta_lectura;").quita.map((t) => `${t.tipo}|${t.id}`)).toEqual(["rol|consulta_lectura"]);
+  });
+
   // La 0091 salía «parcial 1/3» recién aplicada: buscaba sus funciones de
   // pg_temp, que mueren con la sesión que las crea.
   it("lo de pg_temp no es testigo: no sobrevive a la migración", () => {
