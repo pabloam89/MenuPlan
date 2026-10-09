@@ -30,20 +30,24 @@ description: Úsala para operar la base de datos de MenuPlan en Supabase: una co
   instala, se ensaya y se restaura: skill `hetzner`. Lo que lleva y lo que no:
   - Lleva `public` y `ops` enteros (esquema y datos), con `pg_dump` de solo
     lectura.
-  - **No lleva `auth.users`** mientras se haga con `consulta_lectura`, que no
-    ve `auth` (#273, punto 2). Restaurar en **esta misma** base (se rompió una
-    tabla, un borrado de más) sirve igual: los usuarios siguen en `auth`.
-    Restaurar en un **proyecto nuevo** deja las casas sin dueño: 34 claves ajenas
-    de 29 tablas apuntan a `auth.users`, y el login de Google crearía usuarios
-    con otros ids. Para eso hace falta el usuario `copia_lectura` con vistas de
-    `auth.users` y `auth.identities` (sin tokens) en un esquema `copia`; el
-    script ya las saca si existen (`auth: si`).
-  - **Ni el valor de las secuencias** con `consulta_lectura`
-    (`secuencias: sin-valor`): al restaurar se ponen al máximo de su columna
-    con `SQL_SECUENCIAS` de `scripts/lib/copias.mjs`, o el siguiente insert
-    chocaría.
-- **Pendiente:** instalar las copias en el servidor y su primer ensayo (#247), y
-  las decisiones de #273 (aviso, `copia_lectura`, segunda copia de la clave).
+  - Lo hace el usuario propio `copia_lectura` (0094, #273): `select` en
+    `public`, `ops` y sus secuencias (`secuencias: con-valor`), `bypassrls`
+    (sin él `pg_dump` se para con la RLS), una sola conexión.
+  - **Lleva lo justo de `auth`** (`auth: si`): el esquema `copia` tiene dos
+    vistas, `auth_usuarios` (id, email, teléfono, confirmaciones, anónimo, alta)
+    y `auth_identidades` (id, user_id, provider, provider_id, alta), sin
+    contraseñas, tokens ni metadatos; salen en CSV cifrado. Restaurar en
+    **esta misma** base no las necesita (los usuarios siguen en `auth`). En un
+    **proyecto nuevo** sí: 34 claves ajenas de 29 tablas apuntan a
+    `auth.users`, y sin la identidad el login de Google crearía usuarios con
+    otros ids. Al cargarlas en un `auth` de verdad faltan columnas que la copia
+    no lleva a propósito: `aud` y `role` (`authenticated`) e `identity_data`
+    (al menos `sub` = `provider_id` y el email). Sin ensayar todavía.
+  - Si una copia sale `secuencias: sin-valor`, al restaurar se ponen al máximo
+    de su columna con `SQL_SECUENCIAS` de `scripts/lib/copias.mjs`, o el
+    siguiente insert chocaría.
+- **Pendiente:** aplicar la 0094 y poner su contraseña, instalar las copias en
+  el servidor y su primer ensayo (#247, #273).
 
 ## Claves y accesos
 
@@ -132,9 +136,9 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 - Cambiar ajustes del panel: Auth, proveedores, URLs de retorno, plan, crons
   fuera de `scripts/bot-cron.mjs`.
 - Subir de plan (Pro) o dar de alta cualquier gasto de Supabase.
-- Lo que cambie las copias propias: otro usuario para la copia (`copia_lectura`
-  toca permisos: `--pablo`), sacar más esquemas (`auth`) o llevarlas a otro
-  sitio. Son datos de salud de familias (alergias, RGPD art. 9) fuera de
+- Lo que cambie las copias propias: los permisos de `copia_lectura` o las
+  columnas de `auth` que saca el esquema `copia` (tocan permisos: `--pablo`),
+  sacar más esquemas o llevarlas a otro sitio. Son datos de salud de familias (alergias, RGPD art. 9) fuera de
   Supabase, siempre cifrados.
 - Restaurar una copia sobre esta base, aunque sea una tabla.
 
@@ -144,8 +148,8 @@ Lo paga el equipo de Vercel por el Marketplace. La base pesa 65 MB (2026-10-08).
 
 **Copias:** las de Supabase, ninguna (el plan Free no las incluye). Las propias
 (elegidas el 9 oct, #156) no cuestan nada nuevo: ~9,1 MB y 14 s por copia
-medidos ese día, y `pg_dump` usa una de las 3 conexiones de `consulta_lectura`
-unos segundos a las 02:40 UTC. Lo que se descartó, por si hace falta más:
+medidos ese día, y `pg_dump` usa la única conexión de `copia_lectura` unos
+segundos a las 02:40 UTC. Lo que se descartó, por si hace falta más:
 - **Plan Pro**: hasta 7 días de copias diarias con restauración desde el panel.
   Comprobar el precio en la pantalla de «Upgrade» antes de decidir.
 - **PITR** (volver a un segundo concreto): extra de pago encima de Pro, desde unos
