@@ -19,6 +19,7 @@
  *     contestar nada.
  */
 
+import { seguirCon } from "./avisar.js";
 import { llamar } from "./telegram.js";
 import { cargarCasa } from "./casa.js";
 import { propiasDe } from "./propias.js";
@@ -63,7 +64,9 @@ export async function palabrasDeLaCasa(householdId) {
   try {
     const casa = await cargarCasa(householdId);
     return palabrasDe(casa?.state?.data ?? {}, propiasDe(casa));
-  } catch {
+  } catch (e) {
+    // a propósito: la pista solo ayuda a Whisper; sin ella, se transcribe igual.
+    console.warn("[voz] palabras de la casa:", e?.message);
     return { nombres: [], propias: [] };
   }
 }
@@ -224,7 +227,8 @@ export async function transcribir(audio, { householdId } = {}) {
     body: form,
     signal: AbortSignal.timeout(TIEMPO_GROQ_MS),
   });
-  const json = await res.json().catch(() => ({}));
+  // a propósito: sin cuerpo JSON, el status ya dice qué pasó
+  const json = await res.json().catch(seguirCon("voz_json", {}));
   if (!res.ok) return { error: json?.error?.message ?? `HTTP ${res.status}` };
   const texto = corregirNombres(limpiarTranscripcion(json, pista), nombres);
   return texto ? { texto } : { error: "vacío" };

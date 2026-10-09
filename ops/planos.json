@@ -1,0 +1,861 @@
+{
+  "$comentario": "Criterios de cada plano y nivel (#248). El nivel lo calcula `npm run planos`; la tabla de ops/PLANOS.md sale de aquí. Lo vigila ops/planos.test.js.",
+  "repo": "pabloam89/MenuPlan",
+  "caducidad_juicio_dias": 30,
+  "escala": {
+    "0": "no existe",
+    "1": "existe pero es manual",
+    "2": "obliga (algo bloquea si falla)",
+    "3": "mide y avisa solo",
+    "4": "previene (el error no se puede ni escribir)"
+  },
+  "vocabularios": {
+    "tipos_criterio": {
+      "fichero_existe": "Existe la ruta (fichero o carpeta) en el repo. Campos: ruta.",
+      "fichero_contiene": "El fichero existe y casa con una expresión regular. Campos: ruta, patron.",
+      "test_existe": "Un *.test.js existe (y, con patron, contiene ese describe o caso): algo lo vigila en el CI. Campos: ruta, patron opcional.",
+      "workflow_activo": "El workflow existe con ese disparador (sin red) y GitHub lo tiene activo (con --red). Campos: fichero, disparador.",
+      "regla_github": "Un ajuste de GitHub de la lista REGLAS_GITHUB de scripts/lib/planos.mjs. Solo con --red; sin permisos, sin comprobar. Campos: regla y sus parámetros.",
+      "cifra_umbral": "Una cifra de la lista MEDIDORES de scripts/lib/planos.mjs comparada con un umbral. Campos: medidor, operador, umbral.",
+      "a_juicio": "Lo que no se puede medir con un script: quién lo juzgó, cuándo y con qué evidencia. Caduca a los caducidad_juicio_dias. Campos: quien, fecha, cumple, nota.",
+      "por_definir": "Lo que pide el nivel pero aún no tiene comprobación: nunca cumple. Al construirlo, se cambia por un criterio comprobable. Campos: que (e issue opcional)."
+    },
+    "estados_criterio": {
+      "cumple": "Comprobado y bien.",
+      "no_cumple": "Comprobado y mal (o por definir).",
+      "sin_comprobar": "Hacía falta red o permisos que no hay. Nunca cuenta como cumplido."
+    }
+  },
+  "medicion": {
+    "fecha": "2026-10-09",
+    "por": "gobierno",
+    "red": true,
+    "niveles": {
+      "1": 3,
+      "2": 3,
+      "3": 3,
+      "4": 2,
+      "5": 1,
+      "6": 1,
+      "7": 2,
+      "8": 1,
+      "9": 1,
+      "10": 1,
+      "11": 3,
+      "12": 1,
+      "13": 1
+    }
+  },
+  "planos": [
+    {
+      "id": 1,
+      "nombre": "Flujo",
+      "pregunta": "¿Dónde vive el código y cómo llega a producción?",
+      "lanzar": 3,
+      "escalar": 4,
+      "agentes": "gobierno",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_contiene",
+            "que": "El flujo rama → PR → staging está escrito en CLAUDE.md",
+            "ruta": "CLAUDE.md",
+            "patron": "Una sesión = una carpeta = una rama = una tarea"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "Una carpeta por tarea con `npm run tarea`",
+            "ruta": "scripts/tarea.mjs"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "regla_github",
+            "que": "main solo entra con el check `tests` en verde",
+            "regla": "check_obligatorio",
+            "rama": "main",
+            "check": "tests"
+          },
+          {
+            "tipo": "regla_github",
+            "que": "main sin push forzado",
+            "regla": "sin_push_forzado",
+            "rama": "main"
+          },
+          {
+            "tipo": "regla_github",
+            "que": "staging sin push forzado",
+            "regla": "sin_push_forzado",
+            "rama": "staging"
+          },
+          {
+            "tipo": "regla_github",
+            "que": "staging solo entra con `tests` en verde (ruleset 24770007, PR #240)",
+            "regla": "check_obligatorio",
+            "rama": "staging",
+            "check": "tests"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "La guardia niega el push a main",
+            "ruta": ".claude/hooks/guardia.test.js",
+            "patron": "main es producción"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "La guardia niega el push directo a staging",
+            "ruta": ".claude/hooks/guardia.test.js",
+            "patron": "a staging solo por PR"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "workflow_activo",
+            "que": "Cada push a staging pasa los tests y su fallo queda a la vista",
+            "fichero": "tests.yml",
+            "disparador": "push"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "El arranque avisa de otras sesiones y de números de migración cogidos",
+            "ruta": ".claude/hooks/sesiones.test.js"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "`npm run podar` cuenta las ramas fusionadas y las huérfanas",
+            "ruta": "scripts/podar.test.js"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "a_juicio",
+            "que": "Nada llega rojo a staging, tampoco el cron",
+            "quien": "gobierno",
+            "fecha": "2026-10-09",
+            "cumple": false,
+            "nota": "El cron de Mercadona se salta el ruleset con su deploy key; el 9 oct su commit be7ca05 dejó staging en rojo (run 37888775813, productoBuscado.test.js) y Vercel lo desplegó igual"
+          },
+          {
+            "tipo": "por_definir",
+            "que": "El paso de staging a main tiene método decidido y escrito (pendiente 9 de ops/INVENTARIO.md)"
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "nombre": "Reglas y contexto",
+      "pregunta": "¿Qué sabe cada sesión antes de tocar nada?",
+      "lanzar": 3,
+      "escalar": 4,
+      "agentes": "gobierno, revisor",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_existe",
+            "que": "Reglas comunes en CLAUDE.md",
+            "ruta": "CLAUDE.md"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "Specs por dominio con índice",
+            "ruta": "specs/INDEX.md"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "Principios de datos escritos",
+            "ruta": "docs/datos/PRINCIPIOS.md"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "test_existe",
+            "que": "Los agentes siguen su plantilla",
+            "ruta": ".claude/agentes.test.js"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "Las skills siguen su plantilla",
+            "ruta": ".claude/skills.test.js"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "Reglas, skills y agentes no citan rutas que no existen",
+            "ruta": ".claude/rutas.test.js"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "Un PR que toca un dominio dice si actualizó su runbook",
+            "ruta": "scripts/runbook-pr.test.js"
+          },
+          {
+            "tipo": "fichero_contiene",
+            "que": "La línea «Runbook:» se exige en el CI",
+            "ruta": ".github/workflows/tests.yml",
+            "patron": "runbook-pr\\.mjs"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "test_existe",
+            "que": "Al editar un fichero, avisa de los issues abiertos que lo nombran",
+            "ruta": ".claude/hooks/avisos.test.js"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "La guardia pide abrir la skill antes del primer comando de riesgo",
+            "ruta": ".claude/hooks/guardia.test.js",
+            "patron": "puerta de lectura"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "El mapa de dominios y skills no se separa de las skills",
+            "ruta": ".claude/dominios-skills.test.js"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "La deriva de specs/ respecto al código se detecta sola (hoy, solo con /update-specs a mano)"
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "nombre": "Guardarraíles",
+      "pregunta": "¿Qué es imposible hacer mal?",
+      "lanzar": 3,
+      "escalar": 4,
+      "agentes": "gobierno",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_existe",
+            "que": "Existe la guardia",
+            "ruta": ".claude/hooks/guardia.mjs"
+          },
+          {
+            "tipo": "fichero_contiene",
+            "que": "La guardia está enchufada antes de cada comando",
+            "ruta": ".claude/settings.json",
+            "patron": "hooks/guardia\\.mjs"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "test_existe",
+            "que": "Niega escribir en la base de producción a mano",
+            "ruta": ".claude/hooks/guardia.test.js",
+            "patron": "la base es producción"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "Niega editar migraciones aplicadas",
+            "ruta": ".claude/hooks/guardia.test.js",
+            "patron": "migraciones aplicadas no se editan"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "Vigila los merges (#223)",
+            "ruta": ".claude/hooks/guardia.test.js",
+            "patron": "gh pr merge"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "No deja trabajar en la carpeta principal",
+            "ruta": ".claude/hooks/guardia.test.js",
+            "patron": "en la principal no se trabaja"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "test_existe",
+            "que": "Frena al terminar si quedan decisiones sin issue",
+            "ruta": ".claude/hooks/pendientes.test.js"
+          },
+          {
+            "tipo": "regla_github",
+            "que": "La regla de tests en staging vale también fuera de Claude (Álvaro, terminal)",
+            "regla": "check_obligatorio",
+            "rama": "staging",
+            "check": "tests"
+          },
+          {
+            "tipo": "regla_github",
+            "que": "La protección de main vale también para administradores",
+            "regla": "admins_incluidos",
+            "rama": "main"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "Cada negación de la guardia deja una línea contable (hoy no queda rastro)"
+          },
+          {
+            "tipo": "por_definir",
+            "que": "La guardia ve el SQL dentro de un fichero, no solo el texto del comando (skill hetzner, 8 oct)"
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "nombre": "Verificación",
+      "pregunta": "¿Cómo sé, sin mirar, que no he roto nada?",
+      "lanzar": 3,
+      "escalar": 4,
+      "agentes": "revisor, qa, gobierno",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_contiene",
+            "que": "Hay suite de tests",
+            "ruta": "package.json",
+            "patron": "\"test\": \"vitest run\""
+          }
+        ],
+        "2": [
+          {
+            "tipo": "workflow_activo",
+            "que": "Los tests corren en cada PR",
+            "fichero": "tests.yml",
+            "disparador": "pull_request"
+          },
+          {
+            "tipo": "fichero_contiene",
+            "que": "El lint con línea base bloquea errores nuevos",
+            "ruta": ".github/workflows/tests.yml",
+            "patron": "npm run lint:base"
+          },
+          {
+            "tipo": "fichero_contiene",
+            "que": "La build bloquea",
+            "ruta": ".github/workflows/tests.yml",
+            "patron": "npm run build"
+          },
+          {
+            "tipo": "regla_github",
+            "que": "main exige `tests`",
+            "regla": "check_obligatorio",
+            "rama": "main",
+            "check": "tests"
+          },
+          {
+            "tipo": "regla_github",
+            "que": "staging exige `tests`",
+            "regla": "check_obligatorio",
+            "rama": "staging",
+            "check": "tests"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "cifra_umbral",
+            "que": "Los errores de lint viejos solo bajan (132 el 9 oct)",
+            "medidor": "errores_lint_base",
+            "operador": "<=",
+            "umbral": 132
+          },
+          {
+            "tipo": "por_definir",
+            "que": "Tipos: piloto de checkJs con los tipos generados de Supabase en un dominio"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "Lo que se puede romper sin que un test lo vea está medido (cobertura o tipos en todo el código)"
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "nombre": "Entornos",
+      "pregunta": "¿Dónde pruebo sin riesgo?",
+      "lanzar": 3,
+      "escalar": 4,
+      "agentes": "gobierno, datos",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_existe",
+            "que": "La app se despliega en Vercel",
+            "ruta": "vercel.json"
+          },
+          {
+            "tipo": "a_juicio",
+            "que": "Cada PR tiene preview y staging su entorno (staging-menuplan)",
+            "quien": "gobierno",
+            "fecha": "2026-10-09",
+            "cumple": true,
+            "nota": "Visto en `gh api repos/pabloam89/MenuPlan/deployments`: despliegues Preview y staging-menuplan del 9 oct"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "test_existe",
+            "que": "Una migración no se aplica sin un ensayo con ROLLBACK de menos de una hora",
+            "ruta": "scripts/lib/permisoAplicar.test.js"
+          },
+          {
+            "tipo": "por_definir",
+            "que": "Una base de pruebas, aparte de producción, para ensayar migraciones sin datos reales"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "por_definir",
+            "que": "Los entornos se comparan solos (esquema de pruebas frente a producción)"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "Nada se prueba contra datos reales: el código no puede apuntar a producción desde local"
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "nombre": "Observabilidad",
+      "pregunta": "¿Cómo me entero de que algo falla en producción?",
+      "lanzar": 3,
+      "escalar": 4,
+      "agentes": "(vigía, cuando exista la herramienta)",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "workflow_activo",
+            "que": "El agente diario de fallos de generación",
+            "fichero": "agente-fallos.yml",
+            "disparador": "schedule"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "Los fallos del bot se sacan de los logs de Vercel",
+            "ruta": "scripts/bot-fallos.mjs"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "test_existe",
+            "que": "Ningún error se traga en silencio",
+            "ruta": "scripts/sinErroresTragados.test.js"
+          },
+          {
+            "tipo": "por_definir",
+            "que": "Captura de errores (Sentry o similar) en la app y en api/"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "por_definir",
+            "que": "Alerta en tiempo real cuando sube la tasa de errores (agente vigía)"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "Cada fallo visto en producción deja un test o una regla (medido por issue)"
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "nombre": "Seguridad",
+      "pregunta": "¿Quién puede ver o romper qué?",
+      "lanzar": 3,
+      "escalar": 4,
+      "agentes": "seguridad, gobierno",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_existe",
+            "que": "Hay una auditoría hecha",
+            "ruta": "specs/AUDIT-REPORT.md"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "Hay un juez de seguridad",
+            "ruta": ".claude/agents/seguridad.md"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "regla_github",
+            "que": "Secret scanning activo",
+            "regla": "secret_scanning"
+          },
+          {
+            "tipo": "regla_github",
+            "que": "Un push con una clave se bloquea",
+            "regla": "push_protection"
+          },
+          {
+            "tipo": "regla_github",
+            "que": "Alertas de Dependabot activas",
+            "regla": "dependabot_alertas"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "Las funciones nuevas revocan a anon y authenticated (PRINCIPIOS §8)",
+            "ruta": "supabase/principios.test.js",
+            "patron": "revoke"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "El rol de solo lectura consulta_lectura (0092) no ve auth ni vault",
+            "ruta": "supabase/rolLectura.test.js"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "regla_github",
+            "que": "Dependabot abre solo los PR de seguridad",
+            "regla": "dependabot_seguridad"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "Actualizaciones semanales agrupadas",
+            "ruta": ".github/dependabot.yml"
+          },
+          {
+            "tipo": "a_juicio",
+            "que": "Los críticos de coste de specs/AUDIT-REPORT.md están cerrados",
+            "quien": "gobierno",
+            "fecha": "2026-10-09",
+            "cumple": false,
+            "nota": "Abiertos según la medición del 8 oct; no se han revisado uno a uno el 9 oct"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "Repaso de seguridad periódico que avisa solo (RLS y endpoints contra la base real)"
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "nombre": "Datos",
+      "pregunta": "¿Están bien modelados y puedo recuperarlos?",
+      "lanzar": 3,
+      "escalar": 4,
+      "agentes": "datos, auditor-datos",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_existe",
+            "que": "Principios de datos escritos",
+            "ruta": "docs/datos/PRINCIPIOS.md"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "Registro de qué migración está aplicada",
+            "ruta": "supabase/ESTADO.md"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "`verificar-estado` compara ESTADO.md con la base",
+            "ruta": "scripts/verificar-estado.mjs"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "test_existe",
+            "que": "Las migraciones nuevas pasan los principios",
+            "ruta": "supabase/principios.test.js"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "Trinquete de cableado tabla-fichero",
+            "ruta": "supabase/cableado.test.js"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "Las migraciones aplicadas no se editan",
+            "ruta": ".claude/hooks/guardia.test.js",
+            "patron": "migraciones aplicadas no se editan"
+          },
+          {
+            "tipo": "por_definir",
+            "que": "Copia diaria de la base de producción, fuera de Supabase y restaurada una vez",
+            "issue": 247
+          }
+        ],
+        "3": [
+          {
+            "tipo": "por_definir",
+            "que": "Una copia que falla avisa sola, y la restauración se ensaya con cadencia",
+            "issue": 247
+          },
+          {
+            "tipo": "por_definir",
+            "que": "El mapa de verdades (cada hecho, dónde vive y sus copias) lo vigila auditor-datos"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "Una tabla nueva no se puede escribir sin cumplir PRINCIPIOS (todas las normas con test)"
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "nombre": "Calidad de la IA",
+      "pregunta": "¿Lola responde bien tras cada cambio?",
+      "lanzar": 2,
+      "escalar": 3,
+      "agentes": "lola, evaluador",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_existe",
+            "que": "Evals de Lola, a mano",
+            "ruta": "scripts/bot-evals.mjs"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "Evals del router, a mano",
+            "ruta": "scripts/router-evals.mjs"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "Hay un juez de evals",
+            "ruta": ".claude/agents/evaluador.md"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "por_definir",
+            "que": "Las evals de Lola corren en el CI cuando un PR toca api/_bot/"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "por_definir",
+            "que": "La puntuación de las evals se guarda por semana y avisa si baja"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "Un cambio de prompt o modelo no entra si baja la puntuación"
+          }
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "nombre": "Coste",
+      "pregunta": "¿Cuánto gasto y quién lo gasta?",
+      "lanzar": 3,
+      "escalar": 4,
+      "agentes": "lola, evaluador",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_existe",
+            "que": "El coste del bot se calcula a mano",
+            "ruta": "scripts/bot-coste.mjs"
+          },
+          {
+            "tipo": "fichero_contiene",
+            "que": "Hay límite mensual de mensajes por casa",
+            "ruta": "api/_bot/uso.js",
+            "patron": "BOT_LIMITE_MENSUAL"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "test_existe",
+            "que": "El límite mensual tiene test",
+            "ruta": "api/_bot/uso.test.js",
+            "patron": "limiteMensual|BOT_LIMITE_MENSUAL"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "por_definir",
+            "que": "Alerta de gasto diario en Anthropic y coste por turno medido"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "Cuota por usuario que no se puede pasar"
+          }
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "nombre": "Entrada del trabajo",
+      "pregunta": "¿Cómo pasa una idea a tarea bien definida?",
+      "lanzar": 2,
+      "escalar": 3,
+      "agentes": "(la sesión principal con `/orquestar`)",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_existe",
+            "que": "`/orquestar` escribe el brief de cada agente",
+            "ruta": ".claude/commands/orquestar.md"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "Plantilla de encargo con objetivo y criterios",
+            "ruta": ".github/ISSUE_TEMPLATE/3-encargo.yml"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "test_existe",
+            "que": "La clasificación de issues tiene una fuente y los formularios salen de ella",
+            "ruta": "scripts/issues.test.js",
+            "patron": "formularios"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "La guardia niega `gh issue create` a pelo: se buscan los parecidos (#204)",
+            "ruta": ".claude/hooks/guardia.test.js",
+            "patron": "los issues se crean buscando antes"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "Un PR de una rama con issue lleva su Closes (#206)",
+            "ruta": ".claude/hooks/guardia.test.js",
+            "patron": "lleva su Closes"
+          },
+          {
+            "tipo": "fichero_contiene",
+            "que": "La plantilla de PR trae Closes y Agente",
+            "ruta": ".github/pull_request_template.md",
+            "patron": "^Closes #[\\s\\S]*^Agente:"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "test_existe",
+            "que": "Frena al terminar si quedan decisiones sin issue (#207)",
+            "ruta": ".claude/hooks/pendientes.test.js"
+          },
+          {
+            "tipo": "test_existe",
+            "que": "Al editar, avisa de los issues que nombran el fichero (#205)",
+            "ruta": ".claude/hooks/avisos.test.js"
+          },
+          {
+            "tipo": "fichero_contiene",
+            "que": "Repaso semanal con `npm run issues`",
+            "ruta": ".claude/commands/revision-issues.md",
+            "patron": "npm run issues"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "Ningún encargo empieza sin criterios de aceptación (la guardia o `npm run tarea` lo comprueban)"
+          }
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "nombre": "Release y vuelta atrás",
+      "pregunta": "¿Cómo subo y cómo deshago?",
+      "lanzar": 3,
+      "escalar": 4,
+      "agentes": "gobierno",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_contiene",
+            "que": "La vuelta atrás de Vercel está escrita",
+            "ruta": ".claude/skills/vercel/SKILL.md",
+            "patron": "Instant Rollback"
+          },
+          {
+            "tipo": "workflow_activo",
+            "que": "La app de iOS sale por un workflow a mano",
+            "fichero": "ios-testflight.yml",
+            "disparador": "workflow_dispatch"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "regla_github",
+            "que": "main solo entra por PR con `tests`",
+            "regla": "check_obligatorio",
+            "rama": "main",
+            "check": "tests"
+          },
+          {
+            "tipo": "por_definir",
+            "que": "El paso de staging a producción está decidido y escrito (pendiente 9)"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "por_definir",
+            "que": "Una vuelta atrás ensayada y el tiempo que tarda, medido"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "Un despliegue que empeora una cifra vuelve atrás solo"
+          }
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "nombre": "Diseño y experiencia",
+      "pregunta": "¿Se ve, se siente y responde como debe?",
+      "lanzar": 3,
+      "escalar": 4,
+      "agentes": "diseno, qa",
+      "niveles": {
+        "1": [
+          {
+            "tipo": "fichero_existe",
+            "que": "Hay un sistema de diseño escrito",
+            "ruta": "DESIGN_SYSTEM.md"
+          },
+          {
+            "tipo": "fichero_existe",
+            "que": "Diagnóstico del diseño (colores, letras, estilos inline)",
+            "ruta": "docs/diseno/ESTADO.md"
+          }
+        ],
+        "2": [
+          {
+            "tipo": "por_definir",
+            "que": "Tokens de color y letra, y una regla de lint con línea base que solo baja"
+          }
+        ],
+        "3": [
+          {
+            "tipo": "por_definir",
+            "que": "Colores, tamaños y estilos inline se cuentan solos en cada PR"
+          }
+        ],
+        "4": [
+          {
+            "tipo": "por_definir",
+            "que": "Un color o tamaño fuera de los tokens no se puede escribir"
+          }
+        ]
+      }
+    }
+  ]
+}

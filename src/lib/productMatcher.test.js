@@ -144,3 +144,92 @@ describe("listPricing pack math", () => {
     expect(buy.buyDisplay).toBeNull();
   });
 });
+
+describe("el ingrediente tiene que ir en cabeza del producto", () => {
+  // Los cinco salían con confianza alta en la lista de la compra: el nombre
+  // del ingrediente estaba entero en el del producto, pero de complemento.
+  it.each([
+    ["mantequilla", "Croissant de mantequilla"],
+    ["leche", "Café con leche cappuccino Hacendado"],
+    ["azucar", "Refresco cola Hacendado zero azúcar"],
+    ["vino blanco", "Vinagre de vino blanco Hacendado"],
+    ["miel", "Caramelos miel sabor limón Pifarré"],
+  ])("«%s» no es «%s»", (ingrediente, producto) => {
+    expect(scoreProductName(producto, ingrediente)).toBeLessThan(0.7);
+  });
+
+  it("pero sí cuando va delante", () => {
+    expect(scoreProductName("Mantequilla sin sal añadida Hacendado", "mantequilla")).toBeGreaterThanOrEqual(0.7);
+  });
+});
+
+describe("el ingrediente es el núcleo aunque no vaya en cabeza tal cual", () => {
+  // Pérdidas que trajo la primera versión de la regla (exigir que el nombre del
+  // producto EMPEZARA por el ingrediente): emparejamientos buenos de staging que
+  // se quedaron sin producto. Medidas con scripts/medir-emparejador.mjs.
+  it.each([
+    // una clase delante, sin «de»
+    ["penne", "Pasta penne rigate Hacendado"],
+    ["fusilli", "Pasta fusilli Armando"],
+    ["tagliatelle", "Pasta fresca tagliatelle al huevo Hacendado"],
+    ["ricotta", "Queso ricotta mezcla Hacendado"],
+    ["mascarpone", "Queso fresco mascarpone de vaca Hacendado"],
+    ["kefir", "Bebida Kéfir natural Hacendado 0% MG"],
+    // una parte o un corte delante, con «de»
+    ["rape", "Cola de rape del Cabo sin piel Hacendado ultracongelada"],
+    ["rodaballo", "Filete de rodaballo"],
+    ["pimiento choricero", "Carne de pimiento choricero Hacendado"],
+    ["anchoas", "Filetes de anchoa en aceite de oliva Hacendado"],
+    // semillas delante, con o sin «de» (la lista de la compra, nombre crudo)
+    ["sesamo tostado", "Semillas sésamo tostado Hacendado"],
+    ["chia", "Semillas de chía Hacendado"],
+    ["lino", "Semillas lino dorado Hacendado"],
+    ["semillas de lino", "Semillas lino dorado Hacendado"],
+    // el número
+    ["almejas", "Almeja Hacendado congelada"],
+    ["alcachofas", "Alcachofa troceada Hacendado ultracongelada"],
+    ["langostinos", "Langostino crudo y pelado Hacendado ultracongelado"],
+  ])("«%s» es «%s»", (ingrediente, producto) => {
+    expect(scoreProductName(producto, ingrediente)).toBeGreaterThanOrEqual(0.7);
+  });
+
+  // Y las holguras no reabren la puerta a los complementos.
+  it.each([
+    ["almendras", "Bebida de almendras 0% azúcar Hacendado"], // clase + «de»: materia, no especie
+    ["lentejas rojas", "Pasta fusilli 100% lentejas rojas Felicia"],
+    ["queso azul", "Queso untar con queso azul de vaca Hacendado"],
+    ["yogur", "Salsa Yogur Hacendado"], // «salsa» no es clase
+    ["pollo", "Patas de pollo"], // «patas» no es parte
+    ["maiz", "Tiras de maíz frito sabor barbacoa Hacendado"],
+    ["leche", "Dulce de leche"], // un adjetivo con «de» no es una parte
+    ["menta", "Infusión Menta Poleo Hacendado"],
+  ])("«%s» no es «%s»", (ingrediente, producto) => {
+    expect(scoreProductName(producto, ingrediente)).toBeLessThan(0.7);
+  });
+
+  it("en un empate gana el nombre exacto sobre el plural", () => {
+    expect(scoreProductName("Espinacas baby lavadas", "espinacas")).toBeGreaterThan(
+      scoreProductName("Espinaca en porciones Hacendado ultracongelada", "espinacas"),
+    );
+  });
+
+  it("los platos hechos de legumbre o pasta no son el ingrediente", () => {
+    expect(shouldSkipProduct("garbanzos", { name: "Garbanzos a la jardinera Hacendado" })).toBe(true);
+    expect(shouldSkipProduct("macarrones", { name: "Macarrones Mac & Cheese Bacon Hacendado gratinados" })).toBe(true);
+    expect(shouldSkipProduct("langostinos", { name: "Langostino caballitos rebozados Hacendado ultracongelados" })).toBe(true);
+    // pero la masa de empanada sí es «empanada»
+    expect(shouldSkipProduct("masa de empanada", { name: "Masa fresca empanada Hacendado" })).toBe(false);
+  });
+
+  // La lista de la compra empareja el nombre tal cual, sin la cadena de nombres
+  // del coste: estos dos se quedaban por debajo de la confianza alta.
+  it.each([
+    ["Carne picada", "Preparado de carne picada vacuno y cerdo", ["Preparado de carne picada pollo", "Tocino de cerdo"]],
+    ["Pollo", "Pollo entero", ["Pollo teriyaki", "Pollo asado Hacendado"]],
+  ])("la lista lleva «%s» a «%s»", (ingrediente, bueno, otros) => {
+    const catalogo = [bueno, ...otros].map((name, i) => ({ id: String(i), name, price: 10 - i }));
+    const m = matchProductForIngredient(ingrediente, catalogo);
+    expect(m.product.name).toBe(bueno);
+    expect(m.confidence).toBeGreaterThanOrEqual(0.7);
+  });
+});

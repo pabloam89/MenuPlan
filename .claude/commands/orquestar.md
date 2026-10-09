@@ -20,6 +20,16 @@ varios en paralelo, mucho más. Escala el esfuerzo al encargo:
 Si el encargo es ambiguo (no está claro el objetivo, qué queda fuera, o cómo
 se sabrá que está bien), pregunta antes de lanzar nada.
 
+**Antes de empezar, mira quién lo lleva ya** (#271): no solo los issues. Corre
+`npm run issues` (cada encargo dice qué rama y carpeta lo lleva y desde cuándo
+no tiene commits; «posiblemente parada» pasadas 4 h) y `git worktree list` con
+`git branch -r`. Si una rama o carpeta viva se parece a lo que vas a hacer
+(`npm run issues -- --nuevo` las enseña junto a los issues parecidos), no
+empieces otra: pregunta a Pablo de quién es, o coge el relevo si está parada.
+Cada constructor trabaja en una rama **con número de issue**
+(`npm run tarea -- <area>/<nombre> <n>`), que es lo que deja escrito quién la
+lleva; si el encargo no tiene issue y no es trivial, ábrelo primero.
+
 ## 2. Catálogo
 
 | Agente | Tipo | Planos | Para |
@@ -97,14 +107,28 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    hallazgo bloqueante paran el pipeline hasta resolverlo.
 2. Un hallazgo bloqueante vuelve al constructor que toca, con el informe del
    juez. Repite el juez tras el arreglo.
-3. Junta todas las «Decisiones pendientes» en una sola lista para quien lanzó
-   la sesión, sin duplicados, con la recomendación de cada una.
-4. Lo que no se cierra en este PR va a un issue, no a una frase del resumen:
-   un hallazgo sin arreglar o un fallo del camino (vigilante que bloqueó algo
-   bueno, entorno distinto del CI, limpieza a medias) → `tipo:leccion`; una
-   decisión que no se toma hoy → `tipo:decision`; trabajo que alguien tiene
-   que coger → `tipo:encargo`. Siempre con causa y área (skill `github`,
-   «Issues»). El chat se pierde al cerrar la sesión; el issue no.
+3. Junta todas las «Decisiones pendientes» en una sola lista, sin
+   duplicados, con la recomendación de cada una. Las que Pablo no contesta en
+   esta misma conversación pasan a un issue cada una, con `npm run issues --
+   --nuevo "…" --tipo decision --area … --cuerpo <fichero>`: busca antes las
+   parecidas y se asigna a Pablo, que así la ve sin entrar al repo. En el
+   resumen, el número del issue, no solo la frase.
+4. Lo que no se cierra en este PR va a un issue, no a una frase del resumen.
+   Cada hallazgo sin arreglar o fallo del camino (vigilante que bloqueó algo
+   bueno, entorno distinto del CI, error que se tragó) es un **caso**, y antes
+   de abrirlo se analiza hasta su **problema de fondo**, con una de las cuatro
+   respuestas de CLAUDE.md: nuevo (abre el fondo), abierto (cuélgalo), no
+   aguantó (cuélgalo; el fondo se reabre: ¿roto o corto?) o puntual (con su
+   porqué). `npm run issues` enseña los fondos abiertos para buscar el suyo,
+   y se crea con `npm run issues -- --nuevo` (la guardia niega `gh issue
+   create`).
+   Una decisión que no se toma hoy → `tipo:decision`; trabajo que alguien
+   tiene que coger → `tipo:encargo`, colgando de su fondo si es parte de un
+   arreglo. Detalle y comandos: skill `github`, «Issues». El chat se pierde
+   al cerrar la sesión; el issue no. Y al revés: el PR lleva `Closes #n` de
+   los encargos o fondos que cierra y `Agente:` con el constructor.
+   Si el encargo era arreglar un problema de fondo, el juez comprueba que el
+   arreglo cubre la clase (un test que la vigila), no solo los casos conocidos.
 5. Termina con un resumen corto: qué se hizo, en qué rama o PR, qué se
    verificó, qué queda pendiente y qué gateway falta.
 6. Tras el merge, retirar: `npm run retirar -- <tarea>` en la misma sesión.

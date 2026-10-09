@@ -3,12 +3,17 @@
  *
  *   npm run tarea -- datos/descartes           # rama nueva desde origin/staging
  *   npm run tarea -- datos/descartes --sin-deps # sin npm ci (si solo vas a leer)
+ *   npm run tarea -- datos/descartes 193       # del issue #193: rama datos/193-descartes
  *
  * Crea `C:\dev\MenuPlan-<nombre>` con la rama `<area>/<nombre>`. Si la rama ya
  * existe en GitHub, la retoma en vez de crearla. Copia `.env.local` (git no lo
  * trae), crea `.env.development.local` con el motor y la pizarra de staging
  * (en `.env.local` romperían tests), instala dependencias y busca un puerto
  * libre para la app. Al acabar: `npm run retirar -- <nombre>`.
+ *
+ * Con número de issue, lo marca («lo lleva <rama> en <carpeta>», un comentario
+ * que quita `retirar`); sin él, avisa y propone `npm run issues -- --nuevo`
+ * (scripts/lib/lleva.mjs, #271). Sin red, la marca es un aviso y no un error.
  *
  * No borra ni sobrescribe nada: si la carpeta o la rama local ya existen, para.
  *
@@ -24,14 +29,40 @@ import { copyFileSync, existsSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { dirname, join } from "node:path";
 
+import { leerInventario, marcar, textoDeRama } from "./lib/lleva.mjs";
+
 export const AREAS = ["bot", "datos", "ux", "fix", "feat", "ops", "motor", "lola", "roles"];
 
-/** «datos/descartes» → { rama, nombre }, o un error en castellano. */
-export function leerRama(texto) {
+/**
+ * «datos/descartes» → { rama, nombre }, o un error en castellano. Con el número
+ * de su issue, la rama lo lleva delante del nombre (`datos/193-descartes`) y la
+ * guardia pide `Closes #193` al abrir el PR; la carpeta no cambia.
+ */
+export function leerRama(texto, issue) {
   const m = String(texto ?? "").match(/^([a-z]+)\/([a-z0-9][a-z0-9-]{1,40})$/);
   if (!m) return { error: "Pon la rama como <area>/<nombre>, en minúsculas y con guiones: `npm run tarea -- datos/descartes`." };
   if (!AREAS.includes(m[1])) return { error: `El área «${m[1]}» no existe. Vale: ${AREAS.join(", ")}.` };
-  return { rama: texto, nombre: m[2] };
+  if (issue == null) return { rama: texto, nombre: m[2] };
+  const n = String(issue).replace(/^#/, "");
+  if (!/^\d+$/.test(n)) return { error: `«${issue}» no es un número de issue: \`npm run tarea -- datos/descartes 193\`.` };
+  const nombre = m[2].replace(new RegExp(`^${n}-`), "");
+  return { rama: `${m[1]}/${n}-${nombre}`, nombre, issue: Number(n) };
+}
+
+/**
+ * Lo que se dice cuando la tarea no lleva número de issue (#271): toda rama no
+ * trivial lleva uno, y sin él nadie sabe quién la lleva (caso #270). No para la
+ * tarea —una errata no necesita issue—, pero no se puede pasar por alto. Crear
+ * el issue es cosa de quien lanza el comando: `--nuevo` busca los parecidos.
+ */
+export function avisoSinIssue(rama) {
+  return [
+    `AVISO: esta rama no lleva número de issue, así que nada del repo dirá que la llevas tú: \`npm run issues\` la enseñará como rama sin número.`,
+    `  Si es más que una errata, abre el encargo (busca antes los parecidos) y relanza con su número:`,
+    `    npm run issues -- --nuevo "<título>" --tipo encargo --area <ops|datos|lola|ui|catalogo|motor> --cuerpo <fichero.md>`,
+    `    npm run tarea -- ${rama} <número>`,
+    `  Si ya hay un issue, es el segundo comando con su número. Si es trivial, sigue sin él.`,
+  ].join("\n");
 }
 
 /** Una línea de `git log --oneline` que es el commit inicial de una tarea. */
@@ -73,8 +104,8 @@ const libre = (puerto) =>
   });
 
 async function main() {
-  const arg = process.argv.slice(2).find((a) => !a.startsWith("--"));
-  const { rama, nombre, error } = leerRama(arg);
+  const [arg, numero] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+  const { rama, nombre, issue, error } = leerRama(arg, numero);
   if (error) {
     console.error(error);
     process.exit(1);
@@ -94,8 +125,20 @@ async function main() {
     process.exit(1);
   }
 
+  if (!issue) console.warn(`${avisoSinIssue(rama)}\n`);
+
   console.log("Trayendo lo último de GitHub…");
   git(["-C", principal, "fetch", "-q", "origin"]);
+  // ¿Alguien ya lleva este issue? Se dice antes de crear nada, sin parar: puede ser
+  // una continuación a propósito. Lo que falte por mirar no impide abrir la tarea.
+  if (issue) {
+    try {
+      const otras = leerInventario(principal).filter((r) => r.numero === issue && r.rama !== rama);
+      for (const o of otras) console.warn(`AVISO: #${issue} ya lo lleva otra rama: ${textoDeRama({ ...o, horas: o.ultimo ? (Date.now() - o.ultimo) / 3_600_000 : null })}. ¿Seguro que quieres abrir otra carpeta sobre lo mismo?`);
+    } catch {
+      // a propósito: es un aviso extra; si git no deja leer las ramas, la tarea se abre igual
+    }
+  }
   const enRemoto = hay(["-C", principal, "show-ref", "--verify", "--quiet", `refs/remotes/origin/${rama}`]);
   if (enRemoto) {
     console.log(`La rama ${rama} ya está en GitHub: la retomo.`);
@@ -109,6 +152,12 @@ async function main() {
     } catch (e) {
       console.warn(`Aviso: no pude hacer el commit inicial (${String(e.stderr || e.message).trim().split("\n")[0]}). Hazlo ya a mano, o el hook limpiar-worktrees puede borrar esta carpeta: git -C "${destino}" commit --allow-empty -m "tarea: arranca ${rama}"`);
     }
+  }
+
+  // La marca en el issue: rama, carpeta y hora. Idempotente; sin red es un aviso (lib/lleva.mjs).
+  if (issue) {
+    const r = marcar(issue, { rama, carpeta: `MenuPlan-${nombre}` });
+    console.log(r.ok ? `Marcado #${issue}: «lo lleva ${rama}» (lo quita \`npm run retirar\`).` : `Aviso: ${r.aviso}`);
   }
 
   const env = join(principal, ".env.local");
@@ -130,6 +179,7 @@ Lista: ${destino}
   rama    ${rama}${enRemoto ? " (retomada de GitHub)" : " (nueva, desde origin/staging)"}
   app     npm run dev -- --port ${puerto ?? "<libre>"} --host   (el login con Google solo vuelve al 5176)
   cerrar  npm run retirar -- ${nombre}
+  issue   ${issue ? `#${issue}: el PR lleva \`Closes #${issue}\` (la guardia lo pide)` : "ninguno: queda como rama sin número. Si hace falta uno, mira el aviso de arriba"}
 
 Abre la sesión de Claude en esa carpeta: cd "${destino}" y luego claude.`);
 }

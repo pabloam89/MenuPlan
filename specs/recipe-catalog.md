@@ -4,8 +4,8 @@
 
 **Qué hace.** Mantiene el catálogo cerrado de recetas que consume `menu-generation`, el flujo de creación de recetas propias por IA, y la adaptación de pasos por electrodoméstico.
 
-### 1.1 Catálogo base (bundleado + hot-swap Supabase)
-Ver detalle del mecanismo en `menu-generation.md` §2 ("Catálogo"). Resumen del contrato: `recipeCatalog` (`src/data/recipeCatalog.js:174`) es siempre un array de recetas válidas contra `RecipeSchema` (Zod, `src/data/recipeSchema.js:83`), resuelto una vez al cargar el módulo, con Supabase como fuente autoritativa **solo si** `catalog_meta.version >= BUNDLED_CATALOG_VERSION` (hoy `10`, `catalogVersion.js:15`); cualquier otro caso cae al JSON bundleado, ya validado de forma incondicional.
+### 1.1 Catálogo base (una sola fuente: el JSON del bundle)
+**Corrección del 9 oct 2026** (issue #249): esta sección describía un hot-swap con Supabase que ya no existe. Desde el 30 sep 2026 (migración 0064) **solo manda el JSON** `src/data/recipes/*.json`; las tablas `recipes`, `recipe_ingredients`, `dish_images` y `catalog_meta` son una *copia retirada* parada en la v27 que nadie lee (`src/data/catalogoUnaFuente.test.js` falla si alguien la vuelve a leer). `catalog_meta.version` ya no se compara con nada. Roles y estado de cada fuente: `src/data/model.js` (`TABLAS`); nombres, en `specs/INDEX.md` («Vocabulario del catálogo»). Resumen del contrato: `recipeCatalog` (`src/data/recipeCatalog.js`) es siempre un array de recetas válidas contra `RecipeSchema` (Zod, `src/data/recipeSchema.js`), resuelto una vez al cargar el módulo y validado de forma incondicional; si el JSON está roto, la app falla al arrancar. El **Recetario** son las recetas con `estrella:true` (las únicas que se proponen); la **Reserva**, el resto.
 
 **Invariante de campos**: `RecipeSchema` exige (no exhaustivo) `id`, `name`, `category` (enum de 11 valores), `mainProtein` (enum de 10), `mealRole` (≥1 de 5 valores), `steps` (≥1 string), `ingredients` (≥1), `kcal`/`protein_g`/`carbs_g`/`fat_g` no negativos. `stepsRich` es **opcional** (`z.array(StepRichSchema).min(1).optional()`, línea 129) — su ausencia es válida, el renderizado cae a `steps` plano.
 
@@ -61,7 +61,7 @@ RLS (`user_recipes`): `Owner manages own recipes` (`auth.uid() = owner_id`), `Pu
 
 ## 4. Puntos de acoplamiento
 
-- **`recipeSchema.js` es la fuente de verdad de forma de receta para TODO el sistema**: catálogo bundleado, catálogo Supabase (vía `rowToRecipe` mapper en `recipeCatalog.js`), recetas de usuario (`UserRecipeDraftSchema` en `userRecipes.js`, que reexporta `StepRichSchema` de aquí), y el prompt server-side de `structure-recipe`. Un cambio de campo aquí toca 4 sitios que deben mantenerse sincronizados a mano.
+- **`recipeSchema.js` es la fuente de verdad de forma de receta para TODO el sistema**: catálogo bundleado, recetas de usuario (`UserRecipeDraftSchema` en `userRecipes.js`, que reexporta `StepRichSchema` de aquí), y el prompt server-side de `structure-recipe`. Un cambio de campo aquí toca 3 sitios que deben mantenerse sincronizados a mano (el catálogo de Supabase y su mapper `rowToRecipe` son copia retirada desde la 0064).
 - **`STEP_KINDS` está duplicado por diseño, con comentario explícito de sincronización manual**: definido en `src/lib/recipeSteps.js:32` y espejado en `api/recipe-steps.js` (`STEP_KINDS` propio, con comentario *"Espejo de STEP_KINDS en src/lib/recipeSteps.js: este fichero se mantiene autocontenido"*) — un test (`api/recipe-steps.test.js`, según commit `215c1c3`) fija el contrato entre ambas listas, mitigando el riesgo de divergencia silenciosa que sí existe en otros puntos de duplicación de este proyecto.
 - **`api/_prompts.js` ↔ `src/lib/recipeSteps.js`/`userRecipes.js`**: el prompt de `structure-recipe` referencia la taxonomía de `kind` y el formato de marcadores en lenguaje natural — un cambio en `recipeSteps.js` (p. ej. nuevo `kind`) exige actualizar el prompt server-side a mano, sin ningún mecanismo que lo fuerce salvo revisión humana (mismo patrón de riesgo que en `menu-generation.md`).
 - **`api/generate-dish-photo.js` ↔ catálogo curado**: reutiliza *literalmente* la fórmula de estilo del catálogo (`scripts/lib/combos.mjs#buildPrompt`, según comentario en el propio fichero) para que las fotos generadas bajo demanda no desentonen visualmente con el catálogo curado — acoplamiento de estilo, no de datos.
@@ -76,8 +76,8 @@ RLS (`user_recipes`): `Owner manages own recipes` (`auth.uid() = owner_id`), `Pu
 
 ## 6. Políticas del catálogo (decisiones de Pablo)
 
-- **Solo el Recetario Estrella** (`estrella: true`). El catálogo antiguo
-  («fondo de armario») no se propone nunca. Si el pool se queda corto, error,
+- **Solo el Recetario Estrella** (`estrella: true`). La Reserva
+  (el resto: sin bandera o `false`; antes «fondo de armario») no se propone nunca. Si el pool se queda corto, error,
   no relleno (`isPrimaryCatalog()` en `filterRecipes.js`). Promover una
   receta exige que tenga foto. `estrella: false` escrito = «lo miré y de
   momento no»; ausente = otro catálogo, y solo sube a mano.

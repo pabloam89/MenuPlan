@@ -1,7 +1,7 @@
 # Generado con la clasificación de scripts/lib/issues.mjs: las opciones de los
 # desplegables las vigila scripts/issues.test.js.
-name: Encargo
-description: Trabajo por hacer. Quien lo coge se asigna o lo dice aquí, para que otra sesión no lo haga a la vez.
+name: "Encargo"
+description: "Trabajo por hacer. Quien lo coge se asigna o lo dice aquí, para que otra sesión no lo haga a la vez."
 title: "[encargo] "
 labels: ["tipo:encargo"]
 body:
@@ -12,25 +12,36 @@ body:
   - type: textarea
     id: que
     attributes:
-      label: Qué
-      description: Qué hay que hacer y cuándo está hecho.
+      label: "Qué"
+      description: "Qué hay que hacer y cuándo está hecho."
     validations:
       required: true
   - type: input
+    id: fondo
+    attributes:
+      label: "De qué problema de fondo"
+      description: "Si es parte del arreglo de un problema de fondo, su #n."
+    validations:
+      required: false
+  - type: input
     id: quien
     attributes:
-      label: Quién lo coge
-      description: Persona o sesión y rama (p. ej. «sesión de Pablo, ops/issues»). Vacío si está libre.
+      label: "Quién lo coge"
+      description: "Persona o sesión, rama y agente. Vacío si está libre."
+    validations:
+      required: false
   - type: textarea
     id: ficheros
     attributes:
-      label: Ficheros que toca
-      description: Para ver si choca con otro encargo en curso.
+      label: "Ficheros que toca"
+      description: "Para ver si choca con otro encargo en curso."
+    validations:
+      required: false
   - type: dropdown
     id: area
     attributes:
-      label: Área
-      description: La zona donde pasó o donde va el trabajo.
+      label: "Área"
+      description: "La zona donde pasó o donde va el trabajo."
       options:
         - "datos — Esquema, migraciones, Supabase"
         - "lola — El bot"

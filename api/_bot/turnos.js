@@ -8,6 +8,7 @@
  * mensaje ya está en la cola y lo atenderá quien lo tiene.
  */
 
+import { fallaCon } from "./avisar.js";
 import { select, insert, update, rpc, eq } from "./db.js";
 
 // Lo que se espera por si llega otro mensaje detrás. 1 s basta para las
@@ -20,7 +21,7 @@ const MAX_VUELTAS = 4;
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export const tomarCandado = (chatId) => rpc("bot_tomar_candado", { p_chat: String(chatId), p_segundos: DURACION_CANDADO_S });
-export const soltarCandado = (chatId) => rpc("bot_soltar_candado", { p_chat: String(chatId) }).catch(() => {});
+export const soltarCandado = (chatId) => rpc("bot_soltar_candado", { p_chat: String(chatId) }).catch(fallaCon("turnos_soltar_candado"));
 
 export const encolar = (chatId, item) => insert("bot_cola", [{ chat_id: String(chatId), item }]);
 

@@ -18,8 +18,10 @@ Bytask, migrar · ❓ sin confirmar.
 | **Vercel** | Hosting web + funciones `api/` + crons | ✅ equipo «Monicos MenuPlan» (`team_sV2KePPHNXRWD9JsNQCfGwwV`), plan Pro; Owners: Pablo (`pabloam89@gmail.com`) y Álvaro. Ninguna cuenta de Bytask (7 oct 2026) | todas las de runtime de `api/` | Vercel → Project → Environment Variables |
 | **1Password** | Las claves de `.env.local` (bóveda `HoMenu`), las del servidor del panel (bóveda `Panel HoMenu`) y la service account de solo lectura del PC de Pablo | ✅ cuenta de Pablo (`my.1password.eu`), plan Familias en prueba desde el 8 oct 2026 | el token de la service account «MenuPlan PC Pablo» | llavero de Windows del PC de Pablo |
 | **Hetzner Cloud** (proyecto `HoMenu`) | Servidor `HoMenu-Panel` (CPX02, Falkenstein): el panel de la factoría y su Postgres. Skill `hetzner` | ✅ cuenta de Pablo (`pabloam89@gmail.com`), 2FA y códigos de recuperación en su ficha de `Private`. Desde el 8 oct 2026, ~7,85 €/mes con IVA | contraseña del Postgres del panel (ficha `Postgres del panel`) | 1Password, bóveda `Panel HoMenu`; copia en `/opt/panel/.env` del servidor |
+| **Copias de la base** (servidor `HoMenu-Panel`, #247) | Copia nocturna cifrada (`age`) de `public` y `ops` de Supabase, 02:40 UTC, 7 diarias y 4 semanales en `/var/backups/menuplan`. Skill `hetzner` (cómo) y `supabase` (qué lleva) | ✅ de Pablo (va con el servidor). **Pendiente de instalar y de crear la clave** (9 oct 2026) | `COPIA_DB_URL` (hoy la URL de `consulta_lectura`; `copia_lectura` pendiente de #273) y `COPIA_AVISO_URL` (opcional); la clave privada de `age` (ficha «Copias de la base») | `/etc/menuplan-copia/copia.env` del servidor (root, 600); la privada, solo en 1Password, bóveda `Panel HoMenu`; la pública, en `ops/copias/destinatarios.txt` |
+| **Healthchecks.io** | Aviso si la copia de la base falla o no llega (ping diario y `/fail`) | **Pendiente de decidir** (#273): sin cuenta todavía; sería de Pablo, plan gratuito | la URL de ping (`COPIA_AVISO_URL`): solo sirve para hacer ping | `/etc/menuplan-copia/copia.env` del servidor; antes, en 1Password: ficha `Healthchecks` de `HoMenu`, campo `COPIA_AVISO_URL` (de ahí se sube; skill `hetzner`) |
 | **Tailscale** | Red privada entre el PC de Pablo y el servidor; el servidor no abre puertos a internet. Skill `tailscale` | ✅ cuenta de Pablo (Google), plan Free, desde el 8 oct 2026 | — (sin auth keys ni tokens) | `console.tailscale.com` |
-| **Supabase** (`mdzwbrworucnummibxrq`, eu-central-1) | Base de datos, Auth, RLS | ✅ integración del Marketplace de Vercel: la org `vercel_icfg_…` cuelga del equipo de Vercel, que es el dueño y el que paga. Nada que transferir (comprobado el 7 oct 2026) | `SUPABASE_URL`, `VITE_SUPABASE_URL`, `SUPABASE_ANON_KEY`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_SECRET_KEY`, `SUPABASE_DB_URL` | Vercel + `.env.local` |
+| **Supabase** (`mdzwbrworucnummibxrq`, eu-central-1) | Base de datos, Auth, RLS | ✅ integración del Marketplace de Vercel: la org `vercel_icfg_…` cuelga del equipo de Vercel, que es el dueño y el que paga. Nada que transferir (comprobado el 7 oct 2026) | `SUPABASE_URL`, `VITE_SUPABASE_URL`, `SUPABASE_ANON_KEY`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_SECRET_KEY`, `SUPABASE_DB_URL`; `SUPABASE_DB_URL_LECTURA` (rol `consulta_lectura`, solo lectura, para `npm run consulta`; la pone `scripts/clave-consulta-lectura.mjs`) | Vercel + `.env.local`; la de lectura, solo en 1Password (`HoMenu/Supabase lectura`) y `.env.local` |
 | **Upstash Redis** | Rate limit y caché | ❓ probablemente también del Marketplace de Vercel (variables `KV_REST_API_*`), sin confirmar | `UPSTASH_REDIS_*` / `KV_REST_API_*` | Vercel (integración) |
 | **Vercel Blob** | Imágenes de platos | ✅ va con Vercel | `BLOB_READ_WRITE_TOKEN` | Vercel |
 | **Anthropic** | Planificador, bot, OCR | ❓ | `ANTHROPIC_API_KEY` (`VITE_ANTHROPIC_API_KEY` en local) | Vercel + GitHub Actions + `.env` |
@@ -28,6 +30,7 @@ Bytask, migrar · ❓ sin confirmar.
 | **Groq** | Transcripción de voz del bot | ❓ | `GROQ_API_KEY` | Vercel |
 | **Resend** | Emails de moderación | ❓ | `RESEND_API_KEY`, `MODERATION_*` | Vercel |
 | **Telegram** (bot Lola) | Bot de mensajería | ❓ | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` | Vercel |
+| **Telegram** (bot «HoMenu avisos») | Avisos del vigía de Lola a un grupo con Pablo, Álvaro y Manu (#267). **Pendiente de crear** (9 oct 2026) | Pablo, con su cuenta de Telegram (@BotFather) | `AVISOS_TELEGRAM_TOKEN` (secreto) y `AVISOS_TELEGRAM_CHAT` (variable, el chat_id del grupo; no es secreto) | 1Password `HoMenu/Telegram avisos` + GitHub Actions |
 | **Google OAuth** | Login con Google | ❓ (Google Cloud Console) | — (configurado en Supabase Auth) | Supabase → Auth → Providers |
 | **Apple** (Sign in + App Store) | Login Apple, TestFlight | ❓ | `APPLE_*`, `IOS_*`, `APPSTORE_API_KEY_P8_BASE64` | Vercel + GitHub Actions |
 | **CallMeBot** | Avisos de fallos por WhatsApp | ❓ | `CALLMEBOT_DESTINOS` | GitHub Actions |
@@ -38,14 +41,20 @@ Bytask, migrar · ❓ sin confirmar.
 `CRON_SECRET`, `BOT_CRON_SECRET`, `MODERATION_SECRET`: valores inventados por
 nosotros para que solo nuestros crons puedan llamar a ciertos endpoints. Viven
 en Vercel (y `BOT_CRON_SECRET` también en el job de `pg_cron`, ver
-`scripts/bot-cron.mjs`).
+`scripts/bot-cron.mjs`). `CANARIO_SECRET`: el del canario de Lola
+(`api/bot/canario.js`), solo suyo, en Vercel y en el environment `vigia` de
+GitHub; no abre nada más (el de los crons manda recordatorios a familias).
+`BOT_CANARIO_CASA` (Vercel, opcional): el id de la casa de prueba del canario;
+no es secreto.
 
 ### Secretos de GitHub Actions
 
 | Secreto | Workflow |
 |---|---|
 | `ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS` | `agente-fallos.yml` |
+| **Del environment `vigia`** (política: solo la rama `staging`), no del repo: `VERCEL_TOKEN` (leer los logs; token del equipo «menuplan», **caduca a los 90 días**: anotar aquí la fecha al crearlo y rotarlo antes), `CANARIO_SECRET` (el mismo valor que en Vercel), `AVISOS_TELEGRAM_TOKEN`; variables `AVISOS_TELEGRAM_CHAT`, `CANARIO_URL` y `VIGIA_ENTORNO`. **Pendientes de crear** (9 oct 2026); caducidad del `VERCEL_TOKEN`: — | `vigia-lola.yml` |
 | `IOS_DIST_P12_BASE64`, `IOS_DIST_P12_PASSWORD`, `IOS_PROVISION_PROFILE_BASE64`, `APPSTORE_API_KEY_P8_BASE64` | `ios-testflight.yml` |
+| `MERCADONA_DEPLOY_KEY`: la privada de la deploy key de escritura «mercadona-sync: cron, push a staging» (la pública, en Settings → Deploy keys). **Secreto del environment `mercadona-sync`**, no del repo: su política de ramas solo deja `staging`. Sin copia fuera de GitHub: si se pierde, se crea otra. **Pendiente de crear** (9 oct 2026) | `mercadona-sync.yml` |
 
 ## Pendientes de la limpieza (abiertos el 7 oct 2026, al día ese mismo día)
 
@@ -57,7 +66,7 @@ en Vercel (y `BOT_CRON_SECRET` también en el job de `pg_cron`, ver
 | 13 | Retirar los worktrees ya fusionados del 7 oct (alergenos, fuente, grupos, ids, plan-semana, principios, ux, menuplan-ops, -gitignore, -0081 y `C:\dev\MenuPlan-claude-md`) cuando no tengan nada en vuelo: con `npm run retirar` o, si no salieron de `tarea`, con comandos que lanza Pablo | Pablo lanza, Claude prepara | abierto |
 | 4 | Identidad de git: Gmail en todo `C:\dev\` (`includeIf` → `~/.gitconfig-personal`) | Pablo | hecho (7 oct) |
 | 5 | Proteger `main` y `staging` en GitHub | Pablo + Claude | hecho (7 oct): `main` solo por PR con `tests` en verde; las dos sin force push ni borrado, también para administradores |
-| 11 | Que el cron de Mercadona abra un PR en vez de empujar a `staging`, para poder exigir PR también en `staging`. Ojo: un PR abierto con el token de Actions no lanza `tests.yml`; hay que dispararlo a mano (`workflow_dispatch`) | Claude, con OK de Pablo | abierto |
+| 11 | Que el cron de Mercadona abra un PR en vez de empujar a `staging`, para poder exigir PR también en `staging`. Ojo: un PR abierto con el token de Actions no lanza `tests.yml`; hay que dispararlo a mano (`workflow_dispatch`) | Claude, con OK de Pablo | sustituido (9 oct): el cron empuja con una deploy key, la única excepción del ruleset que exige `tests` en `staging` (skill `github`) |
 | 12 | Activar secret scanning y push protection (Settings → Code security) | Pablo | hecho (7 oct), comprobado con `gh api` |
 | 6 | Borrar las ~88 ramas ya fusionadas (las nuevas ya se borran solas) | Pablo lanza, Claude prepara | abierto, no urge |
 | 7 | ~~Reconciliar `main` y `staging`~~ — **no procede**: revisado el 7 oct, nada de `main` que portar | — | cerrado |

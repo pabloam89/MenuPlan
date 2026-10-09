@@ -1,21 +1,77 @@
 /**
  * Pruebas de conversación de Lola: ¿llama a la herramienta que toca?
  *
- *   node scripts/bot-evals.mjs            → todos los casos
- *   node scripts/bot-evals.mjs alergia    → los que contengan «alergia»
- *   node scripts/bot-evals.mjs --reserva  → con el modelo del plan B (agente.js MODELO_RESERVA)
+ *   node scripts/bot-evals.mjs                     → todos los casos (nivel completo), ~3,5 $
+ *   node scripts/bot-evals.mjs --nivel=pr          → el núcleo N1 (24 casos), ~0,6-0,8 $
+ *   node scripts/bot-evals.mjs --nivel=seguridad   → los 32 de seguridad; alergias y salud k=5, el resto k=3; un fallo bloquea, ~3,2-3,4 $
+ *   node scripts/bot-evals.mjs alergia             → los que contengan «alergia» en el nombre o el id
+ *   node scripts/bot-evals.mjs --reserva           → con el modelo del plan B (agente.js MODELO_RESERVA)
+ *
+ * Opciones:
+ *   --tope=USD      para antes de pasarse (por defecto TOPE_PASADA_USD, nunca más
+ *                   de lo que queda del presupuesto del mes) y sale con código 3.
+ *                   --tope=0: solo lo que ya está en memoria, sin llamar al modelo.
+ *   --k=N           cada caso tiene que pasar N veces (pass^k).
+ *   --reintentos=N  un caso que falla con k=1 se repite N veces; si uno pasa, «inestable».
+ *   --sin-memo      no reutiliza resultados guardados.
+ *   --referencia=ID compara con esa pasada (por defecto, la última del mismo
+ *                   modelo con otra versión de prompt o código): lo que pasaba y
+ *                   ahora es inestable o fallido es una regresión y bloquea.
+ *   --simulado      sin modelo ni red: un modelo de mentira que contesta siempre lo
+ *                   mismo, para probar el script (tope, memoria, JSONL) gratis.
  *
  * Usa el agente de verdad (mismo modelo, instrucciones y esquemas que en
  * Telegram, vía ejecutar()) pero con herramientas de mentira: no toca ninguna
  * casa ni la base de datos, y cada herramienta devuelve una respuesta fija de
- * una familia de ejemplo. Cuesta unos céntimos por pasada (ANTHROPIC_API_KEY
- * de .env.local). Los casos viven en scripts/bot-evals.json.
+ * una familia de ejemplo (ANTHROPIC_API_KEY de .env.local). Los casos viven en
+ * scripts/bot-evals.json; vocabularios, precios, niveles y hashes, en
+ * scripts/lib/evals.mjs.
+ *
+ * Cada intento deja una línea en .evals-out/bot-evals.jsonl (fuera de git). Un
+ * caso con el mismo caso_hash, prompt_hash, codigo_hash, modelo y esfuerzo que
+ * uno ya guardado (y el mismo día, si lleva "dependeDeFecha") no vuelve a
+ * llamar al modelo: se reutiliza lo guardado. El resumen de cada pasada (el
+ * estado de cada caso) va a .evals-out/pasadas.jsonl, para compararlas.
  */
 
 import fs from "node:fs";
-import { cargarEnv } from "./lib/env.mjs";
+import { join } from "node:path";
+import { randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { cargarEnv, RAIZ } from "./lib/env.mjs";
+import {
+  CORRECTORES, NIVELES, REINTENTOS_POR_NIVEL, SALIDA, VERSION_ESQUEMA, baseMemo, bloquea, cabeOtro, casosDelNivel, compararEstados, elegirReferencia, ficherosDelCodigo,
+  casosVersion, claveMemo, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
+  kDe, leerJsonl, memoria, opcion, opcionEntero, opcionNumero, otroIntento, promptHash, tokensDe, topeDePasada,
+} from "./lib/evals.mjs";
 
-cargarEnv(["ANTHROPIC_API_KEY"]);
+const ARGV = process.argv.slice(2);
+const SIMULADO = ARGV.includes("--simulado");
+const { casos } = JSON.parse(fs.readFileSync(new URL("./bot-evals.json", import.meta.url), "utf8"));
+
+let NIVEL, K, REINTENTOS, TOPE;
+try {
+  NIVEL = opcion(ARGV, "nivel") ?? "completo";
+  if (!NIVELES.includes(NIVEL)) throw new Error(`--nivel: ${NIVEL} no existe (${NIVELES.join(", ")})`);
+  K = opcionEntero(ARGV, "k");
+  REINTENTOS = opcionEntero(ARGV, "reintentos", 0) ?? REINTENTOS_POR_NIVEL[NIVEL];
+  TOPE = topeDePasada(opcionNumero(ARGV, "tope"));
+} catch (e) {
+  // Un --tope mal escrito no puede correr sin tope: no se corre nada.
+  console.error(e.message);
+  process.exit(SALIDA.entrada);
+}
+const SIN_MEMO = ARGV.includes("--sin-memo");
+const REFERENCIA = opcion(ARGV, "referencia");
+
+const malEtiquetados = erroresDeCasos(casos);
+if (malEtiquetados.length) {
+  console.error(`bot-evals.json tiene casos mal etiquetados:\n  ${malEtiquetados.join("\n  ")}`);
+  process.exit(SALIDA.entrada);
+}
+
+if (SIMULADO) process.env.ANTHROPIC_API_KEY ||= "simulado";
+else cargarEnv(["ANTHROPIC_API_KEY"]);
 process.env.VITE_SUPABASE_URL ||= "https://sin-base.invalid";
 process.env.SUPABASE_SERVICE_ROLE_KEY ||= "sin-clave";
 
@@ -28,11 +84,9 @@ const { supervisar } = await import("../api/_bot/supervisor.js");
 const { textoPista } = await import("../api/_bot/pista.js");
 // Un solo modelo por pasada: sin esto, un fallo de la API caería al plan B en
 // silencio y la medida mezclaría dos modelos.
-const RESERVA = process.argv.includes("--reserva");
-const MEDIDO = RESERVA ? MODELO_RESERVA : MODELO;
-// $/M tokens: entrada, salida, leída de caché, escrita en caché.
-const PRECIO = /haiku/.test(MEDIDO) ? [1, 5, 0.1, 1.25] : /opus/.test(MEDIDO) ? [5, 25, 0.5, 6.25] : [3, 15, 0.3, 3.75];
-const { casos } = JSON.parse(fs.readFileSync(new URL("./bot-evals.json", import.meta.url), "utf8"));
+const RESERVA = ARGV.includes("--reserva");
+const MEDIDO = SIMULADO ? "simulado" : RESERVA ? MODELO_RESERVA : MODELO;
+const ESFUERZO = /haiku/.test(MEDIDO) ? "ninguno" : process.env.BOT_EFFORT || "por_defecto";
 
 const FAMILIA = "Casa de prueba: Ana (38 años), Pablo (40 años), Leo (6 años). Comida y cena todos los días. Sin alergias anotadas.";
 function hoyEnMadrid() {
@@ -41,19 +95,18 @@ function hoyEnMadrid() {
 const MES_CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 const DIA_CORTO = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
 const corta = (iso) => `${Number(iso.slice(8, 10))} ${MES_CORTO[Number(iso.slice(5, 7)) - 1]}`;
-function cabeceraDeHoy() {
-  const hoy = hoyEnMadrid();
+function cabeceraDe(hoy) {
   return `${DIA_CORTO[new Date(`${hoy}T12:00:00Z`).getUTCDay()]} ${corta(hoy)} (${hoy})`;
 }
-function rangoDeEstaSemana() {
-  const d = new Date(`${hoyEnMadrid()}T12:00:00Z`);
+function rangoDeLaSemana(hoy) {
+  const d = new Date(`${hoy}T12:00:00Z`);
   const lunes = new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * 86400000);
   const domingo = new Date(lunes.getTime() + 6 * 86400000);
   return `${corta(lunes.toISOString().slice(0, 10))}–${corta(domingo.toISOString().slice(0, 10))}`;
 }
 
 // La misma casa, como la monta api/_bot/ficha.js.
-const FICHA = {
+const fichaDel = (hoy) => ({
   estable: [
     "SEGURIDAD", "- Ana, Pablo, Leo: ninguna.",
     "CASA", "- Ana 38 · Pablo 40 · Leo 6.", "- Todos comen lo mismo.", "- Leo: cole L–V a mediodía.",
@@ -62,11 +115,12 @@ const FICHA = {
   // Con la fecha de HOY, como en producción: con una fija, «Ahora mismo en
   // España» y la ficha se contradecían y Lola, con razón, iba a mirar el menú.
   delDia: [
-    cabeceraDeHoy(), `MENÚ ${rangoDeEstaSemana()} (no hay semana siguiente)`,
+    cabeceraDe(hoy), `MENÚ ${rangoDeLaSemana(hoy)} (no hay semana siguiente)`,
     "- Hoy: crema de calabaza + pollo al horno con patatas; cena tortilla de calabacín.",
     "- Mañana: lentejas estofadas; cena merluza a la plancha con ensalada.",
   ].join("\n"),
-};
+});
+const FICHA = fichaDel(hoyEnMadrid());
 const RESPUESTAS = {
   ver_casa: FAMILIA,
   ver_ajustes: "Estructura: primero y segundo. Esfuerzo normal. Trastos: Horno, Microondas. Gustos: nada anotado. Leo come en el cole de lunes a viernes.",
@@ -104,7 +158,7 @@ const normal = (s) => String(s ?? "").normalize("NFD").replace(/\p{Diacritic}/gu
 // Si el caso espera un día de la semana y la prueba corre ese mismo día, Lola
 // acierta igual diciendo «hoy» o la fecha de hoy (pasó un jueves con «la cena
 // del jueves»): la prueba no puede depender del día en que se ejecuta.
-const HOY_MADRID = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
+const HOY_MADRID = hoyEnMadrid();
 const DIA_DE_HOY = normal(new Intl.DateTimeFormat("es-ES", { weekday: "long", timeZone: "Europe/Madrid" }).format(new Date()));
 const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => {
   if (k === "_todo") return normal(JSON.stringify(args)).includes(normal(v));
@@ -114,19 +168,60 @@ const contiene = (args, esperado) => Object.entries(esperado).every(([k, v]) => 
   return dado.includes(normal(v));
 });
 
-const filtro = normal(process.argv.slice(2).find((a) => !a.startsWith("--")) ?? "");
-const elegidos = casos.filter((c) => !filtro || normal(c.nombre).includes(filtro));
+const filtro = normal(ARGV.find((a) => !a.startsWith("--")) ?? "");
+const elegidos = casosDelNivel(casos, NIVEL).filter((c) => !filtro || normal(c.nombre).includes(filtro) || c.id.includes(filtro));
 // `"papel"` en un caso (owner | editor | viewer | ajeno; por defecto titular)
 // y `"esGrupo"`: las herramientas que ve Lola y la línea de la ficha salen
 // como en el bot de verdad (api/_bot/papel.js, herramientaPermitida).
 const realesDe = (caso) => herramientas({ channel: "telegram", chatId: "0", householdId: "00000000-0000-0000-0000-000000000000", autor: null, papel: caso.papel ?? "owner", esGrupo: Boolean(caso.esGrupo) });
 
-let bien = 0;
-let coste = 0;
-// Lo que tarda cada turno, para comparar modelos y esfuerzos (BOT_MODELO,
-// BOT_EFFORT): la velocidad es lo que nota quien espera en el chat.
-const tiempos = [];
-for (const caso of elegidos) {
+// ── Versiones: lo que lee Lola, el código que corre y los casos ──────────────
+// prompt_hash: las instrucciones (SISTEMA es conocimiento.md tal cual,
+// agente.js), las herramientas del titular y la ficha base con una fecha fija
+// (la de hoy cambiaría el hash cada día sin cambiar nada de Lola).
+const PROMPT_HASH = promptHash({
+  sistema: fs.readFileSync(join(RAIZ, "api/_bot/conocimiento.md"), "utf8").replace(/\r\n/g, "\n"),
+  herramientas: (await realesDe({})).map((t) => ({ name: t.name, description: t.description, input_schema: t.input_schema })),
+  ficha: fichaDel("2026-01-05"),
+});
+// codigo_hash: lo que corre en la prueba además del prompt (el turno, el
+// supervisor, la pista, las tareas…) y este script con sus respuestas de
+// mentira. Sin core.mjs: es el motor empaquetado y aquí las herramientas son falsas.
+const CODIGO_HASH = codigoHash(RAIZ, ficherosDelCodigo(RAIZ));
+// El commit con el que se midió (y si había cambios sin guardar): para volver a él.
+function gitSha() {
+  try {
+    const sha = execFileSync("git", ["rev-parse", "--short=12", "HEAD"], { cwd: RAIZ, encoding: "utf8" }).trim();
+    const sucio = execFileSync("git", ["status", "--porcelain", "--untracked-files=no"], { cwd: RAIZ, encoding: "utf8" }).trim();
+    return sucio ? `${sha}+cambios` : sha;
+  } catch (e) {
+    console.warn(`[bot-evals] sin git_sha: ${e.message}`);
+    return null;
+  }
+}
+const GIT_SHA = gitSha();
+const CASOS_VERSION = casosVersion(casos);
+
+const SALIDA_DIR = join(RAIZ, ".evals-out");
+const JSONL = join(SALIDA_DIR, SIMULADO ? "bot-evals-simulado.jsonl" : "bot-evals.jsonl");
+const MEMORIA = SIN_MEMO ? new Map() : memoria(leerJsonl(JSONL));
+const PASADAS = join(SALIDA_DIR, SIMULADO ? "pasadas-simulado.jsonl" : "pasadas.jsonl");
+const PASADA = `${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}-${randomUUID().slice(0, 6)}`;
+fs.mkdirSync(SALIDA_DIR, { recursive: true });
+
+// Un modelo de mentira (--simulado): contesta siempre lo mismo, sin herramientas
+// y con un gasto inventado del tamaño de un caso real con caché, para que el
+// tope se pueda probar sin pagar.
+const vueltaSimulada = async () => ({
+  dicho: "Respuesta simulada.",
+  uso: { input_tokens: 200, output_tokens: 80, cache_read_input_tokens: 36000, cache_creation_input_tokens: 0 },
+  vueltas: 1, primera: null, llamadas: [],
+});
+
+const CAMPOS_ESPERADO = ["llama", "llamaAlguna", "noLlama", "antes", "args", "noLlamaCon", "maxLlamadas", "texto", "sinTexto"];
+
+/** Un intento de un caso: llama a Lola y corrige con las reglas del caso. */
+async function intentar(caso) {
   const t0 = Date.now();
   const llamadas = [];
   // Lo que escribió la persona y lo último que dijo Lola: el supervisor de lo
@@ -151,7 +246,10 @@ for (const caso of elegidos) {
     },
   }));
   let dicho = "";
-  let fallos = [];
+  let uso = {};
+  let vueltas = 0;
+  const fallos = [];
+  const falla = (motivo, detalle) => fallos.push({ motivo, detalle });
   try {
     const adjunto = caso.foto ? await fotoDe(caso.foto) : null;
     // Lola recibe la ficha de la casa en cada mensaje (api/_bot/ficha.js): sin
@@ -162,46 +260,147 @@ for (const caso of elegidos) {
     // `pendientes`: las tareas abiertas que el código adjuntaría (api/_bot/pendientes.js).
     // `tareas`: las de la tabla bot_tareas, como las monta el turno real.
     const entrada = [bloqueDeTareas(caso.tareas ?? [], { data: { members: caso.miembros ?? [] }, chatId: "0" }), bloqueDe(caso.pendientes ?? []), caso.entrada].filter(Boolean).join("\n\n");
-    const r = await ejecutar({ historia: caso.historia ?? [], entrada, tools, adjunto, modelos: [MEDIDO], ficha, pista });
+    const r = await ejecutar({ historia: caso.historia ?? [], entrada, tools, adjunto, modelos: [MEDIDO], ficha, pista, ...(SIMULADO ? { vuelta: vueltaSimulada } : {}) });
     dicho = r.dicho;
-    coste += (r.uso.input_tokens * PRECIO[0] + r.uso.output_tokens * PRECIO[1] + r.uso.cache_read_input_tokens * PRECIO[2] + r.uso.cache_creation_input_tokens * PRECIO[3]) / 1e6;
+    uso = r.uso;
+    vueltas = r.vueltas ?? 0;
   } catch (e) {
-    fallos.push(`error: ${e?.message}`);
+    falla("error", String(e?.message ?? e).slice(0, 300));
   }
   const nombres = llamadas.map((l) => l.nombre);
-  for (const n of caso.llama ?? []) if (!nombres.includes(n)) fallos.push(`no llamó a ${n}`);
+  for (const n of caso.llama ?? []) if (!nombres.includes(n)) falla("no_llamo", `no llamó a ${n}`);
   // Alguna de estas (cuando hay más de una forma correcta de guardarlo).
-  if (caso.llamaAlguna && !caso.llamaAlguna.some((n) => nombres.includes(n))) fallos.push(`no llamó a ninguna de ${caso.llamaAlguna.join(", ")}`);
-  for (const n of caso.noLlama ?? []) if (nombres.includes(n)) fallos.push(`llamó a ${n} y no debía`);
+  if (caso.llamaAlguna && !caso.llamaAlguna.some((n) => nombres.includes(n))) falla("no_llamo_ninguna", `no llamó a ninguna de ${caso.llamaAlguna.join(", ")}`);
+  for (const n of caso.noLlama ?? []) if (nombres.includes(n)) falla("llamo_prohibida", `llamó a ${n} y no debía`);
   // `"antes": [["a", "b"]]`: la primera vez que llama a «a» va antes que la
   // primera de «b» (apuntar las condiciones y después generar).
   for (const [a, b] of caso.antes ?? []) {
     const ia = nombres.indexOf(a);
     const ib = nombres.indexOf(b);
-    if (ia >= 0 && ib >= 0 && ia > ib) fallos.push(`llamó a ${b} antes que a ${a}`);
+    if (ia >= 0 && ib >= 0 && ia > ib) falla("orden", `llamó a ${b} antes que a ${a}`);
   }
   for (const [n, esperado] of Object.entries(caso.args ?? {})) {
     if (!llamadas.some((l) => l.nombre === n && contiene(l.args, esperado))) {
-      fallos.push(`${n} sin ${JSON.stringify(esperado)} (llegó: ${JSON.stringify(llamadas.filter((l) => l.nombre === n).map((l) => l.args))})`);
+      falla("sin_args", `${n} sin ${JSON.stringify(esperado)} (llegó: ${JSON.stringify(llamadas.filter((l) => l.nombre === n).map((l) => l.args))})`);
     }
   }
   for (const [n, prohibido] of Object.entries(caso.noLlamaCon ?? {})) {
-    if (llamadas.some((l) => l.nombre === n && contiene(l.args, prohibido))) fallos.push(`llamó a ${n} con ${JSON.stringify(prohibido)}`);
+    if (llamadas.some((l) => l.nombre === n && contiene(l.args, prohibido))) falla("con_args_prohibidos", `llamó a ${n} con ${JSON.stringify(prohibido)}`);
   }
   // Tope de vueltas: cada herramienta es una llamada más al modelo, y en el
   // chat eso son segundos (llegó a 56 s repitiendo ver_menu tras cada cambio).
-  if (caso.maxLlamadas && llamadas.length > caso.maxLlamadas) fallos.push(`${llamadas.length} llamadas (máx ${caso.maxLlamadas})`);
-  if (caso.texto && !new RegExp(caso.texto, "mi").test(dicho)) fallos.push(`la respuesta no casa con /${caso.texto}/`);
-  if (caso.sinTexto && new RegExp(caso.sinTexto, "mi").test(dicho)) fallos.push(`la respuesta casa con /${caso.sinTexto}/ y no debía`);
+  if (caso.maxLlamadas && llamadas.length > caso.maxLlamadas) falla("demasiadas_llamadas", `${llamadas.length} llamadas (máx ${caso.maxLlamadas})`);
+  if (caso.texto && !new RegExp(caso.texto, "mi").test(dicho)) falla("texto_no_casa", `la respuesta no casa con /${caso.texto}/`);
+  if (caso.sinTexto && new RegExp(caso.sinTexto, "mi").test(dicho)) falla("texto_prohibido", `la respuesta casa con /${caso.sinTexto}/ y no debía`);
+  return { aprobado: !fallos.length, fallos, nombres, dicho, uso, vueltas, ms: Date.now() - t0, coste: costeUsd(uso, MEDIDO) };
+}
 
-  if (!fallos.length) bien++;
-  const s = (Date.now() - t0) / 1000;
-  tiempos.push(s);
-  console.log(`${fallos.length ? "✗" : "✓"} ${caso.nombre}  [${nombres.join(", ") || "sin herramientas"}]  ${s.toFixed(1)} s`);
-  for (const f of fallos) console.log(`    ${f}`);
-  if ((fallos.length || process.env.VERBOSO === "todo") && process.env.VERBOSO) console.log(`    respuesta: ${dicho.replace(/\n/g, " ⏎ ").slice(0, 400)}`);
+const k1 = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
+let gastado = 0;
+let pagados = 0;
+let paradoPorTope = false;
+const tiempos = [];
+const estados = {};
+let bloqueos = 0;
+const porCaso = {};
+const inestables = [];
+let deMemoria = 0;
+const suma = { entrada: 0, salida: 0, cache_leida: 0, cache_escrita: 0, vueltas: 0 };
+
+// La referencia se elige ANTES de gastar: una --referencia que no existe no corre nada.
+let referencia = null;
+try {
+  referencia = elegirReferencia(leerJsonl(PASADAS), { pedida: REFERENCIA, actual: { nivel: NIVEL, modelo: MEDIDO, esfuerzo: ESFUERZO, prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH } });
+} catch (e) {
+  console.error(e.message);
+  process.exit(SALIDA.entrada);
+}
+
+console.log(`Nivel ${NIVEL} · ${elegidos.length} casos · ${MEDIDO} · tope $${TOPE.toFixed(2)} · prompt ${PROMPT_HASH} · código ${CODIGO_HASH} · casos ${CASOS_VERSION}${SIN_MEMO ? " · sin memoria" : ""}\n`);
+for (const caso of elegidos) {
+  const k = kDe(caso, NIVEL, K);
+  const estricto = esEstricto(caso, NIVEL);
+  const base = baseMemo(caso, { prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH, modelo: MEDIDO, esfuerzo: ESFUERZO, hoy: HOY_MADRID });
+  const previos = MEMORIA.get(claveMemo(base)) ?? [];
+  const nuevos = [];
+  const resultados = () => [...previos, ...nuevos.map((n) => n.aprobado)];
+  while (otroIntento(resultados(), { k, reintentos: REINTENTOS, estricto })) {
+    if (!cabeOtro(gastado, TOPE, estimadoSiguiente(gastado, pagados))) { paradoPorTope = true; break; }
+    const r = await intentar(caso);
+    gastado += r.coste;
+    pagados++;
+    nuevos.push(r);
+    tiempos.push(r.ms / 1000);
+    const t = tokensDe(r.uso);
+    for (const c of Object.keys(t)) suma[c] += t[c];
+    suma.vueltas += r.vueltas;
+    const fila = {
+      v: VERSION_ESQUEMA, pasada_id: PASADA, fecha: new Date().toISOString(), script: "bot-evals", nivel: NIVEL,
+      caso_id: caso.id, tipo: caso.tipo, dominio: caso.dominio, origen: caso.origen, ...base,
+      casos_version: CASOS_VERSION, git_sha: GIT_SHA, intento: previos.length + nuevos.length, k, corrector: CORRECTORES[0],
+      aprobado: r.aprobado, puntuacion: r.aprobado ? 1 : 0,
+      motivos: [...new Set(r.fallos.map((f) => f.motivo))], fallos: r.fallos.map((f) => f.detalle),
+      esperado: Object.fromEntries(CAMPOS_ESPERADO.filter((c) => caso[c] !== undefined).map((c) => [c, caso[c]])),
+      obtenido: { herramientas: r.nombres, respuesta: r.dicho.slice(0, 800) },
+      tokens: t, vueltas: r.vueltas, llamadas_herramienta: r.nombres.length,
+      coste_usd: Number(r.coste.toFixed(6)), latencia_ms: r.ms,
+    };
+    fs.appendFileSync(JSONL, `${JSON.stringify(fila)}\n`);
+  }
+  const todos = resultados();
+  const estado = estadoDe(todos, k);
+  estados[estado] = (estados[estado] ?? 0) + 1;
+  porCaso[caso.id] = estado;
+  if (estado === "inestable") inestables.push(caso.id);
+  if (bloquea(estado, estricto)) bloqueos++;
+  if (!nuevos.length && previos.length) deMemoria++;
+
+  const marca = { aprobado: "✓", inestable: "~", fallido: "✗", incompleto: "…", sin_correr: "·" }[estado];
+  const ultimo = nuevos.at(-1);
+  const tCaso = nuevos.reduce((o, n) => { const t = tokensDe(n.uso); return { tok: o.tok + t.entrada + t.salida + t.cache_leida + t.cache_escrita, cache: o.cache + t.cache_leida + t.cache_escrita, v: o.v + n.vueltas, c: o.c + n.coste }; }, { tok: 0, cache: 0, v: 0, c: 0 });
+  const medida = nuevos.length
+    ? `${(ultimo.ms / 1000).toFixed(1)} s · ${(tCaso.v / nuevos.length).toFixed(1)} vueltas · ${k1(Math.round(tCaso.tok / nuevos.length))} tok (${k1(Math.round(tCaso.cache / nuevos.length))} caché) · $${tCaso.c.toFixed(4)}`
+    : previos.length ? "de memoria, sin llamar" : "sin correr (tope)";
+  const pk = `pass^${k} ${todos.filter(Boolean).length}/${todos.length}${previos.length && nuevos.length ? ` (${previos.length} de memoria)` : ""}`;
+  console.log(`${marca} ${caso.nombre}  [${ultimo ? ultimo.nombres.join(", ") || "sin herramientas" : "—"}]  ${medida} · ${pk}${estado === "inestable" ? " · INESTABLE" : ""}`);
+  for (const n of nuevos.filter((x) => !x.aprobado)) for (const f of n.fallos) console.log(`    ${f.detalle}`);
+  if (ultimo && (!ultimo.aprobado || process.env.VERBOSO === "todo") && process.env.VERBOSO) console.log(`    respuesta: ${ultimo.dicho.replace(/\n/g, " ⏎ ").slice(0, 400)}`);
 }
 const orden = [...tiempos].sort((a, b) => a - b);
 const mediana = orden.length ? orden[Math.floor(orden.length / 2)] : 0;
-console.log(`\n${bien}/${elegidos.length} bien · ~$${coste.toFixed(3)} · mediana ${mediana.toFixed(1)} s, máx ${(orden.at(-1) ?? 0).toFixed(1)} s · ${MEDIDO}, esfuerzo ${/haiku/.test(MEDIDO) ? "—" : process.env.BOT_EFFORT || "por defecto"}`);
-process.exitCode = bien === elegidos.length ? 0 : 1;
+const media = (x) => (pagados ? Math.round(x / pagados) : 0);
+// La primera línea la lee scripts/modelos-evals.mjs: no cambies su forma.
+console.log(`\n${estados.aprobado ?? 0}/${elegidos.length} bien · ~$${gastado.toFixed(3)} · mediana ${mediana.toFixed(1)} s, máx ${(orden.at(-1) ?? 0).toFixed(1)} s · ${MEDIDO}, esfuerzo ${ESFUERZO}`);
+console.log(`Estados: ${Object.entries(estados).map(([e, n]) => `${e} ${n}`).join(" · ")} · de memoria ${deMemoria} · intentos pagados ${pagados}`);
+if (pagados) console.log(`Por intento: ${media(suma.entrada)} entrada · ${media(suma.salida)} salida · ${media(suma.cache_leida)} caché leída · ${media(suma.cache_escrita)} caché escrita · ${(suma.vueltas / pagados).toFixed(2)} vueltas · $${(gastado / pagados).toFixed(4)}`);
+console.log(`Resultados en ${JSONL.replace(RAIZ, ".").replace(/\\/g, "/")} (pasada ${PASADA})`);
+
+// Los «~» aparte: fuera de seguridad un inestable suelto no bloquea, pero no
+// se puede perder entre 135 líneas.
+console.log(inestables.length ? `Inestables (${inestables.length}): ${inestables.join(", ")}` : "Inestables: ninguno");
+
+// Comparar con la referencia: lo que pasaba y ahora no, bloquea.
+const resumen = {
+  v: VERSION_ESQUEMA, pasada_id: PASADA, fecha: new Date().toISOString(), fecha_madrid: HOY_MADRID, nivel: NIVEL,
+  modelo: MEDIDO, esfuerzo: ESFUERZO, prompt_hash: PROMPT_HASH, codigo_hash: CODIGO_HASH, casos_version: CASOS_VERSION,
+  git_sha: GIT_SHA, coste_usd: Number(gastado.toFixed(6)), parado_por_tope: paradoPorTope, estados: porCaso,
+};
+let regresiones = [];
+if (!referencia) {
+  console.log("Sin referencia: no hay pasada entera guardada de otra versión con este nivel y modelo; los inestables no se pueden juzgar como regresión.");
+} else {
+  const c = compararEstados(referencia.estados ?? {}, porCaso);
+  regresiones = c.regresiones;
+  console.log(`Referencia ${referencia.pasada_id} (prompt ${referencia.prompt_hash} · código ${referencia.codigo_hash} · ${referencia.git_sha ?? "sin sha"}): ${regresiones.length} regresiones, ${c.mejoras.length} mejoras`);
+  if (c.faltan.length) console.log(`    La referencia no cubre ${c.faltan.length} de ${Object.keys(porCaso).length} casos: de esos no se sabe si empeoraron.`);
+  for (const x of regresiones) console.log(`    REGRESIÓN ${x.caso_id}: ${x.antes} → ${x.ahora}`);
+  for (const x of c.mejoras) console.log(`    mejora ${x.caso_id}: ${x.antes} → ${x.ahora}`);
+}
+fs.appendFileSync(PASADAS, `${JSON.stringify(resumen)}\n`);
+
+if (paradoPorTope) {
+  console.log(`\nPARADO POR EL TOPE: gastado $${gastado.toFixed(3)} de $${TOPE.toFixed(2)}. Faltan casos por correr (salida ${SALIDA.tope}).`);
+  process.exitCode = SALIDA.tope;
+} else {
+  process.exitCode = bloqueos || regresiones.length ? SALIDA.fallos : SALIDA.bien;
+}

@@ -4,6 +4,8 @@
  * fichero y el adaptador, no el agente.
  */
 
+import { seguirCon } from "./avisar.js";
+
 const API = "https://api.telegram.org";
 
 // El teclado fijo de los chats privados: lo de todos los días a un toque. Cada
@@ -22,8 +24,9 @@ export async function llamar(metodo, cuerpo) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(cuerpo),
   });
-  const json = await res.json().catch(() => null);
-  if (!json?.ok) throw new Error(`Telegram ${metodo}: ${json?.description ?? res.status}`);
+  // a propósito: sin cuerpo JSON, falla justo abajo con el status
+  const json = await res.json().catch(seguirCon("telegram_json", null));
+  if (!json?.ok) throw Object.assign(new Error(`Telegram ${metodo}: ${json?.description ?? res.status}`), { servicio: "telegram", status: json?.error_code ?? res.status });
   return json.result;
 }
 
@@ -160,3 +163,4 @@ export async function nombreDelBot() {
 
 export const escaparHtml = (s) =>
   String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+

@@ -5,15 +5,25 @@
  * que se hace a continuación: en qué carpeta y rama estás, si te falta el
  * entorno, si vas por detrás de staging, qué otras sesiones hay abiertas, qué
  * números de migración están cogidos, cuáles siguen sin aplicar y qué issues
- * esperan a alguien (decisiones de Pablo, encargos, lecciones sin su test).
+ * esperan a alguien (decisiones de Pablo, encargos, los problemas de fondo que
+ * más se repiten y lo que está sin clasificar) y quién lleva qué: encargos con
+ * rama viva, carpetas posiblemente paradas y ramas sin número de issue (las
+ * líneas salen de `scripts/issues.mjs --arranque`, #271).
  * Además apunta esta sesión en el registro (sesiones.mjs).
- * Nunca falla: si algo no se puede mirar, se calla.
+ * Nunca rompe el arranque: si algo no se puede mirar, sigue con lo demás. Lo
+ * que no pudo mirar lo dice cuando callarlo engañaría (los issues, el registro
+ * de sesiones y lo que la limpieza de carpetas no pudo borrar). Cada `catch`
+ * que se calla lleva su `a propósito:` (scripts/sinErroresTragados.test.js).
  */
 import { execFile, execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
+import { ahoraEnMadrid } from "../../scripts/lib/hora.mjs";
+import { numeroDeRama } from "../../scripts/lib/lleva.mjs";
+import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/limpiar-worktrees.mjs";
 import { sinAplicar } from "./guardia.mjs";
+import { avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
 
@@ -23,7 +33,7 @@ try {
   if (!process.stdin.isTTY) for await (const trozo of process.stdin) crudo += trozo;
   entrada = crudo ? JSON.parse(crudo) : {};
 } catch {
-  // sin entrada: se sigue con lo que hay
+  // a propósito: sin entrada (o ilegible) se sigue con lo que hay; el cwd sale de process.cwd()
 }
 
 const raiz = entrada.cwd || process.cwd();
@@ -40,6 +50,8 @@ const git = (...args) => {
   try {
     return execFileSync("git", ["-C", raiz, ...args], { encoding: "utf8", timeout: red ? RED_MS : LOCAL_MS, stdio: ["ignore", "pipe", "ignore"] }).trim();
   } catch {
+    // a propósito: null es «no se sabe» (sin red, sin repo, fuera de tiempo) y
+    // cada uso lo trata: rama «?», sin aviso de atraso. El arranque no se rompe.
     return null;
   }
 };
@@ -48,8 +60,16 @@ const avisos = [];
 const rama = git("rev-parse", "--abbrev-ref", "HEAD");
 const esWorktree = git("rev-parse", "--git-dir") !== git("rev-parse", "--git-common-dir");
 
+// La hora real de Madrid (scripts/lib/hora.mjs, una sola fuente). En Git Bash
+// `TZ=Europe/Madrid date` da UTC sin avisar (#210).
+avisos.push(`Hora: ${ahoraEnMadrid()}. Durante la sesión, \`npm run hora\`; nunca \`date\` en Git Bash.`);
 avisos.push(`Carpeta: ${raiz} · rama: ${rama ?? "?"}${esWorktree ? " (worktree)" : ""}`);
 
+// Toda rama no trivial lleva número de issue (#271): sin él, nada del repo dice
+// que la llevas tú (caso #270). El cruce de las demás sale de `npm run issues`.
+if (esWorktree && rama && !["staging", "main", "HEAD"].includes(rama) && !numeroDeRama(rama)) {
+  avisos.push(`Tu rama ${rama} no lleva número de issue, así que nadie ve que la llevas tú. Si es más que una errata: \`npm run issues -- --nuevo …\` (busca parecidos) y renombra con el número.`);
+}
 if (/onedrive/i.test(raiz)) {
   avisos.push("AVISO: esta copia está dentro de OneDrive, que se retira. Trabaja en C:\\dev\\MenuPlan o en un worktree (`npm run tarea -- <area>/<nombre>`).");
 }
@@ -76,17 +96,47 @@ try {
     const h = (x) => (x < 1 ? `${Math.round(x * 60)} min` : `${x.toFixed(1)} h`);
     avisos.push(`Otras sesiones activas: ${otras.map((s) => `${basename(s.cwd)} (${s.rama}, hace ${h(s.horas)})`).join("; ")}.`);
   }
-} catch {
-  // el registro es una ayuda, no un requisito
+} catch (e) {
+  // El registro es una ayuda, no un requisito, pero callarlo engaña: sin él no
+  // sale el aviso de «otra sesión en esta misma carpeta» (#177).
+  avisos.push(`Sesiones: no he podido leer el registro (${String(e?.message ?? e).split("\n")[0]}); no sé si hay otra sesión en esta carpeta.`);
+}
+
+// ── Carpetas que la limpieza no pudo borrar (#141) ─────────────────────────
+// La limpieza (hook de usuario limpiar-worktrees) corre en silencio al
+// arrancar; lo que no pudo borrar lo apunta y aquí se enseña.
+try {
+  const comun = git("rev-parse", "--path-format=absolute", "--git-common-dir");
+  // Sin la lista de worktrees no se avisa: podría mandar borrar uno vivo.
+  const lista = git("worktree", "list", "--porcelain");
+  if (comun && lista !== null) avisos.push(...avisosDeLimpieza(leerPendientes(comun), existsSync, worktreesVivos(lista)));
+} catch (e) {
+  avisos.push(`Limpieza de carpetas: no he podido leer lo que dejó pendiente (${String(e?.message ?? e).split("\n")[0]}).`);
 }
 
 // ── Staging y migraciones ──────────────────────────────────────────────────
 const prs = pedirPrs(raiz, 10_000); // a la vez que el fetch: los dos son red, y gh es el lento
+// Lo que se enseña de los issues lo decide scripts/lib/issues.mjs (una sola
+// fuente con `npm run issues`); aquí solo se lanza y se espera al final.
 const issues = new Promise((ok) => {
-  execFile("gh", ["issue", "list", "--state", "open", "--limit", "200", "--json", "number,labels"], { cwd: raiz, encoding: "utf8", timeout: 10_000 }, (error, salida) => ok(error ? null : salida));
+  execFile("node", ["scripts/issues.mjs", "--arranque"], { cwd: raiz, encoding: "utf8", timeout: 10_000 }, (error, salida) => ok(error ? null : salida));
 });
 git("fetch", "-q", "origin", "staging");
-const detras = git("rev-list", "--count", "HEAD..origin/staging");
+let detras = git("rev-list", "--count", "HEAD..origin/staging");
+
+// La carpeta principal se adelanta sola (#192): si no, sus hooks son los viejos.
+const plan = planAdelantar({ esWorktree, rama, detras, sucio: git("status", "--porcelain", "--untracked-files=no") });
+if (plan.aviso) avisos.push(plan.aviso);
+if (plan.adelantar) {
+  const antes = git("rev-parse", "HEAD");
+  if (git("merge", "--ff-only", "-q", "origin/staging") !== null) {
+    const cambiados = (git("diff", "--name-only", `${antes}..HEAD`) ?? "").split("\n").filter(Boolean);
+    avisos.push(avisoTrasAdelantar(detras, cambiados));
+    detras = "0";
+  } else {
+    avisos.push(`AVISO: la carpeta principal va ${detras} commits por detrás de origin/staging y no he podido adelantarla (\`git merge --ff-only origin/staging\` falló: ¿un fichero sin seguir que pisaría?). Los hooks que corren son los viejos.`);
+  }
+}
 if (rama && rama !== "staging" && rama !== "main" && Number(detras) > 0) {
   avisos.push(`Tu rama va ${detras} commits por detrás de origin/staging: fusiónala antes de abrir el PR.`);
 }
@@ -109,17 +159,10 @@ if (existsSync(estado)) {
 }
 
 // ── Issues: lo que espera a alguien ──────────────────────────────────────
-try {
-  const abiertos = JSON.parse((await issues) ?? "[]");
-  const de = (t) => abiertos.filter((i) => i.labels.some((l) => l.name === `tipo:${t}`)).length;
-  const partes = [
-    [de("decision"), "decisiones esperando a Pablo"],
-    [de("encargo"), "encargos (mira si el tuyo ya lo tiene alguien)"],
-    [de("leccion"), "lecciones sin su test"],
-  ].filter(([n]) => n).map(([n, que]) => `${n} ${que}`);
-  if (partes.length) avisos.push(`Issues abiertos: ${partes.join("; ")}. Detalle: \`npm run issues\`.`);
-} catch {
-  // sin GitHub: se calla
-}
+const lineasIssues = (await issues)?.split("\n").map((l) => l.trim()).filter(Boolean);
+if (lineasIssues) avisos.push(...lineasIssues);
+// Sin respuesta (sin gh, sin red o tarda más de 10 s) no se calla: se dice, para
+// que nadie crea que no hay nada pendiente.
+else avisos.push("Issues: no he podido leerlos (GitHub no contesta, gh sin sesión o un fallo del script); míralos con `npm run issues`.");
 
 process.stdout.write(`[arranque MenuPlan]\n- ${avisos.join("\n- ")}\n`);

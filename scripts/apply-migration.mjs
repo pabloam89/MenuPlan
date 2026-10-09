@@ -30,7 +30,8 @@ import { fileURLToPath } from "url";
 
 import pg from "pg";
 import { cargarEnv } from "./lib/env.mjs";
-import { apuntarEnsayo, deStaging, leerEnsayo, motivosParaNoAplicar, olvidarEnsayo } from "./lib/permisoAplicar.mjs";
+import { horaMadrid } from "./lib/hora.mjs";
+import { VIGENCIA_MS, apuntarEnsayo, deStaging, leerEnsayo, motivosParaNoAplicar, olvidarEnsayo } from "./lib/permisoAplicar.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIR = join(__dirname, "..", "supabase", "migrations");
@@ -69,6 +70,9 @@ const client = new pg.Client({
   ssl: { rejectUnauthorized: false },
 });
 await client.connect();
+// Lo que la migración cuenta con `raise notice` (filas tocadas, comprobaciones)
+// sale aquí; sin esto, el ensayo solo decía «válido».
+client.on("notice", (n) => console.log(`   [${n.severity ?? "NOTICE"}] ${n.message}`));
 
 const uno = async (q) => (await client.query(q)).rows[0];
 const antes = await uno("select count(*)::int n from information_schema.columns where table_name = 'recipes'");
@@ -92,7 +96,8 @@ try {
     await client.query("rollback");
     apuntarEnsayo(RAIZ, base, sql);
     console.log("🔎 ENSAYO: el SQL es válido contra el esquema real. No se ha cambiado nada.");
-    console.log("   Para aplicarla de verdad (si ya está en staging), repite el comando con --si en menos de una hora.");
+    // La hora límite, calculada aquí y en hora de Madrid: a mano salía mal (#210).
+    console.log(`   Para aplicarla de verdad (si ya está en staging), repite el comando con --si antes de las ${horaMadrid(new Date(Date.now() + VIGENCIA_MS))} (hora de Madrid).`);
   }
 } catch (err) {
   await client.query("rollback");
