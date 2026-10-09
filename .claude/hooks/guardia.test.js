@@ -277,22 +277,25 @@ describe("los issues se crean buscando antes (#204)", () => {
     expect(bash(c)).toBe(null));
 });
 
+// La línea «Casos:» (#185): todo PR nuevo la lleva. Aquí, la mínima válida.
+const CASOS = "Casos: ninguno — solo prueba la guardia, no ha habido ningún fallo";
+
 describe("PR de una rama con issue: lleva su Closes (#206)", () => {
   const conIssue = (extra = {}) => ctx({ ramaDe: () => "ops/193-dependabot", ...extra });
-  it("sin Closes, no", () => expect(bash('gh pr create --base staging --body "hecho"', conIssue())).toBe("deny"));
+  it("sin Closes, no", () => expect(bash(`gh pr create --base staging --body "hecho. ${CASOS}"`, conIssue())).toBe("deny"));
   it("con Closes en el cuerpo, sí", () =>
-    expect(bash('gh pr create --base staging --body "$(cat <<\'EOF\'\nCloses #193\nEOF\n)"', conIssue())).toBe(null));
+    expect(bash(`gh pr create --base staging --body "$(cat <<'EOF'\nCloses #193\n${CASOS}\nEOF\n)"`, conIssue())).toBe(null));
   it("con Closes en el --body-file, sí", () =>
-    expect(bash("gh pr create --base staging --body-file pr.md", conIssue({ leer: () => "Fixes #193\nAgente: gobierno" }))).toBe(null));
+    expect(bash("gh pr create --base staging --body-file pr.md", conIssue({ leer: () => `Fixes #193\nAgente: gobierno\n${CASOS}` }))).toBe(null));
   // Las formas que vio el juez (8 oct): `-F`, `--body-file=`, rutas de Git Bash y `Closes:`.
   it.each(["gh pr create -F pr.md", "gh pr create --body-file=pr.md", 'gh pr create --body-file "pr.md"'])("lee el cuerpo de %s", (c) =>
-    expect(bash(c, conIssue({ leer: () => "Closes #193" }))).toBe(null));
+    expect(bash(c, conIssue({ leer: () => `Closes #193\n${CASOS}` }))).toBe(null));
   it("traduce las rutas de Git Bash antes de leer", () => {
     let leida;
-    bash("gh pr create --body-file /c/Users/x/pr.md", conIssue({ leer: (f) => ((leida = f), "Closes #193") }));
+    bash("gh pr create --body-file /c/Users/x/pr.md", conIssue({ leer: (f) => ((leida = f), `Closes #193\n${CASOS}`) }));
     expect(leida).toBe("c:/Users/x/pr.md");
   });
-  it("acepta «Closes: #193»", () => expect(bash('gh pr create --body "Closes: #193"', conIssue())).toBe(null));
+  it("acepta «Closes: #193»", () => expect(bash(`gh pr create --body "Closes: #193. ${CASOS}"`, conIssue())).toBe(null));
   it("--head dueño:rama y entre comillas también cuentan", () => {
     expect(bash('gh pr create --head pabloam89:ops/193-x --body "x"', ctx())).toBe("deny");
     expect(bash('gh pr create --head "ops/193-x" --body "x"', ctx())).toBe("deny");
@@ -300,17 +303,55 @@ describe("PR de una rama con issue: lleva su Closes (#206)", () => {
   it("otro número no vale", () => expect(bash('gh pr create --body "Closes #19"', conIssue())).toBe("deny"));
   it("--head manda sobre la rama de la carpeta", () =>
     expect(bash('gh pr create --head ops/7-x --body "Closes #193"', conIssue())).toBe("deny"));
-  it("rama sin issue: no se pide", () => expect(bash('gh pr create --body "x"')).toBe(null));
+  it("rama sin issue: no se pide", () => expect(bash(`gh pr create --body "x. ${CASOS}"`)).toBe(null));
+});
+
+describe("gh pr create lleva la línea «Casos:» (#185)", () => {
+  it.each([
+    'gh pr create --base staging --body "hecho"',
+    "gh pr create --base staging",
+    "gh pr create --fill",
+    'gh pr create --body "Casos:"',
+    'gh pr create --body "Casos: ninguno"',
+    'gh pr create --body "Casos: ninguno — n/a"',
+    'gh pr create --body "Casos: varios fallos"',
+  ])("sin ella o rota, no: %s", (c) => {
+    const r = decidir({ tool_name: "Bash", tool_input: { command: c } }, ctx());
+    expect(r?.decision).toBe("deny");
+    expect(r.motivo).toMatch(/Casos/);
+  });
+  it("el mensaje dice qué escribir", () => {
+    const r = decidir({ tool_name: "Bash", tool_input: { command: "gh pr create" } }, ctx());
+    expect(r.motivo).toMatch(/Casos: #n, #m/);
+    expect(r.motivo).toMatch(/ninguno — /);
+  });
+  it.each(['gh pr create --body "Casos: #301, #305"', `gh pr create --body "${CASOS}"`])("con ella, pasa: %s", (c) => expect(bash(c)).toBe(null));
+  it("admite texto tras la lista (mismo criterio que el CI) pero no 21 números", () => {
+    expect(bash('gh pr create --body "Casos: #12 (el test rojo)"')).toBe(null);
+    const lista = Array.from({ length: 21 }, (_, i) => `#${i + 1}`).join(", ");
+    expect(bash(`gh pr create --body "Casos: ${lista}"`)).toBe("deny");
+  });
+  it("la lee del --body-file", () => {
+    expect(bash("gh pr create --body-file pr.md", ctx({ leer: () => "Closes #1\nCasos: #301" }))).toBe(null);
+    expect(bash("gh pr create --body-file pr.md", ctx({ leer: () => "Closes #1" }))).toBe("deny");
+    expect(bash("gh pr create --body-file pr.md", ctx({ leer: () => null }))).toBe("deny");
+  });
+  it("va antes que el atraso: el PR sin línea se niega aunque la rama esté atrasada", () => {
+    expect(bash("gh pr create", ctx({ atrasoLocal: () => 3 }))).toBe("deny");
+  });
+  it("otros gh pr no la piden", () => {
+    for (const c of ["gh pr view 3", "gh pr edit 3 --body x", "gh pr checks 3"]) expect(bash(c)).toBe(null);
+  });
 });
 
 describe("gh pr create con la rama al día", () => {
-  it("al día pasa", () => expect(bash('gh pr create --base staging --title "x" --body "y"')).toBe(null));
-  it("atrasada, no", () => expect(bash("git push -u origin ops/x && gh pr create --base staging", ctx({ atrasoLocal: () => 2 }))).toBe("deny"));
-  it("sin poder saberlo, pregunta", () => expect(bash("gh pr create", ctx({ atrasoLocal: () => null }))).toBe("ask"));
+  it("al día pasa", () => expect(bash(`gh pr create --base staging --title "x" --body "y. ${CASOS}"`)).toBe(null));
+  it("atrasada, no", () => expect(bash(`git push -u origin ops/x && gh pr create --base staging --body "${CASOS}"`, ctx({ atrasoLocal: () => 2 }))).toBe("deny"));
+  it("sin poder saberlo, pregunta", () => expect(bash(`gh pr create --body "${CASOS}"`, ctx({ atrasoLocal: () => null }))).toBe("ask"));
   it("otros gh pr no lo miran", () => expect(bash("gh pr view 90", ctx({ atrasoLocal: () => 5, choquesDelPr: () => ["a"] }))).toBe(null));
   it("mira la carpeta del `cd`, no la de la sesión", () => {
     let mirada;
-    bash('cd "C:/dev/MenuPlan-x" && gh pr create', ctx({ atrasoLocal: (d) => ((mirada = d), 0) }));
+    bash(`cd "C:/dev/MenuPlan-x" && gh pr create --body "${CASOS}"`, ctx({ atrasoLocal: (d) => ((mirada = d), 0) }));
     expect(mirada).toBe("C:/dev/MenuPlan-x");
   });
 });

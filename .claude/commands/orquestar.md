@@ -122,6 +122,13 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    porqué). `npm run issues` enseña los fondos abiertos para buscar el suyo,
    y se crea con `npm run issues -- --nuevo` (la guardia niega `gh issue
    create`).
+   **Los casos salen del campo `CASOS:` de cada informe** (los fallos reales
+   que el agente vio por el camino) y de los tuyos: regístralos todos, uno por
+   issue, **antes de abrir el PR**, y escribe en su cuerpo `Casos: #n, #m` (o
+   `Casos: ninguno — <por qué no hubo ningún fallo>`, de verdad). La guardia
+   niega `gh pr create` sin esa línea, el CI (`scripts/casos-pr.mjs`)
+   comprueba que cada #n es un `tipo:caso` con su `analisis:`, y al terminar
+   la sesión `pendientes.mjs` frena una vez si hubo fallos y no registraste nada.
    Una decisión que no se toma hoy → `tipo:decision`; trabajo que alguien
    tiene que coger → `tipo:encargo`, colgando de su fondo si es parte de un
    arreglo. Detalle y comandos: skill `github`, «Issues». El chat se pierde

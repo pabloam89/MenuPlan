@@ -69,6 +69,141 @@ export function leerTranscript(jsonl) {
   return { ultimo, comandos };
 }
 
+// ── El freno de los casos (#185) ──────────────────────────────────────────────
+//
+// «Cuando algo falla: hasta el problema de fondo» (CLAUDE.md) pide registrar
+// cada fallo del camino como un caso. El 9 oct 2026 una sesión de siete PR no
+// registró ninguno hasta que Pablo lo preguntó. La puerta firme es la línea
+// «Casos:» del PR (guardia y CI); esto frena una vez, al terminar, a la sesión
+// que tuvo señales de fallo y no dejó rastro de haber registrado nada.
+
+/** Un `[guardia]` que no es un fallo: la puerta de las skills y la de «Casos:» piden algo, no han roto nada. */
+const GUARDIA_DE_TRAMITE = /abre antes (?:la|las) skills?|línea «Casos:»|falta la línea|«Casos:/i;
+
+/** Excepciones conocidas: tests flaky ya registrados como caso, que no cuentan como señal. */
+export const FLAKY_CONOCIDOS = { "dominios-skills.test.js": "#307" };
+
+/**
+ * Las órdenes de un comando, sin ejecutarlo: lo que hay entre `&&`, `;`, `|` y
+ * saltos de línea. DEUDA CONOCIDA: parte sin respetar comillas, así que un
+ * título con `;`, `|` o `&&` dentro (`--nuevo "a; b" --tipo caso`) se corta y
+ * puede no contar como rastro; el coste es que el freno salte una vez de más
+ * (y salir de él cuesta una línea). Parsear comillas bien no compensa.
+ */
+const ordenesDe = (cmd) => String(cmd).split(/&&|\|\||;|\||\n/).map((s) => s.trim()).filter(Boolean);
+const LANZA_TESTS = /^(?:\w+=\S+\s+)*(?:npx\s+vitest|npm\s+(?:run\s+)?test|vitest)\b/;
+const ES_ISSUES = /^(?:\w+=\S+\s+)*(?:npm\s+run\s+(?:--silent\s+)?issues|node\s+["']?(?:[A-Za-z]:)?(?:\.?[\\/])?(?:[\w.-]+[\\/])*scripts[\\/]issues\.mjs)(?![\w.-])/;
+const ES_PR = /^(?:\w+=\S+\s+)*gh\s+pr\s+(?:create|edit)\b/;
+const LINEA_CASOS = /\bCasos\s*:\s*(?:#\d|ninguno)/i;
+
+/** ¿Ejecuta este comando de Bash vitest o npm test? (no un grep que los nombre) */
+const lanzaTests = (cmd) => ordenesDe(cmd).some((o) => LANZA_TESTS.test(o));
+
+/**
+ * ¿Deja este comando un caso registrado? Solo lo que se EJECUTA cuenta:
+ *  - `npm run issues -- --nuevo … --tipo caso` o `--colgar`;
+ *  - `gh issue comment N` si algún resultado de la sesión mostró ese #N como tipo:caso;
+ *  - un `gh pr create|edit` con la línea `Casos:` en el comando o en el fichero de
+ *    `--body-file` que la sesión escribió (`escritos`: nombre de fichero → contenido).
+ * Escribir `--colgar` en un fichero o buscar «Casos: ninguno» con grep no es rastro.
+ */
+function dejaCaso(cmd, { escritos, vistosCaso }) {
+  for (const o of ordenesDe(cmd)) {
+    if (ES_ISSUES.test(o)) {
+      // Las opciones se miran sin lo que va entre comillas: `--cuerpo "usa --tipo caso"`
+      // no es un tipo. Solo se salva `--tipo "caso"`, que se normaliza antes.
+      const opciones = o.replace(/--tipo\s+["'](\w+)["']/g, "--tipo $1").replace(/"[^"]*"|'[^']*'/g, '""');
+      if (/--colgar\b/.test(opciones)) return true;
+      if (/--nuevo\b/.test(opciones) && /--tipo\s+caso\b/.test(opciones)) return true;
+    }
+    const c = o.match(/^gh\s+issue\s+comment\s+#?(\d+)/);
+    if (c && vistosCaso.has(c[1])) return true;
+    if (ES_PR.test(o)) {
+      if (LINEA_CASOS.test(cmd)) return true;
+      const f = o.match(/(?:-F|--body-file)(?:\s+|=)["']?([^\s"']+)/)?.[1];
+      if (f && LINEA_CASOS.test(escritos.get(nombreDe(f)) ?? "")) return true;
+    }
+  }
+  return false;
+}
+
+const sinColor = (s) => String(s).replace(/\u001b\[[0-9;]*m/g, "");
+const nombreDe = (ruta) => String(ruta).split(/[\\/]/).pop();
+const textoDe = (c) => (typeof c === "string" ? c : Array.isArray(c) ? c.map((x) => x?.text ?? "").join("\n") : "");
+
+/**
+ * Del transcript: las señales de fallo de la sesión y si dejó rastro de haber
+ * registrado casos. Señales (cada una con su origen, para decirlas):
+ *  - informe de un agente con `ESTADO: bloqueado|fallo` o un hallazgo `[bloqueante]`;
+ *  - vitest en rojo (`FAIL fichero`) en un fichero que la sesión no tocó: un test
+ *    que falla y no es el tuyo es un caso; el nuevo que ves fallar, no;
+ *  - una denegación de la guardia (salvo las de trámite).
+ * → { senales: string[], registrado: boolean }
+ */
+export function senalesDeFallo(jsonl) {
+  const usos = new Map(); // id → { name, command }
+  const tocados = new Set();
+  const comandos = [];
+  const escritos = new Map(); // nombre de fichero → lo último que se escribió con Write
+  const resultados = [];
+  for (const linea of String(jsonl).split("\n")) {
+    let e;
+    try {
+      e = JSON.parse(linea);
+    } catch {
+      // a propósito: una línea del transcript que no es JSON (cortada al escribir) se salta
+      continue;
+    }
+    const partes = Array.isArray(e?.message?.content) ? e.message.content : [];
+    for (const p of partes) {
+      if (e.type === "assistant" && p.type === "tool_use") {
+        usos.set(p.id, { name: p.name, command: p.input?.command ?? "" });
+        if (p.input?.command && /^(?:Bash|PowerShell)$/.test(p.name)) comandos.push(p.input.command);
+        if (p.input?.content && p.input?.file_path) escritos.set(nombreDe(p.input.file_path), String(p.input.content));
+        const f = p.input?.file_path;
+        if (f) tocados.add(nombreDe(f));
+      } else if (e.type === "user" && p.type === "tool_result") {
+        resultados.push({ uso: usos.get(p.tool_use_id), texto: sinColor(textoDe(p.content)), error: p.is_error === true });
+      }
+    }
+  }
+  const senales = [];
+  for (const { uso, texto, error } of resultados) {
+    if (!uso) continue;
+    if (/^(?:Agent|Task)$/.test(uso.name)) {
+      const m = texto.match(/^\s*ESTADO:\s*(bloqueado|fallo)\b/im);
+      if (m) senales.push(`informe de un agente con ESTADO: ${m[1]}`);
+      else if (/^\s*-\s*\[bloqueante\]/im.test(texto)) senales.push("informe de un agente con un hallazgo bloqueante");
+    } else if (/^(?:Bash|PowerShell)$/.test(uso.name)) {
+      if (lanzaTests(uso.command)) {
+        const ajenos = [...texto.matchAll(/^\s*FAIL\s+(\S+)/gm)].map((m) => nombreDe(m[1])).filter((f) => !tocados.has(f) && !Object.hasOwn(FLAKY_CONOCIDOS, f));
+        if (ajenos.length) senales.push(`vitest en rojo en ${[...new Set(ajenos)].slice(0, 3).join(", ")}, que no tocaste`);
+      }
+    }
+    if (error && /^(?:Bash|PowerShell|Edit|Write|MultiEdit)$/.test(uso.name) && texto.includes("[guardia]") && !GUARDIA_DE_TRAMITE.test(texto)) {
+      senales.push(`la guardia te negó un ${uso.name === "Edit" || uso.name === "Write" || uso.name === "MultiEdit" ? "edit" : "comando"}`);
+    }
+  }
+  // Los #N que algún resultado de la sesión mostró como tipo:caso (para `gh issue comment N`).
+  const vistosCaso = new Set();
+  for (const { texto } of resultados) {
+    if (!texto.includes("tipo:caso")) continue;
+    for (const m of texto.matchAll(/(?<!\d)#?(\d{1,8})(?!\d)/g)) vistosCaso.add(m[1]);
+  }
+  return { senales: [...new Set(senales)], registrado: comandos.some((c) => dejaCaso(c, { escritos, vistosCaso })) };
+}
+
+/** El mensaje del freno: las señales y qué hacer. Sale una sola vez por sesión. */
+export function recordatorioDeCasos(senales) {
+  return "[casos] En esta sesión hubo señales de fallo y no hay rastro de ningún caso registrado ni de una línea «Casos:» en un PR:\n"
+    + senales.slice(0, 5).map((s) => `- ${s}`).join("\n")
+    + "\nCada fallo del camino es un caso (CLAUDE.md, «Cuando algo falla»): analiza su problema de fondo y regístralo con "
+    + "`npm run issues -- --nuevo \"…\" --tipo caso --analisis <nuevo|abierto|no-aguanto-roto|no-aguanto-corto|puntual> --area … --cuerpo <fichero>` "
+    + "(un puntual lleva su «Puntual porque …»), y pon «Casos: #n» en el PR. "
+    + "Si ninguna es un fallo de verdad (un test que viste fallar a propósito, un obstáculo que ya estaba resuelto), "
+    + "di en una línea por qué y termina: este aviso no vuelve a salir.";
+}
+
 export const RECORDATORIO = "[pendientes] Tu último mensaje deja decisiones o pendientes, y en esta sesión no has creado ni comentado ningún issue. "
   + "El chat se pierde al cerrar: pasa cada decisión a un issue (`npm run issues -- --nuevo \"…\" --tipo decision --area … --cuerpo <fichero>`, que se asigna a Pablo) "
   + "y cada trabajo por hacer a un encargo, o di en una línea por qué no hace falta. Este aviso sale una sola vez por sesión.";
@@ -95,12 +230,20 @@ if (esPrincipal) {
     if (entrada.stop_hook_active) process.exit(0);
     const dir = join(tmpdir(), "menuplan-pendientes");
     mkdirSync(dir, { recursive: true });
-    const marca = join(dir, `${String(entrada.session_id ?? "x").replace(/\W/g, "")}.hecho`);
-    if (existsSync(marca)) process.exit(0);
+    const id = String(entrada.session_id ?? "x").replace(/\W/g, "");
+    const marca = join(dir, `${id}.hecho`);
+    const marcaCasos = join(dir, `${id}.casos`);
     const transcript = entrada.transcript_path && existsSync(entrada.transcript_path) ? readFileSync(entrada.transcript_path, "utf8") : "";
-    if (pendientesSinIssue(aMirar(entrada, transcript))) {
+    // Cada freno sale una vez por sesión y con su marca; si salen los dos a la vez, primero los pendientes.
+    if (!existsSync(marca) && pendientesSinIssue(aMirar(entrada, transcript))) {
       writeFileSync(marca, new Date().toISOString());
       process.stdout.write(JSON.stringify({ decision: "block", reason: RECORDATORIO }));
+    } else if (!existsSync(marcaCasos)) {
+      const { senales, registrado } = senalesDeFallo(transcript);
+      if (senales.length && !registrado) {
+        writeFileSync(marcaCasos, new Date().toISOString());
+        process.stdout.write(JSON.stringify({ decision: "block", reason: recordatorioDeCasos(senales) }));
+      }
     }
   } catch {
     // a propósito: un recordatorio, no un vigilante; si falla, la sesión termina normal
