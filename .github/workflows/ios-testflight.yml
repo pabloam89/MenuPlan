@@ -23,7 +23,9 @@
 #   IOS_DIST_P12_PASSWORD      contraseña de ese .p12
 #   IOS_PROVISION_PROFILE_BASE64   perfil "HoMenu App Store" del portal
 #   APPSTORE_API_KEY_P8_BASE64     clave de la API de App Store Connect
-# Si falta alguno, el primer paso falla y dice cuál, antes de gastar el Mac.
+# Si falta alguno, el primer paso falla y dice cuál, antes de compilar nada.
+# El environment tiene a Pablo de revisor: cada run espera a que lo apruebe
+# (pestaña Actions → «Review deployments») antes de ver los secretos.
 #
 # El Key ID, el Issuer ID y las claves de Supabase van aquí en claro a
 # propósito: los dos primeros son identificadores inútiles sin el .p8, y las de
@@ -204,11 +206,15 @@ jobs:
 
       - name: Resumen
         if: always()
+        # Las notas las escribe quien lanza el workflow: por el entorno, nunca
+        # interpoladas en el script (inyección de órdenes).
+        env:
+          NOTAS: ${{ inputs.notas }}
         run: |
           {
             echo "### Build $BUILD_NUMBER"
             echo ""
-            echo "${{ inputs.notas }}"
+            echo "$NOTAS"
             echo ""
             echo "Tarda unos minutos en aparecer en TestFlight mientras Apple la procesa."
           } >> "$GITHUB_STEP_SUMMARY"

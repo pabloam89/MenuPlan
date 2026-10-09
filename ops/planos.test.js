@@ -19,6 +19,9 @@ const datos = JSON.parse(leer("ops/planos.json"));
 const md = leer("ops/PLANOS.md");
 const AGENTES = readdirSync(join(RAIZ, ".claude/agents")).map((f) => f.replace(/\.md$/, ""));
 const NORMAS = new Set(JSON.parse(leer("ops/normas.json")).normas.map((n) => n.id));
+// Los environments que declara algún workflow: la lista cerrada de las excepciones.
+const DIR_WF = join(RAIZ, ".github", "workflows");
+const ENVIRONMENTS_DE_WORKFLOWS = new Set(readdirSync(DIR_WF).flatMap((f) => [...readFileSync(join(DIR_WF, f), "utf8").matchAll(/^\s*environment:\s*["']?([\w-]+)["']?\s*$/gm)].map((m) => m[1])));
 const todos = datos.planos.flatMap((p) => NIVELES.flatMap((n) => (p.niveles[String(n)] ?? []).map((c) => ({ plano: p.id, nivel: n, c }))));
 const donde = ({ plano, nivel, c }) => `plano ${plano}, nivel ${nivel}: «${c.que}»`;
 
@@ -69,6 +72,12 @@ describe("planos.json: forma y vocabulario cerrado", () => {
       if (c.patron !== undefined) { try { new RegExp(c.patron); } catch { malos.push(`${donde(x)}: patrón inválido`); } }
       if (c.tipo === "test_existe" && !/\.test\.(js|mjs|jsx)$/.test(c.ruta)) malos.push(`${donde(x)}: un test_existe apunta a un *.test.js`);
       if (c.tipo === "workflow_activo" && !DISPARADORES.includes(c.disparador)) malos.push(`${donde(x)}: disparador «${c.disparador}»`);
+      // Las excepciones de environment_solo_rama: un environment que declara algún
+      // workflow del repo, y solo main o staging, por nombre (#299).
+      for (const [env, rama] of Object.entries(c.excepciones ?? {})) {
+        if (!ENVIRONMENTS_DE_WORKFLOWS.has(env)) malos.push(`${donde(x)}: excepción para «${env}», que ningún workflow declara`);
+        if (!["main", "staging"].includes(rama)) malos.push(`${donde(x)}: excepción de «${env}» con rama «${rama}» (solo main o staging)`);
+      }
       if (c.tipo === "regla_github") {
         if (!(c.regla in REGLAS_GITHUB)) malos.push(`${donde(x)}: regla «${c.regla}»`);
         else for (const k of REGLAS_GITHUB[c.regla]) if (c[k] === undefined || c[k] === null || c[k] === "") malos.push(`${donde(x)}: la regla ${c.regla} pide \`${k}\``);
@@ -254,6 +263,12 @@ describe("las reglas de GitHub, con un gh de mentira", () => {
       const conD = { "repos/x/y/environments?per_page=100": lista(...base["repos/x/y/environments?per_page=100"].json.environments, { name: "d", deployment_branch_policy: null }),
         "repos/x/y/environments/d/secrets?per_page=100": secretos(1) };
       expect(envs(conD)).toMatchObject({ estado: "no_cumple", detalle: "norma secretos-en-environments no cuadra: 1 de 3 fuera de la política" });
+    });
+
+    it("environment_solo_rama: una rama con comodines en el criterio nunca cuadra, aunque la política sea igual", () => {
+      const conComodin = evaluarReglaGithub({ regla: "environment_solo_rama", rama: "staging", excepciones: { b: "*" }, norma: "secretos-en-environments" },
+        { repo, gh: gh({ "repos/x/y": admin, ...base, "repos/x/y/environments/b/deployment-branch-policies": politica("*") }) });
+      expect(conComodin.estado).toBe("no_cumple");
     });
 
     it("environment_solo_rama: una excepción declarada cambia cuál rama, no cuántas (#299)", () => {

@@ -282,6 +282,9 @@ export function evaluarReglaGithub(c, { repo, gh }) {
         if (!p.ok) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: no se pudo leer la política de ramas` };
         const lista = p.json?.branch_policies ?? [];
         const rama = Object.hasOwn(c.excepciones ?? {}, e.name) ? c.excepciones[e.name] : c.rama;
+        // Una rama con comodines (`*`, `?`, `[…]`) en el criterio casaría con una política
+        // igual de abierta: no cuadra (revisión de seguridad de #299).
+        if (/[*?[\]]/.test(String(rama))) { fuera++; continue; }
         const bien = lista.length === 1 && lista[0].name === rama && (lista[0].type ?? "branch") === "branch";
         if (!bien) fuera++;
       }
