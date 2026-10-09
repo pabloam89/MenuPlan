@@ -26,6 +26,7 @@ import { MAX_NUMERO, MIN_MOTIVO } from "../../.claude/hooks/casos.mjs";
 import { ALCANCES_FALLO } from "./flujo.mjs";
 import { GRUPOS, debeReabrir, faltas, porGrupo } from "./issues.mjs";
 import { RIESGOS } from "./normas.mjs";
+import { CATALOGO, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
 
 // ── Vocabularios cerrados ─────────────────────────────────────────────────────
 
@@ -112,6 +113,7 @@ export const CAMPOS_FICHA = {
   barrera: { tipo: "vocab", valores: BARRERAS },
   casos: { tipo: "lista" },
   encargos: { tipo: "lista" },
+  rondas: { tipo: "entero" },
   verificacion: { tipo: "ruta" },
   ventana_desde: { tipo: "fecha" },
   ventana_hasta: { tipo: "fecha" },
@@ -180,6 +182,9 @@ function leerValor(clave, def, valor) {
       return /^[A-Za-z0-9_./@-]{1,200}$/.test(valor) && !valor.includes("..") && !valor.startsWith("/") && !valor.endsWith("/")
         ? { valor }
         : { error: `«${clave}» tiene que ser una ruta del repo (letras, números y _ . / @ -), sin «..»` };
+    case "entero":
+      // Rondas de constructor y juez ya gastadas: de 0 a 99, sin signo ni decimales.
+      return /^\d{1,2}$/.test(valor) ? { valor: Number(valor) } : { error: `«${clave}» tiene que ser un número entero de 0 a 99` };
     case "fecha":
       return fechaValida(valor) ? { valor } : { error: `«${clave}» tiene que ser una fecha AAAA-MM-DD real` };
     default:
@@ -350,7 +355,7 @@ export function fichaObligatoria(fondo) {
  * → { hallazgos:[{regla, gravedad:"error"|"aviso", mensaje}], acciones:[…], subidos:Set, ficha }
  *   Acciones: { tipo:"fijar", campos }, { tipo:"reabrir", porque }, { tipo:"cerrar", arreglo }.
  */
-export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subidos = new Set() } = {}) {
+export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subidos = new Set(), presupuestos = CATALOGO } = {}) {
   const hallazgos = [];
   const acciones = [];
   const nuevosSubidos = new Set(subidos);
@@ -391,6 +396,13 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
     const faltan = ["mecanismo", "causa_escape"].filter((c) => !f[c]);
     if (sinDiagnostico && (encargos.length || f.encargos?.length || ESTADOS_CON_DIAGNOSTICO.includes(f.estado))) {
       error("sin-diagnostico", `hay ${encargos.length || f.encargos?.length ? "encargos" : `estado «${f.estado}»`} y falta ${faltan.map((c) => `«${c}»`).join(" y ")}: primero el diagnóstico (qué mecanismo falla y qué control debía pararlo y por qué no)`);
+    }
+    // 4b. Tope duro de rondas (#339): el conteo vive en la ficha del fondo y el máximo, en ops/presupuestos.json.
+    if (f.rondas !== undefined) {
+      const tope = presupuestoDe(f.alcance, f.tipo_causa ?? [...g.causa][0], presupuestos)?.rondas_max ?? TOPE_RONDAS;
+      if (f.rondas > tope) {
+        error("rondas-excedidas", `el fondo lleva ${f.rondas} rondas de constructor y juez y su presupuesto (alcance ${limpio(f.alcance ?? "sin fijar")}, causa ${limpio(f.tipo_causa ?? [...g.causa][0] ?? "sin fijar")}) permite ${tope} como mucho: no hay otra vuelta. Abre un issue tipo decision asignado a Pablo (npm run issues -- --nuevo "…" --tipo decision --area … --cuerpo <fichero>) con lo que el juez sigue bloqueando; decide una persona y, al decidir, ajusta «rondas» en la ficha`);
+      }
     }
     if (encargos.length > 3) aviso("plan-grande", `cuelgan ${encargos.length} encargos; el flujo pide como mucho tres, al menos uno preventivo y automático`);
 

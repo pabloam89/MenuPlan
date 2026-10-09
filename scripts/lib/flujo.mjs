@@ -32,7 +32,7 @@ export const ALCANCES_FALLO = {
 
 /** Quién diagnostica según el alcance. */
 export const DIAGNOSTICAN = {
-  agente_dominio: "El agente del dominio, con la skill de causa raíz, en una pasada",
+  agente_dominio: "El agente del dominio, en una pasada (con la skill de causa raíz, fase C #338, cuando exista)",
   orquestador_con_diagnosticadores: "El orquestador lanza varios diagnosticadores en paralelo, cada uno con su lente, y sintetiza",
 };
 
@@ -120,8 +120,13 @@ export function generarFichas(datos) {
   return filas.join("\n");
 }
 
-/** Capas, escalera, tipos de skill y presupuestos, en tablas pequeñas. */
-export function generarCatalogos(datos) {
+/**
+ * Capas, escalera, tipos de skill y presupuestos, en tablas pequeñas.
+ * `tablaPresupuestos`: el texto de generarTabla() de presupuestos.mjs. El
+ * catálogo vive en ops/presupuestos.json (#339) y entra por argumento: este
+ * fichero no importa presupuestos.mjs porque ese ya importa este (ciclo).
+ */
+export function generarCatalogos(datos, tablaPresupuestos) {
   const out = [];
   out.push("### Las cuatro capas", "", "| Capa | Pregunta | Qué contiene | Dónde |", "|---|---|---|---|");
   for (const c of datos.capas) out.push(`| **${c.nombre}** | ${celda(c.pregunta)} | ${celda(c.contiene)} | ${c.donde.map((d) => `\`${d}\``).join(", ")} |`);
@@ -130,11 +135,7 @@ export function generarCatalogos(datos) {
   datos.escalera.forEach((e, i) => out.push(`| ${i + 1} · ${e.id} | ${celda(e.que)} | ${e.arreglo.map((a) => `\`${a}\``).join(", ")} |`));
   out.push("", "### Tipos de skill", "", "| Tipo | Qué guarda | Estado | Fase |", "|---|---|---|---|");
   for (const t of datos.tipos_skill) out.push(`| **${t.id}** | ${celda(t.que)} | ${t.estado} | ${fases(t.fase)} |`);
-  out.push("", "### Presupuesto inicial por alcance", "", `${datos.presupuestos.nota}`, "",
-    "| Alcance | Diagnostica | Hipótesis en paralelo (máx.) | Jueces (mín.) | Rondas (máx.) | Minutos orientativos |", "|---|---|---|---|---|---|");
-  for (const [a, p] of Object.entries(datos.presupuestos.por_alcance)) {
-    out.push(`| **${a}** | ${p.diagnostica} | ${p.hipotesis_en_paralelo_max} | ${p.jueces_min} | ${p.rondas_max} | ${p.minutos_orientativos} |`);
-  }
+  out.push("", "### Presupuestos por alcance y causa (`ops/presupuestos.json`)", "", tablaPresupuestos);
   return out.join("\n");
 }
 
@@ -249,15 +250,8 @@ export function problemas(datos, { existe, leer = () => null, existeTest = exist
     if (fasesMalas(t.fase).length) p.push(`fase-desconocida: tipo ${t.id} → ${fasesMalas(t.fase).join(", ")}`);
   }
 
-  const alcances = Object.keys(datos.presupuestos?.por_alcance ?? {});
-  if (JSON.stringify(alcances) !== JSON.stringify(Object.keys(ALCANCES_FALLO))) p.push(`presupuesto: el presupuesto tiene que cubrir ${Object.keys(ALCANCES_FALLO).join(", ")} y cubre ${alcances.join(", ")}`);
-  for (const [a, b] of Object.entries(datos.presupuestos?.por_alcance ?? {})) {
-    if (!(b.diagnostica in DIAGNOSTICAN)) p.push(`presupuesto: ${a} diagnostica «${b.diagnostica}» fuera del vocabulario`);
-    for (const c of ["hipotesis_en_paralelo_max", "jueces_min", "rondas_max", "minutos_orientativos"]) {
-      if (!Number.isInteger(b[c]) || b[c] < 1) p.push(`presupuesto: ${a} «${c}» tiene que ser un entero positivo`);
-    }
-    if (b.rondas_max > 2) p.push(`presupuesto: ${a} permite ${b.rondas_max} rondas; el tope es 2 (a la tercera decide una persona)`);
-  }
+  // Los presupuestos ya no viven aquí (#339): están en ops/presupuestos.json y los valida scripts/lib/presupuestos.mjs.
+  if ("presupuestos" in datos) p.push("presupuesto: los presupuestos viven en ops/presupuestos.json; quita `presupuestos` de flujo.json (una sola fuente)");
   return p;
 }
 
@@ -283,13 +277,13 @@ export function textoEntre(md, [ini, fin]) {
   return md.slice(a + ini.length, b).replace(/^\n/, "").replace(/\n$/, "");
 }
 
-/** Reescribe las tres tablas de FLUJO.md desde el JSON. */
-export function regenerar(md, datos) {
+/** Reescribe las tres tablas de FLUJO.md desde el JSON (y la tabla de presupuestos que se le pasa). */
+export function regenerar(md, datos, tablaPresupuestos) {
   let out = md;
   for (const [clave, texto] of [
     ["fichas", generarFichas(datos)],
     ["pasos", generarTablaPasos(datos)],
-    ["catalogos", generarCatalogos(datos)],
+    ["catalogos", generarCatalogos(datos, tablaPresupuestos)],
   ]) {
     const nuevo = sustituirEntre(out, MARCAS[clave], texto);
     if (nuevo === null) throw new Error(`Faltan las marcas ${MARCAS[clave].join(" … ")} en FLUJO.md`);
