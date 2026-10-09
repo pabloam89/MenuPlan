@@ -58,7 +58,7 @@ export const REGLAS_GITHUB = {
   dependabot_seguridad: [],
   // #351. El detalle de estas reglas es neutro (repo público, #300): la norma y
   // una cifra, nunca qué environment, qué secreto ni qué llave.
-  environment_solo_rama: ["environments", "rama"],
+  environment_solo_rama: ["rama"],
   secretos_de_repo: ["maximo"],
   deploy_keys_escritura: ["maximo"],
   aprobaciones_requeridas: ["rama", "minimo"],
@@ -250,25 +250,31 @@ export function evaluarReglaGithub(c, { repo, gh }) {
       return { estado: "no_cumple", detalle: "alertas de Dependabot apagadas" };
     }
     case "environment_solo_rama": {
-      // La política de ramas de cada environment: solo la rama dada, por nombre.
-      // «Ramas protegidas» o ninguna política dejan entrar a otras ramas.
+      // Todos los environments del repo que guardan algún secreto (la lista sale
+      // de la API, no de un fichero: uno nuevo entra solo) admiten solo la rama
+      // dada, por nombre. «Ramas protegidas» o ninguna política dejan entrar a
+      // otras. Los de Vercel no guardan secretos de Actions y no cuentan.
+      const todos = gh(`repos/${repo}/environments?per_page=100`);
+      const listaEnvs = todos.ok ? todos.json?.environments : undefined;
+      if (!Array.isArray(listaEnvs)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: no se pudieron leer los environments` };
       let fuera = 0;
-      for (const env of c.environments) {
-        const e = gh(`repos/${repo}/environments/${encodeURIComponent(env)}`);
-        if (!e.ok) {
-          if (sinPermiso(e)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: no se pudieron leer los environments` };
-          fuera++;
-          continue;
-        }
-        const pol = e.json?.deployment_branch_policy;
+      let conSecretos = 0;
+      for (const e of listaEnvs) {
+        const nombre = encodeURIComponent(e.name);
+        const s = gh(`repos/${repo}/environments/${nombre}/secrets?per_page=100`);
+        const n = s.ok ? s.json?.total_count : undefined;
+        if (!Number.isInteger(n)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: los secretos de los environments solo los ve un administrador` };
+        if (n === 0) continue;
+        conSecretos++;
+        const pol = e.deployment_branch_policy;
         if (!pol || pol.custom_branch_policies !== true || pol.protected_branches) { fuera++; continue; }
-        const p = gh(`repos/${repo}/environments/${encodeURIComponent(env)}/deployment-branch-policies`);
+        const p = gh(`repos/${repo}/environments/${nombre}/deployment-branch-policies`);
         if (!p.ok) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: no se pudo leer la política de ramas` };
         const lista = p.json?.branch_policies ?? [];
         const bien = lista.length === 1 && lista[0].name === c.rama && (lista[0].type ?? "branch") === "branch";
         if (!bien) fuera++;
       }
-      return { estado: fuera ? "no_cumple" : "cumple", detalle: `${cuadra(c, fuera)}: ${fuera} de ${c.environments.length} fuera de la política` };
+      return { estado: fuera ? "no_cumple" : "cumple", detalle: `${cuadra(c, fuera)}: ${fuera} de ${conSecretos} fuera de la política` };
     }
     case "secretos_de_repo":
     case "deploy_keys_escritura": {
@@ -277,7 +283,9 @@ export function evaluarReglaGithub(c, { repo, gh }) {
         if (sinPermiso(r)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: solo lo ve un administrador` };
         return { estado: "no_cumple", detalle: `${cuadra(c)}: no se pudo contar` };
       }
-      const n = c.regla === "secretos_de_repo" ? Number(r.json?.total_count ?? 0) : (r.json ?? []).filter((k) => k.read_only === false).length;
+      const n = c.regla === "secretos_de_repo" ? r.json?.total_count : Array.isArray(r.json) ? r.json.filter((k) => k.read_only === false).length : undefined;
+      // Una respuesta sin la cifra no es un cero: sin comprobar.
+      if (!Number.isInteger(n)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: la respuesta no trae la cifra` };
       return { estado: n <= c.maximo ? "cumple" : "no_cumple", detalle: `${cuadra(c, n > c.maximo)}: ${n} (tope ${c.maximo})`, valor: n };
     }
     case "aprobaciones_requeridas": {

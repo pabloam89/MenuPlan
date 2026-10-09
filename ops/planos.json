@@ -141,7 +141,7 @@
           },
           {
             "tipo": "regla_github",
-            "que": "Lo que entra en main lo aprueba alguien distinto de quien abre el PR (0 aprobaciones exigidas el 9 oct; decisión de Pablo, #351)",
+            "que": "Lo que entra en main lo aprueba alguien distinto de quien abre el PR (decisión de Pablo, #351)",
             "regla": "aprobaciones_requeridas",
             "rama": "main",
             "minimo": 1,
@@ -537,7 +537,6 @@
             "tipo": "regla_github",
             "que": "Los environments con secretos solo admiten la rama staging (#351)",
             "regla": "environment_solo_rama",
-            "environments": ["mercadona-sync", "vigia", "dependabot-auto"],
             "rama": "staging",
             "norma": "secretos-en-environments"
           }
@@ -550,14 +549,14 @@
           },
           {
             "tipo": "regla_github",
-            "que": "Los secretos de Actions a nivel de repo, que deberían vivir en un environment, solo bajan (6 el 9 oct; #351)",
+            "que": "Los secretos de Actions a nivel de repo, que deberían vivir en un environment, solo bajan (#351)",
             "regla": "secretos_de_repo",
             "maximo": 6,
             "norma": "secretos-de-repo"
           },
           {
             "tipo": "regla_github",
-            "que": "Una sola deploy key de escritura (1 el 9 oct; #351)",
+            "que": "Una sola deploy key de escritura (#351)",
             "regla": "deploy_keys_escritura",
             "maximo": 1,
             "norma": "deploy-key-unica"

@@ -229,27 +229,41 @@ describe("las reglas de GitHub, con un gh de mentira", () => {
 
   describe("las reglas de #351, con detalle neutro", () => {
     const ok = (json) => ({ ok: true, status: 200, json });
-    const soloStaging = ok({ deployment_branch_policy: { custom_branch_policies: true, protected_branches: false } });
+    const soloStaging = { custom_branch_policies: true, protected_branches: false };
     const politica = (...ramas) => ok({ branch_policies: ramas.map((name) => ({ name, type: "branch" })) });
-    const envs = (respuestas, quien = token) => evaluarReglaGithub({ regla: "environment_solo_rama", environments: ["a", "b"], rama: "staging", norma: "secretos-en-environments" },
-      { repo, gh: gh({ "repos/x/y": quien, ...respuestas }) });
-    const bien = { "repos/x/y/environments/a": soloStaging, "repos/x/y/environments/a/deployment-branch-policies": politica("staging"),
-      "repos/x/y/environments/b": soloStaging, "repos/x/y/environments/b/deployment-branch-policies": politica("staging") };
+    const secretos = (n) => ok({ total_count: n, secrets: [] });
+    // a y b guardan secretos; c es de Vercel: sin secretos ni política, no cuenta.
+    const lista = (...envs) => ok({ total_count: envs.length, environments: envs });
+    const base = {
+      "repos/x/y/environments?per_page=100": lista({ name: "a", deployment_branch_policy: soloStaging }, { name: "b", deployment_branch_policy: soloStaging }, { name: "c", deployment_branch_policy: null }),
+      "repos/x/y/environments/a/secrets?per_page=100": secretos(1), "repos/x/y/environments/a/deployment-branch-policies": politica("staging"),
+      "repos/x/y/environments/b/secrets?per_page=100": secretos(2), "repos/x/y/environments/b/deployment-branch-policies": politica("staging"),
+      "repos/x/y/environments/c/secrets?per_page=100": secretos(0),
+    };
+    const envs = (cambios = {}, quien = admin) => evaluarReglaGithub({ regla: "environment_solo_rama", rama: "staging", norma: "secretos-en-environments" },
+      { repo, gh: gh({ "repos/x/y": quien, ...base, ...cambios }) });
+    const conB = (pol) => ({ "repos/x/y/environments?per_page=100": lista({ name: "a", deployment_branch_policy: soloStaging }, { name: "b", deployment_branch_policy: pol }) });
 
-    it("environment_solo_rama: cumple solo si cada environment admite esa rama y nada más", () => {
-      expect(envs(bien).estado).toBe("cumple");
-      expect(envs({ ...bien, "repos/x/y/environments/b/deployment-branch-policies": politica("staging", "main") }).estado).toBe("no_cumple");
-      expect(envs({ ...bien, "repos/x/y/environments/b/deployment-branch-policies": politica("*") }).estado).toBe("no_cumple");
-      expect(envs({ ...bien, "repos/x/y/environments/b": ok({ deployment_branch_policy: null }) }).estado).toBe("no_cumple");
-      expect(envs({ ...bien, "repos/x/y/environments/b": ok({ deployment_branch_policy: { custom_branch_policies: false, protected_branches: true } }) }).estado).toBe("no_cumple");
-      // Un environment que no existe: GitHub lo crearía sin política al usarlo.
-      const { "repos/x/y/environments/b": _, ...sinB } = bien;
-      expect(envs(sinB, admin).estado).toBe("no_cumple");
-      expect(envs(sinB).estado).toBe("sin_comprobar");
+    it("environment_solo_rama: cada environment con secretos admite esa rama y nada más; la lista sale de la API", () => {
+      expect(envs().estado).toBe("cumple");
+      expect(envs({ "repos/x/y/environments/b/deployment-branch-policies": politica("staging", "main") }).estado).toBe("no_cumple");
+      expect(envs({ "repos/x/y/environments/b/deployment-branch-policies": politica("*") }).estado).toBe("no_cumple");
+      expect(envs(conB(null)).estado).toBe("no_cumple");
+      expect(envs(conB({ custom_branch_policies: false, protected_branches: true })).estado).toBe("no_cumple");
+      // Uno nuevo con secretos y sin política entra solo en la cuenta.
+      const conD = { "repos/x/y/environments?per_page=100": lista(...base["repos/x/y/environments?per_page=100"].json.environments, { name: "d", deployment_branch_policy: null }),
+        "repos/x/y/environments/d/secrets?per_page=100": secretos(1) };
+      expect(envs(conD)).toMatchObject({ estado: "no_cumple", detalle: "norma secretos-en-environments no cuadra: 1 de 3 fuera de la política" });
+    });
+
+    it("environment_solo_rama: sin poder leer la lista o los secretos, sin comprobar (nunca cumple)", () => {
+      expect(envs({ "repos/x/y/environments?per_page=100": { ok: false, status: 403, json: null } }).estado).toBe("sin_comprobar");
+      expect(envs({ "repos/x/y/environments/b/secrets?per_page=100": { ok: false, status: 403, json: null } }).estado).toBe("sin_comprobar");
+      expect(envs({ "repos/x/y/environments/b/secrets?per_page=100": ok({ secrets: [] }) }).estado).toBe("sin_comprobar");
     });
 
     it("el detalle dice la norma y una cifra, nunca qué environment", () => {
-      const r = envs({ ...bien, "repos/x/y/environments/b/deployment-branch-policies": politica("main") });
+      const r = envs({ "repos/x/y/environments/b/deployment-branch-policies": politica("main") });
       expect(r.detalle).toBe("norma secretos-en-environments no cuadra: 1 de 2 fuera de la política");
       expect(r.detalle).not.toMatch(/\bb\b|main/);
     });
@@ -262,6 +276,8 @@ describe("las reglas de GitHub, con un gh de mentira", () => {
       expect(contar("secretos_de_repo", secretos(2))).toMatchObject({ estado: "no_cumple", detalle: "norma secretos_de_repo no cuadra: 2 (tope 1)" });
       expect(contar("secretos_de_repo", secretos(0), admin, { maximo: 0 }).estado).toBe("cumple");
       expect(contar("secretos_de_repo", {}, token).estado).toBe("sin_comprobar");
+      // Una respuesta sin total_count no es un cero.
+      expect(contar("secretos_de_repo", { "repos/x/y/actions/secrets?per_page=100": ok({ secrets: [] }) }).estado).toBe("sin_comprobar");
       const llaves = (...ro) => ({ "repos/x/y/keys?per_page=100": ok(ro.map((read_only) => ({ read_only, title: "secreta" }))) });
       expect(contar("deploy_keys_escritura", llaves(false, true, true)).estado).toBe("cumple");
       const dos = contar("deploy_keys_escritura", llaves(false, false), admin, { norma: "una-llave" });
