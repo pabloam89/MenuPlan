@@ -58,9 +58,9 @@ export function hideRecipe(userId, id) {
 
 // ── Perfil propio ───────────────────────────────────────────────────────────
 
-/** Fila de social_profiles del usuario, o null si aún no ha hecho opt-in. */
 /**
- * Tu perfil público. `data` null si aún no tienes; si es que no se pudo leer,
+ * Tu perfil público: la fila de social_profiles. `data` null si aún no has
+ * hecho opt-in; si es que no se pudo leer,
  * además `error` (#317): ensureSocialProfile creaba un perfil nuevo encima
  * del que ya tenías (otro @) cuando la lectura fallaba.
  * @returns {Promise<{ data: object|null, error: object|null }>}

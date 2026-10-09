@@ -198,6 +198,7 @@ import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
 import { traeLlaveDeLola } from "./lib/llaveLola.js";
 import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
+import { barrerDias } from "./lib/barridoDia.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
 import { normalizePantryInput } from "./utils/normalizePantryInput.js";
@@ -1890,19 +1891,21 @@ export default function App() {
     endOfDaySweepRef.current = true;
     (async () => {
       try {
+        // Un día sin despensa leída no se marca como barrido: se reintenta en
+        // el siguiente (#317). Ver lib/barridoDia.js.
+        const barridos = await barrerDias({
+          dias: pending,
+          cargar: () => (user
+            ? loadPantry(user.id, casaActivaRef.current)
+            : Promise.resolve({ data: loadLocalPantry(), error: null })),
+          usados: (dayPlan, stock) =>
+            (buildShoppingList(dayPlan, groups, dayMeals, stock).pantryItems ?? []).map((it) => ({
+              name: it.name, qty: it.qty, unit: it.unit,
+            })),
+          consumir: (used, stock) => consumeFromPantry(used, stock, { user }),
+        });
         const newDeltas = {};
-        for (const { dayISO, dayPlan } of pending) {
-          const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
-          const sh = buildShoppingList(dayPlan, groups, dayMeals, freshStock);
-          const used = (sh.pantryItems ?? []).map((it) => ({
-            name: it.name, qty: it.qty, unit: it.unit,
-          }));
-          if (!used.length) {
-            // marca el día como barrido aunque no gaste nada
-            newDeltas[dayISO] = makeDeltaBucket(data.activeMenuId, []);
-            continue;
-          }
-          const { deltas } = await consumeFromPantry(used, freshStock, { user });
+        for (const [dayISO, deltas] of Object.entries(barridos)) {
           newDeltas[dayISO] = makeDeltaBucket(data.activeMenuId, deltas);
         }
         if (Object.keys(newDeltas).length) {
@@ -2101,7 +2104,7 @@ export default function App() {
         await restoreToPantry(bucketDeltas(staleGenDeltas[key]), { user });
       }
 
-      const pantryStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+      const pantryStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
       // Planning bias is controlled by pantryMode ("strict"/"only"/"prefer"/"off");
       // shopping always sees the stock so «Ya en casa» stays accurate.
       // Sin un modo válido guardado no se asume nada: "off" (ver normalizeData).
@@ -2217,7 +2220,7 @@ export default function App() {
         for (const res of weekResults) {
           const used = (res.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
           if (!used.length) continue;
-          const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+          const freshStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
           const { deltas } = await consumeFromPantry(used, freshStock, { user });
           if (deltas.length) genDeltasPatch[res.startISO] = makeDeltaBucket(newMenuId, deltas);
         }
@@ -3215,7 +3218,7 @@ export default function App() {
           schedule: week.schedule ?? data.schedule,
           menuWeek: { offset: week.offset ?? 0, startDayIdx: week.startDayIdx ?? 0, days: week.days ?? null },
         };
-        const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+        const freshStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
         const sh = buildShoppingList(week.plan, groups, getDayMeals(weekData), freshStock);
         const used = (sh.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
         if (!used.length) continue;
@@ -4451,7 +4454,7 @@ export default function App() {
 
     const delta = n - antes;
     const grupos = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const key = `${day}-${meal}`;
       const prev = plan[groupId]?.[key];
@@ -4533,7 +4536,7 @@ export default function App() {
     const groups = gruposVigentes(data);
     // Fetched before the state updater (which must stay synchronous) so the
     // rebuilt shopping list still discounts pantry ingredients after a swap.
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const slotKey = `${day}-${meal}`;
       const prevSlot = plan[groupId]?.[slotKey] ?? {};
@@ -4601,7 +4604,7 @@ export default function App() {
     }
 
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -4721,7 +4724,7 @@ export default function App() {
       return Array.from(byId.values());
     });
 
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan(() => {
       applyShoppingFor(working, groups, pantryIngredients);
       return working;
@@ -4759,7 +4762,7 @@ export default function App() {
     if (!esPizarra) return undefined;
     let vivo = true;
     (async () => {
-      const items = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+      const items = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
       if (vivo) setDespensaPizarra(items ?? []);
     })();
     return () => { vivo = false; };
@@ -4846,7 +4849,7 @@ export default function App() {
       }
     }
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     const trabajo = {};
     for (const gid of Object.keys(menuPlan)) {
@@ -4985,7 +4988,7 @@ export default function App() {
     });
     if (hechos === 0) return { reply: noHechos[0] ?? "No he podido cambiar nada", hechos, noHechos: noHechos.slice(1) };
 
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     deshacerPizarra.current = { plan, groups, pantryIngredients };
     if (nuevas.length) {
       registerRecipes(nuevas);
@@ -5039,7 +5042,7 @@ export default function App() {
     const tRecipe = menuPlan[target.groupId]?.[tKey]?.[tField] ?? null;
 
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -5094,7 +5097,7 @@ export default function App() {
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: baseId, cleared: false, warnings: [] };
@@ -5147,7 +5150,7 @@ export default function App() {
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: srcRecipeId, cleared: false, warnings: [] };
@@ -5217,7 +5220,7 @@ export default function App() {
     }));
 
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const base = { ...(plan[groupId]?.[slotKey] ?? {}), warnings: [], cleared: false };
       if (toUnico) base.firstRecipeId = null;
@@ -5257,7 +5260,7 @@ export default function App() {
   const handleVaciarPizarra = useCallback(async () => {
     if (householdReadOnly) return;
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       let tocados = 0;
@@ -5286,7 +5289,7 @@ export default function App() {
     const key = `${day}-${meal}`;
     const field = course === "first" ? "firstRecipeId" : "recipeId";
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5321,7 +5324,7 @@ export default function App() {
     const { groupId, day, meal } = sel;
     const key = `${day}-${meal}`;
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5399,7 +5402,7 @@ export default function App() {
       }));
     }
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       // Cada destino escribe en SU casilla: con una selección de varios huecos

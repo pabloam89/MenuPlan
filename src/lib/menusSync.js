@@ -157,7 +157,9 @@ export async function saveMenu(userId, menu, recipes = [], householdId = null) {
  * schedule — cheap enough to fetch eagerly for the whole history list
  * (date range + week count), leaving the heavy per-week JSON to be fetched
  * on demand via loadMenuDetail only for the menú actually being opened.
- * @returns {Promise<Record<string, Record<string, {offset:number, startDayIdx:number, startISO:string, endISO:string}>>>}
+ * Si la lectura falla, `data` es null y `error` lo dice (#317): App.jsx deja
+ * entonces a cada menú las semanas que ya tenía.
+ * @returns {Promise<{ data: Record<string, Record<string, {offset:number, startDayIdx:number, startISO:string, endISO:string}>>|null, error: object|null }>}
  */
 export async function loadMenuWeekRanges(userId, householdId = null) {
   if (!supabase || !userId) return { data: {}, error: null };

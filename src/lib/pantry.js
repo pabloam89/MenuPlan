@@ -221,9 +221,15 @@ const RETURN_SELECT_TIERS = [
   BASE_COLS,
 ];
 
-/** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]>} */
+/**
+ * La despensa. Si la lectura falla, `data` es null y `error` lo dice (#317):
+ * «la despensa está vacía» no es lo mismo que «no se ha podido leer». Con
+ * `[]`, el barrido del día marcaba el día como hecho sin descontar nada y no
+ * se reintentaba. Quien solo pinta usa `data ?? []`.
+ * @returns {Promise<{ data: { id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]|null, error: object|null }>}
+ */
 export async function loadPantry(userId, householdId = null) {
-  if (!supabase || !userId) return [];
+  if (!supabase || !userId) return { data: [], error: null };
   const run = (cols) => {
     let q = supabase
       .from("user_pantry")
@@ -248,13 +254,13 @@ export async function loadPantry(userId, householdId = null) {
   let lastError = null;
   for (const cols of tiers) {
     const { data, error } = await run(cols);
-    if (!error) return (data ?? []).map(mapRow);
+    if (!error) return { data: (data ?? []).map(mapRow), error: null };
     lastError = error;
     if (!isMissingColumn(error)) break;
   }
 
   console.error("[pantry] load failed", lastError);
-  return [];
+  return { data: null, error: lastError };
 }
 
 /**

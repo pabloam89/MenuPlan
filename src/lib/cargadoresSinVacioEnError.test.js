@@ -84,7 +84,7 @@ function mencionaError(nodo) {
   let si = false;
   const visitar = (n) => {
     if (si || !n || typeof n.type !== "string") return;
-    if (n.type === "Identifier" && /^(error|err)$/.test(n.name)) { si = true; return; }
+    if (n.type === "Identifier" && /^(error|err|\w+Error)$/.test(n.name)) { si = true; return; }
     if (n.type === "MemberExpression" && !n.computed && n.property.name === "error") { si = true; return; }
     for (const [k, v] of Object.entries(n)) {
       if (k === "parent") continue;
@@ -134,9 +134,47 @@ function ifsDeError(n, out = []) {
   return out;
 }
 
+/** ¿Es `console.warn(…)`, `console.error(…)` o `warn(…)` y menciona un error? */
+function esAvisoDeError(st) {
+  const c = st?.type === "ExpressionStatement" ? st.expression : null;
+  if (c?.type !== "CallExpression") return false;
+  const f = c.callee;
+  const esAviso =
+    (f.type === "MemberExpression" && f.object.name === "console" && /^(warn|error)$/.test(f.property.name))
+    || (f.type === "Identifier" && f.name === "warn");
+  return esAviso && c.arguments.some(mencionaError);
+}
+
 /**
- * Los cargadores de un fuente que devuelven vacío en error.
- * @returns {string[]} sus nombres (uno por cada `if` culpable)
+ * Los `return <vacío>` que vienen DETRÁS de un aviso de error en el mismo
+ * bloque (`console.error("…", lastError); return [];`): la forma de un cargador
+ * con reintentos que, tras el bucle, se rinde con vacío (#317, loadPantry). Sin
+ * entrar en funciones anidadas.
+ */
+function retornosTrasAviso(n, out = []) {
+  if (!n || typeof n.type !== "string" || ES_FUNCION.has(n.type)) return out;
+  const lista = n.type === "BlockStatement" ? n.body : n.type === "SwitchCase" ? n.consequent : null;
+  if (lista) {
+    let avisado = false;
+    for (const st of lista) {
+      if (esAvisoDeError(st)) avisado = true;
+      else if (avisado && st.type === "ReturnStatement" && esVacio(st.argument)) out.push(st);
+    }
+  }
+  for (const [k, v] of Object.entries(n)) {
+    if (k === "parent") continue;
+    if (Array.isArray(v)) v.forEach((x) => retornosTrasAviso(x, out));
+    else if (v && typeof v === "object" && typeof v.type === "string") retornosTrasAviso(v, out);
+  }
+  return out;
+}
+
+/**
+ * Los cargadores de un fuente que devuelven vacío en error. Dos formas:
+ *   - `if (…error…) { … return <vacío> }`;
+ *   - un aviso de error (`console.warn/error`, `warn`) y, detrás, en el mismo
+ *     bloque, `return <vacío>`.
+ * @returns {string[]} sus nombres (uno por cada `return` culpable)
  */
 function cargadoresVaciosEnError(src) {
   const ast = espree.parse(src, { ecmaVersion: "latest", sourceType: "module", loc: true });
@@ -144,7 +182,11 @@ function cargadoresVaciosEnError(src) {
   for (const d of ast.body) {
     const f = d.type === "ExportNamedDeclaration" ? d.declaration : null;
     if (f?.type !== "FunctionDeclaration" || !ES_CARGADOR.test(f.id?.name ?? "")) continue;
-    out.push(...ifsDeError(f.body).map(() => f.id.name));
+    const culpables = new Set([
+      ...ifsDeError(f.body).flatMap((i) => retornosVacios(i.consequent)),
+      ...retornosTrasAviso(f.body),
+    ]);
+    out.push(...[...culpables].map(() => f.id.name));
   }
   return out;
 }
@@ -217,6 +259,19 @@ describe("cargadoresVaciosEnError: qué cuenta", () => {
   it("no, si no es un cargador o no está exportado", () => {
     expect(n(cargador("return [];").replace("loadX", "saveX"))).toBe(0);
     expect(n(cargador("return [];").replace("export ", ""))).toBe(0);
+  });
+  it("un aviso de error y, detrás, return vacío (reintentos que se rinden: loadPantry)", () => {
+    const reintentos = (fin) =>
+      `export async function loadX() { let lastError = null; for (const t of ts) { const { data, error } = await q(t); if (!error) return data; lastError = error; } ${fin} }`;
+    expect(n(reintentos("console.error('x', lastError); return [];"))).toBe(1);
+    expect(n(reintentos("warn('x', lastError); return null;"))).toBe(1);
+    expect(n(reintentos("console.error('x', lastError); return { data: null, error: lastError };"))).toBe(0);
+    // Sin aviso de error delante, un return vacío no basta: puede ser «no hay».
+    expect(n(reintentos("console.log('x'); return [];"))).toBe(0);
+    expect(n(reintentos("return [];"))).toBe(0);
+  });
+  it("no cuenta dos veces el mismo return (if de error con aviso dentro)", () => {
+    expect(n(cargador("console.warn('x', error.message); return [];"))).toBe(1);
   });
   it("no, si el if no habla de un error, o el return está en una función anidada", () => {
     expect(n("export async function loadX(id) { if (!id) return []; return q(); }")).toBe(0);
