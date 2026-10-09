@@ -553,7 +553,7 @@
           "nombre": "Alimentos e ingredientes",
           "hace": "Los alimentos con su nutrición, densidades, fotos, equivalencias y sustituciones; base de la despensa, la compra y la nutrición.",
           "grado": "usable",
-          "motivo_grado": "Datos y tests sólidos (BEDCA, Ciqual, USDA); las copias de Supabase se borran en la 0093 (ver `copiaIngredientesSupabase` en src/data/model.js).",
+          "motivo_grado": "Datos y tests sólidos (BEDCA, Ciqual, USDA); las copias de Supabase se borraron en la 0093, aplicada el 9 oct 2026 (ver `copiaIngredientesSupabase` en src/data/model.js).",
           "ficheros": [
             "src/data/alimentos.json",
             "src/data/ingredients.json",

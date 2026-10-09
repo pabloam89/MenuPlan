@@ -1,4 +1,5 @@
 -- 0095 · Un usuario propio para las copias nocturnas, que además vea quién es dueño de cada casa (issue #273).
+-- AUDITADA: auditor-datos 2026-10-09 OK
 --
 -- Qué hace. Crea el rol `copia_lectura`, con login y SIN contraseña (el repo es
 -- público: la pone Pablo después con `scripts/clave-copia-lectura.mjs`, que
