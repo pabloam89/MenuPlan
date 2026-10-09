@@ -7,17 +7,23 @@
  * `scripts/clave-consulta-lectura.mjs` (para ponerle la contraseña).
  */
 import { createHash, createHmac, pbkdf2Sync, randomBytes } from "node:crypto";
+import { BOVEDA_PABLO, BOVEDA_SESIONES } from "./env.mjs";
 
 export const ROL_LECTURA = "consulta_lectura";
 export const VAR_LECTURA = "SUPABASE_DB_URL_LECTURA";
 export const VAR_ADMIN = "SUPABASE_DB_URL";
 /**
- * Dónde vive en 1Password: una ficha propia en HoMenu, porque se crea con la
- * plantilla JSON por stdin (`op item create -`), y `op item edit` solo admite
- * plantillas desde un fichero o valores como argumento.
+ * Dónde vive en 1Password: una ficha propia, porque se crea con la plantilla
+ * JSON por stdin (`op item create -`), y `op item edit` solo admite plantillas
+ * desde un fichero o valores como argumento. En la bóveda de las sesiones
+ * (#299): es la conexión que una sesión puede usar. Mientras la ficha siga en
+ * HoMenu, `env.mjs` la encuentra allí (plan B); para no duplicarla,
+ * `clave-consulta-lectura.mjs` mira en las dos (BOVEDAS_LECTURA) antes de crear.
  */
 export const FICHA_LECTURA = "Supabase lectura";
-export const OP_LECTURA = `op://HoMenu/${FICHA_LECTURA}/${VAR_LECTURA}`;
+export const BOVEDA_LECTURA = BOVEDA_SESIONES;
+export const BOVEDAS_LECTURA = [BOVEDA_SESIONES, BOVEDA_PABLO];
+export const OP_LECTURA = `op://${BOVEDA_LECTURA}/${FICHA_LECTURA}/${VAR_LECTURA}`;
 
 /**
  * Qué dice `op item get <ficha>`: "existe", "no-existe" o "error". Solo cuenta
@@ -33,7 +39,7 @@ export function estadoFicha(r) {
   return /isn't an item in the "[^"]+" vault/.test(String(r.stderr ?? "")) ? "no-existe" : "error";
 }
 
-/** La ficha de 1Password, en JSON para `op item create --vault HoMenu -`. */
+/** La ficha de 1Password, en JSON para `op item create --vault <BOVEDA_LECTURA> -`. */
 export const fichaLectura = (clave, url) => JSON.stringify({
   title: FICHA_LECTURA,
   category: "PASSWORD",

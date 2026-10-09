@@ -105,8 +105,8 @@ la carpeta del repo con la rama de las copias. Cada paso, una llamada.
    y así `destinatarios.txt` (a `/etc/menuplan-copia/`) y las dos unidades (a
    `/etc/systemd/system/`). Luego `"$SSH" root@100.73.252.32 'chmod 700 /usr/local/sbin/menuplan-copia && sed -i "s/\r$//" /usr/local/sbin/menuplan-copia /etc/menuplan-copia/destinatarios.txt /etc/systemd/system/menuplan-copia.* && bash -n /usr/local/sbin/menuplan-copia && systemctl daemon-reload'` → sin salida.
 4. La URL, por tubería y sin verla (`>`: crea el fichero):
-   `npm run --silent op -- read "op://HoMenu/Supabase lectura/SUPABASE_DB_URL_LECTURA" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_DB_URL=%s\n" "$v" > /etc/menuplan-copia/copia.env; wc -c < /etc/menuplan-copia/copia.env'`
-   → más de 60; 14 es que llegó vacía. La contraseña no sale en ningún `ps`:
+   `npm run --silent op -- read "op://HoMenu-sesiones/Supabase lectura/SUPABASE_DB_URL_LECTURA" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_DB_URL=%s\n" "$v" > /etc/menuplan-copia/copia.env; wc -c < /etc/menuplan-copia/copia.env'`
+   → más de 60; 14 es que llegó vacía (si la ficha sigue en `HoMenu`, #299, esa bóveda en la dirección). La contraseña no sale en ningún `ps`:
    el script la pasa a un passfile en `/run/menuplan-copia` (tmpfs; systemd lo borra al parar), montado `:ro` en el
    contenedor (`PGPASSFILE`), y usa la URL sin ella.
 5. Primera copia (fila «Copia de la base ahora») → `resultado: ok`,

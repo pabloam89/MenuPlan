@@ -54,7 +54,7 @@ describe("usuario de solo lectura (0092, issue #233)", () => {
   it("la ficha de 1Password lleva la dirección en el campo que lee OP_LECTURA", () => {
     const ficha = JSON.parse(fichaLectura("clave", "postgresql://u:clave@h/db"));
     const [, boveda, titulo, campo] = /^op:\/\/([^/]+)\/([^/]+)\/(.+)$/.exec(OP_LECTURA);
-    expect(boveda).toBe("HoMenu");
+    expect(boveda).toBe("HoMenu-sesiones");
     expect(ficha.title).toBe(titulo);
     expect(ficha.fields.find((f) => f.label === campo)).toMatchObject({ type: "CONCEALED", value: "postgresql://u:clave@h/db" });
   });

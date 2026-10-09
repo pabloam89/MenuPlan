@@ -145,6 +145,20 @@ describe("plan B entre bóvedas (#299): HoMenu-sesiones y HoMenu", () => {
     expect(() => cargarEnv(["PRUEBA_B"])).toThrow(/No pude leer de 1Password PRUEBA_B/);
   });
 
+  it("con MENUPLAN_OP_PABLO=1, op va sin la service account (app de escritorio, aprobación de Pablo)", () => {
+    process.env.MENUPLAN_OP_PABLO = "1";
+    try {
+      process.env.PRUEBA_A = "op://HoMenu/Pablo/PRUEBA_A";
+      leerEnv("PRUEBA_A");
+      expect(llamadas.at(-1).token).toBeUndefined();
+    } finally {
+      delete process.env.MENUPLAN_OP_PABLO;
+    }
+    process.env.PRUEBA_C = "op://HoMenu/Pablo/PRUEBA_C";
+    leerEnv("PRUEBA_C");
+    expect(llamadas.at(-1).token).toBe("ops_de_prueba");
+  });
+
   it("de cualquier otra bóveda no hay respaldo", () => {
     globalThis.__noExisten.add("op://Panel HoMenu/X/PRUEBA_A");
     process.env.PRUEBA_A = "op://Panel HoMenu/X/PRUEBA_A";

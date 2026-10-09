@@ -12,8 +12,8 @@
  *   1. Comprueba con la conexión de administrador que el rol existe y que la
  *      ficha «Supabase lectura» aún no está en 1Password.
  *   2. Genera una contraseña aleatoria en memoria.
- *   3. Crea la ficha en la bóveda HoMenu con la plantilla JSON por stdin
- *      (`op item create --vault HoMenu -`), por la app de escritorio y no por
+ *   3. Crea la ficha en la bóveda de las sesiones (BOVEDA_LECTURA, #299) con la
+ *      plantilla JSON por stdin (`op item create --vault <bóveda> -`), por la app de escritorio y no por
  *      la service account (que solo lee): sale una ventana para aprobar.
  *   4. `alter role consulta_lectura password '<verificador SCRAM>'`: a la base
  *      solo llega el verificador, no la contraseña.
@@ -25,8 +25,8 @@
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import pg from "pg";
-import { entornoOp, leerEnv } from "./lib/env.mjs";
-import { FICHA_LECTURA, OP_LECTURA, ROL_LECTURA, VAR_ADMIN, VAR_LECTURA, claveNueva, estadoFicha, fichaLectura, urlLectura, verificadorScram } from "./lib/rolLectura.mjs";
+import { leerEnv } from "./lib/env.mjs";
+import { BOVEDA_LECTURA, BOVEDAS_LECTURA, FICHA_LECTURA, OP_LECTURA, ROL_LECTURA, VAR_ADMIN, VAR_LECTURA, claveNueva, estadoFicha, fichaLectura, urlLectura, verificadorScram } from "./lib/rolLectura.mjs";
 
 const SI = process.argv.includes("--si");
 const ssl = { rejectUnauthorized: false };
@@ -39,18 +39,24 @@ if (!SI) {
   process.exit(0);
 }
 
-// ¿Ya hay ficha? Con la service account, que lee sin preguntar. Solo se sigue
-// con un «no existe» claro: cualquier otro fallo podría acabar en una ficha
-// duplicada y una dirección op:// ambigua.
-const busca = spawnSync("op", ["item", "get", FICHA_LECTURA, "--vault", "HoMenu", "--format", "json"], { env: entornoOp(), encoding: "utf8", stdio: ["ignore", "ignore", "pipe"] });
-const ficha = estadoFicha(busca);
-if (ficha === "existe") {
-  console.error(`Ya existe la ficha «${FICHA_LECTURA}» en HoMenu. Para rotar la contraseña, archívala en 1Password y vuelve a lanzarlo.`);
-  process.exit(1);
-}
-if (ficha === "error") {
-  console.error(`No sé si la ficha «${FICHA_LECTURA}» existe (${busca.error ? busca.error.code : errorDeOp(busca)}). No creo nada; la base no se ha tocado.`);
-  process.exit(1);
+// ¿Ya hay ficha, en la bóveda de sesiones o en HoMenu (#299)? Por la app de
+// escritorio y no por la service account, que no ve HoMenu. Solo se sigue con
+// un «no existe» claro en las dos: cualquier otro fallo (también que la bóveda
+// de sesiones aún no exista) podría acabar en una ficha duplicada y una
+// dirección op:// ambigua.
+const sinCuenta = { ...process.env };
+delete sinCuenta.OP_SERVICE_ACCOUNT_TOKEN;
+for (const boveda of BOVEDAS_LECTURA) {
+  const busca = spawnSync("op", ["item", "get", FICHA_LECTURA, "--vault", boveda, "--format", "json"], { env: sinCuenta, encoding: "utf8", stdio: ["ignore", "ignore", "pipe"] });
+  const ficha = estadoFicha(busca);
+  if (ficha === "existe") {
+    console.error(`Ya existe la ficha «${FICHA_LECTURA}» en ${boveda}. Para rotar la contraseña, archívala en 1Password y vuelve a lanzarlo.`);
+    process.exit(1);
+  }
+  if (ficha === "error") {
+    console.error(`No sé si la ficha «${FICHA_LECTURA}» existe en ${boveda} (${busca.error ? busca.error.code : errorDeOp(busca)}). No creo nada; la base no se ha tocado.`);
+    process.exit(1);
+  }
 }
 
 const admin = leerEnv(VAR_ADMIN, { obligatoria: true });
@@ -71,7 +77,7 @@ try {
   const env = { ...process.env };
   delete env.OP_SERVICE_ACCOUNT_TOKEN;
   try {
-    execFileSync("op", ["item", "create", "--vault", "HoMenu", "-"], { env, input: fichaLectura(clave, url), stdio: ["pipe", "ignore", "pipe"] });
+    execFileSync("op", ["item", "create", "--vault", BOVEDA_LECTURA, "-"], { env, input: fichaLectura(clave, url), stdio: ["pipe", "ignore", "pipe"] });
   } catch (e) {
     console.error(`No pude guardar en 1Password: ${errorDeOp(e)}. La base no se ha tocado.`);
     process.exit(1);

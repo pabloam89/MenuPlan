@@ -40,8 +40,19 @@ export function leerFichero(ruta = FICHERO) {
 
 export const esReferencia = (v) => typeof v === "string" && v.startsWith("op://");
 
+/**
+ * Con esta variable a 1, `op` va sin la service account, por la app de
+ * escritorio, que pide la aprobación de Pablo en cada proceso. Es el camino
+ * de lo que solo lee HoMenu (la URL de administrador para `apply-migration
+ * --pablo`, el token de Telegram…) cuando la service account del llavero es
+ * la de las sesiones, que solo lee HoMenu-sesiones (#299). Una sesión puede
+ * ponerla, pero sin Pablo delante la ventana no se aprueba: lo frena 1Password.
+ */
+export const VAR_OP_PABLO = "MENUPLAN_OP_PABLO";
+
 /** El token de la service account: del entorno o del llavero de Windows. */
 export function tokenServicio() {
+  if (process.env[VAR_OP_PABLO] === "1") return null;
   if (token !== undefined) return token;
   token = process.env.OP_SERVICE_ACCOUNT_TOKEN || null;
   if (!token && process.platform === "win32") {
@@ -60,7 +71,10 @@ export function tokenServicio() {
 /** El entorno con el que lanzar `op` (con la service account si la hay). */
 export function entornoOp(base = process.env) {
   const t = tokenServicio();
-  return t ? { ...base, OP_SERVICE_ACCOUNT_TOKEN: t } : { ...base };
+  if (t) return { ...base, OP_SERVICE_ACCOUNT_TOKEN: t };
+  const env = { ...base };
+  if (process.env[VAR_OP_PABLO] === "1") delete env.OP_SERVICE_ACCOUNT_TOKEN;
+  return env;
 }
 
 /**
