@@ -263,7 +263,7 @@ describe("validarFicha: sin diagnóstico no hay encargos", () => {
 });
 
 describe("validarFicha: pasar a en-observacion", () => {
-  const obs = (extra = {}, quitar = []) => fondo({ body: `${fichaDe({ estado: "en-observacion", barrera: "test_ci", verificacion: "scripts/fondos.test.js", ventana_hasta: "2026-11-10", casos: [], ...extra }, quitar)}\n### Arreglo general` });
+  const obs = (extra = {}, quitar = []) => fondo({ body: `${fichaDe({ estado: "en-observacion", barrera: "test_ci", verificacion: "scripts/fondos.test.js", ventana_desde: "2026-10-12", ventana_hasta: "2026-11-10", casos: [], ...extra }, quitar)}\n### Arreglo general` });
   it("completa y con la verificación en staging, bien", () => {
     expect(reglas(validarFicha(obs(), CTX), "error")).toEqual([]);
   });
@@ -352,17 +352,17 @@ describe("validarFicha: un caso que no aguantó", () => {
 });
 
 describe("validarFicha: la ventana de observación vencida", () => {
-  const obs = (hijos = [], extra = {}) => fondo({ hijos, body: `${fichaDe({ estado: "en-observacion", barrera: "test_ci", verificacion: "scripts/fondos.test.js", ventana_hasta: "2026-10-15", casos: [10], aprendizaje: "Test nuevo en fondos.test.js", ...extra })}\n### Arreglo general` });
+  const obs = (hijos = [], extra = {}) => fondo({ hijos, body: `${fichaDe({ estado: "en-observacion", barrera: "test_ci", verificacion: "scripts/fondos.test.js", ventana_desde: "2026-10-10", ventana_hasta: "2026-10-15", casos: [10], aprendizaje: "Test nuevo en fondos.test.js", ...extra })}\n### Arreglo general` });
   const campos = (r) => Object.assign({}, ...r.acciones.filter((a) => a.tipo === "fijar").map((a) => a.campos));
 
   it("sin casos nuevos: cerrado-eficaz y se cierra con la etiqueta arreglo: de su barrera", () => {
-    const r = validarFicha(obs([hijo(10, ["tipo:caso", "analisis:abierto"], "CLOSED")]), CTX);
+    const r = validarFicha(obs([hijo(10, ["tipo:caso", "analisis:abierto"], "CLOSED", "2026-10-01T00:00:00Z")]), CTX);
     expect(campos(r)).toEqual({ estado: "cerrado-eficaz" });
     expect(r.acciones).toContainEqual({ tipo: "cerrar", arreglo: "test" });
     expect(reglas(r, "error")).toEqual([]);
   });
   it("con un caso nuevo (no listado en «casos»): se reabre y NO se cierra", () => {
-    const r = validarFicha(obs([hijo(10, ["tipo:caso"], "CLOSED"), hijo(77, ["tipo:caso", "analisis:abierto"])]), CTX);
+    const r = validarFicha(obs([hijo(10, ["tipo:caso"], "CLOSED", "2026-10-01T00:00:00Z"), hijo(77, ["tipo:caso", "analisis:abierto"])]), CTX);
     expect(campos(r)).toEqual({ estado: "reabierto" });
     expect(r.acciones.some((a) => a.tipo === "cerrar")).toBe(false);
   });
@@ -490,14 +490,14 @@ describe("el workflow fondos.yml y el paso del CI", () => {
 
   it("sin pull_request_target, sin secretos y con los permisos mínimos", () => {
     expect(sinComentarios).not.toMatch(/pull_request_target|secrets\./);
-    expect(/^permissions:\n( {2}[\w-]+: (read|write)[^\n]*\n)+/m.exec(sinComentarios)[0].match(/^ {2}[\w-]+: \w+/gm).map((l) => l.trim())).toEqual(["contents: read", "issues: write"]);
+    expect(/^permissions:\n( {2}[\w-]+: (read|write)[^\n]*\n)+/m.exec(sinComentarios)[0].match(/^ {2}[\w-]+: \w+/gm).map((l) => l.trim())).toEqual(["contents: read", "actions: read", "issues: write"]);
   });
   it("nada de texto del issue en un run: todo por entorno", () => {
     const runs = [...sinComentarios.matchAll(/run: (.*)$/gm)].map((m) => m[1]);
     expect(runs.length).toBeGreaterThan(0);
     for (const r of runs) expect(r).not.toContain("${{");
     for (const m of sinComentarios.matchAll(/\$\{\{ ([^}]+) \}\}/g)) {
-      expect(m[1], "solo números, el tipo de evento, el token y el repo").toMatch(/^(github\.token|github\.repository|github\.event\.action|github\.event\.issue\.number(?: \|\| 'diario')?)$/);
+      expect(m[1], "solo números, el tipo de evento, el token y el repo").toMatch(/^(github\.token|github\.repository|github\.run_id|github\.event\.action|github\.event\.issue\.number(?: \|\| 'diario')?)$/);
     }
   });
   it("eventos de issues, el pase diario, concurrency por issue y acciones como las del resto", () => {
@@ -505,11 +505,25 @@ describe("el workflow fondos.yml y el paso del CI", () => {
     expect(sinComentarios).toMatch(/schedule:/);
     expect(sinComentarios).toMatch(/concurrency:\n {2}group: fondos-\$\{\{ github\.event\.issue\.number \|\| 'diario' \}\}/);
     expect(sinComentarios).toMatch(/ref: staging/);
-    const tests = leer(".github", "workflows", "tests.yml");
-    for (const accion of ["actions/checkout@v7", "actions/setup-node@v6"]) {
-      expect(sinComentarios).toContain(accion);
-      expect(tests).toContain(accion);
+    // Acciones fijadas por SHA con el comentario de su versión, el mismo SHA que usan vigia-lola y dependabot-auto.
+    const vigia = leer(".github", "workflows", "vigia-lola.yml");
+    for (const [accion, version] of [["actions/checkout", "v7"], ["actions/setup-node", "v6"]]) {
+      const sha = new RegExp(`${accion}@([0-9a-f]{40}) # ${version}`).exec(sinComentarios)?.[1];
+      expect(sha, `${accion} sin fijar por SHA`).toBeDefined();
+      expect(vigia, `${accion}: el SHA no es el de vigia-lola`).toContain(`${accion}@${sha} # ${version}`);
     }
+    expect(sinComentarios).toMatch(/persist-credentials: false/);
+  });
+  it("el job solo actúa sobre issues de la casa y de los tipos que se vigilan", () => {
+    const si = /\n {4}if: >-\n((?: {6}.*\n)+)/.exec(sinComentarios)[1];
+    expect(si).toContain("OWNER");
+    expect(si).toContain("MEMBER");
+    expect(si).toContain("COLLABORATOR");
+    expect(si).not.toContain("CONTRIBUTOR");
+    expect(si).not.toContain("NONE");
+    for (const t of ["fondo", "caso", "encargo"]) expect(si).toContain(`'tipo:${t}'`);
+    // El pase diario y el lanzamiento a mano no llevan issue en el evento.
+    expect(si).toMatch(/github\.event_name != 'issues' \|\|/);
   });
   it("tests.yml lanza fondos-pr.mjs en los PR, con el cuerpo por entorno", () => {
     const tests = leer(".github", "workflows", "tests.yml");

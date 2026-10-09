@@ -234,7 +234,7 @@ export const CONSULTA = `query($cursor: String) {
     issues(first: 100, after: $cursor, states: [OPEN, CLOSED], orderBy: { field: CREATED_AT, direction: DESC }) {
       pageInfo { hasNextPage endCursor }
       nodes {
-        id number title state createdAt closedAt body
+        id number title state createdAt closedAt body authorAssociation
         labels(first: 20) { nodes { name } }
         assignees(first: 5) { nodes { login } }
         reaperturas: timelineItems(itemTypes: [REOPENED_EVENT]) { totalCount }
@@ -293,6 +293,7 @@ export function leerIssue(n) {
     createdAt: n.createdAt,
     closedAt: n.closedAt,
     body: n.body,
+    asociacion: n.authorAssociation ?? null,
     labels: (n.labels?.nodes ?? []).map((l) => ({ name: l.name })),
     asignados: (n.assignees?.nodes ?? []).map((a) => a.login),
     reaperturas: n.reaperturas?.totalCount ?? 0,

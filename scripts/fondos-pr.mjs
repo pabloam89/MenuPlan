@@ -36,7 +36,7 @@ const tipoDe = (i) => [...porGrupo(nombres(i)).tipo][0] ?? null;
 
 /** Las líneas `Agente:` del cuerpo. → { lineas:[nombre…], malas:[…] }. */
 export function agentesDelPr(cuerpo) {
-  const re = /^[ \t>*-]*(?:\*\*)?Agente(?:\*\*)?[ \t]*:(?:\*\*)?[ \t]*`?([^\s`]{0,40})/gim;
+  const re = /^[ \t>*-]*(?:\*\*)?Agente(?:\*\*)?[ \t]*:(?:\*\*)?[ \t]*`?([\p{L}-]{0,40})/gimu;
   const lineas = [...limpiarCuerpo(cuerpo).matchAll(re)].map((m) => m[1].toLowerCase().replace(/^sesion$/, "sesión"));
   return { lineas, malas: lineas.filter((a) => !CAPAS_AGENTE.includes(a)) };
 }
@@ -63,7 +63,8 @@ export async function comprobar({ cuerpo, autor = "", rama = "", consultar, cons
   if (cierres.length > MAX_CASOS || cierres.some((n) => n > MAX_NUMERO || n < 1)) {
     return { ok: false, motivo: `El PR cierra demasiados issues o números que no son de un issue (máximo ${MAX_CASOS}).` };
   }
-  const deRama = /^[a-z]+\/(\d{1,8})-/.exec(String(rama))?.[1];
+  // `area/193-nombre`: el número va seguido de una letra y es corto; `fix/2026-10-recetas` es una fecha, no un issue.
+  const deRama = /^[a-z]+\/(\d{1,5})-[a-z]/.exec(String(rama))?.[1];
   if (deRama && !cierres.includes(Number(deRama))) {
     fallos.push(`la rama es del issue #${deRama}: pon «Closes #${deRama}» en el cuerpo del PR (una línea por issue) para que se cierre al fusionar y quede la traza`);
   }

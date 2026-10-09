@@ -282,6 +282,8 @@ if (args.includes("--etiquetas")) {
     const lista = (ns) => ns.map((n) => `#${n}`).join(", ") || "ninguno";
     console.log(`Fichas de los problemas de fondo (skill issues): ${fichas.conFicha} de ${fichas.total} fondos con ficha.`);
     console.log(`  abiertos sin ficha: ${lista(fichas.sinFicha)}`);
+    console.log(`  de esos, obligatorios (alta desde la ficha): ${lista(fichas.sinFichaObligatoria)}`);
+    for (const a of fichas.autoaplicacion) console.log(`  autoaplicación (#${a.number}, el primero que debe pasar sus controles): ${a.conFicha ? "con ficha" : "SIN FICHA"}`);
     console.log(`  cerrados con ficha: ${fichas.cerradosConAprendizaje} con aprendizaje, sin él: ${lista(fichas.cerradosSinAprendizaje)}`);
     console.log(`  sin diagnóstico (mecanismo y causa_escape): ${lista(fichas.sinDiagnostico)}`);
     console.log(`  ventana de observación vencida: ${fichas.ventanaVencida.map((v) => `#${v.number} (hasta ${v.hasta})`).join(", ") || "ninguno"}`);

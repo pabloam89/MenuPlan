@@ -60,6 +60,25 @@ const FLUJO = JSON.parse(readFileSync(fileURLToPath(new URL("../../ops/flujo.jso
 /** Barrera = escalón de la escalera de durabilidad (ops/flujo.json), del más al menos duradero. */
 export const BARRERAS = FLUJO.escalera.map((e) => e.id);
 
+/**
+ * Qué fichero vale como `verificacion` según la barrera: un test (test_ci), un
+ * hook, workflow o migración (bloqueo), un script, una skill o un texto. Un
+ * directorio, o un fichero de otra clase, no vigila nada.
+ */
+export const VERIFICACION_POR_BARRERA = {
+  bloqueo: /^(\.claude\/hooks\/|\.github\/|supabase\/migrations\/)[\w./@-]+$/,
+  test_ci: /\.test\.(js|mjs|jsx)$/,
+  script: /^scripts\/[\w./@-]+\.mjs$/,
+  skill: /^\.claude\/skills\/[\w./@-]+\/SKILL\.md$/,
+  texto: /\.md$/,
+};
+
+/** Quién es «de la casa»: solo se actúa sobre issues suyos (el repo es público y cualquiera abre issues). */
+export const ASOCIACIONES_DE_LA_CASA = ["OWNER", "MEMBER", "COLLABORATOR"];
+export const esDeLaCasa = (asociacion) => ASOCIACIONES_DE_LA_CASA.includes(String(asociacion ?? "").toUpperCase());
+/** Los fondos del propio plan #334: los primeros en pasar sus controles. */
+export const FONDOS_AUTOAPLICACION = [334];
+
 /** La etiqueta `arreglo:` que corresponde a una barrera (su primer valor en la escalera), o null. */
 export function arregloDeBarrera(barrera) {
   return FLUJO.escalera.find((e) => e.id === barrera)?.arreglo[0] ?? null;
@@ -94,6 +113,7 @@ export const CAMPOS_FICHA = {
   casos: { tipo: "lista" },
   encargos: { tipo: "lista" },
   verificacion: { tipo: "ruta" },
+  ventana_desde: { tipo: "fecha" },
   ventana_hasta: { tipo: "fecha" },
   mecanismo: { tipo: "texto" },
   causa_escape: { tipo: "texto" },
@@ -108,7 +128,9 @@ export const CAMPOS_FICHA = {
 export function limpio(valor, max = 40) {
   return String(valor ?? "").slice(0, max).replace(/[^\p{L}\p{N}_ .,:;#()«»/\-—]/gu, "?")
     // Ni «http://…» ni «www.…»: GitHub los convertiría en enlaces dentro de un comentario del bot.
-    .replace(/:\/+/g, "?").replace(/www\./gi, "www?");
+    .replace(/:\/+/g, "?").replace(/www\./gi, "www?")
+    // Ni «dueño/repo#12»: una referencia a otro repo también enlaza (la de este repo, «#12», no).
+    .replace(/(?<=[\w/])#/g, "?");
 }
 
 // ── Leer la ficha ─────────────────────────────────────────────────────────────
@@ -198,7 +220,7 @@ export function leerFicha(body) {
     const m = /^([a-z_]+):[ \t]*(.*)$/.exec(cruda);
     if (!m) return malo("ficha-bloque", `línea ${n}: tiene que ser «clave: valor»`);
     const [, clave, crudo] = m;
-    const def = CAMPOS_FICHA[clave];
+    const def = Object.hasOwn(CAMPOS_FICHA, clave) ? CAMPOS_FICHA[clave] : undefined;
     if (!def) return malo("ficha-bloque", `línea ${n}: la clave «${limpio(clave, 30)}» no existe en la ficha (${Object.keys(CAMPOS_FICHA).join(", ")})`);
     if (vistas.has(clave)) return malo("ficha-bloque", `la clave «${clave}» está repetida`);
     vistas.add(clave);
@@ -298,6 +320,11 @@ export function leerSubidos(body) {
   return new Set((m?.[1] ?? "").split(",").filter(Boolean).map(Number).filter((n) => n > 0 && n <= MAX_NUMERO).slice(0, 200));
 }
 
+/** El run del workflow que escribió el comentario (para comprobar que fue el nuestro y no otro workflow con el mismo bot). */
+export function leerRun(body) {
+  return /^<!-- menuplan:fondo[^>\n]{0,200}? run=(\d{1,15})/.exec(String(body ?? ""))?.[1] ?? null;
+}
+
 // ── Los controles ─────────────────────────────────────────────────────────────
 
 const esNoAguanto = (h) => [...porGrupo(nombresDe(h.labels)).analisis].some((a) => a.startsWith("no-aguanto"));
@@ -371,10 +398,12 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
     if (f.estado === "en-observacion" || f.estado === "cerrado-eficaz") {
       if (!f.barrera) error("ficha-incompleta", `en «${f.estado}» falta «barrera» (escalón de la escalera: ${BARRERAS.join(", ")})`);
       if (!f.verificacion) error("observacion-sin-verificacion", `en «${f.estado}» falta «verificacion»: el test o hook que vigila la clase`);
+      else if (f.barrera && !VERIFICACION_POR_BARRERA[f.barrera].test(f.verificacion)) error("verificacion-no-vale", `«verificacion: ${limpio(f.verificacion, 100)}» no es un fichero de la barrera «${f.barrera}» (un test para test_ci, un hook, workflow o migración para bloqueo, un script, una skill o un texto): un directorio o un fichero cualquiera no vigila la clase`);
       else if (!existeEnStaging(f.verificacion)) error("verificacion-no-existe", `«verificacion: ${limpio(f.verificacion, 100)}» no está en origin/staging: no se pasa a observación con un test que aún no ha entrado`);
     }
     if (f.estado === "en-observacion") {
-      if (!f.ventana_hasta) error("observacion-sin-ventana", "en «en-observacion» falta «ventana_hasta» (AAAA-MM-DD)");
+      if (!f.ventana_hasta || !f.ventana_desde) error("observacion-sin-ventana", "en «en-observacion» faltan «ventana_desde» y «ventana_hasta» (AAAA-MM-DD): sin el inicio no se sabe qué casos son posteriores al arreglo");
+      else if (f.ventana_desde > f.ventana_hasta) error("observacion-sin-ventana", "«ventana_desde» es posterior a «ventana_hasta»");
       else if (hoy && dias(hoy, f.ventana_hasta) > MAX_VENTANA_DIAS) error("ventana-excesiva", `«ventana_hasta» está a más de ${MAX_VENTANA_DIAS} días: una observación eterna no observa nada`);
     }
 
@@ -384,7 +413,11 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
       error("cierre-sin-aprendizaje", "un fondo no se cierra sin «aprendizaje»: qué skill, técnica, catálogo o test se tocó, o «ninguno — <motivo de al menos 25 caracteres>»");
       if (cierreReal) acciones.push({ tipo: "reabrir", porque: "cierre-sin-aprendizaje" });
     }
-    if (f.estado === "cerrado-eficaz" && !cerrado) aviso("estado-incoherente", "el estado dice «cerrado-eficaz» y el issue sigue abierto");
+    if (f.estado === "cerrado-eficaz" && !cerrado) {
+      aviso("estado-incoherente", "el estado dice «cerrado-eficaz» y el issue sigue abierto");
+      // Si el pase diario cambió la ficha y se cortó antes de cerrar, el siguiente run termina el cierre.
+      if (aprendizajeValido(f.aprendizaje) && f.verificacion && existeEnStaging(f.verificacion)) acciones.push({ tipo: "cerrar", arreglo: arregloDeBarrera(f.barrera) });
+    }
     if (cerrado && !sinArreglo && ["abierto", "diagnosticado", "plan", "en-curso"].includes(f.estado)) {
       aviso("cierre-anticipado", `se cerró en estado «${f.estado}», sin pasar por «en-observacion»: nadie ha mirado si aguanta`);
     }
@@ -398,16 +431,21 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
         nuevosSubidos.add(h.number);
       }
       aviso("no-aguanto", `${lista(nuevos.map((h) => h.number))} no aguantó: alcance ${limpio(f.alcance)} → ${alcance}`);
-      acciones.push({ tipo: "fijar", campos: { alcance, estado: "reabierto" } });
+      acciones.push({ tipo: "fijar", campos: { ...(alcance === undefined ? {} : { alcance }), estado: "reabierto" } });
     }
 
     // 8. La ventana de observación vencida: o limpia (se cierra) o con casos nuevos (se reabre).
     if (f.estado === "en-observacion" && f.ventana_hasta && hoy && f.ventana_hasta < hoy && !cerrado) {
       const conocidos = new Set(f.casos ?? []);
-      const nuevosCasos = casos.filter((h) => !conocidos.has(h.number));
-      if (nuevosCasos.length) {
+      // Nuevo = no listado en «casos» O creado desde que empezó la ventana: la lista es editable y no puede esconder un caso.
+      const desde = f.ventana_desde ? Date.parse(`${f.ventana_desde}T00:00:00Z`) : null;
+      const nuevosCasos = casos.filter((h) => !conocidos.has(h.number) || (desde !== null && h.createdAt && Date.parse(h.createdAt) >= desde));
+      const yaDecidido = acciones.some((a) => a.tipo === "fijar" || a.tipo === "reabrir") || casos.some(esNoAguanto);
+      if (yaDecidido && !nuevosCasos.length) {
+        aviso("ventana", `la ventana venció el ${f.ventana_hasta}, pero hay un caso que no aguantó: no se cierra como eficaz`);
+      } else if (nuevosCasos.length) {
         aviso("ventana", `la ventana venció el ${f.ventana_hasta} con ${lista(nuevosCasos.map((h) => h.number))} sin listar en «casos»: se reabre`);
-        acciones.push({ tipo: "fijar", campos: { estado: "reabierto" } });
+        if (!acciones.some((a) => a.tipo === "fijar")) acciones.push({ tipo: "fijar", campos: { estado: "reabierto" } });
       } else if (hallazgos.some((h) => h.gravedad === "error")) {
         aviso("ventana", `la ventana venció el ${f.ventana_hasta} sin casos nuevos, pero la ficha tiene errores: no se cierra`);
       } else if (!aprendizajeValido(f.aprendizaje)) {
@@ -432,11 +470,18 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
     if (reabre.length && !acciones.some((a) => a.tipo === "reabrir")) {
       aviso("no-aguanto", `${lista(reabre.map((h) => h.number))} prueba${reabre.length > 1 ? "n" : ""} que el arreglo no aguantó: se reabre`);
       acciones.push({ tipo: "reabrir", porque: "no-aguanto" });
+      // Se anotan como contados: sin esto, cada cierre a mano vuelve a reabrir (fondos sin ficha o con la ficha rota).
+      for (const h of reabre.filter(esNoAguanto)) nuevosSubidos.add(h.number);
       if (lectura.presente && !lectura.errores.length && !acciones.some((a) => a.tipo === "fijar")) acciones.push({ tipo: "fijar", campos: { estado: "reabierto" } });
     }
   }
 
-  return { hallazgos, acciones, subidos: nuevosSubidos, ficha: f, presente: lectura.presente };
+  // Reabrir gana a cerrar: ninguna combinación de pasos deja cerrar un fondo al que se acaba de reabrir.
+  const reabre = acciones.some((x) => x.tipo === "reabrir" || (x.tipo === "fijar" && x.campos.estado === "reabierto"));
+  const final = reabre
+    ? acciones.filter((x) => x.tipo !== "cerrar").map((x) => (x.tipo === "fijar" && x.campos.estado ? { ...x, campos: { ...x.campos, estado: "reabierto" } } : x))
+    : acciones;
+  return { hallazgos, acciones: final, subidos: nuevosSubidos, ficha: f, presente: lectura.presente };
 }
 
 /** ¿Falla el control? Solo los errores; los avisos informan. */
@@ -466,11 +511,11 @@ export function validarHijo(hijo, padre) {
 export const AYUDA_FICHA = "La ficha y sus estados están explicados en la skill `issues` (sección «La ficha del fondo»). Este comentario lo escribe el workflow `fondos` y se actualiza solo; no lo borres.";
 
 /** El texto del comentario (marca primero). Solo lleva mensajes nuestros, números y vocabulario. */
-export function comentario(resultado, { subidos = new Set(), pie = AYUDA_FICHA, marca: marcaBase = MARCA, titulo = "Control de la ficha del fondo" } = {}) {
+export function comentario(resultado, { subidos = new Set(), pie = AYUDA_FICHA, marca: marcaBase = MARCA, run = null, titulo = "Control de la ficha del fondo" } = {}) {
   const errores = resultado.hallazgos.filter((h) => h.gravedad === "error");
   const avisos = resultado.hallazgos.filter((h) => h.gravedad === "aviso");
   const estado = errores.length ? "falla" : "ok";
-  const marca = `${marcaBase}estado=${estado}${subidos.size ? ` subidos=${[...subidos].sort((a, b) => a - b).join(",")}` : ""} -->`;
+  const marca = `${marcaBase}estado=${estado}${subidos.size ? ` subidos=${[...subidos].sort((a, b) => a - b).join(",")}` : ""}${/^\d{1,15}$/.test(String(run ?? "")) ? ` run=${run}` : ""} -->`;
   const cuenta = `${errores.length} ${errores.length === 1 ? "error" : "errores"}, ${avisos.length} ${avisos.length === 1 ? "aviso" : "avisos"}`;
   const cuerpo = [
     marca,
@@ -495,9 +540,10 @@ const normaliza = (t) => String(t ?? "").toLowerCase().normalize("NFD").replace(
  * `issues`: la forma de `leerIssue` (issues.mjs) con sus hijos.
  */
 export function informeFichas(issues, { hoy } = {}) {
-  const fondos = issues.filter((i) => porGrupo(nombresDe(i.labels)).tipo.has("fondo"));
+  // Solo los de la casa: el informe no cuenta lo que abre un desconocido (si no se sabe quién lo abrió, cuenta).
+  const fondos = issues.filter((i) => porGrupo(nombresDe(i.labels)).tipo.has("fondo") && (!i.asociacion || esDeLaCasa(i.asociacion)));
   const abiertos = fondos.filter((i) => String(i.state).toUpperCase() === "OPEN");
-  const r = { sinFicha: [], sinDiagnostico: [], ventanaVencida: [], cerradosSinAprendizaje: [], cerradosConAprendizaje: 0, matices: [], total: fondos.length, conFicha: 0 };
+  const r = { sinFicha: [], sinDiagnostico: [], ventanaVencida: [], cerradosSinAprendizaje: [], cerradosConAprendizaje: 0, sinFichaObligatoria: [], autoaplicacion: [], matices: [], total: fondos.length, conFicha: 0 };
   const matices = new Map();
   for (const f of fondos) {
     const lectura = leerFicha(f.body);
@@ -515,11 +561,16 @@ export function informeFichas(issues, { hoy } = {}) {
     const { ficha, presente } = leerFicha(f.body);
     if (!presente) {
       r.sinFicha.push(f.number);
+      if (fichaObligatoria(f)) r.sinFichaObligatoria.push(f.number);
       continue;
     }
     const encargos = (f.hijos ?? []).filter((h) => h.tipo === "encargo");
     if ((!ficha.mecanismo || !ficha.causa_escape) && (encargos.length || ESTADOS_CON_DIAGNOSTICO.includes(ficha.estado))) r.sinDiagnostico.push(f.number);
     if (hoy && ficha.estado === "en-observacion" && ficha.ventana_hasta && ficha.ventana_hasta < hoy) r.ventanaVencida.push({ number: f.number, hasta: ficha.ventana_hasta });
+  }
+  for (const n of FONDOS_AUTOAPLICACION) {
+    const f = fondos.find((x) => x.number === n);
+    if (f) r.autoaplicacion.push({ number: n, conFicha: leerFicha(f.body).presente });
   }
   r.matices = [...matices].filter(([, ns]) => ns.length >= 2).map(([matiz, ns]) => ({ matiz, veces: ns.length, issues: ns })).sort((a, b) => b.veces - a.veces);
   return r;

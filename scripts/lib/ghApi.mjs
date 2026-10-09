@@ -31,7 +31,9 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 export async function pedir({
   token, repo, ruta, metodo = "GET", cuerpo, fetchFn = globalThis.fetch, espera = dormir, intentos, nulo404 = true,
 }) {
-  const url = ruta.startsWith("http") ? ruta : `https://api.github.com/repos/${repo}${ruta}`;
+  // Una URL absoluta solo si es de la API de GitHub: el token no sale a ningún otro sitio.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(ruta) && !ruta.startsWith("https://api.github.com/")) throw new Error("ghApi: URL fuera de https://api.github.com/");
+  const url = ruta.startsWith("https://") ? ruta : `https://api.github.com/repos/${repo}${ruta}`;
   const max = intentos ?? (metodo === "GET" ? 3 : 1);
   let causa = "";
   let permisos = false;

@@ -60,6 +60,16 @@ describe("scripts/fondos-pr.mjs: el PR y su problema de fondo (#337)", () => {
     expect(otro.ok).toBe(false);
   });
 
+  it.each(["fix/2026-10-recetas", "ops/12345678-algo", "ops/337-", "ops/337"])("la rama «%s» no es de un issue: no exige Closes (fecha, número descomunal o sin nombre)", async (rama) => {
+    expect((await comprobar({ cuerpo: "Agente: sesión", rama, ...consultaDe({}) })).ok).toBe(true);
+  });
+
+  it("«Agente: gobierno.» con punto o adornos se lee como gobierno", () => {
+    expect(agentesDelPr("Agente: gobierno.").lineas).toEqual(["gobierno"]);
+    expect(agentesDelPr("Agente: `datos`, el de siempre").lineas).toEqual(["datos"]);
+    expect(agentesDelPr("Agente: robot!").malas).toEqual(["robot"]);
+  });
+
   it("una rama sin número de issue no exige Closes", async () => {
     expect((await comprobar({ cuerpo: "Agente: sesión", rama: "fix/algo-sin-numero", ...consultaDe({}) })).ok).toBe(true);
   });

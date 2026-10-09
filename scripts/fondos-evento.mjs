@@ -1,8 +1,9 @@
 /**
  * fondos-evento.mjs — los controles del problema de fondo, sobre eventos de
  * GitHub (workflow fondos.yml, #337). Antes `faltas()` y `debeReabrir()` solo
- * corrían al lanzar `npm run issues`; ahora reaccionan a cualquier vía de
- * entrada (CLI, MCP, web) y a un pase diario para las ventanas de observación.
+ * corrían al lanzar `npm run issues`; ahora reaccionan a los eventos de issues
+ * (alta, edición, etiqueta, cierre, reapertura) venga el cambio de la CLI, el
+ * MCP o la web, y a un pase diario.
  *
  * Qué hace con UN issue (evento `issues`):
  *   - fondo → valida su ficha (scripts/lib/fondos.mjs), deja UN comentario con
@@ -11,17 +12,22 @@
  *     (un fondo cerrado sin aprendizaje, o con un caso que no aguantó), subir
  *     un nivel de alcance, cerrar como cerrado-eficaz.
  *   - caso o encargo → mira que cuelgue de un fondo y revalida el fondo.
- * Con `schedule` (o `workflow_dispatch` sin issue): el pase de las ventanas.
+ * Con `schedule` (o `workflow_dispatch` sin issue): el pase diario. Es lo que
+ * cubre colgar un hijo de un fondo, que NO lanza ningún workflow (no hay
+ * disparador de Actions para sub-issues): como mucho 24 h después se revalidan
+ * los fondos abiertos con ficha y los cerrados con un caso que no aguantó.
  *
  * Seguridad: el cuerpo de un issue es entrada no confiable (repo público). Se
  * lee con el parser acotado de fondos.mjs, nada se ejecuta ni se interpola, y
- * lo que escribe el autor no se copia a los comentarios. Solo se tocan
- * comentarios del propio bot (marca Y autor). Todo llega por entorno.
+ * lo que escribe el autor no se copia a los comentarios. Solo se actúa sobre
+ * issues de la casa (OWNER, MEMBER, COLLABORATOR) con etiqueta tipo:fondo,
+ * caso o encargo, y solo se tocan comentarios del propio bot con la marca Y el
+ * run de este workflow. Todo llega por entorno.
  *
  * Si la API no responde, FALLA con la causa (tras reintentar) y sin culpar a
  * quien editó el issue: se relanza el run. No deja pasar en silencio.
  *
- * Uso (lo lanza el workflow): GITHUB_TOKEN=… GITHUB_REPOSITORY=… GITHUB_EVENT_NAME=… ISSUE_NUMBER=… EVENT_ACTION=… node scripts/fondos-evento.mjs
+ * Uso (lo lanza el workflow): GITHUB_TOKEN=… GITHUB_REPOSITORY=… GITHUB_EVENT_NAME=… GITHUB_RUN_ID=… ISSUE_NUMBER=… EVENT_ACTION=… node scripts/fondos-evento.mjs
  */
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -30,13 +36,17 @@ import { MAX_NUMERO } from "../.claude/hooks/casos.mjs";
 import { falloDeCaso } from "./casos-pr.mjs";
 import { ErrorDeApi, pedir, pedirPaginas } from "./lib/ghApi.mjs";
 import {
-  MARCA, MARCA_HIJO, comentario, esComentarioNuestro, falla, fijarCampos, fondoDeRest, leerFicha, limpio, leerSubidos, validarFicha, validarHijo,
+  MARCA, MARCA_HIJO, comentario, esComentarioNuestro, esDeLaCasa, falla, fijarCampos, fondoDeRest, leerFicha, leerRun, leerSubidos, limpio, validarFicha, validarHijo,
 } from "./lib/fondos.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
 import { porGrupo } from "./lib/issues.mjs";
 
 const nombres = (i) => (i.labels ?? []).map((l) => (typeof l === "string" ? l : l.name));
 const tipoDe = (i) => [...porGrupo(nombres(i)).tipo][0] ?? null;
+const TIPOS_QUE_SE_MIRAN = ["fondo", "caso", "encargo"];
+/** Solo se actúa sobre issues de la casa y de los tipos que se vigilan: el repo es público y cualquiera abre issues. */
+const seMira = (i) => esDeLaCasa(i?.author_association) && TIPOS_QUE_SE_MIRAN.includes(tipoDe(i));
+const RUTA_DEL_WORKFLOW = ".github/workflows/fondos.yml";
 
 /** La API real: lo que necesitan los controles, con el cliente común (reintentos en lecturas, un intento en el POST de comentarios). */
 export function apiReal({ token, repo, ...resto }) {
@@ -51,18 +61,34 @@ export function apiReal({ token, repo, ...resto }) {
     editarIssue: (n, cambios) => pedir({ ...base, ruta: `/issues/${n}`, metodo: "PATCH", cuerpo: cambios, intentos: 3 }),
     ponerEtiquetas: (n, etiquetas) => pedir({ ...base, ruta: `/issues/${n}/labels`, metodo: "POST", cuerpo: { labels: etiquetas }, intentos: 3 }),
     quitarEtiqueta: (n, etiqueta) => pedir({ ...base, ruta: `/issues/${n}/labels/${encodeURIComponent(etiqueta)}`, metodo: "DELETE", intentos: 3 }),
-    fondosAbiertos: () => pedirPaginas({ ...base, ruta: "/issues?state=open&labels=tipo%3Afondo" }, { maxPaginas: 3 }),
-    // ¿Está el fichero en origin/staging? Cada tramo de la ruta, codificado.
+    // Todos los fondos, abiertos y cerrados: el pase diario revalida también los cerrados con hijos nuevos.
+    fondos: () => pedirPaginas({ ...base, ruta: "/issues?state=all&labels=tipo%3Afondo" }, { maxPaginas: 3 }),
+    // ¿Ese run de Actions es de nuestro workflow? Otro workflow con el mismo bot no puede falsificar la marca.
+    runEsNuestro: async (id) => {
+      const r = await pedir({ ...base, ruta: `/actions/runs/${Number(id)}` });
+      return r?.path === RUTA_DEL_WORKFLOW;
+    },
+    // ¿Es un FICHERO en origin/staging? Un directorio también da 200, pero devuelve una lista.
     existeEnStaging: async (ruta) => {
       const r = await pedir({ ...base, ruta: `/contents/${ruta.split("/").map(encodeURIComponent).join("/")}?ref=staging` });
-      return r !== null;
+      return r !== null && !Array.isArray(r) && r.type === "file";
     },
   };
 }
 
-/** Crea o actualiza (no apila) el comentario del bot con esa marca. */
-async function upsert(api, n, texto, marca) {
-  const propio = (await api.comentarios(n)).find((c) => esComentarioNuestro(c, marca));
+/** Nuestro comentario con esa marca: del bot Y de un run de fondos.yml (se prueba del más nuevo al más viejo). */
+async function propioDe(api, n, marca, comentarios) {
+  const candidatos = (comentarios ?? await api.comentarios(n)).filter((c) => esComentarioNuestro(c, marca)).reverse();
+  for (const c of candidatos) {
+    const run = leerRun(c.body);
+    if (run && (await api.runEsNuestro(run))) return c;
+  }
+  return null;
+}
+
+/** Crea o actualiza (no apila) el comentario propio. */
+async function upsert(api, n, texto, marca, comentarios) {
+  const propio = await propioDe(api, n, marca, comentarios);
   if (propio) {
     if (propio.body !== texto) await api.editarComentario(propio.id, texto);
     return propio;
@@ -71,13 +97,30 @@ async function upsert(api, n, texto, marca) {
   return null;
 }
 
-/** Valida un fondo y ejecuta lo que manda. → una línea contable: { issue, control, hallazgos, acciones }. */
-export async function procesarFondo(api, fondoRest, { hoy, evento = "" }) {
+/**
+ * Valida un fondo y ejecuta lo que manda. → una línea contable.
+ * El orden importa: primero el comentario con la marca (lo decidido, `subidos`),
+ * luego los cambios del issue. Si se corta entre medias, el siguiente run no
+ * repite un «subir alcance» ya anotado (se pierde como mucho una subida, y el
+ * run falla a la vista).
+ */
+export async function procesarFondo(api, fondoRest, { hoy, evento = "", run = null, hijosRest = null }) {
   const n = fondoRest.number;
-  const hijos = await api.hijos(n);
+  const hijos = hijosRest ?? await api.hijos(n);
   const fondo = fondoDeRest(fondoRest, hijos);
-  const propio = (await api.comentarios(n)).find((c) => esComentarioNuestro(c, MARCA));
+  const comentarios = await api.comentarios(n);
+  const propio = await propioDe(api, n, MARCA, comentarios);
   const subidos = leerSubidos(propio?.body);
+
+  // Reabrir a mano un fondo en observación o cerrado queda en la ficha ANTES de validar: el comentario no cuenta el estado viejo.
+  const previa = leerFicha(fondo.body);
+  if (evento === "reopened" && previa.presente && ["en-observacion", "cerrado-eficaz"].includes(previa.ficha.estado)) {
+    const nuevo = fijarCampos(fondo.body, { estado: "reabierto" });
+    if (nuevo !== null) {
+      await api.editarIssue(n, { body: nuevo });
+      fondo.body = nuevo;
+    }
+  }
 
   // La verificación se comprueba en origin/staging solo cuando hace falta (observación o cierre).
   const lectura = leerFicha(fondo.body);
@@ -85,38 +128,34 @@ export async function procesarFondo(api, fondoRest, { hoy, evento = "" }) {
   const existe = ruta && ["en-observacion", "cerrado-eficaz"].includes(lectura.ficha.estado) ? await api.existeEnStaging(ruta) : false;
 
   const res = validarFicha(fondo, { existeEnStaging: () => existe, hoy, subidos });
-  // Reabrir a mano un fondo que estaba observándose o cerrado: queda constancia en la ficha.
-  if (evento === "reopened" && lectura.presente && ["en-observacion", "cerrado-eficaz"].includes(lectura.ficha.estado)) {
-    res.acciones.push({ tipo: "fijar", campos: { estado: "reabierto" } });
-  }
+  const control = falla(res) ? "falla" : "ok";
 
-  // 1. La ficha: estado y alcance nuevos (todas las acciones `fijar`, la última gana).
+  // 1. La intención, anotada.
+  await upsert(api, n, comentario(res, { subidos: res.subidos, run }), MARCA, comentarios);
+  // 2. La ficha: estado y alcance nuevos.
   const campos = Object.assign({}, ...res.acciones.filter((a) => a.tipo === "fijar").map((a) => a.campos));
   if (Object.keys(campos).length) {
     const nuevo = fijarCampos(fondo.body, campos);
     if (nuevo !== null && nuevo !== fondo.body) await api.editarIssue(n, { body: nuevo });
   }
-  // 2. El estado del issue.
+  // 3. El estado del issue.
   if (res.acciones.some((a) => a.tipo === "reabrir") && fondo.state === "CLOSED") await api.editarIssue(n, { state: "open" });
   const cierre = res.acciones.find((a) => a.tipo === "cerrar");
   if (cierre && fondo.state === "OPEN") {
     if (cierre.arreglo && !nombres(fondoRest).includes(`arreglo:${cierre.arreglo}`)) await api.ponerEtiquetas(n, [`arreglo:${cierre.arreglo}`]);
     await api.editarIssue(n, { state: "closed", state_reason: "completed" });
   }
-  // 3. La etiqueta de control y el comentario.
-  const control = falla(res) ? "falla" : "ok";
-  const quiere = `control:${control}`;
+  // 4. La etiqueta de control.
   const hay = nombres(fondoRest);
-  if (!hay.includes(quiere)) await api.ponerEtiquetas(n, [quiere]);
+  if (!hay.includes(`control:${control}`)) await api.ponerEtiquetas(n, [`control:${control}`]);
   const otra = `control:${control === "ok" ? "falla" : "ok"}`;
   if (hay.includes(otra)) await api.quitarEtiqueta(n, otra);
-  await upsert(api, n, comentario(res, { subidos: res.subidos }), MARCA);
 
   return { issue: n, control, errores: res.hallazgos.filter((h) => h.gravedad === "error").length, avisos: res.hallazgos.filter((h) => h.gravedad === "aviso").length, acciones: res.acciones.map((a) => a.tipo) };
 }
 
 /** Un caso o encargo: ¿cuelga de un fondo? Y revalida el fondo, que acaba de cambiar de hijos. */
-export async function procesarHijo(api, hijoRest, { hoy, evento }) {
+export async function procesarHijo(api, hijoRest, { hoy, evento, run }) {
   const padreRest = await api.padre(hijoRest.number);
   const padre = padreRest ? { number: padreRest.number, labels: nombres(padreRest).map((name) => ({ name })) } : null;
   const hallazgos = validarHijo({ number: hijoRest.number, labels: nombres(hijoRest).map((name) => ({ name })) }, padre);
@@ -126,29 +165,39 @@ export async function procesarHijo(api, hijoRest, { hoy, evento }) {
     if (sinAnalisis) hallazgos.push({ regla: "caso-sin-analisis", gravedad: "error", mensaje: limpio(sinAnalisis, 200) });
   }
   const sal = [];
-  if (hallazgos.length) {
-    const res = { hallazgos, acciones: [] };
-    await upsert(api, hijoRest.number, comentario(res, { marca: MARCA_HIJO, titulo: "Control del caso o encargo", pie: "Lo escribe el workflow `fondos` y se actualiza solo." }), MARCA_HIJO);
-  } else {
+  const opciones = { marca: MARCA_HIJO, titulo: "Control del caso o encargo", pie: "Lo escribe el workflow `fondos` y se actualiza solo.", run };
+  const previo = await propioDe(api, hijoRest.number, MARCA_HIJO);
+  if (hallazgos.length || previo) {
     // Si antes avisó y ya está bien, el comentario se pone al día en vez de quedarse mintiendo.
-    const previo = (await api.comentarios(hijoRest.number)).find((c) => esComentarioNuestro(c, MARCA_HIJO));
-    if (previo) await upsert(api, hijoRest.number, comentario({ hallazgos: [], acciones: [] }, { marca: MARCA_HIJO, titulo: "Control del caso o encargo", pie: "Lo escribe el workflow `fondos` y se actualiza solo." }), MARCA_HIJO);
+    await upsert(api, hijoRest.number, comentario({ hallazgos, acciones: [] }, opciones), MARCA_HIJO);
   }
   sal.push({ issue: hijoRest.number, control: hallazgos.some((h) => h.gravedad === "error") ? "falla" : "ok", errores: hallazgos.filter((h) => h.gravedad === "error").length, avisos: hallazgos.filter((h) => h.gravedad === "aviso").length, acciones: [] });
-  if (padre && tipoDe(padreRest) === "fondo") sal.push(await procesarFondo(api, padreRest, { hoy, evento }));
+  if (padre && tipoDe(padreRest) === "fondo" && esDeLaCasa(padreRest.author_association)) sal.push(await procesarFondo(api, padreRest, { hoy, evento, run }));
   return sal;
 }
 
-/** El pase diario: las ventanas de observación de los fondos abiertos con ficha. */
-export async function pasadaDiaria(api, { hoy }) {
+/**
+ * El pase diario (cubre lo que ningún evento avisa: colgar un hijo no lanza
+ * workflow). Revalida, como mucho 24 h después:
+ *  - los fondos abiertos con ficha (ventanas de observación vencidas, hijos nuevos);
+ *  - los CERRADOS con un hijo caso que no aguantó o posterior al cierre (se reabren).
+ */
+export async function pasadaDiaria(api, { hoy, run }) {
   const sal = [];
   const fallos = [];
-  for (const f of await api.fondosAbiertos()) {
-    if (f.pull_request) continue;
-    const { presente, ficha } = leerFicha(f.body);
-    if (!presente || ficha.estado !== "en-observacion") continue;
+  for (const f of await api.fondos()) {
+    if (f.pull_request || !seMira(f)) continue;
     try {
-      sal.push(await procesarFondo(api, f, { hoy, evento: "schedule" }));
+      const hijos = await api.hijos(f.number);
+      const cerrado = String(f.state).toLowerCase() === "closed";
+      const { presente } = leerFicha(f.body);
+      const cierre = f.closed_at ? Date.parse(f.closed_at) : null;
+      const huboCaso = hijos.some((h) => {
+        const g = porGrupo(nombres(h));
+        return g.tipo.has("caso") && ([...g.analisis].some((a) => a.startsWith("no-aguanto")) || (cierre && Date.parse(h.created_at) > cierre));
+      });
+      if (cerrado ? !huboCaso : !presente) continue;
+      sal.push(await procesarFondo(api, f, { hoy, evento: "schedule", run, hijosRest: hijos }));
     } catch (e) {
       if (!(e instanceof ErrorDeApi)) throw e;
       fallos.push(`#${f.number}: ${e.message}`);
@@ -158,27 +207,25 @@ export async function pasadaDiaria(api, { hoy }) {
 }
 
 /** El punto de entrada, sin tocar `process`: devuelve las líneas, y lanza ErrorDeApi si la API falla. */
-export async function ejecutar({ api, evento, accion = "", issue, hoy }) {
+export async function ejecutar({ api, evento, accion = "", issue, hoy, run = null }) {
   if (!issue) {
-    const { sal, fallos } = await pasadaDiaria(api, { hoy });
+    const { sal, fallos } = await pasadaDiaria(api, { hoy, run });
     if (fallos.length) throw new ErrorDeApi(`la pasada diaria no pudo con ${fallos.length} fondo(s): ${fallos.join("; ")}`);
     return sal;
   }
   const n = /^\d{1,8}$/.test(String(issue)) ? Number(issue) : 0;
   if (n < 1 || n > MAX_NUMERO) throw new Error(`ISSUE_NUMBER no es un número de issue: «${String(issue).slice(0, 20)}»`);
   const rest = await api.issue(n);
-  if (!rest) return [];
-  if (rest.pull_request) return [];
+  if (!rest || rest.pull_request || !seMira(rest)) return [];
   const tipo = tipoDe(rest);
-  if (tipo === "fondo") return [await procesarFondo(api, rest, { hoy, evento: accion })];
-  if (tipo === "caso" || tipo === "encargo") return procesarHijo(api, rest, { hoy, evento: accion });
-  return [];
+  if (tipo === "fondo") return [await procesarFondo(api, rest, { hoy, evento: accion, run })];
+  return procesarHijo(api, rest, { hoy, evento: accion, run });
 }
 
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 
 if (esPrincipal) {
-  const { GITHUB_TOKEN = "", GITHUB_REPOSITORY = "pabloam89/MenuPlan", GITHUB_EVENT_NAME = "", EVENT_ACTION = "", ISSUE_NUMBER = "" } = process.env;
+  const { GITHUB_TOKEN = "", GITHUB_REPOSITORY = "pabloam89/MenuPlan", GITHUB_EVENT_NAME = "", GITHUB_RUN_ID = "", EVENT_ACTION = "", ISSUE_NUMBER = "" } = process.env;
   try {
     const lineas = await ejecutar({
       api: apiReal({ token: GITHUB_TOKEN, repo: GITHUB_REPOSITORY }),
@@ -186,6 +233,7 @@ if (esPrincipal) {
       accion: EVENT_ACTION,
       issue: ISSUE_NUMBER,
       hoy: diaMadrid(),
+      run: GITHUB_RUN_ID,
     });
     if (!lineas.length) console.log(`fondos: evento: ${GITHUB_EVENT_NAME} accion: ${EVENT_ACTION || "-"} nada que controlar`);
     for (const l of lineas) console.log(`fondos: issue: #${l.issue} control: ${l.control} errores: ${l.errores} avisos: ${l.avisos} acciones: ${l.acciones.join(",") || "-"}`);

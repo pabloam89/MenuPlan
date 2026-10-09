@@ -169,8 +169,9 @@ sitios, y por eso la especificación va antes de construir:
   cada PR (`scripts/fondos-pr.mjs`) pide además `Agente:`, el `Closes` de la
   rama y el diagnóstico del fondo de cada encargo que cierra. Lo que sigue sin
   puerta: los workflows de issues informan (comentario y etiqueta) y no impiden
-  editar.
-- **La fase A ya está en staging** (PR #349): `ops/normas.json` con 58 normas y
+  editar; colgar un hijo de un fondo no lanza ningún workflow, y lo revalida el
+  pase diario (como mucho 24 h después).
+- **La fase A ya está en staging** (PR #349): `ops/normas.json` con el registro de normas y
   su vocabulario en `scripts/lib/normas.mjs`. No esperó a este documento. Las
   obligaciones de aquí se enlazan con su norma y no pueden contradecirla; lo que
   falta de A está en #351. La línea `Casos:` del PR (#312, PR #354) también ya

@@ -66,8 +66,8 @@ cualquiera. <!-- norma:fondo-con-ficha-y-controles -->
 | `capa_agente` | un agente de `.claude/agents/` o `sesión` |
 | `barrera` | un escalón de la escalera (`bloqueo`, `test_ci`, `script`, `skill`, `texto`) |
 | `casos`, `encargos` | `#n, #m` o `ninguno` |
-| `verificacion` | ruta del test o hook que vigila la clase |
-| `ventana_hasta` | fecha AAAA-MM-DD de fin de la observación (90 días como mucho) |
+| `verificacion` | ruta de un FICHERO de `origin/staging` que vale para su barrera: un `*.test.js` para `test_ci`, un hook, workflow o migración para `bloqueo`, un script, una skill o un texto; una carpeta no vale |
+| `ventana_desde`, `ventana_hasta` | fechas AAAA-MM-DD de inicio y fin de la observación (90 días como mucho); los casos creados desde `ventana_desde` cuentan como nuevos, estén o no en `casos` |
 | `mecanismo`, `causa_escape`, `clase`, `barrido`, `solucion_temporal`, `matiz`, `aprendizaje` | texto libre corto |
 
 **Estados:** `abierto` (registrado) → `diagnosticado` (hay `mecanismo` y
@@ -78,22 +78,31 @@ cualquiera. <!-- norma:fondo-con-ficha-y-controles -->
 escrito: una skill, técnica, catálogo o test tocado, o `ninguno — <motivo>`).
 `reabierto` es el de un caso nuevo o un «no aguantó».
 
-**Qué hace el workflow `fondos`** en cada alta, edición, etiqueta, cierre o
-reapertura de un fondo, caso o encargo (venga de la CLI, el MCP o la web), y una
-vez al día para las ventanas:
+**Qué hace el workflow `fondos`**, solo sobre issues de la casa (autor
+`OWNER`, `MEMBER` o `COLLABORATOR`) con etiqueta `tipo:fondo`, `tipo:caso` o
+`tipo:encargo`: en cada alta, edición, etiqueta, cierre o reapertura (venga de
+la CLI, el MCP o la web), y una vez al día (06:35 UTC). **Colgar un hijo de un
+fondo no lanza ningún workflow** (GitHub no tiene disparador para sub-issues):
+lo ve el pase diario, como mucho 24 h después, en los fondos abiertos con
+ficha y en los cerrados con un caso `no-aguanto-*` o posterior al cierre
+(`npm run issues -- --colgar` reabre al momento). Lo que hace:
 - deja UN comentario con la marca `<!-- menuplan:fondo -->` (lo actualiza, no
   apila) con una línea por regla que falla, y pone `control:ok` o `control:falla`;
 - reglas: `ficha-ausente`, `ficha-bloque`, `ficha-vocabulario`,
   `ficha-incompleta`, `causa-distinta`, `sin-diagnostico`,
-  `observacion-sin-verificacion`, `verificacion-no-existe`,
+  `observacion-sin-verificacion`, `verificacion-no-existe`, `verificacion-no-vale`,
   `observacion-sin-ventana`, `ventana-excesiva`, `cierre-sin-aprendizaje`,
   `clasificacion` (las `faltas()` de `issues.mjs`), `sin-fondo` y
   `caso-sin-analisis` (en casos y encargos);
 - un fondo cerrado sin `aprendizaje` se **reabre**; un caso `no-aguanto-*` (o uno
   posterior al cierre) reabre el fondo y, una vez por caso, **sube un nivel de
-  alcance** en la ficha; la ventana vencida sin casos nuevos (sin listar en
-  `casos`) lo pasa a `cerrado-eficaz` y lo cierra con su `arreglo:`, y con ellos
-  lo reabre. Los fondos de antes del 10 oct 2026 sin ficha solo avisan.
+  alcance** en la ficha (una vez por caso: la marca del comentario lo anota,
+  también en fondos sin ficha); la ventana vencida sin casos nuevos y sin
+  ningún no-aguanto lo pasa a `cerrado-eficaz` y lo cierra con su `arreglo:`, y
+  con casos nuevos lo reabre. Los fondos de antes del 10 oct 2026 sin ficha solo
+  avisan (el #334 va con ficha desde el principio: `npm run issues` lo marca).
+- La marca del comentario lleva el `run` del workflow, y solo se lee un comentario
+  del bot cuyo run sea de `fondos.yml`: otro workflow con el mismo bot no la falsifica.
 - Informa y actúa sobre el estado del propio fondo; no impide editar. Si la API
   de GitHub no responde, el run falla con la causa (relánzalo); no culpa a nadie.
 
@@ -174,6 +183,14 @@ en un issue (esos, a Pablo, en privado).
   `fondos-pr.test.js`, vistos fallar. Antes: 0 controles por evento y 0 fichas.
   Un `ISSUE_NUMBER` como `1e3` pasaba por número válido (`Number("1e3")` es
   1000): se lee con `^\d{1,8}$`, y hay test.
+- **2026-10-09 · el bot reabría en bucle un fondo antiguo con un hijo `no-aguanto-*`
+  (revisión de #337).** Causa: solo se anotaba en la marca lo que contaba el paso de
+  subir alcance, no lo que reabría el paso de `debeReabrir()`; un fondo sin ficha o
+  con la ficha rota reabría en cada cierre. Arreglo: lo que reabre se anota en
+  `subidos`; test de dos pasadas en `scripts/fondos-ronda2.test.js` y
+  `fondos-evento.test.js`. También: la ventana no cierra con un no-aguanto presente
+  ni con un caso creado desde `ventana_desde` aunque esté listado, y el pase diario
+  revalida los cerrados porque colgar un hijo no lanza ningún workflow.
 
 ## Qué requiere el OK de Pablo
 

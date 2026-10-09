@@ -33,6 +33,7 @@ on:
 
 permissions:
   contents: read # leer el fichero de la verificación en staging
+  actions: read # comprobar que el comentario con la marca salió de un run de este workflow
   issues: write # comentar, etiquetar, reabrir o cerrar
 
 # Un run por issue a la vez; el pase diario, aparte. No se cancela ninguno:
@@ -43,14 +44,24 @@ concurrency:
 
 jobs:
   controlar:
+    # Solo issues de la casa y de los tipos que se vigilan: el repo es público y
+    # cualquiera abre issues. El pase diario y el lanzamiento a mano no tienen
+    # issue en el evento (el script vuelve a filtrar por author_association).
+    if: >-
+      github.event_name != 'issues' || (
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association) &&
+      (contains(github.event.issue.labels.*.name, 'tipo:fondo') ||
+      contains(github.event.issue.labels.*.name, 'tipo:caso') ||
+      contains(github.event.issue.labels.*.name, 'tipo:encargo')))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       # La rama por defecto, nunca código de otra parte: el run lleva permiso de escritura.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: staging
-      - uses: actions/setup-node@v6
+          persist-credentials: false # el script usa el token por la API; el checkout no lo guarda
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
       - name: Controlar
@@ -60,5 +71,6 @@ jobs:
           # tipo de evento, no texto del autor.
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
           EVENT_ACTION: ${{ github.event.action }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
