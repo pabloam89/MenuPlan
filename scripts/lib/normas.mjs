@@ -10,7 +10,7 @@
  * cumplir y su VEREDICTO. Nunca cómo se salta ni qué le falta exactamente;
  * eso va a Pablo en privado.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /** Quién hace cumplir la norma. Los cinco primeros son «del sistema»: no dependen de que alguien se acuerde. */
@@ -98,6 +98,49 @@ export function problemasDeForma(n) {
   if (n.issue !== null && !Number.isInteger(n.issue)) malos.push(`${id}: «issue» es un número o null`);
   if (n.test_fallo !== undefined && (typeof n.test_fallo?.ruta !== "string" || typeof n.test_fallo?.caso !== "string")) {
     malos.push(`${id}: «test_fallo» lleva ruta y caso`);
+  }
+  return malos;
+}
+
+/**
+ * ¿Existe lo que la norma da como test? Una ruta del repo, o un criterio de
+ * ops/planos.json (lo mide `planos-semanal.yml` con red cada lunes).
+ */
+export function testExiste(test, { raiz, planos }) {
+  if (test === null) return false;
+  if (esReferenciaPlanos(test)) return existeEnPlanos(test, planos);
+  return existsSync(join(raiz, test));
+}
+
+/**
+ * Las reglas de dureza. Cada problema es una línea con el id de la norma.
+ * `ctx`: { raiz, planos } (planos = ops/planos.json leído).
+ *
+ * 1. Lo que se dice dura lo es: ejecutor del sistema, para todos, falla
+ *    cerrado y un test que existe.
+ * 2. Lo de riesgo alto o es dura o tiene su issue.
+ * 3. El código en ejecución que falla cerrado tiene un test que inyecta el
+ *    fallo del servicio: el registro lo declara en `test_fallo` y aquí se
+ *    comprueba que el fichero existe y nombra el caso.
+ * Y, para todas, que el test que se nombra exista.
+ */
+export function problemasDeDureza(n, ctx) {
+  const malos = [];
+  if (n.test !== null && !testExiste(n.test, ctx)) malos.push(`${n.id}: su test «${n.test}» no existe`);
+  if (n.veredicto === "dura") {
+    if (!EJECUTORES_DEL_SISTEMA.includes(n.ejecutor)) malos.push(`${n.id}: dura, pero su ejecutor (${n.ejecutor}) no es del sistema`);
+    if (n.alcance !== "todos") malos.push(`${n.id}: dura, pero solo alcanza a ${n.alcance}`);
+    if (n.ante_fallo !== "cerrado") malos.push(`${n.id}: dura, pero ante un fallo queda ${n.ante_fallo}`);
+    if (n.test === null) malos.push(`${n.id}: dura, pero sin test`);
+  }
+  if (n.riesgo === "alto" && n.veredicto !== "dura" && !Number.isInteger(n.issue)) {
+    malos.push(`${n.id}: riesgo alto, ${n.veredicto} y sin issue que lo lleve`);
+  }
+  if (n.ejecutor === "codigo_en_ejecucion" && n.ante_fallo === "cerrado") {
+    const f = n.test_fallo;
+    if (!f) malos.push(`${n.id}: falla cerrado en ejecución, pero no declara el test que inyecta el fallo (test_fallo)`);
+    else if (!existsSync(join(ctx.raiz, f.ruta))) malos.push(`${n.id}: su test_fallo «${f.ruta}» no existe`);
+    else if (!readFileSync(join(ctx.raiz, f.ruta), "utf8").includes(f.caso)) malos.push(`${n.id}: ${f.ruta} no nombra el caso «${f.caso}»`);
   }
   return malos;
 }
