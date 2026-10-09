@@ -50,6 +50,57 @@ uno solo, con un dueño y un juez por superficie, cuando es una pieza común
 (partirla daría dos versiones: `dos-fuentes`). El fondo se cierra cuando
 acaban sus encargos y el test de la clase está en verde.
 
+**La ficha del fondo** (#337; `scripts/lib/fondos.mjs`, workflow `fondos.yml`):
+el cuerpo de cada fondo lleva un bloque de código `fondo`, de líneas
+`clave: valor` (el formulario `2-fondo.yml` lo trae; lo vacío es «sin rellenar»;
+listas con coma e issues como `#n`). Se lee a mano, con límites (30 líneas, 400
+caracteres por texto, 30 elementos por lista): el cuerpo de un issue lo escribe
+cualquiera. <!-- norma:fondo-con-ficha-y-controles -->
+
+| Clave | Vale |
+|---|---|
+| `estado` | `abierto`, `diagnosticado`, `plan`, `en-curso`, `en-observacion`, `cerrado-eficaz`, `reabierto` |
+| `tipo_causa` | las causas de `causa:` (la misma que la etiqueta) |
+| `alcance` | `local`, `modulo`, `transversal` |
+| `severidad` | `alto`, `medio`, `bajo` (el riesgo de las normas) |
+| `capa_agente` | un agente de `.claude/agents/` o `sesión` |
+| `barrera` | un escalón de la escalera (`bloqueo`, `test_ci`, `script`, `skill`, `texto`) |
+| `casos`, `encargos` | `#n, #m` o `ninguno` |
+| `verificacion` | ruta del test o hook que vigila la clase |
+| `ventana_hasta` | fecha AAAA-MM-DD de fin de la observación (90 días como mucho) |
+| `mecanismo`, `causa_escape`, `clase`, `barrido`, `solucion_temporal`, `matiz`, `aprendizaje` | texto libre corto |
+
+**Estados:** `abierto` (registrado) → `diagnosticado` (hay `mecanismo` y
+`causa_escape`: qué falla y qué control debía pararlo y por qué no) → `plan`
+(encargos colgados) → `en-curso` → `en-observacion` (arreglo fusionado;
+`verificacion` es un fichero que ya está en `origin/staging`, `barrera` y
+`ventana_hasta` puestos) → `cerrado-eficaz` (ventana limpia y `aprendizaje`
+escrito: una skill, técnica, catálogo o test tocado, o `ninguno — <motivo>`).
+`reabierto` es el de un caso nuevo o un «no aguantó».
+
+**Qué hace el workflow `fondos`** en cada alta, edición, etiqueta, cierre o
+reapertura de un fondo, caso o encargo (venga de la CLI, el MCP o la web), y una
+vez al día para las ventanas:
+- deja UN comentario con la marca `<!-- menuplan:fondo -->` (lo actualiza, no
+  apila) con una línea por regla que falla, y pone `control:ok` o `control:falla`;
+- reglas: `ficha-ausente`, `ficha-bloque`, `ficha-vocabulario`,
+  `ficha-incompleta`, `causa-distinta`, `sin-diagnostico`,
+  `observacion-sin-verificacion`, `verificacion-no-existe`,
+  `observacion-sin-ventana`, `ventana-excesiva`, `cierre-sin-aprendizaje`,
+  `clasificacion` (las `faltas()` de `issues.mjs`), `sin-fondo` y
+  `caso-sin-analisis` (en casos y encargos);
+- un fondo cerrado sin `aprendizaje` se **reabre**; un caso `no-aguanto-*` (o uno
+  posterior al cierre) reabre el fondo y, una vez por caso, **sube un nivel de
+  alcance** en la ficha; la ventana vencida sin casos nuevos (sin listar en
+  `casos`) lo pasa a `cerrado-eficaz` y lo cierra con su `arreglo:`, y con ellos
+  lo reabre. Los fondos de antes del 10 oct 2026 sin ficha solo avisan.
+- Informa y actúa sobre el estado del propio fondo; no impide editar. Si la API
+  de GitHub no responde, el run falla con la causa (relánzalo); no culpa a nadie.
+
+El CI de cada PR (`scripts/fondos-pr.mjs`, paso «Fondos del PR») pide
+`Agente:`, el `Closes` de la rama con número y, por cada `Closes #n`, que el
+fondo de un encargo tenga diagnóstico y que un fondo cerrado tenga aprendizaje.
+
 - **El cuerpo de un caso:** cuándo, qué pasó (esperado frente a real),
   evidencia (comando y salida, PR, fichero:línea) y el análisis. El de una
   decisión: la pregunta en llano, las opciones (la recomendada primero) y qué
@@ -97,7 +148,10 @@ en un issue (esos, a Pablo, en privado).
 | Tarea de un issue | `npm run tarea -- ops/x 193` | la rama lleva el número delante del nombre; el PR pedirá `Closes #193` |
 | Coger un encargo | `gh issue edit <n> --add-assignee @me` (o «Quién lo coge» en el cuerpo) | el asignado en el issue |
 | Cerrar a mano | `gh issue close <n> --comment "Queda en el PR #n"` (un fondo, antes con `--add-label arreglo:test`) | cerrado; solo si no lo cerró el PR |
-| Ver el conjunto | `npm run issues` | fondos por casos, encargos, puntuales, por causa y agente, sin trazar, y la medida de `Casos:` |
+| Ver el conjunto | `npm run issues` | fondos por casos, encargos, puntuales, por causa y agente, sin trazar, y la medida de `Casos:`; el informe de fichas (sin ficha, sin diagnóstico, ventana vencida, cerrados con aprendizaje) y los `matiz` repetidos, candidatos a valor nuevo del vocabulario |
+| Ver el control de un fondo | `gh issue view <n> --comments` | el comentario `<!-- menuplan:fondo … -->` del bot, con `estado=ok` o `estado=falla` y una línea por regla |
+| Poner al día la ficha de un fondo | editar el cuerpo (`gh issue edit <n> --body-file <f.md>`) con el bloque `fondo` | el workflow comenta en menos de un minuto; `control:ok` si no hay errores |
+| Pasar el pase diario ahora | `gh workflow run fondos.yml --ref staging` y `gh run list --workflow fondos.yml --limit 3` | el run en verde; las ventanas vencidas, cerradas o reabiertas |
 | Ordenar lo que falta | `npm run issues -- --ordenar` | las etiquetas y el padre que faltan, leídos de un formulario |
 | Crear o retirar etiquetas (OK) | `npm run issues -- --etiquetas` | las etiquetas de GitHub igual que `scripts/lib/issues.mjs` |
 
@@ -112,9 +166,19 @@ en un issue (esos, a Pablo, en privado).
   parada»; test en `scripts/lleva.test.js`. Antes: 3 de 11 carpetas sin número
   y 0 de 6 encargos con rama enseñados como «lo lleva».
 
+- **2026-10-09 · los controles del fondo solo corrían a mano (#337, fondo #231).**
+  Causa: `faltas()` y `debeReabrir()` eran funciones de `npm run issues`, y
+  ningún evento de GitHub las llamaba: un caso colgado desde la web o el MCP no
+  reabría nada, y un fondo se cerraba sin lección. Arreglo: el workflow `fondos`
+  y la ficha; tests en `scripts/fondos.test.js`, `fondos-evento.test.js` y
+  `fondos-pr.test.js`, vistos fallar. Antes: 0 controles por evento y 0 fichas.
+  Un `ISSUE_NUMBER` como `1e3` pasaba por número válido (`Number("1e3")` es
+  1000): se lee con `^\d{1,8}$`, y hay test.
+
 ## Qué requiere el OK de Pablo
 
-- Crear o retirar etiquetas (`--etiquetas`) y cambiar la clasificación de
+- Crear o retirar etiquetas (`--etiquetas`; `control:ok` y `control:falla` entran
+  con esa orden) y cambiar la clasificación de
   `scripts/lib/issues.mjs`.
 - Cualquier ajuste de GitHub (ver la skill `github`).
 
@@ -129,4 +193,4 @@ fallan con su causa y se repiten más tarde.
 - https://docs.github.com/issues
 - https://cli.github.com/manual/gh_issue
 
-Comprobado el 2026-10-09: esta skill sale de partir la `github` (#219) sin cambiar los hechos; no se ha vuelto a ejecutar `npm run issues` ni `--nuevo` contra GitHub al partirla. Sin comprobar: el límite exacto de la API de GitHub con el que `npm run issues` se queda sin respuesta.
+Comprobado el 2026-10-09: esta skill sale de partir la `github` (#219) sin cambiar los hechos; no se ha vuelto a ejecutar `npm run issues` ni `--nuevo` contra GitHub al partirla. Sin comprobar: el límite exacto de la API de GitHub con el que `npm run issues` se queda sin respuesta. Comprobado el 2026-10-09 (#337): la ficha, el workflow `fondos` y el paso «Fondos del PR» con tests y una API de mentira, vistos fallar, y el lector con cuerpos hostiles. Sin comprobar: el workflow en GitHub de verdad (los endpoints REST `sub_issues` y `parent`, el run de `schedule`, las etiquetas `control:` creadas) hasta que se fusione y se edite un fondo.

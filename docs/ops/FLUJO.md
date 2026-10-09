@@ -71,7 +71,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | 8 | Verificar | El PR de un encargo | CI en verde, juez conforme y un test que cubre la clase | automatico, juez | (—) | ○ fondos cerrados con test de clase (#341) |
 | 9 | Observar | Un fondo con su arreglo fusionado | Una ventana sin casos nuevos, o el fondo reabierto | automatico, persona | (—) | ✓ fondos que no aguantaron, rotos o cortos |
 | 10 | Cerrar | Un fondo cuya ventana de observación pasó limpia | Un fondo cerrado con el escalón en que quedó el arreglo | automatico, persona | (—) | ✓ días hasta cerrar un fondo, por causa y por agente |
-| 11 | Aprender | Un fondo cerrado como eficaz | La lección en una skill, un catálogo, la guardia o un test | agente_dominio, juez | (#338) | ○ fondos cerrados con aprendizaje registrado (#337) |
+| 11 | Aprender | Un fondo cerrado como eficaz | La lección en una skill, un catálogo, la guardia o un test | agente_dominio, juez | (#338) | ✓ fondos cerrados con aprendizaje registrado |
 | 12 | Medir | Los datos de todos los pasos anteriores | Un informe semanal de cumplimiento y de presupuesto frente a lo real | automatico, persona | (—) | ○ presupuestado frente a real, por alcance y causa (#340) |
 <!-- flujo:fichas:fin -->
 
@@ -89,21 +89,22 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | **Registrar el caso** · blanda | | | | | |
 | P02.1 | Antes de crear un issue se buscan los parecidos | guardia · `.claude/hooks/guardia.mjs` | semidura | `issues-con-buscar-antes` | #325, #337 |
 | P02.2 | Las decisiones y pendientes que deja una sesión pasan a un issue | guardia · `.claude/hooks/pendientes.mjs` | semidura | `pendientes-a-issue` | #312 |
-| P02.3 | Cada PR declara los casos que vio (línea Casos:), y cada uno es un caso de verdad | ci · `scripts/casos-pr.mjs` | dura | — | — |
+| P02.3 | Cada PR declara los casos que vio (línea Casos:), y cada uno es un caso de verdad | ci · `scripts/casos-pr.mjs` | semidura | `cuando-algo-falla` | #341, #185 |
 | P02.4 | Nada sensible en un issue: el repo es público | nada · `CLAUDE.md` | blanda | `repo-publico-sin-detalle` | #300 |
 | P02.5 | Al terminar, una sesión con fallos y sin casos registrados es frenada una vez | guardia · `.claude/hooks/pendientes.mjs` | semidura | — | — |
 | **Triaje** · blanda | | | | | |
 | P03.1 | Se fija el alcance y el tipo de causa antes de gastar esfuerzo | nada · no escrita aún | blanda | — | #339 |
 | P03.2 | El esfuerzo sale del presupuesto de su alcance, no de lo que decida la sesión | nada · no escrita aún | blanda | — | #339 |
 | **Diagnosticar** · blanda | | | | | |
-| P04.1 | El caso acaba en una de las cuatro respuestas (nuevo, abierto, no aguantó, puntual) y cuelga de su fondo | script_propio · `scripts/lib/issues.mjs` | semidura | — | #337 |
+| P04.1 | El caso acaba en una de las cuatro respuestas (nuevo, abierto, no aguantó, puntual) y cuelga de su fondo | script_propio · `scripts/lib/issues.mjs` | semidura | — | #341 |
 | P04.2 | Se busca el fondo que ya existe antes de abrir uno | script_propio · `scripts/issues.mjs` | semidura | — | #337 |
-| P04.3 | El diagnóstico llega a algo que se puede cambiar con un mecanismo y dice por qué nada lo detectó (causa de escape) | nada · no escrita aún | blanda | — | #338, #337 |
+| P04.3 | El diagnóstico llega a algo que se puede cambiar con un mecanismo y dice por qué nada lo detectó (causa de escape) | nada · no escrita aún | blanda | — | #338 |
 | P04.4 | Lo que no se ha comprobado se marca como hipótesis y no se copia como hecho | nada · no escrita aún | blanda | — | #338 |
 | P04.5 | Antes de evaluar código, se mira lo ya apuntado en issues y encargos | nada · no escrita aún | blanda | — | #320 |
-| **Fondo** · blanda | | | | | |
-| P05.1 | Un fondo lleva arreglo general en el cuerpo y una causa de un vocabulario cerrado | script_propio · `.github/ISSUE_TEMPLATE/2-fondo.yml` | semidura | — | #337 |
-| P05.2 | Sin diagnóstico (mecanismo y causa de escape) no hay encargos | nada · no escrita aún | blanda | — | #337 |
+| **Fondo** · semidura | | | | | |
+| P05.1 | Un fondo lleva arreglo general en el cuerpo y una causa de un vocabulario cerrado | script_propio · `.github/ISSUE_TEMPLATE/2-fondo.yml` | semidura | — | #341 |
+| P05.2 | Sin diagnóstico (mecanismo y causa de escape) no hay encargos | ci · `scripts/fondos-pr.mjs` | semidura | — | #341 |
+| P05.3 | Cada fondo lleva una ficha válida (bloque fondo, vocabularios cerrados) y sus controles corren en cada evento del issue | script_propio · `.github/workflows/fondos.yml` | semidura | `fondo-con-ficha-y-controles` | #341 |
 | **Plan** · blanda | | | | | |
 | P06.1 | El arreglo se parte en encargos colgados del fondo, uno por superficie | persona · `.claude/commands/revision-issues.md` | blanda | — | #337 |
 | P06.2 | Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga | nada · no escrita aún | blanda | — | #337, #338 |
@@ -118,18 +119,21 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P07.6 | main solo entra por PR con el check tests en verde | github_regla · `ops/DECISIONES.md` | semidura | `main-solo-por-pr-con-tests` | #330 |
 | P07.7 | Nadie cambia las propias reglas (protecciones, permisos, guardia) con credenciales de sesión | nada · no escrita aún | blanda | — | #326 |
 | P07.8 | staging exige el check tests (no exige PR) | github_regla · `ops/DECISIONES.md` | semidura | `staging-exige-tests` | #263 |
-| P07.9 | Cada PR dice quién lo construyó (línea Agente:) | nada · `.github/pull_request_template.md` | blanda | — | #337 |
+| P07.9 | Cada PR dice quién lo construyó (línea Agente:) | ci · `scripts/fondos-pr.mjs` | semidura | `pr-agente-y-closes-en-ci` | — |
 | P07.10 | Un juez no puede escribir: ni Edit ni Write, contando las que da la memoria | ci · `CLAUDE.md` | dura | `jueces-sin-escritura` | — |
+| P07.11 | Un PR de una rama con número de issue lleva Closes de ese issue, para cualquiera que lo abra | ci · `scripts/fondos-pr.mjs` | semidura | `pr-agente-y-closes-en-ci` | — |
 | **Verificar** · blanda | | | | | |
 | P08.1 | El CI corre tests, lint y build en cada PR | ci · `.github/workflows/tests.yml` | dura | — | — |
-| P08.2 | Un test de clase, no solo del caso, vigila el arreglo de un fondo | persona · `.claude/commands/orquestar.md` | blanda | — | #337 |
+| P08.2 | Un test de clase, no solo del caso, vigila el arreglo de un fondo | persona · `.claude/commands/orquestar.md` | blanda | — | #341 |
 | P08.3 | Un test nuevo se ha visto fallar antes de creérselo | nada · `CLAUDE.md` | blanda | `test-visto-fallar` | #341 |
 | P08.4 | Si el PR toca un dominio con skill, declara si actualizó su runbook | ci · `scripts/runbook-pr.mjs` | semidura | `linea-runbook` | #337 |
-| **Observar** · blanda | | | | | |
-| P09.1 | Tras cerrar un fondo hay una ventana sin casos nuevos antes de darlo por eficaz | nada · no escrita aún | blanda | — | #337 |
-| P09.2 | Un caso que no aguantó reabre el fondo y sube un nivel de alcance | script_propio · `scripts/lib/issues.mjs` | semidura | — | #337 |
+| P08.5 | Un fondo no pasa a en-observacion si el fichero de su verificación no está en origin/staging | script_propio · `scripts/lib/fondos.mjs` | semidura | `fondo-con-ficha-y-controles` | #341 |
+| **Observar** · semidura | | | | | |
+| P09.1 | Tras cerrar un fondo hay una ventana sin casos nuevos antes de darlo por eficaz | script_propio · `scripts/lib/fondos.mjs` | semidura | `fondo-con-ficha-y-controles` | #341 |
+| P09.2 | Un caso que no aguantó reabre el fondo y sube un nivel de alcance | script_propio · `scripts/lib/fondos.mjs` | semidura | `fondo-con-ficha-y-controles` | #341 |
 | **Cerrar** · semidura | | | | | |
-| P10.1 | Un fondo no se cierra con encargos abiertos, sin el PR de su arreglo ni sin su etiqueta arreglo: | script_propio · `scripts/lib/issues.mjs` | semidura | — | #337 |
+| P10.1 | Un fondo no se cierra con encargos abiertos, sin el PR de su arreglo ni sin su etiqueta arreglo: | script_propio · `scripts/lib/issues.mjs` | semidura | — | #341 |
+| P10.2 | Sin aprendizaje registrado, un fondo no se cierra | script_propio · `scripts/lib/fondos.mjs` | semidura | `fondo-con-ficha-y-controles` | #341 |
 | **Aprender** · blanda | | | | | |
 | P11.1 | Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria | nada · `CLAUDE.md` | blanda | `lecciones-a-un-test` | #337, #338 |
 | P11.2 | Toda skill de herramienta sigue la plantilla | ci · `.claude/PLANTILLA-SKILL.md` | dura | — | — |
@@ -142,7 +146,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P12.4 | Los presupuestos se recalibran cada semana con lo medido | nada · no escrita aún | blanda | — | #340 |
 | P12.5 | Las normas del proceso que se incumplen se cuentan cada semana | script_propio · `scripts/lib/normas.mjs` | semidura | — | #341, #185 |
 
-**47 obligaciones:** 6 duras · 17 semiduras · 24 blandas · 0 rotas. 11 están enlazadas con su norma del registro.
+**51 obligaciones:** 5 duras · 25 semiduras · 21 blandas · 0 rotas. 19 están enlazadas con su norma del registro.
 <!-- flujo:pasos:fin -->
 
 ## Lo que ya existía
@@ -157,15 +161,22 @@ sitios, y por eso la especificación va antes de construir:
 - **Los controles del fondo ya existen como script**, no como puerta:
   `faltas()` y `debeReabrir()` (`scripts/lib/issues.mjs`) comprueban análisis,
   fondo, arreglo, encargos abiertos y reapertura, pero solo cuando alguien lanza
-  `npm run issues`. Ningún workflow reacciona a un issue abierto, cerrado o
+  `npm run issues`. Ningún workflow reaccionaba a un issue abierto, cerrado o
   colgado desde otra vía. La fase B (#337) **mueve** esos controles a los
-  eventos de GitHub y añade los campos nuevos.
+  eventos de GitHub (`.github/workflows/fondos.yml`, lógica en
+  `scripts/lib/fondos.mjs`) y añade la ficha del fondo: un bloque `fondo` en el
+  cuerpo, con vocabularios cerrados, explicado en la skill `issues`. El CI de
+  cada PR (`scripts/fondos-pr.mjs`) pide además `Agente:`, el `Closes` de la
+  rama y el diagnóstico del fondo de cada encargo que cierra. Lo que sigue sin
+  puerta: los workflows de issues informan (comentario y etiqueta) y no impiden
+  editar.
 - **La fase A ya está en staging** (PR #349): `ops/normas.json` con 58 normas y
   su vocabulario en `scripts/lib/normas.mjs`. No esperó a este documento. Las
   obligaciones de aquí se enlazan con su norma y no pueden contradecirla; lo que
   falta de A está en #351. La línea `Casos:` del PR (#312, PR #354) también ya
-  está en staging, y es dura: la comprueba el CI (`scripts/casos-pr.mjs`) y,
-  antes, la guardia. Por eso P02.3 ya no es blanda.
+  está en staging: la comprueba el CI (`scripts/casos-pr.mjs`) y, antes, la
+  guardia. Por eso P02.3 ya no es blanda; es semidura porque «Casos: ninguno»
+  con motivo es autodeclarado.
 - **Ya hay una identidad de máquina.** La App `homenu-dependabot-merge` (PR
   #342) fusiona en staging los PR de actions de Dependabot, con su clave en un
   environment de GitHub y no en una sesión. Es el primer caso del patrón de

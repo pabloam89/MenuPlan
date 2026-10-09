@@ -21,7 +21,8 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 
 | Workflow | Cuándo | Qué hace |
 |---|---|---|
-| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | las líneas «Runbook:» y «Casos:» del PR, lint con línea base, tests y build. Es el check `tests` |
+| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | las líneas «Runbook:», «Casos:», «Agente:» y «Closes» del PR (esas dos, en el paso «Fondos del PR»), lint con línea base, tests y build. Es el check `tests` |
+| `fondos.yml` | eventos de issues (alta, edición, etiqueta, cierre, reapertura), cada día 06:35 UTC, a mano | los controles de la ficha del fondo (#337, skill `issues`): un comentario del bot con la marca `<!-- menuplan:fondo -->`, la etiqueta `control:ok` o `control:falla`, y reabrir, subir alcance o cerrar como `cerrado-eficaz`. `issues: write` y `contents: read`, sin secretos ni `pull_request_target`; nada del issue entra en un `run:` |
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano (con `probar_push`, un commit vacío si no hay precios nuevos) | precios de Mercadona; commitea y **empuja a `staging` con la deploy key** (sin el secreto, con el token). Ese push sí lanza `tests` |
 | `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |
 | `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola |
@@ -60,7 +61,13 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
   - **Línea «Closes #n» y «Agente:» del PR**: `Closes #n` por cada encargo o fondo
     que cierra (la guardia lo exige si la rama es de un issue: `npm run tarea --
     ops/x 193`) y `Agente: <nombre>` (o `sesión`); la plantilla de PR los trae.
-    De ahí sale quién arregló qué (skill `issues`).
+    De ahí sale quién arregló qué (skill `issues`). Desde #337 también los pide el
+    CI (`scripts/fondos-pr.mjs`, paso «Fondos del PR» de `tests`, para cualquiera
+    y no solo las sesiones de Claude): `Agente:` con un agente de `.claude/agents/`
+    o `sesión`; el `Closes` de la rama `area/<n>-…`; y por cada `Closes #n`, que el
+    fondo de un encargo tenga diagnóstico (mecanismo y causa de escape) y que un
+    fondo tenga aprendizaje. Bots exentos; si la API no responde, falla con la
+    causa y se relanza el check.
 
 ## Claves y accesos
 
@@ -100,6 +107,12 @@ que manda. `tests.yml` no usa ninguno. La CLI `gh` va con la sesión de Pablo (`
 
 ## Lo que falló y por qué
 
+- **2026-10-09 · `Closes #n` y `Agente:` solo los comprobaba la guardia, y la guardia
+  solo ve a las sesiones de Claude (#337).** Causa: el CI miraba `Runbook:` y
+  `Casos:` y nada más; un PR abierto desde la web o por otra vía no los llevaba y
+  `npm run issues` perdía quién arregló qué. Arreglo: `scripts/fondos-pr.mjs`
+  (paso «Fondos del PR»), con `scripts/fondos-pr.test.js`, visto fallar sin cada
+  regla. Sin comprobar: un PR real con el paso nuevo.
 - **2026-10-09 · 7 PR de una sesión arreglaron fallos sin registrar ningún caso (#185).**
   Causa: la norma era solo texto. Arreglo: la línea `Casos:` del PR (guardia + CI) y el
   freno de `pendientes.mjs`; tests en `casos.test.js` y `casos-pr.test.js`. Antes: 0 de 7.
