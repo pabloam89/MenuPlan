@@ -1,0 +1,60 @@
+# Fusiona solos en staging los PR de Dependabot de parche o menor con `tests`
+# en verde; los de versión mayor se quedan para una sesión. Encargo #193.
+#
+# Seguridad (workflow_run corre con permisos del repo, aunque lo lance un PR):
+# - NUNCA hace checkout del PR ni ejecuta nada suyo. Saca de staging (la rama
+#   por defecto, de confianza) un solo fichero, scripts/dependabot-auto.mjs,
+#   que lee el PR por la API.
+# - Acciones fijadas por SHA; permisos mínimos y solo en el job.
+# - Quién es el autor, de qué SHA es el check, quién ha empujado y qué
+#   ficheros toca lo comprueba el script por la API, no por el nombre de la
+#   rama (el filtro de abajo solo ahorra runs). La fusión lleva el head SHA
+#   comprobado: si el PR cambia entre medias, GitHub la rechaza.
+#
+# Con GITHUB_TOKEN: su fusión no lanza `tests` sobre staging (Vercel sí
+# despliega: va por su app de GitHub, no por Actions), y no puede fusionar un
+# PR que cambie .github/workflows (eso queda para una sesión).
+
+name: Dependabot auto
+
+on:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  # Una pasada a la vez. Cada una repasa todos los PR abiertos de Dependabot,
+  # así que si se cancela una que esperaba, la siguiente hace su trabajo.
+  group: dependabot-auto
+  cancel-in-progress: false
+
+jobs:
+  fusionar:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'pull_request' &&
+       github.event.workflow_run.path == '.github/workflows/tests.yml' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
+       startsWith(github.event.workflow_run.head_branch, 'dependabot/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # fusionar el PR
+      pull-requests: write # fusionar y comentar «@dependabot rebase»
+      checks: read # el check `tests` del head SHA
+    steps:
+      - name: Sacar el script de staging (no el PR)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+          sparse-checkout: scripts/dependabot-auto.mjs
+          sparse-checkout-cone-mode: false
+      - name: Fusionar los pequeños y pedir rebase a los atrasados
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/dependabot-auto.mjs --si

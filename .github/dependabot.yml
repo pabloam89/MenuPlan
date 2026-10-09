@@ -1,9 +1,17 @@
 # Dependabot: avisa de librerías desfasadas o con vulnerabilidades.
 #
-# Somos dos personas: un solo PR semanal agrupado por ecosistema, contra
-# staging (la rama por defecto), y como mucho 3 abiertos a la vez. Los PR de
-# seguridad (si se activan las alertas en los ajustes del repo) no esperan al
-# lunes: Dependabot los abre en cuanto sale el aviso.
+# Somos dos personas: PR semanales agrupados, contra staging (la rama por
+# defecto), y como mucho 3 abiertos a la vez por ecosistema. Cada ecosistema
+# en dos grupos (#193):
+#   - `*-menores` (parche y menor): los fusiona solo
+#     .github/workflows/dependabot-auto.yml cuando `tests` está en verde.
+#   - `*-mayores` (mayor): se quedan abiertos para que los mire una sesión.
+# Los de actions tocan .github/workflows y el GITHUB_TOKEN no puede fusionarlos:
+# los dos grupos de actions los fusiona una sesión.
+#
+# Los PR de seguridad no esperan al lunes: Dependabot los abre en cuanto sale
+# el aviso, uno por librería (también en /dish-gallery, que no está aquí a
+# propósito: es una herramienta aparte, parada; ver #193).
 
 version: 2
 updates:
@@ -19,9 +27,14 @@ updates:
     commit-message:
       prefix: "chore(deps)"
     groups:
-      npm-semanal:
+      npm-menores:
         applies-to: version-updates
         patterns: ["*"]
+        update-types: [minor, patch]
+      npm-mayores:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [major]
 
   - package-ecosystem: github-actions
     directory: /
@@ -35,6 +48,11 @@ updates:
     commit-message:
       prefix: "chore(ci)"
     groups:
-      actions-semanal:
+      actions-menores:
         applies-to: version-updates
         patterns: ["*"]
+        update-types: [minor, patch]
+      actions-mayores:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [major]
