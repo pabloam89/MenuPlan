@@ -42,10 +42,9 @@ const DUPLICADOS_HEREDADOS = new Set(["0003", "0006", "0051"]);
  * Números reservados para una migración que está en otra rama y aún no ha
  * entrado. No es un hueco perdido: tiene dueño y se borra de aquí en cuanto
  * su fichero exista.
- *   0093: `0093_borrar_copias_catalogo` (issue #303), en el worktree
- *         MenuPlan-borrar-copias-catalogo; la 0094 (#273) salió después.
+ *   (ninguno ahora mismo)
  */
-const RESERVADOS = new Set(["0093"]);
+const RESERVADOS = new Set([]);
 
 describe("las migraciones se pueden nombrar sin ambigüedad", () => {
   it("ningún número nuevo repetido", () => {
