@@ -92,12 +92,18 @@ const SENALES = [
   /\b(espera|esperate|un momento|momentito|un segundo|pregunt|consult|miro|mirar|mire|luego|despues|mas tarde|ahora te|ahora lo|te digo|ni idea|dejame|prefiero no|no quiero|no estoy segur|later|wait|hold on|check|ask|not sure|don'?t know|dunno|rather not)/,
   // Un no: lo guarda Lola (ajustar_alergias, por persona), no el código.
   /\b(no|nada|ninguna|ninguno|ningun|nadie|none|nope|nobody|nothing)\b/,
+  // Un sí, siempre, sea cual sea la longitud («sí, una, la de Leo…, hazme el
+  // menú»): «si puedes, hazme el menú» queda como falso positivo, el lado seguro.
+  /\b(si|yes|yeah|yep)\b/,
+  // «Un tema con Leo y el chocolate», «tiene sus cosas», «problemas con».
+  /\b(tema|temas|problema|problemas|cosa con|cosas con)\b/,
+  /\b(df|pan)\b/,
 ];
-// «Sí», «Lucas sí», «una»: afirmaciones solo en un mensaje corto. En uno largo
-// («Pablo 36, Marta 34 y una niña de 2», «tenemos un hijo de 4») no son un sí,
+// «Una», «tenemos»: afirmaciones solo en un mensaje corto. En uno largo
+// («Pablo 36, Marta 34 y una niña de 2», «tenemos un hijo de 4») no lo son,
 // y en el alta dejaban la casa con 27 platos. Pegadas a «alguna» o a
 // «alergia» ya dan señal arriba.
-const AFIRMA = new Set(["si", "yes", "yeah", "yep", "uno", "una", "tiene", "tienen", "tenemos", "tengo"]);
+const AFIRMA = new Set(["uno", "una", "tiene", "tienen", "tenemos", "tengo"]);
 const CORTO = 4;
 const UNION = new Set(["y", "e", "and"]);
 const primerNombre = (n) => limpio(n).trim().split(/\s+/)[0] ?? "";
@@ -112,6 +118,8 @@ export function haySenal(texto, { nombres = [] } = {}) {
   const t = limpio(texto).replace(/^\s*\[[^\]]*\]\s*/, "");
   if (SENALES.some((re) => re.test(t))) return true;
   const casa = new Set(nombres.map(primerNombre).filter(Boolean));
+  // «Leo tiene…» (alguien de la casa antes del turno), en cualquier longitud.
+  if ([...casa].some((n) => new RegExp(`(^|[^\\p{L}])${escapar(n)}\\s+(tiene|has)\\b`, "u").test(t))) return true;
   const palabras = t.replace(/[^\p{L}\p{N}' ]/gu, " ").split(/\s+/).filter((p) => p && !UNION.has(p));
   const sinNombres = palabras.filter((p) => !casa.has(p));
   if (sinNombres.length <= CORTO && sinNombres.some((p) => AFIRMA.has(p))) return true;

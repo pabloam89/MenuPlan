@@ -32,7 +32,7 @@ const casa = () => ({
     },
   },
 });
-const NOMBRES = ["Ana", "Pablo", "Lucas"];
+const NOMBRES = ["Ana", "Pablo", "Lucas", "Leo"];
 
 let guardado;
 let logs;
@@ -102,6 +102,11 @@ const CON_SENAL = [
   "le salen ronchas", "lleva siempre el epipen", "le pusieron adrenalina", "lupino", "es celi", "she's gf",
   "el atún", "salmón no", "merluza", "gambones", "crevettes", "arachidi", "Erdnüsse", "noci", "ahora te digo algo",
   "Leo, güebo",
+  // cuarta ronda: un sí o «<alguien de la casa> tiene…» en un mensaje largo
+  "sí, una, la de Leo, ya la verás en la app, hazme el menú", "yes Leo has one, make the menu",
+  "Sí, Leo tiene una cosa con los frutos rojos, pero hazme el menú ya",
+  "tenemos un tema con Leo y el chocolate, prepárame el menú", "Leo tiene sus cosas con la comida, hazme el menú ya",
+  "si puedes, hazme el menú", "DF", "pan",
 ];
 const SIN_SENAL = [
   "Hazme el menú de la semana que viene", "¿qué cenamos hoy?", "prepárame ya el menú", "vale, gracias",
