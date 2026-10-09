@@ -517,7 +517,12 @@ export function jsonDeTexto(texto) {
   const a = t.indexOf("{");
   const b = t.lastIndexOf("}");
   if (a === -1 || b <= a) return null;
-  try { return JSON.parse(t.slice(a, b + 1)); } catch { return null; }
+  try {
+    return JSON.parse(t.slice(a, b + 1));
+  } catch (e) {
+    console.warn(`[skills] respuesta sin JSON válido: ${e.message}`);
+    return null;
+  }
 }
 
 /** Resumen de una pasada: aciertos de disparo y comprobaciones cumplidas. */

@@ -98,7 +98,10 @@ async function llamar({ modelo, system, usuario, maxTokens }) {
       headers: { "x-api-key": API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify(cuerpo),
     });
-    const data = await res.json().catch(() => ({}));
+    const data = await res.json().catch((e) => {
+      console.warn(`[skills-prueba] respuesta ${res.status} sin JSON: ${e.message}`);
+      return {};
+    });
     if (res.ok) {
       llamadas++;
       gastado += costeUsd(data.usage, modelo, { ttl: "5m" });
