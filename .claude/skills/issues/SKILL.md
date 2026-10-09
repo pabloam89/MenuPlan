@@ -60,7 +60,7 @@ acaban sus encargos y el test de la clase está en verde.
   los trae. Si se cierra a mano, «PR #n» en el comentario de cierre.
 - **Los casos de un PR** se registran **antes de abrirlo** (uno por issue) y el
   PR los nombra en su línea `Casos: #n, #m` o `Casos: ninguno — <motivo>`
-  (#185). Esa línea, la guardia y el CI que la comprueban son de la skill `github`;
+  (#185). Esa línea, la guardia y el CI que la comprueban, y la lección de los 7 PR sin caso, son de la skill `github`;
   `npm run issues` cuenta cuántos de los últimos 50 PR la llevan.
 - **Cada semana**, `/revision-issues`: puntuales que se parecen (tres son un
   fondo), casos en el fondo equivocado, fondos repetidos y fondos sin encargos.
@@ -111,10 +111,6 @@ en un issue (esos, a Pablo, en privado).
   no se enlazaba con nada. Arreglo: (#271) la marca, el cruce y «posiblemente
   parada»; test en `scripts/lleva.test.js`. Antes: 3 de 11 carpetas sin número
   y 0 de 6 encargos con rama enseñados como «lo lleva».
-- **2026-10-09 · 7 PR de una sesión arreglaron fallos sin registrar ningún caso (#185).**
-  Causa: la norma era solo texto. Arreglo: la línea `Casos:` del PR (guardia + CI) y el
-  freno de `pendientes.mjs`; tests en `casos.test.js` y `casos-pr.test.js`. Antes: 0 de 7.
-  Es de las dos skills; el detalle del CI, en `github`.
 
 ## Qué requiere el OK de Pablo
 

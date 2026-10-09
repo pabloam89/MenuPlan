@@ -139,6 +139,14 @@ describe.each(skills)("%s", (nombre) => {
   });
 });
 
+it("cada excepción de líneas existe y sigue haciendo falta (caduca al partir la skill)", () => {
+  for (const nombre of Object.keys(EXCEPCIONES_LINEAS)) {
+    expect(skills, `${nombre} ya no existe: quita su excepción`).toContain(nombre);
+    const lineas = leer(nombre).texto.split("\n").length;
+    expect(lineas, `${nombre} ya cabe en ${MAX_LINEAS} líneas: quita su excepción`).toBeGreaterThan(MAX_LINEAS);
+  }
+});
+
 it("la plantilla lista las mismas secciones que exige este test", () => {
   const plantilla = readFileSync(join(AQUI, "PLANTILLA-SKILL.md"), "utf8");
   const bloque = plantilla.match(/```markdown\n([\s\S]*?)\n```/)?.[1] ?? "";

@@ -22,7 +22,7 @@ registran como issues tipo:caso, cada uno con su problema de fondo
                                    (mínimo 25 caracteres; «n/a» no vale)
 
 Runbook (obligatoria si el PR toca ficheros de un dominio con skill: supabase,
-github, vercel, 1password, telegram; el mapa está en .claude/dominios-skills.json
+github, issues, vercel, 1password, telegram, hetzner, tailscale; el mapa está en .claude/dominios-skills.json
 y el CI lo comprueba). Escribe una de estas dos, a la derecha de «Runbook:»:
   actualizado (skill <nombre>)   → has actualizado ese runbook EN ESTE PR
   sin novedades                  → no has aprendido nada que merezca quedar escrito
