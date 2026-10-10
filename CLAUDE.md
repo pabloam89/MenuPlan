@@ -189,7 +189,7 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 - Crear, rotar o cambiar secretos y variables de entorno.
 - Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
 - Escribir a personas o publicar algo en su nombre.
-- Ampliar los permisos de `.claude/settings.json` (por PR con juez; la guardia ya no pregunta al editarlo).
+- Ampliar los permisos de `.claude/settings.json` (la sesión pregunta en el chat antes de abrir el PR y el juez lo marca; la guardia ya no pregunta al editar).
 - Reescribir historia de una rama que no es tuya.
 
 **Autorizado de forma permanente** (se hace y se cuenta en el resumen):
