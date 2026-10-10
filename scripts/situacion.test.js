@@ -23,7 +23,7 @@ function fuentes(sobre = {}) {
       { number: 501, title: "bot: otra", headRefName: "bot/501-otra", checks: [{ status: "COMPLETED", conclusion: "FAILURE" }] },
     ],
     atrasada: (rama) => rama === "bot/501-otra",
-    fusionados: (desde) => [
+    fusionados: () => [
       { number: 490, title: "reciente", headRefName: "ops/490-r", mergedAt: hace(2) },
       { number: 480, title: "vieja", headRefName: "ops/480-v", mergedAt: hace(9) },
     ],
