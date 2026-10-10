@@ -70,7 +70,7 @@ No es para:
    ruta. Nada de fechas fuera de «Lo que falló», «Registro de cambios» y
    «Fuentes». Cada forma en su sitio (tabla, lista, negrita, código): ver
    `.claude/skills/forja-de-skills/referencias/presentacion.md`. El tipo sale de
-   sus respuestas (`respuestas_tipo` de `ops/forja.json`); se copia el molde de
+   sus respuestas, en el frontmatter (metadata), junto a `tipo`; se copia el molde de
    ese tipo, `.claude/plantillas-skill/<tipo>.md` (secciones, ficha, criterios,
    estándar y ejemplo). Sale: un `SKILL.md` por debajo del límite y sin
    párrafos que el modelo ya sabe.

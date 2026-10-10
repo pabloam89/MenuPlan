@@ -73,14 +73,15 @@ name: <igual que la carpeta>
 description: Úsala <cuándo: los disparadores concretos>. No para: <qué es de otra skill, regla o agente>.
 metadata:
   tipo: <el que dan sus respuestas>
+  opera_proveedor: <true o false>   # y una línea por cada pregunta de preguntas_tipo; el molde las trae todas
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
 ---
 ```
 
-- `tipo` no se elige: sale de sus respuestas (sí o no) a las preguntas de
-  `preguntas_tipo`, que se apuntan en `respuestas_tipo` de `ops/forja.json`;
-  manda la primera con sí (`tipoDeSkill`) y, si ninguna, `conocimiento`. El
+- `tipo` no se elige: sale de sus respuestas (`true` o `false`) a las preguntas de
+  `preguntas_tipo` de `ops/forja.json`, que van en el frontmatter (metadata), junto a `tipo`
+  (las seis líneas, en el molde de su tipo); manda la primera con sí (`tipoDeSkill`) y, si ninguna, `conocimiento`. El
   nivel 1 falla si el frontmatter dice otro.
 - `description` es lo que lee quien decide si abrirla: dice cuándo, con las
   palabras con que se pide, y qué no es suyo. Entre 81 y 600 caracteres.
