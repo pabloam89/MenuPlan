@@ -34,10 +34,17 @@ falla») y en la skill `issues`.
    `--escribir` en un PR) o un fallo (encargo para arreglarlo); repasa los
    juicios caducados; y del plano más lejos de su objetivo de «Lanzar»,
    propón como encargo su primer `por_definir`.
-8. Enseña una tabla corta con las propuestas y pregunta cuáles se aprueban.
+8. **Presupuestos (fase F, #340).** Corre `npm run fabrica -- --recalibrar` (solo
+   agregados; con `--escribir` lo guarda fuera del repo). Resume la cobertura (¿hay
+   ya 10 encargos con datos?) y, de cada celda con propuesta, di el valor, dónde
+   vive y si es aplicable; las que dicen «datos insuficientes» se dejan. Si una
+   persona aprueba una, se cambia SOLO ese valor en `ops/presupuestos.json`, por
+   PR, con `valores_iniciales: false` y `calibrado_el` con la fecha de hoy; el
+   informe nunca edita el catálogo. <!-- norma:presupuestos-se-recalibran -->
+9. Enseña una tabla corta con las propuestas y pregunta cuáles se aprueban.
    Aplica SOLO las aprobadas: `npm run issues -- --colgar`, crear fondos y
    encargos, `gh issue edit` para el análisis.
-9. Termina con el orden de ataque recomendado: los tres fondos que más casos
+10. Termina con el orden de ataque recomendado: los tres fondos que más casos
    o más daño tienen, con quién los coge.
 
 No cambies código en esta revisión: lo que salga son issues y encargos.

@@ -9,6 +9,8 @@ import { carpetaDe, contextoReal, decidir, sinAplicar } from "./guardia.mjs";
 import { cargarMapa } from "./dominios.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+// El registro de eventos (#340) escribe en ~/.claude/menuplan-fabrica: un test que lanza la guardia no toca la carpeta real del usuario.
+process.env.MENUPLAN_FABRICA_DIR = mkdtempSync(join(tmpdir(), "guardia-eventos-"));
 const ESTADO_REAL = readFileSync(join(RAIZ, "supabase", "ESTADO.md"), "utf8");
 
 const ESTADO = "| **Sin aplicar** | **2** — `0080_bot_tareas_v2`, `0086_vocabulario_de_la_app` |";
