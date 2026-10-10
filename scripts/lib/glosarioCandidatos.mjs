@@ -16,7 +16,8 @@
  * como regla (p. ej. ampliar PALABRAS_VACIAS), en vez de juzgarlo uno a uno.
  *
  * Es léxico y sin lematizar: dos palabras son la misma si comparten las RAIZ letras
- * del principio sin tildes («comprueba» es «comprobar»). Un candidato no es un fallo:
+ * del principio sin tildes, no tienen más de MAX_LETRAS_DE_MAS letras de más y no son
+ * FALSOS_PARIENTES («comprueba» es «comprobar»; «principio» no es «principal»). Un candidato no es un fallo:
  * no bloquea nada; solo se cuenta y se juzga.
  */
 import { readFileSync } from "node:fs";
@@ -112,15 +113,45 @@ const palabras = (texto) => plano(texto).split(/[^a-zñ]+/).filter(Boolean);
 /** Frases sin cruzar signos de puntuación (un par no salta de una frase a otra). */
 const frases = (texto) => plano(texto).split(/[.,;:!?()[\]{}«»"'`|/\\\n—–-]+/);
 
-/** Raíces de todo lo que ya está en el glosario: términos, sinónimos y nombres retirados (las palabras cortas, enteras: «caso»). */
+/** Las palabras de todo lo que ya está en el glosario: términos, sinónimos y nombres retirados. */
 export function raicesDelGlosario(g) {
   const r = new Set();
-  for (const t of g.terminos) for (const x of [t.termino, ...prohibidosDe(t)]) for (const w of palabras(x)) if (w.length >= 3) r.add(raiz(w));
+  for (const t of g.terminos) for (const x of [t.termino, ...prohibidosDe(t)]) for (const w of palabras(x)) if (w.length >= 3) r.add(w);
   return r;
 }
 
-/** Si una palabra ya está en el glosario: empieza por alguna de sus raíces («casos» por «caso»). */
-const enGlosario = (w, raices) => { for (let n = Math.min(RAIZ, w.length); n >= 3; n--) if (raices.has(w.slice(0, n))) return true; return false; };
+/** Cuántas letras más que la palabra del glosario puede tener una de su familia («casos», «comprueba»). */
+export const MAX_LETRAS_DE_MAS = 3;
+
+/**
+ * Falsos parientes: palabras que comparten raíz con una del glosario y no son de su
+ * familia. [prefijo de la palabra, palabra del glosario]. La regla de las letras de más
+ * ya separa las largas (normalización/norma, información/informe); estas son de largo
+ * parecido. Se añade una cuando un candidato real se pierde por esto.
+ */
+export const FALSOS_PARIENTES = [
+  ["principi", "principal"], ["constan", "constructor"], ["constan", "constata"], ["constan", "constatar"], ["guarda", "guardia"], ["guarda", "guardian"], ["contrat", "control"],
+  ["normaliz", "norma"], ["informac", "informe"],
+];
+
+/**
+ * Si una palabra ya está en el glosario: comparte las RAIZ primeras letras (o la palabra
+ * entera, si es más corta) con una del glosario, no tiene más de MAX_LETRAS_DE_MAS letras
+ * de más y no es un falso pariente.
+ */
+function enGlosario(w, delGlosario, cache) {
+  if (cache.has(w)) return cache.get(w);
+  let si = false;
+  for (const gw of delGlosario) {
+    const n = Math.min(RAIZ, gw.length);
+    if (w.slice(0, n) !== gw.slice(0, n) || w.length - gw.length > MAX_LETRAS_DE_MAS) continue;
+    if (FALSOS_PARIENTES.some(([pre, de]) => de === gw && w.startsWith(pre))) continue;
+    si = true;
+    break;
+  }
+  cache.set(w, si);
+  return si;
+}
 
 /** Los trozos de prosa de las zonas: [{ ruta, zona, texto }]. Una ruta en varias zonas cuenta una vez, en la primera. */
 export function prosaDeZonas(raizRepo, g, { leer = (r) => readFileSync(join(raizRepo, r), "utf8"), ficheros = (p) => ficherosDe(raizRepo, p) } = {}) {
@@ -142,6 +173,7 @@ const contenido = (w, minimo = MIN_LETRAS) => w.length >= minimo && !PALABRAS_VA
  */
 export function candidatos(trozos, g, { juicios = [], umbral = UMBRAL } = {}) {
   const yaGlosario = raicesDelGlosario(g);
+  const cache = new Map();
   const juzgados = new Set(juicios.map((j) => plano(j.candidato)));
   const cuenta = new Map();
   const sumar = (clave, tipo, zona, ruta) => {
@@ -158,10 +190,10 @@ export function candidatos(trozos, g, { juicios = [], umbral = UMBRAL } = {}) {
       const ws = palabras(frase);
       for (let i = 0; i < ws.length; i++) {
         const w = ws[i];
-        if (contenido(w) && !enGlosario(w, yaGlosario)) sumar(w, "palabra", zonaDe(ruta), ruta);
+        if (contenido(w) && !enGlosario(w, yaGlosario, cache)) sumar(w, "palabra", zonaDe(ruta), ruta);
         const b = ws[i + 1];
         const c = ws[i + 2];
-        const nuevoPar = (a, z) => contenido(a, 4) && contenido(z, 4) && !(enGlosario(a, yaGlosario) && enGlosario(z, yaGlosario));
+        const nuevoPar = (a, z) => contenido(a, 4) && contenido(z, 4) && !(enGlosario(a, yaGlosario, cache) && enGlosario(z, yaGlosario, cache));
         if (b && nuevoPar(w, b)) sumar(`${w} ${b}`, "par", zonaDe(ruta), ruta);
         if (b === "de" && c && nuevoPar(w, c)) sumar(`${w} de ${c}`, "par", zonaDe(ruta), ruta);
       }

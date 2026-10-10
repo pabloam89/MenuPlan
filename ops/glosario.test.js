@@ -396,6 +396,12 @@ describe("autotest de los candidatos", () => {
     expect(r.find((c) => c.candidato === "ventana")).toMatchObject({ apariciones: 7, ficheros: 7, zonas: 5, tipo: "palabra" });
   });
 
+  it("los falsos parientes de una palabra del glosario sí cuentan; su familia, no", () => {
+    const r = candidatos(trozos("principio constante normalización información guardar contrato normativa; comprueba fondos revisores guardias"), G, { umbral: UMB }).map((c) => c.candidato);
+    for (const w of ["principio", "constante", "normalizacion", "informacion", "guardar", "contrato", "normativa"]) expect(r, w).toContain(w);
+    for (const w of ["comprueba", "fondos", "revisores", "guardias"]) expect(r, w).not.toContain(w);
+  });
+
   it("no cuenta palabras vacías, ni lo que va en código o entre «»", () => {
     const md = prosaDeMarkdown("Cuando sigue `ventana` y «ventana» y\n```\nventana\n```\n");
     const r = candidatos(trozos(md), G, { umbral: UMB });
