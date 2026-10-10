@@ -66,8 +66,11 @@ No es para:
    modelo no sabe; un camino por defecto y una salida para el caso raro; cada
    paso con lo que sale; el detalle largo a una capa que `SKILL.md` cita con su
    ruta. Nada de fechas fuera de «Lo que falló», «Registro de cambios» y
-   «Fuentes». Sale: un `SKILL.md` por debajo del límite y sin párrafos que el
-   modelo ya sabe.
+   «Fuentes». Cada forma en su sitio (tabla, lista, negrita, código): ver
+   `.claude/skills/forja-de-skills/referencias/presentacion.md`. El estándar de
+   cada tipo (qué lo hace bueno, errores típicos y un ejemplo) está en
+   `.claude/PLANTILLA-SKILL.md`. Sale: un `SKILL.md` por debajo del límite y
+   sin párrafos que el modelo ya sabe.
 6. **Pasar el nivel 1** (`npm test -- .claude/skills.test.js`). Si falla la
    regla `forja`, se arregla la skill: la lista `EXCEPCIONES_FORJA` de
    `scripts/lib/skillsForja.mjs` **solo baja** y no se le añade nada.
@@ -89,7 +92,7 @@ quien lo vigila. El reparto:
 
 | Quién | Qué mira | Cuesta |
 |---|---|---|
-| `.claude/skills.test.js` (nivel 1, en el CI) | forma, tipo, dueño, secciones, límite de líneas y de descripción, rutas, capas, copiado, casos (mínimos propios y **tres de frontera**), fechas en el cuerpo, criterio de parada en «Método», límite de ejemplos y solape entre descripciones | nada |
+| `.claude/skills.test.js` (nivel 1, en el CI) | forma, tipo, dueño, secciones, límite de líneas y de descripción, rutas, capas, copiado, casos (mínimos propios y **tres de frontera**), fechas en el cuerpo, criterio de parada en «Método», límite de ejemplos, solape entre descripciones y presentación mecánica (comandos en código, tablas bien formadas, cabeceras sin saltos) | nada |
 | `npm run skills-prueba` (nivel 2) | si la descripción dispara (también en los casi-fallos) y si el `SKILL.md` hace decir lo que pide `debe_salir` | tokens |
 | El `revisor` | si cada párrafo justifica su coste, si la libertad es la adecuada (pasos exactos donde hay riesgo), si hay un camino por defecto y no un menú, si los ejemplos son canónicos y no se contradicen, si el vocabulario es uno solo, si los casos de frontera son casi-fallos de verdad | una revisión |
 
@@ -99,7 +102,8 @@ mide la skill con ella, no contra el modelo solo, y no repite: hasta que lo
 haga, el paso 2 y dos pasadas seguidas son la comprobación manual.
 
 Los controles automáticos viven en `scripts/lib/skillsForja.mjs`, con un código
-cada uno (`casos-negativos`, `fechas`, `sin-parada`, `ejemplos`, `solape`) y su
+cada uno (`casos-negativos`, `fechas`, `sin-parada`, `ejemplos`, `solape` y los
+de presentación `comando-suelto`, `tabla` y `cabeceras`) y su
 porqué en `.claude/skills/forja-de-skills/referencias/defectos.md`. Cada uno se
 ve fallar en `.claude/skills.test.js`. El test de la plantilla comprueba que
 `.claude/PLANTILLA-SKILL.md` no contradice estos números.
@@ -137,6 +141,7 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 
 ## Registro de cambios
 
+- **2026-10-10** · Presentación (`.claude/skills/forja-de-skills/referencias/presentacion.md`) con tres controles mecánicos, el estándar de cada tipo en la plantilla con su test, y 12 de las 19 excepciones quitadas (#410).
 - **2026-10-10** · Primera versión: doce criterios con fuente, defectos con su señal, método con regla de parada, y la regla `forja` del nivel 1 con su lista de excepciones que solo baja (#409).
 
 ## Fuentes y comprobación
@@ -151,4 +156,4 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 
 Cada afirmación de los criterios y los defectos va marcada: [F] está en la fuente citada, [I] es inferencia nuestra y no se toma por hecho.
 
-Comprobado el 2026-10-10: el nivel 1 con `.claude/skills.test.js` (cada control de la forja visto fallar con una skill de mentira) y las cifras de las excepciones sobre las 11 skills del repo. Sin comprobar: las fuentes se recogieron de la investigación del encargo y no se han releído al escribir; las cifras de SkillsBench vienen de resúmenes, no del artículo; el solape entre descripciones y el valor de `MAX_SOLAPE` son inferencia (no hay fuente oficial); el A/B con y sin skill no existe aún; `npm run skills-prueba -- forja-de-skills` no se ha lanzado (cuesta tokens).
+Comprobado el 2026-10-10: el nivel 1 con `.claude/skills.test.js` (cada control de la forja visto fallar con una skill de mentira) y las cifras de las excepciones sobre las 11 skills del repo. Comprobado el 2026-10-10 (#410): los tres controles de presentación y el estándar de cada tipo de la plantilla, cada uno visto fallar en `.claude/skills.test.js`. Sin comprobar: las fuentes se recogieron de la investigación del encargo y no se han releído al escribir; las cifras de SkillsBench vienen de resúmenes, no del artículo; el solape entre descripciones y el valor de `MAX_SOLAPE` son inferencia (no hay fuente oficial); el A/B con y sin skill no existe aún; `npm run skills-prueba -- forja-de-skills` no se ha lanzado (cuesta tokens).

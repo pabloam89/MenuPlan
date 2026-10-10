@@ -35,6 +35,18 @@
       "id": "frontera-log-ci",
       "peticion": "¿Cómo veo solo el log de lo que falló en el CI del PR 400?",
       "skill": "github"
+    },
+    {
+      "id": "frontera-linea-casos-pr",
+      "peticion": "Voy a abrir el PR y el CI me pide la línea Casos:; ¿qué pongo y cómo la compruebo a mano?",
+      "skill": "github",
+      "nota": "Casi-fallo: habla de casos, pero la línea Casos: del PR y su comprobación del CI son de github."
+    },
+    {
+      "id": "frontera-causa-de-fondo",
+      "peticion": "Tengo un fallo ya registrado y no sé por qué pasó: quiero llegar al mecanismo y a por qué nada lo detectó.",
+      "skill": "causa-raiz",
+      "nota": "Casi-fallo: el caso ya está registrado (issues); lo que pide es diagnosticarlo, que es causa-raiz."
     }
   ]
 }

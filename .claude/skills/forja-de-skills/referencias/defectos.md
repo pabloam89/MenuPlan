@@ -20,12 +20,24 @@ inferencia, también la aplicada por analogía desde CE y BEA (las fuentes está
 | 11 | Referencias huérfanas o anidadas | Un fichero que `SKILL.md` no cita, o que cita a otro | `estructura`; `rutas` | [F] BP |
 | 12 | Pocos casos de frontera | Menos de tres peticiones parecidas que no son suyas | `casos-negativos` | [F] DESC pide muchos negativos; el tres es [I] |
 
+## Presentación (#410)
+
+Tres controles más, sobre la forma del texto (criterio nuestro [I], sin fuente
+oficial que los mida; el porqué y lo que solo juzga una persona, en
+`.claude/skills/forja-de-skills/referencias/presentacion.md`):
+
+| Código | Señal | Por qué |
+|---|---|---|
+| `comando-suelto` | Un comando de la casa (`npm run …`, `gh …`, `git …`) en prosa, fuera de comillas invertidas o de bloque | Se copia mal y no se distingue del texto [I] |
+| `tabla` | Una fila con más o menos columnas que la cabecera, o una celda vacía | Se rompe al pintarla; un `\|` sin escapar dentro de código parte la celda [I] |
+| `cabeceras` | Un salto de nivel (de `##` a `####`) | La estructura deja de leerse como índice [I] |
+
 ## Cómo se lee la lista de excepciones
 
 `EXCEPCIONES_FORJA` (en `scripts/lib/skillsForja.mjs`) apunta, por skill, los
 códigos que hoy incumple. Solo baja: un código nuevo en una skill falla el test, y
 uno ya arreglado también hasta que se quita. El encargo de arreglar las que
-quedan es de #410 y #411, que la dejan vacía.
+quedan es de #411, que la deja vacía.
 
 ## Lo que ningún test ve (juzga el `revisor` o `skills-prueba`)
 
