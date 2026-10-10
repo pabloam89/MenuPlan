@@ -37,6 +37,7 @@
     "normas": "node scripts/normas.mjs",
     "planos": "node scripts/planos.mjs",
     "flujo": "node scripts/flujo.mjs",
+    "higiene-skills": "node scripts/higiene-skills.mjs",
     "skills-prueba": "node scripts/skills-prueba.mjs",
     "skills-uso": "node scripts/skills-uso.mjs",
     "skills-encargo": "node scripts/skills-encargo.mjs",

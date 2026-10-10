@@ -103,6 +103,24 @@ escriben en ella, y cada migración es un cambio en producción.
 
 El cómo, en la regla `migraciones`; cómo es una tabla, en `PRINCIPIOS.md`.
 
+## Cómo se le habla a Pablo
+
+Pablo no es informático: toda sesión y todo agente le escribe con la misma
+forma, para que decidir le cueste poco (skill `estilo-de-respuesta`).
+
+1. Primera línea: la idea raíz en **negrita**, una frase con el resultado o la respuesta.
+2. Cuatro ideas cortas, como mucho; el resto, «si quieres te lo cuento».
+3. Al final, una línea con lo que le toca. Si es una decisión, **tres opciones**
+   en llano (A, B, C), la recomendada primero y qué pasa con cada una.
+
+Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
+Un término técnico se explica la primera vez y después se llama igual. Ficheros,
+ramas y comandos van a un issue, no al chat, salvo que él los pida o los tenga
+que ejecutar. Plantillas fijas: resultado, decisión, error, concepto y resumen
+(estructura, glosario y ejemplos, en la skill). De un informe de agente, solo el
+`RESUMEN` y las `DECISIONES PENDIENTES` siguen esta forma
+(`.claude/PLANTILLA-AGENTE.md`).
+
 ## Encargos
 
 Clasifica lo que pide Pablo. Lo trivial lo haces tú. Si es normal (un dominio)
@@ -141,8 +159,10 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 por su nombre: `1password`, `alta-de-secreto`, `vercel`, `supabase`, `github`, `issues`,
 `telegram`, `hetzner` y `tailscale` (precargadas en los agentes que el mapa `.claude/dominios-skills.json` pone en su dominio); y
 las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
-`plan-de-arreglo` (partir el arreglo en encargos); y la meta `forja-de-skills`
-(crear, probar y podar skills). Todas siguen
+`plan-de-arreglo` (partir el arreglo en encargos); las meta `forja-de-skills`
+(crear, probar y podar skills) e `higiene-de-skills` (revisar una ya escrita);
+y el estándar `estilo-de-respuesta` (cómo se escribe a Pablo: idea raíz en
+negrita, cuatro ideas y tres opciones). Todas siguen
 `.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
 ocho (los que existan, en la plantilla; cada tipo con sus secciones), dueño, fecha
 de comprobación que caduca a los 90 días, un `SKILL.md` corto con el detalle en

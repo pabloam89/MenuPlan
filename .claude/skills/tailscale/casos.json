@@ -36,9 +36,9 @@
     },
     {
       "id": "frontera-abrir-puerto",
-      "peticion": "Quiero abrir el puerto 5432 del Postgres del panel a internet solo un rato para conectarme desde fuera de la red privada.",
+      "peticion": "Tailscale conecta bien pero el servidor del panel no contesta por SSH; creo que el cortafuegos del servidor está bloqueando el acceso.",
       "skill": "hetzner",
-      "nota": "Casi-fallo: habla de la red privada, pero abrir puertos y el cortafuegos son de hetzner (con el OK de Pablo)."
+      "nota": "Casi-fallo: habla de la red privada, pero el cortafuegos del servidor (ufw) es de hetzner (con el OK de Pablo)."
     },
     {
       "id": "frontera-auth-key",

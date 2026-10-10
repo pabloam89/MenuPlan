@@ -69,11 +69,30 @@
         "datos"
       ]
     },
+    "higiene-de-skills": {
+      "comandos": [],
+      "rutas": [
+        "^scripts/higiene-skills\\.mjs$",
+        "^scripts/lib/higieneSkills\\.mjs$"
+      ],
+      "agentes": [
+        "gobierno"
+      ]
+    },
     "forja-de-skills": {
       "comandos": [],
       "rutas": [
         "^scripts/lib/skillsForja\\.mjs$",
         "^\\.claude/PLANTILLA-SKILL\\.md$"
+      ],
+      "agentes": [
+        "gobierno"
+      ]
+    },
+    "estilo-de-respuesta": {
+      "comandos": [],
+      "rutas": [
+        "^[.]claude/skills/estilo-de-respuesta/"
       ],
       "agentes": [
         "gobierno"

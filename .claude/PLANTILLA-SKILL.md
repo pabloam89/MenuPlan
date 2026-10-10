@@ -124,7 +124,7 @@ qué», «Registro de cambios», «Fuentes y comprobación»).
 | `meta` | Cómo crear, probar y podar las propias piezas | Cuándo y para qué · Método · Cómo se prueba · Cuándo se poda · Lo que falló y por qué · Registro de cambios · Fuentes y comprobación |
 
 Hoy hay skills de tipo herramienta, de tipo oficio (`causa-raiz` y
-`plan-de-arreglo`, #338), de tipo receta de cambio (`alta-de-secreto`, #398) y de tipo meta (`forja-de-skills`, #409); el estado de cada tipo lo lleva `ops/flujo.json`. Los demás quedan declarados y no se crea ninguno hasta que
+`plan-de-arreglo`, #338), de tipo receta de cambio (`alta-de-secreto`, #398), de tipo meta (`forja-de-skills`, #409) y de tipo estándar (`estilo-de-respuesta`, #415); el estado de cada tipo lo lleva `ops/flujo.json`. Los demás quedan declarados y no se crea ninguno hasta que
 cumpla la regla de parada.
 
 ### Forma del tipo herramienta
@@ -299,12 +299,12 @@ No es de esta skill: <lo vecino> -> <skill que lo tiene>.
 
 #### Ejemplo mínimo
 
-Esqueleto: aún no hay ninguna skill de este tipo; con la primera, se sustituye por un ejemplo real.
+Real: `estilo-de-respuesta`, la norma de «La norma».
 
 ```
-La norma: <una frase que permite decir si un caso la cumple>.
-Mal: <el caso mínimo que la incumple> porque <la razón>.
-Bien: <el mismo caso arreglado> porque <la razón>.
+- la primera línea es una sola frase y está en negrita;
+- hay cuatro ideas o menos;
+- no hay cabeceras, tablas largas ni listas de ficheros;
 ```
 
 ### `receta_cambio`
