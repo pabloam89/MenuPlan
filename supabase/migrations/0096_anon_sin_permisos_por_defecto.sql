@@ -1,5 +1,5 @@
 -- 0096 · Las tablas y secuencias NUEVAS de `public` ya no nacen abiertas a `anon` (issue #367).
--- AUDITADA: pendiente de auditor-datos
+-- AUDITADA: auditor-datos 2026-10-10 OK
 --
 -- Qué hace. Quita a `anon` los privilegios por defecto que Supabase pone a
 -- las tablas y secuencias que `postgres` crea en `public`:
@@ -63,8 +63,8 @@
 --   Objetos de `public` con dueño distinto de postgres: 0.
 -- Cifras de después, que esta migración NO cambia (siguen igual: lo existente
 -- no se toca): lo único que cambia es lo que se cree desde ahora. El test del
--- bloque 3 lo comprueba creando una tabla, una secuencia y una función de
--- prueba que se deshacen.
+-- bloque 3 lo comprueba creando una tabla con su secuencia
+-- que se deshacen.
 --
 -- Seguimiento aparte (no en esta migración): cerrar a `anon` lo ya existente,
 -- tabla a tabla, mirando que ninguna ruta pública lo use. Queda en el issue #367.
@@ -103,22 +103,44 @@ alter default privileges for role postgres in schema public revoke all on sequen
 --    intacto. El `raise` del final lo deshace (subtransacción), así que no
 --    queda nada creado.
 do $$
+declare
+  permiso text;
+  rol text;
 begin
   begin
     create table public.zz_prueba_0096 (id bigint generated always as identity primary key);
 
-    if has_table_privilege('anon', 'public.zz_prueba_0096', 'select,insert,update,delete,truncate,references,trigger') then
-      raise exception '0096: una tabla nueva sigue naciendo con privilegios para anon';
-    end if;
-    if has_sequence_privilege('anon', pg_get_serial_sequence('public.zz_prueba_0096', 'id'), 'usage,select,update') then
-      raise exception '0096: una secuencia nueva sigue naciendo con privilegios para anon';
-    end if;
-    if not has_table_privilege('authenticated', 'public.zz_prueba_0096', 'select,insert,update,delete')
-       or not has_table_privilege('service_role', 'public.zz_prueba_0096', 'select,insert,update,delete')
-       or not has_table_privilege('consulta_lectura', 'public.zz_prueba_0096', 'select')
-       or not has_table_privilege('copia_lectura', 'public.zz_prueba_0096', 'select') then
-      raise exception '0096: una tabla nueva perdió privilegios de authenticated, service_role o los roles de lectura';
-    end if;
+    -- anon: ni un solo permiso de tabla (con maintain) ni de secuencia.
+    foreach permiso in array array['select', 'insert', 'update', 'delete', 'truncate', 'references', 'trigger', 'maintain'] loop
+      if has_table_privilege('anon', 'public.zz_prueba_0096', permiso) then
+        raise exception '0096: una tabla nueva sigue naciendo con % para anon', permiso;
+      end if;
+    end loop;
+    foreach permiso in array array['usage', 'select', 'update'] loop
+      if has_sequence_privilege('anon', pg_get_serial_sequence('public.zz_prueba_0096', 'id'), permiso) then
+        raise exception '0096: una secuencia nueva sigue naciendo con % para anon', permiso;
+      end if;
+    end loop;
+
+    -- Los demás roles siguen como antes, permiso a permiso.
+    foreach rol in array array['authenticated', 'service_role'] loop
+      foreach permiso in array array['select', 'insert', 'update', 'delete'] loop
+        if not has_table_privilege(rol, 'public.zz_prueba_0096', permiso) then
+          raise exception '0096: una tabla nueva perdió % de %', permiso, rol;
+        end if;
+      end loop;
+    end loop;
+    foreach rol in array array['consulta_lectura', 'copia_lectura'] loop
+      if not has_table_privilege(rol, 'public.zz_prueba_0096', 'select') then
+        raise exception '0096: una tabla nueva perdió select de %', rol;
+      end if;
+      foreach permiso in array array['insert', 'update', 'delete'] loop
+        if has_table_privilege(rol, 'public.zz_prueba_0096', permiso) then
+          raise exception '0096: una tabla nueva da % a %, que es de solo lectura', permiso, rol;
+        end if;
+      end loop;
+    end loop;
+
     raise exception 'AUTOPRUEBA_0096_OK';
   exception
     when raise_exception then
