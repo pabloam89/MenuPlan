@@ -146,9 +146,15 @@ describe("el hook de verdad", () => {
     const dir = nuevoDir();
     escribirIndice(INDICE, join(dir, "indice.json"));
     lanza(entrada, dir);
-    const t0 = performance.now();
-    lanza({ ...entrada, session_id: "tiempo" }, dir);
-    expect(performance.now() - t0).toBeLessThan(800);
+    // El mejor de tres: con otras suites a la vez una sola medida salió en 805 ms
+    // (#407, .claude/rules/tests.md: un test de tiempo repite la medida).
+    let mejor = Infinity;
+    for (let i = 0; i < 3; i++) {
+      const t0 = performance.now();
+      lanza({ ...entrada, session_id: `tiempo-${i}` }, dir);
+      mejor = Math.min(mejor, performance.now() - t0);
+    }
+    expect(mejor).toBeLessThan(800);
   });
 
   it("a una llamada normal no responde nada", () => {
