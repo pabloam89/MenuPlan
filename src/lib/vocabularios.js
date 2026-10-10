@@ -4,7 +4,14 @@
  * Cada lista vive AQUÍ y los módulos que la usan la importan de aquí (no al
  * revés): así la app, el bot (vía botCore), los CHECK de las migraciones y el
  * `dominio` de registro_campo (la ficha) hablan de la misma lista. Un test
- * compara cada CHECK `_vocabulario` de las migraciones con su lista de aquí.
+ * compara el CHECK de lista vigente de cada columna de las migraciones con su
+ * lista de aquí (src/lib/vocabularios.test.js).
+ *
+ * Un valor no se borra ni se reutiliza (#497): si deja de ofrecerse, se quita
+ * de la lista y se retira en ops/vocabularios-vida.json con su `pasa_a`
+ * (`producto.<nombre>`); el CHECK lo sigue admitiendo, porque hay filas de
+ * familias guardadas con él. Un valor nuevo o retirado se ancla con
+ * `npm run glosario -- --vocabularios --escribir`.
  *
  * Sin dependencias: el bot lo importa sin arrastrar el motor ni el JSX.
  * Solo ids, tal como se guardan; las etiquetas para pintar viven en su
@@ -233,6 +240,7 @@ export const VOCABULARIOS = Object.freeze({
   ambitos_modulo: AMBITOS_MODULO,
   estados_metrica: ESTADOS_METRICA,
   motivos_sin_puerta: MOTIVOS_SIN_PUERTA,
+  motivos_tope_diario: MOTIVOS_TOPE_DIARIO,
 });
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */

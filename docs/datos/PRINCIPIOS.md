@@ -67,12 +67,29 @@ regex que exporta `ids.js`.
 ## 4. Vocabularios cerrados
 
 - `text` + CHECK llamado `<tabla>_<col>_vocabulario`. La lista vive en una
-  constante JS, y un test compara SQL y JS (como `src/lib/vocabularioApp.test.js`
-  con la 0086). Los `enum` de las herramientas de Lola salen de esa misma
-  constante. **[revisión]** el nombre y la paridad; el test de paridad es
-  **[auto]** una vez escrito.
+  constante JS, y un solo test compara SQL y JS: `src/lib/vocabularios.test.js`.
+  Los `enum` de las herramientas de Lola salen de esa misma constante.
+  **[revisión]** el nombre; la paridad, **[auto]**.
   Por qué: añadir un valor en JS sin migración es el fallo típico, y solo un
   test lo ve antes que el usuario.
+- La paridad es **por columna**, no por nombre de constraint: el CHECK de lista
+  vigente de cada columna (el último de las migraciones, también los que nacieron
+  en línea como `channel text check (…)`) tiene su lista en
+  `COLUMNA_A_VOCABULARIO` de `src/lib/vocabularios.test.js`, o está en
+  `SIN_LISTA` con su porqué (deuda que solo baja). Un CHECK con literales e
+  `in`/`any`/`<@` que el lector no entiende va a `NO_ES_LISTA` con su motivo.
+  «Vigente» sale de las migraciones menos las de «Sin aplicar» de
+  `supabase/ESTADO.md`: si esa lista miente, la paridad también (el lector,
+  `scripts/lib/checksVocabulario.mjs`, lo dice en su cabecera). **[auto]**
+- Un valor no se borra ni se reutiliza (#497): deja de ofrecerse quitándolo de
+  la constante y retirándolo en `ops/vocabularios-vida.json`
+  (`producto.<nombre>`, con su `pasa_a`), y **el CHECK lo sigue admitiendo**,
+  porque hay filas de familias guardadas con él. Hoy **sacar un retirado del
+  CHECK está prohibido** (el test falla); permitirlo, tras reescribir las filas
+  con `CONTRAE`, sería un estado nuevo («purgado») y una decisión aparte.
+  Cambiar su significado deja una línea en `redefiniciones`. **[auto]**
+  Por qué: un valor reutilizado mezcla en un recuento filas viejas y nuevas que
+  quieren decir cosas distintas, y nadie lo ve.
 - Nada de `create type … as enum` ni `alter type … add value`. **[auto]**
   Por qué: un enum de Postgres no se puede encoger, y el valor que añade
   `add value` no se puede usar en la misma transacción (la 0070 tuvo que ir

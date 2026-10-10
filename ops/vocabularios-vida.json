@@ -144,6 +144,278 @@
       "tokens": "tokens de modelo",
       "nivel": "el nivel de un plano, de 0 a 4"
     },
+    "producto.acciones_alergias": {
+      "apuntada": "",
+      "recordada": ""
+    },
+    "producto.ambitos_modulo": {
+      "app": "",
+      "lola": "",
+      "compartido": ""
+    },
+    "producto.aparatos": {
+      "Airfryer": "",
+      "Horno": "",
+      "Microondas": "",
+      "Olla rápida": "",
+      "Thermomix": "",
+      "Vaporera": ""
+    },
+    "producto.canales": {
+      "telegram": "",
+      "whatsapp": ""
+    },
+    "producto.canales_dato": {
+      "app": "",
+      "telegram": "",
+      "whatsapp": "",
+      "sistema": ""
+    },
+    "producto.carpetas_fijas": {
+      "dia_a_dia": "",
+      "ocasion_especial": "",
+      "cena_rapida": "",
+      "hijos": ""
+    },
+    "producto.chequeos_canario": {
+      "canario": "",
+      "webhook_guardia": "",
+      "webhook_vivo": "",
+      "webhook_info": "",
+      "base": "",
+      "via_rapida": "",
+      "modelo": "",
+      "logs": ""
+    },
+    "producto.comidas": {
+      "Desayuno": "",
+      "Comida": "",
+      "Merienda": "",
+      "Cena": "",
+      "Postre": ""
+    },
+    "producto.dias": {
+      "Lun": "",
+      "Mar": "",
+      "Mié": "",
+      "Jue": "",
+      "Vie": "",
+      "Sáb": "",
+      "Dom": ""
+    },
+    "producto.donde_come": {
+      "casa": "",
+      "tupper": "",
+      "fuera": "",
+      "cole": "",
+      "off": ""
+    },
+    "producto.envases": {
+      "bote": "",
+      "lata": "",
+      "paquete": "",
+      "bolsa": "",
+      "brick": "",
+      "botella": "",
+      "carton": ""
+    },
+    "producto.estados_metrica": {
+      "medida": "",
+      "posible": ""
+    },
+    "producto.estructura_platos": {
+      "primero_segundo": "",
+      "1_plato": ""
+    },
+    "producto.etapa_bebe": {
+      "cremas": "",
+      "mixto": "",
+      "solidos": ""
+    },
+    "producto.grados_desarrollo": {
+      "idea": "",
+      "en_marcha": "",
+      "usable": "",
+      "estable": ""
+    },
+    "producto.idiomas": {
+      "es": "",
+      "en": ""
+    },
+    "producto.modelo_menu": {
+      "same": "",
+      "separate": ""
+    },
+    "producto.motivos_canario": {
+      "respuesta_inesperada": "",
+      "respuesta_vacia": "",
+      "escribio": "",
+      "lento": "",
+      "webhook_otra_url": "",
+      "webhook_atascado": "",
+      "webhook_con_errores": "",
+      "sin_configurar": ""
+    },
+    "producto.motivos_fallo": {
+      "red": "",
+      "tiempo": "",
+      "sin_sesion": "",
+      "permiso": "",
+      "no_existe": "",
+      "conflicto": "",
+      "datos_invalidos": "",
+      "limite": "",
+      "servidor": "",
+      "telegram": "",
+      "modelo": "",
+      "otro": ""
+    },
+    "producto.motivos_sin_puerta": {
+      "no_la_usa": "",
+      "por_rpc": "",
+      "por_trigger": "",
+      "fuera_del_dueno": "",
+      "en_desuso": ""
+    },
+    "producto.motivos_tope_diario": {
+      "tope_alcanzado": "",
+      "sin_redis": "",
+      "error_redis": ""
+    },
+    "producto.nivel_cocina": {
+      "basic": "",
+      "normal": "",
+      "pro": ""
+    },
+    "producto.origen_alergias": {
+      "dicha": "",
+      "por_silencio": ""
+    },
+    "producto.origen_dato": {
+      "dicho": "",
+      "supuesto": "",
+      "visto": "",
+      "derivado": "",
+      "por_defecto": "",
+      "delegado": "",
+      "no_quiere_decirlo": ""
+    },
+    "producto.patron_semanas": {
+      "siempre": "",
+      "alternas": ""
+    },
+    "producto.ref_tipo": {
+      "menu": "",
+      "mensaje": "",
+      "pantalla": "",
+      "senal": ""
+    },
+    "producto.ritmo_cocina": {
+      "con_prisa": "",
+      "normal": "",
+      "con_tiempo": "",
+      "depende": ""
+    },
+    "producto.sexo": {
+      "mujer": "",
+      "hombre": "",
+      "sin_dato": ""
+    },
+    "producto.sitios_fallo": {
+      "agente_casa": "",
+      "agente_dueno": "",
+      "agente_idioma": "",
+      "agente_papel": "",
+      "agente_segunda_semana": "",
+      "aclarar_via_rapida": "",
+      "alta_adjunto": "",
+      "apuntar_falta_via_rapida": "",
+      "aviso_de_espera": "",
+      "aviso_del_enrutador": "",
+      "aviso_del_modo": "",
+      "borrarcuenta_identidad": "",
+      "borrarcuenta_nacida_aqui": "",
+      "bot_telegram_aviso": "",
+      "boton_nacida_aqui": "",
+      "boton_quitar": "",
+      "boton_responder": "",
+      "eleccion_via_rapida": "",
+      "entregar_casa": "",
+      "entregar_pintar": "",
+      "escribiendo": "",
+      "fallo_dueno": "",
+      "grupo_casa": "",
+      "grupo_nombre_del_bot": "",
+      "grupo_voz": "",
+      "idioma": "",
+      "invitacion": "",
+      "invitacion_cuentas": "",
+      "lola": "",
+      "lola_cancelada": "",
+      "limite": "",
+      "papel": "",
+      "reconocer": "",
+      "ruta": "",
+      "ruta_dueno": "",
+      "ultima_de_lola": "",
+      "uso": "",
+      "vivo_borrar_aviso": "",
+      "vivo_editar": "",
+      "vivo_enviar": "",
+      "bot_entrar": "",
+      "borrar_tanda": "",
+      "compartir_llave": "",
+      "cuentas_hogar": "",
+      "cuentas_json": "",
+      "cuentas_nacida_aqui": "",
+      "db_usuario": "",
+      "embudo_dueno": "",
+      "ficharpc_casa": "",
+      "generar_borrar_menu_a_medias": "",
+      "generar_describir": "",
+      "generar_despensa": "",
+      "generar_recetas_propias": "",
+      "idempotencia_guardar_resultado": "",
+      "idempotencia_soltar_la_llave": "",
+      "invitacion_unirse": "",
+      "menu_describir": "",
+      "menu_foto_de_la_receta": "",
+      "pintar_recetas": "",
+      "pista_adelanto": "",
+      "recetas_busqueda": "",
+      "recetas_subir_foto": "",
+      "recordatorios_reclamar": "",
+      "silencio_apuntar": "",
+      "silencio_cerrar": "",
+      "telegram_json": "",
+      "traducir_memoria": "",
+      "turno_casa": "",
+      "turnos_soltar_candado": "",
+      "uso_limite": "",
+      "vispera_casa": "",
+      "voz_json": ""
+    },
+    "producto.tipos_aviso_vigia": {
+      "incidente_abierto": "",
+      "incidente_resuelto": "",
+      "resumen_diario": "",
+      "vigia_parado": "",
+      "vigia_falla": "",
+      "vigia_vuelve": "",
+      "vigia_sin_estado": ""
+    },
+    "producto.tipos_grupo": {
+      "familia": "",
+      "adultos": "",
+      "ninos": "",
+      "bebe": "",
+      "adhoc": ""
+    },
+    "producto.usos_receta": {
+      "plato_unico": "",
+      "plato_normal": "",
+      "guarnicion": ""
+    },
     "ruido.veredicto": {
       "dentro": "la cifra de después está dentro de los límites de antes: la diferencia es ruido",
       "fuera_por_encima": "la cifra de después pasa del límite superior: subió de verdad",
