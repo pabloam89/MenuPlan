@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { auditoriaDe, hashDe, motivosDePablo, motivosParaNoAplicar, VIGENCIA_MS } from "./permisoAplicar.mjs";
@@ -111,8 +112,7 @@ describe("lo que lanza Pablo", () => {
     expect(motivosDePablo(`${SQL}create view public.v with (security_invoker = true) as select 1;\n`)).toEqual([]);
   });
 
-  it("--pablo levanta lo de Pablo…", () => {
-    expect(motivosParaNoAplicar(con(`-- CONTRAE: x\n${SQL}`, { pablo: true }))).toEqual([]);
+  it("--pablo levanta lo de Pablo…", () => {    expect(motivosParaNoAplicar(con(`-- CONTRAE: x\n${SQL}`, { pablo: true }))).toEqual([]);
   });
 
   it("…pero no se salta al juez, ni staging, ni el ensayo", () => {
@@ -121,5 +121,111 @@ describe("lo que lanza Pablo", () => {
     expect(no).toMatch(/pide al juez/);
     expect(no).toMatch(/no está en origin\/staging/);
     expect(no).toMatch(/No hay ensayo/);
+  });
+});
+
+// #440: revocar a `anon` la plantilla de tablas y secuencias nuevas de `public`
+// no toca nada de lo que existe, así que no hace falta una persona. Lista
+// blanca estrecha: cualquier otra forma de `alter default privileges` sigue
+// siendo de Pablo.
+describe("privilegios por defecto a anon (#440)", () => {
+  const TABLAS = "alter default privileges for role postgres in schema public revoke all on tables from anon;";
+  const SECUENCIAS = "alter default privileges for role postgres in schema public revoke all on sequences from anon;";
+  const SOLO = (...s) => `${OK}set lock_timeout = '5s';\n${s.join("\n")}\n`;
+
+  it("los dos revoke a anon (tablas y secuencias) no son de Pablo", () => {
+    expect(motivosDePablo(SOLO(TABLAS, SECUENCIAS))).toEqual([]);
+    expect(motivosParaNoAplicar(con(SOLO(TABLAS, SECUENCIAS)))).toEqual([]);
+  });
+
+  it("vale con mayúsculas, saltos de línea, `all privileges` o la lista de permisos", () => {
+    expect(motivosDePablo(SOLO("ALTER DEFAULT PRIVILEGES\n  FOR ROLE postgres\n  IN SCHEMA public\n  REVOKE ALL PRIVILEGES ON TABLES FROM anon"))).toEqual([]);
+    expect(motivosDePablo(SOLO("alter default privileges for role postgres in schema public revoke select, insert, update, delete, truncate, references, trigger, maintain on tables from anon;"))).toEqual([]);
+    expect(motivosDePablo(SOLO("alter default privileges for role postgres in schema public revoke usage, select, update on sequences from anon;"))).toEqual([]);
+  });
+
+  it("dentro de un do (como la 0096) y con una autoprueba que crea una tabla, tampoco", () => {
+    const sql = SOLO(
+      TABLAS,
+      SECUENCIAS,
+      "do $$ begin create table public.zz_prueba (id bigint generated always as identity primary key); raise exception 'ok'; end $$;",
+    );
+    expect(motivosDePablo(sql)).toEqual([]);
+  });
+
+  it("`truncate` como palabra de un literal no es un truncate, pero uno de verdad o dinámico sí", () => {
+    expect(motivosDePablo(SOLO("do $$ declare p text; begin foreach p in array array['select', 'truncate'] loop null; end loop; end $$;"))).toEqual([]);
+    expect(motivosDePablo(SOLO("truncate public.persona;"))).not.toEqual([]);
+    expect(motivosDePablo(SOLO("do $$ begin execute 'truncate public.persona'; end $$;"))).not.toEqual([]);
+    expect(motivosDePablo(SOLO("insert into public.cosas (n) values ('a'); truncate public.persona;"))).not.toEqual([]);
+  });
+
+  it("la migración 0096 real ya no es de Pablo", () => {
+    const dir = new URL("../../supabase/migrations/", import.meta.url);
+    const f = readdirSync(dir).find((n) => n.startsWith("0096"));
+    expect(f).toBeTruthy();
+    expect(motivosDePablo(readFileSync(new URL(f, dir), "utf8"))).toEqual([]);
+  });
+
+  // Lo que SIGUE exigiendo a Pablo.
+  it.each([
+    ["grant por defecto a anon", "alter default privileges for role postgres in schema public grant select on tables to anon;"],
+    ["grant por defecto a authenticated", "alter default privileges for role postgres in schema public grant all on tables to authenticated;"],
+    ["mutación: sin el filtro `from anon`, a todos (public)", "alter default privileges for role postgres in schema public revoke all on tables from public;"],
+    ["mutación: from authenticated", "alter default privileges for role postgres in schema public revoke all on tables from authenticated;"],
+    ["mutación: from service_role", "alter default privileges for role postgres in schema public revoke all on tables from service_role;"],
+    ["mutación: from consulta_lectura", "alter default privileges for role postgres in schema public revoke select on tables from consulta_lectura;"],
+    ["mutación: from copia_lectura", "alter default privileges for role postgres in schema public revoke select on sequences from copia_lectura;"],
+    ["anon y otro rol a la vez", "alter default privileges for role postgres in schema public revoke all on tables from anon, authenticated;"],
+    ["otro rol y anon", "alter default privileges for role postgres in schema public revoke all on tables from authenticated, anon;"],
+    ["fuera de public", "alter default privileges for role postgres in schema extensions revoke all on tables from anon;"],
+    ["sin `in schema` (todos los esquemas)", "alter default privileges for role postgres revoke all on tables from anon;"],
+    ["sin `for role` (el rol de turno)", "alter default privileges in schema public revoke all on tables from anon;"],
+    ["otro rol creador", "alter default privileges for role supabase_admin in schema public revoke all on tables from anon;"],
+    ["funciones", "alter default privileges for role postgres in schema public revoke execute on functions from anon;"],
+    ["funciones con all", "alter default privileges for role postgres in schema public revoke all on functions from anon;"],
+    ["tipos", "alter default privileges for role postgres in schema public revoke all on types from anon;"],
+    ["esquemas", "alter default privileges for role postgres in schema public revoke all on schemas from anon;"],
+    ["con cascade", "alter default privileges for role postgres in schema public revoke all on tables from anon cascade;"],
+    ["con grant option for", "alter default privileges for role postgres in schema public revoke grant option for all on tables from anon;"],
+    ["permiso que no existe en esa clase", "alter default privileges for role postgres in schema public revoke execute on tables from anon;"],
+    ["esquema entre comillas", 'alter default privileges for role postgres in schema "public" revoke all on tables from anon;'],
+    ["un drop al lado", `${TABLAS}\ndrop table public.persona;`],
+    ["un delete al lado", `${TABLAS}\ndelete from public.persona;`],
+    ["un grant suelto al lado", `${TABLAS}\ngrant select on public.persona to anon;`],
+    ["un revoke sobre una tabla existente al lado", `${TABLAS}\nrevoke all on table public.persona from anon;`],
+    ["un revoke sobre una función al lado", `${TABLAS}\nrevoke execute on function public.f() from anon;`],
+    ["RLS de una tabla existente al lado", `${TABLAS}\nalter table public.persona disable row level security;`],
+    ["security definer al lado", `${TABLAS}\ncreate function public.f() returns int language sql security definer as 'select 1';`],
+    ["SQL dinámico al lado", `${TABLAS}\ndo $$ begin execute 'drop table public.persona'; end $$;`],
+    ["CONTRAE al lado", `-- CONTRAE: x\n${TABLAS}`],
+    ["la buena pegada a una mala", `${TABLAS}\nalter default privileges for role postgres in schema public grant select on tables to anon;`],
+    ["pegada a un grant que la usa de cola", "grant select on public.persona to alter default privileges for role postgres in schema public revoke all on tables from anon;"],
+    ["execute dinámico que la monta", "do $$ begin execute 'alter default privileges for role postgres in schema public grant all on tables to anon'; end $$;"],
+  ])("%s sigue siendo de Pablo", (_n, extra) => {
+    expect(motivosDePablo(SOLO(extra))).not.toEqual([]);
+    expect(motivosParaNoAplicar(con(SOLO(extra))).join()).toMatch(/la lanza Pablo/);
+  });
+
+  it("un comentario que simula la sentencia no tapa un grant por defecto de verdad", () => {
+    const sql = SOLO(
+      `-- ${TABLAS}`,
+      `/* ${SECUENCIAS} */`,
+      "alter default privileges for role postgres in schema public grant select on tables to anon;",
+    );
+    expect(motivosDePablo(sql)).not.toEqual([]);
+  });
+
+  it("un literal que simula la sentencia no tapa un grant por defecto de verdad", () => {
+    const sql = SOLO(`comment on schema public is '${TABLAS}';`, "alter default privileges for role postgres in schema public grant select on tables to anon;");
+    expect(motivosDePablo(sql)).not.toEqual([]);
+  });
+
+  it("un comentario que simula la sentencia no cuenta como sentencia (no hay nada que exigir)", () => {
+    expect(motivosDePablo(SOLO(`-- ${TABLAS}`))).toEqual([]);
+  });
+
+  it("la lista blanca no relaja los demás motivos: con la opción de Pablo sigue valiendo lo de siempre", () => {
+    expect(motivosParaNoAplicar(con(SOLO(TABLAS, "grant select on public.persona to anon;"), { pablo: true }))).toEqual([]);
   });
 });

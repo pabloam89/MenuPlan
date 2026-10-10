@@ -19,7 +19,11 @@ Las reglas de estructura de las tablas están en `docs/datos/PRINCIPIOS.md`
    staging y con un ensayo de menos de una hora, la sesión lanza `--si`. Si
    trae `CONTRAE` o toca RLS o permisos de lo que ya existía, la lanza Pablo,
    desde una PowerShell aparte con `$env:MENUPLAN_OP_PABLO="1"` y `--pablo`
-   (la guardia se lo niega a las sesiones).
+   (la guardia se lo niega a las sesiones). Un caso no cuenta como permisos
+   de lo que ya existía (#440): quitar a `anon` la plantilla de tablas y
+   secuencias nuevas, con `alter default privileges for role postgres in
+   schema public revoke … on tables|sequences from anon` y nada más
+   (`permisoAplicar.mjs`); cualquier otra variante la lanza Pablo.
 4. **Registro**: en el mismo PR o justo después, la migración va a
    `supabase/ESTADO.md` con su objeto testigo; cada NOT VALID, a
    `supabase/PENDIENTES.md`. ¿Está aplicada? `node scripts/verificar-estado.mjs`.
