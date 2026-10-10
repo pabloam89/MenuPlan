@@ -208,6 +208,92 @@ export const RECORDATORIO = "[pendientes] Tu último mensaje deja decisiones o p
   + "El chat se pierde al cerrar: pasa cada decisión a un issue (`npm run issues -- --nuevo \"…\" --tipo decision --area … --cuerpo <fichero>`, que se asigna a Pablo) "
   + "y cada trabajo por hacer a un encargo, o di en una línea por qué no hace falta. Este aviso sale una sola vez por sesión.";
 
+// ── El freno del estado fresco (#462, fondo #231) ─────────────────────────────
+//
+// Clase: toda afirmación de estado dada de memoria o de un resumen y no de la
+// fuente en ese momento (un issue «abierto» que ya estaba cerrado). Este freno
+// mira, al terminar, si el mensaje final cuenta el estado de un issue o PR y si
+// la sesión leyó la fuente en los últimos 15 minutos; si no, frena una vez.
+//
+// ES SEMIDURO: lee TEXTO (como el fondo #174). Un mensaje que cuenta el estado
+// sin `#n` junto a la palabra, o con otra palabra de estado, se escapa (falso
+// negativo); uno que cita «#12 pendiente» de otra cosa frena una vuelta de más
+// (falso positivo). Lo que frena se cuenta en eventos.jsonl (`estado_sin_leer`)
+// para medir ambos. Solo la sesión principal: el Stop de un subagente no pasa
+// por aquí, y si llega `agent_id` se ignora. Un freno por turno, nunca en bucle.
+
+/** Minutos que dura fresca una lectura de la fuente. */
+export const MINUTOS_FRESCA = 15;
+/** Motivos del evento (vocabulario cerrado): ninguna lectura en la sesión, o solo una vieja. */
+export const MOTIVOS_ESTADO = ["sin-lectura", "lectura-vieja"];
+
+/** Palabras que cuentan el estado de un issue o PR (sin acentos, en minúsculas). */
+const PALABRA_ESTADO = "abiert[oa]s?|cerrad[oa]s?|fusionad[oa]s?|mergead[oa]s?|pendientes?|esperando|lo lleva|la lleva|bloquea|bloquead[oa]s?|en curso";
+const ESTADO_ANTES = new RegExp(`(?:${PALABRA_ESTADO}).{0,60}#\\d+`);
+const ESTADO_DESPUES = new RegExp(`#\\d+.{0,60}\\b(?:${PALABRA_ESTADO})`);
+
+/** ¿Cuenta el mensaje el estado de algún issue o PR? (`#n` y palabra de estado en la misma línea, fuera de bloques de código) */
+export function afirmaEstado(texto) {
+  const limpio = String(texto ?? "").replace(/```[\s\S]*?```/g, "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  return limpio.split("\n").some((l) => ESTADO_ANTES.test(l) || ESTADO_DESPUES.test(l));
+}
+
+const ES_SITUACION = /^(?:\w+=\S+\s+)*(?:npm\s+run\s+(?:--silent\s+)?situacion|node\s+["']?(?:[A-Za-z]:)?(?:\.?[\\/])?(?:[\w.-]+[\\/])*scripts[\\/]situacion\.mjs)(?![\w.-])/;
+const ES_LECTURA_GH = /^(?:\w+=\S+\s+)*gh\s+(?:issue\s+(?:view|list|status)|pr\s+(?:view|list|checks|status|diff))\b/;
+const ES_GH_API = /^(?:\w+=\S+\s+)*gh\s+api\b/;
+
+/** ¿Es esta orden una LECTURA de la fuente? Lo que escribe (`--nuevo`, `-X POST`, `-f`) o solo nombra (`grep`, `echo`) no cuenta. */
+function leeLaFuente(orden) {
+  if (ES_SITUACION.test(orden)) return true;
+  if (ES_ISSUES.test(orden)) return !/--(?:nuevo|colgar|ordenar|etiquetas)\b/.test(orden);
+  if (ES_LECTURA_GH.test(orden)) return true;
+  if (ES_GH_API.test(orden)) return !/(?:-X|--method)\s*=?\s*(?!GET\b)\S+|\s-[fF]\b|--(?:raw-)?field\b|--input\b/i.test(orden);
+  return false;
+}
+
+/**
+ * ¿Hay que frenar? → { frena, motivo, turno }
+ *  - `afirmaEstado(ultimo)` y ninguna lectura de la fuente con menos de 15 min;
+ *  - `motivo`: `lectura-vieja` si hubo alguna lectura pero más antigua, si no `sin-lectura`;
+ *  - `turno`: el id del último mensaje real del usuario (para frenar una vez por turno).
+ * Un Bash sin `timestamp` en el transcript se toma por reciente (ante la duda, no frenar).
+ */
+export function estadoSinLeer(jsonl, ultimo, ahora = new Date()) {
+  let turno = null;
+  let hayLectura = false;
+  let fresca = false;
+  const lineas = String(jsonl ?? "").split("\n");
+  lineas.forEach((linea, i) => {
+    let e;
+    try {
+      e = JSON.parse(linea);
+    } catch {
+      // a propósito: una línea cortada del transcript se salta
+      return;
+    }
+    const partes = Array.isArray(e?.message?.content) ? e.message.content : null;
+    if (e?.type === "user" && !(partes && partes.length && partes.every((p) => p?.type === "tool_result"))) turno = String(e.uuid ?? `l${i}`);
+    if (e?.type !== "assistant" || !partes) return;
+    for (const p of partes) {
+      if (p.type !== "tool_use" || !/^(?:Bash|PowerShell)$/.test(p.name) || !p.input?.command) continue;
+      if (!ordenesDe(p.input.command).some(leeLaFuente)) continue;
+      hayLectura = true;
+      const t = Date.parse(e.timestamp);
+      if (Number.isNaN(t) || ahora.getTime() - t <= MINUTOS_FRESCA * 60_000) fresca = true;
+    }
+  });
+  if (!afirmaEstado(ultimo) || fresca) return { frena: false, motivo: null, turno };
+  return { frena: true, motivo: hayLectura ? "lectura-vieja" : "sin-lectura", turno };
+}
+
+/** El mensaje del freno, con una línea `campo: valor` que un script puede contar. */
+export function recordatorioDeEstado(motivo) {
+  return "[estado] Tu mensaje cuenta el estado de un issue o PR y en esta sesión no hay una lectura de la fuente de los últimos "
+    + `${MINUTOS_FRESCA} minutos: antes de contar el estado, ejecuta \`npm run situacion\` y cita su hora. `
+    + "Si lo que dijiste no era una afirmación de estado, di en una línea por qué y termina: este aviso no vuelve a salir en este turno.\n"
+    + `estado-fresco freno motivo: ${motivo}`;
+}
+
 /**
  * Qué mirar, de lo que llega por stdin y del transcript. El último mensaje sale
  * de `last_assistant_message`: el transcript se escribe con retraso y puede no
@@ -235,14 +321,29 @@ if (esPrincipal) {
     const marcaCasos = join(dir, `${id}.casos`);
     const transcript = entrada.transcript_path && existsSync(entrada.transcript_path) ? readFileSync(entrada.transcript_path, "utf8") : "";
     // Cada freno sale una vez por sesión y con su marca; si salen los dos a la vez, primero los pendientes.
+    let frenado = false;
     if (!existsSync(marca) && pendientesSinIssue(aMirar(entrada, transcript))) {
       writeFileSync(marca, new Date().toISOString());
       process.stdout.write(JSON.stringify({ decision: "block", reason: RECORDATORIO }));
+      frenado = true;
     } else if (!existsSync(marcaCasos)) {
       const { senales, registrado } = senalesDeFallo(transcript);
       if (senales.length && !registrado) {
         writeFileSync(marcaCasos, new Date().toISOString());
         process.stdout.write(JSON.stringify({ decision: "block", reason: recordatorioDeCasos(senales) }));
+        frenado = true;
+      }
+    }
+    // El estado fresco (#462): solo la sesión principal, un freno por turno y nunca si ya frenó otro.
+    if (!frenado && !entrada.agent_id && !entrada.agent_type) {
+      const { frena, motivo, turno } = estadoSinLeer(transcript, aMirar(entrada, transcript).ultimo);
+      const marcaEstado = join(dir, `${id}.estado`);
+      const yaFrenado = existsSync(marcaEstado) && readFileSync(marcaEstado, "utf8") === String(turno);
+      if (frena && !yaFrenado) {
+        writeFileSync(marcaEstado, String(turno));
+        const { registrarEvento } = await import("./eventos.mjs");
+        registrarEvento({ evento: "estado_sin_leer", nombre: motivo, sesion: entrada.session_id, cwd: entrada.cwd });
+        process.stdout.write(JSON.stringify({ decision: "block", reason: recordatorioDeEstado(motivo) }));
       }
     }
   } catch {
