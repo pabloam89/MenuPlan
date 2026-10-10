@@ -212,15 +212,29 @@ describe("el coste de evaluar los patrones", () => {
     const t100 = mejorDeTres(entrada(unidad, 100_000), m);
     return { t25, t100, razon: t100 / Math.max(t25, SUELO_MS) };
   };
+  // Con otras suites en paralelo, el ruido de CPU infla un tiempo suelto y la
+  // razón sale del lado equivocado sin que el patrón haya cambiado (#407: falló
+  // 4 veces en local, nunca suelto ni en el CI). Se repite la medida hasta
+  // INTENTOS veces y vale con que una salga del lado bueno: el ruido no hace
+  // lineal un patrón cuadrático en todas, ni al revés.
+  const INTENTOS = 5;
+  const razonHasta = (unidad, m, vale) => {
+    let r;
+    for (let i = 0; i < INTENTOS; i++) {
+      r = razon(unidad, m);
+      if (vale(r.razon)) break;
+    }
+    return r;
+  };
 
   it.each(Object.entries(formas))("%s: cuadruplicar la entrada no cuesta más de 8×", (_, unidad) => {
-    const r = razon(unidad, mapa);
+    const r = razonHasta(unidad, mapa, (x) => x < UMBRAL);
     expect(r.razon, `25 KB: ${r.t25.toFixed(1)} ms, 100 KB: ${r.t100.toFixed(1)} ms`).toBeLessThan(UMBRAL);
   });
 
   it("el test ve un patrón cuadrático: sin tope, la razón se dispara", () => {
     const sinTope = { skills: { prueba: { comandos: ["\\bssh\\b[\\s\\S]*(?:100\\.73\\.252\\.32)"], rutas: [] } } };
-    const r = razon("ssh ", sinTope);
+    const r = razonHasta("ssh ", sinTope, (x) => x > UMBRAL);
     expect(r.razon, `25 KB: ${r.t25.toFixed(1)} ms, 100 KB: ${r.t100.toFixed(1)} ms`).toBeGreaterThan(UMBRAL);
   });
 });
