@@ -74,6 +74,9 @@
       "rutas": [
         "^scripts/lib/skillsForja\\.mjs$",
         "^\\.claude/PLANTILLA-SKILL\\.md$"
+      ],
+      "agentes": [
+        "gobierno"
       ]
     },
     "plan-de-arreglo": {
