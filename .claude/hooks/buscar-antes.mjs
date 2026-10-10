@@ -130,8 +130,13 @@ export function ejecutar(entrada, opciones = {}) {
   if (r.nuevas.length || r.lineas.length) {
     if (r.nuevas.length) {
       // Se vuelve a leer justo antes de escribir: dos llamadas a la vez de la misma sesión no se pisan del todo.
-      escribirAtomico(marcas, JSON.stringify([...new Set([...leerMarcasDe(marcas), ...r.nuevas])]));
-      podarMarcas(dir);
+      try {
+        escribirAtomico(marcas, JSON.stringify([...new Set([...leerMarcasDe(marcas), ...r.nuevas])]));
+        podarMarcas(dir);
+      } catch (e) {
+        // El aviso de esta llamada se emite igual; lo peor que pasa es repetirlo la próxima vez. No en silencio.
+        console.error(`[buscar-antes] no he podido guardar las marcas de la sesión: ${String(e?.message ?? e).split("\n")[0]}`);
+      }
     }
     if (r.lineas.length) {
       const log = join(dir, "senales.log");

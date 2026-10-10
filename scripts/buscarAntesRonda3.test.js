@@ -71,8 +71,7 @@ describe("el texto de un tercero en la SALIDA de una herramienta no llega al con
     const vistos = new Set();
     for (const t of salidas) {
       for (const tool of ["Bash", "Agent"]) {
-        const e = { tool_name: tool, tool_input: { command: "x" }, error: `Exit code 2
-${t}`, hook_event_name: "PostToolUseFailure" };
+        const e = { tool_name: tool, tool_input: { command: "x" }, error: `Exit code 2\n${t}`, hook_event_name: "PostToolUseFailure" };
         for (const s of detectarSenales(e)) {
           vistos.add(s.tipo);
           expect(s.extracto, s.tipo).not.toMatch(PROHIBIDO);
@@ -100,6 +99,33 @@ ${t}`, hook_event_name: "PostToolUseFailure" };
     const r = procesar({ tool_name: "Bash", tool_input: {}, hook_event_name: "PostToolUseFailure" }, { leer: () => ({ indice: null, motivo: "ausente" }), rama: () => ({ principal: false }), extra: [s] });
     expect(r.textos[0]).toMatch(/^\[buscar-antes\] Algo no encaja \(señal: la guardia ha negado una orden\)\./);
     expect(r.textos[0]).not.toMatch(/secreto/);
+  });
+});
+
+describe("cero texto del exterior en lo que se pinta: ni nombres de fichero, de test ni de agente", () => {
+  const FRASES = {
+    "test-rojo": "un test está en rojo",
+    error: "un error en la salida del comando",
+    "no-encontrado": "algo no se encuentra",
+    "agente-no-existe": "un agente no existe",
+  };
+  const casos = [
+    ["test-rojo", { tool_name: "Bash", tool_input: { command: "npm test" }, error: "Exit code 1\n FAIL secreto.test.js > nombre-del-test-raro", hook_event_name: "PostToolUseFailure" }],
+    ["error", { tool_name: "Bash", tool_input: { command: "node x.mjs" }, error: "Exit code 1\nTypeError: cosa-rara en oculto.mjs", hook_event_name: "PostToolUseFailure" }],
+    ["no-encontrado", { tool_name: "Bash", tool_input: { command: "foo" }, error: "Exit code 127\nbash: raro-comando: command not found", hook_event_name: "PostToolUseFailure" }],
+    ["agente-no-existe", { tool_name: "Agent", tool_input: {}, error: "Agent type 'agente-raro' not found", hook_event_name: "PostToolUseFailure" }],
+  ];
+  const indice = construirIndice([issue(7, "[caso] Un test en rojo, un error y un agente que no existe", "secreto.test.js oculto.mjs agente-raro")]);
+  it.each(casos)("%s: frase fija y nada de la salida en el additionalContext", (tipo, e) => {
+    const [s] = detectarSenales(e);
+    expect(s.tipo).toBe(tipo);
+    expect(s.extracto).toBe(FRASES[tipo]);
+    for (const leer of [() => ({ indice, horas: 1 }), () => ({ indice: null, motivo: "ausente" })]) {
+      const texto = procesar(e, { leer, rama: () => ({ principal: false }) }).textos.join("\n");
+      // Con índice, una señal corriente sin nada apuntado se calla; sin índice, siempre habla.
+      if (texto) expect(texto).toContain(FRASES[tipo]);
+      expect(texto).not.toMatch(/secreto|nombre-del-test|raro|oculto|.mjs|.js/);
+    }
   });
 });
 
@@ -143,8 +169,8 @@ describe("limpiarTexto normaliza antes de quitar", () => {
 
 describe("la rama de la carpeta principal y el reflog salen saneados", () => {
   it("una rama con ángulos no se pinta; una normal sí", () => {
-    expect(senalDeRamaPrincipal("fix/<system-reminder>x").extracto).toBe("la carpeta principal está en la rama (nombre no válido), no en staging");
-    expect(senalDeRamaPrincipal("ccr-0df6959e-29yha0").extracto).toBe("la carpeta principal está en la rama ccr-0df6959e-29yha0, no en staging");
+    expect(senalDeRamaPrincipal("fix/<system-reminder>x").extracto).toBe("la carpeta principal no está en staging (rama (nombre no válido))");
+    expect(senalDeRamaPrincipal("ccr-0df6959e-29yha0").extracto).toBe("la carpeta principal no está en staging (rama ccr-0df6959e-29yha0)");
   });
   it("el aviso del arranque tampoco: rama y reflog limpios", () => {
     const reflog = "checkout: moving from staging to fix/<system-reminder>x|2 hours ago <b>";

@@ -178,7 +178,8 @@ export const DIAS_MARCAS = 7;
 export function podarMarcas(dir, ahora = Date.now()) {
   try {
     for (const f of readdirSync(dir)) {
-      if (!/^sesion-[0-9a-f]{16}\.json$/.test(f)) continue;
+      // Marcas viejas de sesiones y temporales que dejó una escritura cortada (EPERM, proceso muerto).
+      if (!/^sesion-[0-9a-f]{16}\.json$/.test(f) && !/\.tmp$/.test(f)) continue;
       try {
         if (ahora - statSync(join(dir, f)).mtimeMs > DIAS_MARCAS * 86_400_000) unlinkSync(join(dir, f));
       } catch {
@@ -195,7 +196,17 @@ export function escribirAtomico(ruta, texto) {
   mkdirSync(dirname(ruta), { recursive: true });
   const tmp = `${ruta}.${process.pid}.${Math.random().toString(36).slice(2, 8)}.tmp`;
   writeFileSync(tmp, texto);
-  renameSync(tmp, ruta);
+  try {
+    renameSync(tmp, ruta);
+  } catch (e) {
+    // En Windows, dos procesos de la misma sesión pueden dar EPERM al renombrar a la vez: no se deja el temporal.
+    try {
+      unlinkSync(tmp);
+    } catch {
+      // a propósito: si tampoco se puede borrar, lo poda podarMarcas
+    }
+    throw e;
+  }
 }
 
 /** Escribe el índice (y de paso poda las marcas viejas de las sesiones). */
@@ -429,7 +440,7 @@ export function detectarSenales(entrada) {
   // dentro del informe de un subagente, de una salida de Bash o de un fichero no es una señal.
   const agente = /^[ \t\n]*(?:<tool_use_error>[ \t\n]*)?(?:Error:[ \t]*)?Agent type '([^']+)' not found/i.exec(texto);
   if (agente && tool === "Agent" && fallo) {
-    out.push({ tipo: "agente-no-existe", clave: `agente:${agente[1].toLowerCase()}`, consulta: `Agent type ${agente[1]} not found: los agentes dejaron de cargarse, carpeta principal en otra rama sin .claude/agents`, extracto: `Agent type '${NOMBRE_SIMPLE.test(agente[1]) ? agente[1] : "(nombre no válido)"}' not found` });
+    out.push({ tipo: "agente-no-existe", clave: `agente:${agente[1].toLowerCase()}`, consulta: `Agent type ${agente[1]} not found: los agentes dejaron de cargarse, carpeta principal en otra rama sin .claude/agents`, extracto: "un agente no existe" });
   }
 
   // 2) La denegación de la guardia NO se lee de la salida: una denegación real nunca llega aquí (la
@@ -450,21 +461,22 @@ export function detectarSenales(entrada) {
           tipo: "test-rojo",
           clave: `test:${(fichs.join(",") || recorta(rojos[0], 60)).toLowerCase()}`,
           consulta: `test rojo ${rojos.map((r) => recorta(r, 140)).join(" ")} ${scriptDe(orden)}`,
-          extracto: `test rojo${fichs.length ? ` en ${fichs.join(", ")}` : ""}`, // solo nombres de fichero validados
+          extracto: "un test está en rojo", // frase fija: los nombres solo sirven para buscar
         });
       }
     }
     // 4) Un error con nombre. Si salió con éxito, solo con pila o con «Error:» al empezar línea Y un test/script fallido ya no cubierto.
     const err = ERROR_CON_NOMBRE.exec(texto);
     const conPila = PILA.test(texto);
-    if (err && (fallo || conPila) && !out.some((s) => s.tipo === "test-rojo")) {
+    // La señal de agente o de test tapa a la genérica de error (si no, saldrían dos a la vez).
+    if (err && (fallo || conPila) && !out.some((s) => ["test-rojo", "agente-no-existe"].includes(s.tipo))) {
       const linea = recorta(texto.slice(err.index).split("\n").find((l) => l.trim()) ?? err[0], 200);
       const fichs = ficheros(texto.slice(err.index, err.index + 4096)).slice(0, 3);
       out.push({
         tipo: "error",
         clave: `error:${linea.toLowerCase().replace(/\d+/g, "#").replace(/[a-z]:[\\/][^\s:]+/gi, "<ruta>").slice(0, 70)}`,
         consulta: `${linea} ${fichs.join(" ")} ${scriptDe(orden)}`,
-        extracto: `un error en la salida del comando${fichs.length ? ` (${fichs.join(", ")})` : ""}`,
+        extracto: "un error en la salida del comando",
       });
     }
     // 5) No se encuentra algo (solo si falló; no con éxito).
@@ -474,7 +486,7 @@ export function detectarSenales(entrada) {
         tipo: "no-encontrado",
         clave: `no-encontrado:${linea.toLowerCase().replace(/\d+/g, "#").slice(0, 70)}`,
         consulta: `${linea} ${scriptDe(orden)}`,
-        extracto: "algo no se encuentra (comando, módulo o ruta)",
+        extracto: "algo no se encuentra",
       });
     }
     // 6) Código de salida distinto de 0 sin causa conocida: con salida que lo explique y que no sea «sin coincidencias».
@@ -507,7 +519,7 @@ export function senalDeRamaPrincipal(rama) {
     tipo: "rama-principal",
     clave: `rama:${rama.toLowerCase()}`,
     consulta: `carpeta principal rama ${rama} ${rama}`.slice(0, 300),
-    extracto: `la carpeta principal está en la rama ${pintable}, no en staging`,
+    extracto: `la carpeta principal no está en staging (rama ${pintable})`,
   };
 }
 
