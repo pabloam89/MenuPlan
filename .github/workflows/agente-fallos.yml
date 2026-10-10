@@ -148,12 +148,20 @@ jobs:
           fi
           # 1. Issue + email a las menciones.
           titulo="Agente de fallos: informe diario"
-          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
-            --search "\"$titulo\" in:title" --json number --jq '.[0].number // empty' || true)
-          if [ -z "$issue" ]; then
-            issue=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" \
-              --body "Informes breves del agente de fallos (.github/workflows/agente-fallos.yml)." \
-              | grep -oE '[0-9]+$' || true)
+          # Autor (el bot) y título EXACTO (#450): la búsqueda de GitHub es difusa y, en un repo
+          # público, cualquiera puede abrir un issue con el mismo título. Si no se puede buscar,
+          # no se abre otro: el aviso sigue por WhatsApp.
+          if issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" \
+              --search "\"$titulo\" in:title" --json number,title \
+              --jq "map(select(.title==\"$titulo\"))[0].number // empty"); then
+            if [ -z "$issue" ]; then
+              issue=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" \
+                --body "Informes breves del agente de fallos (.github/workflows/agente-fallos.yml)." \
+                | grep -oE '[0-9]+$' || true)
+            fi
+          else
+            issue=""
+            echo "::warning::No se pudo buscar el issue del informe; no se abre otro."
           fi
           printf '%s\n\n%s\n' "$texto" "$MENCIONES" > "$RUNNER_TEMP/aviso-comentario.md"
           if [ -n "$issue" ] && gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" \
