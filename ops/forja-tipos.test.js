@@ -117,7 +117,7 @@ describe("la taxonomía de tipos y la ficha de cada skill", () => {
     expect(datos.destino_tipos_actuales.forja.destinos).toEqual([]);
   });
   it("los criterios que aún nombran un tipo retirado solo bajan (este literal no se edita para añadir)", () => {
-    const DE_PARTIDA = ["sin-parada: forja"];
+    const DE_PARTIDA = [];
     expect(tiposRetiradosEnCriterios(datos).filter((x) => !DE_PARTIDA.includes(x)), "Un criterio no puede nombrar un tipo retirado").toEqual([]);
     const d = clon();
     d.criterios.find((c) => c.id === "secciones").tipos = ["oficio"];

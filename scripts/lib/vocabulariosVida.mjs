@@ -30,14 +30,17 @@
  * los valores: las definiciones solo se comparan con una referencia de verdad).
  */
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { ESTADOS } from "./fondos.mjs";
-import { ACTORES, ALCANCES_FALLO, DIAGNOSTICAN, ESTADOS_MEDIDA, ESTADOS_TIPO_SKILL, PASOS } from "./flujo.mjs";
+import { ACTORES, ALCANCES_FALLO, DIAGNOSTICAN, ESTADOS_MEDIDA, PASOS } from "./flujo.mjs";
+import { leerForja } from "./forja.mjs";
 import { CLASES, ESTADOS_TERMINO, plano } from "./glosario.mjs";
 import { GRUPOS, TIPOS_ACCION } from "./issues.mjs";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
+const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const conTexto = (o) => () => ({ ...o });
 /** Los vocabularios vigilados: id → { fichero, textos: () => { valor: definición } }. Los de más uso del proceso. */
@@ -48,11 +51,12 @@ export const VOCABULARIOS = {
   "flujo.diagnostican": { fichero: "scripts/lib/flujo.mjs", textos: conTexto(DIAGNOSTICAN) },
   "flujo.actores": { fichero: "scripts/lib/flujo.mjs", textos: conTexto(ACTORES) },
   "flujo.estado_medida": { fichero: "scripts/lib/flujo.mjs", textos: conTexto(ESTADOS_MEDIDA) },
-  "flujo.estado_tipo_skill": { fichero: "scripts/lib/flujo.mjs", textos: conTexto(ESTADOS_TIPO_SKILL) },
   // Los pasos no llevan definición en el código (la tienen en ops/flujo.json): texto vacío.
   "flujo.pasos": { fichero: "scripts/lib/flujo.mjs", textos: () => Object.fromEntries(PASOS.map((p) => [p, ""])) },
   "fondos.estado": { fichero: "scripts/lib/fondos.mjs", textos: conTexto(ESTADOS) },
   "glosario.clase": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(CLASES) },
+  // Los tipos de skill: la única lista es tipos_skill de ops/forja.json (#495), que lee forja.mjs; su definición, «que».
+  "forja.tipo_skill": { fichero: "scripts/lib/forja.mjs", textos: () => Object.fromEntries(leerForja(RAIZ).tipos_skill.map((x) => [x.id, x.que])) },
   "glosario.estado": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(ESTADOS_TERMINO) },
 };
 

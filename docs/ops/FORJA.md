@@ -236,7 +236,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
 - `frontmatter` — **Frontmatter cerrado.** El frontmatter de cada skill DEBE llevar solo name, description y metadata, con name igual que la carpeta y la description con «Úsala » al principio, «No para:» y de 81 a 600 caracteres. Se comprueba con: `.claude/skills.test.js`.
   - Nota: La description queda por debajo de los 1.024 caracteres del estándar abierto.
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `frontmatter`.
-- `tipo` — **Tipo de skill.** El frontmatter de cada skill DEBE llevar en metadata.tipo uno de los ocho tipos de ops/flujo.json, que tiene secciones definidas. Se comprueba con: `.claude/skills.test.js`.
+- `tipo` — **Tipo de skill.** El frontmatter de cada skill DEBE llevar en metadata.tipo uno de los tipos de tipos_skill de ops/forja.json, el que dan sus respuestas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `tipo`.
 - `dueno` — **Dueño de la skill.** El frontmatter de cada skill DEBE llevar en metadata.dueno un agente de .claude/agents/ que la carga en su campo skills. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `dueno`.
@@ -268,7 +268,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
 - `fechas` — **Sin fechas en el cuerpo.** El cuerpo de cada skill NO DEBE llevar fechas fuera de «Lo que falló y por qué», «Registro de cambios» y «Fuentes y comprobación»: se quedan viejas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `fechas`.
 - `sin-parada` — **Parada del método.** El cuerpo de cada skill DEBE decir en el «Método» cuándo se acaba y qué se ve cuando sale bien. Se comprueba con: `.claude/skills.test.js`.
-  - Nota: Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio (en los SKILL.md, hasta migrar los tipos, «herramienta»).
+  - Nota: Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio, que no tiene «Método».
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `sin-parada`.
 - `ejemplos` — **Máximo de ejemplos.** El cuerpo de cada skill DEBE llevar como mucho tres ejemplos por sección de ejemplos: pocos y canónicos. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md. Código: `ejemplos`.

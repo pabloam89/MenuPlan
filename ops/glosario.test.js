@@ -73,7 +73,6 @@ const PARTIDA = {
   "CLAUDE.md: runbooks": 1,
   "CLAUDE.md: subagente": 1,
   "CLAUDE.md: worktrees": 2,
-  "docs/ops/FLUJO.md: causa raíz": 1,
   "docs/ops/FLUJO.md: lección": 1,
   "docs/ops/FLUJO.md: runbook": 2,
   "ops/estandares-agentes.json: bug": 2,

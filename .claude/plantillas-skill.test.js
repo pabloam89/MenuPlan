@@ -92,10 +92,13 @@ describe("los moldes de .claude/plantillas-skill/ están al día", () => {
  * - .claude/PLANTILLA-SKILL.md: un apartado de estándar por tipo, que .claude/skills.test.js
  *   obliga a tener exactamente los tipos de la forja;
  * - docs/ops/FORJA.md: se genera de la forja y ops/forja.test.js lo compara.
+ * - ops/vocabularios-vida.json: el ancla de forja.tipo_skill la escribe `npm run glosario --
+ *   --vocabularios --escribir` desde la forja, y sus retirados solo crecen; ops/vocabularios-vida.test.js
+ *   la compara con tipos_skill (#481).
  * Los *.test.js no cuentan: comprueban, no son fuente (ops/forja-tipos.test.js reescribe
  * a propósito la tabla de Pablo para contrastarla).
  */
-const PERMITIDOS = ["ops/forja.json", "scripts/lib/plantillasSkill.mjs", ".claude/PLANTILLA-SKILL.md", "docs/ops/FORJA.md"];
+const PERMITIDOS = ["ops/forja.json", "scripts/lib/plantillasSkill.mjs", ".claude/PLANTILLA-SKILL.md", "docs/ops/FORJA.md", "ops/vocabularios-vida.json"];
 const VOCABULARIOS = { vigentes: tiposDeForja(datos), retirados: Object.keys(datos.destino_tipos_actuales ?? {}) };
 
 describe("una sola lista de tipos de skill", () => {
