@@ -69,6 +69,16 @@
         "datos"
       ]
     },
+    "higiene-de-skills": {
+      "comandos": [],
+      "rutas": [
+        "^scripts/higiene-skills\\.mjs$",
+        "^scripts/lib/higieneSkills\\.mjs$"
+      ],
+      "agentes": [
+        "gobierno"
+      ]
+    },
     "forja-de-skills": {
       "comandos": [],
       "rutas": [
