@@ -9,7 +9,7 @@
 // dishes renamed) never reached it: photos were generated from a stale name and
 // saved under a combo_id that meanwhile meant something else.
 //
-// This script, run AFTER build-catalog.mjs has refreshed the names:
+// This script, run AFTER build-catalog.mjs (retirado en #301) had refreshed the names:
 //   1. drops manifest entries whose recipe no longer exists (dead photos),
 //   2. queues dish+garnish combos that have no photo at all — a garnish added
 //      after the last run has zero combos, and dishImageUrl's firstComboByDish

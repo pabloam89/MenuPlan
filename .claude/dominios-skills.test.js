@@ -119,7 +119,6 @@ describe("qué comandos tienen puerta", () => {
     // scripts/lib/env.mjs llama a «op inject» por dentro: la puerta mira el comando
     // de la sesión, así que lo de cada día que lee claves no se entera.
     "node scripts/bot-evals.mjs",
-    "node scripts/build-catalog.mjs",
     "npm run build",
     "node scripts/verificar-estado.mjs --detalle",
     "supabase --version",
