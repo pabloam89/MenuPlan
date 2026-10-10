@@ -2,7 +2,13 @@
 name: estilo-de-respuesta
 description: Úsala al escribir cualquier respuesta, resumen o aviso a Pablo en una sesión principal («cuéntame cómo va», «explícamelo sencillo», «¿qué decido?», «¿está fusionado?», «¿ha pasado?», «¿seguro?»). Fija la forma: idea raíz en negrita, cuatro ideas como mucho, tres opciones en las decisiones y «Comprobado», «Creo» o «No sé» en lo que afirma. No para: el informe común de un agente (salvo su RESUMEN y sus DECISIONES PENDIENTES), mensajes de Lola, cuerpos de PR, issues ni documentación.
 metadata:
-  tipo: estandar
+  tipo: conocimiento
+  opera_proveedor: false
+  juzga_artefacto: false
+  encadena: false
+  pasos_fijos: false
+  sintoma_a_causa: false
+  elige_opciones: false
   dueno: gobierno
   comprobado: 2026-10-10
 ---
@@ -195,9 +201,7 @@ Bien (plantilla de decisión):
 ## Registro de cambios
 
 - **2026-10-10** · Calibración (pedida por Pablo): la forma es un techo y una pregunta corta se contesta en una línea; certeza explícita en una línea «Certeza:» («Comprobado», «Creo», «No sé»), solo cuando hace falta y sin quitar sitio a las etiquetas de la plantilla; el issue por su nombre con el número solo entre paréntesis; al retomar, la idea raíz en negrita recuerda el tema (sin línea aparte); coste y reversibilidad en cada opción; la description gana «¿está fusionado?», «¿ha pasado?» y «¿seguro?»; el glosario pasa a `.claude/skills/estilo-de-respuesta/plantillas/plantillas.md`; `.claude/voz.test.js` vigila las mejoras en la sección de cada pieza; 3 casos nuevos. Medida (dos pasadas seguidas, 0,15 $ y 0,13 $): los 9 casos de antes, 22/29 y 23/29 (antes de la calibración, 24/29 y 23/29; con la primera versión de la certeza llegaron a 20/29 en las dos pasadas, porque el modelo metía «Certeza:» donde no tocaba y le quitaba sitio a «Ejemplo:» y a la línea final); los 3 nuevos, 10/10 y 8/10. Sigue sin medirse contra el modelo solo.
-- **2026-10-10** · Se funde en esta skill la de la voz con Pablo: tres opciones en las decisiones, cinco plantillas con ejemplo canónico (en `plantillas/`), glosario ampliado, resumen en `.claude/PLANTILLA-AGENTE.md` y `.claude/voz.test.js` que cruza regla, skill y plantilla de agentes; los ejemplos 1 y 3 siguen las plantillas de resultado y decisión, solo el `RESUMEN` y las `DECISIONES PENDIENTES` de un informe de agente siguen la forma, y los casos pasan a 13 (disparo 13/13, comprobaciones 24/29) (#415).
-- **2026-10-10** · Se añaden «Traducir la jerga» y «El comando para pegar»; el caso del comando se reformula (disparo de 8/9 a 9/9, comprobaciones de 13/16 a 14/16) (#415).
-- **2026-10-10** · Primera versión: idea raíz en negrita, cuatro ideas como mucho, petición al final y detalle fuera del chat (#415).
+- **2026-10-10** · Se funde en esta skill la de la voz con Pablo: tres opciones en las decisiones, cinco plantillas con ejemplo canónico (en `plantillas/`), glosario ampliado, resumen en `.claude/PLANTILLA-AGENTE.md` y `.claude/voz.test.js` que cruza regla, skill y plantilla de agentes; los ejemplos 1 y 3 siguen las plantillas de resultado y decisión, solo el `RESUMEN` y las `DECISIONES PENDIENTES` de un informe de agente siguen la forma, y los casos pasan a 13 (disparo 13/13, comprobaciones 24/29) (#415). Antes, la primera versión: idea raíz en negrita, cuatro ideas como mucho, petición al final y detalle fuera del chat; después se añaden «Traducir la jerga» y «El comando para pegar» y el caso del comando se reformula (disparo de 8/9 a 9/9, comprobaciones de 13/16 a 14/16) (#415).
 
 ## Fuentes y comprobación
 

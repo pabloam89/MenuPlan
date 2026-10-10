@@ -198,7 +198,7 @@ sitios, y por eso la especificación va antes de construir:
 | Capa | Pregunta | Qué contiene | Dónde |
 |---|---|---|---|
 | **Catálogos** | ¿Qué existe? | Registros estructurados, cada hecho una sola vez: vocabularios, mapas, planos, normas, mecanismos, técnicas y presupuestos | `scripts/lib/issues.mjs`, `ops/MODULOS.json`, `ops/planos.json`, `ops/flujo.json`, `ops/presupuestos.json` |
-| **Skills** | ¿Cómo se hace? | Método, técnicas, referencias, scripts y plantillas. De herramienta (cómo se opera un servicio) y de oficio (cómo se piensa un tipo de problema) | `.claude/skills`, `.claude/PLANTILLA-SKILL.md` |
+| **Skills** | ¿Cómo se hace? | Método, técnicas, referencias, scripts y plantillas. De uno de los tipos de tipos_skill de ops/forja.json (un servicio se opera; un diagnóstico piensa un tipo de problema), salvo la pieza meta | `.claude/skills`, `.claude/PLANTILLA-SKILL.md` |
 | **Agentes** | ¿Quién lo hace y con qué permisos? | Rol, permisos y qué skills cargan. No llevan método: lo toman de las skills | `.claude/agents`, `.claude/PLANTILLA-AGENTE.md` |
 | **Orquestación y reglas duras** | ¿Cuándo, en qué orden y cuánto? | Pipelines, presupuestos, tope de rondas y las reglas que impone un mecanismo | `.claude/commands/orquestar.md`, `.claude/hooks/guardia.mjs`, `.github/workflows/tests.yml` |
 
@@ -216,16 +216,7 @@ De más a menos duradero. Un fondo grave o repetido se cierra con un escalón 1 
 
 ### Tipos de skill
 
-| Tipo | Qué guarda | Estado | Fase |
-|---|---|---|---|
-| **herramienta** | Cómo se opera un servicio (supabase, vercel, telegram…) | existe | — |
-| **oficio** | Cómo se piensa un tipo de problema (causa raíz, plan de arreglo, priorizar) | existe | — |
-| **dominio** | El conocimiento del negocio (nutrición, alergias, cómo comen las familias) | reservado | #336 |
-| **estandar** | Cómo deben quedar las cosas para ser consistentes (voz de Lola, design system) | existe | — |
-| **receta_cambio** | Los pasos de una acción que se repite (dar de alta un secreto, añadir una herramienta a Lola, una pantalla, recetas) | existe | — |
-| **rubrica_juez** | Qué mira un juez y cómo puntúa | reservado | #336 |
-| **investigacion** | Cómo buscar fuera y destilar (radar de mercado, investigación técnica) | reservado | #336 |
-| **meta** | Cómo crear, probar y podar las propias piezas | existe | — |
+La lista, qué entra y qué sale de cada tipo y cómo se asigna viven en `ops/forja.json` (`tipos_skill`, vista en `docs/ops/FORJA.md`); el molde de cada uno, en `.claude/plantillas-skill/` (#495).
 
 ### Presupuestos por alcance y causa (`ops/presupuestos.json`)
 

@@ -43,10 +43,10 @@ export const MAX_RAICES_EN_FRONTERA = 1;
 /** Cómo se arregla cada defecto del nivel 1 y de la forja (por regla o código). */
 export const ARREGLOS = {
   frontmatter: "arregla el frontmatter: name igual a la carpeta, «Úsala …», «No para:» y 81 a 600 caracteres",
-  tipo: "pon en metadata.tipo uno de los ocho de ops/flujo.json",
+  tipo: "responde en el frontmatter (true o false) las preguntas de preguntas_tipo de ops/forja.json y pon en metadata.tipo el tipo que dan, uno de tipos_skill; la pieza meta (nivel 0) no lleva ni tipo ni respuestas",
   dueno: "pon un agente de .claude/agents/ que la cargue en su skills:",
   comprobado: "vuelve a comprobarla y pon la fecha de hoy con su línea «Comprobado el …: qué se comprobó»",
-  secciones: "deja las secciones de su tipo, en orden y con contenido",
+  secciones: "deja las secciones del molde de su tipo (.claude/plantillas-skill/<tipo>.md), en orden y con contenido; la pieza meta, las de nivel_0 en ops/forja.json",
   formato: "ajusta la entrada al formato de la plantilla (fallo con fecha, causa y arreglo; registro fechado; última línea de comprobación)",
   tamano: "mueve el detalle a referencias/ y cítalo desde SKILL.md",
   secretos: "quita el valor de la clave: solo su nombre y dónde vive",

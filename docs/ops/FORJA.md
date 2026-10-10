@@ -52,7 +52,7 @@ Cada criterio se escribe por campos y su frase se genera; no hay prosa libre. La
 
 ## Tipos de skill
 
-Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué entra y sale, cómo se prueba y cómo se corrige. **La fuente de los tipos pasa a ser `ops/forja.json`**; el cambio de la plantilla (`.claude/PLANTILLA-SKILL.md`), de `ops/flujo.json` y de las skills es del encargo de plantillas por tipo, y hasta entonces siguen los ocho tipos de hoy.
+Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué entra y sale, cómo se prueba y cómo se corrige. **La única lista de tipos es la de `ops/forja.json`** (`tipos_skill`). El molde de cada tipo (sus secciones, los campos de la ficha, cómo se prueba y su ejemplo) se genera en `.claude/plantillas-skill/<tipo>.md` con `npm run plantillas -- --escribir` (#495), y el `tipo` del frontmatter de cada skill es el que dan sus respuestas.
 
 | Tipo | Qué hace | Entra → sale | Prueba | Skills de hoy |
 |---|---|---|---|---|
@@ -61,7 +61,6 @@ Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué
 | diagnostico | De un síntoma a su causa | fallo → causa en campos cerrados | la salida rellena la ficha y hay un criterio de parada | causa-raiz |
 | decision | Elegir entre opciones con criterios | dilema → opción y porqué | cada criterio aplicado y la escalera seguida | plan-de-arreglo |
 | flujo | Encadenar skills y agentes | caso → cerrado por etapas | cada etapa apunta a una skill o agente que existe y tiene puerta | issues |
-| forja | Crear un artefacto nuevo desde su plantilla | necesidad → artefacto o «no hace falta» | regla de parada primero; lo creado pasa su plantilla | forja-de-skills |
 | revision | Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto → criterio, estado y arreglo | una pieza mala a propósito da todos sus fallos | higiene-de-skills |
 | conocimiento | Lo que hay que saber del negocio | pregunta → dato y dónde vive | cada afirmación apunta a su fuente | ninguna |
 
@@ -70,12 +69,11 @@ El tipo de una skill sale de `tipoDeSkill(respuestas)`: el de la primera pregunt
 | # | Clave | Pregunta | Tipo |
 |---|---|---|---|
 | 1 | opera_proveedor | ¿Opera un sistema o proveedor externo concreto? | servicio |
-| 2 | crea_artefacto | ¿Crea un artefacto nuevo? | forja |
-| 3 | juzga_artefacto | ¿Juzga un artefacto que ya existe? | revision |
-| 4 | encadena | ¿Encadena skills o agentes? | flujo |
-| 5 | pasos_fijos | ¿Son pasos fijos con comprobación? | procedimiento |
-| 6 | sintoma_a_causa | ¿Va de un síntoma a su causa? | diagnostico |
-| 7 | elige_opciones | ¿Elige entre opciones con criterios? | decision |
+| 2 | juzga_artefacto | ¿Juzga un artefacto que ya existe? | revision |
+| 3 | encadena | ¿Encadena skills o agentes? | flujo |
+| 4 | pasos_fijos | ¿Son pasos fijos con comprobación? | procedimiento |
+| 5 | sintoma_a_causa | ¿Va de un síntoma a su causa? | diagnostico |
+| 6 | elige_opciones | ¿Elige entre opciones con criterios? | decision |
 
 Skills sin ningún sí (provisionales, con su motivo en `skills_provisionales`): `estilo-de-respuesta`, `issues`.
 
@@ -84,9 +82,9 @@ Skills sin ningún sí (provisionales, con su motivo en `skills_provisionales`):
 | libertad | alta, media, baja |
 | invocacion | descripcion, guardia, precarga |
 
-Los tipos de hoy (`ops/flujo.json`) y adónde van:
+Los tipos retirados al migrar (#495) y a cuáles pasan; no vuelven a usarse:
 
-| Tipo de hoy | Destino |
+| Tipo retirado | Destino |
 |---|---|
 | herramienta | servicio, flujo |
 | oficio | diagnostico, decision |
@@ -95,26 +93,16 @@ Los tipos de hoy (`ops/flujo.json`) y adónde van:
 | receta_cambio | procedimiento |
 | rubrica_juez | revision |
 | investigacion | procedimiento |
-| meta | forja, revision |
+| meta | revision |
+| forja | sin sucesor |
 
-Por skill (`migracion_tipos`, sacada de `tipoDeSkill` y comprobada por `ops/forja.test.js`):
+Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su `tipo`, que tiene que ser el que ellas dan: la base es norma y no guarda datos de cada pieza (`ops/forja-tipos.test.js` y `.claude/skills.test.js`). Niveles:
 
-| Skill | Tipo |
+| Nivel | Qué es |
 |---|---|
-| github | servicio |
-| vercel | servicio |
-| supabase | servicio |
-| telegram | servicio |
-| hetzner | servicio |
-| tailscale | servicio |
-| 1password | servicio |
-| alta-de-secreto | procedimiento |
-| causa-raiz | diagnostico |
-| plan-de-arreglo | decision |
-| issues | flujo |
-| forja-de-skills | forja |
-| higiene-de-skills | revision |
-| estilo-de-respuesta | conocimiento |
+| 0 | Pieza meta de una familia (skills hoy; la de estándares vendrá): de ella salen las plantillas por tipo. Sin tipo de skill y exactamente una por familia |
+| 1 | Plantilla por tipo, generada en .claude/plantillas-skill/<tipo>.md: no es una skill |
+| 2 | Skill concreta, con su tipo (el que dan sus respuestas); es el nivel si la ficha no dice otro |
 
 Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que le tocan, `tipos` de cada criterio) → cada skill. Criterios de skill por tipo y capa:
 
@@ -125,7 +113,6 @@ Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que l
 | diagnostico | 26 | 13 | 13 | 52 |
 | decision | 26 | 13 | 13 | 52 |
 | flujo | 26 | 13 | 13 | 52 |
-| forja | 26 | 13 | 13 | 52 |
 | revision | 26 | 13 | 13 | 52 |
 | conocimiento | 26 | 13 | 13 | 52 |
 
@@ -144,7 +131,7 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 
 | Artefacto | Campos discretos | Huecos de texto | Campos |
 |---|---|---|---|
-| skill | 6 | 1 | 7 |
+| skill | 13 | 2 | 15 |
 | estandar | 2 | 5 | 7 |
 | agente | 3 | 1 | 4 |
 | criterio | 2 | 6 | 8 |
@@ -155,7 +142,15 @@ El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; ti
 
 - `name` — ref a skill
 - `description` — texto. Hueco: El cuándo se abre la skill dicho con las palabras de quien pide: lo discreto no lo alcanza, es prosa para que el modelo reconozca una petición
-- `tipo` — enum (tipos_skill_vigentes)
+- `tipo` — enum (tipos_skill), opcional
+- `opera_proveedor` — bool, opcional
+- `juzga_artefacto` — bool, opcional
+- `encadena` — bool, opcional
+- `pasos_fijos` — bool, opcional
+- `sintoma_a_causa` — bool, opcional
+- `elige_opciones` — bool, opcional
+- `porque_tipo` — texto, opcional. Hueco: Por qué responde así cuando la respuesta no es evidente (una skill que podría parecer de otro tipo): el motivo cambia con cada skill
+- `nivel` — enum (niveles), opcional
 - `dueno` — ref a agente
 - `comprobado` — fecha
 - `libertad` — enum (libertad), opcional
@@ -241,7 +236,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
 - `frontmatter` — **Frontmatter cerrado.** El frontmatter de cada skill DEBE llevar solo name, description y metadata, con name igual que la carpeta y la description con «Úsala » al principio, «No para:» y de 81 a 600 caracteres. Se comprueba con: `.claude/skills.test.js`.
   - Nota: La description queda por debajo de los 1.024 caracteres del estándar abierto.
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `frontmatter`.
-- `tipo` — **Tipo de skill.** El frontmatter de cada skill DEBE llevar en metadata.tipo uno de los ocho tipos de ops/flujo.json, que tiene secciones definidas. Se comprueba con: `.claude/skills.test.js`.
+- `tipo` — **Tipo de skill.** El frontmatter de cada skill DEBE llevar en metadata.tipo uno de los tipos de tipos_skill de ops/forja.json, el que dan sus respuestas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `tipo`.
 - `dueno` — **Dueño de la skill.** El frontmatter de cada skill DEBE llevar en metadata.dueno un agente de .claude/agents/ que la carga en su campo skills. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `dueno`.
@@ -273,7 +268,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
 - `fechas` — **Sin fechas en el cuerpo.** El cuerpo de cada skill NO DEBE llevar fechas fuera de «Lo que falló y por qué», «Registro de cambios» y «Fuentes y comprobación»: se quedan viejas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `fechas`.
 - `sin-parada` — **Parada del método.** El cuerpo de cada skill DEBE decir en el «Método» cuándo se acaba y qué se ve cuando sale bien. Se comprueba con: `.claude/skills.test.js`.
-  - Nota: Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio (en los SKILL.md, hasta migrar los tipos, «herramienta»).
+  - Nota: Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio, que no tiene «Método».
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `sin-parada`.
 - `ejemplos` — **Máximo de ejemplos.** El cuerpo de cada skill DEBE llevar como mucho tres ejemplos por sección de ejemplos: pocos y canónicos. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md. Código: `ejemplos`.
