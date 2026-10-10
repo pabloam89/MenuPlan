@@ -9,6 +9,9 @@ import { skillAbierta } from "./skill-abierta.mjs";
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 
+// El registro de eventos (#340) escribe en ~/.claude/menuplan-fabrica: un test no toca la carpeta real del usuario.
+process.env.MENUPLAN_FABRICA_DIR = mkdtempSync(join(tmpdir(), "skill-abierta-eventos-"));
+
 describe("qué acción cuenta como abrir una skill", () => {
   it.each([
     [{ tool_name: "Skill", tool_input: { skill: "github" } }, "github"],
