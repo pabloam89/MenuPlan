@@ -69,10 +69,11 @@ No es para:
    paso con lo que sale; el detalle largo a una capa que `SKILL.md` cita con su
    ruta. Nada de fechas fuera de «Lo que falló», «Registro de cambios» y
    «Fuentes». Cada forma en su sitio (tabla, lista, negrita, código): ver
-   `.claude/skills/forja-de-skills/referencias/presentacion.md`. El estándar de
-   cada tipo (qué lo hace bueno, errores típicos y un ejemplo) está en
-   `.claude/PLANTILLA-SKILL.md`. Sale: un `SKILL.md` por debajo del límite y
-   sin párrafos que el modelo ya sabe.
+   `.claude/skills/forja-de-skills/referencias/presentacion.md`. El tipo sale de
+   sus respuestas (`respuestas_tipo` de `ops/forja.json`); se copia el molde de
+   ese tipo, `.claude/plantillas-skill/<tipo>.md` (secciones, ficha, criterios,
+   estándar y ejemplo). Sale: un `SKILL.md` por debajo del límite y sin
+   párrafos que el modelo ya sabe.
 6. **Pasar el nivel 1** (`npm test -- .claude/skills.test.js`). Si falla la
    regla `forja`, se arregla la skill: la lista `EXCEPCIONES_FORJA` de
    `scripts/lib/skillsForja.mjs` **solo baja** y no se le añade nada.
@@ -143,6 +144,7 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 
 ## Registro de cambios
 
+- **2026-10-10** · Esta skill pasa a ser la pieza meta (nivel 0, sin tipo); una skill nueva copia el molde de su tipo, generado desde la forja en `.claude/plantillas-skill/` (#495).
 - **2026-10-10** · Las 7 excepciones de fechas que quedaban se arreglan y la lista queda vacía; la revisión de una skill concreta pasa a `higiene-de-skills` (#411).
 - **2026-10-10** · Presentación (`.claude/skills/forja-de-skills/referencias/presentacion.md`) con tres controles mecánicos, el estándar de cada tipo en la plantilla con su test, y 12 de las 19 excepciones quitadas (#410).
 - **2026-10-10** · Primera versión: doce criterios con fuente, defectos con su señal, método con regla de parada, y la regla `forja` del nivel 1 con su lista de excepciones que solo baja (#409).
