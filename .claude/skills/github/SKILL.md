@@ -78,6 +78,8 @@ metadata:
 Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS`, `MERCADONA_DEPLOY_KEY`,
 los del vigía, los de iOS y la clave de la App `homenu-dependabot-merge`) y qué workflow usa cada uno están en `ops/INVENTARIO.md`, que es la tabla
 que manda. `tests.yml` no usa ninguno. La CLI `gh` va con la sesión de Pablo (`gh auth status`).
+Un secreto nuevo o rotado va a un environment con política de ramas, nunca al
+repo; el alta entera, en la skill `alta-de-secreto`.
 
 ## Operaciones habituales
 

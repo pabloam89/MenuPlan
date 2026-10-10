@@ -9,6 +9,10 @@ Bytask, migrar · ❓ sin confirmar.
 
 > Nunca se escriben valores de claves en este fichero, solo su nombre y dónde
 > está configurada.
+>
+> Cómo se da de alta, se rota o se retira una clave, y qué tiene que quedar
+> apuntado aquí de cada una (ficha y bóveda, destinos, ámbito, alta y
+> caducidad): skill `alta-de-secreto`.
 
 ## Servicios
 
@@ -30,7 +34,7 @@ Bytask, migrar · ❓ sin confirmar.
 | **Groq** | Transcripción de voz del bot | ❓ | `GROQ_API_KEY` | Vercel |
 | **Resend** | Emails de moderación | ❓ | `RESEND_API_KEY`, `MODERATION_*` | Vercel |
 | **Telegram** (bot Lola) | Bot de mensajería | ❓ | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` | Vercel |
-| **Telegram** (bot «HoMenu avisos») | Avisos del vigía de Lola a un grupo con Pablo, Álvaro y Manu (#267). **Pendiente de crear** (9 oct 2026) | Pablo, con su cuenta de Telegram (@BotFather) | `AVISOS_TELEGRAM_TOKEN` (secreto) y `AVISOS_TELEGRAM_CHAT` (variable, el chat_id del grupo; no es secreto) | 1Password `HoMenu/Telegram avisos` + GitHub Actions |
+| **Telegram** (bot «HoMenu avisos») | Avisos del vigía de Lola a un grupo con Pablo, Álvaro y Manu (#267). Creado el 9 oct 2026 (su token está en el environment `vigia` desde ese día) | Pablo, con su cuenta de Telegram (@BotFather) | `AVISOS_TELEGRAM_TOKEN` (secreto) y `AVISOS_TELEGRAM_CHAT` (variable, el chat_id del grupo; no es secreto) | 1Password `HoMenu/Telegram avisos` + GitHub Actions |
 | **Google OAuth** | Login con Google | ❓ (Google Cloud Console) | — (configurado en Supabase Auth) | Supabase → Auth → Providers |
 | **Apple** (Sign in + App Store) | Login Apple, TestFlight | ❓ | `APPLE_*`, `IOS_*`, `APPSTORE_API_KEY_P8_BASE64` | Vercel + GitHub Actions |
 | **CallMeBot** | Avisos de fallos por WhatsApp | ❓ | `CALLMEBOT_DESTINOS` | GitHub Actions |
@@ -52,7 +56,7 @@ no es secreto.
 | Secreto | Workflow |
 |---|---|
 | `ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS` | `agente-fallos.yml` |
-| **Del environment `vigia`** (política: solo la rama `staging`), no del repo: `VERCEL_TOKEN` (leer los logs; token del equipo «menuplan», **caduca a los 90 días**: anotar aquí la fecha al crearlo y rotarlo antes), `CANARIO_SECRET` (el mismo valor que en Vercel), `AVISOS_TELEGRAM_TOKEN`; variables `AVISOS_TELEGRAM_CHAT`, `CANARIO_URL` y `VIGIA_ENTORNO`. **Pendientes de crear** (9 oct 2026); caducidad del `VERCEL_TOKEN`: — | `vigia-lola.yml` |
+| **Del environment `vigia`** (política: solo la rama `staging`), no del repo: `VERCEL_TOKEN` (leer los logs con la CLI; ámbito **«Full Account»**, porque uno de equipo no le vale a la CLI; **caduca a los 90 días**), `CANARIO_SECRET` (el mismo valor que en Vercel), `AVISOS_TELEGRAM_TOKEN`; variables `AVISOS_TELEGRAM_CHAT`, `CANARIO_URL` y `VIGIA_ENTORNO`. **Creados el 9 oct 2026** (`gh secret list --env vigia`); caducidad del `VERCEL_TOKEN`: hacia el 7 ene 2027 (90 días desde el alta; la fecha exacta, en Vercel → Account Settings → Tokens), rotarlo antes del 24 dic 2026 | `vigia-lola.yml` |
 | `IOS_DIST_P12_BASE64`, `IOS_DIST_P12_PASSWORD`, `IOS_PROVISION_PROFILE_BASE64`, `APPSTORE_API_KEY_P8_BASE64` | `ios-testflight.yml` |
 | `MERCADONA_DEPLOY_KEY`: la privada de la deploy key de escritura «mercadona-sync: cron, push a staging» (la pública, en Settings → Deploy keys). **Secreto del environment `mercadona-sync`**, no del repo: su política de ramas solo deja `staging`. Sin copia fuera de GitHub: si se pierde, se crea otra. **Pendiente de crear** (9 oct 2026) | `mercadona-sync.yml` |
 | `DEPENDABOT_APP_KEY`: la clave privada (`.pem`) de la GitHub App `homenu-dependabot-merge` (de Pablo, App ID 5250358; instalada solo en `pabloam89/MenuPlan`; Contents, Pull requests y Workflows de escritura; sin webhook), y la variable `DEPENDABOT_APP_ID` (no es secreta). **Del environment `dependabot-auto`** (política: solo `staging`), no del repo ni de los «Dependabot secrets». Fusiona los PR de actions que el `GITHUB_TOKEN` no puede (#193). Copia en 1Password `HoMenu/GitHub App dependabot-merge` (Documento). Rotar: skill `github`. **Creados el 9 oct 2026** (App ID 5250358). Solo los ve el job `fusionar-app` | `dependabot-auto.yml` |

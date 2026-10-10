@@ -41,6 +41,13 @@
         "^scripts/lib/tecnicas\\.mjs$"
       ]
     },
+    "alta-de-secreto": {
+      "comandos": [],
+      "rutas": [
+        "^scripts/clave-[\\w-]+\\.mjs$",
+        "^scripts/lib/claveRol\\.mjs$"
+      ]
+    },
     "plan-de-arreglo": {
       "comandos": [],
       "rutas": [

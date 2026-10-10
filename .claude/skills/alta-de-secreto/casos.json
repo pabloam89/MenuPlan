@@ -1,0 +1,84 @@
+{
+  "skill": "alta-de-secreto",
+  "casos": [
+    {
+      "id": "ficha-equivocada",
+      "peticion": "He creado la clave del servicio nuevo y la he metido en la ficha de 1Password que tenía abierta, que era la de otro servicio. Ahora el script no la encuentra. ¿Cómo lo dejo bien?",
+      "skill": "alta-de-secreto",
+      "debe_salir": [
+        "Una ficha por servicio y uso, con el campo llamado como la variable",
+        "Mira antes qué fichas hay (op item list o el inventario) y no reutiliza la de otro servicio",
+        "Comprueba la ficha y el campo por nombre sin enseñar el valor (largo y forma, o una llamada gratis)",
+        "Apunta ficha, bóveda y destinos en ops/INVENTARIO.md"
+      ],
+      "nota": "Abstracto del 9 oct (#398): la clave en la ficha equivocada"
+    },
+    {
+      "id": "tilde-en-la-ficha",
+      "peticion": "El workflow no consigue leer el token: la dirección op:// de la ficha da error aunque la ficha existe y el campo también. La ficha se llama con una palabra con acento.",
+      "skill": "alta-de-secreto",
+      "debe_salir": [
+        "Identifica la tilde del nombre de la ficha como causa: las direcciones op:// no admiten acentos",
+        "Lee por nombre de ficha con op item get (por ejemplo node scripts/op.mjs item get) en vez de por op://",
+        "Propone nombrar las fichas nuevas sin tildes ni signos",
+        "Pasa el valor por tubería, sin escribirlo en el comando"
+      ],
+      "nota": "Abstracto del 9 oct (#398)"
+    },
+    {
+      "id": "token-vercel-equipo",
+      "peticion": "Necesito un token de Vercel para que un workflow de GitHub lea los logs con la CLI. ¿Cómo lo creo y lo subo?",
+      "skill": "alta-de-secreto",
+      "debe_salir": [
+        "El token con ámbito Full Account, porque con ámbito de equipo la CLI no lo acepta",
+        "Con caducidad (90 días) y la fecha apuntada en ops/INVENTARIO.md",
+        "Lo sube a un environment de GitHub con política de ramas, no como secreto de repo",
+        "Lo pasa por tubería desde 1Password (op item get … | gh secret set … --env …), sin que se vea",
+        "Pasa los ids del proyecto al runner por variables de entorno, porque allí la CLI no tiene contexto de proyecto",
+        "Lo crea o lo sube Pablo (requiere su OK)"
+      ],
+      "nota": "Abstracto del 9 oct (#398): el token de ámbito de equipo y la CLI sin contexto en el runner"
+    },
+    {
+      "id": "generador-corto",
+      "peticion": "Quiero un secreto largo inventado por nosotros para proteger un endpoint nuevo, y el generador de contraseñas de 1Password no me deja la longitud que quiero.",
+      "skill": "alta-de-secreto",
+      "debe_salir": [
+        "Lo genera un script en memoria (crypto.randomBytes) en vez del generador de 1Password",
+        "Lo pasa por stdin a la ficha, sin imprimirlo",
+        "Un secreto propio de ese endpoint, sin reutilizar el de otro uso",
+        "Dice dónde se sube (Vercel y, si lo usa un workflow, su environment) y lo apunta en el inventario"
+      ],
+      "nota": "Abstracto del 9 oct (#398)"
+    },
+    {
+      "id": "rotar-filtrada",
+      "peticion": "Se ha visto la clave de Anthropic en el log de un workflow. ¿Qué hago?",
+      "skill": "alta-de-secreto",
+      "debe_salir": [
+        "Es una rotación: clave nueva en el servicio, en la misma ficha y campo",
+        "La pone en cada destino que lista el inventario y la comprueba con una llamada gratis",
+        "Revoca la vieja solo después de comprobar la nueva",
+        "Requiere el OK de Pablo"
+      ]
+    },
+    {
+      "id": "frontera-leer-en-script",
+      "peticion": "Estoy escribiendo un script nuevo que necesita la clave de Gemini. ¿Cómo la leo sin ponerla en el código?",
+      "skill": "1password",
+      "nota": "Leer una clave que ya existe es de 1password (leerEnv); no es un alta"
+    },
+    {
+      "id": "frontera-clave-copias",
+      "peticion": "Toca rotar la clave privada con la que se cifran las copias de la base en el servidor.",
+      "skill": "hetzner",
+      "nota": "La clave de las copias tiene su propio procedimiento en la referencia de copias de hetzner"
+    },
+    {
+      "id": "frontera-bajar-variables",
+      "peticion": "Bájame las variables de entorno de producción de Vercel para probar en local.",
+      "skill": "vercel",
+      "nota": "No es un alta: es de vercel, y la guardia lo niega"
+    }
+  ]
+}

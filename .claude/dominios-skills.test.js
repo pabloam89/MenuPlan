@@ -144,6 +144,8 @@ describe("qué ficheros piden la línea del PR", () => {
     ["scripts/copias-ensayo.mjs", "hetzner"],
     ["scripts/copias-clave.mjs", "hetzner"],
     ["scripts/lib/copias.mjs", "hetzner"],
+    ["scripts/clave-consulta-lectura.mjs", "alta-de-secreto"],
+    ["scripts/lib/claveRol.mjs", "alta-de-secreto"],
   ])("%s -> %s", (f, skill) => expect(skillsDeFicheros([f], mapa)).toContain(skill));
 
   it.each([["src/App.jsx"], ["api/bot/telegram-extra.js"], ["package.json"], ["ops/INVENTARIO.md"], ["src/data/recipes.json"], ["docs/supabase/x.md"], ["scripts/copias.test.js"], ["ops/copiasx.md"]])(

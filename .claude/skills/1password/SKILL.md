@@ -69,9 +69,10 @@ metadata:
 | Lanzar algo que lee `process.env` (`node --env-file`, `vercel`…) | `npm run op -- run --env-file=.env.local -- <comando>` | el comando corre; si imprime una clave, sale `<concealed by 1Password>` |
 | Comprobar que una clave está bien | comparar a ciegas (`valor === otro`) e imprimir solo el sí o el no | `COINCIDEN` o `NO COINCIDEN`, nunca el valor |
 | Listar las bóvedas | `env -u OP_SERVICE_ACCOUNT_TOKEN op vault list` | las cuatro bóvedas con su id (ventana de aprobación la primera vez) |
-| Dar de alta una clave en `HoMenu` (OK) | un script lee el valor de donde esté y pasa la ficha en JSON por stdin a `op item create --vault HoMenu -`; después, la línea en `ops/env.1password` | `op` imprime el título y la bóveda de la ficha creada |
+| Dar de alta una clave en `HoMenu` (OK) | un script lee el valor de donde esté y pasa la ficha en JSON por stdin a `op item create --vault HoMenu -`; después, la línea en `ops/env.1password`. De punta a punta (ámbito, caducidad, GitHub, Vercel, inventario): skill `alta-de-secreto` | `op` imprime el título y la bóveda de la ficha creada |
+| Pasar una clave a otro programa por nombre de ficha | `node scripts/op.mjs item get "<Ficha>" --vault HoMenu --fields label=<CAMPO> --reveal \| <programa que lee stdin>` | el programa la recibe; en pantalla, nada. Vale con fichas cuyo nombre no cabe en `op://` |
 | Guardar algo en otra bóveda, p. ej. `Panel HoMenu` (OK) | como la anterior, **sin** el token de la service account y con el **id** de la bóveda: `env -u OP_SERVICE_ACCOUNT_TOKEN op item create --vault <id> --format json -` | ficha creada; ventana de 1Password a aprobar |
-| Rotar una clave (OK) | se genera la nueva en el servicio, se cambia en la ficha y, si el despliegue la usa, en Vercel | las direcciones no cambian: nadie toca su `.env.local` |
+| Rotar una clave (OK) | se genera la nueva en el servicio, se cambia en la misma ficha y campo, y se pone en **cada** destino que lista `ops/INVENTARIO.md` (Vercel, environments de GitHub, servidor); pasos en la skill `alta-de-secreto` | las direcciones no cambian: nadie toca su `.env.local` |
 | Token nuevo de la service account (OK) | `op service-account create "<nombre>" --vault HoMenu:read_items --raw`, con la salida directa a un script que la guarda en el llavero | la vieja se anula en 1Password.com → Developer → Service accounts |
 | Crear la clave de las copias (OK; Pablo, `!`) | `node scripts/copias-clave.mjs` (ensayo) y luego `--si`; necesita `age-keygen` (`winget install FiloSottile.age`) | `Ficha «Copias de la base» creada en Panel HoMenu y comprobada (COINCIDEN)` y la pública añadida a `destinatarios.txt`; si la ficha ya existe, se niega |
 | ¿`destinatarios.txt` es la pública de la ficha? (sin leer la privada; **requisito antes de subirlo al servidor**) | `node scripts/copias-clave.mjs --comprobar` | `COINCIDEN`; si sale `NO COINCIDEN`, no se sube: las copias se cifrarían para otra clave |
@@ -82,6 +83,11 @@ conversación. Se pasa por tubería (stdin) entre dos procesos.
 
 ## Lo que falló y por qué
 
+- **2026-10-09 · una dirección `op://` daba error con la ficha y el campo bien puestos.**
+  Causa: el nombre de la ficha llevaba una tilde; la sintaxis de `op://` solo
+  admite letras y cifras sin acento, espacios, `-`, `_` y `.` (lo demás, por id).
+  Arreglo: leer esa ficha por nombre con `op item get` (fila de arriba) y crear
+  las fichas nuevas sin tildes (skill `alta-de-secreto`).
 - **2026-10-08 · «"Panel HoMenu" isn't a vault in this account» al crear una
   ficha por script.** Causa: Node con `shell: true` concatena los argumentos y
   el espacio del nombre parte la bóveda en dos. Arreglo: pasar el **id** de la
@@ -138,7 +144,8 @@ bóvedas que se le dieron al crearla: para dar otra hay que crear una nueva.
 ## Fuentes y comprobación
 
 - https://developer.1password.com/docs/cli/
+- https://developer.1password.com/docs/cli/secret-reference-syntax/
 - https://developer.1password.com/docs/service-accounts/
 - https://developer.1password.com/docs/ssh/agent/
 
-Comprobado el 2026-10-08: lectura con service account, creación y lectura de una ficha en `Panel HoMenu` y agente SSH con una conexión real. Sin probar: caducidad del token ni el límite de peticiones. Sin probar (9 oct 2026): `copias-clave.mjs --si` y `--comprobar` contra 1Password, y la ficha «Copias de la base», que aún no existe. Tampoco si `op` acepta la etiqueta `clave_privada_age` en el campo de contraseña: si no, la relectura del script no coincide y no escribe la pública.
+Comprobado el 2026-10-08: lectura con service account, creación y lectura de una ficha en `Panel HoMenu` y agente SSH con una conexión real. Sin probar: caducidad del token ni el límite de peticiones. Sin probar (9 oct 2026): `copias-clave.mjs --si` y `--comprobar` contra 1Password, y la ficha «Copias de la base», que aún no existe. Tampoco si `op` acepta la etiqueta `clave_privada_age` en el campo de contraseña: si no, la relectura del script no coincide y no escribe la pública. Los caracteres que admite `op://` (lección del 9 oct) salen de su documentación, no de una prueba.

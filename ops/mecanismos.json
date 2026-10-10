@@ -24,7 +24,7 @@
       "cuando": "Un workflow que usa un secreto o escribe en producción: el secreto vive en un environment con política de ramas y, si hace falta, una persona que aprueba cada ejecución.",
       "cuesta": "Crear el environment a mano antes de fusionar el workflow (OK de Pablo); con aprobador, cada ejecución espera a una persona.",
       "ejemplo": ".github/workflows/mercadona-sync.yml",
-      "nota": "Hoy los environments tienen política de ramas y ninguno pide aprobador."
+      "nota": "Hoy los environments tienen política de ramas y ninguno pide aprobador. Cada secreto nuevo nace en su environment: lista de comprobación de .claude/skills/alta-de-secreto/SKILL.md."
     },
     {
       "id": "permisos_identidad",
@@ -35,7 +35,8 @@
       "veredicto_max": "dura",
       "cuando": "Que alguien no pueda hacer algo aunque lo intente: un rol de la base solo de lectura, un token con menos permisos, una identidad de máquina propia en vez de la de una persona.",
       "cuesta": "Crear y guardar otra credencial (OK de Pablo) y mantenerla: caduca, se rota, hay que saber quién la usa.",
-      "ejemplo": "supabase/migrations/0092_rol_consulta_lectura.sql"
+      "ejemplo": "supabase/migrations/0092_rol_consulta_lectura.sql",
+      "nota": "Cada credencial nueva nace con el ámbito mínimo y su caducidad: lista de comprobación de .claude/skills/alta-de-secreto/SKILL.md."
     },
     {
       "id": "restriccion_bd",

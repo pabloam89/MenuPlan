@@ -122,8 +122,8 @@ qué», «Registro de cambios», «Fuentes y comprobación»).
 | `investigacion` | Cómo buscar fuera y destilar | Cuándo y para qué · Método · Pregunta y alcance · Dónde buscar · Cómo se destila · Lo que falló y por qué · Registro de cambios · Fuentes y comprobación |
 | `meta` | Cómo crear, probar y podar las propias piezas | Cuándo y para qué · Método · Cómo se prueba · Cuándo se poda · Lo que falló y por qué · Registro de cambios · Fuentes y comprobación |
 
-Hoy hay skills de tipo herramienta y de tipo oficio (`causa-raiz` y
-`plan-de-arreglo`, #338); el estado de cada tipo lo lleva `ops/flujo.json`. Los demás quedan declarados y no se crea ninguno hasta que
+Hoy hay skills de tipo herramienta, de tipo oficio (`causa-raiz` y
+`plan-de-arreglo`, #338) y de tipo receta de cambio (`alta-de-secreto`, #398); el estado de cada tipo lo lleva `ops/flujo.json`. Los demás quedan declarados y no se crea ninguno hasta que
 cumpla la regla de parada.
 
 ### Forma del tipo herramienta
