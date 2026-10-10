@@ -46,7 +46,7 @@ No es para:
    (peticiones parecidas que son de otra skill o de ninguna; los casi-fallos,
    no los obvios). En las palabras de quien pide. Sale: `casos.json` que pasa
    `faltasDeCasos` y que, sin la skill, falla en algún `debe_salir`.
-4. **La descripción** (lo único que se lee siempre): `Úsala <cuándo, con las
+4. **La descripción** (lo único que se lee en cada sesión): `Úsala <cuándo, con las
    palabras de quien pide>. No para: <lo que es de otra>.` El disparador
    principal va en los primeros 250 caracteres. Por qué «Úsala» y no otra forma:
    `.claude/skills/forja-de-skills/referencias/criterios.md`, criterio 1.
@@ -55,7 +55,7 @@ No es para:
    modelo no sabe; un camino por defecto y una salida para el caso raro; cada
    paso con lo que sale; el detalle largo a una capa que `SKILL.md` cita con su
    ruta. Nada de fechas fuera de «Lo que falló», «Registro de cambios» y
-   «Fuentes». Sale: un `SKILL.md` por debajo del tope y sin párrafos que el
+   «Fuentes». Sale: un `SKILL.md` por debajo del límite y sin párrafos que el
    modelo ya sabe.
 6. **Pasar el nivel 1** (`npm test -- .claude/skills.test.js`). Si falla la
    regla `forja`, se arregla la skill: la lista `EXCEPCIONES_FORJA` de
@@ -78,7 +78,7 @@ quien lo vigila. El reparto:
 
 | Quién | Qué mira | Cuesta |
 |---|---|---|
-| `.claude/skills.test.js` (nivel 1, en el CI) | forma, tipo, dueño, secciones, tope de líneas y de descripción, rutas, capas, copiado, casos (mínimos propios y **tres de frontera**), fechas en el cuerpo, criterio de parada en «Método», tope de ejemplos y solape entre descripciones | nada |
+| `.claude/skills.test.js` (nivel 1, en el CI) | forma, tipo, dueño, secciones, límite de líneas y de descripción, rutas, capas, copiado, casos (mínimos propios y **tres de frontera**), fechas en el cuerpo, criterio de parada en «Método», límite de ejemplos y solape entre descripciones | nada |
 | `npm run skills-prueba` (nivel 2) | si la descripción dispara (también en los casi-fallos) y si el `SKILL.md` hace decir lo que pide `debe_salir` | tokens |
 | El `revisor` | si cada párrafo justifica su coste, si la libertad es la adecuada (pasos exactos donde hay riesgo), si hay un camino por defecto y no un menú, si los ejemplos son canónicos y no se contradicen, si el vocabulario es uno solo, si los casos de frontera son casi-fallos de verdad | una revisión |
 

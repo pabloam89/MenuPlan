@@ -17,8 +17,8 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
 - **Lo vigila:** la forma (`Úsala …`, `No para:`, 81 a 600 caracteres) la regla
   `frontmatter`; que dispare de verdad, `skills-prueba` (disparo); que use las
   palabras de quien pide, el `revisor`.
-- **Error contrario:** «Ayuda con documentos»: nunca se abre.
-- **Decisión sobre «Úsala» (tensión entre fuentes).** El test exige que empiece
+- **Error contrario:** «Ayuda con documentos»: no se abre jamás.
+- **Decisión sobre «Úsala» (tensión entre fuentes).** El test pide que empiece
   por «Úsala »; BP aconseja la tercera persona («Procesa …; úsala cuando …») y
   DESC el imperativo («Use this skill when …»). Se **mantiene «Úsala»**:
   1. pone el *cuándo* primero, que es lo que piden CC y DESC (el listado se
@@ -45,8 +45,8 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
 ## 3. Lo esencial primero: el listado se trunca
 
 - **Fuente:** [F] CC (el listado se trunca en 1.536 caracteres); DESC (el
-  estándar pone el tope en 1.024).
-- **Lo vigila:** tope de la casa de 600 caracteres (`MAX_DESCRIPCION`), por
+  estándar pone el techo en 1.024).
+- **Lo vigila:** límite de la casa de 600 caracteres (`MAX_DESCRIPCION`), por
   debajo del estándar de 1.024 (un test lo comprueba); que el disparador vaya en
   los primeros 250 caracteres, el `revisor`.
 - **Error contrario:** el disparador clave al final, cortado.
@@ -127,7 +127,7 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
   exhaustiva, según resúmenes); CE («si una persona no sabe qué herramienta
   usar, el agente tampoco»). Que se mida con vocabulario común es [I].
 - **Lo vigila:** párrafos copiados entre skills, `copiado`; descripciones que
-  comparten demasiadas palabras, `solape` (heurística, tope en `MAX_SOLAPE`);
+  comparten demasiadas palabras, `solape` (heurística, umbral `MAX_SOLAPE`);
   dudas reales entre dos skills, `skills-prueba`.
 - **Error contrario:** dos skills que reclaman la misma petición; el mismo
   procedimiento copiado y arreglado solo en una.
