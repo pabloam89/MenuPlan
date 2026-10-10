@@ -12,7 +12,7 @@ metadata:
 ## Cuándo y para qué
 
 Para dar de alta una clave o un servicio de punta a punta sin que el valor
-aparezca nunca en pantalla, en la conversación, en un argumento ni en el repo
+salga en pantalla, en la conversación, en un argumento ni en el repo
 (que es público), y sin dejarla con más alcance o más vida de la que necesita.
 El 9 oct 2026 se dieron de alta cinco (el bot de avisos, el token de Vercel del
 vigía, una clave de Anthropic, la del canario y la del rol de copias) y cada una
@@ -88,7 +88,7 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
 6. **Apúntala en `ops/INVENTARIO.md`**: nombre de la variable, para qué, cuenta
    dueña, ficha y bóveda, dónde está (environment de GitHub, entornos de
    Vercel, fichero del servidor), ámbito, fecha de alta y **fecha de
-   caducidad**. Nunca el valor. Sale: la fila en el mismo PR que el workflow o
+   caducidad**. El valor, no. Sale: la fila en el mismo PR que el workflow o
    el código que la usa.
 7. **Rotar**: a los 14 días de caducar, al irse alguien con acceso, si salió en
    un log, en la conversación o en un aviso de secret scanning, o si se guardó
@@ -98,7 +98,7 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
    (`gh secret set <NOMBRE>` sin `--env`), porque el workflow que lo lee no
    declara `environment:` y no vería uno nuevo. Pasarla a un environment es
    otro cambio, con `environment:` en el workflow (norma `secretos-de-repo`,
-   rama `ops/secretos-a-environments`). Se comprueba por forma y con la llamada
+   rama «ops/secretos-a-environments»). Se comprueba por forma y con la llamada
    gratis, **y solo entonces** se revoca la vieja en el servicio y se cambia la
    fecha en el inventario.
 8. **Retirar**: se quita de cada destino del inventario, se revoca en el
@@ -130,8 +130,8 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
   devuelve `staging`.
 - **La app de 1Password abierta y desbloqueada** (escribir pasa por ella y
   pide aprobar; la service account solo lee `HoMenu`).
-- **El valor nunca en un comando**: ni `--body <clave>`, ni `echo <clave> |`,
-  ni la URL con la clave dentro. Siempre tubería desde `op` o desde el script
+- **El valor, fuera de los comandos**: ni `--body <clave>`, ni `echo <clave> |`,
+  ni la URL con la clave dentro. Va por tubería desde `op` o desde el script
   que la genera.
 
 ## Cómo se comprueba
@@ -139,7 +139,7 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
 - **Forma**, sin verla: `node scripts/op.mjs item get "<Ficha>" --vault HoMenu --fields label=<CAMPO> --reveal | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{s=s.trim();console.log('largo:',s.length,'forma:',/^[\x21-\x7e]+$/.test(s)?'ok':'MAL')})"`
   → `largo: N forma: ok`. Un largo de 0 o un salto de línea dentro es ficha o
   campo equivocado.
-- **Una llamada gratis**, con la clave leída de stdin dentro de Node (nunca en
+- **Una llamada gratis**, con la clave leída de stdin dentro de Node (no en
   la línea de comandos) e imprimiendo solo el código HTTP:
 
 | Servicio | Llamada gratis | Debe salir |
@@ -183,7 +183,7 @@ clave nueva o rotada, antes de dar el alta por hecha:
 ## Lo que falló y por qué
 
 - **2026-10-09 · una CLI que en local funcionaba no encontraba su proyecto en el runner de Actions.** Causa: en local la CLI lee el enlace del proyecto de una carpeta que el checkout del runner no trae (en Vercel, `.vercel/`). Arreglo: el workflow le pasa los ids del proyecto por variables de entorno, que no son secretas (`VERCEL_ORG_ID` y `VERCEL_PROJECT_ID`; skill `vercel`). Al dar de alta una clave para una CLI en Actions, se prueba en el runner, no solo en el PC.
-- **2026-10-09 · el generador de 1Password no daba la longitud que pedía el secreto.** Causa: el generador de contraseñas tiene un tope de longitud y de juego de caracteres. Arreglo: los secretos nuestros los genera el script en memoria con `crypto.randomBytes(32)` (como `claveNueva` de `scripts/lib/rolLectura.mjs`) y los pasa por stdin a la ficha.
+- **2026-10-09 · el generador de 1Password no daba la longitud que pedía el secreto.** Causa: el generador de contraseñas tiene un límite de longitud y de juego de caracteres. Arreglo: los secretos nuestros los genera el script en memoria con `crypto.randomBytes(32)` (como `claveNueva` de `scripts/lib/rolLectura.mjs`) y los pasa por stdin a la ficha.
 - **2026-10-09 · un token de Vercel recién creado no le valía a la CLI.** Causa: se creó con ámbito de equipo, y la CLI pregunta primero por el usuario. Arreglo: para la CLI, ámbito «Full Account» y 90 días; comprobado con `GET /v2/user` (lección completa en la skill `vercel`).
 - **2026-10-09 · una dirección `op://` no resolvía aunque la ficha existía.** Causa: el nombre de la ficha llevaba una tilde, y las direcciones `op://` solo admiten letras sin acento, cifras, espacios, `-`, `_` y `.`. Arreglo: leer por nombre de ficha con `op item get` y nombrar las fichas nuevas sin tildes (skill `1password`).
 - **2026-10-09 · una clave se guardó en la ficha de otro servicio.** Causa: no había regla de qué ficha le toca a cada clave, y se aprovechó una abierta. Arreglo: una ficha por servicio y uso, el campo con el nombre de la variable, mirar antes `op item list` y releer ficha y campo por nombre en el paso de forma.
@@ -202,4 +202,4 @@ clave nueva o rotada, antes de dar el alta por hecha:
 - https://docs.anthropic.com/en/api/models-list
 - https://core.telegram.org/bots/api#getme
 
-Comprobado el 2026-10-10: los nombres de los secretos y variables del environment `vigia` (`gh secret list --env vigia`, alta del 9 oct) y que el repo aún tiene secretos sueltos de antes de esta norma; los cinco tropiezos, por el encargo #398 y la skill `vercel`. Sin comprobar: el tope exacto del generador de 1Password, `vercel env add` contra el entorno personalizado de staging, y si `gh secret set` o `vercel env add` recortan el salto de línea final que deja `op item get` (su ayuda no lo dice; por eso el `tr -d`). La opción `--force` de `vercel env add` se leyó en la ayuda de la CLI 62.1.0, sin usarla.
+Comprobado el 2026-10-10: los nombres de los secretos y variables del environment `vigia` (`gh secret list --env vigia`, alta del 9 oct) y que el repo aún tiene secretos sueltos de antes de esta norma; los cinco tropiezos, por el encargo #398 y la skill `vercel`. Sin comprobar: el límite exacto del generador de 1Password, `vercel env add` contra el entorno personalizado de staging, y si `gh secret set` o `vercel env add` recortan el salto de línea final que deja `op item get` (su ayuda no lo dice; por eso el `tr -d`). La opción `--force` de `vercel env add` se leyó en la ayuda de la CLI 62.1.0, sin usarla.
