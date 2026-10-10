@@ -13,11 +13,11 @@
  * Cada regla lleva su porqué: si una molesta, se discute y se cambia aquí,
  * con su test en guardia.test.js. Lo que no vale es desactivarla sin decirlo.
  */
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { AYUDA as AYUDA_CASOS, analizarCasos } from "./casos.mjs";
 import { cargarMapa, skillsDeComando, unirContinuaciones } from "./dominios.mjs";
@@ -566,14 +566,55 @@ export const hayTiempoParaRegistrar = (inicio, ahora = Date.now()) => ahora - in
 
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 
-const responder = (r) => {
+/** Tope del proceso que busca lo ya apuntado (#384): pasado el tiempo, la guardia responde sin aviso. */
+export const TOPE_AVISO_MS = 1500;
+
+/**
+ * El aviso de «esto ya está apuntado» para una denegación, obtenido en un PROCESO APARTE y con tope
+ * (ronda 4 de #384): la guardia no importa nada de scripts/lib y un módulo que falle, haga exit o se
+ * cuelgue no puede quitar un deny. Devuelve '' ante cualquier cosa rara.
+ */
+export function avisoAparte(r, entrada, { script = join(dirname(fileURLToPath(import.meta.url)), "buscar-antes.mjs"), tope = TOPE_AVISO_MS } = {}) {
+  try {
+    const hijo = spawnSync(process.execPath, [script, "--denegacion"], {
+      input: JSON.stringify({
+        entrada: { session_id: entrada?.session_id, cwd: entrada?.cwd, tool_input: { command: String(entrada?.tool_input?.command ?? "").slice(0, 2000) } },
+        motivo: String(r.motivo ?? "").slice(0, 2000),
+      }),
+      timeout: tope, encoding: "utf8", maxBuffer: 64 * 1024, windowsHide: true,
+    });
+    const salida = String(hijo.stdout ?? "").trim();
+    if (hijo.error || hijo.status !== 0 || !salida.startsWith("[buscar-antes] ") || salida.length > 6000) {
+      if (hijo.error || hijo.status !== 0) console.error(`[guardia] no he podido buscar lo ya apuntado (estado ${hijo.status}, ${hijo.signal ?? hijo.error?.code ?? "sin señal"})`);
+      return "";
+    }
+    return salida;
+  } catch (e) {
+    console.error(`[guardia] no he podido buscar lo ya apuntado: ${String(e?.message ?? e).split("\n")[0]}`);
+    return "";
+  }
+}
+
+let respondido = false;
+const escribir = (r, motivo) => {
+  respondido = true;
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: r.decision,
-      permissionDecisionReason: `[guardia] ${r.motivo}`,
+      permissionDecisionReason: motivo,
     },
   }));
+};
+
+const responder = (r, entrada = null) => {
+  const base = `[guardia] ${r.motivo}`;
+  // Red de seguridad: si algo hiciera salir al proceso antes de escribir, la decisión sale igual.
+  process.on("exit", () => { if (!respondido) escribir(r, base); });
+  // Una denegación no llega a PostToolUse: la herramienta no se ejecuta. Por eso el «esto ya está
+  // apuntado» (#384) se añade aquí, desde otro proceso y con tope. Nunca cambia la decisión.
+  const extra = r.decision === "deny" && entrada ? avisoAparte(r, entrada) : "";
+  escribir(r, extra ? `${base}\n${extra}` : base);
 };
 
 if (esPrincipal) {
@@ -610,8 +651,9 @@ if (esPrincipal) {
   const r = decidir(entrada, contextoReal(raiz, entrada));
   if (r) {
     // La respuesta sale PRIMERO: lo que decide la guardia no puede depender de un módulo de
-    // registro que se cuelgue o haga process.exit (juez de seguridad de #340).
-    responder(r);
+    // registro que se cuelgue o haga process.exit (juez de seguridad de #340). El aviso de lo
+    // ya apuntado (#384) se añade dentro de `responder`, con su try/catch: nunca cambia la decisión.
+    responder(r, entrada);
     // El registro de eventos (#340) cuenta cada bloqueo y cada permiso pedido. Import dinámico,
     // dentro de un try y con tope de tiempo: si no carga, falla o se cuelga, la decisión ya salió.
     try {

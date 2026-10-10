@@ -24,7 +24,9 @@ import { execFileSync } from "node:child_process";
 import { basename } from "node:path";
 
 import { ahoraEnMadrid } from "./hora.mjs";
+import { esDeLaCasa } from "./fondos.mjs";
 import { raices } from "./issues.mjs";
+import { RAMA_VALIDA } from "./textoExterno.mjs";
 
 /**
  * Horas sin commits a partir de las cuales una carpeta parece parada. Medido el
@@ -69,11 +71,16 @@ export function cuerpoDeMarca({ rama, carpeta, desde = new Date() }) {
 }
 
 /** Las marcas que hay en los comentarios de un issue: [{ rama, carpeta, desde: Date }]. */
-export function leerMarcas(comentarios) {
+export function leerMarcas(comentarios, { soloCasa = false } = {}) {
   const re = new RegExp(`<!-- ${MARCADOR} rama=(\\S+) carpeta=(\\S+) desde=(\\S+) -->`);
   return (comentarios ?? [])
+    // Con `soloCasa` (lo que se enseña a las sesiones) un comentario cuenta solo si lo escribió alguien
+    // de la casa: cualquiera puede comentar en un issue público. Sin la asociación, no cuenta (#313).
+    .filter((c) => !soloCasa || esDeLaCasa(c?.authorAssociation))
     .map((c) => re.exec(String(c.body ?? c)))
     .filter(Boolean)
+    // Una rama o carpeta con formas raras (espacios invisibles, símbolos) no es una marca nuestra.
+    .filter((m) => RAMA_VALIDA.test(m[1]) && /^[\w.\-]{1,80}$/.test(m[2]))
     .map((m) => ({ rama: m[1], carpeta: m[2], desde: new Date(m[3]) }));
 }
 
@@ -82,7 +89,10 @@ const motivoDe = (e) => String(e?.stderr ?? e?.message ?? e).trim().split("\n")[
 /** `gh` con tope de tiempo: sin red, que falle pronto y avise. */
 export const ghReal = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 20_000 });
 
-/** Los comentarios del issue con su id: [{ id, body }]. */
+/**
+ * Los comentarios del issue con su id: [{ id, body }]. Pendiente en #313: `marcar` y `desmarcar` buscan su
+ * marca entre los comentarios de CUALQUIERA (no filtran por authorAssociation); solo tocan los suyos por rama.
+ */
 function comentarios(gh, issue) {
   const salida = gh("api", "--paginate", `repos/{owner}/{repo}/issues/${issue}/comments`, "--jq", ".[] | {id: .id, body: .body} | tojson");
   return salida.split("\n").filter(Boolean).map((l) => JSON.parse(l));
