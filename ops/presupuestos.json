@@ -4,6 +4,10 @@
   "actualizado": "2026-10-09",
   "plan": 334,
   "especificacion": 339,
+  "notas_campos": {
+    "minutos_orientativos": "Esfuerzo de UN FONDO: la suma de los minutos activos de las sesiones de todos sus encargos (sesiones en paralelo suman; no es el tiempo de calendario ni el de un encargo suelto). Es lo que compara npm run fabrica -- --recalibrar, con la mediana de esos totales por fondo.",
+    "rondas_max": "Rondas de constructor y juez del fondo, tal como las apunta el campo rondas de su ficha."
+  },
   "valores_iniciales": true,
   "calibrado_el": null,
   "recalibracion": {

@@ -559,6 +559,18 @@ export function decidir(entrada, ctx) {
 
 // ── Entrada desde Claude Code ──────────────────────────────────────────────
 
+/** Cuándo arrancó este proceso: la guardia mide cuánto ha tardado en contestar. */
+const INICIO = Date.now();
+
+/**
+ * Milisegundos a partir de los cuales la guardia ya NO añade el registro de eventos (#340). Contestar
+ * suele costar menos de 1 s, pero `contextoReal` puede tardar 15-30 s con la red lenta (git fetch, gh);
+ * el registro lanza otro `git` (hasta 3 s) y esperarlo allí sería sumarle espera a una sesión que ya
+ * esperó. Con 5 s, el caso normal (< 1 s) siempre registra y el lento se salta el registro.
+ */
+export const TOPE_PARA_REGISTRAR_MS = 5000;
+export const hayTiempoParaRegistrar = (inicio, ahora = Date.now()) => ahora - inicio <= TOPE_PARA_REGISTRAR_MS;
+
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 
 const responder = (r) => {
@@ -610,6 +622,7 @@ if (esPrincipal) {
     // El registro de eventos (#340) cuenta cada bloqueo y cada permiso pedido. Import dinámico,
     // dentro de un try y con tope de tiempo: si no carga, falla o se cuelga, la decisión ya salió.
     try {
+      if (!hayTiempoParaRegistrar(INICIO)) throw new Error("la guardia ya tardó demasiado: sin registro");
       const registro = (async () => {
         const { familiaDeGuardia, registrarEvento } = await import("./eventos.mjs");
         registrarEvento({

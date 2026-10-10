@@ -20,22 +20,17 @@ import { fileURLToPath } from "node:url";
 import {
   HUECO_ACTIVO_MIN, agregarPorIssue, cobertura, contarEventos, extraer, inicioDe, leerLineas, listarTranscripciones, recalibrar, resumirPartes, textoInforme, unirConGithub,
 } from "./lib/fabrica.mjs";
+import { dirFabrica } from "../.claude/hooks/eventos.mjs"; // una sola carpeta para el registro de eventos y los informes
 import { diaMadrid } from "./lib/hora.mjs";
 import { CONSULTA, leerIssue } from "./lib/issues.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-
-/** Dónde se guardan los informes y el registro de eventos de los hooks: fuera del repo y de OneDrive. */
-export const CARPETA_FABRICA = join(homedir(), ".claude", "menuplan-fabrica");
 
 /** ¿Está `ruta` dentro de `raiz`? Los informes con datos de uso no se escriben nunca en un fichero versionable. */
 export function dentroDe(ruta, raiz) {
   const r = relative(resolve(raiz), resolve(ruta));
   return r === "" || (!r.startsWith("..") && !/^[a-zA-Z]:/.test(r) && !r.startsWith("/") && !r.startsWith("\\"));
 }
-
-/** La carpeta del registro de eventos y los informes; `MENUPLAN_FABRICA_DIR` la cambia (los tests, otro disco). */
-export const dirFabrica = (env = process.env) => env.MENUPLAN_FABRICA_DIR || CARPETA_FABRICA;
 
 /**
  * ¿Está `ruta` dentro de ALGÚN repo git (este u otro)? Se resuelve con realpath desde el ancestro
@@ -111,8 +106,18 @@ function main() {
   // Primero se extrae lo estructural de cada sesión (compacto) y se ordenan de la más antigua a la más
   // reciente: Claude Code copia el historial de la sesión madre a las retomadas y bifurcadas, y esa
   // copia no puede contar dos veces (resumirPartes, `vistos`).
+  let ilegibles = 0;
+  // Un fichero que no se puede leer (permisos, borrado a medias) se cuenta y se sigue: nunca tumba el informe ni enseña su ruta.
+  const leer = (r) => {
+    try {
+      return extraer(leerLineas(readFileSync(r, "utf8")), { desde });
+    } catch {
+      ilegibles += 1;
+      return extraer([]);
+    }
+  };
   const extraidas = listarTranscripciones(base, prefijo)
-    .map((t) => [t.principal, ...t.subagentes].map((r) => extraer(leerLineas(readFileSync(r, "utf8")), { desde })))
+    .map((t) => [t.principal, ...t.subagentes].map(leer))
     .map((partes) => ({ partes, inicio: inicioDe(partes) }))
     .filter((x) => Number.isFinite(x.inicio))
     .sort((a, b) => a.inicio - b.inicio);
@@ -132,7 +137,7 @@ function main() {
   const union = unirConGithub(medidas, issues);
   const recal = recalibrar(union.fondos);
   const eventos = eventosLocales();
-  const cob = cobertura({ sesiones: sesiones.length, union, recal });
+  const cob = cobertura({ sesiones: sesiones.length, union, recal, ilegibles });
 
   const recalibracion = args.includes("--recalibrar");
   const salida = args.includes("--json")

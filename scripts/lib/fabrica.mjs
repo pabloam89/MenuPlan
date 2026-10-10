@@ -264,7 +264,9 @@ export function resumirPartes(partes, { huecoMin = HUECO_ACTIVO_MIN, precios = P
       c.mensajes += 1;
       c.tokens.entrada += m.entrada; c.tokens.salida += m.salida; c.tokens.cache_lectura += m.lectura;
       c.tokens.cache_escritura += m.escritura_5m + m.escritura_1h;
-      c.modelos[m.modelo] = (c.modelos[m.modelo] ?? 0) + 1;
+      // Un modelo sin fila en ops/precios-modelos.json va a «otro»: el id lo escribe quien configura la sesión y no es vocabulario.
+      const clave = precioDe(m.modelo, precios) ? m.modelo : "otro";
+      c.modelos[clave] = (c.modelos[clave] ?? 0) + 1;
       const coste = costeDeMensaje(m, precios);
       if (coste === null) c.sin_precio += 1;
       else c.coste_usd += coste;
@@ -302,7 +304,7 @@ export function agregarPorIssue(sesiones) {
 
 const nombres = (labels) => (labels ?? []).map((l) => (typeof l === "string" ? l : l?.name)).filter(Boolean);
 const tipoDe = (issue) => [...porGrupo(nombres(issue.labels)).tipo][0] ?? null;
-const causaDe = (issue) => [...porGrupo(nombres(issue.labels)).causa][0] ?? null;
+const causaDe = (issue) => [...porGrupo(nombres(issue.labels)).causa].find((c) => CAUSAS.includes(c)) ?? null;
 
 /**
  * ¿Aguantó el arreglo de un fondo? Vocabulario AGUANTO. Solo `si` y `no` son
@@ -420,6 +422,13 @@ const redondeo = (x, paso) => Math.round(x / paso) * paso;
 const entre = (x, [min, max]) => Math.min(max, Math.max(min, x));
 const dec = (x) => (x === null ? null : Math.round(x * 10) / 10);
 
+/**
+ * Toda propuesta de BAJAR un valor lleva esta advertencia en su propia fila: lo medido sale de las
+ * transcripciones de ESTE PC (las de otro PC o de la nube no cuentan), así que el real es un suelo
+ * y ese suelo no basta para justificar una bajada sin mirarlo.
+ */
+export const ADVERTENCIA_BAJAR = "medido solo en este PC (las sesiones de otros PC no cuentan: el real es un suelo)";
+
 /** Dónde vive en el catálogo un campo de una celda: la causa si lo sobrescribe, y si no, el alcance. */
 export function destinoDe(alcance, causa, campo, catalogo = CATALOGO) {
   return Object.hasOwn(catalogo.por_causa ?? {}, causa) && campo in catalogo.por_causa[causa] ? `por_causa.${causa}.${campo}` : `por_alcance.${alcance}.${campo}`;
@@ -468,6 +477,7 @@ function decidirCampo(campo, c, p, catalogo) {
     r = { decision: "subir", propuesto: Math.min(TOPE_RONDAS, p[campo] + 1) };
   } else r = { decision: "en-rango" };
   if (r.propuesto !== undefined && r.propuesto === p[campo]) r = { decision: "en-rango" };
+  if (r.decision === "bajar") r.nota = `${ADVERTENCIA_BAJAR}${r.nota ? `; ${r.nota}` : ""}`;
   if (r.propuesto !== undefined) {
     const donde = destinoDe(c.alcance, c.causa, campo, catalogo);
     const mal = problemas(conValor(catalogo, donde, r.propuesto));
@@ -517,10 +527,11 @@ export function recalibrar(fondos, catalogo = CATALOGO) {
 // ── El informe (solo agregados) ───────────────────────────────────────────────
 
 /** Cuántos encargos hay medidos en total y si el criterio de #340 (10) se alcanza. */
-export function cobertura({ sesiones, union, recal }) {
+export function cobertura({ sesiones, union, recal, ilegibles = 0 }) {
   const encargosMedidos = union.encargos.length;
   return {
     sesiones,
+    ficheros_ilegibles: ilegibles,
     issues_medidos: union.encargos.length + union.fondos.filter((f) => f.propio).length + union.otros.length,
     encargos_medidos: encargosMedidos,
     fondos_medidos: union.fondos.length,
@@ -546,6 +557,7 @@ export function textoInforme({ cobertura: cob, union, recal, desde = null, hueco
   L.push(`  sesiones medidas: ${cob.sesiones}; fondos con medidas: ${cob.fondos_medidos}; encargos medidos: ${cob.encargos_medidos}`);
   L.push(`  en alguna celda (fondo con alcance y tipo de causa): ${cob.encargos_en_celda} encargos de ${cob.fondos_en_celda} fondos; ${cob.fondos_sin_celda} fondos sin alcance o sin causa en su ficha`);
   L.push(`  criterio de #340 (${cob.criterio} encargos con datos): ${cob.criterio_alcanzado ? "alcanzado" : "NO alcanzado todavía"}`);
+  if (cob.ficheros_ilegibles) L.push(`  ilegibles: ${cob.ficheros_ilegibles} ficheros de transcripción no se pudieron leer y no cuentan`);
   if (union.sinLocalizar.length) L.push(`  ramas con un número que no es ningún issue: ${union.sinLocalizar.map((n) => `#${n}`).join(", ")}`);
   if (union.sinIssue) L.push(`  sin rama de issue: ${f1(union.sinIssue.minutos)} min, ${miles(union.sinIssue.tokens.total)} tokens, ${usd(union.sinIssue.coste_usd)} (el trabajo que no cuelga de ningún encargo)`);
   L.push("");
@@ -573,6 +585,7 @@ export function textoInforme({ cobertura: cob, union, recal, desde = null, hueco
   if (!recalibracion) return `${L.join("\n")}\n`;
   L.push("");
   L.push("Recalibración: presupuestado frente a real, por tipo de causa × alcance");
+  L.push("  Qué se compara: minutos_orientativos (por fondo) frente a la SUMA de los minutos activos de las sesiones de todos los encargos de cada fondo (sesiones en paralelo suman; no es el tiempo de calendario del fondo); la «mediana» es la de esos totales por fondo. rondas_max, frente al campo rondas de la ficha de cada fondo.");
   L.push(`  Solo se propone con al menos ${MIN_ENCARGOS_CELDA} encargos y ${MIN_FONDOS_CELDA} fondos en la celda; con menos, «datos insuficientes». Nada de esto toca ops/presupuestos.json: lo aplica una persona en /revision-issues.`);
   if (!recal.filas.length) L.push("  ninguna celda con datos todavía");
   for (const fila of recal.filas) {

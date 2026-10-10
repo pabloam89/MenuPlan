@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 import { dentroDe, dentroDeUnRepo } from "./fabrica.mjs";
 import {
-  HUECO_ACTIVO_MIN, MIN_ENCARGOS_CELDA, MIN_ENCARGOS_INFORME, MIN_FONDOS_CELDA, PRECIOS, RATIO_PROPUESTA,
+  ADVERTENCIA_BAJAR, HUECO_ACTIVO_MIN, MIN_ENCARGOS_CELDA, MIN_ENCARGOS_INFORME, MIN_FONDOS_CELDA, PRECIOS, RATIO_PROPUESTA,
   agregarPorIssue, aguantoDe, cobertura, contarEventos, costeDeMensaje, extraer, leerLineas, listarTranscripciones, mediana, precioDe,
   recalibrar, resumirPartes, resumirSesion, textoInforme, tipoDeAgente, unirConGithub,
 } from "./lib/fabrica.mjs";
@@ -394,6 +394,51 @@ describe("recalibrar: presupuestado frente a real, por tipo de causa × alcance"
   });
 });
 
+describe("revisión de #340: bajar avisa, la unidad está dicha y lo raro va a «otro»", () => {
+  it("TODA propuesta de bajar (minutos o rondas) lleva en su propia fila la advertencia «medido solo en este PC»", () => {
+    const min = [fila(1, "transversal", "codigo", { minutos: 33 }), fila(2, "transversal", "codigo", { minutos: 37 })];
+    const a = campo(celda(recalibrar(min), "transversal", "codigo"), "minutos_orientativos");
+    expect([a.decision, a.nota]).toEqual(["bajar", expect.stringContaining(ADVERTENCIA_BAJAR)]);
+    const ron = [fila(1, "modulo", "codigo", { minutos: 30, rondas: 1 }), fila(2, "modulo", "codigo", { minutos: 30, rondas: 1 })];
+    const b = campo(celda(recalibrar(ron), "modulo", "codigo"), "rondas_max");
+    expect([b.decision, b.nota]).toEqual(["bajar", expect.stringContaining("este PC")]);
+    const subir = [fila(1, "transversal", "codigo", { minutos: 100 }), fila(2, "transversal", "codigo", { minutos: 112 })];
+    expect(campo(celda(recalibrar(subir), "transversal", "codigo"), "minutos_orientativos").nota ?? "").not.toContain("este PC");
+  });
+
+  it("el informe y el catálogo dicen qué se compara: la SUMA de minutos activos de los encargos del fondo", () => {
+    const fs = [fila(1, "transversal", "codigo", { minutos: 33 }), fila(2, "transversal", "codigo", { minutos: 37 })];
+    const union = { fondos: fs, encargos: [], otros: [], sinLocalizar: [], sinIssue: null };
+    const recal = recalibrar(fs);
+    const texto = textoInforme({ cobertura: cobertura({ sesiones: 1, union, recal }), union, recal, recalibracion: true });
+    expect(texto).toMatch(/SUMA de los minutos activos/);
+    expect(texto).toMatch(/no es el tiempo de calendario/);
+    expect(CATALOGO.notas_campos.minutos_orientativos).toMatch(/suma de los minutos activos/);
+  });
+
+  it("un modelo sin precio va a «otro» en el desglose y no se cuela su id; los que tienen precio salen con su nombre", () => {
+    const r = "ops/340-x";
+    const c = resumirSesion([[linea("user", 0, r), respuesta(1, r, { id: "m1", modelo: "claude-raro-9" }), respuesta(2, r, { id: "m2" })]]).porIssue.get(340);
+    expect(c.modelos).toEqual({ otro: 1, "claude-sonnet-5-5": 1 });
+  });
+
+  it("una etiqueta causa: fuera del vocabulario no se toma por tipo de causa", () => {
+    const f = fondo(10, {}, { labels: etiquetas("tipo:fondo", "causa:inventada", "causa:codigo") });
+    f.body = "sin ficha";
+    const u = unirConGithub(agregarPorIssue([resumirSesion([[linea("user", 0, "ops/10-a"), respuesta(1, "ops/10-a", { id: "z" })]])]), [f]);
+    expect(["codigo", null]).toContain(u.fondos[0].tipo_causa);
+    expect(u.fondos[0].tipo_causa).not.toBe("inventada");
+  });
+
+  it("P12.3, P12.4 y la norma de recalibración son blandas: el script es una ayuda que nada lanza", () => {
+    const flujo = JSON.parse(readFileSync(join(RAIZ, "ops/flujo.json"), "utf8"));
+    const todas = flujo.pasos.flatMap((p) => p.obligaciones);
+    for (const id of ["P12.3", "P12.4"]) expect(todas.find((o) => o.id === id).dureza, id).toBe("blanda");
+    const norma = JSON.parse(readFileSync(join(RAIZ, "ops/normas.json"), "utf8")).normas.find((n) => n.id === "presupuestos-se-recalibran");
+    expect(norma.veredicto).toBe("blanda");
+  });
+});
+
 describe("las constantes tienen sentido junto al criterio de #340", () => {
   it("el mínimo por celda cabe en el criterio total de 10 encargos y no es 1", () => {
     expect(MIN_ENCARGOS_INFORME).toBe(10);
@@ -458,6 +503,17 @@ describe("npm run fabrica con transcripciones sintéticas", () => {
     return { base, sesion };
   }
   const corre = (args) => spawnSync(process.execPath, [join(AQUI, "fabrica.mjs"), ...args], { encoding: "utf8", timeout: 30000 });
+
+  it("un fichero de transcripción ilegible se cuenta («ilegibles: n») sin enseñar su ruta, y el informe sale", () => {
+    const { base } = proyectos();
+    const sesion = readdirSync(join(base, "C--dev-MenuPlan-algo")).find((f) => !f.endsWith(".jsonl"));
+    mkdirSync(join(base, "C--dev-MenuPlan-algo", sesion, "subagents", "agent-roto.jsonl")); // una carpeta donde se espera un fichero
+    const r = corre(["--proyectos", base, "--sin-github"]);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toMatch(/ilegibles: 1 ficheros/);
+    expect(r.stdout + r.stderr).not.toContain("agent-roto");
+    expect(r.stdout + r.stderr).not.toContain(base);
+  });
 
   it("lista solo las carpetas que cumplen el prefijo, con los subagentes de cada sesión", () => {
     const { base } = proyectos();

@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { EVENTOS, FAMILIAS_GUARDIA, TOPE_BYTES, dirFabrica, familiaDeGuardia, lineaDeEvento, registrarEvento } from "./eventos.mjs";
+import { TOPE_PARA_REGISTRAR_MS, hayTiempoParaRegistrar } from "./guardia.mjs";
 import { agenteLanzado } from "./skill-abierta.mjs";
 
 /**
@@ -187,6 +188,22 @@ describe("un registro que falla NUNCA rompe nada", () => {
     const sana = temporal("eventos-sana-");
     lanza("skill-abierta.mjs", { session_id: SESION, cwd: repoGit(), tool_name: "Read", tool_input: { file_path: "src/App.jsx" } }, sana);
     expect(existsSync(join(sana, "eventos.jsonl"))).toBe(false);
+  });
+});
+
+describe("la guardia no suma espera al registro cuando ya tardó (revisión de seguridad de #340)", () => {
+  it("registra si contestó dentro del tope y se lo salta si ya lo pasó", () => {
+    expect(TOPE_PARA_REGISTRAR_MS).toBe(5000);
+    expect(hayTiempoParaRegistrar(1000, 1000 + 100)).toBe(true);
+    expect(hayTiempoParaRegistrar(1000, 1000 + TOPE_PARA_REGISTRAR_MS)).toBe(true);
+    expect(hayTiempoParaRegistrar(1000, 1000 + TOPE_PARA_REGISTRAR_MS + 1)).toBe(false);
+  });
+
+  it("y el arranque de la guardia lo consulta antes de lanzar nada del registro", () => {
+    const fuente = readFileSync(join(AQUI, "guardia.mjs"), "utf8");
+    const i = fuente.indexOf("hayTiempoParaRegistrar(INICIO)");
+    expect(i).toBeGreaterThan(0);
+    expect(i).toBeLessThan(fuente.indexOf('import("./eventos.mjs")'));
   });
 });
 

@@ -145,12 +145,12 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | **Medir** · blanda | | | | | |
 | P12.1 | El nivel de cada plano sale de criterios comprobables (los de juicio llevan fecha) | ci · `scripts/lib/planos.mjs` | dura | — | — |
 | P12.2 | Los planos miden si la protección resiste, no si el fichero existe | nada · no escrita aún | blanda | — | #321, #341 |
-| P12.3 | Rondas, tiempo y coste de cada ciclo se miden por número de issue | script_propio · `scripts/lib/fabrica.mjs` | semidura | — | #340 |
-| P12.4 | Los presupuestos se recalibran cada semana con lo medido | script_propio · `scripts/lib/fabrica.mjs` | semidura | `presupuestos-se-recalibran` | #340 |
+| P12.3 | Rondas, tiempo y coste de cada ciclo se miden por número de issue | persona · `scripts/lib/fabrica.mjs` | blanda | — | #340 |
+| P12.4 | Los presupuestos se recalibran cada semana con lo medido | persona · `scripts/lib/fabrica.mjs` | blanda | `presupuestos-se-recalibran` | #340 |
 | P12.6 | Cada bloqueo de la guardia, permiso pedido y skill cargada deja una línea en un registro local de eventos | guardia · `.claude/hooks/eventos.mjs` | semidura | `eventos-de-hooks-registrados` | #340 |
 | P12.5 | Las normas del proceso que se incumplen se cuentan cada semana | script_propio · `scripts/lib/normas.mjs` | semidura | — | #341, #185 |
 
-**53 obligaciones:** 5 duras · 30 semiduras · 18 blandas · 0 rotas. 23 están enlazadas con su norma del registro.
+**53 obligaciones:** 5 duras · 28 semiduras · 20 blandas · 0 rotas. 23 están enlazadas con su norma del registro.
 <!-- flujo:pasos:fin -->
 
 ## Lo que ya existía
