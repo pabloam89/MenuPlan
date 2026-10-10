@@ -108,12 +108,24 @@ conversación. Se pasa por tubería (stdin) entre dos procesos.
 
 ### Bóveda de sesiones (#328): pasos de Pablo, en orden
 
-Los pasos de Pablo, en orden (qué pasa por la app de escritorio y qué no, y qué
-hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesiones.md`:
+**Un solo comando** (Pablo, PowerShell aparte, fuera de Claude Code, con la
+integración de la CLI encendida): `node scripts/boveda-pablo.mjs`. Comprueba la
+bóveda, copia las fichas, crea «MenuPlan sesiones» al llavero sin imprimir el
+token y comprueba; cada paso se salta si ya está hecho, para en el primero que
+falla y se niega dentro de Claude Code. Quedan a mano anular «MenuPlan PC Pablo»
+y apagar la integración. Los pasos de Pablo, en orden (qué pasa por la app de
+escritorio y qué no, y qué hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesiones.md`:
 ábrelo antes de crear la bóveda o la service account.
 
 ## Lo que falló y por qué
 
+- **2026-10-10 · configurar la bóveda eran seis pasos a mano, tres de ellos con
+  ventana de aprobación (#328).** Causa: cada paso era un comando que Pablo
+  tenía que acordarse de lanzar en orden, y un `!` dentro de Claude Code
+  comparte entorno con las sesiones. Arreglo: `scripts/boveda-pablo.mjs`, que
+  los encadena, es idempotente, falla cerrado y se niega si ve las variables de
+  Claude Code; test en `scripts/boveda-pablo.test.js`, visto fallar sin la
+  negativa y sin el freno. Sin probar contra 1Password de verdad.
 - **2026-10-09 · una dirección `op://` daba error con la ficha y el campo bien puestos.**
   Causa: el nombre de la ficha llevaba una tilde; la sintaxis de `op://` solo
   admite letras y cifras sin acento, espacios, `-`, `_` y `.` (lo demás, por id).
