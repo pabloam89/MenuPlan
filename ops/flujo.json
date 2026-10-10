@@ -302,7 +302,8 @@
       "skill": null,
       "skill_fase": [],
       "mide": [
-        { "indicador": "rondas, tiempo y coste por encargo", "estado": "pendiente", "fase": "#340" }
+        { "indicador": "tiempo activo, tokens, coste estimado y agentes por encargo y por fondo (npm run fabrica, a mano, con las transcripciones de cada PC)", "estado": "existe", "donde": "scripts/lib/fabrica.mjs" },
+        { "indicador": "rondas reales por encargo (hoy solo el campo rondas de la ficha, que apunta la sesión)", "estado": "pendiente", "fase": "#340" }
       ],
       "obligaciones": [
         { "id": "P07.1", "texto": "Un encargo es una rama con el número de su issue, y se ve quién lo lleva", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/tarea.mjs", "contiene": "Con número de issue, lo marca", "test": "scripts/lleva.test.js", "fase": ["#337"], "norma": null, "nota": "La guardia y el arranque cubren a las sesiones de Claude" },
@@ -397,13 +398,14 @@
       "skill": null,
       "skill_fase": [],
       "mide": [
-        { "indicador": "presupuestado frente a real, por alcance y causa", "estado": "pendiente", "fase": "#340" }
+        { "indicador": "presupuestado frente a real, por alcance y causa (npm run fabrica -- --recalibrar, a mano; propone solo con datos suficientes)", "estado": "existe", "donde": "scripts/lib/fabrica.mjs" }
       ],
       "obligaciones": [
         { "id": "P12.1", "texto": "El nivel de cada plano sale de criterios comprobables (los de juicio llevan fecha)", "ejecutor": "ci", "dureza": "dura", "ref": "scripts/lib/planos.mjs", "contiene": "export function medir", "test": "ops/planos.test.js", "fase": [], "norma": null },
         { "id": "P12.2", "texto": "Los planos miden si la protección resiste, no si el fichero existe", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#321", "#341"], "norma": null, "nota": "No escrita aún: hoy los criterios miden sobre todo que el fichero existe (#321)" },
-        { "id": "P12.3", "texto": "Rondas, tiempo y coste de cada ciclo se miden por número de issue", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#340"], "norma": null, "nota": "No escrita aún (fase F)" },
-        { "id": "P12.4", "texto": "Los presupuestos se recalibran cada semana con lo medido", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#340"], "norma": null, "nota": "No escrita aún (fase F)" },
+        { "id": "P12.3", "texto": "Rondas, tiempo y coste de cada ciclo se miden por número de issue", "ejecutor": "persona", "dureza": "blanda", "ref": "scripts/lib/fabrica.mjs", "contiene": "export function resumirPartes", "test": "scripts/fabrica.test.js", "fase": ["#340"], "norma": null, "nota": "Tiempo, tokens, coste estimado y agentes salen de las transcripciones locales de Claude Code, unidos al issue por la rama; las rondas, del campo rondas de la ficha, que apunta la sesión. El script es una ayuda: lo lanza una persona, nada falla si no se mira y solo corre donde estén las transcripciones (cada PC); no hay colector común (OpenTelemetry y panel #158, a decidir)" },
+        { "id": "P12.4", "texto": "Los presupuestos se recalibran cada semana con lo medido", "ejecutor": "persona", "dureza": "blanda", "ref": "scripts/lib/fabrica.mjs", "contiene": "export function recalibrar", "test": "scripts/fabrica.test.js", "fase": ["#340"], "norma": "presupuestos-se-recalibran", "nota": "El informe propone y una persona aplica en /revision-issues; solo propone con datos suficientes por celda (si no, dice datos insuficientes). Corre a mano: nada lo lanza cada semana ni falla si no se mira" },
+        { "id": "P12.6", "texto": "Cada bloqueo de la guardia, permiso pedido y skill cargada deja una línea en un registro local de eventos", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/eventos.mjs", "contiene": "export function registrarEvento", "test": ".claude/hooks/eventos.test.js", "fase": ["#340"], "norma": "eventos-de-hooks-registrados", "nota": "Local a cada PC y falla abierto a propósito. Falta el evento de agente lanzado (necesita «Agent» en el matcher de settings.json: propuesta) y los permisos que pide Claude Code por su cuenta" },
         { "id": "P12.5", "texto": "Las normas del proceso que se incumplen se cuentan cada semana", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/normas.mjs", "contiene": "export function medirFondo", "test": "ops/normas.test.js", "fase": ["#341", "#185"], "norma": null, "nota": "npm run planos lo mide cada lunes (planos-semanal.yml): frases normativas sin citar, casos sin fondo, fondos sin encargo y fondos cerrados sin test; no cuenta el resto de normas incumplidas" }
       ]
     }

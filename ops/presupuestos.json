@@ -4,11 +4,15 @@
   "actualizado": "2026-10-09",
   "plan": 334,
   "especificacion": 339,
+  "notas_campos": {
+    "minutos_orientativos": "Esfuerzo de UN FONDO: la suma de los minutos activos de las sesiones de todos sus encargos (sesiones en paralelo suman; no es el tiempo de calendario ni el de un encargo suelto). Es lo que compara npm run fabrica -- --recalibrar, con la mediana de esos totales por fondo.",
+    "rondas_max": "Rondas de constructor y juez del fondo, tal como las apunta el campo rondas de su ficha."
+  },
   "valores_iniciales": true,
   "calibrado_el": null,
   "recalibracion": {
     "fase": "#340",
-    "como": "La fase F compara cada semana lo presupuestado con lo medido (rondas, tiempo y coste por alcance y causa, y si el arreglo aguantó) y propone valores nuevos; una persona los aplica por PR. Al aplicarlos: valores_iniciales pasa a false y calibrado_el a la fecha (AAAA-MM-DD). Hasta entonces los números son los de F0, a ojo."
+    "como": "La fase F (#340) compara lo presupuestado con lo medido en las transcripciones locales de Claude Code y en los issues. Procedimiento: 1) `npm run fabrica -- --recalibrar` da, por tipo de causa y alcance, presupuestado frente a real y una propuesta de subir o bajar solo si la celda tiene al menos 3 encargos y 2 fondos (con menos dice «datos insuficientes»); 2) en /revision-issues una persona decide cuáles aplica; 3) por PR, se cambian solo esos valores en este fichero (el informe dice en qué parte vive cada uno) y se pone valores_iniciales a false y calibrado_el a la fecha de hoy (AAAA-MM-DD); 4) ops/presupuestos.test.js valida el resultado. El informe no modifica este fichero. Mientras valores_iniciales sea true, los números son los de F0, a ojo."
   },
   "por_alcance": {
     "local": {
