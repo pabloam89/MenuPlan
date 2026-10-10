@@ -189,7 +189,7 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 - Crear, rotar o cambiar secretos y variables de entorno.
 - Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
 - Escribir a personas o publicar algo en su nombre.
-- Ampliar los permisos de `.claude/settings.json` (la guardia pregunta).
+- Ampliar los permisos de `.claude/settings.json` (por PR con juez; la guardia ya no pregunta al editarlo).
 - Reescribir historia de una rama que no es tuya.
 
 **Autorizado de forma permanente** (se hace y se cuenta en el resumen):
@@ -222,7 +222,7 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
   pisó sus ficheros, trabajar en la carpeta principal y `gh issue create` a
   pelo (se crea con `npm run issues -- --nuevo`, que busca los parecidos);
   pregunta
-  antes de un push forzado, de tocar los permisos (`settings.json`) y de escribir por
+  antes de un push forzado y de escribir por
   terminal lo que lee Lola. Cada regla,
   con su porqué y su test en `.claude/hooks/guardia.test.js`.
 - **`avisos.mjs`** tras editar un fichero: los issues abiertos que lo nombran.
