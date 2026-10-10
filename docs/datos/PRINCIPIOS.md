@@ -73,6 +73,19 @@ regex que exporta `ids.js`.
   **[auto]** una vez escrito.
   Por qué: añadir un valor en JS sin migración es el fallo típico, y solo un
   test lo ve antes que el usuario.
+- La paridad es **por columna**, no por nombre de constraint: el CHECK de lista
+  vigente de cada columna (el último de las migraciones, también los que nacieron
+  en línea como `channel text check (…)`) tiene su lista en
+  `COLUMNA_A_VOCABULARIO` de `src/lib/vocabularios.test.js`, o está en
+  `SIN_LISTA` con su porqué (deuda que solo baja). **[auto]**
+- Un valor no se borra ni se reutiliza (#497): deja de ofrecerse quitándolo de
+  la constante y retirándolo en `ops/vocabularios-vida.json`
+  (`producto.<nombre>`, con su `pasa_a`), y **el CHECK lo sigue admitiendo**,
+  porque hay filas de familias guardadas con él. Sacarlo del CHECK es borrar o
+  reescribir datos de familias: `CONTRAE`, decisión de Pablo. Cambiar su
+  significado deja una línea en `redefiniciones`. **[auto]**
+  Por qué: un valor reutilizado mezcla en un recuento filas viejas y nuevas que
+  quieren decir cosas distintas, y nadie lo ve.
 - Nada de `create type … as enum` ni `alter type … add value`. **[auto]**
   Por qué: un enum de Postgres no se puede encoger, y el valor que añade
   `add value` no se puede usar en la misma transacción (la 0070 tuvo que ir

@@ -12,42 +12,90 @@ import { BUILT_IN_COLLECTIONS, BUILT_IN_IDS } from "./recipeCollections.js";
 import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
 import { tipoDeGrupo } from "./groups.js";
 import { readFileSync, readdirSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import * as V from "./vocabularios.js";
+import { checksDeLista, problemasDeParidad } from "../../scripts/lib/checksVocabulario.mjs";
+import { admitidosEnLaBase, leerRegistro } from "../../scripts/lib/vocabulariosVida.mjs";
+
+const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 /**
- * Cada CHECK que se llame <tabla>_<col>_vocabulario → el nombre de su lista en
- * VOCABULARIOS (y lo que admite de más, que no es un valor de la lista).
+ * Cada columna con un CHECK de lista vivo en las migraciones → su lista en JS (#319 punto 1, #497).
+ * Por columna, no por nombre de constraint: los de `channel` y `lang` nacieron en línea
+ * (`<tabla>_<col>_check`). `lista`: nombre en VOCABULARIOS (entra en el ciclo de vida: sus
+ * retirados los tiene que seguir admitiendo el CHECK); `valores`: una lista de otro módulo
+ * (la ficha y las tareas del bot), sin ciclo de vida todavía; `patrones`: los `like` del CHECK.
  */
-const CHECK_A_VOCABULARIO = {
-  user_menu_weeks_active_days_vocabulario: { lista: "dias" },
-  user_pantry_pack_kind_vocabulario: { lista: "envases" },
-  user_recipes_required_appliances_vocabulario: { lista: "aparatos" },
-  user_recipes_usage_tags_vocabulario: { lista: "usos_receta" },
-  recipe_collections_collection_id_vocabulario: { lista: "carpetas_fijas", extra: ["fld\\_%"] },
-  bot_entradas_proveedor_vocabulario: { lista: "canales" },
-  // La ficha (0097). Las listas de registro_campo viven en registroCampos.js (su fuente); el resto, en VOCABULARIOS.
-  registro_campo_tipo_vocabulario: { valores: TIPOS_CAMPO },
-  registro_campo_politica_vocabulario: { valores: POLITICAS },
-  registro_campo_por_vocabulario: { valores: POR },
-  registro_campo_aplica_vocabulario: { valores: APLICA },
-  sobre_origen_vocabulario: { lista: "origen_dato" },
-  sobre_canal_vocabulario: { lista: "canales_dato" },
-  sobre_ref_tipo_vocabulario: { lista: "ref_tipo" },
+const COLUMNA_A_VOCABULARIO = {
+  "user_menu_weeks.active_days": { lista: "dias" },
+  "user_pantry.pack_kind": { lista: "envases" },
+  "user_recipes.required_appliances": { lista: "aparatos" },
+  "user_recipes.usage_tags": { lista: "usos_receta" },
+  "recipe_collections.collection_id": { lista: "carpetas_fijas", patrones: ["fld\\_%"] },
+  "bot_entradas.proveedor": { lista: "canales" },
+  "bot_identities.channel": { lista: "canales" },
+  "bot_chats.channel": { lista: "canales" },
+  "bot_codigos.channel": { lista: "canales" },
+  "bot_messages.channel": { lista: "canales" },
+  "bot_reminders.channel": { lista: "canales" },
+  "bot_tareas.channel": { lista: "canales" },
+  "bot_cola.channel": { lista: "canales" },
+  "user_profiles.ui_lang": { lista: "idiomas" },
+  "household_invites.lang": { lista: "idiomas" },
+  "sobre.origen": { lista: "origen_dato" },
+  "sobre.canal": { lista: "canales_dato" },
+  "sobre.ref_tipo": { lista: "ref_tipo" },
+  // La ficha (0097): las listas de registro_campo viven en registroCampos.js (su fuente).
+  "registro_campo.tipo": { valores: TIPOS_CAMPO },
+  "registro_campo.politica": { valores: POLITICAS },
+  "registro_campo.por": { valores: POR },
+  "registro_campo.aplica": { valores: APLICA },
+  // Las tareas del bot (0076, 0080): ENUMS de registroTareas.js.
+  ...Object.fromEntries(["kind", "scope", "status", "tipo", "resultado", "objetivo", "campo"].map((c) => [`bot_tareas.${c}`, { valores: ENUMS[`bot_tareas.${c}`] }])),
+  "bot_idempotencia.rpc": { valores: ENUMS["bot_idempotencia.rpc"] },
 };
 
-/** { constraint: [literales] } de todas las migraciones; si una se redefine, gana la última. */
-function checksDeVocabulario() {
+/**
+ * CHECK de lista sin su lista en src/lib/vocabularios.js: deuda a la vista (#318, #319), que solo
+ * puede bajar. Sus valores están escritos a mano por el código; nadie compara las dos copias.
+ */
+const SIN_LISTA = {
+  "bot_chats.kind": "private/group, a mano en api/bot/",
+  "bot_codigos.tipo": "vincular/entrar/alta, a mano en api/bot/telegram.js",
+  "bot_messages.role": "user/assistant, a mano en el bot",
+  "bot_reminders.repite": "diario/semanal, a mano en api/_bot/recordatorios.js",
+  "bot_reminders.status": "pending/sent/cancelled, a mano en api/_bot/recordatorios.js",
+  "bot_reminders.tipo": "TIPOS_RECORDATORIO de api/_bot/recordatorios.js; su paridad, en api/_bot/vocabulario.test.js",
+  "content_reports.status": "lo social, apagado en staging",
+  "content_translations.lang": "solo 'en' (el idioma al que se traduce), a mano en api/_bot/traducir.js",
+  "household_invites.role": "editor/viewer, de src/lib/papeles.js sin test",
+  "recipe_votes.vote": "up/down, a mano en la app",
+  "user_menus.variety_pref": "strict/moderate/relaxed, a mano en la app",
+  "user_pantry.item_type": "ingredient/cooked_dish, a mano en src/lib/pantry.js",
+  "user_pantry.location": "nevera/despensa/congelador, a mano en src/lib/pantry.js",
+  "user_pantry.pack_size_unit": "g/ml, a mano en src/lib/pantry.js",
+  "user_pantry.source": "manual/voice/photo, a mano en la app",
+  "user_pantry.unit": "g/ml/ud/racion, de src/lib/kitchenUnits.js sin test",
+  "user_recipes.nutrition_source": "computed/ai, a mano en src/lib/userRecipes.js",
+};
+// Lo que había el 11 oct 2026 (#497). Baja cuando una pasa a COLUMNA_A_VOCABULARIO; no sube.
+const SIN_LISTA_MAX = 17;
+
+/** Las migraciones en orden, para checksDeLista. */
+function migraciones() {
   const dir = new URL("../../supabase/migrations/", import.meta.url);
-  const out = {};
-  for (const f of readdirSync(dir).filter((x) => x.endsWith(".sql")).sort()) {
-    const sql = readFileSync(new URL(f, dir), "utf8").split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
-    for (const m of sql.matchAll(/constraint\s+(\w+_vocabulario)\s+check\s*\(/gi)) {
-      // Hasta el paréntesis que cierra el check (…).
-      let i = m.index + m[0].length, nivel = 1;
-      while (i < sql.length && nivel > 0) nivel += sql[i] === "(" ? 1 : sql[i] === ")" ? -1 : 0, i++;
-      out[m[1]] = [...sql.slice(m.index + m[0].length, i - 1).matchAll(/'([^']*)'/g)].map((x) => x[1]);
-    }
-  }
-  return out;
+  return readdirSync(dir).filter((x) => x.endsWith(".sql")).sort().map((f) => ({ fichero: f, sql: readFileSync(new URL(f, dir), "utf8") }));
+}
+
+/** El mapa de columnas con vivos y retirados, para problemasDeParidad. */
+function mapaDeParidad(registro) {
+  return Object.fromEntries(Object.entries(COLUMNA_A_VOCABULARIO).map(([col, { lista, valores, patrones = [] }]) => {
+    if (valores) return [col, { vivos: valores, retirados: [], patrones }];
+    const a = admitidosEnLaBase(registro, lista);
+    if (!a) throw new Error(`${col}: no existe la lista ${lista} en VOCABULARIOS`);
+    return [col, { ...a, patrones }];
+  }));
 }
 
 describe("vocabularios: una lista, un sitio", () => {
@@ -77,16 +125,18 @@ describe("vocabularios: una lista, un sitio", () => {
     expect(TIPOS_GRUPO).toContain(tipoDeGrupo({ label: "Dieta blanda", adHoc: true }));
   });
 
-  it("cada CHECK <tabla>_<col>_vocabulario de las migraciones dice lo mismo que su lista", () => {
-    const encontrados = checksDeVocabulario();
-    // Un CHECK de vocabulario nuevo sin entrada en CHECK_A_VOCABULARIO falla aquí: hay que decir su lista.
-    expect(Object.keys(encontrados).sort()).toEqual(Object.keys(CHECK_A_VOCABULARIO).sort());
-    for (const [constraint, literales] of Object.entries(encontrados)) {
-      const { lista, valores, extra = [] } = CHECK_A_VOCABULARIO[constraint];
-      const esperada = valores ?? vocabulario(lista);
-      expect(esperada, `${constraint}: no existe la lista ${lista}`).not.toBe(null);
-      expect([...literales].sort(), constraint).toEqual([...esperada, ...extra].sort());
-    }
+  it("el CHECK de lista vigente de cada columna admite exactamente su lista: los vivos y los retirados", () => {
+    expect(problemasDeParidad(checksDeLista(migraciones()), mapaDeParidad(leerRegistro(RAIZ)), SIN_LISTA)).toEqual([]);
+  });
+
+  it("los CHECK de lista sin su lista en JS solo pueden bajar", () => {
+    expect(Object.keys(SIN_LISTA).length).toBeLessThanOrEqual(SIN_LISTA_MAX);
+  });
+
+  it("toda lista exportada de vocabularios.js está en el mapa VOCABULARIOS (y así en el ciclo de vida)", () => {
+    const listas = Object.entries(V).filter(([, v]) => Array.isArray(v)).map(([k, v]) => [k, v]);
+    const enMapa = new Set(Object.values(VOCABULARIOS));
+    expect(listas.filter(([, v]) => !enMapa.has(v)).map(([k]) => k)).toEqual([]);
   });
 
   it("vocabulario() devuelve la lista o null", () => {

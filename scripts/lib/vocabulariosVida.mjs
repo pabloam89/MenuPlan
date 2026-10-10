@@ -1,5 +1,5 @@
 /**
- * Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479).
+ * Ciclo de vida de los vocabularios cerrados de proceso (#481) y del producto (#497), fondo #479.
  *
  * Un valor de un vocabulario no se borra, no se reutiliza con otro significado y no
  * se redefine sin dejar rastro: si deja de usarse, se RETIRA y dice a cuál pasa; si
@@ -28,6 +28,12 @@
  *   3. un valor retirado no vuelve a estar en el código.
  * Sin git o sin la referencia, la 2 se hace contra una copia fijada en el test (solo
  * los valores: las definiciones solo se comparan con una referencia de verdad).
+ *
+ * Desde #497 también vigila los vocabularios del PRODUCTO (src/lib/vocabularios.js), como
+ * `producto.<nombre>`. Ahí un valor retirado tiene una regla más: deja de ofrecerse (sale de
+ * la constante) pero la base lo sigue admitiendo, porque hay filas de familias guardadas con
+ * él; `admitidosEnLaBase` da los dos juegos y src/lib/vocabularios.test.js exige que el CHECK
+ * vigente de cada columna sea exactamente vivos + retirados (scripts/lib/checksVocabulario.mjs).
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -40,8 +46,11 @@ import { CLASES, ESTADOS_TERMINO, plano } from "./glosario.mjs";
 import { GRUPOS, TIPOS_ACCION } from "./issues.mjs";
 import { CAUSAS_EXCEPCION, ROLES_CAMPO, TIPOS_LECTOR, UNIDADES } from "./metricas.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
+import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
+/** El prefijo de los vocabularios del producto en el registro: `producto.<nombre en VOCABULARIOS>`. */
+export const PREFIJO_PRODUCTO = "producto.";
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const conTexto = (o) => () => ({ ...o });
@@ -66,7 +75,25 @@ export const VOCABULARIOS = {
   "metricas.rol_campo": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(ROLES_CAMPO) },
   "metricas.causa_excepcion": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(CAUSAS_EXCEPCION) },
   "ruido.veredicto": { fichero: "scripts/lib/ruido.mjs", textos: conTexto(VEREDICTOS_RUIDO) },
+  // Los del producto (#497): src/lib/vocabularios.js, con el nombre de su mapa VOCABULARIOS. No llevan
+  // definición en el código (texto vacío, como flujo.pasos): se ancla el valor. Un cambio de significado
+  // se declara en «redefiniciones»; la primera definición que se escriba no cuenta como cambio (igual()).
+  ...Object.fromEntries(Object.entries(PRODUCTO).map(([n, lista]) => [`${PREFIJO_PRODUCTO}${n}`, { fichero: "src/lib/vocabularios.js", textos: () => Object.fromEntries(lista.map((v) => [v, ""])) }])),
 };
+
+/**
+ * Lo que la base tiene que seguir admitiendo de un vocabulario del producto: los valores vivos
+ * (lo que el código ofrece y escribe) y los retirados (ya no se ofrecen, pero puede haber filas
+ * de familias guardadas con ellos: el CHECK no los suelta). `nombre` es el del mapa VOCABULARIOS
+ * de src/lib/vocabularios.js; null si no existe. Lo usa src/lib/vocabularios.test.js para la
+ * paridad con los CHECK.
+ */
+export function admitidosEnLaBase(registro, nombre, lista = PRODUCTO[nombre]) {
+  if (!lista) return null;
+  const id = `${PREFIJO_PRODUCTO}${nombre}`;
+  const retirados = (registro.retirados ?? []).filter((r) => r.vocabulario === id).map((r) => r.valor);
+  return { vivos: [...lista], retirados };
+}
 
 /** Campos de un retiro. `motivo` solo hace falta si no hay a dónde pasar (pasa_a: null). */
 export const CAMPOS_RETIRO = ["vocabulario", "valor", "pasa_a", "desde"];
@@ -187,7 +214,8 @@ export function problemasContraReferencia(registro, actuales, ref) {
       if (!vivos.includes(x)) { if (!ret.has(clave(v, x))) p.push(`${clave(v, x)}: estaba en la referencia y ha desaparecido sin retirarse`); continue; }
       const t0 = textoDe(anc, x);
       const t1 = textoDe(actuales[v], x);
-      if (t0 !== undefined && t1 !== undefined && !igual(t0, t1) && (ahora.get(clave(v, x)) ?? 0) <= (antes.get(clave(v, x)) ?? 0)) p.push(`${clave(v, x)}: su definición ha cambiado respecto a la referencia sin una redefinición registrada (o retíralo si es otro significado)`);
+      // Sin definición en la referencia (los del producto, flujo.pasos), escribir la primera no es redefinir.
+      if (t0 !== undefined && t1 !== undefined && !igual(t0, "") && !igual(t0, t1) && (ahora.get(clave(v, x)) ?? 0) <= (antes.get(clave(v, x)) ?? 0)) p.push(`${clave(v, x)}: su definición ha cambiado respecto a la referencia sin una redefinición registrada (o retíralo si es otro significado)`);
     }
   }
   for (const r of ref.retirados ?? []) if (!ret.has(clave(r.vocabulario, r.valor))) p.push(`${clave(r.vocabulario, r.valor)}: estaba retirado en la referencia y se ha quitado de «retirados» (solo crece)`);

@@ -4,11 +4,13 @@ import { fileURLToPath } from "node:url";
 
 import { REFERENCIA, jsonEnReferencia } from "../scripts/lib/forjaReferencia.mjs";
 import {
-  RUTA_VOCABULARIOS, VOCABULARIOS, anclar, leerRegistro, problemasContraReferencia, problemasDeRetiros, problemasLocales, valoresActuales,
+  PREFIJO_PRODUCTO, RUTA_VOCABULARIOS, VOCABULARIOS, admitidosEnLaBase, anclar, leerRegistro, problemasContraReferencia, problemasDeRetiros, problemasLocales, valoresActuales,
 } from "../scripts/lib/vocabulariosVida.mjs";
+import { checksDeLista, problemasDeParidad } from "../scripts/lib/checksVocabulario.mjs";
+import { VOCABULARIOS as PRODUCTO } from "../src/lib/vocabularios.js";
 
 /**
- * Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479). Un valor
+ * Ciclo de vida de los vocabularios cerrados de proceso (#481) y del producto (#497), fondo #479. Un valor
  * no se borra ni se reutiliza con otro significado: se retira en ops/vocabularios-vida.json
  * y dice a cuál pasa. Vigila:
  *
@@ -50,11 +52,70 @@ const FIJADA = {
   "issues.tipo_accion": ["preventivo", "detectivo", "correctivo"],
 };
 
+// Los del producto (src/lib/vocabularios.js), anclados el 11 oct 2026 al entrar (#497). NO se edita, igual que FIJADA.
+const FIJADA_PRODUCTO = {
+  "producto.dias": ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
+  "producto.envases": ["bote", "lata", "paquete", "bolsa", "brick", "botella", "carton"],
+  "producto.usos_receta": ["plato_unico", "plato_normal", "guarnicion"],
+  "producto.carpetas_fijas": ["dia_a_dia", "ocasion_especial", "cena_rapida", "hijos"],
+  "producto.aparatos": ["Airfryer", "Horno", "Microondas", "Olla rápida", "Thermomix", "Vaporera"],
+  "producto.tipos_grupo": ["familia", "adultos", "ninos", "bebe", "adhoc"],
+  "producto.canales": ["telegram", "whatsapp"],
+  "producto.idiomas": ["es", "en"],
+  "producto.comidas": ["Desayuno", "Comida", "Merienda", "Cena", "Postre"],
+  "producto.estructura_platos": ["primero_segundo", "1_plato"],
+  "producto.donde_come": ["casa", "tupper", "fuera", "cole", "off"],
+  "producto.ritmo_cocina": ["con_prisa", "normal", "con_tiempo", "depende"],
+  "producto.nivel_cocina": ["basic", "normal", "pro"],
+  "producto.etapa_bebe": ["cremas", "mixto", "solidos"],
+  "producto.modelo_menu": ["same", "separate"],
+  "producto.origen_dato": ["dicho", "supuesto", "visto", "derivado", "por_defecto", "delegado", "no_quiere_decirlo"],
+  "producto.origen_alergias": ["dicha", "por_silencio"],
+  "producto.ref_tipo": ["menu", "mensaje", "pantalla", "senal"],
+  "producto.canales_dato": ["app", "telegram", "whatsapp", "sistema"],
+  "producto.sexo": ["mujer", "hombre", "sin_dato"],
+  "producto.patron_semanas": ["siempre", "alternas"],
+  "producto.motivos_fallo": [
+    "red", "tiempo", "sin_sesion", "permiso", "no_existe", "conflicto", "datos_invalidos", "limite", "servidor",
+    "telegram", "modelo", "otro"
+  ],
+  "producto.sitios_fallo": [
+    "agente_casa", "agente_dueno", "agente_idioma", "agente_papel", "agente_segunda_semana", "aclarar_via_rapida",
+    "alta_adjunto", "apuntar_falta_via_rapida", "aviso_de_espera", "aviso_del_enrutador", "aviso_del_modo",
+    "borrarcuenta_identidad", "borrarcuenta_nacida_aqui", "bot_telegram_aviso", "boton_nacida_aqui", "boton_quitar",
+    "boton_responder", "eleccion_via_rapida", "entregar_casa", "entregar_pintar", "escribiendo", "fallo_dueno",
+    "grupo_casa", "grupo_nombre_del_bot", "grupo_voz", "idioma", "invitacion", "invitacion_cuentas", "lola",
+    "lola_cancelada", "limite", "papel", "reconocer", "ruta", "ruta_dueno", "ultima_de_lola", "uso",
+    "vivo_borrar_aviso", "vivo_editar", "vivo_enviar", "bot_entrar", "borrar_tanda", "compartir_llave",
+    "cuentas_hogar", "cuentas_json", "cuentas_nacida_aqui", "db_usuario", "embudo_dueno", "ficharpc_casa",
+    "generar_borrar_menu_a_medias", "generar_describir", "generar_despensa", "generar_recetas_propias",
+    "idempotencia_guardar_resultado", "idempotencia_soltar_la_llave", "invitacion_unirse", "menu_describir",
+    "menu_foto_de_la_receta", "pintar_recetas", "pista_adelanto", "recetas_busqueda", "recetas_subir_foto",
+    "recordatorios_reclamar", "silencio_apuntar", "silencio_cerrar", "telegram_json", "traducir_memoria", "turno_casa",
+    "turnos_soltar_candado", "uso_limite", "vispera_casa", "voz_json"
+  ],
+  "producto.tipos_aviso_vigia": [
+    "incidente_abierto", "incidente_resuelto", "resumen_diario", "vigia_parado", "vigia_falla", "vigia_vuelve",
+    "vigia_sin_estado"
+  ],
+  "producto.chequeos_canario": ["canario", "webhook_guardia", "webhook_vivo", "webhook_info", "base", "via_rapida", "modelo", "logs"],
+  "producto.motivos_canario": [
+    "respuesta_inesperada", "respuesta_vacia", "escribio", "lento", "webhook_otra_url", "webhook_atascado",
+    "webhook_con_errores", "sin_configurar"
+  ],
+  "producto.acciones_alergias": ["apuntada", "recordada"],
+  "producto.grados_desarrollo": ["idea", "en_marcha", "usable", "estable"],
+  "producto.ambitos_modulo": ["app", "lola", "compartido"],
+  "producto.estados_metrica": ["medida", "posible"],
+  "producto.motivos_sin_puerta": ["no_la_usa", "por_rpc", "por_trigger", "fuera_del_dueno", "en_desuso"],
+  "producto.motivos_tope_diario": ["tope_alcanzado", "sin_redis", "error_redis"],
+};
+
 describe("los vocabularios de proceso: se retiran, no se borran", () => {
   it("cada vocabulario vigilado tiene valores y su fichero existe en el registro", () => {
     for (const [id, v] of Object.entries(VOCABULARIOS)) {
       expect(Object.keys(v.textos()).length, id).toBeGreaterThan(0);
-      expect(v.fichero, id).toMatch(/^scripts\/lib\/\w+\.mjs$/);
+      expect(v.fichero, id).toMatch(/^(scripts\/lib\/\w+\.mjs|src\/lib\/vocabularios\.js)$/);
     }
   });
 
@@ -72,6 +133,12 @@ describe("los vocabularios de proceso: se retiran, no se borran", () => {
 
   it("la copia fijada también se respeta aunque haya referencia", () => {
     expect(problemasContraReferencia(REG, ACT, { anclados: FIJADA })).toEqual([]);
+    expect(problemasContraReferencia(REG, ACT, { anclados: FIJADA_PRODUCTO })).toEqual([]);
+  });
+
+  it("cada vocabulario del producto (src/lib/vocabularios.js) está vigilado como producto.<nombre>", () => {
+    const vigilados = Object.keys(VOCABULARIOS).filter((id) => id.startsWith(PREFIJO_PRODUCTO)).map((id) => id.slice(PREFIJO_PRODUCTO.length));
+    expect(vigilados.sort()).toEqual(Object.keys(PRODUCTO).sort());
   });
 });
 
@@ -165,5 +232,95 @@ describe("autotest de las redefiniciones (#481, revisión M1)", () => {
     expect(problemasContraReferencia(anclar(reg(), sinVoc), sinVoc, reg()).join()).toMatch(/ha desaparecido sin retirarse/);
     const retirado = anclar(reg({ vocabularios_retirados: [{ vocabulario: "x.estado", desde: "2026-10-10", motivo: "Ya no se vigila este vocabulario" }] }), sinVoc);
     expect([...problemasLocales(retirado, sinVoc), ...problemasDeRetiros(retirado, sinVoc), ...problemasContraReferencia(retirado, sinVoc, reg())]).toEqual([]);
+  });
+});
+
+describe("autotest del producto (#497): retirar no rompe lo guardado", () => {
+  // Una casa guardó «carton» en user_pantry.pack_kind. Se deja de ofrecer y pasa a «brick».
+  const CREA = { fichero: "0001_x.sql", sql: "create table public.user_pantry (id bigint, pack_kind text check (pack_kind is null or pack_kind in ('bote', 'brick', 'carton')));" };
+  const SIN_CARTON = { fichero: "0002_x.sql", sql: "alter table public.user_pantry drop constraint user_pantry_pack_kind_check;\nalter table public.user_pantry add constraint user_pantry_pack_kind_check check (pack_kind is null or pack_kind in ('bote', 'brick')) not valid;" };
+  const antes = { "producto.envases": ["bote", "brick", "carton"] };
+  const despues = { "producto.envases": ["bote", "brick"] };
+  const retiro = { vocabulario: "producto.envases", valor: "carton", pasa_a: "brick", desde: "2026-10-11" };
+  const ref = { anclados: antes, retirados: [] };
+  const paridad = (reg, migs, lista) => problemasDeParidad(checksDeLista(migs), { "user_pantry.pack_kind": admitidosEnLaBase(reg, "envases", lista) });
+
+  it("quitar «carton» de la lista sin retirarlo falla (en local y contra la referencia)", () => {
+    expect(problemasLocales(ref, despues).join()).toMatch(/producto\.envases: carton: ha desaparecido del código sin retirarse/);
+    expect(problemasContraReferencia(anclar(ref, despues), despues, ref).join()).toMatch(/carton: estaba en la referencia y ha desaparecido sin retirarse/);
+  });
+
+  it("retirado con pasa_a: el código ya no lo ofrece, pero la base lo sigue admitiendo para leer", () => {
+    const reg = anclar({ ...ref, retirados: [retiro] }, despues);
+    expect([...problemasLocales(reg, despues), ...problemasDeRetiros(reg, despues), ...problemasContraReferencia(reg, despues, ref)]).toEqual([]);
+    const a = admitidosEnLaBase(reg, "envases", despues["producto.envases"]);
+    expect(a.vivos).not.toContain("carton");
+    expect(a.retirados).toEqual(["carton"]);
+    // El CHECK de siempre sigue cuadrando: carton vale para las filas guardadas.
+    expect(paridad(reg, [CREA], despues["producto.envases"])).toEqual([]);
+  });
+
+  it("una migración que saca del CHECK el valor retirado falla: rompería las filas guardadas", () => {
+    const reg = anclar({ ...ref, retirados: [retiro] }, despues);
+    expect(paridad(reg, [CREA, SIN_CARTON], despues["producto.envases"]).join()).toMatch(/«carton» está retirado y el CHECK ya no lo admite/);
+  });
+
+  it("quitar «carton» sin retirarlo también falla en la paridad (el CHECK lo admite y nadie lo explica)", () => {
+    expect(paridad(ref, [CREA], despues["producto.envases"]).join()).toMatch(/el CHECK admite «carton», que el código ya no tiene ni está retirado/);
+  });
+
+  it("reutilizar «carton» con otro significado tras retirarlo falla", () => {
+    const reg = anclar({ ...ref, retirados: [retiro] }, antes);
+    expect(problemasDeRetiros(reg, antes).join()).toMatch(/carton: está retirado y vuelve a estar en el código/);
+  });
+
+  it("redefinir «carton» exige su motivo en «redefiniciones»; la primera definición no cuenta como cambio", () => {
+    const sinDef = { anclados: { "producto.envases": { bote: "", brick: "", carton: "" } }, retirados: [], redefiniciones: [] };
+    const conDef = { "producto.envases": { bote: "", brick: "", carton: "Caja de cartón (huevos, cereales)" } };
+    expect(problemasContraReferencia(anclar(sinDef, conDef), conDef, sinDef)).toEqual([]);
+    const otra = { "producto.envases": { bote: "", brick: "", carton: "Brick de leche" } };
+    const refConDef = anclar(sinDef, conDef);
+    expect(problemasContraReferencia(anclar(refConDef, otra), otra, refConDef).join()).toMatch(/carton: su definición ha cambiado respecto a la referencia sin una redefinición registrada/);
+    const conMotivo = anclar({ ...refConDef, redefiniciones: [{ vocabulario: "producto.envases", valor: "carton", desde: "2026-10-11", motivo: "Se junta con brick por decisión de producto" }] }, otra);
+    expect(problemasContraReferencia(conMotivo, otra, refConDef)).toEqual([]);
+  });
+});
+
+describe("autotest de la paridad JS↔SQL (#497)", () => {
+  const m = (sql, fichero = "0001_x.sql") => ({ fichero, sql });
+  const lista = (vivos, extra = {}) => ({ "t.c": { vivos, retirados: [], patrones: [], ...extra } });
+
+  it("añadir un valor en JS sin migración falla; con la migración, pasa", () => {
+    const crea = m("create table t (c text check (c in ('a', 'b')));");
+    expect(problemasDeParidad(checksDeLista([crea]), lista(["a", "b", "z"])).join()).toMatch(/el código ofrece «z» y el CHECK no lo admite/);
+    const amplia = m("alter table t drop constraint t_c_check; alter table t add constraint t_c_vocabulario check (c in ('a', 'b', 'z')) not valid;", "0002_x.sql");
+    expect(problemasDeParidad(checksDeLista([crea, amplia]), lista(["a", "b", "z"]))).toEqual([]);
+  });
+
+  it("gana el último CHECK de la columna; dos vivos a la vez, o uno sin lista en JS, fallan", () => {
+    const crea = m("create table t (c text check (c in ('a')));");
+    const otro = m("alter table t add constraint t_c_vocabulario check (c is null or c in ('a', 'b')) not valid;", "0002_x.sql");
+    expect(problemasDeParidad(checksDeLista([crea, otro]), lista(["a", "b"])).join()).toMatch(/2 CHECK de lista vivos a la vez/);
+    expect(problemasDeParidad(checksDeLista([crea]), {}).join()).toMatch(/t\.c: CHECK de lista \(t_c_check, 0001_x\.sql\) sin su lista de JS/);
+    expect(problemasDeParidad(checksDeLista([crea]), {}, { "t.c": "deuda" })).toEqual([]);
+  });
+
+  it("un CHECK que no es de lista no cuenta, y un drop table se lleva los suyos", () => {
+    const crea = m("create table t (c text, d timestamptz, constraint t_c_d check ((c in ('x')) = (d is not null)));");
+    expect([...checksDeLista([crea]).keys()]).toEqual([]);
+    const conLista = m("create table t (c text check (c in ('a')));");
+    expect([...checksDeLista([conLista, m("drop table t;", "0002_x.sql")]).keys()]).toEqual([]);
+  });
+
+  it("un create table if not exists de una tabla que ya existe no cambia su CHECK", () => {
+    const a = m("create table if not exists t (c text check (c in ('a', 'b')));");
+    const b = m("create table if not exists t (c text not null check (c in ('a')));", "0002_x.sql");
+    expect(checksDeLista([a, b]).get("t.c")[0].valores).toEqual(["a", "b"]);
+  });
+
+  it("los like del CHECK tienen que ser los del mapa", () => {
+    const crea = m("create table t (c text, constraint t_c_vocabulario check (c in ('a') or c like 'fld\\_%'));");
+    expect(problemasDeParidad(checksDeLista([crea]), lista(["a"])).join()).toMatch(/patrones like del CHECK/);
+    expect(problemasDeParidad(checksDeLista([crea]), lista(["a"], { patrones: ["fld\\_%"] }))).toEqual([]);
   });
 });
