@@ -124,10 +124,10 @@ hace, el comando solo en su bloque de código y nada técnico alrededor.
 
 Bien:
 
-> Esto aplica el cambio en la base de datos; tarda un momento.
+> Esto vuelve a generar los ficheros derivados del catálogo; tarda un momento.
 >
 > ```
-> npm run ejemplo -- --si
+> npm run build:derived
 > ```
 
 ## Bien y mal
@@ -139,7 +139,7 @@ El mismo caso inventado, dicho dos veces.
 Mal:
 
 > He creado la rama ops/999-ejemplo desde origin/staging, he modificado cuatro
-> ficheros (scripts/a.mjs, scripts/b.mjs y dos tests), el lint pasa con la
+> ficheros (dos scripts de importación y dos tests), el lint pasa con la
 > línea base y el CI está en verde. Queda abrir el PR y fusionarlo, que puede
 > hacerlo la sesión, y el cambio de permisos lo dejo para otro PR.
 
