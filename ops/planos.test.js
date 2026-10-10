@@ -176,6 +176,22 @@ describe("el cálculo del nivel", () => {
     expect(tarde.valor).toBe(cuantas);
   });
 
+  it("el uso de las skills (#397): mide con los transcripts y, sin ellos (el CI), sale sin comprobar", () => {
+    const sinUso = { tipo: "cifra_umbral", medidor: "skills_sin_uso_semana", operador: "<=", umbral: 0, que: "x" };
+    const sinSkill = { tipo: "cifra_umbral", medidor: "dominio_sin_skill_semana", operador: "<=", umbral: 0, que: "x" };
+    expect(evaluarCriterio(sinUso, ctx).estado).toBe("sin_comprobar");
+    expect(evaluarCriterio(sinSkill, { ...ctx, leerUso: () => null }).estado).toBe("sin_comprobar");
+    let lecturas = 0;
+    const uso = { sinUso: ["tailscale"], sinSkill: [{ skill: "vercel" }, { skill: "supabase" }] };
+    const conUso = { ...ctx, leerUso: () => (lecturas++, uso) };
+    const a = evaluarCriterio(sinUso, conUso);
+    const b = evaluarCriterio(sinSkill, conUso);
+    expect([a.estado, a.valor]).toEqual(["no_cumple", 1]);
+    expect([b.estado, b.valor]).toEqual(["no_cumple", 2]);
+    expect(lecturas).toBe(1); // los transcripts se leen una vez por medición
+    expect(evaluarCriterio(sinSkill, { ...ctx, leerUso: () => ({ sinUso: [], sinSkill: [] }) }).estado).toBe("cumple");
+  });
+
   it("un juicio de hace más de N días sale caducado; por_definir nunca cumple", () => {
     expect(diasEntre("2026-09-01", "2026-10-09")).toBe(38);
     expect(evaluarCriterio({ tipo: "a_juicio", quien: "gobierno", fecha: "2026-09-01", cumple: true, nota: "n", que: "x" }, ctx).caducado).toBe(true);
