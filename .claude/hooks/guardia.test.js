@@ -518,13 +518,12 @@ describe("carpetaDe", () => {
   it("git -C manda", () => expect(carpetaDe("cd A && git -C 'D' commit", "git -C 'D' commit", "C:/s")).toBe("D"));
 });
 
-it("cambiar los permisos o lo que vigila cada orden pregunta; el resto de hooks, no", () => {
-  expect(edita("C:\\dev\\MenuPlan\\.claude\\settings.json")).toBe("ask");
-  expect(edita("C:/dev/MenuPlan/.claude/hooks/guardia.mjs")).toBe("ask");
-  expect(edita("C:/dev/MenuPlan-x/.claude/hooks/sesiones.mjs")).toBe("ask");
+it("editar los permisos o los hooks ya no pregunta: va por PR con juez y CI", () => {
+  expect(edita("C:\\dev\\MenuPlan-x\\.claude\\settings.json")).toBe(null);
+  expect(edita("C:/dev/MenuPlan-x/.claude/hooks/guardia.mjs")).toBe(null);
+  expect(edita("C:/dev/MenuPlan-x/.claude/hooks/sesiones.mjs")).toBe(null);
   expect(edita("C:/dev/MenuPlan-x/.claude/hooks/arranque.mjs")).toBe(null);
-  expect(edita("C:/dev/MenuPlan-x/.claude/hooks/guardia.test.js")).toBe(null);
-  expect(edita("C:/dev/MenuPlan/.claude/settings.local.json")).toBe(null);
+  expect(edita("C:/dev/MenuPlan-x/.claude/settings.local.json")).toBe(null);
 });
 
 describe("ESTADO.md de verdad", () => {

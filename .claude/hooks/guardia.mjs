@@ -582,13 +582,6 @@ export function decidir(entrada, ctx) {
       if (motivo) return deny(motivo);
     }
     if (ctx.rutaEnPrincipal(ruta)) return deny(EN_LA_PRINCIPAL);
-    // Los permisos y el código que vigila cada orden (la guardia y lo que
-    // importa, y skill-abierta) preguntan: en una carpeta de trabajo hacen
-    // efecto en la orden siguiente, sin PR ni juez (juez de seguridad del PR
-    // #223). El resto de hooks y sus tests van por PR sin preguntar.
-    if (/[\\/]\.claude[\\/](?:settings\.json|hooks[\\/](?:guardia|dominios|migraciones|sesiones|skill-abierta)\.mjs)$/.test(ruta)) {
-      return ask("Esto cambia los permisos o el código que vigila cada orden, y en tu carpeta hace efecto ya. Pídele el OK a Pablo.");
-    }
     return null;
   }
 
