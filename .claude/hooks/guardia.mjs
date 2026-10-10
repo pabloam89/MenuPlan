@@ -49,6 +49,7 @@ export function opDeSesion(o) {
   if (/^(git|gh|grep|rg)\b/.test(o) && !/\$\(|\x60|\balias[.\s]/.test(o)) return false;
   return OP_AL_PRINCIPIO.test(o) || OP_ANIDADO.test(o) || OP_EN_SHELL.test(o) || OP_SUELTO.test(o)
     || /\b(MENUPLAN_OP_PABLO|OP_SIN_SERVICIO|OP_SERVICE_ACCOUNT_TOKEN)\b/.test(o)
+    || /\bboveda-pablo\.mjs\b/i.test(o)
     || /op:\/\/[\s"']*homenu(?![-\w])/i.test(o)
     || /--vault[=\s]+["']?homenu(?![-\w])/i.test(o)
     || /op:\/\/["']?[a-z0-9]{26}\b/i.test(o)
