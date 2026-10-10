@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaReferencia.mjs";
 import { ARTEFACTOS, generarMd, leerForja, problemasDeForja } from "../scripts/lib/forja.mjs";
 import {
   PARTES_BULLET, RUTA_EXCEPCIONES, bajarExcepciones, faltasDeRondas, leerExcepciones, leerRonda, lineaDeRonda,
@@ -256,16 +256,8 @@ describe("las excepciones solo bajan", () => {
   });
 });
 
-/** Lo que había en origin/staging, si se puede leer; si no (CI de 2 commits, sin la rama o sin el fichero), se salta. */
-function excepcionesEnReferencia(ref) {
-  try {
-    execFileSync("git", ["rev-parse", "--verify", "--quiet", ref], { cwd: RAIZ, stdio: "pipe" });
-    return JSON.parse(execFileSync("git", ["show", `${ref}:${RUTA_EXCEPCIONES}`], { cwd: RAIZ, stdio: "pipe", encoding: "utf8" }));
-  } catch { return null; }
-}
-const REF = process.env.FORJA_REF ?? "origin/staging";
-const enRef = excepcionesEnReferencia(REF);
-if (!enRef) console.info(`[forja] excepciones contra ${REF}: se salta (sin la referencia o sin ${RUTA_EXCEPCIONES} en ella)`);
+const REF = REFERENCIA();
+const enRef = jsonEnReferenciaAvisando(RAIZ, REF, RUTA_EXCEPCIONES, "excepciones");
 describe(`las excepciones contra ${REF}`, () => {
   it.skipIf(!enRef || !enRef.sembrado)("no suben", () => {
     expect(problemasDeExcepcionesContraReferencia(excepciones.rondas, enRef.rondas)).toEqual([]);

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,6 +8,7 @@ import {
   anclarCapas, cifras, codigosDeFuente, codigosEmitidos, generarMd, leerCapas, leerFicha, leerForja, lineaDeFicha,
   problemasContraReferencia, problemasDeCodigos, problemasDeFicha, problemasDeForja, problemasDeTrinquete,
 } from "../scripts/lib/forja.mjs";
+import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaReferencia.mjs";
 import { CODIGOS_ESTANDAR, CODIGOS_FORJA, faltasDePresentacion } from "../scripts/lib/skillsForja.mjs";
 import { ARREGLOS, CODIGOS_HIGIENE } from "../scripts/lib/higieneSkills.mjs";
 import { REGLAS } from "../scripts/lib/skills.mjs";
@@ -84,15 +84,8 @@ describe("el trinquete de promoción (ops/forja-capas.json)", () => {
  * referencia). Sin git o sin esa referencia (el checkout del CI es de 2 commits y no la trae)
  * o mientras el fichero no esté en ella, se salta limpio y lo dice.
  */
-function capasEnReferencia(ref) {
-  try {
-    execFileSync("git", ["rev-parse", "--verify", "--quiet", ref], { cwd: RAIZ, stdio: "pipe" });
-    return JSON.parse(execFileSync("git", ["show", `${ref}:${RUTA_CAPAS}`], { cwd: RAIZ, stdio: "pipe", encoding: "utf8", maxBuffer: 1 << 24 }));
-  } catch { return null; }
-}
-const REF = process.env.FORJA_REF ?? "origin/staging";
-const capasRef = capasEnReferencia(REF);
-if (!capasRef) console.info(`[forja] trinquete contra ${REF}: se salta (sin git, sin la referencia o sin ${RUTA_CAPAS} en ella)`);
+const REF = REFERENCIA();
+const capasRef = jsonEnReferenciaAvisando(RAIZ, REF, RUTA_CAPAS, "trinquete");
 
 describe(`el trinquete contra ${REF}`, () => {
   it.skipIf(!capasRef)("nada anclado en la referencia desaparece ni baja sin motivo", () => {

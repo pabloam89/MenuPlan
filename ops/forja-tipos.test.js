@@ -6,8 +6,9 @@ import { fileURLToPath } from "node:url";
 import {
   ARTEFACTOS, CLASES_CAMPO, RUTA_CAMPOS,
   anclarCampos, cifrasDeCampos, cifrasPorTipo, criteriosDeTipo, generarMd, leerCamposGuardados, leerForja,
-  problemasDeCampos, problemasDeForja, problemasDeTaxonomia, problemasDeTrinqueteCampos, tipoDeSkill,
+  problemasDeCampos, problemasDeCamposContraReferencia, problemasDeForja, problemasDeTaxonomia, problemasDeTrinqueteCampos, tipoDeSkill,
 } from "../scripts/lib/forja.mjs";
+import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaReferencia.mjs";
 import { ORIGENES } from "../scripts/lib/estandaresAgentes.mjs";
 import { nombresDeSkills, parsearSkill } from "../scripts/lib/skills.mjs";
 
@@ -358,5 +359,37 @@ describe("cifras: campos discretos frente a huecos", () => {
     const e = clon();
     e.criterios.find((c) => c.id === "sin-parada").tipos = "todos";
     expect(generarMd(e)).not.toBe(md);
+  });
+});
+
+/**
+ * El borrado doble: pasar un campo de discreto a texto en campos_ficha y en ops/forja-campos.json a la vez
+ * pasa el trinquete local. Se contrasta con lo anclado en origin/staging (FORJA_REF cambia la referencia).
+ * Mientras ops/forja-campos.json no esté en la referencia, se salta limpio y lo dice.
+ */
+const REF = REFERENCIA();
+const camposRef = jsonEnReferenciaAvisando(RAIZ, REF, RUTA_CAMPOS, "trinquete de campos");
+describe(`el trinquete de campos contra ${REF}`, () => {
+  const actual = leerCamposGuardados(RAIZ);
+  it.skipIf(!camposRef)("ningún campo anclado en la referencia baja de nivel ni desaparece sin motivo", () => {
+    expect(problemasDeCamposContraReferencia(actual, camposRef), "Un campo solo pasa de texto a discreto; si lo quitas, déjalo en «retirados» de ops/forja-campos.json con su motivo").toEqual([]);
+  });
+  it("cada regla falla con datos malos (esté o no la referencia)", () => {
+    const ref = { campos: { "a.uno": "discreto", "a.dos": "texto", "a.tres": "discreto" } };
+    expect(problemasDeCamposContraReferencia({ campos: { "a.uno": "discreto", "a.dos": "texto", "a.tres": "discreto" } }, ref)).toEqual([]);
+    expect(problemasDeCamposContraReferencia({ campos: { "a.uno": "discreto", "a.dos": "discreto", "a.tres": "discreto" } }, ref)).toEqual([]);
+    expect(problemasDeCamposContraReferencia({ campos: { "a.uno": "texto", "a.dos": "texto", "a.tres": "discreto" } }, ref).join()).toContain("a.uno: estaba como discreto");
+    expect(problemasDeCamposContraReferencia({ campos: { "a.uno": "discreto", "a.dos": "texto" } }, ref).join()).toContain("a.tres: estaba anclado");
+    expect(problemasDeCamposContraReferencia({ campos: { "a.uno": "discreto", "a.dos": "texto" }, retirados: { "a.tres": { motivo: "Pasa a otra ficha de skill" } } }, ref)).toEqual([]);
+    expect(problemasDeCamposContraReferencia({ campos: { "a.uno": "discreto", "a.dos": "texto" }, retirados: { "a.tres": { motivo: "no" } } }, ref).join()).toContain("a.tres");
+  });
+  it("pasar skill.tipo a texto en campos_ficha y en el ancla a la vez sí lo ve la referencia", () => {
+    const d = clon();
+    d.campos_ficha.skill.campos.tipo = { clase: "texto", hueco: true, cubre: "El tipo de la skill, dicho a mano sin vocabulario", obligatorio: true };
+    const { guardado } = anclarCampos(d, { campos: { ...actual.campos, "skill.tipo": "texto" }, retirados: {} });
+    const ambos = { ...actual, campos: { ...actual.campos, "skill.tipo": "texto" } };
+    expect(problemasDeTrinqueteCampos(d, ambos), "el trinquete local no lo ve: por eso existe el de la referencia").toEqual([]);
+    expect(problemasDeCamposContraReferencia(ambos, actual).join()).toContain("skill.tipo: estaba como discreto");
+    expect(guardado.campos["skill.tipo"]).toBe("texto");
   });
 });

@@ -561,6 +561,23 @@ export function problemasDeTrinqueteCampos(datos, guardado) {
   return malos;
 }
 
+/**
+ * El trinquete de campos contra una referencia de git (origin/staging): ningún campo anclado allí baja de
+ * nivel (de discreto a texto) ni desaparece sin motivo en «retirados». Cierra el hueco de cambiar la
+ * clase de un campo en campos_ficha y en `ops/forja-campos.json` a la vez. `ref` es el contenido de ese fichero en la referencia.
+ */
+export function problemasDeCamposContraReferencia(actual, ref) {
+  const malos = [];
+  const campos = actual?.campos ?? {};
+  const retirados = actual?.retirados ?? {};
+  for (const [id, nivelRef] of Object.entries(ref?.campos ?? {})) {
+    if (id in campos) {
+      if (rangoNivel(campos[id]) < rangoNivel(nivelRef)) malos.push(`${id}: estaba como ${nivelRef} en la referencia y ahora está anclado como ${campos[id]}; un campo solo pasa de texto a discreto`);
+    } else if (!esTexto(retirados[id]?.motivo, 15)) malos.push(`${id}: estaba anclado en la referencia y ya no está ni en campos ni en «retirados» con motivo`);
+  }
+  return malos;
+}
+
 /** Lo que guarda el trinquete de campos: añade los nuevos y sube de texto a discreto; no baja ni borra. */
 export function anclarCampos(datos, guardado) {
   const campos = { ...(guardado?.campos ?? {}) };
