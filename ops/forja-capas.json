@@ -1,0 +1,1 @@
+{ "$comentario": "Ancla de la capa de cada criterio de ops/forja.json (#458). Solo sube: subjetiva, material, formal. La mantiene «npm run forja -- --escribir» (añade y sube, nunca baja ni borra). Un criterio que sale del catálogo deja su motivo en retirados. Lo vigila ops/forja.test.js.", "capas": {}, "retirados": {} }
