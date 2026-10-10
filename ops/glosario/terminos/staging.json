@@ -1,0 +1,14 @@
+{
+  "termino": "staging",
+  "estado": "activo",
+  "clase": "lugar",
+  "definicion": "La rama por defecto y su despliegue de prueba, en la que todo entra por PR con el CI en verde.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "producción",
+    "fusionar"
+  ]
+}

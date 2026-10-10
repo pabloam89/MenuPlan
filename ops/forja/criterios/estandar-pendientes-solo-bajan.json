@@ -1,0 +1,15 @@
+{
+  "id": "estandar-pendientes-solo-bajan",
+  "capa": "formal",
+  "aplica_a": [
+    "estandar"
+  ],
+  "nombre": "Pendientes que solo bajan",
+  "sujeto": "agente",
+  "fuerza": "debe",
+  "condicion": "si está pendiente",
+  "exigencia": "figurar en la lista PENDIENTES_ADMITIDOS, que solo baja: un agente nuevo nace con todos sus estándares",
+  "fuente": "[I] scripts/lib/estandaresAgentes.mjs",
+  "control": "ops/estandares-agentes.test.js",
+  "codigo": null
+}

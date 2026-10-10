@@ -85,7 +85,7 @@
       "nombre": "Un término por concepto",
       "sujeto": "regla",
       "fuerza": "debe",
-      "exigencia": "llamar a cada concepto con su término de ops/glosario.json, sin sinónimos",
+      "exigencia": "llamar a cada concepto con su término de ops/glosario/, sin sinónimos",
       "nota": "Mezclar sinónimos hace creer que son cosas distintas; el glosario fija una palabra y la lista de las prohibidas",
       "control": "ops/glosario.test.js",
       "fuente": "[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
@@ -100,7 +100,7 @@
       "exigencia": "usar un anglicismo cuando el glosario ya tiene su término en castellano",
       "nota": "Lo que no tiene término en el glosario (hook, staging, lint) se deja como está y se añade al glosario si se repite",
       "control": "ops/glosario.test.js",
-      "fuente": "[I] ops/glosario.json",
+      "fuente": "[I] ops/glosario/",
       "ejemplo_bueno": "Fusionar el PR con el CI en verde",
       "ejemplo_malo": "Hacer el merge del PR con el CI en verde"
     },
@@ -263,7 +263,7 @@
   ],
   "catalogos": [
     {
-      "fichero": "ops/forja.json",
+      "fichero": "ops/forja/",
       "estado": "cumple",
       "clave_reglas": "criterios",
       "clave_sujetos": "sujetos"

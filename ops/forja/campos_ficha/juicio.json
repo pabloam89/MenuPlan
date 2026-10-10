@@ -1,0 +1,50 @@
+{
+  "clave": "juicio",
+  "valor": {
+    "fuente": "Un juicio de skill: el estado de un criterio de juicio (control «juicio») sobre una skill, en ops/juicios-skills/<skill>.json bajo el id del criterio (#457). Los criterios con control no se escriben: los calcula su control. Lo valida scripts/lib/juiciosSkills.mjs.",
+    "clave": "criterio",
+    "campos": {
+      "estado": {
+        "clase": "enum",
+        "vocab": "estados_criterio",
+        "obligatorio": true
+      },
+      "evidencia": {
+        "clase": "ref",
+        "ref": "evidencia",
+        "lista": true,
+        "obligatorio": false,
+        "nota": "Obligatoria si el estado no es juicio: una ruta con su cabecera (ruta#Título), caso:<skill>/<id>, npm run <script>, pr:<n> o issue:<n>"
+      },
+      "motivo_pendiente": {
+        "clase": "enum",
+        "vocab": "motivos_pendiente",
+        "obligatorio": false,
+        "nota": "Obligatorio con estado juicio; falta_herramienta y falta_decision exigen que el criterio esté pendiente_de su issue con ese motivo"
+      },
+      "nota": {
+        "clase": "texto",
+        "hueco": true,
+        "cubre": "Lo propio de esta skill que el estado no dice: qué falla en el hueco o qué falta mirar; lo que es del criterio va al criterio",
+        "obligatorio": false
+      },
+      "fecha": {
+        "clase": "fecha",
+        "obligatorio": false,
+        "nota": "Obligatoria si el estado no es juicio"
+      },
+      "firmante": {
+        "clase": "enum",
+        "vocab": "firmantes",
+        "obligatorio": false,
+        "nota": "Obligatorio si el estado no es juicio; el vocabulario es CAPAS_AGENTE de scripts/lib/fondos.mjs"
+      },
+      "version_skill_md": {
+        "clase": "ref",
+        "ref": "version",
+        "obligatorio": false,
+        "nota": "Obligatoria si el estado no es juicio: el hash del SKILL.md juzgado; si ya no es el actual, el juicio vuelve a pendiente (otra_version)"
+      }
+    }
+  }
+}

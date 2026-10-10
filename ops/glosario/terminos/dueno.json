@@ -1,0 +1,14 @@
+{
+  "termino": "dueño",
+  "estado": "activo",
+  "clase": "rol",
+  "definicion": "El agente o la persona que responde de algo (una skill, un módulo, un encargo, una clave) y lo mantiene al día.",
+  "sinonimos_prohibidos": [
+    "responsable",
+    "responsables"
+  ],
+  "aplica_a": [
+    "todas"
+  ],
+  "nota": "«Módulo dueño» (PRINCIPIOS §15, ops/MODULOS.json) es otro sentido: el único módulo que lee y escribe una tabla; no es este término."
+}

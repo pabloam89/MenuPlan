@@ -1,0 +1,15 @@
+{
+  "id": "ejemplo-sin-origen",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Origen del ejemplo",
+  "sujeto": "plantilla.tipo",
+  "fuerza": "debe",
+  "exigencia": "decir en el ejemplo mínimo de cada tipo «Real: `skill`» o «Esqueleto:» y ponerlo en un bloque de código",
+  "fuente": "[I] .claude/PLANTILLA-SKILL.md",
+  "control": ".claude/skills.test.js",
+  "codigo": "ejemplo-sin-origen"
+}

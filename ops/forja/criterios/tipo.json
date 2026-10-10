@@ -1,0 +1,15 @@
+{
+  "id": "tipo",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Tipo de skill",
+  "sujeto": "skill.metadatos",
+  "fuerza": "debe",
+  "exigencia": "llevar en metadata.tipo uno de los tipos de tipos_skill de ops/forja/, el que dan sus respuestas",
+  "fuente": "[I] scripts/lib/skills.mjs",
+  "control": ".claude/skills.test.js",
+  "codigo": "tipo"
+}

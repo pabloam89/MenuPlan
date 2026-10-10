@@ -70,7 +70,7 @@ const SECCIONES_DE_EJEMPLOS = ["Ejemplo resuelto", "Ejemplos calibrados", "Bien 
 
 let criterioParada = null;
 /**
- * Si el criterio `sin-parada` de `ops/forja.json` se aplica a un tipo: lo dice su
+ * Si el criterio `sin-parada` de `ops/forja/` se aplica a un tipo: lo dice su
  * campo `tipos` (hoy, todos menos servicio), no una lista escrita aquí (#495).
  */
 export function paradaAplica(tipo) {

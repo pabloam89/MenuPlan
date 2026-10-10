@@ -4,7 +4,7 @@
  * `ops/estandares-agentes.json` es la única fuente. Cada agente lista las tareas que
  * hace; cada tarea lleva su acción (vocabulario cerrado `acciones`) y sus reglas, y
  * cada regla sigue la plantilla de `regla.mjs` (nombre, sujeto, fuerza, condicion,
- * exigencia, nota) más lo que pide la forma de práctica de `ops/forja.json`
+ * exigencia, nota) más lo que pide la forma de práctica de `ops/forja/`
  * (`forma_practica.estandar`): porque, ejemplo bueno, ejemplo malo y fuente. La frase
  * de cada regla se genera; no hay un campo de prosa libre con el estándar.
  *
@@ -15,7 +15,7 @@
  * secciones por tipo de skill (el tipo está en `tipos_skill` de la forja) y una tarea de
  * agente no tiene tipo ni secciones, solo reglas. Lo que sí se comparte es lo de abajo
  * del patrón: `regla.mjs` para la regla, `forjaForma.mjs` para la forma de la práctica y
- * `ops/forja.json` como única fuente de cuántas reglas lleva una tarea.
+ * `ops/forja/` como única fuente de cuántas reglas lleva una tarea.
  *
  * Salen de aquí, y el test las compara: la sección «Tareas y su estándar» de cada
  * `.claude/agents/<agente>.md` (`npm run estandar -- --escribir`) y la tabla
@@ -361,7 +361,7 @@ export function generarMd(datos) {
     "",
     `<!-- Generado desde ${RUTA_ESTANDARES} con «npm run estandar -- --escribir». No se edita a mano: ops/estandares-agentes.test.js lo compara. -->`,
     "",
-    "Qué es hacer bien cada tarea de cada agente, escrito por campos con la plantilla de `scripts/lib/regla.mjs` (guía en `docs/ops/REDACCION.md`) y la forma de práctica de `ops/forja.json`. Cada fila es una regla: su frase sale de sus campos, su control es el test, el hook, el script o el workflow que la vigila (o `juicio`, si la vigila una persona o un LLM) y su fuente es externa ([F]) o de la casa ([I]). Lo que repiten varios agentes está una sola vez en las tareas comunes, y la tarea que las usa las nombra. En el brief de una tarea: `npm run estandar -- <agente> <tarea>`.",
+    "Qué es hacer bien cada tarea de cada agente, escrito por campos con la plantilla de `scripts/lib/regla.mjs` (guía en `docs/ops/REDACCION.md`) y la forma de práctica de `ops/forja/`. Cada fila es una regla: su frase sale de sus campos, su control es el test, el hook, el script o el workflow que la vigila (o `juicio`, si la vigila una persona o un LLM) y su fuente es externa ([F]) o de la casa ([I]). Lo que repiten varios agentes está una sola vez en las tareas comunes, y la tarea que las usa las nombra. En el brief de una tarea: `npm run estandar -- <agente> <tarea>`.",
     "",
     `Hoy: ${k.total} tareas de ${Object.keys(datos.agentes).length} agentes, ${k.conEstandar} de ${k.total} con estándar; ${k.reglas} reglas propias; ${k.comunes} tareas comunes con ${k.reglasComunes} reglas; ${k.fuentes.externas} fuentes externas y ${k.fuentes.casa} de la casa.`,
     "",

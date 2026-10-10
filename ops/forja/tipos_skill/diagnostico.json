@@ -1,0 +1,19 @@
+{
+  "id": "diagnostico",
+  "que": "De un síntoma a su causa",
+  "entra": "fallo",
+  "sale": "causa en campos cerrados",
+  "prueba": "la salida rellena la ficha y hay un criterio de parada",
+  "skills_hoy": [
+    "causa-raiz"
+  ],
+  "secciones": [
+    "Cuándo y para qué",
+    "Método",
+    "Técnicas",
+    "Ejemplo resuelto",
+    "Lo que falló y por qué",
+    "Registro de cambios",
+    "Fuentes y comprobación"
+  ]
+}

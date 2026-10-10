@@ -1,0 +1,13 @@
+{
+  "termino": "retirar",
+  "estado": "activo",
+  "clase": "accion",
+  "definicion": "Dar de baja algo que ya no se usa sin perder nada: una carpeta de trabajo, una clave, una fuente.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "podar"
+  ]
+}

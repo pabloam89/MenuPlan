@@ -1,0 +1,15 @@
+{
+  "id": "tamano-cerca",
+  "capa": "material",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Margen de tamaño",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "conviene",
+  "exigencia": "no pasar del 85 % de las líneas permitidas en SKILL.md: la siguiente entrada lo desbordaría",
+  "fuente": "[I] scripts/lib/higieneSkills.mjs",
+  "control": "scripts/higiene-skills.test.js",
+  "codigo": "tamano-cerca"
+}

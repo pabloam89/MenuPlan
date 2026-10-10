@@ -49,7 +49,7 @@
       "id": "skills",
       "nombre": "Skills",
       "pregunta": "¿Cómo se hace?",
-      "contiene": "Método, técnicas, referencias, scripts y plantillas. De uno de los tipos de tipos_skill de ops/forja.json (un servicio se opera; un diagnóstico piensa un tipo de problema), salvo la pieza meta",
+      "contiene": "Método, técnicas, referencias, scripts y plantillas. De uno de los tipos de tipos_skill de ops/forja/ (un servicio se opera; un diagnóstico piensa un tipo de problema), salvo la pieza meta",
       "donde": [
         ".claude/skills",
         ".claude/PLANTILLA-SKILL.md"
@@ -90,7 +90,7 @@
     "norma": { "legible": "cada norma del proceso", "aplica_a": ["obligacion"] }
   },
   "$escalas": "La escala de veredicto y la escalera de durabilidad se declaran en scripts/lib/escalas.mjs (#515), la única fuente; aquí no se repiten.",
-  "$tipos_skill": "Los tipos de skill viven en ops/forja.json (tipos_skill), la única lista; su molde, en .claude/plantillas-skill/ (#495).",
+  "$tipos_skill": "Los tipos de skill viven en ops/forja/ (tipos_skill), la única lista; su molde, en .claude/plantillas-skill/ (#495).",
   "regla_de_parada": {
     "texto": "Una pieza nueva (catálogo, skill o agente) solo se crea si cumple las tres: se usa al menos dos veces o la leen al menos dos consumidores; no repite nada que ya esté en otra; tiene dueño y test. Lo que no se usa se aparca, como arquitecto y rendimiento.",
     "aplica_a": [

@@ -187,7 +187,7 @@ las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
 y el estándar `estilo-de-respuesta` (cómo se escribe a Pablo: idea raíz en
 negrita, cuatro ideas y tres opciones). Todas siguen
 `.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
-los siete de `ops/forja.json`, el que dan sus respuestas, con su molde generado en
+los siete de `ops/forja/`, el que dan sus respuestas, con su molde generado en
 `.claude/plantillas-skill/` (salvo `forja-de-skills`, la pieza meta de nivel 0, sin tipo), dueño, fecha
 de comprobación que caduca a los 90 días, un `SKILL.md` corto con el detalle en
 capas y sus casos de prueba en `casos.json`; `npm run skills-prueba -- <skill>`
@@ -233,7 +233,7 @@ qué lo hace cumplir; lo que aún no tiene mecanismo lleva su issue (fondo #479)
   producto, el retirado deja de ofrecerse pero el CHECK lo sigue admitiendo
   (hay filas guardadas con él).
 - **Una palabra, un significado**: las palabras de proceso (comprobar, caso,
-  fondo, encargo, juez…) salen de `ops/glosario.json` (`npm run glosario`);
+  fondo, encargo, juez…) salen de `ops/glosario/` (`npm run glosario`);
   su test falla con un sinónimo prohibido nuevo.
 - **Ninguna cifra sin pregunta**: cada métrica dice qué pregunta responde y
   qué script la lee; si nadie la lee, no se recoge (#480).

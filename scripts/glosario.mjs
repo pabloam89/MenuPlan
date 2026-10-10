@@ -2,7 +2,7 @@
 /**
  * npm run glosario                 → todos los términos con su definición y sus excepciones
  * npm run glosario -- <término>    → uno (o los que empiezan así), con sinónimos, ref y excepciones
- * npm run glosario -- --medir      → lo que hay hoy en el repo frente a ops/glosario-excepciones.json,
+ * npm run glosario -- --medir      → lo que hay hoy en el repo frente a ops/glosario-excepciones/,
  *                                    con fichero y línea de cada sinónimo nuevo
  * npm run glosario -- --vocabularios [--escribir]
  *                                  → el ciclo de vida de los vocabularios de proceso (#481):
@@ -14,7 +14,7 @@
  *                                    que un agente los juzgue (skill higiene-de-skills,
  *                                    referencias/glosario.md); --json, lo mismo en JSON
  *
- * Solo lee, salvo --vocabularios --escribir. El dato es ops/glosario.json (#469); lo vigila ops/glosario.test.js.
+ * Solo lee, salvo --vocabularios --escribir. El dato es ops/glosario/ (#469); lo vigila ops/glosario.test.js.
  */
 import { writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -73,7 +73,7 @@ if (args.includes("--medir")) {
     const donde = detalle.filter((d) => d.ruta === n.ruta && d.sinonimo === n.sinonimo).map((d) => d.donde).join(", ");
     console.log(`  NUEVO ${n.ruta}: «${n.sinonimo}» ${n.hay} (admitidas ${n.admitidas}) → di «${detalle.find((d) => d.sinonimo === n.sinonimo)?.canonico}» (línea ${donde})`);
   }
-  for (const b of bajadas) console.log(`  BAJA ${b.ruta}: «${b.sinonimo}» ${b.hay} de ${b.admitidas} → baja la cifra en ops/glosario-excepciones.json`);
+  for (const b of bajadas) console.log(`  BAJA ${b.ruta}: «${b.sinonimo}» ${b.hay} de ${b.admitidas} → baja la cifra en ops/glosario-excepciones/`);
   process.exit(nuevas.length ? 1 : 0);
 }
 
@@ -82,7 +82,7 @@ const terminos = pedido ? g.terminos.filter((t) => plano(t.termino).startsWith(p
 if (pedido && terminos.length === 0) {
   // ¿Es un sinónimo prohibido?
   const t = g.terminos.find((x) => x.sinonimos_prohibidos.some((s) => plano(s) === plano(pedido)));
-  console.log(t ? `«${pedido}» no se dice: es «${t.termino}».\n\n${textoTermino(t, g, exc)}` : `No hay ningún término «${pedido}» en ops/glosario.json.`);
+  console.log(t ? `«${pedido}» no se dice: es «${t.termino}».\n\n${textoTermino(t, g, exc)}` : `No hay ningún término «${pedido}» en ops/glosario/.`);
   process.exit(t ? 0 : 1);
 }
 for (const t of terminos) console.log(`${textoTermino(t, g, exc)}\n`);

@@ -1,5 +1,5 @@
 {
-  "$comentario": "Ancla del nivel de cada campo de las fichas de ops/forja.json (campos_ficha, #458). Un campo solo pasa de texto a discreto, nunca al revés. La mantiene «npm run forja -- --escribir» (añade y sube, nunca baja ni borra). Un campo que sale de campos_ficha deja su motivo en retirados. Lo vigila ops/forja.test.js.",
+  "$comentario": "Ancla del nivel de cada campo de las fichas de ops/forja/ (campos_ficha, #458). Un campo solo pasa de texto a discreto, nunca al revés. La mantiene «npm run forja -- --escribir» (añade y sube, nunca baja ni borra). Un campo que sale de campos_ficha deja su motivo en retirados. Lo vigila ops/forja.test.js.",
   "campos": {
     "agente.description": "texto",
     "agente.model": "discreto",

@@ -1,6 +1,6 @@
 # Plantilla de skill: flujo
 
-<!-- Generado desde ops/forja.json (tipos_skill con sus secciones, preguntas_tipo, campos_ficha y criterios) y el estándar de .claude/PLANTILLA-SKILL.md, con «npm run plantillas -- --escribir». No se edita a mano: .claude/plantillas-skill.test.js lo compara. -->
+<!-- Generado desde ops/forja/ (tipos_skill con sus secciones, preguntas_tipo, campos_ficha y criterios) y el estándar de .claude/PLANTILLA-SKILL.md, con «npm run plantillas -- --escribir». No se edita a mano: .claude/plantillas-skill.test.js lo compara. -->
 
 El molde de una skill de tipo `flujo`: se copia el esqueleto y se rellena. Lo que vale para todos los tipos (claves, capas, casos de prueba, tamaño, caducidad) está en `.claude/PLANTILLA-SKILL.md`.
 
@@ -83,7 +83,7 @@ Comprobado el AAAA-MM-DD: <cómo se comprobó, y qué no>.
 
 ## Campos de la ficha
 
-Los de `campos_ficha.skill` de `ops/forja.json`; lo que no está declarado no va en el frontmatter.
+Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en el frontmatter.
 
 | Campo | Clase | Obligatorio | Valores |
 |---|---|---|---|
@@ -109,11 +109,11 @@ Lo que pide este tipo: cada etapa apunta a una skill o agente que existe y tiene
 
 52 criterios de la forja se aplican a este tipo (los que dicen `tipos: "todos"` o lo nombran). La frase entera de cada uno, en `docs/ops/FORJA.md`.
 
-- **formal** (26): `frontmatter`, `tipo`, `dueno`, `comprobado`, `caducada`, `secciones`, `formato`, `tamano`, `secretos`, `rutas`, `estructura`, `copiado`, `casos`, `casos-negativos`, `fechas`, `sin-parada`, `ejemplos`, `tabla`, `cabeceras`, `tipo-sin-estandar`, `apartado-ausente`, `pocos-puntos`, `sin-fuente`, `ejemplo-sin-origen`, `ejemplo-largo`, `ejemplo-no-cuadra`.
+- **formal** (26): `apartado-ausente`, `cabeceras`, `caducada`, `casos-negativos`, `casos`, `comprobado`, `copiado`, `dueno`, `ejemplo-largo`, `ejemplo-no-cuadra`, `ejemplo-sin-origen`, `ejemplos`, `estructura`, `fechas`, `formato`, `frontmatter`, `pocos-puntos`, `rutas`, `secciones`, `secretos`, `sin-fuente`, `sin-parada`, `tabla`, `tamano`, `tipo-sin-estandar`, `tipo`.
 
-- **material** (13): `solape`, `solape-cercano`, `comando-suelto`, `caduca-pronto`, `comando-muerto`, `ruta-muerta`, `skill-muerta`, `descripcion-sin-palabras`, `frontera-vaga`, `tamano-cerca`, `caso-duplicado`, `caso-en-frontera`, `vocabulario-canonico`.
+- **material** (13): `caduca-pronto`, `caso-duplicado`, `caso-en-frontera`, `comando-muerto`, `comando-suelto`, `descripcion-sin-palabras`, `frontera-vaga`, `ruta-muerta`, `skill-muerta`, `solape-cercano`, `solape`, `tamano-cerca`, `vocabulario-canonico`.
 
-- **subjetiva** (13): `descripcion-palabras-de-quien-pide`, `frontera-casi-fallos`, `disparador-al-principio`, `solo-lo-que-el-modelo-no-sabe`, `libertad-ajustada`, `camino-por-defecto`, `pasos-con-salida-observable`, `vocabulario-unico`, `ejemplos-canonicos`, `casos-medidos-con-y-sin-skill`, `skill-contrastada-con-fallo-real`, `forma-adecuada-al-contenido`, `sin-duda-con-vecina`.
+- **subjetiva** (13): `camino-por-defecto`, `casos-medidos-con-y-sin-skill`, `descripcion-palabras-de-quien-pide`, `disparador-al-principio`, `ejemplos-canonicos`, `forma-adecuada-al-contenido`, `frontera-casi-fallos`, `libertad-ajustada`, `pasos-con-salida-observable`, `sin-duda-con-vecina`, `skill-contrastada-con-fallo-real`, `solo-lo-que-el-modelo-no-sabe`, `vocabulario-unico`.
 
 No hay criterio de skill que no se le aplique.
 
@@ -121,7 +121,7 @@ No hay criterio de skill que no se le aplique.
 
 ### Qué lo hace bueno
 
-- Cada etapa nombra la skill o el agente que la lleva, y existe [I, prueba del tipo en `ops/forja.json`].
+- Cada etapa nombra la skill o el agente que la lleva, y existe [I, prueba del tipo en `ops/forja/`].
 - Cada etapa tiene su puerta: lo que la hace cumplir (un hook, el CI, un workflow), no solo el texto [I, CLAUDE.md «Lo que hace cumplir esto»].
 - Dice qué entra y qué sale de cada etapa, para que la siguiente sepa por dónde empezar [I].
 

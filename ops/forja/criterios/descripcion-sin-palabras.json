@@ -1,0 +1,15 @@
+{
+  "id": "descripcion-sin-palabras",
+  "capa": "material",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Frase de quien pide",
+  "sujeto": "skill.descripcion",
+  "fuerza": "conviene",
+  "exigencia": "traer en el disparador al menos una frase entre «» tal como la diría quien pide",
+  "fuente": "[I] scripts/lib/higieneSkills.mjs",
+  "control": "scripts/higiene-skills.test.js",
+  "codigo": "descripcion-sin-palabras"
+}

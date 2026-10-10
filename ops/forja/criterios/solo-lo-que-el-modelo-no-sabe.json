@@ -1,0 +1,35 @@
+{
+  "id": "solo-lo-que-el-modelo-no-sabe",
+  "capa": "subjetiva",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Solo lo no sabido",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "justificar el coste de cada párrafo en cada sesión: decir solo lo que el modelo no sabría sin la skill",
+  "cumple": "quitar un párrafo cambiaría lo que hace quien la lee",
+  "no_cumple": "explica lo que el modelo ya hace bien o pega la documentación del proveedor",
+  "fuente": "[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+  "control": "juicio",
+  "codigo": null,
+  "pendiente_de": "#517",
+  "motivo_pendiente": "falta_herramienta",
+  "casos_calibracion": [
+    {
+      "texto": "Párrafo: «La tabla de operaciones lleva el comando exacto de la casa, que el modelo no puede adivinar».",
+      "esperado": "cumple"
+    },
+    {
+      "texto": "Párrafo: «Git es un sistema de control de versiones distribuido que permite trabajar en ramas».",
+      "esperado": "no_cumple"
+    },
+    {
+      "texto": "Párrafo: «Los comandos de git, gh y npm se escriben tal cual; recuerda que la guardia niega git add . y exige añadir por nombre».",
+      "esperado": "cumple",
+      "frontera": true,
+      "nota": "Mezcla algo que el modelo sabe (escribir comandos) con un dato de la casa (la guardia niega git add .): vale por el dato."
+    }
+  ]
+}

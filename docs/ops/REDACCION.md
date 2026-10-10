@@ -15,7 +15,7 @@ Cada principio de abajo se escribe él mismo como regla, con su control, su ejem
   - Malo: «Each skill must have an owner».
   - Nota: Las palabras de fuerza de RFC 2119 se traducen: debe, no debe y conviene; no se deja MUST ni SHOULD.
   - Fuente: [I] CLAUDE.md.
-- `un-termino-por-concepto` — **Un término por concepto.** Cada regla de la casa DEBE llamar a cada concepto con su término de ops/glosario.json, sin sinónimos. Se comprueba con: `ops/glosario.test.js`.
+- `un-termino-por-concepto` — **Un término por concepto.** Cada regla de la casa DEBE llamar a cada concepto con su término de ops/glosario/, sin sinónimos. Se comprueba con: `ops/glosario.test.js`.
   - Bueno: «Fusionar el PR cuando el CI esté en verde».
   - Malo: «Unir el PR cuando el CI esté en verde».
   - Nota: Mezclar sinónimos hace creer que son cosas distintas; el glosario fija una palabra y la lista de las prohibidas.
@@ -24,7 +24,7 @@ Cada principio de abajo se escribe él mismo como regla, con su control, su ejem
   - Bueno: «Fusionar el PR con el CI en verde».
   - Malo: «Hacer el merge del PR con el CI en verde».
   - Nota: Lo que no tiene término en el glosario (hook, staging, lint) se deja como está y se añade al glosario si se repite.
-  - Fuente: [I] ops/glosario.json.
+  - Fuente: [I] ops/glosario/.
 - `fuerza-segun-rfc-2119` — **Fuerza según RFC 2119.** La fuerza de cada regla DEBE ser debe, no_debe o conviene, con el sentido de MUST, MUST NOT y SHOULD de RFC 2119. Se comprueba con: `ops/regla.test.js`.
   - Bueno: «fuerza: no_debe, exigencia: llevar fechas en el cuerpo».
   - Malo: «exigencia: no estaría mal evitar fechas en el cuerpo».
@@ -128,7 +128,7 @@ Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es
 
 | Catálogo | Estado | Reglas | Encargo |
 |---|---|---|---|
-| `ops/forja.json` | cumple | 74 | - |
+| `ops/forja/` | cumple | 74 | - |
 | `ops/redaccion.json` | cumple | 16 | - |
 | `ops/normas.json` | cumple | 98 | - |
 | `ops/flujo.json` | cumple | 53 | - |

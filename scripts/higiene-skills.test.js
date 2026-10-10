@@ -96,7 +96,7 @@ describe("cada skill de nivel 2 se mira contra el molde de su tipo (#495)", () =
     expect(d[0].arreglo).toContain(".claude/plantillas-skill/<tipo>.md");
   });
   it("cada tipo de la forja tiene arreglo para su tipo, y el arreglo dice dónde van las respuestas", () => {
-    expect(ARREGLOS.tipo).toContain("preguntas_tipo de ops/forja.json");
+    expect(ARREGLOS.tipo).toContain("preguntas_tipo de ops/forja/");
     expect(ARREGLOS.tipo).not.toContain("ops/flujo.json");
   });
 });

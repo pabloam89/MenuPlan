@@ -1,0 +1,11 @@
+{
+  "termino": "revisor",
+  "estado": "activo",
+  "clase": "rol",
+  "definicion": "El juez que busca fallos reales en un diff; no es cualquier juez.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "juez"
+}

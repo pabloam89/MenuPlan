@@ -1,0 +1,13 @@
+{
+  "termino": "aplicar",
+  "estado": "activo",
+  "clase": "accion",
+  "definicion": "Ejecutar de verdad una migración que ya se ensayó, en la base de producción (apply-migration --si).",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "ensayar"
+  ]
+}

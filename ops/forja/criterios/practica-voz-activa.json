@@ -1,0 +1,15 @@
+{
+  "id": "practica-voz-activa",
+  "capa": "material",
+  "aplica_a": [
+    "estandar"
+  ],
+  "nombre": "Voz activa",
+  "sujeto": "estandar.practica",
+  "fuerza": "debe",
+  "exigencia": "tener la regla y su porqué en voz activa, sin pasiva con «ser» ni pasiva refleja con «se»",
+  "nota": "Heurística sobre el texto, que no entiende la frase; orientativo hasta que #454 la calibre con estándares reales",
+  "fuente": "[I] scripts/lib/forjaForma.mjs",
+  "control": "ops/forja-forma.test.js",
+  "codigo": null
+}

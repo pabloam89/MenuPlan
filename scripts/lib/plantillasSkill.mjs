@@ -1,11 +1,11 @@
 /**
  * La plantilla de cada tipo de skill (#495, fondo #488), generada desde la forja.
  *
- * De arriba abajo: la forja (`ops/forja.json`: qué tipos existen, cómo se asigna
+ * De arriba abajo: la forja (`ops/forja/`: qué tipos existen, cómo se asigna
  * el tipo con `preguntas_tipo` y qué criterios se aplican a cada uno con `tipos`)
  * → la plantilla de un tipo (generada aquí: las secciones obligatorias en orden,
  * los campos de la ficha con su clase, cómo se prueba y su ejemplo mínimo) →
- * cada skill. La única lista de tipos es `tipos_skill` de `ops/forja.json`: aquí
+ * cada skill. La única lista de tipos es `tipos_skill` de `ops/forja/`: aquí
  * no se escribe ningún tipo que no esté allí, y el test lo comprueba.
  *
  * Las secciones de cada tipo son el campo `secciones` de su tipo en la forja.
@@ -33,10 +33,10 @@ export const DIR_PLANTILLAS = ".claude/plantillas-skill";
 export const RUTA_PLANTILLA_COMUN = ".claude/PLANTILLA-SKILL.md";
 export const SECCION_ESTANDARES = "El estándar de cada tipo";
 
-/** Los tipos de skill, en el orden de `ops/forja.json`: la única lista. */
+/** Los tipos de skill, en el orden de `ops/forja/`: la única lista. */
 export const tiposDeForja = (datos) => (datos?.tipos_skill ?? []).map((t) => t.id);
 
-/** Las secciones obligatorias, en orden, de cada tipo: `secciones` de cada tipo en `ops/forja.json` (#495). */
+/** Las secciones obligatorias, en orden, de cada tipo: `secciones` de cada tipo en `ops/forja/` (#495). */
 export const seccionesDeForja = (datos) =>
   Object.fromEntries((datos?.tipos_skill ?? []).filter((t) => Array.isArray(t.secciones)).map((t) => [t.id, t.secciones]));
 

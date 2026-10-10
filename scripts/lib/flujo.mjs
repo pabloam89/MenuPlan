@@ -171,7 +171,7 @@ export function generarCatalogos(datos, tablaPresupuestos) {
   out.push("", "### La escalera de durabilidad", "", "De más a menos duradero. Un fondo grave o repetido se cierra con un escalón 1 o 2; los demás, con el más alto posible y su porqué. Se declara en `scripts/lib/escalas.mjs`: el `escalon` de un mecanismo, la `barrera` de la ficha del fondo y la etiqueta `arreglo:` de GitHub salen de ahí.", "",
     "| Escalón | Qué es | Etiqueta `arreglo:` | Automático |", "|---|---|---|---|");
   ESCALERA.forEach((e, i) => out.push(`| ${i + 1} · ${e.id} | ${celda(e.que)} | \`${e.etiqueta}\` | ${e.automatico ? "sí" : "no"} |`));
-  out.push("", "### Tipos de skill", "", "La lista, qué entra y qué sale de cada tipo y cómo se asigna viven en `ops/forja.json` (`tipos_skill`, vista en `docs/ops/FORJA.md`); el molde de cada uno, en `.claude/plantillas-skill/` (#495).");
+  out.push("", "### Tipos de skill", "", "La lista, qué entra y qué sale de cada tipo y cómo se asigna viven en `ops/forja/` (`tipos_skill`, vista en `docs/ops/FORJA.md`); el molde de cada uno, en `.claude/plantillas-skill/` (#495).");
   out.push("", "### Presupuestos por alcance y causa (`ops/presupuestos.json`)", "", tablaPresupuestos);
   return out.join("\n");
 }
@@ -304,8 +304,8 @@ export function problemas(datos, { existe, leer = () => null, skills = [], norma
   // La escala y la escalera se declaran en scripts/lib/escalas.mjs (#515): aquí no vuelven a escribirse.
   if ("escalera" in datos) p.push("escalera: la escalera vive en scripts/lib/escalas.mjs; quita `escalera` de flujo.json (una sola fuente)");
 
-  // Los tipos de skill viven solo en ops/forja.json (#495): aquí no vuelve otra lista.
-  if ("tipos_skill" in datos) p.push("tipo-skill: los tipos de skill viven en ops/forja.json (tipos_skill); quita tipos_skill de flujo.json (una sola fuente)");
+  // Los tipos de skill viven solo en ops/forja/ (#495): aquí no vuelve otra lista.
+  if ("tipos_skill" in datos) p.push("tipo-skill: los tipos de skill viven en ops/forja/ (tipos_skill); quita tipos_skill de flujo.json (una sola fuente)");
 
   // Los presupuestos ya no viven aquí (#339): están en ops/presupuestos.json y los valida scripts/lib/presupuestos.mjs.
   if ("presupuestos" in datos) p.push("presupuesto: los presupuestos viven en ops/presupuestos.json; quita `presupuestos` de flujo.json (una sola fuente)");

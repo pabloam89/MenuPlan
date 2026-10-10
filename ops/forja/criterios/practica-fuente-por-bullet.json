@@ -1,0 +1,14 @@
+{
+  "id": "practica-fuente-por-bullet",
+  "capa": "formal",
+  "aplica_a": [
+    "estandar"
+  ],
+  "nombre": "Fuente de cada bullet",
+  "sujeto": "estandar.practica",
+  "fuerza": "debe",
+  "exigencia": "llevar en cada bullet su propia fuente: [F] con url https si es externa o [I] con la ruta de un fichero que existe si es de la casa",
+  "fuente": "[I] scripts/lib/forjaForma.mjs",
+  "control": "ops/forja-forma.test.js",
+  "codigo": null
+}

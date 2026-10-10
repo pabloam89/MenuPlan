@@ -2,7 +2,7 @@
 
 <!-- Generado desde ops/estandares-agentes.json con «npm run estandar -- --escribir». No se edita a mano: ops/estandares-agentes.test.js lo compara. -->
 
-Qué es hacer bien cada tarea de cada agente, escrito por campos con la plantilla de `scripts/lib/regla.mjs` (guía en `docs/ops/REDACCION.md`) y la forma de práctica de `ops/forja.json`. Cada fila es una regla: su frase sale de sus campos, su control es el test, el hook, el script o el workflow que la vigila (o `juicio`, si la vigila una persona o un LLM) y su fuente es externa ([F]) o de la casa ([I]). Lo que repiten varios agentes está una sola vez en las tareas comunes, y la tarea que las usa las nombra. En el brief de una tarea: `npm run estandar -- <agente> <tarea>`.
+Qué es hacer bien cada tarea de cada agente, escrito por campos con la plantilla de `scripts/lib/regla.mjs` (guía en `docs/ops/REDACCION.md`) y la forma de práctica de `ops/forja/`. Cada fila es una regla: su frase sale de sus campos, su control es el test, el hook, el script o el workflow que la vigila (o `juicio`, si la vigila una persona o un LLM) y su fuente es externa ([F]) o de la casa ([I]). Lo que repiten varios agentes está una sola vez en las tareas comunes, y la tarea que las usa las nombra. En el brief de una tarea: `npm run estandar -- <agente> <tarea>`.
 
 Hoy: 66 tareas de 9 agentes, 66 de 66 con estándar; 195 reglas propias; 11 tareas comunes con 24 reglas; 54 fuentes externas y 18 de la casa.
 

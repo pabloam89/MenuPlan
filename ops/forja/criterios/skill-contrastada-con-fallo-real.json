@@ -1,0 +1,33 @@
+{
+  "id": "skill-contrastada-con-fallo-real",
+  "capa": "subjetiva",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Nacida de un fallo",
+  "sujeto": "skill",
+  "fuerza": "debe",
+  "exigencia": "nacer de un fallo real visto sin ella, no de lo que se imagina que hará falta",
+  "cumple": "el PR o «Lo que falló y por qué» cuentan en qué fallaba la sesión sin la skill",
+  "no_cumple": "sale de documentación copiada o de una lista de buenas intenciones",
+  "fuente": "[I] .claude/skills/forja-de-skills/SKILL.md",
+  "control": "juicio",
+  "codigo": null,
+  "casos_calibracion": [
+    {
+      "texto": "Sin la skill, la sesión inventó un comando que no existe; los casos nacieron de ese fallo.",
+      "esperado": "cumple"
+    },
+    {
+      "texto": "Se escribió la skill a partir de la documentación del proveedor, por si hacía falta.",
+      "esperado": "no_cumple"
+    },
+    {
+      "texto": "Los casos salieron de un fallo que contó un compañero de otra sesión; no se repitió sin la skill.",
+      "esperado": "no_cumple",
+      "frontera": true,
+      "nota": "Es un fallo real pero de oídas: nadie lo vio fallar sin la skill."
+    }
+  ]
+}

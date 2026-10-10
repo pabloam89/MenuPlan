@@ -1,0 +1,15 @@
+{
+  "id": "tabla",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Tablas regulares",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "tener tablas con todas las filas del mismo ancho y ninguna celda vacía",
+  "fuente": "[I] .claude/skills/forja-de-skills/referencias/presentacion.md",
+  "control": ".claude/skills.test.js",
+  "codigo": "tabla"
+}

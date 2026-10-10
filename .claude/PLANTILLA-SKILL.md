@@ -2,14 +2,14 @@
 
 Toda skill de `.claude/skills/<nombre>/` sirve para que una sesión con prisa
 haga algo bien sin haber estado en la sesión que la escribió. Hay siete tipos,
-y su única lista es `tipos_skill` de `ops/forja.json`, que también dice cómo se
+y su única lista es `tipos_skill` de `ops/forja/`, que también dice cómo se
 asigna el tipo a una skill (`preguntas_tipo`) y qué criterios se aplican a cada
 uno. Todas comparten la estructura común de aquí; lo de cada tipo (sus
 secciones en orden, los campos de la ficha, cómo se prueba y su ejemplo mínimo)
 está en su molde, `.claude/plantillas-skill/<tipo>.md`, generado desde la forja.
 La de tipo **servicio** es un **runbook**: cómo se opera un servicio.
 
-Tres niveles (`niveles` de `ops/forja.json`): la pieza meta, `forja-de-skills`
+Tres niveles (`niveles` de `ops/forja/`): la pieza meta, `forja-de-skills`
 (nivel 0, `nivel: 0` en su ficha y sin tipo), de la que salen los moldes por tipo
 (nivel 1), y de ellos cada skill (nivel 2). A la pieza meta le valen las reglas
 comunes de aquí, no el molde de un tipo: sus secciones las fija `nivel_0` de la forja.
@@ -80,7 +80,7 @@ metadata:
 ```
 
 - `tipo` no se elige: sale de sus respuestas (`true` o `false`) a las preguntas de
-  `preguntas_tipo` de `ops/forja.json`, que van en el frontmatter (metadata), junto a `tipo`
+  `preguntas_tipo` de `ops/forja/`, que van en el frontmatter (metadata), junto a `tipo`
   (las seis líneas, en el molde de su tipo); manda la primera con sí (`tipoDeSkill`) y, si ninguna, `conocimiento`. El
   nivel 1 falla si el frontmatter dice otro.
 - `description` es lo que lee quien decide si abrirla: dice cuándo, con las
@@ -122,7 +122,7 @@ metadata:
 ## Los tipos y su plantilla
 
 La lista de tipos, qué entra y qué sale de cada uno, cómo se prueba, la
-pregunta que lleva a él y los criterios que le tocan están en `ops/forja.json`
+pregunta que lleva a él y los criterios que le tocan están en `ops/forja/`
 (su vista, en `docs/ops/FORJA.md`). Las secciones obligatorias de cada tipo, en
 orden, y el molde que se copia, en `.claude/plantillas-skill/<tipo>.md`, que
 genera `npm run plantillas -- --escribir`. Aquí no se repite ninguna de las
@@ -264,7 +264,7 @@ Real: `causa-raiz`, el paso que cierra la causa.
 #### Qué lo hace bueno
 
 - Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [I].
-- Cada criterio del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja.json`].
+- Cada criterio del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja/`].
 - Una recomendación por defecto y, aparte, cuándo conviene otra, no un menú [F: BP, demasiadas opciones].
 - Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación].
 
@@ -290,7 +290,7 @@ Real: `plan-de-arreglo`, el paso que elige el mecanismo.
 
 #### Qué lo hace bueno
 
-- Cada etapa nombra la skill o el agente que la lleva, y existe [I, prueba del tipo en `ops/forja.json`].
+- Cada etapa nombra la skill o el agente que la lleva, y existe [I, prueba del tipo en `ops/forja/`].
 - Cada etapa tiene su puerta: lo que la hace cumplir (un hook, el CI, un workflow), no solo el texto [I, CLAUDE.md «Lo que hace cumplir esto»].
 - Dice qué entra y qué sale de cada etapa, para que la siguiente sepa por dónde empezar [I].
 

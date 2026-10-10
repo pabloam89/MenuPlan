@@ -1,0 +1,14 @@
+{
+  "termino": "caso de prueba",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una petición de casos.json de una skill con lo que debe salir; los de frontera son de otra skill o de ninguna.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "caso",
+    "skill"
+  ]
+}

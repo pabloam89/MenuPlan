@@ -1,0 +1,15 @@
+{
+  "id": "comando-muerto",
+  "capa": "material",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Comandos que existen",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "citar en su parte viva solo npm run que existen en package.json",
+  "fuente": "[I] scripts/lib/higieneSkills.mjs",
+  "control": "scripts/higiene-skills.test.js",
+  "codigo": "comando-muerto"
+}

@@ -10,6 +10,20 @@
       "evidencia": "#506 (revisor: ~38 ventanas por refresco de zonas)"
     },
     {
+      "id": "forja",
+      "tests": ["ops/forja.test.js", "ops/forja-forma.test.js", "scripts/higiene-skills.test.js"],
+      "mira": ["ops/forja/**"],
+      "porque": "La forja (ops/forja/, un fichero por criterio, tipo y ficha) es la fuente de lo que se pide a skills, estándares y criterios: un criterio o un tipo tocado cambia FORJA.md, las anclas de la forja y lo que exige la higiene de cada skill. Los demás tests que leen la forja están en su grupo, que también mira ops/forja/**: forja-tipos en agentes, skills en skills-forma y redaccion en redaccion-de-reglas (un test va en un solo grupo).",
+      "evidencia": "#505 (revisor: tocar un criterio partido no lanzaba los tests de la forja)"
+    },
+    {
+      "id": "catalogos-partidos",
+      "tests": ["ops/catalogos.test.js"],
+      "mira": ["ops/forja/**", "ops/glosario/**", "ops/glosario-excepciones/**", "scripts/lib/catalogos.mjs"],
+      "porque": "La forja, el glosario y sus excepciones viven partidos en un fichero por entrada: una entrada con un nombre que no es el de su clave, un choque por mayúsculas o un orden con una entrada sin fichero rompe la composición de todo el catálogo.",
+      "evidencia": "#505 (fondo #504)"
+    },
+    {
       "id": "tests-de-tiempo",
       "tests": ["ops/testsDeTiempo.test.js"],
       "mira": ["**/*.test.{js,mjs,jsx}", "scripts/lib/medirTiempo.mjs"],
@@ -68,20 +82,20 @@
     {
       "id": "agentes",
       "tests": [".claude/agentes.test.js", "scripts/fondos.test.js", "ops/presupuestos.test.js", "ops/forja-tipos.test.js", "ops/estandares-agentes.test.js"],
-      "mira": [".claude/agents/*.md", "ops/estandares-agentes.json"],
+      "mira": [".claude/agents/*.md", "ops/estandares-agentes.json", "ops/forja/**"],
       "porque": "Recorren todos los agentes: estructura de la plantilla, capas de la ficha del fondo, jueces del presupuesto y estándar de cada tarea. Un agente nuevo o cambiado rompe el que no se actualizó."
     },
     {
       "id": "skills-forma",
       "tests": [".claude/skills.test.js", ".claude/voz.test.js", ".claude/dominios-skills.test.js", "ops/flujo.test.js", "scripts/encargo.test.js"],
-      "mira": [".claude/skills/**", ".claude/dominios-skills.json", ".claude/PLANTILLA-SKILL.md", "ops/flujo.json", "docs/ops/*.md"],
+      "mira": [".claude/skills/**", ".claude/dominios-skills.json", "ops/forja/**", ".claude/PLANTILLA-SKILL.md", "ops/flujo.json", "docs/ops/*.md"],
       "porque": "Recorren todas las skills: forma, forja, mapa de dominios, nombres que cita el flujo y plantilla del encargo sin copiar. Un cambio en una skill rompe la vecina.",
       "amplio": true
     },
     {
       "id": "juicios-de-skills",
       "tests": ["ops/criterios-skills.test.js"],
-      "mira": [".claude/skills/**", ".claude/agents/**", "ops/juicios-skills/*.json", "ops/forja.json", "scripts/lib/fondos.mjs", "ops/glosario.json", "ops/glosario-excepciones.json", ".claude/PLANTILLA-SKILL.md", "ops/skills-prueba/*.json", "package.json"],
+      "mira": [".claude/skills/**", ".claude/agents/**", "ops/juicios-skills/*.json", "ops/forja/**", "scripts/lib/fondos.mjs", "ops/glosario/**", "ops/glosario-excepciones/**", ".claude/PLANTILLA-SKILL.md", "ops/skills-prueba/*.json", "package.json"],
       "borrados": ["ops/juicios-skills/*.json"],
       "porque": "Los criterios de cada skill y sus juicios (#457): toda skill tiene sus juicios, cada criterio de la forja que se le aplica aparece, los juicios llevan evidencia que existe (una cabecera de un SKILL.md, un caso, un comando, una pasada vigente) y un firmante de los agentes, y lo automático lo calcula su control. Cambiar una skill, un caso, un agente o un criterio puede dejar una evidencia muerta o un criterio sin juicio.",
       "evidencia": "#457"
@@ -105,13 +119,13 @@
     {
       "id": "glosario",
       "tests": ["ops/glosario.test.js"],
-      "mira": ["ops/glosario.json", ".claude/skills/**/*.md", ".claude/PLANTILLA-*.md", ".claude/agents/*.md", ".claude/rules/*.md", "CLAUDE.md", "docs/ops/*.md", ".claude/commands/*.md", "ops/estandares-agentes.json", "ops/normas.json"],
+      "mira": ["ops/glosario/**", "ops/glosario-excepciones/**", ".claude/skills/**/*.md", ".claude/PLANTILLA-*.md", ".claude/agents/*.md", ".claude/rules/*.md", "CLAUDE.md", "docs/ops/*.md", ".claude/commands/*.md", "ops/estandares-agentes.json", "ops/normas.json"],
       "porque": "Las zonas del glosario no usan un término prohibido ni lo definen dos veces."
     },
     {
       "id": "redaccion-de-reglas",
       "tests": ["ops/redaccion.test.js"],
-      "mira": ["ops/*.json", "docs/ops/REDACCION.md", "scripts/lib/redaccion.mjs", "scripts/lib/regla.mjs", "scripts/lib/forjaReferencia.mjs"],
+      "mira": ["ops/*.json", "ops/forja/**", "ops/glosario/**", "ops/glosario-excepciones/**", "docs/ops/REDACCION.md", "scripts/lib/redaccion.mjs", "scripts/lib/regla.mjs", "scripts/lib/forjaReferencia.mjs"],
       "porque": "Cada catálogo de ops/ con reglas pasa la guía única de redacción (#493, fondo #488): un catálogo o una regla nuevos se miran contra ella."
     },
     {
@@ -185,7 +199,7 @@
       "id": "una-lista-de-tipos",
       "tests": [".claude/plantillas-skill.test.js"],
       "mira": ["**/*.{json,js,mjs,jsx,md}"],
-      "porque": "Los tipos de skill viven solo en tipos_skill de ops/forja.json: cualquier JSON, JS o Markdown nuevo que escriba tres o más tipos juntos fuera de lo permitido es otra lista, y los moldes de .claude/plantillas-skill/ salen de la forja.",
+      "porque": "Los tipos de skill viven solo en tipos_skill de ops/forja/: cualquier JSON, JS o Markdown nuevo que escriba tres o más tipos juntos fuera de lo permitido es otra lista, y los moldes de .claude/plantillas-skill/ salen de la forja.",
       "evidencia": "#495"
     },
     {
@@ -247,7 +261,7 @@
       "motivo": "Prueban la librería de búsqueda de lo ya apuntado con índices de mentira: la enumeración es de esa librería, no un conjunto que se rompa por un fichero ajeno."
     },
     {
-      "tests": ["ops/forja.test.js", "scripts/higiene-skills.test.js", "scripts/skills-pr.test.js", "scripts/skills-prueba.test.js", "scripts/skills-uso.test.js"],
+      "tests": ["scripts/skills-pr.test.js", "scripts/skills-prueba.test.js", "scripts/skills-uso.test.js"],
       "motivo": "Pruebas de unidad de las librerías de skills con skills de mentira; el vigilante real de las skills del repo es .claude/skills.test.js y los pasos del CI que lanza vecinos."
     },
     {
