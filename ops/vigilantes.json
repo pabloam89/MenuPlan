@@ -1,0 +1,206 @@
+{
+  "_": "Los tests vigilantes de conjunto (#356): los que miran TODOS los ficheros de una carpeta o un tipo, no uno. Un fichero nuevo o un texto nuevo puede romper uno que está lejos de lo que tocas, y la regla «lanza solo los tests de lo que tocas» no lo ve. `npm run vecinos` elige, de esta lista, los que miran lo que has tocado y los lanza junto con los propios del fichero. Dueño: gobierno. Lo vigila ops/vigilantes.test.js: cada test existe, y todo test que enumera ficheros del repo está aquí o en `excepciones` con su motivo. `mira` son globs de rutas relativas (`**`, `*`, `{a,b}`); `borrados` añade rutas cuya desaparición también lo activa; `amplio` marca los que se lanzan cuando un fichero no se entiende (plan B).",
+  "conocidas": ["src/", "api/", "scripts/", "supabase/", "ops/", "docs/", "specs/", ".claude/", ".github/", "public/", "brand/", "dish-gallery/", "Avatares/", "eslint-rules/", "CLAUDE.md", "README.md", "package.json", "package-lock.json", "vercel.json", "vite.config.js", "index.html", "eslint.config.js", "eslint.tdz.config.js", "lint-base.json", "lint-tokens-base.json", "DESIGN_SYSTEM.md", "HOUSEHOLDS.md", "ILUSTRACIONES-PASOS.md", ".vercelignore", ".gitignore", ".gitattributes"],
+  "vigilantes": [
+    {
+      "id": "errores-tragados-scripts",
+      "tests": ["scripts/sinErroresTragados.test.js"],
+      "mira": ["scripts/**/*.{js,mjs,cjs,jsx}", ".claude/hooks/**/*.{js,mjs,cjs,jsx}"],
+      "porque": "Ningún manejador de error de scripts/ ni de los hooks se traga un error sin aviso: un catch nuevo solo con console.log o sin «a propósito:» lo rompe.",
+      "evidencia": "#356, PR #428, PR #424",
+      "amplio": true
+    },
+    {
+      "id": "errores-tragados-bot",
+      "tests": ["api/_bot/sinErroresTragados.test.js"],
+      "mira": ["api/_bot/**/*.{js,mjs,cjs,jsx}", "api/bot/**/*.{js,mjs,cjs,jsx}"],
+      "porque": "Lo mismo para el código del bot: un catch nuevo que no avisa.",
+      "evidencia": "#177"
+    },
+    {
+      "id": "dueno-de-lo-que-ejecuta-un-hook",
+      "tests": ["scripts/rulesets.test.js"],
+      "mira": ["scripts/**/*.{js,mjs}", ".claude/hooks/*.mjs", ".github/workflows/*.yml", ".github/CODEOWNERS", ".claude/settings.json", "package.json"],
+      "porque": "Todo lo que corre con secretos o por un hook, y sus imports, tiene dueño en CODEOWNERS: un script nuevo importado por un hook sin dueño lo rompe.",
+      "evidencia": "PR #424",
+      "amplio": true
+    },
+    {
+      "id": "scripts-sin-caminos-sueltos",
+      "tests": ["scripts/lib/env.test.js", "scripts/lib/evals.test.js"],
+      "mira": ["scripts/**/*.{js,mjs}"],
+      "porque": "Recorren todos los scripts: ninguno llama a `op` sin entornoOp(), y el presupuesto mensual de los evals se define en un solo sitio."
+    },
+    {
+      "id": "cuota-de-gh",
+      "tests": ["scripts/cuotaGh.test.js"],
+      "mira": [".claude/**/*.{md,mjs,json}", "docs/**/*.md", "scripts/**/*.mjs", "ops/*.{md,json}"],
+      "porque": "Techo de menciones de las llamadas a GitHub que agotan la cuota (`--watch`, graphql): un texto o script nuevo que las recomienda lo sube.",
+      "evidencia": "#424",
+      "amplio": true
+    },
+    {
+      "id": "workflows",
+      "tests": ["scripts/dependabot-auto.test.js"],
+      "mira": [".github/workflows/*.yml"],
+      "porque": "Cruza los workflows con environment del repo con lo que el script de Dependabot cree que son."
+    },
+    {
+      "id": "formularios-de-issues",
+      "tests": ["scripts/issues.test.js"],
+      "mira": [".github/ISSUE_TEMPLATE/*.yml", "scripts/lib/issues.mjs"],
+      "porque": "Un formulario por tipo, con etiquetas que existen."
+    },
+    {
+      "id": "agentes",
+      "tests": [".claude/agentes.test.js", "scripts/fondos.test.js", "ops/presupuestos.test.js", "ops/forja-tipos.test.js", "ops/estandares-agentes.test.js"],
+      "mira": [".claude/agents/*.md", "ops/estandares-agentes.json"],
+      "porque": "Recorren todos los agentes: estructura de la plantilla, capas de la ficha del fondo, jueces del presupuesto y estándar de cada tarea. Un agente nuevo o cambiado rompe el que no se actualizó."
+    },
+    {
+      "id": "skills-forma",
+      "tests": [".claude/skills.test.js", ".claude/voz.test.js", ".claude/dominios-skills.test.js", "ops/flujo.test.js", "scripts/encargo.test.js"],
+      "mira": [".claude/skills/**", ".claude/dominios-skills.json", ".claude/PLANTILLA-SKILL.md", "ops/flujo.json", "docs/ops/*.md"],
+      "porque": "Recorren todas las skills: forma, forja, mapa de dominios, nombres que cita el flujo y plantilla del encargo sin copiar. Un cambio en una skill rompe la vecina.",
+      "amplio": true
+    },
+    {
+      "id": "rutas-citadas",
+      "tests": [".claude/rutas.test.js"],
+      "mira": [".claude/skills/**/*.md", ".claude/rules/*.md", ".claude/agents/*.md"],
+      "borrados": ["{src,api,scripts,supabase,docs,ops,specs,.claude,.github,public}/**"],
+      "porque": "Toda ruta de fichero citada en una skill, regla o agente existe en git, con su mayúscula: una cita relativa nueva, o borrar lo citado, lo rompe.",
+      "evidencia": "PR #446, PR #465",
+      "amplio": true
+    },
+    {
+      "id": "frases-normativas",
+      "tests": ["ops/planos.test.js", "ops/normas.test.js"],
+      "mira": ["CLAUDE.md", "docs/datos/PRINCIPIOS.md", ".claude/{rules,skills,agents,commands}/**/*.md", "ops/*.md", "ops/normas.json", "ops/planos.json"],
+      "porque": "Cuentan las frases con palabras fuertes (nunca, siempre, tope, OK de Pablo…) y exigen que cada una cite su norma: texto nuevo con una palabra fuerte sube la cuenta.",
+      "evidencia": "PR #424"
+    },
+    {
+      "id": "glosario",
+      "tests": ["ops/glosario.test.js"],
+      "mira": ["ops/glosario.json", ".claude/skills/**/*.md", ".claude/PLANTILLA-*.md", ".claude/agents/*.md", ".claude/rules/*.md", "CLAUDE.md", "docs/ops/*.md", ".claude/commands/*.md", "ops/estandares-agentes.json", "ops/normas.json"],
+      "porque": "Las zonas del glosario no usan un término prohibido ni lo definen dos veces."
+    },
+    {
+      "id": "fuentes-y-modulos",
+      "tests": ["ops/fuentes.test.js", "ops/modulos.test.js", "ops/lecturasRetiradas.test.js"],
+      "mira": ["src/**", "api/**", "scripts/**", "supabase/**", "ops/MODULOS.json", ".claude/hooks/**"],
+      "porque": "Recorren el código según git: toda fuente de datos con rol y fecha, todo fichero con módulo dueño, y nadie lee una fuente retirada.",
+      "amplio": true
+    },
+    {
+      "id": "cableado",
+      "tests": ["supabase/cableado.test.js"],
+      "mira": ["supabase/migrations/*.sql", "supabase/cableado.json", "src/**/*.{js,jsx,mjs}", "api/**/*.{js,mjs}", "scripts/**/*.mjs"],
+      "porque": "Qué fichero toca qué tabla: un fichero nuevo que consulta una tabla por su cuenta sin pasar por su módulo lo rompe."
+    },
+    {
+      "id": "migraciones-sql",
+      "tests": ["supabase/anonPorDefecto.test.js", "supabase/cascadaPersona.test.js", "supabase/errores.test.js", "supabase/idsPersonaGrupo.test.js", "supabase/migrations.test.js", "supabase/principios.test.js", "supabase/rolLectura.test.js", "src/lib/registroTareas.test.js", "src/lib/vocabularios.test.js", "api/_bot/fichaExtras.test.js", "scripts/lib/migraciones.test.js"],
+      "mira": ["supabase/migrations/*.sql"],
+      "porque": "Leen todas las migraciones: numeración contigua, principios de tablas, anon por defecto, errores, vocabularios y cascada de personas. Una migración nueva se mide contra todas."
+    },
+    {
+      "id": "catalogo-de-recetas",
+      "tests": ["src/data/aparatos.test.js", "src/data/axisRegistry.test.js", "src/data/derived.test.js", "src/data/dosCarriles.test.js", "src/data/estrella.test.js", "src/data/model.test.js", "src/data/stepsRichById.test.js", "src/lib/derive/stepParts.test.js", "src/lib/recipeSteps.test.js", "src/utils/alcoholParaNinos.test.js"],
+      "mira": ["src/data/recipes/**"],
+      "porque": "Recorren todas las recetas del catálogo: una receta nueva o cambiada se mide contra las reglas de todas."
+    },
+    {
+      "id": "fuentes-sin-invisibles",
+      "tests": ["src/data/fuentesLimpias.test.js"],
+      "mira": ["**/*.{js,jsx,mjs,json,sql}"],
+      "porque": "Ningún fichero de código o dato lleva caracteres de control invisibles."
+    },
+    {
+      "id": "app-y-bot",
+      "tests": ["src/components/coachAnchors.test.js", "src/components/HomeCoachTour.test.jsx", "src/lib/ids.guard.test.js", "src/lib/dias.guard.test.js", "src/lib/householdDiscardsSync.test.js"],
+      "mira": ["src/**/*.{js,jsx,mjs}", "api/**/*.{js,mjs}"],
+      "porque": "Recorren todo el código de la app y del bot: anclas del tour, ids y días sin escribir a mano, y nadie consulta una tabla que no existe."
+    },
+    {
+      "id": "zonas-del-catalogo",
+      "tests": ["src/lib/barreras.test.js"],
+      "mira": ["src/{data,utils,lib}/**/*.{js,mjs,jsx}", "api/_bot/**/*.{js,mjs,jsx}", "package.json"],
+      "porque": "Regex con frontera de palabra en las zonas del catálogo, y sin lucide."
+    },
+    {
+      "id": "cargadores-de-lib",
+      "tests": ["src/lib/cargadoresSinVacioEnError.test.js"],
+      "mira": ["src/lib/*.{js,jsx}"],
+      "porque": "Ningún cargador de lo que se lee de Supabase devuelve vacío en error."
+    },
+    {
+      "id": "bot-sin-listas-a-mano",
+      "tests": ["src/lib/comidas.test.js", "api/_bot/avisar.test.js"],
+      "mira": ["api/_bot/*.js", "api/bot/*.js", "src/lib/pedidoLola.js"],
+      "porque": "El bot no escribe listas de comidas a mano y avisa con el módulo de avisos."
+    },
+    {
+      "id": "endpoints",
+      "tests": ["api/_guard.test.js"],
+      "mira": ["api/**/*.js"],
+      "porque": "Todo endpoint de api/ lleva el límite por IP y la validación antes del tope."
+    },
+    {
+      "id": "vigilantes",
+      "tests": ["ops/vigilantes.test.js"],
+      "mira": ["**/*.test.{js,mjs,jsx}", "ops/vigilantes.json"],
+      "porque": "Un test nuevo que enumera ficheros del repo tiene que estar aquí o en excepciones; esta lista misma es de conjunto."
+    }
+  ],
+  "pasos": [
+    {
+      "id": "skills-pr",
+      "mira": [".claude/skills/**"],
+      "cmd": ["node", "scripts/skills-pr.mjs", "{lista}"],
+      "porque": "Paso «Skills del PR» del CI: una skill tocada no puede estar caducada."
+    },
+    {
+      "id": "higiene-skills-pr",
+      "mira": [".claude/skills/**"],
+      "cmd": ["node", "scripts/cumplimiento.mjs", "--skills-pr", "{lista}"],
+      "porque": "Paso «Higiene de las skills del PR» del CI: comando, ruta o ejemplo inventado en una skill tocada.",
+      "evidencia": "PR #446, PR #465"
+    }
+  ],
+  "excepciones": [
+    {
+      "tests": ["scripts/copias.test.js", "scripts/buscarAntesSeguridad.test.js", "scripts/buscarAntesRonda4.test.js", "scripts/limpiar-worktrees.test.js", ".claude/hooks/sesiones.test.js", ".claude/hooks/skill-abierta.test.js", "ops/ficherosGit.test.js"],
+      "motivo": "Listan una carpeta temporal que crean ellos mismos, no ficheros del repo: no vigilan ningún conjunto."
+    },
+    {
+      "tests": ["supabase/personasAlGuardar.test.js", "scripts/lib/permisoAplicar.test.js"],
+      "motivo": "Buscan UNA migración concreta por su número (0089, 0096): es un test de esa migración, y lo elige el fichero tocado."
+    },
+    {
+      "tests": ["scripts/fabrica.test.js"],
+      "motivo": "Solo comprueba que ops/ no versiona un informe de la fábrica; lo cubre el test propio de scripts/fabrica.mjs."
+    },
+    {
+      "tests": ["scripts/vecinos.test.js"],
+      "motivo": "Importa la librería de vecinos, que lleva los nombres de las funciones de lectura como patrón del detector; sus pruebas usan datos de mentira y no enumeran el repo."
+    },
+    {
+      "tests": [".claude/hooks/buscar-antes-endurecido.test.js", ".claude/hooks/buscar-antes.test.js", "scripts/buscarAntes.test.js", "scripts/buscarAntesRonda3.test.js", "scripts/buscarAntesRonda5.test.js"],
+      "motivo": "Prueban la librería de búsqueda de lo ya apuntado con índices de mentira: la enumeración es de esa librería, no un conjunto que se rompa por un fichero ajeno."
+    },
+    {
+      "tests": ["ops/forja.test.js", "scripts/higiene-skills.test.js", "scripts/skills-pr.test.js", "scripts/skills-prueba.test.js", "scripts/skills-uso.test.js"],
+      "motivo": "Pruebas de unidad de las librerías de skills con skills de mentira; el vigilante real de las skills del repo es .claude/skills.test.js y los pasos del CI que lanza vecinos."
+    },
+    {
+      "tests": ["ops/mecanismos.test.js"],
+      "motivo": "Importa la librería de normas solo para comprobar que una norma citada existe; el conjunto de frases lo vigila ops/normas.test.js."
+    },
+    {
+      "tests": ["api/share-recipe.test.js", "scripts/verificar-estado.test.js", "src/lib/auditAllergenAliases.test.js"],
+      "motivo": "Importan el propio módulo que prueban y este lee carpetas de su dominio con datos de prueba; es un test de unidad, lo elige el fichero tocado."
+    }
+  ]
+}
