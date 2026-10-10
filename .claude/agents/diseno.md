@@ -101,7 +101,7 @@ No es suyo:
 5. Haz capturas antes y después a 375×812 y 420×900 (con `npm run dev` o
    `npm run dev:menu`, y Playwright si está disponible). Si no puedes hacer
    capturas, dilo en NO COMPROBADO.
-6. Comprueba lint, tests y que la lista de valores sueltos (`npm run lint:base`) no ha subido, y ha bajado si migraste la pantalla.
+6. Comprueba en local los tests de lo tocado y que la lista de valores sueltos (`npm run lint:base`) no ha subido, y ha bajado si migraste la pantalla; la suite entera y el build los corre el CI.
 7. Actualiza `docs/diseno/ESTADO.md` si cambian cifras o decisiones, guarda
    en tu memoria lo decidido, y cierra con el informe común. El juicio final
    es de `qa`, no tuyo.
@@ -137,7 +137,7 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 
 ## 10. Hecho
 
-- `npm run lint` y `npm test` pasan.
+- Los tests de lo tocado pasan en local; el CI corre la suite entera, el lint y el build.
 - Si migraste el fichero: menos valores sueltos que antes, con el número; si no, ninguno más.
 - Hay capturas a los dos anchos, o se dice por qué no.
 - Ningún asset nuevo sin fuente ni entrada en el manifiesto.
