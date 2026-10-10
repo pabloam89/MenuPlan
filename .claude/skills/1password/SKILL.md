@@ -2,7 +2,7 @@
 name: 1password
 description: Úsala al montar un .env.local o un worktree, cuando un script no pueda leer una dirección op://, para leer una clave desde un script (leerEnv), al guardar algo en una bóveda nueva, o si falla la service account, el token del llavero o el agente SSH. No para: dar de alta ni rotar una clave de punta a punta, ni una clave filtrada (alta-de-secreto); la clave de las copias cifradas (hetzner); dónde vive cada clave (ops/INVENTARIO.md) ni las contraseñas personales de Pablo.
 metadata:
-  tipo: herramienta
+  tipo: servicio
   dueno: gobierno
   comprobado: "2026-10-10"
 ---

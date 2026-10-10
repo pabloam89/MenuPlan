@@ -2,7 +2,7 @@
 name: issues
 description: Úsala cuando haya que registrar un fallo como caso, abrir o colgar un problema de fondo, un encargo o una decisión, clasificar o etiquetar issues, leer `npm run issues`, o decidir de qué problema de fondo es síntoma algo que falló. No para: el PR, su CI y las líneas `Closes`, `Runbook:` o `Casos:` (github) ni los workflows (github).
 metadata:
-  tipo: herramienta
+  tipo: flujo
   dueno: gobierno
   comprobado: "2026-10-09"
 ---

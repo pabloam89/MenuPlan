@@ -2,7 +2,7 @@
 name: higiene-de-skills
 description: Úsala para revisar UNA skill ya escrita y sacar su lista de defectos con el arreglo de cada uno: «revisa la skill de vercel», «¿está al día esta skill?», «¿cuánto le queda para caducar?», «¿cita algo que ya no existe?», «¿solapa con otra?», «higiene de skills», y en el repaso periódico de todas. No para: crear una skill nueva ni decidir si hace falta (forja-de-skills), medir con tokens si dispara (npm run skills-prueba) ni operar el servicio que describe (su skill).
 metadata:
-  tipo: meta
+  tipo: revision
   dueno: gobierno
   comprobado: 2026-10-10
 ---

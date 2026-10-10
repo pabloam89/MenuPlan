@@ -2,7 +2,7 @@
 name: forja-de-skills
 description: Úsala al crear, reestructurar, revisar o podar una skill de .claude/skills: «hazme una skill para…», «¿hace falta una skill nueva?», «esta skill no se abre cuando toca», «está muy larga», «el test de skills falla con forja», «¿la borro?». Dice cuándo NO crearla, cómo se forja paso a paso, qué comprueba el test y qué solo juzga una persona. No para: operar un servicio (su skill), escribir o cambiar un agente (PLANTILLA-AGENTE) ni medir una skill ya hecha sin tocarla (npm run skills-prueba).
 metadata:
-  tipo: meta
+  nivel: 0
   dueno: gobierno
   comprobado: 2026-10-10
 ---

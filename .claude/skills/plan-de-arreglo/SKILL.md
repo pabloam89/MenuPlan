@@ -2,7 +2,7 @@
 name: plan-de-arreglo
 description: Úsala cuando un fondo ya tiene diagnóstico y hay que decidir cómo se arregla, con las palabras «plan», «encargos», «cómo lo arreglamos para que no vuelva», «en cuántos trozos», «qué mecanismo», «ventana de observación»; o al pasar una ficha de diagnosticado a plan. No para: averiguar la causa (causa-raiz), registrar casos o etiquetas (issues), ni construir el arreglo (el agente del dominio).
 metadata:
-  tipo: oficio
+  tipo: decision
   dueno: gobierno
   comprobado: 2026-10-10
 ---

@@ -2,7 +2,7 @@
 name: telegram
 description: Úsala al operar el bot de Telegram: Lola no contesta, poner, mirar o quitar el webhook, la foto del bot o su perfil en BotFather, los comandos del menú «/», meter a Lola en un grupo, el bot de pruebas, la checklist de la compra o mensajes que llegan repetidos. No para: cómo se escribe el código de Lola (regla lola y agente lola).
 metadata:
-  tipo: herramienta
+  tipo: servicio
   dueno: lola
   comprobado: "2026-10-09"
 ---

@@ -2,7 +2,7 @@
 name: tailscale
 description: Úsala al conectar un PC o un servidor a la red privada, cuando no se pueda entrar al servidor del panel, si Tailscale «no abre» o sale Logged out, al invitar a alguien (Álvaro, Manu) o al cambiar quién puede ver qué. No para: el servidor en sí, su cortafuegos y sus copias (hetzner) ni las llaves SSH (1password).
 metadata:
-  tipo: herramienta
+  tipo: servicio
   dueno: gobierno
   comprobado: "2026-10-08"
 ---

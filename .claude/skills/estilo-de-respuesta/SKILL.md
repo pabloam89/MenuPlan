@@ -2,7 +2,7 @@
 name: estilo-de-respuesta
 description: Úsala al escribir cualquier respuesta, resumen o aviso a Pablo en una sesión principal («cuéntame cómo va», «explícamelo sencillo», «¿qué decido?», «¿está fusionado?», «¿ha pasado?», «¿seguro?»). Fija la forma: idea raíz en negrita, cuatro ideas como mucho, tres opciones en las decisiones y «Comprobado», «Creo» o «No sé» en lo que afirma. No para: el informe común de un agente (salvo su RESUMEN y sus DECISIONES PENDIENTES), mensajes de Lola, cuerpos de PR, issues ni documentación.
 metadata:
-  tipo: estandar
+  tipo: conocimiento
   dueno: gobierno
   comprobado: 2026-10-10
 ---

@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { SECCIONES_POR_TIPO, nombresDeSkills, tiposDeFlujo } from "./lib/skills.mjs";
+import { SECCIONES_POR_TIPO, nombresDeSkills, tiposDeSkill } from "./lib/skills.mjs";
+import { leerForja } from "./lib/forja.mjs";
 import { CODIGOS_FORJA, MAX_SOLAPE, solape } from "./lib/skillsForja.mjs";
 import {
   ARREGLOS, CODIGOS_HIGIENE, higieneDeSkill, higieneDelRepo, lineaDeResumen, scriptsDeNpm, solapeMaximo,
@@ -16,11 +17,12 @@ import {
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const RAIZ = join(AQUI, "..");
 const HOY = new Date("2026-10-10T12:00:00Z");
+const FORJA = leerForja(RAIZ);
 const relleno = "Texto de relleno suficientemente largo para que la sección no cuente como vacía.";
 
-/** Una skill de oficio de mentira; `cambios` toca el texto de cada sección o añade cosas. */
+/** Una skill de diagnóstico de mentira; `cambios` toca el texto de cada sección o añade cosas. */
 function oficio({ descripcion, comprobado = "2026-10-01", secciones = {}, ficheros = ["SKILL.md", "casos.json"], extra = {}, casos, antes = "" } = {}) {
-  const cuerpo = SECCIONES_POR_TIPO.oficio.map((t) => {
+  const cuerpo = SECCIONES_POR_TIPO.diagnostico.map((t) => {
     if (secciones[t] !== undefined) return `## ${t}\n\n${secciones[t]}`;
     if (t === "Método") return `## ${t}\n\n${relleno}\n\nSale bien si la prueba pasa.`;
     if (t === "Registro de cambios") return `## ${t}\n\n- **2026-10-01** · Primera versión (#411).`;
@@ -31,7 +33,7 @@ function oficio({ descripcion, comprobado = "2026-10-01", secciones = {}, ficher
   const d = descripcion ?? "Úsala al probar la higiene de las skills con una de mentira («revisa esta skill», «¿está al día?»). No para: medir si dispara (skills-prueba) ni crearla (forja-de-skills).";
   return {
     nombre: "mala",
-    texto: `---\nname: mala\ndescription: ${d}\nmetadata:\n  tipo: oficio\n  dueno: gobierno\n  comprobado: ${comprobado}\n---\n\n# Mala\n\n${antes}${cuerpo}\n`,
+    texto: `---\nname: mala\ndescription: ${d}\nmetadata:\n  tipo: diagnostico\n  dueno: gobierno\n  comprobado: ${comprobado}\n---\n\n# Mala\n\n${antes}${cuerpo}\n`,
     ficheros, extra,
     casos: casos ?? {
       skill: "mala",
@@ -55,7 +57,10 @@ const CATALOGO_LIMPIO = [
 function ctxDe({ catalogo, otras = [], otrosCasos = [], existe, scriptsNpm = ["higiene-skills", "buscar"] } = {}) {
   return {
     hoy: HOY,
-    tipos: tiposDeFlujo(RAIZ),
+    tipos: tiposDeSkill(RAIZ),
+    // La mala es de diagnóstico: sus respuestas a las preguntas de ops/forja.json lo dan (#495).
+    respuestas: { mala: Object.fromEntries(FORJA.preguntas_tipo.map((p) => [p.clave, p.tipo === "diagnostico"])) },
+    preguntas: FORJA.preguntas_tipo,
     agentes: { gobierno: ["mala", "otra"], lola: [] },
     skills: ["mala", "otra", "forja-de-skills"],
     existe: existe ?? ((r) => r === "scripts/lib/skills.mjs"),

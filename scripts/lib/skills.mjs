@@ -17,7 +17,11 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { leerForja, tipoDeSkill } from "./forja.mjs";
+import { EXCEPCIONES_PLANTILLA, SECCIONES_POR_TIPO, SECCIONES_SERVICIO, tiposDeForja } from "./plantillasSkill.mjs";
 import { EXCEPCIONES_FORJA, faltasDeSolape, faltasForja, sinExcepciones } from "./skillsForja.mjs";
+
+export { SECCIONES_POR_TIPO, SECCIONES_SERVICIO };
 
 export const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const DIR_SKILLS = ".claude/skills";
@@ -25,49 +29,30 @@ export const DIR_SKILLS = ".claude/skills";
 // ── Vocabulario ───────────────────────────────────────────────────────────
 
 /**
- * Los ocho tipos salen de `ops/flujo.json` (`tipos_skill`), que es el catálogo
- * del flujo: una sola fuente. Aquí solo se leen.
+ * Los ocho tipos salen de `tipos_skill` de `ops/forja.json`: la única lista
+ * (#495). Aquí solo se leen; sus secciones, de `scripts/lib/plantillasSkill.mjs`.
  */
-export function tiposDeFlujo(raiz = RAIZ) {
-  const datos = JSON.parse(readFileSync(join(raiz, "ops/flujo.json"), "utf8"));
-  return datos.tipos_skill.map((t) => t.id);
+export function tiposDeSkill(raiz = RAIZ) {
+  return tiposDeForja(leerForja(raiz));
 }
 
-/** Las siete de siempre: el tipo herramienta no cambia (compatibilidad con las skills de antes de #336). */
-export const SECCIONES_HERRAMIENTA = [
-  "Qué es y dónde",
-  "Claves y accesos",
-  "Operaciones habituales",
-  "Lo que falló y por qué",
-  "Qué requiere el OK de Pablo",
-  "Coste y límites",
-  "Fuentes y comprobación",
-];
-
-/** Lo común a los tipos nuevos: cabeza y cola. En medio, lo de cada tipo. */
-const CABEZA = ["Cuándo y para qué", "Método"];
-const COLA = ["Lo que falló y por qué", "Registro de cambios", "Fuentes y comprobación"];
-
-/** Secciones obligatorias, en orden, de cada tipo. Las claves tienen que ser las de `ops/flujo.json`. */
-export const SECCIONES_POR_TIPO = {
-  herramienta: SECCIONES_HERRAMIENTA,
-  oficio: [...CABEZA, "Técnicas", "Ejemplo resuelto", ...COLA],
-  dominio: [...CABEZA, "Lo que hay que saber", "Dónde vive el dato", ...COLA],
-  estandar: [...CABEZA, "La norma", "Bien y mal", ...COLA],
-  receta_cambio: [...CABEZA, "Antes de empezar", "Cómo se comprueba", "Qué requiere el OK de Pablo", ...COLA],
-  rubrica_juez: [...CABEZA, "Qué mira", "Cómo puntúa", "Ejemplos calibrados", ...COLA],
-  investigacion: [...CABEZA, "Pregunta y alcance", "Dónde buscar", "Cómo se destila", ...COLA],
-  meta: [...CABEZA, "Cómo se prueba", "Cuándo se poda", ...COLA],
-};
+/**
+ * Niveles (#495, decisión de Pablo): 0 es la pieza meta de la familia (forja-de-skills),
+ * de la que salen las plantillas por tipo (1, generadas, no son skills), y de ellas las
+ * skills concretas (2). La ficha solo lo dice si no es 2. Vocabulario en `niveles` de ops/forja.json.
+ */
+export const NIVEL_META = "0";
+export const NIVEL_SKILL = "2";
+export const nivelDe = (metadata) => (metadata?.nivel === undefined ? NIVEL_SKILL : String(metadata.nivel));
 
 /** Las reglas del nivel 1. Cada falta lleva una de estas claves: se pueden contar. */
 export const REGLAS = {
   frontmatter: "name igual a la carpeta, description que enruta («Úsala …», «No para:»), y solo name, description y metadata",
-  tipo: "metadata.tipo es uno de los ocho de ops/flujo.json",
+  tipo: "metadata.tipo es uno de los ocho de ops/forja.json y el que dan sus respuestas en respuestas_tipo (tipoDeSkill)",
   dueno: "metadata.dueno es un agente de .claude/agents/ que la carga en su `skills:`",
   comprobado: "metadata.comprobado es una fecha AAAA-MM-DD, no futura, y el texto dice qué se comprobó ese día",
   caducada: "una skill que toca el PR no tiene su comprobado de hace más de PLAZO_COMPROBADO_DIAS (lo mira scripts/skills-pr.mjs, no npm test)",
-  secciones: "las secciones de su tipo, en orden y ninguna vacía",
+  secciones: "las secciones de su tipo (su molde de .claude/plantillas-skill/), en orden y ninguna vacía; las de EXCEPCIONES_PLANTILLA, que solo baja, las que tienen hoy",
   formato: "tabla de operaciones, fallos con fecha, causa y arreglo, registro de cambios fechado y última línea de comprobación",
   tamano: "SKILL.md de MAX_LINEAS líneas como mucho; el detalle va a ficheros aparte",
   secretos: "ningún patrón de clave ni cadena de conexión con contraseña",
@@ -229,9 +214,13 @@ export function agentesYSkills(raiz = RAIZ) {
 /** Todo lo que el nivel 1 necesita saber del repo, de una vez. */
 export function cargarContexto(raiz = RAIZ, hoy = new Date()) {
   const nombres = nombresDeSkills(raiz);
+  const forja = leerForja(raiz);
   return {
     hoy,
-    tipos: tiposDeFlujo(raiz),
+    tipos: tiposDeForja(forja),
+    seccionesMeta: forja.nivel_0?.skills?.secciones ?? null,
+    respuestas: forja.respuestas_tipo ?? {},
+    preguntas: forja.preguntas_tipo ?? [],
     agentes: agentesYSkills(raiz),
     skills: nombres,
     existe: (ruta) => existsSync(join(raiz, ruta)),
@@ -257,9 +246,17 @@ function reglaFrontmatter(nombre, meta) {
   return f;
 }
 
-function reglaTipo(m, ctx) {
+function reglaTipo(nombre, m, ctx) {
+  const nivel = nivelDe(m);
+  if (nivel === NIVEL_META) return m.tipo ? [falta("tipo", `es la pieza meta (nivel ${NIVEL_META}): no lleva tipo de skill`)] : [];
+  if (nivel !== NIVEL_SKILL) return [falta("tipo", `metadata.nivel «${nivel}»: una skill es ${NIVEL_META} (la pieza meta) o ${NIVEL_SKILL}; el 1 son las plantillas`)];
   if (!m.tipo) return [falta("tipo", "falta metadata.tipo")];
-  if (!ctx.tipos.includes(m.tipo) || !(m.tipo in SECCIONES_POR_TIPO)) return [falta("tipo", `«${m.tipo}» no es ninguno de: ${ctx.tipos.join(", ")}`)];
+  if (!ctx.tipos.includes(m.tipo) || !(m.tipo in SECCIONES_POR_TIPO)) return [falta("tipo", `«${m.tipo}» no es ninguno de los de ops/forja.json: ${ctx.tipos.join(", ")}`)];
+  // El tipo no se elige: sale de sus respuestas (#495).
+  const r = ctx.respuestas?.[nombre];
+  if (!r) return [falta("tipo", `sin respuestas en respuestas_tipo de ops/forja.json: apunta sí o no a cada pregunta de preguntas_tipo`)];
+  const derivado = tipoDeSkill(r, ctx.preguntas);
+  if (derivado !== m.tipo) return [falta("tipo", `metadata.tipo dice «${m.tipo}» y sus respuestas en ops/forja.json dan «${derivado}»`)];
   return [];
 }
 
@@ -281,8 +278,12 @@ function reglaComprobado(m, texto, ctx) {
   return f;
 }
 
-function reglaSecciones(cuerpo, tipo) {
-  const quiero = SECCIONES_POR_TIPO[tipo];
+/** Las secciones que se le piden: las de su tipo, o las de su excepción mientras la tenga. */
+export function seccionesPedidas(nombre, tipo, excepciones = EXCEPCIONES_PLANTILLA) {
+  return excepciones[nombre]?.secciones ?? SECCIONES_POR_TIPO[tipo] ?? null;
+}
+
+function reglaSecciones(quiero, cuerpo) {
   if (!quiero) return [];
   const f = [];
   if (!/^# \S.*$/m.test(cuerpo)) f.push(falta("secciones", "falta el título «# …»"));
@@ -292,9 +293,9 @@ function reglaSecciones(cuerpo, tipo) {
   return f;
 }
 
-function reglaFormato(cuerpo, texto, tipo) {
+function reglaFormato(cuerpo, texto, tipo, secciones) {
   const f = [];
-  if (tipo === "herramienta") {
+  if (secciones?.includes("Operaciones habituales")) {
     const op = seccion(cuerpo, "Operaciones habituales");
     if (!op.includes(CABECERA_OPERACIONES)) f.push(falta("formato", `«Operaciones habituales» sin la tabla ${CABECERA_OPERACIONES}`));
     const filas = op.split("\n").filter((l) => l.startsWith("|") && !l.startsWith("|---") && l !== CABECERA_OPERACIONES);
@@ -304,16 +305,16 @@ function reglaFormato(cuerpo, texto, tipo) {
       const celdas = fila.split(/(?<!\\)\|/).slice(1, -1).map((c) => c.trim());
       if (celdas.length !== 3 || !celdas.every(Boolean)) f.push(falta("formato", `fila de operación incompleta: ${fila.slice(0, 60)}`));
     }
-    if (!entradas(seccion(cuerpo, "Qué requiere el OK de Pablo")).length) f.push(falta("formato", "«Qué requiere el OK de Pablo» sin ninguna entrada"));
   }
+  if (secciones?.includes("Qué requiere el OK de Pablo") && !entradas(seccion(cuerpo, "Qué requiere el OK de Pablo")).length) f.push(falta("formato", "«Qué requiere el OK de Pablo» sin ninguna entrada"));
   const fallos = entradas(seccion(cuerpo, "Lo que falló y por qué"));
-  // Una herramienta estrena su runbook con su primera lección; los demás tipos pueden empezar sin.
-  if (tipo === "herramienta" && !fallos.length) f.push(falta("formato", "«Lo que falló y por qué» sin ninguna entrada"));
+  // Un servicio estrena su runbook con su primera lección; los demás tipos pueden empezar sin.
+  if (tipo === "servicio" && !fallos.length) f.push(falta("formato", "«Lo que falló y por qué» sin ninguna entrada"));
   for (const e of fallos) {
     const ok = /^- \*\*\d{4}-\d{2}(?:-\d{2})? · [^*]+\*\*/.test(e) && /Causa:/.test(e) && /Arreglo:/.test(e);
     if (!ok) f.push(falta("formato", `fallo sin «**AAAA-MM-DD · síntoma**», «Causa:» o «Arreglo:»: ${e.slice(0, 60)}`));
   }
-  if (SECCIONES_POR_TIPO[tipo]?.includes("Registro de cambios")) {
+  if (secciones?.includes("Registro de cambios")) {
     const cambios = entradas(seccion(cuerpo, "Registro de cambios"));
     if (!cambios.length) f.push(falta("formato", "«Registro de cambios» sin ninguna entrada"));
     for (const e of cambios) if (!/^- \*\*\d{4}-\d{2}-\d{2}\*\* · \S/.test(e)) f.push(falta("formato", `cambio sin «**AAAA-MM-DD** · qué»: ${e.slice(0, 60)}`));
@@ -383,9 +384,12 @@ export function faltasDeSkill(skill, ctx) {
   const { meta, cuerpo, texto } = parsearSkill(skill.texto);
   const f = [...reglaFrontmatter(skill.nombre, meta)];
   const m = typeof meta?.metadata === "object" ? meta.metadata : {};
-  f.push(...reglaTipo(m, ctx), ...reglaDueno(skill.nombre, m, ctx), ...reglaComprobado(m, texto, ctx));
-  const tipo = m.tipo in SECCIONES_POR_TIPO ? m.tipo : "herramienta";
-  f.push(...reglaSecciones(cuerpo, tipo), ...reglaFormato(cuerpo, texto, tipo));
+  f.push(...reglaTipo(skill.nombre, m, ctx), ...reglaDueno(skill.nombre, m, ctx), ...reglaComprobado(m, texto, ctx));
+  // La pieza meta no sigue el molde de un tipo: su forma la fija la forja (nivel_0 de ops/forja.json).
+  const esMeta = nivelDe(m) === NIVEL_META;
+  const tipo = esMeta ? null : m.tipo in SECCIONES_POR_TIPO ? m.tipo : "servicio";
+  const secciones = esMeta ? ctx.seccionesMeta ?? null : seccionesPedidas(skill.nombre, tipo, ctx.excepcionesPlantilla ?? EXCEPCIONES_PLANTILLA);
+  f.push(...reglaSecciones(secciones, cuerpo), ...reglaFormato(cuerpo, texto, tipo, secciones));
   const lineas = texto.split("\n").length;
   if (lineas > MAX_LINEAS) f.push(falta("tamano", `${lineas} líneas; el tope es ${MAX_LINEAS}: mueve el detalle a referencias/`));
   for (const t of [texto, ...Object.values(skill.extra ?? {})]) for (const p of SECRETOS) if (p.test(t)) f.push(falta("secretos", String(p)));
@@ -393,6 +397,13 @@ export function faltasDeSkill(skill, ctx) {
   f.push(...faltasDeCasos(skill.casos, skill.nombre, ctx.skills));
   f.push(...sinExcepciones(faltasForja({ nombre: skill.nombre, cuerpo, tipo, casos: skill.casos, extra: skill.extra }), skill.nombre, ctx.excepcionesForja ?? EXCEPCIONES_FORJA));
   return f;
+}
+
+/** Exactamente una pieza meta (nivel 0) en la familia de las skills: [{ regla, detalle, skills }]. */
+export function faltasDeNiveles(skills) {
+  const metas = skills.filter((s) => nivelDe(parsearSkill(s.texto).meta?.metadata) === NIVEL_META).map((s) => s.nombre);
+  if (metas.length === 1) return [];
+  return [{ ...falta("tipo", `hay ${metas.length} piezas meta (nivel ${NIVEL_META}): tiene que haber exactamente una${metas.length ? ` (${metas.join(", ")})` : ""}`), skills: metas }];
 }
 
 /** Párrafos (bloques separados por una línea en blanco, o entradas de lista), normalizados. */
@@ -423,6 +434,7 @@ export function nivel1(raiz = RAIZ, hoy = new Date()) {
   const skills = ctx.skills.map((n) => cargarSkill(n, raiz));
   const fuera = Object.fromEntries(skills.map((s) => [s.nombre, faltasDeSkill(s, ctx)]));
   for (const c of faltasDeCopiado(skills)) for (const n of c.skills) fuera[n].push(c);
+  for (const c of faltasDeNiveles(skills)) for (const n of c.skills.length ? c.skills : ctx.skills) fuera[n].push(c);
   for (const c of faltasDeSolape(catalogoParaDisparo(raiz))) for (const n of c.skills) fuera[n].push(...sinExcepciones([c], n));
   return fuera;
 }
