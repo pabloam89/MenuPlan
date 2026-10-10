@@ -176,14 +176,35 @@ export function lineaDeContrapeso(c) {
  * La serie de antes de cada cifra, leída de informes anteriores (los comentarios del
  * issue «Flujo: informe semanal», del más antiguo al más reciente). Cada línea
  * `indicador: x valor: n` o `contrapeso: x valor: n` es un punto; un «-» (sin datos) no cuenta.
+ *
+ * Un punto por semana: si el texto trae la cabecera de cada informe («informe semanal
+ * (AAAA-MM-DD)»), los informes de la misma semana (lunes a domingo) cuentan una vez, con el
+ * último; así un run lanzado a mano no mete un punto de más. Sin cabeceras, cada línea es un punto.
  * → { id: [n, …] }
  */
 export function seriesDeHistorial(texto) {
+  const PUNTO = /^[ \t]*(?:indicador|contrapeso): ([a-z][a-z0-9_]*) valor: (\d+(?:\.\d+)?)(?=\s|$)/gm;
+  const CABECERA = /informe semanal \((\d{4}-\d{2}-\d{2})\)/g;
+  const t = String(texto ?? "");
+  const cabeceras = [...t.matchAll(CABECERA)];
+  const bloques = cabeceras.length
+    ? cabeceras.map((c, i) => ({ semana: lunesDe(c[1]), texto: t.slice(c.index, cabeceras[i + 1]?.index ?? t.length) }))
+    : [{ semana: null, texto: t }];
+  // El último informe de cada semana manda (los bloques llegan del más antiguo al más reciente).
+  const porSemana = new Map();
+  for (const b of bloques) porSemana.set(b.semana ?? `bloque-${porSemana.size}`, b);
   const series = {};
-  for (const m of String(texto ?? "").matchAll(/^[ \t]*(?:indicador|contrapeso): ([a-z][a-z0-9_]*) valor: (\d+(?:\.\d+)?)(?=\s|$)/gm)) {
-    (series[m[1]] ??= []).push(Number(m[2]));
+  for (const b of [...porSemana.values()].sort((x, y) => String(x.semana).localeCompare(String(y.semana)))) {
+    for (const m of b.texto.matchAll(PUNTO)) (series[m[1]] ??= []).push(Number(m[2]));
   }
   return series;
+}
+
+/** El lunes (AAAA-MM-DD) de la semana de una fecha AAAA-MM-DD. */
+function lunesDe(dia) {
+  const f = new Date(`${dia}T12:00:00Z`);
+  f.setUTCDate(f.getUTCDate() - ((f.getUTCDay() + 6) % 7));
+  return f.toISOString().slice(0, 10);
 }
 
 // ── Poda: piezas sin uso (solo con el registro local de la fábrica, #340) ─────

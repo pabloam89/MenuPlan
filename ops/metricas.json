@@ -1,15 +1,9 @@
 {
-  "$comentario": "Registro de métricas (#480, fondo #479): GQM de Basili (objetivo, pregunta, métrica) con quién la emite, quién la lee, su unidad, su umbral y la métrica que la vigila contra Goodhart. «lineas» son las formas de línea `campo: valor` que emiten los scripts vigilados («raices» y lo que importan), con el papel de cada clave; «informes», los que no son líneas; «excepciones», las líneas que aún no cumplen (solo baja). Texto libre solo en pregunta, muestra y nota; lo demás es vocabulario de scripts/lib/metricas.mjs, un id o una ruta. Lo vigila ops/metricas.test.js.",
+  "$comentario": "Registro de métricas (#480, fondo #479): GQM de Basili (objetivo, pregunta, métrica) con quién la emite, quién la lee, su unidad, su umbral y la métrica que la vigila contra Goodhart. «lineas» son las formas de línea `campo: valor` que emiten todos los scripts y hooks («raices», cerradas: scripts/*.mjs y .claude/hooks/*.mjs, y lo que importan), con el papel de cada clave; «informes», los que no son líneas; «excepciones», las líneas que aún no cumplen (solo baja). Texto libre solo en pregunta, muestra y nota; lo demás es vocabulario de scripts/lib/metricas.mjs, un id o una ruta. Lo vigila ops/metricas.test.js.",
   "version": 1,
   "raices": [
-    "scripts/cumplimiento.mjs",
-    "scripts/fabrica.mjs",
-    "scripts/skills-prueba.mjs",
-    "scripts/issues.mjs",
-    "scripts/higiene-skills.mjs",
-    "scripts/glosario.mjs",
-    "scripts/planos.mjs",
-    ".claude/hooks/eventos.mjs"
+    "scripts/*.mjs",
+    ".claude/hooks/*.mjs"
   ],
   "objetivos": {
     "flujo-cumplido": "Que cada fallo siga el flujo entero: fondo diagnosticado, encargos con juez, cierre con su lección y sin volver",
@@ -22,100 +16,273 @@
   "lineas": [
     {
       "firma": "indicador",
-      "emisores": ["scripts/lib/cumplimiento.mjs", "scripts/lib/saludSkills.mjs"],
-      "campos": { "indicador": "id_metrica", "valor": "metrica", "umbral": "umbral", "estado": "estado", "en": "lista", "nota": "texto" }
+      "emisores": [
+        "scripts/lib/cumplimiento.mjs",
+        "scripts/lib/saludSkills.mjs"
+      ],
+      "campos": {
+        "indicador": "id_metrica",
+        "valor": "metrica",
+        "umbral": "umbral",
+        "estado": "estado",
+        "en": "lista",
+        "nota": "texto"
+      }
     },
     {
       "firma": "contrapeso",
-      "emisores": ["scripts/lib/cumplimiento.mjs"],
-      "campos": { "contrapeso": "id_metrica", "valor": "metrica" }
+      "emisores": [
+        "scripts/lib/cumplimiento.mjs"
+      ],
+      "campos": {
+        "contrapeso": "id_metrica",
+        "valor": "metrica"
+      }
     },
     {
       "firma": "ruido metrica",
-      "emisores": ["scripts/lib/ruido.mjs"],
-      "campos": { "metrica": "id_metrica", "valor": "derivado", "puntos": "cobertura", "minimo": "umbral", "media": "derivado", "inferior": "derivado", "superior": "derivado", "veredicto": "estado" },
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }]
+      "emisores": [
+        "scripts/lib/ruido.mjs"
+      ],
+      "campos": {
+        "metrica": "id_metrica",
+        "valor": "derivado",
+        "puntos": "cobertura",
+        "minimo": "umbral",
+        "media": "derivado",
+        "inferior": "derivado",
+        "superior": "derivado",
+        "veredicto": "estado"
+      },
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ]
     },
     {
       "firma": "poda skills_sin_uso_semana",
-      "emisores": ["scripts/lib/cumplimiento.mjs"],
-      "campos": { "skills_sin_uso_semana": "metrica", "registro_dias": "cobertura" }
+      "emisores": [
+        "scripts/lib/cumplimiento.mjs"
+      ],
+      "campos": {
+        "skills_sin_uso_semana": "metrica",
+        "registro_dias": "cobertura"
+      }
+    },
+    {
+      "firma": "poda candidatas",
+      "emisores": [
+        "scripts/lib/cumplimiento.mjs"
+      ],
+      "campos": {
+        "candidatas": "metrica",
+        "skills": "lista",
+        "motivo": "texto"
+      }
     },
     {
       "firma": "criterios skill",
-      "emisores": ["scripts/lib/juiciosSkills.mjs"],
-      "campos": { "skill": "id", "criterios": "metrica", "vigilados": "metrica", "de_juicio": "metrica", "calculados": "metrica", "resueltos": "metrica", "a_mano": "metrica", "juzgados": "metrica", "pendientes": "metrica", "cumple": "metrica", "no_cumple": "metrica", "no_aplica": "metrica", "juicio": "metrica" }
+      "emisores": [
+        "scripts/lib/juiciosSkills.mjs"
+      ],
+      "campos": {
+        "skill": "id",
+        "criterios": "metrica",
+        "vigilados": "metrica",
+        "de_juicio": "metrica",
+        "calculados": "metrica",
+        "resueltos": "metrica",
+        "a_mano": "metrica",
+        "juzgados": "metrica",
+        "pendientes": "metrica",
+        "cumple": "metrica",
+        "no_cumple": "metrica",
+        "no_aplica": "metrica",
+        "juicio": "metrica"
+      }
     },
     {
       "firma": "Criterios: <x> skills, <x> criterios aplicados",
-      "emisores": ["scripts/lib/juiciosSkills.mjs"],
-      "campos": { "aplicados": "derivado", "juicio": "derivado", "motivo": "derivado" },
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }]
+      "emisores": [
+        "scripts/lib/juiciosSkills.mjs"
+      ],
+      "campos": {
+        "aplicados": "derivado",
+        "juicio": "derivado",
+        "motivo": "derivado"
+      },
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ]
     },
     {
       "firma": "<x>: <x> criterio",
-      "emisores": ["scripts/lib/forja.mjs"],
-      "campos": { "criterio": "id", "estado": "estado", "nota": "texto" },
-      "lectores": [{ "tipo": "script", "ref": "scripts/lib/forja.mjs", "menciona": "export function leerFicha" }]
+      "emisores": [
+        "scripts/lib/forja.mjs"
+      ],
+      "campos": {
+        "criterio": "id",
+        "estado": "estado",
+        "nota": "texto"
+      },
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/forja.mjs",
+          "menciona": "export function leerFicha"
+        }
+      ]
     },
     {
       "firma": "higiene skill",
-      "emisores": ["scripts/cumplimiento.mjs", "scripts/lib/higieneSkills.mjs"],
-      "campos": { "skill": "id", "faltas": "metrica", "avisos": "metrica", "solape": "metrica", "con": "id" }
+      "emisores": [
+        "scripts/cumplimiento.mjs",
+        "scripts/lib/higieneSkills.mjs"
+      ],
+      "campos": {
+        "skill": "id",
+        "faltas": "metrica",
+        "avisos": "metrica",
+        "solape": "metrica",
+        "con": "id"
+      }
     },
     {
       "firma": "skills-prueba skill",
-      "emisores": ["scripts/skills-prueba.mjs"],
-      "campos": { "skill": "id", "disparo": "metrica", "comprobaciones": "metrica", "sin_correr": "metrica", "coste_usd": "metrica", "resultado": "estado" }
+      "emisores": [
+        "scripts/skills-prueba.mjs"
+      ],
+      "campos": {
+        "skill": "id",
+        "disparo": "metrica",
+        "comprobaciones": "metrica",
+        "sin_correr": "metrica",
+        "coste_usd": "metrica",
+        "resultado": "estado"
+      }
     },
     {
       "firma": "glosario excepciones",
-      "emisores": ["scripts/lib/glosarioCandidatos.mjs"],
+      "emisores": [
+        "scripts/lib/glosarioCandidatos.mjs"
+      ],
       "dinamica": true,
-      "campos": { "excepciones": "metrica", "por_bajar": "metrica", "candidatos_palabras": "metrica", "candidatos_pares": "metrica", "juzgados": "metrica", "termino_nuevo_sin_termino": "metrica", "reglas_propuestas": "metrica" }
+      "campos": {
+        "excepciones": "metrica",
+        "por_bajar": "metrica",
+        "candidatos_palabras": "metrica",
+        "candidatos_pares": "metrica",
+        "juzgados": "metrica",
+        "termino_nuevo_sin_termino": "metrica",
+        "reglas_propuestas": "metrica"
+      }
     },
     {
       "firma": "glosario candidatos palabras",
-      "emisores": ["scripts/glosario.mjs"],
-      "campos": { "palabras": "metrica", "pares": "metrica", "a_juzgar": "metrica", "juzgados": "metrica", "termino_nuevo_sin_termino": "metrica", "reglas_propuestas": "metrica", "excepciones": "metrica", "excepciones_por_bajar": "metrica" }
+      "emisores": [
+        "scripts/glosario.mjs"
+      ],
+      "campos": {
+        "palabras": "metrica",
+        "pares": "metrica",
+        "a_juzgar": "metrica",
+        "juzgados": "metrica",
+        "termino_nuevo_sin_termino": "metrica",
+        "reglas_propuestas": "metrica",
+        "excepciones": "metrica",
+        "excepciones_por_bajar": "metrica"
+      }
     },
     {
       "firma": "glosario medida",
-      "emisores": ["scripts/glosario.mjs"],
-      "campos": { "medida": "metrica", "excepciones_admitidas": "umbral", "nuevas": "metrica", "bajadas": "metrica" }
+      "emisores": [
+        "scripts/glosario.mjs"
+      ],
+      "campos": {
+        "medida": "metrica",
+        "excepciones_admitidas": "umbral",
+        "nuevas": "metrica",
+        "bajadas": "metrica"
+      }
     },
     {
       "firma": "candidato",
-      "emisores": ["scripts/lib/glosarioCandidatos.mjs"],
-      "campos": { "candidato": "id", "apariciones": "metrica", "ficheros": "metrica" }
+      "emisores": [
+        "scripts/lib/glosarioCandidatos.mjs"
+      ],
+      "campos": {
+        "candidato": "id",
+        "apariciones": "metrica",
+        "ficheros": "metrica"
+      }
     },
     {
       "firma": "No cuadran",
-      "emisores": ["scripts/planos.mjs"],
-      "campos": { "cuadran": "metrica", "caducados": "metrica" }
+      "emisores": [
+        "scripts/planos.mjs"
+      ],
+      "campos": {
+        "cuadran": "metrica",
+        "caducados": "metrica"
+      }
     },
     {
       "firma": "sesiones medidas",
-      "emisores": ["scripts/lib/fabrica.mjs"],
-      "campos": { "medidas": "metrica", "medidos": "metrica" }
+      "emisores": [
+        "scripts/lib/fabrica.mjs"
+      ],
+      "campos": {
+        "medidas": "metrica",
+        "medidos": "metrica"
+      }
     },
     {
       "firma": "env-boveda clave",
-      "emisores": ["scripts/lib/env.mjs"],
-      "campos": { "clave": "id", "de": "id", "a": "id", "motivo": "estado" },
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/skills/1password/SKILL.md", "menciona": "env-boveda" }]
+      "emisores": [
+        "scripts/lib/env.mjs"
+      ],
+      "campos": {
+        "clave": "id",
+        "de": "id",
+        "a": "id",
+        "motivo": "estado"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/1password/SKILL.md",
+          "menciona": "env-boveda"
+        }
+      ]
     }
   ],
   "informes": {
     "planos-semanal": {
       "ref": ".github/workflows/planos-semanal.yml",
       "emisor": "scripts/planos.mjs",
-      "columnas": { "nivel": "metrica", "techo": "metrica", "guardado": "derivado", "lanzar": "umbral", "escalar": "umbral" }
+      "columnas": {
+        "nivel": "metrica",
+        "techo": "metrica",
+        "guardado": "derivado",
+        "lanzar": "umbral",
+        "escalar": "umbral"
+      }
     },
     "fabrica": {
       "ref": ".claude/commands/revision-issues.md",
       "emisor": "scripts/lib/fabrica.mjs",
-      "columnas": { "min |": "metrica", "tokens |": "metrica", "USD": "metrica" }
+      "columnas": {
+        "min |": "metrica",
+        "tokens |": "metrica",
+        "USD": "metrica"
+      }
     }
   },
   "metricas": [
@@ -124,8 +291,18 @@
       "objetivo": "flujo-cumplido",
       "pregunta": "¿Cuántos fondos abiertos con encargos o ya diagnosticados no dicen su mecanismo y su causa de escape?",
       "emisor": "scripts/lib/cumplimiento.mjs",
-      "sale_en": [{ "indicador": "indicador" }],
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }],
+      "sale_en": [
+        {
+          "indicador": "indicador"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": 0,
       "vigilante": "reabiertos_clase_mal_definida",
@@ -136,8 +313,18 @@
       "objetivo": "flujo-cumplido",
       "pregunta": "¿Cuántos encargos abiertos de un fondo con plan no tienen juez, o lo tienen igual que el constructor?",
       "emisor": "scripts/lib/cumplimiento.mjs",
-      "sale_en": [{ "indicador": "indicador" }],
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }],
+      "sale_en": [
+        {
+          "indicador": "indicador"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": 0,
       "vigilante": "reabiertos_clase_mal_definida",
@@ -148,8 +335,18 @@
       "objetivo": "flujo-cumplido",
       "pregunta": "¿Cuántos fondos cerrados como arreglados no dejaron su aprendizaje en un test, una skill o un catálogo?",
       "emisor": "scripts/lib/cumplimiento.mjs",
-      "sale_en": [{ "indicador": "indicador" }],
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }],
+      "sale_en": [
+        {
+          "indicador": "indicador"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": 0,
       "vigilante": "fondos_abiertos",
@@ -160,8 +357,18 @@
       "objetivo": "flujo-cumplido",
       "pregunta": "¿Cuántos fondos tienen un caso de no aguantó corto en las últimas cuatro semanas, porque el arreglo tapó casos y no la clase?",
       "emisor": "scripts/lib/cumplimiento.mjs",
-      "sale_en": [{ "indicador": "indicador" }],
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }],
+      "sale_en": [
+        {
+          "indicador": "indicador"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": 0,
       "vigilante": "casos_puntuales_recientes",
@@ -172,8 +379,18 @@
       "objetivo": "fabrica-a-presupuesto",
       "pregunta": "¿Cuántos fondos abiertos llevan más rondas de constructor y juez que su tope del presupuesto?",
       "emisor": "scripts/lib/cumplimiento.mjs",
-      "sale_en": [{ "indicador": "indicador" }],
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }],
+      "sale_en": [
+        {
+          "indicador": "indicador"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": 0,
       "vigilante": "fabrica_minutos_por_fondo",
@@ -184,8 +401,18 @@
       "objetivo": "flujo-cumplido",
       "pregunta": "¿Cuántos fondos de la casa siguen abiertos, para ver si se dejan sin cerrar en vez de cerrarlos con su lección?",
       "emisor": "scripts/lib/cumplimiento.mjs",
-      "sale_en": [{ "indicador": "contrapeso" }],
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }],
+      "sale_en": [
+        {
+          "indicador": "contrapeso"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "cerrados_sin_aprendizaje"
@@ -195,8 +422,18 @@
       "objetivo": "flujo-cumplido",
       "pregunta": "¿Cuántos casos se apuntaron como puntuales en las últimas cuatro semanas, para ver si un no aguantó se esconde como puntual?",
       "emisor": "scripts/lib/cumplimiento.mjs",
-      "sale_en": [{ "indicador": "contrapeso" }],
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }],
+      "sale_en": [
+        {
+          "indicador": "contrapeso"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "reabiertos_clase_mal_definida"
@@ -206,8 +443,18 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántas skills tienen alguna falta de higiene que el nivel 1 negaría sin su lista de excepciones?",
       "emisor": "scripts/lib/saludSkills.mjs",
-      "sale_en": [{ "indicador": "indicador" }],
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }],
+      "sale_en": [
+        {
+          "indicador": "indicador"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": 0,
       "vigilante": "higiene_avisos",
@@ -218,8 +465,18 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántas skills tienen su fecha de comprobación pasada de 90 días o sin poner?",
       "emisor": "scripts/lib/saludSkills.mjs",
-      "sale_en": [{ "indicador": "indicador" }],
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }],
+      "sale_en": [
+        {
+          "indicador": "indicador"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": 0,
       "vigilante": "skills_medida_desactualizada",
@@ -230,8 +487,18 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántas skills tienen su última pasada de pago hecha con un texto o unos casos distintos de los de hoy?",
       "emisor": "scripts/lib/saludSkills.mjs",
-      "sale_en": [{ "indicador": "indicador" }],
-      "lectores": [{ "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" }],
+      "sale_en": [
+        {
+          "indicador": "indicador"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": 0,
       "vigilante": "skills_prueba_comprobaciones",
@@ -242,10 +509,25 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántas faltas de higiene tiene cada skill que toca un PR o que se revisa?",
       "emisor": "scripts/lib/higieneSkills.mjs",
-      "sale_en": [{ "linea": "higiene skill", "campos": ["faltas"] }],
+      "sale_en": [
+        {
+          "linea": "higiene skill",
+          "campos": [
+            "faltas"
+          ]
+        }
+      ],
       "lectores": [
-        { "tipo": "script", "ref": ".github/workflows/tests.yml", "menciona": "cumplimiento.mjs --skills-pr" },
-        { "tipo": "rutina", "ref": ".claude/skills/higiene-de-skills/SKILL.md", "menciona": "higiene skill:" }
+        {
+          "tipo": "script",
+          "ref": ".github/workflows/tests.yml",
+          "menciona": "cumplimiento.mjs --skills-pr"
+        },
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-skills/SKILL.md",
+          "menciona": "higiene skill:"
+        }
       ],
       "unidad": "cuenta",
       "umbral": 0,
@@ -257,8 +539,21 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántos avisos de higiene tiene cada skill, para ver si las faltas bajan pasándose a avisos?",
       "emisor": "scripts/lib/higieneSkills.mjs",
-      "sale_en": [{ "linea": "higiene skill", "campos": ["avisos"] }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/skills/higiene-de-skills/SKILL.md", "menciona": "higiene skill:" }],
+      "sale_en": [
+        {
+          "linea": "higiene skill",
+          "campos": [
+            "avisos"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-skills/SKILL.md",
+          "menciona": "higiene skill:"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "higiene_faltas"
@@ -268,8 +563,21 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuánto se parece la descripción de una skill a la de su vecina más cercana?",
       "emisor": "scripts/lib/higieneSkills.mjs",
-      "sale_en": [{ "linea": "higiene skill", "campos": ["solape"] }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/skills/higiene-de-skills/SKILL.md", "menciona": "solape" }],
+      "sale_en": [
+        {
+          "linea": "higiene skill",
+          "campos": [
+            "solape"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-skills/SKILL.md",
+          "menciona": "solape"
+        }
+      ],
       "unidad": "ratio",
       "umbral": null,
       "vigilante": "skills_prueba_disparo"
@@ -279,10 +587,32 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántos criterios de la forja de cada skill vigila un control y cuántos quedan a juicio, juzgados o pendientes?",
       "emisor": "scripts/lib/juiciosSkills.mjs",
-      "sale_en": [{ "linea": "criterios skill", "campos": ["criterios", "vigilados", "de_juicio", "calculados", "resueltos", "a_mano", "juzgados", "pendientes"] }],
+      "sale_en": [
+        {
+          "linea": "criterios skill",
+          "campos": [
+            "criterios",
+            "vigilados",
+            "de_juicio",
+            "calculados",
+            "resueltos",
+            "a_mano",
+            "juzgados",
+            "pendientes"
+          ]
+        }
+      ],
       "lectores": [
-        { "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" },
-        { "tipo": "rutina", "ref": ".claude/skills/higiene-de-skills/SKILL.md", "menciona": "criterios skill:" }
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        },
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-skills/SKILL.md",
+          "menciona": "criterios skill:"
+        }
       ],
       "unidad": "cuenta",
       "umbral": null,
@@ -293,10 +623,28 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántos criterios de cada skill cumple, no cumple, no le aplican o esperan juicio?",
       "emisor": "scripts/lib/juiciosSkills.mjs",
-      "sale_en": [{ "linea": "criterios skill", "campos": ["cumple", "no_cumple", "no_aplica", "juicio"] }],
+      "sale_en": [
+        {
+          "linea": "criterios skill",
+          "campos": [
+            "cumple",
+            "no_cumple",
+            "no_aplica",
+            "juicio"
+          ]
+        }
+      ],
       "lectores": [
-        { "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" },
-        { "tipo": "rutina", "ref": ".claude/skills/higiene-de-skills/SKILL.md", "menciona": "criterios skill:" }
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        },
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-skills/SKILL.md",
+          "menciona": "criterios skill:"
+        }
       ],
       "unidad": "cuenta",
       "umbral": null,
@@ -307,10 +655,25 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿En cuántos casos de una skill elige el modelo esa skill, y no otra, por su descripción?",
       "emisor": "scripts/skills-prueba.mjs",
-      "sale_en": [{ "linea": "skills-prueba skill", "campos": ["disparo"] }],
+      "sale_en": [
+        {
+          "linea": "skills-prueba skill",
+          "campos": [
+            "disparo"
+          ]
+        }
+      ],
       "lectores": [
-        { "tipo": "script", "ref": "scripts/lib/saludSkills.mjs", "menciona": "disparo_ok" },
-        { "tipo": "rutina", "ref": ".claude/skills/forja-de-skills/SKILL.md", "menciona": "npm run skills-prueba" }
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/saludSkills.mjs",
+          "menciona": "disparo_ok"
+        },
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/forja-de-skills/SKILL.md",
+          "menciona": "npm run skills-prueba"
+        }
       ],
       "unidad": "proporcion",
       "umbral": null,
@@ -321,10 +684,25 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántas comprobaciones de los casos cumple la respuesta que da el modelo con la skill cargada?",
       "emisor": "scripts/skills-prueba.mjs",
-      "sale_en": [{ "linea": "skills-prueba skill", "campos": ["comprobaciones"] }],
+      "sale_en": [
+        {
+          "linea": "skills-prueba skill",
+          "campos": [
+            "comprobaciones"
+          ]
+        }
+      ],
       "lectores": [
-        { "tipo": "script", "ref": "scripts/lib/saludSkills.mjs", "menciona": "comprobaciones_ok" },
-        { "tipo": "rutina", "ref": ".claude/skills/forja-de-skills/SKILL.md", "menciona": "npm run skills-prueba" }
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/saludSkills.mjs",
+          "menciona": "comprobaciones_ok"
+        },
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/forja-de-skills/SKILL.md",
+          "menciona": "npm run skills-prueba"
+        }
       ],
       "unidad": "proporcion",
       "umbral": null,
@@ -335,8 +713,21 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántos casos de una pasada se quedaron sin correr por el tope o por un fallo, y no cuentan en la cifra?",
       "emisor": "scripts/skills-prueba.mjs",
-      "sale_en": [{ "linea": "skills-prueba skill", "campos": ["sin_correr"] }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/skills/forja-de-skills/SKILL.md", "menciona": "npm run skills-prueba" }],
+      "sale_en": [
+        {
+          "linea": "skills-prueba skill",
+          "campos": [
+            "sin_correr"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/forja-de-skills/SKILL.md",
+          "menciona": "npm run skills-prueba"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "skills_prueba_comprobaciones"
@@ -346,8 +737,21 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántos dólares costó medir una skill con modelos de pago?",
       "emisor": "scripts/skills-prueba.mjs",
-      "sale_en": [{ "linea": "skills-prueba skill", "campos": ["coste_usd"] }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/skills/forja-de-skills/SKILL.md", "menciona": "cuesta tokens" }],
+      "sale_en": [
+        {
+          "linea": "skills-prueba skill",
+          "campos": [
+            "coste_usd"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/forja-de-skills/SKILL.md",
+          "menciona": "cuesta tokens"
+        }
+      ],
       "unidad": "usd",
       "umbral": null,
       "vigilante": "skills_prueba_sin_correr"
@@ -357,21 +761,74 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántas skills no se abrieron ninguna vez en la última semana?",
       "emisor": "scripts/lib/cumplimiento.mjs",
-      "sale_en": [{ "linea": "poda skills_sin_uso_semana", "campos": ["skills_sin_uso_semana"] }],
-      "lectores": [{ "tipo": "script", "ref": "scripts/lib/planos.mjs", "menciona": "skills_sin_uso_semana" }],
+      "sale_en": [
+        {
+          "linea": "poda skills_sin_uso_semana",
+          "campos": [
+            "skills_sin_uso_semana"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/planos.mjs",
+          "menciona": "skills_sin_uso_semana"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "skill_cargada"
+    },
+    {
+      "id": "skills_candidatas_a_podar",
+      "objetivo": "skills-utiles",
+      "pregunta": "¿Cuántas skills no se abrieron en 90 días, con registro suficiente para proponer podarlas?",
+      "emisor": "scripts/lib/cumplimiento.mjs",
+      "sale_en": [
+        {
+          "linea": "poda candidatas",
+          "campos": [
+            "candidatas"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/forja-de-skills/SKILL.md",
+          "menciona": "poda candidatas:"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "skills_sin_uso_semana"
     },
     {
       "id": "glosario_excepciones",
       "objetivo": "vocabulario-estable",
       "pregunta": "¿Cuántos usos de un sinónimo prohibido se admiten todavía como excepción, y cuántos ya se pueden bajar?",
       "emisor": "scripts/lib/glosarioCandidatos.mjs",
-      "sale_en": [{ "linea": "glosario excepciones", "campos": ["excepciones", "por_bajar"] }],
+      "sale_en": [
+        {
+          "linea": "glosario excepciones",
+          "campos": [
+            "excepciones",
+            "por_bajar"
+          ]
+        }
+      ],
       "lectores": [
-        { "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" },
-        { "tipo": "rutina", "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md", "menciona": "npm run glosario -- --medir" }
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        },
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md",
+          "menciona": "npm run glosario -- --medir"
+        }
       ],
       "unidad": "cuenta",
       "umbral": null,
@@ -382,10 +839,29 @@
       "objetivo": "vocabulario-estable",
       "pregunta": "¿Cuántas palabras y pares de proceso se repiten sin estar en el glosario, y cuántos juicios suyos esperan un término o una regla?",
       "emisor": "scripts/lib/glosarioCandidatos.mjs",
-      "sale_en": [{ "linea": "glosario excepciones", "campos": ["candidatos_palabras", "candidatos_pares", "juzgados", "termino_nuevo_sin_termino", "reglas_propuestas"] }],
+      "sale_en": [
+        {
+          "linea": "glosario excepciones",
+          "campos": [
+            "candidatos_palabras",
+            "candidatos_pares",
+            "juzgados",
+            "termino_nuevo_sin_termino",
+            "reglas_propuestas"
+          ]
+        }
+      ],
       "lectores": [
-        { "tipo": "informe", "ref": ".github/workflows/flujo-semanal.yml", "menciona": "scripts/cumplimiento.mjs --informe" },
-        { "tipo": "rutina", "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md", "menciona": "npm run glosario -- --candidatos" }
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/flujo-semanal.yml",
+          "menciona": "scripts/cumplimiento.mjs --informe"
+        },
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md",
+          "menciona": "npm run glosario -- --candidatos"
+        }
       ],
       "unidad": "cuenta",
       "umbral": null,
@@ -396,8 +872,28 @@
       "objetivo": "vocabulario-estable",
       "pregunta": "¿Cuántos candidatos a término quedan por juzgar en la revisión del glosario, y cuántas excepciones hay al lado?",
       "emisor": "scripts/glosario.mjs",
-      "sale_en": [{ "linea": "glosario candidatos palabras", "campos": ["palabras", "pares", "a_juzgar", "juzgados", "termino_nuevo_sin_termino", "reglas_propuestas", "excepciones", "excepciones_por_bajar"] }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md", "menciona": "npm run glosario -- --candidatos" }],
+      "sale_en": [
+        {
+          "linea": "glosario candidatos palabras",
+          "campos": [
+            "palabras",
+            "pares",
+            "a_juzgar",
+            "juzgados",
+            "termino_nuevo_sin_termino",
+            "reglas_propuestas",
+            "excepciones",
+            "excepciones_por_bajar"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md",
+          "menciona": "npm run glosario -- --candidatos"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "glosario_medida"
@@ -407,8 +903,23 @@
       "objetivo": "vocabulario-estable",
       "pregunta": "¿Cuántos sinónimos prohibidos hay hoy en el repo, cuántos son nuevos respecto a lo admitido y cuántos han bajado?",
       "emisor": "scripts/glosario.mjs",
-      "sale_en": [{ "linea": "glosario medida", "campos": ["medida", "nuevas", "bajadas"] }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md", "menciona": "npm run glosario -- --medir" }],
+      "sale_en": [
+        {
+          "linea": "glosario medida",
+          "campos": [
+            "medida",
+            "nuevas",
+            "bajadas"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md",
+          "menciona": "npm run glosario -- --medir"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "glosario_candidatos_revision"
@@ -418,8 +929,22 @@
       "objetivo": "vocabulario-estable",
       "pregunta": "¿Cuántas veces y en cuántos ficheros aparece cada palabra candidata a término del glosario?",
       "emisor": "scripts/lib/glosarioCandidatos.mjs",
-      "sale_en": [{ "linea": "candidato", "campos": ["apariciones", "ficheros"] }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md", "menciona": "candidato:" }],
+      "sale_en": [
+        {
+          "linea": "candidato",
+          "campos": [
+            "apariciones",
+            "ficheros"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/higiene-de-skills/referencias/glosario.md",
+          "menciona": "candidato:"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "glosario_candidatos_revision"
@@ -429,10 +954,25 @@
       "objetivo": "planos-medidos",
       "pregunta": "¿Cuántos planos tienen un nivel guardado que no cuadra con el que se mide hoy?",
       "emisor": "scripts/planos.mjs",
-      "sale_en": [{ "linea": "No cuadran", "campos": ["cuadran"] }],
+      "sale_en": [
+        {
+          "linea": "No cuadran",
+          "campos": [
+            "cuadran"
+          ]
+        }
+      ],
       "lectores": [
-        { "tipo": "informe", "ref": ".github/workflows/planos-semanal.yml", "menciona": "scripts/planos.mjs --red" },
-        { "tipo": "rutina", "ref": ".claude/commands/revision-issues.md", "menciona": "npm run planos -- --red" }
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/planos-semanal.yml",
+          "menciona": "scripts/planos.mjs --red"
+        },
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "npm run planos -- --red"
+        }
       ],
       "unidad": "cuenta",
       "umbral": 0,
@@ -444,10 +984,25 @@
       "objetivo": "planos-medidos",
       "pregunta": "¿Cuántos juicios de los planos tienen más días que su caducidad y se siguen dando por buenos?",
       "emisor": "scripts/planos.mjs",
-      "sale_en": [{ "linea": "No cuadran", "campos": ["caducados"] }],
+      "sale_en": [
+        {
+          "linea": "No cuadran",
+          "campos": [
+            "caducados"
+          ]
+        }
+      ],
       "lectores": [
-        { "tipo": "informe", "ref": ".github/workflows/planos-semanal.yml", "menciona": "scripts/planos.mjs --red" },
-        { "tipo": "rutina", "ref": ".claude/commands/revision-issues.md", "menciona": "npm run planos -- --red" }
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/planos-semanal.yml",
+          "menciona": "scripts/planos.mjs --red"
+        },
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "npm run planos -- --red"
+        }
       ],
       "unidad": "cuenta",
       "umbral": 0,
@@ -459,10 +1014,23 @@
       "objetivo": "planos-medidos",
       "pregunta": "¿Qué nivel alcanza cada plano con solo lo que está comprobado?",
       "emisor": "scripts/planos.mjs",
-      "sale_en": [{ "informe": "planos-semanal", "columna": "nivel" }],
+      "sale_en": [
+        {
+          "informe": "planos-semanal",
+          "columna": "nivel"
+        }
+      ],
       "lectores": [
-        { "tipo": "informe", "ref": ".github/workflows/planos-semanal.yml", "menciona": "scripts/planos.mjs --red" },
-        { "tipo": "rutina", "ref": ".claude/commands/revision-issues.md", "menciona": "npm run planos -- --red" }
+        {
+          "tipo": "informe",
+          "ref": ".github/workflows/planos-semanal.yml",
+          "menciona": "scripts/planos.mjs --red"
+        },
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "npm run planos -- --red"
+        }
       ],
       "unidad": "nivel",
       "umbral": null,
@@ -473,8 +1041,19 @@
       "objetivo": "planos-medidos",
       "pregunta": "¿Qué nivel alcanzaría cada plano si lo que no se ha podido comprobar cumpliera?",
       "emisor": "scripts/planos.mjs",
-      "sale_en": [{ "informe": "planos-semanal", "columna": "techo" }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/commands/revision-issues.md", "menciona": "npm run planos -- --red" }],
+      "sale_en": [
+        {
+          "informe": "planos-semanal",
+          "columna": "techo"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "npm run planos -- --red"
+        }
+      ],
       "unidad": "nivel",
       "umbral": null,
       "vigilante": "plano_nivel"
@@ -484,8 +1063,22 @@
       "objetivo": "fabrica-a-presupuesto",
       "pregunta": "¿Cuántas sesiones, fondos y encargos tienen medidas en las transcripciones, y por tanto cuánto respaldan las cifras de coste?",
       "emisor": "scripts/lib/fabrica.mjs",
-      "sale_en": [{ "linea": "sesiones medidas", "campos": ["medidas", "medidos"] }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/commands/revision-issues.md", "menciona": "npm run fabrica -- --recalibrar" }],
+      "sale_en": [
+        {
+          "linea": "sesiones medidas",
+          "campos": [
+            "medidas",
+            "medidos"
+          ]
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "npm run fabrica -- --recalibrar"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "fabrica_minutos_por_fondo"
@@ -495,8 +1088,19 @@
       "objetivo": "fabrica-a-presupuesto",
       "pregunta": "¿Cuántos minutos activos sumaron las sesiones de los encargos de cada fondo frente a su presupuesto?",
       "emisor": "scripts/lib/fabrica.mjs",
-      "sale_en": [{ "informe": "fabrica", "columna": "min |" }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/commands/revision-issues.md", "menciona": "npm run fabrica -- --recalibrar" }],
+      "sale_en": [
+        {
+          "informe": "fabrica",
+          "columna": "min |"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "npm run fabrica -- --recalibrar"
+        }
+      ],
       "unidad": "minutos",
       "umbral": null,
       "vigilante": "fabrica_coste_por_fondo"
@@ -506,8 +1110,19 @@
       "objetivo": "fabrica-a-presupuesto",
       "pregunta": "¿Cuántos tokens gastaron los encargos de cada fondo?",
       "emisor": "scripts/lib/fabrica.mjs",
-      "sale_en": [{ "informe": "fabrica", "columna": "tokens |" }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/commands/revision-issues.md", "menciona": "npm run fabrica -- --recalibrar" }],
+      "sale_en": [
+        {
+          "informe": "fabrica",
+          "columna": "tokens |"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "npm run fabrica -- --recalibrar"
+        }
+      ],
       "unidad": "tokens",
       "umbral": null,
       "vigilante": "fabrica_minutos_por_fondo"
@@ -517,8 +1132,19 @@
       "objetivo": "fabrica-a-presupuesto",
       "pregunta": "¿Cuántos dólares estimados costaron los encargos de cada fondo a precio de API?",
       "emisor": "scripts/lib/fabrica.mjs",
-      "sale_en": [{ "informe": "fabrica", "columna": "USD" }],
-      "lectores": [{ "tipo": "rutina", "ref": ".claude/commands/revision-issues.md", "menciona": "npm run fabrica -- --recalibrar" }],
+      "sale_en": [
+        {
+          "informe": "fabrica",
+          "columna": "USD"
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/commands/revision-issues.md",
+          "menciona": "npm run fabrica -- --recalibrar"
+        }
+      ],
       "unidad": "usd",
       "umbral": null,
       "vigilante": "fabrica_tokens_por_fondo"
@@ -528,10 +1154,22 @@
       "objetivo": "skills-utiles",
       "pregunta": "¿Cuántas veces se abrió cada skill, según el registro local de los hooks?",
       "emisor": ".claude/hooks/skill-abierta.mjs",
-      "sale_en": [{ "evento": true }],
+      "sale_en": [
+        {
+          "evento": true
+        }
+      ],
       "lectores": [
-        { "tipo": "script", "ref": "scripts/lib/cumplimiento.mjs", "menciona": "skill_cargada" },
-        { "tipo": "script", "ref": "scripts/lib/fabrica.mjs", "menciona": "por_evento" }
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/cumplimiento.mjs",
+          "menciona": "skill_cargada"
+        },
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/fabrica.mjs",
+          "menciona": "por_evento"
+        }
       ],
       "unidad": "cuenta",
       "umbral": null,
@@ -542,8 +1180,18 @@
       "objetivo": "flujo-cumplido",
       "pregunta": "¿Cuántas veces se lanzó cada agente, según el registro local de los hooks?",
       "emisor": ".claude/hooks/skill-abierta.mjs",
-      "sale_en": [{ "evento": true }],
-      "lectores": [{ "tipo": "script", "ref": "scripts/lib/fabrica.mjs", "menciona": "por_evento" }],
+      "sale_en": [
+        {
+          "evento": true
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/fabrica.mjs",
+          "menciona": "por_evento"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "encargos_sin_juez"
@@ -553,8 +1201,18 @@
       "objetivo": "guardia-proporcionada",
       "pregunta": "¿Cuántas veces negó la guardia una orden, y por qué norma?",
       "emisor": ".claude/hooks/guardia.mjs",
-      "sale_en": [{ "evento": true }],
-      "lectores": [{ "tipo": "script", "ref": "scripts/lib/fabrica.mjs", "menciona": "por_evento" }],
+      "sale_en": [
+        {
+          "evento": true
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/fabrica.mjs",
+          "menciona": "por_evento"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "permiso_pedido"
@@ -564,8 +1222,18 @@
       "objetivo": "guardia-proporcionada",
       "pregunta": "¿Cuántas veces pidió la guardia permiso en vez de dejar pasar o negar, y por qué norma?",
       "emisor": ".claude/hooks/guardia.mjs",
-      "sale_en": [{ "evento": true }],
-      "lectores": [{ "tipo": "script", "ref": "scripts/lib/fabrica.mjs", "menciona": "por_evento" }],
+      "sale_en": [
+        {
+          "evento": true
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/fabrica.mjs",
+          "menciona": "por_evento"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "bloqueo_guardia"
@@ -575,20 +1243,407 @@
       "objetivo": "flujo-cumplido",
       "pregunta": "¿Cuántas veces se frenó a una sesión por afirmar el estado de un issue o un PR sin haber leído la fuente?",
       "emisor": ".claude/hooks/pendientes.mjs",
-      "sale_en": [{ "evento": true }],
-      "lectores": [{ "tipo": "script", "ref": "scripts/lib/fabrica.mjs", "menciona": "por_evento" }],
+      "sale_en": [
+        {
+          "evento": true
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/fabrica.mjs",
+          "menciona": "por_evento"
+        }
+      ],
       "unidad": "cuenta",
       "umbral": null,
       "vigilante": "bloqueo_guardia"
     }
   ],
   "excepciones": [
-    { "emisor": "scripts/skills-prueba.mjs", "firma": "tope_evals script: skills-prueba motivo", "causa": "sin_lector", "nota": "Dice por qué una pasada paró en el tope; ningún script ni rutina la lee" },
-    { "emisor": "scripts/skills-prueba.mjs", "firma": "skills-prueba total coste_usd", "causa": "sin_lector", "nota": "El gasto total de la pasada; el tope mensual lo lleva evals.mjs por su cuenta y nadie lee esta línea" },
-    { "emisor": "scripts/glosario.mjs", "firma": "vocabularios vigilados", "causa": "sin_lector", "nota": "Cuenta los vocabularios anclados; el test de vocabularios-vida decide y nadie lee la cifra" },
-    { "emisor": "scripts/glosario.mjs", "firma": "glosario terminos", "causa": "sin_lector", "nota": "Resumen del glosario al listarlo entero; ninguna rutina lo pide" },
-    { "emisor": "scripts/glosario.mjs", "firma": "regla propuesta", "causa": "no_es_cifra", "nota": "Es el texto de una regla que proponen varios juicios, con la lista de juicios; no se cuenta" },
-    { "emisor": "scripts/lib/usoSkills.mjs", "firma": "skill_abierta", "causa": "sin_lector", "nota": "Una línea por apertura con skills-uso --lineas; los planos leen el objeto, no estas líneas" },
-    { "emisor": "scripts/lib/usoSkills.mjs", "firma": "dominio_sin_skill", "causa": "sin_lector", "nota": "Una línea por dominio tocado sin su skill; los planos leen el objeto, no estas líneas" }
+    {
+      "emisor": ".claude/hooks/buscar-antes.mjs",
+      "firma": "buscar-antes senal",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "api/_bot/agente.js",
+      "firma": "a medias",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "api/_bot/ajustes.js",
+      "firma": "Batch cooking",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "api/_bot/ajustes.js",
+      "firma": "No reconozco",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "api/_bot/menu.js",
+      "firma": "• <x><x><x> — alergias/intolerancias",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "api/_bot/recetas.js",
+      "firma": "Raciones: <x>; tiempo",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/add-ingredient-ids.mjs",
+      "firma": "líneas: <x> · rellenadas",
+      "causa": "sin_lector",
+      "nota": "Resumen numérico de un script que se lanza a mano; ningún script ni rutina lee la cifra"
+    },
+    {
+      "emisor": "scripts/apply-bedca-nutrition.mjs",
+      "firma": "✨  <x>Aplicados: <x><x>. Sin candidatos",
+      "causa": "sin_lector",
+      "nota": "Resumen numérico de un script que se lanza a mano; ningún script ni rutina lee la cifra"
+    },
+    {
+      "emisor": "scripts/bedca-micros.mjs",
+      "firma": "✨  <x>Actualizados: <x> · sin campos nuevos",
+      "causa": "sin_lector",
+      "nota": "Resumen numérico de un script que se lanza a mano; ningún script ni rutina lee la cifra"
+    },
+    {
+      "emisor": "scripts/bedca-triage.mjs",
+      "firma": "otro alimento",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/bot-evals.mjs",
+      "firma": "tope_evals script: bot-evals motivo",
+      "causa": "sin_lector",
+      "nota": "Resumen numérico de un script que se lanza a mano; ningún script ni rutina lee la cifra"
+    },
+    {
+      "emisor": "scripts/build-derived.mjs",
+      "firma": "operador determinista",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/dependabot-auto.mjs",
+      "firma": "dependabot-auto abiertos",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/dependabot-auto.mjs",
+      "firma": "dependabot-auto pr",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/derive-sauce.mjs",
+      "firma": "por ingrediente",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/diff-names.mjs",
+      "firma": "🍽️   recipes",
+      "causa": "sin_lector",
+      "nota": "Resumen numérico de un script que se lanza a mano; ningún script ni rutina lee la cifra"
+    },
+    {
+      "emisor": "scripts/espera-ci.mjs",
+      "firma": "ci pr",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/fondos-evento.mjs",
+      "firma": "fondos: evento",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/fondos-evento.mjs",
+      "firma": "fondos: issue: #<x> control",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/forja.mjs",
+      "firma": "forja campos artefacto",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/forja.mjs",
+      "firma": "forja capa",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/forja.mjs",
+      "firma": "forja tipo",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/forja.mjs",
+      "firma": "forja-url estado",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/forja.mjs",
+      "firma": "forja-urls total",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/gen-appliance-methods.mjs",
+      "firma": "Tiempo base",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/glosario.mjs",
+      "firma": "glosario terminos",
+      "causa": "sin_lector",
+      "nota": "Resumen del glosario al listarlo entero; ninguna rutina lo pide"
+    },
+    {
+      "emisor": "scripts/glosario.mjs",
+      "firma": "por zona",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/glosario.mjs",
+      "firma": "regla propuesta",
+      "causa": "no_es_cifra",
+      "nota": "Es el texto de una regla que proponen varios juicios, con la lista de juicios; no se cuenta"
+    },
+    {
+      "emisor": "scripts/glosario.mjs",
+      "firma": "vocabularios vigilados",
+      "causa": "sin_lector",
+      "nota": "Cuenta los vocabularios anclados; el test de vocabularios-vida decide y nadie lee la cifra"
+    },
+    {
+      "emisor": "scripts/issues.mjs",
+      "firma": "lo lleva",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/lib/combos.mjs",
+      "firma": "⚠️  CSV parse warnings",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/lib/evals.mjs",
+      "firma": "nivel desconocido",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/lib/forjaForma.mjs",
+      "firma": "ronda",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/lib/glosario.mjs",
+      "firma": "aplica a",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/lib/planos.mjs",
+      "firma": "medidor desconocido",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/lib/planos.mjs",
+      "firma": "regla desconocida",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/lib/planos.mjs",
+      "firma": "tipo desconocido",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/lib/situacion.mjs",
+      "firma": "sin ver",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/lib/tokenSesion.mjs",
+      "firma": "identidad-sesion identidad",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/lib/usoSkills.mjs",
+      "firma": "dominio_sin_skill",
+      "causa": "sin_lector",
+      "nota": "Una línea por dominio tocado sin su skill; los planos leen el objeto, no estas líneas"
+    },
+    {
+      "emisor": "scripts/lib/usoSkills.mjs",
+      "firma": "skill_abierta",
+      "causa": "sin_lector",
+      "nota": "Una línea por apertura con skills-uso --lineas; los planos leen el objeto, no estas líneas"
+    },
+    {
+      "emisor": "scripts/lint-base.mjs",
+      "firma": "Valores sueltos",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/llavero-op.mjs",
+      "firma": "llavero recurso: \"<x>\" usuario",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/mark-base-mode.mjs",
+      "firma": "aparte",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/normas.mjs",
+      "firma": "normas sujetos",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/normas.mjs",
+      "firma": "normas total",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/normas.mjs",
+      "firma": "normas_frases sin_cita",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/plantillas.mjs",
+      "firma": "plantilla problema",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/plantillas.mjs",
+      "firma": "plantilla ruta",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/podar.mjs",
+      "firma": "- Con PR abierto",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/recetas-atributos-blandos.mjs",
+      "firma": "Por acuerdo",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/redaccion.mjs",
+      "firma": "redaccion catalogos",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/redaccion.mjs",
+      "firma": "redaccion pendientes",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/router-evals.mjs",
+      "firma": "tope_evals script: router-evals motivo",
+      "causa": "sin_lector",
+      "nota": "Resumen numérico de un script que se lanza a mano; ningún script ni rutina lee la cifra"
+    },
+    {
+      "emisor": "scripts/skills-encargo.mjs",
+      "firma": "skill",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/skills-pr.mjs",
+      "firma": "skills-pr skill",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/skills-prueba.mjs",
+      "firma": "disparo falla",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/skills-prueba.mjs",
+      "firma": "no cumple",
+      "causa": "no_es_cifra",
+      "nota": "Es un mensaje o una frase para una persona con forma de clave: valor; no lleva una cifra que contar"
+    },
+    {
+      "emisor": "scripts/skills-prueba.mjs",
+      "firma": "skills-prueba total coste_usd",
+      "causa": "sin_lector",
+      "nota": "El gasto total de la pasada; el tope mensual lo lleva evals.mjs por su cuenta y nadie lee esta línea"
+    },
+    {
+      "emisor": "scripts/skills-prueba.mjs",
+      "firma": "tope_evals script: skills-prueba motivo",
+      "causa": "sin_lector",
+      "nota": "Dice por qué una pasada paró en el tope; ningún script ni rutina la lee"
+    },
+    {
+      "emisor": "scripts/token-sesion.mjs",
+      "firma": "token-sesion resultado: ok expira",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/vigia.mjs",
+      "firma": "Incidentes cerrados",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/voz.mjs",
+      "firma": "respuestas medidas",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    },
+    {
+      "emisor": "scripts/voz.mjs",
+      "firma": "voz resumen origen",
+      "causa": "sin_revisar",
+      "nota": "Línea contable que ya existía antes del registro; falta decidir su pregunta y comprobar quién la lee"
+    }
   ]
 }

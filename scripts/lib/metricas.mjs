@@ -61,6 +61,7 @@ export const ROLES_CAMPO = {
 export const CAUSAS_EXCEPCION = {
   sin_lector: "nadie la lee: o se le pone lector, o deja de emitirse",
   no_es_cifra: "es una línea de texto con forma de `campo: valor` y no lleva ninguna cifra que contar",
+  sin_revisar: "línea contable que ya existía antes del registro: falta darle su pregunta y comprobar quién la lee",
 };
 
 /** Los únicos campos de texto libre de una métrica, de una línea o de una excepción. */

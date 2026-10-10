@@ -23,7 +23,7 @@ import { criteriosDelRepo } from "../scripts/lib/juiciosSkills.mjs";
 import {
   RUTA_METRICAS, clavesDeTexto, clavesQueCuentan, excepcionDe, excepcionesNuevas, leerMetricas, lineaDelRegistro, problemasDelRegistro, regexDeFirma, vigilanteDe,
 } from "../scripts/lib/metricas.mjs";
-import { lineaEstatica, lineasDeFicheros, lineasDeFuente, lineasDeTexto } from "../scripts/lib/metricasLineas.mjs";
+import { expandirRaices, lineaEstatica, lineasDeFicheros, lineasDeFuente, lineasDeTexto } from "../scripts/lib/metricasLineas.mjs";
 import { MIN_PUNTOS, VEREDICTOS_RUIDO, lineaDeRuido, salDelMargen, textoDeRuido } from "../scripts/lib/ruido.mjs";
 import { INDICADORES_SKILLS, saludDeSkills } from "../scripts/lib/saludSkills.mjs";
 
@@ -50,10 +50,13 @@ describe("1. el registro está bien", () => {
   it("sin problemas", () => {
     expect(problemasDelRegistro(datos, { leer }), `Arregla ${RUTA_METRICAS}`).toEqual([]);
   });
-  it("vigila los scripts que emiten cifras, al menos los del encargo", () => {
-    for (const r of ["scripts/cumplimiento.mjs", "scripts/fabrica.mjs", "scripts/skills-prueba.mjs", "scripts/issues.mjs", "scripts/higiene-skills.mjs", "scripts/glosario.mjs", "scripts/planos.mjs", ".claude/hooks/eventos.mjs"]) {
-      expect(datos.raices, r).toContain(r);
+  it("las raíces son cerradas: todos los scripts y todos los hooks, no una lista que se elige", () => {
+    expect(datos.raices, "Un script nuevo entra solo; lo que no cumple va a «excepciones», que solo bajan").toEqual(["scripts/*.mjs", ".claude/hooks/*.mjs"]);
+    const raices = expandirRaices(RAIZ, datos.raices);
+    for (const r of ["scripts/cumplimiento.mjs", "scripts/fabrica.mjs", "scripts/skills-prueba.mjs", "scripts/issues.mjs", "scripts/higiene-skills.mjs", "scripts/glosario.mjs", "scripts/planos.mjs", "scripts/bot-evals.mjs", ".claude/hooks/eventos.mjs"]) {
+      expect(raices, r).toContain(r);
     }
+    expect(raices.some((r) => /\.test\./.test(r)), "los tests no son raíces").toBe(false);
   });
   it("cada métrica con umbral tiene su vigilante en el registro", () => {
     for (const m of datos.metricas.filter((x) => typeof x.umbral === "number")) expect(vigilanteDe(datos, m.id), m.id).not.toBeNull();
@@ -120,9 +123,22 @@ describe("2. toda línea `campo: valor` que se emite está en el registro", () =
     expect(lineaDelRegistro(datos, nueva.firma)).toBeNull();
     // Una interpolación al principio y un comentario: el comentario no cuenta.
     expect(lineasDeFuente("// indicador: ${x} valor: ${y}\nconst f = (a) => `${a.x}: ${a.n} criterio: ${a.c} estado: ${a.e}`;")).toEqual([{ firma: "<x>: <x> criterio", claves: ["criterio", "estado"] }]);
-    // Una sola clave con valor, o prosa con mayúscula y tildes, no es una línea contable.
-    expect(lineaEstatica("lo lleva: \u0000")).toBeNull();
+    // Una sola clave detrás de una frase, o prosa con mayúscula y tildes, no es una línea contable;
+    // «<palabra> <clave>: ${…}» sí, aunque lleve un solo par (la cabecera de una línea por trozos).
+    expect(lineaEstatica("abiertos sin ficha: \u0000")).toBeNull();
     expect(lineaEstatica("cerrados con ficha: \u0000 con aprendizaje, sin él: \u0000")).toBeNull();
+    expect(lineaEstatica("poda candidatas: \u0000")).toEqual({ firma: "poda candidatas", claves: ["candidatas"] });
+  });
+  it("ve las líneas montadas por trozos: plantilla dentro de plantilla, suma, join y +=", () => {
+    const firmas = (f) => lineasDeFuente(f).map((l) => `${l.firma} [${l.claves.join(",")}]`);
+    // El caso del revisor: la segunda clave va en una plantilla dentro de un condicional.
+    expect(firmas("const l = `poda candidatas: ${u.n}${u.n ? ` skills: ${u.s}` : \"\"}`;")).toContain("poda candidatas [candidatas,skills]");
+    expect(firmas("const l = `x cuenta: ${a}${b && ` total: ${c}`}`;")).toContain("x cuenta [cuenta,total]");
+    expect(firmas("const l = \"suma veces: \" + n + \" coste: \" + c;")).toContain("suma veces [veces,coste]");
+    expect(firmas("const l = [\"junta veces: \" + n, `coste: ${c}`].join(\" \");")).toContain("junta veces [veces,coste]");
+    expect(firmas("let s = `acum veces: ${n}`;\ns += ` coste: ${c}`;")).toContain("acum veces [veces,coste]");
+    // Y el registro de verdad la tiene: la línea de la poda que el revisor vio sin registrar.
+    expect(lineaDelRegistro(datos, "poda candidatas", "scripts/lib/cumplimiento.mjs")).not.toBeNull();
   });
 });
 
@@ -209,6 +225,12 @@ describe("5. el margen de ruido", () => {
     const quieta = Array(MIN_PUNTOS).fill(0);
     expect(salDelMargen(quieta, 0).veredicto).toBe("dentro");
     expect(salDelMargen(quieta, 1).veredicto).toBe("fuera_por_encima");
+  });
+  it("una serie constante de decimales no saca su propio valor por la coma flotante", () => {
+    const decimales = Array(MIN_PUNTOS).fill(0.1);
+    expect(salDelMargen(decimales, 0.1).veredicto).toBe("dentro");
+    expect(salDelMargen(decimales, 0.2).veredicto).toBe("fuera_por_encima");
+    expect(salDelMargen(decimales, 0).veredicto).toBe("fuera_por_debajo");
   });
   it("la línea contable lleva el veredicto del vocabulario", () => {
     const l = lineaDeRuido("x", 4, salDelMargen(estable, 4));

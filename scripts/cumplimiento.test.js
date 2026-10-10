@@ -149,6 +149,12 @@ describe("contrapesos e historial (#480)", () => {
     expect(seriesDeHistorial(texto)).toEqual({ fondos_sin_diagnostico: [2, 0], fondos_abiertos: [7] });
     expect(seriesDeHistorial("")).toEqual({});
   });
+  it("un punto por semana: dos informes de la misma semana cuentan una vez, con el último", () => {
+    const inf = (dia, n) => `## Flujo y skills: informe semanal (${dia})\n\n\`\`\`\nindicador: fondos_sin_diagnostico valor: ${n} umbral: 0 estado: ok\n\`\`\``;
+    // lunes 5, miércoles 7 (a mano, misma semana), lunes 12 y domingo 18 (misma semana que el 12)
+    const texto = [inf("2026-10-05", 1), inf("2026-10-07", 9), inf("2026-10-12", 2), inf("2026-10-18", 3)].join("\n\nRun: x\n\n");
+    expect(seriesDeHistorial(texto)).toEqual({ fondos_sin_diagnostico: [9, 3] });
+  });
 });
 
 describe("más de 50 hijos", () => {

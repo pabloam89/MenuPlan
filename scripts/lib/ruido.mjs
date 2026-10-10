@@ -51,7 +51,10 @@ export function salDelMargen(serie, valor, { minimo = MIN_PUNTOS } = {}) {
   const sigma = rangos / (xs.length - 1) / D2;
   const inferior = media - 3 * sigma;
   const superior = media + 3 * sigma;
-  const veredicto = valor > superior ? "fuera_por_encima" : valor < inferior ? "fuera_por_debajo" : "dentro";
+  // Tolerancia de coma flotante: una serie constante de decimales (0,1 ocho veces) da una media
+  // que no es exactamente 0,1, y ese mismo 0,1 no puede salir «fuera» por eso.
+  const tolerancia = 1e-9 * Math.max(1, Math.abs(media));
+  const veredicto = valor > superior + tolerancia ? "fuera_por_encima" : valor < inferior - tolerancia ? "fuera_por_debajo" : "dentro";
   return { veredicto, puntos: xs.length, minimo, media: redondeo(media), sigma: redondeo(sigma), inferior: redondeo(inferior), superior: redondeo(superior) };
 }
 
