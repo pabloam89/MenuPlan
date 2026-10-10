@@ -405,7 +405,8 @@ export function problemasDeTaxonomia(datos, { skills, tiposActuales, tipoActualD
     const r = respuestas[s];
     if (!r) { malos.push(`${s}: faltan sus respuestas en respuestas_tipo (${claves.join(", ")})`); continue; }
     for (const k of claves) if (typeof r[k] !== "boolean") malos.push(`${s}: la respuesta «${k}» es verdadero o falso`);
-    for (const k of Object.keys(r)) if (!claves.includes(k)) malos.push(`${s}: respuesta «${k}» no es una pregunta de preguntas_tipo`);
+    if ("nota" in r && !esTexto(r.nota, 30)) malos.push(`${s}: la nota de sus respuestas dice por qué (30 caracteres o más)`);
+    for (const k of Object.keys(r)) if (k !== "nota" && !claves.includes(k)) malos.push(`${s}: respuesta «${k}» no es una pregunta de preguntas_tipo`);
     const derivado = tipoDeSkill(r, preguntas);
     if (migracion[s] !== derivado) malos.push(`${s}: migracion_tipos dice «${migracion[s]}» y sus respuestas dan «${derivado}»`);
     const actual = tipoActualDe[s];
@@ -413,12 +414,13 @@ export function problemasDeTaxonomia(datos, { skills, tiposActuales, tipoActualD
     if (actual && destino && !destino.includes(derivado)) malos.push(`${s}: era «${actual}» y pasa a «${derivado}», que no es un destino de «${actual}» (${destino.join(", ")})`);
   }
   for (const s of [...Object.keys(respuestas), ...Object.keys(migracion)]) if (!skills.includes(s)) malos.push(`${s}: está en respuestas_tipo o migracion_tipos y no es una skill del repo`);
-  for (const [s, motivo] of Object.entries(provisionales)) {
+  for (const [s, p] of Object.entries(provisionales)) {
     if (!skills.includes(s)) malos.push(`${s}: skill provisional que no existe`);
-    if (!esTexto(motivo, 30)) malos.push(`${s}: skills_provisionales lleva su motivo (30 caracteres o más)`);
+    if (!esTexto(p?.motivo, 30)) malos.push(`${s}: skills_provisionales lleva su motivo (30 caracteres o más)`);
+    if (typeof p?.en_tabla !== "boolean") malos.push(`${s}: skills_provisionales dice en_tabla (true si la tabla de Pablo ya la pone en su tipo)`);
   }
   for (const t of tipos) {
-    const hoy = skills.filter((s) => migracion[s] === t.id && !(s in provisionales)).sort();
+    const hoy = skills.filter((s) => migracion[s] === t.id && (!(s in provisionales) || provisionales[s].en_tabla)).sort();
     if (JSON.stringify([...(t.skills_hoy ?? [])].sort()) !== JSON.stringify(hoy)) malos.push(`tipo ${t.id}: skills_hoy es [${(t.skills_hoy ?? []).join(", ")}] y la migración da [${hoy.join(", ")}]`);
   }
   for (const t of tiposActuales) {

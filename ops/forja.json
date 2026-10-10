@@ -210,7 +210,8 @@
       "encadena": false,
       "pasos_fijos": true,
       "sintoma_a_causa": false,
-      "elige_opciones": false
+      "elige_opciones": false,
+      "nota": "opera_proveedor es false: da de alta claves de GitHub, Vercel, Anthropic, Telegram o Supabase, así que no hay un proveedor único que operar; lo que la define son los pasos fijos con comprobación"
     },
     "causa-raiz": {
       "opera_proveedor": false,
@@ -237,16 +238,18 @@
       "encadena": true,
       "pasos_fijos": false,
       "sintoma_a_causa": false,
-      "elige_opciones": false
+      "elige_opciones": false,
+      "nota": "encadena es true por anticipado: hoy issues opera los issues de GitHub (un proveedor) y solo encadenará etapas con #414, como dice la tabla de Pablo"
     },
     "forja-de-skills": {
       "opera_proveedor": false,
       "crea_artefacto": true,
-      "juzga_artefacto": false,
+      "juzga_artefacto": true,
       "encadena": false,
       "pasos_fijos": false,
       "sintoma_a_causa": false,
-      "elige_opciones": false
+      "elige_opciones": false,
+      "nota": "juzga_artefacto es true porque también revisa lo que existe, pero crea_artefacto va antes en el orden de preguntas y la deja en forja"
     },
     "higiene-de-skills": {
       "opera_proveedor": false,
@@ -268,7 +271,14 @@
     }
   },
   "skills_provisionales": {
-    "estilo-de-respuesta": "Es un estándar, no una skill: se muda al artefacto estandar cuando existan (decisión de Pablo, 10 oct 2026); mientras, no responde sí a ninguna pregunta y cae en conocimiento"
+    "estilo-de-respuesta": {
+      "motivo": "Es un estándar, no una skill: se muda al artefacto estandar cuando existan (decisión de Pablo, 10 oct 2026); mientras, no responde sí a ninguna pregunta y cae en conocimiento",
+      "en_tabla": false
+    },
+    "issues": {
+      "motivo": "Hoy opera los issues de GitHub y su encadena: true se anticipa a #414, como dice la tabla de Pablo, que la pone en flujo (con #414); hasta entonces el tipo es provisional",
+      "en_tabla": true
+    }
   },
   "migracion_tipos": {
     "github": "servicio",

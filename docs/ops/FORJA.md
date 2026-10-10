@@ -42,7 +42,7 @@ El tipo de una skill sale de `tipoDeSkill(respuestas)`: el de la primera pregunt
 | 6 | sintoma_a_causa | ¿Va de un síntoma a su causa? | diagnostico |
 | 7 | elige_opciones | ¿Elige entre opciones con criterios? | decision |
 
-Skills sin ningún sí (provisionales, con su motivo en `skills_provisionales`): `estilo-de-respuesta`.
+Skills sin ningún sí (provisionales, con su motivo en `skills_provisionales`): `estilo-de-respuesta`, `issues`.
 
 | Eje de la ficha de una skill | Valores |
 |---|---|

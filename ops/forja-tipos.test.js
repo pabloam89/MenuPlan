@@ -86,8 +86,19 @@ describe("la taxonomía de tipos y la migración de las skills", () => {
     for (const [t, ss] of Object.entries(TABLA_PABLO)) expect(datos.tipos_skill.find((x) => x.id === t).skills_hoy, t).toEqual(ss);
   });
   it("cada skill del repo tiene respuestas a las siete preguntas", () => {
-    for (const s of skills) expect(Object.keys(datos.respuestas_tipo[s] ?? {}), s).toEqual(PREGUNTAS_PABLO);
-    expect(Object.keys(datos.skills_provisionales)).toEqual(["estilo-de-respuesta"]);
+    for (const s of skills) expect(Object.keys(datos.respuestas_tipo[s] ?? {}).filter((k) => k !== "nota"), s).toEqual(PREGUNTAS_PABLO);
+    expect(Object.keys(datos.skills_provisionales)).toEqual(["estilo-de-respuesta", "issues"]);
+  });
+  it("forja-de-skills juzga y crea (y da forja); issues es provisional; alta-de-secreto dice por qué no opera un proveedor", () => {
+    const r = datos.respuestas_tipo;
+    expect(r["forja-de-skills"]).toMatchObject({ crea_artefacto: true, juzga_artefacto: true });
+    expect(tipoDeSkill(r["forja-de-skills"])).toBe("forja");
+    expect(datos.skills_provisionales.issues).toMatchObject({ en_tabla: true });
+    expect(datos.skills_provisionales["estilo-de-respuesta"]).toMatchObject({ en_tabla: false });
+    expect(datos.tipos_skill.find((t) => t.id === "flujo").skills_hoy).toEqual(["issues"]);
+    expect(r["alta-de-secreto"].opera_proveedor).toBe(false);
+    expect(r["alta-de-secreto"].nota).toContain("opera_proveedor es false");
+    expect(r.issues.nota).toContain("#414");
   });
   it("cada tipo de hoy de ops/flujo.json tiene un destino y cada skill pasa a uno de los suyos", () => {
     for (const t of tiposActuales) expect(datos.destino_tipos_actuales[t]?.destinos?.length, t).toBeGreaterThan(0);
@@ -117,6 +128,12 @@ describe("la taxonomía de tipos y la migración de las skills", () => {
     mal((d) => { d.destino_tipos_actuales.herramienta.destinos = ["servicio"]; }, "issues: era «herramienta» y pasa a «flujo»");
     mal(() => {}, "el tipo actual «nuevo_tipo» de ops/flujo.json no tiene destino", { ...ctxTaxonomia, tiposActuales: [...tiposActuales, "nuevo_tipo"] });
     mal((d) => { d.destino_tipos_actuales.viejo = { destinos: ["flujo"], nota: "Un tipo que ya no está en el flujo" }; }, "ya no es un tipo de ops/flujo.json");
+  });
+  it("falla con una nota corta o un provisional mal puesto", () => {
+    mal((d) => { d.respuestas_tipo["alta-de-secreto"].nota = "corta"; }, "la nota de sus respuestas dice por qué");
+    mal((d) => { delete d.skills_provisionales.issues.en_tabla; }, "dice en_tabla");
+    mal((d) => { d.skills_provisionales.issues.motivo = "corto"; }, "lleva su motivo");
+    mal((d) => { d.skills_provisionales.issues.en_tabla = false; }, "tipo flujo: skills_hoy");
   });
   it("falla si falta un tipo o una pregunta, o sobra una", () => {
     mal((d) => { d.tipos_skill.pop(); }, "la decisión de Pablo son 8");
