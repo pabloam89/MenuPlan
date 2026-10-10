@@ -1,9 +1,9 @@
 {
   "skill": "estilo-de-respuesta",
-  "fecha_utc": "2026-10-10T13:39:34.200Z",
+  "fecha_utc": "2026-10-10T13:45:39.916Z",
   "version": {
-    "skill_md": "2a0b0a1078df",
-    "casos_json": "96076cb6da5e"
+    "skill_md": "67597384b52e",
+    "casos_json": "78fc52b1757c"
   },
   "modelos": {
     "disparo": "claude-haiku-4-5",
@@ -11,12 +11,12 @@
     "corrige": "claude-haiku-4-5"
   },
   "tope_usd": 1,
-  "coste_usd": 0.1502,
+  "coste_usd": 0.1253,
   "resultado": "falla",
   "resumen": {
-    "disparo_ok": 15,
+    "disparo_ok": 16,
     "disparo_total": 16,
-    "comprobaciones_ok": 31,
+    "comprobaciones_ok": 29,
     "comprobaciones_total": 39,
     "sin_correr": 0
   },
@@ -87,23 +87,23 @@
     {
       "id": "pregunta-corta-si-no",
       "parte": "disparo",
-      "antes": null,
+      "antes": "ok",
       "ahora": "ok",
-      "cambio": "nuevo"
+      "cambio": "igual"
     },
     {
       "id": "decir-cuanto-te-fias",
       "parte": "disparo",
-      "antes": null,
-      "ahora": "falla",
-      "cambio": "nuevo"
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
     },
     {
       "id": "retomar-y-decidir",
       "parte": "disparo",
-      "antes": null,
+      "antes": "ok",
       "ahora": "ok",
-      "cambio": "nuevo"
+      "cambio": "igual"
     },
     {
       "id": "frontera-informe-agente",
@@ -143,9 +143,9 @@
     {
       "id": "explicamelo-sencillo",
       "parte": "ejecucion",
-      "antes": "ok",
+      "antes": "falla",
       "ahora": "falla",
-      "cambio": "empeora"
+      "cambio": "igual"
     },
     {
       "id": "hay-que-decidir",
@@ -171,51 +171,51 @@
     {
       "id": "explicar-un-concepto",
       "parte": "ejecucion",
-      "antes": "ok",
-      "ahora": "ok",
+      "antes": "falla",
+      "ahora": "falla",
       "cambio": "igual"
     },
     {
       "id": "fallo-de-la-prueba",
       "parte": "ejecucion",
-      "antes": "ok",
+      "antes": "falla",
       "ahora": "falla",
-      "cambio": "empeora"
+      "cambio": "igual"
     },
     {
       "id": "que-cambia-este-pr",
       "parte": "ejecucion",
       "antes": "falla",
-      "ahora": "ok",
-      "cambio": "mejora"
+      "ahora": "falla",
+      "cambio": "igual"
     },
     {
       "id": "resume-informe-agente",
       "parte": "ejecucion",
-      "antes": "ok",
+      "antes": "falla",
       "ahora": "falla",
-      "cambio": "empeora"
+      "cambio": "igual"
     },
     {
       "id": "pregunta-corta-si-no",
       "parte": "ejecucion",
-      "antes": null,
-      "ahora": "falla",
-      "cambio": "nuevo"
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
     },
     {
       "id": "decir-cuanto-te-fias",
       "parte": "ejecucion",
-      "antes": null,
-      "ahora": "ok",
-      "cambio": "nuevo"
+      "antes": "falla",
+      "ahora": "falla",
+      "cambio": "igual"
     },
     {
       "id": "retomar-y-decidir",
       "parte": "ejecucion",
-      "antes": null,
+      "antes": "ok",
       "ahora": "ok",
-      "cambio": "nuevo"
+      "cambio": "igual"
     }
   ],
   "disparo": [
@@ -282,8 +282,8 @@
     {
       "id": "decir-cuanto-te-fias",
       "esperado": "estilo-de-respuesta",
-      "elegido": "github",
-      "estado": "falla"
+      "elegido": "estilo-de-respuesta",
+      "estado": "ok"
     },
     {
       "id": "retomar-y-decidir",
@@ -324,25 +324,25 @@
         {
           "texto": "La primera línea es una sola frase en negrita con la idea raíz (qué está hecho o qué falta)",
           "cumple": true,
-          "evidencia": "**Las copias ya están funcionando.**"
+          "evidencia": "**Las copias de seguridad ya funcionan y están probadas.**"
         },
         {
           "texto": "Tiene cuatro ideas o menos, cortas",
           "cumple": true,
-          "evidencia": "Tres ideas: 1) Las copias funcionan, 2) El sistema las hace solas, 3) Siguiente paso: ninguno"
+          "evidencia": "1) Copias automáticas sin acción, 2) Falta revisión, 3) Aviso cuando esté revisado. Total: 3 ideas claras y breves."
         },
         {
           "texto": "No lista ficheros ni nombra ramas, lint ni CI sin explicarlos",
           "cumple": true,
-          "evidencia": "No menciona ficheros, ramas, lint ni CI"
+          "evidencia": "No aparecen ficheros, ramas, lint ni CI en la respuesta principal."
         },
         {
           "texto": "No usa cabeceras ni tablas",
           "cumple": true,
-          "evidencia": "Solo usa negrita para enfatizar, sin cabeceras ni tablas"
+          "evidencia": "Solo usa negrita, párrafos y guiones. Sin cabeceras (# ## etc) ni tablas."
         }
       ],
-      "respuesta": "**Las copias ya están funcionando.**\nQué cambia para ti: el sistema las hace solas, sin que tengas que acordarte.\nSiguiente paso: ninguno, está listo."
+      "respuesta": "**Las copias de seguridad ya funcionan y están probadas.**\n\nQué cambia para ti: el sistema guarda las copias automáticamente, sin que tengas que hacer nada.\n\nOjo: todavía falta que otro agente lo revise antes de darlo por cerrado.\n\nSiguiente paso: te aviso en cuanto esté revisado.\n\n---\n\nNota breve sobre cómo lo he decidido (no forma parte de la respuesta a Pablo): uso la plantilla de **resultado**, no doy detalle de ficheros, lint o CI porque es ruido para él, y no afirmo \"terminado del todo\" como hecho porque falta la revisión — eso sería una afirmación no comprobada vestida de certeza."
     },
     {
       "id": "explicamelo-sencillo",
@@ -351,20 +351,20 @@
         {
           "texto": "Empieza por una idea raíz en negrita en una frase sin jerga",
           "cumple": true,
-          "evidencia": "**El robot que despliega no tiene permiso para saltarse una comprobación, así que lo intenta una y otra vez.**"
+          "evidencia": "**El robot que despliega no tiene permiso para saltarse una regla de seguridad, así que lo intenta y falla una y otra vez.**"
         },
         {
           "texto": "Evita o traduce a palabras corrientes los términos técnicos (workflow, deploy key, ruleset)",
           "cumple": false,
-          "evidencia": "Usa 'despliegue' sin traducir completamente el concepto; no aparecen los términos listados pero el concepto técnico de 'permisos' y 'comprobación' podría ser más accesible"
+          "evidencia": "Usa 'despliegue' (traducción de deploy) pero no traduce 'permiso' ni explica qué es el 'robot' o la 'regla de seguridad' en términos más simples. El contexto no es accesible para quien no conoce CI/CD"
         },
         {
           "texto": "No pasa de cuatro ideas y no usa tablas ni cabeceras",
           "cumple": true,
-          "evidencia": "Contiene tres ideas principales (problema del robot, qué cambia para el usuario, solución) sin tablas ni cabeceras"
+          "evidencia": "Contiene 3 ideas: (1) el problema, (2) qué cambia, (3) siguiente paso. Sin tablas ni cabeceras."
         }
       ],
-      "respuesta": "**El robot que despliega no tiene permiso para saltarse una comprobación, así que lo intenta una y otra vez.**\n\nQué cambia para ti: nada se rompe, pero el despliegue se queda reintentando en vez de avanzar.\n\nOjo: se arregla dándole ese permiso puntual, no tocando el código.\n\nSiguiente paso: lo reviso y te aviso cuando esté."
+      "respuesta": "**El robot que despliega no tiene permiso para saltarse una regla de seguridad, así que lo intenta y falla una y otra vez.**\n\nQué cambia para ti: nada se ha roto, pero el despliegue no avanza hasta arreglarlo.\nOjo: es un permiso que hay que añadir a mano, no un fallo del código.\nSiguiente paso: lo arreglo yo; te aviso cuando esté."
     },
     {
       "id": "hay-que-decidir",
@@ -378,7 +378,7 @@
         {
           "texto": "Da tres opciones A, B y C en llano, la recomendada primero y marcada, y qué pasa con cada una, sin tabla de comparación",
           "cumple": true,
-          "evidencia": "A (recomendada): en el servidor... B: en un servicio aparte... C: en tu ordenador... Cada una incluye coste y reversibilidad."
+          "evidencia": "A (recomendada): en el servidor que ya tenemos... B: en un servicio aparte... C: en tu ordenador..."
         },
         {
           "texto": "Termina con «Respóndeme con la letra.»",
@@ -395,20 +395,20 @@
         {
           "texto": "Una idea raíz en negrita arriba, no una lista de seis cosas",
           "cumple": true,
-          "evidencia": "**Hoy se ha avanzado bien; quedan tres cosas por cerrar y dos decisiones tuyas.**"
+          "evidencia": "**Hoy ha avanzado bien; quedan tres cosas por cerrar y dos dudas tuyas.**"
         },
         {
           "texto": "Agrupa lo hecho y lo pendiente en cuatro ideas como mucho",
           "cumple": true,
-          "evidencia": "Seis tareas terminadas (1), tres en marcha (2), dos dudas que necesitan decisión (3), certeza sobre lo comprobado (4)"
+          "evidencia": "Seis tareas terminadas, tres abiertas, dos dudas = tres grupos principales"
         },
         {
           "texto": "Manda el detalle a un issue o a un fichero en lugar de pegarlo en el chat",
           "cumple": false,
-          "evidencia": "La respuesta reconoce que falta detalle pero no especifica dónde se mandará (issue, fichero, etc.)"
+          "evidencia": "No menciona enviar detalles a issue o fichero; ofrece contar en una línea en el chat"
         }
       ],
-      "respuesta": "**Hoy se ha avanzado bien; quedan tres cosas por cerrar y dos decisiones tuyas.**\n\nSeis tareas terminadas hoy, sin nada roto por el camino.\nTres quedan en marcha para los próximos días.\nDos dudas necesitan que decidas tú para poder seguir.\nCerteza: comprobado lo hecho hoy; lo pendiente es una estimación.\n\nLo único que te toca a ti: dime si quieres ver ya las dos dudas o mañana con más calma.\n\n---\n\nNo enviaría esto sin más detalle: necesito saber qué son exactamente las seis cosas, las tres pendientes y las dos dudas antes de escribir el resumen real. Con la skill cargada pero sin esa información, lo correcto es preguntarte a ti (Pablo, en esta simulación) o buscar en el repo (issues cerrados hoy, `CLAUDE.md`, el canal de agentes) qué se ha hecho exactamente, en vez de inventar contenido para rellenar la plantilla."
+      "respuesta": "**Hoy ha avanzado bien; quedan tres cosas por cerrar y dos dudas tuyas.**\n\n- Seis tareas se han terminado hoy.\n- Tres siguen abiertas, sin bloqueo por ahora.\n- Hay dos puntos donde necesito tu criterio.\n\nCerteza: Creo que mañana se cierran las tres pendientes, no lo he comprobado hora a hora.\n\nLo único que te toca a ti: dime si quieres el detalle de las seis tareas o de las dos dudas, y te lo cuento en una línea cada una."
     },
     {
       "id": "comando-para-pegar",
@@ -417,7 +417,7 @@
         {
           "texto": "La primera línea en negrita dice qué tiene que hacer y por qué",
           "cumple": false,
-          "evidencia": ""
+          "evidencia": "La primera línea no está en negrita y no explica por qué"
         },
         {
           "texto": "Una línea antes dice en llano qué hace el comando",
@@ -427,37 +427,37 @@
         {
           "texto": "El comando va solo en un bloque de código, sin detalle técnico alrededor",
           "cumple": true,
-          "evidencia": "```\nnpm run ejemplo -- --si\n```"
+          "evidencia": "```npm run migrate```"
         },
         {
           "texto": "Termina con una línea con lo que necesita de él",
           "cumple": false,
-          "evidencia": ""
+          "evidencia": "No hay línea final explicando qué necesita"
         }
       ],
-      "respuesta": "Esto aplica el cambio en la base de datos; tarda un momento.\n\n```\nnpm run ejemplo -- --si\n```"
+      "respuesta": "Esto aplica el cambio en la base de datos; tarda un momento.\n\n```\nnpm run migrate\n```"
     },
     {
       "id": "explicar-un-concepto",
-      "estado": "ok",
+      "estado": "falla",
       "comprobaciones": [
         {
           "texto": "Usa la plantilla de concepto: una frase en negrita con una comparación cotidiana, «Para qué te sirve:» y «Ejemplo:»",
-          "cumple": true,
-          "evidencia": "**La guardia es un control automático...** + «Para qué te sirve:» + «Ejemplo: si un cambio no pasa sus pruebas...\""
+          "cumple": false,
+          "evidencia": "Tiene frase en negrita y «Para qué te sirve:», pero falta «Ejemplo:» y no hay comparación cotidiana explícita"
         },
         {
           "texto": "No pasa de cuatro ideas ni nombra ficheros, ramas o comandos",
           "cumple": true,
-          "evidencia": "3 ideas (definición, utilidad, ejemplo); no menciona ficheros, ramas ni comandos"
+          "evidencia": "Tres ideas (qué es, para qué sirve, certeza), sin ficheros ni comandos"
         },
         {
           "texto": "Frases cortas, sin preámbulo y sin emojis",
           "cumple": true,
-          "evidencia": "Frases concisas como «Para qué te sirve: así no llega a producción algo que falla sin que nadie se entere»; sin preámbulo ni emojis"
+          "evidencia": "Frases directas, sin emojis ni preámbulo innecesario"
         }
       ],
-      "respuesta": "**La guardia es un control automático que evita que se fusionen cambios rotos o sin revisar.**\n\nPara qué te sirve: así no llega a producción algo que falla sin que nadie se entere.\n\nEjemplo: si un cambio no pasa sus pruebas, la guardia lo bloquea aunque alguien intente fusionarlo.\n\n---\n\nNo me invento más de lo que sé sobre su funcionamiento exacto (Creo, no Comprobado), así que si quieres el detalle técnico lo busco antes de dártelo."
+      "respuesta": "**La guardia es un control automático que impide fusionar cambios si algo no está bien comprobado.**\n\nPara qué te sirve: evita que un error llegue a producción sin que nadie se dé cuenta.\n\nCerteza: No sé en qué casos concretos actúa esta guardia en MenuPlan; lo digo por cómo se usa la palabra en esta skill, no porque lo haya comprobado."
     },
     {
       "id": "fallo-de-la-prueba",
@@ -466,42 +466,42 @@
         {
           "texto": "Usa la plantilla de error: qué no he podido en negrita, «Qué pasa:», «Qué he probado:» y «Qué hace falta y de quién:»",
           "cumple": true,
-          "evidencia": "**No he podido enviar el aviso de prueba...** / Qué pasa: / Qué he probado: / Qué hace falta y de quién:"
+          "evidencia": "**No he podido enviar el aviso de prueba...** | Qué pasa: | Qué he probado: | Qué hace falta y de quién:"
         },
         {
           "texto": "Tono tranquilo, sin volcar el registro del error",
           "cumple": true,
-          "evidencia": "La respuesta es serena, sin logs extensos. Solo menciona tipos de errores genéricos entre paréntesis (ECONNREFUSED, 403, EAI_AGAIN) como ejemplos, no vuelca salida real."
+          "evidencia": "El mensaje no incluye logs, stack traces ni jerga técnica innecesaria; explica en lenguaje claro y natural"
         },
         {
           "texto": "Termina diciendo quién tiene que dar el siguiente paso",
           "cumple": false,
-          "evidencia": "La sección final dice 'No haría sin el OK de Pablo' pero no termina explícitamente diciendo 'Pablo tiene que...' o similar. La conclusión se diluye en lo que no haría."
+          "evidencia": "Dice 'lo voy a investigar y te cuento' pero no especifica explícitamente quién da el siguiente paso ni deja clara la responsabilidad"
         }
       ],
-      "respuesta": "**No he podido enviar el aviso de prueba y aún no sé por qué.**\nQué pasa: la conexión ha fallado al intentarlo.\nQué he probado: un solo intento; no sé si es la red o un permiso.\nQué hace falta y de quién: necesito margen para probar otra vez antes de darte una causa.\n\nCerteza: No sé — falta repetir la prueba y mirar el registro del error para distinguir red de permiso.\n\n---\n\nLo que haría yo en tu lugar, en orden, antes de escribir esto:\n\n1. **`git log --oneline -5`** y **`git status`** — ver en qué rama estoy y si hay cambios sin comprobar relacionados con el envío de avisos.\n2. Buscar el comando o script de prueba (algo tipo `npm run aviso-prueba` o similar) y **repetirlo una vez más**, capturando la salida completa, para no quedarme con un solo intento antes de hablar con Pablo.\n3. Revisar el log del error concreto (grep de \"ECONNREFUSED\", \"403\", \"EAI_AGAIN\", etc.) para distinguir red de permiso antes de afirmar nada.\n4. Si hay sospecha de permisos, mirar variables de entorno o credenciales relevantes (sin imprimir secretos).\n\n**No haría sin el OK de Pablo:**\n- Cambiar configuración de red, credenciales o permisos en ningún entorno (y menos en producción).\n- Reintentar el envío real a familias/usuarios reales, solo pruebas internas.\n- Decir \"es la red\" o \"es un permiso\" sin haberlo comprobado — eso es exactamente lo que la skill pide evitar (el caso de \"fusionado\" antes de tiempo)."
+      "respuesta": "**No he podido enviar el aviso de prueba por un fallo de conexión.**\n\nQué pasa: el sistema no ha logrado conectar con el servicio que envía los avisos.\n\nQué he probado: repetir el envío una vez, con el mismo resultado.\n\nQué hace falta y de quién: **No sé** si es un problema de red o de permisos; lo voy a investigar y te cuento en cuanto lo sepa.\n\n---\n\nLo que **no** haría sin tu OK: decirte que \"es un problema de red\" o \"es un permiso\" sin haberlo comprobado — eso sería afirmar algo que no sé todavía, y la skill exige \"Comprobado\", \"Creo\" o \"No sé\" en vez de adivinar."
     },
     {
       "id": "que-cambia-este-pr",
-      "estado": "ok",
+      "estado": "falla",
       "comprobaciones": [
         {
           "texto": "Empieza por una idea raíz en negrita sobre lo que cambia para él, en una frase",
           "cumple": true,
-          "evidencia": "**El PR hace que la guardia avise antes de que un cambio arriesgado llegue a producción.**"
+          "evidencia": "**El PR hace que el sistema no deje pasar un error que antes sí dejaba pasar.**"
         },
         {
           "texto": "No nombra ficheros, ramas ni el número del PR, y explica «guardia» si la usa",
-          "cumple": true,
-          "evidencia": "No aparecen ficheros, ramas ni números de PR en toda la respuesta"
+          "cumple": false,
+          "evidencia": "No nombra ficheros, ramas ni número del PR (correcto), pero usa el término «comprobación automática» sin explicar qué es una guardia/check automática de forma explícita"
         },
         {
           "texto": "No pasa de cuatro ideas",
           "cumple": true,
-          "evidencia": "Contiene 4 ideas principales: cambio (qué es), impacto (para él), riesgo (toca una regla) y siguiente paso (revisión)"
+          "evidencia": "Tiene exactamente 4 ideas principales: qué cambia, trabajo de acompañamiento, certeza, siguiente paso, y al final qué no haría"
         }
       ],
-      "respuesta": "**El PR hace que la guardia avise antes de que un cambio arriesgado llegue a producción.**\n\nQué cambia para ti: si algo falla, lo sabrás antes de que afecte a nadie.\nOjo: toca una regla existente, así que conviene que alguien más lo revise antes de fusionar.\nCerteza: creo que los tests cubren el caso, pero no lo he comprobado ejecutándolos ahora mismo.\nSiguiente paso: lo revisa otro agente antes de fusionar.\n\n---\n\nNo haría sin tu OK: fusionar el PR. Lo dejo abierto a la espera de revisión, tal y como indica el \"siguiente paso\"."
+      "respuesta": "**El PR hace que el sistema no deje pasar un error que antes sí dejaba pasar.**\n\nQué cambia para ti: una comprobación automática detecta antes un fallo concreto, así que llega menos basura a producción.\n\nOjo: también toca dos tests y una regla interna para que todo siga encajando; es trabajo de acompañamiento, no cambia nada de cara a ti.\n\nCerteza: Creo que es correcto (lo he razonado y revisado), pero no está comprobado porque no he ejecutado nada en esta sesión.\n\nSiguiente paso: lo revisa otra persona antes de fusionarlo.\n\n---\n\nQué **no** haría sin tu OK: dar por \"fusionado\" o \"en verde\" algo que no he visto ejecutarse en este momento, ni fusionar el PR yo mismo sin que alguien lo revise antes."
     },
     {
       "id": "resume-informe-agente",
@@ -509,65 +509,65 @@
       "comprobaciones": [
         {
           "texto": "Empieza por una idea raíz en negrita con el resultado",
-          "cumple": true,
-          "evidencia": "**Lo pedido está hecho; solo falta tu decisión en una cosa.**"
+          "cumple": false,
+          "evidencia": "La respuesta es metodológica y no contiene un resultado concreto. Explica qué haría pero no presenta una idea raíz en negrita como conclusión de un análisis."
         },
         {
           "texto": "No copia CASOS, CAMBIOS ni EVIDENCIA, y deja el detalle fuera del chat",
           "cumple": true,
-          "evidencia": "- Dejaría fuera CASOS, CAMBIOS y EVIDENCIA del mensaje a Pablo (eso se queda en el informe/issue, no sigue esta forma)."
+          "evidencia": "Explícitamente dice 'No inventaría ni resumiría el contenido de CASOS/CAMBIOS/EVIDENCIA' y 'si no he leído el informe real, diría No sé'"
         },
         {
           "texto": "La decisión pendiente va como «Necesito que decidas:» con tres opciones A, B y C, la recomendada primero",
           "cumple": false,
-          "evidencia": "Dice «Necesito que decidas: [aquí iría la pregunta concreta...]» pero no proporciona las opciones A/B/C reales, solo señala dónde irían."
+          "evidencia": "Describe que usaría la plantilla 'decisión' con 'tres opciones, recomendada primero' pero no la aplica en la respuesta porque reconoce que no tiene el informe real"
         }
       ],
-      "respuesta": "**Lo pedido está hecho; solo falta tu decisión en una cosa.**\n\nQué cambia para ti: el agente terminó su tarea y la dejó lista para revisar.\n\nOjo: hay una decisión pendiente que necesito que resuelvas tú.\n\nNecesito que decidas: [aquí iría la pregunta concreta de las DECISIONES PENDIENTES del informe, con sus tres opciones A/B/C, coste y reversibilidad de cada una].\n\nRespóndeme con la letra.\n\n---\n\nNo tengo delante el informe real (ESTADO, RESUMEN, CASOS, CAMBIOS, EVIDENCIA), así que esto es una plantilla con huecos. Para dártelo bien:\n\n- Cogería el **RESUMEN** del informe como idea raíz (en negrita) y las ideas que lo sostienen.\n- Cogería las **DECISIONES PENDIENTES** tal cual y las convertiría en las tres opciones A/B/C con coste y reversibilidad, si el agente no las dio ya en ese formato.\n- Dejaría fuera CASOS, CAMBIOS y EVIDENCIA del mensaje a Pablo (eso se queda en el informe/issue, no sigue esta forma).\n- Si el agente afirma algo que yo no pude comprobar en el momento, lo marcaría como \"Creo\" o \"No sé\", no como hecho.\n\nPega el informe real y te devuelvo la versión concreta."
+      "respuesta": "No puedo ejecutar nada en esta sesión (no he visto el informe real), así que esto es lo que haría, en orden, y lo que no haría sin tu OK.\n\n**Qué haría:**\n\n1. Leer el informe completo del agente (ESTADO, RESUMEN, CASOS, CAMBIOS, EVIDENCIA, DECISIONES PENDIENTES) para entender qué pasó de verdad, sin asumir nada.\n\n2. Aplicar la skill `estilo-de-respuesta` **solo** al `RESUMEN` y a las `DECISIONES PENDIENTES`, tal como marca: el resto (`CASOS`, `CAMBIOS`, `EVIDENCIA`) no se traduce a esta forma, se queda disponible si Pablo lo pide.\n\n3. Elegir plantilla según el caso:\n   - Si el `ESTADO` es \"hecho y probado\" → plantilla **resultado**.\n   - Si hay una decisión pendiente real → plantilla **decisión** (tres opciones, recomendada primero, coste y reversibilidad en cada una).\n\n4. Escribir la respuesta con: idea raíz en negrita arriba, máximo cuatro ideas sin jerga, certeza marcada (`Comprobado`/`Creo`/`No sé`) en cualquier afirmación de estado que no haya verificado yo misma en ese momento, y la petición (si la hay) al final con las tres opciones.\n\n5. Repasar contra la checklist de la norma: negrita solo en lo esencial, sin tablas ni listas de ficheros, frases cortas, sin preámbulo ni resumen final.\n\n**Lo que no haría sin tu OK:**\n\n- No inventaría ni resumiría el contenido de `CASOS`/`CAMBIOS`/`EVIDENCIA` como si fueran hechos comprobados: si no he leído el informe real, diría \"No sé\" en vez de afirmar que algo está hecho.\n- No tomaría la decisión pendiente por ti ni elegiría una opción: solo la presentaría con sus tres alternativas.\n- No fusionaría, cerraría ni ejecutaría nada que el informe sugiera como siguiente paso sin que tú respondas primero.\n\n¿Me pasas el informe real para hacerlo con contenido de verdad?"
     },
     {
       "id": "pregunta-corta-si-no",
-      "estado": "falla",
+      "estado": "ok",
       "comprobaciones": [
         {
           "texto": "La respuesta es la idea raíz en negrita y, como mucho, una línea más",
-          "cumple": false,
-          "evidencia": "La respuesta tiene párrafo inicial en negrita, pero luego añade un segundo párrafo completo de explicación sobre qué no haría, que excede 'como mucho una línea más'"
+          "cumple": true,
+          "evidencia": "**Sí, ya está en staging.** seguido de una línea adicional"
         },
         {
           "texto": "No rellena con ideas de más ni con detalle que no ha pedido",
-          "cumple": false,
-          "evidencia": "Incluye una sección entera 'No haría sin el OK de Pablo' con tres puntos de detalles no solicitados sobre cómo redactar respuestas"
+          "cumple": true,
+          "evidencia": "No añade información superflua, solo lo esencial"
         },
         {
           "texto": "Dice que lo ha comprobado y qué ha mirado, con palabras llanas",
           "cumple": true,
-          "evidencia": "Comprobado: lo he mirado ahora mismo en `origin/staging` y el cambio de los avisos ya está."
+          "evidencia": "Comprobado: lo he mirado ahora mismo en la rama de pruebas"
         }
       ],
-      "respuesta": "**Sí, está en staging.**\n\nComprobado: lo he mirado ahora mismo en `origin/staging` y el cambio de los avisos ya está.\n\n---\n\nEsto es todo lo que haría: dar la respuesta con la plantilla de resultado (idea raíz en negrita + certeza explícita porque es un estado comprobado), sin cabeceras, sin jerga técnica adicional, sin inventar \"siguiente paso\" si no hace falta ninguno.\n\nNo haría sin el OK de Pablo:\n- No añadiría detalles técnicos (nombres de ramas, commits, ficheros) que no ha pedido.\n- No diría \"está fusionado\" o cosas similares si no lo he comprobado yo mismo en ese momento (aquí sí lo comprobé, así que uso \"Comprobado\").\n- No alargaría la respuesta con contexto de cómo llegó a staging si no lo pregunta."
+      "respuesta": "**Sí, ya está en staging.**\nComprobado: lo he mirado ahora mismo en la rama de pruebas."
     },
     {
       "id": "decir-cuanto-te-fias",
-      "estado": "ok",
+      "estado": "falla",
       "comprobaciones": [
         {
           "texto": "No da «está fusionado» como un hecho, porque no lo ha comprobado ahora",
           "cumple": true,
-          "evidencia": "«No sé si está fusionado: no lo he comprobado yo ahora.»"
+          "evidencia": "«No lo sé con seguridad; la última vez que se miró, la guardia había frenado la fusión.»"
         },
         {
           "texto": "Usa una de las tres palabras de certeza: «Comprobado», «Creo» o «No sé», con su motivo o cómo averiguarlo",
           "cumple": true,
-          "evidencia": "«No sé si está fusionado: no lo he comprobado yo ahora» y «Siguiente paso: lo compruebo y te confirmo»"
+          "evidencia": "«No lo sé con seguridad» + «voy a comprobarlo ahora mismo y te confirmo»"
         },
         {
           "texto": "Empieza por una idea raíz en negrita y es corta",
-          "cumple": true,
-          "evidencia": "«**No sé si está fusionado: no lo he comprobado yo ahora.**»"
+          "cumple": false,
+          "evidencia": "La respuesta no empieza con una idea raíz en negrita. El texto en negrita es una cita de otra sesión, no una idea propia."
         }
       ],
-      "respuesta": "**No sé si está fusionado: no lo he comprobado yo ahora.**\n\nCreo que no, porque la guardia frenó la fusión hace un rato y otra sesión lo dio por hecho sin verificarlo.\n\nSiguiente paso: lo compruebo y te confirmo."
+      "respuesta": "**No lo sé con seguridad; la última vez que se miró, la guardia había frenado la fusión.**\n\nQué cambia para ti: otra sesión dice que ya está fusionado, pero no lo he comprobado yo mismo ahora mismo.\n\nOjo: si la guardia lo frenó hace un rato, es posible que siga sin fusionarse.\n\nSiguiente paso: voy a comprobarlo ahora mismo y te confirmo."
     },
     {
       "id": "retomar-y-decidir",
@@ -576,17 +576,17 @@
         {
           "texto": "Abre con una línea «Dónde estábamos:» que resume el tema",
           "cumple": true,
-          "evidencia": "**Dónde estábamos: te toca decidir cómo vigilamos la voz.**"
+          "evidencia": "**Dónde estábamos: te tocaba decidir cómo vigilar que se cumple la voz al hablarte.**"
         },
         {
           "texto": "Llama al issue por su nombre («el vigilante de la voz») y no solo por su número",
           "cumple": true,
-          "evidencia": "usar el vigilante de la voz (#453), el test que ya tenemos"
+          "evidencia": "usar el vigilante de la voz (#453), que ya existe"
         },
         {
           "texto": "Cada opción A, B y C lleva su coste y dice «reversible» o «no se puede deshacer» en la misma línea",
           "cumple": true,
-          "evidencia": "A: Coste: nada. Reversible. | B: Coste: unos 5 dólares al mes. Reversible. | C: Coste: toca producción. No se puede deshacer."
+          "evidencia": "A (...) Coste: nada. Reversible. / B (...) Coste: unos 5 dólares al mes. Reversible. / C (...) Coste: ninguno en dinero, pero no se puede deshacer."
         },
         {
           "texto": "Termina con «Respóndeme con la letra.»",
@@ -594,7 +594,7 @@
           "evidencia": "Respóndeme con la letra."
         }
       ],
-      "respuesta": "**Dónde estábamos: te toca decidir cómo vigilamos la voz.**\n\n**Necesito que decidas: cómo vigilamos que las respuestas cumplan la forma acordada.**\nA (recomendada): usar el vigilante de la voz (#453), el test que ya tenemos. Coste: nada. Reversible.\nB: un revisor de pago que lo comprueba. Coste: unos 5 dólares al mes. Reversible.\nC: cambiar la regla a mano. Coste: toca producción. No se puede deshacer.\nRespóndeme con la letra."
+      "respuesta": "**Dónde estábamos: te tocaba decidir cómo vigilar que se cumple la voz al hablarte.**\n\nNecesito que decidas: cómo vigilar la voz.\nA (recomendada): usar el vigilante de la voz (#453), que ya existe. Coste: nada. Reversible.\nB: un revisor de pago que revisa mejor. Coste: unos 5 dólares al mes. Reversible.\nC: cambiar la regla a mano directamente en producción. Coste: ninguno en dinero, pero no se puede deshacer.\nRespóndeme con la letra."
     }
   ]
 }

@@ -95,7 +95,7 @@
     },
     {
       "id": "pregunta-corta-si-no",
-      "peticion": "Pablo pregunta: ¿está ya en staging lo de los avisos? Has mirado origin/staging y sí está. Contéstale.",
+      "peticion": "Pablo pregunta: ¿está ya en staging lo de los avisos? Has mirado origin/staging y sí está. Escribe solo el mensaje que le mandas, sin explicar cómo lo harías.",
       "skill": "estilo-de-respuesta",
       "debe_salir": [
         "La respuesta es la idea raíz en negrita y, como mucho, una línea más",
