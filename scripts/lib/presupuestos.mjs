@@ -13,8 +13,9 @@
  * los de ALCANCES_FALLO (flujo.mjs) y las causas, las de `causa:` de issues.mjs:
  * no se copian, y el test comprueba que toda celda sale con un presupuesto.
  *
- * La fase F (#340) recalibra los números con lo medido; este fichero no sabe de
- * eso más que el hueco `recalibracion` y la fecha `calibrado_el` del JSON.
+ * La fase F (#340) compara los números con lo medido (scripts/lib/fabrica.mjs,
+ * `npm run fabrica -- --recalibrar`); este fichero no sabe de eso más que el
+ * hueco `recalibracion` y la fecha `calibrado_el` del JSON.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -187,8 +188,8 @@ export function textoDe(p, catalogo = CATALOGO) {
 export function generarTabla(catalogo = CATALOGO) {
   const out = [
     catalogo.valores_iniciales
-      ? "Valores iniciales de F0, a ojo y marcados como tales. La fase F los recalibra cada semana con lo medido (hueco `recalibracion` y fecha `calibrado_el` de `ops/presupuestos.json`)."
-      : `Calibrados el ${catalogo.calibrado_el}. La fase F los recalibra cada semana con lo medido.`,
+      ? "Valores iniciales de F0, a ojo y marcados como tales. `npm run fabrica -- --recalibrar` (fase F) los compara con lo medido y propone cambios; una persona los aplica en /revision-issues (hueco `recalibracion` y fecha `calibrado_el` de `ops/presupuestos.json`)."
+      : `Calibrados el ${catalogo.calibrado_el}. \`npm run fabrica -- --recalibrar\` (fase F) los compara con lo medido y propone cambios.`,
     "",
     "| Alcance | Diagnostica | ES / NO ES | Hipótesis en paralelo (máx.) | Jueces (mín.) | Rondas (máx.) | Minutos orientativos |",
     "|---|---|---|---|---|---|---|",
