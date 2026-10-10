@@ -163,10 +163,12 @@ export function faltasDePresentacion(texto, donde = "SKILL.md") {
 
 /**
  * Los controles de una skill sola. `cuerpo` es el de `parsearSkill`; `tipo`, el
- * de su metadata; `extra`, los ficheros .md de sus capas ({ruta: texto}). Devuelve
- * [] si cumple todo.
+ * de su metadata; `extra`, los ficheros .md de sus capas ({ruta: texto}). `parada`
+ * fuerza si se pide criterio de parada en «Método» (la pieza meta, que no tiene tipo:
+ * lo decide su forma de `nivel_0`); si no se da, lo dice el criterio según el tipo.
+ * Devuelve [] si cumple todo.
  */
-export function faltasForja({ nombre, cuerpo, tipo, casos, extra = {} }) {
+export function faltasForja({ nombre, cuerpo, tipo, casos, extra = {}, parada }) {
   const f = [];
 
   if (casos && !casos.error && casosNegativos(casos, nombre) < MIN_FRONTERA_FORJA) {
@@ -180,7 +182,7 @@ export function faltasForja({ nombre, cuerpo, tipo, casos, extra = {} }) {
   // Un servicio ya tiene «Debe salir» en cada fila (regla `formato`); los demás tipos, en «Método».
   // Sin «Método» no hay nada que mirar aquí: si su tipo lo pide, ya falla la regla `secciones`.
   const metodo = secs.find((s) => s.titulo === "Método");
-  if (metodo && paradaAplica(tipo)) {
+  if (metodo && (parada ?? paradaAplica(tipo))) {
     if (!CRITERIO_DE_PARADA.test(metodo.texto)) f.push(falta("sin-parada", "«Método» no dice cuándo se acaba ni qué se ve cuando sale bien («Sale bien si», «Debe salir», «Hecho cuando», «Parar si»)"));
   }
 

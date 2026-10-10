@@ -207,6 +207,24 @@ it("un tipo nuevo pasa con sus secciones y su registro de cambios", () => {
   expect(nivel1({ ...skill, texto: sinRegistro }).map((f) => f.regla)).toContain("formato");
 });
 
+it("la pieza meta (nivel 0) también dice en su «Método» cuándo se acaba (sin-parada)", () => {
+  const seccionesMeta = FORJA.nivel_0.skills.secciones;
+  expect(seccionesMeta).toContain("Método");
+  const meta = (metodo) => {
+    const cuerpo = seccionesMeta.map((t) => {
+      if (t === "Registro de cambios") return `## ${t}\n\n- **2026-10-09** · Primera versión (#495).`;
+      if (t === "Fuentes y comprobación") return `## ${t}\n\n- https://ejemplo.invalid\n\nComprobado el 2026-10-09: la prueba.`;
+      if (t === "Lo que falló y por qué") return `## ${t}\n\nNada todavía: es nueva. ${relleno}`;
+      if (t === "Método") return `## ${t}\n\n${metodo}`;
+      return `## ${t}\n\n${relleno}`;
+    }).join("\n\n");
+    const texto = `---\nname: prueba\ndescription: Úsala cuando haya que probar el nivel 1 de las skills con una pieza meta de mentira. No para: nada real.\nmetadata:\n  nivel: 0\n  dueno: gobierno\n  comprobado: 2026-10-09\n---\n\n# Prueba\n\n${cuerpo}\n`;
+    return nivel1(buena({ texto, ficheros: ["SKILL.md", "casos.json"], extra: {} }), { seccionesMeta });
+  };
+  expect(ver(meta(`${relleno}\n\nSale bien si la prueba pasa.`))).toEqual([]);
+  expect(meta(relleno).map((f) => f.codigo)).toContain("sin-parada");
+});
+
 // ── La plantilla, el catálogo del flujo y CLAUDE.md dicen lo mismo ───────
 
 it("cada tipo de ops/forja.json tiene sus secciones, y ninguno más", () => {

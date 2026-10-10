@@ -400,7 +400,9 @@ export function faltasDeSkill(skill, ctx) {
   for (const t of [texto, ...Object.values(skill.extra ?? {})]) for (const p of SECRETOS) if (p.test(t)) f.push(falta("secretos", String(p)));
   f.push(...reglaRutasYEstructura(skill, ctx));
   f.push(...faltasDeCasos(skill.casos, skill.nombre, ctx.skills));
-  f.push(...sinExcepciones(faltasForja({ nombre: skill.nombre, cuerpo, tipo, casos: skill.casos, extra: skill.extra }), skill.nombre, ctx.excepcionesForja ?? EXCEPCIONES_FORJA));
+  // La pieza meta no tiene tipo: si su forma (nivel_0 de la forja) lleva «Método», se le pide criterio de parada como a los demás.
+  const parada = esMeta ? (secciones ?? []).includes("Método") : undefined;
+  f.push(...sinExcepciones(faltasForja({ nombre: skill.nombre, cuerpo, tipo, casos: skill.casos, extra: skill.extra, parada }), skill.nombre, ctx.excepcionesForja ?? EXCEPCIONES_FORJA));
   return f;
 }
 
