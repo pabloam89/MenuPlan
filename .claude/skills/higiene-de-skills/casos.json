@@ -42,6 +42,16 @@
       ]
     },
     {
+      "id": "repaso-del-glosario",
+      "peticion": "Toca el repaso de la semana: ¿qué palabras se repiten y faltan en el glosario? Y baja lo que ya cumple.",
+      "skill": "higiene-de-skills",
+      "debe_salir": [
+        "Lanza npm run glosario -- --candidatos y juzga cada candidato como término nuevo, sinónimo de otro o nada, con su motivo",
+        "Baja las excepciones que ya cumplen con npm run glosario -- --medir, sin subir ninguna",
+        "Apunta los juicios en ops/glosario-candidatos.json y propone como regla un juicio que se repite tres veces"
+      ]
+    },
+    {
       "id": "frontera-skill-nueva",
       "peticion": "Estoy pensando en escribir una skill para el proveedor de pagos nuevo. ¿Compensa o basta con una regla suelta?",
       "skill": "forja-de-skills",

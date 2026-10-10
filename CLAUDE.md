@@ -81,7 +81,9 @@ en staging.
    `gh pr update-branch <n>` (en un comando aparte) y espera el CI.
 2. `git status --short` y añade por nombre solo lo tuyo; si un fichero mezcla
    lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera.
-3. En local, solo los tests de los ficheros que tocas y los que cubren lo tocado (`npx vitest run <ficheros>`).
+3. En local, `npm run vecinos`: los tests de lo que tocas más los vigilantes de conjunto
+   que lo miran (los que recorren todos los scripts, skills o migraciones; lista en
+   `ops/vigilantes.json`). Elegir a mano con `npx vitest run <ficheros>` los deja fuera (#356).
    La suite entera, el build y el lint con base los corre el CI del PR (gratis en
    repo público): espera su resultado con una consulta espaciada, sin sondear. La
    suite entera en local solo si tocas algo transversal (`package.json`, `vite.config.js`,
@@ -223,8 +225,11 @@ qué lo hace cumplir; lo que aún no tiene mecanismo lleva su issue (fondo #479)
   de la forja, #458).
 - **Vocabulario cerrado** para todo lo que se agrupa (motivos de fallo,
   estados, causas, tipos, sitios): una constante en JS, un CHECK si va a SQL y
-  su test, como `src/lib/vocabularios.js`. Un valor no se borra ni se
-  reutiliza: se retira y dice a cuál pasa (#481).
+  su test, como `src/lib/vocabularios.js`. Un valor de un vocabulario de
+  proceso no se borra, no se reutiliza ni se redefine sin registro: se retira y
+  dice a cuál pasa (los vocabularios de `ops/vocabularios-vida.json` y los
+  términos del glosario, con su test contra `origin/staging`; los del producto
+  y los CHECK de SQL, aún no).
 - **Una palabra, un significado**: las palabras de proceso (comprobar, caso,
   fondo, encargo, juez…) salen de `ops/glosario.json` (`npm run glosario`);
   su test falla con un sinónimo prohibido nuevo.
