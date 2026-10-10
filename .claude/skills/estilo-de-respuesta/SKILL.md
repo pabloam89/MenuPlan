@@ -171,6 +171,7 @@ Bien:
 
 ## Registro de cambios
 
+- **2026-10-10** · Se añaden «Traducir la jerga» y «El comando para pegar»; el caso del comando se reformula (disparo de 8/9 a 9/9, comprobaciones de 13/16 a 14/16) (#415).
 - **2026-10-10** · Primera versión: idea raíz en negrita, cuatro ideas como mucho, petición al final y detalle fuera del chat (#415).
 
 ## Fuentes y comprobación
@@ -182,4 +183,4 @@ Bien:
 
 Sin comprobar: las fuentes se citan de memoria y no se han releído al escribir; cuántas respuestas reales cumplen la forma; y que mejore sobre el modelo solo, porque `skills-prueba` mide la skill con ella y no sin ella.
 
-Comprobado el 2026-10-10: la forma con `.claude/skills.test.js` y los casos con `npm run skills-prueba -- estilo-de-respuesta` (`ops/skills-prueba/estilo-de-respuesta.json`): disparo 8 de 9 y comprobaciones 13 de 16 en la primera pasada (0,07 $); fallan un caso de frontera cercano («comando para pegar» elige ninguna) y tres comprobaciones sobre jerga y ficheros. Una sola pasada, sin segunda.
+Comprobado el 2026-10-10: la forma con `.claude/skills.test.js` y los casos con `npm run skills-prueba -- estilo-de-respuesta` (`ops/skills-prueba/estilo-de-respuesta.json`): disparo 8 de 9 y comprobaciones 13 de 16 en la primera pasada, y 9 de 9 y 14 de 16 tras añadir la tabla de jerga y la pauta del comando (0,07 $ cada una). Siguen fallando dos comprobaciones: la jerga de la frase con workflow, deploy key y ruleset, y el comando solo en su bloque.
