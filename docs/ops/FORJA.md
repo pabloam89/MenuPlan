@@ -124,7 +124,7 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 |---|---|
 | bool | Verdadero o falso |
 | enum | Un valor de un vocabulario cerrado |
-| ref | Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue o fuente |
+| ref | Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue, fuente, evidencia o versión |
 | numero | Un número |
 | fecha | Una fecha AAAA-MM-DD |
 | texto | Prosa: solo como hueco, con su motivo |
@@ -134,11 +134,12 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 | skill | 13 | 2 | 15 |
 | estandar | 2 | 5 | 7 |
 | agente | 3 | 1 | 4 |
+| juicio | 6 | 1 | 7 |
 | criterio | 2 | 6 | 8 |
 
 ### Campos de skill
 
-El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno y comprobado en metadata). Hasta que existan las fichas de skill (#457), es lo que hay.
+El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno y comprobado en metadata). Los juicios de sus criterios de juicio van aparte, en ops/juicios-skills/<skill>.json (campos_ficha.juicio, #457).
 
 - `name` — ref a skill
 - `description` — texto. Hueco: El cuándo se abre la skill dicho con las palabras de quien pide: lo discreto no lo alcanza, es prosa para que el modelo reconozca una petición
@@ -177,6 +178,18 @@ El frontmatter de .claude/agents/<agente>.md.
 - `model` — enum (modelo_agente)
 - `skills` — ref a skill, lista, opcional
 
+### Campos de juicio
+
+Un juicio de skill: el estado de un criterio de juicio (control «juicio») sobre una skill, en ops/juicios-skills/<skill>.json bajo el id del criterio (#457). Los criterios con control no se escriben: los calcula su control. Lo valida scripts/lib/juiciosSkills.mjs.
+
+- `estado` — enum (estados_criterio)
+- `evidencia` — ref a evidencia, lista, opcional
+- `motivo_pendiente` — enum (motivos_pendiente), opcional
+- `nota` — texto, opcional. Hueco: Lo propio de esta skill que el estado no dice: qué falla en el hueco o qué falta mirar; lo que es del criterio va al criterio
+- `fecha` — fecha, opcional
+- `firmante` — enum (firmantes), opcional
+- `version_skill_md` — ref a version, opcional
+
 ### Campos de criterio
 
 Un criterio de este catálogo, redactado por campos (scripts/lib/regla.mjs): nombre, sujeto, fuerza, condicion, exigencia y, en los subjetivos, cumple y no_cumple. El resto de sus campos (id, capa, aplica_a, fuente, control, codigo) los vigila problemasDeForja.
@@ -210,14 +223,22 @@ Un estándar se escribe tras 3 rondas de investigación o más (buscar, contrast
 | material | Heurística automática; lo que hoy incumple va a una lista de excepciones que solo baja |
 | subjetiva | Una rúbrica escrita que un LLM puntúa sobre casos; para lo que no se puede discretizar |
 
-| Estado de una ficha | Qué quiere decir |
+| Estado de un criterio | Qué quiere decir |
 |---|---|
 | cumple | Lo comprobó un control o un juicio y se cumple |
 | no_cumple | Lo comprobó un control o un juicio y no se cumple |
 | no_aplica | El criterio no se aplica a este artefacto |
 | juicio | Pendiente de juicio: lo puntúa un LLM o una persona y aún no se ha hecho |
 
-Una ficha es una línea `<artefacto>: <nombre> criterio: <id> estado: <estado>`; solo no_cumple y juicio llevan `nota:` (el hueco).
+El estado de un criterio sobre un artefacto es una línea `<artefacto>: <nombre> criterio: <id> estado: <estado>`; solo no_cumple y juicio llevan `nota:` (el hueco). Los juicios de skill (los criterios de juicio de cada skill, con su evidencia) viven en `ops/juicios-skills/<skill>.json` y sus campos son los de `campos_ficha.juicio`.
+
+| Motivo de un pendiente | Qué quiere decir | Dónde se escribe |
+|---|---|---|
+| falta_herramienta | Falta el control o la medida que lo comprobaría (un test, el A/B con y sin skill) | criterio, juicio |
+| falta_decision | Falta decidir en la base cómo se aplica (a un tipo, o si no existe la pieza que juzga) | criterio, juicio |
+| sin_mirar | Nadie lo ha juzgado todavía | juicio |
+| sin_pasada | Se juzga con una pasada del nivel 2 vigente, y no la hay | juicio, calculado |
+| otra_version | Se juzgó sobre otra versión del SKILL.md: hay que volver a juzgarlo | calculado |
 
 ## Promoción de una rúbrica
 
@@ -407,7 +428,7 @@ Una rúbrica escrita que un LLM puntúa sobre casos; para lo que no se puede dis
 - `solo-lo-que-el-modelo-no-sabe` — **Solo lo no sabido.** El cuerpo de cada skill DEBE justificar el coste de cada párrafo en cada sesión: decir solo lo que el modelo no sabría sin la skill. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Cumple si quitar un párrafo cambiaría lo que hace quien la lee. No cumple si explica lo que el modelo ya hace bien o pega la documentación del proveedor.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Pendiente (falta_herramienta): lo da #517.
 - `libertad-ajustada` — **Libertad ajustada.** El cuerpo de cada skill DEBE ajustar la libertad de cada instrucción a lo frágil que es la tarea. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Cumple si donde un error cuesta caro (un borrado, una clave) hay pasos exactos o un script, y donde no, una heurística. No cumple si hay pasos rígidos en lo abierto o vaguedad en lo irreversible.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).
@@ -415,7 +436,7 @@ Una rúbrica escrita que un LLM puntúa sobre casos; para lo que no se puede dis
 - `camino-por-defecto` — **Camino por defecto.** El cuerpo de cada skill DEBE tener un camino por defecto y, aparte, la salida para el caso raro. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Cumple si ante una petición normal está claro qué hacer primero. No cumple si ofrece un menú («usa A, o B, o C») sin decir cuál.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Pendiente (falta_decision): lo da #518.
 - `pasos-con-salida-observable` — **Salida observable.** El cuerpo de cada skill DEBE decir en cada paso qué se ve cuando sale bien, de modo que quien lo hace sabe si avanza o debe parar. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Cumple si un paso se puede comprobar mirando una salida, un fichero o un estado. No cumple si pide «comprobar que esté bien» sin decir cómo.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
@@ -427,12 +448,12 @@ Una rúbrica escrita que un LLM puntúa sobre casos; para lo que no se puede dis
 - `ejemplos-canonicos` — **Ejemplos canónicos.** El cuerpo de cada skill DEBE tener ejemplos pocos, representativos y sin contradicción con la norma de la propia skill. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Cumple si cada ejemplo enseña la regla sin romperla. No cumple si es una lista de casos límite o un ejemplo viola lo que la skill enseña.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md.
+  - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md. Pendiente (falta_decision): lo da #518.
 - `casos-medidos-con-y-sin-skill` — **Casos medidos con y sin.** El conjunto de casos de prueba de cada skill DEBE escribirse antes que el texto y medirse con más de una ejecución, para saber si la skill mejora sobre el modelo solo. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Cumple si hay cifra con y sin skill. No cumple si solo se probó una vez con la skill puesta.
   - Nota: Hoy no existe la medida automática con y sin skill: el nivel 2 mide solo con ella. Cifra de partida (comprobaciones del nivel 2, 10 oct 2026): higiene-de-skills cumple 5 de 12 y forja-de-skills 12 de 16.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [F] https://agentskills.io/skill-creation/evaluating-skills.
+  - Fuente: [F] https://agentskills.io/skill-creation/evaluating-skills. Pendiente (falta_herramienta): lo da #517.
 - `skill-contrastada-con-fallo-real` — **Nacida de un fallo.** Cada skill DEBE nacer de un fallo real visto sin ella, no de lo que se imagina que hará falta. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Cumple si el PR o «Lo que falló y por qué» cuentan en qué fallaba la sesión sin la skill. No cumple si sale de documentación copiada o de una lista de buenas intenciones.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).

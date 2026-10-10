@@ -206,6 +206,14 @@ describe("los avisos que no caben en la skill mala", () => {
       .filter((x) => x.codigo === "caso-en-frontera")).toEqual([]);
   });
 
+  it("tipo y dueño: un tipo que no casa con sus respuestas y un dueño que no la carga son faltas (#457: todo código se ve salir)", () => {
+    const b = oficio();
+    const otroTipo = { ...b, texto: b.texto.replace("  tipo: diagnostico", "  tipo: revision") };
+    expect(higieneDeSkill(otroTipo, ctxDe()).find((x) => x.codigo === "tipo")?.gravedad).toBe("falta");
+    const sinCargar = { ...ctxDe(), agentes: { gobierno: ["otra"], lola: [] } };
+    expect(higieneDeSkill(b, sinCargar).find((x) => x.codigo === "dueno")?.gravedad).toBe("falta");
+  });
+
   it("tamano: más de 220 líneas es falta del nivel 1 y no solo aviso", () => {
     const relleno220 = Array.from({ length: 230 }, (_, i) => `Línea ${i}.`).join("\n\n");
     const d = higieneDeSkill(oficio({ secciones: { "Técnicas": relleno220 } }), ctxDe());
@@ -213,9 +221,10 @@ describe("los avisos que no caben en la skill mala", () => {
     expect(codigos(d)).not.toContain("tamano-cerca");
   });
 
-  it("comprobado: caducada es falta; a 30 días o menos de caducar, aviso", () => {
-    const vieja = higieneDeSkill(oficio({ comprobado: "2026-06-01" }), ctxDe()).find((x) => x.codigo === "comprobado");
-    expect(vieja?.gravedad).toBe("falta");
+  it("caducada es falta con su propio código (el del criterio caducada, #457); a 30 días o menos de caducar, aviso", () => {
+    const vieja = higieneDeSkill(oficio({ comprobado: "2026-06-01" }), ctxDe());
+    expect(vieja.find((x) => x.codigo === "caducada")?.gravedad).toBe("falta");
+    expect(vieja.map((x) => x.codigo)).not.toContain("comprobado");
     const pronto = higieneDeSkill(oficio({ comprobado: "2026-07-20" }), ctxDe()).find((x) => x.codigo === "caduca-pronto");
     expect(pronto?.gravedad).toBe("aviso");
     expect(pronto?.detalle).toMatch(/caduca en 8 días/);

@@ -1,0 +1,81 @@
+{
+  "skill": "plan-de-arreglo",
+  "juicios": {
+    "descripcion-palabras-de-quien-pide": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/plan-de-arreglo/SKILL.md"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "9512d315fe1c"
+    },
+    "frontera-casi-fallos": {
+      "estado": "cumple",
+      "evidencia": [
+        "caso:plan-de-arreglo/frontera-sin-causa",
+        "caso:plan-de-arreglo/frontera-lineas-del-pr"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "9512d315fe1c"
+    },
+    "disparador-al-principio": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/plan-de-arreglo/SKILL.md",
+        ".claude/skills.test.js"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "9512d315fe1c"
+    },
+    "solo-lo-que-el-modelo-no-sabe": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_herramienta"
+    },
+    "libertad-ajustada": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "camino-por-defecto": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/plan-de-arreglo/SKILL.md#Método"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "9512d315fe1c"
+    },
+    "pasos-con-salida-observable": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "solo algunos pasos del «Método» dicen qué sale; falta mirar si los demás se pueden comprobar"
+    },
+    "vocabulario-unico": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "ejemplos-canonicos": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/plan-de-arreglo/SKILL.md#Ejemplo resuelto"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "9512d315fe1c"
+    },
+    "skill-contrastada-con-fallo-real": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "su «Lo que falló» está vacío; falta mirar el PR que la creó",
+      "evidencia": [
+        "issue:338"
+      ]
+    },
+    "forma-adecuada-al-contenido": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    }
+  }
+}

@@ -77,10 +77,31 @@ export const vocabulariosDeCriterio = (datos) => ({ sujeto: Object.keys(datos?.s
  */
 export const CAMPOS_OPCIONALES = ["casos_calibracion", "medidas", "listo_para_subir"];
 /**
- * Un criterio cuyo control lo da otro encargo y aún no existe: `control: "juicio"` provisional, `pendiente_de` (el issue)
- * y `control_pendiente` (el fichero que será su control). En cuanto ese fichero existe, el criterio tiene que pasar a usarlo.
+ * Un criterio al que le falta algo que da otro encargo: `pendiente_de` (el issue) y su `motivo_pendiente`
+ * (de `MOTIVOS_PENDIENTE`). En la capa formal o material es el control que aún no existe: `control: "juicio"`
+ * provisional y `control_pendiente` (el fichero que será su control); en cuanto existe, el criterio pasa a usarlo.
+ * En la subjetiva (#457) el control sigue siendo «juicio» y lo pendiente es lo que hace falta para juzgarlo
+ * (una medida, una decisión); `control_pendiente` es opcional y dice el fichero que lo dará.
  */
-export const CAMPOS_PENDIENTE = ["pendiente_de", "control_pendiente"];
+export const CAMPOS_PENDIENTE = ["pendiente_de", "control_pendiente", "motivo_pendiente"];
+/**
+ * Por qué algo está pendiente (vocabulario cerrado, #457). `en`: dónde se puede escribir: en un criterio
+ * de ops/forja.json, en un juicio guardado de una skill, o solo lo calcula el script.
+ */
+export const MOTIVOS_PENDIENTE = {
+  falta_herramienta: { que: "Falta el control o la medida que lo comprobaría (un test, el A/B con y sin skill)", en: ["criterio", "juicio"] },
+  falta_decision: { que: "Falta decidir en la base cómo se aplica (a un tipo, o si no existe la pieza que juzga)", en: ["criterio", "juicio"] },
+  sin_mirar: { que: "Nadie lo ha juzgado todavía", en: ["juicio"] },
+  sin_pasada: { que: "Se juzga con una pasada del nivel 2 vigente, y no la hay", en: ["juicio", "calculado"] },
+  otra_version: { que: "Se juzgó sobre otra versión del SKILL.md: hay que volver a juzgarlo", en: ["calculado"] },
+};
+/** Lo pendiente de un criterio, en una frase para FORJA.md (vacía si no hay nada pendiente). */
+function textoPendiente(c) {
+  if (!c.pendiente_de) return "";
+  if (c.capa !== "subjetiva") return ` Control provisional: lo da ${c.pendiente_de} con \`${c.control_pendiente}\`.`;
+  return ` Pendiente (${c.motivo_pendiente}): lo da ${c.pendiente_de}${c.control_pendiente ? ` con \`${c.control_pendiente}\`` : ""}.`;
+}
+export const motivosPendienteEn =(donde) => Object.keys(MOTIVOS_PENDIENTE).filter((m) => MOTIVOS_PENDIENTE[m].en.includes(donde));
 /** Lo que un caso de calibración puede esperar: una respuesta conocida, no un hueco. */
 export const ESPERADOS_CALIBRACION = ["cumple", "no_cumple"];
 
@@ -174,14 +195,25 @@ function problemasDeRubrica(c, d, malos) {
   }
 }
 
-/** `pendiente_de` y `control_pendiente`: van juntos, solo con control «juicio», y caducan cuando el fichero existe. */
+/**
+ * Lo pendiente de un criterio. Formal o material: `pendiente_de` y `control_pendiente` van juntos, solo con control
+ * «juicio», y caducan cuando el fichero existe; su motivo, si lo dice, es falta_herramienta. Subjetivo (#457):
+ * `pendiente_de` y `motivo_pendiente` van juntos; `control_pendiente`, opcional.
+ */
 function problemasDePendiente(c, d, existe, malos) {
   const tiene = CAMPOS_PENDIENTE.filter((k) => k in (c ?? {}));
   if (!tiene.length) return;
-  if (tiene.length !== 2) malos.push(`${d}: pendiente_de y control_pendiente van juntos`);
   if (c.control !== JUICIO) malos.push(`${d}: un criterio pendiente lleva control «${JUICIO}» hasta que exista su fichero`);
-  if (c.capa === "subjetiva") malos.push(`${d}: pendiente_de es de un criterio formal o material cuyo control aún no existe`);
-  if (typeof c.pendiente_de !== "string" || !/^#[1-9]\d{0,6}$/.test(c.pendiente_de)) malos.push(`${d}: pendiente_de es el issue que lo da (#n)`);
+  const motivos = motivosPendienteEn("criterio");
+  if ("motivo_pendiente" in c && !motivos.includes(c.motivo_pendiente)) malos.push(`${d}: motivo_pendiente «${c.motivo_pendiente}» no está en el vocabulario (${motivos.join(", ")})`);
+  if (c.capa === "subjetiva") {
+    if (!("pendiente_de" in c) || !("motivo_pendiente" in c)) malos.push(`${d}: en un criterio subjetivo, pendiente_de y motivo_pendiente van juntos`);
+  } else {
+    if (!("pendiente_de" in c) || !("control_pendiente" in c)) malos.push(`${d}: pendiente_de y control_pendiente van juntos`);
+    if ("motivo_pendiente" in c && c.motivo_pendiente !== "falta_herramienta") malos.push(`${d}: un criterio formal o material solo está pendiente de su control (falta_herramienta)`);
+  }
+  if ("pendiente_de" in c && (typeof c.pendiente_de !== "string" || !/^#[1-9]\d{0,6}$/.test(c.pendiente_de))) malos.push(`${d}: pendiente_de es el issue que lo da (#n)`);
+  if (!("control_pendiente" in c)) return;
   if (typeof c.control_pendiente !== "string" || !c.control_pendiente.trim()) malos.push(`${d}: control_pendiente es la ruta del fichero que será su control`);
   else if (existe(c.control_pendiente)) malos.push(`${d}: ya existe ${c.control_pendiente}: pon ese fichero como «control» y quita pendiente_de y control_pendiente`);
 }
@@ -503,13 +535,17 @@ export function problemasDeTaxonomia(datos, { skills: todas, fichaDe = {} }) {
 export const CLASES_CAMPO = {
   bool: "Verdadero o falso",
   enum: "Un valor de un vocabulario cerrado",
-  ref: "Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue o fuente",
+  ref: "Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue, fuente, evidencia o versión",
   numero: "Un número",
   fecha: "Una fecha AAAA-MM-DD",
   texto: "Prosa: solo como hueco, con su motivo",
 };
-/** Lo que apunta una `ref`. `fuente` es el id del catálogo de fuentes de los estándares. */
-export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente"];
+/**
+ * Lo que apunta una `ref`. `fuente` es el id del catálogo de fuentes de los estándares; `evidencia`, lo que
+ * respalda un juicio (una ruta con su cabecera, un caso, un comando, un PR o un issue: la valida quien da
+ * `ctx.existe`); `version`, el hash de 12 de una versión de un fichero (hashLF de scripts/lib/evals.mjs).
+ */
+export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente", "evidencia", "version"];
 /** Nivel de una clase para el trinquete: el texto es el hueco; todo lo demás es discreto. */
 export const NIVELES_CAMPO = ["texto", "discreto"];
 export const nivelDeClase = (clase) => (clase === "texto" ? "texto" : "discreto");
@@ -585,6 +621,7 @@ function problemaDeValor(c, x, datos, ctx) {
       if (c.ref === "criterio") return datos.criterios.some((k) => k.id === x) ? null : `el criterio «${x}» no existe`;
       if (c.ref === "comando") return /^(npm run [\w:-]+|node \S+\.mjs)( .*)?$/.test(x) ? null : `«${x}» no es un comando (npm run … o node …mjs)`;
       if (c.ref === "issue") return /^#?[1-9]\d{0,6}$/.test(String(x)) ? null : `«${x}» no es un issue (#n)`;
+      if (c.ref === "version") return /^[0-9a-f]{12}$/.test(x) ? null : `«${x}» no es una versión (hash de 12 en hexadecimal)`;
       if (!ctx.existe) return `no se puede comprobar que exista ${c.ref} «${x}»: falta ctx.existe`;
       return ctx.existe(c.ref, x) ? null : `${c.ref} «${x}» no existe`;
     }
@@ -838,11 +875,15 @@ export function generarMd(datos) {
     "|---|---|",
     ...ORDEN_CAPAS.slice().reverse().map((capa) => `| ${capa} | ${celda(CAPAS_CRITERIO[capa])} |`),
     "",
-    "| Estado de una ficha | Qué quiere decir |",
+    "| Estado de un criterio | Qué quiere decir |",
     "|---|---|",
     ...Object.entries(ESTADOS_CRITERIO).map(([e, t]) => `| ${e} | ${celda(t)} |`),
     "",
-    `Una ficha es una línea \`<artefacto>: <nombre> criterio: <id> estado: <estado>\`; solo ${ESTADOS_CON_NOTA.join(" y ")} llevan \`nota:\` (el hueco).`,
+    `El estado de un criterio sobre un artefacto es una línea \`<artefacto>: <nombre> criterio: <id> estado: <estado>\`; solo ${ESTADOS_CON_NOTA.join(" y ")} llevan \`nota:\` (el hueco). Los juicios de skill (los criterios de juicio de cada skill, con su evidencia) viven en \`ops/juicios-skills/<skill>.json\` y sus campos son los de \`campos_ficha.juicio\`.`,
+    "",
+    "| Motivo de un pendiente | Qué quiere decir | Dónde se escribe |",
+    "|---|---|---|",
+    ...Object.entries(MOTIVOS_PENDIENTE).map(([m, x]) => `| ${m} | ${celda(x.que)} | ${x.en.join(", ")} |`),
     "",
     "## Promoción de una rúbrica",
     "",
@@ -863,7 +904,7 @@ export function generarMd(datos) {
         if (c.cumple) L.push(`  - Cumple si ${c.cumple}. No cumple si ${c.no_cumple}.`);
         if (c.nota) L.push(`  - Nota: ${c.nota}.`);
         if (c.casos_calibracion) L.push(`  - Calibración: ${c.casos_calibracion.length} casos con respuesta conocida (${c.casos_calibracion.map((k) => k.esperado).join(", ")})${c.listo_para_subir ? ". Listo para subir." : "."}`);
-        L.push(`  - Fuente: ${c.fuente}.${c.pendiente_de ? ` Control provisional: lo da ${c.pendiente_de} con \`${c.control_pendiente}\`.` : ""}${c.codigo ? ` Código: \`${c.codigo}\`.` : ""}`);
+        L.push(`  - Fuente: ${c.fuente}.${textoPendiente(c)}${c.codigo ? ` Código: \`${c.codigo}\`.` : ""}`);
       }
     }
   }

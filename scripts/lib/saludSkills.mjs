@@ -31,6 +31,22 @@ export function pasadaGuardada(nombre, raiz = RAIZ) {
   }
 }
 
+/**
+ * Si una pasada guardada se hizo con el SKILL.md y el casos.json de hoy (los hashes de `version`). Una pasada
+ * desactualizada no vale como evidencia (#457): mide otra skill.
+ */
+export function pasadaDesactualizada(pasada, nombre, raiz = RAIZ) {
+  const skill = existsSync(join(raiz, DIR_SKILLS, nombre, "SKILL.md")) ? readFileSync(join(raiz, DIR_SKILLS, nombre, "SKILL.md"), "utf8") : "";
+  const casos = existsSync(join(raiz, DIR_SKILLS, nombre, "casos.json")) ? readFileSync(join(raiz, DIR_SKILLS, nombre, "casos.json"), "utf8") : "";
+  return pasada?.version?.skill_md !== hashLF(skill) || pasada?.version?.casos_json !== hashLF(casos);
+}
+
+/** La pasada guardada de una skill si está vigente (hecha con sus ficheros de hoy); si no, null. */
+export function pasadaVigente(nombre, raiz = RAIZ) {
+  const p = pasadaGuardada(nombre, raiz);
+  return p && !pasadaDesactualizada(p, nombre, raiz) ? p : null;
+}
+
 /** → { filas:[{nombre, faltas, avisos, caducidad, dias, pasada}], indicadores:[{indicador, valor, umbral, estado, en}] } */
 export function saludDeSkills(raiz = RAIZ, hoy = new Date()) {
   const nombres = nombresDeSkills(raiz);
@@ -40,7 +56,6 @@ export function saludDeSkills(raiz = RAIZ, hoy = new Date()) {
     const defectos = higieneDeSkill(skill, ctxHigiene(nombre, raiz, hoy));
     const g = (x) => defectos.filter((d) => d.gravedad === x).length;
     const p = pasadaGuardada(nombre, raiz);
-    const casosTexto = existsSync(join(raiz, DIR_SKILLS, nombre, "casos.json")) ? readFileSync(join(raiz, DIR_SKILLS, nombre, "casos.json"), "utf8") : "";
     return {
       nombre,
       faltas: g("falta"),
@@ -53,7 +68,7 @@ export function saludDeSkills(raiz = RAIZ, hoy = new Date()) {
         resultado: p.resultado,
         disparo: `${p.resumen?.disparo_ok}/${p.resumen?.disparo_total}`,
         comprobaciones: `${p.resumen?.comprobaciones_ok}/${p.resumen?.comprobaciones_total}`,
-        desactualizada: p.version?.skill_md !== hashLF(skill.texto) || p.version?.casos_json !== hashLF(casosTexto),
+        desactualizada: pasadaDesactualizada(p, nombre, raiz),
       },
     };
   });

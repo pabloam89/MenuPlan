@@ -78,6 +78,13 @@ buena que sale limpia y el script sobre el repo.
 - **La cifra**: una línea por skill, `higiene skill: <s> faltas: a avisos: b
   solape: x con: <otra>`, y la del conjunto, `Higiene: n skills, … faltas y …
   avisos`. Se pone antes y después en el PR, y la del conjunto no sube.
+- **Los criterios**: por cada criterio de `ops/forja.json` que se le aplica,
+  una línea `skill: <s> criterio: <id> estado: <estado>` (cumple, no_cumple,
+  no_aplica o juicio) y, en el hueco, su nota; encima, `criterios skill: <s>
+  criterios: n vigilados: a de_juicio: b …`. Lo que vigila un control o se
+  deduce de una pasada vigente se calcula; el resto son los juicios de skill de
+  `ops/juicios-skills/<skill>.json`. El script enseña los huecos; con
+  `--todos`, todas las filas.
 - Si un aviso se repite en tres skills, es una regla mal puesta: se ajusta aquí,
   no se copia el parche.
 
@@ -91,10 +98,15 @@ buena que sale limpia y el script sobre el repo.
    pida un defecto. Si el arreglo mueve texto (fechas, un bloque largo), nada de
    información se pierde: va a «Lo que falló y por qué», a «Fuentes y
    comprobación» o a una capa citada con su ruta entera.
-4. **Mira lo que el script no ve** y deja en el PR lo que encuentres: si cada
-   párrafo justifica su coste, si hay un camino por defecto y no un menú, si los
-   ejemplos se contradicen, si los casos de frontera son casi-fallos de verdad
-   (los criterios, en `.claude/skills/forja-de-skills/referencias/criterios.md`).
+4. **Juzga lo que el script no ve**: los criterios de juicio (si cada párrafo
+   justifica su coste, si hay un camino por defecto y no un menú, si los
+   ejemplos se contradicen, si los casos de frontera son casi-fallos de verdad).
+   Cada juicio de skill va a `ops/juicios-skills/<skill>.json` con los campos de
+   `campos_ficha.juicio` de `ops/forja.json`: estado, evidencia (una cabecera de
+   un `SKILL.md`, `caso:<skill>/<id>`, `npm run …`, `pr:<n>` o `issue:<n>`),
+   fecha, firmante y `version_skill_md`; el que no puedas juzgar se queda en
+   `juicio` con su `motivo_pendiente`. Sale: `npx vitest run
+   ops/criterios-skills.test.js` en verde.
 5. **Dos skills que reclaman lo mismo**: decide un dueño en el PR (el que opera
    la cosa de punta a punta), deja la descripción, el caso y la fila de
    operaciones de la otra remitiendo a él por su nombre, y no cambies una
@@ -124,6 +136,8 @@ arreglado o explicado, y la cifra del conjunto no sube.
 
 ## Registro de cambios
 
+- **2026-10-10** · Los criterios de cada skill: el script da una línea `skill: x criterio: y estado: z` por criterio de la forja (lo que vigila un control o sale de una pasada vigente se calcula; los juicios de skill, en `ops/juicios-skills/<skill>.json`, caducan si cambia el SKILL.md) y la cifra de vigilados y de juicio; el paso 4 rellena los juicios (#457).
+
 - **2026-10-10** · Las secciones del tipo `revision`: «Qué mira» (el molde de su tipo para las de nivel 2, las reglas comunes para la pieza meta, y la tabla de códigos) y «Cómo puntúa» (falta, aviso y la cifra); «Cómo se prueba» se reparte entre las dos y «Cuándo se poda» pasa a «Cuándo y para qué» (#495).
 - **2026-10-10** · El repaso periódico incluye el glosario: bajar sus excepciones y juzgar los candidatos a término de `npm run glosario -- --candidatos`, con el método en `.claude/skills/higiene-de-skills/referencias/glosario.md` (#481).
 - **2026-10-10** · Primera versión: lista de defectos de una skill con su arreglo, script `npm run higiene-skills`, diez controles propios sobre los de la forja y su test con una skill mala (#411).
@@ -133,4 +147,4 @@ arreglado o explicado, y la cifra del conjunto no sube.
 - `.claude/skills/forja-de-skills/referencias/defectos.md`: los defectos de la forja, con su señal.
 - `.claude/PLANTILLA-SKILL.md`: el estándar por tipo.
 
-Comprobado el 2026-10-10: el script sobre las 12 skills del repo y su test con una skill mala hecha a propósito (cada código visto fallar). Sin comprobar: el A/B con y sin esta skill, y `npm run skills-prueba -- higiene-de-skills` (cuesta tokens).
+Comprobado el 2026-10-10: el script sobre las 12 skills del repo y su test con una skill mala hecha a propósito (cada código visto fallar); y en #457, los criterios y juicios de las 14 skills con `ops/criterios-skills.test.js` (cada regla vista fallar). Sin comprobar: el A/B con y sin esta skill, y `npm run skills-prueba -- higiene-de-skills` (cuesta tokens).

@@ -1,0 +1,76 @@
+{
+  "skill": "vercel",
+  "juicios": {
+    "descripcion-palabras-de-quien-pide": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/vercel/SKILL.md"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "3b1c9e203c7e"
+    },
+    "frontera-casi-fallos": {
+      "estado": "cumple",
+      "evidencia": [
+        "caso:vercel/frontera-despliegue-bien-bot-mudo",
+        "caso:vercel/frontera-lint-rojo"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "3b1c9e203c7e"
+    },
+    "disparador-al-principio": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/vercel/SKILL.md",
+        ".claude/skills.test.js"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "3b1c9e203c7e"
+    },
+    "solo-lo-que-el-modelo-no-sabe": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_herramienta"
+    },
+    "libertad-ajustada": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "camino-por-defecto": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_decision"
+    },
+    "pasos-con-salida-observable": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/vercel/SKILL.md#Operaciones habituales"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "3b1c9e203c7e"
+    },
+    "vocabulario-unico": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "ejemplos-canonicos": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_decision"
+    },
+    "skill-contrastada-con-fallo-real": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/vercel/SKILL.md#Lo que falló y por qué"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "3b1c9e203c7e"
+    },
+    "forma-adecuada-al-contenido": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    }
+  }
+}

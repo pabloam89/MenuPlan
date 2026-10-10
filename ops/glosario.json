@@ -352,13 +352,23 @@
       "ref": { "fichero": "scripts/lib/fondos.mjs", "clave": "CAMPOS_FICHA" }
     },
     {
+      "termino": "juicio de skill",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "El estado de un criterio de juicio sobre una skill que guarda ops/juicios-skills con su evidencia, firmante y versión del SKILL.md.",
+      "sinonimos_prohibidos": ["ficha de huecos"],
+      "aplica_a": ["todas"],
+      "relacionado": ["criterio", "evidencia"],
+      "ref": { "fichero": "scripts/lib/juiciosSkills.mjs", "clave": "problemasDeJuicios" }
+    },
+    {
       "termino": "evidencia",
       "estado": "activo",
       "clase": "artefacto",
       "definicion": "Un dato que respalda una afirmación y que otro puede repetir: comando y salida, fichero:línea, un run o un PR.",
       "sinonimos_prohibidos": [],
       "aplica_a": ["todas"],
-      "relacionado": ["comprobar", "hallazgo"]
+      "relacionado": ["comprobar", "hallazgo", "juicio de skill"]
     },
     {
       "termino": "hallazgo",
@@ -452,7 +462,7 @@
       "definicion": "Una condición de calidad que lleva id, fuente y quién la vigila (un control o un juez).",
       "sinonimos_prohibidos": [],
       "aplica_a": ["todas"],
-      "relacionado": ["estándar"]
+      "relacionado": ["estándar", "juicio de skill"]
     },
     {
       "termino": "control",
