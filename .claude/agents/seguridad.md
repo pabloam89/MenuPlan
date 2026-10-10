@@ -44,6 +44,13 @@ No es suyo:
 4. **Severidad por daño real hoy**: crítico si se explota ya con datos
    reales; bajo si no hay vector con los permisos actuales (y se dice por qué).
 5. **Ni un secreto en el informe**: se nombra la variable, nunca el valor.
+6. **Lo mínimo para ver**: en vivo se cuenta antes de leer filas de usuarios, y
+   se entra con la conexión de solo lectura, no con la de administrador, si
+   basta con ella.
+7. **No se sube la severidad sin vector**: un riesgo sin camino de ataque con los
+   permisos actuales es bajo, y se dice por qué.
+8. **Lo explotable, en privado**: el repo es público; el detalle de cómo se
+   explota va a Pablo, no a un issue (skill `issues`).
 
 ## 4. Disparadores
 

@@ -57,9 +57,9 @@ export function agentesEnDisco(raiz) {
 
 /**
  * Errores del catálogo, una línea cada uno (lista vacía si está bien).
- * `agentes`: nombres de los ficheros de `.claude/agents/`.
+ * `agentes`: nombres de los ficheros de `.claude/agents/`. `raiz`: la del repo, para comprobar las rutas de las fuentes de la casa.
  */
-export function problemasDeEstandares(datos, agentes) {
+export function problemasDeEstandares(datos, agentes, raiz = null) {
   const malos = [];
   const fuentes = datos?.fuentes ?? {};
   const usadas = new Set();
@@ -67,6 +67,14 @@ export function problemasDeEstandares(datos, agentes) {
   for (const [id, f] of Object.entries(fuentes)) {
     if (!ID.test(id)) malos.push(`fuente «${id}»: el id va en minúsculas con guiones`);
     if (!esTexto(f?.nombre, 10)) malos.push(`fuente «${id}»: sin nombre`);
+    if (f?.tipo === "casa") {
+      // Regla de la casa: criterio nuestro, con la ruta del repo donde está escrito.
+      if (typeof f.ruta !== "string" || !f.ruta) malos.push(`fuente «${id}»: de la casa, sin ruta`);
+      else if (raiz && !existsSync(join(raiz, f.ruta))) malos.push(`fuente «${id}»: la ruta ${f.ruta} no existe en el repo`);
+      if (f.url) malos.push(`fuente «${id}»: una fuente de la casa lleva ruta y no url`);
+      continue;
+    }
+    if (f?.tipo !== undefined && f.tipo !== "externa") malos.push(`fuente «${id}»: tipo «${f.tipo}» no es casa ni externa`);
     let host = "";
     try { const u = new URL(f?.url); host = u.hostname; if (u.protocol !== "https:") malos.push(`fuente «${id}»: la url va en https`); } catch { malos.push(`fuente «${id}»: url no válida`); }
     if (host && !DOMINIOS_FUENTE.includes(host)) malos.push(`fuente «${id}»: ${host} no es una documentación admitida (DOMINIOS_FUENTE)`);

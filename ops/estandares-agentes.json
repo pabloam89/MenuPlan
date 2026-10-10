@@ -3,44 +3,194 @@
   "version": 1,
   "actualizado": "2026-10-10",
   "fuentes": {
-    "gg-estandar": { "nombre": "Google Engineering Practices: The Standard of Code Review", "url": "https://google.github.io/eng-practices/review/reviewer/standard.html" },
-    "gg-que-mirar": { "nombre": "Google Engineering Practices: What to look for in a code review", "url": "https://google.github.io/eng-practices/review/reviewer/looking-for.html" },
-    "gg-comentarios": { "nombre": "Google Engineering Practices: How to write code review comments", "url": "https://google.github.io/eng-practices/review/reviewer/comments.html" },
-    "gg-navegar": { "nombre": "Google Engineering Practices: Navigating a CL in review", "url": "https://google.github.io/eng-practices/review/reviewer/navigate.html" },
-    "owasp-asvs": { "nombre": "OWASP Application Security Verification Standard", "url": "https://owasp.org/www-project-application-security-verification-standard/" },
-    "owasp-authz": { "nombre": "OWASP Cheat Sheet: Authorization", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html" },
-    "owasp-idor": { "nombre": "OWASP Cheat Sheet: Insecure Direct Object Reference Prevention", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html" },
-    "owasp-input": { "nombre": "OWASP Cheat Sheet: Input Validation", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html" },
-    "owasp-secrets": { "nombre": "OWASP Cheat Sheet: Secrets Management", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html" },
-    "owasp-threat-model": { "nombre": "OWASP Cheat Sheet: Threat Modeling", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html" },
-    "owasp-llm-injection": { "nombre": "OWASP Cheat Sheet: LLM Prompt Injection Prevention", "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html" },
-    "owasp-llm-top10": { "nombre": "OWASP Top 10 for LLM Applications", "url": "https://genai.owasp.org/llm-top-10/" },
-    "owasp-api-top10": { "nombre": "OWASP API Security Top 10 (2023)", "url": "https://owasp.org/API-Security/editions/2023/en/0x11-t10/" },
-    "pg-constraints": { "nombre": "PostgreSQL: Constraints", "url": "https://www.postgresql.org/docs/current/ddl-constraints.html" },
-    "pg-altertable": { "nombre": "PostgreSQL: ALTER TABLE (NOT VALID y VALIDATE CONSTRAINT)", "url": "https://www.postgresql.org/docs/current/sql-altertable.html" },
-    "pg-rls": { "nombre": "PostgreSQL: Row Security Policies", "url": "https://www.postgresql.org/docs/current/ddl-rowsecurity.html" },
-    "pg-createfunction": { "nombre": "PostgreSQL: CREATE FUNCTION (escribir funciones SECURITY DEFINER con seguridad)", "url": "https://www.postgresql.org/docs/current/sql-createfunction.html" },
-    "pg-depend": { "nombre": "PostgreSQL: Dependency Tracking", "url": "https://www.postgresql.org/docs/current/ddl-depend.html" },
-    "pg-dont-do-this": { "nombre": "PostgreSQL wiki: Don't Do This", "url": "https://wiki.postgresql.org/wiki/Don%27t_Do_This" },
-    "pg-set-transaction": { "nombre": "PostgreSQL: SET TRANSACTION (READ ONLY)", "url": "https://www.postgresql.org/docs/current/sql-set-transaction.html" },
-    "sb-rls": { "nombre": "Supabase: Row Level Security", "url": "https://supabase.com/docs/guides/database/postgres/row-level-security" },
-    "sb-functions": { "nombre": "Supabase: Database Functions", "url": "https://supabase.com/docs/guides/database/functions" },
-    "sb-migrations": { "nombre": "Supabase: Database Migrations", "url": "https://supabase.com/docs/guides/deployment/database-migrations" },
-    "gh-protected-branches": { "nombre": "GitHub Docs: About protected branches", "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches" },
-    "gh-pull-requests": { "nombre": "GitHub Docs: About pull requests", "url": "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests" },
-    "gh-actions-hardening": { "nombre": "GitHub Docs: Security hardening for GitHub Actions", "url": "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions" },
-    "gh-secrets-actions": { "nombre": "GitHub Docs: Using secrets in GitHub Actions", "url": "https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions" },
-    "gh-environments": { "nombre": "GitHub Docs: Managing environments for deployment", "url": "https://docs.github.com/en/actions/deployment/targeting-different-environments/managing-environments-for-deployment" },
-    "git-worktree": { "nombre": "Git: git-worktree", "url": "https://git-scm.com/docs/git-worktree" },
-    "sre-postmortem": { "nombre": "Google SRE Book: Postmortem Culture, Learning from Failure", "url": "https://sre.google/sre-book/postmortem-culture/" },
-    "sre-troubleshooting": { "nombre": "Google SRE Book: Effective Troubleshooting", "url": "https://sre.google/sre-book/effective-troubleshooting/" },
-    "sre-releases": { "nombre": "Google SRE Book: Release Engineering", "url": "https://sre.google/sre-book/release-engineering/" },
-    "sre-canary": { "nombre": "Google SRE Workbook: Canarying Releases", "url": "https://sre.google/workbook/canarying-releases/" },
-    "sre-monitoring": { "nombre": "Google SRE Book: Monitoring Distributed Systems", "url": "https://sre.google/sre-book/monitoring-distributed-systems/" },
-    "vercel-troubleshoot": { "nombre": "Vercel Docs: Troubleshoot a build", "url": "https://vercel.com/docs/deployments/troubleshoot-a-build" },
-    "vercel-rollback": { "nombre": "Vercel Docs: Instant Rollback", "url": "https://vercel.com/docs/instant-rollback" },
-    "claude-hooks": { "nombre": "Claude Code Docs: Hooks", "url": "https://code.claude.com/docs/en/hooks" },
-    "claude-skills": { "nombre": "Claude Code Docs: Skills", "url": "https://code.claude.com/docs/en/skills" }
+    "gg-estandar": {
+      "nombre": "Google Engineering Practices: The Standard of Code Review",
+      "url": "https://google.github.io/eng-practices/review/reviewer/standard.html"
+    },
+    "gg-que-mirar": {
+      "nombre": "Google Engineering Practices: What to look for in a code review",
+      "url": "https://google.github.io/eng-practices/review/reviewer/looking-for.html"
+    },
+    "gg-comentarios": {
+      "nombre": "Google Engineering Practices: How to write code review comments",
+      "url": "https://google.github.io/eng-practices/review/reviewer/comments.html"
+    },
+    "gg-navegar": {
+      "nombre": "Google Engineering Practices: Navigating a CL in review",
+      "url": "https://google.github.io/eng-practices/review/reviewer/navigate.html"
+    },
+    "owasp-asvs": {
+      "nombre": "OWASP Application Security Verification Standard",
+      "url": "https://owasp.org/www-project-application-security-verification-standard/"
+    },
+    "owasp-authz": {
+      "nombre": "OWASP Cheat Sheet: Authorization",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+    },
+    "owasp-idor": {
+      "nombre": "OWASP Cheat Sheet: Insecure Direct Object Reference Prevention",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html"
+    },
+    "owasp-input": {
+      "nombre": "OWASP Cheat Sheet: Input Validation",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html"
+    },
+    "owasp-secrets": {
+      "nombre": "OWASP Cheat Sheet: Secrets Management",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html"
+    },
+    "owasp-threat-model": {
+      "nombre": "OWASP Cheat Sheet: Threat Modeling",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html"
+    },
+    "owasp-llm-injection": {
+      "nombre": "OWASP Cheat Sheet: LLM Prompt Injection Prevention",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+    },
+    "owasp-llm-top10": {
+      "nombre": "OWASP Top 10 for LLM Applications",
+      "url": "https://genai.owasp.org/llm-top-10/"
+    },
+    "owasp-api-top10": {
+      "nombre": "OWASP API Security Top 10 (2023)",
+      "url": "https://owasp.org/API-Security/editions/2023/en/0x11-t10/"
+    },
+    "pg-constraints": {
+      "nombre": "PostgreSQL: Constraints",
+      "url": "https://www.postgresql.org/docs/current/ddl-constraints.html"
+    },
+    "pg-altertable": {
+      "nombre": "PostgreSQL: ALTER TABLE (NOT VALID y VALIDATE CONSTRAINT)",
+      "url": "https://www.postgresql.org/docs/current/sql-altertable.html"
+    },
+    "pg-rls": {
+      "nombre": "PostgreSQL: Row Security Policies",
+      "url": "https://www.postgresql.org/docs/current/ddl-rowsecurity.html"
+    },
+    "pg-createfunction": {
+      "nombre": "PostgreSQL: CREATE FUNCTION (escribir funciones SECURITY DEFINER con seguridad)",
+      "url": "https://www.postgresql.org/docs/current/sql-createfunction.html"
+    },
+    "pg-depend": {
+      "nombre": "PostgreSQL: Dependency Tracking",
+      "url": "https://www.postgresql.org/docs/current/ddl-depend.html"
+    },
+    "pg-dont-do-this": {
+      "nombre": "PostgreSQL wiki: Don't Do This",
+      "url": "https://wiki.postgresql.org/wiki/Don%27t_Do_This"
+    },
+    "pg-set-transaction": {
+      "nombre": "PostgreSQL: SET TRANSACTION (READ ONLY)",
+      "url": "https://www.postgresql.org/docs/current/sql-set-transaction.html"
+    },
+    "sb-rls": {
+      "nombre": "Supabase: Row Level Security",
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security"
+    },
+    "sb-functions": {
+      "nombre": "Supabase: Database Functions",
+      "url": "https://supabase.com/docs/guides/database/functions"
+    },
+    "sb-migrations": {
+      "nombre": "Supabase: Database Migrations",
+      "url": "https://supabase.com/docs/guides/deployment/database-migrations"
+    },
+    "gh-protected-branches": {
+      "nombre": "GitHub Docs: About protected branches",
+      "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches"
+    },
+    "gh-pull-requests": {
+      "nombre": "GitHub Docs: About pull requests",
+      "url": "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests"
+    },
+    "gh-actions-hardening": {
+      "nombre": "GitHub Docs: Security hardening for GitHub Actions",
+      "url": "https://docs.github.com/en/actions/reference/security/secure-use"
+    },
+    "gh-secrets-actions": {
+      "nombre": "GitHub Docs: Using secrets in GitHub Actions",
+      "url": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets"
+    },
+    "gh-environments": {
+      "nombre": "GitHub Docs: Managing environments for deployment",
+      "url": "https://docs.github.com/en/actions/deployment/targeting-different-environments/managing-environments-for-deployment"
+    },
+    "git-worktree": {
+      "nombre": "Git: git-worktree",
+      "url": "https://git-scm.com/docs/git-worktree"
+    },
+    "sre-postmortem": {
+      "nombre": "Google SRE Book: Postmortem Culture, Learning from Failure",
+      "url": "https://sre.google/sre-book/postmortem-culture/"
+    },
+    "sre-troubleshooting": {
+      "nombre": "Google SRE Book: Effective Troubleshooting",
+      "url": "https://sre.google/sre-book/effective-troubleshooting/"
+    },
+    "sre-releases": {
+      "nombre": "Google SRE Book: Release Engineering",
+      "url": "https://sre.google/sre-book/release-engineering/"
+    },
+    "sre-monitoring": {
+      "nombre": "Google SRE Book: Monitoring Distributed Systems",
+      "url": "https://sre.google/sre-book/monitoring-distributed-systems/"
+    },
+    "vercel-troubleshoot": {
+      "nombre": "Vercel Docs: Troubleshoot a build",
+      "url": "https://vercel.com/docs/deployments/troubleshoot-a-build"
+    },
+    "vercel-rollback": {
+      "nombre": "Vercel Docs: Instant Rollback",
+      "url": "https://vercel.com/docs/instant-rollback"
+    },
+    "claude-hooks": {
+      "nombre": "Claude Code Docs: Hooks",
+      "url": "https://code.claude.com/docs/en/hooks"
+    },
+    "claude-skills": {
+      "nombre": "Claude Code Docs: Skills",
+      "url": "https://code.claude.com/docs/en/skills"
+    },
+    "casa-claude": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: CLAUDE.md (qué se pregunta a Pablo, ramas y flujo, base de datos)",
+      "ruta": "CLAUDE.md"
+    },
+    "casa-principios-datos": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: principios de datos (PRINCIPIOS.md)",
+      "ruta": "docs/datos/PRINCIPIOS.md"
+    },
+    "casa-skill-issues": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: skill issues (repo público, nada sensible en un issue)",
+      "ruta": ".claude/skills/issues/SKILL.md"
+    },
+    "casa-skill-alta-secreto": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: skill alta-de-secreto",
+      "ruta": ".claude/skills/alta-de-secreto/SKILL.md"
+    },
+    "casa-decisiones": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: registro de decisiones de operación",
+      "ruta": "ops/DECISIONES.md"
+    },
+    "casa-planos": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: planos y sus niveles",
+      "ruta": "ops/PLANOS.md"
+    },
+    "casa-plantilla-agente": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: plantilla de agente (juez y constructor, skills que abrió)",
+      "ruta": ".claude/PLANTILLA-AGENTE.md"
+    },
+    "casa-migraciones": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: regla de migraciones",
+      "ruta": ".claude/rules/migraciones.md"
+    }
   },
   "agentes": {
     "gobierno": {
@@ -61,7 +211,11 @@
             "empujar directo a staging ni forzar un push",
             "arreglar código del producto cuando el rojo es un test suyo: lo devuelve con fichero y error"
           ],
-          "fuentes": ["gh-protected-branches", "gh-pull-requests", "sre-releases"]
+          "fuentes": [
+            "gh-protected-branches",
+            "gh-pull-requests",
+            "sre-releases"
+          ]
         },
         {
           "id": "paso-a-main",
@@ -78,7 +232,11 @@
             "aplicar migraciones de paso",
             "reescribir la historia de main"
           ],
-          "fuentes": ["sre-releases", "sre-canary", "vercel-rollback"]
+          "fuentes": [
+            "sre-releases",
+            "vercel-rollback",
+            "casa-claude"
+          ]
         },
         {
           "id": "worktrees-y-ramas",
@@ -95,7 +253,9 @@
             "git stash, que es común a todos los worktrees",
             "trabajar o commitear en la carpeta principal"
           ],
-          "fuentes": ["git-worktree"]
+          "fuentes": [
+            "git-worktree"
+          ]
         },
         {
           "id": "diagnosticar-fallo-de-ci-o-despliegue",
@@ -113,7 +273,11 @@
             "saltarse un hook ni reintentar a ciegas",
             "relajar el CI para que pase"
           ],
-          "fuentes": ["sre-troubleshooting", "sre-postmortem", "vercel-troubleshoot"]
+          "fuentes": [
+            "sre-troubleshooting",
+            "sre-postmortem",
+            "vercel-troubleshoot"
+          ]
         },
         {
           "id": "workflows-y-crons",
@@ -127,11 +291,15 @@
             "quién ve el fallo del cron: aviso o informe"
           ],
           "no_hace": [
-            "cambiar un workflow que escribe en el repo o usa secretos sin el OK de Pablo",
-            "crear ni rotar secretos",
-            "dejar un cron sin nadie que lea su fallo"
+            "crear, rotar ni cambiar secretos o variables de entorno: es de Pablo",
+            "dejar un cron sin nadie que lea su fallo",
+            "fusionar el cambio de un workflow sin juez y sin el CI en verde"
           ],
-          "fuentes": ["gh-actions-hardening", "gh-secrets-actions", "sre-monitoring"]
+          "fuentes": [
+            "gh-actions-hardening",
+            "gh-secrets-actions",
+            "sre-monitoring"
+          ]
         },
         {
           "id": "permisos-y-hooks",
@@ -145,11 +313,14 @@
             "el permiso nuevo es de lectura o ya lo vigila la guardia"
           ],
           "no_hace": [
-            "ampliar permisos sin preguntar a Pablo",
-            "tocar los hooks de usuario de ~/.claude",
+            "ampliar los permisos de settings.json sin preguntar a Pablo",
             "fiar una regla importante a un texto"
           ],
-          "fuentes": ["claude-hooks", "owasp-authz"]
+          "fuentes": [
+            "claude-hooks",
+            "owasp-authz",
+            "casa-claude"
+          ]
         },
         {
           "id": "secretos-e-inventario",
@@ -167,7 +338,12 @@
             "imprimir o pegar un valor en el informe",
             "reutilizar la clave de un uso para otro"
           ],
-          "fuentes": ["owasp-secrets", "gh-secrets-actions", "gh-environments"]
+          "fuentes": [
+            "owasp-secrets",
+            "gh-secrets-actions",
+            "gh-environments",
+            "casa-skill-alta-secreto"
+          ]
         },
         {
           "id": "despliegues-vercel",
@@ -184,7 +360,11 @@
             "cambiar variables de entorno ni ajustes del proyecto",
             "bajar las variables de Production"
           ],
-          "fuentes": ["vercel-troubleshoot", "vercel-rollback", "sre-canary"]
+          "fuentes": [
+            "vercel-troubleshoot",
+            "vercel-rollback",
+            "casa-claude"
+          ]
         },
         {
           "id": "registros-y-planos",
@@ -201,7 +381,10 @@
             "escribir valores de claves en los registros",
             "contestar el estado de la casa de memoria"
           ],
-          "fuentes": ["sre-postmortem", "sre-monitoring"]
+          "fuentes": [
+            "casa-decisiones",
+            "casa-planos"
+          ]
         }
       ]
     },
@@ -223,24 +406,32 @@
             "decidir cambios de producto (qué ve la familia, qué hace Lola)",
             "crear campos sin lector"
           ],
-          "fuentes": ["pg-constraints", "pg-depend"]
+          "fuentes": [
+            "pg-constraints",
+            "pg-depend"
+          ]
         },
         {
           "id": "restricciones-y-tipos",
           "tarea": "Dar a cada tabla sus claves, relaciones, tipos y vocabulario cerrado con CHECK y su constante JS",
           "origen": "Método",
-          "estandar": "Clave técnica y clave natural unique, FK con on delete explícito, not null salvo decisión comentada, timestamptz, text con CHECK en vez de enum, magnitudes en unidad canónica con la unidad en el nombre. Cada vocabulario lleva su constante JS y su test SQL a JS: la base dice no, no el código.",
+          "estandar": "Clave técnica y clave natural unique, FK con on delete explícito, not null salvo decisión comentada, timestamptz (pg-dont-do-this), text con CHECK y no enum de Postgres salvo con su porqué, y magnitudes en unidad canónica con la unidad en el nombre (criterio de la casa, PRINCIPIOS.md). Cada vocabulario lleva su constante JS y su test SQL a JS: la base dice no, no el código.",
           "comprueba": [
             "supabase/principios.test.js y supabase/migrations.test.js en verde",
             "cada FK declara su on delete y cada CHECK tiene su constante JS espejo",
             "comment on table en cada tabla nueva y en las columnas que no se entienden por su nombre"
           ],
           "no_hace": [
-            "crear un enum de Postgres sin proponerlo con su porqué",
+            "crear un enum de Postgres sin proponerlo con su porqué (casi nunca)",
             "relacionar por nombre en vez de por id",
             "romper un principio de docs/datos/PRINCIPIOS.md sin proponerlo"
           ],
-          "fuentes": ["pg-constraints", "pg-dont-do-this", "pg-depend"]
+          "fuentes": [
+            "pg-constraints",
+            "pg-dont-do-this",
+            "pg-depend",
+            "casa-principios-datos"
+          ]
         },
         {
           "id": "escribir-migracion",
@@ -257,7 +448,11 @@
             "aplicar en producción ni lanzar SQL a mano que escriba",
             "renumerar la migración de otra rama"
           ],
-          "fuentes": ["sb-migrations", "pg-altertable"]
+          "fuentes": [
+            "sb-migrations",
+            "pg-altertable",
+            "casa-migraciones"
+          ]
         },
         {
           "id": "ensayar-migracion",
@@ -274,7 +469,10 @@
             "SQL a mano contra producción",
             "dar el ensayo por bueno solo porque el script no falló"
           ],
-          "fuentes": ["pg-altertable", "sb-migrations"]
+          "fuentes": [
+            "pg-altertable",
+            "sb-migrations"
+          ]
         },
         {
           "id": "estado-de-migraciones",
@@ -291,7 +489,10 @@
             "aplicar la migración",
             "fiarse de la tabla de migraciones de Supabase como registro"
           ],
-          "fuentes": ["sb-migrations", "pg-altertable"]
+          "fuentes": [
+            "sb-migrations",
+            "pg-altertable"
+          ]
         },
         {
           "id": "rls-y-funciones-seguras",
@@ -308,7 +509,12 @@
             "cambiar la RLS de una tabla con datos de usuarios sin Pablo",
             "juzgar su propio diseño de seguridad: lo hace seguridad"
           ],
-          "fuentes": ["pg-rls", "pg-createfunction", "sb-rls", "sb-functions"]
+          "fuentes": [
+            "pg-rls",
+            "pg-createfunction",
+            "sb-rls",
+            "sb-functions"
+          ]
         },
         {
           "id": "donde-vive-el-dato",
@@ -325,7 +531,10 @@
             "reescribir datos de familias",
             "abrir un camino nuevo a una tabla fuera de su módulo dueño"
           ],
-          "fuentes": ["pg-constraints"]
+          "fuentes": [
+            "casa-principios-datos",
+            "pg-constraints"
+          ]
         },
         {
           "id": "texto-libre-a-vocabulario",
@@ -340,9 +549,13 @@
           "no_hace": [
             "borrar o reescribir datos de familias sin Pablo",
             "crear una tabla catálogo cuyos atributos no tienen lector",
-            "usar un enum de Postgres"
+            "usar un enum de Postgres salvo con su porqué (casi nunca)"
           ],
-          "fuentes": ["pg-altertable", "pg-constraints"]
+          "fuentes": [
+            "pg-altertable",
+            "pg-constraints",
+            "casa-principios-datos"
+          ]
         }
       ]
     },
@@ -364,7 +577,11 @@
             "reescribir a su gusto ni discutir estilo que el lint ya vigila",
             "inventar hallazgos para justificar la revisión"
           ],
-          "fuentes": ["gg-estandar", "gg-que-mirar", "gg-navegar"]
+          "fuentes": [
+            "gg-estandar",
+            "gg-que-mirar",
+            "gg-navegar"
+          ]
         },
         {
           "id": "hallazgos-con-caso",
@@ -381,7 +598,10 @@
             "dar un hallazgo sin caso",
             "repetir como nuevo lo ya apuntado"
           ],
-          "fuentes": ["gg-comentarios", "gg-estandar"]
+          "fuentes": [
+            "gg-comentarios",
+            "gg-estandar"
+          ]
         },
         {
           "id": "tests-que-prueban",
@@ -396,7 +616,9 @@
             "escribir ni arreglar tests",
             "lanzar la suite entera salvo antes de abrir el PR"
           ],
-          "fuentes": ["gg-que-mirar"]
+          "fuentes": [
+            "gg-que-mirar"
+          ]
         },
         {
           "id": "leccion-del-fallo",
@@ -413,7 +635,10 @@
             "dar «sin novedades» por hallazgo sin señalar el fallo que esconde",
             "escribir la lección: un juez no escribe"
           ],
-          "fuentes": ["sre-postmortem"]
+          "fuentes": [
+            "sre-postmortem",
+            "casa-claude"
+          ]
         },
         {
           "id": "skills-abiertas",
@@ -429,7 +654,10 @@
             "inventar el informe del constructor",
             "bloquear por una skill que no pide ningún fichero del diff"
           ],
-          "fuentes": ["claude-skills"]
+          "fuentes": [
+            "casa-plantilla-agente",
+            "claude-skills"
+          ]
         },
         {
           "id": "contrastar-estandar-del-constructor",
@@ -446,7 +674,10 @@
             "inventar un estándar que no está en ops/estandares-agentes.json",
             "dar por bueno un informe sin la línea ESTÁNDAR: cuando la tarea está en el catálogo"
           ],
-          "fuentes": ["gg-estandar", "gg-que-mirar"]
+          "fuentes": [
+            "gg-estandar",
+            "gg-que-mirar"
+          ]
         },
         {
           "id": "reutilizacion-evidente",
@@ -461,7 +692,10 @@
             "pedir refactors por gusto",
             "bloquear por una duplicación sin riesgo"
           ],
-          "fuentes": ["gg-que-mirar", "gg-estandar"]
+          "fuentes": [
+            "gg-que-mirar",
+            "casa-principios-datos"
+          ]
         },
         {
           "id": "diagnosticar-bug",
@@ -477,7 +711,10 @@
             "arreglar el bug",
             "dar por causa lo que es solo el primer síntoma"
           ],
-          "fuentes": ["sre-troubleshooting", "sre-postmortem"]
+          "fuentes": [
+            "sre-troubleshooting",
+            "sre-postmortem"
+          ]
         }
       ]
     },
@@ -497,7 +734,9 @@
             "auditar sin delimitar antes",
             "dar un «podría» sin escenario"
           ],
-          "fuentes": ["owasp-threat-model"]
+          "fuentes": [
+            "owasp-threat-model"
+          ]
         },
         {
           "id": "auditar-rls-y-grants",
@@ -513,7 +752,12 @@
             "cambiar RLS o permisos: lo prepara datos y lo lanza Pablo",
             "escribir en la base para probar"
           ],
-          "fuentes": ["pg-rls", "pg-createfunction", "sb-rls", "owasp-idor"]
+          "fuentes": [
+            "pg-rls",
+            "pg-createfunction",
+            "sb-rls",
+            "owasp-idor"
+          ]
         },
         {
           "id": "auditar-endpoints",
@@ -529,7 +773,12 @@
             "arreglar el endpoint",
             "auditar bugs que no son de seguridad: son del revisor"
           ],
-          "fuentes": ["owasp-authz", "owasp-input", "owasp-api-top10", "owasp-asvs"]
+          "fuentes": [
+            "owasp-authz",
+            "owasp-input",
+            "owasp-api-top10",
+            "owasp-asvs"
+          ]
         },
         {
           "id": "auditar-secretos",
@@ -545,7 +794,10 @@
             "rotar un secreto: lo hace una persona con gobierno",
             "imprimir un valor en el informe"
           ],
-          "fuentes": ["owasp-secrets", "gh-secrets-actions"]
+          "fuentes": [
+            "owasp-secrets",
+            "gh-secrets-actions"
+          ]
         },
         {
           "id": "auditar-datos-personales",
@@ -561,7 +813,10 @@
             "decidir qué dato necesita la pantalla: es del producto",
             "leer filas de usuarios en vivo cuando basta contar"
           ],
-          "fuentes": ["owasp-api-top10", "owasp-asvs"]
+          "fuentes": [
+            "owasp-api-top10",
+            "owasp-asvs"
+          ]
         },
         {
           "id": "auditar-lola-inyeccion",
@@ -577,7 +832,10 @@
             "correr evals de calidad: es del evaluador",
             "cambiar los papeles o los permisos"
           ],
-          "fuentes": ["owasp-llm-injection", "owasp-llm-top10"]
+          "fuentes": [
+            "owasp-llm-injection",
+            "owasp-llm-top10"
+          ]
         },
         {
           "id": "verificar-en-vivo-leyendo",
@@ -592,13 +850,16 @@
             "escribir en la base para probar",
             "usar la conexión de administrador cuando basta la de lectura"
           ],
-          "fuentes": ["pg-set-transaction", "owasp-asvs"]
+          "fuentes": [
+            "pg-set-transaction",
+            "owasp-asvs"
+          ]
         },
         {
           "id": "informe-de-seguridad",
           "tarea": "Redactar la tabla de hallazgos por severidad, con escenario y arreglo, sin ningún valor secreto",
           "origen": "Entregables",
-          "estandar": "Cada hallazgo es un ataque descrito paso a paso (quién, qué petición, qué obtiene), con severidad por el daño real hoy, ruta y arreglo propuesto. El crítico explotable va el primero, lo descartado lleva su porqué y el detalle explotable va a Pablo en privado, porque el repo es público.",
+          "estandar": "Cada hallazgo es un ataque descrito paso a paso (quién, qué petición, qué obtiene), con severidad por el daño real hoy, ruta y arreglo propuesto. El crítico explotable va el primero, lo descartado lleva su porqué y el detalle explotable va a Pablo en privado, porque el repo es público. El detalle explotable en privado es regla de la casa (skill issues).",
           "comprueba": [
             "escenario, severidad, ruta y arreglo en cada fila",
             "lo revisado sin problema, en una línea por área",
@@ -608,65 +869,197 @@
             "poner en un issue público cómo se explota algo",
             "subir la severidad sin vector con los permisos actuales"
           ],
-          "fuentes": ["owasp-asvs", "owasp-threat-model"]
+          "fuentes": [
+            "owasp-asvs",
+            "owasp-threat-model",
+            "casa-skill-issues"
+          ]
         }
       ]
     },
     "diseno": {
       "estado": "pendiente",
       "tareas": [
-        { "id": "pantalla-con-tokens", "tarea": "Diseñar o cambiar una pantalla, hoja, tarjeta o componente con los tokens y primitivos del sistema", "origen": "Disparadores" },
-        { "id": "token-o-primitivo-nuevo", "tarea": "Crear en el sistema el token o el primitivo que falta, con su porqué, antes de usarlo", "origen": "Método" },
-        { "id": "migrar-pantalla-a-tokens", "tarea": "Migrar una pantalla a tokens bajando la lista de valores sueltos", "origen": "Disparadores" },
-        { "id": "assets-reproducibles", "tarea": "Entregar assets optimizados: original en su carpeta, derivado por script y entrada en el manifiesto", "origen": "Método" },
-        { "id": "iconos-e-ilustraciones", "tarea": "Añadir un icono, una ilustración o una familia de assets al sistema", "origen": "Disparadores" },
-        { "id": "marca-y-manifest", "tarea": "Tocar el logo, el favicon, el manifest o el color de marca", "origen": "Disparadores" },
-        { "id": "capturas-antes-despues", "tarea": "Hacer las capturas de antes y después a 375×812 y 420×900", "origen": "Método" },
-        { "id": "voz-de-la-interfaz", "tarea": "Escribir la voz de la interfaz: botones, vacíos y errores", "origen": "Misión y alcance" },
-        { "id": "estado-del-diseno", "tarea": "Poner al día docs/diseno/ESTADO.md con las cifras y decisiones", "origen": "Entregables" }
+        {
+          "id": "pantalla-con-tokens",
+          "tarea": "Diseñar o cambiar una pantalla, hoja, tarjeta o componente con los tokens y primitivos del sistema",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "token-o-primitivo-nuevo",
+          "tarea": "Crear en el sistema el token o el primitivo que falta, con su porqué, antes de usarlo",
+          "origen": "Método"
+        },
+        {
+          "id": "migrar-pantalla-a-tokens",
+          "tarea": "Migrar una pantalla a tokens bajando la lista de valores sueltos",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "assets-reproducibles",
+          "tarea": "Entregar assets optimizados: original en su carpeta, derivado por script y entrada en el manifiesto",
+          "origen": "Método"
+        },
+        {
+          "id": "iconos-e-ilustraciones",
+          "tarea": "Añadir un icono, una ilustración o una familia de assets al sistema",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "marca-y-manifest",
+          "tarea": "Tocar el logo, el favicon, el manifest o el color de marca",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "capturas-antes-despues",
+          "tarea": "Hacer las capturas de antes y después a 375×812 y 420×900",
+          "origen": "Método"
+        },
+        {
+          "id": "voz-de-la-interfaz",
+          "tarea": "Escribir la voz de la interfaz: botones, vacíos y errores",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "estado-del-diseno",
+          "tarea": "Poner al día docs/diseno/ESTADO.md con las cifras y decisiones",
+          "origen": "Entregables"
+        }
       ]
     },
     "lola": {
       "estado": "pendiente",
       "tareas": [
-        { "id": "herramienta-de-lola", "tarea": "Crear o cambiar una herramienta del bot con su descripción, su papel y sus tests", "origen": "Disparadores" },
-        { "id": "reproducir-fallo-de-lola", "tarea": "Reproducir un fallo de Lola con el caso exacto y localizar su causa", "origen": "Método" },
-        { "id": "conocimiento-y-descripciones", "tarea": "Cambiar el conocimiento o la ficha cuidando el prefijo cacheado", "origen": "Disparadores" },
-        { "id": "enrutador-y-via-rapida", "tarea": "Cambiar el enrutador o la vía rápida y sus reglas", "origen": "Misión y alcance" },
-        { "id": "papeles-y-permisos-de-herramientas", "tarea": "Cambiar los papeles y permisos de las herramientas de Lola", "origen": "Misión y alcance" },
-        { "id": "coste-y-latencia", "tarea": "Bajar el coste o la latencia de un tipo de turno", "origen": "Disparadores" },
-        { "id": "casos-de-eval", "tarea": "Añadir a los evals el caso de un fallo real que se arregla", "origen": "Entregables" },
-        { "id": "medir-antes-despues", "tarea": "Medir pase de evals, tokens por turno y vueltas antes y después del cambio", "origen": "Entregables" }
+        {
+          "id": "herramienta-de-lola",
+          "tarea": "Crear o cambiar una herramienta del bot con su descripción, su papel y sus tests",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "reproducir-fallo-de-lola",
+          "tarea": "Reproducir un fallo de Lola con el caso exacto y localizar su causa",
+          "origen": "Método"
+        },
+        {
+          "id": "conocimiento-y-descripciones",
+          "tarea": "Cambiar el conocimiento o la ficha cuidando el prefijo cacheado",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "enrutador-y-via-rapida",
+          "tarea": "Cambiar el enrutador o la vía rápida y sus reglas",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "papeles-y-permisos-de-herramientas",
+          "tarea": "Cambiar los papeles y permisos de las herramientas de Lola",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "coste-y-latencia",
+          "tarea": "Bajar el coste o la latencia de un tipo de turno",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "casos-de-eval",
+          "tarea": "Añadir a los evals el caso de un fallo real que se arregla",
+          "origen": "Entregables"
+        },
+        {
+          "id": "medir-antes-despues",
+          "tarea": "Medir pase de evals, tokens por turno y vueltas antes y después del cambio",
+          "origen": "Entregables"
+        }
       ]
     },
     "qa": {
       "estado": "pendiente",
       "tareas": [
-        { "id": "recorrer-flujo-en-navegador", "tarea": "Arrancar la app y recorrer el flujo tocado en un navegador a los dos anchos", "origen": "Método" },
-        { "id": "capturas-de-estados", "tarea": "Capturar cada pantalla afectada en los estados vacío, cargando y peligro", "origen": "Misión y alcance" },
-        { "id": "comprobar-design-system", "tarea": "Comprobar tokens, primitivos, objetivos táctiles, contraste y movimiento reducido contra el design system", "origen": "Método" },
-        { "id": "errores-de-consola", "tarea": "Recoger los errores de consola y las peticiones fallidas con el paso que los provoca", "origen": "Método" },
-        { "id": "informe-visual", "tarea": "Redactar los hallazgos visuales por pantalla con severidad y ruta de captura", "origen": "Entregables" }
+        {
+          "id": "recorrer-flujo-en-navegador",
+          "tarea": "Arrancar la app y recorrer el flujo tocado en un navegador a los dos anchos",
+          "origen": "Método"
+        },
+        {
+          "id": "capturas-de-estados",
+          "tarea": "Capturar cada pantalla afectada en los estados vacío, cargando y peligro",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "comprobar-design-system",
+          "tarea": "Comprobar tokens, primitivos, objetivos táctiles, contraste y movimiento reducido contra el design system",
+          "origen": "Método"
+        },
+        {
+          "id": "errores-de-consola",
+          "tarea": "Recoger los errores de consola y las peticiones fallidas con el paso que los provoca",
+          "origen": "Método"
+        },
+        {
+          "id": "informe-visual",
+          "tarea": "Redactar los hallazgos visuales por pantalla con severidad y ruta de captura",
+          "origen": "Entregables"
+        }
       ]
     },
     "evaluador": {
       "estado": "pendiente",
       "tareas": [
-        { "id": "correr-evals", "tarea": "Correr los evals del bot, del enrutador y de modelos que afectan al cambio", "origen": "Método" },
-        { "id": "comparar-con-staging", "tarea": "Comparar la rama contra origin/staging con las mismas opciones y tabular el resultado", "origen": "Misión y alcance" },
-        { "id": "leer-transcripciones", "tarea": "Leer las transcripciones de los casos que empeoran o fallan y explicar la causa", "origen": "Método" },
-        { "id": "proponer-casos-faltantes", "tarea": "Proponer los casos de eval que faltan, con su forma exacta en JSON", "origen": "Entregables" },
-        { "id": "cambio-de-modelo-de-turno", "tarea": "Evaluar el cambio de modelo de un tipo de turno antes de desplegarlo", "origen": "Disparadores" }
+        {
+          "id": "correr-evals",
+          "tarea": "Correr los evals del bot, del enrutador y de modelos que afectan al cambio",
+          "origen": "Método"
+        },
+        {
+          "id": "comparar-con-staging",
+          "tarea": "Comparar la rama contra origin/staging con las mismas opciones y tabular el resultado",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "leer-transcripciones",
+          "tarea": "Leer las transcripciones de los casos que empeoran o fallan y explicar la causa",
+          "origen": "Método"
+        },
+        {
+          "id": "proponer-casos-faltantes",
+          "tarea": "Proponer los casos de eval que faltan, con su forma exacta en JSON",
+          "origen": "Entregables"
+        },
+        {
+          "id": "cambio-de-modelo-de-turno",
+          "tarea": "Evaluar el cambio de modelo de un tipo de turno antes de desplegarlo",
+          "origen": "Disparadores"
+        }
       ]
     },
     "auditor-datos": {
       "estado": "pendiente",
       "tareas": [
-        { "id": "juzgar-migracion", "tarea": "Juzgar una migración o un cambio de modelo contra PRINCIPIOS.md y dejar su veredicto en una línea", "origen": "Entregables" },
-        { "id": "buscar-datos-repetidos", "tarea": "Encontrar datos repetidos entre tabla, catálogo JSON, constantes JS y prompts del bot", "origen": "Misión y alcance" },
-        { "id": "vigilar-cableado", "tarea": "Vigilar el cableado: qué ficheros tocan cada tabla y qué filtros se escriben a mano", "origen": "Misión y alcance" },
-        { "id": "mapa-de-verdades", "tarea": "Proponer el mapa de dónde vive cada hecho y quién recalcula sus proyecciones", "origen": "Entregables" },
-        { "id": "auditoria-periodica-del-modelo", "tarea": "Hacer la auditoría periódica del modelo y proponer convenciones o excepciones", "origen": "Disparadores" }
+        {
+          "id": "juzgar-migracion",
+          "tarea": "Juzgar una migración o un cambio de modelo contra PRINCIPIOS.md y dejar su veredicto en una línea",
+          "origen": "Entregables"
+        },
+        {
+          "id": "buscar-datos-repetidos",
+          "tarea": "Encontrar datos repetidos entre tabla, catálogo JSON, constantes JS y prompts del bot",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "vigilar-cableado",
+          "tarea": "Vigilar el cableado: qué ficheros tocan cada tabla y qué filtros se escriben a mano",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "mapa-de-verdades",
+          "tarea": "Proponer el mapa de dónde vive cada hecho y quién recalcula sus proyecciones",
+          "origen": "Entregables"
+        },
+        {
+          "id": "auditoria-periodica-del-modelo",
+          "tarea": "Hacer la auditoría periódica del modelo y proponer convenciones o excepciones",
+          "origen": "Disparadores"
+        }
       ]
     }
   }

@@ -18,13 +18,14 @@ import {
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const datos = leerEstandares(RAIZ);
 const agentes = agentesEnDisco(RAIZ);
+const PENDIENTES_CONGELADOS = ["diseno", "lola", "qa", "evaluador", "auditor-datos"]; // 10 oct 2026: solo se quitan, no se añaden
 const PRIMEROS_CUATRO = ["gobierno", "datos", "revisor", "seguridad"];
 const clon = () => JSON.parse(JSON.stringify(datos));
 const textoAgente = (n) => readFileSync(join(RAIZ, ".claude", "agents", `${n}.md`), "utf8").replace(/\r\n/g, "\n");
 
 describe("ops/estandares-agentes.json", () => {
   it("el catálogo cumple todas las reglas", () => {
-    expect(problemasDeEstandares(datos, agentes)).toEqual([]);
+    expect(problemasDeEstandares(datos, agentes, RAIZ)).toEqual([]);
   });
 
   it("los cuatro primeros agentes tienen todos sus estándares, sin pendientes", () => {
@@ -45,6 +46,11 @@ describe("ops/estandares-agentes.json", () => {
     expect(marcados).toEqual([...PENDIENTES_ADMITIDOS].sort());
   });
 
+  it("la lista de pendientes solo baja: es un subconjunto del conjunto congelado de hoy", () => {
+    // Añadir un agente pendiente exige tocar ESTA lista a ojos de quien revisa, no solo PENDIENTES_ADMITIDOS.
+    expect(PENDIENTES_ADMITIDOS.filter((n) => !PENDIENTES_CONGELADOS.includes(n))).toEqual([]);
+  });
+
   it("la cifra: tareas con estándar sobre tareas", () => {
     const c = contar(datos);
     expect(c.total).toBe(Object.values(datos.agentes).reduce((s, a) => s + a.tareas.length, 0));
@@ -57,7 +63,7 @@ describe("las reglas se ven fallar (cada una con un catálogo estropeado a prop�
   const falla = (cambia, trozo, ags = agentes) => {
     const d = clon();
     cambia(d);
-    expect(problemasDeEstandares(d, ags).join("\n")).toContain(trozo);
+    expect(problemasDeEstandares(d, ags, RAIZ).join("\n")).toContain(trozo);
   };
 
   it("una tarea sin estándar", () => falla((d) => { delete d.agentes.datos.tareas[0].estandar; }, "datos/modelar-antes-de-sql: sin estándar"));
@@ -65,7 +71,7 @@ describe("las reglas se ven fallar (cada una con un catálogo estropeado a prop�
   it("una tarea sin «no_hace»", () => falla((d) => { delete d.agentes.seguridad.tareas[1].no_hace; }, "«no_hace»"));
   it("una tarea sin fuente", () => falla((d) => { d.agentes.gobierno.tareas[0].fuentes = []; }, "gobierno/flujo-rama-pr-staging: sin fuente citada"));
   it("una fuente que no está en el catálogo", () => falla((d) => { d.agentes.gobierno.tareas[0].fuentes = ["no-existe"]; }, "la fuente «no-existe» no está"));
-  it("un estándar sin tarea: un campo de estándar en una tarea sin su tarea dicha", () => falla((d) => { d.agentes.datos.tareas[0].tarea = ""; }, "«tarea» dice qué se hace"));
+  it("una tarea sin descripción de lo que se hace", () => falla((d) => { d.agentes.datos.tareas[0].tarea = ""; }, "«tarea» dice qué se hace"));
   it("un estándar a medias en un agente pendiente", () => falla((d) => { d.agentes.lola.tareas[0].estandar = "x".repeat(80); }, "lola/herramienta-de-lola: campo «estandar» no admitido en un agente pendiente"));
   it("un agente nuevo sin su lista de tareas", () => falla(() => {}, "agente-nuevo: el agente existe y no tiene su lista", [...agentes, "agente-nuevo"]));
   it("un agente nuevo con tareas pero pendiente", () => falla((d) => { d.agentes["agente-nuevo"] = { estado: "pendiente", tareas: d.agentes.qa.tareas }; }, "agente-nuevo: pendiente, y un agente nuevo nace con sus estándares completos", [...agentes, "agente-nuevo"]));
@@ -80,6 +86,8 @@ describe("las reglas se ven fallar (cada una con un catálogo estropeado a prop�
   it("un estado fuera del vocabulario", () => falla((d) => { d.agentes.datos.estado = "casi"; }, "estado «casi»"));
   it("una fuente en una web que no es documentación admitida", () => falla((d) => { d.fuentes["gg-estandar"].url = "https://blog.example.com/x"; }, "blog.example.com no es una documentación admitida"));
   it("una fuente en http", () => falla((d) => { d.fuentes["gg-estandar"].url = "http://google.github.io/eng-practices/"; }, "la url va en https"));
+  it("una fuente de la casa con una ruta que no existe", () => falla((d) => { d.fuentes["casa-claude"].ruta = "no/existe.md"; }, "la ruta no/existe.md no existe en el repo"));
+  it("una fuente de la casa sin ruta o con url", () => falla((d) => { d.fuentes["casa-claude"].url = "https://x.org"; }, "lleva ruta y no url"));
   it("una fuente que ninguna tarea cita", () => falla((d) => { d.fuentes.sobra = { nombre: "Una fuente que sobra en el catálogo", url: "https://sre.google/x" }; }, "fuente «sobra»: ninguna tarea la cita"));
 });
 
