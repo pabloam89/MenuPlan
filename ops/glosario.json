@@ -603,7 +603,7 @@
       "termino": "persona",
       "estado": "activo",
       "clase": "rol",
-      "definicion": "Un miembro del equipo (Pablo, Álvaro o Manu, socio sin acceso al repo) que decide lo irreversible; los gateways los lanzan Pablo o Álvaro con !.",
+      "definicion": "Un miembro del equipo (Pablo, Álvaro o Manu, socio sin acceso al repo) que no es un agente; lo irreversible lo decide Pablo y los gateways los lanza Pablo con !.",
       "sinonimos_prohibidos": [],
       "aplica_a": ["todas"],
       "relacionado": ["gateway"],
