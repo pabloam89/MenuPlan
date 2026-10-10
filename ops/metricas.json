@@ -261,6 +261,27 @@
           "menciona": "env-boveda"
         }
       ]
+    },
+    {
+      "firma": "ts",
+      "emisores": [
+        ".claude/hooks/zonas.mjs"
+      ],
+      "campos": {
+        "ts": "id",
+        "zona": "id",
+        "rama": "id",
+        "issue": "id",
+        "como": "estado",
+        "aviso": "estado"
+      },
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/zonas.mjs",
+          "menciona": "export function contarAvisos"
+        }
+      ]
     }
   ],
   "informes": {
@@ -1243,6 +1264,27 @@
       "objetivo": "flujo-cumplido",
       "pregunta": "¿Cuántas veces se frenó a una sesión por afirmar el estado de un issue o un PR sin haber leído la fuente?",
       "emisor": ".claude/hooks/pendientes.mjs",
+      "sale_en": [
+        {
+          "evento": true
+        }
+      ],
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/lib/fabrica.mjs",
+          "menciona": "por_evento"
+        }
+      ],
+      "unidad": "cuenta",
+      "umbral": null,
+      "vigilante": "bloqueo_guardia"
+    },
+    {
+      "id": "aviso_guardia",
+      "objetivo": "guardia-proporcionada",
+      "pregunta": "¿Cuántas veces avisó la guardia sin bloquear (hoy, un fichero que otra rama tiene en su zona)?",
+      "emisor": ".claude/hooks/guardia.mjs",
       "sale_en": [
         {
           "evento": true
