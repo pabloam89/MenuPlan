@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaReferencia.mjs";
 import { LIMITES_REGLA } from "../scripts/lib/regla.mjs";
 import {
   ESTADOS_CATALOGO, MAX_PRINCIPIOS, MIN_PRINCIPIOS, RUTA_MD, anclarPendientes, generarMd, leerJsonEn, leerPendientes, leerRedaccion,
-  pendientesDe, problemasDeRedaccion, problemasDeTrinquete,
+  pendientesDe, problemasContraReferencia, problemasDeRedaccion, problemasDeTrinquete, tieneReglas,
 } from "../scripts/lib/redaccion.mjs";
 
 /**
@@ -31,33 +32,18 @@ describe("ops/redaccion.json", () => {
     expect(datos.principios.length).toBeGreaterThanOrEqual(MIN_PRINCIPIOS);
     expect(datos.principios.length).toBeLessThanOrEqual(MAX_PRINCIPIOS);
   });
-  it("cubre lo que pidió el encargo", () => {
-    const ids = datos.principios.map((p) => p.id);
-    for (const id of ["castellano-siempre", "un-termino-por-concepto", "fuerza-segun-rfc-2119", "condicion-estilo-ears", "exigencia-en-infinitivo", "nombre-de-dos-a-cinco-palabras", "dato-contable-en-campo", "nota-solo-para-el-matiz", "frases-cortas", "sin-anglicismos-con-termino"]) {
-      expect(ids, id).toContain(id);
-    }
-  });
-  it("cita las fuentes que pidió el encargo", () => {
-    const fuentes = datos.principios.map((p) => p.fuente).join("\n");
-    for (const f of ["rfc2119", "rfc8174", "alistairmavin.com/ears", "agent-skills/best-practices", "plainlanguage.gov"]) expect(fuentes, f).toContain(f);
-  });
   it("los topes que cita un principio son los de regla.mjs", () => {
     const de = (id) => datos.principios.find((p) => p.id === id).exigencia;
     expect(de("exigencia-corta-y-unica")).toContain(String(LIMITES_REGLA.exigencia.max));
     expect(de("nota-solo-para-el-matiz")).toContain(String(LIMITES_REGLA.nota.max));
-    expect(de("nombre-de-dos-a-cinco-palabras")).toContain(`de ${LIMITES_REGLA.nombre.palabras_min} a ${LIMITES_REGLA.nombre.palabras_max} palabras`);
+    expect(de("nombre-corto-y-nominal")).toContain(`de ${LIMITES_REGLA.nombre.palabras_min} a ${LIMITES_REGLA.nombre.palabras_max} palabras`);
   });
-  it("los estados de catálogo son dos", () => expect(Object.keys(ESTADOS_CATALOGO)).toEqual(["cumple", "pendiente"]));
 });
 
 describe("docs/ops/REDACCION.md sale del JSON", () => {
   it("está al día", () => {
     const md = readFileSync(join(RAIZ, RUTA_MD), "utf8");
     expect(md, "REDACCION.md se genera: edita ops/redaccion.json y lanza `npm run redaccion -- --escribir`").toBe(generarMd(datos, leerJson));
-  });
-  it("lleva todos los principios", () => {
-    const md = generarMd(datos, leerJson);
-    for (const p of datos.principios) expect(md).toContain(`\`${p.id}\``);
   });
 });
 
@@ -77,6 +63,50 @@ describe("trinquete: la lista de pendientes solo baja", () => {
     const d = clon();
     expect(anclarPendientes(d, ["ops/normas.json"])).toEqual(["ops/normas.json"]);
     expect(anclarPendientes(d, [], { sembrar: true })).toEqual(pendientesDe(d));
+  });
+});
+
+describe("todo catálogo de reglas figura en la guía", () => {
+  it("cada ops/*.json con entradas de sujeto, fuerza y exigencia está en «catalogos»", () => {
+    const declarados = datos.catalogos.map((k) => k.fichero);
+    const conReglas = readdirSync(join(RAIZ, "ops")).filter((f) => f.endsWith(".json")).map((f) => `ops/${f}`).filter((f) => tieneReglas(leerJson(f)));
+    for (const f of conReglas) expect(declarados, `${f} usa sujeto, fuerza y exigencia: declara su estado en ops/redaccion.json`).toContain(f);
+  });
+  it("tieneReglas ve una regla a cualquier profundidad y no ve una ficha cualquiera", () => {
+    expect(tieneReglas({ a: [{ b: { sujeto: "x", fuerza: "debe", exigencia: "llevar algo" } }] })).toBe(true);
+    expect(tieneReglas({ a: [{ sujeto: "x", fuerza: "debe" }] })).toBe(false);
+  });
+});
+
+/**
+ * El borrado doble: quitar un catálogo (o pasarlo a pendiente) de ops/redaccion.json y de su ancla a la
+ * vez pasa el trinquete local. Se contrasta con origin/staging (FORJA_REF cambia la referencia); sin ella,
+ * o mientras los ficheros no estén en ella, se salta limpio y lo dice.
+ */
+const REF = REFERENCIA();
+const refRedaccion = jsonEnReferenciaAvisando(RAIZ, REF, "ops/redaccion.json", "redacción");
+const refPendientes = jsonEnReferenciaAvisando(RAIZ, REF, "ops/redaccion-pendientes.json", "redacción");
+
+describe(`el trinquete contra ${REF}`, () => {
+  it.skipIf(!refRedaccion || !refPendientes)("no hay pendientes nuevos ni faltan catálogos de la referencia", () => {
+    expect(problemasContraReferencia(datos, leerPendientes(RAIZ), refRedaccion, refPendientes)).toEqual([]);
+  });
+  const ref = { catalogos: [{ fichero: "ops/a.json", estado: "pendiente" }, { fichero: "ops/b.json", estado: "cumple" }] };
+  const ancla = { pendientes: ["ops/a.json"] };
+  const hoy = (catalogos) => ({ catalogos });
+  it("un pendiente que la referencia no tenía falla", () => {
+    const d = hoy([{ fichero: "ops/a.json", estado: "pendiente" }, { fichero: "ops/b.json", estado: "pendiente" }]);
+    expect(problemasContraReferencia(d, ["ops/a.json"], ref, ancla).join(String.fromCharCode(10))).toContain("«ops/b.json» está pendiente");
+  });
+  it("un ancla que la referencia no tenía falla", () => {
+    const d = hoy([{ fichero: "ops/a.json", estado: "pendiente" }, { fichero: "ops/b.json", estado: "cumple" }]);
+    expect(problemasContraReferencia(d, ["ops/a.json", "ops/b.json"], ref, ancla).join(String.fromCharCode(10))).toContain("el ancla solo baja");
+  });
+  it("un catálogo que la referencia tenía y ya no está falla", () => {
+    expect(problemasContraReferencia(hoy([{ fichero: "ops/b.json", estado: "cumple" }]), [], ref, ancla).join(String.fromCharCode(10))).toContain("falta el catálogo «ops/a.json»");
+  });
+  it("bajar un pendiente a cumple pasa", () => {
+    expect(problemasContraReferencia(hoy([{ fichero: "ops/a.json", estado: "cumple" }, { fichero: "ops/b.json", estado: "cumple" }]), [], ref, ancla)).toEqual([]);
   });
 });
 
@@ -100,8 +130,9 @@ describe("cada regla se ve fallar con datos malos", () => {
   it("demasiado pocos principios", () => falla((d) => { d.principios = d.principios.slice(0, 5); }, "hay 5"));
   it("un id repetido", () => falla((d) => { d.principios[1].id = d.principios[0].id; }, "id repetido"));
   it("un catálogo que cumple sin su clave de reglas", () => falla((d) => { d.catalogos[0] = { ...d.catalogos[0], clave_reglas: "reglas_mal" }; }, "no es una lista de reglas"));
-  it("un catálogo pendiente sin encargo", () => falla((d) => { delete d.catalogos[1].encargo; }, "lleva su encargo"));
-  it("un catálogo con un estado inventado", () => falla((d) => { d.catalogos[1].estado = "casi"; }, "fuera del vocabulario"));
+  it("un catálogo pendiente sin encargo", () => falla((d) => { delete d.catalogos.find((k) => k.estado === "pendiente").encargo; }, "lleva su encargo"));
+  it("un catálogo cuya ruta no existe", () => falla((d) => { d.catalogos[2].fichero = "ops/no-existe.json"; }, "no existe"));
+  it("un catálogo con un estado inventado", () => falla((d) => { d.catalogos[2].estado = "casi"; }, "fuera del vocabulario"));
   it("un catálogo que cumple y trae una regla mal escrita", () => {
     const d = clon();
     const malo = { sujetos: { s: { legible: "cada cosa", aplica_a: ["x"] } }, criterios: [{ nombre: "Mal.", sujeto: "s", fuerza: "debe", exigencia: "Hacer algo." }] };

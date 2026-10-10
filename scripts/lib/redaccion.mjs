@@ -15,6 +15,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { FUENTE_F, FUENTE_I } from "./forja.mjs";
 import { CONTROL_JUICIO, FUERZAS, LIMITES_REGLA, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
 export const RUTA_REDACCION = "ops/redaccion.json";
@@ -35,8 +36,6 @@ export const CAMPOS_PRINCIPIO = ["id", "nombre", "sujeto", "fuerza", "exigencia"
 export const CAMPOS_PRINCIPIO_OPCIONALES = ["condicion", "nota"];
 
 const ID_PRINCIPIO = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-const FUENTE_F = /^\[F\] https?:\/\/\S+$/;
-const FUENTE_I = /^\[I\] (\S+)$/;
 const ENCARGO = /^(#\d+|en cola #\d+)$/;
 
 export const leerRedaccion = (raiz) => JSON.parse(readFileSync(join(raiz, RUTA_REDACCION), "utf8"));
@@ -135,6 +134,34 @@ export function problemasDeTrinquete(datos, guardado) {
   const malos = hoy.filter((f) => !guardado.includes(f)).map((f) => `«${f}» está pendiente y no figuraba: la lista de pendientes solo baja`);
   for (const f of guardado) if (!hoy.includes(f)) malos.push(`«${f}» ya no está pendiente: lanza «npm run redaccion -- --escribir» para bajarlo del ancla`);
   return malos;
+}
+
+/**
+ * Contra la referencia (origin/staging): el trinquete local se esquiva borrando a la vez el
+ * catálogo y su ancla. `refRedaccion` y `refPendientes` son los dos JSON tal como están en la
+ * referencia. Falla si hoy hay un pendiente (o un ancla) que la referencia no tenía, o si falta
+ * un catálogo que la referencia sí tenía.
+ */
+export function problemasContraReferencia(datos, guardado, refRedaccion, refPendientes) {
+  const malos = [];
+  const refAncla = refPendientes?.pendientes ?? [];
+  const refCatalogos = (refRedaccion?.catalogos ?? []).map((k) => k.fichero);
+  const hoy = datos.catalogos.map((k) => k.fichero);
+  const refPend = new Set([...refAncla, ...(refRedaccion?.catalogos ?? []).filter((k) => k.estado === "pendiente").map((k) => k.fichero)]);
+  for (const f of pendientesDe(datos)) if (!refPend.has(f)) malos.push(`«${f}» está pendiente y la referencia no lo tenía así: un catálogo nuevo nace cumpliendo la guía`);
+  for (const f of guardado) if (!refAncla.includes(f)) malos.push(`«${f}» está en el ancla y la referencia no lo tenía: el ancla solo baja`);
+  for (const f of refCatalogos) if (!hoy.includes(f)) malos.push(`falta el catálogo «${f}», que la referencia sí tenía`);
+  return malos;
+}
+
+/** ¿Hay en este JSON, a cualquier profundidad, entradas con `sujeto`, `fuerza` y `exigencia`? */
+export function tieneReglas(json) {
+  if (Array.isArray(json)) return json.some(tieneReglas);
+  if (json && typeof json === "object") {
+    if ("sujeto" in json && "fuerza" in json && "exigencia" in json) return true;
+    return Object.values(json).some(tieneReglas);
+  }
+  return false;
 }
 
 /** El ancla nueva: lo anclado que sigue pendiente (y, la primera vez, todo lo pendiente). */

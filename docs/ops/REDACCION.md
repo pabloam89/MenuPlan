@@ -17,12 +17,12 @@ Cada principio de abajo se escribe él mismo como regla, con su control, su ejem
   - Fuente: [I] CLAUDE.md.
 - `un-termino-por-concepto` — **Un término por concepto.** Cada regla de la casa DEBE llamar a cada concepto con su término de ops/glosario.json, sin sinónimos. Se comprueba con: `ops/glosario.test.js`.
   - Bueno: «Fusionar el PR cuando el CI esté en verde».
-  - Malo: «Mergear el PR cuando el chequeo pase».
+  - Malo: «Unir el PR cuando el CI esté en verde».
   - Nota: Mezclar sinónimos hace creer que son cosas distintas; el glosario fija una palabra y la lista de las prohibidas.
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.
 - `sin-anglicismos-con-termino` — **Sin anglicismos con término.** Cada regla de la casa NO DEBE usar un anglicismo cuando el glosario ya tiene su término en castellano. Se comprueba con: `ops/glosario.test.js`.
-  - Bueno: «Registrar el fallo como caso».
-  - Malo: «Reportar el bug como ticket».
+  - Bueno: «Fusionar el PR con el CI en verde».
+  - Malo: «Hacer el merge del PR con el CI en verde».
   - Nota: Lo que no tiene término en el glosario (hook, staging, lint) se deja como está y se añade al glosario si se repite.
   - Fuente: [I] ops/glosario.json.
 - `fuerza-segun-rfc-2119` — **Fuerza según RFC 2119.** La fuerza de cada regla DEBE ser debe, no_debe o conviene, con el sentido de MUST, MUST NOT y SHOULD de RFC 2119. Se comprueba con: `ops/regla.test.js`.
@@ -38,12 +38,12 @@ Cada principio de abajo se escribe él mismo como regla, con su control, su ejem
 - `condicion-estilo-ears` — **Condición estilo EARS.** La condición de cada regla DEBE empezar por «cuando» o «si» y nombrar el disparador, en una línea y sin punto final. Se comprueba con: `ops/regla.test.js`.
   - Bueno: «condicion: cuando la skill es de tipo servicio».
   - Malo: «condicion: en las skills de tipo servicio.».
-  - Nota: EARS (Mavin et al., 2009) pone el disparador delante: «Cuando <disparador>, <sujeto> debe <respuesta>». Una regla que vale siempre no lleva condición.
+  - Nota: El test vigila solo que empiece por cuando o si y que vaya en una línea sin punto final; que nombre un disparador es de juicio. EARS (Mavin et al., 2009) pone el disparador delante: «Cuando <disparador>, <sujeto> debe <respuesta>». Una regla que vale siempre no lleva condición.
   - Fuente: [F] https://alistairmavin.com/ears/.
 - `exigencia-en-infinitivo` — **Exigencia en infinitivo.** La exigencia de cada regla DEBE empezar por un verbo en infinitivo y en minúscula, sin sujeto: el sujeto ya lo pone el campo sujeto. Se comprueba con: `ops/regla.test.js`.
   - Bueno: «exigencia: llevar un dueño».
   - Malo: «exigencia: La skill lleva un dueño».
-  - Nota: La frase generada une sujeto, fuerza y exigencia; repetir el sujeto la rompe.
+  - Nota: La frase generada une sujeto, fuerza y exigencia; repetir el sujeto la rompe. Con conviene la frase empieza por «Para <sujeto>,», así que la exigencia tampoco es reflexiva ni pasiva: «usar frases», no «escribirse en frases». El test comprueba la terminación del verbo; que no lleve sujeto es de juicio.
   - Fuente: [I] scripts/lib/regla.mjs.
 - `exigencia-sin-punto-final` — **Exigencia sin punto final.** La exigencia de cada regla NO DEBE acabar en punto, dos puntos ni punto y coma, ni ocupar más de una línea. Se comprueba con: `ops/regla.test.js`.
   - Bueno: «exigencia: llevar un dueño».
@@ -53,14 +53,14 @@ Cada principio de abajo se escribe él mismo como regla, con su control, su ejem
 - `exigencia-corta-y-unica` — **Exigencia corta y única.** La exigencia de cada regla DEBE caber en 160 caracteres y pedir una sola cosa que se pueda comprobar. Se comprueba con: `ops/regla.test.js`.
   - Bueno: «exigencia: llevar un dueño».
   - Malo: «exigencia: llevar un dueño, una fecha de comprobación, casos de frontera y un enlace a cada skill vecina».
-  - Nota: Si hay dos cosas, son dos reglas; lo que sobra del tope va a la nota. La guía de requisitos de INCOSE pide lo mismo: un requisito, una necesidad.
+  - Nota: El test vigila solo el tope de 160 caracteres; que pida una sola cosa comprobable es de juicio. Si hay dos cosas, son dos reglas, y lo que sobra del tope va a la nota. La guía de requisitos de INCOSE pide lo mismo: un requisito, una necesidad.
   - Fuente: [I] scripts/lib/regla.mjs.
-- `nombre-de-dos-a-cinco-palabras` — **Nombre corto y nominal.** El nombre de cada regla DEBE ser un sustantivo de 2 a 5 palabras, con mayúscula inicial y sin punto final. Se comprueba con: `ops/regla.test.js`.
+- `nombre-corto-y-nominal` — **Nombre corto y nominal.** El nombre de cada regla DEBE ser un sustantivo de 2 a 5 palabras, con mayúscula inicial y sin punto final. Se comprueba con: `ops/regla.test.js`.
   - Bueno: «Frontmatter cerrado».
   - Malo: «Que la skill tenga un frontmatter cerrado.».
-  - Nota: El nombre es la etiqueta con la que se cita la regla; no repite el de otra del mismo catálogo.
+  - Nota: El test vigila el número de palabras, la mayúscula inicial y el punto final; que sea un sustantivo es de juicio. Es una sola idea, la forma de la etiqueta con la que se cita la regla, y no se repite en el catálogo.
   - Fuente: [I] scripts/lib/regla.mjs.
-- `dato-contable-en-campo` — **Dato contable en campo.** Cada dato de una regla que se vaya a contar, filtrar o agrupar DEBE ir en un campo de vocabulario cerrado y no en texto libre. Se comprueba con: `ops/forja-tipos.test.js`.
+- `dato-contable-en-campo` — **Dato contable en campo.** Cada dato de una regla que se vaya a contar, filtrar o agrupar DEBE ir en un campo de vocabulario cerrado y no en texto libre. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Bueno: «fuerza: debe (vocabulario de tres valores)».
   - Malo: «texto: Esto es muy importante, hazlo siempre».
   - Nota: El texto libre solo se admite en un hueco declarado, y el hueco se cuenta aparte; lo que no es un campo discreto no se puede contar.
@@ -68,22 +68,22 @@ Cada principio de abajo se escribe él mismo como regla, con su control, su ejem
 - `nota-solo-para-el-matiz` — **Nota solo para el matiz.** La nota de cada regla DEBE recoger solo el matiz, la cifra o la heurística que la exigencia no admite, en una línea de 400 caracteres como mucho. Se comprueba con: `ops/regla.test.js`.
   - Bueno: «nota: La description queda por debajo de los 1.024 caracteres del estándar abierto».
   - Malo: «nota: Además, la skill debe llevar un dueño y casos de frontera».
-  - Nota: Si quitar la nota cambia lo que se exige, esa parte era exigencia y va en el campo exigencia o en otra regla.
+  - Nota: El test vigila solo la forma (una línea, 15 a 400 caracteres); que la nota sea un matiz y no la exigencia es de juicio: si quitarla cambia lo que se exige, esa parte va en la exigencia o en otra regla.
   - Fuente: [I] scripts/lib/regla.mjs.
-- `frases-cortas` — **Frases cortas.** Para la nota de cada regla, CONVIENE escribirse en frases de menos de 25 palabras y párrafos de cinco frases como mucho. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+- `frases-cortas` — **Frases cortas.** Para la nota de cada regla, CONVIENE usar frases de menos de 25 palabras y párrafos de cinco frases como mucho. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
   - Bueno: «Las ramas se crean desde staging y vuelven por PR».
   - Malo: «Las ramas, que se crean siempre desde staging, aunque algunas veces no, vuelven por PR cuando el CI, que también vigila otras cosas, está en verde».
   - Nota: Vale también para la prosa de las guías y las skills; los topes de palabras son de la casa, no de la fuente.
   - Fuente: [F] https://www.plainlanguage.gov/guidelines/.
-- `fuente-marcada` — **Fuente marcada.** La fuente de cada regla DEBE empezar por [F] con una dirección web que responda, o por [I] con una ruta del repo que exista. Se comprueba con: `ops/forja.test.js`.
+- `fuente-marcada` — **Fuente marcada.** La fuente de cada regla DEBE empezar por [F] con una dirección https, o por [I] con una ruta del repo que exista. Se comprueba con: `ops/forja.test.js`.
   - Bueno: «[F] https://www.rfc-editor.org/rfc/rfc2119».
   - Malo: «Lo dice RFC 2119».
-  - Nota: [F] está en una fuente externa; [I] es inferencia o decisión de la casa y no se toma por hecho de fuera.
+  - Nota: [F] está en una fuente externa; [I] es inferencia o decisión de la casa. Que la dirección [F] responda lo mide npm run forja -- --urls. Lo vigila forja.test.js en los criterios y redaccion.test.js en estos principios.
   - Fuente: [I] docs/ops/FORJA.md.
 - `control-declarado` — **Control declarado.** El control de cada regla DEBE ser el fichero que vigila la regla o el valor juicio, y no quedar vacío. Se comprueba con: `ops/forja.test.js`.
   - Bueno: «control: .claude/skills.test.js».
   - Malo: «control: se revisa a mano de vez en cuando».
-  - Nota: Una regla sin control es un deseo: si no hay fichero todavía, se declara juicio y se apunta el encargo que lo construye.
+  - Nota: Una regla sin control es un deseo: si no hay fichero todavía, se declara juicio y se apunta el encargo que lo construye. Lo vigila forja.test.js en los criterios y redaccion.test.js en estos principios.
   - Fuente: [I] CLAUDE.md.
 - `catalogo-declara-su-estado` — **Catálogo declara su estado.** Cada catálogo de reglas DEBE figurar en la lista de catálogos como cumple, o como pendiente con el encargo que lo pone al día. Se comprueba con: `ops/redaccion.test.js`.
   - Bueno: «estado: pendiente, encargo: #494».
@@ -129,6 +129,7 @@ Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es
 | Catálogo | Estado | Reglas | Encargo |
 |---|---|---|---|
 | `ops/forja.json` | cumple | 74 | - |
+| `ops/redaccion.json` | cumple | 16 | - |
 | `ops/normas.json` | pendiente | - | #494 |
 | `ops/flujo.json` | pendiente | - | en cola #488 |
 | `ops/estandares-agentes.json` | pendiente | - | en cola #488 |
