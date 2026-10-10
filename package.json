@@ -31,6 +31,7 @@
     "fallos": "node scripts/bot-fallos.mjs",
     "tarea": "node scripts/tarea.mjs",
     "retirar": "node scripts/retirar.mjs",
+    "vecinos": "node scripts/vecinos.mjs",
     "podar": "node scripts/podar.mjs",
     "issues": "node scripts/issues.mjs",
     "espera-ci": "node scripts/espera-ci.mjs",
