@@ -44,6 +44,14 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
   la propia sesión.
 - **`main` es producción.** Ninguna sesión sube ni fusiona a `main`; solo
   cuando Pablo lo pide, con el método que se decida con él.
+- **Dueño de código** (`.github/CODEOWNERS`, #330), cuando Pablo aplique y pruebe los
+  rulesets (hasta entonces es texto): un PR a `staging` que toca `.claude/`,
+  `.github/`, `CLAUDE.md`, `ops/DECISIONES.md`, `ops/normas.json`, el script de
+  aplicar migraciones o lo que ejecutan los hooks y los workflows con secretos
+  (`CODEOWNERS` lista cada fichero) espera la aprobación de Pablo; uno que no
+  toca nada de eso se fusiona solo con el CI en verde. A `main` solo fusiona
+  Pablo, desde el botón del PR. Se aplican con `scripts/rulesets.mjs`; detalle
+  en la skill `github`.
 - Una rama por tarea, prefijo de área y nombre en castellano: `bot/`, `datos/`,
   `ux/`, `fix/`, `feat/`, `ops/`, `motor/`. Las de la nube empujan solo a la
   suya. «¿Está en staging?» se mira en `origin/staging` tras `git fetch`.
@@ -236,6 +244,8 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 - Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
 - Escribir a personas o publicar algo en su nombre.
 - Ampliar los permisos de `.claude/settings.json` (la sesión pregunta en el chat antes de abrir el PR y el juez lo marca; la guardia ya no pregunta al editar).
+- Fusionar un PR que toca las rutas de `.github/CODEOWNERS`: la sesión lo
+  deja listo con el CI en verde y espera la aprobación de Pablo.
 - Reescribir historia de una rama que no es tuya.
 
 **Autorizado de forma permanente** (se hace y se cuenta en el resumen):
@@ -248,7 +258,8 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 - Issues y etiquetas: crearlos, clasificarlos, colgarlos, cerrarlos con su PR,
   y `npm run issues -- --etiquetas`.
 - Cambiar hooks, guardia, reglas, skills y agentes, siempre por PR con su juez
-  y el CI en verde. Fusionar a staging es de la propia sesión.
+  y el CI en verde. Fusionar a staging es de la propia sesión; con los
+  rulesets de #330 aplicados y probados, si el PR toca `.claude/` espera la aprobación de Pablo.
 - Ajustes del repo que no tocan permisos ni producción: etiquetas,
   plantillas, la descripción de un PR.
 - Poner al día la carpeta principal (`git pull --ff-only`) y las copias de
