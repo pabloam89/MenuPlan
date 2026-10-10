@@ -62,25 +62,28 @@ describe("ops/estandares-agentes.json", () => {
     expect(contarJuicio(datos)).toBe(juicio);
   });
 
-  it("las reglas a juicio son «como mucho N» y N solo baja, también respecto a origin/staging (#527)", () => {
+  it("el recuento de reglas a juicio es igual al ancla, y el ancla solo baja respecto a origin/staging (#527)", () => {
     const anclado = leerJuicioMaximo(RAIZ);
     expect(anclado, `${RUTA_JUICIO} trae juicio_maximo`).not.toBeNull();
     const enStaging = juicioMaximoEnStaging(RAIZ);
     expect(problemasDeJuicio(datos, anclado, enStaging)).toEqual([]);
   });
 
-  it("el trinquete falla si hay una regla a juicio de más, si el tope sube o si falta, y no obliga a bajar", () => {
+  it("el trinquete falla si hay una regla a juicio de más o de menos, si el ancla sube o si falta", () => {
     const hoy = contarJuicio(datos);
     const sinControl = clon();
     sinControl.agentes.gobierno.tareas[0].reglas.find((r) => r.control !== "juicio").control = "juicio";
     expect(contarJuicio(sinControl)).toBe(hoy + 1);
-    expect(problemasDeJuicio(sinControl, hoy).join("\n")).toContain("el tope es");
+    expect(problemasDeJuicio(sinControl, hoy).join("\n")).toContain("el ancla es");
+    expect(problemasDeJuicio(datos, hoy + 1, hoy + 1).join("\n")).toContain("bájala con");
     expect(problemasDeJuicio(datos, hoy + 3, hoy).join("\n")).toContain("mayor que el de origin/staging");
     expect(problemasDeJuicio(datos, null).join("\n")).toContain("falta o no trae");
-    // «Como mucho»: con menos reglas a juicio que el tope no falla (quien las baja baja también el tope con --escribir).
-    expect(problemasDeJuicio(datos, hoy + 2, hoy + 2)).toEqual([]);
-    // Si origin/staging no se puede leer, no se inventa un tope.
-    expect(juicioMaximoEnStaging(RAIZ, () => { throw new Error("sin ref"); })).toBeNull();
+    expect(problemasDeJuicio(datos, hoy, hoy)).toEqual([]);
+    // Si origin/staging no se puede leer, no se inventa un tope y se avisa por stderr.
+    const avisos = [];
+    const consola = console.error; console.error = (m) => avisos.push(m);
+    try { expect(juicioMaximoEnStaging(RAIZ, () => { throw new Error("sin ref"); })).toBeNull(); } finally { console.error = consola; }
+    expect(avisos.join("\n")).toContain("se salta la comparación con staging");
     expect(problemasDeJuicio(datos, hoy, null)).toEqual([]);
   });
 
@@ -255,7 +258,7 @@ describe("docs/ops/ESTANDARES.md sale del catálogo", () => {
     expect(agente).toBe("gobierno");
     expect(tarea).toBe("`flujo-rama-pr-staging`");
     expect(ACCIONES).toContain(accion);
-    expect(frase).toContain("**Rama desde staging.** Cada rama de trabajo DEBE salir de origin/staging");
+    expect(frase).toContain("**Rama y estado desde origin.** Cada rama de trabajo DEBE salir de origin/staging");
     expect(control).toBe("juicio");
     expect(fuente).toMatch(/^\[F\] \[/);
     const comunes = md.split("\n").filter((l) => /^\| `[a-z0-9-]+` \| (construir|juzgar|diagnosticar|operar|medir|documentar|decidir) \|/.test(l));
@@ -264,7 +267,7 @@ describe("docs/ops/ESTANDARES.md sale del catálogo", () => {
 
   it("la frase de cada regla sale de sus campos y no lleva el control", () => {
     const r = datos.agentes.gobierno.tareas[0].reglas[0];
-    expect(fraseDeEstandar(r, datos.sujetos)).toBe("**Rama desde staging.** Cada rama de trabajo DEBE salir de origin/staging y llevar una sola tarea, en su propia carpeta de trabajo.");
+    expect(fraseDeEstandar(r, datos.sujetos)).toBe("**Rama y estado desde origin.** Cada rama de trabajo DEBE salir de origin/staging con una sola tarea y, para saber si un cambio está en staging, leerse en origin/staging tras git fetch.");
   });
 });
 

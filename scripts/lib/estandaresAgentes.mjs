@@ -424,11 +424,14 @@ export const leerJuicioMaximo = (raiz) => (existsSync(join(raiz, RUTA_JUICIO)) ?
 export function juicioMaximoEnStaging(raiz, ejecutar = execFileSync) {
   try {
     return numeroDe(ejecutar("git", ["show", `origin/staging:${RUTA_JUICIO}`], { cwd: raiz, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
-  } catch { return null; /* a propósito: sin el ref o sin el fichero allí no hay tope con el que comparar, y el test lo dice */ }
+  } catch {
+    console.error(`aviso: no se puede leer ${RUTA_JUICIO} en origin/staging; se salta la comparación con staging`);
+    return null;
+  }
 }
 
 /**
- * Errores del trinquete, una línea cada uno: las reglas a juicio son «como mucho N», N solo baja y
+ * Errores del trinquete, una línea cada uno: el recuento de reglas a juicio es igual al ancla, el ancla solo baja y
  * no puede ser mayor que el de origin/staging (`enStaging`, null si no se puede leer).
  */
 export function problemasDeJuicio(datos, anclado, enStaging = null) {
@@ -436,8 +439,9 @@ export function problemasDeJuicio(datos, anclado, enStaging = null) {
   const malos = [];
   if (anclado === null) malos.push(`${RUTA_JUICIO}: falta o no trae «juicio_maximo» (entero)`);
   else {
-    if (hoy > anclado) malos.push(`hay ${hoy} reglas con control «juicio» y el tope es ${anclado}: una regla nueva lleva un control que falla si se incumple, o el tope no sube`);
-    if (enStaging !== null && anclado > enStaging) malos.push(`${RUTA_JUICIO}: el tope ${anclado} es mayor que el de origin/staging (${enStaging}); solo baja`);
+    if (hoy > anclado) malos.push(`hay ${hoy} reglas con control «juicio» y el ancla es ${anclado}: una regla nueva lleva un control que falla si se incumple, y el ancla no sube`);
+    if (hoy < anclado) malos.push(`hay ${hoy} reglas con control «juicio» y el ancla es ${anclado}: bájala con npm run estandar -- --escribir`);
+    if (enStaging !== null && anclado > enStaging) malos.push(`${RUTA_JUICIO}: el ancla ${anclado} es mayor que el de origin/staging (${enStaging}); solo baja`);
   }
   return malos;
 }
@@ -449,7 +453,7 @@ export function bajarJuicioMaximo(raiz, datos) {
   const nuevo = actual === null ? hoy : Math.min(actual, hoy);
   if (nuevo !== actual) {
     writeFileSync(join(raiz, RUTA_JUICIO), JSON.stringify({
-      $comentario: "Tope de reglas de ops/estandares-agentes.json con control «juicio» (#527). Es «como mucho N» y SOLO BAJA: ops/estandares-agentes.test.js falla si hay más o si el tope sube respecto a origin/staging. Se baja con npm run estandar -- --escribir.",
+      $comentario: "Ancla de reglas de ops/estandares-agentes.json con control «juicio» (#527): el recuento ha de ser igual y SOLO BAJA. ops/estandares-agentes.test.js falla si hay más, si hay menos (se baja con npm run estandar -- --escribir) o si el ancla sube respecto a origin/staging.",
       juicio_maximo: nuevo,
     }, null, 2) + "\n");
   }

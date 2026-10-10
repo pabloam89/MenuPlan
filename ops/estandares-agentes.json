@@ -686,7 +686,7 @@
           "sujeto": "hallazgo",
           "fuerza": "debe",
           "exigencia": "buscarse antes de darse por nuevo, con npm run buscar y npm run issues",
-          "control": ".claude/hooks/buscar-antes.test.js",
+          "control": "juicio",
           "fuente": "casa-skill-issues",
           "porque": "El mismo fallo se abrió tres veces como issue porque nadie miró lo que ya existía",
           "ejemplo_bueno": "npm run buscar con el síntoma y el fichero, y el resultado en el informe",
@@ -697,7 +697,7 @@
           "sujeto": "hallazgo",
           "fuerza": "debe",
           "exigencia": "llevar la marca YA APUNTADO: #n o NUEVO (buscado: consulta)",
-          "control": ".claude/agentes.test.js",
+          "control": "juicio",
           "fuente": "casa-plantilla-agente",
           "porque": "Un hallazgo sin marca se devuelve: no se sabe si es repetido",
           "ejemplo_bueno": "NUEVO (buscado: cableado pedidos)",
@@ -719,7 +719,7 @@
           "sujeto": "informe",
           "fuerza": "debe",
           "exigencia": "seguir las secciones de .claude/PLANTILLA-AGENTE.md, con CASOS, SKILLS y ESTÁNDAR",
-          "control": ".claude/agentes.test.js",
+          "control": "juicio",
           "fuente": "casa-plantilla-agente",
           "porque": "Con la misma forma, la sesión y el juez leen cualquier informe sin buscar dónde está cada cosa",
           "ejemplo_bueno": "RESUMEN, CASOS, SKILLS, ESTÁNDAR y DECISIONES PENDIENTES",
@@ -1079,15 +1079,15 @@
           "origen": "mision",
           "reglas": [
             {
-              "nombre": "Rama desde staging",
+              "nombre": "Rama y estado desde origin",
               "sujeto": "rama",
               "fuerza": "debe",
-              "exigencia": "salir de origin/staging y llevar una sola tarea, en su propia carpeta de trabajo",
+              "exigencia": "salir de origin/staging con una sola tarea y, para saber si un cambio está en staging, leerse en origin/staging tras git fetch",
               "control": "juicio",
               "fuente": "gh-protected-branches",
-              "porque": "Una rama que sale de otra base arrastra cambios ajenos y el PR no se puede revisar",
-              "ejemplo_bueno": "ops/516-estandares-por-campos, creada con npm run tarea desde origin/staging",
-              "ejemplo_malo": "una rama salida de otra rama de trabajo sin fusionar"
+              "porque": "Una rama de otra base arrastra cambios ajenos, y el upstream dice lo que se empujó, no lo que entró en staging",
+              "ejemplo_bueno": "git fetch y git branch -r --contains <commit> sobre origin/staging",
+              "ejemplo_malo": "dar por fusionado lo que figura como empujado, o salir de otra rama de trabajo sin fusionar"
             },
             {
               "nombre": "Closes y Agente",
@@ -1101,27 +1101,16 @@
               "ejemplo_malo": "un cuerpo de PR con solo el título"
             },
             {
-              "nombre": "Casos del PR",
+              "nombre": "Casos y skill del PR",
               "sujeto": "pr",
               "fuerza": "debe",
-              "exigencia": "llevar la línea Casos con los casos que arregla, o Casos: ninguno con su motivo",
+              "exigencia": "llevar la línea Casos con los casos que arregla, o Casos: ninguno con su motivo, y la línea de la skill del dominio, actualizada o sin novedades",
               "control": "scripts/casos-pr.mjs",
               "fuente": "gh-pull-requests",
-              "porque": "Sin ella no se sabe de qué problema de fondo es síntoma el arreglo",
-              "ejemplo_bueno": "Casos: #488, #527 en el cuerpo del PR",
-              "ejemplo_malo": "abrir el PR sin la línea porque el cambio es pequeño"
-            },
-            {
-              "nombre": "Skill en el PR",
-              "sujeto": "pr",
-              "fuerza": "debe",
-              "condicion": "cuando el PR toca rutas de un dominio con skill",
-              "exigencia": "llevar la línea de la skill del dominio: actualizada con su nombre, o sin novedades",
-              "control": "scripts/runbook-pr.mjs",
-              "fuente": "casa-claude",
-              "porque": "Una skill que no se toca cuando cambia su dominio se queda diciendo lo viejo",
-              "ejemplo_bueno": "la línea «actualizada (skill github)» en un PR que cambia un workflow",
-              "ejemplo_malo": "un PR que cambia un workflow sin ninguna línea de skill"
+              "porque": "Sin Casos no se sabe de qué problema de fondo es síntoma el arreglo, y una skill sin tocar se queda diciendo lo viejo",
+              "ejemplo_bueno": "Casos: #488, #527 y la línea de skill actualizada en un PR que cambia un workflow",
+              "ejemplo_malo": "un PR que cambia un workflow sin línea de casos ni de skill",
+              "condicion": "cuando el PR arregla un fallo o toca rutas de un dominio con skill"
             },
             {
               "nombre": "Fusión con CI verde",
@@ -1134,6 +1123,18 @@
               "porque": "El check es lo único que impide que un cambio roto llegue a la rama que despliega",
               "ejemplo_bueno": "gh pr checks 12 con tests en pass",
               "ejemplo_malo": "fusionar con el check en curso porque el cambio es pequeño"
+            },
+            {
+              "nombre": "Rama al día",
+              "sujeto": "rama",
+              "fuerza": "debe",
+              "condicion": "cuando se va a abrir o a fusionar un PR",
+              "exigencia": "estar al día con origin/staging, fusionándolo en la rama, antes de abrir el PR y antes de fusionarlo",
+              "control": ".claude/hooks/guardia.test.js",
+              "fuente": "gh-protected-branches",
+              "porque": "Una rama atrasada se prueba contra una base que ya no existe y el choque llega tarde",
+              "ejemplo_bueno": "git merge origin/staging y el CI de nuevo antes de fusionar",
+              "ejemplo_malo": "fusionar una rama a la que staging ha cambiado los mismos ficheros"
             }
           ],
           "no_hace": [
@@ -1181,18 +1182,6 @@
               "porque": "Un verde sobre otro commit no prueba lo que se despliega",
               "ejemplo_bueno": "tests en pass sobre el commit de cabeza de origin/staging",
               "ejemplo_malo": "mirar el último verde de hace dos commits"
-            },
-            {
-              "nombre": "Estado desde origin",
-              "sujeto": "rama.estado",
-              "fuerza": "debe",
-              "condicion": "cuando se pregunta si un cambio está en staging",
-              "exigencia": "leerse en origin/staging tras git fetch y no en el upstream de la rama",
-              "control": "juicio",
-              "fuente": "casa-claude",
-              "porque": "El upstream de la rama dice lo que se empujó, no lo que entró en staging",
-              "ejemplo_bueno": "git fetch y git branch -r --contains <commit> sobre origin/staging",
-              "ejemplo_malo": "dar por fusionado lo que figura como empujado"
             }
           ],
           "no_hace": [
@@ -1251,18 +1240,6 @@
               "porque": "El stash no pertenece a una carpeta, así que una sesión puede recuperar el de otra",
               "ejemplo_bueno": "commit en la propia rama aunque sea provisional",
               "ejemplo_malo": "git stash antes de cambiar de tarea"
-            },
-            {
-              "nombre": "Rama al día",
-              "sujeto": "rama",
-              "fuerza": "debe",
-              "condicion": "cuando se va a abrir o a fusionar un PR",
-              "exigencia": "estar al día con origin/staging, fusionándolo en la rama, antes de abrir el PR y antes de fusionarlo",
-              "control": ".claude/hooks/guardia.test.js",
-              "fuente": "gh-protected-branches",
-              "porque": "Una rama atrasada se prueba contra una base que ya no existe y el choque llega tarde",
-              "ejemplo_bueno": "git merge origin/staging y el CI de nuevo antes de fusionar",
-              "ejemplo_malo": "fusionar una rama a la que staging ha cambiado los mismos ficheros"
             }
           ],
           "no_hace": [
@@ -1853,7 +1830,7 @@
               "nombre": "DDL que falla fuerte",
               "sujeto": "migracion",
               "fuerza": "debe",
-              "exigencia": "fallar en vez de callar: drop constraint sin if exists y sin cascade",
+              "exigencia": "fallar en vez de callar: drop constraint sin if exists",
               "control": "juicio",
               "fuente": "pg-altertable",
               "porque": "Un if exists esconde que el objeto no estaba y la migración sigue como si nada",
@@ -3536,7 +3513,7 @@
               "sujeto": "enrutador",
               "fuerza": "no_debe",
               "exigencia": "mandar a la vía rápida un mensaje que tocaba a Lola: la cifra que importa es 0",
-              "control": "juicio",
+              "control": "scripts/router-evals.mjs",
               "fuente": "casa-lola-regla",
               "porque": "Una respuesta rápida equivocada cuesta más que dejar pasar a Lola",
               "ejemplo_bueno": "0 de rápida cuando tocaba Lola en router-evals",

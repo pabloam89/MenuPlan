@@ -132,7 +132,7 @@ Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es
 | `ops/redaccion.json` | cumple | 16 | - |
 | `ops/normas.json` | cumple | 97 | - |
 | `ops/flujo.json` | cumple | 53 | - |
-| `ops/estandares-agentes.json` | cumple | 221 | - |
+| `ops/estandares-agentes.json` | cumple | 219 | - |
 
 - cumple: Cada entrada pasa las comprobaciones de regla.mjs.
 - pendiente: Aún no sigue la guía; lleva el encargo que lo pone al día y la lista solo baja.
