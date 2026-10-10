@@ -193,16 +193,20 @@ export function problemasDeExcepcionesContraReferencia(guardado, ref) {
 export const sumaExcepciones = (m) => Object.values(m ?? {}).reduce((s, n) => s + n, 0);
 
 /**
- * Las tareas de un estándar que ya tienen texto de estándar (agentes completos) y no cumplen el método de
- * rondas: mapa `estandar:agente/tarea` → 1. Es lo que va a la lista de excepciones, que solo baja.
+ * Las tareas de un estándar que ya tienen su estándar escrito (reglas por campos, #516) y no cumplen el método de
+ * rondas: mapa `estandar:agente/tarea` → 1. Las tareas comunes cuentan como `estandar:comun/<id>`. Es lo que va a la
+ * lista de excepciones, que solo baja.
  */
 export function faltasDeRondas(estandares, datos) {
   const r = {};
   for (const [agente, ag] of Object.entries(estandares.agentes ?? {})) {
     for (const t of ag.tareas ?? []) {
-      if (!t.estandar) continue;
+      if (!t.reglas) continue;
       if (problemasDeRondas(t.rondas, datos).length) r[`estandar:${agente}/${t.id}`] = 1;
     }
+  }
+  for (const [id, c] of Object.entries(estandares.comunes ?? {})) {
+    if (problemasDeRondas(c.rondas, datos).length) r[`estandar:comun/${id}`] = 1;
   }
   return r;
 }

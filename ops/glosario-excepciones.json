@@ -18,8 +18,8 @@
       "worktrees": 4
     },
     ".claude/agents/revisor.md": {
-      "bug": 2,
-      "lección": 7
+      "bug": 1,
+      "lección": 6
     },
     ".claude/commands/backend-review.md": {
       "reporte": 1
@@ -78,14 +78,6 @@
     "docs/ops/FLUJO.md": {
       "lección": 1,
       "runbook": 1
-    },
-    "ops/estandares-agentes.json": {
-      "bug": 2,
-      "bugs": 1,
-      "lección": 6,
-      "runbook": 2,
-      "worktree": 1,
-      "worktrees": 2
     }
   }
 }

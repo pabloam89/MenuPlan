@@ -113,12 +113,11 @@ No cambia el repo. Devuelve en «Decisiones pendientes»:
 
 Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
 `ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
-tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- qa <tarea>`.
+tarea (acción, reglas con su control y su fuente, y lo que no hace): `npm run estandar -- qa <tarea>`.
+Todas las tareas de todos los agentes, en una tabla: `docs/ops/ESTANDARES.md`.
 
-Estado: pendiente. Lista de tareas hecha; el estándar de cada una está por escribir (#413).
-
-- `recorrer-flujo-en-navegador` — Arrancar la app y recorrer el flujo tocado en un navegador a los dos anchos
-- `capturas-de-estados` — Capturar cada pantalla afectada en los estados vacío, cargando y peligro
-- `comprobar-design-system` — Comprobar tokens, primitivos, objetivos táctiles, contraste y movimiento reducido contra el design system
-- `errores-de-consola` — Recoger los errores de consola y las peticiones fallidas con el paso que los provoca
-- `informe-visual` — Redactar los hallazgos visuales por pantalla con severidad y ruta de captura
+- `recorrer-flujo-en-navegador` — Arrancar la app y recorrer el flujo tocado en un navegador a los dos anchos (acción: juzgar)
+- `capturas-de-estados` — Capturar cada pantalla afectada en los estados vacío, cargando y peligro (acción: juzgar)
+- `comprobar-design-system` — Comprobar tokens, primitivos, objetivos táctiles, contraste y movimiento reducido contra el design system (acción: juzgar)
+- `errores-de-consola` — Recoger los errores de consola y las peticiones fallidas con el paso que los provoca (acción: juzgar)
+- `informe-visual` — Redactar los hallazgos visuales por pantalla con severidad y ruta de captura (acción: documentar)

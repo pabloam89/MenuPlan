@@ -295,7 +295,7 @@
       }
     },
     "estandar": {
-      "fuente": "Una tarea de un agente en ops/estandares-agentes.json (la clave es su id).",
+      "fuente": "Una tarea de un agente en ops/estandares-agentes.json (la clave es su id). Su estándar son sus reglas por campos (#516); las compartidas por varios agentes están en comunes y la tarea las nombra.",
       "clave": "id",
       "campos": {
         "tarea": {
@@ -304,23 +304,26 @@
           "cubre": "La frase que dice qué se hace en esa tarea: el verbo y su objeto no caben en un vocabulario cerrado",
           "obligatorio": true
         },
+        "accion": {
+          "clase": "enum",
+          "vocab": "accion_tarea",
+          "obligatorio": true
+        },
         "origen": {
           "clase": "enum",
           "vocab": "origen_tarea",
           "obligatorio": true
         },
-        "estandar": {
-          "clase": "texto",
-          "hueco": true,
-          "cubre": "Qué es hacer bien la tarea, dicho con sus matices: un estándar no se reduce a casillas",
+        "comunes": {
+          "clase": "ref",
+          "ref": "estandar_comun",
+          "lista": true,
           "obligatorio": false
         },
-        "comprueba": {
-          "clase": "texto",
+        "reglas": {
+          "clase": "regla",
           "lista": true,
-          "hueco": true,
-          "cubre": "Las comprobaciones concretas de esa tarea, que cambian con cada una y no tienen vocabulario común",
-          "obligatorio": false
+          "obligatorio": true
         },
         "no_hace": {
           "clase": "texto",
@@ -334,12 +337,6 @@
           "lista": true,
           "hueco": true,
           "cubre": "Lo que cambió en cada ronda de investigación, una frase por ronda: el número y las fuentes son discretos, el cambio no cabe en un vocabulario",
-          "obligatorio": false
-        },
-        "fuentes": {
-          "clase": "ref",
-          "ref": "fuente",
-          "lista": true,
           "obligatorio": false
         }
       }

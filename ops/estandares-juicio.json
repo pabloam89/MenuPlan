@@ -1,0 +1,4 @@
+{
+  "$comentario": "Tope de reglas de ops/estandares-agentes.json con control «juicio» (#527). Es «como mucho N» y SOLO BAJA: ops/estandares-agentes.test.js falla si hay más o si el tope sube respecto a origin/staging. Se baja con npm run estandar -- --escribir.",
+  "juicio_maximo": 171
+}

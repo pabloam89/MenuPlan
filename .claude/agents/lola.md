@@ -125,15 +125,14 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 
 Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
 `ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
-tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- lola <tarea>`.
+tarea (acción, reglas con su control y su fuente, y lo que no hace): `npm run estandar -- lola <tarea>`.
+Todas las tareas de todos los agentes, en una tabla: `docs/ops/ESTANDARES.md`.
 
-Estado: pendiente. Lista de tareas hecha; el estándar de cada una está por escribir (#413).
-
-- `herramienta-de-lola` — Crear o cambiar una herramienta del bot con su descripción, su papel y sus tests
-- `reproducir-fallo-de-lola` — Reproducir un fallo de Lola con el caso exacto y localizar su causa
-- `conocimiento-y-descripciones` — Cambiar el conocimiento o la ficha cuidando el prefijo cacheado
-- `enrutador-y-via-rapida` — Cambiar el enrutador o la vía rápida y sus reglas
-- `papeles-y-permisos-de-herramientas` — Cambiar los papeles y permisos de las herramientas de Lola
-- `coste-y-latencia` — Bajar el coste o la latencia de un tipo de turno
-- `casos-de-eval` — Añadir a los evals el caso de un fallo real que se arregla
-- `medir-antes-despues` — Medir pase de evals, tokens por turno y vueltas antes y después del cambio
+- `herramienta-de-lola` — Crear o cambiar una herramienta del bot con su descripción, su papel y sus tests (acción: construir)
+- `reproducir-fallo-de-lola` — Reproducir un fallo de Lola con el caso exacto y localizar su causa (acción: diagnosticar)
+- `conocimiento-y-descripciones` — Cambiar el conocimiento o la ficha cuidando el prefijo cacheado (acción: construir)
+- `enrutador-y-via-rapida` — Cambiar el enrutador o la vía rápida y sus reglas (acción: construir)
+- `papeles-y-permisos-de-herramientas` — Cambiar los papeles y permisos de las herramientas de Lola (acción: construir)
+- `coste-y-latencia` — Bajar el coste o la latencia de un tipo de turno (acción: construir)
+- `casos-de-eval` — Añadir a los evals el caso de un fallo real que se arregla (acción: construir)
+- `medir-antes-despues` — Medir pase de evals, tokens por turno y vueltas antes y después del cambio (acción: medir)
