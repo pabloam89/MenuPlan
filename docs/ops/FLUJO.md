@@ -221,7 +221,7 @@ De más a menos duradero. Un fondo grave o repetido se cierra con un escalón 1 
 | **herramienta** | Cómo se opera un servicio (supabase, vercel, telegram…) | existe | — |
 | **oficio** | Cómo se piensa un tipo de problema (causa raíz, plan de arreglo, priorizar) | existe | — |
 | **dominio** | El conocimiento del negocio (nutrición, alergias, cómo comen las familias) | reservado | #336 |
-| **estandar** | Cómo deben quedar las cosas para ser consistentes (voz de Lola, design system) | reservado | #336 |
+| **estandar** | Cómo deben quedar las cosas para ser consistentes (voz de Lola, design system) | existe | — |
 | **receta_cambio** | Los pasos de una acción que se repite (dar de alta un secreto, añadir una herramienta a Lola, una pantalla, recetas) | existe | — |
 | **rubrica_juez** | Qué mira un juez y cómo puntúa | reservado | #336 |
 | **investigacion** | Cómo buscar fuera y destilar (radar de mercado, investigación técnica) | reservado | #336 |
