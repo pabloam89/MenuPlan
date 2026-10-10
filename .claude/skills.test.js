@@ -289,11 +289,8 @@ describe("la forja ve fallar cada control", () => {
 
 // ── La lista de excepciones solo baja (como TRAGADOS_CONOCIDOS) ──────────
 
-// Los pares que quedan (eran 19 el 10 oct 2026; #410 quitó 12). Este literal NO se edita para añadir: solo se le quitan líneas cuando #411 arregla la skill.
-const PARES_DE_PARTIDA = [
-  "1password: fechas", "github: fechas", "hetzner: fechas", "issues: fechas",
-  "supabase: fechas", "telegram: fechas", "vercel: fechas",
-];
+// Los pares que quedan (eran 19 el 10 oct 2026; #410 quitó 12 y #411 los 7 últimos). Este literal NO se edita para añadir: solo se le quitan líneas; vacío, la lista de excepciones no puede volver a crecer.
+const PARES_DE_PARTIDA = [];
 
 describe("EXCEPCIONES_FORJA: lo que las skills de hoy incumplen, y solo baja", () => {
   const brutas = Object.fromEntries(skills.map((s) => {

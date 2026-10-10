@@ -43,20 +43,12 @@ export const MAX_SOLAPE = 0.25;
 /**
  * Lo que las skills de hoy incumplen (skill → códigos). SOLO PUEDE BAJAR, como
  * TRAGADOS_CONOCIDOS de `scripts/sinErroresTragados.test.js`: una falta nueva
- * falla el test, una arreglada también hasta que se quita de aquí. Se vacía en
- * #410 y #411; no se añade nada, se arregla la skill.
+ * falla el test, una arreglada también hasta que se quita de aquí. Se vació en
+ * #410 y #411 (hoy `{}`); no se añade nada, se arregla la skill.
  */
-export const EXCEPCIONES_FORJA = {
-  "1password": ["fechas"],
-  github: ["fechas"],
-  hetzner: ["fechas"],
-  issues: ["fechas"],
-  supabase: ["fechas"],
-  telegram: ["fechas"],
-  vercel: ["fechas"],
-};
-/** Cuántas quedan (suma de códigos); eran 19 el 10 oct 2026 y #410 quitó 12: los 10 de casos de frontera y 2 de fechas. El test no deja que suba. */
-export const EXCEPCIONES_INICIALES = 7;
+export const EXCEPCIONES_FORJA = {};
+/** Cuántas quedan (suma de códigos); eran 19 el 10 oct 2026, #410 quitó 12 y #411 las 7 de fechas que quedaban: vacía. El test no deja que suba. */
+export const EXCEPCIONES_INICIALES = 0;
 
 const falta = (codigo, detalle) => ({ regla: "forja", codigo, detalle });
 
