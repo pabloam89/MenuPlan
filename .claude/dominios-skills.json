@@ -79,10 +79,17 @@
         "gobierno"
       ]
     },
+<<<<<<< HEAD
     "voz-con-pablo": {
       "comandos": [],
       "rutas": [
         "^\\.claude/voz\\.test\\.js$"
+=======
+    "estilo-de-respuesta": {
+      "comandos": [],
+      "rutas": [
+        "^[.]claude/skills/estilo-de-respuesta/"
+>>>>>>> origin/ops/415-estilo-de-respuesta
       ],
       "agentes": [
         "gobierno"

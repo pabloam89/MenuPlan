@@ -148,9 +148,15 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 por su nombre: `1password`, `alta-de-secreto`, `vercel`, `supabase`, `github`, `issues`,
 `telegram`, `hetzner` y `tailscale` (precargadas en los agentes que el mapa `.claude/dominios-skills.json` pone en su dominio); y
 las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
+<<<<<<< HEAD
 `plan-de-arreglo` (partir el arreglo en encargos); la de oficio `voz-con-pablo`
 (cómo se le escribe a Pablo); y la meta `forja-de-skills`
 (crear, probar y podar skills). Todas siguen
+=======
+`plan-de-arreglo` (partir el arreglo en encargos); la meta `forja-de-skills`
+(crear, probar y podar skills) y el estándar `estilo-de-respuesta` (se aplica a toda
+respuesta de una sesión principal a Pablo: idea raíz en negrita y cuatro ideas). Todas siguen
+>>>>>>> origin/ops/415-estilo-de-respuesta
 `.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
 ocho (los que existan, en la plantilla; cada tipo con sus secciones), dueño, fecha
 de comprobación que caduca a los 90 días, un `SKILL.md` corto con el detalle en
