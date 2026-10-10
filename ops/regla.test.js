@@ -83,6 +83,16 @@ describe("problemasDeRegla: cada regla falla con datos malos (cada caso cambia U
     falla((r) => { r.exigencia = "Empezar por «Úsala »"; }, "minúscula");
     falla((r) => { r.exigencia = "empezar\npor «Úsala »"; }, "una sola línea");
   });
+  it("la exigencia empieza por un infinitivo, con o sin pronombre, o por «no» y un infinitivo", () => {
+    for (const ok of ["llevar un dueño", "no llevar fechas", "ser, si es externa, pública", "ir en un campo", "abrirse antes", "escribirlo en castellano", "no dejarse nada", "devolvérselo a Pablo"]) {
+      const r = buena();
+      r.exigencia = ok;
+      expect(problemasDeRegla(r, "r", sujetos), ok).toEqual([]);
+    }
+    for (const mal of ["lleva un dueño", "llevando un dueño", "no lleva fechas", "cada skill lleva dueño", "no aplica nada"]) {
+      falla((r) => { r.exigencia = mal; }, "infinitivo");
+    }
+  });
   it("una exigencia de más de 160 caracteres falla y una de 160 pasa", () => {
     const de = (n) => `llevar ${"a".repeat(n - 7)}`;
     falla((r) => { r.exigencia = de(161); }, "pasa de 160 caracteres (161)");
