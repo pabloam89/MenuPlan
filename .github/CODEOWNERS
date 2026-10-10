@@ -1,0 +1,52 @@
+# Dueño de código (#330, fondo #326). GitHub pide la aprobación del dueño a un
+# PR a staging que toque estas rutas (ruleset de staging, con scripts/rulesets.mjs).
+# Cada ruta existe y la lista de lo que corre con secretos o por un hook la
+# deriva scripts/rulesets.test.js: si un script ejecutado por un workflow con
+# secretos, por un hook o por el script de aplicar migraciones importa algo sin
+# dueño, el test falla. No hay línea de supabase/migrations: las migraciones las
+# aplica la sesión con el juez (CLAUDE.md, «Base de datos»); el script que las
+# aplica sí está aquí.
+
+# Reglas, permisos, hooks, agentes, skills y workflows
+/.claude/ @pabloam89
+/.github/ @pabloam89
+/CLAUDE.md @pabloam89
+/ops/DECISIONES.md @pabloam89
+/ops/normas.json @pabloam89
+
+# Aplicar migraciones y cambiar los rulesets
+/scripts/apply-migration.mjs @pabloam89
+/scripts/lib/permisoAplicar.mjs @pabloam89
+/scripts/rulesets.mjs @pabloam89
+/scripts/rulesets.test.js @pabloam89
+
+# Lo que ejecutan los workflows con secretos de environment (mercadona-sync, vigía, bots, Dependabot)
+/scripts/mercadona-sync.mjs @pabloam89
+/scripts/lib/mercadonaFetch.mjs @pabloam89
+/scripts/build-coste.mjs @pabloam89
+/scripts/build-bot-core.mjs @pabloam89
+/scripts/bot-fallos.mjs @pabloam89
+/scripts/bot-semanal.mjs @pabloam89
+/scripts/lib/bot-semana.mjs @pabloam89
+/scripts/vigia.mjs @pabloam89
+/src/lib/vigia.js @pabloam89
+/src/lib/vocabularios.js @pabloam89
+/src/lib/electrodomesticos.js @pabloam89
+/api/_bot/senales.js @pabloam89
+/scripts/dependabot-auto.mjs @pabloam89
+
+# Lo que ejecutan los hooks y lo que importa el script de aplicar migraciones
+/scripts/lib/buscarAntes.mjs @pabloam89
+/scripts/lib/env.mjs @pabloam89
+/scripts/lib/flujo.mjs @pabloam89
+/scripts/lib/fondos.mjs @pabloam89
+/scripts/lib/hora.mjs @pabloam89
+/scripts/lib/issues.mjs @pabloam89
+/scripts/lib/lleva.mjs @pabloam89
+/scripts/lib/mecanismos.mjs @pabloam89
+/scripts/lib/normas.mjs @pabloam89
+/scripts/lib/presupuestos.mjs @pabloam89
+/scripts/lib/textoExterno.mjs @pabloam89
+/scripts/lib/tokenSesion.mjs @pabloam89
+/scripts/limpiar-worktrees.mjs @pabloam89
+/scripts/token-sesiones.mjs @pabloam89
