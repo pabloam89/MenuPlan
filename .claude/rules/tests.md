@@ -18,6 +18,8 @@ paths:
   del CI del PR; en local, `npm run vecinos`: lo que tocas más los vigilantes de
   conjunto que lo miran (CLAUDE.md, «Antes del PR»). Un test nuevo que recorra
   ficheros del repo entra en `ops/vigilantes.json`; `ops/vigilantes.test.js` lo comprueba.
+  `vecinos` no cubre los pasos «Normas del PR» ni «Runbook del PR» (necesitan el cuerpo
+  del PR): con texto nuevo en una norma, `node scripts/normas.mjs` antes y después.
 - **Un test que mide tiempo** deja al menos 20× de margen sobre lo que tarda
   suelto, o repite la medida y vale con que una salga bien (#407: una razón
   con umbral 8× entre 4× y 16× falló cuatro veces bajo carga).

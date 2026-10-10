@@ -26,7 +26,9 @@ let tocados;
 if (pedidos.length) {
   tocados = pedidos.map((p) => {
     const ruta = (isAbsolute(p) ? relative(RAIZ, p) : p).split("\\").join("/").replace(/^\.\//, "");
-    return { ruta, estado: existsSync(join(RAIZ, ruta)) ? "M" : "D" };
+    const existe = existsSync(join(RAIZ, ruta));
+    if (!existe) console.warn(`vecinos: aviso: ${ruta} no existe; lo trato como borrado (¿errata en la ruta?)`);
+    return { ruta, estado: existe ? "M" : "D" };
   });
 } else {
   const r = ficherosTocados(RAIZ);
@@ -47,7 +49,7 @@ console.log(`vecinos: propios=${propios} vigilantes=${vigilantes} pasos=${plan.p
 
 if (ensayo || (!plan.tests.length && !plan.pasos.length)) {
   if (!plan.tests.length && !plan.pasos.length) console.log("vecinos: nada que lanzar para estos ficheros");
-  linea("ok");
+  linea(ensayo ? "ensayo" : "ok");
   process.exit(0);
 }
 

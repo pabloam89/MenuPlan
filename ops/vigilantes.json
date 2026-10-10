@@ -77,7 +77,7 @@
       "id": "frases-normativas",
       "tests": ["ops/planos.test.js", "ops/normas.test.js"],
       "mira": ["CLAUDE.md", "docs/datos/PRINCIPIOS.md", ".claude/{rules,skills,agents,commands}/**/*.md", "ops/*.md", "ops/normas.json", "ops/planos.json"],
-      "porque": "Cuentan las frases con palabras fuertes (nunca, siempre, tope, OK de Pablo…) y exigen que cada una cite su norma: texto nuevo con una palabra fuerte sube la cuenta.",
+      "porque": "Cuentan las frases con palabras fuertes (nunca, siempre, tope, OK de Pablo…) y exigen que cada una cite su norma: texto nuevo con una palabra fuerte sube la cuenta. `vecinos` NO cubre los pasos «Normas del PR» (`scripts/normas-pr.mjs`, necesita el diff y el cuerpo del PR) ni «Runbook del PR»: en local, `node scripts/normas.mjs` da la cuenta y compárala con la de antes.",
       "evidencia": "PR #424"
     },
     {

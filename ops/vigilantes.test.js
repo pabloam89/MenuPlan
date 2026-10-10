@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ficherosDeGit } from "./ficherosGit.js";
 import { esVigilado } from "../scripts/lib/normas.mjs";
-import { casa, detectarEnumeradores, elegir, faltasDeDatos, indiceDeTests, leerVigilantes } from "../scripts/lib/vecinos.mjs";
+import { casa, detectarEnumeradores, elegir, faltasDeDatos, globARegex, indiceDeTests, leerVigilantes } from "../scripts/lib/vecinos.mjs";
 
 /**
  * La lista de los tests vigilantes de conjunto (ops/vigilantes.json, #356) y la
@@ -71,6 +71,57 @@ describe("ningún test que enumera ficheros del repo queda fuera de la lista", (
     const detectados = new Set(enumeradores.map((e) => e.test));
     const sobran = datos.excepciones.flatMap((e) => e.tests).filter((t) => !detectados.has(t));
     expect(sobran).toEqual([]);
+  });
+});
+
+// Una o dos rutas de ejemplo por grupo → el test que debe salir. Estrechar un `mira` (p. ej.
+// `scripts/**/*.mjs` → `scripts/*.mjs`) hace fallar la fila de su grupo.
+const TABLA = [
+  ["errores-tragados-scripts", "scripts/lib/x.mjs", "scripts/sinErroresTragados.test.js"],
+  ["errores-tragados-scripts", ".claude/hooks/x.mjs", "scripts/sinErroresTragados.test.js"],
+  ["errores-tragados-bot", "api/bot/x.js", "api/_bot/sinErroresTragados.test.js"],
+  ["dueno-de-lo-que-ejecuta-un-hook", ".claude/hooks/x.mjs", "scripts/rulesets.test.js"],
+  ["dueno-de-lo-que-ejecuta-un-hook", ".github/CODEOWNERS", "scripts/rulesets.test.js"],
+  ["scripts-sin-caminos-sueltos", "scripts/lib/x.mjs", "scripts/lib/env.test.js"],
+  ["cuota-de-gh", "scripts/lib/x.mjs", "scripts/cuotaGh.test.js"],
+  ["cuota-de-gh", "docs/ops/x.md", "scripts/cuotaGh.test.js"],
+  ["workflows", ".github/workflows/x.yml", "scripts/dependabot-auto.test.js"],
+  ["formularios-de-issues", ".github/ISSUE_TEMPLATE/x.yml", "scripts/issues.test.js"],
+  ["agentes", ".claude/agents/x.md", ".claude/agentes.test.js"],
+  ["skills-forma", ".claude/skills/x/referencias/y.md", ".claude/skills.test.js"],
+  ["skills-forma", ".claude/skills/x/SKILL.md", ".claude/voz.test.js"],
+  ["rutas-citadas", ".claude/skills/x/referencias/y.md", ".claude/rutas.test.js"],
+  ["frases-normativas", ".claude/skills/x/referencias/y.md", "ops/planos.test.js"],
+  ["frases-normativas", "ops/X.md", "ops/normas.test.js"],
+  ["glosario", "docs/ops/x.md", "ops/glosario.test.js"],
+  ["fuentes-y-modulos", "src/lib/x.js", "ops/modulos.test.js"],
+  ["fuentes-y-modulos", "scripts/lib/x.mjs", "ops/fuentes.test.js"],
+  ["cableado", "api/_bot/x.js", "supabase/cableado.test.js"],
+  ["migraciones-sql", "supabase/migrations/9999_x.sql", "supabase/principios.test.js"],
+  ["catalogo-de-recetas", "src/data/recipes/x.json", "src/data/model.test.js"],
+  ["fuentes-sin-invisibles", "src/lib/x.js", "src/data/fuentesLimpias.test.js"],
+  ["app-y-bot", "src/components/x.jsx", "src/components/coachAnchors.test.js"],
+  ["zonas-del-catalogo", "src/utils/x.js", "src/lib/barreras.test.js"],
+  ["cargadores-de-lib", "src/lib/x.js", "src/lib/cargadoresSinVacioEnError.test.js"],
+  ["bot-sin-listas-a-mano", "api/_bot/x.js", "src/lib/comidas.test.js"],
+  ["endpoints", "api/x.js", "api/_guard.test.js"],
+  ["vigilantes", "scripts/x.test.js", "ops/vigilantes.test.js"],
+];
+
+describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {
+  it("todos los grupos tienen al menos una fila", () => {
+    expect(datos.vigilantes.map((v) => v.id).filter((id) => !TABLA.some((f) => f[0] === id))).toEqual([]);
+  });
+  it.each(TABLA)("%s · %s → %s", (grupo, ruta, esperado) => {
+    expect(datos.vigilantes.find((v) => v.id === grupo).tests, "la fila apunta a un test que no es de su grupo").toContain(esperado);
+    const plan = elegir({ tocados: [A(ruta)], datos, indice: new Map([...indice, [esperado, indice.get(esperado) ?? { texto: "", imports: new Set() }]]) });
+    expect(plan.tests.map((t) => t.test)).toContain(esperado);
+  });
+});
+
+describe("globARegex", () => {
+  it("una llave sin cerrar lanza un error claro", () => {
+    expect(() => globARegex("a/{b,c")).toThrow(/falta «}»/);
   });
 });
 

@@ -39,6 +39,7 @@ export function globARegex(glob) {
     } else if (c === "?") r += "[^/]";
     else if (c === "{") {
       const j = glob.indexOf("}", i);
+      if (j < 0) throw new Error(`Glob mal escrito (falta «}»): ${glob}`);
       r += `(?:${glob.slice(i + 1, j).split(",").map(escapar).join("|")})`;
       i = j;
     } else r += escapar(c);
@@ -188,6 +189,9 @@ export function elegir({ tocados, datos, indice }) {
  * Búsqueda sistemática (no a ojo) de los tests que enumeran ficheros del repo:
  * los que leen carpetas o `git ls-files`, y los que importan un módulo (no test)
  * que lo hace. Devuelve [{ test, via }].
+ * Ojo: solo mira UN nivel de import. Los que entran por un módulo (via ≠ «directo»)
+ * son candidatos y muchos serán falsos positivos (pruebas de unidad de una librería):
+ * se resuelven con una excepción con motivo, no se ignoran.
  */
 export function detectarEnumeradores(raiz, ficheros) {
   const ENUMERA = /readdirSync|readdir\(|globSync|ls-files|ficherosDeGit/;
