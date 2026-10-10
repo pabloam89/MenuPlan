@@ -73,6 +73,14 @@ const REGLAS_COMANDO = [
     da: () => deny("Los issues se crean con `npm run issues -- --nuevo \"título\" --tipo … --area … --cuerpo <fichero>`: antes de crear enseña los parecidos, y a Pablo le asigna las decisiones. Si ya existe uno, comenta allí."),
   },
   {
+    // El 9 oct 2026 el PC tenía la CLI de Vercel con la sesión de Pablo (Owner):
+    // cualquier sesión podía bajarse las variables de Production (service role,
+    // URL de administrador, token del bot). Va por orden, así que un mensaje de
+    // commit que lo nombre no cuenta (#332).
+    si: (o) => /^(npx\s+)?vercel(@\S+)?\s+(env\s+(pull|ls|list)|pull)\b/i.test(o) && /\bprod(uction)?\b/i.test(o),
+    da: () => deny("Las variables de Production de Vercel son solo de Pablo (#332): tienen la clave de administrador de la base y el token del bot. Para desarrollo usa `.env.local` (direcciones `op://`); si de verdad hace falta Production, dale el comando a Pablo para que lo lance con `!`."),
+  },
+  {
     // PowerShell 5.1 escribe UTF-8 con BOM y destroza los acentos.
     si: (o) => /\b(Set-Content|Out-File|Add-Content)\b/i.test(o) && !/\b(temp|tmp|scratchpad)\b/i.test(o),
     da: () => deny("Set-Content/Out-File/Add-Content rompen los acentos y meten BOM en los ficheros del repo. Edita con la herramienta Edit/Write."),

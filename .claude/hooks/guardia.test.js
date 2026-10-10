@@ -73,6 +73,19 @@ describe("hábitos que ya rompieron cosas", () => {
   );
   it.each(["npx vite build", "vite build --mode staging"])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
   it("npm run build sí", () => expect(bash("npm run build")).toBe(null));
+  // #332: con la sesión de Pablo en la CLI, una sesión se llevaba las claves de producción.
+  it.each([
+    "vercel env pull --environment=production .env.prod",
+    "npx vercel env pull x --environment production",
+    "vercel env ls production",
+    "vercel env pull .env.p --environment=prod",
+    "vercel pull --environment=production --yes",
+    "npx vercel@latest env pull --environment=Production",
+  ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
+  it.each(["vercel env pull .env.local", "vercel env ls preview", "vercel whoami", "git commit -m 'vercel env pull production'"])(
+    "deja pasar %s",
+    (c) => expect(bash(c)).toBe(null),
+  );
   it("Set-Content sobre el repo, no", () =>
     expect(decidir({ tool_name: "PowerShell", tool_input: { command: "Get-Content a.jsx | Set-Content a.jsx -Encoding utf8" } }, ctx()).decision).toBe("deny"));
   it("Out-File a temp, sí", () =>
