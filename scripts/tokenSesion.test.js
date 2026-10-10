@@ -5,14 +5,16 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { main } from "./token-sesion.mjs";
-import { APP_ID, BOT_ID, ErrorTokenSesion, MOTIVOS, avisoDeIdentidad, identidadDe, jwtDeApp, leerClaveDeBoveda, lineasDeEntorno, tokenDeSesion } from "./lib/tokenSesion.mjs";
+import { APP_ID, BOT_ID, ErrorTokenSesion, MOTIVOS, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineasDeEntorno, motivoDeCanje, tokenDeSesion } from "./lib/tokenSesion.mjs";
+import { PERMISOS } from "./token-sesiones.mjs";
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048, privateKeyEncoding: { type: "pkcs1", format: "pem" }, publicKeyEncoding: { type: "spki", format: "pem" } });
-const TOKEN = `ghs_${"a1B2c3D4".repeat(5)}`;
+const CLAVE_ROTA = ["-----BEGIN RSA PRIVATE KEY-----", "SECRETO-DE-PRUEBA", "-----END RSA PRIVATE KEY-----"].join("\n");
+const TOKEN =`ghs_${"a1B2c3D4".repeat(5)}`;
 const res = (status, cuerpo) => ({ ok: status >= 200 && status < 300, status, json: async () => cuerpo });
 
 /** Un GitHub de mentira: guarda cada llamada para mirar qué se mandó. */
-function githubFalso({ instalacion = res(200, { id: 77 }), acceso = res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z" }), usuario = res(200, { id: 999 }) } = {}) {
+function githubFalso({ instalacion = res(200, { id: 77 }), acceso = res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z", permissions: { ...PERMISOS }, repositories: [{ name: "MenuPlan" }] }), usuario = res(200, { id: 999 }) } = {}) {
   const llamadas = [];
   const f = vi.fn(async (url, init = {}) => {
     llamadas.push({ url, init });
@@ -24,41 +26,18 @@ function githubFalso({ instalacion = res(200, { id: 77 }), acceso = res(201, { t
   return { f, llamadas };
 }
 
-describe("jwtDeApp", () => {
-  it("firma RS256 con la clave y la firma se verifica con la pública", () => {
-    const ahora = Date.UTC(2026, 9, 10, 10, 0, 0);
-    const jwt = jwtDeApp(privateKey, { ahora });
-    const [h, p, firma] = jwt.split(".");
-    expect(JSON.parse(Buffer.from(h, "base64url"))).toEqual({ alg: "RS256", typ: "JWT" });
-    const carga = JSON.parse(Buffer.from(p, "base64url"));
-    expect(carga.iss).toBe(APP_ID);
-    expect(carga.exp - carga.iat).toBe(600);
-    expect(carga.iat).toBe(Math.floor(ahora / 1000) - 60);
-    expect(createVerify("RSA-SHA256").update(`${h}.${p}`).verify(createPublicKey(publicKey), Buffer.from(firma, "base64url"))).toBe(true);
-  });
-
-  it("con una clave rota falla con clave-ilegible y sin citar la clave", () => {
-    const rota = "-----BEGIN RSA PRIVATE KEY-----\nSECRETO-DE-PRUEBA\n-----END RSA PRIVATE KEY-----";
-    let error;
-    try {
-      jwtDeApp(rota);
-    } catch (e) {
-      error = e;
-    }
-    expect(error).toBeInstanceOf(ErrorTokenSesion);
-    expect(error.motivo).toBe("clave-ilegible");
-    expect(String(error.message)).not.toContain("SECRETO-DE-PRUEBA");
-  });
-});
-
 describe("tokenDeSesion", () => {
   it("canjea el JWT por el token de instalación, solo para este repo, y da el autor de la App", async () => {
     const { f, llamadas } = githubFalso();
     const t = await tokenDeSesion({ fetch: f, leerClave: async () => privateKey });
     expect(t.token).toBe(TOKEN);
     expect(t.autor).toEqual({ nombre: "homenu-sesiones[bot]", correo: "999+homenu-sesiones[bot]@users.noreply.github.com" });
-    expect(llamadas[0].init.headers.Authorization).toMatch(/^Bearer eyJ/);
-    expect(JSON.parse(llamadas[1].init.body)).toEqual({ repositories: ["MenuPlan"] });
+    const [h, p, firma] = llamadas[0].init.headers.Authorization.replace("Bearer ", "").split(".");
+    expect(JSON.parse(Buffer.from(p, "base64url")).iss).toBe(String(APP_ID));
+    expect(createVerify("RSA-SHA256").update(`${h}.${p}`).verify(createPublicKey(publicKey), Buffer.from(firma, "base64url"))).toBe(true);
+    const pedido = JSON.parse(llamadas[1].init.body);
+    expect(pedido).toEqual({ repositories: ["MenuPlan"], permissions: PERMISOS });
+    expect(pedido.permissions.workflows).toBeUndefined();
     expect(llamadas[1].url).toContain("/app/installations/77/access_tokens");
   });
 
@@ -74,7 +53,9 @@ describe("tokenDeSesion", () => {
     ["la App no está instalada", { fetch: githubFalso({ instalacion: res(404, {}) }).f }, "sin-instalacion"],
     ["GitHub rechaza el JWT", { fetch: githubFalso({ instalacion: res(401, {}) }).f }, "github-rechaza"],
     ["GitHub rechaza el canje", { fetch: githubFalso({ acceso: res(403, {}) }).f }, "github-rechaza"],
-    ["token con forma rara", { fetch: githubFalso({ acceso: res(201, { token: "x; rm -rf /" }) }).f }, "token-raro"],
+    ["clave PEM que no es RSA válida", { leerClave: async () => CLAVE_ROTA }, "clave-ilegible"],
+    ["token con forma rara", { fetch: githubFalso({ acceso: res(201, { token: "x; rm -rf /", permissions: { ...PERMISOS }, repositories: [{ name: "MenuPlan" }] }) }).f }, "token-raro"],
+    ["el token trae un permiso que no se pidió", { fetch: githubFalso({ acceso: res(201, { token: TOKEN, permissions: { ...PERMISOS, workflows: "write" }, repositories: [{ name: "MenuPlan" }] }) }).f }, "token-raro"],
     ["sin red", { fetch: async () => { throw new Error("ECONNRESET api.github.com"); } }, "red"],
   ])("falla cerrado: %s", async (_c, extra, motivo) => {
     const base = { fetch: githubFalso().f, leerClave: async () => privateKey };
@@ -83,7 +64,18 @@ describe("tokenDeSesion", () => {
     expect(e.motivo).toBe(motivo);
     expect(MOTIVOS).toContain(e.motivo);
     expect(String(e.message)).not.toContain("BEGIN");
+    expect(String(e.message)).not.toContain("SECRETO-DE-PRUEBA");
     expect(String(e.message)).not.toContain(TOKEN);
+  });
+});
+
+describe("motivoDeCanje", () => {
+  it("clasifica los mensajes reales de token-sesiones.mjs en el vocabulario", () => {
+    expect(motivoDeCanje("la clave privada de stdin no es un PEM válido")).toBe("clave-ilegible");
+    expect(motivoDeCanje("sin respuesta de GitHub: ECONNRESET")).toBe("red");
+    expect(motivoDeCanje("GitHub respondió 404: no existe esa instalación")).toBe("sin-instalacion");
+    expect(motivoDeCanje("GitHub respondió 401 («Bad credentials»)")).toBe("github-rechaza");
+    expect(motivoDeCanje("el token trae permisos que no pedí: no lo imprimo")).toBe("token-raro");
   });
 });
 

@@ -84,11 +84,11 @@ los del vigía, los de iOS y la clave de la App `homenu-dependabot-merge`) y qu�
 que manda. `tests.yml` no usa ninguno.
 
 **Identidad de las sesiones (#329).** El arranque canjea la clave de la App
-`homenu-sesiones` (bóveda de sesiones) por un token de 1 hora (`scripts/lib/tokenSesion.mjs`)
-y lo deja en `CLAUDE_ENV_FILE` con el autor `homenu-sesiones[bot]`: `gh` lee `GH_TOKEN` y
-`git push` un ayudante que lee `$GH_TOKEN`; en ningún otro sitio. Sin clave legible, avisa del
-motivo y sigue como Pablo (plan B). Con la App, `gh api user` da 403. Caducado:
-`node scripts/token-sesion.mjs -- gh …`.
+`homenu-sesiones` (`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs` de E1: sin
+workflows, un solo repo) por un token de 1 hora y lo deja en `CLAUDE_ENV_FILE` con el autor
+`homenu-sesiones[bot]`: `gh` lee `GH_TOKEN` y `git push` un ayudante que lee `$GH_TOKEN`; en
+ningún otro sitio. Sin clave legible, avisa del motivo y sigue como Pablo (plan B). Con la
+App, `gh api user` da 403. Caducado: `node scripts/token-sesion.mjs -- gh …`.
 
 Un secreto nuevo o rotado va a un environment con política de ramas, nunca al <!-- norma:secretos-de-repo -->
 repo; el alta entera, en la skill `alta-de-secreto`.

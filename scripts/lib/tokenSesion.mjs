@@ -13,9 +13,11 @@
  * `fetch` y el lector de clave se inyectan para probarlo sin red. Cómo se usa
  * y qué pasa a ser de Pablo: skills `github` y `1password`.
  */
-import { createSign } from "node:crypto";
 import { execFile } from "node:child_process";
-import { BOVEDA_PABLO, BOVEDA_SESIONES, entornoOp } from "./env.mjs";
+import { BOVEDA_PABLO, BOVEDA_SESIONES, entornoOp, leerEnv } from "./env.mjs";
+// El canje del token es de E1 (#327): permisos explícitos sin workflows, comprobados al
+// volver, y limitado a este repo. Aquí no se repite: se usa.
+import { API, ErrorToken, firmarJwt, pedirToken, sinSecretos } from "../token-sesiones.mjs";
 
 export const APP_ID = 5260552;
 export const REPO = "pabloam89/MenuPlan";
@@ -23,7 +25,6 @@ export const BOT_LOGIN = "homenu-sesiones[bot]";
 /** Id del usuario bot (público, `GET /users/homenu-sesiones[bot]`): respaldo si la API no contesta. */
 export const BOT_ID = 340485937;
 export const LOGIN_PABLO = "pabloam89";
-const API = "https://api.github.com";
 const TOPE_MS = 6000;
 
 /** Vocabulario cerrado de por qué no hay token (se cuenta en la línea `identidad-sesion`). */
@@ -42,20 +43,6 @@ export const FICHAS_CLAVE = [
   { vault: BOVEDA_SESIONES, titulo: "GitHub App homenu-sesiones" },
   { vault: BOVEDA_PABLO, titulo: "GitHub App Sesiones" },
 ];
-
-const b64url = (x) => Buffer.from(x).toString("base64url");
-
-/** El JWT de la App (10 minutos como mucho, que es lo que admite GitHub). */
-export function jwtDeApp(pem, { ahora = Date.now(), appId = APP_ID } = {}) {
-  const iat = Math.floor(ahora / 1000) - 60; // 60 s de margen por relojes torcidos
-  const cuerpo = `${b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }))}.${b64url(JSON.stringify({ iat, exp: iat + 600, iss: appId }))}`;
-  try {
-    return `${cuerpo}.${createSign("RSA-SHA256").update(cuerpo).sign(pem).toString("base64url")}`;
-  } catch {
-    // a propósito: el error de node:crypto puede citar el formato de la clave; no se propaga
-    throw new ErrorTokenSesion("clave-ilegible", "no es una clave RSA privada válida");
-  }
-}
 
 /** Lee la clave con la service account de las sesiones (`entornoOp`: falla cerrado sin token). */
 export function leerClaveDeBoveda({ fichas = FICHAS_CLAVE } = {}) {
@@ -85,57 +72,78 @@ export function leerClaveDeBoveda({ fichas = FICHAS_CLAVE } = {}) {
   })();
 }
 
-async function pedir(fetchFn, url, init) {
-  try {
-    return await fetchFn(url, { ...init, signal: AbortSignal.timeout(TOPE_MS) });
-  } catch {
-    // a propósito: el motivo es «red»; el error de fetch no aporta nada que no sea la URL
-    throw new ErrorTokenSesion("red", "GitHub no contesta");
-  }
+/** El motivo del vocabulario para un fallo del canje de E1 (sus mensajes no llevan secretos). */
+export function motivoDeCanje(mensaje) {
+  const m = String(mensaje);
+  if (/PEM|no es RSA|SESIONES_APP_ID/.test(m)) return "clave-ilegible";
+  if (/sin respuesta/.test(m)) return "red";
+  if (/no lo imprimo|sin token/.test(m)) return "token-raro";
+  if (/respondió 404|no existe esa instalación/.test(m)) return "sin-instalacion";
+  return "github-rechaza";
 }
 
-const cabeceras = (auth) => ({
+const cabeceras = (jwt) => ({
   Accept: "application/vnd.github+json",
   "X-GitHub-Api-Version": "2022-11-28",
   "User-Agent": "homenu-sesiones",
-  ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+  ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
 });
+
+/** App ID e Installation ID (no son secretos): del entorno o `.env.local` si están, y si no el conocido y el que dice GitHub. */
+function idsPorDefecto() {
+  return { appId: leerEnv("SESIONES_APP_ID") || APP_ID, installationId: leerEnv("SESIONES_INSTALLATION_ID") || null };
+}
 
 /**
  * El token de instalación y el autor de los commits. Lanza ErrorTokenSesion.
  * Devuelve { token, expiraEn, autor: { nombre, correo } }.
  */
-export async function tokenDeSesion({ fetch: fetchFn = globalThis.fetch, leerClave = leerClaveDeBoveda, ahora = Date.now() } = {}) {
+export async function tokenDeSesion({ fetch: fetchFn = globalThis.fetch, leerClave = leerClaveDeBoveda, ahora = Date.now(), ids = idsPorDefecto } = {}) {
   const pem = String(await leerClave() ?? "");
   if (!/-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(pem)) throw new ErrorTokenSesion("clave-ilegible", "la ficha no trae una clave privada");
-  const jwt = jwtDeApp(pem, { ahora });
+  const { appId, installationId: idFijo } = ids();
+  try {
+    const jwt = firmarJwt({ appId, pem, ahora: Math.floor(ahora / 1000) });
+    let installationId = idFijo;
+    if (!installationId) {
+      let r;
+      try {
+        r = await fetchFn(`${API}/repos/${REPO}/installation`, { headers: cabeceras(jwt), signal: AbortSignal.timeout(TOPE_MS) });
+      } catch {
+        // a propósito: el motivo es «red»; el error de fetch no aporta más que la URL
+        throw new ErrorTokenSesion("red", "GitHub no contesta");
+      }
+      if (r.status === 404) throw new ErrorTokenSesion("sin-instalacion", "la App no está instalada en el repo");
+      if (!r.ok) throw new ErrorTokenSesion("github-rechaza", `instalación: HTTP ${r.status}`);
+      try {
+        installationId = (await r.json())?.id;
+      } catch {
+        // a propósito: un cuerpo ilegible es lo mismo que no traer id; sale justo debajo como sin-instalacion
+        installationId = null;
+      }
+      if (!Number.isInteger(installationId)) throw new ErrorTokenSesion("sin-instalacion", "respuesta sin id de instalación");
+    }
+    const { token, expira } = await pedirToken({ jwt, installationId, fetchFn });
+    // Solo caracteres de un token de GitHub: va a un fichero que lee un shell
+    if (!/^ghs_[A-Za-z0-9_.-]{20,}$/.test(token)) throw new ErrorTokenSesion("token-raro", "el token no tiene la forma esperada");
+    return { token, expiraEn: expira || null, autor: await autorDeApp(fetchFn) };
+  } catch (e) {
+    if (e instanceof ErrorTokenSesion) throw e;
+    if (e instanceof ErrorToken) throw new ErrorTokenSesion(motivoDeCanje(e.message), sinSecretos(e.message, [pem.trim()]).slice(0, 200));
+    throw new ErrorTokenSesion("github-rechaza", "fallo inesperado");
+  }
+}
 
-  const inst = await pedir(fetchFn, `${API}/repos/${REPO}/installation`, { headers: cabeceras(jwt) });
-  if (inst.status === 404) throw new ErrorTokenSesion("sin-instalacion", "la App no está instalada en el repo");
-  if (!inst.ok) throw new ErrorTokenSesion("github-rechaza", `instalación: HTTP ${inst.status}`);
-  const id = (await inst.json().catch(() => null))?.id;
-  if (!Number.isInteger(id)) throw new ErrorTokenSesion("sin-instalacion", "respuesta sin id de instalación");
-
-  const resp = await pedir(fetchFn, `${API}/app/installations/${id}/access_tokens`, {
-    method: "POST",
-    headers: { ...cabeceras(jwt), "Content-Type": "application/json" },
-    body: JSON.stringify({ repositories: [REPO.split("/")[1]] }),
-  });
-  if (!resp.ok) throw new ErrorTokenSesion("github-rechaza", `token: HTTP ${resp.status}`);
-  const datos = await resp.json().catch(() => null);
-  const token = datos?.token;
-  // Solo caracteres de un token de GitHub: va a un fichero que lee un shell
-  if (typeof token !== "string" || !/^ghs_[A-Za-z0-9_.-]{20,}$/.test(token)) throw new ErrorTokenSesion("token-raro", "el token no tiene la forma esperada");
-
+async function autorDeApp(fetchFn) {
   let botId = BOT_ID;
   try {
-    const u = await pedir(fetchFn, `${API}/users/${encodeURIComponent(BOT_LOGIN)}`, { headers: cabeceras() });
+    const u = await fetchFn(`${API}/users/${encodeURIComponent(BOT_LOGIN)}`, { headers: cabeceras(), signal: AbortSignal.timeout(TOPE_MS) });
     const j = u.ok ? await u.json() : null;
     if (Number.isInteger(j?.id)) botId = j.id;
   } catch {
     // a propósito: el id público es un dato de respaldo; no vale la pena parar por él
   }
-  return { token, expiraEn: datos.expires_at ?? null, autor: { nombre: BOT_LOGIN, correo: `${botId}+${BOT_LOGIN}@users.noreply.github.com` } };
+  return { nombre: BOT_LOGIN, correo: `${botId}+${BOT_LOGIN}@users.noreply.github.com` };
 }
 
 /**
