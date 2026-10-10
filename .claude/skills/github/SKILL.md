@@ -87,7 +87,7 @@ que manda. `tests.yml` no usa ninguno.
 (`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs`) por un token de 1 hora en `CLAUDE_ENV_FILE`,
 que carga Bash: `GH_TOKEN`, un ayudante de `git push` y el autor `homenu-sesiones[bot]`. En PowerShell, `node
 scripts/token-sesion.mjs -- <comando>`, que sirve también caducado (`-- gh …`, `-- git push`). Sin clave legible avisa
-y sigue como Pablo (tope 13 s); sus credenciales siguen en el llavero y el manager de github.com hasta su `gh auth logout`.
+y sigue como Pablo (a los 13 s); sus credenciales siguen en el llavero y el manager de github.com hasta su `gh auth logout`.
 
 Un secreto nuevo o rotado va a un environment con política de ramas, nunca al <!-- norma:secretos-de-repo -->
 repo; el alta entera, en la skill `alta-de-secreto`.
