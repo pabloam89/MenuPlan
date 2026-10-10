@@ -243,7 +243,7 @@ export const CONSULTA = `query($cursor: String) {
         closedByPullRequestsReferences(first: 5, includeClosedPrs: true) {
           nodes { number headRefName mergedAt body author { login } }
         }
-        comments(last: 10) { nodes { body authorAssociation createdAt } }
+        comments(last: 10) { totalCount nodes { body authorAssociation createdAt } }
         parent { number state labels(first: 20) { nodes { name } } }
         subIssues(first: 50) {
           nodes {
@@ -266,6 +266,13 @@ export function agenteDe(body) {
 }
 
 const tipoDe = (labels) => [...porGrupo(nombres(labels)).tipo][0] ?? null;
+
+/** Fechas de los comentarios que no son marcas automáticas; `null` si solo se sabe que los hay. */
+function comentariosHumanos(c) {
+  const nodos = c?.nodes ?? [];
+  const humanos = nodos.filter((x) => !String(x.body ?? "").trim().startsWith("<!-- menuplan:")).map((x) => x.createdAt ?? null);
+  return !humanos.length && (c?.totalCount ?? 0) > nodos.length ? [null] : humanos;
+}
 
 /**
  * Un nodo de la consulta, plano. Los PR que lo cierran son los enlazados con
@@ -301,7 +308,9 @@ export function leerIssue(n) {
     asignados: (n.assignees?.nodes ?? []).map((a) => a.login),
     // Fechas de los comentarios de personas o sesiones (no las marcas automáticas): el arranque las usa
     // para separar lo contestado de lo pendiente (#461).
-    comentarios: (n.comments?.nodes ?? []).filter((c) => !String(c.body ?? "").includes("<!-- menuplan:")).map((c) => c.createdAt ?? null),
+    // La marca automática cuenta solo si abre el comentario. Si hay más comentarios de los leídos (last: 10) y
+    // ninguno leído es humano, hay respuesta de fecha desconocida: un `null`.
+    comentarios: comentariosHumanos(n.comments),
     reaperturas: n.reaperturas?.totalCount ?? 0,
     prs,
     padre: n.parent ? ref(n.parent) : null,
@@ -499,7 +508,8 @@ export function issuesQueNombran(issues, ruta) {
   return issues.filter((i) => String(i.state ?? "OPEN").toUpperCase() === "OPEN" && ficherosNombrados(`${i.title}\n${i.body ?? ""}`).has(nombre));
 }
 
-const dia = (f) => (f ? String(f).slice(0, 10) : "sin fecha");
+const dia = (f) => (f ? new Date(f).toLocaleDateString("sv", { timeZone: "Europe/Madrid" }) : "sin fecha");
+const MAX_CON_RESPUESTA = 6;
 
 /**
  * Las decisiones abiertas, separadas por si tienen comentarios (#461, fondo #231).
@@ -513,10 +523,13 @@ export function lineaDeDecisiones(issues) {
   if (!abiertas.length) return "";
   const con = abiertas.filter((i) => (i.comentarios ?? []).length);
   const sin = abiertas.filter((i) => !(i.comentarios ?? []).length);
-  const ultimo = (i) => i.comentarios.reduce((a, b) => (String(b) > String(a) ? b : a));
+  const ultimo = (i) => i.comentarios.filter(Boolean).sort().at(-1) ?? null;
+  con.sort((a, b) => String(ultimo(b) ?? "").localeCompare(String(ultimo(a) ?? "")));
+  const lista = con.slice(0, MAX_CON_RESPUESTA).map((i) => `#${i.number} (último comentario ${dia(ultimo(i))})`);
+  if (con.length > MAX_CON_RESPUESTA) lista.push(`y ${con.length - MAX_CON_RESPUESTA} más`);
   const partes = [];
   if (sin.length) partes.push(`${sin.length} sin contestar (sin ningún comentario: ${sin.map((i) => `#${i.number} desde ${dia(i.createdAt)}`).join(", ")})`);
-  if (con.length) partes.push(`${con.length} con respuesta: comprueba si ya está decidida antes de darla por pendiente (${con.map((i) => `#${i.number} (último comentario ${dia(ultimo(i))})`).join(", ")})`);
+  if (con.length) partes.push(`${con.length} con respuesta: comprueba si ya está decidida antes de darla por pendiente (${lista.join(", ")})`);
   return `Decisiones abiertas: ${partes.join("; ")}.`;
 }
 

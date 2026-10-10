@@ -55,3 +55,34 @@ describe("el arranque separa las decisiones sin contestar de las que tienen resp
     expect(lineas.filter((l) => /decisiones/i.test(l)).length).toBe(1);
   });
 });
+
+describe("ronda 2 (#461)", () => {
+  const marca = (i) => [`2026-10-0${(i % 9) + 1}T10:00:00Z`, "<!-- menuplan:lleva rama=x carpeta=y desde=z -->"];
+
+  it("con más comentarios de los leídos y ninguno humano entre ellos, sale con respuesta de fecha desconocida", () => {
+    const n = nodo(20, Array.from({ length: 10 }, (_, i) => marca(i)));
+    n.comments.totalCount = 12;
+    const l = lineaDeDecisiones([n]);
+    expect(l).not.toMatch(/\b[1-9]\d* sin contestar/);
+    expect(l).toContain("#20 (último comentario sin fecha)");
+  });
+
+  it("un comentario humano que cita una marca sigue contando como respuesta", () => {
+    const l = lineaDeDecisiones([nodo(21, [["2026-10-05T10:00:00Z", "Decidido, ver <!-- menuplan:lleva rama=x -->"]])]);
+    expect(l).toMatch(/1 con respuesta/);
+  });
+
+  it("el día es el de Madrid, no el de UTC", () => {
+    const l = lineaDeDecisiones([nodo(22, [["2026-10-05T23:30:00Z"]])]);
+    expect(l).toContain("#22 (último comentario 2026-10-06)");
+  });
+
+  it("las con respuesta van de la más reciente a la más antigua, con un máximo de 6 y «y N más»", () => {
+    const ns = Array.from({ length: 8 }, (_, i) => nodo(30 + i, [[`2026-10-0${i + 1}T12:00:00Z`]]));
+    const l = lineaDeDecisiones(ns);
+    expect(l.indexOf("#37")).toBeLessThan(l.indexOf("#36"));
+    expect(l).toContain("#32 ");
+    expect(l).not.toContain("#31 ");
+    expect(l).toContain("y 2 más");
+  });
+});
