@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { medianaMs, topeMs } from "../../scripts/lib/medirTiempo.mjs";
 import { analizarCasos } from "./casos.mjs";
 
 const MOTIVO = "solo mueve ficheros de sitio, no se ha visto ningún fallo";
@@ -42,10 +43,10 @@ describe("la línea «Casos:» del PR (#185)", () => {
     expect(analizarCasos(`Casos: #1, #2, y ${sueltos}`).valida).toBe(false);
   });
   it("una línea enorme se rechaza rápido, sin colgar el análisis ni dejar números sin mirar", () => {
-    const t0 = Date.now();
-    const r = analizarCasos(`Casos: ${"#1, ".repeat(200_000)}`);
-    expect(r.valida).toBe(false);
-    expect(Date.now() - t0).toBeLessThan(1000);
+    const linea = `Casos: ${"#1, ".repeat(200_000)}`;
+    expect(analizarCasos(linea).valida).toBe(false);
+    // Suelto (la mayor mediana de 5 en tres pasadas el 2026-10-10): 2 ms; el tope, 20× (#499).
+    expect(medianaMs(() => analizarCasos(linea), { etiqueta: "casos-linea-enorme" })).toBeLessThan(topeMs(2));
   });
 
   it.each([`Casos: ninguno — ${MOTIVO}`, `Casos: ninguno -${MOTIVO}.`, `Casos: Ninguno: ${MOTIVO}`])("«ninguno» con motivo vale: %s", (c) => {

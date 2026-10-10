@@ -6,7 +6,11 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { construirIndice, escribirIndice, senalDeDenegacion } from "../../scripts/lib/buscarAntes.mjs";
+import { medianaMs, topeMs } from "../../scripts/lib/medirTiempo.mjs";
 import { procesar } from "./buscar-antes.mjs";
+
+/** Lo que tarda el hook con índice, suelto (mediana de 5: 79-91 ms en tres pasadas el 2026-10-10). */
+const SUELTO_HOOK_MS = 100;
 
 /**
  * El disparador de «esto ya está apuntado» (#384). Las señales son las REALES
@@ -142,19 +146,13 @@ describe("el hook de verdad", () => {
     expect(JSON.parse(sinIndice.stdout).hookSpecificOutput.additionalContext).toMatch(/uedo buscar lo ya apuntado/);
   });
 
-  it("es rápido con el índice presente (medido: ~100 ms; tope de la prueba 800 ms)", () => {
+  it("es rápido con el índice presente (mediana de 5, 20× sobre lo medido suelto)", () => {
     const dir = nuevoDir();
     escribirIndice(INDICE, join(dir, "indice.json"));
     lanza(entrada, dir);
-    // El mejor de tres: con otras suites a la vez una sola medida salió en 805 ms
-    // (#407, .claude/rules/tests.md: un test de tiempo repite la medida).
-    let mejor = Infinity;
-    for (let i = 0; i < 3; i++) {
-      const t0 = performance.now();
-      lanza({ ...entrada, session_id: `tiempo-${i}` }, dir);
-      mejor = Math.min(mejor, performance.now() - t0);
-    }
-    expect(mejor).toBeLessThan(800);
+    // Con 800 ms (8×) y el mejor de tres falló bajo carga: 805 ms (#407) y 4 s (#499).
+    const ms = medianaMs((i) => lanza({ ...entrada, session_id: `tiempo-${i}` }, dir), { etiqueta: "buscar-antes-hook" });
+    expect(ms).toBeLessThan(topeMs(SUELTO_HOOK_MS));
   });
 
   it("a una llamada normal no responde nada", () => {

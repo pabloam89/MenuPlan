@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { lineaDe, leerCola, medir, resumir, respuestasConDia, respuestasFinales } from "./lib/voz.mjs";
+import { medianaMs, topeMs } from "./lib/medirTiempo.mjs";
 import { carpetaPropia, escrituraSegura, recortarLog } from "../.claude/hooks/buscar-antes.mjs";
 
 /**
@@ -73,10 +74,10 @@ describe("preambulo", () => {
 });
 
 describe("rendimiento: un mensaje enorme no cuelga el medidor", () => {
-  it("60.000 «#1» dentro de un paréntesis abierto tardan menos de un segundo", () => {
-    const t0 = Date.now();
-    medir("**Hola.**\n(" + "#1 ".repeat(60000));
-    expect(Date.now() - t0).toBeLessThan(1000);
+  it("60.000 «#1» dentro de un paréntesis abierto no cuelgan el medidor (20× sobre lo medido suelto)", () => {
+    const texto = "**Hola.**\n(" + "#1 ".repeat(60000);
+    // Suelto (la mayor mediana de 5 en tres pasadas el 2026-10-10): 12 ms.
+    expect(medianaMs(() => medir(texto), { etiqueta: "voz-parentesis-abierto" })).toBeLessThan(topeMs(12));
   });
   it("solo se mide hasta 64 KB", () => {
     const largo = "**Hola.**\n" + "palabra ".repeat(100000);

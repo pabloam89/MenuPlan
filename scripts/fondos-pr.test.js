@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { agentesDelPr, cierresDelPr, comprobar } from "./fondos-pr.mjs";
 import { ErrorDeApi } from "./lib/ghApi.mjs";
+import { medianaMsAsync, topeMs } from "./lib/medirTiempo.mjs";
+
+/** Lo que tarda suelto comprobar un cuerpo hostil de un megabyte (la mayor mediana de 5 en tres pasadas el 2026-10-10: 2,8 ms). */
+const SUELTO_HOSTIL_MS = 3;
 
 // Sin red: la API es un par de funciones que devuelven issues de mentira.
 const etiquetas = (...n) => n.map((name) => ({ name }));
@@ -154,10 +158,10 @@ describe("scripts/fondos-pr.mjs: el PR y su problema de fondo (#337)", () => {
   });
 
   it("un cuerpo hostil no lanza ni tarda", async () => {
-    const t0 = Date.now();
     const cuerpo = `${"Closes #1\n".repeat(3)}${"Agente: ".repeat(5000)}${"x".repeat(1_000_000)}`;
-    const r = await comprobar({ cuerpo, ...consultaDe({}) });
+    let r;
+    const ms = await medianaMsAsync(async () => { r = await comprobar({ cuerpo, ...consultaDe({}) }); }, { etiqueta: "fondos-pr-cuerpo-hostil" });
     expect(r.ok).toBe(false);
-    expect(Date.now() - t0).toBeLessThan(1500);
+    expect(ms).toBeLessThan(topeMs(SUELTO_HOSTIL_MS));
   });
 });

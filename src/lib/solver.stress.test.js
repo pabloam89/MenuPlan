@@ -29,6 +29,7 @@ const pct = (xs, p) => {
 export async function medirUnidad(data, group, crossWeek, { format = "compact" } = {}) {
   const stats = createPlannerStats();
   const fila = { semilla: data._semilla, dureza: data._dureza, group: group.id, weekCount: crossWeek?.weekCount ?? 1 };
+  // tiempo: sin tope — banco de resistencia (STRESS=1): wallMs se informa, no se compara con nada
   const t = Date.now();
   try {
     const res = await generateGroupMenu(data, group, undefined, [], crossWeek, undefined, "prefer", { stats, format });
@@ -90,7 +91,7 @@ export async function medirUnidad(data, group, crossWeek, { format = "compact" }
     // del motor, es una casa que el catálogo no cubre. Se cuenta aparte.
     if (msg.startsWith("Solo quedan")) fila.poolInsuficiente = true;
     else fila.error = msg.slice(0, 200);
-    fila.wallMs = Date.now() - t;
+    fila.wallMs = Date.now() - t; // tiempo: sin tope — banco de resistencia: se informa, no se compara
   }
   return fila;
 }
@@ -146,6 +147,7 @@ describe.skipIf(!process.env.STRESS)("resistencia del solver", () => {
   it(`${N} casas aleatorias por generateGroupMenu entero`, async () => {
     globalThis.localStorage = { getItem: (k) => (k === "mp_motor" ? "solver" : null) };
     const filas = [];
+    // tiempo: sin tope — los segundos totales se informan, no se comparan
     const t0 = Date.now();
     for (let i = 0; i < N; i++) {
       const data = casaAleatoria(1000 + i);

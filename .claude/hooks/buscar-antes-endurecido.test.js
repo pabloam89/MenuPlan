@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { leerIndice, textoDeAviso, avisoDeIndice } from "../../scripts/lib/buscarAntes.mjs";
+import { medianaMsAsync, topeMs } from "../../scripts/lib/medirTiempo.mjs";
 import { carpetaPropia, escrituraSegura } from "./buscar-antes.mjs";
 import { avisoAparte, avisoParaDenegacion, hayTiempoParaAvisar, sanearAviso, TOPE_PARA_AVISAR_MS } from "./guardia.mjs";
 
@@ -30,31 +31,41 @@ const falso = (cuerpo) => {
 };
 const R = { decision: "deny", motivo: "x" };
 const E = { session_id: "s", cwd: tmpdir(), tool_input: { command: "ls" } };
+// Una sola medida (n: 1): cada repetición dejaría otro nieto vivo. Basta el margen de topeMs (#499).
 const mide = async (f, tope = 1500) => {
-  const t = Date.now();
-  const v = await avisoAparte(R, E, { script: f, tope });
-  return { v, ms: Date.now() - t };
+  let v;
+  const ms = await medianaMsAsync(async () => { v = await avisoAparte(R, E, { script: f, tope }); }, { n: 1, etiqueta: `aviso-aparte tope ${tope}` });
+  return { v, ms };
 };
+/**
+ * Lo que tarda suelto arrancar el hijo y leer su salida, sin contar la espera del tope
+ * (medido el 2026-10-10: 63-272 ms con el hijo que sale enseguida; 25 ms sobre el tope con el colgado).
+ */
+const SUELTO_HIJO_MS = 280;
+/** Lo que el hijo malo retiene: por encima de cualquier tope de la prueba, para que un tope roto se vea. */
+const RETIENE_MS = 30_000;
 
 describe("avisoAparte: el tope se cumple pase lo que pase con el hijo", () => {
   it("un nieto separado que hereda la tubería no alarga la espera", async () => {
     const f = falso(`
       import { spawn } from "node:child_process";
-      const n = spawn(process.execPath, ["-e", "setTimeout(()=>{}, 3000)"], { detached: true, stdio: "inherit" });
+      const n = spawn(process.execPath, ["-e", "setTimeout(()=>{}, ${RETIENE_MS})"], { detached: true, stdio: "inherit", windowsHide: true });
       n.unref();
       process.stdout.write("[buscar-antes] hola");
       process.exit(0);
     `);
     const { v, ms } = await mide(f);
-    expect(ms).toBeLessThan(3000);
+    expect(topeMs(SUELTO_HIJO_MS)).toBeLessThan(RETIENE_MS);
+    expect(ms).toBeLessThan(topeMs(SUELTO_HIJO_MS));
     expect(v).toBe("[buscar-antes] hola");
-  }, 20000);
+  }, 40000);
 
   it("un hijo colgado se corta en el tope y no devuelve nada", async () => {
-    const { v, ms } = await mide(falso(`setTimeout(() => {}, 3000);`), 600);
+    const { v, ms } = await mide(falso(`setTimeout(() => {}, ${RETIENE_MS});`), 600);
     expect(v).toBe("");
-    expect(ms).toBeLessThan(3000);
-  }, 20000);
+    expect(topeMs(SUELTO_HIJO_MS, { fijoMs: 600 })).toBeLessThan(RETIENE_MS);
+    expect(ms).toBeLessThan(topeMs(SUELTO_HIJO_MS, { fijoMs: 600 }));
+  }, 40000);
 
   it("10 MB por la salida estándar: se corta el tope de bytes (el hijo muere antes de acabar de escribir)", async () => {
     const marca = join(nuevoDir(), "acabo");

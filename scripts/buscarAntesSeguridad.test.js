@@ -9,6 +9,7 @@ import {
   lineaDeResultado, lineaParecidosIgnorados, podarMarcas, prDeLaCasa, relevantes, textoDeAviso,
 } from "./lib/buscarAntes.mjs";
 import { leerMarcas } from "./lib/lleva.mjs";
+import { medianaMs, topeMs } from "./lib/medirTiempo.mjs";
 import { limpiarTexto } from "./lib/textoExterno.mjs";
 
 /**
@@ -134,19 +135,18 @@ describe("limpiarTexto", () => {
 
 describe("coste: una salida enorme no cuelga el hook (ReDoS)", () => {
   const entrada = (texto) => ({ tool_name: "Bash", tool_input: { command: "npm test" }, error: `Exit code 1\n${texto}`, hook_event_name: "PostToolUseFailure" });
-  const mide = (texto) => {
-    const t0 = performance.now();
-    detectarSenales(entrada(texto));
-    return performance.now() - t0;
-  };
+  const mide = (texto, etiqueta) => medianaMs(() => detectarSenales(entrada(texto)), { etiqueta });
+  // La tercera columna: lo que tarda suelto (la mayor mediana de 5 en tres pasadas, el
+  // 2026-10-10). Un ReDoS tarda segundos; el tope de 20× lo sigue cazando sin dar rojos bajo
+  // carga (#499: con 50 ms el margen era de 9× a 11×).
   it.each([
-    ["64 KB de saltos de línea", "\n".repeat(64 * 1024), 50],
-    ["64 KB de ' \\n'", " \n".repeat(32 * 1024), 50],
-    ["200 000 saltos de línea", "\n".repeat(200_000), 200],
-    ["200 000 de ' \\n'", " \n".repeat(200_000), 200],
-    ["64 KB de espacios y una pila falsa", `${" ".repeat(60_000)}at x`, 50],
-  ])("%s", (_, texto, tope) => {
-    expect(mide(texto)).toBeLessThan(tope);
+    ["64 KB de saltos de línea", "\n".repeat(64 * 1024), 5],
+    ["64 KB de ' \\n'", " \n".repeat(32 * 1024), 6],
+    ["200 000 saltos de línea", "\n".repeat(200_000), 4],
+    ["200 000 de ' \\n'", " \n".repeat(200_000), 6],
+    ["64 KB de espacios y una pila falsa", `${" ".repeat(60_000)}at x`, 6],
+  ])("%s", (nombre, texto, suelto) => {
+    expect(mide(texto, `senales ${nombre}`)).toBeLessThan(topeMs(suelto));
   });
 });
 

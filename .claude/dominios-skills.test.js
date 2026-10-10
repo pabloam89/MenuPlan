@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { cargarMapa, skillsDeComando, skillsDeFicheros } from "./hooks/dominios.mjs";
+import { medianaMs } from "../scripts/lib/medirTiempo.mjs";
 
 /**
  * El mapa de dominios con skill (.claude/dominios-skills.json) lo leen la
@@ -197,18 +198,10 @@ describe("el coste de evaluar los patrones", () => {
     sinSalto: "a",
   };
   const entrada = (unidad, bytes) => unidad.repeat(Math.ceil(bytes / unidad.length));
-  const mejorDeTres = (cmd, m) => {
-    let mejor = Infinity;
-    for (let i = 0; i < 3; i++) {
-      const t0 = performance.now();
-      skillsDeComando(cmd, m);
-      mejor = Math.min(mejor, performance.now() - t0);
-    }
-    return mejor;
-  };
+  const deTres = (cmd, m) => medianaMs(() => skillsDeComando(cmd, m), { n: 3 });
   const razon = (unidad, m) => {
-    const t25 = mejorDeTres(entrada(unidad, 25_000), m);
-    const t100 = mejorDeTres(entrada(unidad, 100_000), m);
+    const t25 = deTres(entrada(unidad, 25_000), m);
+    const t100 = deTres(entrada(unidad, 100_000), m);
     return { t25, t100, razon: t100 / Math.max(t25, SUELO_MS) };
   };
   // Con otras suites en paralelo, el ruido de CPU infla un tiempo suelto y la
