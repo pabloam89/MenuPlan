@@ -151,7 +151,11 @@ function problemasDeCalibracion(c, d, umbral, malos) {
     for (const k of casos) {
       if (!esTexto(k?.texto, 20)) malos.push(`${d}: un caso de calibración lleva un «texto» de ejemplo de veinte caracteres o más`);
       if (!ESPERADOS_CALIBRACION.includes(k?.esperado)) malos.push(`${d}: el «esperado» de un caso de calibración es ${ESPERADOS_CALIBRACION.join(" o ")}`);
+      for (const campo of Object.keys(k ?? {})) if (!["texto", "esperado", "frontera", "nota"].includes(campo)) malos.push(`${d}: un caso de calibración no admite el campo «${campo}»`);
+      if ("frontera" in (k ?? {}) && k.frontera !== true) malos.push(`${d}: «frontera» de un caso de calibración es true o no se pone`);
+      if (k?.frontera === true && !esTexto(k?.nota, 15)) malos.push(`${d}: un caso de frontera lleva en «nota» su porqué (15 caracteres o más)`);
     }
+    if (!casos.some((k) => k?.frontera === true)) malos.push(`${d}: un criterio subjetivo lleva al menos un caso de frontera (frontera: true): dudoso, con respuesta definida y su porqué en la nota`);
   }
   if (!("listo_para_subir" in c)) return;
   if (typeof c.listo_para_subir !== "boolean") { malos.push(`${d}: listo_para_subir es verdadero o falso`); return; }
@@ -249,6 +253,25 @@ export function anclarCapas(datos, guardado) {
   }
   const ordenadas = Object.fromEntries(Object.entries(capas).sort(([a], [b]) => a.localeCompare(b)));
   return { guardado: { ...guardado, capas: ordenadas, retirados: guardado?.retirados ?? {} }, cambios };
+}
+
+/**
+ * El trinquete contra una referencia de git (origin/staging): lo que ya estaba
+ * anclado allí no puede desaparecer de las capas actuales ni bajar, salvo que
+ * esté en «retirados» con motivo. Cierra el hueco de borrar un criterio del
+ * catálogo y de ops/forja-capas.json a la vez. `ref` es el contenido de
+ * ops/forja-capas.json en la referencia.
+ */
+export function problemasContraReferencia(actual, ref) {
+  const malos = [];
+  const capas = actual?.capas ?? {};
+  const retirados = actual?.retirados ?? {};
+  for (const [id, capaRef] of Object.entries(ref?.capas ?? {})) {
+    if (id in capas) {
+      if (rango(capas[id]) < rango(capaRef)) malos.push(`${id}: estaba en ${capaRef} en la referencia y ahora está anclado en ${capas[id]}`);
+    } else if (!esTexto(retirados[id]?.motivo, 15)) malos.push(`${id}: estaba anclado en la referencia y ya no está ni en capas ni en «retirados» con motivo`);
+  }
+  return malos;
 }
 
 // ── Las fichas: `skill: x criterio: y estado: z` ───────────────────────────

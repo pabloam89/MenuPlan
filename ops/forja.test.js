@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,9 +7,9 @@ import { fileURLToPath } from "node:url";
 import {
   ARTEFACTOS, CAMPOS, ESTADOS_CON_NOTA, ESTADOS_CRITERIO, JUICIO, ORDEN_CAPAS, RUTA_CAPAS, RUTA_FORJA, RUTA_MD,
   anclarCapas, cifras, codigosDeFuente, codigosEmitidos, generarMd, leerCapas, leerFicha, leerForja, lineaDeFicha,
-  problemasDeCodigos, problemasDeFicha, problemasDeForja, problemasDeTrinquete,
+  problemasContraReferencia, problemasDeCodigos, problemasDeFicha, problemasDeForja, problemasDeTrinquete,
 } from "../scripts/lib/forja.mjs";
-import { CODIGOS_ESTANDAR, CODIGOS_FORJA } from "../scripts/lib/skillsForja.mjs";
+import { CODIGOS_ESTANDAR, CODIGOS_FORJA, faltasDePresentacion } from "../scripts/lib/skillsForja.mjs";
 import { ARREGLOS, CODIGOS_HIGIENE } from "../scripts/lib/higieneSkills.mjs";
 import { REGLAS } from "../scripts/lib/skills.mjs";
 
@@ -74,6 +75,63 @@ describe("el trinquete de promoción (ops/forja-capas.json)", () => {
   });
   it("lo anclado coincide con el catálogo (nada por subir sin guardar)", () => {
     expect(anclarCapas(datos, guardado).cambios, "Lanza «npm run forja -- --escribir»").toEqual([]);
+  });
+});
+
+/**
+ * El borrado doble: quitar un criterio de ops/forja.json y de ops/forja-capas.json a la vez
+ * pasa el trinquete local. Se contrasta con lo anclado en origin/staging (FORJA_REF cambia la
+ * referencia). Sin git o sin esa referencia (el checkout del CI es de 2 commits y no la trae)
+ * o mientras el fichero no esté en ella, se salta limpio y lo dice.
+ */
+function capasEnReferencia(ref) {
+  try {
+    execFileSync("git", ["rev-parse", "--verify", "--quiet", ref], { cwd: RAIZ, stdio: "pipe" });
+    return JSON.parse(execFileSync("git", ["show", `${ref}:${RUTA_CAPAS}`], { cwd: RAIZ, stdio: "pipe", encoding: "utf8", maxBuffer: 1 << 24 }));
+  } catch { return null; }
+}
+const REF = process.env.FORJA_REF ?? "origin/staging";
+const capasRef = capasEnReferencia(REF);
+if (!capasRef) console.info(`[forja] trinquete contra ${REF}: se salta (sin git, sin la referencia o sin ${RUTA_CAPAS} en ella)`);
+
+describe(`el trinquete contra ${REF}`, () => {
+  it.skipIf(!capasRef)("nada anclado en la referencia desaparece ni baja sin motivo", () => {
+    expect(problemasContraReferencia(guardado, capasRef), "Si quitas un criterio, déjalo en «retirados» de ops/forja-capas.json con su motivo").toEqual([]);
+  });
+  it("cada regla falla con datos malos (esté o no la referencia)", () => {
+    const ref = { capas: { uno: "formal", dos: "material", tres: "subjetiva" } };
+    expect(problemasContraReferencia({ capas: { uno: "formal", dos: "material", tres: "subjetiva" } }, ref)).toEqual([]);
+    expect(problemasContraReferencia({ capas: { uno: "formal", dos: "formal", tres: "material" } }, ref)).toEqual([]);
+    expect(problemasContraReferencia({ capas: { uno: "formal", tres: "subjetiva" } }, ref).join()).toContain("dos: estaba anclado");
+    expect(problemasContraReferencia({ capas: { uno: "material", dos: "material", tres: "subjetiva" } }, ref).join()).toContain("uno: estaba en formal");
+    expect(problemasContraReferencia({ capas: { uno: "formal", tres: "subjetiva" }, retirados: { dos: { motivo: "Se fundió en otro más general" } } }, ref)).toEqual([]);
+    expect(problemasContraReferencia({ capas: { uno: "formal", tres: "subjetiva" }, retirados: { dos: { motivo: "no" } } }, ref)).not.toEqual([]);
+  });
+});
+
+describe("los códigos no se escapan del catálogo", () => {
+  const src = (f) => fuentes[f];
+  it("las claves de hallazgos de faltasDePresentacion son códigos de la forja", () => {
+    const m = src("skillsForja.mjs").match(/const hallazgos = \{([^}]*)\}/);
+    expect(m, "skillsForja.mjs ya no declara «const hallazgos = {…}»: ajusta este test").not.toBeNull();
+    const claves = [...m[1].matchAll(/(?:"([\w-]+)"|([\w-]+))\s*:/g)].map((x) => x[1] ?? x[2]);
+    expect(claves.length).toBeGreaterThanOrEqual(3);
+    for (const k of claves) expect(CODIGOS_FORJA, k).toContain(k);
+  });
+  it("lo que emite faltasDePresentacion con los tres defectos está en CODIGOS_FORJA", () => {
+    const malo = ["## A", "#### B", "Usa npm run test aquí.", "| a | b |", "|---|---|", "| 1 |"].join("\n");
+    const codigos = faltasDePresentacion(malo).map((x) => x.codigo);
+    expect(codigos.sort()).toEqual(["cabeceras", "comando-suelto", "tabla"]);
+    for (const c of codigos) expect(CODIGOS_FORJA).toContain(c);
+  });
+  // Una llamada con un primer argumento que no es un literal no se puede leer del código: solo las de esta lista (hoy: las claves de hallazgos en faltasDePresentacion, que cubre el test de arriba, y el código que higiene toma del nivel 1).
+  const NO_LITERALES_ADMITIDOS = { "higieneSkills.mjs": ["x.codigo ?? x.regla"], "skillsForja.mjs": ["codigo"] };
+  const llamadasNoLiterales = (texto) => [...texto.matchAll(/(?<![\w.])(?:falta|faltaEstandar|defecto)\(\s*([^,)]+?)\s*,/g)].map((m) => m[1]).filter((a) => !/^"[a-z][\w-]*"$/.test(a));
+  it("toda llamada falta(, faltaEstandar( o defecto( lleva un código literal, salvo la lista blanca", () => {
+    for (const [f, texto] of Object.entries(fuentes)) expect(llamadasNoLiterales(texto), f).toEqual(NO_LITERALES_ADMITIDOS[f]);
+  });
+  it("detecta una llamada con el código en una variable", () => {
+    expect(llamadasNoLiterales('f.push(falta(nombre, "x")); f.push(defecto("ok", "falta", d)); faltaEstandar(codigo, t, d);')).toEqual(["nombre", "codigo"]);
   });
 });
 
@@ -230,6 +288,28 @@ describe("autotest: cada regla falla con datos malos", () => {
     subj(t).casos_calibracion[0].texto = "corto";
     expect(problemasDeForja(t, existe).join()).toContain("texto");
     falla((c) => { c.casos_calibracion = [{ texto: "Un texto de ejemplo suficientemente largo", esperado: "cumple" }]; }, "solo de la capa subjetiva");
+  });
+  it("calibración: un caso de frontera por criterio, con su porqué", () => {
+    const sinFrontera = clon();
+    subj(sinFrontera).casos_calibracion = subj(sinFrontera).casos_calibracion.filter((k) => !k.frontera);
+    expect(problemasDeForja(sinFrontera, existe).join()).toContain("caso de frontera");
+    const sinNota = clon();
+    delete subj(sinNota).casos_calibracion.find((k) => k.frontera).nota;
+    expect(problemasDeForja(sinNota, existe).join()).toContain("nota");
+    const rara = clon();
+    subj(rara).casos_calibracion[0].frontera = "sí";
+    expect(problemasDeForja(rara, existe).join()).toContain("frontera");
+    const campo = clon();
+    subj(campo).casos_calibracion[0].extra = 1;
+    expect(problemasDeForja(campo, existe).join()).toContain("no admite el campo");
+  });
+  it("calibración: el caso no_cumple de disparador-al-principio deja el disparador fuera de los 250 primeros caracteres", () => {
+    const casos = datos.criterios.find((c) => c.id === "disparador-al-principio").casos_calibracion;
+    for (const k of casos) {
+      const donde = k.texto.indexOf("Úsala");
+      if (k.esperado === "no_cumple") expect(donde, k.texto).toBeGreaterThanOrEqual(250);
+      else expect(donde, k.texto).toBeLessThan(250);
+    }
   });
   it("promoción: el umbral es un parámetro válido", () => {
     const a = clon();

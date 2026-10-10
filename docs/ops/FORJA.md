@@ -76,7 +76,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
   - Fuente: [F] https://agentskills.io/skill-creation/optimizing-descriptions. Control: `.claude/skills.test.js`. Código: `casos-negativos`.
 - `fechas` — Sin fechas en el cuerpo fuera de «Lo que falló y por qué», «Registro de cambios» y «Fuentes y comprobación»: se quedan viejas
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: `.claude/skills.test.js`. Código: `fechas`.
-- `sin-parada` — El «Método» (salvo en herramienta) dice cuándo se acaba y qué se ve cuando sale bien
+- `sin-parada` — El «Método» (salvo en herramienta) dice cuándo se acaba y qué se ve cuando sale bien. Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: `.claude/skills.test.js`. Código: `sin-parada`.
 - `ejemplos` — Como mucho tres ejemplos por sección de ejemplos: pocos y canónicos
   - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md. Control: `.claude/skills.test.js`. Código: `ejemplos`.
@@ -178,55 +178,55 @@ Una rúbrica escrita que un LLM puntúa sobre casos; para lo que no se puede dis
 ### subjetiva · skill (13)
 
 - `descripcion-palabras-de-quien-pide` — La descripción dice qué hace la skill y cuándo se abre, con las palabras con que lo pediría una persona con prisa. Cumple si un lector que solo vea la descripción reconoce su petición en ella. No cumple si es genérica («ayuda con documentos») o repite el vocabulario interno de la skill en vez del de quien pide.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).
   - Fuente: [F] https://agentskills.io/skill-creation/optimizing-descriptions. Control: juicio.
 - `frontera-casi-fallos` — Los casos de frontera son casi-fallos: peticiones que se parecen mucho a las de la skill y son de otra. Cumple si una descripción vaga los confundiría con la skill. No cumple si son obvios («¿qué tiempo hace?») y cualquier descripción los separa.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [F] https://agentskills.io/skill-creation/optimizing-descriptions. Control: juicio.
 - `disparador-al-principio` — Lo esencial de la descripción va al principio, porque el listado se trunca. Cumple si el cuándo y las palabras clave están en los primeros 250 caracteres. No cumple si el disparador principal queda al final o cortado.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [F] https://code.claude.com/docs/en/skills. Control: juicio.
 - `solo-lo-que-el-modelo-no-sabe` — Cada párrafo justifica su coste en cada sesión: solo dice lo que el modelo no sabría sin la skill. Cumple si quitar un párrafo cambiaría lo que hace quien la lee. No cumple si explica lo que el modelo ya hace bien o pega la documentación del proveedor.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: juicio.
 - `libertad-ajustada` — La libertad de cada instrucción se ajusta a lo frágil que es la tarea. Cumple si donde un error cuesta caro (un borrado, una clave) hay pasos exactos o un script, y donde no, una heurística. No cumple si hay pasos rígidos en lo abierto o vaguedad en lo irreversible.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: juicio.
 - `camino-por-defecto` — Hay un camino por defecto y, aparte, la salida para el caso raro. Cumple si ante una petición normal está claro qué hacer primero. No cumple si ofrece un menú («usa A, o B, o C») sin decir cuál.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: juicio.
 - `pasos-con-salida-observable` — Cada paso dice qué se ve cuando sale bien, de modo que quien lo hace sabe si avanza o debe parar. Cumple si un paso se puede comprobar mirando una salida, un fichero o un estado. No cumple si pide «comprobar que esté bien» sin decir cómo.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: juicio.
 - `vocabulario-unico` — Una palabra por cosa en toda la skill. Cumple si el mismo concepto siempre se llama igual. No cumple si alterna «caso», «incidente» y «fallo» para lo mismo.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: juicio.
 - `ejemplos-canonicos` — Los ejemplos son pocos, representativos y no se contradicen con la norma de la propia skill. Cumple si cada ejemplo enseña la regla sin romperla. No cumple si es una lista de casos límite o un ejemplo viola lo que la skill enseña.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md. Control: juicio.
 - `casos-medidos-con-y-sin-skill` — Los casos se escribieron antes que el texto y se midió si la skill mejora sobre el modelo solo, con más de una ejecución. Cumple si hay cifra con y sin skill. No cumple si solo se probó una vez con la skill puesta. Hoy no existe la medida automática con y sin skill: el nivel 2 mide solo con ella. Cifra de partida (comprobaciones del nivel 2, 10 oct 2026): higiene-de-skills cumple 5 de 12 y forja-de-skills 12 de 16.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [F] https://agentskills.io/skill-creation/evaluating-skills. Control: juicio.
 - `skill-contrastada-con-fallo-real` — La skill nace de un fallo real visto sin ella, no de lo que se imagina que hará falta. Cumple si el PR o «Lo que falló y por qué» cuentan en qué fallaba la sesión sin la skill. No cumple si sale de documentación copiada o de una lista de buenas intenciones.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).
   - Fuente: [I] .claude/skills/forja-de-skills/SKILL.md. Control: juicio.
 - `forma-adecuada-al-contenido` — Cada contenido va en su forma: tabla para datos comparables, lista numerada para pasos con orden, viñetas sin orden, negrita solo para lo que no puede pasar desapercibido, párrafos cortos. Cumple si cambiar la forma de un trozo lo empeoraría. No cumple si hay razonamiento metido en celdas, negrita decorativa o muros de texto.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [I] .claude/skills/forja-de-skills/referencias/presentacion.md. Control: juicio.
 - `sin-duda-con-vecina` — Una petición real tiene una sola skill dueña. Cumple si dos personas leyendo las descripciones de esta y de su vecina eligen la misma para una petición dada. No cumple si hay peticiones en las que dudarían entre las dos.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).
   - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md. Control: juicio.
 
 ### subjetiva · estandar (3)
 
 - `estandar-concreto-y-verificable` — El estándar de una tarea dice qué es hacerla bien de forma que otra persona pueda comprobarlo mirando el resultado. Cumple si cada punto de «comprueba» se puede contrastar con una salida, un diff o un fichero. No cumple si es una declaración de intenciones («con cuidado», «de forma robusta»).
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: juicio.
 - `estandar-respaldado-por-su-fuente` — La fuente citada respalda de verdad lo que dice el estándar. Cumple si quien lee la fuente encuentra la práctica que el estándar enuncia. No cumple si la fuente es de otro tema o solo comparte palabras con el estándar.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [I] ops/estandares-agentes.json. Control: juicio.
 - `estandar-no-hace-delimita` — «no_hace» marca la frontera con lo que es de otro agente o de una persona. Cumple si cada exclusión nombra algo que se podría confundir con la tarea. No cumple si son exclusiones obvias o si deja sin decir lo que más se parece.
-  - Calibración: 2 casos con respuesta conocida (cumple, no_cumple).
+  - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
   - Fuente: [I] ops/estandares-agentes.json. Control: juicio.
 
 ### subjetiva · agente (0)
