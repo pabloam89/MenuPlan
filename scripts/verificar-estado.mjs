@@ -174,6 +174,9 @@ export function testigos(sql) {
       quita.push({ tipo: "política", id: `${clave(nombre(m[2]))}:${nombre(m[1]).nombre}` });
     } else if ((m = s.match(new RegExp(String.raw`^drop\s+trigger\s+(?:if\s+exists\s+)?(${ID})\s+on\s+(${QID})`, "i")))) {
       quita.push({ tipo: "trigger", id: `${clave(nombre(m[2]))}:${nombre(m[1]).nombre}` });
+    } else if ((m = s.match(/^alter\s+default\s+privileges\s+for\s+role\s+postgres\s+in\s+schema\s+public\s+revoke\s+[\w\s,]*?\bon\s+(tables|sequences|functions)\s+from\s+([\w\s,]+)$/i))) {
+      // Privilegio por defecto quitado: «está» si la plantilla de postgres en public ya no lo lleva.
+      for (const r of m[2].split(",")) quita.push({ tipo: "permiso_defecto", id: `${m[1].toLowerCase()}:${r.trim().toLowerCase()}` });
     }
     for (const c of s.matchAll(/cron\.schedule\s*\(\s*'([^']+)'/gi)) crea.push({ tipo: "cron", id: c[1] });
     for (const c of s.matchAll(/cron\.unschedule\s*\(\s*'([^']+)'/gi)) quita.push({ tipo: "cron", id: c[1] });
@@ -274,7 +277,8 @@ export function veredictos(migraciones, catalogo, sinAplicar) {
     });
     // Testigo NEGATIVO: el drop de una tabla o vista «está» si el objeto falta de la base.
     // Si la misma migración lo recrea no se mide; si una posterior lo recrea, sale «después».
-    for (const t of m.quita.filter(esObjeto)) {
+    // Igual con un privilegio por defecto quitado: «está» si la plantilla ya no lo lleva.
+    for (const t of m.quita.filter((x) => esObjeto(x) || x.tipo === "permiso_defecto")) {
       const nueva = creadoDesde(t, i);
       if (nueva === i) continue;
       if (nueva > i) filas.push({ ...t, negativo: true, resultado: "después", por: migraciones[nueva].nombre });
@@ -312,6 +316,8 @@ const CONSULTAS = {
   tipo: "select n.nspname||'.'||t.typname as id, '' as v from pg_type t join pg_namespace n on n.oid=t.typnamespace",
   valor: "select n.nspname||'.'||t.typname||':'||e.enumlabel as id, '' as v from pg_enum e join pg_type t on t.oid=e.enumtypid join pg_namespace n on n.oid=t.typnamespace",
   rol: "select rolname as id, '' as v from pg_roles",
+  // Qué roles figuran en la plantilla de privilegios por defecto de postgres en public ("tables:anon").
+  permiso_defecto: "select (case a.defaclobjtype when 'r' then 'tables' when 'S' then 'sequences' when 'f' then 'functions' else a.defaclobjtype::text end)||':'||coalesce(r.rolname, 'public') as id, '' as v from pg_default_acl a cross join lateral aclexplode(a.defaclacl) x left join pg_roles r on r.oid = x.grantee where a.defaclrole = 'postgres'::regrole and a.defaclnamespace = 'public'::regnamespace",
 };
 
 async function leerCatalogo(url) {
