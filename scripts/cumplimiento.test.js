@@ -8,7 +8,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
-  CONSULTA_FLUJO, DIAS_PARA_PODAR, ESTADOS_INDICADOR, IDS_INDICADOR, INDICADORES, VENTANA_CORTO_DIAS, desdeGraphql, hallazgos, lineaDeIndicador, lineasDeUso, medirIndicadores, usoDeSkills,
+  CONSULTA_FLUJO, CONTRAPESOS, DIAS_PARA_PODAR, ESTADOS_INDICADOR, IDS_INDICADOR, INDICADORES, VENTANA_CORTO_DIAS, desdeGraphql, hallazgos, lineaDeContrapeso, lineaDeIndicador, lineasDeUso,
+  medirContrapesos, medirIndicadores, seriesDeHistorial, usoDeSkills,
 } from "./lib/cumplimiento.mjs";
 import { informe } from "./cumplimiento.mjs";
 import { hash, hashLF } from "./lib/evals.mjs";
@@ -117,6 +118,50 @@ describe("cada indicador se ve disparar, y con datos buenos no", () => {
   });
 });
 
+describe("contrapesos e historial (#480)", () => {
+  const puntual = (n, createdAt, asociacion = "OWNER") => ({ number: n, state: "CLOSED", createdAt, body: "", authorAssociation: asociacion, labels: etiquetas("tipo:caso", "analisis:puntual") });
+  it("cuenta los fondos abiertos y los casos puntuales recientes de la casa", () => {
+    const nodos = [
+      fondo(900, ficha(BASE)),
+      fondo(901, ficha(BASE), { estado: "CLOSED", razon: "COMPLETED" }),
+      puntual(950, "2026-10-18T00:00:00Z"),
+      puntual(951, new Date(HOY.getTime() - (VENTANA_CORTO_DIAS + 2) * 86_400_000).toISOString()),
+      puntual(952, "2026-10-18T00:00:00Z", "NONE"),
+      nodoCaso(953, "analisis:abierto", "2026-10-18T00:00:00Z"),
+    ].map(desdeGraphql);
+    expect(medirContrapesos(nodos, { hoy: HOY })).toEqual([{ contrapeso: "fondos_abiertos", valor: 1 }, { contrapeso: "casos_puntuales_recientes", valor: 1 }]);
+    expect(Object.keys(CONTRAPESOS)).toEqual(["fondos_abiertos", "casos_puntuales_recientes"]);
+  });
+  it("sin datos, valor null y línea con «-», nunca un cero", () => {
+    const c = medirContrapesos(null);
+    expect(c.every((x) => x.valor === null)).toBe(true);
+    expect(lineaDeContrapeso(c[0])).toBe("contrapeso: fondos_abiertos valor: -");
+  });
+  it("la serie de antes sale de los informes viejos, en orden, sin los «-»", () => {
+    const texto = [
+      "indicador: fondos_sin_diagnostico valor: 2 umbral: 0 estado: dispara en: #1",
+      "contrapeso: fondos_abiertos valor: 7",
+      "texto: otra cosa valor: 9",
+      "indicador: fondos_sin_diagnostico valor: - umbral: 0 estado: sin_datos",
+      "  indicador: fondos_sin_diagnostico valor: 0 umbral: 0 estado: ok",
+      "ruido metrica: fondos_sin_diagnostico valor: 5 puntos: 0",
+    ].join("\n");
+    expect(seriesDeHistorial(texto)).toEqual({ fondos_sin_diagnostico: [2, 0], fondos_abiertos: [7] });
+    expect(seriesDeHistorial("")).toEqual({});
+  });
+  it("un punto por semana: dos informes de la misma semana cuentan una vez, con el último", () => {
+    const inf = (dia, n) => `## Flujo y skills: informe semanal (${dia})\n\n\`\`\`\nindicador: fondos_sin_diagnostico valor: ${n} umbral: 0 estado: ok\n\`\`\``;
+    // lunes 5, miércoles 7 (a mano, misma semana), lunes 12 y domingo 18 (misma semana que el 12)
+    const texto = [inf("2026-10-05", 1), inf("2026-10-07", 9), inf("2026-10-12", 2), inf("2026-10-18", 3)].join("\n\nRun: x\n\n");
+    expect(seriesDeHistorial(texto)).toEqual({ fondos_sin_diagnostico: [9, 3] });
+  });
+  it("un informe sin datos («-») no borra el valor bueno de la misma semana", () => {
+    const inf = (dia, v) => `## Flujo y skills: informe semanal (${dia})\nindicador: fondos_sin_diagnostico valor: ${v} umbral: 0 estado: ok\ncontrapeso: fondos_abiertos valor: 4`;
+    const texto = [inf("2026-10-12", 2), inf("2026-10-14", "-"), inf("2026-10-19", "-")].join("\n\n");
+    expect(seriesDeHistorial(texto)).toEqual({ fondos_sin_diagnostico: [2], fondos_abiertos: [4, 4] });
+  });
+});
+
 describe("más de 50 hijos", () => {
   it("se avisa con una nota en la línea, no se calla", () => {
     const nodo = { ...fondo(900, ficha(BASE)), subIssues: { pageInfo: { hasNextPage: true }, nodes: [] } };
@@ -221,6 +266,31 @@ describe("el script", () => {
 
   it("una opción sin valor es entrada mala (2)", () => {
     expect(correr("--informe").status).toBe(2);
+    expect(correr("--historial").status).toBe(2);
+  }, TIEMPO);
+
+  it("--historial: cada cifra con su margen; con 8 semanas de antes, el veredicto; sin ellas, «sin datos suficientes»", () => {
+    const dir = mkdtempSync(join(tmpdir(), "cumpl-"));
+    const f = join(dir, "issues.json");
+    writeFileSync(f, JSON.stringify([fondo(900, ficha({ ...BASE, mecanismo: "" }), { hijos: [nodoEncargo(901, "")] })]));
+    const semanas = Array.from({ length: 8 }, () => "indicador: fondos_sin_diagnostico valor: 0 umbral: 0 estado: ok\ncontrapeso: fondos_abiertos valor: 1").join("\n\n");
+    const h = join(dir, "historial.txt");
+    writeFileSync(h, semanas);
+    const r = correr("--issues", f, "--informe", join(dir, "inf.md"), "--historial", h);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toMatch(/^contrapeso: fondos_abiertos valor: 1$/m);
+    expect(r.stdout).toMatch(/^ruido metrica: fondos_sin_diagnostico valor: 1 puntos: 8 minimo: 8 .* veredicto: fuera_por_encima$/m);
+    expect(r.stdout).toMatch(/^ruido metrica: fondos_abiertos valor: 1 puntos: 8 .* veredicto: dentro$/m);
+    expect(r.stdout).toMatch(/^ruido metrica: encargos_sin_juez valor: 0 puntos: 0 .* veredicto: sin_datos_suficientes$/m);
+    const md = readFileSync(join(dir, "inf.md"), "utf8");
+    expect(md).toMatch(/### Antes y después, cada cifra con su vigilante/);
+    expect(md).toMatch(/\| `fondos_sin_diagnostico` \| 1 \| `reabiertos_clase_mal_definida` = 0 \| sube de verdad/);
+    expect(md).toMatch(/_Sin datos suficientes en \d+ de 10 cifras/);
+    // Un historial que no se puede leer no tumba el informe: lo dice y todo sale sin datos suficientes.
+    const sin = correr("--issues", f, "--historial", join(dir, "no-existe.txt"));
+    expect(sin.status).toBe(0);
+    expect(sin.stderr).toMatch(/historial: no se ha podido leer/);
+    expect(sin.stdout).not.toMatch(/veredicto: (dentro|fuera)/);
   }, TIEMPO);
 
   it("--skills-pr: sin skills tocadas no hace nada; con una, higiene y ensayo sin llamar a nadie", () => {
@@ -276,6 +346,13 @@ describe("los workflows: sin secretos, sin coste, sin issues automáticos por in
     expect(y).not.toMatch(/grep -q 'estado: dispara'/);
   });
 
+
+  it("el margen de ruido lee solo los informes del bot y no para el run si no puede (#480)", () => {
+    const y = sinComentarios(semanal);
+    expect(y).toMatch(/cumplimiento\.mjs --informe [^\n]*--historial "\$RUNNER_TEMP\/historial\.txt"/);
+    expect(y).toMatch(/select\(\.author\.login=="github-actions"\) \| \.body\] \| \.\[-26:\]/);
+    expect(y).toMatch(/: > "\$RUNNER_TEMP\/historial\.txt"/);
+  });
 
   it("las acciones van fijadas por SHA", () => {
     for (const l of semanal.split("\n").filter((x) => /uses:/.test(x))) expect(l).toMatch(/@[0-9a-f]{40}\b/);
