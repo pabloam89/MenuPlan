@@ -456,7 +456,7 @@ describe("el estándar de cada tipo de la plantilla", () => {
     return plantilla.replace(re, (_m, cab, cuerpo) => cab + cambia(cuerpo));
   };
 
-  it("los ocho tipos tienen «Qué lo hace bueno», «Errores típicos» y un ejemplo, con su marca [F] o [I]", () => {
+  it("los siete tipos tienen «Qué lo hace bueno», «Errores típicos» y un ejemplo, con su marca [F] o [I]", () => {
     expect(faltasE(plantilla).map((f) => f.detalle)).toEqual([]);
     expect(tipos).toHaveLength(7);
   });

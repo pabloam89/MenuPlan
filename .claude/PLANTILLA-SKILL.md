@@ -1,7 +1,7 @@
 # Plantilla de skill
 
 Toda skill de `.claude/skills/<nombre>/` sirve para que una sesión con prisa
-haga algo bien sin haber estado en la sesión que la escribió. Hay ocho tipos,
+haga algo bien sin haber estado en la sesión que la escribió. Hay siete tipos,
 y su única lista es `tipos_skill` de `ops/forja.json`, que también dice cómo se
 asigna el tipo a una skill (`preguntas_tipo`) y qué criterios se aplican a cada
 uno. Todas comparten la estructura común de aquí; lo de cada tipo (sus

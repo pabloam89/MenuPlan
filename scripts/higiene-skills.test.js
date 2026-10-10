@@ -18,13 +18,16 @@ const AQUI = dirname(fileURLToPath(import.meta.url));
 const RAIZ = join(AQUI, "..");
 const HOY = new Date("2026-10-10T12:00:00Z");
 const FORJA = leerForja(RAIZ);
-/** La mala es de diagnóstico: sus respuestas, en su ficha, lo dan (#495). */
-const RESPUESTAS_DIAGNOSTICO = FORJA.preguntas_tipo.map((p) => `  ${p.clave}: ${p.tipo === "diagnostico"}`).join("\n");
+/** Las líneas de la ficha con las respuestas que dan un tipo (#495); la mala es de diagnóstico. */
+const respuestasDe = (tipo) => FORJA.preguntas_tipo.map((p) => `  ${p.clave}: ${p.tipo === tipo}`).join("\n");
 const relleno = "Texto de relleno suficientemente largo para que la sección no cuente como vacía.";
 
-/** Una skill de diagnóstico de mentira; `cambios` toca el texto de cada sección o añade cosas. */
-function oficio({ descripcion, comprobado = "2026-10-01", secciones = {}, ficheros = ["SKILL.md", "casos.json"], extra = {}, casos, antes = "" } = {}) {
-  const cuerpo = SECCIONES_POR_TIPO.diagnostico.map((t) => {
+/**
+ * Una skill de mentira, de diagnóstico salvo que `tipo` diga otro; `secciones` toca el texto de
+ * cada sección y `orden` cambia las secciones que lleva (por defecto, las de su tipo).
+ */
+function oficio({ descripcion, comprobado = "2026-10-01", secciones = {}, ficheros = ["SKILL.md", "casos.json"], extra = {}, casos, antes = "", tipo = "diagnostico", orden = SECCIONES_POR_TIPO[tipo] } = {}) {
+  const cuerpo = orden.map((t) => {
     if (secciones[t] !== undefined) return `## ${t}\n\n${secciones[t]}`;
     if (t === "Método") return `## ${t}\n\n${relleno}\n\nSale bien si la prueba pasa.`;
     if (t === "Registro de cambios") return `## ${t}\n\n- **2026-10-01** · Primera versión (#411).`;
@@ -35,7 +38,7 @@ function oficio({ descripcion, comprobado = "2026-10-01", secciones = {}, ficher
   const d = descripcion ?? "Úsala al probar la higiene de las skills con una de mentira («revisa esta skill», «¿está al día?»). No para: medir si dispara (skills-prueba) ni crearla (forja-de-skills).";
   return {
     nombre: "mala",
-    texto: `---\nname: mala\ndescription: ${d}\nmetadata:\n  tipo: diagnostico\n${RESPUESTAS_DIAGNOSTICO}\n  dueno: gobierno\n  comprobado: ${comprobado}\n---\n\n# Mala\n\n${antes}${cuerpo}\n`,
+    texto: `---\nname: mala\ndescription: ${d}\nmetadata:\n  tipo: ${tipo}\n${respuestasDe(tipo)}\n  dueno: gobierno\n  comprobado: ${comprobado}\n---\n\n# Mala\n\n${antes}${cuerpo}\n`,
     ficheros, extra,
     casos: casos ?? {
       skill: "mala",
@@ -77,6 +80,24 @@ describe("una skill buena sale limpia (si no, lo de abajo no prueba nada)", () =
     const b = oficio();
     const c = ctxDe({ catalogo: [{ nombre: "mala", descripcion: b.texto.match(/description: (.*)/)[1] }, ...CATALOGO_LIMPIO.slice(1)] });
     expect(higieneDeSkill(b, c)).toEqual([]);
+  });
+});
+
+describe("cada skill de nivel 2 se mira contra el molde de su tipo (#495)", () => {
+  const seccionesDe = (s) => higieneDeSkill(s, ctxDe()).filter((d) => d.codigo === "secciones");
+  it("una de revisión con «Qué mira» y «Cómo puntúa» no tiene defectos de secciones", () => {
+    expect(SECCIONES_POR_TIPO.revision).toEqual(expect.arrayContaining(["Qué mira", "Cómo puntúa"]));
+    expect(seccionesDe(oficio({ tipo: "revision" }))).toEqual([]);
+  });
+  it("una de revisión con las secciones de antes falta, y el arreglo remite al molde", () => {
+    const vieja = oficio({ tipo: "revision", orden: ["Cuándo y para qué", "Método", "Cómo se prueba", "Cuándo se poda", "Lo que falló y por qué", "Registro de cambios", "Fuentes y comprobación"] });
+    const d = seccionesDe(vieja);
+    expect(d.map((x) => x.gravedad)).toContain("falta");
+    expect(d[0].arreglo).toContain(".claude/plantillas-skill/<tipo>.md");
+  });
+  it("cada tipo de la forja tiene arreglo para su tipo, y el arreglo dice dónde van las respuestas", () => {
+    expect(ARREGLOS.tipo).toContain("preguntas_tipo de ops/forja.json");
+    expect(ARREGLOS.tipo).not.toContain("ops/flujo.json");
   });
 });
 

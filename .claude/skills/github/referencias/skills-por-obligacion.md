@@ -25,7 +25,7 @@ Detalle de la sección «Qué es y dónde» de la skill `github`; sacado aquí p
     falla con la causa**: se relanza el check. `npm run issues` la cuenta en los últimos 50 PR.
     Cómo se registra un caso y se analiza hasta su fondo: skill `issues`.
   - **Línea «Closes #n» y «Agente:» del PR**: `Closes #n` por cada encargo o fondo
-    que cierra (la guardia lo exige si la rama es de un issue: `npm run tarea --
+    que cierra <!-- norma:pr-al-dia-y-closes --> (la guardia lo exige si la rama es de un issue: `npm run tarea --
     ops/x 193`) y `Agente: <nombre>` (o `sesión`); la plantilla de PR los trae.
     De ahí sale quién arregló qué (skill `issues`). Desde #337 también los pide el
     CI (`scripts/fondos-pr.mjs`, paso «Fondos del PR» de `tests`, para cualquiera

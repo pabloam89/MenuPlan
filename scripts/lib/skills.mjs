@@ -29,8 +29,8 @@ export const DIR_SKILLS = ".claude/skills";
 // ── Vocabulario ───────────────────────────────────────────────────────────
 
 /**
- * Los ocho tipos salen de `tipos_skill` de `ops/forja.json`: la única lista
- * (#495). Aquí solo se leen; sus secciones, de `scripts/lib/plantillasSkill.mjs`.
+ * Los tipos salen de `tipos_skill` de `ops/forja.json`: la única lista
+ * (#495). Aquí solo se leen; sus secciones, del campo `secciones` de cada tipo.
  */
 export function tiposDeSkill(raiz = RAIZ) {
   return tiposDeForja(leerForja(raiz));

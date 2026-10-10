@@ -26,9 +26,9 @@ Cada skill declara sus respuestas (`true` o `false` a cada pregunta) en su front
 ## Secciones obligatorias, en orden
 
 1. **Cuándo y para qué**: El problema que resuelve, qué entra y qué sale, y «No es para:» con la skill vecina.
-2. **Método**: Pasos numerados, cada uno con lo que sale, y cuándo se acaba («Sale bien si …»).
-3. **Cómo se prueba**: Quién comprueba cada cosa (un test, una medida o una persona) y la pieza mala a propósito que da todos sus fallos.
-4. **Cuándo se poda**: Cuándo se quita o se funde en otra, con una señal que se pueda contar.
+2. **Qué mira**: Cada criterio o código que mira, con su señal observable y el catálogo del que sale (se cita, no se copia), y la pieza mala a propósito que los da todos.
+3. **Cómo puntúa**: La gravedad de cada hallazgo (qué bloquea y qué solo avisa), la cifra que sale y qué la hace subir o bajar.
+4. **Método**: Pasos numerados, cada uno con lo que sale, y cuándo se acaba («Sale bien si …»).
 5. **Lo que falló y por qué**: `- **AAAA-MM-DD · síntoma.** Causa: … Arreglo: …`, lo más reciente arriba.
 6. **Registro de cambios**: `- **AAAA-MM-DD** · qué cambió (#issue)`, lo más reciente arriba; al menos la primera versión.
 7. **Fuentes y comprobación**: Enlaces y, en la última línea del fichero, «Comprobado el AAAA-MM-DD: …» o «Sin comprobar: …».
@@ -59,17 +59,17 @@ metadata:
 
 El problema que resuelve, qué entra y qué sale, y «No es para:» con la skill vecina.
 
+## Qué mira
+
+Cada criterio o código que mira, con su señal observable y el catálogo del que sale (se cita, no se copia), y la pieza mala a propósito que los da todos.
+
+## Cómo puntúa
+
+La gravedad de cada hallazgo (qué bloquea y qué solo avisa), la cifra que sale y qué la hace subir o bajar.
+
 ## Método
 
 Pasos numerados, cada uno con lo que sale, y cuándo se acaba («Sale bien si …»).
-
-## Cómo se prueba
-
-Quién comprueba cada cosa (un test, una medida o una persona) y la pieza mala a propósito que da todos sus fallos.
-
-## Cuándo se poda
-
-Cuándo se quita o se funde en otra, con una señal que se pueda contar.
 
 ## Lo que falló y por qué
 
