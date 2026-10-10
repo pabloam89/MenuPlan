@@ -1,6 +1,6 @@
 import { supabase } from "./supabase.js";
 import * as ids from "./ids.js";
-import { CARPETAS_FIJAS } from "./vocabularios.js";
+import { CARPETAS_FIJAS, paraEscribir } from "./vocabularios.js";
 
 /**
  * Carpetas de recetas, dentro de "Mis recetas". Son de dos clases:
@@ -23,15 +23,27 @@ import { CARPETAS_FIJAS } from "./vocabularios.js";
  * @typedef {{ id: string, name: string, createdAt?: string }} Folder
  */
 
-export const BUILT_IN_COLLECTIONS = [
-  { id: "dia_a_dia", label: "Día a día" },
-  { id: "ocasion_especial", label: "Ocasión especial" },
-  { id: "cena_rapida", label: "Cena rápida" },
-  { id: "hijos", label: "Para mis hijos" },
-];
+/** La etiqueta de cada carpeta fija, por su id. Los ids salen de vocabularios.js (CHECK de 0086). */
+const ETIQUETA_CARPETA_FIJA = {
+  dia_a_dia: "Día a día",
+  ocasion_especial: "Ocasión especial",
+  cena_rapida: "Cena rápida",
+  hijos: "Para mis hijos",
+};
 
-// Los ids salen de vocabularios.js (CHECK de 0086); vocabularios.test.js comprueba que cuadran con las etiquetas.
+// En el orden de la constante; vocabularios.test.js comprueba que cada id tiene su etiqueta.
+export const BUILT_IN_COLLECTIONS = CARPETAS_FIJAS.map((id) => ({ id, label: ETIQUETA_CARPETA_FIJA[id] }));
+
 export const BUILT_IN_IDS = CARPETAS_FIJAS;
+
+/**
+ * El collection_id que se escribe (#539): una carpeta propia (`fld_…`, el patrón del CHECK)
+ * tal cual; una fija, por la lista viva (un retirado pasa a su sucesor, uno sin sucesor da
+ * null, uno desconocido lanza FueraDeVocabulario). «Descartados» no se guarda nunca: lanza.
+ */
+export function carpetaParaEscribir(id) {
+  return typeof id === "string" && id.startsWith("fld_") ? id : paraEscribir("carpetas_fijas", id);
+}
 
 /**
  * "Descartados" no es una carpeta de este mapa: se pinta como una más en Mis
@@ -217,33 +229,54 @@ export async function deleteRecipeFolder(userId, folderId) {
   if (error) console.warn("[recipeCollections] folder delete failed", error.message);
 }
 
+/**
+ * Sin filas repetidas (receta y carpeta): tras traducir, un retirado y su sucesor son la
+ * misma fila, y el upsert no deja tocar una fila dos veces en la misma orden.
+ */
+function sinRepetidas(rows) {
+  const vistas = new Set();
+  return rows.filter((r) => {
+    const k = `${r.recipe_id}\u0000${r.collection_id}`;
+    if (vistas.has(k)) return false;
+    vistas.add(k);
+    return true;
+  });
+}
+
+/**
+ * Las filas de las carpetas de una receta, cada una por la lista viva. Una carpeta que no se
+ * puede escribir (desconocida, o «Descartados») se salta sola y se avisa; una retirada sin
+ * sucesor ya la quitó paraEscribir con su línea. Así una carpeta mala no se lleva las buenas.
+ */
+function filasDeCarpetas(userId, recipeId, folderIds) {
+  const rows = [];
+  const saltadas = [];
+  for (const id of folderIds ?? []) {
+    try {
+      rows.push({ user_id: userId, recipe_id: recipeId, collection_id: carpetaParaEscribir(id) });
+    } catch {
+      saltadas.push(id);
+    }
+  }
+  if (saltadas.length) console.warn("[recipeCollections] carpetas fuera del vocabulario, no se guardan", [...new Set(saltadas)]);
+  return sinRepetidas(rows.filter((r) => r.collection_id != null));
+}
+
 /** Replaces the stored folder set of one recipe (picker save). */
 export async function saveRecipeCollections(userId, recipeId, folderIds) {
   if (!supabase || !userId || !recipeId) return;
+  // Las filas, antes de borrar: lo que no se puede escribir ya está fuera, y el upsert no
+  // falla después del delete (antes una carpeta mala dejaba la receta sin ninguna).
+  const rows = filasDeCarpetas(userId, recipeId, folderIds);
   const { error: delError } = await supabase
     .from("recipe_collections")
     .delete()
     .eq("user_id", userId)
     .eq("recipe_id", recipeId);
   if (delError) console.warn("[recipeCollections] save (clear) failed", delError.message);
-  const rows = (folderIds ?? []).map((collection_id) => ({ user_id: userId, recipe_id: recipeId, collection_id }));
   if (rows.length === 0) return;
   const { error } = await supabase
     .from("recipe_collections")
     .upsert(rows, { onConflict: "user_id,recipe_id,collection_id" });
   if (error) console.warn("[recipeCollections] save failed", error.message);
-}
-
-/** Backfills the whole local map to the cloud (first login on a device). */
-export async function upsertRecipeCollections(userId, map) {
-  if (!supabase || !userId) return;
-  const rows = [];
-  for (const [recipe_id, folders] of Object.entries(map ?? {})) {
-    for (const collection_id of folders) rows.push({ user_id: userId, recipe_id, collection_id });
-  }
-  if (rows.length === 0) return;
-  const { error } = await supabase
-    .from("recipe_collections")
-    .upsert(rows, { onConflict: "user_id,recipe_id,collection_id" });
-  if (error) console.warn("[recipeCollections] bulk upsert failed", error.message);
 }

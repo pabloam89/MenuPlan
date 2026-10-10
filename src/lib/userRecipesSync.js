@@ -210,10 +210,13 @@ export async function upsertUserRecipe(userId, recipe) {
   // sitio por el que pasan TODAS las escrituras, para que ninguna via -el
   // asistente, una edicion, una copia del feed- pueda volver a incrustar dos
   // megas de imagen dentro de la fila. Ver lib/recipePhotos.js.
+  // La fila, antes que la foto (#539): si un vocabulario no se puede escribir, recipeToRow
+  // lanza aqui y no queda en Storage una foto sin receta.
+  const fila = recipeToRow(recipe, userId);
   const photo = await uploadRecipePhoto(userId, recipe.id, recipe.photo);
   const { error } = await supabase
     .from("user_recipes")
-    .upsert(recipeToRow({ ...recipe, photo }, userId), { onConflict: "id" });
+    .upsert({ ...fila, photo: photo ?? null }, { onConflict: "id" });
   if (error) console.warn("[userRecipes] upsert failed", error.message);
   return photo;
 }
@@ -223,13 +226,15 @@ export async function upsertUserRecipes(userId, recipes) {
   if (!supabase || !userId || !recipes?.length) return;
   // De una en una y no en paralelo: cada foto son un par de megas y disparar
   // diez subidas a la vez desde un movil es la mejor forma de que fallen.
-  const withPhotos = [];
-  for (const r of recipes) {
-    withPhotos.push(isDataUrl(r.photo)
-      ? { ...r, photo: await uploadRecipePhoto(userId, r.id, r.photo) }
-      : r);
+  // Las filas, antes que las fotos (#539): un vocabulario que no se puede escribir lanza
+  // antes de subir nada.
+  const filas = recipes.map((r) => recipeToRow(r, userId));
+  const rows = [];
+  for (const [i, r] of recipes.entries()) {
+    rows.push(isDataUrl(r.photo)
+      ? { ...filas[i], photo: (await uploadRecipePhoto(userId, r.id, r.photo)) ?? null }
+      : filas[i]);
   }
-  const rows = withPhotos.map((r) => recipeToRow(r, userId));
   const { error } = await supabase
     .from("user_recipes")
     .upsert(rows, { onConflict: "id" });
