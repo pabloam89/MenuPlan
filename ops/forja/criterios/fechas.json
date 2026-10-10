@@ -1,0 +1,15 @@
+{
+  "id": "fechas",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Sin fechas en el cuerpo",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "no_debe",
+  "exigencia": "llevar fechas fuera de «Lo que falló y por qué», «Registro de cambios» y «Fuentes y comprobación»: se quedan viejas",
+  "fuente": "[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+  "control": ".claude/skills.test.js",
+  "codigo": "fechas"
+}

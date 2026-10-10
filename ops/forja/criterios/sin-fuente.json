@@ -1,0 +1,15 @@
+{
+  "id": "sin-fuente",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Marca de fuente",
+  "sujeto": "plantilla.tipo",
+  "fuerza": "debe",
+  "exigencia": "marcar cada punto del estándar de un tipo con su [F: fuente] o [I]",
+  "fuente": "[I] .claude/PLANTILLA-SKILL.md",
+  "control": ".claude/skills.test.js",
+  "codigo": "sin-fuente"
+}

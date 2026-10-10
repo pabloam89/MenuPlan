@@ -1,0 +1,113 @@
+{
+  "$comentario": "Glosario único del lenguaje de proceso (#469, fondo #455): cada término canónico con una sola definición. Lo que hay que decir con el término canónico y no con otra palabra va en sinonimos_prohibidos; el control de ops/glosario.test.js (scripts/lib/glosario.mjs) los busca en las zonas de aplica_a y falla con el término que toca. Lo que ya había está en ops/glosario-excepciones/, que solo baja. Los vocabularios que ya existen se citan en ref (fichero y claves), no se copian. Fuera de alcance: el vocabulario del producto (src/lib/vocabularios.js) y lo que lee Lola (api/_bot). Cada término lleva estado (activo | retirado, con pasa_a: un término no se borra), sus relaciones (amplio, estrecho, relacionado: recíprocas) y una definición con la forma «un/una X que Y» (ISO 704; heurística en faltaDeForma). npm run glosario -- <término> enseña uno.",
+  "version": 2,
+  "actualizado": "2026-10-10",
+  "zonas": {
+    "skills": [
+      ".claude/skills/**/*.md"
+    ],
+    "plantillas": [
+      ".claude/PLANTILLA-SKILL.md",
+      ".claude/PLANTILLA-AGENTE.md"
+    ],
+    "agentes": [
+      ".claude/agents/*.md"
+    ],
+    "reglas": [
+      ".claude/rules/*.md"
+    ],
+    "claude_md": [
+      "CLAUDE.md"
+    ],
+    "docs_ops": [
+      "docs/ops/*.md"
+    ],
+    "estandares": [
+      "ops/estandares-agentes.json"
+    ],
+    "normas": [
+      "ops/normas.json"
+    ],
+    "forja": [
+      "ops/forja/"
+    ],
+    "redaccion": [
+      "ops/redaccion.json"
+    ],
+    "comandos": [
+      ".claude/commands/*.md"
+    ]
+  },
+  "terminos": {
+    "$partida": "lista",
+    "clave": "termino",
+    "orden": [
+      "comprobar",
+      "verificar",
+      "validar",
+      "probar",
+      "ensayar",
+      "medir",
+      "revisar",
+      "auditar",
+      "juzgar",
+      "diagnosticar",
+      "registrar",
+      "fusionar",
+      "aplicar",
+      "retirar",
+      "podar",
+      "gateway",
+      "fallo",
+      "falta",
+      "aviso",
+      "caso",
+      "caso de prueba",
+      "fondo",
+      "causa",
+      "causa de escape",
+      "clase",
+      "aprendizaje",
+      "encargo",
+      "tarea",
+      "tarea de agente",
+      "decisión",
+      "arreglo",
+      "issue",
+      "ficha",
+      "juicio de skill",
+      "evidencia",
+      "hallazgo",
+      "defecto",
+      "informe",
+      "skill",
+      "capa",
+      "plantilla",
+      "regla",
+      "norma",
+      "estándar",
+      "criterio",
+      "control",
+      "mecanismo",
+      "barrera",
+      "guardia",
+      "hook",
+      "test",
+      "vocabulario",
+      "vigilante",
+      "sesión",
+      "agente",
+      "constructor",
+      "juez",
+      "revisor",
+      "orquestador",
+      "dueño",
+      "persona",
+      "carpeta de trabajo",
+      "carpeta principal",
+      "staging",
+      "producción",
+      "zona"
+    ]
+  }
+}

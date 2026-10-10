@@ -4,7 +4,7 @@
  *   npm run tarea -- datos/descartes           # rama nueva desde origin/staging
  *   npm run tarea -- datos/descartes --sin-deps # sin npm ci (si solo vas a leer)
  *   npm run tarea -- datos/descartes 193       # del issue #193: rama datos/193-descartes
- *   npm run tarea -- ops/x 506 --zona ops/forja.json   # reserva un fichero que aún no ha tocado (#506)
+ *   npm run tarea -- ops/x 506 --zona ops/forja/criterios/tipo.json   # reserva un fichero que aún no ha tocado (#506)
  *
  * Crea `C:\dev\MenuPlan-<nombre>` con la rama `<area>/<nombre>`. Si la rama ya
  * existe en GitHub, la retoma en vez de crearla. Copia `.env.local` (git no lo
@@ -34,8 +34,8 @@ import { leerInventario, marcar, textoDeRama } from "./lib/lleva.mjs";
 import { RESERVA_VALIDA } from "./lib/zonas.mjs";
 
 /**
- * Las zonas que la tarea reserva antes de tocarlas (#506): `--zona ops/forja.json`,
- * `--zona=CLAUDE.md,ops/glosario.json` (una carpeta acaba en «/»). Devuelve
+ * Las zonas que la tarea reserva antes de tocarlas (#506): `--zona ops/forja/criterios/tipo.json`,
+ * `--zona=CLAUDE.md,ops/glosario/` (una carpeta acaba en «/»). Devuelve
  * { zonas, resto } con el resto de argumentos sin ellas, o { error }.
  */
 export function leerZonasArg(argv) {
@@ -49,7 +49,7 @@ export function leerZonasArg(argv) {
       continue;
     }
     const valor = igual ? igual[1] : argv[++i];
-    if (!valor || valor.startsWith("--")) return { error: "Falta el fichero tras --zona: `npm run tarea -- ops/x 506 --zona ops/forja.json`." };
+    if (!valor || valor.startsWith("--")) return { error: "Falta el fichero tras --zona: `npm run tarea -- ops/x 506 --zona ops/forja/criterios/tipo.json`." };
     for (const z of valor.split(",").map((s) => s.trim().replace(/\\/g, "/")).filter(Boolean)) {
       if (!RESERVA_VALIDA.test(z)) return { error: `«${z}» no es una ruta del repo (relativa, con barras normales y sin «..»).` };
       if (!zonas.includes(z)) zonas.push(z);

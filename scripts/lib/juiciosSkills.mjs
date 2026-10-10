@@ -1,6 +1,6 @@
 /**
  * Los criterios de cada skill y sus juicios (#457, fondo #455): por cada criterio de
- * `ops/forja.json` que se aplica a una skill, un estado del vocabulario de la forja
+ * `ops/forja/` que se aplica a una skill, un estado del vocabulario de la forja
  * (`ESTADOS_CRITERIO`: cumple, no_cumple, no_aplica, juicio) y, solo en el hueco, una
  * nota. Una skill es un continuo; los criterios la sistematizan con discretos, y
  * corregir es ver qué falla en qué hueco.
@@ -12,7 +12,7 @@
  *   - calculo: el criterio es de juicio, pero se deduce de una medida guardada y vigente
  *     (las pasadas del nivel 2 en `ops/skills-prueba/`). Tampoco se escribe;
  *   - juicio: lo escribe una persona o un agente en `ops/juicios-skills/<skill>.json`
- *     (un «juicio de skill»), con los campos de `campos_ficha.juicio` de ops/forja.json:
+ *     (un «juicio de skill»), con los campos de `campos_ficha.juicio` de ops/forja/:
  *     evidencia que existe, fecha, firmante y la versión del SKILL.md que juzgó. Si el
  *     SKILL.md cambia, el juicio vuelve a pendiente (`otra_version`) sin que nadie lo toque.
  * Lo que es del criterio (le falta una medida o una decisión) va al criterio, con
@@ -84,7 +84,7 @@ export const CALCULOS_SIN_CODIGO = {
     const n = s.glosario.length;
     if (!n) return { estado: "cumple", nota: null };
     const sinonimos = [...new Set(s.glosario.map((d) => `${d.sinonimo}→${d.canonico}`))].join(", ");
-    return { estado: "no_cumple", nota: `${n} sinónimo(s) prohibido(s) en la skill (${sinonimos}); admitidos en ops/glosario-excepciones.json` };
+    return { estado: "no_cumple", nota: `${n} sinónimo(s) prohibido(s) en la skill (${sinonimos}); admitidos en ops/glosario-excepciones/` };
   },
 };
 
@@ -280,7 +280,7 @@ export function problemasDeJuicios(nombre, guardada, metadata, datos, ctx) {
   for (const [id, j] of Object.entries(juicios)) {
     const d = `${ruta}: ${id}`;
     const c = porId.get(id);
-    if (!c) { malos.push(`${d}: no es un criterio de ops/forja.json`); continue; }
+    if (!c) { malos.push(`${d}: no es un criterio de ops/forja/`); continue; }
     if (!aplicables.includes(c)) { malos.push(`${d}: no se aplica a esta skill (su tipo o su nivel)`); continue; }
     if (origenDe(c) === "control") { malos.push(`${d}: lo vigila ${c.control}; su estado lo calcula el control y no se escribe a mano`); continue; }
     if (origenDe(c) === "calculo") { malos.push(`${d}: se deduce de las pasadas del nivel 2 (CALCULOS_DE_JUICIO) y no se escribe a mano`); continue; }
@@ -290,7 +290,7 @@ export function problemasDeJuicios(nombre, guardada, metadata, datos, ctx) {
     if (j.estado === "juicio") {
       if (!j.motivo_pendiente) malos.push(`${d}: un juicio pendiente lleva motivo_pendiente (${vocabularios.motivos_pendiente.join(", ")})`);
       if (["falta_herramienta", "falta_decision"].includes(j.motivo_pendiente) && (c.motivo_pendiente !== j.motivo_pendiente || !c.pendiente_de)) {
-        malos.push(`${d}: ${j.motivo_pendiente} es del criterio: ponlo en ops/forja.json (pendiente_de con su issue y motivo_pendiente: ${j.motivo_pendiente})`);
+        malos.push(`${d}: ${j.motivo_pendiente} es del criterio: ponlo en ops/forja/ (pendiente_de con su issue y motivo_pendiente: ${j.motivo_pendiente})`);
       }
     } else {
       if ("motivo_pendiente" in j) malos.push(`${d}: motivo_pendiente solo va con estado juicio`);

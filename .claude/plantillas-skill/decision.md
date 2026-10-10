@@ -1,6 +1,6 @@
 # Plantilla de skill: decision
 
-<!-- Generado desde ops/forja.json (tipos_skill con sus secciones, preguntas_tipo, campos_ficha y criterios) y el estándar de .claude/PLANTILLA-SKILL.md, con «npm run plantillas -- --escribir». No se edita a mano: .claude/plantillas-skill.test.js lo compara. -->
+<!-- Generado desde ops/forja/ (tipos_skill con sus secciones, preguntas_tipo, campos_ficha y criterios) y el estándar de .claude/PLANTILLA-SKILL.md, con «npm run plantillas -- --escribir». No se edita a mano: .claude/plantillas-skill.test.js lo compara. -->
 
 El molde de una skill de tipo `decision`: se copia el esqueleto y se rellena. Lo que vale para todos los tipos (claves, capas, casos de prueba, tamaño, caducidad) está en `.claude/PLANTILLA-SKILL.md`.
 
@@ -88,7 +88,7 @@ Comprobado el AAAA-MM-DD: <cómo se comprobó, y qué no>.
 
 ## Campos de la ficha
 
-Los de `campos_ficha.skill` de `ops/forja.json`; lo que no está declarado no va en el frontmatter.
+Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en el frontmatter.
 
 | Campo | Clase | Obligatorio | Valores |
 |---|---|---|---|
@@ -127,7 +127,7 @@ No hay criterio de skill que no se le aplique.
 ### Qué lo hace bueno
 
 - Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [I].
-- Cada criterio del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja.json`].
+- Cada criterio del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja/`].
 - Una recomendación por defecto y, aparte, cuándo conviene otra, no un menú [F: BP, demasiadas opciones].
 - Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación].
 

@@ -1,7 +1,7 @@
 /**
  * El esquema de una regla por campos (#487, fondo #455). Una regla se escribe con
  * campos cerrados y la frase se genera: no hay prosa libre que cada autor redacte a
- * su manera. Pensado para los criterios de la forja (`ops/forja.json`) y, luego, para
+ * su manera. Pensado para los criterios de la forja (`ops/forja/`) y, luego, para
  * `ops/normas.json` y las obligaciones de `ops/flujo.json` (#488): son el mismo tipo de
  * entidad (una regla con fuerza, sujeto y control).
  *

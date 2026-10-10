@@ -40,9 +40,9 @@ describe("vocabularios", () => {
   it("tres artefactos", () => expect(Object.keys(ARTEFACTOS)).toEqual(["skill", "estandar", "agente"]));
 });
 
-describe("ops/forja.json", () => {
+describe("ops/forja/", () => {
   it("cada criterio tiene su forma, su fuente y su control", () => {
-    expect(problemasDeForja(datos, existe), "Corrige ops/forja.json (y lanza «npm run forja -- --escribir»)").toEqual([]);
+    expect(problemasDeForja(datos, existe), "Corrige ops/forja/ (y lanza «npm run forja -- --escribir»)").toEqual([]);
   });
   it("todo criterio tiene control o juicio", () => {
     for (const c of datos.criterios) expect(typeof c.control === "string" && c.control.length > 0, c.id).toBe(true);
@@ -68,7 +68,7 @@ describe("los códigos que emiten los scripts apuntan a un criterio", () => {
     for (const c of ["casos-negativos", "comando-suelto", "tipo-sin-estandar", "caduca-pronto", "frontmatter"]) expect(emitidos.has(c), c).toBe(true);
   });
   it("ningún código emitido queda sin criterio, ni criterio con un código que nadie emite", () => {
-    expect(problemasDeCodigos(datos, emitidos), "Da de alta el criterio en ops/forja.json con su codigo").toEqual([]);
+    expect(problemasDeCodigos(datos, emitidos), "Da de alta el criterio en ops/forja/ con su codigo").toEqual([]);
   });
 });
 
@@ -82,7 +82,7 @@ describe("el trinquete de promoción (ops/forja-capas.json)", () => {
 });
 
 /**
- * El borrado doble: quitar un criterio de ops/forja.json y de ops/forja-capas.json a la vez
+ * El borrado doble: quitar un criterio de ops/forja/ y de ops/forja-capas.json a la vez
  * pasa el trinquete local. Se contrasta con lo anclado en origin/staging (FORJA_REF cambia la
  * referencia). Sin git o sin esa referencia (el checkout del CI es de 2 commits y no la trae)
  * o mientras el fichero no esté en ella, se salta limpio y lo dice.
@@ -132,7 +132,7 @@ describe("los códigos no se escapan del catálogo", () => {
 });
 
 describe("docs/ops/FORJA.md sale del JSON", () => {
-  it("está al día", () => expect(md, "FORJA.md se genera: edita ops/forja.json y lanza `npm run forja -- --escribir`").toBe(generarMd(datos)));
+  it("está al día", () => expect(md, "FORJA.md se genera: edita ops/forja/ y lanza `npm run forja -- --escribir`").toBe(generarMd(datos)));
   it("no usa saltos de línea de Windows (el CI es Linux)", () => expect(md).not.toContain("\r"));
   it("npm run forja existe", () => expect(JSON.parse(leer("package.json")).scripts.forja).toBeTruthy());
 });

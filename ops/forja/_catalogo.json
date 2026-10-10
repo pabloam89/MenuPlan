@@ -1,0 +1,338 @@
+{
+  "$comentario": "Catálogo de criterios de calidad de la forja (#458, fondo #455): la única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga. Tres capas: formal (esquema y forma, determinista, test del CI), material (heurística automática con lista de excepciones que solo baja) y subjetiva (rúbrica que puntúa un LLM sobre casos). Cada criterio dice a qué se aplica, qué pide, de dónde sale ([F] fuente externa con url, [I] de la casa con ruta del repo), quién lo vigila (un fichero, o juicio) y qué código emite el script al detectarlo. Lo lee scripts/lib/forja.mjs, lo vigila ops/forja.test.js y de él sale docs/ops/FORJA.md (npm run forja -- --escribir). La capa de cada criterio queda anclada en ops/forja-capas.json y solo sube. Repo público: nada de cómo se salta un control.",
+  "version": 1,
+  "promocion": {
+    "coincidencia_minima": 0.9,
+    "repeticiones": 10,
+    "nota": "Primer tiro, pendiente de ajustar con datos: un criterio subjetivo solo puede marcarse listo_para_subir si sus medidas (coincidencia del juicio del LLM con la respuesta conocida de sus casos de calibración, sobre n repeticiones) cumplen los dos valores."
+  },
+  "tipos_skill": {
+    "$partida": "lista",
+    "clave": "id",
+    "orden": [
+      "servicio",
+      "procedimiento",
+      "diagnostico",
+      "decision",
+      "flujo",
+      "revision",
+      "conocimiento"
+    ]
+  },
+  "preguntas_tipo": [
+    {
+      "clave": "opera_proveedor",
+      "pregunta": "¿Opera un sistema o proveedor externo concreto?",
+      "tipo": "servicio"
+    },
+    {
+      "clave": "juzga_artefacto",
+      "pregunta": "¿Juzga un artefacto que ya existe?",
+      "tipo": "revision"
+    },
+    {
+      "clave": "encadena",
+      "pregunta": "¿Encadena skills o agentes?",
+      "tipo": "flujo"
+    },
+    {
+      "clave": "pasos_fijos",
+      "pregunta": "¿Son pasos fijos con comprobación?",
+      "tipo": "procedimiento"
+    },
+    {
+      "clave": "sintoma_a_causa",
+      "pregunta": "¿Va de un síntoma a su causa?",
+      "tipo": "diagnostico"
+    },
+    {
+      "clave": "elige_opciones",
+      "pregunta": "¿Elige entre opciones con criterios?",
+      "tipo": "decision"
+    }
+  ],
+  "libertad": {
+    "alta": "Una heurística o un criterio: hay varios caminos buenos",
+    "media": "Un camino recomendado con variantes admitidas",
+    "baja": "Pasos exactos o un script: un error cuesta caro"
+  },
+  "invocacion": {
+    "descripcion": "La carga el modelo al leer su descripción",
+    "guardia": "La pide la guardia antes de un comando de riesgo del dominio",
+    "precarga": "Va precargada en el skills: de un agente"
+  },
+  "skills_provisionales": {
+    "estilo-de-respuesta": {
+      "motivo": "Es un estándar, no una skill: se muda al artefacto estandar cuando existan (decisión de Pablo, 10 oct 2026); mientras, no responde sí a ninguna pregunta y cae en conocimiento",
+      "en_tabla": false
+    },
+    "issues": {
+      "motivo": "Hoy opera los issues de GitHub y su encadena: true se anticipa a #414, como dice la tabla de Pablo, que la pone en flujo (con #414); hasta entonces el tipo es provisional",
+      "en_tabla": true
+    }
+  },
+  "niveles": {
+    "0": "Pieza meta de una familia (skills hoy; la de estándares vendrá): de ella salen las plantillas por tipo. Sin tipo de skill y exactamente una por familia",
+    "1": "Plantilla por tipo, generada en .claude/plantillas-skill/<tipo>.md: no es una skill",
+    "2": "Skill concreta, con su tipo (el que dan sus respuestas); es el nivel si la ficha no dice otro"
+  },
+  "nivel_0": {
+    "skills": {
+      "nota": "La forma de la pieza meta de las skills (forja-de-skills, decisión de Pablo del 10 oct 2026) la fija la forja misma: le valen las reglas comunes del nivel 1 y estas secciones, no el molde de un tipo",
+      "secciones": [
+        "Cuándo y para qué",
+        "Método",
+        "Cómo se prueba",
+        "Cuándo se poda",
+        "Lo que falló y por qué",
+        "Registro de cambios",
+        "Fuentes y comprobación"
+      ]
+    }
+  },
+  "destino_tipos_actuales": {
+    "herramienta": {
+      "destinos": [
+        "servicio",
+        "flujo"
+      ],
+      "nota": "Se reparte por lo que hace cada skill: issues encadena y pasa a flujo."
+    },
+    "oficio": {
+      "destinos": [
+        "diagnostico",
+        "decision"
+      ],
+      "nota": "Se reparte: causa-raiz diagnostica y plan-de-arreglo decide."
+    },
+    "dominio": {
+      "destinos": [
+        "conocimiento"
+      ],
+      "nota": "Reservado: ninguna skill lo usa hoy."
+    },
+    "estandar": {
+      "destinos": [
+        "conocimiento"
+      ],
+      "nota": "Provisional: el estándar pasa a ser otro artefacto (por agente y tarea) y estilo-de-respuesta se muda allí cuando existan; mientras, la skill cae en conocimiento."
+    },
+    "receta_cambio": {
+      "destinos": [
+        "procedimiento"
+      ],
+      "nota": "Pasos fijos que cambian algo."
+    },
+    "rubrica_juez": {
+      "destinos": [
+        "revision"
+      ],
+      "nota": "La rúbrica de un juez va dentro de revision."
+    },
+    "investigacion": {
+      "destinos": [
+        "procedimiento"
+      ],
+      "nota": "Reservado: cuando exista será un procedimiento."
+    },
+    "meta": {
+      "destinos": [
+        "revision"
+      ],
+      "nota": "Juzgar lo existente es revision; crear skills es de la pieza meta (nivel 0), que no tiene tipo."
+    },
+    "forja": {
+      "destinos": [],
+      "nota": "Retirado el 10 oct 2026 por decisión de Pablo, sin sucesor: crear skills es de la pieza meta (nivel 0, forja-de-skills), que no tiene tipo. Retirado en ops/vocabularios-vida.json (forja.tipo_skill), como los demás de esta lista."
+    }
+  },
+  "campos_ficha": {
+    "$partida": "mapa",
+    "orden": [
+      "skill",
+      "estandar",
+      "agente",
+      "juicio",
+      "criterio"
+    ]
+  },
+  "sujetos": {
+    "skill": {
+      "legible": "cada skill",
+      "aplica_a": [
+        "skill"
+      ]
+    },
+    "skill.metadatos": {
+      "legible": "el frontmatter de cada skill",
+      "aplica_a": [
+        "skill"
+      ]
+    },
+    "skill.descripcion": {
+      "legible": "la descripción de cada skill",
+      "aplica_a": [
+        "skill"
+      ]
+    },
+    "skill.cuerpo": {
+      "legible": "el cuerpo de cada skill",
+      "aplica_a": [
+        "skill"
+      ]
+    },
+    "skill.casos": {
+      "legible": "el conjunto de casos de prueba de cada skill",
+      "aplica_a": [
+        "skill"
+      ]
+    },
+    "plantilla.tipo": {
+      "legible": "la plantilla de skills",
+      "aplica_a": [
+        "skill"
+      ]
+    },
+    "estandar": {
+      "legible": "cada tarea del catálogo de estándares",
+      "aplica_a": [
+        "estandar"
+      ]
+    },
+    "estandar.practica": {
+      "legible": "la práctica de un estándar",
+      "aplica_a": [
+        "estandar"
+      ]
+    },
+    "estandar.fuente": {
+      "legible": "cada fuente del catálogo de estándares",
+      "aplica_a": [
+        "estandar"
+      ]
+    },
+    "agente": {
+      "legible": "cada agente",
+      "aplica_a": [
+        "estandar"
+      ]
+    },
+    "artefacto": {
+      "legible": "todo artefacto de la forja",
+      "aplica_a": [
+        "skill",
+        "estandar",
+        "agente"
+      ]
+    }
+  },
+  "forma_practica": {
+    "estandar": {
+      "bullets": {
+        "min": 2,
+        "max": 5
+      },
+      "estructura": [
+        "regla",
+        "porque",
+        "ejemplo_bueno",
+        "ejemplo_malo"
+      ],
+      "fuente_por_bullet": true,
+      "voz": "activa",
+      "modo_tiempo": "imperativo",
+      "persona": "segunda"
+    }
+  },
+  "metodo_construccion": {
+    "rondas_minimas": 3,
+    "fuentes_minimas_por_ronda": 1,
+    "formato_ronda": "ronda: n fuentes: k cambios: …",
+    "campo": "estandar.rondas",
+    "fases": [
+      "buscar",
+      "contrastar",
+      "destilar"
+    ]
+  },
+  "criterios": {
+    "$partida": "lista",
+    "clave": "id",
+    "orden": [
+      "frontmatter",
+      "tipo",
+      "dueno",
+      "comprobado",
+      "caducada",
+      "secciones",
+      "formato",
+      "tamano",
+      "secretos",
+      "rutas",
+      "estructura",
+      "copiado",
+      "casos",
+      "casos-negativos",
+      "fechas",
+      "sin-parada",
+      "ejemplos",
+      "tabla",
+      "cabeceras",
+      "tipo-sin-estandar",
+      "apartado-ausente",
+      "pocos-puntos",
+      "sin-fuente",
+      "ejemplo-sin-origen",
+      "ejemplo-largo",
+      "ejemplo-no-cuadra",
+      "solape",
+      "solape-cercano",
+      "comando-suelto",
+      "caduca-pronto",
+      "comando-muerto",
+      "ruta-muerta",
+      "skill-muerta",
+      "descripcion-sin-palabras",
+      "frontera-vaga",
+      "tamano-cerca",
+      "caso-duplicado",
+      "caso-en-frontera",
+      "descripcion-palabras-de-quien-pide",
+      "frontera-casi-fallos",
+      "disparador-al-principio",
+      "solo-lo-que-el-modelo-no-sabe",
+      "libertad-ajustada",
+      "camino-por-defecto",
+      "pasos-con-salida-observable",
+      "vocabulario-unico",
+      "ejemplos-canonicos",
+      "casos-medidos-con-y-sin-skill",
+      "skill-contrastada-con-fallo-real",
+      "forma-adecuada-al-contenido",
+      "sin-duda-con-vecina",
+      "estandar-fuente-con-forma",
+      "estandar-fuente-documentacion-oficial",
+      "estandar-fuente-usada",
+      "estandar-agente-con-lista",
+      "estandar-estado-cerrado",
+      "estandar-pendientes-solo-bajan",
+      "estandar-lista-minima",
+      "estandar-tarea-id",
+      "estandar-tarea-frase",
+      "estandar-tarea-origen",
+      "estandar-completo-con-forma",
+      "estandar-fuente-citada",
+      "estandar-seccion-generada",
+      "estandar-concreto-y-verificable",
+      "estandar-respaldado-por-su-fuente",
+      "estandar-no-hace-delimita",
+      "practica-numero-de-bullets",
+      "practica-estructura-del-bullet",
+      "practica-fuente-por-bullet",
+      "practica-voz-activa",
+      "practica-modo-tiempo-persona",
+      "estandar-rondas-de-investigacion",
+      "vocabulario-canonico"
+    ]
+  }
+}

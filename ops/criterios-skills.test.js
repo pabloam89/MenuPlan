@@ -138,7 +138,7 @@ describe("cada regla de los juicios guardados se ve fallar", () => {
     expect(con({ estado: "juicio", nota: "sin motivo ninguno" })).toMatch(/lleva motivo_pendiente/);
     const c = DATOS.criterios.find((x) => x.id === id());
     const otro = ["falta_herramienta", "falta_decision"].find((m) => m !== c.motivo_pendiente);
-    expect(con({ estado: "juicio", motivo_pendiente: otro })).toMatch(/es del criterio: ponlo en ops\/forja.json/);
+    expect(con({ estado: "juicio", motivo_pendiente: otro })).toMatch(/es del criterio: ponlo en ops\/forja\//);
   });
 
   it("un juicio hecho sin evidencia, fecha, firmante o versión, o con un firmante de fuera", () => {
@@ -185,7 +185,7 @@ describe("cada regla de los juicios guardados se ve fallar", () => {
   it("un criterio que no existe o que no se aplica a la skill", () => {
     const g = copia(base);
     g.juicios["criterio-inventado"] = { estado: "juicio", motivo_pendiente: "sin_mirar" };
-    expect(problemas(s, g).join("\n")).toMatch(/no es un criterio de ops\/forja.json/);
+    expect(problemas(s, g).join("\n")).toMatch(/no es un criterio de ops\/forja\//);
     const g2 = copia(base);
     g2.juicios["estandar-concreto-y-verificable"] = { estado: "juicio", motivo_pendiente: "sin_mirar" };
     expect(problemas(s, g2).join("\n")).toMatch(/no se aplica a esta skill/);

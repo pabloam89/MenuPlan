@@ -2,14 +2,14 @@
 //
 //   npm run forja                 cifras de criterios por capa, por artefacto y por tipo de skill, y campos discretos frente a huecos
 //   npm run forja -- --json       lo mismo para máquinas
-//   npm run forja -- --escribir   regenera docs/ops/FORJA.md desde ops/forja.json y ancla en
+//   npm run forja -- --escribir   regenera docs/ops/FORJA.md desde ops/forja/ y ancla en
 //                                 ops/forja-capas.json los criterios nuevos y las capas que suben
 //                                 (nunca baja ni borra nada: eso es una edición a mano)
 //                                 y en ops/forja-campos.json los campos nuevos y los que pasan de texto a discreto
 //                                 y baja ops/forja-excepciones.json (se siembra la primera vez; luego solo baja)
 //   npm run forja -- --urls       comprueba con la red que cada fuente [F] responde 200
 //
-// Lo que sale aquí es lo que dice ops/forja.json; ops/forja.test.js comprueba que es verdad.
+// Lo que sale aquí es lo que dice ops/forja/; ops/forja.test.js comprueba que es verdad.
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,7 +23,7 @@ const datos = leerForja(RAIZ);
 
 if (args.includes("--escribir")) {
   writeFileSync(join(RAIZ, RUTA_MD), generarMd(datos));
-  console.log(`${RUTA_MD} regenerado desde ops/forja.json.`);
+  console.log(`${RUTA_MD} regenerado desde ops/forja/.`);
   const { guardado, cambios } = anclarCapas(datos, leerCapas(RAIZ));
   writeFileSync(join(RAIZ, RUTA_CAPAS), `${JSON.stringify(guardado, null, 2)}\n`);
   console.log(cambios.length ? `${RUTA_CAPAS}: ${cambios.length} cambios.\n  ${cambios.join("\n  ")}` : `${RUTA_CAPAS}: sin cambios.`);

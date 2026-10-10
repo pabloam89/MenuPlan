@@ -1,0 +1,16 @@
+{
+  "id": "formato",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Formato de la skill",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "llevar tabla de operaciones, fallos con fecha, causa y arreglo, registro de cambios fechado y última línea «Comprobado el …» o «Sin comprobar: …»",
+  "nota": "La tabla de operaciones lleva «Debe salir» en las herramientas",
+  "fuente": "[I] .claude/PLANTILLA-SKILL.md",
+  "control": ".claude/skills.test.js",
+  "codigo": "formato"
+}

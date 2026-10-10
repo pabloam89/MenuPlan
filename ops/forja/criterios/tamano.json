@@ -1,0 +1,16 @@
+{
+  "id": "tamano",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Tamaño del cuerpo",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "tener SKILL.md de 220 líneas como mucho, con el detalle en ficheros de capa",
+  "nota": "La guía oficial pide menos de 500 líneas",
+  "fuente": "[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+  "control": ".claude/skills.test.js",
+  "codigo": "tamano"
+}

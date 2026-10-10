@@ -1,7 +1,7 @@
 /**
  * La forma de una práctica y el rastro de las rondas de investigación (#458).
  *
- * Todo es DATO en `ops/forja.json` (`forma_practica`, `metodo_construccion`);
+ * Todo es DATO en `ops/forja/` (`forma_practica`, `metodo_construccion`);
  * aquí solo se validan. Aplicarlo a los estándares reales es de #454. Cada comprobación dice a qué
  * criterio de la base pertenece, y por tanto en qué capa está:
  *   - formal: nº de bullets, estructura del bullet y fuente por bullet;

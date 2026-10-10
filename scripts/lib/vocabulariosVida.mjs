@@ -67,7 +67,7 @@ export const VOCABULARIOS = {
   "flujo.pasos": { fichero: "scripts/lib/flujo.mjs", textos: () => Object.fromEntries(PASOS.map((p) => [p, ""])) },
   "fondos.estado": { fichero: "scripts/lib/fondos.mjs", textos: conTexto(ESTADOS) },
   "glosario.clase": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(CLASES) },
-  // Los tipos de skill: la única lista es tipos_skill de ops/forja.json (#495), que lee forja.mjs; su definición, «que».
+  // Los tipos de skill: la única lista es tipos_skill de ops/forja/ (#495), que lee forja.mjs; su definición, «que».
   "forja.tipo_skill": { fichero: "scripts/lib/forja.mjs", textos: () => Object.fromEntries(leerForja(RAIZ).tipos_skill.map((x) => [x.id, x.que])) },
   "glosario.estado": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(ESTADOS_TERMINO) },
   // La acción y el origen de una tarea de agente: la única lista está en ops/estandares-agentes.json (#516).

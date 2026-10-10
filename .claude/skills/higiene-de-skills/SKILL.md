@@ -39,7 +39,7 @@ mitad de los avisos de tres revisiones seguidas se dieron por falsos positivos
 ## Qué mira
 
 Una skill de nivel 2 se mira contra el molde de su tipo
-(`.claude/plantillas-skill/<tipo>.md`, que sale de `ops/forja.json`): su tipo
+(`.claude/plantillas-skill/<tipo>.md`, que sale de `ops/forja/`): su tipo
 tiene que ser el que dan las respuestas de su ficha, y sus secciones, las del
 molde. La pieza meta (nivel 0, `forja-de-skills`) no tiene tipo ni molde: se mira
 con las reglas comunes y las secciones de `nivel_0` de la forja.
@@ -78,7 +78,7 @@ buena que sale limpia y el script sobre el repo.
 - **La cifra**: una línea por skill, `higiene skill: <s> faltas: a avisos: b
   solape: x con: <otra>`, y la del conjunto, `Higiene: n skills, … faltas y …
   avisos`. Se pone antes y después en el PR, y la del conjunto no sube.
-- **Los criterios**: por cada criterio de `ops/forja.json` que se le aplica,
+- **Los criterios**: por cada criterio de `ops/forja/` que se le aplica,
   una línea `skill: <s> criterio: <id> estado: <estado>` (cumple, no_cumple,
   no_aplica o juicio) y, en el hueco, su nota; encima, `criterios skill: <s>
   criterios: n vigilados: a de_juicio: b …`. Lo que vigila un control o se
@@ -102,7 +102,7 @@ buena que sale limpia y el script sobre el repo.
    justifica su coste, si hay un camino por defecto y no un menú, si los
    ejemplos se contradicen, si los casos de frontera son casi-fallos de verdad).
    Cada juicio de skill va a `ops/juicios-skills/<skill>.json` con los campos de
-   `campos_ficha.juicio` de `ops/forja.json`: estado, evidencia (una cabecera de
+   `campos_ficha.juicio` de `ops/forja/`: estado, evidencia (una cabecera de
    un `SKILL.md`, `caso:<skill>/<id>`, `npm run …`, `pr:<n>` o `issue:<n>`),
    fecha, firmante y `version_skill_md`; el que no puedas juzgar se queda en
    `juicio` con su `motivo_pendiente`. Sale: `npx vitest run

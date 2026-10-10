@@ -10,6 +10,13 @@
       "evidencia": "#506 (revisor: ~38 ventanas por refresco de zonas)"
     },
     {
+      "id": "catalogos-partidos",
+      "tests": ["ops/catalogos.test.js"],
+      "mira": ["ops/forja/**", "ops/glosario/**", "ops/glosario-excepciones/**", "scripts/lib/catalogos.mjs"],
+      "porque": "La forja, el glosario y sus excepciones viven partidos en un fichero por entrada: una entrada con un nombre que no es el de su clave, un choque por mayúsculas o un orden con una entrada sin fichero rompe la composición de todo el catálogo.",
+      "evidencia": "#505 (fondo #504)"
+    },
+    {
       "id": "tests-de-tiempo",
       "tests": ["ops/testsDeTiempo.test.js"],
       "mira": ["**/*.test.{js,mjs,jsx}", "scripts/lib/medirTiempo.mjs"],
@@ -81,7 +88,7 @@
     {
       "id": "juicios-de-skills",
       "tests": ["ops/criterios-skills.test.js"],
-      "mira": [".claude/skills/**", ".claude/agents/**", "ops/juicios-skills/*.json", "ops/forja.json", "scripts/lib/fondos.mjs", "ops/glosario.json", "ops/glosario-excepciones.json", ".claude/PLANTILLA-SKILL.md", "ops/skills-prueba/*.json", "package.json"],
+      "mira": [".claude/skills/**", ".claude/agents/**", "ops/juicios-skills/*.json", "ops/forja/**", "scripts/lib/fondos.mjs", "ops/glosario/**", "ops/glosario-excepciones/**", ".claude/PLANTILLA-SKILL.md", "ops/skills-prueba/*.json", "package.json"],
       "borrados": ["ops/juicios-skills/*.json"],
       "porque": "Los criterios de cada skill y sus juicios (#457): toda skill tiene sus juicios, cada criterio de la forja que se le aplica aparece, los juicios llevan evidencia que existe (una cabecera de un SKILL.md, un caso, un comando, una pasada vigente) y un firmante de los agentes, y lo automático lo calcula su control. Cambiar una skill, un caso, un agente o un criterio puede dejar una evidencia muerta o un criterio sin juicio.",
       "evidencia": "#457"
@@ -105,7 +112,7 @@
     {
       "id": "glosario",
       "tests": ["ops/glosario.test.js"],
-      "mira": ["ops/glosario.json", ".claude/skills/**/*.md", ".claude/PLANTILLA-*.md", ".claude/agents/*.md", ".claude/rules/*.md", "CLAUDE.md", "docs/ops/*.md", ".claude/commands/*.md", "ops/estandares-agentes.json", "ops/normas.json"],
+      "mira": ["ops/glosario/**", ".claude/skills/**/*.md", ".claude/PLANTILLA-*.md", ".claude/agents/*.md", ".claude/rules/*.md", "CLAUDE.md", "docs/ops/*.md", ".claude/commands/*.md", "ops/estandares-agentes.json", "ops/normas.json"],
       "porque": "Las zonas del glosario no usan un término prohibido ni lo definen dos veces."
     },
     {
@@ -185,7 +192,7 @@
       "id": "una-lista-de-tipos",
       "tests": [".claude/plantillas-skill.test.js"],
       "mira": ["**/*.{json,js,mjs,jsx,md}"],
-      "porque": "Los tipos de skill viven solo en tipos_skill de ops/forja.json: cualquier JSON, JS o Markdown nuevo que escriba tres o más tipos juntos fuera de lo permitido es otra lista, y los moldes de .claude/plantillas-skill/ salen de la forja.",
+      "porque": "Los tipos de skill viven solo en tipos_skill de ops/forja/: cualquier JSON, JS o Markdown nuevo que escriba tres o más tipos juntos fuera de lo permitido es otra lista, y los moldes de .claude/plantillas-skill/ salen de la forja.",
       "evidencia": "#495"
     },
     {

@@ -1,0 +1,17 @@
+{
+  "id": "caducada",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Comprobación vigente",
+  "sujeto": "skill.metadatos",
+  "fuerza": "debe",
+  "condicion": "si un PR toca la skill",
+  "exigencia": "tener la fecha de comprobado a 90 días como mucho",
+  "nota": "El reloj no va en npm test sino en el paso «Skills del PR» del CI",
+  "fuente": "[I] scripts/lib/skills.mjs",
+  "control": "scripts/skills-pr.test.js",
+  "codigo": "caducada"
+}

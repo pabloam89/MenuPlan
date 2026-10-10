@@ -1,0 +1,15 @@
+{
+  "termino": "causa de escape",
+  "estado": "activo",
+  "clase": "campo",
+  "definicion": "La causa que explica por qué ningún test, hook, revisión o vigilante paró el fallo antes de que llegara; campo causa_escape de la ficha.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "causa",
+  "ref": {
+    "fichero": "scripts/lib/fondos.mjs",
+    "clave": "CAMPOS_FICHA.causa_escape"
+  }
+}

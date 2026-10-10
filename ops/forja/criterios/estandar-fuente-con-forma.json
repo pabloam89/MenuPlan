@@ -1,0 +1,14 @@
+{
+  "id": "estandar-fuente-con-forma",
+  "capa": "formal",
+  "aplica_a": [
+    "estandar"
+  ],
+  "nombre": "Forma de la fuente",
+  "sujeto": "estandar.fuente",
+  "fuerza": "debe",
+  "exigencia": "llevar id en minúsculas con guiones y nombre de diez caracteres o más; la externa, url https válida; la de la casa, ruta de un fichero que existe y sin url",
+  "fuente": "[I] scripts/lib/estandaresAgentes.mjs",
+  "control": "ops/estandares-agentes.test.js",
+  "codigo": null
+}

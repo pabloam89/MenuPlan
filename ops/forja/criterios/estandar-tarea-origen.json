@@ -1,0 +1,14 @@
+{
+  "id": "estandar-tarea-origen",
+  "capa": "formal",
+  "aplica_a": [
+    "estandar"
+  ],
+  "nombre": "Origen de la tarea",
+  "sujeto": "estandar",
+  "fuerza": "debe",
+  "exigencia": "tener como origen una sección del propio agente (Misión y alcance, Disparadores, Método, Entregables): las tareas salen de lo que el agente ya dice",
+  "fuente": "[I] scripts/lib/estandaresAgentes.mjs",
+  "control": "ops/estandares-agentes.test.js",
+  "codigo": null
+}

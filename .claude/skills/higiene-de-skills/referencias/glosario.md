@@ -1,7 +1,7 @@
 # Repaso del glosario
 
 Parte del repaso periódico de la higiene (#481, fondo #479): el glosario
-(`ops/glosario.json`) no crece si nadie lo pide, y sus excepciones solo bajan si
+(`ops/glosario/`) no crece si nadie lo pide, y sus excepciones solo bajan si
 alguien las baja. Esto es lo que hace un agente en cada repaso. Gratis: no llama
 a ningún modelo.
 
@@ -9,8 +9,8 @@ a ningún modelo.
 
 `npm run glosario -- --medir` da la cifra (`glosario medida: n
 excepciones_admitidas: m nuevas: a bajadas: b`) y una línea `BAJA` por cada par
-«ruta: sinónimo» que ya cumple. Baja esa cifra en
-`ops/glosario-excepciones.json` (o borra la línea) y no subas ninguna. Si te
+«ruta: sinónimo» que ya cumple. Baja esa cifra en el fichero de esa ruta en
+`ops/glosario-excepciones/excepciones/` (o borra la línea) y no subas ninguna. Si te
 sobra tiempo, arregla uno o dos pares más escribiendo el término canónico: la
 cifra `excepciones` de la cabecera es la que se pone antes y después en el PR.
 
@@ -31,7 +31,7 @@ no están como término ni como sinónimo. El umbral y su porqué, en la cabecer
 
 | Juicio | Cuándo | Qué se hace además |
 |---|---|---|
-| `termino_nuevo` | es una palabra de proceso con un significado propio que dos sesiones podrían entender distinto | añade el término a `ops/glosario.json`: estado, clase, definición con la forma «un/una X que Y» y sus relaciones |
+| `termino_nuevo` | es una palabra de proceso con un significado propio que dos sesiones podrían entender distinto | añade el término como un fichero de `ops/glosario/terminos/` (el nombre lo da `nombreDeFichero` de `scripts/lib/catalogos.mjs`: sin tildes ni ñ): estado, clase, definición con la forma «un/una X que Y» y sus relaciones |
 | `sinonimo` | dice lo mismo que un término que ya existe | pon `sinonimo_de`; si no se usa en el repo con otro sentido, añádelo a sus `sinonimos_prohibidos` y escribe el término donde salga |
 | `nada` | es de uso general, un nombre propio o jerga de un servicio | nada más |
 

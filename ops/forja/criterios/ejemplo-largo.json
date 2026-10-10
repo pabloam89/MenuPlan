@@ -1,0 +1,15 @@
+{
+  "id": "ejemplo-largo",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Ejemplo breve",
+  "sujeto": "plantilla.tipo",
+  "fuerza": "debe",
+  "exigencia": "dar al ejemplo mínimo de cada tipo de 3 a 6 líneas",
+  "fuente": "[I] .claude/PLANTILLA-SKILL.md",
+  "control": ".claude/skills.test.js",
+  "codigo": "ejemplo-largo"
+}

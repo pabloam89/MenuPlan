@@ -79,8 +79,8 @@ describe("tipoDeSkill", () => {
 });
 
 describe("la taxonomía de tipos y la ficha de cada skill", () => {
-  it("ops/forja.json y las fichas cumplen la taxonomía", () => {
-    expect(problemasDeTaxonomia(datos, ctxTaxonomia), "Corrige tipos_skill o destino_tipos_actuales en ops/forja.json, o las respuestas y el tipo en el frontmatter de la skill").toEqual([]);
+  it("ops/forja/ y las fichas cumplen la taxonomía", () => {
+    expect(problemasDeTaxonomia(datos, ctxTaxonomia), "Corrige tipos_skill o destino_tipos_actuales en ops/forja/, o las respuestas y el tipo en el frontmatter de la skill").toEqual([]);
   });
   it("el tipo que dan las respuestas de cada ficha es el de la tabla de Pablo, y el que dice su frontmatter", () => {
     const deTabla = Object.fromEntries(Object.entries(TABLA_PABLO).flatMap(([t, ss]) => ss.map((s) => [s, t])));
@@ -322,7 +322,7 @@ describe("autotest de los campos: cada regla falla con datos malos", () => {
     d.campos_ficha.skill.campos.donde = { clase: "ref", ref: "ruta", obligatorio: false };
     d.campos_ficha.skill.campos.orden = { clase: "ref", ref: "comando", obligatorio: false };
     d.campos_ficha.skill.campos.issue = { clase: "ref", ref: "issue", obligatorio: false };
-    expect(problemasDeCampos({ ...skillOk(), extra: "solape", donde: "ops/forja.json", orden: "npm run forja", issue: "#458" }, "skill", d, ctxCampos)).toEqual([]);
+    expect(problemasDeCampos({ ...skillOk(), extra: "solape", donde: "ops/forja/", orden: "npm run forja", issue: "#458" }, "skill", d, ctxCampos)).toEqual([]);
     falla({ ...skillOk(), extra: "criterio-inventado" }, "skill", "el criterio «criterio-inventado» no existe", d);
     falla({ ...skillOk(), donde: "ops/no-existe.json" }, "skill", "ruta «ops/no-existe.json» no existe", d);
     falla({ ...skillOk(), orden: "rm -rf" }, "skill", "no es un comando", d);
@@ -412,8 +412,8 @@ describe("cifras: campos discretos frente a huecos", () => {
     expect(md).toContain("| estandar | 4 | 3 | 7 |");
     expect(md).toContain("| juicio | 6 | 1 | 7 |");
   });
-  it("FORJA.md dice que la única lista de tipos es la de ops/forja.json y dónde están los moldes", () => {
-    expect(md).toContain("La única lista de tipos es la de `ops/forja.json`");
+  it("FORJA.md dice que la única lista de tipos es la de ops/forja/ y dónde están los moldes", () => {
+    expect(md).toContain("La única lista de tipos es la de `ops/forja/`");
     expect(md).toContain(".claude/plantillas-skill/<tipo>.md");
   });
   it("cambiar un campo o un tipo cambia la vista", () => {

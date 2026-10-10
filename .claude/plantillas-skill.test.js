@@ -13,7 +13,7 @@ import { cargarSkill, nombresDeSkills, parsearSkill } from "../scripts/lib/skill
 
 /**
  * La plantilla de cada tipo de skill sale de la forja (#495, fondo #488): una
- * sola lista de tipos (`tipos_skill` de `ops/forja.json`), un molde por tipo en
+ * sola lista de tipos (`tipos_skill` de `ops/forja/`), un molde por tipo en
  * `.claude/plantillas-skill/` generado y al día, y ninguna otra lista de tipos
  * escrita a mano en el repo. Cada regla se ve fallar con datos de mentira.
  */
@@ -24,7 +24,7 @@ const clon = () => structuredClone(datos);
 const comun = readFileSync(join(RAIZ, RUTA_PLANTILLA_COMUN), "utf8");
 
 describe("las secciones de cada tipo cuadran con la forja", () => {
-  it("cada tipo de ops/forja.json tiene sus secciones y su pista, y no sobra nada", () => {
+  it("cada tipo de ops/forja/ tiene sus secciones y su pista, y no sobra nada", () => {
     expect(problemasDePlantillas(datos)).toEqual([]);
   });
   it("falla con un tipo de más, uno de menos, una sección sin pista o una pista sin sección", () => {
@@ -82,11 +82,11 @@ describe("los moldes de .claude/plantillas-skill/ están al día", () => {
   });
 });
 
-// ── Una sola lista de tipos: la de ops/forja.json ───────────────────────
+// ── Una sola lista de tipos: la de ops/forja/ ───────────────────────
 
 /**
  * Dónde puede haber varios tipos juntos, y por qué no es otra lista:
- * - ops/forja.json: es LA lista (y los retirados, con su destino);
+ * - ops/forja/: es LA lista (y los retirados, con su destino);
  * - .claude/PLANTILLA-SKILL.md, SOLO su sección «El estándar de cada tipo»: un apartado
  *   por tipo, que .claude/skills.test.js obliga a tener exactamente los tipos de la forja;
  *   el resto del fichero se mira como cualquier otro;
@@ -97,7 +97,7 @@ describe("los moldes de .claude/plantillas-skill/ están al día", () => {
  * Los *.test.js no cuentan: comprueban, no son fuente (ops/forja-tipos.test.js reescribe
  * a propósito la tabla de Pablo para contrastarla).
  */
-const PERMITIDOS = ["ops/forja.json", "docs/ops/FORJA.md", "ops/vocabularios-vida.json"];
+const PERMITIDOS = ["ops/forja/", "docs/ops/FORJA.md", "ops/vocabularios-vida.json"];
 /** Secciones exentas dentro de un fichero que por lo demás se mira: { ruta: título de la sección ## }. */
 const SECCIONES_EXENTAS = { ".claude/PLANTILLA-SKILL.md": "El estándar de cada tipo" };
 /** El texto sin la sección `## titulo` (hasta la siguiente cabecera ##); falla si la sección no está, para que la exención no quede vieja. */
@@ -111,9 +111,9 @@ function sinSeccion(texto, titulo, ruta) {
 const VOCABULARIOS = { vigentes: tiposDeForja(datos), retirados: Object.keys(datos.destino_tipos_actuales ?? {}) };
 
 describe("una sola lista de tipos de skill", () => {
-  it("no hay otra lista de tipos (vigentes o retirados) fuera de ops/forja.json y de lo que se comprueba contra ella", () => {
+  it("no hay otra lista de tipos (vigentes o retirados) fuera de ops/forja/ y de lo que se comprueba contra ella", () => {
     const ficheros = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { cwd: RAIZ, encoding: "utf8" })
-      .split("\n").filter((f) => /\.(json|m?js|jsx|md)$/.test(f) && !/\.test\.(m?js|jsx)$/.test(f) && !PERMITIDOS.includes(f));
+      .split("\n").filter((f) => /\.(json|m?js|jsx|md)$/.test(f) && !/\.test\.(m?js|jsx)$/.test(f) && !PERMITIDOS.some((p) => (p.endsWith("/") ? f.startsWith(p) : f === p)));
     expect(ficheros.length).toBeGreaterThan(100);
     const otras = ficheros.flatMap((f) => {
       let texto;
@@ -124,7 +124,7 @@ describe("una sola lista de tipos de skill", () => {
       if (f in SECCIONES_EXENTAS) texto = sinSeccion(texto, SECCIONES_EXENTAS[f], f);
       return listasDeTipos(texto, f, VOCABULARIOS).map((h) => `${h.ruta} (${h.donde}): ${h.vocabulario} ${h.ids.join(", ")}`);
     }).filter((x) => !x.includes("no se pudo leer (ENOENT)"));
-    expect(otras, "Los tipos de skill viven solo en tipos_skill de ops/forja.json: lee de allí en vez de escribirlos").toEqual([]);
+    expect(otras, "Los tipos de skill viven solo en tipos_skill de ops/forja/: lee de allí en vez de escribirlos").toEqual([]);
   });
 
   it("ve la lista que había en ops/flujo.json y la tabla de secciones antigua, y no avisa de menos de tres", () => {

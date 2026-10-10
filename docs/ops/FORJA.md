@@ -1,8 +1,8 @@
 # Forja: criterios de calidad
 
-<!-- Generado desde ops/forja.json con «npm run forja -- --escribir». No se edita a mano: ops/forja.test.js lo compara. -->
+<!-- Generado desde ops/forja/ con «npm run forja -- --escribir». No se edita a mano: ops/forja.test.js lo compara. -->
 
-La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es `ops/forja.json`. Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada criterio solo sube (`ops/forja-capas.json`). Cómo se redacta cada criterio, y cualquier otra regla de la casa: [REDACCION.md](REDACCION.md).
+La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es `ops/forja/`, partida en un fichero por criterio, por tipo de skill y por ficha para que dos ramas no choquen (#505; formato en `scripts/lib/catalogos.mjs`). Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada criterio solo sube (`ops/forja-capas.json`). Cómo se redacta cada criterio, y cualquier otra regla de la casa: [REDACCION.md](REDACCION.md).
 
 ## Cifras
 
@@ -52,7 +52,7 @@ Cada criterio se escribe por campos y su frase se genera; no hay prosa libre. La
 
 ## Tipos de skill
 
-Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué entra y sale, cómo se prueba y cómo se corrige. **La única lista de tipos es la de `ops/forja.json`** (`tipos_skill`). El molde de cada tipo (sus secciones, los campos de la ficha, cómo se prueba y su ejemplo) se genera en `.claude/plantillas-skill/<tipo>.md` con `npm run plantillas -- --escribir` (#495), y el `tipo` del frontmatter de cada skill es el que dan sus respuestas.
+Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué entra y sale, cómo se prueba y cómo se corrige. **La única lista de tipos es la de `ops/forja/`** (`tipos_skill`). El molde de cada tipo (sus secciones, los campos de la ficha, cómo se prueba y su ejemplo) se genera en `.claude/plantillas-skill/<tipo>.md` con `npm run plantillas -- --escribir` (#495), y el `tipo` del frontmatter de cada skill es el que dan sus respuestas.
 
 | Tipo | Qué hace | Entra → sale | Prueba | Skills de hoy |
 |---|---|---|---|---|
@@ -206,7 +206,7 @@ Un criterio de este catálogo, redactado por campos (scripts/lib/regla.mjs): nom
 
 ## La forma de una práctica
 
-Datos en `forma_practica` de `ops/forja.json`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto que **es orientativa hasta que #454 la calibre con estándares reales** (la voz solo mira el verbo que abre la regla; el condicional y el -ó suelto no cuentan como otro tiempo). Aplicarlo a los estándares reales es de #454.
+Datos en `forma_practica` de `ops/forja/`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto que **es orientativa hasta que #454 la calibre con estándares reales** (la voz solo mira el verbo que abre la regla; el condicional y el -ó suelto no cuentan como otro tiempo). Aplicarlo a los estándares reales es de #454.
 
 | Artefacto | Bullets | Estructura de cada bullet | Fuente por bullet | Voz | Modo y tiempo | Persona |
 |---|---|---|---|---|---|---|
@@ -245,7 +245,7 @@ El estado de un criterio sobre un artefacto es una línea `<artefacto>: <nombre>
 
 Un criterio subjetivo lleva casos de calibración (un texto de ejemplo y el estado que se espera, cumple o no_cumple) y solo puede marcarse `listo_para_subir` si sus medidas cumplen la promoción: coincidencia del juez con la respuesta conocida de al menos **0.9** en **10** repeticiones.
 
-**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja.json` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar el criterio; el trinquete (`ops/forja-capas.json`) impide bajar.
+**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja/` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar el criterio; el trinquete (`ops/forja-capas.json`) impide bajar.
 
 Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es de la casa (con la ruta del repo donde está escrito).
 
@@ -258,7 +258,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
 - `frontmatter` — **Frontmatter cerrado.** El frontmatter de cada skill DEBE llevar solo name, description y metadata, con name igual que la carpeta y la description con «Úsala » al principio, «No para:» y de 81 a 600 caracteres. Se comprueba con: `.claude/skills.test.js`.
   - Nota: La description queda por debajo de los 1.024 caracteres del estándar abierto.
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `frontmatter`.
-- `tipo` — **Tipo de skill.** El frontmatter de cada skill DEBE llevar en metadata.tipo uno de los tipos de tipos_skill de ops/forja.json, el que dan sus respuestas. Se comprueba con: `.claude/skills.test.js`.
+- `tipo` — **Tipo de skill.** El frontmatter de cada skill DEBE llevar en metadata.tipo uno de los tipos de tipos_skill de ops/forja/, el que dan sus respuestas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `tipo`.
 - `dueno` — **Dueño de la skill.** El frontmatter de cada skill DEBE llevar en metadata.dueno un agente de .claude/agents/ que la carga en su campo skills. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] scripts/lib/skills.mjs. Código: `dueno`.
@@ -385,9 +385,9 @@ Heurística automática; lo que hoy incumple va a una lista de excepciones que s
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caso-duplicado`.
 - `caso-en-frontera` — **Petición fuera de frontera.** Para el conjunto de casos de prueba de cada skill, CONVIENE no usar en una petición propia las palabras de lo que su «No para:» deja a otra skill. Se comprueba con: `scripts/higiene-skills.test.js`.
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caso-en-frontera`.
-- `vocabulario-canonico` — **Término canónico.** Todo artefacto de la forja NO DEBE usar un sinónimo prohibido en vez del término canónico del glosario único (ops/glosario.json, #469). Se comprueba con: `ops/glosario.test.js`.
+- `vocabulario-canonico` — **Término canónico.** Todo artefacto de la forja NO DEBE usar un sinónimo prohibido en vez del término canónico del glosario único (ops/glosario/, #469). Se comprueba con: `ops/glosario.test.js`.
   - Nota: Una cosa se llama siempre igual.
-  - Fuente: [I] ops/glosario.json.
+  - Fuente: [I] ops/glosario/.
 
 ### material · estandar (4)
 
@@ -400,9 +400,9 @@ Heurística automática; lo que hoy incumple va a una lista de excepciones que s
 - `estandar-rondas-de-investigacion` — **Rondas de investigación.** Cada tarea del catálogo de estándares DEBE dejar el rastro de tres rondas de investigación o más, cada una con una línea «ronda: n fuentes: k cambios: …» y fuentes mayores que 0. Se comprueba con: `ops/forja-forma.test.js`.
   - Nota: Las rondas son buscar, contrastar y destilar; lo que hoy no lo cumple va a una lista de excepciones que solo baja.
   - Fuente: [I] scripts/lib/forjaForma.mjs.
-- `vocabulario-canonico` — **Término canónico.** Todo artefacto de la forja NO DEBE usar un sinónimo prohibido en vez del término canónico del glosario único (ops/glosario.json, #469). Se comprueba con: `ops/glosario.test.js`.
+- `vocabulario-canonico` — **Término canónico.** Todo artefacto de la forja NO DEBE usar un sinónimo prohibido en vez del término canónico del glosario único (ops/glosario/, #469). Se comprueba con: `ops/glosario.test.js`.
   - Nota: Una cosa se llama siempre igual.
-  - Fuente: [I] ops/glosario.json.
+  - Fuente: [I] ops/glosario/.
 
 ### material · agente (0)
 

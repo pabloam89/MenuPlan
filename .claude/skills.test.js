@@ -15,7 +15,7 @@ import {
 
 /**
  * Nivel 1 de las skills (#336), gratis y en el CI. Todas siguen
- * `.claude/PLANTILLA-SKILL.md`: tipo de los de `ops/forja.json` (el que dan sus respuestas), dueño que
+ * `.claude/PLANTILLA-SKILL.md`: tipo de los de `ops/forja/` (el que dan sus respuestas), dueño que
  * la carga, fecha de comprobación bien puesta, las secciones de su tipo, un
  * SKILL.md corto con el detalle en capas, rutas que existen, nada copiado entre
  * skills y sus casos de prueba en `casos.json`. Las reglas viven en
@@ -227,13 +227,13 @@ it("la pieza meta (nivel 0) también dice en su «Método» cuándo se acaba (si
 
 // ── La plantilla, el catálogo del flujo y CLAUDE.md dicen lo mismo ───────
 
-it("cada tipo de ops/forja.json tiene sus secciones, y ninguno más", () => {
+it("cada tipo de ops/forja/ tiene sus secciones, y ninguno más", () => {
   expect(Object.keys(SECCIONES_POR_TIPO).sort()).toEqual(tiposDeSkill(RAIZ).sort());
 });
 
 it("la plantilla común remite a la forja y a los moldes, y dice los números que exige el test", () => {
   const plantilla = readFileSync(join(AQUI, "PLANTILLA-SKILL.md"), "utf8").replace(/\r\n/g, "\n");
-  for (const n of ["`ops/forja.json`", "`.claude/plantillas-skill/<tipo>.md`", "npm run plantillas -- --escribir"]) expect(plantilla, n).toContain(n);
+  for (const n of ["`ops/forja/`", "`.claude/plantillas-skill/<tipo>.md`", "npm run plantillas -- --escribir"]) expect(plantilla, n).toContain(n);
   for (const capa of CAPAS) expect(plantilla).toContain(`${capa}/`);
   for (const n of [`${MAX_LINEAS} líneas`, `${PLAZO_COMPROBADO_DIAS} días`, `${MIN_CASOS} casos`]) expect(plantilla).toContain(n);
 });
@@ -281,7 +281,7 @@ describe("la forja ve fallar cada control", () => {
     expect(faltasDe({})).toEqual([]); // la mentira ya lleva fechas en «Lo que falló» y en «Fuentes»
   });
 
-  it("sin-parada: el Método de un tipo que no es servicio (lo dice `tipos` del criterio en ops/forja.json) no dice cuándo se acaba", () => {
+  it("sin-parada: el Método de un tipo que no es servicio (lo dice `tipos` del criterio en ops/forja/) no dice cuándo se acaba", () => {
     expect(codigos(faltasDe(oficio({ metodo: relleno })))).toEqual(["sin-parada"]);
     for (const frase of ["Sale bien si X.", "Sale: el fichero.", "Debe salir Y.", "Hecho cuando Z.", "Para por criterio, no por cansancio.", "- **Sale bien si** X.", "1. Paso. **Sale:** Y."]) {
       expect(faltasDe(oficio({ metodo: `${relleno}\n\n${frase}` })), frase).toEqual([]);
@@ -527,7 +527,7 @@ describe("el estándar de cada tipo de la plantilla", () => {
     expect(faltasE(esqueleto, tiposSkills.filter((s) => s.tipo !== "conocimiento"))).toEqual([]);
   });
 
-  it("los apartados del estándar son los tipos de ops/forja.json, ni uno más (#495)", () => {
+  it("los apartados del estándar son los tipos de ops/forja/, ni uno más (#495)", () => {
     const seccionE = plantilla.slice(plantilla.indexOf("## El estándar de cada tipo")).split("\n## ")[0];
     const enPlantilla = [...seccionE.matchAll(/^### `([^`]+)`$/gm)].map((m) => m[1]);
     expect(enPlantilla.sort()).toEqual([...tipos].sort());

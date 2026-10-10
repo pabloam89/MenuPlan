@@ -1,0 +1,23 @@
+{
+  "id": "sin-parada",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": [
+    "procedimiento",
+    "diagnostico",
+    "decision",
+    "flujo",
+    "revision",
+    "conocimiento"
+  ],
+  "nombre": "Parada del método",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "decir en el «Método» cuándo se acaba y qué se ve cuando sale bien",
+  "nota": "Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio, que no tiene «Método»",
+  "fuente": "[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+  "control": ".claude/skills.test.js",
+  "codigo": "sin-parada"
+}

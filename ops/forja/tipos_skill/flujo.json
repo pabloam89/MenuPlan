@@ -1,0 +1,18 @@
+{
+  "id": "flujo",
+  "que": "Encadenar skills y agentes",
+  "entra": "caso",
+  "sale": "cerrado por etapas",
+  "prueba": "cada etapa apunta a una skill o agente que existe y tiene puerta",
+  "skills_hoy": [
+    "issues"
+  ],
+  "secciones": [
+    "Cuándo y para qué",
+    "Método",
+    "Etapas",
+    "Lo que falló y por qué",
+    "Registro de cambios",
+    "Fuentes y comprobación"
+  ]
+}

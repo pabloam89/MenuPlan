@@ -16,6 +16,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { FUENTE_F, FUENTE_I } from "./forja.mjs";
+import { leerJsonOCatalogo, renombrarRuta } from "./catalogos.mjs";
 import { CONTROL_JUICIO, FUERZAS, LIMITES_REGLA, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
 export const RUTA_REDACCION = "ops/redaccion.json";
@@ -183,10 +184,11 @@ export function problemasDeTrinquete(datos, guardado) {
  */
 export function problemasContraReferencia(datos, guardado, refRedaccion, refPendientes) {
   const malos = [];
-  const refAncla = refPendientes?.pendientes ?? [];
-  const refCatalogos = (refRedaccion?.catalogos ?? []).map((k) => k.fichero);
+  // Un catálogo partido (#505) se llamaba en la referencia por su fichero viejo: se compara por su carpeta.
+  const refAncla = (refPendientes?.pendientes ?? []).map(renombrarRuta);
+  const refCatalogos = (refRedaccion?.catalogos ?? []).map((k) => renombrarRuta(k.fichero));
   const hoy = datos.catalogos.map((k) => k.fichero);
-  const refPend = new Set([...refAncla, ...(refRedaccion?.catalogos ?? []).filter((k) => k.estado === "pendiente").map((k) => k.fichero)]);
+  const refPend = new Set([...refAncla, ...(refRedaccion?.catalogos ?? []).filter((k) => k.estado === "pendiente").map((k) => renombrarRuta(k.fichero))]);
   for (const f of pendientesDe(datos)) if (!refPend.has(f)) malos.push(`«${f}» está pendiente y la referencia no lo tenía así: un catálogo nuevo nace cumpliendo la guía`);
   for (const f of guardado) if (!refAncla.includes(f)) malos.push(`«${f}» está en el ancla y la referencia no lo tenía: el ancla solo baja`);
   for (const f of refCatalogos) if (!hoy.includes(f)) malos.push(`falta el catálogo «${f}», que la referencia sí tenía`);
@@ -288,4 +290,5 @@ export function generarMd(datos, leerJson) {
 }
 
 export const existeEn = (raiz) => (ruta) => existsSync(join(raiz, ruta));
-export const leerJsonEn = (raiz) => (ruta) => JSON.parse(readFileSync(join(raiz, ruta), "utf8"));
+/** Un catálogo de `catalogos`, sea un fichero o la carpeta de uno partido (#505). */
+export const leerJsonEn = (raiz) => (ruta) => leerJsonOCatalogo(raiz, ruta);

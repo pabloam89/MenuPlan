@@ -2,7 +2,7 @@
  * La base común de la forja (#458, fondo #455): una sola fuente de criterios de
  * calidad para skills, estándares de agente y lo que venga.
  *
- * `ops/forja.json` apunta cada criterio con su capa, a qué se aplica, de dónde
+ * `ops/forja/` apunta cada criterio con su capa, a qué se aplica, de dónde
  * sale, quién lo vigila y qué código emite el script que lo detecta. Tres capas,
  * porque convertir algo continuo en atributos discretos nunca cubre todo:
  *   - formal: esquema y forma, determinista, test del CI;
@@ -20,9 +20,11 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { CATALOGOS, leerCatalogo } from "./catalogos.mjs";
 import { CONTROL_JUICIO, FUERZAS, LIMITES_REGLA, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
-export const RUTA_FORJA = "ops/forja.json";
+/** La forja vive partida, un fichero por entrada (#505): la carpeta es la fuente, sin agregado. */
+export const RUTA_FORJA = CATALOGOS.forja.carpeta;
 export const RUTA_CAPAS = "ops/forja-capas.json";
 export const RUTA_MD = "docs/ops/FORJA.md";
 export const RUTA_CAMPOS = "ops/forja-campos.json";
@@ -86,7 +88,7 @@ export const CAMPOS_OPCIONALES = ["casos_calibracion", "medidas", "listo_para_su
 export const CAMPOS_PENDIENTE = ["pendiente_de", "control_pendiente", "motivo_pendiente"];
 /**
  * Por qué algo está pendiente (vocabulario cerrado, #457). `en`: dónde se puede escribir: en un criterio
- * de ops/forja.json, en un juicio guardado de una skill, o solo lo calcula el script.
+ * de ops/forja/, en un juicio guardado de una skill, o solo lo calcula el script.
  */
 export const MOTIVOS_PENDIENTE = {
   falta_herramienta: { que: "Falta el control o la medida que lo comprobaría (un test, el A/B con y sin skill)", en: ["criterio", "juicio"] },
@@ -111,7 +113,7 @@ export const FUENTE_I = /^\[I\] (\S+)$/;
 export const esTexto = (v, min) => typeof v === "string" && v.trim().length >= min;
 
 export function leerForja(raiz) {
-  return JSON.parse(readFileSync(join(raiz, RUTA_FORJA), "utf8"));
+  return leerCatalogo(raiz, RUTA_FORJA);
 }
 
 export function leerCapas(raiz) {
@@ -407,7 +409,7 @@ export const TIPO_POR_DEFECTO = "conocimiento";
 export const TODOS = "todos";
 
 let preguntasPorDefecto = null;
-/** Las preguntas de ops/forja.json (la única fuente de su orden), leídas una vez. */
+/** Las preguntas de ops/forja/ (la única fuente de su orden), leídas una vez. */
 function leerPreguntas() {
   preguntasPorDefecto ??= leerForja(join(dirname(fileURLToPath(import.meta.url)), "..", "..")).preguntas_tipo;
   return preguntasPorDefecto;
@@ -838,7 +840,7 @@ function mdForma(datos) {
   return [
     "## La forma de una práctica",
     "",
-    "Datos en `forma_practica` de `ops/forja.json`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto que **es orientativa hasta que #454 la calibre con estándares reales** (la voz solo mira el verbo que abre la regla; el condicional y el -ó suelto no cuentan como otro tiempo). Aplicarlo a los estándares reales es de #454.",
+    "Datos en `forma_practica` de `ops/forja/`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto que **es orientativa hasta que #454 la calibre con estándares reales** (la voz solo mira el verbo que abre la regla; el condicional y el -ó suelto no cuentan como otro tiempo). Aplicarlo a los estándares reales es de #454.",
     "",
     "| Artefacto | Bullets | Estructura de cada bullet | Fuente por bullet | Voz | Modo y tiempo | Persona |",
     "|---|---|---|---|---|---|---|",
@@ -859,7 +861,7 @@ export function generarMd(datos) {
     "",
     `<!-- Generado desde ${RUTA_FORJA} con «npm run forja -- --escribir». No se edita a mano: ops/forja.test.js lo compara. -->`,
     "",
-    `La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es \`${RUTA_FORJA}\`. Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada criterio solo sube (\`${RUTA_CAPAS}\`). Cómo se redacta cada criterio, y cualquier otra regla de la casa: [REDACCION.md](REDACCION.md).`,
+    `La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es \`${RUTA_FORJA}\`, partida en un fichero por criterio, por tipo de skill y por ficha para que dos ramas no choquen (#505; formato en \`scripts/lib/catalogos.mjs\`). Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada criterio solo sube (\`${RUTA_CAPAS}\`). Cómo se redacta cada criterio, y cualquier otra regla de la casa: [REDACCION.md](REDACCION.md).`,
     "",
     "## Cifras",
     "",
@@ -894,7 +896,7 @@ export function generarMd(datos) {
     "",
     `Un criterio subjetivo lleva casos de calibración (un texto de ejemplo y el estado que se espera, cumple o no_cumple) y solo puede marcarse \`listo_para_subir\` si sus medidas cumplen la promoción: coincidencia del juez con la respuesta conocida de al menos **${datos.promocion.coincidencia_minima}** en **${datos.promocion.repeticiones}** repeticiones.`,
     "",
-    "**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja.json` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar el criterio; el trinquete (`ops/forja-capas.json`) impide bajar.",
+    "**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja/` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar el criterio; el trinquete (`ops/forja-capas.json`) impide bajar.",
     "",
     "Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es de la casa (con la ruta del repo donde está escrito).",
   ];

@@ -1,23 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { REFERENCIA, jsonEnReferencia } from "../scripts/lib/forjaReferencia.mjs";
+import { catalogoEnReferencia, leerTexto } from "../scripts/lib/catalogos.mjs";
 import { RUTA_VOCABULARIOS, leerRegistro, redefinicionesDelGlosario } from "../scripts/lib/vocabulariosVida.mjs";
 import { JUICIOS, MAX_CANDIDATOS, MOTIVOS_JUICIO, aJuzgar, candidatos, leerJuicios, lineaCandidato, pendientesDeJuicios, problemasDeJuicios, prosaDeZonas } from "../scripts/lib/glosarioCandidatos.mjs";
 import {
-  CLASES, ESTADOS_TERMINO, EXCEPCIONES_FORMA, RUTA_GLOSARIO, canonicoDe, cifrasDeForma, faltaDeForma, problemasDeRelaciones, problemasDeVidaGlosario, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
+  CLASES, ESTADOS_TERMINO, EXCEPCIONES_FORMA, canonicoDe, cifrasDeForma, faltaDeForma, problemasDeRelaciones, problemasDeVidaGlosario, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
 } from "../scripts/lib/glosario.mjs";
 
 /**
  * El glosario del lenguaje de proceso (#469, fondo #455). Vigila:
  *
- *  1. que ops/glosario.json está bien formado: clase del vocabulario, ref que
+ *  1. que ops/glosario/ está bien formado: clase del vocabulario, ref que
  *     existe, ningún sinónimo prohibido es término canónico ni se repite entre
  *     términos, y ninguna definición usa un sinónimo prohibido;
  *  2. el control: ningún sinónimo prohibido nuevo en las zonas de cada término;
- *     lo que había al nacer está en ops/glosario-excepciones.json y SOLO BAJA
+ *     lo que había al nacer está en ops/glosario-excepciones/ y SOLO BAJA
  *     par a par (literal PARTIDA abajo, con la cifra de cada par: no vale subir
  *     uno a cambio de bajar otro);
  *  3. que CLAUDE.md dice que el glosario es la fuente de las palabras de proceso;
@@ -29,7 +30,7 @@ import {
  */
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const existe = (r) => existsSync(join(RAIZ, r));
-const leer = (r) => readFileSync(join(RAIZ, r), "utf8");
+const leer = (r) => leerTexto(RAIZ, r);
 const G = leerGlosario(RAIZ);
 const EXC = leerExcepciones(RAIZ);
 const copia = () => JSON.parse(JSON.stringify(G));
@@ -86,7 +87,7 @@ const PARTIDA = {
 
 describe("el glosario", () => {
   it("está bien formado", () => {
-    expect(problemasDeGlosario(G, { existe, leer }), "Corrige ops/glosario.json").toEqual([]);
+    expect(problemasDeGlosario(G, { existe, leer }), "Corrige ops/glosario/").toEqual([]);
   });
 
   it("cubre los términos de proceso que pide el encargo", () => {
@@ -115,7 +116,7 @@ describe("el control: ningún sinónimo prohibido nuevo", () => {
   });
 
   it("lo arreglado se baja de la lista", () => {
-    expect(bajadas.map((b) => `${b.ruta}: «${b.sinonimo}» hay ${b.hay}, admitidas ${b.admitidas}`), "Ya cumple: baja la cifra en ops/glosario-excepciones.json").toEqual([]);
+    expect(bajadas.map((b) => `${b.ruta}: «${b.sinonimo}» hay ${b.hay}, admitidas ${b.admitidas}`), "Ya cumple: baja la cifra en ops/glosario-excepciones/").toEqual([]);
   });
 
   it("la lista solo baja, par a par: ningún par fuera de la partida ni por encima de su cifra", () => {
@@ -142,7 +143,8 @@ const TERMINOS_FIJADOS = [
   "zona",
 ];
 const REF = REFERENCIA();
-const glosarioRef = jsonEnReferencia(RAIZ, REF, RUTA_GLOSARIO);
+// Partido o aún en su fichero viejo (el PR que lo parte, #505): catalogoEnReferencia lee las dos formas.
+const glosarioRef = catalogoEnReferencia(RAIZ, REF, "glosario");
 if (!glosarioRef) console.info(`[glosario] ciclo de vida contra ${REF}: sin git o sin la referencia; se compara con TERMINOS_FIJADOS`);
 
 describe("el ciclo de vida: un término se retira, no se borra", () => {
@@ -165,7 +167,7 @@ describe("el ciclo de vida: un término se retira, no se borra", () => {
 
 describe("CLAUDE.md y npm run glosario", () => {
   it("CLAUDE.md dice que el glosario es la fuente de las palabras de proceso", () => {
-    expect(leer("CLAUDE.md")).toMatch(/`ops\/glosario\.json`/);
+    expect(leer("CLAUDE.md")).toMatch(/`ops\/glosario\/`/);
   });
 
   it("npm run glosario existe", () => {

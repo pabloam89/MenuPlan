@@ -12,7 +12,7 @@ import {
 
 /**
  * La forma de cada práctica, la fuente por bullet y las rondas de investigación (#458).
- * Todo es dato en ops/forja.json; aquí se valida. Aplicarlo a los estándares reales es de #454.
+ * Todo es dato en ops/forja/; aquí se valida. Aplicarlo a los estándares reales es de #454.
  * Falla cuando: la forma declarada no es válida, una práctica no cumple su forma (nº de bullets,
  * estructura y fuente: formal; voz, modo, tiempo y persona: material), un estándar no deja 3 rondas con
  * fuentes y no está en la lista de excepciones, o esa lista sube.
@@ -96,8 +96,8 @@ describe("una práctica contra su forma", () => {
   });
   it("la fuente de cada bullet es formal: [F] con https o [I] con una ruta que existe", () => {
     const con = (fuente) => practica(3, { fuente });
-    expect(problemas(con("[I] ops/forja.json"))).toEqual([]);
-    for (const mala of ["https://x.com/a", "[F] http://x.com/a", "[F] https://x.com", "[X] ops/forja.json", "", undefined]) expect(criterios(con(mala)), String(mala)).toContain("practica-fuente-por-bullet");
+    expect(problemas(con("[I] ops/forja/"))).toEqual([]);
+    for (const mala of ["https://x.com/a", "[F] http://x.com/a", "[F] https://x.com", "[X] ops/forja/", "", undefined]) expect(criterios(con(mala)), String(mala)).toContain("practica-fuente-por-bullet");
     expect(problemas(con("[I] ops/no-existe.md"))[0].mensaje).toContain("que no existe");
     const una = practica(3);
     delete una.bullets[2].fuente;
@@ -297,7 +297,7 @@ describe("los criterios de esta parte en la base", () => {
     f((c) => { delete c.control_pendiente; }, "van juntos");
     f((c) => { c.pendiente_de = "999"; }, "pendiente_de es el issue");
     f((c) => { c.control_pendiente = ""; }, "control_pendiente es la ruta");
-    f((c) => { c.control = "ops/forja.json"; }, "lleva control «juicio»");
+    f((c) => { c.control = "ops/forja/"; }, "lleva control «juicio»");
     f((c) => { c.motivo_pendiente = "falta_decision"; }, "solo está pendiente de su control (falta_herramienta)");
     f((c) => { c.motivo_pendiente = "sin_mirar"; }, "motivo_pendiente «sin_mirar» no está en el vocabulario");
     f(() => {}, `ya existe ${futuro}`, (r) => existe(r) || r === futuro);
@@ -317,7 +317,7 @@ describe("los criterios de esta parte en la base", () => {
     f((c) => { delete c.pendiente_de; }, "pendiente_de y motivo_pendiente van juntos");
     f((c) => { c.motivo_pendiente = "otra_version"; }, "no está en el vocabulario");
     f((c) => { c.pendiente_de = "517"; }, "pendiente_de es el issue");
-    f((c) => { c.control_pendiente = "ops/forja.json"; }, "ya existe ops/forja.json");
+    f((c) => { c.control_pendiente = "ops/forja/"; }, "ya existe ops/forja/");
     expect(generarMd(datos)).toContain(`Pendiente (falta_herramienta): lo da ${sub.pendiente_de}.`);
   });
   it("FORJA.md recoge la forma, el método y el control del glosario", () => {

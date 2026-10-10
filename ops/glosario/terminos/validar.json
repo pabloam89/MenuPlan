@@ -1,0 +1,11 @@
+{
+  "termino": "validar",
+  "estado": "activo",
+  "clase": "accion",
+  "definicion": "Comprobar que un dato cumple su forma o su restricción: la entrada de un endpoint, una restricción NOT VALID de Postgres, un fichero contra su esquema.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "comprobar"
+}

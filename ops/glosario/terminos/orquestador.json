@@ -1,0 +1,15 @@
+{
+  "termino": "orquestador",
+  "estado": "activo",
+  "clase": "rol",
+  "definicion": "La sesión principal que sigue /orquestar: elige el pipeline, escribe el brief de cada agente y junta sus informes.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "sesión",
+  "ref": {
+    "fichero": "scripts/lib/flujo.mjs",
+    "clave": "ACTORES.orquestador"
+  }
+}

@@ -79,6 +79,8 @@ describe("ningún test que enumera ficheros del repo queda fuera de la lista", (
 const TABLA = [
   ["procesos-ocultos", "scripts/lib/x.mjs", "ops/procesosOcultos.test.js"],
   ["procesos-ocultos", ".claude/hooks/x.mjs", "ops/procesosOcultos.test.js"],
+  ["catalogos-partidos", "ops/forja/criterios/x.json", "ops/catalogos.test.js"],
+  ["catalogos-partidos", "ops/glosario/terminos/x.json", "ops/catalogos.test.js"],
   ["tests-de-tiempo", "src/lib/x.test.js", "ops/testsDeTiempo.test.js"],
   ["tests-de-tiempo", ".claude/hooks/x.test.js", "ops/testsDeTiempo.test.js"],
   ["errores-tragados-scripts", "scripts/lib/x.mjs", "scripts/sinErroresTragados.test.js"],

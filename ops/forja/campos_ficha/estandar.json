@@ -1,0 +1,50 @@
+{
+  "clave": "estandar",
+  "valor": {
+    "fuente": "Una tarea de un agente en ops/estandares-agentes.json (la clave es su id). Su estándar son sus reglas por campos (#516); las compartidas por varios agentes están en comunes y la tarea las nombra.",
+    "clave": "id",
+    "campos": {
+      "tarea": {
+        "clase": "texto",
+        "hueco": true,
+        "cubre": "La frase que dice qué se hace en esa tarea: el verbo y su objeto no caben en un vocabulario cerrado",
+        "obligatorio": true
+      },
+      "accion": {
+        "clase": "enum",
+        "vocab": "accion_tarea",
+        "obligatorio": true
+      },
+      "origen": {
+        "clase": "enum",
+        "vocab": "origen_tarea",
+        "obligatorio": true
+      },
+      "comunes": {
+        "clase": "ref",
+        "ref": "estandar_comun",
+        "lista": true,
+        "obligatorio": false
+      },
+      "reglas": {
+        "clase": "regla",
+        "lista": true,
+        "obligatorio": true
+      },
+      "no_hace": {
+        "clase": "texto",
+        "lista": true,
+        "hueco": true,
+        "cubre": "La frontera con lo que es de otro agente o de una persona, que hay que nombrar caso a caso",
+        "obligatorio": false
+      },
+      "rondas": {
+        "clase": "texto",
+        "lista": true,
+        "hueco": true,
+        "cubre": "Lo que cambió en cada ronda de investigación, una frase por ronda: el número y las fuentes son discretos, el cambio no cabe en un vocabulario",
+        "obligatorio": false
+      }
+    }
+  }
+}

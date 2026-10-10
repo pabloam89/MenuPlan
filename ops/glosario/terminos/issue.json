@@ -1,0 +1,23 @@
+{
+  "termino": "issue",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Un elemento de GitHub del repo que lleva su tipo: fondo, caso, encargo o decisión.",
+  "sinonimos_prohibidos": [
+    "ticket",
+    "tickets"
+  ],
+  "aplica_a": [
+    "todas"
+  ],
+  "estrecho": [
+    "caso",
+    "fondo",
+    "encargo",
+    "decisión"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/issues.mjs",
+    "clave": "GRUPOS.tipo"
+  }
+}

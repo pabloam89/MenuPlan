@@ -1,6 +1,6 @@
 # Plantilla de skill: flujo
 
-<!-- Generado desde ops/forja.json (tipos_skill con sus secciones, preguntas_tipo, campos_ficha y criterios) y el estándar de .claude/PLANTILLA-SKILL.md, con «npm run plantillas -- --escribir». No se edita a mano: .claude/plantillas-skill.test.js lo compara. -->
+<!-- Generado desde ops/forja/ (tipos_skill con sus secciones, preguntas_tipo, campos_ficha y criterios) y el estándar de .claude/PLANTILLA-SKILL.md, con «npm run plantillas -- --escribir». No se edita a mano: .claude/plantillas-skill.test.js lo compara. -->
 
 El molde de una skill de tipo `flujo`: se copia el esqueleto y se rellena. Lo que vale para todos los tipos (claves, capas, casos de prueba, tamaño, caducidad) está en `.claude/PLANTILLA-SKILL.md`.
 
@@ -83,7 +83,7 @@ Comprobado el AAAA-MM-DD: <cómo se comprobó, y qué no>.
 
 ## Campos de la ficha
 
-Los de `campos_ficha.skill` de `ops/forja.json`; lo que no está declarado no va en el frontmatter.
+Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en el frontmatter.
 
 | Campo | Clase | Obligatorio | Valores |
 |---|---|---|---|
@@ -121,7 +121,7 @@ No hay criterio de skill que no se le aplique.
 
 ### Qué lo hace bueno
 
-- Cada etapa nombra la skill o el agente que la lleva, y existe [I, prueba del tipo en `ops/forja.json`].
+- Cada etapa nombra la skill o el agente que la lleva, y existe [I, prueba del tipo en `ops/forja/`].
 - Cada etapa tiene su puerta: lo que la hace cumplir (un hook, el CI, un workflow), no solo el texto [I, CLAUDE.md «Lo que hace cumplir esto»].
 - Dice qué entra y qué sale de cada etapa, para que la siguiente sepa por dónde empezar [I].
 

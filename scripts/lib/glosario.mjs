@@ -1,7 +1,7 @@
 /**
  * El glosario del lenguaje de proceso (#469, fondo #455): una palabra, un
- * significado. El dato es `ops/glosario.json`; lo que ya incumplía al nacer, en
- * `ops/glosario-excepciones.json` (solo baja). Lo vigila `ops/glosario.test.js`
+ * significado. El dato es `ops/glosario/`; lo que ya incumplía al nacer, en
+ * `ops/glosario-excepciones/` (solo baja). Lo vigila `ops/glosario.test.js`
  * y lo enseña `npm run glosario` (`scripts/glosario.mjs`).
  *
  * El control es léxico: busca los sinónimos prohibidos de cada término, como
@@ -28,8 +28,11 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
-export const RUTA_GLOSARIO = "ops/glosario.json";
-export const RUTA_EXCEPCIONES = "ops/glosario-excepciones.json";
+import { CATALOGOS, leerCatalogo } from "./catalogos.mjs";
+
+/** Partidos, un fichero por término y por ruta (#505): la carpeta es la fuente, sin agregado. */
+export const RUTA_GLOSARIO = CATALOGOS.glosario.carpeta;
+export const RUTA_EXCEPCIONES = CATALOGOS["glosario-excepciones"].carpeta;
 
 /** Clase de un término (vocabulario cerrado). */
 export const CLASES = {
@@ -115,11 +118,11 @@ export const activos = (g) => (g.terminos ?? []).filter(activo);
 export const MAX_DEFINICION = 220;
 
 export function leerGlosario(raiz) {
-  return JSON.parse(readFileSync(join(raiz, RUTA_GLOSARIO), "utf8"));
+  return leerCatalogo(raiz, RUTA_GLOSARIO);
 }
 
 export function leerExcepciones(raiz) {
-  return JSON.parse(readFileSync(join(raiz, RUTA_EXCEPCIONES), "utf8")).excepciones;
+  return leerCatalogo(raiz, RUTA_EXCEPCIONES).excepciones;
 }
 
 const normal = (s) => String(s).toLowerCase().normalize("NFC");
@@ -346,6 +349,8 @@ export function apariciones(trozos, sinonimos) {
 
 /** Ficheros de una ruta con comodines sencillos: `a/**\/*.md`, `a/*.md` o un fichero. */
 export function ficherosDe(raiz, patron) {
+  // Una carpeta (acaba en «/», como la de un catálogo partido, #505): todos sus ficheros, en profundidad.
+  if (patron.endsWith("/")) patron = `${patron}**/*`;
   if (!patron.includes("*")) return existsSync(join(raiz, patron)) ? [patron] : [];
   const corte = patron.lastIndexOf("/", patron.indexOf("*"));
   const base = patron.slice(0, corte);

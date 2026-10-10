@@ -1,0 +1,13 @@
+{
+  "termino": "capa",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Un fichero de referencias o plantillas de una skill que su SKILL.md cita con la ruta y solo se lee si hace falta.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "skill"
+  ]
+}
