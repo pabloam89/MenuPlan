@@ -64,9 +64,10 @@ export function apiReal({ token, repo, ...resto }) {
     // Todos los fondos, abiertos y cerrados: el pase diario revalida también los cerrados con hijos nuevos.
     fondos: () => pedirPaginas({ ...base, ruta: "/issues?state=all&labels=tipo%3Afondo" }, { maxPaginas: 3 }),
     // ¿Ese run de Actions es de nuestro workflow? Otro workflow con el mismo bot no puede falsificar la marca.
+    // true / false, o null si el run ya no existe (404: caducó con la retención de GitHub, ver propioDe).
     runEsNuestro: async (id) => {
       const r = await pedir({ ...base, ruta: `/actions/runs/${Number(id)}` });
-      return r?.path === RUTA_DEL_WORKFLOW;
+      return r === null ? null : r?.path === RUTA_DEL_WORKFLOW;
     },
     // ¿Es un FICHERO en origin/staging? Un directorio también da 200, pero devuelve una lista.
     existeEnStaging: async (ruta) => {
@@ -76,21 +77,42 @@ export function apiReal({ token, repo, ...resto }) {
   };
 }
 
+/**
+ * Los runs de Actions se borran a los 90 días (#381, M1): un comentario cuyo run
+ * ya no existe (404) sigue siendo nuestro si es ANTIGUO. Uno recién escrito con
+ * un run inexistente es una falsificación (otro workflow con el mismo bot), no
+ * un run caducado: no vale. El margen deja sitio a una retención algo menor.
+ */
+export const DIAS_RUN_CADUCADO = 85;
+const caducado = (c, ahora = Date.now()) => {
+  const t = Date.parse(c?.created_at ?? "");
+  return Number.isFinite(t) && ahora - t >= DIAS_RUN_CADUCADO * 86_400_000;
+};
+
 /** Nuestro comentario con esa marca: del bot Y de un run de fondos.yml (se prueba del más nuevo al más viejo). */
-async function propioDe(api, n, marca, comentarios) {
+export async function propioDe(api, n, marca, comentarios, ahora = Date.now()) {
   const candidatos = (comentarios ?? await api.comentarios(n)).filter((c) => esComentarioNuestro(c, marca)).reverse();
   for (const c of candidatos) {
     const run = leerRun(c.body);
-    if (run && (await api.runEsNuestro(run))) return c;
+    if (!run) continue;
+    const esNuestro = await api.runEsNuestro(run);
+    if (esNuestro === true || (esNuestro === null && caducado(c, ahora))) return c;
   }
   return null;
 }
 
-/** Crea o actualiza (no apila) el comentario propio. */
-async function upsert(api, n, texto, marca, comentarios) {
-  const propio = await propioDe(api, n, marca, comentarios);
+/** El comentario sin su `run=` (#381, N3): lo único que cambia en cada pasada y no es contenido. */
+export const sinRun = (texto) => String(texto ?? "").replace(/^(<!-- menuplan:fondo[^>\n]{0,200}?) run=\d{1,15}/, "$1");
+
+/**
+ * Crea o actualiza (no apila) el comentario propio. `ya` = { propio } si quien
+ * llama ya lo buscó (cada búsqueda cuesta una petición por candidato, N3).
+ */
+async function upsert(api, n, texto, marca, comentarios, ya = null) {
+  const propio = ya ? ya.propio : await propioDe(api, n, marca, comentarios);
   if (propio) {
-    if (propio.body !== texto) await api.editarComentario(propio.id, texto);
+    // Sin el run: si solo cambia el run, no se edita (el comentario se reescribía cada día sin cambios).
+    if (sinRun(propio.body) !== sinRun(texto)) await api.editarComentario(propio.id, texto);
     return propio;
   }
   await api.crearComentario(n, texto);
@@ -131,7 +153,7 @@ export async function procesarFondo(api, fondoRest, { hoy, evento = "", run = nu
   const control = falla(res) ? "falla" : "ok";
 
   // 1. La intención, anotada.
-  await upsert(api, n, comentario(res, { subidos: res.subidos, run }), MARCA, comentarios);
+  await upsert(api, n, comentario(res, { subidos: res.subidos, run }), MARCA, comentarios, { propio });
   // 2. La ficha: estado y alcance nuevos.
   const campos = Object.assign({}, ...res.acciones.filter((a) => a.tipo === "fijar").map((a) => a.campos));
   if (Object.keys(campos).length) {
@@ -169,7 +191,7 @@ export async function procesarHijo(api, hijoRest, { hoy, evento, run }) {
   const previo = await propioDe(api, hijoRest.number, MARCA_HIJO);
   if (hallazgos.length || previo) {
     // Si antes avisó y ya está bien, el comentario se pone al día en vez de quedarse mintiendo.
-    await upsert(api, hijoRest.number, comentario({ hallazgos, acciones: [] }, opciones), MARCA_HIJO);
+    await upsert(api, hijoRest.number, comentario({ hallazgos, acciones: [] }, opciones), MARCA_HIJO, undefined, { propio: previo });
   }
   sal.push({ issue: hijoRest.number, control: hallazgos.some((h) => h.gravedad === "error") ? "falla" : "ok", errores: hallazgos.filter((h) => h.gravedad === "error").length, avisos: hallazgos.filter((h) => h.gravedad === "aviso").length, acciones: [] });
   if (padre && tipoDe(padreRest) === "fondo" && esDeLaCasa(padreRest.author_association)) sal.push(await procesarFondo(api, padreRest, { hoy, evento, run }));

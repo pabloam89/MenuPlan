@@ -109,9 +109,9 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P05.3 | Cada fondo lleva una ficha válida (bloque fondo, vocabularios cerrados) y sus controles corren en cada evento del issue | script_propio · `.github/workflows/fondos.yml` | semidura | `fondo-con-ficha-y-controles` | #341 |
 | **Plan** · blanda | | | | | |
 | P06.1 | El arreglo se parte en encargos colgados del fondo, uno por superficie | persona · `.claude/commands/revision-issues.md` | blanda | — | #337 |
-| P06.2 | Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga | nada · `docs/ops/ENCARGO.md` | blanda | — | #341 |
+| P06.2 | Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga | script_propio · `scripts/lib/fondos.mjs` | semidura | `plan-tres-encargos-con-preventivo` | #341 |
 | P06.3 | El arreglo usa el escalón más duradero posible de la escalera | persona · `.claude/skills/plan-de-arreglo/SKILL.md` | blanda | — | #341 |
-| P06.4 | Un fondo lleva como mucho tres encargos, al menos uno preventivo y automático | nada · `docs/ops/FLUJO.md` | blanda | — | #337 |
+| P06.4 | Un fondo lleva como mucho tres encargos, al menos uno preventivo y automático | script_propio · `scripts/lib/fondos.mjs` | semidura | `plan-tres-encargos-con-preventivo` | #337 |
 | **Ejecutar** · blanda | | | | | |
 | P07.1 | Un encargo es una rama con el número de su issue, y se ve quién lo lleva | script_propio · `scripts/tarea.mjs` | semidura | — | #337 |
 | P07.2 | Un PR de una rama con número de issue lleva Closes de ese issue | guardia · `.claude/hooks/guardia.mjs` | semidura | `pr-al-dia-y-closes` | #337 |
@@ -150,7 +150,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P12.6 | Cada bloqueo de la guardia, permiso pedido y skill cargada deja una línea en un registro local de eventos | guardia · `.claude/hooks/eventos.mjs` | semidura | `eventos-de-hooks-registrados` | #340 |
 | P12.5 | Las normas del proceso que se incumplen se cuentan cada semana | script_propio · `scripts/lib/normas.mjs` | semidura | — | #341, #185 |
 
-**53 obligaciones:** 5 duras · 29 semiduras · 19 blandas · 0 rotas. 23 están enlazadas con su norma del registro.
+**53 obligaciones:** 5 duras · 31 semiduras · 17 blandas · 0 rotas. 25 están enlazadas con su norma del registro.
 <!-- flujo:pasos:fin -->
 
 ## Lo que ya existía

@@ -256,9 +256,10 @@ describe("validarFicha: sin diagnóstico no hay encargos", () => {
     expect(reglas(validarFicha(sinDiag({ estado: "abierto" }), CTX), "error")).toEqual([]);
     expect(reglas(validarFicha(sinDiag({ estado: "reabierto" }), CTX), "error")).toEqual([]);
   });
-  it("más de tres encargos avisa", () => {
+  it("más de tres encargos: error en un fondo con ficha obligatoria, aviso en uno anterior (#396)", () => {
     const hijos = [51, 52, 53, 54].map((n) => hijo(n, ["tipo:encargo"]));
-    expect(reglas(validarFicha(fondo({ hijos }), CTX), "aviso")).toContain("plan-grande");
+    expect(reglas(validarFicha(fondo({ hijos }), CTX), "error")).toContain("plan-grande");
+    expect(reglas(validarFicha(fondo({ hijos, createdAt: "2026-10-01T10:00:00Z" }), CTX), "aviso")).toContain("plan-grande");
   });
 });
 
