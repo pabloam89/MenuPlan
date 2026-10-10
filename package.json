@@ -39,6 +39,7 @@
     "flujo": "node scripts/flujo.mjs",
     "higiene-skills": "node scripts/higiene-skills.mjs",
     "skills-prueba": "node scripts/skills-prueba.mjs",
+    "cumplimiento": "node scripts/cumplimiento.mjs",
     "skills-uso": "node scripts/skills-uso.mjs",
     "skills-encargo": "node scripts/skills-encargo.mjs",
     "presupuesto": "node scripts/presupuesto.mjs",

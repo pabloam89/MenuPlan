@@ -29,7 +29,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { cargarEnv } from "./lib/env.mjs";
-import { SALIDA, costeUsd, estimadoSiguiente, hash, opcionNumero, topeDePasada, apuntarOAvisar, puedeGastar } from "./lib/evals.mjs";
+import { SALIDA, costeUsd, estimadoSiguiente, hashLF, opcionNumero, topeDePasada, apuntarOAvisar, puedeGastar } from "./lib/evals.mjs";
 import {
   DIR_SKILLS, ESTIMADO_LLAMADA, MODELO_BARATO, MODELO_EJECUTA, NINGUNA, RAIZ, TOPE_SKILLS_USD,
   catalogoParaDisparo, comparar, faltasDeCasos, jsonDeTexto, nombresDeSkills, promptCorrige,
@@ -177,7 +177,7 @@ for (const skill of pedidas) {
     const guardado = {
       skill,
       fecha_utc: new Date().toISOString(),
-      version: { skill_md: hash(textoSkill), casos_json: hash(textoCasos) },
+      version: { skill_md: hashLF(textoSkill), casos_json: hashLF(textoCasos) },
       modelos: { disparo: MODELO_BARATO, ejecuta: MODELO_EJECUTA, corrige: MODELO_BARATO },
       tope_usd: Number(tope.toFixed(4)),
       coste_usd: Number(costeSkill.toFixed(4)),

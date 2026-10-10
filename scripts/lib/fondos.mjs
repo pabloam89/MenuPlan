@@ -49,7 +49,7 @@ export const ESTADOS = {
   reabierto: "Un caso nuevo o un «no aguantó» lo reabrió",
 };
 /** Los estados que ya exigen diagnóstico (todos salvo abierto y reabierto). */
-const ESTADOS_CON_DIAGNOSTICO = ["diagnosticado", "plan", "en-curso", "en-observacion", "cerrado-eficaz"];
+export const ESTADOS_CON_DIAGNOSTICO = ["diagnosticado", "plan", "en-curso", "en-observacion", "cerrado-eficaz"];
 
 /**
  * Quién construye el arreglo: los agentes de .claude/agents/ y la sesión
@@ -543,7 +543,7 @@ export const falla = (resultado) => resultado.hallazgos.some((h) => h.gravedad =
 // ── Los encargos de un fondo (#396) ────────────────────────────────────────────
 
 /** Los estados del fondo en que ya tiene que haber un plan completo (con su preventivo automático). */
-const ESTADOS_CON_PLAN = ["plan", "en-curso", "en-observacion", "cerrado-eficaz"];
+export const ESTADOS_CON_PLAN = ["plan", "en-curso", "en-observacion", "cerrado-eficaz"];
 const CLAVES_ENCARGO = CAMPOS_ENCARGO.map((c) => c.clave);
 const escalonDe = (id) => MECANISMOS.mecanismos.find((m) => m.id === id)?.escalon ?? null;
 
