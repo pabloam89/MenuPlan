@@ -50,8 +50,67 @@ export const SECCIONES_DE_HISTORIA = ["Lo que falló y por qué", "Registro de c
 /** En un JSON de una zona, campos que son identificadores o rutas, no prosa. */
 export const CAMPOS_NO_PROSA = ["id", "fuentes", "origen", "ref", "test", "donde"];
 
-export const CAMPOS_TERMINO = ["termino", "clase", "definicion", "sinonimos_prohibidos", "aplica_a"];
-export const CAMPOS_TERMINO_OPCIONALES = ["ref", "nota"];
+/**
+ * Ciclo de vida de un término (#481, fondo #479): un término no se borra ni se
+ * reutiliza con otro significado. Se retira y dice a cuál pasa (`pasa_a`, un
+ * término activo). El nombre de un retirado pasa a contar como sinónimo
+ * prohibido de su `pasa_a` en las zonas de este (el control lo busca).
+ */
+export const ESTADOS_TERMINO = {
+  activo: "Se usa: es la palabra canónica de su significado",
+  retirado: "Ya no se usa: se dice su pasa_a; el nombre queda para que nadie lo reutilice",
+};
+
+export const CAMPOS_TERMINO = ["termino", "estado", "clase", "definicion", "sinonimos_prohibidos", "aplica_a"];
+export const CAMPOS_TERMINO_OPCIONALES = ["pasa_a", "amplio", "estrecho", "relacionado", "ref", "nota"];
+
+/**
+ * Relaciones entre términos (#481), las de un tesauro (ISO 25964, SKOS): `amplio` es el
+ * término genérico (uno, de la misma clase: «revisor» es un «juez»), `estrecho` sus
+ * específicos y `relacionado` los que se citan juntos sin ser uno caso del otro. Todas
+ * son referencias a términos activos que existen, y recíprocas: si A tiene amplio B,
+ * B tiene A en estrecho; si A está relacionado con B, B con A.
+ */
+export const RELACIONES = {
+  amplio: "El término genérico, de la misma clase: este es un caso de aquel",
+  estrecho: "Los términos específicos: cada uno es un caso de este",
+  relacionado: "Términos que se citan juntos sin ser uno caso del otro",
+};
+
+/**
+ * Forma de la definición (ISO 704: género próximo + diferencia): «un/una X que Y».
+ * Se comprueba con una heurística: empieza por artículo + sustantivo (o, en un verbo de
+ * clase accion, por un infinitivo, que es su género) y contiene «que» como palabra.
+ * Si el término tiene `amplio`, el género es ese: la definición empieza por él («revisor»,
+ * de amplio «juez»: «El juez que …»). Sin amplio, no ve si el género es el bueno: eso es
+ * del revisor.
+ */
+export const ARTICULOS = ["un", "una", "el", "la", "los", "las"];
+const NO_SUSTANTIVO = new Set(["que", "de", "del", "en", "con", "por", "para", "a", "y", "o", "se", "lo", "su", "sus"]);
+/** Las definiciones que no tienen la forma: SOLO BAJA (el test la compara con su partida). Hoy, ninguna. */
+export const EXCEPCIONES_FORMA = [];
+
+/** Si la definición tiene la forma «un/una X que Y». Devuelve null si la tiene, o el motivo. */
+export function faltaDeForma(t) {
+  const d = String(t.definicion ?? "").trim();
+  const [p1 = "", p2 = ""] = d.split(/\s+/).map((x) => x.replace(/[^\p{L}]/gu, "").toLowerCase());
+  const conArticulo = ARTICULOS.includes(p1) && p2.length > 1 && !NO_SUSTANTIVO.has(p2);
+  const infinitivo = t.clase === "accion" && /^\p{L}+(ar|er|ir)$/u.test(p1);
+  if (!conArticulo && !infinitivo) return t.clase === "accion" ? "no empieza por un infinitivo ni por artículo + sustantivo" : "no empieza por artículo + sustantivo («un/una X»)";
+  if (!/(?<!\p{L})que(?!\p{L})/iu.test(d)) return "no dice la diferencia con «que …»";
+  if (typeof t.amplio === "string") {
+    const ws = plano(d).split(/\s+/).map((x) => x.replace(/[^a-z0-9]/g, ""));
+    const genero = conArticulo ? ws.slice(1) : ws;
+    const amplio = plano(t.amplio).split(/\s+/);
+    if (!amplio.every((w, i) => genero[i] === w)) return `no empieza por su amplio («${t.amplio}»), que es su género`;
+  }
+  return null;
+}
+
+const activo = (t) => t.estado !== "retirado";
+
+/** Los términos activos. */
+export const activos = (g) => (g.terminos ?? []).filter(activo);
 /** Una definición es una sola idea corta. */
 export const MAX_DEFINICION = 220;
 
@@ -74,13 +133,15 @@ export function patronDe(palabra) {
   return new RegExp(`(?<![\\p{L}\\p{N}_-])${cuerpo}(?![\\p{L}\\p{N}_-])`, "giu");
 }
 
-/** Sinónimo → término canónico. */
+/** Lo que no se dice de un término: sus sinónimos y, si está retirado, también su nombre. */
+export const prohibidosDe = (t) => (activo(t) ? t.sinonimos_prohibidos ?? [] : [normal(t.termino), ...(t.sinonimos_prohibidos ?? [])]);
+
+/** Sinónimo (o nombre retirado) → término canónico. Un retirado manda a su pasa_a. */
 export function canonicoDe(glosario) {
   const m = new Map();
-  for (const t of glosario.terminos) for (const s of t.sinonimos_prohibidos ?? []) m.set(normal(s), t.termino);
+  for (const t of glosario.terminos) for (const s of prohibidosDe(t)) m.set(normal(s), activo(t) ? t.termino : t.pasa_a);
   return m;
 }
-
 /** Comprueba la forma del glosario. Devuelve una lista de problemas en texto (vacía si está bien). */
 export function problemasDeGlosario(g, { existe = () => true, leer = () => null } = {}) {
   const p = [];
@@ -92,6 +153,7 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
   const terminos = g.terminos ?? [];
   if (terminos.length === 0) p.push("terminos: no hay ninguno");
   const canonicos = new Set(terminos.map((t) => plano(t.termino)));
+  const nombresActivos = new Set(terminos.filter(activo).map((t) => t.termino));
   const vistos = new Map();
   const sinonimoDe = new Map();
   for (const t of terminos) {
@@ -100,6 +162,11 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
     for (const c of Object.keys(t)) if (![...CAMPOS_TERMINO, ...CAMPOS_TERMINO_OPCIONALES].includes(c)) p.push(`${id}: campo desconocido ${c}`);
     if (vistos.has(normal(id))) p.push(`${id}: término repetido`);
     vistos.set(normal(id), true);
+    if ("estado" in t && !(t.estado in ESTADOS_TERMINO)) p.push(`${id}: estado «${t.estado}» fuera del vocabulario (${Object.keys(ESTADOS_TERMINO).join(", ")})`);
+    if (t.estado === "retirado") {
+      if (!t.pasa_a) p.push(`${id}: retirado sin pasa_a (di a qué término activo pasa)`);
+      else if (!nombresActivos.has(t.pasa_a)) p.push(`${id}: pasa_a «${t.pasa_a}», que no es un término activo`);
+    } else if ("pasa_a" in t) p.push(`${id}: pasa_a solo va en un término retirado`);
     if (!(t.clase in CLASES)) p.push(`${id}: clase «${t.clase}» fuera del vocabulario (${Object.keys(CLASES).join(", ")})`);
     if (typeof t.definicion !== "string" || t.definicion.trim().length < 10) p.push(`${id}: definición vacía`);
     else if (t.definicion.length > MAX_DEFINICION) p.push(`${id}: definición de ${t.definicion.length} caracteres (máximo ${MAX_DEFINICION})`);
@@ -123,13 +190,65 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
       }
     }
   }
-  // El glosario se cumple a sí mismo: ninguna definición usa un sinónimo prohibido.
+  p.push(...problemasDeRelaciones(terminos));
   for (const t of terminos) {
-    for (const [s, canon] of sinonimoDe) {
+    const falta = faltaDeForma(t);
+    if (falta && !EXCEPCIONES_FORMA.includes(t.termino)) p.push(`${t.termino}: la definición ${falta} (ISO 704: «un/una X que Y»)`);
+  }
+  // El glosario se cumple a sí mismo: ninguna definición usa un sinónimo prohibido ni un término retirado.
+  const prohibidos = canonicoDe({ terminos });
+  for (const t of terminos) {
+    for (const [s, canon] of prohibidos) {
       if (patronDe(s).test(plano(limpiarProsa(String(t.definicion ?? ""))))) p.push(`${t.termino}: su definición usa «${s}» (di «${canon}»)`);
     }
   }
   return p;
+}
+
+/** Las relaciones: referencias a términos activos, recíprocas, de la misma clase en amplio y sin ciclos. */
+export function problemasDeRelaciones(terminos) {
+  const p = [];
+  const por = new Map(terminos.map((t) => [t.termino, t]));
+  const vivo = (n) => por.has(n) && activo(por.get(n));
+  for (const t of terminos) {
+    const id = t.termino;
+    if ("amplio" in t && typeof t.amplio !== "string") p.push(`${id}: amplio es un término, no una lista`);
+    for (const c of ["estrecho", "relacionado"]) if (c in t && (!Array.isArray(t[c]) || t[c].length === 0)) p.push(`${id}: ${c} es una lista no vacía`);
+    const refs = [...(typeof t.amplio === "string" ? [["amplio", t.amplio]] : []), ...["estrecho", "relacionado"].flatMap((c) => (Array.isArray(t[c]) ? t[c].map((x) => [c, x]) : []))];
+    for (const [c, x] of refs) {
+      if (x === id) p.push(`${id}: ${c} apunta a sí mismo`);
+      else if (!vivo(x)) p.push(`${id}: ${c} «${x}», que no es un término activo`);
+    }
+    if (!activo(t) && refs.length) p.push(`${id}: un retirado no lleva relaciones (van en su pasa_a)`);
+    if (typeof t.amplio === "string" && vivo(t.amplio)) {
+      const a = por.get(t.amplio);
+      if (a.clase !== t.clase) p.push(`${id}: amplio «${t.amplio}» es de clase ${a.clase} y este de ${t.clase}`);
+      if (!(a.estrecho ?? []).includes(id)) p.push(`${id}: amplio «${t.amplio}», pero ${t.amplio} no lo tiene en estrecho`);
+    }
+    for (const x of Array.isArray(t.estrecho) ? t.estrecho : []) if (vivo(x) && por.get(x).amplio !== id) p.push(`${id}: estrecho «${x}», pero el amplio de ${x} no es ${id}`);
+    for (const x of Array.isArray(t.relacionado) ? t.relacionado : []) {
+      if (vivo(x) && !(por.get(x).relacionado ?? []).includes(id)) p.push(`${id}: relacionado con «${x}», pero ${x} no lo tiene en relacionado`);
+      if (x === t.amplio || (t.estrecho ?? []).includes(x)) p.push(`${id}: «${x}» es amplio o estrecho y también relacionado`);
+    }
+    // Sin ciclos en amplio.
+    const vistos = new Set([id]);
+    for (let a = t.amplio; typeof a === "string" && por.has(a); a = por.get(a).amplio) {
+      if (vistos.has(a)) { p.push(`${id}: ciclo en amplio (${[...vistos, a].join(" → ")})`); break; }
+      vistos.add(a);
+    }
+  }
+  return p;
+}
+
+/** Cuántos términos tienen alguna relación, y cuántas definiciones no tienen la forma. */
+export function cifrasDeForma(g) {
+  const ts = activos(g);
+  return {
+    terminos: ts.length,
+    con_relaciones: ts.filter((t) => t.amplio || t.estrecho?.length || t.relacionado?.length).length,
+    sin_forma: ts.filter((t) => faltaDeForma(t)).length,
+    excepciones_forma: EXCEPCIONES_FORMA.length,
+  };
 }
 
 const enBlanco = (s) => s.replace(/[^\n]/g, " ");
@@ -263,7 +382,7 @@ export function medir(raiz, g, { leer = (r) => readFileSync(join(raiz, r), "utf8
       for (const p of g.zonas[z]) {
         for (const ruta of ficheros(p)) {
           if (!sinonimosPorRuta.has(ruta)) sinonimosPorRuta.set(ruta, new Set());
-          for (const s of t.sinonimos_prohibidos) sinonimosPorRuta.get(ruta).add(normal(s));
+          for (const s of prohibidosDe(t)) sinonimosPorRuta.get(ruta).add(normal(s));
         }
       }
     }
@@ -346,11 +465,31 @@ export function excepcionesPorZona(g, excepciones, { ficheros }) {
 /** Texto de un término para `npm run glosario -- <término>`. */
 export function textoTermino(t, g, excepciones) {
   const n = excepcionesPorTermino(g, excepciones)[t.termino] ?? 0;
-  const l = [`${t.termino} (${t.clase}): ${t.definicion}`];
+  const l = [`${t.termino} (${t.clase}${t.estado === "retirado" ? `, retirado: di «${t.pasa_a}»` : ""}): ${t.definicion}`];
   if (t.sinonimos_prohibidos.length) l.push(`  no se dice: ${t.sinonimos_prohibidos.join(", ")}`);
+  const rel = ["amplio", "estrecho", "relacionado"].filter((k) => t[k]).map((k) => `${k}: ${[t[k]].flat().join(", ")}`);
+  if (rel.length) l.push(`  ${rel.join("; ")}`);
   if (t.nota) l.push(`  nota: ${t.nota}`);
   if (t.ref) l.push(`  ref: ${t.ref.fichero} (${t.ref.clave})`);
   l.push(`  aplica a: ${t.aplica_a.join(", ")}`);
   l.push(`  excepciones: ${n}`);
   return l.join("\n");
+}
+
+/**
+ * El ciclo de vida contra una referencia (origin/staging, #481): ningún término de la
+ * referencia desaparece (se retira con su pasa_a) y ninguno retirado allí vuelve a
+ * activo (sería reutilizar su nombre con otro significado). `ref` es el glosario de la
+ * referencia, o una lista de nombres fijada en el test cuando no hay git.
+ */
+export function problemasDeVidaGlosario(actual, ref) {
+  const p = [];
+  const ahora = new Map((actual.terminos ?? []).map((t) => [plano(t.termino), t]));
+  const antes = Array.isArray(ref) ? ref.map((termino) => ({ termino, estado: "activo" })) : ref.terminos ?? [];
+  for (const t of antes) {
+    const x = ahora.get(plano(t.termino));
+    if (!x) p.push(`${t.termino}: estaba en el glosario y ha desaparecido; no se borra: estado «retirado» y pasa_a`);
+    else if (t.estado === "retirado" && x.estado !== "retirado") p.push(`${t.termino}: estaba retirado y vuelve a activo; un nombre retirado no se reutiliza (usa otro término)`);
+  }
+  return p;
 }

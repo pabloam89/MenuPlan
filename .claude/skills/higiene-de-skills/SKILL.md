@@ -1,6 +1,6 @@
 ---
 name: higiene-de-skills
-description: Úsala para revisar UNA skill ya escrita y sacar su lista de defectos con el arreglo de cada uno: «revisa la skill de vercel», «¿está al día esta skill?», «¿cuánto le queda para caducar?», «¿cita algo que ya no existe?», «¿solapa con otra?», «higiene de skills», y en el repaso periódico de todas. No para: crear una skill nueva ni decidir si hace falta (forja-de-skills), medir con tokens si dispara (npm run skills-prueba) ni operar el servicio que describe (su skill).
+description: Úsala para revisar UNA skill ya escrita y sacar su lista de defectos con el arreglo de cada uno: «revisa la skill de vercel», «¿está al día esta skill?», «¿cuánto le queda para caducar?», «¿cita algo que ya no existe?», «¿solapa con otra?», «higiene de skills», y en el repaso periódico de todas, glosario incluido («¿qué palabras faltan en el glosario?»). No para: crear una skill nueva ni decidir si hace falta (forja-de-skills), medir con tokens si dispara (npm run skills-prueba) ni operar el servicio que describe (su skill).
 metadata:
   tipo: revision
   opera_proveedor: false
@@ -54,6 +54,11 @@ No es para:
    descripción sin pasar el solape.
 6. **Vuelve a lanzar** el script y `npx vitest run .claude/skills.test.js`.
    Pon la cifra antes y después en el PR.
+7. **En el repaso periódico, también el glosario**: baja sus excepciones
+   (`npm run glosario -- --medir`) y juzga cada candidato a término de
+   `npm run glosario -- --candidatos` (término nuevo, sinónimo de otro o nada,
+   con su motivo). El método, en
+   `.claude/skills/higiene-de-skills/referencias/glosario.md`.
 
 Sale bien si: `faltas: 0` en el script, el nivel 1 en verde, cada aviso
 arreglado o explicado, y la cifra del conjunto (`Higiene: n skills, … faltas y …
@@ -110,6 +115,7 @@ Se quita o se funde en `forja-de-skills` si:
 
 ## Registro de cambios
 
+- **2026-10-10** · El repaso periódico incluye el glosario: bajar sus excepciones y juzgar los candidatos a término de `npm run glosario -- --candidatos`, con el método en `.claude/skills/higiene-de-skills/referencias/glosario.md` (#481).
 - **2026-10-10** · Primera versión: lista de defectos de una skill con su arreglo, script `npm run higiene-skills`, diez controles propios sobre los de la forja y su test con una skill mala (#411).
 
 ## Fuentes y comprobación
