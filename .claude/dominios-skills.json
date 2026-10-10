@@ -41,6 +41,17 @@
         "^scripts/lib/tecnicas\\.mjs$"
       ]
     },
+    "alta-de-secreto": {
+      "comandos": [
+        "\\bgh\\s+secret\\s+set\\b",
+        "\\bvercel(?:\\.cmd)?\\s+env\\s+add\\b",
+        "(?:^|[\\s\"'=;&|(])op(?:\\.exe)?(?:\\s+--)?\\s+item\\s+create\\b"
+      ],
+      "rutas": [
+        "^scripts/clave-[\\w-]+\\.mjs$",
+        "^scripts/lib/claveRol\\.mjs$"
+      ]
+    },
     "plan-de-arreglo": {
       "comandos": [],
       "rutas": [

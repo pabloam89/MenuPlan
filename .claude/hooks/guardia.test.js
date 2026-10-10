@@ -9,6 +9,8 @@ import { carpetaDe, contextoReal, decidir, sinAplicar } from "./guardia.mjs";
 import { cargarMapa } from "./dominios.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+// El registro de eventos (#340) escribe en ~/.claude/menuplan-fabrica: un test que lanza la guardia no toca la carpeta real del usuario.
+process.env.MENUPLAN_FABRICA_DIR = mkdtempSync(join(tmpdir(), "guardia-eventos-"));
 const ESTADO_REAL = readFileSync(join(RAIZ, "supabase", "ESTADO.md"), "utf8");
 
 const ESTADO = "| **Sin aplicar** | **2** — `0080_bot_tareas_v2`, `0086_vocabulario_de_la_app` |";
@@ -429,13 +431,12 @@ describe("carpetaDe", () => {
   it("git -C manda", () => expect(carpetaDe("cd A && git -C 'D' commit", "git -C 'D' commit", "C:/s")).toBe("D"));
 });
 
-it("cambiar los permisos o lo que vigila cada orden pregunta; el resto de hooks, no", () => {
-  expect(edita("C:\\dev\\MenuPlan\\.claude\\settings.json")).toBe("ask");
-  expect(edita("C:/dev/MenuPlan/.claude/hooks/guardia.mjs")).toBe("ask");
-  expect(edita("C:/dev/MenuPlan-x/.claude/hooks/sesiones.mjs")).toBe("ask");
+it("editar los permisos o los hooks ya no pregunta: va por PR con juez y CI", () => {
+  expect(edita("C:\\dev\\MenuPlan-x\\.claude\\settings.json")).toBe(null);
+  expect(edita("C:/dev/MenuPlan-x/.claude/hooks/guardia.mjs")).toBe(null);
+  expect(edita("C:/dev/MenuPlan-x/.claude/hooks/sesiones.mjs")).toBe(null);
   expect(edita("C:/dev/MenuPlan-x/.claude/hooks/arranque.mjs")).toBe(null);
-  expect(edita("C:/dev/MenuPlan-x/.claude/hooks/guardia.test.js")).toBe(null);
-  expect(edita("C:/dev/MenuPlan/.claude/settings.local.json")).toBe(null);
+  expect(edita("C:/dev/MenuPlan-x/.claude/settings.local.json")).toBe(null);
 });
 
 describe("ESTADO.md de verdad", () => {

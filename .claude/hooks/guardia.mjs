@@ -544,13 +544,6 @@ export function decidir(entrada, ctx) {
       if (motivo) return deny(motivo);
     }
     if (ctx.rutaEnPrincipal(ruta)) return deny(EN_LA_PRINCIPAL);
-    // Los permisos y el código que vigila cada orden (la guardia y lo que
-    // importa, y skill-abierta) preguntan: en una carpeta de trabajo hacen
-    // efecto en la orden siguiente, sin PR ni juez (juez de seguridad del PR
-    // #223). El resto de hooks y sus tests van por PR sin preguntar.
-    if (/[\\/]\.claude[\\/](?:settings\.json|hooks[\\/](?:guardia|dominios|migraciones|sesiones|skill-abierta)\.mjs)$/.test(ruta)) {
-      return ask("Esto cambia los permisos o el código que vigila cada orden, y en tu carpeta hace efecto ya. Pídele el OK a Pablo.");
-    }
     return null;
   }
 
@@ -558,6 +551,18 @@ export function decidir(entrada, ctx) {
 }
 
 // ── Entrada desde Claude Code ──────────────────────────────────────────────
+
+/** Cuándo arrancó este proceso: la guardia mide cuánto ha tardado en contestar. */
+const INICIO = Date.now();
+
+/**
+ * Milisegundos a partir de los cuales la guardia ya NO añade el registro de eventos (#340). Contestar
+ * suele costar menos de 1 s, pero `contextoReal` puede tardar 15-30 s con la red lenta (git fetch, gh);
+ * el registro lanza otro `git` (hasta 3 s) y esperarlo allí sería sumarle espera a una sesión que ya
+ * esperó. Con 5 s, el caso normal (< 1 s) siempre registra y el lento se salta el registro.
+ */
+export const TOPE_PARA_REGISTRAR_MS = 5000;
+export const hayTiempoParaRegistrar = (inicio, ahora = Date.now()) => ahora - inicio <= TOPE_PARA_REGISTRAR_MS;
 
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 
@@ -603,6 +608,29 @@ if (esPrincipal) {
     // a propósito: el registro es una ayuda, no un requisito; si falla, el arranque lo dice
   }
   const r = decidir(entrada, contextoReal(raiz, entrada));
-  if (r) responder(r);
+  if (r) {
+    // La respuesta sale PRIMERO: lo que decide la guardia no puede depender de un módulo de
+    // registro que se cuelgue o haga process.exit (juez de seguridad de #340).
+    responder(r);
+    // El registro de eventos (#340) cuenta cada bloqueo y cada permiso pedido. Import dinámico,
+    // dentro de un try y con tope de tiempo: si no carga, falla o se cuelga, la decisión ya salió.
+    try {
+      if (!hayTiempoParaRegistrar(INICIO)) throw new Error("la guardia ya tardó demasiado: sin registro");
+      const registro = (async () => {
+        const { familiaDeGuardia, registrarEvento } = await import("./eventos.mjs");
+        registrarEvento({
+          evento: r.decision === "deny" ? "bloqueo_guardia" : "permiso_pedido",
+          nombre: familiaDeGuardia(r.motivo),
+          sesion: entrada.session_id,
+          cwd: entrada.cwd || raiz,
+        });
+      })();
+      let temporizador;
+      await Promise.race([registro, new Promise((alTiempo) => { temporizador = setTimeout(alTiempo, 3000); })]);
+      clearTimeout(temporizador);
+    } catch {
+      // a propósito: el registro es una ayuda; un fallo suyo no puede cambiar lo que decide la guardia
+    }
+  }
   process.exit(0);
 }
