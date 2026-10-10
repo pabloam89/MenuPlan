@@ -35,6 +35,18 @@
       "id": "frontera-cron-recordatorios",
       "peticion": "El cron de recordatorios del bot no está saltando cada 5 minutos.",
       "skill": "supabase"
+    },
+    {
+      "id": "frontera-token-cli",
+      "peticion": "Necesito un token de Vercel nuevo, con ámbito de cuenta, para que un workflow lea los logs; ¿cómo lo creo y lo subo?",
+      "skill": "alta-de-secreto",
+      "nota": "Casi-fallo: es un token de Vercel, pero darlo de alta de punta a punta es de alta-de-secreto."
+    },
+    {
+      "id": "frontera-lint-rojo",
+      "peticion": "Mi PR despliega bien en Vercel pero el check tests falla en el lint; ¿cómo lo reproduzco?",
+      "skill": "github",
+      "nota": "Casi-fallo: el despliegue va bien (vercel); lo que falla es el CI de GitHub."
     }
   ]
 }

@@ -14,7 +14,7 @@ metadata:
 - **Una red privada (tailnet)** entre los aparatos de Pablo: lo que no está en
   ella no ve el servidor del panel. Cuenta de Pablo (entra con Google), plan
   **Free**. Consola: `console.tailscale.com/admin/machines`.
-- **Máquinas hoy (8 oct 2026):**
+- **Máquinas hoy** (la fecha, en «Comprobado el» de abajo):
   - `homenu-panel`, el servidor de Hetzner, Linux, `100.73.252.32`.
   - `pabloartinano`, el PC de Pablo, Windows, `100.72.247.69`.
 - **Para qué:** el servidor del panel no abre ningún puerto a internet. Todo

@@ -50,6 +50,18 @@
       "id": "frontera-sin-causa",
       "peticion": "Algo ha fallado en producción y aún no sabemos por qué; antes de arreglar nada quiero entender qué pasó.",
       "skill": "causa-raiz"
+    },
+    {
+      "id": "frontera-colgar-caso-cerrado",
+      "peticion": "Ha aparecido un caso nuevo del mismo fallo que cerramos con un PR; ¿cómo lo cuelgo del fondo y se reabre?",
+      "skill": "issues",
+      "nota": "Casi-fallo: habla de fondo y de arreglo, pero colgar casos y reabrir fondos es de issues."
+    },
+    {
+      "id": "frontera-lineas-del-pr",
+      "peticion": "Voy a abrir el PR de un encargo: ¿qué pongo en Closes, Agente y Casos para que el CI no falle?",
+      "skill": "github",
+      "nota": "Casi-fallo: sale de un plan, pero las líneas del PR y su CI son de github."
     }
   ]
 }
