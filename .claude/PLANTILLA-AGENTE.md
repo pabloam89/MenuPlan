@@ -136,7 +136,7 @@ sustituye a buscar a propósito.
 
 Un subagente no hereda el tono de la sesión, así que lo lleva aquí. Lo que
 Pablo lee (el `RESUMEN` y las `DECISIONES PENDIENTES`) sigue la regla «Cómo se
-le habla a Pablo» de `CLAUDE.md` y la skill `voz-con-pablo`:
+le habla a Pablo» de `CLAUDE.md` y la skill `estilo-de-respuesta`:
 
 - Primera línea: la idea raíz en negrita, una frase con el resultado. Cuatro
   ideas cortas, como mucho; frases de menos de 25 palabras; sin emojis.

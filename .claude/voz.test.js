@@ -6,7 +6,7 @@ import { cargarContexto, cargarSkill, faltasDeSkill } from "../scripts/lib/skill
 
 /**
  * La voz con Pablo (10 oct 2026): una regla corta en CLAUDE.md, el detalle en la
- * skill `voz-con-pablo` y un resumen en la plantilla de agentes. Aquí se vigila
+ * skill `estilo-de-respuesta` y un resumen en la plantilla de agentes. Aquí se vigila
  * lo medible: que las tres piezas nombren las mismas cinco plantillas y la regla
  * de las tres opciones, que la skill pase el nivel 1 y que los ejemplos
  * canónicos (bloques `mensaje`) cumplan las reglas medibles de la propia voz.
@@ -56,7 +56,7 @@ export function nombraPlantillas(texto) {
 
 describe("las tres piezas de la voz dicen lo mismo", () => {
   const claude = leer("CLAUDE.md");
-  const skill = leer(".claude/skills/voz-con-pablo/SKILL.md");
+  const skill = leer(".claude/skills/estilo-de-respuesta/SKILL.md");
   const plantillaAgente = leer(".claude/PLANTILLA-AGENTE.md");
 
   it("CLAUDE.md y la plantilla de agentes nombran las cinco plantillas", () => {
@@ -76,21 +76,21 @@ describe("las tres piezas de la voz dicen lo mismo", () => {
   });
 
   it("CLAUDE.md y la plantilla de agentes apuntan a la skill, y la regla de CLAUDE.md está en su sitio", () => {
-    expect(claude).toMatch(/skill `voz-con-pablo`/);
-    expect(plantillaAgente).toMatch(/skill `voz-con-pablo`/);
+    expect(claude).toMatch(/skill `estilo-de-respuesta`/);
+    expect(plantillaAgente).toMatch(/skill `estilo-de-respuesta`/);
     expect(claude).toMatch(/## Cómo se le habla a Pablo/);
-    expect(claude).toMatch(/`voz-con-pablo`\s*\(cómo se le escribe a Pablo\)/);
+    expect(claude).toMatch(/`estilo-de-respuesta`\s*\(cómo\s+se\s+escribe\s+a\s+Pablo/);
   });
 
   it("la skill pasa el nivel 1", () => {
     const ctx = cargarContexto(RAIZ);
-    const s = cargarSkill("voz-con-pablo", RAIZ);
+    const s = cargarSkill("estilo-de-respuesta", RAIZ);
     expect(faltasDeSkill(s, ctx).map((x) => `${x.regla}: ${x.mensaje ?? x.texto ?? ""}`)).toEqual([]);
   });
 });
 
 describe("los ejemplos canónicos cumplen la voz", () => {
-  const texto = readFileSync(join(RAIZ, ".claude/skills/voz-con-pablo/plantillas/plantillas.md"), "utf8");
+  const texto = readFileSync(join(RAIZ, ".claude/skills/estilo-de-respuesta/plantillas/plantillas.md"), "utf8");
   const bloques = bloquesMensaje(texto);
 
   it("hay un ejemplo por plantilla", () => expect(bloques.length).toBe(PLANTILLAS.length));

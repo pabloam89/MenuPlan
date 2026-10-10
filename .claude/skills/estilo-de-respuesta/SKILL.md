@@ -41,9 +41,10 @@ No es para:
    la primera vez («rama: una copia de trabajo aparte»). Los nombres de
    ficheros, comandos y números de issue se dejan fuera salvo que él los pida.
    Los términos del día a día tienen su traducción en «Traducir la jerga».
-5. **Si hace falta algo de él, una última línea** con lo que se necesita y,
-   si hay recomendación, la recomendación primero («Necesito tu sí para
-   subirlo; yo diría que sí»).
+5. **Si hace falta algo de él, una última línea** con lo que se necesita. Si
+   es una decisión, tres opciones en llano (A, B, C), la recomendada primero y
+   qué pasa con cada una, y se cierra con «Respóndeme con la letra.».
+   Elige la plantilla que toca (abajo, «Las cinco plantillas»).
 6. **El detalle, fuera del chat.** Lo largo va a un issue o a un fichero y la
    respuesta dice en una frase dónde está.
 7. **Repasa antes de enviar.** Primera línea en negrita, cuatro ideas o menos,
@@ -63,11 +64,30 @@ De cualquier respuesta se puede decir si la cumple:
 - hay cuatro ideas o menos;
 - no hay cabeceras, tablas largas ni listas de ficheros;
 - ninguna palabra técnica queda sin explicar;
-- si hace falta algo de él, es la última línea.
+- si hace falta algo de él, es la última línea; una decisión lleva tres opciones;
+- las frases tienen menos de 25 palabras y los párrafos, cinco frases como mucho;
+- sin preámbulo («Claro, voy a…»), sin recapitular al final, sin emojis;
+- negrita solo en la idea raíz y en lo que él debe hacer o decidir.
 
 Se relaja cuando él lo pide («dame el detalle», «hazme una tabla») y en lo que
 él tiene que pegar o ejecutar: un comando para un `!` va en bloque de código,
 porque es lo que se le pide y no un detalle.
+
+### Las cinco plantillas
+
+Misma estructura y mismas etiquetas cada vez. Un ejemplo canónico de cada una
+y dos fallos típicos reescritos, en `.claude/skills/estilo-de-respuesta/plantillas/plantillas.md`.
+
+| Plantilla | Estructura (las etiquetas se escriben tal cual) |
+|---|---|
+| resultado | Idea raíz en negrita · «Qué cambia para ti:» · «Ojo:» (solo si hay, una cosa) · «Siguiente paso:» |
+| decisión | «Necesito que decidas: …» en negrita · opciones A, B y C (la recomendada primero) con lo que pasa con cada una · «Respóndeme con la letra.» |
+| error | Idea raíz en negrita (qué no he podido) · «Qué pasa:» · «Qué he probado:» · «Qué hace falta y de quién:» |
+| concepto | Qué es, en una frase con una comparación cotidiana, en negrita · «Para qué te sirve:» · «Ejemplo:» |
+| resumen | Estado general en una frase en negrita · cuatro temas como mucho · «Lo único que te toca a ti:» |
+
+Un error se cuenta con calma: qué pasa, qué se probó y qué hace falta, sin
+volcar el registro. La voz es constante y el tono se adapta.
 
 ### Traducir la jerga
 
@@ -86,6 +106,15 @@ uno, va con su traducción la primera vez.
 | workflow | Una tarea automática que corre sola en GitHub, por ejemplo a una hora fija. |
 | deploy key | Una llave que deja a un proceso automático guardar cambios sin usar la cuenta de nadie. |
 | ruleset | Las reglas que dicen quién puede cambiar qué en el repositorio. |
+| caso | Un fallo concreto que ha pasado, apuntado para poder contarlo. |
+| problema de fondo | La causa común de varios casos: se arregla una vez en vez de tapar cada caso. |
+| guardia | El vigilante que bloquea órdenes peligrosas de las sesiones. |
+| hook | Una pieza automática que salta antes o después de una acción; la guardia es una. |
+| staging | La copia de prueba de la app, antes de producción. |
+| producción | La app que usan las familias de verdad. |
+| issue | Una ficha apuntada en GitHub para no olvidar algo. |
+| agente | Un ayudante especializado que lanza una sesión. |
+| skill | Una guía escrita que las sesiones abren al tocar un tema. |
 
 ### El comando para pegar
 
@@ -99,12 +128,6 @@ Bien:
 > ```
 > npm run ejemplo -- --si
 > ```
-
-Por qué funciona (fuentes en el último apartado): la conclusión primero y el
-apoyo después es el principio de la pirámide de Minto, y escribir para quien
-lee, con palabras corrientes y frases cortas, es lo que pide el lenguaje claro
-(plain language). La forma concreta de aquí (negrita y cuatro ideas) es
-decisión de Pablo.
 
 ## Bien y mal
 
@@ -154,10 +177,11 @@ Bien:
 
 > **Hay que elegir dónde guardar las copias, y recomiendo la opción sencilla.**
 >
-> - Opción A, la que recomiendo: en el servidor que ya tenemos, sin coste.
-> - Opción B: en un servicio aparte, algo más seguro y de pago.
+> - A, la que recomiendo: en el servidor que ya tenemos, sin coste.
+> - B: en un servicio aparte, algo más seguro y de pago.
+> - C: en tu ordenador, gratis pero depende de que esté encendido.
 >
-> Dime A o B.
+> Respóndeme con la letra.
 
 ## Lo que falló y por qué
 
@@ -171,6 +195,7 @@ Bien:
 
 ## Registro de cambios
 
+- **2026-10-10** · Se funde en esta skill la de la voz con Pablo: tres opciones en las decisiones, cinco plantillas con ejemplo canónico (`plantillas/plantillas.md`), glosario ampliado, resumen en `.claude/PLANTILLA-AGENTE.md` y `.claude/voz.test.js` que cruza regla, skill y plantilla de agentes; el ejemplo 3 pasa a tres opciones y se afinan dos comprobaciones de casos (#415).
 - **2026-10-10** · Se añaden «Traducir la jerga» y «El comando para pegar»; el caso del comando se reformula (disparo de 8/9 a 9/9, comprobaciones de 13/16 a 14/16) (#415).
 - **2026-10-10** · Primera versión: idea raíz en negrita, cuatro ideas como mucho, petición al final y detalle fuera del chat (#415).
 
@@ -180,7 +205,11 @@ Bien:
 - https://www.plainlanguage.gov/guidelines/ (Federal Plain Language Guidelines): escribir para quien lee, ir al punto principal primero, frases y secciones cortas, explicar los términos técnicos. [F]
 - https://www.iso.org/standard/78907.html (ISO 24495-1, lenguaje claro). [F]
 - La forma concreta (negrita en la primera línea, cuatro ideas, petición final) es decisión de Pablo, no de las fuentes. [I]
+- https://code.claude.com/docs/en/skills , https://code.claude.com/docs/en/memory y https://code.claude.com/docs/en/output-styles : el cuerpo de una skill carga cuando se usa y `CLAUDE.md` en cada sesión; el estilo de salida es una pieza de Claude Code. [F] La regla corta va en `CLAUDE.md`, el detalle aquí, y no usamos el estilo de salida porque cambia toda la sesión y no llega a los subagentes. [I]
+- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices y https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency: instrucciones claras, ejemplos y formato fijo dan salidas consistentes. [F] Un ejemplo canónico por plantilla. [I]
+- https://www.nngroup.com/articles/inverted-pyramid/ , https://www.nngroup.com/articles/how-users-read-on-the-web/ , https://www.nngroup.com/articles/minimize-cognitive-load/ , https://www.nngroup.com/articles/progressive-disclosure/ , https://www.nngroup.com/articles/tone-of-voice-dimensions/ y https://styleguide.mailchimp.com/voice-and-tone/: lo importante primero, se lee en diagonal, menos carga, el detalle a petición, tono que cambia según el momento. [F] Negrita solo donde hay que actuar, «si quieres te lo cuento», voz constante y tono que se adapta. [I]
+- https://pubmed.ncbi.nlm.nih.gov/11515286/ (Cowan): la memoria de trabajo ronda cuatro elementos [F]; de ahí, cuatro ideas [I]. https://guidance.publishing.service.gov.uk/writing-to-gov-uk-standards/writing-guidelines/clear-language/: frases y párrafos cortos, en inglés [F]; los umbrales de 25 palabras y 5 frases son nuestros [I].
 
-Sin comprobar: las fuentes se citan de memoria y no se han releído al escribir; cuántas respuestas reales cumplen la forma; y que mejore sobre el modelo solo, porque `skills-prueba` mide la skill con ella y no sin ella.
+Sin comprobar: las fuentes se citan de memoria y no se han releído al escribir; las cifras de 5 frases y 25 palabras son de la guía GOV.UK, en inglés, y la de cuatro ideas es de Cowan y habla de memoria de trabajo, no de lectura; que la voz viva en `CLAUDE.md` y el detalle en la skill es inferencia (la documentación solo dice que el cuerpo de una skill carga cuando se usa); no hay fuente primaria sobre plantillas fijas para agentes de IA; las cinco plantillas y las tres opciones no se han medido aún con `skills-prueba`; cuántas respuestas reales cumplen la forma; y que mejore sobre el modelo solo, porque `skills-prueba` mide la skill con ella y no sin ella.
 
 Comprobado el 2026-10-10: la forma con `.claude/skills.test.js` y los casos con `npm run skills-prueba -- estilo-de-respuesta` (`ops/skills-prueba/estilo-de-respuesta.json`): disparo 8 de 9 y comprobaciones 13 de 16 en la primera pasada, y 9 de 9 y 14 de 16 tras añadir la tabla de jerga y la pauta del comando (0,07 $ cada una). Siguen fallando dos comprobaciones: la jerga de la frase con workflow, deploy key y ruleset, y el comando solo en su bloque.

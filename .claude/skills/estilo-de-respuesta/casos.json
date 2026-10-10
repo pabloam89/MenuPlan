@@ -18,18 +18,18 @@
       "skill": "estilo-de-respuesta",
       "debe_salir": [
         "Empieza por una idea raíz en negrita en una frase sin jerga",
-        "Evita o explica en una frase los términos técnicos (workflow, deploy key, ruleset)",
+        "Evita o traduce a palabras corrientes los términos técnicos (workflow, deploy key, ruleset)",
         "No pasa de cuatro ideas y no usa tablas ni cabeceras"
       ]
     },
     {
       "id": "hay-que-decidir",
-      "peticion": "Hay dos formas de guardar las copias de seguridad: en el servidor que ya tenemos (gratis) o en un servicio aparte (de pago, algo más seguro). Pablo tiene que decidir. Escríbele.",
+      "peticion": "Hay tres formas de guardar las copias de seguridad: en el servidor que ya tenemos (gratis), en un servicio aparte (de pago, algo más seguro) o en el ordenador de Pablo (gratis, depende de que esté encendido). Pablo tiene que decidir. Escríbele.",
       "skill": "estilo-de-respuesta",
       "debe_salir": [
-        "La primera línea en negrita dice que hay que elegir y cuál recomiendas",
-        "Las opciones van en una o dos frases cada una, sin tabla de comparación",
-        "La última línea es lo que se necesita de él (que elija)"
+        "La primera línea en negrita empieza por «Necesito que decidas:»",
+        "Da tres opciones A, B y C en llano, la recomendada primero y marcada, y qué pasa con cada una, sin tabla de comparación",
+        "Termina con «Respóndeme con la letra.»"
       ]
     },
     {
@@ -48,8 +48,29 @@
       "skill": "estilo-de-respuesta",
       "debe_salir": [
         "La primera línea en negrita dice qué tiene que hacer y por qué",
-        "Una línea antes dice en llano qué hace el comando; el comando va solo en un bloque de código, sin detalle técnico alrededor",
+        "Una línea antes dice en llano qué hace el comando",
+        "El comando va solo en un bloque de código, sin detalle técnico alrededor",
         "Termina con una línea con lo que necesita de él"
+      ]
+    },
+    {
+      "id": "explicar-un-concepto",
+      "peticion": "Pablo pregunta: ¿qué es eso de la guardia y para qué sirve? Respóndele.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Usa la plantilla de concepto: una frase en negrita con una comparación cotidiana, «Para qué te sirve:» y «Ejemplo:»",
+        "No pasa de cuatro ideas ni nombra ficheros, ramas o comandos",
+        "Frases cortas, sin preámbulo y sin emojis"
+      ]
+    },
+    {
+      "id": "fallo-de-la-prueba",
+      "peticion": "Has intentado enviar un aviso de prueba y ha fallado la conexión; no sabes si es la red o un permiso. Cuéntale a Pablo cómo ha quedado.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Usa la plantilla de error: qué no he podido en negrita, «Qué pasa:», «Qué he probado:» y «Qué hace falta y de quién:»",
+        "Tono tranquilo, sin volcar el registro del error",
+        "Termina diciendo quién tiene que dar el siguiente paso"
       ]
     },
     {
@@ -75,6 +96,12 @@
       "peticion": "Documenta en docs/ el flujo completo de las migraciones, paso a paso y con todos los ficheros implicados.",
       "skill": "ninguna",
       "nota": "La documentación lleva el detalle que aquí se deja fuera del chat."
+    },
+    {
+      "id": "frontera-cuerpo-de-issue",
+      "peticion": "Abre un issue con la decisión pendiente sobre la hora de los avisos, con el detalle técnico de cada opción.",
+      "skill": "issues",
+      "nota": "Casi-fallo: hay una decisión para Pablo, pero el cuerpo del issue lleva el detalle técnico y es de la skill issues."
     }
   ]
 }
