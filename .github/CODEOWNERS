@@ -51,5 +51,6 @@
 /scripts/lib/textoExterno.mjs @pabloam89
 /scripts/lib/tokenSesion.mjs @pabloam89
 /scripts/lib/cacheTokenSesion.mjs @pabloam89
+/scripts/lib/voz.mjs @pabloam89
 /scripts/limpiar-worktrees.mjs @pabloam89
 /scripts/token-sesiones.mjs @pabloam89

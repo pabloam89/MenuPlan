@@ -92,7 +92,8 @@
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/pendientes.mjs\"", "timeout": 10 }
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/pendientes.mjs\"", "timeout": 10 },
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/voz.mjs\"", "timeout": 10 }
         ]
       }
     ],

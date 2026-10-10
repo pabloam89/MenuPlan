@@ -39,6 +39,7 @@
     "normas": "node scripts/normas.mjs",
     "planos": "node scripts/planos.mjs",
     "flujo": "node scripts/flujo.mjs",
+    "voz": "node scripts/voz.mjs",
     "forja": "node scripts/forja.mjs",
     "plantillas": "node scripts/plantillas.mjs",
     "redaccion": "node scripts/redaccion.mjs",
