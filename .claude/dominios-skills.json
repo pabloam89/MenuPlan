@@ -89,6 +89,15 @@
         "gobierno"
       ]
     },
+    "estilo-de-respuesta": {
+      "comandos": [],
+      "rutas": [
+        "^[.]claude/skills/estilo-de-respuesta/"
+      ],
+      "agentes": [
+        "gobierno"
+      ]
+    },
     "plan-de-arreglo": {
       "comandos": [],
       "rutas": [
