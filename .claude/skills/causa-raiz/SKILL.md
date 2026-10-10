@@ -59,22 +59,28 @@ No es para:
    - `fuera_de_control`: llegas a un proveedor o a alguien de fuera; la causa
      es entonces la barrera que falta de nuestro lado;
    - `sin_evidencia`: se acaba lo comprobable; queda una hipótesis.
+
+   Di siempre cuál de las tres te hizo parar y a qué mecanismo llegaste.
 6. **Escribe la causa en tres piezas**: *mecanismo* (qué hace el sistema) +
    *condición* (cuándo falla) + *control ausente* (qué debía pararlo y no
    existe o no lo ve). Plantilla: «<mecanismo> falla cuando <condición>, y
    <control> no lo para porque <motivo>». Va al campo `mecanismo` de la ficha.
+   Escríbela entera aunque sea hipótesis (marcada como tal): «sigo la
+   plantilla» no es una causa.
 7. **Causa de escape, siempre**: por qué ningún test, hook, revisión o
    vigilante lo detectó antes de que llegara. Si la respuesta es «no había
    ninguno», dilo así. Va a `causa_escape`. Sin ella el fondo no pasa a
    `diagnosticado` y el CI niega los PR de sus encargos.
 8. **La clase, no el caso**: una frase del tipo «todo X que Y» que incluye este
-   caso y sus hermanos. Va a `clase`; el barrido lo hace `plan-de-arreglo`.
+   caso y sus hermanos, escrita en la respuesta. Va a `clase`; el barrido lo
+   hace `plan-de-arreglo`.
 9. **Deja el rastro**: en la ficha del fondo (`gh issue edit <n> --body-file
    <f.md>`, skill `issues`), `estado: diagnosticado` con los campos de arriba;
    y un comentario del diagnóstico con dos líneas que se puedan contar:
    `tecnica: <id de ops/tecnicas.json>` y `parada: <id de PARADAS>`, más la
    tabla o cadena que produjo la técnica. Repo público (#300): describe el
    mecanismo, nunca cómo saltarlo; el detalle explotable va a Pablo en privado.
+   Editar la ficha y comentar el issue es rutina: no pide el OK de Pablo.
 
 Sale bien si: el workflow `fondos` pone `control:ok` y su comentario no lleva
 `sin-diagnostico`; y quien lea el diagnóstico puede señalar el mecanismo en el
@@ -139,4 +145,4 @@ catálogo si se puede.
 - La especificación del paso: `docs/ops/FLUJO.md` (Diagnosticar y
   «Proporcionalidad»).
 
-Comprobado el 2026-10-10: `npm run tecnica` con una causa buena y una inventada, el catálogo con `ops/tecnicas.test.js`, la forma con `.claude/skills.test.js` y los casos con `npm run skills-prueba -- causa-raiz` (resultado en `ops/skills-prueba/causa-raiz.json`). Sin comprobar: un diagnóstico real de punta a punta con esta skill y el workflow `fondos` validando la ficha que deja.
+Comprobado el 2026-10-10: `npm run tecnica` con una causa buena y una inventada, el catálogo con `ops/tecnicas.test.js`, la forma con `.claude/skills.test.js` y los casos con `npm run skills-prueba -- causa-raiz` (resultado en `ops/skills-prueba/causa-raiz.json`: disparo 6 de 6, comprobaciones 10 de 14 en las dos últimas pasadas; falla sobre todo en nombrar el tipo de causa exacto sin abrir el catálogo). Sin comprobar: un diagnóstico real de punta a punta con esta skill y el workflow `fondos` validando la ficha que deja.

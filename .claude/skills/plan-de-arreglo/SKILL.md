@@ -59,18 +59,21 @@ No es para:
 7. **Constructor, juez y presupuesto.** El constructor es el agente del
    dominio (o `sesión`); el juez, distinto. `npm run presupuesto -- <alcance>
    <tipo_causa>` dice los jueces mínimos, los obligatorios por causa y el tope
-   de rondas.
+   de rondas. En la respuesta, cada encargo con su `tipo_accion`, `mecanismo`,
+   `depende_de`, `constructor` y `juez`: un plan sin ellos no se puede lanzar.
 8. **Verificación y ventana.** El preventivo lleva un test de **la clase**
    (todas las instancias del barrido, y una nueva que se añadiera), que se ve
    fallar antes de creérselo. En la ficha: `barrera` = el escalón del
    mecanismo del preventivo, `verificacion` = la ruta de ese fichero, y al
-   fusionar, `ventana_desde` y `ventana_hasta` (90 días como mucho; más larga
-   si el fallo es raro). La ventana la vigila el workflow `fondos`.
+   fusionar, `ventana_desde` (el día de la fusión, AAAA-MM-DD, con `npm run
+   hora`) y `ventana_hasta` (90 días como mucho; más larga si el fallo es
+   raro). Propón las dos fechas. La ventana la vigila el workflow `fondos`.
 9. **Escríbelo.** Cada encargo con `npm run issues -- --nuevo "…" --tipo
    encargo --area <a> --cuerpo <f.md> --padre <fondo>`, y el cuerpo con el
    «Qué» y el bloque `encargo` de `docs/ops/ENCARGO.md`. La ficha del fondo,
    a `estado: plan` con `encargos: #a, #b`. Repo público (#300): ni en el plan
-   ni en los encargos va cómo se salta una barrera.
+   ni en los encargos va cómo se salta una barrera. Crear los encargos y editar
+   la ficha es rutina: no pide el OK de Pablo.
 
 Sale bien si: el comentario del bot del fondo no lleva `plan-grande` ni
 `ficha-desactualizada`, cada encargo lleva su bloque `encargo` completo, y uno
@@ -131,4 +134,4 @@ esta sección con fecha, causa y arreglo.
   «Proporcionalidad»).
 - La ficha del fondo y sus controles: skill `issues`.
 
-Comprobado el 2026-10-10: `npm run mecanismos`, el catálogo con `ops/mecanismos.test.js`, el formato del encargo con `scripts/encargo.test.js`, la forma con `.claude/skills.test.js` y los casos con `npm run skills-prueba -- plan-de-arreglo` (resultado en `ops/skills-prueba/plan-de-arreglo.json`). Sin comprobar: un plan real de punta a punta, ni que el workflow `fondos` lea el bloque `encargo` (hoy no lo lee).
+Comprobado el 2026-10-10: `npm run mecanismos`, el catálogo con `ops/mecanismos.test.js`, el formato del encargo con `scripts/encargo.test.js`, la forma con `.claude/skills.test.js` y los casos con `npm run skills-prueba -- plan-de-arreglo` (resultado en `ops/skills-prueba/plan-de-arreglo.json`: disparo 5 de 5, comprobaciones 10 de 13 y 7 de 13 en dos pasadas seguidas, con ruido entre ellas; falla en concretar el test de clase sin ver el repo). Sin comprobar: un plan real de punta a punta, ni que el workflow `fondos` lea el bloque `encargo` (hoy no lo lee).
