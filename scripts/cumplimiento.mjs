@@ -72,7 +72,7 @@ function leerRegistro(dir = dirFabrica()) {
   const ruta = join(dir, "eventos.jsonl");
   if (!existsSync(ruta)) return null;
   return readFileSync(ruta, "utf8").split(/\r?\n/).filter(Boolean).flatMap((l) => {
-    try { return [JSON.parse(l)]; } catch { return []; } // a propósito: una línea corrupta no vale; se salta
+    try { return [JSON.parse(l)]; } catch { /* a propósito: una línea corrupta no vale; se salta */ return []; }
   });
 }
 
