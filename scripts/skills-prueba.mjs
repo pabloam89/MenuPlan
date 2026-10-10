@@ -29,7 +29,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { cargarEnv } from "./lib/env.mjs";
-import { SALIDA, cabeOtro, costeUsd, estimadoSiguiente, hash, opcionNumero, topeDePasada } from "./lib/evals.mjs";
+import { SALIDA, cabeOtro, costeUsd, estimadoSiguiente, hash, opcionNumero, topeDePasada, apuntarGasto } from "./lib/evals.mjs";
 import {
   DIR_SKILLS, ESTIMADO_LLAMADA, MODELO_BARATO, MODELO_EJECUTA, NINGUNA, RAIZ, TOPE_SKILLS_USD,
   catalogoParaDisparo, comparar, faltasDeCasos, jsonDeTexto, nombresDeSkills, promptCorrige,
@@ -105,7 +105,9 @@ async function llamar({ modelo, system, usuario, maxTokens, thinking }) {
     });
     if (res.ok) {
       llamadas++;
-      gastado += costeUsd(data.usage, modelo, { ttl: "5m" });
+      const coste = costeUsd(data.usage, modelo, { ttl: "5m" });
+      gastado += coste;
+      apuntarGasto({ script: "skills-prueba", coste_usd: coste });
       return leerRespuesta(data);
     }
     const reintentable = res.status === 429 || res.status >= 500;

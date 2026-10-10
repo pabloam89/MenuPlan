@@ -9,7 +9,8 @@
  * otro sitio, como src/lib/vocabularios.js para el modelo de datos.
  */
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join, relative } from "node:path";
 
 // ── Vocabularios de los casos (scripts/bot-evals.json) ─────────────────────
@@ -197,13 +198,56 @@ export const ESTIMADO_MINIMO_USD = 0.03;
 
 export const presupuestoMensualUsd = () => PRESUPUESTO_MENSUAL_EUR * USD_POR_EUR;
 
+/** Por qué se para una pasada por dinero (vocabulario cerrado): su tope propio, o lo que queda del mes. */
+export const MOTIVOS_TOPE_EVALS = ["pasada", "mes"];
+
 /**
- * Lo gastado en evals este mes. HOY NO SE PUEDE SABER: no hay tabla de
- * resultados en la base (los JSONL de .evals-out/ son de cada máquina).
- * Devuelve null; cuando exista la tabla, se lee aquí y topeDePasada lo resta.
+ * El libro del mes: una línea por pasada con su coste. Vive en la carpeta del
+ * usuario y no en .evals-out/ de la copia: cada worktree tiene la suya, y el
+ * tope del mes es de la máquina, no de la carpeta.
  */
-export function gastoDelMesUsd() {
-  return null;
+const LIBRO_GASTO = join(homedir(), ".menuplan-evals", "gasto.jsonl");
+
+/** El mes (AAAA-MM) en Madrid: el presupuesto es de Pablo y se cuenta con su calendario. */
+export function mesDeMadrid(fecha = new Date()) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit" }).formatToParts(fecha).map((x) => [x.type, x.value]));
+  return `${p.year}-${p.month}`;
+}
+
+/**
+ * Apunta lo que costó una pasada (o lo gastado hasta un fallo). Solo script,
+ * mes y coste: ningún dato de familias. Un coste que no es un número válido
+ * se rechaza: apuntarlo como 0 sería un hueco en el tope.
+ */
+export function apuntarGasto({ script, coste_usd, pasada_id = null, fecha = new Date() }, { ruta = LIBRO_GASTO } = {}) {
+  if (!Number.isFinite(coste_usd) || coste_usd < 0) throw new Error(`apuntarGasto: coste no válido (${coste_usd})`);
+  if (!(coste_usd > 0)) return;
+  mkdirSync(dirname(ruta), { recursive: true });
+  appendFileSync(ruta, JSON.stringify({ script, mes: mesDeMadrid(fecha), coste_usd: Number(coste_usd.toFixed(6)), pasada_id }) + "\n");
+}
+
+/**
+ * Lo gastado en evals este mes, según el libro de ESTA máquina (~/.menuplan-evals/
+ * gasto.jsonl). Sin libro, 0. Falla CERRADO: si el libro existe y no se
+ * puede leer, devuelve Infinity y el tope de la pasada queda a 0. Límite
+ * conocido: no suma lo que gaste otra máquina (la de Álvaro) ni la consola.
+ */
+export function gastoDelMesUsd({ ruta = LIBRO_GASTO, ahora = new Date() } = {}) {
+  if (!existsSync(ruta)) return 0;
+  const mes = mesDeMadrid(ahora);
+  try {
+    let total = 0;
+    for (const l of readFileSync(ruta, "utf8").split("\n")) {
+      if (!l.trim()) continue;
+      const f = JSON.parse(l);
+      if (!Number.isFinite(f.coste_usd) || typeof f.mes !== "string") throw new Error("línea sin mes o coste");
+      if (f.mes === mes) total += f.coste_usd;
+    }
+    return total;
+  } catch (e) {
+    console.warn(`[evals] libro del mes ilegible, el tope queda a 0: ${e.message}`);
+    return Infinity;
+  }
 }
 
 /** El tope de una pasada: el pedido (o TOPE_PASADA_USD), sin pasar nunca de lo que queda del mes. */
@@ -212,6 +256,10 @@ export function topeDePasada(pedido = null, gastadoMes = gastoDelMesUsd()) {
   const queda = presupuestoMensualUsd() - (gastadoMes ?? 0);
   return Math.max(0, Math.min(base, queda));
 }
+
+/** El motivo de parar por dinero: «mes» si lo que queda del mes era lo que limitaba, «pasada» si su tope propio. */
+export const motivoDeTope = (pedido = null, gastadoMes = gastoDelMesUsd()) =>
+  presupuestoMensualUsd() - (gastadoMes ?? 0) < (pedido ?? TOPE_PASADA_USD) ? "mes" : "pasada";
 
 /** Lo mismo para el enrutador (Haiku, ~5,6k tokens por llamada, caché a 5 min). */
 export const ESTIMADO_ROUTER = { primero: 0.01, minimo: 0.002 };

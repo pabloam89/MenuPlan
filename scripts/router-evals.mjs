@@ -15,13 +15,15 @@
 
 import fs from "node:fs";
 import { cargarEnv } from "./lib/env.mjs";
-import { ESTIMADO_ROUTER, SALIDA, cabeOtro, costeUsd, estimadoSiguiente, opcionEntero, opcionNumero, tokensDe, topeDePasada } from "./lib/evals.mjs";
+import { ESTIMADO_ROUTER, SALIDA, cabeOtro, costeUsd, estimadoSiguiente, opcionEntero, opcionNumero, tokensDe, topeDePasada, apuntarGasto, motivoDeTope } from "./lib/evals.mjs";
 
 const ARGV = process.argv.slice(2);
-let veces, TOPE;
+let veces, TOPE, MOTIVO_TOPE;
 try {
   veces = opcionEntero(ARGV, "veces") ?? 1;
-  TOPE = topeDePasada(opcionNumero(ARGV, "tope"));
+  const pedido = opcionNumero(ARGV, "tope");
+  TOPE = topeDePasada(pedido);
+  MOTIVO_TOPE = motivoDeTope(pedido);
 } catch (e) {
   // Un --tope mal escrito no puede correr sin tope: no se corre nada.
   console.error(e.message);
@@ -53,7 +55,9 @@ fuera: for (const c of casos) {
     const d = await clasificar({ texto: c.texto, contexto: contexto(c) });
     llamadas++;
     // El enrutador cachea sus reglas a 5 min (router.js), no a 1 h como Lola.
-    gastado += costeUsd(d.uso, MODELO_ROUTER, { ttl: "5m" });
+    const coste = costeUsd(d.uso, MODELO_ROUTER, { ttl: "5m" });
+    gastado += coste;
+    apuntarGasto({ script: "router-evals", coste_usd: coste });
     const t = tokensDe(d.uso);
     for (const k of Object.keys(t)) tokens[k] += t[k];
     tiempos.push(d.ms);
@@ -82,6 +86,7 @@ const porLlamada = (x) => (llamadas ? Math.round(x / llamadas) : 0);
 console.log(`\n${bien}/${total} bien · rápida-cuando-tocaba-Lola: ${rapidaMal} · Lola-cuando-tocaba-rápida: ${lentaMal} · mediana ${tiempos[Math.floor(tiempos.length / 2)] ?? 0} ms, p90 ${tiempos[Math.floor(tiempos.length * 0.9)] ?? 0} ms · ~$${gastado.toFixed(3)} · ${MODELO_ROUTER}`);
 console.log(`Por llamada: ${porLlamada(tokens.entrada)} entrada · ${porLlamada(tokens.salida)} salida · ${porLlamada(tokens.cache_leida)} caché leída · ${porLlamada(tokens.cache_escrita)} caché escrita · $${(llamadas ? gastado / llamadas : 0).toFixed(4)} (${llamadas} llamadas)`);
 if (parado) {
+  console.log(`tope_evals script: router-evals motivo: ${MOTIVO_TOPE} gastado_usd: ${gastado.toFixed(3)} tope_usd: ${TOPE.toFixed(2)}`);
   console.log(`\nPARADO POR EL TOPE: gastado $${gastado.toFixed(3)} de $${TOPE.toFixed(2)}; corridos ${total} de ${casos.length * veces} (salida ${SALIDA.tope}).`);
   process.exitCode = SALIDA.tope;
 } else {

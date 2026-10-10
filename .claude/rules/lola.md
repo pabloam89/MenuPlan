@@ -14,7 +14,9 @@ paths:
   lleva `id`, `tipo`, `dominio`, `origen` y, si habla de días, `dependeDeFecha`
   (`scripts/lib/evals.mjs`). Las
   evals tienen un tope mensual duro (`PRESUPUESTO_MENSUAL_EUR`, en ese mismo
-  módulo y en ningún otro sitio) y cada pasada su `--tope`; lo ya
+  módulo y en ningún otro sitio; el gasto del mes se apunta en
+  `~/.menuplan-evals/gasto.jsonl` y una pasada nunca pide más de lo que queda;
+  un script nuevo con Anthropic lo cablea o lo declara en `evals.test.js`) y cada pasada su `--tope`; lo ya
   medido sin cambios no se vuelve a pagar (`.evals-out/`). Vitest y CI, siempre.
 - **Lo que no puede fallar va en la base o en código determinista, nunca solo
   en el prompt.** Cada vez que una garantía dependió del modelo, las evals

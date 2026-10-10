@@ -11,6 +11,7 @@ import {
   PRESUPUESTO_MENSUAL_EUR, TIPOS_CASO, TIPOS_DE_SEGURIDAD, bloquea, cabeOtro, casoHash, casosDelNivel,
   casosVersion, canonico, claveMemo, costeUsd, erroresDeCasos, esDeSeguridad, estadoDe, estimadoSiguiente,
   kDe, memoria, opcionNumero, otroIntento, presupuestoMensualUsd, topeDePasada,
+  apuntarGasto, gastoDelMesUsd, mesDeMadrid, MOTIVOS_TOPE_EVALS,
   COSTE_PASADA_COMPLETA_USD, TOPE_COMPLETO_POR_FAMILIA, baseMemo, codigoHash, compararEstados, elegirReferencia, ficherosDelCodigo, grafoDeImports,
 } from "./evals.mjs";
 
@@ -109,7 +110,7 @@ describe("tope de gasto", () => {
   it("modelos-evals lanza cada modelo con un tope que le da para la pasada entera (Opus no se corta)", () => {
     for (const [familia, coste] of Object.entries(COSTE_PASADA_COMPLETA_USD)) {
       expect(TOPE_COMPLETO_POR_FAMILIA[familia], familia).toBeGreaterThanOrEqual(coste * 1.15);
-      expect(topeDePasada(TOPE_COMPLETO_POR_FAMILIA[familia]), familia).toBeGreaterThanOrEqual(coste * 1.15);
+      expect(topeDePasada(TOPE_COMPLETO_POR_FAMILIA[familia], 0), familia).toBeGreaterThanOrEqual(coste * 1.15);
     }
     expect(readFileSync(new URL("scripts/modelos-evals.mjs", RAIZ), "utf8")).toMatch(/--tope=\$\{TOPE_COMPLETO_POR_FAMILIA\[familiaDe\(modelo\)\]\}/);
   });
@@ -126,6 +127,90 @@ describe("tope de gasto", () => {
     const quienLaDefine = ficheros.filter((f) => /PRESUPUESTO_MENSUAL_EUR\s*=/.test(readFileSync(f, "utf8")));
     expect(quienLaDefine.map((f) => f.replace(/\\/g, "/").replace(/.*\/scripts\//, "scripts/"))).toEqual(["scripts/lib/evals.mjs"]);
     for (const s of ["scripts/bot-evals.mjs", "scripts/router-evals.mjs"]) expect(readFileSync(new URL(s, RAIZ), "utf8")).toMatch(/topeDePasada\(/);
+  });
+});
+
+describe("tope mensual de evals: contabilidad del mes (#297)", () => {
+  const nuevo = () => join(mkdtempSync(join(tmpdir(), "gasto-")), "gasto.jsonl");
+  const ahora = new Date("2026-10-15T10:00:00Z");
+
+  it("el mes es el de Madrid, no el UTC", () => {
+    expect(mesDeMadrid(new Date("2026-10-31T23:30:00Z"))).toBe("2026-11");
+    expect(mesDeMadrid(new Date("2026-10-15T10:00:00Z"))).toBe("2026-10");
+  });
+
+  it("suma lo apuntado este mes y no lo de otros meses", () => {
+    const f = nuevo();
+    apuntarGasto({ script: "bot-evals", coste_usd: 1.5, fecha: new Date("2026-09-30T10:00:00Z") }, { ruta: f });
+    apuntarGasto({ script: "bot-evals", coste_usd: 2, fecha: ahora }, { ruta: f });
+    apuntarGasto({ script: "router-evals", coste_usd: 0.25, fecha: ahora }, { ruta: f });
+    expect(gastoDelMesUsd({ ruta: f, ahora })).toBeCloseTo(2.25);
+  });
+
+  it("sin libro, 0; con una línea ilegible, falla cerrado (el tope queda a 0)", () => {
+    expect(gastoDelMesUsd({ ruta: nuevo(), ahora })).toBe(0);
+    const f = nuevo();
+    writeFileSync(f, "esto no es json\n");
+    expect(gastoDelMesUsd({ ruta: f, ahora })).toBe(Infinity);
+    expect(topeDePasada(5, Infinity)).toBe(0);
+  });
+
+  it("la pasada pide menos de lo que queda del mes", () => {
+    const f = nuevo();
+    apuntarGasto({ script: "bot-evals", coste_usd: presupuestoMensualUsd() - 1, fecha: ahora }, { ruta: f });
+    expect(topeDePasada(5, gastoDelMesUsd({ ruta: f, ahora }))).toBeCloseTo(1);
+  });
+
+  it("la línea no lleva nada más que script, mes y coste (sin datos de familias)", () => {
+    const f = nuevo();
+    apuntarGasto({ script: "bot-evals", coste_usd: 0.1234567, pasada_id: "p1", fecha: ahora }, { ruta: f });
+    const l = JSON.parse(readFileSync(f, "utf8").trim());
+    expect(Object.keys(l).sort()).toEqual(["coste_usd", "mes", "pasada_id", "script"]);
+    expect(l.coste_usd).toBe(0.123457);
+  });
+
+  it("un coste que no es un número no se apunta como 0: se rechaza", () => {
+    expect(() => apuntarGasto({ script: "x", coste_usd: NaN }, { ruta: nuevo() })).toThrow();
+    expect(() => apuntarGasto({ script: "x", coste_usd: -1 }, { ruta: nuevo() })).toThrow();
+  });
+
+  it("los motivos de parada están en un vocabulario cerrado", () => {
+    expect(MOTIVOS_TOPE_EVALS).toEqual(["pasada", "mes"]);
+  });
+});
+
+// La clase, no el caso: todo script que llama a Anthropic con la clave de las
+// evals pasa por topeDePasada y apunta su gasto, o está aquí con su porqué.
+describe("scripts que llaman a un modelo: tope y libro del mes (#297)", () => {
+  const ANTHROPIC = /import[^;\n]*["']@anthropic-ai\/sdk["']|import\(\s*["']@anthropic-ai\/sdk["']|api\.anthropic\.com/;
+  const CON_TOPE = ["bot-evals.mjs", "router-evals.mjs", "skills-prueba.mjs"];
+  // Puntuales y manuales (los lanza una persona sobre un lote acotado, casi todos
+  // con --dry-run), o de coste de céntimos. No cuentan para el libro del mes.
+  const SIN_TOPE_DE_EVALS = {
+    "alergenos-puede-contener.mjs": "pasada puntual del catálogo, por lotes",
+    "bedca-select.mjs": "pasada puntual, con --dry-run que cotiza",
+    "enrich-recipe-steps.mjs": "horneado puntual del catálogo, con tope de intentos",
+    "gen-appliance-methods.mjs": "generación puntual del catálogo",
+    "lola-feedback.mjs": "bucle semanal, un puñado de llamadas",
+    "recetas-atributos-blandos.mjs": "pasada puntual del catálogo",
+    "router-cache.mjs": "dos llamadas a Haiku",
+    "router-feedback.mjs": "bucle semanal, un puñado de llamadas",
+  };
+  const dir = fileURLToPath(new URL("scripts/", RAIZ));
+  const conIA = readdirSync(dir).filter((f) => /\.mjs$/.test(f) && !/\.test\./.test(f) && ANTHROPIC.test(readFileSync(join(dir, f), "utf8")));
+
+  it("cada script con modelo de pago pasa por el libro del mes o está en las excepciones", () => {
+    for (const f of new Set([...conIA.filter((x) => !SIN_TOPE_DE_EVALS[x]), ...CON_TOPE])) {
+      const src = readFileSync(join(dir, f), "utf8");
+      expect(CON_TOPE, `${f} llama a Anthropic sin topeDePasada ni excepción`).toContain(f);
+      expect(src, `${f}: sin topeDePasada`).toMatch(/topeDePasada\(/);
+      expect(src, `${f}: no apunta su gasto en el libro del mes`).toMatch(/apuntarGasto\(/);
+    }
+  });
+
+  it("cada excepción existe y de verdad llama a un modelo", () => {
+    for (const f of Object.keys(SIN_TOPE_DE_EVALS)) expect(conIA, f).toContain(f);
+    for (const f of CON_TOPE) expect(readdirSync(dir), f).toContain(f);
   });
 });
 
