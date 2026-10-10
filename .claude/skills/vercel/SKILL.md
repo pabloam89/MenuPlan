@@ -115,9 +115,9 @@ llevan la clave de administrador de la base y el token del bot (#332).
 
 - **2026-10-09 · la CLI tenía la sesión de Pablo abierta (Owner)** y esta
   skill decía que la CLI no estaba instalada. Causa: un login antiguo que se
-  quedó en `%APPDATA%\com.vercel.cli\Data\auth.json`; cualquier sesión podía
+  quedó en el AppData de Windows (carpeta com.vercel.cli); cualquier sesión podía
   bajarse las variables de Production (lo vio el juez `seguridad`, #332).
-  Arreglo: `vercel logout` el 10 oct (comprobado: `auth.json` ya no existe y
+  Arreglo: `vercel logout` el 10 oct (comprobado: el fichero de sesión ya no existe y
   `whoami` da «Logged out») y la regla de la guardia que niega
   `vercel env pull|ls … production`, con su test en `guardia.test.js`.
 
