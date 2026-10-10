@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { main } from "./token-sesion.mjs";
-import { APP_ID, BOT_ID, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MOTIVOS, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, lineasDeEntorno, motivoDeCanje, tokenDeSesion } from "./lib/tokenSesion.mjs";
+import { ADVERTENCIAS, APP_ID, BOT_ID, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MOTIVOS, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, lineasDeEntorno, motivoDeCanje, tokenDeSesion } from "./lib/tokenSesion.mjs";
 import { PERMISOS } from "./token-sesiones.mjs";
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048, privateKeyEncoding: { type: "pkcs1", format: "pem" }, publicKeyEncoding: { type: "spki", format: "pem" } });
@@ -234,6 +234,24 @@ describe("aplicarIdentidad (lo que hace el arranque)", () => {
     const aviso = await aplicarIdentidad(opciones);
     expect(Date.now() - t0).toBeLessThan(2000);
     expect(aviso).toContain("identidad: desconocida token: no motivo: red");
+  });
+  it("un canje que termina DESPUÉS del tope no escribe el token ni añade una segunda línea contable", async () => {
+    const { escrito, registrado, opciones } = uso({ tope: 20, generar: () => new Promise((ok) => setTimeout(() => ok({ token: TOKEN, autor, advertencias: [] }), 100)) });
+    const aviso = await aplicarIdentidad(opciones);
+    await new Promise((ok) => setTimeout(ok, 250));
+    expect(aviso).toContain("identidad: desconocida token: no motivo: red");
+    expect(escrito).toEqual([]);
+    expect(registrado).toHaveLength(1);
+  });
+  it("lo mismo si es la comprobación de gh la que termina tarde", async () => {
+    const { registrado, opciones } = uso({ tope: 20, identificar: () => new Promise((ok) => setTimeout(() => ok({ status: 0, stdout: "pabloam89" }), 100)) });
+    await aplicarIdentidad(opciones);
+    await new Promise((ok) => setTimeout(ok, 250));
+    expect(registrado).toHaveLength(1);
+  });
+  it("una advertencia fuera del vocabulario no pasa", () => {
+    expect(() => avisoDeIdentidad({ identidad: "app", token: "app", advertencias: ["inventada"] })).toThrow();
+    expect(avisoDeIdentidad({ identidad: "app", token: "app", advertencias: ADVERTENCIAS })).toContain("ADVERTENCIA");
   });
   it("un canje colgado tampoco", async () => {
     const { opciones } = uso({ tope: 50, generar: () => new Promise(() => {}) });

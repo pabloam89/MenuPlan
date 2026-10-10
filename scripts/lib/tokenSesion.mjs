@@ -238,6 +238,7 @@ export function lineaIdentidad({ identidad, token, motivo = "-" }) {
  */
 export function avisoDeIdentidad({ identidad, token, motivo = "-", advertencias = [] }) {
   const cuenta = lineaIdentidad({ identidad, token, motivo });
+  for (const a of advertencias) if (!ADVERTENCIAS.includes(a)) throw new Error(`advertencia fuera del vocabulario: ${a}`);
   const extra = advertencias.length ? ` ADVERTENCIA: ${advertencias.join(", ")}.` : "";
   const resto = "Las credenciales de Pablo siguen en el llavero y en el manager de github.com hasta que haga `gh auth logout` y lo quite.";
   if (identidad === "pablo") {
@@ -265,12 +266,16 @@ export function ghApiUser(env) {
  */
 export async function aplicarIdentidad({ env = process.env, escribir = appendFileSync, generar = tokenDeSesion, identificar = ghApiUser, registrar = (l) => console.error(l), tope = TOPE_IDENTIDAD_MS } = {}) {
   let reloj;
+  let vencido = false; // pasado el tope, el trabajo que siga vivo no escribe ni registra nada
   const final = (datos) => {
     registrar(lineaIdentidad(datos));
     return avisoDeIdentidad(datos);
   };
   const limite = new Promise((ok) => {
-    reloj = setTimeout(() => ok(final({ identidad: "desconocida", token: "no", motivo: "red" })), tope);
+    reloj = setTimeout(() => {
+      vencido = true;
+      ok(final({ identidad: "desconocida", token: "no", motivo: "red" }));
+    }, tope);
   });
   const trabajo = (async () => {
     let token = "no";
@@ -281,6 +286,7 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
       const t = await generar();
       advertencias = t.advertencias ?? [];
       if (!env.CLAUDE_ENV_FILE) throw new ErrorTokenSesion("sin-fichero-de-entorno", "este arranque no recibió CLAUDE_ENV_FILE");
+      if (vencido) return null;
       const previa = Number.parseInt(env.GIT_CONFIG_COUNT, 10) || 0;
       escribir(env.CLAUDE_ENV_FILE, `\n${lineasDeEntorno({ token: t.token, autor: t.autor, configPrevia: previa })}`);
       entorno.GH_TOKEN = t.token;
@@ -288,6 +294,7 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
     } catch (e) {
       motivo = e instanceof ErrorTokenSesion ? e.motivo : "error-interno";
     }
+    if (vencido) return null;
     let identidad;
     try {
       identidad = identidadDe(await identificar(entorno));
@@ -295,6 +302,7 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
       // a propósito: sin saber con qué identidad responde gh, se dice «desconocida» y no se rompe el arranque
       identidad = "desconocida";
     }
+    if (vencido) return null;
     return final({ identidad, token, motivo, advertencias });
   })();
   try {
