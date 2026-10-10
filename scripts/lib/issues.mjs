@@ -30,6 +30,8 @@
  * con su descripción, y en el formulario que la use.
  */
 
+import { limpiarTexto } from "./textoExterno.mjs";
+
 export const GRUPOS = {
   tipo: {
     color: "1d76db",
@@ -241,7 +243,7 @@ export const CONSULTA = `query($cursor: String) {
         closedByPullRequestsReferences(first: 5, includeClosedPrs: true) {
           nodes { number headRefName mergedAt body author { login } }
         }
-        comments(last: 10) { nodes { body } }
+        comments(last: 10) { nodes { body authorAssociation } }
         parent { number state labels(first: 20) { nodes { name } } }
         subIssues(first: 50) {
           nodes {
@@ -500,7 +502,7 @@ export function avisoDeArranque(issues) {
     .filter(([k]) => k).map(([k, que]) => `${k} ${que}`);
   if (partes.length) lineas.push(`Issues abiertos: ${partes.join("; ")}. Detalle: \`npm run issues\`.`);
   const top = r.fondos.filter((f) => f.abierto && f.casos).slice(0, 3);
-  if (top.length) lineas.push(`Problemas de fondo que más se repiten: ${top.map((f) => `#${f.number} ${f.title.replace(/^\[[^\]]+\]\s*/, "")} (${f.casos} casos)`).join("; ")}. Si lo que haces toca uno, arregla el fondo, no solo el caso.`);
+  if (top.length) lineas.push(`Problemas de fondo que más se repiten: ${top.map((f) => `#${f.number} ${limpiarTexto(f.title.replace(/^\[[^\]]+\]\s*/, ""))} (${f.casos} casos)`).join("; ")}. Si lo que haces toca uno, arregla el fondo, no solo el caso.`);
   const sueltos = r.malClasificados.filter((m) => m.faltan.some((x) => x.startsWith("su problema de fondo"))).length;
   if (sueltos) lineas.push(`${sueltos} casos sin colgar de su problema de fondo: \`npm run issues\`.`);
   const viejos = r.malClasificados.filter((m) => m.faltan.some((x) => x.startsWith("reclasificar"))).length;

@@ -41,7 +41,7 @@
  * scripts/lib/issues.mjs; el procedimiento, en la skill `issues`.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
@@ -49,7 +49,7 @@ import {
   debeReabrir, etiquetasQueFaltan, fondoDeFormulario, leerIssue, medirCasos, parecidos, porGrupo, resumen,
 } from "./lib/issues.mjs";
 import {
-  CONSULTA_PR_INDICE, construirIndice, contarParecidosIgnorados, escribirIndice, leerIndice, lineaParecidosIgnorados, motivoCrearIgual, rutaIndice,
+  CONSULTA_PR_INDICE, TIMEOUT_PRS_ARRANQUE_MS, arrancar, construirIndice, contarParecidosIgnorados, escribirIndice, leerIndice, lineaParecidosIgnorados, motivoCrearIgual, rutaIndice,
 } from "./lib/buscarAntes.mjs";
 import { analizarCasos } from "../.claude/hooks/casos.mjs";
 import { informeFichas } from "./lib/fondos.mjs";
@@ -57,6 +57,7 @@ import { diaMadrid } from "./lib/hora.mjs";
 import { cruce, leerInventario, marcasHuerfanas, leerMarcas, lineaParecida, lineasDeLleva, parecidosEnGit, sinNumero, textoDeRama } from "./lib/lleva.mjs";
 
 const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
+const ghCorto = (ms, ...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: ms });
 const motivo = (e) => String(e.stderr ?? e.message).trim().split("\n")[0];
 
 /** Todos los issues, con PR, reaperturas, padre e hijos (una consulta por cada 100). */
@@ -68,7 +69,7 @@ function todos() {
     if (cursor) args.push("-f", `cursor=${cursor}`);
     const pag = JSON.parse(gh(...args)).data.repository.issues;
     // Las marcas «lo lleva» (scripts/lib/lleva.mjs) salen de los comentarios.
-    out.push(...pag.nodes.map((n) => ({ ...leerIssue(n), marcas: leerMarcas(n.comments?.nodes) })));
+    out.push(...pag.nodes.map((n) => ({ ...leerIssue(n), marcas: leerMarcas(n.comments?.nodes, { soloCasa: true }) })));
     cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
   } while (cursor);
   return out;
@@ -80,15 +81,19 @@ function todos() {
  * llegan se guardan los del índice anterior, y se dice. Nunca rompe a quien
  * lo llama: devuelve la línea que contar.
  */
-function indexar(issues, { reusarPrsMenosDeHoras = 0 } = {}) {
+function indexar(issues, { reusarPrsMenosDeHoras = 0, restanteMs = Infinity } = {}) {
   let prs = null;
   let aviso = "";
   const previo = leerIndice();
   const viejo = previo.indice;
   // En el arranque (10 s de tope) no se pide lo que ya se pidió hace poco.
-  if (!(viejo && previo.horas < reusarPrsMenosDeHoras)) {
+  // Sin tiempo en el arranque (tope de 10 s en total), tampoco se pide: quedan los PR del índice anterior.
+  const pedir = !(viejo && previo.horas < reusarPrsMenosDeHoras) && restanteMs >= TIMEOUT_PRS_ARRANQUE_MS;
+  if (!pedir && restanteMs < TIMEOUT_PRS_ARRANQUE_MS) aviso = " (sin tiempo para pedir los PR: quedan los del índice anterior)";
+  if (pedir) {
     try {
-      prs = JSON.parse(gh("api", "graphql", "-f", `query=${CONSULTA_PR_INDICE}`)).data.repository.pullRequests.nodes;
+      const tope = Number.isFinite(restanteMs) ? TIMEOUT_PRS_ARRANQUE_MS : 60_000;
+      prs = JSON.parse(ghCorto(tope, "api", "graphql", "-f", `query=${CONSULTA_PR_INDICE}`)).data.repository.pullRequests.nodes;
     } catch (e) {
       aviso = ` (los PR no se han podido leer, ${motivo(e)}: quedan los del índice anterior)`;
     }
@@ -224,7 +229,7 @@ if (args.includes("--etiquetas")) {
   let ficheroCuerpo = cuerpo;
   if (igual.motivo && (hay.length || enGit.length)) {
     ficheroCuerpo = join(mkdtempSync(join(tmpdir(), "menuplan-issue-")), "cuerpo.md");
-    writeFileSync(ficheroCuerpo, `${texto.replace(/\s+$/, "")}\n\n${lineaParecidosIgnorados(hay.map((p) => p.number), igual.motivo)}\n`);
+    writeFileSync(ficheroCuerpo, `${texto.replace(/\s+$/, "")}\n\n${lineaParecidosIgnorados(hay.map((p) => p.number), igual.motivo, enGit)}\n`);
   }
   const crear = ["issue", "create", "--title", titulo.startsWith("[") ? titulo : `[${prefijo}] ${titulo}`, "--label", etiq.join(","), "--body-file", ficheroCuerpo];
   // Las decisiones se asignan a Pablo: así le llegan por correo y en la app de GitHub.
@@ -237,8 +242,12 @@ if (args.includes("--etiquetas")) {
     if (padre) colgar(todos(), n, padre);
   } catch (e) {
     console.error(motivo(e));
-    process.exit(1);
+    process.exitCode = 1;
+  } finally {
+    // El cuerpo temporal de --crear-igual no se queda en la carpeta temporal.
+    if (ficheroCuerpo !== cuerpo) rmSync(dirname(ficheroCuerpo), { recursive: true, force: true });
   }
+  if (process.exitCode) process.exit(process.exitCode);
 } else if (args.includes("--ordenar")) {
   const issues = todos();
   let n = 0;
@@ -278,15 +287,17 @@ if (args.includes("--etiquetas")) {
     process.exit(1);
   }
 } else if (args.includes("--arranque")) {
+  const desdeMs = Date.now();
   const issues = todos();
-  // De paso, el índice con lo ya leído: sin llamadas de más para los issues.
-  try {
-    indexar(issues, { reusarPrsMenosDeHoras: 1 });
-  } catch (e) {
-    console.error(`índice: no he podido escribirlo (${motivo(e)})`);
-  }
-  for (const l of avisoDeArranque(issues)) console.log(l);
-  for (const l of lineasDeLleva(issues, ramasVivas())) console.log(l);
+  // Primero las líneas y después, de paso, el índice con lo ya leído: el arranque da 10 s en total y
+  // una consulta lenta no puede costar el aviso de issues (ronda 2 de #384).
+  arrancar({
+    lineas: [...avisoDeArranque(issues), ...lineasDeLleva(issues, ramasVivas())],
+    imprimir: (l) => console.log(l),
+    indexar: ({ restanteMs }) => indexar(issues, { reusarPrsMenosDeHoras: 1, restanteMs }),
+    avisar: (m) => console.error(m),
+    desdeMs,
+  });
 } else {
   const issues = todos();
   const r = resumen(issues);

@@ -20,21 +20,24 @@
  * Cada aviso deja una línea contable en `senales.log` (`buscar-antes senal: …`),
  * sin datos de familias, para medir cuántas señales traen algo apuntado.
  */
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
-  avisoDeIndice, buscar, dirBuscar, detectarSenales, leerIndice, ramaDeLaPrincipal, relevantes, senalDeRamaPrincipal, SENALES_QUE_SIEMPRE_HABLAN, textoDeAviso,
+  avisoDeIndice, buscar, dirBuscar, escribirAtomico, podarMarcas, detectarSenales, leerIndice, ramaDeLaPrincipal, relevantes, senalDeRamaPrincipal, SENALES_QUE_SIEMPRE_HABLAN, textoDeAviso,
 } from "../../scripts/lib/buscarAntes.mjs";
 
 /** Herramientas que se miran. Las demás (MCP, web…) ni se leen. */
-export const HERRAMIENTAS = ["Bash", "PowerShell", "Read", "Grep", "Glob", "Agent", "Task", "Skill"];
+export const HERRAMIENTAS = ["Bash", "PowerShell", "Read", "Grep", "Glob", "Agent", "Skill"];
 
 /** Tope de avisos por llamada: si salen más, se quedan para la siguiente (sin marcar). */
 const MAX_POR_LLAMADA = 2;
 
-const idLimpio = (s) => String(s ?? "x").replace(/\W/g, "").slice(0, 40) || "x";
+/** Huella corta: en disco no queda ni el id de la sesión ni lo que dijo cada señal (rutas, mensajes). */
+const huella = (s) => createHash("sha1").update(String(s ?? "x")).digest("hex").slice(0, 16);
+
 
 /**
  * Lo que hay que decir tras una llamada: { textos, nuevas, lineas }.
@@ -56,12 +59,12 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
   if (delaRama) senales.push(delaRama);
   senales.push(...detectarSenales(entrada));
 
-  const pendientes = senales.filter((s) => !vistas.has(s.clave));
+  const pendientes = senales.filter((s) => !vistas.has(huella(s.clave)));
   if (!pendientes.length) return { textos, nuevas, lineas };
 
   const lectura = leer();
   for (const s of pendientes.slice(0, MAX_POR_LLAMADA)) {
-    nuevas.push(s.clave);
+    nuevas.push(huella(s.clave));
     if (!lectura.indice) {
       textos.push(`[buscar-antes] Algo no encaja (${s.extracto}), pero no puedo buscar lo ya apuntado: ${avisoDeIndice(lectura)} Mientras tanto: \`gh issue list --state all --search "<palabras>"\`.`);
       lineas.push(`buscar-antes senal: ${s.tipo} resultado: sin-indice`);
@@ -70,7 +73,7 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
     const hay = buscar(lectura.indice, s.consulta, { max: 6 });
     const buenos = relevantes(hay);
     // Lo que ya se le dijo a esta sesión no se repite, venga de la señal que venga.
-    const nuevos = buenos.filter((b) => !vistas.has(`#${b.ficha.numero}`) && !nuevas.includes(`#${b.ficha.numero}`));
+    const nuevos = buenos.filter((b) => !vistas.has(huella(`#${b.ficha.numero}`)) && !nuevas.includes(huella(`#${b.ficha.numero}`)));
     if (buenos.length && !nuevos.length) {
       lineas.push(`buscar-antes senal: ${s.tipo} resultado: repetido`);
       continue;
@@ -79,7 +82,7 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
       lineas.push(`buscar-antes senal: ${s.tipo} resultado: nada-en-silencio`);
       continue;
     }
-    for (const b of nuevos) nuevas.push(`#${b.ficha.numero}`);
+    for (const b of nuevos) nuevas.push(huella(`#${b.ficha.numero}`));
     textos.push(textoDeAviso(s, nuevos.length ? hay.filter((h) => nuevos.includes(h)) : hay, lectura) + (lectura.viejo ? ` ${avisoDeIndice(lectura)}` : ""));
     lineas.push(`buscar-antes senal: ${s.tipo} resultado: ${nuevos.length ? "apuntado" : "nada"}${nuevos.length ? ` primero: #${nuevos[0].ficha.numero}` : ""}`);
   }
@@ -92,14 +95,28 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
  * llama al negar una orden porque una denegación no llega a PostToolUse (la
  * herramienta no llega a ejecutarse).
  */
+/** Las marcas de una sesión; un fichero corrupto cuenta como vacío (no deja a la sesión sin avisos para siempre). */
+function leerMarcasDe(ruta) {
+  try {
+    const m = JSON.parse(readFileSync(ruta, "utf8"));
+    return new Set(Array.isArray(m) ? m.filter((x) => typeof x === "string") : []);
+  } catch {
+    // a propósito: ausente o corrupto, se empieza de cero; lo peor es repetir un aviso
+    return new Set();
+  }
+}
+
 export function ejecutar(entrada, opciones = {}) {
   const dir = dirBuscar();
   mkdirSync(dir, { recursive: true });
-  const marcas = join(dir, `sesion-${idLimpio(entrada.session_id)}.json`);
-  const vistas = new Set(existsSync(marcas) ? JSON.parse(readFileSync(marcas, "utf8")) : []);
-  const r = procesar(entrada, { vistas, ...opciones });
+  const marcas = join(dir, `sesion-${huella(entrada.session_id)}.json`);
+  const r = procesar(entrada, { vistas: leerMarcasDe(marcas), ...opciones });
   if (r.nuevas.length || r.lineas.length) {
-    if (r.nuevas.length) writeFileSync(marcas, JSON.stringify([...vistas, ...r.nuevas]));
+    if (r.nuevas.length) {
+      // Se vuelve a leer justo antes de escribir: dos llamadas a la vez de la misma sesión no se pisan del todo.
+      escribirAtomico(marcas, JSON.stringify([...new Set([...leerMarcasDe(marcas), ...r.nuevas])]));
+      podarMarcas(dir);
+    }
     if (r.lineas.length) appendFileSync(join(dir, "senales.log"), `${r.lineas.join("\n")}\n`);
   }
   return r.textos;

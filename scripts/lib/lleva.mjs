@@ -24,7 +24,9 @@ import { execFileSync } from "node:child_process";
 import { basename } from "node:path";
 
 import { ahoraEnMadrid } from "./hora.mjs";
+import { esDeLaCasa } from "./fondos.mjs";
 import { raices } from "./issues.mjs";
+import { RAMA_VALIDA } from "./textoExterno.mjs";
 
 /**
  * Horas sin commits a partir de las cuales una carpeta parece parada. Medido el
@@ -69,11 +71,16 @@ export function cuerpoDeMarca({ rama, carpeta, desde = new Date() }) {
 }
 
 /** Las marcas que hay en los comentarios de un issue: [{ rama, carpeta, desde: Date }]. */
-export function leerMarcas(comentarios) {
+export function leerMarcas(comentarios, { soloCasa = false } = {}) {
   const re = new RegExp(`<!-- ${MARCADOR} rama=(\\S+) carpeta=(\\S+) desde=(\\S+) -->`);
   return (comentarios ?? [])
+    // Con `soloCasa` (lo que se enseña a las sesiones) un comentario cuenta solo si lo escribió alguien
+    // de la casa: cualquiera puede comentar en un issue público. Sin la asociación, no cuenta (#313).
+    .filter((c) => !soloCasa || esDeLaCasa(c?.authorAssociation))
     .map((c) => re.exec(String(c.body ?? c)))
     .filter(Boolean)
+    // Una rama o carpeta con formas raras (espacios invisibles, símbolos) no es una marca nuestra.
+    .filter((m) => RAMA_VALIDA.test(m[1]) && /^[\w.\-]{1,80}$/.test(m[2]))
     .map((m) => ({ rama: m[1], carpeta: m[2], desde: new Date(m[3]) }));
 }
 

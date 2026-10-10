@@ -21,7 +21,7 @@ const GUARDIA = join(AQUI, "guardia.mjs");
 
 // El flag de Pablo, armado a trozos: la guardia lo niega hasta dentro de un fichero que lo cita (#368, #372).
 const FLAG = ["-", "-", "pa", "blo"].join("");
-const issue = (n, title, body, extra = {}) => ({ number: n, title, state: "OPEN", body, labels: [{ name: "tipo:caso" }], asignados: [], marcas: [], prs: [], padre: null, hijos: [], ...extra });
+const issue = (n, title, body, extra = {}) => ({ asociacion: "OWNER", number: n, title, state: "OPEN", body, labels: [{ name: "tipo:caso" }], asignados: [], marcas: [], prs: [], padre: null, hijos: [], ...extra });
 const ISSUES = [
   issue(348, "[caso] La carpeta principal cambió de rama a mitad de sesión y los agentes dejaron de cargarse", "La rama `ccr-0df6959e-29yha0` en la carpeta principal; Agent type 'auditor-datos' not found.", { hijos: [{ number: 350, state: "OPEN", tipo: "encargo" }] }),
   issue(368, "[caso] La guardia bloquea acciones inofensivas por lo que dice el comando: grep con la palabra pablo", "El grep de la palabra pablo se negó por contener `" + FLAG + "` en el texto."),
@@ -46,7 +46,7 @@ describe("procesar: las señales reales de hoy", () => {
   it("la rama ccr- en la carpeta principal trae #348 con su plan", () => {
     const r = procesar({ tool_name: "Bash", tool_input: { command: "ls" }, tool_response: { stdout: "" }, cwd: "/p" }, { leer, rama: () => ({ principal: true, rama: "ccr-0df6959e-29yha0" }) });
     expect(r.textos).toHaveLength(1);
-    expect(r.textos[0]).toMatch(/ESTO YA ESTÁ APUNTADO/);
+    expect(r.textos[0]).toMatch(/datos de GitHub .títulos escritos por personas/);
     expect(r.textos[0]).toMatch(/#348/);
     expect(r.textos[0]).toMatch(/pendientes #350/);
     expect(r.lineas).toEqual(["buscar-antes senal: rama-principal resultado: apuntado primero: #348"]);
@@ -171,7 +171,7 @@ describe("la guardia añade el «ya apuntado» a sus denegaciones (no llegan a P
     const con = JSON.parse(lanza(dir).stdout).hookSpecificOutput;
     expect(con.permissionDecision).toBe("deny");
     expect(con.permissionDecisionReason).toMatch(/^\[guardia\]/);
-    expect(con.permissionDecisionReason).toMatch(/ESTO YA ESTÁ APUNTADO.*#401/s);
+    expect(con.permissionDecisionReason).toMatch(/datos de GitHub.*#401/s);
     const sin = JSON.parse(lanza(nuevoDir()).stdout).hookSpecificOutput;
     expect(sin.permissionDecision).toBe("deny");
   });
