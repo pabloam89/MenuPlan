@@ -1,0 +1,1066 @@
+{
+  "$comentario": "Un estándar por tarea de cada agente (#413, fondo #416). Es el dato: lo lee `npm run estandar`, lo pega /orquestar en el brief, genera la sección «Tareas y su estándar» de cada .claude/agents/<agente>.md y lo vigila ops/estandares-agentes.test.js con las reglas de scripts/lib/estandaresAgentes.mjs. Las tareas salen de lo que el agente ya dice (Misión y alcance, Disparadores, Método, Entregables), no se inventan. Cada estándar dice qué es hacerla bien, qué comprueba, qué no hace y la fuente pública que lo respalda; las fuentes son documentación oficial (Google Engineering Practices, OWASP, Postgres, Supabase, GitHub, Google SRE). Un agente pendiente solo lleva su lista de tareas; esa lista (PENDIENTES_ADMITIDOS) solo baja. Repo público: nada de cómo se salta una barrera.",
+  "version": 1,
+  "actualizado": "2026-10-10",
+  "fuentes": {
+    "gg-estandar": {
+      "nombre": "Google Engineering Practices: The Standard of Code Review",
+      "url": "https://google.github.io/eng-practices/review/reviewer/standard.html"
+    },
+    "gg-que-mirar": {
+      "nombre": "Google Engineering Practices: What to look for in a code review",
+      "url": "https://google.github.io/eng-practices/review/reviewer/looking-for.html"
+    },
+    "gg-comentarios": {
+      "nombre": "Google Engineering Practices: How to write code review comments",
+      "url": "https://google.github.io/eng-practices/review/reviewer/comments.html"
+    },
+    "gg-navegar": {
+      "nombre": "Google Engineering Practices: Navigating a CL in review",
+      "url": "https://google.github.io/eng-practices/review/reviewer/navigate.html"
+    },
+    "owasp-asvs": {
+      "nombre": "OWASP Application Security Verification Standard",
+      "url": "https://owasp.org/www-project-application-security-verification-standard/"
+    },
+    "owasp-authz": {
+      "nombre": "OWASP Cheat Sheet: Authorization",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"
+    },
+    "owasp-idor": {
+      "nombre": "OWASP Cheat Sheet: Insecure Direct Object Reference Prevention",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html"
+    },
+    "owasp-input": {
+      "nombre": "OWASP Cheat Sheet: Input Validation",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html"
+    },
+    "owasp-secrets": {
+      "nombre": "OWASP Cheat Sheet: Secrets Management",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html"
+    },
+    "owasp-threat-model": {
+      "nombre": "OWASP Cheat Sheet: Threat Modeling",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html"
+    },
+    "owasp-llm-injection": {
+      "nombre": "OWASP Cheat Sheet: LLM Prompt Injection Prevention",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+    },
+    "owasp-llm-top10": {
+      "nombre": "OWASP Top 10 for LLM Applications",
+      "url": "https://genai.owasp.org/llm-top-10/"
+    },
+    "owasp-api-top10": {
+      "nombre": "OWASP API Security Top 10 (2023)",
+      "url": "https://owasp.org/API-Security/editions/2023/en/0x11-t10/"
+    },
+    "pg-constraints": {
+      "nombre": "PostgreSQL: Constraints",
+      "url": "https://www.postgresql.org/docs/current/ddl-constraints.html"
+    },
+    "pg-altertable": {
+      "nombre": "PostgreSQL: ALTER TABLE (NOT VALID y VALIDATE CONSTRAINT)",
+      "url": "https://www.postgresql.org/docs/current/sql-altertable.html"
+    },
+    "pg-rls": {
+      "nombre": "PostgreSQL: Row Security Policies",
+      "url": "https://www.postgresql.org/docs/current/ddl-rowsecurity.html"
+    },
+    "pg-createfunction": {
+      "nombre": "PostgreSQL: CREATE FUNCTION (escribir funciones SECURITY DEFINER con seguridad)",
+      "url": "https://www.postgresql.org/docs/current/sql-createfunction.html"
+    },
+    "pg-depend": {
+      "nombre": "PostgreSQL: Dependency Tracking",
+      "url": "https://www.postgresql.org/docs/current/ddl-depend.html"
+    },
+    "pg-dont-do-this": {
+      "nombre": "PostgreSQL wiki: Don't Do This",
+      "url": "https://wiki.postgresql.org/wiki/Don%27t_Do_This"
+    },
+    "pg-set-transaction": {
+      "nombre": "PostgreSQL: SET TRANSACTION (READ ONLY)",
+      "url": "https://www.postgresql.org/docs/current/sql-set-transaction.html"
+    },
+    "sb-rls": {
+      "nombre": "Supabase: Row Level Security",
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security"
+    },
+    "sb-functions": {
+      "nombre": "Supabase: Database Functions",
+      "url": "https://supabase.com/docs/guides/database/functions"
+    },
+    "sb-migrations": {
+      "nombre": "Supabase: Database Migrations",
+      "url": "https://supabase.com/docs/guides/deployment/database-migrations"
+    },
+    "gh-protected-branches": {
+      "nombre": "GitHub Docs: About protected branches",
+      "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches"
+    },
+    "gh-pull-requests": {
+      "nombre": "GitHub Docs: About pull requests",
+      "url": "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests"
+    },
+    "gh-actions-hardening": {
+      "nombre": "GitHub Docs: Security hardening for GitHub Actions",
+      "url": "https://docs.github.com/en/actions/reference/security/secure-use"
+    },
+    "gh-secrets-actions": {
+      "nombre": "GitHub Docs: Using secrets in GitHub Actions",
+      "url": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets"
+    },
+    "gh-environments": {
+      "nombre": "GitHub Docs: Managing environments for deployment",
+      "url": "https://docs.github.com/en/actions/deployment/targeting-different-environments/managing-environments-for-deployment"
+    },
+    "git-worktree": {
+      "nombre": "Git: git-worktree",
+      "url": "https://git-scm.com/docs/git-worktree"
+    },
+    "sre-postmortem": {
+      "nombre": "Google SRE Book: Postmortem Culture, Learning from Failure",
+      "url": "https://sre.google/sre-book/postmortem-culture/"
+    },
+    "sre-troubleshooting": {
+      "nombre": "Google SRE Book: Effective Troubleshooting",
+      "url": "https://sre.google/sre-book/effective-troubleshooting/"
+    },
+    "sre-releases": {
+      "nombre": "Google SRE Book: Release Engineering",
+      "url": "https://sre.google/sre-book/release-engineering/"
+    },
+    "sre-monitoring": {
+      "nombre": "Google SRE Book: Monitoring Distributed Systems",
+      "url": "https://sre.google/sre-book/monitoring-distributed-systems/"
+    },
+    "vercel-troubleshoot": {
+      "nombre": "Vercel Docs: Troubleshoot a build",
+      "url": "https://vercel.com/docs/deployments/troubleshoot-a-build"
+    },
+    "vercel-rollback": {
+      "nombre": "Vercel Docs: Instant Rollback",
+      "url": "https://vercel.com/docs/instant-rollback"
+    },
+    "claude-hooks": {
+      "nombre": "Claude Code Docs: Hooks",
+      "url": "https://code.claude.com/docs/en/hooks"
+    },
+    "claude-skills": {
+      "nombre": "Claude Code Docs: Skills",
+      "url": "https://code.claude.com/docs/en/skills"
+    },
+    "casa-claude": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: CLAUDE.md (qué se pregunta a Pablo, ramas y flujo, base de datos)",
+      "ruta": "CLAUDE.md"
+    },
+    "casa-principios-datos": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: principios de datos (PRINCIPIOS.md)",
+      "ruta": "docs/datos/PRINCIPIOS.md"
+    },
+    "casa-skill-issues": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: skill issues (repo público, nada sensible en un issue)",
+      "ruta": ".claude/skills/issues/SKILL.md"
+    },
+    "casa-skill-alta-secreto": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: skill alta-de-secreto",
+      "ruta": ".claude/skills/alta-de-secreto/SKILL.md"
+    },
+    "casa-decisiones": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: registro de decisiones de operación",
+      "ruta": "ops/DECISIONES.md"
+    },
+    "casa-planos": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: planos y sus niveles",
+      "ruta": "ops/PLANOS.md"
+    },
+    "casa-plantilla-agente": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: plantilla de agente (juez y constructor, skills que abrió)",
+      "ruta": ".claude/PLANTILLA-AGENTE.md"
+    },
+    "casa-migraciones": {
+      "tipo": "casa",
+      "nombre": "Regla de la casa: regla de migraciones",
+      "ruta": ".claude/rules/migraciones.md"
+    }
+  },
+  "agentes": {
+    "gobierno": {
+      "estado": "completo",
+      "tareas": [
+        {
+          "id": "flujo-rama-pr-staging",
+          "tarea": "Llevar un cambio de su rama a staging por PR con el CI en verde, mirando el estado real de origin/staging",
+          "origen": "Misión y alcance",
+          "estandar": "Una rama por tarea, salida de origin/staging; un PR pequeño y completo (Closes, Casos, Runbook y Agente en su cuerpo) que se fusiona solo con el check tests en verde. «¿Está en staging?» se contesta tras git fetch, mirando origin/staging y no el upstream de la rama.",
+          "comprueba": [
+            "git fetch y el estado de la rama contra origin/staging, antes de opinar",
+            "gh pr checks <n> con tests en pass antes de fusionar, y la rama al día con staging",
+            "el cuerpo del PR trae Closes, Casos, Runbook y Agente"
+          ],
+          "no_hace": [
+            "subir ni fusionar a main",
+            "empujar directo a staging ni forzar un push",
+            "arreglar código del producto cuando el rojo es un test suyo: lo devuelve con fichero y error"
+          ],
+          "fuentes": [
+            "gh-protected-branches",
+            "gh-pull-requests",
+            "sre-releases"
+          ]
+        },
+        {
+          "id": "paso-a-main",
+          "tarea": "Preparar el paso a main cuando Pablo lo pide, dejando los comandos listos sin ejecutarlos",
+          "origen": "Misión y alcance",
+          "estandar": "El paso a producción es un cambio revisado y reversible: parte de un staging con el CI en verde, enseña qué commits y qué migraciones pendientes entran y deja nombrado el plan de vuelta atrás. Lo lanza una persona.",
+          "comprueba": [
+            "la lista de commits y PR que entran (git log origin/main..origin/staging, tras fetch)",
+            "el check tests en verde sobre el commit exacto de staging",
+            "las migraciones sin aplicar de supabase/ESTADO.md y el rollback de Vercel nombrados"
+          ],
+          "no_hace": [
+            "subir ni fusionar a main: es gateway y lo lanza Pablo",
+            "aplicar migraciones de paso",
+            "reescribir la historia de main"
+          ],
+          "fuentes": [
+            "sre-releases",
+            "vercel-rollback",
+            "casa-claude"
+          ]
+        },
+        {
+          "id": "worktrees-y-ramas",
+          "tarea": "Crear, retirar y podar carpetas de trabajo y ramas sin perder trabajo sin subir",
+          "origen": "Disparadores",
+          "estandar": "Una carpeta, una rama, una tarea. Antes de quitar nada se hace el inventario (cambios sin commitear, commits sin subir, si node_modules es una unión) y se enseña; los borrados los lanza una persona con comandos de rutas absolutas entre comillas dobles.",
+          "comprueba": [
+            "git status y git log origin/<rama>..<rama> de cada candidata, enseñados",
+            "git worktree list antes y después, y la rama fusionada en origin/staging (npm run podar en ensayo)",
+            "node_modules no es una unión antes de borrar la carpeta"
+          ],
+          "no_hace": [
+            "borrar ramas, worktrees o carpetas: prepara los comandos para que los pegue una persona",
+            "git stash, que es común a todos los worktrees",
+            "trabajar o commitear en la carpeta principal"
+          ],
+          "fuentes": [
+            "git-worktree"
+          ]
+        },
+        {
+          "id": "diagnosticar-fallo-de-ci-o-despliegue",
+          "tarea": "Diagnosticar un CI rojo, un despliegue fallido o en Blocked y un hook que bloquea, separando causa de síntoma",
+          "origen": "Disparadores",
+          "estandar": "Se lee el log antes de tocar nada (gh run view --log-failed, logs del despliegue, mensaje del hook), se formula una hipótesis, se reproduce o se localiza, y se distingue la causa del síntoma. Si el rojo es un test del producto se devuelve con fichero y error. La lección va a un test o a la guardia, no a la memoria.",
+          "comprueba": [
+            "el log del run o del despliegue citado con su error exacto",
+            "la causa escrita como mecanismo, condición y control ausente (skill causa-raiz)",
+            "lo ya apuntado buscado antes de darlo por nuevo (npm run buscar)",
+            "tras el arreglo, el mismo check en verde"
+          ],
+          "no_hace": [
+            "arreglar código del producto",
+            "saltarse un hook ni reintentar a ciegas",
+            "relajar el CI para que pase"
+          ],
+          "fuentes": [
+            "sre-troubleshooting",
+            "sre-postmortem",
+            "vercel-troubleshoot"
+          ]
+        },
+        {
+          "id": "workflows-y-crons",
+          "tarea": "Cambiar o revisar un workflow o un cron con permisos mínimos y acciones fijadas",
+          "origen": "Misión y alcance",
+          "estandar": "Cada workflow declara permissions mínimos, fija las acciones de terceros por SHA, no interpola texto externo en un run:, usa secretos solo desde un environment con política de ramas y deja una línea estructurada que se pueda contar. Se prueba con workflow_dispatch en su rama antes de fiarse del cron, y alguien lee su fallo.",
+          "comprueba": [
+            "permissions del workflow y de cada job, y que no hay pull_request_target con secretos",
+            "acciones fijadas por SHA y nada del evento interpolado en un run:",
+            "una ejecución a mano (gh workflow run) con su log leído",
+            "quién ve el fallo del cron: aviso o informe"
+          ],
+          "no_hace": [
+            "crear, rotar ni cambiar secretos o variables de entorno: es de Pablo",
+            "dejar un cron sin nadie que lea su fallo",
+            "fusionar el cambio de un workflow sin juez y sin el CI en verde"
+          ],
+          "fuentes": [
+            "gh-actions-hardening",
+            "gh-secrets-actions",
+            "sre-monitoring"
+          ]
+        },
+        {
+          "id": "permisos-y-hooks",
+          "tarea": "Cambiar permisos y hooks, y convertir en regla de la guardia lo que importa y solo está escrito",
+          "origen": "Misión y alcance",
+          "estandar": "Una regla que importa vive en un hook con su test visto fallar, no solo en un texto. Cada permiso nuevo es una puerta: allow solo para lecturas o comandos que la guardia ya vigila, y todo cambio va por PR con juez y CI en verde.",
+          "comprueba": [
+            "el test de la regla nueva falla antes del cambio y pasa después (guardia.test.js)",
+            "npm test -- .claude en verde",
+            "la norma registrada en ops/normas.json con su ejecutor real y su veredicto",
+            "el permiso nuevo es de lectura o ya lo vigila la guardia"
+          ],
+          "no_hace": [
+            "ampliar los permisos de settings.json sin preguntar a Pablo",
+            "fiar una regla importante a un texto"
+          ],
+          "fuentes": [
+            "claude-hooks",
+            "owasp-authz",
+            "casa-claude"
+          ]
+        },
+        {
+          "id": "secretos-e-inventario",
+          "tarea": "Llevar al día qué secretos y servicios existen, de quién son y dónde viven, sin escribir un valor",
+          "origen": "Misión y alcance",
+          "estandar": "Un secreto, un uso, ámbito mínimo y caducidad anotada, guardado en su ficha y entregado por tubería a un environment. El inventario dice nombre, dueño, ficha, destino y caducidad, sin el valor. Crear o rotar lo hace una persona con los comandos preparados.",
+          "comprueba": [
+            "ninguna línea del cambio ni del informe contiene un valor (gh secret list y op sin --reveal)",
+            "cada clave del inventario tiene dueño, destino y fecha de caducidad",
+            "la lista de comprobación de la skill alta-de-secreto marcada",
+            "los secretos de Actions viven en un environment con política de ramas"
+          ],
+          "no_hace": [
+            "crear, rotar ni cambiar secretos o variables de entorno",
+            "imprimir o pegar un valor en el informe",
+            "reutilizar la clave de un uso para otro"
+          ],
+          "fuentes": [
+            "owasp-secrets",
+            "gh-secrets-actions",
+            "gh-environments",
+            "casa-skill-alta-secreto"
+          ]
+        },
+        {
+          "id": "despliegues-vercel",
+          "tarea": "Informar del estado y los logs de un despliegue de Vercel y preparar el despliegue a producción cuando se pide",
+          "origen": "Misión y alcance",
+          "estandar": "El estado se lee del despliegue y de sus logs (build y runtime) antes de cambiar nada. Staging se verifica en su despliegue; producción se despliega desde main con un plan de vuelta atrás. Un Blocked se diagnostica por el autor del commit y los miembros del equipo antes de tocar la configuración.",
+          "comprueba": [
+            "el estado del despliegue y el primer error del log, citados",
+            "el commit desplegado coincide con origin/staging tras fetch",
+            "para producción: el PR a main y el rollback nombrados"
+          ],
+          "no_hace": [
+            "promover a producción ni hacer rollback: es de Pablo",
+            "cambiar variables de entorno ni ajustes del proyecto",
+            "bajar las variables de Production"
+          ],
+          "fuentes": [
+            "vercel-troubleshoot",
+            "vercel-rollback",
+            "casa-claude"
+          ]
+        },
+        {
+          "id": "registros-y-planos",
+          "tarea": "Poner al día DECISIONES, INVENTARIO y PLANOS y contestar «¿cómo está la casa?» con cifras",
+          "origen": "Entregables",
+          "estandar": "Cada gateway aprobado deja una fila fechada con qué, por qué y quién lo aprobó; un plano sube de nivel con evidencia comprobable (el workflow, el test o el ajuste que lo obliga); el estado de la casa se da con cifras de git, gh y npm run planos, no de memoria.",
+          "comprueba": [
+            "la fila de ops/DECISIONES.md por cada gateway aprobado, con fecha",
+            "el criterio de ops/planos.json y npm run planos -- --red antes de cambiar un nivel",
+            "cada cifra del informe sale de un comando citado"
+          ],
+          "no_hace": [
+            "subir un nivel porque ya está hecho: pide evidencia",
+            "escribir valores de claves en los registros",
+            "contestar el estado de la casa de memoria"
+          ],
+          "fuentes": [
+            "casa-decisiones",
+            "casa-planos"
+          ]
+        }
+      ]
+    },
+    "datos": {
+      "estado": "completo",
+      "tareas": [
+        {
+          "id": "modelar-antes-de-sql",
+          "tarea": "Diseñar el modelo antes del SQL: entidades, relaciones, ciclo de vida e invariantes",
+          "origen": "Método",
+          "estandar": "Antes del SQL se escribe qué entidad es, de quién cuelga, qué ciclo de vida tiene y qué invariantes reparte entre la base y el código. Cada dato nuevo tiene un lector señalado y vive en un solo sitio.",
+          "comprueba": [
+            "entidades y relaciones con su on delete y su porqué, en el PR o en specs/",
+            "un lector señalado por cada columna o tabla nueva (grep)",
+            "el dato no existe ya en otra capa (grep en src/, api/ y supabase/)"
+          ],
+          "no_hace": [
+            "escribir la migración sin diseño cuando la pieza es nueva",
+            "decidir cambios de producto (qué ve la familia, qué hace Lola)",
+            "crear campos sin lector"
+          ],
+          "fuentes": [
+            "pg-constraints",
+            "pg-depend"
+          ]
+        },
+        {
+          "id": "restricciones-y-tipos",
+          "tarea": "Dar a cada tabla sus claves, relaciones, tipos y vocabulario cerrado con CHECK y su constante JS",
+          "origen": "Método",
+          "estandar": "Clave técnica y clave natural unique, FK con on delete explícito, not null salvo decisión comentada, timestamptz (pg-dont-do-this), text con CHECK y no enum de Postgres salvo con su porqué, y magnitudes en unidad canónica con la unidad en el nombre (criterio de la casa, PRINCIPIOS.md). Cada vocabulario lleva su constante JS y su test SQL a JS: la base dice no, no el código.",
+          "comprueba": [
+            "supabase/principios.test.js y supabase/migrations.test.js en verde",
+            "cada FK declara su on delete y cada CHECK tiene su constante JS espejo",
+            "comment on table en cada tabla nueva y en las columnas que no se entienden por su nombre"
+          ],
+          "no_hace": [
+            "crear un enum de Postgres sin proponerlo con su porqué (casi nunca)",
+            "relacionar por nombre en vez de por id",
+            "romper un principio de docs/datos/PRINCIPIOS.md sin proponerlo"
+          ],
+          "fuentes": [
+            "pg-constraints",
+            "pg-dont-do-this",
+            "pg-depend",
+            "casa-principios-datos"
+          ]
+        },
+        {
+          "id": "escribir-migracion",
+          "tarea": "Escribir una migración nueva con cabecera, consultas previas, objeto testigo y plan B del código",
+          "origen": "Método",
+          "estandar": "Un fichero numerado en el siguiente hueco de origin/staging, con cabecera (qué hace, por qué, consultas previas que deben dar 0, objeto testigo), DDL que falla en vez de callar (drop constraint sin if exists) y código que no depende de que ya esté aplicada. Una aplicada no se edita: se escribe otra.",
+          "comprueba": [
+            "el número contiguo al último de origin/staging, tras git fetch",
+            "supabase/migrations.test.js y supabase/principios.test.js en verde",
+            "el plan B del código cuando la migración aún no está aplicada"
+          ],
+          "no_hace": [
+            "editar una migración ya aplicada",
+            "aplicar en producción ni lanzar SQL a mano que escriba",
+            "renumerar la migración de otra rama"
+          ],
+          "fuentes": [
+            "sb-migrations",
+            "pg-altertable",
+            "casa-migraciones"
+          ]
+        },
+        {
+          "id": "ensayar-migracion",
+          "tarea": "Ensayar la migración contra la base y comprobar el resultado leyendo el catálogo",
+          "origen": "Método",
+          "estandar": "El ensayo (apply-migration sin --si) ejecuta y deshace; el resultado se comprueba leyendo pg_constraint, pg_proc o el objeto testigo, no con el «OK» del script. Una restricción sobre datos existentes entra NOT VALID y se valida aparte cuando las consultas previas dan 0.",
+          "comprueba": [
+            "la salida del ensayo, pegada",
+            "la lectura del catálogo del objeto creado o cambiado",
+            "las consultas previas dan 0 antes de validar una restricción"
+          ],
+          "no_hace": [
+            "lanzar --si ni --pablo",
+            "SQL a mano contra producción",
+            "dar el ensayo por bueno solo porque el script no falló"
+          ],
+          "fuentes": [
+            "pg-altertable",
+            "sb-migrations"
+          ]
+        },
+        {
+          "id": "estado-de-migraciones",
+          "tarea": "Mantener ESTADO.md y PENDIENTES.md y contestar si una migración está aplicada",
+          "origen": "Disparadores",
+          "estandar": "«¿Está aplicada la 00XX?» se contesta con verificar-estado y su objeto testigo, no de memoria. ESTADO.md y PENDIENTES.md se ponen al día en el mismo PR que la migración y dicen la verdad sobre lo que la rama trae.",
+          "comprueba": [
+            "node scripts/verificar-estado.mjs --solo 00XX --detalle, con su salida",
+            "supabase/ESTADO.md tocado en el mismo PR que la migración",
+            "las restricciones NOT VALID por validar listadas en supabase/PENDIENTES.md"
+          ],
+          "no_hace": [
+            "dar una migración por aplicada sin testigo",
+            "aplicar la migración",
+            "fiarse de la tabla de migraciones de Supabase como registro"
+          ],
+          "fuentes": [
+            "sb-migrations",
+            "pg-altertable"
+          ]
+        },
+        {
+          "id": "rls-y-funciones-seguras",
+          "tarea": "Escribir las políticas RLS, los grants y las funciones security definer de una migración para que las juzgue seguridad",
+          "origen": "Misión y alcance",
+          "estandar": "Toda tabla expuesta nace con RLS activada y políticas por casa; cada función security definer fija search_path, revoca EXECUTE a public, anon y authenticated y concede explícitamente a quien toca. El cambio de RLS o permisos sobre lo existente lo lanza Pablo.",
+          "comprueba": [
+            "relrowsecurity activada y políticas leídas del catálogo en una transacción de solo lectura",
+            "proacl de la función sin anon ni public",
+            "el test de principios de la migración en verde"
+          ],
+          "no_hace": [
+            "aplicar cambios de RLS o permisos en producción",
+            "cambiar la RLS de una tabla con datos de usuarios sin Pablo",
+            "juzgar su propio diseño de seguridad: lo hace seguridad"
+          ],
+          "fuentes": [
+            "pg-rls",
+            "pg-createfunction",
+            "sb-rls",
+            "sb-functions"
+          ]
+        },
+        {
+          "id": "donde-vive-el-dato",
+          "tarea": "Decidir dónde vive un dato (SQL, JSON en git o los dos) y deshacer repeticiones y cruces por nombre",
+          "origen": "Disparadores",
+          "estandar": "Lo curado por el equipo va en JSON en git y lo que escriben los usuarios en SQL; los dos solo si uno se genera del otro y se declara quién lo recalcula. Las relaciones son por id y el módulo dueño de la tabla es el único camino de acceso.",
+          "comprueba": [
+            "grep del nombre y de los valores en src/data, constantes JS y api/_bot",
+            "supabase/cableado.test.js en verde",
+            "cada proyección declarada con quién la recalcula"
+          ],
+          "no_hace": [
+            "cambiar el contenido del catálogo (recetas, nutrición): solo su forma",
+            "reescribir datos de familias",
+            "abrir un camino nuevo a una tabla fuera de su módulo dueño"
+          ],
+          "fuentes": [
+            "casa-principios-datos",
+            "pg-constraints"
+          ]
+        },
+        {
+          "id": "texto-libre-a-vocabulario",
+          "tarea": "Convertir un texto libre que se agrupa en vocabulario cerrado con su CHECK y su constante",
+          "origen": "Disparadores",
+          "estandar": "Se cuentan los valores reales con una consulta de solo lectura, se decide el vocabulario, se añade el CHECK NOT VALID, se migran los datos existentes y se valida. La constante JS y su test SQL a JS salen en el mismo PR.",
+          "comprueba": [
+            "el recuento de valores distintos antes y después",
+            "CHECK, constante JS y test SQL a JS en el mismo PR",
+            "filas fuera del vocabulario igual a 0 antes de validar"
+          ],
+          "no_hace": [
+            "borrar o reescribir datos de familias sin Pablo",
+            "crear una tabla catálogo cuyos atributos no tienen lector",
+            "usar un enum de Postgres salvo con su porqué (casi nunca)"
+          ],
+          "fuentes": [
+            "pg-altertable",
+            "pg-constraints",
+            "casa-principios-datos"
+          ]
+        }
+      ]
+    },
+    "revisor": {
+      "estado": "completo",
+      "tareas": [
+        {
+          "id": "revisar-diff",
+          "tarea": "Revisar el diff entero de la rama contra origin/staging y levantar solo lo que rompe",
+          "origen": "Misión y alcance",
+          "estandar": "Se lee el diff completo con su descripción y su contexto (llamadores y tests). El cambio se aprueba si mejora la salud del código aunque no sea perfecto; solo lo que da un resultado incorrecto, pierde datos o falla en un caso realista es bloqueante, y un informe sin hallazgos es un buen informe.",
+          "comprueba": [
+            "el número de ficheros y líneas leídos, dicho en el informe",
+            "los llamadores de cada cambio de comportamiento buscados con grep",
+            "los casos límite: vacío, nulo, sin sesión, otra casa, concurrencia y zona horaria"
+          ],
+          "no_hace": [
+            "arreglar: devuelve los hallazgos",
+            "reescribir a su gusto ni discutir estilo que el lint ya vigila",
+            "inventar hallazgos para justificar la revisión"
+          ],
+          "fuentes": [
+            "gg-estandar",
+            "gg-que-mirar",
+            "gg-navegar"
+          ]
+        },
+        {
+          "id": "hallazgos-con-caso",
+          "tarea": "Escribir cada hallazgo con severidad, línea, caso concreto y arreglo propuesto",
+          "origen": "Método",
+          "estandar": "Un hallazgo dice qué entrada concreta da qué salida mala y en qué línea, con severidad del vocabulario (bloqueante, alto, medio, nit), explica el porqué y propone el arreglo sin dictar la forma. Sin caso realista no es hallazgo, y el tono se dirige al código y no a la persona.",
+          "comprueba": [
+            "cada bloqueante o alto con un caso reproducible",
+            "cada hallazgo con su marca YA APUNTADO o NUEVO (buscado: …)",
+            "lo que no rompe, marcado como nit"
+          ],
+          "no_hace": [
+            "bloquear por gusto o por una preferencia de estilo",
+            "dar un hallazgo sin caso",
+            "repetir como nuevo lo ya apuntado"
+          ],
+          "fuentes": [
+            "gg-comentarios",
+            "gg-estandar"
+          ]
+        },
+        {
+          "id": "tests-que-prueban",
+          "tarea": "Correr los tests de lo tocado y comprobar que un test nuevo fallaría sin el cambio",
+          "origen": "Misión y alcance",
+          "estandar": "Se corren los tests de los ficheros tocados, no la suite entera, y se comprueba que los tests nuevos son correctos y útiles: fallarían si el código se rompiera. Un test que no puede fallar no cuenta como cobertura.",
+          "comprueba": [
+            "npx vitest run <ruta> con su salida",
+            "el test nuevo fallaría sin el cambio (razonado, o visto fallar)"
+          ],
+          "no_hace": [
+            "escribir ni arreglar tests",
+            "lanzar la suite entera salvo antes de abrir el PR"
+          ],
+          "fuentes": [
+            "gg-que-mirar"
+          ]
+        },
+        {
+          "id": "leccion-del-fallo",
+          "tarea": "Comprobar que un PR que arregla un fallo deja su lección en un test, la guardia o la skill",
+          "origen": "Método",
+          "estandar": "Todo arreglo de un fallo deja una lección donde se hace cumplir: un test que falla sin el arreglo, una regla de la guardia o una entrada en «Lo que falló y por qué» de la skill. Un PR que arregla sin dejarla es hallazgo alto aunque el código funcione.",
+          "comprueba": [
+            "si el PR es de una rama fix/ o cierra una lección, y dónde quedó (ruta)",
+            "la línea «Runbook:» contrastada con el fallo concreto que esconde",
+            "dónde dejar el patrón si se repite: test, guardia o issue"
+          ],
+          "no_hace": [
+            "pedir lección a un PR que no arregla un fallo",
+            "dar «sin novedades» por hallazgo sin señalar el fallo que esconde",
+            "escribir la lección: un juez no escribe"
+          ],
+          "fuentes": [
+            "sre-postmortem",
+            "casa-claude"
+          ]
+        },
+        {
+          "id": "skills-abiertas",
+          "tarea": "Contrastar las skills que pedía el diff con las que el constructor dijo abrir",
+          "origen": "Método",
+          "estandar": "npm run skills-encargo -- --diff dice qué skills piden los ficheros del diff y se contrasta con la línea SKILLS: del informe del constructor. Una que falta es hallazgo medio con su nombre, y alto si el diff repite algo que la skill ya cuenta en «Lo que falló y por qué».",
+          "comprueba": [
+            "la salida de npm run skills-encargo -- --diff",
+            "la línea SKILLS: del informe del constructor",
+            "si no hay informe del constructor, dicho como no comprobado"
+          ],
+          "no_hace": [
+            "inventar el informe del constructor",
+            "bloquear por una skill que no pide ningún fichero del diff"
+          ],
+          "fuentes": [
+            "casa-plantilla-agente",
+            "claude-skills"
+          ]
+        },
+        {
+          "id": "contrastar-estandar-del-constructor",
+          "tarea": "Contrastar el diff con el estándar de la tarea que el constructor dice haber cumplido",
+          "origen": "Método",
+          "estandar": "Se lee la línea ESTÁNDAR: del informe del constructor, se saca con npm run estandar -- <agente> <tarea> el estándar de esa tarea y se comprueba, con el diff y la evidencia, cada punto de «comprueba» y que no se hizo nada de «no_hace». Un punto sin evidencia es hallazgo medio y un «no_hace» roto es alto.",
+          "comprueba": [
+            "la línea ESTÁNDAR: del informe, con agente y tarea",
+            "cada punto de «comprueba» con su evidencia en el diff o en el informe",
+            "ningún punto de «no_hace» hecho en el diff"
+          ],
+          "no_hace": [
+            "juzgar contra un estándar pendiente: lo dice como no comprobado",
+            "inventar un estándar que no está en ops/estandares-agentes.json",
+            "dar por bueno un informe sin la línea ESTÁNDAR: cuando la tarea está en el catálogo"
+          ],
+          "fuentes": [
+            "gg-estandar",
+            "gg-que-mirar"
+          ]
+        },
+        {
+          "id": "reutilizacion-evidente",
+          "tarea": "Señalar la reutilización evidente cuando evita un fallo o una segunda verdad",
+          "origen": "Misión y alcance",
+          "estandar": "Se señala que ya existe una función o una fuente que hace lo mismo solo cuando evita un fallo o una segunda verdad, citando dónde está. Una preferencia de comodidad es nit.",
+          "comprueba": [
+            "la función o fuente existente localizada con grep y citada con su ruta",
+            "el fallo o la duplicación concreta que evitaría"
+          ],
+          "no_hace": [
+            "pedir refactors por gusto",
+            "bloquear por una duplicación sin riesgo"
+          ],
+          "fuentes": [
+            "gg-que-mirar",
+            "casa-principios-datos"
+          ]
+        },
+        {
+          "id": "diagnosticar-bug",
+          "tarea": "Localizar dónde está un bug antes de que alguien lo arregle",
+          "origen": "Disparadores",
+          "estandar": "Se reproduce o se localiza con evidencia (fichero:línea, comando y salida), se separa la causa del síntoma y se devuelve el diagnóstico con el caso que lo reproduce. Lo que no se pudo comprobar se llama hipótesis.",
+          "comprueba": [
+            "fichero:línea y el comando con su salida",
+            "causa y síntoma separados, con el caso que lo reproduce",
+            "lo no comprobado marcado como hipótesis"
+          ],
+          "no_hace": [
+            "arreglar el bug",
+            "dar por causa lo que es solo el primer síntoma"
+          ],
+          "fuentes": [
+            "sre-troubleshooting",
+            "sre-postmortem"
+          ]
+        }
+      ]
+    },
+    "seguridad": {
+      "estado": "completo",
+      "tareas": [
+        {
+          "id": "delimitar-superficie",
+          "tarea": "Delimitar la superficie a auditar: datos, actores y caminos",
+          "origen": "Método",
+          "estandar": "Antes de buscar fallos se responde qué se protege, quién puede actuar (anónimo, usuario, otro miembro de la casa, otra casa, el bot) y por qué caminos (app, REST directo, bot). Cada camino se intenta sobre el papel con el peor actor.",
+          "comprueba": [
+            "la lista de datos, actores y caminos, escrita en el informe",
+            "cada camino con el abuso intentado: sin sesión, con la sesión de otro, con un id ajeno"
+          ],
+          "no_hace": [
+            "auditar sin delimitar antes",
+            "dar un «podría» sin escenario"
+          ],
+          "fuentes": [
+            "owasp-threat-model"
+          ]
+        },
+        {
+          "id": "auditar-rls-y-grants",
+          "tarea": "Auditar RLS, grants y funciones security definer de las migraciones y del catálogo vivo",
+          "origen": "Misión y alcance",
+          "estandar": "Toda tabla del esquema expuesto tiene RLS activada y políticas por casa o por usuario; ninguna función security definer es ejecutable por anon o public sin motivo y todas fijan search_path. La defensa es la base: una regla que solo vive en el cliente no protege.",
+          "comprueba": [
+            "relrowsecurity y políticas leídas del catálogo, solo en lectura",
+            "proacl de cada función security definer",
+            "la migración que crea o cambia cada permiso, con su número"
+          ],
+          "no_hace": [
+            "cambiar RLS o permisos: lo prepara datos y lo lanza Pablo",
+            "escribir en la base para probar"
+          ],
+          "fuentes": [
+            "pg-rls",
+            "pg-createfunction",
+            "sb-rls",
+            "owasp-idor"
+          ]
+        },
+        {
+          "id": "auditar-endpoints",
+          "tarea": "Auditar la autorización, la validación y los límites de los endpoints de api/",
+          "origen": "Misión y alcance",
+          "estandar": "Cada endpoint autentica, autoriza sobre el objeto concreto y no solo sobre el rol, valida la entrada en el servidor, limita el uso con api/_guard.js y falla cerrado si el límite no responde.",
+          "comprueba": [
+            "el endpoint sin sesión, con la sesión de otro y con un id ajeno, sobre el papel",
+            "los topes y límites de api/_guard.js que le aplican",
+            "la validación de cada campo de entrada"
+          ],
+          "no_hace": [
+            "arreglar el endpoint",
+            "auditar bugs que no son de seguridad: son del revisor"
+          ],
+          "fuentes": [
+            "owasp-authz",
+            "owasp-input",
+            "owasp-api-top10",
+            "owasp-asvs"
+          ]
+        },
+        {
+          "id": "auditar-secretos",
+          "tarea": "Auditar que ningún secreto esté en el código ni en el historial y quién lo lee",
+          "origen": "Misión y alcance",
+          "estandar": "Los secretos viven fuera del repo, cada uno con un uso y un lector conocido; ninguna variable pública del cliente lleva un secreto y el informe nombra la variable, no el valor.",
+          "comprueba": [
+            "búsqueda de patrones de claves en el diff y el historial reciente",
+            "las variables que llegan al cliente no son secretas",
+            "quién lee cada secreto, contra ops/INVENTARIO.md"
+          ],
+          "no_hace": [
+            "rotar un secreto: lo hace una persona con gobierno",
+            "imprimir un valor en el informe"
+          ],
+          "fuentes": [
+            "owasp-secrets",
+            "gh-secrets-actions"
+          ]
+        },
+        {
+          "id": "auditar-datos-personales",
+          "tarea": "Auditar qué datos personales se exponen en respuestas públicas y en registros",
+          "origen": "Misión y alcance",
+          "estandar": "Cada respuesta pública devuelve solo los campos que su lector necesita; los datos de salud (alergias) solo llegan a la casa dueña y los registros no llevan datos de familias.",
+          "comprueba": [
+            "los campos de cada respuesta pública, uno a uno",
+            "que un miembro de otra casa no obtiene los datos de esta",
+            "los registros y avisos sin datos de familias"
+          ],
+          "no_hace": [
+            "decidir qué dato necesita la pantalla: es del producto",
+            "leer filas de usuarios en vivo cuando basta contar"
+          ],
+          "fuentes": [
+            "owasp-api-top10",
+            "owasp-asvs"
+          ]
+        },
+        {
+          "id": "auditar-lola-inyeccion",
+          "tarea": "Auditar que un mensaje no haga escribir a Lola para otra casa ni saltarse la confirmación",
+          "origen": "Misión y alcance",
+          "estandar": "El texto de usuario es dato y no instrucción: va separado de las instrucciones del prompt. Una herramienta que escribe actúa solo sobre la casa del papel, confirma antes de cambiar datos y el modelo tiene las herramientas mínimas.",
+          "comprueba": [
+            "los prompts donde se interpola texto de usuario",
+            "papeles y permisos de src/lib/papeles.js contra las herramientas de api/_bot/",
+            "el mensaje malicioso intentado sobre el papel: otra casa, saltar la confirmación"
+          ],
+          "no_hace": [
+            "correr evals de calidad: es del evaluador",
+            "cambiar los papeles o los permisos"
+          ],
+          "fuentes": [
+            "owasp-llm-injection",
+            "owasp-llm-top10"
+          ]
+        },
+        {
+          "id": "verificar-en-vivo-leyendo",
+          "tarea": "Confirmar un hallazgo en vivo solo con lecturas, o marcarlo sin verificar",
+          "origen": "Método",
+          "estandar": "Un hallazgo crítico o alto se confirma leyendo el catálogo dentro de una transacción de solo lectura o el código exacto, o se marca sin verificar. Una escritura de prueba no es una forma de confirmar.",
+          "comprueba": [
+            "la transacción de solo lectura y que solo hay select",
+            "cada crítico o alto marcado como confirmado o sin verificar"
+          ],
+          "no_hace": [
+            "escribir en la base para probar",
+            "usar la conexión de administrador cuando basta la de lectura"
+          ],
+          "fuentes": [
+            "pg-set-transaction",
+            "owasp-asvs"
+          ]
+        },
+        {
+          "id": "informe-de-seguridad",
+          "tarea": "Redactar la tabla de hallazgos por severidad, con escenario y arreglo, sin ningún valor secreto",
+          "origen": "Entregables",
+          "estandar": "Cada hallazgo es un ataque descrito paso a paso (quién, qué petición, qué obtiene), con severidad por el daño real hoy, ruta y arreglo propuesto. El crítico explotable va el primero, lo descartado lleva su porqué y el detalle explotable va a Pablo en privado, porque el repo es público. El detalle explotable en privado es regla de la casa (skill issues).",
+          "comprueba": [
+            "escenario, severidad, ruta y arreglo en cada fila",
+            "lo revisado sin problema, en una línea por área",
+            "ningún valor secreto en el informe, solo el nombre de la variable"
+          ],
+          "no_hace": [
+            "poner en un issue público cómo se explota algo",
+            "subir la severidad sin vector con los permisos actuales"
+          ],
+          "fuentes": [
+            "owasp-asvs",
+            "owasp-threat-model",
+            "casa-skill-issues"
+          ]
+        }
+      ]
+    },
+    "diseno": {
+      "estado": "pendiente",
+      "tareas": [
+        {
+          "id": "pantalla-con-tokens",
+          "tarea": "Diseñar o cambiar una pantalla, hoja, tarjeta o componente con los tokens y primitivos del sistema",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "token-o-primitivo-nuevo",
+          "tarea": "Crear en el sistema el token o el primitivo que falta, con su porqué, antes de usarlo",
+          "origen": "Método"
+        },
+        {
+          "id": "migrar-pantalla-a-tokens",
+          "tarea": "Migrar una pantalla a tokens bajando la lista de valores sueltos",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "assets-reproducibles",
+          "tarea": "Entregar assets optimizados: original en su carpeta, derivado por script y entrada en el manifiesto",
+          "origen": "Método"
+        },
+        {
+          "id": "iconos-e-ilustraciones",
+          "tarea": "Añadir un icono, una ilustración o una familia de assets al sistema",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "marca-y-manifest",
+          "tarea": "Tocar el logo, el favicon, el manifest o el color de marca",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "capturas-antes-despues",
+          "tarea": "Hacer las capturas de antes y después a 375×812 y 420×900",
+          "origen": "Método"
+        },
+        {
+          "id": "voz-de-la-interfaz",
+          "tarea": "Escribir la voz de la interfaz: botones, vacíos y errores",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "estado-del-diseno",
+          "tarea": "Poner al día docs/diseno/ESTADO.md con las cifras y decisiones",
+          "origen": "Entregables"
+        }
+      ]
+    },
+    "lola": {
+      "estado": "pendiente",
+      "tareas": [
+        {
+          "id": "herramienta-de-lola",
+          "tarea": "Crear o cambiar una herramienta del bot con su descripción, su papel y sus tests",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "reproducir-fallo-de-lola",
+          "tarea": "Reproducir un fallo de Lola con el caso exacto y localizar su causa",
+          "origen": "Método"
+        },
+        {
+          "id": "conocimiento-y-descripciones",
+          "tarea": "Cambiar el conocimiento o la ficha cuidando el prefijo cacheado",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "enrutador-y-via-rapida",
+          "tarea": "Cambiar el enrutador o la vía rápida y sus reglas",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "papeles-y-permisos-de-herramientas",
+          "tarea": "Cambiar los papeles y permisos de las herramientas de Lola",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "coste-y-latencia",
+          "tarea": "Bajar el coste o la latencia de un tipo de turno",
+          "origen": "Disparadores"
+        },
+        {
+          "id": "casos-de-eval",
+          "tarea": "Añadir a los evals el caso de un fallo real que se arregla",
+          "origen": "Entregables"
+        },
+        {
+          "id": "medir-antes-despues",
+          "tarea": "Medir pase de evals, tokens por turno y vueltas antes y después del cambio",
+          "origen": "Entregables"
+        }
+      ]
+    },
+    "qa": {
+      "estado": "pendiente",
+      "tareas": [
+        {
+          "id": "recorrer-flujo-en-navegador",
+          "tarea": "Arrancar la app y recorrer el flujo tocado en un navegador a los dos anchos",
+          "origen": "Método"
+        },
+        {
+          "id": "capturas-de-estados",
+          "tarea": "Capturar cada pantalla afectada en los estados vacío, cargando y peligro",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "comprobar-design-system",
+          "tarea": "Comprobar tokens, primitivos, objetivos táctiles, contraste y movimiento reducido contra el design system",
+          "origen": "Método"
+        },
+        {
+          "id": "errores-de-consola",
+          "tarea": "Recoger los errores de consola y las peticiones fallidas con el paso que los provoca",
+          "origen": "Método"
+        },
+        {
+          "id": "informe-visual",
+          "tarea": "Redactar los hallazgos visuales por pantalla con severidad y ruta de captura",
+          "origen": "Entregables"
+        }
+      ]
+    },
+    "evaluador": {
+      "estado": "pendiente",
+      "tareas": [
+        {
+          "id": "correr-evals",
+          "tarea": "Correr los evals del bot, del enrutador y de modelos que afectan al cambio",
+          "origen": "Método"
+        },
+        {
+          "id": "comparar-con-staging",
+          "tarea": "Comparar la rama contra origin/staging con las mismas opciones y tabular el resultado",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "leer-transcripciones",
+          "tarea": "Leer las transcripciones de los casos que empeoran o fallan y explicar la causa",
+          "origen": "Método"
+        },
+        {
+          "id": "proponer-casos-faltantes",
+          "tarea": "Proponer los casos de eval que faltan, con su forma exacta en JSON",
+          "origen": "Entregables"
+        },
+        {
+          "id": "cambio-de-modelo-de-turno",
+          "tarea": "Evaluar el cambio de modelo de un tipo de turno antes de desplegarlo",
+          "origen": "Disparadores"
+        }
+      ]
+    },
+    "auditor-datos": {
+      "estado": "pendiente",
+      "tareas": [
+        {
+          "id": "juzgar-migracion",
+          "tarea": "Juzgar una migración o un cambio de modelo contra PRINCIPIOS.md y dejar su veredicto en una línea",
+          "origen": "Entregables"
+        },
+        {
+          "id": "buscar-datos-repetidos",
+          "tarea": "Encontrar datos repetidos entre tabla, catálogo JSON, constantes JS y prompts del bot",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "vigilar-cableado",
+          "tarea": "Vigilar el cableado: qué ficheros tocan cada tabla y qué filtros se escriben a mano",
+          "origen": "Misión y alcance"
+        },
+        {
+          "id": "mapa-de-verdades",
+          "tarea": "Proponer el mapa de dónde vive cada hecho y quién recalcula sus proyecciones",
+          "origen": "Entregables"
+        },
+        {
+          "id": "auditoria-periodica-del-modelo",
+          "tarea": "Hacer la auditoría periódica del modelo y proponer convenciones o excepciones",
+          "origen": "Disparadores"
+        }
+      ]
+    }
+  }
+}

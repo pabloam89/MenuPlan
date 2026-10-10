@@ -1,0 +1,194 @@
+{
+  "skill": "issues",
+  "fecha_utc": "2026-10-10T13:40:17.832Z",
+  "version": {
+    "skill_md": "ae366d44c48b",
+    "casos_json": "e5be8228fbb3"
+  },
+  "modelos": {
+    "disparo": "claude-haiku-4-5",
+    "ejecuta": "claude-sonnet-5",
+    "corrige": "claude-haiku-4-5"
+  },
+  "tope_usd": 1,
+  "coste_usd": 0.0841,
+  "resultado": "falla",
+  "resumen": {
+    "disparo_ok": 5,
+    "disparo_total": 6,
+    "comprobaciones_ok": 8,
+    "comprobaciones_total": 9,
+    "sin_correr": 0
+  },
+  "cambios_respecto_anterior": [
+    {
+      "id": "registrar-caso",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "ficha-sin-diagnostico",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "caso-puntual",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-log-ci",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-linea-casos-pr",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-causa-de-fondo",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "registrar-caso",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "ficha-sin-diagnostico",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "caso-puntual",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    }
+  ],
+  "disparo": [
+    {
+      "id": "registrar-caso",
+      "esperado": "issues",
+      "elegido": "issues",
+      "estado": "ok"
+    },
+    {
+      "id": "ficha-sin-diagnostico",
+      "esperado": "issues",
+      "elegido": "causa-raiz",
+      "estado": "falla"
+    },
+    {
+      "id": "caso-puntual",
+      "esperado": "issues",
+      "elegido": "issues",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-log-ci",
+      "esperado": "github",
+      "elegido": "github",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-linea-casos-pr",
+      "esperado": "github",
+      "elegido": "github",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-causa-de-fondo",
+      "esperado": "causa-raiz",
+      "elegido": "causa-raiz",
+      "estado": "ok"
+    }
+  ],
+  "ejecucion": [
+    {
+      "id": "registrar-caso",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Propone npm run issues -- --nuevo con --tipo caso, --analisis y --padre",
+          "cumple": true,
+          "evidencia": "npm run issues -- --nuevo \"Cron de recordatorios vuelve a fallar\" --tipo caso --analisis abierto --area ops --cuerpo /tmp/caso-cron.md --padre <N>"
+        },
+        {
+          "texto": "Dice que no se crea con gh issue create a pelo",
+          "cumple": true,
+          "evidencia": "Usar `gh issue create` a pelo (la guardia lo niega, y además saltaría la detección de duplicados)."
+        },
+        {
+          "texto": "Pide elegir el análisis: nuevo, abierto, no-aguanto o puntual",
+          "cumple": false,
+          "evidencia": "Solo menciona \"nuevo\" vs \"abierto\", no cita \"no-aguanto\" ni \"puntual\" como opciones a elegir"
+        }
+      ],
+      "respuesta": "Orden de pasos (sin ejecutar nada sin tu OK):\n\n**1. Buscar primero si ya hay fondo abierto para esto**\n```\nnpm run buscar -- \"cron recordatorios\"\n```\nEspero ver si existe ya un issue `tipo:fondo` sobre el cron de recordatorios, con su número, estado y encargos pendientes/hechos. Esto me dice si es `abierto` (cuelgo) o si tengo que mirar más (`npm run issues` para la vista completa).\n\n**2. Si no estoy seguro con `buscar`, confirmar con el listado general**\n```\nnpm run issues\n```\nPara ver fondos por causa/área y localizar el que corresponde (probablemente `area:ops` o `area:motor`, causa tipo `error-silencioso` o `entorno`).\n\n**3. Preparar el cuerpo del caso** en un fichero temporal (ej. `/tmp/caso-cron.md`) con: cuándo, qué se esperaba vs qué pasó, evidencia (log del cron, comando y salida, o enlace al run fallido).\n\n**4. Registrar el caso colgado del fondo encontrado**\n```\nnpm run issues -- --nuevo \"Cron de recordatorios vuelve a fallar\" --tipo caso --analisis abierto --area ops --cuerpo /tmp/caso-cron.md --padre <N>\n```\nEspero que enseñe parecidos y, si el que detecta es el fondo correcto, cree el caso ya colgado de él.\n\n**Qué NO haría sin tu OK:**\n- Usar `gh issue create` a pelo (la guardia lo niega, y además saltaría la detección de duplicados).\n- Abrir un fondo nuevo si no estoy seguro de que no exista ya uno — antes confirmaría contigo cuál es el fondo correcto si `buscar`/`issues` no lo dejan claro.\n- Marcar el análisis como `nuevo` (abrir fondo) si hay cualquier indicio de que ya existe uno: en caso de duda, te pregunto antes de decidir `nuevo` vs `abierto`.\n- Cerrar nada ni tocar etiquetas/vocabulario.\n\n¿Me confirmas el número del fondo si ya lo conoces, o sigo con `buscar` primero?"
+    },
+    {
+      "id": "ficha-sin-diagnostico",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "Explica que faltan mecanismo y causa_escape en el bloque fondo de la ficha",
+          "cumple": true,
+          "evidencia": "el bloque `fondo` del cuerpo del issue no tiene rellenos `mecanismo` y `causa_escape` (los dos campos que marcan el paso de `abierto` a `diagnosticado`)"
+        },
+        {
+          "texto": "Propone editar el cuerpo con gh issue edit <n> --body-file",
+          "cumple": true,
+          "evidencia": "gh issue edit <n> --body-file <fichero.md>"
+        },
+        {
+          "texto": "Dice que el workflow fondos vuelve a comentar solo tras la edición",
+          "cumple": true,
+          "evidencia": "Esperar al workflow (menos de un minuto según la skill) y volver a mirar: gh issue view <n> --comments para confirmar que pasa a `control:ok`"
+        }
+      ],
+      "respuesta": "Que le falta el **diagnóstico**: el bloque `fondo` del cuerpo del issue no tiene rellenos `mecanismo` y `causa_escape` (los dos campos que marcan el paso de `abierto` a `diagnosticado`).\n\nLo que haría, en orden:\n\n1. **Ver el fondo y el comentario del bot completo:**\n   ```\n   gh issue view <n> --comments\n   ```\n   Espero ver el bloque `<!-- menuplan:fondo -->` con `estado=falla` y la línea de la regla `sin-diagnostico` (puede traer más detalle de qué exactamente falta).\n\n2. **Ver el cuerpo actual tal cual está en GitHub:**\n   ```\n   gh issue view <n> --json body -q .body\n   ```\n   para localizar el bloque de código ` ```fondo ` y comprobar si `mecanismo:` y `causa_escape:` están vacíos o directamente no existen.\n\n3. **Editar el cuerpo** añadiendo esas dos claves dentro del bloque `fondo` (texto libre corto, como dice la skill):\n   - `mecanismo:` qué falla exactamente\n   - `causa_escape:` qué control debía pararlo y por qué no lo hizo\n\n   Con:\n   ```\n   gh issue edit <n> --body-file <fichero.md>\n   ```\n\n4. **Esperar al workflow** (menos de un minuto según la skill) y volver a mirar:\n   ```\n   gh issue view <n> --comments\n   ```\n   para confirmar que pasa a `control:ok` y el estado avanza a `diagnosticado`.\n\nNo haría sin el OK de Pablo: tocar `scripts/lib/issues.mjs`, crear/retirar etiquetas, ni lanzar `gh workflow run fondos.yml` salvo que haga falta forzar la revalidación y se lo confirme antes (es una acción sobre CI/infra, prefiero pedir visto bueno aunque la skill la liste como operación habitual)."
+    },
+    {
+      "id": "caso-puntual",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "Lo clasifica como analisis:puntual con un cuerpo «Puntual porque …»",
+          "cumple": true,
+          "evidencia": "El cuerpo debe llevar explícito **«Puntual porque GitHub estuvo caído el <fecha>, evidencia: <link a status.github.com o lo que viste>»**"
+        },
+        {
+          "texto": "Pide la etiqueta causa: (por ejemplo entorno)",
+          "cumple": true,
+          "evidencia": "--causa entorno --area ops"
+        },
+        {
+          "texto": "Dice que se registra igualmente y se cierra en el momento",
+          "cumple": true,
+          "evidencia": "**Registrar el caso con análisis `puntual`** y **Cerrarlo en el momento** (no se deja abierto esperando fondo)"
+        }
+      ],
+      "respuesta": "Lo apunto como **caso puntual**, no me lo salto sin más (si no, el próximo que vea algo parecido no tendrá con qué compararlo).\n\nOrden:\n\n1. **Buscar primero si ya existe algo igual:**\n```\nnpm run buscar -- \"<síntoma concreto, ej: timeout API GitHub>\"\n```\nEspero: nada relevante (o si hay algo, lo cuelgo ahí en vez de crear nuevo).\n\n2. **Registrar el caso con análisis `puntual`:**\n```\nnpm run issues -- --nuevo \"…\" --tipo caso --analisis puntual --causa entorno --area ops --cuerpo <f.md>\n```\nEl cuerpo debe llevar explícito **«Puntual porque GitHub estuvo caído el <fecha>, evidencia: <link a status.github.com o lo que viste>»**. Antes de crear, la herramienta me enseñará parecidos y tendré que confirmar que no lo son.\n\n3. **Cerrarlo en el momento** (no se deja abierto esperando fondo):\n```\ngh issue close <n> --comment \"Puntual: caída de GitHub, sin arreglo que hacer\"\n```\n\n**No haría** sin más: abrir un `tipo:fondo` para esto. La skill es clara: \"alguien podría volver a hacerlo\" no es puntual, pero una caída de infraestructura externa de terceros, documentada y sin patrón, sí es el ejemplo válido que da la propia skill. No me lo invento — lo comprobaría primero con un check rápido de si hubo incidencia pública en ese rango horario (status.github.com) antes de etiquetarlo así, para que la causa `entorno` quede justificada y no sea una excusa para no investigar.\n\nLo que **sí pediría el OK de Pablo**: si tuviera dudas de si esto es realmente puntual o síntoma de algo recurrente (p. ej. si ya van dos o tres veces \"GitHub caído\" en el mismo mes), no lo cierro solo — lo marco como duda y se lo consulto, porque tres puntuales parecidos son candidatos a fondo según la revisión semanal."
+    }
+  ]
+}
