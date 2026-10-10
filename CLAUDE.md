@@ -73,7 +73,7 @@ en staging.
    `gh pr update-branch <n>` (en un comando aparte) y espera el CI.
 2. `git status --short` y añade por nombre solo lo tuyo; si un fichero mezcla
    lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera.
-3. En local, solo los tests de los ficheros que tocas (`npx vitest run <ficheros>`).
+3. En local, solo los tests de los ficheros que tocas y los que cubren lo tocado (`npx vitest run <ficheros>`).
    La suite entera, el build y el lint con base los corre el CI del PR (gratis en
    repo público): espera su resultado con una consulta espaciada, sin sondear. La
    suite entera en local solo si tocas algo transversal (`package.json`, `vite.config.js`,
