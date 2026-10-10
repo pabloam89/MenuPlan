@@ -65,11 +65,11 @@
       "amplio": true
     },
     {
-      "id": "fichas-de-skills",
+      "id": "juicios-de-skills",
       "tests": ["ops/criterios-skills.test.js"],
-      "mira": [".claude/skills/**", "ops/fichas-skills/*.json", "ops/forja.json", "ops/glosario.json", "ops/glosario-excepciones.json", ".claude/PLANTILLA-SKILL.md", "ops/skills-prueba/*.json", "package.json"],
-      "borrados": ["ops/fichas-skills/*.json"],
-      "porque": "La ficha de huecos de cada skill (#457): toda skill tiene la suya, cada criterio de la forja que se le aplica aparece, los juicios llevan evidencia que existe (una cabecera de un SKILL.md, un caso, un comando) y los automáticos los calcula su control. Cambiar una skill, un caso o un criterio puede dejar una evidencia muerta o un criterio sin juicio.",
+      "mira": [".claude/skills/**", ".claude/agents/**", "ops/juicios-skills/*.json", "ops/forja.json", "scripts/lib/fondos.mjs", "ops/glosario.json", "ops/glosario-excepciones.json", ".claude/PLANTILLA-SKILL.md", "ops/skills-prueba/*.json", "package.json"],
+      "borrados": ["ops/juicios-skills/*.json"],
+      "porque": "Los criterios de cada skill y sus juicios (#457): toda skill tiene sus juicios, cada criterio de la forja que se le aplica aparece, los juicios llevan evidencia que existe (una cabecera de un SKILL.md, un caso, un comando, una pasada vigente) y un firmante de los agentes, y lo automático lo calcula su control. Cambiar una skill, un caso, un agente o un criterio puede dejar una evidencia muerta o un criterio sin juicio.",
       "evidencia": "#457"
     },
     {

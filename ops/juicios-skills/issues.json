@@ -3,7 +3,8 @@
   "juicios": {
     "descripcion-palabras-de-quien-pide": {
       "estado": "juicio",
-      "nota": "sin evaluar: dudoso, la descripción habla de caso, fondo y encargo, el vocabulario de la casa; falta ver si así lo dice quien pide"
+      "motivo_pendiente": "sin_mirar",
+      "nota": "dudoso: la descripción habla de caso, fondo y encargo, el vocabulario de la casa"
     },
     "frontera-casi-fallos": {
       "estado": "cumple",
@@ -12,7 +13,8 @@
         "caso:issues/frontera-causa-de-fondo"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "46c05e84e1ae"
     },
     "disparador-al-principio": {
       "estado": "cumple",
@@ -21,19 +23,20 @@
         ".claude/skills.test.js"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "46c05e84e1ae"
     },
     "solo-lo-que-el-modelo-no-sabe": {
       "estado": "juicio",
-      "nota": "sin evaluar: pide leer párrafo a párrafo y compararlo con lo que hace el modelo sin la skill (A/B), que no existe"
+      "motivo_pendiente": "falta_herramienta"
     },
     "libertad-ajustada": {
       "estado": "juicio",
-      "nota": "sin evaluar"
+      "motivo_pendiente": "sin_mirar"
     },
     "camino-por-defecto": {
       "estado": "juicio",
-      "nota": "sin evaluar: una tabla de operaciones es un menú por diseño; falta decidir cómo se juzga este criterio en un servicio"
+      "motivo_pendiente": "falta_decision"
     },
     "pasos-con-salida-observable": {
       "estado": "cumple",
@@ -41,25 +44,16 @@
         ".claude/skills/issues/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "46c05e84e1ae"
     },
     "vocabulario-unico": {
       "estado": "juicio",
-      "nota": "sin evaluar"
+      "motivo_pendiente": "sin_mirar"
     },
     "ejemplos-canonicos": {
       "estado": "juicio",
-      "nota": "sin evaluar: no tiene sección de ejemplos; falta decidir si entonces el criterio es no_aplica"
-    },
-    "casos-medidos-con-y-sin-skill": {
-      "estado": "no_cumple",
-      "nota": "no hay cifra sin la skill: el nivel 2 solo mide con ella puesta",
-      "evidencia": [
-        ".claude/skills/forja-de-skills/SKILL.md#Cómo se prueba",
-        "ops/skills-prueba/issues.json"
-      ],
-      "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "motivo_pendiente": "falta_decision"
     },
     "skill-contrastada-con-fallo-real": {
       "estado": "cumple",
@@ -67,7 +61,8 @@
         ".claude/skills/issues/SKILL.md#Lo que falló y por qué"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "46c05e84e1ae"
     },
     "forma-adecuada-al-contenido": {
       "estado": "no_cumple",
@@ -76,16 +71,8 @@
         ".claude/skills/issues/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
-    },
-    "sin-duda-con-vecina": {
-      "estado": "no_cumple",
-      "nota": "ficha-sin-diagnostico eligió causa-raiz (pasadas del nivel 2 del 9 y 10 oct, desactualizadas (SKILL.md cambió): relanzar npm run skills-prueba para confirmarlo)",
-      "evidencia": [
-        "ops/skills-prueba/issues.json"
-      ],
-      "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "46c05e84e1ae"
     }
   }
 }

@@ -7,7 +7,8 @@
         ".claude/skills/tailscale/SKILL.md"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "1c8cf2b03396"
     },
     "frontera-casi-fallos": {
       "estado": "cumple",
@@ -16,7 +17,8 @@
         "caso:tailscale/frontera-auth-key"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "1c8cf2b03396"
     },
     "disparador-al-principio": {
       "estado": "cumple",
@@ -25,19 +27,20 @@
         ".claude/skills.test.js"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "1c8cf2b03396"
     },
     "solo-lo-que-el-modelo-no-sabe": {
       "estado": "juicio",
-      "nota": "sin evaluar: pide leer párrafo a párrafo y compararlo con lo que hace el modelo sin la skill (A/B), que no existe"
+      "motivo_pendiente": "falta_herramienta"
     },
     "libertad-ajustada": {
       "estado": "juicio",
-      "nota": "sin evaluar"
+      "motivo_pendiente": "sin_mirar"
     },
     "camino-por-defecto": {
       "estado": "juicio",
-      "nota": "sin evaluar: una tabla de operaciones es un menú por diseño; falta decidir cómo se juzga este criterio en un servicio"
+      "motivo_pendiente": "falta_decision"
     },
     "pasos-con-salida-observable": {
       "estado": "cumple",
@@ -45,24 +48,16 @@
         ".claude/skills/tailscale/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "1c8cf2b03396"
     },
     "vocabulario-unico": {
       "estado": "juicio",
-      "nota": "sin evaluar"
+      "motivo_pendiente": "sin_mirar"
     },
     "ejemplos-canonicos": {
       "estado": "juicio",
-      "nota": "sin evaluar: no tiene sección de ejemplos; falta decidir si entonces el criterio es no_aplica"
-    },
-    "casos-medidos-con-y-sin-skill": {
-      "estado": "no_cumple",
-      "nota": "no hay cifra sin la skill ni pasada del nivel 2 con ella",
-      "evidencia": [
-        ".claude/skills/forja-de-skills/SKILL.md#Cómo se prueba"
-      ],
-      "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "motivo_pendiente": "falta_decision"
     },
     "skill-contrastada-con-fallo-real": {
       "estado": "cumple",
@@ -70,15 +65,12 @@
         ".claude/skills/tailscale/SKILL.md#Lo que falló y por qué"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "1c8cf2b03396"
     },
     "forma-adecuada-al-contenido": {
       "estado": "juicio",
-      "nota": "sin evaluar: ninguna celda pasa de 220 caracteres, pero falta mirar negritas y muros de texto"
-    },
-    "sin-duda-con-vecina": {
-      "estado": "juicio",
-      "nota": "sin evaluar: no hay pasada del nivel 2 de esta skill"
+      "motivo_pendiente": "sin_mirar"
     }
   }
 }

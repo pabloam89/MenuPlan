@@ -4,11 +4,11 @@
     "descripcion-palabras-de-quien-pide": {
       "estado": "cumple",
       "evidencia": [
-        ".claude/skills/forja-de-skills/SKILL.md",
-        "ops/skills-prueba/forja-de-skills.json"
+        ".claude/skills/forja-de-skills/SKILL.md"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
     },
     "frontera-casi-fallos": {
       "estado": "cumple",
@@ -17,7 +17,8 @@
         "caso:forja-de-skills/frontera-medir-disparo"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
     },
     "disparador-al-principio": {
       "estado": "cumple",
@@ -26,15 +27,16 @@
         ".claude/skills.test.js"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
     },
     "solo-lo-que-el-modelo-no-sabe": {
       "estado": "juicio",
-      "nota": "sin evaluar: pide leer párrafo a párrafo y compararlo con lo que hace el modelo sin la skill (A/B), que no existe"
+      "motivo_pendiente": "falta_herramienta"
     },
     "libertad-ajustada": {
       "estado": "juicio",
-      "nota": "sin evaluar"
+      "motivo_pendiente": "sin_mirar"
     },
     "camino-por-defecto": {
       "estado": "cumple",
@@ -42,7 +44,8 @@
         ".claude/skills/forja-de-skills/SKILL.md#Método"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
     },
     "pasos-con-salida-observable": {
       "estado": "cumple",
@@ -50,11 +53,12 @@
         ".claude/skills/forja-de-skills/SKILL.md#Método"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
     },
     "vocabulario-unico": {
       "estado": "juicio",
-      "nota": "sin evaluar"
+      "motivo_pendiente": "sin_mirar"
     },
     "ejemplos-canonicos": {
       "estado": "cumple",
@@ -62,35 +66,18 @@
         ".claude/skills/forja-de-skills/SKILL.md#Método"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
-    },
-    "casos-medidos-con-y-sin-skill": {
-      "estado": "no_cumple",
-      "nota": "no hay cifra sin la skill: el nivel 2 solo mide con ella puesta",
-      "evidencia": [
-        ".claude/skills/forja-de-skills/SKILL.md#Cómo se prueba",
-        "ops/skills-prueba/forja-de-skills.json"
-      ],
-      "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "f178d0f2a159"
     },
     "skill-contrastada-con-fallo-real": {
       "estado": "juicio",
-      "nota": "sin evaluar: su «Lo que falló» cuenta fallos del sistema, no de una sesión sin la skill; falta mirar el PR que la creó"
+      "motivo_pendiente": "sin_mirar",
+      "nota": "su «Lo que falló» cuenta fallos del sistema, no de una sesión sin la skill; falta mirar el commit que la creó"
     },
     "forma-adecuada-al-contenido": {
       "estado": "juicio",
-      "nota": "sin evaluar: ninguna celda pasa de 220 caracteres, pero falta mirar negritas y muros de texto"
-    },
-    "sin-duda-con-vecina": {
-      "estado": "no_cumple",
-      "nota": "frontera-agente-nuevo (de ninguna) la eligió a ella y le cayó dos-skills-reclaman-lo-mismo, de higiene-de-skills (pasadas del nivel 2 del 9 y 10 oct, desactualizadas (SKILL.md cambió): relanzar npm run skills-prueba para confirmarlo)",
-      "evidencia": [
-        "ops/skills-prueba/forja-de-skills.json",
-        "ops/skills-prueba/higiene-de-skills.json"
-      ],
-      "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "motivo_pendiente": "sin_mirar",
+      "nota": "la tabla de «Cómo se prueba» lleva una celda de 325 caracteres con la lista de controles: falta decidir si es dato o razonamiento"
     }
   }
 }

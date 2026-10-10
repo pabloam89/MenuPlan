@@ -2,13 +2,9 @@
   "skill": "hetzner",
   "juicios": {
     "descripcion-palabras-de-quien-pide": {
-      "estado": "cumple",
-      "evidencia": [
-        ".claude/skills/hetzner/SKILL.md",
-        "ops/skills-prueba/hetzner.json"
-      ],
-      "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "dudoso: describe piezas del servidor (Docker, el Postgres del panel, copias cifradas) más que lo que diría quien pide"
     },
     "frontera-casi-fallos": {
       "estado": "cumple",
@@ -17,7 +13,8 @@
         "caso:hetzner/frontera-copias-de-supabase"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "194fc8d3762f"
     },
     "disparador-al-principio": {
       "estado": "cumple",
@@ -26,11 +23,12 @@
         ".claude/skills.test.js"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "194fc8d3762f"
     },
     "solo-lo-que-el-modelo-no-sabe": {
       "estado": "juicio",
-      "nota": "sin evaluar: pide leer párrafo a párrafo y compararlo con lo que hace el modelo sin la skill (A/B), que no existe"
+      "motivo_pendiente": "falta_herramienta"
     },
     "libertad-ajustada": {
       "estado": "cumple",
@@ -38,11 +36,12 @@
         ".claude/skills/hetzner/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "194fc8d3762f"
     },
     "camino-por-defecto": {
       "estado": "juicio",
-      "nota": "sin evaluar: una tabla de operaciones es un menú por diseño; falta decidir cómo se juzga este criterio en un servicio"
+      "motivo_pendiente": "falta_decision"
     },
     "pasos-con-salida-observable": {
       "estado": "cumple",
@@ -50,46 +49,26 @@
         ".claude/skills/hetzner/SKILL.md#Operaciones habituales"
       ],
       "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "firmante": "gobierno",
+      "version_skill_md": "194fc8d3762f"
     },
     "vocabulario-unico": {
       "estado": "juicio",
-      "nota": "sin evaluar"
+      "motivo_pendiente": "sin_mirar"
     },
     "ejemplos-canonicos": {
       "estado": "juicio",
-      "nota": "sin evaluar: no tiene sección de ejemplos; falta decidir si entonces el criterio es no_aplica"
-    },
-    "casos-medidos-con-y-sin-skill": {
-      "estado": "no_cumple",
-      "nota": "no hay cifra sin la skill: el nivel 2 solo mide con ella puesta",
-      "evidencia": [
-        ".claude/skills/forja-de-skills/SKILL.md#Cómo se prueba",
-        "ops/skills-prueba/hetzner.json"
-      ],
-      "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "motivo_pendiente": "falta_decision"
     },
     "skill-contrastada-con-fallo-real": {
-      "estado": "cumple",
-      "evidencia": [
-        ".claude/skills/hetzner/SKILL.md#Lo que falló y por qué"
-      ],
-      "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "nació como guía de montaje antes de existir el servidor (commit 0ca1a5e4); sus fallos se añadieron al montarlo: falta decidir si cuenta"
     },
     "forma-adecuada-al-contenido": {
       "estado": "juicio",
-      "nota": "sin evaluar: ninguna celda pasa de 220 caracteres, pero falta mirar negritas y muros de texto"
-    },
-    "sin-duda-con-vecina": {
-      "estado": "no_cumple",
-      "nota": "entrar-servidor eligió 1password (pasadas del nivel 2 del 9 y 10 oct, desactualizadas (SKILL.md cambió): relanzar npm run skills-prueba para confirmarlo)",
-      "evidencia": [
-        "ops/skills-prueba/hetzner.json"
-      ],
-      "fecha": "2026-10-10",
-      "quien": "gobierno"
+      "motivo_pendiente": "sin_mirar",
+      "nota": "una celda de «Operaciones habituales» llega a 223 caracteres: falta ver si es razonamiento"
     }
   }
 }

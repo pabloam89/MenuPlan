@@ -90,7 +90,7 @@ const TABLA = [
   ["agentes", ".claude/agents/x.md", ".claude/agentes.test.js"],
   ["skills-forma", ".claude/skills/x/referencias/y.md", ".claude/skills.test.js"],
   ["skills-forma", ".claude/skills/x/SKILL.md", ".claude/voz.test.js"],
-  ["fichas-de-skills", "ops/fichas-skills/github.json", "ops/criterios-skills.test.js"],
+  ["juicios-de-skills", "ops/juicios-skills/github.json", "ops/criterios-skills.test.js"],
   ["rutas-citadas", ".claude/skills/x/referencias/y.md", ".claude/rutas.test.js"],
   ["frases-normativas", ".claude/skills/x/referencias/y.md", "ops/planos.test.js"],
   ["frases-normativas", "ops/X.md", "ops/normas.test.js"],

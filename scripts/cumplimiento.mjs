@@ -9,7 +9,7 @@
  *   npm run cumplimiento -- --skills-pr lista → CI: higiene y ensayo gratis de las skills que toca el PR (1 si hay una falta)
  *
  * Además, la línea del glosario (#481): excepciones por bajar y candidatos a término sin juzgar; y las
- * fichas de huecos de las skills (#457): una línea `fichas skill: …` por skill con la cifra de criterios
+ * criterios de las skills (#457): una línea `criterios skill: …` por skill con la cifra de criterios
  * vigilados por un control y de juicio, y sus huecos en líneas `skill: x criterio: y estado: z`.
  *
  * Salida: 0 (aunque un indicador dispare: lo cuenta el informe, no es un fallo de este
@@ -23,7 +23,7 @@ import { fileURLToPath } from "node:url";
 
 import { dirFabrica } from "../.claude/hooks/eventos.mjs";
 import { CONSULTA_FLUJO, INDICADORES, desdeGraphql, lineaDeIndicador, lineasDeUso, medirIndicadores, usoDeSkills } from "./lib/cumplimiento.mjs";
-import { fichasDelRepo, lineaDeCifras, lineaDelConjunto, lineasDeFicha, sumarCifras } from "./lib/fichasSkills.mjs";
+import { criteriosDelRepo, lineaDeCifras, lineaDelConjunto, lineasDeCriterios, sumarCifras } from "./lib/juiciosSkills.mjs";
 import { estadoDelGlosario, lineaDelGlosario } from "./lib/glosarioCandidatos.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
 import { INDICADORES_SKILLS, lineaDeIndicadorSkill, saludDeSkills } from "./lib/saludSkills.mjs";
@@ -45,7 +45,7 @@ export function issuesDeGithub() {
 }
 
 /** El informe en Markdown. Solo números, vocabulario y números de issue: el repo es público. */
-export function informe({ indicadores, salud, uso = null, glosario = null, fichas = null, hoy }) {
+export function informe({ indicadores, salud, uso = null, glosario = null, criterios = null, hoy }) {
   const dispara = [...indicadores, ...salud.indicadores].filter((m) => m.estado === "dispara");
   const sinDatos = indicadores.some((m) => m.estado === "sin_datos");
   const L = [];
@@ -69,12 +69,12 @@ export function informe({ indicadores, salud, uso = null, glosario = null, ficha
     const p = f.pasada ? `${f.pasada.fecha} ${f.pasada.resultado}, disparo ${f.pasada.disparo}, comprobaciones ${f.pasada.comprobaciones}${f.pasada.desactualizada ? " (desactualizada)" : ""}` : "sin pasada";
     L.push(`| ${f.nombre} | ${f.faltas} | ${f.avisos} | ${f.caducidad}${f.dias === null ? "" : ` (${f.dias} d)`} | ${p} |`);
   }
-  if (fichas) {
-    L.push("", "### Fichas de huecos de las skills", "", lineaDelConjunto(fichas.length, sumarCifras(fichas.map((f) => f.cifras))), "");
-    L.push("Una línea por skill y, debajo, lo que no cumple (`no_cumple`). Los de juicio sin juzgar se cuentan en `juicio`; los rellena una persona o un agente en `ops/fichas-skills/<skill>.json` con su evidencia (`npm run higiene-skills -- <skill>` los lista).", "", "```");
-    for (const f of fichas) {
+  if (criterios) {
+    L.push("", "### Criterios de las skills", "", lineaDelConjunto(criterios.length, sumarCifras(criterios.map((f) => f.cifras))), "");
+    L.push("Una línea por skill y, debajo, lo que no cumple (`no_cumple`). Los de juicio pendientes se cuentan en `juicio`, por motivo; los rellena una persona o un agente en `ops/juicios-skills/<skill>.json` con su evidencia (`npm run higiene-skills -- <skill>` los lista).", "", "```");
+    for (const f of criterios) {
       L.push(lineaDeCifras(f.nombre, f.cifras));
-      for (const l of lineasDeFicha(f.nombre, f.filas, { estados: ["no_cumple"] })) L.push(`  ${l}`);
+      for (const l of lineasDeCriterios(f.nombre, f.filas, { estados: ["no_cumple"] })) L.push(`  ${l}`);
     }
     L.push("```");
   }
@@ -157,11 +157,11 @@ async function main(argv) {
     // a propósito: un glosario roto lo para su test en el CI; aquí el informe sale sin esa sección y lo dice
     console.error(`glosario: no se ha podido medir (${e.message})`);
   }
-  // Las fichas de huecos (#457): un fallo aquí es de código y lo para su test en el CI; no se esconde.
-  const fichas = fichasDelRepo(RAIZ, hoy);
-  for (const f of fichas) console.log(lineaDeCifras(f.nombre, f.cifras));
+  // Los criterios de las skills (#457): un fallo aquí es de código y lo para su test en el CI; no se esconde.
+  const criterios = criteriosDelRepo(RAIZ, hoy);
+  for (const f of criterios) console.log(lineaDeCifras(f.nombre, f.cifras));
   if (uso) for (const l of lineasDeUso(uso)) console.log(l);
-  if (opcion("--informe")) writeFileSync(opcion("--informe"), `${informe({ indicadores, salud, uso, glosario, fichas, hoy: diaMadrid(hoy) })}\n`);
+  if (opcion("--informe")) writeFileSync(opcion("--informe"), `${informe({ indicadores, salud, uso, glosario, criterios, hoy: diaMadrid(hoy) })}\n`);
   return 0;
 }
 

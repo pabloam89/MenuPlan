@@ -1,32 +1,32 @@
 /**
  * Higiene de una skill (#411, fondo #408): la lista de sus defectos, cada uno con
- * su arreglo, y su ficha de huecos (#457). Gratis: no llama a ningún modelo (eso es `skills-prueba`).
+ * su arreglo, y el estado de cada criterio de la forja que se le aplica (#457). Gratis: no llama a ningún modelo (eso es `skills-prueba`).
  *
- *   npm run higiene-skills -- vercel          → los defectos de esa skill y los huecos de su ficha
+ *   npm run higiene-skills -- vercel          → los defectos de esa skill y sus criterios que fallan o están pendientes
  *   npm run higiene-skills -- --todas         → el informe de todas, con la cifra
- *   npm run higiene-skills -- vercel --ficha  → la ficha entera (también lo que cumple)
+ *   npm run higiene-skills -- vercel --todos  → todos sus criterios (también lo que cumple)
  *   npm run higiene-skills -- vercel --json   → lo mismo en JSON
  *
  * Usa los controles de `scripts/lib/skills.mjs` y `skillsForja.mjs` sin la lista
  * de excepciones, y añade lo que el test de forma no ve (`scripts/lib/higieneSkills.mjs`).
- * La ficha (`scripts/lib/fichasSkills.mjs`) junta lo que calculan los controles con los
- * juicios guardados en `ops/fichas-skills/<skill>.json`. Líneas para contar:
+ * `scripts/lib/juiciosSkills.mjs` junta lo que calculan los controles y las pasadas vigentes con
+ * los juicios de skill guardados en `ops/juicios-skills/<skill>.json`. Líneas para contar:
  *   higiene skill: <s> faltas: a avisos: b solape: 0.12 con: <otra>
- *   fichas skill: <s> criterios: n vigilados: a de_juicio: b juzgados: c cumple: … no_cumple: … no_aplica: … juicio: …
- *     skill: <s> criterio: <id> estado: no_cumple|juicio nota: …   (los huecos; con --ficha, todas)
+ *   criterios skill: <s> criterios: n vigilados: a de_juicio: b calculados: c juzgados: d cumple: … no_cumple: … no_aplica: … juicio: …
+ *     skill: <s> criterio: <id> estado: no_cumple|juicio nota: …   (los huecos; con --todos, todas)
  * Salida: 0 sin faltas (los avisos y los huecos no fallan), 1 con alguna falta, 2 entrada mala.
  */
 import { RAIZ, nombresDeSkills } from "./lib/skills.mjs";
 import { cargarSkill } from "./lib/skills.mjs";
 import { higieneDeSkill, lineaDeResumen, solapeMaximo, ctxHigiene } from "./lib/higieneSkills.mjs";
-import { cifrasDeFicha, fichaDeSkill, leerFichas, lineaDeCifras, lineaDelConjunto, lineasDeFicha, senalesDelRepo, sumarCifras } from "./lib/fichasSkills.mjs";
+import { cifrasDeCriterios, criteriosEvaluados, leerJuicios, lineaDeCifras, lineaDelConjunto, lineasDeCriterios, senalesDelRepo, sumarCifras } from "./lib/juiciosSkills.mjs";
 import { ESTADOS_CON_NOTA, leerForja } from "./lib/forja.mjs";
 
 const argv = process.argv.slice(2);
 const todas = nombresDeSkills();
 const pedidas = argv.includes("--todas") ? todas : argv.filter((a) => !a.startsWith("--"));
 const JSON_ = argv.includes("--json");
-const FICHA = argv.includes("--ficha");
+const TODOS = argv.includes("--todos");
 
 if (!pedidas.length) {
   console.error(`Di qué skill: npm run higiene-skills -- <skill> (o --todas). Hay: ${todas.join(", ")}`);
@@ -40,13 +40,13 @@ if (desconocidas.length) {
 
 const hoy = new Date();
 const senales = senalesDelRepo(RAIZ, hoy);
-const guardadas = leerFichas(RAIZ);
+const guardadas = leerJuicios(RAIZ);
 const forja = leerForja(RAIZ);
 const informe = pedidas.map((nombre) => {
   const skill = cargarSkill(nombre, RAIZ);
   const ctx = ctxHigiene(nombre, RAIZ, hoy);
-  const ficha = fichaDeSkill(nombre, senales[nombre], guardadas[nombre], forja);
-  return { nombre, defectos: higieneDeSkill(skill, ctx), solape: solapeMaximo(skill, ctx.catalogo), ficha, cifras: cifrasDeFicha(ficha) };
+  const criterios = criteriosEvaluados(nombre, senales[nombre], guardadas[nombre], forja);
+  return { nombre, defectos: higieneDeSkill(skill, ctx), solape: solapeMaximo(skill, ctx.catalogo), criterios, cifras: cifrasDeCriterios(criterios) };
 });
 
 if (JSON_) {
@@ -56,7 +56,7 @@ if (JSON_) {
     console.log(lineaDeResumen(r.nombre, r.defectos, r.solape));
     for (const d of r.defectos) console.log(`  ${d.gravedad} ${d.codigo}: ${d.detalle}\n    arreglo: ${d.arreglo}`);
     console.log(lineaDeCifras(r.nombre, r.cifras));
-    for (const l of lineasDeFicha(r.nombre, r.ficha, FICHA ? {} : { estados: ESTADOS_CON_NOTA })) console.log(`  ${l}`);
+    for (const l of lineasDeCriterios(r.nombre, r.criterios, TODOS ? {} : { estados: ESTADOS_CON_NOTA })) console.log(`  ${l}`);
   }
   const faltas = informe.reduce((n, r) => n + r.defectos.filter((d) => d.gravedad === "falta").length, 0);
   const avisos = informe.reduce((n, r) => n + r.defectos.filter((d) => d.gravedad === "aviso").length, 0);
