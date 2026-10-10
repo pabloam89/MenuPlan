@@ -86,7 +86,12 @@ describe("qué comandos tienen puerta", () => {
     "1password": ["op item create --vault HoMenu -", "env -u OP_SERVICE_ACCOUNT_TOKEN op vault list", "op service-account create x", "npm run op -- item get x", "op read op://HoMenu/Supabase/X", "op inject -i ops/env.1password", "npm run op -- read op://HoMenu/X/Y", "node scripts/copias-clave.mjs", "node scripts/copias-clave.mjs --si"],
     tailscale: ['"C:\\Program Files\\Tailscale\\tailscale.exe" up', "tailscale set --ssh", "tailscale serve 3000"],
     github: ["gh api -X POST repos/o/r/issues", "gh api repos/o/r/labels --method=PATCH", "gh api repos/o/r/x -f a=b", "gh workflow run tests.yml --ref x", "gh secret set X", "gh repo edit --visibility private"],
+    // Dar de alta un secreto abre a la fuerza la lista de comprobación (#397, #398), además de la skill del servicio.
+    "alta-de-secreto": ["gh secret set X --env vigia", "vercel env add FOO production", "npx vercel env add FOO", "op item create --vault HoMenu -", "env -u OP_SERVICE_ACCOUNT_TOKEN op item create --vault x --format json -"],
   };
+
+  it.each(["gh secret list", "vercel env ls", "op item get x", "op item edit x"])("alta-de-secreto no salta con %s (solo el alta)", (c) =>
+    expect(skillsDeComando(c, mapa)).not.toContain("alta-de-secreto"));
 
   for (const [skill, lista] of Object.entries(casos)) {
     it.each(lista)(`${skill}: %s`, (c) => expect(skillsDeComando(c, mapa)).toContain(skill));
@@ -144,6 +149,8 @@ describe("qué ficheros piden la línea del PR", () => {
     ["scripts/copias-ensayo.mjs", "hetzner"],
     ["scripts/copias-clave.mjs", "hetzner"],
     ["scripts/lib/copias.mjs", "hetzner"],
+    ["scripts/clave-consulta-lectura.mjs", "alta-de-secreto"],
+    ["scripts/lib/claveRol.mjs", "alta-de-secreto"],
   ])("%s -> %s", (f, skill) => expect(skillsDeFicheros([f], mapa)).toContain(skill));
 
   it.each([["src/App.jsx"], ["api/bot/telegram-extra.js"], ["package.json"], ["ops/INVENTARIO.md"], ["src/data/recipes.json"], ["docs/supabase/x.md"], ["scripts/copias.test.js"], ["ops/copiasx.md"]])(
