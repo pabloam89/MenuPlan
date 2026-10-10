@@ -39,6 +39,7 @@
     "planos": "node scripts/planos.mjs",
     "flujo": "node scripts/flujo.mjs",
     "forja": "node scripts/forja.mjs",
+    "plantillas": "node scripts/plantillas.mjs",
     "glosario": "node scripts/glosario.mjs",
     "higiene-skills": "node scripts/higiene-skills.mjs",
     "skills-prueba": "node scripts/skills-prueba.mjs",
