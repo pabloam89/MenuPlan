@@ -192,6 +192,7 @@ describe("tope mensual de evals: contabilidad del mes (#297)", () => {
     try { gastoDelMesUsd({ ruta: f, ahora }); } finally { console.warn = antes; }
     expect(avisos.join(" ")).toContain(f);
     expect(avisos.join(" ")).toMatch(/línea 2/);
+    expect(avisos.join(" ")).toMatch(/Borra o corrige esa línea/);
   });
 
   it("una línea cortada (sin salto) no se pega a la siguiente", () => {
@@ -201,6 +202,8 @@ describe("tope mensual de evals: contabilidad del mes (#297)", () => {
     const lineas = readFileSync(f, "utf8").split("\n").filter(Boolean);
     expect(lineas).toHaveLength(2);
     expect(() => JSON.parse(lineas[1])).not.toThrow();
+    // La cortada sigue ahí, aislada en su línea: el libro falla cerrado hasta que alguien la corrija.
+    expect(gastoDelMesUsd({ ruta: f, ahora })).toBe(Infinity);
   });
 
   it("dos pasadas que comparten libro no suman más que el presupuesto (se relee antes de cada pago)", () => {
@@ -238,11 +241,11 @@ describe("tope mensual de evals: contabilidad del mes (#297)", () => {
     try { ok = apuntarOAvisar({ script: "bot-evals", coste_usd: 1, fecha: ahora }, { ruta: f }); } finally { console.warn = antes; }
     expect(ok).toBe(false);
     expect(avisos.join(" ")).toContain(f);
-    expect(puedeGastar(0, 5, 0.25, { ruta: f, ahora })).toEqual({ ok: false, motivo: "mes" });
+    expect(puedeGastar(0, 5, 0.25, { ruta: f, ahora })).toEqual({ ok: false, motivo: "libro" });
   });
 
   it("los motivos de parada están en un vocabulario cerrado", () => {
-    expect(MOTIVOS_TOPE_EVALS).toEqual(["pasada", "mes"]);
+    expect(MOTIVOS_TOPE_EVALS).toEqual(["pasada", "mes", "libro"]);
   });
 });
 
@@ -266,7 +269,7 @@ describe("scripts que llaman a un modelo: tope y libro del mes (#297)", () => {
     "lola-feedback.mjs": "bucle semanal, un puñado de llamadas",
     "recetas-atributos-blandos.mjs": "pasada puntual del catálogo",
     "router-cache.mjs": "dos llamadas a Haiku",
-    "router-ejemplos-examen.mjs": "examen manual, ~15 céntimos con Haiku",
+    "router-ejemplos-examen.mjs": "examen manual con Haiku: 2 x 131 = 262 llamadas, de 0,5 a 2,6 $ por ejecución",
     "router-feedback.mjs": "bucle semanal, un puñado de llamadas",
     "vectores-contra-haiku.mjs": "examen manual, ~15 céntimos con Haiku",
   };

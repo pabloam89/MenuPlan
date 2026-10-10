@@ -198,8 +198,8 @@ export const ESTIMADO_MINIMO_USD = 0.03;
 
 export const presupuestoMensualUsd = () => PRESUPUESTO_MENSUAL_EUR * USD_POR_EUR;
 
-/** Por qué se para una pasada por dinero (vocabulario cerrado): su tope propio, o lo que queda del mes. */
-export const MOTIVOS_TOPE_EVALS = ["pasada", "mes"];
+/** Por qué se para una pasada por dinero (vocabulario cerrado): su tope propio, lo que queda del mes, o un libro que no se puede escribir. */
+export const MOTIVOS_TOPE_EVALS = ["pasada", "mes", "libro"];
 
 /**
  * El libro del mes: una línea por pasada con su coste. Vive en la carpeta del
@@ -269,7 +269,7 @@ export function gastoDelMesUsd({ ruta = LIBRO_GASTO, ahora = new Date() } = {}) 
     }
     return total;
   } catch (e) {
-    console.warn(`[evals] libro del mes ilegible (${ruta}, línea ${n}), el tope queda a 0: ${e.message}`);
+    console.warn(`[evals] libro del mes ilegible (${ruta}, línea ${n}), el tope queda a 0. Borra o corrige esa línea: ${e.message}`);
     return Infinity;
   }
 }
@@ -287,11 +287,11 @@ export function topeDePasada(pedido = null, gastadoMes = gastoDelMesUsd()) {
  * mientras tanto. Dos condiciones: lo de esta pasada (gastado + estimado <=
  * tope) y lo del mes entero (libro + estimado <= presupuesto; el libro ya
  * incluye lo que esta pasada fue apuntando). Falla cerrado.
- * @returns {{ok: boolean, motivo?: "pasada" | "mes"}}
+ * @returns {{ok: boolean, motivo?: "pasada" | "mes" | "libro"}}
  */
 export function puedeGastar(gastadoPasada, tope, estimado, { ruta = LIBRO_GASTO, ahora = new Date(), simulado = false } = {}) {
   if (!simulado) {
-    if (librosRotos.has(ruta)) return { ok: false, motivo: "mes" };
+    if (librosRotos.has(ruta)) return { ok: false, motivo: "libro" };
     if (gastoDelMesUsd({ ruta, ahora }) + estimado > presupuestoMensualUsd()) return { ok: false, motivo: "mes" };
   }
   return cabeOtro(gastadoPasada, tope, estimado) ? { ok: true } : { ok: false, motivo: "pasada" };
