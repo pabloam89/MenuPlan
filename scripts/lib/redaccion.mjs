@@ -46,6 +46,26 @@ export function leerPendientes(raiz) {
 
 const esTexto = (v, min = 1) => typeof v === "string" && v.trim().length >= min;
 
+/**
+ * Las reglas de un catálogo. `ruta` es la clave de la lista de reglas (`criterios`) o un camino con
+ * puntos y `*` para recorrer objetos y listas (`agentes.*.tareas.*.reglas`, #516: las reglas de un
+ * catálogo pueden ir dentro de otras entradas); también puede ser una lista de caminos.
+ */
+export function reglasEn(json, ruta) {
+  const caminos = Array.isArray(ruta) ? ruta : [ruta];
+  return caminos.flatMap((camino) => {
+    let nodos = [json];
+    for (const seg of String(camino).split(".")) {
+      nodos = nodos.flatMap((n) => {
+        if (seg === "*") return Array.isArray(n) ? n : n && typeof n === "object" ? Object.values(n) : [];
+        return n && typeof n === "object" && seg in n ? [n[seg]] : [];
+      });
+    }
+    return nodos.flatMap((n) => (Array.isArray(n) ? n : []));
+  });
+}
+const esRuta = (v) => esTexto(v) || (Array.isArray(v) && v.length > 0 && v.every((x) => esTexto(x)));
+
 /** Errores de un principio, además de los de regla (lista vacía si está bien). */
 function problemasDePrincipio(p, d, datos, existe) {
   const malos = [];
@@ -81,11 +101,11 @@ function problemasDeCatalogo(k, d, { existe, leerJson }) {
     if (!ENCARGO.test(k.encargo ?? "")) malos.push(`${d}: un catálogo pendiente lleva su encargo («#494» o «en cola #488»)`);
     return malos;
   }
-  if (!esTexto(k.clave_reglas) || !esTexto(k.clave_sujetos)) return [...malos, `${d}: un catálogo que cumple dice «clave_reglas» y «clave_sujetos»`];
+  if (!esRuta(k.clave_reglas) || !esTexto(k.clave_sujetos)) return [...malos, `${d}: un catálogo que cumple dice «clave_reglas» y «clave_sujetos»`];
   if (malos.length) return malos;
   const json = leerJson(k.fichero);
-  const reglas = json?.[k.clave_reglas];
-  if (!Array.isArray(reglas) || !reglas.length) return [...malos, `${d}: «${k.clave_reglas}» no es una lista de reglas`];
+  const reglas = reglasEn(json, k.clave_reglas);
+  if (!reglas.length) return [...malos, `${d}: «${[k.clave_reglas].flat().join(", ")}» no es una lista de reglas`];
   malos.push(...problemasDeSujetos(json[k.clave_sujetos]).map((x) => `${d}: ${x}`));
   reglas.forEach((r, i) => malos.push(...problemasDeRegla(r, `${d} · ${r?.id ?? `entrada ${i + 1}`}`, json[k.clave_sujetos])));
   return malos;
@@ -224,7 +244,7 @@ function mdVocabularios(datos) {
 function mdCatalogos(datos, leerJson) {
   const L = ["## Catálogos que siguen la guía", "", "| Catálogo | Estado | Reglas | Encargo |", "|---|---|---|---|"];
   for (const k of datos.catalogos) {
-    const n = k.estado === "cumple" ? String(leerJson(k.fichero)?.[k.clave_reglas]?.length ?? 0) : "-";
+    const n = k.estado === "cumple" ? String(reglasEn(leerJson(k.fichero), k.clave_reglas).length) : "-";
     L.push(`| \`${k.fichero}\` | ${k.estado} | ${n} | ${k.encargo ?? "-"} |`);
   }
   const pend = pendientesDe(datos).length;

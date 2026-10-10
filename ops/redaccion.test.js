@@ -7,7 +7,7 @@ import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaRefere
 import { LIMITES_REGLA } from "../scripts/lib/regla.mjs";
 import {
   ESTADOS_CATALOGO, MAX_PRINCIPIOS, MIN_PRINCIPIOS, RUTA_MD, anclarPendientes, generarMd, leerJsonEn, leerPendientes, leerRedaccion,
-  pendientesDe, problemasContraReferencia, problemasDeRedaccion, problemasDeTrinquete, tieneReglas,
+  pendientesDe, problemasContraReferencia, problemasDeRedaccion, problemasDeTrinquete, reglasEn, tieneReglas,
 } from "../scripts/lib/redaccion.mjs";
 
 /**
@@ -138,5 +138,38 @@ describe("cada regla se ve fallar con datos malos", () => {
     const malo = { sujetos: { s: { legible: "cada cosa", aplica_a: ["x"] } }, criterios: [{ nombre: "Mal.", sujeto: "s", fuerza: "debe", exigencia: "Hacer algo." }] };
     const salida = problemasDeRedaccion(d, { existe, leerJson: (r) => (r === d.catalogos[0].fichero ? malo : leerJson(r)) });
     expect(salida.join("\n")).toContain("«nombre»");
+  });
+});
+
+describe("catálogos con las reglas dentro de otras entradas (#516)", () => {
+  const entrada = datos.catalogos.find((k) => k.fichero === "ops/estandares-agentes.json");
+  it("ops/estandares-agentes.json sigue la guía: cumple, con sus dos caminos de reglas", () => {
+    expect(entrada.estado).toBe("cumple");
+    expect(entrada.clave_reglas).toEqual(["agentes.*.tareas.*.reglas", "comunes.*.reglas"]);
+    expect(pendientesDe(datos)).not.toContain("ops/estandares-agentes.json");
+    expect(leerPendientes(RAIZ)).not.toContain("ops/estandares-agentes.json");
+  });
+  it("reglasEn recorre claves, objetos con * y listas de caminos", () => {
+    const json = { a: [{ x: 1 }, { x: 2 }], b: { uno: { l: [{ x: 3 }] }, dos: { l: [{ x: 4 }, { x: 5 }] } } };
+    expect(reglasEn(json, "a").map((r) => r.x)).toEqual([1, 2]);
+    expect(reglasEn(json, "b.*.l").map((r) => r.x)).toEqual([3, 4, 5]);
+    expect(reglasEn(json, ["a", "b.*.l"]).map((r) => r.x)).toEqual([1, 2, 3, 4, 5]);
+    expect(reglasEn(json, "b.*.nada")).toEqual([]);
+    expect(reglasEn(json, "no.existe")).toEqual([]);
+  });
+  it("cuenta las reglas de los estándares: las de cada tarea y las comunes", () => {
+    const json = leerJson("ops/estandares-agentes.json");
+    expect(reglasEn(json, entrada.clave_reglas).length).toBeGreaterThan(200);
+  });
+  it("una regla mal escrita dentro de una tarea hace fallar al catálogo", () => {
+    const json = structuredClone(leerJson("ops/estandares-agentes.json"));
+    json.agentes.datos.tareas[0].reglas[0].exigencia = "Describir el modelo.";
+    const salida = problemasDeRedaccion(datos, { existe, leerJson: (r) => (r === "ops/estandares-agentes.json" ? json : leerJson(r)) });
+    expect(salida.join(String.fromCharCode(10))).toContain("«exigencia» empieza en minúscula");
+  });
+  it("un camino que no encuentra reglas falla", () => {
+    const d = clon();
+    d.catalogos.find((k) => k.fichero === "ops/estandares-agentes.json").clave_reglas = ["agentes.*.tareas.*.nada"];
+    expect(problemas(d).join(String.fromCharCode(10))).toContain("no es una lista de reglas");
   });
 });

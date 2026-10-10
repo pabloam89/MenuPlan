@@ -132,9 +132,9 @@ Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es
 | `ops/redaccion.json` | cumple | 16 | - |
 | `ops/normas.json` | cumple | 92 | - |
 | `ops/flujo.json` | pendiente | - | en cola #488 |
-| `ops/estandares-agentes.json` | pendiente | - | en cola #488 |
+| `ops/estandares-agentes.json` | cumple | 213 | - |
 
 - cumple: Cada entrada pasa las comprobaciones de regla.mjs.
 - pendiente: Aún no sigue la guía; lleva el encargo que lo pone al día y la lista solo baja.
 
-Pendientes hoy: 2. La lista solo baja (`ops/redaccion-pendientes.json`).
+Pendientes hoy: 1. La lista solo baja (`ops/redaccion-pendientes.json`).

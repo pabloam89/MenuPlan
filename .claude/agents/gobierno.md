@@ -146,14 +146,16 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 
 Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
 `ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
-tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- gobierno <tarea>`.
+tarea (acción, reglas con su control y su fuente, y lo que no hace): `npm run estandar -- gobierno <tarea>`.
+Todas las tareas de todos los agentes, en una tabla: `docs/ops/ESTANDARES.md`.
 
-- `flujo-rama-pr-staging` — Llevar un cambio de su rama a staging por PR con el CI en verde, mirando el estado real de origin/staging
-- `paso-a-main` — Preparar el paso a main cuando Pablo lo pide, dejando los comandos listos sin ejecutarlos
-- `worktrees-y-ramas` — Crear, retirar y podar carpetas de trabajo y ramas sin perder trabajo sin subir
-- `diagnosticar-fallo-de-ci-o-despliegue` — Diagnosticar un CI rojo, un despliegue fallido o en Blocked y un hook que bloquea, separando causa de síntoma
-- `workflows-y-crons` — Cambiar o revisar un workflow o un cron con permisos mínimos y acciones fijadas
-- `permisos-y-hooks` — Cambiar permisos y hooks, y convertir en regla de la guardia lo que importa y solo está escrito
-- `secretos-e-inventario` — Llevar al día qué secretos y servicios existen, de quién son y dónde viven, sin escribir un valor
-- `despliegues-vercel` — Informar del estado y los logs de un despliegue de Vercel y preparar el despliegue a producción cuando se pide
-- `registros-y-planos` — Poner al día DECISIONES, INVENTARIO y PLANOS y contestar «¿cómo está la casa?» con cifras
+- `flujo-rama-pr-staging` — Llevar un cambio de su rama a staging por PR con el CI en verde, mirando el estado real de origin/staging (acción: operar)
+- `paso-a-main` — Preparar el paso a main cuando Pablo lo pide, dejando los comandos listos sin ejecutarlos (acción: operar)
+- `worktrees-y-ramas` — Crear, retirar y podar carpetas de trabajo y ramas sin perder trabajo sin subir (acción: operar)
+- `diagnosticar-fallo-de-ci-o-despliegue` — Diagnosticar un CI rojo, un despliegue fallido o en Blocked y un hook que bloquea, separando causa de síntoma (acción: diagnosticar)
+- `workflows-y-crons` — Cambiar o revisar un workflow o un cron con permisos mínimos y acciones fijadas (acción: construir)
+- `permisos-y-hooks` — Cambiar permisos y hooks, y convertir en regla de la guardia lo que importa y solo está escrito (acción: construir)
+- `secretos-e-inventario` — Llevar al día qué secretos y servicios existen, de quién son y dónde viven, sin escribir un valor (acción: operar)
+- `despliegues-vercel` — Informar del estado y los logs de un despliegue de Vercel y preparar el despliegue a producción cuando se pide (acción: operar)
+- `registros-y-planos` — Poner al día DECISIONES, INVENTARIO y PLANOS y contestar «¿cómo está la casa?» con cifras (acción: documentar)
+- `catalogo-de-ops-con-test` — Construir un catálogo de ops con su test: datos en JSON, módulo lector en scripts/lib, test que lo vigila y documento generado (acción: construir)

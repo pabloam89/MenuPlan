@@ -287,8 +287,12 @@
     },
     {
       "fichero": "ops/estandares-agentes.json",
-      "estado": "pendiente",
-      "encargo": "en cola #488"
+      "estado": "cumple",
+      "clave_reglas": [
+        "agentes.*.tareas.*.reglas",
+        "comunes.*.reglas"
+      ],
+      "clave_sujetos": "sujetos"
     }
   ]
 }

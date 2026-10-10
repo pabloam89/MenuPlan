@@ -1,6 +1,21 @@
 {
   "$comentario": "Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479; scripts/lib/vocabulariosVida.mjs). «anclados»: los valores de hoy de cada vocabulario con su definición; lo escribe npm run glosario -- --vocabularios --escribir, no se edita a mano. «retirados»: un valor que deja de usarse no se borra ni se reutiliza: {vocabulario, valor, pasa_a (un valor vivo, o null con motivo), desde (AAAA-MM-DD)}. «redefiniciones»: una definición que cambia sin cambiar de significado, de un valor {vocabulario, valor, desde, motivo} o de un término del glosario {termino, desde, motivo}. «vocabularios_retirados»: {vocabulario, desde, motivo}. Los tres registros solo crecen. Lo vigilan ops/vocabularios-vida.test.js y ops/glosario.test.js, también contra origin/staging.",
   "anclados": {
+    "estandares.accion": {
+      "construir": "Crear o cambiar un artefacto del repo: una migración, una pantalla, una herramienta, un workflow o un catálogo",
+      "juzgar": "Revisar o auditar el trabajo de otro y dar un veredicto, sin arreglarlo",
+      "diagnosticar": "Ir de un síntoma a su causa, con evidencia",
+      "operar": "Mover algo por el flujo o gestionar un servicio: ramas, PR, carpetas, secretos, despliegues o migraciones",
+      "medir": "Sacar cifras comparables antes y después: evals, capturas o coste",
+      "documentar": "Poner al día un registro o redactar un informe",
+      "decidir": "Elegir dónde vive un dato o qué forma tiene, antes de construir"
+    },
+    "estandares.origen": {
+      "mision": "Misión y alcance",
+      "disparadores": "Disparadores",
+      "metodo": "Método",
+      "entregables": "Entregables"
+    },
     "flujo.actores": {
       "agente_dominio": "El constructor del dominio (datos, lola, diseno, gobierno)",
       "orquestador": "La sesión principal con /orquestar",

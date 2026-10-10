@@ -33,6 +33,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { leerEstandares } from "./estandaresAgentes.mjs";
 import { ESTADOS } from "./fondos.mjs";
 import { ACTORES, ALCANCES_FALLO, DIAGNOSTICAN, ESTADOS_MEDIDA, PASOS } from "./flujo.mjs";
 import { leerForja } from "./forja.mjs";
@@ -58,6 +59,9 @@ export const VOCABULARIOS = {
   // Los tipos de skill: la única lista es tipos_skill de ops/forja.json (#495), que lee forja.mjs; su definición, «que».
   "forja.tipo_skill": { fichero: "scripts/lib/forja.mjs", textos: () => Object.fromEntries(leerForja(RAIZ).tipos_skill.map((x) => [x.id, x.que])) },
   "glosario.estado": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(ESTADOS_TERMINO) },
+  // La acción y el origen de una tarea de agente: la única lista está en ops/estandares-agentes.json (#516).
+  "estandares.accion": { fichero: "scripts/lib/estandaresAgentes.mjs", textos: () => ({ ...leerEstandares(RAIZ).acciones }) },
+  "estandares.origen": { fichero: "scripts/lib/estandaresAgentes.mjs", textos: () => ({ ...leerEstandares(RAIZ).origenes }) },
 };
 
 /** Campos de un retiro. `motivo` solo hace falta si no hay a dónde pasar (pasa_a: null). */
