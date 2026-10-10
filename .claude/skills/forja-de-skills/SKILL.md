@@ -27,6 +27,8 @@ No es para:
 - escribir un agente: `.claude/PLANTILLA-AGENTE.md`;
 - medir una skill ya escrita sin tocarla: `npm run skills-prueba -- <skill>`
   (esta skill dice cuándo lanzarlo y cómo leerlo).
+- revisar una skill ya escrita y sacar su lista de defectos con su arreglo:
+  `higiene-de-skills` (`npm run higiene-skills -- <skill>`, gratis).
 
 ## Método
 
@@ -133,7 +135,7 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
   había una definición de «buena» con la que comparar. Arreglo: esta skill y la
   regla `forja` del nivel 1. Antes: 10 de 11 skills con menos de tres casos de
   frontera y 9 de 11 con fechas en el cuerpo; ambas en `EXCEPCIONES_FORJA`
-  hasta que #410 y #411 las arreglen.
+  hasta que #410 y #411 las arreglaron (hoy vacía).
 - **2026-10-10 · skills que no hacen decir lo que piden sus casos.** Causa:
   se escriben sin ver antes qué falla la sesión sin ellas, y aguantan 10 de 14
   comprobaciones (`causa-raiz`). Arreglo: el paso 2 del método y el A/B manual;
@@ -141,6 +143,7 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 
 ## Registro de cambios
 
+- **2026-10-10** · Las 7 excepciones de fechas que quedaban se arreglan y la lista queda vacía; la revisión de una skill concreta pasa a `higiene-de-skills` (#411).
 - **2026-10-10** · Presentación (`.claude/skills/forja-de-skills/referencias/presentacion.md`) con tres controles mecánicos, el estándar de cada tipo en la plantilla con su test, y 12 de las 19 excepciones quitadas (#410).
 - **2026-10-10** · Primera versión: doce criterios con fuente, defectos con su señal, método con regla de parada, y la regla `forja` del nivel 1 con su lista de excepciones que solo baja (#409).
 

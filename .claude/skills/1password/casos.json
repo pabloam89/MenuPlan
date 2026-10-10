@@ -21,14 +21,20 @@
       ]
     },
     {
-      "id": "rotar-clave",
-      "peticion": "Hay que rotar la clave de la API de Anthropic.",
+      "id": "valor-cambiado-en-ficha",
+      "peticion": "He cambiado el valor de una clave en su ficha de 1Password. ¿Tengo que tocar algo en mi .env.local?",
       "skill": "1password",
       "debe_salir": [
-        "Dice que rotar una clave requiere el OK de Pablo",
-        "Explica que se genera en el servicio, se cambia en la ficha de 1Password y, si el despliegue la usa, en Vercel",
-        "Dice que las direcciones op:// no cambian"
+        "Dice que no: .env.local guarda direcciones op:// y no cambian al cambiar el valor de la ficha",
+        "Si la clave está en la lista COPIAR, dice que hay que cambiarla también en HoMenu-sesiones",
+        "Remite el cambio de punta a punta de la clave (servicio, caducidad, destinos) a la skill alta-de-secreto"
       ]
+    },
+    {
+      "id": "frontera-rotar-clave",
+      "peticion": "Hay que rotar la clave de la API de Anthropic.",
+      "skill": "alta-de-secreto",
+      "nota": "Casi-fallo: es una clave que vive en 1Password, pero rotarla de punta a punta (servicio, ficha, destinos, revocar la vieja) es de alta-de-secreto, y 1password lo excluye en su descripción."
     },
     {
       "id": "frontera-logged-out",

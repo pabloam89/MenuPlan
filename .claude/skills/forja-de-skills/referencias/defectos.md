@@ -36,8 +36,9 @@ oficial que los mida; el porqué y lo que solo juzga una persona, en
 
 `EXCEPCIONES_FORJA` (en `scripts/lib/skillsForja.mjs`) apunta, por skill, los
 códigos que hoy incumple. Solo baja: un código nuevo en una skill falla el test, y
-uno ya arreglado también hasta que se quita. El encargo de arreglar las que
-quedan es de #411, que la deja vacía.
+uno ya arreglado también hasta que se quita. Hoy está vacía (#411): lo que
+no se cumple es un defecto nuevo y se arregla en la skill. Una skill concreta se
+revisa con `npm run higiene-skills -- <skill>`.
 
 ## Lo que ningún test ve (juzga el `revisor` o `skills-prueba`)
 
