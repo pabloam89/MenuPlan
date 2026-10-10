@@ -142,6 +142,10 @@ gana el último y nadie se entera.
   explícito a quien la use. **[auto]** Por qué: Supabase concede EXECUTE a
   `anon` y `authenticated` por defecto, y revocar a `public` no lo quita (lo
   que se vio con la 0055/0056).
+- `anon` no tiene permisos por defecto sobre tablas ni secuencias nuevas (0096).
+  Dárselos exige `grant … to anon` con la marca `-- anon: <porqué>` en la propia
+  sentencia. **[auto]** (`supabase/anonPorDefecto.test.js`) Por qué: así la RLS
+  deja de ser la única barrera frente a la clave pública.
 - Las políticas usan `(select auth.uid())`, no `auth.uid()` a pelo.
   **[revisión]** Por qué: así se evalúa una vez por consulta y no por fila
   (0011).
