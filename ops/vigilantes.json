@@ -40,7 +40,7 @@
     },
     {
       "id": "cuota-de-gh",
-      "tests": ["scripts/cuotaGh.test.js"],
+      "tests": ["scripts/cuotaGh.test.js", "scripts/fabricaGh.test.js"],
       "mira": [".claude/**/*.{md,mjs,json}", "docs/**/*.md", "scripts/**/*.mjs", "ops/*.{md,json}"],
       "porque": "Techo de menciones de las llamadas a GitHub que agotan la cuota (`--watch`, graphql): un texto o script nuevo que las recomienda lo sube.",
       "evidencia": "#424",
