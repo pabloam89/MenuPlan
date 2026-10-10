@@ -106,6 +106,18 @@ deja abrir el PR y el CI lo tumba. Es un campo del informe y no una sección
 más del agente a propósito: una sola definición para todos, sin copias que se
 separen.
 
+## Lo ya apuntado (buscar antes de dar nada por nuevo)
+
+Ante cualquier cosa que no encaja, se asume que ya hay un issue y un plan que
+la arregla (#384, fondo #334). Antes de evaluar código, y antes de presentar un
+hallazgo como nuevo, el agente busca en lo apuntado: `npm run buscar -- "<síntoma,
+fichero o área>"` (sin red, sobre el índice local) y `npm run issues`; la
+sección «Fuentes de verdad» de cada agente lo nombra. Cada hallazgo lleva su
+marca: `YA APUNTADO: #n` (con su estado y su plan) o `NUEVO (buscado: <consulta>)`.
+Un hallazgo sin marca no se da por bueno. Un hook (`buscar-antes.mjs`) le pone
+delante lo apuntado cuando ve un error, un test rojo o una denegación, pero no
+sustituye a buscar a propósito.
+
 ## Informe común
 
 Todos los agentes terminan con este bloque, igual, para que la sesión
@@ -120,7 +132,7 @@ CASOS: fallos reales del camino, uno por línea con su clase (o «ninguno»)
 CAMBIOS: ruta:línea — qué (o «ninguno»)
 EVIDENCIA: comando → resultado (o captura → ruta)
 HALLAZGOS:
-- [bloqueante|alto|medio|nit] ruta:línea — problema → arreglo propuesto
+- [bloqueante|alto|medio|nit] ruta:línea — problema → arreglo propuesto · YA APUNTADO: #n | NUEVO (buscado: <consulta>)
 NO COMPROBADO: lo que no pudo verificar
 SIGUIENTE: qué toca ahora y a qué agente
 DECISIONES PENDIENTES:

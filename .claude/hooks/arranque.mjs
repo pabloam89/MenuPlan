@@ -23,7 +23,8 @@ import { ahoraEnMadrid } from "../../scripts/lib/hora.mjs";
 import { numeroDeRama } from "../../scripts/lib/lleva.mjs";
 import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/limpiar-worktrees.mjs";
 import { sinAplicar } from "./guardia.mjs";
-import { avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
+import { avisoRamaPrincipal, avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
+import { avisoDeIndice, leerIndice } from "../../scripts/lib/buscarAntes.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
 
@@ -77,6 +78,12 @@ if ((rama === "staging" || rama === "main") && !esWorktree) {
   avisos.push(`Estás en ${rama} en la carpeta principal: para cualquier cambio, abre un worktree con \`npm run tarea -- <area>/<nombre>\`.`);
 }
 if (rama === "main") avisos.push("main es producción: aquí no se commitea.");
+// La carpeta principal fuera de staging (#348, #384): con el reflog, para ver quién la cambió.
+{
+  const fuera = !esWorktree && rama && rama !== "staging";
+  const aviso = avisoRamaPrincipal({ esWorktree, rama, reflog: fuera ? git("reflog", "HEAD", "-n", "30", "--format=%gs|%cr") : null });
+  if (aviso) avisos.push(aviso);
+}
 if (!existsSync(join(raiz, ".env.local"))) {
   avisos.push("Falta .env.local (git no lo trae a los worktrees): cópialo de C:\\dev\\MenuPlan\\.env.local; `npm run tarea` ya lo hace.");
 }
@@ -164,5 +171,13 @@ if (lineasIssues) avisos.push(...lineasIssues);
 // Sin respuesta (sin gh, sin red o tarda más de 10 s) no se calla: se dice, para
 // que nadie crea que no hay nada pendiente.
 else avisos.push("Issues: no he podido leerlos (GitHub no contesta, gh sin sesión o un fallo del script); míralos con `npm run issues`.");
+
+// ── Índice para buscar lo ya apuntado (#384) ──────────────────────────────
+// `issues.mjs --arranque` lo reescribe con lo que acaba de leer (se mira tras esperarlo); si GitHub no
+// contestó, queda el viejo y aquí se dice cuál es (no se calla).
+{
+  const aviso = avisoDeIndice(leerIndice());
+  if (aviso) avisos.push(aviso);
+}
 
 process.stdout.write(`[arranque MenuPlan]\n- ${avisos.join("\n- ")}\n`);

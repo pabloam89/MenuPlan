@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
+import { avisoRamaPrincipal, avisoTrasAdelantar, planAdelantar, resumenReflog } from "./principal.mjs";
 
 describe("la carpeta principal se adelanta al arrancar (#192)", () => {
   const base = { esWorktree: false, rama: "staging", detras: "3", sucio: "" };
@@ -24,4 +24,23 @@ describe("la carpeta principal se adelanta al arrancar (#192)", () => {
     expect(avisoTrasAdelantar("2", [".claude/settings.json"])).toMatch(/próxima sesión/);
     expect(avisoTrasAdelantar("2", [".claude/hooks/guardia.test.js"])).toBe("Carpeta principal adelantada 2 commits hasta origin/staging.");
   });
+});
+
+describe("la carpeta principal fuera de staging avisa al arrancar (#348, #384)", () => {
+  const reflog = "checkout: moving from staging to ccr-0df6959e-29yha0|2 hours ago\ncommit: algo|3 hours ago\ncheckout: moving from main to staging|1 day ago";
+  it("resume los cambios de rama y deja fuera lo que no lo es", () => {
+    expect(resumenReflog(reflog)).toEqual(["staging → ccr-0df6959e-29yha0 (2 hours ago)", "main → staging (1 day ago)"]);
+    expect(resumenReflog(null)).toEqual([]);
+  });
+  it("en la principal fuera de staging avisa, con el reflog y el camino a buscar", () => {
+    const a = avisoRamaPrincipal({ esWorktree: false, rama: "ccr-0df6959e-29yha0", reflog });
+    expect(a).toMatch(/ccr-0df6959e-29yha0, no en staging/);
+    expect(a).toMatch(/staging → ccr-0df6959e/);
+    expect(a).toMatch(/npm run buscar/);
+  });
+  it.each([
+    ["un worktree", { esWorktree: true, rama: "ops/x" }],
+    ["staging", { esWorktree: false, rama: "staging" }],
+    ["sin saber la rama", { esWorktree: false, rama: null }],
+  ])("en %s, nada", (_, c) => expect(avisoRamaPrincipal({ ...c, reflog })).toBe(null));
 });

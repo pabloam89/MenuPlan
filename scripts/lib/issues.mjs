@@ -30,6 +30,8 @@
  * con su descripción, y en el formulario que la use.
  */
 
+import { limpiarTexto } from "./textoExterno.mjs";
+
 export const GRUPOS = {
   tipo: {
     color: "1d76db",
@@ -241,7 +243,7 @@ export const CONSULTA = `query($cursor: String) {
         closedByPullRequestsReferences(first: 5, includeClosedPrs: true) {
           nodes { number headRefName mergedAt body author { login } }
         }
-        comments(last: 10) { nodes { body } }
+        comments(last: 10) { nodes { body authorAssociation } }
         parent { number state labels(first: 20) { nodes { name } } }
         subIssues(first: 50) {
           nodes {
@@ -275,6 +277,7 @@ export function leerIssue(n) {
     .filter((p) => p.mergedAt)
     .map((p) => ({ number: p.number, rama: p.headRefName, autor: p.author?.login ?? null, agente: agenteDe(p.body), mergedAt: p.mergedAt }));
   if (!prs.length && cerrado(n)) {
+    // Pendiente en #313: este «PR #n» sale de comentarios de cualquiera (no se filtra por authorAssociation).
     const citados = (n.comments?.nodes ?? []).flatMap((c) => [...String(c.body).matchAll(/\bPR\s+#(\d+)/gi)].map((m) => Number(m[1])));
     prs = [...new Set(citados)].map((number) => ({ number, rama: null, autor: null, agente: null, mergedAt: null }));
   }
@@ -456,7 +459,9 @@ const COMUNES = new Set(["claude.md", "skill.md", "readme.md", "package.json", "
 
 /** Los ficheros que nombra un texto, por su nombre (`guardia.mjs`), sin los comunes. */
 export function ficherosNombrados(texto) {
-  const m = String(texto ?? "").match(/[\w.-]+\.(?:mjs|cjs|js|jsx|ts|tsx|json|md|sql|yml|yaml|css)\b/gi) ?? [];
+  // Sin ReDoS (ronda 3 de #384): el lookbehind obliga a empezar al principio de cada palabra y el tope de
+  // 120 caracteres acota el retroceso; una palabra de 60 KB sin punto ya no cuesta segundos.
+  const m = String(texto ?? "").match(/(?<![\w.-])[\w.-]{1,120}\.(?:mjs|cjs|js|jsx|ts|tsx|json|md|sql|yml|yaml|css)\b/gi) ?? [];
   return new Set(m.map((f) => f.replace(/^.*[\\/]/, "").toLowerCase()).filter((f) => !COMUNES.has(f)));
 }
 
@@ -500,7 +505,7 @@ export function avisoDeArranque(issues) {
     .filter(([k]) => k).map(([k, que]) => `${k} ${que}`);
   if (partes.length) lineas.push(`Issues abiertos: ${partes.join("; ")}. Detalle: \`npm run issues\`.`);
   const top = r.fondos.filter((f) => f.abierto && f.casos).slice(0, 3);
-  if (top.length) lineas.push(`Problemas de fondo que más se repiten: ${top.map((f) => `#${f.number} ${f.title.replace(/^\[[^\]]+\]\s*/, "")} (${f.casos} casos)`).join("; ")}. Si lo que haces toca uno, arregla el fondo, no solo el caso.`);
+  if (top.length) lineas.push(`Problemas de fondo que más se repiten: ${top.map((f) => `#${f.number} ${limpiarTexto(f.title.replace(/^\[[^\]]+\]\s*/, ""))} (${f.casos} casos)`).join("; ")}. Si lo que haces toca uno, arregla el fondo, no solo el caso.`);
   const sueltos = r.malClasificados.filter((m) => m.faltan.some((x) => x.startsWith("su problema de fondo"))).length;
   if (sueltos) lineas.push(`${sueltos} casos sin colgar de su problema de fondo: \`npm run issues\`.`);
   const viejos = r.malClasificados.filter((m) => m.faltan.some((x) => x.startsWith("reclasificar"))).length;
