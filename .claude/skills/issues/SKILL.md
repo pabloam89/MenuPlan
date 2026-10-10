@@ -71,7 +71,7 @@ cualquiera. <!-- norma:fondo-con-ficha-y-controles -->
 | `barrera` | un escalón de la escalera (`bloqueo`, `test_ci`, `script`, `skill`, `texto`) |
 | `casos`, `encargos` | `#n, #m` o `ninguno` |
 | `verificacion` | ruta de un FICHERO de `origin/staging` que vale para su barrera: un `*.test.js` para `test_ci`, un hook, workflow o migración para `bloqueo`, un script, una skill o un texto; una carpeta no vale |
-| `ventana_desde`, `ventana_hasta` | fechas AAAA-MM-DD de inicio y fin de la observación (90 días como mucho); los casos creados desde `ventana_desde` cuentan como nuevos, estén o no en `casos` |
+| `ventana_desde`, `ventana_hasta` | fechas AAAA-MM-DD de inicio y fin de la observación (90 días como mucho); los casos creados desde `ventana_desde` (a las 00:00 UTC de ese día) cuentan como nuevos, estén o no en `casos`: si el caso de origen es del mismo día de la fusión, pon el día siguiente |
 | `mecanismo`, `causa_escape`, `clase`, `barrido`, `solucion_temporal`, `matiz`, `aprendizaje` | texto libre corto |
 
 **Estados:** `abierto` (registrado) → `diagnosticado` (hay `mecanismo` y
@@ -97,7 +97,8 @@ ficha y en los cerrados con un caso `no-aguanto-*` o posterior al cierre
   `observacion-sin-verificacion`, `verificacion-no-existe`, `verificacion-no-vale`,
   `observacion-sin-ventana`, `ventana-excesiva`, `cierre-sin-aprendizaje`,
   `clasificacion` (las `faltas()` de `issues.mjs`), `sin-fondo` y
-  `caso-sin-analisis` (en casos y encargos);
+  `caso-sin-analisis` (en casos y encargos), `plan-grande`, `encargo-*` y
+  `sin-preventivo-automatico` (#396, `docs/ops/ENCARGO.md`; norma `plan-tres-encargos-con-preventivo`);
 - un fondo cerrado sin `aprendizaje` se **reabre**; un caso `no-aguanto-*` (o uno
   posterior al cierre) reabre el fondo y, una vez por caso, **sube un nivel de
   alcance** en la ficha (una vez por caso: la marca del comentario lo anota,

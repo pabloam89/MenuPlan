@@ -57,10 +57,26 @@ describe("la ventana no cierra como eficaz con un caso que no aguantó ni con ca
     expect(tipos(r)).not.toContain("cerrar");
     expect(campos(r)).toEqual({ alcance: "modulo", estado: "reabierto" });
   });
-  it("un no-aguanto ya contado y la ventana vencida: tampoco se cierra como eficaz", () => {
-    const r = validarFicha(obs([hijo(77, ["tipo:caso", "analisis:no-aguanto-corto"], "OPEN", "2026-10-01T00:00:00Z")]), { ...CTX, subidos: new Set([77]) });
+  it("un no-aguanto ya contado y DE ESTA ventana: tampoco se cierra como eficaz", () => {
+    const r = validarFicha(obs([hijo(77, ["tipo:caso", "analisis:no-aguanto-corto"], "OPEN", "2026-10-12T00:00:00Z")]), { ...CTX, subidos: new Set([77]) });
     expect(tipos(r)).not.toContain("cerrar");
     expect(campos(r).estado).not.toBe("cerrado-eficaz");
+  });
+  it("N2 (#381): un no-aguanto ya contado y ANTERIOR a la ventana no bloquea el cierre eficaz para siempre", () => {
+    const r = validarFicha(obs([hijo(77, ["tipo:caso", "analisis:no-aguanto-corto"], "OPEN", "2026-10-01T00:00:00Z")]), { ...CTX, subidos: new Set([77]) });
+    expect(tipos(r)).toContain("cerrar");
+    expect(campos(r).estado).toBe("cerrado-eficaz");
+  });
+  it("N2: sin «ventana_desde» legible no se arriesga: el no-aguanto sigue bloqueando", () => {
+    const f = obs([hijo(77, ["tipo:caso", "analisis:no-aguanto-corto"], "OPEN", "2026-10-01T00:00:00Z")], { ventana_desde: "" });
+    expect(tipos(validarFicha(f, { ...CTX, subidos: new Set([77]) }))).not.toContain("cerrar");
+  });
+  it("N1 (#381): ventana_desde es un día a las 00:00 UTC; un caso de ese mismo día, aunque sea el de origen, cuenta como nuevo", () => {
+    const r = validarFicha(obs([hijo(10, ["tipo:caso", "analisis:abierto"], "CLOSED", "2026-10-10T00:00:00Z")], { casos: "#10" }), CTX);
+    expect(tipos(r)).not.toContain("cerrar");
+    expect(campos(r)).toEqual({ estado: "reabierto" });
+    // Y el del día anterior, listado, no.
+    expect(tipos(validarFicha(obs([hijo(10, ["tipo:caso", "analisis:abierto"], "CLOSED", "2026-10-09T23:59:00Z")], { casos: "#10" }), CTX))).toContain("cerrar");
   });
   it("un caso LISTADO en «casos» pero creado después del inicio de la ventana cuenta como nuevo", () => {
     const r = validarFicha(obs([hijo(10, ["tipo:caso", "analisis:abierto"], "OPEN", "2026-10-12T00:00:00Z")], { casos: "#10" }), CTX);

@@ -24,7 +24,8 @@ import { fileURLToPath } from "node:url";
 
 import { MAX_NUMERO, MIN_MOTIVO } from "../../.claude/hooks/casos.mjs";
 import { ALCANCES_FALLO } from "./flujo.mjs";
-import { GRUPOS, debeReabrir, faltas, porGrupo } from "./issues.mjs";
+import { CAMPOS_ENCARGO, ESCALONES_AUTOMATICOS, GRUPOS, MAX_ENCARGOS_POR_FONDO, TIPOS_ACCION, debeReabrir, faltas, porGrupo } from "./issues.mjs";
+import { CATALOGO as MECANISMOS } from "./mecanismos.mjs";
 import { RIESGOS } from "./normas.mjs";
 import { CATALOGO, TOPE_RONDAS, presupuestoDe } from "./presupuestos.mjs";
 
@@ -135,14 +136,34 @@ export function limpio(valor, max = 40) {
     .replace(/(?<=[\w/])#/g, "?");
 }
 
+/**
+ * Cómo se lee cada clave del bloque `encargo`. Las CLAVES salen de CAMPOS_ENCARGO
+ * (issues.mjs, la fuente del formato): aquí solo el tipo de valor. Un test falla
+ * si nace una clave sin tipo.
+ */
+export const TIPOS_CAMPO_ENCARGO = {
+  fondo: { tipo: "lista", una: true },
+  tipo_accion: { tipo: "vocab", valores: Object.keys(TIPOS_ACCION) },
+  mecanismo: { tipo: "vocab", valores: MECANISMOS.mecanismos.map((m) => m.id) },
+  por_que_no_mas_alto: { tipo: "texto" },
+  clase: { tipo: "texto" },
+  depende_de: { tipo: "lista" },
+  constructor: { tipo: "vocab", valores: CAPAS_AGENTE },
+  juez: { tipo: "vocab", valores: CAPAS_AGENTE },
+  verificacion: { tipo: "ruta" },
+  hecho_cuando: { tipo: "texto" },
+  ficheros: { tipo: "texto" },
+};
+
 // ── Leer la ficha ─────────────────────────────────────────────────────────────
 
-const ABRE = /^ {0,3}```fondo[ \t]*$/;
+const abreDe = (nombre) => new RegExp("^ {0,3}```" + nombre + "[ \t]*$");
 const CIERRA = /^ {0,3}```[ \t]*$/;
 const CONTROL = /[\u0000-\u0008\u000b-\u001f\u007f]/;
 
 /** Dónde está el bloque: { ini, fin, repetido } con índices de línea, o null si no hay. */
-export function ubicarBloque(lineas) {
+export function ubicarBloque(lineas, nombre = "fondo") {
+  const ABRE = abreDe(nombre);
   const abre = lineas.map((l, i) => (ABRE.test(l) ? i : -1)).filter((i) => i >= 0);
   if (!abre.length) return null;
   const ini = abre[0];
@@ -171,6 +192,7 @@ function leerValor(clave, def, valor) {
     case "vocab":
       return def.valores.includes(valor) ? { valor } : { error: `«${clave}: ${limpio(valor)}» no es de la lista (${def.valores.join(", ")})` };
     case "lista": {
+      if (def.una && !/^#[0-9]{1,8}$/.test(valor)) return { error: `«${clave}» tiene que ser un solo «#n»` };
       if (/^ninguno[s]?$/i.test(valor)) return { valor: [] };
       const trozos = valor.split(",").map((t) => t.trim());
       if (trozos.length > MAX_LISTA) return { error: `«${clave}» tiene más de ${MAX_LISTA} elementos` };
@@ -198,21 +220,30 @@ function leerValor(clave, def, valor) {
  * Un valor vacío (`clave:`) es «sin rellenar», no un error: la plantilla trae todas las claves.
  */
 export function leerFicha(body) {
+  return leerBloque(body, "fondo", CAMPOS_FICHA, "ficha");
+}
+
+/**
+ * Lee un bloque de código `nombre` de líneas `clave: valor`, con los topes de
+ * siempre: la ficha del fondo y el bloque `encargo` comparten lector.
+ * Reglas de error: `<prefijo>-bloque` y `<prefijo>-vocabulario`.
+ */
+function leerBloque(body, nombre, campos, prefijo) {
   const lineas = lineasDe(body);
-  const sitio = ubicarBloque(lineas);
+  const sitio = ubicarBloque(lineas, nombre);
   if (!sitio) return { presente: false, ficha: {}, errores: [] };
   const errores = [];
   const malo = (regla, mensaje) => errores.push({ regla, mensaje });
-  if (sitio.repetido) malo("ficha-bloque", "hay más de un bloque «fondo»; deja uno solo");
+  if (sitio.repetido) malo(`${prefijo}-bloque`, `hay más de un bloque «${nombre}»; deja uno solo`);
   if (sitio.fin < 0) {
-    malo("ficha-bloque", String(body).length > MAX_CUERPO
-      ? `el bloque «fondo» es demasiado grande (el cuerpo pasa de ${MAX_CUERPO} caracteres)`
-      : "el bloque «fondo» no está cerrado (falta la línea de cierre del bloque de código)");
+    malo(`${prefijo}-bloque`, String(body).length > MAX_CUERPO
+      ? `el bloque «${nombre}» es demasiado grande (el cuerpo pasa de ${MAX_CUERPO} caracteres)`
+      : `el bloque «${nombre}» no está cerrado (falta la línea de cierre del bloque de código)`);
     return { presente: true, ficha: {}, errores };
   }
   const dentro = lineas.slice(sitio.ini + 1, sitio.fin);
   if (dentro.length > MAX_LINEAS || dentro.join("\n").length > MAX_BLOQUE) {
-    malo("ficha-bloque", `el bloque es demasiado grande (máximo ${MAX_LINEAS} líneas y ${MAX_BLOQUE} caracteres): resume y deja el detalle fuera`);
+    malo(`${prefijo}-bloque`, `el bloque es demasiado grande (máximo ${MAX_LINEAS} líneas y ${MAX_BLOQUE} caracteres): resume y deja el detalle fuera`);
     return { presente: true, ficha: {}, errores };
   }
   const ficha = {};
@@ -220,20 +251,20 @@ export function leerFicha(body) {
   dentro.forEach((cruda, i) => {
     const n = i + 1;
     if (!cruda.trim()) return;
-    if (cruda.length > MAX_LINEA) return malo("ficha-bloque", `línea ${n}: pasa de ${MAX_LINEA} caracteres`);
-    if (CONTROL.test(cruda)) return malo("ficha-bloque", `línea ${n}: lleva caracteres de control`);
+    if (cruda.length > MAX_LINEA) return malo(`${prefijo}-bloque`, `línea ${n}: pasa de ${MAX_LINEA} caracteres`);
+    if (CONTROL.test(cruda)) return malo(`${prefijo}-bloque`, `línea ${n}: lleva caracteres de control`);
     const m = /^([a-z_]+):[ \t]*(.*)$/.exec(cruda);
-    if (!m) return malo("ficha-bloque", `línea ${n}: tiene que ser «clave: valor»`);
+    if (!m) return malo(`${prefijo}-bloque`, `línea ${n}: tiene que ser «clave: valor»`);
     const [, clave, crudo] = m;
-    const def = Object.hasOwn(CAMPOS_FICHA, clave) ? CAMPOS_FICHA[clave] : undefined;
-    if (!def) return malo("ficha-bloque", `línea ${n}: la clave «${limpio(clave, 30)}» no existe en la ficha (${Object.keys(CAMPOS_FICHA).join(", ")})`);
-    if (vistas.has(clave)) return malo("ficha-bloque", `la clave «${clave}» está repetida`);
+    const def = Object.hasOwn(campos, clave) ? campos[clave] : undefined;
+    if (!def) return malo(`${prefijo}-bloque`, `línea ${n}: la clave «${limpio(clave, 30)}» no existe en el bloque «${nombre}» (${Object.keys(campos).join(", ")})`);
+    if (vistas.has(clave)) return malo(`${prefijo}-bloque`, `la clave «${clave}» está repetida`);
     vistas.add(clave);
     const valor = crudo.trim();
     if (!valor) return;
     const r = leerValor(clave, def, valor);
     if (r.error) {
-      malo("ficha-vocabulario", r.error);
+      malo(`${prefijo}-vocabulario`, r.error);
       return;
     }
     ficha[clave] = r.valor;
@@ -282,9 +313,10 @@ export function aprendizajeValido(texto) {
 const nombresDe = (labels) => (labels ?? []).map((l) => (typeof l === "string" ? l : l?.name)).filter(Boolean);
 const tipoDe = (labels) => [...porGrupo(nombresDe(labels)).tipo][0] ?? null;
 
-/** Un hijo (sub-issue) de la REST con la forma de `leerIssue().hijos`. */
+/** Un hijo (sub-issue) de la REST con la forma de `leerIssue().hijos` (con su cuerpo: el bloque `encargo` está ahí). */
 export function hijoDeRest(h) {
   return {
+    body: String(h.body ?? ""),
     number: h.number,
     state: String(h.state).toUpperCase(),
     createdAt: h.created_at ?? h.createdAt ?? null,
@@ -404,7 +436,9 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
         error("rondas-excedidas", `el fondo lleva ${f.rondas} rondas de constructor y juez y su presupuesto (alcance ${limpio(f.alcance ?? "sin fijar")}, causa ${limpio(f.tipo_causa ?? [...g.causa][0] ?? "sin fijar")}) permite ${tope} como mucho: no hay otra vuelta. Abre un issue tipo decision asignado a Pablo (npm run issues -- --nuevo "…" --tipo decision --area … --cuerpo <fichero>) con lo que el juez sigue bloqueando; decide una persona y, al decidir, ajusta «rondas» en la ficha`);
       }
     }
-    if (encargos.length > 3) aviso("plan-grande", `cuelgan ${encargos.length} encargos; el flujo pide como mucho tres, al menos uno preventivo y automático`);
+    // 4c. Los encargos (#396, P06.2 y P06.4): bloque `encargo` válido, como mucho tres, y uno preventivo y automático.
+    // Los fondos de antes de la ficha solo avisan; los nuevos fallan (cerrado).
+    for (const h of validarEncargos(encargos, f.estado)) (obligatoria ? error : aviso)(h.regla, h.mensaje);
 
     // 5. Observación: la verificación existe de verdad en origin/staging.
     if (f.estado === "en-observacion" || f.estado === "cerrado-eficaz") {
@@ -450,9 +484,14 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
     if (f.estado === "en-observacion" && f.ventana_hasta && hoy && f.ventana_hasta < hoy && !cerrado) {
       const conocidos = new Set(f.casos ?? []);
       // Nuevo = no listado en «casos» O creado desde que empezó la ventana: la lista es editable y no puede esconder un caso.
+      // `ventana_desde` es un DÍA (00:00 UTC) y vale el día de la fusión (N1, #381): un caso creado ese mismo día, aunque
+      // sea el de origen, cuenta como nuevo. Por eso la skill `issues` pide ponerla el día siguiente al del caso de origen.
       const desde = f.ventana_desde ? Date.parse(`${f.ventana_desde}T00:00:00Z`) : null;
       const nuevosCasos = casos.filter((h) => !conocidos.has(h.number) || (desde !== null && h.createdAt && Date.parse(h.createdAt) >= desde));
-      const yaDecidido = acciones.some((a) => a.tipo === "fijar" || a.tipo === "reabrir") || casos.some(esNoAguanto);
+      // N2 (#381): solo bloquea un no-aguanto de ESTA ventana. Uno anterior es el que motivó el arreglo nuevo, y ya
+      // se contó (subió el alcance); si no, bloquearía el cierre eficaz para siempre.
+      const delaVentana = (h) => desde === null || !h.createdAt || Date.parse(h.createdAt) >= desde;
+      const yaDecidido = acciones.some((a) => a.tipo === "fijar" || a.tipo === "reabrir") || casos.some((h) => esNoAguanto(h) && delaVentana(h));
       if (yaDecidido && !nuevosCasos.length) {
         aviso("ventana", `la ventana venció el ${f.ventana_hasta}, pero hay un caso que no aguantó: no se cierra como eficaz`);
       } else if (nuevosCasos.length) {
@@ -498,6 +537,73 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
 
 /** ¿Falla el control? Solo los errores; los avisos informan. */
 export const falla = (resultado) => resultado.hallazgos.some((h) => h.gravedad === "error");
+
+// ── Los encargos de un fondo (#396) ────────────────────────────────────────────
+
+/** Los estados del fondo en que ya tiene que haber un plan completo (con su preventivo automático). */
+const ESTADOS_CON_PLAN = ["plan", "en-curso", "en-observacion", "cerrado-eficaz"];
+const CLAVES_ENCARGO = CAMPOS_ENCARGO.map((c) => c.clave);
+const escalonDe = (id) => MECANISMOS.mecanismos.find((m) => m.id === id)?.escalon ?? null;
+
+/** Lee el bloque `encargo` de un cuerpo. → { presente, ficha, errores } (reglas encargo-bloque y encargo-vocabulario). */
+export function leerEncargo(body) {
+  const campos = Object.fromEntries(CLAVES_ENCARGO.map((c) => [c, TIPOS_CAMPO_ENCARGO[c]]));
+  return leerBloque(body, "encargo", campos, "encargo");
+}
+
+/**
+ * Los controles de los encargos de un fondo. Puro. `encargos`: los hijos de tipo
+ * encargo CON su cuerpo (abiertos y cerrados: un preventivo ya hecho cuenta).
+ *   - plan-grande       más de MAX_ENCARGOS_POR_FONDO (en cualquier estado);
+ *   - desde «plan»: encargo-sin-bloque / encargo-bloque / encargo-vocabulario / encargo-incompleto /
+ *     encargo-juez: el bloque está, se lee y trae lo obligatorio;
+ *   - sin-preventivo-automatico: con el fondo ya en «plan» o después, ninguno es
+ *     preventivo con un mecanismo de escalón automático (bloqueo o test_ci).
+ * Devuelve [{ regla, mensaje }]; quien llama decide si es error o aviso. Los
+ * mensajes llevan solo números y vocabulario nuestro, nunca texto del autor.
+ */
+export function validarEncargos(encargos, estado) {
+  const sal = [];
+  const dice = (regla, mensaje) => sal.push({ regla, mensaje });
+  if (encargos.length > MAX_ENCARGOS_POR_FONDO) {
+    dice("plan-grande", `cuelgan ${encargos.length} encargos y el flujo pide como mucho ${MAX_ENCARGOS_POR_FONDO}: ${lista(encargos.map((h) => h.number))}. Une los que sean una misma pieza o cuelga el resto de otro fondo`);
+  }
+  // El plan se exige cuando el fondo dice que ya lo tiene: antes, los encargos se van colgando.
+  if (!ESTADOS_CON_PLAN.includes(estado)) return sal;
+  let hayPreventivo = false;
+  let todosLeidos = true;
+  for (const h of encargos) {
+    const n = h.number;
+    const l = leerEncargo(h.body);
+    if (!l.presente) {
+      todosLeidos = false;
+      dice("encargo-sin-bloque", `#${n} no trae el bloque «encargo» (plantilla en docs/ops/ENCARGO.md)`);
+      continue;
+    }
+    for (const e of l.errores) dice(e.regla, `#${n}: ${e.mensaje}`);
+    if (l.errores.length) {
+      todosLeidos = false;
+      continue;
+    }
+    const e = l.ficha;
+    const escalon = escalonDe(e.mecanismo);
+    const faltan = CAMPOS_ENCARGO.filter((c) => {
+      if (c.clave === "por_que_no_mas_alto") return escalon !== null && escalon !== BARRERAS[0] && e[c.clave] === undefined;
+      return c.obligatorio === true && e[c.clave] === undefined;
+    }).map((c) => c.clave);
+    if (faltan.length) {
+      todosLeidos = false;
+      dice("encargo-incompleto", `#${n} no rellena: ${faltan.join(", ")}`);
+    }
+    if (e.juez !== undefined && e.juez === (Object.hasOwn(e, "constructor") ? e["constructor"] : undefined)) dice("encargo-juez", `#${n}: quien construye no juzga (constructor y juez son el mismo)`);
+    if (e.tipo_accion === "preventivo" && ESCALONES_AUTOMATICOS.includes(escalon)) hayPreventivo = true;
+  }
+  // Solo se exige cuando el plan ya está hecho y todos los bloques se leen: si no, el motivo es el de arriba.
+  if (encargos.length && todosLeidos && !hayPreventivo && ESTADOS_CON_PLAN.includes(estado)) {
+    dice("sin-preventivo-automatico", `ningún encargo es «preventivo» con un mecanismo de escalón ${ESCALONES_AUTOMATICOS.join(" o ")}: el fondo no se cierra solo con arreglos que dependen de que alguien se acuerde`);
+  }
+  return sal;
+}
 
 // ── Hijos: todo caso y todo encargo cuelga de un fondo ────────────────────────
 

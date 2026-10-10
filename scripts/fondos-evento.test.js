@@ -461,3 +461,60 @@ describe("apiReal: las rutas que pide", () => {
     expect(n).toBe(3);
   });
 });
+
+// ── Seguimiento de la ronda 2 de #337 (#381): M1, N3 ──────────────────────────
+
+describe("el comentario propio sobrevive a los runs caducados (M1) y no se reescribe sin cambios (N3)", () => {
+  const hace = (dias) => new Date(Date.now() - dias * 86_400_000).toISOString();
+  const viejo = (dias, extra = {}) => ({ body: `${MARCA}estado=ok subidos=60 run=555 -->\nbien`, user: BOT, created_at: hace(dias), ...extra });
+
+  it("M1: el run ya no existe (404) y el comentario es antiguo: sigue siendo nuestro, conserva «subidos» y no se duplica", async () => {
+    const st = crearGithub({ issues: [FONDO()], comentarios: { 50: [viejo(95)] } });
+    st.api.runEsNuestro = async () => null;
+    await evento(st, "50");
+    expect(comentariosNuestros(st, 50)).toHaveLength(1);
+    expect(comentariosNuestros(st, 50)[0].body).toMatch(/subidos=60/);
+  });
+
+  it("M1: el run no existe pero el comentario es reciente: es una falsificación, no vale (se escribe uno propio)", async () => {
+    const st = crearGithub({ issues: [FONDO()], comentarios: { 50: [viejo(1)] } });
+    st.api.runEsNuestro = async () => null;
+    await evento(st, "50");
+    expect(comentariosNuestros(st, 50)).toHaveLength(2);
+  });
+
+  it("M1: un comentario antiguo sin fecha legible tampoco vale", async () => {
+    const st = crearGithub({ issues: [FONDO()], comentarios: { 50: [viejo(95, { created_at: undefined })] } });
+    st.api.runEsNuestro = async () => null;
+    await evento(st, "50");
+    expect(comentariosNuestros(st, 50)).toHaveLength(2);
+  });
+
+  it("N3: si solo cambia el run, no se edita el comentario", async () => {
+    const st = crearGithub({ issues: [FONDO()] });
+    await ejecutar({ api: st.api, evento: "issues", accion: "edited", issue: "50", hoy: "2026-10-20", run: "111" });
+    await ejecutar({ api: st.api, evento: "issues", accion: "edited", issue: "50", hoy: "2026-10-20", run: "222" });
+    expect(st.llamadas.filter((l) => l[0] === "editarComentario")).toEqual([]);
+    expect(comentariosNuestros(st, 50)).toHaveLength(1);
+  });
+
+  it("N3: si cambia el contenido, sí se edita", async () => {
+    const st = crearGithub({ issues: [FONDO({ body: "sin ficha" })] });
+    await evento(st, "50");
+    st.issues.get(50).body = bloque(BUENA);
+    await ejecutar({ api: st.api, evento: "issues", accion: "edited", issue: "50", hoy: "2026-10-20", run: "222" });
+    expect(st.llamadas.filter((l) => l[0] === "editarComentario")).toHaveLength(1);
+  });
+
+  it("N3: el run de la marca se busca una vez por fondo, no dos", async () => {
+    const st = crearGithub({ issues: [FONDO()], comentarios: { 50: [{ body: `${MARCA}estado=ok run=111 -->\nbien`, user: BOT, created_at: hace(1) }] } });
+    await evento(st, "50");
+    expect(st.llamadas.filter((l) => l[0] === "runEsNuestro")).toHaveLength(1);
+  });
+
+  it("apiReal.runEsNuestro distingue «no existe» (null) de «es de otro workflow» (false)", async () => {
+    const con = (status, path) => apiReal({ token: "t", repo: "a/b", fetchFn: async () => ({ status, ok: status === 200, json: async () => ({ path }) }), espera: async () => {} });
+    expect(await con(404).runEsNuestro(5)).toBeNull();
+    expect(await con(200, ".github/workflows/otro.yml").runEsNuestro(5)).toBe(false);
+  });
+});
