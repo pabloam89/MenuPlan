@@ -126,3 +126,42 @@ describe("validarFicha con encargos", () => {
     expect(r.hallazgos.filter((h) => h.gravedad === "aviso").map((h) => h.regla)).toContain("sin-preventivo-automatico");
   });
 });
+
+describe("ronda 2 de #396: constructor heredado, autores de fuera y plan vigente", () => {
+  const cerrado = (n, extra = {}, razon = "COMPLETED") => ({ ...enc(n, extra), state: "CLOSED", stateReason: razon });
+  const POR2 = { por_que_no_mas_alto: "no se puede" };
+
+  it("un bloque con todo menos «constructor» es incompleto (no lo hereda de Object)", () => {
+    const r = validarEncargos([enc(1, {}, ["constructor"])], "plan");
+    expect(reglas(r)).toEqual(["encargo-incompleto"]);
+    expect(r[0].mensaje).toMatch(/constructor/);
+  });
+  it("y encargo-juez sigue funcionando con «constructor» puesto", () => {
+    expect(reglas(validarEncargos([enc(1, { constructor: "revisor" })], "plan"))).toEqual(["encargo-juez"]);
+  });
+  it("un encargo de fuera de la casa no cuenta y avisa", () => {
+    const fuera = { ...enc(9), asociacion: "NONE" };
+    const cuatro = [enc(1), enc(2), enc(3), fuera];
+    const r = validarEncargos(cuatro, "plan");
+    expect(reglas(r)).toEqual(["encargo-de-fuera"]);
+    expect(r[0].gravedad).toBe("aviso");
+    expect(validarEncargos([{ ...enc(1), asociacion: "OWNER" }], "plan")).toEqual([]);
+  });
+  it("hijoDeRest guarda la asociación del autor", () => {
+    expect(hijoDeRest({ number: 1, state: "open", labels: [], author_association: "NONE" }).asociacion).toBe("NONE");
+  });
+  it("el plan vigente: 3 completados y 1 de corrección abierto no es un plan grande", () => {
+    const hechos = [cerrado(1), cerrado(2, { tipo_accion: "correctivo", mecanismo: BLANDO, ...POR2 }), cerrado(3, { tipo_accion: "detectivo", mecanismo: BLANDO, ...POR2 })];
+    expect(reglas(validarEncargos([...hechos, enc(4, { tipo_accion: "correctivo", mecanismo: BLANDO, ...POR2 })], "plan"))).toEqual([]);
+  });
+  it("cuentan los abiertos y los preventivos automáticos hechos; los cancelados y duplicados no", () => {
+    const abiertos = [enc(1, { tipo_accion: "correctivo", mecanismo: BLANDO, ...POR2 }), enc(2, { tipo_accion: "correctivo", mecanismo: BLANDO, ...POR2 }), enc(3, { tipo_accion: "correctivo", mecanismo: BLANDO, ...POR2 })];
+    // Un cuarto: el preventivo automático ya hecho cuenta.
+    expect(reglas(validarEncargos([...abiertos, cerrado(4)], "plan"))).toEqual(["plan-grande"]);
+    expect(reglas(validarEncargos([...abiertos, cerrado(4, {}, "NOT_PLANNED")], "plan"))).not.toContain("plan-grande");
+    expect(reglas(validarEncargos([...abiertos, cerrado(4, {}, "DUPLICATE")], "plan"))).not.toContain("plan-grande");
+  });
+  it("un cancelado no aporta el «preventivo automático»", () => {
+    expect(reglas(validarEncargos([enc(1, { tipo_accion: "detectivo", ...POR2 }), cerrado(2, {}, "NOT_PLANNED")], "plan"))).toEqual(["sin-preventivo-automatico"]);
+  });
+});

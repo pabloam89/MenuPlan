@@ -101,7 +101,7 @@ export const MAX_LINEA = 600;
 export const MAX_TEXTO = 400;
 export const MAX_LISTA = 30;
 export const MAX_VENTANA_DIAS = 90;
-/** Fondos abiertos desde este día (Madrid) deben llevar ficha; los anteriores, sin ella, solo avisan. */
+/** Fondos abiertos desde este día (UTC, como `createdAt`) deben llevar ficha; los anteriores, sin ella, solo avisan. */
 export const FICHA_DESDE = "2026-10-10";
 
 /** Campos de la ficha: tipo de valor y, si es vocabulario, sus valores. Un solo sitio. */
@@ -317,6 +317,8 @@ const tipoDe = (labels) => [...porGrupo(nombresDe(labels)).tipo][0] ?? null;
 export function hijoDeRest(h) {
   return {
     body: String(h.body ?? ""),
+    stateReason: h.state_reason ? String(h.state_reason).toUpperCase() : (h.stateReason ?? null),
+    asociacion: h.author_association ?? h.asociacion ?? null,
     number: h.number,
     state: String(h.state).toUpperCase(),
     createdAt: h.created_at ?? h.createdAt ?? null,
@@ -369,7 +371,7 @@ const posteriorAlCierre = (h, f) => Boolean(f.closedAt && h.createdAt && new Dat
 const dias = (a, b) => Math.round((new Date(`${b}T00:00:00Z`) - new Date(`${a}T00:00:00Z`)) / 86_400_000);
 const lista = (ns) => ns.map((n) => `#${n}`).join(", ");
 
-/** ¿Es una ficha obligatoria? Los fondos anteriores a FICHA_DESDE (día de Madrid del alta) solo avisan. */
+/** ¿Es una ficha obligatoria? Los fondos anteriores a FICHA_DESDE (día UTC del alta, el de `createdAt`) solo avisan. */
 export function fichaObligatoria(fondo) {
   if (!fondo.createdAt) return true;
   return String(fondo.createdAt).slice(0, 10) >= FICHA_DESDE;
@@ -438,7 +440,7 @@ export function validarFicha(fondo, { existeEnStaging = () => false, hoy, subido
     }
     // 4c. Los encargos (#396, P06.2 y P06.4): bloque `encargo` válido, como mucho tres, y uno preventivo y automático.
     // Los fondos de antes de la ficha solo avisan; los nuevos fallan (cerrado).
-    for (const h of validarEncargos(encargos, f.estado)) (obligatoria ? error : aviso)(h.regla, h.mensaje);
+    for (const h of validarEncargos(encargos, f.estado)) (h.gravedad === "aviso" || !obligatoria ? aviso : error)(h.regla, h.mensaje);
 
     // 5. Observación: la verificación existe de verdad en origin/staging.
     if (f.estado === "en-observacion" || f.estado === "cerrado-eficaz") {
@@ -553,8 +555,9 @@ export function leerEncargo(body) {
 
 /**
  * Los controles de los encargos de un fondo. Puro. `encargos`: los hijos de tipo
- * encargo CON su cuerpo (abiertos y cerrados: un preventivo ya hecho cuenta).
- *   - plan-grande       más de MAX_ENCARGOS_POR_FONDO (en cualquier estado);
+ * encargo CON su cuerpo, estado y asociación del autor. Solo cuentan los de la casa y el
+ * plan vigente: abiertos más cerrados completados que son preventivos automáticos.
+ *   - plan-grande       más de MAX_ENCARGOS_POR_FONDO vigentes (en cualquier estado);
  *   - desde «plan»: encargo-sin-bloque / encargo-bloque / encargo-vocabulario / encargo-incompleto /
  *     encargo-juez: el bloque está, se lee y trae lo obligatorio;
  *   - sin-preventivo-automatico: con el fondo ya en «plan» o después, ninguno es
@@ -564,9 +567,20 @@ export function leerEncargo(body) {
  */
 export function validarEncargos(encargos, estado) {
   const sal = [];
-  const dice = (regla, mensaje) => sal.push({ regla, mensaje });
+  const dice = (regla, mensaje, gravedad) => sal.push({ regla, mensaje, ...(gravedad ? { gravedad } : {}) });
+  // Solo cuentan los de la casa (si no se sabe quién lo abrió, cuenta, como en el informe de fichas).
+  const propios = encargos.filter((h) => !h.asociacion || esDeLaCasa(h.asociacion));
+  for (const h of encargos.filter((x) => !propios.includes(x))) dice("encargo-de-fuera", `#${h.number}: encargo de fuera de la casa: no cuenta`, "aviso");
+  // El plan vigente: los abiertos y los cerrados como completados que son preventivos automáticos.
+  // Una segunda ronda de arreglo no hace caer el fondo por los encargos ya hechos.
+  const preventivoAuto = (h) => {
+    const e = leerEncargo(h.body).ficha;
+    return e.tipo_accion === "preventivo" && ESCALONES_AUTOMATICOS.includes(escalonDe(e.mecanismo));
+  };
+  encargos = propios.filter((h) => String(h.state).toUpperCase() !== "CLOSED"
+    || (!["NOT_PLANNED", "DUPLICATE"].includes(h.stateReason ?? "") && preventivoAuto(h)));
   if (encargos.length > MAX_ENCARGOS_POR_FONDO) {
-    dice("plan-grande", `cuelgan ${encargos.length} encargos y el flujo pide como mucho ${MAX_ENCARGOS_POR_FONDO}: ${lista(encargos.map((h) => h.number))}. Une los que sean una misma pieza o cuelga el resto de otro fondo`);
+    dice("plan-grande", `el plan vigente tiene ${encargos.length} encargos y el flujo pide ${MAX_ENCARGOS_POR_FONDO} como mucho: ${lista(encargos.map((h) => h.number))}. Une los que sean una misma pieza o cuelga el resto de otro fondo`);
   }
   // El plan se exige cuando el fondo dice que ya lo tiene: antes, los encargos se van colgando.
   if (!ESTADOS_CON_PLAN.includes(estado)) return sal;
@@ -588,14 +602,14 @@ export function validarEncargos(encargos, estado) {
     const e = l.ficha;
     const escalon = escalonDe(e.mecanismo);
     const faltan = CAMPOS_ENCARGO.filter((c) => {
-      if (c.clave === "por_que_no_mas_alto") return escalon !== null && escalon !== BARRERAS[0] && e[c.clave] === undefined;
-      return c.obligatorio === true && e[c.clave] === undefined;
+      if (c.clave === "por_que_no_mas_alto") return escalon !== null && escalon !== BARRERAS[0] && !Object.hasOwn(e, c.clave);
+      return c.obligatorio === true && !Object.hasOwn(e, c.clave);
     }).map((c) => c.clave);
     if (faltan.length) {
       todosLeidos = false;
       dice("encargo-incompleto", `#${n} no rellena: ${faltan.join(", ")}`);
     }
-    if (e.juez !== undefined && e.juez === (Object.hasOwn(e, "constructor") ? e["constructor"] : undefined)) dice("encargo-juez", `#${n}: quien construye no juzga (constructor y juez son el mismo)`);
+    if (Object.hasOwn(e, "juez") && Object.hasOwn(e, "constructor") && e.juez === e["constructor"]) dice("encargo-juez", `#${n}: quien construye no juzga (constructor y juez son el mismo)`);
     if (e.tipo_accion === "preventivo" && ESCALONES_AUTOMATICOS.includes(escalon)) hayPreventivo = true;
   }
   // Solo se exige cuando el plan ya está hecho y todos los bloques se leen: si no, el motivo es el de arriba.

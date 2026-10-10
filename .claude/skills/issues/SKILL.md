@@ -96,9 +96,8 @@ ficha y en los cerrados con un caso `no-aguanto-*` o posterior al cierre
   `ficha-incompleta`, `causa-distinta`, `sin-diagnostico`,
   `observacion-sin-verificacion`, `verificacion-no-existe`, `verificacion-no-vale`,
   `observacion-sin-ventana`, `ventana-excesiva`, `cierre-sin-aprendizaje`,
-  `clasificacion` (las `faltas()` de `issues.mjs`), `sin-fondo` y
-  `caso-sin-analisis` (en casos y encargos), `plan-grande`, `encargo-*` y
-  `sin-preventivo-automatico` (#396, `docs/ops/ENCARGO.md`; norma `plan-tres-encargos-con-preventivo`);
+  `clasificacion` (las `faltas()` de `issues.mjs`), `sin-fondo`, `caso-sin-analisis` (en casos y encargos), `plan-grande` (plan vigente: abiertos más
+  preventivos automáticos hechos), `encargo-*` y `sin-preventivo-automatico` (#396, `docs/ops/ENCARGO.md`; norma `plan-tres-encargos-con-preventivo`);
 - un fondo cerrado sin `aprendizaje` se **reabre**; un caso `no-aguanto-*` (o uno
   posterior al cierre) reabre el fondo y, una vez por caso, **sube un nivel de
   alcance** en la ficha (una vez por caso: la marca del comentario lo anota,
