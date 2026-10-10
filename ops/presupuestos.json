@@ -1,0 +1,49 @@
+{
+  "$comentario": "Catálogo de presupuestos del triaje (#339, fase D del plan #334): cuánto esfuerzo se dedica a un fallo según su alcance y su tipo de causa. Es la única fuente: /orquestar la lee con `npm run presupuesto -- <alcance> <causa>` (scripts/presupuesto.mjs) y la regla rondas-excedidas de la ficha del fondo (scripts/lib/fondos.mjs) toma de aquí el tope de rondas. Lógica y vocabulario en scripts/lib/presupuestos.mjs; lo vigila ops/presupuestos.test.js. Se resuelve así: el valor del alcance, y si la causa lo sobrescribe en `por_causa`, el de la causa. Repo público (#300): cifras y jueces, nada más.",
+  "version": 1,
+  "actualizado": "2026-10-09",
+  "plan": 334,
+  "especificacion": 339,
+  "notas_campos": {
+    "minutos_orientativos": "Esfuerzo de UN FONDO: la suma de los minutos activos de las sesiones de todos sus encargos (sesiones en paralelo suman; no es el tiempo de calendario ni el de un encargo suelto). Es lo que compara npm run fabrica -- --recalibrar, con la mediana de esos totales por fondo.",
+    "rondas_max": "Rondas de constructor y juez del fondo, tal como las apunta el campo rondas de su ficha."
+  },
+  "valores_iniciales": true,
+  "calibrado_el": null,
+  "recalibracion": {
+    "fase": "#340",
+    "como": "La fase F (#340) compara lo presupuestado con lo medido en las transcripciones locales de Claude Code y en los issues. Procedimiento: 1) `npm run fabrica -- --recalibrar` da, por tipo de causa y alcance, presupuestado frente a real y una propuesta de subir o bajar solo si la celda tiene al menos 3 encargos y 2 fondos (con menos dice «datos insuficientes»); 2) en /revision-issues una persona decide cuáles aplica; 3) por PR, se cambian solo esos valores en este fichero (el informe dice en qué parte vive cada uno) y se pone valores_iniciales a false y calibrado_el a la fecha de hoy (AAAA-MM-DD); 4) ops/presupuestos.test.js valida el resultado. El informe no modifica este fichero. Mientras valores_iniciales sea true, los números son los de F0, a ojo."
+  },
+  "por_alcance": {
+    "local": {
+      "diagnostica": "agente_dominio",
+      "es_no_es": false,
+      "hipotesis_en_paralelo_max": 1,
+      "jueces_min": 1,
+      "rondas_max": 2,
+      "minutos_orientativos": 15
+    },
+    "modulo": {
+      "diagnostica": "agente_dominio",
+      "es_no_es": true,
+      "hipotesis_en_paralelo_max": 1,
+      "jueces_min": 1,
+      "rondas_max": 2,
+      "minutos_orientativos": 30
+    },
+    "transversal": {
+      "diagnostica": "orquestador_con_diagnosticadores",
+      "es_no_es": true,
+      "hipotesis_en_paralelo_max": 3,
+      "jueces_min": 2,
+      "rondas_max": 2,
+      "minutos_orientativos": 60
+    }
+  },
+  "por_causa": {
+    "modelo-datos": { "jueces_obligatorios": ["auditor-datos"] },
+    "vigilante-falso": { "jueces_obligatorios": ["revisor"] },
+    "vigilante-hueco": { "jueces_obligatorios": ["revisor"] },
+    "entorno": { "reproducir_en_ci": true }
+  }
+}

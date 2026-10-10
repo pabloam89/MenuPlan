@@ -151,34 +151,40 @@ export function mergeFolders(local = [], remote = []) {
 // Mismo patrón que recipeVotes.js: no-op sin sesión, y localStorage sigue
 // siendo la fuente de verdad de trabajo.
 
-/** @returns {Promise<CollectionMap>} */
+/**
+ * En error, `data` null y `error` (#317): «sin carpetas» no es «no se sabe».
+ * @returns {Promise<{ data: CollectionMap|null, error: object|null }>}
+ */
 export async function loadRecipeCollections(userId) {
-  if (!supabase || !userId) return {};
+  if (!supabase || !userId) return { data: {}, error: null };
   const { data, error } = await supabase
     .from("recipe_collections")
     .select("recipe_id, collection_id")
     .eq("user_id", userId);
   if (error) {
     console.warn("[recipeCollections] load failed", error.message);
-    return {};
+    return { data: null, error };
   }
   const map = {};
   for (const row of data ?? []) (map[row.recipe_id] ??= []).push(row.collection_id);
-  return map;
+  return { data: map, error: null };
 }
 
-/** @returns {Promise<Folder[]>} */
+/**
+ * En error, `data` null y `error` (#317).
+ * @returns {Promise<{ data: Folder[]|null, error: object|null }>}
+ */
 export async function loadRecipeFolders(userId) {
-  if (!supabase || !userId) return [];
+  if (!supabase || !userId) return { data: [], error: null };
   const { data, error } = await supabase
     .from("recipe_folders")
     .select("id, name, created_at")
     .eq("user_id", userId);
   if (error) {
     console.warn("[recipeCollections] folders load failed", error.message);
-    return [];
+    return { data: null, error };
   }
-  return (data ?? []).map((r) => ({ id: r.id, name: r.name, createdAt: r.created_at }));
+  return { data: (data ?? []).map((r) => ({ id: r.id, name: r.name, createdAt: r.created_at })), error: null };
 }
 
 export async function saveRecipeFolder(userId, folder) {

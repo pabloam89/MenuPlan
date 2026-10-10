@@ -3,8 +3,8 @@
     "que": "Cómo llama el súper a un ingrediente cuando no lo llama por su nombre.",
     "porque": "Hay dos maneras de fallar al emparejar un ingrediente con un producto, y solo una la arregla el algoritmo. Los FALSOS POSITIVOS —«Atún fresco» acabando en «Butifarra fresca»— son un defecto del emparejador y se corrigieron en productMatcher.js. Los FALSOS NEGATIVOS no: el morcillo existe en Mercadona, pero se vende como «Trozo de vacuno para cocido», y no hay medida de parecido entre cadenas que una esas dos cosas. Eso lo sabe una persona o no lo sabe nadie.",
     "porque_terminos_y_no_ids": "El catálogo se refresca por cron y los identificadores de producto cambian con él; los nombres comerciales no. Fijar el término de búsqueda sobrevive al refresco y fijar el id no. Además un término puede seguir acertando cuando el súper cambia de proveedor, y un id caducado no falla: desaparece en silencio.",
-    "como": "Clave = nombre del ingrediente normalizado (minúsculas, sin tildes). `buscar` son términos adicionales que se suman al nombre propio, no lo sustituyen. `motivo` es obligatorio: si nadie sabe por qué está una línea, nadie se atreve a tocarla.",
-    "verificado": "2026-09-21 contra public/store/mercadona.json. El test productoBuscado.test.js comprueba que cada clave es un ingrediente real y que cada término sigue encontrando algo en el catálogo."
+    "como": "Clave = nombre del ingrediente normalizado (minúsculas, sin tildes). `buscar` son términos adicionales que se suman al nombre propio, no lo sustituyen. `motivo` es obligatorio: si nadie sabe por qué está una línea, nadie se atreve a tocarla. `puedeFaltar: true` para lo de temporada que el súper quita y vuelve a poner (hierbas frescas): esa semana no hay producto, y es mejor ninguno que uno equivocado.",
+    "verificado": "2026-10-08 contra public/store/mercadona.json. El test productoBuscado.test.js comprueba que cada clave es un ingrediente real y que cada término sigue encontrando algo en el catálogo."
   },
 
   "ajetes": {
@@ -73,7 +73,7 @@
   },
 
   "queso parmesano": {
-    "buscar": ["grana padano"],
+    "buscar": ["queso grana padano"],
     "motivo": "No hay parmigiano en el catálogo. El grana padano es el queso de pasta dura curada que ocupa su lugar en la cocina y en el rallador. Antes casaba «Queso cottage», que es fresco y desgrasado: el error nutricional más caro de la lista."
   },
   "queso crema": {
@@ -120,5 +120,90 @@
   "foie mi-cuit": {
     "buscar": ["foie gras de pato"],
     "motivo": "El catálogo no usa «mi-cuit». Hay foie fresco y en bloc, y ninguno se encontraba."
+  },
+  "laurel": {
+    "buscar": ["hoja de laurel"],
+    "motivo": "Se vende como «Hoja de laurel». Sin esto el laurel va en cola del nombre y no pasa del 0,4."
+  },
+  "tahini": {
+    "buscar": ["pasta de sesamo"],
+    "motivo": "Mercadona lo llama «Pasta de sésamo Tahini»: el nombre por el que lo pedimos va detrás."
+  },
+  "guindilla": {
+    "buscar": ["cayena guindillas"],
+    "motivo": "La guindilla seca de guisar es la «Cayena guindillas». Sin esto se llevaba las Gildas."
+  },
+  "arroz": {
+    "buscar": ["arroz redondo"],
+    "motivo": "«Arroz» a secas empataba con los vasitos de arroz cocido Sabroz y ganaban por baratos. El de cocinar es el redondo."
+  },
+  "lentejas": {
+    "buscar": ["lenteja pardina"],
+    "motivo": "Sin esto se llevaba «Lentejas a la jardinera», que es un plato hecho. La de guisar es la pardina."
+  },
+  "queso de cabra": {
+    "buscar": ["queso rulo de cabra"],
+    "motivo": "«Ensalada queso de cabra» puntuaba más que cualquier queso. El que piden las recetas, a la plancha o gratinado, es el rulo."
+  },
+  "nueces": {
+    "buscar": ["nuez natural pelada"],
+    "motivo": "El súper las vende en singular, «Nuez natural». En plural solo salen helados y trenzas con nueces. Pelada, porque la receta pesa la nuez sin cáscara: la de cáscara costaba la mitad por kilo y sacaba la ración a mitad de precio."
+  },
+  "menta fresca": {
+    "buscar": ["hierbabuena"],
+    "puedeFaltar": true,
+    "motivo": "La menta fresca de las recetas se vende como «Hierbabuena», en manojo. Antes se llevaba la «Infusión Menta Poleo». Es de temporada: el 9 oct 2026 desapareció del catálogo y staging se puso en rojo."
+  },
+  "salmon fresco": {
+    "buscar": ["filete de salmon"],
+    "motivo": "El fresco de pescadería es «Filete de salmón». Antes salía «Salmón marinado» (otro producto) o el paté. No «Lomos de salmón», que es congelado."
+  },
+  "maiz": {
+    "buscar": ["maiz dulce"],
+    "motivo": "El maíz de las recetas (y sus alias «Maíz cocido», «Maíz dulce») es el de lata o bolsa, «Maíz dulce». «Maíz» a secas empataba con «Maíz frito crujiente» y las palomitas."
+  },
+  "frutos rojos": {
+    "buscar": ["mix frutos rojos"],
+    "motivo": "Se venden como «Mix frutos rojos» congelados. Antes se llevaba la «Infusión frutos rojos», que es un té."
+  },
+  "fideos finos": {
+    "buscar": ["fideo cabello de angel"],
+    "motivo": "El fideo más fino del súper es el «cabello de ángel»; no hay ninguno que se llame «fino». Antes se llevaba una «Sopa de pollo con fideos finos» de sobre."
+  },
+  "mantequilla de cacahuete": {
+    "buscar": ["crema de cacahuete"],
+    "motivo": "Se vende como «Crema de cacahuete 100%». Antes se llevaba un helado que la lleva de relleno."
+  },
+  "jerez seco": {
+    "buscar": ["vino fino"],
+    "motivo": "El jerez seco de cocinar es un fino, y el súper solo tiene «Vino fino» de Montilla-Moriles, que es el mismo tipo de vino. Antes se llevaba el vinagre de Jerez."
+  },
+  "pedro ximenez": {
+    "buscar": ["vino dulce pedro ximenez"],
+    "motivo": "El que hay es «Vino dulce Pedro Ximénez». Antes se llevaba la reducción de vinagre Pedro Ximénez, que es un aliño."
+  },
+  "ciruelas pasas": {
+    "buscar": ["ciruelas desecadas"],
+    "motivo": "Mercadona las llama «Ciruelas desecadas sin hueso». Antes se llevaba un bífidus con ciruelas."
+  },
+  "uvas": {
+    "buscar": ["uva blanca"],
+    "motivo": "Se venden en singular, «Uva blanca» y «Uva roja», y «uva» es demasiado corta para que el emparejador la una con «uvas». Antes se llevaba un vino «Mar de Uvas»."
+  },
+  "secreto iberico": {
+    "buscar": ["secreto de cerdo iberico"],
+    "motivo": "El súper pone el animal en medio: «Secreto de cerdo ibérico». Antes se llevaba una hamburguesa «con secreto ibérico»."
+  },
+  "pesto": {
+    "buscar": ["salsa pesto"],
+    "motivo": "Se vende como «Salsa Pesto». «Salsa» no puede ir en las clases del emparejador porque «Salsa yogur» o «Salsa curry» no son yogur ni curry, así que el pesto va aquí."
+  },
+  "brotes tiernos": {
+    "buscar": ["ensalada mezcla brotes tiernos"],
+    "motivo": "Es una bolsa de ensalada: «Ensalada mezcla brotes tiernos lavada». Con el nombre solo, los brotes van en cola y no pasan del umbral."
+  },
+  "pulpo cocido": {
+    "buscar": ["patas de pulpo cocido"],
+    "motivo": "Se vende como «Patas de pulpo cocido». «Patas» no puede ir en las partes del emparejador porque «Patas de pollo» no es el pollo de una receta."
   }
 }

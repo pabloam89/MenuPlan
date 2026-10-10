@@ -3,7 +3,7 @@
 // Desde el 30 sep 2026 el bundle es la ÚNICA fuente de recetas: la app ya no
 // mira la copia de Supabase (se quedó en la v27; ver src/data/recipeCatalog.js
 // y la migración 0064). El número sigue sirviendo de registro de cambios del
-// catálogo y lo leen los scripts de build (derived/, seed de ingredientes):
+// catálogo y lo leen los scripts de build (derived/):
 // súbelo con una línea abajo cada vez que cambies las recetas.
 //
 // Lo que sigue es la historia, de cuando este número era la «puerta» que

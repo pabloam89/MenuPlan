@@ -1,0 +1,38 @@
+{
+  "skill": "tailscale",
+  "casos": [
+    {
+      "id": "pc-logged-out",
+      "peticion": "Tailscale en mi PC dice Logged out y no llego al servidor.",
+      "skill": "tailscale",
+      "debe_salir": [
+        "Propone iniciar sesión desde el icono de la bandeja (Log in)",
+        "Propone comprobarlo con tailscale.exe status"
+      ]
+    },
+    {
+      "id": "invitar-alvaro",
+      "peticion": "Invita a Álvaro a la red privada para que vea el servidor.",
+      "skill": "tailscale",
+      "debe_salir": [
+        "Dice que invitar a alguien requiere el OK de Pablo",
+        "Recuerda mirar antes el límite de usuarios del plan Free"
+      ]
+    },
+    {
+      "id": "servidor-nuevo",
+      "peticion": "Tengo un servidor Linux nuevo y quiero meterlo en la tailnet.",
+      "skill": "tailscale",
+      "debe_salir": [
+        "Propone instalar con el script install.sh de Tailscale",
+        "Propone lanzar tailscale up con nohup y leer el enlace del log",
+        "Dice que Pablo abre el enlace y aprueba"
+      ]
+    },
+    {
+      "id": "frontera-ufw",
+      "peticion": "¿Qué deja pasar el cortafuegos ufw del servidor del panel?",
+      "skill": "hetzner"
+    }
+  ]
+}

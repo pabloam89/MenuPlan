@@ -15,6 +15,32 @@ Specs producidas por ingeniería inversa del código real (`src/`, `api/`, esque
 | [ficha-de-la-casa.md](ficha-de-la-casa.md) | PLAN (1 oct 2026): la ficha que ve Lola en cada mensaje (capas, dos bloques, topes), los menús «definitivos» sin pedir «me gusta», el analista nocturno con salida tabulada y cómo se convierte una observación en eje nuevo; huecos por orden |
 | [modelo-datos.md](modelo-datos.md) | Auditoría de normalización del modelo y plan: campos por plano, operadores y calculadoras, magnitudes (tiempo/gramos/macros/raciones/precio), el mapa de tablas por ámbito (global/hogar), sesgos y batch cooking; Fase A: esquema de `alimentos` (alimento/producto/ingrediente, siete dimensiones, procedencia BEDCA) y plan de curación de `familia`, `densidad` y `rendimiento` |
 
+## Vocabulario del catálogo
+
+Nombres fijos (issue #249). **La palabra «antiguo» no se usa** para nada de
+esto: hoy significaba cinco cosas (el fondo sin bandera, la copia de Supabase,
+las 19 cremas de bebé originales, `BASE_RECIPES`, ingredients frente a
+alimentos). Se dice el rol o el nombre de abajo. La lista de fuentes, con su
+estado y su fecha de retirada, vive en `src/data/model.js` (`TABLAS`, el único
+registro) y la vigila `ops/fuentes.test.js`. Leer una fuente `retirado` o
+`copia_retirada` (o usar una `deprecado` sin ser su consumidor declarado) pone
+rojo `ops/lecturasRetiradas.test.js` (issue #251), con qué leer en su lugar. Una fuente `deprecado` con la fecha vencida NO
+es rojo: es un aviso (lo cuenta `fuentesVencidas`, issue #253).
+
+| Rol de una fuente | Qué es |
+|---|---|
+| `ingesta` | Viene de fuera (BEDCA, CIQUAL, USDA, Mercadona) por un pipeline con revisión. Nunca se estima a mano. |
+| `fuente_de_verdad` | Se edita (a mano o por script) y se commitea. Un dato vive aquí y en ningún otro sitio. |
+| `derivado` | Se calcula de otras fuentes con un script o un operador; no se toca a mano. |
+| `copia_retirada` | Copia que se leyó y ya no, o que se sembró para leerse y nunca se leyó (las tablas `recipes`… de Supabase). No se usa para nada nuevo. |
+
+Estado: `vivo`, `deprecado` (con `retirar_el`: pasada la fecha, avisa y lo
+cuenta `fuentesVencidas`; el aviso lo enseñará el panel, #253) o `retirado`.
+
+Recetas: el **Recetario** son las recetas con `estrella:true` (las únicas que
+Lola y el motor proponen); la **Reserva**, todas las demás (sin bandera o
+`false`). Una receta pasa de Reserva a Recetario cambiando esa bandera.
+
 ## Documentos de diseño fuera del repo
 
 Artefactos de claude.ai con decisiones que no se derivan del código. Léelos
@@ -69,7 +95,7 @@ Veredicto del motor de reglas: «El notepad es el 5 % del esfuerzo;
 
 | Si cambia... | Rompe (directamente) | Por qué |
 |---|---|---|
-| `recipeSchema.js` (forma de una receta) | `recipe-catalog`, `menu-generation` (prompt server-side), `receipt-ocr` no afectado | 4 sitios sincronizados a mano: JSON bundleado, mapper `rowToRecipe`, `UserRecipeDraftSchema`, prompt `structure-recipe` |
+| `recipeSchema.js` (forma de una receta) | `recipe-catalog`, `menu-generation` (prompt server-side), `receipt-ocr` no afectado | 3 sitios sincronizados a mano: JSON bundleado, `UserRecipeDraftSchema`, prompt `structure-recipe` (el mapper `rowToRecipe` de la copia de Supabase se borró el 9 oct 2026) |
 | `aiModels.js` (ids de modelo) | `menu-generation`, `recipe-catalog` | `api/generate.js` tiene su propia lista `ALLOWED_MODELS` duplicada a mano; `api/recipe-steps.js` tiene una tercera constante propia |
 | `api/_guard.js` (rate limit / guard) | `menu-generation`, `recipe-catalog`, `receipt-ocr` | los tres llaman a `/api/generate` o `/api/recipe-steps`, ambos protegidos por el mismo guard compartido |
 | `api/_prompts.js` | `menu-generation` (planner, school-menu), `recipe-catalog` (structure-recipe, suggest-ingredients), `recipe-catalog`/API propia (steps) | única fuente server-side de los 5 prompts activos desde esta sesión |

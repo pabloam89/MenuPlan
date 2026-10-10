@@ -83,6 +83,11 @@ select count(*) from public.bot_reminders r
 
 ## 0083 · tareas → persona (aplicada el 8 oct 2026)
 
+La 0089 la sustituye (abajo): mientras no se aplique la 0089, vale esta. Su
+comentario («una baja lógica no borra la fila») no era verdad: la
+sincronización por clave (0081) borra la fila de quien sale de la familia, y
+con `on delete cascade` se llevaba sus tareas.
+
 `bot_tareas_persona_fk` — condición: 0081, 0082 y 0083 aplicadas y el bot nuevo
 una semana sin errores.
 ```sql
@@ -90,6 +95,17 @@ select count(*) from public.bot_tareas t
  where t.persona_id is not null
    and not exists (select 1 from public.persona p
                     where p.household_id = t.household_id and p.id = t.persona_id);
+```
+
+## 0089 · tareas → persona, sin cascada (sin aplicar)
+
+`bot_tareas_persona_fk` rehecha con `on delete set null (persona_id)`, NOT
+VALID: quitar a alguien de la familia borra su fila de persona y su salud,
+pero no sus tareas (el código las descarta como «sin_persona»). Condición:
+0089 aplicada, la consulta de arriba en 0 y una semana de guardados sin
+WARNING `_personas_al_guardar` en los logs.
+```sql
+alter table public.bot_tareas validate constraint bot_tareas_persona_fk;
 ```
 
 ## 0086 · vocabulario de la app (aplicada el 8 oct 2026)
@@ -164,18 +180,61 @@ titular.
 
 Destino: una columna `household_members.persona_id` con FK compuesta
 `(household_id, persona_id) → persona (household_id, id)`, con su `on delete
-set null`. Cuándo: DESPUÉS de la migración de menuplan-1e que pasa los ids de
-persona a uuid (bloque 0120+), para no crear una FK sobre un tipo que va a
-cambiar. Ese día se copia el mapa a la columna y el mapa deja de escribirse.
-Hasta entonces el mapa es una caché declarada.
+set null`. Cuándo: DESPUÉS de que persona.id pase a `uuid` (la transición de
+abajo), para no crear una FK sobre un tipo que va a cambiar. Ese día se copia
+el mapa a la columna y el mapa deja de escribirse. Hasta entonces el mapa es una
+caché declarada.
 
-## Desactivar el menú de la casa por RPC
+## Ids de persona y grupo: valores UUID (0091) → columnas `uuid`
 
-`ponerMenuActivo(null, …)` (`src/lib/menusSync.js`), al empezar «Otro grupo»,
-desactiva con un UPDATE directo a `user_menus` (la RLS deja a titular y
-cotitular). No hay ninguna RPC que desactive sin activar otro
-(`activate_household_menu` y `bot_save_casa_activando` piden un menú), y este
-UPDATE no sube `household_state.bot_rev`: otra app abierta no se entera hasta
-recargar. Arreglo: una RPC `deactivate_household_menu(p_household_id)`
-(security definer, `is_household_editor`, sube `bot_rev`) en una migración
-nueva, y que `ponerMenuActivo` la llame.
+La 0091 se aplicó el 9 oct 2026: los valores ya son UUID (163 ids viejos
+mapeados). Los TIPOS siguen siendo `text`: persona.id, grupo.id, sus FK (`persona_alergia`,
+`persona_intolerancia`, `persona_estado`, `persona_perfil_salud`,
+`grupo_persona`, `bot_tareas.persona_id`) y `bot_tareas.para_member` /
+`asignado_member`.
+`src/lib/ids.js` acepta las formas viejas a propósito.
+
+Paso 1: la 0091 pasa los VALORES a UUID en toda la base, con el mapa en
+`ids_uuid_equivalencias`. Paso 2, otra migración: los TIPOS de esas columnas a
+`uuid` (soltar y volver a poner las FK compuestas; `persona_sincronizar_casa` y
+`_persona_filas_de_estado` tienen que convertir `x->>'id'` a uuid, y saltar un
+id que no lo sea en vez de tumbar la copia). En ese mismo paso,
+`supabase/idsPersonaGrupo.test.js` se retira o se reescribe: su barrera es «toda
+columna con ids de persona o grupo está en el INVENTARIO de la 0091», y con
+columnas `uuid` la que vale es que sean `uuid` con FK. Paso 3: `ids.js` deja de
+aceptar `VIEJO_PERSONA` y `VIEJO_GRUPO`, y en esa misma tanda se borra
+`ids_uuid_equivalencias` con una migración `-- CONTRAE:`: sin formas viejas que
+repasar se queda sin lector (decidir antes si se guarda fuera una copia del mapa
+para poder deshacer).
+
+Condición para el paso 2: una semana sin que reaparezca un id viejo (como
+pronto, el 16 oct 2026) (una PWA antigua guarda sin `p_bot_rev` y puede devolverlos). Mira persona
+y grupo y TAMBIÉN el JSON de la casa: con `activeRosterId` distinto de `default`
+el trigger de la 0089 no copia nada, y persona daría 0 aunque el JSON tuviera
+ids viejos. Son las mismas listas que lee `_ids_de_estado` en la 0091 (familia,
+grupos y fotos de los rosters, sin invitados). Debe dar 0:
+```sql
+with u(re) as (select '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'),
+rosters as (
+  select hs.household_id, r.value as v
+    from public.household_state hs,
+         jsonb_each(case when jsonb_typeof(hs.state->'data'->'rosters') = 'object'
+                         then hs.state->'data'->'rosters' else '{}'::jsonb end) r),
+listas(l) as (
+  select state->'data'->'members' from public.household_state
+  union all select state->'data'->'groups' from public.household_state
+  union all select v->'snapshot'->'members' from rosters
+  union all select v->'snapshot'->'groups' from rosters),
+json_ids as (
+  select x->>'id' as id
+    from listas, jsonb_array_elements(case when jsonb_typeof(l) = 'array' then l else '[]'::jsonb end) x
+   where jsonb_typeof(x) = 'object' and x->'invitado' is distinct from 'true'::jsonb
+     and nullif(btrim(x->>'id'), '') is not null and x->>'id' not like 'inv\_%')
+select (select count(*) from public.persona, u where id !~* u.re)
+     + (select count(*) from public.grupo, u where id !~* u.re)
+     + (select count(*) from json_ids, u where id !~* u.re);
+```
+Si no da 0, se vuelve a lanzar la 0091 tal cual (es idempotente y reutiliza
+el mismo UUID de `ids_uuid_equivalencias` para cada id viejo). Las columnas que
+guardan estos ids están en el INVENTARIO de la 0091, vigilado por
+`supabase/idsPersonaGrupo.test.js`.

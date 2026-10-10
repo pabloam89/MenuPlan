@@ -1,0 +1,109 @@
+# Generado con la clasificación de scripts/lib/issues.mjs: las opciones de los
+# desplegables las vigila scripts/issues.test.js.
+name: "Problema de fondo"
+description: "Lo que hay detrás de uno o varios casos, con su arreglo general. De él cuelgan los casos (evidencia) y los encargos (el trabajo)."
+title: "[fondo] "
+labels: ["tipo:fondo"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        El repo es **público**: nada de claves, datos de familias ni fallos de seguridad que se puedan aprovechar. Eso va a Pablo en privado.
+  - type: textarea
+    id: que
+    attributes:
+      label: "Qué falla de fondo"
+      description: "La clase de fallo, no el caso: qué hace que se repita."
+    validations:
+      required: true
+  - type: textarea
+    id: casos
+    attributes:
+      label: "Casos conocidos"
+      description: "Los #n de los casos (luego cuélgalos con npm run issues -- --colgar)."
+    validations:
+      required: false
+  - type: textarea
+    id: arreglo
+    attributes:
+      label: "Arreglo general"
+      description: "Qué cambia para que la clase entera no vuelva, y en qué superficies (un encargo por cada una, o uno solo si es una pieza común)."
+    validations:
+      required: true
+  - type: textarea
+    id: prueba
+    attributes:
+      label: "Cómo se probará"
+      description: "Qué test o comprobación demuestra que la clase está cubierta, no solo los casos conocidos. Sin esto no se cierra."
+    validations:
+      required: true
+  - type: textarea
+    id: ficha
+    attributes:
+      label: "Ficha del fondo"
+      description: |
+        Bloque de líneas `clave: valor` (listas separadas por coma, issues como `#n`; deja vacío lo que aún no sepas). Un workflow lo valida y comenta aquí. Valores permitidos:
+        tipo_causa: vigilante-falso, vigilante-hueco, entorno, dos-fuentes, error-silencioso, coordinacion, modelo-datos, codigo, sin-comprobar
+        alcance: local, modulo, transversal
+        severidad: alto, medio, bajo
+        estado: abierto, diagnosticado, plan, en-curso, en-observacion, cerrado-eficaz, reabierto
+        capa_agente: auditor-datos, datos, diseno, evaluador, gobierno, lola, qa, revisor, seguridad, sesión
+        barrera: bloqueo, test_ci, script, skill, texto
+        rondas: número entero de rondas de constructor y juez ya gastadas en el arreglo (empieza en 0; el máximo está en ops/presupuestos.json y, al pasarlo, el control falla y pide una decisión)
+        Texto libre (hasta 400 caracteres): mecanismo, causa_escape, clase, barrido, solucion_temporal, matiz, aprendizaje.
+        Sin diagnóstico (mecanismo y causa_escape) no hay encargos; en-observacion pide verificacion (un fichero que ya esté en staging) ventana_desde y ventana_hasta (AAAA-MM-DD); sin aprendizaje no se cierra. verificacion tiene que ser un fichero de la barrera (un *.test.js para test_ci), nunca una carpeta.
+      value: |
+        ```fondo
+        estado: abierto
+        tipo_causa:
+        alcance:
+        severidad:
+        capa_agente:
+        mecanismo:
+        causa_escape:
+        clase:
+        barrido:
+        solucion_temporal:
+        barrera:
+        rondas:
+        verificacion:
+        ventana_desde:
+        ventana_hasta:
+        casos:
+        encargos:
+        matiz:
+        aprendizaje:
+        ```
+    validations:
+      required: true
+  - type: dropdown
+    id: causa
+    attributes:
+      label: "Causa"
+      description: "El tipo de fallo de fondo."
+      options:
+        - "vigilante-falso — Un vigilante (guardia, script, CI) bloqueó algo que estaba bien"
+        - "vigilante-hueco — Un vigilante dejó pasar algo que estaba mal"
+        - "entorno — Lo local no es igual que el CI o que producción (PATH, flags, Windows, red)"
+        - "dos-fuentes — La misma regla o dato escrito en dos sitios, que acaban diciendo cosas distintas"
+        - "error-silencioso — Un error que se traga sin dejar aviso (catch vacío, exception when others, «se calla»)"
+        - "coordinacion — Sesiones que se pisan, duplican trabajo o pierden un aviso"
+        - "modelo-datos — Una tabla, una FK o un dato que no cuadra con su uso"
+        - "codigo — Un fallo de lógica en el producto"
+        - "sin-comprobar — Algo se dio por cierto (en un issue, un comentario o una respuesta) sin comprobarlo contra el código o los datos"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Área"
+      description: "La zona donde pasó o donde va el trabajo."
+      options:
+        - "datos — Esquema, migraciones, Supabase"
+        - "lola — El bot"
+        - "ui — La app: pantallas e iconos"
+        - "catalogo — Recetas, alimentos y nutrición"
+        - "motor — Planificador y solver"
+        - "ops — Git, CI, hooks, scripts, servicios"
+    validations:
+      required: true

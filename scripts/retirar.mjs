@@ -11,6 +11,9 @@
  * hay una sesión de Claude activa en esa carpeta. No tiene `--forzar` a
  * propósito: si hay algo que perder, se decide a mano.
  *
+ * Si la rama lleva número de issue, quita también la marca «lo lleva» que puso
+ * `tarea` (scripts/lib/lleva.mjs); sin red, avisa y la carpeta queda retirada.
+ *
  * En Windows, `git worktree remove` falla a veces con «Filename too long»
  * (node_modules): entonces borra la carpeta con la ruta larga y hace `prune`.
  */
@@ -19,6 +22,8 @@ import { existsSync, rmSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 
 import { dirSesiones, enCarpeta, listar, normaRuta } from "../.claude/hooks/sesiones.mjs";
+import { desmarcar, numeroDeRama } from "./lib/lleva.mjs";
+import { MARCA_INICIAL } from "./tarea.mjs";
 
 const git = (args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 const intenta = (fn) => {
@@ -46,6 +51,11 @@ export function elegir(worktrees, texto) {
   return worktrees.filter(
     (w) => w.rama?.toLowerCase() === t || basename(w.ruta).toLowerCase() === t || basename(w.ruta).toLowerCase() === `menuplan-${t}`,
   );
+}
+
+/** Quita de «commits sin subir» el commit vacío con el que `tarea` abre la rama: no es trabajo. */
+export function sinMarcaInicial(lineas) {
+  return lineas.filter((l) => !MARCA_INICIAL.test(l));
 }
 
 /** Lo que se perdería. Vacío = se puede borrar. */
@@ -83,7 +93,7 @@ async function main() {
   let sinSubir = [];
   if (rama) {
     const fuera = intenta(() => git(["-C", principal, "log", "--oneline", rama, "--not", "--remotes=origin"])) ?? "";
-    sinSubir = fuera.split("\n").filter(Boolean);
+    sinSubir = sinMarcaInicial(fuera.split("\n").filter(Boolean));
     if (sinSubir.length) {
       const fusionado = intenta(() => execFileSync("gh", ["pr", "list", "--head", rama, "--state", "merged", "--json", "headRefOid"], { cwd: principal, encoding: "utf8", timeout: 15000 }));
       const cabeza = git(["-C", principal, "rev-parse", rama]);
@@ -110,6 +120,13 @@ async function main() {
   }
   if (rama) intenta(() => git(["-C", principal, "branch", "-D", rama]));
   console.log(`Retirada: ${ruta}${rama ? ` y la rama local ${rama}` : ""}. Lo de GitHub no se toca.`);
+
+  // Quita la marca «lo lleva» del issue (la puso `tarea`). Sin red, aviso: la carpeta ya está retirada.
+  const issue = numeroDeRama(rama);
+  if (issue) {
+    const r = desmarcar(issue, rama);
+    console.log(r.ok ? (r.quitadas ? `Quitada la marca «lo lleva» de #${issue}.` : `#${issue} no tenía marca «lo lleva» de esta rama.`) : `Aviso: ${r.aviso}`);
+  }
 }
 
 if (process.argv[1]?.endsWith("retirar.mjs")) await main();

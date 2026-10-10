@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { clasificar, leerRemotas, localesABorrar } from "./podar.mjs";
+import { clasificar, huerfanas, leerRemotas, localesABorrar } from "./podar.mjs";
 
 const AHORA = Date.UTC(2026, 9, 8);
 const DIA = 24 * 60 * 60 * 1000;
@@ -53,4 +53,17 @@ describe("podar: lectura de ls-remote", () => {
       { rama: "staging", sha: "abc1234def" },
       { rama: "datos/x", sha: "0123456789" },
     ]));
+});
+
+describe("podar: las huérfanas (#206)", () => {
+  const sin = (nombre, extra = {}) => rama(nombre, { fusionada: false, ...extra });
+  const lista = [
+    sin("rescate/emparejador"),
+    sin("bot/mercadona-lista"),
+    sin("ops/193-dependabot"),
+    sin("dependabot/npm_and_yarn/x"),
+    sin("feat/nueva", { fecha: AHORA - DIA }),
+  ];
+  it("sin PR, sin issue en el nombre, no de Dependabot y de más de 3 días", () =>
+    expect(huerfanas(lista, { conPr: new Set(["bot/mercadona-lista"]), ahora: AHORA }).map((x) => x.rama)).toEqual(["rescate/emparejador"]));
 });

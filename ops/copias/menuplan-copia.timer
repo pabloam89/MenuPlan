@@ -1,0 +1,13 @@
+# Cada noche a las 02:40 UTC (04:40 en Madrid en verano, 03:40 en invierno):
+# lejos del bot-retencion de pg_cron (03:17 UTC) y de la copia del panel (03:30 UTC).
+[Unit]
+Description=Copia nocturna de la base de MenuPlan (issue 247)
+
+[Timer]
+OnCalendar=*-*-* 02:40:00 UTC
+RandomizedDelaySec=10min
+# Si el servidor estaba apagado a esa hora, la hace al arrancar.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

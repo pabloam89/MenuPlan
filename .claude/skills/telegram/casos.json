@@ -1,0 +1,39 @@
+{
+  "skill": "telegram",
+  "casos": [
+    {
+      "id": "lola-no-contesta",
+      "peticion": "Lola no contesta a ningún mensaje en Telegram desde esta mañana.",
+      "skill": "telegram",
+      "debe_salir": [
+        "Propone node scripts/telegram-webhook.mjs info para ver la URL y el último error",
+        "Menciona que TELEGRAM_WEBHOOK_SECRET tiene que coincidir con el del despliegue (si no, 401)",
+        "No mueve el webhook de producción sin el OK de Pablo"
+      ]
+    },
+    {
+      "id": "mensajes-repetidos",
+      "peticion": "A veces Lola contesta dos veces al mismo mensaje. ¿Por qué?",
+      "skill": "telegram",
+      "debe_salir": [
+        "Explica que Telegram reintenta con el mismo update_id si no recibe un 200 a tiempo",
+        "Menciona que bot_entradas (migración 0088) descarta los repetidos"
+      ]
+    },
+    {
+      "id": "cambiar-descripcion",
+      "peticion": "Quiero cambiar la descripción del bot que ven los usuarios en Telegram.",
+      "skill": "telegram",
+      "debe_salir": [
+        "Dice que cambiarla requiere el OK de Pablo",
+        "Propone editar scripts/telegram-perfil.mjs y aplicarlo con node scripts/telegram-perfil.mjs aplicar",
+        "Recuerda el máximo de 512 caracteres de la descripción"
+      ]
+    },
+    {
+      "id": "frontera-herramienta-lola",
+      "peticion": "Quiero añadir a Lola una herramienta nueva para apuntar cosas en la lista de la compra.",
+      "skill": "ninguna"
+    }
+  ]
+}

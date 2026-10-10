@@ -48,6 +48,20 @@ describe("leer el SQL", () => {
     expect(f).toMatchObject({ tipo: "función", id: "public.g", cuerpo: "select x + 1" });
   });
 
+  it("saca el rol que se crea, también dentro de un do $$ (0051, 0092)", () => {
+    const sql = "do $$ begin if not exists (select 1 from pg_roles where rolname = 'consulta_lectura') then create role consulta_lectura; end if; end $$;\nalter role consulta_lectura with login;";
+    expect(ids(sql)).toEqual(["rol|consulta_lectura"]);
+    expect(testigos("drop role if exists consulta_lectura;").quita.map((t) => `${t.tipo}|${t.id}`)).toEqual(["rol|consulta_lectura"]);
+  });
+
+  // La 0091 salía «parcial 1/3» recién aplicada: buscaba sus funciones de
+  // pg_temp, que mueren con la sesión que las crea.
+  it("lo de pg_temp no es testigo: no sobrevive a la migración", () => {
+    const { crea, quita } = testigos("create function pg_temp.f() returns int language sql as $f$ select 1 $f$; create table pg_temp_3.t (a int); create table public.t (a int); drop function pg_temp.f();");
+    expect(crea.map((t) => t.id)).toEqual(["public.t"]);
+    expect(quita).toEqual([]);
+  });
+
   it("apunta lo que se quita", () => {
     const { quita } = testigos("alter table public.t drop constraint t_check; drop policy if exists \"p\" on public.t; drop function public.g(int);");
     expect(quita.map((t) => `${t.tipo}|${t.id}`)).toEqual(["constraint|public.t:t_check", "política|public.t:p", "función|public.g"]);

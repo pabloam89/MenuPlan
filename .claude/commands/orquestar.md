@@ -8,6 +8,43 @@ orquestador que se pone a programar pierde el plan). El encargo es:
 
 $ARGUMENTS
 
+## 0. Triaje (primer paso, si el encargo arregla un fallo)
+
+Si el encargo es arreglar algo que falló (un caso, un fondo, un hallazgo de un
+juez), antes de dimensionar fija el **alcance** y el **tipo de causa** con
+datos, y deja que el esfuerzo salga del presupuesto y no de lo que parezca. Un
+encargo que no es un fallo (una pantalla, una herramienta nueva) se salta este
+paso. Los números no se escriben aquí ni en ningún brief: salen del comando.
+
+- **Alcance** (`local`, `modulo` o `transversal`; sus definiciones, en
+  `ALCANCES_FALLO` de `scripts/lib/flujo.mjs`). Míralo con datos: qué módulos de
+  `ops/MODULOS.json` toca el fallo y de qué ámbitos, qué casos parecidos hay
+  (`npm run issues` enseña los fondos abiertos con sus casos) y si es la segunda
+  vez, un caso que «no aguantó» de un fondo ya cerrado: entonces sube un nivel
+  sobre el alcance del fondo.
+- **Tipo de causa**: una del grupo `causa:` de `scripts/lib/issues.mjs`. Sin
+  evidencia, `sin-comprobar`, y se dice que es una hipótesis.
+- **Presupuesto**: `npm run presupuesto -- <alcance> <causa>`
+  (`scripts/presupuesto.mjs`, sobre el catálogo `ops/presupuestos.json`). Dice
+  quién diagnostica, cuántas hipótesis en paralelo, qué jueces (incluidos los de
+  la causa), cuántas rondas y cuántos minutos, más el pipeline sugerido. Si
+  rechaza la combinación, corrígela; no te inventes un presupuesto. Los valores
+  los recalibra la fase F del plan #334 y el comando da los vigentes.
+- **Sigue lo que salga** en vez de la tabla de «Qué pipeline según la acción»,
+  y deja `alcance` y `tipo_causa` en la ficha del fondo.
+- **Quién itera**: en `local` y `modulo`, el agente del dominio, que
+  diagnostica con la skill `causa-raiz` (la técnica sale de `npm run tecnica`)
+  y, con el diagnóstico hecho, parte el arreglo con la skill `plan-de-arreglo`. En `transversal`, tú lanzas los
+  diagnosticadores en paralelo, cada uno con una lente distinta, y sintetizas
+  sus informes; los agentes no lanzan agentes (ver «Paralelo sin pisarse»).
+- **Rondas**: construir, juzgar y reparar es una
+  ronda. El conteo vive en el campo `rondas` de la ficha del fondo, no en tu
+  memoria: súbelo al cerrar cada ronda. Cuando el juez sigue bloqueando y se ha
+  agotado el `rondas_max` del comando, no hay otra ronda: abre un issue
+  `tipo:decision` asignado a Pablo (`npm run issues -- --nuevo`) con lo que sigue
+  bloqueado y espera su decisión. El control `rondas-excedidas` del workflow
+  `fondos` falla la ficha que pasa de ese número. <!-- norma:rondas-tope-duro -->
+
 ## 1. Dimensiona antes de orquestar
 
 Agentes cuestan: un subagente gasta varias veces los tokens de un chat, y
@@ -19,6 +56,16 @@ varios en paralelo, mucho más. Escala el esfuerzo al encargo:
 
 Si el encargo es ambiguo (no está claro el objetivo, qué queda fuera, o cómo
 se sabrá que está bien), pregunta antes de lanzar nada.
+
+**Antes de empezar, mira quién lo lleva ya** (#271): no solo los issues. Corre
+`npm run issues` (cada encargo dice qué rama y carpeta lo lleva y desde cuándo
+no tiene commits; «posiblemente parada» pasadas 4 h) y `git worktree list` con
+`git branch -r`. Si una rama o carpeta viva se parece a lo que vas a hacer
+(`npm run issues -- --nuevo` las enseña junto a los issues parecidos), no
+empieces otra: pregunta a Pablo de quién es, o coge el relevo si está parada.
+Cada constructor trabaja en una rama **con número de issue**
+(`npm run tarea -- <area>/<nombre> <n>`), que es lo que deja escrito quién la
+lleva; si el encargo no tiene issue y no es trivial, ábrelo primero.
 
 ## 2. Catálogo
 
@@ -96,9 +143,38 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
 1. Lee el bloque `## Informe` de cada agente. `ESTADO: bloqueado` o un
    hallazgo bloqueante paran el pipeline hasta resolverlo.
 2. Un hallazgo bloqueante vuelve al constructor que toca, con el informe del
-   juez. Repite el juez tras el arreglo.
-3. Junta todas las «Decisiones pendientes» en una sola lista para quien lanzó
-   la sesión, sin duplicados, con la recomendación de cada una.
-4. Termina con un resumen corto: qué se hizo, en qué rama o PR, qué se
+   juez. Repite el juez tras el arreglo. Cada vuelta es una ronda del triaje
+   («Triaje»): se cuenta en la ficha del fondo y, agotadas las del
+   presupuesto, decide una persona.
+3. Junta todas las «Decisiones pendientes» en una sola lista, sin
+   duplicados, con la recomendación de cada una. Las que Pablo no contesta en
+   esta misma conversación pasan a un issue cada una, con `npm run issues --
+   --nuevo "…" --tipo decision --area … --cuerpo <fichero>`: busca antes las
+   parecidas y se asigna a Pablo, que así la ve sin entrar al repo. En el
+   resumen, el número del issue, no solo la frase.
+4. Lo que no se cierra en este PR va a un issue, no a una frase del resumen.
+   Cada hallazgo sin arreglar o fallo del camino (vigilante que bloqueó algo
+   bueno, entorno distinto del CI, error que se tragó) es un **caso**, y antes
+   de abrirlo se analiza hasta su **problema de fondo**, con una de las cuatro
+   respuestas de CLAUDE.md: nuevo (abre el fondo), abierto (cuélgalo), no
+   aguantó (cuélgalo; el fondo se reabre: ¿roto o corto?) o puntual (con su
+   porqué). `npm run issues` enseña los fondos abiertos para buscar el suyo,
+   y se crea con `npm run issues -- --nuevo` (la guardia niega `gh issue
+   create`).
+   **Los casos salen del campo `CASOS:` de cada informe** (los fallos reales
+   que el agente vio por el camino) y de los tuyos: regístralos todos, uno por
+   issue, **antes de abrir el PR**, y escribe en su cuerpo `Casos: #n, #m` (o
+   `Casos: ninguno — <por qué no hubo ningún fallo>`, de verdad). La guardia
+   niega `gh pr create` sin esa línea, el CI (`scripts/casos-pr.mjs`)
+   comprueba que cada #n es un `tipo:caso` con su `analisis:`, y al terminar
+   la sesión `pendientes.mjs` frena una vez si hubo fallos y no registraste nada.
+   Una decisión que no se toma hoy → `tipo:decision`; trabajo que alguien
+   tiene que coger → `tipo:encargo`, colgando de su fondo si es parte de un
+   arreglo. Detalle y comandos: skill `issues`. El chat se pierde
+   al cerrar la sesión; el issue no. Y al revés: el PR lleva `Closes #n` de
+   los encargos o fondos que cierra y `Agente:` con el constructor.
+   Si el encargo era arreglar un problema de fondo, el juez comprueba que el
+   arreglo cubre la clase (un test que la vigila), no solo los casos conocidos.
+5. Termina con un resumen corto: qué se hizo, en qué rama o PR, qué se
    verificó, qué queda pendiente y qué gateway falta.
-5. Tras el merge, retirar: `npm run retirar -- <tarea>` en la misma sesión.
+6. Tras el merge, retirar: `npm run retirar -- <tarea>` en la misma sesión.

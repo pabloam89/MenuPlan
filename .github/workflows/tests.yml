@@ -4,22 +4,22 @@
 #
 # Sin secretos: los tests usan bases y claves de mentira, y la build no los
 # necesita (sin VITE_SUPABASE_* solo avisa).
-#
-# src/lib/solver.test.js va fuera: falla desde antes del 1 oct 2026 (también
-# en main), el solver está apagado por defecto (VITE_MOTOR=solver) y no tiene
-# dueño ahora mismo. Cuando se arregle, quitar el --exclude.
 
 name: Tests
 
 on:
   pull_request:
     branches: [staging, main]
+    # edited: editar el cuerpo del PR (la línea «Runbook:») vuelve a lanzarlo.
+    types: [opened, synchronize, reopened, edited]
   push:
     branches: [staging]
   workflow_dispatch:
 
 permissions:
   contents: read
+  # Leer los issues que cita la línea «Casos:» del PR (scripts/casos-pr.mjs).
+  issues: read
 
 concurrency:
   group: tests-${{ github.ref }}
@@ -30,18 +30,98 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+        with:
+          # Dos commits: en un PR, HEAD es la fusión con la base y HEAD^1 la base;
+          # su diferencia son los ficheros del PR (para el paso del runbook).
+          fetch-depth: 2
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
+      # Cada PR que toca un dominio con skill (supabase, github, vercel,
+      # 1password, telegram…) dice en su cuerpo «Runbook: actualizado (skill X)»
+      # o «Runbook: sin novedades». La lógica está en scripts/runbook-pr.mjs y
+      # el mapa de dominios en .claude/dominios-skills.json; aquí solo se
+      # alimenta. Va dentro del job `tests` porque es el único check obligatorio
+      # en main. Solo en pull_request: el push a staging (cron de Mercadona) y
+      # el lanzamiento a mano no tienen cuerpo de PR. Dependabot y los bots
+      # quedan exentos dentro del script. Va antes de npm ci: no necesita nada.
+      - name: Runbook del PR
+        if: github.event_name == 'pull_request'
+        run: |
+          # Si no se puede listar, el paso no bloquea (lista vacía): un check
+          # obligatorio que falla por la infraestructura bloquearía todos los PR.
+          # core.quotePath=false: sin él git escapa los acentos y las eñes
+          # (entre comillas y en octal) y la ruta se escapa del mapa de dominios.
+          git -c core.quotePath=false diff --name-only HEAD^1 HEAD > "$RUNNER_TEMP/ficheros-del-pr.txt" || {
+            echo "::warning::No he podido listar los ficheros del PR; no se comprueba el runbook."
+            : > "$RUNNER_TEMP/ficheros-del-pr.txt"
+          }
+          node scripts/runbook-pr.mjs "$RUNNER_TEMP/ficheros-del-pr.txt"
+        env:
+          # Por entorno y nunca interpolado en el script: el cuerpo lo escribe
+          # cualquiera y se ejecutaría como shell.
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
+          PR_RAMA: ${{ github.event.pull_request.head.ref }}
+      # Si el PR toca una skill (.claude/skills/<s>/) cuya fecha de comprobado
+      # pasa de 90 días, falla: quien la toca la vuelve a comprobar (#336). No
+      # va en npm test porque el reloj pondría en rojo todos los PR, también los
+      # que no tocan ninguna skill. Usa la lista del paso anterior; sin npm ci.
+      - name: Skills del PR
+        if: github.event_name == 'pull_request'
+        run: node scripts/skills-pr.mjs "$RUNNER_TEMP/ficheros-del-pr.txt"
+      # Cada PR dice qué casos deja registrados (`Casos: #n, #m`) o por qué no hay
+      # (`Casos: ninguno — <motivo>`), y cada #n tiene que ser un issue tipo:caso
+      # con su analisis: (#185, «Cuando algo falla» de CLAUDE.md). Si la API de
+      # GitHub no responde, falla con la causa: relanza el check. Sin npm ci:
+      # no necesita dependencias.
+      - name: Casos del PR
+        if: github.event_name == 'pull_request'
+        run: node scripts/casos-pr.mjs
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+      # El PR y su problema de fondo (#337): lleva «Agente: <nombre>»; si la rama
+      # es de un issue, su «Closes #n»; y cada issue que cierra es de verdad: un
+      # encargo cuyo fondo tiene diagnóstico (mecanismo y causa de escape), o un
+      # fondo con aprendizaje. Mismo patrón que «Casos del PR»: si la API no
+      # responde, falla con la causa (relanza el check); los bots, exentos.
+      - name: Fondos del PR
+        if: github.event_name == 'pull_request'
+        run: node scripts/fondos-pr.mjs
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
+          PR_RAMA: ${{ github.event.pull_request.head.ref }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+      # Las frases normativas nuevas (#296): cada «nunca», «siempre», «tope»…
+      # que el PR AÑADE en CLAUDE.md, .claude/, PRINCIPIOS u ops/*.md cita su
+      # norma (<!-- norma:<id> -->) o el cuerpo dice «Normas: sin novedades —
+      # <motivo>». Solo lo añadido: borrar o renombrar no cuenta. La lógica,
+      # en scripts/normas-pr.mjs; los bots, exentos dentro.
+      - name: Normas del PR
+        if: github.event_name == 'pull_request'
+        run: |
+          git -c core.quotePath=false diff -U0 HEAD^1 HEAD > "$RUNNER_TEMP/diff-del-pr.txt" || {
+            echo "::warning::No he podido sacar el diff del PR; no se comprueban las normas."
+            : > "$RUNNER_TEMP/diff-del-pr.txt"
+          }
+          node scripts/normas-pr.mjs "$RUNNER_TEMP/diff-del-pr.txt"
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
       - run: npm ci
       # Falla solo con errores de lint NUEVOS respecto a lint-base.json (ver
       # scripts/lint-base.mjs); los viejos se arreglan cuando se toca el fichero.
       - name: Lint
         run: npm run lint:base
       - name: Tests
-        run: npm test -- --exclude "src/lib/solver.test.js"
+        run: npm test
         env:
           TZ: Europe/Madrid
       - name: Build

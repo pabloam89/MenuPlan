@@ -23,6 +23,7 @@
  * en el log (`conLaFicha`).
  */
 
+import { seguirCon } from "./avisar.js";
 import { rpc } from "./db.js";
 import { cargarCasa } from "./casa.js";
 import { elegirParaLeer, visiblePara, LIMITE_ABIERTAS } from "./tareas.js";
@@ -72,7 +73,8 @@ export async function leerFichaCasa({ householdId, userId = null, canal = null }
   const r = recientes.get(clave);
   if (r && Date.now() - r.t < RECIENTE_MS) {
     // La casa ya está leída en el turno (casa.js la recuerda): no es otra ida.
-    const casa = await cargarCasa(householdId).catch(() => null);
+    // a propósito: sin la casa no se compara la revisión: se lee la ficha de nuevo
+    const casa = await cargarCasa(householdId).catch(seguirCon("ficharpc_casa", null));
     if (casa && Number(casa.botRev) === r.rev) return r.ficha;
   }
   let ficha;

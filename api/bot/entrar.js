@@ -16,6 +16,7 @@
  * el código, 128 bits, de un solo uso y caducidad corta, más el límite de ritmo.
  */
 
+import { seguirCon } from "../_bot/avisar.js";
 import { rateLimit } from "../_guard.js";
 import { config, select, eq } from "../_bot/db.js";
 import { gastarCodigo } from "../_bot/enlace.js";
@@ -66,7 +67,8 @@ export default async function handler(req, res) {
       // Gastado o caducado (un botón de un mensaje viejo). Se dice de quién era:
       // si este navegador ya está dentro con esa cuenta, la app sigue sin
       // avisar de nada. Quien tiene el código ya sabía a quién abría.
-      const [vieja] = await select("bot_codigos", `codigo=${eq(String(req.body?.codigo ?? ""))}&tipo=eq.entrar`, "user_id").catch(() => []);
+      // a propósito: sin la fila vieja, el 410 sale sin user_id
+      const [vieja] = await select("bot_codigos", `codigo=${eq(String(req.body?.codigo ?? ""))}&tipo=eq.entrar`, "user_id").catch(seguirCon("bot_entrar", []));
       return res.status(410).json({ error: "Este enlace ya se usó. Vuelve a Telegram y pídele otro a Lola.", user_id: vieja?.user_id ?? null });
     }
 

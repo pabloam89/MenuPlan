@@ -7,6 +7,7 @@
  * esto sale nunca hacia el cliente.
  */
 
+import { seguirCon } from "./avisar.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 
 const TIMEOUT_MS = 8000;
@@ -29,6 +30,30 @@ function contarEscritura(ruta) {
   if (!SOLO_REGISTRO.has(tabla)) cuenta.n++;
 }
 
+// Solo lectura (el canario, api/bot/canario.js, #267): nada de lo que corra
+// dentro llega a escribir en la base. Los registros (SOLO_REGISTRO: eventos,
+// memoria) se callan sin ir a la base, para no dejar basura; cualquier otra
+// escritura se niega con un error y se apunta, y quien llama lo da por fallo.
+// Las funciones de la base que solo leen pasan.
+const soloLectura = new AsyncLocalStorage();
+const RPC_DE_LECTURA = new Set(["ficha_casa"]);
+export async function enSoloLectura(correr) {
+  const nota = { negadas: [], calladas: 0 };
+  const r = await soloLectura.run(nota, correr);
+  return { r, negadas: nota.negadas, calladas: nota.calladas };
+}
+/** Si se corta una escritura en solo lectura: `{ callar: true }` para un registro; lanza para lo demás; null si pasa. */
+function cortarEnSoloLectura(ruta, method) {
+  const nota = soloLectura.getStore();
+  if (!nota || method === "GET") return null;
+  const esRpc = ruta.startsWith("/rest/v1/rpc/");
+  const nombre = ruta.split("?")[0].replace(/^\/rest\/v1\/(rpc\/)?/, "");
+  if (esRpc && RPC_DE_LECTURA.has(nombre)) return null;
+  if (!esRpc && SOLO_REGISTRO.has(nombre)) { nota.calladas++; return { callar: true }; }
+  nota.negadas.push(nombre);
+  throw Object.assign(new Error(`${method} ${nombre} → solo lectura`), { soloLectura: true });
+}
+
 export function config() {
   const url = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "").replace(/\/$/, "");
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
@@ -39,7 +64,28 @@ export function config() {
   return { url, key, headers };
 }
 
+/**
+ * Lo que se guarda de un error de PostgREST: solo `code` y `message`. Fuera
+ * `details` y `hint`: el DETAIL de Postgres puede llevar la fila entera (un
+ * token de enlace, por ejemplo) y el mensaje acaba en los logs.
+ */
+export function resumenDeError(text) {
+  let j = null;
+  try { j = JSON.parse(text); } catch { /* a propósito: no es JSON; abajo, el texto recortado */ }
+  if (j && typeof j === "object" && (j.code || j.message)) return [j.code, j.message].filter(Boolean).join(" ").slice(0, 300);
+  return String(text ?? "").slice(0, 300);
+}
+
+/** El código de un error de PostgREST (SQLSTATE o PGRSTnnn), o null. */
+export function codigoDeError(text) {
+  try {
+    const j = JSON.parse(text);
+    return typeof j?.code === "string" && j.code ? j.code.slice(0, 12) : null;
+  } catch { return null; } // a propósito: sin JSON no hay código; el mensaje ya lleva el texto
+}
+
 async function pedir(ruta, { method = "GET", body, prefer } = {}) {
+  if (cortarEnSoloLectura(ruta, method)?.callar) return [];
   const { url, headers } = config();
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
@@ -51,7 +97,9 @@ async function pedir(ruta, { method = "GET", body, prefer } = {}) {
       signal: ctrl.signal,
     });
     const text = await res.text();
-    if (!res.ok) throw new Error(`${method} ${ruta.split("?")[0]} → ${res.status} ${text.slice(0, 300)}`);
+    // `status` y `codigo` van en el error para que avisar.js sepa por qué
+    // falló (motivoDe) sin leer el mensaje.
+    if (!res.ok) throw Object.assign(new Error(`${method} ${ruta.split("?")[0]} → ${res.status} ${resumenDeError(text)}`), { status: res.status, codigo: codigoDeError(text) });
     const datos = text ? JSON.parse(text) : null;
     // Un rpc que guarda contesta { ok }: solo cuenta si fue ok (un choque de
     // versión no es una escritura). Un PATCH que no tocó ninguna fila, tampoco.
@@ -88,7 +136,8 @@ export async function usuarioDeToken(accessToken) {
     headers: { apikey: key, Authorization: `Bearer ${accessToken}` },
   });
   if (!res.ok) return null;
-  const u = await res.json().catch(() => null);
+  // a propósito: un cuerpo que no es JSON es un token sin usuario
+  const u = await res.json().catch(seguirCon("db_usuario", null));
   return u?.id ? u : null;
 }
 

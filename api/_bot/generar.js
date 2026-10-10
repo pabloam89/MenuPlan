@@ -22,6 +22,7 @@
 // servidor, la de España, no UTC.
 process.env.TZ = "Europe/Madrid";
 
+import { fallaCon } from "./avisar.js";
 import { select, insert, borrar, eq } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, describirMenu, masParecida, normal, prepararRecetas, DIA_LARGO } from "./menu.js";
@@ -29,6 +30,8 @@ import { propiasDe } from "./propias.js";
 import { registrar, rastro, EMBUDO } from "./embudo.js";
 import { RASTRO } from "../../src/lib/rastro.js";
 import { hoyDeCasa, isoDeCasa, DIAS_FINDE } from "../../src/lib/dias.js";
+import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
+import { apuntarRecordatorio } from "./silencio.js";
 
 const hoyISO = () => isoDeCasa();
 const indiceHoy = () => hoyDeCasa().indice;
@@ -160,7 +163,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   if (!casa) return "Esta casa todavía no tiene datos en la nube.";
   const m = await motor();
   // Las recetas propias de la casa, registradas para resolver los pedidos.
-  if (fijos.length) await prepararRecetas(casa).catch(() => {});
+  if (fijos.length) await prepararRecetas(casa).catch(fallaCon("generar_recetas_propias"));
 
   // Las propias de user_recipes, no las del JSON: la app las quita de ahí.
   const base = m.resolveModeData({ ...(casa.state?.data ?? {}), userRecipes: propiasDe(casa) });
@@ -198,7 +201,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     weekOffsets: [offset], sameForAllWeeks: true, varietyPref, weekCount: 1, hoy: hoyISO(),
   });
 
-  const filasDespensa = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA).catch(() => []);
+  const filasDespensa = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA).catch(fallaCon("generar_despensa", []));
   const despensa = filasDespensa.map(m.filaDeDespensa);
   const pantryMode = ["strict", "only", "prefer", "off"].includes(working.pantryMode) ? working.pantryMode : "off";
   const pantryIngredients = pantryMode === "off" ? [] : despensa;
@@ -256,7 +259,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
     if (filas.length) await insert("user_menu_recipes", filas, { upsert: true });
   } catch (e) {
     // Un menú a medias no se queda en el historial.
-    await borrarMenu(householdId, menu.id).catch(() => {});
+    await borrarMenu(householdId, menu.id).catch(fallaCon("generar_borrar_menu_a_medias"));
     throw e;
   }
 
@@ -269,8 +272,13 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   const ponerSemanaNueva = !semanasQueSeQuedan.some((w) => w.week_start <= hoy && hoy <= w.week_end) || (startISO <= hoy && hoy <= endISO);
   const deHoy = semanasQueSeQuedan.find((w) => w.week_start <= hoy && hoy <= w.week_end);
   let compraFinal = shopping;
+  // Alergias por silencio (#229): el primer menú lo recuerda una vez. La marca
+  // va en esta misma escritura: dos menús seguidos no lo dan dos veces.
+  let recordarSilencio = false;
   const r = await conCasa(householdId, (fresca) => {
-    const d = fresca.state?.data ?? {};
+    const silencio = conRecordatorioDeSilencio(fresca.state?.data ?? {});
+    recordarSilencio = silencio.recordar;
+    const d = silencio.data;
     const porId = new Map((fresca.state?.aiRecipes ?? []).map((x) => [x.id, x]));
     for (const x of recipes) porId.set(x.id, x);
     const aManoAhora = (fresca.semana?.shopping?.items ?? fresca.state?.shopping?.items ?? []).filter((it) => it.manual && !it.have);
@@ -307,6 +315,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   }
 
   if (!previos.length) await registrar(EMBUDO.PRIMER_MENU, { userId: dueno, unaVez: true });
+  if (recordarSilencio) apuntarRecordatorio();
 
   const platos = Object.entries(plan).filter(([k]) => !k.startsWith("_")).reduce((n, [, h]) => n + Object.values(h ?? {}).filter((x) => x?.recipeId).length, 0);
   const avisos = (plan._warnings ?? []).length;
@@ -314,10 +323,10 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
   // La semana generada va en la propia respuesta: sin ella, el modelo llamaba
   // a ver_menu justo después (y otra vez tras cada cambio), y un «hazme el
   // menú con salmón un día» tardaba casi un minuto en seis vueltas.
-  const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(() => "");
+  const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(fallaCon("generar_describir", ""));
   // Para la vía rápida del enrutador (api/_bot/turno.js): lo generado, en datos.
   if (out) Object.assign(out, {
-    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas,
+    ok: true, desde: startISO, hasta: endISO, platos, avisos, conservadas, recordarSilencio,
     pedidos: pedidos.length ? dondeQuedaron(pedidos, plan, activeDays) : [],
     // Dónde quedó cada plato pedido («Jue-Comida»), para destacarlo al pintar.
     colocados: pedidos.map((p) => claveDelPedido(p.fijo, plan, activeDays)).filter(Boolean),

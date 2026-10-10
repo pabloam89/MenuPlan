@@ -14,6 +14,8 @@
 import { select, rpc, eq } from "./db.js";
 import { crearCuentaTelegram } from "./cuentas.js";
 import { enlazarChat, idDePersona } from "./enlace.js";
+import { avisarFallo, contesto } from "./avisar.js";
+import { noPude } from "./noPude.js";
 
 export const ES_INVITACION = /^inv_([0-9a-f]{32})$/;
 
@@ -60,6 +62,10 @@ export async function unirsePorInvitacion({ from, chatId, token, nombre = null }
   try {
     r = await rpc("bot_unirse_por_invitacion", { p_user_id: userId, p_token: token });
   } catch (e) {
+    // «Caducada» solo si la base contestó que no vale (sus raise exception);
+    // si no se pudo preguntar, se dice eso (#208).
+    const motivo = avisarFallo("invitacion_unirse", e, { grave: false });
+    if (!contesto(motivo)) return { texto: noPude("invitacion", lang), householdId: null, lang };
     const lleno = /limit/i.test(String(e?.message));
     return { texto: TEXTOS[lang][lleno ? "lleno" : "caducada"], householdId: null, lang };
   }

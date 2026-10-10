@@ -1,6 +1,8 @@
 # Logs
 logs
 *.log
+# Sí va al repo: el registro de los ensayos de restauración de las copias (#247).
+!ops/copias/ensayos.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -71,6 +73,9 @@ vs-modelo.json
 # Frases reales de usuarios sin revisar (scripts/router-feedback.mjs, scripts/lola-feedback.mjs)
 scripts/router-evals-candidatos.json
 scripts/bot-evals-candidatos.json
+
+# Resultados de las evals de Lola, un intento por línea (scripts/bot-evals.mjs, #268)
+.evals-out/
 
 # Material de trabajo local que no es código de la app: el vídeo (descartado
 # el 7 oct) y las capturas y PDFs de feedback de UX.

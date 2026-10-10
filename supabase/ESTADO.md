@@ -19,10 +19,10 @@ en otra rama); el 8 oct se suma la 0087, sin aplicar:
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **89** |
+| Ficheros en `supabase/migrations/` | **98** (con la 0093, la 0094 y la 0095) |
 | Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
-| Aplicadas | **84** |
-| **Sin aplicar** | **2** — `0021_store_products`, `0088_bot_entradas` (el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086 y 0087) |
+| Aplicadas | **89** (la cuenta histórica de esta tabla, +1 por cada una de la 0093, la 0094 y la 0095; el script de verificación da 71 en estado «aplicada» y el resto «sobrescrita» o sin testigo) |
+| **Sin aplicar** | **1** — `0021_store_products`; el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086, 0087, 0088, 0089 y 0090; el 9 oct, 0091, 0092 y, por la noche, la 0093, la 0094 y la 0095 con `--pablo` |
 | En otras ramas | — |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
@@ -43,8 +43,9 @@ están en producción solo en parte. Ninguna se ha tocado; se deciden aparte:
 
 | Migración | Lo que falta en producción | Qué significa |
 |---|---|---|
-| `0010_recipe_discards` | **la tabla `user_recipe_discards` entera** | **Resuelto por código (8 oct 2026, rama `datos/descartes-de-casa`); la tabla sigue sin existir a propósito y no se va a crear.** Los descartes son de la casa: la app solo lee y escribe `household_recipe_discards` (0017, RLS de la 0071) con el `household_id` de la casa activa; sin casa se quedan en el dispositivo y suben al cargar la casa. `householdDiscardsSync.test.js` falla si alguien vuelve a consultar `user_recipe_discards`. **Queda un fallo en la base:** `ensure_user_household` (0071) la lee dentro de un `begin … exception when others`, así que ese bloque entero se deshace siempre: las casas nuevas nunca copian `user_state`, despensa, menús ni favoritos ni pasan a `active` (el 8 oct, 31 `dormant`, 4 `invite_ready`, 0 `active`). Pendiente de decidir una migración que quite esa línea |
-| `0008_meal_extras_catalog` | la columna `user_recipes.product_aliases` | Ya se sabía (ver `scripts/generate-supabase-seed.mjs`). `recipeRow.js` la lee como opcional, así que no rompe nada. Está en la lista de limpieza para quitarla del repo |
+| `0010_recipe_discards` | **la tabla `user_recipe_discards` entera** | **Resuelto por código (8 oct 2026, rama `datos/descartes-de-casa`); la tabla sigue sin existir a propósito y no se va a crear.** Los descartes son de la casa: la app solo lee y escribe `household_recipe_discards` (0017, RLS de la 0071) con el `household_id` de la casa activa; sin casa se quedan en el dispositivo y suben al cargar la casa. `householdDiscardsSync.test.js` falla si alguien vuelve a consultar `user_recipe_discards`. **Queda un fallo en la base:** `ensure_user_household` (0071) la lee dentro de un `begin … exception when others`, así que ese bloque entero se deshace siempre: las casas nuevas nunca copian `user_state`, despensa, menús ni favoritos ni pasan a `active` (el 8 oct, 31 `dormant`, 4 `invite_ready`, 0 `active`). La quita la `0090_casa_nueva_completa` (issue #144); completar las casas que ya se quedaron a medias va aparte |
+| `0008_meal_extras_catalog` | la columna `user_recipes.product_aliases` | **No existe en producción y nunca existió**: solo existía `recipes.product_aliases`, que se fue con la 0093 (aplicada el 9 oct 2026) al borrar `recipes`. La deriva está en el fichero 0008, que declara una columna que la base no tiene; no hay nada que quitar de la base. Nadie la lee (`recipeRow.js`, que la leía como opcional, se borró antes; la sembraba `scripts/generate-supabase-seed.mjs`, borrado el 9 oct 2026, #303) |
+| `0001_recipe_catalog` / seed (valores de enum) | los valores `salsas` (`recipe_category`), `salsa` (`meal_role`) y `salsa` (`recipe_type`) | Existen en producción y desde que se borró `seed_0_setup.sql` (#303) **ya no los declara ningún fichero del repo**: si hubiera que reconstruir la base desde las migraciones, faltarían. Migración que los declara, pendiente en #366 |
 | `0017_households` | la política `household_members` «Users insert self as viewer» | Nadie la recrea ni la quita en otra migración: se quitó a mano. Unirse a una casa va por la RPC `join_household_by_token` (security definer), así que no hace falta. Queda que una migración lo diga |
 | `0003_analytics_feedback_votes` | las políticas de `user_profiles`, `user_events` y `app_feedback`, y dos índices de `user_events` | Las tablas se crearon desde el panel antes que el fichero, con otros nombres (las políticas se llaman «insert own» y «select own»: las retoca la 0011). El fichero no es lo que se ejecutó |
 | `0003_user_data` | la política `recipe_votes` «Votes are publicly readable» | Igual que la anterior: nombre distinto o quitada a mano. Sin efecto visible |
@@ -70,7 +71,13 @@ Sin testigo, y por tanto sin comprobar por el script: 0011, 0038, 0043, 0047,
 | `0085_bot_vocabulario_cerrado` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | en la rama `datos/sistematizar`; 5 CHECK NOT VALID. No existen los `*_channel_check` de `bot_messages`/`bot_reminders`/`bot_tareas`/`bot_cola` ni `bot_reminders.tipo`, y `bot_deshacer.descripcion` sigue |
 | `0086_vocabulario_de_la_app` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | 5 CHECK NOT VALID; las consultas previas, en su cabecera. No hay ninguna constraint `*_vocabulario` |
 | `0087_menu_activo_y_casa_propia` | **aplicada el 8 oct 2026 (ensayo + `--si`)** | solo `create or replace` de 4 funciones: `household_shopping_mark` mira `user_menus.is_active` en vez de `data.activeMenuId`; `ensure_user_household`, `_unirse` y `_despedir` eligen la casa propia con `order by propia desc, created_at`, y `ensure_user_household` devuelve `'propia'`. Testigo: ese `order by` en `pg_proc.prosrc` de `_despedir` |
-| `0088_bot_entradas` | **sin aplicar** (nueva, 8 oct 2026; escrita como 0087) | tabla `bot_entradas` (update_id de Telegram, una vez) y el job `bot-entradas-purga`. Aditiva; el código funciona sin ella. Testigo: la tabla y el job en `cron.job` |
+| `0088_bot_entradas` | aplicada el 8 oct 2026 (Pablo, con `--pablo` por el `delete` de la purga); `verificar-estado --solo 0088`: 3/3 | tabla `bot_entradas` (update_id de Telegram, una vez) y el job `bot-entradas-purga`. Aditiva; el código funciona sin ella. Testigo: la tabla y el job en `cron.job` |
+| `0089_personas_al_guardar` | **aplicada el 8 oct 2026** (la lanzó Pablo con `--pablo`; auditada por auditor-datos). Tras la puesta al día, las 35 casas cuadran: 92 personas en el JSON y 92 filas en `persona` | triggers `personas_al_crear` y `personas_al_guardar` sobre `household_state`: cada guardado copia la familia activa (`data.members`/`data.groups`, sin rosters aparcados ni invitados) a persona/grupo con `persona_sincronizar_casa`, en la misma transacción; si falla, WARNING y el guardado sigue. Al aplicarse, pone al día todas las casas (borra de persona a quien ya no está en el JSON, con sus tareas por la FK de la 0083: consulta previa en la cabecera). Necesita 0081 y 0082. Testigo: `select tgname from pg_trigger where tgname like 'personas_al_%'` |
+| `0090_casa_nueva_completa` | aplicada el 8 oct 2026 (Pablo, con `--pablo` por `security definer`); `verificar-estado --solo 0090`: 1/1 | `ensure_user_household` sin la copia de `user_recipe_discards` (no existe), que deshacía siempre el bloque de preparar la casa; si vuelve a fallar, WARNING en el log. Solo `create or replace` de la función; las casas ya a medias no se tocan. Testigo: `pg_proc.prosrc` de `ensure_user_household` contiene «no se pudo preparar la casa» |
+| `0091_ids_persona_grupo_a_uuid` | aplicada el 9 oct 2026 (Pablo, con `--pablo`; issue #194, PR #228); `verificar-estado --solo 0091`: 1/1. 163 ids viejos (92 personas, 34 grupos, 37 solo en JSON), 0 fuera del mapa, 2270 filas revisadas y 0 de otra casa, nada colgando. Paso 2: #234, con #227 | ids viejos de persona y grupo a UUID: copia persona/grupo con el id nuevo, mueve a la copia todas las FK que les apuntan (leídas de `pg_constraint`), borra la vieja ya sin nada colgando, y reescribe como token las columnas sin FK de su INVENTARIO (household_state con `bot_rev + 1`, user_state, user_menu_weeks, user_menu_recipes, cookings, shared_menus, bot_tareas, bot_messages sin el texto, bot_deshacer, user_events). Aborta si queda un id viejo en cualquier columna de texto o JSON de public o si cambia algún recuento. Crea `ids_uuid_equivalencias` (el mapa). Testigo: la tabla `ids_uuid_equivalencias`, y ninguna `persona.id` sin forma de UUID |
+| `0092_rol_consulta_lectura` | **aplicada** el 9 oct 2026 por Pablo con `--pablo` (PR #241, issue #233); `verificar-estado --solo 0092` → aplicada 1/1. Ensayo del 9 oct 2026 limpio: lee 62 tablas y vistas de `public` y `ops`; 2 tablas de `net` escribibles por la concesión de Supabase a PUBLIC, que el rol no puede quitar (riesgo aceptado, pendiente de Pablo: la frontera es la URL, ver la cabecera). Inyectando a propósito `pg_signal_backend`, `insert`, `maintain`, `usage` en secuencias, `replication` o `create`, la comprobación final la deshace. La lanza Pablo con `--pablo` (permisos); luego, la contraseña con `node scripts/clave-consulta-lectura.mjs --si` | rol `consulta_lectura` con login y sin contraseña: `select` en `public` y `ops` (y por defecto en lo que cree `postgres` ahí), `bypassrls`, sin pertenencias ni `replication`; por defecto (la sesión los puede cambiar) `default_transaction_read_only = on`, `statement_timeout` 15 s e `idle_session_timeout` 60 s. Un bloque final comprueba en el catálogo que no puede escribir en tablas ni secuencias, crear, ni ejecutar `security definer` volátiles, y aborta si no. Testigo: el rol `consulta_lectura` en `pg_roles` (`verificar-estado` ve roles desde esta rama) |
+| `0094_lapidas_recetas_propias` | aplicada el 9 oct 2026 (Pablo, con `--pablo`; issue #355, PR #373); `verificar-estado --solo 0094`: 5/5. Ensayo del 9 oct 2026 válido (segunda ronda, con lo de `seguridad` y `auditor-datos`); la autoprueba del final (receta de prueba de un dueño real, con el rol `authenticated`: borrar con la RPC, intentar resubirla) pasa y se deshace; sin el trigger, o sin la política de lectura, la misma autoprueba aborta. Crea una `security definer` y hace `revoke on function`: la lanza Pablo con `--pablo`, tras el OK de `auditor-datos` | Lápidas de recetas propias en la nube: tabla `user_recipe_deletions` (dueño, id, instante; solo lectura de las suyas para `authenticated`), RPC `borrar_receta_propia` (`security definer`: lápida + borrado en una transacción) y trigger `trg_user_recipes_no_revivir` (before insert: un id con lápida de su dueño no vuelve a entrar). Plan B en el código: sin la tabla o la función, la app y Lola funcionan como antes (`userRecipesSync.lapida.test.js`, `recetasPropias.test.js`); el CHECK de formato lo compara con `ids.recetaPropia` `supabase/lapidasFormato.test.js`. No se purgan: se revisa si algún dueño se acerca a 2000 (tope de lectura de la app). Testigo: la tabla `public.user_recipe_deletions` y el trigger `trg_user_recipes_no_revivir` |
+| `0095_rol_copia_lectura` | **aplicada** el 9 oct 2026 por Pablo con `--pablo`; contraseña puesta con `clave-copia-lectura.mjs --si`, que entra y su consulta de prueba pasa (issue #273; era la 0094 hasta que staging cogió ese número). Ensayo del 9 oct 2026 limpio: lee 50 tablas y vistas de `public` y `ops` y todas sus secuencias; 2 tablas de `net` escribibles por PUBLIC (lo mismo que la 0092). Inyectando a propósito `usage` en secuencias, `insert`, `pg_monitor`, `connection limit 3`, `encrypted_password` en la vista, `security_invoker`, `select` a `anon` o a `consulta_lectura` en `copia`, o permisos de más sobre las tablas de códigos efímeros, la comprobación final la deshace. Toca permisos (también de `consulta_lectura`): la lanza Pablo con `--pablo`; luego, la contraseña con `node scripts/clave-copia-lectura.mjs --si` | rol `copia_lectura` con login y sin contraseña, `connection limit 1`, `bypassrls` (pg_dump lo necesita), sin pertenencias: `select` en `public`, `ops` y sus secuencias (y por defecto en lo que cree `postgres` ahí), menos `bot_link_tokens`, `household_invites` y `bot_codigos` (tablas de códigos efímeros que no hacen falta para restaurar; `copia-base.sh` las deja fuera). A `consulta_lectura` se le quitan seis columnas con códigos (`COLUMNAS_SIN_CONSULTA`): pierde el `select` de esas tablas y lo recupera por columnas, así que en ellas `select *` falla. Esquema `copia` con dos vistas de `postgres` sin `security_invoker`: `auth_usuarios` (id, email, phone, email_confirmed_at, phone_confirmed_at, is_anonymous, created_at) y `auth_identidades` (id, user_id, provider, provider_id, created_at), sin tokens ni metadatos; solo las lee `copia_lectura`. Testigo: el rol `copia_lectura` en `pg_roles` |
 
 ## La 0074 y la 0075, aplicadas el 2 oct 2026
 
@@ -145,13 +152,50 @@ exigen además `is_household_owner(household_id)`; trigger
 incumplían. Comprobado después con usuarios simulados en una transacción
 deshecha: meter una fila en casa ajena se bloquea, en la propia pasa.
 
+## La 0093, aplicada el 9 oct 2026 (21:24 Madrid, por Pablo con `--pablo`)
+
+`0093_borrar_copias_catalogo` (issue #303; Pablo decidió el 9 oct 2026 borrar ya,
+sin esperar a pasar staging a `main`) — borra las 7 tablas y 2 vistas copia del
+catálogo: `recipes` (1002 filas), `recipe_ingredients` (7140), `catalog_meta` (1,
+v27 del 8 sep), `dish_images` (2344), `ingredients` (383), `ingredient_aliases`
+(419), `ingredient_substitutions` (16) y las vistas `recipe_derived_allergens`
+(980) y `recipe_substitution_options` (327). Nadie las lee (el detector
+`ops/lecturasRetiradas.test.js`), la copia se quedó en la v27 y estaban abiertas a
+la API pública. Una sentencia por objeto, sin `cascade` ni `if exists`; empieza
+comprobando que los recuentos son los de la copia previa y acaba comprobando que
+`set_updated_at` y los enums de la 0001 siguen. Copia previa de los 9 objetos,
+fuera del repo: `C:\dev\copias-previas\2026-10-09-catalogo-copia\` (MANIFIESTO con
+filas y sha256, ESQUEMA y LEEME de cómo restaurar). En el mismo PR se borran los
+9 `supabase/seed_*.sql`, `scripts/generate-supabase-seed.mjs` y
+`scripts/run-seed.mjs`. Efecto en `main` (producción): `src/data/recipeCatalog.js`
+consulta `catalog_meta` en cada carga y, si falla, usa el bundle: una petición más
+por carga. Testigo (negativo): `recipes` y las otras 8 ya no están en `pg_class`
+(`node scripts/verificar-estado.mjs --solo 0093`).
+
+**Aplicada la noche del 9 oct 2026** («aplicada y confirmada»). Testigo: los 9
+testigos negativos, `verificar-estado --solo 0093` → aplicada 9/9. Efecto
+comprobado con SELECT: las 7 tablas y 2 vistas ya no existen en `public`; los 35
+hogares y 147 menús siguen intactos; `set_updated_at()` y los enums siguen. Al
+estar aplicada, `verificar-estado` da por borradas las tablas y marca como
+«sobrescrita» o «parcial» (falta lo que colgaba de ellas) las migraciones
+antiguas que las creaban: 0006, 0029–0032, 0051, 0052 y 0054, y en parte la
+0001, 0008, 0012, 0023–0025. No es deriva: es el `drop`.
+
+La copia previa de los 9 objetos está en
+`C:\dev\copias-previas\2026-10-09-catalogo-copia\` (fuera del repo, 5,6 MB,
+MANIFIESTO con sha256). **No es una copia de la base**: solo de esos 9 objetos.
+Aviso conocido: el ensayo de copias (`copias-ensayo`) dará `tablas-distintas`
+una sola vez si restaura una copia anterior al borrado; repetir la copia tras
+aplicar.
+
 ## La 0064, aplicada el 30 sep 2026
 
 `0064_catalogo_una_fuente` — solo comentarios: `recipes`, `catalog_meta`,
 `recipe_ingredients` y `dish_images` quedan marcadas EN DESUSO. La app ya no
 las lee (src/data/recipeCatalog.js carga solo el bundle; lo vigila
-src/data/catalogoUnaFuente.test.js). No se borra nada; `ingredients` no se
-toca (la despensa apunta a ella). Comprobado con `obj_description` tras
+src/data/catalogoUnaFuente.test.js, hoy ops/lecturasRetiradas.test.js). No se
+borró nada entonces (las 7 tablas y 2 vistas las borró la 0093, aplicada el 9 oct 2026); `ingredients` no se
+tocó (la 0064 creyó que la despensa apuntaba a ella: es falso, ver `copiaIngredientesSupabase` en src/data/model.js). Comprobado con `obj_description` tras
 aplicarla.
 
 ## La 0063, aplicada el 30 sep 2026

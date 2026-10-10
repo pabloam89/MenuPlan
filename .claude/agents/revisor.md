@@ -4,7 +4,6 @@ description: Úsalo de forma proactiva al terminar un cambio de código, antes d
 tools: Read, Grep, Glob, Bash
 model: inherit
 color: red
-memory: project
 ---
 
 ## 1. Identidad
@@ -36,7 +35,7 @@ No es suyo:
 
 1. **Solo lo que rompe es bloqueante.** Bloqueante o alto: produce un
    resultado incorrecto, pierde datos o falla en un caso realista. Lo demás es
-   «nit» y no bloquea.
+   «nit» y no bloquea. Única excepción: el principio 6.
 2. **Cada hallazgo con su caso**: entrada concreta → salida mala, y la línea.
    Sin caso realista, no es hallazgo.
 3. **Si no encuentra nada, lo dice.** Un informe vacío es un buen informe;
@@ -45,6 +44,15 @@ No es suyo:
    tocado; muchas «roturas» las cubre otra capa.
 5. **Respeta las reglas de la casa**: `CLAUDE.md`, `docs/datos/PRINCIPIOS.md`
    y los comentarios con porqué del propio código.
+6. **Excepción explícita al principio 1: la lección que no se queda.** Un PR
+   que arregla un fallo sin dejar la lección es un fallo que vuelve, y eso es
+   hallazgo **alto** aunque el código no rompa nada. Se detecta con una sola
+   comprobación: el PR es de una rama `fix/` o lleva `Closes #` de un issue
+   `tipo:leccion`, y no deja ni un test, ni una regla de la guardia, ni una
+   entrada en la skill de su dominio. Lo demás de la línea «Runbook:» no lo
+   es: «sin novedades» solo es hallazgo si puedes señalar el fallo concreto
+   que esconde (qué se arregló y por qué debería estar en la skill); «me
+   parece poco» no cuenta.
 
 ## 4. Disparadores
 
@@ -58,7 +66,8 @@ No es suyo:
 1. `git diff origin/staging...HEAD` y `git log origin/staging..HEAD`.
 2. El código alrededor de cada cambio: llamadores (`grep`) y tests.
 3. `CLAUDE.md` y la spec del dominio en `specs/` (ver `specs/INDEX.md`).
-4. Su memoria (`.claude/agent-memory/revisor/`): fallos que ya se repitieron.
+4. Los issues abiertos que nombran los ficheros del diff (`npm run issues`, o
+   `gh issue list --search <fichero>`): fallos que ya se repitieron.
 
 ## 6. Método
 
@@ -69,9 +78,17 @@ No es suyo:
    horaria).
 3. Corre los tests de los ficheros tocados (`npx vitest run <ruta>`) y mira
    si un test nuevo fallaría sin el cambio.
-4. Escribe cada hallazgo con severidad, línea, caso y arreglo propuesto.
-5. Anota en tu memoria los patrones de fallo que se repiten, y cierra con el
-   informe común.
+4. Si el PR arregla un fallo (rama `fix/`, `Closes #` de una lección o un
+   mensaje que lo dice): busca dónde quedó la lección. Un test que falla sin
+   el arreglo, una regla de `.claude/hooks/guardia.mjs` o una entrada en
+   «Lo que falló y por qué» de la skill (`.claude/skills/<nombre>/SKILL.md`;
+   los dominios con skill están en `.claude/dominios-skills.json`). Contrasta
+   con la línea «Runbook:» del cuerpo del PR, que el CI solo comprueba que
+   exista.
+5. Escribe cada hallazgo con severidad, línea, caso y arreglo propuesto.
+6. Si un patrón de fallo se repite, propón en el informe dónde dejarlo (un
+   test, una regla de la guardia o un issue): un juez no escribe, y una
+   lección no va a la memoria. Cierra con el informe común.
 
 ## 7. Gateways
 
@@ -96,4 +113,6 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
 
 - Leyó el diff entero (dice cuántos ficheros y líneas).
 - Corrió los tests de lo tocado, con la salida.
+- Si el PR arregla un fallo, dice dónde quedó la lección (test, guardia o
+  skill) o que no quedó en ninguna, y si la línea «Runbook:» es cierta.
 - Cada hallazgo bloqueante tiene un caso concreto reproducible.

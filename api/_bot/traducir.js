@@ -8,6 +8,7 @@
  * falla o tarda, sale en castellano, como antes: nunca se queda sin contestar.
  */
 
+import { seguirCon } from "./avisar.js";
 import crypto from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { select, insert } from "./db.js";
@@ -53,7 +54,8 @@ export async function traducir(textos, idioma, { modelo = alModelo } = {}) {
   const hashes = textos.map(hashDe);
   const sinMemoria = [...new Set(hashes.filter((h, i) => !memoria.has(h) && textos[i].trim()))];
   if (sinMemoria.length) {
-    const filas = await select("content_translations", `lang=eq.en&source_hash=in.(${sinMemoria.join(",")})`, "source_hash,texto").catch(() => []);
+    // a propósito: sin la memoria se traduce de nuevo
+    const filas = await select("content_translations", `lang=eq.en&source_hash=in.(${sinMemoria.join(",")})`, "source_hash,texto").catch(seguirCon("traducir_memoria", []));
     for (const f of filas ?? []) memoria.set(f.source_hash, f.texto);
   }
   const faltan = [...new Set(textos.filter((t, i) => t.trim() && !memoria.has(hashes[i])))];

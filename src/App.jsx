@@ -1,7 +1,7 @@
 import { FRONTAL_BOT, GUIAS_ACTIVAS, GENTE_ACTIVA, abrirLola, avisarAltaALola } from "./lib/frontalBot.js";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
-import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
+import { LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
+import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton } from "./components/ui.jsx";
 import {
   OnboardingMembers,
   OnboardingRestrictions,
@@ -123,7 +123,6 @@ import {
   deleteMenu as deleteMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
   saveAndActivateMenu,
-  ponerMenuActivo,
   queueSaveMenuWeek,
   queueMarcarCompra,
 } from "./lib/menusSync.js";
@@ -143,7 +142,7 @@ import {
   loadRecipeVotes,
   saveRecipeVote,
   deleteRecipeVote,
-  upsertRecipeVotes,
+  subirVotosSoloLocales,
 } from "./lib/recipeVotes.js";
 import {
   setRecipeCollections,
@@ -168,16 +167,19 @@ import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, su
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
 import { esTitular } from "./lib/householdsSync.js";
-import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
+import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById } from "./lib/profileMerge.js";
 import {
+  loadDeletedRecipeIds,
   rememberDeletedRecipeId,
   reconcileDeletedRecipeIds,
-  withoutDeletedRecipes,
 } from "./lib/deletedRecipeIds.js";
 import {
   loadUserRecipes,
   upsertUserRecipe,
-  upsertUserRecipes,
+  subirRecetasSoloLocales,
+  loadRecetasBorradas,
+  lapidasDeRecetas,
+  recetasTrasCarga,
   updateRecipeVisibility,
   deleteUserRecipe,
   loadPublicRecipe,
@@ -188,13 +190,6 @@ import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { filterOwnCreatedRecipes, filterMyLibraryRecipes } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole, resolveAccountMember, miembroDeCuentaId, memberIllustratedAvatarSrc } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
-import {
-  DEFAULT_ROSTER_ID,
-  ensureRosters,
-  listRosters,
-  startOtherRoster,
-  switchRoster,
-} from "./lib/rosters.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
@@ -205,6 +200,7 @@ import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
 import { traeLlaveDeLola } from "./lib/llaveLola.js";
 import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
+import { barrerDias } from "./lib/barridoDia.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
 import { normalizePantryInput } from "./utils/normalizePantryInput.js";
@@ -520,12 +516,9 @@ const INITIAL_DATA = {
   // Uploaded receipts (the "facturas" inbox): { id, createdAt, store,
   // purchasedAt, total, lineCount }.
   receipts: [],
-  // ── Grupos de personas para los que planificas (lib/rosters.js) ──
-  // El roster activo vive en los campos de arriba (members, groups, schedule…);
-  // los demás se aparcan aquí y se intercambian al cambiar de grupo, de modo
-  // que "Otro grupo" ya no contamina la familia habitual.
-  rosters: {},
-  activeRosterId: DEFAULT_ROSTER_ID,
+  // Ya no hay varios rosters (8 oct 2026): la familia es una, la de arriba.
+  // Las casas viejas pueden traer data.rosters / data.activeRosterId; se
+  // conservan tal cual y nadie los lee.
 };
 
 // Ad-hoc menus used to be labeled by the member's name ("Menú de X"); now
@@ -883,82 +876,7 @@ function migrate(state) {
     d.menus = { [legacyMenu.id]: legacyMenu };
     d.activeMenuId = legacyMenu.id;
   }
-  return { ...state, data: ensureRosters({ ...INITIAL_DATA, ...d }) };
-}
-
-// ─── Combos de familias para la card "Otro grupo" ───────────────────────────
-const OTHER_GROUP_COMBOS = [
-  // 4: papá + mamá + hijo + hija
-  [
-    { src: "/avatares/papa/papa_3.png",   color: "#6b8fa8" },
-    { src: "/avatares/mama/mama_4.png",   color: "#c47fa0" },
-    { src: "/avatares/hijo/hijo_5.png",   color: "#7ab87a" },
-    { src: "/avatares/hija/hija_2.png",   color: "#e8a45a" },
-  ],
-  // 2: pareja sin hijos
-  [
-    { src: "/avatares/adulto/adulto_2.png", color: "#8a7bc8" },
-    { src: "/avatares/adulto/adulto_5.png", color: "#b87ab8" },
-  ],
-  // 5: familia grande con abuela
-  [
-    { src: "/avatares/papa/papa_7.png",    color: "#5a8a6a" },
-    { src: "/avatares/mama/mama_9.png",    color: "#c07080" },
-    { src: "/avatares/hijo/hijo_8.png",    color: "#7090c0" },
-    { src: "/avatares/hija/hija_6.png",    color: "#d08050" },
-    { src: "/avatares/abuela/abuela_2.png",color: "#90a080" },
-  ],
-  // 3: adulto solo con dos hijos
-  [
-    { src: "/avatares/adulto/adulto_4.png", color: "#c06050" },
-    { src: "/avatares/hijo/hijo_11.png",    color: "#6090a0" },
-    { src: "/avatares/hija/hija_9.png",     color: "#e0a060" },
-  ],
-  // 3: abuelos + nieto
-  [
-    { src: "/avatares/abuelo/abuelo_2.png", color: "#708090" },
-    { src: "/avatares/abuela/abuela_4.png", color: "#a08090" },
-    { src: "/avatares/hijo/hijo_3.png",     color: "#80b090" },
-  ],
-  // 4: mamá + bebé + hijo + hija
-  [
-    { src: "/avatares/mama/mama_6.png",   color: "#d06080" },
-    { src: "/avatares/bebe/bebe_2.png",   color: "#f0c060" },
-    { src: "/avatares/hijo/hijo_2.png",   color: "#60a090" },
-    { src: "/avatares/hija/hija_12.png",  color: "#e09050" },
-  ],
-];
-
-function RotatingGroupPreview() {
-  const [idx, setIdx] = useState(0);
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setIdx((i) => (i + 1) % OTHER_GROUP_COMBOS.length);
-        setVisible(true);
-      }, 300);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const faces = OTHER_GROUP_COMBOS[idx];
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "22px 18px 18px",
-        opacity: visible ? 1 : 0,
-        transition: "opacity .3s ease",
-      }}
-    >
-      <GroupAvatarStack faces={faces} size={64} />
-    </div>
-  );
+  return { ...state, data: { ...INITIAL_DATA, ...d } };
 }
 
 // ── Barrido "al final del día" (consume === "endOfDay") ─────────────────────
@@ -1546,15 +1464,27 @@ export default function App() {
       // Descartes: siempre de la casa (aquí la casa ya está cargada).
       const loadDiscards = () => loadHouseholdDiscards(householdId);
 
-      const [remoteState, remoteRecipes, remoteVotes, remoteDiscards, remoteHouseholdFavs, remoteCollections, remoteFolders] = await Promise.all([
+      // Recetas, votos, carpetas, descartes y favoritas de la casa vuelven como `{ data, error }`
+      // (#317): si una falló, se trabaja con lo local y no se sube nada
+      // comparando con una nube que no se ha podido leer.
+      const [remoteState, cargaRecetas, cargaVotos, cargaDescartes, cargaFavsCasa, cargaColecciones, cargaCarpetas, cargaLapidas] = await Promise.all([
         loadState(),
         loadUserRecipes(householdReadOnly ? menuUserId : user.id),
         loadRecipeVotes(user.id),
         loadDiscards(),
-        householdId ? loadHouseholdFavorites(householdId) : Promise.resolve({}),
+        householdId ? loadHouseholdFavorites(householdId) : Promise.resolve({ data: {}, error: null }),
         loadRecipeCollections(user.id),
         loadRecipeFolders(user.id),
+        // Las recetas borradas en cualquier dispositivo (0094, #355). Siempre
+        // las de tu cuenta: son tus copias locales las que se quitan.
+        loadRecetasBorradas(user.id),
       ]);
+      const remoteRecipes = cargaRecetas.data ?? [];
+      const remoteVotes = cargaVotos.data ?? {};
+      const remoteCollections = cargaColecciones.data ?? {};
+      const remoteFolders = cargaCarpetas.data ?? [];
+      const remoteDiscards = cargaDescartes.data ?? { forever: [], cooldownUntil: {} };
+      const remoteHouseholdFavs = cargaFavsCasa.data ?? {};
       if (cancelled) return;
       // Sin red, y con lo de memoria de otra casa: no hay nada bueno que
       // enseñar ni que subir. Se queda sin marcar como cargada (no se guarda
@@ -1566,7 +1496,14 @@ export default function App() {
         return;
       }
 
-      const deletedRecipeIds = reconcileDeletedRecipeIds(remoteRecipes);
+      // Las lápidas solo se concilian con una carga buena: con la nube sin
+      // leer no se sabe qué sigue allí.
+      // A las de este dispositivo se suman las de la nube (#355): lo que se
+      // borró en otro no se queda aquí ni se vuelve a subir.
+      const deletedRecipeIds = lapidasDeRecetas(
+        cargaRecetas.error ? loadDeletedRecipeIds() : reconcileDeletedRecipeIds(remoteRecipes),
+        cargaLapidas,
+      );
 
       const mergedCollections = mergeCollections(localCollections, remoteCollections);
       const mergedFolders = mergeFolders(localFolders, remoteFolders);
@@ -1642,19 +1579,11 @@ export default function App() {
         // Con lo de otra casa en memoria (las recetas de su titular, si eras
         // lector), ni se mezclan ni se suben a tu cuenta.
         const localRecipesNow = soloNube ? [] : (d.userRecipes ?? []);
-        const mergedUserRecipes = mergeUserRecipesAfterCloudLoad(
-          withoutDeletedRecipes(localRecipesNow, deletedRecipeIds),
-          remoteRecipes,
-          deletedRecipeIds,
-        );
+        const mergedUserRecipes = recetasTrasCarga(localRecipesNow, remoteRecipes, deletedRecipeIds);
 
-        // Backfill local-only rows the cloud doesn't have yet (live state, not stale snapshot).
-        const remoteIds = new Set(remoteRecipes.map((r) => r.id));
-        const localOnly = withoutDeletedRecipes(
-          localRecipesNow.filter((r) => r.id && !remoteIds.has(r.id)),
-          deletedRecipeIds,
-        );
-        if (localOnly.length) upsertUserRecipes(user.id, localOnly);
+        // Backfill local-only rows the cloud doesn't have yet (live state, not
+        // stale snapshot). Si la carga falló, no sube nada (#317).
+        subirRecetasSoloLocales({ userId: user.id, local: localRecipesNow, carga: cargaRecetas, cargaLapidas, deletedIds: deletedRecipeIds });
 
         return {
           ...(useRemote ? { ...INITIAL_DATA, ...(remoteData ?? {}) } : d),
@@ -1680,11 +1609,8 @@ export default function App() {
         }
       }
 
-      const votesBackfill = {};
-      for (const [rid, v] of Object.entries(localVotes)) {
-        if (!(rid in remoteVotes)) votesBackfill[rid] = v;
-      }
-      upsertRecipeVotes(user.id, votesBackfill);
+      // Los votos que la nube no tiene; si la carga falló, ninguno (#317).
+      subirVotosSoloLocales({ userId: user.id, local: localVotes, carga: cargaVotos });
       // Backfill from the full merge (local + state blob), not just local —
       // an account whose only record of a discard sits in the blob needs it
       // pushed to household_recipe_discards too, not only kept in memory.
@@ -1693,14 +1619,19 @@ export default function App() {
       // dispositivo (subirDescartesUnaVez): después manda la tabla.
       // A la tabla de la que se acaba de leer: la de la casa si hay casa. Un
       // lector no escribe en la casa ajena (RLS lo rechazaría igual).
-      if (!householdReadOnly) subirDescartesUnaVez({ userId: user.id, householdId, local: mergedDiscards, remote: remoteDiscards });
+      // Si la carga de descartes falló, ni sube ni marca (#317).
+      if (!householdReadOnly) subirDescartesUnaVez({ userId: user.id, householdId, local: mergedDiscards, carga: cargaDescartes });
 
-      const cloudSummaries = await loadMenuSummariesRemote(menuUserId, householdId);
+      const { data: cloudSummaries, error: errorMenus } = await loadMenuSummariesRemote(menuUserId, householdId);
       if (cancelled) return;
 
-      // El backfill solo en tu casa y con lo de tu casa: es lo que el 19 de
-      // agosto copió los menús de una casa ajena en la propia (C-1).
-      if (cloudSummaries.length === 0 && esMia && !soloNube) {
+      if (errorMenus) {
+        // Sin la lista de menús de la nube no se sabe si está vacía: ni se
+        // sube el blob (lo pisaría) ni se toca el archivo ni el plan de aquí
+        // (#317). Se queda lo local hasta la próxima carga.
+      } else if (cloudSummaries.length === 0 && esMia && !soloNube) {
+        // El backfill solo en tu casa y con lo de tu casa: es lo que el 19 de
+        // agosto copió los menús de una casa ajena en la propia (C-1).
         // One-time backfill: an account that never wrote to the new menú
         // tables (pre-existing user, or a device that only ever wrote to
         // user_state) has real history sitting in the JSONB blob. Only
@@ -1733,11 +1664,17 @@ export default function App() {
         // switcher (switchActiveWeek) needs it right away. Any OTHER
         // historic menú's full detail is fetched lazily, on demand, by
         // reuseMenu() only when the user actually taps "Repetir" on it.
-        const weekRanges = await loadMenuWeekRangesRemote(menuUserId, householdId);
+        const cargaRangos = await loadMenuWeekRangesRemote(menuUserId, householdId);
         if (cancelled) return;
+        const weekRanges = cargaRangos.data ?? {};
 
+        // Si los rangos fallaron, cada menú conserva las semanas que ya tenía
+        // aquí en vez de quedarse sin ninguna (#317).
         const cloudMenus = {};
-        for (const s of cloudSummaries) cloudMenus[s.id] = { ...s, weeks: weekRanges[s.id] ?? {} };
+        for (const s of cloudSummaries) {
+          const semanas = weekRanges[s.id] ?? (cargaRangos.error ? localMenus[s.id]?.weeks : null) ?? {};
+          cloudMenus[s.id] = { ...s, weeks: semanas };
+        }
 
         const nowD = new Date();
         nowD.setHours(0, 0, 0, 0);
@@ -1747,9 +1684,11 @@ export default function App() {
         const activeCloudId = menuActivoDe(cloudSummaries);
         const activeSummary = cloudSummaries.find((s) => s.id === activeCloudId) ?? null;
         let activeWeek = null;
+        let errorDetalle = null;
         if (activeSummary) {
-          const detail = await loadMenuDetailRemote(menuUserId, activeSummary.id, householdId);
+          const { data: detail, error } = await loadMenuDetailRemote(menuUserId, activeSummary.id, householdId);
           if (cancelled) return;
+          errorDetalle = error;
           if (detail) {
             cloudMenus[activeSummary.id] = { ...cloudMenus[activeSummary.id], weeks: detail.menu.weeks };
             if (detail.recipes.length) registerRecipes(detail.recipes);
@@ -1773,7 +1712,9 @@ export default function App() {
             }
           }
         }
-        if (!activeWeek && !activeMenuIdRef.current) {
+        // Con el detalle del activo sin leer (red), no se vacía nada: el
+        // guardado del perfil subiría ese plan vacío a la casa (#317).
+        if (!activeWeek && !activeMenuIdRef.current && !errorDetalle) {
           // No cloud menú marked active (activeSummary null — e.g. the user
           // deleted their active menú but kept older history), and no
           // not-yet-synced local one either (activeMenuIdRef). The live
@@ -1956,19 +1897,21 @@ export default function App() {
     endOfDaySweepRef.current = true;
     (async () => {
       try {
+        // Un día sin despensa leída no se marca como barrido: se reintenta en
+        // el siguiente (#317). Ver lib/barridoDia.js.
+        const barridos = await barrerDias({
+          dias: pending,
+          cargar: () => (user
+            ? loadPantry(user.id, casaActivaRef.current)
+            : Promise.resolve({ data: loadLocalPantry(), error: null })),
+          usados: (dayPlan, stock) =>
+            (buildShoppingList(dayPlan, groups, dayMeals, stock).pantryItems ?? []).map((it) => ({
+              name: it.name, qty: it.qty, unit: it.unit,
+            })),
+          consumir: (used, stock) => consumeFromPantry(used, stock, { user }),
+        });
         const newDeltas = {};
-        for (const { dayISO, dayPlan } of pending) {
-          const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
-          const sh = buildShoppingList(dayPlan, groups, dayMeals, freshStock);
-          const used = (sh.pantryItems ?? []).map((it) => ({
-            name: it.name, qty: it.qty, unit: it.unit,
-          }));
-          if (!used.length) {
-            // marca el día como barrido aunque no gaste nada
-            newDeltas[dayISO] = makeDeltaBucket(data.activeMenuId, []);
-            continue;
-          }
-          const { deltas } = await consumeFromPantry(used, freshStock, { user });
+        for (const [dayISO, deltas] of Object.entries(barridos)) {
           newDeltas[dayISO] = makeDeltaBucket(data.activeMenuId, deltas);
         }
         if (Object.keys(newDeltas).length) {
@@ -2167,7 +2110,7 @@ export default function App() {
         await restoreToPantry(bucketDeltas(staleGenDeltas[key]), { user });
       }
 
-      const pantryStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+      const pantryStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
       // Planning bias is controlled by pantryMode ("strict"/"only"/"prefer"/"off");
       // shopping always sees the stock so «Ya en casa» stays accurate.
       // Sin un modo válido guardado no se asume nada: "off" (ver normalizeData).
@@ -2283,7 +2226,7 @@ export default function App() {
         for (const res of weekResults) {
           const used = (res.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
           if (!used.length) continue;
-          const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+          const freshStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
           const { deltas } = await consumeFromPantry(used, freshStock, { user });
           if (deltas.length) genDeltasPatch[res.startISO] = makeDeltaBucket(newMenuId, deltas);
         }
@@ -3281,7 +3224,7 @@ export default function App() {
           schedule: week.schedule ?? data.schedule,
           menuWeek: { offset: week.offset ?? 0, startDayIdx: week.startDayIdx ?? 0, days: week.days ?? null },
         };
-        const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+        const freshStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
         const sh = buildShoppingList(week.plan, groups, getDayMeals(weekData), freshStock);
         const used = (sh.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
         if (!used.length) continue;
@@ -3394,7 +3337,7 @@ export default function App() {
     // of eagerly fetching every historic menú's full JSON up front.
     const isLazy = Object.values(old.weeks ?? {}).some((w) => w && w.schedule === undefined);
     if (isLazy && user) {
-      const detail = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
+      const { data: detail } = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
       if (detail) {
         old = { ...old, weeks: detail.menu.weeks };
         if (detail.recipes.length) {
@@ -3513,7 +3456,7 @@ export default function App() {
     if (!m) return;
     const isLazy = Object.values(m.weeks ?? {}).some((w) => w && w.schedule === undefined);
     if (isLazy && user) {
-      const detail = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
+      const { data: detail } = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
       if (!detail) {
         showToast("No se pudo cargar este menú del histórico. Inténtalo de nuevo.");
         return;
@@ -3560,11 +3503,11 @@ export default function App() {
     hydratedUserRef.current = null;
     cloudReadyRef.current = false;
 
-    const emptyProfile = ensureRosters({
+    const emptyProfile = {
       ...INITIAL_DATA,
       userRecipes: data.userRecipes ?? [],
       recipeVotes: data.recipeVotes ?? {},
-    });
+    };
     setData(emptyProfile);
     setMenuPlan({});
     setShopping({ items: [] });
@@ -3648,10 +3591,6 @@ export default function App() {
     _doGoToOnboardingStep(2);
   }, [_doGoToOnboardingStep]);
 
-  // "¿Para quién es el menú?" — when the profile already has members, offer to
-  // reuse the household or start fresh for a different group, instead of always
-  // forcing the full onboarding.
-  const [whoForOpen, setWhoForOpen] = useState(false);
   // Quick-menu mode: a shortened onboarding for "Mi familia habitual" that skips
   // the steps already configured in Mi perfil (family + cooking), while still
   // walking through the per-menu screens (week, schedule, style, restrictions…).
@@ -3833,43 +3772,6 @@ export default function App() {
     setOnbResumeOpen(false);
     startQuickMenu();
   }, [startQuickMenu]);
-
-  // "Otro grupo" → park the current household and start an empty roster, so
-  // whoever gets added next belongs to that group alone. Before rosters existed
-  // this only jumped to step 0, which appended the new people to the family you
-  // already had, with no way back.
-  const startOtherGroup = useCallback(() => {
-    setData((d) => startOtherRoster(d, { defaults: INITIAL_DATA }));
-    // El grupo nuevo no tiene menú: la tabla tampoco (manda ella al recargar).
-    // TODO(producto): la misma pregunta que en useRoster, aquí desactivando.
-    if (user && !householdReadOnly) ponerMenuActivo(null, user.id, casaActivaRef.current);
-    setMenuPlan({});
-    setShopping({ items: [] });
-    setSelectedSlot(null);
-    setQuickMenu(false);
-    _doGoToOnboardingStep(0);
-  }, [_doGoToOnboardingStep, user, householdReadOnly]);
-
-  // Switching back to a group also has to restore the menú it last generated:
-  // `menuPlan`/`shopping` live outside `data`, so swapping the roster alone
-  // would leave the previous group's food on screen.
-  const useRoster = useCallback((rosterId) => {
-    const target = data.rosters?.[rosterId];
-    if (!target || rosterId === data.activeRosterId) return;
-    const snapshot = target.snapshot ?? {};
-    const weeks = Object.values(snapshot.menus?.[snapshot.activeMenuId]?.weeks ?? {});
-    const week = weeks.find((w) => w.offset === snapshot.menuWeek?.offset) ?? weeks[0] ?? null;
-    setData((d) => switchRoster(d, rosterId));
-    // Cambiar de grupo cambia el menú activo: a la tabla también, que es la
-    // verdad (menuActivo.js). Sin esto, al recargar volvía el del otro grupo.
-    // TODO(producto): ¿cambiar de grupo debe cambiar el menú activo de TODA la
-    // casa (lo que ven el cotitular, el lector y Lola), o el grupo es solo una
-    // vista de quien lo cambia y el menú activo de la casa no se toca?
-    if (user && !householdReadOnly) ponerMenuActivo(snapshot.activeMenuId ?? null, user.id, casaActivaRef.current);
-    setMenuPlan(week?.plan ?? {});
-    setShopping(week?.shopping ?? { items: [] });
-    setSelectedSlot(null);
-  }, [data, user, householdReadOnly]);
 
   /**
    * "Esta la hago con la Thermomix": guarda el método elegido EN el hueco.
@@ -4216,7 +4118,8 @@ export default function App() {
    */
   const handleCopyRecipeFromFeed = useCallback(async (recipeId, ownerId) => {
     if (householdReadOnly) { showToast("Solo lectura: no puedes copiar aquí"); return null; }
-    const src = await loadPublicRecipe(recipeId);
+    const { data: src, error: errorReceta } = await loadPublicRecipe(recipeId);
+    if (errorReceta) { showToast("No se pudo cargar la receta. Revisa la conexión."); return null; }
     if (!src) { showToast("Esa receta ya no está disponible"); return null; }
     const copy = {
       ...src,
@@ -4254,7 +4157,7 @@ export default function App() {
       handleOpenCatalogRecipe(recipeCatalogById[row.id]);
       return;
     }
-    const full = (await loadPublicRecipe(row.id)) ?? {
+    const full = (await loadPublicRecipe(row.id)).data ?? {
       id: row.id,
       name: row.name,
       category: row.category,
@@ -4557,7 +4460,7 @@ export default function App() {
 
     const delta = n - antes;
     const grupos = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const key = `${day}-${meal}`;
       const prev = plan[groupId]?.[key];
@@ -4639,7 +4542,7 @@ export default function App() {
     const groups = gruposVigentes(data);
     // Fetched before the state updater (which must stay synchronous) so the
     // rebuilt shopping list still discounts pantry ingredients after a swap.
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const slotKey = `${day}-${meal}`;
       const prevSlot = plan[groupId]?.[slotKey] ?? {};
@@ -4707,7 +4610,7 @@ export default function App() {
     }
 
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -4827,7 +4730,7 @@ export default function App() {
       return Array.from(byId.values());
     });
 
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan(() => {
       applyShoppingFor(working, groups, pantryIngredients);
       return working;
@@ -4865,7 +4768,7 @@ export default function App() {
     if (!esPizarra) return undefined;
     let vivo = true;
     (async () => {
-      const items = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+      const items = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
       if (vivo) setDespensaPizarra(items ?? []);
     })();
     return () => { vivo = false; };
@@ -4952,7 +4855,7 @@ export default function App() {
       }
     }
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     const trabajo = {};
     for (const gid of Object.keys(menuPlan)) {
@@ -5091,7 +4994,7 @@ export default function App() {
     });
     if (hechos === 0) return { reply: noHechos[0] ?? "No he podido cambiar nada", hechos, noHechos: noHechos.slice(1) };
 
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     deshacerPizarra.current = { plan, groups, pantryIngredients };
     if (nuevas.length) {
       registerRecipes(nuevas);
@@ -5145,7 +5048,7 @@ export default function App() {
     const tRecipe = menuPlan[target.groupId]?.[tKey]?.[tField] ?? null;
 
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -5200,7 +5103,7 @@ export default function App() {
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: baseId, cleared: false, warnings: [] };
@@ -5253,7 +5156,7 @@ export default function App() {
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: srcRecipeId, cleared: false, warnings: [] };
@@ -5323,7 +5226,7 @@ export default function App() {
     }));
 
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const base = { ...(plan[groupId]?.[slotKey] ?? {}), warnings: [], cleared: false };
       if (toUnico) base.firstRecipeId = null;
@@ -5363,7 +5266,7 @@ export default function App() {
   const handleVaciarPizarra = useCallback(async () => {
     if (householdReadOnly) return;
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       let tocados = 0;
@@ -5392,7 +5295,7 @@ export default function App() {
     const key = `${day}-${meal}`;
     const field = course === "first" ? "firstRecipeId" : "recipeId";
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5427,7 +5330,7 @@ export default function App() {
     const { groupId, day, meal } = sel;
     const key = `${day}-${meal}`;
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5505,7 +5408,7 @@ export default function App() {
       }));
     }
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       // Cada destino escribe en SU casilla: con una selección de varios huecos
@@ -5573,7 +5476,7 @@ export default function App() {
     // reload right after "Reiniciar" can't race the stale cloud snapshot back
     // in through the hydration effect above.
     if (user?.id) clearUserState(user.id);
-    setData(ensureRosters(INITIAL_DATA));
+    setData({ ...INITIAL_DATA });
     setMenuPlan({});
     setShopping({ items: [] });
     setSelectedSlot(null);
@@ -5652,7 +5555,7 @@ export default function App() {
     setResetConfirm(null);
     clearState();
     casaDelEstadoRef.current = null;
-    setData(ensureRosters(INITIAL_DATA));
+    setData({ ...INITIAL_DATA });
     setMenuPlan({});
     setShopping({ items: [] });
     setSelectedSlot(null);
@@ -7085,23 +6988,19 @@ export default function App() {
                   onClick: () => {
                     setOnbResumeOpen(false);
                     const members = data.members ?? [];
-                    const rosters = data.rosters;
-                    const activeRosterId = data.activeRosterId;
                     setMenuPlan({});
                     setShopping({ items: [] });
                     setSelectedSlot(null);
                     setAiRecipes([]);
                     setMenuError(null);
-                    setData((d) =>
-                      ensureRosters({
-                        ...INITIAL_DATA,
-                        members: d.members ?? members,
-                        rosters: d.rosters ?? rosters,
-                        activeRosterId: d.activeRosterId ?? activeRosterId,
-                        expertMode: d.expertMode,
-                        modePrompted: false,
-                      }),
-                    );
+                    setData((d) => ({
+                      ...INITIAL_DATA,
+                      members: d.members ?? members,
+                      // Rosters de antes (ya no se usan): no se borran.
+                      ...(d.rosters ? { rosters: d.rosters, activeRosterId: d.activeRosterId } : {}),
+                      expertMode: d.expertMode,
+                      modePrompted: false,
+                    }));
                     startQuickMenu();
                   },
                 },
@@ -7151,132 +7050,6 @@ export default function App() {
                 </button>
               ))}
             </div>
-          </div>
-        </div>
-      )}
-
-      {whoForOpen && (
-        <div
-          onClick={() => setWhoForOpen(false)}
-          className="mp-overlay-in"
-          style={{
-            position: "fixed", inset: 0, zIndex: 300,
-            background: "rgba(0,0,0,.5)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            padding: "0 24px",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="mp-sheet-up"
-            style={{
-              background: "#fff",
-              borderRadius: 26,
-              padding: "26px 22px 20px",
-              width: "100%", maxWidth: 360, boxSizing: "border-box",
-              boxShadow: "0 24px 60px rgba(0,0,0,.25)",
-            }}
-          >
-            <h3 style={{ margin: "0 0 6px", fontSize: 20, fontWeight: 900, color: "#142f1d", textAlign: "center", letterSpacing: "-.01em" }}>
-              ¿Para quién es el menú?
-            </h3>
-            <p style={{ margin: "0 auto 20px", fontSize: 13.5, color: "#7a9485", textAlign: "center", lineHeight: 1.45, maxWidth: 260 }}>
-              Reutiliza un grupo que ya tengas o empieza de cero.
-            </p>
-
-            {(() => {
-              // Solo dos opciones: reutilizar la familia habitual ("Mi familia",
-              // el roster primario) o empezar "Otro grupo". Los grupos scratch no
-              // se listan uno a uno (antes se acumulaban como tarjetas duplicadas
-              // e indistinguibles, todas "Otro grupo").
-              const allRosters = listRosters(data);
-              const primaryRoster =
-                allRosters.find((r) => r.id === DEFAULT_ROSTER_ID) ??
-                allRosters.find((r) => r.isActive) ??
-                allRosters[0];
-              const options = [
-                ...(primaryRoster && primaryRoster.members.length > 0
-                  ? [
-                      {
-                        key: primaryRoster.id,
-                        Icon: Users,
-                        primary: true,
-                        label: primaryRoster.name,
-                        faces: groupAvatarFaces(primaryRoster.members, primaryRoster.members),
-                        onClick: () => {
-                          setWhoForOpen(false);
-                          if (!primaryRoster.isActive) useRoster(primaryRoster.id);
-                          startQuickMenu();
-                        },
-                      },
-                    ]
-                  : []),
-                {
-                  key: "other", Icon: Sparkles, rotating: true, primary: false,
-                  label: "Otro grupo",
-                  onClick: () => { setWhoForOpen(false); startOtherGroup(); },
-                },
-              ];
-              return (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {options.map(({ key, Icon, rotating, primary, label, faces = [], onClick }) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={onClick}
-                      style={{
-                        display: "flex", flexDirection: "column", alignItems: "center",
-                        justifyContent: "center", gap: rotating ? 0 : 10, width: "100%", textAlign: "center",
-                        padding: "0 0 18px", borderRadius: 20, cursor: "pointer",
-                        fontFamily: "inherit", overflow: "hidden",
-                        background: primary ? "#eef6f0" : "#f7f9f8",
-                        border: `2.5px solid ${primary ? "#bfe0cb" : "#e8ede9"}`,
-                        transition: "all .15s ease",
-                      }}
-                    >
-                      {rotating ? (
-                        <>
-                          <RotatingGroupPreview />
-                          <span style={{ fontWeight: 800, color: "#1a3a24", fontSize: 15.5 }}>{label}</span>
-                        </>
-                      ) : faces.length > 0 ? (
-                        <>
-                          <div style={{ padding: "22px 18px 4px" }}>
-                            <GroupAvatarStack faces={faces} size={72} />
-                          </div>
-                          <span style={{ fontWeight: 800, color: "#1a3a24", fontSize: 15.5 }}>{label}</span>
-                        </>
-                      ) : (
-                        <div style={{ padding: "22px 18px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-                          <span
-                            style={{
-                              width: 58, height: 58, borderRadius: 18,
-                              background: primary ? "#2d5a3d" : "#edf2ee",
-                              display: "inline-flex", alignItems: "center", justifyContent: "center",
-                            }}
-                          >
-                            <Icon size={28} color={primary ? "#fff" : "#2d5a3d"} strokeWidth={2.2} />
-                          </span>
-                          <span style={{ fontWeight: 800, color: "#1a3a24", fontSize: 15.5 }}>{label}</span>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              );
-            })()}
-
-            <button
-              type="button"
-              onClick={() => setWhoForOpen(false)}
-              style={{
-                display: "block", margin: "16px auto 0", padding: "6px 12px",
-                border: "none", background: "none", cursor: "pointer",
-                fontFamily: "inherit", fontSize: 13.5, fontWeight: 700, color: "#9aa8a0",
-              }}
-            >
-              Cancelar
-            </button>
           </div>
         </div>
       )}

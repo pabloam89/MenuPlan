@@ -16,6 +16,7 @@
  * apagado no ve las aplazadas ni las cierra.
  */
 
+import { seguirCon, fallaCon } from "./avisar.js";
 import { select, insert, update, borrar, eq } from "./db.js";
 
 export const tareasV2 = () => /^(1|true|si|sí|on)$/i.test(String(process.env.BOT_TAREAS_V2 ?? "").trim());
@@ -45,10 +46,11 @@ export async function unaVez({ householdId, clave, rpc }, correr) {
   try {
     r = await correr();
   } catch (e) {
-    await borrar("bot_idempotencia", filtro).catch(() => {});
+    await borrar("bot_idempotencia", filtro).catch(fallaCon("idempotencia_soltar_la_llave"));
     throw e;
   }
   // Lo que contestó, para devolverlo igual si se repite. Se purga a los 7 días.
-  await update("bot_idempotencia", filtro, { resultado: { texto: typeof r === "string" ? r : JSON.stringify(r) } }).catch(() => {});
+  // a propósito: sin el resultado guardado, el repetido contesta YA_HECHO.
+  await update("bot_idempotencia", filtro, { resultado: { texto: typeof r === "string" ? r : JSON.stringify(r) } }).catch(seguirCon("idempotencia_guardar_resultado"));
   return r;
 }

@@ -1,0 +1,33 @@
+{
+  "$comentario": "Precios por modelo para ESTIMAR el coste de una sesión a partir de sus tokens (fase F, #340). Es una estimación a precio de API: lo que paga Pablo de verdad depende de su plan, y este número solo sirve para comparar encargos entre sí. Es el único sitio con precios; los usa scripts/lib/fabrica.mjs y lo vigila scripts/fabrica.test.js. Un modelo que no esté aquí no se inventa: sus tokens salen y su coste, no. Para actualizarlo: abrir la página de `fuente`, copiar la fila del modelo y cambiar `comprobado_el`. Repo público (#300): precios publicados, nada más.",
+  "version": 1,
+  "estimacion": true,
+  "comprobado_el": "2026-10-09",
+  "fuente": "https://platform.claude.com/docs/en/about-claude/pricing",
+  "unidad": "USD por millón de tokens",
+  "notas": [
+    "escritura_5m y escritura_1h son escribir en la caché de 5 minutos o de 1 hora; lectura es leer de la caché.",
+    "Los tokens de razonamiento van dentro de los de salida, y se cobran como salida.",
+    "Haiku 5.5 cuesta más si el prompt pasa de 100.000 tokens: `prompt_largo` lo recoge (entrada + caché del mensaje).",
+    "Sin contar el modo rápido ni las herramientas del servidor (búsqueda web): en las transcripciones medidas el 9 oct 2026 todo era velocidad estándar."
+  ],
+  "modelos": {
+    "claude-fable-5-1": { "entrada": 10, "escritura_5m": 12.5, "escritura_1h": 20, "lectura": 0.25, "salida": 50 },
+    "claude-fable-5": { "entrada": 10, "escritura_5m": 12.5, "escritura_1h": 20, "lectura": 1, "salida": 50 },
+    "claude-opus-5-5": { "entrada": 4, "escritura_5m": 5, "escritura_1h": 8, "lectura": 0.2, "salida": 20 },
+    "claude-opus-5": { "entrada": 5, "escritura_5m": 6.25, "escritura_1h": 10, "lectura": 0.5, "salida": 25 },
+    "claude-opus-4-8": { "entrada": 5, "escritura_5m": 6.25, "escritura_1h": 10, "lectura": 0.5, "salida": 25 },
+    "claude-opus-4-7": { "entrada": 5, "escritura_5m": 6.25, "escritura_1h": 10, "lectura": 0.5, "salida": 25 },
+    "claude-opus-4-6": { "entrada": 5, "escritura_5m": 6.25, "escritura_1h": 10, "lectura": 0.5, "salida": 25 },
+    "claude-opus-4-5": { "entrada": 5, "escritura_5m": 6.25, "escritura_1h": 10, "lectura": 0.5, "salida": 25 },
+    "claude-sonnet-5-5": { "entrada": 2, "escritura_5m": 2.5, "escritura_1h": 4, "lectura": 0.1, "salida": 10 },
+    "claude-sonnet-5": { "entrada": 2, "escritura_5m": 2.5, "escritura_1h": 4, "lectura": 0.2, "salida": 10 },
+    "claude-sonnet-4-6": { "entrada": 3, "escritura_5m": 3.75, "escritura_1h": 6, "lectura": 0.3, "salida": 15 },
+    "claude-sonnet-4-5": { "entrada": 3, "escritura_5m": 3.75, "escritura_1h": 6, "lectura": 0.3, "salida": 15 },
+    "claude-haiku-5-5": {
+      "entrada": 0.1, "escritura_5m": 0.125, "escritura_1h": 0.2, "lectura": 0.01, "salida": 0.5,
+      "prompt_largo": { "desde_tokens": 100000, "entrada": 0.5, "escritura_5m": 0.625, "escritura_1h": 1, "lectura": 0.05, "salida": 2.5 }
+    },
+    "claude-haiku-4-5": { "entrada": 1, "escritura_5m": 1.25, "escritura_1h": 2, "lectura": 0.1, "salida": 5 }
+  }
+}

@@ -180,18 +180,20 @@ export function mergeVotes(local = {}, remote = {}) {
 const scopeColumn = (scope) => (scope === "all" || !Array.isArray(scope) ? null : scope);
 
 /**
- * Loads the user's votes as the same map the app keeps in state.
- * @returns {Promise<Record<string, VoteEntry>>}
+ * Loads the user's votes as the same map the app keeps in state. Si la
+ * lectura falla, `data` es null y `error` lo dice (#317): con `{}`, App.jsx
+ * subía todos los votos locales encima de los de otro dispositivo.
+ * @returns {Promise<{ data: Record<string, VoteEntry>|null, error: object|null }>}
  */
 export async function loadRecipeVotes(userId) {
-  if (!supabase || !userId) return {};
+  if (!supabase || !userId) return { data: {}, error: null };
   const { data, error } = await supabase
     .from("recipe_votes")
     .select("recipe_id, vote, is_favorite, scope")
     .eq("user_id", userId);
   if (error) {
     console.warn("[recipeVotes] load failed", error.message);
-    return {};
+    return { data: null, error };
   }
   const map = {};
   for (const row of data ?? []) {
@@ -199,7 +201,7 @@ export async function loadRecipeVotes(userId) {
     const entry = makeEntry(row.vote, favScope);
     if (entry != null) map[row.recipe_id] = entry;
   }
-  return map;
+  return { data: map, error: null };
 }
 
 /** Upserts a single recipe's vote entry (rating and/or favorite scope). */
@@ -231,6 +233,23 @@ export async function deleteRecipeVote(userId, recipeId) {
     .eq("user_id", userId)
     .eq("recipe_id", recipeId);
   if (error) console.warn("[recipeVotes] delete failed", error.message);
+}
+
+/**
+ * Sube los votos que este dispositivo tiene y la nube no. `carga` es lo que
+ * acaba de devolver loadRecipeVotes: si falló, no sube nada (#317). Devuelve
+ * cuántos ha mandado subir.
+ * @param {{ userId: string, local: Record<string, VoteEntry>,
+ *   carga: { data: Record<string, VoteEntry>|null, error: object|null } }} args
+ */
+export async function subirVotosSoloLocales({ userId, local, carga }) {
+  if (!carga || carga.error || !carga.data) return 0;
+  const pendientes = Object.fromEntries(
+    Object.entries(local ?? {}).filter(([rid]) => !(rid in carga.data)),
+  );
+  const n = Object.keys(pendientes).length;
+  if (n) await upsertRecipeVotes(userId, pendientes);
+  return n;
 }
 
 /** Backfills several local-only votes to the cloud (first login on device). */
