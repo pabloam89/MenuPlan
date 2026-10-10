@@ -83,6 +83,9 @@ No es suyo:
 4. Su memoria (`.claude/agent-memory/diseno/`): decisiones ya tomadas.
 5. El código de la pantalla que va a tocar y las que se le parecen
    (`grep` del componente).
+6. Lo ya apuntado, ANTES de dar nada por nuevo: `npm run buscar -- "<tu área, los ficheros o el síntoma>"`
+   (sin red) y `npm run issues`. Cada hallazgo del informe lleva `YA APUNTADO: #n` o
+   `NUEVO (buscado: <consulta>)`.
 
 ## 6. Método
 

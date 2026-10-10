@@ -81,6 +81,9 @@ No es suyo:
 5. `.github/workflows/` y `vercel.json`.
 6. Vercel (conector de claude.ai, equipo «Monicos MenuPlan»): despliegues y
    logs.
+7. Lo ya apuntado, ANTES de dar nada por nuevo: `npm run buscar -- "<tu área, los ficheros o el síntoma>"`
+   (sin red) y `npm run issues`. Cada hallazgo del informe lleva `YA APUNTADO: #n` o
+   `NUEVO (buscado: <consulta>)`.
 
 ## 6. Método
 
