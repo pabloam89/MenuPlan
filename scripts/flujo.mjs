@@ -11,6 +11,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { cuentaPorDureza, durezaDelPaso, regenerar } from "./lib/flujo.mjs";
+import { generarTabla } from "./lib/presupuestos.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const RUTA_JSON = join(RAIZ, "ops/flujo.json");
@@ -20,8 +21,8 @@ const args = process.argv.slice(2);
 const datos = JSON.parse(readFileSync(RUTA_JSON, "utf8"));
 
 if (args.includes("--escribir")) {
-  writeFileSync(RUTA_MD, regenerar(readFileSync(RUTA_MD, "utf8"), datos));
-  console.log("Tablas de docs/ops/FLUJO.md regeneradas desde ops/flujo.json.");
+  writeFileSync(RUTA_MD, regenerar(readFileSync(RUTA_MD, "utf8"), datos, generarTabla()));
+  console.log("Tablas de docs/ops/FLUJO.md regeneradas desde ops/flujo.json y ops/presupuestos.json.");
 }
 
 const filas = datos.pasos.map((p) => ({

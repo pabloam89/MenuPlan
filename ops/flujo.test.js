@@ -8,6 +8,7 @@ import {
 } from "../scripts/lib/flujo.mjs";
 import { GRUPOS } from "../scripts/lib/issues.mjs";
 import * as registroNormas from "../scripts/lib/normas.mjs";
+import { generarTabla } from "../scripts/lib/presupuestos.mjs";
 
 /**
  * El flujo de una incidencia (#335, fase F0 de #334) no se puede quedar en
@@ -88,8 +89,8 @@ describe("docs/ops/FLUJO.md: las tablas salen del JSON", () => {
   const aviso = "Las tablas de FLUJO.md se generan: edita ops/flujo.json y lanza `npm run flujo -- --escribir`";
   it("las fichas de los pasos", () => expect(textoEntre(md, MARCAS.fichas), aviso).toBe(generarFichas(datos)));
   it("las obligaciones", () => expect(textoEntre(md, MARCAS.pasos), aviso).toBe(generarTablaPasos(datos)));
-  it("los catálogos", () => expect(textoEntre(md, MARCAS.catalogos), aviso).toBe(generarCatalogos(datos)));
-  it("regenerar no cambia nada", () => expect(regenerar(md, datos)).toBe(md));
+  it("los catálogos", () => expect(textoEntre(md, MARCAS.catalogos), aviso).toBe(generarCatalogos(datos, generarTabla())));
+  it("regenerar no cambia nada", () => expect(regenerar(md, datos, generarTabla())).toBe(md));
   it("el documento no usa saltos de línea de Windows (el CI es Linux)", () => expect(md).not.toContain("\r"));
 });
 
@@ -126,7 +127,7 @@ const MALOS = [
   ["ref-no-contiene", "un fichero que existe pero no lleva la frase (la clase #231)", (d) => { obligacion(d, "P04.1").contiene = "una frase que no está en ese fichero"; }],
   ["ref-contiene-corto", "una frase tan genérica que cualquier fichero la lleva", (d) => { obligacion(d, "P06.3").contiene = "e"; }],
   ["ref-sin-contiene", "un ref sin decir qué tiene que llevar", (d) => { obligacion(d, "P04.1").contiene = null; }],
-  ["ref-sin-nota", "sin ref y sin decir por qué", (d) => { delete obligacion(d, "P03.1").nota; }],
+  ["ref-sin-nota", "sin ref y sin decir por qué", (d) => { delete obligacion(d, "P04.3").nota; }],
   ["ref-nulo", "sin ref con un ejecutor que sí tiene que tener fichero", (d) => { Object.assign(obligacion(d, "P07.1"), { ref: null, contiene: null, nota: "x" }); }],
   ["test-no-existe", "un test que no existe", (d) => { obligacion(d, "P07.5").test = "ops/no-existe.test.js"; }],
   ["fase-desconocida", "una fase que no es del plan", (d) => { obligacion(d, "P02.1").fase = ["#99999"]; }],
@@ -144,8 +145,7 @@ const MALOS = [
   ["capa", "una capa menos", (d) => { d.capas.pop(); }],
   ["escalera", "un escalón sin su etiqueta de arreglo", (d) => { d.escalera.pop(); }],
   ["tipo-skill", "un tipo de skill reservado sin fase", (d) => { d.tipos_skill.find((t) => t.id === "dominio").fase = []; }],
-  ["presupuesto", "tres rondas permitidas", (d) => { d.presupuestos.por_alcance.local.rondas_max = 3; }],
-  ["presupuesto", "un alcance sin presupuesto", (d) => { delete d.presupuestos.por_alcance.transversal; }],
+  ["presupuesto", "el catálogo copiado en flujo.json (dos fuentes): vive en ops/presupuestos.json", (d) => { d.presupuestos = { por_alcance: {} }; }],
 ];
 
 describe("flujo.json: el test distingue lo bueno de lo malo", () => {

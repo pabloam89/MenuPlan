@@ -26,6 +26,9 @@
  *                                           automático (una consulta de issues, una de PR)
  *   npm run issues -- --arranque            las líneas cortas del arranque (y de paso el índice)
  *
+ * El listado incluye el informe de fichas (#337): fondos sin ficha, sin
+ * diagnóstico, con la ventana de observación vencida y los «matiz» repetidos.
+ *
  * Cada encargo enseña quién lo lleva (rama, carpeta y antigüedad del último
  * commit; «posiblemente parada» pasadas 4 h) y, al final, las ramas sin número
  * de issue. `--nuevo` mira además carpetas y ramas vivas con palabras del título.
@@ -49,6 +52,8 @@ import {
   CONSULTA_PR_INDICE, construirIndice, contarParecidosIgnorados, escribirIndice, leerIndice, lineaParecidosIgnorados, motivoCrearIgual, rutaIndice,
 } from "./lib/buscarAntes.mjs";
 import { analizarCasos } from "../.claude/hooks/casos.mjs";
+import { informeFichas } from "./lib/fondos.mjs";
+import { diaMadrid } from "./lib/hora.mjs";
 import { cruce, leerInventario, marcasHuerfanas, leerMarcas, lineaParecida, lineasDeLleva, parecidosEnGit, sinNumero, textoDeRama } from "./lib/lleva.mjs";
 
 const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
@@ -320,6 +325,24 @@ if (args.includes("--etiquetas")) {
       ].filter(Boolean).join(" · ");
       console.log(`  ${f.abierto ? "●" : "○"} #${f.number}  ${corto(f.title)}  [${f.causa ?? "sin causa"}, ${f.area ?? "sin área"}]`);
       console.log(`      ${partes}`);
+    }
+    console.log("");
+  }
+
+  // La ficha de cada fondo (#337): quién no la tiene, quién no tiene diagnóstico, qué ventanas vencieron y qué «matiz» se repite.
+  const fichas = informeFichas(issues, { hoy: diaMadrid() });
+  if (fichas.total) {
+    const lista = (ns) => ns.map((n) => `#${n}`).join(", ") || "ninguno";
+    console.log(`Fichas de los problemas de fondo (skill issues): ${fichas.conFicha} de ${fichas.total} fondos con ficha.`);
+    console.log(`  abiertos sin ficha: ${lista(fichas.sinFicha)}`);
+    console.log(`  de esos, obligatorios (alta desde la ficha): ${lista(fichas.sinFichaObligatoria)}`);
+    for (const a of fichas.autoaplicacion) console.log(`  autoaplicación (#${a.number}, el primero que debe pasar sus controles): ${a.conFicha ? "con ficha" : "SIN FICHA"}`);
+    console.log(`  cerrados con ficha: ${fichas.cerradosConAprendizaje} con aprendizaje, sin él: ${lista(fichas.cerradosSinAprendizaje)}`);
+    console.log(`  sin diagnóstico (mecanismo y causa_escape): ${lista(fichas.sinDiagnostico)}`);
+    console.log(`  ventana de observación vencida: ${fichas.ventanaVencida.map((v) => `#${v.number} (hasta ${v.hasta})`).join(", ") || "ninguno"}`);
+    if (fichas.matices.length) {
+      console.log("  matices que se repiten (candidatos a valor nuevo del vocabulario):");
+      for (const m of fichas.matices) console.log(`    «${m.matiz}» ×${m.veces} (${lista(m.issues)})`);
     }
     console.log("");
   }
