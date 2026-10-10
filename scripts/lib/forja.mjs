@@ -56,6 +56,14 @@ export const ESTADOS_CON_NOTA = ["no_cumple", "juicio"];
 export const JUICIO = "juicio";
 
 export const CAMPOS = ["id", "capa", "aplica_a", "texto", "fuente", "control", "codigo"];
+/**
+ * Solo en la capa subjetiva: `casos_calibracion` (obligatorio, [{ texto, esperado }]
+ * con la respuesta conocida), `medidas` ({ coincidencia, repeticiones } del juez
+ * sobre esos casos) y `listo_para_subir`.
+ */
+export const CAMPOS_OPCIONALES = ["casos_calibracion", "medidas", "listo_para_subir"];
+/** Lo que un caso de calibración puede esperar: una respuesta conocida, no un hueco. */
+export const ESPERADOS_CALIBRACION = ["cumple", "no_cumple"];
 
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const FUENTE_F = /^\[F\] https:\/\/[^\s/]+\/\S*$/;
@@ -75,14 +83,15 @@ export function leerCapas(raiz) {
  * `existe(ruta)` dice si una ruta del repo existe.
  */
 export function problemasDeForja(datos, existe) {
-  const malos = [];
+  const malos = [...problemasDePromocion(datos?.promocion)];
+  const umbral = datos?.promocion ?? {};
   const lista = Array.isArray(datos?.criterios) ? datos.criterios : [];
   if (!lista.length) malos.push("el catálogo no tiene criterios");
   const ids = new Set();
   const codigos = new Map();
   for (const c of lista) {
     const d = c?.id ?? "(sin id)";
-    for (const k of Object.keys(c ?? {})) if (!CAMPOS.includes(k)) malos.push(`${d}: campo «${k}» no admitido`);
+    for (const k of Object.keys(c ?? {})) if (!CAMPOS.includes(k) && !CAMPOS_OPCIONALES.includes(k)) malos.push(`${d}: campo «${k}» no admitido`);
     for (const k of CAMPOS) if (!(k in (c ?? {}))) malos.push(`${d}: falta el campo «${k}»`);
     if (typeof c?.id !== "string" || !ID.test(c.id)) malos.push(`${d}: el id va en minúsculas con guiones`);
     else if (ids.has(c.id)) malos.push(`${d}: id repetido`);
@@ -99,6 +108,7 @@ export function problemasDeForja(datos, existe) {
     if (c?.capa === "subjetiva" && esTexto(c?.texto, 1) && !(/Cumple si/.test(c.texto) && /No cumple si/.test(c.texto))) {
       malos.push(`${d}: un criterio subjetivo lleva su rúbrica: «Cumple si …» y «No cumple si …»`);
     }
+    problemasDeCalibracion(c, d, umbral, malos);
     const f = typeof c?.fuente === "string" ? c.fuente : "";
     if (FUENTE_F.test(f)) { /* fuente externa con url */ } else if (FUENTE_I.test(f)) {
       const ruta = f.match(FUENTE_I)[1];
@@ -118,6 +128,38 @@ export function problemasDeForja(datos, existe) {
     }
   }
   return malos;
+}
+
+/** El parámetro de promoción: valores de partida, fáciles de cambiar. */
+export function problemasDePromocion(p) {
+  const malos = [];
+  if (!p || typeof p !== "object") return ["falta el bloque «promocion» (coincidencia_minima y repeticiones)"];
+  if (typeof p.coincidencia_minima !== "number" || !(p.coincidencia_minima > 0 && p.coincidencia_minima <= 1)) malos.push("promocion.coincidencia_minima es un número mayor que 0 y como mucho 1");
+  if (!Number.isInteger(p.repeticiones) || p.repeticiones < 1) malos.push("promocion.repeticiones es un entero de 1 o más");
+  return malos;
+}
+
+/** Calibración y promoción de un criterio: solo la capa subjetiva las lleva. */
+function problemasDeCalibracion(c, d, umbral, malos) {
+  if (c?.capa !== "subjetiva") {
+    for (const k of CAMPOS_OPCIONALES) if (k in (c ?? {})) malos.push(`${d}: «${k}» es solo de la capa subjetiva`);
+    return;
+  }
+  const casos = c.casos_calibracion;
+  if (!Array.isArray(casos) || !casos.length) malos.push(`${d}: un criterio subjetivo lleva al menos un caso de calibración (casos_calibracion: texto de ejemplo y estado esperado)`);
+  else {
+    for (const k of casos) {
+      if (!esTexto(k?.texto, 20)) malos.push(`${d}: un caso de calibración lleva un «texto» de ejemplo de veinte caracteres o más`);
+      if (!ESPERADOS_CALIBRACION.includes(k?.esperado)) malos.push(`${d}: el «esperado» de un caso de calibración es ${ESPERADOS_CALIBRACION.join(" o ")}`);
+    }
+  }
+  if (!("listo_para_subir" in c)) return;
+  if (typeof c.listo_para_subir !== "boolean") { malos.push(`${d}: listo_para_subir es verdadero o falso`); return; }
+  if (!c.listo_para_subir) return;
+  const m = c.medidas;
+  if (!m || typeof m.coincidencia !== "number" || !Number.isInteger(m.repeticiones)) { malos.push(`${d}: listo_para_subir sin medidas válidas ({ coincidencia, repeticiones })`); return; }
+  if (m.coincidencia < umbral.coincidencia_minima) malos.push(`${d}: listo_para_subir con coincidencia ${m.coincidencia}; la promoción pide ${umbral.coincidencia_minima}`);
+  if (m.repeticiones < umbral.repeticiones) malos.push(`${d}: listo_para_subir con ${m.repeticiones} repeticiones; la promoción pide ${umbral.repeticiones}`);
 }
 
 // ── Los códigos que emiten los scripts ─────────────────────────────────────
@@ -281,6 +323,12 @@ export function generarMd(datos) {
     "",
     `Una ficha es una línea \`<artefacto>: <nombre> criterio: <id> estado: <estado>\`; solo ${ESTADOS_CON_NOTA.join(" y ")} llevan \`nota:\` (el hueco).`,
     "",
+    "## Promoción de una rúbrica",
+    "",
+    `Un criterio subjetivo lleva casos de calibración (un texto de ejemplo y el estado que se espera, cumple o no_cumple) y solo puede marcarse \`listo_para_subir\` si sus medidas cumplen la promoción: coincidencia del juez con la respuesta conocida de al menos **${datos.promocion.coincidencia_minima}** en **${datos.promocion.repeticiones}** repeticiones.`,
+    "",
+    "**Estos valores son un primer tiro, pendientes de ajustar con datos.** Están en el bloque `promocion` de `ops/forja.json` y se cambian ahí; aún no hay juez montado ni medidas. Subir de capa sigue siendo editar el criterio; el trinquete (`ops/forja-capas.json`) impide bajar.",
+    "",
     "Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es de la casa (con la ruta del repo donde está escrito).",
   ];
   for (const capa of ORDEN_CAPAS.slice().reverse()) {
@@ -291,6 +339,7 @@ export function generarMd(datos) {
       if (!de.length) { L.push("Ninguno todavía."); continue; }
       for (const c of de) {
         L.push(`- \`${c.id}\` — ${c.texto}`);
+        if (c.casos_calibracion) L.push(`  - Calibración: ${c.casos_calibracion.length} casos con respuesta conocida (${c.casos_calibracion.map((k) => k.esperado).join(", ")})${c.listo_para_subir ? ". Listo para subir." : "."}`);
         L.push(`  - Fuente: ${c.fuente}. Control: ${c.control === JUICIO ? "juicio" : `\`${c.control}\``}.${c.codigo ? ` Código: \`${c.codigo}\`.` : ""}`);
       }
     }
