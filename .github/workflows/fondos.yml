@@ -37,7 +37,10 @@ permissions:
   issues: write # comentar, etiquetar, reabrir o cerrar
 
 # Un run por issue a la vez; el pase diario, aparte. No se cancela ninguno:
-# a medias dejaría el comentario o el estado sin poner al día.
+# a medias dejaría el comentario o el estado sin poner al día. Límite conocido
+# (#381, N4): GitHub conserva un solo run pendiente por grupo, así que un
+# `reopened` sustituido por un evento posterior se aplica con retraso; el pase
+# diario lo cubre.
 concurrency:
   group: fondos-${{ github.event.issue.number || 'diario' }}
   cancel-in-progress: false
