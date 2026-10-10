@@ -1,0 +1,309 @@
+{
+  "skill": "forja-de-skills",
+  "fecha_utc": "2026-10-10T13:37:08.659Z",
+  "version": {
+    "skill_md": "1c24ebc1e125",
+    "casos_json": "d79793e9f77e"
+  },
+  "modelos": {
+    "disparo": "claude-haiku-4-5",
+    "ejecuta": "claude-sonnet-5",
+    "corrige": "claude-haiku-4-5"
+  },
+  "tope_usd": 1,
+  "coste_usd": 0.1228,
+  "resultado": "falla",
+  "resumen": {
+    "disparo_ok": 8,
+    "disparo_total": 10,
+    "comprobaciones_ok": 12,
+    "comprobaciones_total": 16,
+    "sin_correr": 0
+  },
+  "cambios_respecto_anterior": [
+    {
+      "id": "skill-nueva-para-algo",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "skill-no-se-abre",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "falla-la-regla-forja",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "podar-skill-sin-uso",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "por-que-usala",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-rotar-clave",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-agente-nuevo",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-leccion-en-otra-skill",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-rotar-token-de-otra-skill",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-medir-disparo",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "skill-nueva-para-algo",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "skill-no-se-abre",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "falla-la-regla-forja",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "podar-skill-sin-uso",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "por-que-usala",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    }
+  ],
+  "disparo": [
+    {
+      "id": "skill-nueva-para-algo",
+      "esperado": "forja-de-skills",
+      "elegido": "forja-de-skills",
+      "estado": "ok"
+    },
+    {
+      "id": "skill-no-se-abre",
+      "esperado": "forja-de-skills",
+      "elegido": "forja-de-skills",
+      "estado": "ok"
+    },
+    {
+      "id": "falla-la-regla-forja",
+      "esperado": "forja-de-skills",
+      "elegido": "forja-de-skills",
+      "estado": "ok"
+    },
+    {
+      "id": "podar-skill-sin-uso",
+      "esperado": "forja-de-skills",
+      "elegido": "forja-de-skills",
+      "estado": "ok"
+    },
+    {
+      "id": "por-que-usala",
+      "esperado": "forja-de-skills",
+      "elegido": "forja-de-skills",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-rotar-clave",
+      "esperado": "alta-de-secreto",
+      "elegido": "alta-de-secreto",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-agente-nuevo",
+      "esperado": "ninguna",
+      "elegido": "forja-de-skills",
+      "estado": "falla"
+    },
+    {
+      "id": "frontera-leccion-en-otra-skill",
+      "esperado": "supabase",
+      "elegido": "higiene-de-skills",
+      "estado": "falla"
+    },
+    {
+      "id": "frontera-rotar-token-de-otra-skill",
+      "esperado": "alta-de-secreto",
+      "elegido": "alta-de-secreto",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-medir-disparo",
+      "esperado": "ninguna",
+      "elegido": "ninguna",
+      "estado": "ok"
+    }
+  ],
+  "ejecucion": [
+    {
+      "id": "skill-nueva-para-algo",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Empieza por la regla de parada: se usará dos veces o más, no repite lo que ya hay en otra skill, y tiene dueño y test",
+          "cumple": true,
+          "evidencia": "¿Se va a usar **dos veces o más**? ... ¿**No repite** nada que ya exista? ... ¿Tiene **dueño y test** claros?"
+        },
+        {
+          "texto": "Pide ver primero qué falla una sesión sin la skill, antes de escribir nada",
+          "cumple": true,
+          "evidencia": "## 2. Ver el fallo real sin la skill\nLe pediría a una sesión limpia (sin la skill) la tarea real"
+        },
+        {
+          "texto": "Escribe los casos antes que el texto: tres o más propios con debe_salir y tres o más de frontera",
+          "cumple": false,
+          "evidencia": ""
+        },
+        {
+          "texto": "Pide una descripción que empiece por «Úsala», con las palabras de quien pide, y «No para:»",
+          "cumple": true,
+          "evidencia": "## 4. Descripción con el formato exacto\n`Úsala al <cuándo, palabras de quien pide>. No para: <lo que es de otra skill>.`"
+        }
+      ],
+      "respuesta": "Antes de nada: esto no lo decido yo solo, necesito tu OK en varios puntos. Así es como lo haría, paso a paso, siguiendo el método de `forja-de-skills`:\n\n## 1. Comprobar si hace falta (regla de parada)\nTres preguntas antes de escribir nada:\n- ¿Se va a usar **dos veces o más**? Si \"añadir proveedor de pagos\" es algo que se hace una vez y ya, no se crea skill.\n- ¿**No repite** nada que ya exista? Miraría `.claude/dominios-skills.json` y buscaría si ya hay una skill de \"pagos\", \"integraciones\" o similar que deba absorber esto en vez de crear una nueva.\n- ¿Tiene **dueño y test** claros? ¿Quién la mantiene cuando cambie el flujo de alta de proveedores?\n\n**No haría esto sin que tú confirmes**: si ya existe una skill vecina, te preguntaría si esto es una ampliación de esa (una entrada nueva, no cambia estructura) en vez de una skill nueva.\n\n## 2. Ver el fallo real sin la skill\nLe pediría a una sesión limpia (sin la skill) la tarea real: \"añade el proveedor X como método de pago\". Anotaría qué falla de verdad: ¿inventa un comando? ¿se salta la validación de webhooks? ¿no sabe dónde van las claves?\n\nSale: lista de fallos concretos. Si no hay fallos reales (el modelo ya lo hace bien), **no se crea la skill** y paro aquí.\n\n## 3. Escribir `casos.json` antes que el texto\nMínimo 3 casos que deben cargarla (con las palabras reales: \"añade Stripe\", \"nuevo proveedor de pagos\", \"integra PayPal\") y **3+ casos de frontera**: peticiones parecidas que NO son esto (p.ej. \"cambia la clave de Stripe\" → eso es rotación de claves, otra skill; \"¿por qué falla el webhook?\" → eso es debug, no alta).\n\n## 4. Descripción con el formato exacto\n`Úsala al <cuándo, palabras de quien pide>. No para: <lo que es de otra skill>.`\n\n## 5. Escribir solo lo mínimo que arregla los fallos del paso 2\nNo el manual completo de cada pasarela de pago — solo lo que el modelo no sabe ya (convenciones del repo, dónde van las claves, el checklist de seguridad propio del proyecto).\n\n## 6-7. Test y medida\n```\nnpm test -- .c"
+    },
+    {
+      "id": "skill-no-se-abre",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "Revisa la descripción: las palabras de quien pide y el disparador en los primeros caracteres, sin pasar del límite de 600",
+          "cumple": true,
+          "evidencia": "Paso 5 menciona explícitamente reescribir `description` en forma `Úsala al... («frase literal»...)` y paso 1 verifica el `description` completo del frontmatter"
+        },
+        {
+          "texto": "Añade casos de frontera parecidos y mide el disparo con npm run skills-prueba",
+          "cumple": true,
+          "evidencia": "Paso 4 especifica añadir caso exacto a `casos.json` con `debe_salir`, y pasos 3 y 7 lanzan `npm run skills-prueba` antes y después del arreglo"
+        },
+        {
+          "texto": "Comprueba que no solapa con otra skill antes de alargar la descripción",
+          "cumple": true,
+          "evidencia": "Paso 2 ordena revisar `.claude/dominios-skills.json` buscando solapes, y paso 5 de la sección 'Qué NO haría' rechaza ampliar descripción sin confirmar que el problema no es solape"
+        }
+      ],
+      "respuesta": "## Diagnóstico primero (sin tocar nada)\n\n1. `cat .claude/skills/vercel/SKILL.md` (o como se llame la skill) — leer el frontmatter `description` completo.\n2. Comprobar las tres cosas que suelen romper el disparo:\n   - ¿Usa las palabras literales de quien pide algo («por qué falla un despliegue», «deploy roto») o solo jerga interna («diagnóstico de builds»)?\n   - ¿El disparo principal cae dentro de los primeros 250 caracteres, o está enterrado después de la frontera «No para»?\n   - ¿Hay otra skill (por ejemplo una de CI/CD genérica) que se solape y gane la petición? → mirar `.claude/dominios-skills.json` y buscar «despliegue» en otras descripciones.\n3. `npm run skills-prueba -- vercel` para confirmar objetivamente que ese caso concreto falla el disparo (esto cuesta tokens, lo aviso antes de lanzarlo).\n\n## Arreglo (si se confirma el diagnóstico)\n\n4. Añadir a `casos.json` de esa skill el caso exacto que falló («por qué falla un despliegue») como caso que **debe** cargarla, con su `debe_salir`, antes de tocar el texto (paso 3 del método de forja).\n5. Reescribir `description` en la forma `Úsala al... («frase literal de quien pide»...). No para: ...`, metiendo esa frase literal al principio.\n6. `npm test -- .claude/skills.test.js` — nivel 1, gratis, confirma forma y que no rompe nada.\n7. `npm run skills-prueba -- vercel` otra vez, **dos pasadas seguidas** (hay ruido entre ejecuciones) para confirmar que ahora dispara.\n\n## Qué NO haría sin tu OK\n\n- No tocaría el cuerpo de la skill (pasos, comandos) sin antes confirmar que el problema es la descripción y no el contenido.\n- No lanzaría `skills-prueba` repetidamente sin avisarte del coste en tokens.\n- No crearía una skill nueva ni fusionaría con otra si aparece solape — eso lo decides tú con el inventario del PR.\n- No bajaría nada de `EXCEPCIONES_FORJA` ni tocaría `dominios-skills.json`/`CLAUDE.md` sin que sea estrictamente necesario y documentado en el PR."
+    },
+    {
+      "id": "falla-la-regla-forja",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Dice que no: la lista de excepciones solo baja y no se le añade nada",
+          "cumple": true,
+          "evidencia": "«Tocar `EXCEPCIONES_FORJA`... La propia skill dice: esa lista **solo baja**, nunca se le añade nada.»"
+        },
+        {
+          "texto": "Arregla la skill según el código de la falta (casos de frontera, fechas, criterio de parada, ejemplos o solape)",
+          "cumple": true,
+          "evidencia": "«**Arreglar la skill**, no el test: por ejemplo, si falla `fechas`, sacar la fecha del cuerpo a «Lo que falló»... si falla `ejemplos`, recortar; si falla `solape`, ajustar la descripción»"
+        },
+        {
+          "texto": "Explica que quitar una excepción ya arreglada también es obligatorio",
+          "cumple": false,
+          "evidencia": ""
+        }
+      ],
+      "respuesta": "No.\n\n## Qué haría, en orden\n\n1. **Ver el fallo exacto**\n   ```\n   npm test -- .claude/skills.test.js\n   ```\n   Esperaría ver qué código de defecto salta (`casos-negativos`, `fechas`, `sin-parada`, `ejemplos`, `solape`, `comando-suelto`, `tabla`, `cabeceras`...) y en qué línea/sección.\n\n2. **Mirar qué pide ese control concreto** en `scripts/lib/skillsForja.mjs` y su porqué en `.claude/skills/forja-de-skills/referencias/defectos.md`, para entender qué debo arreglar en la skill, no en el test.\n\n3. **Arreglar la skill**, no el test: por ejemplo, si falla `fechas`, sacar la fecha del cuerpo a «Lo que falló» o «Registro de cambios»; si falla `ejemplos`, recortar; si falla `solape`, ajustar la descripción para no pisar otra skill.\n\n4. **Repetir el comando** hasta que pase limpio.\n\n## Qué NO haría sin el OK de Pablo\n\n- **Tocar `EXCEPCIONES_FORJA`** en `scripts/lib/skillsForja.mjs` para meter esta skill. La propia skill dice: esa lista **solo baja**, nunca se le añade nada. Añadir una excepción para esquivar el fallo es exactamente el atajo que la skill prohíbe.\n- Bajar o debilitar el control del nivel 1 para que deje de saltar.\n\nSi de verdad creo que el control está mal (falso positivo), lo diría explícitamente y pediría el OK de Pablo antes de tocar la lista de excepciones o la regla — nunca lo haría como solución por defecto."
+    },
+    {
+      "id": "podar-skill-sin-uso",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "Aplica los criterios de poda: no mejora sobre el modelo solo, solapa con otra, caduca sin dueño o nadie la abre",
+          "cumple": true,
+          "evidencia": "Comprueba los dos motivos de poda por separado: '¿Solapa de verdad?' y 'Comprobar el nadie la abre'. Verifica explícitamente contra cada criterio antes de decidir."
+        },
+        {
+          "texto": "Deja que mande una skill y la otra la cite por su nombre, pasando lo útil",
+          "cumple": true,
+          "evidencia": "una manda y la otra queda citada por nombre desde la que se queda, quedándose solo con lo que le es propio"
+        },
+        {
+          "texto": "No borra la carpeta ella misma: prepara el inventario y los comandos para que los lance una persona",
+          "cumple": true,
+          "evidencia": "La skill es explícita: 'los borrados los lanza una persona'. Yo prepararía: el inventario... los comandos exactos de borrado... No borra la carpeta. Eso lo lanza una persona, no yo."
+        }
+      ],
+      "respuesta": "## Antes de tocar nada\n\nNo la borraría directo. Según esta skill, \"podar\" tiene criterios de entrada explícitos y un proceso concreto — no es \"parece redundante, fuera\".\n\n## Lo que haría, en orden\n\n**1. Comprobar los dos motivos de poda por separado**\n\n```\n# ¿Solapa de verdad?\nnpm test -- .claude/skills.test.js\n```\nEspero ver si salta la regla `solape` entre esa skill y la otra. Si no salta sola, lo confirmo a mano comparando las dos descripciones y, si hace falta:\n```\nnpm run skills-prueba -- <skill-A> <skill-B>\n```\npara ver si en casos reales hay duda entre cuál debería responder.\n\n**2. Comprobar el \"nadie la abre\"**\n\nMiraría la cuenta de uso de skills si existe. Si no existe, la skill dice explícitamente: *\"se pregunta antes de borrar\"*. No asumo cero uso solo porque \"casi nadie la abre\" sea mi impresión.\n\n**3. Decidir cuál se queda**\n\nSi de verdad solapan: una manda y la otra queda citada por nombre desde la que se queda, quedándose solo con lo que le es propio (si le queda algo). No borro ninguna todavía en este paso, solo decido la relación entre ambas.\n\n**4. Preparar el PR, no ejecutar el borrado yo sola**\n\nLa skill es explícita: *\"los borrados los lanza una persona\"*. Yo prepararía:\n- el inventario (qué decía la skill, quién la citaba, a dónde pasa lo útil),\n- los comandos exactos de borrado,\n- la actualización de `.claude/dominios-skills.json`, la lista de `CLAUDE.md` y el `skills:` de su dueño (los tests de esos tres fallarían si no se actualizan).\n\n## Qué NO haría sin el OK de Pablo\n\n- **Borrar la carpeta.** Eso lo lanza una persona, no yo.\n- **Asumir \"cero uso\" sin comprobar** la cuenta real o preguntar.\n- **Fusionar el contenido en la otra skill** sin que Pablo confirme cuál de las dos manda y qué se pierde.\n\nLe presentaría el PR con el inventario y esperaría su confirmación antes de ejecutar el borrado."
+    },
+    {
+      "id": "por-que-usala",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Explica que se mantiene «Úsala» y da la razón: el cuándo va primero y las descripciones comparten una misma forma",
+          "cumple": false,
+          "evidencia": "La respuesta no explica por qué se mantiene «Úsala» ni menciona que 'el cuándo va primero y las descripciones comparten una misma forma'. Solo dice que es 'una decisión explícita del repo' sin justifi"
+        },
+        {
+          "texto": "Marca qué es de la fuente y qué es inferencia propia",
+          "cumple": true,
+          "evidencia": "el criterio 1 sea una inferencia [I] del equipo (forma imperativa = dispara mejor la carga de la skill en la sesión), no algo sacado literalmente de Anthropic"
+        },
+        {
+          "texto": "Dice cuándo se revisaría: si el disparo medido cae por la forma, y entonces se cambian test y descripciones a la vez",
+          "cumple": false,
+          "evidencia": "La respuesta no menciona en ningún momento cuándo se revisaría la decisión basándose en métricas de disparo ni propone cambiar test y descripciones a la vez. Solo lista qué NO haría sin OK de Pablo."
+        }
+      ],
+      "respuesta": "No está mal, es una decisión explícita del repo, no un descuido.\n\n**Qué haría primero — verificarlo, no asumir:**\n\n```\ncat .claude/skills/forja-de-skills/referencias/criterios.md\n```\nEsperaría ver el criterio 1, citado en la propia skill (paso 4 del método), con la justificación de por qué «Úsala» y no la tercera persona habitual, marcado como [F] o [I] según si viene de una fuente o es inferencia del repo.\n\n```\ngrep -n \"Úsala\" .claude/skills/*/SKILL.md | wc -l\n```\nPara confirmar que es consistente en todo el repo y no solo en esta skill (si las 11 skills lo hacen, es un estándar deliberado, no un error aislado).\n\n**Lectura de la discrepancia con las guías oficiales:**\n\nLa propia skill dice en «Fuentes y comprobación» que las afirmaciones están marcadas [F]/[I], y que \"no se han releído al escribir\". Así que cabe que:\n- el criterio 1 sea una inferencia [I] del equipo (forma imperativa = dispara mejor la carga de la skill en la sesión), no algo sacado literalmente de Anthropic;\n- o que la fuente sí diga tercera persona para el *contenido* de la skill pero esto se refiera solo al campo `description` del frontmatter, que es distinto (ese campo es lo que el sistema usa para decidir si cargar la skill, no prosa de documentación).\n\n**Qué NO haría sin el OK de Pablo:**\n- Cambiar el estilo de las descripciones de ninguna skill basándome solo en lo que dicen las guías oficiales.\n- Tocar `criterios.md` o la regla `forja` de `scripts/lib/skillsForja.mjs` para \"corregir\" esto.\n- Añadir una excepción a `EXCEPCIONES_FORJA` (la lista solo baja, según la propia skill).\n\nSi tras leer `criterios.md` el criterio 1 resulta ser [I] sin fuente real que lo respalde, se lo señalaría a Pablo como posible discrepancia a decidir — pero la decisión de cambiarlo (o no) es suya, no mía."
+    }
+  ]
+}
