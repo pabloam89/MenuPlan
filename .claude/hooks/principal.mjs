@@ -36,3 +36,29 @@ export function avisoTrasAdelantar(n, cambiados) {
   }
   return linea;
 }
+
+/**
+ * El reflog de HEAD resumido a los cambios de rama («staging → ccr-0df… hace
+ * 2 h»). `texto`: `git reflog HEAD -n 30 --format=%gs|%cr`. Los más recientes
+ * primero, tope de `max`.
+ */
+export function resumenReflog(texto, max = 4) {
+  return String(texto ?? "").split("\n")
+    .map((l) => /^checkout: moving from (\S+) to (\S+)\|(.+)$/.exec(l.trim()))
+    .filter(Boolean)
+    .slice(0, max)
+    .map((m) => `${m[1]} → ${m[2]} (${m[3]})`);
+}
+
+/**
+ * Aviso si la carpeta principal no está en staging (#348, #384): el 9 oct 2026
+ * una sesión de la nube dejó `ccr-…` puesta y los agentes dejaron de cargarse.
+ * null si es un worktree, si está en staging o si no se sabe la rama.
+ */
+export function avisoRamaPrincipal({ esWorktree, rama, reflog }) {
+  if (esWorktree || !rama || rama === "HEAD" || rama === "staging") return null;
+  const cambios = resumenReflog(reflog);
+  return `AVISO: la carpeta principal está en la rama ${rama}, no en staging (caso #348: otra sesión la cambió y los agentes pueden no cargar). `
+    + (cambios.length ? `Últimos cambios de rama: ${cambios.join("; ")}. ` : "")
+    + "Mira `npm run buscar -- \"carpeta principal rama\"` antes de investigarlo; para volver, desde una tarea y sin trabajo suelto en la principal: `git switch staging`.";
+}

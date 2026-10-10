@@ -553,11 +553,9 @@ const responder = async (r, entrada = null) => {
     try {
       const { avisoDeDenegacion } = await import("./buscar-antes.mjs");
       const extra = avisoDeDenegacion(entrada, r.motivo);
-      if (extra) motivo += `
-${extra}`;
+      if (extra) motivo += `\n${extra}`;
     } catch (e) {
-      console.error(`[guardia] no he podido buscar lo ya apuntado: ${String(e?.message ?? e).split("
-")[0]}`);
+      console.error(`[guardia] no he podido buscar lo ya apuntado: ${String(e?.message ?? e).split("\n")[0]}`);
     }
   }
   process.stdout.write(JSON.stringify({

@@ -100,9 +100,7 @@ export function ejecutar(entrada, opciones = {}) {
   const r = procesar(entrada, { vistas, ...opciones });
   if (r.nuevas.length || r.lineas.length) {
     if (r.nuevas.length) writeFileSync(marcas, JSON.stringify([...vistas, ...r.nuevas]));
-    if (r.lineas.length) appendFileSync(join(dir, "senales.log"), `${r.lineas.join("
-")}
-`);
+    if (r.lineas.length) appendFileSync(join(dir, "senales.log"), `${r.lineas.join("\n")}\n`);
   }
   return r.textos;
 }
@@ -112,11 +110,9 @@ export function avisoDeDenegacion(entrada, motivo) {
   try {
     const sintetica = { session_id: entrada?.session_id, cwd: entrada?.cwd, tool_name: "Bash", tool_input: entrada?.tool_input ?? {}, hook_event_name: "PostToolUseFailure", error: `[guardia] ${motivo}` };
     // Sin la señal de la rama principal: no es de esta orden.
-    return ejecutar(sintetica, { rama: () => ({ principal: false }) }).join("
-");
+    return ejecutar(sintetica, { rama: () => ({ principal: false }) }).join("\n");
   } catch (e) {
-    console.error(`[buscar-antes] no he podido buscar lo ya apuntado: ${String(e?.message ?? e).split("
-")[0]}`);
+    console.error(`[buscar-antes] no he podido buscar lo ya apuntado: ${String(e?.message ?? e).split("\n")[0]}`);
     return "";
   }
 }
@@ -131,13 +127,11 @@ if (esPrincipal) {
     const textos = ejecutar(entrada);
     if (textos.length) {
       const evento = /Failure/i.test(String(entrada.hook_event_name ?? "")) ? "PostToolUseFailure" : "PostToolUse";
-      process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: evento, additionalContext: textos.join("
-") } }));
+      process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: evento, additionalContext: textos.join("\n") } }));
     }
   } catch (e) {
     // Falla abierto: es una ayuda, no un vigilante. Pero no en silencio (stderr).
-    console.error(`[buscar-antes] no he podido buscar lo ya apuntado: ${String(e?.message ?? e).split("
-")[0]}`);
+    console.error(`[buscar-antes] no he podido buscar lo ya apuntado: ${String(e?.message ?? e).split("\n")[0]}`);
   }
   process.exit(0);
 }

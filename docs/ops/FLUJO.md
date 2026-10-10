@@ -102,7 +102,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P04.2 | Se busca el fondo que ya existe antes de abrir uno | script_propio · `scripts/issues.mjs` | semidura | — | #337 |
 | P04.3 | El diagnóstico llega a algo que se puede cambiar con un mecanismo y dice por qué nada lo detectó (causa de escape) | nada · no escrita aún | blanda | — | #338 |
 | P04.4 | Lo que no se ha comprobado se marca como hipótesis y no se copia como hecho | nada · no escrita aún | blanda | — | #338 |
-| P04.5 | Antes de evaluar código, se mira lo ya apuntado en issues y encargos | nada · no escrita aún | blanda | — | #320 |
+| P04.5 | Antes de evaluar código, se mira lo ya apuntado en issues y encargos | guardia · `.claude/hooks/buscar-antes.mjs` | semidura | — | — |
 | **Fondo** · semidura | | | | | |
 | P05.1 | Un fondo lleva arreglo general en el cuerpo y una causa de un vocabulario cerrado | script_propio · `.github/ISSUE_TEMPLATE/2-fondo.yml` | semidura | — | #341 |
 | P05.2 | Sin diagnóstico (mecanismo y causa de escape) no hay encargos | ci · `scripts/fondos-pr.mjs` | semidura | — | #341 |
@@ -149,7 +149,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P12.4 | Los presupuestos se recalibran cada semana con lo medido | nada · no escrita aún | blanda | — | #340 |
 | P12.5 | Las normas del proceso que se incumplen se cuentan cada semana | script_propio · `scripts/lib/normas.mjs` | semidura | — | #341, #185 |
 
-**52 obligaciones:** 5 duras · 26 semiduras · 21 blandas · 0 rotas. 21 están enlazadas con su norma del registro.
+**52 obligaciones:** 5 duras · 27 semiduras · 20 blandas · 0 rotas. 21 están enlazadas con su norma del registro.
 <!-- flujo:pasos:fin -->
 
 ## Lo que ya existía

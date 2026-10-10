@@ -132,6 +132,9 @@ fondo de un encargo tenga diagnóstico y que un fondo cerrado tenga aprendizaje.
   («parada» a las 4 h), las ramas sin número y `--marcas-huerfanas` (lista, no borra).
 - **Pablo ve sus decisiones** porque se le asignan (correo y app de GitHub):
   `github.com/pabloam89/MenuPlan/issues?q=is:open+label:tipo:decision`.
+- **Buscar antes (#384):** el hook `buscar-antes.mjs` ve un error, un test rojo ajeno, una
+  denegación de la guardia, «Agent type … not found» o la carpeta principal fuera de `staging`,
+  busca en el índice y pone «ESTO YA ESTÁ APUNTADO: #n» en el contexto (una vez por señal y sesión; no bloquea).
 - **Avisos que llegan solos:** al editar un fichero, el hook `avisos.mjs`
   cuenta los issues abiertos que lo nombran (una vez por sesión y fichero);
   al terminar de responder, `pendientes.mjs` frena una vez a la sesión que
@@ -149,7 +152,7 @@ en un issue (esos, a Pablo, en privado).
 
 | Qué | Comando | Debe salir |
 |---|---|---|
-| Registrar un caso | `npm run issues -- --nuevo "…" --tipo caso --analisis abierto --area ops --cuerpo <f.md> --padre <fondo>` | antes de crear enseña los parecidos (issues y también carpetas y ramas vivas con palabras del título) y para; si no es ninguno, `--crear-igual`. La guardia niega `gh issue create` a pelo: el 8 oct se abrió tres veces el mismo fallo |
+| Registrar un caso | `npm run issues -- --nuevo "…" --tipo caso --analisis abierto --area ops --cuerpo <f.md> --padre <fondo>` | antes de crear enseña los parecidos (issues y también carpetas y ramas vivas con palabras del título) y para; si no es ninguno, `--crear-igual "<por qué no lo son, 15 caracteres o más>"`: el motivo queda en el cuerpo (`Parecidos ignorados: #n, #m — motivo`) y `npm run issues` cuenta cuántos se crearon así (#384). La guardia niega `gh issue create` a pelo: el 8 oct se abrió tres veces el mismo fallo |
 | Abrir un problema de fondo | `npm run issues -- --nuevo "…" --tipo fondo --causa error-silencioso --area datos --cuerpo <f.md>` | el issue creado, con su `## Arreglo general` y `## Cómo se probará` |
 | Abrir un encargo | `npm run issues -- --nuevo "…" --tipo encargo --area datos --cuerpo <f.md> [--padre <fondo>]` | el issue creado, colgado del fondo si se dio |
 | Abrir una decisión | `npm run issues -- --nuevo "…" --tipo decision --area datos --cuerpo <f.md>` | el issue creado y asignado a Pablo |
@@ -157,6 +160,7 @@ en un issue (esos, a Pablo, en privado).
 | Tarea de un issue | `npm run tarea -- ops/x 193` | la rama lleva el número delante del nombre; el PR pedirá `Closes #193` |
 | Coger un encargo | `gh issue edit <n> --add-assignee @me` (o «Quién lo coge» en el cuerpo) | el asignado en el issue |
 | Cerrar a mano | `gh issue close <n> --comment "Queda en el PR #n"` (un fondo, antes con `--add-label arreglo:test`) | cerrado; solo si no lo cerró el PR |
+| Buscar lo ya apuntado (antes de investigar o dar algo por nuevo) | `npm run buscar -- "<síntoma, error, ruta o rama>"` | los issues y PR parecidos con estado, quién los lleva y su plan (encargos pendientes y hechos), sin red, del índice local (`npm run issues -- --indexar` lo refresca; el arranque también) |
 | Ver el conjunto | `npm run issues` | fondos por casos, encargos, puntuales, por causa y agente, sin trazar, y la medida de `Casos:`; el informe de fichas (sin ficha, sin diagnóstico, ventana vencida, cerrados con aprendizaje) y los `matiz` repetidos, candidatos a valor nuevo del vocabulario |
 | Ver el control de un fondo | `gh issue view <n> --comments` | el comentario `<!-- menuplan:fondo … -->` del bot, con `estado=ok` o `estado=falla` y una línea por regla |
 | Poner al día la ficha de un fondo | editar el cuerpo (`gh issue edit <n> --body-file <f.md>`) con el bloque `fondo` | el workflow comenta en menos de un minuto; `control:ok` si no hay errores |
@@ -191,6 +195,8 @@ en un issue (esos, a Pablo, en privado).
   `fondos-evento.test.js`. También: la ventana no cierra con un no-aguanto presente
   ni con un caso creado desde `ventana_desde` aunque esté listado, y el pase diario
   revalida los cerrados porque colgar un hijo no lanza ningún workflow.
+- **2026-10-09 · se trató como misterio lo ya arreglado (#348, #320).** Causa: buscar dependía de acordarse.
+  Arreglo: (#384) índice, `npm run buscar` y hook `buscar-antes.mjs`, con test en `.claude/hooks/buscar-antes.test.js`.
 
 ## Qué requiere el OK de Pablo
 
@@ -210,4 +216,4 @@ fallan con su causa y se repiten más tarde.
 - https://docs.github.com/issues
 - https://cli.github.com/manual/gh_issue
 
-Comprobado el 2026-10-09: esta skill sale de partir la `github` (#219) sin cambiar los hechos; no se ha vuelto a ejecutar `npm run issues` ni `--nuevo` contra GitHub al partirla. Sin comprobar: el límite exacto de la API de GitHub con el que `npm run issues` se queda sin respuesta. Comprobado el 2026-10-09 (#337): la ficha, el workflow `fondos` y el paso «Fondos del PR» con tests y una API de mentira, vistos fallar, y el lector con cuerpos hostiles. Sin comprobar: el workflow en GitHub de verdad (los endpoints REST `sub_issues` y `parent`, el run de `schedule`, las etiquetas `control:` creadas) hasta que se fusione y se edite un fondo.
+Comprobado el 2026-10-09: el índice y la búsqueda contra GitHub y el hook con entradas sintéticas; sin comprobar: el hook cargado en una sesión real. Comprobado el 2026-10-09: esta skill sale de partir la `github` (#219) sin cambiar los hechos; no se ha vuelto a ejecutar `npm run issues` ni `--nuevo` contra GitHub al partirla. Sin comprobar: el límite exacto de la API de GitHub con el que `npm run issues` se queda sin respuesta. Comprobado el 2026-10-09 (#337): la ficha, el workflow `fondos` y el paso «Fondos del PR» con tests y una API de mentira, vistos fallar, y el lector con cuerpos hostiles. Sin comprobar: el workflow en GitHub de verdad (los endpoints REST `sub_issues` y `parent`, el run de `schedule`, las etiquetas `control:` creadas) hasta que se fusione y se edite un fondo.

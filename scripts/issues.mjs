@@ -80,15 +80,19 @@ function todos() {
  * llegan se guardan los del índice anterior, y se dice. Nunca rompe a quien
  * lo llama: devuelve la línea que contar.
  */
-function indexar(issues) {
+function indexar(issues, { reusarPrsMenosDeHoras = 0 } = {}) {
   let prs = null;
   let aviso = "";
-  try {
-    prs = JSON.parse(gh("api", "graphql", "-f", `query=${CONSULTA_PR_INDICE}`)).data.repository.pullRequests.nodes;
-  } catch (e) {
-    aviso = ` (los PR no se han podido leer, ${motivo(e)}: quedan los del índice anterior)`;
+  const previo = leerIndice();
+  const viejo = previo.indice;
+  // En el arranque (10 s de tope) no se pide lo que ya se pidió hace poco.
+  if (!(viejo && previo.horas < reusarPrsMenosDeHoras)) {
+    try {
+      prs = JSON.parse(gh("api", "graphql", "-f", `query=${CONSULTA_PR_INDICE}`)).data.repository.pullRequests.nodes;
+    } catch (e) {
+      aviso = ` (los PR no se han podido leer, ${motivo(e)}: quedan los del índice anterior)`;
+    }
   }
-  const viejo = leerIndice().indice;
   const indice = construirIndice(issues, prs ?? [], new Date());
   if (prs === null && viejo) indice.fichas.push(...viejo.fichas.filter((f) => f.clase === "pr"));
   escribirIndice(indice);
@@ -277,7 +281,7 @@ if (args.includes("--etiquetas")) {
   const issues = todos();
   // De paso, el índice con lo ya leído: sin llamadas de más para los issues.
   try {
-    indexar(issues);
+    indexar(issues, { reusarPrsMenosDeHoras: 1 });
   } catch (e) {
     console.error(`índice: no he podido escribirlo (${motivo(e)})`);
   }
