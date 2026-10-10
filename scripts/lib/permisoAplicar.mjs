@@ -53,6 +53,10 @@ const nombreTabla = (s) => s.replace(/"/g, "").replace(/^public\./i, "").toLower
  * Quita los comentarios (`--` y `/* *\/`) sin tocar lo que va entre comillas
  * simples: un `'--'` dentro de un literal no es un comentario.
  */
+// OJO (#440, fondo aparte): este lexer no entiende comillas dobles ni
+// dollar-quotes (un `--` dentro de un identificador entre comillas dobles o de
+// un cuerpo con dólares) ni `/* */` anidados. Es anterior a la lista blanca de
+// `anon` y no se arregla aquí.
 export function sinComentarios(sql) {
   const s = String(sql);
   let out = "";
@@ -90,12 +94,15 @@ const tablasDeLista = (lista) => lista.split(",").map((t) => nombreTabla(t.trim(
  * sentencia (inicio, tras `;`, `begin` o la apertura de un `$$`): una cola
  * pegada a un `grant … to` no cuenta.
  */
+// Espacio en blanco explícito: la clase de escape de espacio de JS admite
+// también espacios raros (nbsp…) que Postgres no trata como separador.
+const S = "[ \\t\\r\\n\\f]";
 const PRIV_TABLA = "(?:select|insert|update|delete|truncate|references|trigger|maintain)";
 const PRIV_SECUENCIA = "(?:usage|select|update)";
-const lista = (p) => `(?:all(?:\\s+privileges)?|${p}(?:\\s*,\\s*${p})*)`;
+const lista = (p) => `(?:all(?:${S}+privileges)?|${p}(?:${S}*,${S}*${p})*)`;
 const RE_REVOKE_ANON_POR_DEFECTO = new RegExp(
-  "(^|;|\\$[\\w]*\\$|\\bbegin\\b)(\\s*)alter\\s+default\\s+privileges\\s+for\\s+role\\s+postgres\\s+in\\s+schema\\s+public\\s+revoke\\s+" +
-    `(?:${lista(PRIV_TABLA)}\\s+on\\s+tables|${lista(PRIV_SECUENCIA)}\\s+on\\s+sequences)\\s+from\\s+anon\\s*(?=;|$)`,
+  `(^|;|\\$[\\w]*\\$|\\bbegin\\b)(${S}*)alter${S}+default${S}+privileges${S}+for${S}+role${S}+postgres${S}+in${S}+schema${S}+public${S}+revoke${S}+` +
+    `(?:${lista(PRIV_TABLA)}${S}+on${S}+tables|${lista(PRIV_SECUENCIA)}${S}+on${S}+sequences)${S}+from${S}+anon${S}*(?=;|$)`,
   "g",
 );
 
@@ -125,10 +132,14 @@ export function motivosDePablo(sql) {
   // Datos que se pierden o se reescriben.
   if (/\bdrop\s+(?:table|view|materialized\s+view|schema|type|sequence|extension)\b/.test(codigo)) r.push("borra una tabla, vista, esquema, tipo o secuencia");
   if (/\bdrop\s+column\b|\balter\s+table\b[^;]*\bdrop\s+(?!constraint\b|default\b|not\s+null\b)(?:if\s+exists\s+)?[\w"]+/.test(codigo)) r.push("borra una columna");
-  // `'truncate'` como palabra de un literal (la lista de permisos de una
-  // autoprueba, 0096) no vacía nada; un `execute '…truncate…'` lo para la regla
-  // del SQL dinámico de más abajo, que mira el `execute` y no el literal.
-  if (/\btruncate\b/.test(codigo.replace(/'(?:[^']|'')*'/g, "''"))) r.push("vacía una tabla (`truncate`)");
+  // Excepción estrecha (autoprueba de la 0096): la palabra `'truncate'` como
+  // permiso a comprobar, solo en `has_table_privilege(…)`/`has_sequence_privilege(…)`
+  // o en la lista `foreach p in array array['select', …]` de palabras sueltas.
+  // Cualquier otro `truncate`, esté donde esté (también en un literal), cuenta.
+  const sinPermisoTruncate = codigo
+    .replace(/has_(?:table|sequence)_privilege\s*\(\s*(?:'[\w.]*'\s*,\s*){1,2}'truncate'\s*\)/g, "has_privilege()")
+    .replace(/\bforeach\s+\w+\s+in\s+array\s+array\s*\[\s*'[a-z_ ]+'(?:\s*,\s*'[a-z_ ]+')*\s*\]/g, "foreach p in array array[]");
+  if (/\btruncate\b/.test(sinPermisoTruncate)) r.push("vacía una tabla (`truncate`)");
   if (/\bdelete\s+from\b/.test(codigo)) r.push("borra filas (`delete from`)");
   if (/\bupdate\s+[\w."]+\s+set\b/.test(codigo)) r.push("reescribe filas (`update … set`)");
   if (/\balter\s+column\s+[\w"]+\s+(?:set\s+data\s+)?type\b/.test(codigo)) r.push("cambia el tipo de una columna");
@@ -157,7 +168,8 @@ export function motivosDePablo(sql) {
     if (!/security_invoker\s*=\s*(?:true|on)/.test(m[1])) r.push("crea una vista sin `security_invoker` (se salta la RLS)");
   }
   // SQL dinámico: lo que ejecuta no se puede leer aquí.
-  if (/\bexecute\s+(?:format\s*\(|'|\$)/.test(codigo) || /\bexecute\s+[\w]+\s*;/.test(codigo)) r.push("ejecuta SQL dinámico (`execute`), que este script no puede revisar");
+  // Cualquier `execute` cuenta, salvo el de un trigger (`execute function|procedure`).
+  if (/\bexecute\b(?!\s+(?:function|procedure)\b)/.test(codigo)) r.push("ejecuta SQL dinámico (`execute`), que este script no puede revisar");
   return [...new Set(r)];
 }
 

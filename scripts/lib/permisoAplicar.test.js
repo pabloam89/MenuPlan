@@ -153,11 +153,41 @@ describe("privilegios por defecto a anon (#440)", () => {
     expect(motivosDePablo(sql)).toEqual([]);
   });
 
-  it("`truncate` como palabra de un literal no es un truncate, pero uno de verdad o dinámico sí", () => {
+  it("`'truncate'` solo se ignora como permiso a comprobar (lista del foreach o has_*_privilege)", () => {
     expect(motivosDePablo(SOLO("do $$ declare p text; begin foreach p in array array['select', 'truncate'] loop null; end loop; end $$;"))).toEqual([]);
-    expect(motivosDePablo(SOLO("truncate public.persona;"))).not.toEqual([]);
-    expect(motivosDePablo(SOLO("do $$ begin execute 'truncate public.persona'; end $$;"))).not.toEqual([]);
-    expect(motivosDePablo(SOLO("insert into public.cosas (n) values ('a'); truncate public.persona;"))).not.toEqual([]);
+    expect(motivosDePablo(SOLO("select has_table_privilege('anon','public.x','truncate');"))).toEqual([]);
+    expect(motivosDePablo(SOLO("select has_sequence_privilege('anon','public.s','usage');"))).toEqual([]);
+  });
+
+  // Ronda 2 (seguridad, #440): cada forma de esconder un truncate o un execute.
+  it.each([
+    ["truncate de verdad", "truncate public.persona;"],
+    ["truncate tras un literal", "insert into public.cosas (n) values ('a'); truncate public.persona;"],
+    ["execute con literal", "do $$ begin execute 'truncate public.persona'; end $$;"],
+    ["execute concat", "do $$ begin execute concat('truncate ', 'public.persona'); end $$;"],
+    ["execute entre paréntesis", "do $$ begin execute ('truncate public.persona'); end $$;"],
+    ["execute E''", "do $$ begin execute E'truncate public.persona'; end $$;"],
+    ["execute lower", "do $$ begin execute lower('TRUNCATE public.persona'); end $$;"],
+    ["E'\\'' y truncate detrás", "select E'\\''; truncate public.persona; select 'x';"],
+    ["comilla dentro de $q$", "select $q$'$q$; truncate public.persona; select $q$'$q$;"],
+    ["comilla dentro de un identificador", 'select 1 as "\'"; truncate public.persona; select 1 as "\'";'],
+    ["truncate como tercer argumento de otra función", "select otra('anon','public.x','truncate'); truncate public.persona;"],
+    ["execute con variable", "do $$ declare q text := 'x'; begin execute q; end $$;"],
+    ["execute using", "do $$ begin execute 'select 1' using 1; end $$;"],
+    ["la lista blanca con un execute dentro de un do", `do $$ begin ${TABLAS} execute 'truncate persona'; end $$;`],
+    ["la lista blanca con un delete en el mismo do", `do $$ begin ${TABLAS} delete from persona; end $$;`],
+    ["la lista blanca con un truncate al lado", `${TABLAS} truncate persona;`],
+    ["la lista blanca con espacio no separador (nbsp)", TABLAS.replace(" from ", " from ")],
+    ["la lista blanca con un comentario en medio y un grant", `alter default privileges for role postgres in schema public revoke all on tables /* x */ from anon; grant all on public.persona to anon;`],
+    ["la lista blanca dentro de un literal y un drop", `select '${TABLAS}'; drop table public.persona;`],
+    ["lista blanca con restrict", TABLAS.replace(";", " restrict;")],
+    ["lista blanca con dos roles creadores", "alter default privileges for role postgres, supabase_admin in schema public revoke all on tables from anon;"],
+  ])("sigue siendo de Pablo: %s", (_n, extra) => {
+    expect(motivosDePablo(SOLO(extra))).not.toEqual([]);
+  });
+
+  it("un trigger con `execute function` no cuenta como SQL dinámico", () => {
+    expect(motivosDePablo(SOLO("create trigger t before insert on public.x for each row execute function public.f();"))).toEqual([]);
   });
 
   it("la migración 0096 real ya no es de Pablo", () => {
