@@ -143,7 +143,7 @@ gana el último y nadie se entera.
   `anon` y `authenticated` por defecto, y revocar a `public` no lo quita (lo
   que se vio con la 0055/0056).
 - `anon` no tiene permisos por defecto sobre tablas ni secuencias nuevas (0096).
-  Dárselos exige `grant … to anon` con la marca `-- anon: <porqué>` en la propia
+  Para dárselos hay que escribir `grant … to anon` con la marca `-- anon: <porqué>` en la propia
   sentencia. **[auto]** (`supabase/anonPorDefecto.test.js`) Por qué: así la RLS
   deja de ser la única barrera frente a la clave pública. Límites:
   - Vale solo para lo que crea `postgres`: nada se crea en `public` con otro rol
@@ -152,7 +152,8 @@ gana el último y nadie se entera.
     estuviera abierta: si alguna ruta pública la leía, deja de funcionar.
   - Las funciones no entran: siguen con el revoke explícito de arriba.
   - El test lee texto y no ve SQL armado a trozos (`'grant ' || …`,
-    `format`), ni permisos por pertenencia a un rol, ni cambios hechos en el panel.
+    `format`), ni entrar en un rol por otra vía (`create role … in role`), ni
+    cambios hechos en el panel. `grant authenticated to anon` sí lo rechaza.
 - Las políticas usan `(select auth.uid())`, no `auth.uid()` a pelo.
   **[revisión]** Por qué: así se evalúa una vez por consulta y no por fila
   (0011).

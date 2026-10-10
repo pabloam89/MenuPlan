@@ -12,14 +12,17 @@ import { fileURLToPath } from "node:url";
  *     lo existente;
  *  2. desde la 0096, ninguna migración da permisos de tabla o secuencia a
  *     `anon` ni a `public` (que lo incluye), ni cambia el dueño de nada a
- *     ellos (`owner to`), salvo la marca `-- anon: <porqué en tres palabras o
+ *     ellos (`owner to`, `reassign owned … to`), salvo la marca `-- anon: <porqué en tres palabras o
  *     más>` dentro de la sentencia (antes de su `;`) o en una línea que sea solo
  *     ese comentario, justo encima. Las funciones quedan fuera: un RPC público
  *     lleva su `grant execute` explícito (§8).
  *
  * Es un lector de texto, y lo que NO cubre:
  *  - SQL armado en dos trozos (`'grant ' || ...`, `format(...)`) o leído de una tabla;
- *  - dar permisos por pertenencia a un rol (`grant authenticated to anon`);
+ *  - entrar en un rol por otra vía (`create role … in role`, `alter role …`);
+ *    `grant authenticated to anon` sí se rechaza;
+ *  - falsos positivos aceptados (el lector no distingue): un `grant … to anon` dentro
+ *    de un texto entre dólares, de un `format()` o de un `comment on`;
  *  - objetos creados por otro rol que no sea `postgres` (`supabase_admin` tiene su
  *    propia plantilla, abierta a `anon`: PRINCIPIOS §8);
  *  - un `;` dentro de un texto entre comillas simples parte la sentencia a efectos
@@ -96,12 +99,14 @@ export function grantsAnon(sql) {
     const dentro = comentarios.some((c) => c.ini >= ini && c.ini < hasta && MARCA.test(c.texto));
     const encima = comentarios.some((c) => {
       if (!MARCA.test(c.texto) || linea(c.fin) !== linea(ini) - 1) return false;
+      if (limpio.slice(c.fin, ini).includes(";")) return false; // cubre un solo grant
       const antes = sql.slice(sql.lastIndexOf("\n", c.ini - 1) + 1, c.ini);
       return antes.trim() === "";
     });
     if (!dentro && !encima) malos.push(resumen(m[0]));
   }
-  for (const m of limpio.matchAll(/\bowner\s+to\s+(?:anon|public)\b/g)) malos.push(resumen(m[0]));
+  for (const m of limpio.matchAll(/\bowner\s+to\s+"?(?:anon|public)"?\b/g)) malos.push(resumen(m[0]));
+  for (const m of limpio.matchAll(/\breassign\s+owned\s+by\b[^;]*?\bto\s+"?(?:anon|public)"?\b/g)) malos.push(resumen(m[0]));
   return malos;
 }
 
@@ -128,6 +133,11 @@ describe("anon por defecto: el lector distingue SQL bueno de malo", () => {
     ["un ; en un comentario de bloque tampoco", "grant select on public.cosas /* a; b */ to anon;", 1],
     ["owner to anon", "alter table public.cosas owner to anon;", 1],
     ["owner to public", "alter table public.cosas owner to public;", 1],
+    ["owner to \"anon\" entre comillas", "alter table public.cosas owner to \"anon\";", 1],
+    ["reassign owned a anon", "reassign owned by postgres to anon;", 1],
+    ["reassign owned a public", "reassign owned by postgres, otro to \"public\";", 1],
+    ["una marca encima cubre solo un grant", "-- anon: lectura publica del enlace\ngrant select on public.a to anon; grant select on public.b to anon;", 1],
+    ["grant de un rol a anon", "grant authenticated to anon;", 1],
     ["marca pegada a la sentencia anterior", "grant select on public.a to authenticated; -- anon: lectura publica del enlace\ngrant select on public.b to anon;", 1],
     ["marca con menos de tres palabras", "grant select on public.cosas to anon /* anon: vale */;", 1],
     ["marca lejos de la sentencia", "-- anon: lectura publica del enlace\n\ngrant select on public.cosas to anon;", 1],
