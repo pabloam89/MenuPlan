@@ -10,7 +10,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { hash } from "./evals.mjs";
+import { hashLF } from "./evals.mjs";
 import { cargarSkill, caducidades, DIR_SKILLS, RAIZ, nombresDeSkills } from "./skills.mjs";
 import { ctxHigiene, higieneDeSkill, solapeMaximo } from "./higieneSkills.mjs";
 
@@ -53,7 +53,7 @@ export function saludDeSkills(raiz = RAIZ, hoy = new Date()) {
         resultado: p.resultado,
         disparo: `${p.resumen?.disparo_ok}/${p.resumen?.disparo_total}`,
         comprobaciones: `${p.resumen?.comprobaciones_ok}/${p.resumen?.comprobaciones_total}`,
-        desactualizada: p.version?.skill_md !== hash(skill.texto) || p.version?.casos_json !== hash(casosTexto),
+        desactualizada: p.version?.skill_md !== hashLF(skill.texto) || p.version?.casos_json !== hashLF(casosTexto),
       },
     };
   });

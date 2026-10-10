@@ -32,7 +32,7 @@ export const INDICADORES = {
   fondos_sin_diagnostico: { umbral: 0, que: "fondos abiertos con encargos o en estado de diagnosticado en adelante, sin «mecanismo» y «causa_escape»" },
   encargos_sin_juez: { umbral: 0, que: "encargos abiertos de un fondo en plan o después, sin bloque «encargo», sin «juez» o con el mismo juez que constructor" },
   cerrados_sin_aprendizaje: { umbral: 0, que: "fondos cerrados como arreglados sin «aprendizaje» válido" },
-  reabiertos_clase_mal_definida: { umbral: 0, que: `casos «no-aguanto-corto» (el arreglo tapó los casos y no la clase) de los últimos ${VENTANA_CORTO_DIAS} días` },
+  reabiertos_clase_mal_definida: { umbral: 0, que: `casos «no-aguanto-corto» (el arreglo tapó los casos y no la clase) creados en los últimos ${VENTANA_CORTO_DIAS} días` },
   ciclos_sobre_presupuesto: { umbral: 0, que: "fondos abiertos cuyas rondas de constructor y juez pasan el tope de ops/presupuestos.json" },
 };
 export const IDS_INDICADOR = Object.keys(INDICADORES);
@@ -49,6 +49,7 @@ export const CONSULTA_FLUJO = `query($cursor: String) {
         number state stateReason createdAt closedAt body authorAssociation
         labels(first: 20) { nodes { name } }
         subIssues(first: 50) {
+          pageInfo { hasNextPage }
           nodes { number state stateReason createdAt body authorAssociation labels(first: 20) { nodes { name } } }
         }
       }
@@ -68,7 +69,8 @@ export function desdeGraphql(n) {
     labels: (x.labels?.nodes ?? []).map((l) => ({ name: l.name })),
     tipo: tipoDe(x.labels?.nodes),
   });
-  return { ...ref(n), closedAt: n.closedAt ?? null, hijos: (n.subIssues?.nodes ?? []).map(ref) };
+  // Más de 50 hijos: los que no caben no se ven; se avisa en la línea de los indicadores (nota) en vez de callarlo.
+  return { ...ref(n), closedAt: n.closedAt ?? null, truncado: Boolean(n.subIssues?.pageInfo?.hasNextPage), hijos: (n.subIssues?.nodes ?? []).map(ref) };
 }
 
 const abierto = (i) => i.state === "OPEN";
@@ -123,20 +125,22 @@ export function hallazgos(issues, { hoy = new Date() } = {}) {
  */
 export function medirIndicadores(issues, opciones = {}) {
   if (!Array.isArray(issues)) {
-    return IDS_INDICADOR.map((indicador) => ({ indicador, valor: null, umbral: INDICADORES[indicador].umbral, estado: "sin_datos", en: [] }));
+    return IDS_INDICADOR.map((indicador) => ({ indicador, valor: null, umbral: INDICADORES[indicador].umbral, estado: "sin_datos", en: [], truncados: [] }));
   }
   const h = hallazgos(issues, opciones);
+  const truncados = fondosDe(issues).filter((f) => f.truncado).map((f) => f.number);
   return IDS_INDICADOR.map((indicador) => {
     const valor = h[indicador].length;
     const umbral = INDICADORES[indicador].umbral;
-    return { indicador, valor, umbral, estado: valor > umbral ? "dispara" : "ok", en: h[indicador] };
+    return { indicador, valor, umbral, estado: valor > umbral ? "dispara" : "ok", en: h[indicador], truncados };
   });
 }
 
 /** La línea contable de un indicador. */
 export function lineaDeIndicador(m) {
   const en = m.estado === "dispara" && m.en.length ? ` en: ${m.en.slice(0, 10).map((n) => `#${n}`).join(",")}${m.en.length > 10 ? ",…" : ""}` : "";
-  return `indicador: ${m.indicador} valor: ${m.valor ?? "-"} umbral: ${m.umbral} estado: ${m.estado}${en}`;
+  const nota = m.truncados?.length ? ` nota: hijos_truncados_en:${m.truncados.map((n) => `#${n}`).join(",")}` : "";
+  return `indicador: ${m.indicador} valor: ${m.valor ?? "-"} umbral: ${m.umbral} estado: ${m.estado}${en}${nota}`;
 }
 
 // ── Poda: piezas sin uso (solo con el registro local de la fábrica, #340) ─────

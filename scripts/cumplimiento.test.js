@@ -8,9 +8,10 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
-  DIAS_PARA_PODAR, ESTADOS_INDICADOR, IDS_INDICADOR, INDICADORES, VENTANA_CORTO_DIAS, desdeGraphql, hallazgos, lineaDeIndicador, lineasDeUso, medirIndicadores, usoDeSkills,
+  CONSULTA_FLUJO, DIAS_PARA_PODAR, ESTADOS_INDICADOR, IDS_INDICADOR, INDICADORES, VENTANA_CORTO_DIAS, desdeGraphql, hallazgos, lineaDeIndicador, lineasDeUso, medirIndicadores, usoDeSkills,
 } from "./lib/cumplimiento.mjs";
 import { informe } from "./cumplimiento.mjs";
+import { hash, hashLF } from "./lib/evals.mjs";
 import { saludDeSkills } from "./lib/saludSkills.mjs";
 
 const HOY = new Date("2026-10-20T10:00:00Z");
@@ -116,6 +117,29 @@ describe("cada indicador se ve disparar, y con datos buenos no", () => {
   });
 });
 
+describe("más de 50 hijos", () => {
+  it("se avisa con una nota en la línea, no se calla", () => {
+    const nodo = { ...fondo(900, ficha(BASE)), subIssues: { pageInfo: { hasNextPage: true }, nodes: [] } };
+    const m = medirIndicadores([desdeGraphql(nodo)], { hoy: HOY });
+    expect(lineaDeIndicador(m[0])).toBe("indicador: fondos_sin_diagnostico valor: 0 umbral: 0 estado: ok nota: hijos_truncados_en:#900");
+    expect(CONSULTA_FLUJO).toMatch(/subIssues\(first: 50\) \{\s*pageInfo \{ hasNextPage \}/);
+  });
+  it("reabiertos_clase_mal_definida dice que cuenta casos creados en la ventana", () => {
+    expect(INDICADORES.reabiertos_clase_mal_definida.que).toMatch(/creados en los últimos 28 días/);
+  });
+});
+
+describe("el hash de las pasadas de skills no depende del fin de línea", () => {
+  it("CRLF y LF dan el mismo hash, y con LF vale lo de siempre", () => {
+    expect(hashLF("a\r\nb\r\n")).toBe(hashLF("a\nb\n"));
+    expect(hashLF("a\nb\n")).toBe(hash("a\nb\n"));
+  });
+  it("skills-prueba y saludSkills usan el mismo hash", () => {
+    for (const f of ["scripts/skills-prueba.mjs", "scripts/lib/saludSkills.mjs"]) expect(readFileSync(join(RAIZ, f), "utf8")).toMatch(/hashLF\(/);
+  });
+});
+
+
 describe("sin datos no hay «ok» inventado", () => {
   it("si la API no responde, todos salen sin_datos", () => {
     const m = medirIndicadores(null);
@@ -211,7 +235,11 @@ describe("los workflows: sin secretos, sin coste, sin issues automáticos por in
     expect(y).not.toMatch(/ANTHROPIC/);
     // toda llamada a skills-prueba lleva --ensayo
     for (const l of y.split("\n").filter((x) => /skills-prueba\.mjs/.test(x))) expect(l).toMatch(/--ensayo/);
-    expect(y).toMatch(/permissions:\s*\n\s+contents: read\s*\n\s+issues: write/);
+    // dos jobs: quien mide solo lee, quien publica solo escribe (y la escritura es de un único job)
+    expect(y.match(/issues: write/g)).toHaveLength(1);
+    expect(y.match(/issues: read/g)).toHaveLength(1);
+    expect(y.indexOf("issues: read")).toBeLessThan(y.indexOf("publicar:"));
+    expect(y.indexOf("issues: write")).toBeGreaterThan(y.indexOf("publicar:"));
     expect(y).not.toMatch(/\$\{\{\s*github\.event\./);
   });
 
@@ -219,6 +247,22 @@ describe("los workflows: sin secretos, sin coste, sin issues automáticos por in
     expect(semanal.match(/gh issue create/g)).toHaveLength(1);
     expect(semanal).toMatch(/gh issue list[\s\S]*in:title/);
   });
+
+  it("el issue del informe se busca por autor y título exacto, y un fallo de la búsqueda no crea otro", () => {
+    const y = sinComentarios(semanal);
+    expect(y).toMatch(/--author "app\/github-actions"/);
+    expect(y).toMatch(/select\(\.title==/);
+    expect(y).toMatch(/if ! lista=\$\(gh issue list/);
+    expect(y).not.toMatch(/gh issue list[^\n]*\|\| true/);
+  });
+
+  it("solo menciona si aparece un indicador que no disparaba en el comentario anterior", () => {
+    const y = sinComentarios(semanal);
+    expect(y).toMatch(/flujo:dispara=/);
+    expect(y).toMatch(/case ",\$previo," in/);
+    expect(y).not.toMatch(/grep -q 'estado: dispara'/);
+  });
+
 
   it("las acciones van fijadas por SHA", () => {
     for (const l of semanal.split("\n").filter((x) => /uses:/.test(x))) expect(l).toMatch(/@[0-9a-f]{40}\b/);
