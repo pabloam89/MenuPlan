@@ -1,6 +1,6 @@
 ---
 name: alta-de-secreto
-description: Úsala al dar de alta, rotar o retirar una clave, token o credencial («nuevo token», «API key para…», «secreto para el workflow», «bot nuevo», «contraseña de un rol», «ha caducado», «se ha filtrado»): dónde se crea y con qué ámbito y caducidad, en qué ficha, cómo llega a GitHub, Vercel o el servidor sin verse, cómo se comprueba y cómo se apunta. No para: leer una clave desde un script (1password), operar el servicio (su skill), la clave de las copias cifradas (hetzner), ni bajar o listar variables de Vercel (vercel).
+description: Úsala al dar de alta, rotar o retirar una clave, token o credencial, de punta a punta: «nuevo token», «API key para…», «secreto para el workflow», «bot nuevo», «ha caducado», «toca rotarla», una clave filtrada o vista en un log, o crear o mover la ficha de 1Password donde se guarda. Dice ámbito y caducidad, ficha y bóveda, cómo llega a GitHub, Vercel o el servidor sin verse, cómo se comprueba y se apunta. No para: leer una clave desde un script (1password), operar el servicio (su skill), la clave de las copias cifradas (hetzner), ni bajar o listar variables de Vercel (vercel).
 metadata:
   tipo: receta_cambio
   dueno: gobierno
@@ -47,6 +47,9 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
    la ficha en JSON por stdin; skill `1password`):
    - bóveda `HoMenu` si la leen los scripts del PC o el despliegue; `Panel
      HoMenu` si es del servidor o no debe leerse sin aprobar;
+   - antes, `node scripts/op.mjs item list --vault HoMenu` (solo títulos): si
+     ya hay ficha de ese servicio y uso, es una rotación; la de otro servicio
+     no se reutiliza;
    - **una ficha por servicio y uso**, con nombre sin tildes ni signos (solo
      letras, cifras, espacios, `-`, `_` y `.`): una tilde rompe las direcciones
      `op://`;
@@ -83,8 +86,9 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
 7. **Rotar**: a los 14 días de caducar, al irse alguien con acceso, si salió en
    un log, en la conversación o en un aviso de secret scanning, o si se guardó
    donde no tocaba. Se hace un alta nueva (pasos 2 a 5) en **la misma ficha y
-   campo**, así ninguna dirección cambia; se pone en cada sitio del
-   inventario; se comprueba; **y solo entonces** se revoca la vieja en el
+   campo**, así ninguna dirección cambia; se pone en **cada destino** que
+   lista el inventario (environments de GitHub, entornos de Vercel, servidor);
+   se comprueba por forma y con la llamada gratis; **y solo entonces** se revoca la vieja en el
    servicio y se cambia la fecha en el inventario.
 8. **Retirar**: se quita de cada destino del inventario, se revoca en el
    servicio, se archiva la ficha y se borra la fila (o se marca «retirada» con
@@ -175,6 +179,7 @@ clave nueva o rotada, antes de dar el alta por hecha:
 
 ## Registro de cambios
 
+- **2026-10-10** · Descriptions afinadas (aquí, en `1password`, `vercel` y `hetzner`) tras el disparo 4 de 8 de la primera pasada; mirar las fichas antes y cada destino al rotar (#398).
 - **2026-10-10** · Primera versión, con los cinco tropiezos del 9 oct y la lista de comprobación que cita `ops/mecanismos.json` (#398).
 
 ## Fuentes y comprobación
