@@ -27,7 +27,7 @@ const PELIGROSAS = /\b(pg_terminate_backend|pg_cancel_backend|pg_reload_conf|pg_
 const ESQUEMAS = /\b(net|cron|vault|pgsodium|supabase_functions)\s*\./i;
 
 /** Quita textos entre comillas y luego comentarios, sin que uno engañe al otro. */
-export function sinTexto(sql) {
+export function sinTexto(sql, { nombresSimples = false } = {}) {
   let s = String(sql);
   let out = "";
   for (let i = 0; i < s.length; ) {
@@ -52,7 +52,9 @@ export function sinTexto(sql) {
       i = fin < 0 ? s.length : fin + 2;
     } else if (c === '"') { // identificador entre comillas dobles: se queda, sin juzgar lo de dentro
       const fin = s.indexOf('"', i + 1);
-      out += '"x"';
+      const dentro = fin < 0 ? "" : s.slice(i + 1, fin);
+      // con nombresSimples, "recipes" se deja como recipes (solo letras, cifras y _)
+      out += nombresSimples && /^\w+$/.test(dentro) ? dentro : '"x"';
       i = fin < 0 ? s.length : fin + 1;
     } else {
       out += c;
@@ -86,26 +88,36 @@ export function motivoParaNoLeer(sql) {
  * retirada sigue siendo legítimo, así que la consulta se lanza igual; solo se
  * dice en llano que la tabla ya no es la fuente y cuál la sustituye.
  * Lee el registro `TABLAS` de src/data/model.js: lo que esté ahí como
- * `retirado` o `copia_retirada` y nombre tablas o vistas. Busca el nombre con
- * `\b` tras FROM, JOIN o INTO (con esquema opcional; un nombre entre comillas dobles no se ve), sobre el
- * SQL sin comentarios ni cadenas.
+ * `retirado` o `copia_retirada` y nombre tablas o vistas. Sobre el SQL sin
+ * comentarios ni cadenas, mira: `into` y `table` + nombre; y, tras cada FROM
+ * hasta WHERE/GROUP/ORDER/LIMIT/HAVING/UNION/`)`/`;`, el primer nombre, los que
+ * siguen a una coma y los de JOIN. Esquema opcional y nombres entre comillas
+ * dobles simples (`public."recipes"`).
+ * Limitaciones: un nombre con mayúsculas o signos entre comillas dobles no se
+ * ve; `on f(a, b)` en un JOIN corta la lectura de esa cláusula; una consulta
+ * armada con SQL dinámico no se ve (tampoco la deja pasar el filtro de lectura).
  */
 export function avisosDeRetiradas(sql, fuentes = TABLAS) {
-  const limpio = sinTexto(sql);
-  const avisos = [];
+  const limpio = sinTexto(sql, { nombresSimples: true });
+  const nombre = String.raw`(?:\w+\s*\.\s*)?(\w+)`;
   const vistos = new Set();
+  for (const m of limpio.matchAll(new RegExp(String.raw`\b(?:into|table|join)\s+${nombre}`, "gi"))) vistos.add(m[1].toLowerCase());
+  for (const m of limpio.matchAll(/\bfrom\b([^;)]*)/gi)) {
+    const clausula = m[1].split(/(?:where|group|order|limit|having|union|intersect|except|window|fetch|offset|returning)/i)[0];
+    for (const n of clausula.matchAll(new RegExp(String.raw`(?:^|,|\bjoin\b)\s*${nombre}`, "gi"))) vistos.add(n[1].toLowerCase());
+  }
+  const avisos = [];
+  const dichos = new Set();
   for (const f of fuentes) {
     if (f.estado !== "retirado" && f.rol !== "copia_retirada") continue;
     const objetos = [...(f.tablas ?? []).map((n) => [n, "tabla"]), ...(f.vistas ?? []).map((n) => [n, "vista"])];
-    for (const [nombre, clase] of objetos) {
-      if (vistos.has(nombre)) continue;
-      const re = new RegExp(String.raw`\b(?:from|join|into)\s+(?:\w+\s*\.\s*)?${nombre}\b`, "i");
-      if (!re.test(limpio)) continue;
-      vistos.add(nombre);
+    for (const [nom, clase] of objetos) {
+      if (dichos.has(nom) || !vistos.has(nom.toLowerCase())) continue;
+      dichos.add(nom);
       const mig = String(f.nota ?? "").match(/borrad[ao]s? en la (\d{4})/i);
       const borrada = mig ? ` (borrada en la ${mig[1]})` : "";
       const sust = f.sustituido_por ? `La fuente que la sustituye es ${f.sustituido_por}` : "No tiene fuente que la sustituya";
-      avisos.push(`La ${clase} ${nombre} es una copia retirada${borrada}. ${sust}. Lanzo la consulta igual: auditar es legítimo.`);
+      avisos.push(`La ${clase} ${nom} es una copia retirada${borrada}. ${sust}. Lanzo la consulta igual: auditar es legítimo.`);
     }
   }
   return avisos;

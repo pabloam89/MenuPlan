@@ -112,6 +112,24 @@ describe("npm run consulta avisa de las copias retiradas, sin negarlas (#292)", 
     expect(avisosDeRetiradas("select '" + sel(R) + "' as t")).toEqual([]);
   });
 
+  it("listas con coma, table y nombres entre comillas dobles", () => {
+    expect(avisosDeRetiradas(sel("households h, " + R + " r"))).toHaveLength(1);
+    expect(avisosDeRetiradas(sel("households, public." + R))).toHaveLength(1);
+    expect(avisosDeRetiradas("table " + R)).toHaveLength(1);
+    expect(avisosDeRetiradas(sel('"' + R + '"'))).toHaveLength(1);
+    expect(avisosDeRetiradas(sel('public."' + R + '" r'))).toHaveLength(1);
+    // una coma de lista de columnas no es una tabla
+    expect(avisosDeRetiradas("select a, " + R + " from households")).toEqual([]);
+    expect(avisosDeRetiradas(sel("households where x in (1, 2) and y = 3, " + R))).toEqual([]);
+  });
+
+  it("solo avisan las fuentes retiradas del registro que se le pasa", () => {
+    const viva = { id: "x", estado: "vivo", rol: "derivado", tablas: ["mesa_x"], vistas: [], sustituido_por: null, nota: "" };
+    const muerta = { ...viva, estado: "retirado", rol: "copia_retirada", sustituido_por: "otra" };
+    expect(avisosDeRetiradas(sel("mesa_x"), [viva])).toEqual([]);
+    expect(avisosDeRetiradas(sel("mesa_x"), [muerta])).toHaveLength(1);
+  });
+
   it("avisar no es negar: motivoParaNoLeer sigue dejando pasar la lectura", () => {
     expect(motivoParaNoLeer(sel(R))).toBe(null);
   });
