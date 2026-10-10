@@ -14,9 +14,9 @@ const faltas = (t) => medir(t).faltas;
 const frase = (n) => Array.from({ length: n }, (_, i) => "w" + i).join(" ") + ".";
 
 describe("el vocabulario cerrado", () => {
-  it("son exactamente las once reglas medibles, sin repetidos", () => {
+  it("son exactamente las doce reglas medibles, sin repetidos", () => {
     expect([...FALTAS].sort()).toEqual([
-      "decision_sin_tres_opciones", "emoji", "frase_larga", "ideas_de_mas", "jerga", "numero_sin_nombre",
+      "decision_sin_tres_opciones", "emoji", "frase_larga", "ideas_de_mas", "jerga", "no_castellano", "numero_sin_nombre",
       "parrafo_largo", "preambulo", "raiz_en_negrita", "recapitulacion_final", "ruta_o_comando_en_prosa",
     ]);
   });
@@ -27,6 +27,17 @@ describe("el vocabulario cerrado", () => {
 });
 
 describe("cada regla ve fallar lo que debe y deja pasar lo bueno", () => {
+  it("no_castellano: una respuesta en inglés falla; la jerga inglesa suelta en castellano no", () => {
+    // El caso real (11 oct 2026): tras resumir el contexto, la sesión le contestó a Pablo en inglés.
+    expect(faltas("**The standards PR is open and the four tables are done.**\nI checked every claim of the builder against the code.\nWhen CI is green, I will merge it.")).toContain("no_castellano");
+    expect(faltas("**Ya está el PR de los estándares.**\nHe hecho merge de staging y el push de la rama; el CI está en verde.")).not.toContain("no_castellano");
+    expect(faltas("**Listo.**\nEl comando `is it on the main branch of the repo` va en código y no cuenta.")).not.toContain("no_castellano");
+    expect(faltas("**Ok.**\nIt is fine.")).not.toContain("no_castellano"); // menos de cinco palabras vacías: no se juzga
+    // Lo citado entre comillas no cuenta (revisor, 11 oct 2026): un error o un commit en inglés, citados en castellano.
+    expect(faltas("**Error en el despliegue.**\nVercel dice «The build is not ready for this project» y no avanza.")).not.toContain("no_castellano");
+    expect(faltas("**Hecho.**\nEl mensaje del commit: \"fix the bug in the parser and add the test for it\".")).not.toContain("no_castellano");
+    expect(faltas("**Ya está.**\nAhora que has visto el PR, dime si lo fusiono.")).not.toContain("no_castellano");
+  });
   it("raiz_en_negrita", () => {
     expect(faltas("He terminado el cambio.")).toContain("raiz_en_negrita");
     expect(faltas("Dónde estábamos: el test.\n**Listo.**")).toContain("raiz_en_negrita");

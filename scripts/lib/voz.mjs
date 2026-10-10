@@ -22,7 +22,7 @@ import { diaMadrid } from "./hora.mjs";
 /** Las faltas posibles (vocabulario cerrado): una por regla medible de la skill. */
 export const FALTAS = Object.freeze([
   "raiz_en_negrita", "ideas_de_mas", "frase_larga", "parrafo_largo", "preambulo", "recapitulacion_final",
-  "emoji", "jerga", "decision_sin_tres_opciones", "numero_sin_nombre", "ruta_o_comando_en_prosa",
+  "emoji", "jerga", "decision_sin_tres_opciones", "numero_sin_nombre", "ruta_o_comando_en_prosa", "no_castellano",
 ]);
 
 /** Por qué no se pudo medir (vocabulario cerrado de `voz: error=…`). */
@@ -31,6 +31,8 @@ export const ERRORES = Object.freeze(["entrada", "transcript", "escritura", "tie
 export const MAX_PALABRAS_FRASE = 25;
 export const MAX_FRASES_PARRAFO = 5;
 export const MAX_IDEAS = 4;
+/** Desde cuántas palabras vacías inglesas un mensaje cuenta como escrito en inglés (si además ganan a las castellanas). */
+export const MIN_PALABRAS_INGLES = 5;
 
 /** Palabras de uso corriente en castellano que también están en el glosario: contarlas daría falsos positivos. */
 export const TERMINOS_COMUNES = Object.freeze(["caso", "guardia", "producción", "agente"]);
@@ -93,6 +95,23 @@ const RUTA = /(?:^|[\s(`"'«])(?:\.{0,2}\/)?(?:[\w.-]+\/)+[\w.-]*[\w-]\.\w{1,5}\
 const FICHERO = /\b[\w-]+\.(?:mjs|cjs|js|jsx|ts|tsx|json|jsonl|md|ya?ml|sql|sh|css|html|log)\b/;
 const COMANDO = /\b(?:npm (?:run|test|ci|install)|npx|git (?:push|pull|merge|commit|checkout|rebase|status|fetch|worktree|branch|add|stash|log|diff)|gh (?:pr|issue|api|run|workflow|secret)|node (?:scripts|\.claude)\/)/;
 const RAMA = /\b(?:ops|bot|datos|ux|fix|feat|motor|rescate)\/[\w.-]+/;
+
+// Palabras vacías: las que no se cuelan como jerga. Fuera las que existen en los dos idiomas (a, no, he, me, son, has).
+const VACIAS_INGLES = new Set(["the", "and", "is", "are", "was", "were", "to", "of", "with", "this", "that", "it", "for", "you", "i", "have", "will", "be", "not", "on", "from", "we", "can", "should", "now", "what", "which", "there", "but", "would", "in", "if", "your", "they"]);
+const VACIAS_CASTELLANO = new Set(["el", "la", "los", "las", "de", "que", "y", "en", "un", "una", "es", "por", "con", "para", "del", "se", "lo", "al", "está", "pero", "como", "más", "ya", "hay"]);
+
+/** ¿El texto está escrito en inglés? Cuenta palabras vacías de cada idioma fuera del código en línea, de las URL y de lo citado
+ *  entre comillas (un error o un mensaje de commit citados no hacen inglesa la respuesta). */
+export function esIngles(prosa) {
+  const palabras = sinMarcas(sinUrls(prosa)).replace(/`[^`\n]*`|«[^»\n]*»|"[^"\n]*"|“[^”\n]*”/g, " ").toLowerCase().match(/\p{L}+(?:'\p{L}+)?/gu) ?? [];
+  let ingles = 0;
+  let castellano = 0;
+  for (const p of palabras) {
+    if (VACIAS_INGLES.has(p)) ingles++;
+    else if (VACIAS_CASTELLANO.has(p)) castellano++;
+  }
+  return ingles >= MIN_PALABRAS_INGLES && ingles > castellano;
+}
 
 const escapar = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -168,6 +187,7 @@ export function medir(texto, { terminos = terminosDeJerga() } = {}) {
   }
 
   if (jergaSinExplicar(prosa, terminos).length) faltas.add("jerga");
+  if (esIngles(prosa)) faltas.add("no_castellano");
 
   if (PIDE_DECIDIR.test(prosa)) {
     const opcion = (x) => new RegExp(`^[-•*\\s]*\\**${x}\\**(?:\\s*\\([^)]*\\))?\\s*[:.)]`, "m").test(prosa);
@@ -191,6 +211,7 @@ export function faltasDeMensaje(texto) {
   if (m.faltas.includes("raiz_en_negrita")) f.push("la primera línea no es la idea raíz en negrita");
   if (m.faltas.includes("preambulo")) f.push("empieza con preámbulo");
   if (m.faltas.includes("emoji")) f.push("lleva emojis");
+  if (m.faltas.includes("no_castellano")) f.push("no está en castellano");
   if (m.faltas.includes("ideas_de_mas")) f.push("pasa de cuatro ideas");
   for (const { n, inicio } of m.detalle.frasesLargas) f.push(`frase de ${n} palabras: «${inicio}…»`);
   if (m.faltas.includes("parrafo_largo")) f.push("párrafo de más de cinco frases");

@@ -136,7 +136,7 @@ falta, va solo entre paréntesis, detrás del nombre. Al volver tras un rato o
 retomar un tema, la idea raíz en negrita lo recuerda
 («**Seguimos con X: falta Y.**»).
 
-Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
+Siempre en castellano, también los avisos cortos. Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
 Un término técnico se explica la primera vez y después se llama igual. Ficheros,
 ramas y comandos van a un issue, no al chat, salvo que él los pida o los tenga
 que ejecutar. Plantillas fijas: resultado, decisión, error, concepto y resumen
