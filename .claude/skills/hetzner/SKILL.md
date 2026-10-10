@@ -13,7 +13,7 @@ metadata:
 
 - **Servidor `HoMenu-Panel`**, en el proyecto `HoMenu` de la consola de Hetzner
   Cloud: CPX02 (1 vCPU AMD, **1 GB de RAM**, 20 GB NVMe), Falkenstein (fsn1),
-  Ubuntu 26.04 LTS. Creado el 8 oct 2026.
+  Ubuntu 26.04 LTS. Creado en la fecha de «Fechas».
 - **Direcciones:** la pública, `188.245.14.194`, no se usa para nada (el 22 está
   cerrado). La de la red privada es `100.73.252.32` (skill `tailscale`).
 - **Para qué:** el panel de la factoría (repo propio, fuera de MenuPlan). Producción
@@ -44,7 +44,7 @@ metadata:
   - **Copia fuera del servidor** (#273, punto 4): las del panel y las de MenuPlan
     están en el mismo disco.
   - **Aviso de las copias** (#273): sin `COPIA_AVISO_URL`, `aviso: sin-canal`.
-  - **Instalar las copias**: el 9 oct 2026, nada instalado ni clave creada.
+  - **Instalar las copias**: nada instalado ni clave creada (al día de «Fechas»).
   - Usuario sin privilegios y el repo del panel, que aún no existe.
 
 ## Claves y accesos
@@ -85,7 +85,7 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
 | Copia ahora | `systemctl start panel-backup.service` | un `panel-….dump` nuevo en `/var/backups/panel` |
 | Últimas copias | `ls -lt /var/backups/panel \| head -3` | una por día (03:30 UTC), con 14 días de historia |
 | Ver el temporizador | `systemctl list-timers panel-backup.timer` | la próxima ejecución |
-| Restaurar en una base nueva (OK) | `cd /opt/panel && docker compose exec -T db pg_restore -U panel -d <base_nueva> --no-owner < <fichero.dump>` | sin errores y los datos en la base nueva. Ensayado el 2026-10-08 con una tabla de prueba (un valor guardado, copiado con `backup.sh`, restaurado en otra base y leído igual); la prueba se limpió |
+| Restaurar en una base nueva (OK) | `cd /opt/panel && docker compose exec -T db pg_restore -U panel -d <base_nueva> --no-owner < <fichero.dump>` | sin errores y los datos en la base nueva. Ensayado (día en «Fechas») con una tabla de prueba (un valor guardado, copiado con `backup.sh`, restaurado en otra base y leído igual); la prueba se limpió |
 | ¿Se ve el puerto desde fuera? | `bash -c 'echo > /dev/tcp/188.245.14.194/5432'` desde cualquier PC | no conecta (timeout) |
 | Última copia de la base | `ssh 'tail -n 3 /var/backups/menuplan/copias.log'` | una línea `copia-base … resultado: ok` de esta noche, con `bytes:` parecido al de ayer (~9 MB el 9 oct) |
 | Copias de la base guardadas | `ssh 'ls /var/backups/menuplan/diaria /var/backups/menuplan/semanal'` | hasta 7 y hasta 4 carpetas `AAAA-MM-DDTHHMMSSZ` |
@@ -174,7 +174,7 @@ Instalar las copias de la base (OK; lo lanza Pablo con `!`), su ensayo de restau
 
 ## Coste y límites
 
-**7,85 €/mes con IVA** (servidor 7,25 € + IPv4 0,61 €; 8 oct 2026), facturado por
+**7,85 €/mes con IVA** (servidor 7,25 € + IPv4 0,61 €; precios del día de «Fechas»), facturado por
 horas: si se borra a los tres días, se paga tres días. Sin Backups de Hetzner
 (sumarían ~20 %). Tráfico incluido: 20 TB. Límite que muerde: **1 GB de RAM**, con
 la swap de 2 GB como colchón; si Postgres y el panel no caben, se sube a la CPX12
@@ -195,5 +195,7 @@ Copias de la base: sin coste nuevo. ~9,1 MB y 14 s por copia (medido el 9 oct
 - https://github.com/FiloSottile/age
 - https://www.postgresql.org/docs/17/app-pgdump.html
 - https://healthchecks.io/docs/
+
+Fechas que estaban repartidas por el cuerpo (#411): servidor creado el 8 oct 2026; al 9 oct 2026, copias de la base sin instalar ni clave creada; restauración ensayada el 2026-10-08; precios (7,85 € con IVA) leídos el 8 oct 2026.
 
 Comprobado el 2026-10-08: entrada por SSH (por la red privada y, antes de cerrarlo, por la pública), actualización, reinicio con la swap activa, `ufw` activo con la pública sin respuesta en el 22 y el 5432, Postgres sano, copia diaria creada, **restauración de una copia en una base nueva con el dato intacto** y `sshd` sin contraseñas. Sin comprobar: restaurar con la base `panel` llena de datos de verdad (hoy está vacía), las actualizaciones automáticas de seguridad más allá de ver sus dos líneas activas y la copia fuera del servidor (no existe). Comprobado el 2026-10-09: `copia-base.sh` con docker, age y curl falsos (`scripts/copias.test.js`: copia buena, poda 7+4, cada motivo de fallo, `/fail`, código de salida, contraseña y URL de ping fuera de todo argv, dos vistas en `copia`, `--aceptar-tamano` y corte por TERM). Sin probar en ninguna parte: la restauración por tubería (`age -d | pg_restore` desde stdin) y el manejador de Ctrl+C del ensayo, que necesitan Postgres 17 en el PC. Sin comprobar: las copias de la base instaladas en el servidor, el temporizador de verdad, Healthchecks y un ensayo de restauración con una copia hecha por el servidor (no hay clave todavía).

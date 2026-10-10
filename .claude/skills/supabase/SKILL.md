@@ -16,8 +16,8 @@ metadata:
   escriben en ella. Cada escritura es en datos de familias reales.
 - **De quién es**: cuelga del equipo de Vercel por el Marketplace (org
   `vercel_icfg_…`). El dueño y el que paga es el equipo de Vercel; no hay
-  cuenta propia que transferir (comprobado el 7 oct 2026).
-- **Plan: «Supabase Free Plan»** (visto en Vercel y en Supabase el 2026-10-08):
+  cuenta propia que transferir (día comprobado, en «Fechas»).
+- **Plan: «Supabase Free Plan»** (visto en Vercel y en Supabase; día en «Fechas»):
   500 MB de base de datos, 500 MB de RAM, CPU compartida, 5 GB de ancho de
   banda, Frankfurt. **No incluye copias de seguridad** y tampoco la vuelta a un
   minuto (PITR, que además exige Pro y un extra de pago). En Supabase el
@@ -29,7 +29,7 @@ metadata:
   las tres, por eso irse de Supabase no es un cambio de proveedor sin más.
 - **Escribir migraciones** no es de esta skill: `.claude/rules/migraciones.md`,
   `docs/datos/PRINCIPIOS.md` y el agente `datos`.
-- **Copias: propias, no de Supabase.** Decidido el 9 oct 2026 (#156): una copia
+- **Copias: propias, no de Supabase.** Decidido (#156; día en «Fechas»): una copia
   cifrada cada noche en el servidor de Hetzner (encargo #247). Cómo se hace, se
   instala, se ensaya y se restaura: skill `hetzner`. Lo que lleva y lo que no:
   - Lleva `public` y `ops` enteros (esquema y datos), con `pg_dump` de solo
@@ -93,7 +93,7 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 | Ensayar una migración | `node scripts/apply-migration.mjs <nombre>` (sin `--si`) | ejecuta y hace ROLLBACK |
 | Aplicar una migración (OK, o Pablo con `!`) | `node scripts/apply-migration.mjs <nombre> --si` | exige estar en staging, un ensayo de menos de una hora y el OK de `auditor-datos` en la cabecera |
 | Consulta a producción | como `scripts/verificar-estado.mjs`: `set session characteristics as transaction read only`, `begin read only`, solo `select`, `rollback` | filas o recuentos; aunque se colara un `update`, Postgres lo rechaza |
-| ¿Qué plan y qué copias tiene? | En el navegador: Vercel → Storage → «MenuPlan» → **Open in Supabase** → Database → Backups (pestañas «Scheduled backups» y «Point in time»). Sin sesión de Supabase propia, esa es la única entrada | el plan, y o la lista de copias o el aviso «Free Plan does not include project backups». El 2026-10-08 salió ese aviso |
+| ¿Qué plan y qué copias tiene? | En el navegador: Vercel → Storage → «MenuPlan» → **Open in Supabase** → Database → Backups (pestañas «Scheduled backups» y «Point in time»). Sin sesión de Supabase propia, esa es la única entrada | el plan, y o la lista de copias o el aviso «Free Plan does not include project backups». Salió ese aviso (día en «Fechas») |
 | Borrar tablas o vistas (primer drop, #303) | los pasos de abajo; la migración la lanza Pablo con `--pablo` | `verificar-estado --solo 00XX` con los testigos negativos «está» (el objeto ya falta de la base) |
 | Ver los jobs de `pg_cron` | `select jobname, schedule from cron.job` en solo lectura | `bot-recordatorios` y `bot-retencion` |
 | Programar o quitar el cron de recordatorios | `node scripts/bot-cron.mjs [url] [--quitar]` (por defecto, contra staging) | el job creado o quitado; el mismo `BOT_CRON_SECRET` tiene que estar en Vercel |
@@ -166,7 +166,7 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 
 ## Qué requiere el OK de Pablo
 
-- Desde el 8 oct 2026 una sesión aplica (`--si`) si el script ve la migración
+- Desde el día de «Fechas» una sesión aplica (`--si`) si el script ve la migración
   en staging, un ensayo de menos de una hora y el OK de `auditor-datos` en la
   cabecera. Son de Pablo (`!` y `--pablo`): `CONTRAE`, y RLS o permisos de lo
   que ya existía. El SQL a mano que escribe, siempre negado.
@@ -181,7 +181,7 @@ tenga la URL puede usar `net.http_*`, objetos grandes o bloqueos consultivos
 
 ## Coste y límites
 
-Lo paga el equipo de Vercel por el Marketplace. La base pesa 65 MB (2026-10-08).
+Lo paga el equipo de Vercel por el Marketplace. La base pesa 65 MB (medido el día de «Fechas»).
 
 **Copias:** las de Supabase, ninguna (el plan Free no las incluye). Las propias
 (elegidas el 9 oct, #156) no cuestan nada nuevo: ~9,1 MB y 14 s por copia
@@ -190,7 +190,7 @@ segundos a las 02:40 UTC. Lo que se descartó, por si hace falta más:
 - **Plan Pro**: hasta 7 días de copias diarias con restauración desde el panel.
   Comprobar el precio en la pantalla de «Upgrade» antes de decidir.
 - **PITR** (volver a un segundo concreto): extra de pago encima de Pro, desde unos
-  100 $ al mes según el panel el 2026-10-08. No hace falta ahora.
+  100 $ al mes según el panel (día en «Fechas»). No hace falta ahora.
 
 Otros límites del Free que muerden: 500 MB de base (hoy pesa 65 MB) y que los
 proyectos sin actividad se suspenden (los dos de pruebas lo están). La base de las
@@ -201,5 +201,7 @@ familias es la única activa. Plano 8 de `ops/PLANOS.md`.
 - https://supabase.com/docs/guides/platform/backups
 - https://supabase.com/docs/guides/database/postgres/row-level-security
 - https://supabase.com/docs/guides/database/extensions/pg_cron
+
+Fechas que estaban repartidas por el cuerpo (#411): propiedad por el equipo de Vercel comprobada el 7 oct 2026; plan Free, aviso de que no hay copias, 65 MB de base y precio de PITR leídos el 2026-10-08; copias propias decididas el 9 oct 2026; las sesiones aplican migraciones desde el 8 oct 2026.
 
 Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; salvo el plan y las copias, que se leyeron hoy en el panel de Vercel y en el de Supabase (Database → Backups, pestañas de copias programadas y de PITR), sin tocar nada. Sin comprobar: el precio del plan Pro, y restaurar una copia de Supabase (no hay ninguna). Comprobado el 2026-10-09, en el encargo #247: tamaño y duración de un `pg_dump` de `public` y `ops` y las 34 claves ajenas a `auth.users` (las contó `gobierno`; #273). Sin comprobar: una copia hecha por el servidor y restaurada.

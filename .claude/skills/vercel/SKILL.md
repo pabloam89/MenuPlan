@@ -46,7 +46,7 @@ Aquí no se repiten. Una sola rareza que conviene saber:
 - `AI_GATEWAY_API_KEY` (vectores de Voyage y modelos por el gateway) está en
   Production, Development y staging-menuplan, **pero no en Preview**: en la
   preview de un PR, el buscador cae a rasgos + Haiku. Es el comportamiento
-  esperado, no un fallo. El gateway tiene crédito de pago desde el 1 oct 2026.
+  esperado, no un fallo. El gateway tiene crédito de pago (desde cuándo, en «Fechas»).
 
 El acceso a Vercel desde Claude es el conector de claude.ai (equipo y proyecto de
 arriba). La CLI `vercel` sí está instalada en el PC de Pablo (npm global), pero
@@ -141,5 +141,7 @@ no son miembros del equipo se bloquean y cuentan como asientos.
 - https://vercel.com/docs/deployments/troubleshoot-a-build
 - https://vercel.com/docs/projects/environment-variables
 - https://vercel.com/docs/instant-rollback
+
+Fechas que estaban repartidas por el cuerpo (#411): el gateway de IA tiene crédito de pago desde el 1 oct 2026.
 
 Comprobado el 2026-10-08: el contenido viene de la versión anterior de esta skill, reordenado a la plantilla sin cambiar los hechos; hoy no se ha vuelto a ejecutar lo que cita. Sin comprobar: un rollback real en producción.
