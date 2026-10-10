@@ -15,10 +15,10 @@
 
 import fs from "node:fs";
 import { cargarEnv } from "./lib/env.mjs";
-import { ESTIMADO_ROUTER, SALIDA, cabeOtro, costeUsd, estimadoSiguiente, opcionEntero, opcionNumero, tokensDe, topeDePasada } from "./lib/evals.mjs";
+import { ESTIMADO_ROUTER, SALIDA, costeUsd, estimadoSiguiente, opcionEntero, opcionNumero, tokensDe, topeDePasada, apuntarOAvisar, puedeGastar } from "./lib/evals.mjs";
 
 const ARGV = process.argv.slice(2);
-let veces, TOPE;
+let veces, TOPE, motivoTope = null;
 try {
   veces = opcionEntero(ARGV, "veces") ?? 1;
   TOPE = topeDePasada(opcionNumero(ARGV, "tope"));
@@ -49,11 +49,15 @@ const tokens = { entrada: 0, salida: 0, cache_leida: 0, cache_escrita: 0 };
 const tiempos = [];
 fuera: for (const c of casos) {
   for (let v = 0; v < veces; v++) {
-    if (!cabeOtro(gastado, TOPE, estimadoSiguiente(gastado, llamadas, ESTIMADO_ROUTER))) { parado = true; break fuera; }
+    // El libro se vuelve a leer antes de cada llamada de pago: otra pasada puede haber gastado mientras tanto.
+    const cupo = puedeGastar(gastado, TOPE, estimadoSiguiente(gastado, llamadas, ESTIMADO_ROUTER));
+    if (!cupo.ok) { parado = true; motivoTope = cupo.motivo; break fuera; }
     const d = await clasificar({ texto: c.texto, contexto: contexto(c) });
     llamadas++;
     // El enrutador cachea sus reglas a 5 min (router.js), no a 1 h como Lola.
-    gastado += costeUsd(d.uso, MODELO_ROUTER, { ttl: "5m" });
+    const coste = costeUsd(d.uso, MODELO_ROUTER, { ttl: "5m" });
+    gastado += coste;
+    apuntarOAvisar({ script: "router-evals", coste_usd: coste });
     const t = tokensDe(d.uso);
     for (const k of Object.keys(t)) tokens[k] += t[k];
     tiempos.push(d.ms);
@@ -82,6 +86,7 @@ const porLlamada = (x) => (llamadas ? Math.round(x / llamadas) : 0);
 console.log(`\n${bien}/${total} bien · rápida-cuando-tocaba-Lola: ${rapidaMal} · Lola-cuando-tocaba-rápida: ${lentaMal} · mediana ${tiempos[Math.floor(tiempos.length / 2)] ?? 0} ms, p90 ${tiempos[Math.floor(tiempos.length * 0.9)] ?? 0} ms · ~$${gastado.toFixed(3)} · ${MODELO_ROUTER}`);
 console.log(`Por llamada: ${porLlamada(tokens.entrada)} entrada · ${porLlamada(tokens.salida)} salida · ${porLlamada(tokens.cache_leida)} caché leída · ${porLlamada(tokens.cache_escrita)} caché escrita · $${(llamadas ? gastado / llamadas : 0).toFixed(4)} (${llamadas} llamadas)`);
 if (parado) {
+  console.log(`tope_evals script: router-evals motivo: ${motivoTope} gastado_usd: ${gastado.toFixed(3)} tope_usd: ${TOPE.toFixed(2)}`);
   console.log(`\nPARADO POR EL TOPE: gastado $${gastado.toFixed(3)} de $${TOPE.toFixed(2)}; corridos ${total} de ${casos.length * veces} (salida ${SALIDA.tope}).`);
   process.exitCode = SALIDA.tope;
 } else {
