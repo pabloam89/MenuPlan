@@ -112,7 +112,7 @@ Las skills (`.claude/skills/`) son el camino de aprendizaje de la casa: lo que
 ya falló en cada dominio y cómo se hace (#397). Antes de tocar un fichero o
 lanzar un comando de un dominio con skill (el mapa,
 `.claude/dominios-skills.json`), el agente la abre: herramienta `Skill` o
-`Read` de su `SKILL.md`. Las que tocan salen de `npm run skills-encargo --
+`Read` de su `SKILL.md`. <!-- norma:skill-antes-de-tocar --> Las que tocan salen de `npm run skills-encargo --
 <ficheros> [--comando "…"] [--agente <nombre>]`, y el brief de `/orquestar`
 ya las trae. El campo `SKILLS:` del informe dice las que abrió y por qué vía
 (`herramienta`, `lectura` o `precargada`, la de su frontmatter); «ninguna» si
