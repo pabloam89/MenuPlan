@@ -1,0 +1,293 @@
+{
+  "$comentario": "Principios de redacción de cualquier regla de la casa (#493, fondo #488): criterios de la forja, normas, avisos de la guardia, obligaciones del proceso y estándares de agente. Cada principio es una regla con la plantilla de scripts/lib/regla.mjs (nombre, sujeto, fuerza, condicion, exigencia, control, nota) más su ejemplo bueno, su ejemplo malo y su fuente ([F] url externa, [I] ruta de la casa). Los ejemplos van sin comillas angulares: la guía las pone. «catalogos» lista los ficheros que deben seguir la guía y su estado: cumple (cada entrada pasa problemasDeRegla) o pendiente (con su encargo; la lista solo baja, ops/redaccion-pendientes.json). Lo lee scripts/lib/redaccion.mjs, lo vigila ops/redaccion.test.js y de él sale docs/ops/REDACCION.md (npm run redaccion -- --escribir). Repo público: nada de cómo se salta un control.",
+  "version": 1,
+  "artefactos": [
+    "regla",
+    "catalogo"
+  ],
+  "sujetos": {
+    "regla": {
+      "legible": "cada regla de la casa",
+      "aplica_a": [
+        "regla"
+      ]
+    },
+    "regla.nombre": {
+      "legible": "el nombre de cada regla",
+      "aplica_a": [
+        "regla"
+      ]
+    },
+    "regla.fuerza": {
+      "legible": "la fuerza de cada regla",
+      "aplica_a": [
+        "regla"
+      ]
+    },
+    "regla.condicion": {
+      "legible": "la condición de cada regla",
+      "aplica_a": [
+        "regla"
+      ]
+    },
+    "regla.exigencia": {
+      "legible": "la exigencia de cada regla",
+      "aplica_a": [
+        "regla"
+      ]
+    },
+    "regla.nota": {
+      "legible": "la nota de cada regla",
+      "aplica_a": [
+        "regla"
+      ]
+    },
+    "regla.fuente": {
+      "legible": "la fuente de cada regla",
+      "aplica_a": [
+        "regla"
+      ]
+    },
+    "regla.control": {
+      "legible": "el control de cada regla",
+      "aplica_a": [
+        "regla"
+      ]
+    },
+    "regla.dato": {
+      "legible": "cada dato de una regla que se vaya a contar, filtrar o agrupar",
+      "aplica_a": [
+        "regla"
+      ]
+    },
+    "catalogo": {
+      "legible": "cada catálogo de reglas",
+      "aplica_a": [
+        "catalogo"
+      ]
+    }
+  },
+  "principios": [
+    {
+      "id": "castellano-siempre",
+      "nombre": "Castellano siempre",
+      "sujeto": "regla",
+      "fuerza": "debe",
+      "exigencia": "escribirse en castellano, salvo los nombres propios, el código y las citas",
+      "nota": "Las palabras de fuerza de RFC 2119 se traducen: debe, no debe y conviene; no se deja MUST ni SHOULD",
+      "control": "juicio",
+      "fuente": "[I] CLAUDE.md",
+      "ejemplo_bueno": "Cada skill debe llevar su dueño",
+      "ejemplo_malo": "Each skill must have an owner"
+    },
+    {
+      "id": "un-termino-por-concepto",
+      "nombre": "Un término por concepto",
+      "sujeto": "regla",
+      "fuerza": "debe",
+      "exigencia": "llamar a cada concepto con su término de ops/glosario.json, sin sinónimos",
+      "nota": "Mezclar sinónimos hace creer que son cosas distintas; el glosario fija una palabra y la lista de las prohibidas",
+      "control": "ops/glosario.test.js",
+      "fuente": "[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+      "ejemplo_bueno": "Fusionar el PR cuando el CI esté en verde",
+      "ejemplo_malo": "Unir el PR cuando el CI esté en verde"
+    },
+    {
+      "id": "sin-anglicismos-con-termino",
+      "nombre": "Sin anglicismos con término",
+      "sujeto": "regla",
+      "fuerza": "no_debe",
+      "exigencia": "usar un anglicismo cuando el glosario ya tiene su término en castellano",
+      "nota": "Lo que no tiene término en el glosario (hook, staging, lint) se deja como está y se añade al glosario si se repite",
+      "control": "ops/glosario.test.js",
+      "fuente": "[I] ops/glosario.json",
+      "ejemplo_bueno": "Fusionar el PR con el CI en verde",
+      "ejemplo_malo": "Hacer el merge del PR con el CI en verde"
+    },
+    {
+      "id": "fuerza-segun-rfc-2119",
+      "nombre": "Fuerza según RFC 2119",
+      "sujeto": "regla.fuerza",
+      "fuerza": "debe",
+      "exigencia": "ser debe, no_debe o conviene, con el sentido de MUST, MUST NOT y SHOULD de RFC 2119",
+      "nota": "Debe y no_debe son absolutas; conviene admite una razón válida para no cumplirla, que se dice en la nota",
+      "control": "ops/regla.test.js",
+      "fuente": "[F] https://www.rfc-editor.org/rfc/rfc2119",
+      "ejemplo_bueno": "fuerza: no_debe, exigencia: llevar fechas en el cuerpo",
+      "ejemplo_malo": "exigencia: no estaría mal evitar fechas en el cuerpo"
+    },
+    {
+      "id": "mayusculas-solo-normativas",
+      "nombre": "Mayúsculas solo normativas",
+      "sujeto": "regla.exigencia",
+      "fuerza": "no_debe",
+      "exigencia": "llevar DEBE, NO DEBE ni CONVIENE en mayúsculas: la fuerza solo la pone el campo fuerza",
+      "nota": "RFC 8174: las palabras en mayúsculas tienen sentido normativo y las mismas en minúsculas son lenguaje corriente",
+      "control": "juicio",
+      "fuente": "[F] https://www.rfc-editor.org/rfc/rfc8174",
+      "ejemplo_bueno": "exigencia: empezar por la palabra Úsala",
+      "ejemplo_malo": "exigencia: DEBE empezar por la palabra Úsala"
+    },
+    {
+      "id": "condicion-estilo-ears",
+      "nombre": "Condición estilo EARS",
+      "sujeto": "regla.condicion",
+      "fuerza": "debe",
+      "exigencia": "empezar por «cuando» o «si» y nombrar el disparador, en una línea y sin punto final",
+      "nota": "El test vigila solo que empiece por cuando o si y que vaya en una línea sin punto final; que nombre un disparador es de juicio. EARS (Mavin et al., 2009) pone el disparador delante: «Cuando <disparador>, <sujeto> debe <respuesta>». Una regla que vale siempre no lleva condición",
+      "control": "ops/regla.test.js",
+      "fuente": "[F] https://alistairmavin.com/ears/",
+      "ejemplo_bueno": "condicion: cuando la skill es de tipo servicio",
+      "ejemplo_malo": "condicion: en las skills de tipo servicio."
+    },
+    {
+      "id": "exigencia-en-infinitivo",
+      "nombre": "Exigencia en infinitivo",
+      "sujeto": "regla.exigencia",
+      "fuerza": "debe",
+      "exigencia": "empezar por un verbo en infinitivo y en minúscula, sin sujeto: el sujeto ya lo pone el campo sujeto",
+      "nota": "La frase generada une sujeto, fuerza y exigencia; repetir el sujeto la rompe. Con conviene la frase empieza por «Para <sujeto>,», así que la exigencia tampoco es reflexiva ni pasiva: «usar frases», no «escribirse en frases». El test comprueba la terminación del verbo; que no lleve sujeto es de juicio",
+      "control": "ops/regla.test.js",
+      "fuente": "[I] scripts/lib/regla.mjs",
+      "ejemplo_bueno": "exigencia: llevar un dueño",
+      "ejemplo_malo": "exigencia: La skill lleva un dueño"
+    },
+    {
+      "id": "exigencia-sin-punto-final",
+      "nombre": "Exigencia sin punto final",
+      "sujeto": "regla.exigencia",
+      "fuerza": "no_debe",
+      "exigencia": "acabar en punto, dos puntos ni punto y coma, ni ocupar más de una línea",
+      "nota": "La frase generada añade su propio punto; uno más deja dos",
+      "control": "ops/regla.test.js",
+      "fuente": "[I] scripts/lib/regla.mjs",
+      "ejemplo_bueno": "exigencia: llevar un dueño",
+      "ejemplo_malo": "exigencia: llevar un dueño."
+    },
+    {
+      "id": "exigencia-corta-y-unica",
+      "nombre": "Exigencia corta y única",
+      "sujeto": "regla.exigencia",
+      "fuerza": "debe",
+      "exigencia": "caber en 160 caracteres y pedir una sola cosa que se pueda comprobar",
+      "nota": "El test vigila solo el tope de 160 caracteres; que pida una sola cosa comprobable es de juicio. Si hay dos cosas, son dos reglas, y lo que sobra del tope va a la nota. La guía de requisitos de INCOSE pide lo mismo: un requisito, una necesidad",
+      "control": "ops/regla.test.js",
+      "fuente": "[I] scripts/lib/regla.mjs",
+      "ejemplo_bueno": "exigencia: llevar un dueño",
+      "ejemplo_malo": "exigencia: llevar un dueño, una fecha de comprobación, casos de frontera y un enlace a cada skill vecina"
+    },
+    {
+      "id": "nombre-corto-y-nominal",
+      "nombre": "Nombre corto y nominal",
+      "sujeto": "regla.nombre",
+      "fuerza": "debe",
+      "exigencia": "ser un sustantivo de 2 a 5 palabras, con mayúscula inicial y sin punto final",
+      "nota": "El test vigila el número de palabras, la mayúscula inicial y el punto final; que sea un sustantivo es de juicio. Es una sola idea, la forma de la etiqueta con la que se cita la regla, y no se repite en el catálogo",
+      "control": "ops/regla.test.js",
+      "fuente": "[I] scripts/lib/regla.mjs",
+      "ejemplo_bueno": "Frontmatter cerrado",
+      "ejemplo_malo": "Que la skill tenga un frontmatter cerrado."
+    },
+    {
+      "id": "dato-contable-en-campo",
+      "nombre": "Dato contable en campo",
+      "sujeto": "regla.dato",
+      "fuerza": "debe",
+      "exigencia": "ir en un campo de vocabulario cerrado y no en texto libre",
+      "nota": "El texto libre solo se admite en un hueco declarado, y el hueco se cuenta aparte; lo que no es un campo discreto no se puede contar",
+      "control": "juicio",
+      "fuente": "[I] CLAUDE.md",
+      "ejemplo_bueno": "fuerza: debe (vocabulario de tres valores)",
+      "ejemplo_malo": "texto: Esto es muy importante, hazlo siempre"
+    },
+    {
+      "id": "nota-solo-para-el-matiz",
+      "nombre": "Nota solo para el matiz",
+      "sujeto": "regla.nota",
+      "fuerza": "debe",
+      "exigencia": "recoger solo el matiz, la cifra o la heurística que la exigencia no admite, en una línea de 400 caracteres como mucho",
+      "nota": "El test vigila solo la forma (una línea, 15 a 400 caracteres); que la nota sea un matiz y no la exigencia es de juicio: si quitarla cambia lo que se exige, esa parte va en la exigencia o en otra regla",
+      "control": "ops/regla.test.js",
+      "fuente": "[I] scripts/lib/regla.mjs",
+      "ejemplo_bueno": "nota: La description queda por debajo de los 1.024 caracteres del estándar abierto",
+      "ejemplo_malo": "nota: Además, la skill debe llevar un dueño y casos de frontera"
+    },
+    {
+      "id": "frases-cortas",
+      "nombre": "Frases cortas",
+      "sujeto": "regla.nota",
+      "fuerza": "conviene",
+      "exigencia": "usar frases de menos de 25 palabras y párrafos de cinco frases como mucho",
+      "nota": "Vale también para la prosa de las guías y las skills; los topes de palabras son de la casa, no de la fuente",
+      "control": "juicio",
+      "fuente": "[F] https://www.plainlanguage.gov/guidelines/",
+      "ejemplo_bueno": "Las ramas se crean desde staging y vuelven por PR",
+      "ejemplo_malo": "Las ramas, que se crean siempre desde staging, aunque algunas veces no, vuelven por PR cuando el CI, que también vigila otras cosas, está en verde"
+    },
+    {
+      "id": "fuente-marcada",
+      "nombre": "Fuente marcada",
+      "sujeto": "regla.fuente",
+      "fuerza": "debe",
+      "exigencia": "empezar por [F] con una dirección https, o por [I] con una ruta del repo que exista",
+      "nota": "[F] está en una fuente externa; [I] es inferencia o decisión de la casa. Que la dirección [F] responda lo mide npm run forja -- --urls. Lo vigila forja.test.js en los criterios y redaccion.test.js en estos principios",
+      "control": "ops/forja.test.js",
+      "fuente": "[I] docs/ops/FORJA.md",
+      "ejemplo_bueno": "[F] https://www.rfc-editor.org/rfc/rfc2119",
+      "ejemplo_malo": "Lo dice RFC 2119"
+    },
+    {
+      "id": "control-declarado",
+      "nombre": "Control declarado",
+      "sujeto": "regla.control",
+      "fuerza": "debe",
+      "exigencia": "ser el fichero que vigila la regla o el valor juicio, y no quedar vacío",
+      "nota": "Una regla sin control es un deseo: si no hay fichero todavía, se declara juicio y se apunta el encargo que lo construye. Lo vigila forja.test.js en los criterios y redaccion.test.js en estos principios",
+      "control": "ops/forja.test.js",
+      "fuente": "[I] CLAUDE.md",
+      "ejemplo_bueno": "control: .claude/skills.test.js",
+      "ejemplo_malo": "control: se revisa a mano de vez en cuando"
+    },
+    {
+      "id": "catalogo-declara-su-estado",
+      "nombre": "Catálogo declara su estado",
+      "sujeto": "catalogo",
+      "fuerza": "debe",
+      "exigencia": "figurar en la lista de catálogos como cumple, o como pendiente con el encargo que lo pone al día",
+      "nota": "La lista de pendientes solo baja: un catálogo nuevo nace cumpliendo la guía",
+      "control": "ops/redaccion.test.js",
+      "fuente": "[I] ops/redaccion.json",
+      "ejemplo_bueno": "estado: pendiente, encargo: #494",
+      "ejemplo_malo": "estado: pendiente, sin encargo"
+    }
+  ],
+  "catalogos": [
+    {
+      "fichero": "ops/forja.json",
+      "estado": "cumple",
+      "clave_reglas": "criterios",
+      "clave_sujetos": "sujetos"
+    },
+    {
+      "fichero": "ops/redaccion.json",
+      "estado": "cumple",
+      "clave_reglas": "principios",
+      "clave_sujetos": "sujetos"
+    },
+    {
+      "fichero": "ops/normas.json",
+      "estado": "pendiente",
+      "encargo": "#494"
+    },
+    {
+      "fichero": "ops/flujo.json",
+      "estado": "pendiente",
+      "encargo": "en cola #488"
+    },
+    {
+      "fichero": "ops/estandares-agentes.json",
+      "estado": "pendiente",
+      "encargo": "en cola #488"
+    }
+  ]
+}

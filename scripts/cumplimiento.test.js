@@ -190,6 +190,11 @@ describe("salud de las skills del repo (sin coste)", () => {
     expect(md).toMatch(/### Salud de las skills/);
     expect(md).toMatch(/indicador: fondos_sin_diagnostico valor: 1 umbral: 0 estado: dispara en: #900/);
     expect(md).toMatch(/no se abre nada solo/);
+    expect(md).not.toMatch(/### Glosario/);
+    const conGlosario = informe({ indicadores, salud: saludDeSkills(RAIZ, new Date()), uso: null, hoy: "2026-10-20", glosario: { excepciones: 78, por_bajar: 2, candidatos_palabras: 85, candidatos_pares: 10, juzgados: 0, termino_nuevo_sin_termino: 0, reglas_propuestas: 1 } });
+    expect(conGlosario).toMatch(/### Glosario/);
+    expect(conGlosario).toMatch(/glosario excepciones: 78 por_bajar: 2 candidatos_palabras: 85 candidatos_pares: 10 juzgados: 0 termino_nuevo_sin_termino: 0 reglas_propuestas: 1/);
+    expect(conGlosario).toMatch(/npm run glosario -- --candidatos/);
   }, TIEMPO);
 });
 
@@ -204,6 +209,8 @@ describe("el script", () => {
     expect(r.status).toBe(0);
     expect(r.stdout.match(/^indicador: /gm)).toHaveLength(8);
     expect(r.stdout).toMatch(/indicador: fondos_sin_diagnostico valor: 1 umbral: 0 estado: dispara en: #900/);
+    expect(r.stdout).toMatch(/^glosario excepciones: \d+ por_bajar: \d+ candidatos_palabras: \d+ candidatos_pares: \d+ juzgados: \d+/m);
+    expect(readFileSync(join(dir, "inf.md"), "utf8")).toMatch(/### Glosario/);
   }, TIEMPO);
 
   it("una opción sin valor es entrada mala (2)", () => {

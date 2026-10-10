@@ -3,8 +3,11 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { REFERENCIA, jsonEnReferencia } from "../scripts/lib/forjaReferencia.mjs";
+import { RUTA_VOCABULARIOS, leerRegistro, redefinicionesDelGlosario } from "../scripts/lib/vocabulariosVida.mjs";
+import { JUICIOS, MAX_CANDIDATOS, MOTIVOS_JUICIO, aJuzgar, candidatos, leerJuicios, lineaCandidato, pendientesDeJuicios, problemasDeJuicios, prosaDeZonas } from "../scripts/lib/glosarioCandidatos.mjs";
 import {
-  CLASES, canonicoDe, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
+  CLASES, ESTADOS_TERMINO, EXCEPCIONES_FORMA, RUTA_GLOSARIO, canonicoDe, cifrasDeForma, faltaDeForma, problemasDeRelaciones, problemasDeVidaGlosario, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
 } from "../scripts/lib/glosario.mjs";
 
 /**
@@ -17,7 +20,10 @@ import {
  *     lo que había al nacer está en ops/glosario-excepciones.json y SOLO BAJA
  *     par a par (literal PARTIDA abajo, con la cifra de cada par: no vale subir
  *     uno a cambio de bajar otro);
- *  3. que CLAUDE.md dice que el glosario es la fuente de las palabras de proceso.
+ *  3. que CLAUDE.md dice que el glosario es la fuente de las palabras de proceso;
+ *  4. el ciclo de vida (#481): cada término está activo o retirado (con su pasa_a), y
+ *     contra origin/staging ninguno desaparece ni vuelve de retirado a activo. Plan B:
+ *     sin git o sin la referencia, contra TERMINOS_FIJADOS (los del nacimiento).
  *
  * Abajo, un autotest: cada regla falla con datos malos. Sin red.
  */
@@ -125,6 +131,39 @@ describe("el control: ningún sinónimo prohibido nuevo", () => {
   });
 });
 
+// Los términos del 10 oct 2026, al añadir el ciclo de vida (#481). NO se edita: un término no se borra, se retira.
+const TERMINOS_FIJADOS = [
+  "comprobar", "verificar", "validar", "probar", "ensayar", "medir", "revisar", "auditar", "juzgar",
+  "diagnosticar", "registrar", "fusionar", "aplicar", "retirar", "podar", "gateway", "fallo", "falta", "aviso",
+  "caso", "caso de prueba", "fondo", "causa", "causa de escape", "clase", "aprendizaje", "encargo", "tarea",
+  "tarea de agente", "decisión", "arreglo", "issue", "ficha", "evidencia", "hallazgo", "defecto", "informe",
+  "skill", "capa", "plantilla", "regla", "norma", "estándar", "criterio", "control", "mecanismo", "barrera",
+  "guardia", "hook", "test", "vocabulario", "vigilante", "sesión", "agente", "constructor", "juez", "revisor",
+  "orquestador", "dueño", "persona", "carpeta de trabajo", "carpeta principal", "staging", "producción",
+  "zona",
+];
+const REF = REFERENCIA();
+const glosarioRef = jsonEnReferencia(RAIZ, REF, RUTA_GLOSARIO);
+if (!glosarioRef) console.info(`[glosario] ciclo de vida contra ${REF}: sin git o sin la referencia; se compara con TERMINOS_FIJADOS`);
+
+describe("el ciclo de vida: un término se retira, no se borra", () => {
+  it("cada término lleva estado activo o retirado", () => {
+    expect(Object.keys(ESTADOS_TERMINO)).toEqual(["activo", "retirado"]);
+    for (const t of G.terminos) expect(Object.keys(ESTADOS_TERMINO), t.termino).toContain(t.estado);
+  });
+  it(`nada de ${glosarioRef ? REF : "la lista fijada"} desaparece ni vuelve de retirado`, () => {
+    expect(problemasDeVidaGlosario(G, glosarioRef ?? TERMINOS_FIJADOS), "Un término no se borra: estado «retirado» y pasa_a").toEqual([]);
+  });
+  it("la lista fijada también se respeta aunque haya referencia", () => {
+    expect(problemasDeVidaGlosario(G, TERMINOS_FIJADOS)).toEqual([]);
+  });
+  // Plan B: sin referencia no hay definiciones con que comparar (la lista fijada solo trae nombres) y se salta.
+  it.skipIf(!glosarioRef)(`cada definición distinta de la de ${REF} tiene su redefinición registrada`, () => {
+    const registroRef = jsonEnReferencia(RAIZ, REF, RUTA_VOCABULARIOS);
+    expect(redefinicionesDelGlosario(G, glosarioRef, leerRegistro(RAIZ), registroRef), `Si cambias una definición sin cambiar su significado, añade {termino, desde, motivo} a «redefiniciones» de ${RUTA_VOCABULARIOS}`).toEqual([]);
+  });
+});
+
 describe("CLAUDE.md y npm run glosario", () => {
   it("CLAUDE.md dice que el glosario es la fuente de las palabras de proceso", () => {
     expect(leer("CLAUDE.md")).toMatch(/`ops\/glosario\.json`/);
@@ -169,6 +208,121 @@ describe("autotest de la forma", () => {
 
   it("una definición que usa un sinónimo prohibido", () => {
     expect(conTermino((t) => { t.definicion = "Mirar si hay un bug con evidencia repetible."; }).join()).toMatch(/usa «bug» \(di «fallo»\)/);
+  });
+});
+
+describe("relaciones y forma de la definición (#481)", () => {
+  it("las relaciones están bien y la mayoría de términos tiene alguna", () => {
+    expect(problemasDeRelaciones(G.terminos)).toEqual([]);
+    const c = cifrasDeForma(G);
+    expect(c.con_relaciones / c.terminos, "Un término nuevo dice con cuál se relaciona").toBeGreaterThanOrEqual(0.8);
+  });
+
+  it("toda definición tiene la forma «un/una X que Y», salvo las excepciones, que solo bajan", () => {
+    expect(G.terminos.filter((t) => faltaDeForma(t) && !EXCEPCIONES_FORMA.includes(t.termino)).map((t) => `${t.termino}: ${faltaDeForma(t)}`)).toEqual([]);
+    // La partida de las excepciones de forma (10 oct 2026): ninguna. NO se edita para añadir.
+    const PARTIDA_FORMA = [];
+    expect(EXCEPCIONES_FORMA.filter((x) => !PARTIDA_FORMA.includes(x)), "La lista de excepciones de forma no crece: reescribe la definición").toEqual([]);
+    for (const x of EXCEPCIONES_FORMA) expect(faltaDeForma(G.terminos.find((t) => t.termino === x)), `${x} ya cumple: quítalo de EXCEPCIONES_FORMA`).not.toBeNull();
+  });
+});
+
+describe("autotest de relaciones y forma", () => {
+  const conTermino = (nombre, cambio) => { const g = copia(); cambio(g.terminos.find((t) => t.termino === nombre), g); return problemasDeGlosario(g, { existe, leer }); };
+
+  it("una referencia a un término que no existe, a sí mismo o a un retirado", () => {
+    expect(conTermino("revisor", (t) => { t.amplio = "inventado"; }).join()).toMatch(/amplio «inventado», que no es un término activo/);
+    expect(conTermino("fallo", (t) => { t.relacionado = ["fallo"]; }).join()).toMatch(/relacionado apunta a sí mismo/);
+    expect(conTermino("fallo", (t, g) => { Object.assign(g.terminos.find((x) => x.termino === "hallazgo"), { estado: "retirado", pasa_a: "defecto" }); }).join()).toMatch(/«hallazgo», que no es un término activo/);
+    expect(conTermino("fallo", (t) => { Object.assign(t, { estado: "retirado", pasa_a: "caso" }); }).join()).toMatch(/fallo: un retirado no lleva relaciones/);
+  });
+
+  it("amplio sin su estrecho, estrecho sin su amplio, y relacionado no recíproco", () => {
+    expect(conTermino("ensayar", (t, g) => { g.terminos.find((x) => x.termino === "probar").estrecho = undefined; delete g.terminos.find((x) => x.termino === "probar").estrecho; }).join()).toMatch(/ensayar: amplio «probar», pero probar no lo tiene en estrecho/);
+    expect(conTermino("hook", (t) => { t.estrecho = ["guardia", "test"]; }).join()).toMatch(/hook: estrecho «test», pero el amplio de test no es hook/);
+    expect(conTermino("podar", (t) => { t.relacionado = ["retirar", "aplicar"]; }).join()).toMatch(/podar: relacionado con «aplicar», pero aplicar no lo tiene/);
+  });
+
+  it("amplio de otra clase, un ciclo, y el mismo término como amplio y relacionado", () => {
+    expect(conTermino("caso", (t, g) => { t.amplio = "fallo"; g.terminos.find((x) => x.termino === "fallo").estrecho = ["caso"]; }).join()).toMatch(/caso: amplio «fallo» es de clase estado/);
+    expect(conTermino("comprobar", (t) => { t.amplio = "verificar"; }).join()).toMatch(/ciclo en amplio/);
+    expect(conTermino("revisor", (t, g) => { t.relacionado = ["juez"]; g.terminos.find((x) => x.termino === "juez").relacionado.push("revisor"); }).join()).toMatch(/«juez» es amplio o estrecho y también relacionado/);
+    expect(conTermino("revisor", (t) => { t.amplio = ["juez"]; }).join()).toMatch(/amplio es un término, no una lista/);
+  });
+
+  it("la forma: sin artículo + sustantivo, sin «que», infinitivo solo en acciones", () => {
+    expect(faltaDeForma({ clase: "artefacto", definicion: "Algo que pasa." })).toMatch(/artículo \+ sustantivo/);
+    expect(faltaDeForma({ clase: "artefacto", definicion: "Lo que pasa." })).toMatch(/artículo \+ sustantivo/);
+    expect(faltaDeForma({ clase: "artefacto", definicion: "Un fichero con su test." })).toMatch(/«que …»/);
+    expect(faltaDeForma({ clase: "artefacto", definicion: "Un fichero ¿qué? con aunque." })).toMatch(/«que …»/);
+    expect(faltaDeForma({ clase: "artefacto", definicion: "Un fichero que vitest ejecuta." })).toBeNull();
+    expect(faltaDeForma({ clase: "accion", definicion: "Ejecutar algo que se quiere ver." })).toBeNull();
+    expect(faltaDeForma({ clase: "rol", definicion: "Ejecutar algo que se quiere ver." })).toMatch(/artículo/);
+    expect(conTermino("zona", (t) => { t.definicion = "Conjunto de ficheros por sus rutas, sin más."; }).join()).toMatch(/zona: la definición no empieza por artículo/);
+  });
+
+  it("con amplio, el género de la definición es ese amplio", () => {
+    expect(faltaDeForma({ clase: "rol", amplio: "juez", definicion: "El juez que busca fallos." })).toBeNull();
+    expect(faltaDeForma({ clase: "rol", amplio: "juez", definicion: "Un agente que busca fallos." })).toMatch(/no empieza por su amplio «juez»|no empieza por su amplio \(«juez»\)/);
+    expect(faltaDeForma({ clase: "accion", amplio: "probar", definicion: "Probar algo que no deja efecto." })).toBeNull();
+    expect(faltaDeForma({ clase: "accion", amplio: "probar", definicion: "Ejecutar algo que no deja efecto." })).toMatch(/su amplio/);
+    expect(faltaDeForma({ clase: "campo", amplio: "causa", definicion: "La causa que explica por qué." })).toBeNull();
+    expect(conTermino("revisor", (t) => { t.definicion = "Un agente que busca fallos reales en un diff."; }).join()).toMatch(/revisor: la definición no empieza por su amplio/);
+  });
+});
+
+describe("autotest de las redefiniciones del glosario", () => {
+  const conDef = (termino, definicion) => { const g = copia(); g.terminos.find((t) => t.termino === termino).definicion = definicion; return g; };
+  const redef = { termino: "zona", desde: "2026-10-10", motivo: "Se precisa qué cuenta como zona" };
+
+  it("cambiar una definición sin registrarla falla; registrada, pasa; una vieja no vale", () => {
+    const g = conDef("zona", "El conjunto de rutas que mira un control del glosario.");
+    expect(redefinicionesDelGlosario(g, G, { redefiniciones: [] }, null).join()).toMatch(/zona: su definición ha cambiado respecto a la referencia sin una redefinición/);
+    expect(redefinicionesDelGlosario(g, G, { redefiniciones: [redef] }, null)).toEqual([]);
+    expect(redefinicionesDelGlosario(g, G, { redefiniciones: [redef] }, { redefiniciones: [redef] }).join()).toMatch(/zona: su definición ha cambiado/);
+    expect(redefinicionesDelGlosario(G, G, { redefiniciones: [] }, null)).toEqual([]);
+  });
+
+  it("solo cambiar espacios o mayúsculas no es redefinir; registrar un término que no existe, sí falla", () => {
+    const z = G.terminos.find((t) => t.termino === "zona").definicion;
+    expect(redefinicionesDelGlosario(conDef("zona", `  ${z.toUpperCase()} `), G, { redefiniciones: [] }, null)).toEqual([]);
+    expect(redefinicionesDelGlosario(G, G, { redefiniciones: [{ ...redef, termino: "inventado" }] }, null).join()).toMatch(/redefinición de un término que no existe/);
+  });
+});
+
+describe("autotest del ciclo de vida", () => {
+  const conTermino = (cambio) => { const g = copia(); cambio(g.terminos.find((t) => t.termino === "fallo"), g); return problemasDeGlosario(g, { existe, leer }); };
+
+  it("un estado fuera del vocabulario, un retirado sin pasa_a o con pasa_a muerto, y pasa_a en un activo", () => {
+    expect(conTermino((t) => { t.estado = "obsoleto"; }).join()).toMatch(/estado «obsoleto» fuera del vocabulario/);
+    expect(conTermino((t) => { t.estado = "retirado"; }).join()).toMatch(/retirado sin pasa_a/);
+    expect(conTermino((t) => { t.estado = "retirado"; t.pasa_a = "inventado"; }).join()).toMatch(/pasa_a «inventado», que no es un término activo/);
+    expect(conTermino((t) => { t.pasa_a = "caso"; }).join()).toMatch(/pasa_a solo va en un término retirado/);
+  });
+
+  it("borrar un término falla; retirarlo con pasa_a no", () => {
+    const g = copia();
+    g.terminos = g.terminos.filter((t) => t.termino !== "fallo");
+    expect(problemasDeVidaGlosario(g, G).join()).toMatch(/fallo: estaba en el glosario y ha desaparecido/);
+    expect(problemasDeVidaGlosario(g, TERMINOS_FIJADOS).join()).toMatch(/fallo: estaba en el glosario/);
+    const r = copia();
+    Object.assign(r.terminos.find((t) => t.termino === "zona"), { estado: "retirado", pasa_a: "regla" });
+    expect(problemasDeVidaGlosario(r, G)).toEqual([]);
+    expect(problemasDeGlosario(r, { existe, leer }).filter((x) => /pasa_a|estado/.test(x))).toEqual([]);
+  });
+
+  it("un retirado que vuelve a activo (reutilizar el nombre) falla", () => {
+    const ref = copia();
+    Object.assign(ref.terminos.find((t) => t.termino === "fallo"), { estado: "retirado", pasa_a: "caso" });
+    expect(problemasDeVidaGlosario(G, ref).join()).toMatch(/fallo: estaba retirado y vuelve a activo/);
+  });
+
+  it("el nombre de un retirado cuenta como sinónimo prohibido de su pasa_a", () => {
+    const g = copia();
+    Object.assign(g.terminos.find((t) => t.termino === "hallazgo"), { estado: "retirado", pasa_a: "defecto" });
+    expect(canonicoDe(g).get("hallazgo")).toBe("defecto");
+    const { detalle } = medir(RAIZ, g, { leer: () => "Un hallazgo del juez.\n", ficheros: (p) => (p === ".claude/skills/**/*.md" ? [".claude/skills/x/SKILL.md"] : []) });
+    expect(detalle.map((d) => `${d.sinonimo}→${d.canonico}`)).toEqual(["hallazgo→defecto"]);
   });
 });
 
@@ -246,5 +400,83 @@ describe("autotest del control (visto fallar con un sinónimo nuevo)", () => {
     expect(comparar({ a: { bug: 3 } }, { a: { bug: 2 } }).nuevas).toHaveLength(1);
     expect(comparar({ a: { bug: 1 } }, { a: { bug: 2 } }).bajadas).toHaveLength(1);
     expect(comparar({}, { a: { bug: 2 } }).bajadas).toHaveLength(1);
+  });
+});
+
+// ── Revisión periódica: candidatos a término (#481) ─────────────────────────
+
+describe("candidatos a término y sus juicios", () => {
+  it("los juicios de ops/glosario-candidatos.json están bien formados", () => {
+    expect(problemasDeJuicios(leerJuicios(RAIZ), G)).toEqual([]);
+  });
+
+  it("sobre el repo: salen candidatos con su cifra y la lista para juzgar respeta el tope", () => {
+    const todos = candidatos(prosaDeZonas(RAIZ, G), G, { juicios: leerJuicios(RAIZ) });
+    const lista = aJuzgar(todos);
+    for (const tipo of ["palabra", "par"]) expect(lista.filter((c) => c.tipo === tipo).length).toBeLessThanOrEqual(MAX_CANDIDATOS[tipo]);
+    for (const c of lista) expect(lineaCandidato(c)).toMatch(/^candidato: [a-z ]+ apariciones: \d+ ficheros: \d+$/);
+  });
+});
+
+describe("autotest de los candidatos", () => {
+  // Siete ficheros de mentira en cinco zonas: lo que sale en todos pasa un umbral de prueba.
+  const UMB = { palabra: { apariciones: 5, ficheros: 5, zonas: 3 }, par: { apariciones: 5, ficheros: 5, zonas: 3 } };
+  const trozos = (texto) => ["a", "b", "c", "d", "e", "f", "g"].map((x, i) => ({ ruta: `${x}.md`, zona: `z${i % 5}`, texto }));
+
+  it("cuenta una palabra repetida que no está en el glosario, y no la que ya está (también en plural)", () => {
+    const r = candidatos(trozos("La ventana de observación y los casos y los juzgados."), G, { umbral: UMB });
+    expect(r.map((c) => c.candidato)).toContain("ventana");
+    expect(r.map((c) => c.candidato)).not.toContain("casos");
+    expect(r.find((c) => c.candidato === "ventana")).toMatchObject({ apariciones: 7, ficheros: 7, zonas: 5, tipo: "palabra" });
+  });
+
+  it("los falsos parientes de una palabra del glosario sí cuentan; su familia, no", () => {
+    const r = candidatos(trozos("principio constante normalización información guardar contrato normativa; comprueba fondos revisores guardias"), G, { umbral: UMB }).map((c) => c.candidato);
+    for (const w of ["principio", "constante", "normalizacion", "informacion", "guardar", "contrato", "normativa"]) expect(r, w).toContain(w);
+    for (const w of ["comprueba", "fondos", "revisores", "guardias"]) expect(r, w).not.toContain(w);
+  });
+
+  it("no cuenta palabras vacías, ni lo que va en código o entre «»", () => {
+    const md = prosaDeMarkdown("Cuando sigue `ventana` y «ventana» y\n```\nventana\n```\n");
+    const r = candidatos(trozos(md), G, { umbral: UMB });
+    expect(r.map((c) => c.candidato)).toEqual([]);
+  });
+
+  it("junta singular y plural, y cuenta los pares «a b» y «a de b»", () => {
+    const r = candidatos(trozos("Una ventana, dos ventanas. El texto libre. La lista de tareas."), G, { umbral: UMB });
+    expect(r.find((c) => c.candidato === "ventana").apariciones).toBe(14);
+    expect(r.map((c) => c.candidato)).not.toContain("ventanas");
+    expect(r.filter((c) => c.tipo === "par").map((c) => c.candidato).sort()).toEqual(["lista de tareas", "texto libre"]);
+  });
+
+  it("no pasa el umbral lo que está en pocos ficheros o pocas zonas", () => {
+    const pocas = ["a", "b", "c", "d", "e", "f", "g"].map((x) => ({ ruta: `${x}.md`, zona: "z0", texto: "ventana ventana" }));
+    expect(candidatos(pocas, G, { umbral: UMB })).toEqual([]);
+  });
+
+  it("lo juzgado deja de salir; el mismo juicio y motivo tres veces es una regla propuesta", () => {
+    const j = (candidato, juicio = "nada", motivo = "uso_general") => ({ candidato, juicio, motivo, detalle: `${candidato}: se usa en su sentido de diccionario`, fecha: "2026-10-10" });
+    expect(candidatos(trozos("Una ventana."), G, { umbral: UMB, juicios: [j("ventana")] })).toEqual([]);
+    const { reglas, sinTermino } = pendientesDeJuicios([j("lista"), j("linea"), j("texto"), j("codigo", "nada", "jerga_de_servicio"), j("pieza", "termino_nuevo", "significado_propio")], G);
+    expect(reglas).toEqual([{ juicio_y_motivo: "nada: uso_general", candidatos: ["lista", "linea", "texto"] }]);
+    expect(sinTermino).toEqual(["pieza"]);
+  });
+
+  it("los juicios: vocabulario, motivo cerrado de su juicio, detalle, fecha y sinonimo_de que existe", () => {
+    expect(Object.keys(JUICIOS)).toEqual(["termino_nuevo", "sinonimo", "nada"]);
+    expect(Object.keys(MOTIVOS_JUICIO)).toEqual(Object.keys(JUICIOS));
+    expect(Object.keys(MOTIVOS_JUICIO.nada)).toEqual(["uso_general", "nombre_propio", "jerga_de_servicio", "gramatical"]);
+    const base = { candidato: "ventana", juicio: "nada", motivo: "uso_general", detalle: "Se usa en su sentido de diccionario", fecha: "2026-10-10" };
+    const p = (x) => problemasDeJuicios([{ ...base, ...x }], G).join();
+    expect(p({})).toBe("");
+    expect(p({ juicio: "quizas" })).toMatch(/juicio «quizas» fuera del vocabulario/);
+    expect(p({ motivo: "Palabra de uso general" })).toMatch(/motivo «Palabra de uso general» fuera del vocabulario de nada/);
+    expect(p({ motivo: "nombre_largo" })).toMatch(/fuera del vocabulario de nada/);
+    expect(p({ detalle: "corto" })).toMatch(/15 caracteres/);
+    expect(p({ fecha: "ayer" })).toMatch(/AAAA-MM-DD/);
+    expect(p({ juicio: "sinonimo", motivo: "nombre_largo", sinonimo_de: "inventado" })).toMatch(/sinonimo_de «inventado»/);
+    expect(p({ juicio: "sinonimo", motivo: "nombre_largo", sinonimo_de: "fondo" })).toBe("");
+    expect(p({ sinonimo_de: "fondo" })).toMatch(/solo va con el juicio sinonimo/);
+    expect(problemasDeJuicios([base, { ...base, candidato: "VENTANA" }], G).join()).toMatch(/juzgado dos veces/);
   });
 });
