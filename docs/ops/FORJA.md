@@ -273,7 +273,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
 - `fechas` — **Sin fechas en el cuerpo.** El cuerpo de cada skill NO DEBE llevar fechas fuera de «Lo que falló y por qué», «Registro de cambios» y «Fuentes y comprobación»: se quedan viejas. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `fechas`.
 - `sin-parada` — **Parada del método.** El cuerpo de cada skill DEBE decir en el «Método» cuándo se acaba y qué se ve cuando sale bien. Se comprueba con: `.claude/skills.test.js`.
-  - Nota: Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio.
+  - Nota: Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio (en los SKILL.md, hasta migrar los tipos, «herramienta»).
   - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `sin-parada`.
 - `ejemplos` — **Máximo de ejemplos.** El cuerpo de cada skill DEBE llevar como mucho tres ejemplos por sección de ejemplos: pocos y canónicos. Se comprueba con: `.claude/skills.test.js`.
   - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md. Código: `ejemplos`.

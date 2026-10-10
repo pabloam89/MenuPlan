@@ -20,7 +20,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { FUERZAS, LIMITES_REGLA, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
+import { CONTROL_JUICIO, FUERZAS, LIMITES_REGLA, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
 export const RUTA_FORJA = "ops/forja.json";
 export const RUTA_CAPAS = "ops/forja-capas.json";
@@ -57,7 +57,7 @@ export const ESTADOS_CRITERIO = {
 export const ESTADOS_CON_NOTA = ["no_cumple", "juicio"];
 
 /** El valor de `control` de un criterio de la capa subjetiva. */
-export const JUICIO = "juicio";
+export const JUICIO = CONTROL_JUICIO;
 
 /**
  * Los campos de un criterio. Se escribe por campos y la frase se genera (`fraseDeRegla`, #487):
