@@ -1,0 +1,4 @@
+{
+  "$comentario": "Juicios de los candidatos a término del glosario (#481; scripts/lib/glosarioCandidatos.mjs). npm run glosario -- --candidatos saca las palabras y pares de proceso que se repiten y no están en ops/glosario.json; un agente juzga cada uno (método: skill higiene-de-skills, capa referencias/glosario.md) y lo apunta aquí: {candidato, juicio (termino_nuevo | sinonimo | nada), sinonimo_de (solo con sinonimo: un término activo), motivo (15 caracteres o más: el hueco), fecha (AAAA-MM-DD)}. Lo juzgado deja de salir. El mismo juicio con el mismo motivo tres veces se propone como regla. Lo vigila ops/glosario.test.js.",
+  "juicios": []
+}

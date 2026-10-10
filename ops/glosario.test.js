@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { REFERENCIA, jsonEnReferencia } from "../scripts/lib/forjaReferencia.mjs";
+import { JUICIOS, MAX_CANDIDATOS, aJuzgar, candidatos, leerJuicios, lineaCandidato, pendientesDeJuicios, problemasDeJuicios, prosaDeZonas } from "../scripts/lib/glosarioCandidatos.mjs";
 import {
   CLASES, ESTADOS_TERMINO, EXCEPCIONES_FORMA, RUTA_GLOSARIO, canonicoDe, cifrasDeForma, faltaDeForma, problemasDeRelaciones, problemasDeVidaGlosario, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
 } from "../scripts/lib/glosario.mjs";
@@ -365,5 +366,72 @@ describe("autotest del control (visto fallar con un sinónimo nuevo)", () => {
     expect(comparar({ a: { bug: 3 } }, { a: { bug: 2 } }).nuevas).toHaveLength(1);
     expect(comparar({ a: { bug: 1 } }, { a: { bug: 2 } }).bajadas).toHaveLength(1);
     expect(comparar({}, { a: { bug: 2 } }).bajadas).toHaveLength(1);
+  });
+});
+
+// ── Revisión periódica: candidatos a término (#481) ─────────────────────────
+
+describe("candidatos a término y sus juicios", () => {
+  it("los juicios de ops/glosario-candidatos.json están bien formados", () => {
+    expect(problemasDeJuicios(leerJuicios(RAIZ), G)).toEqual([]);
+  });
+
+  it("sobre el repo: salen candidatos con su cifra y la lista para juzgar respeta el tope", () => {
+    const todos = candidatos(prosaDeZonas(RAIZ, G), G, { juicios: leerJuicios(RAIZ) });
+    const lista = aJuzgar(todos);
+    for (const tipo of ["palabra", "par"]) expect(lista.filter((c) => c.tipo === tipo).length).toBeLessThanOrEqual(MAX_CANDIDATOS[tipo]);
+    for (const c of lista) expect(lineaCandidato(c)).toMatch(/^candidato: [a-z ]+ apariciones: \d+ ficheros: \d+$/);
+  });
+});
+
+describe("autotest de los candidatos", () => {
+  // Siete ficheros de mentira en cinco zonas: lo que sale en todos pasa un umbral de prueba.
+  const UMB = { palabra: { apariciones: 5, ficheros: 5, zonas: 3 }, par: { apariciones: 5, ficheros: 5, zonas: 3 } };
+  const trozos = (texto) => ["a", "b", "c", "d", "e", "f", "g"].map((x, i) => ({ ruta: `${x}.md`, zona: `z${i % 5}`, texto }));
+
+  it("cuenta una palabra repetida que no está en el glosario, y no la que ya está (también en plural)", () => {
+    const r = candidatos(trozos("La ventana de observación y los casos y los juzgados."), G, { umbral: UMB });
+    expect(r.map((c) => c.candidato)).toContain("ventana");
+    expect(r.map((c) => c.candidato)).not.toContain("casos");
+    expect(r.find((c) => c.candidato === "ventana")).toMatchObject({ apariciones: 7, ficheros: 7, zonas: 5, tipo: "palabra" });
+  });
+
+  it("no cuenta palabras vacías, ni lo que va en código o entre «»", () => {
+    const md = prosaDeMarkdown("Cuando sigue `ventana` y «ventana» y\n```\nventana\n```\n");
+    const r = candidatos(trozos(md), G, { umbral: UMB });
+    expect(r.map((c) => c.candidato)).toEqual([]);
+  });
+
+  it("junta singular y plural, y cuenta los pares «a b» y «a de b»", () => {
+    const r = candidatos(trozos("Una ventana, dos ventanas. El texto libre. La lista de tareas."), G, { umbral: UMB });
+    expect(r.find((c) => c.candidato === "ventana").apariciones).toBe(14);
+    expect(r.map((c) => c.candidato)).not.toContain("ventanas");
+    expect(r.filter((c) => c.tipo === "par").map((c) => c.candidato).sort()).toEqual(["lista de tareas", "texto libre"]);
+  });
+
+  it("no pasa el umbral lo que está en pocos ficheros o pocas zonas", () => {
+    const pocas = ["a", "b", "c", "d", "e", "f", "g"].map((x) => ({ ruta: `${x}.md`, zona: "z0", texto: "ventana ventana" }));
+    expect(candidatos(pocas, G, { umbral: UMB })).toEqual([]);
+  });
+
+  it("lo juzgado deja de salir; el mismo juicio y motivo tres veces es una regla propuesta", () => {
+    const j = (candidato, juicio = "nada", motivo = "Palabra de uso general, no de proceso") => ({ candidato, juicio, motivo, fecha: "2026-10-10" });
+    expect(candidatos(trozos("Una ventana."), G, { umbral: UMB, juicios: [j("ventana")] })).toEqual([]);
+    const { reglas, sinTermino } = pendientesDeJuicios([j("lista"), j("linea"), j("texto"), j("pieza", "termino_nuevo", "Se usa como unidad de un arreglo común")], G);
+    expect(reglas).toEqual([{ juicio_y_motivo: "nada: palabra de uso general, no de proceso", candidatos: ["lista", "linea", "texto"] }]);
+    expect(sinTermino).toEqual(["pieza"]);
+  });
+
+  it("los juicios: vocabulario, motivo, fecha y sinonimo_de que existe", () => {
+    expect(Object.keys(JUICIOS)).toEqual(["termino_nuevo", "sinonimo", "nada"]);
+    const p = (x) => problemasDeJuicios([{ candidato: "ventana", juicio: "nada", motivo: "Palabra de uso general", fecha: "2026-10-10", ...x }], G).join();
+    expect(p({})).toBe("");
+    expect(p({ juicio: "quizas" })).toMatch(/fuera del vocabulario/);
+    expect(p({ motivo: "corto" })).toMatch(/15 caracteres/);
+    expect(p({ fecha: "ayer" })).toMatch(/AAAA-MM-DD/);
+    expect(p({ juicio: "sinonimo", sinonimo_de: "inventado" })).toMatch(/sinonimo_de «inventado»/);
+    expect(p({ juicio: "sinonimo", sinonimo_de: "fondo" })).toBe("");
+    expect(p({ sinonimo_de: "fondo" })).toMatch(/solo va con el juicio sinonimo/);
+    expect(problemasDeJuicios([{ candidato: "x", juicio: "nada", motivo: "Palabra de uso general", fecha: "2026-10-10" }, { candidato: "X", juicio: "nada", motivo: "Palabra de uso general", fecha: "2026-10-10" }], G).join()).toMatch(/juzgado dos veces/);
   });
 });

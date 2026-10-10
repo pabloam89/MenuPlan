@@ -8,6 +8,11 @@
  *                                  → el ciclo de vida de los vocabularios de proceso (#481):
  *                                    lo anclado en ops/vocabularios-vida.json frente al código;
  *                                    con --escribir, ancla lo de hoy
+ * npm run glosario -- --candidatos → la revisión periódica (#481): las palabras y pares de proceso
+ *                                    que se repiten y no están en el glosario, una línea
+ *                                    «candidato: x apariciones: n ficheros: k» por cada uno, para
+ *                                    que un agente los juzgue (skill higiene-de-skills,
+ *                                    referencias/glosario.md); --json, lo mismo en JSON
  *
  * Solo lee, salvo --vocabularios --escribir. El dato es ops/glosario.json (#469); lo vigila ops/glosario.test.js.
  */
@@ -18,6 +23,7 @@ import { fileURLToPath } from "node:url";
 import {
   cifrasDeForma, comparar, excepcionesPorTermino, plano, excepcionesPorZona, ficherosDe, leerExcepciones, leerGlosario, medir, pares, textoTermino, total,
 } from "./lib/glosario.mjs";
+import { RUTA_JUICIOS, aJuzgar, candidatos, leerJuicios, lineaCandidato, pendientesDeJuicios, prosaDeZonas } from "./lib/glosarioCandidatos.mjs";
 import { RUTA_VOCABULARIOS, anclar, leerRegistro, problemasDeRetiros, problemasLocales, valoresActuales } from "./lib/vocabulariosVida.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -37,6 +43,26 @@ if (args.includes("--vocabularios")) {
   console.log(`vocabularios vigilados: ${Object.keys(actuales).length} valores: ${valores} retirados: ${(reg.retirados ?? []).length} problemas: ${problemas.length}`);
   for (const x of problemas) console.log(`  ${x}`);
   process.exit(problemas.length ? 1 : 0);
+}
+
+if (args.includes("--candidatos")) {
+  const juicios = leerJuicios(RAIZ);
+  const todos = candidatos(prosaDeZonas(RAIZ, g), g, { juicios });
+  const lista = aJuzgar(todos);
+  const { sinTermino, reglas } = pendientesDeJuicios(juicios, g);
+  const n = (tipo) => todos.filter((c) => c.tipo === tipo).length;
+  const { medida } = medir(RAIZ, g);
+  const { bajadas } = comparar(medida, exc);
+  if (args.includes("--json")) {
+    console.log(JSON.stringify({ candidatos: lista, total: { palabra: n("palabra"), par: n("par") }, juzgados: juicios.length, termino_nuevo_sin_termino: sinTermino, reglas_propuestas: reglas, excepciones: total(exc), excepciones_por_bajar: bajadas.length }, null, 2));
+    process.exit(0);
+  }
+  console.log(`glosario candidatos palabras: ${n("palabra")} pares: ${n("par")} a_juzgar: ${lista.length} juzgados: ${juicios.length} termino_nuevo_sin_termino: ${sinTermino.length} reglas_propuestas: ${reglas.length} excepciones: ${total(exc)} excepciones_por_bajar: ${bajadas.length}`);
+  for (const c of lista) console.log(lineaCandidato(c));
+  for (const t of sinTermino) console.log(`termino_nuevo sin término en el glosario: ${t}`);
+  for (const r of reglas) console.log(`regla propuesta: ${r.juicio_y_motivo} (${r.candidatos.length} juicios: ${r.candidatos.join(", ")})`);
+  console.log(`Juicio de cada uno (termino_nuevo | sinonimo de X | nada) y su motivo, en ${RUTA_JUICIOS}. Método: .claude/skills/higiene-de-skills/referencias/glosario.md`);
+  process.exit(0);
 }
 
 if (args.includes("--medir")) {
