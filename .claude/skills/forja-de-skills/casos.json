@@ -1,0 +1,85 @@
+{
+  "skill": "forja-de-skills",
+  "casos": [
+    {
+      "id": "skill-nueva-para-algo",
+      "peticion": "Quiero crear una skill nueva para que las sesiones sepan cómo añadir un proveedor de pagos al proyecto. ¿Cómo la monto?",
+      "skill": "forja-de-skills",
+      "debe_salir": [
+        "Empieza por la regla de parada: se usará dos veces o más, no repite lo que ya hay en otra skill, y tiene dueño y test",
+        "Pide ver primero qué falla una sesión sin la skill, antes de escribir nada",
+        "Escribe los casos antes que el texto: tres o más propios con debe_salir y tres o más de frontera",
+        "Pide una descripción que empiece por «Úsala», con las palabras de quien pide, y «No para:»"
+      ]
+    },
+    {
+      "id": "skill-no-se-abre",
+      "peticion": "La skill de vercel no se abre cuando pido ver por qué falla un despliegue. ¿Qué le pasa a la descripción y cómo lo arreglo?",
+      "skill": "forja-de-skills",
+      "debe_salir": [
+        "Revisa la descripción: las palabras de quien pide y el disparador en los primeros caracteres, sin pasar del límite de 600",
+        "Añade casos de frontera parecidos y mide el disparo con npm run skills-prueba",
+        "Comprueba que no solapa con otra skill antes de alargar la descripción"
+      ]
+    },
+    {
+      "id": "falla-la-regla-forja",
+      "peticion": "He cambiado una skill y el test de skills falla con la regla forja. ¿Añado la skill a la lista de excepciones para que pase?",
+      "skill": "forja-de-skills",
+      "debe_salir": [
+        "Dice que no: la lista de excepciones solo baja y no se le añade nada",
+        "Arregla la skill según el código de la falta (casos de frontera, fechas, criterio de parada, ejemplos o solape)",
+        "Explica que quitar una excepción ya arreglada también es obligatorio"
+      ]
+    },
+    {
+      "id": "podar-skill-sin-uso",
+      "peticion": "Hay una skill que casi nadie abre y que dice casi lo mismo que otra. ¿Qué hago con ella, la borro?",
+      "skill": "forja-de-skills",
+      "debe_salir": [
+        "Aplica los criterios de poda: no mejora sobre el modelo solo, solapa con otra, caduca sin dueño o nadie la abre",
+        "Deja que mande una skill y la otra la cite por su nombre, pasando lo útil",
+        "No borra la carpeta ella misma: prepara el inventario y los comandos para que los lance una persona"
+      ]
+    },
+    {
+      "id": "por-que-usala",
+      "peticion": "Las guías oficiales dicen que la descripción de una skill va en tercera persona, pero aquí todas empiezan por «Úsala». ¿Está mal?",
+      "skill": "forja-de-skills",
+      "debe_salir": [
+        "Explica que se mantiene «Úsala» y da la razón: el cuándo va primero y las descripciones comparten una misma forma",
+        "Marca qué es de la fuente y qué es inferencia propia",
+        "Dice cuándo se revisaría: si el disparo medido cae por la forma, y entonces se cambian test y descripciones a la vez"
+      ]
+    },
+    {
+      "id": "frontera-rotar-clave",
+      "peticion": "Me ha caducado el token de Vercel y hay que rotarlo, ¿cómo lo hago sin que se vea el valor?",
+      "skill": "alta-de-secreto"
+    },
+    {
+      "id": "frontera-agente-nuevo",
+      "peticion": "Quiero escribir un agente nuevo para revisar los textos de la app, ¿qué estructura lleva su ficha?",
+      "skill": "ninguna",
+      "nota": "Los agentes se escriben con PLANTILLA-AGENTE, no con la forja de skills"
+    },
+    {
+      "id": "frontera-leccion-en-otra-skill",
+      "peticion": "Añade a la skill de supabase una entrada nueva en Lo que falló sobre lo que pasó ayer con las migraciones.",
+      "skill": "supabase",
+      "nota": "Casi-fallo: nombra una skill y habla de editarla, pero es contenido de ese dominio y no estructura; la forma de la entrada ya la vigila el nivel 1"
+    },
+    {
+      "id": "frontera-rotar-token-de-otra-skill",
+      "peticion": "La skill de vercel no dice cómo rotar el token cuando caduca, ¿lo explico ahí?",
+      "skill": "alta-de-secreto",
+      "nota": "Casi-fallo: parece una carencia de una skill, pero el procedimiento de rotar claves ya vive en otra y esa manda; la otra la cita"
+    },
+    {
+      "id": "frontera-medir-disparo",
+      "peticion": "Mide si la skill de github se dispara cuando toca, sin cambiar nada de ella.",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: habla de calidad de una skill, pero medirla sin tocarla es npm run skills-prueba, no esta skill"
+    }
+  ]
+}

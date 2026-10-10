@@ -168,10 +168,8 @@
     {
       "id": "meta",
       "que": "Cómo crear, probar y podar las propias piezas",
-      "estado": "reservado",
-      "fase": [
-        "#336"
-      ]
+      "estado": "existe",
+      "fase": []
     }
   ],
   "regla_de_parada": {

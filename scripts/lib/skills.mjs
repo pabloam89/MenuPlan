@@ -17,6 +17,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { EXCEPCIONES_FORJA, faltasDeSolape, faltasForja, sinExcepciones } from "./skillsForja.mjs";
 
 export const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const DIR_SKILLS = ".claude/skills";
@@ -74,6 +75,7 @@ export const REGLAS = {
   estructura: "en la carpeta solo SKILL.md, casos.json y las subcarpetas de capas, y todo fichero de capa citado desde SKILL.md",
   copiado: "ningún párrafo largo idéntico en dos skills: el saber vive en una y la otra la cita",
   casos: "casos.json válido, con al menos MIN_CASOS casos: MIN_PROPIOS que cargan esta skill y MIN_FRONTERA que cargan otra o ninguna",
+  forja: "lo automatizable de la forja (skillsForja.mjs): MIN_FRONTERA_FORJA casos de frontera, sin fechas en el cuerpo, criterio de parada en «Método», pocos ejemplos y descripciones que no solapan; lo que hoy se incumple, en EXCEPCIONES_FORJA, que solo baja",
 };
 
 export const CABECERA_OPERACIONES = "| Qué | Comando | Debe salir |";
@@ -389,6 +391,7 @@ export function faltasDeSkill(skill, ctx) {
   for (const t of [texto, ...Object.values(skill.extra ?? {})]) for (const p of SECRETOS) if (p.test(t)) f.push(falta("secretos", String(p)));
   f.push(...reglaRutasYEstructura(skill, ctx));
   f.push(...faltasDeCasos(skill.casos, skill.nombre, ctx.skills));
+  f.push(...sinExcepciones(faltasForja({ nombre: skill.nombre, cuerpo, tipo, casos: skill.casos }), skill.nombre, ctx.excepcionesForja ?? EXCEPCIONES_FORJA));
   return f;
 }
 
@@ -420,6 +423,7 @@ export function nivel1(raiz = RAIZ, hoy = new Date()) {
   const skills = ctx.skills.map((n) => cargarSkill(n, raiz));
   const fuera = Object.fromEntries(skills.map((s) => [s.nombre, faltasDeSkill(s, ctx)]));
   for (const c of faltasDeCopiado(skills)) for (const n of c.skills) fuera[n].push(c);
+  for (const c of faltasDeSolape(catalogoParaDisparo(raiz))) for (const n of c.skills) fuera[n].push(...sinExcepciones([c], n));
   return fuera;
 }
 
