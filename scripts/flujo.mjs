@@ -11,6 +11,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { ORDEN_VEREDICTO } from "./lib/escalas.mjs";
 import { contextoDeNormas, cuentaPorVeredicto, obligacionesDe, regenerar, resolver, veredictoDelPaso } from "./lib/flujo.mjs";
 import { formatoEncargoMd } from "./lib/issues.mjs";
 import { leerRegistro } from "./lib/normas.mjs";
@@ -48,6 +49,8 @@ if (args.includes("--json")) {
   }
   const c = cuentaPorVeredicto(datos, ctx.normas);
   const remiten = obligacionesDe(datos).filter((o) => o.norma).length;
+  const porVeredicto = ORDEN_VEREDICTO.map((v) => `${c[v]} ${v}s`).join(", ");
+  const total = Object.values(c).reduce((x, y) => x + y, 0);
   console.log(`
-${Object.values(c).reduce((a, b) => a + b, 0)} obligaciones: ${c.dura} duras, ${c.semidura} semiduras, ${c.blanda} blandas, ${c.rota} rotas. ${remiten} remiten a su norma y ${obligacionesDe(datos).length - remiten} van por campos.`);
+${total} obligaciones: ${porVeredicto}. ${remiten} remiten a su norma y ${total - remiten} van por campos.`);
 }

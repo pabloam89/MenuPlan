@@ -91,12 +91,17 @@ describe("la escala y la escalera no se escriben a mano en otro sitio", () => {
   // sus claves y valores son los de la escalera).
   const COTEJADAS = {
     ".github/ISSUE_TEMPLATE/2-fondo.yml": "scripts/fondos.test.js",
+    ".claude/skills/issues/SKILL.md": "ops/escalas.test.js",
     "scripts/lib/fondos.mjs": "scripts/fondos-ronda2.test.js",
     "scripts/lib/mecanismos.mjs": "ops/mecanismos.test.js",
   };
-  const EXENTOS = ["scripts/lib/escalas.mjs", "ops/escalas.test.js"];
+  // Lo que se salta, con su porqué: la declaración misma y este test; las vistas generadas de la escala y la escalera
+  // (FLUJO.md y NORMAS.md salen de escalas.mjs y de los JSON, y sus tests las comparan); la prosa de CLAUDE.md, que cuenta
+  // la escalera a Pablo con sus palabras («test en el CI»); y los casos de prueba por escalón de scripts/fondos-ronda2.test.js
+  // (un escalón por fila con una ruta, no una declaración; su primer test pide que cubra BARRERAS).
+  const EXENTOS = ["scripts/lib/escalas.mjs", "ops/escalas.test.js", "docs/ops/FLUJO.md", "docs/ops/NORMAS.md", "CLAUDE.md", "scripts/fondos-ronda2.test.js"];
   const ficheros = execFileSync("git", ["ls-files", "-z"], { cwd: RAIZ, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 })
-    .split("\0").filter((f) => /\.(mjs|js|jsx|json|yml|yaml)$/.test(f) && !EXENTOS.includes(f) && existsSync(join(RAIZ, f)));
+    .split("\0").filter((f) => /\.(mjs|cjs|js|jsx|ts|tsx|json|yml|yaml|md)$/.test(f) && !EXENTOS.includes(f) && existsSync(join(RAIZ, f)));
 
   it("hay ficheros que mirar", () => expect(ficheros.length).toBeGreaterThan(100));
 
@@ -123,6 +128,19 @@ describe("la escala y la escalera no se escriben a mano en otro sitio", () => {
     expect(copiasDeEscalas('{ "dura": "Ejecutor del sistema", "semidura": "Tiene ejecutor", "blanda": "Solo texto" }')).toEqual(["escala"]);
     expect(copiasDeEscalas('const E = ["bloqueo", "test_ci", "script", "skill", "texto"];')).toEqual(["escalera"]);
     expect(copiasDeEscalas("const E = { bloqueo: 1, test_ci: 2, script: 3 };")).toEqual(["escalera"]);
+  });
+
+  it("el detector ve lo que se le escapaba: otro orden y otros separadores", () => {
+    expect(copiasDeEscalas('["blanda","semidura","dura"]')).toEqual(["escala"]);
+    expect(copiasDeEscalas('type V = "dura" | "semidura" | "blanda"')).toEqual(["escala"]);
+    expect(copiasDeEscalas('"bloqueo|test_ci|script|skill|texto"')).toEqual(["escalera"]);
+    expect(copiasDeEscalas("texto, script y bloqueo")).toEqual(["escalera"]);
+  });
+
+  it("el detector no se queja de tres palabras corrientes ni de valores demasiado lejos", () => {
+    expect(copiasDeEscalas("una regla dura, blanda o rota")).toEqual([]);
+    expect(copiasDeEscalas("el texto del script de la skill")).toEqual([]);
+    expect(copiasDeEscalas('dura' + ' '.repeat(60) + 'semidura' + ' '.repeat(60) + 'blanda')).toEqual([]);
   });
 
   it("el detector no se queja de un valor suelto ni de ids que no están juntos", () => {

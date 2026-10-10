@@ -68,17 +68,37 @@ export function etiquetaDeEscalon(escalon) {
   return ESCALERA.find((e) => e.id === escalon)?.etiqueta ?? null;
 }
 
+/** Cuántos caracteres como mucho caben entre el primero y el último de los tres valores de una escala para contarla como copia. */
+export const VENTANA_COPIA = 80;
+/** Cuántos valores distintos de la misma escala, juntos, hacen una copia. */
+export const MIN_VALORES_COPIA = 3;
+
 /**
- * ¿Escribe este texto, a mano, la escala de veredicto o la escalera de durabilidad? Una lista de
- * valores sueltos (`["dura", "semidura", "blanda"…`) o las claves de un objeto (`dura: …, semidura: …`)
- * en el orden de la escala; igual con la escalera. Devuelve cuáles ve: `[]`, `["escala"]`,
- * `["escalera"]` o los dos. Lo usa `ops/escalas.test.js` para que ningún fichero las vuelva a declarar.
+ * Valores que casi solo existen como parte de su escala: «dura», «blanda», «rota», «script», «skill» y
+ * «texto» son palabras corrientes, y tres de ellas juntas en una frase no son una copia. Hace falta, además,
+ * una de estas anclas dentro de la ventana.
+ */
+export const ANCLAS_ESCALA = ["semidura"];
+export const ANCLAS_ESCALERA = ["bloqueo", "test_ci"];
+
+/**
+ * ¿Escribe este texto, a mano, la escala de veredicto o la escalera de durabilidad? Basta con que
+ * aparezcan `MIN_VALORES_COPIA` valores distintos de la misma escala, como palabras enteras y uno de ellos
+ * un ancla, dentro de una ventana corta (`VENTANA_COPIA` caracteres): da igual el separador (coma, dos puntos, barra, comillas
+ * o espacios) y el orden. Devuelve cuáles ve: `[]`, `["escala"]`, `["escalera"]` o los dos. Lo usa
+ * `ops/escalas.test.js` para que ningún fichero las vuelva a declarar.
  */
 export function copiasDeEscalas(texto) {
-  // Cada id va seguido de una coma o de dos puntos, salvo el último, que puede cerrar la lista.
-  const lista = (...ids) => new RegExp(ids.map((id, i) => `\\b${id}\\b${i < ids.length - 1 ? "[\"'`]?\\s*[:,]" : ""}`).join("[\\s\\S]{0,200}?"));
+  const hay = (ids, anclas) => {
+    const palabras = new RegExp(`(?<![\w-])(${ids.join("|")})(?![\w-])`, "g");
+    const vistos = [...texto.matchAll(palabras)].map((m) => [m.index, m[1]]);
+    return vistos.some(([desde], i) => {
+      const dentro = vistos.slice(i).filter(([pos]) => pos - desde <= VENTANA_COPIA).map(([, id]) => id);
+      return new Set(dentro).size >= MIN_VALORES_COPIA && dentro.some((id) => anclas.includes(id));
+    });
+  };
   const copias = [];
-  if (lista("dura", "semidura", "blanda").test(texto)) copias.push("escala");
-  if (lista("bloqueo", "test_ci", "script").test(texto)) copias.push("escalera");
+  if (hay(ORDEN_VEREDICTO, ANCLAS_ESCALA)) copias.push("escala");
+  if (hay(ESCALONES, ANCLAS_ESCALERA)) copias.push("escalera");
   return copias;
 }
