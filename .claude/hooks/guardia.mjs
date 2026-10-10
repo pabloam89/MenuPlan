@@ -13,7 +13,7 @@
  * Cada regla lleva su porqué: si una molesta, se discute y se cambia aquí,
  * con su test en guardia.test.js. Lo que no vale es desactivarla sin decirlo.
  */
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
@@ -645,31 +645,82 @@ const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve
 
 /** Tope del proceso que busca lo ya apuntado (#384): pasado el tiempo, la guardia responde sin aviso. */
 export const TOPE_AVISO_MS = 1500;
+/** Si la guardia ya lleva más que esto, el aviso se salta (#428): la denegación no puede esperar más. */
+export const TOPE_PARA_AVISAR_MS = 10000;
+export const hayTiempoParaAvisar = (inicio, ahora = Date.now()) => ahora - inicio <= TOPE_PARA_AVISAR_MS;
+const MAX_BYTES_AVISO = 64 * 1024;
+const GRACIA_TRAS_EXIT_MS = 100;
+
+/**
+ * Saneado mínimo EN LÍNEA de lo que devuelve el hijo (#428, #313: texto de fuera es dato): fuera los
+ * caracteres de control salvo el salto de línea (incluido ESC, así que no queda ningún color ANSI),
+ * los de formato (bidi, ancho cero) y `<` y `>`. No importa nada de scripts/lib a propósito.
+ */
+export const sanearAviso = (t) => String(t).replace(/(?!\n)\p{Cc}|\p{Cf}|[<>]/gu, "");
 
 /**
  * El aviso de «esto ya está apuntado» para una denegación, obtenido en un PROCESO APARTE y con tope
  * (ronda 4 de #384): la guardia no importa nada de scripts/lib y un módulo que falle, haga exit o se
  * cuelgue no puede quitar un deny. Devuelve '' ante cualquier cosa rara.
+ *
+ * Asíncrono a propósito (#428): con spawnSync, un nieto `detached` con stdio heredado mantiene la
+ * tubería abierta y la espera pasa del tope. Aquí se resuelve en `exit` (con una gracia breve para
+ * leer lo ya escrito) o en el temporizador, sin esperar a `close`, y se mata al hijo.
  */
 export function avisoAparte(r, entrada, { script = join(dirname(fileURLToPath(import.meta.url)), "buscar-antes.mjs"), tope = TOPE_AVISO_MS } = {}) {
-  try {
-    const hijo = spawnSync(process.execPath, [script, "--denegacion"], {
-      input: JSON.stringify({
+  return new Promise((resolver) => {
+    let hijo = null;
+    let hecho = false;
+    let salida = "";
+    let bytes = 0;
+    let estado = null;
+    const timers = [];
+    const fin = (valor, aviso) => {
+      if (hecho) return;
+      hecho = true;
+      timers.forEach(clearTimeout);
+      try { hijo?.stdout?.destroy(); hijo?.stdin?.destroy(); hijo?.kill(); } catch { /* a propósito: ya muerto */ }
+      if (aviso) console.error(`[guardia] no he podido buscar lo ya apuntado (${aviso})`);
+      resolver(valor);
+    };
+    const evaluar = () => {
+      const limpio = String(salida).trim();
+      if (estado !== 0 || !limpio.startsWith("[buscar-antes] ") || limpio.length > 6000) {
+        return fin("", estado === 0 ? null : `estado ${estado}`);
+      }
+      fin(sanearAviso(limpio));
+    };
+    try {
+      hijo = spawn(process.execPath, [script, "--denegacion"], { stdio: ["pipe", "pipe", "ignore"], windowsHide: true });
+      timers.push(setTimeout(() => fin("", "tiempo agotado"), tope));
+      hijo.on("error", (e) => fin("", e?.code ?? "error"));
+      hijo.stdout.setEncoding("utf8");
+      hijo.stdout.on("data", (trozo) => {
+        bytes += Buffer.byteLength(trozo);
+        if (bytes > MAX_BYTES_AVISO) return fin("", "salida demasiado grande");
+        salida += trozo;
+      });
+      hijo.stdout.on("error", () => {});
+      hijo.stdin.on("error", () => {});
+      hijo.on("exit", (codigo, senal) => {
+        estado = codigo ?? senal ?? -1;
+        timers.push(setTimeout(evaluar, GRACIA_TRAS_EXIT_MS));
+      });
+      hijo.on("close", () => { if (!hecho && estado !== null) evaluar(); });
+      hijo.stdin.end(JSON.stringify({
         entrada: { session_id: entrada?.session_id, cwd: entrada?.cwd, tool_input: { command: String(entrada?.tool_input?.command ?? "").slice(0, 2000) } },
         motivo: String(r.motivo ?? "").slice(0, 2000),
-      }),
-      timeout: tope, encoding: "utf8", maxBuffer: 64 * 1024, windowsHide: true,
-    });
-    const salida = String(hijo.stdout ?? "").trim();
-    if (hijo.error || hijo.status !== 0 || !salida.startsWith("[buscar-antes] ") || salida.length > 6000) {
-      if (hijo.error || hijo.status !== 0) console.error(`[guardia] no he podido buscar lo ya apuntado (estado ${hijo.status}, ${hijo.signal ?? hijo.error?.code ?? "sin señal"})`);
-      return "";
+      }));
+    } catch (e) {
+      fin("", String(e?.message ?? e).split("\n")[0]);
     }
-    return salida;
-  } catch (e) {
-    console.error(`[guardia] no he podido buscar lo ya apuntado: ${String(e?.message ?? e).split("\n")[0]}`);
-    return "";
-  }
+  });
+}
+
+/** El aviso de una denegación si la guardia aún tiene tiempo (#428); si no, '' sin lanzar nada. */
+export function avisoParaDenegacion(r, entrada, { inicio = INICIO, ahora = Date.now(), ...opciones } = {}) {
+  if (!hayTiempoParaAvisar(inicio, ahora)) return Promise.resolve("");
+  return avisoAparte(r, entrada, opciones);
 }
 
 let respondido = false;
@@ -684,13 +735,13 @@ const escribir = (r, motivo) => {
   }));
 };
 
-const responder = (r, entrada = null) => {
+const responder = async (r, entrada = null) => {
   const base = `[guardia] ${r.motivo}`;
   // Red de seguridad: si algo hiciera salir al proceso antes de escribir, la decisión sale igual.
   process.on("exit", () => { if (!respondido) escribir(r, base); });
   // Una denegación no llega a PostToolUse: la herramienta no se ejecuta. Por eso el «esto ya está
   // apuntado» (#384) se añade aquí, desde otro proceso y con tope. Nunca cambia la decisión.
-  const extra = r.decision === "deny" && entrada ? avisoAparte(r, entrada) : "";
+  const extra = r.decision === "deny" && entrada ? await avisoParaDenegacion(r, entrada) : "";
   escribir(r, extra ? `${base}\n${extra}` : base);
 };
 
@@ -707,7 +758,7 @@ if (esPrincipal) {
     console.error(`[guardia] entrada ilegible: ${e.message}`);
   }
   if (!entrada || typeof entrada !== "object") {
-    responder(ask("La guardia no ha podido leer esta orden, así que no sabe si es segura. ¿La dejas pasar?"));
+    await responder(ask("La guardia no ha podido leer esta orden, así que no sabe si es segura. ¿La dejas pasar?"));
     process.exit(0);
   }
   // La raíz del worktree donde se trabaja, no CLAUDE_PROJECT_DIR (que apunta a
@@ -730,7 +781,7 @@ if (esPrincipal) {
     // La respuesta sale PRIMERO: lo que decide la guardia no puede depender de un módulo de
     // registro que se cuelgue o haga process.exit (juez de seguridad de #340). El aviso de lo
     // ya apuntado (#384) se añade dentro de `responder`, con su try/catch: nunca cambia la decisión.
-    responder(r, entrada);
+    await responder(r, entrada);
     // El registro de eventos (#340) cuenta cada bloqueo y cada permiso pedido. Import dinámico,
     // dentro de un try y con tope de tiempo: si no carga, falla o se cuelga, la decisión ya salió.
     try {

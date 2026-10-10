@@ -21,7 +21,7 @@
  * sin datos de familias, para medir cuántas señales traen algo apuntado.
  */
 import { createHash } from "node:crypto";
-import { appendFileSync, mkdirSync, readFileSync, statSync } from "node:fs";
+import { appendFileSync, lstatSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -100,6 +100,28 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
 export const LINEAS_LOG = 500;
 const MAX_BYTES_LOG = 100 * 1024;
 
+/**
+ * ¿Se puede escribir en esta ruta sin tocar nada ajeno? (#428, POSIX con varios usuarios): ni enlace
+ * ni fichero de otro usuario, ni en una carpeta de otro. Si no existe aún, solo cuenta la carpeta.
+ * En Windows no hay uid y siempre vale.
+ */
+export function escrituraSegura(ruta, dir = null) {
+  if (typeof process.getuid !== "function") return true;
+  const yo = process.getuid();
+  try {
+    if (dir && lstatSync(dir).uid !== yo) return false;
+    try {
+      const st = lstatSync(ruta);
+      return st.isFile() && st.uid === yo;
+    } catch (e) {
+      if (e?.code === "ENOENT") return true;
+      return false;
+    }
+  } catch {
+    return false;
+  }
+}
+
 /** El registro de señales no crece sin fin: pasado el tope, quedan las últimas `LINEAS_LOG` líneas. */
 export function recortarLog(ruta) {
   try {
@@ -141,6 +163,7 @@ export function ejecutar(entrada, opciones = {}) {
     if (r.lineas.length) {
       try {
         const log = join(dir, "senales.log");
+        if (!escrituraSegura(log, dir)) throw new Error("senales.log o su carpeta no son nuestros");
         appendFileSync(log, `${r.lineas.join("\n")}\n`);
         recortarLog(log);
       } catch (e) {
