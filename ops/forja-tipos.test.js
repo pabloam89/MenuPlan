@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  ARTEFACTOS, CLASES_CAMPO, RUTA_CAMPOS,
+  ARTEFACTOS, CLASES_CAMPO, NUM_TIPOS_SKILL, RUTA_CAMPOS, tiposRetiradosEnCriterios,
   anclarCampos, cifrasDeCampos, cifrasPorTipo, criteriosDeTipo, generarMd, leerCamposGuardados, leerForja,
   problemasDeCampos, problemasDeCamposContraReferencia, problemasDeForja, problemasDeTaxonomia, problemasDeTrinqueteCampos, tipoDeSkill,
   vocabulariosDeCriterio,
@@ -15,8 +15,8 @@ import { nombresDeSkills, parsearSkill } from "../scripts/lib/skills.mjs";
 
 /**
  * Tipos de skill (decisión de Pablo, 10 oct 2026) y campos discretos frente a huecos de texto (#458).
- * Falla cuando: a una skill le faltan respuestas, el tipo derivado no coincide con la tabla de Pablo,
- * un tipo de ops/flujo.json no tiene destino, un texto no es hueco, un enum se sale del vocabulario,
+ * Falla cuando: a una skill le faltan respuestas, el tipo derivado no coincide con la tabla de Pablo o con
+ * su frontmatter, un tipo retirado vuelve o no dice a cuál pasa, no hay exactamente una pieza meta (nivel 0), un texto no es hueco, un enum se sale del vocabulario,
  * una ref no existe o un campo vuelve de discreto a texto.
  */
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -26,12 +26,13 @@ const datos = leerForja(RAIZ);
 const clon = () => structuredClone(datos);
 const md = leer("docs/ops/FORJA.md");
 
-const flujo = JSON.parse(leer("ops/flujo.json"));
-const tiposActuales = flujo.tipos_skill.map((t) => t.id);
-const skills = nombresDeSkills(RAIZ);
+const todas = nombresDeSkills(RAIZ);
 const metaDe = (s) => parsearSkill(leer(`.claude/skills/${s}/SKILL.md`)).meta;
+const nivelDe = Object.fromEntries(todas.map((s) => [s, metaDe(s).metadata.nivel ?? "2"]));
+/** Las skills de nivel 2 (con tipo); la pieza meta (nivel 0) va aparte. */
+const skills = todas.filter((s) => nivelDe[s] !== "0");
 const tipoActualDe = Object.fromEntries(skills.map((s) => [s, metaDe(s).metadata.tipo]));
-const ctxTaxonomia = { skills, tiposActuales, tipoActualDe };
+const ctxTaxonomia = { skills: todas, tipoActualDe, nivelDe };
 
 /** La tabla de Pablo, escrita aparte del JSON: lo que el JSON deriva tiene que coincidir con ella. */
 const TABLA_PABLO = {
@@ -40,12 +41,11 @@ const TABLA_PABLO = {
   diagnostico: ["causa-raiz"],
   decision: ["plan-de-arreglo"],
   flujo: ["issues"],
-  forja: ["forja-de-skills"],
   revision: ["higiene-de-skills"],
   conocimiento: [],
 };
-const PREGUNTAS_PABLO = ["opera_proveedor", "crea_artefacto", "juzga_artefacto", "encadena", "pasos_fijos", "sintoma_a_causa", "elige_opciones"];
-const TIPOS_PABLO = ["servicio", "forja", "revision", "flujo", "procedimiento", "diagnostico", "decision"];
+const PREGUNTAS_PABLO = ["opera_proveedor", "juzga_artefacto", "encadena", "pasos_fijos", "sintoma_a_causa", "elige_opciones"];
+const TIPOS_PABLO = ["servicio", "revision", "flujo", "procedimiento", "diagnostico", "decision"];
 
 describe("tipoDeSkill", () => {
   const sin = Object.fromEntries(PREGUNTAS_PABLO.map((k) => [k, false]));
@@ -57,7 +57,7 @@ describe("tipoDeSkill", () => {
   it("devuelve el tipo de la primera pregunta con true", () => {
     for (const p of datos.preguntas_tipo) expect(tipoDeSkill({ ...sin, [p.clave]: true }), p.clave).toBe(p.tipo);
     expect(tipoDeSkill({ ...sin, encadena: true, pasos_fijos: true, elige_opciones: true })).toBe("flujo");
-    expect(tipoDeSkill({ ...sin, opera_proveedor: true, crea_artefacto: true })).toBe("servicio");
+    expect(tipoDeSkill({ ...sin, opera_proveedor: true, juzga_artefacto: true })).toBe("servicio");
     expect(tipoDeSkill({ ...sin, elige_opciones: true, sintoma_a_causa: true })).toBe("diagnostico");
   });
   it("sin ningún true, conocimiento", () => {
@@ -87,14 +87,19 @@ describe("la taxonomía de tipos y la migración de las skills", () => {
     }
     for (const [t, ss] of Object.entries(TABLA_PABLO)) expect(datos.tipos_skill.find((x) => x.id === t).skills_hoy, t).toEqual(ss);
   });
-  it("cada skill del repo tiene respuestas a las siete preguntas", () => {
+  it("cada skill de nivel 2 tiene respuestas a las seis preguntas, y son siete tipos", () => {
+    expect(NUM_TIPOS_SKILL).toBe(7);
+    expect(datos.tipos_skill).toHaveLength(NUM_TIPOS_SKILL);
     for (const s of skills) expect(Object.keys(datos.respuestas_tipo[s] ?? {}).filter((k) => k !== "nota"), s).toEqual(PREGUNTAS_PABLO);
     expect(Object.keys(datos.skills_provisionales)).toEqual(["estilo-de-respuesta", "issues"]);
   });
-  it("forja-de-skills juzga y crea (y da forja); issues es provisional; alta-de-secreto dice por qué no opera un proveedor", () => {
+  it("forja-de-skills es la pieza meta (nivel 0): sin tipo, sin respuestas ni migración; issues es provisional", () => {
+    expect(todas.filter((s) => nivelDe[s] === "0")).toEqual(["forja-de-skills"]);
+    expect(metaDe("forja-de-skills").metadata.tipo).toBeUndefined();
+    expect(datos.respuestas_tipo["forja-de-skills"]).toBeUndefined();
+    expect(datos.migracion_tipos["forja-de-skills"]).toBeUndefined();
+    expect(datos.nivel_0.skills.secciones.at(-1)).toBe("Fuentes y comprobación");
     const r = datos.respuestas_tipo;
-    expect(r["forja-de-skills"]).toMatchObject({ crea_artefacto: true, juzga_artefacto: true });
-    expect(tipoDeSkill(r["forja-de-skills"])).toBe("forja");
     expect(datos.skills_provisionales.issues).toMatchObject({ en_tabla: true });
     expect(datos.skills_provisionales["estilo-de-respuesta"]).toMatchObject({ en_tabla: false });
     expect(datos.tipos_skill.find((t) => t.id === "flujo").skills_hoy).toEqual(["issues"]);
@@ -102,9 +107,17 @@ describe("la taxonomía de tipos y la migración de las skills", () => {
     expect(r["alta-de-secreto"].nota).toContain("opera_proveedor es false");
     expect(r.issues.nota).toContain("#414");
   });
-  it("cada tipo de hoy de ops/flujo.json tiene un destino y cada skill pasa a uno de los suyos", () => {
-    for (const t of tiposActuales) expect(datos.destino_tipos_actuales[t]?.destinos?.length, t).toBeGreaterThan(0);
-    for (const s of skills) expect(datos.destino_tipos_actuales[tipoActualDe[s]].destinos, s).toContain(datos.migracion_tipos[s]);
+  it("el frontmatter de cada skill de nivel 2 dice el tipo que dan sus respuestas, y ninguno es un tipo retirado", () => {
+    for (const s of skills) expect(tipoActualDe[s], s).toBe(tipoDeSkill(datos.respuestas_tipo[s]));
+    for (const s of skills) expect(Object.keys(datos.destino_tipos_actuales), s).not.toContain(tipoActualDe[s]);
+    expect(datos.destino_tipos_actuales.forja.destinos).toEqual([]);
+  });
+  it("los criterios que aún nombran un tipo retirado solo bajan (este literal no se edita para añadir)", () => {
+    const DE_PARTIDA = ["sin-parada: forja"];
+    expect(tiposRetiradosEnCriterios(datos).filter((x) => !DE_PARTIDA.includes(x)), "Un criterio no puede nombrar un tipo retirado").toEqual([]);
+    const d = clon();
+    d.criterios.find((c) => c.id === "secciones").tipos = ["oficio"];
+    expect(tiposRetiradosEnCriterios(d)).toContain("secciones: oficio");
   });
   const mal = (mut, trozo, ctx = ctxTaxonomia) => {
     const d = clon();
@@ -124,12 +137,20 @@ describe("la taxonomía de tipos y la migración de las skills", () => {
     mal((d) => { d.migracion_tipos.issues = "servicio"; }, "issues: migracion_tipos dice «servicio» y sus respuestas dan «flujo»");
     mal((d) => { d.tipos_skill.find((t) => t.id === "servicio").skills_hoy.pop(); }, "tipo servicio: skills_hoy");
   });
-  it("falla si un tipo actual de ops/flujo.json no tiene destino", () => {
-    mal((d) => { delete d.destino_tipos_actuales.meta; }, "el tipo actual «meta» de ops/flujo.json no tiene destino");
+  it("falla si un tipo retirado vuelve, no dice a cuál pasa o lo usa una skill", () => {
     mal((d) => { d.destino_tipos_actuales.meta.destinos = ["inventado"]; }, "el destino «inventado» no está en tipos_skill");
-    mal((d) => { d.destino_tipos_actuales.herramienta.destinos = ["servicio"]; }, "issues: era «herramienta» y pasa a «flujo»");
-    mal(() => {}, "el tipo actual «nuevo_tipo» de ops/flujo.json no tiene destino", { ...ctxTaxonomia, tiposActuales: [...tiposActuales, "nuevo_tipo"] });
-    mal((d) => { d.destino_tipos_actuales.viejo = { destinos: ["flujo"], nota: "Un tipo que ya no está en el flujo" }; }, "ya no es un tipo de ops/flujo.json");
+    mal((d) => { delete d.destino_tipos_actuales.meta.destinos; }, "destinos es una lista");
+    mal((d) => { d.destino_tipos_actuales.servicio = { destinos: ["flujo"], nota: "Un tipo vigente no se retira así" }; }, "vuelve a estar en tipos_skill");
+    mal((d) => { d.destino_tipos_actuales.forja.nota = "corta"; }, "el destino lleva su nota");
+    mal(() => {}, "su metadata.tipo «herramienta» es un tipo retirado", { ...ctxTaxonomia, tipoActualDe: { ...tipoActualDe, github: "herramienta" } });
+    mal(() => {}, "su metadata.tipo es «revision» y sus respuestas dan «servicio»", { ...ctxTaxonomia, tipoActualDe: { ...tipoActualDe, github: "revision" } });
+  });
+  it("falla si no hay exactamente una pieza meta, o si su forma o los niveles no están", () => {
+    mal(() => {}, "hay 0 piezas meta", { ...ctxTaxonomia, nivelDe: {} });
+    mal(() => {}, "hay 2 piezas meta", { ...ctxTaxonomia, nivelDe: { ...nivelDe, github: "0" } });
+    mal((d) => { delete d.nivel_0; }, "nivel_0.skills.secciones");
+    mal((d) => { delete d.niveles["1"]; }, "niveles: falta el 1");
+    mal((d) => { d.respuestas_tipo["forja-de-skills"] = d.respuestas_tipo.github; }, "no es una skill de nivel 2");
   });
   it("falla con una nota corta o un provisional mal puesto", () => {
     mal((d) => { d.respuestas_tipo["alta-de-secreto"].nota = "corta"; }, "la nota de sus respuestas dice por qué");
@@ -138,7 +159,7 @@ describe("la taxonomía de tipos y la migración de las skills", () => {
     mal((d) => { d.skills_provisionales.issues.en_tabla = false; }, "tipo flujo: skills_hoy");
   });
   it("falla si falta un tipo o una pregunta, o sobra una", () => {
-    mal((d) => { d.tipos_skill.pop(); }, "la decisión de Pablo son 8");
+    mal((d) => { d.tipos_skill.pop(); }, "la decisión de Pablo son 7");
     mal((d) => { d.preguntas_tipo.pop(); }, "sin pregunta que lo asigne");
     mal((d) => { d.preguntas_tipo[0].tipo = "inventado"; }, "no está en tipos_skill");
     mal((d) => { delete d.libertad; }, "libertad es un vocabulario");
@@ -156,7 +177,7 @@ describe("tipos de cada criterio: la plantilla de cada tipo sale de filtrar la b
     expect(criteriosDeTipo(datos, "flujo").map((c) => c.id)).toContain("sin-parada");
     for (const t of datos.tipos_skill) expect(criteriosDeTipo(datos, t.id).length, t.id).toBeGreaterThan(0);
     expect(cifrasPorTipo(datos).servicio.total).toBe(deSkill.length - 1);
-    expect(cifrasPorTipo(datos).forja.total).toBe(deSkill.length);
+    expect(cifrasPorTipo(datos).flujo.total).toBe(deSkill.length);
   });
   it("falla con tipos ausentes, desconocidos, repetidos, vacíos o sobrando", () => {
     const f = (mut, trozo) => {
@@ -189,7 +210,7 @@ const existeFicha = (tipo, v) => {
 const ctxCampos = {
   existe: existeFicha,
   vocabularios: {
-    tipos_skill_vigentes: tiposActuales,
+    niveles: Object.keys(datos.niveles),
     tipos_skill: datos.tipos_skill.map((t) => t.id),
     libertad: Object.keys(datos.libertad),
     invocacion: Object.keys(datos.invocacion),
@@ -206,7 +227,8 @@ const tareas = Object.entries(estandares.agentes).flatMap(([a, ag]) => ag.tareas
 
 describe("campos de las fichas: lo que ya existe cumple lo que declara campos_ficha", () => {
   it("el frontmatter de todas las skills", () => {
-    for (const s of skills) expect(problemasDeCampos(fichaDeSkill(s), "skill", datos, ctxCampos), s).toEqual([]);
+    for (const s of todas) expect(problemasDeCampos(fichaDeSkill(s), "skill", datos, ctxCampos), s).toEqual([]);
+    expect(problemasDeCampos({ ...fichaDeSkill("forja-de-skills"), nivel: "3" }, "skill", datos, ctxCampos).join()).toContain("skill.nivel: «3» no está en el vocabulario");
   });
   it("todas las tareas del catálogo de estándares", () => {
     expect(tareas.length).toBeGreaterThan(50);
@@ -360,14 +382,14 @@ describe("trinquete de los campos (ops/forja-campos.json): de texto a discreto, 
 
 describe("cifras: campos discretos frente a huecos", () => {
   it("por artefacto, en la vista y en las cifras", () => {
-    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 6, huecos: 1, total: 7 }, estandar: { discretos: 2, huecos: 5, total: 7 }, agente: { discretos: 3, huecos: 1, total: 4 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
-    expect(md).toContain("| skill | 6 | 1 | 7 |");
+    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 7, huecos: 1, total: 8 }, estandar: { discretos: 2, huecos: 5, total: 7 }, agente: { discretos: 3, huecos: 1, total: 4 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
+    expect(md).toContain("| skill | 7 | 1 | 8 |");
     expect(md).toContain("| criterio | 2 | 6 | 8 |");
     expect(md).toContain("| estandar | 2 | 5 | 7 |");
   });
-  it("FORJA.md dice que la fuente de los tipos es ops/forja.json y que la plantilla es de otro encargo", () => {
-    expect(md).toContain("La fuente de los tipos pasa a ser `ops/forja.json`");
-    expect(md).toContain("encargo de plantillas por tipo");
+  it("FORJA.md dice que la única lista de tipos es la de ops/forja.json y dónde están los moldes", () => {
+    expect(md).toContain("La única lista de tipos es la de `ops/forja.json`");
+    expect(md).toContain(".claude/plantillas-skill/<tipo>.md");
   });
   it("cambiar un campo o un tipo cambia la vista", () => {
     const d = clon();

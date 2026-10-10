@@ -64,16 +64,6 @@
       ]
     },
     {
-      "id": "forja",
-      "que": "Crear un artefacto nuevo desde su plantilla",
-      "entra": "necesidad",
-      "sale": "artefacto o «no hace falta»",
-      "prueba": "regla de parada primero; lo creado pasa su plantilla",
-      "skills_hoy": [
-        "forja-de-skills"
-      ]
-    },
-    {
       "id": "revision",
       "que": "Juzgar un artefacto contra un catálogo y aplicar lo mecánico",
       "entra": "artefacto",
@@ -97,11 +87,6 @@
       "clave": "opera_proveedor",
       "pregunta": "¿Opera un sistema o proveedor externo concreto?",
       "tipo": "servicio"
-    },
-    {
-      "clave": "crea_artefacto",
-      "pregunta": "¿Crea un artefacto nuevo?",
-      "tipo": "forja"
     },
     {
       "clave": "juzga_artefacto",
@@ -142,7 +127,6 @@
   "respuestas_tipo": {
     "github": {
       "opera_proveedor": true,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": false,
       "pasos_fijos": false,
@@ -151,7 +135,6 @@
     },
     "vercel": {
       "opera_proveedor": true,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": false,
       "pasos_fijos": false,
@@ -160,7 +143,6 @@
     },
     "supabase": {
       "opera_proveedor": true,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": false,
       "pasos_fijos": false,
@@ -169,7 +151,6 @@
     },
     "telegram": {
       "opera_proveedor": true,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": false,
       "pasos_fijos": false,
@@ -178,7 +159,6 @@
     },
     "hetzner": {
       "opera_proveedor": true,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": false,
       "pasos_fijos": false,
@@ -187,7 +167,6 @@
     },
     "tailscale": {
       "opera_proveedor": true,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": false,
       "pasos_fijos": false,
@@ -196,7 +175,6 @@
     },
     "1password": {
       "opera_proveedor": true,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": false,
       "pasos_fijos": false,
@@ -205,7 +183,6 @@
     },
     "alta-de-secreto": {
       "opera_proveedor": false,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": false,
       "pasos_fijos": true,
@@ -215,7 +192,6 @@
     },
     "causa-raiz": {
       "opera_proveedor": false,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": false,
       "pasos_fijos": false,
@@ -224,7 +200,6 @@
     },
     "plan-de-arreglo": {
       "opera_proveedor": false,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": false,
       "pasos_fijos": false,
@@ -233,7 +208,6 @@
     },
     "issues": {
       "opera_proveedor": false,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": true,
       "pasos_fijos": false,
@@ -241,19 +215,8 @@
       "elige_opciones": false,
       "nota": "encadena es true por anticipado: hoy issues opera los issues de GitHub (un proveedor) y solo encadenará etapas con #414, como dice la tabla de Pablo"
     },
-    "forja-de-skills": {
-      "opera_proveedor": false,
-      "crea_artefacto": true,
-      "juzga_artefacto": true,
-      "encadena": false,
-      "pasos_fijos": false,
-      "sintoma_a_causa": false,
-      "elige_opciones": false,
-      "nota": "juzga_artefacto es true porque también revisa lo que existe, pero crea_artefacto va antes en el orden de preguntas y la deja en forja"
-    },
     "higiene-de-skills": {
       "opera_proveedor": false,
-      "crea_artefacto": false,
       "juzga_artefacto": true,
       "encadena": false,
       "pasos_fijos": false,
@@ -262,7 +225,6 @@
     },
     "estilo-de-respuesta": {
       "opera_proveedor": false,
-      "crea_artefacto": false,
       "juzga_artefacto": false,
       "encadena": false,
       "pasos_fijos": false,
@@ -280,6 +242,17 @@
       "en_tabla": true
     }
   },
+  "niveles": {
+    "0": "Pieza meta de una familia (skills hoy; la de estándares vendrá): de ella salen las plantillas por tipo. Sin tipo de skill y exactamente una por familia",
+    "1": "Plantilla por tipo, generada en .claude/plantillas-skill/<tipo>.md: no es una skill",
+    "2": "Skill concreta, con su tipo (el que dan sus respuestas); es el nivel si la ficha no dice otro"
+  },
+  "nivel_0": {
+    "skills": {
+      "nota": "La forma de la pieza meta de las skills (forja-de-skills, decisión de Pablo del 10 oct 2026) la fija la forja misma: le valen las reglas comunes del nivel 1 y estas secciones, no el molde de un tipo",
+      "secciones": ["Cuándo y para qué", "Método", "Cómo se prueba", "Cuándo se poda", "Lo que falló y por qué", "Registro de cambios", "Fuentes y comprobación"]
+    }
+  },
   "migracion_tipos": {
     "github": "servicio",
     "vercel": "servicio",
@@ -292,7 +265,6 @@
     "causa-raiz": "diagnostico",
     "plan-de-arreglo": "decision",
     "issues": "flujo",
-    "forja-de-skills": "forja",
     "higiene-de-skills": "revision",
     "estilo-de-respuesta": "conocimiento"
   },
@@ -343,10 +315,13 @@
     },
     "meta": {
       "destinos": [
-        "forja",
         "revision"
       ],
-      "nota": "Se reparte: crear es forja y juzgar lo existente es revision."
+      "nota": "Juzgar lo existente es revision; crear skills es de la pieza meta (nivel 0), que no tiene tipo."
+    },
+    "forja": {
+      "destinos": [],
+      "nota": "Retirado el 10 oct 2026 por decisión de Pablo, sin sucesor: crear skills es de la pieza meta (nivel 0, forja-de-skills), que no tiene tipo. Pendiente de registrarlo en ops/vocabularios-vida.json cuando llegue (#481)."
     }
   },
   "campos_ficha": {
@@ -366,9 +341,15 @@
         },
         "tipo": {
           "clase": "enum",
-          "vocab": "tipos_skill_vigentes",
-          "obligatorio": true,
-          "nota": "Hoy, los ocho tipos de ops/flujo.json; pasará al vocabulario tipos_skill con el encargo de plantillas por tipo"
+          "vocab": "tipos_skill",
+          "obligatorio": false,
+          "nota": "Lo llevan todas las de nivel 2; la de nivel 0 no tiene tipo, y el nivel 1 lo comprueba"
+        },
+        "nivel": {
+          "clase": "enum",
+          "vocab": "niveles",
+          "obligatorio": false,
+          "nota": "Sin él, 2 (skill concreta); solo la pieza meta lo lleva, con 0"
         },
         "dueno": {
           "clase": "ref",

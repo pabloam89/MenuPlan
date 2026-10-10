@@ -26,6 +26,7 @@
     "skill.invocacion": "discreto",
     "skill.libertad": "discreto",
     "skill.name": "discreto",
+    "skill.nivel": "discreto",
     "skill.tipo": "discreto"
   },
   "retirados": {}
