@@ -1,0 +1,80 @@
+{
+  "skill": "estilo-de-respuesta",
+  "casos": [
+    {
+      "id": "cuentame-como-va",
+      "peticion": "Acabas de terminar un cambio de scripts con cuatro ficheros tocados, lint pasado y CI en verde. Pablo pregunta: ¿cómo va lo de las copias? Redacta tu respuesta.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "La primera línea es una sola frase en negrita con la idea raíz (qué está hecho o qué falta)",
+        "Tiene cuatro ideas o menos, cortas",
+        "No lista ficheros ni nombra ramas, lint ni CI sin explicarlos",
+        "No usa cabeceras ni tablas"
+      ]
+    },
+    {
+      "id": "explicamelo-sencillo",
+      "peticion": "Pablo escribe: «uff, muy lío, explícamelo sencillo». Antes le dijiste que un workflow reintenta un job porque la deploy key no tiene bypass en el ruleset. Vuelve a explicárselo.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Empieza por una idea raíz en negrita en una frase sin jerga",
+        "Evita o explica en una frase los términos técnicos (workflow, deploy key, ruleset)",
+        "No pasa de cuatro ideas y no usa tablas ni cabeceras"
+      ]
+    },
+    {
+      "id": "hay-que-decidir",
+      "peticion": "Hay dos formas de guardar las copias de seguridad: en el servidor que ya tenemos (gratis) o en un servicio aparte (de pago, algo más seguro). Pablo tiene que decidir. Escríbele.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "La primera línea en negrita dice que hay que elegir y cuál recomiendas",
+        "Las opciones van en una o dos frases cada una, sin tabla de comparación",
+        "La última línea es lo que se necesita de él (que elija)"
+      ]
+    },
+    {
+      "id": "resumen-del-dia",
+      "peticion": "Se ha cerrado el día y tienes seis cosas hechas, tres pendientes y dos dudas. Pablo pide un resumen para saber por dónde vamos.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Una idea raíz en negrita arriba, no una lista de seis cosas",
+        "Agrupa lo hecho y lo pendiente en cuatro ideas como mucho",
+        "Manda el detalle a un issue o a un fichero en lugar de pegarlo en el chat"
+      ]
+    },
+    {
+      "id": "comando-para-pegar",
+      "peticion": "Pablo tiene que lanzar con ! el comando que aplica una migración. Dile qué hacer y dale el comando.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "La primera línea en negrita dice qué tiene que hacer y por qué",
+        "El comando va en un bloque de código para pegar, sin más detalle técnico alrededor",
+        "Termina con una línea con lo que necesita de él"
+      ]
+    },
+    {
+      "id": "frontera-informe-agente",
+      "peticion": "Escribe el informe final del agente con ESTADO, RESUMEN, CASOS, SKILLS, CAMBIOS y EVIDENCIA para la sesión principal.",
+      "skill": "ninguna",
+      "nota": "El informe de un agente tiene su propia forma, la de PLANTILLA-AGENTE; no se reduce a una idea y cuatro puntos."
+    },
+    {
+      "id": "frontera-voz-de-lola",
+      "peticion": "Redacta el mensaje que Lola manda a una familia el domingo con el menú de la semana y la lista de la compra.",
+      "skill": "ninguna",
+      "nota": "La voz de Lola con las familias es otra cosa que cómo se habla con Pablo."
+    },
+    {
+      "id": "frontera-cuerpo-de-pr",
+      "peticion": "Escribe el cuerpo del PR con las líneas Closes, Casos, Agente y Runbook para que pase el CI.",
+      "skill": "github",
+      "nota": "Las líneas del PR son de la skill github; no son una respuesta a Pablo."
+    },
+    {
+      "id": "frontera-documentacion",
+      "peticion": "Documenta en docs/ el flujo completo de las migraciones, paso a paso y con todos los ficheros implicados.",
+      "skill": "ninguna",
+      "nota": "La documentación lleva el detalle que aquí se deja fuera del chat."
+    }
+  ]
+}

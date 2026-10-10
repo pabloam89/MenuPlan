@@ -1,0 +1,296 @@
+{
+  "skill": "estilo-de-respuesta",
+  "fecha_utc": "2026-10-10T11:59:17.239Z",
+  "version": {
+    "skill_md": "8df6fe3cbd51",
+    "casos_json": "f59b2cefec17"
+  },
+  "modelos": {
+    "disparo": "claude-haiku-4-5",
+    "ejecuta": "claude-sonnet-5",
+    "corrige": "claude-haiku-4-5"
+  },
+  "tope_usd": 1,
+  "coste_usd": 0.0683,
+  "resultado": "falla",
+  "resumen": {
+    "disparo_ok": 8,
+    "disparo_total": 9,
+    "comprobaciones_ok": 13,
+    "comprobaciones_total": 16,
+    "sin_correr": 0
+  },
+  "cambios_respecto_anterior": [
+    {
+      "id": "cuentame-como-va",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "explicamelo-sencillo",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "hay-que-decidir",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "resumen-del-dia",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "comando-para-pegar",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-informe-agente",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-voz-de-lola",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-cuerpo-de-pr",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-documentacion",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "cuentame-como-va",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "explicamelo-sencillo",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "hay-que-decidir",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "resumen-del-dia",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "comando-para-pegar",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    }
+  ],
+  "disparo": [
+    {
+      "id": "cuentame-como-va",
+      "esperado": "estilo-de-respuesta",
+      "elegido": "estilo-de-respuesta",
+      "estado": "ok"
+    },
+    {
+      "id": "explicamelo-sencillo",
+      "esperado": "estilo-de-respuesta",
+      "elegido": "estilo-de-respuesta",
+      "estado": "ok"
+    },
+    {
+      "id": "hay-que-decidir",
+      "esperado": "estilo-de-respuesta",
+      "elegido": "estilo-de-respuesta",
+      "estado": "ok"
+    },
+    {
+      "id": "resumen-del-dia",
+      "esperado": "estilo-de-respuesta",
+      "elegido": "estilo-de-respuesta",
+      "estado": "ok"
+    },
+    {
+      "id": "comando-para-pegar",
+      "esperado": "estilo-de-respuesta",
+      "elegido": "ninguna",
+      "estado": "falla"
+    },
+    {
+      "id": "frontera-informe-agente",
+      "esperado": "ninguna",
+      "elegido": "ninguna",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-voz-de-lola",
+      "esperado": "ninguna",
+      "elegido": "ninguna",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-cuerpo-de-pr",
+      "esperado": "github",
+      "elegido": "github",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-documentacion",
+      "esperado": "ninguna",
+      "elegido": "ninguna",
+      "estado": "ok"
+    }
+  ],
+  "ejecucion": [
+    {
+      "id": "cuentame-como-va",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "La primera línea es una sola frase en negrita con la idea raíz (qué está hecho o qué falta)",
+          "cumple": true,
+          "evidencia": "**Las copias de seguridad ya funcionan y están probadas.**"
+        },
+        {
+          "texto": "Tiene cuatro ideas o menos, cortas",
+          "cumple": true,
+          "evidencia": "Tres ideas: corrección validada, comprobaciones pasadas, sin decisiones pendientes"
+        },
+        {
+          "texto": "No lista ficheros ni nombra ramas, lint ni CI sin explicarlos",
+          "cumple": false,
+          "evidencia": "Menciona 'comprobaciones automáticas' pero sin explicar qué son; tampoco nombra ficheros, ramas, lint ni CI explícitamente, pero la abstracción no tiene explicación"
+        },
+        {
+          "texto": "No usa cabeceras ni tablas",
+          "cumple": true,
+          "evidencia": "Solo usa negrita, guiones y párrafos simples"
+        }
+      ],
+      "respuesta": "**Las copias de seguridad ya funcionan y están probadas.**\n\n- El sistema de copias quedó corregido y validado.\n- Pasaron todas las comprobaciones automáticas sin errores.\n- No hace falta que decidas nada por ahora.\n\n---\n\nQué he hecho para llegar a esta respuesta (esto no se lo mandaría a Pablo, es mi proceso):\n\n1. Identificar la idea raíz: lo que Pablo necesita saber en una frase es que el trabajo está terminado y funciona. No le interesan los cuatro ficheros ni el lint ni el CI por sí mismos; esos son detalles técnicos que sostienen la conclusión pero no son la conclusión.\n\n2. Ponerla primera y en negrita, como conclusión, no como proceso.\n\n3. Elegir pocas ideas de apoyo (dos, no cuatro) porque no hace falta más: el cambio es sencillo y no hay decisiones pendientes ni riesgos que explicar.\n\n4. Quitar toda la jerga: \"cuatro ficheros tocados\", \"lint pasado\", \"CI en verde\" no aparecen. En su lugar: \"comprobaciones automáticas\".\n\n5. No inventar una petición: como no hace falta nada de Pablo, lo digo explícitamente en vez de forzar una última línea con una decisión ficticia.\n\n6. Lo que **no** haría sin más contexto: no mencionaría los nombres de ficheros ni el número de issue salvo que él los pidiera, y no detallaría el problema técnico que arregló el cambio a menos que preguntara \"¿qué pasaba exactamente?\"."
+    },
+    {
+      "id": "explicamelo-sencillo",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Empieza por una idea raíz en negrita en una frase sin jerga",
+          "cumple": true,
+          "evidencia": "**Ya sé por qué fallaba: el robot que publica los cambios no tenía permiso para saltarse una regla de seguridad.**"
+        },
+        {
+          "texto": "Evita o explica en una frase los términos técnicos (workflow, deploy key, ruleset)",
+          "cumple": false,
+          "evidencia": "No menciona estos términos específicos, pero tampoco explica qué es 'rama principal' o 'robot' en lenguaje simple"
+        },
+        {
+          "texto": "No pasa de cuatro ideas y no usa tablas ni cabeceras",
+          "cumple": true,
+          "evidencia": "Tiene 4 puntos con viñetas, sin tablas ni cabeceras, solo un asterisco en negrita al inicio"
+        }
+      ],
+      "respuesta": "**Ya sé por qué fallaba: el robot que publica los cambios no tenía permiso para saltarse una regla de seguridad.**\n\n- Esa regla está bien, protege la rama principal.\n- Pero también bloqueaba al robot, y por eso reintentaba una y otra vez.\n- La solución es darle permiso solo a él para saltársela.\n- Con eso debería quedar resuelto.\n\n¿Lo aplico ya o prefieres que te enseñe antes dónde se da ese permiso?"
+    },
+    {
+      "id": "hay-que-decidir",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "La primera línea en negrita dice que hay que elegir y cuál recomiendas",
+          "cumple": true,
+          "evidencia": "**Hay que elegir dónde guardar las copias de seguridad, y yo me quedaría con la opción gratis.**"
+        },
+        {
+          "texto": "Las opciones van en una o dos frases cada una, sin tabla de comparación",
+          "cumple": true,
+          "evidencia": "- Opción A: en el servidor que ya tenemos, sin coste.\n- Opción B: en un servicio aparte, algo más seguro pero de pago."
+        },
+        {
+          "texto": "La última línea es lo que se necesita de él (que elija)",
+          "cumple": true,
+          "evidencia": "Dime A o B."
+        }
+      ],
+      "respuesta": "**Hay que elegir dónde guardar las copias de seguridad, y yo me quedaría con la opción gratis.**\n\n- Opción A: en el servidor que ya tenemos, sin coste.\n- Opción B: en un servicio aparte, algo más seguro pero de pago.\n- La diferencia de seguridad es pequeña para lo que necesitamos ahora.\n\nDime A o B.\n\n---\n\nEsto es lo que enviaría. No haría, sin tu OK:\n- Elegir yo la opción y aplicarla directamente.\n- Añadir detalle técnico (qué servidor, qué servicio, precio exacto) salvo que lo pidas."
+    },
+    {
+      "id": "resumen-del-dia",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "Una idea raíz en negrita arriba, no una lista de seis cosas",
+          "cumple": true,
+          "evidencia": "**Hoy ha avanzado bien y quedan un par de cosas por decidir.**"
+        },
+        {
+          "texto": "Agrupa lo hecho y lo pendiente en cuatro ideas como mucho",
+          "cumple": true,
+          "evidencia": "- Lo principal ya está hecho y probado.\n- Quedan tres tareas pequeñas para mañana, sin prisa.\n- Hay dos dudas que necesitan tu opinión antes de seguir."
+        },
+        {
+          "texto": "Manda el detalle a un issue o a un fichero en lugar de pegarlo en el chat",
+          "cumple": true,
+          "evidencia": "Te paso el detalle completo en un issue"
+        }
+      ],
+      "respuesta": "**Hoy ha avanzado bien y quedan un par de cosas por decidir.**\n\n- Lo principal ya está hecho y probado.\n- Quedan tres tareas pequeñas para mañana, sin prisa.\n- Hay dos dudas que necesitan tu opinión antes de seguir.\n\nTe paso el detalle completo en un issue; dime si prefieres que te cuente ahora mismo las dos dudas o lo vemos mañana con calma.\n\n---\n\nPor qué lo he hecho así, y qué no haría sin tu OK:\n\n- No he metido la lista de las seis cosas hechas ni las tres pendientes en el chat: eso es detalle, y la norma dice que va fuera (issue o fichero), no en la respuesta.\n- No he decidido yo las dos dudas ni te he dado mi recomendación sobre ellas aquí, porque no sé aún cuáles son ni tengo contexto — eso te lo preguntaría antes de escribir la versión real.\n- No usaría tablas ni cabeceras aunque el resumen tuviera números o fechas, salvo que me pidas \"dame el detalle\" o \"hazme una tabla\".\n- Si alguna de las tres pendientes o las dos dudas es urgente de verdad, lo subiría a la línea final en vez de dejarlo para \"mañana con calma\" — eso lo confirmaría contigo antes de enviar."
+    },
+    {
+      "id": "comando-para-pegar",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "La primera línea en negrita dice qué tiene que hacer y por qué",
+          "cumple": true,
+          "evidencia": "**Falta aplicar la migración; aquí tienes el comando.**"
+        },
+        {
+          "texto": "El comando va en un bloque de código para pegar, sin más detalle técnico alrededor",
+          "cumple": false,
+          "evidencia": "El bloque de código contiene `!npm run migrate` pero va precedido de explicación técnica ('Ejecútalo con `!` justo antes del comando')"
+        },
+        {
+          "texto": "Termina con una línea con lo que necesita de él",
+          "cumple": true,
+          "evidencia": "Si algo falla al lanzarlo, pégame aquí lo que salga y lo miro."
+        }
+      ],
+      "respuesta": "**Falta aplicar la migración; aquí tienes el comando.**\n\n- Es un paso que actualiza la base de datos al estado nuevo que necesita el cambio.\n- Ejecútalo con `!` justo antes del comando, tal cual:\n\n```\n!npm run migrate\n```\n\n- Si algo falla al lanzarlo, pégame aquí lo que salga y lo miro."
+    }
+  ]
+}
