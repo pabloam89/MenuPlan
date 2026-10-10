@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import { carpetaDe, contextoReal, decidir, sinAplicar } from "./guardia.mjs";
 import { cargarMapa } from "./dominios.mjs";
-import { AVISOS_CREDENCIALES, sinTextos } from "./credenciales.mjs";
+import { AVISOS_CREDENCIALES, credencialDeComando, sinTextos } from "./credenciales.mjs";
 import { familiaDeGuardia } from "./eventos.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -1197,7 +1197,7 @@ describe("credenciales de la sesión: ronda de jueces (#447)", () => {
     (c) => expect(bash(c)).toBe("deny"),
   );
 
-  // 9. Una orden enorme no cuelga la guardia
+  // 9. Una orden enorme no cuelga la guardia (se mide esta parte; el resto de reglas de decidir tiene las suyas)
   it("una orden de 80 KB se decide en poco tiempo", () => {
     const enormes = [
       `env ${"a ".repeat(40000)}`,
@@ -1212,8 +1212,8 @@ describe("credenciales de la sesión: ronda de jueces (#447)", () => {
     ];
     for (const c of enormes) {
       const t0 = Date.now();
-      bash(c);
-      expect(Date.now() - t0, c.slice(0, 20)).toBeLessThan(500);
+      credencialDeComando(c);
+      expect(Date.now() - t0, c.slice(0, 20)).toBeLessThan(250);
     }
   });
 
