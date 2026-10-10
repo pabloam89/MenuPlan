@@ -112,7 +112,7 @@ conversación. Se pasa por tubería (stdin) entre dos procesos.
 integración de la CLI encendida): `node scripts/boveda-pablo.mjs`. Comprueba la
 bóveda, copia las fichas, crea «MenuPlan sesiones» al llavero sin imprimir el
 token y comprueba; cada paso se salta si ya está hecho, para en el primero que
-falla y se niega dentro de Claude Code. Quedan a mano anular «MenuPlan PC Pablo»
+falla y se niega si ve las variables de Claude Code (la barrera de verdad es la ventana de aprobación de 1Password y la guardia, que niega nombrar el script). Quedan a mano anular «MenuPlan PC Pablo»
 y apagar la integración. Los pasos de Pablo, en orden (qué pasa por la app de
 escritorio y qué no, y qué hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesiones.md`:
 ábrelo antes de crear la bóveda o la service account.

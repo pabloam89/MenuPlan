@@ -131,6 +131,8 @@ describe("1Password: las sesiones solo leen HoMenu-sesiones (#328)", () => {
     "env -u OP_SERVICE_ACCOUNT_TOKEN op item get Supabase --vault HoMenu",
     "env --unset=OP_SERVICE_ACCOUNT_TOKEN op vault list",
     "unset OP_SERVICE_ACCOUNT_TOKEN; op vault list",
+    "node scripts/boveda-pablo.mjs",
+    "env -u CLAUDECODE node scripts/boveda-pablo.mjs",
     "OP_SERVICE_ACCOUNT_TOKEN= op vault list",
   ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
 

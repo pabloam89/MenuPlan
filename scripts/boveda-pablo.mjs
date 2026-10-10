@@ -124,7 +124,11 @@ function paso3(fx) {
   const c = fx.opApp(["service-account", "create", NOMBRE_CUENTA, "--vault", `${BOVEDA_SESIONES}:read_items`, "--raw"]);
   // El token vive solo en esta variable local, hasta pasarlo por stdin.
   let token = String(c.stdout ?? "").trim();
-  if (c.status !== 0 || !pareceToken(token)) {
+  if (c.status === 0 && !pareceToken(token)) {
+    token = "";
+    return { estado: MAL, texto: `«${NOMBRE_CUENTA}» probablemente SÍ se creó, pero no he podido leer su token. No he guardado nada: anúlala en 1Password.com (Developer → Service accounts) antes de repetir.` };
+  }
+  if (c.status !== 0) {
     token = "";
     return { estado: MAL, texto: `no he podido crear la cuenta «${NOMBRE_CUENTA}» (${primeraLinea(c.stderr || c.stdout) || "sin detalle"}). No he guardado nada. Si ya existe una con ese nombre en 1Password.com, anúlala allí y repite.` };
   }
@@ -160,6 +164,10 @@ export function ejecutar(fx = efectosReales) {
     fx.log("Me niego a correr dentro de una sesión de Claude Code: la aprobación de 1Password tiene que ser tuya.");
     fx.log("Abre una PowerShell aparte (fuera de Claude Code), ve a C:\\dev\\MenuPlan y lanza: node scripts/boveda-pablo.mjs");
     return 2;
+  }
+  if (fx.env[VAR_OP_PABLO] !== undefined) {
+    delete fx.env[VAR_OP_PABLO];
+    fx.log(`Tenías ${VAR_OP_PABLO} puesta en esta terminal: la he quitado (solo la uso yo, para el paso que la necesita).`);
   }
   const resultados = [];
   for (const p of PASOS) {

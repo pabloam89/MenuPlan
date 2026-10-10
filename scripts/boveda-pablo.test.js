@@ -54,7 +54,7 @@ describe("boveda-pablo: se niega dentro de una sesión de Claude Code", () => {
   });
 
   it("el script de verdad se niega sin tocar 1Password (proceso real con la marca puesta)", () => {
-    const r = spawnSync(process.execPath, [join(AQUI, "boveda-pablo.mjs")], { env: { ...process.env, CLAUDECODE: "1" }, encoding: "utf8", timeout: 20000 });
+    const r = spawnSync(process.execPath, [join(AQUI, "boveda-pablo.mjs")], { env: { PATH: dirname(process.execPath), SystemRoot: process.env.SystemRoot, CLAUDECODE: "1" }, encoding: "utf8", timeout: 20000 });
     expect(r.status).toBe(2);
     expect(r.stdout).toMatch(/Me niego/);
   });
@@ -93,6 +93,14 @@ describe("boveda-pablo: orden y camino feliz", () => {
 });
 
 describe("boveda-pablo: idempotencia", () => {
+  it("si la variable de Pablo ya estaba puesta, la quita y avisa", () => {
+    const env = { MENUPLAN_OP_PABLO: "1" };
+    const { fx, salida } = mundo({ env });
+    ejecutar(fx);
+    expect(env.MENUPLAN_OP_PABLO).toBeUndefined();
+    expect(todo(salida)).toMatch(/la he quitado/);
+  });
+
   it("si el llavero ya tiene la cuenta de sesiones, no crea otra y lo dice", () => {
     const { fx, llamadas, salida } = mundo({ opServicio: () => ({ status: 0, stdout: JSON.stringify([{ name: "HoMenu-sesiones" }]), stderr: "" }) });
     expect(ejecutar(fx)).toBe(0);
@@ -164,6 +172,15 @@ describe("boveda-pablo: cada paso falla cerrado", () => {
     expect(ejecutar(fx)).toBe(1);
     expect(llamadas).not.toContain("llavero");
     expect(llamadas.some((l) => l.includes("--comprobar"))).toBe(false);
+  });
+
+  it("paso 3: estado 0 pero sin token legible: avisa de que la cuenta probablemente sí se creó", () => {
+    const { fx, salida } = mundo({
+      opServicio: () => ({ status: 0, stdout: "[]", stderr: "" }),
+      opApp: (a) => a[0] === "vault" ? { status: 0, stdout: '[{"name":"HoMenu-sesiones"}]', stderr: "" } : { status: 0, stdout: "algo raro", stderr: "" },
+    });
+    expect(ejecutar(fx)).toBe(1);
+    expect(todo(salida)).toMatch(/probablemente SÍ se creó.*anúlala/);
   });
 
   it("paso 3: si el llavero no da COINCIDEN, falla y no comprueba", () => {
