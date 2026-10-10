@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url";
 
 import { carpetaDe, contextoReal, decidir, sinAplicar } from "./guardia.mjs";
 import { cargarMapa } from "./dominios.mjs";
+import { AVISOS_CREDENCIALES, credencialDeComando, sinTextos } from "./credenciales.mjs";
+import { familiaDeGuardia } from "./eventos.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 // El registro de eventos (#340) escribe en ~/.claude/menuplan-fabrica: un test que lanza la guardia no toca la carpeta real del usuario.
@@ -869,5 +871,405 @@ describe("puerta de lectura al editar: el cableado real (#397)", () => {
     expect(lanza(ruta)).toBe(null);
     expect(lanza(ruta, "editar-sesion-2")).toBe("deny");
     expect(lanza(join(repo, "src", "App.jsx"))).toBe(null);
+  });
+});
+
+describe("credenciales de la sesión: no volver a las de Pablo ni cambiar las reglas del repo (#447)", () => {
+  it.each([
+    "env -u GH_TOKEN gh pr list",
+    "env -uGH_TOKEN gh pr list",
+    "env --unset=GITHUB_TOKEN git push",
+    "env -u FOO -u GH_TOKEN gh api user",
+    "env -i gh pr list",
+    "unset GH_TOKEN",
+    "unset GH_TOKEN && gh pr list",
+    "unset -v GITHUB_TOKEN; git push -u origin ops/x",
+    "(unset GH_TOKEN; gh pr list)",
+    'bash -c "unset GH_TOKEN; gh pr list"',
+    "GH_TOKEN= gh pr list",
+    'GH_TOKEN="" gh pr list',
+    "GITHUB_TOKEN='' git push",
+    "export GH_TOKEN=",
+    "export GH_TOKEN= && gh pr list",
+    "env GH_TOKEN= gh pr list",
+    "export -n GH_TOKEN",
+    "Remove-Item Env:GH_TOKEN",
+    "Remove-Item Env:\\GITHUB_TOKEN; gh pr list",
+    '$env:GH_TOKEN = ""',
+    "$env:GH_TOKEN=$null; gh pr list",
+    "[Environment]::SetEnvironmentVariable('GH_TOKEN', $null)",
+    "git -c credential.helper= push",
+    "git -c credential.helper=manager push origin ops/x",
+    'git -c "credential.https://github.com.helper=" push',
+    "git -ccredential.helper= push",
+    "git config --global credential.helper manager",
+    "GIT_CONFIG_COUNT=0 git push",
+    "GIT_AUTHOR_NAME=Pablo git commit -m x",
+    "export GIT_COMMITTER_EMAIL=pablo@example.com",
+    "unset GIT_CONFIG_COUNT",
+    "env -u GIT_AUTHOR_NAME git commit -m x",
+    "$env:GIT_AUTHOR_NAME = 'Pablo'",
+    "node scripts/rulesets.mjs --escribir",
+    "node scripts/rulesets.mjs --escribir --ruleset staging",
+    "gh api -X PUT repos/pabloam89/MenuPlan/rulesets/24770007",
+    "gh api repos/pabloam89/MenuPlan/rulesets --method POST --input r.json",
+    "gh api -XPATCH repos/pabloam89/MenuPlan/rulesets/1",
+    "gh api repos/pabloam89/MenuPlan/rulesets/1 -X DELETE",
+    "gh api -X PUT repos/pabloam89/MenuPlan/branches/main/protection --input p.json",
+    "gh api -X PUT repos/pabloam89/MenuPlan/collaborators/algbarc -f permission=admin",
+    "gh api -X PUT repos/pabloam89/MenuPlan/actions/secrets/X -f encrypted_value=a",
+    "gh api -X POST repos/pabloam89/MenuPlan/actions/variables -f name=A -f value=b",
+    "gh api -X PUT repos/pabloam89/MenuPlan/environments/prod",
+    "gh api -X POST repos/pabloam89/MenuPlan/hooks -f url=http://x",
+    "gh api -X POST repos/pabloam89/MenuPlan/keys -f key=ssh-rsa",
+    // sin -X pero con campos: gh api pasa a POST solo
+    "gh api repos/pabloam89/MenuPlan/rulesets -f name=x",
+    "gh api repos/pabloam89/MenuPlan/collaborators/algbarc -F permission=admin",
+    'gh api graphql -f query=\'mutation { updateRepository(input:{repositoryId:"x"}) { clientMutationId } }\'',
+    "gh api graphql -f query='mutation { createBranchProtectionRule(input:{}) { clientMutationId } }'",
+    'gh api graphql -f query=\'mutation { addPullRequestReview(input:{pullRequestId:"x", event: APPROVE}) { clientMutationId } }\'',
+    "gh api -X POST repos/pabloam89/MenuPlan/pulls/12/reviews -f event=APPROVE",
+    "gh pr review 12 --approve",
+    "gh pr review 12 -a",
+    "gh pr review --approve 12 --body ok",
+    "gh -R pabloam89/MenuPlan pr review 12 --approve",
+    "echo ok && gh pr review 12 --approve",
+    'bash -c "gh pr review 12 --approve"',
+    "echo $GH_TOKEN",
+    'echo "token: ${GH_TOKEN}"',
+    "printenv",
+    "printenv GH_TOKEN",
+    "printenv | grep TOKEN",
+    "env",
+    "Get-ChildItem Env:",
+    'node -e "console.log(process.env.GH_TOKEN)"',
+  ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
+
+  it.each([
+    // el remedio documentado y lo normal con GH_TOKEN puesto
+    "node scripts/token-sesion.mjs -- gh pr list",
+    "node scripts/token-sesion.mjs -- git push -u origin ops/x",
+    "node scripts/token-sesion.mjs --comprobar",
+    "gh pr list",
+    "gh pr checks 12",
+    "gh pr view 12 --json body -q .body",
+    "gh pr review 12 --comment --body 'Mira esto'",
+    "gh pr review 12 --request-changes --body 'Falta el test'",
+    "git push -u origin ops/447-guardia-credenciales",
+    "git fetch origin staging",
+    "git config --get credential.helper",
+    "git config --list",
+    "git -C /c/dev/MenuPlan-x status",
+    "git -c core.autocrlf=false diff",
+    "export GH_TOKEN=ghs_valor_de_la_app",
+    'GH_TOKEN="$(node scripts/token-sesion.mjs --comprobar)" gh pr list',
+    "export GIT_PAGER=cat",
+    "printenv PATH",
+    "echo hola",
+    "echo $HOME",
+    // lecturas por la API, aunque sean rutas de reglas
+    "gh api repos/pabloam89/MenuPlan/rules/branches/staging",
+    "gh api repos/pabloam89/MenuPlan/rulesets",
+    "gh api repos/pabloam89/MenuPlan/rulesets/24770007 -q .name",
+    "gh api repos/pabloam89/MenuPlan/environments/mercadona-sync/deployment-branch-policies -q '.branch_policies[].name'",
+    "gh api -X GET repos/pabloam89/MenuPlan/rulesets -f per_page=5",
+    "gh api repos/pabloam89/MenuPlan/branches/staging/protection",
+    "gh api repos/pabloam89/MenuPlan/collaborators",
+    // escribir en otras rutas de la API no es cambiar reglas
+    "gh api -X POST repos/pabloam89/MenuPlan/issues/447/comments -f body=hola",
+    "gh api -X PATCH repos/pabloam89/MenuPlan/issues/447 -f state=closed",
+    "gh api repos/pabloam89/MenuPlan/contents/.claude/hooks/guardia.mjs",
+    "gh api -X POST repos/pabloam89/MenuPlan/pulls/12/reviews -f event=COMMENT -f body=ok",
+    "gh api graphql -f query='query { viewer { login } }'",
+    "node scripts/rulesets.mjs",
+    "node scripts/rulesets.mjs --comprobar",
+    "grep -rn 'rulesets.mjs --escribir' scripts",
+    "rg 'env -u GH_TOKEN' .claude",
+    'echo "unset GH_TOKEN"',
+    "cat .claude/hooks/guardia.mjs",
+  ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
+
+  // El texto de un commit, un PR, un issue o un heredoc que NOMBRA estas cosas no es una orden.
+  it.each([
+    'git commit -m "guardia: niega env -u GH_TOKEN, unset GH_TOKEN; y GH_TOKEN= vacío"',
+    "git commit -m 'guardia: git -c credential.helper= y node scripts/rulesets.mjs --escribir'",
+    'git commit --message="niega gh pr review --approve; unset GH_TOKEN"',
+    'git commit -m "una" -m "otra: GIT_AUTHOR_NAME=x; export GH_TOKEN="',
+    'gh issue comment 447 --body "no hacer env -u GH_TOKEN ni printenv; echo $GH_TOKEN"',
+    'gh pr edit 480 --title "niega unset GH_TOKEN" --body "gh api -X PUT repos/o/r/rulesets/1"',
+    'npm run issues -- --nuevo "Una sesión hace env -u GH_TOKEN" --tipo caso --area ops --cuerpo f.md',
+    "git commit -F - <<'EOF'\nguardia: unset GH_TOKEN\nenv -u GH_TOKEN gh pr list\ngit -c credential.helper= push\nEOF",
+    'git commit -m "$(cat <<\'EOF\'\nniega GH_TOKEN= vacío y gh pr review --approve\nunset GH_TOKEN\nEOF\n)"',
+  ])("deja pasar el texto: %s", (c) => expect(bash(c)).toBe(null));
+
+  it("un heredoc que alimenta a un shell sí cuenta", () => {
+    expect(bash("bash <<'EOF'\nunset GH_TOKEN\ngh pr list\nEOF")).toBe("deny");
+  });
+
+  it("también en PowerShell", () => {
+    const ps = (command) => decidir({ tool_name: "PowerShell", tool_input: { command } }, ctx())?.decision ?? null;
+    expect(ps("Remove-Item Env:GH_TOKEN")).toBe("deny");
+    expect(ps('$env:GH_TOKEN = ""')).toBe("deny");
+    // La herramienta PowerShell no lleva el token de la sesión: gh y git de red irían como Pablo.
+    expect(ps("gh pr list")).toBe("deny");
+    expect(ps("node scripts/token-sesion.mjs -- gh pr list")).toBe(null);
+    expect(ps("git status --short")).toBe(null);
+  });
+
+  it("cada aviso explica qué hacer en vez y tiene su familia contable", () => {
+    for (const [clave, texto] of Object.entries(AVISOS_CREDENCIALES)) {
+      expect(texto, clave).toMatch(/#447/);
+      expect(familiaDeGuardia(texto), clave).not.toBe("otra");
+    }
+    expect(AVISOS_CREDENCIALES.token).toMatch(/token-sesion\.mjs -- /);
+    expect(AVISOS_CREDENCIALES.identidad).toMatch(/token-sesion\.mjs -- /);
+    expect(AVISOS_CREDENCIALES.reglas).toMatch(/Pablo/);
+    const familias = Object.values(AVISOS_CREDENCIALES).map(familiaDeGuardia);
+    expect(new Set(familias).size).toBe(familias.length);
+  });
+});
+
+describe("credenciales de la sesión: ronda de jueces (#447)", () => {
+  const ps = (command) => decidir({ tool_name: "PowerShell", tool_input: { command } }, ctx())?.decision ?? null;
+
+  // 1. Sacar las credenciales guardadas
+  it.each([
+    "gh auth token",
+    "gh auth token --user pabloam89",
+    "gh auth token -u pabloam89",
+    "gh auth status -t",
+    "gh auth status --show-token",
+    "gh auth status -h github.com --show-token",
+    "gh auth switch",
+    "gh auth login",
+    "gh auth refresh -s admin:repo_hook",
+    "gh auth setup-git",
+    "gh auth logout",
+    "git credential fill",
+    "git credential-manager get",
+    "git-credential-manager erase",
+    "git -C /c/dev/x credential reject",
+    "cmdkey /list",
+    'GH_TOKEN="$(gh auth token)" node scripts/dependabot-auto.mjs',
+    "export GH_TOKEN=$(gh auth token) && gh api user",
+  ])("deniega las credenciales guardadas: %s", (c) => expect(bash(c)).toBe("deny"));
+
+  it.each(["gh auth status", "gh auth status -h github.com", "git config --get user.name", "git commit -m 'sin credential aquí'"])(
+    "deja pasar %s",
+    (c) => expect(bash(c)).toBe(null),
+  );
+
+  // 2. PowerShell no lleva el token de la sesión
+  it.each([
+    "gh pr list",
+    "gh.exe pr view 3",
+    "& gh pr checks 3",
+    "(gh pr list)",
+    "git push -u origin ops/x",
+    "git -C C:\\dev\\x push",
+    "git pull --ff-only",
+    "git fetch origin staging",
+    "git clone https://github.com/pabloam89/MenuPlan",
+    "git ls-remote origin",
+  ])("en PowerShell se niega %s sin el envoltorio", (c) => expect(ps(c)).toBe("deny"));
+
+  it.each([
+    "node scripts/token-sesion.mjs -- gh pr list",
+    "node scripts/token-sesion.mjs -- git push -u origin ops/x",
+    "git status --short",
+    "git log --oneline -5",
+    "git commit -m 'gh pr list'",
+    "npm run lint:base",
+  ])("en PowerShell deja pasar %s", (c) => expect(ps(c)).toBe(null));
+
+  it("en Bash, gh y git push siguen como siempre (llevan el token de la sesión)", () => {
+    expect(bash("gh pr list")).toBe(null);
+    expect(bash("git push -u origin ops/x")).toBe(null);
+  });
+
+  // 2b. Más ajustes del repo
+  it.each([
+    "gh secret set X --env prod",
+    "gh secret delete X",
+    "gh variable set A --body b",
+    "gh variable delete A",
+    "gh repo edit --visibility private",
+    "gh repo edit --default-branch main",
+    "gh repo deploy-key add key.pub",
+    "gh repo deploy-key delete 5",
+    "gh repo delete pabloam89/MenuPlan --yes",
+    "gh repo archive pabloam89/MenuPlan",
+    "gh repo rename otro",
+    "gh pr merge 12 --merge --admin",
+    "gh api -X PATCH repos/pabloam89/MenuPlan -f private=true",
+    "gh api -X DELETE repos/pabloam89/MenuPlan",
+    "gh api -X POST repos/pabloam89/MenuPlan/transfer -f new_owner=x",
+    "gh api -X PUT repos/pabloam89/MenuPlan/dependabot/secrets/X",
+    "gh api -X PUT repos/pabloam89/MenuPlan/codespaces/secrets/X",
+    "gh api -X PUT repos/pabloam89/MenuPlan/actions/permissions -F enabled=true",
+    "gh api -X POST orgs/algo/rulesets --input r.json",
+    "gh api -X PUT repos/pabloam89/MenuPlan//rulesets/1",
+    "gh api -X PUT /repos/pabloam89/MenuPlan/rulesets/1",
+    "gh api graphql --input q.json",
+    "gh api graphql -F query=@mutacion.graphql",
+    "gh api -X POST repos/pabloam89/MenuPlan/pulls/12/reviews --input r.json",
+    "gh pr review 12 -ab",
+    "gh pr review 12 -ca",
+  ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
+
+  it.each([
+    "gh secret list",
+    "gh variable list",
+    "gh repo view",
+    "gh repo clone pabloam89/MenuPlan",
+    "gh pr merge 12 --merge",
+    "gh api repos/pabloam89/MenuPlan",
+    "gh api -X GET repos/pabloam89/MenuPlan/rulesets",
+    "gh api graphql -f query='mutation { addPullRequestReview(input:{pullRequestId:\"x\", event: COMMENT}) { clientMutationId } }'",
+  ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
+
+  // 3. Un & suelto separa órdenes
+  it.each([
+    "echo x & unset GH_TOKEN",
+    "echo x & env -u GH_TOKEN gh pr list",
+    "ls &  gh pr review 3 --approve",
+  ])("el & suelto no esconde la segunda orden: %s", (c) => expect(bash(c)).toBe("deny"));
+
+  it.each([
+    "npm test 2>&1",
+    "npm test &> /tmp/salida.txt",
+    "git fetch origin staging >/dev/null 2>&1",
+    "gh api 'repos/pabloam89/MenuPlan/pulls?state=open&per_page=5'",
+    "git status && git log -1",
+  ])("el & de una redirección o una URL no rompe %s", (c) => expect(bash(c)).toBe(null));
+
+  // 4. Un valor entre comillas dobles con $( ) o acentos graves se ejecuta
+  it.each([
+    'git commit -m "$(env -u GH_TOKEN gh api user)"',
+    'git commit -m "`unset GH_TOKEN`"',
+    'gh issue comment 447 --body "$(gh auth token)"',
+  ])("el texto que se ejecuta cuenta: %s", (c) => expect(bash(c)).toBe("deny"));
+
+  // 5. El heredoc que va a un shell por una tubería
+  it("cat <<EOF | bash cuenta", () => {
+    expect(bash("cat <<'EOF' | bash\nunset GH_TOKEN\nEOF")).toBe("deny");
+    expect(bash("cat <<'EOF' | xargs -I{} sh -c {}\nunset GH_TOKEN\nEOF")).toBe("deny");
+  });
+
+  // 6. Normalizar antes de mirar
+  it.each([
+    'un""set GH_TOKEN',
+    "u'n'set GH_TOKEN",
+    "un\\set GH_TOKEN",
+    "unset 'GH_TOKEN'",
+    'env -u "GH_TOKEN" gh pr list',
+    "unset \\\nGH_TOKEN",
+    "GH_TOKEN='' gh pr list",
+    "Remove-Item Env:GH_*",
+    "Remove-Item Env:*TOKEN",
+    "Remove-Item -Path Env:GH_TOKEN",
+    "ri Env:GITHUB_TOKEN",
+    "Remove-Variable env:GH_TOKEN",
+    "Clear-Item Env:GH_TOKEN",
+    "${env:GH_TOKEN} = $null",
+    "$env:GH_TOKEN=''",
+    "Start-Process pwsh -UseNewEnvironment",
+    "gci Env:GH_* | Remove-Item",
+  ])("normaliza antes de mirar: %s", (c) => expect(bash(c)).toBe("deny"));
+
+  // 7. Los mensajes cuentan como texto aunque vayan con banderas juntas o sin espacio
+  it.each([
+    'git commit -sm "niega unset GH_TOKEN"',
+    'git commit -m"niega unset GH_TOKEN; env -u GH_TOKEN gh x"',
+    'gh api -X POST repos/pabloam89/MenuPlan/issues/447/comments -f body="unset GH_TOKEN y repos/o/r/rulesets y gh pr review --approve"',
+    'gh api repos/pabloam89/MenuPlan/issues/447/comments -F body="env -u GH_TOKEN"',
+    "gh api -X PATCH repos/pabloam89/MenuPlan/issues/447 --raw-field body='gh api -X PUT repos/o/r/rulesets/1'",
+    "gh api -X POST repos/pabloam89/MenuPlan/issues/447/comments -f 'body=PUT repos/o/r/rulesets/1'",
+  ])("deja pasar el texto: %s", (c) => expect(bash(c)).toBe(null));
+
+  it("-am también limpia su mensaje (la regla de add a ciegas lo niega aparte)", () => {
+    expect(sinTextos('git commit -am "niega env -u GH_TOKEN; unset GH_TOKEN"')).not.toMatch(/GH_TOKEN/);
+  });
+
+  // 8. awk y sed ejecutan
+  it.each(["awk 'BEGIN{system(\"unset GH_TOKEN\")}'", "sed -n '1e unset GH_TOKEN' f"])(
+    "awk y sed no son solo texto: %s",
+    (c) => expect(bash(c)).toBe("deny"),
+  );
+
+  // 9. Una orden enorme no cuelga la guardia (se mide esta parte; el resto de reglas de decidir tiene las suyas)
+  it("una orden de 80 KB se decide en poco tiempo", () => {
+    const enormes = [
+      `env ${"a ".repeat(40000)}`,
+      `git ${"-c x ".repeat(16000)}`,
+      `unset ${"X ".repeat(40000)}`,
+      `echo ${"env ".repeat(20000)}`,
+      `gh api ${"-f a=b ".repeat(11000)}`,
+      `Remove-Item ${"Env: ".repeat(16000)}`,
+      "x <<EOF\n" + "a\n".repeat(40000),
+      "x <<EOF\n".repeat(30000),
+      "a\n".repeat(40000),
+    ];
+    for (const c of enormes) {
+      const t0 = Date.now();
+      credencialDeComando(c);
+      expect(Date.now() - t0, c.slice(0, 20)).toBeLessThan(250);
+    }
+  });
+
+  // 10. GIT_ID: solo lo que cambia credenciales o autoría
+  it.each([
+    "GIT_AUTHOR_NAME=x git commit -m a",
+    "GIT_COMMITTER_EMAIL=x git commit -m a",
+    "GIT_CONFIG_COUNT=1 git push",
+    "GIT_CONFIG_KEY_0=credential.helper git push",
+    "GIT_CONFIG_VALUE_0= git push",
+    "GIT_CONFIG_GLOBAL=/tmp/x git push",
+    "GIT_CONFIG_PARAMETERS=x git push",
+    "GIT_CONFIG_SYSTEM=/tmp/x git push",
+  ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
+  it.each([
+    "GIT_COMMITTER_DATE=2026-10-10T10:00:00 git commit -m a",
+    "GIT_AUTHOR_DATE=2026-10-10T10:00:00 git commit --amend --no-edit",
+    "GIT_CONFIG_NOSYSTEM=1 git status",
+    "export GIT_PAGER=cat",
+  ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
+
+  // 11. Aprobar por GraphQL solo con APPROVE: ya cubierto arriba con COMMENT; aquí el APPROVE
+  it("addPullRequestReview con APPROVE se niega, con COMMENT pasa", () => {
+    const q = (e) => `gh api graphql -f query='mutation { addPullRequestReview(input:{pullRequestId:"x", event: ${e}}) { clientMutationId } }'`;
+    expect(bash(q("APPROVE"))).toBe("deny");
+    expect(bash(q("COMMENT"))).toBe(null);
+  });
+
+  // 12. Imprimir el token, más formas
+  it.each([
+    "$env:GH_TOKEN",
+    "Get-Item Env:GH_TOKEN",
+    "gci Env:GH_TOKEN",
+    "[Environment]::GetEnvironmentVariable('GH_TOKEN')",
+    "node -p process.env.GH_TOKEN",
+    "node -e \"console.log(process.env.GITHUB_TOKEN)\"",
+    "declare -p",
+    "declare -x",
+    "cat /proc/self/environ",
+    "env | sort",
+    "printenv | grep -i token",
+    "env | grep GH_",
+    "Write-Host $env:GH_TOKEN",
+  ])("no imprimir el token: %s", (c) => expect(bash(c)).toBe("deny"));
+  it.each([
+    "env | grep -i path",
+    "printenv | grep -i node",
+    "env | wc -l",
+    "printenv HOME",
+    "Get-ChildItem Env:PATH",
+  ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
+
+  it("los avisos nuevos tienen familia propia", () => {
+    expect(familiaDeGuardia(AVISOS_CREDENCIALES.guardadas)).toBe("credenciales-guardadas");
+    expect(familiaDeGuardia(AVISOS_CREDENCIALES.powershell)).toBe("powershell-sin-token");
+    expect(AVISOS_CREDENCIALES.powershell).toMatch(/token-sesion\.mjs -- /);
+    expect(AVISOS_CREDENCIALES.guardadas).toMatch(/token-sesion\.mjs -- /);
   });
 });
