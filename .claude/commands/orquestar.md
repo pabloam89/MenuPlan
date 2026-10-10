@@ -133,8 +133,14 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    encargos que salen, con su estado y su plan. El agente no los vuelve a presentar
    como nuevos: cada hallazgo suyo lleva `YA APUNTADO: #n` o `NUEVO (buscado: …)`.
    Un hallazgo sin esa marca se devuelve.
-8. Recordatorio: termina con el informe común de
-   `.claude/PLANTILLA-AGENTE.md`, con `CASOS:` y `SKILLS:`.
+8. **Estándar de la tarea** (#413): la línea `ESTÁNDAR A CUMPLIR: <agente>/<tarea>`
+   que da `npm run estandar -- <agente> <tarea>` (las tareas de cada agente están
+   en `ops/estandares-agentes.json`; `npm run estandar -- <agente>` las lista),
+   con su estándar, lo que comprueba y lo que no hace pegados en el brief. Si el
+   encargo no encaja en ninguna tarea, «ninguna tarea del catálogo» y por qué: es
+   la señal de una tarea que falta. Un agente pendiente lo dice en la propia línea.
+9. Recordatorio: termina con el informe común de
+   `.claude/PLANTILLA-AGENTE.md`, con `CASOS:`, `SKILLS:` y `ESTÁNDAR:`.
 
 ## 5. Paralelo sin pisarse
 
@@ -153,8 +159,8 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
 
 1. Lee el bloque `## Informe` de cada agente. `ESTADO: bloqueado` o un
    hallazgo bloqueante paran el pipeline hasta resolverlo. Pásale al
-   `revisor` la línea `SKILLS:` del constructor: comprueba que abrió las que
-   tocaban.
+   `revisor` las líneas `SKILLS:` y `ESTÁNDAR:` del constructor: comprueba que
+   abrió las skills que tocaban y que cumplió el estándar de su tarea.
 2. Un hallazgo bloqueante vuelve al constructor que toca, con el informe del
    juez. Repite el juez tras el arreglo. Cada vuelta es una ronda del triaje
    («Triaje»): se cuenta en la ficha del fondo y, agotadas las del

@@ -8,6 +8,8 @@
  *   npm run cumplimiento -- --issues f.json   → issues ya leídos (forma de CONSULTA_FLUJO, lista de nodos) en vez de la red
  *   npm run cumplimiento -- --skills-pr lista → CI: higiene y ensayo gratis de las skills que toca el PR (1 si hay una falta)
  *
+ * Además, la línea del glosario (#481): excepciones por bajar y candidatos a término sin juzgar.
+ *
  * Salida: 0 (aunque un indicador dispare: lo cuenta el informe, no es un fallo de este
  * script), 1 solo en --skills-pr con faltas, 2 entrada mala. Los indicadores y sus umbrales:
  * scripts/lib/cumplimiento.mjs y scripts/lib/saludSkills.mjs.
@@ -19,6 +21,7 @@ import { fileURLToPath } from "node:url";
 
 import { dirFabrica } from "../.claude/hooks/eventos.mjs";
 import { CONSULTA_FLUJO, INDICADORES, desdeGraphql, lineaDeIndicador, lineasDeUso, medirIndicadores, usoDeSkills } from "./lib/cumplimiento.mjs";
+import { estadoDelGlosario, lineaDelGlosario } from "./lib/glosarioCandidatos.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
 import { INDICADORES_SKILLS, lineaDeIndicadorSkill, saludDeSkills } from "./lib/saludSkills.mjs";
 import { RAIZ, nombresDeSkills, skillsTocadas } from "./lib/skills.mjs";
@@ -39,7 +42,7 @@ export function issuesDeGithub() {
 }
 
 /** El informe en Markdown. Solo números, vocabulario y números de issue: el repo es público. */
-export function informe({ indicadores, salud, uso = null, hoy }) {
+export function informe({ indicadores, salud, uso = null, glosario = null, hoy }) {
   const dispara = [...indicadores, ...salud.indicadores].filter((m) => m.estado === "dispara");
   const sinDatos = indicadores.some((m) => m.estado === "sin_datos");
   const L = [];
@@ -62,6 +65,10 @@ export function informe({ indicadores, salud, uso = null, hoy }) {
   for (const f of salud.filas) {
     const p = f.pasada ? `${f.pasada.fecha} ${f.pasada.resultado}, disparo ${f.pasada.disparo}, comprobaciones ${f.pasada.comprobaciones}${f.pasada.desactualizada ? " (desactualizada)" : ""}` : "sin pasada";
     L.push(`| ${f.nombre} | ${f.faltas} | ${f.avisos} | ${f.caducidad}${f.dias === null ? "" : ` (${f.dias} d)`} | ${p} |`);
+  }
+  if (glosario) {
+    L.push("", "### Glosario", "", "```", lineaDelGlosario(glosario), "```", "");
+    L.push("Excepciones que ya se pueden bajar y candidatos a término sin juzgar: los repasa un agente con `npm run glosario -- --medir` y `npm run glosario -- --candidatos` (método: `.claude/skills/higiene-de-skills/referencias/glosario.md`).");
   }
   if (uso) L.push("", "### Poda (registro local de la fábrica)", "", "```", ...lineasDeUso(uso), "```");
   return L.join("\n");
@@ -130,8 +137,16 @@ async function main(argv) {
   }
   for (const m of indicadores) console.log(lineaDeIndicador(m));
   for (const m of salud.indicadores) console.log(lineaDeIndicadorSkill(m));
+  let glosario = null;
+  try {
+    glosario = estadoDelGlosario(RAIZ);
+    console.log(lineaDelGlosario(glosario));
+  } catch (e) {
+    // a propósito: un glosario roto lo para su test en el CI; aquí el informe sale sin esa sección y lo dice
+    console.error(`glosario: no se ha podido medir (${e.message})`);
+  }
   if (uso) for (const l of lineasDeUso(uso)) console.log(l);
-  if (opcion("--informe")) writeFileSync(opcion("--informe"), `${informe({ indicadores, salud, uso, hoy: diaMadrid(hoy) })}\n`);
+  if (opcion("--informe")) writeFileSync(opcion("--informe"), `${informe({ indicadores, salud, uso, glosario, hoy: diaMadrid(hoy) })}\n`);
   return 0;
 }
 

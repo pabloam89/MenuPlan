@@ -1,0 +1,249 @@
+{
+  "skill": "higiene-de-skills",
+  "fecha_utc": "2026-10-10T13:39:37.177Z",
+  "version": {
+    "skill_md": "2d4e5529c23f",
+    "casos_json": "66ac7e8ee409"
+  },
+  "modelos": {
+    "disparo": "claude-haiku-4-5",
+    "ejecuta": "claude-sonnet-5",
+    "corrige": "claude-haiku-4-5"
+  },
+  "tope_usd": 1,
+  "coste_usd": 0.0899,
+  "resultado": "falla",
+  "resumen": {
+    "disparo_ok": 6,
+    "disparo_total": 8,
+    "comprobaciones_ok": 5,
+    "comprobaciones_total": 12,
+    "sin_correr": 0
+  },
+  "cambios_respecto_anterior": [
+    {
+      "id": "revisa-una-skill",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "caduca-o-cita-muerto",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "informe-del-conjunto",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "dos-skills-reclaman-lo-mismo",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-skill-nueva",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-leccion-en-skill",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-no-dispara",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-revisar-codigo",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "revisa-una-skill",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "caduca-o-cita-muerto",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "informe-del-conjunto",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "dos-skills-reclaman-lo-mismo",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    }
+  ],
+  "disparo": [
+    {
+      "id": "revisa-una-skill",
+      "esperado": "higiene-de-skills",
+      "elegido": "higiene-de-skills",
+      "estado": "ok"
+    },
+    {
+      "id": "caduca-o-cita-muerto",
+      "esperado": "higiene-de-skills",
+      "elegido": "higiene-de-skills",
+      "estado": "ok"
+    },
+    {
+      "id": "informe-del-conjunto",
+      "esperado": "higiene-de-skills",
+      "elegido": "higiene-de-skills",
+      "estado": "ok"
+    },
+    {
+      "id": "dos-skills-reclaman-lo-mismo",
+      "esperado": "higiene-de-skills",
+      "elegido": "forja-de-skills",
+      "estado": "falla"
+    },
+    {
+      "id": "frontera-skill-nueva",
+      "esperado": "forja-de-skills",
+      "elegido": "forja-de-skills",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-leccion-en-skill",
+      "esperado": "supabase",
+      "elegido": "higiene-de-skills",
+      "estado": "falla"
+    },
+    {
+      "id": "frontera-no-dispara",
+      "esperado": "forja-de-skills",
+      "elegido": "forja-de-skills",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-revisar-codigo",
+      "esperado": "ninguna",
+      "elegido": "ninguna",
+      "estado": "ok"
+    }
+  ],
+  "ejecucion": [
+    {
+      "id": "revisa-una-skill",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Lanza npm run higiene-skills -- vercel y lee el resultado antes de tocar nada",
+          "cumple": false,
+          "evidencia": "La respuesta dice 'Como ahora mismo no puedo ejecutar nada' — no lanza el comando, solo lo propone"
+        },
+        {
+          "texto": "Separa las faltas, que se arreglan, de los avisos, que se miran y pueden ser falsos positivos",
+          "cumple": true,
+          "evidencia": "Punto 2 diferencia explícitamente 'Faltas (lo que niega el nivel 1...)' de 'Avisos (heurística sin fuente...)'"
+        },
+        {
+          "texto": "Arregla cada defecto con el arreglo que trae, sin añadir nada que no pida un defecto",
+          "cumple": true,
+          "evidencia": "Punto 4 y su contraste en 'Qué NO haría': 'aplicaría el arreglo indicado por el script, de arriba abajo, sin añadir nada extra' / 'No tocaría el contenido de la skill'"
+        }
+      ],
+      "respuesta": "## Plan de acción\n\n1. **Lanzar el script de higiene sobre la skill concreta:**\n   ```\n   npm run higiene-skills -- vercel\n   ```\n   Espero una línea resumen tipo `higiene skill: vercel faltas: a avisos: b solape: x con: <otra>` y debajo, cada defecto con su `arreglo` ya propuesto por el script.\n\n2. **Separar faltas de avisos** en la salida:\n   - *Faltas* (lo que niega el nivel 1 o fechas caducadas): comando muerto, ruta muerta, skill muerta, etc. → se arreglan sí o sí.\n   - *Avisos* (heurística sin fuente: `caduca-pronto`, `frontera-vaga`, `solape-cercano`, `tamano-cerca`, `caso-duplicado`, `caso-en-frontera`...) → los miro y decido; si es falso positivo lo explico en el PR.\n\n3. **Revisar a mano lo que el script no ve** (punto 4 del método): coste de cada párrafo, si hay camino por defecto, ejemplos contradictorios, casos de frontera reales — comparando contra `.claude/skills/forja-de-skills/referencias/criterios.md`.\n\n4. **Si todo sale limpio o con avisos explicables**, no tocaría nada más; si hay faltas, aplicaría el `arreglo` indicado por el script, de arriba abajo, sin añadir nada extra.\n\n5. **Relanzar para confirmar:**\n   ```\n   npm run higiene-skills -- vercel\n   npx vitest run .claude/skills.test.js\n   ```\n   Comparo la cifra antes/después.\n\n## Qué NO haría sin el OK de Pablo\n\n- **No aplicaría ningún `arreglo` todavía** — primero te enseño la lista de defectos tal como sale del script.\n- **No tocaría el contenido de la skill de vercel** (ni moveria bloques a capas, ni cambiaría descripciones) sin que apruebes qué se arregla.\n- **No decidiría el dueño de un solape** con otra skill si el script detecta `solape-cercano`; eso lo dejo para que lo decidas tú en el PR.\n- **No ejecutaría `npm run skills-prueba`** porque cuesta tokens y no es lo que pediste.\n- **No crearía ni borraría ninguna skill** (eso es `forja-de-skills`, no esta).\n\nComo ahora mismo no puedo ejecutar nada, el siguiente paso real sería correr el comando del punto 1 y pegarte aquí la salida exacta "
+    },
+    {
+      "id": "caduca-o-cita-muerto",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Propone npm run higiene-skills -- --todas para ver el conjunto",
+          "cumple": true,
+          "evidencia": "npm run higiene-skills -- --todas"
+        },
+        {
+          "texto": "Explica que caduca-pronto avisa a menos de 30 días y que comando-muerto y ruta-muerta son faltas",
+          "cumple": true,
+          "evidencia": "caduca-pronto (aviso, metadata.comprobado a <30 días de caducar) y comando-muerto / ruta-muerta (faltas: citan un npm run o una ruta que ya no existe)"
+        },
+        {
+          "texto": "Aclara que los comandos de Lo que falló y del registro son historia y no se miran",
+          "cumple": false,
+          "evidencia": ""
+        }
+      ],
+      "respuesta": "Para responder a eso con garantías, lo que haría es lanzar el script que la propia skill indica, no fiarme de memoria ni de grep suelto. En orden:\n\n1. **Pasar higiene a todas las skills del repo**\n   ```\n   npm run higiene-skills -- --todas\n   ```\n   Espero una línea por skill tipo `higiene skill: <s> faltas: a avisos: b solape: x con: <otra>`, y debajo el detalle de cada defecto con su `arreglo`.\n\n2. **Filtrar los códigos que me interesan de esa salida**: `caduca-pronto` (aviso, metadata.comprobado a <30 días de caducar) y `comando-muerto` / `ruta-muerta` (faltas: citan un `npm run` o una ruta que ya no existe en el repo).\n\n3. **Cruzar con el test de forma**\n   ```\n   npx vitest run .claude/skills.test.js\n   ```\n   para confirmar que no hay sorpresas de nivel 1 que el script de higiene no cubra.\n\nCon esos dos comandos tengo la lista completa y verificada de qué skills caducan pronto y cuáles citan comandos/rutas muertos, cada una con su línea de arreglo ya sugerida.\n\n**Lo que no haría sin el OK de Pablo:**\n- Arreglar esos defectos yo mismo (editar fechas de `comprobado`, borrar o mover referencias muertas) sin mostrarle antes la lista.\n- Tocar el `metadata.comprobado` de ninguna skill solo por el aviso de caducidad: eso implica revalidar la skill de verdad, no solo cambiar una fecha.\n- Fusionar o declarar dueño en casos de `solape-cercano` si aparecieran: esa decisión es suya según el método (paso 5)."
+    },
+    {
+      "id": "informe-del-conjunto",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Da la cifra del conjunto: cuántas skills, cuántas sin defectos, cuántas faltas y cuántos avisos",
+          "cumple": false,
+          "evidencia": "El plan dice 'Redactar el informe corto' con 'cifra total (skills, faltas, avisos)' pero en la respuesta no hay cifras concretas, solo describe qué haría"
+        },
+        {
+          "texto": "Pide poner la cifra antes y después en el PR",
+          "cumple": false,
+          "evidencia": "No menciona nada sobre antes/después en un PR"
+        },
+        {
+          "texto": "No lanza npm run skills-prueba sin --ensayo, porque cuesta tokens",
+          "cumple": true,
+          "evidencia": "Dice explícitamente 'No lanzaría `npm run skills-prueba` (cuesta tokens) salvo que el informe lo justifique y Pablo lo pida explícitamente'"
+        }
+      ],
+      "respuesta": "## Plan\n\n1. **Lanzar el script sobre el conjunto:**\n   ```\n   npm run higiene-skills -- --todas\n   ```\n   Espero una línea por skill (`higiene skill: <s> faltas: a avisos: b solape: x con: <otra>`) con su lista de defectos y arreglo, y al final la cifra agregada tipo `Higiene: n skills, … faltas y … avisos`.\n\n2. **Separar faltas de avisos** en el resultado: las faltas son lo que arreglaría sin pedir permiso (son objetivas, negadas por el nivel 1 o fecha caducada); los avisos los listo pero no los toco todavía porque requieren criterio (falso positivo, regla mal puesta, etc.).\n\n3. **Redactar el informe corto** con: cifra total (skills, faltas, avisos), ranking de las skills con más faltas, avisos repetidos en ≥3 skills (señal de regla mal puesta, no de skill mala), y cualquier `solape-cercano` detectado.\n\n4. **Correr el test de control** para confirmar que el estado base es consistente antes de reportarlo:\n   ```\n   npx vitest run .claude/skills.test.js\n   ```\n\n## Qué NO haría sin el OK de Pablo\n\n- **No arreglaría ninguna falta** todavía: el encargo es un informe, no una corrección. Tocar las skills es un paso 3 de esta skill, que no me han pedido.\n- **No decidiría dueño en los solapes** (paso 5 de la skill) ni tocaría descripciones.\n- **No lanzaría `npm run skills-prueba`** (cuesta tokens) salvo que el informe lo justifique y Pablo lo pida explícitamente.\n- **No fundiría ni podaría** ninguna skill aunque el informe sugiera que algún aviso es ruido sistemático.\n\nSi el informe sale y hay faltas claras, le pregunto si quiere que las arregle ahora o las dejo documentadas para la revisión."
+    },
+    {
+      "id": "dos-skills-reclaman-lo-mismo",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Decide un dueño, el que opera la cosa de punta a punta, y deja a la otra remitiendo a él por su nombre",
+          "cumple": false,
+          "evidencia": "La respuesta dice «Sin ver el contenido no puedo afirmar cuál es» y en el paso 3 plantea candidatos pero no decide. En el paso 4 usa «ejemplo si gana 1password» pero no elige realmente."
+        },
+        {
+          "texto": "Alinea la descripción, el caso de prueba y la fila de operaciones de la otra",
+          "cumple": false,
+          "evidencia": "Solo menciona «sustituir su bloque de rotación por una referencia explícita» y «quitar el caso/petición duplicado» pero no ejecuta ni muestra el resultado de la alineación de descripción, caso de prue"
+        },
+        {
+          "texto": "Vuelve a pasar el solape de descripciones tras cambiar una descripción",
+          "cumple": false,
+          "evidencia": "El paso 5 dice «Verificar» pero advierte en el paso 4: «No tocar la descripción del disparador de ninguna de las dos sin repasar de nuevo el solape» — con lo que renuncia a hacerlo, no lo hace."
+        }
+      ],
+      "respuesta": "No puedo ejecutar nada aquí (solo tengo la skill de higiene abierta, no el repo), así que primero diagnosticaría en vez de decidir a ciegas. Orden:\n\n1. **Leer ambas skills completas**\n   `cat .claude/skills/1password/SKILL.md`\n   `cat .claude/skills/alta-de-secreto/SKILL.md`\n   Espero ver en cada una su «Cuándo y para qué» y «No para:», y localizar el bloque de rotación en cada una (puede que uno cite al otro ya con `referencias/`).\n\n2. **Confirmar el solape con el script**, no de oído:\n   `npm run higiene-skills -- 1password`\n   `npm run higiene-skills -- alta-de-secreto`\n   Busco el código `solape-cercano` con la cifra y el «con: `<otra>`». Si no sale, el solape es más fino de lo que parece y toca mirarlo a mano igualmente (el script solo compara descripciones, no cuerpos enteros).\n\n3. **Decidir el dueño por el criterio del método (paso 5 de higiene-de-skills): quien opera la cosa de punta a punta.** Candidatos:\n   - `1password` si \"rotar\" ahí es la operación real en la bóveda (crear ítem nuevo, archivar el viejo, sesión).\n   - `alta-de-secreto` si rotar es solo un caso particular de su flujo de alta/baja de secretos y 1Password es el backend que usa.\n\n   Sin ver el contenido no puedo afirmar cuál es — **esto es lo que no haría sin tu OK**: fijar el dueño es una decisión de producto/arquitectura, no algo que un script resuelva.\n\n4. **El cambio, una vez decidido el dueño (ejemplo si gana `1password`):**\n   - Dejar el procedimiento completo de rotación en `1password`.\n   - En `alta-de-secreto`, sustituir su bloque de rotación por una referencia explícita: \"rotar una clave existente: skill `1password`\", y quitar el caso/petición duplicado de su propia lista para que no vuelva a disparar.\n   - No tocar la descripción del disparador de ninguna de las dos sin repasar de nuevo el solape (regla explícita del método, paso 5).\n\n5. **Verificar y dejar rastro:**\n   `npm run higiene-skills -- 1password`\n   `npm run higiene-skills -- alta-de-secreto`\n   `npx vitest run .claude/"
+    }
+  ]
+}

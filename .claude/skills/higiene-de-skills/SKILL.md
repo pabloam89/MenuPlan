@@ -1,8 +1,14 @@
 ---
 name: higiene-de-skills
-description: Úsala para revisar UNA skill ya escrita y sacar su lista de defectos con el arreglo de cada uno: «revisa la skill de vercel», «¿está al día esta skill?», «¿cuánto le queda para caducar?», «¿cita algo que ya no existe?», «¿solapa con otra?», «higiene de skills», y en el repaso periódico de todas. No para: crear una skill nueva ni decidir si hace falta (forja-de-skills), medir con tokens si dispara (npm run skills-prueba) ni operar el servicio que describe (su skill).
+description: Úsala para revisar UNA skill ya escrita y sacar su lista de defectos con el arreglo de cada uno: «revisa la skill de vercel», «¿está al día esta skill?», «¿cuánto le queda para caducar?», «¿cita algo que ya no existe?», «¿solapa con otra?», «higiene de skills», y en el repaso periódico de todas, glosario incluido («¿qué palabras faltan en el glosario?»). No para: crear una skill nueva ni decidir si hace falta (forja-de-skills), medir con tokens si dispara (npm run skills-prueba) ni operar el servicio que describe (su skill).
 metadata:
-  tipo: meta
+  tipo: revision
+  opera_proveedor: false
+  juzga_artefacto: true
+  encadena: false
+  pasos_fijos: false
+  sintoma_a_causa: false
+  elige_opciones: false
   dueno: gobierno
   comprobado: 2026-10-10
 ---
@@ -11,7 +17,7 @@ metadata:
 
 ## Cuándo y para qué
 
-Para ponerle una skill concreta a punto contra la forja y la plantilla, y
+Para ponerle una skill concreta a punto contra la forja y el molde de su tipo, y
 devolver una lista de defectos con su arreglo (fondo #408). Entra el nombre de
 una skill (o «todas») y sale la lista, o la cifra del conjunto. Los controles de
 forma y de forja los hace `scripts/lib/skills.mjs` y `scripts/lib/skillsForja.mjs`;
@@ -25,43 +31,21 @@ No es para:
   `--ensayo` cuesta tokens);
 - añadir una lección o un dato a la skill de un servicio: la skill de ese dominio.
 
-## Método
+Se poda (se quita o se funde en `forja-de-skills`) si el CI pasa a ejecutar el
+script en cada PR que toca una skill y nadie lo lanza ya a mano; si más de la
+mitad de los avisos de tres revisiones seguidas se dieron por falsos positivos
+(se ajusta el código antes que la skill); o si nadie la abre en 90 días.
 
-1. **Lanza el script** sobre la skill: `npm run higiene-skills -- <skill>`. Sale
-   una línea `higiene skill: <s> faltas: a avisos: b solape: x con: <otra>` y,
-   debajo, cada defecto con su `arreglo`. Para el conjunto, `--todas`.
-2. **Separa faltas de avisos.** Una `falta` es lo que el nivel 1 negaría sin su
-   lista de excepciones (o una fecha caducada): se arregla. Un `aviso` es una
-   heurística nuestra, sin fuente: se mira y se decide, y si es un falso positivo
-   se dice por qué en el PR. Falso positivo conocido: `caso-en-frontera` en `alta-de-secreto/ficha-equivocada`, por la raíz «scrip» (compartida con la frontera de `1password`); la petición es suya.
-3. **Arregla de arriba abajo con el `arreglo` que trae**, sin añadir nada que no
-   pida un defecto. Si el arreglo mueve texto (fechas, un bloque largo), nada de
-   información se pierde: va a «Lo que falló y por qué», a «Fuentes y
-   comprobación» o a una capa citada con su ruta entera.
-4. **Mira lo que el script no ve** y deja en el PR lo que encuentres: si cada
-   párrafo justifica su coste, si hay un camino por defecto y no un menú, si los
-   ejemplos se contradicen, si los casos de frontera son casi-fallos de verdad
-   (los criterios, en `.claude/skills/forja-de-skills/referencias/criterios.md`).
-5. **Dos skills que reclaman lo mismo**: decide un dueño en el PR (el que opera
-   la cosa de punta a punta), deja la descripción, el caso y la fila de
-   operaciones de la otra remitiendo a él por su nombre, y no cambies una
-   descripción sin pasar el solape.
-6. **Vuelve a lanzar** el script y `npx vitest run .claude/skills.test.js`.
-   Pon la cifra antes y después en el PR.
+## Qué mira
 
-Sale bien si: `faltas: 0` en el script, el nivel 1 en verde, cada aviso
-arreglado o explicado, y la cifra del conjunto (`Higiene: n skills, … faltas y …
-avisos`) no sube. Si un aviso se repite en tres skills, es una regla mal
-puesta: se ajusta aquí, no se copia el parche.
+Una skill de nivel 2 se mira contra el molde de su tipo
+(`.claude/plantillas-skill/<tipo>.md`, que sale de `ops/forja.json`): su tipo
+tiene que ser el que dan las respuestas de su ficha, y sus secciones, las del
+molde. La pieza meta (nivel 0, `forja-de-skills`) no tiene tipo ni molde: se mira
+con las reglas comunes y las secciones de `nivel_0` de la forja.
 
-## Cómo se prueba
-
-El test es `scripts/higiene-skills.test.js`: una skill mala hecha a propósito
-(descripción vaga, fechas, comando, ruta y skill muertos, ejemplos de más, tabla
-rota, secreto, párrafo copiado, casos repetidos, caducidad cercana) en la que
-tienen que salir todos sus defectos, cada uno con su arreglo; una buena que sale
-limpia; y el script sobre el repo. Los códigos que añade esta skill a los de la
-forja:
+Sobre eso, los códigos de la forja y estos propios (los criterios que juzgan a
+mano, en `.claude/skills/forja-de-skills/referencias/criterios.md`):
 
 | Código | Señal | Gravedad |
 |---|---|---|
@@ -79,16 +63,52 @@ forja:
 Los comandos y rutas de «Lo que falló», del registro y de las fuentes son
 historia: no se miran. Lo que el script no juzga (coste de cada párrafo,
 libertad adecuada, ejemplos canónicos, si dispara) queda para el `revisor` y
-`skills-prueba`.
+`skills-prueba`. El test es `scripts/higiene-skills.test.js`: una skill mala hecha
+a propósito en la que salen todos sus defectos, cada uno con su arreglo, una
+buena que sale limpia y el script sobre el repo.
 
-## Cuándo se poda
+## Cómo puntúa
 
-Se quita o se funde en `forja-de-skills` si:
-- el CI pasa a ejecutar el script en cada PR que toca una skill y nadie lo
-  lanza ya a mano: esta skill sobra y se queda el script;
-- sus avisos son ruido: más de la mitad de los avisos de tres revisiones seguidas
-  se dieron por falsos positivos, y se ajusta el código antes que la skill;
-- nadie la abre en 90 días.
+- **Falta**: lo que el nivel 1 negaría sin su lista de excepciones, o una fecha
+  caducada. Se arregla.
+- **Aviso**: una heurística nuestra, sin fuente. Se mira y se decide; si es un
+  falso positivo, se dice por qué en el PR. Falso positivo conocido:
+  `caso-en-frontera` en `alta-de-secreto/ficha-equivocada`, por la raíz «scrip»
+  (compartida con la frontera de `1password`); la petición es suya.
+- **La cifra**: una línea por skill, `higiene skill: <s> faltas: a avisos: b
+  solape: x con: <otra>`, y la del conjunto, `Higiene: n skills, … faltas y …
+  avisos`. Se pone antes y después en el PR, y la del conjunto no sube.
+- Si un aviso se repite en tres skills, es una regla mal puesta: se ajusta aquí,
+  no se copia el parche.
+
+## Método
+
+1. **Lanza el script** sobre la skill: `npm run higiene-skills -- <skill>`. Sale
+   una línea `higiene skill: <s> faltas: a avisos: b solape: x con: <otra>` y,
+   debajo, cada defecto con su `arreglo`. Para el conjunto, `--todas`.
+2. **Separa faltas de avisos** como dice «Cómo puntúa».
+3. **Arregla de arriba abajo con el `arreglo` que trae**, sin añadir nada que no
+   pida un defecto. Si el arreglo mueve texto (fechas, un bloque largo), nada de
+   información se pierde: va a «Lo que falló y por qué», a «Fuentes y
+   comprobación» o a una capa citada con su ruta entera.
+4. **Mira lo que el script no ve** y deja en el PR lo que encuentres: si cada
+   párrafo justifica su coste, si hay un camino por defecto y no un menú, si los
+   ejemplos se contradicen, si los casos de frontera son casi-fallos de verdad
+   (los criterios, en `.claude/skills/forja-de-skills/referencias/criterios.md`).
+5. **Dos skills que reclaman lo mismo**: decide un dueño en el PR (el que opera
+   la cosa de punta a punta), deja la descripción, el caso y la fila de
+   operaciones de la otra remitiendo a él por su nombre, y no cambies una
+   descripción sin pasar el solape.
+6. **Vuelve a lanzar** el script y `npx vitest run .claude/skills.test.js`.
+   Pon la cifra antes y después en el PR.
+7. **En el repaso periódico, también el glosario**: baja sus excepciones
+   (`npm run glosario -- --medir`) y juzga cada candidato a término de
+   `npm run glosario -- --candidatos` (término nuevo, sinónimo de otro o nada,
+   con su motivo). El método, en
+   `.claude/skills/higiene-de-skills/referencias/glosario.md`.
+
+Sale bien si: `faltas: 0` en el script, el nivel 1 en verde, cada aviso
+arreglado o explicado, y la cifra del conjunto no sube.
 
 ## Lo que falló y por qué
 
@@ -104,6 +124,8 @@ Se quita o se funde en `forja-de-skills` si:
 
 ## Registro de cambios
 
+- **2026-10-10** · Las secciones del tipo `revision`: «Qué mira» (el molde de su tipo para las de nivel 2, las reglas comunes para la pieza meta, y la tabla de códigos) y «Cómo puntúa» (falta, aviso y la cifra); «Cómo se prueba» se reparte entre las dos y «Cuándo se poda» pasa a «Cuándo y para qué» (#495).
+- **2026-10-10** · El repaso periódico incluye el glosario: bajar sus excepciones y juzgar los candidatos a término de `npm run glosario -- --candidatos`, con el método en `.claude/skills/higiene-de-skills/referencias/glosario.md` (#481).
 - **2026-10-10** · Primera versión: lista de defectos de una skill con su arreglo, script `npm run higiene-skills`, diez controles propios sobre los de la forja y su test con una skill mala (#411).
 
 ## Fuentes y comprobación

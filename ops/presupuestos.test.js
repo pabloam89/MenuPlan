@@ -266,7 +266,7 @@ describe("el test de cada norma del tope de rondas ejercita su regla", () => {
   it("la norma rondas-tope-duro y P07.4 apuntan al test que nombra rondas-excedidas", () => {
     const norma = JSON.parse(leerTexto("ops/normas.json")).normas.find((n) => n.id === "rondas-tope-duro");
     const o = JSON.parse(leerTexto("ops/flujo.json")).pasos.flatMap((p) => p.obligaciones).find((x) => x.id === "P07.4");
-    for (const test of [norma.test, o.test]) {
+    for (const test of [norma.control, o.test]) {
       expect(test).toBe("scripts/fondos-rondas.test.js");
       expect(leerTexto(test), "el test de la obligación tiene que nombrar su regla").toContain(o.contiene);
     }

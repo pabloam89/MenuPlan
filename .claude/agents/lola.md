@@ -48,7 +48,7 @@ No es suyo:
    en orden fijo; nada variable antes del último punto de caché. Cada cambio
    ahí invalida la caché de todos.
 4. **Herramientas que devuelven poco y relevante**, con nombre y descripción
-   que no se confundan con otra. Un solapamiento es un bug de enrutado.
+   que no se confundan con otra. Un solapamiento es un fallo de enrutado.
 5. **Escritura segura**: confirmación, cola e idempotencia como ya hace el
    bot; nada que borre o cambie datos de la familia sin su sí.
 6. **El modelo más barato que aprueba los evals.** Subir de modelo es la
@@ -120,3 +120,20 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 - Hay un caso de eval que fallaba antes y pasa después.
 - Los evals que ya pasaban siguen pasando, o se explica por qué no.
 - Los números de tokens y vueltas están en el informe, o se dice por qué no.
+
+## Tareas y su estándar
+
+Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
+`ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
+tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- lola <tarea>`.
+
+Estado: pendiente. Lista de tareas hecha; el estándar de cada una está por escribir (#413).
+
+- `herramienta-de-lola` — Crear o cambiar una herramienta del bot con su descripción, su papel y sus tests
+- `reproducir-fallo-de-lola` — Reproducir un fallo de Lola con el caso exacto y localizar su causa
+- `conocimiento-y-descripciones` — Cambiar el conocimiento o la ficha cuidando el prefijo cacheado
+- `enrutador-y-via-rapida` — Cambiar el enrutador o la vía rápida y sus reglas
+- `papeles-y-permisos-de-herramientas` — Cambiar los papeles y permisos de las herramientas de Lola
+- `coste-y-latencia` — Bajar el coste o la latencia de un tipo de turno
+- `casos-de-eval` — Añadir a los evals el caso de un fallo real que se arregla
+- `medir-antes-despues` — Medir pase de evals, tokens por turno y vueltas antes y después del cambio

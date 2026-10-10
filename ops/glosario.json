@@ -1,0 +1,661 @@
+{
+  "$comentario": "Glosario único del lenguaje de proceso (#469, fondo #455): cada término canónico con una sola definición. Lo que hay que decir con el término canónico y no con otra palabra va en sinonimos_prohibidos; el control de ops/glosario.test.js (scripts/lib/glosario.mjs) los busca en las zonas de aplica_a y falla con el término que toca. Lo que ya había está en ops/glosario-excepciones.json, que solo baja. Los vocabularios que ya existen se citan en ref (fichero y claves), no se copian. Fuera de alcance: el vocabulario del producto (src/lib/vocabularios.js) y lo que lee Lola (api/_bot). Cada término lleva estado (activo | retirado, con pasa_a: un término no se borra), sus relaciones (amplio, estrecho, relacionado: recíprocas) y una definición con la forma «un/una X que Y» (ISO 704; heurística en faltaDeForma). npm run glosario -- <término> enseña uno.",
+  "version": 2,
+  "actualizado": "2026-10-10",
+  "zonas": {
+    "skills": [".claude/skills/**/*.md"],
+    "plantillas": [".claude/PLANTILLA-SKILL.md", ".claude/PLANTILLA-AGENTE.md"],
+    "agentes": [".claude/agents/*.md"],
+    "reglas": [".claude/rules/*.md"],
+    "claude_md": ["CLAUDE.md"],
+    "docs_ops": ["docs/ops/*.md"],
+    "estandares": ["ops/estandares-agentes.json"],
+    "normas": ["ops/normas.json"],
+    "forja": ["ops/forja.json"],
+    "redaccion": ["ops/redaccion.json"],
+    "comandos": [".claude/commands/*.md"]
+  },
+  "terminos": [
+    {
+      "termino": "comprobar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Contrastar una afirmación con una evidencia que otro puede repetir; lo que no se ha contrastado se dice «sin comprobar».",
+      "sinonimos_prohibidos": ["chequear", "chequea", "chequeado", "constatar", "constata", "cotejar"],
+      "aplica_a": ["todas"],
+      "estrecho": ["verificar", "validar"],
+      "relacionado": ["evidencia"],
+      "ref": { "fichero": "scripts/lib/issues.mjs", "clave": "GRUPOS.causa.valores.sin-comprobar" },
+      "nota": "No es «verificar», que es el paso 8 del flujo, ni «validar», que mira la forma de un dato."
+    },
+    {
+      "termino": "verificar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Comprobar que el arreglo de un encargo cumple, con el CI en verde, el juez conforme y un test que cubre la clase; es el paso 8 del flujo.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "amplio": "comprobar",
+      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "PASOS.verificar" },
+      "nota": "El campo verificacion de la ficha del fondo es el fichero que lo demuestra. Fuera de este paso, «comprobar»."
+    },
+    {
+      "termino": "validar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Comprobar que un dato cumple su forma o su restricción: la entrada de un endpoint, una restricción NOT VALID de Postgres, un fichero contra su esquema.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "amplio": "comprobar"
+    },
+    {
+      "termino": "probar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Ejecutar algo para ver lo que hace de verdad: un test, un comando, la app en el navegador. Un test nuevo se prueba viéndolo fallar.",
+      "sinonimos_prohibidos": ["testear", "testea", "testeado", "testar"],
+      "aplica_a": ["todas"],
+      "estrecho": ["ensayar"],
+      "relacionado": ["test"]
+    },
+    {
+      "termino": "ensayar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Probar algo sin dejar efecto (ROLLBACK, --ensayo, sin --si) para ver lo que haría de verdad.",
+      "sinonimos_prohibidos": ["dry-run", "simulacro"],
+      "aplica_a": ["todas"],
+      "amplio": "probar",
+      "relacionado": ["aplicar"]
+    },
+    {
+      "termino": "medir",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Sacar una cifra que se puede repetir (cuántos, desde cuándo, dónde) para compararla antes y después de un arreglo.",
+      "sinonimos_prohibidos": ["cuantificar"],
+      "aplica_a": ["todas"],
+      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "PASOS.medir" }
+    },
+    {
+      "termino": "revisar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Leer un cambio o un texto buscando fallos o lo que ha caducado; puede correr sus tests, pero no lo cambia.",
+      "sinonimos_prohibidos": ["inspeccionar"],
+      "aplica_a": ["todas"],
+      "estrecho": ["auditar"],
+      "relacionado": ["juzgar"],
+      "nota": "Un juez revisa un diff; «auditar» es revisar una superficie entera."
+    },
+    {
+      "termino": "auditar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Revisar de forma sistemática una superficie entera (un dominio, unos permisos, el modelo de datos) en vez de un diff, con una pasada que puede ser periódica.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "amplio": "revisar"
+    },
+    {
+      "termino": "juzgar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Dar un veredicto sobre el trabajo que hizo otro, sin cambiarlo; lo hace un juez y quien construye no juzga lo suyo.",
+      "sinonimos_prohibidos": ["dictaminar", "arbitrar"],
+      "aplica_a": ["todas"],
+      "relacionado": ["revisar", "juez"],
+      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "ACTORES.juez" },
+      "nota": "El «veredicto» de una norma en ops/normas.json es su dureza (qué puede concluir quien la hace cumplir), no el juicio de un juez."
+    },
+    {
+      "termino": "diagnosticar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "El paso 4 del flujo, que lleva de un caso a su causa cambiable y a su causa de escape, con evidencia.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["causa"],
+      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "PASOS.diagnosticar" }
+    },
+    {
+      "termino": "registrar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Apuntar algo en un sitio que se puede contar: un fallo como caso en un issue, una línea estructurada en un log.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["caso"],
+      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "PASOS.registrar_caso" }
+    },
+    {
+      "termino": "fusionar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Juntar un PR con la rama de destino que lo recibe: staging, o main cuando Pablo lo pide.",
+      "sinonimos_prohibidos": ["mergear", "mergea", "mergeado", "mergeada", "mergeados", "mergeadas"],
+      "aplica_a": ["todas"],
+      "relacionado": ["staging"]
+    },
+    {
+      "termino": "aplicar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Ejecutar de verdad una migración que ya se ensayó, en la base de producción (apply-migration --si).",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["ensayar"]
+    },
+    {
+      "termino": "retirar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Dar de baja algo que ya no se usa sin perder nada: una carpeta de trabajo, una clave, una fuente.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["podar"]
+    },
+    {
+      "termino": "podar",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Quitar lo que ya no aporta: ramas fusionadas o una skill que no mejora sobre el modelo solo.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["retirar"]
+    },
+    {
+      "termino": "gateway",
+      "estado": "activo",
+      "clase": "accion",
+      "definicion": "Una acción que no lanza ninguna sesión ni agente: se prepara y la lanza una persona (subir a main, borrar, secretos, permisos).",
+      "sinonimos_prohibidos": ["pasarela"],
+      "aplica_a": ["todas"],
+      "relacionado": ["persona"]
+    },
+    {
+      "termino": "fallo",
+      "estado": "activo",
+      "clase": "estado",
+      "definicion": "Un resultado que no es el que se esperaba: algo no hizo lo que debía.",
+      "sinonimos_prohibidos": ["bug", "bugs", "incidencia", "incidencias", "incidente", "incidentes"],
+      "aplica_a": ["todas"],
+      "relacionado": ["caso"],
+      "nota": "Un fallo registrado es un caso."
+    },
+    {
+      "termino": "falta",
+      "estado": "activo",
+      "clase": "estado",
+      "definicion": "La gravedad de un control de la forja o de la higiene que se incumple y bloquea: se arregla, no se explica.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["aviso", "control"],
+      "nota": "Es gravedad de controles de skills; no es la de un hallazgo del informe común (bloqueante, alto, medio, nit)."
+    },
+    {
+      "termino": "aviso",
+      "estado": "activo",
+      "clase": "estado",
+      "definicion": "La gravedad de un control de la forja o de la higiene que señala sin bloquear: se mira, se decide y un falso positivo se explica.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["falta", "control"],
+      "nota": "Es gravedad de controles de skills; no es la de un hallazgo del informe común (bloqueante, alto, medio, nit)."
+    },
+    {
+      "termino": "caso",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un issue tipo:caso que registra un fallo concreto, con su evidencia y su análisis; cuelga de su fondo o es puntual.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "amplio": "issue",
+      "relacionado": ["registrar", "fallo", "caso de prueba"],
+      "ref": { "fichero": "scripts/lib/issues.mjs", "clave": "GRUPOS.tipo.valores.caso" },
+      "nota": "En casos.json de una skill, «caso» es un caso de prueba: dos significados, decisión pendiente."
+    },
+    {
+      "termino": "caso de prueba",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Una petición de casos.json de una skill con lo que debe salir; los de frontera son de otra skill o de ninguna.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["caso", "skill"]
+    },
+    {
+      "termino": "fondo",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un issue tipo:fondo: la clase de fallo de la que cuelgan casos y encargos, con su ficha, su arreglo general y cómo se probará.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "amplio": "issue",
+      "relacionado": ["clase", "arreglo", "aprendizaje", "ficha"],
+      "ref": { "fichero": "scripts/lib/issues.mjs", "clave": "GRUPOS.tipo.valores.fondo" },
+      "nota": "«Problema de fondo» es su nombre largo y es el mismo término. No es la causa: el fondo la contiene."
+    },
+    {
+      "termino": "causa",
+      "estado": "activo",
+      "clase": "campo",
+      "definicion": "Una explicación que dice por qué pasó un fallo, en tres piezas: mecanismo, condición y control ausente. Su tipo es la etiqueta causa:.",
+      "sinonimos_prohibidos": ["causa raíz", "causas raíz"],
+      "aplica_a": ["todas"],
+      "estrecho": ["causa de escape"],
+      "relacionado": ["diagnosticar", "clase"],
+      "ref": { "fichero": "scripts/lib/issues.mjs", "clave": "GRUPOS.causa" },
+      "nota": "La skill causa-raiz conserva su nombre: es un identificador, y como sin tildes «causa-raíz» es igual, esa forma no se prohíbe."
+    },
+    {
+      "termino": "causa de escape",
+      "estado": "activo",
+      "clase": "campo",
+      "definicion": "La causa que explica por qué ningún test, hook, revisión o vigilante paró el fallo antes de que llegara; campo causa_escape de la ficha.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "amplio": "causa",
+      "ref": { "fichero": "scripts/lib/fondos.mjs", "clave": "CAMPOS_FICHA.causa_escape" }
+    },
+    {
+      "termino": "clase",
+      "estado": "activo",
+      "clase": "campo",
+      "definicion": "La frase «todo X que Y» que incluye un caso y sus hermanos y excluye lo que funciona; se arregla la clase, no el caso.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["fondo", "causa"],
+      "ref": { "fichero": "scripts/lib/fondos.mjs", "clave": "CAMPOS_FICHA.clase" }
+    },
+    {
+      "termino": "aprendizaje",
+      "estado": "activo",
+      "clase": "campo",
+      "definicion": "Un registro de lo que queda de un fondo para que no se repita y dónde quedó: un test, la guardia, una skill o un catálogo.",
+      "sinonimos_prohibidos": ["lección", "lecciones"],
+      "aplica_a": ["todas"],
+      "relacionado": ["fondo"],
+      "ref": { "fichero": "scripts/lib/fondos.mjs", "clave": "CAMPOS_FICHA.aprendizaje" },
+      "nota": "Es el campo aprendizaje de la ficha y el paso «aprender» del flujo."
+    },
+    {
+      "termino": "encargo",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un issue tipo:encargo con trabajo por hacer que tiene dueño, constructor y juez; si es parte de un arreglo, cuelga de su fondo.",
+      "sinonimos_prohibidos": ["to-do"],
+      "aplica_a": ["todas"],
+      "amplio": "issue",
+      "relacionado": ["arreglo", "ficha"],
+      "ref": { "fichero": "scripts/lib/issues.mjs", "clave": "GRUPOS.tipo.valores.encargo" }
+    },
+    {
+      "termino": "tarea",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "La unidad de trabajo de una sesión: una carpeta de trabajo, una rama y lo que se pidió (npm run tarea).",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["tarea de agente", "carpeta de trabajo"],
+      "nota": "En ops/estandares-agentes.json la palabra es «tarea de agente»: dos significados, decisión pendiente."
+    },
+    {
+      "termino": "tarea de agente",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un tipo de trabajo que repite un agente, con su estándar, en ops/estandares-agentes.json.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["tarea", "estándar"],
+      "ref": { "fichero": "scripts/lib/estandaresAgentes.mjs", "clave": "CAMPOS_TAREA" }
+    },
+    {
+      "termino": "decisión",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un issue tipo:decision que se asigna a Pablo: la pregunta en llano, las opciones con la recomendada primero y qué pasa si no se decide.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "amplio": "issue",
+      "ref": { "fichero": "scripts/lib/issues.mjs", "clave": "GRUPOS.tipo.valores.decision" }
+    },
+    {
+      "termino": "arreglo",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "El cambio que corrige una clase de fallo; el general va en el fondo y sus partes en encargos.",
+      "sinonimos_prohibidos": ["parche", "parches", "apaño", "apaños"],
+      "aplica_a": ["todas"],
+      "relacionado": ["fondo", "encargo", "mecanismo"],
+      "ref": { "fichero": "scripts/lib/issues.mjs", "clave": "GRUPOS.arreglo" },
+      "nota": "La etiqueta arreglo: dice dónde quedó al cerrar el fondo."
+    },
+    {
+      "termino": "issue",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un elemento de GitHub del repo que lleva su tipo: fondo, caso, encargo o decisión.",
+      "sinonimos_prohibidos": ["ticket", "tickets"],
+      "aplica_a": ["todas"],
+      "estrecho": ["caso", "fondo", "encargo", "decisión"],
+      "ref": { "fichero": "scripts/lib/issues.mjs", "clave": "GRUPOS.tipo" }
+    },
+    {
+      "termino": "ficha",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "El bloque fondo o encargo de líneas clave: valor en el cuerpo de un issue, que leen el workflow fondos y el CI.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["fondo", "encargo"],
+      "ref": { "fichero": "scripts/lib/fondos.mjs", "clave": "CAMPOS_FICHA" }
+    },
+    {
+      "termino": "evidencia",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un dato que respalda una afirmación y que otro puede repetir: comando y salida, fichero:línea, un run o un PR.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["comprobar", "hallazgo"]
+    },
+    {
+      "termino": "hallazgo",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un problema que un juez encuentra y devuelve en su informe, con su gravedad, su evidencia y si ya estaba apuntado.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["evidencia", "juez"]
+    },
+    {
+      "termino": "defecto",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un incumplimiento de un criterio de calidad que se ve en una skill, con su código de la forja o de la higiene y su arreglo.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["control"]
+    },
+    {
+      "termino": "informe",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "El texto que devuelve un agente al acabar, con la forma de .claude/PLANTILLA-AGENTE.md, o el que deja un workflow semanal.",
+      "sinonimos_prohibidos": ["reporte", "reportes"],
+      "aplica_a": ["todas"],
+      "relacionado": ["agente"]
+    },
+    {
+      "termino": "skill",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Una carpeta de .claude/skills/ con su SKILL.md, sus capas y sus casos de prueba, que una sesión abre por su nombre; tiene uno de los tipos de la forja, salvo la pieza meta.",
+      "sinonimos_prohibidos": ["runbook", "runbooks"],
+      "aplica_a": ["todas"],
+      "relacionado": ["capa", "caso de prueba"],
+      "ref": { "fichero": "ops/forja.json", "clave": "tipos_skill" },
+      "nota": "La línea «Runbook:» del PR conserva su nombre: es un identificador del CI (decisión pendiente)."
+    },
+    {
+      "termino": "capa",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un fichero de referencias o plantillas de una skill que su SKILL.md cita con la ruta y solo se lee si hace falta.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["skill"]
+    },
+    {
+      "termino": "plantilla",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "El molde de una forma común que se repite: la de skills, la de agentes, la del encargo y los formularios de issue.",
+      "sinonimos_prohibidos": ["template", "templates"],
+      "aplica_a": ["todas"]
+    },
+    {
+      "termino": "regla",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Una condición concreta que hay que cumplir, escrita donde se aplica: un fichero de .claude/rules/, la guardia o un test.",
+      "sinonimos_prohibidos": ["directriz", "directrices", "pauta", "pautas"],
+      "aplica_a": ["todas"],
+      "relacionado": ["norma"]
+    },
+    {
+      "termino": "norma",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Una obligación del proceso que está registrada en ops/normas.json, con quién la hace cumplir, su dureza y su test.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["regla"],
+      "ref": { "fichero": "scripts/lib/normas.mjs", "clave": "EJECUTORES" }
+    },
+    {
+      "termino": "estándar",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "El conjunto de criterios que dice qué es hacer bien una tarea de agente o un tipo de skill, con qué comprueba, qué no hace y su fuente.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["criterio", "tarea de agente"],
+      "ref": { "fichero": "scripts/lib/estandaresAgentes.mjs", "clave": "CAMPOS_ESTANDAR" },
+      "nota": "Un estándar se compone de criterios."
+    },
+    {
+      "termino": "criterio",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Una condición de calidad que lleva id, fuente y quién la vigila (un control o un juez).",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["estándar"]
+    },
+    {
+      "termino": "control",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Una comprobación automática concreta con su código de vocabulario cerrado, que da falta, aviso o bien.",
+      "sinonimos_prohibidos": ["chequeo", "chequeos"],
+      "aplica_a": ["todas"],
+      "relacionado": ["falta", "aviso", "defecto", "vigilante"]
+    },
+    {
+      "termino": "mecanismo",
+      "estado": "activo",
+      "clase": "campo",
+      "definicion": "Una forma de hacer cumplir algo que está en el catálogo ops/mecanismos.json; el arreglo elige el más alto posible.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["arreglo", "barrera"],
+      "ref": { "fichero": "scripts/lib/mecanismos.mjs", "clave": "MECANISMOS_PEDIDOS" },
+      "nota": "En la ficha del fondo, el campo mecanismo guarda la causa: dos significados fijados en código, decisión pendiente."
+    },
+    {
+      "termino": "barrera",
+      "estado": "activo",
+      "clase": "campo",
+      "definicion": "El escalón de la escalera (de bloqueo a texto) en que queda el arreglo de un fondo; campo barrera de la ficha.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["mecanismo"],
+      "ref": { "fichero": "scripts/lib/fondos.mjs", "clave": "BARRERAS" }
+    },
+    {
+      "termino": "guardia",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "El hook .claude/hooks/guardia.mjs, que corre antes de cada comando o edición de una sesión y niega lo prohibido.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "amplio": "hook"
+    },
+    {
+      "termino": "hook",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un script de .claude/hooks/ que Claude Code lanza solo en un momento fijo: al arrancar, antes de un comando, tras editar o al terminar.",
+      "sinonimos_prohibidos": ["gancho", "ganchos"],
+      "aplica_a": ["todas"],
+      "estrecho": ["guardia"]
+    },
+    {
+      "termino": "test",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Un fichero .test que vitest ejecuta en el CI; se ve fallar una vez antes de creérselo.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["probar"]
+    },
+    {
+      "termino": "vocabulario",
+      "estado": "activo",
+      "clase": "artefacto",
+      "definicion": "Una lista cerrada de valores, cada uno con su definición, que vive en una constante de JS con su test (y un CHECK si va a SQL).",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "ref": { "fichero": "scripts/lib/issues.mjs", "clave": "GRUPOS" }
+    },
+    {
+      "termino": "vigilante",
+      "estado": "activo",
+      "clase": "rol",
+      "definicion": "La pieza que ejecuta controles sin nadie delante: la guardia, el CI, un script o un workflow.",
+      "sinonimos_prohibidos": ["guardián", "centinela"],
+      "aplica_a": ["todas"],
+      "relacionado": ["control"],
+      "ref": { "fichero": "scripts/lib/issues.mjs", "clave": "GRUPOS.causa.valores.vigilante-hueco" }
+    },
+    {
+      "termino": "sesión",
+      "estado": "activo",
+      "clase": "rol",
+      "definicion": "Una conversación de Claude Code que trabaja en su carpeta de trabajo; la sesión principal es la que habla con Pablo y lanza agentes.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "estrecho": ["orquestador"]
+    },
+    {
+      "termino": "agente",
+      "estado": "activo",
+      "clase": "rol",
+      "definicion": "Un ayudante con su fichero en .claude/agents/, lanzado por una sesión, que es constructor o juez.",
+      "sinonimos_prohibidos": ["subagente", "subagentes"],
+      "aplica_a": ["todas"],
+      "estrecho": ["juez"],
+      "relacionado": ["informe"],
+      "ref": { "fichero": "scripts/lib/fondos.mjs", "clave": "CAPAS_AGENTE" }
+    },
+    {
+      "termino": "constructor",
+      "estado": "activo",
+      "clase": "rol",
+      "definicion": "El agente o la sesión que hace un cambio en su dominio; no juzga lo suyo.",
+      "sinonimos_prohibidos": ["implementador", "implementadores"],
+      "aplica_a": ["todas"],
+      "relacionado": ["juez"],
+      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "ACTORES.agente_dominio" },
+      "nota": "No es el «ejecutor» de una norma, que es quien la hace cumplir."
+    },
+    {
+      "termino": "juez",
+      "estado": "activo",
+      "clase": "rol",
+      "definicion": "Un agente sin Edit ni Write que juzga el trabajo de otro: revisor, qa, evaluador, seguridad o auditor-datos.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "amplio": "agente",
+      "estrecho": ["revisor"],
+      "relacionado": ["juzgar", "constructor", "hallazgo"],
+      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "ACTORES.juez" }
+    },
+    {
+      "termino": "revisor",
+      "estado": "activo",
+      "clase": "rol",
+      "definicion": "El juez que busca fallos reales en un diff; no es cualquier juez.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "amplio": "juez"
+    },
+    {
+      "termino": "orquestador",
+      "estado": "activo",
+      "clase": "rol",
+      "definicion": "La sesión principal que sigue /orquestar: elige el pipeline, escribe el brief de cada agente y junta sus informes.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "amplio": "sesión",
+      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "ACTORES.orquestador" }
+    },
+    {
+      "termino": "dueño",
+      "estado": "activo",
+      "clase": "rol",
+      "definicion": "El agente o la persona que responde de algo (una skill, un módulo, un encargo, una clave) y lo mantiene al día.",
+      "sinonimos_prohibidos": ["responsable", "responsables"],
+      "aplica_a": ["todas"],
+      "nota": "«Módulo dueño» (PRINCIPIOS §15, ops/MODULOS.json) es otro sentido: el único módulo que lee y escribe una tabla; no es este término."
+    },
+    {
+      "termino": "persona",
+      "estado": "activo",
+      "clase": "rol",
+      "definicion": "Un miembro del equipo (Pablo, Álvaro o Manu, socio sin acceso al repo) que no es un agente; lo irreversible lo decide Pablo y los gateways los lanza Pablo con !.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["gateway"],
+      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "ACTORES.persona" },
+      "nota": "En ops/normas.json, el ejecutor persona (EJECUTORES de scripts/lib/normas.mjs) es una norma que hace cumplir alguien a mano: es este mismo término."
+    },
+    {
+      "termino": "carpeta de trabajo",
+      "estado": "activo",
+      "clase": "lugar",
+      "definicion": "La carpeta C:\\dev\\MenuPlan-<tarea> de una sesión, con su rama, que abre npm run tarea y cierra npm run retirar.",
+      "sinonimos_prohibidos": ["worktree", "worktrees"],
+      "aplica_a": ["todas"],
+      "relacionado": ["carpeta principal", "tarea"],
+      "nota": "La orden git worktree, en código, no cuenta."
+    },
+    {
+      "termino": "carpeta principal",
+      "estado": "activo",
+      "clase": "lugar",
+      "definicion": "La carpeta C:\\dev\\MenuPlan, que solo se pone al día: en ella no se trabaja.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["carpeta de trabajo"]
+    },
+    {
+      "termino": "staging",
+      "estado": "activo",
+      "clase": "lugar",
+      "definicion": "La rama por defecto y su despliegue de prueba, en la que todo entra por PR con el CI en verde.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"],
+      "relacionado": ["producción", "fusionar"]
+    },
+    {
+      "termino": "producción",
+      "estado": "activo",
+      "clase": "lugar",
+      "definicion": "El entorno que usan las familias: la rama main, su despliegue y la única base de datos.",
+      "sinonimos_prohibidos": ["prod"],
+      "aplica_a": ["todas"],
+      "relacionado": ["staging"]
+    },
+    {
+      "termino": "zona",
+      "estado": "activo",
+      "clase": "lugar",
+      "definicion": "El conjunto de ficheros, por sus rutas, al que aplica una regla, un dominio o un término del glosario.",
+      "sinonimos_prohibidos": [],
+      "aplica_a": ["todas"]
+    }
+  ]
+}

@@ -49,7 +49,7 @@
       "id": "skills",
       "nombre": "Skills",
       "pregunta": "¿Cómo se hace?",
-      "contiene": "Método, técnicas, referencias, scripts y plantillas. De herramienta (cómo se opera un servicio) y de oficio (cómo se piensa un tipo de problema)",
+      "contiene": "Método, técnicas, referencias, scripts y plantillas. De uno de los tipos de tipos_skill de ops/forja.json (un servicio se opera; un diagnóstico piensa un tipo de problema), salvo la pieza meta",
       "donde": [
         ".claude/skills",
         ".claude/PLANTILLA-SKILL.md"
@@ -114,62 +114,7 @@
       ]
     }
   ],
-  "tipos_skill": [
-    {
-      "id": "herramienta",
-      "que": "Cómo se opera un servicio (supabase, vercel, telegram…)",
-      "estado": "existe",
-      "fase": []
-    },
-    {
-      "id": "oficio",
-      "que": "Cómo se piensa un tipo de problema (causa raíz, plan de arreglo, priorizar)",
-      "estado": "existe",
-      "fase": []
-    },
-    {
-      "id": "dominio",
-      "que": "El conocimiento del negocio (nutrición, alergias, cómo comen las familias)",
-      "estado": "reservado",
-      "fase": [
-        "#336"
-      ]
-    },
-    {
-      "id": "estandar",
-      "que": "Cómo deben quedar las cosas para ser consistentes (voz de Lola, design system)",
-      "estado": "existe",
-      "fase": []
-    },
-    {
-      "id": "receta_cambio",
-      "que": "Los pasos de una acción que se repite (dar de alta un secreto, añadir una herramienta a Lola, una pantalla, recetas)",
-      "estado": "existe",
-      "fase": []
-    },
-    {
-      "id": "rubrica_juez",
-      "que": "Qué mira un juez y cómo puntúa",
-      "estado": "reservado",
-      "fase": [
-        "#336"
-      ]
-    },
-    {
-      "id": "investigacion",
-      "que": "Cómo buscar fuera y destilar (radar de mercado, investigación técnica)",
-      "estado": "reservado",
-      "fase": [
-        "#336"
-      ]
-    },
-    {
-      "id": "meta",
-      "que": "Cómo crear, probar y podar las propias piezas",
-      "estado": "existe",
-      "fase": []
-    }
-  ],
+  "$tipos_skill": "Los tipos de skill viven en ops/forja.json (tipos_skill), la única lista; su molde, en .claude/plantillas-skill/ (#495).",
   "regla_de_parada": {
     "texto": "Una pieza nueva (catálogo, skill o agente) solo se crea si cumple las tres: se usa al menos dos veces o la leen al menos dos consumidores; no repite nada que ya esté en otra; tiene dueño y test. Lo que no se usa se aparca, como arquitecto y rendimiento.",
     "aplica_a": [
@@ -209,7 +154,7 @@
         { "indicador": "PR con casos frente a PR con «ninguno»", "estado": "existe", "donde": "scripts/lib/issues.mjs" }
       ],
       "obligaciones": [
-        { "id": "P02.1", "texto": "Antes de crear un issue se buscan los parecidos", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/guardia.mjs", "contiene": "npm run issues -- --nuevo", "test": ".claude/hooks/guardia.test.js", "fase": ["#325", "#337"], "norma": "issues-con-buscar-antes", "nota": "Cierra la orden gh issue create; hay otras vías de crear un issue que no ve" },
+        { "id": "P02.1", "texto": "Antes de crear un issue se buscan los parecidos", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/guardia.mjs", "contiene": "deny(\"issue-a-pelo\")", "test": ".claude/hooks/guardia.test.js", "fase": ["#325", "#337"], "norma": "issues-con-buscar-antes", "nota": "Cierra la orden gh issue create; hay otras vías de crear un issue que no ve" },
         { "id": "P02.2", "texto": "Las decisiones y pendientes que deja una sesión pasan a un issue", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/pendientes.mjs", "contiene": "stop_hook_active", "test": ".claude/hooks/pendientes.test.js", "fase": ["#312"], "norma": "pendientes-a-issue", "nota": "Frena una vez por sesión, y solo si el último mensaje deja decisiones o pendientes; los fallos sin caso los frena P02.5" },
         { "id": "P02.3", "texto": "Cada PR declara los casos que vio (línea Casos:), y cada uno es un caso de verdad", "ejecutor": "ci", "dureza": "semidura", "ref": "scripts/casos-pr.mjs", "contiene": "es un issue (no un PR)", "test": "scripts/casos-pr.test.js", "fase": ["#341", "#185"], "norma": "cuando-algo-falla", "nota": "Falla cerrado si la API no responde; los PR de bots están exentos. La guardia la comprueba antes (solo la forma). Semidura: «Casos: ninguno — <motivo>» es autodeclarado, el CI mira que haya motivo y no que sea cierto" },
         { "id": "P02.4", "texto": "Nada sensible en un issue: el repo es público", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "contiene": "nada sensible en un issue", "test": null, "fase": ["#300"], "norma": "repo-publico-sin-detalle" },
@@ -301,7 +246,7 @@
       ],
       "obligaciones": [
         { "id": "P07.1", "texto": "Un encargo es una rama con el número de su issue, y se ve quién lo lleva", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/tarea.mjs", "contiene": "Con número de issue, lo marca", "test": "scripts/lleva.test.js", "fase": ["#337"], "norma": null, "nota": "La guardia y el arranque cubren a las sesiones de Claude" },
-        { "id": "P07.2", "texto": "Un PR de una rama con número de issue lleva Closes de ese issue", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/guardia.mjs", "contiene": "Tu rama es del issue", "test": ".claude/hooks/guardia.test.js", "fase": ["#337"], "norma": "pr-al-dia-y-closes", "nota": "Solo ramas <area>/<n>-…, y solo lo ve la guardia (a las sesiones de Claude): el CI no lo comprueba" },
+        { "id": "P07.2", "texto": "Un PR de una rama con número de issue lleva Closes de ese issue", "ejecutor": "guardia", "dureza": "semidura", "ref": ".claude/hooks/guardia.mjs", "contiene": "deny(\"pr-sin-closes\"", "test": ".claude/hooks/guardia.test.js", "fase": ["#337"], "norma": "pr-al-dia-y-closes", "nota": "Solo ramas <area>/<n>-…, y solo lo ve la guardia (a las sesiones de Claude): el CI no lo comprueba" },
         { "id": "P07.3", "texto": "Quien construye no juzga", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "contiene": "quien construye no juzga", "test": null, "fase": ["#341"], "norma": "quien-construye-no-juzga", "nota": "Es una convención: hoy no la comprueba nada. La fase D (#339) no la endureció: los jueces mínimos del presupuesto no impiden que quien construye juzgue" },
         { "id": "P07.4", "texto": "Como mucho las rondas del presupuesto de constructor y juez; después decide una persona", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/fondos.mjs", "contiene": "rondas-excedidas", "test": "scripts/fondos-rondas.test.js", "fase": ["#340"], "norma": "rondas-tope-duro", "nota": "El conteo vive en el campo rondas de la ficha del fondo y el workflow fondos falla la ficha que pasa del máximo de su alcance y causa (ops/presupuestos.json). Semidura: el contador lo escribe la sesión, nada comprueba que sea cierto, y el workflow no crea el issue de decisión; F medirá las rondas reales por PR" },
         { "id": "P07.5", "texto": "Todo agente sigue la plantilla: tipo, planos, método e informe común", "ejecutor": "ci", "dureza": "dura", "ref": ".claude/PLANTILLA-AGENTE.md", "contiene": "informe común", "test": ".claude/agentes.test.js", "fase": [], "norma": null },
@@ -378,7 +323,7 @@
       ],
       "obligaciones": [
         { "id": "P11.1", "texto": "Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "contiene": "a la memoria, nunca", "test": null, "fase": ["#337"], "norma": "lecciones-a-un-test", "nota": "Desde #337 la ficha tiene el campo aprendizaje y P10.2 exige que no esté vacío al cerrar; que lo escrito sea cierto sigue siendo cosa del revisor" },
-        { "id": "P11.2", "texto": "Toda skill sigue la plantilla de su tipo: tipo, dueño, fecha de comprobación (caducada solo falla en el PR que la toca), secciones, tamaño, rutas y nada copiado", "ejecutor": "ci", "dureza": "dura", "ref": ".claude/PLANTILLA-SKILL.md", "contiene": "Los ocho tipos y sus secciones", "test": ".claude/skills.test.js", "fase": [], "norma": null },
+        { "id": "P11.2", "texto": "Toda skill sigue la plantilla de su tipo: tipo, dueño, fecha de comprobación (caducada solo falla en el PR que la toca), secciones, tamaño, rutas y nada copiado", "ejecutor": "ci", "dureza": "dura", "ref": ".claude/PLANTILLA-SKILL.md", "contiene": "Los tipos y su plantilla", "test": ".claude/skills.test.js", "fase": [], "norma": null },
         { "id": "P11.3", "texto": "Una skill se prueba con casos y sigue funcionando tras cambiarla", "ejecutor": "ci", "dureza": "semidura", "ref": ".claude/PLANTILLA-SKILL.md", "contiene": "npm run skills-prueba", "test": ".claude/skills.test.js", "fase": ["#341"], "norma": null, "nota": "Desde #336 el CI exige casos.json con casos propios y de frontera (nivel 1); que la skill ayude lo mide npm run skills-prueba (nivel 2, cuesta tokens), que nadie lanza solo: la fase E (#341) lo hace periódico" },
         { "id": "P11.4", "texto": "Una pieza nueva (skill, catálogo o agente) solo se crea si cumple la regla de parada", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "contiene": "regla de parada", "test": null, "fase": ["#341"], "norma": null }
       ]

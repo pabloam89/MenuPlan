@@ -25,6 +25,7 @@ import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/
 import { sinAplicar } from "./guardia.mjs";
 import { avisoRamaPrincipal, avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
 import { avisoDeIndice, leerIndice } from "../../scripts/lib/buscarAntes.mjs";
+import { aplicarIdentidad } from "../../scripts/lib/tokenSesion.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
 
@@ -121,6 +122,14 @@ try {
   avisos.push(`Limpieza de carpetas: no he podido leer lo que dejó pendiente (${String(e?.message ?? e).split("\n")[0]}).`);
 }
 
+// Se lanza ya y se espera al final (es red y `op`), con un tope de tiempo propio
+// (`aplicarIdentidad`): el hook muere a los 30 s. Con la clave de la App legible,
+// el token de 1 hora va al fichero de entorno de la sesión (CLAUDE_ENV_FILE, que
+// lee el shell Bash de cada comando) y `gh` y `git` actúan como homenu-sesiones[bot].
+// Si no se puede, se dice por qué y se sigue con la identidad actual (plan B).
+const identidad = aplicarIdentidad();
+
+
 // ── Staging y migraciones ──────────────────────────────────────────────────
 const prs = pedirPrs(raiz, 10_000); // a la vez que el fetch: los dos son red, y gh es el lento
 // Lo que se enseña de los issues lo decide scripts/lib/issues.mjs (una sola
@@ -179,5 +188,7 @@ else avisos.push("Issues: no he podido leerlos (GitHub no contesta, gh sin sesi�
   const aviso = avisoDeIndice(leerIndice());
   if (aviso) avisos.push(aviso);
 }
+
+avisos.push(await identidad);
 
 process.stdout.write(`[arranque MenuPlan]\n- ${avisos.join("\n- ")}\n`);

@@ -1,10 +1,12 @@
 import { describe, it, expect } from "vitest";
+import { existsSync } from "node:fs";
 
 import { MAIN_PROTEINS } from "../data/recipeSchema.js";
 import {
   ingredientImageSrc,
   ingredientThumbSrc,
   aisleImageSrc,
+  AISLE_IMAGE,
   categoryImageSrc,
   proteinImageSrc,
 } from "./ingredientImages.js";
@@ -153,5 +155,13 @@ describe("proteinImageSrc", () => {
     expect(proteinImageSrc("none")).toBeNull();
     expect(proteinImageSrc("inventada")).toBeNull();
     expect(proteinImageSrc(undefined)).toBeNull();
+  });
+});
+
+describe("AISLE_IMAGE", () => {
+  it("cada pasillo apunta a una ilustración que existe en public/categories", () => {
+    for (const [pasillo, slug] of Object.entries(AISLE_IMAGE)) {
+      expect(existsSync(`public/categories/${slug}.png`), `${pasillo}: falta public/categories/${slug}.png`).toBe(true);
+    }
   });
 });

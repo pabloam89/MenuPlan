@@ -2,7 +2,13 @@
 name: 1password
 description: Úsala al montar un .env.local o un worktree, cuando un script no pueda leer una dirección op://, para leer una clave desde un script (leerEnv), al guardar algo en una bóveda nueva, o si falla la service account, el token del llavero o el agente SSH. No para: dar de alta ni rotar una clave de punta a punta, ni una clave filtrada (alta-de-secreto); la clave de las copias cifradas (hetzner); dónde vive cada clave (ops/INVENTARIO.md) ni las contraseñas personales de Pablo.
 metadata:
-  tipo: herramienta
+  tipo: servicio
+  opera_proveedor: true
+  juzga_artefacto: false
+  encadena: false
+  pasos_fijos: false
+  sintoma_a_causa: false
+  elige_opciones: false
   dueno: gobierno
   comprobado: "2026-10-10"
 ---
@@ -65,7 +71,7 @@ metadata:
   administrador incluida. Es la del llavero hasta el cambio de #328; luego se
   anula.
 - **Service account «MenuPlan sesiones»** (#328, **pendiente de crear**): solo
-  lectura de `HoMenu-sesiones`. Sustituye a la anterior en el llavero.
+  lectura de `HoMenu-sesiones`, donde vive también la clave de la App de GitHub (#329, skill `github`); no se le da lectura de `HoMenu`. Sustituye a la anterior en el llavero.
 - **Ficha `Postgres del panel`** (bóveda `Panel HoMenu`, id
   `c64ol4a3oewjeue3szoafrrr6q`): servidor, puerto, base, usuario y contraseña
   del Postgres del panel.
@@ -114,6 +120,14 @@ hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesione
 
 ## Lo que falló y por qué
 
+- **2026-10-10 · «Too many requests» de 1Password a las 19:10 (límite de lecturas por hora de la cuenta de servicio).**
+  Causa: cada arranque de cada sesión leía el `.pem` de la App (dos lecturas si fallaba la primera bóveda), y un test
+  llamaba a `op` de verdad en cada ejecución; qué lo agotó exactamente no se sabe, y el límite exacto tampoco. El arranque
+  tardaba ~14 s. Arreglo: el token de la App se guarda y se reutiliza entre sesiones hasta que falten 15 minutos
+  (`scripts/lib/cacheTokenSesion.mjs`, detalle en la skill `github`, `.claude/skills/github/referencias/app-sesiones.md`); con el límite agotado
+  sale el motivo `limite-de-1password`, sin probar otra bóveda, y se usa el token guardado si no caducó; el test ya no
+  llama a `op`. Tests en `scripts/tokenSesion.test.js`, vistos fallar. Antes: 1 lectura del `.pem` por sesión; después:
+  1 por hora entre todas.
 - **2026-10-09 · una dirección `op://` daba error con la ficha y el campo bien puestos.**
   Causa: el nombre de la ficha llevaba una tilde; la sintaxis de `op://` solo
   admite letras y cifras sin acento, espacios, `-`, `_` y `.` (lo demás, por id).
@@ -173,7 +187,7 @@ hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesione
 
 Plan Familias en prueba (desde cuándo, en «Fechas» de Fuentes y comprobación): hay que decidir antes de que
 acabe si se paga. Las service accounts tienen su propio límite de peticiones
-por hora; no se ha tocado con 16 claves. Una service account solo lee las
+por hora; ya se agotó una vez (ver «Lo que falló»). Una service account solo lee las
 bóvedas que se le dieron al crearla: para dar otra hay que crear una nueva.
 
 ## Fuentes y comprobación

@@ -3,41 +3,58 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  ALCANCES, ANTE_FALLO, EJECUTORES, EJECUTORES_DEL_SISTEMA, RIESGOS, VEREDICTOS,
-  comprobarNormasPr, contarFrases, esVigilado, ficherosNormativos, leerRegistro, lineaNormas, lineasAnadidas, medirFrases,
-  problemasDeConjunto, problemasDeDureza, problemasDeForma, recuento, CIFRAS_FONDO, medirFondo,
+  ALCANCES, ANTE_FALLO, CONTROL_TIPOS, EJECUTORES, EJECUTORES_DEL_SISTEMA, RIESGOS, RUTA_MD, VEREDICTOS,
+  comprobarNormasPr, contarFrases, esVigilado, ficherosNormativos, generarMd, leerRegistro, lineaNormas, lineasAnadidas, llamadasDeAviso, medirFrases,
+  problemasDeAvisos, problemasDeConjunto, problemasDeDureza, problemasDeForma, problemasDeRegistro, recuento, CIFRAS_FONDO, medirFondo,
 } from "../scripts/lib/normas.mjs";
 import { CONSULTA_CON_MOTIVO, MEDIDORES, evaluarCriterio } from "../scripts/lib/planos.mjs";
 import { CONSULTA } from "../scripts/lib/issues.mjs";
+import { AVISOS, AVISO_POR_CREDENCIAL, PARTES, textoDeAviso } from "../.claude/hooks/avisos-guardia.mjs";
 
 /**
- * El registro de normas (#296). Falla si una norma que se dice dura no lo es,
- * si una de riesgo alto no es dura y nadie la lleva en un issue, y si un
- * código que falla cerrado no tiene el test que inyecta el fallo.
+ * El registro de normas (#296, por campos desde #494). Falla si una norma no pasa la plantilla de
+ * regla, si una que se dice dura no lo es, si una de riesgo alto no es dura y nadie la lleva en un
+ * issue, si un código que falla cerrado no tiene el test que inyecta el fallo, si un aviso de la
+ * guardia no tiene código de una norma que existe, si `control_tipo` se sale de su vocabulario y
+ * si docs/ops/NORMAS.md no sale del registro.
  */
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const registro = leerRegistro(RAIZ);
 const planos = JSON.parse(readFileSync(join(RAIZ, "ops/planos.json"), "utf8"));
 const ctx = { raiz: RAIZ, planos };
+const fuenteGuardia = readFileSync(join(RAIZ, ".claude/hooks/guardia.mjs"), "utf8");
+const ADMITIDAS = ["AVISO_POR_CREDENCIAL[cred]"];
 
 // Una norma dura de ejemplo que cumple todo; los casos de abajo la estropean de una en una.
 const DURA = {
-  id: "ejemplo", texto: "x", donde: ["CLAUDE.md"], ejecutor: "codigo_en_ejecucion", alcance: "todos", ante_fallo: "cerrado",
-  test: "api/_guard.test.js", test_fallo: { ruta: "api/_guard.test.js", caso: "sin_redis" }, veredicto: "dura", riesgo: "alto", issue: null,
+  id: "ejemplo", nombre: "Tope de ejemplo", sujeto: "endpoint", fuerza: "debe", exigencia: "aplicar un tope diario",
+  donde: ["CLAUDE.md"], ejecutor: "codigo_en_ejecucion", alcance: "todos", ante_fallo: "cerrado",
+  control: "api/_guard.test.js", control_tipo: "test", test_fallo: { ruta: "api/_guard.test.js", caso: "sin_redis" }, veredicto: "dura", riesgo: "alto", issue: null,
 };
 
 describe("vocabulario de normas", () => {
   it("cada valor tiene su definición y los ejecutores del sistema son ejecutores", () => {
     for (const v of [EJECUTORES, ALCANCES, ANTE_FALLO, VEREDICTOS, RIESGOS]) for (const d of Object.values(v)) expect(d.length).toBeGreaterThan(10);
     for (const e of EJECUTORES_DEL_SISTEMA) expect(Object.keys(EJECUTORES)).toContain(e);
+    for (const t of Object.values(CONTROL_TIPOS)) expect(t.que.length).toBeGreaterThan(10);
   });
 });
 
 describe("ops/normas.json", () => {
-  it("cada norma tiene su forma y su vocabulario, y los ids no se repiten", () => {
-    expect(registro.normas.flatMap(problemasDeForma)).toEqual([]);
-    const ids = registro.normas.map((n) => n.id);
-    expect(ids.filter((x, i) => ids.indexOf(x) !== i)).toEqual([]);
+  it("cada norma pasa la plantilla de regla, tiene su forma y su vocabulario, y los ids no se repiten", () => {
+    expect(problemasDeRegistro(registro)).toEqual([]);
+  });
+
+  it("control_tipo está en su vocabulario y cuenta lo mismo que control", () => {
+    expect(registro.normas.filter((n) => !(n.control_tipo in CONTROL_TIPOS)).map((n) => n.id)).toEqual([]);
+    for (const n of registro.normas) {
+      expect(n.control === "juicio", n.id).toBe(n.control_tipo === "juicio");
+      if (n.control_tipo === "planos") expect(n.control, n.id).toBe("ops/planos.json");
+    }
+  });
+
+  it("ninguna norma conserva el campo «texto» de antes", () => {
+    expect(registro.normas.filter((n) => "texto" in n || "test" in n).map((n) => n.id)).toEqual([]);
   });
 
   it("lo que se nombra en «donde» existe (salvo el CLAUDE.md de usuario, que vive fuera)", () => {
@@ -195,19 +212,21 @@ describe("las reglas de dureza fallan cuando deben", () => {
   it("dura que no alcanza a todos, que falla abierta o sin test", () => {
     expect(problemas({ alcance: "solo_claude" }).join()).toMatch(/solo alcanza/);
     expect(problemas({ ante_fallo: "abierto" }).join()).toMatch(/ante un fallo/);
-    expect(problemas({ test: null }).join()).toMatch(/sin test/);
-    expect(problemas({ test: "no/existe.test.js" }).join()).toMatch(/no existe/);
+    expect(problemas({ control: "juicio", control_tipo: "juicio" }).join()).toMatch(/no es una prueba/);
+    expect(problemas({ control: "scripts/lib/normas.mjs", control_tipo: "script" }).join()).toMatch(/no es una prueba/);
+    expect(problemas({ control: "no/existe.test.js" }).join()).toMatch(/no existe/);
   });
 
   it("un test de planos vale si ops/planos.json tiene esa regla, y no si no", () => {
-    expect(problemas({ ejecutor: "github_regla", test: "planos:check_obligatorio:staging", test_fallo: undefined })).toEqual([]);
-    expect(problemas({ ejecutor: "github_regla", test: "planos:inventada", test_fallo: undefined }).join()).toMatch(/no existe/);
+    const dePlanos = { ejecutor: "github_regla", control: "ops/planos.json", control_tipo: "planos", test_fallo: undefined };
+    expect(problemas({ ...dePlanos, criterio_planos: "check_obligatorio:staging" })).toEqual([]);
+    expect(problemas({ ...dePlanos, criterio_planos: "inventada" }).join()).toMatch(/no existe/);
   });
 
   it("dos normas con la misma comprobación de planos son el mismo hecho; con un fichero de test, no", () => {
-    const a = { ...DURA, id: "a", test: "planos:check_obligatorio:staging" };
+    const a = { ...DURA, id: "a", control: "ops/planos.json", control_tipo: "planos", criterio_planos: "check_obligatorio:staging" };
     expect(problemasDeConjunto([a, { ...a, id: "b", veredicto: "semidura" }]).join()).toMatch(/a, b: el mismo hecho/);
-    expect(problemasDeConjunto([a, { ...a, id: "b", test: "planos:check_obligatorio:main" }])).toEqual([]);
+    expect(problemasDeConjunto([a, { ...a, id: "b", criterio_planos: "check_obligatorio:main" }])).toEqual([]);
     expect(problemasDeConjunto([{ ...DURA, id: "a" }, { ...DURA, id: "b" }])).toEqual([]);
   });
 
@@ -220,5 +239,122 @@ describe("las reglas de dureza fallan cuando deben", () => {
     expect(problemas({ test_fallo: undefined }).join()).toMatch(/test_fallo/);
     expect(problemas({ test_fallo: { ruta: "no/existe.test.js", caso: "x" } }).join()).toMatch(/no existe/);
     expect(problemas({ test_fallo: { ruta: "api/_guard.test.js", caso: "caso que ningún test nombra" } }).join()).toMatch(/no nombra/);
+  });
+});
+
+describe("la plantilla de regla en cada norma (#494)", () => {
+  const sujetos = registro.sujetos;
+  const problemas = (cambios) => problemasDeForma({ ...DURA, ...cambios }, sujetos);
+
+  it("la norma de ejemplo pasa", () => expect(problemas({})).toEqual([]));
+
+  it.each([
+    ["una norma con «texto» libre", { texto: "Las evals no pasan de 75 €" }, /«texto» ya no existe/],
+    ["un nombre de una palabra", { nombre: "Tope" }, /de 2 a 5 palabras/],
+    ["un nombre con punto final", { nombre: "Tope de ejemplo." }, /sin punto final/],
+    ["un sujeto fuera del vocabulario", { sujeto: "inventado" }, /sujeto «inventado»/],
+    ["una fuerza fuera del vocabulario", { fuerza: "tal vez" }, /fuerza «tal vez»/],
+    ["una exigencia con punto final", { exigencia: "aplicar un tope diario." }, /sin punto final/],
+    ["una exigencia que no empieza por un verbo en infinitivo", { exigencia: "tope diario de la IA" }, /infinitivo/],
+    ["una exigencia de más de 160 caracteres", { exigencia: `aplicar ${"un tope diario ".repeat(12)}` }, /pasa de 160/],
+    ["una condición que no empieza por cuando o si", { condicion: "al usar la IA de pago" }, /«condicion»/],
+    ["una nota de una palabra", { nota: "corta" }, /«nota»/],
+    ["un control_tipo fuera de su vocabulario", { control_tipo: "magia" }, /control_tipo «magia»/],
+    ["un control «juicio» con otro tipo", { control: "juicio" }, /pide control_tipo «juicio»/],
+    ["un tipo «juicio» con una ruta", { control_tipo: "juicio" }, /pide control «juicio»/],
+    ["un tipo «test» que no es un test", { control: "scripts/lib/normas.mjs" }, /pide un fichero \*\.test\.js/],
+    ["un tipo «planos» sin su criterio", { control: "ops/planos.json", control_tipo: "planos" }, /lleva «criterio_planos»/],
+    ["un criterio de planos sin ser de planos", { criterio_planos: "check_obligatorio:main" }, /solo con control_tipo «planos»/],
+    ["un campo desconocido", { texto_viejo: "x" }, /campo desconocido/],
+  ])("falla con %s", (_, cambios, trozo) => expect(problemas(cambios).join("\n")).toMatch(trozo));
+
+  it("un sujeto que ninguna norma usa falla: no se infla la lista", () => {
+    const r = structuredClone(registro);
+    r.sujetos.sobra = { legible: "algo que nadie usa", aplica_a: ["norma"] };
+    expect(problemasDeRegistro(r).join("\n")).toMatch(/«sobra» no lo usa ninguna norma/);
+  });
+
+  it("el catálogo de recetas y alimentos está dado de alta con sujetos propios", () => {
+    const de = (s) => registro.normas.filter((n) => n.sujeto === s || n.sujeto.startsWith(`${s}.`)).length;
+    expect(de("receta")).toBeGreaterThan(3);
+    expect(de("alimento")).toBeGreaterThan(2);
+    expect(registro.normas.map((n) => n.id)).toContain("solo-estrella-se-propone");
+  });
+});
+
+describe("los avisos de la guardia (#494)", () => {
+  it("cada aviso tiene el código de una norma que existe y sus partes fijas", () => {
+    expect(problemasDeAvisos(AVISOS, registro.normas, AVISO_POR_CREDENCIAL)).toEqual([]);
+  });
+
+  it("cada deny( y ask( de guardia.mjs nombra un aviso que existe, y no hay mensajes escritos a mano", () => {
+    const { literales, otras } = llamadasDeAviso(fuenteGuardia, { admitidas: ADMITIDAS });
+    expect(literales.length).toBeGreaterThan(30);
+    expect(otras, "Un aviso nuevo se da de alta en .claude/hooks/avisos-guardia.mjs, con el código de su norma").toEqual([]);
+    expect(literales.filter((id) => !(id in AVISOS))).toEqual([]);
+  });
+
+  it("todo aviso se usa: ninguno queda sin llamada en la guardia", () => {
+    const { literales } = llamadasDeAviso(fuenteGuardia, { admitidas: ADMITIDAS });
+    const usados = new Set([...literales, ...Object.values(AVISO_POR_CREDENCIAL)]);
+    expect(Object.keys(AVISOS).filter((id) => !usados.has(id))).toEqual([]);
+  });
+
+  it("el mensaje sale con las cuatro partes en su orden, y la norma al final", () => {
+    const t = textoDeAviso("push-a-main");
+    expect(t.indexOf("Por qué: ")).toBeGreaterThan(0);
+    expect(t.indexOf("En su lugar: ")).toBeGreaterThan(t.indexOf("Por qué: "));
+    expect(t.indexOf("Pídeselo a: ")).toBeGreaterThan(t.indexOf("En su lugar: "));
+    expect(t).toMatch(/\(norma: main-solo-pablo\)$/);
+    expect(textoDeAviso("stash")).not.toContain("Pídeselo a");
+    for (const id of Object.keys(AVISOS)) expect(textoDeAviso(id, {}), id).toMatch(/Por qué: .+ En su lugar: .+\(norma: [a-z-]+\)$/);
+    expect(PARTES).toEqual(["que", "porque", "enSuLugar", "quien"]);
+  });
+
+  describe("se ven fallar", () => {
+    const normas = registro.normas;
+    const aviso = { codigo: "main-solo-pablo", que: "Subir a main desde una sesión", porque: "main es producción", enSuLugar: "abre un PR a staging" };
+
+    it("un aviso sin código", () => {
+      const { codigo: _quitado, ...sin } = aviso;
+      expect(problemasDeAvisos({ "push-a-main": sin }, normas).join()).toMatch(/sin «codigo»/);
+    });
+    it("un aviso con un código que no es una norma", () => {
+      expect(problemasDeAvisos({ "push-a-main": { ...aviso, codigo: "norma-inventada" } }, normas).join()).toMatch(/no es una norma/);
+    });
+    it("un aviso al que le falta una parte, con punto final o con un campo de más", () => {
+      expect(problemasDeAvisos({ a: { ...aviso, porque: "" } }, normas).join()).toMatch(/falta «porque»/);
+      expect(problemasDeAvisos({ a: { ...aviso, enSuLugar: "abre un PR a staging." } }, normas).join()).toMatch(/sin punto final/);
+      expect(problemasDeAvisos({ a: { ...aviso, extra: "x" } }, normas).join()).toMatch(/campo desconocido/);
+    });
+    it("una familia de credenciales que apunta a un aviso inexistente", () => {
+      expect(problemasDeAvisos({ a: aviso }, normas, { token: "no-existe" }).join()).toMatch(/no existe/);
+    });
+    it("un deny escrito a mano o con un aviso sin dar de alta", () => {
+      expect(llamadasDeAviso('return deny("Esto no se hace.");').otras).toHaveLength(1);
+      expect(llamadasDeAviso("return ask(motivo);").otras).toHaveLength(1);
+      expect(llamadasDeAviso('return deny("push-a-main"); return ask("otro-aviso");').literales).toEqual(["push-a-main", "otro-aviso"]);
+      expect(llamadasDeAviso("return deny(AVISO_POR_CREDENCIAL[cred]);", { admitidas: ADMITIDAS }).otras).toEqual([]);
+    });
+  });
+});
+
+describe("docs/ops/NORMAS.md sale del registro", () => {
+  it("está al día", () => {
+    const md = readFileSync(join(RAIZ, RUTA_MD), "utf8");
+    expect(md, "NORMAS.md se genera: edita ops/normas.json o los avisos y lanza `npm run normas -- --escribir`").toBe(generarMd(registro, AVISOS));
+  });
+
+  it("lleva una fila por norma, con el aviso de la guardia que la cita", () => {
+    const md = generarMd(registro, AVISOS);
+    for (const n of registro.normas) expect(md, n.id).toContain(`| \`${n.id}\` |`);
+    expect(md).toMatch(/\| `main-solo-pablo` \| main \| DEBE \|.*`push-a-main`/);
+  });
+
+  it("un cambio en un aviso o en una norma lo descuadra", () => {
+    const otro = structuredClone(registro);
+    otro.normas[0].nombre = "Otro nombre distinto";
+    expect(generarMd(otro, AVISOS)).not.toBe(generarMd(registro, AVISOS));
+    expect(generarMd(registro, { ...AVISOS, "push-a-main": { ...AVISOS["push-a-main"], codigo: "sin-git-stash" } })).not.toBe(generarMd(registro, AVISOS));
   });
 });

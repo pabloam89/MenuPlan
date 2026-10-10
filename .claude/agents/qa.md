@@ -108,3 +108,17 @@ No cambia el repo. Devuelve en «Decisiones pendientes»:
   por qué no.
 - Se probaron los estados `vacío` y `peligro`, o se dice por qué no.
 - La consola está revisada.
+
+## Tareas y su estándar
+
+Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
+`ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
+tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- qa <tarea>`.
+
+Estado: pendiente. Lista de tareas hecha; el estándar de cada una está por escribir (#413).
+
+- `recorrer-flujo-en-navegador` — Arrancar la app y recorrer el flujo tocado en un navegador a los dos anchos
+- `capturas-de-estados` — Capturar cada pantalla afectada en los estados vacío, cargando y peligro
+- `comprobar-design-system` — Comprobar tokens, primitivos, objetivos táctiles, contraste y movimiento reducido contra el design system
+- `errores-de-consola` — Recoger los errores de consola y las peticiones fallidas con el paso que los provoca
+- `informe-visual` — Redactar los hallazgos visuales por pantalla con severidad y ruta de captura

@@ -44,6 +44,14 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
   la propia sesión.
 - **`main` es producción.** Ninguna sesión sube ni fusiona a `main`; solo
   cuando Pablo lo pide, con el método que se decida con él.
+- **Dueño de código** (`.github/CODEOWNERS`, #330), cuando Pablo aplique y pruebe los
+  rulesets (hasta entonces es texto): un PR a `staging` que toca `.claude/`,
+  `.github/`, `CLAUDE.md`, `ops/DECISIONES.md`, `ops/normas.json`, el script de
+  aplicar migraciones o lo que ejecutan los hooks y los workflows con secretos
+  (`CODEOWNERS` lista cada fichero) espera la aprobación de Pablo; uno que no
+  toca nada de eso se fusiona solo con el CI en verde. A `main` solo fusiona
+  Pablo, desde el botón del PR. Se aplican con `scripts/rulesets.mjs`; detalle
+  en la skill `github`.
 - Una rama por tarea, prefijo de área y nombre en castellano: `bot/`, `datos/`,
   `ux/`, `fix/`, `feat/`, `ops/`, `motor/`. Las de la nube empujan solo a la
   suya. «¿Está en staging?» se mira en `origin/staging` tras `git fetch`.
@@ -73,7 +81,9 @@ en staging.
    `gh pr update-branch <n>` (en un comando aparte) y espera el CI.
 2. `git status --short` y añade por nombre solo lo tuyo; si un fichero mezcla
    lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera.
-3. En local, solo los tests de los ficheros que tocas y los que cubren lo tocado (`npx vitest run <ficheros>`).
+3. En local, `npm run vecinos`: los tests de lo que tocas más los vigilantes de conjunto
+   que lo miran (los que recorren todos los scripts, skills o migraciones; lista en
+   `ops/vigilantes.json`). Elegir a mano con `npx vitest run <ficheros>` los deja fuera (#356).
    La suite entera, el build y el lint con base los corre el CI del PR (gratis en
    repo público): espera su resultado con una consulta espaciada, sin sondear. La
    suite entera en local solo si tocas algo transversal (`package.json`, `vite.config.js`,
@@ -110,9 +120,21 @@ Pablo no es informático: toda sesión y todo agente le escribe con la misma
 forma, para que decidir le cueste poco (skill `estilo-de-respuesta`).
 
 1. Primera línea: la idea raíz en **negrita**, una frase con el resultado o la respuesta.
-2. Cuatro ideas cortas, como mucho; el resto, «si quieres te lo cuento».
+2. Cuatro ideas cortas, como mucho; es un techo, no un molde: una pregunta corta
+   se contesta con la idea raíz y, si hace falta, una línea. El resto, «si quieres
+   te lo cuento».
 3. Al final, una línea con lo que le toca. Si es una decisión, **tres opciones**
-   en llano (A, B, C), la recomendada primero y qué pasa con cada una.
+   en llano (A, B, C), la recomendada primero y qué pasa con cada una, con su
+   «Coste:» (dinero, tiempo o riesgo) y «reversible» o «no se puede deshacer» en la
+   misma línea.
+
+Si afirmas un estado o un resultado que él no puede comprobar, una línea
+«Certeza:» con «Comprobado» (lo he visto yo, y qué), «Creo» (inferencia, y en qué
+me baso) o «No sé» (y cómo lo averiguo); un estado solo se da como hecho si se
+comprobó en ese momento. Un issue se nombra por su nombre; el número, si hace
+falta, va solo entre paréntesis, detrás del nombre. Al volver tras un rato o
+retomar un tema, la idea raíz en negrita lo recuerda
+(«**Seguimos con X: falta Y.**»).
 
 Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
 Un término técnico se explica la primera vez y después se llama igual. Ficheros,
@@ -143,6 +165,11 @@ trabajo: devuelve «Decisiones para Pablo».
 | `lola`: el bot, herramientas, conocimiento, coste | `seguridad`: RLS, endpoints, secretos, prompts |
 | | `auditor-datos`: normalización, duplicados y cableado |
 
+Cada agente lista sus tareas y el estándar de cada una (qué es hacerla bien,
+qué comprueba, qué no hace y su fuente) en `ops/estandares-agentes.json`; el
+brief de `/orquestar` lo trae con `npm run estandar -- <agente> <tarea>` y el
+`revisor` lo contrasta (#413).
+
 Aparcados en `.claude/agentes-aparcados/`: rendimiento y arquitecto.
 
 ## Reglas por carpeta y skills
@@ -160,7 +187,8 @@ las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
 y el estándar `estilo-de-respuesta` (cómo se escribe a Pablo: idea raíz en
 negrita, cuatro ideas y tres opciones). Todas siguen
 `.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
-ocho (los que existan, en la plantilla; cada tipo con sus secciones), dueño, fecha
+los siete de `ops/forja.json`, el que dan sus respuestas, con su molde generado en
+`.claude/plantillas-skill/` (salvo `forja-de-skills`, la pieza meta de nivel 0, sin tipo), dueño, fecha
 de comprobación que caduca a los 90 días, un `SKILL.md` corto con el detalle en
 capas y sus casos de prueba en `casos.json`; `npm run skills-prueba -- <skill>`
 mide, con tokens, si ayuda. Un proveedor nuevo estrena su runbook con su
@@ -188,19 +216,54 @@ y su fecha, está en `src/data/model.js` (`TABLAS`, vigilado por `ops/fuentes.te
 
 ## Pensar en datos
 
-Lo que se repite se diseña para poder contarse; todo se analiza mejor con
-cifras que con impresiones.
+Lo que se repite se diseña para poder contarse, y corregir es ver qué falla en
+qué hueco, no releer un texto continuo. Cada principio dice entre paréntesis
+qué lo hace cumplir; lo que aún no tiene mecanismo lleva su issue (fondo #479).
 
-- **Vocabulario cerrado, no texto libre**, para todo lo que se vaya a agrupar:
-  motivos de fallo, estados, causas, tipos, sitios. Una constante en JS (y un
-  CHECK si va a SQL) con su test, como `src/lib/vocabularios.js`.
-- **Cada cosa que pasa deja una línea estructurada** (`campo: valor`, sin datos
-  de familias) que un script pueda contar. Lo que no deja rastro no se mide, y
-  lo que no se mide no mejora.
-- **La clase, no el caso**: se arregla el caso y se ataca su problema de fondo
-  («Cuando algo falla», abajo). Una regla, un dato, una fuente que el resto usa.
+- **Discreto primero**: sí/no, un valor de vocabulario, una referencia a algo
+  que existe, un número o una fecha. El texto libre, solo en un hueco
+  declarado: un campo que dice qué cubre que lo discreto no alcanza (la base
+  de la forja, #458).
+- **Vocabulario cerrado** para todo lo que se agrupa (motivos de fallo,
+  estados, causas, tipos, sitios): una constante en JS, un CHECK si va a SQL y
+  su test, como `src/lib/vocabularios.js`. Un valor de un vocabulario de
+  proceso no se borra, no se reutiliza ni se redefine sin registro: se retira y
+  dice a cuál pasa (los vocabularios de `ops/vocabularios-vida.json` y los
+  términos del glosario, con su test contra `origin/staging`; los del producto
+  y los CHECK de SQL, aún no).
+- **Una palabra, un significado**: las palabras de proceso (comprobar, caso,
+  fondo, encargo, juez…) salen de `ops/glosario.json` (`npm run glosario`);
+  su test falla con un sinónimo prohibido nuevo.
+- **Ninguna cifra sin pregunta**: cada métrica dice qué pregunta responde y
+  qué script la lee; si nadie la lee, no se recoge (#480).
+- **Cada cosa que pasa deja una línea `campo: valor`** que un script pueda
+  contar, con un nombre de evento que no se repite y sin datos de familias:
+  lo que no deja rastro no se mide, y lo que no se mide no mejora
+  (`.claude/hooks/eventos.mjs`; el registro de qué se cuenta, #480).
+- **La clase, no el caso**: se arregla el caso y se ataca su problema de
+  fondo; el caso cuelga de su fondo, y el fondo se cierra con su barrera y
+  una verificación que cubre la clase (línea `Casos:` del PR, workflow
+  `fondos`; «Cuando algo falla», abajo). Una regla, un dato, una fuente que el
+  resto usa.
 - **La cifra antes y después**: cuántos casos, desde cuándo y dónde, antes de
-  proponer un arreglo; la misma cifra después, para saber si sirvió.
+  proponer un arreglo; la misma cifra después, para saber si sirvió. «Mejoró»
+  solo si la diferencia es mayor que lo que la cifra varía sola, o si hay
+  casos de sobra (#480).
+- **El mecanismo más alto de la escalera**: bloqueo, test en el CI, script,
+  skill y, en último lugar, texto; se baja de escalón solo con su motivo
+  (`npm run mecanismos`, skill `plan-de-arreglo`).
+- **Tres capas de comprobación**: formal (un test que da lo mismo cada vez),
+  material (una regla aproximada con una lista de excepciones que solo puede
+  bajar) y subjetiva (un juez LLM con presupuesto). Lo subjetivo que se juzga
+  igual una y otra vez pasa a material o formal; se vuelve atrás solo si el
+  test sale frágil, con el porqué escrito (la base de la forja, #458).
+- **El juez LLM dice pasa o no pasa con su motivo**, puede decir «no sé» y se
+  calibra contra ejemplos marcados por Pablo (#482).
+- **Ninguna cifra es objetivo sola**: una cifra que se persigue deja de medir;
+  va con otra que la vigile y con una muestra leída a mano (#480).
+- **De arriba abajo**: primero la forja (qué hace buena a una pieza), luego
+  la plantilla de su tipo y después cada pieza; no se rellena una pieza antes
+  que su plantilla (#458).
 
 ## Qué se le pregunta a Pablo, y qué no
 
@@ -219,6 +282,8 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 - Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
 - Escribir a personas o publicar algo en su nombre.
 - Ampliar los permisos de `.claude/settings.json` (la sesión pregunta en el chat antes de abrir el PR y el juez lo marca; la guardia ya no pregunta al editar).
+- Fusionar un PR que toca las rutas de `.github/CODEOWNERS`: la sesión lo
+  deja listo con el CI en verde y espera la aprobación de Pablo.
 - Reescribir historia de una rama que no es tuya.
 
 **Autorizado de forma permanente** (se hace y se cuenta en el resumen):
@@ -231,7 +296,8 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 - Issues y etiquetas: crearlos, clasificarlos, colgarlos, cerrarlos con su PR,
   y `npm run issues -- --etiquetas`.
 - Cambiar hooks, guardia, reglas, skills y agentes, siempre por PR con su juez
-  y el CI en verde. Fusionar a staging es de la propia sesión.
+  y el CI en verde. Fusionar a staging es de la propia sesión; con los
+  rulesets de #330 aplicados y probados, si el PR toca `.claude/` espera la aprobación de Pablo.
 - Ajustes del repo que no tocan permisos ni producción: etiquetas,
   plantillas, la descripción de un PR.
 - Poner al día la carpeta principal (`git pull --ff-only`) y las copias de
@@ -241,14 +307,20 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 ## Lo que hace cumplir esto
 
 - **`arranque.mjs`** al abrir sesión: carpeta, rama, sesiones activas, números
-  de migración cogidos, migraciones sin aplicar e issues que esperan.
+  de migración cogidos, migraciones sin aplicar, issues que esperan y con qué
+  identidad de GitHub trabajas: la App `homenu-sesiones` (commits y PR salen a su
+  nombre, sin administración) y no Pablo; si la clave no se lee, avisa y sigue
+  como Pablo (#329, skill `github`). Cambiar reglas del repo o los ajustes es de Pablo.
 - **`guardia.mjs`** antes de cada comando o edición: niega push a `main` o
   directo a staging, `git stash`, `git add .`, `vite build` a secas,
   `Set-Content`, tocar una migración aplicada (también por terminal), crear
   una con un número que staging ya usa, SQL a mano contra producción y
   `apply-migration --pablo` (solo de Pablo), abrir un PR con la rama
   atrasada, sin `Casos:`, o sin `Closes` si la rama es de un issue, fusionarlo si staging
-  pisó sus ficheros, trabajar en la carpeta principal y `gh issue create` a
+  pisó sus ficheros, trabajar en la carpeta principal, volver a las credenciales de Pablo (quitar o vaciar `GH_TOKEN`, `git -c credential.…`,
+  `GIT_AUTHOR_*`), cambiar reglas del repo por terminal (`rulesets.mjs --escribir`, `gh api`
+  que escribe en rulesets, protección, secretos o environments), `gh pr review --approve` (#447;
+  es un filtro: la barrera de fondo es el `gh auth logout` de Pablo) y `gh issue create` a
   pelo (se crea con `npm run issues -- --nuevo`, que busca los parecidos);
   pregunta
   antes de un push forzado y de escribir por

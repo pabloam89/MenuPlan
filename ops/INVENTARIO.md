@@ -65,6 +65,11 @@ que leen las sesiones, con los mismos títulos y campos; la lista que manda es
 
 La clave de la GitHub App `homenu-sesiones` (#327) se **mueve** (no se copia)
 a `HoMenu-sesiones` como Documento `GitHub App homenu-sesiones`.
+La lee el arranque (`scripts/lib/tokenSesion.mjs`, #329; App ID 5260552, no secreto) de
+`HoMenu-sesiones`, la única bóveda que lee la cuenta de sesiones. TEMPORAL: mientras la clave siga en
+`HoMenu` («GitHub App Sesiones»), el arranque la busca ahí si la cuenta puede (solo la vieja, la de
+Pablo) y avisa `clave-en-HoMenu`; se quita de `FICHAS_CLAVE` al moverla. El token de 1 hora vive en el
+fichero de entorno de la sesión de Claude (`CLAUDE_ENV_FILE`, perfil de Windows de Pablo) y en la memoria de `gh` y `git`.
 
 ### Secretos internos (no son de un servicio)
 

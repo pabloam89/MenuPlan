@@ -806,7 +806,7 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
 
     return `<div class="sheet${compact ? " compact" : ""}">
     ${deco("/categories/frutas.png", "tl")}
-    ${deco("/categories/verduras.png", "tr")}
+    ${deco("/categories/ensaladas_verduras.png", "tr")}
     ${deco("/categories/panaderia.png", "bl")}
     ${deco("/categories/huevos.png", "br")}
 

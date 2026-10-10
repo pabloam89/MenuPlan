@@ -51,13 +51,6 @@ export const ESTADOS_MEDIDA = {
   pendiente: "Hoy no se mide; `fase` dice qué fase lo trae",
 };
 
-/** Estado de un tipo de skill. */
-export const ESTADOS_TIPO_SKILL = {
-  existe: "Hay skills de este tipo en .claude/skills/",
-  en_plan: "Tiene fase y encargo; aún no hay skill",
-  reservado: "Declarado en la plantilla; no se crea ninguna hasta que se cumpla la regla de parada",
-};
-
 /** Orden fijo de los pasos: es el invariante de #334, y el test lo exige. */
 export const PASOS = [
   "detectar", "registrar_caso", "triaje", "diagnosticar", "fondo", "plan",
@@ -133,8 +126,7 @@ export function generarCatalogos(datos, tablaPresupuestos) {
   out.push("", "### La escalera de durabilidad", "", "De más a menos duradero. Un fondo grave o repetido se cierra con un escalón 1 o 2; los demás, con el más alto posible y su porqué.", "",
     "| Escalón | Qué es | Etiqueta `arreglo:` |", "|---|---|---|");
   datos.escalera.forEach((e, i) => out.push(`| ${i + 1} · ${e.id} | ${celda(e.que)} | ${e.arreglo.map((a) => `\`${a}\``).join(", ")} |`));
-  out.push("", "### Tipos de skill", "", "| Tipo | Qué guarda | Estado | Fase |", "|---|---|---|---|");
-  for (const t of datos.tipos_skill) out.push(`| **${t.id}** | ${celda(t.que)} | ${t.estado} | ${fases(t.fase)} |`);
+  out.push("", "### Tipos de skill", "", "La lista, qué entra y qué sale de cada tipo y cómo se asigna viven en `ops/forja.json` (`tipos_skill`, vista en `docs/ops/FORJA.md`); el molde de cada uno, en `.claude/plantillas-skill/` (#495).");
   out.push("", "### Presupuestos por alcance y causa (`ops/presupuestos.json`)", "", tablaPresupuestos);
   return out.join("\n");
 }
@@ -242,13 +234,8 @@ export function problemas(datos, { existe, leer = () => null, existeTest = exist
   const etiquetas = arreglos.filter((a) => a !== "ninguno").sort();
   if (JSON.stringify(enEscalera) !== JSON.stringify(etiquetas)) p.push(`escalera: los escalones cubren [${enEscalera}] y las etiquetas arreglo: son [${etiquetas}] (sin «ninguno»)`);
 
-  if (datos.tipos_skill.length !== 8) p.push(`tipo-skill: tienen que ser ocho tipos y hay ${datos.tipos_skill.length}`);
-  for (const t of datos.tipos_skill) {
-    if (!(t.estado in ESTADOS_TIPO_SKILL)) p.push(`tipo-skill: ${t.id} con estado «${t.estado}» fuera del vocabulario`);
-    if (["en_plan", "reservado"].includes(t.estado) && !t.fase?.length) p.push(`tipo-skill: ${t.id} no dice qué fase lo trae`);
-    if (t.estado === "existe" && !skills.length) p.push(`tipo-skill: ${t.id} dice que existe y no hay ninguna skill en .claude/skills/`);
-    if (fasesMalas(t.fase).length) p.push(`fase-desconocida: tipo ${t.id} → ${fasesMalas(t.fase).join(", ")}`);
-  }
+  // Los tipos de skill viven solo en ops/forja.json (#495): aquí no vuelve otra lista.
+  if ("tipos_skill" in datos) p.push("tipo-skill: los tipos de skill viven en ops/forja.json (tipos_skill); quita tipos_skill de flujo.json (una sola fuente)");
 
   // Los presupuestos ya no viven aquí (#339): están en ops/presupuestos.json y los valida scripts/lib/presupuestos.mjs.
   if ("presupuestos" in datos) p.push("presupuesto: los presupuestos viven en ops/presupuestos.json; quita `presupuestos` de flujo.json (una sola fuente)");

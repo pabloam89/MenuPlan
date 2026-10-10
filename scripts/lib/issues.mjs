@@ -239,11 +239,11 @@ export const CONSULTA = `query($cursor: String) {
         id number title state createdAt closedAt body authorAssociation
         labels(first: 20) { nodes { name } }
         assignees(first: 5) { nodes { login } }
-        reaperturas: timelineItems(itemTypes: [REOPENED_EVENT]) { totalCount }
+        reaperturas: timelineItems(itemTypes: [REOPENED_EVENT], last: 1) { totalCount nodes { ... on ReopenedEvent { createdAt } } }
         closedByPullRequestsReferences(first: 5, includeClosedPrs: true) {
           nodes { number headRefName mergedAt body author { login } }
         }
-        comments(last: 10) { nodes { body authorAssociation } }
+        comments(last: 10) { totalCount nodes { body authorAssociation createdAt } }
         parent { number state labels(first: 20) { nodes { name } } }
         subIssues(first: 50) {
           nodes {
@@ -266,6 +266,13 @@ export function agenteDe(body) {
 }
 
 const tipoDe = (labels) => [...porGrupo(nombres(labels)).tipo][0] ?? null;
+
+/** Fechas de los comentarios que no son marcas automáticas; `null` si solo se sabe que los hay. */
+function comentariosHumanos(c) {
+  const nodos = c?.nodes ?? [];
+  const humanos = nodos.filter((x) => !String(x.body ?? "").trim().startsWith("<!-- menuplan:")).map((x) => x.createdAt ?? null);
+  return !humanos.length && (c?.totalCount ?? 0) > nodos.length ? [null] : humanos;
+}
 
 /**
  * Un nodo de la consulta, plano. Los PR que lo cierran son los enlazados con
@@ -299,7 +306,13 @@ export function leerIssue(n) {
     asociacion: n.authorAssociation ?? null,
     labels: (n.labels?.nodes ?? []).map((l) => ({ name: l.name })),
     asignados: (n.assignees?.nodes ?? []).map((a) => a.login),
+    // Fechas de los comentarios de personas o sesiones (no las marcas automáticas): el arranque las usa
+    // para separar lo contestado de lo pendiente (#461).
+    // La marca automática cuenta solo si abre el comentario. Si hay más comentarios de los leídos (last: 10) y
+    // ninguno leído es humano, hay respuesta de fecha desconocida: un `null`.
+    comentarios: comentariosHumanos(n.comments),
     reaperturas: n.reaperturas?.totalCount ?? 0,
+    ultimaReapertura: n.reaperturas?.nodes?.at(-1)?.createdAt ?? null,
     prs,
     padre: n.parent ? ref(n.parent) : null,
     hijos: (n.subIssues?.nodes ?? []).map(ref),
@@ -496,14 +509,41 @@ export function issuesQueNombran(issues, ruta) {
   return issues.filter((i) => String(i.state ?? "OPEN").toUpperCase() === "OPEN" && ficherosNombrados(`${i.title}\n${i.body ?? ""}`).has(nombre));
 }
 
+const dia = (f) => (f ? new Date(f).toLocaleDateString("sv", { timeZone: "Europe/Madrid" }) : "sin fecha");
+const MAX_CON_RESPUESTA = 6;
+
+/**
+ * Las decisiones abiertas, separadas por si tienen comentarios (#461, fondo #231).
+ * El autor de un comentario no dice si contestó la persona o una sesión (usan la
+ * misma cuenta, #326), así que el arranque no afirma «esperando a Pablo»: dice
+ * cuáles no tienen ningún comentario y, de las demás, que se compruebe si ya
+ * están decididas, con la fecha del último comentario. Única fuente del recuento.
+ */
+export function lineaDeDecisiones(issues) {
+  const abiertas = issues.filter((i) => !cerrado(i) && grupos(i).tipo.has("decision"));
+  if (!abiertas.length) return "";
+  const con = abiertas.filter((i) => (i.comentarios ?? []).length);
+  const sin = abiertas.filter((i) => !(i.comentarios ?? []).length);
+  const ultimo = (i) => i.comentarios.filter(Boolean).sort().at(-1) ?? null;
+  con.sort((a, b) => String(ultimo(b) ?? "").localeCompare(String(ultimo(a) ?? "")));
+  const lista = con.slice(0, MAX_CON_RESPUESTA).map((i) => `#${i.number} (último comentario ${dia(ultimo(i))})`);
+  if (con.length > MAX_CON_RESPUESTA) lista.push(`y ${con.length - MAX_CON_RESPUESTA} más`);
+  const partes = [];
+  if (sin.length) partes.push(`${sin.length} sin contestar (sin ningún comentario: ${sin.map((i) => `#${i.number} desde ${dia(i.createdAt)}`).join(", ")})`);
+  if (con.length) partes.push(`${con.length} con respuesta: comprueba si ya está decidida antes de darla por pendiente (${lista.join(", ")})`);
+  return `Decisiones abiertas: ${partes.join("; ")}.`;
+}
+
 /** Las líneas que el arranque enseña a cada sesión (vacío si no hay nada). */
 export function avisoDeArranque(issues) {
   const r = resumen(issues);
   const n = (t) => r.porTipo[t] ?? 0;
   const lineas = [];
-  const partes = [[n("decision"), "decisiones esperando a Pablo"], [n("encargo"), "encargos (mira si el tuyo ya lo tiene alguien)"], [n("fondo"), "problemas de fondo"]]
+  const partes = [[n("encargo"), "encargos (mira si el tuyo ya lo tiene alguien)"], [n("fondo"), "problemas de fondo"]]
     .filter(([k]) => k).map(([k, que]) => `${k} ${que}`);
   if (partes.length) lineas.push(`Issues abiertos: ${partes.join("; ")}. Detalle: \`npm run issues\`.`);
+  const decisiones = lineaDeDecisiones(issues);
+  if (decisiones) lineas.push(decisiones);
   const top = r.fondos.filter((f) => f.abierto && f.casos).slice(0, 3);
   if (top.length) lineas.push(`Problemas de fondo que más se repiten: ${top.map((f) => `#${f.number} ${limpiarTexto(f.title.replace(/^\[[^\]]+\]\s*/, ""))} (${f.casos} casos)`).join("; ")}. Si lo que haces toca uno, arregla el fondo, no solo el caso.`);
   const sueltos = r.malClasificados.filter((m) => m.faltan.some((x) => x.startsWith("su problema de fondo"))).length;

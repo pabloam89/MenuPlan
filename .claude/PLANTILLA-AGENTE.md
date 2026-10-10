@@ -59,6 +59,9 @@ Cuándo para, y a quién pasa el trabajo (otro agente o la sesión principal).
 
 ## 10. Hecho
 Cómo comprueba que terminó bien antes de devolver el informe, con evidencia.
+
+## Tareas y su estándar
+<la genera `npm run estandar -- --escribir` desde ops/estandares-agentes.json; no se escribe a mano>
 ```
 
 ## Constructor o juez
@@ -120,6 +123,19 @@ no tocó ningún dominio con skill. El `revisor` lo contrasta con
 `npm run skills-encargo -- --diff`, y `npm run skills-uso` cuenta cada semana
 quién tocó un dominio sin abrir la suya.
 
+## Estándar de la tarea que se encarga
+
+Cada agente tiene la lista de las tareas que hace y, por cada una, su estándar:
+qué es hacerla bien, qué comprueba, qué no hace y la buena práctica pública que
+lo respalda (#413, fondo #416). Todo vive en `ops/estandares-agentes.json`; la
+sección «Tareas y su estándar» del final de cada agente se genera de ahí, y
+`ops/estandares-agentes.test.js` falla si a un agente le falta la lista, si una
+tarea no tiene estándar o si un estándar no tiene tarea. Un agente nuevo nace con
+sus estándares completos. El brief de `/orquestar` trae la línea `ESTÁNDAR A
+CUMPLIR: <agente>/<tarea>` (`npm run estandar -- <agente> <tarea>`) y el campo
+`ESTÁNDAR:` del informe dice qué tarea cumplió y cómo, o «ninguna tarea del
+catálogo». El `revisor` lo contrasta con el diff.
+
 ## Lo ya apuntado (buscar antes de dar nada por nuevo)
 
 Ante cualquier cosa que no encaja, se asume que ya hay un issue y un plan que
@@ -140,12 +156,22 @@ habla a Pablo» de `CLAUDE.md` y la skill `estilo-de-respuesta`; el resto del
 informe (`CASOS`, `CAMBIOS`, `EVIDENCIA`, `HALLAZGOS`…) sigue su formato técnico:
 
 - Primera línea: la idea raíz en negrita, una frase con el resultado. Cuatro
-  ideas cortas, como mucho (ese es el único límite del resumen); frases de menos de 25 palabras; sin emojis.
+  ideas cortas, como mucho (ese es el único límite del resumen); es un techo, no
+  un molde: una pregunta corta se contesta con la idea raíz y, si hace falta, una
+  línea. Frases de menos de 25 palabras; sin emojis.
 - Un término técnico se explica la primera vez; ficheros, ramas y comandos van
   a los campos técnicos del informe, salvo que él los pida o los tenga que ejecutar.
 - Plantillas fijas: resultado, decisión, error, concepto y resumen.
 - Una decisión lleva tres opciones en llano (A, B, C), la recomendada primero y
-  qué pasa con cada una, y acaba con «Respóndeme con la letra.».
+  qué pasa con cada una, con su «Coste:» (dinero, tiempo o riesgo) y «reversible» o
+  «no se puede deshacer» en la misma línea; acaba con «Respóndeme con la letra.».
+- Si afirmas un estado o un resultado que él no puede comprobar, una línea
+  «Certeza:» con «Comprobado» (lo he visto yo, y qué), «Creo» (inferencia, y en
+  qué me baso) o «No sé» (y cómo lo averiguo); un estado solo se da como hecho si
+  se comprobó en ese momento.
+- Un issue se nombra por su nombre; el número, si hace falta, va solo entre
+  paréntesis, detrás del nombre. Al volver tras un rato o retomar un tema, la
+  idea raíz en negrita lo recuerda («**Seguimos con X: falta Y.**»).
 
 ## Informe común
 
@@ -159,12 +185,13 @@ ESTADO: ok | bloqueado | fallo
 RESUMEN: (la idea raíz en negrita y cuatro ideas como mucho, una línea cada una)
 CASOS: fallos reales del camino, uno por línea con su clase (o «ninguno»)
 SKILLS: las que abrió, con su vía (skill (herramienta|lectura|precargada), …), o «ninguna»
+ESTÁNDAR: <agente>/<tarea> — cumplido | parcial (qué punto falta) | pendiente (agente sin estándar escrito), o «ninguna tarea del catálogo»
 CAMBIOS: ruta:línea — qué (o «ninguno»)
 EVIDENCIA: comando → resultado (o captura → ruta)
 HALLAZGOS:
 - [bloqueante|alto|medio|nit] ruta:línea — problema → arreglo propuesto · YA APUNTADO: #n | NUEVO (buscado: <consulta>)
-NO COMPROBADO: lo que no pudo verificar
+NO COMPROBADO: lo que no pudo comprobar
 SIGUIENTE: qué toca ahora y a qué agente
 DECISIONES PENDIENTES:
-- Necesito que decidas: <pregunta> · A (recomendada), B y C, cada una con lo que pasa si se elige · si no se decide, qué pasa
+- Necesito que decidas: <pregunta> · A (recomendada), B y C, cada una con lo que pasa si se elige, su «Coste:» y «reversible» o «no se puede deshacer» · si no se decide, qué pasa
 ```

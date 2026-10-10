@@ -2,7 +2,13 @@
 name: github
 description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron de Actions falle o no arranque, haya que mirar los checks o los logs de un PR, una carpeta de trabajo desaparezca sola, o se toque la protección de ramas, Dependabot, el secret scanning o los secretos de Actions, o las líneas del PR (`Closes`, `Runbook:`, `Casos:`). No para: issues, casos y problemas de fondo (issues), despliegues (vercel) ni migraciones (agente datos).
 metadata:
-  tipo: herramienta
+  tipo: servicio
+  opera_proveedor: true
+  juzga_artefacto: false
+  encadena: false
+  pasos_fijos: false
+  sintoma_a_causa: false
+  elige_opciones: false
   dueno: gobierno
   comprobado: "2026-10-09"
 ---
@@ -14,13 +20,13 @@ metadata:
 - **Repo** `pabloam89/MenuPlan`, **público**. Rama por defecto: `staging` (desde cuándo, en «Fechas» de Fuentes y comprobación). `main` es producción.
 - **Protección de ramas** (desde el 7 oct, también para administradores):
   - `main`: solo por PR con el check `tests` en verde; sin force push ni
-    borrado.
+    borrado. Con los rulesets de #330 (por aplicar), solo fusiona Pablo (bypass).
   - `staging`: sin force push ni borrado (protección clásica) y el **ruleset
     «staging: tests obligatorios»**: nada entra sin `tests` en verde, ni por PR
     ni por push, tampoco Pablo. Solo se lo saltan las deploy keys, y la única
     es la del cron de Mercadona, cuyo secreto vive en el environment
     `mercadona-sync` (solo rama staging). Decidido y activo (id 24770007; día en «Fechas» de Fuentes y comprobación),
-    sin exigir la rama al día.
+    sin exigir la rama al día. Dueño de código (#330): `.claude/skills/github/referencias/duenos-de-codigo.md`.
 - **Workflows** (`.github/workflows/`):
 
 | Workflow | Cuándo | Qué hace |
@@ -33,7 +39,7 @@ metadata:
 | `vigia-lola.yml` | cada 15 min (`4,19,34,49`), a mano | el vigía de Lola (#267): fallos `bot_fallo` de los logs de Vercel, el canario y los avisos al grupo de Telegram «HoMenu avisos». Su estado va en la caché de Actions (`vigia-estado-*`); borrarla solo cuesta un aviso repetido. Sin `VERCEL_TOKEN` ni `CANARIO_SECRET` se salta. Sus secretos y variables, en el environment `vigia` (solo `staging`) |
 | `planos-semanal.yml` | lunes 06:50 UTC, a mano | `npm run planos -- --red` con el token del workflow (sin secretos ni Claude); si un nivel no cuadra o un juicio caduca, abre o comenta el issue «Planos: la medición semanal no cuadra». Lo que solo ve un administrador sale «sin comprobar» y no cambia ningún nivel. Desde #351 también mide la política de ramas de los environments con secretos (la lista sale de la API), los secretos a nivel de repo, las deploy keys de escritura y las aprobaciones de `main`, con detalle neutro («norma X no cuadra» y una cifra); las cuatro necesitan ver lo que solo ve un administrador, así que en el workflow salen «sin comprobar» y se miran con `npm run planos -- --red` en local |
 | `flujo-semanal.yml` | lunes 06:55 UTC, a mano | `scripts/cumplimiento.mjs --informe` (#341) con el token del workflow, sin secretos ni coste: los indicadores de cumplimiento del flujo (fondos sin diagnóstico, encargos sin juez, cerrados sin aprendizaje, reabiertos por clase corta, ciclos sobre presupuesto), la higiene y caducidad de las skills y el ENSAYO del nivel 2 (`skills-prueba --ensayo`: valida los casos, no llama a ningún modelo). Lo deja como comentario del issue «Flujo: informe semanal»; no abre un issue por indicador (un disparo se registra a mano con `npm run issues -- --nuevo`, que busca los parecidos). El nivel 2 de pago lo lanza una persona |
-| `dependabot-auto.yml` | al acabar `Tests` en verde sobre una rama `dependabot/` de un PR, cada 3 h (`23 */3`), a mano | `scripts/dependabot-auto.mjs --si` (#193): fusiona en staging los PR de Dependabot de parche o menor y comenta `@dependabot rebase` a los atrasados cuyos ficheros pisó staging. Una línea por PR (`dependabot-auto pr: … decision: … motivo: … ruta: npm\|actions`); reglas y motivos, en la cabecera del script. Nunca hace checkout del PR. npm (solo `package*.json` de la raíz) con el `GITHUB_TOKEN`, cuya fusión no lanza `tests` en staging (Vercel despliega igual). Actions (solo líneas `uses:` de `.github/workflows/*.yml`) con un token de la GitHub App `homenu-dependabot-merge`, en un segundo job, el único con el environment `dependabot-auto` y la clave; los que tocan `dependabot-auto.yml` o un workflow con environment esperan, y en un workflow con algún `secrets.` solo entran acciones de `actions/` y `github/` (otro dueño: `tercero-con-secretos`); si el `workflow_run` no ve la clave (`motivo: sin-clave-app`), lo fusiona la pasada de cada 3 h. Tamaño: `update-type` del commit (a los indirectos les falta) y, de respaldo, los «from A to B» fuera de `<details>`; gana el mayor. Ensayo: `GH_TOKEN="$(gh auth token)" node scripts/dependabot-auto.mjs` |
+| `dependabot-auto.yml` | al acabar `Tests` en verde sobre una rama `dependabot/` de un PR, cada 3 h (`23 */3`), a mano | `scripts/dependabot-auto.mjs --si` (#193): fusiona en staging los PR de Dependabot de parche o menor y comenta `@dependabot rebase` a los atrasados cuyos ficheros pisó staging. Una línea por PR (`dependabot-auto pr: … decision: … motivo: … ruta: npm\|actions`); reglas y motivos, en la cabecera del script. Nunca hace checkout del PR. npm (solo `package*.json` de la raíz) con el `GITHUB_TOKEN`, cuya fusión no lanza `tests` en staging (Vercel despliega igual). Actions (solo líneas `uses:` de `.github/workflows/*.yml`) con un token de la GitHub App `homenu-dependabot-merge`, en un segundo job, el único con el environment `dependabot-auto` y la clave; los que tocan `dependabot-auto.yml` o un workflow con environment esperan, y en un workflow con algún `secrets.` solo entran acciones de `actions/` y `github/` (otro dueño: `tercero-con-secretos`); si el `workflow_run` no ve la clave (`motivo: sin-clave-app`), lo fusiona la pasada de cada 3 h. Tamaño: `update-type` del commit (a los indirectos les falta) y, de respaldo, los «from A to B» fuera de `<details>`; gana el mayor. Ensayo (lo lanza Pablo con `!`; una sesión, con `node scripts/token-sesion.mjs --`): `GH_TOKEN="$(gh auth token)" node scripts/dependabot-auto.mjs` |
 | `ios-testflight.yml` | solo a mano | build de iOS a TestFlight |
 
 - **`tests.yml` en detalle:** Node 24 y 20 minutos de tope. El lint (`npm run lint:base`,
@@ -45,44 +51,17 @@ metadata:
   retirar` las cierra. Un hook personal de Pablo (`~/.claude/hooks/limpiar-worktrees.mjs`)
   borra solo las que ve **fusionadas y limpias**, tras cada `gh pr merge` y al
   abrir cualquier sesión.
-- **Las skills, por obligación** (#164; mapa `.claude/dominios-skills.json`, cruzado por test con `.claude/skills/`):
-  - **Puerta de lectura** (`guardia.mjs`): el primer comando de riesgo de un dominio en la
-    sesión (`apply-migration`, `telegram-webhook.mjs set`, `vercel env`, `op item|read`, `ssh`
-    al panel, `gh api -X POST`…) se niega con «abre antes la skill X y reintenta»; al
-    reintentar pasa, y a la primera si la sesión ya abrió la skill (`Skill` o `Read` de su
-    `SKILL.md`; lo anota `skill-abierta.mjs`) o el subagente la trae en su `skills:`. Sin registro, no bloquea.
-    Un alta (`gh secret set`, `vercel env add`, `op item create`) pide además `alta-de-secreto`
-    (#397); listar o leer (`gh secret list`, `vercel env ls`, `op item get`) no. Editar o
-    escribir un fichero de las `rutas` de un dominio pasa por la misma puerta (#397), con la
-    ruta sacada de la carpeta del fichero, no de la sesión.
-  - **Puede avisar de más** («ante la duda, niega»; un reintento; fijado en el test del
-    mapa): un `git commit -m` que nombra `apply-migration`, `gh workflow run`, `gh api
-    graphql -f`, un `docker … -U panel` local, una `ssh` con la IP.
-  - **Línea «Runbook:» del PR** (`scripts/runbook-pr.mjs`, tercer paso del job `tests`): si
-    el PR toca rutas de un dominio, `Runbook: actualizado (skill X)` (y tocar esa skill) o
-    `Runbook: sin novedades`; todas las líneas valen, las de bloques de código no cuentan.
-    Exentos solo los PR de un bot; editar el cuerpo relanza el check.
-  - **Línea «Casos:» del PR** (#185; `scripts/casos-pr.mjs`): `Casos: #n, #m` (issues
-    `tipo:caso` con `analisis:`) o `Casos: ninguno — <motivo>` (25 caracteres o más). La guardia
-    niega `gh pr create` sin ella; el CI consulta la API (`issues: read`) y, **si no responde,
-    falla con la causa**: se relanza el check. `npm run issues` la cuenta en los últimos 50 PR.
-    Cómo se registra un caso y se analiza hasta su fondo: skill `issues`.
-  - **Línea «Closes #n» y «Agente:» del PR**: `Closes #n` por cada encargo o fondo
-    que cierra (la guardia lo exige si la rama es de un issue: `npm run tarea --
-    ops/x 193`) y `Agente: <nombre>` (o `sesión`); la plantilla de PR los trae.
-    De ahí sale quién arregló qué (skill `issues`). Desde #337 también los pide el
-    CI (`scripts/fondos-pr.mjs`, paso «Fondos del PR» de `tests`, para cualquiera
-    y no solo las sesiones de Claude): `Agente:` con un agente de `.claude/agents/`
-    o `sesión`; el `Closes` de la rama `area/<n>-…`; y por cada `Closes #n`, que el
-    fondo de un encargo tenga diagnóstico (mecanismo y causa de escape) y que un
-    fondo tenga aprendizaje. Bots exentos; si la API no responde, falla con la
-    causa y se relanza el check.
+- **Las skills, por obligación** (#164; mapa `.claude/dominios-skills.json`): la puerta de lectura de la guardia, lo que avisa de más y las líneas «Runbook:», «Casos:», «Closes #n» y «Agente:» del PR, en `.claude/skills/github/referencias/skills-por-obligacion.md`.
 
 ## Claves y accesos
 
 Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS`, `MERCADONA_DEPLOY_KEY`,
 los del vigía, los de iOS y la clave de la App `homenu-dependabot-merge`) y qué workflow usa cada uno están en `ops/INVENTARIO.md`, que es la tabla
-que manda. `tests.yml` no usa ninguno. La CLI `gh` va con la sesión de Pablo (`gh auth status`).
+que manda. `tests.yml` no usa ninguno.
+
+**Identidad de las sesiones (#329).** El arranque canjea la clave de la App `homenu-sesiones` por un token de 1 hora, guardado y reutilizado entre sesiones
+(Bash; en PowerShell, `node scripts/token-sesion.mjs -- <comando>`). La guardia niega quitar o vaciar el token, `git -c credential.…` y cambiar reglas del repo o aprobar PR (#447). El detalle, en `.claude/skills/github/referencias/app-sesiones.md`.
+
 Un secreto nuevo o rotado va a un environment con política de ramas, nunca al <!-- norma:secretos-de-repo -->
 repo; el alta entera, en la skill `alta-de-secreto`.
 
@@ -93,13 +72,13 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 | PRs abiertos | `gh pr list` | una línea por PR con su rama |
 | Estado de un PR | `gh pr view <n>` | título, rama, estado y descripción |
 | Checks de un PR | `gh pr checks <n>` | `tests` en `pass` (o `fail` con enlace al run) |
-| Esperar a que acaben | `gh pr checks <n> --watch --interval 30` | termina cuando no queda ninguno en curso |
+| Esperar a que acaben (REST, gasta poca cuota; #424) | `npm run espera-ci -- <n>` (una llamada cada 60 s) | una línea `ci pr: n estado: ok`, `falla` o `pendiente`; sale 0 si pasa, 1 si falla o se acaba el tiempo, 3 si no pudo preguntar (no es un CI en rojo) |
 | Últimos runs | `gh run list --workflow tests.yml --limit 5` | cinco filas con su estado |
 | Solo el log de lo que falló | `gh run view <run-id> --log-failed` | el error: si es lint, fichero, regla y mensaje; si es test, su nombre |
 | Relanzar lo que falló | `gh run rerun <run-id> --failed` | el run vuelve a `in_progress` |
 | Lanzar a mano un workflow | `gh workflow run tests.yml --ref <rama>` | `Created workflow_dispatch event` |
 | Fusionar un PR a `staging` | `gh pr merge <n> --merge` | `Merged`; la guardia vigila que no sea a `main` |
-| Reglas que aplican a `staging` | `gh api repos/pabloam89/MenuPlan/rules/branches/staging` | un `required_status_checks` con `tests` (más los de la protección clásica) |
+| Reglas que aplican a `staging` | `gh api repos/pabloam89/MenuPlan/rules/branches/staging` | un `required_status_checks` con `tests` (más los de la protección clásica); `node scripts/rulesets.mjs` (solo lee) compara `main` y `staging` con lo deseado |
 | Deploy keys del repo | `gh repo deploy-key list` | una, «mercadona-sync: cron, push a staging», `read-write` |
 | Environment del cron | `gh api repos/pabloam89/MenuPlan/environments/mercadona-sync/deployment-branch-policies -q '.branch_policies[].name'` y `gh secret list --env mercadona-sync` | `staging` y `MERCADONA_DEPLOY_KEY`. Si un workflow nombra un environment que no existe, GitHub lo crea **sin política**: se crea antes a mano |
 | Probar el push del cron sin esperar al lunes | `gh workflow run mercadona-sync.yml --ref staging -f probar_push=true` y `gh run watch` | el paso «Commitear» dice `Empujo con la deploy key a staging`, aparece en `origin/staging` el commit «prueba de push» (o el del catálogo, si hay precios nuevos) y un run de `tests` con evento `push` sobre él |
@@ -119,6 +98,8 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 
 ## Lo que falló y por qué
 
+- **2026-10-10 · la cuota GraphQL de Pablo llegó a 0 dos veces (#424, fondo #326).** Causa: todas las sesiones gastaban el mismo token y cada arranque pedía ~320 puntos (`npm run issues`: 3 páginas de 106), más los `gh pr checks --watch` cada 30 s; el contador REST de `gh api rate_limit` seguía con 4.656 libres, así que parecía que quedaba cuota. Arreglo: caché de 15 min (arranque) y 10 (listado) en `scripts/lib/cuotaGh.mjs`, `npm run espera-ci` por REST, línea `gh: caller=… api=…` por llamada y techos en `scripts/cuotaGh.test.js`, visto fallar. Cifras y cómo medir, en `.claude/skills/github/referencias/cuota-graphql.md`; la verdad sobre GraphQL la da `gh api graphql -f query='{ rateLimit { remaining resetAt } }'`.
+- **2026-10-10 · el token de instalación real (390 caracteres, con `.` y `-`) no pasaba la forma escrita de memoria (#329).** Causa: se validó sin ver uno real. Arreglo: `[A-Za-z0-9_.-]`, con test; visto en vivo.
 - **2026-10-09 · `Closes #n` y `Agente:` solo los comprobaba la guardia, y la guardia
   solo ve a las sesiones de Claude (#337).** Causa: el CI miraba `Runbook:` y
   `Casos:` y nada más; un PR abierto desde la web o por otra vía no los llevaba y
@@ -178,6 +159,7 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 
 ## Qué requiere el OK de Pablo
 
+- Rotar o retirar la clave de la App `homenu-sesiones`, y el `gh auth logout` de Pablo (sigue en su llavero).
 - Cualquier ajuste del repo: protección de ramas y rulesets, visibilidad, rama
   por defecto, Dependabot, secret scanning, environments, secretos y deploy keys
   (una de escritura se salta el ruleset de `staging`: no se crea otra sin más).

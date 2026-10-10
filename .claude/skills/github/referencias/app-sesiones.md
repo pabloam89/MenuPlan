@@ -105,9 +105,9 @@ En la App → **Private keys** → **Generate a private key**: el navegador baja
 2. Borra el `.pem` de Descargas **y de la Papelera de reciclaje**. Debe quedar una
    sola copia: la del Documento.
 3. Apunta los dos números en `.env.local` de la carpeta principal, en claro (no son
-   secretos): `SESIONES_APP_ID=…` y `SESIONES_INSTALLATION_ID=…`. Dónde viven
-   cuando las sesiones los lean (`ops/env.1password` o variables) lo decide E3
-   (#329): **pendiente**.
+   secretos): `SESIONES_APP_ID=…` y `SESIONES_INSTALLATION_ID=…`. Son opcionales
+   desde E3 (#329): el arranque usa el App ID 5260552 de `scripts/lib/tokenSesion.mjs` y
+   pide el Installation ID a GitHub; solo valen si quieres fijarlos.
 
 ## 4. Comprobar
 
@@ -184,9 +184,83 @@ guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
   texto.
 - El nombre del Documento y de la bóveda, de la rama `ops/328-boveda-sesiones`
   (PR #412, sin fusionar): si E2 los cambia, se cambian aquí y en el script.
-- Dónde guardan las sesiones el App ID y el Installation ID (E3, #329).
 - Que los permisos del cuerpo de la petición (`permissions`) los acepte GitHub tal
-  cual con estos seis (sin probar contra la API real).
+  cual con estos seis: visto el 10 oct 2026 con la App real (`token-sesion.mjs --comprobar`, #329).
+
+## Cómo trabaja una sesión con la App (#329)
+
+El arranque canjea la clave (`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs`) por un token de 1 hora
+en `CLAUDE_ENV_FILE`, que carga Bash: `GH_TOKEN`, un ayudante de `git push` y el autor `homenu-sesiones[bot]`.
+En PowerShell, `node scripts/token-sesion.mjs -- <comando>`, que sirve también con el token caducado
+(`-- gh …`, `-- git push`). Sin clave legible avisa y sigue como Pablo (a los 13 s); sus credenciales siguen en
+el llavero y el manager de github.com hasta su `gh auth logout`.
+
+### La caché del token (E3)
+
+Canjear la clave en cada arranque leía el `.pem` de 1Password una vez por sesión: con varias
+sesiones se agotó el límite de lecturas por hora (10 oct 2026) y el arranque tardaba ~14 s.
+Ahora el token se saca una vez y lo reutilizan todas las sesiones del mismo usuario de Windows
+mientras falten más de 15 minutos para que caduque (`scripts/lib/cacheTokenSesion.mjs`).
+
+| Qué | Cómo |
+|---|---|
+| Dónde | `%LOCALAPPDATA%\MenuPlan\token-sesion.json` (fuera del repo y de OneDrive); sin esa variable, `~/.claude/token-sesion.json` |
+| Qué lleva | token, `expiraEn`, App ID e instalación, y nada más; la clave `.pem` no entra |
+| Permisos | solo el usuario: en Windows `icacls` por SID del usuario (`whoami`, sin leer el entorno; `/reset`, sin herencia, un permiso); en POSIX 0600. Se comprueban antes de leer el contenido: si no cuadran, se ignora y se canjea. La ruta debe estar en el perfil y fuera de OneDrive; si no, `~/.claude`, y si tampoco, sin caché |
+| Se ignora y se canjea | falta, corrupto, caducado, forma rara (`^ghs_…`), caducidad a más de 62 min, fecha que no sea ISO estricto, otra App u otra instalación, permisos distintos |
+| Dos arranques a la vez | bloqueo de creación exclusiva (`token-sesion.json.lock`, hasta 6 s y dentro del presupuesto de 13 s del arranque; uno huérfano de más de 20 s se quita) y escritura atómica (temporal y `rename`). Quien espera y no ve token no canjea en paralelo: motivo `bloqueo-ocupado` y plan B con AVISO; solo si el bloqueo no se puede crear (permisos) se canjea sin él |
+| Límite de 1Password | el motivo es `limite-de-1password` (no `sin-clave`) y no se prueba la otra bóveda. Si hay token guardado que aún no caducó, se usa con la advertencia `cache-casi-caducada`; si no, plan B (avisar y seguir como Pablo) |
+| Ver y forzar | `node scripts/token-sesion.mjs --comprobar` dice `cache: si` o `cache: no` sin imprimir el token; `--sin-cache` (antes de `--`) fuerza el canje |
+| Contable | la línea del arranque acaba en `cache: si` o `cache: no` |
+
+**Cortar a todas las sesiones de golpe** (token revocado o filtrado): revoca el token y borra `token-sesion.json`. Un token revocado se sigue sirviendo desde la caché hasta que caduca; `node scripts/token-sesion.mjs --sin-cache --comprobar` lo cambia por uno nuevo. Borrar el fichero solo cuesta un canje. La caché no recuerda las advertencias del canje
+(permisos de la App de más, clave en `HoMenu`); se ven al canjear o con `--sin-cache`.
+
+## Lo que la guardia niega a una sesión (#447)
+
+Sin esto, la sesión volvería a ser administradora en cuanto quitara el token y
+`gh` y `git` tiraran de las credenciales de Pablo. La regla vive en
+`.claude/hooks/credenciales.mjs` y se llama desde `guardia.mjs`, con su test en
+`.claude/hooks/guardia.test.js`. Mira cada orden por separado (también dentro de
+`bash -c`, un subshell, `&&`, `;` o una tubería) y no el texto de un commit, un
+cuerpo de PR o un heredoc que las nombre. Niega:
+
+| Qué | Ejemplos |
+|---|---|
+| Quitar o vaciar el token | `env -u GH_TOKEN`, `env -i`, `unset GH_TOKEN`, `GH_TOKEN=` vacío, `export -n`, `Remove-Item Env:GH_TOKEN`, `$env:GH_TOKEN = ""` (también `GITHUB_TOKEN`) |
+| Cambiar de dónde saca git sus credenciales o quién firma | `git -c credential.helper=…`, `git config credential.…`, asignar o quitar `GIT_CONFIG_*`, `GIT_AUTHOR_*`, `GIT_COMMITTER_*` |
+| Cambiar reglas del repo | `node scripts/rulesets.mjs --escribir`; `gh api` que escribe (`-X` con PUT, PATCH, POST o DELETE, o con `-f`/`-F`/`--input`, que lo vuelve POST) en `rulesets`, `branches/*/protection`, `collaborators`, `actions/secrets`, `actions/variables`, `environments`, `hooks` o `keys`; `gh api graphql` con una mutación de protección de ramas, rulesets o `updateRepository` |
+| Aprobar PR | `gh pr review --approve` (o `-a`, también junto a otras banderas), una review `APPROVE` por la API o por GraphQL |
+| Sacar o cambiar las credenciales guardadas | `gh auth token` (también `--user`), `gh auth status --show-token`, `gh auth login`, `switch`, `refresh`, `setup-git` y `logout`, `git credential` y `git credential-manager`, `cmdkey`, `GH_TOKEN=$(gh auth token)` |
+| Más ajustes con la CLI | `gh secret set` y `delete`, `gh variable set` y `delete`, `gh repo edit`, `delete`, `archive`, `rename` y `transfer`, `gh repo deploy-key add` y `delete`, `gh pr merge --admin` |
+| Imprimir el token | `echo $GH_TOKEN`, `$env:GH_TOKEN`, `Get-Item Env:GH_TOKEN`, `node -p process.env.GH_TOKEN`, `cat /proc/self/environ`, y `printenv`, `env` o `declare -p` sin filtrar (filtrado con grep por otra palabra, como path, pasa) |
+| PowerShell | `gh` y `git push`, `pull`, `fetch`, `clone` o `ls-remote` sin el envoltorio `node scripts/token-sesion.mjs --` |
+
+**PowerShell.** Esa herramienta no carga el token de la sesión (el archivo de entorno
+es de Bash), así que ahí `gh` y `git` de red irían con las credenciales de Pablo sin
+quitar nada. El payload del hook dice qué herramienta es y la guardia lo usa: en
+PowerShell se pide Bash o el envoltorio. Las órdenes que lanzan `gh` por dentro
+(`npm run issues`, `npm run tarea`) no se pueden ver: usa Bash.
+
+Se mira cada orden por separado (también tras un `&` suelto) y se normalizan las
+comillas vacías, las barras y las continuaciones de línea. Una consulta de GraphQL
+que viene de un fichero no se puede leer y se niega: escríbela en el comando.
+El ensayo de `dependabot-auto.mjs` con `GH_TOKEN="$(gh auth token)"` lo lanza
+Pablo con `!`; una sesión que lo necesite usa `node scripts/token-sesion.mjs --`.
+
+Lo que sigue permitido: `node scripts/token-sesion.mjs -- gh …` y `-- git push` (el
+remedio cuando el token caduca), `gh` y `git` normales con el token puesto en
+Bash, y leer esas mismas rutas de la API (un GET). El texto de un commit, un
+cuerpo de PR o un heredoc que nombre estas cosas no cuenta, salvo que lleve
+`$(…)` o acentos graves entre comillas dobles, que se ejecutan.
+
+Es un filtro de buena fe, no una barrera. Huecos que no se pueden cerrar mirando
+el texto: una variable intermedia, un script escrito en un fichero y ejecutado,
+otro intérprete, `xargs` u otro lanzador y los nombres calculados en PowerShell.
+Tampoco se vigila `git config user.name`, `--author` ni `-c user.name=…`: solo
+cambian la autoría visible del commit. La barrera de fondo es de Pablo:
+`gh auth logout` y quitar el manager de credenciales de github.com de su PC.
+Hasta entonces, sus credenciales siguen ahí.
 
 Fuentes: https://docs.github.com/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app
 y https://docs.github.com/rest/apps/apps#create-an-installation-access-token-for-an-app
