@@ -66,7 +66,7 @@ metadata:
   administrador incluida. Es la del llavero hasta el cambio de #328; luego se
   anula.
 - **Service account «MenuPlan sesiones»** (#328, **pendiente de crear**): solo
-  lectura de `HoMenu-sesiones` y de la clave de la App de GitHub que da su identidad a las sesiones (#329, skill `github`). Sustituye a la anterior en el llavero.
+  lectura de `HoMenu-sesiones`, donde vive también la clave de la App de GitHub (#329, skill `github`); no se le da lectura de `HoMenu`. Sustituye a la anterior en el llavero.
 - **Ficha `Postgres del panel`** (bóveda `Panel HoMenu`, id
   `c64ol4a3oewjeue3szoafrrr6q`): servidor, puerto, base, usuario y contraseña
   del Postgres del panel.

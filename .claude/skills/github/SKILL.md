@@ -83,12 +83,12 @@ Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS`
 los del vigía, los de iOS y la clave de la App `homenu-dependabot-merge`) y qué workflow usa cada uno están en `ops/INVENTARIO.md`, que es la tabla
 que manda. `tests.yml` no usa ninguno.
 
-**Identidad de las sesiones (#329).** El arranque canjea la clave de la App
-`homenu-sesiones` (`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs` de E1: sin
-workflows, un solo repo) por un token de 1 hora y lo deja en `CLAUDE_ENV_FILE` con el autor
-`homenu-sesiones[bot]`: `gh` lee `GH_TOKEN` y `git push` un ayudante que lee `$GH_TOKEN`; en
-ningún otro sitio. Sin clave legible, avisa del motivo y sigue como Pablo (plan B). Con la
-App, `gh api user` da 403. Caducado: `node scripts/token-sesion.mjs -- gh …`.
+**Identidad de las sesiones (#329).** El arranque canjea la clave de la App `homenu-sesiones`
+(`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs` de E1) por un token de 1 hora y lo
+deja en `CLAUDE_ENV_FILE`, que carga el shell Bash: `GH_TOKEN`, un ayudante de `git push` y el
+autor `homenu-sesiones[bot]`. PowerShell no lo carga: ahí, `node scripts/token-sesion.mjs -- <comando>`.
+Sin clave legible avisa y sigue como Pablo; el tope es de 13 s. Las credenciales de Pablo siguen en el
+llavero y en el manager de github.com hasta su `gh auth logout`. Caducado: `-- gh …` o `-- git push`.
 
 Un secreto nuevo o rotado va a un environment con política de ramas, nunca al <!-- norma:secretos-de-repo -->
 repo; el alta entera, en la skill `alta-de-secreto`.

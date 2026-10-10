@@ -3,9 +3,10 @@
 import { createPublicKey, createVerify, generateKeyPairSync } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { main } from "./token-sesion.mjs";
-import { APP_ID, BOT_ID, ErrorTokenSesion, MOTIVOS, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineasDeEntorno, motivoDeCanje, tokenDeSesion } from "./lib/tokenSesion.mjs";
+import { APP_ID, BOT_ID, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MOTIVOS, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, lineasDeEntorno, motivoDeCanje, tokenDeSesion } from "./lib/tokenSesion.mjs";
 import { PERMISOS } from "./token-sesiones.mjs";
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048, privateKeyEncoding: { type: "pkcs1", format: "pem" }, publicKeyEncoding: { type: "spki", format: "pem" } });
@@ -14,11 +15,12 @@ const TOKEN =`ghs_${"a1B2c3D4".repeat(5)}`;
 const res = (status, cuerpo) => ({ ok: status >= 200 && status < 300, status, json: async () => cuerpo });
 
 /** Un GitHub de mentira: guarda cada llamada para mirar qué se mandó. */
-function githubFalso({ instalacion = res(200, { id: 77 }), acceso = res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z", permissions: { ...PERMISOS }, repositories: [{ name: "MenuPlan" }] }), usuario = res(200, { id: 999 }) } = {}) {
+function githubFalso({ instalacion = res(200, { id: 77 }), acceso = res(201, { token: TOKEN, expires_at: "2026-10-10T12:00:00Z", permissions: { ...PERMISOS }, repositories: [{ name: "MenuPlan" }] }), usuario = res(200, { id: 999 }), detalle = res(200, { permissions: { ...PERMISOS }, repository_selection: "selected" }) } = {}) {
   const llamadas = [];
   const f = vi.fn(async (url, init = {}) => {
     llamadas.push({ url, init });
     if (url.endsWith("/installation")) return instalacion;
+    if (url.endsWith("/app/installations/77")) return detalle;
     if (url.includes("/access_tokens")) return acceso;
     if (url.includes("/users/")) return usuario;
     throw new Error(`url inesperada ${url}`);
@@ -35,10 +37,11 @@ describe("tokenDeSesion", () => {
     const [h, p, firma] = llamadas[0].init.headers.Authorization.replace("Bearer ", "").split(".");
     expect(JSON.parse(Buffer.from(p, "base64url")).iss).toBe(String(APP_ID));
     expect(createVerify("RSA-SHA256").update(`${h}.${p}`).verify(createPublicKey(publicKey), Buffer.from(firma, "base64url"))).toBe(true);
-    const pedido = JSON.parse(llamadas[1].init.body);
+    const pedido = JSON.parse(llamadas.find((l) => l.init.method === "POST").init.body);
     expect(pedido).toEqual({ repositories: ["MenuPlan"], permissions: PERMISOS });
     expect(pedido.permissions.workflows).toBeUndefined();
-    expect(llamadas[1].url).toContain("/app/installations/77/access_tokens");
+    expect(llamadas.some((l) => l.url.includes("/app/installations/77/access_tokens"))).toBe(true);
+    expect(t.advertencias).toEqual([]);
   });
 
   it("si la API no da el id del bot, usa el conocido", async () => {
@@ -120,10 +123,20 @@ describe("identidad y aviso del arranque", () => {
     expect(a).toMatch(/^AVISO: .*pabloam89/);
     expect(a).toContain("identidad-sesion identidad: pablo token: no motivo: sin-clave");
   });
-  it("con la App no avisa", () => {
+  it("con la App dice solo lo que sabe: Bash sí, PowerShell no, y las credenciales de Pablo siguen", () => {
     const a = avisoDeIdentidad({ identidad: "app", token: "app" });
     expect(a).not.toMatch(/^AVISO/);
     expect(a).toContain("identidad: app token: app");
+    expect(a).toMatch(/Bash/);
+    expect(a).toMatch(/PowerShell/);
+    expect(a).toMatch(/gh auth logout/);
+    expect(a).toContain("-- git push");
+    expect(a).not.toMatch(/sin administraci/);
+  });
+  it("la línea contable es la misma por stdout y por stderr, y solo admite identidades del vocabulario", () => {
+    expect(avisoDeIdentidad({ identidad: "otra", token: "no", motivo: "red" })).toContain(lineaIdentidad({ identidad: "otra", token: "no", motivo: "red" }));
+    expect(() => lineaIdentidad({ identidad: "admin", token: "no" })).toThrow();
+    expect(IDENTIDADES).toEqual(["pablo", "app", "otra", "desconocida"]);
   });
 });
 
@@ -146,14 +159,94 @@ describe("token-sesion.mjs", () => {
   });
 });
 
-describe("arranque.mjs", () => {
-  it("sigue siendo JavaScript válido (un fallo de sintaxis dejaría la sesión sin arranque)", () => {
-    execFileSync(process.execPath, ["--check", new URL("../.claude/hooks/arranque.mjs", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")]);
+describe("advertencias de la instalación", () => {
+  const conDetalle = (detalle) => tokenDeSesion({ fetch: githubFalso({ detalle }).f, leerClave: async () => privateKey });
+  it("avisa si la App tiene más permisos de los pedidos o acceso a todos los repos, y si no pudo mirar", async () => {
+    expect((await conDetalle(res(200, { permissions: { ...PERMISOS, administration: "write" }, repository_selection: "selected" }))).advertencias).toEqual(["permisos-de-mas"]);
+    expect((await conDetalle(res(200, { permissions: { ...PERMISOS, contents: "admin" }, repository_selection: "selected" }))).advertencias).toEqual(["permisos-de-mas"]);
+    expect((await conDetalle(res(200, { permissions: { ...PERMISOS }, repository_selection: "all" }))).advertencias).toEqual(["todos-los-repos"]);
+    expect((await conDetalle(res(500, {}))).advertencias).toEqual(["app-sin-comprobar"]);
   });
-  it("escribe el token solo en CLAUDE_ENV_FILE y espera la identidad antes de imprimir", () => {
-    const src = readFileSync(new URL("../.claude/hooks/arranque.mjs", import.meta.url), "utf8");
-    expect(src).toContain("CLAUDE_ENV_FILE");
+  it("avisa si la clave salió de la ficha temporal de HoMenu", async () => {
+    const t = await tokenDeSesion({ fetch: githubFalso().f, leerClave: async () => ({ pem: privateKey, temporal: true }) });
+    expect(t.advertencias).toEqual(["clave-en-HoMenu"]);
+    expect(FICHAS_CLAVE.filter((f) => f.temporal).map((f) => f.vault)).toEqual(["HoMenu"]);
+  });
+});
+
+describe("lineasDeEntorno con GIT_CONFIG_COUNT previo", () => {
+  it("añade detrás de lo que ya hubiera, sin pisarlo", () => {
+    const t = lineasDeEntorno({ token: TOKEN, autor: { nombre: "homenu-sesiones[bot]", correo: "1+homenu-sesiones[bot]@users.noreply.github.com" }, configPrevia: 3 });
+    expect(t).toContain("export GIT_CONFIG_COUNT=5");
+    expect(t).toContain("export GIT_CONFIG_KEY_3=");
+    expect(t).toContain("export GIT_CONFIG_VALUE_4=");
+    expect(t).not.toContain("GIT_CONFIG_KEY_0=");
+  });
+});
+
+describe("aplicarIdentidad (lo que hace el arranque)", () => {
+  const autor = { nombre: "homenu-sesiones[bot]", correo: "1+homenu-sesiones[bot]@users.noreply.github.com" };
+  const ok = async () => ({ token: TOKEN, autor, advertencias: [] });
+  const uso = (extra = {}) => {
+    const escrito = [];
+    const registrado = [];
+    const base = { env: { CLAUDE_ENV_FILE: "/tmp/f" }, escribir: (f, t) => escrito.push([f, t]), generar: ok, identificar: async () => ({ status: 1, stderr: "Resource not accessible by integration" }), registrar: (l) => registrado.push(l) };
+    return { escrito, registrado, opciones: { ...base, ...extra } };
+  };
+
+  it("canjea, escribe con un salto de línea delante y dice que la App responde", async () => {
+    const { escrito, registrado, opciones } = uso();
+    const aviso = await aplicarIdentidad(opciones);
+    expect(escrito).toHaveLength(1);
+    expect(escrito[0][0]).toBe("/tmp/f");
+    expect(escrito[0][1].startsWith("\nexport GH_TOKEN=")).toBe(true);
+    expect(aviso).toContain("identidad: app token: app");
+    expect(registrado).toEqual([aviso.slice(aviso.indexOf("identidad-sesion"))]);
+    expect(aviso).not.toContain(TOKEN);
+  });
+  it("pasa GH_TOKEN a gh solo en la copia del entorno, y respeta GIT_CONFIG_COUNT previo", async () => {
+    const vistos = [];
+    const { escrito, opciones } = uso({ env: { CLAUDE_ENV_FILE: "/tmp/f", GIT_CONFIG_COUNT: "2" }, identificar: async (e) => { vistos.push(e.GH_TOKEN); return { status: 0, stdout: "homenu-sesiones[bot]" }; } });
+    await aplicarIdentidad(opciones);
+    expect(vistos).toEqual([TOKEN]);
+    expect(escrito[0][1]).toContain("export GIT_CONFIG_COUNT=4");
+  });
+  it("si el canje falla: no escribe nada, avisa como Pablo con el motivo y sigue", async () => {
+    const { escrito, opciones } = uso({ generar: async () => { throw new ErrorTokenSesion("sin-clave", "x"); }, identificar: async () => ({ status: 0, stdout: "pabloam89" }) });
+    const aviso = await aplicarIdentidad(opciones);
+    expect(escrito).toEqual([]);
+    expect(aviso).toMatch(/^AVISO: .*pabloam89/);
+    expect(aviso).toContain("identidad: pablo token: no motivo: sin-clave");
+  });
+  it("sin CLAUDE_ENV_FILE no aplica el token aunque lo haya generado", async () => {
+    const { escrito, opciones } = uso({ env: {}, identificar: async () => ({ status: 0, stdout: "pabloam89" }) });
+    const aviso = await aplicarIdentidad(opciones);
+    expect(escrito).toEqual([]);
+    expect(aviso).toContain("motivo: sin-fichero-de-entorno");
+  });
+  it("un error que no es de la casa se cuenta como error-interno, sin romper", async () => {
+    const { opciones } = uso({ generar: async () => { throw new TypeError("boom"); }, identificar: async () => ({ status: 1 }) });
+    expect(await aplicarIdentidad(opciones)).toContain("motivo: error-interno");
+  });
+  it("una identidad colgada no pasa del tope: vuelve desconocida, motivo red", async () => {
+    const { opciones } = uso({ tope: 50, identificar: () => new Promise(() => {}) });
+    const t0 = Date.now();
+    const aviso = await aplicarIdentidad(opciones);
+    expect(Date.now() - t0).toBeLessThan(2000);
+    expect(aviso).toContain("identidad: desconocida token: no motivo: red");
+  });
+  it("un canje colgado tampoco", async () => {
+    const { opciones } = uso({ tope: 50, generar: () => new Promise(() => {}) });
+    expect(await aplicarIdentidad(opciones)).toContain("motivo: red");
+  });
+});
+
+describe("arranque.mjs", () => {
+  it("sigue siendo JavaScript válido y usa aplicarIdentidad esperándola antes de imprimir", () => {
+    const ruta = fileURLToPath(new URL("../.claude/hooks/arranque.mjs", import.meta.url));
+    execFileSync(process.execPath, ["--check", ruta]);
+    const src = readFileSync(ruta, "utf8");
+    expect(src).toContain("aplicarIdentidad()");
     expect(src).toContain("avisos.push(await identidad)");
-    expect(src).not.toMatch(/console\.(log|error)\([^)]*t\.token/);
   });
 });
