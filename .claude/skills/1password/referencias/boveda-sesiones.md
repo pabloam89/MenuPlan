@@ -13,7 +13,7 @@ no has lanzado tú: no la apruebes.
    (ensayo, no abre la app) y `$env:MENUPLAN_OP_PABLO = "1"; node scripts/boveda-sesiones.mjs --si`:
    8 fichas, una línea `COINCIDEN` cada una.
 3. **Mover** (no copiar) la clave de la App de E1 (#327) a `HoMenu-sesiones`,
-   Documento `GitHub App homenu-sesiones`.
+   Documento `GitHub App homenu-sesiones`: el arranque la lee ahí (hoy, de `HoMenu`, «GitHub App Sesiones»; #329).
 4. Fusionar el PR de #328 y poner al día la carpeta principal:
    `git fetch origin; git merge --ff-only origin/staging`.
 5. PowerShell aparte, en `C:\dev\MenuPlan`:
