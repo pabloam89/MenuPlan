@@ -178,8 +178,9 @@ export function lineaDeContrapeso(c) {
  * `indicador: x valor: n` o `contrapeso: x valor: n` es un punto; un «-» (sin datos) no cuenta.
  *
  * Un punto por semana: si el texto trae la cabecera de cada informe («informe semanal
- * (AAAA-MM-DD)»), los informes de la misma semana (lunes a domingo) cuentan una vez, con el
- * último; así un run lanzado a mano no mete un punto de más. Sin cabeceras, cada línea es un punto.
+ * (AAAA-MM-DD)»), cada cifra cuenta una vez por semana (lunes a domingo), con el último valor
+ * numérico de esa semana: un run lanzado a mano no mete un punto de más, y un informe sin datos
+ * («-») no borra el valor bueno de la misma semana. Sin cabeceras, cada línea es un punto.
  * → { id: [n, …] }
  */
 export function seriesDeHistorial(texto) {
@@ -187,15 +188,21 @@ export function seriesDeHistorial(texto) {
   const CABECERA = /informe semanal \((\d{4}-\d{2}-\d{2})\)/g;
   const t = String(texto ?? "");
   const cabeceras = [...t.matchAll(CABECERA)];
-  const bloques = cabeceras.length
-    ? cabeceras.map((c, i) => ({ semana: lunesDe(c[1]), texto: t.slice(c.index, cabeceras[i + 1]?.index ?? t.length) }))
-    : [{ semana: null, texto: t }];
-  // El último informe de cada semana manda (los bloques llegan del más antiguo al más reciente).
-  const porSemana = new Map();
-  for (const b of bloques) porSemana.set(b.semana ?? `bloque-${porSemana.size}`, b);
   const series = {};
-  for (const b of [...porSemana.values()].sort((x, y) => String(x.semana).localeCompare(String(y.semana)))) {
-    for (const m of b.texto.matchAll(PUNTO)) (series[m[1]] ??= []).push(Number(m[2]));
+  if (!cabeceras.length) {
+    for (const m of t.matchAll(PUNTO)) (series[m[1]] ??= []).push(Number(m[2]));
+    return series;
+  }
+  // semana → (cifra → último valor numérico). Los bloques llegan del más antiguo al más reciente.
+  const porSemana = new Map();
+  cabeceras.forEach((c, i) => {
+    const semana = lunesDe(c[1]);
+    const valores = porSemana.get(semana) ?? new Map();
+    for (const m of t.slice(c.index, cabeceras[i + 1]?.index ?? t.length).matchAll(PUNTO)) valores.set(m[1], Number(m[2]));
+    porSemana.set(semana, valores);
+  });
+  for (const semana of [...porSemana.keys()].sort()) {
+    for (const [id, n] of porSemana.get(semana)) (series[id] ??= []).push(n);
   }
   return series;
 }

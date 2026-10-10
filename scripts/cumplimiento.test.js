@@ -155,6 +155,11 @@ describe("contrapesos e historial (#480)", () => {
     const texto = [inf("2026-10-05", 1), inf("2026-10-07", 9), inf("2026-10-12", 2), inf("2026-10-18", 3)].join("\n\nRun: x\n\n");
     expect(seriesDeHistorial(texto)).toEqual({ fondos_sin_diagnostico: [9, 3] });
   });
+  it("un informe sin datos («-») no borra el valor bueno de la misma semana", () => {
+    const inf = (dia, v) => `## Flujo y skills: informe semanal (${dia})\nindicador: fondos_sin_diagnostico valor: ${v} umbral: 0 estado: ok\ncontrapeso: fondos_abiertos valor: 4`;
+    const texto = [inf("2026-10-12", 2), inf("2026-10-14", "-"), inf("2026-10-19", "-")].join("\n\n");
+    expect(seriesDeHistorial(texto)).toEqual({ fondos_sin_diagnostico: [2], fondos_abiertos: [4, 4] });
+  });
 });
 
 describe("más de 50 hijos", () => {

@@ -12,6 +12,15 @@
  *     Sigue los `import` relativos de JavaScript, así que una línea nueva en una
  *     librería que usa un script vigilado también sale. Las raíces pueden llevar `*`.
  *     Los comentarios no cuentan (el parser no los da como cadenas).
+ *     Límites conocidos (lo que esta lectura NO ve; la dinámica cubre parte):
+ *       - claves que salen de datos: `Object.entries(o).map(([k, v]) => `${k}: ${v}`).join(" ")`
+ *         (así se arma `lineaDelGlosario`; por eso esa línea es `dinamica` en el registro);
+ *       - una línea que arma una función auxiliar con trozos que recibe por argumento
+ *         (`linea("x", n)` con la plantilla dentro de `linea`): se ve la plantilla, no la llamada;
+ *       - `+=` sobre una propiedad, `push` a un array que luego se junta, y texto que cruza
+ *         funciones: solo sigue `+=` sobre una variable de texto del mismo fichero;
+ *       - un condicional cuyas dos ramas son líneas distintas: se lee la primera con «:».
+ *     Las excepciones que dejó cerrar las raíces se bajan en #530.
  *   - DINÁMICA (`lineasDeTexto`): sobre un texto ya escrito (el informe semanal),
  *     las líneas con dos o más pares `clave: valor`. Ve las líneas que se arman
  *     con claves de un objeto (`glosario ${…}`), que la estática no puede leer.

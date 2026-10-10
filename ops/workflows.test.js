@@ -47,6 +47,20 @@ function bloquesRotos(texto) {
   return rotas;
 }
 
+/**
+ * Las líneas de un `run:` con un `\n` escrito tal cual fuera de comillas, entre espacios. En
+ * bash eso no es un salto de línea: es la letra «n» como argumento suelto (`gh … n --search …`),
+ * la orden falla con «unknown argument» y, dentro de un `if !`, el paso sale en verde sin hacer
+ * nada. Pasó el 10 oct 2026 al reponer las continuaciones `\` con un script (#526). Antes se
+ * quitan las cadenas entre comillas simples y dobles: ahí un `\n` es de printf o de jq.
+ */
+function nSueltas(run) {
+  return String(run).split("\n").flatMap((l, i) => {
+    const sinComillas = l.replace(/'[^']*'/g, "''").replace(/"(?:[^"\\]|\\.)*"/g, '""');
+    return /(^|\s)\\n(\s|$)/.test(sinComillas) ? [`línea ${i + 1} del run: \\n suelto fuera de comillas`] : [];
+  });
+}
+
 /** Lo que se le dice a quien rompe un workflow: el error del parser y, si la hay, la pista. */
 const problemas = (texto) => {
   const e = erroresYaml(texto);
@@ -66,7 +80,19 @@ describe("los workflows se pueden leer como YAML", () => {
         for (const p of job.steps ?? []) expect(typeof p.run === "string" || typeof p.uses === "string", JSON.stringify(p).slice(0, 80)).toBe(true);
       }
     });
+    it(`${f}: ningún «\\n» suelto fuera de comillas en un run (bash lo lee como la letra «n»)`, () => {
+      const wf = parseDocument(readFileSync(join(DIR, f), "utf8")).toJS() ?? {};
+      const malos = Object.entries(wf.jobs ?? {}).flatMap(([j, job]) => (job.steps ?? []).flatMap((p, k) => nSueltas(p.run ?? "").map((m) => `${j} paso ${k + 1}: ${m}`)));
+      expect(malos, "Una orden por línea, o un «\\» de verdad al final de la línea; un «\\n» escrito tal cual es un argumento «n»").toEqual([]);
+    });
   }
+  it("la regla del \\n suelto distingue las comillas", () => {
+    expect(nSueltas("gh issue list --repo x \\n            --search y")).toHaveLength(1);
+    expect(nSueltas("cmd a \\n")).toHaveLength(1);
+    expect(nSueltas("printf '%s\\n' x")).toEqual([]);
+    expect(nSueltas('echo "a\\nb" | jq -r ".x"')).toEqual([]);
+    expect(nSueltas("gh issue list \\\n  --search y")).toEqual([]);
+  });
   it("detecta el fallo del 10 oct (printf con saltos de línea de verdad) y lo explica", () => {
     const roto = ["jobs:", "  a:", "    steps:", "      - run: |", "          printf '", "%s", "' \"x\" >> f", "      - run: echo"].join("\n");
     const p = problemas(roto);

@@ -113,17 +113,17 @@ jobs:
           titulo="Flujo: informe semanal"
           informe="$RUNNER_TEMP/salida/informe.md"
           # Autor (el bot) y título EXACTO: la búsqueda de GitHub es difusa y cualquiera puede abrir un issue parecido.
-          if ! lista=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" \n            --search "\"$titulo\" in:title" --json number,title \n            --jq "map(select(.title==\"$titulo\"))[0].number // empty"); then
+          if ! lista=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" --search "\"$titulo\" in:title" --json number,title --jq "map(select(.title==\"$titulo\"))[0].number // empty"); then
             echo "::warning::No se pudo buscar el issue del informe; no se crea otro. Queda en el resumen del run."
             exit 0
           fi
           issue="$lista"
           if [ -z "$issue" ]; then
-            issue=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" \n              --body "Un comentario por semana (.github/workflows/flujo-semanal.yml): cumplimiento del flujo y salud de las skills. Un indicador fuera de umbral se registra como caso con npm run issues -- --nuevo." \n              | grep -oE '[0-9]+$') || { echo "::warning::No se pudo abrir el issue del informe."; exit 0; }
+            issue=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" --body "Un comentario por semana (.github/workflows/flujo-semanal.yml): cumplimiento del flujo y salud de las skills. Un indicador fuera de umbral se registra como caso con npm run issues -- --nuevo." | grep -oE '[0-9]+$') || { echo "::warning::No se pudo abrir el issue del informe."; exit 0; }
           fi
           # Indicadores que disparan ahora y los del último comentario del bot (marca oculta): solo se menciona si hay uno nuevo.
           ahora=$(grep -E '^indicador: .* estado: dispara' "$informe" | awk '{print $2}' | sort -u | paste -sd, - || true)
-          if previo=$(gh issue view "$issue" --repo "$GITHUB_REPOSITORY" --json comments \n            --jq '[.comments[] | select(.author.login=="github-actions") | .body] | last // ""'); then
+          if previo=$(gh issue view "$issue" --repo "$GITHUB_REPOSITORY" --json comments --jq '[.comments[] | select(.author.login=="github-actions") | .body] | last // ""'); then
             previo=$(printf '%s' "$previo" | grep -oE 'flujo:dispara=[a-z_,]*' | tail -1 | cut -d= -f2 || true)
             aviso=""
             for id in $(printf '%s' "$ahora" | tr ',' ' '); do
@@ -133,4 +133,4 @@ jobs:
             aviso="" # sin poder ver el comentario anterior no se menciona: el issue notifica a quien lo sigue
           fi
           printf '%s\n\n<!-- flujo:dispara=%s -->\n%s\n\nRun: %s\n' "$(cat "$informe")" "$ahora" "$aviso" "$RUN_URL" > "$RUNNER_TEMP/comentario.md"
-          gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comentario.md" >/dev/null \n            && echo "Informe publicado en el issue #$issue" \n            || echo "::warning::No se pudo publicar el informe"
+          if gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comentario.md" >/dev/null; then echo "Informe publicado en el issue #$issue"; else echo "::warning::No se pudo publicar el informe"; fi
