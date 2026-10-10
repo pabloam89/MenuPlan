@@ -19,7 +19,9 @@
  *    defecto): la ventana es de una semana.
  *  - Un comando «de riesgo» se reconoce con el mismo mapa que la guardia
  *    (`.claude/dominios-skills.json`), con sus mismos falsos positivos (un
- *    `git commit -m` que nombra `apply-migration`).
+ *    `git commit -m` que nombra `apply-migration`), menos el texto entre
+ *    comillas, que se quita: un comando metido entero entre comillas
+ *    (`bash -c "…"`) no se cuenta.
  *  - Una sesión es un fichero; un PR no se puede atar a una sesión con
  *    seguridad (la rama del transcript es la del arranque, y un subagente en
  *    worktree lleva la del padre): por eso no se cuentan PR, sino sesiones.
@@ -86,12 +88,14 @@ const SOLO_LECTURA =
   /^(?:cd|ls|cat|head|tail|grep|rg|wc|echo|find|pwd|sleep|sed\s+-n|git\s+(?:diff|log|show|status|grep|fetch|ls-files|rev-parse|rev-list|branch|worktree\s+list)|gh\s+(?:pr|issue)\s+(?:view|list|checks|diff)|gh\s+run\s+(?:view|list|watch))(?:\s|$)/;
 export function comandoQueCuenta(cmd) {
   const sinTexto = String(cmd ?? "")
-    .replace(/<<-?\s*(['"]?)(\w+)\1[\s\S]*?\n\s*\2(?=\s|$)/g, "")
+    // El cuerpo del heredoc sí se va; lo que sigue a `<<EOF` en su línea (`| gh secret set X`) se queda.
+    .replace(/<<-?\s*(['"]?)(\w+)\1([^\n]*)\n[\s\S]*?\n\s*\2(?=\s|$)/g, "$3")
     .replace(/"(?:[^"\\]|\\.)*"|'[^']*'/g, '""');
   return sinTexto
     .split(/&&|\|\||[;|\n]/)
-    .map((t) => t.trim().replace(/^(?:\w+=\S*\s+)+/, ""))
-    .filter((t) => t && !SOLO_LECTURA.test(t))
+    .map((t) => t.trim())
+    // Las asignaciones de delante (OPS_DB_URL=… node …) se quedan: también casan con el mapa.
+    .filter((t) => t && !SOLO_LECTURA.test(t.replace(/^(?:\w+=\S*\s+)+/, "")))
     .join(" && ");
 }
 

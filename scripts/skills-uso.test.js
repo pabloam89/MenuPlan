@@ -83,6 +83,9 @@ describe("eventosDeTranscript: qué cuenta como tocar un dominio", () => {
     ];
     expect(ev(l).toques.map((x) => x.skill)).toEqual(["telegram"]);
     expect(comandoQueCuenta("cd x && ls && git diff")).toBe("");
+    // Lo de riesgo que va tras el heredoc o con una variable delante sí cuenta.
+    expect(ev([herramienta("Bash", { command: "cat <<EOF | node scripts/telegram-webhook.mjs set https://x\nhola\nEOF" })]).toques).toHaveLength(1);
+    expect(comandoQueCuenta("OPS_DB_URL=x node scripts/a.mjs")).toBe("OPS_DB_URL=x node scripts/a.mjs");
   });
 
   it("lo que acabó en error no cuenta: la guardia que niega para pedir la skill, o el comando que falla (#397)", () => {
