@@ -49,7 +49,11 @@ Aquí no se repiten. Una sola rareza que conviene saber:
   esperado, no un fallo. El gateway tiene crédito de pago desde el 1 oct 2026.
 
 El acceso a Vercel desde Claude es el conector de claude.ai (equipo y proyecto de
-arriba). La CLI `vercel` no está instalada en este PC.
+arriba). La CLI `vercel` sí está instalada en el PC de Pablo (npm global), pero
+**sin sesión**: Pablo entra con `! npx vercel login` cuando la necesita y sale
+al terminar. La guardia niega a las sesiones bajar o listar las variables de
+Production (`vercel env pull|ls … production`, `vercel pull --environment=production`):
+llevan la clave de administrador de la base y el token del bot (#332).
 
 ## Operaciones habituales
 
@@ -108,6 +112,14 @@ arriba). La CLI `vercel` no está instalada en este PC.
   CLI se crea con scope **«Full Account»**, que cubre la cuenta y el equipo,
   y a 90 días (ficha «Vercel Vigía»). Comprobado: con él, `vercel logs` lee y
   el vigía cerró el incidente.
+
+- **2026-10-09 · la CLI tenía la sesión de Pablo abierta (Owner)** y esta
+  skill decía que la CLI no estaba instalada. Causa: un login antiguo que se
+  quedó en el AppData de Windows (carpeta com.vercel.cli); cualquier sesión podía
+  bajarse las variables de Production (lo vio el juez `seguridad`, #332).
+  Arreglo: `vercel logout` el 10 oct (comprobado: el fichero de sesión ya no existe y
+  `whoami` da «Logged out») y la regla de la guardia que niega
+  `vercel env pull|ls … production`, con su test en `guardia.test.js`.
 
 ## Qué requiere el OK de Pablo
 

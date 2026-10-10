@@ -73,6 +73,22 @@ const REGLAS_COMANDO = [
     da: () => deny("Los issues se crean con `npm run issues -- --nuevo \"título\" --tipo … --area … --cuerpo <fichero>`: antes de crear enseña los parecidos, y a Pablo le asigna las decisiones. Si ya existe uno, comenta allí."),
   },
   {
+    // El 9 oct 2026 el PC tenía la CLI de Vercel con la sesión de Pablo (Owner):
+    // cualquier sesión podía bajarse las variables de Production (service role,
+    // URL de administrador, token del bot). No se ancla el ejecutable: `npx -y`,
+    // `--scope x` delante, `vercel.cmd`, la ruta entera o `cmd /c` también
+    // cuentan. Producción se mira solo como valor de -e/--environment/--target
+    // (o tras `env ls`), no en un nombre de fichero. Es una lista negra: quien
+    // parta el texto adrede se la salta; la defensa de fondo es que la CLI del
+    // PC no tenga sesión (skill `vercel`). Un commit o un echo no cuentan (#332).
+    si: (o) =>
+      /\bvercel\b/i.test(o) && !/^(git|echo|gh|grep|rg)\b/.test(o) &&
+      ((/\benv\s+(pull|run|ls|list)\b|(^|\s)pull\b/i.test(o) &&
+        (/(^|\s)(-e|--environment|--target)(=|\s+)['"]?prod(uction)?\b/i.test(o) || /\benv\s+(ls|list)\s+['"]?prod(uction)?\b/i.test(o))) ||
+        /\bapi\b.*(\bdecrypt\b|\/env\b)/i.test(o)),
+    da: () => deny("Las variables de Production de Vercel son solo de Pablo (#332): tienen la clave de administrador de la base y el token del bot. Para desarrollo usa `.env.local` (direcciones `op://`); si de verdad hace falta Production, dale el comando a Pablo para que lo lance con `!`."),
+  },
+  {
     // PowerShell 5.1 escribe UTF-8 con BOM y destroza los acentos.
     si: (o) => /\b(Set-Content|Out-File|Add-Content)\b/i.test(o) && !/\b(temp|tmp|scratchpad)\b/i.test(o),
     da: () => deny("Set-Content/Out-File/Add-Content rompen los acentos y meten BOM en los ficheros del repo. Edita con la herramienta Edit/Write."),
