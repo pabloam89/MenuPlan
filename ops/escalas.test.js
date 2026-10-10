@@ -143,6 +143,13 @@ describe("la escala y la escalera no se escriben a mano en otro sitio", () => {
     expect(copiasDeEscalas('dura' + ' '.repeat(60) + 'semidura' + ' '.repeat(60) + 'blanda')).toEqual([]);
   });
 
+  it("el detector cuenta palabras enteras: ni prefijos, ni sufijos, ni plurales", () => {
+    expect(copiasDeEscalas("bloqueos, textos y scripts")).toEqual([]);
+    expect(copiasDeEscalas("xbloqueo test_ci skill")).toEqual([]);
+    expect(copiasDeEscalas("a_bloqueo b_test_ci c_script")).toEqual([]);
+    expect(copiasDeEscalas("semiduras, duras y blandas")).toEqual([]);
+  });
+
   it("el detector no se queja de un valor suelto ni de ids que no están juntos", () => {
     expect(copiasDeEscalas('{ "veredicto": "dura", "riesgo": "alto" }')).toEqual([]);
     expect(copiasDeEscalas('{ "escalon": "bloqueo", "ejecutor": "guardia" }')).toEqual([]);

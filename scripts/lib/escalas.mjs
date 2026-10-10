@@ -90,7 +90,8 @@ export const ANCLAS_ESCALERA = ["bloqueo", "test_ci"];
  */
 export function copiasDeEscalas(texto) {
   const hay = (ids, anclas) => {
-    const palabras = new RegExp(`(?<![\w-])(${ids.join("|")})(?![\w-])`, "g");
+    // String.raw: en una plantilla normal «\w» se queda en «w» y el límite de palabra no funciona.
+    const palabras = new RegExp(String.raw`(?<![\w-])(${ids.join("|")})(?![\w-])`, "g");
     const vistos = [...texto.matchAll(palabras)].map((m) => [m.index, m[1]]);
     return vistos.some(([desde], i) => {
       const dentro = vistos.slice(i).filter(([pos]) => pos - desde <= VENTANA_COPIA).map(([, id]) => id);
