@@ -87,6 +87,28 @@ export function entornoOp(base = process.env) {
 }
 
 /**
+ * El ÚNICO camino a la app de escritorio de 1Password (#328): `op` sin token,
+ * que le saca a Pablo una ventana de aprobación. Solo con MENUPLAN_OP_PABLO=1;
+ * sin ella no llama a `op` y devuelve un error que lo explica. Nadie más en
+ * `scripts/` borra el token a mano (lo vigila un test). Devuelve lo mismo que
+ * `spawnSync`: `status`, `stdout`, `stderr` y, si no hay `op`, `error`.
+ */
+export function opPorLaApp(args, { input } = {}) {
+  if (process.env[VAR_OP_PABLO] !== "1") {
+    return { status: 1, stdout: "", stderr: `la app de escritorio de 1Password es solo de Pablo: lánzalo tú, desde tu terminal, con ${VAR_OP_PABLO}=1 (skill 1password)` };
+  }
+  const env = { ...process.env };
+  delete env.OP_SERVICE_ACCOUNT_TOKEN;
+  try {
+    const stdout = execFileSync("op", args, { env, encoding: "utf8", input, stdio: ["pipe", "pipe", "pipe"] });
+    return { status: 0, stdout, stderr: "" };
+  } catch (e) {
+    // Un fallo de `op` (no autorizado, no existe) o que no esté instalado: se devuelve, no se lanza.
+    return { status: e.status ?? 1, stdout: String(e.stdout ?? ""), stderr: String(e.stderr ?? e.message ?? ""), error: e.code ? { code: e.code, message: e.message } : undefined };
+  }
+}
+
+/**
  * Las dos bóvedas de MenuPlan (#299, #328): la de las sesiones, con solo lo
  * que necesitan, y la de Pablo, con lo de administración.
  */

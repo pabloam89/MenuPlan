@@ -19,7 +19,7 @@ import { spawnSync } from "node:child_process";
 import { appendFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { RAIZ } from "./lib/env.mjs";
+import { RAIZ, opPorLaApp } from "./lib/env.mjs";
 import { BOVEDA_COPIAS, CAMPO_CLAVE, CLAVE_PRIVADA, CLAVE_PUBLICA, FICHA_COPIAS, comprobarDestinatarios } from "./lib/copias.mjs";
 import { estadoFicha } from "./lib/rolLectura.mjs";
 
@@ -27,13 +27,11 @@ const SI = process.argv.includes("--si");
 const DESTINATARIOS = join(RAIZ, "ops", "copias", "destinatarios.txt");
 const salir = (msg) => { console.error(msg); process.exit(1); };
 
-// Sin la service account: solo lee HoMenu, y para escribir hace falta la app.
-const envOp = { ...process.env };
-delete envOp.OP_SERVICE_ACCOUNT_TOKEN;
+// Sin la service account: solo lee HoMenu, y para escribir hace falta la app (opPorLaApp).
 
 if (process.argv.includes("--comprobar")) {
   // Solo el campo público (texto, no oculto): no hace falta leer la privada.
-  const p = spawnSync("op", ["item", "get", FICHA_COPIAS, "--vault", BOVEDA_COPIAS, "--fields", "label=clave_publica"], { encoding: "utf8", env: envOp });
+  const p = opPorLaApp(["item", "get", FICHA_COPIAS, "--vault", BOVEDA_COPIAS, "--fields", "label=clave_publica"]);
   if (p.status !== 0) salir(`No pude leer la ficha «${FICHA_COPIAS}»: ${(p.stderr || "").trim().split(/\r?\n/)[0]}`);
   const c = comprobarDestinatarios(readFileSync(DESTINATARIOS, "utf8"), p.stdout);
   if (c.coincide) {
@@ -46,7 +44,7 @@ if (process.argv.includes("--comprobar")) {
 const v = spawnSync("age-keygen", ["--version"], { encoding: "utf8" });
 if (v.status !== 0) salir("No encuentro age-keygen: winget install FiloSottile.age y reinicia el terminal.");
 
-const ficha = estadoFicha(spawnSync("op", ["item", "get", FICHA_COPIAS, "--vault", BOVEDA_COPIAS, "--format", "json"], { encoding: "utf8", env: envOp }));
+const ficha = estadoFicha(opPorLaApp(["item", "get", FICHA_COPIAS, "--vault", BOVEDA_COPIAS, "--format", "json"]));
 if (ficha === "existe") salir(`La ficha «${FICHA_COPIAS}» ya existe en Panel HoMenu: no creo otra. Para rotar, mira la skill hetzner.`);
 if (ficha === "error") salir("No pude preguntar a 1Password si la ficha existe (¿app abierta y desbloqueada?). No sigo: crearla a ciegas podría duplicarla.");
 
@@ -80,11 +78,11 @@ const item = JSON.stringify({
     { id: "clave_publica", type: "STRING", label: "clave_publica", value: publica },
   ],
 });
-const c = spawnSync("op", ["item", "create", "--vault", BOVEDA_COPIAS, "--format", "json", "-"], { input: item, encoding: "utf8", env: envOp });
+const c = opPorLaApp(["item", "create", "--vault", BOVEDA_COPIAS, "--format", "json", "-"], { input: item });
 if (c.status !== 0) salir(`op item create falló: ${(c.stderr || "").trim().split("\n")[0]}. No escribo la pública: sin la privada guardada no serviría.`);
 
 // Comprobación a ciegas: lo guardado es lo generado.
-const r = spawnSync("op", ["read", `op://${BOVEDA_COPIAS}/${FICHA_COPIAS}/${CAMPO_CLAVE}`], { encoding: "utf8", env: envOp });
+const r = opPorLaApp(["read", `op://${BOVEDA_COPIAS}/${FICHA_COPIAS}/${CAMPO_CLAVE}`]);
 if (r.status !== 0 || r.stdout.trim() !== privada) salir("La ficha se creó pero al leerla no coincide: revísala en 1Password antes de seguir. No escribo la pública.");
 
 appendFileSync(DESTINATARIOS, `${publica}\n`);

@@ -23,7 +23,7 @@
  */
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import { BOVEDA_PABLO, BOVEDA_SESIONES, VAR_OP_PABLO, entornoOp, tokenServicio } from "./lib/env.mjs";
+import { BOVEDA_PABLO, BOVEDA_SESIONES, VAR_OP_PABLO, entornoOp, opPorLaApp, tokenServicio } from "./lib/env.mjs";
 import { estadoFicha } from "./lib/rolLectura.mjs";
 
 export { BOVEDA_PABLO, BOVEDA_SESIONES };
@@ -75,19 +75,19 @@ function opServicio(args) {
   }
   return spawnSync("op", args, { env, encoding: "utf8" });
 }
-/** `op` por la app de escritorio, sin token: pide aprobar a Pablo. */
-function opApp(args, input) {
-  const { OP_SERVICE_ACCOUNT_TOKEN: _, ...env } = process.env;
-  return spawnSync("op", args, { env: { ...env, [VAR_OP_PABLO]: "1" }, encoding: "utf8", input });
-}
+/** `op` por la app de escritorio (pide aprobar a Pablo): el único camino es `opPorLaApp`, que exige MENUPLAN_OP_PABLO=1. */
+const opApp = (args, input) => opPorLaApp(args, { input });
 const motivo = (r) => (r.error?.message || r.stderr || "").trim().split("\n")[0];
 
-/** Lee la ficha de HoMenu: con la service account y, si no puede, por la app. */
-function leerOrigen(ficha) {
+/**
+ * Lee la ficha de HoMenu: con la service account y, solo con --si, por la app.
+ * El ensayo nunca abre la app: sacaría una ventana a Pablo por cada ficha.
+ */
+function leerOrigen(ficha, si) {
   const args = ["item", "get", ficha, "--vault", BOVEDA_PABLO, "--format", "json"];
   let r = opServicio(args);
-  if (r.status !== 0) r = opApp(args);
-  if (r.status !== 0) throw new Error(`no puedo leer «${ficha}» de ${BOVEDA_PABLO}: ${motivo(r)}`);
+  if (r.status !== 0 && si) r = opApp(args);
+  if (r.status !== 0) throw new Error(`no puedo leer «${ficha}» de ${BOVEDA_PABLO}: ${motivo(r)}${si ? "" : " (el ensayo no abre la app de escritorio; con --si, desde tu terminal y con MENUPLAN_OP_PABLO=1)"}`);
   return JSON.parse(r.stdout);
 }
 
@@ -95,7 +95,7 @@ function copiar(si) {
   let fallos = 0;
   for (const { ficha, campos } of COPIAR) {
     try {
-      const nueva = fichaCopia(leerOrigen(ficha), campos);
+      const nueva = fichaCopia(leerOrigen(ficha, si), campos);
       // El ensayo no mira el destino: eso pasa por la app y le saltaría una ventana a Pablo.
       if (!si) { console.log(`copiaría «${ficha}» (${campos.join(", ")}) → ${BOVEDA_SESIONES}, si no existe ya`); continue; }
       const destino = estadoFicha(opApp(["item", "get", ficha, "--vault", BOVEDA_SESIONES, "--format", "json"]));

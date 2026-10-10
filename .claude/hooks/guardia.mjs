@@ -32,6 +32,24 @@ const ask = (motivo) => ({ decision: "ask", motivo });
 /** Separa `a && b; c | d` para mirar cada orden por su cuenta. */
 const ordenes = (cmd) => cmd.split(/&&|\|\||;|\n|\|/).map((s) => s.trim()).filter(Boolean);
 
+// El ejecutable `op`, con o sin ruta y `.exe`, y con o sin comillas.
+const OP_EXE = String.raw`(?:"[^"]*[\\/]op(?:\.exe)?"|'[^']*[\\/]op(?:\.exe)?'|["']?(?:[^\s"']*[\\/])?op(?:\.exe)?["']?)(?=\s|$)`;
+const OP_AL_PRINCIPIO = new RegExp(String.raw`^(?:\w+=\S*\s+)*(?:env\s+(?:-\S+\s+|\w+=\S*\s+)*)?(?:&\s*|call\s+)?` + OP_EXE, "i");
+const OP_ANIDADO = new RegExp(String.raw`(?:\$\(|\x60|!)\s*` + OP_EXE, "i");
+const OP_EN_SHELL = new RegExp(String.raw`\b(?:bash|sh|zsh|cmd|powershell|pwsh)(?:\.exe)?\b.*(?:\s-c|\s/c|\s-command)\b.*[\s"'&;]` + OP_EXE, "i");
+
+/** #328: ¿esta orden lanza `op` por la app o nombra lo que es solo de Pablo? */
+export function opDeSesion(o) {
+  if (/^(git|gh|grep|rg)\b/.test(o) && !/\$\(|\x60|\balias[.\s]/.test(o)) return false;
+  return OP_AL_PRINCIPIO.test(o) || OP_ANIDADO.test(o) || OP_EN_SHELL.test(o)
+    || /\b(MENUPLAN_OP_PABLO|OP_SIN_SERVICIO|OP_SERVICE_ACCOUNT_TOKEN)\b/.test(o)
+    || /op:\/\/[\s"']*homenu(?![-\w])/i.test(o)
+    || /--vault[=\s]+["']?homenu(?![-\w])/i.test(o)
+    || /op:\/\/["']?[a-z0-9]{26}\b/i.test(o)
+    || /--vault[=\s]+["']?[a-z0-9]{26}\b/i.test(o)
+    || /\bitem\s+(?:get|edit|share|delete)\s+["']?[a-z0-9]{26}\b/i.test(o);
+}
+
 const REGLAS_COMANDO = [
   {
     // main es producción. Ni push ni push forzado, por ninguna variante.
@@ -91,15 +109,17 @@ const REGLAS_COMANDO = [
   {
     // #328: la cuenta de servicio de las sesiones solo lee HoMenu-sesiones; lo
     // de HoMenu (URL de administrador, bot, Blob…) solo se lee por la app de
-    // escritorio, aprobando Pablo. Si una sesión pudiera pedirlo (sin el token,
-    // con MENUPLAN_OP_PABLO o con una dirección op://HoMenu/), a Pablo le
-    // saldría una ventana igual que las suyas. Por orden: un commit, un grep o
-    // un comentario de gh que lo nombran no cuentan (como la regla de Vercel).
-    // Pablo lo lanza con `!`, que no pasa por aquí.
-    si: (o) =>
-      !/^(git|gh|grep|rg)\b/.test(o) &&
-      (/\b(MENUPLAN_OP_PABLO|OP_SIN_SERVICIO|OP_SERVICE_ACCOUNT_TOKEN)\b/.test(o) || /op:\/\/homenu\//i.test(o)),
-    da: () => deny("Eso es de Pablo (#328): las sesiones leen 1Password solo con la cuenta de servicio de `HoMenu-sesiones`. Ni `MENUPLAN_OP_PABLO`, ni tocar `OP_SERVICE_ACCOUNT_TOKEN`, ni direcciones `op://HoMenu/`. Si hace falta algo de producción, dale a Pablo el comando para que lo lance con `!`."),
+    // escritorio, aprobando Pablo. Si una sesión pudiera pedirlo, a Pablo le
+    // saldría una ventana igual que las suyas. Qué se niega: `opDeSesion`.
+    // Por orden: un commit, un grep o un comentario de gh que lo nombran no
+    // cuentan (como la regla de Vercel), salvo que la orden lleve `$(`,
+    // comillas invertidas o `alias`. Pablo lo lanza desde su propia terminal.
+    // ACEPTADO por escrito (ronda 3 de #328): es un filtro de buena fe; quien
+    // parta el texto adrede se lo salta. La barrera de fondo es que la
+    // integración de la CLI de 1Password esté apagada fuera de las operaciones
+    // de Pablo.
+    si: opDeSesion,
+    da: () => deny("Eso es de Pablo (#328): las sesiones leen 1Password solo con la cuenta de servicio de `HoMenu-sesiones` y siempre por `npm run op -- …` (nunca `op` a pelo: sin token iría por la app y le sacaría una ventana a Pablo). Ni `MENUPLAN_OP_PABLO`, ni tocar `OP_SERVICE_ACCOUNT_TOKEN`, ni `op://HoMenu`. Si hace falta algo de producción, dale a Pablo el comando para que lo lance desde su propia terminal."),
   },
   {
     // PowerShell 5.1 escribe UTF-8 con BOM y destroza los acentos.

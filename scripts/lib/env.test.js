@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 // `op` de mentira: responde a `op inject` con «VALOR-de-<dirección>» y apunta
 // cada llamada, para ver cuántas se hacen y con qué token.
@@ -10,6 +11,12 @@ vi.mock("node:child_process", () => ({
   execFileSync: (cmd, args, opts) => {
     llamadas.push({ cmd, args, token: opts?.env?.OP_SERVICE_ACCOUNT_TOKEN, input: opts?.input });
     if (cmd !== "op") throw new Error(`no se esperaba ${cmd}`);
+    if (!opts?.input) {
+      // Una llamada sin plantilla (opPorLaApp): apunta y devuelve o falla a voluntad.
+      if (globalThis.__sinOp) throw Object.assign(new Error("spawn op ENOENT"), { code: "ENOENT" });
+      if (globalThis.__falloApp) throw Object.assign(new Error("Command failed"), { status: 1, stdout: "", stderr: "[ERROR] no autorizado\nsegunda linea" });
+      return `salida de op ${args.join(" ")}`;
+    }
     if (globalThis.__sinOp) throw Object.assign(new Error("spawn op ENOENT"), { code: "ENOENT" });
     // Como `op inject`: basta una dirección que no existe para que falle entera.
     const mala = [...globalThis.__noExisten].find((ref) => opts.input.includes(`{{ ${ref} }}`));
@@ -18,7 +25,7 @@ vi.mock("node:child_process", () => ({
   },
 }));
 
-const { cargarEnv, enOtraBoveda, esReferencia, leerEnv, leerFichero } = await import("./env.mjs");
+const { cargarEnv, enOtraBoveda, esReferencia, leerEnv, leerFichero, opPorLaApp } = await import("./env.mjs");
 
 const NOMBRES = ["PRUEBA_A", "PRUEBA_B", "PRUEBA_C", "PRUEBA_LLANA", "PRUEBA_D", "PRUEBA_E", "PRUEBA_F", "PRUEBA_G"];
 beforeEach(() => {
@@ -184,5 +191,40 @@ describe("sin token, falla cerrado (#328)", () => {
     } finally {
       delete process.env.MENUPLAN_OP_PABLO;
     }
+  });
+});
+
+describe("opPorLaApp: el único camino a la app de escritorio (#328)", () => {
+  it("sin MENUPLAN_OP_PABLO=1 no llama a op: la app solo es de Pablo", () => {
+    const r = opPorLaApp(["vault", "list"]);
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toMatch(/MENUPLAN_OP_PABLO=1/);
+    expect(llamadas).toEqual([]);
+  });
+
+  it("con la variable, llama a op sin token aunque lo haya, y devuelve estado, salida y error", () => {
+    process.env.MENUPLAN_OP_PABLO = "1";
+    try {
+      const bien = opPorLaApp(["vault", "list"]);
+      expect(bien).toMatchObject({ status: 0, stdout: "salida de op vault list" });
+      expect(llamadas.at(-1).token).toBeUndefined();
+      globalThis.__falloApp = true;
+      expect(opPorLaApp(["read", "op://x/y/z"])).toMatchObject({ status: 1, stderr: expect.stringContaining("no autorizado") });
+      globalThis.__sinOp = true;
+      expect(opPorLaApp(["whoami"]).error?.code).toBe("ENOENT");
+    } finally {
+      delete process.env.MENUPLAN_OP_PABLO;
+      globalThis.__falloApp = false;
+    }
+  });
+
+  it("no queda ningún otro camino a la app en los scripts: nadie borra el token a mano", () => {
+    const aqui = dirname(fileURLToPath(import.meta.url));
+    const sueltos = [];
+    for (const f of ["..", "."].flatMap((d) => readdirSync(join(aqui, d)).filter((x) => x.endsWith(".mjs")).map((x) => join(aqui, d, x)))) {
+      if (f.endsWith("env.mjs")) continue;
+      if (/delete\s+\w+\.OP_SERVICE_ACCOUNT_TOKEN|OP_SERVICE_ACCOUNT_TOKEN:\s*_/.test(readFileSync(f, "utf8"))) sueltos.push(f);
+    }
+    expect(sueltos).toEqual([]);
   });
 });

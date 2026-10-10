@@ -108,24 +108,37 @@ conversación. Se pasa por tubería (stdin) entre dos procesos.
 
 ### Bóveda de sesiones (#328): pasos de Pablo, en orden
 
-Con `!`, en `/c/dev/MenuPlan-boveda-sesiones` hasta fusionar y luego en la
-carpeta principal al día. Sin una ventana de aprobación abierta a medias.
+**Lo que pasa por la app de escritorio** (pasos 2 y 5) **se lanza desde una
+PowerShell aparte, fuera de Claude Code**, con la integración de la CLI
+encendida solo mientras dura (App → Ajustes → Desarrollador → «Integrar con
+1Password CLI»). Un `!` dentro de Claude Code cuelga del mismo proceso que el
+Bash de las sesiones y podría compartir la aprobación. Las sesiones no pueden
+lanzar `op` ni `opPorLaApp`: la guardia lo niega. Una ventana de aprobación que
+no has lanzado tú: no la apruebes.
 
 1. App de 1Password → **Nueva bóveda** → `HoMenu-sesiones` (con guion).
-2. `node scripts/boveda-sesiones.mjs` (ensayo) y `--si`: copia las 8 fichas
-   de `COPIAR`, una línea `COINCIDEN` cada una.
+2. PowerShell aparte, en `C:\dev\MenuPlan-boveda-sesiones`:
+   `node scripts/boveda-sesiones.mjs` (ensayo, no abre la app) y luego
+   `$env:MENUPLAN_OP_PABLO = "1"; node scripts/boveda-sesiones.mjs --si`:
+   copia las 8 fichas de `COPIAR`, una línea `COINCIDEN` cada una.
 3. **Mover** (no copiar) a `HoMenu-sesiones` la clave de la App de E1 (#327),
    como Documento `GitHub App homenu-sesiones`.
-4. Fusionar el PR de #328 (plantilla, guardia, plan B y fallo cerrado).
-5. `op service-account create "MenuPlan sesiones" --vault HoMenu-sesiones:read_items --raw | node scripts/llavero-op.mjs` → `COINCIDEN`.
-6. `node scripts/boveda-sesiones.mjs --comprobar` → todo `BIEN`.
+4. Fusionar el PR de #328 (plantilla, guardia, plan B y fallo cerrado) y poner
+   al día la carpeta principal: `git fetch origin; git merge --ff-only origin/staging`.
+5. PowerShell aparte, en `C:\dev\MenuPlan`:
+   `op service-account create "MenuPlan sesiones" --vault HoMenu-sesiones:read_items --raw | node scripts/llavero-op.mjs` → `COINCIDEN`.
+6. `node scripts/boveda-sesiones.mjs --comprobar` → todo `BIEN` (solo usa la
+   cuenta nueva y falla cerrado).
 7. En la misma sentada: 1Password.com → Developer → Service accounts → anular
    «MenuPlan PC Pablo».
-8. `.env.local` nuevo en cada carpeta (el plan B ya cubría el viejo):
-   `cp ops/env.1password` sobre el `.env.local` de cada `git worktree list`.
-9. App → Ajustes → Desarrollador → **apagar «Integrar con 1Password CLI»**. Se
-   enciende solo mientras Pablo usa `MENUPLAN_OP_PABLO` y se apaga al acabar:
-   si está encendida, una sesión puede pedir ventanas iguales a las suyas.
+8. **Los `.env.local` viejos no se tocan**: el plan B resuelve sus direcciones
+   desde `HoMenu-sesiones` y deja una línea `env-boveda … respaldo`. Las
+   carpetas nuevas salen ya con la plantilla nueva (`npm run tarea`). Así no se
+   pierden el puerto ni los flags de staging que puso `npm run tarea`.
+9. **Apagar «Integrar con 1Password CLI»** al terminar, y encenderla solo
+   mientras Pablo use `MENUPLAN_OP_PABLO`. Encendida, una sesión podría pedir
+   ventanas iguales a las suyas: esa es la barrera real; la guardia es un
+   filtro de buena fe.
 
 Desde el paso 5 las sesiones no leen la URL de administrador:
 `bot-coste`, `bot-medidas`, `bot-panel`, `lola-feedback`, `router-feedback`
