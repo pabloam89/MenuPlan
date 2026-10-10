@@ -11,7 +11,7 @@ import {
 } from "../scripts/lib/forja.mjs";
 import { leerJuicios, vocabulariosDeJuicio } from "../scripts/lib/juiciosSkills.mjs";
 import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaReferencia.mjs";
-import { ORIGENES } from "../scripts/lib/estandaresAgentes.mjs";
+import { ACCIONES, ORIGENES } from "../scripts/lib/estandaresAgentes.mjs";
 import { nombresDeSkills, parsearSkill } from "../scripts/lib/skills.mjs";
 
 /**
@@ -210,16 +210,19 @@ const existeFicha = (tipo, v) => {
   if (tipo === "agente") return existe(`.claude/agents/${v}.md`);
   if (tipo === "ruta") return existe(v);
   if (tipo === "fuente") return v in estandares.fuentes;
+  if (tipo === "estandar_comun") return v in estandares.comunes;
   return false;
 };
 const ctxCampos = {
   existe: existeFicha,
+  sujetos: estandares.sujetos,
   vocabularios: {
     niveles: Object.keys(datos.niveles),
     tipos_skill: datos.tipos_skill.map((t) => t.id),
     libertad: Object.keys(datos.libertad),
     invocacion: Object.keys(datos.invocacion),
     origen_tarea: ORIGENES,
+    accion_tarea: ACCIONES,
     modelo_agente: ["inherit", "opus", "sonnet", "haiku"],
   },
 };
@@ -269,12 +272,15 @@ describe("campos de las fichas: lo que ya existe cumple lo que declara campos_fi
     expect(campos.sujeto.clase).toBe("enum");
     expect(campos.fuerza.clase).toBe("enum");
   });
-  it("las clases son las seis acordadas", () => expect(Object.keys(CLASES_CAMPO)).toEqual(["bool", "enum", "ref", "numero", "fecha", "texto"]));
-  it("los campos de estándares que Pablo nombró: tres huecos de texto, un enum y una ref", () => {
+  it("las clases son las siete acordadas (la séptima, regla, entró con los estándares por campos, #516)", () => expect(Object.keys(CLASES_CAMPO)).toEqual(["bool", "enum", "ref", "numero", "fecha", "texto", "regla"]));
+  it("los campos de estándares (#516): dos huecos de texto, dos enum, una ref y las reglas por campos", () => {
     const c = datos.campos_ficha.estandar.campos;
-    for (const k of ["estandar", "comprueba", "no_hace"]) expect(c[k]).toMatchObject({ clase: "texto", hueco: true });
+    for (const k of ["tarea", "no_hace", "rondas"]) expect(c[k]).toMatchObject({ clase: "texto", hueco: true });
     expect(c.origen.clase).toBe("enum");
-    expect(c.fuentes.clase).toBe("ref");
+    expect(c.accion).toMatchObject({ clase: "enum", vocab: "accion_tarea", obligatorio: true });
+    expect(c.comunes).toMatchObject({ clase: "ref", ref: "estandar_comun", lista: true });
+    expect(c.reglas).toMatchObject({ clase: "regla", lista: true, obligatorio: true });
+    for (const retirado of ["estandar.estandar", "estandar.comprueba", "estandar.fuentes"]) expect(Object.keys(c).includes(retirado.split(".")[1]), retirado).toBe(false);
     for (const k of ["tipo", "dueno", "comprobado"]) expect(datos.campos_ficha.skill.campos[k]).toBeDefined();
   });
 });
@@ -289,10 +295,10 @@ describe("autotest de los campos: cada regla falla con datos malos", () => {
   });
   it("un texto sin hueco", () => {
     const d = clon();
-    delete d.campos_ficha.estandar.campos.estandar.hueco;
-    falla(estOk(), "estandar", "estandar.estandar: un texto solo se admite como hueco", d);
+    delete d.campos_ficha.estandar.campos.tarea.hueco;
+    falla(estOk(), "estandar", "estandar.tarea: un texto solo se admite como hueco", d);
     const e = clon();
-    e.campos_ficha.estandar.campos.estandar.cubre = "corto";
+    e.campos_ficha.estandar.campos.tarea.cubre = "corto";
     falla(estOk(), "estandar", "dice en «cubre» qué cubre", e);
     const f = clon();
     f.campos_ficha.skill.campos.comprobado.hueco = true;
@@ -302,6 +308,7 @@ describe("autotest de los campos: cada regla falla con datos malos", () => {
     falla({ ...skillOk(), tipo: "inventado" }, "skill", "skill.tipo: «inventado» no está en el vocabulario");
     falla({ ...skillOk(), libertad: "enorme" }, "skill", "skill.libertad");
     falla({ ...estOk(), origen: "Capricho" }, "estandar", "estandar.origen: «Capricho»");
+    falla({ ...estOk(), accion: "inventar" }, "estandar", "estandar.accion: «inventar» no está en el vocabulario accion_tarea");
     const d = clon();
     d.campos_ficha.skill.campos.tipo.vocab = "no_existe";
     falla(skillOk(), "skill", "«no_existe» no existe", d);
@@ -309,7 +316,7 @@ describe("autotest de los campos: cada regla falla con datos malos", () => {
   it("una ref que no existe: skill, agente, criterio, ruta, comando, issue y fuente", () => {
     falla({ ...skillOk(), dueno: "nadie" }, "skill", "agente «nadie» no existe");
     falla({ ...fichaDeAgente("gobierno"), skills: ["github", "no-existe"] }, "agente", "skill «no-existe» no existe");
-    falla({ ...estOk(), fuentes: ["fuente-inventada"] }, "estandar", "fuente «fuente-inventada» no existe");
+    falla({ ...estOk(), comunes: ["comun-inventada"] }, "estandar", "estandar_comun «comun-inventada» no existe");
     const d = clon();
     d.campos_ficha.skill.campos.extra = { clase: "ref", ref: "criterio", obligatorio: false };
     d.campos_ficha.skill.campos.donde = { clase: "ref", ref: "ruta", obligatorio: false };
@@ -329,8 +336,10 @@ describe("autotest de los campos: cada regla falla con datos malos", () => {
     const sin = skillOk();
     delete sin.dueno;
     falla(sin, "skill", "skill.dueno: falta (es obligatorio)");
-    falla({ ...estOk(), fuentes: "gg-estandar" }, "estandar", "estandar.fuentes: es una lista");
-    falla({ ...estOk(), comprueba: [] }, "estandar", "la lista está vacía");
+    falla({ ...estOk(), comunes: "buscar-lo-ya-apuntado" }, "estandar", "estandar.comunes: es una lista");
+    falla({ ...estOk(), reglas: [] }, "estandar", "la lista está vacía");
+    falla({ ...estOk(), reglas: [{ ...estOk().reglas[0], sujeto: "inventado" }] }, "estandar", "sujeto «inventado» no está en el vocabulario");
+    falla({ ...estOk(), reglas: [{ ...estOk().reglas[0], exigencia: "La rama sale de staging." }] }, "estandar", "«exigencia» empieza en minúscula");
     falla({ ...estOk(), tarea: 7 }, "estandar", "un texto sin hueco declarado");
     falla({}, "cosa", "no tiene campos_ficha");
   });
@@ -384,9 +393,9 @@ describe("trinquete de los campos (ops/forja-campos.json): de texto a discreto, 
     const d = clon();
     delete d.campos_ficha.skill.campos.libertad;
     expect(problemasDeTrinqueteCampos(d, guardadoCampos).join()).toContain("skill.libertad: ha desaparecido");
-    const con = { ...guardadoCampos, retirados: { "skill.libertad": { motivo: "Pasa a la ficha de skill de #457" } } };
+    const con = { ...guardadoCampos, retirados: { ...guardadoCampos.retirados, "skill.libertad": { motivo: "Pasa a la ficha de skill de #457" } } };
     expect(problemasDeTrinqueteCampos(d, con)).toEqual([]);
-    expect(problemasDeTrinqueteCampos(d, { ...guardadoCampos, retirados: { "skill.libertad": { motivo: "no" } } }).join()).toContain("sin motivo");
+    expect(problemasDeTrinqueteCampos(d, { ...guardadoCampos, retirados: { ...guardadoCampos.retirados, "skill.libertad": { motivo: "no" } } }).join()).toContain("sin motivo");
     expect(problemasDeTrinqueteCampos(clon(), con).join()).toContain("sigue en campos_ficha");
     const n = clon();
     n.campos_ficha.skill.campos.nuevo = { clase: "bool", obligatorio: false };
@@ -397,10 +406,10 @@ describe("trinquete de los campos (ops/forja-campos.json): de texto a discreto, 
 
 describe("cifras: campos discretos frente a huecos", () => {
   it("por artefacto, en la vista y en las cifras", () => {
-    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 13, huecos: 2, total: 15 }, estandar: { discretos: 2, huecos: 5, total: 7 }, agente: { discretos: 3, huecos: 1, total: 4 }, juicio: { discretos: 6, huecos: 1, total: 7 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
+    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 13, huecos: 2, total: 15 }, estandar: { discretos: 4, huecos: 3, total: 7 }, agente: { discretos: 3, huecos: 1, total: 4 }, juicio: { discretos: 6, huecos: 1, total: 7 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
     expect(md).toContain("| skill | 13 | 2 | 15 |");
     expect(md).toContain("| criterio | 2 | 6 | 8 |");
-    expect(md).toContain("| estandar | 2 | 5 | 7 |");
+    expect(md).toContain("| estandar | 4 | 3 | 7 |");
     expect(md).toContain("| juicio | 6 | 1 | 7 |");
   });
   it("FORJA.md dice que la única lista de tipos es la de ops/forja.json y dónde están los moldes", () => {
