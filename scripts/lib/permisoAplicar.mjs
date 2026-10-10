@@ -135,10 +135,7 @@ export function motivosDePablo(sql) {
   // Datos que se pierden o se reescriben.
   if (/\bdrop\s+(?:table|view|materialized\s+view|schema|type|sequence|extension)\b/.test(codigo)) r.push("borra una tabla, vista, esquema, tipo o secuencia");
   if (/\bdrop\s+column\b|\balter\s+table\b[^;]*\bdrop\s+(?!constraint\b|default\b|not\s+null\b)(?:if\s+exists\s+)?[\w"]+/.test(codigo)) r.push("borra una columna");
-  // Excepción estrecha (autoprueba de la 0096, 0092, 0095): se ignora SOLO el literal
-  // que es exactamente la palabra `'truncate'` (un permiso en una lista). Cualquier
-  // otro `truncate`, también dentro de un literal más largo, cuenta.
-  if (/\btruncate\b/.test(codigo.replace(/'truncate'/g, "''"))) r.push("vacía una tabla (`truncate`)");
+  if (/\btruncate\b/.test(codigo)) r.push("vacía una tabla (`truncate`)");
   if (/\bdelete\s+from\b/.test(codigo)) r.push("borra filas (`delete from`)");
   if (/\bupdate\s+[\w."]+\s+set\b/.test(codigo)) r.push("reescribe filas (`update … set`)");
   if (/\balter\s+column\s+[\w"]+\s+(?:set\s+data\s+)?type\b/.test(codigo)) r.push("cambia el tipo de una columna");
@@ -167,8 +164,11 @@ export function motivosDePablo(sql) {
     if (!/security_invoker\s*=\s*(?:true|on)/.test(m[1])) r.push("crea una vista sin `security_invoker` (se salta la RLS)");
   }
   // SQL dinámico: lo que ejecuta no se puede leer aquí.
-  // Cualquier `execute` cuenta, salvo el de un trigger (`execute function|procedure`).
-  if (/\bexecute\b(?!\s+(?:function|procedure)\b)/.test(codigo)) r.push("ejecuta SQL dinámico (`execute`), que este script no puede revisar");
+  // Huecos conocidos de esta clasificación (fondo #174, caso #443), fuera de #440:
+  // el lexer de comillas de `sinComentarios`, los cuerpos de función que se
+  // quitan antes de mirar (un `execute` dentro no se ve) y un `cron.schedule`
+  // con el texto armado por partes. La lista blanca de `anon` no depende de ellos.
+  if (/\bexecute\s+(?:format\s*\(|'|\$)/.test(codigo) || /\bexecute\s+[\w]+\s*;/.test(codigo)) r.push("ejecuta SQL dinámico (`execute`), que este script no puede revisar");
   return [...new Set(r)];
 }
 

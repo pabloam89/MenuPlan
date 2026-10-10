@@ -23,7 +23,8 @@ Las reglas de estructura de las tablas están en `docs/datos/PRINCIPIOS.md`
    de lo que ya existía (#440): quitar a `anon` la plantilla de tablas y
    secuencias nuevas, con `alter default privileges for role postgres in
    schema public revoke … on tables|sequences from anon` y nada más
-   (`permisoAplicar.mjs`); cualquier otra variante la lanza Pablo.
+   (`permisoAplicar.mjs`); cualquier otra variante la lanza Pablo. La 0096
+   tiene una autoprueba con `truncate` y `execute`, así que esa la lanza él.
 4. **Registro**: en el mismo PR o justo después, la migración va a
    `supabase/ESTADO.md` con su objeto testigo; cada NOT VALID, a
    `supabase/PENDIENTES.md`. ¿Está aplicada? `node scripts/verificar-estado.mjs`.

@@ -154,12 +154,10 @@ describe("privilegios por defecto a anon (#440)", () => {
     expect(motivosDePablo(sql)).toEqual([]);
   });
 
-  it("`'truncate'` solo se ignora como permiso a comprobar (lista del foreach o has_*_privilege)", () => {
-    expect(motivosDePablo(SOLO("do $$ declare p text; begin foreach p in array array['select', 'truncate'] loop null; end loop; end $$;"))).toEqual([]);
-    expect(motivosDePablo(SOLO("select has_table_privilege('anon','public.x','truncate');"))).toEqual([]);
-    expect(motivosDePablo(SOLO("select has_sequence_privilege('anon','public.s','usage');"))).toEqual([]);
-  });
-
+  // Huecos conocidos de la clasificación que NO son de #440 (fondo #174, caso
+  // #443): el lexer de comillas, los cuerpos de función con `execute` y un
+  // `cron.schedule` con el texto armado por partes. Aquí no se tocan: `truncate`
+  // y `execute` cuentan como siempre, también en una autoprueba.
   // Ronda 2 (seguridad, #440): cada forma de esconder un truncate o un execute.
   it.each([
     ["truncate de verdad", "truncate public.persona;"],
@@ -188,15 +186,23 @@ describe("privilegios por defecto a anon (#440)", () => {
     expect(motivosDePablo(SOLO(extra))).not.toEqual([]);
   });
 
-  it("un trigger con `execute function` no cuenta como SQL dinámico", () => {
-    expect(motivosDePablo(SOLO("create trigger t before insert on public.x for each row execute function public.f();"))).toEqual([]);
-  });
-
-  it("la migración 0096 real ya no es de Pablo", () => {
+  it("la 0096 real sigue siendo de Pablo: su autoprueba lleva `'truncate'` y un `execute`, que la compuerta no sabe distinguir de un truncate de verdad (se lanza una vez, a mano)", () => {
     const dir = new URL("../../supabase/migrations/", import.meta.url);
     const f = readdirSync(dir).find((n) => n.startsWith("0096"));
     expect(f).toBeTruthy();
-    expect(motivosDePablo(readFileSync(new URL(f, dir), "utf8"))).toEqual([]);
+    const motivos = motivosDePablo(readFileSync(new URL(f, dir), "utf8")).join();
+    expect(motivos).toMatch(/truncate/);
+    expect(motivos).not.toMatch(/permisos por defecto/); // la lista blanca sí la reconoce
+  });
+
+  it("una migración futura de solo-revoke, con su comprobación de rol, no es de Pablo", () => {
+    const sql = SOLO(
+      "do $$ begin if current_user <> 'postgres' then raise exception 'se aplica como postgres'; end if; end $$;",
+      TABLAS,
+      SECUENCIAS,
+    );
+    expect(motivosDePablo(sql)).toEqual([]);
+    expect(motivosParaNoAplicar(con(sql))).toEqual([]);
   });
 
   // Lo que SIGUE exigiendo a Pablo.
