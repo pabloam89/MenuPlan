@@ -12,13 +12,13 @@
 // /revision-issues. El informe son agregados numéricos: ni mensajes, ni prompts, ni rutas.
 // Lógica y porqué de cada umbral: scripts/lib/fabrica.mjs; tests: scripts/fabrica.test.js.
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, parse, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  HUECO_ACTIVO_MIN, agregarPorIssue, cobertura, extraer, inicioDe, leerLineas, listarTranscripciones, recalibrar, resumirPartes, textoInforme, unirConGithub,
+  HUECO_ACTIVO_MIN, agregarPorIssue, cobertura, contarEventos, extraer, inicioDe, leerLineas, listarTranscripciones, recalibrar, resumirPartes, textoInforme, unirConGithub,
 } from "./lib/fabrica.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
 import { CONSULTA, leerIssue } from "./lib/issues.mjs";
@@ -32,6 +32,33 @@ export const CARPETA_FABRICA = join(homedir(), ".claude", "menuplan-fabrica");
 export function dentroDe(ruta, raiz) {
   const r = relative(resolve(raiz), resolve(ruta));
   return r === "" || (!r.startsWith("..") && !/^[a-zA-Z]:/.test(r) && !r.startsWith("/") && !r.startsWith("\\"));
+}
+
+/** La carpeta del registro de eventos y los informes; `MENUPLAN_FABRICA_DIR` la cambia (los tests, otro disco). */
+export const dirFabrica = (env = process.env) => env.MENUPLAN_FABRICA_DIR || CARPETA_FABRICA;
+
+/**
+ * ¿Está `ruta` dentro de ALGÚN repo git (este u otro)? Se resuelve con realpath desde el ancestro
+ * más cercano que existe (así un enlace no esconde el destino real) y se sube buscando un `.git`
+ * (carpeta o fichero, el de un worktree). El informe lleva datos de uso: ningún repo es su sitio.
+ */
+export function dentroDeUnRepo(ruta) {
+  let actual = resolve(ruta);
+  const resto = [];
+  while (!existsSync(actual) && actual !== parse(actual).root) {
+    resto.unshift(actual.slice(dirname(actual).length + 1));
+    actual = dirname(actual);
+  }
+  let real;
+  try {
+    real = join(realpathSync(actual), ...resto);
+  } catch {
+    return true; // a propósito: si no se puede resolver, mejor no escribir
+  }
+  for (let d = dirname(real); ; d = dirname(d)) {
+    if (existsSync(join(d, ".git"))) return true;
+    if (d === dirname(d)) return false;
+  }
 }
 
 function opcion(args, nombre) {
@@ -53,6 +80,15 @@ function traerIssues() {
     cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
   } while (cursor);
   return out;
+}
+
+/** Cuenta los eventos de los hooks (eventos.jsonl y su rotado). Solo lee; ausente o ilegible cuenta como vacío. */
+function eventosLocales() {
+  const dir = dirFabrica();
+  const textos = ["eventos.anterior.jsonl", "eventos.jsonl"].map((f) => {
+    try { return readFileSync(join(dir, f), "utf8"); } catch { return ""; }
+  });
+  return contarEventos(textos.join("\n"));
 }
 
 function main() {
@@ -95,17 +131,18 @@ function main() {
   }
   const union = unirConGithub(medidas, issues);
   const recal = recalibrar(union.fondos);
+  const eventos = eventosLocales();
   const cob = cobertura({ sesiones: sesiones.length, union, recal });
 
   const recalibracion = args.includes("--recalibrar");
   const salida = args.includes("--json")
-    ? `${JSON.stringify({ cobertura: cob, huecoMin: HUECO_ACTIVO_MIN, desde: desdeTexto ?? null, ...union, ...(recalibracion ? { recalibracion: recal } : {}) }, null, 2)}\n`
-    : textoInforme({ cobertura: cob, union, recal, desde: desdeTexto ?? null, recalibracion });
+    ? `${JSON.stringify({ cobertura: cob, huecoMin: HUECO_ACTIVO_MIN, desde: desdeTexto ?? null, eventos, ...union, ...(recalibracion ? { recalibracion: recal } : {}) }, null, 2)}\n`
+    : textoInforme({ cobertura: cob, union, recal, desde: desdeTexto ?? null, recalibracion, eventos });
 
   if (args.includes("--escribir")) {
-    const destino = resolve(opcion(args, "--salida") ?? join(CARPETA_FABRICA, `informe-${diaMadrid()}.${args.includes("--json") ? "json" : "txt"}`));
-    if (dentroDe(destino, RAIZ)) {
-      console.error("El informe lleva datos de uso: no se escribe dentro del repo. Usa una ruta fuera de él (por defecto, ~/.claude/menuplan-fabrica/).");
+    const destino = resolve(opcion(args, "--salida") ?? join(dirFabrica(), `informe-${diaMadrid()}.${args.includes("--json") ? "json" : "txt"}`));
+    if (dentroDe(destino, RAIZ) || dentroDeUnRepo(destino)) {
+      console.error("El informe lleva datos de uso: no se escribe dentro del repo ni de ningún otro repo git. Usa una ruta fuera de ellos (por defecto, ~/.claude/menuplan-fabrica/).");
       process.exit(1);
     }
     mkdirSync(dirname(destino), { recursive: true });

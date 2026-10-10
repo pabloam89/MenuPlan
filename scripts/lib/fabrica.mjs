@@ -349,7 +349,7 @@ export function unirConGithub(medidas, issues) {
   const fondoRow = (f) => {
     if (!fondosMedidos.has(f.number)) {
       const d = fichaDe(f);
-      fondosMedidos.set(f.number, { issue: f.number, alcance: d.alcance, tipo_causa: d.tipo_causa, estado: d.estado, rondas: d.rondas, aguanto: aguantoDe(f, d.ficha), encargos: [], propio: false, cubo: cubo() });
+      fondosMedidos.set(f.number, { issue: f.number, alcance: d.alcance, tipo_causa: d.tipo_causa, estado: d.estado, rondas: d.rondas, aguanto: aguantoDe(f, d.ficha), encargos: [], encargos_total: (f.hijos ?? []).filter((h) => tipoDe(h) === "encargo").length, propio: false, cubo: cubo() });
     }
     return fondosMedidos.get(f.number);
   };
@@ -380,6 +380,31 @@ export function unirConGithub(medidas, issues) {
     fondos, otros: otros.sort((a, b) => a - b), sinLocalizar: sinLocalizar.sort((a, b) => a - b),
     sinIssue: medidas.has(null) ? resumen(medidas.get(null)) : null,
   };
+}
+
+// ── Eventos de los hooks ──────────────────────────────────────────────────────
+
+const NOMBRE_EVENTO = /^[\w:.-]{1,60}$/;
+
+/**
+ * Cuenta el registro de eventos de los hooks (.claude/hooks/eventos.mjs, una línea JSON
+ * por evento) por `evento` y `nombre`. Tolera todo: texto ausente, líneas corruptas o con
+ * otra forma (se cuentan en `descartadas`). Solo salen palabras con forma de vocabulario.
+ * → { total, descartadas, por_evento: { <evento>: { total, nombres: { <nombre>: n } } } }
+ */
+export function contarEventos(texto) {
+  const r = { total: 0, descartadas: 0, por_evento: {} };
+  for (const l of String(texto ?? "").split(/\r?\n/)) {
+    if (!l.trim()) continue;
+    let o = null;
+    try { o = JSON.parse(l); } catch { /* a propósito: una línea corrupta se cuenta como descartada */ }
+    if (!o || typeof o !== "object" || typeof o.evento !== "string" || typeof o.nombre !== "string" || !NOMBRE_EVENTO.test(o.evento) || !NOMBRE_EVENTO.test(o.nombre)) { r.descartadas += 1; continue; }
+    const e = (r.por_evento[o.evento] ??= { total: 0, nombres: {} });
+    e.total += 1;
+    e.nombres[o.nombre] = (e.nombres[o.nombre] ?? 0) + 1;
+    r.total += 1;
+  }
+  return r;
 }
 
 // ── Recalibración ─────────────────────────────────────────────────────────────
@@ -427,20 +452,27 @@ function decidirCampo(campo, c, p, catalogo) {
     if (ratio > RATIO_PROPUESTA) r = { decision: "subir", propuesto: entre(redondeo(real.mediana, PASO_MINUTOS), RANGOS[campo]) };
     else if (ratio < 1 / RATIO_PROPUESTA) {
       r = todosAguantan
-        ? { decision: "bajar", propuesto: entre(Math.max(PASO_MINUTOS, redondeo(real.mediana, PASO_MINUTOS)), RANGOS[campo]) }
+        ? {
+          decision: "bajar", propuesto: entre(Math.max(PASO_MINUTOS, redondeo(real.mediana, PASO_MINUTOS)), RANGOS[campo]),
+          // Los minutos solo cuentan lo medido en ESTE PC: si el fondo tiene más encargos que los medidos, el real es un suelo.
+          ...(c.fondos.some((f) => Number.isInteger(f.encargos_total) && f.encargos_total > f.encargos.length)
+            ? { nota: "la medida puede estar incompleta: algún fondo tiene más encargos que los medidos en este PC; confírmalo antes de bajar" } : {}),
+        }
         : { decision: "en-rango", nota: "gasta menos de lo presupuestado, pero no consta que todos aguantaran: no se baja" };
     } else r = { decision: "en-rango" };
   } else if (p[campo] >= TOPE_RONDAS && real.maximo >= p[campo]) {
     r = { decision: "al-tope", nota: `llegó al máximo de ${TOPE_RONDAS} rondas: el tope es duro y no se sube; si hace falta más, decide una persona` };
   } else if (real.maximo <= 1 && p[campo] > 1 && todosAguantan) {
     r = { decision: "bajar", propuesto: 1 };
+  } else if (p[campo] < TOPE_RONDAS && (real.mediana > p[campo] || real.maximo > p[campo])) {
+    r = { decision: "subir", propuesto: Math.min(TOPE_RONDAS, p[campo] + 1) };
   } else r = { decision: "en-rango" };
   if (r.propuesto !== undefined && r.propuesto === p[campo]) r = { decision: "en-rango" };
   if (r.propuesto !== undefined) {
     const donde = destinoDe(c.alcance, c.causa, campo, catalogo);
     const mal = problemas(conValor(catalogo, donde, r.propuesto));
     Object.assign(r, { donde, aplicable: mal.length === 0 });
-    if (mal.length) r.nota = `dejaría el catálogo inválido (${mal[0].split(":")[0]}): no se propone tal cual`;
+    if (mal.length) r.nota = `${r.nota ? `${r.nota}; ` : ""}dejaría el catálogo inválido (${mal[0].split(":")[0]}): no se propone tal cual`;
   }
   return { ...base, real, ...r };
 }
@@ -505,7 +537,7 @@ const miles = (x) => Math.round(x).toLocaleString("es-ES");
 const usd = (x) => (x === null ? "sin precio" : `${f1(x)} USD`);
 
 /** El informe en texto. Solo números, números de issue y palabras de vocabularios cerrados. */
-export function textoInforme({ cobertura: cob, union, recal, desde = null, huecoMin = HUECO_ACTIVO_MIN, precios = PRECIOS, recalibracion = false }) {
+export function textoInforme({ cobertura: cob, union, recal, desde = null, huecoMin = HUECO_ACTIVO_MIN, precios = PRECIOS, recalibracion = false, eventos = null }) {
   const L = [];
   L.push("Informe de la fábrica (fase F, #340) — solo agregados; los costes son una estimación a precio de API.");
   L.push(`Desde: ${desde ?? "el principio de las transcripciones"}. Minutos activos: huecos de menos de ${huecoMin} min. Precios de ${precios.comprobado_el} (${precios.estimacion ? "estimación" : "oficial"}).`);
@@ -529,6 +561,14 @@ export function textoInforme({ cobertura: cob, union, recal, desde = null, hueco
   for (const e of union.encargos) {
     const ag = Object.entries(e.agentes).map(([t, n]) => `${t}×${n}`).join(" ") || "ninguno";
     L.push(`  #${e.issue} (fondo ${e.fondo ? `#${e.fondo}` : "—"}) | ${f1(e.minutos)} min | ${miles(e.tokens.total)} tokens (salida ${miles(e.tokens.salida)}) | ${usd(e.coste_usd)} | ${e.sesiones} sesiones | agentes ${ag}`);
+  }
+  if (eventos) {
+    L.push("");
+    L.push(`Eventos de los hooks (registro local: ${eventos.total} líneas, ${eventos.descartadas} descartadas)`);
+    if (!eventos.total) L.push("  ninguno todavía");
+    for (const [ev, e] of Object.entries(eventos.por_evento).sort((a, b) => b[1].total - a[1].total)) {
+      L.push(`  ${ev}: ${e.total} (${Object.entries(e.nombres).sort((a, b) => b[1] - a[1]).map(([n, c]) => `${n}×${c}`).join(" ")})`);
+    }
   }
   if (!recalibracion) return `${L.join("\n")}\n`;
   L.push("");

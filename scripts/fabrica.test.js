@@ -6,10 +6,10 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { dentroDe } from "./fabrica.mjs";
+import { dentroDe, dentroDeUnRepo } from "./fabrica.mjs";
 import {
   HUECO_ACTIVO_MIN, MIN_ENCARGOS_CELDA, MIN_ENCARGOS_INFORME, MIN_FONDOS_CELDA, PRECIOS, RATIO_PROPUESTA,
-  agregarPorIssue, aguantoDe, cobertura, costeDeMensaje, extraer, leerLineas, listarTranscripciones, mediana, precioDe,
+  agregarPorIssue, aguantoDe, cobertura, contarEventos, costeDeMensaje, extraer, leerLineas, listarTranscripciones, mediana, precioDe,
   recalibrar, resumirPartes, resumirSesion, textoInforme, tipoDeAgente, unirConGithub,
 } from "./lib/fabrica.mjs";
 import { CATALOGO, RANGOS, problemas } from "./lib/presupuestos.mjs";
@@ -347,6 +347,27 @@ describe("recalibrar: presupuestado frente a real, por tipo de causa × alcance"
     expect(campo(celda(recalibrar(sinRondas), "modulo", "codigo"), "rondas_max").decision).toBe("sin-medida");
   });
 
+  it("las rondas también suben: si lo real supera lo presupuestado sin llegar al tope, propone subir una (y nunca pasa del tope)", () => {
+    const catalogo = JSON.parse(JSON.stringify(CATALOGO));
+    for (const a of Object.keys(catalogo.por_alcance)) catalogo.por_alcance[a].rondas_max = 1;
+    for (const c of Object.values(catalogo.por_causa ?? {})) delete c.rondas_max;
+    const dos = [fila(1, "modulo", "codigo", { minutos: 30, rondas: 2 }), fila(2, "modulo", "codigo", { minutos: 30, rondas: 1 })];
+    const c = campo(celda(recalibrar(dos, catalogo), "modulo", "codigo"), "rondas_max");
+    expect(c).toMatchObject({ presupuestado: 1, decision: "subir", propuesto: 2, donde: "por_alcance.modulo.rondas_max" });
+    const unas = [fila(1, "modulo", "codigo", { minutos: 30, rondas: 1 }), fila(2, "modulo", "codigo", { minutos: 30, rondas: 1 })];
+    expect(campo(celda(recalibrar(unas, catalogo), "modulo", "codigo"), "rondas_max").decision).toBe("en-rango");
+  });
+
+  it("una propuesta de bajar minutos avisa de que puede estar incompleta si los encargos medidos no cubren los hijos del fondo", () => {
+    const sub = (hijos) => [{ ...fila(1, "transversal", "codigo", { minutos: 33 }), encargos_total: hijos }, fila(2, "transversal", "codigo", { minutos: 37 })];
+    const incompleta = campo(celda(recalibrar(sub(5)), "transversal", "codigo"), "minutos_orientativos");
+    expect(incompleta).toMatchObject({ decision: "bajar", propuesto: 35 });
+    expect(incompleta.nota).toMatch(/incompleta/);
+    const completa = campo(celda(recalibrar(sub(2)), "transversal", "codigo"), "minutos_orientativos");
+    expect(completa.decision).toBe("bajar");
+    expect(completa.nota ?? "").not.toMatch(/incompleta/);
+  });
+
   it("jamás propone pasar los rangos del catálogo ni el tope de rondas", () => {
     const enorme = [fila(1, "transversal", "codigo", { minutos: 9000, rondas: 2 }), fila(2, "transversal", "codigo", { minutos: 9000, rondas: 2 })];
     const c = campo(celda(recalibrar(enorme), "transversal", "codigo"), "minutos_orientativos");
@@ -484,6 +505,34 @@ describe("npm run fabrica con transcripciones sintéticas", () => {
   it("rechaza un --desde que no es una fecha", () => {
     const r = corre(["--proyectos", proyectos().base, "--sin-github", "--desde", "ayer"]);
     expect(r.status).toBe(1);
+  });
+
+  it("--escribir rechaza un destino dentro de CUALQUIER repo git (no solo este), también por una carpeta que aún no existe", () => {
+    const { base } = proyectos();
+    const otroRepo = mkdtempSync(join(tmpdir(), "fabrica-otro-repo-"));
+    spawnSync("git", ["init", "-q", otroRepo]);
+    const destino = join(otroRepo, "nueva", "informe.txt");
+    expect(dentroDeUnRepo(destino)).toBe(true);
+    expect(dentroDeUnRepo(join(mkdtempSync(join(tmpdir(), "fabrica-sin-repo-")), "x.txt"))).toBe(false);
+    const r = corre(["--proyectos", base, "--sin-github", "--escribir", "--salida", destino]);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/ningún otro repo git/);
+    expect(existsSync(destino)).toBe(false);
+  });
+
+  it("el informe cuenta los eventos de los hooks por evento y nombre, leyendo solo de MENUPLAN_FABRICA_DIR, y tolera ausente o corrupto", () => {
+    const { base } = proyectos();
+    const dir = mkdtempSync(join(tmpdir(), "fabrica-eventos-"));
+    const l = (evento, nombre) => JSON.stringify({ ts: "2026-10-10T08:00:00.000Z", sesion: null, rama: null, issue: null, evento, nombre });
+    writeFileSync(join(dir, "eventos.jsonl"), [l("skill_cargada", "github"), l("skill_cargada", "github"), l("bloqueo_guardia", "push-a-main"), "{esto no es json", "", '{"evento":3}'].join("\n"));
+    const run = (extra, env) => spawnSync(process.execPath, [join(AQUI, "fabrica.mjs"), "--proyectos", base, "--sin-github", ...extra], { encoding: "utf8", timeout: 30000, env: { ...process.env, ...env } });
+    const j = JSON.parse(run(["--json"], { MENUPLAN_FABRICA_DIR: dir }).stdout);
+    expect(j.eventos).toMatchObject({ total: 3, descartadas: 2, por_evento: { skill_cargada: { total: 2, nombres: { github: 2 } }, bloqueo_guardia: { total: 1, nombres: { "push-a-main": 1 } } } });
+    expect(run([], { MENUPLAN_FABRICA_DIR: dir }).stdout).toMatch(/skill_cargada: 2/);
+    const vacio = JSON.parse(run(["--json"], { MENUPLAN_FABRICA_DIR: join(dir, "no-existe") }).stdout);
+    expect(vacio.eventos).toMatchObject({ total: 0, descartadas: 0, por_evento: {} });
+    expect(contarEventos(undefined).total).toBe(0);
+    expect(contarEventos("\u0000\n[1]\nnull").total).toBe(0);
   });
 
   it("dentroDe distingue lo que está dentro del repo de lo que está fuera", () => {

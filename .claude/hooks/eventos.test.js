@@ -142,6 +142,17 @@ describe("un registro que falla NUNCA rompe nada", () => {
     expect(existsSync(join(repo, ".git", "claude-sesiones", "skills", `${SESION}__github.json`))).toBe(true);
   });
 
+  it("un eventos.mjs que hace process.exit o se cuelga no puede quitar el deny (la respuesta sale antes que el registro)", () => {
+    const entrada = { session_id: SESION, cwd: repoGit(), tool_name: "Bash", tool_input: { command: "git push origin main" } };
+    for (const cuerpo of ["process.exit(0);", "process.exit(1);", "await new Promise(() => {}); export const x = 1;"]) {
+      const copia = temporal("eventos-exit-");
+      for (const f of ["guardia.mjs", "skill-abierta.mjs", "casos.mjs", "dominios.mjs", "migraciones.mjs", "sesiones.mjs"]) copyFileSync(join(AQUI, f), join(copia, f));
+      writeFileSync(join(copia, "eventos.mjs"), cuerpo);
+      const r = spawnSync(process.execPath, [join(copia, "guardia.mjs")], { input: JSON.stringify(entrada), encoding: "utf8", timeout: 20000 });
+      expect(JSON.parse(r.stdout).hookSpecificOutput.permissionDecision, cuerpo).toBe("deny");
+    }
+  });
+
   it("un ask de la guardia es un «permiso pedido»", () => {
     const repo = repoGit();
     const sana = temporal("eventos-sana-");
@@ -219,6 +230,12 @@ describe("la familia de cada bloqueo de la guardia", () => {
     expect(familiaDeGuardia("Este comando es de los que, mal hechos, cuestan caro, y su dominio tiene runbook con lo que ya falló aquí. Abre antes la skill `github`")).toBe("puerta-de-skill");
     expect(familiaDeGuardia("Tu rama es del issue #340: pon `Closes #340` en el cuerpo del PR")).toBe("pr-sin-closes");
     expect(familiaDeGuardia("Tu rama va 3 commit(s) por detrás de staging. Antes de abrir el PR")).toBe("rama-atrasada");
+  });
+
+  it("«migracion» solo cubre los motivos de migraciones: la palabra «número» suelta no basta", () => {
+    expect(familiaDeGuardia("El número 0095 ya es de 0095_x.sql en staging. Usa el siguiente libre")).toBe("migracion");
+    expect(familiaDeGuardia("0001_a.sql ya está aplicada en producción (no figura «sin aplicar» en supabase/ESTADO.md)")).toBe("migracion");
+    expect(familiaDeGuardia("Cambiaste el número de tu teléfono")).toBe("otra");
   });
 
   it("un motivo que no conoce sale «otra», y las familias no se repiten", () => {

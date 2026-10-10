@@ -82,7 +82,10 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
       }
       anotarSkill(dirSesiones(raiz), entrada.session_id, skill, "abierta");
     }
-    await registrar(entrada, skill);
+    // Con tope de tiempo: un registro colgado no puede dejar este hook esperando (y no imprime nada que proteger).
+    let temporizador;
+    await Promise.race([registrar(entrada, skill), new Promise((alTiempo) => { temporizador = setTimeout(alTiempo, 3000); })]);
+    clearTimeout(temporizador);
   } catch {
     // a propósito: falla abierta — este hook corre antes de CADA lectura y nunca debe bloquear ni ensuciar una; lo que se pierde es una anotación (cuesta un reintento en la guardia).
   }

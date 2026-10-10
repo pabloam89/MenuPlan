@@ -588,20 +588,27 @@ if (esPrincipal) {
   }
   const r = decidir(entrada, contextoReal(raiz, entrada));
   if (r) {
-    // El registro de eventos (#340) cuenta cada bloqueo y cada permiso pedido. Import dinámico
-    // y dentro de un try: si el registro no carga o falla, la decisión sale igual.
+    // La respuesta sale PRIMERO: lo que decide la guardia no puede depender de un módulo de
+    // registro que se cuelgue o haga process.exit (juez de seguridad de #340).
+    responder(r);
+    // El registro de eventos (#340) cuenta cada bloqueo y cada permiso pedido. Import dinámico,
+    // dentro de un try y con tope de tiempo: si no carga, falla o se cuelga, la decisión ya salió.
     try {
-      const { familiaDeGuardia, registrarEvento } = await import("./eventos.mjs");
-      registrarEvento({
-        evento: r.decision === "deny" ? "bloqueo_guardia" : "permiso_pedido",
-        nombre: familiaDeGuardia(r.motivo),
-        sesion: entrada.session_id,
-        cwd: entrada.cwd || raiz,
-      });
+      const registro = (async () => {
+        const { familiaDeGuardia, registrarEvento } = await import("./eventos.mjs");
+        registrarEvento({
+          evento: r.decision === "deny" ? "bloqueo_guardia" : "permiso_pedido",
+          nombre: familiaDeGuardia(r.motivo),
+          sesion: entrada.session_id,
+          cwd: entrada.cwd || raiz,
+        });
+      })();
+      let temporizador;
+      await Promise.race([registro, new Promise((alTiempo) => { temporizador = setTimeout(alTiempo, 3000); })]);
+      clearTimeout(temporizador);
     } catch {
       // a propósito: el registro es una ayuda; un fallo suyo no puede cambiar lo que decide la guardia
     }
-    responder(r);
   }
   process.exit(0);
 }
