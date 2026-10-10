@@ -3,11 +3,12 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { cargarContexto, cargarSkill, faltasDeSkill } from "../scripts/lib/skills.mjs";
+import { MAX_FRASES_PARRAFO, MAX_IDEAS, MAX_PALABRAS_FRASE, faltasDeMensaje } from "../scripts/lib/voz.mjs";
 
 /**
  * La voz con Pablo (10 oct 2026): una regla corta en CLAUDE.md, el detalle en la
  * skill `estilo-de-respuesta` y un resumen en la plantilla de agentes. Aquí se vigila
- * lo medible: que las tres piezas nombren las mismas cinco plantillas y la regla
+ * lo medible (el medidor es `scripts/lib/voz.mjs`, el mismo del vigilante #453): que las tres piezas nombren las mismas cinco plantillas y la regla
  * de las tres opciones, que la skill pase el nivel 1 y que los ejemplos
  * canónicos (bloques `mensaje`) cumplan las reglas medibles de la propia voz.
  * Lo que no se mide (si el tono suena bien) lo mira el revisor.
@@ -17,31 +18,7 @@ const RAIZ = join(AQUI, "..");
 const leer = (ruta) => readFileSync(join(RAIZ, ruta), "utf8").replace(/\s+/g, " ");
 
 export const PLANTILLAS = ["resultado", "decisión", "error", "concepto", "resumen"];
-export const MAX_PALABRAS_FRASE = 25;
-export const MAX_FRASES_PARRAFO = 5;
-export const MAX_IDEAS = 4;
-const PREAMBULO = /^\s*(claro|por supuesto|vale|perfecto|genial|desde luego)[,.!\s]/i;
-const EMOJI = /\p{Extended_Pictographic}/u;
-
-/** Las faltas de un mensaje a Pablo contra las reglas medibles de la voz. */
-export function faltasDeMensaje(texto) {
-  const f = [];
-  const lineas = texto.trim().split("\n").map((l) => l.trim()).filter(Boolean);
-  if (!lineas.length) return ["mensaje vacío"];
-  const cuerpo = lineas;
-  if (!/^\*\*[^*]+\*\*/.test(cuerpo[0])) f.push("la primera línea no es la idea raíz en negrita");
-  if (PREAMBULO.test(cuerpo[0].replace(/\*/g, ""))) f.push("empieza con preámbulo");
-  if (EMOJI.test(texto)) f.push("lleva emojis");
-  if (cuerpo.length - 1 > MAX_IDEAS) f.push("pasa de cuatro ideas");
-  for (const l of lineas) {
-    for (const frase of l.replace(/\*/g, "").split(/(?<=[.!?])\s+/)) {
-      const n = frase.split(/\s+/).filter(Boolean).length;
-      if (n >= MAX_PALABRAS_FRASE) f.push(`frase de ${n} palabras: «${frase.slice(0, 40)}…»`);
-    }
-    if (l.split(/(?<=[.!?])\s+/).length > MAX_FRASES_PARRAFO) f.push("párrafo de más de cinco frases");
-  }
-  return f;
-}
+export { MAX_PALABRAS_FRASE, MAX_FRASES_PARRAFO, MAX_IDEAS, faltasDeMensaje };
 
 /** Los bloques ```mensaje de un texto. */
 export function bloquesMensaje(texto) {
