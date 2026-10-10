@@ -21,6 +21,15 @@
       "bug": 2,
       "lección": 7
     },
+    ".claude/commands/backend-review.md": {
+      "reporte": 1
+    },
+    ".claude/commands/orquestar.md": {
+      "bug": 1,
+      "subagente": 2,
+      "worktree": 3,
+      "worktrees": 1
+    },
     ".claude/rules/migraciones.md": {
       "worktrees": 1
     },
@@ -78,6 +87,9 @@
       "runbook": 2,
       "worktree": 1,
       "worktrees": 2
+    },
+    "ops/normas.json": {
+      "lecciones": 1
     }
   }
 }

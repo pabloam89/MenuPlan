@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  CLASES, canonicoDe, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, pares, patronDe, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, total,
+  CLASES, canonicoDe, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
 } from "../scripts/lib/glosario.mjs";
 
 /**
@@ -15,7 +15,8 @@ import {
  *     términos, y ninguna definición usa un sinónimo prohibido;
  *  2. el control: ningún sinónimo prohibido nuevo en las zonas de cada término;
  *     lo que había al nacer está en ops/glosario-excepciones.json y SOLO BAJA
- *     (literal de partida abajo, como PARES_DE_PARTIDA de .claude/skills.test.js);
+ *     par a par (literal PARTIDA abajo, con la cifra de cada par: no vale subir
+ *     uno a cambio de bajar otro);
  *  3. que CLAUDE.md dice que el glosario es la fuente de las palabras de proceso.
  *
  * Abajo, un autotest: cada regla falla con datos malos. Sin red.
@@ -27,51 +28,56 @@ const G = leerGlosario(RAIZ);
 const EXC = leerExcepciones(RAIZ);
 const copia = () => JSON.parse(JSON.stringify(G));
 
-// Lo que había el 10 oct 2026 al nacer (#469): 69 apariciones en 40 pares (ruta, sinónimo).
-// Estos literales NO se editan para añadir: solo se les quitan líneas o se baja la cifra.
-const TOTAL_DE_PARTIDA = 69;
-const PARES_DE_PARTIDA = [
-  ".claude/PLANTILLA-AGENTE.md: subagente",
-  ".claude/PLANTILLA-AGENTE.md: subagentes",
-  ".claude/PLANTILLA-SKILL.md: lección",
-  ".claude/PLANTILLA-SKILL.md: runbook",
-  ".claude/agents/datos.md: incidente",
-  ".claude/agents/gobierno.md: incidente",
-  ".claude/agents/gobierno.md: worktree",
-  ".claude/agents/gobierno.md: worktrees",
-  ".claude/agents/revisor.md: bug",
-  ".claude/agents/revisor.md: lección",
-  ".claude/rules/migraciones.md: worktrees",
-  ".claude/skills/1password/SKILL.md: worktree",
-  ".claude/skills/causa-raiz/SKILL.md: causa raíz",
-  ".claude/skills/estilo-de-respuesta/SKILL.md: subagentes",
-  ".claude/skills/estilo-de-respuesta/plantillas/plantillas.md: worktree",
-  ".claude/skills/forja-de-skills/SKILL.md: lección",
-  ".claude/skills/github/SKILL.md: parche",
-  ".claude/skills/github/SKILL.md: runbook",
-  ".claude/skills/github/SKILL.md: subagente",
-  ".claude/skills/github/SKILL.md: worktree",
-  ".claude/skills/github/SKILL.md: worktrees",
-  ".claude/skills/github/referencias/app-sesiones.md: runbook",
-  ".claude/skills/higiene-de-skills/SKILL.md: lección",
-  ".claude/skills/higiene-de-skills/SKILL.md: parche",
-  ".claude/skills/issues/SKILL.md: lección",
-  ".claude/skills/telegram/SKILL.md: chequeos",
-  "CLAUDE.md: lección",
-  "CLAUDE.md: runbook",
-  "CLAUDE.md: runbooks",
-  "CLAUDE.md: subagente",
-  "CLAUDE.md: worktrees",
-  "docs/ops/FLUJO.md: causa raíz",
-  "docs/ops/FLUJO.md: lección",
-  "docs/ops/FLUJO.md: runbook",
-  "ops/estandares-agentes.json: bug",
-  "ops/estandares-agentes.json: bugs",
-  "ops/estandares-agentes.json: lección",
-  "ops/estandares-agentes.json: runbook",
-  "ops/estandares-agentes.json: worktree",
-  "ops/estandares-agentes.json: worktrees",
-];
+// Lo que había el 10 oct 2026 al nacer (#469): 78 apariciones en 46 pares «ruta: sinónimo».
+// Este literal NO se edita para añadir ni para subir: solo se quitan líneas o se baja la cifra.
+const PARTIDA = {
+  ".claude/PLANTILLA-AGENTE.md: subagente": 1,
+  ".claude/PLANTILLA-AGENTE.md: subagentes": 1,
+  ".claude/PLANTILLA-SKILL.md: lección": 3,
+  ".claude/PLANTILLA-SKILL.md: runbook": 2,
+  ".claude/agents/datos.md: incidente": 1,
+  ".claude/agents/gobierno.md: incidente": 2,
+  ".claude/agents/gobierno.md: worktree": 1,
+  ".claude/agents/gobierno.md: worktrees": 4,
+  ".claude/agents/revisor.md: bug": 2,
+  ".claude/agents/revisor.md: lección": 7,
+  ".claude/commands/backend-review.md: reporte": 1,
+  ".claude/commands/orquestar.md: bug": 1,
+  ".claude/commands/orquestar.md: subagente": 2,
+  ".claude/commands/orquestar.md: worktree": 3,
+  ".claude/commands/orquestar.md: worktrees": 1,
+  ".claude/rules/migraciones.md: worktrees": 1,
+  ".claude/skills/1password/SKILL.md: worktree": 3,
+  ".claude/skills/causa-raiz/SKILL.md: causa raíz": 1,
+  ".claude/skills/estilo-de-respuesta/SKILL.md: subagentes": 1,
+  ".claude/skills/estilo-de-respuesta/plantillas/plantillas.md: worktree": 1,
+  ".claude/skills/forja-de-skills/SKILL.md: lección": 1,
+  ".claude/skills/github/SKILL.md: parche": 1,
+  ".claude/skills/github/SKILL.md: runbook": 1,
+  ".claude/skills/github/SKILL.md: subagente": 2,
+  ".claude/skills/github/SKILL.md: worktree": 1,
+  ".claude/skills/github/SKILL.md: worktrees": 1,
+  ".claude/skills/github/referencias/app-sesiones.md: runbook": 1,
+  ".claude/skills/higiene-de-skills/SKILL.md: lección": 1,
+  ".claude/skills/higiene-de-skills/SKILL.md: parche": 1,
+  ".claude/skills/issues/SKILL.md: lección": 1,
+  ".claude/skills/telegram/SKILL.md: chequeos": 1,
+  "CLAUDE.md: lección": 3,
+  "CLAUDE.md: runbook": 1,
+  "CLAUDE.md: runbooks": 1,
+  "CLAUDE.md: subagente": 1,
+  "CLAUDE.md: worktrees": 2,
+  "docs/ops/FLUJO.md: causa raíz": 1,
+  "docs/ops/FLUJO.md: lección": 1,
+  "docs/ops/FLUJO.md: runbook": 2,
+  "ops/estandares-agentes.json: bug": 2,
+  "ops/estandares-agentes.json: bugs": 1,
+  "ops/estandares-agentes.json: lección": 6,
+  "ops/estandares-agentes.json: runbook": 2,
+  "ops/estandares-agentes.json: worktree": 1,
+  "ops/estandares-agentes.json: worktrees": 2,
+  "ops/normas.json: lecciones": 1,
+};
 
 describe("el glosario", () => {
   it("está bien formado", () => {
@@ -107,12 +113,10 @@ describe("el control: ningún sinónimo prohibido nuevo", () => {
     expect(bajadas.map((b) => `${b.ruta}: «${b.sinonimo}» hay ${b.hay}, admitidas ${b.admitidas}`), "Ya cumple: baja la cifra en ops/glosario-excepciones.json").toEqual([]);
   });
 
-  it("la lista solo baja: ningún par fuera del literal de partida y el total no sube", () => {
-    const paresHoy = Object.entries(EXC).flatMap(([r, x]) => Object.keys(x).map((s) => `${r}: ${s}`));
-    expect(paresHoy.filter((p) => !PARES_DE_PARTIDA.includes(p)), "Un par nuevo: escribe el término canónico; la lista no crece").toEqual([]);
-    expect(total(EXC)).toBeLessThanOrEqual(TOTAL_DE_PARTIDA);
-    expect(pares(EXC)).toBeLessThanOrEqual(PARES_DE_PARTIDA.length);
+  it("la lista solo baja, par a par: ningún par fuera de la partida ni por encima de su cifra", () => {
+    expect(sobrePartida(EXC, PARTIDA), "Escribe el término canónico; la lista no crece ni se reparte").toEqual([]);
     for (const x of Object.values(EXC)) for (const n of Object.values(x)) expect(Number.isInteger(n) && n > 0).toBe(true);
+    expect(total(EXC)).toBeLessThanOrEqual(Object.values(PARTIDA).reduce((s, n) => s + n, 0));
   });
 
   it("las claves de la lista son sinónimos prohibidos de verdad", () => {
@@ -182,7 +186,7 @@ describe("autotest del control (visto fallar con un sinónimo nuevo)", () => {
     expect("Un Bug.".match(patronDe("bug"))).toHaveLength(1);
     expect("debug, bugs-x, x-bug".match(patronDe("bug"))).toBeNull();
     expect("Lo lleva el WORKTREE".match(patronDe("worktree"))).toHaveLength(1);
-    expect("una causa  raíz".match(patronDe("causa raíz"))).toHaveLength(1);
+    expect(plano("una causa  raíz").match(patronDe("causa raíz"))).toHaveLength(1);
   });
 
   it("no cuenta código, URLs, rutas, «citas», comentarios ni secciones de historia", () => {
@@ -211,6 +215,30 @@ describe("autotest del control (visto fallar con un sinónimo nuevo)", () => {
   it("en un JSON mira los textos y no las claves ni los ids", () => {
     const json = JSON.stringify({ bug: "nada", tareas: [{ id: "arreglar-bug", tarea: "Buscar un bug", fuentes: ["docs/bug.md"] }] });
     expect(prosaDeJson(json).map((x) => x.texto)).toEqual(["nada", "Buscar un bug"]);
+  });
+
+  it("el trinquete es por par: subir un par compensando otro falla, y un par nuevo también", () => {
+    const partida = { "a: bug": 2, "b: runbook": 2 };
+    expect(sobrePartida({ a: { bug: 2 }, b: { runbook: 1 } }, partida)).toEqual([]);
+    expect(sobrePartida({ a: { bug: 3 }, b: { runbook: 1 } }, partida)).toEqual(["a: bug: 3 sobre 2 de partida"]);
+    expect(sobrePartida({ a: { bug: 1, worktree: 1 } }, partida)).toEqual(["a: worktree: no está en la partida"]);
+  });
+
+  it("sin tildes: «leccion» y «LECCIÓN» cuentan como «lección»", () => {
+    expect(plano("Lección")).toBe("leccion");
+    const { detalle } = medirTexto(".claude/skills/x/SKILL.md", "Una leccion y una LECCIÓN.\n");
+    expect(detalle.map((d) => d.sinonimo)).toEqual(["lección", "lección"]);
+  });
+
+  it("una palabra con «/» solo se ignora si parece ruta", () => {
+    const { detalle } = medirTexto(".claude/skills/x/SKILL.md", "Un bug/fallo; ver a/b/bug y bug.md/x y ./bug y ~/bug\n");
+    expect(detalle.map((d) => d.sinonimo)).toEqual(["bug"]);
+  });
+
+  it("un bloque sangrado con 4 espacios es código, pero la continuación de una lista no", () => {
+    const md = ["Texto.", "", "    git worktree list", "    un bug", "", "Fuera.", "- punto", "", "    sigue el punto con un bug"].join("\n");
+    const { detalle } = medirTexto(".claude/skills/x/SKILL.md", md);
+    expect(detalle.map((d) => `${d.sinonimo}@${d.donde}`)).toEqual(["bug@9"]);
   });
 
   it("una excepción admite su cifra y ni una más", () => {

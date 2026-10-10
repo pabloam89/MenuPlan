@@ -11,9 +11,16 @@
  *
  * Lo que NO se mira, a propósito:
  *  - bloques de código, código en línea, comentarios HTML, URLs y rutas: son
- *    identificadores, no prosa (`git worktree`, `scripts/verificar-estado.mjs`);
+ *    identificadores, no prosa (`git worktree`, `scripts/verificar-estado.mjs`).
+ *    Una palabra pegada a «/» solo es ruta si lo parece: con extensión, empezando
+ *    por «.», «/» o «~», o con más de una «/» («bug/fallo» sí se mira);
+ *  - los bloques sangrados con 4 espacios tras una línea en blanco (código de
+ *    Markdown), salvo que sigan a una lista, donde son su continuación;
  *  - lo que va entre comillas «»: es una mención o una cita (de Pablo, de una
- *    salida, de una línea del PR como «Runbook:»), no un uso de la palabra;
+ *    salida, de una línea del PR como «Runbook:»), no un uso de la palabra.
+ *    Es un agujero aceptado: un sinónimo usado de verdad entre «» no se ve.
+ *
+ * Se compara sin tildes ni mayúsculas: «leccion» es «lección».
  *  - las secciones de historia («Lo que falló y por qué», «Registro de
  *    cambios»): cuentan lo que pasó con las palabras de entonces;
  *  - en un JSON, las claves y los campos de identificadores y rutas.
@@ -57,11 +64,13 @@ export function leerExcepciones(raiz) {
 }
 
 const normal = (s) => String(s).toLowerCase().normalize("NFC");
+/** Sin tildes ni mayúsculas: la forma en que se compara. */
+export const plano = (s) => String(s).normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 const escapar = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** Expresión de una palabra completa: ni letras, ni cifras, ni `_` ni `-` a los lados (así `auditor-datos` no es `auditor`). */
 export function patronDe(palabra) {
-  const cuerpo = escapar(normal(palabra)).replace(/\s+/g, "\\s+");
+  const cuerpo = escapar(plano(palabra)).replace(/\s+/g, "\\s+");
   return new RegExp(`(?<![\\p{L}\\p{N}_-])${cuerpo}(?![\\p{L}\\p{N}_-])`, "giu");
 }
 
@@ -82,7 +91,7 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
   }
   const terminos = g.terminos ?? [];
   if (terminos.length === 0) p.push("terminos: no hay ninguno");
-  const canonicos = new Set(terminos.map((t) => normal(t.termino)));
+  const canonicos = new Set(terminos.map((t) => plano(t.termino)));
   const vistos = new Map();
   const sinonimoDe = new Map();
   for (const t of terminos) {
@@ -96,8 +105,8 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
     else if (t.definicion.length > MAX_DEFINICION) p.push(`${id}: definición de ${t.definicion.length} caracteres (máximo ${MAX_DEFINICION})`);
     if (!Array.isArray(t.sinonimos_prohibidos)) p.push(`${id}: sinonimos_prohibidos no es una lista`);
     for (const s of t.sinonimos_prohibidos ?? []) {
-      const n = normal(s);
-      if (n !== s) p.push(`${id}: el sinónimo «${s}» va en minúsculas`);
+      const n = plano(s);
+      if (normal(s) !== s) p.push(`${id}: el sinónimo «${s}» va en minúsculas`);
       if (canonicos.has(n)) p.push(`${id}: «${s}» es sinónimo prohibido y también término canónico`);
       if (sinonimoDe.has(n)) p.push(`${id}: «${s}» ya es sinónimo prohibido de ${sinonimoDe.get(n)}`);
       sinonimoDe.set(n, id);
@@ -117,7 +126,7 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
   // El glosario se cumple a sí mismo: ninguna definición usa un sinónimo prohibido.
   for (const t of terminos) {
     for (const [s, canon] of sinonimoDe) {
-      if (patronDe(s).test(limpiarProsa(String(t.definicion ?? "")))) p.push(`${t.termino}: su definición usa «${s}» (di «${canon}»)`);
+      if (patronDe(s).test(plano(limpiarProsa(String(t.definicion ?? ""))))) p.push(`${t.termino}: su definición usa «${s}» (di «${canon}»)`);
     }
   }
   return p;
@@ -135,7 +144,13 @@ export function limpiarProsa(texto) {
     .replace(/`[^`\n]*`/g, enBlanco)
     .replace(/https?:\/\/\S+/g, enBlanco)
     .replace(/«[^»]{0,600}»/g, enBlanco)
-    .replace(/[^\s«»()`"'[\]|]*[/\\][^\s«»()`"'[\]|]*/g, enBlanco);
+    .replace(/[^\s«»()`"'[\]|]*[/\\][^\s«»()`"'[\]|]*/g, (m) => (pareceRuta(m) ? enBlanco(m) : m));
+}
+
+/** Una palabra con «/» es ruta si tiene extensión, empieza por «.», «/» o «~», o tiene más de una barra. */
+export function pareceRuta(token) {
+  const t = token.replace(/[.,;:)]+$/, "");
+  return /^[.~/\\]/.test(t) || /\.[A-Za-z0-9]{1,6}(?=[/\\]|$)/.test(t) || (t.match(/[/\\]/g) ?? []).length > 1;
 }
 
 /** Un Markdown sin bloques de código ni secciones de historia, y con `limpiarProsa`. */
@@ -144,7 +159,25 @@ export function prosaDeMarkdown(md) {
   const fuera = [];
   let valla = null;
   let historia = null; // nivel de la cabecera de historia abierta
+  let sangrado = false; // dentro de un bloque de código sangrado
+  let previa = ""; // la línea anterior
+  let antesDelBlanco = ""; // la última línea con texto antes de la anterior
+  const esLista = (x) => /^\s*([-*+]|\d+[.)])\s/.test(x) || /^( {2,}|\t)\S/.test(x);
   for (const l of lineas) {
+    const anterior = previa;
+    const contexto = antesDelBlanco;
+    previa = l;
+    if (anterior.trim() !== "") antesDelBlanco = anterior;
+    const esSangrada = /^( {4}|\t)/.test(l);
+    if (!valla && sangrado) {
+      if (esSangrada || l.trim() === "") { fuera.push(""); continue; }
+      sangrado = false;
+    }
+    if (!valla && esSangrada && anterior.trim() === "" && !esLista(contexto)) {
+      sangrado = true;
+      fuera.push("");
+      continue;
+    }
     const v = /^\s*(```|~~~)/.exec(l);
     if (valla) {
       fuera.push("");
@@ -178,7 +211,8 @@ export function prosaDeJson(texto) {
 /** Busca los sinónimos en un texto ya limpio. Devuelve [{ sinonimo, donde }]. */
 export function apariciones(trozos, sinonimos) {
   const r = [];
-  for (const { donde, texto } of trozos) {
+  for (const { donde, texto: original } of trozos) {
+    const texto = plano(original);
     for (const s of sinonimos) {
       const re = patronDe(s);
       let m;
@@ -265,6 +299,23 @@ export function comparar(medida, excepciones) {
     }
   }
   return { nuevas, bajadas };
+}
+
+/**
+ * El trinquete por par: cada par «ruta: sinónimo» de la lista tiene que estar en
+ * la partida y con una cifra igual o menor. Devuelve los pares que la pasan.
+ * Así no vale subir un par a cambio de bajar otro.
+ */
+export function sobrePartida(excepciones, partida) {
+  const fuera = [];
+  for (const [ruta, x] of Object.entries(excepciones)) {
+    for (const [s, n] of Object.entries(x)) {
+      const par = `${ruta}: ${s}`;
+      if (!(par in partida)) fuera.push(`${par}: no está en la partida`);
+      else if (n > partida[par]) fuera.push(`${par}: ${n} sobre ${partida[par]} de partida`);
+    }
+  }
+  return fuera;
 }
 
 /** Suma de una tabla { ruta: { sinonimo: n } }. */

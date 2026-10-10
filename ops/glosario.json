@@ -9,7 +9,9 @@
     "reglas": [".claude/rules/*.md"],
     "claude_md": ["CLAUDE.md"],
     "docs_ops": ["docs/ops/*.md"],
-    "estandares": ["ops/estandares-agentes.json"]
+    "estandares": ["ops/estandares-agentes.json"],
+    "normas": ["ops/normas.json"],
+    "comandos": [".claude/commands/*.md"]
   },
   "terminos": [
     {
@@ -62,7 +64,7 @@
     {
       "termino": "revisar",
       "clase": "accion",
-      "definicion": "Leer un cambio o un texto buscando fallos o lo caducado, sin ejecutarlo.",
+      "definicion": "Leer un cambio o un texto buscando fallos o lo caducado; puede correr sus tests, pero no lo cambia.",
       "sinonimos_prohibidos": ["inspeccionar"],
       "aplica_a": ["todas"],
       "nota": "Un juez revisa un diff; «auditar» es revisar una superficie entera."
@@ -80,7 +82,8 @@
       "definicion": "Dar un veredicto sobre el trabajo de otro sin cambiarlo; lo hace un juez y quien construye no juzga lo suyo.",
       "sinonimos_prohibidos": ["dictaminar", "arbitrar"],
       "aplica_a": ["todas"],
-      "ref": { "fichero": "scripts/lib/normas.mjs", "clave": "VEREDICTOS" }
+      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "ACTORES.juez" },
+      "nota": "El «veredicto» de una norma en ops/normas.json es su dureza (qué puede concluir quien la hace cumplir), no el juicio de un juez."
     },
     {
       "termino": "diagnosticar",
@@ -144,16 +147,18 @@
     {
       "termino": "falta",
       "clase": "estado",
-      "definicion": "La gravedad de un control que se incumple y bloquea: se arregla, no se explica.",
+      "definicion": "La gravedad de un control de la forja o de la higiene que se incumple y bloquea: se arregla, no se explica.",
       "sinonimos_prohibidos": [],
-      "aplica_a": ["todas"]
+      "aplica_a": ["todas"],
+      "nota": "Es gravedad de controles de skills; no es la de un hallazgo del informe común (bloqueante, alto, medio, nit)."
     },
     {
       "termino": "aviso",
       "clase": "estado",
-      "definicion": "La gravedad de lo que se señala sin bloquear: se mira y se decide, y si es un falso positivo se dice por qué.",
+      "definicion": "La gravedad de un control de la forja o de la higiene que señala sin bloquear: se mira, se decide y un falso positivo se explica.",
       "sinonimos_prohibidos": [],
-      "aplica_a": ["todas"]
+      "aplica_a": ["todas"],
+      "nota": "Es gravedad de controles de skills; no es la de un hallazgo del informe común (bloqueante, alto, medio, nit)."
     },
     {
       "termino": "caso",
@@ -184,10 +189,10 @@
       "termino": "causa",
       "clase": "campo",
       "definicion": "Por qué pasó un fallo, en tres piezas: mecanismo, condición y control ausente. Su tipo es la etiqueta causa:.",
-      "sinonimos_prohibidos": ["causa raíz", "causas raíz", "causa-raíz"],
+      "sinonimos_prohibidos": ["causa raíz", "causas raíz"],
       "aplica_a": ["todas"],
       "ref": { "fichero": "scripts/lib/issues.mjs", "clave": "GRUPOS.causa" },
-      "nota": "La skill causa-raiz conserva su nombre: es un identificador."
+      "nota": "La skill causa-raiz conserva su nombre: es un identificador, y como sin tildes «causa-raíz» es igual, esa forma no se prohíbe."
     },
     {
       "termino": "causa de escape",
@@ -442,7 +447,7 @@
       "termino": "juez",
       "clase": "rol",
       "definicion": "Un agente sin Edit ni Write que juzga el trabajo de otro: revisor, qa, evaluador, seguridad o auditor-datos.",
-      "sinonimos_prohibidos": ["validador", "validadores"],
+      "sinonimos_prohibidos": [],
       "aplica_a": ["todas"],
       "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "ACTORES.juez" }
     },
@@ -474,7 +479,8 @@
       "definicion": "Pablo o Álvaro: quien lanza un gateway con ! y decide lo irreversible.",
       "sinonimos_prohibidos": [],
       "aplica_a": ["todas"],
-      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "ACTORES.persona" }
+      "ref": { "fichero": "scripts/lib/flujo.mjs", "clave": "ACTORES.persona" },
+      "nota": "En ops/normas.json, el ejecutor persona (EJECUTORES de scripts/lib/normas.mjs) es una norma que hace cumplir alguien a mano: es este mismo término."
     },
     {
       "termino": "carpeta de trabajo",
