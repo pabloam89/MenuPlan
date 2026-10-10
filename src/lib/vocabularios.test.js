@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { VOCABULARIOS, vocabulario, TIPOS_GRUPO } from "./vocabularios.js";
-import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, CAMPOS_PREGUNTABLES, VOCABULARIOS_PENDIENTES } from "./registroCampos.js";
+import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, POR, APLICA, CAMPOS_PREGUNTABLES, VOCABULARIOS_PENDIENTES } from "./registroCampos.js";
 
 // Enums cuya lista aún no existe: deuda a la vista, que solo puede bajar.
 const ENUM_SIN_LISTA = [];
@@ -24,6 +24,14 @@ const CHECK_A_VOCABULARIO = {
   user_recipes_usage_tags_vocabulario: { lista: "usos_receta" },
   recipe_collections_collection_id_vocabulario: { lista: "carpetas_fijas", extra: ["fld\\_%"] },
   bot_entradas_proveedor_vocabulario: { lista: "canales" },
+  // La ficha (0097). Las listas de registro_campo viven en registroCampos.js (su fuente); el resto, en VOCABULARIOS.
+  registro_campo_tipo_vocabulario: { valores: TIPOS_CAMPO },
+  registro_campo_politica_vocabulario: { valores: POLITICAS },
+  registro_campo_por_vocabulario: { valores: POR },
+  registro_campo_aplica_vocabulario: { valores: APLICA },
+  sobre_origen_vocabulario: { lista: "origen_dato" },
+  sobre_canal_vocabulario: { lista: "canales_dato" },
+  sobre_ref_tipo_vocabulario: { lista: "ref_tipo" },
 };
 
 /** { constraint: [literales] } de todas las migraciones; si una se redefine, gana la última. */
@@ -74,9 +82,10 @@ describe("vocabularios: una lista, un sitio", () => {
     // Un CHECK de vocabulario nuevo sin entrada en CHECK_A_VOCABULARIO falla aquí: hay que decir su lista.
     expect(Object.keys(encontrados).sort()).toEqual(Object.keys(CHECK_A_VOCABULARIO).sort());
     for (const [constraint, literales] of Object.entries(encontrados)) {
-      const { lista, extra = [] } = CHECK_A_VOCABULARIO[constraint];
-      expect(vocabulario(lista), `${constraint}: no existe la lista ${lista}`).not.toBe(null);
-      expect([...literales].sort(), constraint).toEqual([...vocabulario(lista), ...extra].sort());
+      const { lista, valores, extra = [] } = CHECK_A_VOCABULARIO[constraint];
+      const esperada = valores ?? vocabulario(lista);
+      expect(esperada, `${constraint}: no existe la lista ${lista}`).not.toBe(null);
+      expect([...literales].sort(), constraint).toEqual([...esperada, ...extra].sort());
     }
   });
 
@@ -99,7 +108,7 @@ describe("registroCampos: la fuente de registro_campo", () => {
       if (c.vocabulario !== null) expect(esEnum, `${id}: vocabulario sin ser enum`).toBe(true);
       if (esEnum && c.vocabulario === null) expect(ENUM_SIN_LISTA, `${id}: enum sin vocabulario`).toContain(id);
       if (c.minimo !== null && c.maximo !== null) expect(c.minimo).toBeLessThanOrEqual(c.maximo);
-      if (c.minimo !== null || c.maximo !== null) expect(["int", "float"], `${id}: rango sin ser numérico`).toContain(c.tipo);
+      if (c.minimo !== null || c.maximo !== null) expect(["int", "decimal"], `${id}: rango sin ser numérico`).toContain(c.tipo);
     }
   });
 

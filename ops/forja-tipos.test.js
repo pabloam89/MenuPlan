@@ -7,6 +7,7 @@ import {
   ARTEFACTOS, CLASES_CAMPO, RUTA_CAMPOS,
   anclarCampos, cifrasDeCampos, cifrasPorTipo, criteriosDeTipo, generarMd, leerCamposGuardados, leerForja,
   problemasDeCampos, problemasDeCamposContraReferencia, problemasDeForja, problemasDeTaxonomia, problemasDeTrinqueteCampos, tipoDeSkill,
+  vocabulariosDeCriterio,
 } from "../scripts/lib/forja.mjs";
 import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaReferencia.mjs";
 import { ORIGENES } from "../scripts/lib/estandaresAgentes.mjs";
@@ -215,7 +216,22 @@ describe("campos de las fichas: lo que ya existe cumple lo que declara campos_fi
     expect(agentesDelRepo.length).toBeGreaterThanOrEqual(9);
     for (const a of agentesDelRepo) expect(problemasDeCampos(fichaDeAgente(a), "agente", datos, ctxCampos), a).toEqual([]);
   });
-  it("cada artefacto tiene sus campos declarados", () => expect(Object.keys(datos.campos_ficha)).toEqual(Object.keys(ARTEFACTOS)));
+  it("cada artefacto tiene sus campos declarados, y los criterios los suyos", () => expect(Object.keys(datos.campos_ficha)).toEqual([...Object.keys(ARTEFACTOS), "criterio"]));
+  it("los campos de regla de todos los criterios cumplen lo que declara campos_ficha.criterio (#487)", () => {
+    const decl = Object.keys(datos.campos_ficha.criterio.campos);
+    const ctx = { vocabularios: vocabulariosDeCriterio(datos) };
+    expect(datos.criterios.length).toBeGreaterThan(70);
+    for (const c of datos.criterios) {
+      const ficha = Object.fromEntries(decl.filter((k) => k in c).map((k) => [k, c[k]]));
+      expect(problemasDeCampos(ficha, "criterio", datos, ctx), c.id).toEqual([]);
+    }
+  });
+  it("de los campos de un criterio, la exigencia es un hueco de texto y el sujeto y la fuerza son discretos", () => {
+    const campos = datos.campos_ficha.criterio.campos;
+    expect(campos.exigencia).toMatchObject({ clase: "texto", hueco: true, obligatorio: true });
+    expect(campos.sujeto.clase).toBe("enum");
+    expect(campos.fuerza.clase).toBe("enum");
+  });
   it("las clases son las seis acordadas", () => expect(Object.keys(CLASES_CAMPO)).toEqual(["bool", "enum", "ref", "numero", "fecha", "texto"]));
   it("los campos de estándares que Pablo nombró: tres huecos de texto, un enum y una ref", () => {
     const c = datos.campos_ficha.estandar.campos;
@@ -344,8 +360,9 @@ describe("trinquete de los campos (ops/forja-campos.json): de texto a discreto, 
 
 describe("cifras: campos discretos frente a huecos", () => {
   it("por artefacto, en la vista y en las cifras", () => {
-    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 6, huecos: 1, total: 7 }, estandar: { discretos: 2, huecos: 5, total: 7 }, agente: { discretos: 3, huecos: 1, total: 4 } });
+    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 6, huecos: 1, total: 7 }, estandar: { discretos: 2, huecos: 5, total: 7 }, agente: { discretos: 3, huecos: 1, total: 4 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
     expect(md).toContain("| skill | 6 | 1 | 7 |");
+    expect(md).toContain("| criterio | 2 | 6 | 8 |");
     expect(md).toContain("| estandar | 2 | 5 | 7 |");
   });
   it("FORJA.md dice que la fuente de los tipos es ops/forja.json y que la plantilla es de otro encargo", () => {
