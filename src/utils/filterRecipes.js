@@ -1,6 +1,6 @@
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarniciones from "../data/recipes/guarniciones.json";
-import { normalizeAllergenId, recipeIngredientsHitAllergens } from "../lib/allergens.js";
+import { normalizeAllergenId, recipeIngredientsHitAllergens, recipeIngredientIdsHitFreeAllergy } from "../lib/allergens.js";
 import { ensureHealthFlags } from "../lib/healthFlags.js";
 import { recipeHitsIntolerances, recipeViolatesDiet } from "../lib/intolerances.js";
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
@@ -91,6 +91,30 @@ export function puedeContenerDe(recipe) {
   return deriveRecipeAllergens(recipe).mayContain;
 }
 
+/**
+ * ¿Choca la receta con alguna alergia? ES el único sitio que lo decide: lo usan
+ * recipeViolatesHardSafety, el filtro principal (filterRecipes) y las
+ * guarniciones (filterGarnishes). Antes cada uno repetía su copia y la red de
+ * las alergias libres solo estaba en una: «Tomates» bloqueaba la receta
+ * al rehacer un postre y dejaba pasar «Judías verdes con garbanzos» al generar.
+ *
+ * @param {Object} recipe
+ * @param {Set<string>} blockedAllergens - ids normalizados
+ * @param {string[]} allergies - el texto original (el nivel 2 resuelve la frase)
+ */
+function recetaChocaConAlergias(recipe, blockedAllergens, allergies) {
+  if (blockedAllergens.size === 0) return false;
+  if (recipe.allergens?.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
+  if (puedeContenerDe(recipe).some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
+  const names = (recipe.ingredients ?? []).map((ing) => ing.name);
+  if (recipeIngredientsHitAllergens(names, blockedAllergens)) return true;
+  // Nivel 2 de las alergias libres: por id de ingrediente, no por nombre.
+  // resolveIngredientId ya está cargado en este fichero para otra cosa; se
+  // pasa en vez de que allergensCore.js importe el catálogo entero (ver su
+  // cabecera: eso retrasaba el arranque de quien solo necesita el nivel 1).
+  return recipeIngredientIdsHitFreeAllergy(allergies, recipe.ingredients, resolveIngredientId);
+}
+
 export function recipeViolatesHardSafety(
   recipe,
   // offMenu: desayunos, meriendas y postres no se adaptan sin gluten (al
@@ -103,12 +127,7 @@ export function recipeViolatesHardSafety(
   // plato esté libre de gluten (falta certificado y contaminación cruzada).
   // Hasta que haya sustitutos certificados, la alergia bloquea siempre.
   const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
-  if (blockedAllergens.size > 0) {
-    if (recipe.allergens?.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
-    if (puedeContenerDe(recipe).some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
-    const names = (recipe.ingredients ?? []).map((ing) => ing.name);
-    if (recipeIngredientsHitAllergens(names, blockedAllergens)) return true;
-  }
+  if (recetaChocaConAlergias(recipe, blockedAllergens, allergies)) return true;
 
   const hardIntolerances = Array.from(new Set(intolerances)).filter(
     (id) => !isAdaptableRestriction(id),
@@ -366,13 +385,7 @@ export function filterRecipes({
   // catches the other 6 (soja, cacahuetes, apio, mostaza, sulfitos, altramuces)
   // that the catalog can't encode, so marking them actually excludes recipes.
   if (blockedAllergens.size > 0) {
-    pool = pool.filter((r) => {
-      if (r.allergens.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return false;
-      if (puedeContenerDe(r).some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return false;
-      const names = (r.ingredients ?? []).map((ing) => ing.name);
-      if (recipeIngredientsHitAllergens(names, blockedAllergens)) return false;
-      return true;
-    });
+    pool = pool.filter((r) => !recetaChocaConAlergias(r, blockedAllergens, allergies));
   }
 
   // 1c. Intolerances & dietary states. Two behaviors:
@@ -597,11 +610,7 @@ export function filterGarnishes(
   const hardIds = activeIntolerances.filter((id) => !isAdaptableRestriction(id));
 
   return guarnicionesList.filter((g) => {
-    if (blockedAllergens.size > 0) {
-      if (g.allergens.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return false;
-      const names = (g.ingredients ?? []).map((ing) => ing.name);
-      if (recipeIngredientsHitAllergens(names, blockedAllergens)) return false;
-    }
+    if (recetaChocaConAlergias(g, blockedAllergens, allergies)) return false;
     if (hardIds.length > 0 && recipeHitsIntolerances(g, hardIds)) return false;
     if (hardIds.length > 0 && recipeViolatesDiet(g, hardIds)) return false;
     if (hasKids && g.ingredients.some((ing) => ALCOHOL_RE.test(normalizeForAlcoholCheck(ing.name)))) {
