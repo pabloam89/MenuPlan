@@ -118,7 +118,7 @@ hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesione
   Causa: cada arranque de cada sesión leía el `.pem` de la App (dos lecturas si fallaba la primera bóveda), y un test
   llamaba a `op` de verdad en cada ejecución; qué lo agotó exactamente no se sabe, y el límite exacto tampoco. El arranque
   tardaba ~14 s. Arreglo: el token de la App se guarda y se reutiliza entre sesiones hasta que falten 15 minutos
-  (`scripts/lib/cacheTokenSesion.mjs`, detalle en la skill `github`, `referencias/app-sesiones.md`); con el límite agotado
+  (`scripts/lib/cacheTokenSesion.mjs`, detalle en la skill `github`, `.claude/skills/github/referencias/app-sesiones.md`); con el límite agotado
   sale el motivo `limite-de-1password`, sin probar otra bóveda, y se usa el token guardado si no caducó; el test ya no
   llama a `op`. Tests en `scripts/tokenSesion.test.js`, vistos fallar. Antes: 1 lectura del `.pem` por sesión; después:
   1 por hora entre todas.
