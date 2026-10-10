@@ -6,6 +6,9 @@
  *                                           encargos, decisiones, puntuales,
  *                                           cuentas por causa y por agente, y
  *                                           lo que está sin clasificar o trazar
+ *   npm run issues -- --fresco              (con cualquier orden de lectura) salta la caché:
+ *                                           el listado vale 10 min y el arranque 15 (#424,
+ *                                           cuota GraphQL; lo que escribe va siempre fresco)
  *   npm run issues -- --colgar <hijo> <fondo>
  *                                           cuelga un caso o un encargo de su
  *                                           problema de fondo; si el fondo
@@ -54,25 +57,47 @@ import {
 import { analizarCasos } from "../.claude/hooks/casos.mjs";
 import { informeFichas } from "./lib/fondos.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
+import { TTL_MIN, borrarCacheGh, conCache, registrarGh } from "./lib/cuotaGh.mjs";
 import { cruce, leerInventario, marcasHuerfanas, leerMarcas, lineaParecida, lineasDeLleva, parecidosEnGit, sinNumero, textoDeRama } from "./lib/lleva.mjs";
 
-const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
-const ghCorto = (ms, ...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: ms });
+// Cada llamada deja su línea `gh: caller=issues api=…` (scripts/lib/cuotaGh.mjs, #424).
+const gh = (...args) => {
+  registrarGh("issues", args);
+  return execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
+};
+const ghCorto = (ms, ...args) => {
+  registrarGh("issues", args);
+  return execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: ms });
+};
 const motivo = (e) => String(e.stderr ?? e.message).trim().split("\n")[0];
 
-/** Todos los issues, con PR, reaperturas, padre e hijos (una consulta por cada 100). */
-function todos() {
-  const out = [];
+/** Los nodos de GitHub de todos los issues (una consulta por cada 100, ~106 puntos cada una). */
+function pedirNodos() {
+  const nodos = [];
   let cursor = null;
   do {
     const args = ["api", "graphql", "-f", `query=${CONSULTA}`];
     if (cursor) args.push("-f", `cursor=${cursor}`);
     const pag = JSON.parse(gh(...args)).data.repository.issues;
-    // Las marcas «lo lleva» (scripts/lib/lleva.mjs) salen de los comentarios.
-    out.push(...pag.nodes.map((n) => ({ ...leerIssue(n), marcas: leerMarcas(n.comments?.nodes, { soloCasa: true }) })));
+    nodos.push(...pag.nodes);
     cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
   } while (cursor);
-  return out;
+  return nodos;
+}
+
+/**
+ * Todos los issues, con PR, reaperturas, padre e hijos. Cuesta ~320 puntos de la
+ * cuota GraphQL (#424), así que se guarda en una caché local: `ttlMin` dice cuántos
+ * minutos vale (0 = siempre fresco, para lo que escribe) y con `viejoSiFalla` una
+ * respuesta vieja sustituye a un error. Sin caché, se pide como siempre.
+ */
+function todos({ ttlMin = 0, viejoSiFalla = false } = {}) {
+  const fresco = args.includes("--fresco");
+  const nodos = conCache("issues-nodos", {
+    ttlMin: fresco ? 0 : ttlMin, viejoSiFalla, pedir: pedirNodos, aviso: (m) => console.error(m),
+  });
+  // Las marcas «lo lleva» (scripts/lib/lleva.mjs) salen de los comentarios.
+  return nodos.map((n) => ({ ...leerIssue(n), marcas: leerMarcas(n.comments?.nodes, { soloCasa: true }) }));
 }
 
 /**
@@ -118,6 +143,7 @@ function colgar(issues, hijoN, fondoN) {
     // replaceParent: si ya colgaba de otro, lo mueve en un solo paso (no queda suelto a medias).
     gh("api", "graphql", "-f", "query=mutation($i:ID!,$s:ID!){addSubIssue(input:{issueId:$i,subIssueId:$s,replaceParent:true}){issue{number}}}",
       "-f", `i=${fondo.id}`, "-f", `s=${hijo.id}`);
+    borrarCacheGh("issues-nodos"); // el padre cambió: la próxima lectura va a GitHub
     console.log(`#${hijoN} cuelga ahora de #${fondoN}${hijo.padre ? ` (antes de #${hijo.padre.number})` : ""}.`);
   }
   if (debeReabrir(hijo, fondo)) {
@@ -237,6 +263,7 @@ if (args.includes("--etiquetas")) {
   if (asignar) crear.push("--assignee", asignar);
   try {
     const url = gh(...crear).trim();
+    borrarCacheGh("issues-nodos"); // hay un issue nuevo: la próxima lectura va a GitHub
     const n = Number(url.match(/(\d+)\s*$/)?.[1]);
     console.log(`Creado #${n}: ${url}`);
     if (padre) colgar(todos(), n, padre);
@@ -271,6 +298,7 @@ if (args.includes("--etiquetas")) {
       console.log(`  #${i.number}: no pude ordenarlo (${motivo(e)})`);
     }
   }
+  if (n) borrarCacheGh("issues-nodos");
   console.log(n ? `${n} cambios.` : "Nada que ordenar.");
 } else if (args.includes("--marcas-huerfanas")) {
   // Solo lista: borrar comentarios de un issue es de quien lo pida (`gh api -X DELETE …/issues/comments/<id>`).
@@ -280,7 +308,7 @@ if (args.includes("--etiquetas")) {
 } else if (args.includes("--indexar")) {
   // El índice para `npm run buscar` y el aviso automático (#384): una consulta paginada de issues y una de PR.
   try {
-    console.log(indexar(todos()));
+    console.log(indexar(todos({ ttlMin: TTL_MIN.listado, viejoSiFalla: true })));
   } catch (e) {
     const v = leerIndice();
     console.error(`No he podido leer GitHub (${motivo(e)}). ${v.indice ? `Queda el índice anterior, de hace ${Math.round(v.horas)} h.` : "Y no hay índice anterior."}`);
@@ -288,7 +316,8 @@ if (args.includes("--etiquetas")) {
   }
 } else if (args.includes("--arranque")) {
   const desdeMs = Date.now();
-  const issues = todos();
+  // El arranque de cada sesión: 15 min de caché y, si GitHub no contesta, lo último que se guardó (#424).
+  const issues = todos({ ttlMin: TTL_MIN.arranque, viejoSiFalla: true });
   // Primero las líneas y después, de paso, el índice con lo ya leído: el arranque da 10 s en total y
   // una consulta lenta no puede costar el aviso de issues (ronda 2 de #384).
   arrancar({
@@ -299,7 +328,7 @@ if (args.includes("--etiquetas")) {
     desdeMs,
   });
 } else {
-  const issues = todos();
+  const issues = todos({ ttlMin: TTL_MIN.listado, viejoSiFalla: true });
   const r = resumen(issues);
   const abiertos = issues.filter((i) => i.state === "OPEN");
   const deTipo = (t) => abiertos.filter((i) => porGrupo(i.labels.map((l) => l.name)).tipo.has(t));
