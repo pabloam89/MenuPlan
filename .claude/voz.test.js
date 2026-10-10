@@ -51,6 +51,11 @@ describe("las tres piezas de la voz dicen lo mismo", () => {
     for (const p of PLANTILLAS) expect(skill, p).toMatch(new RegExp(`\\| ${p} \\|`));
   });
 
+  it("CLAUDE.md y la skill piden hablarle siempre en castellano (lo mide la falta no_castellano)", () => {
+    expect(claude, "CLAUDE.md").toMatch(/[Ss]iempre en castellano/);
+    expect(skill, "SKILL.md").toMatch(/siempre en castellano/);
+  });
+
   it("las tres piezas piden tres opciones, la recomendada primero", () => {
     for (const [nombre, t] of [["CLAUDE.md", claude], ["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) {
       expect(t, nombre).toMatch(/tres opciones/);
