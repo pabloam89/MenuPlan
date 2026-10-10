@@ -282,14 +282,18 @@
     },
     {
       "fichero": "ops/flujo.json",
-      "estado": "pendiente",
-      "encargo": "en cola #488"
+      "estado": "cumple",
+      "clave_reglas": "pasos.obligaciones",
+      "clave_sujetos": "sujetos",
+      "sujetos_de": [
+        "ops/normas.json"
+      ]
     },
     {
       "fichero": "ops/estandares-agentes.json",
       "estado": "cumple",
       "clave_reglas": [
-        "agentes.*.tareas.*.reglas",
+        "agentes.*.tareas.reglas",
         "comunes.*.reglas"
       ],
       "clave_sujetos": "sujetos"

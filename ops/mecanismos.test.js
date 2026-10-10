@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { ORDEN_VEREDICTO } from "../scripts/lib/escalas.mjs";
 import { BARRERAS } from "../scripts/lib/fondos.mjs";
 import {
   CATALOGO, ESCALONES, ESCALON_DE_EJECUTOR, MECANISMOS_PEDIDOS, masAlto, problemas, rango, veredictoPosible,
@@ -18,7 +19,7 @@ import { EJECUTORES, EJECUTORES_DEL_SISTEMA, leerRegistro, problemasDeDureza } f
  *     escalón), y cada norma del registro cae en un mecanismo del catálogo;
  *  3. que el veredicto que promete cada mecanismo es el que las reglas de
  *     dureza de normas.mjs le dejan dar;
- *  4. que la escalera es la de ops/flujo.json (la misma `barrera` de la ficha);
+ *  4. que la escalera es la de scripts/lib/escalas.mjs (la misma `barrera` de la ficha);
  *  5. que la skill plan-de-arreglo cite el catálogo y no lo copie.
  *
  * Abajo, un autotest: cada regla falla con datos malos. Sin red.
@@ -33,7 +34,7 @@ describe("el catálogo de mecanismos", () => {
     expect(problemas(CATALOGO, { existe }), "Corrige ops/mecanismos.json o el puente de scripts/lib/mecanismos.mjs").toEqual([]);
   });
 
-  it("la escalera es la de ops/flujo.json, la misma que la barrera de la ficha del fondo", () => {
+  it("la escalera es la de scripts/lib/escalas.mjs, la misma que la barrera de la ficha del fondo", () => {
     expect(ESCALONES).toEqual(BARRERAS);
   });
 
@@ -76,7 +77,7 @@ describe("cruce con el registro de normas (ops/normas.json)", () => {
   });
 
   it("ninguna norma es más dura de lo que su ejecutor y su alcance permiten según el catálogo", () => {
-    const orden = ["dura", "semidura", "blanda", "rota"];
+    const orden = ORDEN_VEREDICTO;
     const demasiado = registro.normas
       .filter((n) => n.veredicto !== "rota" && orden.indexOf(n.veredicto) < orden.indexOf(veredictoPosible(n.ejecutor, n.alcance)))
       .map((n) => n.id);
@@ -116,7 +117,7 @@ describe("autotest: cada regla falla con datos malos", () => {
     ["escalón que no existe", (c) => { c.mecanismos[0].escalon = "muro"; }, ["escalon"]],
     ["ejecutor que no está en el registro", (c) => { c.mecanismos.find((m) => m.id === "script").ejecutor = "magia"; }, ["ejecutor"]],
     ["escalón distinto del de su ejecutor", (c) => { c.mecanismos.find((m) => m.id === "hook").escalon = "test_ci"; }, ["escalon-distinto"]],
-    ["veredicto que su ejecutor no puede dar", (c) => { c.mecanismos.find((m) => m.id === "hook").veredicto_max = "dura"; }, ["veredicto-distinto"]],
+    ["veredicto que su ejecutor no puede dar", (c) => { c.mecanismos.find((m) => m.id === "hook").veredicto = "dura"; }, ["veredicto-distinto"]],
     ["alcance fuera de vocabulario", (c) => { c.mecanismos.find((m) => m.id === "texto").alcance = "medio"; }, ["alcance"]],
     ["falta un mecanismo pedido", (c) => { c.mecanismos = c.mecanismos.filter((m) => m.id !== "entorno_aprobador"); }, ["falta-mecanismo"]],
     ["escalón sin mecanismos", (c) => { c.mecanismos = c.mecanismos.filter((m) => m.escalon !== "texto"); c.mecanismos.push({ ...CATALOGO.mecanismos.find((m) => m.id === "skill"), id: "texto" }); }, ["ejecutor-sin-mecanismo", "escalon-vacio"]],

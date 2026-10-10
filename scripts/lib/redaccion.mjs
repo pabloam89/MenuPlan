@@ -46,24 +46,6 @@ export function leerPendientes(raiz) {
 
 const esTexto = (v, min = 1) => typeof v === "string" && v.trim().length >= min;
 
-/**
- * Las reglas de un catálogo. `ruta` es la clave de la lista de reglas (`criterios`) o un camino con
- * puntos y `*` para recorrer objetos y listas (`agentes.*.tareas.*.reglas`, #516: las reglas de un
- * catálogo pueden ir dentro de otras entradas); también puede ser una lista de caminos.
- */
-export function reglasEn(json, ruta) {
-  const caminos = Array.isArray(ruta) ? ruta : [ruta];
-  return caminos.flatMap((camino) => {
-    let nodos = [json];
-    for (const seg of String(camino).split(".")) {
-      nodos = nodos.flatMap((n) => {
-        if (seg === "*") return Array.isArray(n) ? n : n && typeof n === "object" ? Object.values(n) : [];
-        return n && typeof n === "object" && seg in n ? [n[seg]] : [];
-      });
-    }
-    return nodos.flatMap((n) => (Array.isArray(n) ? n : []));
-  });
-}
 const esRuta = (v) => esTexto(v) || (Array.isArray(v) && v.length > 0 && v.every((x) => esTexto(x)));
 
 /** Errores de un principio, además de los de regla (lista vacía si está bien). */
@@ -92,6 +74,40 @@ function problemasDePrincipio(p, d, datos, existe) {
   return malos;
 }
 
+/**
+ * Las reglas de un catálogo según su `clave_reglas`: una clave de primer nivel (`normas`) o una ruta con
+ * puntos que atraviesa listas (`pasos.obligaciones`: las obligaciones de cada paso, en orden). Una entrada
+ * que lleva `norma` REMITE a una norma de otro catálogo y no es una regla de este: su frase la escribe la
+ * norma, y ese catálogo ya se comprueba aparte. Devuelve { reglas, remisiones }, o null si la ruta no existe.
+ */
+export function reglasDe(json, clave) {
+  // Una clave, un camino con puntos (con `*` para recorrer objetos, #516) o una lista de caminos.
+  const todas = [];
+  for (const camino of [clave].flat()) {
+    let nivel = [json];
+    for (const parte of String(camino).split(".")) {
+      nivel = nivel.flatMap((x) => (Array.isArray(x) ? x : [x])).flatMap((x) => {
+        if (!x || typeof x !== "object") return [];
+        if (parte === "*") return Object.values(x);
+        return parte in x ? [x[parte]] : [];
+      });
+      if (!nivel.length) break;
+    }
+    todas.push(...nivel.flatMap((x) => (Array.isArray(x) ? x : [x])));
+  }
+  if (!todas.length) return null;
+  return { reglas: todas.filter((r) => !(r && typeof r === "object" && "norma" in r)), remisiones: todas.filter((r) => r && typeof r === "object" && "norma" in r) };
+}
+
+/** Las reglas de un catálogo (sin las remisiones a norma); lista vacía si el camino no existe. */
+export const reglasEn = (json, ruta) => reglasDe(json, ruta)?.reglas ?? [];
+
+/** Los sujetos de un catálogo: los suyos más los de los catálogos de los que hereda (`sujetos_de`, una lista de ficheros). */
+export function sujetosDe(k, json, leerJson) {
+  const heredados = (k.sujetos_de ?? []).map((f) => leerJson(f)?.sujetos ?? {});
+  return Object.assign({}, ...heredados, json?.[k.clave_sujetos] ?? {});
+}
+
 /** Errores de la entrada de un catálogo en la lista de `catalogos`. */
 function problemasDeCatalogo(k, d, { existe, leerJson }) {
   const malos = [];
@@ -104,10 +120,13 @@ function problemasDeCatalogo(k, d, { existe, leerJson }) {
   if (!esRuta(k.clave_reglas) || !esTexto(k.clave_sujetos)) return [...malos, `${d}: un catálogo que cumple dice «clave_reglas» y «clave_sujetos»`];
   if (malos.length) return malos;
   const json = leerJson(k.fichero);
-  const reglas = reglasEn(json, k.clave_reglas);
-  if (!reglas.length) return [...malos, `${d}: «${[k.clave_reglas].flat().join(", ")}» no es una lista de reglas`];
+  const de = reglasDe(json, k.clave_reglas);
+  if (!de || !de.reglas.length) return [...malos, `${d}: «${k.clave_reglas}» no es una lista de reglas`];
+  for (const f of k.sujetos_de ?? []) if (!existe(f)) malos.push(`${d}: sujetos_de cita ${f}, que no existe`);
+  if (malos.length) return malos;
+  const sujetos = sujetosDe(k, json, leerJson);
   malos.push(...problemasDeSujetos(json[k.clave_sujetos]).map((x) => `${d}: ${x}`));
-  reglas.forEach((r, i) => malos.push(...problemasDeRegla(r, `${d} · ${r?.id ?? `entrada ${i + 1}`}`, json[k.clave_sujetos])));
+  de.reglas.forEach((r, i) => malos.push(...problemasDeRegla(r, `${d} · ${r?.id ?? `entrada ${i + 1}`}`, sujetos)));
   return malos;
 }
 
@@ -244,7 +263,8 @@ function mdVocabularios(datos) {
 function mdCatalogos(datos, leerJson) {
   const L = ["## Catálogos que siguen la guía", "", "| Catálogo | Estado | Reglas | Encargo |", "|---|---|---|---|"];
   for (const k of datos.catalogos) {
-    const n = k.estado === "cumple" ? String(reglasEn(leerJson(k.fichero), k.clave_reglas).length) : "-";
+    const de = k.estado === "cumple" ? reglasDe(leerJson(k.fichero), k.clave_reglas) : null;
+    const n = de ? String(de.reglas.length + de.remisiones.length) : "-";
     L.push(`| \`${k.fichero}\` | ${k.estado} | ${n} | ${k.encargo ?? "-"} |`);
   }
   const pend = pendientesDe(datos).length;
