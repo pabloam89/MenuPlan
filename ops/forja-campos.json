@@ -1,0 +1,24 @@
+{
+  "$comentario": "Ancla del nivel de cada campo de las fichas de ops/forja.json (campos_ficha, #458). Un campo solo pasa de texto a discreto, nunca al revés. La mantiene «npm run forja -- --escribir» (añade y sube, nunca baja ni borra). Un campo que sale de campos_ficha deja su motivo en retirados. Lo vigila ops/forja.test.js.",
+  "campos": {
+    "agente.description": "texto",
+    "agente.model": "discreto",
+    "agente.name": "discreto",
+    "agente.skills": "discreto",
+    "estandar.comprueba": "texto",
+    "estandar.estandar": "texto",
+    "estandar.fuentes": "discreto",
+    "estandar.no_hace": "texto",
+    "estandar.origen": "discreto",
+    "estandar.rondas": "texto",
+    "estandar.tarea": "texto",
+    "skill.comprobado": "discreto",
+    "skill.description": "texto",
+    "skill.dueno": "discreto",
+    "skill.invocacion": "discreto",
+    "skill.libertad": "discreto",
+    "skill.name": "discreto",
+    "skill.tipo": "discreto"
+  },
+  "retirados": {}
+}
