@@ -61,7 +61,7 @@
     "op": "node scripts/op.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.129.0",
+    "@anthropic-ai/sdk": "^0.131.0",
     "@fal-ai/client": "^1.10.1",
     "@google/genai": "^2.9.0",
     "@supabase/supabase-js": "^2.108.2",
@@ -85,7 +85,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
+    "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.4.0",
     "jimp": "^1.6.1",
     "jsdom": "^29.1.1",
