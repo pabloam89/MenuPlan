@@ -308,6 +308,6 @@ describe("los criterios de esta parte en la base", () => {
     expect(md).toContain("## La forma de una práctica");
     expect(md).toContain("regla · porque · ejemplo_bueno · ejemplo_malo");
     expect(md).toContain("## Método de construcción");
-    expect(md).toContain("Control: `ops/glosario.test.js`");
+    expect(md).toContain("Se comprueba con: `ops/glosario.test.js`");
   });
 });

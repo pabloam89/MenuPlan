@@ -51,10 +51,13 @@ describe("ops/forja.json", () => {
   it("cada capa tiene criterios y los de la capa subjetiva llevan rúbrica", () => {
     const k = cifras(datos);
     for (const capa of ORDEN_CAPAS) expect(k.porCapa[capa], capa).toBeGreaterThan(0);
-    for (const c of datos.criterios.filter((x) => x.capa === "subjetiva")) expect(c.texto).toMatch(/Cumple si[\s\S]*No cumple si/);
+    for (const c of datos.criterios.filter((x) => x.capa === "subjetiva")) {
+      expect(c.cumple, c.id).toBeTruthy();
+      expect(c.no_cumple, c.id).toBeTruthy();
+    }
   });
   it("el solape lleva los tres pares medidos como casos que lo prueban", () => {
-    const t = datos.criterios.find((c) => c.id === "solape").texto;
+    const t = datos.criterios.find((c) => c.id === "solape").nota;
     for (const par of ["forja-de-skills con higiene-de-skills", "hetzner con 1password", "issues con causa-raiz"]) expect(t).toContain(par);
   });
 });
@@ -177,14 +180,52 @@ describe("autotest: cada regla falla con datos malos", () => {
     falla((c) => { c.aplica_a = ["coche"]; }, "aplica_a");
     falla((c) => { c.aplica_a = []; }, "aplica_a");
   });
-  it("texto corto o en varias líneas", () => {
-    falla((c) => { c.texto = "corto"; }, "texto");
-    falla((c) => { c.texto = `${c.texto}\nsegunda línea`; }, "una sola línea");
+  // Los criterios se escriben por campos (#487): ni `texto` libre, ni sujeto o fuerza fuera de vocabulario.
+  it("un criterio con «texto» libre falla", () => {
+    falla((c) => { c.texto = "Una prosa libre de las de antes, suficientemente larga"; }, "«texto» ya no existe");
   });
-  it("una rúbrica subjetiva sin «Cumple si» y «No cumple si»", () => {
+  it("falta el nombre o la exigencia", () => {
+    falla((c) => { delete c.nombre; }, "falta el campo «nombre»");
+    falla((c) => { delete c.exigencia; }, "falta el campo «exigencia»");
+    falla((c) => { delete c.sujeto; }, "falta el campo «sujeto»");
+    falla((c) => { delete c.fuerza; }, "falta el campo «fuerza»");
+  });
+  it("sujeto o fuerza fuera del vocabulario", () => {
+    falla((c) => { c.sujeto = "skill.coche"; }, "sujeto «skill.coche» no está en el vocabulario");
+    falla((c) => { c.fuerza = "puede"; }, "fuerza «puede» no está en el vocabulario");
+  });
+  it("un sujeto que no se aplica al artefacto del criterio", () => {
+    falla((c) => { c.sujeto = "estandar.fuente"; }, "no se aplica a «skill»");
+  });
+  it("una exigencia de más de 160 caracteres, con punto final o sin minúscula inicial", () => {
+    falla((c) => { c.exigencia = `llevar ${"algo ".repeat(40)}`.trim(); }, "pasa de 160");
+    falla((c) => { c.exigencia = "llevar solo name y description."; }, "sin punto final");
+    falla((c) => { c.exigencia = "Llevar solo name y description"; }, "empieza en minúscula");
+  });
+  it("nombre mal escrito, de una sola palabra o repetido", () => {
+    falla((c) => { c.nombre = "frontmatter cerrado"; }, "mayúscula inicial");
+    falla((c) => { c.nombre = "Frontmatter."; }, "mayúscula inicial");
+    falla((c) => { c.nombre = "Frontmatter"; }, "de 2 a 5 palabras");
+    falla((c) => { c.nombre = "Un nombre que es demasiado largo ya"; }, "de 2 a 5 palabras");
+    falla((c, d) => { d.criterios[1].nombre = c.nombre; }, "ya es de");
+  });
+  it("condición que no empieza por «cuando» o «si»", () => {
+    falla((c) => { c.condicion = "porque sí, siempre"; }, "«cuando» o «si»");
+    falla((c) => { c.condicion = "cuando algo pasa."; }, "sin punto");
+  });
+  it("un sujeto declarado que ningún criterio usa", () => {
     const d = clon();
-    subj(d).texto = "Esto es una frase suficientemente larga pero sin rúbrica alguna.";
-    expect(problemasDeForja(d, existe).join()).toContain("rúbrica");
+    d.sujetos.nuevo = { legible: "un sujeto sin uso", aplica_a: ["skill"] };
+    expect(problemasDeForja(d, existe).join()).toContain("ningún criterio lo usa");
+  });
+  it("una rúbrica subjetiva sin «cumple» o «no_cumple», y la rúbrica en un criterio que no es subjetivo", () => {
+    const d = clon();
+    delete subj(d).cumple;
+    expect(problemasDeForja(d, existe).join()).toContain("lleva «cumple»");
+    const e = clon();
+    subj(e).no_cumple = "corto";
+    expect(problemasDeForja(e, existe).join()).toContain("lleva «no_cumple»");
+    falla((c) => { c.cumple = "algo que se cumple de sobra aquí"; }, "«cumple» es solo de la capa subjetiva");
   });
   it("fuente sin marca, sin url o con una ruta que no existe", () => {
     falla((c) => { c.fuente = "https://x.com"; }, "fuente");
@@ -261,7 +302,7 @@ describe("autotest: cada regla falla con datos malos", () => {
   });
   it("FORJA.md desfasado: cambiar un criterio cambia la vista", () => {
     const d = clon();
-    d.criterios[0].texto += " y algo más";
+    d.criterios[0].exigencia += " y algo más";
     expect(generarMd(d)).not.toBe(md);
     const e = clon();
     e.criterios.pop();
@@ -331,7 +372,7 @@ describe("autotest: cada regla falla con datos malos", () => {
     expect(md).toContain("primer tiro, pendientes de ajustar con datos");
     expect(md).toContain(String(datos.promocion.coincidencia_minima));
   });
-  it("los campos del catálogo son los acordados", () => expect(CAMPOS).toEqual(["id", "capa", "aplica_a", "texto", "fuente", "control", "codigo"]));
+  it("los campos del catálogo son los acordados", () => expect(CAMPOS).toEqual(["id", "capa", "aplica_a", "nombre", "sujeto", "fuerza", "exigencia", "fuente", "control", "codigo"]));
   it("las rutas del módulo existen", () => {
     expect(existe(RUTA_FORJA) && existe(RUTA_CAPAS) && existe(RUTA_MD)).toBe(true);
   });

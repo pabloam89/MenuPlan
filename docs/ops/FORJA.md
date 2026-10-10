@@ -15,6 +15,41 @@ La única fuente de lo que se le pide a una skill, a un estándar de agente y a 
 
 Un criterio que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.
 
+## Cómo se escribe un criterio
+
+Cada criterio se escribe por campos y su frase se genera; no hay prosa libre. La forma sigue EARS (Mavin et al., Rolls-Royce, 2009) y las palabras de RFC 2119. El esquema vive en `scripts/lib/regla.mjs`, para que lo reutilicen las normas y las obligaciones del flujo (#488). La frase es: **Nombre.** [Condición,] sujeto DEBE | NO DEBE exigencia. Se comprueba con: control. Con `conviene`: [Condición, para] sujeto, CONVIENE exigencia.
+
+| Campo | Qué es |
+|---|---|
+| nombre | Sustantivo corto de 2 a 5 palabras, con mayúscula inicial y sin punto; no se repite |
+| sujeto | La parte de un artefacto que se juzga, de un vocabulario cerrado (tabla de abajo) |
+| fuerza | `debe`, `no_debe` o `conviene` (tabla de abajo) |
+| condicion | Opcional; empieza por «cuando» o «si» |
+| exigencia | El único hueco de texto: una frase verbal en infinitivo, sin sujeto ni punto final, de 160 caracteres como mucho |
+| cumple, no_cumple | Solo en los subjetivos: la rúbrica que puntúa un LLM |
+| nota | Opcional: un matiz que la exigencia no admite (una heurística, una cifra); de 400 caracteres como mucho |
+| control | Un fichero que lo vigila, o `juicio` |
+
+| Fuerza | Palabra | Qué quiere decir |
+|---|---|---|
+| debe | DEBE | Obligatoria: sin ella la regla no se cumple (RFC 2119, MUST) |
+| no_debe | NO DEBE | Prohibida: hacerlo incumple la regla (RFC 2119, MUST NOT) |
+| conviene | CONVIENE | Recomendada: se avisa, pero no impide seguir (RFC 2119, SHOULD) |
+
+| Sujeto | En la frase | Se aplica a | Criterios |
+|---|---|---|---|
+| skill | cada skill | skill | 4 |
+| skill.metadatos | el frontmatter de cada skill | skill | 5 |
+| skill.descripcion | la descripción de cada skill | skill | 7 |
+| skill.cuerpo | el cuerpo de cada skill | skill | 22 |
+| skill.casos | el conjunto de casos de prueba de cada skill | skill | 6 |
+| plantilla.tipo | la plantilla de skills | skill | 7 |
+| estandar | cada tarea del catálogo de estándares | estandar | 9 |
+| estandar.practica | la práctica de un estándar | estandar | 5 |
+| estandar.fuente | cada fuente del catálogo de estándares | estandar | 3 |
+| agente | cada agente | estandar | 5 |
+| artefacto | todo artefacto de la forja | skill, estandar, agente | 1 |
+
 ## Tipos de skill
 
 Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué entra y sale, cómo se prueba y cómo se corrige. **La fuente de los tipos pasa a ser `ops/forja.json`**; el cambio de la plantilla (`.claude/PLANTILLA-SKILL.md`), de `ops/flujo.json` y de las skills es del encargo de plantillas por tipo, y hasta entonces siguen los ocho tipos de hoy.
@@ -112,6 +147,7 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 | skill | 6 | 1 | 7 |
 | estandar | 2 | 5 | 7 |
 | agente | 3 | 1 | 4 |
+| criterio | 2 | 6 | 8 |
 
 ### Campos de skill
 
@@ -145,6 +181,19 @@ El frontmatter de .claude/agents/<agente>.md.
 - `description` — texto. Hueco: El cuándo se usa el agente y su frontera con los demás, dicho con las palabras de quien pide
 - `model` — enum (modelo_agente)
 - `skills` — ref a skill, lista, opcional
+
+### Campos de criterio
+
+Un criterio de este catálogo, redactado por campos (scripts/lib/regla.mjs): nombre, sujeto, fuerza, condicion, exigencia y, en los subjetivos, cumple y no_cumple. El resto de sus campos (id, capa, aplica_a, fuente, control, codigo) los vigila problemasDeForja.
+
+- `nombre` — texto. Hueco: La etiqueta corta con que se nombra la regla (2 a 5 palabras): un nombre no cabe en un vocabulario cerrado
+- `sujeto` — enum (sujeto)
+- `fuerza` — enum (fuerza)
+- `condicion` — texto, opcional. Hueco: Cuándo se aplica la regla («cuando …» o «si …»): la situación cambia con cada regla y no tiene vocabulario común
+- `exigencia` — texto. Hueco: Lo que pide la regla, una frase verbal en infinitivo: el verbo y su objeto no caben en un vocabulario cerrado
+- `cumple` — texto, opcional. Hueco: Cuándo da por buena la regla el juicio de un LLM (solo los subjetivos): es la rúbrica y se escribe caso a caso
+- `no_cumple` — texto, opcional. Hueco: Cuándo da por mala la regla el juicio de un LLM (solo los subjetivos): es la rúbrica y se escribe caso a caso
+- `nota` — texto, opcional. Hueco: Un matiz que la exigencia no admite (una heurística, una cifra medida, un caso que la prueba): es contexto y no cabe en un campo discreto
 
 ## La forma de una práctica
 
@@ -189,93 +238,99 @@ Esquema y forma: determinista, lo vigila un test del CI.
 
 ### formal · skill (26)
 
-- `frontmatter` — El frontmatter lleva solo name, description y metadata; name igual que la carpeta; la description empieza por «Úsala », dice «No para:» y tiene de 81 a 600 caracteres, por debajo de los 1.024 del estándar abierto
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: `.claude/skills.test.js`. Código: `frontmatter`.
-- `tipo` — metadata.tipo es uno de los ocho tipos de ops/flujo.json y tiene secciones definidas
-  - Fuente: [I] scripts/lib/skills.mjs. Control: `.claude/skills.test.js`. Código: `tipo`.
-- `dueno` — metadata.dueno es un agente de .claude/agents/ que la carga en su skills:
-  - Fuente: [I] scripts/lib/skills.mjs. Control: `.claude/skills.test.js`. Código: `dueno`.
-- `comprobado` — metadata.comprobado es una fecha AAAA-MM-DD no futura y el texto dice «Comprobado el <fecha>: …» con qué se comprobó ese día
-  - Fuente: [I] scripts/lib/skills.mjs. Control: `.claude/skills.test.js`. Código: `comprobado`.
-- `caducada` — Una skill que toca un PR no tiene su fecha de comprobado a más de 90 días; el reloj no va en npm test sino en el paso «Skills del PR» del CI
-  - Fuente: [I] scripts/lib/skills.mjs. Control: `scripts/skills-pr.test.js`. Código: `caducada`.
-- `secciones` — Las secciones de su tipo, en su orden y ninguna vacía, con el título «# …» arriba
-  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Control: `.claude/skills.test.js`. Código: `secciones`.
-- `formato` — Tabla de operaciones con «Debe salir» en las herramientas, fallos con fecha, causa y arreglo, registro de cambios fechado y última línea «Comprobado el …» o «Sin comprobar: …»
-  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Control: `.claude/skills.test.js`. Código: `formato`.
-- `tamano` — SKILL.md de 220 líneas como mucho (la guía oficial pide menos de 500); el detalle va a ficheros de capa
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: `.claude/skills.test.js`. Código: `tamano`.
-- `secretos` — Ningún patrón de clave ni cadena de conexión con contraseña en la skill ni en sus capas
-  - Fuente: [I] scripts/lib/skills.mjs. Control: `.claude/skills.test.js`. Código: `secretos`.
-- `rutas` — Todo fichero del repo citado entre comillas invertidas existe
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: `.claude/skills.test.js`. Código: `rutas`.
-- `estructura` — En la carpeta solo SKILL.md, casos.json y las capas conocidas, a un nivel de profundidad, y cada fichero de capa citado desde SKILL.md con su ruta entera
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: `.claude/skills.test.js`. Código: `estructura`.
-- `copiado` — Ningún párrafo largo idéntico en dos skills: el saber vive en una y la otra la cita por su nombre
-  - Fuente: [I] scripts/lib/skills.mjs. Control: `.claude/skills.test.js`. Código: `copiado`.
-- `casos` — casos.json válido, con cuatro casos como mínimo: tres que cargan la skill con debe_salir comprobable y al menos uno de frontera
-  - Fuente: [F] https://agentskills.io/skill-creation/evaluating-skills. Control: `.claude/skills.test.js`. Código: `casos`.
-- `casos-negativos` — Al menos tres casos de frontera: peticiones parecidas que son de otra skill o de ninguna
-  - Fuente: [F] https://agentskills.io/skill-creation/optimizing-descriptions. Control: `.claude/skills.test.js`. Código: `casos-negativos`.
-- `fechas` — Sin fechas en el cuerpo fuera de «Lo que falló y por qué», «Registro de cambios» y «Fuentes y comprobación»: se quedan viejas
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: `.claude/skills.test.js`. Código: `fechas`.
-- `sin-parada` — El «Método» (salvo en herramienta) dice cuándo se acaba y qué se ve cuando sale bien. Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: `.claude/skills.test.js`. Código: `sin-parada`.
-- `ejemplos` — Como mucho tres ejemplos por sección de ejemplos: pocos y canónicos
-  - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md. Control: `.claude/skills.test.js`. Código: `ejemplos`.
-- `tabla` — Las tablas tienen todas las filas del mismo ancho y ninguna celda vacía
-  - Fuente: [I] .claude/skills/forja-de-skills/referencias/presentacion.md. Control: `.claude/skills.test.js`. Código: `tabla`.
-- `cabeceras` — Las cabeceras bajan de nivel de una en una, sin saltar de ## a ####
-  - Fuente: [I] .claude/skills/forja-de-skills/referencias/presentacion.md. Control: `.claude/skills.test.js`. Código: `cabeceras`.
-- `tipo-sin-estandar` — Cada tipo de skill tiene su apartado en «El estándar de cada tipo» de la plantilla
-  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Control: `.claude/skills.test.js`. Código: `tipo-sin-estandar`.
-- `apartado-ausente` — El estándar de cada tipo lleva «Qué lo hace bueno», «Errores típicos» y «Ejemplo mínimo», ninguno vacío
-  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Control: `.claude/skills.test.js`. Código: `apartado-ausente`.
-- `pocos-puntos` — «Qué lo hace bueno» y «Errores típicos» de cada tipo tienen dos puntos como mínimo
-  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Control: `.claude/skills.test.js`. Código: `pocos-puntos`.
-- `sin-fuente` — Cada punto del estándar de un tipo lleva su marca [F: fuente] o [I]
-  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Control: `.claude/skills.test.js`. Código: `sin-fuente`.
-- `ejemplo-sin-origen` — El ejemplo mínimo de cada tipo dice «Real: `skill`» o «Esqueleto:» y va en un bloque de código
-  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Control: `.claude/skills.test.js`. Código: `ejemplo-sin-origen`.
-- `ejemplo-largo` — El ejemplo mínimo de cada tipo tiene de 3 a 6 líneas
-  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Control: `.claude/skills.test.js`. Código: `ejemplo-largo`.
-- `ejemplo-no-cuadra` — Un ejemplo «Real» sale tal cual de la skill que cita y es de ese tipo; un esqueleto solo vale mientras no haya ninguna skill del tipo
-  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Control: `.claude/skills.test.js`. Código: `ejemplo-no-cuadra`.
+- `frontmatter` — **Frontmatter cerrado.** El frontmatter de cada skill DEBE llevar solo name, description y metadata, con name igual que la carpeta y la description con «Úsala » al principio, «No para:» y de 81 a 600 caracteres. Se comprueba con: `.claude/skills.test.js`.
+  - Nota: La description queda por debajo de los 1.024 caracteres del estándar abierto.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `frontmatter`.
+- `tipo` — **Tipo de skill.** El frontmatter de cada skill DEBE llevar en metadata.tipo uno de los ocho tipos de ops/flujo.json, que tiene secciones definidas. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] scripts/lib/skills.mjs. Código: `tipo`.
+- `dueno` — **Dueño de la skill.** El frontmatter de cada skill DEBE llevar en metadata.dueno un agente de .claude/agents/ que la carga en su campo skills. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] scripts/lib/skills.mjs. Código: `dueno`.
+- `comprobado` — **Fecha de comprobación.** El frontmatter de cada skill DEBE llevar en metadata.comprobado una fecha AAAA-MM-DD no futura, y decir en el texto «Comprobado el <fecha>: …» con qué se comprobó ese día. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] scripts/lib/skills.mjs. Código: `comprobado`.
+- `caducada` — **Comprobación vigente.** Si un PR toca la skill, el frontmatter de cada skill DEBE tener la fecha de comprobado a 90 días como mucho. Se comprueba con: `scripts/skills-pr.test.js`.
+  - Nota: El reloj no va en npm test sino en el paso «Skills del PR» del CI.
+  - Fuente: [I] scripts/lib/skills.mjs. Código: `caducada`.
+- `secciones` — **Secciones por tipo.** El cuerpo de cada skill DEBE llevar las secciones de su tipo, en su orden y ninguna vacía, con el título «# …» arriba. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `secciones`.
+- `formato` — **Formato de la skill.** El cuerpo de cada skill DEBE llevar tabla de operaciones, fallos con fecha, causa y arreglo, registro de cambios fechado y última línea «Comprobado el …» o «Sin comprobar: …». Se comprueba con: `.claude/skills.test.js`.
+  - Nota: La tabla de operaciones lleva «Debe salir» en las herramientas.
+  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `formato`.
+- `tamano` — **Tamaño del cuerpo.** El cuerpo de cada skill DEBE tener SKILL.md de 220 líneas como mucho, con el detalle en ficheros de capa. Se comprueba con: `.claude/skills.test.js`.
+  - Nota: La guía oficial pide menos de 500 líneas.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `tamano`.
+- `secretos` — **Sin secretos.** Cada skill NO DEBE contener ningún patrón de clave ni cadena de conexión con contraseña, ni en sus capas. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] scripts/lib/skills.mjs. Código: `secretos`.
+- `rutas` — **Rutas existentes.** El cuerpo de cada skill DEBE citar entre comillas invertidas solo ficheros del repo que existen. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `rutas`.
+- `estructura` — **Estructura de la carpeta.** Cada skill DEBE tener en su carpeta solo SKILL.md, casos.json y las capas conocidas, a un nivel, cada capa citada desde SKILL.md con su ruta entera. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `estructura`.
+- `copiado` — **Saber sin copiar.** El cuerpo de cada skill NO DEBE repetir un párrafo largo idéntico al de otra skill: el saber vive en una y la otra la cita por su nombre. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] scripts/lib/skills.mjs. Código: `copiado`.
+- `casos` — **Casos mínimos.** El conjunto de casos de prueba de cada skill DEBE ser un casos.json válido con cuatro casos como mínimo: tres que cargan la skill con debe_salir comprobable y al menos uno de frontera. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [F] https://agentskills.io/skill-creation/evaluating-skills. Código: `casos`.
+- `casos-negativos` — **Casos de frontera.** El conjunto de casos de prueba de cada skill DEBE incluir al menos tres casos de frontera: peticiones parecidas que son de otra skill o de ninguna. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [F] https://agentskills.io/skill-creation/optimizing-descriptions. Código: `casos-negativos`.
+- `fechas` — **Sin fechas en el cuerpo.** El cuerpo de cada skill NO DEBE llevar fechas fuera de «Lo que falló y por qué», «Registro de cambios» y «Fuentes y comprobación»: se quedan viejas. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `fechas`.
+- `sin-parada` — **Parada del método.** El cuerpo de cada skill DEBE decir en el «Método» cuándo se acaba y qué se ve cuando sale bien. Se comprueba con: `.claude/skills.test.js`.
+  - Nota: Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa. Se exceptúa el tipo servicio (en los SKILL.md, hasta migrar los tipos, «herramienta»).
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Código: `sin-parada`.
+- `ejemplos` — **Máximo de ejemplos.** El cuerpo de cada skill DEBE llevar como mucho tres ejemplos por sección de ejemplos: pocos y canónicos. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md. Código: `ejemplos`.
+- `tabla` — **Tablas regulares.** El cuerpo de cada skill DEBE tener tablas con todas las filas del mismo ancho y ninguna celda vacía. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] .claude/skills/forja-de-skills/referencias/presentacion.md. Código: `tabla`.
+- `cabeceras` — **Cabeceras ordenadas.** El cuerpo de cada skill DEBE bajar las cabeceras de nivel de una en una, sin saltar de ## a ####. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] .claude/skills/forja-de-skills/referencias/presentacion.md. Código: `cabeceras`.
+- `tipo-sin-estandar` — **Apartado por tipo.** La plantilla de skills DEBE tener para cada tipo de skill su apartado en «El estándar de cada tipo». Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `tipo-sin-estandar`.
+- `apartado-ausente` — **Apartados del tipo.** La plantilla de skills DEBE llevar en el estándar de cada tipo «Qué lo hace bueno», «Errores típicos» y «Ejemplo mínimo», ninguno vacío. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `apartado-ausente`.
+- `pocos-puntos` — **Puntos mínimos.** La plantilla de skills DEBE llevar dos puntos como mínimo en «Qué lo hace bueno» y en «Errores típicos» de cada tipo. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `pocos-puntos`.
+- `sin-fuente` — **Marca de fuente.** La plantilla de skills DEBE marcar cada punto del estándar de un tipo con su [F: fuente] o [I]. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `sin-fuente`.
+- `ejemplo-sin-origen` — **Origen del ejemplo.** La plantilla de skills DEBE decir en el ejemplo mínimo de cada tipo «Real: `skill`» o «Esqueleto:» y ponerlo en un bloque de código. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `ejemplo-sin-origen`.
+- `ejemplo-largo` — **Ejemplo breve.** La plantilla de skills DEBE dar al ejemplo mínimo de cada tipo de 3 a 6 líneas. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `ejemplo-largo`.
+- `ejemplo-no-cuadra` — **Ejemplo fiel.** La plantilla de skills DEBE sacar un ejemplo «Real» tal cual de la skill que cita, que es de ese tipo; un esqueleto solo vale mientras no haya ninguna skill del tipo. Se comprueba con: `.claude/skills.test.js`.
+  - Fuente: [I] .claude/PLANTILLA-SKILL.md. Código: `ejemplo-no-cuadra`.
 
 ### formal · estandar (16)
 
-- `estandar-fuente-con-forma` — Cada fuente del catálogo lleva id en minúsculas con guiones, nombre de diez caracteres o más y, si es externa, una url https válida; si es de la casa, la ruta de un fichero que existe y ninguna url
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-fuente-documentacion-oficial` — Las fuentes externas son documentación pública de un dominio admitido (DOMINIOS_FUENTE), no blogs
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-fuente-usada` — Toda fuente del catálogo la cita alguna tarea
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-agente-con-lista` — Cada agente de .claude/agents/ tiene su lista de tareas en el catálogo y cada agente del catálogo existe
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-estado-cerrado` — El estado de cada agente es uno del vocabulario (completo o pendiente)
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-pendientes-solo-bajan` — Un agente pendiente está en la lista PENDIENTES_ADMITIDOS, que solo baja: un agente nuevo nace con todos sus estándares
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-lista-minima` — La lista de tareas de un agente tiene al menos tres
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-tarea-id` — El id de cada tarea va en minúsculas con guiones y no se repite dentro del agente
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-tarea-frase` — «tarea» dice qué se hace en una frase de veinte caracteres o más
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-tarea-origen` — El origen de cada tarea es una sección del propio agente (Misión y alcance, Disparadores, Método, Entregables): las tareas salen de lo que el agente ya dice
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-completo-con-forma` — Una tarea de un agente completo lleva estándar de 60 caracteres o más, una lista de comprobaciones y una de lo que no hace; un pendiente no lleva estándar a medias
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-fuente-citada` — Cada tarea completa cita al menos una fuente y todas están en el catálogo de fuentes
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `estandar-seccion-generada` — La sección «Tareas y su estándar» de cada agente sale del catálogo y no se edita a mano
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
-- `practica-numero-de-bullets` — Una práctica lleva entre el mínimo y el máximo de bullets que declara forma_practica de su artefacto (hoy de 2 a 5 en un estándar)
-  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
-- `practica-estructura-del-bullet` — Cada bullet de una práctica lleva sus cuatro partes en orden, regla · porqué · ejemplo bueno · ejemplo malo, ninguna vacía y con el ejemplo bueno distinto del malo
-  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
-- `practica-fuente-por-bullet` — Cada bullet lleva su propia fuente: [F] con url https si es externa o [I] con la ruta de un fichero que existe si es de la casa
-  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
+- `estandar-fuente-con-forma` — **Forma de la fuente.** Cada fuente del catálogo de estándares DEBE llevar id en minúsculas con guiones y nombre de diez caracteres o más; la externa, url https válida; la de la casa, ruta de un fichero que existe y sin url. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-fuente-documentacion-oficial` — **Fuente oficial.** Cada fuente del catálogo de estándares DEBE ser, si es externa, documentación pública de un dominio admitido (DOMINIOS_FUENTE), no un blog. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-fuente-usada` — **Fuente usada.** Cada fuente del catálogo de estándares DEBE estar citada por alguna tarea. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-agente-con-lista` — **Lista por agente.** Cada agente DEBE tener su lista de tareas en el catálogo de estándares y existir en .claude/agents/. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-estado-cerrado` — **Estado cerrado.** Cada agente DEBE tener un estado del vocabulario (completo o pendiente). Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-pendientes-solo-bajan` — **Pendientes que solo bajan.** Si está pendiente, cada agente DEBE figurar en la lista PENDIENTES_ADMITIDOS, que solo baja: un agente nuevo nace con todos sus estándares. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-lista-minima` — **Lista mínima de tareas.** Cada agente DEBE tener al menos tres tareas en su lista. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-tarea-id` — **Id de la tarea.** Cada tarea del catálogo de estándares DEBE llevar un id en minúsculas con guiones que no se repite dentro del agente. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-tarea-frase` — **Frase de la tarea.** Cada tarea del catálogo de estándares DEBE decir en «tarea» qué se hace, en una frase de veinte caracteres o más. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-tarea-origen` — **Origen de la tarea.** Cada tarea del catálogo de estándares DEBE tener como origen una sección del propio agente (Misión y alcance, Disparadores, Método, Entregables): las tareas salen de lo que el agente ya dice. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-completo-con-forma` — **Forma de la tarea completa.** Cuando es de un agente completo, cada tarea del catálogo de estándares DEBE llevar estándar de 60 caracteres o más, una lista de comprobaciones y una de lo que no hace. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Nota: Una tarea de un agente pendiente no lleva estándar a medias.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-fuente-citada` — **Tarea con fuente.** Cuando es completa, cada tarea del catálogo de estándares DEBE citar al menos una fuente, todas ellas del catálogo de fuentes. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-seccion-generada` — **Sección generada.** Cada agente DEBE llevar la sección «Tareas y su estándar» generada del catálogo, sin editarla a mano. Se comprueba con: `ops/estandares-agentes.test.js`.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `practica-numero-de-bullets` — **Número de bullets.** La práctica de un estándar DEBE llevar entre el mínimo y el máximo de bullets que declara forma_practica de su artefacto (hoy de 2 a 5 en un estándar). Se comprueba con: `ops/forja-forma.test.js`.
+  - Fuente: [I] scripts/lib/forjaForma.mjs.
+- `practica-estructura-del-bullet` — **Estructura del bullet.** La práctica de un estándar DEBE llevar en cada bullet sus cuatro partes en orden (regla · porqué · ejemplo bueno · ejemplo malo), ninguna vacía y con el ejemplo bueno distinto del malo. Se comprueba con: `ops/forja-forma.test.js`.
+  - Fuente: [I] scripts/lib/forjaForma.mjs.
+- `practica-fuente-por-bullet` — **Fuente de cada bullet.** La práctica de un estándar DEBE llevar en cada bullet su propia fuente: [F] con url https si es externa o [I] con la ruta de un fichero que existe si es de la casa. Se comprueba con: `ops/forja-forma.test.js`.
+  - Fuente: [I] scripts/lib/forjaForma.mjs.
 
 ### formal · agente (0)
 
@@ -287,43 +342,50 @@ Heurística automática; lo que hoy incumple va a una lista de excepciones que s
 
 ### material · skill (13)
 
-- `solape` — Dos descripciones no comparten más de un 25 % de sus palabras de cinco letras o más (antes de «No para:»): heurística propia que detecta dos skills que reclaman la misma petición. Casos medidos el 10 oct 2026 (nivel 2, fallos de disparo por solape) que lo prueban: forja-de-skills con higiene-de-skills, hetzner con 1password, issues con causa-raiz
-  - Fuente: [I] scripts/lib/skillsForja.mjs. Control: `.claude/skills.test.js`. Código: `solape`.
-- `solape-cercano` — Una descripción no se acerca al límite de solape con otra (a partir del 80 % del límite se avisa con la cifra)
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `solape-cercano`.
-- `comando-suelto` — Un comando de la casa (npm run, gh, git…) va entre comillas invertidas o en un bloque, no suelto en la prosa: heurística sobre los comandos que las skills citan
-  - Fuente: [I] scripts/lib/skillsForja.mjs. Control: `.claude/skills.test.js`. Código: `comando-suelto`.
-- `caduca-pronto` — Una skill no llega a caducar sin avisar: a menos de 30 días del plazo de 90 se avisa
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `caduca-pronto`.
-- `comando-muerto` — Todo npm run citado en la parte viva de la skill existe en package.json
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `comando-muerto`.
-- `ruta-muerta` — Toda ruta del repo citada en la parte viva de la skill existe, también fuera de comillas invertidas
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `ruta-muerta`.
-- `skill-muerta` — Toda skill nombrada tras la palabra «skill» existe
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `skill-muerta`.
-- `descripcion-sin-palabras` — El disparador de la descripción trae al menos una frase entre «» tal como la diría quien pide
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `descripcion-sin-palabras`.
-- `frontera-vaga` — El «No para:» nombra la skill, el agente, el comando o el fichero a donde va lo que no es suyo
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `frontera-vaga`.
-- `tamano-cerca` — SKILL.md no pasa del 85 % de sus líneas permitidas: la siguiente entrada lo desbordaría
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `tamano-cerca`.
-- `caso-duplicado` — Dos casos de prueba, de la misma skill o de otra, no piden casi lo mismo (parecido de raíces de cinco letras por debajo de 0,6)
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `caso-duplicado`.
-- `caso-en-frontera` — Una petición propia de la skill no usa las palabras de lo que su «No para:» deja a otra skill
-  - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `caso-en-frontera`.
-- `vocabulario-canonico` — Una cosa se llama siempre igual: ningún artefacto usa un sinónimo prohibido en vez del término canónico del glosario único (ops/glosario.json, #469)
-  - Fuente: [I] ops/glosario.json. Control: `ops/glosario.test.js`.
+- `solape` — **Solape de descripciones.** La descripción de cada skill NO DEBE compartir con otra descripción más de un 25 % de sus palabras de cinco letras o más (antes de «No para:»). Se comprueba con: `.claude/skills.test.js`.
+  - Nota: Heurística propia que detecta dos skills que reclaman la misma petición. Casos medidos el 10 oct 2026 (nivel 2, fallos de disparo por solape) que lo prueban: forja-de-skills con higiene-de-skills, hetzner con 1password, issues con causa-raiz.
+  - Fuente: [I] scripts/lib/skillsForja.mjs. Código: `solape`.
+- `solape-cercano` — **Cercanía al solape.** Para la descripción de cada skill, CONVIENE no acercarse al límite de solape con otra descripción: a partir del 80 % del límite se avisa con la cifra. Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `solape-cercano`.
+- `comando-suelto` — **Comandos entre comillas.** El cuerpo de cada skill DEBE poner todo comando de la casa (npm run, gh, git…) entre comillas invertidas o en un bloque, no suelto en la prosa. Se comprueba con: `.claude/skills.test.js`.
+  - Nota: Heurística sobre los comandos que las skills citan.
+  - Fuente: [I] scripts/lib/skillsForja.mjs. Código: `comando-suelto`.
+- `caduca-pronto` — **Aviso de caducidad.** Para cada skill, CONVIENE no llegar a caducar sin aviso: a menos de 30 días del plazo de 90 se avisa. Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caduca-pronto`.
+- `comando-muerto` — **Comandos que existen.** El cuerpo de cada skill DEBE citar en su parte viva solo npm run que existen en package.json. Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `comando-muerto`.
+- `ruta-muerta` — **Rutas vivas.** El cuerpo de cada skill DEBE citar en su parte viva solo rutas del repo que existen, también fuera de comillas invertidas. Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `ruta-muerta`.
+- `skill-muerta` — **Skills que existen.** El cuerpo de cada skill DEBE nombrar tras la palabra «skill» solo skills que existen. Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `skill-muerta`.
+- `descripcion-sin-palabras` — **Frase de quien pide.** Para la descripción de cada skill, CONVIENE traer en el disparador al menos una frase entre «» tal como la diría quien pide. Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `descripcion-sin-palabras`.
+- `frontera-vaga` — **Frontera con destino.** Para la descripción de cada skill, CONVIENE nombrar en el «No para:» la skill, el agente, el comando o el fichero a donde va lo que no es suyo. Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `frontera-vaga`.
+- `tamano-cerca` — **Margen de tamaño.** Para el cuerpo de cada skill, CONVIENE no pasar del 85 % de las líneas permitidas en SKILL.md: la siguiente entrada lo desbordaría. Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `tamano-cerca`.
+- `caso-duplicado` — **Casos sin duplicar.** Para el conjunto de casos de prueba de cada skill, CONVIENE no pedir casi lo mismo en dos casos, de la misma skill o de otra (parecido de raíces de cinco letras por debajo de 0,6). Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caso-duplicado`.
+- `caso-en-frontera` — **Petición fuera de frontera.** Para el conjunto de casos de prueba de cada skill, CONVIENE no usar en una petición propia las palabras de lo que su «No para:» deja a otra skill. Se comprueba con: `scripts/higiene-skills.test.js`.
+  - Fuente: [I] scripts/lib/higieneSkills.mjs. Código: `caso-en-frontera`.
+- `vocabulario-canonico` — **Término canónico.** Todo artefacto de la forja NO DEBE usar un sinónimo prohibido en vez del término canónico del glosario único (ops/glosario.json, #469). Se comprueba con: `ops/glosario.test.js`.
+  - Nota: Una cosa se llama siempre igual.
+  - Fuente: [I] ops/glosario.json.
 
 ### material · estandar (4)
 
-- `practica-voz-activa` — La regla y su porqué van en voz activa, sin pasiva con «ser» ni pasiva refleja con «se»: heurística sobre el texto, que no entiende la frase; orientativo hasta que #454 la calibre con estándares reales
-  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
-- `practica-modo-tiempo-persona` — La regla usa un solo modo y tiempo verbal y una sola persona, los declarados en forma_practica (hoy imperativo, segunda persona): heurística que detecta futuros, pasados, sujetos nominales y modales; orientativo hasta que #454 la calibre con estándares reales
-  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
-- `estandar-rondas-de-investigacion` — Un estándar deja el rastro de tres rondas de investigación o más (buscar, contrastar, destilar), cada una con una línea «ronda: n fuentes: k cambios: …» y fuentes mayores que 0; lo que hoy no lo cumple va a una lista de excepciones que solo baja
-  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
-- `vocabulario-canonico` — Una cosa se llama siempre igual: ningún artefacto usa un sinónimo prohibido en vez del término canónico del glosario único (ops/glosario.json, #469)
-  - Fuente: [I] ops/glosario.json. Control: `ops/glosario.test.js`.
+- `practica-voz-activa` — **Voz activa.** La práctica de un estándar DEBE tener la regla y su porqué en voz activa, sin pasiva con «ser» ni pasiva refleja con «se». Se comprueba con: `ops/forja-forma.test.js`.
+  - Nota: Heurística sobre el texto, que no entiende la frase; orientativo hasta que #454 la calibre con estándares reales.
+  - Fuente: [I] scripts/lib/forjaForma.mjs.
+- `practica-modo-tiempo-persona` — **Modo, tiempo y persona.** La práctica de un estándar DEBE tener la regla en un solo modo y tiempo verbal y en una sola persona, los declarados en forma_practica (hoy imperativo, segunda persona). Se comprueba con: `ops/forja-forma.test.js`.
+  - Nota: Heurística que detecta futuros, pasados, sujetos nominales y modales; orientativo hasta que #454 la calibre con estándares reales.
+  - Fuente: [I] scripts/lib/forjaForma.mjs.
+- `estandar-rondas-de-investigacion` — **Rondas de investigación.** Cada tarea del catálogo de estándares DEBE dejar el rastro de tres rondas de investigación o más, cada una con una línea «ronda: n fuentes: k cambios: …» y fuentes mayores que 0. Se comprueba con: `ops/forja-forma.test.js`.
+  - Nota: Las rondas son buscar, contrastar y destilar; lo que hoy no lo cumple va a una lista de excepciones que solo baja.
+  - Fuente: [I] scripts/lib/forjaForma.mjs.
+- `vocabulario-canonico` — **Término canónico.** Todo artefacto de la forja NO DEBE usar un sinónimo prohibido en vez del término canónico del glosario único (ops/glosario.json, #469). Se comprueba con: `ops/glosario.test.js`.
+  - Nota: Una cosa se llama siempre igual.
+  - Fuente: [I] ops/glosario.json.
 
 ### material · agente (0)
 
@@ -335,57 +397,75 @@ Una rúbrica escrita que un LLM puntúa sobre casos; para lo que no se puede dis
 
 ### subjetiva · skill (13)
 
-- `descripcion-palabras-de-quien-pide` — La descripción dice qué hace la skill y cuándo se abre, con las palabras con que lo pediría una persona con prisa. Cumple si un lector que solo vea la descripción reconoce su petición en ella. No cumple si es genérica («ayuda con documentos») o repite el vocabulario interno de la skill en vez del de quien pide.
+- `descripcion-palabras-de-quien-pide` — **Palabras de quien pide.** La descripción de cada skill DEBE decir qué hace la skill y cuándo se abre, con las palabras con que lo pediría una persona con prisa. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si un lector que solo vea la descripción reconoce su petición en ella. No cumple si es genérica («ayuda con documentos») o repite el vocabulario interno de la skill en vez del de quien pide.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).
-  - Fuente: [F] https://agentskills.io/skill-creation/optimizing-descriptions. Control: juicio.
-- `frontera-casi-fallos` — Los casos de frontera son casi-fallos: peticiones que se parecen mucho a las de la skill y son de otra. Cumple si una descripción vaga los confundiría con la skill. No cumple si son obvios («¿qué tiempo hace?») y cualquier descripción los separa.
+  - Fuente: [F] https://agentskills.io/skill-creation/optimizing-descriptions.
+- `frontera-casi-fallos` — **Casos casi-fallos.** El conjunto de casos de prueba de cada skill DEBE tener casos de frontera que sean casi-fallos: peticiones que se parecen mucho a las de la skill y son de otra. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si una descripción vaga los confundiría con la skill. No cumple si son obvios («¿qué tiempo hace?») y cualquier descripción los separa.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [F] https://agentskills.io/skill-creation/optimizing-descriptions. Control: juicio.
-- `disparador-al-principio` — Lo esencial de la descripción va al principio, porque el listado se trunca. Cumple si el cuándo y las palabras clave están en los primeros 250 caracteres. No cumple si el disparador principal queda al final o cortado.
+  - Fuente: [F] https://agentskills.io/skill-creation/optimizing-descriptions.
+- `disparador-al-principio` — **Disparador al principio.** La descripción de cada skill DEBE poner lo esencial de la descripción al principio, porque el listado se trunca. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si el cuándo y las palabras clave están en los primeros 250 caracteres. No cumple si el disparador principal queda al final o cortado.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [F] https://code.claude.com/docs/en/skills. Control: juicio.
-- `solo-lo-que-el-modelo-no-sabe` — Cada párrafo justifica su coste en cada sesión: solo dice lo que el modelo no sabría sin la skill. Cumple si quitar un párrafo cambiaría lo que hace quien la lee. No cumple si explica lo que el modelo ya hace bien o pega la documentación del proveedor.
+  - Fuente: [F] https://code.claude.com/docs/en/skills.
+- `solo-lo-que-el-modelo-no-sabe` — **Solo lo no sabido.** El cuerpo de cada skill DEBE justificar el coste de cada párrafo en cada sesión: decir solo lo que el modelo no sabría sin la skill. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si quitar un párrafo cambiaría lo que hace quien la lee. No cumple si explica lo que el modelo ya hace bien o pega la documentación del proveedor.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: juicio.
-- `libertad-ajustada` — La libertad de cada instrucción se ajusta a lo frágil que es la tarea. Cumple si donde un error cuesta caro (un borrado, una clave) hay pasos exactos o un script, y donde no, una heurística. No cumple si hay pasos rígidos en lo abierto o vaguedad en lo irreversible.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.
+- `libertad-ajustada` — **Libertad ajustada.** El cuerpo de cada skill DEBE ajustar la libertad de cada instrucción a lo frágil que es la tarea. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si donde un error cuesta caro (un borrado, una clave) hay pasos exactos o un script, y donde no, una heurística. No cumple si hay pasos rígidos en lo abierto o vaguedad en lo irreversible.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: juicio.
-- `camino-por-defecto` — Hay un camino por defecto y, aparte, la salida para el caso raro. Cumple si ante una petición normal está claro qué hacer primero. No cumple si ofrece un menú («usa A, o B, o C») sin decir cuál.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.
+- `camino-por-defecto` — **Camino por defecto.** El cuerpo de cada skill DEBE tener un camino por defecto y, aparte, la salida para el caso raro. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si ante una petición normal está claro qué hacer primero. No cumple si ofrece un menú («usa A, o B, o C») sin decir cuál.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: juicio.
-- `pasos-con-salida-observable` — Cada paso dice qué se ve cuando sale bien, de modo que quien lo hace sabe si avanza o debe parar. Cumple si un paso se puede comprobar mirando una salida, un fichero o un estado. No cumple si pide «comprobar que esté bien» sin decir cómo.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.
+- `pasos-con-salida-observable` — **Salida observable.** El cuerpo de cada skill DEBE decir en cada paso qué se ve cuando sale bien, de modo que quien lo hace sabe si avanza o debe parar. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si un paso se puede comprobar mirando una salida, un fichero o un estado. No cumple si pide «comprobar que esté bien» sin decir cómo.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: juicio.
-- `vocabulario-unico` — Una palabra por cosa en toda la skill. Cumple si el mismo concepto siempre se llama igual. No cumple si alterna «caso», «incidente» y «fallo» para lo mismo.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.
+- `vocabulario-unico` — **Vocabulario único.** El cuerpo de cada skill DEBE usar una palabra por cosa en toda la skill. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si el mismo concepto siempre se llama igual. No cumple si alterna «caso», «incidente» y «fallo» para lo mismo.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices. Control: juicio.
-- `ejemplos-canonicos` — Los ejemplos son pocos, representativos y no se contradicen con la norma de la propia skill. Cumple si cada ejemplo enseña la regla sin romperla. No cumple si es una lista de casos límite o un ejemplo viola lo que la skill enseña.
+  - Fuente: [F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.
+- `ejemplos-canonicos` — **Ejemplos canónicos.** El cuerpo de cada skill DEBE tener ejemplos pocos, representativos y sin contradicción con la norma de la propia skill. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si cada ejemplo enseña la regla sin romperla. No cumple si es una lista de casos límite o un ejemplo viola lo que la skill enseña.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md. Control: juicio.
-- `casos-medidos-con-y-sin-skill` — Los casos se escribieron antes que el texto y se midió si la skill mejora sobre el modelo solo, con más de una ejecución. Cumple si hay cifra con y sin skill. No cumple si solo se probó una vez con la skill puesta. Hoy no existe la medida automática con y sin skill: el nivel 2 mide solo con ella. Cifra de partida (comprobaciones del nivel 2, 10 oct 2026): higiene-de-skills cumple 5 de 12 y forja-de-skills 12 de 16.
+  - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md.
+- `casos-medidos-con-y-sin-skill` — **Casos medidos con y sin.** El conjunto de casos de prueba de cada skill DEBE escribirse antes que el texto y medirse con más de una ejecución, para saber si la skill mejora sobre el modelo solo. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si hay cifra con y sin skill. No cumple si solo se probó una vez con la skill puesta.
+  - Nota: Hoy no existe la medida automática con y sin skill: el nivel 2 mide solo con ella. Cifra de partida (comprobaciones del nivel 2, 10 oct 2026): higiene-de-skills cumple 5 de 12 y forja-de-skills 12 de 16.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [F] https://agentskills.io/skill-creation/evaluating-skills. Control: juicio.
-- `skill-contrastada-con-fallo-real` — La skill nace de un fallo real visto sin ella, no de lo que se imagina que hará falta. Cumple si el PR o «Lo que falló y por qué» cuentan en qué fallaba la sesión sin la skill. No cumple si sale de documentación copiada o de una lista de buenas intenciones.
+  - Fuente: [F] https://agentskills.io/skill-creation/evaluating-skills.
+- `skill-contrastada-con-fallo-real` — **Nacida de un fallo.** Cada skill DEBE nacer de un fallo real visto sin ella, no de lo que se imagina que hará falta. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si el PR o «Lo que falló y por qué» cuentan en qué fallaba la sesión sin la skill. No cumple si sale de documentación copiada o de una lista de buenas intenciones.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).
-  - Fuente: [I] .claude/skills/forja-de-skills/SKILL.md. Control: juicio.
-- `forma-adecuada-al-contenido` — Cada contenido va en su forma: tabla para datos comparables, lista numerada para pasos con orden, viñetas sin orden, negrita solo para lo que no puede pasar desapercibido, párrafos cortos. Cumple si cambiar la forma de un trozo lo empeoraría. No cumple si hay razonamiento metido en celdas, negrita decorativa o muros de texto.
+  - Fuente: [I] .claude/skills/forja-de-skills/SKILL.md.
+- `forma-adecuada-al-contenido` — **Forma del contenido.** El cuerpo de cada skill DEBE poner cada contenido en su forma: tabla para datos comparables, lista numerada para pasos con orden, viñetas sin orden, párrafos cortos. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si cambiar la forma de un trozo lo empeoraría. No cumple si hay razonamiento metido en celdas, negrita decorativa o muros de texto.
+  - Nota: La negrita va solo para lo que no puede pasar desapercibido.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [I] .claude/skills/forja-de-skills/referencias/presentacion.md. Control: juicio.
-- `sin-duda-con-vecina` — Una petición real tiene una sola skill dueña. Cumple si dos personas leyendo las descripciones de esta y de su vecina eligen la misma para una petición dada. No cumple si hay peticiones en las que dudarían entre las dos.
+  - Fuente: [I] .claude/skills/forja-de-skills/referencias/presentacion.md.
+- `sin-duda-con-vecina` — **Una sola dueña.** La descripción de cada skill DEBE dejar a cada petición real una sola skill dueña. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si dos personas leyendo las descripciones de esta y de su vecina eligen la misma para una petición dada. No cumple si hay peticiones en las que dudarían entre las dos.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, no_cumple).
-  - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md. Control: juicio.
+  - Fuente: [I] .claude/skills/forja-de-skills/referencias/criterios.md.
 
 ### subjetiva · estandar (3)
 
-- `estandar-concreto-y-verificable` — El estándar de una tarea dice qué es hacerla bien de forma que otra persona pueda comprobarlo mirando el resultado. Cumple si cada punto de «comprueba» se puede contrastar con una salida, un diff o un fichero. No cumple si es una declaración de intenciones («con cuidado», «de forma robusta»).
+- `estandar-concreto-y-verificable` — **Estándar verificable.** Cada tarea del catálogo de estándares DEBE decir qué es hacer bien la tarea de forma que otra persona pueda comprobarlo mirando el resultado. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si cada punto de «comprueba» se puede contrastar con una salida, un diff o un fichero. No cumple si es una declaración de intenciones («con cuidado», «de forma robusta»).
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: juicio.
-- `estandar-respaldado-por-su-fuente` — La fuente citada respalda de verdad lo que dice el estándar. Cumple si quien lee la fuente encuentra la práctica que el estándar enuncia. No cumple si la fuente es de otro tema o solo comparte palabras con el estándar.
+  - Fuente: [I] scripts/lib/estandaresAgentes.mjs.
+- `estandar-respaldado-por-su-fuente` — **Fuente que respalda.** Cada tarea del catálogo de estándares DEBE tener una fuente citada que respalda de verdad lo que dice el estándar. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si quien lee la fuente encuentra la práctica que el estándar enuncia. No cumple si la fuente es de otro tema o solo comparte palabras con el estándar.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [I] ops/estandares-agentes.json. Control: juicio.
-- `estandar-no-hace-delimita` — «no_hace» marca la frontera con lo que es de otro agente o de una persona. Cumple si cada exclusión nombra algo que se podría confundir con la tarea. No cumple si son exclusiones obvias o si deja sin decir lo que más se parece.
+  - Fuente: [I] ops/estandares-agentes.json.
+- `estandar-no-hace-delimita` — **Frontera de no_hace.** Cada tarea del catálogo de estándares DEBE marcar en «no_hace» la frontera con lo que es de otro agente o de una persona. Se comprueba con: el juicio de una persona o de un LLM sobre sus casos.
+  - Cumple si cada exclusión nombra algo que se podría confundir con la tarea. No cumple si son exclusiones obvias o deja sin decir lo que más se parece.
   - Calibración: 3 casos con respuesta conocida (cumple, no_cumple, cumple).
-  - Fuente: [I] ops/estandares-agentes.json. Control: juicio.
+  - Fuente: [I] ops/estandares-agentes.json.
 
 ### subjetiva · agente (0)
 
