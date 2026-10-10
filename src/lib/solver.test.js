@@ -25,6 +25,10 @@ const casa = (extra = {}) => ({
   // buildGroupContext cae en DEFAULT_FREQS, que suma 14 topes para 21 huecos y
   // NO tiene solucion (ver C2): el primer intento de esta suite se colgo ahi.
   freqs: { legumbres: 2, verdura: 3, pescado: 2 },
+  // Alergias ya preguntadas («ninguna»). Sin esto, desde el 8 oct (#107) el
+  // menú esquiva los 14 alérgenos y quedan 27 platos: la semana no cierra
+  // (#140; qué hacer con esas casas, en #229).
+  allergiesReviewed: true,
   ...extra,
 });
 

@@ -1,0 +1,233 @@
+{
+  "skill": "causa-raiz",
+  "fecha_utc": "2026-10-10T07:07:17.869Z",
+  "version": {
+    "skill_md": "620d6658aedd",
+    "casos_json": "c345a2a6d319"
+  },
+  "modelos": {
+    "disparo": "claude-haiku-4-5",
+    "ejecuta": "claude-sonnet-5",
+    "corrige": "claude-haiku-4-5"
+  },
+  "tope_usd": 0.45,
+  "coste_usd": 0.1126,
+  "resultado": "falla",
+  "resumen": {
+    "disparo_ok": 6,
+    "disparo_total": 6,
+    "comprobaciones_ok": 10,
+    "comprobaciones_total": 14,
+    "sin_correr": 0
+  },
+  "cambios_respecto_anterior": [
+    {
+      "id": "una-sola-puerta",
+      "parte": "disparo",
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
+    },
+    {
+      "id": "jueces-sin-mirar-issues",
+      "parte": "disparo",
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
+    },
+    {
+      "id": "vocabulario-copiado",
+      "parte": "disparo",
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
+    },
+    {
+      "id": "error-como-vacio",
+      "parte": "disparo",
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
+    },
+    {
+      "id": "frontera-partir-encargos",
+      "parte": "disparo",
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
+    },
+    {
+      "id": "frontera-registrar-caso",
+      "parte": "disparo",
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
+    },
+    {
+      "id": "una-sola-puerta",
+      "parte": "ejecucion",
+      "antes": "falla",
+      "ahora": "falla",
+      "cambio": "igual"
+    },
+    {
+      "id": "jueces-sin-mirar-issues",
+      "parte": "ejecucion",
+      "antes": "falla",
+      "ahora": "ok",
+      "cambio": "mejora"
+    },
+    {
+      "id": "vocabulario-copiado",
+      "parte": "ejecucion",
+      "antes": "falla",
+      "ahora": "falla",
+      "cambio": "igual"
+    },
+    {
+      "id": "error-como-vacio",
+      "parte": "ejecucion",
+      "antes": "falla",
+      "ahora": "falla",
+      "cambio": "igual"
+    }
+  ],
+  "disparo": [
+    {
+      "id": "una-sola-puerta",
+      "esperado": "causa-raiz",
+      "elegido": "causa-raiz",
+      "estado": "ok"
+    },
+    {
+      "id": "jueces-sin-mirar-issues",
+      "esperado": "causa-raiz",
+      "elegido": "causa-raiz",
+      "estado": "ok"
+    },
+    {
+      "id": "vocabulario-copiado",
+      "esperado": "causa-raiz",
+      "elegido": "causa-raiz",
+      "estado": "ok"
+    },
+    {
+      "id": "error-como-vacio",
+      "esperado": "causa-raiz",
+      "elegido": "causa-raiz",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-partir-encargos",
+      "esperado": "plan-de-arreglo",
+      "elegido": "plan-de-arreglo",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-registrar-caso",
+      "esperado": "issues",
+      "elegido": "issues",
+      "estado": "ok"
+    }
+  ],
+  "ejecucion": [
+    {
+      "id": "una-sola-puerta",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Mira antes lo ya apuntado en los issues (npm run issues o el fondo existente)",
+          "cumple": true,
+          "evidencia": "npm run issues / gh issue view <n> --comments para la ficha candidata"
+        },
+        {
+          "texto": "Fija un tipo de causa del vocabulario (por ejemplo vigilante-hueco) y elige la técnica con npm run tecnica o el catálogo ops/tecnicas.json",
+          "cumple": false,
+          "evidencia": "Menciona que irá a ejecutar 'npm run tecnica' y 'npm run presupuesto' pero nunca especifica qué tipo_causa fija (no dice 'vigilante-hueco' ni ningún término concreto del vocabulario)"
+        },
+        {
+          "texto": "Escribe la causa como mecanismo + condición + control ausente",
+          "cumple": true,
+          "evidencia": "mecanismo_cambiable + condición (norma solo en docs, no en script ejecutable) + control ausente (chequeo no se dispara en vías no-terminal)"
+        },
+        {
+          "texto": "Da una causa de escape: por qué ningún control lo detectó",
+          "cumple": true,
+          "evidencia": "La vía de creación no era terminal (web/API/bot) y la norma vive en un hook que solo se dispara desde CLI local"
+        },
+        {
+          "texto": "Define la clase en general (toda norma que solo se vigila en una vía de entrada), no solo este caso",
+          "cumple": true,
+          "evidencia": "alcance: transversal (toca cualquier vía de creación, no solo un módulo) + es una clase general de control que varía según la vía de entrada"
+        }
+      ],
+      "respuesta": "# Causa raíz: issues duplicados creados \"por otra vía distinta de la terminal\"\n\nAntes de aplicar nada, sigo el método de la skill en orden.\n\n## 1. Mirar lo que ya está apuntado\n\n```\nnpm run issues\n```\nEspero ver si hay un fondo abierto ya sobre \"duplicados\" o \"normas no aplicadas fuera de terminal\". Si existe, añado evidencia ahí en vez de abrir uno nuevo (ironía evidente: sería exactamente el fallo que investigo).\n\n```\ngh issue view <n> --comments\n```\npara la ficha candidata, si aparece.\n\n## 2. Triaje de alcance\n\nDato clave que ya tengo: la vía de creación **no era la terminal** (¿interfaz web de GitHub? ¿API directa? ¿otra integración/bot?). Eso apunta a que la norma vive en un sitio que esa vía no atraviesa — probablemente un hook o chequeo que solo se dispara desde el flujo de `npm run` / CLI local.\n\nAntes de fijar `tipo_causa`, necesito confirmar **dónde vive la norma**:\n```\ngrep -rn \"parecid\\|similar\\|buscar\" scripts/lib/issues.mjs docs/ops/FLUJO.md\n```\npara ver si la obligación de buscar es:\n- (a) un paso documentado que depende de que alguien/algo lo siga (disciplina), o\n- (b) un control automático (hook, script) que solo engancha en una vía.\n\nSi es (a) → la causa es un control ausente en general, no específico de la vía. Si es (b) → es un `error-silencioso` o un hueco de `alcance: transversal` (toca cualquier vía de creación, no solo un módulo).\n\nCon eso: `npm run presupuesto -- <alcance> <tipo_causa>`.\n\n## 3. Técnica\n\nMi hipótesis de partida es **árbol de fallos**: para que se creen 12 duplicados hacen falta varias condiciones a la vez (Y): la norma no se aplicó automáticamente Y nadie revisó antes de confirmar Y esa vía no pasa por el mismo chequeo que la terminal. Confirmaría con:\n```\nnpm run tecnica -- <tipo_causa>\n```\n\n## 4. Aplicar con evidencia\n\n- `fichero:línea` de dónde está implementada (o no) la búsqueda de parecidos.\n- Si hay un hook de pre-creación, ver si la vía alternativa lo invoca.\n- Hora de los 12 issues con `npm run hora`, para confirmar "
+    },
+    {
+      "id": "jueces-sin-mirar-issues",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "Fija alcance y tipo de causa antes de diagnosticar, con npm run presupuesto para el esfuerzo",
+          "cumple": true,
+          "evidencia": "npm run presupuesto -- <alcance> <tipo_causa> → espero quién diagnostica, cuántas hipótesis en paralelo, y si toca ES/NO ES."
+        },
+        {
+          "texto": "Para en algo que se puede cambiar con un mecanismo y dice qué criterio de parada usó",
+          "cumple": true,
+          "evidencia": "Criterio: 'mecanismo_cambiable': el mecanismo de 'lanzar un juez' no incluye, como paso obligatorio, consultar el estado actual de issues/fondos antes de reportar."
+        },
+        {
+          "texto": "Marca como hipótesis lo que no ha comprobado, con lo que habría que observar",
+          "cumple": true,
+          "evidencia": "Lo que no pueda comprobar con el repo (p.ej. 'el juez no tenía el contexto cargado') lo marca HIPÓTESIS: con la observación que la confirmaría."
+        }
+      ],
+      "respuesta": "## Plan de acción (orden exacto)\n\n**1. Mirar lo ya apuntado primero** — el propio caso #320 citado en la skill es justo este patrón, así que:\n```\nnpm run issues\n```\n→ espero ver los fondos abiertos y sus casos, para confirmar si \"jueces presentan como nuevo algo ya registrado\" ya cuelga de un fondo existente.\n\n```\ngh issue view <n> --comments\n```\n(sobre el fondo candidato, si existe) → ver si ya tiene ficha y diagnóstico. Si ya está diagnosticado, **añado evidencia, no rehago el análisis**.\n\n**2. Triaje de alcance y tipo de causa**\n\nCon datos, no a ojo:\n- `alcance`: probablemente `transversal` (afecta al proceso de auditoría en general, no a un módulo) — lo confirmaría mirando si varios jueces, en varias sesiones, repiten el patrón.\n- `tipo_causa`: candidato fuerte `error-silencioso` o algo de `coordinacion` (jueces no ven lo que otros/el propio sistema ya registró). Decido con:\n```\nnpm run presupuesto -- <alcance> <tipo_causa>\n```\n→ espero quién diagnostica, cuántas hipótesis en paralelo, y si toca ES/NO ES.\n\n**3. Elegir técnica**\n```\nnpm run tecnica -- <tipo_causa>\n```\nMi hipótesis: esto es **coordinación** (varias sesiones, el orden importa — jueces auditando sin ver qué ya se registró) → técnica probable: **cronología de factores causales**. Si el presupuesto marca ES/NO ES, añado esa tabla (p.ej. ES: jueces nuevos sin leer `npm run issues` antes / NO ES: jueces que sí lo consultaron).\n\n**4. Aplicar con evidencia**\nBuscaría, con `fichero:línea` y comandos reales (no ejecutables aquí):\n- si el prompt/skill de \"juez auditor\" indica consultar `npm run issues` antes de reportar,\n- si hay algún paso que fuerce esa consulta o es responsabilidad implícita,\n- hora con `npm run hora`, nunca `date`.\n\nLo que no pueda comprobar con el repo (p.ej. \"el juez no tenía el contexto cargado\") lo marco `HIPÓTESIS:` con la observación que la confirmaría.\n\n**5. Parar por criterio**\nEsperaría llegar a `mecanismo_cambiable`: el mecanismo de \"lanzar un juez\" no incluye, como paso obliga"
+    },
+    {
+      "id": "vocabulario-copiado",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Clasifica el tipo de causa como dos-fuentes y elige técnica para ese tipo",
+          "cumple": false,
+          "evidencia": "No clasifica explícitamente como 'dos-fuentes'. Dice 'candidato a: algo como `duplicacion` o `fuente-de-verdad`' pero no decide ni confirma; dice 'Sigo lo que diga el catálogo, no mi intuición'. No el"
+        },
+        {
+          "texto": "Da una causa de escape: qué test o control debía detectar la diferencia y por qué no lo hizo",
+          "cumple": true,
+          "evidencia": "En punto 7: 'Causa de escape: Casi seguro: \"ningún test compara el vocabulario de BD contra las constantes del código\"'."
+        },
+        {
+          "texto": "Deja el diagnóstico en la ficha del fondo (mecanismo, causa_escape, clase)",
+          "cumple": false,
+          "evidencia": "Punto 9 dice 'Editar la ficha del fondo a `diagnosticado` y comentar con `tecnica:` y `parada:`' y 'Esto lo hago sin pedir OK', pero no muestra la edición real ni documenta qué valores exactos iría a "
+        }
+      ],
+      "respuesta": "## Orden de pasos\n\n**1. Mirar lo ya apuntado**\n```\nnpm run issues\n```\nEsperaría ver si ya hay un fondo abierto de tipo duplicación/validación-inconsistente que cubra esto. Si existe, continúo ahí:\n```\ngh issue view <n> --comments\n```\nSolo si no hay nada relacionado, sigo como caso nuevo (eso lo resuelve `issues`, no esta skill — doy por hecho que el caso ya está registrado y entro en diagnóstico).\n\n**2. Triaje de alcance**\nDato concreto: cuántos sitios tienen copia del vocabulario (grep rápido mentalmente: BD + N constantes). Eso ya sugiere `alcance: transversal` si toca varios módulos, o `modulo` si es uno solo con su espejo en BD. `tipo_causa` candidato: algo como `duplicacion` o `fuente-de-verdad` (comprobaría el nombre exacto en `scripts/lib/issues.mjs`).\n```\nnpm run presupuesto -- <alcance> <tipo_causa>\n```\n\n**3. Técnica**\n```\nnpm run tecnica -- <tipo_causa>\n```\nMi apuesta sin verlo: esto es candidato a **árbol de fallos** (hace falta Y: existen varias copias Y nada las sincroniza Y al menos un punto de validación no se actualizó) o **espina de pescado** si el presupuesto pide abrir el abanico primero. Sigo lo que diga el catálogo, no mi intuición.\n\n**4. Aplicar con evidencia**\nBuscaría con grep/rg las definiciones del vocabulario (BD: tabla/enum; código: cada constante, con `fichero:línea`) para confirmar que son copias independientes y no una generada desde otra. Hora con `npm run hora`. Si no puedo confirmar algo (p.ej. por qué se duplicó originalmente), queda `HIPÓTESIS:`.\n\n**5. Parada**\nPrevisiblemente `mecanismo_cambiable`: el mecanismo es \"no hay una única fuente de verdad para el vocabulario\", y eso lo cambia un mecanismo real de `ops/mecanismos.json` (generar las constantes desde la BD, o validar contra una sola fuente).\n\n**6. Causa en tres piezas**\nAlgo como: *\"la validación de <campo> falla cuando se añade un valor al vocabulario, y ninguna de las copias detecta a las demás porque no hay generación única ni test que las compare\"*.\n\n**7. Causa de esca"
+    },
+    {
+      "id": "error-como-vacio",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Clasifica el tipo de causa como error-silencioso y usa árbol de fallos (o justifica otra técnica)",
+          "cumple": true,
+          "evidencia": "tipo_causa: error-silencioso, técnica con npm run tecnica -- error-silencioso (que da árbol de fallos, como en el ejemplo)"
+        },
+        {
+          "texto": "Escribe la causa como mecanismo + condición + control ausente",
+          "cumple": false,
+          "evidencia": "Dice que seguiría el método pero no escribe la causa estructurada. Solo da una forma de redacción ('el cargador devuelve vacío...') sin formalizarla en mecanismo + condición + control ausente"
+        },
+        {
+          "texto": "Marca como hipótesis lo que no se ha reproducido",
+          "cumple": true,
+          "evidencia": "sin: confirmar que no es ya un fondo existente, ver evidencia real (logs, código del cargador, el comportamiento reproducido) en vez de asumir que coincide con el ejemplo"
+        }
+      ],
+      "respuesta": "## Antes de diagnosticar nada\n\nEsto que describes es literalmente el ejemplo resuelto de la skill `causa-raiz` (basado en #316). No voy a repetir ese ejercicio como si fuera un caso nuevo — eso es justo el error que la skill marca en el paso 1 (caso #320: presentar como hallazgo algo ya registrado).\n\nLo que haría, en orden:\n\n**1. Mirar lo que ya está apuntado**\n```\nnpm run issues\n```\npara ver fondos abiertos, y si aparece algo del estilo \"errores que se tragan\" o similar:\n```\ngh issue view <n> --comments\n```\nEsperaría encontrar que este caso (o su clase) ya cuelga de un fondo, posiblemente ya `diagnosticado`, con `mecanismo` y `causa_escape` rellenos — porque es exactamente el ejemplo de la skill.\n\n**2. Si no existe ya**, seguiría el método: triaje (`tipo_causa: error-silencioso`, `alcance` según si es un módulo o transversal), presupuesto con `npm run presupuesto`, técnica con `npm run tecnica -- error-silencioso` (que da árbol de fallos, como en el ejemplo).\n\n**3. La causa, según el patrón del ejemplo**, sería de la forma:\n> el cargador devuelve vacío cuando falla la carga, y quien lo llama sube datos sin distinguirlo porque nada le dice que fue un error\n\ncon `causa_escape: ningún test exige que un cargador distinga error de vacío`.\n\nPero **no voy a dar esto como diagnóstico cerrado de tu caso real** sin:\n- confirmar que no es ya un fondo existente,\n- ver evidencia real (logs, código del cargador, el comportamiento reproducido) en vez de asumir que coincide con el ejemplo,\n- y sin el OK de Pablo para tocar la ficha del fondo (`gh issue edit`) o cerrar el diagnóstico — eso sí es rutina según la skill, pero solo una vez hay evidencia real, no por analogía con el ejemplo del manual.\n\n¿Tienes el número de issue/fondo, o esto es hipotético para ver cómo aplicaría la skill?"
+    }
+  ]
+}

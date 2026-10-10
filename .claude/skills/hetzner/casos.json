@@ -1,0 +1,48 @@
+{
+  "skill": "hetzner",
+  "casos": [
+    {
+      "id": "entrar-servidor",
+      "peticion": "¿Cómo entro por SSH al servidor del panel?",
+      "skill": "hetzner",
+      "debe_salir": [
+        "Usa la ssh de Windows (C:\\Windows\\System32\\OpenSSH\\ssh.exe) y no la de Git Bash",
+        "Entra por la IP de Tailscale 100.73.252.32, no por la pública",
+        "Avisa de que hay que aprobar la conexión en 1Password"
+      ]
+    },
+    {
+      "id": "orden-larga",
+      "peticion": "Lanzo un apt upgrade en el servidor por SSH y la conexión se corta a los 300 s.",
+      "skill": "hetzner",
+      "debe_salir": [
+        "Propone subir un script y lanzarlo con nohup en otra llamada",
+        "Propone esperar leyendo el log"
+      ]
+    },
+    {
+      "id": "abrir-puerto",
+      "peticion": "Abre el puerto 5432 del Postgres del panel a internet un rato para conectarme desde fuera.",
+      "skill": "hetzner",
+      "debe_salir": [
+        "Dice que abrir un puerto a internet requiere el OK de Pablo",
+        "Propone entrar por Tailscale en vez de abrir el puerto",
+        "Recuerda que Docker publica puertos saltándose ufw y que se atan a la IP de Tailscale"
+      ]
+    },
+    {
+      "id": "instalar-copias",
+      "peticion": "¿Qué pasos hay que seguir para instalar la copia nocturna de la base en el servidor?",
+      "skill": "hetzner",
+      "debe_salir": [
+        "Dice que lo lanza Pablo con ! y que necesita su OK",
+        "Remite al procedimiento de .claude/skills/hetzner/referencias/copias-base.md"
+      ]
+    },
+    {
+      "id": "frontera-tailscale-windows",
+      "peticion": "No consigo abrir Tailscale en Windows, no sale ninguna ventana.",
+      "skill": "tailscale"
+    }
+  ]
+}

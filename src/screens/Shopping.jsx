@@ -341,8 +341,8 @@ export function ShoppingScreen({
       return undefined;
     }
     loadPantry(user.id, pantryHouseholdId || null)
-      .then((rows) => {
-        if (active) setPantryStock(rows);
+      .then(({ data: rows }) => {
+        if (active) setPantryStock(rows ?? []);
       })
       .catch((err) => console.error("[shopping] loadPantry failed", err))
       .finally(() => {
@@ -663,7 +663,7 @@ export function ShoppingScreen({
   };
   const reloadStock = async () => {
     setPantryStock(
-      user ? await loadPantry(user.id, pantryHouseholdId || null) : loadLocalPantry(),
+      user ? ((await loadPantry(user.id, pantryHouseholdId || null)).data ?? []) : loadLocalPantry(),
     );
   };
   // A shopping row → an "En casa" stock entry. Buying anything now tops up the
@@ -1056,7 +1056,7 @@ export function ShoppingScreen({
           // wiping the whole row on undo would lose quantity the ticket never
           // created (see pantry.js addPantryItems).
           pantryIds = results.filter((r) => r.isNew).map((r) => r.id);
-          setPantryStock(await loadPantry(user.id, pantryHouseholdId || null));
+          setPantryStock((await loadPantry(user.id, pantryHouseholdId || null)).data ?? []);
         } else {
           addLocalPantryItems(items);
           const next = loadLocalPantry();

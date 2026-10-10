@@ -36,6 +36,7 @@ import { vetosConAmbito, textoDeVeto, vetosDePersona } from "../../src/lib/vetos
 import { DIAS, DIA_LARGO_MINUSCULAS, DIA_LETRA, diaDeISO, isoDeCasa } from "../../src/lib/dias.js";
 import { select, eq } from "./db.js";
 import { propiasDe } from "./propias.js";
+import { alergiasPorSilencio } from "../../src/lib/alergiasBase.js";
 
 const DIA_CORTO = Object.fromEntries(DIAS.map((d) => [d, d.toLowerCase()]));
 const DIA_LARGO = DIA_LARGO_MINUSCULAS;
@@ -79,7 +80,11 @@ const tokens = (t) => Math.ceil(String(t).length / 3.6);
 let etiquetas = null;
 function etiquetaDe(campo) {
   if (!etiquetas) {
-    try { etiquetas = JSON.parse(fs.readFileSync(new URL("./dominiosGustos.json", import.meta.url), "utf8")).etiquetas ?? {}; } catch { etiquetas = {}; }
+    try { etiquetas = JSON.parse(fs.readFileSync(new URL("./dominiosGustos.json", import.meta.url), "utf8")).etiquetas ?? {}; } catch (e) {
+      // a propósito: sin build (en local y en los tests) no hay fichero; el campo, sin etiqueta.
+      console.warn("[ficha] sin dominiosGustos.json:", e?.message);
+      etiquetas = {};
+    }
   }
   return etiquetas[campo] ?? campo;
 }
@@ -170,17 +175,21 @@ function seguridad(data) {
   // Alergias agrupadas por alérgeno: «Lucas: frutos de cáscara. Pablo, Marta: ninguna.»
   const porAlergia = new Map();
   const ninguna = [];
+  // «Ninguna» por silencio (#229): vale para el menú, pero no está confirmado.
+  const porSilencio = [];
   const sinPreguntar = [];
   for (const m of miembros) {
     const als = (m.allergies ?? []).map((a) => ALERGENOS[String(a).toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/\s+/g, "_")] ?? String(a).toLowerCase());
     if (als.length) {
       const clave = als.sort().join(", ");
       porAlergia.set(clave, [...(porAlergia.get(clave) ?? []), m.name]);
-    } else if (alergiasRevisadas(data, m)) ninguna.push(m.name);
+    } else if (alergiasPorSilencio(data, m)) porSilencio.push(m.name);
+    else if (alergiasRevisadas(data, m)) ninguna.push(m.name);
     else sinPreguntar.push(m.name);
   }
   const partes = [...porAlergia].map(([als, quienes]) => `${lista(quienes)}: alergia a ${als}`);
   if (ninguna.length) partes.push(`${lista(ninguna)}: ninguna`);
+  if (porSilencio.length) partes.push(`${lista(porSilencio)}: ninguna (por silencio)`);
   if (sinPreguntar.length) partes.push(`${lista(sinPreguntar)}: SIN PREGUNTAR`);
   if (partes.length) lineas.push(`- ${partes.join(". ")}.`);
   // Comparte menú con alguien alérgico: lo suyo vale para todo el grupo.

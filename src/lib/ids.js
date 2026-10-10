@@ -99,10 +99,12 @@ const VIEJO_UID = /^[0-9a-z]{1,8}$/;
 
 /**
  * Persona y grupo son UUID (decisión de Pablo, 7 oct 2026): van a columnas
- * `uuid` de persona/grupo, y los ~92 + ~34 que ya hay se migran (bloque 0120+
- * de la sesión de la ficha). Mientras dura la migración `es()` acepta también
- * los viejos: el uid() de la app (≤ 8), `m<base36>` del bot y los `per_`/`grp_`
- * que se fabricaron entre #83 y este cambio.
+ * `uuid` de persona/grupo, y los ~92 + ~34 que ya hay se migran con la 0091
+ * (supabase/PENDIENTES.md: después, las columnas a `uuid` y fuera los viejos
+ * de aquí). Mientras dura la migración `es()` acepta también los viejos: el
+ * uid() de la app (≤ 8), `m<base36>` del bot y los `per_`/`grp_` que se
+ * fabricaron entre #83 y este cambio. No acepta los `m-<nombre>` de una casa de
+ * pruebas (m-ana, m-leo, m-pablo): la 0091 los cambia igual.
  */
 const VIEJO_PERSONA = /^([0-9a-z]{1,16}|per_[0-9a-z]{12})$/;
 const VIEJO_GRUPO = /^([0-9a-z]{1,8}|grp_[0-9a-z]{12})$/;

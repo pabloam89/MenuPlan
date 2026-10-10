@@ -15,11 +15,14 @@
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { AYUDA as AYUDA_CASOS, analizarCasos } from "./casos.mjs";
+import { cargarMapa, skillsDeComando, unirContinuaciones } from "./dominios.mjs";
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
-import { dirSesiones, tocar } from "./sesiones.mjs";
+import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
 
 const deny = (motivo) => ({ decision: "deny", motivo });
 const ask = (motivo) => ({ decision: "ask", motivo });
@@ -61,6 +64,29 @@ const REGLAS_COMANDO = [
     // el gate de Vercel. El 22 sep 2026 rompió el despliegue de staging.
     si: (o) => /(^|\s)(npx\s+)?vite\s+build\b/.test(o),
     da: () => deny("Usa `npm run build`: `vite build` a secas se salta el prebuild (validate-catalog + check:tdz), que es lo que corre Vercel."),
+  },
+  {
+    // El 8 oct 2026 tres sesiones abrieron el mismo fallo (#153, #154, #159):
+    // la norma pedía buscar antes y nada obligaba. El script busca los parecidos.
+    // También con `VAR=x gh …`, `gh.exe` o `gh -R dueño/repo issue create`.
+    si: (o) => /^(?:\w+=\S*\s+)*gh(?:\.exe)?\s+(?:(?:-R|--repo)\s+\S+\s+)?issue\s+create\b/.test(o),
+    da: () => deny("Los issues se crean con `npm run issues -- --nuevo \"título\" --tipo … --area … --cuerpo <fichero>`: antes de crear enseña los parecidos, y a Pablo le asigna las decisiones. Si ya existe uno, comenta allí."),
+  },
+  {
+    // El 9 oct 2026 el PC tenía la CLI de Vercel con la sesión de Pablo (Owner):
+    // cualquier sesión podía bajarse las variables de Production (service role,
+    // URL de administrador, token del bot). No se ancla el ejecutable: `npx -y`,
+    // `--scope x` delante, `vercel.cmd`, la ruta entera o `cmd /c` también
+    // cuentan. Producción se mira solo como valor de -e/--environment/--target
+    // (o tras `env ls`), no en un nombre de fichero. Es una lista negra: quien
+    // parta el texto adrede se la salta; la defensa de fondo es que la CLI del
+    // PC no tenga sesión (skill `vercel`). Un commit o un echo no cuentan (#332).
+    si: (o) =>
+      /\bvercel\b/i.test(o) && !/^(git|echo|gh|grep|rg)\b/.test(o) &&
+      ((/\benv\s+(pull|run|ls|list)\b|(^|\s)pull\b/i.test(o) &&
+        (/(^|\s)(-e|--environment|--target)(=|\s+)['"]?prod(uction)?\b/i.test(o) || /\benv\s+(ls|list)\s+['"]?prod(uction)?\b/i.test(o))) ||
+        /\bapi\b.*(\bdecrypt\b|\/env\b)/i.test(o)),
+    da: () => deny("Las variables de Production de Vercel son solo de Pablo (#332): tienen la clave de administrador de la base y el token del bot. Para desarrollo usa `.env.local` (direcciones `op://`); si de verdad hace falta Production, dale el comando a Pablo para que lo lance con `!`."),
   },
   {
     // PowerShell 5.1 escribe UTF-8 con BOM y destroza los acentos.
@@ -107,8 +133,8 @@ const OTRA_BASE = new RegExp(
   ].join("|"),
   "i",
 );
-// Las continuaciones de línea (`\` o acento grave de PowerShell) se unen antes de partir.
-const unirContinuaciones = (o) => o.replace(/[\\\x60]\r?\n\s*/g, " ");
+// Las continuaciones de línea (`\` o acento grave de PowerShell) se unen antes
+// de partir (unirContinuaciones, de dominios.mjs).
 const psqlFueraDelPanel = (o) => {
   const c = unirContinuaciones(o);
   const sinOtraBase = !OTRA_BASE.test(c);
@@ -213,8 +239,12 @@ export function migracionCerrada(nombre, { enStaging, estadoMd, numeroEnStaging 
  * `cd` anterior en el comando, o la de la sesión. Las sesiones suelen quedarse
  * en la carpeta principal y hacer `cd C:/dev/MenuPlan-x && …`.
  */
+/** Una ruta de Git Bash a Windows: `/c/dev/x` → `c:/dev/x`, `/tmp/x` → la carpeta temporal. */
+export function windows(p) {
+  return p.replace(/^\/tmp(?=\/|$)/, tmpdir().replace(/\\/g, "/")).replace(/^\/([a-z])\//i, "$1:/");
+}
+
 export function carpetaDe(cmd, orden, cwd) {
-  const windows = (p) => p.replace(/^\/([a-z])\//i, "$1:/");
   const c = orden.match(/^git\s+-C\s+(?:"([^"]+)"|'([^']+)'|(\S+))/);
   if (c) return windows(c[1] ?? c[2] ?? c[3]);
   const hasta = cmd.indexOf(orden);
@@ -231,7 +261,7 @@ const GIT_DE_MANTENER = /\bmerge\s+(.*\s)?--ff-only\b|\b(checkout|switch)\s+stag
 
 const EN_LA_PRINCIPAL = "Estás en la carpeta principal (C:\\dev\\MenuPlan): es de todas las sesiones y en ella no se trabaja, solo se mira y se lanza `npm run tarea`. Abre la tuya con `npm run tarea -- <area>/<nombre>` y trabaja allí.";
 
-function contextoReal(raiz) {
+export function contextoReal(raiz, entrada = {}) {
   let deStaging;
   const git = (args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000 }).trim();
   let comunPropio;
@@ -241,10 +271,31 @@ function contextoReal(raiz) {
       const [gitDir, comun] = git(["-C", dir, "rev-parse", "--path-format=absolute", "--git-dir", "--git-common-dir"]).split(/\r?\n/);
       return resolve(gitDir).toLowerCase() === resolve(comun).toLowerCase() && resolve(comun).toLowerCase() === comunPropio;
     } catch {
+      // a propósito: fuera de un repo (o si git no contesta) no es la carpeta principal
       return false;
     }
   };
+  // El registro de sesiones (para la puerta de lectura de las skills), perezoso:
+  // casi ningún comando lo necesita.
+  let dirReg;
+  const registro = () => (dirReg ??= dirSesiones(raiz) ?? null);
+  const idSesion = entrada.session_id;
   return {
+    dominios: cargarMapa(raiz),
+    skillAbierta: (skill) => skillAnotada(registro(), idSesion, skill),
+    marcarSkill: (skill) => anotarSkill(registro(), idSesion, skill, "avisada"),
+    // Las skills que un subagente trae precargadas en su frontmatter (`skills: [a, b]`).
+    skillsDelAgente: (tipo) => {
+      if (typeof tipo !== "string" || !/^[\w-]+$/.test(tipo)) return [];
+      try {
+        const md = readFileSync(join(raiz, ".claude", "agents", `${tipo}.md`), "utf8").replace(/\r\n/g, "\n");
+        const linea = md.match(/^---\n([\s\S]*?)\n---/)?.[1].match(/^skills:\s*\[(.*)\]\s*$/m)?.[1] ?? "";
+        return linea.split(",").map((s) => s.trim()).filter(Boolean);
+      } catch {
+        // a propósito: falla abierta — si no se puede leer el agente se pierde saber qué skills trae precargadas; cuesta un reintento de la puerta, mejor que bloquear.
+        return [];
+      }
+    },
     esPrincipal,
     // Un fichero del repo en la carpeta principal. Lo ignorado (.env.local) y la
     // memoria de los agentes, que vive en la carpeta del proyecto, no cuentan.
@@ -260,7 +311,7 @@ function contextoReal(raiz) {
         git(["-C", dir, "check-ignore", "-q", ruta]);
         return false; // ignorado
       } catch {
-        return true;
+        return true; // a propósito: check-ignore sale con error cuando NO está ignorado; es su respuesta
       }
     },
     numeroEnStaging: (numero) => {
@@ -272,7 +323,7 @@ function contextoReal(raiz) {
         execFileSync("git", ["-C", raiz, "cat-file", "-e", `origin/staging:supabase/migrations/${nombre}.sql`], { stdio: "ignore" });
         return true;
       } catch {
-        return false;
+        return false; // a propósito: cat-file -e sale con error cuando el fichero no está en staging
       }
     },
     estadoMd: existsSync(join(raiz, "supabase", "ESTADO.md")) ? readFileSync(join(raiz, "supabase", "ESTADO.md"), "utf8") : null,
@@ -281,6 +332,22 @@ function contextoReal(raiz) {
         const args = ["pr", "view", ...(numero ? [numero] : []), "--json", "baseRefName", "-q", ".baseRefName"];
         return execFileSync("gh", args, { cwd: raiz, encoding: "utf8", timeout: 15000 }).trim();
       } catch {
+        return null; // a propósito: null es «no se sabe» y decidir() lo convierte en pregunta (ask)
+      }
+    },
+    ramaDe: (dir = raiz) => {
+      try {
+        return git(["-C", dir, "rev-parse", "--abbrev-ref", "HEAD"]);
+      } catch {
+        // a propósito: sin rama legible no se exige el Closes (null = no se sabe)
+        return null;
+      }
+    },
+    leer: (fichero, dir = raiz) => {
+      try {
+        return readFileSync(resolve(dir, fichero), "utf8");
+      } catch {
+        // a propósito: un --body-file ilegible cuenta como cuerpo vacío, y entonces se pide el Closes
         return null;
       }
     },
@@ -290,21 +357,58 @@ function contextoReal(raiz) {
         execFileSync("git", ["-C", dir, "fetch", "-q", "origin", "staging"], { stdio: "ignore", timeout: 30000 });
         return Number(execFileSync("git", ["-C", dir, "rev-list", "--count", "HEAD..origin/staging"], { encoding: "utf8" }).trim());
       } catch {
-        return null;
+        return null; // a propósito: null es «no se sabe» y decidir() lo convierte en pregunta (ask)
       }
     },
-    // Lo mismo para la rama de un PR, preguntado a GitHub (la rama puede no estar en local).
-    atrasoDelPr: (numero) => {
+    // Ficheros que el PR cambia y que staging también ha cambiado desde que la
+    // rama se separó, preguntado a GitHub (la rama puede no estar en local).
+    // [] si no va atrasada o no se pisan; null si no se puede saber.
+    choquesDelPr: (numero) => {
       try {
         const opts = { cwd: raiz, encoding: "utf8", timeout: 15000 };
         const cabeza = execFileSync("gh", ["pr", "view", ...(numero ? [numero] : []), "--json", "headRefOid", "-q", ".headRefOid"], opts).trim();
-        const n = Number(execFileSync("gh", ["api", `repos/{owner}/{repo}/compare/staging...${cabeza}`, "-q", ".behind_by"], opts).trim());
-        return Number.isFinite(n) ? n : null;
+        const compara = (de, a) => JSON.parse(execFileSync("gh", ["api", `repos/{owner}/{repo}/compare/${de}...${a}`, "-q", "{atraso: .behind_by, ficheros: [.files[].filename]}"], opts));
+        const delPr = compara("staging", cabeza);
+        if (delPr.atraso === 0) return [];
+        const deStaging = new Set(compara(cabeza, "staging").ficheros);
+        return delPr.ficheros.filter((f) => deStaging.has(f));
       } catch {
-        return null;
+        return null; // a propósito: null es «no se sabe» y decidir() lo convierte en pregunta (ask)
       }
     },
   };
+}
+
+// ── La puerta de lectura de las skills ─────────────────────────────────────
+
+/**
+ * Las skills (.claude/skills/) son los runbooks, con lo que ya falló en cada
+ * servicio. Se abrían solo si la sesión decidía hacerlo. Aquí, la PRIMERA vez
+ * que una sesión lanza un comando de riesgo de un dominio con skill (el mapa:
+ * .claude/dominios-skills.json), se le niega con el nombre de la skill; al
+ * reintentar pasa. Es un obstáculo, no un candado: una vez por skill y sesión.
+ *
+ *  - Si la sesión ya abrió la skill (herramienta Skill o Read de su SKILL.md,
+ *    anotado por skill-abierta.mjs), pasa a la primera.
+ *  - Si es un subagente con la skill en su frontmatter (`skills: [...]`), ya la
+ *    tiene en el contexto: cuenta como abierta. El hook solo sabe qué agente es
+ *    si Claude Code le pasa `agent_type`; si no, el coste es un reintento.
+ *  - Falla abierta: si no se puede anotar el aviso (sin registro, disco, id
+ *    raro), NO se niega; una puerta que no recuerda atascaría la sesión.
+ */
+function puertaDeSkills(cmd, entrada, ctx) {
+  if (!ctx.dominios || !ctx.skillAbierta || !ctx.marcarSkill) return null;
+  const delAgente = ctx.skillsDelAgente?.(entrada.agent_type) ?? [];
+  const faltan = skillsDeComando(cmd, ctx.dominios).filter((s) => !delAgente.includes(s) && !ctx.skillAbierta(s));
+  const avisadas = faltan.filter((s) => ctx.marcarSkill(s));
+  if (!avisadas.length) return null;
+  const lista = avisadas.map((s) => `\`${s}\``).join(" y ");
+  const abre = avisadas.map((s) => `Skill con skill: "${s}"`).join(" y ");
+  return deny(
+    `Este comando es de los que, mal hechos, cuestan caro, y ${avisadas.length > 1 ? "sus dominios tienen" : "su dominio tiene"} runbook con lo que ya falló aquí. ` +
+    `Abre antes ${avisadas.length > 1 ? "las skills" : "la skill"} ${lista} (herramienta ${abre}) y reintenta el mismo comando. ` +
+    "Este aviso sale una sola vez por skill y sesión: al reintentar pasa.",
+  );
 }
 
 // ── La decisión ────────────────────────────────────────────────────────────
@@ -331,23 +435,83 @@ export function decidir(entrada, ctx) {
 
       // Un PR con la rama atrasada respecto a staging choca con lo que acaban
       // de meter otras sesiones, o pasa el CI sin haberlo probado junto (el 8
-      // oct 2026, el cableado). Se mira al abrirlo y otra vez al fusionarlo.
+      // oct 2026, el cableado). Al abrirlo, al día del todo (es barato). Al
+      // fusionar, solo si staging ha tocado sus mismos ficheros: staging avanza
+      // varios commits cada pocos minutos y exigirlo siempre dejaba los PR sin
+      // poder entrar nunca. Lo que no se pisa lo recoge el CI de staging.
       if (/^gh\s+pr\s+create\b/.test(o)) {
-        const atraso = ctx.atrasoLocal(carpetaDe(cmd, o, entrada.cwd ?? "") || undefined);
+        const dir = carpetaDe(cmd, o, entrada.cwd ?? "") || undefined;
+        // Rama con issue (`npm run tarea -- ops/x 193` → `ops/193-x`): el PR lo
+        // cierra. Sin el `Closes`, el issue se queda abierto y la traza no sabe
+        // quién lo arregló (8 oct 2026: ninguna rama vieja tenía issue).
+        // `--head ops/x`, `--head "ops/x"` o `--head dueño:ops/x`.
+        const rama = o.match(/(?:-H|--head)(?:\s+|=)["']?(?:[\w-]+:)?([^\s"']+)/)?.[1] ?? ctx.ramaDe(dir);
+        const issue = rama?.match(/^[a-z]+\/(\d+)-/)?.[1];
+        if (issue) {
+          // `--body-file f`, `--body-file=f` o `-F f`, con rutas de Git Bash (`/c/…`, `/tmp/…`).
+          const fichero = o.match(/(?:-F|--body-file)(?:\s+|=)(?:"([^"]+)"|'([^']+)'|(\S+))/);
+          const cuerpo = fichero ? ctx.leer(windows(fichero[1] ?? fichero[2] ?? fichero[3]), dir) ?? "" : "";
+          const texto = `${cmd}\n${cuerpo}`;
+          if (!new RegExp(String.raw`\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?\s+#${issue}\b`, "i").test(texto)) {
+            return deny(`Tu rama es del issue #${issue}: pon \`Closes #${issue}\` en el cuerpo del PR (y la línea \`Agente: <nombre>\`), para que se cierre al fusionar y quede la traza.`);
+          }
+        }
+        // La línea «Casos:» (#185): cada PR dice qué fallos del camino ha
+        // registrado como casos, o por qué no hubo. Solo la forma, sin red: el CI
+        // (scripts/casos-pr.mjs) comprueba además que los #n son casos de verdad.
+        const ficheroCasos = o.match(/(?:-F|--body-file)(?:\s+|=)(?:"([^"]+)"|'([^']+)'|(\S+))/);
+        const cuerpoCasos = ficheroCasos ? ctx.leer(windows(ficheroCasos[1] ?? ficheroCasos[2] ?? ficheroCasos[3]), dir) ?? "" : "";
+        const casos = analizarCasos(`${cmd}\n${cuerpoCasos}`, { enComando: true });
+        if (!casos.valida) return deny(`${casos.motivo} ${AYUDA_CASOS} (El CI lo vuelve a comprobar.)`);
+        const atraso = ctx.atrasoLocal(dir);
         if (atraso === null) return ask("No he podido comprobar si tu rama tiene lo último de staging. Haz `git fetch origin staging` y `git merge origin/staging` antes de abrir el PR.");
         if (atraso > 0) return deny(`Tu rama va ${atraso} commit(s) por detrás de staging. Antes de abrir el PR: \`git fetch origin staging\`, \`git merge origin/staging\`, resuelve, pasa los tests y empuja.`);
         continue;
       }
 
-      // gh pr merge: solo a staging (lo permite settings.local.json de Pablo).
-      const merge = o.match(/^gh\s+pr\s+merge\b\s*(\d+)?/);
+      // gh -R/--repo … pr merge: la base no se puede leer de la rama actual.
+      if (/^gh\s+(?:-R|--repo)\b[\s\S]*\bpr\s+merge\b/.test(o)) {
+        return deny("`gh -R … pr merge` no deja comprobar la base del PR. Fusiona desde la carpeta del repo, con el número del PR.");
+      }
+      // gh pr edit --base: cambiar la base de un PR a algo que no es staging lo
+      // lleva a producción al fusionarlo (juez de seguridad del PR #223).
+      const nuevaBase = /^gh\s+pr\s+edit\b/.test(o) ? o.match(/(?:^|\s)(?:--base|-B)(?:\s+|=)?["']?([^\s"']+)/) : null;
+      if (nuevaBase && nuevaBase[1] !== "staging") {
+        return deny(`Cambiar la base de un PR a ${nuevaBase[1]} lo llevaría fuera de staging. Eso solo lo hace Pablo.`);
+      }
+      // gh api: fusionar, cambiar la base o borrar por la API se salta todo lo
+      // de aquí, también con la skill abierta (re-juicio del PR #223).
+      if (/^gh\s+api\b/.test(o) && /\/pulls\/\d+\/merge\b|mergePullRequest|baseRefName|\bbase=|(?:-X|--method)[\s=]*DELETE\b/i.test(o)) {
+        return deny("Fusionar, cambiar la base de un PR o borrar por `gh api` se salta la guardia. Usa `gh pr merge <n>` (a staging) o pídeselo a Pablo.");
+      }
+      // Borrar issues o etiquetas no tiene vuelta atrás.
+      if (/^gh\s+(?:issue\s+(?:delete|transfer)|label\s+delete)\b/.test(o)) {
+        return deny("Borrar o trasladar un issue, o borrar una etiqueta, no tiene vuelta atrás. Ciérralo o retírala con `npm run issues -- --etiquetas`.");
+      }
+      // gh pr merge: solo a staging, y con el PR justo detrás de `merge`
+      // (número, #número o la URL de este repo). Buscarlo en otro sitio se
+      // engañaba con un número en --subject, con '#231' o con el nombre de una
+      // rama (re-juicio del PR #223); gh no admite un segundo PR.
+      let merge = null;
+      if (/^gh\s+pr\s+merge\b/.test(o)) {
+        const tras = [...o.replace(/^gh\s+pr\s+merge\b/, "").matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3]);
+        const pr = tras[0]?.match(/^(?:#?(\d+)|https:\/\/github\.com\/pabloam89\/MenuPlan\/pull\/(\d+)\/?)$/i);
+        if (!pr) return deny("Pon el número del PR justo detrás de `merge` (`gh pr merge 230 --squash`): así la guardia mira el mismo PR que fusiona gh.");
+        merge = [o, pr[1] ?? pr[2]];
+      }
+      if (merge && /(?:^|\s)--auto\b/.test(o)) {
+        return deny("`gh pr merge --auto` fusiona más tarde, cuando nadie mira la base. Fusiona a mano con el CI en verde.");
+      }
       if (merge) {
         const base = ctx.baseDelPr(merge[1]);
         if (base === null) return ask("No he podido leer la rama base de este PR. Si no es staging, solo Pablo lo fusiona.");
         if (base !== "staging") return deny(`Este PR va contra ${base}, no contra staging. Fusionar fuera de staging solo lo hace Pablo.`);
-        const atraso = ctx.atrasoDelPr(merge[1]);
-        if (atraso === null) return ask("No he podido comprobar si la rama del PR tiene lo último de staging. Míralo antes de fusionar.");
-        if (atraso > 0) return deny(`La rama del PR va ${atraso} commit(s) por detrás de staging: el CI no ha probado tu cambio junto a lo último. Ponla al día (\`gh pr update-branch${merge[1] ? ` ${merge[1]}` : ""}\` o merge de origin/staging y push), espera el CI en verde y fusiona.`);
+        const choques = ctx.choquesDelPr(merge[1]);
+        if (choques === null) return ask("No he podido comprobar si staging ha tocado lo mismo que este PR. Míralo antes de fusionar.");
+        if (choques.length) {
+          const lista = choques.slice(0, 5).join(", ") + (choques.length > 5 ? ` y ${choques.length - 5} más` : "");
+          return deny(`Desde que se abrió este PR, staging ha cambiado sus mismos ficheros (${lista}): el CI no los ha probado juntos. Ponlo al día (\`gh pr update-branch${merge[1] ? ` ${merge[1]}` : ""}\` o merge de origin/staging y push), espera el CI en verde y fusiona.`);
+        }
         continue;
       }
     }
@@ -362,6 +526,10 @@ export function decidir(entrada, ctx) {
       const motivo = migracionCerrada(nombre, ctx);
       if (motivo) return deny(motivo);
     }
+    // La puerta de lectura va la última entre los «no»: una orden que otra regla
+    // ya niega no gasta el aviso. Se mira el comando ENTERO (no un tramo).
+    const puerta = puertaDeSkills(cmd, entrada, ctx);
+    if (puerta) return puerta;
     if (tocaEn(cmd, RUTA_LOLA).length) {
       return ask("Esto escribe en lo que lee Lola desde la shell. Mejor con Edit: así se carga `.claude/rules/lola.md`. Y si cambia lo que lee Lola, pasa los evals (`scripts/bot-evals.mjs`) antes de mergear.");
     }
@@ -376,9 +544,6 @@ export function decidir(entrada, ctx) {
       if (motivo) return deny(motivo);
     }
     if (ctx.rutaEnPrincipal(ruta)) return deny(EN_LA_PRINCIPAL);
-    if (/[\\/]\.claude[\\/](settings\.json|hooks[\\/])/.test(ruta)) {
-      return ask("Esto cambia los permisos o los hooks compartidos de todas las sesiones. Pide el OK de Pablo.");
-    }
     return null;
   }
 
@@ -387,16 +552,45 @@ export function decidir(entrada, ctx) {
 
 // ── Entrada desde Claude Code ──────────────────────────────────────────────
 
+/** Cuándo arrancó este proceso: la guardia mide cuánto ha tardado en contestar. */
+const INICIO = Date.now();
+
+/**
+ * Milisegundos a partir de los cuales la guardia ya NO añade el registro de eventos (#340). Contestar
+ * suele costar menos de 1 s, pero `contextoReal` puede tardar 15-30 s con la red lenta (git fetch, gh);
+ * el registro lanza otro `git` (hasta 3 s) y esperarlo allí sería sumarle espera a una sesión que ya
+ * esperó. Con 5 s, el caso normal (< 1 s) siempre registra y el lento se salta el registro.
+ */
+export const TOPE_PARA_REGISTRAR_MS = 5000;
+export const hayTiempoParaRegistrar = (inicio, ahora = Date.now()) => ahora - inicio <= TOPE_PARA_REGISTRAR_MS;
+
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+
+const responder = (r) => {
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: r.decision,
+      permissionDecisionReason: `[guardia] ${r.motivo}`,
+    },
+  }));
+};
 
 if (esPrincipal) {
   let crudo = "";
   for await (const trozo of process.stdin) crudo += trozo;
-  let entrada;
+  // Sin entrada legible la guardia no puede vigilar: pregunta (#209, decisión
+  // de Pablo del 8 oct). Ni deja pasar en silencio ni niega, para que un fallo
+  // tonto no pare la sesión.
+  let entrada = null;
   try {
     entrada = JSON.parse(crudo);
-  } catch {
-    process.exit(0); // sin entrada legible no hay nada que vigilar
+  } catch (e) {
+    console.error(`[guardia] entrada ilegible: ${e.message}`);
+  }
+  if (!entrada || typeof entrada !== "object") {
+    responder(ask("La guardia no ha podido leer esta orden, así que no sabe si es segura. ¿La dejas pasar?"));
+    process.exit(0);
   }
   // La raíz del worktree donde se trabaja, no CLAUDE_PROJECT_DIR (que apunta a
   // la carpeta original): el ESTADO.md que vale es el de tu rama.
@@ -406,22 +600,37 @@ if (esPrincipal) {
   try {
     raiz = execFileSync("git", ["-C", desde, "rev-parse", "--show-toplevel"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
   } catch {
-    // fuera de un repo: nos quedamos con lo que hay
+    // a propósito: fuera de un repo nos quedamos con la raíz que hay
   }
   try {
     tocar(dirSesiones(raiz), entrada.session_id); // «sigo viva», para el registro de sesiones
   } catch {
-    // el registro es una ayuda, no un requisito
+    // a propósito: el registro es una ayuda, no un requisito; si falla, el arranque lo dice
   }
-  const r = decidir(entrada, contextoReal(raiz));
+  const r = decidir(entrada, contextoReal(raiz, entrada));
   if (r) {
-    process.stdout.write(JSON.stringify({
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: r.decision,
-        permissionDecisionReason: `[guardia] ${r.motivo}`,
-      },
-    }));
+    // La respuesta sale PRIMERO: lo que decide la guardia no puede depender de un módulo de
+    // registro que se cuelgue o haga process.exit (juez de seguridad de #340).
+    responder(r);
+    // El registro de eventos (#340) cuenta cada bloqueo y cada permiso pedido. Import dinámico,
+    // dentro de un try y con tope de tiempo: si no carga, falla o se cuelga, la decisión ya salió.
+    try {
+      if (!hayTiempoParaRegistrar(INICIO)) throw new Error("la guardia ya tardó demasiado: sin registro");
+      const registro = (async () => {
+        const { familiaDeGuardia, registrarEvento } = await import("./eventos.mjs");
+        registrarEvento({
+          evento: r.decision === "deny" ? "bloqueo_guardia" : "permiso_pedido",
+          nombre: familiaDeGuardia(r.motivo),
+          sesion: entrada.session_id,
+          cwd: entrada.cwd || raiz,
+        });
+      })();
+      let temporizador;
+      await Promise.race([registro, new Promise((alTiempo) => { temporizador = setTimeout(alTiempo, 3000); })]);
+      clearTimeout(temporizador);
+    } catch {
+      // a propósito: el registro es una ayuda; un fallo suyo no puede cambiar lo que decide la guardia
+    }
   }
   process.exit(0);
 }

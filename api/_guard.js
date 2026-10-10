@@ -12,14 +12,12 @@
 //      so the expensive "free unlimited LLM" payoff disappears;
 //   2. this module rate-limits per IP, so bulk abuse is throttled;
 //   3. this module rejects obvious cross-origin calls;
-//   4. an OPTIONAL global daily budget per bucket (see dailyBudget below) caps
-//      worst-case platform-wide cost regardless of how many different IPs a
-//      sustained abuse pattern spreads across — the per-IP limit alone can't
-//      catch that, since a botnet or a rotating-IP script never trips it.
+//   4. a global daily cap per AI bucket (see dailyBudget below) bounds the
+//      platform-wide cost per day, whatever the number of callers.
 //
-// Rate limiting fails OPEN (allows the request) when Redis is unavailable: a
-// Redis blip must not take menu generation down for real users, and points 1+3
-// still stand on their own.
+// The per-IP rate limit fails OPEN (allows the request) when Redis is
+// unavailable: a Redis blip must not take the app down for real users. The
+// daily cap is a spending ceiling and fails CLOSED, like globalLimit.
 
 import { Redis } from "@upstash/redis";
 
@@ -127,51 +125,101 @@ export async function rateLimit(req, { bucket, limit, windowSec }) {
   }
 }
 
-// Global, cross-IP daily circuit breaker — off by default.
-//
-// The per-IP window above (rateLimit) protects against ONE abusive caller,
-// but does nothing against cost spread across many IPs (rotating-IP script,
-// small botnet, or just an unexpectedly viral spike): each IP individually
-// stays under its own limit while the total bill keeps climbing all day with
-// no ceiling anywhere in the code.
-//
-// This adds an optional platform-wide cap per bucket, read from
-// AI_DAILY_BUDGET_<BUCKET> (bucket uppercased, e.g. AI_DAILY_BUDGET_GENERATE).
-// Unset (the default) = no check at all, zero behavior change from before —
-// deliberately opt-in, since the right number depends on real traffic/cost
-// tolerance this code has no way to know. Set it once that's known, no
-// redeploy of anything else required.
-function dailyBudgetEnvLimit(bucket) {
-  const raw = process.env[`AI_DAILY_BUDGET_${bucket.toUpperCase().replace(/-/g, "_")}`];
-  const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
+/**
+ * Ventana fija GLOBAL (no por IP): para endpoints que solo llama un
+ * planificador y cuestan dinero, como el turno con modelo del canario
+ * (api/bot/canario.js). Es un tope de gasto, así que falla CERRADO, al revés
+ * que rateLimit: sin Redis, o si Redis da error, no deja pasar. Lo que se
+ * pierde es una pasada del canario; lo que se evita, gastar sin techo.
+ * @returns {Promise<{ok: boolean, motivo?: "sin_redis" | "error_redis"}>}
+ */
+export async function globalLimit({ bucket, limit, windowSec }, { redis = getRedis() } = {}) {
+  if (!redis) {
+    console.warn(`[guard] global limit ${bucket}: no Redis, denying`);
+    return { ok: false, motivo: "sin_redis" };
+  }
+  const key = `ratelimit:${bucket}:global:${Math.floor(Date.now() / 1000 / windowSec)}`;
+  try {
+    const count = await redis.incr(key);
+    if (count === 1) await redis.expire(key, windowSec);
+    return { ok: count <= limit };
+  } catch (err) {
+    console.warn(`[guard] global limit ${bucket} check failed, denying:`, err?.message);
+    return { ok: false, motivo: "error_redis" };
+  }
 }
 
-/** @returns {Promise<{ok: boolean}>} */
-export async function dailyBudget(bucket) {
-  const limit = dailyBudgetEnvLimit(bucket);
-  if (limit == null) return { ok: true }; // not configured — no-op, see note above
+// Tope diario GLOBAL por bucket de IA: llamadas al modelo por día UTC, sumando
+// a todo el mundo. No va en blocked(): cada handler llama a topeDiarioAgotado()
+// justo antes de llamar al modelo, después de validar el cuerpo (y, si hay
+// caché, solo cuando falla), para que solo cuente lo que de verdad se paga.
+// Es un techo de gasto, así que desplegado falla CERRADO (sin Redis, o con
+// Redis fallando, no deja pasar), igual que globalLimit. Fuera de Vercel (sin
+// VERCEL_ENV, en local) y sin Redis deja pasar, con su línea.
+//
+// Cada bucket de IA tiene un tope por defecto aquí, bajo a propósito. La
+// variable AI_DAILY_BUDGET_<BUCKET> (en mayúsculas y con _ por -, p. ej.
+// AI_DAILY_BUDGET_RECIPE_STEPS) lo cambia sin tocar código; si falta o no es
+// un entero de 1 en adelante, vale el de aquí, nunca «sin tope».
+export const TOPE_DIARIO_POR_DEFECTO = Object.freeze({
+  generate: 200,
+  "recipe-steps": 100,
+  moderate: 100,
+  "dish-photo": 30,
+});
 
-  const redis = getRedis();
-  if (!redis) return { ok: true }; // same fail-open policy as rateLimit
+export function topeDiario(bucket, env = process.env) {
+  const n = Math.floor(Number(env[`AI_DAILY_BUDGET_${bucket.toUpperCase().replace(/-/g, "_")}`]));
+  if (Number.isFinite(n) && n >= 1) return n;
+  return TOPE_DIARIO_POR_DEFECTO[bucket] ?? null;
+}
 
-  // UTC calendar day: coarse on purpose, this is a cost ceiling, not a
-  // precise 24h sliding window.
+// Una línea contable por cada vez que no es «contado y dentro», sin nada de
+// quien llama: bucket, motivo (MOTIVOS_TOPE_DIARIO en src/lib/vocabularios.js)
+// y si corta. `detalle`, solo el mensaje de error de Redis.
+function apuntar(bucket, motivo, { corta = true, detalle } = {}) {
+  console.warn(JSON.stringify({ tag: "tope_diario", bucket, motivo, corta, ...(detalle ? { detalle } : {}) }));
+  return corta ? { ok: false, motivo } : { ok: true, motivo };
+}
+
+/**
+ * @returns {Promise<{ok: boolean, motivo?: "tope_alcanzado" | "sin_redis" | "error_redis"}>}
+ */
+export async function dailyBudget(bucket, { redis, env = process.env } = {}) {
+  const limit = topeDiario(bucket, env);
+  if (limit == null) return { ok: true }; // bucket sin tope por defecto ni variable: no se cuenta
+
+  const r = redis === undefined ? getRedis() : redis;
+  if (!r) return apuntar(bucket, "sin_redis", { corta: Boolean(env.VERCEL_ENV) });
+
+  // Día UTC: grueso a propósito, es un techo de gasto y no una ventana exacta.
   const day = new Date().toISOString().slice(0, 10);
   const key = `budget:${bucket}:${day}`;
   try {
-    const count = await redis.incr(key);
-    if (count === 1) await redis.expire(key, 172800); // 2 days: safety margin past midnight-UTC edge
-    if (count > limit) return { ok: false };
+    const count = await r.incr(key);
+    if (count === 1) await r.expire(key, 172800); // 2 días: margen pasada la medianoche UTC
+    if (count > limit) return apuntar(bucket, "tope_alcanzado");
     return { ok: true };
   } catch (err) {
-    console.warn("[guard] daily budget check failed, allowing:", err?.message);
-    return { ok: true };
+    return apuntar(bucket, "error_redis", { detalle: String(err?.message ?? "").slice(0, 120) });
   }
 }
 
 /**
- * Runs all checks and writes the error response itself when blocked.
+ * Para los handlers: justo antes de la llamada al modelo. Si no hay cupo,
+ * contesta 503 él mismo.
+ * @returns {Promise<boolean>} true si el handler debe parar.
+ */
+export async function topeDiarioAgotado(res, bucket, opciones) {
+  if ((await dailyBudget(bucket, opciones)).ok) return false;
+  res.status(503).json({ error: "Servicio de IA saturado por hoy. Vuelve a intentarlo mañana." });
+  return true;
+}
+
+/**
+ * Runs the per-request checks (origin, per-IP rate limit) and writes the error
+ * response itself when blocked. The daily AI cap is not here: see
+ * topeDiarioAgotado.
  * @returns {Promise<boolean>} true if the handler should stop.
  */
 export async function blocked(req, res, opts) {
@@ -184,12 +232,6 @@ export async function blocked(req, res, opts) {
     console.warn(`[guard] rate limited ${opts.bucket} for ${clientIp(req)}`);
     res.setHeader("Retry-After", String(retryAfter));
     res.status(429).json({ error: "Demasiadas peticiones. Inténtalo en un momento." });
-    return true;
-  }
-  const budget = await dailyBudget(opts.bucket);
-  if (!budget.ok) {
-    console.warn(`[guard] daily budget exceeded for bucket "${opts.bucket}"`);
-    res.status(503).json({ error: "Servicio de IA saturado por hoy. Vuelve a intentarlo mañana." });
     return true;
   }
   return false;

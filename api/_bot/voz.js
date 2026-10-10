@@ -19,6 +19,8 @@
  *     contestar nada.
  */
 
+import { seguirCon } from "./avisar.js";
+import { globalLimit } from "../_guard.js";
 import { llamar } from "./telegram.js";
 import { cargarCasa } from "./casa.js";
 import { propiasDe } from "./propias.js";
@@ -31,6 +33,14 @@ const IDIOMA = "es";
 const MAX_SEGUNDOS = 120;
 const TIEMPO_DESCARGA_MS = 10_000;
 const TIEMPO_GROQ_MS = 20_000;
+
+// Transcripciones al día para todo el bot (día UTC). BOT_VOZ_DIA lo cambia
+// sin tocar código; si falta o no es un entero de 1 en adelante, vale este.
+export const TOPE_VOZ_DIA = 150;
+export function topeVozDia(env = process.env) {
+  const n = Math.floor(Number(env.BOT_VOZ_DIA));
+  return Number.isFinite(n) && n >= 1 ? n : TOPE_VOZ_DIA;
+}
 
 // Lo que se dice en esta casa y Whisper no conoce. Whisper solo mira los
 // últimos ~224 tokens de la pista: corta y de palabras, no de frases.
@@ -63,7 +73,9 @@ export async function palabrasDeLaCasa(householdId) {
   try {
     const casa = await cargarCasa(householdId);
     return palabrasDe(casa?.state?.data ?? {}, propiasDe(casa));
-  } catch {
+  } catch (e) {
+    // a propósito: la pista solo ayuda a Whisper; sin ella, se transcribe igual.
+    console.warn("[voz] palabras de la casa:", e?.message);
     return { nombres: [], propias: [] };
   }
 }
@@ -189,10 +201,17 @@ export function limpiarTranscripcion(json, pista = "") {
  * @returns {Promise<{ texto: string } | { error: string }>}
  *   `error`: «vacío» si no se oyó nada que decir; el resto son fallos técnicos.
  */
-export async function transcribir(audio, { householdId } = {}) {
-  const clave = process.env.GROQ_API_KEY;
+export async function transcribir(audio, { householdId } = {}, { limite = globalLimit, env = process.env } = {}) {
+  const clave = env.GROQ_API_KEY;
   if (!clave) return { error: "sin clave" };
   if ((audio.duration ?? 0) > MAX_SEGUNDOS) return { error: "largo" };
+  // Tope diario de transcripciones de todo el bot, como el del canario: falla
+  // cerrado (sin Redis, o con Redis fallando, no se transcribe).
+  const cupo = await limite({ bucket: "bot_voz_dia", limit: topeVozDia(env), windowSec: 86400 });
+  if (!cupo.ok) {
+    console.warn(JSON.stringify({ tag: "tope_diario", bucket: "bot_voz_dia", motivo: cupo.motivo ?? "tope_alcanzado", corta: true }));
+    return { error: "tope" };
+  }
 
   const [fichero, { nombres, propias }] = await Promise.all([
     llamar("getFile", { file_id: audio.file_id }),
@@ -224,7 +243,8 @@ export async function transcribir(audio, { householdId } = {}) {
     body: form,
     signal: AbortSignal.timeout(TIEMPO_GROQ_MS),
   });
-  const json = await res.json().catch(() => ({}));
+  // a propósito: sin cuerpo JSON, el status ya dice qué pasó
+  const json = await res.json().catch(seguirCon("voz_json", {}));
   if (!res.ok) return { error: json?.error?.message ?? `HTTP ${res.status}` };
   const texto = corregirNombres(limpiarTranscripcion(json, pista), nombres);
   return texto ? { texto } : { error: "vacío" };

@@ -31,7 +31,7 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
 | Las claves en local | 1Password, bóveda `HoMenu`. `.env.local` guarda direcciones `op://` (plantilla `ops/env.1password`), no claves. Skill `1password` |
 | Estado real de las migraciones | `supabase/ESTADO.md`; NOT VALID por validar en `supabase/PENDIENTES.md` |
 | Cómo deben ser las tablas | `docs/datos/PRINCIPIOS.md` (con test desde la 0087) |
-| Reglas de UI | `DESIGN_SYSTEM.md` |
+| Reglas de UI | `DESIGN_SYSTEM.md` (criterio); valores en `src/design/tokens.js`; estado y plan en `docs/diseno/ESTADO.md` |
 | Decisiones de operación y hoja de ruta | `ops/DECISIONES.md`, `ops/PLANOS.md` |
 
 `pabloartinano/MenuPlan` y OneDrive son restos de antes del 7 oct: un error.
@@ -54,6 +54,8 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
 `npm run tarea -- datos/descartes` abre `C:\dev\MenuPlan-descartes` (rama
 desde `origin/staging`, `.env.local`, flags de staging, dependencias y
 puerto); `npm run retirar -- descartes` la cierra solo si no se pierde nada.
+Si la tarea es de un issue, su número detrás (`… datos/descartes 193`): la
+rama queda `datos/193-descartes` y el PR lleva `Closes #193`.
 En la carpeta principal (`C:\dev\MenuPlan`) no se trabaja: la guardia no deja
 editar, commitear ni cambiar de rama en ella. Nada de borrar worktrees a mano;
 si el arranque avisa de otra sesión en tu carpeta, no trabajes ahí. App en local: localhost y la IP de la wifi, nada más
@@ -66,16 +68,18 @@ en staging.
 ## Antes del PR (lo que no vigila la guardia)
 
 1. Fusiona `origin/staging` en tu rama y resuelve: hay sesiones en paralelo.
-   La guardia no deja abrir ni fusionar un PR con la rama atrasada; si al
-   fusionar ya va por detrás, `gh pr update-branch <n>` y espera el CI.
+   La guardia no deja abrir un PR con la rama atrasada, ni fusionarlo si
+   staging ha cambiado sus mismos ficheros desde entonces: en ese caso,
+   `gh pr update-branch <n>` (en un comando aparte) y espera el CI.
 2. `git status --short` y añade por nombre solo lo tuyo; si un fichero mezcla
    lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera.
 3. `npm test` y `npm run build`. Con el lint, `npm run lint:base`: cuenta la
    **lista** de errores, no el recuento.
 4. Un test nuevo se ve fallar una vez antes de creértelo (detalle en la regla
    `tests`).
-5. En el cuerpo del PR, `Closes #n` por cada issue que arregla y una línea
-   `Agente: <nombre>` (o `sesión`): de ahí sale quién arregló qué y si aguantó.
+5. En el cuerpo del PR, `Closes #n` por cada encargo o problema de fondo que
+   cierra y una línea `Agente: <nombre>` (o `sesión`): de ahí sale quién
+   arregló qué y si aguantó.
 
 ## Base de datos
 
@@ -124,12 +128,23 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 (`api/_bot/`, `api/bot/`), `catalogo` (`src/data/`, `src/utils/`, `src/lib/`,
 `api/_bot/`), `tests` (`*.test.{js,jsx,mjs}`) y
 `api` (`api/*.js`). Las skills (`.claude/skills/`) son runbooks que se abren
-por su nombre: `1password`, `vercel`, `supabase`, `github`, `telegram`,
-`hetzner` y `tailscale` (precargadas en `gobierno` y `lola`). Todas siguen
-`.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: las mismas
-siete secciones, operaciones con lo que debe salir, y cada fallo con fecha,
-causa y arreglo. Un proveedor nuevo estrena su runbook con su primera lección,
-no antes.
+por su nombre: `1password`, `alta-de-secreto`, `vercel`, `supabase`, `github`, `issues`,
+`telegram`, `hetzner` y `tailscale` (precargadas en `gobierno` y `lola`); y
+las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
+`plan-de-arreglo` (partir el arreglo en encargos). Todas siguen
+`.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
+ocho (hoy hay de herramienta y de oficio, cada tipo con sus secciones), dueño, fecha
+de comprobación que caduca a los 90 días, un `SKILL.md` corto con el detalle en
+capas y sus casos de prueba en `casos.json`; `npm run skills-prueba -- <skill>`
+mide, con tokens, si ayuda. Un proveedor nuevo estrena su runbook con su
+primera lección, no antes.
+
+## Vocabulario del catálogo
+
+"Antiguo" y "nuevo" no se usan para el catálogo (#249). Los roles de una fuente
+(`ingesta`, `fuente_de_verdad`, `derivado`, `copia_retirada`), **Recetario** y
+**Reserva** se definen una vez, en `specs/INDEX.md`. Cada fuente, con su estado
+y su fecha, está en `src/data/model.js` (`TABLAS`, vigilado por `ops/fuentes.test.js`).
 
 ## Código
 
@@ -140,19 +155,61 @@ no antes.
 - Modelos: **Gemini para imágenes, Anthropic para texto.** Mira qué genera un
   script, no qué proveedor trae escrito.
 - No cambies de rama en una carpeta con cambios sin commitear.
+- **La hora es la de Madrid y sale de `npm run hora`** (o del arranque), nunca
+  de `date`: en Git Bash `TZ=Europe/Madrid date` da UTC sin avisar (#210).
+  Una hora límite que se le da a Pablo la calcula el script que la impone.
 
-## Acciones que SIEMPRE requieren un OK explícito de Pablo
+## Pensar en datos
 
-No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
+Lo que se repite se diseña para poder contarse; todo se analiza mejor con
+cifras que con impresiones.
 
-- Subir o fusionar a `main`.
-- Aplicar una migración o ejecutar SQL que escriba, borre o cambie permisos.
-- Borrar ramas, worktrees, datos o recursos de cualquier servicio.
+- **Vocabulario cerrado, no texto libre**, para todo lo que se vaya a agrupar:
+  motivos de fallo, estados, causas, tipos, sitios. Una constante en JS (y un
+  CHECK si va a SQL) con su test, como `src/lib/vocabularios.js`.
+- **Cada cosa que pasa deja una línea estructurada** (`campo: valor`, sin datos
+  de familias) que un script pueda contar. Lo que no deja rastro no se mide, y
+  lo que no se mide no mejora.
+- **La clase, no el caso**: se arregla el caso y se ataca su problema de fondo
+  («Cuando algo falla», abajo). Una regla, un dato, una fuente que el resto usa.
+- **La cifra antes y después**: cuántos casos, desde cuándo y dónde, antes de
+  proponer un arreglo; la misma cifra después, para saber si sirvió.
+
+## Qué se le pregunta a Pablo, y qué no
+
+Pablo decidió el 8 oct de 2026 que solo se le pregunte lo **irreversible o lo
+que sale fuera**: cada pregunta de más le interrumpe, y casi siempre dice que
+sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
+
+**Se pregunta y se espera el sí:**
+
+- Subir o fusionar a `main` (producción).
+- Borrar o reescribir datos de familias, o cambiar RLS y permisos de lo que ya
+  existe (`--pablo`, `CONTRAE`).
+- Borrar recursos de un servicio (una base, un proyecto, un bucket) o ramas
+  que no están fusionadas.
 - Crear, rotar o cambiar secretos y variables de entorno.
-- Cambiar `.claude/settings.json` o los hooks, o ampliar permisos.
-- Reescribir historia (`--force`, `rebase` de algo empujado) en una rama que
-  no es tuya.
-- Cambiar ajustes de GitHub, Vercel o Supabase.
+- Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
+- Escribir a personas o publicar algo en su nombre.
+- Ampliar los permisos de `.claude/settings.json` (la sesión pregunta en el chat antes de abrir el PR y el juez lo marca; la guardia ya no pregunta al editar).
+- Reescribir historia de una rama que no es tuya.
+
+**Autorizado de forma permanente** (se hace y se cuenta en el resumen):
+
+- Leer producción en solo lectura con los scripts del repo:
+  `npm run consulta -- "<select>"`, `verificar-estado`, el ensayo de
+  `apply-migration`.
+- Aplicar las migraciones que el script deja aplicar (en staging, ensayadas,
+  con el juez y sin `--pablo`).
+- Issues y etiquetas: crearlos, clasificarlos, colgarlos, cerrarlos con su PR,
+  y `npm run issues -- --etiquetas`.
+- Cambiar hooks, guardia, reglas, skills y agentes, siempre por PR con su juez
+  y el CI en verde. Fusionar a staging es de la propia sesión.
+- Ajustes del repo que no tocan permisos ni producción: etiquetas,
+  plantillas, la descripción de un PR.
+- Poner al día la carpeta principal (`git pull --ff-only`) y las copias de
+  hooks de usuario que salen del repo (#198).
+- Retirar carpetas y ramas ya fusionadas (`npm run retirar`, `npm run podar`).
 
 ## Lo que hace cumplir esto
 
@@ -162,19 +219,50 @@ No basta con que la tarea «lo implique»: se pregunta y se espera el sí.
   directo a staging, `git stash`, `git add .`, `vite build` a secas,
   `Set-Content`, tocar una migración aplicada (también por terminal), crear
   una con un número que staging ya usa, SQL a mano contra producción y
-  `apply-migration --pablo` (solo de Pablo), abrir o fusionar un PR con
-  la rama atrasada respecto a staging y trabajar en la carpeta principal;
+  `apply-migration --pablo` (solo de Pablo), abrir un PR con la rama
+  atrasada, sin `Casos:`, o sin `Closes` si la rama es de un issue, fusionarlo si staging
+  pisó sus ficheros, trabajar en la carpeta principal y `gh issue create` a
+  pelo (se crea con `npm run issues -- --nuevo`, que busca los parecidos);
   pregunta
-  antes de un push forzado, de tocar permisos y hooks y de escribir por
+  antes de un push forzado y de escribir por
   terminal lo que lee Lola. Cada regla,
   con su porqué y su test en `.claude/hooks/guardia.test.js`.
+- **`avisos.mjs`** tras editar un fichero: los issues abiertos que lo nombran.
+  **`pendientes.mjs`** al terminar de responder: frena una vez si dejas
+  decisiones o pendientes sin ningún issue, o fallos sin ningún caso (#185).
+  Las decisiones se asignan a Pablo.
 - **GitHub**: `main` solo por PR con `tests`; secret scanning y Dependabot.
+- **Las skills, por obligación** (`.claude/dominios-skills.json`): la primera
+  vez que una sesión lanza un comando de riesgo de un dominio con skill
+  (`apply-migration`, `telegram-webhook.mjs set`, `vercel env`, `op item`, `ssh` al
+  panel…), la guardia le pide abrir antes la skill; y el CI (`tests`) exige en
+  cada PR que toca un dominio la línea «Runbook: actualizado (skill X)» o
+  «Runbook: sin novedades». El `revisor` comprueba que un fallo arreglado dejó
+  su lección en un test, la guardia o la skill.
 - Las reglas por carpeta solo saltan con Read, Write o Edit, no por terminal:
   lo crítico va en la guardia.
 - **Cuando algo falla, la lección va a un test o a la guardia; si no se puede,
-  a una regla o una skill; a la memoria, nunca.** Si no se arregla en el
-  momento, se abre un issue `tipo:leccion` (con causa y área) y se cierra con
-  la etiqueta `arreglo:` de dónde quedó. Decisiones pendientes y trabajo por
-  coger, también como issues (`tipo:decision`, `tipo:encargo`), no en el
-  chat ni en mensajes entre sesiones. `npm run issues` lo cuenta; el cómo, en
-  la skill `github`. El repo es público: nada sensible en un issue.
+  a una regla o una skill; a la memoria, nunca.**
+
+## Cuando algo falla: hasta el problema de fondo
+
+Ningún fallo se cierra como suelto. Se arregla el caso si urge y se analiza
+de qué **problema de fondo** es síntoma (`tipo:fondo`). El caso acaba en una
+respuesta de `analisis:` —nuevo, abierto, no aguantó o puntual— y se cuelga de
+su fondo; el arreglo se hace en el fondo, no en el caso: uno o varios encargos
+colgando de él, y se cierra cuando acaban y un test cubre la clase. **Esto no
+depende de acordarse**: todo PR lleva `Casos: #n, #m` o `Casos: ninguno — <por
+qué>` (la guardia no deja abrirlo sin ella y el CI comprueba que son casos de
+verdad), y al terminar `pendientes.mjs` frena una vez si hubo fallos y no
+registraste nada.
+
+- **El camino completo** (detectar, registrar, triaje, diagnosticar, fondo,
+  plan, ejecutar, verificar, observar, cerrar, aprender, medir), qué obligación
+  tiene cada paso y **qué la hace cumplir de verdad**: `docs/ops/FLUJO.md`.
+  `npm run flujo` da el resumen y dice qué pasos siguen blandos.
+- **Las definiciones** de cada respuesta del análisis, de las causas y de las
+  etiquetas: `scripts/lib/issues.mjs`, su única fuente. No se copian aquí.
+- Decisiones pendientes y trabajo por coger, también como issues, no en el chat
+  ni en mensajes entre sesiones. `npm run issues` lo cuenta y `--colgar` cuelga;
+  el cómo, en la skill `issues`; el repaso del conjunto, cada semana con
+  `/revision-issues`. El repo es público: nada sensible en un issue.

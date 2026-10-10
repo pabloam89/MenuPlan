@@ -41,7 +41,7 @@ export async function buscarHibrido(consulta, { catalogo, carpetaDe, categoria =
   const rasgos = rasgosDeFrase(consulta);
 
   const delQueLlama = (r) => (!categoria || carpetaDe(r) === categoria) && !(maxMinutos && r.time && r.time > maxMinutos);
-  const base = catalogo.filter((r) => r.estrella !== false && delQueLlama(r) && !rasgos.excluir.some((e) => excluye(r, e)));
+  const base = catalogo.filter((r) => r.estrella && delQueLlama(r) && !rasgos.excluir.some((e) => excluye(r, e)));
   let candidatas = base.filter((r) => rasgos.duros.every((d) => cumple(r, d)));
   let aviso = "";
   let relajado = false;

@@ -4,6 +4,7 @@ import App from './App.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 import { InstallPwaBanner } from './components/InstallPwaBanner.jsx'
 import { PanelPlayground } from './dev/PanelPlayground.jsx'
+import './design/tokens.css'
 import './index.css'
 import { registerSW } from 'virtual:pwa-register'
 

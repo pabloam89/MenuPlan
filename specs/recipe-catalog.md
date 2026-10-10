@@ -4,8 +4,8 @@
 
 **Qué hace.** Mantiene el catálogo cerrado de recetas que consume `menu-generation`, el flujo de creación de recetas propias por IA, y la adaptación de pasos por electrodoméstico.
 
-### 1.1 Catálogo base (bundleado + hot-swap Supabase)
-Ver detalle del mecanismo en `menu-generation.md` §2 ("Catálogo"). Resumen del contrato: `recipeCatalog` (`src/data/recipeCatalog.js:174`) es siempre un array de recetas válidas contra `RecipeSchema` (Zod, `src/data/recipeSchema.js:83`), resuelto una vez al cargar el módulo, con Supabase como fuente autoritativa **solo si** `catalog_meta.version >= BUNDLED_CATALOG_VERSION` (hoy `10`, `catalogVersion.js:15`); cualquier otro caso cae al JSON bundleado, ya validado de forma incondicional.
+### 1.1 Catálogo base (una sola fuente: el JSON del bundle)
+**Corrección del 9 oct 2026** (issue #249): esta sección describía un hot-swap con Supabase que ya no existe. Desde el 30 sep 2026 (migración 0064) **solo manda el JSON** `src/data/recipes/*.json`; las tablas `recipes`, `recipe_ingredients`, `dish_images` y `catalog_meta` eran una *copia retirada* parada en la v27 que nadie lee; **la migración 0093 (issue #303) las borra de la base**, con las demás tablas y vistas copia (`ops/lecturasRetiradas.test.js` falla si alguien vuelve a leerlas). `catalog_meta.version` ya no se compara con nada. Roles y estado de cada fuente: `src/data/model.js` (`TABLAS`); nombres, en `specs/INDEX.md` («Vocabulario del catálogo»). Resumen del contrato: `recipeCatalog` (`src/data/recipeCatalog.js`) es siempre un array de recetas válidas contra `RecipeSchema` (Zod, `src/data/recipeSchema.js`), resuelto una vez al cargar el módulo y validado de forma incondicional; si el JSON está roto, la app falla al arrancar. El **Recetario** son las recetas con `estrella:true` (las únicas que se proponen); la **Reserva**, el resto.
 
 **Invariante de campos**: `RecipeSchema` exige (no exhaustivo) `id`, `name`, `category` (enum de 11 valores), `mainProtein` (enum de 10), `mealRole` (≥1 de 5 valores), `steps` (≥1 string), `ingredients` (≥1), `kcal`/`protein_g`/`carbs_g`/`fat_g` no negativos. `stepsRich` es **opcional** (`z.array(StepRichSchema).min(1).optional()`, línea 129) — su ausencia es válida, el renderizado cae a `steps` plano.
 
@@ -47,7 +47,7 @@ RLS (`user_recipes`): `Owner manages own recipes` (`auth.uid() = owner_id`), `Pu
 ### `recipe_votes`
 `UNIQUE(user_id, recipe_id)`, campos `vote` e `is_favorite`. [CORREGIDO 2026-08-22]: `vote` **sí tiene CHECK constraint** en producción — `recipe_votes_vote_check: (vote IS NULL) OR (vote = ANY (ARRAY['up','down']))`, verificado en vivo. RLS: `ALL` propio (`auth.uid() = user_id`) — sin lectura pública ni de amigos, a diferencia de `user_recipes`.
 
-### `dish_images`
+### `dish_images` (borrada en la 0093, #303; las fotos salen de `src/assets/dishes/dishImages.json`)
 `combo_id` (PK), FK a `recipes.id` (recipe y garnish, `NO ACTION` en cascada — no `CASCADE`; borrar una receta del catálogo no arrastra su imagen automáticamente). RLS: lectura pública.
 
 ## 3. Dependencias externas
@@ -61,7 +61,7 @@ RLS (`user_recipes`): `Owner manages own recipes` (`auth.uid() = owner_id`), `Pu
 
 ## 4. Puntos de acoplamiento
 
-- **`recipeSchema.js` es la fuente de verdad de forma de receta para TODO el sistema**: catálogo bundleado, catálogo Supabase (vía `rowToRecipe` mapper en `recipeCatalog.js`), recetas de usuario (`UserRecipeDraftSchema` en `userRecipes.js`, que reexporta `StepRichSchema` de aquí), y el prompt server-side de `structure-recipe`. Un cambio de campo aquí toca 4 sitios que deben mantenerse sincronizados a mano.
+- **`recipeSchema.js` es la fuente de verdad de forma de receta para TODO el sistema**: catálogo bundleado, recetas de usuario (`UserRecipeDraftSchema` en `userRecipes.js`, que reexporta `StepRichSchema` de aquí), y el prompt server-side de `structure-recipe`. Un cambio de campo aquí toca 3 sitios que deben mantenerse sincronizados a mano (la copia del catálogo en Supabase está retirada desde la 0064 y su mapper `rowToRecipe` se borró el 9 oct 2026).
 - **`STEP_KINDS` está duplicado por diseño, con comentario explícito de sincronización manual**: definido en `src/lib/recipeSteps.js:32` y espejado en `api/recipe-steps.js` (`STEP_KINDS` propio, con comentario *"Espejo de STEP_KINDS en src/lib/recipeSteps.js: este fichero se mantiene autocontenido"*) — un test (`api/recipe-steps.test.js`, según commit `215c1c3`) fija el contrato entre ambas listas, mitigando el riesgo de divergencia silenciosa que sí existe en otros puntos de duplicación de este proyecto.
 - **`api/_prompts.js` ↔ `src/lib/recipeSteps.js`/`userRecipes.js`**: el prompt de `structure-recipe` referencia la taxonomía de `kind` y el formato de marcadores en lenguaje natural — un cambio en `recipeSteps.js` (p. ej. nuevo `kind`) exige actualizar el prompt server-side a mano, sin ningún mecanismo que lo fuerce salvo revisión humana (mismo patrón de riesgo que en `menu-generation.md`).
 - **`api/generate-dish-photo.js` ↔ catálogo curado**: reutiliza *literalmente* la fórmula de estilo del catálogo (`scripts/lib/combos.mjs#buildPrompt`, según comentario en el propio fichero) para que las fotos generadas bajo demanda no desentonen visualmente con el catálogo curado — acoplamiento de estilo, no de datos.
@@ -71,13 +71,13 @@ RLS (`user_recipes`): `Owner manages own recipes` (`auth.uid() = owner_id`), `Pu
 1. **Migración de `steps_rich` no registrada en el repo en el momento del deploy** — desplegada a producción sin la columna, causando fallo silencioso de guardado de recetas de usuario durante una ventana de tiempo (corregido esta sesión). Patrón recurrente: la deriva migración↔producción ya ha pasado dos veces en esta sesión (ver también `auth.md`, FK cascade).
 2. **Fuga de email vía `owner_snapshot`** en recetas públicas — corregida en código y datos esta sesión, pero es evidencia de que guardar snapshots de identidad en columnas `jsonb` sin un esquema declarado (sin validación de qué campos puede contener `owner_snapshot`) es un vector fácil de reintroducir el mismo error con un campo distinto.
 3. ~~`recipe_votes.vote` sin enum DB~~ — **descartado, ver §2**: sí tiene CHECK constraint en producción.
-4. **`dish_images` no tiene `ON DELETE CASCADE`** desde `recipes` — una receta borrada del catálogo puede dejar una imagen huérfana referenciando un `recipe_id` inexistente en la práctica (la FK sigue existiendo con `NO ACTION`, así que Postgres impediría el borrado si hay una imagen que la referencia, salvo que se borre la imagen primero — comportamiento no verificado end-to-end en esta pasada).
+4. ~~**`dish_images` no tiene `ON DELETE CASCADE`**~~ — **ya no aplica: la tabla se borra en la 0093 (#303).** Texto original: «`dish_images` no tiene `ON DELETE CASCADE` desde `recipes` — una receta borrada del catálogo puede dejar una imagen huérfana referenciando un `recipe_id` inexistente en la práctica (la FK sigue existiendo con `NO ACTION`, así que Postgres impediría el borrado si hay una imagen que la referencia, salvo que se borre la imagen primero — comportamiento no verificado end-to-end en esta pasada)».
 5. **Modelo Haiku de `api/recipe-steps.js` hardcodeado en el propio fichero** en vez de importar de `aiModels.js` (comentario explícito: *"runs server-side and keeps its own constant"*) — decisión deliberada y documentada, pero es una tercera fuente de verdad de "qué modelo Haiku usamos" junto a `aiModels.js` y `api/generate.js`.
 
 ## 6. Políticas del catálogo (decisiones de Pablo)
 
-- **Solo el Recetario Estrella** (`estrella: true`). El catálogo antiguo
-  («fondo de armario») no se propone nunca. Si el pool se queda corto, error,
+- **Solo el Recetario Estrella** (`estrella: true`). La Reserva
+  (el resto: sin bandera o `false`; antes «fondo de armario») no se propone nunca. Si el pool se queda corto, error,
   no relleno (`isPrimaryCatalog()` en `filterRecipes.js`). Promover una
   receta exige que tenga foto. `estrella: false` escrito = «lo miré y de
   momento no»; ausente = otro catálogo, y solo sube a mano.

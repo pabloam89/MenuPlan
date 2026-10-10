@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { resumen } from "./migraciones.mjs";
-import { activas, apuntar, enCarpeta, listar, quitar, tocar } from "./sesiones.mjs";
+import { CADUCA_H, activas, anotarSkill, apuntar, enCarpeta, listar, quitar, skillAnotada, tocar } from "./sesiones.mjs";
 
 describe("registro de sesiones", () => {
   const dir = mkdtempSync(join(tmpdir(), "sesiones-"));
@@ -62,5 +62,48 @@ describe("números de migración", () => {
     const r = resumen(staging, [{ nombre: "0087_mia", donde: "yo", ruta: "C:/dev/MenuPlan-yo" }], "C:\\dev\\MenuPlan-yo\\");
     expect(r.ocupados).toEqual([]);
     expect(r.siguiente).toBe("0088");
+  });
+});
+
+describe("skills abiertas por sesión", () => {
+  const dir = mkdtempSync(join(tmpdir(), "sesiones-skills-"));
+  const ID = "sesion-con-skills";
+
+  it("anota y recuerda, por skill y por sesión", () => {
+    expect(skillAnotada(dir, ID, "github")).toBe(false);
+    expect(anotarSkill(dir, ID, "github", "abierta")).toBe(true);
+    expect(skillAnotada(dir, ID, "github")).toBe(true);
+    expect(skillAnotada(dir, ID, "vercel")).toBe(false);
+    expect(skillAnotada(dir, "otra-sesion-1", "github")).toBe(false);
+  });
+
+  it("no depende de que la sesión esté apuntada y no ensucia el listado de sesiones", () => {
+    expect(listar(dir)).toEqual([]);
+  });
+
+  it("quitar la sesión borra sus skills", () => {
+    anotarSkill(dir, ID, "vercel", "avisada");
+    quitar(dir, ID);
+    expect(skillAnotada(dir, ID, "github")).toBe(false);
+    expect(skillAnotada(dir, ID, "vercel")).toBe(false);
+  });
+
+  it("falla sin ruido: carpeta nula, id raro o nombre con ruta", () => {
+    expect(anotarSkill(null, ID, "github")).toBe(false);
+    expect(anotarSkill(dir, "../x", "github")).toBe(false);
+    expect(anotarSkill(dir, ID, "../../etc")).toBe(false);
+    expect(skillAnotada(null, ID, "github")).toBe(false);
+    expect(anotarSkill(join(dir, "no", "existe", "\0"), ID, "github")).toBe(false);
+  });
+
+  it("listar barre las fichas de skill de más de 48 h y deja las recientes", () => {
+    anotarSkill(dir, "vieja-sesion-1", "github");
+    anotarSkill(dir, "reciente-sesion-1", "github");
+    const hace = (h) => new Date(Date.now() - h * 36e5);
+    utimesSync(join(dir, "skills", "vieja-sesion-1__github.json"), hace(CADUCA_H + 1), hace(CADUCA_H + 1));
+    utimesSync(join(dir, "skills", "reciente-sesion-1__github.json"), hace(CADUCA_H - 1), hace(CADUCA_H - 1));
+    listar(dir);
+    expect(skillAnotada(dir, "vieja-sesion-1", "github")).toBe(false);
+    expect(skillAnotada(dir, "reciente-sesion-1", "github")).toBe(true);
   });
 });

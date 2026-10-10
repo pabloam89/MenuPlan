@@ -583,9 +583,9 @@ aparte, en la fase G.
 Cada fase cierra con su test. Ninguna depende de red ni de clave de API.
 
 Antes que todas ellas existe una **Fase A** —partir `alimentos`/`productos`/
-`ingredientes` y cerrar L0 por ingesta— que está escrita en §14 y §15 y
-**no está arrancada**. Las fases 1–12 no dependen de ella: se puede hacer A
-primero o dejarla para después de la 1.
+`ingredientes` y cerrar L0 por ingesta— escrita en §14 y §15. **Está hecha en
+lo esencial** (21-22 sep 2026, commits 0dd6e53 y 299a091: `alimentos.json` con
+procedencia, `build-alimentos.mjs`). Las fases 1–12 no dependen de ella.
 
 | # | qué | por qué primero | riesgo |
 |---|---|---|---|
@@ -612,9 +612,13 @@ dos se puede estimar: el pipeline lo prohíbe por diseño y con razón.
 
 ## 14 · Fase A — `alimentos`: el esquema, y por qué la ingesta de hoy no vale
 
-> **Esta fase no está arrancada.** Queda escrita aquí para decidirla antes de
-> tocar el pipeline, no para ejecutarla. Las fases 1–12 de arriba no dependen
-> de ella.
+> **Esta fase está hecha** (21-22 sep 2026, commits 0dd6e53 y 299a091). Lo que
+> sigue es el diseño original, que se conserva para entender por qué. Hoy la
+> fuente de verdad de los alimentos es `src/data/alimentos.json` (rol
+> `fuente_de_verdad` en `src/data/model.js`, `TABLAS`); el ingrediente
+> (`ingredients.json`) es otra entidad, no una copia. Las tablas de Supabase del
+> catálogo (`recipes`, `ingredients`…) fueron *copia retirada* desde el 30 sep 2026
+> y la migración 0093 (#303) las borra.
 
 ### El diagnóstico, en una línea de código
 
@@ -923,10 +927,11 @@ Falta modelar los líquidos que se tiran (bisque, court-bouillon, escabeches).
 Una clave de estos ficheros que no casa con ningún `ingredientId` no falla,
 no hace nada: lo vigila `src/data/alimentos.test.js`.
 
-**El fusible del espejo.** `src/data/recipeRow.test.js` compara los campos
-del esquema con lo que sale del mapeador, y `NO_VIAJAN` declara con su razón
-lo que no viaja a propósito. Nació porque un campo nuevo se perdía en silencio
-al pasar por el puente (cinco veces). El espejo `recipes` está muerto desde la
+**El fusible del espejo.** `recipeRow.test.js` (retirado el 9 oct 2026 con su
+mapeador) comparaba los campos del esquema con lo que salía de él, y
+`NO_VIAJAN` declaraba con su razón lo que no viajaba a propósito. Nació
+porque un campo nuevo se perdía en silencio al pasar por el puente (cinco
+veces). El espejo `recipes` está muerto desde la
 0064, pero el patrón vale para cualquier puente campo a campo.
 
 **Decisiones de Pablo que no salen del código:**
@@ -937,8 +942,9 @@ al pasar por el puente (cinco veces). El espejo `recipes` está muerto desde la
   plato sigue siendo ese plato sin ella. Si el líquido cocinó el principal, es
   principal.
 - `sauceId` es del usuario (`fixedDishes.sauceId`), no un campo muerto.
-- El scorer de `lib/planner.js` es código muerto anterior al LLM, pendiente
-  de retirar.
+- El scorer de `lib/planner.js` (`generateMenu` y compañía) y las 29 recetas de
+  prototipo (`BASE_RECIPES`) se retiraron el 9 oct 2026 (#286). La demo
+  (`?demo=1`) es una lista fija de platos Estrella (`src/dev/demoMenu.js`).
 
 **Copias de la casa sin borrar en cascada.** `persona_reemplazar_casa` (0079)
 borraba e insertaba todas las personas; desde la 0081 se sincroniza por clave

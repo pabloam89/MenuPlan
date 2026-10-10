@@ -8,18 +8,21 @@ import { supabase } from "./supabase.js";
 /** @typedef {{ forever: string[], cooldownUntil: Record<string, number> }} DiscardsState */
 
 /**
+ * Los descartes de la casa. Si la lectura falla, `data` es null y `error` lo
+ * dice: no es lo mismo «la casa no descarta nada» que «no se sabe» (#317).
+ * Quien sube algo comparando con esto mira antes `error`.
  * @param {string} householdId
- * @returns {Promise<DiscardsState>}
+ * @returns {Promise<{ data: DiscardsState|null, error: object|null }>}
  */
 export async function loadHouseholdDiscards(householdId) {
-  if (!supabase || !householdId) return { forever: [], cooldownUntil: {} };
+  if (!supabase || !householdId) return { data: { forever: [], cooldownUntil: {} }, error: null };
   const { data, error } = await supabase
     .from("household_recipe_discards")
     .select("recipe_id, is_permanent, cooldown_until")
     .eq("household_id", householdId);
   if (error) {
     console.warn("[householdDiscardsSync] load failed", error.message);
-    return { forever: [], cooldownUntil: {} };
+    return { data: null, error };
   }
   const now = Date.now();
   const forever = [];
@@ -32,7 +35,7 @@ export async function loadHouseholdDiscards(householdId) {
       if (ts > now) cooldownUntil[row.recipe_id] = ts;
     }
   }
-  return { forever, cooldownUntil };
+  return { data: { forever, cooldownUntil }, error: null };
 }
 
 /**
@@ -105,14 +108,24 @@ const claveSubidos = (userId, householdId) => `mp_descartes_subidos:${userId}:${
 
 /**
  * Lo que el dispositivo tiene (`local`: lo suyo más el blob antiguo) y la
- * casa no (`remote`, recién leído), subido UNA vez por casa, usuario y
- * dispositivo. Después la tabla de la casa manda: si otro miembro saca una
- * receta de descartes, la copia local de este no la vuelve a subir en cada
- * carga. Nunca sube un enfriamiento vencido ni el de una receta que la casa
- * descarta para siempre (el upsert la volvería temporal).
+ * casa no (`carga`: lo que acaba de devolver loadHouseholdDiscards), subido
+ * UNA vez por casa, usuario y dispositivo. Después la tabla de la casa manda:
+ * si otro miembro saca una receta de descartes, la copia local de este no la
+ * vuelve a subir en cada carga. Nunca sube un enfriamiento vencido ni el de
+ * una receta que la casa descarta para siempre (el upsert la volvería
+ * temporal).
+ *
+ * Si la carga falló, ni sube ni marca (#317): comparar con una casa «vacía»
+ * que en realidad no se pudo leer volvía temporal un descarte para siempre, y
+ * la marca impedía arreglarlo en la carga siguiente.
+ *
+ * @param {{ userId: string, householdId: string|null, local: DiscardsState,
+ *   carga: { data: DiscardsState|null, error: object|null }, now?: number }} args
  */
-export async function subirDescartesUnaVez({ userId, householdId, local, remote, now = Date.now() }) {
+export async function subirDescartesUnaVez({ userId, householdId, local, carga, now = Date.now() }) {
   if (!householdId || !userId) return;
+  if (!carga || carga.error || !carga.data) return;
+  const remote = carga.data;
   try {
     if (localStorage.getItem(claveSubidos(userId, householdId))) return;
   } catch { /* sin localStorage: se sube, filtrado igual */ }

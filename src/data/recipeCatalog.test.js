@@ -81,7 +81,7 @@ describe("los micronutrientes llegan a la receta", () => {
  * Hasta hoy eso era un `if (!n) return r`: la receta llegaba sin los 24
  * micros, sin cobertura y sin la corrección por cocción, y no fallaba nada —
  * simplemente no los tenía. El mismo patrón que ya se ha comido cinco campos
- * en `recipeRow.js`, un piso más abajo.
+ * en el traductor de filas de la nube (retirado el 9 oct 2026), un piso más abajo.
  *
  * Este bloque no se puede probar con el catálogo real, porque en el bundle
  * TODAS las recetas tienen fila. Por eso `withMicronutrientes` se exporta.

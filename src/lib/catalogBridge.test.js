@@ -7,7 +7,7 @@ import { recipeCatalog } from "../data/recipeCatalog.js";
 /**
  * EL SEGUNDO FUSIBLE: el puente del CATÁLOGO a la APP.
  *
- * `recipeRow.test.js` vigila el puente de Supabase (`rowToRecipe`). Este vigila
+ * El puente de Supabase (`recipeRow.js`) se retiró el 9 oct 2026. Este vigila
  * el otro, que nadie miraba: `catalogToFrontendRecipe` convierte una receta del
  * catálogo en el objeto que pinta la app, y por ahí pasa TODO lo que el
  * planificador coloca en un menú.

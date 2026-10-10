@@ -157,10 +157,12 @@ export async function saveMenu(userId, menu, recipes = [], householdId = null) {
  * schedule — cheap enough to fetch eagerly for the whole history list
  * (date range + week count), leaving the heavy per-week JSON to be fetched
  * on demand via loadMenuDetail only for the menú actually being opened.
- * @returns {Promise<Record<string, Record<string, {offset:number, startDayIdx:number, startISO:string, endISO:string}>>>}
+ * Si la lectura falla, `data` es null y `error` lo dice (#317): App.jsx deja
+ * entonces a cada menú las semanas que ya tenía.
+ * @returns {Promise<{ data: Record<string, Record<string, {offset:number, startDayIdx:number, startISO:string, endISO:string}>>|null, error: object|null }>}
  */
 export async function loadMenuWeekRanges(userId, householdId = null) {
-  if (!supabase || !userId) return {};
+  if (!supabase || !userId) return { data: {}, error: null };
   let q = supabase
     .from("user_menu_weeks")
     .select("menu_id, week_start, week_end, week_offset, start_day_idx")
@@ -169,7 +171,7 @@ export async function loadMenuWeekRanges(userId, householdId = null) {
   const { data, error } = await q;
   if (error) {
     console.warn("[menusSync] load week ranges failed", error.message);
-    return {};
+    return { data: null, error };
   }
   const byMenu = {};
   for (const row of data ?? []) {
@@ -181,12 +183,17 @@ export async function loadMenuWeekRanges(userId, householdId = null) {
       endISO: row.week_end,
     };
   }
-  return byMenu;
+  return { data: byMenu, error: null };
 }
 
-/** Lightweight list for a history screen: metadata only, no weeks/recipes. */
+/**
+ * Lightweight list for a history screen: metadata only, no weeks/recipes.
+ * Si la lectura falla, `data` es null y `error` lo dice (#317): con `[]`,
+ * App.jsx creía que la nube no tenía menús y subía los del blob encima.
+ * @returns {Promise<{ data: object[]|null, error: object|null }>}
+ */
 export async function loadMenuSummaries(userId, householdId = null) {
-  if (!supabase || !userId) return [];
+  if (!supabase || !userId) return { data: [], error: null };
   let q = supabase
     .from("user_menus")
     .select("id, user_id, variety_pref, is_favorite, is_active, created_at, updated_at")
@@ -195,18 +202,20 @@ export async function loadMenuSummaries(userId, householdId = null) {
   const { data, error } = await q;
   if (error) {
     console.warn("[menusSync] load summaries failed", error.message);
-    return [];
+    return { data: null, error };
   }
-  return (data ?? []).map(rowToMenuSummary);
+  return { data: (data ?? []).map(rowToMenuSummary), error: null };
 }
 
 /**
  * Full menú (every week + every recipe snapshot) for opening one history
- * entry. Returns null if not found or on any read failure.
- * @returns {Promise<{ menu: Object, recipes: Object[] } | null>}
+ * entry. `data` es null si no existe o si falló alguna lectura; en el
+ * segundo caso `error` lo dice (#317): «no hay menú» y «no se ha podido
+ * leer» no se tratan igual.
+ * @returns {Promise<{ data: { menu: Object, recipes: Object[] } | null, error: object|null }>}
  */
 export async function loadMenuDetail(userId, menuId, householdId = null) {
-  if (!supabase || !userId || !menuId) return null;
+  if (!supabase || !userId || !menuId) return { data: null, error: null };
 
   const userScope = (q) => (householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId));
 
@@ -216,19 +225,24 @@ export async function loadMenuDetail(userId, menuId, householdId = null) {
     userScope(supabase.from("user_menu_recipes").select("recipe_id, recipe_snapshot").eq("menu_id", menuId)),
   ]);
 
-  if (menuRes.error || weeksRes.error || recipesRes.error || !menuRes.data) {
+  const error = menuRes.error || weeksRes.error || recipesRes.error || null;
+  if (error) {
     if (menuRes.error) console.warn("[menusSync] load menu failed", menuRes.error.message);
     if (weeksRes.error) console.warn("[menusSync] load weeks failed", weeksRes.error.message);
     if (recipesRes.error) console.warn("[menusSync] load recipes failed", recipesRes.error.message);
-    return null;
+    return { data: null, error };
   }
+  if (!menuRes.data) return { data: null, error: null };
 
   const weeks = {};
   for (const row of weeksRes.data ?? []) weeks[row.week_start] = rowToWeek(row);
 
   return {
-    menu: { ...rowToMenuSummary(menuRes.data), weeks },
-    recipes: (recipesRes.data ?? []).map((r) => r.recipe_snapshot),
+    data: {
+      menu: { ...rowToMenuSummary(menuRes.data), weeks },
+      recipes: (recipesRes.data ?? []).map((r) => r.recipe_snapshot),
+    },
+    error: null,
   };
 }
 

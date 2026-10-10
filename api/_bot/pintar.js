@@ -23,6 +23,7 @@
  * el menú (state.aiRecipes) y las fotos del manifiesto de imágenes.
  */
 
+import { fallaCon } from "./avisar.js";
 import fs from "node:fs";
 import { comida as delCatalogo, comidasDeLaCasa, iconoDe } from "../../src/lib/comidas.js";
 import { diaDeFecha, sumarDias } from "./cuando.js";
@@ -43,7 +44,10 @@ function fotoDe(receta) {
   if (!receta) return null;
   if (receta.photo && /^https?:/.test(receta.photo)) return receta.photo;
   if (!manifiesto) {
-    try { manifiesto = JSON.parse(fs.readFileSync(new URL("../../src/assets/dishes/dishImages.json", import.meta.url), "utf8")); } catch { manifiesto = {}; }
+    try { manifiesto = JSON.parse(fs.readFileSync(new URL("../../src/assets/dishes/dishImages.json", import.meta.url), "utf8")); } catch (e) {
+      console.error("[pintar] sin dishImages.json, sin fotos:", e?.message);
+      manifiesto = {};
+    }
   }
   const id = String(receta.baseRecipeId ?? receta.linkedCatalogId ?? receta.id ?? "").split("__").pop();
   return manifiesto[id] ?? null;
@@ -101,7 +105,7 @@ const pronombre = (cat) => (/^la\b/.test(cat?.articulo ?? "") ? "las" : "los");
 export async function pintarMenuEntero(casa, filtros) {
   const p = pintarMenu(casa, filtros);
   if (!p.faltan) return p;
-  const m = await prepararRecetas(casa).catch(() => null);
+  const m = await prepararRecetas(casa).catch(fallaCon("pintar_recetas", null));
   if (!m) return p;
   return pintarMenu(casa, filtros, { otras: (id) => m.RECIPES_BY_ID[id] ?? m.RECIPES_BY_ID[String(id).split("__").pop()] ?? null });
 }

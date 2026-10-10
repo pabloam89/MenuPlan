@@ -69,6 +69,9 @@ export function ProgressDots({ current, total, onJump, compact = false }) {
   );
 }
 
+// Son literales (react-refresh no deja exportar otra cosa desde un .jsx de
+// componentes) y deben valer lo que `tam-columna` y `tam-nav` de
+// src/design/tokens.js: lo vigila src/design/marca.test.js.
 export const APP_SHELL_MAX_WIDTH = 420;
 export const BOTTOM_NAV_HEIGHT = 80;
 

@@ -11,6 +11,8 @@
  * lo que importa se guarda en la casa, no en la charla.
  */
 
+import { seguirCon, fallaCon, SIN_LEER, caidaDelModelo } from "./avisar.js";
+import { noPude } from "./noPude.js";
 import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
@@ -57,6 +59,25 @@ import { papelDeQuien, idiomaDe } from "./papel.js";
 import { herramientaPermitida } from "../../src/lib/papeles.js";
 import { ENUMS as ENUMS_TAREAS } from "../../src/lib/registroTareas.js";
 import { tareasV2 } from "./idempotencia.js";
+import { apuntarSilencio, conRecordatorio, NOTA_RECORDATORIO } from "./silencio.js";
+
+/**
+ * Las alergias por silencio del turno (silencio.js): con lo último que dijo
+ * Lola, el mensaje, las herramientas pedidas hasta ahora, quién había antes y,
+ * al cerrar el turno, lo que contestó Lola (en generar_menu aún no lo hay).
+ * Sin aviso pendiente es una regex y no toca la base.
+ */
+function silencioDelTurno(chat, respuestaDeLola = null) {
+  if (!chat?.householdId) return null;
+  return apuntarSilencio({
+    householdId: chat.householdId, ultimaDeLola: chat.anterior, texto: chat.texto, papel: chat.papel,
+    canal: chat.channel, userId: chat.userId ?? null, nombres: chat.nombresAntes ?? [], respuestaDeLola,
+    // Las ya ejecutadas y las PEDIDAS en el bloque en curso: si el modelo pide
+    // a la vez generar_menu y ajustar_alergias, generar no aplica el silencio
+    // aunque le toque correr primero (el menú sale con el filtro).
+    llamadas: [...new Set([...(chat.llamadas ?? []), ...(chat.pedidas ?? [])])],
+  });
+}
 
 // Modelo y esfuerzo, configurables para medir velocidad contra calidad con
 // scripts/bot-evals.mjs (BOT_MODELO, BOT_EFFORT) sin tocar código.
@@ -157,7 +178,7 @@ export function colaDeEscritura() {
   let cola = Promise.resolve();
   return (correr) => {
     const r = cola.then(correr, correr);
-    cola = r.catch(() => {});
+    cola = r.catch(() => {}); // a propósito: el error le llega a quien llamó, con r; la cola solo espera su turno
     return r;
   };
 }
@@ -202,6 +223,7 @@ export async function herramientas(chat) {
   }));
 
   async function ejecutarUna(t, args, llamada) {
+      chat.llamadas?.push(t.name);
       // Por si acaso: el papel se vuelve a mirar al ejecutar.
       if (!permitida(chat, t)) {
         return "Eso no lo puede cambiar quien te escribe (es de solo consulta en esta casa). Díselo con amabilidad y que se lo pida a quien gestiona la casa.";
@@ -217,7 +239,8 @@ export async function herramientas(chat) {
       // con lo que ha escrito la persona, no solo con el «confirmado» del modelo.
       const freno = supervisar(t.name, args, chat.texto, { anterior: chat.anterior });
       if (freno) {
-        await registrar(FRENO_SUPERVISOR, { userId: await duenoDe(chat.householdId).catch(() => null), extra: { herramienta: t.name, texto: String(chat.texto ?? "").slice(0, 200), esGrupo: Boolean(chat.esGrupo) } });
+        // a propósito: el evento vale más sin dueño que perdido
+        await registrar(FRENO_SUPERVISOR, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente_dueno", null)), extra: { herramienta: t.name, texto: String(chat.texto ?? "").slice(0, 200), esGrupo: Boolean(chat.esGrupo) } });
         return freno;
       }
       if (t.name === "ver_menu" && yaLoTiene(args)) {
@@ -235,7 +258,8 @@ export async function herramientas(chat) {
         if (ir) chat.ir = ir;
         return r;
       } catch (e) {
-        await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(() => null), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300), esGrupo: Boolean(chat.esGrupo) } });
+        // a propósito: el evento vale más sin dueño que perdido
+        await registrar(FALLO_HERRAMIENTA, { userId: await duenoDe(chat.householdId).catch(seguirCon("agente_dueno", null)), extra: { herramienta: t.name, error: String(e?.message ?? e).slice(0, 300), esGrupo: Boolean(chat.esGrupo) } });
         throw e;
       }
   }
@@ -615,10 +639,14 @@ function herramientasDeAjustes(householdId, gustos, chat = {}) {
       }, ["semana"]),
       run: async ({ semana, fijos }) => {
         // La semana generada sale pintada debajo del mensaje de Lola (entregar()).
+        // Alergias por silencio (#229): antes de generar, para que el menú de
+        // este mismo turno ya salga con todo el catálogo.
+        await silencioDelTurno(chat);
         const out = {};
         const texto = await generarMenu(householdId, semana, fijos ?? [], out);
         if (out.ok) pintarTambien(chat, filtrosTrasGenerar(out));
-        return texto;
+        if (out.recordarSilencio) chat.recordarSilencio = true;
+        return out.recordarSilencio ? `${texto}\n${NOTA_RECORDATORIO}` : texto;
       },
     }),
   ];
@@ -960,15 +988,20 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // `adjunto` va también a las herramientas: la foto del plato de una receta
   // solo existe en el turno en que llega (apartar_foto_plato, preparar_receta).
   // `pintar`: qué trozo del menú sale pintado debajo del mensaje (pintar.js).
-  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined };
+  // `llamadas`: las herramientas que Lola pide en el turno, en orden (silencio.js).
+  const chat = { channel, chatId: String(chatId), householdId, autor, adjunto, texto, fotos: [], ir: null, compartir: null, pintar: null, puerta, esGrupo: Boolean(esGrupo), papel: undefined, llamadas: [], pedidas: [] };
   // El papel de quien escribe, en cada turno (no se guarda: quitar a alguien
   // vale para el mensaje siguiente). Las herramientas se filtran con él.
   const conPapel = papelDeQuien({ householdId, chatId, esGrupo: Boolean(esGrupo), desde, channel })
-    .catch((e) => { console.error("[agente] papel", e?.message); return { papel: "ajeno", userId: null }; })
-    .then(async (p) => {
+    // Sin poder leerlo no se le trata como de fuera: se le dice (#208, abajo).
+    .catch(fallaCon("agente_papel", SIN_LEER))
+    .then(async (leido) => {
+      chat.sinPapel = leido === SIN_LEER;
+      const p = chat.sinPapel ? { papel: "ajeno", userId: null } : leido;
       chat.papel = p.papel;
       chat.userId = p.userId ?? null;
-      chat.idioma = await idiomaDe(p.userId).catch(() => null);
+      // a propósito: sin idioma guardado, contesta en castellano
+      chat.idioma = await idiomaDe(p.userId).catch(seguirCon("agente_idioma", null));
       return p;
     });
   // Con BOT_FICHA_RPC, las tareas, lo callado y lo de seguridad de la ficha
@@ -981,11 +1014,18 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   // La casa ya la leyó el enrutador (casa.js la recuerda unos segundos).
   const [tope, mem, tools, casa, extrasBase, tareas, calladas, tablas] = await Promise.all([
     fueraDeLimite(householdId), memoria(channel, chatId), conPapel.then(() => herramientas(chat)),
-    cargarCasa(householdId).catch(() => null), extrasDeFicha(householdId, chatId),
+    cargarCasa(householdId).catch(fallaCon("agente_casa", SIN_LEER)), extrasDeFicha(householdId, chatId),
     conPapel.then(() => deTablas).then((f) => (f ? tareasDeFicha(f, { userId: chat.userId, privado: !esGrupo }) : tareasAbiertas(householdId, { userId: chat.userId, privado: !esGrupo }))).catch((e) => { console.error("[agente] tareas", e?.message); return []; }),
     deTablas.then((f) => (f ? calladasDeFicha(f) : clavesCalladas(householdId))).catch((e) => { console.error("[agente] calladas", e?.message); return new Set(); }),
     deTablas,
   ]);
+  // Si la base no contesta, Lola lo dice y no llama al modelo (#208): sin la
+  // casa contestaría sin alergias ni menú, como si estuviera vacía; sin el
+  // papel, como a alguien de fuera. Una casa que de verdad no existe es null,
+  // no SIN_LEER, y sigue como siempre.
+  if (casa === SIN_LEER || chat.sinPapel) {
+    return { texto: noPude(casa === SIN_LEER ? "casa" : "papel", chat.idioma), fotos: [], deshacible: false, ir: null };
+  }
   const deLaFicha = tablas && casa ? conLaFicha(casa, tablas, calladas) : { casa };
   const extras = { ...extrasBase, calladas, ...(deLaFicha.pendientes ? { pendientes: deLaFicha.pendientes } : {}) };
   if (tope) return { texto: tope, fotos: [], deshacible: false, ir: null };
@@ -1010,6 +1050,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   const entradaModelo = [bloqueDeTareas(tareasVivas, { data, chatId }), bloque, entrada].filter(Boolean).join("\n\n");
   // Lo último que dijo Lola: un «sí» contesta a eso (supervisor.js).
   chat.anterior = historia.findLast((m) => m.role === "assistant")?.content ?? "";
+  // Para las alergias por silencio (silencio.js): quién había ANTES del turno.
+  chat.nombresAntes = (data.members ?? []).map((m) => m.name).filter(Boolean);
   // La ficha de la casa (api/_bot/ficha.js): lo que Lola ya sabe sin preguntar.
   const ficha = casa ? conQuienEscribe(montarFicha(deLaFicha.casa, extras), chat.papel, chat.idioma) : null;
   let dicho, uso, corregido, medida, sigueSinGuardar = false;
@@ -1030,6 +1072,7 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     if (leido) medidaPista = { ...medidaPista, modo: d.modo, confianza: d.confianza, adelanto: leido.nombre, reinicio };
     return ejecutar({
       historia, entrada: entradaModelo, tools: conAdelanto, adjunto, signal: sig, ficha, progreso,
+      alPedir: (nombres) => chat.pedidas.push(...nombres),
       guardados: () => chat.guardados ?? 0,
       pista: leido ? textoPista(d, leido) : null,
       alEscribir: alEscribir ? (parcial, extra) => {
@@ -1069,7 +1112,8 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     // turno lo haría dos veces. Se dice que está hecho y dónde verlo.
     if (!err?.aMedias) throw err;
     console.error("[agente] a medias", err?.message);
-    await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(() => null), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}`, esGrupo: Boolean(esGrupo) } });
+    // a propósito: el evento vale más sin dueño que perdido
+    await registrar(FALLO_A_MEDIAS, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { error: `a medias: ${String(err?.message ?? err).slice(0, 250)}`, esGrupo: Boolean(esGrupo) } });
     return {
       texto: "😵‍💫 Me he quedado a medias: puede que ya haya cambiado algo y no te lo he podido contar.\n\nMíralo en la app con el botón antes de pedírmelo otra vez, así no se hace dos veces.",
       fotos: chat.fotos, deshacible: false, ir: chat.ir ?? "semana", compartir: null,
@@ -1077,10 +1121,12 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
   }
   if (corregido) {
     // `sigue`: ni con el aviso guardó. Sin él, se corrigió en la segunda vuelta.
-    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200), sigue: sigueSinGuardar, esGrupo: Boolean(esGrupo) } });
+    // a propósito: el evento vale más sin dueño que perdido
+    await registrar(FALLO_SIN_GUARDAR, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { texto: String(texto).slice(0, 200), sigue: sigueSinGuardar, esGrupo: Boolean(esGrupo) } });
   }
   if (/no (te )?(he )?entend|no s[eé] a qu[eé] te refieres/i.test(dicho)) {
-    await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(() => null), extra: { texto: String(texto).slice(0, 200), esGrupo: Boolean(esGrupo) } });
+    // a propósito: el evento vale más sin dueño que perdido
+    await registrar(FALLO_NO_ENTIENDE, { userId: await duenoDe(householdId).catch(seguirCon("agente_dueno", null)), extra: { texto: String(texto).slice(0, 200), esGrupo: Boolean(esGrupo) } });
   }
 
   const llevados = await contarUso(householdId, uso).catch((e) => { console.error("[agente] uso", e?.message); return 0; });
@@ -1098,7 +1144,9 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     { householdId, channel, chatId, userId: chat.userId ?? null },
     pendientesNuevas.filter((p) => !enTabla.has(p.clave) && !calladas.has(p.clave)),
   ).catch((e) => console.error("[agente] promover", e?.message));
-  const respuesta = visible + avisoDeLimite(householdId, llevados);
+  // El recordatorio del primer menú por silencio lo pone el código, no el
+  // modelo (generar_menu lo marca en chat.recordarSilencio): sale una vez.
+  const respuesta = conRecordatorio(visible, chat.recordarSilencio, chat.idioma ?? "es") + avisoDeLimite(householdId, llevados);
 
   // Guardar la charla no tiene por qué retrasar la respuesta: va en
   // `guardado`, y quien entrega lo espera DESPUÉS de enviar y antes de soltar
@@ -1110,9 +1158,14 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
       { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: null, content: { texto: adjunto ? `[${adjunto.tipo === "document" ? "PDF" : "foto"}] ${entrada}` : entrada } },
       { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta, pendientes: pendientesNuevas } },
     ]).catch((e) => console.error("[agente] memoria", e?.message)),
-    segundaSemana(householdId).catch(() => {}),
+    // a propósito: es una señal del embudo; no toca la charla
+    segundaSemana(householdId).catch(seguirCon("agente_segunda_semana")),
     cierresPorEstado,
-    promocion,
+    // Alergias por silencio (#229): se decide aquí, cuando Lola ya ha leído
+    // el mensaje y se sabe a qué herramientas llamó (silencio.js). Tras la
+    // promoción de preguntas, para que cerrarlas no se cruce con abrirlas.
+    // Con lo que contestó Lola: si aclaraba o preguntaba, no es silencio.
+    promocion.then(() => silencioDelTurno(chat, visible)),
   ]).then((r) => { if (tablas) olvidarFicha(householdId); return r; });
   // Lo leído de ficha_casa no vale para el turno siguiente: este puede haber
   // anotado o cerrado tareas sin que cambie bot_rev. Se olvida ya y otra vez al
@@ -1146,7 +1199,16 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
 // decir que guardó: «hola, ¿qué sabes hacer?» pasaba por el aviso y una
 // segunda llamada al modelo (staging, 2 oct 2026: 8,2 s para un saludo).
 const DICE_QUE_GUARDO = /(^|\n)\s*✅|\bapuntad[oa]s?\b|\blo he (apuntado|puesto|cambiado|guardado|quitado|añadido|anotado)\b|(^|[.!¡]\s*)hecho\b/i;
-export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(String(texto ?? ""));
+// «No tenéis ninguna alergia apuntada» es leer lo que hay, no decir que guardó:
+// saltaba el aviso y costaba otra vuelta de ~3 s en cada consulta (#229). Se
+// quita el «apuntad…» que va detrás de una negación en la misma frase, salvo
+// que sea «he apuntado» y el «no» no vaya con él («No olvides que te he
+// apuntado leche» sí dice que guardó; «No te he apuntado nada», no).
+const APUNTADO_NEGADO = /\b(no|ningun[oa]?|nada|nadie)\b[^.,;:!?\n]{0,40}?\bapuntad[oa]s?\b/gi;
+const HE_APUNTADO = /\b(he|hemos|ha|han|has|habeis|habéis)\s+apuntad/i;
+const NO_HE_APUNTADO = /^no\s+(\S+\s+)?(he|hemos|ha|han|has|habeis|habéis)\s+apuntad/i;
+const sinNegados = (texto) => texto.replace(APUNTADO_NEGADO, (m) => (HE_APUNTADO.test(m) && !NO_HE_APUNTADO.test(m) ? m : ""));
+export const diceQueGuardo = (texto) => DICE_QUE_GUARDO.test(sinNegados(String(texto ?? "")));
 // Las herramientas que tardan (BOT_AVISO_LENTO, on | off; por defecto on):
 // mientras corren, la persona ve al momento una frase de Lola en el mensaje
 // que se va escribiendo, y lo que Lola escriba después la sustituye en ese
@@ -1174,7 +1236,7 @@ const AVISO_SIN_GUARDAR = "[Aviso del sistema, no lo ha escrito la persona] En t
  *   en el turno (responder lo saca de db.js). Sin él (pruebas con herramientas
  *   de mentira) vale lo intentado.
  */
-export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null }) {
+export async function ejecutar({ historia = [], entrada, tools, adjunto = null, alEscribir = null, signal = null, modelos = [MODELO, MODELO_RESERVA], alReintentar = null, ficha = null, vuelta = unaVuelta, pista = null, progreso = null, guardados = null, alPedir = null }) {
   // Si ha INTENTADO escribir en la casa este turno y el modelo se cae después,
   // no se repite con el de reserva: lo haría dos veces. Cuenta el intento, no
   // el éxito: una escritura que falló a medias puede haber guardado algo.
@@ -1209,7 +1271,7 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
     try {
       if (i > 0) alReintentar?.();
       const comun = {
-        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso,
+        tools: vigiladas, alEscribir: escribir, modelo, ficha, progreso, alPedir,
         signal: signal ? AbortSignal.any([signal, plazo]) : plazo,
         // El principal sin reintentos: si falla, reintentar ES el de reserva.
         maxRetries: i === 0 && modelos.length > 1 ? 0 : 1,
@@ -1255,14 +1317,9 @@ export async function ejecutar({ historia = [], entrada, tools, adjunto = null, 
 export function esCaida(err) {
   if (!err) return false;
   if (err.caida) return true;
-  // Por clase y no por err.name: las del SDK no lo ponen (todas dicen «Error»).
-  // La de tiempo agotado es hija de la de conexión.
-  if (err instanceof Anthropic.APIConnectionError || err instanceof Anthropic.InternalServerError || err instanceof Anthropic.RateLimitError) return true;
-  if ([408, 409, 429, 500, 502, 503, 504, 529].includes(err.status)) return true;
-  // Un error que llega a mitad del stream no trae status: viene en el cuerpo.
-  const tipo = err.error?.error?.type ?? err.error?.type;
-  if (["overloaded_error", "api_error", "rate_limit_error", "timeout_error"].includes(tipo)) return true;
-  return /overloaded|timed? ?out|ECONNRESET|socket hang up|fetch failed|Connection error/i.test(String(err.message ?? ""));
+  // Una sola clasificación de errores, la de avisar.js (#211): un 503 de la
+  // base o un 429 de Telegram no es «la IA está saturada».
+  return caidaDelModelo(err);
 }
 
 // La caché de lo fijo (instrucciones y ficha) dura una hora, no cinco minutos.
@@ -1275,7 +1332,7 @@ export function esCaida(err) {
 // los puntos de 1 h vayan antes que los de 5 min.
 const CACHE_FIJA = { type: "ephemeral", ttl: "1h" };
 
-async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null }) {
+async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal, modelo, maxRetries, ficha = null, pista = null, progreso = null, alPedir = null }) {
   // Con cache_control en el último bloque: la segunda vuelta del turno (tras
   // una herramienta) y las siguientes leen de caché todo lo anterior —
   // instrucciones, historia y el mensaje— en vez de volver a procesarlo.
@@ -1333,11 +1390,14 @@ async function unaVuelta({ historia, entrada, tools, adjunto, alEscribir, signal
         escrito += trozo;
         primerTrozo ??= Date.now() - desde;
         if (progreso) progreso.texto = true;
-        try { alEscribir(escrito); } catch { /* enseñar a medias nunca rompe la respuesta */ }
+        try { alEscribir(escrito); } catch (e) { /* a propósito: enseñar a medias nunca rompe la respuesta */ console.warn("[agente] escribir a medias", e?.message); }
       });
       mensaje = await vuelta.finalMessage();
     }
     final = mensaje;
+    // El bloque de herramientas que pide esta vuelta, ANTES de que el runner
+    // las ejecute (lo hace al acabar este cuerpo; sin runToolsEagerly).
+    alPedir?.((mensaje.content ?? []).filter((b) => b.type === "tool_use").map((b) => b.name));
     llamadas.push([Date.now() - desde, mensaje.usage?.output_tokens ?? 0, primerTrozo]);
     desde = Date.now();
     vueltas++;

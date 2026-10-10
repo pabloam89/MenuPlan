@@ -97,9 +97,9 @@ const MICRONUTRIENTES = CAMPOS_SECUNDARIOS.filter(
 const nutricionDe = (r) => recipeNutrition[r.id] ?? computeRecipeNutrition(r, r.baseServings || 4);
 
 // Exportada para poder probar la rama que NO se da en el bundle: una receta
-// que llega de la nube y no está en la tabla derivada. Mismo motivo por el que
-// `rowToRecipe` vive en su propio fichero — la costura que más silenciosamente
-// se rompe necesita poder probarse.
+// que llega de la nube y no está en la tabla derivada. La costura que más
+// silenciosamente se rompe necesita poder probarse (el mapper de filas de la
+// nube, `rowToRecipe`, se borró el 9 oct 2026).
 /**
  * Las familias (las claves de `freqs`) que consume cada plato, y con qué
  * cuota de masa. Vienen de `derived/recipeFamilias.json`, no se calculan

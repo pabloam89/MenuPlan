@@ -21,6 +21,7 @@
  * hace falta otra tabla ni volver a llamar al modelo al confirmar.
  */
 
+import { seguirCon, fallaCon } from "./avisar.js";
 import { select, insert, eq, config } from "./db.js";
 import { cargarCasa, conCasa } from "./casa.js";
 import { motor, normal, prepararRecetas } from "./menu.js";
@@ -122,7 +123,8 @@ export async function buscarRecetas(householdId, { consulta, categoria, maxMinut
   // Sin esperar: no retrasa la respuesta.
   duenoDe(householdId)
     .then((userId) => registrar("bot_busqueda", { userId, extra: { texto: String(consulta ?? "").slice(0, 200), via: via ?? "palabras", parecido: Number.isFinite(parecido) ? Math.round(parecido * 1000) / 1000 : null, n: halladas.length, categoria: categoria ?? null, esGrupo: Boolean(chat?.esGrupo) } }))
-    .catch(() => {});
+    // a propósito: es para la mejora semanal; no rompe la búsqueda
+    .catch(seguirCon("recetas_busqueda"));
   if (!halladas.length) {
     return `No hay recetas de ${categoria ? CATEGORIAS[categoria] ?? categoria : "eso"}${consulta ? ` con «${consulta}»` : ""} en el recetario.`;
   }
@@ -191,7 +193,7 @@ export async function apartarFotoPlato(householdId, chat) {
   if (chat.adjunto?.tipo !== "image") return "En este mensaje no hay ninguna foto que guardar.";
   const dueno = await duenoDe(householdId);
   if (!dueno) return "No encuentro de quién es esta casa.";
-  const url = await subirFoto(dueno, `bot_${Date.now().toString(36)}`, chat.adjunto).catch(() => null);
+  const url = await subirFoto(dueno, `bot_${Date.now().toString(36)}`, chat.adjunto).catch(fallaCon("recetas_subir_foto", null));
   if (!url) return "No he podido guardar la foto. Que la manden otra vez.";
   await insert("bot_messages", [{
     channel: chat.channel, chat_id: String(chat.chatId), household_id: householdId,
@@ -264,6 +266,8 @@ export async function prepararReceta(householdId, datos, chat) {
   try {
     borrador = m.borradorDesdeRespuesta(sacarJson(texto), payload);
   } catch (e) {
+    // a propósito: el porqué va al modelo, que pide repetir.
+    console.warn("[recetas] borrador:", String(e?.message ?? e).slice(0, 200));
     return `No me ha salido bien la receta (${String(e?.message ?? e).slice(0, 160)}). Pide que lo intente otra vez.`;
   }
 
@@ -271,7 +275,7 @@ export async function prepararReceta(householdId, datos, chat) {
   let foto = null;
   if (datos.usarFoto) {
     foto = chat.adjunto?.tipo === "image"
-      ? await subirFoto(dueno, borrador.id, chat.adjunto).catch(() => null)
+      ? await subirFoto(dueno, borrador.id, chat.adjunto).catch(fallaCon("recetas_subir_foto", null))
       : (await ultimoApartado(chat, TIPO_FOTO))?.url ?? null;
   }
   const receta = m.recetaParaGuardar(borrador, {

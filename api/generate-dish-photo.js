@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { blocked, cors } from "./_guard.js";
+import { blocked, cors, topeDiarioAgotado } from "./_guard.js";
 import { disambiguationClause } from "../src/lib/photoDisambiguation.js";
 
 // Generates a single dish photo on demand for the recipe-creation wizard
@@ -121,6 +121,9 @@ export default async function handler(req, res) {
       ? buildBabyMashPrompt(dishName)
       : buildBabyPureePrompt(dishName);
   }
+
+  // El tope diario, ya validado el cuerpo: solo cuenta lo que llega al modelo.
+  if (await topeDiarioAgotado(res, "dish-photo")) return;
 
   try {
     const ai = new GoogleGenAI({ apiKey });

@@ -26,6 +26,22 @@
       "Bash(node scripts/verificar-estado.mjs)",
       "Bash(node scripts/verificar-estado.mjs *)",
       "Bash(node scripts/apply-migration.mjs *)",
+      "Bash(node scripts/consulta.mjs *)",
+      "Bash(node scripts/issues.mjs *)",
+      "Bash(gh issue view *)",
+      "Bash(gh issue list *)",
+      "Bash(gh issue comment *)",
+      "Bash(gh issue close *)",
+      "Bash(gh issue reopen *)",
+      "Bash(gh issue edit *)",
+      "Bash(gh label list *)",
+      "Bash(gh label create *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh pr update-branch *)",
+      "Bash(gh pr edit *)",
+      "Bash(gh run rerun *)",
+      "Bash(git pull --ff-only)",
+      "Bash(git pull --ff-only origin staging)",
       "WebSearch"
     ],
     "deny": [
@@ -51,11 +67,32 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/avisos.mjs\"", "timeout": 20 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/pendientes.mjs\"", "timeout": 10 }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit",
         "hooks": [
           { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guardia.mjs\"", "timeout": 20 }
+        ]
+      },
+      {
+        "matcher": "Skill|Read",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/skill-abierta.mjs\"", "timeout": 10 }
         ]
       }
     ]

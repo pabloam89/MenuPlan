@@ -28,6 +28,7 @@
  * no tocan nada.
  */
 
+import { seguirCon } from "./avisar.js";
 import { CUANDOS } from "./cuando.js";
 
 /** Por debajo, la decisión es demasiado dudosa para gastar en adelantarla. */
@@ -179,7 +180,8 @@ export async function conPista({ pista, texto = "", adelantar, lanzar, progreso,
     if (!plan) return Promise.resolve(null);
     const lectura = Promise.resolve().then(() => adelantar(plan, d))
       .then((a) => (a && String(a.texto ?? "").length > TOPE_LEIDO ? null : a))
-      .catch(() => null);
+      // a propósito: el adelanto es una ayuda; sin él, Lola lee como siempre
+      .catch(seguirCon("pista_adelanto", null));
     return conPlazo(lectura, PLAZO_ADELANTO_MS);
   };
   let decision; // undefined: aún no ha llegado
@@ -191,6 +193,8 @@ export async function conPista({ pista, texto = "", adelantar, lanzar, progreso,
   // Si la pista ya ha llegado al arrancar (rara vez: el enrutador suele tardar
   // más que preparar a Lola), la lectura se hace antes y va desde la primera
   // llamada. El `await` deja correr antes el `then` de una pista ya resuelta.
+  // a propósito: el rechazo de la pista sale entero por `await decisionP` en
+  // turno(); aquí solo se arranca sin ella.
   pista.then((d) => { decision = d ?? null; }, () => { decision = null; });
   await null;
   if (decision !== undefined) {

@@ -17,6 +17,7 @@
  * cascada les quitaría la casa a ellos.
  */
 
+import { seguirCon } from "./avisar.js";
 import { select, eq, config, rpc } from "./db.js";
 import { llamar } from "./telegram.js";
 
@@ -153,9 +154,9 @@ export function tandasHaciaAtras(hasta, cuantos = LIMPIAR_HACIA_ATRAS, porTanda 
 export async function limpiarPantalla(chatId, ultimoId) {
   let tandas = 0;
   for (const ids of tandasHaciaAtras(ultimoId)) {
-    // Una tanda que falla entera (todo más viejo de 48 h, o ya borrado) no
+    // A propósito: una tanda que falla entera (todo más viejo de 48 h, o ya borrado) no
     // para las demás.
-    const ok = await llamar("deleteMessages", { chat_id: chatId, message_ids: ids }).then(() => true).catch(() => false);
+    const ok = await llamar("deleteMessages", { chat_id: chatId, message_ids: ids }).then(() => true).catch(seguirCon("borrar_tanda", false));
     if (ok) tandas++;
   }
   return { tandas };

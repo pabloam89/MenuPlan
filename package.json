@@ -20,6 +20,7 @@
     "audit:catalog": "vite-node scripts/audit-catalog.mjs",
     "audit:ingredients": "node scripts/build-ingredient-catalog.mjs",
     "build:icons": "node scripts/build-nucleo-icons.mjs",
+    "tokens:css": "node scripts/diseno/generar-tokens-css.mjs",
     "check:duplicates": "node scripts/detect-duplicate-dishes.mjs",
     "enrich:steps": "node scripts/enrich-recipe-steps.mjs",
     "check:wording": "node scripts/check-step-wording.mjs",
@@ -27,10 +28,21 @@
     "build:coste": "node scripts/build-coste.mjs",
     "sync:mercadona:cache": "node scripts/mercadona-sync.mjs --cache",
     "bot:panel": "node scripts/bot-panel.mjs",
+    "fallos": "node scripts/bot-fallos.mjs",
     "tarea": "node scripts/tarea.mjs",
     "retirar": "node scripts/retirar.mjs",
     "podar": "node scripts/podar.mjs",
     "issues": "node scripts/issues.mjs",
+    "normas": "node scripts/normas.mjs",
+    "planos": "node scripts/planos.mjs",
+    "flujo": "node scripts/flujo.mjs",
+    "skills-prueba": "node scripts/skills-prueba.mjs",
+    "presupuesto": "node scripts/presupuesto.mjs",
+    "fabrica": "node scripts/fabrica.mjs",
+    "tecnica": "node scripts/oficio.mjs tecnica",
+    "mecanismos": "node scripts/oficio.mjs mecanismos",
+    "hora": "node scripts/hora.mjs",
+    "consulta": "node scripts/consulta.mjs",
     "verificar:estado": "node scripts/verificar-estado.mjs",
     "op": "node scripts/op.mjs"
   },
@@ -65,9 +77,9 @@
     "jsdom": "^29.1.1",
     "pg": "^8.23.0",
     "remotion": "^4.0.520",
-    "sharp": "^0.35.3",
+    "sharp": "^0.35.5",
     "vite": "^8.0.1",
     "vite-plugin-pwa": "^1.3.0",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.11"
   }
 }

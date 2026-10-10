@@ -12,7 +12,7 @@
  * más de CADUCA_H horas se borran solas.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 export const ACTIVA_H = 3;
@@ -26,7 +26,7 @@ export function dirSesiones(desde) {
     }).trim();
     return join(comun, "claude-sesiones");
   } catch {
-    return null;
+    return null; // a propósito: fuera de un repo no hay registro; apuntar, tocar y listar no hacen nada con null
   }
 }
 
@@ -57,11 +57,64 @@ export function tocar(dir, id) {
 export function quitar(dir, id) {
   if (!dir || !valido(id)) return;
   rmSync(join(dir, `${id}.json`), { force: true });
+  try {
+    const sk = join(dir, SKILLS);
+    for (const f of existsSync(sk) ? readdirSync(sk) : []) if (f.startsWith(`${id}__`)) rmSync(join(sk, f), { force: true });
+  } catch {
+    // a propósito: falla abierta — una ficha de skill que no se borra la barre listar() a las 48 h; no vale la pena romper el cierre de sesión.
+  }
+}
+
+// ── Skills abiertas ────────────────────────────────────────────────────────
+// La puerta de lectura de la guardia necesita recordar, por sesión, qué skills
+// ya se abrieron (o ya se avisaron). Un fichero por sesión y skill, en una
+// subcarpeta: dos llamadas a la vez no se pisan, y listar() no las confunde
+// con sesiones. Todo falla en silencio: sin registro, la puerta no bloquea.
+const SKILLS = "skills";
+const validaSkill = (s) => typeof s === "string" && /^[\w-]{1,40}$/.test(s);
+const ficheroSkill = (dir, id, skill) => join(dir, SKILLS, `${id}__${skill}.json`);
+
+/** Anota que la sesión abrió (como = "abierta") o ya fue avisada de (`avisada`) una skill. true si quedó escrito. */
+export function anotarSkill(dir, id, skill, como = "abierta") {
+  if (!dir || !valido(id) || !validaSkill(skill)) return false;
+  try {
+    mkdirSync(join(dir, SKILLS), { recursive: true });
+    writeFileSync(ficheroSkill(dir, id, skill), JSON.stringify({ id, skill, como, cuando: new Date().toISOString() }));
+    return true;
+  } catch {
+    // a propósito: falla abierta — si no se puede anotar, devuelve false y la guardia NO bloquea (una puerta que no recuerda atascaría la sesión).
+    return false;
+  }
+}
+
+export function skillAnotada(dir, id, skill) {
+  if (!dir || !valido(id) || !validaSkill(skill)) return false;
+  try {
+    return existsSync(ficheroSkill(dir, id, skill));
+  } catch {
+    // a propósito: falla abierta — sin poder leer el registro se da por no abierta; cuesta como mucho un aviso de la puerta, que no bloquea.
+    return false;
+  }
+}
+
+/** Borra las fichas de skill de sesiones que ya no existen (más de CADUCA_H horas sin tocarse). */
+function barrerSkills(dir, ahora) {
+  try {
+    const sk = join(dir, SKILLS);
+    if (!existsSync(sk)) return;
+    for (const f of readdirSync(sk)) {
+      const fichero = join(sk, f);
+      if ((ahora - statSync(fichero).mtimeMs) / 36e5 > CADUCA_H) rmSync(fichero, { force: true });
+    }
+  } catch {
+    // a propósito: falla abierta — es limpieza; si falla, las fichas viejas se quedan hasta la próxima y no pasa nada.
+  }
 }
 
 /** Todas las fichas, con `horas` desde la última actividad. Borra las caducadas. */
 export function listar(dir, ahora = Date.now()) {
   if (!dir || !existsSync(dir)) return [];
+  barrerSkills(dir, ahora);
   const out = [];
   for (const f of readdirSync(dir).filter((x) => x.endsWith(".json"))) {
     try {

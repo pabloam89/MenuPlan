@@ -21,6 +21,8 @@
  * (scripts/telegram-webhook.mjs). Sin ella no se atiende nada.
  */
 
+import { seguirCon, fallaCon, SIN_LEER } from "../_bot/avisar.js";
+import { noPude } from "../_bot/noPude.js";
 import crypto from "node:crypto";
 import { waitUntil } from "@vercel/functions";
 import { select, insert, update, eq } from "../_bot/db.js";
@@ -57,6 +59,7 @@ import { payloadStart } from "../../src/lib/ids.js";
 import { enviarAcceso, verificarCodigoEmail, cuentaNacidaAqui } from "../_bot/cuentas.js";
 import { cuentaYChat as cuentaYChatDe } from "../_bot/altaTelegram.js";
 import { primeraVez } from "../_bot/entradas.js";
+import { preguntoConAviso } from "../_bot/silencio.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
 
@@ -105,7 +108,8 @@ export default async function handler(req, res) {
       else if (upd.message) await atender(upd.message, base, host);
     } catch (err) {
       console.error("[bot/telegram]", err?.message);
-      await enviar(chatId, "Uy, algo ha fallado. Escríbemelo otra vez en un momento, porfa.").catch(() => {});
+      // a propósito: si ni el aviso sale, ya no hay más que hacer
+      await enviar(chatId, "Uy, algo ha fallado. Escríbemelo otra vez en un momento, porfa.").catch(seguirCon("bot_telegram_aviso"));
     }
   })());
   return res.status(200).json({ ok: true });
@@ -143,7 +147,7 @@ async function atender(msg, base, host = "") {
   // mensaje que empieza por «Lola»). Para oír lo de «Lola, …» sin mención el
   // bot necesita el modo privacidad apagado (BotFather → /setprivacy).
   if (esGrupo) {
-    const yo = (await nombreDelBot().catch(() => "")).toLowerCase();
+    const yo = (await nombreDelBot().catch(fallaCon("grupo_nombre_del_bot", ""))).toLowerCase();
     if (msg.new_chat_members?.some((m) => m.is_bot && m.username?.toLowerCase() === yo)) return saludoGrupo(chatId);
     if (!meHablan(msg, yo)) {
       // Una nota de voz no lleva texto ni pie: sin escucharla no hay forma de
@@ -151,9 +155,16 @@ async function atender(msg, base, host = "") {
       // no es para ella, se tira tal cual (nadie contesta ni queda rastro).
       const audio = !msg.caption && (msg.voice ?? msg.audio);
       if (!audio) return;
-      llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
       const [paraOir] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
-      oidoDeGrupo = await transcribir(audio, { householdId: paraOir?.household_id }).catch(() => null);
+      // Sin casa vinculada, o con la casa ya pasada de su límite del mes, no
+      // se paga una transcripción para algo que no va a contestar.
+      if (!paraOir?.household_id) return;
+      // a propósito: sin poder leer el uso, mejor contestar que bloquear (como el turno)
+      if (await fueraDeLimite(paraOir.household_id).catch(seguirCon("limite", null))) return;
+      // a propósito: «escribiendo…» es adorno
+      llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
+      // a propósito: solo es para saber si le hablan; sin oírla, no contesta
+      oidoDeGrupo = await transcribir(audio, { householdId: paraOir?.household_id }).catch(seguirCon("grupo_voz", null));
       if (!oidoDeGrupo?.texto || !NOMBRADA.test(oidoDeGrupo.texto.trim())) return;
       // `texto` sigue vacío a propósito: lo de más abajo («Notas de voz») la
       // trata como la nota de voz que es, con su «oído: …», reutilizando esto.
@@ -172,8 +183,8 @@ async function atender(msg, base, host = "") {
   const invitacion = start?.[1]?.match(ES_INVITACION);
   if (invitacion && !esGrupo) {
     const r = await unirsePorInvitacion({ from: msg.from, chatId, token: invitacion[1], nombre: nombreDe(msg.from) })
-      .catch((e) => { console.error("[invitación]", e?.message); return null; });
-    return enviar(chatId, r?.texto ?? "No he podido usar esa invitación ahora mismo. Prueba en unos minutos.");
+      .catch(fallaCon("invitacion_unirse", null));
+    return enviar(chatId, r?.texto ?? noPude("invitacion", msg.from?.language_code));
   }
   // Un enlace de compartir, reconocido por su forma ENTERA (src/lib/ids.js): un
   // código de «Conectar Telegram» es base64url y podía empezar por «m_» o «ru_»
@@ -218,8 +229,10 @@ async function atender(msg, base, host = "") {
   if (/^\/(borrarcuenta|borrarme)(?:@\w+)?$/.test(texto) && !esGrupo) {
     // Si este Telegram está conectado a una cuenta que NO nació aquí, es la
     // de la app (Google o email): se dice, que no parezca una de prueba.
-    const [ident] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(msg.from?.id)}`, "user_id").catch(() => []);
-    const deLaApp = ident?.user_id && !(await cuentaNacidaAqui(msg.from.id).catch(() => null));
+    const [ident] = await select("bot_identities", `channel=eq.telegram&external_id=${eq(msg.from?.id)}`, "user_id").catch(fallaCon("borrarcuenta_identidad", [SIN_LEER]));
+    // Sin saber de qué cuenta es, el aviso podría callarse el «Ojo» (#208).
+    if (ident === SIN_LEER) return enviar(chatId, noPude("cuenta", msg.from?.language_code));
+    const deLaApp = ident?.user_id && !(await cuentaNacidaAqui(msg.from.id).catch(fallaCon("borrarcuenta_nacida_aqui", null)));
     const ojo = deLaApp ? "\n\n<b>Ojo: es tu cuenta de la app</b>, la que abres con Google o con tu email, no solo lo de Telegram." : "";
     return enviar(chatId, `⚠️ <b>Borrar tu cuenta entera</b>\n\nSe borran tu cuenta de HoMenu (también en la app), tu casa, menús, compra, recetas y despensa, y todo lo que guardo de nuestras charlas. No se puede deshacer.${ojo}`, {
       botones: [[{ texto: "Sí, bórralo todo", dato: "borrar:si" }, { texto: "No", dato: "borrar:no" }]],
@@ -232,7 +245,10 @@ async function atender(msg, base, host = "") {
   // alta: se reengancha a su casa. Si no, «somos cuatro» le crearía otra cuenta
   // nacida aquí que pisaría su identidad (enlace.js, apuntarIdentidad).
   if (!chat && !esGrupo) {
-    const vuelve = await reconocer(msg.from, chatId).catch(() => null);
+    const vuelve = await reconocer(msg.from, chatId).catch(fallaCon("reconocer", SIN_LEER));
+    // Sin saber si ya es una cuenta, ni bienvenida ni alta: otra cuenta nacida
+    // aquí pisaría la suya (#208).
+    if (vuelve === SIN_LEER) return enviar(chatId, noPude("cuenta", msg.from?.language_code));
     if (vuelve?.varias) return enviar(chatId, "¡Hola de nuevo! Llevas más de una casa en HoMenu: conecta la que quieras desde la app, en Ajustes → Conectar Telegram.");
     if (vuelve) {
       chat = { household_id: vuelve.householdId };
@@ -271,11 +287,19 @@ async function atender(msg, base, host = "") {
   // empieza con lo que se entendió, para que un error de oído se vea.
   const audio = msg.voice ?? msg.audio;
   if (!texto && audio) {
+    // Pasada del límite del mes, no se transcribe: se contesta el aviso del
+    // límite sin pagar Groq (el de grupo ya lo miró antes de oír).
+    if (!oidoDeGrupo) {
+      // a propósito: sin poder leer el uso, mejor contestar que bloquear (como el turno)
+      const fuera = await fueraDeLimite(chat.household_id).catch(seguirCon("limite", null));
+      if (fuera) return enviar(chatId, fuera, { responderA: esGrupo ? msg.message_id : undefined });
+    }
     // La del filtro de grupo ya se transcribió para saber si era para ella:
     // no se vuelve a pagar Groq por el mismo audio.
     const t = oidoDeGrupo ?? await (async () => {
-      llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
-      return transcribir(audio, { householdId: chat.household_id }).catch((e) => ({ error: e?.message }));
+      // a propósito: «escribiendo…» es adorno
+      llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
+      return transcribir(audio, { householdId: chat.household_id }).catch((e) => ({ error: e?.message })); // a propósito: el error se apunta abajo ([voz])
     })();
     if (t.error) {
       // Sin esto, «no he podido entender el audio» no dejaba rastro de por qué.
@@ -297,8 +321,9 @@ async function atender(msg, base, host = "") {
   // Fotos y PDFs (un ticket, la nevera, el menú del cole): los lee el modelo.
   // El pie de foto, si lo hay, es lo que se pide; si no, que lo deduzca.
   if (!texto && (msg.photo || msg.document)) {
-    await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
-    const adjunto = await adjuntoDe(msg).catch((e) => ({ error: e?.message }));
+    // a propósito: «escribiendo…» es adorno
+    await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
+    const adjunto = await adjuntoDe(msg).catch((e) => { console.error("[adjunto]", e?.message); return { error: e?.message }; });
     if (!adjunto || adjunto.error) {
       const porque = adjunto?.error === "tipo" ? "De ficheros solo entiendo fotos y PDFs."
         : adjunto?.error === "grande" ? "Es demasiado grande: mándala como foto normal (no como archivo) o un PDF más ligero."
@@ -410,7 +435,8 @@ const RUTA = "bot_route";
 /** Lo último que dijo Lola en este chat (y su propuesta de opciones, si la hubo). */
 async function ultimaDeLola(chatId) {
   // Pregunta y respuesta comparten created_at: el id desempata (memoria.js).
-  const filas = await select("bot_messages", `channel=eq.telegram&chat_id=${eq(chatId)}&order=created_at.desc,id.desc&limit=2`, "role,content").catch(() => []);
+  // Sin la última, el turno sigue sin ella (sin aclaraciones ni elecciones), pero es un fallo.
+  const filas = await select("bot_messages", `channel=eq.telegram&chat_id=${eq(chatId)}&order=created_at.desc,id.desc&limit=2`, "role,content").catch(fallaCon("ultima_de_lola", []));
   const f = filas.find((x) => x.role === "assistant");
   // Tras un /nueva (marcador de corte) no hay «último» que valga.
   if (!f || filas[0]?.content?.corte) return null;
@@ -430,7 +456,8 @@ async function ultimaDeLola(chatId) {
 }
 
 async function apuntarRuta(householdId, extra) {
-  await registrar(RUTA, { userId: await duenoDe(householdId).catch(() => null), extra }).catch(() => {});
+  // a propósito: la medida de la ruta no toca la respuesta
+  await registrar(RUTA, { userId: await duenoDe(householdId).catch(seguirCon("ruta_dueno", null)), extra }).catch(seguirCon("ruta"));
 }
 
 export async function turno({ chatId, householdId, esGrupo, base, texto, oido = null, from, desde = null, responderA, variosAutores = false }) {
@@ -454,7 +481,8 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   const sombra = modo === "sombra" || (esGrupo && modoGrupos === "sombra");
   // El papel de quien escribe (api/_bot/papel.js), a la vez que el contexto:
   // la vía rápida tampoco escribe por un lector o por alguien sin cuenta.
-  const papelP = papelDeQuien({ householdId, chatId, esGrupo, desde }).catch(() => ({ papel: "ajeno" }));
+  // Sin poder leerlo, SIN_LEER; abajo se dice, en vez de tratarle como de fuera (#208).
+  const papelP = papelDeQuien({ householdId, chatId, esGrupo, desde }).catch(fallaCon("papel", SIN_LEER));
   const chatDe = { esGrupo, variosAutores, papel: "ajeno" };
   // Quién lo pidió, para decirlo en las respuestas que escriben (en grupo).
   const autor = esGrupo && from ? nombreDe(from) : null;
@@ -472,16 +500,28 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // lo demás: antes iban en fila (el idioma tras el contexto, el límite tras
   // el enrutador), y cada uno era una ida y vuelta a la base que retrasaba al
   // enrutador y a Lola en TODOS los turnos (3 oct 2026).
-  const idiomaP = papelP.then((q) => (q.userId ? idiomaDe(q.userId) : null)).catch(() => null);
-  const limiteP = fueraDeLimite(householdId).catch(() => null);
+  // a propósito: sin idioma guardado, en castellano
+  const idiomaP = papelP.then((q) => (q !== SIN_LEER && q.userId ? idiomaDe(q.userId) : null)).catch(seguirCon("idioma", null));
+  // a propósito: sin poder leer el uso, mejor contestar que bloquear
+  const limiteP = fueraDeLimite(householdId).catch(seguirCon("limite", null));
   const [ultima, contexto, quien, idioma] = await Promise.all([ultimaDeLola(chatId), contextoDe(householdId), papelP, idiomaP]);
+  if (quien === SIN_LEER) return enviar(chatId, noPude("papel", idioma ?? from?.language_code), { responderA });
   chatDe.papel = quien.papel;
+  // Alergias por silencio (#229, api/_bot/silencio.js): si lo último de Lola
+  // fue la pregunta con aviso, este mensaje puede ser la respuesta (o no
+  // serlo). Eso solo lo sabe Lola al leerlo: nada de vía rápida este turno.
+  const avisoPendiente = preguntoConAviso(ultima?.texto);
+  const rapida = (d) => vaPorLaRapida(d, chatDe) && !avisoPendiente;
   // Lo que tarda el turno en estar listo para arrancar al enrutador y a Lola
   // (bot_route contexto_ms): es tiempo que suma al primer texto de todos.
   const contextoMs = Date.now() - t0;
   // Quien eligió inglés: contesta Lola, que traduce. La vía rápida y sus
   // plantillas están en castellano.
   if (idioma === "en") return soloLola("idioma", t0);
+  // Pasada del límite del mes, ni el enrutador (también un modelo) ni la vía
+  // rápida (que puede buscar recetas con IA): contesta Lola con el aviso del
+  // límite, que no llama al modelo (api/_bot/uso.js).
+  if (await limiteP) return soloLola("limite", t0);
   marca("contexto");
 
   // 0. Estado: contestar a una pregunta de la vía rápida.
@@ -492,7 +532,8 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   if (prop?.tipo === "aclarar" && permitidoEn(prop.modo, chatDe)) {
     const comida = comidaElegida(texto);
     if (comida) {
-      const r = await viaRapida({ modo: prop.modo, datos: { ...prop.datos, comida } }, householdId, { autor }).catch(() => null);
+      // Sin plantilla el turno pasa a Lola, pero la vía rápida escribe: que se vea.
+      const r = await viaRapida({ modo: prop.modo, datos: { ...prop.datos, comida } }, householdId, { autor }).catch(fallaCon("aclarar_via_rapida", null));
       marca("aclaración aplicada");
       if (r) {
         await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
@@ -501,7 +542,8 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
     }
   }
   if (prop?.tipo === "apuntar" && permitidoEn("compra_anadir", chatDe) && quiereApuntar(texto)) {
-    const r = await viaRapida({ modo: "compra_anadir", datos: { productos: prop.productos ?? [] } }, householdId, { autor }).catch(() => null);
+    // Sin plantilla el turno pasa a Lola, pero escribe en la compra: que se vea.
+    const r = await viaRapida({ modo: "compra_anadir", datos: { productos: prop.productos ?? [] } }, householdId, { autor }).catch(fallaCon("apuntar_falta_via_rapida", null));
     if (r) {
       await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
       return apuntarRuta(householdId, { modo: "apuntar_falta", rapida: true, ms: Date.now() - t0, ...donde });
@@ -512,7 +554,8 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   if (!sombra && permitidoEn("eleccion", chatDe) && ultima?.propuesta) {
     const eleccion = eleccionDe(texto, ultima.propuesta);
     if (eleccion) {
-      const r = await aplicarEleccion(eleccion, ultima.propuesta, householdId).catch(() => null);
+      // Sin plantilla el turno pasa a Lola, pero la elección escribe: que se vea.
+      const r = await aplicarEleccion(eleccion, ultima.propuesta, householdId).catch(fallaCon("eleccion_via_rapida", null));
       marca("elección aplicada");
       if (r) {
         await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r });
@@ -542,10 +585,11 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   const medir = {};
   // La pista (BOT_PISTA): la decisión del enrutador, solo si el turno no va por
   // la vía rápida. Lola no la espera: si llega a tiempo, la usa (pista.js).
-  const pista = PISTA() ? decisionP.then((d) => (vaPorLaRapida(d, chatDe) ? null : d)) : null;
+  const pista = PISTA() ? decisionP.then((d) => (rapida(d) ? null : d)) : null;
   // El aviso de lo que va a tardar, en cuanto el enrutador sabe qué se pide y
   // no cuando Lola llega a llamar a la herramienta (ver avisoDelModo).
-  const aviso = decisionP.then((d) => (vaPorLaRapida(d, chatDe) ? null : avisoDelModo(d))).catch(() => null);
+  // a propósito: el aviso es adorno
+  const aviso = decisionP.then((d) => (rapida(d) ? null : avisoDelModo(d))).catch(seguirCon("aviso_del_modo", null));
   const lola = conversar({ base, chatId, householdId, esGrupo, texto, oido, from, desde, responderA, puerta, signal: ctrl.signal, medir, pista, aviso });
 
   const d = await decisionP;
@@ -556,7 +600,7 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
   // `corrige` (api/_bot/senales.js) se apunta ya, sin texto: así sigue
   // midiéndose cuando la retención borre la frase (scripts/bot-semanal.mjs).
   const paraEvals = { texto: String(texto).slice(0, 200), ultima: ultima?.texto ? String(ultima.texto).slice(0, 300) : null, anterior: ultima?.anteriorDelUsuario ?? null, datos: d.datos, chat: String(chatId), esGrupo, variosAutores, corrige: esCorreccion(texto, ultima?.texto) };
-  if (vaPorLaRapida(d, chatDe) && !(await limiteP)) {
+  if (rapida(d) && !(await limiteP)) {
     // Lo que tarda también por la vía rápida (generar: 3-5 s de motor, medido
     // el 3 oct 2026) avisa igual que con Lola: la frase sale al decidir el
     // enrutador y la plantilla la sustituye en el mismo mensaje.
@@ -579,20 +623,20 @@ export async function turno({ chatId, householdId, esGrupo, base, texto, oido = 
       // estaba en medio de una lectura (una búsqueda, hasta 1,5 s) esa espera
       // se la comía quien solo preguntó «¿qué cenamos?». Se la espera después,
       // para su medida y para no soltar el turno con ella viva.
-      const lolaCancelada = lola.catch(() => {});
+      const lolaCancelada = lola.catch(fallaCon("lola_cancelada"));
       await entregarRapida({ chatId, householdId, esGrupo, base, from, responderA, oido, texto, r, vivo: vivoRapida });
       // Si el aviso llegó a salir, eso fue lo primero que se vio (como con Lola).
       const avisado = Boolean(vivoRapida?.id());
       const primer = avisado ? avisadoMs : Date.now() - t0;
       await lolaCancelada;
-      await contarUso(householdId, d.uso ?? {}).catch(() => {});
+      await contarUso(householdId, d.uso ?? {}).catch(fallaCon("uso"));
       return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: true, ms: Date.now() - t0, router_ms: d.ms, contexto_ms: contextoMs, ...(avisado ? { aviso: HERRAMIENTA_LENTA_DEL_MODO[d.modo] } : {}), ...medida(medir, d, t0, primer) });
     }
   }
   abrir(true);
   // Con el tiempo total del turno de Lola (hasta su respuesta entregada): sin
   // él no había forma de saber cuánto tarda de verdad lo que no es vía rápida.
-  await lola.catch(() => {});
+  await lola.catch(fallaCon("lola"));
   return apuntarRuta(householdId, { ...paraEvals, modo: d.modo, confianza: d.confianza, rapida: false, ms: Date.now() - t0, router_ms: d.ms, contexto_ms: contextoMs, error: d.error, ...medida(medir, d, t0) });
 }
 
@@ -668,7 +712,8 @@ const esperaMs = () => (process.env.BOT_AVISO_LENTO === "off" ? null : Number(pr
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
 async function conversar({ chatId, householdId, texto, from, desde = null, esGrupo, responderA, oido = null, adjunto = null, base = null, puerta = null, signal = null, medir = null, pista = null, aviso = null }) {
-  await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
+  // a propósito: «escribiendo…» es adorno
+  await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(seguirCon("escribiendo"));
   const eco = oido ? `🎙️ «${oido}»\n\n` : "";
   const vivo = mensajeVivo(chatId, { responderA, eco });
   // Turno especulativo: lo que Lola va escribiendo no sale hasta que el turno
@@ -691,7 +736,7 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
       if (!suyo || !frase || haEscrito || signal?.aborted) return;
       visto();
       vivo.escribir(frase, { aviso: true });
-    }).catch(() => {});
+    }).catch(seguirCon("aviso_del_enrutador")); // a propósito: el aviso es adorno
   }
   const alEscribir = (parcial, extra) => {
     haEscrito = true;
@@ -706,7 +751,7 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
       if (!suyo || contestado || algoVisto || haEscrito || signal?.aborted) return;
       if (medir) medir.espera ??= Date.now();
       vivo.escribir(AVISO_ESPERA, { aviso: true });
-    }).catch(() => {});
+    }).catch(seguirCon("aviso_de_espera")); // a propósito: el aviso es adorno
   }, tope);
   let r;
   try {
@@ -724,7 +769,8 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
     // Nunca un error técnico en el chat: una frase y, si cabe, reintentar con
     // un toque (el botón vuelve a mandar lo mismo).
     console.error("[bot/telegram] agente", err?.message);
-    await registrar(FALLO, { userId: await duenoDe(householdId).catch(() => null), extra: { error: String(err?.message ?? err).slice(0, 300) } });
+    // a propósito: el evento vale más sin dueño que perdido
+    await registrar(FALLO, { userId: await duenoDe(householdId).catch(seguirCon("fallo_dueno", null)), extra: { error: String(err?.message ?? err).slice(0, 300) } });
     const cabe = Buffer.byteLength(`t:${texto}`) <= 64;
     // Si es que la IA no está (saturada o caída, y el plan B tampoco), se dice
     // lo que SÍ funciona: los botones de abajo salen del menú guardado, sin IA.
@@ -734,7 +780,8 @@ async function conversar({ chatId, householdId, texto, from, desde = null, esGru
       : cabe ? "Uy, algo ha fallado. ¿Lo intento otra vez?" : "Uy, algo ha fallado. ¿Me lo escribes otra vez?";
     const botones = cabe ? [[{ texto: "🔁 Reintentar", dato: `t:${texto}` }]] : undefined;
     await vivo.parar();
-    if (vivo.id()) return editar(chatId, vivo.id(), aviso, { botones }).catch(() => enviar(chatId, aviso, { responderA, botones }));
+    // a propósito: si no se puede editar, el aviso sale en un mensaje nuevo
+    if (vivo.id()) return editar(chatId, vivo.id(), aviso, { botones }).catch((e) => { console.warn("[fallo] editar el aviso, va nuevo:", e?.message); return enviar(chatId, aviso, { responderA, botones }); });
     return enviar(chatId, aviso, { responderA, botones });
   }
   await vivo.parar();
@@ -759,8 +806,8 @@ export async function entregar({ chatId, householdId, esGrupo, base, from, respo
   // (api/_bot/pintar.js): el modelo nunca escribe la lista de platos.
   let pintado = "";
   if (r.pintar) {
-    const casa = await cargarCasa(householdId).catch(() => null);
-    const p = casa ? await pintarMenuEntero(casa, r.pintar).catch(() => null) : null;
+    const casa = await cargarCasa(householdId).catch(fallaCon("entregar_casa", null));
+    const p = casa ? await pintarMenuEntero(casa, r.pintar).catch(fallaCon("entregar_pintar", null)) : null;
     if (p?.texto) {
       pintado = p.texto;
       if (!r.fotos?.length && p.fotos.length) r = { ...r, fotos: p.fotos };
@@ -862,7 +909,7 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
     if (!id || !provisional) return;
     // Si Telegram no deja borrarlo, se queda el id y se edita encima: mejor
     // sin álbum que con un aviso huérfano encima de la respuesta.
-    const borrado = await llamar("deleteMessage", { chat_id: chatId, message_id: id }).then(() => true, () => false);
+    const borrado = await llamar("deleteMessage", { chat_id: chatId, message_id: id }).then(() => true, fallaCon("vivo_borrar_aviso", false));
     if (!borrado) return;
     id = null;
     provisional = false;
@@ -875,10 +922,12 @@ export function mensajeVivo(chatId, { responderA, eco = "" }) {
       if (!id) {
         const fs = fotosDelTurno(fotos ?? []);
         if (fs.length && !fotosEnviadas) { fotosEnviadas = true; await enviarFotos(chatId, fs, { responderA }); }
-        const m = await enviar(chatId, `${eco}${texto} …`, { responderA, plano: true }).catch(() => null);
+        // a propósito: lo que se enseña a medias es provisional; la respuesta sale igual al final
+        const m = await enviar(chatId, `${eco}${texto} …`, { responderA, plano: true }).catch(seguirCon("vivo_enviar", null));
         id = m?.message_id ?? null;
       } else {
-        await editar(chatId, id, `${eco}${texto} …`, { plano: true }).catch(() => {});
+        // a propósito: lo que se enseña a medias es provisional; la respuesta sale igual al final
+        await editar(chatId, id, `${eco}${texto} …`, { plano: true }).catch(seguirCon("vivo_editar"));
       }
       ultimo = texto;
       ultimaVez = Date.now();
@@ -935,7 +984,11 @@ export function textoBotonApp(ir, idioma = null) {
 // está en este; si no (otro despliegue), la llave de un solo uso de antes.
 const DOMINIO_LOGIN = process.env.BOT_LOGIN_DOMINIO || "homenu-staging.vercel.app";
 export const conLoginDeTelegram = (base) => {
-  try { return new URL(base).host === DOMINIO_LOGIN; } catch { return false; }
+  try { return new URL(base).host === DOMINIO_LOGIN; } catch (e) {
+    // a propósito: sin base válida, el botón va sin login de Telegram.
+    if (base) console.warn("[login] base no válida:", e?.message);
+    return false;
+  }
 };
 
 /**
@@ -948,7 +1001,8 @@ export const conLoginDeTelegram = (base) => {
  */
 async function botonApp(base, ir, from, chatId) {
   const destino = `${base}/?ir=${encodeURIComponent(ir)}`;
-  const cuenta = from?.id ? await cuentaNacidaAqui(from.id).catch(() => null) : null;
+  // a propósito: sin saberlo, el botón abre la app sin sesión
+  const cuenta = from?.id ? await cuentaNacidaAqui(from.id).catch(seguirCon("boton_nacida_aqui", null)) : null;
   if (!cuenta) return { url: destino };
   if (conLoginDeTelegram(base)) return { login: destino };
   const codigo = await crearCodigo({ tipo: "entrar", chatId, externalId: from.id, userId: cuenta.id, minutos: MIN_ENTRAR });
@@ -963,8 +1017,11 @@ async function botonApp(base, ir, from, chatId) {
  */
 async function recibirCompartido(chatId, param, from) {
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
-  const usuarios = await cuentasDeQuien({ fromId: idDePersona(from), householdId: chat?.household_id }).catch(() => []);
-  const inv = await resolverInvitacion(param, { usuarios }).catch(() => null);
+  // Sin saber quién lo abre no se puede comprobar el bloqueo: no se enseña, y
+  // tampoco se dice que el enlace no vale (#208).
+  const usuarios = await cuentasDeQuien({ fromId: idDePersona(from), householdId: chat?.household_id }).catch(fallaCon("invitacion_cuentas", SIN_LEER));
+  const inv = usuarios === SIN_LEER ? SIN_LEER : await resolverInvitacion(param, { usuarios }).catch(fallaCon("invitacion", SIN_LEER));
+  if (inv === SIN_LEER) return enviar(chatId, noPude("enlace"));
   if (!inv) return enviar(chatId, "Ese enlace ya no funciona 🙈 Pídele que te lo vuelva a mandar.");
   // Que lo compartido llega y a quién (con casa o sin ella): sin nombres.
   await rastro(chat?.household_id ?? null, RASTRO.COMPARTIDO_RECIBIDO, { tipo: inv.tipo === "semana" ? "semana" : "receta", conCasa: Boolean(chat) });
@@ -1001,8 +1058,9 @@ async function usarCompartido(cq, chat, base) {
   if (!puede(papel, "editar_casa")) {
     return enviar(chatId, "Guardar recetas o cambiar el menú lo hace quien gestiona la casa: pídeselo a esa persona 🙂");
   }
-  const usuarios = await cuentasDeQuien({ fromId: idDePersona(cq.from), householdId: chat.household_id }).catch(() => []);
-  const inv = await resolverInvitacion(param, { usuarios }).catch(() => null);
+  const usuarios = await cuentasDeQuien({ fromId: idDePersona(cq.from), householdId: chat.household_id }).catch(fallaCon("invitacion_cuentas", SIN_LEER));
+  const inv = usuarios === SIN_LEER ? SIN_LEER : await resolverInvitacion(param, { usuarios }).catch(fallaCon("invitacion", SIN_LEER));
+  if (inv === SIN_LEER) return enviar(chatId, noPude("enlace"));
   if (!inv || inv.tipo !== "receta") return enviar(chatId, "Ese enlace ya no funciona 🙈");
   const esGrupo = esGrupoDe(cq.message.chat);
   let nombre = inv.receta.name;
@@ -1094,7 +1152,7 @@ async function holaDeNuevo(chatId, householdId) {
 }
 
 async function grupoSinCasa(msg, chatId) {
-  const casa = await casaQueLleva(msg.from).catch(() => null);
+  const casa = await casaQueLleva(msg.from).catch(fallaCon("grupo_casa", null));
   if (casa) {
     return enviar(chatId, `${escaparHtml(nombreDe(msg.from) ?? "")}, ¿conecto este grupo a tu casa? Así aquí os enseño vuestro menú y la compra, y me podéis pedir cambios.`, {
       responderA: msg.message_id,
@@ -1108,7 +1166,7 @@ async function grupoSinCasa(msg, chatId) {
 
 /** El botón «Sí, conectar este grupo»: solo quien lo pidió, y comprobando otra vez que lleva esa casa. */
 async function conectarGrupo(cq, chatId) {
-  const casa = await casaQueLleva(cq.from).catch(() => null);
+  const casa = await casaQueLleva(cq.from).catch(fallaCon("grupo_casa", null));
   if (!casa) return enviar(chatId, "No encuentro tu casa. Escríbeme por privado y lo vemos.", { botones: await botonAlPrivado() });
   // El permiso, con la misma regla que /grupo y la app (src/lib/papeles.js).
   const ext = idDePersona(cq.from);
@@ -1216,10 +1274,12 @@ async function pulsado(cq, base, host = "") {
   // Conectar un grupo a su casa: solo quien lo pidió (grupoSinCasa).
   const conecta = cq.data?.startsWith("cg:") ? cq.data.slice(3) : null;
   if (conecta && String(cq.from?.id) !== conecta) {
-    await llamar("answerCallbackQuery", { callback_query_id: cq.id, text: "Solo puede conectarlo quien lo pidió." }).catch(() => {});
+    // a propósito: contestar al toque es adorno (y caduca a los 15 min)
+    await llamar("answerCallbackQuery", { callback_query_id: cq.id, text: "Solo puede conectarlo quien lo pidió." }).catch(seguirCon("boton_responder"));
     return;
   }
-  await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(() => {});
+  // a propósito: contestar al toque es adorno (y caduca a los 15 min)
+  await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(seguirCon("boton_responder"));
   // Un botón se usa una vez: se quitan los del mensaje pulsado para que no
   // se pulsen luego los viejos (en la primera prueba salieron cinco avisos
   // seguidos de «ya está conectado»).
@@ -1227,7 +1287,7 @@ async function pulsado(cq, base, host = "") {
     chat_id: cq.message.chat.id,
     message_id: cq.message.message_id,
     reply_markup: { inline_keyboard: [] },
-  }).catch(() => {});
+  }).catch(seguirCon("boton_quitar")); // a propósito: si no se quitan, el botón viejo se puede pulsar otra vez y no rompe nada
   if (conecta) return conectarGrupo(cq, chatId);
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
 
@@ -1403,11 +1463,11 @@ async function crearCuenta(from, chatId, primero = {}) {
   const m = primero.msg;
   if (m?.voice || m?.audio) {
     const t = await transcribir(m.voice ?? m.audio, { householdId: cuenta.householdId })
-      .catch((e) => ({ error: e?.message }));
+      .catch((e) => ({ error: e?.message })); // a propósito: el error se apunta abajo ([voz])
     if (!t.error) { texto = t.texto; oido = t.texto; }
     else console.error("[voz]", t.error);
   } else if (m?.photo || m?.document) {
-    const a = await adjuntoDe(m).catch(() => null);
+    const a = await adjuntoDe(m).catch(fallaCon("alta_adjunto", null));
     if (a && !a.error) { adjunto = a; texto = (m.caption ?? "").trim() || "(te mando esta foto)"; }
   }
   return conversar({

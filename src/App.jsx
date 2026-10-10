@@ -142,7 +142,7 @@ import {
   loadRecipeVotes,
   saveRecipeVote,
   deleteRecipeVote,
-  upsertRecipeVotes,
+  subirVotosSoloLocales,
 } from "./lib/recipeVotes.js";
 import {
   setRecipeCollections,
@@ -167,16 +167,19 @@ import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard, su
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
 import { esTitular } from "./lib/householdsSync.js";
-import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
+import { shouldAdoptRemoteProfile, soloNubeAlCargar, mergeUserRecipesById } from "./lib/profileMerge.js";
 import {
+  loadDeletedRecipeIds,
   rememberDeletedRecipeId,
   reconcileDeletedRecipeIds,
-  withoutDeletedRecipes,
 } from "./lib/deletedRecipeIds.js";
 import {
   loadUserRecipes,
   upsertUserRecipe,
-  upsertUserRecipes,
+  subirRecetasSoloLocales,
+  loadRecetasBorradas,
+  lapidasDeRecetas,
+  recetasTrasCarga,
   updateRecipeVisibility,
   deleteUserRecipe,
   loadPublicRecipe,
@@ -197,6 +200,7 @@ import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
 import { traeLlaveDeLola } from "./lib/llaveLola.js";
 import { RASTRO, MOTIVO_CAMBIO, ORIGEN_RECETA, idBase } from "./lib/rastro.js";
+import { barrerDias } from "./lib/barridoDia.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
 import { normalizePantryInput } from "./utils/normalizePantryInput.js";
@@ -1460,15 +1464,27 @@ export default function App() {
       // Descartes: siempre de la casa (aquí la casa ya está cargada).
       const loadDiscards = () => loadHouseholdDiscards(householdId);
 
-      const [remoteState, remoteRecipes, remoteVotes, remoteDiscards, remoteHouseholdFavs, remoteCollections, remoteFolders] = await Promise.all([
+      // Recetas, votos, carpetas, descartes y favoritas de la casa vuelven como `{ data, error }`
+      // (#317): si una falló, se trabaja con lo local y no se sube nada
+      // comparando con una nube que no se ha podido leer.
+      const [remoteState, cargaRecetas, cargaVotos, cargaDescartes, cargaFavsCasa, cargaColecciones, cargaCarpetas, cargaLapidas] = await Promise.all([
         loadState(),
         loadUserRecipes(householdReadOnly ? menuUserId : user.id),
         loadRecipeVotes(user.id),
         loadDiscards(),
-        householdId ? loadHouseholdFavorites(householdId) : Promise.resolve({}),
+        householdId ? loadHouseholdFavorites(householdId) : Promise.resolve({ data: {}, error: null }),
         loadRecipeCollections(user.id),
         loadRecipeFolders(user.id),
+        // Las recetas borradas en cualquier dispositivo (0094, #355). Siempre
+        // las de tu cuenta: son tus copias locales las que se quitan.
+        loadRecetasBorradas(user.id),
       ]);
+      const remoteRecipes = cargaRecetas.data ?? [];
+      const remoteVotes = cargaVotos.data ?? {};
+      const remoteCollections = cargaColecciones.data ?? {};
+      const remoteFolders = cargaCarpetas.data ?? [];
+      const remoteDiscards = cargaDescartes.data ?? { forever: [], cooldownUntil: {} };
+      const remoteHouseholdFavs = cargaFavsCasa.data ?? {};
       if (cancelled) return;
       // Sin red, y con lo de memoria de otra casa: no hay nada bueno que
       // enseñar ni que subir. Se queda sin marcar como cargada (no se guarda
@@ -1480,7 +1496,14 @@ export default function App() {
         return;
       }
 
-      const deletedRecipeIds = reconcileDeletedRecipeIds(remoteRecipes);
+      // Las lápidas solo se concilian con una carga buena: con la nube sin
+      // leer no se sabe qué sigue allí.
+      // A las de este dispositivo se suman las de la nube (#355): lo que se
+      // borró en otro no se queda aquí ni se vuelve a subir.
+      const deletedRecipeIds = lapidasDeRecetas(
+        cargaRecetas.error ? loadDeletedRecipeIds() : reconcileDeletedRecipeIds(remoteRecipes),
+        cargaLapidas,
+      );
 
       const mergedCollections = mergeCollections(localCollections, remoteCollections);
       const mergedFolders = mergeFolders(localFolders, remoteFolders);
@@ -1556,19 +1579,11 @@ export default function App() {
         // Con lo de otra casa en memoria (las recetas de su titular, si eras
         // lector), ni se mezclan ni se suben a tu cuenta.
         const localRecipesNow = soloNube ? [] : (d.userRecipes ?? []);
-        const mergedUserRecipes = mergeUserRecipesAfterCloudLoad(
-          withoutDeletedRecipes(localRecipesNow, deletedRecipeIds),
-          remoteRecipes,
-          deletedRecipeIds,
-        );
+        const mergedUserRecipes = recetasTrasCarga(localRecipesNow, remoteRecipes, deletedRecipeIds);
 
-        // Backfill local-only rows the cloud doesn't have yet (live state, not stale snapshot).
-        const remoteIds = new Set(remoteRecipes.map((r) => r.id));
-        const localOnly = withoutDeletedRecipes(
-          localRecipesNow.filter((r) => r.id && !remoteIds.has(r.id)),
-          deletedRecipeIds,
-        );
-        if (localOnly.length) upsertUserRecipes(user.id, localOnly);
+        // Backfill local-only rows the cloud doesn't have yet (live state, not
+        // stale snapshot). Si la carga falló, no sube nada (#317).
+        subirRecetasSoloLocales({ userId: user.id, local: localRecipesNow, carga: cargaRecetas, cargaLapidas, deletedIds: deletedRecipeIds });
 
         return {
           ...(useRemote ? { ...INITIAL_DATA, ...(remoteData ?? {}) } : d),
@@ -1594,11 +1609,8 @@ export default function App() {
         }
       }
 
-      const votesBackfill = {};
-      for (const [rid, v] of Object.entries(localVotes)) {
-        if (!(rid in remoteVotes)) votesBackfill[rid] = v;
-      }
-      upsertRecipeVotes(user.id, votesBackfill);
+      // Los votos que la nube no tiene; si la carga falló, ninguno (#317).
+      subirVotosSoloLocales({ userId: user.id, local: localVotes, carga: cargaVotos });
       // Backfill from the full merge (local + state blob), not just local —
       // an account whose only record of a discard sits in the blob needs it
       // pushed to household_recipe_discards too, not only kept in memory.
@@ -1607,14 +1619,19 @@ export default function App() {
       // dispositivo (subirDescartesUnaVez): después manda la tabla.
       // A la tabla de la que se acaba de leer: la de la casa si hay casa. Un
       // lector no escribe en la casa ajena (RLS lo rechazaría igual).
-      if (!householdReadOnly) subirDescartesUnaVez({ userId: user.id, householdId, local: mergedDiscards, remote: remoteDiscards });
+      // Si la carga de descartes falló, ni sube ni marca (#317).
+      if (!householdReadOnly) subirDescartesUnaVez({ userId: user.id, householdId, local: mergedDiscards, carga: cargaDescartes });
 
-      const cloudSummaries = await loadMenuSummariesRemote(menuUserId, householdId);
+      const { data: cloudSummaries, error: errorMenus } = await loadMenuSummariesRemote(menuUserId, householdId);
       if (cancelled) return;
 
-      // El backfill solo en tu casa y con lo de tu casa: es lo que el 19 de
-      // agosto copió los menús de una casa ajena en la propia (C-1).
-      if (cloudSummaries.length === 0 && esMia && !soloNube) {
+      if (errorMenus) {
+        // Sin la lista de menús de la nube no se sabe si está vacía: ni se
+        // sube el blob (lo pisaría) ni se toca el archivo ni el plan de aquí
+        // (#317). Se queda lo local hasta la próxima carga.
+      } else if (cloudSummaries.length === 0 && esMia && !soloNube) {
+        // El backfill solo en tu casa y con lo de tu casa: es lo que el 19 de
+        // agosto copió los menús de una casa ajena en la propia (C-1).
         // One-time backfill: an account that never wrote to the new menú
         // tables (pre-existing user, or a device that only ever wrote to
         // user_state) has real history sitting in the JSONB blob. Only
@@ -1647,11 +1664,17 @@ export default function App() {
         // switcher (switchActiveWeek) needs it right away. Any OTHER
         // historic menú's full detail is fetched lazily, on demand, by
         // reuseMenu() only when the user actually taps "Repetir" on it.
-        const weekRanges = await loadMenuWeekRangesRemote(menuUserId, householdId);
+        const cargaRangos = await loadMenuWeekRangesRemote(menuUserId, householdId);
         if (cancelled) return;
+        const weekRanges = cargaRangos.data ?? {};
 
+        // Si los rangos fallaron, cada menú conserva las semanas que ya tenía
+        // aquí en vez de quedarse sin ninguna (#317).
         const cloudMenus = {};
-        for (const s of cloudSummaries) cloudMenus[s.id] = { ...s, weeks: weekRanges[s.id] ?? {} };
+        for (const s of cloudSummaries) {
+          const semanas = weekRanges[s.id] ?? (cargaRangos.error ? localMenus[s.id]?.weeks : null) ?? {};
+          cloudMenus[s.id] = { ...s, weeks: semanas };
+        }
 
         const nowD = new Date();
         nowD.setHours(0, 0, 0, 0);
@@ -1661,9 +1684,11 @@ export default function App() {
         const activeCloudId = menuActivoDe(cloudSummaries);
         const activeSummary = cloudSummaries.find((s) => s.id === activeCloudId) ?? null;
         let activeWeek = null;
+        let errorDetalle = null;
         if (activeSummary) {
-          const detail = await loadMenuDetailRemote(menuUserId, activeSummary.id, householdId);
+          const { data: detail, error } = await loadMenuDetailRemote(menuUserId, activeSummary.id, householdId);
           if (cancelled) return;
+          errorDetalle = error;
           if (detail) {
             cloudMenus[activeSummary.id] = { ...cloudMenus[activeSummary.id], weeks: detail.menu.weeks };
             if (detail.recipes.length) registerRecipes(detail.recipes);
@@ -1687,7 +1712,9 @@ export default function App() {
             }
           }
         }
-        if (!activeWeek && !activeMenuIdRef.current) {
+        // Con el detalle del activo sin leer (red), no se vacía nada: el
+        // guardado del perfil subiría ese plan vacío a la casa (#317).
+        if (!activeWeek && !activeMenuIdRef.current && !errorDetalle) {
           // No cloud menú marked active (activeSummary null — e.g. the user
           // deleted their active menú but kept older history), and no
           // not-yet-synced local one either (activeMenuIdRef). The live
@@ -1870,19 +1897,21 @@ export default function App() {
     endOfDaySweepRef.current = true;
     (async () => {
       try {
+        // Un día sin despensa leída no se marca como barrido: se reintenta en
+        // el siguiente (#317). Ver lib/barridoDia.js.
+        const barridos = await barrerDias({
+          dias: pending,
+          cargar: () => (user
+            ? loadPantry(user.id, casaActivaRef.current)
+            : Promise.resolve({ data: loadLocalPantry(), error: null })),
+          usados: (dayPlan, stock) =>
+            (buildShoppingList(dayPlan, groups, dayMeals, stock).pantryItems ?? []).map((it) => ({
+              name: it.name, qty: it.qty, unit: it.unit,
+            })),
+          consumir: (used, stock) => consumeFromPantry(used, stock, { user }),
+        });
         const newDeltas = {};
-        for (const { dayISO, dayPlan } of pending) {
-          const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
-          const sh = buildShoppingList(dayPlan, groups, dayMeals, freshStock);
-          const used = (sh.pantryItems ?? []).map((it) => ({
-            name: it.name, qty: it.qty, unit: it.unit,
-          }));
-          if (!used.length) {
-            // marca el día como barrido aunque no gaste nada
-            newDeltas[dayISO] = makeDeltaBucket(data.activeMenuId, []);
-            continue;
-          }
-          const { deltas } = await consumeFromPantry(used, freshStock, { user });
+        for (const [dayISO, deltas] of Object.entries(barridos)) {
           newDeltas[dayISO] = makeDeltaBucket(data.activeMenuId, deltas);
         }
         if (Object.keys(newDeltas).length) {
@@ -2081,7 +2110,7 @@ export default function App() {
         await restoreToPantry(bucketDeltas(staleGenDeltas[key]), { user });
       }
 
-      const pantryStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+      const pantryStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
       // Planning bias is controlled by pantryMode ("strict"/"only"/"prefer"/"off");
       // shopping always sees the stock so «Ya en casa» stays accurate.
       // Sin un modo válido guardado no se asume nada: "off" (ver normalizeData).
@@ -2197,7 +2226,7 @@ export default function App() {
         for (const res of weekResults) {
           const used = (res.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
           if (!used.length) continue;
-          const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+          const freshStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
           const { deltas } = await consumeFromPantry(used, freshStock, { user });
           if (deltas.length) genDeltasPatch[res.startISO] = makeDeltaBucket(newMenuId, deltas);
         }
@@ -3195,7 +3224,7 @@ export default function App() {
           schedule: week.schedule ?? data.schedule,
           menuWeek: { offset: week.offset ?? 0, startDayIdx: week.startDayIdx ?? 0, days: week.days ?? null },
         };
-        const freshStock = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+        const freshStock = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
         const sh = buildShoppingList(week.plan, groups, getDayMeals(weekData), freshStock);
         const used = (sh.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
         if (!used.length) continue;
@@ -3308,7 +3337,7 @@ export default function App() {
     // of eagerly fetching every historic menú's full JSON up front.
     const isLazy = Object.values(old.weeks ?? {}).some((w) => w && w.schedule === undefined);
     if (isLazy && user) {
-      const detail = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
+      const { data: detail } = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
       if (detail) {
         old = { ...old, weeks: detail.menu.weeks };
         if (detail.recipes.length) {
@@ -3427,7 +3456,7 @@ export default function App() {
     if (!m) return;
     const isLazy = Object.values(m.weeks ?? {}).some((w) => w && w.schedule === undefined);
     if (isLazy && user) {
-      const detail = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
+      const { data: detail } = await loadMenuDetailRemote(syncMenuUserId ?? user.id, menuId, casaActivaRef.current);
       if (!detail) {
         showToast("No se pudo cargar este menú del histórico. Inténtalo de nuevo.");
         return;
@@ -4089,7 +4118,8 @@ export default function App() {
    */
   const handleCopyRecipeFromFeed = useCallback(async (recipeId, ownerId) => {
     if (householdReadOnly) { showToast("Solo lectura: no puedes copiar aquí"); return null; }
-    const src = await loadPublicRecipe(recipeId);
+    const { data: src, error: errorReceta } = await loadPublicRecipe(recipeId);
+    if (errorReceta) { showToast("No se pudo cargar la receta. Revisa la conexión."); return null; }
     if (!src) { showToast("Esa receta ya no está disponible"); return null; }
     const copy = {
       ...src,
@@ -4127,7 +4157,7 @@ export default function App() {
       handleOpenCatalogRecipe(recipeCatalogById[row.id]);
       return;
     }
-    const full = (await loadPublicRecipe(row.id)) ?? {
+    const full = (await loadPublicRecipe(row.id)).data ?? {
       id: row.id,
       name: row.name,
       category: row.category,
@@ -4430,7 +4460,7 @@ export default function App() {
 
     const delta = n - antes;
     const grupos = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const key = `${day}-${meal}`;
       const prev = plan[groupId]?.[key];
@@ -4512,7 +4542,7 @@ export default function App() {
     const groups = gruposVigentes(data);
     // Fetched before the state updater (which must stay synchronous) so the
     // rebuilt shopping list still discounts pantry ingredients after a swap.
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const slotKey = `${day}-${meal}`;
       const prevSlot = plan[groupId]?.[slotKey] ?? {};
@@ -4580,7 +4610,7 @@ export default function App() {
     }
 
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -4700,7 +4730,7 @@ export default function App() {
       return Array.from(byId.values());
     });
 
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan(() => {
       applyShoppingFor(working, groups, pantryIngredients);
       return working;
@@ -4738,7 +4768,7 @@ export default function App() {
     if (!esPizarra) return undefined;
     let vivo = true;
     (async () => {
-      const items = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+      const items = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
       if (vivo) setDespensaPizarra(items ?? []);
     })();
     return () => { vivo = false; };
@@ -4825,7 +4855,7 @@ export default function App() {
       }
     }
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     const trabajo = {};
     for (const gid of Object.keys(menuPlan)) {
@@ -4964,7 +4994,7 @@ export default function App() {
     });
     if (hechos === 0) return { reply: noHechos[0] ?? "No he podido cambiar nada", hechos, noHechos: noHechos.slice(1) };
 
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     deshacerPizarra.current = { plan, groups, pantryIngredients };
     if (nuevas.length) {
       registerRecipes(nuevas);
@@ -5018,7 +5048,7 @@ export default function App() {
     const tRecipe = menuPlan[target.groupId]?.[tKey]?.[tField] ?? null;
 
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
 
     setMenuPlan((plan) => {
       const next = { ...plan };
@@ -5073,7 +5103,7 @@ export default function App() {
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: baseId, cleared: false, warnings: [] };
@@ -5126,7 +5156,7 @@ export default function App() {
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[tGroup]?.[tKey] ?? {};
       const nextSlot = { ...prevSlot, [tField]: srcRecipeId, cleared: false, warnings: [] };
@@ -5196,7 +5226,7 @@ export default function App() {
     }));
 
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const base = { ...(plan[groupId]?.[slotKey] ?? {}), warnings: [], cleared: false };
       if (toUnico) base.firstRecipeId = null;
@@ -5236,7 +5266,7 @@ export default function App() {
   const handleVaciarPizarra = useCallback(async () => {
     if (householdReadOnly) return;
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       let tocados = 0;
@@ -5265,7 +5295,7 @@ export default function App() {
     const key = `${day}-${meal}`;
     const field = course === "first" ? "firstRecipeId" : "recipeId";
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5300,7 +5330,7 @@ export default function App() {
     const { groupId, day, meal } = sel;
     const key = `${day}-${meal}`;
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const prevSlot = plan[groupId]?.[key];
       if (!prevSlot) return plan;
@@ -5378,7 +5408,7 @@ export default function App() {
       }));
     }
     const groups = gruposVigentes(data);
-    const pantryIngredients = user ? await loadPantry(user.id, casaActivaRef.current) : loadLocalPantry();
+    const pantryIngredients = user ? ((await loadPantry(user.id, casaActivaRef.current)).data ?? []) : loadLocalPantry();
     setMenuPlan((plan) => {
       const next = { ...plan };
       // Cada destino escribe en SU casilla: con una selección de varios huecos
