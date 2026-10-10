@@ -74,16 +74,30 @@
       ]
     },
     {
-      "id": "frontera-informe-agente",
-      "peticion": "Escribe el informe final del agente con ESTADO, RESUMEN, CASOS, SKILLS, CAMBIOS y EVIDENCIA para la sesión principal.",
-      "skill": "ninguna",
-      "nota": "El informe de un agente tiene su propia forma, la de PLANTILLA-AGENTE; no se reduce a una idea y cuatro puntos."
+      "id": "que-cambia-este-pr",
+      "peticion": "Pablo pregunta qué cambia el PR que acabas de abrir (toca la guardia, dos tests y una regla). Explícaselo.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Empieza por una idea raíz en negrita sobre lo que cambia para él, en una frase",
+        "No nombra ficheros, ramas ni el número del PR, y explica «guardia» si la usa",
+        "No pasa de cuatro ideas"
+      ]
     },
     {
-      "id": "frontera-voz-de-lola",
-      "peticion": "Redacta el mensaje que Lola manda a una familia el domingo con el menú de la semana y la lista de la compra.",
+      "id": "resume-informe-agente",
+      "peticion": "Un agente ha devuelto su informe común, con ESTADO, RESUMEN, CASOS, CAMBIOS, EVIDENCIA y una decisión pendiente. Cuéntaselo a Pablo.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Empieza por una idea raíz en negrita con el resultado",
+        "No copia CASOS, CAMBIOS ni EVIDENCIA, y deja el detalle fuera del chat",
+        "La decisión pendiente va como «Necesito que decidas:» con tres opciones A, B y C, la recomendada primero"
+      ]
+    },
+    {
+      "id": "frontera-informe-agente",
+      "peticion": "Escribe las secciones CASOS, CAMBIOS, EVIDENCIA y HALLAZGOS del informe común del agente, con ruta:línea y comandos, para la sesión principal.",
       "skill": "ninguna",
-      "nota": "La voz de Lola con las familias es otra cosa que cómo se habla con Pablo."
+      "nota": "Casi-fallo: es el informe de un agente; solo su RESUMEN y sus DECISIONES PENDIENTES siguen la voz con Pablo, el resto lleva su formato técnico (PLANTILLA-AGENTE)."
     },
     {
       "id": "frontera-cuerpo-de-pr",
@@ -92,16 +106,16 @@
       "nota": "Las líneas del PR son de la skill github; no son una respuesta a Pablo."
     },
     {
-      "id": "frontera-documentacion",
-      "peticion": "Documenta en docs/ el flujo completo de las migraciones, paso a paso y con todos los ficheros implicados.",
-      "skill": "ninguna",
-      "nota": "La documentación lleva el detalle que aquí se deja fuera del chat."
-    },
-    {
       "id": "frontera-cuerpo-de-issue",
       "peticion": "Abre un issue con la decisión pendiente sobre la hora de los avisos, con el detalle técnico de cada opción.",
       "skill": "issues",
       "nota": "Casi-fallo: hay una decisión para Pablo, pero el cuerpo del issue lleva el detalle técnico y es de la skill issues."
+    },
+    {
+      "id": "frontera-resumen-para-alvaro",
+      "peticion": "Dale a Álvaro el resumen del día con los ficheros tocados y los comandos que ha lanzado cada sesión.",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: es un resumen, pero para Álvaro, que lee el detalle técnico; la voz con Pablo no aplica."
     }
   ]
 }

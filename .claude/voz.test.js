@@ -31,9 +31,9 @@ export function faltasDeMensaje(texto) {
   if (!/^\*\*[^*]+\*\*/.test(lineas[0])) f.push("la primera línea no es la idea raíz en negrita");
   if (PREAMBULO.test(lineas[0].replace(/\*/g, ""))) f.push("empieza con preámbulo");
   if (EMOJI.test(texto)) f.push("lleva emojis");
-  if (lineas.length - 1 > MAX_IDEAS + 2) f.push("pasa de cuatro ideas");
+  if (lineas.length - 1 > MAX_IDEAS) f.push("pasa de cuatro ideas");
   for (const l of lineas) {
-    for (const frase of l.replace(/\*/g, "").split(/(?<=[.!?:;])\s+/)) {
+    for (const frase of l.replace(/\*/g, "").split(/(?<=[.!?])\s+/)) {
       const n = frase.split(/\s+/).filter(Boolean).length;
       if (n >= MAX_PALABRAS_FRASE) f.push(`frase de ${n} palabras: «${frase.slice(0, 40)}…»`);
     }
@@ -82,6 +82,14 @@ describe("las tres piezas de la voz dicen lo mismo", () => {
     expect(claude).toMatch(/`estilo-de-respuesta`\s*\(cómo\s+se\s+escribe\s+a\s+Pablo/);
   });
 
+  it("el informe de agente: solo RESUMEN y DECISIONES PENDIENTES siguen la voz, y la decisión pide A/B/C con la recomendada", () => {
+    for (const [nombre, t] of [["CLAUDE.md", claude], ["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) {
+      expect(t, nombre).toMatch(/RESUMEN/);
+      expect(t, nombre).toMatch(/DECISIONES PENDIENTES/);
+    }
+    expect(plantillaAgente).toMatch(/DECISIONES PENDIENTES: - Necesito que decidas: <pregunta> · A \(recomendada\), B y C/);
+  });
+
   it("la skill pasa el nivel 1", () => {
     const ctx = cargarContexto(RAIZ);
     const s = cargarSkill("estilo-de-respuesta", RAIZ);
@@ -119,7 +127,22 @@ describe("los ejemplos canónicos cumplen la voz", () => {
   });
 });
 
+const RAIZ_OK = "**Todo bien.**\n";
+
 describe("el medidor de la voz ve fallar lo que debe", () => {
+  it("una frase de 40 palabras, sin preámbulo, falla por larga", () => {
+    const larga = Array.from({ length: 40 }, (_, i) => "palabra" + i).join(" ") + ".";
+    const faltas = faltasDeMensaje(RAIZ_OK + larga);
+    expect(faltas.join("|")).toMatch(/frase de 40/);
+    expect(faltas.join("|")).not.toMatch(/preámbulo/);
+  });
+
+  it("el umbral es de verdad 25: 24 palabras pasan y 25 fallan", () => {
+    const frase = (n) => Array.from({ length: n }, (_, i) => "w" + i).join(" ") + ".";
+    expect(faltasDeMensaje(RAIZ_OK + frase(24))).toEqual([]);
+    expect(faltasDeMensaje(RAIZ_OK + frase(25)).join("|")).toMatch(/frase de 25/);
+  });
+
   it("un mensaje largo, con preámbulo y sin idea raíz, falla", () => {
     const malo = "Claro, voy a contarte lo que he hecho en la rama y en el fichero que toca, que además tiene muchas cosas que contar y que sigue y sigue sin parar.";
     const faltas = faltasDeMensaje(malo);

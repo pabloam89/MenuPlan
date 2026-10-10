@@ -1,6 +1,6 @@
 ---
 name: estilo-de-respuesta
-description: Úsala al escribir cualquier respuesta, resumen o aviso a Pablo en una sesión principal («cuéntame cómo va», «explícamelo sencillo», «¿qué decido?», «uff, muy lío»). Fija la forma, con idea raíz en negrita y cuatro ideas como mucho. No para: informes de agentes (PLANTILLA-AGENTE), mensajes de Lola a las familias, cuerpos de PR, issues ni documentación.
+description: Úsala al escribir cualquier respuesta, resumen o aviso a Pablo en una sesión principal («cuéntame cómo va», «explícamelo sencillo», «¿qué decido?», «uff, muy lío»). Fija la forma: idea raíz en negrita, cuatro ideas como mucho y tres opciones en las decisiones. No para: el informe común de un agente (salvo su RESUMEN y sus DECISIONES PENDIENTES), mensajes de Lola, cuerpos de PR, issues ni documentación.
 metadata:
   tipo: estandar
   dueno: gobierno
@@ -17,12 +17,13 @@ decide va arriba y el detalle va a un sitio donde pueda leerlo si quiere. Es
 decisión suya (#415); antes solo vivía en su memoria
 personal, que no ve ninguna otra sesión.
 
-Vale para toda respuesta de una sesión principal a Pablo. Los subagentes
-devuelven el informe común de `.claude/PLANTILLA-AGENTE.md` a la sesión que
-los lanzó, y es esa sesión la que lo cuenta a Pablo con esta forma.
+Vale para toda respuesta de una sesión principal a Pablo. Del informe común de
+un agente (`.claude/PLANTILLA-AGENTE.md`) siguen esta forma solo el `RESUMEN` y
+las `DECISIONES PENDIENTES`; y la sesión que lo lanzó se lo cuenta a Pablo con ella.
 
 No es para:
-- el informe de un agente, el cuerpo de un PR o de un issue y los ficheros de
+- el resto del informe de un agente (`CASOS`, `CAMBIOS`, `EVIDENCIA`,
+  `HALLAZGOS`…), el cuerpo de un PR o de un issue y los ficheros de
   documentación: llevan su propia forma y el detalle que aquí se deja fuera;
 - los mensajes de Lola a las familias: su voz es otra cosa;
 - una respuesta a Álvaro o a otra sesión, si no pide esta forma.
@@ -140,21 +141,17 @@ Mal:
 > He creado la rama ops/999-ejemplo desde origin/staging, he modificado cuatro
 > ficheros (scripts/a.mjs, scripts/b.mjs y dos tests), el lint pasa con la
 > línea base y el CI está en verde. Queda abrir el PR y fusionarlo, que puede
-> hacerlo la sesión, pero antes habría que decidir si el cambio de permisos va
-> en este mismo PR o en otro aparte.
+> hacerlo la sesión, y el cambio de permisos lo dejo para otro PR.
 
-No dice qué ha pasado ni qué hay que decidir hasta el final, y mezcla ramas,
-ficheros y lint que Pablo no necesita para decidir.
+No dice qué ha pasado hasta el final, y mezcla ramas, ficheros y lint que
+Pablo no necesita.
 
-Bien:
+Bien (plantilla de resultado):
 
-> **El cambio está hecho y probado; falta decidir una cosa.**
->
-> - Funciona: los avisos ya llegan con el nombre de la tarea.
-> - Las pruebas automáticas pasan.
-> - El cambio de permisos puede ir ahora o en otro paso aparte.
->
-> Necesito saber si lo de permisos va junto o aparte; yo lo separaría.
+> **El cambio está hecho y probado.**
+> Qué cambia para ti: los avisos ya llegan con el nombre de la tarea.
+> Ojo: el cambio de permisos queda para otro paso aparte.
+> Siguiente paso: lo revisa otro agente.
 
 ### Ejemplo 2: explicar un problema
 
@@ -173,14 +170,12 @@ Bien:
 
 Mal: una tabla de tres opciones con columnas de coste, riesgo y esfuerzo.
 
-Bien:
+Bien (plantilla de decisión):
 
-> **Hay que elegir dónde guardar las copias, y recomiendo la opción sencilla.**
->
-> - A, la que recomiendo: en el servidor que ya tenemos, sin coste.
-> - B: en un servicio aparte, algo más seguro y de pago.
-> - C: en tu ordenador, gratis pero depende de que esté encendido.
->
+> **Necesito que decidas: dónde guardar las copias.**
+> A (recomendada): en el servidor que ya tenemos. No cuesta nada.
+> B: en un servicio aparte. Es algo más seguro y de pago.
+> C: en tu ordenador. Es gratis, pero depende de que esté encendido.
 > Respóndeme con la letra.
 
 ## Lo que falló y por qué
@@ -195,7 +190,7 @@ Bien:
 
 ## Registro de cambios
 
-- **2026-10-10** · Se funde en esta skill la de la voz con Pablo: tres opciones en las decisiones, cinco plantillas con ejemplo canónico (`plantillas/plantillas.md`), glosario ampliado, resumen en `.claude/PLANTILLA-AGENTE.md` y `.claude/voz.test.js` que cruza regla, skill y plantilla de agentes; el ejemplo 3 pasa a tres opciones y se afinan dos comprobaciones de casos (#415).
+- **2026-10-10** · Se funde en esta skill la de la voz con Pablo: tres opciones en las decisiones, cinco plantillas con ejemplo canónico (`plantillas/plantillas.md`), glosario ampliado, resumen en `.claude/PLANTILLA-AGENTE.md` y `.claude/voz.test.js` que cruza regla, skill y plantilla de agentes; los ejemplos 1 y 3 siguen las plantillas de resultado y decisión, solo el `RESUMEN` y las `DECISIONES PENDIENTES` de un informe de agente siguen la forma, y los casos pasan a 13 (disparo 13/13, comprobaciones 24/29 y 23/29) (#415).
 - **2026-10-10** · Se añaden «Traducir la jerga» y «El comando para pegar»; el caso del comando se reformula (disparo de 8/9 a 9/9, comprobaciones de 13/16 a 14/16) (#415).
 - **2026-10-10** · Primera versión: idea raíz en negrita, cuatro ideas como mucho, petición al final y detalle fuera del chat (#415).
 
@@ -210,6 +205,6 @@ Bien:
 - https://www.nngroup.com/articles/inverted-pyramid/ , https://www.nngroup.com/articles/how-users-read-on-the-web/ , https://www.nngroup.com/articles/minimize-cognitive-load/ , https://www.nngroup.com/articles/progressive-disclosure/ , https://www.nngroup.com/articles/tone-of-voice-dimensions/ y https://styleguide.mailchimp.com/voice-and-tone/: lo importante primero, se lee en diagonal, menos carga, el detalle a petición, tono que cambia según el momento. [F] Negrita solo donde hay que actuar, «si quieres te lo cuento», voz constante y tono que se adapta. [I]
 - https://pubmed.ncbi.nlm.nih.gov/11515286/ (Cowan): la memoria de trabajo ronda cuatro elementos [F]; de ahí, cuatro ideas [I]. https://guidance.publishing.service.gov.uk/writing-to-gov-uk-standards/writing-guidelines/clear-language/: frases y párrafos cortos, en inglés [F]; los umbrales de 25 palabras y 5 frases son nuestros [I].
 
-Sin comprobar: las fuentes se citan de memoria y no se han releído al escribir; las cifras de 5 frases y 25 palabras son de la guía GOV.UK, en inglés, y la de cuatro ideas es de Cowan y habla de memoria de trabajo, no de lectura; que la voz viva en `CLAUDE.md` y el detalle en la skill es inferencia (la documentación solo dice que el cuerpo de una skill carga cuando se usa); no hay fuente primaria sobre plantillas fijas para agentes de IA; las cinco plantillas y las tres opciones no se han medido aún con `skills-prueba`; cuántas respuestas reales cumplen la forma; y que mejore sobre el modelo solo, porque `skills-prueba` mide la skill con ella y no sin ella.
+Sin comprobar: las fuentes se citan de memoria y no se han releído al escribir; las cifras de 5 frases y 25 palabras son de la guía GOV.UK, en inglés, y la de cuatro ideas es de Cowan y habla de memoria de trabajo, no de lectura; que la voz viva en `CLAUDE.md` y el detalle en la skill es inferencia (la documentación solo dice que el cuerpo de una skill carga cuando se usa); no hay fuente primaria sobre plantillas fijas para agentes de IA; cuántas respuestas reales cumplen la forma; y que mejore sobre el modelo solo, porque `skills-prueba` mide la skill con ella y no sin ella.
 
-Comprobado el 2026-10-10: la forma con `.claude/skills.test.js` y los casos con `npm run skills-prueba -- estilo-de-respuesta` (`ops/skills-prueba/estilo-de-respuesta.json`): disparo 8 de 9 y comprobaciones 13 de 16 en la primera pasada, y 9 de 9 y 14 de 16 tras añadir la tabla de jerga y la pauta del comando (0,07 $ cada una). Siguen fallando dos comprobaciones: la jerga de la frase con workflow, deploy key y ruleset, y el comando solo en su bloque.
+Comprobado el 2026-10-10: la forma con `.claude/skills.test.js` y `.claude/voz.test.js`, y los casos con `npm run skills-prueba -- estilo-de-respuesta` (`ops/skills-prueba/estilo-de-respuesta.json`). Antes de fundir la voz: disparo 9 de 9 y comprobaciones 14 de 16. Con 13 casos (9 propios y 4 de frontera), dos pasadas seguidas: disparo 13 de 13 las dos veces y comprobaciones 24 de 29 y 23 de 29 (0,11 $ cada una). Fallan las mismas casi todas las veces: la jerga de workflow, deploy key y ruleset, el comando para pegar (primera línea y cierre) y el caso del PR; entre pasadas también cambian `fallo-de-la-prueba` y `resume-informe-agente`, es ruido del corrector.

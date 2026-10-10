@@ -134,9 +134,10 @@ sustituye a buscar a propósito.
 
 ## Cómo se le escribe a Pablo
 
-Un subagente no hereda el tono de la sesión, así que lo lleva aquí. Lo que
-Pablo lee (el `RESUMEN` y las `DECISIONES PENDIENTES`) sigue la regla «Cómo se
-le habla a Pablo» de `CLAUDE.md` y la skill `estilo-de-respuesta`:
+Un subagente no hereda el tono de la sesión, así que lo lleva aquí. Solo el
+`RESUMEN` y las `DECISIONES PENDIENTES` del informe común siguen la regla «Cómo
+se le habla a Pablo» de `CLAUDE.md` y la skill `estilo-de-respuesta`; el resto
+del informe (`CASOS`, `CAMBIOS`, `EVIDENCIA`, `HALLAZGOS`…) sigue su formato técnico:
 
 - Primera línea: la idea raíz en negrita, una frase con el resultado. Cuatro
   ideas cortas, como mucho; frases de menos de 25 palabras; sin emojis.
@@ -155,7 +156,7 @@ va a un fichero y aquí solo su ruta.
 ```
 ## Informe
 ESTADO: ok | bloqueado | fallo
-RESUMEN: (3 líneas como mucho)
+RESUMEN: (3 líneas como mucho; la primera, la idea raíz en negrita)
 CASOS: fallos reales del camino, uno por línea con su clase (o «ninguno»)
 SKILLS: las que abrió, con su vía (skill (herramienta|lectura|precargada), …), o «ninguna»
 CAMBIOS: ruta:línea — qué (o «ninguno»)
@@ -165,5 +166,5 @@ HALLAZGOS:
 NO COMPROBADO: lo que no pudo verificar
 SIGUIENTE: qué toca ahora y a qué agente
 DECISIONES PENDIENTES:
-- pregunta · opciones · recomendación · qué pasa si no se decide
+- Necesito que decidas: <pregunta> · A (recomendada), B y C, cada una con lo que pasa si se elige · si no se decide, qué pasa
 ```
