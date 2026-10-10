@@ -13,6 +13,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { VEREDICTOS } from "./escalas.mjs";
 import { CONTROL_JUICIO, FUERZAS, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
 /** Quién hace cumplir la norma. Los cinco primeros son «del sistema»: no dependen de que alguien se acuerde. */
@@ -45,14 +46,6 @@ export const ANTE_FALLO = {
   cerrado: "Si el ejecutor falla, no deja pasar",
   abierto: "Si el ejecutor falla, deja pasar",
   no_aplica: "No hay ejecutor que pueda fallar",
-};
-
-/** Cómo de dura es la norma hoy. */
-export const VEREDICTOS = {
-  dura: "Ejecutor del sistema, para todos, falla cerrado y con un test que lo vigila",
-  semidura: "Tiene ejecutor, pero no alcanza a todos, falla abierto o no hay test",
-  blanda: "Solo texto o una persona que se acuerda",
-  rota: "Se dice que hay ejecutor y hoy no funciona",
 };
 
 /** Cuánto duele que se incumpla. */
@@ -113,6 +106,23 @@ export function existeEnPlanos(test, planos) {
 export const hechoDePlanos = (n) => (n.control_tipo === "planos" && typeof n.criterio_planos === "string" ? `planos:${n.criterio_planos}` : null);
 
 /**
+ * Errores del control de una regla (una norma, una obligación del flujo): `control` es la ruta de un fichero
+ * o «juicio», y `control_tipo` cuenta lo mismo. No mira que `control_tipo` esté en el vocabulario: eso lo
+ * hace quien llama. Lista vacía si está bien; `id` es cómo se nombra en el mensaje.
+ */
+export function problemasDeControl(n, id) {
+  const malos = [];
+  if (typeof n.control !== "string" || !n.control.trim()) malos.push(`${id}: «control» es la ruta de un fichero o «${CONTROL_JUICIO}»`);
+  else if (n.control_tipo === "juicio" && n.control !== CONTROL_JUICIO) malos.push(`${id}: control_tipo «juicio» pide control «${CONTROL_JUICIO}», no «${n.control}»`);
+  else if (n.control_tipo !== "juicio" && n.control === CONTROL_JUICIO) malos.push(`${id}: control «${CONTROL_JUICIO}» pide control_tipo «juicio», no «${n.control_tipo}»`);
+  else if (n.control_tipo === "test" && !/\.test\.(js|jsx|mjs)$/.test(n.control)) malos.push(`${id}: control_tipo «test» pide un fichero *.test.js, no «${n.control}»`);
+  else if (n.control_tipo === "planos" && n.control !== RUTA_PLANOS) malos.push(`${id}: control_tipo «planos» pide control «${RUTA_PLANOS}», no «${n.control}»`);
+  if (n.control_tipo === "planos" && (typeof n.criterio_planos !== "string" || !n.criterio_planos)) malos.push(`${id}: control_tipo «planos» lleva «criterio_planos» (regla[:rama])`);
+  if (n.control_tipo !== "planos" && "criterio_planos" in n) malos.push(`${id}: «criterio_planos» solo con control_tipo «planos»`);
+  return malos;
+}
+
+/**
  * Errores de forma de una norma: los campos de regla (regla.mjs), los de dureza, el vocabulario y
  * que `control` y `control_tipo` cuenten lo mismo. Lista vacía si está bien. `sujetos`: el
  * vocabulario del registro.
@@ -127,13 +137,7 @@ export function problemasDeForma(n, sujetos) {
   if (!Array.isArray(n.donde) || !n.donde.length) malos.push(`${id}: «donde» es una lista de rutas`);
   const vocab = [["ejecutor", EJECUTORES], ["alcance", ALCANCES], ["ante_fallo", ANTE_FALLO], ["veredicto", VEREDICTOS], ["riesgo", RIESGOS], ["control_tipo", CONTROL_TIPOS]];
   for (const [campo, v] of vocab) if (!(n[campo] in v)) malos.push(`${id}: ${campo} «${n[campo]}» no está en el vocabulario (${Object.keys(v).join(", ")})`);
-  if (typeof n.control !== "string" || !n.control.trim()) malos.push(`${id}: «control» es la ruta de un fichero o «${CONTROL_JUICIO}»`);
-  else if (n.control_tipo === "juicio" && n.control !== CONTROL_JUICIO) malos.push(`${id}: control_tipo «juicio» pide control «${CONTROL_JUICIO}», no «${n.control}»`);
-  else if (n.control_tipo !== "juicio" && n.control === CONTROL_JUICIO) malos.push(`${id}: control «${CONTROL_JUICIO}» pide control_tipo «juicio», no «${n.control_tipo}»`);
-  else if (n.control_tipo === "test" && !/\.test\.(js|jsx|mjs)$/.test(n.control)) malos.push(`${id}: control_tipo «test» pide un fichero *.test.js, no «${n.control}»`);
-  else if (n.control_tipo === "planos" && n.control !== RUTA_PLANOS) malos.push(`${id}: control_tipo «planos» pide control «${RUTA_PLANOS}», no «${n.control}»`);
-  if (n.control_tipo === "planos" && (typeof n.criterio_planos !== "string" || !n.criterio_planos)) malos.push(`${id}: control_tipo «planos» lleva «criterio_planos» (regla[:rama])`);
-  if (n.control_tipo !== "planos" && "criterio_planos" in n) malos.push(`${id}: «criterio_planos» solo con control_tipo «planos»`);
+  malos.push(...problemasDeControl(n, id));
   if (n.issue !== null && !Number.isInteger(n.issue)) malos.push(`${id}: «issue» es un número o null`);
   if ("desde" in n && !Number.isInteger(n.desde)) malos.push(`${id}: «desde» es el número del issue o PR que la dejó así`);
   if (n.test_fallo !== undefined && (typeof n.test_fallo?.ruta !== "string" || typeof n.test_fallo?.caso !== "string")) {

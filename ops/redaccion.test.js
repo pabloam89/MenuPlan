@@ -7,7 +7,7 @@ import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaRefere
 import { LIMITES_REGLA } from "../scripts/lib/regla.mjs";
 import {
   ESTADOS_CATALOGO, MAX_PRINCIPIOS, MIN_PRINCIPIOS, RUTA_MD, anclarPendientes, generarMd, leerJsonEn, leerPendientes, leerRedaccion,
-  pendientesDe, problemasContraReferencia, problemasDeRedaccion, problemasDeTrinquete, tieneReglas,
+  pendientesDe, problemasContraReferencia, problemasDeRedaccion, problemasDeTrinquete, reglasDe, sujetosDe, tieneReglas,
 } from "../scripts/lib/redaccion.mjs";
 
 /**
@@ -61,7 +61,9 @@ describe("trinquete: la lista de pendientes solo baja", () => {
   });
   it("anclar baja pero no sube", () => {
     const d = clon();
-    expect(anclarPendientes(d, ["ops/flujo.json"])).toEqual(["ops/flujo.json"]);
+    d.catalogos.push({ fichero: "ops/pendiente-de-prueba.json", estado: "pendiente", encargo: "#1" });
+    expect(anclarPendientes(d, ["ops/pendiente-de-prueba.json"])).toEqual(["ops/pendiente-de-prueba.json"]);
+    expect(anclarPendientes(d, [])).toEqual([]);
     expect(anclarPendientes(d, [], { sembrar: true })).toEqual(pendientesDe(d));
   });
 });
@@ -138,5 +140,33 @@ describe("cada regla se ve fallar con datos malos", () => {
     const malo = { sujetos: { s: { legible: "cada cosa", aplica_a: ["x"] } }, criterios: [{ nombre: "Mal.", sujeto: "s", fuerza: "debe", exigencia: "Hacer algo." }] };
     const salida = problemasDeRedaccion(d, { existe, leerJson: (r) => (r === d.catalogos[0].fichero ? malo : leerJson(r)) });
     expect(salida.join("\n")).toContain("«nombre»");
+  });
+  it("ops/flujo.json cumple la guía: una obligación por campos mal escrita falla", () => {
+    const d = clon();
+    const k = d.catalogos.find((x) => x.fichero === "ops/flujo.json");
+    expect(k.estado).toBe("cumple");
+    const flujo = leerJson("ops/flujo.json");
+    const malo = structuredClone(flujo);
+    malo.pasos[0].obligaciones[0].exigencia = "Avisar a alguien.";
+    const salida = problemasDeRedaccion(d, { existe, leerJson: (r) => (r === "ops/flujo.json" ? malo : leerJson(r)) });
+    expect(salida.join(String.fromCharCode(10))).toContain("P01.1");
+    expect(salida.join(String.fromCharCode(10))).toContain("«exigencia»");
+  });
+  it("un catálogo que hereda sujetos de un fichero que no existe falla", () => falla((d) => { d.catalogos.find((k) => k.fichero === "ops/flujo.json").sujetos_de = ["ops/no-existe.json"]; }, "sujetos_de cita ops/no-existe.json"));
+});
+
+describe("reglasDe y sujetosDe", () => {
+  const json = { pasos: [{ obligaciones: [{ id: "a" }, { id: "b", norma: "n" }] }, { obligaciones: [{ id: "c" }] }], normas: [{ id: "x" }] };
+  it("una clave de primer nivel", () => expect(reglasDe(json, "normas").reglas).toEqual([{ id: "x" }]));
+  it("una ruta que atraviesa listas, y separa las que remiten a una norma", () => {
+    const de = reglasDe(json, "pasos.obligaciones");
+    expect(de.reglas.map((r) => r.id)).toEqual(["a", "c"]);
+    expect(de.remisiones.map((r) => r.id)).toEqual(["b"]);
+  });
+  it("una ruta que no existe", () => expect(reglasDe(json, "pasos.inventado")).toBeNull());
+  it("los sujetos propios mandan sobre los heredados", () => {
+    const leer = (r) => ({ sujetos: { a: { legible: "heredado" }, b: { legible: "otro" } }, otra: r });
+    expect(sujetosDe({ clave_sujetos: "sujetos", sujetos_de: ["x.json"] }, { sujetos: { a: { legible: "propio" } } }, leer))
+      .toEqual({ a: { legible: "propio" }, b: { legible: "otro" } });
   });
 });

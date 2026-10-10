@@ -4,13 +4,13 @@
  * `ops/mecanismos.json`, que es el dato.
  *
  * Dos vocabularios que ya existían, sin copiarlos:
- *   - el escalón, de la escalera de durabilidad de `ops/flujo.json` (la misma
+ *   - el escalón, de la escalera de durabilidad de `scripts/lib/escalas.mjs` (la misma
  *     `barrera` de la ficha del fondo);
  *   - el ejecutor, del registro de normas (`EJECUTORES` de normas.mjs).
  * El puente entre los dos es ESCALON_DE_EJECUTOR: el test exige que tenga
  * exactamente los ejecutores del registro, así que un ejecutor nuevo no entra
  * sin decir en qué escalón cae, y que cada mecanismo diga lo mismo que el puente.
- * `veredicto_max` sigue las reglas de dureza de normas.mjs: un mecanismo que
+ * `veredicto` sigue las reglas de dureza de normas.mjs: un mecanismo que
  * no puede dar una norma dura no se anuncia como duro.
  *
  * Lo usan:
@@ -21,11 +21,11 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { ALCANCES, EJECUTORES, EJECUTORES_DEL_SISTEMA, VEREDICTOS } from "./normas.mjs";
+import { ESCALONES, VEREDICTOS } from "./escalas.mjs";
+import { ALCANCES, EJECUTORES, EJECUTORES_DEL_SISTEMA } from "./normas.mjs";
 
-const FLUJO = JSON.parse(readFileSync(fileURLToPath(new URL("../../ops/flujo.json", import.meta.url)), "utf8"));
-/** Los escalones, del más al menos duradero (ops/flujo.json). */
-export const ESCALONES = FLUJO.escalera.map((e) => e.id);
+/** Los escalones, del más al menos duradero: la escalera se declara en escalas.mjs y aquí se re-exporta. */
+export { ESCALONES };
 
 /**
  * En qué escalón cae cada ejecutor del registro de normas. `null`: el ejecutor
@@ -48,7 +48,7 @@ export const ESCALON_DE_EJECUTOR = {
 /** Los mecanismos que el plan #334 pide nombrar (#338); el catálogo puede tener más. */
 export const MECANISMOS_PEDIDOS = ["regla_github", "ci", "restriccion_bd", "hook", "entorno_aprobador", "permisos_identidad", "eval", "skill", "texto"];
 
-export const CAMPOS = ["id", "nombre", "escalon", "ejecutor", "alcance", "veredicto_max", "cuando", "cuesta", "ejemplo"];
+export const CAMPOS = ["id", "nombre", "escalon", "ejecutor", "alcance", "veredicto", "cuando", "cuesta", "ejemplo"];
 export const CAMPOS_OPCIONALES = ["nota"];
 
 const RUTA = new URL("../../ops/mecanismos.json", import.meta.url);
@@ -75,7 +75,7 @@ export function problemas(cat, { existe = () => true } = {}) {
   const enPuente = Object.keys(ESCALON_DE_EJECUTOR).sort();
   const enRegistro = Object.keys(EJECUTORES).sort();
   if (JSON.stringify(enPuente) !== JSON.stringify(enRegistro)) p.push(`puente: ESCALON_DE_EJECUTOR cubre [${enPuente}] y el registro de normas tiene [${enRegistro}]`);
-  for (const [ej, esc] of Object.entries(ESCALON_DE_EJECUTOR)) if (esc !== null && !ESCALONES.includes(esc)) p.push(`puente: ${ej} → «${esc}», que no es un escalón de ops/flujo.json`);
+  for (const [ej, esc] of Object.entries(ESCALON_DE_EJECUTOR)) if (esc !== null && !ESCALONES.includes(esc)) p.push(`puente: ${ej} → «${esc}», que no es un escalón de la escalera (escalas.mjs)`);
 
   const ids = new Set();
   for (const m of lista) {
@@ -85,13 +85,13 @@ export function problemas(cat, { existe = () => true } = {}) {
     ids.add(id);
     for (const c of CAMPOS) if (!(c in (m ?? {}))) p.push(`forma: ${id} sin «${c}»`);
     for (const c of Object.keys(m ?? {})) if (!CAMPOS.includes(c) && !CAMPOS_OPCIONALES.includes(c)) p.push(`forma: ${id} con un campo desconocido «${c}»`);
-    if (!ESCALONES.includes(m?.escalon)) p.push(`escalon: ${id} → «${m?.escalon}» no es un escalón de ops/flujo.json (${ESCALONES.join(", ")})`);
+    if (!ESCALONES.includes(m?.escalon)) p.push(`escalon: ${id} → «${m?.escalon}» no es un escalón de la escalera (escalas.mjs) (${ESCALONES.join(", ")})`);
     if (!(m?.ejecutor in EJECUTORES)) p.push(`ejecutor: ${id} → «${m?.ejecutor}» no está en EJECUTORES de normas.mjs`);
     else if (ESCALONES.includes(m.escalon) && ESCALON_DE_EJECUTOR[m.ejecutor] !== m.escalon) p.push(`escalon-distinto: ${id} dice «${m.escalon}» y su ejecutor ${m.ejecutor} cae en «${ESCALON_DE_EJECUTOR[m.ejecutor]}»`);
     if (!(m?.alcance in ALCANCES)) p.push(`alcance: ${id} → «${m?.alcance}» no está en ALCANCES de normas.mjs`);
-    if (!(m?.veredicto_max in VEREDICTOS)) p.push(`veredicto: ${id} → «${m?.veredicto_max}» no es un veredicto`);
-    else if (m.ejecutor in EJECUTORES && veredictoPosible(m.ejecutor, m.alcance) !== m.veredicto_max) {
-      p.push(`veredicto-distinto: ${id} se anuncia «${m.veredicto_max}» y con ${m.ejecutor} para ${m.alcance} llega como mucho a «${veredictoPosible(m.ejecutor, m.alcance)}»`);
+    if (!(m?.veredicto in VEREDICTOS)) p.push(`veredicto: ${id} → «${m?.veredicto}» no es un veredicto`);
+    else if (m.ejecutor in EJECUTORES && veredictoPosible(m.ejecutor, m.alcance) !== m.veredicto) {
+      p.push(`veredicto-distinto: ${id} se anuncia «${m.veredicto}» y con ${m.ejecutor} para ${m.alcance} llega como mucho a «${veredictoPosible(m.ejecutor, m.alcance)}»`);
     }
     for (const c of ["cuando", "cuesta"]) if (!(typeof m?.[c] === "string" && m[c].length >= 20)) p.push(`texto: ${id}: «${c}» de 20 caracteres o más`);
     if (m?.ejemplo != null && !existe(m.ejemplo)) p.push(`ejemplo: ${id} cita ${m.ejemplo}, que no existe`);
@@ -134,7 +134,7 @@ export function textoMecanismos(cat = CATALOGO) {
   ESCALONES.forEach((e, i) => {
     out.push(`${i + 1} · ${e}`);
     for (const m of cat.mecanismos.filter((x) => x.escalon === e)) {
-      out.push(`  ${m.id} — ${m.nombre} · ejecutor ${m.ejecutor} · alcanza a ${m.alcance} · como mucho ${m.veredicto_max}`);
+      out.push(`  ${m.id} — ${m.nombre} · ejecutor ${m.ejecutor} · alcanza a ${m.alcance} · como mucho ${m.veredicto}`);
       out.push(`    Cuándo: ${m.cuando}`);
       out.push(`    Cuesta: ${m.cuesta}`);
       if (m.ejemplo) out.push(`    Ejemplo: ${m.ejemplo}`);

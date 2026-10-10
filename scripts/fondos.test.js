@@ -8,6 +8,7 @@ import {
   SEVERIDADES, TIPOS_CAUSA, aprendizajeValido, arregloDeBarrera, comentario, esComentarioNuestro, falla, fijarCampos, informeFichas,
   leerFicha, leerSubidos, limpio, subirAlcance, validarFicha, validarHijo,
 } from "./lib/fondos.mjs";
+import { ESCALONES } from "./lib/escalas.mjs";
 import { ALCANCES_FALLO } from "./lib/flujo.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
 import { GRUPOS } from "./lib/issues.mjs";
@@ -48,7 +49,7 @@ describe("vocabularios cerrados de la ficha", () => {
     expect(TIPOS_CAUSA).toEqual(Object.keys(GRUPOS.causa.valores));
     expect(ALCANCES).toEqual(Object.keys(ALCANCES_FALLO));
     expect(SEVERIDADES).toEqual(Object.keys(RIESGOS));
-    expect(BARRERAS).toEqual(JSON.parse(leer("ops/flujo.json")).escalera.map((e) => e.id));
+    expect(BARRERAS).toEqual(ESCALONES);
     expect(Object.keys(ESTADOS)).toEqual(["abierto", "diagnosticado", "plan", "en-curso", "en-observacion", "cerrado-eficaz", "reabierto"]);
   });
 
