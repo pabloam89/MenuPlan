@@ -58,6 +58,7 @@
       "debe_salir": [
         "Es una rotación: clave nueva en el servicio, en la misma ficha y campo",
         "La pone en cada destino que lista el inventario y la comprueba con una llamada gratis",
+        "Si el inventario la tiene como secreto de repo, la cambia ahí (sin --env) y no la mueve a un environment al rotar",
         "Revoca la vieja solo después de comprobar la nueva",
         "Requiere el OK de Pablo"
       ]

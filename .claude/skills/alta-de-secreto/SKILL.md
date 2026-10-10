@@ -60,20 +60,27 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
    `--reveal`) responde `[use 'op item get … --reveal' to reveal]`: el campo
    existe y está oculto.
 4. **Pásala a donde se usa, por tubería y leyendo por nombre de ficha** (no
-   por `op://`, que no admite tildes):
+   por `op://`, que no admite tildes). `op item get … --reveal` acaba en un
+   salto de línea, y ni `gh secret set` ni `vercel env add` dicen en su ayuda
+   que lo recorten: se recorta con `tr -d '\r\n'` en la tubería. Un documento
+   de varias líneas (un `.pem`) no se recorta y va con `op document get`.
    - **GitHub**: siempre en un **environment con política de ramas** (solo <!-- norma:secretos-en-environments -->
      `staging`), nunca secreto de repo. <!-- norma:secretos-de-repo --> El environment se crea antes, a mano
      (Pablo; si el workflow lo nombra sin existir, GitHub lo crea sin
      política: skill `github`). Luego
-     `node scripts/op.mjs item get "<Ficha>" --vault HoMenu --fields label=<CAMPO> --reveal | gh secret set <NOMBRE> --env <environment>`.
+     `node scripts/op.mjs item get "<Ficha>" --vault HoMenu --fields label=<CAMPO> --reveal | tr -d '\r\n' | gh secret set <NOMBRE> --env <environment>`.
      Lo que no es secreto (un id, una URL pública) va como variable:
      `gh variable set <NOMBRE> --env <environment> --body <valor>`.
-   - **Vercel**: `vercel env add <NOMBRE> <entorno>` lee el valor de stdin, con
-     la CLI recién entrada por Pablo (`! npx vercel login`) y su `logout` al
-     acabar (skill `vercel`). Solo en los entornos que la usan: si no, Preview
-     la tiene sin necesitarla.
+   - **Vercel**: `… | tr -d '\r\n' | vercel env add <NOMBRE> <entorno>` lee el
+     valor de stdin, con la CLI recién entrada por Pablo (`! npx vercel login`)
+     y su `logout` al acabar (skill `vercel`). Si la variable ya existe (al
+     rotar), se niega: `--force` la sobrescribe (CLI 62.1.0). Solo en los
+     entornos que la usan: si no, Preview la tiene sin necesitarla.
    - **Servidor**: la misma tubería hacia la `ssh` de Windows, escribiendo un
-     fichero de root con permisos 600 (skill `hetzner`).
+     fichero de root con permisos 600 (skill `hetzner`). Sus claves viven en
+     `Panel HoMenu`, que la service account no lee: `env -u
+     OP_SERVICE_ACCOUNT_TOKEN op item get "<Ficha>" --vault <id de la bóveda> …`
+     (el id, no el nombre, y se aprueba en la app; skill `1password`).
    Sale: `gh secret list --env <environment>` con el nombre y la fecha de hoy;
    en Vercel, el nombre en el entorno pedido.
 5. **Comprueba sin enseñarla** («Cómo se comprueba»): forma y una llamada
@@ -86,10 +93,14 @@ crear, rotar o cambiar un secreto es siempre suyo. <!-- norma:secretos-ok-pablo 
 7. **Rotar**: a los 14 días de caducar, al irse alguien con acceso, si salió en
    un log, en la conversación o en un aviso de secret scanning, o si se guardó
    donde no tocaba. Se hace un alta nueva (pasos 2 a 5) en **la misma ficha y
-   campo**, así ninguna dirección cambia; se pone en **cada destino** que
-   lista el inventario (environments de GitHub, entornos de Vercel, servidor);
-   se comprueba por forma y con la llamada gratis; **y solo entonces** se revoca la vieja en el
-   servicio y se cambia la fecha en el inventario.
+   campo**, así ninguna dirección cambia. Se pone en **cada destino tal como
+   está hoy** según el inventario: si hoy es secreto de repo, ahí
+   (`gh secret set <NOMBRE>` sin `--env`), porque el workflow que lo lee no
+   declara `environment:` y no vería uno nuevo. Pasarla a un environment es
+   otro cambio, con `environment:` en el workflow (norma `secretos-de-repo`,
+   rama `ops/secretos-a-environments`). Se comprueba por forma y con la llamada
+   gratis, **y solo entonces** se revoca la vieja en el servicio y se cambia la
+   fecha en el inventario.
 8. **Retirar**: se quita de cada destino del inventario, se revoca en el
    servicio, se archiva la ficha y se borra la fila (o se marca «retirada» con
    fecha).
@@ -191,4 +202,4 @@ clave nueva o rotada, antes de dar el alta por hecha:
 - https://docs.anthropic.com/en/api/models-list
 - https://core.telegram.org/bots/api#getme
 
-Comprobado el 2026-10-10: los nombres de los secretos y variables del environment `vigia` (`gh secret list --env vigia`, alta del 9 oct) y que el repo aún tiene secretos sueltos de antes de esta norma; los cinco tropiezos, por el encargo #398 y la skill `vercel`. Sin comprobar: el tope exacto del generador de 1Password, `vercel env add` contra el entorno personalizado de staging, y si `gh secret set` recorta el salto de línea final que deja `op item get` (si no, el paso de forma lo dice).
+Comprobado el 2026-10-10: los nombres de los secretos y variables del environment `vigia` (`gh secret list --env vigia`, alta del 9 oct) y que el repo aún tiene secretos sueltos de antes de esta norma; los cinco tropiezos, por el encargo #398 y la skill `vercel`. Sin comprobar: el tope exacto del generador de 1Password, `vercel env add` contra el entorno personalizado de staging, y si `gh secret set` o `vercel env add` recortan el salto de línea final que deja `op item get` (su ayuda no lo dice; por eso el `tr -d`). La opción `--force` de `vercel env add` se leyó en la ayuda de la CLI 62.1.0, sin usarla.
