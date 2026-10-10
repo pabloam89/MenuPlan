@@ -311,7 +311,10 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
   una con un número que staging ya usa, SQL a mano contra producción y
   `apply-migration --pablo` (solo de Pablo), abrir un PR con la rama
   atrasada, sin `Casos:`, o sin `Closes` si la rama es de un issue, fusionarlo si staging
-  pisó sus ficheros, trabajar en la carpeta principal y `gh issue create` a
+  pisó sus ficheros, trabajar en la carpeta principal, volver a las credenciales de Pablo (quitar o vaciar `GH_TOKEN`, `git -c credential.…`,
+  `GIT_AUTHOR_*`), cambiar reglas del repo por terminal (`rulesets.mjs --escribir`, `gh api`
+  que escribe en rulesets, protección, secretos o environments), `gh pr review --approve` (#447;
+  es un filtro: la barrera de fondo es el `gh auth logout` de Pablo) y `gh issue create` a
   pelo (se crea con `npm run issues -- --nuevo`, que busca los parecidos);
   pregunta
   antes de un push forzado y de escribir por
