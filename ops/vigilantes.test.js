@@ -108,6 +108,7 @@ const TABLA = [
   ["endpoints", "api/x.js", "api/_guard.test.js"],
   ["vigilantes", "scripts/x.test.js", "ops/vigilantes.test.js"],
   ["una-lista-de-tipos", "docs/x.md", ".claude/plantillas-skill.test.js"],
+  ["una-escala-y-una-escalera", "ops/flujo.json", "ops/escalas.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {

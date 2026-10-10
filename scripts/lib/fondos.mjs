@@ -1,7 +1,7 @@
 /**
  * fondos.mjs — la ficha de un problema de fondo y sus controles (#337, fase B
- * del plan #334). Lógica pura: sin red ni ficheros de datos (salvo leer una vez
- * la escalera de ops/flujo.json). Los usan:
+ * del plan #334). Lógica pura: sin red ni ficheros de datos. La escalera de las
+ * barreras es la de scripts/lib/escalas.mjs. Los usan:
  *
  *   scripts/fondos-evento.mjs   el workflow sobre eventos de issues (fondos.yml)
  *   scripts/fondos-pr.mjs       el paso «Fondos del PR» de tests.yml
@@ -19,10 +19,8 @@
  * Cada control tiene un nombre de regla («sin-diagnostico: …»): es lo que
  * cuentan los tests y lo que ve quien edita el issue.
  */
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-
 import { MAX_NUMERO, MIN_MOTIVO } from "../../.claude/hooks/casos.mjs";
+import { ESCALONES, etiquetaDeEscalon } from "./escalas.mjs";
 import { ALCANCES_FALLO } from "./flujo.mjs";
 import { CAMPOS_ENCARGO, ESCALONES_AUTOMATICOS, GRUPOS, MAX_ENCARGOS_POR_FONDO, TIPOS_ACCION, debeReabrir, faltas, porGrupo } from "./issues.mjs";
 import { CATALOGO as MECANISMOS } from "./mecanismos.mjs";
@@ -58,9 +56,8 @@ export const ESTADOS_CON_DIAGNOSTICO = ["diagnosticado", "plan", "en-curso", "en
  */
 export const CAPAS_AGENTE = ["auditor-datos", "datos", "diseno", "evaluador", "gobierno", "lola", "qa", "revisor", "seguridad", "sesión"];
 
-const FLUJO = JSON.parse(readFileSync(fileURLToPath(new URL("../../ops/flujo.json", import.meta.url)), "utf8"));
-/** Barrera = escalón de la escalera de durabilidad (ops/flujo.json), del más al menos duradero. */
-export const BARRERAS = FLUJO.escalera.map((e) => e.id);
+/** Barrera = escalón de la escalera de durabilidad (scripts/lib/escalas.mjs), del más al menos duradero. */
+export const BARRERAS = ESCALONES;
 
 /**
  * Qué fichero vale como `verificacion` según la barrera: un test (test_ci), un
@@ -81,9 +78,9 @@ export const esDeLaCasa = (asociacion) => ASOCIACIONES_DE_LA_CASA.includes(Strin
 /** Los fondos del propio plan #334: los primeros en pasar sus controles. */
 export const FONDOS_AUTOAPLICACION = [334];
 
-/** La etiqueta `arreglo:` que corresponde a una barrera (su primer valor en la escalera), o null. */
+/** La etiqueta `arreglo:` que corresponde a una barrera (la columna `etiqueta` de la escalera), o null. */
 export function arregloDeBarrera(barrera) {
-  return FLUJO.escalera.find((e) => e.id === barrera)?.arreglo[0] ?? null;
+  return etiquetaDeEscalon(barrera);
 }
 
 /** Alcance un nivel más alto (tope: transversal). Uno desconocido no cambia. */

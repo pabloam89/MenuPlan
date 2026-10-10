@@ -165,6 +165,13 @@
       "mira": ["**/*.{json,js,mjs,jsx,md}"],
       "porque": "Los tipos de skill viven solo en tipos_skill de ops/forja.json: cualquier JSON, JS o Markdown nuevo que escriba tres o más tipos juntos fuera de lo permitido es otra lista, y los moldes de .claude/plantillas-skill/ salen de la forja.",
       "evidencia": "#495"
+    },
+    {
+      "id": "una-escala-y-una-escalera",
+      "tests": ["ops/escalas.test.js"],
+      "mira": ["**/*.{json,js,mjs,jsx,yml,yaml}"],
+      "porque": "La escala de veredicto y la escalera de durabilidad se declaran solo en scripts/lib/escalas.mjs: cualquier JSON, JS o YAML nuevo que las escriba a mano es otra copia, y los lectores (normas, mecanismos, ficha del fondo, etiquetas) tienen que salir de ahí.",
+      "evidencia": "#515"
     }
   ],
   "pasos": [
