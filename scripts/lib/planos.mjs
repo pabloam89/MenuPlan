@@ -124,7 +124,13 @@ export const MEDIDORES = {
 /** Una cifra del uso de skills, o null si no hay transcripts que leer. */
 function cifraDeUso(cifra, ctx) {
   if (!ctx?.leerUso) return null;
-  if (ctx.uso === undefined) ctx.uso = ctx.leerUso();
+  if (ctx.uso === undefined) {
+    try {
+      ctx.uso = ctx.leerUso();
+    } catch {
+      ctx.uso = null; // a propósito: «sin comprobar» y no se relee (son cientos de MB); el mensaje del error llevaría rutas locales al issue
+    }
+  }
   return ctx.uso ? cifra(ctx.uso) : null;
 }
 

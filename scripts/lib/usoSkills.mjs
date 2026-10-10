@@ -72,6 +72,36 @@ export function rutaDelRepo(fichero, cwd) {
   return null;
 }
 
+/**
+ * Lo que de verdad ejecuta un comando, para casarlo con el mapa sin el ruido
+ * que el revisor de #397 contó (102 toques por comando en 7 días, la mayoría
+ * texto o lecturas):
+ *  - fuera el texto entre comillas (`git commit -m "…apply-migration…"`,
+ *    `--body "…"`) y el cuerpo de los heredocs;
+ *  - fuera los tramos (`&&`, `||`, `;`, `|`, salto de línea) que solo leen:
+ *    cd, ls, cat, grep, sed -n, git diff/log/show/status…, gh pr view…
+ * Devuelve los tramos que quedan unidos con « && », o "".
+ */
+const SOLO_LECTURA =
+  /^(?:cd|ls|cat|head|tail|grep|rg|wc|echo|find|pwd|sleep|sed\s+-n|git\s+(?:diff|log|show|status|grep|fetch|ls-files|rev-parse|rev-list|branch|worktree\s+list)|gh\s+(?:pr|issue)\s+(?:view|list|checks|diff)|gh\s+run\s+(?:view|list|watch))(?:\s|$)/;
+export function comandoQueCuenta(cmd) {
+  const sinTexto = String(cmd ?? "")
+    .replace(/<<-?\s*(['"]?)(\w+)\1[\s\S]*?\n\s*\2(?=\s|$)/g, "")
+    .replace(/"(?:[^"\\]|\\.)*"|'[^']*'/g, '""');
+  return sinTexto
+    .split(/&&|\|\||[;|\n]/)
+    .map((t) => t.trim().replace(/^(?:\w+=\S*\s+)+/, ""))
+    .filter((t) => t && !SOLO_LECTURA.test(t))
+    .join(" && ");
+}
+
+/** Los ids de las llamadas que acabaron en error (`tool_result` con is_error): la guardia que niega, el comando que falla. */
+function idsConError(mensaje) {
+  const c = mensaje?.content;
+  if (!Array.isArray(c)) return [];
+  return c.filter((p) => p?.type === "tool_result" && p.is_error === true && typeof p.tool_use_id === "string").map((p) => p.tool_use_id);
+}
+
 /** Los textos de un mensaje de la persona (string o partes `text`; nunca resultados de herramientas). */
 function textosDeUsuario(mensaje) {
   const c = mensaje?.content;
@@ -90,6 +120,7 @@ export function eventosDeTranscript(texto, { skills, mapa, esAgente = false }) {
   const conocidas = new Set(skills);
   const aperturas = [];
   const toques = [];
+  const conError = new Set();
   let sesion = null;
   for (const linea of String(texto).split(/\r?\n/)) {
     if (!linea.trim()) continue;
@@ -102,6 +133,7 @@ export function eventosDeTranscript(texto, { skills, mapa, esAgente = false }) {
     sesion ??= typeof j.sessionId === "string" ? j.sessionId : null;
     const cuando = typeof j.timestamp === "string" ? j.timestamp : null;
     if (j.type === "user") {
+      for (const id of idsConError(j.message)) conError.add(id);
       for (const t of textosDeUsuario(j.message)) {
         for (const [, nombre] of t.matchAll(/<command-name>\/?([\w-]{1,40})<\/command-name>/g)) {
           if (conocidas.has(nombre)) aperturas.push({ skill: nombre, via: esAgente ? "precargada" : "orden", cuando });
@@ -121,13 +153,15 @@ export function eventosDeTranscript(texto, { skills, mapa, esAgente = false }) {
         if (nombre && conocidas.has(nombre)) aperturas.push({ skill: nombre, via: "lectura", cuando });
       } else if (HERRAMIENTAS_EDICION.has(p.name)) {
         const ruta = rutaDelRepo(datos.file_path ?? datos.notebook_path, j.cwd);
-        if (ruta) for (const skill of skillsDeFicheros([ruta], mapa)) toques.push({ skill, como: "edicion", cuando });
+        if (ruta) for (const skill of skillsDeFicheros([ruta], mapa)) toques.push({ skill, como: "edicion", cuando, id: p.id });
       } else if (HERRAMIENTAS_SHELL.has(p.name)) {
-        for (const skill of skillsDeComando(String(datos.command ?? ""), mapa)) toques.push({ skill, como: "comando", cuando });
+        for (const skill of skillsDeComando(comandoQueCuenta(datos.command), mapa)) toques.push({ skill, como: "comando", cuando, id: p.id });
       }
     }
   }
-  return { sesion, aperturas, toques };
+  // Lo que acabó en error no tocó nada: la guardia que niega para pedir la
+  // skill (el sistema funcionando) y el comando que falla no cuentan.
+  return { sesion, aperturas, toques: toques.filter((t) => !conError.has(t.id)).map(({ id, ...t }) => t) };
 }
 
 /**
@@ -267,10 +301,18 @@ export function medirUso(raiz, { principal = raiz, dirProyectos = null, ahora = 
   if (!ficheros?.length) return null;
   const skills = skillsDelRepo(raiz);
   const mapa = cargarMapa(raiz);
-  const sesiones = ficheros.map(({ fichero, agente }) => {
-    const ev = eventosDeTranscript(readFileSync(fichero, "utf8"), { skills, mapa, esAgente: agente !== "sesion" });
-    return { agente, sesion: ev.sesion ?? basename(fichero, ".jsonl"), ...ev };
-  });
+  const sesiones = [];
+  for (const { fichero, agente } of ficheros) {
+    let texto;
+    try {
+      texto = readFileSync(fichero, "utf8");
+    } catch {
+      continue; // a propósito: un transcript bloqueado o borrado mientras se lee (EBUSY, EPERM) se salta; su error llevaría la ruta local al detalle del issue
+    }
+    const ev = eventosDeTranscript(texto, { skills, mapa, esAgente: agente !== "sesion" });
+    sesiones.push({ agente, sesion: ev.sesion ?? basename(fichero, ".jsonl"), ...ev });
+  }
+  if (!sesiones.length) return null;
   const desdeIso = new Date(desde).toISOString();
   return { desde: desdeIso, ...resumir(sesiones, skills, desdeIso), lineas: lineas(sesiones, desdeIso) };
 }

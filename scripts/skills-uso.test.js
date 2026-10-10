@@ -10,6 +10,7 @@ import { cargarMapa } from "../.claude/hooks/dominios.mjs";
 import {
   TOQUES,
   VIAS,
+  comandoQueCuenta,
   eventosDeTranscript,
   lineas,
   medirUso,
@@ -71,6 +72,25 @@ describe("eventosDeTranscript: qué cuenta como tocar un dominio", () => {
   it("un comando de riesgo, con el mismo mapa que la guardia; uno de lectura no", () => {
     const l = [herramienta("Bash", { command: "node scripts/telegram-webhook.mjs set https://x" }), herramienta("PowerShell", { command: "git status" })];
     expect(ev(l).toques.map((x) => [x.skill, x.como])).toEqual([["telegram", "comando"]]);
+  });
+
+  it("el texto de un commit, un PR o un heredoc no toca nada, ni un tramo que solo lee (#397)", () => {
+    const l = [
+      herramienta("Bash", { command: "git commit -m \"node scripts/telegram-webhook.mjs set\"" }),
+      herramienta("Bash", { command: "cat <<'EOF' > x.md\nnode scripts/telegram-webhook.mjs set\nEOF" }),
+      herramienta("Bash", { command: "cd C:/dev/MenuPlan-x && grep -n telegram-webhook.mjs scripts/*.mjs" }),
+      herramienta("Bash", { command: "git status && node scripts/telegram-webhook.mjs set https://x" }),
+    ];
+    expect(ev(l).toques.map((x) => x.skill)).toEqual(["telegram"]);
+    expect(comandoQueCuenta("cd x && ls && git diff")).toBe("");
+  });
+
+  it("lo que acabó en error no cuenta: la guardia que niega para pedir la skill, o el comando que falla (#397)", () => {
+    const llamada = (id, command) =>
+      JSON.stringify({ type: "assistant", sessionId: "sesion-prueba-1", timestamp: t(), message: { content: [{ type: "tool_use", id, name: "Bash", input: { command } }] } });
+    const resultado = (id, is_error) => persona([{ type: "tool_result", tool_use_id: id, is_error, content: "x" }]);
+    const l = [llamada("u1", "node scripts/telegram-webhook.mjs set https://x"), resultado("u1", true), llamada("u2", "node scripts/telegram-webhook.mjs set https://x"), resultado("u2", false)];
+    expect(ev(l).toques).toHaveLength(1);
   });
 
   it("rutaDelRepo: por el nombre de la carpeta o relativa a la sesión; fuera, null", () => {
@@ -159,17 +179,21 @@ describe("medirUso: las carpetas de transcripts de verdad", () => {
   writeFileSync(join(proyecto, "s1.jsonl"), [herramienta("Skill", { skill: "github" })].join("\n"));
   writeFileSync(join(sesion, "subagents", "agent-a1.jsonl"), [persona("<command-name>supabase</command-name>"), herramienta("Edit", { file_path: "C:/dev/MenuPlan/.claude/worktrees/agent-a1/vercel.json" })].join("\n"));
   writeFileSync(join(sesion, "subagents", "agent-a1.meta.json"), JSON.stringify({ agentType: "datos" }));
+  // Un tipo de agente que no es un nombre (ruta, espacios) sale «desconocido».
+  writeFileSync(join(sesion, "subagents", "agent-a2.jsonl"), herramienta("Skill", { skill: "issues" }));
+  writeFileSync(join(sesion, "subagents", "agent-a2.meta.json"), JSON.stringify({ agentType: "../fuera de aquí" }));
   // Otro proyecto (no es de este repo) y una sesión vieja: no cuentan.
   mkdirSync(join(dir, "C--dev-OtraCosa"));
   writeFileSync(join(dir, "C--dev-OtraCosa", "x.jsonl"), herramienta("Skill", { skill: "vercel" }));
   writeFileSync(join(proyecto, "vieja.jsonl"), herramienta("Skill", { skill: "hetzner" }));
   const hace = (dias) => new Date(ahora - dias * 86_400_000);
-  for (const f of [join(proyecto, "s1.jsonl"), join(sesion, "subagents", "agent-a1.jsonl")]) utimesSync(f, hace(0), hace(0));
+  for (const f of [join(proyecto, "s1.jsonl"), join(sesion, "subagents", "agent-a1.jsonl"), join(sesion, "subagents", "agent-a2.jsonl")]) utimesSync(f, hace(0), hace(0));
   utimesSync(join(proyecto, "vieja.jsonl"), hace(20), hace(20));
 
   it("cuenta la sesión y su subagente (con su tipo), y nada de otro proyecto ni de fuera de la ventana", () => {
     const m = medirUso(RAIZ, { principal, dirProyectos: dir, ahora });
-    expect(m.sesiones).toBe(2);
+    expect(m.sesiones).toBe(3);
+    expect(m.lineas.filter((x) => x.includes("skill_abierta: issues")).every((x) => x.includes("agente: desconocido"))).toBe(true);
     expect(m.uso.github.herramienta).toBe(1);
     expect(m.uso.supabase.precargada).toBe(1);
     expect(m.uso.vercel.total).toBe(0);
