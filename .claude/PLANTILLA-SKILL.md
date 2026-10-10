@@ -1,10 +1,18 @@
 # Plantilla de skill
 
 Toda skill de `.claude/skills/<nombre>/` sirve para que una sesión con prisa
-haga algo bien sin haber estado en la sesión que la escribió. Hay ocho tipos
-(la lista y su estado viven en `ops/flujo.json`, `tipos_skill`); todas
-comparten la estructura común y cada tipo tiene sus secciones. La de tipo
-**herramienta** es un **runbook**: cómo se opera un servicio.
+haga algo bien sin haber estado en la sesión que la escribió. Hay siete tipos,
+y su única lista es `tipos_skill` de `ops/forja.json`, que también dice cómo se
+asigna el tipo a una skill (`preguntas_tipo`) y qué criterios se aplican a cada
+uno. Todas comparten la estructura común de aquí; lo de cada tipo (sus
+secciones en orden, los campos de la ficha, cómo se prueba y su ejemplo mínimo)
+está en su molde, `.claude/plantillas-skill/<tipo>.md`, generado desde la forja.
+La de tipo **servicio** es un **runbook**: cómo se opera un servicio.
+
+Tres niveles (`niveles` de `ops/forja.json`): la pieza meta, `forja-de-skills`
+(nivel 0, `nivel: 0` en su ficha y sin tipo), de la que salen los moldes por tipo
+(nivel 1), y de ellos cada skill (nivel 2). A la pieza meta le valen las reglas
+comunes de aquí, no el molde de un tipo: sus secciones las fija `nivel_0` de la forja.
 
 La forma la vigila `.claude/skills.test.js` (nivel 1, gratis, en el CI) con las
 reglas de `scripts/lib/skills.mjs`; si algo de aquí cambia, cambia allí y el test
@@ -36,13 +44,13 @@ Toda skill, sea del tipo que sea, tiene estas piezas:
 
 | Pieza | Dónde vive | Obligatoria |
 |---|---|---|
-| **Método** | `SKILL.md`: en herramienta, «Operaciones habituales»; en los demás, la sección «Método» | sí |
-| **Técnicas** | `tecnicas/<técnica>.md`, una por fichero, citadas desde `SKILL.md` | si las hay (en oficio, la sección «Técnicas» las resume) |
+| **Método** | `SKILL.md`: en servicio, «Operaciones habituales»; en los demás, la sección «Método» | sí |
+| **Técnicas** | `tecnicas/<técnica>.md`, una por fichero, citadas desde `SKILL.md` | si las hay (en diagnóstico y decisión, la sección «Técnicas» las resume) |
 | **Referencias** | `referencias/<tema>.md`: el detalle largo que no se lee siempre; las fuentes de fuera, en «Fuentes y comprobación» | si las hay |
 | **Scripts** | `scripts/` del repo si los usa más de una pieza; `scripts/` de la skill si solo ella | si los hay |
 | **Plantillas** | `plantillas/<nombre>`: el texto o fichero que se copia y se rellena | si las hay |
 | **Casos de prueba** | `casos.json` en la carpeta de la skill (formato abajo) | sí, al menos 4 casos |
-| **Registro de cambios** | La sección «Registro de cambios», una línea fechada por cambio. En herramienta hacen ese papel «Lo que falló y por qué» y las líneas «Comprobado el …» | sí |
+| **Registro de cambios** | La sección «Registro de cambios», una línea fechada por cambio. En servicio hacen ese papel «Lo que falló y por qué» y las líneas «Comprobado el …» | sí |
 
 En la carpeta solo puede haber `SKILL.md`, `casos.json` y las subcarpetas
 `referencias/`, `tecnicas/`, `scripts/` y `plantillas/`; cada fichero de una
@@ -64,12 +72,17 @@ capa y `SKILL.md` dice cuándo abrirla: «Para instalar las copias, abre …».
 name: <igual que la carpeta>
 description: Úsala <cuándo: los disparadores concretos>. No para: <qué es de otra skill, regla o agente>.
 metadata:
-  tipo: <uno de los ocho>
+  tipo: <el que dan sus respuestas>
+  opera_proveedor: <true o false>   # y una línea por cada pregunta de preguntas_tipo; el molde las trae todas
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
 ---
 ```
 
+- `tipo` no se elige: sale de sus respuestas (`true` o `false`) a las preguntas de
+  `preguntas_tipo` de `ops/forja.json`, que van en el frontmatter (metadata), junto a `tipo`
+  (las seis líneas, en el molde de su tipo); manda la primera con sí (`tipoDeSkill`) y, si ninguna, `conocimiento`. El
+  nivel 1 falla si el frontmatter dice otro.
 - `description` es lo que lee quien decide si abrirla: dice cuándo, con las
   palabras con que se pide, y qué no es suyo. Entre 81 y 600 caracteres.
 - `dueno` es quien la mantiene, y tiene que llevarla en su `skills:`.
@@ -106,58 +119,21 @@ metadata:
   datos de familias ni nada sensible: el repo es público.
 - Campos: `id`, `peticion`, `skill`, `debe_salir` y, si hace falta, `nota`.
 
-## Los ocho tipos y sus secciones
+## Los tipos y su plantilla
 
-Secciones obligatorias, en este orden. Los tipos que no son herramienta
-comparten cabeza («Cuándo y para qué», «Método») y cola («Lo que falló y por
-qué», «Registro de cambios», «Fuentes y comprobación»).
+La lista de tipos, qué entra y qué sale de cada uno, cómo se prueba, la
+pregunta que lleva a él y los criterios que le tocan están en `ops/forja.json`
+(su vista, en `docs/ops/FORJA.md`). Las secciones obligatorias de cada tipo, en
+orden, y el molde que se copia, en `.claude/plantillas-skill/<tipo>.md`, que
+genera `npm run plantillas -- --escribir`. Aquí no se repite ninguna de las
+dos cosas: `.claude/plantillas-skill.test.js` falla si un molde no está al día
+y si aparece otra lista de tipos fuera de la forja.
 
-| Tipo | Qué guarda | Secciones, en orden |
-|---|---|---|
-| `herramienta` | Cómo se opera un servicio | Qué es y dónde · Claves y accesos · Operaciones habituales · Lo que falló y por qué · Qué requiere el OK de Pablo · Coste y límites · Fuentes y comprobación |
-| `oficio` | Cómo se piensa un tipo de problema | Cuándo y para qué · Método · Técnicas · Ejemplo resuelto · Lo que falló y por qué · Registro de cambios · Fuentes y comprobación |
-| `dominio` | El conocimiento del negocio | Cuándo y para qué · Método · Lo que hay que saber · Dónde vive el dato · Lo que falló y por qué · Registro de cambios · Fuentes y comprobación |
-| `estandar` | Cómo deben quedar las cosas | Cuándo y para qué · Método · La norma · Bien y mal · Lo que falló y por qué · Registro de cambios · Fuentes y comprobación |
-| `receta_cambio` | Los pasos de una acción que se repite | Cuándo y para qué · Método · Antes de empezar · Cómo se comprueba · Qué requiere el OK de Pablo · Lo que falló y por qué · Registro de cambios · Fuentes y comprobación |
-| `rubrica_juez` | Qué mira un juez y cómo puntúa | Cuándo y para qué · Método · Qué mira · Cómo puntúa · Ejemplos calibrados · Lo que falló y por qué · Registro de cambios · Fuentes y comprobación |
-| `investigacion` | Cómo buscar fuera y destilar | Cuándo y para qué · Método · Pregunta y alcance · Dónde buscar · Cómo se destila · Lo que falló y por qué · Registro de cambios · Fuentes y comprobación |
-| `meta` | Cómo crear, probar y podar las propias piezas | Cuándo y para qué · Método · Cómo se prueba · Cuándo se poda · Lo que falló y por qué · Registro de cambios · Fuentes y comprobación |
+Todos los tipos menos servicio comparten cabeza («Cuándo y para qué»,
+«Método») y cola («Lo que falló y por qué», «Registro de cambios», «Fuentes y
+comprobación»).
 
-Hoy hay skills de tipo herramienta, de tipo oficio (`causa-raiz` y
-`plan-de-arreglo`, #338), de tipo receta de cambio (`alta-de-secreto`, #398), de tipo meta (`forja-de-skills`, #409) y de tipo estándar (`estilo-de-respuesta`, #415); el estado de cada tipo lo lleva `ops/flujo.json`. Los demás quedan declarados y no se crea ninguno hasta que
-cumpla la regla de parada.
-
-### Forma del tipo herramienta
-
-```markdown
-# <Nombre>
-
-## Qué es y dónde
-Qué es, para qué lo usamos, quién es el dueño y qué pasa cuando no es lo que
-parece. Estado real hoy y **Pendiente:** lo que falta, sin disimular.
-
-## Claves y accesos
-Nombres (no valores), dónde viven y cómo se entra. Cuentas, llaves, tokens.
-
-## Operaciones habituales
-| Qué | Comando | Debe salir |
-|---|---|---|
-| Lo que se hace a menudo | `comando` | lo que se ve si ha ido bien |
-
-## Lo que falló y por qué
-- **AAAA-MM-DD · síntoma tal como se ve.** Causa: … Arreglo: …
-
-## Qué requiere el OK de Pablo
-- Lo que nunca se hace sin su sí explícito.
-
-## Coste y límites
-Cuánto cuesta, qué tope o cuota hay, y qué lo dispara.
-
-## Fuentes y comprobación
-- Enlaces de la documentación oficial.
-
-Comprobado el AAAA-MM-DD: cómo se comprobó, y qué NO se comprobó.
-```
+### El servicio, sección a sección
 
 1. **Qué es y dónde.** Para quien llega de nuevas. Si hay un nombre antiguo o
    una trampa de identidad (otro nombre, otra cuenta), aquí.
@@ -181,15 +157,15 @@ Comprobado el AAAA-MM-DD: cómo se comprobó, y qué NO se comprobó.
 
 - **Cuándo y para qué**: el problema que resuelve y cuándo no usarla.
 - **Método**: los pasos, en orden, cada uno con lo que sale. Lo largo, a una capa.
-- **Lo que falló y por qué**: igual que en herramienta, con fecha, causa y
+- **Lo que falló y por qué**: igual que en servicio, con fecha, causa y
   arreglo; una skill nueva puede empezar sin entradas y decirlo.
 - **Registro de cambios**: `- **AAAA-MM-DD** · qué cambió (#issue)`, lo más
   reciente arriba; al menos la primera versión.
-- La última línea, como en herramienta: `Comprobado el …` o `Sin comprobar: …`.
+- La última línea, como en servicio: `Comprobado el …` o `Sin comprobar: …`.
 
 ## El estándar de cada tipo
 
-La forma de arriba dice qué secciones lleva cada tipo; esto dice **qué hace buena
+El molde de cada tipo dice qué secciones lleva; esto dice **qué hace buena
 a una skill de ese tipo**, qué la estropea y cómo se ve una buena. Cada punto lleva
 su marca: **[F: fuente]** está en la fuente (las siglas BP, CC, DESC, EVAL, SB, CE y
 BEA y sus URL, en la skill `forja-de-skills`) y **[I]** es inferencia nuestra,
@@ -199,9 +175,10 @@ falta «Qué lo hace bueno», «Errores típicos» o su ejemplo, si un punto no 
 marca, y comprueba que un ejemplo real sale tal cual de la skill que cita. Si hoy
 no hay ninguna skill de un tipo, el ejemplo es un esqueleto y lo dice; con la
 primera skill de ese tipo, pasa a ser real. Si un punto lo contradice una skill del
-tipo, manda la medida (`skills-prueba`), no este texto.
+tipo, manda la medida (`skills-prueba`), no este texto. Cada apartado se copia a
+su molde al generarlo: se escribe aquí y solo aquí, uno por cada tipo de la forja.
 
-### `herramienta`
+### `servicio`
 
 #### Qué lo hace bueno
 
@@ -227,7 +204,34 @@ Real: `tailscale`, la tabla de «Operaciones habituales».
 | Probar la entrada al servidor | `ssh root@100.73.252.32 hostname` | `HoMenu-Panel` |
 ```
 
-### `oficio`
+### `procedimiento`
+
+#### Qué lo hace bueno
+
+- Pasos numerados en orden fijo, cada uno con lo que sale al terminarlo [F: BP, flujos con pasos claros y listas de comprobación].
+- «Antes de empezar» comprueba las condiciones y «Cómo se comprueba» confirma el resultado sin enseñar datos sensibles [F: BP, bucles de comprobación].
+- Los pasos que no se pueden deshacer son de una persona: el procedimiento deja los comandos listos y no los lanza [I].
+- Al sustituir algo, primero se comprueba lo nuevo y solo entonces se retira lo viejo [I].
+- Una lista de comprobación que se copia y se marca al final [F: BP, listas de comprobación].
+
+#### Errores típicos
+
+- Pasos sin salida observable: «comprueba que esté bien» [F: BP, instrucciones claras].
+- Probar solo en local algo que corre en otro entorno [I, lección de la propia `alta-de-secreto`].
+- Un valor secreto escrito en el comando, que queda en la conversación [I].
+- Mezclar varios procedimientos en uno (dar de alta, rotar y operar el servicio) sin decir qué es de cada uno [I].
+
+#### Ejemplo mínimo
+
+Real: `alta-de-secreto`, el primer paso de su método.
+
+```
+1. **Una clave, un uso.** Decide quién la usa (un workflow, el despliegue, un
+   script del PC, el servidor) y no reutilices la de otro uso: si se filtra o
+   caduca, solo cae ese. Sale: una línea «para qué, quién la lee, dónde vive».
+```
+
+### `diagnostico`
 
 #### Qué lo hace bueno
 
@@ -255,92 +259,64 @@ Real: `causa-raiz`, el paso que cierra la causa.
    <control> no lo para porque <motivo>». Va al campo `mecanismo` de la ficha.
 ```
 
-### `dominio`
+### `decision`
 
 #### Qué lo hace bueno
 
-- «Lo que hay que saber» son hechos que el modelo no tiene (reglas del negocio, excepciones, vocabulario propio), no definiciones generales [F: BP, lo conciso].
-- «Dónde vive el dato» apunta a la fuente de verdad y dice cómo leerla; no copia el dato [I].
-- Se organiza por tema, con el detalle de cada uno en su capa, para cargar solo lo que se necesita [F: BP, organización por dominio].
-- Una palabra por cosa en toda la skill [F: BP, terminología coherente].
+- Las opciones se ordenan con un catálogo escrito (la escalera, los mecanismos) y se empieza por la más alta; bajar exige su motivo [I].
+- Cada criterio del catálogo se aplica a la opción elegida y se dice cómo, no solo el resultado [I, prueba del tipo en `ops/forja.json`].
+- Una recomendación por defecto y, aparte, cuándo conviene otra, no un menú [F: BP, demasiadas opciones].
+- Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación].
 
 #### Errores típicos
 
-- Copiar el dato (una cifra, una lista, un estado) en la skill: pasa a haber dos fuentes y una se queda vieja [I].
-- Cifras o estados que caducan escritos en el cuerpo [F: BP, información que caduca].
-- Mezclar dos dominios en una skill, que acaba solapando con otra [F: SB, según resúmenes; I el reparto].
-- Explicar el dominio como un manual en lugar de lo que el modelo no sabe [F: BP, lo conciso].
+- Elegir por gusto o por costumbre sin pasar por el catálogo [I].
+- Un menú de opciones sin la recomendada [F: BP, demasiadas opciones].
+- Copiar el catálogo de opciones dentro de la skill: dos versiones que se separan [I].
 
 #### Ejemplo mínimo
 
-Esqueleto: aún no hay ninguna skill de este tipo; con la primera, se sustituye por un ejemplo real.
+Real: `plan-de-arreglo`, el paso que elige el mecanismo.
 
 ```
-Lo que hay que saber: <un hecho que el modelo no tiene>. Se lee en <fuente>.
-Dónde vive el dato: <qué dato> -> <fuente de verdad> -> <cómo se lee>.
-No es de esta skill: <lo vecino> -> <skill que lo tiene>.
+4. **Elige el mecanismo, el más alto posible.** `npm run mecanismos` → el
+   catálogo `ops/mecanismos.json` por escalones, de bloqueo a texto, con
+   cuándo conviene cada uno, qué cuesta y hasta qué veredicto llega. Empieza
+   por arriba y baja solo con un motivo: no se puede (el proveedor no lo
+   permite), cuesta más que el daño, o alcanza a menos gente de la que debe.
 ```
 
-### `estandar`
+### `flujo`
 
 #### Qué lo hace bueno
 
-- La norma cabe en una frase que permite decir, de un caso concreto, si la cumple o no [I].
-- «Bien y mal» pone el mismo caso mínimo hecho bien y hecho mal, uno junto al otro, con el porqué [F: BP, ejemplos de entrada y salida; I el formato en pares].
-- Lo que una máquina puede comprobar se pasa a un test o a un hook; lo que solo juzga una persona queda escrito como tal [I].
-- Pocos ejemplos, canónicos y que no contradicen la norma [I por analogía, CE, ejemplos canónicos].
+- Cada etapa nombra la skill o el agente que la lleva, y existe [I, prueba del tipo en `ops/forja.json`].
+- Cada etapa tiene su puerta: lo que la hace cumplir (un hook, el CI, un workflow), no solo el texto [I, CLAUDE.md «Lo que hace cumplir esto»].
+- Dice qué entra y qué sale de cada etapa, para que la siguiente sepa por dónde empezar [I].
 
 #### Errores típicos
 
-- Una norma que es un deseo («código limpio») sin nada observable [I].
-- Un ejemplo que incumple la norma que enseña [I].
-- Una norma que se podría comprobar con un test y vive solo como texto [I].
-- La norma copiada de otra skill o de un fichero de reglas: dos versiones [I].
+- Copiar dentro el método de una etapa que ya tiene su skill: dos versiones [I].
+- Una etapa sin dueño o sin puerta, que depende de que alguien se acuerde [I, CLAUDE.md «Cuando algo falla»].
+- Encadenar etapas sin decir qué sale de cada una, y que la siguiente lo adivine [I].
 
 #### Ejemplo mínimo
 
-Real: `estilo-de-respuesta`, la norma de «La norma».
+Real: `issues`, el árbol de un fallo hasta su arreglo.
 
 ```
-- la primera línea es una sola frase y está en negrita;
-- hay cuatro ideas o menos;
-- no hay cabeceras, tablas largas ni listas de ficheros;
+problema de fondo (tipo:fondo)   qué falla de fondo, su arreglo general y cómo se probará
+  ├─ caso (tipo:caso)            dónde se ha visto: la evidencia
+  └─ encargo (tipo:encargo)      una parte del arreglo, con su dueño y su PR
 ```
 
-### `receta_cambio`
-
-#### Qué lo hace bueno
-
-- Pasos numerados en orden fijo, cada uno con lo que sale al terminarlo [F: BP, flujos con pasos claros y listas de comprobación].
-- «Antes de empezar» comprueba las condiciones y «Cómo se comprueba» confirma el resultado sin enseñar datos sensibles [F: BP, bucles de comprobación].
-- Los pasos que no se pueden deshacer son de una persona: la receta deja los comandos listos y no los lanza [I].
-- Al sustituir algo, primero se comprueba lo nuevo y solo entonces se retira lo viejo [I].
-- Una lista de comprobación que se copia y se marca al final [F: BP, listas de comprobación].
-
-#### Errores típicos
-
-- Pasos sin salida observable: «comprueba que esté bien» [F: BP, instrucciones claras].
-- Probar solo en local algo que corre en otro entorno [I, lección de la propia `alta-de-secreto`].
-- Un valor secreto escrito en el comando, que queda en la conversación [I].
-- Mezclar varias recetas en una (dar de alta, rotar y operar el servicio) sin decir qué es de cada una [I].
-
-#### Ejemplo mínimo
-
-Real: `alta-de-secreto`, el primer paso de su método.
-
-```
-1. **Una clave, un uso.** Decide quién la usa (un workflow, el despliegue, un
-   script del PC, el servidor) y no reutilices la de otro uso: si se filtra o
-   caduca, solo cae ese. Sale: una línea «para qué, quién la lee, dónde vive».
-```
-
-### `rubrica_juez`
+### `revision`
 
 #### Qué lo hace bueno
 
 - Cada criterio es observable y va separado de los demás, con la evidencia que lo cumple (fichero y línea, una salida) [I].
-- La escala tiene anclas: qué es cada nivel, con un ejemplo calibrado por nivel, incluidos casi-fallos [I; DESC pide negativos cercanos para descripciones, F, y se traslada].
-- El juez cita la evidencia antes de puntuar, y da un veredicto de un vocabulario cerrado que se puede contar [I].
+- Los criterios viven en su catálogo y la skill los cita; no los copia [I].
+- Cada hallazgo sale con un código de un vocabulario cerrado y su arreglo, para poder contarlo [I].
 - Quien construye no juzga, y el juez no escribe lo que revisa [I].
 - Un criterio discrimina: si pasa igual con la pieza buena que con la mala, se retira [F: EVAL, aserciones que no miden nada].
 
@@ -353,66 +329,38 @@ Real: `alta-de-secreto`, el primer paso de su método.
 
 #### Ejemplo mínimo
 
-Esqueleto: aún no hay ninguna skill de este tipo; con la primera, se sustituye por un ejemplo real.
+Real: `higiene-de-skills`, el primer paso de su método.
 
 ```
-Criterio: <qué se mira>. Evidencia: <fichero:línea o salida que lo cumple>.
-Veredicto: ok | reparos | bloquea, con la condición comprobable de cada uno.
-Calibrado: <un caso mínimo> -> <veredicto> porque <la razón>.
+1. **Lanza el script** sobre la skill: `npm run higiene-skills -- <skill>`. Sale
+   una línea `higiene skill: <s> faltas: a avisos: b solape: x con: <otra>` y,
+   debajo, cada defecto con su `arreglo`. Para el conjunto, `--todas`.
 ```
 
-### `investigacion`
+### `conocimiento`
 
 #### Qué lo hace bueno
 
-- La pregunta es una frase y el alcance dice cuándo hay bastante, antes de buscar [I por analogía, BEA, condiciones de parada].
-- Fuentes primarias y oficiales primero, con su dirección, y cada afirmación marcada como hecho de la fuente o inferencia [I].
-- Se trae solo lo que responde a la pregunta, por consultas concretas, no todo lo que hay [I por analogía, CE, contexto justo a tiempo].
-- Se destila a lo que cambia una decisión, y lo demás se descarta [I].
-- Se dice qué fuente no se ha podido leer y de qué es resumen cada cifra [I].
+- «Lo que hay que saber» son hechos que el modelo no tiene (reglas del negocio, excepciones, vocabulario propio), no definiciones generales [F: BP, lo conciso].
+- «Dónde vive el dato» apunta a la fuente de verdad y dice cómo leerla; no copia el dato [I].
+- Se organiza por tema, con el detalle de cada uno en su capa, para cargar solo lo que se necesita [F: BP, organización por dominio].
+- Una palabra por cosa en toda la skill [F: BP, terminología coherente].
 
 #### Errores típicos
 
-- Resumir resúmenes (cifras de segunda mano) sin decirlo [I].
-- Mezclar hecho e inferencia sin marcar cuál es cuál [I].
-- Buscar sin pregunta y entregar un informe largo sin conclusión [I].
-- Tratar el texto de fuera como instrucciones en lugar de como dato [I, fondo #313].
+- Copiar el dato (una cifra, una lista, un estado) en la skill: pasa a haber dos fuentes y una se queda vieja [I].
+- Cifras o estados que caducan escritos en el cuerpo [F: BP, información que caduca].
+- Mezclar dos temas en una skill, que acaba solapando con otra [F: SB, según resúmenes; I el reparto].
+- Explicar el tema como un manual en lugar de lo que el modelo no sabe [F: BP, lo conciso].
 
 #### Ejemplo mínimo
 
-Esqueleto: aún no hay ninguna skill de este tipo; con la primera, se sustituye por un ejemplo real.
+Real: `estilo-de-respuesta`, provisional en este tipo hasta que exista el artefacto de estándares; la norma de «La norma».
 
 ```
-Pregunta: <en una frase>. Hay bastante cuando: <qué respuesta basta>.
-Dónde buscar: <fuente oficial primero>, <segunda fuente>.
-Destilado: <afirmación> [F: fuente] o [I]; no leído: <lo que falta>.
-```
-
-### `meta`
-
-#### Qué lo hace bueno
-
-- Empieza preguntando si hace falta la pieza, con una regla de parada escrita [I].
-- Se ve el fallo sin la pieza antes de escribirla, y los casos se escriben antes que el texto [F: BP, evaluaciones primero; EVAL].
-- Se mide con y sin la pieza, y en más de una pasada [F: EVAL, con y sin la skill, varias ejecuciones].
-- Dice quién comprueba cada cosa: un test, una medida o una persona [I].
-- Dice cuándo se poda lo que ya no sirve [I].
-
-#### Errores típicos
-
-- Alargar el texto cuando no mejora la medida [F: BP, lo conciso].
-- Declarar que mejora con una sola ejecución [F: EVAL, varias ejecuciones].
-- Una lista de excepciones que crece en lugar de arreglar la pieza [I].
-- Una pieza generada sin contrastarla con un fallo real [F: SB, según resúmenes].
-
-#### Ejemplo mínimo
-
-Real: `forja-de-skills`, el segundo paso de su método.
-
-```
-2. **Ver el fallo sin la skill.** Pon la petición real a una sesión sin la skill
-   y anota en qué falla (comando que inventa, paso que se salta). Sale: una
-   lista de fallos reales; si está vacía, no hay skill (paso 1).
+- la primera línea es una sola frase y está en negrita;
+- hay cuatro ideas o menos;
+- no hay cabeceras, tablas largas ni listas de ficheros;
 ```
 
 ## La forja: qué hace buena a una skill
@@ -426,7 +374,7 @@ forja paso a paso (incluido cuándo **no** crearla) está en la skill
 - **3 casos de frontera** como mínimo (peticiones parecidas que son de otra skill).
 - **Sin fechas en el cuerpo** fuera de «Lo que falló y por qué», «Registro de
   cambios» y «Fuentes y comprobación».
-- **Criterio de parada**: el «Método» (salvo en herramienta) dice qué sale o cuándo se acaba.
+- **Criterio de parada**: el «Método» (salvo en servicio) dice qué sale o cuándo se acaba.
 - **Como mucho 3 ejemplos** por sección de ejemplos.
 - **Descripciones sin solape** léxico entre skills.
 - **Presentación mecánica**: los comandos en código (en línea o en bloque), las

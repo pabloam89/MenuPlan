@@ -21,11 +21,6 @@
       "existe": "Hoy se puede sacar; `donde` dice de dónde",
       "pendiente": "Hoy no se mide; `fase` dice qué fase lo trae"
     },
-    "flujo.estado_tipo_skill": {
-      "existe": "Hay skills de este tipo en .claude/skills/",
-      "en_plan": "Tiene fase y encargo; aún no hay skill",
-      "reservado": "Declarado en la plantilla; no se crea ninguna hasta que se cumpla la regla de parada"
-    },
     "flujo.pasos": {
       "detectar": "",
       "registrar_caso": "",
@@ -48,6 +43,15 @@
       "en-observacion": "Arreglo fusionado; ventana sin casos nuevos corriendo",
       "cerrado-eficaz": "La ventana pasó limpia y el aprendizaje está registrado",
       "reabierto": "Un caso nuevo o un «no aguantó» lo reabrió"
+    },
+    "forja.tipo_skill": {
+      "servicio": "Operar un sistema externo concreto",
+      "procedimiento": "Pasos fijos que cambian algo",
+      "diagnostico": "De un síntoma a su causa",
+      "decision": "Elegir entre opciones con criterios",
+      "flujo": "Encadenar skills y agentes",
+      "revision": "Juzgar un artefacto contra un catálogo y aplicar lo mecánico",
+      "conocimiento": "Lo que hay que saber del negocio"
     },
     "glosario.clase": {
       "accion": "Un verbo del proceso: lo que alguien o algo hace",
@@ -111,7 +115,65 @@
       "correctivo": "Arregla las instancias que ya hay (el barrido)"
     }
   },
-  "retirados": [],
+  "retirados": [
+    {
+      "vocabulario": "forja.tipo_skill",
+      "valor": "herramienta",
+      "pasa_a": "servicio",
+      "desde": "2026-10-10",
+      "motivo": "Se reparte entre servicio y flujo. Se reparte por lo que hace cada skill: issues encadena y pasa a flujo. (#495)"
+    },
+    {
+      "vocabulario": "forja.tipo_skill",
+      "valor": "oficio",
+      "pasa_a": "diagnostico",
+      "desde": "2026-10-10",
+      "motivo": "Se reparte entre diagnostico y decision. Se reparte: causa-raiz diagnostica y plan-de-arreglo decide. (#495)"
+    },
+    {
+      "vocabulario": "forja.tipo_skill",
+      "valor": "dominio",
+      "pasa_a": "conocimiento",
+      "desde": "2026-10-10"
+    },
+    {
+      "vocabulario": "forja.tipo_skill",
+      "valor": "estandar",
+      "pasa_a": "conocimiento",
+      "desde": "2026-10-10"
+    },
+    {
+      "vocabulario": "forja.tipo_skill",
+      "valor": "receta_cambio",
+      "pasa_a": "procedimiento",
+      "desde": "2026-10-10"
+    },
+    {
+      "vocabulario": "forja.tipo_skill",
+      "valor": "rubrica_juez",
+      "pasa_a": "revision",
+      "desde": "2026-10-10"
+    },
+    {
+      "vocabulario": "forja.tipo_skill",
+      "valor": "investigacion",
+      "pasa_a": "procedimiento",
+      "desde": "2026-10-10"
+    },
+    {
+      "vocabulario": "forja.tipo_skill",
+      "valor": "meta",
+      "pasa_a": "revision",
+      "desde": "2026-10-10"
+    },
+    {
+      "vocabulario": "forja.tipo_skill",
+      "valor": "forja",
+      "pasa_a": null,
+      "desde": "2026-10-10",
+      "motivo": "Retirado el 10 oct 2026 por decisión de Pablo, sin sucesor: crear skills es de la pieza meta (nivel 0, forja-de-skills), que no tiene tipo. (#495)"
+    }
+  ],
   "redefiniciones": [
     {
       "termino": "verificar",
@@ -282,7 +344,18 @@
       "termino": "producción",
       "desde": "2026-10-10",
       "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "skill",
+      "desde": "2026-10-10",
+      "motivo": "Los tipos de skill pasan de ops/flujo.json a ops/forja.json (tipos_skill), y la pieza meta (nivel 0) no tiene tipo; mismo significado (#495)"
     }
   ],
-  "vocabularios_retirados": []
+  "vocabularios_retirados": [
+    {
+      "vocabulario": "flujo.estado_tipo_skill",
+      "desde": "2026-10-10",
+      "motivo": "El catálogo de tipos de skill sale de ops/flujo.json: los tipos viven en ops/forja.json y su estado (existe, en plan, reservado) se deriva de skills_hoy (#495)"
+    }
+  ]
 }

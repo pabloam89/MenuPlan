@@ -358,6 +358,18 @@ export function problemasDeFicha(ficha, datos) {
 
 // ── Los tipos de skill (decisión de Pablo, 10 oct 2026) ───────────────────
 
+/** Cuántos tipos decidió Pablo (eran 8; el 10 oct 2026 quitó `forja`, que pasa a la pieza meta de nivel 0). */
+export const NUM_TIPOS_SKILL = 7;
+
+/**
+ * Los criterios que aún nombran en `tipos` un tipo retirado: ["criterio: tipo"]. No rompen el
+ * catálogo, pero sobran; su trinquete (ops/forja-tipos.test.js) solo deja que la lista baje.
+ */
+export function tiposRetiradosEnCriterios(datos) {
+  const retirados = Object.keys(datos?.destino_tipos_actuales ?? {});
+  return (datos?.criterios ?? []).flatMap((c) => (Array.isArray(c.tipos) ? c.tipos.filter((t) => retirados.includes(t)).map((t) => `${c.id}: ${t}`) : []));
+}
+
 /** El tipo cuando ninguna pregunta responde que sí. */
 export const TIPO_POR_DEFECTO = "conocimiento";
 export const TODOS = "todos";
@@ -398,25 +410,34 @@ function problemasDeTipos(c, d, datos, malos) {
   if (!("tipos" in c)) { malos.push(`${d}: falta «tipos» (${TODOS} o la lista de tipos de skill a los que se aplica)`); return; }
   if (c.tipos === TODOS) return;
   if (!Array.isArray(c.tipos) || !c.tipos.length) { malos.push(`${d}: «tipos» es «${TODOS}» o una lista con al menos un tipo`); return; }
-  for (const t of c.tipos) if (!ids.includes(t)) malos.push(`${d}: tipos «${t}» no está en tipos_skill (${ids.join(", ")})`);
+  // Un tipo retirado que un criterio aún nombra no es un error aquí: lo cuenta tiposRetiradosEnCriterios, con su trinquete.
+  const retirados = Object.keys(datos?.destino_tipos_actuales ?? {});
+  for (const t of c.tipos) if (!ids.includes(t) && !retirados.includes(t)) malos.push(`${d}: tipos «${t}» no está en tipos_skill (${ids.join(", ")})`);
   if (new Set(c.tipos).size !== c.tipos.length) malos.push(`${d}: tipos repite un tipo`);
-  if (c.tipos.length === ids.length) malos.push(`${d}: tipos lista todos los tipos: pon «${TODOS}»`);
+  if (c.tipos.filter((t) => ids.includes(t)).length === ids.length) malos.push(`${d}: tipos lista todos los tipos: pon «${TODOS}»`);
 }
 
 /**
- * La taxonomía y la migración. `skills`: los nombres de las skills del repo;
- * `tiposActuales`: ids de ops/flujo.json (tipos_skill); `tipoActualDe`: skill → su metadata.tipo hoy.
+ * La taxonomía. `skills`: los nombres de las skills del repo; `fichaDe`: skill → su
+ * `metadata` (con las respuestas ya como true o false). Cada skill de nivel 2 declara
+ * en su ficha sus respuestas a `preguntas_tipo` y su `tipo`, que tiene que ser el que
+ * ellas dan; la base no guarda datos de cada pieza (#495). `destino_tipos_actuales`
+ * guarda los tipos retirados y a cuáles pasan: ninguno vuelve a ser un tipo ni a estar en una skill.
  */
-export function problemasDeTaxonomia(datos, { skills, tiposActuales, tipoActualDe = {} }) {
+export function problemasDeTaxonomia(datos, { skills: todas, fichaDe = {} }) {
+  const nivel = (s) => String(fichaDe[s]?.nivel ?? "2");
+  // La pieza meta (nivel 0) no tiene tipo ni respuestas.
+  const metas = todas.filter((s) => nivel(s) === "0");
+  const skills = todas.filter((s) => !metas.includes(s));
   const malos = [];
   const tipos = datos.tipos_skill ?? [];
   const ids = tipos.map((t) => t.id);
   const preguntas = datos.preguntas_tipo ?? [];
   const claves = preguntas.map((p) => p.clave);
-  if (ids.length !== 8) malos.push(`tipos_skill tiene ${ids.length} tipos; la decisión de Pablo son 8`);
+  if (ids.length !== NUM_TIPOS_SKILL) malos.push(`tipos_skill tiene ${ids.length} tipos; la decisión de Pablo son ${NUM_TIPOS_SKILL}`);
   if (new Set(ids).size !== ids.length) malos.push("tipos_skill repite un tipo");
   for (const t of tipos) {
-    for (const k of ["id", "que", "entra", "sale", "prueba", "skills_hoy"]) if (!(k in t)) malos.push(`tipo ${t.id}: falta «${k}»`);
+    for (const k of ["id", "que", "entra", "sale", "prueba", "skills_hoy", "secciones"]) if (!(k in t)) malos.push(`tipo ${t.id}: falta «${k}»`);
     if (!ID.test(t.id ?? "")) malos.push(`tipo ${t.id}: el id va en minúsculas con guiones`);
     if (!Array.isArray(t.skills_hoy)) malos.push(`tipo ${t.id}: skills_hoy es una lista`);
   }
@@ -432,39 +453,48 @@ export function problemasDeTaxonomia(datos, { skills, tiposActuales, tipoActualD
     const v = datos[eje];
     if (!v || typeof v !== "object" || !Object.keys(v).length) malos.push(`${eje} es un vocabulario con valores y su explicación`);
   }
-  const respuestas = datos.respuestas_tipo ?? {};
-  const migracion = datos.migracion_tipos ?? {};
+  for (const viejo of ["respuestas_tipo", "migracion_tipos"]) if (viejo in datos) malos.push(`${viejo}: las respuestas y el tipo de cada skill van en su ficha (frontmatter), no en la base (#495)`);
   const provisionales = datos.skills_provisionales ?? {};
+  const derivado = {};
   for (const s of skills) {
-    const r = respuestas[s];
-    if (!r) { malos.push(`${s}: faltan sus respuestas en respuestas_tipo (${claves.join(", ")})`); continue; }
-    for (const k of claves) if (typeof r[k] !== "boolean") malos.push(`${s}: la respuesta «${k}» es verdadero o falso`);
-    if ("nota" in r && !esTexto(r.nota, 30)) malos.push(`${s}: la nota de sus respuestas dice por qué (30 caracteres o más)`);
-    for (const k of Object.keys(r)) if (k !== "nota" && !claves.includes(k)) malos.push(`${s}: respuesta «${k}» no es una pregunta de preguntas_tipo`);
-    const derivado = tipoDeSkill(r, preguntas);
-    if (migracion[s] !== derivado) malos.push(`${s}: migracion_tipos dice «${migracion[s]}» y sus respuestas dan «${derivado}»`);
-    const actual = tipoActualDe[s];
-    const destino = datos.destino_tipos_actuales?.[actual]?.destinos;
-    if (actual && destino && !destino.includes(derivado)) malos.push(`${s}: era «${actual}» y pasa a «${derivado}», que no es un destino de «${actual}» (${destino.join(", ")})`);
+    const r = fichaDe[s] ?? {};
+    const faltan = claves.filter((k) => typeof r[k] !== "boolean");
+    for (const k of faltan) malos.push(`${s}: su ficha no responde «${k}» con true o false`);
+    if (faltan.length) continue;
+    derivado[s] = tipoDeSkill(r, preguntas);
+    if (r.tipo !== derivado[s]) malos.push(`${s}: su metadata.tipo es «${r.tipo}» y sus respuestas dan «${derivado[s]}»`);
   }
-  for (const s of [...Object.keys(respuestas), ...Object.keys(migracion)]) if (!skills.includes(s)) malos.push(`${s}: está en respuestas_tipo o migracion_tipos y no es una skill del repo`);
+  for (const s of metas) {
+    const r = fichaDe[s] ?? {};
+    if ("tipo" in r) malos.push(`${s}: es la pieza meta (nivel 0) y no lleva tipo`);
+    for (const k of claves) if (k in r) malos.push(`${s}: es la pieza meta (nivel 0) y no responde «${k}»`);
+  }
+  if (metas.length !== 1) malos.push(`hay ${metas.length} piezas meta (nivel 0) entre las skills; tiene que haber exactamente una`);
+  const n0 = datos.nivel_0?.skills?.secciones;
+  if (!Array.isArray(n0) || !n0.length || n0.at(-1) !== "Fuentes y comprobación") malos.push("nivel_0.skills.secciones: la forma de la pieza meta es una lista de secciones que acaba en «Fuentes y comprobación»");
+  for (const k of ["0", "1", "2"]) if (!esTexto(datos.niveles?.[k], 20)) malos.push(`niveles: falta el ${k} con su explicación`);
   for (const [s, p] of Object.entries(provisionales)) {
     if (!skills.includes(s)) malos.push(`${s}: skill provisional que no existe`);
     if (!esTexto(p?.motivo, 30)) malos.push(`${s}: skills_provisionales lleva su motivo (30 caracteres o más)`);
     if (typeof p?.en_tabla !== "boolean") malos.push(`${s}: skills_provisionales dice en_tabla (true si la tabla de Pablo ya la pone en su tipo)`);
   }
   for (const t of tipos) {
-    const hoy = skills.filter((s) => migracion[s] === t.id && (!(s in provisionales) || provisionales[s].en_tabla)).sort();
-    if (JSON.stringify([...(t.skills_hoy ?? [])].sort()) !== JSON.stringify(hoy)) malos.push(`tipo ${t.id}: skills_hoy es [${(t.skills_hoy ?? []).join(", ")}] y la migración da [${hoy.join(", ")}]`);
+    const hoy = skills.filter((s) => derivado[s] === t.id && (!(s in provisionales) || provisionales[s].en_tabla)).sort();
+    if (JSON.stringify([...(t.skills_hoy ?? [])].sort()) !== JSON.stringify(hoy)) malos.push(`tipo ${t.id}: skills_hoy es [${(t.skills_hoy ?? []).join(", ")}] y las respuestas de las skills dan [${hoy.join(", ")}]`);
   }
-  for (const t of tiposActuales) {
-    const d = datos.destino_tipos_actuales?.[t];
-    if (!d) { malos.push(`el tipo actual «${t}» de ops/flujo.json no tiene destino en destino_tipos_actuales`); continue; }
-    if (!Array.isArray(d.destinos) || !d.destinos.length) malos.push(`«${t}»: destinos es una lista con al menos un tipo`);
-    for (const x of d.destinos ?? []) if (!ids.includes(x)) malos.push(`«${t}»: el destino «${x}» no está en tipos_skill`);
-    if (!esTexto(d.nota, 15)) malos.push(`«${t}»: el destino lleva su nota (15 caracteres o más)`);
+  // Los tipos retirados: dicen a cuál pasan y no vuelven (un valor no se reutiliza).
+  const retirados = datos.destino_tipos_actuales ?? {};
+  for (const [t, d] of Object.entries(retirados)) {
+    if (ids.includes(t)) malos.push(`«${t}»: es un tipo retirado (destino_tipos_actuales) y vuelve a estar en tipos_skill`);
+    // Sin destino solo si no tiene sucesor, y la nota lo dice (p. ej. forja, que pasa a la pieza meta).
+    if (!Array.isArray(d?.destinos)) malos.push(`«${t}»: destinos es una lista (vacía si no tiene sucesor, y la nota dice por qué)`);
+    for (const x of d?.destinos ?? []) if (!ids.includes(x)) malos.push(`«${t}»: el destino «${x}» no está en tipos_skill`);
+    if (!esTexto(d?.nota, 15)) malos.push(`«${t}»: el destino lleva su nota (15 caracteres o más)`);
   }
-  for (const t of Object.keys(datos.destino_tipos_actuales ?? {})) if (!tiposActuales.includes(t)) malos.push(`«${t}»: tiene destino y ya no es un tipo de ops/flujo.json`);
+  for (const s of todas) {
+    const actual = fichaDe[s]?.tipo;
+    if (actual in retirados) malos.push(`${s}: su metadata.tipo «${actual}» es un tipo retirado; pasa a uno de: ${(retirados[actual]?.destinos ?? []).join(", ")}`);
+  }
   return malos;
 }
 
@@ -662,7 +692,7 @@ function mdTipos(datos) {
   return [
     "## Tipos de skill",
     "",
-    `Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué entra y sale, cómo se prueba y cómo se corrige. **La fuente de los tipos pasa a ser \`${RUTA_FORJA}\`**; el cambio de la plantilla (\`.claude/PLANTILLA-SKILL.md\`), de \`ops/flujo.json\` y de las skills es del encargo de plantillas por tipo, y hasta entonces siguen los ocho tipos de hoy.`,
+    `Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué entra y sale, cómo se prueba y cómo se corrige. **La única lista de tipos es la de \`${RUTA_FORJA}\`** (\`tipos_skill\`). El molde de cada tipo (sus secciones, los campos de la ficha, cómo se prueba y su ejemplo) se genera en \`.claude/plantillas-skill/<tipo>.md\` con \`npm run plantillas -- --escribir\` (#495), y el \`tipo\` del frontmatter de cada skill es el que dan sus respuestas.`,
     "",
     "| Tipo | Qué hace | Entra → sale | Prueba | Skills de hoy |",
     "|---|---|---|---|---|",
@@ -680,17 +710,17 @@ function mdTipos(datos) {
     "|---|---|",
     ...["libertad", "invocacion"].map((e) => `| ${e} | ${Object.keys(datos[e]).join(", ")} |`),
     "",
-    "Los tipos de hoy (`ops/flujo.json`) y adónde van:",
+    "Los tipos retirados al migrar (#495) y a cuáles pasan; no vuelven a usarse:",
     "",
-    "| Tipo de hoy | Destino |",
+    "| Tipo retirado | Destino |",
     "|---|---|",
-    ...Object.entries(datos.destino_tipos_actuales).map(([t, d]) => `| ${t} | ${d.destinos.join(", ")} |`),
+    ...Object.entries(datos.destino_tipos_actuales).map(([t, d]) => `| ${t} | ${d.destinos.join(", ") || "sin sucesor"} |`),
     "",
-    "Por skill (`migracion_tipos`, sacada de `tipoDeSkill` y comprobada por `ops/forja.test.js`):",
+    "Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su `tipo`, que tiene que ser el que ellas dan: la base es norma y no guarda datos de cada pieza (`ops/forja-tipos.test.js` y `.claude/skills.test.js`). Niveles:",
     "",
-    "| Skill | Tipo |",
+    "| Nivel | Qué es |",
     "|---|---|",
-    ...Object.entries(datos.migracion_tipos).map(([s, t]) => `| ${s} | ${t} |`),
+    ...Object.entries(datos.niveles ?? {}).map(([n, q]) => `| ${n} | ${celda(q)} |`),
     "",
     "Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que le tocan, `tipos` de cada criterio) → cada skill. Criterios de skill por tipo y capa:",
     "",

@@ -391,11 +391,11 @@
       "termino": "skill",
       "estado": "activo",
       "clase": "artefacto",
-      "definicion": "Una carpeta de .claude/skills/ con su SKILL.md, sus capas y sus casos de prueba, que una sesión abre por su nombre; tiene uno de los tipos del flujo.",
+      "definicion": "Una carpeta de .claude/skills/ con su SKILL.md, sus capas y sus casos de prueba, que una sesión abre por su nombre; tiene uno de los tipos de la forja, salvo la pieza meta.",
       "sinonimos_prohibidos": ["runbook", "runbooks"],
       "aplica_a": ["todas"],
       "relacionado": ["capa", "caso de prueba"],
-      "ref": { "fichero": "ops/flujo.json", "clave": "tipos_skill" },
+      "ref": { "fichero": "ops/forja.json", "clave": "tipos_skill" },
       "nota": "La línea «Runbook:» del PR conserva su nombre: es un identificador del CI (decisión pendiente)."
     },
     {

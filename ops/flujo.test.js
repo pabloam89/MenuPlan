@@ -144,7 +144,7 @@ const MALOS = [
   ["sin-fase", "aceptada sin explicar por qué", (d) => { delete obligacion(d, "P01.3").nota; }],
   ["capa", "una capa menos", (d) => { d.capas.pop(); }],
   ["escalera", "un escalón sin su etiqueta de arreglo", (d) => { d.escalera.pop(); }],
-  ["tipo-skill", "un tipo de skill reservado sin fase", (d) => { d.tipos_skill.find((t) => t.id === "dominio").fase = []; }],
+  ["tipo-skill", "una lista de tipos de skill que vuelve a flujo.json", (d) => { d.tipos_skill = [{ id: "servicio" }]; }],
   ["presupuesto", "el catálogo copiado en flujo.json (dos fuentes): vive en ops/presupuestos.json", (d) => { d.presupuestos = { por_alcance: {} }; }],
 ];
 

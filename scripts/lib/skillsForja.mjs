@@ -15,6 +15,11 @@
  * `codigo` de CODIGOS_FORJA, para poder contarlas).
  */
 
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { aplicaATipo, leerForja } from "./forja.mjs";
+
 /** Códigos de las faltas de la forja (vocabulario cerrado). Cada uno, con su porqué en `referencias/defectos.md`. */
 export const CODIGOS_FORJA = ["casos-negativos", "fechas", "sin-parada", "ejemplos", "solape", "comando-suelto", "tabla", "cabeceras"];
 
@@ -62,6 +67,16 @@ const SECCIONES_CON_FECHA = ["Lo que falló y por qué", "Registro de cambios", 
 const FRASES_DE_PARADA = "Sale bien si|Sale:|Para por criterio|Hecho cuando|Debe salir";
 const CRITERIO_DE_PARADA = new RegExp(String.raw`^[ \t]*(?:(?:[-*]|\d+\.)[ \t]+)?\**(?:${FRASES_DE_PARADA})|\*\*[^*\n]*(?:${FRASES_DE_PARADA})`, "im");
 const SECCIONES_DE_EJEMPLOS = ["Ejemplo resuelto", "Ejemplos calibrados", "Bien y mal"];
+
+let criterioParada = null;
+/**
+ * Si el criterio `sin-parada` de `ops/forja.json` se aplica a un tipo: lo dice su
+ * campo `tipos` (hoy, todos menos servicio), no una lista escrita aquí (#495).
+ */
+export function paradaAplica(tipo) {
+  criterioParada ??= leerForja(join(dirname(fileURLToPath(import.meta.url)), "..", "..")).criterios.find((c) => c.id === "sin-parada");
+  return Boolean(criterioParada) && aplicaATipo(criterioParada, tipo);
+}
 
 /** Un texto sin sus trozos de código entre comillas invertidas: una versión de API (`2023-06-01`) no es una fecha que caduque. */
 const sinCodigo = (texto) => texto.replace(/```[\s\S]*?```|`[^`\n]*`/g, "");
@@ -148,10 +163,12 @@ export function faltasDePresentacion(texto, donde = "SKILL.md") {
 
 /**
  * Los controles de una skill sola. `cuerpo` es el de `parsearSkill`; `tipo`, el
- * de su metadata; `extra`, los ficheros .md de sus capas ({ruta: texto}). Devuelve
- * [] si cumple todo.
+ * de su metadata; `extra`, los ficheros .md de sus capas ({ruta: texto}). `parada`
+ * fuerza si se pide criterio de parada en «Método» (la pieza meta, que no tiene tipo:
+ * lo decide su forma de `nivel_0`); si no se da, lo dice el criterio según el tipo.
+ * Devuelve [] si cumple todo.
  */
-export function faltasForja({ nombre, cuerpo, tipo, casos, extra = {} }) {
+export function faltasForja({ nombre, cuerpo, tipo, casos, extra = {}, parada }) {
   const f = [];
 
   if (casos && !casos.error && casosNegativos(casos, nombre) < MIN_FRONTERA_FORJA) {
@@ -162,10 +179,11 @@ export function faltasForja({ nombre, cuerpo, tipo, casos, extra = {} }) {
   const fechadas = secs.filter((s) => !SECCIONES_CON_FECHA.includes(s.titulo) && PROSA_FECHADA.some((p) => p.test(sinCodigo(s.texto)))).map((s) => s.titulo);
   if (fechadas.length) f.push(falta("fechas", `fechas en el cuerpo (se quedan viejas): «${fechadas.join("», «")}». Las fechas van a «Lo que falló y por qué», «Registro de cambios» o «Fuentes y comprobación»`));
 
-  // Una herramienta ya tiene «Debe salir» en cada fila (regla `formato`); los demás tipos, en «Método».
-  if (tipo !== "herramienta") {
-    const metodo = secs.find((s) => s.titulo === "Método")?.texto ?? "";
-    if (!CRITERIO_DE_PARADA.test(metodo)) f.push(falta("sin-parada", "«Método» no dice cuándo se acaba ni qué se ve cuando sale bien («Sale bien si», «Debe salir», «Hecho cuando», «Parar si»)"));
+  // Un servicio ya tiene «Debe salir» en cada fila (regla `formato`); los demás tipos, en «Método».
+  // Sin «Método» no hay nada que mirar aquí: si su tipo lo pide, ya falla la regla `secciones`.
+  const metodo = secs.find((s) => s.titulo === "Método");
+  if (metodo && (parada ?? paradaAplica(tipo))) {
+    if (!CRITERIO_DE_PARADA.test(metodo.texto)) f.push(falta("sin-parada", "«Método» no dice cuándo se acaba ni qué se ve cuando sale bien («Sale bien si», «Debe salir», «Hecho cuando», «Parar si»)"));
   }
 
   for (const s of secs.filter((x) => SECCIONES_DE_EJEMPLOS.includes(x.titulo))) {

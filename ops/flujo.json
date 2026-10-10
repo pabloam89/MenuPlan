@@ -49,7 +49,7 @@
       "id": "skills",
       "nombre": "Skills",
       "pregunta": "¿Cómo se hace?",
-      "contiene": "Método, técnicas, referencias, scripts y plantillas. De herramienta (cómo se opera un servicio) y de oficio (cómo se piensa un tipo de problema)",
+      "contiene": "Método, técnicas, referencias, scripts y plantillas. De uno de los tipos de tipos_skill de ops/forja.json (un servicio se opera; un diagnóstico piensa un tipo de problema), salvo la pieza meta",
       "donde": [
         ".claude/skills",
         ".claude/PLANTILLA-SKILL.md"
@@ -114,62 +114,7 @@
       ]
     }
   ],
-  "tipos_skill": [
-    {
-      "id": "herramienta",
-      "que": "Cómo se opera un servicio (supabase, vercel, telegram…)",
-      "estado": "existe",
-      "fase": []
-    },
-    {
-      "id": "oficio",
-      "que": "Cómo se piensa un tipo de problema (causa raíz, plan de arreglo, priorizar)",
-      "estado": "existe",
-      "fase": []
-    },
-    {
-      "id": "dominio",
-      "que": "El conocimiento del negocio (nutrición, alergias, cómo comen las familias)",
-      "estado": "reservado",
-      "fase": [
-        "#336"
-      ]
-    },
-    {
-      "id": "estandar",
-      "que": "Cómo deben quedar las cosas para ser consistentes (voz de Lola, design system)",
-      "estado": "existe",
-      "fase": []
-    },
-    {
-      "id": "receta_cambio",
-      "que": "Los pasos de una acción que se repite (dar de alta un secreto, añadir una herramienta a Lola, una pantalla, recetas)",
-      "estado": "existe",
-      "fase": []
-    },
-    {
-      "id": "rubrica_juez",
-      "que": "Qué mira un juez y cómo puntúa",
-      "estado": "reservado",
-      "fase": [
-        "#336"
-      ]
-    },
-    {
-      "id": "investigacion",
-      "que": "Cómo buscar fuera y destilar (radar de mercado, investigación técnica)",
-      "estado": "reservado",
-      "fase": [
-        "#336"
-      ]
-    },
-    {
-      "id": "meta",
-      "que": "Cómo crear, probar y podar las propias piezas",
-      "estado": "existe",
-      "fase": []
-    }
-  ],
+  "$tipos_skill": "Los tipos de skill viven en ops/forja.json (tipos_skill), la única lista; su molde, en .claude/plantillas-skill/ (#495).",
   "regla_de_parada": {
     "texto": "Una pieza nueva (catálogo, skill o agente) solo se crea si cumple las tres: se usa al menos dos veces o la leen al menos dos consumidores; no repite nada que ya esté en otra; tiene dueño y test. Lo que no se usa se aparca, como arquitecto y rendimiento.",
     "aplica_a": [
@@ -378,7 +323,7 @@
       ],
       "obligaciones": [
         { "id": "P11.1", "texto": "Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "contiene": "a la memoria, nunca", "test": null, "fase": ["#337"], "norma": "lecciones-a-un-test", "nota": "Desde #337 la ficha tiene el campo aprendizaje y P10.2 exige que no esté vacío al cerrar; que lo escrito sea cierto sigue siendo cosa del revisor" },
-        { "id": "P11.2", "texto": "Toda skill sigue la plantilla de su tipo: tipo, dueño, fecha de comprobación (caducada solo falla en el PR que la toca), secciones, tamaño, rutas y nada copiado", "ejecutor": "ci", "dureza": "dura", "ref": ".claude/PLANTILLA-SKILL.md", "contiene": "Los ocho tipos y sus secciones", "test": ".claude/skills.test.js", "fase": [], "norma": null },
+        { "id": "P11.2", "texto": "Toda skill sigue la plantilla de su tipo: tipo, dueño, fecha de comprobación (caducada solo falla en el PR que la toca), secciones, tamaño, rutas y nada copiado", "ejecutor": "ci", "dureza": "dura", "ref": ".claude/PLANTILLA-SKILL.md", "contiene": "Los tipos y su plantilla", "test": ".claude/skills.test.js", "fase": [], "norma": null },
         { "id": "P11.3", "texto": "Una skill se prueba con casos y sigue funcionando tras cambiarla", "ejecutor": "ci", "dureza": "semidura", "ref": ".claude/PLANTILLA-SKILL.md", "contiene": "npm run skills-prueba", "test": ".claude/skills.test.js", "fase": ["#341"], "norma": null, "nota": "Desde #336 el CI exige casos.json con casos propios y de frontera (nivel 1); que la skill ayude lo mide npm run skills-prueba (nivel 2, cuesta tokens), que nadie lanza solo: la fase E (#341) lo hace periódico" },
         { "id": "P11.4", "texto": "Una pieza nueva (skill, catálogo o agente) solo se crea si cumple la regla de parada", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "contiene": "regla de parada", "test": null, "fase": ["#341"], "norma": null }
       ]

@@ -41,6 +41,7 @@
     "flujo": "node scripts/flujo.mjs",
     "voz": "node scripts/voz.mjs",
     "forja": "node scripts/forja.mjs",
+    "plantillas": "node scripts/plantillas.mjs",
     "redaccion": "node scripts/redaccion.mjs",
     "glosario": "node scripts/glosario.mjs",
     "higiene-skills": "node scripts/higiene-skills.mjs",

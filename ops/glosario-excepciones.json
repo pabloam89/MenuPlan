@@ -51,7 +51,7 @@
     ".claude/skills/github/SKILL.md": {
       "parche": 1,
       "runbook": 1,
-      "subagente": 2,
+      "subagente": 1,
       "worktree": 1,
       "worktrees": 1
     },
@@ -76,7 +76,6 @@
       "worktrees": 2
     },
     "docs/ops/FLUJO.md": {
-      "causa raíz": 1,
       "lección": 1,
       "runbook": 2
     },

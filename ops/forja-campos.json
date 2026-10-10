@@ -23,9 +23,17 @@
     "skill.comprobado": "discreto",
     "skill.description": "texto",
     "skill.dueno": "discreto",
+    "skill.elige_opciones": "discreto",
+    "skill.encadena": "discreto",
     "skill.invocacion": "discreto",
+    "skill.juzga_artefacto": "discreto",
     "skill.libertad": "discreto",
     "skill.name": "discreto",
+    "skill.nivel": "discreto",
+    "skill.opera_proveedor": "discreto",
+    "skill.pasos_fijos": "discreto",
+    "skill.porque_tipo": "texto",
+    "skill.sintoma_a_causa": "discreto",
     "skill.tipo": "discreto"
   },
   "retirados": {}
