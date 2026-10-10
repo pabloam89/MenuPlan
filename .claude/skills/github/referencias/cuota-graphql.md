@@ -29,7 +29,8 @@ Cada `npm run issues` o arranque de sesión sin caché valía **~320 puntos**: c
 | `.claude/hooks/avisos.mjs` | `gh issue list --state open --limit 300` | GraphQL | caché de 10 min en la carpeta temporal |
 | `scripts/podar.mjs`, `scripts/retirar.mjs` | `gh pr list` (abiertos y todos / por rama) | GraphQL | a mano |
 | `scripts/lib/lleva.mjs` (`tarea`, `retirar`) | comentarios del issue | REST | a mano |
-| `scripts/lib/planos.mjs`, `scripts/cumplimiento.mjs`, `scripts/fabrica.mjs` | issues paginados / rutas del repo | GraphQL / REST | semanales en el CI, con el token del workflow (cupo propio) |
+| `scripts/lib/planos.mjs`, `scripts/cumplimiento.mjs` | issues paginados / rutas del repo | GraphQL / REST | semanales en el CI, con el token del workflow (cupo propio) |
+| `scripts/fabrica.mjs` (`npm run fabrica`, informe diario del panel) | dos consultas ligeras (`scripts/lib/fabricaGh.mjs`): número, estado y etiquetas de todos (1 punto por página) y los fondos en páginas de 10 con sus hijos (5 por página) | GraphQL | ~18 puntos en vez de ~321; caché de 10 min, espera si GitHub limita y línea `gh: caller=fabrica` |
 | esperar al CI: `gh pr checks --watch` | los checks del PR | GraphQL | una vuelta cada 30 s por sesión esperando |
 
 ## Cómo se gasta menos
@@ -40,9 +41,11 @@ Cada `npm run issues` o arranque de sesión sin caché valía **~320 puntos**: c
 - **Issues de golpe**: `npm run issues` tiene caché (`--fresco` la salta). Si GitHub no contesta o no hay cuota, el arranque usa lo último que guardó (hasta 6 h) y lo dice en su salida.
 - **Con el token de la App** (`node scripts/token-sesion.mjs -- <comando gh>`): cupo propio, aparte del de Pablo. Sirve para esperar a que se reinicie el de Pablo.
 
+- **Pedir lo justo**: GitHub cobra por los `first:` pedidos y no por lo devuelto. Fabrica (#424) bajó de 321 a ~18 puntos pidiendo solo número, estado y etiquetas, y los hijos solo de los fondos en páginas de 10 (`first: 100` con hijos de 50 costaba 52 puntos por página). Un error "rate limit" se reintenta 3 veces esperando `retry-after` (hasta 2 minutos de espera).
+
 ## Cómo se cuenta
 
-Cada llamada de `issues.mjs`, `avisos.mjs` y `espera-ci.mjs` (`migraciones.mjs` no: la guardia lo carga solo, sin `scripts/`, y cuesta 1 punto por sesión) añade una línea a `<temporal>/menuplan-cuota/gh.log`:
+Cada llamada de `issues.mjs`, `avisos.mjs`, `fabrica.mjs` y `espera-ci.mjs` (`migraciones.mjs` no: la guardia lo carga solo, sin `scripts/`, y cuesta 1 punto por sesión) añade una línea a `<temporal>/menuplan-cuota/gh.log`:
 `<fecha> gh: caller=<quién> api=rest|graphql`. Vocabulario cerrado en `scripts/lib/cuotaGh.mjs` (`CALLERS_GH`, `APIS_GH`), sin tokens ni
 datos de familias. Contar: `node -e "import('./scripts/lib/cuotaGh.mjs').then(m=>console.log(m.contarLog(require('fs').readFileSync(require('os').tmpdir()+'/menuplan-cuota/gh.log','utf8'))))"`.
 
