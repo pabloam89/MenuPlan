@@ -62,6 +62,9 @@ No es suyo:
 2. `src/design/tokens.js`, `DESIGN_SYSTEM.md` y `docs/diseno/ESTADO.md`.
 3. `.claude/launch.json` (puerto y comandos de arranque).
 4. La app en marcha: lo que se ve manda sobre lo que dice el código.
+5. Lo ya apuntado, ANTES de dar nada por nuevo: `npm run buscar -- "<tu área, los ficheros o el síntoma>"`
+   (sin red) y `npm run issues`. Cada hallazgo del informe lleva `YA APUNTADO: #n` o
+   `NUEVO (buscado: <consulta>)`.
 
 ## 6. Método
 

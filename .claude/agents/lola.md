@@ -71,6 +71,9 @@ No es suyo:
 3. `scripts/bot-evals.json`, `scripts/router-evals.json` y sus resultados.
 4. `scripts/bot-medidas.mjs` y `scripts/bot-coste.mjs` para latencia y coste.
 5. La instantánea de fichas `api/_bot/__snapshots__/fichas.test.js.snap`.
+6. Lo ya apuntado, ANTES de dar nada por nuevo: `npm run buscar -- "<tu área, los ficheros o el síntoma>"`
+   (sin red) y `npm run issues`. Cada hallazgo del informe lleva `YA APUNTADO: #n` o
+   `NUEVO (buscado: <consulta>)`.
 
 ## 6. Método
 

@@ -122,7 +122,12 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
 3. **Alcance**: ficheros que puede tocar y los que no; qué queda fuera.
 4. **Rama**: en qué rama o worktree trabaja.
 5. **Verificación**: cómo sabrá que ha terminado bien.
-6. Recordatorio: termina con el informe común de
+6. **Lo ya apuntado** (#384): pasa tú `npm run buscar -- "<área, ficheros o síntoma>"`
+   (y `npm run issues`, filtrado por el área) y pega en el brief los issues y
+   encargos que salen, con su estado y su plan. El agente no los vuelve a presentar
+   como nuevos: cada hallazgo suyo lleva `YA APUNTADO: #n` o `NUEVO (buscado: …)`.
+   Un hallazgo sin esa marca se devuelve.
+7. Recordatorio: termina con el informe común de
    `.claude/PLANTILLA-AGENTE.md`.
 
 ## 5. Paralelo sin pisarse
