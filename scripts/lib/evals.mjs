@@ -215,37 +215,61 @@ export function mesDeMadrid(fecha = new Date()) {
 }
 
 /**
- * Apunta lo que costó una pasada (o lo gastado hasta un fallo). Solo script,
- * mes y coste: ningún dato de familias. Un coste que no es un número válido
- * se rechaza: apuntarlo como 0 sería un hueco en el tope.
+ * Apunta lo que costó una llamada o una pasada. Solo script, mes y coste:
+ * ningún dato de familias. Un coste que no es un número válido se rechaza:
+ * apuntarlo como 0 sería un hueco en el tope. Si el libro acabó en una línea
+ * cortada (sin salto), empieza en una línea nueva para no pegarse a ella.
  */
 export function apuntarGasto({ script, coste_usd, pasada_id = null, fecha = new Date() }, { ruta = LIBRO_GASTO } = {}) {
   if (!Number.isFinite(coste_usd) || coste_usd < 0) throw new Error(`apuntarGasto: coste no válido (${coste_usd})`);
   if (!(coste_usd > 0)) return;
   mkdirSync(dirname(ruta), { recursive: true });
-  appendFileSync(ruta, JSON.stringify({ script, mes: mesDeMadrid(fecha), coste_usd: Number(coste_usd.toFixed(6)), pasada_id }) + "\n");
+  const cortada = existsSync(ruta) && statSync(ruta).size > 0 && !readFileSync(ruta, "utf8").endsWith("\n");
+  const linea = JSON.stringify({ script, mes: mesDeMadrid(fecha), coste_usd: Number(coste_usd.toFixed(6)), pasada_id }) + "\n";
+  appendFileSync(ruta, (cortada ? "\n" : "") + linea);
+}
+
+// Libros en los que falló apuntar: mientras dure el proceso, nada más se paga contra ellos.
+const librosRotos = new Set();
+
+/**
+ * Lo mismo, pero sin tirar la llamada ya pagada: si no se puede apuntar, avisa
+ * y cierra el grifo (puedeGastar dice que no) para que la pasada pare.
+ * @returns {boolean} true si quedó apuntado.
+ */
+export function apuntarOAvisar(datos, { ruta = LIBRO_GASTO } = {}) {
+  try {
+    apuntarGasto(datos, { ruta });
+    return true;
+  } catch (e) {
+    librosRotos.add(ruta);
+    console.warn(`[evals] no pude apuntar el gasto en ${ruta}, la pasada para: ${e.message}`);
+    return false;
+  }
 }
 
 /**
  * Lo gastado en evals este mes, según el libro de ESTA máquina (~/.menuplan-evals/
- * gasto.jsonl). Sin libro, 0. Falla CERRADO: si el libro existe y no se
- * puede leer, devuelve Infinity y el tope de la pasada queda a 0. Límite
- * conocido: no suma lo que gaste otra máquina (la de Álvaro) ni la consola.
+ * gasto.jsonl). Sin libro, 0. Falla CERRADO: si el libro existe y alguna línea
+ * no se lee, o trae un coste negativo, devuelve Infinity y no se paga nada.
+ * Límite conocido: no suma lo que gaste otra máquina (la de Álvaro) ni la consola.
  */
 export function gastoDelMesUsd({ ruta = LIBRO_GASTO, ahora = new Date() } = {}) {
   if (!existsSync(ruta)) return 0;
   const mes = mesDeMadrid(ahora);
+  let n = 0;
   try {
     let total = 0;
     for (const l of readFileSync(ruta, "utf8").split("\n")) {
+      n++;
       if (!l.trim()) continue;
       const f = JSON.parse(l);
-      if (!Number.isFinite(f.coste_usd) || typeof f.mes !== "string") throw new Error("línea sin mes o coste");
+      if (!Number.isFinite(f.coste_usd) || f.coste_usd < 0 || typeof f.mes !== "string") throw new Error("línea sin mes, o con coste que no es un número ≥ 0");
       if (f.mes === mes) total += f.coste_usd;
     }
     return total;
   } catch (e) {
-    console.warn(`[evals] libro del mes ilegible, el tope queda a 0: ${e.message}`);
+    console.warn(`[evals] libro del mes ilegible (${ruta}, línea ${n}), el tope queda a 0: ${e.message}`);
     return Infinity;
   }
 }
@@ -253,13 +277,25 @@ export function gastoDelMesUsd({ ruta = LIBRO_GASTO, ahora = new Date() } = {}) 
 /** El tope de una pasada: el pedido (o TOPE_PASADA_USD), sin pasar nunca de lo que queda del mes. */
 export function topeDePasada(pedido = null, gastadoMes = gastoDelMesUsd()) {
   const base = pedido ?? TOPE_PASADA_USD;
-  const queda = presupuestoMensualUsd() - (gastadoMes ?? 0);
+  const queda = presupuestoMensualUsd() - Math.max(0, gastadoMes ?? 0);
   return Math.max(0, Math.min(base, queda));
 }
 
-/** El motivo de parar por dinero: «mes» si lo que queda del mes era lo que limitaba, «pasada» si su tope propio. */
-export const motivoDeTope = (pedido = null, gastadoMes = gastoDelMesUsd()) =>
-  presupuestoMensualUsd() - (gastadoMes ?? 0) < (pedido ?? TOPE_PASADA_USD) ? "mes" : "pasada";
+/**
+ * ¿Se puede pagar otro intento? Se mira ANTES de cada llamada de pago, con el
+ * libro leído de nuevo: otra pasada (u otra terminal) puede haber gastado
+ * mientras tanto. Dos condiciones: lo de esta pasada (gastado + estimado <=
+ * tope) y lo del mes entero (libro + estimado <= presupuesto; el libro ya
+ * incluye lo que esta pasada fue apuntando). Falla cerrado.
+ * @returns {{ok: boolean, motivo?: "pasada" | "mes"}}
+ */
+export function puedeGastar(gastadoPasada, tope, estimado, { ruta = LIBRO_GASTO, ahora = new Date(), simulado = false } = {}) {
+  if (!simulado) {
+    if (librosRotos.has(ruta)) return { ok: false, motivo: "mes" };
+    if (gastoDelMesUsd({ ruta, ahora }) + estimado > presupuestoMensualUsd()) return { ok: false, motivo: "mes" };
+  }
+  return cabeOtro(gastadoPasada, tope, estimado) ? { ok: true } : { ok: false, motivo: "pasada" };
+}
 
 /** Lo mismo para el enrutador (Haiku, ~5,6k tokens por llamada, caché a 5 min). */
 export const ESTIMADO_ROUTER = { primero: 0.01, minimo: 0.002 };

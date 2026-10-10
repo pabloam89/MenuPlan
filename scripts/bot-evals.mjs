@@ -40,25 +40,23 @@ import { randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { cargarEnv, RAIZ } from "./lib/env.mjs";
 import {
-  CORRECTORES, NIVELES, REINTENTOS_POR_NIVEL, SALIDA, VERSION_ESQUEMA, baseMemo, bloquea, cabeOtro, casosDelNivel, compararEstados, elegirReferencia, ficherosDelCodigo,
+  CORRECTORES, NIVELES, REINTENTOS_POR_NIVEL, SALIDA, VERSION_ESQUEMA, baseMemo, bloquea, casosDelNivel, compararEstados, elegirReferencia, ficherosDelCodigo,
   casosVersion, claveMemo, codigoHash, costeUsd, erroresDeCasos, esEstricto, estadoDe, estimadoSiguiente,
   kDe, leerJsonl, memoria, opcion, opcionEntero, opcionNumero, otroIntento, promptHash, tokensDe, topeDePasada,
-  apuntarGasto, motivoDeTope,
+  apuntarOAvisar, puedeGastar,
 } from "./lib/evals.mjs";
 
 const ARGV = process.argv.slice(2);
 const SIMULADO = ARGV.includes("--simulado");
 const { casos } = JSON.parse(fs.readFileSync(new URL("./bot-evals.json", import.meta.url), "utf8"));
 
-let NIVEL, K, REINTENTOS, TOPE, MOTIVO_TOPE;
+let NIVEL, K, REINTENTOS, TOPE;
 try {
   NIVEL = opcion(ARGV, "nivel") ?? "completo";
   if (!NIVELES.includes(NIVEL)) throw new Error(`--nivel: ${NIVEL} no existe (${NIVELES.join(", ")})`);
   K = opcionEntero(ARGV, "k");
   REINTENTOS = opcionEntero(ARGV, "reintentos", 0) ?? REINTENTOS_POR_NIVEL[NIVEL];
-  const pedido = opcionNumero(ARGV, "tope");
-  TOPE = topeDePasada(pedido);
-  MOTIVO_TOPE = motivoDeTope(pedido);
+  TOPE = topeDePasada(opcionNumero(ARGV, "tope"));
 } catch (e) {
   // Un --tope mal escrito no puede correr sin tope: no se corre nada.
   console.error(e.message);
@@ -302,6 +300,7 @@ const k1 = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
 let gastado = 0;
 let pagados = 0;
 let paradoPorTope = false;
+let motivoTope = null;
 const tiempos = [];
 const estados = {};
 let bloqueos = 0;
@@ -328,11 +327,13 @@ for (const caso of elegidos) {
   const nuevos = [];
   const resultados = () => [...previos, ...nuevos.map((n) => n.aprobado)];
   while (otroIntento(resultados(), { k, reintentos: REINTENTOS, estricto })) {
-    if (!cabeOtro(gastado, TOPE, estimadoSiguiente(gastado, pagados))) { paradoPorTope = true; break; }
+    // El libro se vuelve a leer antes de cada intento de pago: otra pasada puede haber gastado mientras tanto.
+    const cupo = puedeGastar(gastado, TOPE, estimadoSiguiente(gastado, pagados), { simulado: SIMULADO });
+    if (!cupo.ok) { paradoPorTope = true; motivoTope = cupo.motivo; break; }
     const r = await intentar(caso);
     gastado += r.coste;
     // Al libro del mes en cuanto se paga, no al final: una pasada que muere a medias también gastó.
-    if (!SIMULADO) apuntarGasto({ script: "bot-evals", coste_usd: r.coste, pasada_id: PASADA });
+    if (!SIMULADO) apuntarOAvisar({ script: "bot-evals", coste_usd: r.coste, pasada_id: PASADA });
     pagados++;
     nuevos.push(r);
     tiempos.push(r.ms / 1000);
@@ -404,7 +405,7 @@ if (!referencia) {
 fs.appendFileSync(PASADAS, `${JSON.stringify(resumen)}\n`);
 
 if (paradoPorTope) {
-  console.log(`tope_evals script: bot-evals motivo: ${MOTIVO_TOPE} gastado_usd: ${gastado.toFixed(3)} tope_usd: ${TOPE.toFixed(2)}`);
+  console.log(`tope_evals script: bot-evals motivo: ${motivoTope} gastado_usd: ${gastado.toFixed(3)} tope_usd: ${TOPE.toFixed(2)}`);
   console.log(`\nPARADO POR EL TOPE: gastado $${gastado.toFixed(3)} de $${TOPE.toFixed(2)}. Faltan casos por correr (salida ${SALIDA.tope}).`);
   process.exitCode = SALIDA.tope;
 } else {

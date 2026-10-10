@@ -11,7 +11,7 @@ import {
   PRESUPUESTO_MENSUAL_EUR, TIPOS_CASO, TIPOS_DE_SEGURIDAD, bloquea, cabeOtro, casoHash, casosDelNivel,
   casosVersion, canonico, claveMemo, costeUsd, erroresDeCasos, esDeSeguridad, estadoDe, estimadoSiguiente,
   kDe, memoria, opcionNumero, otroIntento, presupuestoMensualUsd, topeDePasada,
-  apuntarGasto, gastoDelMesUsd, mesDeMadrid, MOTIVOS_TOPE_EVALS,
+  apuntarGasto, apuntarOAvisar, gastoDelMesUsd, mesDeMadrid, puedeGastar, MOTIVOS_TOPE_EVALS,
   COSTE_PASADA_COMPLETA_USD, TOPE_COMPLETO_POR_FAMILIA, baseMemo, codigoHash, compararEstados, elegirReferencia, ficherosDelCodigo, grafoDeImports,
 } from "./evals.mjs";
 
@@ -91,10 +91,10 @@ describe("precios: la caché de Lola se escribe a 1 h", () => {
 
 describe("tope de gasto", () => {
   it("el de una pasada nunca pasa de lo que queda del mes", () => {
-    expect(topeDePasada(1e6)).toBeLessThanOrEqual(presupuestoMensualUsd());
+    expect(topeDePasada(1e6, 0)).toBeLessThanOrEqual(presupuestoMensualUsd());
     expect(topeDePasada(10, presupuestoMensualUsd() - 2)).toBeCloseTo(2);
     expect(topeDePasada(10, presupuestoMensualUsd() + 5)).toBe(0);
-    expect(topeDePasada(0)).toBe(0);
+    expect(topeDePasada(0, 0)).toBe(0);
   });
   it("con tope 0 no cabe ni un intento; el primero se estima con la caché por escribir", () => {
     expect(cabeOtro(0, 0, estimadoSiguiente(0, 0))).toBe(false);
@@ -174,6 +174,73 @@ describe("tope mensual de evals: contabilidad del mes (#297)", () => {
     expect(() => apuntarGasto({ script: "x", coste_usd: -1 }, { ruta: nuevo() })).toThrow();
   });
 
+  it("una línea con coste negativo no quita el tope: falla cerrado", () => {
+    const f = nuevo();
+    apuntarGasto({ script: "bot-evals", coste_usd: 3, fecha: ahora }, { ruta: f });
+    writeFileSync(f, readFileSync(f, "utf8") + JSON.stringify({ script: "x", mes: "2026-10", coste_usd: -50 }) + "\n");
+    expect(gastoDelMesUsd({ ruta: f, ahora })).toBe(Infinity);
+    expect(topeDePasada(5, -50)).toBeLessThanOrEqual(5);
+    expect(topeDePasada(5, -50)).toBeLessThanOrEqual(presupuestoMensualUsd());
+  });
+
+  it("el aviso de libro ilegible dice la ruta y la línea", () => {
+    const f = nuevo();
+    writeFileSync(f, JSON.stringify({ script: "x", mes: "2026-10", coste_usd: 1 }) + "\nbasura\n");
+    const avisos = [];
+    const antes = console.warn;
+    console.warn = (m) => avisos.push(String(m));
+    try { gastoDelMesUsd({ ruta: f, ahora }); } finally { console.warn = antes; }
+    expect(avisos.join(" ")).toContain(f);
+    expect(avisos.join(" ")).toMatch(/línea 2/);
+  });
+
+  it("una línea cortada (sin salto) no se pega a la siguiente", () => {
+    const f = nuevo();
+    writeFileSync(f, '{"script":"x","mes":"2026-10","coste_usd":1');
+    apuntarGasto({ script: "bot-evals", coste_usd: 2, fecha: ahora }, { ruta: f });
+    const lineas = readFileSync(f, "utf8").split("\n").filter(Boolean);
+    expect(lineas).toHaveLength(2);
+    expect(() => JSON.parse(lineas[1])).not.toThrow();
+  });
+
+  it("dos pasadas que comparten libro no suman más que el presupuesto (se relee antes de cada pago)", () => {
+    const f = nuevo();
+    apuntarGasto({ script: "previo", coste_usd: presupuestoMensualUsd() - 3.5, fecha: ahora }, { ruta: f });
+    const A = { gastado: 0, parada: false };
+    const B = { gastado: 0, parada: false };
+    // Turnos alternos de 1 $ por intento, con el tope propio de cada una muy holgado.
+    for (let i = 0; i < 20; i++) {
+      for (const p of [A, B]) {
+        if (p.parada) continue;
+        const c = puedeGastar(p.gastado, 100, 1, { ruta: f, ahora });
+        if (!c.ok) { p.parada = true; expect(c.motivo).toBe("mes"); continue; }
+        p.gastado += 1;
+        apuntarOAvisar({ script: "sim", coste_usd: 1, fecha: ahora }, { ruta: f });
+      }
+    }
+    expect(gastoDelMesUsd({ ruta: f, ahora })).toBeLessThanOrEqual(presupuestoMensualUsd());
+    expect(A.gastado + B.gastado).toBe(3);
+  });
+
+  it("su propio tope de pasada también corta, con su motivo", () => {
+    expect(puedeGastar(4.9, 5, 0.25, { ruta: nuevo(), ahora })).toEqual({ ok: false, motivo: "pasada" });
+    expect(puedeGastar(0, 5, 0.25, { ruta: nuevo(), ahora })).toEqual({ ok: true });
+  });
+
+  it("si no se puede apuntar una llamada ya pagada, no tira: avisa y la pasada para", () => {
+    const fichero = nuevo();
+    writeFileSync(fichero, "");
+    const f = join(fichero, "dentro", "gasto.jsonl"); // el padre es un fichero: mkdir falla
+    const avisos = [];
+    const antes = console.warn;
+    console.warn = (m) => avisos.push(String(m));
+    let ok;
+    try { ok = apuntarOAvisar({ script: "bot-evals", coste_usd: 1, fecha: ahora }, { ruta: f }); } finally { console.warn = antes; }
+    expect(ok).toBe(false);
+    expect(avisos.join(" ")).toContain(f);
+    expect(puedeGastar(0, 5, 0.25, { ruta: f, ahora })).toEqual({ ok: false, motivo: "mes" });
+  });
+
   it("los motivos de parada están en un vocabulario cerrado", () => {
     expect(MOTIVOS_TOPE_EVALS).toEqual(["pasada", "mes"]);
   });
@@ -182,35 +249,51 @@ describe("tope mensual de evals: contabilidad del mes (#297)", () => {
 // La clase, no el caso: todo script que llama a Anthropic con la clave de las
 // evals pasa por topeDePasada y apunta su gasto, o está aquí con su porqué.
 describe("scripts que llaman a un modelo: tope y libro del mes (#297)", () => {
-  const ANTHROPIC = /import[^;\n]*["']@anthropic-ai\/sdk["']|import\(\s*["']@anthropic-ai\/sdk["']|api\.anthropic\.com/;
+  // Lo que cuenta es el código, no los comentarios que nombran un fichero o una clave.
+  const sinComentarios = (src) => src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  // Cualquier camino a un modelo de pago: el SDK, la API directa, la clave, o los módulos de Lola que llaman.
+  const MODELO = /(?:import|from)[^;\n]*["']@anthropic-ai\/sdk["']|import\(\s*["']@anthropic-ai\/sdk["']|api\.anthropic\.com|ANTHROPIC_API_KEY|api\/_bot\/(router|agente|significado|traducir|recetas|avisar)\b/;
   const CON_TOPE = ["bot-evals.mjs", "router-evals.mjs", "skills-prueba.mjs"];
   // Puntuales y manuales (los lanza una persona sobre un lote acotado, casi todos
-  // con --dry-run), o de coste de céntimos. No cuentan para el libro del mes.
+  // con --dry-run), o de céntimos. No cuentan para el libro del mes: el tope
+  // mensual NO los cubre, y esta lista es lo que dice cuáles son.
   const SIN_TOPE_DE_EVALS = {
     "alergenos-puede-contener.mjs": "pasada puntual del catálogo, por lotes",
     "bedca-select.mjs": "pasada puntual, con --dry-run que cotiza",
+    "buscador-examen.mjs": "examen manual, ~15 céntimos con Haiku",
     "enrich-recipe-steps.mjs": "horneado puntual del catálogo, con tope de intentos",
     "gen-appliance-methods.mjs": "generación puntual del catálogo",
     "lola-feedback.mjs": "bucle semanal, un puñado de llamadas",
     "recetas-atributos-blandos.mjs": "pasada puntual del catálogo",
     "router-cache.mjs": "dos llamadas a Haiku",
+    "router-ejemplos-examen.mjs": "examen manual, ~15 céntimos con Haiku",
     "router-feedback.mjs": "bucle semanal, un puñado de llamadas",
+    "vectores-contra-haiku.mjs": "examen manual, ~15 céntimos con Haiku",
   };
   const dir = fileURLToPath(new URL("scripts/", RAIZ));
-  const conIA = readdirSync(dir).filter((f) => /\.mjs$/.test(f) && !/\.test\./.test(f) && ANTHROPIC.test(readFileSync(join(dir, f), "utf8")));
+  const codigo = (f) => sinComentarios(readFileSync(join(dir, f), "utf8"));
+  const todos = readdirSync(dir).filter((f) => /\.mjs$/.test(f) && !/\.test\./.test(f));
+  const conIA = todos.filter((f) => MODELO.test(codigo(f)));
+
+  it("el detector no se deja engañar por un comentario ni se le escapa un import de Lola", () => {
+    expect(MODELO.test(sinComentarios("// usa ANTHROPIC_API_KEY\n/* api/_bot/router.js */"))).toBe(false);
+    expect(MODELO.test(sinComentarios('await import("../api/_bot/router.js")'))).toBe(true);
+    expect(MODELO.test(sinComentarios("process.env.ANTHROPIC_API_KEY"))).toBe(true);
+  });
 
   it("cada script con modelo de pago pasa por el libro del mes o está en las excepciones", () => {
     for (const f of new Set([...conIA.filter((x) => !SIN_TOPE_DE_EVALS[x]), ...CON_TOPE])) {
-      const src = readFileSync(join(dir, f), "utf8");
-      expect(CON_TOPE, `${f} llama a Anthropic sin topeDePasada ni excepción`).toContain(f);
+      const src = codigo(f);
+      expect(CON_TOPE, `${f} llama a un modelo sin topeDePasada ni excepción`).toContain(f);
       expect(src, `${f}: sin topeDePasada`).toMatch(/topeDePasada\(/);
-      expect(src, `${f}: no apunta su gasto en el libro del mes`).toMatch(/apuntarGasto\(/);
+      expect(src, `${f}: no relee el libro antes de cada pago`).toMatch(/puedeGastar\(/);
+      expect(src, `${f}: no apunta su gasto en el libro del mes`).toMatch(/apuntarOAvisar\(/);
     }
   });
 
   it("cada excepción existe y de verdad llama a un modelo", () => {
     for (const f of Object.keys(SIN_TOPE_DE_EVALS)) expect(conIA, f).toContain(f);
-    for (const f of CON_TOPE) expect(readdirSync(dir), f).toContain(f);
+    for (const f of CON_TOPE) expect(todos, f).toContain(f);
   });
 });
 
