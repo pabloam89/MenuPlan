@@ -113,6 +113,41 @@
       "preventivo": "Impide que la clase vuelva a pasar",
       "detectivo": "Avisa en cuanto vuelve a pasar",
       "correctivo": "Arregla las instancias que ya hay (el barrido)"
+    },
+    "metricas.causa_excepcion": {
+      "sin_lector": "nadie la lee: o se le pone lector, o deja de emitirse",
+      "no_es_cifra": "es una línea de texto con forma de `campo: valor` y no lleva ninguna cifra que contar"
+    },
+    "metricas.rol_campo": {
+      "id_metrica": "su valor es el id de una métrica del registro (indicador, contrapeso, ruido)",
+      "metrica": "una cifra medida: la cubre una métrica del registro",
+      "id": "de qué habla la línea (una skill, un candidato, un criterio, una clave)",
+      "estado": "un valor de un vocabulario cerrado",
+      "umbral": "el límite o el objetivo con el que se compara la cifra",
+      "cobertura": "cuántos datos respaldan la cifra (puntos, días de registro)",
+      "derivado": "una cifra calculada de otras ya registradas (sumas, medias, límites)",
+      "lista": "una lista de ids (issues, skills)",
+      "texto": "un texto corto declarado como hueco (una nota o un motivo)"
+    },
+    "metricas.tipo_lector": {
+      "script": "un script, hook o workflow que la interpreta (la filtra, la compara o decide con ella)",
+      "informe": "un workflow que la publica donde la lee una persona (un issue o el resumen del run)",
+      "rutina": "un comando, skill o agente que manda leerla en un paso de su método"
+    },
+    "metricas.unidad": {
+      "cuenta": "un número entero de cosas (issues, skills, criterios, líneas)",
+      "proporcion": "aciertos sobre el total, escrito a/b",
+      "ratio": "un número entre 0 y 1",
+      "usd": "dólares estimados a precio de API",
+      "minutos": "minutos activos de trabajo",
+      "tokens": "tokens de modelo",
+      "nivel": "el nivel de un plano, de 0 a 4"
+    },
+    "ruido.veredicto": {
+      "dentro": "la cifra de después está dentro de los límites de antes: la diferencia es ruido",
+      "fuera_por_encima": "la cifra de después pasa del límite superior: subió de verdad",
+      "fuera_por_debajo": "la cifra de después baja del límite inferior: bajó de verdad",
+      "sin_datos_suficientes": "hay menos puntos de antes que el mínimo, o falta la cifra de después: no se puede decir si cambió"
     }
   },
   "retirados": [

@@ -143,6 +143,49 @@ export function lineaDeIndicador(m) {
   return `indicador: ${m.indicador} valor: ${m.valor ?? "-"} umbral: ${m.umbral} estado: ${m.estado}${en}${nota}`;
 }
 
+// ── Contrapesos: las cifras que vigilan a los indicadores (#480) ──────────────
+
+/**
+ * Una cifra que se persigue deja de medir (Goodhart): cada indicador va con otra que
+ * subiría si se hiciera trampa con él (su `vigilante` en ops/metricas.json). Estas dos
+ * no tienen umbral: no disparan, se leen junto al indicador que vigilan.
+ */
+export const CONTRAPESOS = {
+  fondos_abiertos: { que: "fondos de la casa abiertos (si se dejan sin cerrar para no contar como cerrados sin aprendizaje, sube)" },
+  casos_puntuales_recientes: { que: `casos «puntual» creados en los últimos ${VENTANA_CORTO_DIAS} días (si un «no aguantó» se apunta como puntual, sube)` },
+};
+
+/** Los contrapesos medidos; `issues` null = la API no respondió (valor null, nunca un cero inventado). → [{ contrapeso, valor }] */
+export function medirContrapesos(issues, { hoy = new Date() } = {}) {
+  if (!Array.isArray(issues)) return Object.keys(CONTRAPESOS).map((contrapeso) => ({ contrapeso, valor: null }));
+  const desde = hoy.getTime() - VENTANA_CORTO_DIAS * 86_400_000;
+  const deLaCasa = (i) => !i.asociacion || esDeLaCasa(i.asociacion);
+  const puntual = (i) => deLaCasa(i) && tipoDe(i.labels) === "caso" && nombresDe(i.labels).includes("analisis:puntual") && i.createdAt && Date.parse(i.createdAt) >= desde;
+  return [
+    { contrapeso: "fondos_abiertos", valor: fondosDe(issues).filter(abierto).length },
+    { contrapeso: "casos_puntuales_recientes", valor: issues.filter(puntual).length },
+  ];
+}
+
+/** La línea contable de un contrapeso. */
+export function lineaDeContrapeso(c) {
+  return `contrapeso: ${c.contrapeso} valor: ${c.valor ?? "-"}`;
+}
+
+/**
+ * La serie de antes de cada cifra, leída de informes anteriores (los comentarios del
+ * issue «Flujo: informe semanal», del más antiguo al más reciente). Cada línea
+ * `indicador: x valor: n` o `contrapeso: x valor: n` es un punto; un «-» (sin datos) no cuenta.
+ * → { id: [n, …] }
+ */
+export function seriesDeHistorial(texto) {
+  const series = {};
+  for (const m of String(texto ?? "").matchAll(/^[ \t]*(?:indicador|contrapeso): ([a-z][a-z0-9_]*) valor: (\d+(?:\.\d+)?)(?=\s|$)/gm)) {
+    (series[m[1]] ??= []).push(Number(m[2]));
+  }
+  return series;
+}
+
 // ── Poda: piezas sin uso (solo con el registro local de la fábrica, #340) ─────
 
 /** Días de registro que se piden antes de proponer aparcar nada: el plazo de «Nadie la abre» de la skill forja-de-skills. */

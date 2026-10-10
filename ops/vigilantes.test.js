@@ -109,6 +109,8 @@ const TABLA = [
   ["endpoints", "api/x.js", "api/_guard.test.js"],
   ["vigilantes", "scripts/x.test.js", "ops/vigilantes.test.js"],
   ["una-lista-de-tipos", "docs/x.md", ".claude/plantillas-skill.test.js"],
+  ["metricas", "scripts/lib/x.mjs", "ops/metricas.test.js"],
+  ["workflows-yaml", ".github/workflows/x.yml", "ops/workflows.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {

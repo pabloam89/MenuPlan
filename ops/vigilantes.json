@@ -173,6 +173,20 @@
       "mira": ["**/*.{json,js,mjs,jsx,md}"],
       "porque": "Los tipos de skill viven solo en tipos_skill de ops/forja.json: cualquier JSON, JS o Markdown nuevo que escriba tres o más tipos juntos fuera de lo permitido es otra lista, y los moldes de .claude/plantillas-skill/ salen de la forja.",
       "evidencia": "#495"
+    },
+    {
+      "id": "metricas",
+      "tests": ["ops/metricas.test.js"],
+      "mira": ["scripts/**/*.mjs", ".claude/hooks/*.mjs", ".github/workflows/*.yml", ".claude/skills/**/*.md", ".claude/commands/*.md", "ops/metricas.json"],
+      "porque": "Recorre los scripts que emiten cifras y todo lo que importan: una línea `campo: valor` nueva en cualquier librería que usen, o un lector que deja de nombrar su cifra, lo rompe.",
+      "evidencia": "#480"
+    },
+    {
+      "id": "workflows-yaml",
+      "tests": ["ops/workflows.test.js"],
+      "mira": [".github/workflows/*.yml"],
+      "porque": "Lee todos los workflows: uno nuevo o editado con un bloque `run: |` roto deja de ser YAML y GitHub lo marca en rojo sin ejecutar nada.",
+      "evidencia": "#480"
     }
   ],
   "pasos": [
