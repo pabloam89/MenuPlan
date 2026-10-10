@@ -15,6 +15,136 @@ La única fuente de lo que se le pide a una skill, a un estándar de agente y a 
 
 Un criterio que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.
 
+## Tipos de skill
+
+Taxonomía decidida por Pablo el 10 oct 2026. Un tipo existe solo si cambia qué entra y sale, cómo se prueba y cómo se corrige. **La fuente de los tipos pasa a ser `ops/forja.json`**; el cambio de la plantilla (`.claude/PLANTILLA-SKILL.md`), de `ops/flujo.json` y de las skills es del encargo de plantillas por tipo, y hasta entonces siguen los ocho tipos de hoy.
+
+| Tipo | Qué hace | Entra → sale | Prueba | Skills de hoy |
+|---|---|---|---|---|
+| servicio | Operar un sistema externo concreto | petición → comando y resultado esperado | los comandos existen, la salida es comprobable y la caducidad es corta | github, vercel, supabase, telegram, hetzner, tailscale, 1password |
+| procedimiento | Pasos fijos que cambian algo | situación → cambio hecho y comprobado | cada paso con su verificación y su marcha atrás | alta-de-secreto |
+| diagnostico | De un síntoma a su causa | fallo → causa en campos cerrados | la salida rellena la ficha y hay un criterio de parada | causa-raiz |
+| decision | Elegir entre opciones con criterios | dilema → opción y porqué | cada criterio aplicado y la escalera seguida | plan-de-arreglo |
+| flujo | Encadenar skills y agentes | caso → cerrado por etapas | cada etapa apunta a una skill o agente que existe y tiene puerta | issues |
+| forja | Crear un artefacto nuevo desde su plantilla | necesidad → artefacto o «no hace falta» | regla de parada primero; lo creado pasa su plantilla | forja-de-skills |
+| revision | Juzgar un artefacto contra un catálogo y aplicar lo mecánico | artefacto → criterio, estado y arreglo | una pieza mala a propósito da todos sus fallos | higiene-de-skills |
+| conocimiento | Lo que hay que saber del negocio | pregunta → dato y dónde vive | cada afirmación apunta a su fuente | ninguna |
+
+El tipo de una skill sale de `tipoDeSkill(respuestas)`: el de la primera pregunta con sí, en este orden; si ninguna, `conocimiento`.
+
+| # | Clave | Pregunta | Tipo |
+|---|---|---|---|
+| 1 | opera_proveedor | ¿Opera un sistema o proveedor externo concreto? | servicio |
+| 2 | crea_artefacto | ¿Crea un artefacto nuevo? | forja |
+| 3 | juzga_artefacto | ¿Juzga un artefacto que ya existe? | revision |
+| 4 | encadena | ¿Encadena skills o agentes? | flujo |
+| 5 | pasos_fijos | ¿Son pasos fijos con comprobación? | procedimiento |
+| 6 | sintoma_a_causa | ¿Va de un síntoma a su causa? | diagnostico |
+| 7 | elige_opciones | ¿Elige entre opciones con criterios? | decision |
+
+Skills sin ningún sí (provisionales, con su motivo en `skills_provisionales`): `estilo-de-respuesta`.
+
+| Eje de la ficha de una skill | Valores |
+|---|---|
+| libertad | alta, media, baja |
+| invocacion | descripcion, guardia, precarga |
+
+Los tipos de hoy (`ops/flujo.json`) y adónde van:
+
+| Tipo de hoy | Destino |
+|---|---|
+| herramienta | servicio, flujo |
+| oficio | diagnostico, decision |
+| dominio | conocimiento |
+| estandar | conocimiento |
+| receta_cambio | procedimiento |
+| rubrica_juez | revision |
+| investigacion | procedimiento |
+| meta | forja, revision |
+
+Por skill (`migracion_tipos`, sacada de `tipoDeSkill` y comprobada por `ops/forja.test.js`):
+
+| Skill | Tipo |
+|---|---|
+| github | servicio |
+| vercel | servicio |
+| supabase | servicio |
+| telegram | servicio |
+| hetzner | servicio |
+| tailscale | servicio |
+| 1password | servicio |
+| alta-de-secreto | procedimiento |
+| causa-raiz | diagnostico |
+| plan-de-arreglo | decision |
+| issues | flujo |
+| forja-de-skills | forja |
+| higiene-de-skills | revision |
+| estilo-de-respuesta | conocimiento |
+
+Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que le tocan, `tipos` de cada criterio) → cada skill. Criterios de skill por tipo y capa:
+
+| Tipo | formal | material | subjetiva | Criterios |
+|---|---|---|---|---|
+| servicio | 25 | 12 | 13 | 50 |
+| procedimiento | 26 | 12 | 13 | 51 |
+| diagnostico | 26 | 12 | 13 | 51 |
+| decision | 26 | 12 | 13 | 51 |
+| flujo | 26 | 12 | 13 | 51 |
+| forja | 26 | 12 | 13 | 51 |
+| revision | 26 | 12 | 13 | 51 |
+| conocimiento | 26 | 12 | 13 | 51 |
+
+## Discreto y texto: los campos de cada ficha
+
+Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nunca cabe entero en ellos. Un texto solo se admite como **hueco** (`hueco: true`) con una frase que diga qué cubre que lo discreto no alcanza; los textos que lee un LLM rellenan los huecos, y corregir es «qué falla en qué hueco». `problemasDeCampos` falla con un texto sin hueco, un enum fuera de vocabulario o una ref que no existe. El trinquete de campos (`ops/forja-campos.json`) solo deja pasar un campo de texto a discreto, nunca al revés.
+
+| Clase | Qué es |
+|---|---|
+| bool | Verdadero o falso |
+| enum | Un valor de un vocabulario cerrado |
+| ref | Apunta a algo que existe: skill, agente, criterio, ruta, comando, issue o fuente |
+| numero | Un número |
+| fecha | Una fecha AAAA-MM-DD |
+| texto | Prosa: solo como hueco, con su motivo |
+
+| Artefacto | Campos discretos | Huecos de texto | Campos |
+|---|---|---|---|
+| skill | 6 | 1 | 7 |
+| estandar | 2 | 4 | 6 |
+| agente | 3 | 1 | 4 |
+
+### Campos de skill
+
+El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno y comprobado en metadata). Hasta que existan las fichas de skill (#457), es lo que hay.
+
+- `name` — ref a skill
+- `description` — texto. Hueco: El cuándo se abre la skill dicho con las palabras de quien pide: lo discreto no lo alcanza, es prosa para que el modelo reconozca una petición
+- `tipo` — enum (tipos_skill_vigentes)
+- `dueno` — ref a agente
+- `comprobado` — fecha
+- `libertad` — enum (libertad), opcional
+- `invocacion` — enum (invocacion), opcional
+
+### Campos de estandar
+
+Una tarea de un agente en ops/estandares-agentes.json (la clave es su id).
+
+- `tarea` — texto. Hueco: La frase que dice qué se hace en esa tarea: el verbo y su objeto no caben en un vocabulario cerrado
+- `origen` — enum (origen_tarea)
+- `estandar` — texto, opcional. Hueco: Qué es hacer bien la tarea, dicho con sus matices: un estándar no se reduce a casillas
+- `comprueba` — texto, lista, opcional. Hueco: Las comprobaciones concretas de esa tarea, que cambian con cada una y no tienen vocabulario común
+- `no_hace` — texto, lista, opcional. Hueco: La frontera con lo que es de otro agente o de una persona, que hay que nombrar caso a caso
+- `fuentes` — ref a fuente, lista, opcional
+
+### Campos de agente
+
+El frontmatter de .claude/agents/<agente>.md.
+
+- `name` — ref a agente
+- `description` — texto. Hueco: El cuándo se usa el agente y su frontera con los demás, dicho con las palabras de quien pide
+- `model` — enum (modelo_agente)
+- `skills` — ref a skill, lista, opcional
+
 ## Vocabularios
 
 | Capa | Qué es |

@@ -6,58 +6,506 @@
     "repeticiones": 10,
     "nota": "Primer tiro, pendiente de ajustar con datos: un criterio subjetivo solo puede marcarse listo_para_subir si sus medidas (coincidencia del juicio del LLM con la respuesta conocida de sus casos de calibración, sobre n repeticiones) cumplen los dos valores."
   },
+  "tipos_skill": [
+    {
+      "id": "servicio",
+      "que": "Operar un sistema externo concreto",
+      "entra": "petición",
+      "sale": "comando y resultado esperado",
+      "prueba": "los comandos existen, la salida es comprobable y la caducidad es corta",
+      "skills_hoy": [
+        "github",
+        "vercel",
+        "supabase",
+        "telegram",
+        "hetzner",
+        "tailscale",
+        "1password"
+      ]
+    },
+    {
+      "id": "procedimiento",
+      "que": "Pasos fijos que cambian algo",
+      "entra": "situación",
+      "sale": "cambio hecho y comprobado",
+      "prueba": "cada paso con su verificación y su marcha atrás",
+      "skills_hoy": [
+        "alta-de-secreto"
+      ]
+    },
+    {
+      "id": "diagnostico",
+      "que": "De un síntoma a su causa",
+      "entra": "fallo",
+      "sale": "causa en campos cerrados",
+      "prueba": "la salida rellena la ficha y hay un criterio de parada",
+      "skills_hoy": [
+        "causa-raiz"
+      ]
+    },
+    {
+      "id": "decision",
+      "que": "Elegir entre opciones con criterios",
+      "entra": "dilema",
+      "sale": "opción y porqué",
+      "prueba": "cada criterio aplicado y la escalera seguida",
+      "skills_hoy": [
+        "plan-de-arreglo"
+      ]
+    },
+    {
+      "id": "flujo",
+      "que": "Encadenar skills y agentes",
+      "entra": "caso",
+      "sale": "cerrado por etapas",
+      "prueba": "cada etapa apunta a una skill o agente que existe y tiene puerta",
+      "skills_hoy": [
+        "issues"
+      ]
+    },
+    {
+      "id": "forja",
+      "que": "Crear un artefacto nuevo desde su plantilla",
+      "entra": "necesidad",
+      "sale": "artefacto o «no hace falta»",
+      "prueba": "regla de parada primero; lo creado pasa su plantilla",
+      "skills_hoy": [
+        "forja-de-skills"
+      ]
+    },
+    {
+      "id": "revision",
+      "que": "Juzgar un artefacto contra un catálogo y aplicar lo mecánico",
+      "entra": "artefacto",
+      "sale": "criterio, estado y arreglo",
+      "prueba": "una pieza mala a propósito da todos sus fallos",
+      "skills_hoy": [
+        "higiene-de-skills"
+      ]
+    },
+    {
+      "id": "conocimiento",
+      "que": "Lo que hay que saber del negocio",
+      "entra": "pregunta",
+      "sale": "dato y dónde vive",
+      "prueba": "cada afirmación apunta a su fuente",
+      "skills_hoy": []
+    }
+  ],
+  "preguntas_tipo": [
+    {
+      "clave": "opera_proveedor",
+      "pregunta": "¿Opera un sistema o proveedor externo concreto?",
+      "tipo": "servicio"
+    },
+    {
+      "clave": "crea_artefacto",
+      "pregunta": "¿Crea un artefacto nuevo?",
+      "tipo": "forja"
+    },
+    {
+      "clave": "juzga_artefacto",
+      "pregunta": "¿Juzga un artefacto que ya existe?",
+      "tipo": "revision"
+    },
+    {
+      "clave": "encadena",
+      "pregunta": "¿Encadena skills o agentes?",
+      "tipo": "flujo"
+    },
+    {
+      "clave": "pasos_fijos",
+      "pregunta": "¿Son pasos fijos con comprobación?",
+      "tipo": "procedimiento"
+    },
+    {
+      "clave": "sintoma_a_causa",
+      "pregunta": "¿Va de un síntoma a su causa?",
+      "tipo": "diagnostico"
+    },
+    {
+      "clave": "elige_opciones",
+      "pregunta": "¿Elige entre opciones con criterios?",
+      "tipo": "decision"
+    }
+  ],
+  "libertad": {
+    "alta": "Una heurística o un criterio: hay varios caminos buenos",
+    "media": "Un camino recomendado con variantes admitidas",
+    "baja": "Pasos exactos o un script: un error cuesta caro"
+  },
+  "invocacion": {
+    "descripcion": "La carga el modelo al leer su descripción",
+    "guardia": "La pide la guardia antes de un comando de riesgo del dominio",
+    "precarga": "Va precargada en el skills: de un agente"
+  },
+  "respuestas_tipo": {
+    "github": {
+      "opera_proveedor": true,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    },
+    "vercel": {
+      "opera_proveedor": true,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    },
+    "supabase": {
+      "opera_proveedor": true,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    },
+    "telegram": {
+      "opera_proveedor": true,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    },
+    "hetzner": {
+      "opera_proveedor": true,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    },
+    "tailscale": {
+      "opera_proveedor": true,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    },
+    "1password": {
+      "opera_proveedor": true,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    },
+    "alta-de-secreto": {
+      "opera_proveedor": false,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": true,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    },
+    "causa-raiz": {
+      "opera_proveedor": false,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": true,
+      "elige_opciones": false
+    },
+    "plan-de-arreglo": {
+      "opera_proveedor": false,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": true
+    },
+    "issues": {
+      "opera_proveedor": false,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": true,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    },
+    "forja-de-skills": {
+      "opera_proveedor": false,
+      "crea_artefacto": true,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    },
+    "higiene-de-skills": {
+      "opera_proveedor": false,
+      "crea_artefacto": false,
+      "juzga_artefacto": true,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    },
+    "estilo-de-respuesta": {
+      "opera_proveedor": false,
+      "crea_artefacto": false,
+      "juzga_artefacto": false,
+      "encadena": false,
+      "pasos_fijos": false,
+      "sintoma_a_causa": false,
+      "elige_opciones": false
+    }
+  },
+  "skills_provisionales": {
+    "estilo-de-respuesta": "Es un estándar, no una skill: se muda al artefacto estandar cuando existan (decisión de Pablo, 10 oct 2026); mientras, no responde sí a ninguna pregunta y cae en conocimiento"
+  },
+  "migracion_tipos": {
+    "github": "servicio",
+    "vercel": "servicio",
+    "supabase": "servicio",
+    "telegram": "servicio",
+    "hetzner": "servicio",
+    "tailscale": "servicio",
+    "1password": "servicio",
+    "alta-de-secreto": "procedimiento",
+    "causa-raiz": "diagnostico",
+    "plan-de-arreglo": "decision",
+    "issues": "flujo",
+    "forja-de-skills": "forja",
+    "higiene-de-skills": "revision",
+    "estilo-de-respuesta": "conocimiento"
+  },
+  "destino_tipos_actuales": {
+    "herramienta": {
+      "destinos": [
+        "servicio",
+        "flujo"
+      ],
+      "nota": "Se reparte por lo que hace cada skill: issues encadena y pasa a flujo."
+    },
+    "oficio": {
+      "destinos": [
+        "diagnostico",
+        "decision"
+      ],
+      "nota": "Se reparte: causa-raiz diagnostica y plan-de-arreglo decide."
+    },
+    "dominio": {
+      "destinos": [
+        "conocimiento"
+      ],
+      "nota": "Reservado: ninguna skill lo usa hoy."
+    },
+    "estandar": {
+      "destinos": [
+        "conocimiento"
+      ],
+      "nota": "Provisional: el estándar pasa a ser otro artefacto (por agente y tarea) y estilo-de-respuesta se muda allí cuando existan; mientras, la skill cae en conocimiento."
+    },
+    "receta_cambio": {
+      "destinos": [
+        "procedimiento"
+      ],
+      "nota": "Pasos fijos que cambian algo."
+    },
+    "rubrica_juez": {
+      "destinos": [
+        "revision"
+      ],
+      "nota": "La rúbrica de un juez va dentro de revision."
+    },
+    "investigacion": {
+      "destinos": [
+        "procedimiento"
+      ],
+      "nota": "Reservado: cuando exista será un procedimiento."
+    },
+    "meta": {
+      "destinos": [
+        "forja",
+        "revision"
+      ],
+      "nota": "Se reparte: crear es forja y juzgar lo existente es revision."
+    }
+  },
+  "campos_ficha": {
+    "skill": {
+      "fuente": "El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno y comprobado en metadata). Hasta que existan las fichas de skill (#457), es lo que hay.",
+      "campos": {
+        "name": {
+          "clase": "ref",
+          "ref": "skill",
+          "obligatorio": true
+        },
+        "description": {
+          "clase": "texto",
+          "hueco": true,
+          "cubre": "El cuándo se abre la skill dicho con las palabras de quien pide: lo discreto no lo alcanza, es prosa para que el modelo reconozca una petición",
+          "obligatorio": true
+        },
+        "tipo": {
+          "clase": "enum",
+          "vocab": "tipos_skill_vigentes",
+          "obligatorio": true,
+          "nota": "Hoy, los ocho tipos de ops/flujo.json; pasará al vocabulario tipos_skill con el encargo de plantillas por tipo"
+        },
+        "dueno": {
+          "clase": "ref",
+          "ref": "agente",
+          "obligatorio": true
+        },
+        "comprobado": {
+          "clase": "fecha",
+          "obligatorio": true
+        },
+        "libertad": {
+          "clase": "enum",
+          "vocab": "libertad",
+          "obligatorio": false,
+          "nota": "Aún no está en el frontmatter"
+        },
+        "invocacion": {
+          "clase": "enum",
+          "vocab": "invocacion",
+          "obligatorio": false,
+          "nota": "Aún no está en el frontmatter"
+        }
+      }
+    },
+    "estandar": {
+      "fuente": "Una tarea de un agente en ops/estandares-agentes.json (la clave es su id).",
+      "clave": "id",
+      "campos": {
+        "tarea": {
+          "clase": "texto",
+          "hueco": true,
+          "cubre": "La frase que dice qué se hace en esa tarea: el verbo y su objeto no caben en un vocabulario cerrado",
+          "obligatorio": true
+        },
+        "origen": {
+          "clase": "enum",
+          "vocab": "origen_tarea",
+          "obligatorio": true
+        },
+        "estandar": {
+          "clase": "texto",
+          "hueco": true,
+          "cubre": "Qué es hacer bien la tarea, dicho con sus matices: un estándar no se reduce a casillas",
+          "obligatorio": false
+        },
+        "comprueba": {
+          "clase": "texto",
+          "lista": true,
+          "hueco": true,
+          "cubre": "Las comprobaciones concretas de esa tarea, que cambian con cada una y no tienen vocabulario común",
+          "obligatorio": false
+        },
+        "no_hace": {
+          "clase": "texto",
+          "lista": true,
+          "hueco": true,
+          "cubre": "La frontera con lo que es de otro agente o de una persona, que hay que nombrar caso a caso",
+          "obligatorio": false
+        },
+        "fuentes": {
+          "clase": "ref",
+          "ref": "fuente",
+          "lista": true,
+          "obligatorio": false
+        }
+      }
+    },
+    "agente": {
+      "fuente": "El frontmatter de .claude/agents/<agente>.md.",
+      "campos": {
+        "name": {
+          "clase": "ref",
+          "ref": "agente",
+          "obligatorio": true
+        },
+        "description": {
+          "clase": "texto",
+          "hueco": true,
+          "cubre": "El cuándo se usa el agente y su frontera con los demás, dicho con las palabras de quien pide",
+          "obligatorio": true
+        },
+        "model": {
+          "clase": "enum",
+          "vocab": "modelo_agente",
+          "obligatorio": true
+        },
+        "skills": {
+          "clase": "ref",
+          "ref": "skill",
+          "lista": true,
+          "obligatorio": false
+        }
+      }
+    }
+  },
   "criterios": [
-    {"id":"frontmatter","capa":"formal","aplica_a":["skill"],"texto":"El frontmatter lleva solo name, description y metadata; name igual que la carpeta; la description empieza por «Úsala », dice «No para:» y tiene de 81 a 600 caracteres, por debajo de los 1.024 del estándar abierto","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"frontmatter"},
-    {"id":"tipo","capa":"formal","aplica_a":["skill"],"texto":"metadata.tipo es uno de los ocho tipos de ops/flujo.json y tiene secciones definidas","fuente":"[I] scripts/lib/skills.mjs","control":".claude/skills.test.js","codigo":"tipo"},
-    {"id":"dueno","capa":"formal","aplica_a":["skill"],"texto":"metadata.dueno es un agente de .claude/agents/ que la carga en su skills:","fuente":"[I] scripts/lib/skills.mjs","control":".claude/skills.test.js","codigo":"dueno"},
-    {"id":"comprobado","capa":"formal","aplica_a":["skill"],"texto":"metadata.comprobado es una fecha AAAA-MM-DD no futura y el texto dice «Comprobado el <fecha>: …» con qué se comprobó ese día","fuente":"[I] scripts/lib/skills.mjs","control":".claude/skills.test.js","codigo":"comprobado"},
-    {"id":"caducada","capa":"formal","aplica_a":["skill"],"texto":"Una skill que toca un PR no tiene su fecha de comprobado a más de 90 días; el reloj no va en npm test sino en el paso «Skills del PR» del CI","fuente":"[I] scripts/lib/skills.mjs","control":"scripts/skills-pr.test.js","codigo":"caducada"},
-    {"id":"secciones","capa":"formal","aplica_a":["skill"],"texto":"Las secciones de su tipo, en su orden y ninguna vacía, con el título «# …» arriba","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"secciones"},
-    {"id":"formato","capa":"formal","aplica_a":["skill"],"texto":"Tabla de operaciones con «Debe salir» en las herramientas, fallos con fecha, causa y arreglo, registro de cambios fechado y última línea «Comprobado el …» o «Sin comprobar: …»","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"formato"},
-    {"id":"tamano","capa":"formal","aplica_a":["skill"],"texto":"SKILL.md de 220 líneas como mucho (la guía oficial pide menos de 500); el detalle va a ficheros de capa","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"tamano"},
-    {"id":"secretos","capa":"formal","aplica_a":["skill"],"texto":"Ningún patrón de clave ni cadena de conexión con contraseña en la skill ni en sus capas","fuente":"[I] scripts/lib/skills.mjs","control":".claude/skills.test.js","codigo":"secretos"},
-    {"id":"rutas","capa":"formal","aplica_a":["skill"],"texto":"Todo fichero del repo citado entre comillas invertidas existe","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"rutas"},
-    {"id":"estructura","capa":"formal","aplica_a":["skill"],"texto":"En la carpeta solo SKILL.md, casos.json y las capas conocidas, a un nivel de profundidad, y cada fichero de capa citado desde SKILL.md con su ruta entera","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"estructura"},
-    {"id":"copiado","capa":"formal","aplica_a":["skill"],"texto":"Ningún párrafo largo idéntico en dos skills: el saber vive en una y la otra la cita por su nombre","fuente":"[I] scripts/lib/skills.mjs","control":".claude/skills.test.js","codigo":"copiado"},
-    {"id":"casos","capa":"formal","aplica_a":["skill"],"texto":"casos.json válido, con cuatro casos como mínimo: tres que cargan la skill con debe_salir comprobable y al menos uno de frontera","fuente":"[F] https://agentskills.io/skill-creation/evaluating-skills","control":".claude/skills.test.js","codigo":"casos"},
-    {"id":"casos-negativos","capa":"formal","aplica_a":["skill"],"texto":"Al menos tres casos de frontera: peticiones parecidas que son de otra skill o de ninguna","fuente":"[F] https://agentskills.io/skill-creation/optimizing-descriptions","control":".claude/skills.test.js","codigo":"casos-negativos"},
-    {"id":"fechas","capa":"formal","aplica_a":["skill"],"texto":"Sin fechas en el cuerpo fuera de «Lo que falló y por qué», «Registro de cambios» y «Fuentes y comprobación»: se quedan viejas","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"fechas"},
-    {"id":"sin-parada","capa":"formal","aplica_a":["skill"],"texto":"El «Método» (salvo en herramienta) dice cuándo se acaba y qué se ve cuando sale bien. Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"sin-parada"},
-    {"id":"ejemplos","capa":"formal","aplica_a":["skill"],"texto":"Como mucho tres ejemplos por sección de ejemplos: pocos y canónicos","fuente":"[I] .claude/skills/forja-de-skills/referencias/criterios.md","control":".claude/skills.test.js","codigo":"ejemplos"},
-    {"id":"tabla","capa":"formal","aplica_a":["skill"],"texto":"Las tablas tienen todas las filas del mismo ancho y ninguna celda vacía","fuente":"[I] .claude/skills/forja-de-skills/referencias/presentacion.md","control":".claude/skills.test.js","codigo":"tabla"},
-    {"id":"cabeceras","capa":"formal","aplica_a":["skill"],"texto":"Las cabeceras bajan de nivel de una en una, sin saltar de ## a ####","fuente":"[I] .claude/skills/forja-de-skills/referencias/presentacion.md","control":".claude/skills.test.js","codigo":"cabeceras"},
-    {"id":"tipo-sin-estandar","capa":"formal","aplica_a":["skill"],"texto":"Cada tipo de skill tiene su apartado en «El estándar de cada tipo» de la plantilla","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"tipo-sin-estandar"},
-    {"id":"apartado-ausente","capa":"formal","aplica_a":["skill"],"texto":"El estándar de cada tipo lleva «Qué lo hace bueno», «Errores típicos» y «Ejemplo mínimo», ninguno vacío","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"apartado-ausente"},
-    {"id":"pocos-puntos","capa":"formal","aplica_a":["skill"],"texto":"«Qué lo hace bueno» y «Errores típicos» de cada tipo tienen dos puntos como mínimo","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"pocos-puntos"},
-    {"id":"sin-fuente","capa":"formal","aplica_a":["skill"],"texto":"Cada punto del estándar de un tipo lleva su marca [F: fuente] o [I]","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"sin-fuente"},
-    {"id":"ejemplo-sin-origen","capa":"formal","aplica_a":["skill"],"texto":"El ejemplo mínimo de cada tipo dice «Real: `skill`» o «Esqueleto:» y va en un bloque de código","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"ejemplo-sin-origen"},
-    {"id":"ejemplo-largo","capa":"formal","aplica_a":["skill"],"texto":"El ejemplo mínimo de cada tipo tiene de 3 a 6 líneas","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"ejemplo-largo"},
-    {"id":"ejemplo-no-cuadra","capa":"formal","aplica_a":["skill"],"texto":"Un ejemplo «Real» sale tal cual de la skill que cita y es de ese tipo; un esqueleto solo vale mientras no haya ninguna skill del tipo","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"ejemplo-no-cuadra"},
-    {"id":"solape","capa":"material","aplica_a":["skill"],"texto":"Dos descripciones no comparten más de un 25 % de sus palabras de cinco letras o más (antes de «No para:»): heurística propia que detecta dos skills que reclaman la misma petición. Casos medidos el 10 oct 2026 (nivel 2, fallos de disparo por solape) que lo prueban: forja-de-skills con higiene-de-skills, hetzner con 1password, issues con causa-raiz","fuente":"[I] scripts/lib/skillsForja.mjs","control":".claude/skills.test.js","codigo":"solape"},
-    {"id":"solape-cercano","capa":"material","aplica_a":["skill"],"texto":"Una descripción no se acerca al límite de solape con otra (a partir del 80 % del límite se avisa con la cifra)","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"solape-cercano"},
-    {"id":"comando-suelto","capa":"material","aplica_a":["skill"],"texto":"Un comando de la casa (npm run, gh, git…) va entre comillas invertidas o en un bloque, no suelto en la prosa: heurística sobre los comandos que las skills citan","fuente":"[I] scripts/lib/skillsForja.mjs","control":".claude/skills.test.js","codigo":"comando-suelto"},
-    {"id":"caduca-pronto","capa":"material","aplica_a":["skill"],"texto":"Una skill no llega a caducar sin avisar: a menos de 30 días del plazo de 90 se avisa","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"caduca-pronto"},
-    {"id":"comando-muerto","capa":"material","aplica_a":["skill"],"texto":"Todo npm run citado en la parte viva de la skill existe en package.json","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"comando-muerto"},
-    {"id":"ruta-muerta","capa":"material","aplica_a":["skill"],"texto":"Toda ruta del repo citada en la parte viva de la skill existe, también fuera de comillas invertidas","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"ruta-muerta"},
-    {"id":"skill-muerta","capa":"material","aplica_a":["skill"],"texto":"Toda skill nombrada tras la palabra «skill» existe","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"skill-muerta"},
-    {"id":"descripcion-sin-palabras","capa":"material","aplica_a":["skill"],"texto":"El disparador de la descripción trae al menos una frase entre «» tal como la diría quien pide","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"descripcion-sin-palabras"},
-    {"id":"frontera-vaga","capa":"material","aplica_a":["skill"],"texto":"El «No para:» nombra la skill, el agente, el comando o el fichero a donde va lo que no es suyo","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"frontera-vaga"},
-    {"id":"tamano-cerca","capa":"material","aplica_a":["skill"],"texto":"SKILL.md no pasa del 85 % de sus líneas permitidas: la siguiente entrada lo desbordaría","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"tamano-cerca"},
-    {"id":"caso-duplicado","capa":"material","aplica_a":["skill"],"texto":"Dos casos de prueba, de la misma skill o de otra, no piden casi lo mismo (parecido de raíces de cinco letras por debajo de 0,6)","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"caso-duplicado"},
-    {"id":"caso-en-frontera","capa":"material","aplica_a":["skill"],"texto":"Una petición propia de la skill no usa las palabras de lo que su «No para:» deja a otra skill","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"caso-en-frontera"},
-    {"id":"descripcion-palabras-de-quien-pide","capa":"subjetiva","aplica_a":["skill"],"texto":"La descripción dice qué hace la skill y cuándo se abre, con las palabras con que lo pediría una persona con prisa. Cumple si un lector que solo vea la descripción reconoce su petición en ella. No cumple si es genérica («ayuda con documentos») o repite el vocabulario interno de la skill en vez del de quien pide.","fuente":"[F] https://agentskills.io/skill-creation/optimizing-descriptions","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Úsala al dar de alta o rotar una clave o token («nuevo token», «ha caducado»), de punta a punta.","esperado":"cumple"},{"texto":"Úsala con claves y secretos. No para: otras cosas.","esperado":"no_cumple"},{"texto":"Úsala para gestionar las credenciales del proyecto: altas, rotaciones y retiradas.","esperado":"no_cumple","frontera":true,"nota":"Dice qué y cuándo, pero con vocabulario interno («credenciales», «retiradas») y sin la frase que diría quien pide."}]},
-    {"id":"frontera-casi-fallos","capa":"subjetiva","aplica_a":["skill"],"texto":"Los casos de frontera son casi-fallos: peticiones que se parecen mucho a las de la skill y son de otra. Cumple si una descripción vaga los confundiría con la skill. No cumple si son obvios («¿qué tiempo hace?») y cualquier descripción los separa.","fuente":"[F] https://agentskills.io/skill-creation/optimizing-descriptions","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Caso de frontera de una skill de claves: «Leer una clave desde un script nuevo», que es de la skill de 1Password y se parece mucho.","esperado":"cumple"},{"texto":"Caso de frontera de una skill de claves: «¿Qué tiempo hace en Madrid?».","esperado":"no_cumple"},{"texto":"Caso de frontera de una skill de rotar claves: «Quiero ver qué claves tenemos guardadas en la bóveda», que es de la skill de 1Password.","esperado":"cumple","frontera":true,"nota":"Parece de rotar claves pero es de leer y listar, de otra skill: es un casi-fallo de verdad."}]},
-    {"id":"disparador-al-principio","capa":"subjetiva","aplica_a":["skill"],"texto":"Lo esencial de la descripción va al principio, porque el listado se trunca. Cumple si el cuándo y las palabras clave están en los primeros 250 caracteres. No cumple si el disparador principal queda al final o cortado.","fuente":"[F] https://code.claude.com/docs/en/skills","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Úsala al rotar una clave («ha caducado»). Después, detalles y fronteras.","esperado":"cumple"},{"texto":"Skill del equipo de operaciones, mantenida por el agente de gobierno, que reúne en un solo sitio el procedimiento acordado para trabajar con claves, servicios y cuentas de terceros, con sus comprobaciones, sus avisos, sus fronteras con otras skills y el historial de lo que ya falló en cada paso del camino. Úsala al rotar una clave («ha caducado»).","esperado":"no_cumple"},{"texto":"Skill del equipo de operaciones, mantenida por el agente de gobierno, que reúne el procedimiento acordado para trabajar con claves, servicios y cuentas de terceros. Úsala al rotar una clave («ha caducado»).","esperado":"cumple","frontera":true,"nota":"Un preámbulo antes, pero el disparador empieza hacia el carácter 165, dentro de los 250."}]},
-    {"id":"solo-lo-que-el-modelo-no-sabe","capa":"subjetiva","aplica_a":["skill"],"texto":"Cada párrafo justifica su coste en cada sesión: solo dice lo que el modelo no sabría sin la skill. Cumple si quitar un párrafo cambiaría lo que hace quien la lee. No cumple si explica lo que el modelo ya hace bien o pega la documentación del proveedor.","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Párrafo: «La tabla de operaciones lleva el comando exacto de la casa, que el modelo no puede adivinar».","esperado":"cumple"},{"texto":"Párrafo: «Git es un sistema de control de versiones distribuido que permite trabajar en ramas».","esperado":"no_cumple"},{"texto":"Párrafo: «Los comandos de git, gh y npm se escriben tal cual; recuerda que la guardia niega git add . y exige añadir por nombre».","esperado":"cumple","frontera":true,"nota":"Mezcla algo que el modelo sabe (escribir comandos) con un dato de la casa (la guardia niega git add .): vale por el dato."}]},
-    {"id":"libertad-ajustada","capa":"subjetiva","aplica_a":["skill"],"texto":"La libertad de cada instrucción se ajusta a lo frágil que es la tarea. Cumple si donde un error cuesta caro (un borrado, una clave) hay pasos exactos o un script, y donde no, una heurística. No cumple si hay pasos rígidos en lo abierto o vaguedad en lo irreversible.","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Para borrar una carpeta: pasos exactos en orden y el comando listo; para elegir un nombre de rama: criterio libre.","esperado":"cumple"},{"texto":"Para borrar una carpeta: «hazlo con cuidado como veas»; para nombrar una rama: seis pasos rígidos.","esperado":"no_cumple"},{"texto":"Rotar una clave en cinco pasos exactos, incluido el texto literal del mensaje del commit.","esperado":"no_cumple","frontera":true,"nota":"La rotación sí pide pasos exactos, pero fijar hasta el mensaje del commit es rigidez en lo abierto."}]},
-    {"id":"camino-por-defecto","capa":"subjetiva","aplica_a":["skill"],"texto":"Hay un camino por defecto y, aparte, la salida para el caso raro. Cumple si ante una petición normal está claro qué hacer primero. No cumple si ofrece un menú («usa A, o B, o C») sin decir cuál.","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Por defecto, ensaya la migración; solo si falla el ensayo, mira el log y pregunta.","esperado":"cumple"},{"texto":"Puedes ensayar, o aplicar directamente, o preguntar, según prefieras.","esperado":"no_cumple"},{"texto":"Por defecto, ensaya. Si el ensayo falla por red, reintenta una vez; si falla por contenido, para y pregunta.","esperado":"cumple","frontera":true,"nota":"Tiene ramas, pero hay un camino por defecto claro y las salidas están ordenadas por causa."}]},
-    {"id":"pasos-con-salida-observable","capa":"subjetiva","aplica_a":["skill"],"texto":"Cada paso dice qué se ve cuando sale bien, de modo que quien lo hace sabe si avanza o debe parar. Cumple si un paso se puede comprobar mirando una salida, un fichero o un estado. No cumple si pide «comprobar que esté bien» sin decir cómo.","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Lanza el ensayo; debe salir «ROLLBACK» y cero errores.","esperado":"cumple"},{"texto":"Comprueba que todo esté bien antes de seguir.","esperado":"no_cumple"},{"texto":"Lanza el script y espera a que acabe sin errores en pantalla.","esperado":"cumple","frontera":true,"nota":"Es una señal débil, pero observable: se comprueba mirando la pantalla."}]},
-    {"id":"vocabulario-unico","capa":"subjetiva","aplica_a":["skill"],"texto":"Una palabra por cosa en toda la skill. Cumple si el mismo concepto siempre se llama igual. No cumple si alterna «caso», «incidente» y «fallo» para lo mismo.","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Un fallo se llama siempre «caso» y su causa común «problema de fondo».","esperado":"cumple"},{"texto":"Un fallo se llama «caso», luego «incidente», luego «problema» y a veces «bug».","esperado":"no_cumple"},{"texto":"Un fallo se llama «caso» y su causa común «problema de fondo»; una vez aparece «incidente» dentro de una cita literal de un issue.","esperado":"cumple","frontera":true,"nota":"La palabra distinta es una cita textual, no el vocabulario propio de la skill."}]},
-    {"id":"ejemplos-canonicos","capa":"subjetiva","aplica_a":["skill"],"texto":"Los ejemplos son pocos, representativos y no se contradicen con la norma de la propia skill. Cumple si cada ejemplo enseña la regla sin romperla. No cumple si es una lista de casos límite o un ejemplo viola lo que la skill enseña.","fuente":"[I] .claude/skills/forja-de-skills/referencias/criterios.md","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Dos ejemplos: uno bueno y uno malo del mismo caso, que cumplen la norma que enseña la skill.","esperado":"cumple"},{"texto":"Siete ejemplos de casos límite, uno de los cuales viola la norma de la propia skill.","esperado":"no_cumple"},{"texto":"Tres ejemplos: dos cumplen la norma y el tercero es un caso límite marcado como excepción explícita, con su porqué.","esperado":"cumple","frontera":true,"nota":"Es un caso límite, pero está señalado como excepción, no contradice la norma y tres es el máximo."}]},
-    {"id":"casos-medidos-con-y-sin-skill","capa":"subjetiva","aplica_a":["skill"],"texto":"Los casos se escribieron antes que el texto y se midió si la skill mejora sobre el modelo solo, con más de una ejecución. Cumple si hay cifra con y sin skill. No cumple si solo se probó una vez con la skill puesta. Hoy no existe la medida automática con y sin skill: el nivel 2 mide solo con ella. Cifra de partida (comprobaciones del nivel 2, 10 oct 2026): higiene-de-skills cumple 5 de 12 y forja-de-skills 12 de 16.","fuente":"[F] https://agentskills.io/skill-creation/evaluating-skills","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Se midió el mismo caso con y sin la skill, diez ejecuciones cada vez: 9 de 10 frente a 4 de 10.","esperado":"cumple"},{"texto":"Lo probé una vez con la skill y salió bien.","esperado":"no_cumple"},{"texto":"Se midió con y sin la skill, solo dos ejecuciones por lado: 2 de 2 frente a 1 de 2.","esperado":"cumple","frontera":true,"nota":"Muestra pobre, pero cumple la letra de la rúbrica: hay cifra con y sin skill y más de una ejecución."}]},
-    {"id":"skill-contrastada-con-fallo-real","capa":"subjetiva","aplica_a":["skill"],"texto":"La skill nace de un fallo real visto sin ella, no de lo que se imagina que hará falta. Cumple si el PR o «Lo que falló y por qué» cuentan en qué fallaba la sesión sin la skill. No cumple si sale de documentación copiada o de una lista de buenas intenciones.","fuente":"[I] .claude/skills/forja-de-skills/SKILL.md","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Sin la skill, la sesión inventó un comando que no existe; los casos nacieron de ese fallo.","esperado":"cumple"},{"texto":"Se escribió la skill a partir de la documentación del proveedor, por si hacía falta.","esperado":"no_cumple"},{"texto":"Los casos salieron de un fallo que contó un compañero de otra sesión; no se repitió sin la skill.","esperado":"no_cumple","frontera":true,"nota":"Es un fallo real pero de oídas: nadie lo vio fallar sin la skill."}]},
-    {"id":"forma-adecuada-al-contenido","capa":"subjetiva","aplica_a":["skill"],"texto":"Cada contenido va en su forma: tabla para datos comparables, lista numerada para pasos con orden, viñetas sin orden, negrita solo para lo que no puede pasar desapercibido, párrafos cortos. Cumple si cambiar la forma de un trozo lo empeoraría. No cumple si hay razonamiento metido en celdas, negrita decorativa o muros de texto.","fuente":"[I] .claude/skills/forja-de-skills/referencias/presentacion.md","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Los comandos y su salida, en una tabla; los pasos con orden, numerados; una sola negrita por sección.","esperado":"cumple"},{"texto":"Un razonamiento de ocho líneas metido en una celda de tabla y media página en negrita.","esperado":"no_cumple"},{"texto":"Tres pasos con orden puestos en una tabla de tres filas con las columnas Paso, Comando y Debe salir.","esperado":"cumple","frontera":true,"nota":"Los pasos tienen orden, pero la tabla Comando y Debe salir es la forma de la plantilla para operaciones."}]},
-    {"id":"sin-duda-con-vecina","capa":"subjetiva","aplica_a":["skill"],"texto":"Una petición real tiene una sola skill dueña. Cumple si dos personas leyendo las descripciones de esta y de su vecina eligen la misma para una petición dada. No cumple si hay peticiones en las que dudarían entre las dos.","fuente":"[I] .claude/skills/forja-de-skills/referencias/criterios.md","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Petición «rota mi token de Vercel»: dos lectores eligen la misma skill, la de alta de secretos.","esperado":"cumple"},{"texto":"Petición «guarda la clave»: la mitad elige 1password y la otra mitad alta-de-secreto.","esperado":"no_cumple"},{"texto":"Petición «sube el cambio»: dos lectores eligen la skill de GitHub y un tercero no elige ninguna.","esperado":"no_cumple","frontera":true,"nota":"Basta un lector que no coincida para que haya duda."}]},
+    {"id":"frontmatter","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"El frontmatter lleva solo name, description y metadata; name igual que la carpeta; la description empieza por «Úsala », dice «No para:» y tiene de 81 a 600 caracteres, por debajo de los 1.024 del estándar abierto","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"frontmatter"},
+    {"id":"tipo","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"metadata.tipo es uno de los ocho tipos de ops/flujo.json y tiene secciones definidas","fuente":"[I] scripts/lib/skills.mjs","control":".claude/skills.test.js","codigo":"tipo"},
+    {"id":"dueno","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"metadata.dueno es un agente de .claude/agents/ que la carga en su skills:","fuente":"[I] scripts/lib/skills.mjs","control":".claude/skills.test.js","codigo":"dueno"},
+    {"id":"comprobado","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"metadata.comprobado es una fecha AAAA-MM-DD no futura y el texto dice «Comprobado el <fecha>: …» con qué se comprobó ese día","fuente":"[I] scripts/lib/skills.mjs","control":".claude/skills.test.js","codigo":"comprobado"},
+    {"id":"caducada","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Una skill que toca un PR no tiene su fecha de comprobado a más de 90 días; el reloj no va en npm test sino en el paso «Skills del PR» del CI","fuente":"[I] scripts/lib/skills.mjs","control":"scripts/skills-pr.test.js","codigo":"caducada"},
+    {"id":"secciones","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Las secciones de su tipo, en su orden y ninguna vacía, con el título «# …» arriba","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"secciones"},
+    {"id":"formato","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Tabla de operaciones con «Debe salir» en las herramientas, fallos con fecha, causa y arreglo, registro de cambios fechado y última línea «Comprobado el …» o «Sin comprobar: …»","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"formato"},
+    {"id":"tamano","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"SKILL.md de 220 líneas como mucho (la guía oficial pide menos de 500); el detalle va a ficheros de capa","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"tamano"},
+    {"id":"secretos","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Ningún patrón de clave ni cadena de conexión con contraseña en la skill ni en sus capas","fuente":"[I] scripts/lib/skills.mjs","control":".claude/skills.test.js","codigo":"secretos"},
+    {"id":"rutas","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Todo fichero del repo citado entre comillas invertidas existe","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"rutas"},
+    {"id":"estructura","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"En la carpeta solo SKILL.md, casos.json y las capas conocidas, a un nivel de profundidad, y cada fichero de capa citado desde SKILL.md con su ruta entera","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"estructura"},
+    {"id":"copiado","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Ningún párrafo largo idéntico en dos skills: el saber vive en una y la otra la cita por su nombre","fuente":"[I] scripts/lib/skills.mjs","control":".claude/skills.test.js","codigo":"copiado"},
+    {"id":"casos","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"casos.json válido, con cuatro casos como mínimo: tres que cargan la skill con debe_salir comprobable y al menos uno de frontera","fuente":"[F] https://agentskills.io/skill-creation/evaluating-skills","control":".claude/skills.test.js","codigo":"casos"},
+    {"id":"casos-negativos","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Al menos tres casos de frontera: peticiones parecidas que son de otra skill o de ninguna","fuente":"[F] https://agentskills.io/skill-creation/optimizing-descriptions","control":".claude/skills.test.js","codigo":"casos-negativos"},
+    {"id":"fechas","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Sin fechas en el cuerpo fuera de «Lo que falló y por qué», «Registro de cambios» y «Fuentes y comprobación»: se quedan viejas","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"fechas"},
+    {"id":"sin-parada","capa":"formal","aplica_a":["skill"],"tipos":["procedimiento","diagnostico","decision","flujo","forja","revision","conocimiento"],"texto":"El «Método» (salvo en herramienta) dice cuándo se acaba y qué se ve cuando sale bien. Es heurístico: el control detecta la frase («Sale bien si», «Hecho cuando»…), no que el método diga de verdad cuándo acaba; candidato a revisar su capa","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"sin-parada"},
+    {"id":"ejemplos","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Como mucho tres ejemplos por sección de ejemplos: pocos y canónicos","fuente":"[I] .claude/skills/forja-de-skills/referencias/criterios.md","control":".claude/skills.test.js","codigo":"ejemplos"},
+    {"id":"tabla","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Las tablas tienen todas las filas del mismo ancho y ninguna celda vacía","fuente":"[I] .claude/skills/forja-de-skills/referencias/presentacion.md","control":".claude/skills.test.js","codigo":"tabla"},
+    {"id":"cabeceras","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Las cabeceras bajan de nivel de una en una, sin saltar de ## a ####","fuente":"[I] .claude/skills/forja-de-skills/referencias/presentacion.md","control":".claude/skills.test.js","codigo":"cabeceras"},
+    {"id":"tipo-sin-estandar","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Cada tipo de skill tiene su apartado en «El estándar de cada tipo» de la plantilla","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"tipo-sin-estandar"},
+    {"id":"apartado-ausente","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"El estándar de cada tipo lleva «Qué lo hace bueno», «Errores típicos» y «Ejemplo mínimo», ninguno vacío","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"apartado-ausente"},
+    {"id":"pocos-puntos","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"«Qué lo hace bueno» y «Errores típicos» de cada tipo tienen dos puntos como mínimo","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"pocos-puntos"},
+    {"id":"sin-fuente","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Cada punto del estándar de un tipo lleva su marca [F: fuente] o [I]","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"sin-fuente"},
+    {"id":"ejemplo-sin-origen","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"El ejemplo mínimo de cada tipo dice «Real: `skill`» o «Esqueleto:» y va en un bloque de código","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"ejemplo-sin-origen"},
+    {"id":"ejemplo-largo","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"El ejemplo mínimo de cada tipo tiene de 3 a 6 líneas","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"ejemplo-largo"},
+    {"id":"ejemplo-no-cuadra","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"Un ejemplo «Real» sale tal cual de la skill que cita y es de ese tipo; un esqueleto solo vale mientras no haya ninguna skill del tipo","fuente":"[I] .claude/PLANTILLA-SKILL.md","control":".claude/skills.test.js","codigo":"ejemplo-no-cuadra"},
+    {"id":"solape","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"Dos descripciones no comparten más de un 25 % de sus palabras de cinco letras o más (antes de «No para:»): heurística propia que detecta dos skills que reclaman la misma petición. Casos medidos el 10 oct 2026 (nivel 2, fallos de disparo por solape) que lo prueban: forja-de-skills con higiene-de-skills, hetzner con 1password, issues con causa-raiz","fuente":"[I] scripts/lib/skillsForja.mjs","control":".claude/skills.test.js","codigo":"solape"},
+    {"id":"solape-cercano","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"Una descripción no se acerca al límite de solape con otra (a partir del 80 % del límite se avisa con la cifra)","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"solape-cercano"},
+    {"id":"comando-suelto","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"Un comando de la casa (npm run, gh, git…) va entre comillas invertidas o en un bloque, no suelto en la prosa: heurística sobre los comandos que las skills citan","fuente":"[I] scripts/lib/skillsForja.mjs","control":".claude/skills.test.js","codigo":"comando-suelto"},
+    {"id":"caduca-pronto","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"Una skill no llega a caducar sin avisar: a menos de 30 días del plazo de 90 se avisa","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"caduca-pronto"},
+    {"id":"comando-muerto","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"Todo npm run citado en la parte viva de la skill existe en package.json","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"comando-muerto"},
+    {"id":"ruta-muerta","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"Toda ruta del repo citada en la parte viva de la skill existe, también fuera de comillas invertidas","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"ruta-muerta"},
+    {"id":"skill-muerta","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"Toda skill nombrada tras la palabra «skill» existe","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"skill-muerta"},
+    {"id":"descripcion-sin-palabras","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"El disparador de la descripción trae al menos una frase entre «» tal como la diría quien pide","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"descripcion-sin-palabras"},
+    {"id":"frontera-vaga","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"El «No para:» nombra la skill, el agente, el comando o el fichero a donde va lo que no es suyo","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"frontera-vaga"},
+    {"id":"tamano-cerca","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"SKILL.md no pasa del 85 % de sus líneas permitidas: la siguiente entrada lo desbordaría","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"tamano-cerca"},
+    {"id":"caso-duplicado","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"Dos casos de prueba, de la misma skill o de otra, no piden casi lo mismo (parecido de raíces de cinco letras por debajo de 0,6)","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"caso-duplicado"},
+    {"id":"caso-en-frontera","capa":"material","aplica_a":["skill"],"tipos":"todos","texto":"Una petición propia de la skill no usa las palabras de lo que su «No para:» deja a otra skill","fuente":"[I] scripts/lib/higieneSkills.mjs","control":"scripts/higiene-skills.test.js","codigo":"caso-en-frontera"},
+    {"id":"descripcion-palabras-de-quien-pide","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"La descripción dice qué hace la skill y cuándo se abre, con las palabras con que lo pediría una persona con prisa. Cumple si un lector que solo vea la descripción reconoce su petición en ella. No cumple si es genérica («ayuda con documentos») o repite el vocabulario interno de la skill en vez del de quien pide.","fuente":"[F] https://agentskills.io/skill-creation/optimizing-descriptions","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Úsala al dar de alta o rotar una clave o token («nuevo token», «ha caducado»), de punta a punta.","esperado":"cumple"},{"texto":"Úsala con claves y secretos. No para: otras cosas.","esperado":"no_cumple"},{"texto":"Úsala para gestionar las credenciales del proyecto: altas, rotaciones y retiradas.","esperado":"no_cumple","frontera":true,"nota":"Dice qué y cuándo, pero con vocabulario interno («credenciales», «retiradas») y sin la frase que diría quien pide."}]},
+    {"id":"frontera-casi-fallos","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"Los casos de frontera son casi-fallos: peticiones que se parecen mucho a las de la skill y son de otra. Cumple si una descripción vaga los confundiría con la skill. No cumple si son obvios («¿qué tiempo hace?») y cualquier descripción los separa.","fuente":"[F] https://agentskills.io/skill-creation/optimizing-descriptions","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Caso de frontera de una skill de claves: «Leer una clave desde un script nuevo», que es de la skill de 1Password y se parece mucho.","esperado":"cumple"},{"texto":"Caso de frontera de una skill de claves: «¿Qué tiempo hace en Madrid?».","esperado":"no_cumple"},{"texto":"Caso de frontera de una skill de rotar claves: «Quiero ver qué claves tenemos guardadas en la bóveda», que es de la skill de 1Password.","esperado":"cumple","frontera":true,"nota":"Parece de rotar claves pero es de leer y listar, de otra skill: es un casi-fallo de verdad."}]},
+    {"id":"disparador-al-principio","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"Lo esencial de la descripción va al principio, porque el listado se trunca. Cumple si el cuándo y las palabras clave están en los primeros 250 caracteres. No cumple si el disparador principal queda al final o cortado.","fuente":"[F] https://code.claude.com/docs/en/skills","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Úsala al rotar una clave («ha caducado»). Después, detalles y fronteras.","esperado":"cumple"},{"texto":"Skill del equipo de operaciones, mantenida por el agente de gobierno, que reúne en un solo sitio el procedimiento acordado para trabajar con claves, servicios y cuentas de terceros, con sus comprobaciones, sus avisos, sus fronteras con otras skills y el historial de lo que ya falló en cada paso del camino. Úsala al rotar una clave («ha caducado»).","esperado":"no_cumple"},{"texto":"Skill del equipo de operaciones, mantenida por el agente de gobierno, que reúne el procedimiento acordado para trabajar con claves, servicios y cuentas de terceros. Úsala al rotar una clave («ha caducado»).","esperado":"cumple","frontera":true,"nota":"Un preámbulo antes, pero el disparador empieza hacia el carácter 165, dentro de los 250."}]},
+    {"id":"solo-lo-que-el-modelo-no-sabe","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"Cada párrafo justifica su coste en cada sesión: solo dice lo que el modelo no sabría sin la skill. Cumple si quitar un párrafo cambiaría lo que hace quien la lee. No cumple si explica lo que el modelo ya hace bien o pega la documentación del proveedor.","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Párrafo: «La tabla de operaciones lleva el comando exacto de la casa, que el modelo no puede adivinar».","esperado":"cumple"},{"texto":"Párrafo: «Git es un sistema de control de versiones distribuido que permite trabajar en ramas».","esperado":"no_cumple"},{"texto":"Párrafo: «Los comandos de git, gh y npm se escriben tal cual; recuerda que la guardia niega git add . y exige añadir por nombre».","esperado":"cumple","frontera":true,"nota":"Mezcla algo que el modelo sabe (escribir comandos) con un dato de la casa (la guardia niega git add .): vale por el dato."}]},
+    {"id":"libertad-ajustada","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"La libertad de cada instrucción se ajusta a lo frágil que es la tarea. Cumple si donde un error cuesta caro (un borrado, una clave) hay pasos exactos o un script, y donde no, una heurística. No cumple si hay pasos rígidos en lo abierto o vaguedad en lo irreversible.","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Para borrar una carpeta: pasos exactos en orden y el comando listo; para elegir un nombre de rama: criterio libre.","esperado":"cumple"},{"texto":"Para borrar una carpeta: «hazlo con cuidado como veas»; para nombrar una rama: seis pasos rígidos.","esperado":"no_cumple"},{"texto":"Rotar una clave en cinco pasos exactos, incluido el texto literal del mensaje del commit.","esperado":"no_cumple","frontera":true,"nota":"La rotación sí pide pasos exactos, pero fijar hasta el mensaje del commit es rigidez en lo abierto."}]},
+    {"id":"camino-por-defecto","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"Hay un camino por defecto y, aparte, la salida para el caso raro. Cumple si ante una petición normal está claro qué hacer primero. No cumple si ofrece un menú («usa A, o B, o C») sin decir cuál.","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Por defecto, ensaya la migración; solo si falla el ensayo, mira el log y pregunta.","esperado":"cumple"},{"texto":"Puedes ensayar, o aplicar directamente, o preguntar, según prefieras.","esperado":"no_cumple"},{"texto":"Por defecto, ensaya. Si el ensayo falla por red, reintenta una vez; si falla por contenido, para y pregunta.","esperado":"cumple","frontera":true,"nota":"Tiene ramas, pero hay un camino por defecto claro y las salidas están ordenadas por causa."}]},
+    {"id":"pasos-con-salida-observable","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"Cada paso dice qué se ve cuando sale bien, de modo que quien lo hace sabe si avanza o debe parar. Cumple si un paso se puede comprobar mirando una salida, un fichero o un estado. No cumple si pide «comprobar que esté bien» sin decir cómo.","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Lanza el ensayo; debe salir «ROLLBACK» y cero errores.","esperado":"cumple"},{"texto":"Comprueba que todo esté bien antes de seguir.","esperado":"no_cumple"},{"texto":"Lanza el script y espera a que acabe sin errores en pantalla.","esperado":"cumple","frontera":true,"nota":"Es una señal débil, pero observable: se comprueba mirando la pantalla."}]},
+    {"id":"vocabulario-unico","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"Una palabra por cosa en toda la skill. Cumple si el mismo concepto siempre se llama igual. No cumple si alterna «caso», «incidente» y «fallo» para lo mismo.","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Un fallo se llama siempre «caso» y su causa común «problema de fondo».","esperado":"cumple"},{"texto":"Un fallo se llama «caso», luego «incidente», luego «problema» y a veces «bug».","esperado":"no_cumple"},{"texto":"Un fallo se llama «caso» y su causa común «problema de fondo»; una vez aparece «incidente» dentro de una cita literal de un issue.","esperado":"cumple","frontera":true,"nota":"La palabra distinta es una cita textual, no el vocabulario propio de la skill."}]},
+    {"id":"ejemplos-canonicos","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"Los ejemplos son pocos, representativos y no se contradicen con la norma de la propia skill. Cumple si cada ejemplo enseña la regla sin romperla. No cumple si es una lista de casos límite o un ejemplo viola lo que la skill enseña.","fuente":"[I] .claude/skills/forja-de-skills/referencias/criterios.md","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Dos ejemplos: uno bueno y uno malo del mismo caso, que cumplen la norma que enseña la skill.","esperado":"cumple"},{"texto":"Siete ejemplos de casos límite, uno de los cuales viola la norma de la propia skill.","esperado":"no_cumple"},{"texto":"Tres ejemplos: dos cumplen la norma y el tercero es un caso límite marcado como excepción explícita, con su porqué.","esperado":"cumple","frontera":true,"nota":"Es un caso límite, pero está señalado como excepción, no contradice la norma y tres es el máximo."}]},
+    {"id":"casos-medidos-con-y-sin-skill","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"Los casos se escribieron antes que el texto y se midió si la skill mejora sobre el modelo solo, con más de una ejecución. Cumple si hay cifra con y sin skill. No cumple si solo se probó una vez con la skill puesta. Hoy no existe la medida automática con y sin skill: el nivel 2 mide solo con ella. Cifra de partida (comprobaciones del nivel 2, 10 oct 2026): higiene-de-skills cumple 5 de 12 y forja-de-skills 12 de 16.","fuente":"[F] https://agentskills.io/skill-creation/evaluating-skills","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Se midió el mismo caso con y sin la skill, diez ejecuciones cada vez: 9 de 10 frente a 4 de 10.","esperado":"cumple"},{"texto":"Lo probé una vez con la skill y salió bien.","esperado":"no_cumple"},{"texto":"Se midió con y sin la skill, solo dos ejecuciones por lado: 2 de 2 frente a 1 de 2.","esperado":"cumple","frontera":true,"nota":"Muestra pobre, pero cumple la letra de la rúbrica: hay cifra con y sin skill y más de una ejecución."}]},
+    {"id":"skill-contrastada-con-fallo-real","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"La skill nace de un fallo real visto sin ella, no de lo que se imagina que hará falta. Cumple si el PR o «Lo que falló y por qué» cuentan en qué fallaba la sesión sin la skill. No cumple si sale de documentación copiada o de una lista de buenas intenciones.","fuente":"[I] .claude/skills/forja-de-skills/SKILL.md","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Sin la skill, la sesión inventó un comando que no existe; los casos nacieron de ese fallo.","esperado":"cumple"},{"texto":"Se escribió la skill a partir de la documentación del proveedor, por si hacía falta.","esperado":"no_cumple"},{"texto":"Los casos salieron de un fallo que contó un compañero de otra sesión; no se repitió sin la skill.","esperado":"no_cumple","frontera":true,"nota":"Es un fallo real pero de oídas: nadie lo vio fallar sin la skill."}]},
+    {"id":"forma-adecuada-al-contenido","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"Cada contenido va en su forma: tabla para datos comparables, lista numerada para pasos con orden, viñetas sin orden, negrita solo para lo que no puede pasar desapercibido, párrafos cortos. Cumple si cambiar la forma de un trozo lo empeoraría. No cumple si hay razonamiento metido en celdas, negrita decorativa o muros de texto.","fuente":"[I] .claude/skills/forja-de-skills/referencias/presentacion.md","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Los comandos y su salida, en una tabla; los pasos con orden, numerados; una sola negrita por sección.","esperado":"cumple"},{"texto":"Un razonamiento de ocho líneas metido en una celda de tabla y media página en negrita.","esperado":"no_cumple"},{"texto":"Tres pasos con orden puestos en una tabla de tres filas con las columnas Paso, Comando y Debe salir.","esperado":"cumple","frontera":true,"nota":"Los pasos tienen orden, pero la tabla Comando y Debe salir es la forma de la plantilla para operaciones."}]},
+    {"id":"sin-duda-con-vecina","capa":"subjetiva","aplica_a":["skill"],"tipos":"todos","texto":"Una petición real tiene una sola skill dueña. Cumple si dos personas leyendo las descripciones de esta y de su vecina eligen la misma para una petición dada. No cumple si hay peticiones en las que dudarían entre las dos.","fuente":"[I] .claude/skills/forja-de-skills/referencias/criterios.md","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Petición «rota mi token de Vercel»: dos lectores eligen la misma skill, la de alta de secretos.","esperado":"cumple"},{"texto":"Petición «guarda la clave»: la mitad elige 1password y la otra mitad alta-de-secreto.","esperado":"no_cumple"},{"texto":"Petición «sube el cambio»: dos lectores eligen la skill de GitHub y un tercero no elige ninguna.","esperado":"no_cumple","frontera":true,"nota":"Basta un lector que no coincida para que haya duda."}]},
     {"id":"estandar-fuente-con-forma","capa":"formal","aplica_a":["estandar"],"texto":"Cada fuente del catálogo lleva id en minúsculas con guiones, nombre de diez caracteres o más y, si es externa, una url https válida; si es de la casa, la ruta de un fichero que existe y ninguna url","fuente":"[I] scripts/lib/estandaresAgentes.mjs","control":"ops/estandares-agentes.test.js","codigo":null},
     {"id":"estandar-fuente-documentacion-oficial","capa":"formal","aplica_a":["estandar"],"texto":"Las fuentes externas son documentación pública de un dominio admitido (DOMINIOS_FUENTE), no blogs","fuente":"[I] scripts/lib/estandaresAgentes.mjs","control":"ops/estandares-agentes.test.js","codigo":null},
     {"id":"estandar-fuente-usada","capa":"formal","aplica_a":["estandar"],"texto":"Toda fuente del catálogo la cita alguna tarea","fuente":"[I] scripts/lib/estandaresAgentes.mjs","control":"ops/estandares-agentes.test.js","codigo":null},
