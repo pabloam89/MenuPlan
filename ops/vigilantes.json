@@ -182,6 +182,20 @@
       "evidencia": "#495"
     },
     {
+      "id": "metricas",
+      "tests": ["ops/metricas.test.js"],
+      "mira": ["scripts/**/*.mjs", ".claude/hooks/*.mjs", "api/**/*.js", "src/**/*.js", ".github/workflows/*.yml", ".claude/skills/**/*.md", ".claude/commands/*.md", "ops/metricas.json"],
+      "porque": "Recorre todos los scripts y hooks y todo lo que importan (también de api/ y src/): una línea `campo: valor` nueva en cualquiera de ellos, o un lector que deja de nombrar su cifra, lo rompe.",
+      "evidencia": "#480"
+    },
+    {
+      "id": "workflows-yaml",
+      "tests": ["ops/workflows.test.js"],
+      "mira": [".github/workflows/*.yml", "package.json"],
+      "porque": "Lee todos los workflows con el parser `yaml` (devDependency): uno nuevo o editado con un bloque `run: |` roto deja de ser YAML y GitHub lo marca en rojo sin ejecutar nada.",
+      "evidencia": "#480"
+    },
+    {
       "id": "una-escala-y-una-escalera",
       "tests": ["ops/escalas.test.js"],
       "mira": ["**/*.{json,js,mjs,jsx,yml,yaml}"],

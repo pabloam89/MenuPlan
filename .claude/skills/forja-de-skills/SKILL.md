@@ -121,8 +121,9 @@ Una skill se quita (o se funde en otra) si se cumple alguna:
   se queda con lo suyo.
 - **Caduca sin dueño**: pasa el plazo de `metadata.comprobado` y nadie la
   vuelve a comprobar, o su dueño ya no la carga.
-- **Nadie la abre**: cero usos en 90 días (la cuenta de uso de skills, si
-  existe; si no, se pregunta antes de borrar).
+- **Nadie la abre**: cero usos en 90 días. La cuenta sale de
+  `npm run cumplimiento -- --local`, línea `poda candidatas:` (con menos de 90
+  días de registro dice `sin_datos`); sin registro, se pregunta antes de borrar.
 
 Podar es borrar una carpeta, y los borrados los lanza una persona: la sesión
 prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
