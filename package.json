@@ -38,6 +38,7 @@
     "flujo": "node scripts/flujo.mjs",
     "skills-prueba": "node scripts/skills-prueba.mjs",
     "presupuesto": "node scripts/presupuesto.mjs",
+    "fabrica": "node scripts/fabrica.mjs",
     "tecnica": "node scripts/oficio.mjs tecnica",
     "mecanismos": "node scripts/oficio.mjs mecanismos",
     "hora": "node scripts/hora.mjs",
