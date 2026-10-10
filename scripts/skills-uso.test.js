@@ -111,12 +111,12 @@ describe("tocadosSinSkill y resumir", () => {
   });
 
   it("uno por skill y sesión, aunque toque el dominio muchas veces", () => {
-    const e = ev([herramienta("Bash", { command: "vercel env add A" }), herramienta("Bash", { command: "vercel env add B" })]);
+    const e = ev([herramienta("Bash", { command: "vercel env rm A" }), herramienta("Bash", { command: "vercel env rm B" })]);
     expect(tocadosSinSkill(e)).toHaveLength(1);
   });
 
   it("resumir: uso por skill y vía, sin uso deliberado (la precarga no cuenta) y la ventana", () => {
-    const a = { agente: "sesion", sesion: "s1", ...ev([herramienta("Skill", { skill: "github" }), herramienta("Bash", { command: "vercel env add A" })]) };
+    const a = { agente: "sesion", sesion: "s1", ...ev([herramienta("Skill", { skill: "github" }), herramienta("Bash", { command: "vercel env rm A" })]) };
     const b = { agente: "gobierno", sesion: "s2", ...ev([persona("<command-name>tailscale</command-name>")], true) };
     const r = resumir([a, b], skills);
     expect(r.uso.github.herramienta).toBe(1);
@@ -131,7 +131,7 @@ describe("tocadosSinSkill y resumir", () => {
   });
 
   it("las líneas son de vocabulario cerrado y no llevan texto de la conversación", () => {
-    const s = { agente: "datos", sesion: "abcdef123456", ...ev([herramienta("Read", { file_path: "C:/dev/MenuPlan-x/.claude/skills/supabase/SKILL.md" }), herramienta("Bash", { command: "vercel env add SECRETO_X" })]) };
+    const s = { agente: "datos", sesion: "abcdef123456", ...ev([herramienta("Read", { file_path: "C:/dev/MenuPlan-x/.claude/skills/supabase/SKILL.md" }), herramienta("Bash", { command: "vercel env rm SECRETO_X" })]) };
     const l = lineas([s]);
     expect(l).toHaveLength(2);
     const re = new RegExp(`^(?:skill_abierta: [\\w-]+ via: (?:${VIAS.join("|")})|dominio_sin_skill: [\\w-]+ como: (?:${TOQUES.join("|")})) agente: [\\w-]+ sesion: [\\w-]{1,8} fecha: \\d{4}-\\d{2}-\\d{2}$`);
@@ -144,7 +144,7 @@ describe("skillsDelEncargo: las skills del brief salen del mapa", () => {
   it("por ruta y por comando, sin repetir, con los ficheros que la piden", () => {
     const r = skillsDelEncargo({
       ficheros: ["supabase/migrations/0150_x.sql", ".\\vercel.json", "src/App.jsx"],
-      comandos: ["node scripts/telegram-webhook.mjs set https://x", "vercel env add A"],
+      comandos: ["node scripts/telegram-webhook.mjs set https://x", "vercel env rm A"],
       mapa,
     });
     expect(r.map((s) => [s.skill, s.motivo])).toEqual([["supabase", "ruta"], ["telegram", "comando"], ["vercel", "ruta"]]);
