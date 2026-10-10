@@ -1,4 +1,5 @@
 -- Ficha de la casa (spec v18): qué se puede saber y cómo lo sabemos.
+-- AUDITADA: auditor-datos 2026-10-10 OK
 --
 -- NÚMERO: era la 0120 en el PR #106 (8 oct 2026); pasó a la 0097, el contiguo a staging. La 0120 queda libre.
 -- NOMBRES: las tablas de la ficha van en singular, como persona y grupo (excepción declarada a PRINCIPIOS §12).
