@@ -16,7 +16,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  comparar, excepcionesPorTermino, plano, excepcionesPorZona, ficherosDe, leerExcepciones, leerGlosario, medir, pares, textoTermino, total,
+  cifrasDeForma, comparar, excepcionesPorTermino, plano, excepcionesPorZona, ficherosDe, leerExcepciones, leerGlosario, medir, pares, textoTermino, total,
 } from "./lib/glosario.mjs";
 import { RUTA_VOCABULARIOS, anclar, leerRegistro, problemasDeRetiros, problemasLocales, valoresActuales } from "./lib/vocabulariosVida.mjs";
 
@@ -64,7 +64,8 @@ if (!pedido) {
   const porZona = excepcionesPorZona(g, exc, { ficheros: (p) => ficherosDe(RAIZ, p) });
   const conExc = Object.entries(excepcionesPorTermino(g, exc)).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
   const sinonimos = g.terminos.reduce((a, t) => a + t.sinonimos_prohibidos.length, 0);
-  console.log(`glosario terminos: ${g.terminos.length} sinonimos_prohibidos: ${sinonimos} excepciones: ${total(exc)} pares: ${pares(exc)}`);
+  const forma = cifrasDeForma(g);
+  console.log(`glosario terminos: ${g.terminos.length} sinonimos_prohibidos: ${sinonimos} excepciones: ${total(exc)} pares: ${pares(exc)} con_relaciones: ${forma.con_relaciones} sin_forma: ${forma.sin_forma} excepciones_forma: ${forma.excepciones_forma}`);
   console.log(`  por término: ${conExc.map(([t, n]) => `${t} ${n}`).join(", ") || "ninguna"}`);
   console.log(`  por zona: ${Object.entries(porZona).map(([z, n]) => `${z} ${n}`).join(", ") || "ninguna"}`);
 }

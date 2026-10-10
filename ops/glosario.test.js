@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { REFERENCIA, jsonEnReferencia } from "../scripts/lib/forjaReferencia.mjs";
 import {
-  CLASES, ESTADOS_TERMINO, RUTA_GLOSARIO, canonicoDe, problemasDeVidaGlosario, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
+  CLASES, ESTADOS_TERMINO, EXCEPCIONES_FORMA, RUTA_GLOSARIO, canonicoDe, cifrasDeForma, faltaDeForma, problemasDeRelaciones, problemasDeVidaGlosario, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
 } from "../scripts/lib/glosario.mjs";
 
 /**
@@ -204,6 +204,57 @@ describe("autotest de la forma", () => {
   });
 });
 
+describe("relaciones y forma de la definición (#481)", () => {
+  it("las relaciones están bien y la mayoría de términos tiene alguna", () => {
+    expect(problemasDeRelaciones(G.terminos)).toEqual([]);
+    const c = cifrasDeForma(G);
+    expect(c.con_relaciones / c.terminos, "Un término nuevo dice con cuál se relaciona").toBeGreaterThanOrEqual(0.8);
+  });
+
+  it("toda definición tiene la forma «un/una X que Y», salvo las excepciones, que solo bajan", () => {
+    expect(G.terminos.filter((t) => faltaDeForma(t) && !EXCEPCIONES_FORMA.includes(t.termino)).map((t) => `${t.termino}: ${faltaDeForma(t)}`)).toEqual([]);
+    // La partida de las excepciones de forma (10 oct 2026): ninguna. NO se edita para añadir.
+    const PARTIDA_FORMA = [];
+    expect(EXCEPCIONES_FORMA.filter((x) => !PARTIDA_FORMA.includes(x)), "La lista de excepciones de forma no crece: reescribe la definición").toEqual([]);
+    for (const x of EXCEPCIONES_FORMA) expect(faltaDeForma(G.terminos.find((t) => t.termino === x)), `${x} ya cumple: quítalo de EXCEPCIONES_FORMA`).not.toBeNull();
+  });
+});
+
+describe("autotest de relaciones y forma", () => {
+  const conTermino = (nombre, cambio) => { const g = copia(); cambio(g.terminos.find((t) => t.termino === nombre), g); return problemasDeGlosario(g, { existe, leer }); };
+
+  it("una referencia a un término que no existe, a sí mismo o a un retirado", () => {
+    expect(conTermino("revisor", (t) => { t.amplio = "inventado"; }).join()).toMatch(/amplio «inventado», que no es un término activo/);
+    expect(conTermino("fallo", (t) => { t.relacionado = ["fallo"]; }).join()).toMatch(/relacionado apunta a sí mismo/);
+    expect(conTermino("fallo", (t, g) => { Object.assign(g.terminos.find((x) => x.termino === "hallazgo"), { estado: "retirado", pasa_a: "defecto" }); }).join()).toMatch(/«hallazgo», que no es un término activo/);
+    expect(conTermino("fallo", (t) => { Object.assign(t, { estado: "retirado", pasa_a: "caso" }); }).join()).toMatch(/fallo: un retirado no lleva relaciones/);
+  });
+
+  it("amplio sin su estrecho, estrecho sin su amplio, y relacionado no recíproco", () => {
+    expect(conTermino("ensayar", (t, g) => { g.terminos.find((x) => x.termino === "probar").estrecho = undefined; delete g.terminos.find((x) => x.termino === "probar").estrecho; }).join()).toMatch(/ensayar: amplio «probar», pero probar no lo tiene en estrecho/);
+    expect(conTermino("hook", (t) => { t.estrecho = ["guardia", "test"]; }).join()).toMatch(/hook: estrecho «test», pero el amplio de test no es hook/);
+    expect(conTermino("podar", (t) => { t.relacionado = ["retirar", "aplicar"]; }).join()).toMatch(/podar: relacionado con «aplicar», pero aplicar no lo tiene/);
+  });
+
+  it("amplio de otra clase, un ciclo, y el mismo término como amplio y relacionado", () => {
+    expect(conTermino("caso", (t, g) => { t.amplio = "fallo"; g.terminos.find((x) => x.termino === "fallo").estrecho = ["caso"]; }).join()).toMatch(/caso: amplio «fallo» es de clase estado/);
+    expect(conTermino("comprobar", (t) => { t.amplio = "verificar"; }).join()).toMatch(/ciclo en amplio/);
+    expect(conTermino("revisor", (t, g) => { t.relacionado = ["juez"]; g.terminos.find((x) => x.termino === "juez").relacionado.push("revisor"); }).join()).toMatch(/«juez» es amplio o estrecho y también relacionado/);
+    expect(conTermino("revisor", (t) => { t.amplio = ["juez"]; }).join()).toMatch(/amplio es un término, no una lista/);
+  });
+
+  it("la forma: sin artículo + sustantivo, sin «que», infinitivo solo en acciones", () => {
+    expect(faltaDeForma({ clase: "artefacto", definicion: "Algo que pasa." })).toMatch(/artículo \+ sustantivo/);
+    expect(faltaDeForma({ clase: "artefacto", definicion: "Lo que pasa." })).toMatch(/artículo \+ sustantivo/);
+    expect(faltaDeForma({ clase: "artefacto", definicion: "Un fichero con su test." })).toMatch(/«que …»/);
+    expect(faltaDeForma({ clase: "artefacto", definicion: "Un fichero ¿qué? con aunque." })).toMatch(/«que …»/);
+    expect(faltaDeForma({ clase: "artefacto", definicion: "Un fichero que vitest ejecuta." })).toBeNull();
+    expect(faltaDeForma({ clase: "accion", definicion: "Ejecutar algo que se quiere ver." })).toBeNull();
+    expect(faltaDeForma({ clase: "rol", definicion: "Ejecutar algo que se quiere ver." })).toMatch(/artículo/);
+    expect(conTermino("zona", (t) => { t.definicion = "Conjunto de ficheros por sus rutas, sin más."; }).join()).toMatch(/zona: la definición no empieza por artículo/);
+  });
+});
+
 describe("autotest del ciclo de vida", () => {
   const conTermino = (cambio) => { const g = copia(); cambio(g.terminos.find((t) => t.termino === "fallo"), g); return problemasDeGlosario(g, { existe, leer }); };
 
@@ -220,7 +271,7 @@ describe("autotest del ciclo de vida", () => {
     expect(problemasDeVidaGlosario(g, G).join()).toMatch(/fallo: estaba en el glosario y ha desaparecido/);
     expect(problemasDeVidaGlosario(g, TERMINOS_FIJADOS).join()).toMatch(/fallo: estaba en el glosario/);
     const r = copia();
-    Object.assign(r.terminos.find((t) => t.termino === "fallo"), { estado: "retirado", pasa_a: "caso" });
+    Object.assign(r.terminos.find((t) => t.termino === "zona"), { estado: "retirado", pasa_a: "regla" });
     expect(problemasDeVidaGlosario(r, G)).toEqual([]);
     expect(problemasDeGlosario(r, { existe, leer }).filter((x) => /pasa_a|estado/.test(x))).toEqual([]);
   });

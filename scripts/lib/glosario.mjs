@@ -62,9 +62,45 @@ export const ESTADOS_TERMINO = {
 };
 
 export const CAMPOS_TERMINO = ["termino", "estado", "clase", "definicion", "sinonimos_prohibidos", "aplica_a"];
-export const CAMPOS_TERMINO_OPCIONALES = ["pasa_a", "ref", "nota"];
+export const CAMPOS_TERMINO_OPCIONALES = ["pasa_a", "amplio", "estrecho", "relacionado", "ref", "nota"];
+
+/**
+ * Relaciones entre términos (#481), las de un tesauro (ISO 25964, SKOS): `amplio` es el
+ * término genérico (uno, de la misma clase: «revisor» es un «juez»), `estrecho` sus
+ * específicos y `relacionado` los que se citan juntos sin ser uno caso del otro. Todas
+ * son referencias a términos activos que existen, y recíprocas: si A tiene amplio B,
+ * B tiene A en estrecho; si A está relacionado con B, B con A.
+ */
+export const RELACIONES = {
+  amplio: "El término genérico, de la misma clase: este es un caso de aquel",
+  estrecho: "Los términos específicos: cada uno es un caso de este",
+  relacionado: "Términos que se citan juntos sin ser uno caso del otro",
+};
+
+/**
+ * Forma de la definición (ISO 704: género próximo + diferencia): «un/una X que Y».
+ * Se comprueba con una heurística: empieza por artículo + sustantivo (o, en un verbo de
+ * clase accion, por un infinitivo, que es su género) y contiene «que» como palabra.
+ * No ve si el género es el bueno: eso es del revisor.
+ */
+export const ARTICULOS = ["un", "una", "el", "la", "los", "las"];
+const NO_SUSTANTIVO = new Set(["que", "de", "del", "en", "con", "por", "para", "a", "y", "o", "se", "lo", "su", "sus"]);
+/** Las definiciones que no tienen la forma: SOLO BAJA (el test la compara con su partida). Hoy, ninguna. */
+export const EXCEPCIONES_FORMA = [];
+
+/** Si la definición tiene la forma «un/una X que Y». Devuelve null si la tiene, o el motivo. */
+export function faltaDeForma(t) {
+  const d = String(t.definicion ?? "").trim();
+  const [p1 = "", p2 = ""] = d.split(/\s+/).map((x) => x.replace(/[^\p{L}]/gu, "").toLowerCase());
+  const conArticulo = ARTICULOS.includes(p1) && p2.length > 1 && !NO_SUSTANTIVO.has(p2);
+  const infinitivo = t.clase === "accion" && /^\p{L}+(ar|er|ir)$/u.test(p1);
+  if (!conArticulo && !infinitivo) return t.clase === "accion" ? "no empieza por un infinitivo ni por artículo + sustantivo" : "no empieza por artículo + sustantivo («un/una X»)";
+  if (!/(?<!\p{L})que(?!\p{L})/iu.test(d)) return "no dice la diferencia con «que …»";
+  return null;
+}
 
 const activo = (t) => t.estado !== "retirado";
+
 /** Los términos activos. */
 export const activos = (g) => (g.terminos ?? []).filter(activo);
 /** Una definición es una sola idea corta. */
@@ -146,6 +182,11 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
       }
     }
   }
+  p.push(...problemasDeRelaciones(terminos));
+  for (const t of terminos) {
+    const falta = faltaDeForma(t);
+    if (falta && !EXCEPCIONES_FORMA.includes(t.termino)) p.push(`${t.termino}: la definición ${falta} (ISO 704: «un/una X que Y»)`);
+  }
   // El glosario se cumple a sí mismo: ninguna definición usa un sinónimo prohibido ni un término retirado.
   const prohibidos = canonicoDe({ terminos });
   for (const t of terminos) {
@@ -154,6 +195,52 @@ export function problemasDeGlosario(g, { existe = () => true, leer = () => null 
     }
   }
   return p;
+}
+
+/** Las relaciones: referencias a términos activos, recíprocas, de la misma clase en amplio y sin ciclos. */
+export function problemasDeRelaciones(terminos) {
+  const p = [];
+  const por = new Map(terminos.map((t) => [t.termino, t]));
+  const vivo = (n) => por.has(n) && activo(por.get(n));
+  for (const t of terminos) {
+    const id = t.termino;
+    if ("amplio" in t && typeof t.amplio !== "string") p.push(`${id}: amplio es un término, no una lista`);
+    for (const c of ["estrecho", "relacionado"]) if (c in t && (!Array.isArray(t[c]) || t[c].length === 0)) p.push(`${id}: ${c} es una lista no vacía`);
+    const refs = [...(typeof t.amplio === "string" ? [["amplio", t.amplio]] : []), ...["estrecho", "relacionado"].flatMap((c) => (Array.isArray(t[c]) ? t[c].map((x) => [c, x]) : []))];
+    for (const [c, x] of refs) {
+      if (x === id) p.push(`${id}: ${c} apunta a sí mismo`);
+      else if (!vivo(x)) p.push(`${id}: ${c} «${x}», que no es un término activo`);
+    }
+    if (!activo(t) && refs.length) p.push(`${id}: un retirado no lleva relaciones (van en su pasa_a)`);
+    if (typeof t.amplio === "string" && vivo(t.amplio)) {
+      const a = por.get(t.amplio);
+      if (a.clase !== t.clase) p.push(`${id}: amplio «${t.amplio}» es de clase ${a.clase} y este de ${t.clase}`);
+      if (!(a.estrecho ?? []).includes(id)) p.push(`${id}: amplio «${t.amplio}», pero ${t.amplio} no lo tiene en estrecho`);
+    }
+    for (const x of Array.isArray(t.estrecho) ? t.estrecho : []) if (vivo(x) && por.get(x).amplio !== id) p.push(`${id}: estrecho «${x}», pero el amplio de ${x} no es ${id}`);
+    for (const x of Array.isArray(t.relacionado) ? t.relacionado : []) {
+      if (vivo(x) && !(por.get(x).relacionado ?? []).includes(id)) p.push(`${id}: relacionado con «${x}», pero ${x} no lo tiene en relacionado`);
+      if (x === t.amplio || (t.estrecho ?? []).includes(x)) p.push(`${id}: «${x}» es amplio o estrecho y también relacionado`);
+    }
+    // Sin ciclos en amplio.
+    const vistos = new Set([id]);
+    for (let a = t.amplio; typeof a === "string" && por.has(a); a = por.get(a).amplio) {
+      if (vistos.has(a)) { p.push(`${id}: ciclo en amplio (${[...vistos, a].join(" → ")})`); break; }
+      vistos.add(a);
+    }
+  }
+  return p;
+}
+
+/** Cuántos términos tienen alguna relación, y cuántas definiciones no tienen la forma. */
+export function cifrasDeForma(g) {
+  const ts = activos(g);
+  return {
+    terminos: ts.length,
+    con_relaciones: ts.filter((t) => t.amplio || t.estrecho?.length || t.relacionado?.length).length,
+    sin_forma: ts.filter((t) => faltaDeForma(t)).length,
+    excepciones_forma: EXCEPCIONES_FORMA.length,
+  };
 }
 
 const enBlanco = (s) => s.replace(/[^\n]/g, " ");
@@ -372,6 +459,8 @@ export function textoTermino(t, g, excepciones) {
   const n = excepcionesPorTermino(g, excepciones)[t.termino] ?? 0;
   const l = [`${t.termino} (${t.clase}${t.estado === "retirado" ? `, retirado: di «${t.pasa_a}»` : ""}): ${t.definicion}`];
   if (t.sinonimos_prohibidos.length) l.push(`  no se dice: ${t.sinonimos_prohibidos.join(", ")}`);
+  const rel = ["amplio", "estrecho", "relacionado"].filter((k) => t[k]).map((k) => `${k}: ${[t[k]].flat().join(", ")}`);
+  if (rel.length) l.push(`  ${rel.join("; ")}`);
   if (t.nota) l.push(`  nota: ${t.nota}`);
   if (t.ref) l.push(`  ref: ${t.ref.fichero} (${t.ref.clave})`);
   l.push(`  aplica a: ${t.aplica_a.join(", ")}`);
