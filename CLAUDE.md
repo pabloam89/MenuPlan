@@ -88,7 +88,7 @@ escriben en ella, y cada migración es un cambio en producción.
 
 - Aplicar migraciones (`--si`) lo lanza **Pablo**, desde una PowerShell aparte con `$env:MENUPLAN_OP_PABLO="1"`, hasta E5 (#331): las
   sesiones no tienen la URL de administrador (#328) y leen con
-  `SUPABASE_DB_URL_LECTURA`. El script exige que esté en staging, un ensayo de
+  `SUPABASE_DB_URL_LECTURA`. El script pide que esté en staging, un ensayo de
   menos de una hora y el OK del juez `auditor-datos` en la cabecera; con
   `CONTRAE`, o RLS o permisos de lo que ya existía, además `--pablo`. Luego, ESTADO.md.
 - **El código no puede depender de que la migración ya esté**: la rama se
