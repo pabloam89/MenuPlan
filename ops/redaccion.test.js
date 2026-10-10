@@ -61,7 +61,7 @@ describe("trinquete: la lista de pendientes solo baja", () => {
   });
   it("anclar baja pero no sube", () => {
     const d = clon();
-    expect(anclarPendientes(d, ["ops/normas.json"])).toEqual(["ops/normas.json"]);
+    expect(anclarPendientes(d, ["ops/flujo.json"])).toEqual(["ops/flujo.json"]);
     expect(anclarPendientes(d, [], { sembrar: true })).toEqual(pendientesDe(d));
   });
 });

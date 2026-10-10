@@ -34,6 +34,8 @@
  * cuerpo de PR o de un heredoc que NOMBRA estas cosas no cuenta (`sinTextos`).
  */
 
+import { AVISO_POR_CREDENCIAL, textoDeAviso } from "./avisos-guardia.mjs";
+
 const TOKEN = String.raw`(?:GH|GITHUB)(?:_ENTERPRISE)?_TOKEN`;
 // En PowerShell un comodín (`Env:GH_*`, `Env:*TOKEN`) también alcanza al token.
 const TOKEN_PS = String.raw`(?:${TOKEN}|\w*[*?][\w*?]*)`;
@@ -44,8 +46,6 @@ const IZQ = String.raw`(?:^|[\s("'\x60{])`;
 const GH = String.raw`${IZQ}gh(?:\.exe)?\s+(?:(?:-R|--repo)\s+\S+\s+)?`;
 // Tope a los comodines: una orden enorme no puede disparar el retroceso de la expresión.
 const RESTO = String.raw`[^|;&\n]{0,200}`;
-
-const AYUDA_TOKEN = "Si el token ha caducado (dura 1 hora), pide uno nuevo con `node scripts/token-sesion.mjs -- <comando>` (por ejemplo `node scripts/token-sesion.mjs -- gh pr list` o `-- git push`).";
 
 /**
  * Quita el cuerpo de los heredocs (una pasada por líneas, lineal) salvo si la
@@ -272,13 +272,7 @@ export function credencialDeComando(cmd, { powershell = false } = {}) {
   return null;
 }
 
-/** Los avisos, en llano y con el remedio. Cada uno empieza por su frase de `FAMILIAS_GUARDIA`. */
-export const AVISOS_CREDENCIALES = {
-  token: `Quitar o vaciar GH_TOKEN deja a gh y a git con las credenciales de Pablo (administrador): la sesión va con la identidad de la App homenu-sesiones a propósito (#447). ${AYUDA_TOKEN}`,
-  identidad: `Cambiar de dónde saca git sus credenciales o quién firma (credential.helper, GIT_CONFIG_*, GIT_AUTHOR_*, GIT_COMMITTER_*) es salirse de la identidad de la sesión (#447). Si un push o un commit falla, mira el error y cuéntalo en vez de rodearlo. ${AYUDA_TOKEN}`,
-  guardadas: `Sacar o cambiar las credenciales guardadas del PC (gh auth token, login o switch, git credential, cmdkey) es salirse de la identidad de la sesión (#447). ${AYUDA_TOKEN} Si hace falta de verdad una credencial de Pablo, dale el comando para que lo lance él con \`!\`.`,
-  reglas: "Cambiar las reglas del repo (rulesets, protección de ramas, colaboradores, secretos, variables, ajustes del repo, environments, hooks o llaves) es solo de Pablo (#447): hace falta una credencial de administrador, que la sesión no tiene. Prepara el cambio y el comando exacto, y dáselo a Pablo para que lo lance él con `!`. Una consulta de GraphQL desde un fichero tampoco se puede leer: escríbela en el propio comando.",
-  aprobar: "Una sesión no aprueba PR (#447): la aprobación de dueño de código es de una persona. Deja el PR listo con el CI en verde y pide la revisión a Pablo o a Álvaro.",
-  imprimir: "Imprimir el token de la sesión lo dejaría en la conversación (#447). Para comprobar que existe, usa `node scripts/token-sesion.mjs --comprobar`, que dice si vale sin enseñarlo.",
-  powershell: "En PowerShell la sesión no lleva el token de la App: gh y git (push, pull, fetch, clone) irían con las credenciales de Pablo (#447). Usa Bash, o envuélvelo: `node scripts/token-sesion.mjs -- <comando>`.",
-};
+/** Los avisos, en llano y con el remedio: su texto sale de avisos-guardia.mjs (cuatro partes fijas, #494). */
+export const AVISOS_CREDENCIALES = Object.fromEntries(
+  Object.entries(AVISO_POR_CREDENCIAL).map(([familia, aviso]) => [familia, textoDeAviso(aviso)]),
+);
