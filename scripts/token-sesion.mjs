@@ -8,7 +8,7 @@
  * El arranque ya deja el token en el entorno de la sesión; esto sirve cuando
  * caduca (1 hora) o para probar la cadena entera sin abrir otra sesión. Reutiliza
  * el token que guarda la caché por usuario (scripts/lib/cacheTokenSesion.mjs)
- * mientras falten más de 10 minutos; `--comprobar` dice si salió de la caché
+ * mientras falten más de 15 minutos; `--comprobar` dice si salió de la caché
  * (`cache: si`) o se canjeó (`cache: no`). El token y la clave no salen nunca por
  * pantalla ni a un fichero que no sea esa caché.
  */
@@ -18,8 +18,9 @@ import { ErrorTokenSesion, tokenConCache } from "./lib/tokenSesion.mjs";
 
 export async function main(argv, { generar = tokenConCache, correr = spawnSync, salida = console } = {}) {
   const corte = argv.indexOf("--");
-  const comprobar = argv.includes("--comprobar");
-  const sinCache = (corte < 0 ? argv : argv.slice(0, corte)).includes("--sin-cache");
+  const opciones = corte < 0 ? argv : argv.slice(0, corte); // lo que va detrás de `--` es del comando
+  const comprobar = opciones.includes("--comprobar");
+  const sinCache = opciones.includes("--sin-cache");
   if (!comprobar && corte < 0) {
     salida.error("uso: node scripts/token-sesion.mjs [--sin-cache] --comprobar | [--sin-cache] -- <comando…>");
     return 2;
@@ -33,7 +34,7 @@ export async function main(argv, { generar = tokenConCache, correr = spawnSync, 
     return 1;
   }
   if ((t.advertencias ?? []).includes("cache-casi-caducada")) {
-    salida.error("token-sesion aviso: 1Password agotó el límite de lecturas; uso el token guardado, que caduca pronto. Reintenta más tarde con --sin-cache.");
+    salida.error(`token-sesion aviso: 1Password agotó el límite de lecturas; uso el token guardado, que caduca a las ${t.expiraEn ?? "?"} (UTC). Reintenta más tarde con --sin-cache.`);
   }
   if (comprobar) {
     salida.log(`token-sesion resultado: ok expira: ${t.expiraEn ?? "?"} autor: ${t.autor.nombre} cache: ${t.cache === "si" ? "si" : "no"}`);

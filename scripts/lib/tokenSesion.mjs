@@ -21,7 +21,7 @@ import { BOVEDA_PABLO, BOVEDA_SESIONES, entornoOp, leerEnv } from "./env.mjs";
 // El canje del token es de E1 (#327): permisos explícitos sin workflows, comprobados al
 // volver, y limitado a este repo. Aquí no se repite: se usa.
 import { API, ErrorToken, PERMISOS, firmarJwt, pedirToken, sinSecretos } from "../token-sesiones.mjs";
-import { MARGEN_MS, conBloqueo, escribirCache, leerCache, permisosDelUsuario, protegerFichero, rutaDeCache } from "./cacheTokenSesion.mjs";
+import { FORMA_FECHA, MARGEN_MS, conBloqueo, escribirCache, leerCache, permisosDelUsuario, protegerFichero, rutaDeCache } from "./cacheTokenSesion.mjs";
 
 export const APP_ID = 5260552;
 export const REPO = "pabloam89/MenuPlan";
@@ -39,9 +39,11 @@ export const ADVERTENCIAS = ["permisos-de-mas", "todos-los-repos", "app-sin-comp
 export const CACHES = ["si", "no"];
 /** Presupuesto de toda la identidad en el arranque: el hook muere a los 30 s y no avisa. */
 export const TOPE_IDENTIDAD_MS = 13_000;
+/** Lo que se deja del presupuesto para comprobar la identidad con `gh` tras sacar el token. */
+const MARGEN_IDENTIDAD_MS = 3000;
 
 /** Vocabulario cerrado de por qué no hay token (se cuenta en la línea `identidad-sesion`). */
-export const MOTIVOS = ["sin-clave", "clave-ilegible", "sin-instalacion", "github-rechaza", "red", "token-raro", "sin-fichero-de-entorno", "error-interno", "limite-de-1password"];
+export const MOTIVOS = ["sin-clave", "clave-ilegible", "sin-instalacion", "github-rechaza", "red", "token-raro", "sin-fichero-de-entorno", "error-interno", "limite-de-1password", "bloqueo-ocupado"];
 /** Lo que dice la CLI cuando se agota el límite de lecturas por hora de la cuenta (visto el 10 oct 2026). */
 const LIMITE_OP = /too many requests|rate.?limit/i;
 
@@ -202,8 +204,10 @@ async function autorDeApp(fetchFn) {
  * vivo (aunque le queden menos de MARGEN_MS), usa ese y lo advierte. `sinCache` fuerza el canje.
  * Devuelve lo mismo que `tokenDeSesion` más `cache: "si" | "no"`.
  */
-export async function tokenConCache({ sinCache = false, cache = {}, generar = tokenDeSesion, ids = idsPorDefecto, reloj = Date.now, ...resto } = {}) {
-  const ruta = cache.ruta ?? rutaDeCache();
+export async function tokenConCache({ sinCache = false, cache = {}, generar = tokenDeSesion, ids = idsPorDefecto, reloj = Date.now, hasta = Infinity, ...resto } = {}) {
+  const ruta = cache.ruta !== undefined ? cache.ruta : rutaDeCache();
+  // Sin un sitio válido para la caché (fuera del perfil o en OneDrive) se canjea como antes
+  if (!ruta) return { ...(await generar({ ...resto, ids, ahora: reloj() })), cache: "no" };
   const fs = cache.fs ?? fsReal;
   const proteger = cache.proteger ?? protegerFichero;
   const permisosBien = cache.permisosBien ?? permisosDelUsuario;
@@ -222,14 +226,16 @@ export async function tokenConCache({ sinCache = false, cache = {}, generar = to
     if (l.motivo === "ok" && l.restanteMs > MARGEN_MS) return dePrevia(l);
   }
   return conBloqueo({
-    ruta, fs, reloj, esperaMs: cache.esperaBloqueoMs, sondeoMs: cache.sondeoMs, dormir: cache.dormir,
-    fn: async () => {
+    ruta, fs, reloj, esperaMs: cache.esperaBloqueoMs, sondeoMs: cache.sondeoMs, dormir: cache.dormir, hasta,
+    fn: async ({ bloqueado, razon }) => {
       // Otra sesión pudo canjear mientras esta esperaba el bloqueo
       const previa = sinCache ? { motivo: "ausente" } : leer();
       if (previa.motivo === "ok" && previa.restanteMs > MARGEN_MS) return dePrevia(previa);
+      // Otro canjea y no terminó a tiempo: canjear en paralelo gastaría otra lectura del .pem. Plan B con aviso
+      if (!bloqueado && razon === "ocupado") throw new ErrorTokenSesion("bloqueo-ocupado", "otra sesión está sacando el token y no terminó a tiempo");
       try {
         const t = await generar({ ...resto, ids: () => ({ appId, installationId }), ahora: reloj() });
-        if (t.expiraEn && Number.isFinite(Date.parse(t.expiraEn))) {
+        if (FORMA_FECHA.test(String(t.expiraEn))) {
           escribirCache({ ruta, fs, proteger, datos: { token: t.token, expiraEn: t.expiraEn, appId, installationId: t.installationId ?? installationId } });
         }
         return { ...t, cache: "no" };
@@ -307,7 +313,7 @@ export function avisoDeIdentidad({ identidad, token, motivo = "-", advertencias 
   if (identidad === "app") {
     return `Identidad: App ${BOT_LOGIN} por defecto en Bash (token de 1 hora para \`gh\` y \`git push\`); en PowerShell no se carga: usa \`node scripts/token-sesion.mjs -- <comando>\` o pasa por Bash. ${resto} Caducado: \`node scripts/token-sesion.mjs -- gh …\` o \`-- git push\`.${extra} ${cuenta}`;
   }
-  return `Identidad de GitHub: no he podido comprobarla (${identidad}); mírala con \`gh api user\`. ${resto}${extra} ${cuenta}`;
+  return `AVISO: no he podido comprobar con qué identidad de GitHub trabaja esta sesión (${identidad}, motivo: ${motivo}); puede estar yendo como Pablo (${LOGIN_PABLO}, administrador). Mírala con \`gh api user\`. ${resto}${extra} ${cuenta}`;
 }
 
 /** `gh api user` con el entorno dado; devuelve { status, stdout, stderr }. */
@@ -324,6 +330,7 @@ export function ghApiUser(env) {
  * milisegundos (si vence: identidad desconocida, motivo red): el hook muere a los 30 s sin avisar.
  */
 export async function aplicarIdentidad({ env = process.env, escribir = appendFileSync, generar = tokenConCache, identificar = ghApiUser, registrar = (l) => console.error(l), tope = TOPE_IDENTIDAD_MS } = {}) {
+  const inicio = Date.now();
   let reloj;
   let vencido = false; // pasado el tope, el trabajo que siga vivo no escribe ni registra nada
   const final = (datos) => {
@@ -343,7 +350,8 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
     let cache = "no";
     const entorno = { ...env };
     try {
-      const t = await generar();
+      // La espera del bloqueo de la caché sale de lo que queda del presupuesto, y deja 3 s para `gh api user`
+      const t = await generar({ hasta: inicio + tope - MARGEN_IDENTIDAD_MS });
       advertencias = t.advertencias ?? [];
       if (!env.CLAUDE_ENV_FILE) throw new ErrorTokenSesion("sin-fichero-de-entorno", "este arranque no recibió CLAUDE_ENV_FILE");
       if (vencido) return null;

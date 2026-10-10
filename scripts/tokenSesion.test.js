@@ -2,14 +2,14 @@
 // canje del token con un fetch de mentira, fallo cerrado sin filtrar nada y el aviso del arranque.
 import { createPublicKey, createVerify, generateKeyPairSync } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, utimesSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, unlinkSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { main } from "./token-sesion.mjs";
 import { ADVERTENCIAS, APP_ID, BOT_ID, CACHES, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MOTIVOS, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, lineasDeEntorno, motivoDeCanje, tokenConCache, tokenDeSesion } from "./lib/tokenSesion.mjs";
-import { MARGEN_MS, escribirCache, leerCache, permisosDelUsuario, protegerFichero, rutaDeCache } from "./lib/cacheTokenSesion.mjs";
+import { MARGEN_MS, escribirCache, leerCache, permisosDelUsuario, principalesDeIcacls, protegerFichero, rutaDeCache } from "./lib/cacheTokenSesion.mjs";
 import { PERMISOS } from "./token-sesiones.mjs";
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048, privateKeyEncoding: { type: "pkcs1", format: "pem" }, publicKeyEncoding: { type: "spki", format: "pem" } });
@@ -313,22 +313,25 @@ describe("caché del token entre sesiones", () => {
     expect(readdirSync(dirname(ruta)).sort()).toEqual(["token-sesion.json"]); // sin temporales ni bloqueo
   });
 
-  it("reutiliza con 11 minutos por delante y renueva con 9", async () => {
+  it("reutiliza con 16 minutos por delante y renueva con 14", async () => {
     const ruta = nueva();
     const generar = generador();
-    guardar(ruta, { expiraEn: new Date(T0 + 11 * MIN).toISOString() });
+    guardar(ruta, { expiraEn: new Date(T0 + 16 * MIN).toISOString() });
     expect((await usar(ruta, { generar })).cache).toBe("si");
     expect(generar).not.toHaveBeenCalled();
-    guardar(ruta, { expiraEn: new Date(T0 + 9 * MIN).toISOString() });
+    guardar(ruta, { expiraEn: new Date(T0 + 14 * MIN).toISOString() });
     expect((await usar(ruta, { generar })).cache).toBe("no");
     expect(generar).toHaveBeenCalledTimes(1);
     expect(JSON.parse(readFileSync(ruta, "utf8")).expiraEn).toBe(new Date(T0 + 60 * MIN).toISOString());
-    expect(MARGEN_MS).toBe(10 * MIN);
+    expect(MARGEN_MS).toBe(15 * MIN);
   });
 
   it.each([
     ["caducada", { expiraEn: new Date(T0 - MIN).toISOString() }, "caducado"],
-    ["con caducidad a más de 2 horas", { expiraEn: new Date(T0 + 5 * 60 * MIN).toISOString() }, "forma"],
+    ["con caducidad a más de una hora y poco", { expiraEn: new Date(T0 + 65 * MIN).toISOString() }, "forma"],
+    ["con la fecha en texto libre", { expiraEn: new Date(T0 + 30 * MIN).toUTCString() }, "forma"],
+    ["con la fecha ISO con desfase en vez de Z", { expiraEn: new Date(T0 + 30 * MIN).toISOString().replace("Z", "+00:00") }, "forma"],
+    ["con un salto de línea en la fecha", { expiraEn: `${new Date(T0 + 30 * MIN).toISOString()}\nOtra línea` }, "forma"],
     ["con el token de forma rara", { token: "x; rm -rf /" }, "forma"],
     ["con la fecha ilegible", { expiraEn: "mañana" }, "forma"],
     ["con una clave de más (nada más que lo pactado)", { pem: "-----BEGIN RSA PRIVATE KEY-----" }, "forma"],
@@ -383,7 +386,7 @@ describe("caché del token entre sesiones", () => {
     expect(permisosDelUsuario(ruta)).toBe(true);
     expect(leerCache({ ruta, ids: { appId: APP_ID, installationId: 77 }, reloj: () => T0 }).motivo).toBe("ok");
     if (process.platform === "win32") {
-      execFileSync("icacls", [ruta, "/grant", "*S-1-1-0:(R)"], { stdio: "ignore" }); // «Todos»
+      execFileSync(join(process.env.SystemRoot || "C:\\Windows", "System32", "icacls.exe"), [ruta, "/grant", "*S-1-1-0:(R)"], { stdio: "ignore" }); // «Todos»
     } else {
       chmodSync(ruta, 0o644);
     }
@@ -418,22 +421,75 @@ describe("caché del token entre sesiones", () => {
     expect(readdirSync(dirname(ruta)).sort()).toEqual(["token-sesion.json"]);
   });
 
-  it("si el bloqueo no se consigue a tiempo, canjea igualmente y no toca el bloqueo ajeno", async () => {
+  it("si otro tiene el bloqueo y la espera vence, NO canjea en paralelo: motivo bloqueo-ocupado y el bloqueo ajeno intacto", async () => {
     const ruta = nueva();
     mkdirSync(dirname(ruta), { recursive: true });
     writeFileSync(`${ruta}.lock`, "otro");
     const generar = generador({ expiraEn: new Date(Date.now() + 60 * MIN).toISOString() });
-    const r = await usar(ruta, { generar, reloj: Date.now });
-    expect(r.cache).toBe("no");
-    expect(generar).toHaveBeenCalledTimes(1);
+    const e = await usar(ruta, { generar, reloj: Date.now }).catch((x) => x);
+    expect(e).toBeInstanceOf(ErrorTokenSesion);
+    expect(e.motivo).toBe("bloqueo-ocupado");
+    expect(MOTIVOS).toContain("bloqueo-ocupado");
+    expect(generar).not.toHaveBeenCalled();
     expect(existsSync(`${ruta}.lock`)).toBe(true);
   });
 
-  it("un bloqueo huérfano de hace más de 30 s se quita", async () => {
+  it("dos arranques con un canje más lento que la espera: un solo canje y el segundo no canjea", async () => {
+    const ruta = nueva();
+    const generar = vi.fn(async () => {
+      await new Promise((ok) => setTimeout(ok, 400));
+      return { token: TOKEN, expiraEn: new Date(Date.now() + 60 * MIN).toISOString(), installationId: 77, autor, advertencias: [] };
+    });
+    const opciones = { ids: ids(), generar, reloj: Date.now, cache: opcionesCache(ruta, { esperaBloqueoMs: 60 }) };
+    const [a, b] = await Promise.allSettled([tokenConCache(opciones), (async () => { await new Promise((ok) => setTimeout(ok, 20)); return tokenConCache(opciones); })()]);
+    expect(generar).toHaveBeenCalledTimes(1);
+    expect(a.status).toBe("fulfilled");
+    expect(b.status).toBe("rejected");
+    expect(b.reason.motivo).toBe("bloqueo-ocupado");
+  });
+
+  it("la espera del bloqueo no pasa del límite absoluto `hasta` que da el arranque", async () => {
     const ruta = nueva();
     mkdirSync(dirname(ruta), { recursive: true });
-    writeFileSync(`${ruta}.lock`, "muerto");
-    const vieja = new Date(Date.now() - 120_000);
+    writeFileSync(`${ruta}.lock`, "otro");
+    const t0 = Date.now();
+    const e = await usar(ruta, { generar: generador(), reloj: Date.now, hasta: t0 + 80, cache: opcionesCache(ruta, { esperaBloqueoMs: 5000 }) }).catch((x) => x);
+    expect(e.motivo).toBe("bloqueo-ocupado");
+    expect(Date.now() - t0).toBeLessThan(1500);
+  });
+
+  it("si el bloqueo no se puede ni crear (permisos), canjea sin él", async () => {
+    const ruta = nueva();
+    const fs = { mkdirSync, statSync, readFileSync, renameSync, unlinkSync, writeFileSync: (f, ...r) => { if (String(f).endsWith(".lock")) throw Object.assign(new Error("x"), { code: "EACCES" }); return writeFileSync(f, ...r); } };
+    const generar = generador();
+    const r = await usar(ruta, { generar, cache: opcionesCache(ruta, { fs }) });
+    expect(r.cache).toBe("no");
+    expect(generar).toHaveBeenCalledTimes(1);
+  });
+
+  it("aplicarIdentidad da a la caché un límite absoluto dentro de su presupuesto", async () => {
+    const vistos = [];
+    const antes = Date.now();
+    await aplicarIdentidad({ env: {}, tope: 13_000, registrar: () => {}, identificar: async () => ({ status: 0, stdout: "pabloam89" }), generar: async (o) => { vistos.push(o.hasta); return { token: TOKEN, autor, advertencias: [] }; } });
+    expect(vistos[0]).toBeGreaterThan(antes);
+    expect(vistos[0]).toBeLessThanOrEqual(Date.now() + 13_000 - 2000);
+  });
+
+  it("si la identidad queda sin comprobar por el tope, el aviso dice que puede ir como Pablo", async () => {
+    const aviso = await aplicarIdentidad({ env: { CLAUDE_ENV_FILE: "/tmp/f" }, tope: 30, registrar: () => {}, generar: () => new Promise(() => {}) });
+    expect(aviso).toMatch(/^AVISO: .*puede estar yendo como Pablo/);
+    expect(aviso).toContain("identidad: desconocida token: no motivo: red");
+  });
+
+  it("un bloqueo huérfano de hace más de 20 s se quita; uno de 10 s no", async () => {
+    const ruta = nueva();
+    mkdirSync(dirname(ruta), { recursive: true });
+    writeFileSync(`${ruta}.lock`, "reciente");
+    const reciente = new Date(Date.now() - 10_000);
+    utimesSync(`${ruta}.lock`, reciente, reciente);
+    expect((await usar(ruta, { generar: generador(), reloj: Date.now }).catch((x) => x)).motivo).toBe("bloqueo-ocupado");
+    expect(existsSync(`${ruta}.lock`)).toBe(true);
+    const vieja = new Date(Date.now() - 25_000);
     utimesSync(`${ruta}.lock`, vieja, vieja);
     const generar = generador({ expiraEn: new Date(Date.now() + 60 * MIN).toISOString() });
     await usar(ruta, { generar, reloj: Date.now });
@@ -443,7 +499,7 @@ describe("caché del token entre sesiones", () => {
 
   describe("límite de lecturas de 1Password", () => {
     const limite = () => vi.fn(async () => { throw new ErrorTokenSesion("limite-de-1password", "Too many requests"); });
-    it("con un token guardado que aún no caducó (menos de 10 min) lo usa y avisa", async () => {
+    it("con un token guardado que aún no caducó (menos de 15 min) lo usa y avisa", async () => {
       const ruta = nueva();
       guardar(ruta, { expiraEn: new Date(T0 + 4 * MIN).toISOString() });
       const r = await usar(ruta, { generar: limite() });
@@ -482,9 +538,58 @@ describe("caché del token entre sesiones", () => {
     });
   });
 
-  it("la ruta es una por usuario: LOCALAPPDATA/MenuPlan si existe y ~/.claude si no", () => {
-    expect(rutaDeCache({ LOCALAPPDATA: "/datos/local" })).toBe(join("/datos/local", "MenuPlan", "token-sesion.json"));
-    expect(rutaDeCache({}, () => "/home/p")).toBe(join("/home/p", ".claude", "token-sesion.json"));
+  it("la ruta es una por usuario: LOCALAPPDATA/MenuPlan si está en su perfil y ~/.claude si no", () => {
+    const casa = () => "/home/p";
+    expect(rutaDeCache({ LOCALAPPDATA: "/home/p/AppData/Local" }, casa)).toBe(join("/home/p/AppData/Local", "MenuPlan", "token-sesion.json"));
+    expect(rutaDeCache({}, casa)).toBe(join("/home/p", ".claude", "token-sesion.json"));
+    // el entorno puede mentir: fuera del perfil, en OneDrive o con «..» se usa ~/.claude
+    for (const mala of ["/tmp/otro", "/home/p/OneDrive/AppData", "/home/pepe/AppData", "/home/p/../x"]) {
+      expect(rutaDeCache({ LOCALAPPDATA: mala }, casa)).toBe(join("/home/p", ".claude", "token-sesion.json"));
+    }
+    expect(rutaDeCache({}, () => "/home/p/OneDrive/p")).toBe(null);
+  });
+
+  it("sin un sitio válido para la caché (ruta null) canjea sin leer ni escribir nada", async () => {
+    const generar = generador();
+    const tocados = [];
+    const fs = new Proxy({}, { get: (_, k) => { tocados.push(k); return undefined; } });
+    const r = await tokenConCache({ ids: ids(), reloj: () => T0, generar, cache: { ruta: null, fs } });
+    expect(tocados).toEqual([]);
+    expect(r.cache).toBe("no");
+    expect(generar).toHaveBeenCalledTimes(1);
+  });
+
+  it("los permisos se miran ANTES de leer el contenido", () => {
+    const ruta = nueva();
+    guardar(ruta);
+    const lecturas = [];
+    const fs = { statSync, readFileSync: (...a) => { lecturas.push(a[0]); return readFileSync(...a); } };
+    expect(leerCache({ ruta, ids: { appId: APP_ID, installationId: 77 }, reloj: () => T0, fs, permisosBien: () => false }).motivo).toBe("permisos");
+    expect(lecturas).toEqual([]);
+    expect(leerCache({ ruta, ids: { appId: APP_ID, installationId: 77 }, reloj: () => T0, fs, permisosBien: () => true }).motivo).toBe("ok");
+    expect(lecturas).toEqual([ruta]);
+  });
+
+  it("icacls: nombres con espacios, y el mismo usuario de otro dominio no vale", () => {
+    const ruta = "C:\\Users\\Ana García\\AppData\\Local\\MenuPlan\\token-sesion.json";
+    const salida = `${ruta} PC\\Ana García:(F)\n\nSuccessfully processed 1 files; Failed processing 0 files\n`;
+    expect(principalesDeIcacls(salida, ruta)).toEqual(["PC\\Ana García"]);
+    expect(principalesDeIcacls(`${ruta} PC\\Ana García:(F)\n               OTRO\\Ana García:(R)\n`, ruta)).toEqual(["PC\\Ana García", "OTRO\\Ana García"]);
+    if (process.platform !== "win32") return;
+    // en Windows, permisosDelUsuario compara con el nombre completo que le pasan
+    const real = nueva();
+    escribirCache({ ruta: real, datos: { token: TOKEN, expiraEn: new Date(T0 + 30 * MIN).toISOString(), appId: APP_ID, installationId: 77 } });
+    const yo = principalesDeIcacls(execFileSync(join(process.env.SystemRoot || "C:\\Windows", "System32", "icacls.exe"), [real], { encoding: "utf8" }), real)[0];
+    expect(permisosDelUsuario(real, yo)).toBe(true);
+    expect(permisosDelUsuario(real, `OTRO\\${yo.split("\\").pop()}`)).toBe(false);
+  });
+
+  it("no escribe una caché con la fecha fuera del ISO estricto", () => {
+    const ruta = nueva();
+    for (const expiraEn of ["mañana", "Sat, 10 Oct 2026 23:00:00 GMT", "2026-10-10T12:00:00Z\nX", ""]) {
+      expect(escribirCache({ ruta, proteger: () => true, datos: { token: TOKEN, expiraEn, appId: APP_ID, installationId: 77 } })).toBe(false);
+    }
+    expect(existsSync(ruta)).toBe(false);
   });
 
   describe("lo que ve el arranque y token-sesion.mjs", () => {
@@ -511,11 +616,15 @@ describe("caché del token entre sesiones", () => {
       expect(generar).toHaveBeenLastCalledWith({ sinCache: true });
       await main(["--", "gh", "--sin-cache"], { generar, salida, correr: () => ({ status: 0 }) });
       expect(generar).toHaveBeenLastCalledWith({ sinCache: false });
+      const correr = vi.fn(() => ({ status: 7 }));
+      expect(await main(["--", "gh", "pr", "create", "--comprobar"], { generar, salida, correr })).toBe(7);
+      expect(correr).toHaveBeenCalledTimes(1);
+      expect(correr.mock.calls[0][1]).toEqual(["pr", "create", "--comprobar"]);
       const caso = { token: TOKEN, expiraEn: "x", autor, cache: "no", advertencias: ["cache-casi-caducada"] };
       const s2 = { log: vi.fn(), error: vi.fn() };
       await main(["--comprobar"], { generar: async () => caso, salida: s2 });
       expect(s2.log.mock.calls[0][0]).toMatch(/cache: no$/);
-      expect(s2.error.mock.calls[0][0]).toMatch(/aviso/);
+      expect(s2.error.mock.calls[0][0]).toMatch(/aviso.*caduca a las x \(UTC\)/);
     });
   });
 });
