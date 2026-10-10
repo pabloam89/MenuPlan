@@ -22,7 +22,8 @@ import {
 } from "./lib/fabrica.mjs";
 import { dirFabrica } from "../.claude/hooks/eventos.mjs"; // una sola carpeta para el registro de eventos y los informes
 import { diaMadrid } from "./lib/hora.mjs";
-import { CONSULTA, leerIssue } from "./lib/issues.mjs";
+import { conCache, registrarGh } from "./lib/cuotaGh.mjs";
+import { CONSULTA_FONDOS, CONSULTA_TODOS, conEsperaDeLimite, fondosTruncados, unirNodos } from "./lib/fabricaGh.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -61,20 +62,41 @@ function opcion(args, nombre) {
   return i >= 0 ? args[i + 1] : undefined;
 }
 
-const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
+// Cada llamada deja su línea `gh: caller=fabrica api=…` y espera si GitHub limita (#424).
+const gh = (...args) => {
+  registrarGh("fabrica", args);
+  return conEsperaDeLimite(() => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000, maxBuffer: 64 * 1024 * 1024 }), { aviso: (m) => console.error(m) });
+};
 
-/** Todos los issues con padre e hijos, como `npm run issues` (la misma consulta y el mismo lector). */
-function traerIssues() {
+/** Todas las páginas de una consulta de issues, con una pausa corta entre una y otra. */
+function paginas(consulta) {
   const out = [];
   let cursor = null;
   do {
-    const args = ["api", "graphql", "-f", `query=${CONSULTA}`];
+    const args = ["api", "graphql", "-f", `query=${consulta}`];
     if (cursor) args.push("-f", `cursor=${cursor}`);
     const pag = JSON.parse(gh(...args)).data.repository.issues;
-    out.push(...pag.nodes.map(leerIssue));
+    out.push(...pag.nodes);
     cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
+    if (cursor) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, PAUSA_ENTRE_PAGINAS_MS);
   } while (cursor);
   return out;
+}
+
+const PAUSA_ENTRE_PAGINAS_MS = 500;
+const TTL_CACHE_MIN = 10; // el informe es diario: repetirlo en 10 min no pide nada nuevo
+
+/** Los issues como `leerIssue()`, con dos consultas ligeras (~18 puntos en vez de ~320) y caché local. */
+function traerIssues() {
+  const crudos = conCache("fabrica-issues", {
+    ttlMin: TTL_CACHE_MIN,
+    viejoSiFalla: true,
+    pedir: () => ({ todos: paginas(CONSULTA_TODOS), fondos: paginas(CONSULTA_FONDOS) }),
+    aviso: (m) => console.error(m),
+  });
+  const truncados = fondosTruncados(crudos.fondos);
+  if (truncados.length) console.error(`Aviso: fondos con más hijos de los leídos: ${truncados.map((n) => "#" + n).join(", ")}`);
+  return unirNodos(crudos.todos, crudos.fondos);
 }
 
 /** Cuenta los eventos de los hooks (eventos.jsonl y su rotado). Solo lee; ausente o ilegible cuenta como vacío. */
