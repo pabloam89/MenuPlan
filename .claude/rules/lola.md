@@ -18,7 +18,7 @@ paths:
   router-evals, skills-prueba) apuntan su gasto en `~/.menuplan-evals/gasto.jsonl`,
   de esta máquina (no suma la de otra persona ni la consola), y releen el libro
   antes de cada pago; los demás scripts con modelo figuran en `evals.test.js`
-  como excepciones, sin límite mensual) y cada pasada su `--tope`; <!-- norma:evals-tope-mensual --> lo ya
+  como excepciones, sin límite mensual) y cada pasada su límite propio; lo ya
   medido sin cambios no se vuelve a pagar (`.evals-out/`). Vitest y CI, siempre.
 - **Lo que no puede fallar va en la base o en código determinista, nunca solo
   en el prompt.** Cada vez que una garantía dependió del modelo, las evals
