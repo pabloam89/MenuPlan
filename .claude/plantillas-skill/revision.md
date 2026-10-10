@@ -114,11 +114,11 @@ Lo que pide este tipo: una pieza mala a propósito da todos sus fallos. Lo compr
 
 52 criterios de la forja se aplican a este tipo (los que dicen `tipos: "todos"` o lo nombran). La frase entera de cada uno, en `docs/ops/FORJA.md`.
 
-- **formal** (26): `frontmatter`, `tipo`, `dueno`, `comprobado`, `caducada`, `secciones`, `formato`, `tamano`, `secretos`, `rutas`, `estructura`, `copiado`, `casos`, `casos-negativos`, `fechas`, `sin-parada`, `ejemplos`, `tabla`, `cabeceras`, `tipo-sin-estandar`, `apartado-ausente`, `pocos-puntos`, `sin-fuente`, `ejemplo-sin-origen`, `ejemplo-largo`, `ejemplo-no-cuadra`.
+- **formal** (26): `apartado-ausente`, `cabeceras`, `caducada`, `casos-negativos`, `casos`, `comprobado`, `copiado`, `dueno`, `ejemplo-largo`, `ejemplo-no-cuadra`, `ejemplo-sin-origen`, `ejemplos`, `estructura`, `fechas`, `formato`, `frontmatter`, `pocos-puntos`, `rutas`, `secciones`, `secretos`, `sin-fuente`, `sin-parada`, `tabla`, `tamano`, `tipo-sin-estandar`, `tipo`.
 
-- **material** (13): `solape`, `solape-cercano`, `comando-suelto`, `caduca-pronto`, `comando-muerto`, `ruta-muerta`, `skill-muerta`, `descripcion-sin-palabras`, `frontera-vaga`, `tamano-cerca`, `caso-duplicado`, `caso-en-frontera`, `vocabulario-canonico`.
+- **material** (13): `caduca-pronto`, `caso-duplicado`, `caso-en-frontera`, `comando-muerto`, `comando-suelto`, `descripcion-sin-palabras`, `frontera-vaga`, `ruta-muerta`, `skill-muerta`, `solape-cercano`, `solape`, `tamano-cerca`, `vocabulario-canonico`.
 
-- **subjetiva** (13): `descripcion-palabras-de-quien-pide`, `frontera-casi-fallos`, `disparador-al-principio`, `solo-lo-que-el-modelo-no-sabe`, `libertad-ajustada`, `camino-por-defecto`, `pasos-con-salida-observable`, `vocabulario-unico`, `ejemplos-canonicos`, `casos-medidos-con-y-sin-skill`, `skill-contrastada-con-fallo-real`, `forma-adecuada-al-contenido`, `sin-duda-con-vecina`.
+- **subjetiva** (13): `camino-por-defecto`, `casos-medidos-con-y-sin-skill`, `descripcion-palabras-de-quien-pide`, `disparador-al-principio`, `ejemplos-canonicos`, `forma-adecuada-al-contenido`, `frontera-casi-fallos`, `libertad-ajustada`, `pasos-con-salida-observable`, `sin-duda-con-vecina`, `skill-contrastada-con-fallo-real`, `solo-lo-que-el-modelo-no-sabe`, `vocabulario-unico`.
 
 No hay criterio de skill que no se le aplique.
 

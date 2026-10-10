@@ -8,16 +8,7 @@
   },
   "tipos_skill": {
     "$partida": "lista",
-    "clave": "id",
-    "orden": [
-      "servicio",
-      "procedimiento",
-      "diagnostico",
-      "decision",
-      "flujo",
-      "revision",
-      "conocimiento"
-    ]
+    "clave": "id"
   },
   "preguntas_tipo": [
     {
@@ -147,14 +138,7 @@
     }
   },
   "campos_ficha": {
-    "$partida": "mapa",
-    "orden": [
-      "skill",
-      "estandar",
-      "agente",
-      "juicio",
-      "criterio"
-    ]
+    "$partida": "mapa"
   },
   "sujetos": {
     "skill": {
@@ -257,82 +241,6 @@
   },
   "criterios": {
     "$partida": "lista",
-    "clave": "id",
-    "orden": [
-      "frontmatter",
-      "tipo",
-      "dueno",
-      "comprobado",
-      "caducada",
-      "secciones",
-      "formato",
-      "tamano",
-      "secretos",
-      "rutas",
-      "estructura",
-      "copiado",
-      "casos",
-      "casos-negativos",
-      "fechas",
-      "sin-parada",
-      "ejemplos",
-      "tabla",
-      "cabeceras",
-      "tipo-sin-estandar",
-      "apartado-ausente",
-      "pocos-puntos",
-      "sin-fuente",
-      "ejemplo-sin-origen",
-      "ejemplo-largo",
-      "ejemplo-no-cuadra",
-      "solape",
-      "solape-cercano",
-      "comando-suelto",
-      "caduca-pronto",
-      "comando-muerto",
-      "ruta-muerta",
-      "skill-muerta",
-      "descripcion-sin-palabras",
-      "frontera-vaga",
-      "tamano-cerca",
-      "caso-duplicado",
-      "caso-en-frontera",
-      "descripcion-palabras-de-quien-pide",
-      "frontera-casi-fallos",
-      "disparador-al-principio",
-      "solo-lo-que-el-modelo-no-sabe",
-      "libertad-ajustada",
-      "camino-por-defecto",
-      "pasos-con-salida-observable",
-      "vocabulario-unico",
-      "ejemplos-canonicos",
-      "casos-medidos-con-y-sin-skill",
-      "skill-contrastada-con-fallo-real",
-      "forma-adecuada-al-contenido",
-      "sin-duda-con-vecina",
-      "estandar-fuente-con-forma",
-      "estandar-fuente-documentacion-oficial",
-      "estandar-fuente-usada",
-      "estandar-agente-con-lista",
-      "estandar-estado-cerrado",
-      "estandar-pendientes-solo-bajan",
-      "estandar-lista-minima",
-      "estandar-tarea-id",
-      "estandar-tarea-frase",
-      "estandar-tarea-origen",
-      "estandar-completo-con-forma",
-      "estandar-fuente-citada",
-      "estandar-seccion-generada",
-      "estandar-concreto-y-verificable",
-      "estandar-respaldado-por-su-fuente",
-      "estandar-no-hace-delimita",
-      "practica-numero-de-bullets",
-      "practica-estructura-del-bullet",
-      "practica-fuente-por-bullet",
-      "practica-voz-activa",
-      "practica-modo-tiempo-persona",
-      "estandar-rondas-de-investigacion",
-      "vocabulario-canonico"
-    ]
+    "clave": "id"
   }
 }

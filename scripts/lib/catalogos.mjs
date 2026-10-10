@@ -13,17 +13,18 @@
  * Forma de una carpeta:
  *   <carpeta>/_catalogo.json         el objeto entero, salvo las colecciones partidas, que llevan
  *                                    en su sitio una marca:
- *                                      { "$partida": "lista", "clave": "id", "orden": [...] }
- *                                      { "$partida": "mapa", "orden": [...] }
+ *                                      { "$partida": "lista", "clave": "id" }
+ *                                      { "$partida": "mapa" }
  *   <carpeta>/<coleccion>/<nombre>.json
  *                                    una entrada. En una lista, la entrada tal cual, y <nombre> sale
  *                                    de su `clave`; en un mapa, { "clave": k, "valor": v }, y
  *                                    <nombre> sale de k.
  *
- * El orden de cada colección se conserva: primero las de `orden`, en ese orden; después, las que
- * no están en `orden`, por nombre de fichero. Así una entrada nueva no obliga a tocar
- * `_catalogo.json` (que volvería a ser el fichero que todos editan); solo se añade a `orden` si
- * tiene que ir en un sitio concreto.
+ * El orden de las entradas de una colección es el de sus nombres de fichero, y no se guarda en
+ * ningún sitio: una lista de orden en `_catalogo.json` volvería a ser el punto que todas las ramas
+ * editan al añadir o borrar una entrada (revisión de #505). Ningún lector depende del orden de
+ * estas colecciones: las vistas que generan (FORJA.md, plantillas) salen en el de los nombres.
+ * Una marca con `orden` es un error.
  *
  * Nombres de fichero (`nombreDeFichero`): ASCII en minúsculas, sin tildes ni ñ (ñ → n), y todo lo
  * que no es letra, cifra o «_» pasa a «-». Dos claves que dan el mismo nombre (también por mayúsculas,
@@ -73,8 +74,8 @@ const aTexto = (v) => `${JSON.stringify(v, null, 2)}\n`;
 /**
  * Compone el objeto de un catálogo a partir de sus ficheros. `ficheros` es un Map ruta relativa a
  * la carpeta (con «/») → texto. Lanza con un mensaje claro si algo no cuadra: un nombre que no es
- * el de su clave, dos claves con el mismo nombre, una entrada de `orden` sin fichero, un fichero
- * suelto o una colección sin marca.
+ * el de su clave, dos claves con el mismo nombre, una marca con `orden`, un fichero suelto o
+ * una colección sin marca.
  */
 export function componer(ficheros, donde = "catálogo") {
   const leer = (ruta) => {
@@ -86,6 +87,7 @@ export function componer(ficheros, donde = "catálogo") {
   const fuera = {};
   for (const [seccion, v] of Object.entries(indice)) {
     if (!esMarca(v)) { fuera[seccion] = v; continue; }
+    if ("orden" in v) throw new Error(`${donde}${INDICE}: ${seccion} lleva «orden»; el orden es el de los nombres de fichero (#505)`);
     const dir = `${nombreDeFichero(seccion)}/`;
     const entradas = new Map();
     for (const ruta of [...ficheros.keys()].filter((r) => r.startsWith(dir)).sort()) {
@@ -100,11 +102,7 @@ export function componer(ficheros, donde = "catálogo") {
       if (entradas.has(clave)) throw new Error(`${donde}${ruta}: la clave «${clave}» está repetida`);
       entradas.set(clave, v.$partida === "lista" ? e : e.valor);
     }
-    const orden = Array.isArray(v.orden) ? v.orden : [];
-    const sinFichero = orden.filter((k) => !entradas.has(k));
-    if (sinFichero.length) throw new Error(`${donde}${INDICE}: «orden» de ${seccion} nombra entradas sin fichero: ${sinFichero.join(", ")}`);
-    if (new Set(orden).size !== orden.length) throw new Error(`${donde}${INDICE}: «orden» de ${seccion} repite entradas`);
-    const claves = [...orden, ...[...entradas.keys()].filter((k) => !orden.includes(k))];
+    const claves = [...entradas.keys()];
     fuera[seccion] = v.$partida === "lista" ? claves.map((k) => entradas.get(k)) : Object.fromEntries(claves.map((k) => [k, entradas.get(k)]));
   }
   const sueltos = [...ficheros.keys()].filter((r) => !usados.has(r));
@@ -115,7 +113,7 @@ export function componer(ficheros, donde = "catálogo") {
 /**
  * Parte un objeto en sus ficheros (Map ruta relativa → texto). `colecciones` es { seccion: clave }
  * para una lista (la clave es el campo que la identifica) o { seccion: null } para un mapa.
- * Inversa de `componer`: componer(partir(x, c)) es igual a x, también en el orden.
+ * Inversa de `componer` salvo el orden de cada colección, que pasa a ser el de los nombres de fichero.
  */
 export function partir(objeto, colecciones) {
   const ficheros = new Map();
@@ -132,7 +130,7 @@ export function partir(objeto, colecciones) {
       vistos.set(nombre, k);
       ficheros.set(nombre, aTexto(clave ? e : { clave: k, valor: e }));
     }
-    indice[seccion] = clave ? { $partida: "lista", clave, orden: pares.map(([k]) => k) } : { $partida: "mapa", orden: pares.map(([k]) => k) };
+    indice[seccion] = clave ? { $partida: "lista", clave } : { $partida: "mapa" };
   }
   ficheros.set(INDICE, aTexto(indice));
   return new Map([...ficheros].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));

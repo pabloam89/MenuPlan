@@ -1,28 +1,6 @@
 {
   "$comentario": "Lo que ya incumplía el glosario (ops/glosario/) el 10 oct 2026, al nacer (#469): ruta → sinónimo prohibido → cuántas veces. SOLO BAJA: un sinónimo nuevo falla ops/glosario.test.js, y uno arreglado también hasta que se baja aquí su cifra (o se borra la línea). No se sube nada: se escribe el término canónico. npm run glosario -- --medir dice qué cambió.",
   "excepciones": {
-    "$partida": "mapa",
-    "orden": [
-      ".claude/PLANTILLA-AGENTE.md",
-      ".claude/PLANTILLA-SKILL.md",
-      ".claude/agents/datos.md",
-      ".claude/agents/gobierno.md",
-      ".claude/agents/revisor.md",
-      ".claude/commands/backend-review.md",
-      ".claude/commands/orquestar.md",
-      ".claude/rules/migraciones.md",
-      ".claude/skills/1password/SKILL.md",
-      ".claude/skills/causa-raiz/SKILL.md",
-      ".claude/skills/estilo-de-respuesta/SKILL.md",
-      ".claude/skills/estilo-de-respuesta/plantillas/plantillas.md",
-      ".claude/skills/forja-de-skills/SKILL.md",
-      ".claude/skills/github/SKILL.md",
-      ".claude/skills/github/referencias/app-sesiones.md",
-      ".claude/skills/higiene-de-skills/SKILL.md",
-      ".claude/skills/issues/SKILL.md",
-      ".claude/skills/telegram/SKILL.md",
-      "CLAUDE.md",
-      "docs/ops/FLUJO.md"
-    ]
+    "$partida": "mapa"
   }
 }

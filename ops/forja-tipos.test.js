@@ -246,7 +246,8 @@ describe("campos de las fichas: lo que ya existe cumple lo que declara campos_fi
     expect(agentesDelRepo.length).toBeGreaterThanOrEqual(9);
     for (const a of agentesDelRepo) expect(problemasDeCampos(fichaDeAgente(a), "agente", datos, ctxCampos), a).toEqual([]);
   });
-  it("cada artefacto tiene sus campos declarados, y los juicios de skill y los criterios los suyos", () => expect(Object.keys(datos.campos_ficha)).toEqual([...Object.keys(ARTEFACTOS), "juicio", "criterio"]));
+  it("cada artefacto tiene sus campos declarados, y los juicios de skill y los criterios los suyos", () => expect(Object.keys(datos.campos_ficha).sort()).toEqual([...Object.keys(ARTEFACTOS), "juicio", "criterio"].sort()));
+  // Sin orden: campos_ficha vive partida y sale en el orden de sus nombres de fichero (#505).
   it("todos los juicios de skill guardados cumplen lo que declara campos_ficha.juicio (#457)", () => {
     const ctx = { vocabularios: vocabulariosDeJuicio(), existe: () => true };
     expect(problemasDeDeclaracion(datos, "juicio", ctx.vocabularios)).toEqual([]);

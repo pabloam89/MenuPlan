@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readdirSync, rmSync, statSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,7 +16,7 @@ import { leerExcepciones, leerGlosario } from "../scripts/lib/glosario.mjs";
  * Los catálogos partidos en un fichero por entrada (#505, fondo #504): la forja, el glosario y
  * sus excepciones. La carpeta es la fuente y no hay agregado; aquí se comprueba que:
  *  1. cada carpeta se compone sin errores y sus nombres de fichero son seguros en Windows;
- *  2. en el PR que los parte, lo compuesto es, entrada a entrada y en el mismo orden, el fichero
+ *  2. en el PR que los parte, lo compuesto tiene, entrada a entrada, lo mismo que el fichero
  *     viejo de la referencia (con sus rutas renombradas a las carpetas) — nada se pierde ni cambia;
  *  3. la referencia se lee en las dos formas (trinquetes durante la transición);
  *  4. dos ramas que tocan entradas distintas ya no chocan al fusionar (con git de verdad);
@@ -60,14 +60,24 @@ describe("cada catálogo partido", () => {
   });
 });
 
+// De paso: solo vale en el PR que parte los catálogos. Se salta sola cuando staging ya tenga la
+// forma partida (no queda fichero viejo con el que comparar).
 describe(`equivalencia con el fichero viejo de ${REF} (el PR que los parte)`, () => {
   for (const [nombre, c] of Object.entries(CATALOGOS)) {
     const viejo = fileEnRef(c.antes);
-    it.skipIf(viejo === null)(`${nombre}: mismas entradas, mismos valores y mismo orden que ${c.antes}`, () => {
+    it.skipIf(viejo === null)(`${nombre}: mismas entradas y mismos valores que ${c.antes}`, () => {
       const antes = renombrarRutas(JSON.parse(viejo));
       const ahora = leerCatalogo(RAIZ, c.carpeta);
-      // Byte a byte del JSON compuesto: claves, orden de las colecciones y cada valor.
-      expect(JSON.stringify(ahora)).toBe(JSON.stringify(antes));
+      // Las colecciones partidas, por su clave: su orden ya no es dato (es el de los nombres de fichero).
+      const marcas = JSON.parse(readFileSync(join(RAIZ, c.carpeta, INDICE), "utf8"));
+      const normal = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => {
+        const m = marcas[k];
+        if (!m?.$partida) return [k, v];
+        const pares = m.$partida === "lista" ? v.map((e) => [e[m.clave], e]) : Object.entries(v);
+        return [k, Object.fromEntries(pares.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))];
+      }));
+      // Byte a byte, con cada colección ordenada por clave: secciones, su orden, cada entrada y cada valor.
+      expect(JSON.stringify(normal(ahora))).toBe(JSON.stringify(normal(antes)));
       const cuenta = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v && typeof v === "object").map(([k, v]) => [k, Object.keys(v).length]));
       expect(cuenta(ahora)).toEqual(cuenta(antes));
     });
@@ -88,8 +98,16 @@ describe("nombres de fichero", () => {
     expect(() => nombreDeFichero("¿?")).toThrow(/ningún nombre/);
   });
 
-  it("dos claves que dan el mismo fichero (también por mayúsculas) no se pueden partir", () => {
+  it("dos claves que dan el mismo fichero (también por mayúsculas) no se pueden partir ni componer", () => {
     expect(() => partir({ t: [{ id: "Lección" }, { id: "leccion" }] }, { t: "id" })).toThrow(/mismo fichero/);
+    // Al componer: un fichero con mayúsculas no es el nombre de su clave, y la segunda de dos claves
+    // que dan el mismo nombre no cabe en ningún otro fichero.
+    const f = partir({ t: [{ id: "leccion" }] }, { t: "id" });
+    f.set("t/Leccion.json", JSON.stringify({ id: "Lección" }));
+    expect(() => componer(f)).toThrow(/pide el nombre leccion\.json/);
+    const g = partir({ t: [{ id: "Lección" }] }, { t: "id" });
+    g.set("t/otra.json", JSON.stringify({ id: "leccion" }));
+    expect(() => componer(g)).toThrow(/«leccion» pide el nombre leccion\.json/);
   });
 });
 
@@ -97,23 +115,31 @@ describe("componer y partir", () => {
   const objeto = { a: 1, lista: [{ id: "b", x: 1 }, { id: "a", x: 2 }], mapa: { "z/1": { y: 1 }, k: [2] }, fin: "x" };
   const colecciones = { lista: "id", mapa: null };
 
-  it("son inversas, también en el orden de las claves y de las entradas", () => {
+  it("son inversas: mismas secciones en su orden y mismas entradas, en el orden de sus nombres de fichero", () => {
     const f = partir(objeto, colecciones);
     expect([...f.keys()]).toEqual([INDICE, "lista/a.json", "lista/b.json", "mapa/k.json", "mapa/z-1.json"]);
-    expect(JSON.stringify(componer(f))).toBe(JSON.stringify(objeto));
+    expect(f.get(INDICE)).not.toMatch(/orden/);
+    expect(JSON.stringify(componer(f))).toBe(JSON.stringify({ a: 1, lista: [{ id: "a", x: 2 }, { id: "b", x: 1 }], mapa: { k: [2], "z/1": { y: 1 } }, fin: "x" }));
   });
 
-  it("una entrada nueva sin tocar _catalogo.json va al final, por nombre", () => {
+  it("una entrada nueva es solo su fichero: entra por nombre, sin tocar _catalogo.json", () => {
     const f = partir(objeto, colecciones);
+    const indice = f.get(INDICE);
     f.set("lista/0-nueva.json", JSON.stringify({ id: "0 nueva" }));
     f.set("lista/c.json", JSON.stringify({ id: "c" }));
-    expect(componer(f).lista.map((e) => e.id)).toEqual(["b", "a", "0 nueva", "c"]);
+    expect(componer(f).lista.map((e) => e.id)).toEqual(["0 nueva", "a", "b", "c"]);
+    expect(f.get(INDICE)).toBe(indice);
+  });
+
+  it("una marca con «orden» es un error: volvería a ser el punto que todas las ramas editan", () => {
+    const f = partir(objeto, colecciones);
+    f.set(INDICE, JSON.stringify({ lista: { $partida: "lista", clave: "id", orden: ["a", "b"] }, mapa: { $partida: "mapa" } }));
+    expect(() => componer(f)).toThrow(/lleva «orden»/);
   });
 
   it("rechaza lo que daría una pisada o una entrada perdida", () => {
     const con = (cambio) => { const f = partir(objeto, colecciones); cambio(f); return () => componer(f); };
     expect(con((f) => f.set("lista/otro.json", JSON.stringify({ id: "a" }))), "nombre que no es el de su clave").toThrow(/pide el nombre a\.json/);
-    expect(con((f) => f.delete("lista/a.json")), "orden con una entrada sin fichero").toThrow(/sin fichero: a/);
     expect(con((f) => f.set("suelto.json", "{}")), "fichero fuera de una colección").toThrow(/ninguna colección/);
     expect(con((f) => f.set("mapa/k.json", JSON.stringify({ clave: "k", valor: 1, mas: 2 }))), "mapa con campos de más").toThrow(/clave", "valor"/);
     expect(con((f) => f.set("lista/a.json", "{ roto")), "JSON roto").toThrow(/no es JSON válido/);
@@ -143,7 +169,9 @@ describe("con git de verdad (repo de prueba)", () => {
     git(dir, "rm", "-q", "ops/glosario.json");
     escribirPartido(dir, "ops/glosario/", partir(renombrarRutas(glosario), { terminos: "termino" }));
     commit(dir, "partido");
-    expect(JSON.stringify(catalogoEnReferencia(dir, "staging", "glosario"))).toBe(JSON.stringify(renombrarRutas(glosario)));
+    // Partido, las entradas salen en el orden de sus nombres de fichero.
+    const porNombre = [...glosario.terminos].sort((x, y) => (nombreDeFichero(x.termino) < nombreDeFichero(y.termino) ? -1 : 1));
+    expect(JSON.stringify(catalogoEnReferencia(dir, "staging", "glosario"))).toBe(JSON.stringify(renombrarRutas({ ...glosario, terminos: porNombre })));
     expect(catalogoEnReferencia(dir, "staging", "forja")).toBe(null);
     expect(catalogoEnReferencia(dir, "no-existe", "glosario")).toBe(null);
   }));
@@ -156,24 +184,37 @@ describe("con git de verdad (repo de prueba)", () => {
       throw e;
     }
   };
-  const dosRamas = (dir, escribir) => {
+  const dosRamas = (dir, escribir, cambioA, cambioB) => {
     escribir(glosario);
     commit(dir, "base");
     git(dir, "checkout", "-q", "-b", "a");
-    escribir({ ...glosario, terminos: glosario.terminos.map((t) => (t.termino === "caso" ? { ...t, definicion: "uno bis" } : t)) });
+    escribir(cambioA(glosario));
     commit(dir, "a");
     git(dir, "checkout", "-q", "staging");
     git(dir, "checkout", "-q", "-b", "b");
-    escribir({ ...glosario, terminos: glosario.terminos.map((t) => (t.termino === "lección" ? { ...t, definicion: "dos bis" } : t)) });
+    escribir(cambioB(glosario));
     commit(dir, "b");
     return choca(dir);
   };
+  const conTerminos = (f) => (g) => ({ ...g, terminos: f(g.terminos) });
+  const cambia = (n, d) => conTerminos((ts) => ts.map((x) => (x.termino === n ? { ...x, definicion: d } : x)));
+  const anade = (n) => conTerminos((ts) => [...ts, { termino: n, definicion: "nueva" }]);
+  const borra = (n) => conTerminos((ts) => ts.filter((x) => x.termino !== n));
+  const ESCENARIOS = {
+    "cambian dos vecinos": [cambia("caso", "uno bis"), cambia("lección", "dos bis")],
+    "añaden una entrada cada una": [anade("zona"), anade("vigía")],
+    "borran dos vecinas": [borra("caso"), borra("lección")],
+  };
+  // Como estaba la forja: una entrada por línea.
+  const enLineas = (g) => `{\n  "zonas": ${JSON.stringify(g.zonas)},\n  "terminos": [\n    ${g.terminos.map((x) => JSON.stringify(x)).join(",\n    ")}\n  ]\n}\n`;
+  // La carpeta se reescribe entera: una entrada borrada es un fichero que desaparece.
+  const enCarpeta = (dir) => (g) => { rmSync(join(dir, "ops/glosario"), { recursive: true, force: true }); escribirPartido(dir, "ops/glosario/", partir(g, { terminos: "termino" })); };
 
-  it("dos ramas que cambian términos vecinos distintos: chocan en el fichero único y no en la carpeta", () => {
-    // Como estaba la forja: una entrada por línea.
-    const enLineas = (g) => `{\n  "zonas": ${JSON.stringify(g.zonas)},\n  "terminos": [\n    ${g.terminos.map((t) => JSON.stringify(t)).join(",\n    ")}\n  ]\n}\n`;
-    const unico = conRepo((dir) => dosRamas(dir, (g) => escribirPartido(dir, "ops/", new Map([["glosario.json", enLineas(g)]]))));
-    const partido = conRepo((dir) => dosRamas(dir, (g) => escribirPartido(dir, "ops/glosario/", partir(g, { terminos: "termino" }))));
-    expect({ unico, partido }).toEqual({ unico: true, partido: false });
-  });
+  for (const [nombre, [a, b]] of Object.entries(ESCENARIOS)) {
+    it(`dos ramas que ${nombre}: chocan en el fichero único y no en la carpeta`, () => {
+      const unico = conRepo((dir) => dosRamas(dir, (g) => escribirPartido(dir, "ops/", new Map([["glosario.json", enLineas(g)]])), a, b));
+      const partido = conRepo((dir) => dosRamas(dir, enCarpeta(dir), a, b));
+      expect({ unico, partido }).toEqual({ unico: true, partido: false });
+    });
+  }
 });
