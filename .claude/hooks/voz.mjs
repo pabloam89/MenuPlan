@@ -57,7 +57,7 @@ function anotarError(motivo) {
     const dir = process.env.MENUPLAN_BUSCAR_DIR || join(tmpdir(), "menuplan-buscar");
     mkdirSync(dir, { recursive: true });
     if (typeof process.getuid === "function" && lstatSync(dir).uid !== process.getuid()) return;
-    appendFileSync(join(dir, "voz.log"), "voz: error=otro\n");
+    appendFileSync(join(dir, "voz.log"), (motivo === "tiempo" ? "voz: error=tiempo\n" : "voz: error=otro\n"));
   } catch {
     // a propósito: sin dónde apuntar no hay nada más que hacer; la sesión no se toca
   }

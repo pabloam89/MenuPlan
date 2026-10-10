@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { lineaDe, leerCola, medir, resumir, respuestasConDia, respuestasFinales } from "./lib/voz.mjs";
 import { carpetaPropia, escrituraSegura, recortarLog } from "../.claude/hooks/buscar-antes.mjs";
@@ -174,5 +174,39 @@ describe("el hook, casos difíciles", () => {
     const r = correr({ session_id: "s", last_assistant_message: "**Hola.**\n" + "(#1 ".repeat(1_200_000) }, dir);
     expect(r.status).toBe(0);
     expect(leerLog(dir)).toMatch(/^voz: dia=/);
+  });
+});
+
+describe("tercera ronda", () => {
+  it("el cierre solo se descuenta si es la última línea (discrimina la posición)", () => {
+    expect(faltas("**E.**\n- a\n- b\n- c\nLo que me toca a mí: nada.\n- d")).toContain("ideas_de_mas");
+  });
+  it("«Opción A:» y «Opción A (recomendada):» no cuentan como ideas", () => {
+    const m = "**Necesito que decidas: algo.**\n- a\n- b\nOpción A (recomendada): sí.\nOpción B: no.\nOpción C: luego.\nRespóndeme con la letra.";
+    expect(medir(m).ideas).toBe(2);
+    expect(faltas(m)).not.toContain("ideas_de_mas");
+  });
+  describe("hook con un módulo propio roto", () => {
+    const montar = () => {
+      const raiz = mkdtempSync(join(tmpdir(), "voz-roto-"));
+      mkdirSync(join(raiz, ".claude", "hooks"), { recursive: true });
+      const h = join(raiz, ".claude", "hooks", "voz.mjs");
+      copyFileSync(join(process.cwd(), ".claude/hooks/voz.mjs"), h); // sin ../../scripts/lib: los imports fallan
+      return { dir: mkdtempSync(join(tmpdir(), "voz-")), h };
+    };
+    const leerLog = (dir) => { try { return readFileSync(join(dir, "voz.log"), "utf8"); } catch { return ""; } };
+    it("deja voz: error=otro y sale con 0", () => {
+      const { dir, h } = montar();
+      const r = spawnSync(process.execPath, [h], { input: JSON.stringify({ last_assistant_message: "**Hola.**" }), encoding: "utf8", env: { ...process.env, MENUPLAN_BUSCAR_DIR: dir }, timeout: 15000 });
+      expect(r.status).toBe(0);
+      expect(leerLog(dir)).toBe("voz: error=otro\n");
+    });
+    it("si salta el reloj con el módulo sin cargar, registra tiempo y no otro", async () => {
+      const { dir, h } = montar();
+      const hijo = spawn(process.execPath, [h], { env: { ...process.env, MENUPLAN_BUSCAR_DIR: dir }, stdio: ["pipe", "ignore", "ignore"] }); // stdin sin cerrar
+      const codigo = await new Promise((ok) => hijo.on("exit", ok));
+      expect(codigo).toBe(0);
+      expect(leerLog(dir)).toBe("voz: error=tiempo\n");
+    }, 15000);
   });
 });

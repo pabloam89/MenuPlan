@@ -79,7 +79,7 @@ const PREAMBULO = /^\s*(?:(?:claro|por supuesto|perfecto|genial|desde luego|déj
 export const MAX_BYTES_MENSAJE = 64 * 1024;
 /** Lo único que se lee del final del transcript de respaldo. */
 export const MAX_BYTES_TRANSCRIPT = 2 * 1024 * 1024;
-const OPCION = /^[-*\s]*\**[ABC]\**(\s*\(.*?\))?\s*[:.)]/;
+const OPCION = /^[-*\s]*\**(?:[Oo]pci[oó]n\s+)?[ABC]\**(\s*\(.*?\))?\s*[:.)]/;
 const RESPONDEME = /respóndeme con la letra/i;
 const CABECERA_DECISION = /^[-*\s]*\**necesito que decidas/i;
 const CIERRE = /^[-*\s]*\**(?:lo que me toca a mí|lo único que te toca a ti|lo que necesito de ti|necesito que)/i;
