@@ -1,7 +1,7 @@
 {
   "$comentario": "El flujo de una incidencia, de detectarla a aprender de ella (#335, fase F0 del plan #334). Es el dato; docs/ops/FLUJO.md es su vista (las tablas se generan con `npm run flujo -- --escribir`) y ops/flujo.test.js lo ata a lo que hay en el repo. Cada obligación es una norma del proceso: su vocabulario de ejecutor y de dureza es el de ops/normas.json (#296). Repo público (#300): aquí va qué se exige y qué lo hace cumplir, nunca cómo se salta.",
   "version": 1,
-  "actualizado": "2026-10-09",
+  "actualizado": "2026-10-10",
   "plan": 334,
   "especificacion": 335,
   "issues_citables": {
@@ -124,10 +124,8 @@
     {
       "id": "oficio",
       "que": "Cómo se piensa un tipo de problema (causa raíz, plan de arreglo, priorizar)",
-      "estado": "en_plan",
-      "fase": [
-        "#338"
-      ]
+      "estado": "existe",
+      "fase": []
     },
     {
       "id": "dominio",
@@ -230,8 +228,8 @@
       "entra": "Un caso registrado",
       "sale": "Alcance (local, módulo o transversal) y tipo de causa fijados",
       "quien": ["orquestador", "agente_dominio"],
-      "skill": null,
-      "skill_fase": ["#338"],
+      "skill": "causa-raiz",
+      "skill_fase": [],
       "mide": [
         { "indicador": "casos por alcance", "estado": "pendiente", "fase": "#337" }
       ],
@@ -246,8 +244,8 @@
       "entra": "Un caso con alcance y tipo",
       "sale": "Mecanismo, causa de escape y clase del fallo; o una hipótesis marcada como tal",
       "quien": ["agente_dominio", "juez", "orquestador"],
-      "skill": null,
-      "skill_fase": ["#338"],
+      "skill": "causa-raiz",
+      "skill_fase": [],
       "mide": [
         { "indicador": "fondos y casos por causa", "estado": "existe", "donde": "scripts/lib/issues.mjs" },
         { "indicador": "casos puntuales, para ver si eran un patrón", "estado": "existe", "donde": "scripts/lib/issues.mjs" }
@@ -255,8 +253,8 @@
       "obligaciones": [
         { "id": "P04.1", "texto": "El caso acaba en una de las cuatro respuestas (nuevo, abierto, no aguantó, puntual) y cuelga de su fondo", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/issues.mjs", "contiene": "export function faltas", "test": "scripts/issues.test.js", "fase": ["#341"], "norma": null, "nota": "faltas() corre al lanzar npm run issues, en el arranque de cada sesión y, desde #337, en el workflow fondos al editar un fondo (regla clasificacion); un caso se mira con falloDeCaso. Solo informa: no bloquea la edición" },
         { "id": "P04.2", "texto": "Se busca el fondo que ya existe antes de abrir uno", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/issues.mjs", "contiene": "estos se parecen", "test": "scripts/issues.test.js", "fase": ["#337"], "norma": null },
-        { "id": "P04.3", "texto": "El diagnóstico llega a algo que se puede cambiar con un mecanismo y dice por qué nada lo detectó (causa de escape)", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#338"], "norma": null, "nota": "Los campos mecanismo y causa_escape existen en la ficha del fondo y P05.2 exige que estén rellenos; que sean ciertos y lleguen a algo cambiable lo mira el diagnosticador y el revisor, y la skill de causa raíz (fase C) lo llevará al método" },
-        { "id": "P04.4", "texto": "Lo que no se ha comprobado se marca como hipótesis y no se copia como hecho", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#338"], "norma": null, "nota": "No escrita aún: es el fondo #231; la fase C la lleva a la skill de causa raíz" },
+        { "id": "P04.3", "texto": "El diagnóstico llega a algo que se puede cambiar con un mecanismo y dice por qué nada lo detectó (causa de escape)", "ejecutor": "persona", "dureza": "blanda", "ref": ".claude/skills/causa-raiz/SKILL.md", "contiene": "Causa de escape, en todo diagnóstico", "test": null, "fase": ["#341"], "norma": null, "nota": "Desde #338 es el método de la skill causa-raiz (criterios de parada y causa en tres piezas, con el catálogo ops/mecanismos.json). P05.2 exige que mecanismo y causa_escape estén rellenos; que sean ciertos y lleguen a algo cambiable lo mira quien sigue la skill y el revisor" },
+        { "id": "P04.4", "texto": "Lo que no se ha comprobado se marca como hipótesis y no se copia como hecho", "ejecutor": "persona", "dureza": "blanda", "ref": ".claude/skills/causa-raiz/SKILL.md", "contiene": "se escribe `HIPÓTESIS:`", "test": null, "fase": ["#341"], "norma": null, "nota": "Escrita desde #338 en la skill causa-raiz (parada sin_evidencia del catálogo ops/tecnicas.json); es el fondo #231. Nada comprueba que se cumpla" },
         { "id": "P04.5", "texto": "Antes de evaluar código, se mira lo ya apuntado en issues y encargos", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#320"], "norma": null, "nota": "No escrita aún. avisos.mjs avisa de los issues de un fichero al editarlo, y los jueces no editan" }
       ]
     },
@@ -266,8 +264,8 @@
       "entra": "Un diagnóstico",
       "sale": "Un issue tipo:fondo con su arreglo general, su causa y cómo se probará",
       "quien": ["agente_dominio", "orquestador"],
-      "skill": null,
-      "skill_fase": ["#338"],
+      "skill": "causa-raiz",
+      "skill_fase": [],
       "mide": [
         { "indicador": "fondos ordenados por casos (dónde duele)", "estado": "existe", "donde": "scripts/lib/issues.mjs" }
       ],
@@ -283,15 +281,15 @@
       "entra": "Un fondo diagnosticado",
       "sale": "Encargos colgados del fondo, con dependencias, agente, juez y verificación",
       "quien": ["orquestador", "agente_dominio"],
-      "skill": null,
-      "skill_fase": ["#338"],
+      "skill": "plan-de-arreglo",
+      "skill_fase": [],
       "mide": [
         { "indicador": "encargos hechos frente a encargos por fondo", "estado": "existe", "donde": "scripts/lib/issues.mjs" }
       ],
       "obligaciones": [
         { "id": "P06.1", "texto": "El arreglo se parte en encargos colgados del fondo, uno por superficie", "ejecutor": "persona", "dureza": "blanda", "ref": ".claude/commands/revision-issues.md", "contiene": "Fondos sin arreglo en marcha", "test": null, "fase": ["#337"], "norma": null, "nota": "La revisión semanal ve los fondos sin encargos" },
-        { "id": "P06.2", "texto": "Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga", "ejecutor": "nada", "dureza": "blanda", "ref": null, "contiene": null, "test": null, "fase": ["#337", "#338"], "norma": null, "nota": "No escrita aún: la ficha de #337 es del fondo; la plantilla de encargo sigue sin campo de dependencias ni de juez" },
-        { "id": "P06.3", "texto": "El arreglo usa el escalón más duradero posible de la escalera", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "contiene": "La escalera de durabilidad", "test": null, "fase": ["#338"], "norma": null },
+        { "id": "P06.2", "texto": "Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/ENCARGO.md", "contiene": "distinto del constructor", "test": "scripts/encargo.test.js", "fase": ["#341"], "norma": null, "nota": "Desde #338 el formato del encargo (docs/ops/ENCARGO.md, generado de issues.mjs) y el formulario traen depende_de, constructor y juez, y la skill plan-de-arreglo los pide. Ningún control lee todavía el bloque encargo: el test vigila que formato, formulario y skills digan lo mismo, no que un encargo lo cumpla" },
+        { "id": "P06.3", "texto": "El arreglo usa el escalón más duradero posible de la escalera", "ejecutor": "persona", "dureza": "blanda", "ref": ".claude/skills/plan-de-arreglo/SKILL.md", "contiene": "Elige el mecanismo, el más alto posible", "test": "ops/mecanismos.test.js", "fase": ["#341"], "norma": null, "nota": "Desde #338 el catálogo ops/mecanismos.json da el escalón de cada mecanismo y lo cruza por test con el registro de normas; la skill plan-de-arreglo pide el más alto y el porqué si no (por_que_no_mas_alto del encargo). Lo elige quien hace el plan" },
         { "id": "P06.4", "texto": "Un fondo lleva como mucho tres encargos, al menos uno preventivo y automático", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "contiene": "como mucho tres encargos", "test": null, "fase": ["#337"], "norma": null, "nota": "El workflow fondos avisa de más de tres (regla plan-grande); lo de «al menos uno preventivo y automático» sigue sin comprobar" }
       ]
     },
@@ -379,12 +377,12 @@
       "sale": "La lección en una skill, un catálogo, la guardia o un test",
       "quien": ["agente_dominio", "juez"],
       "skill": null,
-      "skill_fase": ["#338"],
+      "skill_fase": [],
       "mide": [
         { "indicador": "fondos cerrados con aprendizaje registrado", "estado": "existe", "donde": "scripts/lib/fondos.mjs" }
       ],
       "obligaciones": [
-        { "id": "P11.1", "texto": "Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "contiene": "a la memoria, nunca", "test": null, "fase": ["#337", "#338"], "norma": "lecciones-a-un-test", "nota": "Desde #337 la ficha tiene el campo aprendizaje y P10.2 exige que no esté vacío al cerrar; que lo escrito sea cierto sigue siendo cosa del revisor" },
+        { "id": "P11.1", "texto": "Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria", "ejecutor": "nada", "dureza": "blanda", "ref": "CLAUDE.md", "contiene": "a la memoria, nunca", "test": null, "fase": ["#337"], "norma": "lecciones-a-un-test", "nota": "Desde #337 la ficha tiene el campo aprendizaje y P10.2 exige que no esté vacío al cerrar; que lo escrito sea cierto sigue siendo cosa del revisor" },
         { "id": "P11.2", "texto": "Toda skill sigue la plantilla de su tipo: tipo, dueño, fecha de comprobación (caducada solo falla en el PR que la toca), secciones, tamaño, rutas y nada copiado", "ejecutor": "ci", "dureza": "dura", "ref": ".claude/PLANTILLA-SKILL.md", "contiene": "Los ocho tipos y sus secciones", "test": ".claude/skills.test.js", "fase": [], "norma": null },
         { "id": "P11.3", "texto": "Una skill se prueba con casos y sigue funcionando tras cambiarla", "ejecutor": "ci", "dureza": "semidura", "ref": ".claude/PLANTILLA-SKILL.md", "contiene": "npm run skills-prueba", "test": ".claude/skills.test.js", "fase": ["#341"], "norma": null, "nota": "Desde #336 el CI exige casos.json con casos propios y de frontera (nivel 1); que la skill ayude lo mide npm run skills-prueba (nivel 2, cuesta tokens), que nadie lanza solo: la fase E (#341) lo hace periódico" },
         { "id": "P11.4", "texto": "Una pieza nueva (skill, catálogo o agente) solo se crea si cumple la regla de parada", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "contiene": "regla de parada", "test": null, "fase": ["#341"], "norma": null }

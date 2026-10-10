@@ -32,7 +32,7 @@ export const ALCANCES_FALLO = {
 
 /** Quién diagnostica según el alcance. */
 export const DIAGNOSTICAN = {
-  agente_dominio: "El agente del dominio, en una pasada (con la skill de causa raíz, fase C #338, cuando exista)",
+  agente_dominio: "El agente del dominio, en una pasada, con la skill causa-raiz",
   orquestador_con_diagnosticadores: "El orquestador lanza varios diagnosticadores en paralelo, cada uno con su lente, y sintetiza",
 };
 

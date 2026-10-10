@@ -182,10 +182,13 @@ describe("/orquestar: el triaje lee el catálogo y no lleva sus números", () =>
     for (const a of ALCANCES) expect(triaje, a).toContain(`\`${a}\``);
   });
 
-  it("dice quién itera según el alcance y deja la skill causa-raiz «cuando exista»", () => {
+  it("dice quién itera según el alcance y con qué skills diagnostica y planea (#338)", () => {
     expect(triaje).toMatch(/agente del dominio/);
     expect(triaje).toMatch(/diagnosticadores en paralelo/);
-    expect(triaje).toMatch(/causa-raiz`\s+cuando\s+exista/);
+    expect(triaje).toContain("`causa-raiz`");
+    expect(triaje).toContain("`plan-de-arreglo`");
+    expect(triaje).toContain("npm run tecnica");
+    expect(triaje, "la skill ya existe (#338)").not.toMatch(/cuando\s+exista/);
   });
 
   it("pide contar las rondas en la ficha del fondo y escalar con un issue de decisión", () => {
