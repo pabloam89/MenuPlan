@@ -1,6 +1,5 @@
 // Maps a menu slot (recipe + optional garnish) to its generated photo URL.
-// The manifest is produced by scripts/upload-to-blob.mjs and copied here via
-// scripts/build-catalog.mjs is for the gallery; for the app we copy
+// The manifest is produced by scripts/upload-to-blob.mjs and, for the app, we copy
 // output/manifest.json → dishImages.json.
 //
 // combo_id format:

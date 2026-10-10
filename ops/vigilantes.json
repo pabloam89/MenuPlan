@@ -1,6 +1,6 @@
 {
   "_": "Los tests vigilantes de conjunto (#356): los que miran TODOS los ficheros de una carpeta o un tipo, no uno. Un fichero nuevo o un texto nuevo puede romper uno que está lejos de lo que tocas, y la regla «lanza solo los tests de lo que tocas» no lo ve. `npm run vecinos` elige, de esta lista, los que miran lo que has tocado y los lanza junto con los propios del fichero. Dueño: gobierno. Lo vigila ops/vigilantes.test.js: cada test existe, y todo test que enumera ficheros del repo está aquí o en `excepciones` con su motivo. `mira` son globs de rutas relativas (`**`, `*`, `{a,b}`); `borrados` añade rutas cuya desaparición también lo activa; `amplio` marca los que se lanzan cuando un fichero no se entiende (plan B).",
-  "conocidas": ["src/", "api/", "scripts/", "supabase/", "ops/", "docs/", "specs/", ".claude/", ".github/", "public/", "brand/", "dish-gallery/", "Avatares/", "eslint-rules/", "CLAUDE.md", "README.md", "package.json", "package-lock.json", "vercel.json", "vite.config.js", "index.html", "eslint.config.js", "eslint.tdz.config.js", "lint-base.json", "lint-tokens-base.json", "DESIGN_SYSTEM.md", "HOUSEHOLDS.md", "ILUSTRACIONES-PASOS.md", ".vercelignore", ".gitignore", ".gitattributes"],
+  "conocidas": ["src/", "api/", "scripts/", "supabase/", "ops/", "docs/", "specs/", ".claude/", ".github/", "public/", "brand/", "dish-gallery/public/catalog.json", "Avatares/", "eslint-rules/", "CLAUDE.md", "README.md", "package.json", "package-lock.json", "vercel.json", "vite.config.js", "index.html", "eslint.config.js", "eslint.tdz.config.js", "lint-base.json", "lint-tokens-base.json", "DESIGN_SYSTEM.md", "HOUSEHOLDS.md", "ILUSTRACIONES-PASOS.md", ".vercelignore", ".gitignore", ".gitattributes"],
   "vigilantes": [
     {
       "id": "errores-tragados-scripts",
@@ -63,6 +63,14 @@
       "mira": [".claude/skills/**", ".claude/dominios-skills.json", ".claude/PLANTILLA-SKILL.md", "ops/flujo.json", "docs/ops/*.md"],
       "porque": "Recorren todas las skills: forma, forja, mapa de dominios, nombres que cita el flujo y plantilla del encargo sin copiar. Un cambio en una skill rompe la vecina.",
       "amplio": true
+    },
+    {
+      "id": "juicios-de-skills",
+      "tests": ["ops/criterios-skills.test.js"],
+      "mira": [".claude/skills/**", ".claude/agents/**", "ops/juicios-skills/*.json", "ops/forja.json", "scripts/lib/fondos.mjs", "ops/glosario.json", "ops/glosario-excepciones.json", ".claude/PLANTILLA-SKILL.md", "ops/skills-prueba/*.json", "package.json"],
+      "borrados": ["ops/juicios-skills/*.json"],
+      "porque": "Los criterios de cada skill y sus juicios (#457): toda skill tiene sus juicios, cada criterio de la forja que se le aplica aparece, los juicios llevan evidencia que existe (una cabecera de un SKILL.md, un caso, un comando, una pasada vigente) y un firmante de los agentes, y lo automático lo calcula su control. Cambiar una skill, un caso, un agente o un criterio puede dejar una evidencia muerta o un criterio sin juicio.",
+      "evidencia": "#457"
     },
     {
       "id": "rutas-citadas",

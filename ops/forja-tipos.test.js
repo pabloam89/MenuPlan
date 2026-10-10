@@ -6,9 +6,10 @@ import { fileURLToPath } from "node:url";
 import {
   ARTEFACTOS, CLASES_CAMPO, NUM_TIPOS_SKILL, RUTA_CAMPOS, tiposRetiradosEnCriterios,
   anclarCampos, cifrasDeCampos, cifrasPorTipo, criteriosDeTipo, generarMd, leerCamposGuardados, leerForja,
-  problemasDeCampos, problemasDeCamposContraReferencia, problemasDeForja, problemasDeTaxonomia, problemasDeTrinqueteCampos, tipoDeSkill,
+  problemasDeCampos, problemasDeCamposContraReferencia, problemasDeDeclaracion, problemasDeForja, problemasDeTaxonomia, problemasDeTrinqueteCampos, tipoDeSkill,
   vocabulariosDeCriterio,
 } from "../scripts/lib/forja.mjs";
+import { leerJuicios, vocabulariosDeJuicio } from "../scripts/lib/juiciosSkills.mjs";
 import { REFERENCIA, jsonEnReferenciaAvisando } from "../scripts/lib/forjaReferencia.mjs";
 import { ORIGENES } from "../scripts/lib/estandaresAgentes.mjs";
 import { nombresDeSkills, parsearSkill } from "../scripts/lib/skills.mjs";
@@ -242,7 +243,17 @@ describe("campos de las fichas: lo que ya existe cumple lo que declara campos_fi
     expect(agentesDelRepo.length).toBeGreaterThanOrEqual(9);
     for (const a of agentesDelRepo) expect(problemasDeCampos(fichaDeAgente(a), "agente", datos, ctxCampos), a).toEqual([]);
   });
-  it("cada artefacto tiene sus campos declarados, y los criterios los suyos", () => expect(Object.keys(datos.campos_ficha)).toEqual([...Object.keys(ARTEFACTOS), "criterio"]));
+  it("cada artefacto tiene sus campos declarados, y los juicios de skill y los criterios los suyos", () => expect(Object.keys(datos.campos_ficha)).toEqual([...Object.keys(ARTEFACTOS), "juicio", "criterio"]));
+  it("todos los juicios de skill guardados cumplen lo que declara campos_ficha.juicio (#457)", () => {
+    const ctx = { vocabularios: vocabulariosDeJuicio(), existe: () => true };
+    expect(problemasDeDeclaracion(datos, "juicio", ctx.vocabularios)).toEqual([]);
+    const juicios = Object.entries(leerJuicios(RAIZ)).flatMap(([s, g]) => Object.entries(g.juicios).map(([id, j]) => [`${s}/${id}`, j]));
+    expect(juicios.length).toBeGreaterThan(100);
+    for (const [id, j] of juicios) expect(problemasDeCampos(j, "juicio", datos, ctx), id).toEqual([]);
+    expect(problemasDeCampos({ estado: "cumple", version_skill_md: "corta" }, "juicio", datos, ctx).join()).toContain("no es una versión");
+    expect(datos.campos_ficha.juicio.campos.version_skill_md).toMatchObject({ clase: "ref", ref: "version" });
+    expect(datos.campos_ficha.juicio.campos.nota).toMatchObject({ clase: "texto", hueco: true });
+  });
   it("los campos de regla de todos los criterios cumplen lo que declara campos_ficha.criterio (#487)", () => {
     const decl = Object.keys(datos.campos_ficha.criterio.campos);
     const ctx = { vocabularios: vocabulariosDeCriterio(datos) };
@@ -386,10 +397,11 @@ describe("trinquete de los campos (ops/forja-campos.json): de texto a discreto, 
 
 describe("cifras: campos discretos frente a huecos", () => {
   it("por artefacto, en la vista y en las cifras", () => {
-    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 13, huecos: 2, total: 15 }, estandar: { discretos: 2, huecos: 5, total: 7 }, agente: { discretos: 3, huecos: 1, total: 4 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
+    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 13, huecos: 2, total: 15 }, estandar: { discretos: 2, huecos: 5, total: 7 }, agente: { discretos: 3, huecos: 1, total: 4 }, juicio: { discretos: 6, huecos: 1, total: 7 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
     expect(md).toContain("| skill | 13 | 2 | 15 |");
     expect(md).toContain("| criterio | 2 | 6 | 8 |");
     expect(md).toContain("| estandar | 2 | 5 | 7 |");
+    expect(md).toContain("| juicio | 6 | 1 | 7 |");
   });
   it("FORJA.md dice que la única lista de tipos es la de ops/forja.json y dónde están los moldes", () => {
     expect(md).toContain("La única lista de tipos es la de `ops/forja.json`");
