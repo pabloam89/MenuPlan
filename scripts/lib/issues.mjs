@@ -239,7 +239,7 @@ export const CONSULTA = `query($cursor: String) {
         id number title state createdAt closedAt body authorAssociation
         labels(first: 20) { nodes { name } }
         assignees(first: 5) { nodes { login } }
-        reaperturas: timelineItems(itemTypes: [REOPENED_EVENT]) { totalCount }
+        reaperturas: timelineItems(itemTypes: [REOPENED_EVENT], last: 1) { totalCount nodes { ... on ReopenedEvent { createdAt } } }
         closedByPullRequestsReferences(first: 5, includeClosedPrs: true) {
           nodes { number headRefName mergedAt body author { login } }
         }
@@ -312,6 +312,7 @@ export function leerIssue(n) {
     // ninguno leído es humano, hay respuesta de fecha desconocida: un `null`.
     comentarios: comentariosHumanos(n.comments),
     reaperturas: n.reaperturas?.totalCount ?? 0,
+    ultimaReapertura: n.reaperturas?.nodes?.at(-1)?.createdAt ?? null,
     prs,
     padre: n.parent ? ref(n.parent) : null,
     hijos: (n.subIssues?.nodes ?? []).map(ref),
