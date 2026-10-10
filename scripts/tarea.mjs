@@ -4,6 +4,7 @@
  *   npm run tarea -- datos/descartes           # rama nueva desde origin/staging
  *   npm run tarea -- datos/descartes --sin-deps # sin npm ci (si solo vas a leer)
  *   npm run tarea -- datos/descartes 193       # del issue #193: rama datos/193-descartes
+ *   npm run tarea -- ops/x 506 --zona ops/forja.json   # reserva un fichero que aún no ha tocado (#506)
  *
  * Crea `C:\dev\MenuPlan-<nombre>` con la rama `<area>/<nombre>`. Si la rama ya
  * existe en GitHub, la retoma en vez de crearla. Copia `.env.local` (git no lo
@@ -30,6 +31,32 @@ import { createServer } from "node:net";
 import { dirname, join } from "node:path";
 
 import { leerInventario, marcar, textoDeRama } from "./lib/lleva.mjs";
+import { RESERVA_VALIDA } from "./lib/zonas.mjs";
+
+/**
+ * Las zonas que la tarea reserva antes de tocarlas (#506): `--zona ops/forja.json`,
+ * `--zona=CLAUDE.md,ops/glosario.json` (una carpeta acaba en «/»). Devuelve
+ * { zonas, resto } con el resto de argumentos sin ellas, o { error }.
+ */
+export function leerZonasArg(argv) {
+  const zonas = [];
+  const resto = [];
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    const igual = /^--zona=(.*)$/.exec(a);
+    if (a !== "--zona" && !igual) {
+      resto.push(a);
+      continue;
+    }
+    const valor = igual ? igual[1] : argv[++i];
+    if (!valor || valor.startsWith("--")) return { error: "Falta el fichero tras --zona: `npm run tarea -- ops/x 506 --zona ops/forja.json`." };
+    for (const z of valor.split(",").map((s) => s.trim().replace(/\\/g, "/")).filter(Boolean)) {
+      if (!RESERVA_VALIDA.test(z)) return { error: `«${z}» no es una ruta del repo (relativa, con barras normales y sin «..»).` };
+      if (!zonas.includes(z)) zonas.push(z);
+    }
+  }
+  return { zonas, resto };
+}
 
 export const AREAS = ["bot", "datos", "ux", "fix", "feat", "ops", "motor", "lola", "roles"];
 
@@ -104,7 +131,12 @@ const libre = (puerto) =>
   });
 
 async function main() {
-  const [arg, numero] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+  const { zonas, resto, error: errorZona } = leerZonasArg(process.argv.slice(2));
+  if (errorZona) {
+    console.error(errorZona);
+    process.exit(1);
+  }
+  const [arg, numero] = resto.filter((a) => !a.startsWith("--"));
   const { rama, nombre, issue, error } = leerRama(arg, numero);
   if (error) {
     console.error(error);
@@ -151,6 +183,17 @@ async function main() {
       commitInicial(destino, rama);
     } catch (e) {
       console.warn(`Aviso: no pude hacer el commit inicial (${String(e.stderr || e.message).trim().split("\n")[0]}). Hazlo ya a mano, o el hook limpiar-worktrees puede borrar esta carpeta: git -C "${destino}" commit --allow-empty -m "tarea: arranca ${rama}"`);
+    }
+  }
+
+  // Las zonas reservadas (#506): en la configuración de git de la rama, que se borra con ella.
+  // La guardia avisa a otra rama que edite uno de estos ficheros (`npm run issues -- --zonas`).
+  for (const z of zonas) {
+    try {
+      git(["-C", principal, "config", "--add", `branch.${rama}.zona`, z]);
+      console.log(`Reservado ${z} para ${rama}.`);
+    } catch (e) {
+      console.warn(`Aviso: no pude reservar ${z} (${String(e.stderr || e.message).trim().split("\n")[0]}). A mano: git config --add branch.${rama}.zona ${z}`);
     }
   }
 

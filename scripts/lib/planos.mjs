@@ -155,7 +155,7 @@ export function leerIssuesGh() {
   do {
     const args = ["api", "graphql", "-f", `query=${CONSULTA_CON_MOTIVO}`];
     if (cursor) args.push("-f", `cursor=${cursor}`);
-    const pag = JSON.parse(execFileSync("gh", args, { encoding: "utf8", timeout: 60_000, stdio: ["ignore", "pipe", "pipe"] })).data.repository.issues;
+    const pag = JSON.parse(execFileSync("gh", args, { windowsHide: true, encoding: "utf8", timeout: 60_000, stdio: ["ignore", "pipe", "pipe"] })).data.repository.issues;
     out.push(...pag.nodes.map((n) => ({ ...leerIssue(n), stateReason: n.stateReason ?? null })));
     cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
   } while (cursor);
@@ -190,7 +190,7 @@ export function clienteGh() {
     if (cache.has(ruta)) return cache.get(ruta);
     let r;
     try {
-      const salida = execFileSync("gh", ["api", ruta], { encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "pipe"] });
+      const salida = execFileSync("gh", ["api", ruta], { windowsHide: true, encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "pipe"] });
       r = { ok: true, status: 200, json: salida.trim() ? JSON.parse(salida) : null };
     } catch (e) {
       const texto = `${e.stderr ?? ""}${e.stdout ?? ""}`;

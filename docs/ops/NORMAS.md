@@ -58,6 +58,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `sin-git-stash` | sesion | NO DEBE | **Sin git stash.** Cada sesión de Claude NO DEBE usar git stash. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `stash` |
 | `sin-git-add-todo` | sesion | NO DEBE | **Sin git add masivo.** Cada sesión de Claude NO DEBE usar git add . ni commit -a. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `add-a-ciegas` |
 | `no-trabajar-en-principal` | sesion | NO DEBE | **Sin trabajo en la principal.** Cada sesión de Claude NO DEBE trabajar en la carpeta principal. | guardia · semidura | test: `.claude/hooks/principal.test.js` | `carpeta-principal` |
+| `zona-con-dueno` | sesion | DEBE | **Zona con dueño.** Cuando edita un fichero que otra rama viva ya cambió o reservó, cada sesión de Claude DEBE coordinarse antes con esa rama o esperar a su PR. | guardia · blanda | test: `.claude/hooks/guardia.test.js` | `zona-de-otra-rama` |
 | `issues-con-buscar-antes` | issue | DEBE | **Issues con búsqueda previa.** Cuando se crea, cada issue DEBE crearse con npm run issues -- --nuevo. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `issue-a-pelo` |
 | `skill-antes-de-riesgo` | sesion | DEBE | **Skill antes de riesgo.** Cuando lanza el primer comando de riesgo de un dominio, cada sesión de Claude DEBE abrir antes su skill. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `puerta-de-skill-comando` |
 | `pendientes-a-issue` | sesion | DEBE | **Pendientes a un issue.** Cuando deja decisiones o pendientes, cada sesión de Claude DEBE registrarlos en un issue. | guardia · semidura | test: `.claude/hooks/pendientes.test.js` | — |
@@ -122,7 +123,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | staging | la rama staging | 1 |
 | pr | cada PR | 5 |
 | migracion | cada migración | 5 |
-| sesion | cada sesión de Claude | 16 |
+| sesion | cada sesión de Claude | 17 |
 | repo | el repositorio | 4 |
 | fondo | cada problema de fondo | 8 |
 | codigo | el código del producto | 3 |
@@ -145,7 +146,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 63 |
+| test | Un test del repo que falla en el CI | 64 |
 | planos | Un criterio de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 1 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 2 |
@@ -181,6 +182,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `puerta-de-skill-comando` | `skill-antes-de-riesgo` | Lanzar este comando sin haber abierto {las_skills} {lista} |
 | `puerta-de-skill-edicion` | `skill-antes-de-tocar` | Editar este fichero sin haber abierto {las_skills} {lista} |
 | `escribir-lo-de-lola` | `evals-antes-de-fusionar` | Escribir desde la shell en lo que lee Lola |
+| `zona-de-otra-rama` | `zona-con-dueno` | Editar `{fichero}`, que ya lleva {lista} |
 | `entrada-ilegible` | `guardia-vigila-cada-orden` | Dejar pasar una orden que la guardia no ha podido leer |
 | `vercel-production` | `variables-production-solo-pablo` | Bajar o listar las variables de Production de Vercel |
 | `op-de-pablo` | `claves-de-pablo-solo-pablo` | Leer 1Password fuera de `npm run op -- …`, o tocar lo que es de Pablo |
@@ -197,4 +199,4 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `aprobar-pr` | `rutas-protegidas-aprobacion-de-dueno` | Aprobar un PR desde una sesión |
 | `token-impreso` | `token-de-sesion-no-se-imprime` | Imprimir el token de la sesión |
 
-Total: 97 normas (rota 2, semidura 50, dura 13, blanda 32) y 41 avisos de la guardia.
+Total: 98 normas (rota 2, semidura 50, dura 13, blanda 33) y 42 avisos de la guardia.
