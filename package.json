@@ -37,6 +37,7 @@
     "planos": "node scripts/planos.mjs",
     "flujo": "node scripts/flujo.mjs",
     "skills-prueba": "node scripts/skills-prueba.mjs",
+    "skills-uso": "node scripts/skills-uso.mjs",
     "presupuesto": "node scripts/presupuesto.mjs",
     "tecnica": "node scripts/oficio.mjs tecnica",
     "mecanismos": "node scripts/oficio.mjs mecanismos",
