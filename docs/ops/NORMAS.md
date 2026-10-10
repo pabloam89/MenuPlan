@@ -71,6 +71,11 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `cuando-algo-falla` | fallo | DEBE | **Hasta el problema de fondo.** Cada fallo DEBE analizarse hasta su problema de fondo y registrarse como caso en un issue. | ci · semidura | test: `scripts/casos-pr.test.js` | `pr-sin-casos` |
 | `repo-publico-sin-detalle` | repo | NO DEBE | **Repo público sin detalle.** El repositorio NO DEBE contener nada sensible en un issue, un commit o un PR. | nada · blanda | juicio | — |
 | `fondo-con-ficha-y-controles` | fondo | DEBE | **Ficha y controles del fondo.** Cada problema de fondo DEBE llevar una ficha válida y pasar sus controles en cada evento del issue. | script_propio · semidura | test: `scripts/fondos-evento.test.js` | — |
+| `fondo-observado-con-verificacion` | fondo | NO DEBE | **Observación con verificación.** Cada problema de fondo NO DEBE pasar a en-observacion si el fichero de su verificación no está en origin/staging. | script_propio · semidura | test: `scripts/fondos.test.js` | — |
+| `fondo-ventana-sin-casos` | fondo | DEBE | **Ventana sin casos.** Cuando está en observación, cada problema de fondo DEBE pasar una ventana sin casos nuevos antes de darse por eficaz. | script_propio · semidura | test: `scripts/fondos.test.js` | — |
+| `fondo-reabre-al-no-aguantar` | fondo | DEBE | **Reabre al no aguantar.** Cuando le cuelga un caso que no aguantó, cada problema de fondo DEBE reabrirse y subir un nivel de alcance. | script_propio · semidura | test: `scripts/fondos.test.js` | — |
+| `fondo-no-cierra-sin-aprendizaje` | fondo | NO DEBE | **Cierre con aprendizaje.** Cada problema de fondo NO DEBE cerrarse sin aprendizaje registrado. | script_propio · semidura | test: `scripts/fondos.test.js` | — |
+| `pr-closes-de-su-rama` | pr | DEBE | **Closes de su rama.** Si su rama es de un issue, cada PR DEBE llevar Closes #n de ese issue, lo abra quien lo abra. | ci · semidura | test: `scripts/fondos-pr.test.js` | — |
 | `plan-tres-encargos-con-preventivo` | fondo | DEBE | **Plan de tres encargos.** Cada problema de fondo DEBE tener como mucho tres encargos, cada uno con su bloque encargo completo, y al menos uno preventivo con mecanismo automático. | script_propio · semidura | test: `scripts/fondos-encargos.test.js` | — |
 | `pr-agente-y-closes-en-ci` | pr | DEBE | **Agente y Closes del PR.** Cada PR DEBE llevar la línea Agente: y, si la rama es de un issue, su Closes #n. | ci · semidura | test: `scripts/fondos-pr.test.js` | — |
 | `eventos-de-hooks-registrados` | guardia | DEBE | **Eventos de hooks registrados.** La guardia de Claude DEBE dejar una línea en el registro local de eventos por cada bloqueo, cada permiso que pide y cada skill que se abre. | guardia · semidura | test: `.claude/hooks/eventos.test.js` | — |
@@ -115,11 +120,11 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | permiso | cada cambio de permisos o de hooks de Claude | 1 |
 | main | la rama main | 2 |
 | staging | la rama staging | 1 |
-| pr | cada PR | 4 |
+| pr | cada PR | 5 |
 | migracion | cada migración | 5 |
 | sesion | cada sesión de Claude | 16 |
 | repo | el repositorio | 4 |
-| fondo | cada problema de fondo | 4 |
+| fondo | cada problema de fondo | 8 |
 | codigo | el código del producto | 3 |
 | principio | cada principio de datos | 2 |
 | gasto | cada gasto de dinero | 1 |
@@ -140,7 +145,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 58 |
+| test | Un test del repo que falla en el CI | 63 |
 | planos | Un criterio de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 1 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 2 |
@@ -192,4 +197,4 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `aprobar-pr` | `rutas-protegidas-aprobacion-de-dueno` | Aprobar un PR desde una sesión |
 | `token-impreso` | `token-de-sesion-no-se-imprime` | Imprimir el token de la sesión |
 
-Total: 92 normas (rota 2, semidura 45, dura 13, blanda 32) y 41 avisos de la guardia.
+Total: 97 normas (rota 2, semidura 50, dura 13, blanda 32) y 41 avisos de la guardia.

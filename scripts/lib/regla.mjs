@@ -116,9 +116,10 @@ export function controlLegible(control) {
  * «**Nombre.** [Condición,] <sujeto> DEBE|NO DEBE <exigencia>. Se comprueba con: <control>.»
  * Con `conviene` la frase cambia a «Para <sujeto>, CONVIENE <exigencia>», porque
  * «CONVIENE QUE» pediría subjuntivo y la exigencia va siempre en infinitivo.
- * `sujetos`: el vocabulario del catálogo (id -> { legible }).
+ * `sujetos`: el vocabulario del catálogo (id -> { legible }). Con `{ conControl: false }` la
+ * frase acaba en la exigencia, sin el «Se comprueba con»: para una tabla que ya tiene su columna de control.
  */
-export function fraseDeRegla(r, sujetos) {
+export function fraseDeRegla(r, sujetos, { conControl = true } = {}) {
   const legible = sujetos?.[r.sujeto]?.legible;
   if (!legible) throw new Error(`sujeto «${r.sujeto}» sin texto legible`);
   const fuerza = FUERZAS[r.fuerza];
@@ -128,5 +129,5 @@ export function fraseDeRegla(r, sujetos) {
   let cuerpo;
   if (r.fuerza === "conviene") cuerpo = `${condicion ? `${condicion}para ${legible}` : `Para ${legible}`}, ${fuerza.palabra} ${r.exigencia}`;
   else cuerpo = `${condicion || ""}${condicion ? legible : mayuscula(legible)} ${fuerza.palabra} ${r.exigencia}`;
-  return `${cabeza} ${cuerpo}. Se comprueba con: ${controlLegible(r.control)}.`;
+  return conControl ? `${cabeza} ${cuerpo}. Se comprueba con: ${controlLegible(r.control)}.` : `${cabeza} ${cuerpo}.`;
 }

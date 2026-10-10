@@ -187,6 +187,13 @@
       "mira": [".github/workflows/*.yml"],
       "porque": "Lee todos los workflows: uno nuevo o editado con un bloque `run: |` roto deja de ser YAML y GitHub lo marca en rojo sin ejecutar nada.",
       "evidencia": "#480"
+    },
+    {
+      "id": "una-escala-y-una-escalera",
+      "tests": ["ops/escalas.test.js"],
+      "mira": ["**/*.{json,js,mjs,jsx,yml,yaml}"],
+      "porque": "La escala de veredicto y la escalera de durabilidad se declaran solo en scripts/lib/escalas.mjs: cualquier JSON, JS o YAML nuevo que las escriba a mano es otra copia, y los lectores (normas, mecanismos, ficha del fondo, etiquetas) tienen que salir de ahí.",
+      "evidencia": "#515"
     }
   ],
   "pasos": [
