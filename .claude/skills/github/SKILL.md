@@ -50,6 +50,8 @@ metadata:
     al panel, `gh api -X POST`…) se niega con «abre antes la skill X y reintenta»; al
     reintentar pasa, y a la primera si la sesión ya abrió la skill (`Skill` o `Read` de su
     `SKILL.md`; lo anota `skill-abierta.mjs`) o el subagente la trae en su `skills:`. Sin registro, no bloquea.
+    Un alta (`gh secret set`, `vercel env add`, `op item create`) pide además `alta-de-secreto`
+    (#397); listar o leer (`gh secret list`, `vercel env ls`, `op item get`) no.
   - **Puede avisar de más** («ante la duda, niega»; un reintento; fijado en el test del
     mapa): un `git commit -m` que nombra `apply-migration`, `gh workflow run`, `gh api
     graphql -f`, un `docker … -U panel` local, una `ssh` con la IP.
@@ -78,6 +80,8 @@ metadata:
 Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS`, `MERCADONA_DEPLOY_KEY`,
 los del vigía, los de iOS y la clave de la App `homenu-dependabot-merge`) y qué workflow usa cada uno están en `ops/INVENTARIO.md`, que es la tabla
 que manda. `tests.yml` no usa ninguno. La CLI `gh` va con la sesión de Pablo (`gh auth status`).
+Un secreto nuevo o rotado va a un environment con política de ramas, nunca al <!-- norma:secretos-de-repo -->
+repo; el alta entera, en la skill `alta-de-secreto`.
 
 ## Operaciones habituales
 

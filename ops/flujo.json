@@ -145,11 +145,9 @@
     },
     {
       "id": "receta_cambio",
-      "que": "Los pasos de una acción que se repite (añadir una herramienta a Lola, una pantalla, recetas)",
-      "estado": "reservado",
-      "fase": [
-        "#336"
-      ]
+      "que": "Los pasos de una acción que se repite (dar de alta un secreto, añadir una herramienta a Lola, una pantalla, recetas)",
+      "estado": "existe",
+      "fase": []
     },
     {
       "id": "rubrica_juez",

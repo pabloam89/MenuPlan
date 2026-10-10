@@ -1,6 +1,6 @@
 ---
 name: 1password
-description: Úsala al tocar una clave o secreto de MenuPlan, al montar un .env.local o un worktree, cuando un script no pueda leer una dirección op://, al dar de alta o rotar una clave, al guardar algo en una bóveda nueva, o si falla la service account, el token del llavero o el agente SSH. No para: dónde vive cada clave de cada servicio (ops/INVENTARIO.md) ni las contraseñas personales de Pablo.
+description: Úsala al montar un .env.local o un worktree, cuando un script no pueda leer una dirección op://, para leer una clave desde un script (leerEnv), al guardar algo en una bóveda nueva, o si falla la service account, el token del llavero o el agente SSH. No para: dar de alta ni rotar una clave de punta a punta, ni una clave filtrada (alta-de-secreto); la clave de las copias cifradas (hetzner); dónde vive cada clave (ops/INVENTARIO.md) ni las contraseñas personales de Pablo.
 metadata:
   tipo: herramienta
   dueno: gobierno
@@ -93,7 +93,8 @@ metadata:
 | Lanzar algo que lee `process.env` (`node --env-file`, `vercel`…) | `npm run op -- run --env-file=.env.local -- <comando>` | el comando corre; si imprime una clave, sale `<concealed by 1Password>` |
 | Comprobar que una clave está bien | comparar a ciegas (`valor === otro`) e imprimir solo el sí o el no | `COINCIDEN` o `NO COINCIDEN`, nunca el valor |
 | Listar las bóvedas (Pablo, `!`) | `MENUPLAN_OP_PABLO=1 npm run op -- vault list` | todas las bóvedas con su id (ventana de aprobación la primera vez) |
-| Dar de alta una clave (OK) | primero, a qué bóveda: si da acceso a producción (URL de administrador, bots o tokens de producción, Vercel con producción, claves de Apps), solo a `HoMenu` y nunca a `env.1password` (comentada, si acaso). Si es de desarrollo, a `HoMenu` y a `HoMenu-sesiones`: un script la pasa en JSON por stdin a `op item create --vault HoMenu -`, se añade a `COPIAR` y a `ops/env.1password` con `op://HoMenu-sesiones/…`, y `node scripts/boveda-sesiones.mjs --si` | ficha creada; `npx vitest run scripts/boveda-sesiones.test.js` en verde |
+| Dar de alta una clave (OK; de punta a punta: skill `alta-de-secreto`) | primero, a qué bóveda: si da acceso a producción (URL de administrador, bots o tokens de producción, Vercel con producción, claves de Apps), solo a `HoMenu` y nunca a `env.1password` (comentada, si acaso). Si es de desarrollo, a `HoMenu` y a `HoMenu-sesiones`: un script la pasa en JSON por stdin a `op item create --vault HoMenu -`, se añade a `COPIAR` y a `ops/env.1password` con `op://HoMenu-sesiones/…`, y `node scripts/boveda-sesiones.mjs --si` | ficha creada; `npx vitest run scripts/boveda-sesiones.test.js` en verde |
+| Pasar una clave a otro programa por nombre de ficha (Pablo, PowerShell aparte) | `node scripts/op.mjs item get "<Ficha>" --vault HoMenu --fields label=<CAMPO> --reveal \| <programa que lee stdin>` | el programa la recibe; en pantalla, nada. Vale con fichas cuyo nombre no cabe en `op://` |
 | Copiar a `HoMenu-sesiones` (OK; Pablo, `!`) | `node scripts/boveda-sesiones.mjs` (ensayo) y `--si` | una línea por ficha: `copiada … COINCIDEN` o `salto … ya existe`; ningún valor |
 | ¿La cuenta de sesiones lee solo lo suyo? | `node scripts/boveda-sesiones.mjs --comprobar` | todo `BIEN`: ve solo `HoMenu-sesiones`, la URL de administrador **no** se lee y las de sesiones sí. El 9 oct 2026, con «MenuPlan PC Pablo»: 12 `MAL` |
 | Guardar algo en otra bóveda, p. ej. `Panel HoMenu` (OK; Pablo, `!`) | como la anterior, **sin** el token de la service account y con el **id** de la bóveda: `MENUPLAN_OP_PABLO=1 npm run op -- item create --vault <id> --format json -` | ficha creada; ventana de 1Password a aprobar |
@@ -117,38 +118,38 @@ lanzar `op` ni `opPorLaApp`: la guardia lo niega. Una ventana de aprobación que
 no has lanzado tú: no la apruebes.
 
 1. App de 1Password → **Nueva bóveda** → `HoMenu-sesiones` (con guion).
-2. PowerShell aparte, en `C:\dev\MenuPlan-boveda-sesiones`:
-   `node scripts/boveda-sesiones.mjs` (ensayo, no abre la app) y luego
-   `$env:MENUPLAN_OP_PABLO = "1"; node scripts/boveda-sesiones.mjs --si`:
-   copia las 8 fichas de `COPIAR`, una línea `COINCIDEN` cada una.
-3. **Mover** (no copiar) a `HoMenu-sesiones` la clave de la App de E1 (#327),
-   como Documento `GitHub App homenu-sesiones`.
-4. Fusionar el PR de #328 (plantilla, guardia, plan B y fallo cerrado) y poner
-   al día la carpeta principal: `git fetch origin; git merge --ff-only origin/staging`.
+2. PowerShell aparte, en `C:\dev\MenuPlan-boveda-sesiones`: `node scripts/boveda-sesiones.mjs`
+   (ensayo, no abre la app) y `$env:MENUPLAN_OP_PABLO = "1"; node scripts/boveda-sesiones.mjs --si`:
+   8 fichas, una línea `COINCIDEN` cada una.
+3. **Mover** (no copiar) la clave de la App de E1 (#327) a `HoMenu-sesiones`,
+   Documento `GitHub App homenu-sesiones`.
+4. Fusionar el PR de #328 y poner al día la carpeta principal:
+   `git fetch origin; git merge --ff-only origin/staging`.
 5. PowerShell aparte, en `C:\dev\MenuPlan`:
    `op service-account create "MenuPlan sesiones" --vault HoMenu-sesiones:read_items --raw | node scripts/llavero-op.mjs` → `COINCIDEN`.
-6. `node scripts/boveda-sesiones.mjs --comprobar` → todo `BIEN` (solo usa la
-   cuenta nueva y falla cerrado).
-7. En la misma sentada: 1Password.com → Developer → Service accounts → anular
-   «MenuPlan PC Pablo».
+6. `node scripts/boveda-sesiones.mjs --comprobar` → todo `BIEN`.
+7. En la misma sentada, en 1Password.com → Developer → Service accounts: anular «MenuPlan PC Pablo».
 8. **Los `.env.local` viejos no se tocan**: el plan B resuelve sus direcciones
-   desde `HoMenu-sesiones` y deja una línea `env-boveda … respaldo`. Las
-   carpetas nuevas salen ya con la plantilla nueva (`npm run tarea`). Así no se
-   pierden el puerto ni los flags de staging que puso `npm run tarea`.
+   desde `HoMenu-sesiones` (línea `env-boveda … respaldo`); las carpetas nuevas
+   salen con la plantilla nueva (`npm run tarea`), sin perder puerto ni flags.
 9. **Apagar «Integrar con 1Password CLI»** al terminar, y encenderla solo
    mientras Pablo use `MENUPLAN_OP_PABLO`. Encendida, una sesión podría pedir
    ventanas iguales a las suyas: esa es la barrera real; la guardia es un
    filtro de buena fe.
 
 Desde el paso 5 las sesiones no leen la URL de administrador:
-`bot-coste`, `bot-medidas`, `bot-panel`, `lola-feedback`, `router-feedback`
-y `verificar-estado` entran con `SUPABASE_DB_URL_LECTURA` (`verificar-estado`
-no ve `cron`: con `--admin`, Pablo). Aplicar migraciones, `bot-cron`,
-`ensayo-*`, `telegram-webhook`, `telegram-perfil` y los de Blob, Pablo con
-`MENUPLAN_OP_PABLO=1` hasta E5 (#331).
+`bot-coste`, `bot-medidas`, `bot-panel`, `lola-feedback`, `router-feedback` y
+`verificar-estado` entran con `SUPABASE_DB_URL_LECTURA` (`verificar-estado` no
+ve `cron`: con `--admin`, Pablo). Aplicar migraciones, `bot-cron`, `ensayo-*`,
+`telegram-webhook`, `telegram-perfil` y los de Blob: Pablo con `MENUPLAN_OP_PABLO=1` hasta E5 (#331).
 
 ## Lo que falló y por qué
 
+- **2026-10-09 · una dirección `op://` daba error con la ficha y el campo bien puestos.**
+  Causa: el nombre de la ficha llevaba una tilde; la sintaxis de `op://` solo
+  admite letras y cifras sin acento, espacios, `-`, `_` y `.` (lo demás, por id).
+  Arreglo: leer esa ficha por nombre con `op item get` (fila de arriba) y crear
+  las fichas nuevas sin tildes (skill `alta-de-secreto`).
 - **2026-10-08 · «"Panel HoMenu" isn't a vault in this account» al crear una
   ficha por script.** Causa: Node con `shell: true` concatena los argumentos y
   el espacio del nombre parte la bóveda en dos. Arreglo: pasar el **id** de la
@@ -209,6 +210,7 @@ bóvedas que se le dieron al crearla: para dar otra hay que crear una nueva.
 ## Fuentes y comprobación
 
 - https://developer.1password.com/docs/cli/
+- https://developer.1password.com/docs/cli/secret-reference-syntax/
 - https://developer.1password.com/docs/service-accounts/
 - https://developer.1password.com/docs/ssh/agent/
 
