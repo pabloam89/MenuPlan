@@ -12,7 +12,7 @@
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { contar, escribirMd, escribirSecciones, leerEstandares, textoDeComun, textoDeTarea } from "./lib/estandaresAgentes.mjs";
+import { bajarJuicioMaximo, contar, contarJuicio, escribirMd, escribirSecciones, leerEstandares, textoDeComun, textoDeTarea } from "./lib/estandaresAgentes.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -22,10 +22,12 @@ if (args.includes("--escribir")) {
   const cambiados = escribirSecciones(RAIZ, datos);
   console.log(cambiados.length ? `Sección regenerada en: ${cambiados.join(", ")}` : "Las secciones ya estaban al día.");
   console.log(escribirMd(RAIZ, datos) ? "docs/ops/ESTANDARES.md regenerado." : "docs/ops/ESTANDARES.md ya estaba al día.");
+  console.log(`Tope de reglas a juicio: ${bajarJuicioMaximo(RAIZ, datos)} (hoy ${contarJuicio(datos)}).`);
 } else if (args.includes("--contar") || !args.length) {
   const c = contar(datos);
   for (const [n, a] of Object.entries(c.porAgente)) console.log(`${n.padEnd(14)} ${a.conEstandar}/${a.tareas} tareas con estándar, ${a.reglas} reglas`);
   console.log(`TOTAL ${c.conEstandar}/${c.total} tareas con estándar; ${c.pendientes} pendientes; ${c.reglas} reglas propias; ${c.comunes} comunes con ${c.reglasComunes} reglas`);
+  console.log(`reglas a juicio: ${contarJuicio(datos)}`);
   console.log(`acciones: ${Object.entries(c.porAccion).map(([a, n]) => `${a}=${n}`).join(" ")}`);
   console.log(`fuentes: ${c.fuentes.externas} externas [F] y ${c.fuentes.casa} de la casa [I]`);
 } else if (args[0] === "comunes") {

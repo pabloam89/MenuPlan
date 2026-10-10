@@ -557,10 +557,6 @@
       "nombre": "Regla de la casa: regla de migraciones",
       "ruta": ".claude/rules/migraciones.md"
     },
-    "dtcg": {
-      "nombre": "Design Tokens Community Group: Design Tokens Format Module",
-      "url": "https://www.designtokens.org/tr/drafts/format/"
-    },
     "m3-tokens": {
       "nombre": "Material Design 3: Design tokens, visión general",
       "url": "https://m3.material.io/foundations/design-tokens/overview"
@@ -625,21 +621,9 @@
       "nombre": "Anthropic: Demystifying evals for AI agents",
       "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
     },
-    "an-develop-tests": {
-      "nombre": "Anthropic: Create strong empirical evaluations",
-      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
-    },
-    "an-latency": {
-      "nombre": "Anthropic: Reduce latency",
-      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency"
-    },
     "an-choose-model": {
       "nombre": "Anthropic: Choosing the right model",
       "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model"
-    },
-    "ms-normalizacion": {
-      "nombre": "Microsoft: Description of the database normalization basics",
-      "url": "https://learn.microsoft.com/en-us/office/troubleshoot/access/database-normalization-description"
     },
     "casa-design-system": {
       "tipo": "casa",
@@ -837,7 +821,7 @@
           "fuerza": "debe",
           "condicion": "cuando cambia lo que Lola lee",
           "exigencia": "correrse antes y después con el mismo set y las mismas condiciones, con el caso nuevo visto fallar antes",
-          "control": "scripts/bot-evals.mjs",
+          "control": "juicio",
           "fuente": "casa-lola-regla",
           "porque": "Sin la medida de antes no se sabe si el cambio mejoró algo",
           "ejemplo_bueno": "bot-evals --nivel=pr antes y después con el mismo modelo",
@@ -970,7 +954,7 @@
           "sujeto": "dato",
           "fuerza": "debe",
           "exigencia": "vivir en un solo sitio, y una copia es una proyección declarada con quién la recalcula",
-          "control": "ops/fuentes.test.js",
+          "control": "juicio",
           "fuente": "casa-principios-datos",
           "porque": "Dos copias sin dueño acaban diciendo cosas distintas",
           "ejemplo_bueno": "tabla de alimentos y plato derivado, con el script que lo recalcula",
@@ -1099,46 +1083,57 @@
               "sujeto": "rama",
               "fuerza": "debe",
               "exigencia": "salir de origin/staging y llevar una sola tarea, en su propia carpeta de trabajo",
-              "control": "scripts/tarea.test.js",
+              "control": "juicio",
               "fuente": "gh-protected-branches",
               "porque": "Una rama que sale de otra base arrastra cambios ajenos y el PR no se puede revisar",
               "ejemplo_bueno": "ops/516-estandares-por-campos, creada con npm run tarea desde origin/staging",
               "ejemplo_malo": "una rama salida de otra rama de trabajo sin fusionar"
             },
             {
-              "nombre": "Líneas del PR",
+              "nombre": "Closes y Agente",
               "sujeto": "pr",
               "fuerza": "debe",
-              "exigencia": "llevar en el cuerpo las líneas que exige el CI: Closes, Casos y Agente",
+              "exigencia": "llevar en el cuerpo un Closes #n por cada encargo o fondo que cierra y una línea Agente",
               "control": "scripts/fondos-pr.mjs",
               "fuente": "gh-pull-requests",
-              "porque": "De esas líneas sale quién arregló qué y si aguantó; sin ellas el dato se pierde",
+              "porque": "De esas líneas sale quién arregló qué; sin ellas el dato se pierde",
               "ejemplo_bueno": "Closes #516 y Agente: gobierno en el cuerpo del PR",
               "ejemplo_malo": "un cuerpo de PR con solo el título"
+            },
+            {
+              "nombre": "Casos del PR",
+              "sujeto": "pr",
+              "fuerza": "debe",
+              "exigencia": "llevar la línea Casos con los casos que arregla, o Casos: ninguno con su motivo",
+              "control": "scripts/casos-pr.mjs",
+              "fuente": "gh-pull-requests",
+              "porque": "Sin ella no se sabe de qué problema de fondo es síntoma el arreglo",
+              "ejemplo_bueno": "Casos: #488, #527 en el cuerpo del PR",
+              "ejemplo_malo": "abrir el PR sin la línea porque el cambio es pequeño"
+            },
+            {
+              "nombre": "Skill en el PR",
+              "sujeto": "pr",
+              "fuerza": "debe",
+              "condicion": "cuando el PR toca rutas de un dominio con skill",
+              "exigencia": "llevar la línea de la skill del dominio: actualizada con su nombre, o sin novedades",
+              "control": "scripts/runbook-pr.mjs",
+              "fuente": "casa-claude",
+              "porque": "Una skill que no se toca cuando cambia su dominio se queda diciendo lo viejo",
+              "ejemplo_bueno": "la línea «actualizada (skill github)» en un PR que cambia un workflow",
+              "ejemplo_malo": "un PR que cambia un workflow sin ninguna línea de skill"
             },
             {
               "nombre": "Fusión con CI verde",
               "sujeto": "pr",
               "fuerza": "debe",
               "condicion": "cuando se va a fusionar en staging",
-              "exigencia": "tener el check tests en verde y la rama al día con staging",
+              "exigencia": "tener el check tests en verde",
               "control": ".github/workflows/tests.yml",
               "fuente": "gh-protected-branches",
               "porque": "El check es lo único que impide que un cambio roto llegue a la rama que despliega",
-              "ejemplo_bueno": "gh pr checks 12 con tests en pass, tras gh pr update-branch",
+              "ejemplo_bueno": "gh pr checks 12 con tests en pass",
               "ejemplo_malo": "fusionar con el check en curso porque el cambio es pequeño"
-            },
-            {
-              "nombre": "Estado desde origin",
-              "sujeto": "rama.estado",
-              "fuerza": "debe",
-              "condicion": "cuando se pregunta si un cambio está en staging",
-              "exigencia": "leerse en origin/staging tras git fetch y no en el upstream de la rama",
-              "control": "juicio",
-              "fuente": "casa-claude",
-              "porque": "El upstream de la rama dice lo que se empujó, no lo que entró en staging",
-              "ejemplo_bueno": "git fetch y git branch -r --contains <commit> sobre origin/staging",
-              "ejemplo_malo": "dar por fusionado lo que figura como empujado"
             }
           ],
           "no_hace": [
@@ -1186,6 +1181,18 @@
               "porque": "Un verde sobre otro commit no prueba lo que se despliega",
               "ejemplo_bueno": "tests en pass sobre el commit de cabeza de origin/staging",
               "ejemplo_malo": "mirar el último verde de hace dos commits"
+            },
+            {
+              "nombre": "Estado desde origin",
+              "sujeto": "rama.estado",
+              "fuerza": "debe",
+              "condicion": "cuando se pregunta si un cambio está en staging",
+              "exigencia": "leerse en origin/staging tras git fetch y no en el upstream de la rama",
+              "control": "juicio",
+              "fuente": "casa-claude",
+              "porque": "El upstream de la rama dice lo que se empujó, no lo que entró en staging",
+              "ejemplo_bueno": "git fetch y git branch -r --contains <commit> sobre origin/staging",
+              "ejemplo_malo": "dar por fusionado lo que figura como empujado"
             }
           ],
           "no_hace": [
@@ -1244,6 +1251,18 @@
               "porque": "El stash no pertenece a una carpeta, así que una sesión puede recuperar el de otra",
               "ejemplo_bueno": "commit en la propia rama aunque sea provisional",
               "ejemplo_malo": "git stash antes de cambiar de tarea"
+            },
+            {
+              "nombre": "Rama al día",
+              "sujeto": "rama",
+              "fuerza": "debe",
+              "condicion": "cuando se va a abrir o a fusionar un PR",
+              "exigencia": "estar al día con origin/staging, fusionándolo en la rama, antes de abrir el PR y antes de fusionarlo",
+              "control": ".claude/hooks/guardia.test.js",
+              "fuente": "gh-protected-branches",
+              "porque": "Una rama atrasada se prueba contra una base que ya no existe y el choque llega tarde",
+              "ejemplo_bueno": "git merge origin/staging y el CI de nuevo antes de fusionar",
+              "ejemplo_malo": "fusionar una rama a la que staging ha cambiado los mismos ficheros"
             }
           ],
           "no_hace": [
@@ -1290,7 +1309,7 @@
               "sujeto": "diagnostico",
               "fuerza": "debe",
               "exigencia": "comprobar tras el arreglo que el mismo check pasa en verde",
-              "control": "scripts/espera-ci.mjs",
+              "control": "juicio",
               "fuente": "vercel-troubleshoot",
               "porque": "Un arreglo que no hace pasar el check que falló no arregla ese fallo",
               "ejemplo_bueno": "gh pr checks con tests en pass tras el cambio",
@@ -1301,7 +1320,7 @@
               "sujeto": "diagnostico",
               "fuerza": "debe",
               "exigencia": "dejar el aprendizaje en un test o en la guardia, y en una skill si no se puede, nunca en la memoria",
-              "control": "scripts/fondos-pr.mjs",
+              "control": "juicio",
               "fuente": "sre-postmortem",
               "porque": "Lo que solo vive en la memoria de una sesión no lo ven las demás ni el CI",
               "ejemplo_bueno": "un caso en guardia.test.js visto fallar antes de la regla",
@@ -1321,26 +1340,15 @@
           "origen": "mision",
           "reglas": [
             {
-              "nombre": "Permisos mínimos",
+              "nombre": "Permisos y acciones fijadas",
               "sujeto": "workflow",
               "fuerza": "debe",
-              "exigencia": "declarar permissions mínimos en el workflow y en cada job",
+              "exigencia": "declarar permissions mínimos en el workflow y en cada job, y fijar por SHA completo cada acción de terceros, con la versión en un comentario",
               "control": "juicio",
               "fuente": "gh-actions-hardening",
-              "porque": "El token por defecto puede escribir en el repo; un permiso de más lo hereda cualquier paso",
-              "ejemplo_bueno": "permissions: contents: read y issues: write solo en el job que comenta",
-              "ejemplo_malo": "un workflow sin bloque permissions"
-            },
-            {
-              "nombre": "Acciones fijadas por SHA",
-              "sujeto": "workflow",
-              "fuerza": "debe",
-              "exigencia": "fijar por SHA completo cada acción de terceros, con la versión en un comentario",
-              "control": "juicio",
-              "fuente": "gh-actions-hardening",
-              "porque": "Una etiqueta se puede mover; un SHA no, y el workflow es código con acceso a secretos",
-              "ejemplo_bueno": "uses: actions/checkout@<sha de 40 caracteres> # v4",
-              "ejemplo_malo": "uses: una-accion/de-un-tercero@main"
+              "porque": "Un token con más permisos del necesario, o una acción que cambia bajo la misma etiqueta, convierte un fallo menor en una puerta abierta",
+              "ejemplo_bueno": "permissions: contents: read y uses: actions/checkout@<sha> # v7",
+              "ejemplo_malo": "uses: una-accion/hacer@v1 sin permissions"
             },
             {
               "nombre": "Texto externo fuera del run",
@@ -1359,7 +1367,7 @@
               "fuerza": "debe",
               "condicion": "cuando el workflow usa un secreto",
               "exigencia": "leerlo de un environment con política de ramas y no de un secreto de repo",
-              "control": "ops/normas.test.js",
+              "control": "juicio",
               "fuente": "gh-environments",
               "porque": "Un secreto de repo lo ve cualquier rama; el environment lo limita a las ramas autorizadas",
               "ejemplo_bueno": "environment: vigia, solo para la rama staging",
@@ -1375,6 +1383,18 @@
               "porque": "Un cron que falla en silencio es un control que ya no existe y nadie lo sabe",
               "ejemplo_bueno": "línea resultado: fallo motivo: red y comentario en el issue de seguimiento",
               "ejemplo_malo": "un cron cuyo fallo solo se ve entrando al run"
+            },
+            {
+              "nombre": "Probar el cron a mano",
+              "sujeto": "workflow",
+              "fuerza": "debe",
+              "condicion": "cuando el workflow es un cron nuevo o cambiado",
+              "exigencia": "tener workflow_dispatch y lanzarse a mano, con una rama de prueba si escribe, antes de esperar a su primera hora",
+              "control": "juicio",
+              "fuente": "gh-actions-hardening",
+              "porque": "Un cron que se estrena el lunes a las 06:15 se rompe sin que nadie mire",
+              "ejemplo_bueno": "gh workflow run mercadona-sync.yml -f probar_push=true y leer el run",
+              "ejemplo_malo": "dejar el cron nuevo y mirar el lunes si funcionó"
             }
           ],
           "no_hace": [
@@ -1398,7 +1418,7 @@
               "fuerza": "debe",
               "condicion": "cuando una regla importa y solo está escrita",
               "exigencia": "convertirse en una regla de la guardia con su test visto fallar antes del cambio",
-              "control": ".claude/hooks/guardia.test.js",
+              "control": "juicio",
               "fuente": "claude-hooks",
               "porque": "El texto lo olvida o lo esquiva una sesión con prisa; el hook lo cumple siempre",
               "ejemplo_bueno": "una regla nueva en guardia.mjs y su caso en guardia.test.js, rojo sin la regla",
@@ -1431,7 +1451,7 @@
               "sujeto": "hook",
               "fuerza": "debe",
               "exigencia": "quedar registrada en ops/normas.json con su ejecutor real y su veredicto",
-              "control": "ops/normas.test.js",
+              "control": "juicio",
               "fuente": "casa-claude",
               "porque": "Una norma sin ejecutor registrado no se puede contar ni saber si se cumple",
               "ejemplo_bueno": "la norma con ejecutor guardia y el test que la vigila",
@@ -1465,7 +1485,7 @@
               "sujeto": "secreto",
               "fuerza": "no_debe",
               "exigencia": "aparecer en un fichero, un commit, un comando ni un informe: solo el nombre de la variable",
-              "control": ".claude/hooks/credenciales.mjs",
+              "control": "juicio",
               "fuente": "owasp-secrets",
               "porque": "El repo es público y una conversación queda guardada: lo escrito ya no se recoge",
               "ejemplo_bueno": "VERCEL_TOKEN en la ficha HoMenu/Vercel Vigia",
@@ -1483,16 +1503,16 @@
               "ejemplo_malo": "una clave en uso que no figura en el inventario"
             },
             {
-              "nombre": "Secreto en environment",
+              "nombre": "Secreto en environment por tubería",
               "sujeto": "secreto",
               "fuerza": "debe",
               "condicion": "cuando vive en GitHub",
-              "exigencia": "estar en un environment con política de ramas y no a nivel de repo",
-              "control": "ops/normas.test.js",
+              "exigencia": "estar en un environment con política de ramas, entregado por tubería desde su ficha, y no a nivel de repo ni en un comando",
+              "control": "juicio",
               "fuente": "gh-environments",
-              "porque": "Un secreto de repo lo ve cualquier workflow de cualquier rama",
-              "ejemplo_bueno": "gh secret list --env vigia con el nombre y la fecha",
-              "ejemplo_malo": "gh secret set sin --env"
+              "porque": "En un environment solo lo lee la rama permitida, y por tubería el valor no queda en ningún historial",
+              "ejemplo_bueno": "la ficha leída con op y pasada por tubería a gh secret set --env",
+              "ejemplo_malo": "gh secret set de repo con el valor escrito en el comando"
             },
             {
               "nombre": "Alta por una persona",
@@ -1634,7 +1654,7 @@
               "sujeto": "catalogo",
               "fuerza": "debe",
               "exigencia": "guardar el dato en un JSON de ops/ con campos cerrados y leerlo desde un solo módulo de scripts/lib",
-              "control": "ops/redaccion.test.js",
+              "control": "juicio",
               "fuente": "casa-redaccion",
               "porque": "Un dato en un solo sitio no se separa de su copia; el módulo lector es el único camino",
               "ejemplo_bueno": "ops/normas.json leído por scripts/lib/normas.mjs",
@@ -1645,7 +1665,7 @@
               "sujeto": "catalogo",
               "fuerza": "debe",
               "exigencia": "llevar un test que lo valide y que se vea fallar con un dato estropeado a propósito",
-              "control": "ops/estandares-agentes.test.js",
+              "control": "juicio",
               "fuente": "gg-que-mirar",
               "porque": "Un test que no puede fallar no vigila nada y da una falsa seguridad",
               "ejemplo_bueno": "un caso con un campo borrado que el test rechaza",
@@ -1657,7 +1677,7 @@
               "fuerza": "debe",
               "condicion": "cuando el catálogo tiene una versión legible en docs/",
               "exigencia": "generarla desde el JSON y compararla en un test, sin editarla a mano",
-              "control": "ops/normas.test.js",
+              "control": "juicio",
               "fuente": "casa-redaccion",
               "porque": "Un documento escrito a mano se separa del dato sin que nadie lo vea",
               "ejemplo_bueno": "docs/ops/NORMAS.md generado y comparado con lo generado",
@@ -1779,6 +1799,17 @@
               "porque": "El diccionario vive en la base: quien consulta ve qué es cada cosa sin abrir el repo",
               "ejemplo_bueno": "comment on column pedidos.estado is 'abierto hasta que Lola lo cierra'",
               "ejemplo_malo": "una columna estado sin explicar sus valores"
+            },
+            {
+              "nombre": "Not null por defecto",
+              "sujeto": "tabla",
+              "fuerza": "debe",
+              "exigencia": "declarar cada columna not null salvo decisión comentada, y dejar que sea la base la que diga no a lo que no puede darse",
+              "control": "juicio",
+              "fuente": "pg-constraints",
+              "porque": "Un nulo permitido es un caso más que cada lector tiene que recordar, y lo que solo se prohíbe en el código acaba rompiéndose",
+              "ejemplo_bueno": "not null en la columna y un comentario en la que admite nulo, con su porqué",
+              "ejemplo_malo": "una columna que admite nulo porque aún no se sabe"
             }
           ],
           "no_hace": [
@@ -1881,7 +1912,7 @@
               "sujeto": "migracion",
               "fuerza": "debe",
               "exigencia": "comprobarse leyendo pg_constraint, pg_proc o su objeto testigo y no con el OK del script",
-              "control": "scripts/verificar-estado.mjs",
+              "control": "juicio",
               "fuente": "pg-altertable",
               "porque": "Un script puede decir OK sin haber creado lo que debía",
               "ejemplo_bueno": "select de pg_constraint con la restricción nueva en la fila",
@@ -1920,7 +1951,7 @@
               "sujeto": "estado.migraciones",
               "fuerza": "debe",
               "exigencia": "contestarse con verificar-estado y el objeto testigo de la migración, no de memoria",
-              "control": "scripts/verificar-estado.test.js",
+              "control": "juicio",
               "fuente": "sb-migrations",
               "porque": "La tabla de migraciones de Supabase tiene 12 filas y casi todo se aplicó a mano",
               "ejemplo_bueno": "verificar-estado --solo 0097 --detalle con su salida",
@@ -1986,6 +2017,17 @@
               "porque": "Supabase concede EXECUTE por defecto y una función security definer corre con los permisos de su dueño",
               "ejemplo_bueno": "set search_path = public y grant execute solo a authenticated",
               "ejemplo_malo": "una security definer con el EXECUTE por defecto"
+            },
+            {
+              "nombre": "Permiso en migración",
+              "sujeto": "migracion",
+              "fuerza": "debe",
+              "exigencia": "crear cada permiso o grant nuevo en una migración con su número, y no con SQL escrito a mano contra la base",
+              "control": ".claude/hooks/guardia.test.js",
+              "fuente": "casa-migraciones",
+              "porque": "Un permiso dado a mano no queda en ningún sitio: nadie sabe quién lo tiene ni cómo quitarlo",
+              "ejemplo_bueno": "0097_grant_x.sql con su revoke previo y su testigo",
+              "ejemplo_malo": "un grant lanzado a mano desde el panel"
             }
           ],
           "no_hace": [
@@ -2008,7 +2050,7 @@
               "sujeto": "dato",
               "fuerza": "debe",
               "exigencia": "vivir en JSON de git si lo cura el equipo y en SQL si lo escriben los usuarios",
-              "control": "ops/fuentes.test.js",
+              "control": "juicio",
               "fuente": "casa-principios-datos",
               "porque": "Cada origen tiene su ciclo: lo curado se revisa por PR y lo de usuarios se guarda con RLS",
               "ejemplo_bueno": "las recetas en src/data y los menús de la casa en la base",
@@ -2196,6 +2238,29 @@
               "porque": "El que construye conoce el código y decide la forma; el comentario tiene que poder aceptarse",
               "ejemplo_bueno": "esta rama devuelve vacío cuando falta la casa; tal vez comprobarlo antes",
               "ejemplo_malo": "no sabes manejar las casas vacías"
+            },
+            {
+              "nombre": "Sin caso realista, nada",
+              "sujeto": "hallazgo",
+              "fuerza": "no_debe",
+              "exigencia": "presentarse como hallazgo si no hay un caso realista que lo provoque",
+              "control": "juicio",
+              "fuente": "gg-estandar",
+              "porque": "Un riesgo imaginado cuesta tiempo al constructor y le quita crédito al informe",
+              "ejemplo_bueno": "este código falla si la casa no tiene miembros, y pasa al dar de alta la primera",
+              "ejemplo_malo": "puede que algún día falle con muchos datos"
+            },
+            {
+              "nombre": "Nit sin bloqueo",
+              "sujeto": "hallazgo",
+              "fuerza": "debe",
+              "condicion": "cuando es una preferencia de estilo o de comodidad",
+              "exigencia": "salir como nit y sin bloquear la fusión",
+              "control": "juicio",
+              "fuente": "gg-comentarios",
+              "porque": "El constructor debe distinguir lo que rompe de lo que solo se podría pulir",
+              "ejemplo_bueno": "Nit: este nombre podría ser más corto",
+              "ejemplo_malo": "bloquear el PR por el nombre de una variable"
             }
           ],
           "no_hace": [
@@ -2253,7 +2318,7 @@
               "fuerza": "debe",
               "condicion": "cuando arregla un fallo",
               "exigencia": "dejar su aprendizaje donde se hace cumplir: un test que falla sin el arreglo, la guardia o la skill",
-              "control": "scripts/fondos-pr.mjs",
+              "control": "juicio",
               "fuente": "sre-postmortem",
               "porque": "Un arreglo sin aprendizaje deja que el mismo fallo vuelva con otro nombre",
               "ejemplo_bueno": "un caso en guardia.test.js visto fallar sin el arreglo",
@@ -2265,7 +2330,7 @@
               "fuerza": "no_debe",
               "condicion": "cuando arregla un fallo",
               "exigencia": "declarar la línea de la skill como sin novedades si el fallo está en una skill",
-              "control": "scripts/runbook-pr.mjs",
+              "control": "juicio",
               "fuente": "casa-claude",
               "porque": "El «sin novedades» es la forma más fácil de no dejar el aprendizaje en la skill",
               "ejemplo_bueno": "actualizado (skill github) con la entrada nueva en Lo que falló y por qué",
@@ -2282,6 +2347,18 @@
               "porque": "El arreglo funciona hoy, pero sin aprendizaje no aguanta",
               "ejemplo_bueno": "severidad alto: arregla el fallo y no deja test ni regla",
               "ejemplo_malo": "un nit por falta de test en un arreglo de fallo"
+            },
+            {
+              "nombre": "Patrón repetido, a un sitio",
+              "sujeto": "hallazgo",
+              "fuerza": "debe",
+              "condicion": "cuando el mismo patrón se repite en el diff o ya se vio antes",
+              "exigencia": "decir dónde dejar el patrón, en un test, la guardia, una regla o una skill",
+              "control": "juicio",
+              "fuente": "sre-postmortem",
+              "porque": "Un patrón que se repite y solo se arregla caso a caso vuelve a salir",
+              "ejemplo_bueno": "Tercera vez que falta el not null: un test de principios.test.js que lo pida",
+              "ejemplo_malo": "arreglar la tercera copia sin proponer nada para la cuarta"
             }
           ],
           "no_hace": [
@@ -2301,7 +2378,7 @@
               "sujeto": "diff",
               "fuerza": "debe",
               "exigencia": "contrastarse con las skills que piden sus ficheros (skills-encargo --diff) y con la línea SKILLS: del informe del constructor",
-              "control": "scripts/skills-encargo.mjs",
+              "control": "juicio",
               "fuente": "casa-plantilla-agente",
               "porque": "Una skill sin abrir es un aprendizaje ya hecho que no se aplica",
               "ejemplo_bueno": "skills-encargo --diff lista github y el informe también",
@@ -2336,7 +2413,7 @@
               "sujeto": "informe",
               "fuerza": "debe",
               "exigencia": "citar en la línea ESTÁNDAR: el agente y la tarea cumplida, y el revisor la lee con npm run estandar",
-              "control": ".claude/agentes.test.js",
+              "control": "juicio",
               "fuente": "gg-estandar",
               "porque": "Un estándar que nadie cita no se cumple",
               "ejemplo_bueno": "ESTÁNDAR: gobierno/workflows-y-crons, cumplida con el diff",
@@ -2364,6 +2441,18 @@
               "porque": "Una prohibición rota es un daño hecho y una evidencia ausente es solo un riesgo",
               "ejemplo_bueno": "alto: el diff publica a main aunque la tarea lo prohíbe",
               "ejemplo_malo": "medio por una prohibición rota"
+            },
+            {
+              "nombre": "Sin informe, no comprobado",
+              "sujeto": "diff",
+              "fuerza": "debe",
+              "condicion": "cuando falta el informe del constructor",
+              "exigencia": "marcarse como no comprobado, y no como conforme, cuando falta el informe del constructor",
+              "control": "juicio",
+              "fuente": "gg-estandar",
+              "porque": "Sin informe no hay estándar citado que contrastar, y dar por bueno lo que no se ha podido mirar es peor que decir que falta",
+              "ejemplo_bueno": "NO COMPROBADO: sin informe del constructor, solo se ha leído el diff",
+              "ejemplo_malo": "aprobar el diff porque el código parece correcto"
             }
           ],
           "no_hace": [
@@ -2381,12 +2470,13 @@
               "nombre": "Reutilizar si evita fallo",
               "sujeto": "hallazgo",
               "fuerza": "debe",
-              "exigencia": "señalar con su ruta la función o la fuente que ya existe, solo cuando evita un fallo o una segunda verdad",
+              "exigencia": "señalar con su ruta la función o la fuente que ya existe, si reutilizarla evita un fallo o una segunda verdad",
               "control": "juicio",
               "fuente": "gg-que-mirar",
               "porque": "Dos copias de una regla acaban diciendo cosas distintas",
               "ejemplo_bueno": "ya existe esaHora en scripts/lib/hora.mjs y esta copia la repite con otra zona",
-              "ejemplo_malo": "pedir unificar dos funciones parecidas porque sí"
+              "ejemplo_malo": "pedir unificar dos funciones parecidas porque sí",
+              "condicion": "cuando el diff duplica algo que ya existe"
             },
             {
               "nombre": "Comodidad es nit",
@@ -2495,7 +2585,7 @@
               "sujeto": "tabla",
               "fuerza": "debe",
               "exigencia": "tener RLS activada y políticas por casa o por usuario, leídas del catálogo vivo en solo lectura",
-              "control": "scripts/consulta.mjs",
+              "control": "juicio",
               "fuente": "pg-rls",
               "porque": "Lo que dice la migración puede no ser lo que hay en la base",
               "ejemplo_bueno": "relrowsecurity en true y la política leída de pg_policies",
@@ -2506,7 +2596,7 @@
               "sujeto": "funcion",
               "fuerza": "debe",
               "exigencia": "no ser ejecutable por anon ni public sin motivo, con search_path fijado, según su proacl",
-              "control": "scripts/consulta.mjs",
+              "control": "juicio",
               "fuente": "sb-functions",
               "porque": "Una security definer ejecutable por anon corre con permisos de su dueño",
               "ejemplo_bueno": "proacl sin anon ni public en cada security definer",
@@ -2551,7 +2641,7 @@
               "sujeto": "endpoint",
               "fuerza": "debe",
               "exigencia": "validar en el servidor cada campo de entrada, sin fiarse del cliente",
-              "control": "api/_guard.test.js",
+              "control": "juicio",
               "fuente": "owasp-input",
               "porque": "El cliente lo controla quien ataca: lo que no valida el servidor no está validado",
               "ejemplo_bueno": "un esquema que rechaza el campo con un tipo o un tamaño fuera de rango",
@@ -2585,7 +2675,7 @@
               "sujeto": "secreto",
               "fuerza": "debe",
               "exigencia": "vivir fuera del código y del historial, con un uso y un lector conocidos contra ops/INVENTARIO.md",
-              "control": ".claude/hooks/credenciales.mjs",
+              "control": "juicio",
               "fuente": "gh-secrets-actions",
               "porque": "El repo es público y lo que entra en el historial no se recoge",
               "ejemplo_bueno": "una búsqueda de patrones de clave en el diff sin resultados",
@@ -2675,7 +2765,7 @@
               "sujeto": "herramienta",
               "fuerza": "debe",
               "exigencia": "actuar solo sobre la casa del papel y confirmar antes de cambiar datos",
-              "control": "src/lib/papeles.test.js",
+              "control": "juicio",
               "fuente": "owasp-llm-top10",
               "porque": "Un mensaje malicioso solo puede hacer lo que la herramienta le deja hacer",
               "ejemplo_bueno": "la herramienta de borrar pide confirmación y usa la casa del papel",
@@ -2686,7 +2776,7 @@
               "sujeto": "papel",
               "fuerza": "debe",
               "exigencia": "dar al modelo las herramientas mínimas que necesita su tarea",
-              "control": "src/lib/papeles.test.js",
+              "control": "juicio",
               "fuente": "owasp-llm-top10",
               "porque": "Cada herramienta de más es una acción que un mensaje malicioso puede provocar",
               "ejemplo_bueno": "el papel de consulta sin herramientas de escritura",
@@ -2784,7 +2874,7 @@
               "sujeto": "informe",
               "fuerza": "no_debe",
               "exigencia": "llevar un valor secreto: solo el nombre de la variable",
-              "control": ".claude/hooks/credenciales.mjs",
+              "control": "juicio",
               "fuente": "owasp-secrets",
               "porque": "Un informe se copia y se pega; un valor escrito ya está comprometido",
               "ejemplo_bueno": "SUPABASE_DB_URL aparece en el log del vigía",
@@ -2816,7 +2906,7 @@
               "fuerza": "debe",
               "exigencia": "usar los tokens y los primitivos del sistema para cada color, tamaño, radio y sombra, sin valores sueltos",
               "control": "eslint-rules/no-valor-suelto.test.js",
-              "fuente": "dtcg",
+              "fuente": "casa-design-system",
               "porque": "Un token cambia en un sitio y toda la app lo sigue; un valor suelto se queda atrás",
               "ejemplo_bueno": "color: token marca, de src/design/tokens.js",
               "ejemplo_malo": "un hex escrito en el estilo del componente"
@@ -2867,7 +2957,7 @@
               "fuerza": "debe",
               "exigencia": "llevar su variable CSS generada con npm run tokens:css y no escrita a mano",
               "control": "src/design/tokensCss.test.js",
-              "fuente": "dtcg",
+              "fuente": "casa-design-system",
               "porque": "Dos escrituras del mismo valor acaban distintas",
               "ejemplo_bueno": "tokens.css regenerado en el mismo PR",
               "ejemplo_malo": "una variable CSS retocada a mano en tokens.css"
@@ -2979,7 +3069,8 @@
               "fuente": "casa-diseno-estado",
               "porque": "Un derivado retocado a mano no se puede rehacer desde un clon limpio",
               "ejemplo_bueno": "original en la carpeta de fuentes y el derivado generado por script",
-              "ejemplo_malo": "un PNG retocado directamente en public/"
+              "ejemplo_malo": "un PNG retocado directamente en public/",
+              "nota": "El agente cita un manifiesto de assets que aún no existe (docs/diseno/ESTADO.md habla de uno solo, sin crear); cuando exista, entra aquí una regla suya."
             },
             {
               "nombre": "Optimizado con peso",
@@ -2991,17 +3082,6 @@
               "porque": "Los assets son lo que más pesa en la carga de un móvil",
               "ejemplo_bueno": "WebP de 40 KB frente a un PNG original de 600 KB",
               "ejemplo_malo": "un PNG de 600 KB servido tal cual"
-            },
-            {
-              "nombre": "Entrada en el manifiesto",
-              "sujeto": "asset",
-              "fuerza": "debe",
-              "exigencia": "figurar en el manifiesto de assets con su origen",
-              "control": "juicio",
-              "fuente": "casa-diseno-estado",
-              "porque": "Un asset sin entrada no se sabe de dónde sale ni si se puede borrar",
-              "ejemplo_bueno": "la fila del asset nuevo en el manifiesto con su script",
-              "ejemplo_malo": "una imagen añadida solo a la carpeta"
             },
             {
               "nombre": "Nombre en kebab ASCII",
@@ -3304,8 +3384,8 @@
               "fuerza": "debe",
               "condicion": "cuando cambia datos de la casa",
               "exigencia": "pasar por confirmación, cola e idempotencia, sin borrar nada sin el sí de la familia",
-              "control": "api/_bot/idempotencia.test.js",
-              "fuente": "owasp-llm-top10",
+              "control": "juicio",
+              "fuente": "casa-agente-lola",
               "porque": "Una acción repetida o no pedida sobre datos de familias no se puede deshacer",
               "ejemplo_bueno": "la herramienta pide confirmación y repite sin duplicar",
               "ejemplo_malo": "borrar un plato en cuanto el modelo lo decide"
@@ -3315,7 +3395,7 @@
               "sujeto": "herramienta",
               "fuerza": "debe",
               "exigencia": "figurar en su papel de src/lib/papeles.js con el permiso que necesita",
-              "control": "src/lib/papeles.test.js",
+              "control": "juicio",
               "fuente": "casa-lola-regla",
               "porque": "Un papel sin la herramienta no la usa y una herramienta sin papel la usa cualquiera",
               "ejemplo_bueno": "la herramienta nueva en el papel de compra",
@@ -3390,7 +3470,7 @@
               "sujeto": "prompt.prefijo",
               "fuerza": "debe",
               "exigencia": "mantener herramientas y conocimiento estables y en orden fijo, sin nada variable antes del último punto de caché",
-              "control": "src/lib/promptContract.test.js",
+              "control": "api/_bot/unaVuelta.test.js",
               "fuente": "an-cache",
               "porque": "La caché se invalida desde el primer byte que cambia",
               "ejemplo_bueno": "lo variable de la casa va después del último punto de caché",
@@ -3445,7 +3525,7 @@
               "sujeto": "enrutador",
               "fuerza": "debe",
               "exigencia": "cambiar una regla solo con el caso de scripts/router-evals.json que la cubre, visto fallar antes",
-              "control": "scripts/router-evals.mjs",
+              "control": "juicio",
               "fuente": "an-evals",
               "porque": "Sin caso no se sabe si la regla nueva arregla algo ni si rompe lo que iba",
               "ejemplo_bueno": "un caso de ejemplo nuevo que falla y pasa tras la regla",
@@ -3456,7 +3536,7 @@
               "sujeto": "enrutador",
               "fuerza": "no_debe",
               "exigencia": "mandar a la vía rápida un mensaje que tocaba a Lola: la cifra que importa es 0",
-              "control": "scripts/router-evals.mjs",
+              "control": "juicio",
               "fuente": "casa-lola-regla",
               "porque": "Una respuesta rápida equivocada cuesta más que dejar pasar a Lola",
               "ejemplo_bueno": "0 de rápida cuando tocaba Lola en router-evals",
@@ -3495,7 +3575,7 @@
               "sujeto": "papel",
               "fuerza": "debe",
               "exigencia": "tener solo las herramientas que su tarea necesita",
-              "control": "src/lib/papeles.test.js",
+              "control": "juicio",
               "fuente": "owasp-llm-top10",
               "porque": "Cada herramienta de más es una acción que un mensaje malicioso puede provocar",
               "ejemplo_bueno": "el papel de consulta sin herramientas de escritura",
@@ -3552,7 +3632,7 @@
               "fuerza": "debe",
               "exigencia": "bajar el número de llamadas al modelo antes que acelerar cada llamada",
               "control": "juicio",
-              "fuente": "an-latency",
+              "fuente": "casa-agente-lola",
               "porque": "Medido el 1 oct de 2026: lo que tarda un turno es el número de llamadas",
               "ejemplo_bueno": "una herramienta de escritura que devuelve el estado final",
               "ejemplo_malo": "pasar a un modelo más rápido sin quitar vueltas"
@@ -3562,7 +3642,7 @@
               "sujeto": "modelo.turno",
               "fuerza": "debe",
               "exigencia": "ser el más barato que aprueba los evals, y subir de modelo es la última opción",
-              "control": "scripts/modelos-evals.mjs",
+              "control": "juicio",
               "fuente": "an-choose-model",
               "porque": "El coste de un turno se multiplica por todas las familias y todos los días",
               "ejemplo_bueno": "Haiku si aprueba el set de evals del turno",
@@ -3594,7 +3674,7 @@
               "fuerza": "debe",
               "condicion": "cuando se arregla un fallo real",
               "exigencia": "añadirse al set y verse fallar antes del arreglo",
-              "control": "scripts/lib/evals.test.js",
+              "control": "juicio",
               "fuente": "an-evals",
               "porque": "Un fallo sin caso puede volver sin que nada avise, y un caso que nunca falló no prueba nada",
               "ejemplo_bueno": "el caso falla en staging y pasa con el arreglo",
@@ -3606,7 +3686,7 @@
               "fuerza": "debe",
               "exigencia": "llevar id, tipo, dominio y origen, y dependeDeFecha si habla de días",
               "control": "scripts/lib/evals.test.js",
-              "fuente": "an-develop-tests",
+              "fuente": "casa-lola-regla",
               "porque": "Los campos permiten contar y agrupar los casos, y los de fecha caducan",
               "ejemplo_bueno": "id, tipo alergias, dominio compra, origen fallo real",
               "ejemplo_malo": "un caso solo con el mensaje y la respuesta esperada"
@@ -3970,7 +4050,7 @@
               "fuerza": "debe",
               "exigencia": "reportar tokens por turno, vueltas y latencia: un arreglo que duplica los tokens se dice",
               "control": "juicio",
-              "fuente": "an-latency",
+              "fuente": "casa-agente-evaluador",
               "porque": "Un arreglo que cuesta el doble puede no compensar",
               "ejemplo_bueno": "los tokens por turno suben de 2.400 a 4.900 y el informe lo marca",
               "ejemplo_malo": "dar solo el pase total"
@@ -4043,8 +4123,8 @@
               "sujeto": "eval.caso",
               "fuerza": "debe",
               "exigencia": "proponerse en JSON listo para pegar, con id, tipo, dominio y origen",
-              "control": "scripts/lib/evals.test.js",
-              "fuente": "an-develop-tests",
+              "control": "juicio",
+              "fuente": "casa-agente-evaluador",
               "porque": "Un caso a medio escribir se pierde entre el informe y el repo",
               "ejemplo_bueno": "un objeto con id, tipo, dominio, origen y mensaje esperado",
               "ejemplo_malo": "describir el caso en una frase"
@@ -4086,7 +4166,7 @@
               "fuerza": "debe",
               "condicion": "cuando se propone cambiarlo",
               "exigencia": "evaluarse con modelos-evals antes de desplegarlo, con coste y latencia a la vista",
-              "control": "scripts/modelos-evals.mjs",
+              "control": "juicio",
               "fuente": "an-choose-model",
               "porque": "El modelo cambia calidad, coste y latencia a la vez y solo la medida dice cuánto",
               "ejemplo_bueno": "modelos-evals con el set del turno y la tabla de coste",
@@ -4134,7 +4214,7 @@
               "fuerza": "debe",
               "exigencia": "juzgarse con los mismos criterios de docs/datos/PRINCIPIOS.md que el resto: una excepción sin comentario es hallazgo",
               "control": "supabase/principios.test.js",
-              "fuente": "ms-normalizacion",
+              "fuente": "casa-principios-datos",
               "porque": "Criterios distintos por tabla hacen que nadie sepa qué esperar de la siguiente",
               "ejemplo_bueno": "un hallazgo por la tabla que usa texto libre sin comentario",
               "ejemplo_malo": "aceptar la excepción porque funciona"
@@ -4199,7 +4279,7 @@
               "fuerza": "debe",
               "exigencia": "buscarse por su nombre y por sus valores en src/data, las constantes JS, api/_bot y otras tablas",
               "control": "juicio",
-              "fuente": "ms-normalizacion",
+              "fuente": "casa-principios-datos",
               "porque": "La redundancia entre capas es la que da datos contradictorios al cambiar uno",
               "ejemplo_bueno": "grep del nombre y de tres valores en las cuatro capas",
               "ejemplo_malo": "mirar solo la tabla"
@@ -4210,7 +4290,7 @@
               "fuerza": "debe",
               "condicion": "cuando existe una copia",
               "exigencia": "ser una proyección declarada, con quién la recalcula",
-              "control": "ops/fuentes.test.js",
+              "control": "juicio",
               "fuente": "casa-principios-datos",
               "porque": "Una copia sin dueño de su recálculo acaba desfasada",
               "ejemplo_bueno": "derivado declarado en model.js con su script",
@@ -4222,7 +4302,7 @@
               "fuerza": "debe",
               "exigencia": "llevar su ejemplo: la fila, la columna o los dos ficheros que dicen cosas distintas",
               "control": "juicio",
-              "fuente": "ms-normalizacion",
+              "fuente": "casa-principios-datos",
               "porque": "Sin ejemplo no se sabe qué arreglar ni se puede comprobar el arreglo",
               "ejemplo_bueno": "dishes.json dice 20 min y la tabla recetas dice 25",
               "ejemplo_malo": "hay datos repetidos entre capas"
@@ -4253,7 +4333,7 @@
               "sujeto": "cableado",
               "fuerza": "debe",
               "exigencia": "contar con node scripts/cableado.mjs qué ficheros tocan cada tabla",
-              "control": "supabase/cableado.test.js",
+              "control": "juicio",
               "fuente": "casa-principios-datos",
               "porque": "Un camino único a cada tabla solo se mantiene si se mira",
               "ejemplo_bueno": "scripts/cableado.mjs con los ficheros que tocan pedidos",
@@ -4338,7 +4418,7 @@
               "fuerza": "debe",
               "exigencia": "revisarse en su forma normal, claves, FK con on delete, tipos y nulos, nombres y comentarios",
               "control": "supabase/principios.test.js",
-              "fuente": "ms-normalizacion",
+              "fuente": "casa-principios-datos",
               "porque": "Los mismos criterios para todas las tablas hacen que el modelo sea predecible",
               "ejemplo_bueno": "una fila por tabla con sus siete criterios",
               "ejemplo_malo": "revisar solo las tablas cambiadas este mes"

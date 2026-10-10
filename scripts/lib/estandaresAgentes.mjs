@@ -21,6 +21,7 @@
  * `.claude/agents/<agente>.md` (`npm run estandar -- --escribir`) y la tabla
  * `docs/ops/ESTANDARES.md`.
  */
+import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -400,4 +401,57 @@ export function escribirMd(raiz, datos) {
   if (antes === nuevo) return false;
   writeFileSync(ruta, nuevo);
   return true;
+}
+
+// ── El trinquete de las reglas a juicio (#527) ─────────────────────────────
+
+export const RUTA_JUICIO = "ops/estandares-juicio.json";
+
+/** Cuántas reglas (propias y de comunes) llevan control «juicio»: lo que hoy vigila una persona o un juez. */
+export const contarJuicio = (datos) => [
+  ...Object.values(datos.agentes).flatMap((a) => a.tareas.flatMap((t) => t.reglas ?? [])),
+  ...Object.values(datos.comunes).flatMap((c) => c.reglas),
+].filter((r) => r.control === CONTROL_JUICIO).length;
+
+const numeroDe = (texto) => {
+  try { const n = JSON.parse(texto)?.juicio_maximo; return Number.isInteger(n) && n >= 0 ? n : null; } catch { return null; /* a propósito: un JSON roto es «sin tope» y el trinquete lo cuenta como error */ }
+};
+
+/** El tope anclado en este árbol (null si falta o está roto). */
+export const leerJuicioMaximo = (raiz) => (existsSync(join(raiz, RUTA_JUICIO)) ? numeroDe(readFileSync(join(raiz, RUTA_JUICIO), "utf8")) : null);
+
+/** El tope anclado en origin/staging (null si el ref no está o el fichero aún no existe allí). */
+export function juicioMaximoEnStaging(raiz, ejecutar = execFileSync) {
+  try {
+    return numeroDe(ejecutar("git", ["show", `origin/staging:${RUTA_JUICIO}`], { cwd: raiz, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
+  } catch { return null; /* a propósito: sin el ref o sin el fichero allí no hay tope con el que comparar, y el test lo dice */ }
+}
+
+/**
+ * Errores del trinquete, una línea cada uno: las reglas a juicio son «como mucho N», N solo baja y
+ * no puede ser mayor que el de origin/staging (`enStaging`, null si no se puede leer).
+ */
+export function problemasDeJuicio(datos, anclado, enStaging = null) {
+  const hoy = contarJuicio(datos);
+  const malos = [];
+  if (anclado === null) malos.push(`${RUTA_JUICIO}: falta o no trae «juicio_maximo» (entero)`);
+  else {
+    if (hoy > anclado) malos.push(`hay ${hoy} reglas con control «juicio» y el tope es ${anclado}: una regla nueva lleva un control que falla si se incumple, o el tope no sube`);
+    if (enStaging !== null && anclado > enStaging) malos.push(`${RUTA_JUICIO}: el tope ${anclado} es mayor que el de origin/staging (${enStaging}); solo baja`);
+  }
+  return malos;
+}
+
+/** Baja el tope al recuento de hoy si es menor (nunca lo sube); devuelve el tope que queda. */
+export function bajarJuicioMaximo(raiz, datos) {
+  const hoy = contarJuicio(datos);
+  const actual = leerJuicioMaximo(raiz);
+  const nuevo = actual === null ? hoy : Math.min(actual, hoy);
+  if (nuevo !== actual) {
+    writeFileSync(join(raiz, RUTA_JUICIO), JSON.stringify({
+      $comentario: "Tope de reglas de ops/estandares-agentes.json con control «juicio» (#527). Es «como mucho N» y SOLO BAJA: ops/estandares-agentes.test.js falla si hay más o si el tope sube respecto a origin/staging. Se baja con npm run estandar -- --escribir.",
+      juicio_maximo: nuevo,
+    }, null, 2) + "\n");
+  }
+  return nuevo;
 }

@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   ACCIONES, ORIGENES, PENDIENTES_ADMITIDOS, RUTA_MD, agentesEnDisco, conSeccion, contar, extraerSeccion, fraseDeEstandar,
-  generarMd, leerEstandares, problemasDeEstandares, renderSeccion, reglasDeTarea, textoDeComun, textoDeTarea,
+  RUTA_JUICIO, bajarJuicioMaximo, contarJuicio, generarMd, juicioMaximoEnStaging, leerEstandares, leerJuicioMaximo, problemasDeEstandares,
+  problemasDeJuicio, renderSeccion, reglasDeTarea, textoDeComun, textoDeTarea,
 } from "../scripts/lib/estandaresAgentes.mjs";
 import { problemasDeRegla } from "../scripts/lib/regla.mjs";
 
@@ -57,6 +59,42 @@ describe("ops/estandares-agentes.json", () => {
     const juicio = todasLasReglas.filter(({ r }) => r.control === "juicio").length;
     expect(juicio).toBeGreaterThan(0);
     expect(juicio).toBeLessThan(todasLasReglas.length);
+    expect(contarJuicio(datos)).toBe(juicio);
+  });
+
+  it("las reglas a juicio son «como mucho N» y N solo baja, también respecto a origin/staging (#527)", () => {
+    const anclado = leerJuicioMaximo(RAIZ);
+    expect(anclado, `${RUTA_JUICIO} trae juicio_maximo`).not.toBeNull();
+    const enStaging = juicioMaximoEnStaging(RAIZ);
+    expect(problemasDeJuicio(datos, anclado, enStaging)).toEqual([]);
+  });
+
+  it("el trinquete falla si hay una regla a juicio de más, si el tope sube o si falta, y no obliga a bajar", () => {
+    const hoy = contarJuicio(datos);
+    const sinControl = clon();
+    sinControl.agentes.gobierno.tareas[0].reglas.find((r) => r.control !== "juicio").control = "juicio";
+    expect(contarJuicio(sinControl)).toBe(hoy + 1);
+    expect(problemasDeJuicio(sinControl, hoy).join("\n")).toContain("el tope es");
+    expect(problemasDeJuicio(datos, hoy + 3, hoy).join("\n")).toContain("mayor que el de origin/staging");
+    expect(problemasDeJuicio(datos, null).join("\n")).toContain("falta o no trae");
+    // «Como mucho»: con menos reglas a juicio que el tope no falla (quien las baja baja también el tope con --escribir).
+    expect(problemasDeJuicio(datos, hoy + 2, hoy + 2)).toEqual([]);
+    // Si origin/staging no se puede leer, no se inventa un tope.
+    expect(juicioMaximoEnStaging(RAIZ, () => { throw new Error("sin ref"); })).toBeNull();
+    expect(problemasDeJuicio(datos, hoy, null)).toEqual([]);
+  });
+
+  it("--escribir baja el tope al recuento y nunca lo sube", () => {
+    const hoy = contarJuicio(datos);
+    const tmp = mkdtempSync(join(tmpdir(), "juicio-"));
+    try {
+      mkdirSync(join(tmp, "ops"));
+      writeFileSync(join(tmp, RUTA_JUICIO), JSON.stringify({ juicio_maximo: hoy + 10 }));
+      expect(bajarJuicioMaximo(tmp, datos)).toBe(hoy);
+      expect(leerJuicioMaximo(tmp)).toBe(hoy);
+      writeFileSync(join(tmp, RUTA_JUICIO), JSON.stringify({ juicio_maximo: hoy - 5 }));
+      expect(bajarJuicioMaximo(tmp, datos)).toBe(hoy - 5);
+    } finally { rmSync(tmp, { recursive: true, force: true }); }
   });
 
   it("ningún agente tiene tareas sin estándar y la lista de pendientes está en cero", () => {
@@ -218,7 +256,7 @@ describe("docs/ops/ESTANDARES.md sale del catálogo", () => {
     expect(tarea).toBe("`flujo-rama-pr-staging`");
     expect(ACCIONES).toContain(accion);
     expect(frase).toContain("**Rama desde staging.** Cada rama de trabajo DEBE salir de origin/staging");
-    expect(control).toContain("test: `scripts/tarea.test.js`");
+    expect(control).toBe("juicio");
     expect(fuente).toMatch(/^\[F\] \[/);
     const comunes = md.split("\n").filter((l) => /^\| `[a-z0-9-]+` \| (construir|juzgar|diagnosticar|operar|medir|documentar|decidir) \|/.test(l));
     expect(comunes).toHaveLength(contar(datos).reglasComunes);
@@ -238,7 +276,8 @@ describe("npm run estandar", () => {
     expect(out).toContain("ESTÁNDAR A CUMPLIR: gobierno/flujo-rama-pr-staging");
     expect(out).toMatch(/Acción: operar/);
     expect(out).toMatch(/Reglas \(cada una con su control y su fuente\):/);
-    expect(out).toMatch(/Control: test scripts\/tarea\.test\.js/);
+    expect(out).toMatch(/Control: juicio/);
+    expect(out).toMatch(/Control: script scripts\/fondos-pr\.mjs/);
     expect(out).toMatch(/No hace:/);
     expect(out).toMatch(/Fuente: \[F\] https:\/\//);
   });
