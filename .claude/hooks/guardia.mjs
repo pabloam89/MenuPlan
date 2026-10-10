@@ -545,12 +545,26 @@ export function decidir(entrada, ctx) {
 
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 
-const responder = (r) => {
+const responder = async (r, entrada = null) => {
+  let motivo = `[guardia] ${r.motivo}`;
+  // Una denegación no llega a PostToolUse: la herramienta no se ejecuta. Por eso
+  // el «esto ya está apuntado» (#384) se añade aquí. Nunca rompe la guardia.
+  if (r.decision === "deny" && entrada) {
+    try {
+      const { avisoDeDenegacion } = await import("./buscar-antes.mjs");
+      const extra = avisoDeDenegacion(entrada, r.motivo);
+      if (extra) motivo += `
+${extra}`;
+    } catch (e) {
+      console.error(`[guardia] no he podido buscar lo ya apuntado: ${String(e?.message ?? e).split("
+")[0]}`);
+    }
+  }
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: r.decision,
-      permissionDecisionReason: `[guardia] ${r.motivo}`,
+      permissionDecisionReason: motivo,
     },
   }));
 };
@@ -568,7 +582,7 @@ if (esPrincipal) {
     console.error(`[guardia] entrada ilegible: ${e.message}`);
   }
   if (!entrada || typeof entrada !== "object") {
-    responder(ask("La guardia no ha podido leer esta orden, así que no sabe si es segura. ¿La dejas pasar?"));
+    await responder(ask("La guardia no ha podido leer esta orden, así que no sabe si es segura. ¿La dejas pasar?"));
     process.exit(0);
   }
   // La raíz del worktree donde se trabaja, no CLAUDE_PROJECT_DIR (que apunta a
@@ -587,6 +601,6 @@ if (esPrincipal) {
     // a propósito: el registro es una ayuda, no un requisito; si falla, el arranque lo dice
   }
   const r = decidir(entrada, contextoReal(raiz, entrada));
-  if (r) responder(r);
+  if (r) await responder(r, entrada);
   process.exit(0);
 }

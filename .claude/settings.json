@@ -73,6 +73,20 @@
         "hooks": [
           { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/avisos.mjs\"", "timeout": 20 }
         ]
+      },
+      {
+        "matcher": "Bash|PowerShell|Read|Grep|Glob|Agent|Task|Skill",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/buscar-antes.mjs\"", "timeout": 10 }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash|PowerShell|Read|Grep|Glob|Agent|Task|Skill",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/buscar-antes.mjs\"", "timeout": 10 }
+        ]
       }
     ],
     "Stop": [

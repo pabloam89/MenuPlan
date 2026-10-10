@@ -15,14 +15,16 @@
  *   npm run issues -- --nuevo "título" --tipo caso --area ops --cuerpo <f.md>
  *                                           crea un issue, pero antes enseña
  *                                           los parecidos y para si los hay
- *                                           (--crear-igual para seguir); las
+ *                                           (--crear-igual "<motivo>" para seguir); las
  *                                           decisiones se asignan a Pablo. La
  *                                           guardia niega `gh issue create`
  *   npm run issues -- --ordenar             etiquetas y padre que se deducen
  *                                           de lo rellenado en un formulario
  *   npm run issues -- --marcas-huerfanas    lista (sin borrar) las marcas «lo lleva»
  *                                           de ramas que ya no existen
- *   npm run issues -- --arranque            las líneas cortas del arranque
+ *   npm run issues -- --indexar             escribe el índice local para `npm run buscar` y el aviso
+ *                                           automático (una consulta de issues, una de PR)
+ *   npm run issues -- --arranque            las líneas cortas del arranque (y de paso el índice)
  *
  * Cada encargo enseña quién lo lleva (rama, carpeta y antigüedad del último
  * commit; «posiblemente parada» pasadas 4 h) y, al final, las ramas sin número
@@ -36,12 +38,16 @@
  * scripts/lib/issues.mjs; el procedimiento, en la skill `issues`.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import {
   CONSULTA, CONSULTA_PR, GRUPOS, PABLO, avisoDeArranque, etiquetas, etiquetasSobrantes,
   debeReabrir, etiquetasQueFaltan, fondoDeFormulario, leerIssue, medirCasos, parecidos, porGrupo, resumen,
 } from "./lib/issues.mjs";
+import {
+  CONSULTA_PR_INDICE, construirIndice, contarParecidosIgnorados, escribirIndice, leerIndice, lineaParecidosIgnorados, motivoCrearIgual, rutaIndice,
+} from "./lib/buscarAntes.mjs";
 import { analizarCasos } from "../.claude/hooks/casos.mjs";
 import { cruce, leerInventario, marcasHuerfanas, leerMarcas, lineaParecida, lineasDeLleva, parecidosEnGit, sinNumero, textoDeRama } from "./lib/lleva.mjs";
 
@@ -61,6 +67,27 @@ function todos() {
     cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
   } while (cursor);
   return out;
+}
+
+/**
+ * Escribe el índice local para `npm run buscar` y el aviso automático (#384) con
+ * los issues ya leídos y los PR recientes (una consulta más). Si los PR no
+ * llegan se guardan los del índice anterior, y se dice. Nunca rompe a quien
+ * lo llama: devuelve la línea que contar.
+ */
+function indexar(issues) {
+  let prs = null;
+  let aviso = "";
+  try {
+    prs = JSON.parse(gh("api", "graphql", "-f", `query=${CONSULTA_PR_INDICE}`)).data.repository.pullRequests.nodes;
+  } catch (e) {
+    aviso = ` (los PR no se han podido leer, ${motivo(e)}: quedan los del índice anterior)`;
+  }
+  const viejo = leerIndice().indice;
+  const indice = construirIndice(issues, prs ?? [], new Date());
+  if (prs === null && viejo) indice.fichas.push(...viejo.fichas.filter((f) => f.clase === "pr"));
+  escribirIndice(indice);
+  return `Índice escrito en ${rutaIndice()}: ${issues.length} issues y ${indice.fichas.length - issues.length} PR${aviso}.`;
 }
 
 /** Cuelga `hijo` de `fondo` y, si el caso prueba que su arreglo no aguantó, reabre el fondo. */
@@ -143,7 +170,7 @@ if (args.includes("--etiquetas")) {
   const area = valor("--area");
   const cuerpo = valor("--cuerpo");
   const uso = 'Uso: npm run issues -- --nuevo "título" --tipo caso|fondo|encargo|decision --area ops --cuerpo <fichero.md>\n'
-    + "       [--analisis abierto] [--causa entorno] [--padre <fondo>] [--asignar <login>] [--crear-igual]";
+    + '       [--analisis abierto] [--causa entorno] [--padre <fondo>] [--asignar <login>] [--crear-igual "<motivo>"]';
   const fallo = (m) => {
     console.error(`${m}\n${uso}`);
     process.exit(1);
@@ -155,6 +182,9 @@ if (args.includes("--etiquetas")) {
   const extra = ["analisis", "causa"].map((g) => [g, valor(`--${g}`)]).filter(([, v]) => v);
   for (const [g, v] of extra) if (!GRUPOS[g].valores[v]) fallo(`--${g} tiene que ser uno de: ${Object.keys(GRUPOS[g].valores).join(", ")}.`);
 
+  // --crear-igual ya no es un atajo mudo (#384): pide su motivo y queda escrito en el issue.
+  const igual = motivoCrearIgual(args);
+  if (igual.error) fallo(igual.error);
   const issues = todos();
   // El padre se valida antes de crear: si no, el issue queda creado y suelto.
   const padre = Number(String(valor("--padre") ?? "").replace("#", ""));
@@ -167,7 +197,7 @@ if (args.includes("--etiquetas")) {
   const hay = parecidos(issues, { titulo, cuerpo: texto });
   // También lo que ya se está haciendo sin issue: carpetas y ramas de GitHub con palabras del título (#271).
   const enGit = parecidosEnGit(ramasVivas(), titulo);
-  if ((hay.length || enGit.length) && !args.includes("--crear-igual")) {
+  if ((hay.length || enGit.length) && !igual.dado) {
     console.log("Antes de crear: estos se parecen.\n");
     for (const p of hay) console.log(`  #${p.number}  ${p.state === "OPEN" ? "abierto" : "cerrado"}  ${p.title}`);
     if (enGit.length) {
@@ -176,12 +206,18 @@ if (args.includes("--etiquetas")) {
     }
     console.log("\nSi es uno de estos, no abras otro: añade lo tuyo con `gh issue comment <n> --body-file <fichero>`"
       + " (si está cerrado y es un caso que vuelve, ábrelo como caso y cuélgalo con --padre: se reabre el fondo).\n"
-      + "Si no es ninguno, repite con --crear-igual.");
+      + 'Si no es ninguno, repite con --crear-igual "<por qué no lo son>": el motivo queda escrito en el issue y se cuenta.');
     process.exit(2);
   }
   const prefijo = { fondo: "fondo", caso: "caso", encargo: "encargo", decision: "decisión" }[tipo];
   const etiq = [`tipo:${tipo}`, `area:${area}`, ...extra.map(([g, v]) => `${g}:${v}`)];
-  const crear = ["issue", "create", "--title", titulo.startsWith("[") ? titulo : `[${prefijo}] ${titulo}`, "--label", etiq.join(","), "--body-file", cuerpo];
+  // Con parecidos ignorados, el cuerpo lleva la línea con quiénes eran y por qué no lo son.
+  let ficheroCuerpo = cuerpo;
+  if (igual.motivo && (hay.length || enGit.length)) {
+    ficheroCuerpo = join(mkdtempSync(join(tmpdir(), "menuplan-issue-")), "cuerpo.md");
+    writeFileSync(ficheroCuerpo, `${texto.replace(/\s+$/, "")}\n\n${lineaParecidosIgnorados(hay.map((p) => p.number), igual.motivo)}\n`);
+  }
+  const crear = ["issue", "create", "--title", titulo.startsWith("[") ? titulo : `[${prefijo}] ${titulo}`, "--label", etiq.join(","), "--body-file", ficheroCuerpo];
   // Las decisiones se asignan a Pablo: así le llegan por correo y en la app de GitHub.
   const asignar = valor("--asignar") ?? (tipo === "decision" ? PABLO : null);
   if (asignar) crear.push("--assignee", asignar);
@@ -223,8 +259,23 @@ if (args.includes("--etiquetas")) {
   const huerfanas = marcasHuerfanas(todos(), ramasVivas());
   for (const m of huerfanas) console.log(`  #${m.issue}  ${m.rama} (${m.carpeta}), marca de hace ${m.dias} días y sin rama`);
   console.log(huerfanas.length ? `${huerfanas.length} marcas huérfanas: son comentarios «Lo lleva» de issues; no se ha borrado nada.` : "Ninguna marca huérfana.");
+} else if (args.includes("--indexar")) {
+  // El índice para `npm run buscar` y el aviso automático (#384): una consulta paginada de issues y una de PR.
+  try {
+    console.log(indexar(todos()));
+  } catch (e) {
+    const v = leerIndice();
+    console.error(`No he podido leer GitHub (${motivo(e)}). ${v.indice ? `Queda el índice anterior, de hace ${Math.round(v.horas)} h.` : "Y no hay índice anterior."}`);
+    process.exit(1);
+  }
 } else if (args.includes("--arranque")) {
   const issues = todos();
+  // De paso, el índice con lo ya leído: sin llamadas de más para los issues.
+  try {
+    indexar(issues);
+  } catch (e) {
+    console.error(`índice: no he podido escribirlo (${motivo(e)})`);
+  }
   for (const l of avisoDeArranque(issues)) console.log(l);
   for (const l of lineasDeLleva(issues, ramasVivas())) console.log(l);
 } else {
@@ -233,7 +284,9 @@ if (args.includes("--etiquetas")) {
   const abiertos = issues.filter((i) => i.state === "OPEN");
   const deTipo = (t) => abiertos.filter((i) => porGrupo(i.labels.map((l) => l.name)).tipo.has(t));
 
-  console.log(`Abiertos: ${Object.entries(r.porTipo).map(([t, k]) => `${k} ${t}`).join(", ") || "ninguno clasificado"}\n`);
+  console.log(`Abiertos: ${Object.entries(r.porTipo).map(([t, k]) => `${k} ${t}`).join(", ") || "ninguno clasificado"}`);
+  // Los creados con `--crear-igual "<motivo>"` (#384): cada uno lleva su línea «Parecidos ignorados».
+  console.log(`Creados saltándose parecidos (--crear-igual): ${contarParecidosIgnorados(issues)} de ${issues.length}.\n`);
 
   // Quién lleva qué: el cruce encargo → rama/carpeta → último commit (scripts/lib/lleva.mjs).
   const ramas = ramasVivas();
