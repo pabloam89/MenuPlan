@@ -89,7 +89,7 @@ function paso1(fx) {
     return { estado: MAL, texto: `1Password no contesta (${primeraLinea(r.stderr)}). Abre la app de 1Password, desbloquéala y enciende Ajustes → Desarrollador → «Integrar con 1Password CLI». Luego repite este comando.` };
   }
   let nombres;
-  try { nombres = JSON.parse(r.stdout).map((b) => b.name); } catch { return { estado: MAL, texto: "1Password contestó algo que no entiendo al listar las bóvedas." }; }
+  try { nombres = JSON.parse(r.stdout).map((b) => b.name); } catch { /* a propósito: no es un fallo callado, el paso devuelve MAL y el resumen se lo cuenta a Pablo */ return { estado: MAL, texto: "1Password contestó algo que no entiendo al listar las bóvedas." }; }
   if (!nombres.includes(BOVEDA_SESIONES)) {
     return { estado: MAL, texto: `no existe la bóveda «${BOVEDA_SESIONES}». Créala en la app de 1Password (Nueva bóveda, con guion) y repite este comando.` };
   }
@@ -115,7 +115,7 @@ function llaveroYaEsDeSesiones(fx) {
   try {
     const nombres = JSON.parse(v.stdout).map((b) => b.name);
     return nombres.length === 1 && nombres[0] === BOVEDA_SESIONES;
-  } catch { return false; }
+  } catch { /* a propósito: si no se entiende la respuesta, "no es de sesiones" es el lado seguro: se vuelve a crear y se avisa */ return false; }
 }
 
 /** Paso 3: service account nueva → llavero, sin que el token se vea. */
