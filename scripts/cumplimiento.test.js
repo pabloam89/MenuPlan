@@ -210,7 +210,13 @@ describe("el script", () => {
     expect(r.stdout.match(/^indicador: /gm)).toHaveLength(8);
     expect(r.stdout).toMatch(/indicador: fondos_sin_diagnostico valor: 1 umbral: 0 estado: dispara en: #900/);
     expect(r.stdout).toMatch(/^glosario excepciones: \d+ por_bajar: \d+ candidatos_palabras: \d+ candidatos_pares: \d+ juzgados: \d+/m);
-    expect(readFileSync(join(dir, "inf.md"), "utf8")).toMatch(/### Glosario/);
+    const md = readFileSync(join(dir, "inf.md"), "utf8");
+    expect(md).toMatch(/### Glosario/);
+    // Las fichas de huecos (#457): una línea contable por skill y la cifra del conjunto.
+    expect(r.stdout.match(/^fichas skill: \S+ criterios: \d+ vigilados: \d+ de_juicio: \d+ /gm)?.length).toBeGreaterThanOrEqual(14);
+    expect(md).toMatch(/### Fichas de huecos de las skills/);
+    expect(md).toMatch(/^Fichas: \d+ skills, \d+ criterios aplicados: \d+ vigilados por un control y \d+ de juicio/m);
+    expect(md).toMatch(/^ {2}skill: \S+ criterio: [\w-]+ estado: no_cumple nota: /m);
   }, TIEMPO);
 
   it("una opción sin valor es entrada mala (2)", () => {

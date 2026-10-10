@@ -1,0 +1,97 @@
+{
+  "skill": "causa-raiz",
+  "juicios": {
+    "descripcion-palabras-de-quien-pide": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/causa-raiz/SKILL.md",
+        "ops/skills-prueba/causa-raiz.json"
+      ],
+      "fecha": "2026-10-10",
+      "quien": "gobierno"
+    },
+    "frontera-casi-fallos": {
+      "estado": "cumple",
+      "evidencia": [
+        "caso:causa-raiz/frontera-partir-encargos",
+        "caso:causa-raiz/frontera-registrar-caso"
+      ],
+      "fecha": "2026-10-10",
+      "quien": "gobierno"
+    },
+    "disparador-al-principio": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/causa-raiz/SKILL.md",
+        ".claude/skills.test.js"
+      ],
+      "fecha": "2026-10-10",
+      "quien": "gobierno"
+    },
+    "solo-lo-que-el-modelo-no-sabe": {
+      "estado": "juicio",
+      "nota": "sin evaluar: pide leer párrafo a párrafo y compararlo con lo que hace el modelo sin la skill (A/B), que no existe"
+    },
+    "libertad-ajustada": {
+      "estado": "juicio",
+      "nota": "sin evaluar"
+    },
+    "camino-por-defecto": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/causa-raiz/SKILL.md#Método"
+      ],
+      "fecha": "2026-10-10",
+      "quien": "gobierno"
+    },
+    "pasos-con-salida-observable": {
+      "estado": "juicio",
+      "nota": "sin evaluar paso a paso: solo algunos pasos del «Método» dicen qué sale; falta mirar si los demás se pueden comprobar"
+    },
+    "vocabulario-unico": {
+      "estado": "juicio",
+      "nota": "sin evaluar"
+    },
+    "ejemplos-canonicos": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/causa-raiz/SKILL.md#Ejemplo resuelto"
+      ],
+      "fecha": "2026-10-10",
+      "quien": "gobierno"
+    },
+    "casos-medidos-con-y-sin-skill": {
+      "estado": "no_cumple",
+      "nota": "no hay cifra sin la skill: el nivel 2 solo mide con ella puesta",
+      "evidencia": [
+        ".claude/skills/forja-de-skills/SKILL.md#Cómo se prueba",
+        "ops/skills-prueba/causa-raiz.json"
+      ],
+      "fecha": "2026-10-10",
+      "quien": "gobierno"
+    },
+    "skill-contrastada-con-fallo-real": {
+      "estado": "no_cumple",
+      "nota": "se escribió sin ver antes qué fallaba la sesión sin ella: su «Lo que falló» está vacío y forja-de-skills la pone de ejemplo",
+      "evidencia": [
+        ".claude/skills/causa-raiz/SKILL.md#Lo que falló y por qué",
+        ".claude/skills/forja-de-skills/SKILL.md#Lo que falló y por qué"
+      ],
+      "fecha": "2026-10-10",
+      "quien": "gobierno"
+    },
+    "forma-adecuada-al-contenido": {
+      "estado": "juicio",
+      "nota": "sin evaluar: ninguna celda pasa de 220 caracteres, pero falta mirar negritas y muros de texto"
+    },
+    "sin-duda-con-vecina": {
+      "estado": "no_cumple",
+      "nota": "le cayó ficha-sin-diagnostico, de issues (pasadas del nivel 2 del 9 y 10 oct, desactualizadas (SKILL.md cambió): relanzar npm run skills-prueba para confirmarlo)",
+      "evidencia": [
+        "ops/skills-prueba/issues.json"
+      ],
+      "fecha": "2026-10-10",
+      "quien": "gobierno"
+    }
+  }
+}

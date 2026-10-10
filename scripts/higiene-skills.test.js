@@ -213,9 +213,10 @@ describe("los avisos que no caben en la skill mala", () => {
     expect(codigos(d)).not.toContain("tamano-cerca");
   });
 
-  it("comprobado: caducada es falta; a 30 días o menos de caducar, aviso", () => {
-    const vieja = higieneDeSkill(oficio({ comprobado: "2026-06-01" }), ctxDe()).find((x) => x.codigo === "comprobado");
-    expect(vieja?.gravedad).toBe("falta");
+  it("caducada es falta con su propio código (el del criterio caducada, #457); a 30 días o menos de caducar, aviso", () => {
+    const vieja = higieneDeSkill(oficio({ comprobado: "2026-06-01" }), ctxDe());
+    expect(vieja.find((x) => x.codigo === "caducada")?.gravedad).toBe("falta");
+    expect(vieja.map((x) => x.codigo)).not.toContain("comprobado");
     const pronto = higieneDeSkill(oficio({ comprobado: "2026-07-20" }), ctxDe()).find((x) => x.codigo === "caduca-pronto");
     expect(pronto?.gravedad).toBe("aviso");
     expect(pronto?.detalle).toMatch(/caduca en 8 días/);

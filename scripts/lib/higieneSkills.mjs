@@ -46,6 +46,7 @@ export const ARREGLOS = {
   tipo: "responde en el frontmatter (true o false) las preguntas de preguntas_tipo de ops/forja.json y pon en metadata.tipo el tipo que dan, uno de tipos_skill; la pieza meta (nivel 0) no lleva ni tipo ni respuestas",
   dueno: "pon un agente de .claude/agents/ que la cargue en su skills:",
   comprobado: "vuelve a comprobarla y pon la fecha de hoy con su línea «Comprobado el …: qué se comprobó»",
+  caducada: "pasó el plazo: repásala con la realidad y pon la fecha de hoy con su línea «Comprobado el …: qué se comprobó»",
   secciones: "deja las secciones del molde de su tipo (.claude/plantillas-skill/<tipo>.md), en orden y con contenido; la pieza meta, las de nivel_0 en ops/forja.json",
   formato: "ajusta la entrada al formato de la plantilla (fallo con fecha, causa y arreglo; registro fechado; última línea de comprobación)",
   tamano: "mueve el detalle a referencias/ y cítalo desde SKILL.md",
@@ -183,7 +184,9 @@ export function higieneDeSkill(skill, ctx) {
   for (const x of faltasDeSolape(ctx.catalogo ?? []).filter((y) => y.skills.includes(skill.nombre))) f.push(defecto("solape", "falta", x.detalle));
 
   const cad = caducidad(skill.texto, ctx.hoy);
-  if (cad.estado === "caducada" || cad.estado === "sin_fecha") f.push(defecto("comprobado", "falta", `comprobada el ${cad.comprobado ?? "nunca"}${cad.dias == null ? "" : `, hace ${cad.dias} días (plazo ${PLAZO_COMPROBADO_DIAS})`}`));
+  // Caducada es su propio criterio (`caducada` de ops/forja.json, #457): no se mezcla con «comprobado», que es la forma de la fecha.
+  if (cad.estado === "caducada") f.push(defecto("caducada", "falta", `comprobada el ${cad.comprobado}, hace ${cad.dias} días (plazo ${PLAZO_COMPROBADO_DIAS})`));
+  else if (cad.estado === "sin_fecha") f.push(defecto("comprobado", "falta", `comprobada el ${cad.comprobado ?? "nunca"}`));
   else if (cad.dias > PLAZO_COMPROBADO_DIAS - AVISO_CADUCA_DIAS) f.push(defecto("caduca-pronto", "aviso", `comprobada el ${cad.comprobado}: caduca en ${PLAZO_COMPROBADO_DIAS - cad.dias} días (aviso a los ${AVISO_CADUCA_DIAS}; el CI avisa a los ${AVISO_ANTES_DIAS})`));
 
   f.push(...referenciasMuertas(skill, cuerpo, c));
