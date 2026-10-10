@@ -38,6 +38,8 @@ import { ACTORES, ALCANCES_FALLO, DIAGNOSTICAN, ESTADOS_MEDIDA, PASOS } from "./
 import { leerForja } from "./forja.mjs";
 import { CLASES, ESTADOS_TERMINO, plano } from "./glosario.mjs";
 import { GRUPOS, TIPOS_ACCION } from "./issues.mjs";
+import { CAUSAS_EXCEPCION, ROLES_CAMPO, TIPOS_LECTOR, UNIDADES } from "./metricas.mjs";
+import { VEREDICTOS_RUIDO } from "./ruido.mjs";
 
 export const RUTA_VOCABULARIOS = "ops/vocabularios-vida.json";
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -58,6 +60,12 @@ export const VOCABULARIOS = {
   // Los tipos de skill: la única lista es tipos_skill de ops/forja.json (#495), que lee forja.mjs; su definición, «que».
   "forja.tipo_skill": { fichero: "scripts/lib/forja.mjs", textos: () => Object.fromEntries(leerForja(RAIZ).tipos_skill.map((x) => [x.id, x.que])) },
   "glosario.estado": { fichero: "scripts/lib/glosario.mjs", textos: conTexto(ESTADOS_TERMINO) },
+  // El registro de métricas (#480): sus valores van a ops/metricas.json y a la línea `ruido`.
+  "metricas.unidad": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(UNIDADES) },
+  "metricas.tipo_lector": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(TIPOS_LECTOR) },
+  "metricas.rol_campo": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(ROLES_CAMPO) },
+  "metricas.causa_excepcion": { fichero: "scripts/lib/metricas.mjs", textos: conTexto(CAUSAS_EXCEPCION) },
+  "ruido.veredicto": { fichero: "scripts/lib/ruido.mjs", textos: conTexto(VEREDICTOS_RUIDO) },
 };
 
 /** Campos de un retiro. `motivo` solo hace falta si no hay a dónde pasar (pasa_a: null). */
