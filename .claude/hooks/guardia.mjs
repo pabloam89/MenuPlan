@@ -587,6 +587,21 @@ if (esPrincipal) {
     // a propósito: el registro es una ayuda, no un requisito; si falla, el arranque lo dice
   }
   const r = decidir(entrada, contextoReal(raiz, entrada));
-  if (r) responder(r);
+  if (r) {
+    // El registro de eventos (#340) cuenta cada bloqueo y cada permiso pedido. Import dinámico
+    // y dentro de un try: si el registro no carga o falla, la decisión sale igual.
+    try {
+      const { familiaDeGuardia, registrarEvento } = await import("./eventos.mjs");
+      registrarEvento({
+        evento: r.decision === "deny" ? "bloqueo_guardia" : "permiso_pedido",
+        nombre: familiaDeGuardia(r.motivo),
+        sesion: entrada.session_id,
+        cwd: entrada.cwd || raiz,
+      });
+    } catch {
+      // a propósito: el registro es una ayuda; un fallo suyo no puede cambiar lo que decide la guardia
+    }
+    responder(r);
+  }
   process.exit(0);
 }
