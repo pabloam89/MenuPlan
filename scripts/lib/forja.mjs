@@ -20,6 +20,8 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { FUERZAS, LIMITES_REGLA, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
+
 export const RUTA_FORJA = "ops/forja.json";
 export const RUTA_CAPAS = "ops/forja-capas.json";
 export const RUTA_MD = "docs/ops/FORJA.md";
@@ -57,7 +59,17 @@ export const ESTADOS_CON_NOTA = ["no_cumple", "juicio"];
 /** El valor de `control` de un criterio de la capa subjetiva. */
 export const JUICIO = "juicio";
 
-export const CAMPOS = ["id", "capa", "aplica_a", "texto", "fuente", "control", "codigo"];
+/**
+ * Los campos de un criterio. Se escribe por campos y la frase se genera (`fraseDeRegla`, #487):
+ * ya no hay `texto`. Los obligatorios son estos; los opcionales, los de abajo.
+ */
+export const CAMPOS = ["id", "capa", "aplica_a", "nombre", "sujeto", "fuerza", "exigencia", "fuente", "control", "codigo"];
+/** `condicion` y `nota` son opcionales en cualquier capa. */
+export const CAMPOS_REGLA_OPCIONALES = ["condicion", "nota"];
+/** La rúbrica de la capa subjetiva: lo que antes iba como «Cumple si …» y «No cumple si …» dentro del texto. */
+export const CAMPOS_RUBRICA = ["cumple", "no_cumple"];
+/** Los vocabularios que pide `campos_ficha.criterio` (enums): el sujeto sale de `sujetos` y la fuerza de `FUERZAS`. */
+export const vocabulariosDeCriterio = (datos) => ({ sujeto: Object.keys(datos?.sujetos ?? {}), fuerza: Object.keys(FUERZAS) });
 /**
  * Solo en la capa subjetiva: `casos_calibracion` (obligatorio, [{ texto, esperado }]
  * con la respuesta conocida), `medidas` ({ coincidencia, repeticiones } del juez
@@ -94,11 +106,23 @@ export function problemasDeForja(datos, existe) {
   const umbral = datos?.promocion ?? {};
   const lista = Array.isArray(datos?.criterios) ? datos.criterios : [];
   if (!lista.length) malos.push("el catálogo no tiene criterios");
+  malos.push(...problemasDeSujetos(datos?.sujetos, Object.keys(ARTEFACTOS)));
+  const usados = new Set(lista.map((c) => c?.sujeto));
+  for (const s of Object.keys(datos?.sujetos ?? {})) if (!usados.has(s)) malos.push(`sujeto «${s}»: ningún criterio lo usa; un vocabulario no se inventa de más`);
+  const nombres = new Map();
+  for (const c of lista) {
+    if (typeof c?.nombre !== "string") continue;
+    if (nombres.has(c.nombre)) malos.push(`${c?.id}: el nombre «${c.nombre}» ya es de ${nombres.get(c.nombre)}`);
+    else nombres.set(c.nombre, c?.id);
+  }
   const ids = new Set();
   const codigos = new Map();
   for (const c of lista) {
     const d = c?.id ?? "(sin id)";
-    for (const k of Object.keys(c ?? {})) if (!CAMPOS.includes(k) && !CAMPOS_OPCIONALES.includes(k) && !CAMPOS_PENDIENTE.concat("tipos").includes(k)) malos.push(`${d}: campo «${k}» no admitido`);
+    for (const k of Object.keys(c ?? {})) {
+      if (k === "texto") continue; // lo cuenta problemasDeRegla con su porqué
+      if (!CAMPOS.includes(k) && !CAMPOS_OPCIONALES.includes(k) && !CAMPOS_REGLA_OPCIONALES.includes(k) && !CAMPOS_RUBRICA.includes(k) && !CAMPOS_PENDIENTE.concat("tipos").includes(k)) malos.push(`${d}: campo «${k}» no admitido`);
+    }
     for (const k of CAMPOS) if (!(k in (c ?? {}))) malos.push(`${d}: falta el campo «${k}»`);
     if (typeof c?.id !== "string" || !ID.test(c.id)) malos.push(`${d}: el id va en minúsculas con guiones`);
     else if (ids.has(c.id)) malos.push(`${d}: id repetido`);
@@ -111,11 +135,10 @@ export function problemasDeForja(datos, existe) {
       if (new Set(ap).size !== ap.length) malos.push(`${d}: aplica_a repite un artefacto`);
     }
     problemasDeTipos(c, d, datos, malos);
-    if (!esTexto(c?.texto, 30)) malos.push(`${d}: «texto» dice qué pide, en una frase de treinta caracteres o más`);
-    else if (/\n/.test(c.texto)) malos.push(`${d}: «texto» va en una sola línea`);
-    if (c?.capa === "subjetiva" && esTexto(c?.texto, 1) && !(/Cumple si/.test(c.texto) && /No cumple si/.test(c.texto))) {
-      malos.push(`${d}: un criterio subjetivo lleva su rúbrica: «Cumple si …» y «No cumple si …»`);
-    }
+    malos.push(...problemasDeRegla(c, d, datos?.sujetos));
+    const sujeto = datos?.sujetos?.[c?.sujeto];
+    if (sujeto && Array.isArray(ap)) for (const a of ap) if (!sujeto.aplica_a.includes(a)) malos.push(`${d}: el sujeto «${c.sujeto}» no se aplica a «${a}» (solo a ${sujeto.aplica_a.join(", ")})`);
+    problemasDeRubrica(c, d, malos);
     problemasDeCalibracion(c, d, umbral, malos);
     const f = typeof c?.fuente === "string" ? c.fuente : "";
     if (FUENTE_F.test(f)) { /* fuente externa con url */ } else if (FUENTE_I.test(f)) {
@@ -138,6 +161,17 @@ export function problemasDeForja(datos, existe) {
     }
   }
   return malos;
+}
+
+/** La rúbrica (`cumple` y `no_cumple`): solo la capa subjetiva la lleva, y la lleva entera. */
+function problemasDeRubrica(c, d, malos) {
+  if (c?.capa !== "subjetiva") {
+    for (const k of CAMPOS_RUBRICA) if (k in (c ?? {})) malos.push(`${d}: «${k}» es solo de la capa subjetiva`);
+    return;
+  }
+  for (const k of CAMPOS_RUBRICA) {
+    if (!esTexto(c?.[k], LIMITES_REGLA.rubrica.min) || /\n/.test(c[k]) || /\.\s*$/.test(c[k])) malos.push(`${d}: un criterio subjetivo lleva «${k}»: una línea de ${LIMITES_REGLA.rubrica.min} caracteres o más, sin punto final`);
+  }
 }
 
 /** `pendiente_de` y `control_pendiente`: van juntos, solo con control «juicio», y caducan cuando el fichero existe. */
@@ -667,6 +701,37 @@ function mdTipos(datos) {
   ];
 }
 
+/** Cómo se escribe un criterio: campos, fuerzas y sujetos (el esquema es de scripts/lib/regla.mjs). */
+function mdRegla(datos) {
+  const L = LIMITES_REGLA;
+  const usos = Object.fromEntries(Object.keys(datos.sujetos).map((s) => [s, datos.criterios.filter((c) => c.sujeto === s).length]));
+  return [
+    "## Cómo se escribe un criterio",
+    "",
+    `Cada criterio se escribe por campos y su frase se genera; no hay prosa libre. La forma sigue EARS (Mavin et al., Rolls-Royce, 2009) y las palabras de RFC 2119. El esquema vive en \`scripts/lib/regla.mjs\`, para que lo reutilicen las normas y las obligaciones del flujo (#488). La frase es: **Nombre.** [Condición,] sujeto DEBE | NO DEBE exigencia. Se comprueba con: control. Con \`conviene\`: [Condición, para] sujeto, CONVIENE exigencia.`,
+    "",
+    "| Campo | Qué es |",
+    "|---|---|",
+    `| nombre | Sustantivo corto de ${L.nombre.palabras_min} a ${L.nombre.palabras_max} palabras, con mayúscula inicial y sin punto; no se repite |`,
+    "| sujeto | La parte de un artefacto que se juzga, de un vocabulario cerrado (tabla de abajo) |",
+    "| fuerza | `debe`, `no_debe` o `conviene` (tabla de abajo) |",
+    "| condicion | Opcional; empieza por «cuando» o «si» |",
+    `| exigencia | El único hueco de texto: una frase verbal en infinitivo, sin sujeto ni punto final, de ${L.exigencia.max} caracteres como mucho |`,
+    "| cumple, no_cumple | Solo en los subjetivos: la rúbrica que puntúa un LLM |",
+    `| nota | Opcional: un matiz que la exigencia no admite (una heurística, una cifra); de ${L.nota.max} caracteres como mucho |`,
+    "| control | Un fichero que lo vigila, o `juicio` |",
+    "",
+    "| Fuerza | Palabra | Qué quiere decir |",
+    "|---|---|---|",
+    ...Object.entries(FUERZAS).map(([f, x]) => `| ${f} | ${x.palabra} | ${celda(x.que)} |`),
+    "",
+    "| Sujeto | En la frase | Se aplica a | Criterios |",
+    "|---|---|---|---|",
+    ...Object.entries(datos.sujetos).map(([s, x]) => `| ${s} | ${x.legible} | ${x.aplica_a.join(", ")} | ${usos[s]} |`),
+    "",
+  ];
+}
+
 /** Discreto y texto: los campos de cada ficha y sus huecos. */
 function mdCampos(datos) {
   const k = cifrasDeCampos(datos);
@@ -733,6 +798,7 @@ export function generarMd(datos) {
     "",
     "Un criterio que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.",
     "",
+    ...mdRegla(datos),
     ...mdTipos(datos),
     ...mdCampos(datos),
     ...mdForma(datos),
@@ -763,9 +829,11 @@ export function generarMd(datos) {
       L.push("", `### ${capa} · ${a} (${de.length})`, "");
       if (!de.length) { L.push("Ninguno todavía."); continue; }
       for (const c of de) {
-        L.push(`- \`${c.id}\` — ${c.texto}`);
+        L.push(`- \`${c.id}\` — ${fraseDeRegla(c, datos.sujetos)}`);
+        if (c.cumple) L.push(`  - Cumple si ${c.cumple}. No cumple si ${c.no_cumple}.`);
+        if (c.nota) L.push(`  - Nota: ${c.nota}.`);
         if (c.casos_calibracion) L.push(`  - Calibración: ${c.casos_calibracion.length} casos con respuesta conocida (${c.casos_calibracion.map((k) => k.esperado).join(", ")})${c.listo_para_subir ? ". Listo para subir." : "."}`);
-        L.push(`  - Fuente: ${c.fuente}. Control: ${c.control === JUICIO ? "juicio" : `\`${c.control}\``}${c.pendiente_de ? ` (provisional: lo da ${c.pendiente_de} con \`${c.control_pendiente}\`)` : ""}.${c.codigo ? ` Código: \`${c.codigo}\`.` : ""}`);
+        L.push(`  - Fuente: ${c.fuente}.${c.pendiente_de ? ` Control provisional: lo da ${c.pendiente_de} con \`${c.control_pendiente}\`.` : ""}${c.codigo ? ` Código: \`${c.codigo}\`.` : ""}`);
       }
     }
   }
