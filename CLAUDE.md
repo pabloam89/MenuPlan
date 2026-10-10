@@ -115,15 +115,16 @@ forma, para que decidir le cueste poco (skill `estilo-de-respuesta`).
    te lo cuento».
 3. Al final, una línea con lo que le toca. Si es una decisión, **tres opciones**
    en llano (A, B, C), la recomendada primero y qué pasa con cada una, con su
-   coste (dinero, tiempo o riesgo) y «reversible» o «no se puede deshacer» en la
+   «Coste:» (dinero, tiempo o riesgo) y «reversible» o «no se puede deshacer» en la
    misma línea.
 
-Lo que afirmes y él no pueda comprobar lleva su certeza: «Comprobado» (lo he
-visto yo, y qué), «Creo» (inferencia, y en qué me baso) o «No sé» (y cómo lo
-averiguo). Un resultado o un estado solo se da como hecho si se comprobó en ese
-momento. Un issue se nombra con su nombre y, si hace falta, el número entre
-paréntesis. Al volver tras un rato o retomar un tema, se abre con «Dónde
-estábamos:» y una línea.
+Si afirmas un estado o un resultado que él no puede comprobar, una línea
+«Certeza:» con «Comprobado» (lo he visto yo, y qué), «Creo» (inferencia, y en qué
+me baso) o «No sé» (y cómo lo averiguo); un estado solo se da como hecho si se
+comprobó en ese momento. Un issue se nombra por su nombre; el número, si hace
+falta, va solo entre paréntesis, detrás del nombre. Al volver tras un rato o
+retomar un tema, la idea raíz en negrita lo recuerda
+(«**Seguimos con X: falta Y.**»).
 
 Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
 Un término técnico se explica la primera vez y después se llama igual. Ficheros,

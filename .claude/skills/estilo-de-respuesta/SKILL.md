@@ -42,25 +42,30 @@ No es para:
    y, si hace falta, una línea. No se rellena con ideas para llegar a cuatro.
 4. **Quita la jerga.** Un término técnico se evita o se explica en una frase
    la primera vez («rama: una copia de trabajo aparte»). Los nombres de
-   ficheros, comandos y números de issue se dejan fuera salvo que él los pida o los tenga que ejecutar.
+   ficheros y comandos se dejan fuera salvo que él los pida o los tenga que ejecutar.
+   Un issue se nombra por su nombre; el número, si hace falta, va solo entre
+   paréntesis, detrás del nombre.
    Los términos del día a día tienen su traducción en «Traducir la jerga».
 5. **Si hace falta algo de él, una última línea** con lo que se necesita. Si
    es una decisión, tres opciones en llano (A, B, C), la recomendada primero y
    qué pasa con cada una, y se cierra con «Respóndeme con la letra.».
-   Cada opción lleva en su misma línea su coste (dinero, tiempo o riesgo) y
-   «reversible» o «no se puede deshacer». Elige la plantilla que toca (abajo,
+   Cada opción lleva en su misma línea su «Coste:» (dinero, tiempo o riesgo) y
+   «reversible» o «no se puede deshacer» (con «Comprobado» o «Creo» si no lo has
+   visto). Elige la plantilla que toca (abajo,
    «Las cinco plantillas»).
 6. **El detalle, fuera del chat.** Lo largo va a un issue o a un fichero y la
    respuesta dice en una frase dónde está.
-7. **Di cuánto te fías.** Lo que afirmas y Pablo no puede comprobar lleva su
-   certeza, con estas tres palabras: «Comprobado» (lo he visto yo, y qué),
-   «Creo» (es una inferencia, y en qué me baso) o «No sé» (y cómo lo averiguo).
-   Un resultado o un estado («está fusionado», «pasa el test») solo se da como
-   hecho si se comprobó en ese momento; si no, es «Creo» o «No sé».
-8. **Ayuda a recordar.** Un issue se nombra con su nombre y, si hace falta, el
-   número entre paréntesis («el vigilante de la voz (#453)»). Al volver tras un
-   rato o al retomar un tema, la respuesta abre con una línea «Dónde estábamos:»
-   y después va la idea raíz.
+7. **Di cuánto te fías, solo si hace falta.** Cuando afirmas un estado o un
+   resultado que Pablo no puede comprobar, una línea «Certeza:» con una de tres
+   palabras: «Comprobado» (lo he visto yo, y qué), «Creo» (inferencia, y en qué
+   me baso) o «No sé» (y cómo lo averiguo). «Está fusionado» o «pasa el test» solo
+   se da como hecho si se comprobó en ese momento. No se añade a un concepto, un
+   comando ni un error ya contado, y no quita sitio a las etiquetas de la
+   plantilla («Ejemplo:») ni a la línea final con lo que necesita de él.
+8. **Ayuda a recordar.** Un issue se nombra por su nombre y su número va solo
+   entre paréntesis, detrás («el vigilante de la voz (#453)»). Al volver tras un
+   rato o retomar un tema, la idea raíz en negrita lo recuerda
+   («**Seguimos con X: falta Y.**»), sin línea aparte.
 9. **Repasa antes de enviar.** Primera línea en negrita, cuatro ideas o menos,
    sin cabeceras ni tablas ni listas de ficheros, y la petición al final.
 
@@ -82,8 +87,9 @@ De cualquier respuesta se puede decir si la cumple:
 - las frases tienen menos de 25 palabras y los párrafos, cinco frases como mucho;
 - sin preámbulo («Claro, voy a…»), sin recapitular al final, sin emojis;
 - negrita solo en la idea raíz y en lo que él debe hacer o decidir;
-- una pregunta corta se contesta con la idea raíz y una línea, y «Dónde estábamos:» (si retoma) va antes de ella;
-- lo que él no puede comprobar lleva «Comprobado», «Creo» o «No sé».
+- una pregunta corta se contesta con la idea raíz y una línea;
+- si retoma un tema, la idea raíz lo recuerda dentro de la negrita («**Seguimos con X: falta Y.**»);
+- lo que él no puede comprobar lleva «Certeza:» con «Comprobado», «Creo» o «No sé».
 
 Se relaja cuando él lo pide («dame el detalle», «hazme una tabla») y en lo que
 él tiene que pegar o ejecutar: un comando para un `!` va en bloque de código,
@@ -180,7 +186,7 @@ Bien (plantilla de decisión):
   en `CLAUDE.md`, y sus casos con comprobaciones que puntúa un corrector en
   `npm run skills-prueba`, porque lo que se puede medir (negrita arriba, cuatro
   ideas, nada de tablas) lo ve un corrector sobre una respuesta y no un hook.
-- **2026-10-10 · se dijo «fusionado» a otra sesión antes de que lo estuviera.**
+- **2026-10-10 · se dijo «fusionado» a otra sesión el 10 oct 2026 antes de que lo estuviera.**
   Causa: se dio por hecho un estado que no se había mirado; la guardia había
   frenado la fusión y nadie lo comprobó. Arreglo: la certeza en tres palabras
   («Comprobado», «Creo», «No sé») y la regla de que un estado solo es un hecho
@@ -188,7 +194,7 @@ Bien (plantilla de decisión):
 
 ## Registro de cambios
 
-- **2026-10-10** · Calibración (pedida por Pablo): la forma es un techo y una pregunta corta se contesta en una línea; certeza explícita («Comprobado», «Creo», «No sé»); nombres en vez de números, «Dónde estábamos:» al retomar y coste y reversibilidad en cada opción; el glosario pasa a `.claude/skills/estilo-de-respuesta/plantillas/plantillas.md` para no pasar de 220 líneas; `.claude/voz.test.js` vigila las tres mejoras en las tres piezas; 3 casos nuevos ; la descripción gana «¿está fusionado?», «¿ha pasado?» y «¿seguro?» y nombra la certeza; el caso `pregunta-corta-si-no` pide «solo el mensaje», porque el modelo contaba cómo lo haría y el corrector lo suspendía por eso, no por la skill. Dos pasadas seguidas: disparo 16/16 y 16/16, comprobaciones 28/39 y 29/39 (0,15 $ y 0,13 $); sigue sin medirse contra el modelo solo.
+- **2026-10-10** · Calibración (pedida por Pablo): la forma es un techo y una pregunta corta se contesta en una línea; certeza explícita en una línea «Certeza:» («Comprobado», «Creo», «No sé»), solo cuando hace falta y sin quitar sitio a las etiquetas de la plantilla; el issue por su nombre con el número solo entre paréntesis; al retomar, la idea raíz en negrita recuerda el tema (sin línea aparte); coste y reversibilidad en cada opción; la description gana «¿está fusionado?», «¿ha pasado?» y «¿seguro?»; el glosario pasa a `.claude/skills/estilo-de-respuesta/plantillas/plantillas.md`; `.claude/voz.test.js` vigila las mejoras en la sección de cada pieza; 3 casos nuevos. Medida (dos pasadas seguidas, 0,15 $ y 0,13 $): los 9 casos de antes, 22/29 y 23/29 (antes de la calibración, 24/29 y 23/29; con la primera versión de la certeza llegaron a 20/29 en las dos pasadas, porque el modelo metía «Certeza:» donde no tocaba y le quitaba sitio a «Ejemplo:» y a la línea final); los 3 nuevos, 10/10 y 8/10. Sigue sin medirse contra el modelo solo.
 - **2026-10-10** · Se funde en esta skill la de la voz con Pablo: tres opciones en las decisiones, cinco plantillas con ejemplo canónico (en `plantillas/`), glosario ampliado, resumen en `.claude/PLANTILLA-AGENTE.md` y `.claude/voz.test.js` que cruza regla, skill y plantilla de agentes; los ejemplos 1 y 3 siguen las plantillas de resultado y decisión, solo el `RESUMEN` y las `DECISIONES PENDIENTES` de un informe de agente siguen la forma, y los casos pasan a 13 (disparo 13/13, comprobaciones 24/29) (#415).
 - **2026-10-10** · Se añaden «Traducir la jerga» y «El comando para pegar»; el caso del comando se reformula (disparo de 8/9 a 9/9, comprobaciones de 13/16 a 14/16) (#415).
 - **2026-10-10** · Primera versión: idea raíz en negrita, cuatro ideas como mucho, petición al final y detalle fuera del chat (#415).
@@ -206,4 +212,4 @@ Bien (plantilla de decisión):
 
 Sin comprobar: las fuentes se citan de memoria y no se han releído al escribir; las cifras de 5 frases y 25 palabras son de la guía GOV.UK, en inglés, y la de cuatro ideas es de Cowan y habla de memoria de trabajo, no de lectura; que la voz viva en `CLAUDE.md` y el detalle en la skill es inferencia (la documentación solo dice que el cuerpo de una skill carga cuando se usa); no hay fuente primaria sobre plantillas fijas para agentes de IA; cuántas respuestas reales cumplen la forma; y que mejore sobre el modelo solo, porque `skills-prueba` mide la skill con ella y no sin ella.
 
-Comprobado el 2026-10-10: tras la calibración, con 16 casos y la descripción retocada, dos pasadas seguidas de `npm run skills-prueba -- estilo-de-respuesta`: disparo 16 de 16 y 16 de 16, comprobaciones 28 de 39 y 29 de 39 (0,15 $ y 0,13 $). En una pasada previa, `decir-cuanto-te-fias` eligió `github`; ya dispara. Las que fallan en las dos: `explicamelo-sencillo`, `resumen-del-dia`, `comando-para-pegar`, `explicar-un-concepto`, `fallo-de-la-prueba`, `que-cambia-este-pr`, `resume-informe-agente` y `decir-cuanto-te-fias` (idea raíz corta); sigue sin medirse contra el modelo solo. Antes de la calibración: la forma con `.claude/skills.test.js` y `.claude/voz.test.js`, y los casos con `npm run skills-prueba -- estilo-de-respuesta` (`ops/skills-prueba/estilo-de-respuesta.json`). Antes de fundir la voz: disparo 9 de 9 y comprobaciones 14 de 16. Con 13 casos (9 propios y 4 de frontera) y el texto final: disparo 13 de 13 y comprobaciones 24 de 29 (0,13 $); en la pasada anterior, con el texto de antes de los últimos retoques, 24 y 23 de 29. Las que fallan cambian entre pasadas (ruido del corrector); las más repetidas son la primera línea del comando para pegar y las del caso del PR. El hash de `SKILL.md` del JSON es el del texto sin esta línea de resultado.
+Comprobado el 2026-10-10: tras la calibración, con 16 casos, dos pasadas seguidas de `npm run skills-prueba -- estilo-de-respuesta` (`ops/skills-prueba/estilo-de-respuesta.json`): disparo 16 de 16 y 16 de 16; los 9 casos de antes, 22/29 y 23/29; los 3 nuevos, 10/10 y 8/10 (0,15 $ y 0,13 $). Antes de la calibración los 9 daban 24/29 y 23/29, y la primera versión de la certeza los bajó a 20/29 en dos pasadas seguidas (no era ruido: ver el registro de cambios). Siguen fallando en las dos pasadas, y no se llaman ruido: `comando-para-pegar` (primera línea en negrita y línea final con lo que necesita), `explicamelo-sencillo` (traducir workflow, deploy key y ruleset), `cuentame-como-va` (no nombrar CI ni lint sin explicarlos) y `resume-informe-agente` (idea raíz en negrita; el modelo describe lo que haría en vez de escribir el resumen). En una pasada anterior `decir-cuanto-te-fias` falló «idea raíz en negrita y corta»; en estas dos pasa. `pregunta-corta-si-no` falló en la segunda pasada (una línea de más). Sigue sin medirse contra el modelo solo.

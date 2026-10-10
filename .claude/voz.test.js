@@ -28,9 +28,7 @@ export function faltasDeMensaje(texto) {
   const f = [];
   const lineas = texto.trim().split("\n").map((l) => l.trim()).filter(Boolean);
   if (!lineas.length) return ["mensaje vacío"];
-  // Al retomar un tema, «Dónde estábamos:» va antes de la idea raíz y no cuenta como idea.
-  const cuerpo = /^Dónde estábamos:/.test(lineas[0]) ? lineas.slice(1) : lineas;
-  if (!cuerpo.length) return ["falta la idea raíz tras «Dónde estábamos:»"];
+  const cuerpo = lineas;
   if (!/^\*\*[^*]+\*\*/.test(cuerpo[0])) f.push("la primera línea no es la idea raíz en negrita");
   if (PREAMBULO.test(cuerpo[0].replace(/\*/g, ""))) f.push("empieza con preámbulo");
   if (EMOJI.test(texto)) f.push("lleva emojis");
@@ -116,11 +114,19 @@ describe("las tres piezas de la voz dicen lo mismo", () => {
   });
 });
 
-describe("las tres mejoras de calibración (10 oct) están en las tres piezas", () => {
+describe("las tres mejoras de calibración (10 oct) están en su sitio en las tres piezas", () => {
+  // Cada pieza lo dice en SU sección, no en cualquier parte del fichero.
+  const seccion = (ruta, titulo) => {
+    const raw = readFileSync(join(RAIZ, ruta), "utf8");
+    const ini = raw.indexOf("## " + titulo);
+    expect(ini, ruta + ": falta la sección " + titulo).toBeGreaterThan(-1);
+    const fin = raw.indexOf("\n## ", ini + 3);
+    return raw.slice(ini, fin === -1 ? undefined : fin).replace(/\s+/g, " ");
+  };
   const piezas = () => [
-    ["CLAUDE.md", leer("CLAUDE.md")],
-    ["PLANTILLA-AGENTE.md", leer(".claude/PLANTILLA-AGENTE.md")],
-    ["SKILL.md", leer(".claude/skills/estilo-de-respuesta/SKILL.md")],
+    ["CLAUDE.md", seccion("CLAUDE.md", "Cómo se le habla a Pablo")],
+    ["PLANTILLA-AGENTE.md", seccion(".claude/PLANTILLA-AGENTE.md", "Cómo se le escribe a Pablo")],
+    ["SKILL.md", seccion(".claude/skills/estilo-de-respuesta/SKILL.md", "Método")],
   ];
   const todas = (re) => piezas().forEach(([n, t]) => expect(t, n).toMatch(re));
 
@@ -129,17 +135,22 @@ describe("las tres mejoras de calibración (10 oct) están en las tres piezas", 
     todas(/idea raíz y, si hace falta, una línea/);
   });
 
-  it("la certeza usa siempre las tres palabras: Comprobado, Creo y No sé", () => {
+  it("la certeza va en una línea «Certeza:» con las tres palabras: Comprobado, Creo y No sé", () => {
+    todas(/«Certeza:»/);
     for (const w of ["«Comprobado»", "«Creo»", "«No sé»"]) todas(new RegExp(w));
   });
 
-  it("un issue se nombra con su nombre y el número entre paréntesis", () => {
-    todas(/con su nombre y, si hace falta, el número entre paréntesis/);
+  it("un issue se nombra por su nombre y el número va solo entre paréntesis, detrás", () => {
+    todas(/issue se nombra por su nombre; el número, si hace falta, va solo entre paréntesis, detrás/);
   });
 
-  it("al retomar un tema se abre con «Dónde estábamos:»", () => todas(/«Dónde estábamos:»/));
+  it("al retomar un tema, la idea raíz en negrita lo recuerda, sin línea aparte", () => {
+    todas(/«\*\*Seguimos con X: falta Y\.\*\*»/);
+    for (const [n, t] of piezas()) expect(t, n).not.toMatch(/Dónde estábamos/);
+  });
 
-  it("cada opción lleva su coste y «reversible» o «no se puede deshacer»", () => {
+  it("cada opción lleva su «Coste:» y «reversible» o «no se puede deshacer»", () => {
+    todas(/«Coste:»/);
     todas(/«reversible»/);
     todas(/«no se puede deshacer»/);
   });
@@ -188,14 +199,20 @@ describe("los ejemplos canónicos cumplen la voz", () => {
     expect(faltasDeMensaje("**Sí, está en staging.**")).toEqual([]);
   });
 
-  it("el ejemplo de certeza usa las tres palabras y el de retomar abre con «Dónde estábamos:»", () => {
+  it("el ejemplo de certeza usa «Certeza:» con las tres palabras, y «Creo» dice en qué se basa", () => {
     const [cert] = bloquesDe(texto, "mensaje-certeza");
-    for (const w of ["Comprobado:", "Creo:", "No sé:"]) expect(cert, w).toContain(w);
+    for (const w of ["Certeza: Comprobado", "Certeza: Creo que", "Certeza: No sé"]) expect(cert, w).toContain(w);
+    expect(cert).toMatch(/Certeza: Creo que [^\n]*, porque /);
     expect(faltasDeMensaje(cert)).toEqual([]);
+    for (const c of bloquesDe(texto, "mensaje-corto")) expect(c, "corto").toMatch(/Certeza: (Comprobado|Creo|No sé)/);
+  });
+
+  it("el ejemplo de retomar recuerda el tema dentro de la idea raíz, nombra el issue y fundamenta el «no se puede deshacer»", () => {
     const [retoma] = bloquesDe(texto, "mensaje-retoma");
-    expect(retoma.trim().split("\n")[0]).toMatch(/^Dónde estábamos:/);
+    expect(retoma.trim().split("\n")[0]).toMatch(/^\*\*Seguimos con [^*]+\*\*$/);
     expect(faltasDeMensaje(retoma)).toEqual([]);
     expect(retoma).toMatch(/el vigilante de la voz \(#453\)/);
+    for (const l of retoma.split("\n").filter((l) => /no se puede deshacer/i.test(l))) expect(l, l).toMatch(/Comprobado|Creo/);
   });
 
   it("cada plantilla usa sus etiquetas", () => {
@@ -239,9 +256,9 @@ describe("el medidor de la voz ve fallar lo que debe", () => {
     expect(f).toMatch(/cuatro ideas/);
   });
 
-  it("«Dónde estábamos:» no cuenta como idea, pero sin idea raíz detrás falla", () => {
-    expect(faltasDeMensaje("Dónde estábamos: el test.\n**Listo.**")).toEqual([]);
-    expect(faltasDeMensaje("Dónde estábamos: el test.\nListo.").join("|")).toMatch(/idea raíz/);
+  it("sin excepción: un recordatorio en línea aparte antes de la idea raíz falla", () => {
+    expect(faltasDeMensaje("**Seguimos con el test: falta una prueba.**")).toEqual([]);
+    expect(faltasDeMensaje("Dónde estábamos: el test.\n**Listo.**").join("|")).toMatch(/idea raíz/);
   });
 
   it("una línea que no nombra las cinco plantillas no vale", () => {

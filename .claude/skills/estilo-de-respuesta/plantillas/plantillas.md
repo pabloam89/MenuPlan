@@ -61,28 +61,28 @@ rellena hasta cuatro ideas.
 
 ```mensaje-corto
 **Sí, ya está en la copia de prueba.**
-Comprobado: lo he visto allí hace un momento.
+Certeza: Comprobado, lo he visto allí hace un momento.
 ```
 
-Cuando afirma algo que él no puede comprobar, cada estado va con su palabra.
+Cuando afirma algo que él no puede comprobar, cada estado va tras «Certeza:» con su palabra.
 
 ```mensaje-certeza
 **La fusión todavía no está hecha.**
-Comprobado: he mirado la rama principal y el cambio no está.
-Creo: la guardia frenó la fusión, porque el aviso salió hace un rato.
-No sé: si las pruebas automáticas han terminado; lo averiguo mirando el PR.
+Certeza: Comprobado, he mirado la rama principal y el cambio no está.
+Certeza: Creo que la guardia frenó la fusión, porque frena las que llevan la rama atrasada.
+Certeza: No sé si las pruebas automáticas han terminado; lo averiguo mirando el PR.
 Siguiente paso: te aviso cuando esté fusionada.
 ```
 
-Al volver tras un rato, «Dónde estábamos:» va primero; cada opción lleva su coste
-y si se puede deshacer, y el issue se nombra con su nombre.
+Al volver tras un rato, la idea raíz en negrita recuerda el tema; cada opción lleva
+su «Coste:» y si se puede deshacer, y el issue se nombra por su nombre con el
+número solo entre paréntesis. Un «no se puede deshacer» lleva «Comprobado» o «Creo».
 
 ```mensaje-retoma
-Dónde estábamos: elegíamos cómo vigilar que se cumple la voz con Pablo.
-**Necesito que decidas: cómo vigilarla.**
+**Seguimos con la vigilancia de la voz: necesito que decidas cómo.**
 A (recomendada): el vigilante de la voz (#453), un test que ya existe. Coste: nada. Reversible.
 B: un revisor automático de pago. Coste: unos 5 € al mes. Reversible.
-C: cambiar la regla a mano en producción. Coste: riesgo alto. No se puede deshacer.
+C: cambiar la regla a mano en producción. Coste: riesgo alto. Creo que no se puede deshacer, porque toca producción.
 Respóndeme con la letra.
 ```
 

@@ -147,13 +147,15 @@ informe (`CASOS`, `CAMBIOS`, `EVIDENCIA`, `HALLAZGOS`…) sigue su formato técn
   a los campos técnicos del informe, salvo que él los pida o los tenga que ejecutar.
 - Plantillas fijas: resultado, decisión, error, concepto y resumen.
 - Una decisión lleva tres opciones en llano (A, B, C), la recomendada primero y
-  qué pasa con cada una, con su coste (dinero, tiempo o riesgo) y «reversible» o
+  qué pasa con cada una, con su «Coste:» (dinero, tiempo o riesgo) y «reversible» o
   «no se puede deshacer» en la misma línea; acaba con «Respóndeme con la letra.».
-- Lo que afirmes y él no pueda comprobar lleva «Comprobado» (lo he visto yo, y
-  qué), «Creo» (inferencia, y en qué me baso) o «No sé» (y cómo lo averiguo). Un
-  resultado o un estado solo se da como hecho si se comprobó en ese momento.
-- Un issue se nombra con su nombre y, si hace falta, el número entre paréntesis.
-  Al volver tras un rato o retomar un tema, se abre con «Dónde estábamos:».
+- Si afirmas un estado o un resultado que él no puede comprobar, una línea
+  «Certeza:» con «Comprobado» (lo he visto yo, y qué), «Creo» (inferencia, y en
+  qué me baso) o «No sé» (y cómo lo averiguo); un estado solo se da como hecho si
+  se comprobó en ese momento.
+- Un issue se nombra por su nombre; el número, si hace falta, va solo entre
+  paréntesis, detrás del nombre. Al volver tras un rato o retomar un tema, la
+  idea raíz en negrita lo recuerda («**Seguimos con X: falta Y.**»).
 
 ## Informe común
 
@@ -174,5 +176,5 @@ HALLAZGOS:
 NO COMPROBADO: lo que no pudo verificar
 SIGUIENTE: qué toca ahora y a qué agente
 DECISIONES PENDIENTES:
-- Necesito que decidas: <pregunta> · A (recomendada), B y C, cada una con lo que pasa si se elige, su coste y «reversible» o «no se puede deshacer» · si no se decide, qué pasa
+- Necesito que decidas: <pregunta> · A (recomendada), B y C, cada una con lo que pasa si se elige, su «Coste:» y «reversible» o «no se puede deshacer» · si no se decide, qué pasa
 ```

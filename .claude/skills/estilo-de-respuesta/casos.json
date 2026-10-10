@@ -118,9 +118,9 @@
       "peticion": "Pablo vuelve tras un rato y escribe: «sigamos». Había que decidir entre vigilar la voz con un test que ya existe (el vigilante de la voz, issue 453, gratis, se puede deshacer) o con un revisor de pago (unos 5 dólares al mes, se puede deshacer) o cambiar la regla a mano (no se puede deshacer porque toca producción). Escríbele.",
       "skill": "estilo-de-respuesta",
       "debe_salir": [
-        "Abre con una línea «Dónde estábamos:» que resume el tema",
+        "La idea raíz en negrita de la primera línea recuerda el tema («Seguimos con …») y a la vez pide la decisión, sin una línea aparte de recordatorio",
         "Llama al issue por su nombre («el vigilante de la voz») y no solo por su número",
-        "Cada opción A, B y C lleva su coste y dice «reversible» o «no se puede deshacer» en la misma línea",
+        "Cada opción A, B y C lleva su «Coste:» y dice «reversible» o «no se puede deshacer» en la misma línea",
         "Termina con «Respóndeme con la letra.»"
       ]
     },
