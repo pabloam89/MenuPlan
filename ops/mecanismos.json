@@ -93,6 +93,17 @@
       "ejemplo": "scripts/lib/evals.mjs"
     },
     {
+      "id": "workflow_evento",
+      "nombre": "Workflow que reacciona a un evento",
+      "escalon": "script",
+      "ejecutor": "script_propio",
+      "alcance": "todos",
+      "veredicto_max": "semidura",
+      "cuando": "Revisar algo venga por donde venga (terminal, web, conexión MCP, otra persona): un workflow que corre en cada evento de un issue o un pase diario, y comenta o etiqueta.",
+      "cuesta": "Informa y no impide: alguien tiene que leer su comentario. Si escribe en el repo o usa secretos, pide el OK de Pablo.",
+      "ejemplo": ".github/workflows/fondos.yml"
+    },
+    {
       "id": "script",
       "nombre": "Script que lo comprueba",
       "escalon": "script",
