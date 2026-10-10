@@ -37,6 +37,7 @@
 
 # Lo que ejecutan los hooks y lo que importa el script de aplicar migraciones
 /scripts/lib/buscarAntes.mjs @pabloam89
+/scripts/lib/cuotaGh.mjs @pabloam89
 /scripts/lib/env.mjs @pabloam89
 /scripts/lib/flujo.mjs @pabloam89
 /scripts/lib/fondos.mjs @pabloam89

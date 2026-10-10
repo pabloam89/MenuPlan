@@ -33,6 +33,7 @@
     "retirar": "node scripts/retirar.mjs",
     "podar": "node scripts/podar.mjs",
     "issues": "node scripts/issues.mjs",
+    "espera-ci": "node scripts/espera-ci.mjs",
     "buscar": "node scripts/buscar.mjs",
     "normas": "node scripts/normas.mjs",
     "planos": "node scripts/planos.mjs",

@@ -97,7 +97,7 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 | PRs abiertos | `gh pr list` | una línea por PR con su rama |
 | Estado de un PR | `gh pr view <n>` | título, rama, estado y descripción |
 | Checks de un PR | `gh pr checks <n>` | `tests` en `pass` (o `fail` con enlace al run) |
-| Esperar a que acaben | `gh pr checks <n> --watch --interval 30` | termina cuando no queda ninguno en curso |
+| Esperar a que acaben (REST, gasta poca cuota; #424) | `npm run espera-ci -- <n>` (una llamada cada 60 s) | una línea `ci pr: n estado: ok`, `falla` o `pendiente`; sale 0 si pasa, 1 si falla o se acaba el tiempo, 3 si no pudo preguntar (no es un CI en rojo) |
 | Últimos runs | `gh run list --workflow tests.yml --limit 5` | cinco filas con su estado |
 | Solo el log de lo que falló | `gh run view <run-id> --log-failed` | el error: si es lint, fichero, regla y mensaje; si es test, su nombre |
 | Relanzar lo que falló | `gh run rerun <run-id> --failed` | el run vuelve a `in_progress` |
@@ -123,8 +123,8 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 
 ## Lo que falló y por qué
 
-- **2026-10-10 · el token de instalación real (390 caracteres, con `.` y `-`) no pasaba la forma
-  escrita de memoria (#329).** Causa: se validó sin ver uno real. Arreglo: `[A-Za-z0-9_.-]`, con test; visto en vivo.
+- **2026-10-10 · la cuota GraphQL de Pablo llegó a 0 dos veces (#424, fondo #326).** Causa: todas las sesiones gastaban el mismo token y cada arranque pedía ~320 puntos (`npm run issues`: 3 páginas de 106), más los `gh pr checks --watch` cada 30 s; el contador REST de `gh api rate_limit` seguía con 4.656 libres, así que parecía que quedaba cuota. Arreglo: caché de 15 min (arranque) y 10 (listado) en `scripts/lib/cuotaGh.mjs`, `npm run espera-ci` por REST, línea `gh: caller=… api=…` por llamada y techos en `scripts/cuotaGh.test.js`, visto fallar. Cifras y cómo medir, en `.claude/skills/github/referencias/cuota-graphql.md`; la verdad sobre GraphQL la da `gh api graphql -f query='{ rateLimit { remaining resetAt } }'`.
+- **2026-10-10 · el token de instalación real (390 caracteres, con `.` y `-`) no pasaba la forma escrita de memoria (#329).** Causa: se validó sin ver uno real. Arreglo: `[A-Za-z0-9_.-]`, con test; visto en vivo.
 - **2026-10-09 · `Closes #n` y `Agente:` solo los comprobaba la guardia, y la guardia
   solo ve a las sesiones de Claude (#337).** Causa: el CI miraba `Runbook:` y
   `Casos:` y nada más; un PR abierto desde la web o por otra vía no los llevaba y
