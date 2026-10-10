@@ -106,6 +106,20 @@ deja abrir el PR y el CI lo tumba. Es un campo del informe y no una sección
 más del agente a propósito: una sola definición para todos, sin copias que se
 separen.
 
+## Skills que he abierto
+
+Las skills (`.claude/skills/`) son el camino de aprendizaje de la casa: lo que
+ya falló en cada dominio y cómo se hace (#397). Antes de tocar un fichero o
+lanzar un comando de un dominio con skill (el mapa,
+`.claude/dominios-skills.json`), el agente la abre: herramienta `Skill` o
+`Read` de su `SKILL.md`. Las que tocan salen de `npm run skills-encargo --
+<ficheros> [--comando "…"] [--agente <nombre>]`, y el brief de `/orquestar`
+ya las trae. El campo `SKILLS:` del informe dice las que abrió y por qué vía
+(`herramienta`, `lectura` o `precargada`, la de su frontmatter); «ninguna» si
+no tocó ningún dominio con skill. El `revisor` lo contrasta con
+`npm run skills-encargo -- --diff`, y `npm run skills-uso` cuenta cada semana
+quién tocó un dominio sin abrir la suya.
+
 ## Informe común
 
 Todos los agentes terminan con este bloque, igual, para que la sesión
@@ -117,6 +131,7 @@ va a un fichero y aquí solo su ruta.
 ESTADO: ok | bloqueado | fallo
 RESUMEN: (3 líneas como mucho)
 CASOS: fallos reales del camino, uno por línea con su clase (o «ninguno»)
+SKILLS: las que abrió, con su vía (skill (herramienta|lectura|precargada), …), o «ninguna»
 CAMBIOS: ruta:línea — qué (o «ninguno»)
 EVIDENCIA: comando → resultado (o captura → ruta)
 HALLAZGOS:

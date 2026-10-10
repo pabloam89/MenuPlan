@@ -274,3 +274,40 @@ export function medirUso(raiz, { principal = raiz, dirProyectos = null, ahora = 
   const desdeIso = new Date(desde).toISOString();
   return { desde: desdeIso, ...resumir(sesiones, skills, desdeIso), lineas: lineas(sesiones, desdeIso) };
 }
+
+// ── Las skills de un encargo ──────────────────────────────────────────────
+
+/**
+ * Las skills que hay que abrir para un encargo, sacadas del mapa (nunca a
+ * mano): las de las `rutas` que casan con `ficheros` y las de los `comandos`
+ * de riesgo que va a lanzar. `precargadas`: las que el agente ya trae en su
+ * frontmatter (no hace falta abrirlas, pero se dicen). Lo usan el brief de
+ * /orquestar y la rúbrica del `revisor`.
+ * Devuelve [{ skill, motivo: "ruta"|"comando", ficheros, precargada }].
+ */
+export function skillsDelEncargo({ ficheros = [], comandos = [], mapa, precargadas = [] }) {
+  const out = new Map();
+  const lista = ficheros.map((f) => String(f).replace(/\\/g, "/").replace(/^\.\//, ""));
+  for (const skill of skillsDeFicheros(lista, mapa)) {
+    const suyos = lista.filter((f) => skillsDeFicheros([f], mapa).includes(skill));
+    out.set(skill, { skill, motivo: "ruta", ficheros: suyos, precargada: precargadas.includes(skill) });
+  }
+  for (const c of comandos) {
+    for (const skill of skillsDeComando(c, mapa)) {
+      if (!out.has(skill)) out.set(skill, { skill, motivo: "comando", ficheros: [], precargada: precargadas.includes(skill) });
+    }
+  }
+  return [...out.values()].sort((a, b) => a.skill.localeCompare(b.skill));
+}
+
+/** Las skills del `skills: [a, b]` del frontmatter de un agente; [] si no existe o el nombre no vale. */
+export function precargadasDe(raiz, agente) {
+  if (typeof agente !== "string" || !NOMBRE.test(agente)) return [];
+  try {
+    const md = readFileSync(join(raiz, ".claude", "agents", `${agente}.md`), "utf8").replace(/\r\n/g, "\n");
+    const linea = md.match(/^---\n([\s\S]*?)\n---/)?.[1].match(/^skills:\s*\[(.*)\]\s*$/m)?.[1] ?? "";
+    return linea.split(",").map((s) => s.trim()).filter(Boolean);
+  } catch {
+    return []; // a propósito: un agente que no existe no trae nada precargado; el brief pide abrirlas todas
+  }
+}

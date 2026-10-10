@@ -14,7 +14,9 @@ import {
   lineas,
   medirUso,
   nombreDeProyecto,
+  precargadasDe,
   resumir,
+  skillsDelEncargo,
   rutaDelRepo,
   skillsDelRepo,
   tocadosSinSkill,
@@ -115,6 +117,35 @@ describe("tocadosSinSkill y resumir", () => {
     const re = new RegExp(`^(?:skill_abierta: [\\w-]+ via: (?:${VIAS.join("|")})|dominio_sin_skill: [\\w-]+ como: (?:${TOQUES.join("|")})) agente: [\\w-]+ sesion: [\\w-]{1,8} fecha: \\d{4}-\\d{2}-\\d{2}$`);
     for (const x of l) expect(x).toMatch(re);
     expect(l.join("\n")).not.toMatch(/SECRETO_X/);
+  });
+});
+
+describe("skillsDelEncargo: las skills del brief salen del mapa", () => {
+  it("por ruta y por comando, sin repetir, con los ficheros que la piden", () => {
+    const r = skillsDelEncargo({
+      ficheros: ["supabase/migrations/0150_x.sql", ".\\vercel.json", "src/App.jsx"],
+      comandos: ["node scripts/telegram-webhook.mjs set https://x", "vercel env add A"],
+      mapa,
+    });
+    expect(r.map((s) => [s.skill, s.motivo])).toEqual([["supabase", "ruta"], ["telegram", "comando"], ["vercel", "ruta"]]);
+    expect(r.find((s) => s.skill === "vercel").ficheros).toEqual(["vercel.json"]);
+  });
+
+  it("marca las que el agente ya trae precargadas, y un fichero sin dominio no pide nada", () => {
+    expect(skillsDelEncargo({ ficheros: ["scripts/telegram-perfil.mjs"], mapa, precargadas: precargadasDe(RAIZ, "lola") })[0].precargada).toBe(true);
+    expect(skillsDelEncargo({ ficheros: ["src/App.jsx"], mapa })).toEqual([]);
+  });
+
+  it("precargadasDe lee el frontmatter, y solo de un nombre válido", () => {
+    expect(precargadasDe(RAIZ, "gobierno")).toContain("github");
+    expect(precargadasDe(RAIZ, "no-existe")).toEqual([]);
+    expect(precargadasDe(RAIZ, "../gobierno")).toEqual([]);
+  });
+
+  it("cada skill de la lista es una skill de verdad", () => {
+    const todas = skillsDelEncargo({ ficheros: ["supabase/x", "vercel.json", ".github/workflows/x.yml", "ops/copias/x", "scripts/lib/issues.mjs"], mapa });
+    for (const s of todas) expect(skills).toContain(s.skill);
+    expect(todas.length).toBeGreaterThanOrEqual(5);
   });
 });
 

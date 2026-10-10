@@ -122,8 +122,14 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
 3. **Alcance**: ficheros que puede tocar y los que no; qué queda fuera.
 4. **Rama**: en qué rama o worktree trabaja.
 5. **Verificación**: cómo sabrá que ha terminado bien.
-6. Recordatorio: termina con el informe común de
-   `.claude/PLANTILLA-AGENTE.md`.
+6. **Skills**: la línea `SKILLS A ABRIR: …` que da
+   `npm run skills-encargo -- <ficheros del alcance> [--comando "<comando de riesgo>"] --agente <agente>`
+   (sale de `.claude/dominios-skills.json`; no la escribas a mano), con la
+   orden de abrirlas antes de tocar su dominio. Las que el agente trae
+   precargadas salen aparte. Si no pide ninguna, «ninguna». Un juez también
+   abre las de lo que juzga.
+7. Recordatorio: termina con el informe común de
+   `.claude/PLANTILLA-AGENTE.md`, con `CASOS:` y `SKILLS:`.
 
 ## 5. Paralelo sin pisarse
 
@@ -141,7 +147,9 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
 ## 6. Juntar y cerrar
 
 1. Lee el bloque `## Informe` de cada agente. `ESTADO: bloqueado` o un
-   hallazgo bloqueante paran el pipeline hasta resolverlo.
+   hallazgo bloqueante paran el pipeline hasta resolverlo. Pásale al
+   `revisor` la línea `SKILLS:` del constructor: comprueba que abrió las que
+   tocaban.
 2. Un hallazgo bloqueante vuelve al constructor que toca, con el informe del
    juez. Repite el juez tras el arreglo. Cada vuelta es una ronda del triaje
    («Triaje»): se cuenta en la ficha del fondo y, agotadas las del

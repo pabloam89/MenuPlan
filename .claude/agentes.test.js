@@ -180,6 +180,25 @@ it("el informe común lleva CASOS: y /orquestar los pasa a la línea «Casos:» 
   }
 });
 
+it("el informe común lleva SKILLS:, /orquestar las saca del mapa y el revisor las comprueba (#397)", () => {
+  // Las skills son el camino de aprendizaje: si el informe no dice cuáles se
+  // abrieron, nadie puede comprobar que se usaron. La lista del brief sale de un
+  // script sobre .claude/dominios-skills.json, no de memoria.
+  const plantilla = readFileSync(join(AQUI, "PLANTILLA-AGENTE.md"), "utf8");
+  const informe = plantilla.slice(plantilla.indexOf("## Informe común"));
+  expect(informe).toMatch(/^SKILLS:/m);
+  expect(plantilla).toMatch(/^## Skills que he abierto$/m);
+  const orquestar = readFileSync(join(AQUI, "commands", "orquestar.md"), "utf8");
+  const brief = orquestar.slice(orquestar.indexOf("## 4. El brief"), orquestar.indexOf("## 5."));
+  expect(brief).toMatch(/npm run skills-encargo/);
+  expect(brief).toMatch(/`SKILLS:`/);
+  const pkg = JSON.parse(readFileSync(join(RAIZ, "package.json"), "utf8"));
+  expect(pkg.scripts["skills-encargo"]).toMatch(/scripts\/skills-encargo\.mjs/);
+  const { cuerpo } = leer("revisor.md");
+  expect(seccion(cuerpo, "Principios")).toMatch(/skills-encargo -- *\n? *--diff[\s\S]*`SKILLS:`/);
+  expect(seccion(cuerpo, "Hecho")).toMatch(/SKILLS:/);
+});
+
 it("CLAUDE.md y /orquestar nombran a todos los agentes", () => {
   const claude = readFileSync(join(RAIZ, "CLAUDE.md"), "utf8");
   const orquestar = readFileSync(join(AQUI, "commands", "orquestar.md"), "utf8");
