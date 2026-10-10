@@ -100,11 +100,6 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
 export const LINEAS_LOG = 500;
 const MAX_BYTES_LOG = 100 * 1024;
 
-/**
- * ¿Se puede escribir en esta ruta sin tocar nada ajeno? (#428, POSIX con varios usuarios): ni enlace
- * ni fichero de otro usuario, ni en una carpeta de otro. Si no existe aún, solo cuenta la carpeta.
- * En Windows no hay uid y siempre vale.
- */
 /** ¿La carpeta es nuestra? (POSIX; en Windows siempre sí). */
 export function carpetaPropia(dir) {
   if (typeof process.getuid !== "function") return true;
@@ -112,10 +107,16 @@ export function carpetaPropia(dir) {
     const st = lstatSync(dir);
     return st.isDirectory() && st.uid === process.getuid();
   } catch {
+    // a propósito: si no se puede mirar la carpeta, no se escribe en ella (falla cerrado).
     return false;
   }
 }
 
+/**
+ * ¿Se puede escribir en esta ruta sin tocar nada ajeno? (#428, POSIX con varios usuarios): ni enlace
+ * ni fichero de otro usuario, ni en una carpeta de otro. Si no existe aún, solo cuenta la carpeta.
+ * En Windows no hay uid y siempre vale.
+ */
 export function escrituraSegura(ruta, dir = null) {
   if (typeof process.getuid !== "function") return true;
   const yo = process.getuid();
@@ -129,6 +130,7 @@ export function escrituraSegura(ruta, dir = null) {
       return false;
     }
   } catch {
+    // a propósito: si no se puede mirar la carpeta, no se escribe (falla cerrado; es un registro opcional).
     return false;
   }
 }
