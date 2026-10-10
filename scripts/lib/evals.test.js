@@ -262,6 +262,7 @@ describe("scripts que llaman a un modelo: tope y libro del mes (#297)", () => {
   // mensual NO los cubre, y esta lista es lo que dice cuáles son.
   const SIN_TOPE_DE_EVALS = {
     "alergenos-puede-contener.mjs": "pasada puntual del catálogo, por lotes",
+    "boveda-sesiones.mjs": "falso positivo: solo nombra la ficha ANTHROPIC_API_KEY en una lista, no llama a ningún modelo",
     "bedca-select.mjs": "pasada puntual, con --dry-run que cotiza",
     "buscador-examen.mjs": "examen manual, ~15 céntimos con Haiku",
     "enrich-recipe-steps.mjs": "horneado puntual del catálogo, con tope de intentos",
