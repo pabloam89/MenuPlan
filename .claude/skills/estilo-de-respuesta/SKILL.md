@@ -40,6 +40,7 @@ No es para:
 4. **Quita la jerga.** Un término técnico se evita o se explica en una frase
    la primera vez («rama: una copia de trabajo aparte»). Los nombres de
    ficheros, comandos y números de issue se dejan fuera salvo que él los pida.
+   Los términos del día a día tienen su traducción en «Traducir la jerga».
 5. **Si hace falta algo de él, una última línea** con lo que se necesita y,
    si hay recomendación, la recomendación primero («Necesito tu sí para
    subirlo; yo diría que sí»).
@@ -67,6 +68,37 @@ De cualquier respuesta se puede decir si la cumple:
 Se relaja cuando él lo pide («dame el detalle», «hazme una tabla») y en lo que
 él tiene que pegar o ejecutar: un comando para un `!` va en bloque de código,
 porque es lo que se le pide y no un detalle.
+
+### Traducir la jerga
+
+Los términos que salen a diario en este repo, dichos en llano. Si hay que usar
+uno, va con su traducción la primera vez.
+
+| Término | En llano |
+|---|---|
+| rama | Una copia de trabajo aparte, para cambiar cosas sin tocar lo que ya funciona. |
+| PR | La petición de pasar mis cambios a lo principal, para que se revisen antes. |
+| CI | Las pruebas automáticas que corren solas al subir un cambio. |
+| lint | Un corrector automático que avisa de descuidos en el código. |
+| merge | Juntar los cambios de una copia de trabajo con la principal. |
+| migración | Un cambio en la estructura de la base de datos, con los datos de las familias dentro. |
+| worktree | Una carpeta de trabajo propia para cada tarea, para que no se pisen. |
+| workflow | Una tarea automática que corre sola en GitHub, por ejemplo a una hora fija. |
+| deploy key | Una llave que deja a un proceso automático guardar cambios sin usar la cuenta de nadie. |
+| ruleset | Las reglas que dicen quién puede cambiar qué en el repositorio. |
+
+### El comando para pegar
+
+Cuando Pablo tiene que ejecutar algo: una línea antes que diga en llano qué
+hace, el comando solo en su bloque de código y nada técnico alrededor.
+
+Bien:
+
+> Esto aplica el cambio en la base de datos; tarda un momento.
+>
+> ```
+> npm run ejemplo -- --si
+> ```
 
 Por qué funciona (fuentes en el último apartado): la conclusión primero y el
 apoyo después es el principio de la pirámide de Minto, y escribir para quien

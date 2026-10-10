@@ -44,11 +44,11 @@
     },
     {
       "id": "comando-para-pegar",
-      "peticion": "Pablo tiene que lanzar con ! el comando que aplica una migración. Dile qué hacer y dale el comando.",
+      "peticion": "Redacta tu respuesta a Pablo: tiene que pegar en su terminal el comando que aplica un cambio en la base de datos. Dile qué hacer y dale el comando.",
       "skill": "estilo-de-respuesta",
       "debe_salir": [
         "La primera línea en negrita dice qué tiene que hacer y por qué",
-        "El comando va en un bloque de código para pegar, sin más detalle técnico alrededor",
+        "Una línea antes dice en llano qué hace el comando; el comando va solo en un bloque de código, sin detalle técnico alrededor",
         "Termina con una línea con lo que necesita de él"
       ]
     },
