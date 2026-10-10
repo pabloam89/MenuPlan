@@ -37,6 +37,10 @@ describe("fraseDeRegla: la frase sale de los campos", () => {
   it("DEBE, con un fichero como control", () => {
     expect(fraseDeRegla(buena(), sujetos)).toBe("**Frase de apertura.** La descripción de cada skill DEBE empezar por «Úsala ». Se comprueba con: `.claude/skills.test.js`.");
   });
+  it("sin el control, para una tabla que ya tiene su columna de control", () => {
+    expect(fraseDeRegla(buena(), sujetos, { conControl: false })).toBe("**Frase de apertura.** La descripción de cada skill DEBE empezar por «Úsala ».");
+    expect(fraseDeRegla(buena(), sujetos, { conControl: true })).toContain("Se comprueba con:");
+  });
   it("NO DEBE con condición: la condición abre la frase y el sujeto baja a minúscula", () => {
     const r = { nombre: "Fuente sin url", sujeto: "estandar.fuente", fuerza: "no_debe", condicion: "si es de la casa", exigencia: "llevar una url", control: "ops/estandares-agentes.test.js" };
     expect(fraseDeRegla(r, sujetos)).toBe("**Fuente sin url.** Si es de la casa, cada fuente del catálogo de estándares NO DEBE llevar una url. Se comprueba con: `ops/estandares-agentes.test.js`.");

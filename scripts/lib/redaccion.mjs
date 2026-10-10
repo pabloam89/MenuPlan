@@ -72,6 +72,28 @@ function problemasDePrincipio(p, d, datos, existe) {
   return malos;
 }
 
+/**
+ * Las reglas de un catálogo según su `clave_reglas`: una clave de primer nivel (`normas`) o una ruta con
+ * puntos que atraviesa listas (`pasos.obligaciones`: las obligaciones de cada paso, en orden). Una entrada
+ * que lleva `norma` REMITE a una norma de otro catálogo y no es una regla de este: su frase la escribe la
+ * norma, y ese catálogo ya se comprueba aparte. Devuelve { reglas, remisiones }, o null si la ruta no existe.
+ */
+export function reglasDe(json, clave) {
+  let nivel = [json];
+  for (const parte of String(clave).split(".")) {
+    nivel = nivel.flatMap((x) => (Array.isArray(x) ? x : [x])).flatMap((x) => (x && typeof x === "object" && parte in x ? [x[parte]] : []));
+    if (!nivel.length) return null;
+  }
+  const todas = nivel.flatMap((x) => (Array.isArray(x) ? x : [x]));
+  return { reglas: todas.filter((r) => !(r && typeof r === "object" && "norma" in r)), remisiones: todas.filter((r) => r && typeof r === "object" && "norma" in r) };
+}
+
+/** Los sujetos de un catálogo: los suyos más los de los catálogos de los que hereda (`sujetos_de`, una lista de ficheros). */
+export function sujetosDe(k, json, leerJson) {
+  const heredados = (k.sujetos_de ?? []).map((f) => leerJson(f)?.sujetos ?? {});
+  return Object.assign({}, ...heredados, json?.[k.clave_sujetos] ?? {});
+}
+
 /** Errores de la entrada de un catálogo en la lista de `catalogos`. */
 function problemasDeCatalogo(k, d, { existe, leerJson }) {
   const malos = [];
@@ -84,10 +106,13 @@ function problemasDeCatalogo(k, d, { existe, leerJson }) {
   if (!esTexto(k.clave_reglas) || !esTexto(k.clave_sujetos)) return [...malos, `${d}: un catálogo que cumple dice «clave_reglas» y «clave_sujetos»`];
   if (malos.length) return malos;
   const json = leerJson(k.fichero);
-  const reglas = json?.[k.clave_reglas];
-  if (!Array.isArray(reglas) || !reglas.length) return [...malos, `${d}: «${k.clave_reglas}» no es una lista de reglas`];
+  const de = reglasDe(json, k.clave_reglas);
+  if (!de || !de.reglas.length) return [...malos, `${d}: «${k.clave_reglas}» no es una lista de reglas`];
+  for (const f of k.sujetos_de ?? []) if (!existe(f)) malos.push(`${d}: sujetos_de cita ${f}, que no existe`);
+  if (malos.length) return malos;
+  const sujetos = sujetosDe(k, json, leerJson);
   malos.push(...problemasDeSujetos(json[k.clave_sujetos]).map((x) => `${d}: ${x}`));
-  reglas.forEach((r, i) => malos.push(...problemasDeRegla(r, `${d} · ${r?.id ?? `entrada ${i + 1}`}`, json[k.clave_sujetos])));
+  de.reglas.forEach((r, i) => malos.push(...problemasDeRegla(r, `${d} · ${r?.id ?? `entrada ${i + 1}`}`, sujetos)));
   return malos;
 }
 
@@ -224,7 +249,8 @@ function mdVocabularios(datos) {
 function mdCatalogos(datos, leerJson) {
   const L = ["## Catálogos que siguen la guía", "", "| Catálogo | Estado | Reglas | Encargo |", "|---|---|---|---|"];
   for (const k of datos.catalogos) {
-    const n = k.estado === "cumple" ? String(leerJson(k.fichero)?.[k.clave_reglas]?.length ?? 0) : "-";
+    const de = k.estado === "cumple" ? reglasDe(leerJson(k.fichero), k.clave_reglas) : null;
+    const n = de ? String(de.reglas.length + de.remisiones.length) : "-";
     L.push(`| \`${k.fichero}\` | ${k.estado} | ${n} | ${k.encargo ?? "-"} |`);
   }
   const pend = pendientesDe(datos).length;

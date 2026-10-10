@@ -39,6 +39,7 @@
 /scripts/lib/buscarAntes.mjs @pabloam89
 /scripts/lib/cuotaGh.mjs @pabloam89
 /scripts/lib/env.mjs @pabloam89
+/scripts/lib/escalas.mjs @pabloam89
 /scripts/lib/flujo.mjs @pabloam89
 /scripts/lib/fondos.mjs @pabloam89
 /scripts/lib/hora.mjs @pabloam89
