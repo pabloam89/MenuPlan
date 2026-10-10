@@ -38,6 +38,8 @@
     "planos": "node scripts/planos.mjs",
     "flujo": "node scripts/flujo.mjs",
     "skills-prueba": "node scripts/skills-prueba.mjs",
+    "skills-uso": "node scripts/skills-uso.mjs",
+    "skills-encargo": "node scripts/skills-encargo.mjs",
     "presupuesto": "node scripts/presupuesto.mjs",
     "fabrica": "node scripts/fabrica.mjs",
     "tecnica": "node scripts/oficio.mjs tecnica",

@@ -238,6 +238,25 @@
           {
             "tipo": "por_definir",
             "que": "La deriva de specs/ respecto al código se detecta sola (hoy, solo con /update-specs a mano)"
+          },
+          {
+            "tipo": "cifra_umbral",
+            "que": "Ninguna sesión ni agente toca un dominio (edición o comando de riesgo) sin abrir antes su skill, en la última semana (#397, npm run skills-uso; solo los transcripts de este PC, en el CI sin comprobar)",
+            "medidor": "dominio_sin_skill_semana",
+            "operador": "<=",
+            "umbral": 0
+          },
+          {
+            "tipo": "cifra_umbral",
+            "que": "Toda skill se abrió a propósito (herramienta, lectura u orden) al menos una vez en la última semana; la precarga no cuenta (#397; la poda de lo que no se usa es de #341)",
+            "medidor": "skills_sin_uso_semana",
+            "operador": "<=",
+            "umbral": 0
+          },
+          {
+            "tipo": "por_definir",
+            "que": "Ningún PR toca un dominio sin que su sesión abriera la skill: hoy no se puede atar un PR a sus sesiones (la rama del transcript es la del arranque, y no se ven las de Álvaro ni las de la nube)",
+            "issue": 397
           }
         ]
       }
