@@ -1,6 +1,5 @@
 output/
 public/dishes/
-dish-gallery/
 # scripts/ (not scripts) so the negation below can still re-include one file —
 # gitignore/vercelignore semantics don't let you un-ignore a file whose parent
 # directory itself is excluded, only its contents via a glob.
