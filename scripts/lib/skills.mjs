@@ -75,7 +75,7 @@ export const REGLAS = {
   estructura: "en la carpeta solo SKILL.md, casos.json y las subcarpetas de capas, y todo fichero de capa citado desde SKILL.md",
   copiado: "ningún párrafo largo idéntico en dos skills: el saber vive en una y la otra la cita",
   casos: "casos.json válido, con al menos MIN_CASOS casos: MIN_PROPIOS que cargan esta skill y MIN_FRONTERA que cargan otra o ninguna",
-  forja: "lo automatizable de la forja (skillsForja.mjs): MIN_FRONTERA_FORJA casos de frontera, sin fechas en el cuerpo, criterio de parada en «Método», pocos ejemplos y descripciones que no solapan; lo que hoy se incumple, en EXCEPCIONES_FORJA, que solo baja",
+  forja: "lo automatizable de la forja (skillsForja.mjs): MIN_FRONTERA_FORJA casos de frontera, sin fechas en el cuerpo, criterio de parada en «Método», pocos ejemplos, descripciones que no solapan y presentación mecánica (comandos en código, tablas bien formadas, cabeceras sin saltos); lo que hoy se incumple, en EXCEPCIONES_FORJA, que solo baja",
 };
 
 export const CABECERA_OPERACIONES = "| Qué | Comando | Debe salir |";
@@ -391,7 +391,7 @@ export function faltasDeSkill(skill, ctx) {
   for (const t of [texto, ...Object.values(skill.extra ?? {})]) for (const p of SECRETOS) if (p.test(t)) f.push(falta("secretos", String(p)));
   f.push(...reglaRutasYEstructura(skill, ctx));
   f.push(...faltasDeCasos(skill.casos, skill.nombre, ctx.skills));
-  f.push(...sinExcepciones(faltasForja({ nombre: skill.nombre, cuerpo, tipo, casos: skill.casos }), skill.nombre, ctx.excepcionesForja ?? EXCEPCIONES_FORJA));
+  f.push(...sinExcepciones(faltasForja({ nombre: skill.nombre, cuerpo, tipo, casos: skill.casos, extra: skill.extra }), skill.nombre, ctx.excepcionesForja ?? EXCEPCIONES_FORJA));
   return f;
 }
 

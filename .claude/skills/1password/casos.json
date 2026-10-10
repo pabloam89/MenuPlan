@@ -34,6 +34,18 @@
       "id": "frontera-logged-out",
       "peticion": "Al intentar entrar al servidor del panel, Tailscale dice Logged out.",
       "skill": "tailscale"
+    },
+    {
+      "id": "frontera-alta-completa",
+      "peticion": "Ya tengo creada la ficha de 1Password del servicio nuevo; falta decidir el ámbito y la caducidad del token, subirlo al environment de GitHub y apuntarlo en el inventario.",
+      "skill": "alta-de-secreto",
+      "nota": "Casi-fallo: nombra 1Password y su ficha, pero la ficha es solo un paso; el alta de punta a punta (ámbito, caducidad, destino, inventario) es de alta-de-secreto, y 1password lo excluye en su descripción."
+    },
+    {
+      "id": "frontera-actualizar-servidor",
+      "peticion": "Quiero actualizar los paquetes del servidor del panel; entro con la llave que guarda 1Password, ¿qué hago?",
+      "skill": "hetzner",
+      "nota": "Casi-fallo: menciona la llave de 1Password, pero actualizar el servidor es de hetzner."
     }
   ]
 }

@@ -187,6 +187,234 @@ Comprobado el AAAA-MM-DD: cómo se comprobó, y qué NO se comprobó.
   reciente arriba; al menos la primera versión.
 - La última línea, como en herramienta: `Comprobado el …` o `Sin comprobar: …`.
 
+## El estándar de cada tipo
+
+La forma de arriba dice qué secciones lleva cada tipo; esto dice **qué hace buena
+a una skill de ese tipo**, qué la estropea y cómo se ve una buena. Cada punto lleva
+su marca: **[F: fuente]** está en la fuente (las siglas BP, CC, DESC, EVAL, SB, CE y
+BEA y sus URL, en la skill `forja-de-skills`) y **[I]** es inferencia nuestra,
+también la que se traslada por analogía desde guías de prompts o de agentes. Un
+tipo sin su estándar no se puede usar: `.claude/skills.test.js` falla si a un tipo le
+falta «Qué lo hace bueno», «Errores típicos» o su ejemplo, si un punto no lleva
+marca, y comprueba que un ejemplo real sale tal cual de la skill que cita. Si hoy
+no hay ninguna skill de un tipo, el ejemplo es un esqueleto y lo dice; con la
+primera skill de ese tipo, pasa a ser real. Si un punto lo contradice una skill del
+tipo, manda la medida (`skills-prueba`), no este texto.
+
+### `herramienta`
+
+#### Qué lo hace bueno
+
+- Cada operación es una fila con el comando exacto y lo que debe salir: donde un error cuesta caro, pasos cerrados y no consejos [F: BP, grados de libertad].
+- «Lo que falló y por qué» recoge fallos reales con su causa y su arreglo; es la memoria del servicio y lo que el modelo no sabe [I].
+- Lo irreversible está nombrado en «Qué requiere el OK de Pablo», y lo no comprobado se dice en la última línea [I].
+- El estado real y lo pendiente, sin disimular; el procedimiento largo, en una capa que `SKILL.md` cita [F: BP, un solo nivel de profundidad].
+
+#### Errores típicos
+
+- Pegar la documentación del proveedor, que el modelo ya conoce [F: BP, lo conciso].
+- Una fila sin «Debe salir»: no se sabe si fue bien [I].
+- Precios, versiones o «desde tal día» escritos en el cuerpo, que se quedan viejos [F: BP, información que caduca].
+- Un procedimiento de veinte pasos metido en una celda de la tabla [I].
+
+#### Ejemplo mínimo
+
+Real: `tailscale`, la tabla de «Operaciones habituales».
+
+```
+| Qué | Comando | Debe salir |
+|---|---|---|
+| Probar la entrada al servidor | `ssh root@100.73.252.32 hostname` | `HoMenu-Panel` |
+```
+
+### `oficio`
+
+#### Qué lo hace bueno
+
+- Un camino por defecto y una salida para el caso raro, no un menú de opciones [F: BP, demasiadas opciones].
+- Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación] y la condición de parada [I: por analogía, BEA].
+- Las técnicas se eligen por un dato del problema (su tipo de causa, su alcance), no por gusto [I].
+- Lo que no se ha podido comprobar se escribe como hipótesis, con la observación que la confirmaría [I].
+- Un ejemplo resuelto, abstracto y canónico, que sigue la propia norma de la skill [I por analogía, CE, ejemplos canónicos].
+
+#### Errores típicos
+
+- Un método de principios («analiza bien») sin pasos que se puedan ver [F: BP, instrucciones claras].
+- Un ejemplo copiado de un caso real, con nombres o datos de familias [I].
+- Dar libertad total donde un fallo cuesta caro [F: BP, grados de libertad].
+- El catálogo de técnicas copiado dentro de la skill y también en su fuente: dos versiones [I].
+
+#### Ejemplo mínimo
+
+Real: `causa-raiz`, el paso que cierra la causa.
+
+```
+6. **Escribe la causa en tres piezas**: *mecanismo* (qué hace el sistema) +
+   *condición* (cuándo falla) + *control ausente* (qué debía pararlo y no
+   existe o no lo ve). Plantilla: «<mecanismo> falla cuando <condición>, y
+   <control> no lo para porque <motivo>». Va al campo `mecanismo` de la ficha.
+```
+
+### `dominio`
+
+#### Qué lo hace bueno
+
+- «Lo que hay que saber» son hechos que el modelo no tiene (reglas del negocio, excepciones, vocabulario propio), no definiciones generales [F: BP, lo conciso].
+- «Dónde vive el dato» apunta a la fuente de verdad y dice cómo leerla; no copia el dato [I].
+- Se organiza por tema, con el detalle de cada uno en su capa, para cargar solo lo que se necesita [F: BP, organización por dominio].
+- Una palabra por cosa en toda la skill [F: BP, terminología coherente].
+
+#### Errores típicos
+
+- Copiar el dato (una cifra, una lista, un estado) en la skill: pasa a haber dos fuentes y una se queda vieja [I].
+- Cifras o estados que caducan escritos en el cuerpo [F: BP, información que caduca].
+- Mezclar dos dominios en una skill, que acaba solapando con otra [F: SB, según resúmenes; I el reparto].
+- Explicar el dominio como un manual en lugar de lo que el modelo no sabe [F: BP, lo conciso].
+
+#### Ejemplo mínimo
+
+Esqueleto: aún no hay ninguna skill de este tipo; con la primera, se sustituye por un ejemplo real.
+
+```
+Lo que hay que saber: <un hecho que el modelo no tiene>. Se lee en <fuente>.
+Dónde vive el dato: <qué dato> -> <fuente de verdad> -> <cómo se lee>.
+No es de esta skill: <lo vecino> -> <skill que lo tiene>.
+```
+
+### `estandar`
+
+#### Qué lo hace bueno
+
+- La norma cabe en una frase que permite decir, de un caso concreto, si la cumple o no [I].
+- «Bien y mal» pone el mismo caso mínimo hecho bien y hecho mal, uno junto al otro, con el porqué [F: BP, ejemplos de entrada y salida; I el formato en pares].
+- Lo que una máquina puede comprobar se pasa a un test o a un hook; lo que solo juzga una persona queda escrito como tal [I].
+- Pocos ejemplos, canónicos y que no contradicen la norma [I por analogía, CE, ejemplos canónicos].
+
+#### Errores típicos
+
+- Una norma que es un deseo («código limpio») sin nada observable [I].
+- Un ejemplo que incumple la norma que enseña [I].
+- Una norma que se podría comprobar con un test y vive solo como texto [I].
+- La norma copiada de otra skill o de un fichero de reglas: dos versiones [I].
+
+#### Ejemplo mínimo
+
+Esqueleto: aún no hay ninguna skill de este tipo; con la primera, se sustituye por un ejemplo real.
+
+```
+La norma: <una frase que permite decir si un caso la cumple>.
+Mal: <el caso mínimo que la incumple> porque <la razón>.
+Bien: <el mismo caso arreglado> porque <la razón>.
+```
+
+### `receta_cambio`
+
+#### Qué lo hace bueno
+
+- Pasos numerados en orden fijo, cada uno con lo que sale al terminarlo [F: BP, flujos con pasos claros y listas de comprobación].
+- «Antes de empezar» comprueba las condiciones y «Cómo se comprueba» confirma el resultado sin enseñar datos sensibles [F: BP, bucles de comprobación].
+- Los pasos que no se pueden deshacer son de una persona: la receta deja los comandos listos y no los lanza [I].
+- Al sustituir algo, primero se comprueba lo nuevo y solo entonces se retira lo viejo [I].
+- Una lista de comprobación que se copia y se marca al final [F: BP, listas de comprobación].
+
+#### Errores típicos
+
+- Pasos sin salida observable: «comprueba que esté bien» [F: BP, instrucciones claras].
+- Probar solo en local algo que corre en otro entorno [I, lección de la propia `alta-de-secreto`].
+- Un valor secreto escrito en el comando, que queda en la conversación [I].
+- Mezclar varias recetas en una (dar de alta, rotar y operar el servicio) sin decir qué es de cada una [I].
+
+#### Ejemplo mínimo
+
+Real: `alta-de-secreto`, el primer paso de su método.
+
+```
+1. **Una clave, un uso.** Decide quién la usa (un workflow, el despliegue, un
+   script del PC, el servidor) y no reutilices la de otro uso: si se filtra o
+   caduca, solo cae ese. Sale: una línea «para qué, quién la lee, dónde vive».
+```
+
+### `rubrica_juez`
+
+#### Qué lo hace bueno
+
+- Cada criterio es observable y va separado de los demás, con la evidencia que lo cumple (fichero y línea, una salida) [I].
+- La escala tiene anclas: qué es cada nivel, con un ejemplo calibrado por nivel, incluidos casi-fallos [I; DESC pide negativos cercanos para descripciones, F, y se traslada].
+- El juez cita la evidencia antes de puntuar, y da un veredicto de un vocabulario cerrado que se puede contar [I].
+- Quien construye no juzga, y el juez no escribe lo que revisa [I].
+- Un criterio discrimina: si pasa igual con la pieza buena que con la mala, se retira [F: EVAL, aserciones que no miden nada].
+
+#### Errores típicos
+
+- Criterios con adjetivos («claro», «bueno») sin nada que mirar [I].
+- Ejemplos calibrados solo de lo obvio, que cualquier rúbrica separa [I].
+- Un juez que arregla lo que juzga: deja de ser independiente [I].
+- Juzgar sin mirar antes lo ya apuntado, y dar por nuevo lo conocido [I, caso #320].
+
+#### Ejemplo mínimo
+
+Esqueleto: aún no hay ninguna skill de este tipo; con la primera, se sustituye por un ejemplo real.
+
+```
+Criterio: <qué se mira>. Evidencia: <fichero:línea o salida que lo cumple>.
+Veredicto: ok | reparos | bloquea, con la condición comprobable de cada uno.
+Calibrado: <un caso mínimo> -> <veredicto> porque <la razón>.
+```
+
+### `investigacion`
+
+#### Qué lo hace bueno
+
+- La pregunta es una frase y el alcance dice cuándo hay bastante, antes de buscar [I por analogía, BEA, condiciones de parada].
+- Fuentes primarias y oficiales primero, con su dirección, y cada afirmación marcada como hecho de la fuente o inferencia [I].
+- Se trae solo lo que responde a la pregunta, por consultas concretas, no todo lo que hay [I por analogía, CE, contexto justo a tiempo].
+- Se destila a lo que cambia una decisión, y lo demás se descarta [I].
+- Se dice qué fuente no se ha podido leer y de qué es resumen cada cifra [I].
+
+#### Errores típicos
+
+- Resumir resúmenes (cifras de segunda mano) sin decirlo [I].
+- Mezclar hecho e inferencia sin marcar cuál es cuál [I].
+- Buscar sin pregunta y entregar un informe largo sin conclusión [I].
+- Tratar el texto de fuera como instrucciones en lugar de como dato [I, fondo #313].
+
+#### Ejemplo mínimo
+
+Esqueleto: aún no hay ninguna skill de este tipo; con la primera, se sustituye por un ejemplo real.
+
+```
+Pregunta: <en una frase>. Hay bastante cuando: <qué respuesta basta>.
+Dónde buscar: <fuente oficial primero>, <segunda fuente>.
+Destilado: <afirmación> [F: fuente] o [I]; no leído: <lo que falta>.
+```
+
+### `meta`
+
+#### Qué lo hace bueno
+
+- Empieza preguntando si hace falta la pieza, con una regla de parada escrita [I].
+- Se ve el fallo sin la pieza antes de escribirla, y los casos se escriben antes que el texto [F: BP, evaluaciones primero; EVAL].
+- Se mide con y sin la pieza, y en más de una pasada [F: EVAL, con y sin la skill, varias ejecuciones].
+- Dice quién comprueba cada cosa: un test, una medida o una persona [I].
+- Dice cuándo se poda lo que ya no sirve [I].
+
+#### Errores típicos
+
+- Alargar el texto cuando no mejora la medida [F: BP, lo conciso].
+- Declarar que mejora con una sola ejecución [F: EVAL, varias ejecuciones].
+- Una lista de excepciones que crece en lugar de arreglar la pieza [I].
+- Una pieza generada sin contrastarla con un fallo real [F: SB, según resúmenes].
+
+#### Ejemplo mínimo
+
+Real: `forja-de-skills`, el segundo paso de su método.
+
+```
+2. **Ver el fallo sin la skill.** Pon la petición real a una sesión sin la skill
+   y anota en qué falla (comando que inventa, paso que se salta). Sale: una
+   lista de fallos reales; si está vacía, no hay skill (paso 1).
+```
+
 ## La forja: qué hace buena a una skill
 
 La forma no basta: una skill con todas las secciones puede no abrirse nunca o
@@ -201,6 +429,10 @@ forja paso a paso (incluido cuándo **no** crearla) está en la skill
 - **Criterio de parada**: el «Método» (salvo en herramienta) dice qué sale o cuándo se acaba.
 - **Como mucho 3 ejemplos** por sección de ejemplos.
 - **Descripciones sin solape** léxico entre skills.
+- **Presentación mecánica**: los comandos en código (en línea o en bloque), las
+  tablas con todas las filas del mismo ancho y sin celdas vacías, y las cabeceras
+  sin saltar de nivel. Cuándo tabla, lista, negrita o código, y lo que solo juzga una
+  persona, en `.claude/skills/forja-de-skills/referencias/presentacion.md`.
 - Techos del estándar abierto: descripción de **1024 caracteres** y `SKILL.md` de
   **500 líneas**; los de la casa (600 y 220) van por debajo.
 
