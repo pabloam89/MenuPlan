@@ -4067,7 +4067,7 @@ const KID_SAFE_FOODS = [
   { key: "pescado", label: "Pescado", img: "/ingredients/merluza.png" },
   { key: "carne", label: "Carne", img: "/ingredients/ternera.png" },
   { key: "legumbres", label: "Legumbres", img: "/ingredients/lentejas.png" },
-  { key: "verdura", label: "Verdura", img: "/categories/verduras.png" },
+  { key: "verdura", label: "Verdura", img: "/categories/ensaladas_verduras.png" },
   { key: "patata", label: "Patata", img: "/ingredients/patata.png" },
   { key: "fruta", label: "Fruta", img: "/ingredients/manzana.png" },
   { key: "pan", label: "Pan", img: "/ingredients/pan.png" },

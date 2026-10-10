@@ -203,12 +203,12 @@ function applyPantryCoverage(rows, stock) {
 }
 
 const AISLE_UI = {
-  Verduras:              { Icon: Leaf,         color: "#3d9b5f", img: "/categories/verduras.png" },
+  Verduras:              { Icon: Leaf,         color: "#3d9b5f", img: "/categories/ensaladas_verduras.png" },
   Frutas:                { Icon: Apple,        color: "#e07b39", img: "/categories/frutas.png" },
-  Carne:                 { Icon: Drumstick,    color: "#c45c4a", img: "/categories/carne.png" },
-  Pescado:               { Icon: Fish,         color: "#2072b8", img: "/categories/pescado.png" },
+  Carne:                 { Icon: Drumstick,    color: "#c45c4a", img: "/categories/carnes.png" },
+  Pescado:               { Icon: Fish,         color: "#2072b8", img: "/categories/pescados.png" },
   Legumbres:             { Icon: Bean,         color: "#8b6914", img: "/categories/legumbres.png" },
-  "Pasta y arroz":       { Icon: Wheat,        color: "#c9922a", img: "/categories/pasta_arroz.png" },
+  "Pasta y arroz":       { Icon: Wheat,        color: "#c9922a", img: "/categories/pasta_arroces.png" },
   Lácteos:               { Icon: Milk,         color: "#4a9ec5", img: "/categories/lacteos.png" },
   Huevos:                { Icon: Egg,          color: "#ca9a14", img: "/categories/huevos.png" },
   Panadería:             { Icon: Croissant,    color: "#a67c52", img: "/categories/panaderia.png" },

@@ -472,13 +472,13 @@ export function ingredientImageFor(ing) {
 }
 
 // Supermarket aisle -> the category illustration already shipped for it.
-const AISLE_IMAGE = {
-  Verduras: "verduras",
+export const AISLE_IMAGE = {
+  Verduras: "ensaladas_verduras",
   Frutas: "frutas",
-  Carne: "carne",
-  Pescado: "pescado",
+  Carne: "carnes",
+  Pescado: "pescados",
   Legumbres: "legumbres",
-  "Pasta y arroz": "pasta_arroz",
+  "Pasta y arroz": "pasta_arroces",
   Lácteos: "lacteos",
   Huevos: "huevos",
   Panadería: "panaderia",

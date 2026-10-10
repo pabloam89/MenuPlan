@@ -35,7 +35,7 @@ siendo la medida de la auditoría, con otro alcance).
 | D7 | Escala de tokens | Decidida por la sesión (9 oct 2026) | Medir primero (hecho) y ajustar a la escala en un PR aparte, con capturas |
 | D8 | Capturas de referencia | Decidida por la sesión (9 oct 2026) | Solo en local por ahora; CI de capturas más adelante y no obligatorio |
 | D9 | Playwright como devDependency | **Abierta**, cuando se llegue a capturas | Sin ella no hay capturas definitivas ni la herramienta del paso 1 (hoy no está instalado). Es añadir una dependencia: gateway de `diseno` |
-| D10 | Borrar duplicados y carpetas | **Abierta (Pablo)**, siempre con su OK | Ver «Assets». Nada se borra en este plan |
+| D10 | Borrar duplicados y carpetas | **Decidida por Pablo (10 oct 2026): borrar duplicados**. Hecho en ux/limpieza-duplicados: 69 png de `Avatares/` (idénticos a `public/avatares/`), 4 de `public/categories/` (carne, pescado, pasta_arroz, verduras) y `menus_cole/` (3 PDF sin referencias). Se dejan: `Avatares/cards` (originales de los scripts `make_*.py`), los png de tienda (distintos bytes que el svg, nunca se cargan porque gana el svg; decidir) y `dish-gallery/` (app viva) | Ver «Assets» |
 | D11 | Usos de teal que no son selección | **Decidida por Pablo (9 oct 2026)** | Opción A (ver «Teal»): CTA a verde de marca; el teal queda para lo elegido y, en la zona social, como `acento` |
 | D12 | Logo: `brand/homenu-teal.*` es teal y `public/logo-homenu.svg` terracota | **Abierta**, cambiar el logo es gateway | Con D1 ninguno es el verde de marca. Recomendación: un único logo maestro en verde |
 | D13 | Rutas de avatares guardadas en base | **Abierta (`datos` y `auditor-datos`)** | Ver «Assets». Sin su decisión no se renombra ninguna ruta de avatar |
