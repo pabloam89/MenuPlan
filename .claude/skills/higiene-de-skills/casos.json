@@ -1,0 +1,69 @@
+{
+  "skill": "higiene-de-skills",
+  "casos": [
+    {
+      "id": "revisa-una-skill",
+      "peticion": "Pásale una revisión a la skill de vercel y dime qué tiene mal y cómo lo arreglo.",
+      "skill": "higiene-de-skills",
+      "debe_salir": [
+        "Lanza npm run higiene-skills -- vercel y lee el resultado antes de tocar nada",
+        "Separa las faltas, que se arreglan, de los avisos, que se miran y pueden ser falsos positivos",
+        "Arregla cada defecto con el arreglo que trae, sin añadir nada que no pida un defecto"
+      ]
+    },
+    {
+      "id": "caduca-o-cita-muerto",
+      "peticion": "¿Qué skills están a punto de caducar o citan comandos y rutas que ya no existen?",
+      "skill": "higiene-de-skills",
+      "debe_salir": [
+        "Propone npm run higiene-skills -- --todas para ver el conjunto",
+        "Explica que caduca-pronto avisa a menos de 30 días y que comando-muerto y ruta-muerta son faltas",
+        "Aclara que los comandos de Lo que falló y del registro son historia y no se miran"
+      ]
+    },
+    {
+      "id": "informe-del-conjunto",
+      "peticion": "Quiero un informe corto de cómo están todas las skills, con cifras, para la revisión de esta semana.",
+      "skill": "higiene-de-skills",
+      "debe_salir": [
+        "Da la cifra del conjunto: cuántas skills, cuántas sin defectos, cuántas faltas y cuántos avisos",
+        "Pide poner la cifra antes y después en el PR",
+        "No lanza npm run skills-prueba sin --ensayo, porque cuesta tokens"
+      ]
+    },
+    {
+      "id": "dos-skills-reclaman-lo-mismo",
+      "peticion": "La skill de 1password y la de alta-de-secreto dicen las dos cómo rotar una clave. ¿Cuál manda y qué cambio?",
+      "skill": "higiene-de-skills",
+      "debe_salir": [
+        "Decide un dueño, el que opera la cosa de punta a punta, y deja a la otra remitiendo a él por su nombre",
+        "Alinea la descripción, el caso de prueba y la fila de operaciones de la otra",
+        "Vuelve a pasar el solape de descripciones tras cambiar una descripción"
+      ]
+    },
+    {
+      "id": "frontera-skill-nueva",
+      "peticion": "Estoy pensando en escribir una skill para el proveedor de pagos nuevo. ¿Compensa o basta con una regla suelta?",
+      "skill": "forja-de-skills",
+      "nota": "Casi-fallo: habla de skills y de su calidad, pero decidir si hace falta y escribirla desde cero es de la forja."
+    },
+    {
+      "id": "frontera-leccion-en-skill",
+      "peticion": "Apunta en la skill de supabase la lección de este fallo de la migración que acabamos de ver.",
+      "skill": "supabase",
+      "nota": "Casi-fallo: pide tocar una skill, pero una lección nueva es una entrada de Lo que falló en la skill de ese dominio, no una revisión de higiene."
+    },
+    {
+      "id": "frontera-no-dispara",
+      "peticion": "Mide con el modelo si la descripción de la skill de github dispara en todos sus casos y cuánto cuesta.",
+      "skill": "forja-de-skills",
+      "nota": "Casi-fallo: es revisar una skill, pero medir el disparo con tokens es de skills-prueba, que la forja dice cuándo lanzar y cómo leer."
+    },
+    {
+      "id": "frontera-revisar-codigo",
+      "peticion": "Revisa el componente de la despensa a ver si tiene fallos antes de abrir el PR.",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: pide una revisión, pero de código del producto, que juzga el agente revisor y no una skill."
+    }
+  ]
+}
