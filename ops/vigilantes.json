@@ -87,6 +87,12 @@
       "porque": "Las zonas del glosario no usan un término prohibido ni lo definen dos veces."
     },
     {
+      "id": "redaccion-de-reglas",
+      "tests": ["ops/redaccion.test.js"],
+      "mira": ["ops/*.json", "docs/ops/REDACCION.md", "scripts/lib/redaccion.mjs", "scripts/lib/regla.mjs", "scripts/lib/forjaReferencia.mjs"],
+      "porque": "Cada catálogo de ops/ con reglas pasa la guía única de redacción (#493, fondo #488): un catálogo o una regla nuevos se miran contra ella."
+    },
+    {
       "id": "fuentes-y-modulos",
       "tests": ["ops/fuentes.test.js", "ops/modulos.test.js", "ops/lecturasRetiradas.test.js"],
       "mira": ["src/**", "api/**", "scripts/**", "supabase/**", "ops/MODULOS.json", ".claude/hooks/**"],

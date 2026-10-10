@@ -94,6 +94,7 @@ const TABLA = [
   ["frases-normativas", ".claude/skills/x/referencias/y.md", "ops/planos.test.js"],
   ["frases-normativas", "ops/X.md", "ops/normas.test.js"],
   ["glosario", "docs/ops/x.md", "ops/glosario.test.js"],
+  ["redaccion-de-reglas", "ops/catalogo-nuevo.json", "ops/redaccion.test.js"],
   ["fuentes-y-modulos", "src/lib/x.js", "ops/modulos.test.js"],
   ["fuentes-y-modulos", "scripts/lib/x.mjs", "ops/fuentes.test.js"],
   ["cableado", "api/_bot/x.js", "supabase/cableado.test.js"],
