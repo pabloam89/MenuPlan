@@ -1,0 +1,8 @@
+{
+  "$comentario": "Catálogos que aún no siguen la guía de redacción (ops/redaccion.json), anclados al nacer (#493). SOLO BAJA: uno nuevo falla ops/redaccion.test.js, y uno puesto al día también hasta que se baja aquí (npm run redaccion -- --escribir).",
+  "pendientes": [
+    "ops/normas.json",
+    "ops/flujo.json",
+    "ops/estandares-agentes.json"
+  ]
+}

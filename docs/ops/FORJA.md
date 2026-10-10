@@ -2,7 +2,7 @@
 
 <!-- Generado desde ops/forja.json con «npm run forja -- --escribir». No se edita a mano: ops/forja.test.js lo compara. -->
 
-La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es `ops/forja.json`. Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada criterio solo sube (`ops/forja-capas.json`).
+La única fuente de lo que se le pide a una skill, a un estándar de agente y a lo que venga es `ops/forja.json`. Tres capas, porque convertir algo continuo en atributos discretos nunca cubre todo; para los huecos están los textos que juzga un LLM. La capa de cada criterio solo sube (`ops/forja-capas.json`). Cómo se redacta cada criterio, y cualquier otra regla de la casa: [REDACCION.md](REDACCION.md).
 
 ## Cifras
 
