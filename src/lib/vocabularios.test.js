@@ -198,43 +198,84 @@ const CARTON_A_BRICK = { envases: { carton: "brick" } };
 
 describe("un valor retirado no vuelve a escribirse (#539)", () => {
   it("RETIRADOS es exactamente la proyección de ops/vocabularios-vida.json (producto.*)", () => {
-    expect(RETIRADOS, "Al retirar un valor del producto, apúntalo también en RETIRADOS de src/lib/vocabularios.js").toEqual(retiradosDelRegistro(leerRegistro(RAIZ)));
+    expect(RETIRADOS, "Al retirar un valor del producto, apúntalo también en RETIRADOS de src/lib/vocabularios.js").toStrictEqual(retiradosDelRegistro(leerRegistro(RAIZ)));
   });
 
-  it("paraEscribir: vivo tal cual, retirado a su sucesor, desconocido o sin sucesor lanza", () => {
-    const { paraEscribir, listaParaEscribir } = crearEscritor({ ...VOCABULARIOS, envases: ENVASES_SIN_CARTON }, { envases: { carton: "brick", tetra: null } });
+  it("paraEscribir: vivo tal cual, retirado a su sucesor, sin sucesor se quita con su línea, desconocido lanza", () => {
+    const avisos = [];
+    const { paraEscribir, listaParaEscribir } = crearEscritor({ ...VOCABULARIOS, envases: ENVASES_SIN_CARTON }, { envases: { carton: "brick", tetra: null } }, (n, v) => avisos.push([n, v]));
     expect(paraEscribir("envases", "lata")).toBe("lata");
     expect(paraEscribir("envases", "carton")).toBe("brick");
     expect(paraEscribir("envases", null)).toBe(null);
-    expect(() => paraEscribir("envases", "tetra")).toThrow(FueraDeVocabulario);
+    expect(paraEscribir("envases", "tetra")).toBe(null);
+    expect(avisos).toEqual([["envases", "tetra"]]);
     expect(() => paraEscribir("envases", "caja")).toThrow(FueraDeVocabulario);
     expect(() => paraEscribir("no_existe", "x")).toThrow(/no existe el vocabulario/);
-    expect(listaParaEscribir("envases", ["carton", "brick", "lata"])).toEqual(["brick", "lata"]);
+    expect(listaParaEscribir("envases", ["carton", "brick", "tetra", "lata"])).toEqual(["brick", "lata"]);
+    expect(avisos).toHaveLength(2);
+    // Un desconocido en una lista también falla claro: el CHECK lo rechazaría igual.
+    expect(() => listaParaEscribir("envases", ["lata", "caja"])).toThrow(FueraDeVocabulario);
     expect(listaParaEscribir("envases", null)).toBe(null);
   });
 
-  it("los módulos dueños escriben el sucesor: con «carton» retirado a «brick», escribir carton da brick", async () => {
+  it("la línea de un quitado es JSON de evento y su accion está en ACCIONES_ESCRITURA", () => {
+    const espia = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      crearEscritor({ envases: ["lata"] }, { envases: { tetra: null } }).paraEscribir("envases", "tetra");
+      expect(JSON.parse(espia.mock.calls[0][0])).toEqual({ evento: "vocabulario_escritura", vocabulario: "envases", valor: "tetra", accion: "quitado" });
+      expect(VOCABULARIOS.acciones_escritura).toContain("quitado");
+    } finally {
+      espia.mockRestore();
+    }
+  });
+
+  it("los módulos dueños: con «carton» retirado a «brick», escribir carton da brick; sin sucesor, se quita", async () => {
+    // Un cliente falso que apunta, en orden, cada delete y cada upsert.
+    const llamadas = [];
+    const falso = {
+      from: (tabla) => ({
+        delete: () => { llamadas.push(["delete", tabla]); const f = { eq: () => f, then: (ok) => ok({ error: null }) }; return f; },
+        upsert: (rows) => { llamadas.push(["upsert", tabla, rows]); return Promise.resolve({ error: null }); },
+      }),
+    };
     vi.resetModules();
-    vi.doMock("./supabase.js", () => ({ supabase: null }));
+    vi.doMock("./supabase.js", () => ({ supabase: falso }));
     vi.doMock("./vocabularios.js", async (original) => {
       const m = await original();
-      const vocabularios = { ...m.VOCABULARIOS, envases: ENVASES_SIN_CARTON, usos_receta: ["plato_unico", "plato_normal"], carpetas_fijas: ["dia_a_dia", "ocasion_especial", "cena_rapida"] };
-      const retirados = { ...CARTON_A_BRICK, usos_receta: { guarnicion: "plato_normal" }, carpetas_fijas: { hijos: "dia_a_dia" } };
-      return { ...m, ENVASES: ENVASES_SIN_CARTON, VOCABULARIOS: vocabularios, RETIRADOS: retirados, ...m.crearEscritor(vocabularios, retirados) };
+      const vocabularios = { ...m.VOCABULARIOS, envases: ENVASES_SIN_CARTON.filter((v) => v !== "bolsa"), usos_receta: ["plato_unico", "plato_normal"], aparatos: m.APARATOS.filter((v) => v !== "Vaporera"), carpetas_fijas: ["dia_a_dia", "ocasion_especial"] };
+      const retirados = { envases: { ...CARTON_A_BRICK.envases, bolsa: null }, usos_receta: { guarnicion: "plato_normal" }, aparatos: { Vaporera: null }, carpetas_fijas: { hijos: "dia_a_dia", cena_rapida: null } };
+      return { ...m, ENVASES: vocabularios.envases, VOCABULARIOS: vocabularios, RETIRADOS: retirados, ...m.crearEscritor(vocabularios, retirados, () => {}) };
     });
+    const espia = vi.spyOn(console, "warn").mockImplementation((m) => llamadas.push(["aviso", m]));
     try {
       const { packDbFields } = await import("./pantry.js");
-      const { recipeToRow } = await import("./userRecipesFila.js");
-      const { carpetaParaEscribir } = await import("./recipeCollections.js");
+      const { recipeToRow, filaCopiada } = await import("./userRecipesFila.js");
+      const { carpetaParaEscribir, saveRecipeCollections } = await import("./recipeCollections.js");
+      // Despensa.
       expect(packDbFields({ kind: "carton", sizeQty: 1000, sizeUnit: "ml" }).pack_kind).toBe("brick");
+      expect(packDbFields({ kind: "bolsa", sizeQty: 500, count: 2 })).toEqual({ pack_count: null, pack_kind: null, pack_size: null, pack_size_unit: null });
       expect(() => packDbFields({ kind: "caja", sizeQty: 1 })).toThrow(/envases/);
-      const fila = recipeToRow({ id: "r1", name: "x", usageTags: ["guarnicion", "plato_normal"], requiredAppliances: ["Horno"] }, "u1");
+      // Receta propia, y la copia de la de otro.
+      const fila = recipeToRow({ id: "r1", name: "x", usageTags: ["guarnicion", "plato_normal"], requiredAppliances: ["Horno", "Vaporera"] }, "u1");
       expect(fila.usage_tags).toEqual(["plato_normal"]);
       expect(fila.required_appliances).toEqual(["Horno"]);
+      const copia = filaCopiada({ id: "r9", owner_id: "otro", name: "y", usage_tags: ["guarnicion"], required_appliances: ["Vaporera"], created_at: "2026-01-01" }, { id: "r10", dueno: "u1" });
+      expect(copia).toMatchObject({ id: "r10", owner_id: "u1", visibility: "private", copied_from_recipe_id: "r9", usage_tags: ["plato_normal"], required_appliances: [] });
+      expect("created_at" in copia).toBe(false);
+      // Carpetas.
       expect(carpetaParaEscribir("hijos")).toBe("dia_a_dia");
+      expect(carpetaParaEscribir("cena_rapida")).toBe(null);
       expect(carpetaParaEscribir("fld_abc")).toBe("fld_abc");
       expect(() => carpetaParaEscribir("descartados")).toThrow(/carpetas_fijas/);
+      // Guardar: la mala se salta, la sin sucesor se quita, las buenas se guardan; se valida antes del delete.
+      llamadas.length = 0;
+      await saveRecipeCollections("u1", "r1", ["descartados", "cena_rapida", "fld_abc", "hijos", "dia_a_dia"]);
+      // El aviso de la carpeta mala sale antes del delete: se valida antes de borrar nada.
+      expect(llamadas.map((l) => l[0])).toEqual(["aviso", "delete", "upsert"]);
+      expect(llamadas[0][1]).toMatch(/fuera del vocabulario/);
+      expect(llamadas[2][2].map((r) => r.collection_id)).toEqual(["fld_abc", "dia_a_dia"]);
     } finally {
+      espia.mockRestore();
       vi.doUnmock("./vocabularios.js");
       vi.doUnmock("./supabase.js");
       vi.resetModules();
@@ -254,12 +295,24 @@ describe("un valor retirado no vuelve a escribirse (#539)", () => {
   });
 
   it("el escáner ve lo que tiene que ver (ejemplos buenos y malos)", () => {
-    const malo = [
-      "const fila = { pack_kind: pack.kind };",
-      "rows.push({ user_id, recipe_id, collection_id });",
-      "  usage_tags: recipe.usageTags ?? [],",
-    ].join("\n");
-    expect(asignacionesSinFiltro(malo).map((a) => a.columna)).toEqual(["user_pantry.pack_kind", "user_recipes.usage_tags", "recipe_collections.collection_id"]);
+    // Cada forma mala, sola, tiene que salir.
+    const malos = {
+      "const fila = { pack_kind: pack.kind };": "no pasa por la lista viva",
+      "rows.push({ user_id, recipe_id, collection_id });": "abreviada",
+      "  usage_tags: recipe.usageTags ?? [],": "no pasa por la lista viva",
+      "const fila = { pack_kind: paraEscribir(\"usos_receta\", pack.kind) };": "usa el vocabulario «usos_receta»",
+      "  required_appliances: listaParaEscribir(\"envases\", x),": "usa el vocabulario «envases»",
+      "  usage_tags: listaParaEscribir(nombre, x),": "va escrito, no en una variable",
+      "const f = { pack_kind: carpetaParaEscribir(x) };": "solo vale para collection_id",
+      "fila.pack_kind = pack.kind;": "no pasa por la lista viva",
+      "copia.usage_tags = [\"guarnicion\"];": "no pasa por la lista viva",
+      "const fila = { pack_kind: _k };": "no pasa por la lista viva",
+    };
+    for (const [linea, motivo] of Object.entries(malos)) {
+      const r = asignacionesSinFiltro(linea);
+      expect(r, linea).toHaveLength(1);
+      expect(r[0].motivo, linea).toContain(motivo);
+    }
     const bueno = [
       "const fila = { pack_kind: paraEscribir(\"envases\", pack.kind) };",
       "rows.map(({ pack_count: _c, pack_kind: _k, ...rest }) => rest);",
@@ -267,6 +320,9 @@ describe("un valor retirado no vuelve a escribirse (#539)", () => {
       "const x = { pack_kind: null };",
       "for (const collection_id of folders) rows.push({ collection_id: carpetaParaEscribir(collection_id) });",
       "// pack_kind: pack.kind (comentario)",
+      "fila.pack_kind = paraEscribir(\"envases\", k);",
+      "if (fila.pack_kind === \"x\") return;",
+      "const { usage_tags: _u, ...resto } = fila;",
     ].join("\n");
     expect(asignacionesSinFiltro(bueno)).toEqual([]);
     expect(literalesSueltos("if (kind === \"carton\") return 1; // \"lata\"", new Set(["carton", "lata"])).map((l) => l.valor)).toEqual(["carton"]);

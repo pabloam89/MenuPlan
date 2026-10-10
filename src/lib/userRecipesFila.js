@@ -73,6 +73,31 @@ export function recipeToRow(recipe, userId) {
   };
 }
 
+/**
+ * La copia de una fila de user_recipes de otra persona («guardar en mi recetario», el bot):
+ * fila nueva a nombre de `dueno`, privada y firmada «de …» (copied_from_*, 0027). Es una
+ * escritura nueva, así que sus vocabularios pasan por la lista viva: un valor que la fila del
+ * otro guardó y hoy está retirado se escribe como su sucesor (#539). Sin created_at ni
+ * updated_at (los pone la base) y sin claves undefined.
+ */
+export function filaCopiada(fila, { id, dueno }) {
+  const copia = {
+    ...fila,
+    id,
+    owner_id: dueno,
+    visibility: "private",
+    copied_from_recipe_id: fila.id,
+    copied_from_owner_id: fila.owner_id,
+    owner_snapshot: null,
+    usage_tags: listaParaEscribir("usos_receta", fila.usage_tags),
+    required_appliances: listaParaEscribir("aparatos", fila.required_appliances),
+    created_at: undefined,
+    updated_at: undefined,
+  };
+  for (const k of Object.keys(copia)) if (copia[k] === undefined) delete copia[k];
+  return copia;
+}
+
 /** user_recipes row → frontend recipe object (catalog-compatible shape). */
 export function rowToRecipe(row) {
   return {

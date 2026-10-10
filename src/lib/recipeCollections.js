@@ -38,8 +38,8 @@ export const BUILT_IN_IDS = CARPETAS_FIJAS;
 
 /**
  * El collection_id que se escribe (#539): una carpeta propia (`fld_…`, el patrón del CHECK)
- * tal cual; una fija, por la lista viva (un retirado pasa a su sucesor, uno desconocido
- * lanza FueraDeVocabulario). «Descartados» no se guarda nunca: lanza.
+ * tal cual; una fija, por la lista viva (un retirado pasa a su sucesor, uno sin sucesor da
+ * null, uno desconocido lanza FueraDeVocabulario). «Descartados» no se guarda nunca: lanza.
  */
 export function carpetaParaEscribir(id) {
   return typeof id === "string" && id.startsWith("fld_") ? id : paraEscribir("carpetas_fijas", id);
@@ -243,18 +243,31 @@ function sinRepetidas(rows) {
   });
 }
 
+/**
+ * Las filas de las carpetas de una receta, cada una por la lista viva. Una carpeta que no se
+ * puede escribir (desconocida, o «Descartados») se salta sola y se avisa; una retirada sin
+ * sucesor ya la quitó paraEscribir con su línea. Así una carpeta mala no se lleva las buenas.
+ */
+function filasDeCarpetas(userId, recipeId, folderIds) {
+  const rows = [];
+  const saltadas = [];
+  for (const id of folderIds ?? []) {
+    try {
+      rows.push({ user_id: userId, recipe_id: recipeId, collection_id: carpetaParaEscribir(id) });
+    } catch {
+      saltadas.push(id);
+    }
+  }
+  if (saltadas.length) console.warn("[recipeCollections] carpetas fuera del vocabulario, no se guardan", [...new Set(saltadas)]);
+  return sinRepetidas(rows.filter((r) => r.collection_id != null));
+}
+
 /** Replaces the stored folder set of one recipe (picker save). */
 export async function saveRecipeCollections(userId, recipeId, folderIds) {
   if (!supabase || !userId || !recipeId) return;
-  // Las filas, antes de borrar: si una carpeta no se puede escribir, no se toca nada (antes
-  // el CHECK rechazaba el upsert después del delete y la receta se quedaba sin carpetas).
-  let rows;
-  try {
-    rows = sinRepetidas((folderIds ?? []).map((id) => ({ user_id: userId, recipe_id: recipeId, collection_id: carpetaParaEscribir(id) })));
-  } catch (e) {
-    console.warn("[recipeCollections] save skipped", e.message);
-    return;
-  }
+  // Las filas, antes de borrar: lo que no se puede escribir ya está fuera, y el upsert no
+  // falla después del delete (antes una carpeta mala dejaba la receta sin ninguna).
+  const rows = filasDeCarpetas(userId, recipeId, folderIds);
   const { error: delError } = await supabase
     .from("recipe_collections")
     .delete()
@@ -266,28 +279,4 @@ export async function saveRecipeCollections(userId, recipeId, folderIds) {
     .from("recipe_collections")
     .upsert(rows, { onConflict: "user_id,recipe_id,collection_id" });
   if (error) console.warn("[recipeCollections] save failed", error.message);
-}
-
-/** Backfills the whole local map to the cloud (first login on a device). */
-export async function upsertRecipeCollections(userId, map) {
-  if (!supabase || !userId) return;
-  const todas = [];
-  const saltadas = [];
-  for (const [recipe_id, folders] of Object.entries(map ?? {})) {
-    for (const id of folders) {
-      // Una carpeta que no se puede escribir se salta sola: antes tumbaba el upsert de todas.
-      try {
-        todas.push({ user_id: userId, recipe_id, collection_id: carpetaParaEscribir(id) });
-      } catch {
-        saltadas.push(id);
-      }
-    }
-  }
-  if (saltadas.length) console.warn("[recipeCollections] bulk upsert: carpetas fuera del vocabulario saltadas", [...new Set(saltadas)]);
-  const rows = sinRepetidas(todas);
-  if (rows.length === 0) return;
-  const { error } = await supabase
-    .from("recipe_collections")
-    .upsert(rows, { onConflict: "user_id,recipe_id,collection_id" });
-  if (error) console.warn("[recipeCollections] bulk upsert failed", error.message);
 }

@@ -22,7 +22,6 @@ export const PACK_KINDS = ENVASES.map((value) => ({ value, label: etiquetaEnvase
 
 export const PACK_SIZE_UNITS = ["g", "kg", "ml", "l"];
 
-export const PACK_KIND_LABEL = Object.fromEntries(Object.keys(ETIQUETAS_ENVASE).map((id) => [id, etiquetaEnvase(id)]));
 
 /** El nombre del envase para `n` unidades; un id sin etiqueta se pinta tal cual. */
 export function etiquetaEnvase(kind, n = 1) {
@@ -112,8 +111,8 @@ export function formatPackLabel(item) {
   const sizeUnit = item?.packSizeUnit;
   if (!kind || !(size > 0) || !sizeUnit) return null;
 
-  const kindLabel = PACK_KIND_LABEL[kind] ?? kind;
   const n = count ?? 1;
+  const kindLabel = etiquetaEnvase(kind, n);
   let sizeText = `${Math.round(size)} ${sizeUnit}`;
   if (sizeUnit === "g" && size >= 1000) {
     sizeText = `${size % 1000 === 0 ? size / 1000 : (size / 1000).toFixed(1).replace(".", ",")} kg`;

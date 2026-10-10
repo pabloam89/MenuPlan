@@ -91,24 +91,20 @@ function omitPackFromRows(rows) {
 
 /**
  * Las columnas de envase de una fila nueva. El envase pasa por la lista viva (#539): uno
- * retirado se escribe como su sucesor y uno desconocido lanza FueraDeVocabulario, como lo
- * habría rechazado el CHECK. Exportada para su test.
+ * retirado se escribe como su sucesor; uno retirado sin sucesor deja el alimento sin envase
+ * (las cuatro columnas a null, como si no lo tuviera); uno desconocido lanza
+ * FueraDeVocabulario, como lo habría rechazado el CHECK. Exportada para su test.
  */
 export function packDbFields(pack) {
-  if (!pack?.kind || !(Number(pack.sizeQty) > 0)) {
-    return {
-      pack_count: null,
-      pack_kind: null,
-      pack_size: null,
-      pack_size_unit: null,
-    };
-  }
-  return {
+  const sinEnvase = { pack_count: null, pack_kind: null, pack_size: null, pack_size_unit: null };
+  if (!pack?.kind || !(Number(pack.sizeQty) > 0)) return sinEnvase;
+  const fila = {
     pack_count: Number(pack.count) > 0 ? Number(pack.count) : 1,
     pack_kind: paraEscribir("envases", pack.kind),
     pack_size: Number(pack.sizeQty),
     pack_size_unit: pack.sizeUnit ?? "g",
   };
+  return fila.pack_kind == null ? sinEnvase : fila;
 }
 
 /**

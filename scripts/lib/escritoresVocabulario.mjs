@@ -8,19 +8,22 @@
  * `listaParaEscribir`) de vocabularios.js, que traduce un retirado a su `pasa_a` y rechaza
  * lo desconocido. Esto mira, en el texto del código y sin ejecutarlo:
  *
- *   1. asignaciones: cada `col: <expr>` (o `{ col }` abreviado) de una columna de COLUMNAS, en
- *      cualquier fichero de src/ o api/, tiene que ser `paraEscribir(…)`,
- *      `listaParaEscribir(…)`, `carpetaParaEscribir(…)`, `null` o un `_x` (destructurar
- *      para descartar). Lo que no, es un escritor que se salta la lista viva;
+ *   1. asignaciones: cada `col: <expr>`, `x.col = <expr>` o `{ col }` abreviado de una columna
+ *      de COLUMNAS, en cualquier fichero de src/ o api/, tiene que ser
+ *      `paraEscribir("<su vocabulario>", …)`, `listaParaEscribir("<su vocabulario>", …)`,
+ *      `carpetaParaEscribir(…)` (solo collection_id) o `null`; un `_x` solo dentro de un
+ *      patrón de destructurar (descartar). Lo que no, es un escritor que se salta la lista viva
+ *      o la de otra columna;
  *   2. literales: en los escritores de esas tablas (supabase/cableado.json más los que
  *      montan sus filas sin tocar la tabla, ARMAN_FILAS), ningún literal '…' o "…" igual a
  *      un valor vivo o retirado de sus vocabularios: el valor sale de la constante. La clave
  *      de un mapa de etiquetas (`{ dia_a_dia: "Día a día" }`) no es un literal: pinta un id,
  *      no lo escribe (y su paridad con la constante la mira vocabularios.test.js).
  *
- * Límites, a propósito: una fila copiada con `...fila` no se ve (por eso
- * api/_bot/compartir.js reescribe sus columnas de vocabulario a mano); un valor que llega
- * por una variable sin pasar por la función, en una clave calculada (`[col]: x`), tampoco.
+ * Límites, a propósito: una fila copiada con `...fila` no se ve (por eso la copia de una
+ * receta la monta su dueño, `filaCopiada` de userRecipesFila.js, que reescribe sus columnas);
+ * una clave calculada (`[col]: x`) o entre comillas, tampoco; una asignación partida en dos
+ * líneas (`col:` y el valor debajo) sale como «no pasa»: se escribe en una.
  * Puro: quien llama le pasa los textos.
  */
 
@@ -35,8 +38,19 @@ export const COLUMNAS = {
 /** Montan filas de esas tablas sin tocarlas (el que inserta las importa). */
 export const ARMAN_FILAS = ["src/lib/userRecipesFila.js"];
 
-/** Lo que puede ir a la derecha de `col:` en un escritor. */
-const PERMITIDO = /^(?:paraEscribir\(|listaParaEscribir\(|carpetaParaEscribir\(|null\b|_\w*\b)/;
+/**
+ * Lo de la derecha de una asignación a `col` (texto ORIGINAL, con sus cadenas): null si pasa
+ * por la lista viva del vocabulario de esa columna, o el porqué si no.
+ * `paraEscribir("usos_receta", x)` en pack_kind no vale: escribiría con la lista equivocada.
+ */
+function problemaDelValor(rhs, vocab, col) {
+  const llamada = rhs.match(/^(?:paraEscribir|listaParaEscribir)\(\s*(["'])([^"']*)\1/);
+  if (llamada) return llamada[2] === vocab ? null : `usa el vocabulario «${llamada[2]}» y la columna es de «${vocab}»`;
+  if (/^(?:paraEscribir|listaParaEscribir)\(/.test(rhs)) return "el vocabulario de paraEscribir va escrito, no en una variable";
+  if (/^carpetaParaEscribir\(/.test(rhs)) return col === "collection_id" ? null : "carpetaParaEscribir solo vale para collection_id";
+  if (/^null\b/.test(rhs)) return null;
+  return "no pasa por la lista viva";
+}
 
 /** Quita comentarios de bloque, de línea entera y los que van tras código (` // …`). */
 export function sinComentarios(texto) {
@@ -67,21 +81,31 @@ export function asignacionesSinFiltro(texto, columnas = COLUMNAS) {
   const originales = sinComentarios(texto).split("\n");
   const out = [];
   const lineas = originales.map(sinCadenas);
-  for (const columna of Object.keys(columnas)) {
+  for (const [columna, vocab] of Object.entries(columnas)) {
     const col = colDe(columna);
+    // Un patrón de destructurar (`const { col: _x } =`, `({ col: _x }) =>`) no escribe.
+    const destructura = new RegExp(`(?:\\b(?:const|let|var)\\s*\\{[^}]*\\b${col}\\b[^}]*\\}\\s*=)|(?:\\(\\s*\\{[^}]*\\b${col}\\b[^}]*\\}\\s*\\)\\s*=>)`);
     lineas.forEach((l, i) => {
       const texto = originales[i].trim();
+      const apunta = (motivo) => out.push({ columna, linea: i + 1, texto, motivo });
+      const enDestructura = destructura.test(l);
       for (const m of l.matchAll(new RegExp(`(?<![\\w.$])${col}\\s*:\\s*(.*)$`, "g"))) {
         // `a ? col : c` no es una clave: se exige que la columna abra la línea o venga tras `{`, `,` o `(`.
         const antes = l.slice(0, m.index).trimEnd();
         if (antes && !/[{,(]$/.test(antes)) continue;
-        if (!PERMITIDO.test(m[1].trim())) out.push({ columna, linea: i + 1, texto });
+        const rhs = originales[i].slice(m.index + m[0].length - m[1].length).trim();
+        // `_x` solo descarta dentro de un patrón de destructurar; en un objeto que se escribe es un valor.
+        if (enDestructura && /^_\w*\b/.test(rhs)) continue;
+        const p = problemaDelValor(rhs, vocab, col);
+        if (p) apunta(p);
+      }
+      // Asignación a una propiedad: `fila.col = x`.
+      for (const m of l.matchAll(new RegExp(`\\.${col}\\s*=(?![=>])\\s*(.*)$`, "g"))) {
+        const p = problemaDelValor(originales[i].slice(m.index + m[0].length - m[1].length).trim(), vocab, col);
+        if (p) apunta(p);
       }
       // Abreviada: `{ …, col }` o `{ col, … }` dentro de un literal de objeto que se escribe.
-      // Un patrón de destructurar (`const { col } =`, `({ col }) =>`) no escribe: se salta.
-      const abreviada = new RegExp(`[{,]\\s*${col}\\s*[,}]`).test(l);
-      const destructura = new RegExp(`(?:\\b(?:const|let|var)\\s*\\{[^}]*\\b${col}\\b[^}]*\\}\\s*=)|(?:\\(\\s*\\{[^}]*\\b${col}\\b[^}]*\\}\\s*\\)\\s*=>)`).test(l);
-      if (abreviada && !destructura) out.push({ columna, linea: i + 1, texto });
+      if (new RegExp(`[{,]\\s*${col}\\s*[,}]`).test(l) && !enDestructura) apunta("abreviada: no pasa por la lista viva");
     });
   }
   return out;
