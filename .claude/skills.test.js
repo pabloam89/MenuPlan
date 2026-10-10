@@ -3,10 +3,14 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  CAPAS, MAX_LINEAS, MIN_CASOS, PLAZO_COMPROBADO_DIAS, REGLAS, SECCIONES_POR_TIPO,
-  caducidad, caducidades, cargarContexto, cargarSkill, comprobarSkillsPr, faltasDeCopiado, faltasDeSkill,
-  nombresDeSkills, tiposDeFlujo,
+  CAPAS, MAX_DESCRIPCION, MAX_LINEAS, MIN_CASOS, PLAZO_COMPROBADO_DIAS, REGLAS, SECCIONES_POR_TIPO,
+  caducidad, caducidades, catalogoParaDisparo, cargarContexto, cargarSkill, comprobarSkillsPr, faltasDeCopiado, faltasDeSkill,
+  nombresDeSkills, parsearSkill, seccion, tiposDeFlujo,
 } from "../scripts/lib/skills.mjs";
+import {
+  CODIGOS_FORJA, EXCEPCIONES_FORJA, EXCEPCIONES_INICIALES, MAX_EJEMPLOS, MAX_SOLAPE, MIN_FRONTERA_FORJA,
+  TOPE_DESCRIPCION_ESTANDAR, TOPE_LINEAS_ESTANDAR, faltasDeSolape, faltasForja, solape,
+} from "../scripts/lib/skillsForja.mjs";
 
 /**
  * Nivel 1 de las skills (#336), gratis y en el CI. Todas siguen
@@ -70,6 +74,8 @@ const casosBuenos = () => ({
     { id: "dos", peticion: "Otra petición que debe cargar prueba", skill: "prueba", debe_salir: ["Dice lo que sale al ver"] },
     { id: "tres", peticion: "Una tercera que debe cargar prueba", skill: "prueba", debe_salir: ["No borra nada sin el OK"] },
     { id: "frontera", peticion: "Una petición que es de la otra skill", skill: "otra" },
+    { id: "frontera-dos", peticion: "Otra petición parecida que es de la otra skill", skill: "otra" },
+    { id: "frontera-tres", peticion: "Una tercera petición que no es de ninguna skill", skill: "ninguna" },
   ],
 });
 
@@ -109,11 +115,14 @@ const MUTACIONES = [
   ["estructura", "un fichero fuera de las capas", { ficheros: ["SKILL.md", "casos.json", "referencias/detalle.md", "notas.md"] }],
   ["casos", "sin casos.json", { casos: null }],
   ["casos", "casos.json roto", { casos: { error: "Unexpected token" } }],
-  ["casos", "menos casos de los que hacen falta", { casos: casosDe((c) => c.casos.splice(0, 1)) }],
-  ["casos", "sin caso de frontera", { casos: casosDe((c) => { c.casos[3] = { ...c.casos[0], id: "cuatro" }; }) }],
+  ["casos", "menos casos de los que hacen falta", { casos: casosDe((c) => c.casos.splice(0, 3)) }],
+  ["casos", "sin caso de frontera", { casos: casosDe((c) => { c.casos.splice(3, 3, { ...c.casos[0], id: "cuatro" }); }) }],
   ["casos", "un caso propio sin «debe_salir»", { casos: casosDe((c) => { delete c.casos[0].debe_salir; }) }],
   ["casos", "un caso que pide una skill que no existe", { casos: casosDe((c) => { c.casos[3].skill = "inventada"; }) }],
   ["casos", "dos casos con el mismo id", { casos: casosDe((c) => { c.casos[1].id = "uno"; }) }],
+  ["forja", "solo dos casos de frontera", { casos: casosDe((c) => { c.casos.pop(); }) }],
+  ["forja", "una fecha en el cuerpo", { texto: herramienta().replace(`## Claves y accesos\n\n${relleno}`, `## Claves y accesos\n\n${relleno} Desde el 9 oct 2026 va así.`) }],
+  ["forja", "una fecha ISO en el cuerpo", { texto: herramienta().replace(`## Coste y límites\n\n${relleno}`, `## Coste y límites\n\n${relleno} Al 2026-10-09 cuesta una cifra.`) }],
 ];
 
 it.each(MUTACIONES)("falla la regla %s con %s", (regla, _que, cambio) => {
@@ -156,6 +165,7 @@ it("un tipo nuevo pasa con sus secciones y su registro de cambios", () => {
     if (t === "Registro de cambios") return `## ${t}\n\n- **2026-10-09** · Primera versión (#336).`;
     if (t === "Fuentes y comprobación") return `## ${t}\n\n- https://ejemplo.invalid\n\nComprobado el 2026-10-09: la prueba.`;
     if (t === "Lo que falló y por qué") return `## ${t}\n\nNada todavía: es nueva. ${relleno}`;
+    if (t === "Método") return `## ${t}\n\n${relleno} Sale bien si la prueba pasa.`;
     return `## ${t}\n\n${relleno}`;
   }).join("\n\n");
   const texto = `---\nname: prueba\ndescription: Úsala cuando haya que probar el nivel 1 de las skills con una skill de oficio de mentira. No para: nada real.\nmetadata:\n  tipo: oficio\n  dueno: gobierno\n  comprobado: 2026-10-09\n---\n\n# Prueba\n\n${secciones}\n`;
@@ -188,4 +198,147 @@ it("la plantilla lista cada tipo con las mismas secciones que exige el test", ()
 it("CLAUDE.md nombra todas las skills", () => {
   const claude = readFileSync(join(RAIZ, "CLAUDE.md"), "utf8");
   for (const s of skills) expect(claude, `CLAUDE.md no nombra a ${s.nombre}`).toContain(`\`${s.nombre}\``);
+});
+
+// ── La forja (#409): lo automatizable de forja-de-skills ─────────────────
+
+const faltasDe = (cambio) => faltasDeSkill(buena(cambio), FALSO).filter((f) => f.regla === "forja");
+const codigos = (faltas) => faltas.map((f) => f.codigo);
+const conFecha = (txt) => herramienta().replace(`## Claves y accesos\n\n${relleno}`, `## Claves y accesos\n\n${relleno} ${txt}`);
+
+/** Una skill de oficio de mentira con el Método y la sección de ejemplos que se le den. */
+function oficioConForja({ metodo = `${relleno} Sale bien si la prueba pasa.`, ejemplos = relleno } = {}) {
+  const secciones = SECCIONES_POR_TIPO.oficio.map((t) => {
+    if (t === "Registro de cambios") return `## ${t}\n\n- **2026-10-09** · Primera versión (#409).`;
+    if (t === "Fuentes y comprobación") return `## ${t}\n\n- https://ejemplo.invalid\n\nComprobado el 2026-10-09: la prueba.`;
+    if (t === "Lo que falló y por qué") return `## ${t}\n\nNada todavía: es nueva. ${relleno}`;
+    if (t === "Método") return `## ${t}\n\n${metodo}`;
+    if (t === "Ejemplo resuelto") return `## ${t}\n\n${ejemplos}`;
+    return `## ${t}\n\n${relleno}`;
+  }).join("\n\n");
+  return `---\nname: prueba\ndescription: Úsala cuando haya que probar el nivel 1 de las skills con una skill de oficio de mentira. No para: nada real.\nmetadata:\n  tipo: oficio\n  dueno: gobierno\n  comprobado: 2026-10-09\n---\n\n# Prueba\n\n${secciones}\n`;
+}
+const oficio = (o) => ({ texto: oficioConForja(o), ficheros: ["SKILL.md", "casos.json"], extra: {} });
+
+describe("la forja ve fallar cada control", () => {
+  it("la skill de mentira de oficio pasa el nivel 1 entero (si no, lo de abajo no prueba nada)", () => {
+    expect(ver(faltasDeSkill(buena(oficio()), FALSO))).toEqual([]);
+  });
+
+  it("casos-negativos: menos de MIN_FRONTERA_FORJA peticiones de otra skill", () => {
+    expect(codigos(faltasDe({ casos: casosDe((c) => { c.casos.pop(); }) }))).toEqual(["casos-negativos"]);
+    expect(MIN_FRONTERA_FORJA).toBe(3);
+  });
+
+  it("fechas: una fecha en prosa falla; en código, en «Lo que falló» o en el registro, no", () => {
+    expect(codigos(faltasDe({ texto: conFecha("Desde el 9 oct 2026 va así.") }))).toEqual(["fechas"]);
+    expect(codigos(faltasDe({ texto: conFecha("Al 2026-10-09 se cambió.") }))).toEqual(["fechas"]);
+    expect(faltasDe({ texto: conFecha("Cabecera `anthropic-version: 2023-06-01`.") })).toEqual([]);
+    expect(faltasDe({})).toEqual([]); // la mentira ya lleva fechas en «Lo que falló» y en «Fuentes»
+  });
+
+  it("sin-parada: el Método de un tipo que no es herramienta no dice cuándo se acaba", () => {
+    expect(codigos(faltasDe(oficio({ metodo: relleno })))).toEqual(["sin-parada"]);
+    for (const frase of ["Sale bien si X.", "Sale: el fichero.", "Debe salir Y.", "Hecho cuando Z.", "Parar si falla."]) {
+      expect(faltasDe(oficio({ metodo: `${relleno} ${frase}` })), frase).toEqual([]);
+    }
+  });
+
+  it("ejemplos: más de MAX_EJEMPLOS en una sección de ejemplos", () => {
+    const n = (k) => Array.from({ length: k }, (_, i) => `### Ejemplo ${i + 1}\n\n${relleno}`).join("\n\n");
+    expect(MAX_EJEMPLOS).toBe(3);
+    expect(faltasDe(oficio({ ejemplos: n(3) }))).toEqual([]);
+    expect(codigos(faltasDe(oficio({ ejemplos: n(4) })))).toEqual(["ejemplos"]);
+  });
+
+  it("solape: dos descripciones casi iguales; distintas, no", () => {
+    const a = { nombre: "a", descripcion: "Úsala al rotar una credencial caducada del servicio de correo, guardarla en la bóveda y probar que funciona. No para: otra." };
+    const b = { nombre: "b", descripcion: "Úsala al rotar una credencial caducada del servicio de correo, guardarla en la bóveda y comprobar que funciona. No para: otra." };
+    const c = { nombre: "c", descripcion: "Úsala para diagnosticar por qué falló un despliegue y encontrar la causa raíz de un fallo repetido. No para: otra." };
+    expect(faltasDeSolape([a, b]).map((f) => f.skills)).toEqual([["a", "b"]]);
+    expect(faltasDeSolape([a, c])).toEqual([]);
+    expect(solape(a.descripcion, a.descripcion)).toBe(1);
+    expect(solape("", "")).toBe(0);
+  });
+
+  it("la lista de excepciones deja pasar el código que nombra y solo ese", () => {
+    const fecha = buena({ texto: conFecha("Desde el 9 oct 2026 va así.") });
+    expect(codigos(faltasDeSkill(fecha, FALSO))).toEqual(["fechas"]);
+    expect(faltasDeSkill(fecha, { ...FALSO, excepcionesForja: { prueba: ["fechas"] } })).toEqual([]);
+    expect(codigos(faltasDeSkill(fecha, { ...FALSO, excepcionesForja: { prueba: ["solape"] } }))).toEqual(["fechas"]);
+  });
+
+  it("cada código de la forja se ve fallar aquí y está explicado en la skill", () => {
+    const vistos = new Set(["casos-negativos", "fechas", "sin-parada", "ejemplos", "solape"]);
+    expect(CODIGOS_FORJA.filter((c) => !vistos.has(c))).toEqual([]);
+    const defectos = readFileSync(join(RAIZ, ".claude/skills/forja-de-skills/referencias/defectos.md"), "utf8");
+    for (const c of CODIGOS_FORJA) expect(defectos, `defectos.md no explica el código ${c}`).toContain(`\`${c}\``);
+  });
+});
+
+// ── La lista de excepciones solo baja (como TRAGADOS_CONOCIDOS) ──────────
+
+describe("EXCEPCIONES_FORJA: lo que las skills de hoy incumplen, y solo baja", () => {
+  const brutas = Object.fromEntries(skills.map((s) => {
+    const { meta, cuerpo } = parsearSkill(s.texto);
+    return [s.nombre, codigos(faltasForja({ nombre: s.nombre, cuerpo, tipo: meta?.metadata?.tipo, casos: s.casos }))];
+  }));
+
+  it("no hay faltas nuevas fuera de la lista (arregla la skill; la lista no crece)", () => {
+    const nuevas = Object.entries(brutas).flatMap(([n, cs]) => cs.filter((c) => !(EXCEPCIONES_FORJA[n] ?? []).includes(c)).map((c) => `${n}: ${c}`));
+    expect(nuevas).toEqual([]);
+  });
+
+  it("lo arreglado se quita de la lista", () => {
+    const sobran = Object.entries(EXCEPCIONES_FORJA).flatMap(([n, cs]) => cs.filter((c) => !(brutas[n] ?? []).includes(c)).map((c) => `${n}: ${c}`));
+    expect(sobran, "Ya cumple: bórralo de EXCEPCIONES_FORJA en scripts/lib/skillsForja.mjs").toEqual([]);
+  });
+
+  it("la lista no sube del tope de partida, y sus claves son skills y códigos reales", () => {
+    const total = Object.values(EXCEPCIONES_FORJA).reduce((a, cs) => a + cs.length, 0);
+    expect(total).toBeLessThanOrEqual(EXCEPCIONES_INICIALES);
+    for (const [n, cs] of Object.entries(EXCEPCIONES_FORJA)) {
+      expect(skills.map((s) => s.nombre), n).toContain(n);
+      for (const c of cs) expect(CODIGOS_FORJA, `${n}: ${c}`).toContain(c);
+    }
+  });
+
+  it("los pares de skills no solapan por encima de MAX_SOLAPE", () => {
+    expect(faltasDeSolape(catalogoParaDisparo(RAIZ)).map((f) => f.detalle)).toEqual([]);
+  });
+
+  it("forja-de-skills no tiene ninguna excepción: se cumple a sí misma", () => {
+    expect(EXCEPCIONES_FORJA["forja-de-skills"]).toBeUndefined();
+    expect(brutas["forja-de-skills"]).toEqual([]);
+  });
+});
+
+// ── La plantilla no contradice la forja ──────────────────────────────────
+
+describe("PLANTILLA-SKILL.md y forja-de-skills dicen lo mismo", () => {
+  const plantilla = readFileSync(join(AQUI, "PLANTILLA-SKILL.md"), "utf8").replace(/\r\n/g, "\n");
+  const forja = readFileSync(join(RAIZ, ".claude/skills/forja-de-skills/SKILL.md"), "utf8").replace(/\r\n/g, "\n");
+
+  it("los números de la forja salen en la plantilla", () => {
+    for (const n of [`${MIN_FRONTERA_FORJA} casos de frontera`, `${TOPE_DESCRIPCION_ESTANDAR} caracteres`, `${TOPE_LINEAS_ESTANDAR} líneas`, "EXCEPCIONES_FORJA", "forja-de-skills"]) {
+      expect(plantilla, n).toContain(n);
+    }
+  });
+
+  it("los topes de la casa están por debajo de los del estándar abierto", () => {
+    expect(MAX_DESCRIPCION).toBeLessThanOrEqual(TOPE_DESCRIPCION_ESTANDAR);
+    expect(MAX_LINEAS).toBeLessThan(TOPE_LINEAS_ESTANDAR);
+  });
+
+  it("la forja es de tipo meta, dice la regla de parada y cita al menos cinco fuentes con URL", () => {
+    expect(forja).toContain("tipo: meta");
+    expect(forja).toContain("regla_de_parada");
+    const fuentes = seccion(parsearSkill(forja).cuerpo, "Fuentes y comprobación");
+    expect(new Set(fuentes.match(/https:\/\/\S+/g)).size).toBeGreaterThanOrEqual(5);
+  });
+
+  it("la plantilla y la forja dicen la misma forma de descripción que exige el test", () => {
+    expect(plantilla).toContain("Úsala <cuándo");
+    expect(forja).toContain("Úsala <cuándo");
+  });
 });

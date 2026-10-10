@@ -52,6 +52,13 @@
         "^scripts/lib/claveRol\\.mjs$"
       ]
     },
+    "forja-de-skills": {
+      "comandos": [],
+      "rutas": [
+        "^scripts/lib/skillsForja\\.mjs$",
+        "^\\.claude/PLANTILLA-SKILL\\.md$"
+      ]
+    },
     "plan-de-arreglo": {
       "comandos": [],
       "rutas": [
