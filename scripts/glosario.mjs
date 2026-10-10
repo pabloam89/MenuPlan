@@ -11,7 +11,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  comparar, excepcionesPorTermino, excepcionesPorZona, ficherosDe, leerExcepciones, leerGlosario, medir, pares, textoTermino, total,
+  comparar, excepcionesPorTermino, plano, excepcionesPorZona, ficherosDe, leerExcepciones, leerGlosario, medir, pares, textoTermino, total,
 } from "./lib/glosario.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -32,10 +32,10 @@ if (args.includes("--medir")) {
 }
 
 const pedido = args.find((a) => !a.startsWith("--"));
-const terminos = pedido ? g.terminos.filter((t) => t.termino.toLowerCase().startsWith(pedido.toLowerCase())) : g.terminos;
+const terminos = pedido ? g.terminos.filter((t) => plano(t.termino).startsWith(plano(pedido))) : g.terminos;
 if (pedido && terminos.length === 0) {
   // ¿Es un sinónimo prohibido?
-  const t = g.terminos.find((x) => x.sinonimos_prohibidos.includes(pedido.toLowerCase()));
+  const t = g.terminos.find((x) => x.sinonimos_prohibidos.some((s) => plano(s) === plano(pedido)));
   console.log(t ? `«${pedido}» no se dice: es «${t.termino}».\n\n${textoTermino(t, g, exc)}` : `No hay ningún término «${pedido}» en ops/glosario.json.`);
   process.exit(t ? 0 : 1);
 }
