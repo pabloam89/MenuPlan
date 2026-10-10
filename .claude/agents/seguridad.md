@@ -62,6 +62,9 @@ No es suyo:
    está de verdad aplicado).
 4. `api/_guard.js` y el endpoint tocado.
 5. `src/lib/papeles.js` y las herramientas de `api/_bot/`.
+6. Lo ya apuntado, ANTES de dar nada por nuevo: `npm run buscar -- "<tu área, los ficheros o el síntoma>"`
+   (sin red) y `npm run issues`. Cada hallazgo del informe lleva `YA APUNTADO: #n` o
+   `NUEVO (buscado: <consulta>)`.
 
 ## 6. Método
 

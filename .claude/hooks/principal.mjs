@@ -11,6 +11,8 @@
  * para solo si fuera a pisarlo). La guardia ya deja ese merge en la principal.
  */
 
+import { RAMA_SIMPLE, limpiarTexto } from "../../scripts/lib/textoExterno.mjs";
+
 /**
  * Qué hacer con la carpeta al arrancar. Devuelve { adelantar: bool, aviso:
  * string|null }. `sucio`: salida de `git status --porcelain
@@ -35,4 +37,33 @@ export function avisoTrasAdelantar(n, cambiados) {
       + (hooks.includes(".claude/settings.json") ? "; los cambios de settings.json (hooks nuevos, permisos) se cargan al abrir la próxima sesión." : ".");
   }
   return linea;
+}
+
+/**
+ * El reflog de HEAD resumido a los cambios de rama («staging → ccr-0df… hace
+ * 2 h»). `texto`: `git reflog HEAD -n 30 --format=%gs|%cr`. Los más recientes
+ * primero, tope de `max`.
+ */
+export function resumenReflog(texto, max = 4) {
+  // Cada trozo sale por limpiarTexto: git admite `<>` en el nombre de una rama (ronda 3 de #384).
+  const l = (x) => limpiarTexto(x, 60);
+  return String(texto ?? "").split("\n")
+    .map((l) => /^checkout: moving from (\S+) to (\S+)\|(.+)$/.exec(l.trim()))
+    .filter(Boolean)
+    .slice(0, max)
+    .map((m) => `${l(m[1])} → ${l(m[2])} (${l(m[3])})`);
+}
+
+/**
+ * Aviso si la carpeta principal no está en staging (#348, #384): el 9 oct 2026
+ * una sesión de la nube dejó `ccr-…` puesta y los agentes dejaron de cargarse.
+ * null si es un worktree, si está en staging o si no se sabe la rama.
+ */
+export function avisoRamaPrincipal({ esWorktree, rama, reflog }) {
+  if (esWorktree || !rama || rama === "HEAD" || rama === "staging") return null;
+  const cambios = resumenReflog(reflog);
+  const pintable = RAMA_SIMPLE.test(rama) ? limpiarTexto(rama, 60) : "(nombre no válido)";
+  return `AVISO: la carpeta principal está en la rama ${pintable}, no en staging (caso #348: otra sesión la cambió y los agentes pueden no cargar). `
+    + (cambios.length ? `Últimos cambios de rama: ${cambios.join("; ")}. ` : "")
+    + "Mira `npm run buscar -- \"carpeta principal rama\"` antes de investigarlo; para volver, desde una tarea y sin trabajo suelto en la principal: `git switch staging`.";
 }
