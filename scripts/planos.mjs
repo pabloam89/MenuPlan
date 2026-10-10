@@ -11,9 +11,11 @@
 //
 // Sin dependencias a propósito: el workflow semanal lo corre sin `npm ci`.
 
+import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, rmSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { clienteGh, cuerpoIssue, faltaParaSiguiente, generarTabla, hoyMadrid, medir, sustituirTabla } from "./lib/planos.mjs";
+import { medirUso } from "./lib/usoSkills.mjs";
 
 const RAIZ = resolve(import.meta.dirname, "..");
 const RUTA_JSON = join(RAIZ, "ops/planos.json");
@@ -40,7 +42,16 @@ if (soloTabla) {
   process.exit(0);
 }
 
-const m = medir(datos, { raiz: RAIZ, gh: red ? clienteGh() : null, hoy: hoyMadrid() });
+// El uso de las skills sale de los transcripts de este PC (#397); sin ellos (el CI), «sin comprobar».
+const carpetaPrincipal = () => {
+  try {
+    return dirname(execFileSync("git", ["-C", RAIZ, "rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim());
+  } catch {
+    return RAIZ; // a propósito: fuera de git, la carpeta del script; en el peor caso no encuentra transcripts y sale «sin comprobar»
+  }
+};
+const leerUso = () => medirUso(RAIZ, { principal: carpetaPrincipal() });
+const m = medir(datos, { raiz: RAIZ, gh: red ? clienteGh() : null, hoy: hoyMadrid(), leerUso });
 
 if (json) {
   console.log(JSON.stringify(m, null, 2));
