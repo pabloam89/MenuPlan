@@ -50,7 +50,9 @@ metadata:
 - **Carpetas de trabajo** (worktrees): `npm run tarea` las crea y `npm run
   retirar` las cierra. Un hook personal de Pablo (`~/.claude/hooks/limpiar-worktrees.mjs`)
   borra solo las que ve **fusionadas y limpias**, tras cada `gh pr merge` y al
-  abrir cualquier sesión.
+  abrir cualquier sesión. `--zona <fichero>` reserva lo que la tarea aún no ha
+  tocado (`branch.<rama>.zona` de git, se va con la rama) y la guardia avisa a
+  otra rama que lo edite (#506).
 - **Las skills, por obligación** (#164; mapa `.claude/dominios-skills.json`): la puerta de lectura de la guardia, lo que avisa de más y las líneas «Runbook:», «Casos:», «Closes #n» y «Agente:» del PR, en `.claude/skills/github/referencias/skills-por-obligacion.md`.
 
 ## Claves y accesos

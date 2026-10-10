@@ -8,6 +8,7 @@
  *
  *   deny  → no se hace, y la sesión lee el porqué
  *   ask   → se le pregunta a la persona (los gateways del CLAUDE.md)
+ *   aviso → sigue el flujo normal de permisos, y la sesión lee el aviso (#506)
  *   nada  → sigue el flujo normal de permisos
  *
  * Cada regla lleva su porqué: si una molesta, se discute y se cambia aquí,
@@ -25,11 +26,14 @@ import { credencialDeComando } from "./credenciales.mjs";
 import { cargarMapa, skillsDeComando, skillsDeFicheros, unirContinuaciones } from "./dominios.mjs";
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
 import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
+import { anotarVista, consultarZona, listaDeRamas } from "./zonas.mjs";
 
 // Cada «no» y cada pregunta es un aviso de avisos-guardia.mjs: id del aviso + datos de la acción.
 // El mensaje sale de sus cuatro partes fijas y el `codigo` es el de su norma en ops/normas.json (#494).
+// `avisa` no decide nada: deja pasar y le cuenta algo a la sesión (#506).
 const deny = (aviso, vars) => avisoDe("deny", aviso, vars);
 const ask = (aviso, vars) => avisoDe("ask", aviso, vars);
+const avisa = (aviso, vars) => avisoDe("aviso", aviso, vars);
 
 // ── Comandos ───────────────────────────────────────────────────────────────
 
@@ -302,7 +306,7 @@ const GIT_QUE_ESCRIBE = /^git\s+(?:-C\s+(?:"[^"]+"|'[^']+'|\S+)\s+)?(add|commit|
 /** Lo que sí vale en la principal: ponerla al día y volver a staging. */
 const GIT_DE_MANTENER = /\bmerge\s+(.*\s)?--ff-only\b|\b(checkout|switch)\s+staging\s*$/;
 
-export function contextoReal(raiz, entrada = {}) {
+export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado } = {}) {
   let deStaging;
   const git = (args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000 }).trim();
   let comunPropio;
@@ -318,10 +322,13 @@ export function contextoReal(raiz, entrada = {}) {
   };
   // El registro de sesiones (para la puerta de lectura de las skills), perezoso:
   // casi ningún comando lo necesita.
-  let dirReg;
+  let dirReg = dirRegDado;
   const registro = () => (dirReg ??= dirSesiones(raiz) ?? null);
   const idSesion = entrada.session_id;
   return {
+    // Zonas con dueño (#506): las otras ramas vivas que llevan este fichero, de la foto en caché.
+    zonaAjena: (rutaAbs, rutaRel) => consultarZona(registro(), resolve(raiz, String(rutaAbs)), rutaRel),
+    marcarZona: (rutaRel) => anotarVista(registro(), idSesion, rutaRel),
     dominios: cargarMapa(raiz),
     skillAbierta: (skill) => skillAnotada(registro(), idSesion, skill),
     marcarSkill: (skill) => anotarSkill(registro(), idSesion, skill, "avisada"),
@@ -629,6 +636,15 @@ export function decidir(entrada, ctx) {
       const puerta = puertaDeSkills((mapa) => skillsDeFicheros([delRepo], mapa), entrada, ctx, "edicion");
       if (puerta) return puerta;
     }
+    // Zonas con dueño (#506, fondo #504): si otra rama viva ya cambió este fichero o lo
+    // reservó, se avisa sin bloquear, una vez por fichero y sesión. Va lo último: un «no»
+    // gana, y una edición negada no gasta el aviso. Falla abierta: sin foto, nada.
+    if (delRepo && ctx.zonaAjena && ctx.marcarZona) {
+      const otras = ctx.zonaAjena(ruta, delRepo) ?? [];
+      if (otras.length && ctx.marcarZona(delRepo)) {
+        return { ...avisa("zona-de-otra-rama", { fichero: delRepo, lista: listaDeRamas(otras) }), zona: { fichero: delRepo, otras } };
+      }
+    }
     return null;
   }
 
@@ -734,15 +750,18 @@ export function avisoParaDenegacion(r, entrada, { inicio = INICIO, ahora = Date.
 }
 
 let respondido = false;
+/**
+ * Lo que recibe Claude Code. Un aviso (#506) no lleva `permissionDecision`: la edición
+ * sigue su flujo normal de permisos y el texto le llega a la sesión como contexto.
+ */
+export function salidaDeGuardia(r, motivo) {
+  if (r.decision === "aviso") return { hookSpecificOutput: { hookEventName: "PreToolUse", additionalContext: motivo } };
+  return { hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: r.decision, permissionDecisionReason: motivo } };
+}
+
 const escribir = (r, motivo) => {
   respondido = true;
-  process.stdout.write(JSON.stringify({
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: r.decision,
-      permissionDecisionReason: motivo,
-    },
-  }));
+  process.stdout.write(JSON.stringify(salidaDeGuardia(r, motivo)));
 };
 
 const responder = async (r, entrada = null) => {
@@ -781,12 +800,15 @@ if (esPrincipal) {
   } catch {
     // a propósito: fuera de un repo nos quedamos con la raíz que hay
   }
+  // El registro de sesiones se calcula una vez (un `git`) y lo usan el «sigo viva», la puerta de las skills y las zonas.
+  let dirReg = null;
   try {
-    tocar(dirSesiones(raiz), entrada.session_id); // «sigo viva», para el registro de sesiones
+    dirReg = dirSesiones(raiz);
+    tocar(dirReg, entrada.session_id); // «sigo viva», para el registro de sesiones
   } catch {
     // a propósito: el registro es una ayuda, no un requisito; si falla, el arranque lo dice
   }
-  const r = decidir(entrada, contextoReal(raiz, entrada));
+  const r = decidir(entrada, contextoReal(raiz, entrada, { dirReg }));
   if (r) {
     // La respuesta sale PRIMERO: lo que decide la guardia no puede depender de un módulo de
     // registro que se cuelgue o haga process.exit (juez de seguridad de #340). El aviso de lo
@@ -797,9 +819,14 @@ if (esPrincipal) {
     try {
       if (!hayTiempoParaRegistrar(INICIO)) throw new Error("la guardia ya tardó demasiado: sin registro");
       const registro = (async () => {
-        const { registrarEvento } = await import("./eventos.mjs");
+        const { dirFabrica, registrarEvento } = await import("./eventos.mjs");
+        // Un aviso de zona deja además su línea contable por rama (`zona: … rama: … aviso: si`).
+        if (r.zona) {
+          const { anotarLineas, lineasDeAviso } = await import("./zonas.mjs");
+          anotarLineas(dirFabrica(), lineasDeAviso(r.zona));
+        }
         registrarEvento({
-          evento: r.decision === "deny" ? "bloqueo_guardia" : "permiso_pedido",
+          evento: { deny: "bloqueo_guardia", ask: "permiso_pedido", aviso: "aviso_guardia" }[r.decision],
           nombre: r.aviso,
           codigo: r.codigo,
           sesion: entrada.session_id,

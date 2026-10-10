@@ -47,7 +47,7 @@ export const HORAS_PARADA = 4;
 export const DIAS_MARCA_ANTIGUA = 3;
 
 /** Ramas que no son de nadie: no se cruzan con encargos ni cuentan como «sin número». */
-const AJENAS = /^(main|staging|HEAD)$|^(dependabot|pr|rescate)\/|^ccr-/;
+export const AJENAS = /^(main|staging|HEAD)$|^(dependabot|pr|rescate)\/|^ccr-/;
 
 /** Número de issue de una rama (`ops/271-quien-lleva` → 271). Un cero delante es el número de una migración, no un issue. */
 export function numeroDeRama(rama) {

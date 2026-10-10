@@ -257,14 +257,14 @@ export function problemasDeAvisos(avisos, normas, porCredencial = {}) {
 }
 
 /**
- * Las llamadas a `deny(` y `ask(` de un fichero de la guardia: { literales: [id…], otras: [texto…] }.
+ * Las llamadas a `deny(`, `ask(` y `avisa(` (#506) de un fichero de la guardia: { literales: [id…], otras: [texto…] }.
  * Un id literal es `deny("push-a-main")`; lo demás (un mensaje escrito a mano, una variable) va a
  * `otras`, salvo lo que se admite por nombre (`AVISO_POR_CREDENCIAL[cred]`, que se cruza con el mapa).
  */
 export function llamadasDeAviso(fuente, { admitidas = [] } = {}) {
   const literales = [];
   const otras = [];
-  for (const m of String(fuente).matchAll(/\b(deny|ask)\((?=([^\n]{0,90}))/g)) {
+  for (const m of String(fuente).matchAll(/\b(deny|ask|avisa)\((?=([^\n]{0,90}))/g)) {
     const resto = m[2];
     const lit = /^"([a-z]+(?:-[a-z]+)*)"/.exec(resto);
     if (lit) literales.push(lit[1]);
