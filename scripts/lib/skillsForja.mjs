@@ -261,7 +261,7 @@ export function faltasDeEstandares(plantilla, tipos, skills) {
       else if (s.tipo !== tipo) f.push(faltaEstandar("ejemplo-no-cuadra", tipo, `«${real[1]}» es de tipo ${s.tipo}, no ${tipo}`));
       else {
         const texto = sinEspacios(s.texto);
-        for (const l of lineas) if (!texto.includes(sinEspacios(l))) f.push(faltaEstandar("ejemplo-no-cuadra", tipo, `la línea «${sinEspacios(l).slice(0, 50)}» no está en ${real[1]}/SKILL.md: el ejemplo real se copia, no se inventa`));
+        for (const l of lineas) if (!texto.includes(sinEspacios(l))) f.push(faltaEstandar("ejemplo-no-cuadra", tipo, `la línea «${sinEspacios(l).slice(0, 50)}» no está en ${real[1]}/SKILL.md: el ejemplo real se copia, no se inventa; actualiza el ejemplo en .claude/PLANTILLA-SKILL.md`));
       }
     } else if (delTipo.length) {
       f.push(faltaEstandar("ejemplo-no-cuadra", tipo, `es un esqueleto, pero ya hay skills de este tipo (${delTipo.map((s) => s.nombre).join(", ")}): pon un ejemplo real`));

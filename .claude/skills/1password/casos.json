@@ -37,9 +37,9 @@
     },
     {
       "id": "frontera-alta-completa",
-      "peticion": "Necesito un token nuevo para un workflow de GitHub: con el ámbito mínimo, su caducidad, subido al environment y apuntado en el inventario.",
+      "peticion": "Ya tengo creada la ficha de 1Password del servicio nuevo; falta decidir el ámbito y la caducidad del token, subirlo al environment de GitHub y apuntarlo en el inventario.",
       "skill": "alta-de-secreto",
-      "nota": "Casi-fallo: habla de fichas y de 1Password, pero el alta de punta a punta es de alta-de-secreto; 1password guarda y lee claves."
+      "nota": "Casi-fallo: nombra 1Password y su ficha, pero la ficha es solo un paso; el alta de punta a punta (ámbito, caducidad, destino, inventario) es de alta-de-secreto, y 1password lo excluye en su descripción."
     },
     {
       "id": "frontera-actualizar-servidor",

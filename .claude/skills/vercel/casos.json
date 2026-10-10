@@ -37,10 +37,10 @@
       "skill": "supabase"
     },
     {
-      "id": "frontera-token-cli",
-      "peticion": "Necesito un token de Vercel nuevo, con ámbito de cuenta, para que un workflow lea los logs; ¿cómo lo creo y lo subo?",
-      "skill": "alta-de-secreto",
-      "nota": "Casi-fallo: es un token de Vercel, pero darlo de alta de punta a punta es de alta-de-secreto."
+      "id": "frontera-despliegue-bien-bot-mudo",
+      "peticion": "El despliegue de staging en Vercel salió en verde, pero Lola no contesta a ningún mensaje de Telegram.",
+      "skill": "telegram",
+      "nota": "Casi-fallo: empieza en un despliegue de Vercel que va bien; lo que falla es el bot (webhook, mensajes), que es de telegram."
     },
     {
       "id": "frontera-lint-rojo",

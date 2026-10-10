@@ -59,9 +59,9 @@
     },
     {
       "id": "frontera-lineas-del-pr",
-      "peticion": "Voy a abrir el PR de un encargo: ¿qué pongo en Closes, Agente y Casos para que el CI no falle?",
+      "peticion": "Ya tengo el plan con sus tres encargos; al abrir el PR del primero, ¿qué pongo en las líneas Closes, Agente y Casos para que el CI no falle?",
       "skill": "github",
-      "nota": "Casi-fallo: sale de un plan, pero las líneas del PR y su CI son de github."
+      "nota": "Casi-fallo: sale de un plan de arreglo, pero las líneas del PR y su comprobación en el CI son de github."
     }
   ]
 }

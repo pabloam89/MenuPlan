@@ -232,7 +232,7 @@ Real: `tailscale`, la tabla de «Operaciones habituales».
 #### Qué lo hace bueno
 
 - Un camino por defecto y una salida para el caso raro, no un menú de opciones [F: BP, demasiadas opciones].
-- Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación; I por analogía, BEA, condiciones de parada].
+- Cada paso del método dice lo que sale, y el método dice cuándo se acaba [F: BP, bucles de comprobación] y la condición de parada [I: por analogía, BEA].
 - Las técnicas se eligen por un dato del problema (su tipo de causa, su alcance), no por gusto [I].
 - Lo que no se ha podido comprobar se escribe como hipótesis, con la observación que la confirmaría [I].
 - Un ejemplo resuelto, abstracto y canónico, que sigue la propia norma de la skill [I por analogía, CE, ejemplos canónicos].
