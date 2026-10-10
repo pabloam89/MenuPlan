@@ -1,0 +1,121 @@
+{
+  "skill": "estilo-de-respuesta",
+  "casos": [
+    {
+      "id": "cuentame-como-va",
+      "peticion": "Acabas de terminar un cambio de scripts con cuatro ficheros tocados, lint pasado y CI en verde. Pablo pregunta: ¿cómo va lo de las copias? Redacta tu respuesta.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "La primera línea es una sola frase en negrita con la idea raíz (qué está hecho o qué falta)",
+        "Tiene cuatro ideas o menos, cortas",
+        "No lista ficheros ni nombra ramas, lint ni CI sin explicarlos",
+        "No usa cabeceras ni tablas"
+      ]
+    },
+    {
+      "id": "explicamelo-sencillo",
+      "peticion": "Pablo escribe: «uff, muy lío, explícamelo sencillo». Antes le dijiste que un workflow reintenta un job porque la deploy key no tiene bypass en el ruleset. Vuelve a explicárselo.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Empieza por una idea raíz en negrita en una frase sin jerga",
+        "Evita o traduce a palabras corrientes los términos técnicos (workflow, deploy key, ruleset)",
+        "No pasa de cuatro ideas y no usa tablas ni cabeceras"
+      ]
+    },
+    {
+      "id": "hay-que-decidir",
+      "peticion": "Hay tres formas de guardar las copias de seguridad: en el servidor que ya tenemos (gratis), en un servicio aparte (de pago, algo más seguro) o en el ordenador de Pablo (gratis, depende de que esté encendido). Pablo tiene que decidir. Escríbele.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "La primera línea en negrita empieza por «Necesito que decidas:»",
+        "Da tres opciones A, B y C en llano, la recomendada primero y marcada, y qué pasa con cada una, sin tabla de comparación",
+        "Termina con «Respóndeme con la letra.»"
+      ]
+    },
+    {
+      "id": "resumen-del-dia",
+      "peticion": "Se ha cerrado el día y tienes seis cosas hechas, tres pendientes y dos dudas. Pablo pide un resumen para saber por dónde vamos.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Una idea raíz en negrita arriba, no una lista de seis cosas",
+        "Agrupa lo hecho y lo pendiente en cuatro ideas como mucho",
+        "Manda el detalle a un issue o a un fichero en lugar de pegarlo en el chat"
+      ]
+    },
+    {
+      "id": "comando-para-pegar",
+      "peticion": "Redacta tu respuesta a Pablo: tiene que pegar en su terminal el comando que aplica un cambio en la base de datos. Dile qué hacer y dale el comando.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "La primera línea en negrita dice qué tiene que hacer y por qué",
+        "Una línea antes dice en llano qué hace el comando",
+        "El comando va solo en un bloque de código, sin detalle técnico alrededor",
+        "Termina con una línea con lo que necesita de él"
+      ]
+    },
+    {
+      "id": "explicar-un-concepto",
+      "peticion": "Pablo pregunta: ¿qué es eso de la guardia y para qué sirve? Respóndele.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Usa la plantilla de concepto: una frase en negrita con una comparación cotidiana, «Para qué te sirve:» y «Ejemplo:»",
+        "No pasa de cuatro ideas ni nombra ficheros, ramas o comandos",
+        "Frases cortas, sin preámbulo y sin emojis"
+      ]
+    },
+    {
+      "id": "fallo-de-la-prueba",
+      "peticion": "Has intentado enviar un aviso de prueba y ha fallado la conexión; no sabes si es la red o un permiso. Cuéntale a Pablo cómo ha quedado.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Usa la plantilla de error: qué no he podido en negrita, «Qué pasa:», «Qué he probado:» y «Qué hace falta y de quién:»",
+        "Tono tranquilo, sin volcar el registro del error",
+        "Termina diciendo quién tiene que dar el siguiente paso"
+      ]
+    },
+    {
+      "id": "que-cambia-este-pr",
+      "peticion": "Pablo pregunta qué cambia el PR que acabas de abrir (toca la guardia, dos tests y una regla). Explícaselo.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Empieza por una idea raíz en negrita sobre lo que cambia para él, en una frase",
+        "No nombra ficheros, ramas ni el número del PR, y explica «guardia» si la usa",
+        "No pasa de cuatro ideas"
+      ]
+    },
+    {
+      "id": "resume-informe-agente",
+      "peticion": "Un agente ha devuelto su informe común, con ESTADO, RESUMEN, CASOS, CAMBIOS, EVIDENCIA y una decisión pendiente. Cuéntaselo a Pablo.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Empieza por una idea raíz en negrita con el resultado",
+        "No copia CASOS, CAMBIOS ni EVIDENCIA, y deja el detalle fuera del chat",
+        "La decisión pendiente va como «Necesito que decidas:» con tres opciones A, B y C, la recomendada primero"
+      ]
+    },
+    {
+      "id": "frontera-informe-agente",
+      "peticion": "Escribe las secciones CASOS, CAMBIOS, EVIDENCIA y HALLAZGOS del informe común del agente, con ruta:línea y comandos, para la sesión principal.",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: es el informe de un agente; solo su RESUMEN y sus DECISIONES PENDIENTES siguen la voz con Pablo, el resto lleva su formato técnico (PLANTILLA-AGENTE)."
+    },
+    {
+      "id": "frontera-cuerpo-de-pr",
+      "peticion": "Escribe el cuerpo del PR con las líneas Closes, Casos, Agente y Runbook para que pase el CI.",
+      "skill": "github",
+      "nota": "Las líneas del PR son de la skill github; no son una respuesta a Pablo."
+    },
+    {
+      "id": "frontera-cuerpo-de-issue",
+      "peticion": "Abre un issue con la decisión pendiente sobre la hora de los avisos, con el detalle técnico de cada opción.",
+      "skill": "issues",
+      "nota": "Casi-fallo: hay una decisión para Pablo, pero el cuerpo del issue lleva el detalle técnico y es de la skill issues."
+    },
+    {
+      "id": "frontera-resumen-para-alvaro",
+      "peticion": "Dale a Álvaro el resumen del día con los ficheros tocados y los comandos que ha lanzado cada sesión.",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: es un resumen, pero para Álvaro, que lee el detalle técnico; la voz con Pablo no aplica."
+    }
+  ]
+}

@@ -132,6 +132,21 @@ Un hallazgo sin marca no se da por bueno. Un hook (`buscar-antes.mjs`) le pone
 delante lo apuntado cuando ve un error, un test rojo o una denegación, pero no
 sustituye a buscar a propósito.
 
+## Cómo se le escribe a Pablo
+
+Un subagente no hereda el tono de la sesión, así que lo lleva aquí. Solo el
+`RESUMEN` y las `DECISIONES PENDIENTES` siguen esta forma, la regla «Cómo se le
+habla a Pablo» de `CLAUDE.md` y la skill `estilo-de-respuesta`; el resto del
+informe (`CASOS`, `CAMBIOS`, `EVIDENCIA`, `HALLAZGOS`…) sigue su formato técnico:
+
+- Primera línea: la idea raíz en negrita, una frase con el resultado. Cuatro
+  ideas cortas, como mucho (ese es el único límite del resumen); frases de menos de 25 palabras; sin emojis.
+- Un término técnico se explica la primera vez; ficheros, ramas y comandos van
+  a los campos técnicos del informe, salvo que él los pida o los tenga que ejecutar.
+- Plantillas fijas: resultado, decisión, error, concepto y resumen.
+- Una decisión lleva tres opciones en llano (A, B, C), la recomendada primero y
+  qué pasa con cada una, y acaba con «Respóndeme con la letra.».
+
 ## Informe común
 
 Todos los agentes terminan con este bloque, igual, para que la sesión
@@ -141,7 +156,7 @@ va a un fichero y aquí solo su ruta.
 ```
 ## Informe
 ESTADO: ok | bloqueado | fallo
-RESUMEN: (3 líneas como mucho)
+RESUMEN: (la idea raíz en negrita y cuatro ideas como mucho, una línea cada una)
 CASOS: fallos reales del camino, uno por línea con su clase (o «ninguno»)
 SKILLS: las que abrió, con su vía (skill (herramienta|lectura|precargada), …), o «ninguna»
 CAMBIOS: ruta:línea — qué (o «ninguno»)
@@ -151,5 +166,5 @@ HALLAZGOS:
 NO COMPROBADO: lo que no pudo verificar
 SIGUIENTE: qué toca ahora y a qué agente
 DECISIONES PENDIENTES:
-- pregunta · opciones · recomendación · qué pasa si no se decide
+- Necesito que decidas: <pregunta> · A (recomendada), B y C, cada una con lo que pasa si se elige · si no se decide, qué pasa
 ```
