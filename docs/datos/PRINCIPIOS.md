@@ -77,6 +77,15 @@ regex que exporta `ids.js`.
   Por qué: un enum de Postgres no se puede encoger, y el valor que añade
   `add value` no se puede usar en la misma transacción (la 0070 tuvo que ir
   sola por eso). Los trece enums que hay se quedan; no se suma ninguno.
+  **Única excepción:** declarar un valor que ya existe en producción y que
+  ninguna migración declara, con `add value if not exists` y la marca
+  `-- enum-declarativo: <porqué>` en el mismo fichero (la 0098, #366). No
+  añade nada a la base: solo permite reconstruirla desde las migraciones. Un
+  `add value` sin marca, o sin `if not exists`, o en un fichero que no esté en
+  `ENUM_DECLARATIVO` (`principios.test.js`, hoy solo la 0098), sigue fallando. La marca va en
+  una línea que empieza por `--`, con el porqué (tres palabras) en esa línea.
+  Límite conocido: el test no distingue un `--` de línea dentro de un `/* */` o
+  de un literal de varias líneas.
 - Tabla de consulta (lookup) solo si los valores llevan atributos que alguien
   lee. **[revisión]**
 - Residual `'otro'` solo cuando sirva: con columna `<col>_otro text` y
