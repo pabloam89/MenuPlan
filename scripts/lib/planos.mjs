@@ -112,7 +112,27 @@ export const MEDIDORES = {
   casos_sin_fondo: (raiz, ctx) => cifraDeFondo("casos_sin_fondo", ctx),
   fondos_sin_encargo: (raiz, ctx) => cifraDeFondo("fondos_sin_encargo", ctx),
   fondos_cerrados_sin_test: (raiz, ctx) => cifraDeFondo("fondos_cerrados_sin_test", ctx),
+  // El uso de las skills en la última semana (#397, scripts/lib/usoSkills.mjs).
+  // Salen de los transcripts de Claude Code de este PC: en el CI no hay, y el
+  // criterio sale «sin comprobar». La lectura se hace una vez por medición.
+  /** Skills sin ninguna apertura deliberada (herramienta, lectura u orden; la precarga no cuenta). */
+  skills_sin_uso_semana: (raiz, ctx) => cifraDeUso((u) => u.sinUso.length, ctx),
+  /** Veces que una sesión o agente tocó un dominio (edición o comando de riesgo) sin abrir antes su skill. */
+  dominio_sin_skill_semana: (raiz, ctx) => cifraDeUso((u) => u.sinSkill.length, ctx),
 };
+
+/** Una cifra del uso de skills, o null si no hay transcripts que leer. */
+function cifraDeUso(cifra, ctx) {
+  if (!ctx?.leerUso) return null;
+  if (ctx.uso === undefined) {
+    try {
+      ctx.uso = ctx.leerUso();
+    } catch {
+      ctx.uso = null; // a propósito: «sin comprobar» y no se relee (son cientos de MB); el mensaje del error llevaría rutas locales al issue
+    }
+  }
+  return ctx.uso ? cifra(ctx.uso) : null;
+}
 
 /** Una cifra del fondo, o null si no hay issues que leer (sin red). La lectura se hace una vez por medición. */
 function cifraDeFondo(cifra, ctx) {
@@ -352,7 +372,7 @@ export function evaluarCriterio(c, ctx) {
       let valor;
       try {
         valor = medir(raiz, ctx);
-        if (valor === null) return { estado: "sin_comprobar", detalle: `${c.medidor}: necesita red` };
+        if (valor === null) return { estado: "sin_comprobar", detalle: `${c.medidor}: sin datos (necesita red, o los transcripts de este PC)` };
       } catch (e) {
         console.warn(`[planos] ${c.medidor}: no se pudo medir: ${e.message}`);
         return { estado: "no_cumple", detalle: `${c.medidor}: no se pudo medir (${e.message})` };
@@ -405,8 +425,8 @@ export function nivelDe(estadosPorNivel) {
  *   criterios: [{ nivel, tipo, que, estado, detalle, caducado }] }],
  *   desajustes, caducados }.
  */
-export function medir(datos, { raiz, gh = null, hoy = hoyMadrid(), leerIssues = gh ? leerIssuesGh : null }) {
-  const ctx = { raiz, gh, hoy, repo: datos.repo, caducidad: datos.caducidad_juicio_dias, leerIssues };
+export function medir(datos, { raiz, gh = null, hoy = hoyMadrid(), leerIssues = gh ? leerIssuesGh : null, leerUso = null }) {
+  const ctx = { raiz, gh, hoy, repo: datos.repo, caducidad: datos.caducidad_juicio_dias, leerIssues, leerUso };
   const planos = datos.planos.map((p) => {
     const criterios = [];
     const estadosPorNivel = {};

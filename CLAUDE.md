@@ -129,7 +129,7 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 `api/_bot/`), `tests` (`*.test.{js,jsx,mjs}`) y
 `api` (`api/*.js`). Las skills (`.claude/skills/`) son runbooks que se abren
 por su nombre: `1password`, `alta-de-secreto`, `vercel`, `supabase`, `github`, `issues`,
-`telegram`, `hetzner` y `tailscale` (precargadas en `gobierno` y `lola`); y
+`telegram`, `hetzner` y `tailscale` (precargadas en los agentes que el mapa `.claude/dominios-skills.json` pone en su dominio); y
 las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
 `plan-de-arreglo` (partir el arreglo en encargos); y la meta `forja-de-skills`
 (crear, probar y podar skills). Todas siguen

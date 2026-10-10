@@ -124,3 +124,26 @@ describe("con el repo de verdad", () => {
     expect(lista.has("0080_bot_tareas_v2")).toBe(false); // aplicada el 8 oct 2026
   });
 });
+
+describe("privilegios por defecto quitados (0096)", () => {
+  const sql = "alter default privileges for role postgres in schema public revoke all on tables from anon;\n"
+    + "alter default privileges for role postgres in schema public revoke all on sequences from anon, public;";
+  const migs = [{ nombre: "0096_x", ...testigos(sql) }];
+
+  it("cada rol quitado es un testigo negativo", () => {
+    expect(migs[0].quita.map((t) => `${t.tipo}|${t.id}`)).toEqual([
+      "permiso_defecto|tables:anon", "permiso_defecto|sequences:anon", "permiso_defecto|sequences:public",
+    ]);
+    expect(migs[0].crea).toEqual([]);
+  });
+  it("aplicada si la plantilla ya no lleva a anon; sin aplicar si todavía sí", () => {
+    const sin = { permiso_defecto: new Map([["tables:anon", ""], ["tables:authenticated", ""], ["sequences:anon", ""], ["sequences:public", ""]]) };
+    expect(veredictos(migs, sin, new Set())[0].estado).toBe("sin aplicar");
+    const con = { permiso_defecto: new Map([["tables:authenticated", ""], ["functions:anon", ""]]) };
+    expect(veredictos(migs, con, new Set())[0].estado).toBe("aplicada");
+  });
+  it("lo de las funciones no cuenta: functions:anon en la plantilla no desmiente a tables:anon", () => {
+    const con = { permiso_defecto: new Map([["functions:anon", ""]]) };
+    expect(veredictos(migs, con, new Set())[0].estado).toBe("aplicada");
+  });
+});
