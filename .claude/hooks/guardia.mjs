@@ -692,7 +692,9 @@ export function avisoAparte(r, entrada, { script = join(dirname(fileURLToPath(im
     };
     try {
       hijo = spawn(process.execPath, [script, "--denegacion"], { stdio: ["pipe", "pipe", "ignore"], windowsHide: true });
-      timers.push(setTimeout(() => fin("", "tiempo agotado"), tope));
+      const t0 = Date.now();
+      // Un aviso ya completo (el hijo salió bien) no se tira por llegar justo al tope.
+      timers.push(setTimeout(() => (estado === 0 ? evaluar() : fin("", "tiempo agotado")), tope));
       hijo.on("error", (e) => fin("", e?.code ?? "error"));
       hijo.stdout.setEncoding("utf8");
       hijo.stdout.on("data", (trozo) => {
@@ -704,7 +706,7 @@ export function avisoAparte(r, entrada, { script = join(dirname(fileURLToPath(im
       hijo.stdin.on("error", () => {});
       hijo.on("exit", (codigo, senal) => {
         estado = codigo ?? senal ?? -1;
-        timers.push(setTimeout(evaluar, GRACIA_TRAS_EXIT_MS));
+        timers.push(setTimeout(evaluar, Math.max(0, Math.min(GRACIA_TRAS_EXIT_MS, tope - (Date.now() - t0) - 1))));
       });
       hijo.on("close", () => { if (!hecho && estado !== null) evaluar(); });
       hijo.stdin.end(JSON.stringify({

@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, existsSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, existsSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -56,14 +56,26 @@ describe("avisoAparte: el tope se cumple pase lo que pase con el hijo", () => {
     expect(ms).toBeLessThan(3000);
   }, 20000);
 
-  it("10 MB por la salida estándar: sin aviso y sin reventar la memoria", async () => {
+  it("10 MB por la salida estándar: se corta el tope de bytes (el hijo muere antes de acabar de escribir)", async () => {
+    const marca = join(nuevoDir(), "acabo");
     const f = falso(`
+      import { writeFileSync } from "node:fs";
       const trozo = "[buscar-antes] " + "x".repeat(1024 * 1024);
-      for (let i = 0; i < 10; i++) process.stdout.write(trozo);
+      for (let i = 0; i < 9; i++) process.stdout.write(trozo);
+      process.stdout.write(trozo, () => writeFileSync(${JSON.stringify(marca)}, "1"));
     `);
-    const { v, ms } = await mide(f, 3000);
+    const { v } = await mide(f, 3000);
     expect(v).toBe("");
-    expect(ms).toBeLessThan(3500);
+    await new Promise((r) => setTimeout(r, 500));
+    expect(existsSync(marca)).toBe(false);
+  }, 20000);
+
+  it("si el hijo sale justo antes del tope, el aviso completo no se descarta", async () => {
+    // El hijo escribe y sale 70 ms antes de que venza el tope, contados desde ahora (el arranque de node varía).
+    const hora = Date.now() + 800 - 70;
+    const f = falso(`process.stdout.write("[buscar-antes] justo"); setTimeout(() => process.exit(0), Math.max(0, ${hora} - Date.now()));`);
+    const { v } = await mide(f, 800);
+    expect(v).toBe("[buscar-antes] justo");
   }, 20000);
 
   it("un hijo que falla (salida con error) no da aviso", async () => {
@@ -109,13 +121,19 @@ describe("la guardia con el tiempo ya gastado se salta el aviso", () => {
   });
 });
 
-describe("el grafo de buscar-antes.mjs no lanza procesos", () => {
+describe("el grafo de imports de buscar-antes.mjs no trae child_process", () => {
+  /**
+   * Límite: lee el texto, sin analizar el código. Sigue imports estáticos y import() con literal relativo,
+   * ignora comentarios, y busca por texto child_process/worker_threads/cluster (también en require).
+   * Un import dinámico con variable o un módulo de paquetes (node_modules) no se ve.
+   */
+  const sinComentarios = (src) => src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
   /** Recorre los imports reales (relativos) desde un fichero. */
   const grafo = (entrada, vistos = new Set()) => {
     const ruta = resolve(entrada);
     if (vistos.has(ruta)) return vistos;
     vistos.add(ruta);
-    const src = readFileSync(ruta, "utf8");
+    const src = sinComentarios(readFileSync(ruta, "utf8"));
     for (const m of src.matchAll(/(?:from\s+|import\s*\(\s*|import\s+)["'](\.[^"']+)["']/g)) grafo(resolve(dirname(ruta), m[1]), vistos);
     return vistos;
   };
@@ -126,16 +144,16 @@ describe("el grafo de buscar-antes.mjs no lanza procesos", () => {
     expect(g.length).toBeGreaterThan(3);
   });
 
-  it("ninguno importa child_process, worker_threads ni cluster, ni los pide con require", () => {
+  it("ningún fichero del grafo nombra child_process, worker_threads ni cluster", () => {
     for (const ruta of grafo(HOOK)) {
-      const src = readFileSync(ruta, "utf8");
+      const src = sinComentarios(readFileSync(ruta, "utf8"));
       expect(src, ruta).not.toMatch(/(?:node:)?(?:child_process|worker_threads|cluster)\b/);
     }
   });
 });
 
 describe("POSIX con varios usuarios: ni enlaces ni ficheros ajenos", () => {
-  it("leerIndice no sigue un enlace (lstat)", () => {
+  it("leerIndice no sigue un enlace (lstat)", (ctx) => {
     const d = nuevoDir();
     const real = join(d, "real.json");
     writeFileSync(real, JSON.stringify({ version: 1, fichas: [], generado: new Date().toISOString() }));
@@ -143,7 +161,8 @@ describe("POSIX con varios usuarios: ni enlaces ni ficheros ajenos", () => {
     try {
       symlinkSync(real, enlace);
     } catch {
-      return; // Windows sin permiso para enlaces: no se puede ensayar
+      ctx.skip(); // Windows sin permiso para enlaces: no se puede ensayar aquí
+      return;
     }
     expect(leerIndice(enlace).indice).toBeNull();
   });
@@ -157,7 +176,6 @@ describe("POSIX con varios usuarios: ni enlaces ni ficheros ajenos", () => {
     expect(escrituraSegura(enlace, d)).toBe(false);
     expect(escrituraSegura(real, d)).toBe(true);
     expect(escrituraSegura(join(d, "no-existe.log"), d)).toBe(true);
-    mkdirSync(join(d, "sub"));
   });
 
   it("escrituraSegura: una ruta rara no revienta", () => {
