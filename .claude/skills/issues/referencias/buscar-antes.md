@@ -12,7 +12,7 @@ está en `SKILL.md`; aquí, cómo funciona.
   «Agent type … not found» o la carpeta principal fuera de `staging`, busca en
   el índice y pone en el contexto una frase fija con la señal y, si hay,
   «datos de GitHub» con los issues parecidos (títulos saneados). Una vez por
-  señal y sesión; nunca bloquea. La denegación de la guardia la añade la propia
+  señal y sesión; el aviso informa y no frena nada. La denegación de la guardia la añade la propia
   guardia a su mensaje.
 - **Lo que cuenta** cada aviso queda en `senales.log` (junto al índice), una
   línea por señal con su `resultado`.
