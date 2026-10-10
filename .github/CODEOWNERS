@@ -1,0 +1,12 @@
+# Dueño de código (#330, fondo #326). GitHub pide la aprobación del dueño a un
+# PR que toque estas rutas cuando el ruleset lo exige (scripts/rulesets.mjs).
+# El orden importa: gana la última línea que coincide. Cada ruta existe: lo
+# comprueba scripts/rulesets.test.js. No hay línea de supabase/migrations: las
+# migraciones las aplica la sesión con el juez (CLAUDE.md, «Base de datos»), y
+# el script que las aplica sí está aquí.
+/.claude/ @pabloam89
+/.github/ @pabloam89
+/scripts/apply-migration.mjs @pabloam89
+/scripts/lib/permisoAplicar.mjs @pabloam89
+/scripts/rulesets.mjs @pabloam89
+/ops/normas.json @pabloam89
