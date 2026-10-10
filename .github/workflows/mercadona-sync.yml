@@ -73,7 +73,9 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      # Sin scripts de instalación (#330): este job escribe en staging con la deploy key
+      # y no necesita compilar nada de lo instalado.
+      - run: npm ci --ignore-scripts
 
       - name: Descargar el catálogo
         run: node scripts/mercadona-sync.mjs
@@ -131,6 +133,21 @@ jobs:
             N=$(node -p "require('./public/store/mercadona.json').productCount")
             git add public/store/mercadona.json src/data/derived/recipeCoste.json
             git commit -m "chore(mercadona): catálogo semanal — ${N} productos"
+          fi
+
+          # Control antes de empujar (#330): la deploy key se salta el ruleset de staging,
+          # así que solo sale de aquí lo que este job debe cambiar: como mucho un commit
+          # y solo estos dos ficheros. Si no, falla sin tocar la key.
+          git fetch --no-tags --depth=1 origin staging
+          if [ "$(git rev-list --count origin/staging..HEAD)" -gt 1 ]; then
+            echo "::error::Más de un commit por empujar; no empujo."
+            exit 1
+          fi
+          FUERA=$(git diff --name-only origin/staging..HEAD | grep -vxF -e public/store/mercadona.json -e src/data/derived/recipeCoste.json || true)
+          if [ -n "$FUERA" ]; then
+            echo "::error::El commit toca ficheros que no son del catálogo; no empujo."
+            echo "$FUERA"
+            exit 1
           fi
 
           if [ -z "$DEPLOY_KEY" ]; then
