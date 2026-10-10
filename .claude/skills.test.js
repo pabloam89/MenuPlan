@@ -8,8 +8,8 @@ import {
   nombresDeSkills, parsearSkill, seccion, tiposDeFlujo,
 } from "../scripts/lib/skills.mjs";
 import {
-  CODIGOS_FORJA, EXCEPCIONES_FORJA, EXCEPCIONES_INICIALES, MAX_EJEMPLOS, MAX_SOLAPE, MIN_FRONTERA_FORJA,
-  LIMITE_DESCRIPCION_ESTANDAR, LIMITE_LINEAS_ESTANDAR, faltasDeSolape, faltasForja, solape,
+  CODIGOS_ESTANDAR, CODIGOS_FORJA, EXCEPCIONES_FORJA, EXCEPCIONES_INICIALES, MAX_EJEMPLOS, MAX_SOLAPE, MIN_FRONTERA_FORJA,
+  LIMITE_DESCRIPCION_ESTANDAR, LIMITE_LINEAS_ESTANDAR, faltasDeEstandares, faltasDePresentacion, faltasDeSolape, faltasForja, solape,
 } from "../scripts/lib/skillsForja.mjs";
 
 /**
@@ -280,7 +280,7 @@ describe("la forja ve fallar cada control", () => {
   });
 
   it("cada código de la forja se ve fallar aquí y está explicado en la skill", () => {
-    const vistos = new Set(["casos-negativos", "fechas", "sin-parada", "ejemplos", "solape"]);
+    const vistos = new Set(["casos-negativos", "fechas", "sin-parada", "ejemplos", "solape", "comando-suelto", "tabla", "cabeceras"]);
     expect(CODIGOS_FORJA.filter((c) => !vistos.has(c))).toEqual([]);
     const defectos = readFileSync(join(RAIZ, ".claude/skills/forja-de-skills/referencias/defectos.md"), "utf8");
     for (const c of CODIGOS_FORJA) expect(defectos, `defectos.md no explica el código ${c}`).toContain(`\`${c}\``);
@@ -289,19 +289,16 @@ describe("la forja ve fallar cada control", () => {
 
 // ── La lista de excepciones solo baja (como TRAGADOS_CONOCIDOS) ──────────
 
-// Los 19 pares de partida. Este literal NO se edita para añadir: solo se le quitan líneas cuando #410 y #411 arreglan la skill.
+// Los pares que quedan (eran 19 el 10 oct 2026; #410 quitó 12). Este literal NO se edita para añadir: solo se le quitan líneas cuando #411 arregla la skill.
 const PARES_DE_PARTIDA = [
-  "1password: casos-negativos", "1password: fechas", "alta-de-secreto: fechas", "causa-raiz: casos-negativos",
-  "github: casos-negativos", "github: fechas", "hetzner: casos-negativos", "hetzner: fechas",
-  "issues: casos-negativos", "issues: fechas", "plan-de-arreglo: casos-negativos", "supabase: casos-negativos",
-  "supabase: fechas", "tailscale: casos-negativos", "tailscale: fechas", "telegram: casos-negativos",
-  "telegram: fechas", "vercel: casos-negativos", "vercel: fechas",
+  "1password: fechas", "github: fechas", "hetzner: fechas", "issues: fechas",
+  "supabase: fechas", "telegram: fechas", "vercel: fechas",
 ];
 
 describe("EXCEPCIONES_FORJA: lo que las skills de hoy incumplen, y solo baja", () => {
   const brutas = Object.fromEntries(skills.map((s) => {
     const { meta, cuerpo } = parsearSkill(s.texto);
-    return [s.nombre, codigos(faltasForja({ nombre: s.nombre, cuerpo, tipo: meta?.metadata?.tipo, casos: s.casos }))];
+    return [s.nombre, codigos(faltasForja({ nombre: s.nombre, cuerpo, tipo: meta?.metadata?.tipo, casos: s.casos, extra: s.extra }))];
   }));
 
   it("no hay faltas nuevas fuera de la lista (arregla la skill; la lista no crece)", () => {
@@ -364,5 +361,129 @@ describe("PLANTILLA-SKILL.md y forja-de-skills dicen lo mismo", () => {
   it("la plantilla y la forja dicen la misma forma de descripción que exige el test", () => {
     expect(plantilla).toContain("Úsala <cuándo");
     expect(forja).toContain("Úsala <cuándo");
+  });
+});
+
+// ── La presentación (#410): lo mecánico de referencias/presentacion.md ──
+
+describe("la presentación ve fallar cada control", () => {
+  const codigosP = (texto) => faltasDePresentacion(texto).map((f) => f.codigo);
+  const tabla = (...filas) => filas.join("\n");
+
+  it("las skills de verdad (SKILL.md y capas) cumplen los tres controles", () => {
+    for (const s of skills) {
+      const { cuerpo } = parsearSkill(s.texto);
+      expect(faltasDePresentacion(cuerpo, s.nombre).map((f) => f.detalle), s.nombre).toEqual([]);
+      for (const [ruta, texto] of Object.entries(s.extra)) expect(faltasDePresentacion(texto, ruta).map((f) => f.detalle), `${s.nombre}/${ruta}`).toEqual([]);
+    }
+  });
+
+  it("comando-suelto: un comando de la casa en prosa falla; en código en línea, en bloque o en dos líneas, no", () => {
+    expect(codigosP("Para verlo lanza npm run issues y mira la salida.")).toEqual(["comando-suelto"]);
+    expect(codigosP("Primero gh pr checks 12 y luego git push.")).toEqual(["comando-suelto"]);
+    expect(codigosP("Para verlo lanza `npm run issues` y mira la salida.")).toEqual([]);
+    expect(codigosP("Lanza `gh issue view <n>\n   --comments` y mira.")).toEqual([]);
+    expect(codigosP("Así:\n\n```\nnpm run issues\ngit push\n```\n")).toEqual([]);
+    expect(codigosP("Más en https://cli.github.com/manual/gh y `git status`.")).toEqual([]);
+    expect(codigosP("Una URL pegada a una comilla: (`https://x.dev/a`) y `npm run tarea`.")).toEqual([]);
+    expect(codigosP("Palabras sueltas: git es el sistema, gh el cliente y npm el gestor.")).toEqual([]);
+  });
+
+  it("tabla: filas de distinto ancho o con celdas vacías fallan; el \\| escapado y los separadores no", () => {
+    const bien = tabla("| Qué | Comando |", "|---|---|", "| Ver | `ver` |");
+    expect(codigosP(bien)).toEqual([]);
+    expect(codigosP(tabla("| Qué | Comando |", "|---|---|", "| Ver | `a` | `b` |"))).toEqual(["tabla"]);
+    expect(codigosP(tabla("| Qué | Comando |", "|---|---|", "| Ver | `a|b` |"))).toEqual(["tabla"]);
+    expect(codigosP(tabla("| Qué | Comando |", "|---|---|", "| Ver |  |"))).toEqual(["tabla"]);
+    expect(codigosP(tabla("| Qué | Comando |", "|---|---|", "| Ver | `a\\|b` |"))).toEqual([]);
+    // Dos tablas separadas por un párrafo no se mezclan.
+    expect(codigosP(`${bien}\n\nTexto.\n\n| Uno | Dos | Tres |\n|---|---|---|\n| a | b | c |`)).toEqual([]);
+    // Una tabla dentro de un bloque de código es un ejemplo, no una tabla.
+    expect(codigosP("```\n| a | b |\n|---|---|\n| 1 |\n```")).toEqual([]);
+  });
+
+  it("cabeceras: un salto de nivel falla; bajar de una en una o subir de golpe, no", () => {
+    expect(codigosP("# T\n\n## A\n\n#### B\n")).toEqual(["cabeceras"]);
+    expect(codigosP("# T\n\n## A\n\n### B\n\n#### C\n\n## D\n")).toEqual([]);
+    expect(codigosP("# T\n\n## A\n\n### B\n\n## D\n")).toEqual([]);
+    expect(codigosP("# T\n\n```\n## A\n#### B\n```\n")).toEqual([]);
+  });
+
+  it("una skill con un comando suelto falla la regla forja, y la lista de excepciones lo deja pasar solo si lo nombra", () => {
+    const sucio = buena({ texto: herramienta().replace(`## Claves y accesos\n\n${relleno}`, `## Claves y accesos\n\n${relleno} Lanza npm run issues para verlo.`) });
+    expect(codigos(faltasDeSkill(sucio, FALSO))).toEqual(["comando-suelto"]);
+    expect(faltasDeSkill(sucio, { ...FALSO, excepcionesForja: { prueba: ["comando-suelto"] } })).toEqual([]);
+    // Y en una capa: el fichero de referencias también cuenta.
+    const capa = buena({ extra: { "referencias/detalle.md": "Detalle.\n\n| A | B |\n|---|---|\n| 1 |\n" } });
+    expect(codigos(faltasDeSkill(capa, FALSO))).toEqual(["tabla"]);
+  });
+});
+
+// ── El estándar de cada tipo (#410) ──────────────────────────────────────
+
+describe("el estándar de cada tipo de la plantilla", () => {
+  const plantilla = readFileSync(join(AQUI, "PLANTILLA-SKILL.md"), "utf8").replace(/\r\n/g, "\n");
+  const tiposSkills = skills.map((s) => ({ nombre: s.nombre, tipo: parsearSkill(s.texto).meta?.metadata?.tipo, texto: s.texto }));
+  const tipos = tiposDeFlujo(RAIZ);
+  const faltasE = (p, ts = tiposSkills) => faltasDeEstandares(p, tipos, ts);
+  const codigosE = (p, ts) => faltasE(p, ts).map((f) => f.codigo);
+  /** Cambia el trozo de un tipo (entre su «### `tipo`» y el siguiente «###» o «##»). */
+  const delTipo = (tipo, cambia) => {
+    const re = new RegExp(`(### \`${tipo}\`\\n)([\\s\\S]*?)(?=\\n### |\\n## )`);
+    return plantilla.replace(re, (_m, cab, cuerpo) => cab + cambia(cuerpo));
+  };
+
+  it("los ocho tipos tienen «Qué lo hace bueno», «Errores típicos» y un ejemplo, con su marca [F] o [I]", () => {
+    expect(faltasE(plantilla).map((f) => f.detalle)).toEqual([]);
+    expect(tipos).toHaveLength(8);
+  });
+
+  it("falla si a un tipo le falta «Qué lo hace bueno», «Errores típicos» o el ejemplo", () => {
+    for (const apartado of ["Qué lo hace bueno", "Errores típicos", "Ejemplo mínimo"]) {
+      const sin = delTipo("estandar", (c) => c.replace(new RegExp(`#### ${apartado}\\n[\\s\\S]*?(?=#### |$)`), ""));
+      expect(codigosE(sin), apartado).toEqual(["apartado-ausente"]);
+      expect(faltasE(sin)[0].tipo).toBe("estandar");
+    }
+  });
+
+  it("falla si falta un tipo entero, o la sección entera", () => {
+    const sinTipo = plantilla.replace(/### `meta`\n[\s\S]*?(?=\n## )/, "");
+    expect(faltasE(sinTipo).map((f) => `${f.tipo}:${f.codigo}`)).toEqual(["meta:tipo-sin-estandar"]);
+    const sinSeccion = plantilla.replace("## El estándar de cada tipo", "## Otra cosa");
+    expect(codigosE(sinSeccion)).toEqual(Array(8).fill("tipo-sin-estandar"));
+  });
+
+  it("falla con un solo punto, o con un punto sin [F] ni [I]", () => {
+    const uno = delTipo("oficio", (c) => c.replace(/(#### Errores típicos\n\n- [^\n]*\n)- [^\n]*\n- [^\n]*\n- [^\n]*\n/, "$1"));
+    expect(codigosE(uno)).toEqual(["pocos-puntos"]);
+    const sinMarca = delTipo("oficio", (c) => c.replace(" [F: BP, instrucciones claras].", "."));
+    expect(codigosE(sinMarca)).toEqual(["sin-fuente"]);
+  });
+
+  it("el ejemplo real sale tal cual de su skill: una línea inventada falla; una skill de otro tipo o inexistente, también", () => {
+    const inventada = delTipo("meta", (c) => c.replace("Pon la petición real a una sesión", "Pon una petición inventada a una sesión"));
+    expect(codigosE(inventada)).toEqual(["ejemplo-no-cuadra"]);
+    const otroTipo = delTipo("meta", (c) => c.replace("Real: `forja-de-skills`", "Real: `causa-raiz`"));
+    expect(codigosE(otroTipo)).toEqual(["ejemplo-no-cuadra"]);
+    const noExiste = delTipo("meta", (c) => c.replace("Real: `forja-de-skills`", "Real: `no-existe`"));
+    expect(codigosE(noExiste)).toEqual(["ejemplo-no-cuadra"]);
+  });
+
+  it("el ejemplo tiene entre 3 y 6 líneas y dice si es real o esqueleto", () => {
+    const corto = delTipo("dominio", (c) => c.replace(/```\nLo que hay que saber[\s\S]*?```/, "```\nUna sola línea.\n```"));
+    expect(codigosE(corto)).toEqual(["ejemplo-largo"]);
+    const largo = delTipo("dominio", (c) => c.replace(/```\nLo que hay que saber[\s\S]*?```/, "```\n1\n2\n3\n4\n5\n6\n7\n```"));
+    expect(codigosE(largo)).toEqual(["ejemplo-largo"]);
+    const sinOrigen = delTipo("meta", (c) => c.replace("Real: `forja-de-skills`, el segundo paso de su método.", "Un ejemplo cualquiera."));
+    expect(codigosE(sinOrigen)).toEqual(["ejemplo-sin-origen"]);
+  });
+
+  it("un esqueleto solo vale mientras no haya ninguna skill de ese tipo", () => {
+    const conDominio = [...tiposSkills, { nombre: "negocio", tipo: "dominio", texto: "Texto." }];
+    expect(faltasE(plantilla, conDominio).map((f) => `${f.tipo}:${f.codigo}`)).toEqual(["dominio:ejemplo-no-cuadra"]);
+  });
+
+  it("los códigos del estándar son un vocabulario cerrado", () => {
+    expect(CODIGOS_ESTANDAR).toEqual(["tipo-sin-estandar", "apartado-ausente", "pocos-puntos", "sin-fuente", "ejemplo-sin-origen", "ejemplo-largo", "ejemplo-no-cuadra"]);
   });
 });
