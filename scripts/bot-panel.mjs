@@ -9,12 +9,13 @@
  *   npm run bot:panel -- --no-abrir   → solo lo escribe
  *   npm run bot:panel -- --json=x.json  → de un fichero de eventos [{created_at, event, m}], sin base
  *
- * Lee SUPABASE_DB_URL de .env.local (Supabase → Connect → URI). Escribe
+ * Lee SUPABASE_DB_URL_LECTURA (usuario de solo lectura, #328). Escribe
  * .ops/panel.html. Las cuentas son las del informe semanal (scripts/lib/bot-semana.mjs).
  */
 
 import fs from "node:fs";
 import { leerEnv } from "./lib/env.mjs";
+import { conexionDeConsulta } from "./lib/rolLectura.mjs";
 import { exec } from "node:child_process";
 import { medir, semaforo, corregidos, pct, porLugar, lugarDe } from "./lib/bot-semana.mjs";
 
@@ -25,8 +26,7 @@ const TEXTOS = Boolean(arg("textos"));
 
 async function leerEventos() {
   if (valor("json")) return JSON.parse(fs.readFileSync(valor("json"), "utf8"));
-  const url = leerEnv("SUPABASE_DB_URL");
-  if (!url) throw new Error("Falta SUPABASE_DB_URL en .env.local (Supabase → proyecto → Connect → URI)");
+  const { url } = conexionDeConsulta(leerEnv);
   const { default: pg } = await import("pg");
   const db = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
   await db.connect();

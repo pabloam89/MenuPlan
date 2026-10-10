@@ -114,6 +114,93 @@ describe("hábitos que ya rompieron cosas", () => {
     expect(decidir({ tool_name: "PowerShell", tool_input: { command: "dir | Out-File $env:TEMP\\x.txt" } }, ctx())).toBe(null));
 });
 
+describe("1Password: las sesiones solo leen HoMenu-sesiones (#328)", () => {
+  // Con la cuenta de servicio de sesiones, lo de HoMenu solo se lee por la app
+  // de escritorio. Si una sesión la pide, a Pablo le sale una ventana igual que
+  // las suyas: la puerta es que la sesión no pueda ni pedirla.
+  it.each([
+    "MENUPLAN_OP_PABLO=1 node scripts/consulta.mjs",
+    "export MENUPLAN_OP_PABLO=1",
+    "cd C:/dev/MenuPlan-x && MENUPLAN_OP_PABLO=1 npm run dev",
+    "OP_SIN_SERVICIO=1 node scripts/bot-coste.mjs",
+    "npm run op -- read \"op://HoMenu/Supabase/SUPABASE_DB_URL\"",
+    "op read op://HoMenu/Telegram/TELEGRAM_BOT_TOKEN",
+    "op read 'op://homenu/Supabase/SUPABASE_DB_URL'",
+    "SUPABASE_DB_URL=op://HoMenu/Supabase/SUPABASE_DB_URL node scripts/verificar-estado.mjs",
+    "op inject -i plantilla.txt && echo op://HoMenu/Supabase/SUPABASE_DB_URL | op inject",
+    "env -u OP_SERVICE_ACCOUNT_TOKEN op item get Supabase --vault HoMenu",
+    "env --unset=OP_SERVICE_ACCOUNT_TOKEN op vault list",
+    "unset OP_SERVICE_ACCOUNT_TOKEN; op vault list",
+    "OP_SERVICE_ACCOUNT_TOKEN= op vault list",
+  ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
+
+  // Ronda 3 (seguridad): sin token, `op` va por la app de escritorio y a Pablo
+  // le sale una ventana igual que las suyas. La vía es `npm run op --`, que pasa
+  // por entornoOp y falla cerrado. Es un filtro de buena fe: quien parta el texto
+  // adrede se lo salta; la barrera de fondo es la integración de la CLI apagada.
+  it.each([
+    "op read op://HoMenu-sesiones/Groq/GROQ_API_KEY",
+    "op vault list",
+    "op.exe item list",
+    "OP.EXE signin",
+    "\"C:\\Program Files\\1Password CLI\\op.exe\" vault list",
+    "C:/Users/pablo/AppData/Local/Microsoft/WinGet/Links/op.exe whoami",
+    "FOO=1 op whoami",
+    "env FOO=1 op whoami",
+    "cd C:/dev/MenuPlan-x && op whoami",
+    "echo hola | op inject",
+    "npm run op -- item get Supabase --vault HoMenu",
+    "npm run op -- item list --vault=homenu",
+    "npm run op -- item get 5amxx4ygtowjgfadvnlecifc2e --vault x",
+    "npm run op -- read op://c64ol4a3oewjeue3szoafrrr6q/Copias/clave",
+    "npm run op -- read \"op://HoMenu\"/Supabase/SUPABASE_DB_URL",
+    "bash -c 'op whoami'",
+    "powershell -Command \"op whoami\"",
+    "git log $(op read op://HoMenu-sesiones/x/y)",
+    "git commit -m \"$(op whoami)\"",
+    "git -c alias.x='!op whoami' x",
+    "gh alias set x '!op whoami'",
+    "echo `op whoami`",
+    // Ronda 3 bis: `op` detrás de un envoltorio o dentro de una cadena.
+    "timeout 10 op vault list",
+    "node -e \"require('child_process').execSync('op whoami')\"",
+    "if op whoami; then echo ok; fi",
+    "iex \"op whoami\"",
+    "(op whoami)",
+    "{ op whoami; }",
+    "xargs op read",
+    "sleep 1 & op whoami",
+    "exec op whoami",
+    "command op whoami",
+    "nohup op whoami",
+    "time op vault list",
+  ])("deniega el op directo: %s", (c) => expect(bash(c)).toBe("deny"));
+  it("en PowerShell, `& op` y `&op` también", () => {
+    for (const command of ["& op whoami", "&op whoami", "& 'C:\\x\\op.exe' whoami", "$x = 1; & op whoami"]) {
+      expect(decidir({ tool_name: "PowerShell", tool_input: { command } }, ctx())?.decision, command).toBe("deny");
+    }
+  });
+  it("en PowerShell, también", () =>
+    expect(decidir({ tool_name: "PowerShell", tool_input: { command: "$env:MENUPLAN_OP_PABLO='1'; node scripts/consulta.mjs" } }, ctx()).decision).toBe("deny"));
+  it.each([
+    "npm run op -- read \"op://HoMenu-sesiones/Groq/GROQ_API_KEY\"",
+    "node scripts/boveda-sesiones.mjs --comprobar",
+    "git commit -m 'ops: MENUPLAN_OP_PABLO y op://HoMenu/ solo para Pablo'",
+    "grep -rn \"op://HoMenu/\" ops scripts",
+    "gh issue comment 328 --body 'env -u OP_SERVICE_ACCOUNT_TOKEN, de Pablo'",
+    "npx vitest run scripts/lib/env.test.js",
+    "npm run --silent op -- read \"op://HoMenu-sesiones/Groq/GROQ_API_KEY\"",
+    "npm run op -- vault list --format json",
+    "node scripts/op.mjs whoami",
+    "git commit -m 'ops: op read y op.exe solo por npm run op'",
+    "git commit -F C:/tmp/msg.txt",
+    "grep -rn \"op vault list\" .claude",
+    "gh pr view 12 --json title",
+    "open README.md",
+    "node scripts/copias.mjs --operaciones",
+  ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
+});
+
 describe("la base es producción", () => {
   it("el ensayo de una migración pasa", () => expect(bash("node scripts/apply-migration.mjs 0086_vocabulario_de_la_app")).toBe(null));
   it("aplicarla con --si pasa: la protege el script (staging, ensayo, juez)", () =>

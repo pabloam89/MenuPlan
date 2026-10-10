@@ -7,7 +7,7 @@
  *   node scripts/bot-medidas.mjs          → últimos 7 días
  *   node scripts/bot-medidas.mjs 30       → últimos 30
  *
- * Lee SUPABASE_DB_URL de .env.local. Los turnos anteriores al 1 oct 2026 no
+ * Lee SUPABASE_DB_URL_LECTURA (usuario de solo lectura, #328). Los turnos anteriores al 1 oct 2026 no
  * traen medidas (primer_ms, lola…): cuentan solo para el total.
  *
  * Precios: PRECIOS de scripts/lib/bot-semana.mjs (los mismos que el informe
@@ -16,10 +16,11 @@
 
 import pg from "pg";
 import { leerEnv } from "./lib/env.mjs";
+import { conexionDeConsulta } from "./lib/rolLectura.mjs";
 import { PRECIOS, precioDe, usd, pct } from "./lib/bot-semana.mjs";
 
 const dias = Number(process.argv[2] ?? 7);
-const dbUrl = leerEnv("SUPABASE_DB_URL", { obligatoria: true });
+const dbUrl = conexionDeConsulta(leerEnv).url;
 const c = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
 await c.connect();
 const { rows } = await c.query(

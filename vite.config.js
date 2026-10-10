@@ -132,10 +132,12 @@ function devDishPhotoApi(env) {
 export default defineConfig(({ mode }) => {
   // .env.local puede guardar direcciones de 1Password (op://…) en vez de claves:
   // se resuelven aquí, antes de loadEnv, porque Vite deja que process.env pise
-  // al fichero. En los tests no: corren sin claves, como en el CI.
+  // al fichero. En los tests no: corren sin claves, como en el CI. Tolerante:
+  // una clave que la sesión no puede leer (las de administración, #299) queda
+  // vacía con un aviso y no para el arranque.
   const refs = Object.entries(leerFichero()).filter(([, v]) => esReferencia(v)).map(([k]) => k)
   if (process.env.VITEST) for (const k of refs) process.env[k] ||= ''
-  else cargarEnv(refs)
+  else cargarEnv(refs, { tolerante: true })
   const env = loadEnv(mode, process.cwd(), '')
 
   // El commit del que sale este build, para sellar cada evento de analítica

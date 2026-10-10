@@ -23,7 +23,10 @@
  *   node scripts/verificar-estado.mjs --detalle       # cada testigo, no solo el resumen
  *   node scripts/verificar-estado.mjs --json
  *
- * Lee SUPABASE_DB_URL del entorno o, si no está, de `.env.local`.
+ * Entra con SUPABASE_DB_URL_LECTURA (usuario `consulta_lectura`, #328): las
+ * sesiones no tienen la de administrador. Ese usuario no ve `cron`: los crons
+ * salen «sin ver». Con `--admin` (Pablo, con `!`) entra con SUPABASE_DB_URL
+ * y los ve.
  *
  * ── Lo que NO ve ───────────────────────────────────────────────────────────
  * Grants, comments, datos (inserts/updates) ni cambios dentro de una columna
@@ -34,6 +37,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { leerEnv } from "./lib/env.mjs";
+import { ARG_ADMIN, conexionDeConsulta } from "./lib/rolLectura.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIR = join(RAIZ, "supabase", "migrations");
@@ -266,6 +270,8 @@ export function veredictos(migraciones, catalogo, sinAplicar) {
     const filas = m.crea.map((t) => {
       const ultima = Math.max(ultimaQueToca.get(k(t)) ?? -1, borraLaTabla(t, i) ?? -1);
       if (ultima > i) return { ...t, resultado: "después", por: migraciones[ultima].nombre };
+      // null: el usuario no puede leer ese catálogo (consulta_lectura y cron).
+      if (catalogo[t.tipo] === null) return { ...t, resultado: "sin ver" };
       const hay = catalogo[t.tipo]?.get(t.id);
       if (hay === undefined) return { ...t, resultado: "falta" };
       // Una función puede tener varias versiones (sobrecargas): vale si alguna coincide.
@@ -284,11 +290,11 @@ export function veredictos(migraciones, catalogo, sinAplicar) {
       if (nueva > i) filas.push({ ...t, negativo: true, resultado: "después", por: migraciones[nueva].nombre });
       else filas.push({ ...t, negativo: true, resultado: ausente(t) ? "está" : "falta" });
     }
-    const vivos = filas.filter((f) => f.resultado !== "después");
+    const vivos = filas.filter((f) => f.resultado !== "después" && f.resultado !== "sin ver");
     const esta = vivos.filter((f) => f.resultado === "está").length;
     let estado;
     if (!filas.length) estado = "sin testigo";
-    else if (!vivos.length) estado = "sobrescrita";
+    else if (!vivos.length) estado = filas.some((f) => f.resultado === "sin ver") ? "sin ver" : "sobrescrita";
     else if (esta === vivos.length) estado = "aplicada";
     else if (esta === 0 && !vivos.some((f) => f.resultado === "distinto")) estado = "sin aplicar";
     else estado = "parcial";
@@ -303,12 +309,14 @@ export function veredictos(migraciones, catalogo, sinAplicar) {
 
 // ── La base ────────────────────────────────────────────────────────────────
 
-const CONSULTAS = {
+export const CONSULTAS = {
   esquema: "select nspname as id, '' as v from pg_namespace",
   tabla: "select n.nspname||'.'||c.relname as id, '' as v from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind in ('r','p')",
   vista: "select n.nspname||'.'||c.relname as id, '' as v from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind in ('v','m')",
   índice: "select n.nspname||'.'||c.relname as id, '' as v from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind in ('i','I')",
-  columna: "select table_schema||'.'||table_name||'.'||column_name as id, '' as v from information_schema.columns",
+  // pg_attribute y no information_schema.columns, que solo enseña las columnas
+  // que el usuario puede leer (consulta_lectura no lee las de códigos, #328).
+  columna: "select n.nspname||'.'||c.relname||'.'||a.attname as id, '' as v from pg_attribute a join pg_class c on c.oid=a.attrelid join pg_namespace n on n.oid=c.relnamespace where a.attnum > 0 and not a.attisdropped and c.relkind in ('r','p','v','f')",
   función: "select n.nspname||'.'||p.proname as id, p.prosrc as v from pg_proc p join pg_namespace n on n.oid=p.pronamespace",
   constraint: "select n.nspname||'.'||t.relname||':'||c.conname as id, pg_get_constraintdef(c.oid) as v from pg_constraint c join pg_class t on t.oid=c.conrelid join pg_namespace n on n.oid=t.relnamespace",
   política: "select schemaname||'.'||tablename||':'||policyname as id, '' as v from pg_policies",
@@ -339,7 +347,11 @@ async function leerCatalogo(url) {
     }
     const { rows: hayCron } = await client.query("select 1 from pg_namespace where nspname = 'cron'");
     catalogo.cron = new Map();
-    if (hayCron.length) {
+    const { rows: leeCron } = await client.query("select has_schema_privilege('cron', 'usage') and has_table_privilege('cron.job', 'select') as si").catch(() => ({ rows: [{ si: false }] }) /* a propósito: si ni eso se puede preguntar, cron sale «sin ver» con su línea */);
+    if (hayCron.length && !leeCron[0]?.si) {
+      catalogo.cron = null;
+      console.error("verificar-estado cron: sin-ver motivo: el usuario no lee cron.job (con --admin, sí)");
+    } else if (hayCron.length) {
       const { rows } = await client.query("select jobname as id from cron.job");
       catalogo.cron = new Map(rows.map((r) => [r.id, ""]));
     }
@@ -350,8 +362,14 @@ async function leerCatalogo(url) {
   return catalogo;
 }
 
-function urlDeLaBase() {
-  return leerEnv("SUPABASE_DB_URL") ?? null;
+/**
+ * Con qué usuario entra: el de lectura, o el administrador solo con `--admin`
+ * (las mismas reglas que `npm run consulta`: nunca cae solo al administrador).
+ * @param {(clave: string) => string | undefined} leer
+ * @param {string[]} argv
+ */
+export function conexionDeLaBase(leer, argv) {
+  return conexionDeConsulta(leer, { admin: argv.includes(ARG_ADMIN) });
 }
 
 export function leerSinAplicar(estadoMd) {
@@ -383,9 +401,13 @@ if (esPrincipal) {
   };
   const desde = arg("--desde");
   const solo = arg("--solo");
-  const url = urlDeLaBase();
-  if (!url) {
-    console.error("Falta SUPABASE_DB_URL (ni en el entorno ni en .env.local).");
+  let url;
+  try {
+    const conexion = conexionDeLaBase(leerEnv, process.argv);
+    if (conexion.aviso) console.error(conexion.aviso);
+    url = conexion.url;
+  } catch (e) {
+    console.error(e.message);
     process.exit(1);
   }
 
@@ -400,7 +422,7 @@ if (esPrincipal) {
   } else {
     console.log(`Base: ${new URL(url).hostname} (solo lectura) · ${elegidas.length} migraciones\n`);
     for (const v of elegidas) {
-      const vivos = v.filas.filter((f) => f.resultado !== "después");
+      const vivos = v.filas.filter((f) => f.resultado !== "después" && f.resultado !== "sin ver");
       const esta = vivos.filter((f) => f.resultado === "está").length;
       const marca = v.choca ? "  ⚠ ESTADO.md dice " + v.estadoMd : "";
       console.log(`${v.nombre.padEnd(48)} ${v.estado.padEnd(12)} ${String(esta).padStart(3)}/${String(vivos.length).padEnd(3)}${marca}`);

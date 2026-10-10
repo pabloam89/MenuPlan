@@ -72,6 +72,7 @@ export const FAMILIAS_GUARDIA = [
   [/borrar o trasladar un issue/i, "borrar-issue"],
   [/el n[uú]mero \d{4} ya es de|ya est[aá] aplicada en producci[oó]n|estado\.md/i, "migracion"],
   [/variables de production de vercel/i, "vercel-production"],
+  [/eso es de pablo \(#328\)/i, "op-de-pablo"],
   [/lo que lee lola/i, "escribir-lo-de-lola"],
   [/permisos o el c[oó]digo que vigila/i, "tocar-permisos"],
   [/no ha podido leer esta orden/i, "entrada-ilegible"],

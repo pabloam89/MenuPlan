@@ -20,7 +20,7 @@ Bytask, migrar · ❓ sin confirmar.
 |---|---|---|---|---|
 | **GitHub** `pabloam89/MenuPlan` | Código, PRs, Actions | ✅ personal (`pabloam89`) | secrets de Actions (abajo) | GitHub → Settings → Secrets |
 | **Vercel** | Hosting web + funciones `api/` + crons | ✅ equipo «Monicos MenuPlan» (`team_sV2KePPHNXRWD9JsNQCfGwwV`), plan Pro; Owners: Pablo (`pabloam89@gmail.com`) y Álvaro. Ninguna cuenta de Bytask (7 oct 2026) | todas las de runtime de `api/` | Vercel → Project → Environment Variables |
-| **1Password** | Las claves de `.env.local` (bóveda `HoMenu`), las del servidor del panel (bóveda `Panel HoMenu`) y la service account de solo lectura del PC de Pablo | ✅ cuenta de Pablo (`my.1password.eu`), plan Familias en prueba desde el 8 oct 2026 | el token de la service account «MenuPlan PC Pablo» | llavero de Windows del PC de Pablo |
+| **1Password** | Todas las claves de MenuPlan (bóveda `HoMenu`, solo Pablo), la copia de las que leen las sesiones (bóveda `HoMenu-sesiones`, #328, **pendiente de crear** el 9 oct 2026), las del servidor del panel (bóveda `Panel HoMenu`) y la service account de solo lectura del PC. Qué va en cada bóveda: abajo | ✅ cuenta de Pablo (`my.1password.eu`), plan Familias en prueba desde el 8 oct 2026 | el token de la service account del llavero: hoy «MenuPlan PC Pablo» (lee toda `HoMenu`); tras #328, «MenuPlan sesiones» (solo `HoMenu-sesiones`) | llavero de Windows del PC de Pablo (recurso `MenuPlan 1Password`) |
 | **Hetzner Cloud** (proyecto `HoMenu`) | Servidor `HoMenu-Panel` (CPX02, Falkenstein): el panel de la factoría y su Postgres. Skill `hetzner` | ✅ cuenta de Pablo (`pabloam89@gmail.com`), 2FA y códigos de recuperación en su ficha de `Private`. Desde el 8 oct 2026, ~7,85 €/mes con IVA | contraseña del Postgres del panel (ficha `Postgres del panel`) | 1Password, bóveda `Panel HoMenu`; copia en `/opt/panel/.env` del servidor |
 | **Copias de la base** (servidor `HoMenu-Panel`, #247) | Copia nocturna cifrada (`age`) de `public` y `ops` de Supabase, 02:40 UTC, 7 diarias y 4 semanales en `/var/backups/menuplan`. Skill `hetzner` (cómo) y `supabase` (qué lleva) | ✅ de Pablo (va con el servidor). **Pendiente de instalar y de crear la clave** (9 oct 2026) | `COPIA_DB_URL` (la de `copia_lectura`, migración 0095, #273; la pone `scripts/clave-copia-lectura.mjs` en la ficha «Supabase copia» de `Panel HoMenu`) y `COPIA_AVISO_URL` (opcional); la clave privada de `age` (ficha «Copias de la base») | `/etc/menuplan-copia/copia.env` del servidor (root, 600); la privada, solo en 1Password, bóveda `Panel HoMenu`; la pública, en `ops/copias/destinatarios.txt` |
 | **Healthchecks.io** | Aviso si la copia de la base falla o no llega (ping diario y `/fail`) | **Pendiente de decidir** (#273): sin cuenta todavía; sería de Pablo, plan gratuito | la URL de ping (`COPIA_AVISO_URL`): solo sirve para hacer ping | `/etc/menuplan-copia/copia.env` del servidor; antes, en 1Password: ficha `Healthchecks` de `HoMenu`, campo `COPIA_AVISO_URL` (de ahí se sube; skill `hetzner`) |
@@ -39,6 +39,31 @@ Bytask, migrar · ❓ sin confirmar.
 | **Apple** (Sign in + App Store) | Login Apple, TestFlight | ❓ | `APPLE_*`, `IOS_*`, `APPSTORE_API_KEY_P8_BASE64` | Vercel + GitHub Actions |
 | **CallMeBot** | Avisos de fallos por WhatsApp | ❓ | `CALLMEBOT_DESTINOS` | GitHub Actions |
 | **Mercadona** (API pública) | Catálogo de precios semanal | — sin cuenta | — | — |
+
+### Qué vive en cada bóveda de 1Password (#328)
+
+`HoMenu` lo tiene todo y solo la abre Pablo (app de escritorio, o
+`MENUPLAN_OP_PABLO=1` en un script, con `!`). `HoMenu-sesiones` es una **copia** de lo
+que leen las sesiones, con los mismos títulos y campos; la lista que manda es
+`COPIAR` de `scripts/boveda-sesiones.mjs`, atada por test a
+`ops/env.1password`. Al rotar una clave copiada, se cambia en las dos.
+
+| Ficha de `HoMenu` | Campos | Bóveda de sesiones | Por qué |
+|---|---|---|---|
+| Anthropic | `ANTHROPIC_API_KEY` | sí (dudoso) | scripts y evals; sin saber si es la misma de producción (Vercel) |
+| Vercel AI Gateway | `AI_GATEWAY_API_KEY` | sí (dudoso) | vectores del buscador; también está en Production de Vercel |
+| Vercel Blob | `BLOB_READ_WRITE_TOKEN` | no | escribe y borra en el store que sirve las fotos de producción (seguridad, #328): solo Pablo |
+| fal, Gemini AI Studio, Groq, Tripo3D | su clave | sí | generación de imágenes, voz y 3D; solo coste |
+| Supabase | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | sí (solo estos dos) | públicas por diseño (van en el bundle de la app) |
+| Supabase lectura | `SUPABASE_DB_URL_LECTURA` | sí | rol `consulta_lectura` (0092). Tras #328, `clave-consulta-lectura.mjs` la crea directamente en `HoMenu-sesiones` |
+| Supabase | `SUPABASE_DB_URL`, `SUPABASE_ACCESS_TOKEN` | no | administrador de la base y token de gestión de Supabase |
+| Telegram | token, secreto del webhook y usuario | no | el único bot, el que habla con familias |
+| Telegram Avisos, Canario Vigía, Vercel Vigía | `credencial` | no | producción y vigía (environment `vigia` de GitHub) |
+| GitHub App dependabot-merge | el `.pem` | no | fusiona en `staging` saltándose a las sesiones |
+| Anthropic Evals, Gmail SMTP | — | no | ningún script las lee hoy (9 oct 2026) |
+
+La clave de la GitHub App `homenu-sesiones` (#327) se **mueve** (no se copia)
+a `HoMenu-sesiones` como Documento `GitHub App homenu-sesiones`.
 
 ### Secretos internos (no son de un servicio)
 

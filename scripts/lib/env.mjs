@@ -40,8 +40,19 @@ export function leerFichero(ruta = FICHERO) {
 
 export const esReferencia = (v) => typeof v === "string" && v.startsWith("op://");
 
+/**
+ * Con esta variable a 1, `op` va sin la service account, por la app de
+ * escritorio, que pide la aprobación de Pablo en cada proceso. Es el camino
+ * de lo que solo lee HoMenu (la URL de administrador para `apply-migration
+ * --pablo`, el token de Telegram…) cuando la service account del llavero es
+ * la de las sesiones, que solo lee HoMenu-sesiones (#299). Una sesión puede
+ * ponerla, pero sin Pablo delante la ventana no se aprueba: lo frena 1Password.
+ */
+export const VAR_OP_PABLO = "MENUPLAN_OP_PABLO";
+
 /** El token de la service account: del entorno o del llavero de Windows. */
 export function tokenServicio() {
+  if (process.env[VAR_OP_PABLO] === "1") return null;
   if (token !== undefined) return token;
   token = process.env.OP_SERVICE_ACCOUNT_TOKEN || null;
   if (!token && process.platform === "win32") {
@@ -51,34 +62,130 @@ export function tokenServicio() {
     try {
       token = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() || null;
     } catch {
+      // a propósito: sin token en el llavero; entornoOp falla cerrado con su mensaje (#328)
       token = null;
     }
   }
   return token;
 }
 
-/** El entorno con el que lanzar `op` (con la service account si la hay). */
+/**
+ * El entorno con el que lanzar `op`: con la service account del llavero o,
+ * solo con MENUPLAN_OP_PABLO=1, sin ella (app de escritorio). Sin token y sin
+ * esa variable, falla cerrado (#328): caer en silencio a la app daría a la
+ * sesión ventanas de aprobación iguales a las de Pablo, sobre todas las bóvedas.
+ */
 export function entornoOp(base = process.env) {
   const t = tokenServicio();
-  return t ? { ...base, OP_SERVICE_ACCOUNT_TOKEN: t } : { ...base };
+  if (t) return { ...base, OP_SERVICE_ACCOUNT_TOKEN: t };
+  if (process.env[VAR_OP_PABLO] !== "1") {
+    throw Object.assign(new Error(`no hay token de la service account (ni OP_SERVICE_ACCOUNT_TOKEN ni el llavero «${LLAVERO.recurso}»), y sin él no voy por la app de escritorio. Guárdalo con scripts/llavero-op.mjs (skill 1password); si eres Pablo y quieres la app, MENUPLAN_OP_PABLO=1`), { code: "SIN_TOKEN" });
+  }
+  const env = { ...base };
+  delete env.OP_SERVICE_ACCOUNT_TOKEN;
+  return env;
 }
 
-/** Resuelve varias direcciones en una sola llamada a `op inject`. */
-function resolverVarias(pares) {
-  const nuevas = pares.filter(([, ref]) => !resueltas.has(ref));
-  if (!nuevas.length) return;
-  const plantilla = nuevas.map(([k, ref]) => `${k}={{ ${ref} }}`).join("\n");
-  let salida;
-  try {
-    salida = execFileSync("op", ["inject"], { input: plantilla, encoding: "utf8", env: entornoOp(), stdio: ["pipe", "pipe", "pipe"] });
-  } catch (e) {
-    const motivo = e.code === "ENOENT"
-      ? "no encuentro el comando `op` (instala 1Password CLI o reinicia el terminal)"
-      : (e.stderr || e.message).trim().split("\n")[0];
-    throw new Error(`No pude leer de 1Password ${nuevas.map(([k]) => k).join(", ")}: ${motivo}`);
+/**
+ * El ÚNICO camino a la app de escritorio de 1Password (#328): `op` sin token,
+ * que le saca a Pablo una ventana de aprobación. Solo con MENUPLAN_OP_PABLO=1;
+ * sin ella no llama a `op` y devuelve un error que lo explica. Nadie más en
+ * `scripts/` borra el token a mano (lo vigila un test). Devuelve lo mismo que
+ * `spawnSync`: `status`, `stdout`, `stderr` y, si no hay `op`, `error`.
+ */
+export function opPorLaApp(args, { input } = {}) {
+  if (process.env[VAR_OP_PABLO] !== "1") {
+    return { status: 1, stdout: "", stderr: `la app de escritorio de 1Password es solo de Pablo: lánzalo tú, desde tu terminal, con ${VAR_OP_PABLO}=1 (skill 1password)` };
   }
+  const env = { ...process.env };
+  delete env.OP_SERVICE_ACCOUNT_TOKEN;
+  try {
+    const stdout = execFileSync("op", args, { env, encoding: "utf8", input, stdio: ["pipe", "pipe", "pipe"] });
+    return { status: 0, stdout, stderr: "" };
+  } catch (e) {
+    // Un fallo de `op` (no autorizado, no existe) o que no esté instalado: se devuelve, no se lanza.
+    return { status: e.status ?? 1, stdout: String(e.stdout ?? ""), stderr: String(e.stderr ?? e.message ?? ""), error: e.code ? { code: e.code, message: e.message } : undefined };
+  }
+}
+
+/**
+ * Las dos bóvedas de MenuPlan (#299, #328): la de las sesiones, con solo lo
+ * que necesitan, y la de Pablo, con lo de administración.
+ */
+export const BOVEDA_SESIONES = "HoMenu-sesiones";
+export const BOVEDA_PABLO = "HoMenu";
+
+/**
+ * Plan B mientras se mueven las claves de una bóveda a otra: la misma
+ * dirección en la otra de las dos, o null si la dirección es de cualquier otra
+ * bóveda. Así un `.env.local` nuevo (que ya apunta a HoMenu-sesiones) funciona
+ * antes de que exista la bóveda, y uno viejo (HoMenu) sigue funcionando
+ * después, con la cuenta de servicio que solo lee la de sesiones. El respaldo
+ * usa las mismas credenciales: no lee nada que no se pudiera leer ya.
+ */
+export function enOtraBoveda(ref) {
+  const m = /^op:\/\/([^/]+)\/(.+)$/.exec(ref);
+  if (!m) return null;
+  if (m[1] === BOVEDA_SESIONES) return `op://${BOVEDA_PABLO}/${m[2]}`;
+  if (m[1] === BOVEDA_PABLO) return `op://${BOVEDA_SESIONES}/${m[2]}`;
+  return null;
+}
+
+const motivoDe = (e) => (e.code === "ENOENT"
+  ? "no encuentro el comando `op` (instala 1Password CLI o reinicia el terminal)"
+  : String(e.stderr || e.message).trim().split("\n")[0]);
+
+/** Los valores de varias direcciones, en una sola llamada a `op inject`. Lanza si falla alguna. */
+function inyectar(pares) {
+  const plantilla = pares.map(([k, ref]) => `${k}={{ ${ref} }}`).join("\n");
+  const salida = execFileSync("op", ["inject"], { input: plantilla, encoding: "utf8", env: entornoOp(), stdio: ["pipe", "pipe", "pipe"] });
   const lineas = salida.split(/\r?\n/);
-  nuevas.forEach(([k, ref], i) => resueltas.set(ref, lineas[i].slice(k.length + 1)));
+  return pares.map(([k], i) => lineas[i].slice(k.length + 1));
+}
+
+/**
+ * Resuelve varias direcciones en una sola llamada a `op inject`. Si esa falla
+ * (basta una dirección mala para que `op inject` falle entero), las prueba una
+ * a una y la que no está en su bóveda la busca en la otra (`enOtraBoveda`),
+ * avisando con una línea por la salida de errores. Lo que no aparece en
+ * ninguna, lanza con sus nombres; con `tolerante`, lo avisa y lo devuelve.
+ */
+function resolverVarias(pares, { tolerante = false } = {}) {
+  const nuevas = pares.filter(([, ref]) => !resueltas.has(ref));
+  if (!nuevas.length) return [];
+  try {
+    inyectar(nuevas).forEach((v, i) => resueltas.set(nuevas[i][1], v));
+    return [];
+  } catch (e) {
+    if (e.code === "SIN_TOKEN") throw new Error(`No pude leer de 1Password ${nuevas.map(([k]) => k).join(", ")}: ${e.message}`);
+    if (e.code === "ENOENT") throw new Error(`No pude leer de 1Password ${nuevas.map(([k]) => k).join(", ")}: ${motivoDe(e)}`);
+  }
+  const fallan = [];
+  let motivo = "";
+  for (const [k, ref] of nuevas) {
+    try {
+      resueltas.set(ref, inyectar([[k, ref]])[0]);
+      continue;
+    } catch (e) {
+      motivo ||= motivoDe(e);
+    }
+    const otra = enOtraBoveda(ref);
+    if (otra) {
+      try {
+        resueltas.set(ref, inyectar([[k, otra]])[0]);
+        const de = ref.split("/")[2];
+        const a = otra.split("/")[2];
+        console.error(`env-boveda clave: ${k} de: ${de} a: ${a} motivo: respaldo`);
+        continue;
+      } catch {
+        // a propósito: tampoco está en la otra bóveda; cuenta como fallo y se avisa abajo
+      }
+    }
+    fallan.push(k);
+  }
+  if (fallan.length && !tolerante) throw new Error(`No pude leer de 1Password ${fallan.join(", ")}: ${motivo}`);
+  for (const k of fallan) console.error(`env-boveda clave: ${k} motivo: sin-acceso`);
+  return fallan;
 }
 
 /** El valor de `clave`, o undefined. Con `obligatoria`, lanza si falta. */
@@ -99,8 +206,14 @@ export function leerEnv(clave, { obligatoria = false } = {}) {
 /**
  * Pone en process.env las claves pedidas que encuentre, sin pisar las que ya
  * hay. Las direcciones op:// van todas en una sola llamada.
+ *
+ * Con `tolerante` (lo usa Vite, que carga todo `.env.local`), una clave que no
+ * se puede leer no para el arranque: se avisa (`env-boveda … sin-acceso`) y
+ * queda vacía, nunca con la dirección op:// como valor. Es el caso de una
+ * sesión con la cuenta de servicio de HoMenu-sesiones y un `.env.local` que aún
+ * nombra claves de administración de HoMenu (#299).
  */
-export function cargarEnv(claves) {
+export function cargarEnv(claves, { tolerante = false } = {}) {
   fichero ??= leerFichero();
   const refs = [];
   for (const k of claves) {
@@ -109,6 +222,6 @@ export function cargarEnv(claves) {
     if (esReferencia(v)) refs.push([k, v]);
     else process.env[k] ||= v;
   }
-  resolverVarias(refs);
-  for (const [k, ref] of refs) process.env[k] = resueltas.get(ref);
+  const fallan = new Set(resolverVarias(refs, { tolerante }));
+  for (const [k, ref] of refs) process.env[k] = fallan.has(k) ? "" : resueltas.get(ref);
 }
