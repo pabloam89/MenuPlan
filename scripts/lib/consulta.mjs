@@ -103,7 +103,7 @@ export function avisosDeRetiradas(sql, fuentes = TABLAS) {
   const vistos = new Set();
   for (const m of limpio.matchAll(new RegExp(String.raw`\b(?:into|table|join)\s+${nombre}`, "gi"))) vistos.add(m[1].toLowerCase());
   for (const m of limpio.matchAll(/\bfrom\b([^;)]*)/gi)) {
-    const clausula = m[1].split(/(?:where|group|order|limit|having|union|intersect|except|window|fetch|offset|returning)/i)[0];
+    const clausula = m[1].split(/\b(?:where|group|order|limit|having|union|intersect|except|window|fetch|offset|returning)\b/i)[0];
     for (const n of clausula.matchAll(new RegExp(String.raw`(?:^|,|\bjoin\b)\s*${nombre}`, "gi"))) vistos.add(n[1].toLowerCase());
   }
   const avisos = [];
