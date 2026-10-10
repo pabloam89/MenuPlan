@@ -101,7 +101,7 @@
     },
     {
       "id": "migraciones-sql",
-      "tests": ["supabase/anonPorDefecto.test.js", "supabase/cascadaPersona.test.js", "supabase/errores.test.js", "supabase/idsPersonaGrupo.test.js", "supabase/migrations.test.js", "supabase/principios.test.js", "supabase/rolLectura.test.js", "src/lib/registroTareas.test.js", "src/lib/vocabularios.test.js", "api/_bot/fichaExtras.test.js", "scripts/lib/migraciones.test.js"],
+      "tests": ["supabase/anonPorDefecto.test.js", "supabase/cascadaPersona.test.js", "supabase/errores.test.js", "supabase/idsPersonaGrupo.test.js", "supabase/migrations.test.js", "supabase/principios.test.js", "supabase/rolLectura.test.js", "src/lib/registroTareas.test.js", "src/lib/vocabularios.test.js", "api/_bot/fichaExtras.test.js", "scripts/lib/migraciones.test.js", "supabase/fichaSobre.test.js"],
       "mira": ["supabase/migrations/*.sql"],
       "porque": "Leen todas las migraciones: numeración contigua, principios de tablas, anon por defecto, errores, vocabularios y cascada de personas. Una migración nueva se mide contra todas."
     },
