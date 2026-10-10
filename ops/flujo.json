@@ -138,10 +138,8 @@
     {
       "id": "estandar",
       "que": "Cómo deben quedar las cosas para ser consistentes (voz de Lola, design system)",
-      "estado": "reservado",
-      "fase": [
-        "#336"
-      ]
+      "estado": "existe",
+      "fase": []
     },
     {
       "id": "receta_cambio",
