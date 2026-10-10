@@ -276,8 +276,9 @@
     },
     {
       "fichero": "ops/normas.json",
-      "estado": "pendiente",
-      "encargo": "#494"
+      "estado": "cumple",
+      "clave_reglas": "normas",
+      "clave_sujetos": "sujetos"
     },
     {
       "fichero": "ops/flujo.json",

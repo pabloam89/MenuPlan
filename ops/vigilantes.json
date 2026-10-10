@@ -184,7 +184,7 @@
   ],
   "excepciones": [
     {
-      "tests": ["scripts/copias.test.js", "scripts/buscarAntesSeguridad.test.js", "scripts/buscarAntesRonda4.test.js", "scripts/limpiar-worktrees.test.js", ".claude/hooks/sesiones.test.js", ".claude/hooks/skill-abierta.test.js", "ops/ficherosGit.test.js"],
+      "tests": ["scripts/copias.test.js", "scripts/buscarAntesSeguridad.test.js", "scripts/buscarAntesRonda4.test.js", "scripts/limpiar-worktrees.test.js", ".claude/hooks/sesiones.test.js", ".claude/hooks/skill-abierta.test.js", "ops/ficherosGit.test.js", "scripts/tokenSesion.test.js"],
       "motivo": "Listan una carpeta temporal que crean ellos mismos, no ficheros del repo: no vigilan ningún conjunto."
     },
     {

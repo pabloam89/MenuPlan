@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { carpetaDe, contextoReal, decidir, sinAplicar } from "./guardia.mjs";
 import { cargarMapa } from "./dominios.mjs";
 import { AVISOS_CREDENCIALES, credencialDeComando, sinTextos } from "./credenciales.mjs";
-import { familiaDeGuardia } from "./eventos.mjs";
+import { AVISOS, AVISO_POR_CREDENCIAL } from "./avisos-guardia.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 // El registro de eventos (#340) escribe en ~/.claude/menuplan-fabrica: un test que lanza la guardia no toca la carpeta real del usuario.
@@ -1016,16 +1016,17 @@ describe("credenciales de la sesión: no volver a las de Pablo ni cambiar las re
     expect(ps("git status --short")).toBe(null);
   });
 
-  it("cada aviso explica qué hacer en vez y tiene su familia contable", () => {
+  it("cada aviso explica qué hacer en vez y tiene su aviso contable", () => {
     for (const [clave, texto] of Object.entries(AVISOS_CREDENCIALES)) {
       expect(texto, clave).toMatch(/#447/);
-      expect(familiaDeGuardia(texto), clave).not.toBe("otra");
+      expect(texto, clave).toMatch(/En su lugar: /);
+      expect(AVISO_POR_CREDENCIAL[clave], clave).toBeTruthy();
     }
     expect(AVISOS_CREDENCIALES.token).toMatch(/token-sesion\.mjs -- /);
     expect(AVISOS_CREDENCIALES.identidad).toMatch(/token-sesion\.mjs -- /);
     expect(AVISOS_CREDENCIALES.reglas).toMatch(/Pablo/);
-    const familias = Object.values(AVISOS_CREDENCIALES).map(familiaDeGuardia);
-    expect(new Set(familias).size).toBe(familias.length);
+    const avisos = Object.values(AVISO_POR_CREDENCIAL);
+    expect(new Set(avisos).size).toBe(avisos.length);
   });
 });
 
@@ -1266,9 +1267,10 @@ describe("credenciales de la sesión: ronda de jueces (#447)", () => {
     "Get-ChildItem Env:PATH",
   ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
 
-  it("los avisos nuevos tienen familia propia", () => {
-    expect(familiaDeGuardia(AVISOS_CREDENCIALES.guardadas)).toBe("credenciales-guardadas");
-    expect(familiaDeGuardia(AVISOS_CREDENCIALES.powershell)).toBe("powershell-sin-token");
+  it("los avisos nuevos tienen aviso propio, con la norma de la identidad de la sesión", () => {
+    expect(AVISO_POR_CREDENCIAL.guardadas).toBe("credenciales-guardadas");
+    expect(AVISO_POR_CREDENCIAL.powershell).toBe("powershell-sin-token");
+    expect(AVISOS[AVISO_POR_CREDENCIAL.guardadas].codigo).toBe("sesion-con-su-identidad");
     expect(AVISOS_CREDENCIALES.powershell).toMatch(/token-sesion\.mjs -- /);
     expect(AVISOS_CREDENCIALES.guardadas).toMatch(/token-sesion\.mjs -- /);
   });

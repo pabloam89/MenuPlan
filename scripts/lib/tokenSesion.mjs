@@ -15,11 +15,13 @@
  * Cómo se usa y qué pasa a ser de Pablo: skills `github` y `1password`.
  */
 import { execFile } from "node:child_process";
+import * as fsReal from "node:fs";
 import { appendFileSync } from "node:fs";
 import { BOVEDA_PABLO, BOVEDA_SESIONES, entornoOp, leerEnv } from "./env.mjs";
 // El canje del token es de E1 (#327): permisos explícitos sin workflows, comprobados al
 // volver, y limitado a este repo. Aquí no se repite: se usa.
 import { API, ErrorToken, PERMISOS, firmarJwt, pedirToken, sinSecretos } from "../token-sesiones.mjs";
+import { FORMA_FECHA, MARGEN_MS, conBloqueo, escribirCache, leerCache, permisosDelUsuario, protegerFichero, rutaDeCache } from "./cacheTokenSesion.mjs";
 
 export const APP_ID = 5260552;
 export const REPO = "pabloam89/MenuPlan";
@@ -32,12 +34,18 @@ const TOPE_MS = 6000;
 /** Con qué identidad trabaja la sesión (vocabulario cerrado de la línea `identidad-sesion`). */
 export const IDENTIDADES = ["pablo", "app", "otra", "desconocida"];
 /** Avisos que no paran el token pero se dicen: la App con más permisos de los pedidos, etc. */
-export const ADVERTENCIAS = ["permisos-de-mas", "todos-los-repos", "app-sin-comprobar", "clave-en-HoMenu"];
+export const ADVERTENCIAS = ["permisos-de-mas", "todos-los-repos", "app-sin-comprobar", "clave-en-HoMenu", "cache-casi-caducada"];
+/** Si el token salió de la caché (`si`) o se canjeó (`no`): la última pieza de la línea `identidad-sesion`. */
+export const CACHES = ["si", "no"];
 /** Presupuesto de toda la identidad en el arranque: el hook muere a los 30 s y no avisa. */
 export const TOPE_IDENTIDAD_MS = 13_000;
+/** Lo que se deja del presupuesto para comprobar la identidad con `gh` tras sacar el token. */
+const MARGEN_IDENTIDAD_MS = 3000;
 
 /** Vocabulario cerrado de por qué no hay token (se cuenta en la línea `identidad-sesion`). */
-export const MOTIVOS = ["sin-clave", "clave-ilegible", "sin-instalacion", "github-rechaza", "red", "token-raro", "sin-fichero-de-entorno", "error-interno"];
+export const MOTIVOS = ["sin-clave", "clave-ilegible", "sin-instalacion", "github-rechaza", "red", "token-raro", "sin-fichero-de-entorno", "error-interno", "limite-de-1password", "bloqueo-ocupado"];
+/** Lo que dice la CLI cuando se agota el límite de lecturas por hora de la cuenta (visto el 10 oct 2026). */
+const LIMITE_OP = /too many requests|rate.?limit/i;
 
 export class ErrorTokenSesion extends Error {
   constructor(motivo, detalle = "") {
@@ -57,9 +65,9 @@ export const FICHAS_CLAVE = [
   { vault: BOVEDA_PABLO, titulo: "GitHub App Sesiones", temporal: true },
 ];
 
-/** Lee la clave con la service account de las sesiones (`entornoOp`: falla cerrado sin token). Devuelve { pem, temporal }. */
-export function leerClaveDeBoveda({ fichas = FICHAS_CLAVE } = {}) {
-  const intento = (f) => new Promise((ok, ko) => {
+/** Una lectura de la ficha con la service account de las sesiones (`entornoOp`: falla cerrado sin token). Devuelve el texto. */
+function leerFicha(f) {
+  return new Promise((ok, ko) => {
     let env;
     try {
       env = entornoOp();
@@ -71,13 +79,19 @@ export function leerClaveDeBoveda({ fichas = FICHAS_CLAVE } = {}) {
       ok(salida);
     });
   });
+}
+
+/** Lee la clave de la bóveda. `leer` se inyecta para probarlo. Devuelve { pem, temporal }. */
+export function leerClaveDeBoveda({ fichas = FICHAS_CLAVE, leer = leerFicha } = {}) {
   return (async () => {
     let ultimo = "";
     for (const f of fichas) {
       try {
-        return { pem: await intento(f), temporal: Boolean(f.temporal) };
+        return { pem: await leer(f), temporal: Boolean(f.temporal) };
       } catch (e) {
         ultimo = e.message;
+        // Probar en la otra bóveda gastaría otra lectura del límite que acaba de agotarse
+        if (LIMITE_OP.test(ultimo)) throw new ErrorTokenSesion("limite-de-1password", ultimo);
         if (e.code === "SIN_TOKEN") break; // sin cuenta de servicio no hay a quién probar en otra bóveda
       }
     }
@@ -163,7 +177,7 @@ export async function tokenDeSesion({ fetch: fetchFn = globalThis.fetch, leerCla
     const { token, expira } = await pedirToken({ jwt, installationId, fetchFn });
     // Solo caracteres de un token de GitHub: va a un fichero que lee un shell
     if (!/^ghs_[A-Za-z0-9_.-]{20,}$/.test(token)) throw new ErrorTokenSesion("token-raro", "el token no tiene la forma esperada");
-    return { token, expiraEn: expira || null, autor: await autorDeApp(fetchFn), advertencias };
+    return { token, expiraEn: expira || null, installationId, autor: await autorDeApp(fetchFn), advertencias };
   } catch (e) {
     if (e instanceof ErrorTokenSesion) throw e;
     if (e instanceof ErrorToken) throw new ErrorTokenSesion(motivoDeCanje(e.message), sinSecretos(e.message, [pem.trim()]).slice(0, 200));
@@ -181,6 +195,56 @@ async function autorDeApp(fetchFn) {
     // a propósito: el id público es un dato de respaldo; no vale la pena parar por él
   }
   return { nombre: BOT_LOGIN, correo: `${botId}+${BOT_LOGIN}@users.noreply.github.com` };
+}
+
+/**
+ * `tokenDeSesion` con la caché de por medio (E3). Reutiliza el token guardado mientras falten más de
+ * MARGEN_MS; si no, canjea (con un bloqueo, para que dos sesiones que arrancan a la vez no canjeen
+ * dos veces) y lo guarda. Si 1Password dice que se agotó el límite de lecturas y hay un token aún
+ * vivo (aunque le queden menos de MARGEN_MS), usa ese y lo advierte. `sinCache` fuerza el canje.
+ * Devuelve lo mismo que `tokenDeSesion` más `cache: "si" | "no"`.
+ */
+export async function tokenConCache({ sinCache = false, cache = {}, generar = tokenDeSesion, ids = idsPorDefecto, reloj = Date.now, hasta = Infinity, ...resto } = {}) {
+  const ruta = cache.ruta !== undefined ? cache.ruta : rutaDeCache();
+  // Sin un sitio válido para la caché (fuera del perfil o en OneDrive) se canjea como antes
+  if (!ruta) return { ...(await generar({ ...resto, ids, ahora: reloj() })), cache: "no" };
+  const fs = cache.fs ?? fsReal;
+  const proteger = cache.proteger ?? protegerFichero;
+  const permisosBien = cache.permisosBien ?? permisosDelUsuario;
+  const { appId, installationId } = ids();
+  const leer = () => leerCache({ ruta, ids: { appId, installationId }, reloj, fs, permisosBien });
+  const dePrevia = (l, advertencias = []) => ({
+    token: l.entrada.token,
+    expiraEn: l.entrada.expiraEn,
+    installationId: l.entrada.installationId,
+    autor: { nombre: BOT_LOGIN, correo: `${BOT_ID}+${BOT_LOGIN}@users.noreply.github.com` },
+    advertencias,
+    cache: "si",
+  });
+  if (!sinCache) {
+    const l = leer();
+    if (l.motivo === "ok" && l.restanteMs > MARGEN_MS) return dePrevia(l);
+  }
+  return conBloqueo({
+    ruta, fs, reloj, esperaMs: cache.esperaBloqueoMs, sondeoMs: cache.sondeoMs, dormir: cache.dormir, hasta,
+    fn: async ({ bloqueado, razon }) => {
+      // Otra sesión pudo canjear mientras esta esperaba el bloqueo
+      const previa = sinCache ? { motivo: "ausente" } : leer();
+      if (previa.motivo === "ok" && previa.restanteMs > MARGEN_MS) return dePrevia(previa);
+      // Otro canjea y no terminó a tiempo: canjear en paralelo gastaría otra lectura del .pem. Plan B con aviso
+      if (!bloqueado && razon === "ocupado") throw new ErrorTokenSesion("bloqueo-ocupado", "otra sesión está sacando el token y no terminó a tiempo");
+      try {
+        const t = await generar({ ...resto, ids: () => ({ appId, installationId }), ahora: reloj() });
+        if (FORMA_FECHA.test(String(t.expiraEn))) {
+          escribirCache({ ruta, fs, proteger, datos: { token: t.token, expiraEn: t.expiraEn, appId, installationId: t.installationId ?? installationId } });
+        }
+        return { ...t, cache: "no" };
+      } catch (e) {
+        if (e instanceof ErrorTokenSesion && e.motivo === "limite-de-1password" && previa.motivo === "ok") return dePrevia(previa, ["cache-casi-caducada"]);
+        throw e;
+      }
+    },
+  });
 }
 
 /**
@@ -226,9 +290,10 @@ export function identidadDe({ status, stdout = "", stderr = "" }) {
 }
 
 /** La línea contable (`campo: valor`, sin datos de nadie); sale igual por stdout y por stderr. */
-export function lineaIdentidad({ identidad, token, motivo = "-" }) {
+export function lineaIdentidad({ identidad, token, motivo = "-", cache = "no" }) {
   if (!IDENTIDADES.includes(identidad)) throw new Error(`identidad fuera del vocabulario: ${identidad}`);
-  return `identidad-sesion identidad: ${identidad} token: ${token} motivo: ${motivo}`;
+  if (!CACHES.includes(cache)) throw new Error(`cache fuera del vocabulario: ${cache}`);
+  return `identidad-sesion identidad: ${identidad} token: ${token} motivo: ${motivo} cache: ${cache}`;
 }
 
 /**
@@ -236,8 +301,8 @@ export function lineaIdentidad({ identidad, token, motivo = "-" }) {
  * dejó para el shell Bash de las sesiones; PowerShell no lo carga. `token`: "app" si se
  * generó uno, "no" si no; `motivo`: de MOTIVOS o "-".
  */
-export function avisoDeIdentidad({ identidad, token, motivo = "-", advertencias = [] }) {
-  const cuenta = lineaIdentidad({ identidad, token, motivo });
+export function avisoDeIdentidad({ identidad, token, motivo = "-", advertencias = [], cache = "no" }) {
+  const cuenta = lineaIdentidad({ identidad, token, motivo, cache });
   for (const a of advertencias) if (!ADVERTENCIAS.includes(a)) throw new Error(`advertencia fuera del vocabulario: ${a}`);
   const extra = advertencias.length ? ` ADVERTENCIA: ${advertencias.join(", ")}.` : "";
   const resto = "Las credenciales de Pablo siguen en el llavero y en el manager de github.com hasta que haga `gh auth logout` y lo quite.";
@@ -248,7 +313,7 @@ export function avisoDeIdentidad({ identidad, token, motivo = "-", advertencias 
   if (identidad === "app") {
     return `Identidad: App ${BOT_LOGIN} por defecto en Bash (token de 1 hora para \`gh\` y \`git push\`); en PowerShell no se carga: usa \`node scripts/token-sesion.mjs -- <comando>\` o pasa por Bash. ${resto} Caducado: \`node scripts/token-sesion.mjs -- gh …\` o \`-- git push\`.${extra} ${cuenta}`;
   }
-  return `Identidad de GitHub: no he podido comprobarla (${identidad}); mírala con \`gh api user\`. ${resto}${extra} ${cuenta}`;
+  return `AVISO: no he podido comprobar con qué identidad de GitHub trabaja esta sesión (${identidad}, motivo: ${motivo}); puede estar yendo como Pablo (${LOGIN_PABLO}, administrador). Mírala con \`gh api user\`. ${resto}${extra} ${cuenta}`;
 }
 
 /** `gh api user` con el entorno dado; devuelve { status, stdout, stderr }. */
@@ -264,7 +329,8 @@ export function ghApiUser(env) {
  * uno), mira con qué identidad responde `gh` y devuelve el aviso. No lanza, y no pasa de `tope`
  * milisegundos (si vence: identidad desconocida, motivo red): el hook muere a los 30 s sin avisar.
  */
-export async function aplicarIdentidad({ env = process.env, escribir = appendFileSync, generar = tokenDeSesion, identificar = ghApiUser, registrar = (l) => console.error(l), tope = TOPE_IDENTIDAD_MS } = {}) {
+export async function aplicarIdentidad({ env = process.env, escribir = appendFileSync, generar = tokenConCache, identificar = ghApiUser, registrar = (l) => console.error(l), tope = TOPE_IDENTIDAD_MS } = {}) {
+  const inicio = Date.now();
   let reloj;
   let vencido = false; // pasado el tope, el trabajo que siga vivo no escribe ni registra nada
   const final = (datos) => {
@@ -281,9 +347,11 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
     let token = "no";
     let motivo = "-";
     let advertencias = [];
+    let cache = "no";
     const entorno = { ...env };
     try {
-      const t = await generar();
+      // La espera del bloqueo de la caché sale de lo que queda del presupuesto, y deja 3 s para `gh api user`
+      const t = await generar({ hasta: inicio + tope - MARGEN_IDENTIDAD_MS });
       advertencias = t.advertencias ?? [];
       if (!env.CLAUDE_ENV_FILE) throw new ErrorTokenSesion("sin-fichero-de-entorno", "este arranque no recibió CLAUDE_ENV_FILE");
       if (vencido) return null;
@@ -291,6 +359,7 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
       escribir(env.CLAUDE_ENV_FILE, `\n${lineasDeEntorno({ token: t.token, autor: t.autor, configPrevia: previa })}`);
       entorno.GH_TOKEN = t.token;
       token = "app";
+      cache = t.cache === "si" ? "si" : "no";
     } catch (e) {
       motivo = e instanceof ErrorTokenSesion ? e.motivo : "error-interno";
     }
@@ -303,7 +372,7 @@ export async function aplicarIdentidad({ env = process.env, escribir = appendFil
       identidad = "desconocida";
     }
     if (vencido) return null;
-    return final({ identidad, token, motivo, advertencias });
+    return final({ identidad, token, motivo, advertencias, cache });
   })();
   try {
     return await Promise.race([trabajo, limite]);

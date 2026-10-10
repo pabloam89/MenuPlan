@@ -59,7 +59,7 @@ Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS`
 los del vigía, los de iOS y la clave de la App `homenu-dependabot-merge`) y qué workflow usa cada uno están en `ops/INVENTARIO.md`, que es la tabla
 que manda. `tests.yml` no usa ninguno.
 
-**Identidad de las sesiones (#329).** El arranque canjea la clave de la App `homenu-sesiones` por un token de 1 hora
+**Identidad de las sesiones (#329).** El arranque canjea la clave de la App `homenu-sesiones` por un token de 1 hora, guardado y reutilizado entre sesiones
 (Bash; en PowerShell, `node scripts/token-sesion.mjs -- <comando>`). La guardia niega quitar o vaciar el token, `git -c credential.…` y cambiar reglas del repo o aprobar PR (#447). El detalle, en `.claude/skills/github/referencias/app-sesiones.md`.
 
 Un secreto nuevo o rotado va a un environment con política de ramas, nunca al <!-- norma:secretos-de-repo -->
