@@ -1,0 +1,215 @@
+{
+  "skill": "plan-de-arreglo",
+  "fecha_utc": "2026-10-10T07:08:37.135Z",
+  "version": {
+    "skill_md": "53482f3d5289",
+    "casos_json": "e8733801117e"
+  },
+  "modelos": {
+    "disparo": "claude-haiku-4-5",
+    "ejecuta": "claude-sonnet-5",
+    "corrige": "claude-haiku-4-5"
+  },
+  "tope_usd": 0.45,
+  "coste_usd": 0.1191,
+  "resultado": "falla",
+  "resumen": {
+    "disparo_ok": 5,
+    "disparo_total": 5,
+    "comprobaciones_ok": 7,
+    "comprobaciones_total": 13,
+    "sin_correr": 0
+  },
+  "cambios_respecto_anterior": [
+    {
+      "id": "una-sola-puerta",
+      "parte": "disparo",
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
+    },
+    {
+      "id": "jueces-sin-mirar-issues",
+      "parte": "disparo",
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
+    },
+    {
+      "id": "vocabulario-copiado",
+      "parte": "disparo",
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
+    },
+    {
+      "id": "error-como-vacio",
+      "parte": "disparo",
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
+    },
+    {
+      "id": "frontera-sin-causa",
+      "parte": "disparo",
+      "antes": "ok",
+      "ahora": "ok",
+      "cambio": "igual"
+    },
+    {
+      "id": "una-sola-puerta",
+      "parte": "ejecucion",
+      "antes": "falla",
+      "ahora": "falla",
+      "cambio": "igual"
+    },
+    {
+      "id": "jueces-sin-mirar-issues",
+      "parte": "ejecucion",
+      "antes": "falla",
+      "ahora": "falla",
+      "cambio": "igual"
+    },
+    {
+      "id": "vocabulario-copiado",
+      "parte": "ejecucion",
+      "antes": "ok",
+      "ahora": "falla",
+      "cambio": "empeora"
+    },
+    {
+      "id": "error-como-vacio",
+      "parte": "ejecucion",
+      "antes": "falla",
+      "ahora": "falla",
+      "cambio": "igual"
+    }
+  ],
+  "disparo": [
+    {
+      "id": "una-sola-puerta",
+      "esperado": "plan-de-arreglo",
+      "elegido": "plan-de-arreglo",
+      "estado": "ok"
+    },
+    {
+      "id": "jueces-sin-mirar-issues",
+      "esperado": "plan-de-arreglo",
+      "elegido": "plan-de-arreglo",
+      "estado": "ok"
+    },
+    {
+      "id": "vocabulario-copiado",
+      "esperado": "plan-de-arreglo",
+      "elegido": "plan-de-arreglo",
+      "estado": "ok"
+    },
+    {
+      "id": "error-como-vacio",
+      "esperado": "plan-de-arreglo",
+      "elegido": "plan-de-arreglo",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-sin-causa",
+      "esperado": "causa-raiz",
+      "elegido": "causa-raiz",
+      "estado": "ok"
+    }
+  ],
+  "ejecucion": [
+    {
+      "id": "una-sola-puerta",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Define la clase en general y propone barrer las demás normas que solo se vigilan en una vía",
+          "cumple": true,
+          "evidencia": "«Toda norma que se hace cumplir en una sola puerta cuando hay varias vías de entrada.» Comprobar que incluye este caso y no incluye normas con una única vía real. / npm run normas / Contar cuántas nor"
+        },
+        {
+          "texto": "Como mucho tres encargos, y al menos uno preventivo y automático",
+          "cumple": true,
+          "evidencia": "Tres encargos como mucho, con grafo / E1 preventivo, `mecanismo: hook`, juez `revisor`, `depende_de: ninguno`"
+        },
+        {
+          "texto": "Elige el mecanismo con npm run mecanismos o ops/mecanismos.json, el más alto posible, y dice por qué no uno más alto cuando no lo es",
+          "cumple": true,
+          "evidencia": "npm run mecanismos / Bloqueo total no cabe (el proveedor no impide crear un issue por otra vía). Bajo a: `hook` para la vía de la sesión, `workflow_evento` como detective en todas las vías, `ci` como "
+        },
+        {
+          "texto": "Cada encargo dice de qué depende, quién lo construye y quién lo juzga (distinto)",
+          "cumple": false,
+          "evidencia": "E1, E2 y E3 indican `depende_de` y `juez`, pero no especifican quién construye (constructor) para cada encargo de forma explícita y diferenciada del juez."
+        }
+      ],
+      "respuesta": "## Orden de pasos\n\n1. **Leer el fondo y lo que ya hay**\n   ```\n   gh issue view <fondo> --comments\n   npm run issues\n   ```\n   Espero ver: la ficha con `mecanismo`, `causa_escape` y `clase` ya puestos (si no están, paro y mando a `causa-raiz`), y confirmar que no hay encargos colgando ya de este fondo.\n\n2. **Definir la clase**\n   «Toda norma que se hace cumplir en una sola puerta cuando hay varias vías de entrada.» Comprobar que incluye este caso y no incluye normas con una única vía real.\n\n3. **Barrido**\n   ```\n   npm run normas\n   ```\n   Contar cuántas normas del registro `ops/normas.json` dependen de un único ejecutor (la guardia) teniendo otras vías. Apunto la cifra y el método en `barrido` de la ficha.\n\n4. **Elegir mecanismo, el más alto posible**\n   ```\n   npm run mecanismos\n   ```\n   Bloqueo total no cabe (el proveedor no impide crear un issue por otra vía). Bajo a: `hook` para la vía de la sesión, `workflow_evento` como detective en todas las vías, `ci` como corrector del registro.\n\n5. **Tres encargos como mucho, con grafo**\n   - E1 preventivo, `mecanismo: hook`, juez `revisor`, `depende_de: ninguno`\n   - E2 detectivo, `mecanismo: workflow_evento`, `por_que_no_mas_alto: el proveedor no deja impedir crear el issue`, `depende_de: ninguno`\n   - E3 correctivo, `mecanismo: ci` (test que exige a cada norma de una puerta declarar sus otras vías), `depende_de: E1`\n\n6. **Presupuesto**\n   ```\n   npm run presupuesto -- <alcance> vigilante-hueco\n   ```\n   Para fijar jueces mínimos y tope de rondas por encargo.\n\n7. **Crear los encargos**\n   ```\n   npm run issues -- --nuevo \"...\" --tipo encargo --area <a> --cuerpo <f.md> --padre <fondo>\n   ```\n   Tres veces, cada uno con su bloque `encargo` completo (tipo_accion, mecanismo, depende_de, constructor, juez).\n\n8. **Actualizar la ficha del fondo**\n   `estado: plan`, `encargos: #a, #b, #c`, `barrera: hook` (el del preventivo), `verificacion`: la ruta del test de E1/E3. Al fusionar E1, propongo `ventana_desde` (hoy, con `npm run"
+    },
+    {
+      "id": "jueces-sin-mirar-issues",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Un encargo preventivo con un mecanismo automático (un test en el CI o un hook), no solo texto",
+          "cumple": false,
+          "evidencia": "Menciona 'probable reparto' con E1 preventivo y 'p.ej. test_ci o plantilla obligatoria', pero no especifica cuál es, ni propone un test concreto ni un hook real. Dice 'mecanismo automático' sin nombra"
+        },
+        {
+          "texto": "La verificación es un test de la clase que se ve fallar antes de creérselo",
+          "cumple": false,
+          "evidencia": "En paso 6 menciona 'verificacion = ruta del test/check' sin proponer ningún test específico ni mostrar cómo fallaría antes de la corrección."
+        },
+        {
+          "texto": "Pone una ventana de observación con fechas, de 90 días como mucho",
+          "cumple": true,
+          "evidencia": "En paso 6: 'ventana_hasta (propondría 60-90 días)'"
+        }
+      ],
+      "respuesta": "# Plan de arreglo — jueces evalúan sin consultar issues abiertos\n\nAntes de nada, esto es lo que haría, en orden. No ejecuto nada sin que lo confirmes.\n\n## 1. Leer lo que ya existe\n\n```\ngh issue view <fondo> --comments\nnpm run issues\n```\nEspero ver: la ficha con `mecanismo`, `causa_escape`, `clase`, severidad; y comprobar que no hay ya encargos colgando de este fondo (si los hay, reutilizo, no duplico).\n\n## 2. Definir la clase\n\nAlgo como: **«todo juez que evalúa sin consultar el estado vivo del repo (issues abiertos) que afecta a su veredicto»**. Comprobaría que esto no incluye jueces cuyo criterio no depende en absoluto de issues abiertos (p.ej. un juez de estilo de código puro) — si los incluyera, la clase se quedaría corta o sobrante.\n\n## 3. Barrido\n\n```\nrg \"juez\" docs/ ops/ --type md -l\nnpm run presupuesto -- <alcance> <tipo_causa>   # para ver qué jueces hay catalogados\n```\nBuscaría cuántos jueces existen, cuáles de ellos emiten veredicto sin tocar `gh issue list`/`gh issue view` en su procedimiento. Anotaría la cifra en `barrido` de la ficha: \"N jueces, M sin consulta a issues, buscado con rg sobre docs/ops/ y las skills de juicio\".\n\n## 4. Elegir mecanismo\n\n```\nnpm run mecanismos\n```\nEmpezaría por arriba: ¿se puede bloquear el veredicto si el juez no registró una consulta a issues (p.ej. un paso obligatorio tipo checklist que el CI verifica)? Si no cabe bloqueo total, bajaría a `test_ci` o `workflow_evento` que verifique que el comentario de veredicto referencia issues consultados. Documentaría en `por_que_no_mas_alto` si bajo escalón.\n\n## 5. Encargos (máximo 3, uno preventivo automático)\n\nProbable reparto:\n- **E1 preventivo**, mecanismo automático (p.ej. `test_ci` o plantilla obligatoria de veredicto que exige listar issues consultados), `depende_de: ninguno`.\n- **E2 detectivo** (opcional), si el preventivo no cubre todos los jueces — un workflow que revise veredictos pasados/nuevos.\n- **E3 correctivo**, barrido de los jueces/veredictos existentes que no cumpl"
+    },
+    {
+      "id": "vocabulario-copiado",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Barre las instancias y apunta cuántas hay antes de arreglar",
+          "cumple": true,
+          "evidencia": "Apunto la cifra «antes» (cuántas constantes, cuántos ficheros) en `barrido` de la ficha."
+        },
+        {
+          "texto": "Explica si es un encargo por superficie o uno solo por ser una pieza común, para no dejar dos fuentes",
+          "cumple": false,
+          "evidencia": ""
+        },
+        {
+          "texto": "Consulta npm run presupuesto para jueces y rondas",
+          "cumple": true,
+          "evidencia": "npm run presupuesto -- <alcance> <tipo_causa>"
+        }
+      ],
+      "respuesta": "## Orden de pasos que seguiría\n\n1. **Leer el diagnóstico y lo apuntado**\n   ```\n   gh issue view <fondo> --comments\n   npm run issues\n   ```\n   Espero ver: `mecanismo`, `causa_escape`, `clase` en la ficha, y confirmar que no hay encargos ya colgando (si los hay, reutilizo o cierro, no sumo).\n\n2. **Definir la clase** — algo tipo «todo vocabulario que vive duplicado en base y constantes sin test de igualdad que los compare». Comprobar que cubre el caso y no cubre vocabularios que sí están en una sola fuente.\n\n3. **Barrer instancias**\n   ```\n   rg \"<cada valor del vocabulario>\" --type js -l\n   npm run normas\n   ```\n   Apunto la cifra «antes» (cuántas constantes, cuántos ficheros) en `barrido` de la ficha.\n\n4. **Elegir mecanismo más alto**\n   ```\n   npm run mecanismos\n   ```\n   Ideal: `test_ci` que compare base vs. constantes (detecta divergencia automáticamente). Bloqueo total no cabe porque no se puede impedir escribir una constante nueva — ese motivo va a `por_que_no_mas_alto`.\n\n5. **Partir en encargos (máximo 3, al menos uno preventivo automático)**:\n   - **E1 preventivo**, `mecanismo: test_ci` — test que compara el vocabulario de la base contra cada constante y falla si difieren (cubre todas las instancias del barrido). `depende_de: ninguno`.\n   - **E2 correctivo** — unificar las constantes actuales para que lean de una sola fuente (la base), eliminando la copia a mano. `depende_de: E1` (el test primero, para verlo fallar antes de arreglar).\n   - Si sobra un tercer encargo: **E3 detectivo** solo si hay otra vía de entrada no cubierta por E1 (p. ej. generación de código en build time). Si no, con dos basta.\n\n6. **Grafo de dependencias** — si son más de dos, bloque `yaml` en el cuerpo del fondo con `id`/`depende_de`.\n\n7. **Constructor, juez, presupuesto**\n   ```\n   npm run presupuesto -- <alcance> <tipo_causa>\n   ```\n   Constructor: agente del dominio dueño del vocabulario. Juez: distinto, revisor del área.\n\n8. **Verificación y ventana** — `barrera: test_ci`, `verifi"
+    },
+    {
+      "id": "error-como-vacio",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "El preventivo lleva un test que cubre todos los cargadores de la clase, no solo el del caso",
+          "cumple": false,
+          "evidencia": "La respuesta propone un preventivo (E1) que 'distingue explícitamente error de vacío' pero no especifica explícitamente que el test cubra todos los cargadores de la clase. Dice 'test que lo exige para"
+        },
+        {
+          "texto": "Escribe los encargos con el bloque encargo de docs/ops/ENCARGO.md y los cuelga del fondo",
+          "cumple": false,
+          "evidencia": "La respuesta menciona 'npm run issues -- --nuevo...' pero no especifica que use el bloque encargo de docs/ops/ENCARGO.md ni proporciona la estructura exacta de ese bloque en los encargos propuestos."
+        },
+        {
+          "texto": "Pasa la ficha del fondo a estado plan con barrera y verificación",
+          "cumple": true,
+          "evidencia": "Paso 8 incluye: 'editar la ficha del fondo a `estado: plan` con `encargos: #a, #b, #c`' y menciona explícitamente 'barrera: el escalón elegido' y 'verificacion: ruta del test'."
+        }
+      ],
+      "respuesta": "No puedo ejecutar nada en esta sesión, así que no voy a inventar salida de comandos. Esto es lo que haría, en orden, y qué esperaría ver en cada paso:\n\n## 1. Leer el diagnóstico y lo ya apuntado\n\n```\ngh issue view <fondo> --comments\nnpm run issues\n```\n\nEspero ver en la ficha: `mecanismo`, `causa_escape`, `clase` ya puestos (si no están, paro: toca `causa-raiz`, no este plan). Y en `npm run issues`, comprobar que no hay ya encargos colgando de este fondo (si los hay, se reutilizan, no se duplican).\n\n## 2. Definir la clase\n\nPropuesta de frase «todo X que Y»:\n\n> «Todo cargador cuya salida en error es indistinguible de su salida en vacío, usado por un llamador que no comprueba cuál de las dos es.»\n\nComprobaría que cubre el caso (los cargadores reportados) y que excluye los que sí distinguen error de vacío (por ejemplo, los que lanzan excepción o devuelven `{ok:false}`).\n\n## 3. Barrido — **antes de tocar nada**\n\n```\nrg \"catch\" -g \"*cargador*\" -A3\nrg \"return \\[\\]|return null|return undefined\" -g \"*cargador*\"\n```\no el script que exista para listar cargadores (`npm run normas`, o un grep por convención de nombre/carpeta). Anotaría en `barrido` de la ficha: cuántos cargadores, en qué ficheros, con qué búsqueda. Esta cifra es el \"antes\"; no la deduzco, la cuento.\n\n## 4. Elegir mecanismo (el más alto posible)\n\n```\nnpm run mecanismos\n```\nMiraría el catálogo de arriba abajo. Para \"la función devuelve lo mismo en dos casos distintos\", lo más alto suele ser **tipos** (que el cargador no pueda compilar/pasar si no distingue error de vacío) o **test_ci** si no hay tipado que lo imponga. Bajaría de escalón solo con motivo explícito en `por_que_no_mas_alto` (p. ej. \"el lenguaje/runtime no fuerza la forma de retorno\").\n\n## 5. Partir en encargos (máximo 3, uno preventivo automático)\n\nProbablemente:\n- **E1 preventivo** (`mecanismo: tipos` o `test_ci`): el contrato de \"cargador\" distingue explícitamente error de vacío (tipo `Resultado<T>` o similar, o test que lo exige para cargadores nue"
+    }
+  ]
+}

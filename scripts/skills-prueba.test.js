@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { SALIDA, topeDePasada } from "./lib/evals.mjs";
 import {
   ESTADOS_PRUEBA, NINGUNA, RAIZ, TOPE_SKILLS_USD, catalogoParaDisparo, comparar, jsonDeTexto,
-  nombresDeSkills, promptDisparo, promptEjecuta, resumen,
+  nombresDeSkills, promptDisparo, promptEjecuta, resumen, leerRespuesta, OPCIONES_EJECUTA, MOTIVOS_SIN_RESPUESTA,
 } from "./lib/skills.mjs";
 
 /**
@@ -47,6 +47,29 @@ describe("leer lo que contesta el modelo", () => {
     expect(jsonDeTexto('{"skill": ')).toBeNull();
     expect(jsonDeTexto('{"skill": }')).toBeNull();
     expect(jsonDeTexto(undefined)).toBeNull();
+  });
+
+  // #338: el modelo razonaba por defecto, se comía los tokens y la respuesta vacía contaba como skill que falla.
+  it("una respuesta vacía o cortada no se corrige: sale con su motivo", () => {
+    expect(leerRespuesta({ stop_reason: "max_tokens", content: [{ type: "thinking", thinking: "…" }] }).motivo).toBe("cortada");
+    expect(leerRespuesta({ stop_reason: "max_tokens", content: [{ type: "text", text: "a medias" }] }).motivo).toBe("cortada");
+    expect(leerRespuesta({ stop_reason: "end_turn", content: [{ type: "thinking", thinking: "…" }] }).motivo).toBe("vacia");
+    expect(leerRespuesta({ stop_reason: "end_turn", content: [{ type: "text", text: "  " }] }).motivo).toBe("vacia");
+    expect(MOTIVOS_SIN_RESPUESTA).toEqual(expect.arrayContaining(["vacia", "cortada"]));
+  });
+  it("una respuesta entera vale, aunque venga en varios bloques de texto", () => {
+    expect(leerRespuesta({ stop_reason: "end_turn", content: [{ type: "thinking", thinking: "x" }, { type: "text", text: "uno " }, { type: "text", text: "dos" }] }))
+      .toEqual({ texto: "uno dos", motivo: null });
+  });
+  it("la ejecución va sin razonamiento extendido y con sitio para contestar", () => {
+    expect(OPCIONES_EJECUTA.thinking).toEqual({ type: "disabled" });
+    expect(OPCIONES_EJECUTA.maxTokens).toBeGreaterThan(1200);
+  });
+  it("el script usa ese lector y esas opciones, y no corrige lo que no vale", () => {
+    const s = readFileSync(join(RAIZ, "scripts/skills-prueba.mjs"), "utf8");
+    expect(s).toContain("return leerRespuesta(data)");
+    expect(s).toContain("...OPCIONES_EJECUTA");
+    expect(s).toContain("if (r.motivo)");
   });
 });
 

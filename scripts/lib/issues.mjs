@@ -507,3 +507,76 @@ export function avisoDeArranque(issues) {
   if (viejos) lineas.push(`${viejos} issues con etiquetas que ya no existen, por reclasificar: \`npm run issues\`.`);
   return lineas;
 }
+
+// ── El formato de un encargo (#338) ──────────────────────────────────────────
+
+/**
+ * Los campos de la ficha de un encargo: un bloque de código `encargo` de líneas
+ * `clave: valor` en el cuerpo, como la ficha del fondo. Es la referencia común de
+ * las skills `causa-raiz` y `plan-de-arreglo` (y de las que vengan): ninguna la
+ * copia, citan `docs/ops/ENCARGO.md`, que sale de aquí con `npm run flujo --
+ * --escribir`; el formulario `3-encargo.yml` lleva la misma plantilla y
+ * `scripts/encargo.test.js` vigila que los tres digan lo mismo.
+ *
+ * Lo que se puede deducir no es campo (cada dato en un solo sitio): el escalón
+ * sale del `mecanismo` (ops/mecanismos.json) y «automático» es que ese escalón
+ * sea de los que no necesitan que nadie se acuerde (ESCALONES_AUTOMATICOS).
+ */
+export const TIPOS_ACCION = {
+  preventivo: "Impide que la clase vuelva a pasar",
+  detectivo: "Avisa en cuanto vuelve a pasar",
+  correctivo: "Arregla las instancias que ya hay (el barrido)",
+};
+
+/** Escalones de la escalera (ops/flujo.json) que se cumplen sin que nadie se acuerde. */
+export const ESCALONES_AUTOMATICOS = ["bloqueo", "test_ci"];
+
+/** Como mucho tantos encargos por fondo, y al menos uno preventivo y automático (FLUJO.md, P06.4). */
+export const MAX_ENCARGOS_POR_FONDO = 3;
+
+/** Los campos de la ficha del encargo, en orden. `obligatorio`: true, false o el texto de cuándo. */
+export const CAMPOS_ENCARGO = [
+  { clave: "fondo", vale: "`#n` del fondo del que cuelga", obligatorio: true },
+  { clave: "tipo_accion", vale: Object.keys(TIPOS_ACCION).map((v) => `\`${v}\``).join(", "), obligatorio: true },
+  { clave: "mecanismo", vale: "un `id` de `ops/mecanismos.json`; su escalón sale de ahí", obligatorio: true },
+  { clave: "por_que_no_mas_alto", vale: "texto: por qué no se usa un mecanismo de un escalón más alto", obligatorio: "si el escalón no es el primero (bloqueo)" },
+  { clave: "clase", vale: "texto: qué parte de la clase del fondo cubre", obligatorio: true },
+  { clave: "depende_de", vale: "`#n, #m` o `ninguno`", obligatorio: true },
+  { clave: "constructor", vale: "un agente de `.claude/agents/` o `sesión`", obligatorio: true },
+  { clave: "juez", vale: "un agente juez de `.claude/agents/`, distinto del constructor", obligatorio: true },
+  { clave: "verificacion", vale: "ruta del fichero que prueba la clase (un `*.test.js` si el escalón es test_ci)", obligatorio: true },
+  { clave: "hecho_cuando", vale: "texto: lo que se ve cuando está hecho", obligatorio: true },
+  { clave: "ficheros", vale: "rutas que toca, separadas por coma", obligatorio: false },
+];
+
+/** La plantilla del bloque, vacía: la del formulario y la de la referencia. */
+export function plantillaEncargo() {
+  return ["```encargo", ...CAMPOS_ENCARGO.map((c) => `${c.clave}:`), "```"].join("\n");
+}
+
+/** `docs/ops/ENCARGO.md` entero. Se genera; no se edita a mano. */
+export function formatoEncargoMd() {
+  const si = (o) => (o === true ? "sí" : o === false ? "no" : o);
+  return [
+    "# El formato de un encargo",
+    "",
+    "<!-- Generado desde scripts/lib/issues.mjs con `npm run flujo -- --escribir`. No se edita a mano: scripts/encargo.test.js lo compara. -->",
+    "",
+    "Referencia común de las skills de oficio (`causa-raiz`, `plan-de-arreglo`) para escribir un encargo (`tipo:encargo`) que cuelga de un fondo. El cuerpo lleva el bloque de abajo (el formulario de encargo lo trae) además del «Qué».",
+    "",
+    "| Clave | Vale | Obligatoria |",
+    "|---|---|---|",
+    ...CAMPOS_ENCARGO.map((c) => `| \`${c.clave}\` | ${c.vale} | ${si(c.obligatorio)} |`),
+    "",
+    "Tipos de acción:",
+    "",
+    ...Object.entries(TIPOS_ACCION).map(([k, v]) => `- \`${k}\`: ${v}.`),
+    "",
+    `**Automático** quiere decir que el escalón de su mecanismo es ${ESCALONES_AUTOMATICOS.map((e) => `\`${e}\``).join(" o ")}: se cumple sin que nadie se acuerde. Un fondo lleva como mucho ${MAX_ENCARGOS_POR_FONDO} encargos, y al menos uno es \`preventivo\` y automático.`,
+    "",
+    "Plantilla:",
+    "",
+    plantillaEncargo(),
+    "",
+  ].join("\n");
+}

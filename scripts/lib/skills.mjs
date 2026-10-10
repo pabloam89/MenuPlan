@@ -511,6 +511,30 @@ export function promptCorrige() {
   return "Corriges la respuesta de una sesión frente a una lista de comprobaciones. Para cada una, ¿la respuesta la cumple? Sé estricto: si no lo dice, no cumple. Contesta SOLO con JSON: {\"comprobaciones\": [{\"texto\": \"<la comprobación tal cual>\", \"cumple\": true|false, \"evidencia\": \"<cita corta de la respuesta, o vacío>\"}]}";
 }
 
+/**
+ * Ejecución sin razonamiento extendido y con sitio para contestar (#338): el
+ * modelo de las sesiones razona por defecto, y con 1200 tokens el razonamiento
+ * se los comía todos (medido el 10 oct 2026 con causa-raiz y plan-de-arreglo:
+ * 2 de 8 respuestas vacías y 6 de 27 comprobaciones; una sonda dio
+ * stop_reason max_tokens con los 1200 tokens en razonamiento). Una respuesta
+ * vacía o cortada no es una skill que falla: es una pasada sin correr.
+ */
+export const OPCIONES_EJECUTA = { maxTokens: 2500, thinking: { type: "disabled" } };
+
+/** Motivos de una respuesta que no se puede corregir (vocabulario cerrado). */
+export const MOTIVOS_SIN_RESPUESTA = ["vacia", "cortada"];
+
+/**
+ * El texto de una respuesta de la API y si vale para corregir:
+ * { texto, motivo } con motivo null si vale, o uno de MOTIVOS_SIN_RESPUESTA.
+ */
+export function leerRespuesta(data) {
+  const texto = (data?.content ?? []).filter((b) => b?.type === "text").map((b) => b.text ?? "").join("");
+  if (data?.stop_reason === "max_tokens") return { texto, motivo: "cortada" };
+  if (!texto.trim()) return { texto, motivo: "vacia" };
+  return { texto, motivo: null };
+}
+
 /** El primer objeto JSON de un texto de modelo, o null. */
 export function jsonDeTexto(texto) {
   const t = String(texto ?? "");

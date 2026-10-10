@@ -37,6 +37,27 @@ body:
       description: "Para ver si choca con otro encargo en curso."
     validations:
       required: false
+  - type: textarea
+    id: ficha
+    attributes:
+      label: "Ficha del encargo"
+      description: "Si cuelga de un fondo: qué tipo de acción es, con qué mecanismo, de qué depende, quién construye y quién juzga. Qué vale cada clave: docs/ops/ENCARGO.md."
+      value: |
+        ```encargo
+        fondo:
+        tipo_accion:
+        mecanismo:
+        por_que_no_mas_alto:
+        clase:
+        depende_de:
+        constructor:
+        juez:
+        verificacion:
+        hecho_cuando:
+        ficheros:
+        ```
+    validations:
+      required: false
   - type: dropdown
     id: area
     attributes:
