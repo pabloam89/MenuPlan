@@ -143,7 +143,7 @@ export function propiosDe(ruta, indice) {
   for (const [test, { texto, imports }] of indice) {
     if (posix.dirname(test) === dir && posix.basename(test).replace(/\.test\.[^.]+$/, "") === nombre) salida.push({ test, porque: `se llama igual que ${ruta}` });
     else if (imports.has(ruta)) salida.push({ test, porque: `importa ${ruta}` });
-    else if (/\.(?:json|ya?ml|sql)$/.test(ruta) && texto.includes(ruta)) salida.push({ test, porque: `cita ${ruta}` });
+    else if (/\.(?:json|ya?ml|sql)$/.test(ruta) && !/^package(?:-lock)?\.json$/.test(ruta) && texto.includes(ruta)) salida.push({ test, porque: `cita ${ruta}` });
   }
   return salida;
 }
