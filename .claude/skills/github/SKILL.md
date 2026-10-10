@@ -82,7 +82,11 @@ metadata:
 
 Los secretos de Actions (`ANTHROPIC_API_KEY`, `OPS_DB_URL`, `CALLMEBOT_DESTINOS`, `MERCADONA_DEPLOY_KEY`,
 los del vigía, los de iOS y la clave de la App `homenu-dependabot-merge`) y qué workflow usa cada uno están en `ops/INVENTARIO.md`, que es la tabla
-que manda. `tests.yml` no usa ninguno. La CLI `gh` va con la sesión de Pablo (`gh auth status`).
+que manda. `tests.yml` no usa ninguno.
+
+**Identidad de las sesiones (#329).** El arranque canjea la clave de la App `homenu-sesiones` por un token de 1 hora
+(Bash; en PowerShell, `node scripts/token-sesion.mjs -- <comando>`). El detalle, en `.claude/skills/github/referencias/app-sesiones.md`.
+
 Un secreto nuevo o rotado va a un environment con política de ramas, nunca al <!-- norma:secretos-de-repo -->
 repo; el alta entera, en la skill `alta-de-secreto`.
 
@@ -119,6 +123,8 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 
 ## Lo que falló y por qué
 
+- **2026-10-10 · el token de instalación real (390 caracteres, con `.` y `-`) no pasaba la forma
+  escrita de memoria (#329).** Causa: se validó sin ver uno real. Arreglo: `[A-Za-z0-9_.-]`, con test; visto en vivo.
 - **2026-10-09 · `Closes #n` y `Agente:` solo los comprobaba la guardia, y la guardia
   solo ve a las sesiones de Claude (#337).** Causa: el CI miraba `Runbook:` y
   `Casos:` y nada más; un PR abierto desde la web o por otra vía no los llevaba y
@@ -178,6 +184,7 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 
 ## Qué requiere el OK de Pablo
 
+- Rotar o retirar la clave de la App `homenu-sesiones`, y el `gh auth logout` de Pablo (sigue en su llavero).
 - Cualquier ajuste del repo: protección de ramas y rulesets, visibilidad, rama
   por defecto, Dependabot, secret scanning, environments, secretos y deploy keys
   (una de escritura se salta el ruleset de `staging`: no se crea otra sin más).
