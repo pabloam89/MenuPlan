@@ -56,6 +56,29 @@ export function unirNodos(todos, fondos) {
   return nodos.map((n) => leerIssue({ ...n, ...(fondoPorNumero.get(n.number) ?? {}), parent: padreDe.get(n.number) ?? null }));
 }
 
+/**
+ * Todas las páginas de una consulta de issues. `gh(...args)` devuelve el texto de la respuesta;
+ * entre una página y la siguiente hay una pausa corta (`dormir` es síncrono para poder probarlo).
+ */
+export function paginas(consulta, gh, { dormir = dormirSync, pausaMs = PAUSA_ENTRE_PAGINAS_MS } = {}) {
+  const out = [];
+  let cursor = null;
+  do {
+    const args = ["api", "graphql", "-f", `query=${consulta}`];
+    if (cursor) args.push("-f", `cursor=${cursor}`);
+    const pag = JSON.parse(gh(...args)).data.repository.issues;
+    out.push(...pag.nodes);
+    cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
+    if (cursor) dormir(pausaMs);
+  } while (cursor);
+  return out;
+}
+
+export const PAUSA_ENTRE_PAGINAS_MS = 500;
+
+/** Marca de frescura que lleva el informe: «fresco» o «cache <n> min» si GitHub no contestó y se usó lo guardado. */
+export const datosGithub = (minutosDeCache) => (minutosDeCache == null ? "fresco" : `cache ${minutosDeCache} min`);
+
 /** Aviso de los fondos con más hijos de los que caben en la página (no debería pasar: el mayor tiene 22 de 50). */
 export function fondosTruncados(fondos) {
   return fondos.filter((f) => (f.subIssues?.totalCount ?? 0) > (f.subIssues?.nodes?.length ?? 0)).map((f) => f.number);
@@ -64,7 +87,7 @@ export function fondosTruncados(fondos) {
 // ── Límite de GitHub ──────────────────────────────────────────────────────────
 
 /** ¿Es un error de límite de peticiones (cuota o límite secundario)? */
-export const esLimite = (e) => /rate limit|abuse|secondary/i.test(String(e?.stderr ?? e?.message ?? ""));
+export const esLimite = (e) => /rate limit|abuse/i.test(String(e?.stderr ?? e?.message ?? ""));
 
 /** Segundos que pide esperar el error (`retry-after: n` o «wait n seconds»), o null. */
 export function segundosDeEspera(e) {

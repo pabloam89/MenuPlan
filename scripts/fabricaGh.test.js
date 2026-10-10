@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ESPERA_MAX_S, CONSULTA_FONDOS, CONSULTA_TODOS, conEsperaDeLimite, esLimite, fondosTruncados, segundosDeEspera, unirNodos } from "./lib/fabricaGh.mjs";
+import { ESPERA_MAX_S, CONSULTA_FONDOS, CONSULTA_TODOS, conEsperaDeLimite, datosGithub, esLimite, paginas, fondosTruncados, segundosDeEspera, unirNodos } from "./lib/fabricaGh.mjs";
 import { unirConGithub } from "./lib/fabrica.mjs";
 
 const raiz = join(import.meta.dirname, "..");
@@ -53,9 +53,13 @@ describe("unirNodos", () => {
     expect(r[2].padre.number).toBe(1);
   });
 
-  it("alimenta a unirConGithub igual que la consulta entera", () => {
-    const u = unirConGithub(new Map(), unirNodos(todos, fondos));
+  it("alimenta a unirConGithub: el encargo cuelga de su fondo", () => {
+    const cubo = (min) => ({ minutos: min, tokens: { total: 10, salida: 4 }, mensajes: 1, sin_precio: 0, coste_usd: 1, sesiones: 1, agentes: {}, subagentes: 0, modelos: {} });
+    const u = unirConGithub(new Map([[1, cubo(5)], [2, cubo(3)]]), unirNodos(todos, fondos));
     expect(u.sinLocalizar).toEqual([]);
+    expect(u.fondos).toHaveLength(1);
+    expect(u.fondos[0]).toMatchObject({ issue: 1, alcance: "local", tipo_causa: "entorno", encargos: [2], encargos_total: 1, aguanto: "si", propio: true });
+    expect(u.encargos).toMatchObject([{ issue: 2, fondo: 1, aguanto: "si" }]);
   });
 
   it("un fondo que la primera lectura no vio también entra", () => {
@@ -106,5 +110,36 @@ describe("conEsperaDeLimite", () => {
     let n = 0;
     expect(() => conEsperaDeLimite(() => { n++; throw new Error("boom"); }, { dormir: () => { throw new Error("no debía dormir"); } })).toThrow("boom");
     expect(n).toBe(1);
+  });
+});
+
+describe("paginas", () => {
+  const pag = (nodos, fin) => JSON.stringify({ data: { repository: { issues: { nodes: nodos, pageInfo: { hasNextPage: !!fin, endCursor: fin ?? null } } } } });
+
+  it("sigue el cursor, para al final y hace una pausa entre páginas", () => {
+    const llamadas = [];
+    const pausas = [];
+    const gh = (...args) => {
+      llamadas.push(args);
+      return args.includes("cursor=C1") ? pag([{ number: 3 }]) : pag([{ number: 1 }, { number: 2 }], "C1");
+    };
+    const r = paginas("Q", gh, { dormir: (ms) => pausas.push(ms), pausaMs: 7 });
+    expect(r.map((n) => n.number)).toEqual([1, 2, 3]);
+    expect(llamadas).toHaveLength(2);
+    expect(llamadas[0]).not.toContain("cursor=C1");
+    expect(pausas).toEqual([7]);
+  });
+});
+
+describe("datosGithub", () => {
+  it("dice si el dato es fresco o de caché", () => {
+    expect(datosGithub(null)).toBe("fresco");
+    expect(datosGithub(42)).toBe("cache 42 min");
+  });
+
+  it("fabrica.mjs lo pone en el JSON y en la cabecera", () => {
+    const src = readFileSync(join(raiz, "scripts", "fabrica.mjs"), "utf8");
+    expect(src).toMatch(/datos_github: datos/);
+    expect(src).toMatch(/datosGithub: datos/);
   });
 });

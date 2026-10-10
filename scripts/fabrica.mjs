@@ -23,7 +23,7 @@ import {
 import { dirFabrica } from "../.claude/hooks/eventos.mjs"; // una sola carpeta para el registro de eventos y los informes
 import { diaMadrid } from "./lib/hora.mjs";
 import { conCache, registrarGh } from "./lib/cuotaGh.mjs";
-import { CONSULTA_FONDOS, CONSULTA_TODOS, conEsperaDeLimite, fondosTruncados, unirNodos } from "./lib/fabricaGh.mjs";
+import { CONSULTA_FONDOS, CONSULTA_TODOS, conEsperaDeLimite, datosGithub, fondosTruncados, paginas, unirNodos } from "./lib/fabricaGh.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -68,35 +68,20 @@ const gh = (...args) => {
   return conEsperaDeLimite(() => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000, maxBuffer: 64 * 1024 * 1024 }), { aviso: (m) => console.error(m) });
 };
 
-/** Todas las páginas de una consulta de issues, con una pausa corta entre una y otra. */
-function paginas(consulta) {
-  const out = [];
-  let cursor = null;
-  do {
-    const args = ["api", "graphql", "-f", `query=${consulta}`];
-    if (cursor) args.push("-f", `cursor=${cursor}`);
-    const pag = JSON.parse(gh(...args)).data.repository.issues;
-    out.push(...pag.nodes);
-    cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
-    if (cursor) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, PAUSA_ENTRE_PAGINAS_MS);
-  } while (cursor);
-  return out;
-}
-
-const PAUSA_ENTRE_PAGINAS_MS = 500;
 const TTL_CACHE_MIN = 10; // el informe es diario: repetirlo en 10 min no pide nada nuevo
 
-/** Los issues como `leerIssue()`, con dos consultas ligeras (~18 puntos en vez de ~320) y caché local. */
+/** Los issues como `leerIssue()`, con dos consultas ligeras (~18 puntos en vez de ~320) y caché local. Dice si el dato es fresco o de caché. */
 function traerIssues() {
+  let minutosViejos = null;
   const crudos = conCache("fabrica-issues", {
     ttlMin: TTL_CACHE_MIN,
     viejoSiFalla: true,
-    pedir: () => ({ todos: paginas(CONSULTA_TODOS), fondos: paginas(CONSULTA_FONDOS) }),
-    aviso: (m) => console.error(m),
+    pedir: () => ({ todos: paginas(CONSULTA_TODOS, gh), fondos: paginas(CONSULTA_FONDOS, gh) }),
+    aviso: (m, min) => { minutosViejos = min; console.error(m); },
   });
   const truncados = fondosTruncados(crudos.fondos);
   if (truncados.length) console.error(`Aviso: fondos con más hijos de los leídos: ${truncados.map((n) => "#" + n).join(", ")}`);
-  return unirNodos(crudos.todos, crudos.fondos);
+  return { issues: unirNodos(crudos.todos, crudos.fondos), datos: datosGithub(minutosViejos) };
 }
 
 /** Cuenta los eventos de los hooks (eventos.jsonl y su rotado). Solo lee; ausente o ilegible cuenta como vacío. */
@@ -153,9 +138,10 @@ function main() {
   const medidas = agregarPorIssue(sesiones);
 
   let issues = [];
+  let datos = args.includes("--sin-github") ? "sin-github" : "fresco";
   if (!args.includes("--sin-github")) {
     try {
-      issues = traerIssues();
+      ({ issues, datos } = traerIssues());
     } catch (e) {
       console.error(`No he podido leer los issues (${String(e.stderr ?? e.message).trim().split("\n")[0].slice(0, 120)}). Relanza con red, o con --sin-github para medir sin unirlos.`);
       process.exit(1);
@@ -168,8 +154,8 @@ function main() {
 
   const recalibracion = args.includes("--recalibrar");
   const salida = args.includes("--json")
-    ? `${JSON.stringify({ cobertura: cob, huecoMin: HUECO_ACTIVO_MIN, desde: desdeTexto ?? null, eventos, ...union, ...(recalibracion ? { recalibracion: recal } : {}) }, null, 2)}\n`
-    : textoInforme({ cobertura: cob, union, recal, desde: desdeTexto ?? null, recalibracion, eventos });
+    ? `${JSON.stringify({ datos_github: datos, cobertura: cob, huecoMin: HUECO_ACTIVO_MIN, desde: desdeTexto ?? null, eventos, ...union, ...(recalibracion ? { recalibracion: recal } : {}) }, null, 2)}\n`
+    : textoInforme({ cobertura: cob, union, recal, desde: desdeTexto ?? null, recalibracion, eventos, datosGithub: datos });
 
   if (args.includes("--escribir")) {
     const destino = resolve(opcion(args, "--salida") ?? join(dirFabrica(), `informe-${diaMadrid()}.${args.includes("--json") ? "json" : "txt"}`));
