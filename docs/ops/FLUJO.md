@@ -74,7 +74,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | 9 | Observar | Un fondo con su arreglo fusionado | Una ventana sin casos nuevos, o el fondo reabierto | automatico, persona | (—) | ✓ fondos que no aguantaron, rotos o cortos |
 | 10 | Cerrar | Un fondo cuya ventana de observación pasó limpia | Un fondo cerrado con el escalón en que quedó el arreglo | automatico, persona | (—) | ✓ días hasta cerrar un fondo, por causa y por agente |
 | 11 | Aprender | Un fondo cerrado como eficaz | La lección en una skill, un catálogo, la guardia o un test | agente_dominio, juez | (—) | ✓ fondos cerrados con aprendizaje registrado |
-| 12 | Medir | Los datos de todos los pasos anteriores | Un informe semanal de cumplimiento y de presupuesto frente a lo real | automatico, persona | (—) | ✓ presupuestado frente a real, por alcance y causa (npm run fabrica -- --recalibrar, a mano; propone solo con datos suficientes) |
+| 12 | Medir | Los datos de todos los pasos anteriores | Un informe semanal de cumplimiento y de presupuesto frente a lo real | automatico, persona | (—) | ✓ presupuestado frente a real, por alcance y causa (npm run fabrica -- --recalibrar, a mano; propone solo con datos suficientes); ✓ cumplimiento del flujo (fondos sin diagnóstico, encargos sin juez, cerrados sin aprendizaje, reabiertos por clase corta, ciclos sobre presupuesto) y salud de las skills, cada lunes en el issue «Flujo: informe semanal» |
 <!-- flujo:fichas:fin -->
 
 ✓ = se mide hoy · ○ = lo trae la fase indicada.

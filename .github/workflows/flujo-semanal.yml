@@ -1,0 +1,83 @@
+# Cumplimiento del flujo y salud de las skills, cada semana (#341, fondo #334).
+#
+# Mide, con `node scripts/cumplimiento.mjs --informe`, lo que el flujo manda y no
+# se hace (fondos sin diagnóstico, encargos sin juez, cerrados sin aprendizaje,
+# reabiertos por clase mal definida, ciclos por encima de presupuesto) y la salud
+# de las skills (higiene, caducidad, medida de nivel 2 desactualizada). Deja el
+# informe en un comentario del issue «Flujo: informe semanal».
+#
+# - Sin secretos, sin Claude y sin coste: solo el token del propio workflow
+#   (lee issues, escribe un comentario). NUNCA lanza `skills-prueba` de pago:
+#   solo valida los casos (`--ensayo`), y el nivel 2 de pago lo lanza una persona.
+# - No abre issues por indicador: un disparo se ve en el informe y una persona lo
+#   registra como caso con `npm run issues -- --nuevo` (que busca los parecidos).
+#   Abrir uno por run sin esa búsqueda duplicaría (pasó el 8 oct con tres iguales).
+# - Repo público: el informe lleva números de issue y vocabulario nuestro, nada
+#   que escriba un autor.
+# - Sin `npm ci`: el script no tiene dependencias.
+
+name: Flujo semanal
+
+on:
+  schedule:
+    # Lunes 06:55 UTC: después del informe de Lola (06:40) y de los planos (06:50).
+    # En punto no: los cron de GitHub se atascan en las horas redondas.
+    - cron: "55 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write # el comentario del informe (y el issue, la primera vez)
+
+concurrency:
+  group: flujo-semanal
+  cancel-in-progress: false
+
+jobs:
+  medir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: staging
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+      - name: Medir
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/cumplimiento.mjs --informe "$RUNNER_TEMP/informe.md" | tee "$RUNNER_TEMP/lineas.txt"
+          # El nivel 2 de las skills SIN llamar a ningún modelo: valida los casos y dice lo que correría.
+          # Si los casos no valen, el informe sale igual y lo dice (un run en rojo sin informe no avisa a nadie).
+          if ! node scripts/skills-prueba.mjs $(ls .claude/skills) --ensayo > "$RUNNER_TEMP/ensayo.txt" 2>&1; then
+            printf '\n%s\n' "Ensayo del nivel 2: FALLA (algún casos.json no vale; mira el log del run)." >> "$RUNNER_TEMP/informe.md"
+          fi
+          tee -a "$RUNNER_TEMP/lineas.txt" < "$RUNNER_TEMP/ensayo.txt"
+          { echo '```'; cat "$RUNNER_TEMP/lineas.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Publicar en el issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MENCIONES: ${{ vars.AVISO_MENCIONES || '@pabloam89' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          titulo="Flujo: informe semanal"
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "\"$titulo\" in:title" --json number --jq '.[0].number // empty' || true)
+          if [ -z "$issue" ]; then
+            issue=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" \
+              --body "Un comentario por semana (.github/workflows/flujo-semanal.yml): cumplimiento del flujo y salud de las skills. Un indicador fuera de umbral se registra como caso con npm run issues -- --nuevo." \
+              | grep -oE '[0-9]+$' || true)
+          fi
+          if [ -z "$issue" ]; then
+            echo "::warning::No se pudo abrir el issue del informe; queda en el resumen del run."
+            exit 0
+          fi
+          # Solo se avisa a una persona si algo dispara.
+          if grep -q 'estado: dispara' "$RUNNER_TEMP/informe.md"; then aviso="$MENCIONES"; else aviso=""; fi
+          printf '%s\n\n%s\n\nRun: %s\n' "$(cat "$RUNNER_TEMP/informe.md")" "$aviso" "$RUN_URL" > "$RUNNER_TEMP/comentario.md"
+          gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comentario.md" >/dev/null \
+            && echo "Informe publicado en el issue #$issue" \
+            || echo "::warning::No se pudo publicar el informe"

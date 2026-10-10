@@ -394,7 +394,8 @@
       "skill": null,
       "skill_fase": [],
       "mide": [
-        { "indicador": "presupuestado frente a real, por alcance y causa (npm run fabrica -- --recalibrar, a mano; propone solo con datos suficientes)", "estado": "existe", "donde": "scripts/lib/fabrica.mjs" }
+        { "indicador": "presupuestado frente a real, por alcance y causa (npm run fabrica -- --recalibrar, a mano; propone solo con datos suficientes)", "estado": "existe", "donde": "scripts/lib/fabrica.mjs" },
+        { "indicador": "cumplimiento del flujo (fondos sin diagnóstico, encargos sin juez, cerrados sin aprendizaje, reabiertos por clase corta, ciclos sobre presupuesto) y salud de las skills, cada lunes en el issue «Flujo: informe semanal»", "estado": "existe", "donde": "scripts/lib/cumplimiento.mjs" }
       ],
       "obligaciones": [
         { "id": "P12.1", "texto": "El nivel de cada plano sale de criterios comprobables (los de juicio llevan fecha)", "ejecutor": "ci", "dureza": "dura", "ref": "scripts/lib/planos.mjs", "contiene": "export function medir", "test": "ops/planos.test.js", "fase": [], "norma": null },
