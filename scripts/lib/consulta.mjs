@@ -11,6 +11,8 @@
  * replicación, cambiar la sesión) se para aquí, por nombre.
  */
 
+import { TABLAS } from "../../src/data/model.js";
+
 const LECTURA = /^(select|with|show|explain|table|values)\b/i;
 
 // Escribe, cambia o controla la transacción o la sesión.
@@ -77,4 +79,34 @@ export function motivoParaNoLeer(sql) {
   const crudo = String(sql).replaceAll('"', "");
   if ([limpio, crudo].some((t) => PELIGROSAS.test(t) || ESQUEMAS.test(t))) return "Llama a una función con efectos fuera de la consulta (conexiones, replicación, sesión, ficheros o red).";
   return null;
+}
+
+/**
+ * Avisos (no negativas) de las copias retiradas (#292). Auditar una copia
+ * retirada sigue siendo legítimo, así que la consulta se lanza igual; solo se
+ * dice en llano que la tabla ya no es la fuente y cuál la sustituye.
+ * Lee el registro `TABLAS` de src/data/model.js: lo que esté ahí como
+ * `retirado` o `copia_retirada` y nombre tablas o vistas. Busca el nombre con
+ * `\b` tras FROM, JOIN o INTO (con esquema opcional; un nombre entre comillas dobles no se ve), sobre el
+ * SQL sin comentarios ni cadenas.
+ */
+export function avisosDeRetiradas(sql, fuentes = TABLAS) {
+  const limpio = sinTexto(sql);
+  const avisos = [];
+  const vistos = new Set();
+  for (const f of fuentes) {
+    if (f.estado !== "retirado" && f.rol !== "copia_retirada") continue;
+    const objetos = [...(f.tablas ?? []).map((n) => [n, "tabla"]), ...(f.vistas ?? []).map((n) => [n, "vista"])];
+    for (const [nombre, clase] of objetos) {
+      if (vistos.has(nombre)) continue;
+      const re = new RegExp(String.raw`\b(?:from|join|into)\s+(?:\w+\s*\.\s*)?${nombre}\b`, "i");
+      if (!re.test(limpio)) continue;
+      vistos.add(nombre);
+      const mig = String(f.nota ?? "").match(/borrad[ao]s? en la (\d{4})/i);
+      const borrada = mig ? ` (borrada en la ${mig[1]})` : "";
+      const sust = f.sustituido_por ? `La fuente que la sustituye es ${f.sustituido_por}` : "No tiene fuente que la sustituya";
+      avisos.push(`La ${clase} ${nombre} es una copia retirada${borrada}. ${sust}. Lanzo la consulta igual: auditar es legítimo.`);
+    }
+  }
+  return avisos;
 }
