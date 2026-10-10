@@ -187,5 +187,13 @@ guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
 - Que los permisos del cuerpo de la petición (`permissions`) los acepte GitHub tal
   cual con estos seis: visto el 10 oct 2026 con la App real (`token-sesion.mjs --comprobar`, #329).
 
+## Cómo trabaja una sesión con la App (#329)
+
+El arranque canjea la clave (`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs`) por un token de 1 hora
+en `CLAUDE_ENV_FILE`, que carga Bash: `GH_TOKEN`, un ayudante de `git push` y el autor `homenu-sesiones[bot]`.
+En PowerShell, `node scripts/token-sesion.mjs -- <comando>`, que sirve también con el token caducado
+(`-- gh …`, `-- git push`). Sin clave legible avisa y sigue como Pablo (a los 13 s); sus credenciales siguen en
+el llavero y el manager de github.com hasta su `gh auth logout`.
+
 Fuentes: https://docs.github.com/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app
 y https://docs.github.com/rest/apps/apps#create-an-installation-access-token-for-an-app
