@@ -95,7 +95,7 @@ Se relaja cuando él lo pide («dame el detalle», «hazme una tabla») y en lo 
 él tiene que pegar o ejecutar: un comando para un `!` va en bloque de código,
 porque es lo que se le pide y no un detalle.
 
-Esta forma la mide el vigilante de la voz después de cada respuesta (`npm run voz`).
+Esta forma la mide el vigilante de la voz después de cada respuesta (`npm run voz`). No sabe si Pablo pidió el detalle: esas respuestas cuentan como falta.
 
 ### Las cinco plantillas
 

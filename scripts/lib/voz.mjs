@@ -14,9 +14,10 @@
  * para ninguna regla de prosa (un mensaje puede citar lo que NO hay que hacer).
  * Nunca se guarda el texto del mensaje: solo la línea contable (`lineaDe`).
  */
-import { readFileSync } from "node:fs";
+import { closeSync, fstatSync, openSync, readFileSync, readSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { diaMadrid } from "./hora.mjs";
 
 /** Las faltas posibles (vocabulario cerrado): una por regla medible de la skill. */
 export const FALTAS = Object.freeze([
@@ -73,9 +74,20 @@ const sinUrls = (s) => String(s).replace(/https?:\/\/\S+/g, "");
 const frasesDe = (linea) => sinMarcas(linea).replace(/^[-•]\s+/, "").split(/(?<=[.!?])\s+/).filter(Boolean);
 const palabrasDe = (s) => sinMarcas(s).split(/\s+/).filter((p) => /[\p{L}\p{N}]/u.test(p));
 
-const PREAMBULO = /^\s*(claro|por supuesto|vale|perfecto|genial|desde luego|déjame|voy a)[,.!\s]/i;
+const PREAMBULO = /^\s*(?:(?:claro|por supuesto|perfecto|genial|desde luego|déjame|voy a)[,.!\s]|vale(?:[,.!]|\s*$))/i;
+/** Tope de lo que se mide de un mensaje: uno enorme no puede colgar el hook. */
+export const MAX_BYTES_MENSAJE = 64 * 1024;
+/** Lo único que se lee del final del transcript de respaldo. */
+export const MAX_BYTES_TRANSCRIPT = 2 * 1024 * 1024;
+const OPCION = /^[-*\s]*\**[ABC]\**(\s*\(.*?\))?\s*[:.)]/;
+const RESPONDEME = /respóndeme con la letra/i;
+const CABECERA_DECISION = /^[-*\s]*\**necesito que decidas/i;
+const CIERRE = /^[-*\s]*\**(?:lo que me toca a mí|lo único que te toca a ti|lo que necesito de ti|necesito que)/i;
+/** Nombres de producto que acaban en «.js»: no son ficheros. */
+const PRODUCTOS = /\b(?:node|next|vue|chart|react|express|three|nuxt|d3|ember|backbone)\.js\b/gi;
 const RECAPITULACION = /^\s*(?:en resumen|resumiendo|en conclusión|para resumir|en definitiva|como resumen|recapitulando|en síntesis)\b/i;
-const EMOJI = /\p{Extended_Pictographic}/u;
+// Solo emoji de verdad: ©, ™, ®, ↔ son Extended_Pictographic pero se escriben en prosa normal.
+const EMOJI = /\p{Emoji_Presentation}|️|[✔✖⚠❤]/u;
 const PIDE_DECIDIR = /necesito que decidas|te toca decidir|falta que decidas|qué prefieres|cuál prefieres|¿prefieres|respóndeme con la letra/i;
 const RUTA = /(?:^|[\s(`"'«])(?:\.{0,2}\/)?(?:[\w.-]+\/)+[\w.-]*[\w-]\.\w{1,5}\b/;
 const FICHERO = /\b[\w-]+\.(?:mjs|cjs|js|jsx|ts|tsx|json|jsonl|md|ya?ml|sql|sh|css|html|log)\b/;
@@ -86,16 +98,19 @@ const escapar = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** Términos de jerga que aparecen sin explicar la primera vez que salen. */
 function jergaSinExplicar(prosa, terminos) {
-  const texto = sinMarcas(sinUrls(prosa));
+  const texto = sinMarcas(sinUrls(prosa)).replace(/`[^`\n]*`/g, " ");
   const sueltos = [];
   for (const t of terminos) {
     if (TERMINOS_COMUNES.includes(t)) continue;
     const flags = t === t.toUpperCase() ? "u" : "iu"; // PR y CI: en mayúsculas; las demás, sin distinguir
     const re = new RegExp(`(?<![\\p{L}\\p{N}])${escapar(t)}(?:e?s)?(?![\\p{L}\\p{N}])`, flags);
-    const m = re.exec(texto);
-    if (!m) continue;
-    const despues = texto.slice(m.index + m[0].length, m.index + m[0].length + 12);
-    const explicado = /^\s*(?:\(|:|=|—|–|-\s|(?:,\s*)?(?:es|son|significa)\b)/.test(despues);
+    const ocurrencias = [...texto.matchAll(new RegExp(re.source, flags + "g"))];
+    if (!ocurrencias.length) continue;
+    // Basta con que alguna aparición lleve su explicación.
+    const explicado = ocurrencias.some((m) => {
+      const despues = texto.slice(m.index + m[0].length, m.index + m[0].length + 12);
+      return /^\s*(?:\(|:|=|—|–|-\s|(?:,\s*)?(?:es|son|significa)\b)/.test(despues);
+    });
     if (!explicado) sueltos.push(t);
   }
   return sueltos;
@@ -103,12 +118,22 @@ function jergaSinExplicar(prosa, terminos) {
 
 /** ¿Un `#n` fuera de paréntesis? (el número va solo entre paréntesis, detrás del nombre) */
 function numeroSuelto(linea) {
-  for (const m of linea.matchAll(/#\d+/g)) {
-    const antes = linea.slice(0, m.index);
-    const abiertos = (antes.match(/\(/g) ?? []).length - (antes.match(/\)/g) ?? []).length;
-    if (abiertos <= 0) return true;
+  let abiertos = 0; // una sola pasada: lineal aunque el mensaje sea enorme
+  for (const m of linea.matchAll(/[()]|#\d+/g)) {
+    if (m[0] === "(") abiertos++;
+    else if (m[0] === ")") abiertos--;
+    else if (abiertos <= 0) return true;
   }
   return false;
+}
+
+/** Las ideas: líneas de contenido tras la raíz, sin las opciones A/B/C, la cabecera y la petición final de una decisión, ni la línea de cierre. */
+function contarIdeas(lineas) {
+  const ultima = lineas.length - 2; // índice de la última dentro de lineas.slice(1)
+  return lineas.slice(1).filter((l, i) => {
+    if (OPCION.test(l) || RESPONDEME.test(l) || CABECERA_DECISION.test(l)) return false;
+    return !(i === ultima && CIERRE.test(l));
+  }).length;
 }
 
 /**
@@ -116,7 +141,7 @@ function numeroSuelto(linea) {
  * `detalle` lleva frases largas con su recuento (solo para el medidor de los ejemplos; no se guarda).
  */
 export function medir(texto, { terminos = terminosDeJerga() } = {}) {
-  const prosa = textoDeProsa(texto);
+  const prosa = textoDeProsa(String(texto ?? "").slice(0, MAX_BYTES_MENSAJE));
   const lineas = prosa ? prosa.split("\n") : [];
   const faltas = new Set();
   const detalle = { frasesLargas: [] };
@@ -125,7 +150,7 @@ export function medir(texto, { terminos = terminosDeJerga() } = {}) {
   const primera = lineas[0];
   if (!/^\*\*[^*]+\*\*/.test(primera)) faltas.add("raiz_en_negrita");
   if (PREAMBULO.test(sinMarcas(primera))) faltas.add("preambulo");
-  const ideas = lineas.length - 1;
+  const ideas = contarIdeas(lineas);
   if (ideas > MAX_IDEAS) faltas.add("ideas_de_mas");
   if (EMOJI.test(prosa)) faltas.add("emoji");
   if (RECAPITULACION.test(sinMarcas(lineas[lineas.length - 1])) && lineas.length > 1) faltas.add("recapitulacion_final");
@@ -138,7 +163,7 @@ export function medir(texto, { terminos = terminosDeJerga() } = {}) {
     }
     if (frases.length > MAX_FRASES_PARRAFO) faltas.add("parrafo_largo");
     if (numeroSuelto(l)) faltas.add("numero_sin_nombre");
-    const plano = sinUrls(l);
+    const plano = sinUrls(l).replace(PRODUCTOS, " ").slice(0, 2000);
     if (RUTA.test(plano) || FICHERO.test(plano) || COMANDO.test(plano) || RAMA.test(plano)) faltas.add("ruta_o_comando_en_prosa");
   }
 
@@ -194,8 +219,8 @@ export function leerLinea(linea) {
 const sumarDias = (dia, n) => new Date(Date.parse(`${dia}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
 
 /** El resumen de un registro: medidas, % que cumple, qué regla falla más y tendencia por día. */
-export function resumir(lineas, { hoy, dias = 7 } = {}) {
-  const desde = sumarDias(hoy, -(dias - 1));
+export function resumir(lineas, { hoy, dias = 7, desde: desdeFijo = null } = {}) {
+  const desde = desdeFijo ?? sumarDias(hoy, -(dias - 1));
   const medidas = [];
   let errores = 0;
   for (const l of lineas) {
@@ -247,21 +272,44 @@ function esDePablo(e) {
   return !NO_ES_DE_PABLO.test(String(c ?? ""));
 }
 
+/** Los últimos bytes de un fichero como texto, sin la primera línea (probablemente cortada). */
+export function leerCola(ruta, bytes = MAX_BYTES_TRANSCRIPT) {
+  const fd = openSync(ruta, "r");
+  try {
+    const { size } = fstatSync(fd);
+    const desde = Math.max(0, size - bytes);
+    const buf = Buffer.alloc(size - desde);
+    readSync(fd, buf, 0, buf.length, desde);
+    const texto = buf.toString("utf8");
+    return desde > 0 ? texto.slice(texto.indexOf("\n") + 1) : texto;
+  } finally {
+    closeSync(fd);
+  }
+}
+
 /** Del transcript (JSONL): el último texto del asistente en cada turno de la sesión principal. */
 export function respuestasFinales(jsonl) {
+  return respuestasConDia(jsonl).map((r) => r.texto);
+}
+
+/** Lo mismo, con el día (Madrid) de cada respuesta: { texto, dia }; sin marca de tiempo, dia es null. */
+export function respuestasConDia(jsonl) {
   const salida = [];
-  let actual = "";
+  let actual = null;
+  const cierra = () => { if (actual?.texto) salida.push(actual); actual = null; };
   for (const e of filas(jsonl)) {
     if (!e || e.isSidechain === true) continue;
     if (e.type === "user" && esDePablo(e)) {
-      if (actual) salida.push(actual);
-      actual = "";
+      cierra();
     } else if (e.type === "assistant") {
       const partes = Array.isArray(e.message?.content) ? e.message.content : [];
       const t = partes.filter((p) => p.type === "text").map((p) => p.text).join("\n");
-      if (t.trim()) actual = t;
+      if (t.trim()) {
+        const f = Date.parse(e.timestamp);
+        actual = { texto: t, dia: Number.isNaN(f) ? null : diaMadrid(new Date(f)) };
+      }
     }
   }
-  if (actual) salida.push(actual);
+  cierra();
   return salida;
 }
