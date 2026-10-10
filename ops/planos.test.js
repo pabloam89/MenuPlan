@@ -166,6 +166,16 @@ describe("el cálculo del nivel", () => {
     expect(evaluarCriterio({ tipo: "cifra_umbral", medidor: "inventado", operador: "<=", umbral: 1, que: "x" }, ctx).estado).toBe("no_cumple");
   });
 
+  it("skills_caducadas_o_proximas cuenta las skills que caducan en 14 días o ya caducaron (#336)", () => {
+    const criterio = { tipo: "cifra_umbral", medidor: "skills_caducadas_o_proximas", operador: "<=", umbral: 0, que: "x" };
+    const cuantas = readdirSync(join(RAIZ, ".claude/skills"), { withFileTypes: true }).filter((d) => d.isDirectory()).length;
+    // Con la fecha de la última comprobación, todas vigentes; un año después, todas fuera.
+    expect(evaluarCriterio(criterio, ctx).estado).toBe("cumple");
+    const tarde = evaluarCriterio(criterio, { ...ctx, hoy: "2027-10-09" });
+    expect(tarde.estado).toBe("no_cumple");
+    expect(tarde.valor).toBe(cuantas);
+  });
+
   it("un juicio de hace más de N días sale caducado; por_definir nunca cumple", () => {
     expect(diasEntre("2026-09-01", "2026-10-09")).toBe(38);
     expect(evaluarCriterio({ tipo: "a_juicio", quien: "gobierno", fecha: "2026-09-01", cumple: true, nota: "n", que: "x" }, ctx).caducado).toBe(true);

@@ -1,0 +1,39 @@
+{
+  "skill": "1password",
+  "casos": [
+    {
+      "id": "worktree-sin-env",
+      "peticion": "He creado una carpeta de trabajo nueva y no tiene .env.local. ¿Qué hago?",
+      "skill": "1password",
+      "debe_salir": [
+        "Propone copiar ops/env.1password a .env.local",
+        "Explica que .env.local guarda direcciones op:// y no claves"
+      ]
+    },
+    {
+      "id": "clave-en-script",
+      "peticion": "Estoy escribiendo un script que necesita la SUPABASE_DB_URL. ¿Cómo la leo?",
+      "skill": "1password",
+      "debe_salir": [
+        "Propone leerEnv de scripts/lib/env.mjs",
+        "Dice que no se lea .env.local a mano con readFileSync",
+        "No imprime ni escribe el valor de la clave"
+      ]
+    },
+    {
+      "id": "rotar-clave",
+      "peticion": "Hay que rotar la clave de la API de Anthropic.",
+      "skill": "1password",
+      "debe_salir": [
+        "Dice que rotar una clave requiere el OK de Pablo",
+        "Explica que se genera en el servicio, se cambia en la ficha de 1Password y, si el despliegue la usa, en Vercel",
+        "Dice que las direcciones op:// no cambian"
+      ]
+    },
+    {
+      "id": "frontera-logged-out",
+      "peticion": "Al intentar entrar al servidor del panel, Tailscale dice Logged out.",
+      "skill": "tailscale"
+    }
+  ]
+}

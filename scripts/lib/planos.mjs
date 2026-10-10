@@ -19,6 +19,7 @@ import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { leerRegistro, medirFondo, medirFrases, totalFrases } from "./normas.mjs";
 import { CONSULTA, leerIssue } from "./issues.mjs";
+import { caducidades } from "./skills.mjs";
 
 /** Tipos de criterio. La definición larga vive en `vocabularios.tipos_criterio` de ops/planos.json (un test las compara). */
 export const TIPOS_CRITERIO = [
@@ -100,6 +101,12 @@ export const MEDIDORES = {
     const ids = new Set(leerRegistro(raiz).normas.map((n) => n.id));
     return totalFrases(medirFrases(raiz, ids).actual);
   },
+  /**
+   * Skills caducadas (más de 90 días sin comprobar) o a menos de 14 días de
+   * caducar, o sin fecha (#336). En cada PR solo cuentan las que toca
+   * (scripts/skills-pr.mjs); aquí, todas, para verlas venir.
+   */
+  skills_caducadas_o_proximas: (raiz, ctx) => caducidades(raiz, typeof ctx?.hoy === "string" ? new Date(`${ctx.hoy}T12:00:00Z`) : (ctx?.hoy ?? new Date())).filter((e) => e.estado !== "vigente").length,
   // Las del fondo (#185, #296) necesitan los issues de GitHub: sin red, null y
   // el criterio sale «sin comprobar». Las define CIFRAS_FONDO de normas.mjs.
   casos_sin_fondo: (raiz, ctx) => cifraDeFondo("casos_sin_fondo", ctx),

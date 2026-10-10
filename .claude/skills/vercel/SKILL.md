@@ -1,6 +1,10 @@
 ---
 name: vercel
 description: Úsala con un despliegue de Vercel — preview de un PR, staging o producción —, uno que sale Blocked, en rojo o no arranca, para leer logs, tocar una variable de entorno, subir a Blob, o al preguntar por un cron, un dominio o qué hay desplegado. No para: el CI de GitHub (github) ni la base de datos (supabase).
+metadata:
+  tipo: herramienta
+  dueno: gobierno
+  comprobado: "2026-10-08"
 ---
 
 # Vercel

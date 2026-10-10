@@ -65,6 +65,13 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_AUTOR: ${{ github.event.pull_request.user.login }}
           PR_RAMA: ${{ github.event.pull_request.head.ref }}
+      # Si el PR toca una skill (.claude/skills/<s>/) cuya fecha de comprobado
+      # pasa de 90 días, falla: quien la toca la vuelve a comprobar (#336). No
+      # va en npm test porque el reloj pondría en rojo todos los PR, también los
+      # que no tocan ninguna skill. Usa la lista del paso anterior; sin npm ci.
+      - name: Skills del PR
+        if: github.event_name == 'pull_request'
+        run: node scripts/skills-pr.mjs "$RUNNER_TEMP/ficheros-del-pr.txt"
       # Cada PR dice qué casos deja registrados (`Casos: #n, #m`) o por qué no hay
       # (`Casos: ninguno — <motivo>`), y cada #n tiene que ser un issue tipo:caso
       # con su analisis: (#185, «Cuando algo falla» de CLAUDE.md). Si la API de
