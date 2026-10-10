@@ -39,6 +39,12 @@
       "id": "frontera-preview-blocked",
       "peticion": "La preview de Vercel de mi PR sale Blocked y no despliega.",
       "skill": "vercel"
+    },
+    {
+      "id": "frontera-token-workflow",
+      "peticion": "Quiero crear un token de GitHub con el mínimo ámbito para un workflow y subirlo como secreto; ¿cómo lo hago sin que se vea?",
+      "skill": "alta-de-secreto",
+      "nota": "Casi-fallo: usa gh secret, pero dar de alta o rotar una clave de punta a punta es de alta-de-secreto; github solo lista sus secretos."
     }
   ]
 }

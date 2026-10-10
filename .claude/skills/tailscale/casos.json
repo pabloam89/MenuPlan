@@ -33,6 +33,18 @@
       "id": "frontera-ufw",
       "peticion": "¿Qué deja pasar el cortafuegos ufw del servidor del panel?",
       "skill": "hetzner"
+    },
+    {
+      "id": "frontera-abrir-puerto",
+      "peticion": "Quiero abrir el puerto 5432 del Postgres del panel a internet solo un rato para conectarme desde fuera de la red privada.",
+      "skill": "hetzner",
+      "nota": "Casi-fallo: habla de la red privada, pero abrir puertos y el cortafuegos son de hetzner (con el OK de Pablo)."
+    },
+    {
+      "id": "frontera-auth-key",
+      "peticion": "Voy a crear una auth key de Tailscale para un servidor; ¿dónde la guardo y cómo la apunto?",
+      "skill": "alta-de-secreto",
+      "nota": "Casi-fallo: es de Tailscale, pero la skill solo dice que una auth key va a 1Password; el alta de punta a punta es de alta-de-secreto."
     }
   ]
 }

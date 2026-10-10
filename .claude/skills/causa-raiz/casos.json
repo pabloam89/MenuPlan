@@ -56,6 +56,12 @@
       "id": "frontera-registrar-caso",
       "peticion": "He visto un fallo nuevo en el CI y quiero registrarlo como caso con sus etiquetas y colgarlo de su fondo.",
       "skill": "issues"
+    },
+    {
+      "id": "frontera-ci-rojo-log",
+      "peticion": "Mi PR tiene el check tests en rojo; ¿cómo veo solo el log de lo que falló para saber qué ha pasado?",
+      "skill": "github",
+      "nota": "Casi-fallo: pide saber qué ha pasado, pero es leer el log del CI (github), no diagnosticar la causa de fondo de un caso registrado."
     }
   ]
 }

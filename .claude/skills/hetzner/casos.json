@@ -43,6 +43,18 @@
       "id": "frontera-tailscale-windows",
       "peticion": "No consigo abrir Tailscale en Windows, no sale ninguna ventana.",
       "skill": "tailscale"
+    },
+    {
+      "id": "frontera-instalar-tailscale",
+      "peticion": "Tengo que instalar Tailscale en un servidor Linux nuevo y conectarlo a la red privada; ¿qué comandos uso?",
+      "skill": "tailscale",
+      "nota": "Casi-fallo: es un servidor Linux como el de hetzner, pero instalar y conectar Tailscale es de tailscale."
+    },
+    {
+      "id": "frontera-copias-de-supabase",
+      "peticion": "¿Qué plan de Supabase tenemos y por qué no hay copias automáticas de la base en el panel de Supabase?",
+      "skill": "supabase",
+      "nota": "Casi-fallo: habla de copias de la base, que también tiene hetzner (las propias, nocturnas), pero lo que Supabase ofrece o no es de supabase."
     }
   ]
 }

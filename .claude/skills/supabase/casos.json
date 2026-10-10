@@ -35,6 +35,18 @@
       "id": "frontera-escribir-migracion",
       "peticion": "Quiero escribir una migración nueva para añadir una columna a una tabla.",
       "skill": "ninguna"
+    },
+    {
+      "id": "frontera-secreto-rol",
+      "peticion": "Quiero crear un secreto nuevo para un rol de la base, guardarlo en una ficha y subirlo a Vercel; ¿cómo lo hago de punta a punta?",
+      "skill": "alta-de-secreto",
+      "nota": "Casi-fallo: toca roles de la base, pero el alta de un secreto de punta a punta es de alta-de-secreto."
+    },
+    {
+      "id": "frontera-cron-mercadona",
+      "peticion": "El cron semanal de Mercadona no ha empujado precios a staging este lunes.",
+      "skill": "github",
+      "nota": "Casi-fallo: es un cron, como los de pg_cron de supabase, pero este corre en GitHub Actions (github)."
     }
   ]
 }

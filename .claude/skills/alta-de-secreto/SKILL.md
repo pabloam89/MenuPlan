@@ -14,7 +14,7 @@ metadata:
 Para dar de alta una clave o un servicio de punta a punta sin que el valor
 salga en pantalla, en la conversación, en un argumento ni en el repo
 (que es público), y sin dejarla con más alcance o más vida de la que necesita.
-El 9 oct 2026 se dieron de alta cinco (el bot de avisos, el token de Vercel del
+Se dieron de alta cinco seguidas (el bot de avisos, el token de Vercel del
 vigía, una clave de Anthropic, la del canario y la del rol de copias) y cada una
 tropezó en algo distinto (#398): por eso es receta.
 
