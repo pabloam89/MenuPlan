@@ -61,7 +61,7 @@ if (esPrincipal) {
       issues = JSON.parse(readFileSync(cache, "utf8"));
     } else {
       registrarGh("avisos", ["issue", "list"]);
-      issues = JSON.parse(execFileSync("gh", ["issue", "list", "--state", "open", "--limit", "300", "--json", "number,title,body,state"], {
+      issues = JSON.parse(execFileSync("gh", ["issue", "list", "--state", "open", "--limit", "300", "--json", "number,title,body,state"], { windowsHide: true,
         cwd: entrada.cwd || process.cwd(), encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000,
       }));
       writeFileSync(cache, JSON.stringify(issues));

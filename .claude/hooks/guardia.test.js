@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { carpetaDe, contextoReal, decidir, sinAplicar } from "./guardia.mjs";
+import { carpetaDe, contextoReal, decidir, salidaDeGuardia, sinAplicar } from "./guardia.mjs";
 import { cargarMapa } from "./dominios.mjs";
 import { AVISOS_CREDENCIALES, credencialDeComando, sinTextos } from "./credenciales.mjs";
 import { AVISOS, AVISO_POR_CREDENCIAL } from "./avisos-guardia.mjs";
@@ -871,6 +871,87 @@ describe("puerta de lectura al editar: el cableado real (#397)", () => {
     expect(lanza(ruta)).toBe(null);
     expect(lanza(ruta, "editar-sesion-2")).toBe("deny");
     expect(lanza(join(repo, "src", "App.jsx"))).toBe(null);
+  });
+});
+
+describe("zonas con dueño: avisa sin bloquear si otra rama viva lleva el fichero (#506)", () => {
+  const otra = { rama: "ops/9-otra", carpeta: "MenuPlan-otra", issue: 9, desde: new Date(Date.now() - 3 * 3_600_000).toISOString(), como: "cambiado" };
+  const conZona = (extra = {}) => {
+    const vistas = new Set();
+    return ctx({
+      rutaDelRepo: (r) => (r.startsWith("C:/w/") ? r.slice(5) : null),
+      zonaAjena: (_abs, rel) => (rel === "ops/forja.json" ? [otra] : []),
+      marcarZona: (rel) => (vistas.has(rel) ? false : (vistas.add(rel), true)),
+      ...extra,
+    });
+  };
+  const toca = (file_path, c) => decidir({ tool_name: "Edit", session_id: "zonas-sesion-1", tool_input: { file_path } }, c);
+
+  it("avisa con la otra rama, su issue y desde cuándo; no lleva decisión de permiso", () => {
+    const r = toca("C:/w/ops/forja.json", conZona());
+    expect(r.decision).toBe("aviso");
+    expect(r.aviso).toBe("zona-de-otra-rama");
+    expect(r.codigo).toBe("zona-con-dueno");
+    expect(r.motivo).toMatch(/`ops\/forja\.json`.*`ops\/9-otra` \(#9, con cambios, desde hace 3,0 h\)/);
+    expect(r.motivo).toMatch(/coordina antes/);
+    expect(r.zona).toEqual({ fichero: "ops/forja.json", otras: [otra] });
+  });
+
+  it("sale una sola vez por fichero y sesión", () => {
+    const c = conZona();
+    expect(toca("C:/w/ops/forja.json", c)?.decision).toBe("aviso");
+    expect(toca("C:/w/ops/forja.json", c)).toBe(null);
+  });
+
+  it("calla si nadie más lo lleva, si no hay foto o si no puede recordar el aviso", () => {
+    expect(toca("C:/w/ops/glosario.json", conZona())).toBe(null);
+    expect(toca("C:/w/ops/forja.json", conZona({ zonaAjena: () => [] }))).toBe(null);
+    expect(toca("C:/w/ops/forja.json", conZona({ marcarZona: () => false }))).toBe(null);
+    expect(toca("C:/w/ops/forja.json", ctx())).toBe(null); // un contexto sin zonas (falla abierta)
+  });
+
+  it("un «no» gana al aviso, y no gasta el aviso", () => {
+    let marcadas = 0;
+    const c = conZona({ rutaEnPrincipal: () => true, marcarZona: () => (marcadas++, true) });
+    expect(toca("C:/w/ops/forja.json", c)?.decision).toBe("deny");
+    expect(marcadas).toBe(0);
+  });
+
+  it("la salida del aviso es contexto para la sesión, sin permissionDecision", () => {
+    const r = toca("C:/w/ops/forja.json", conZona());
+    const s = salidaDeGuardia(r, `[guardia] ${r.motivo}`).hookSpecificOutput;
+    expect(s).toEqual({ hookEventName: "PreToolUse", additionalContext: `[guardia] ${r.motivo}` });
+    expect(salidaDeGuardia({ decision: "deny" }, "x").hookSpecificOutput.permissionDecision).toBe("deny");
+  });
+
+  it("de punta a punta: el proceso de la guardia avisa una vez y deja su línea contable", () => {
+    const base = mkdtempSync(join(tmpdir(), "guardia-zonas-"));
+    execFileSync("git", ["init", "-q", base]);
+    execFileSync("git", ["-C", base, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "base"]);
+    const repo = join(base, "trabajo");
+    execFileSync("git", ["-C", base, "worktree", "add", "-q", repo]);
+    const dirReg = join(base, ".git", "claude-sesiones");
+    mkdirSync(dirReg, { recursive: true });
+    const foto = { hecho: new Date().toISOString(), ramas: [
+      { rama: "trabajo", ruta: repo, carpeta: "trabajo", issue: null, desde: null, ficheros: ["ops/forja.json", "ops/propio.json"], reservadas: ["ops/reservado.json"] },
+      { rama: "ops/9-otra", ruta: join(base, "otra"), carpeta: "otra", issue: 9, desde: otra.desde, ficheros: ["ops/forja.json"], reservadas: [] },
+    ] };
+    writeFileSync(join(dirReg, "zonas.json"), JSON.stringify(foto));
+    const fabrica = mkdtempSync(join(tmpdir(), "guardia-zonas-fabrica-"));
+    const lanza = (fichero) => spawnSync(process.execPath, [join(RAIZ, ".claude", "hooks", "guardia.mjs")], {
+      input: JSON.stringify({ session_id: "zonas-punta-1", cwd: repo, tool_name: "Edit", tool_input: { file_path: join(repo, fichero) } }),
+      encoding: "utf8",
+      env: { ...process.env, CLAUDE_PROJECT_DIR: "", MENUPLAN_FABRICA_DIR: fabrica },
+    }).stdout;
+    const primera = JSON.parse(lanza("ops/forja.json")).hookSpecificOutput;
+    expect(primera.permissionDecision).toBeUndefined();
+    expect(primera.additionalContext).toMatch(/^\[guardia\] Editar `ops\/forja\.json`, que ya lleva la rama `ops\/9-otra` \(#9/);
+    expect(lanza("ops/forja.json")).toBe(""); // la misma sesión ya fue avisada
+    expect(primera.additionalContext).not.toContain("`trabajo`"); // la propia rama, que también lo lleva, no sale
+    // Lo que solo lleva la propia rama (cambiado o reservado) no avisa: sin la exclusión, avisaría.
+    expect(lanza("ops/propio.json")).toBe("");
+    expect(lanza("ops/reservado.json")).toBe("");
+    expect(readFileSync(join(fabrica, "zonas.log"), "utf8")).toMatch(/^ts: \S+ zona: ops\/forja\.json rama: ops\/9-otra issue: #9 como: cambiado aviso: si\n$/);
   });
 });
 

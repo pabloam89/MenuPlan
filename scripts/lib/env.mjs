@@ -60,7 +60,7 @@ export function tokenServicio() {
       + ` $c = (New-Object Windows.Security.Credentials.PasswordVault).Retrieve('${LLAVERO.recurso}', '${LLAVERO.usuario}');`
       + " $c.RetrievePassword(); [Console]::Out.Write($c.Password)";
     try {
-      token = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() || null;
+      token = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() || null;
     } catch {
       // a propósito: sin token en el llavero; entornoOp falla cerrado con su mensaje (#328)
       token = null;
@@ -100,7 +100,7 @@ export function opPorLaApp(args, { input } = {}) {
   const env = { ...process.env };
   delete env.OP_SERVICE_ACCOUNT_TOKEN;
   try {
-    const stdout = execFileSync("op", args, { env, encoding: "utf8", input, stdio: ["pipe", "pipe", "pipe"] });
+    const stdout = execFileSync("op", args, { windowsHide: true, env, encoding: "utf8", input, stdio: ["pipe", "pipe", "pipe"] });
     return { status: 0, stdout, stderr: "" };
   } catch (e) {
     // Un fallo de `op` (no autorizado, no existe) o que no esté instalado: se devuelve, no se lanza.
@@ -138,7 +138,7 @@ const motivoDe = (e) => (e.code === "ENOENT"
 /** Los valores de varias direcciones, en una sola llamada a `op inject`. Lanza si falla alguna. */
 function inyectar(pares) {
   const plantilla = pares.map(([k, ref]) => `${k}={{ ${ref} }}`).join("\n");
-  const salida = execFileSync("op", ["inject"], { input: plantilla, encoding: "utf8", env: entornoOp(), stdio: ["pipe", "pipe", "pipe"] });
+  const salida = execFileSync("op", ["inject"], { windowsHide: true, input: plantilla, encoding: "utf8", env: entornoOp(), stdio: ["pipe", "pipe", "pipe"] });
   const lineas = salida.split(/\r?\n/);
   return pares.map(([k], i) => lineas[i].slice(k.length + 1));
 }

@@ -13,8 +13,8 @@ export const REFERENCIA = () => process.env.FORJA_REF ?? "origin/staging";
 export function jsonEnReferencia(raiz, ref, ruta) {
   let texto;
   try {
-    execFileSync("git", ["rev-parse", "--verify", "--quiet", ref], { cwd: raiz, stdio: "pipe" });
-    texto = execFileSync("git", ["show", `${ref}:${ruta}`], { cwd: raiz, stdio: "pipe", encoding: "utf8", maxBuffer: 1 << 24 });
+    execFileSync("git", ["rev-parse", "--verify", "--quiet", ref], { windowsHide: true, cwd: raiz, stdio: "pipe" });
+    texto = execFileSync("git", ["show", `${ref}:${ruta}`], { windowsHide: true, cwd: raiz, stdio: "pipe", encoding: "utf8", maxBuffer: 1 << 24 });
   } catch {
     // a propósito: sin git, sin la referencia o sin el fichero en ella, el trinquete se salta;
     // jsonEnReferenciaAvisando lo dice. Un JSON roto en la referencia sí revienta (abajo).
