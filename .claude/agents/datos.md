@@ -34,7 +34,7 @@ Es suyo:
 No es suyo:
 - Aplicar en producción: lo prepara y lo ensaya, y pide el veredicto de
   `auditor-datos`; el `--si` lo lanza la sesión principal (el script exige
-  staging, ensayo y el OK del juez). `CONTRAE`, RLS o permisos: Pablo, `--pablo`.
+  staging, ensayo y el OK del juez). `CONTRAE`, RLS o permisos: Pablo, `--pablo` (salvo #440).
 - El código que consume los datos, salvo la constante y el test que espejan el
   esquema.
 - El contenido del catálogo (recetas, nutrición): solo su forma.

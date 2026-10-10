@@ -112,7 +112,8 @@ describe("lo que lanza Pablo", () => {
     expect(motivosDePablo(`${SQL}create view public.v with (security_invoker = true) as select 1;\n`)).toEqual([]);
   });
 
-  it("--pablo levanta lo de Pablo…", () => {    expect(motivosParaNoAplicar(con(`-- CONTRAE: x\n${SQL}`, { pablo: true }))).toEqual([]);
+  it("--pablo levanta lo de Pablo…", () => {
+    expect(motivosParaNoAplicar(con(`-- CONTRAE: x\n${SQL}`, { pablo: true }))).toEqual([]);
   });
 
   it("…pero no se salta al juez, ni staging, ni el ensayo", () => {
@@ -171,6 +172,7 @@ describe("privilegios por defecto a anon (#440)", () => {
     ["E'\\'' y truncate detrás", "select E'\\''; truncate public.persona; select 'x';"],
     ["comilla dentro de $q$", "select $q$'$q$; truncate public.persona; select $q$'$q$;"],
     ["comilla dentro de un identificador", 'select 1 as "\'"; truncate public.persona; select 1 as "\'";'],
+    ["truncate dentro de cron.schedule (sin execute)", "select cron.schedule('vaciar', '0 3 * * *', 'truncate public.user_menus');"],
     ["truncate como tercer argumento de otra función", "select otra('anon','public.x','truncate'); truncate public.persona;"],
     ["execute con variable", "do $$ declare q text := 'x'; begin execute q; end $$;"],
     ["execute using", "do $$ begin execute 'select 1' using 1; end $$;"],

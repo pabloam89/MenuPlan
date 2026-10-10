@@ -91,7 +91,7 @@ escriben en ella, y cada migración es un cambio en producción.
   `SUPABASE_DB_URL_LECTURA`. El script pide que esté en staging, un ensayo de
   menos de una hora y el OK del juez `auditor-datos` en la cabecera; con
   `CONTRAE`, o RLS o permisos de lo que ya existía, además `--pablo` (quitar a
-  `anon` la plantilla de lo nuevo no cuenta, #440). Luego, ESTADO.md.
+  `anon` la plantilla de tablas y secuencias nuevas de `public` no cuenta, #440). Luego, ESTADO.md.
 - **El código no puede depender de que la migración ya esté**: la rama se
   despliega antes de que alguien la aplique. Plan B siempre.
 - **Ningún campo ni tabla sin lector**, y cada dato en un solo sitio.

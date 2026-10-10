@@ -16,7 +16,10 @@
  *      o crea `security definer`, que venga `--pablo`. Esa opción la guardia se
  *      la niega a cualquier sesión: solo la usa Pablo con `!`. La RLS y el
  *      revoke de una tabla creada en la misma migración no cuentan (PRINCIPIOS
- *      §8 los exige en toda tabla nueva).
+ *      §8 los exige en toda tabla nueva). Tampoco (#440) quitar a `anon` la
+ *      plantilla de tablas y secuencias nuevas de `public` (`alter default
+ *      privileges … revoke … from anon`, forma exacta en `sinRevokeAnonPorDefecto`);
+ *      cualquier otro permiso por defecto sí.
  *
  * Lo comprueba el script y no la buena fe de quien lo lanza, y vale igual para
  * Pablo que para una sesión. El SQL a mano contra la base sigue negado por la
@@ -132,14 +135,10 @@ export function motivosDePablo(sql) {
   // Datos que se pierden o se reescriben.
   if (/\bdrop\s+(?:table|view|materialized\s+view|schema|type|sequence|extension)\b/.test(codigo)) r.push("borra una tabla, vista, esquema, tipo o secuencia");
   if (/\bdrop\s+column\b|\balter\s+table\b[^;]*\bdrop\s+(?!constraint\b|default\b|not\s+null\b)(?:if\s+exists\s+)?[\w"]+/.test(codigo)) r.push("borra una columna");
-  // Excepción estrecha (autoprueba de la 0096): la palabra `'truncate'` como
-  // permiso a comprobar, solo en `has_table_privilege(…)`/`has_sequence_privilege(…)`
-  // o en la lista `foreach p in array array['select', …]` de palabras sueltas.
-  // Cualquier otro `truncate`, esté donde esté (también en un literal), cuenta.
-  const sinPermisoTruncate = codigo
-    .replace(/has_(?:table|sequence)_privilege\s*\(\s*(?:'[\w.]*'\s*,\s*){1,2}'truncate'\s*\)/g, "has_privilege()")
-    .replace(/\bforeach\s+\w+\s+in\s+array\s+array\s*\[\s*'[a-z_ ]+'(?:\s*,\s*'[a-z_ ]+')*\s*\]/g, "foreach p in array array[]");
-  if (/\btruncate\b/.test(sinPermisoTruncate)) r.push("vacía una tabla (`truncate`)");
+  // Excepción estrecha (autoprueba de la 0096, 0092, 0095): se ignora SOLO el literal
+  // que es exactamente la palabra `'truncate'` (un permiso en una lista). Cualquier
+  // otro `truncate`, también dentro de un literal más largo, cuenta.
+  if (/\btruncate\b/.test(codigo.replace(/'truncate'/g, "''"))) r.push("vacía una tabla (`truncate`)");
   if (/\bdelete\s+from\b/.test(codigo)) r.push("borra filas (`delete from`)");
   if (/\bupdate\s+[\w."]+\s+set\b/.test(codigo)) r.push("reescribe filas (`update … set`)");
   if (/\balter\s+column\s+[\w"]+\s+(?:set\s+data\s+)?type\b/.test(codigo)) r.push("cambia el tipo de una columna");
