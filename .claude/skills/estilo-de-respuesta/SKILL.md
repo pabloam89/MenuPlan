@@ -189,7 +189,7 @@ Bien (plantilla de decisión):
 
 ## Registro de cambios
 
-- **2026-10-10** · Se funde en esta skill la de la voz con Pablo: tres opciones en las decisiones, cinco plantillas con ejemplo canónico (`plantillas/plantillas.md`), glosario ampliado, resumen en `.claude/PLANTILLA-AGENTE.md` y `.claude/voz.test.js` que cruza regla, skill y plantilla de agentes; los ejemplos 1 y 3 siguen las plantillas de resultado y decisión, solo el `RESUMEN` y las `DECISIONES PENDIENTES` de un informe de agente siguen la forma, y los casos pasan a 13 (disparo 13/13, comprobaciones 24/29) (#415).
+- **2026-10-10** · Se funde en esta skill la de la voz con Pablo: tres opciones en las decisiones, cinco plantillas con ejemplo canónico (en `plantillas/`), glosario ampliado, resumen en `.claude/PLANTILLA-AGENTE.md` y `.claude/voz.test.js` que cruza regla, skill y plantilla de agentes; los ejemplos 1 y 3 siguen las plantillas de resultado y decisión, solo el `RESUMEN` y las `DECISIONES PENDIENTES` de un informe de agente siguen la forma, y los casos pasan a 13 (disparo 13/13, comprobaciones 24/29) (#415).
 - **2026-10-10** · Se añaden «Traducir la jerga» y «El comando para pegar»; el caso del comando se reformula (disparo de 8/9 a 9/9, comprobaciones de 13/16 a 14/16) (#415).
 - **2026-10-10** · Primera versión: idea raíz en negrita, cuatro ideas como mucho, petición al final y detalle fuera del chat (#415).
 
