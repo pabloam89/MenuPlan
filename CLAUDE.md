@@ -44,6 +44,14 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
   la propia sesión.
 - **`main` es producción.** Ninguna sesión sube ni fusiona a `main`; solo
   cuando Pablo lo pide, con el método que se decida con él.
+- **Dueño de código** (`.github/CODEOWNERS`, #330), cuando Pablo aplique y pruebe los
+  rulesets (hasta entonces es texto): un PR a `staging` que toca `.claude/`,
+  `.github/`, `CLAUDE.md`, `ops/DECISIONES.md`, `ops/normas.json`, el script de
+  aplicar migraciones o lo que ejecutan los hooks y los workflows con secretos
+  (`CODEOWNERS` lista cada fichero) espera la aprobación de Pablo; uno que no
+  toca nada de eso se fusiona solo con el CI en verde. A `main` solo fusiona
+  Pablo, desde el botón del PR. Se aplican con `scripts/rulesets.mjs`; detalle
+  en la skill `github`.
 - Una rama por tarea, prefijo de área y nombre en castellano: `bot/`, `datos/`,
   `ux/`, `fix/`, `feat/`, `ops/`, `motor/`. Las de la nube empujan solo a la
   suya. «¿Está en staging?» se mira en `origin/staging` tras `git fetch`.
@@ -110,9 +118,21 @@ Pablo no es informático: toda sesión y todo agente le escribe con la misma
 forma, para que decidir le cueste poco (skill `estilo-de-respuesta`).
 
 1. Primera línea: la idea raíz en **negrita**, una frase con el resultado o la respuesta.
-2. Cuatro ideas cortas, como mucho; el resto, «si quieres te lo cuento».
+2. Cuatro ideas cortas, como mucho; es un techo, no un molde: una pregunta corta
+   se contesta con la idea raíz y, si hace falta, una línea. El resto, «si quieres
+   te lo cuento».
 3. Al final, una línea con lo que le toca. Si es una decisión, **tres opciones**
-   en llano (A, B, C), la recomendada primero y qué pasa con cada una.
+   en llano (A, B, C), la recomendada primero y qué pasa con cada una, con su
+   «Coste:» (dinero, tiempo o riesgo) y «reversible» o «no se puede deshacer» en la
+   misma línea.
+
+Si afirmas un estado o un resultado que él no puede comprobar, una línea
+«Certeza:» con «Comprobado» (lo he visto yo, y qué), «Creo» (inferencia, y en qué
+me baso) o «No sé» (y cómo lo averiguo); un estado solo se da como hecho si se
+comprobó en ese momento. Un issue se nombra por su nombre; el número, si hace
+falta, va solo entre paréntesis, detrás del nombre. Al volver tras un rato o
+retomar un tema, la idea raíz en negrita lo recuerda
+(«**Seguimos con X: falta Y.**»).
 
 Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
 Un término técnico se explica la primera vez y después se llama igual. Ficheros,
@@ -224,6 +244,8 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 - Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
 - Escribir a personas o publicar algo en su nombre.
 - Ampliar los permisos de `.claude/settings.json` (la sesión pregunta en el chat antes de abrir el PR y el juez lo marca; la guardia ya no pregunta al editar).
+- Fusionar un PR que toca las rutas de `.github/CODEOWNERS`: la sesión lo
+  deja listo con el CI en verde y espera la aprobación de Pablo.
 - Reescribir historia de una rama que no es tuya.
 
 **Autorizado de forma permanente** (se hace y se cuenta en el resumen):
@@ -236,7 +258,8 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 - Issues y etiquetas: crearlos, clasificarlos, colgarlos, cerrarlos con su PR,
   y `npm run issues -- --etiquetas`.
 - Cambiar hooks, guardia, reglas, skills y agentes, siempre por PR con su juez
-  y el CI en verde. Fusionar a staging es de la propia sesión.
+  y el CI en verde. Fusionar a staging es de la propia sesión; con los
+  rulesets de #330 aplicados y probados, si el PR toca `.claude/` espera la aprobación de Pablo.
 - Ajustes del repo que no tocan permisos ni producción: etiquetas,
   plantillas, la descripción de un PR.
 - Poner al día la carpeta principal (`git pull --ff-only`) y las copias de
