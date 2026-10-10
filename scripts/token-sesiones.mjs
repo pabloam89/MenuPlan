@@ -13,7 +13,7 @@
  *   un fichero (así no queda en el disco ni en la lista de procesos).
  * - El App ID y el Installation ID no son secretos: `SESIONES_APP_ID` y
  *   `SESIONES_INSTALLATION_ID`, del entorno o de `.env.local` (`leerEnv`).
- * - El token se pide con permisos explícitos (sin workflows) y se descarta, sin imprimirlo, si la respuesta trae administration, secrets, environments, deployments o workflows, o si no está limitado exactamente a MenuPlan.
+ * - El token se pide con permisos explícitos (sin workflows) y se descarta, sin imprimirlo, si lo concedido no es un subconjunto exacto de lo pedido (permiso no pedido, nivel superior, o `permissions` ausente) o si no está limitado exactamente a MenuPlan. Timeout de 15 s al pedirlo y 30 s a la clave.
  * - Capturarlo SIEMPRE con $(…): imprimido en una sesión queda en su transcripción en disco.
  * - Firma un JWT RS256 de 10 minutos con `node:crypto` (sin dependencias) y
  *   pide `POST /app/installations/{id}/access_tokens`, limitado al repo MenuPlan.
@@ -38,8 +38,10 @@ export const PERMISOS = {
   contents: "write", pull_requests: "write", issues: "write",
   actions: "read", checks: "read", metadata: "read",
 };
-/** Si la respuesta trae cualquiera de estos, el token se descarta sin imprimirlo. */
-export const PROHIBIDOS = ["administration", "secrets", "environments", "deployments", "workflows"];
+/** Orden de los niveles: lo concedido no puede pasar de lo pedido. Un nivel desconocido se descarta. */
+const NIVEL = { read: 1, write: 2, admin: 3 };
+export const ESPERA_FETCH_MS = 15_000;
+export const ESPERA_STDIN_MS = 30_000;
 
 const b64url = (b) => Buffer.from(b).toString("base64url");
 
@@ -95,6 +97,7 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch }) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ repositories: [REPO], permissions: PERMISOS }),
+      signal: AbortSignal.timeout(ESPERA_FETCH_MS),
     });
   } catch (e) {
     throw new ErrorToken(`sin respuesta de GitHub: ${sinSecretos(e?.cause?.code || e?.name || "error de red", [jwt])}`);
@@ -111,31 +114,44 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch }) {
   }
   if (typeof datos?.token !== "string" || !datos.token) throw new ErrorToken("GitHub respondió 2xx sin token");
   // Se comprueba lo que GitHub concedió, no lo que se pidió: si no cuadra, el token no sale.
-  const extra = PROHIBIDOS.filter((p) => datos.permissions && p in datos.permissions);
-  if (extra.length) throw new ErrorToken(`el token trae permisos que no debe (${extra.join(", ")}): no lo imprimo; corrige los permisos de la App y relanza`);
+  // Lista blanca: lo concedido es un subconjunto de lo pedido, sin ningún nivel superior.
+  const concedido = datos.permissions;
+  if (!concedido || typeof concedido !== "object" || Array.isArray(concedido)) throw new ErrorToken("la respuesta no dice qué permisos trae el token: no lo imprimo");
+  const mal = Object.entries(concedido).filter(([p, nivel]) => !(p in PERMISOS) || !(nivel in NIVEL) || NIVEL[nivel] > NIVEL[PERMISOS[p]]).map(([p]) => p);
+  if (mal.length) throw new ErrorToken(`el token trae permisos que no pedí o de más nivel (${mal.join(", ")}): no lo imprimo; corrige los permisos de la App y relanza`);
   const repos = Array.isArray(datos.repositories) ? datos.repositories.map((x) => x?.name) : null;
   if (!repos || repos.length !== 1 || repos[0] !== REPO) throw new ErrorToken(`el token no está limitado exactamente a ${REPO} (repositorios: ${repos ? repos.length : "ninguno indicado"}): no lo imprimo`);
   return { token: datos.token, expira: datos.expires_at ?? "" };
 }
 
-async function leerStdin(entrada = process.stdin) {
+async function leerStdin(entrada = process.stdin, esperaMs = ESPERA_STDIN_MS) {
   if (entrada.isTTY) throw new ErrorToken("la clave va por tubería: `… document get … | node scripts/token-sesiones.mjs` (skill github, referencias/app-sesiones.md)");
-  let s = "";
-  for await (const trozo of entrada) {
-    s += trozo;
-    if (s.length > TOPE_CLAVE) throw new ErrorToken("lo que llega por stdin es demasiado grande para ser un .pem");
+  let reloj;
+  const tope = new Promise((_, no) => { reloj = setTimeout(() => no(new ErrorToken(`stdin no ha terminado en ${esperaMs / 1000} s: ¿la orden que da el .pem se ha quedado esperando?`)), esperaMs); });
+  const leer = (async () => {
+    let s = "";
+    for await (const trozo of entrada) {
+      s += trozo;
+      if (s.length > TOPE_CLAVE) throw new ErrorToken("lo que llega por stdin es demasiado grande para ser un .pem");
+    }
+    return s;
+  })();
+  leer.catch(() => {});
+  try {
+    return await Promise.race([leer, tope]);
+  } finally {
+    clearTimeout(reloj);
   }
-  return s;
 }
 
 /**
  * Todo el flujo, con sus dependencias inyectadas para probarlo sin red.
  * Devuelve el código de salida; escribe con `salida` (stdout) y `errores` (stderr).
  */
-export async function ejecutar({ entrada, ids, fetchFn = fetch, ahora, salidaTTY = false, salida = (t) => process.stdout.write(t), errores = (t) => process.stderr.write(t) } = {}) {
+export async function ejecutar({ entrada, ids, fetchFn = fetch, ahora, salidaTTY = false, esperaStdinMs = ESPERA_STDIN_MS, salida = (t) => process.stdout.write(t), errores = (t) => process.stderr.write(t) } = {}) {
   let pem = "";
   try {
-    pem = await leerStdin(entrada);
+    pem = await leerStdin(entrada, esperaStdinMs);
     const { appId, installationId } = ids();
     const jwt = firmarJwt({ appId, pem, ahora });
     const { token, expira } = await pedirToken({ jwt, installationId, fetchFn });

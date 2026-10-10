@@ -11,7 +11,10 @@ beforeAll(() => {
   const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   pem = privateKey.export({ type: "pkcs1", format: "pem" });
   publica = publicKey;
+  pkcs8 = privateKey.export({ type: "pkcs8", format: "pem" });
 });
+let pkcs8;
+const crypto8 = () => pkcs8;
 
 const AHORA = 1_790_000_000;
 const TOKEN = "ghs_FALSO0123456789abcdefghijklmnopqrstu";
@@ -57,6 +60,15 @@ describe("firmarJwt", () => {
     expect(verify("RSA-SHA256", Buffer.from(`${cab}.${cuerpo}`), publica, Buffer.from(firma, "base64url"))).toBe(true);
   });
 
+  it("acepta el PEM con CRLF (como lo deja Windows) y el PKCS#8 (BEGIN PRIVATE KEY)", () => {
+    for (const texto of [pem.replace(/\n/g, "\r\n"), crypto8()]) {
+      const [cab, cuerpo, firma] = firmarJwt({ appId: "123456", pem: texto, ahora: AHORA }).split(".");
+      expect(verify("RSA-SHA256", Buffer.from(`${cab}.${cuerpo}`), publica, Buffer.from(firma, "base64url"))).toBe(true);
+    }
+    expect(crypto8()).toContain("BEGIN PRIVATE KEY");
+    expect(pem).toContain("BEGIN RSA PRIVATE KEY");
+  });
+
   it("una clave que no es un PEM, o que no es RSA, o un App ID que no es número: error claro y sin la clave", () => {
     expect(() => firmarJwt({ appId: "1", pem: "esto no es una clave SECRETO-X" })).toThrow(/no es un PEM válido/);
     try { firmarJwt({ appId: "1", pem: "esto no es una clave SECRETO-X" }); } catch (e) { expect(e.message).not.toContain("SECRETO-X"); }
@@ -85,7 +97,73 @@ describe("pedirToken", () => {
     expect(Object.keys(JSON.parse(init.body).permissions)).not.toContain("workflows");
   });
 
-  it.each(["administration", "secrets", "environments", "deployments", "workflows"])(
+  it("lo concedido puede ser un subconjunto de lo pedido y el token sale", async () => {
+    const cuerpo = { ...CONCEDIDO, permissions: { contents: "read", metadata: "read" } };
+    const { codigo, out } = await correr({ fetchFn: fetchFalso(201, cuerpo).fn });
+    expect(codigo).toBe(0);
+    expect(out).toBe(`${TOKEN}\n`);
+  });
+
+  // Lista blanca: cualquier permiso que no pedimos, sea el que sea, descarta el token.
+  it.each(["administration", "secrets", "environments", "deployments", "workflows", "packages", "pages"])(
+    "si GitHub concede «%s» (no pedido), el token se descarta y no se imprime",
+    async (permiso) => {
+      const cuerpo = { ...CONCEDIDO, permissions: { ...CONCEDIDO.permissions, [permiso]: permiso === "pages" ? "write" : "read" } };
+      const { codigo, out, err } = await correr({ fetchFn: fetchFalso(201, cuerpo).fn });
+      expect(codigo).toBe(1);
+      expect(out).toBe("");
+      expect(err).toContain(permiso);
+      expect(err).not.toContain(TOKEN);
+    },
+  );
+
+  it.each([["metadata", "write"], ["actions", "write"], ["checks", "admin"], ["contents", "admin"], ["issues", "otro"]])(
+    "un nivel superior al pedido o desconocido (%s: %s) descarta el token",
+    async (permiso, nivel) => {
+      const cuerpo = { ...CONCEDIDO, permissions: { ...CONCEDIDO.permissions, [permiso]: nivel } };
+      const { codigo, out, err } = await correr({ fetchFn: fetchFalso(201, cuerpo).fn });
+      expect(codigo).toBe(1);
+      expect(out).toBe("");
+      expect(err).toContain(permiso);
+      expect(err).not.toContain(TOKEN);
+    },
+  );
+
+  it.each([["ausente", undefined], ["null", null], ["texto", "write"], ["lista", ["contents"]]])(
+    "permissions %s en la respuesta: el token no sale",
+    async (_n, valor) => {
+      const { codigo, out, err } = await correr({ fetchFn: fetchFalso(201, { ...CONCEDIDO, permissions: valor }).fn });
+      expect(codigo).toBe(1);
+      expect(out).toBe("");
+      expect(err).toMatch(/no dice qué permisos/);
+      expect(err).not.toContain(TOKEN);
+    },
+  );
+
+  it("el fetch lleva un tope de tiempo y su expiración da un error claro sin secretos", async () => {
+    let senal;
+    const fn = async (_u, init) => {
+      senal = init.signal;
+      throw Object.assign(new Error(`agotado con ${init.headers.Authorization}`), { name: "TimeoutError" });
+    };
+    const { codigo, out, err } = await correr({ fetchFn: fn });
+    expect(senal).toBeInstanceOf(AbortSignal);
+    expect(codigo).toBe(1);
+    expect(out).toBe("");
+    expect(err).toMatch(/sin respuesta de GitHub: TimeoutError/);
+    expect(err).not.toMatch(/eyJ|Bearer/);
+  });
+
+  it("si stdin no termina, falla con la causa en vez de quedarse colgado", async () => {
+    let err = "";
+    const colgada = new Readable({ read() {} });
+    const codigo = await ejecutar({ entrada: colgada, ids, fetchFn: fetchFalso().fn, esperaStdinMs: 30, salida: () => {}, errores: (t) => { err += t; } });
+    expect(codigo).toBe(1);
+    expect(err).toMatch(/stdin no ha terminado/);
+    colgada.destroy();
+  });
+
+  it.each(["administration"])(
     "si GitHub concede «%s», el token se descarta y no se imprime",
     async (permiso) => {
       const cuerpo = { ...CONCEDIDO, permissions: { ...CONCEDIDO.permissions, [permiso]: "read" } };
