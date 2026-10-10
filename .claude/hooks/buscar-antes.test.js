@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { construirIndice, escribirIndice, senalDeDenegacion } from "../../scripts/lib/buscarAntes.mjs";
-import { medianaMs, topeMs } from "../../scripts/lib/medirTiempo.mjs";
+import { medianaMs, testigoMs, topeConTestigo } from "../../scripts/lib/medirTiempo.mjs";
 import { procesar } from "./buscar-antes.mjs";
 
 /** Lo que tarda el hook con índice, suelto (mediana de 5: 79-91 ms en tres pasadas el 2026-10-10). */
@@ -146,13 +146,15 @@ describe("el hook de verdad", () => {
     expect(JSON.parse(sinIndice.stdout).hookSpecificOutput.additionalContext).toMatch(/uedo buscar lo ya apuntado/);
   });
 
-  it("es rápido con el índice presente (mediana de 5, 20× sobre lo medido suelto)", () => {
+  it("es rápido con el índice presente (mediana de 5, 20× sobre lo suelto, calibrado con el testigo)", () => {
     const dir = nuevoDir();
     escribirIndice(INDICE, join(dir, "indice.json"));
     lanza(entrada, dir);
-    // Con 800 ms (8×) y el mejor de tres falló bajo carga: 805 ms (#407) y 4 s (#499).
+    // Con 800 ms (8×) y el mejor de tres falló bajo carga: 805 ms (#407) y 4 s (#499), con la
+    // carga sostenida en las tres medidas. El testigo, en la misma tanda, sube el tope con ella.
+    const testigo = testigoMs();
     const ms = medianaMs((i) => lanza({ ...entrada, session_id: `tiempo-${i}` }, dir), { etiqueta: "buscar-antes-hook" });
-    expect(ms).toBeLessThan(topeMs(SUELTO_HOOK_MS));
+    expect(ms).toBeLessThan(topeConTestigo(SUELTO_HOOK_MS, { testigoAhoraMs: testigo }));
   });
 
   it("a una llamada normal no responde nada", () => {

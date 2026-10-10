@@ -29,11 +29,10 @@ const pct = (xs, p) => {
 export async function medirUnidad(data, group, crossWeek, { format = "compact" } = {}) {
   const stats = createPlannerStats();
   const fila = { semilla: data._semilla, dureza: data._dureza, group: group.id, weekCount: crossWeek?.weekCount ?? 1 };
-  // tiempo: sin tope — banco de resistencia (STRESS=1): wallMs se informa, no se compara con nada
   const t = Date.now();
   try {
     const res = await generateGroupMenu(data, group, undefined, [], crossWeek, undefined, "prefer", { stats, format });
-    fila.wallMs = Date.now() - t;
+    fila.wallMs = Date.now() - t; // tiempo: sin tope — banco de resistencia (STRESS=1): se informa, no se compara
     const ctx = buildGroupContext(data, group);
     fila.bebe = !!ctx.isBabyGroup;
     fila.slots = ctx.slots.length;
@@ -147,16 +146,15 @@ describe.skipIf(!process.env.STRESS)("resistencia del solver", () => {
   it(`${N} casas aleatorias por generateGroupMenu entero`, async () => {
     globalThis.localStorage = { getItem: (k) => (k === "mp_motor" ? "solver" : null) };
     const filas = [];
-    // tiempo: sin tope — los segundos totales se informan, no se comparan
     const t0 = Date.now();
     for (let i = 0; i < N; i++) {
       const data = casaAleatoria(1000 + i);
       const crossWeek = crossWeekAleatorio(1000 + i);
       for (const group of data.groups) filas.push({ i, ...(await medirUnidad(data, group, crossWeek)) });
-      if ((i + 1) % 100 === 0) console.log(`… ${i + 1}/${N} casas, ${Math.round((Date.now() - t0) / 1000)} s`);
+      if ((i + 1) % 100 === 0) console.log(`… ${i + 1}/${N} casas, ${Math.round((Date.now() - t0) / 1000)} s`); // tiempo: sin tope — progreso
     }
     const resumen = resumir(filas);
-    resumen.totalSeg = Math.round((Date.now() - t0) / 1000);
+    resumen.totalSeg = Math.round((Date.now() - t0) / 1000); // tiempo: sin tope — se informa, no se compara
     fs.writeFileSync(SALIDA, JSON.stringify({ resumen, filas }, null, 1));
     console.log("RESUMEN " + JSON.stringify(resumen, null, 1));
     expect(resumen.errores).toBe(0);

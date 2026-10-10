@@ -4,7 +4,6 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { cargarMapa, skillsDeComando, skillsDeFicheros } from "./hooks/dominios.mjs";
-import { medianaMs } from "../scripts/lib/medirTiempo.mjs";
 
 /**
  * El mapa de dominios con skill (.claude/dominios-skills.json) lo leen la
@@ -198,10 +197,20 @@ describe("el coste de evaluar los patrones", () => {
     sinSalto: "a",
   };
   const entrada = (unidad, bytes) => unidad.repeat(Math.ceil(bytes / unidad.length));
-  const deTres = (cmd, m) => medianaMs(() => skillsDeComando(cmd, m), { n: 3 });
+  // El mínimo de tres y no la mediana: para una razón entre dos tamaños, el mínimo es lo más
+  // cercano al coste sin ruido. No se compara con ningún tope en ms, sino la razón con UMBRAL.
+  const mejorDeTres = (cmd, m) => {
+    let mejor = Infinity;
+    for (let i = 0; i < 3; i++) {
+      const t0 = performance.now();
+      skillsDeComando(cmd, m);
+      mejor = Math.min(mejor, performance.now() - t0); // tiempo: sin tope — entra en la razón t100 / t25
+    }
+    return mejor;
+  };
   const razon = (unidad, m) => {
-    const t25 = deTres(entrada(unidad, 25_000), m);
-    const t100 = deTres(entrada(unidad, 100_000), m);
+    const t25 = mejorDeTres(entrada(unidad, 25_000), m);
+    const t100 = mejorDeTres(entrada(unidad, 100_000), m);
     return { t25, t100, razon: t100 / Math.max(t25, SUELO_MS) };
   };
   // Con otras suites en paralelo, el ruido de CPU infla un tiempo suelto y la

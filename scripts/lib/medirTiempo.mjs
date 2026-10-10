@@ -4,27 +4,34 @@
  * La clase: todo test que compara una duración con un tope fijo sin 20× de
  * margen sobre lo que tarda suelto, o con una sola medida, falla cuando varias
  * sesiones corren tests a la vez (#407: una razón con umbral 8× falló cuatro
- * veces; #499: 4 s frente a un tope de 800 ms medido en ~100 ms). La regla está
- * en `.claude/rules/tests.md`; la hace cumplir `ops/testsDeTiempo.test.js`
+ * veces; #499: el mejor de tres dio 4 s frente a un tope de 800 ms medido en
+ * ~100 ms, así que la carga duró las tres medidas). La regla está en
+ * `.claude/rules/tests.md`; la hace cumplir `ops/testsDeTiempo.test.js`
  * (vigilante de ops/vigilantes.json) con el escáner de abajo.
  *
  * Los caminos que acepta el vigilante:
  *  1. La utilidad: `expect(medianaMs(fn)).toBeLessThan(topeMs(suelto))`. La
  *     mediana de varias repeticiones aguanta un pico de carga suelto, y
  *     `topeMs` pone el tope a MARGEN veces lo medido suelto (con un suelo). Lo
- *     que no se puede repetir (deja procesos hijos vivos) va con `{ n: 1 }`:
- *     el margen de `topeMs` basta (la regla pide margen O repetición).
+ *     que no se puede repetir (deja procesos hijos vivos) va con `{ n: 1 }`.
+ *     Lo que lanza procesos sufre una carga que dura toda la tanda: su tope
+ *     se calibra con un testigo medido justo antes (`topeConTestigo`), y así
+ *     crece con la carga de la máquina pero no con la lentitud propia del código.
  *  2. Una medida a mano que no cabe en la utilidad, con la marca en las líneas de antes:
  *     `// tiempo: margen 25x medido 2026-10-10 (suelto ~160 ms, tope 4000 ms)`.
  *     El número es la razón tope / suelto, y no baja de MARGEN.
- *  3. Una medida que solo se informa y no se compara con ningún tope (un banco
- *     de resistencia): `// tiempo: sin tope — <por qué>`.
+ *  3. En la misma línea o en la de antes, y solo ahí:
+ *     - `// tiempo: sin tope — <por qué>`: se mide para informar (un banco de
+ *       resistencia) o para una razón entre dos medidas, no contra un tope;
+ *     - `// tiempo: relación — <por qué>`: se compara con otra medida de la misma
+ *       ejecución (el primer texto antes que el turno entero), no con un número.
  *
  * Con `MENUPLAN_TIEMPOS=1` (a la consola) o `MENUPLAN_TIEMPOS=<fichero>` (se
  * añade ahí), cada medida con etiqueta deja una línea contable
  * (`tiempo etiqueta: … mediana_ms: … n: …`) para volver a medir lo suelto.
  */
 
+import { spawnSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 
 /** El margen mínimo entre el tope y lo que tarda suelto. */
@@ -38,6 +45,12 @@ export const REPETICIONES = 5;
  * de más tardan segundos: 100 ms los sigue cazando.
  */
 export const SUELO_MS = 100;
+/**
+ * Lo que tarda suelto el testigo (`node -e ""`, mediana de 9: 56 ms, medido el
+ * 2026-10-10 en el PC de Pablo). En una máquina más rápida (el CI) la razón
+ * sale por debajo de 1 y no cuenta: el tope nunca baja de MARGEN × suelto.
+ */
+export const TESTIGO_SUELTO_MS = 56;
 
 const ahora = () => performance.now();
 
@@ -97,56 +110,198 @@ export function topeMs(sueltoMs, { fijoMs = 0 } = {}) {
   return fijoMs + Math.max(MARGEN * sueltoMs, SUELO_MS);
 }
 
+/** Mediana, en ms, de arrancar un `node -e ""` vacío: cuánto pesa ahora arrancar un proceso. */
+export function testigoMs({ n = 3, etiqueta = "testigo-node" } = {}) {
+  return medianaMs(() => spawnSync(process.execPath, ["-e", ""], { windowsHide: true, stdio: "ignore" }), { n, etiqueta });
+}
+
+/**
+ * El tope de algo que lanza procesos, calibrado con el testigo de la misma
+ * tanda: MARGEN × suelto × max(1, testigoAhora / testigoSuelto), más la espera
+ * fija. Si la máquina va el triple de lenta (el testigo tarda el triple), el
+ * tope crece el triple; si es el código el que se vuelve lento con la máquina
+ * libre, el testigo no se mueve y el tope de siempre lo caza.
+ */
+export function topeConTestigo(sueltoMs, { testigoAhoraMs, testigoSueltoMs = TESTIGO_SUELTO_MS, fijoMs = 0 } = {}) {
+  if (!(Number(testigoAhoraMs) > 0) || !(Number(testigoSueltoMs) > 0)) throw new Error(`topeConTestigo: hace falta el testigo de ahora y el suelto, en ms (llegaron ${testigoAhoraMs} y ${testigoSueltoMs})`);
+  const carga = Math.max(1, testigoAhoraMs / testigoSueltoMs);
+  return topeMs(sueltoMs * carga, { fijoMs });
+}
+
 // ── El escáner del vigilante ────────────────────────────────────────────────
 
 /**
- * Una medida de duración a mano: `performance.now() - x`, `Date.now() - x`
- * (con x un nombre, no una cuenta de fechas como `Date.now() - 8 * 86400000`)
- * o `process.hrtime`.
- */
-const MEDIDA = /(?:performance\.now|Date\.now)\(\)\s*-\s*[A-Za-z_$][\w$.]*(?!\s*[*/(\w$])|process\.hrtime/;
-/** La marca de una medida a mano. */
-const MARCA = /\/\/\s*tiempo:\s*(?:margen\s+(\d+(?:[.,]\d+)?)x\s+medido\s+(\d{4}-\d{2}-\d{2})|sin tope\b)/;
-/**
  * Ficheros de test que el vigilante deja pasar sin cumplir: { ruta, motivo }.
- * Solo baja (ops/testsDeTiempo.test.js lo compara con su literal de partida,
- * que está vacío): una medida nueva se arregla con la utilidad, no se añade aquí.
+ * Solo baja: ops/testsDeTiempo.test.js exige que esté vacía (0 el 10 oct 2026).
+ * Una medida nueva se arregla con la utilidad, no se añade aquí.
  */
 export const EXCEPCIONES_TIEMPO = [];
 
-/** Cuántas líneas antes de la medida puede estar su marca. */
+/** Cuántas líneas antes de la medida puede estar su marca de margen. */
 export const LINEAS_MARCA = 12;
+
+const ID = String.raw`[A-Za-z_$][\w$]*`;
+/** Una lectura del reloj. */
+const RELOJ = String.raw`(?:performance\.now\(\)|Date\.now\(\)|new Date\(\))`;
+/**
+ * Una medida de duración a mano: un reloj menos un nombre (no una cuenta de
+ * fechas como `Date.now() - 8 * 86400000`), o `process.hrtime`.
+ */
+const MEDIDA = new RegExp(String.raw`${RELOJ}\s*-\s*${ID}(?:\.${ID})*(?!\s*[*/(\w$.])|process\.hrtime`);
+const MARCA_MARGEN = /\/\/\s*tiempo:\s*margen\s+(\d+(?:[.,]\d+)?)x\s+medido\s+(\d{4}-\d{2}-\d{2})/;
+const MARCA_CERCA = /\/\/\s*tiempo:\s*(sin tope|relaci[oó]n)\b/;
+/** Un nombre de duración: `ms`, `…Ms` o `…_ms`, solo o como propiedad. */
+const NOMBRE_DURACION = /(?:^|[.\s(])(?:ms|\w*Ms|\w*_ms)\s*$/;
 
 const fechaReal = (f) => {
   const d = new Date(`${f}T00:00:00Z`);
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === f;
 };
 
+/** Los nombres a los que se asigna lo que devuelve alguna de `funciones` (`const x = await medianaMs(…)`). */
+function nombresDe(texto, patron) {
+  const r = new RegExp(String.raw`(?:(?:const|let|var)\s+)?(${ID})\s*=\s*(?:await\s+)?(?:${patron})`, "g");
+  return new Set([...texto.matchAll(r)].map((m) => m[1]));
+}
+
+/** El texto dentro de los paréntesis que abren en `desde`, y dónde acaba. */
+function entreParentesis(texto, desde) {
+  let nivel = 0;
+  for (let i = desde; i < texto.length; i++) {
+    if (texto[i] === "(") nivel++;
+    else if (texto[i] === ")" && --nivel === 0) return { dentro: texto.slice(desde + 1, i), fin: i + 1 };
+  }
+  return { dentro: texto.slice(desde + 1), fin: texto.length };
+}
+
+/** El primer argumento (hasta la primera coma de nivel 0). */
+function primerArgumento(s) {
+  let nivel = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if ("([{".includes(c)) nivel++;
+    else if (")]}".includes(c)) nivel--;
+    else if (c === "," && nivel === 0) return s.slice(0, i);
+  }
+  return s;
+}
+
+/**
+ * Deja solo el código: comentarios y contenido de cadenas en blanco, con las
+ * mismas posiciones y saltos de línea. Un recorrido carácter a carácter, para
+ * que un `//` dentro de una URL no se tome por comentario ni una comilla de
+ * un comentario abra una cadena. Lo de dentro de `${…}` de una plantilla es
+ * código y se mira. Las expresiones regulares no se reconocen (lo peor que
+ * pasa es dejar de ver una medida en esa línea, no inventarla).
+ */
+function sinCadenas(texto) {
+  const s = texto.split("");
+  let estado = "codigo";
+  // Por cada `${` abierto, cuántas llaves de código hay abiertas dentro.
+  const plantillas = [];
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    const sig = s[i + 1];
+    if (estado === "codigo") {
+      if (c === "/" && sig === "/") { estado = "linea"; s[i] = " "; }
+      else if (c === "/" && sig === "*") { estado = "bloque"; s[i] = " "; }
+      else if (c === '"' || c === "'" || c === "`") estado = c;
+      else if (plantillas.length && c === "{") plantillas[plantillas.length - 1]++;
+      else if (plantillas.length && c === "}") {
+        if (plantillas[plantillas.length - 1] === 0) { plantillas.pop(); estado = "`"; }
+        else plantillas[plantillas.length - 1]--;
+      }
+      continue;
+    }
+    if (estado === "`" && c === "$" && sig === "{") { plantillas.push(0); estado = "codigo"; i++; continue; }
+    if (estado === "linea") {
+      if (c === "\n") estado = "codigo";
+      else s[i] = " ";
+      continue;
+    }
+    if (estado === "bloque") {
+      if (c === "*" && sig === "/") { s[i] = " "; s[i + 1] = " "; i++; estado = "codigo"; }
+      else if (c !== "\n") s[i] = " ";
+      continue;
+    }
+    // Dentro de una cadena.
+    if (c === "\\") { s[i] = " "; if (s[i + 1] !== "\n" && i + 1 < s.length) s[i + 1] = " "; i++; continue; }
+    if (c === estado) { estado = "codigo"; continue; }
+    if (c === "\n" && estado !== "`") { estado = "codigo"; continue; }
+    if (c !== "\n") s[i] = " ";
+  }
+  return s.join("");
+}
+
+const lineaDe = (texto, i) => texto.slice(0, i).split("\n").length;
+
 /**
  * Las medidas de tiempo de un test que no siguen la regla: [{ linea, motivo, texto }].
- *  - `sin-marca`: una medida a mano sin `// tiempo: margen Nx medido AAAA-MM-DD` (o `sin tope`) en las
- *    LINEAS_MARCA líneas de antes (ni en la misma);
+ *  - `sin-marca`: una medida a mano (reloj menos un nombre, dos lecturas del reloj
+ *    restadas, `process.hrtime`) sin marca de margen en las LINEAS_MARCA de antes,
+ *    ni «sin tope»/«relación» en la misma línea o la anterior;
  *  - `margen-corto`: la marca dice menos de MARGEN;
  *  - `fecha-mala`: la fecha de la marca no existe;
- *  - `tope-sin-margen`: un `toBeLessThan` sobre `medianaMs` cuyo tope no sale de `topeMs`.
- * La propia utilidad (este fichero) no se escanea: no es un test.
+ *  - `tope-sin-margen`: un `toBeLessThan(OrEqual)` sobre una duración (lo que
+ *    devuelve `medianaMs`, una medida a mano o un nombre acabado en `ms`, `Ms` o
+ *    `_ms`) cuyo tope no sale de `topeMs`/`topeConTestigo` ni lleva marca.
+ *    El `expect` puede estar partido en varias líneas.
  */
 export function medidasSinMargen(texto) {
-  const lineas = String(texto).split(/\r?\n/);
+  const original = String(texto).replace(/\r\n/g, "\n");
+  const codigo = sinCadenas(original);
+  const lineas = original.split("\n");
+  const lineasCodigo = codigo.split("\n");
   const malas = [];
-  lineas.forEach((l, i) => {
-    const codigo = l.replace(/\/\/.*$/, "");
-    if (MEDIDA.test(codigo) && !/^\s*\*/.test(l)) {
-      let marca = null;
-      for (let j = i; j >= Math.max(0, i - LINEAS_MARCA) && !marca; j--) marca = lineas[j].match(MARCA);
-      // Con «sin tope» (marca[1] vacío) se mide para informar, no se compara con nada.
-      if (!marca) malas.push({ linea: i + 1, motivo: "sin-marca", texto: l.trim().slice(0, 120) });
-      else if (marca[1] !== undefined && Number(marca[1].replace(",", ".")) < MARGEN) malas.push({ linea: i + 1, motivo: "margen-corto", texto: marca[0] });
-      else if (marca[1] !== undefined && !fechaReal(marca[2])) malas.push({ linea: i + 1, motivo: "fecha-mala", texto: marca[0] });
+  const relojes = nombresDe(codigo, RELOJ);
+  const medianas = nombresDe(codigo, "medianaMs(?:Async)?\\(");
+  const topes = nombresDe(codigo, "topeMs\\(|topeConTestigo\\(");
+
+  // «sin tope» cubre una medida que no se compara; «relación», también una comparación entre medidas.
+  const marcaCerca = (n, valen) => [n - 1, n - 2].some((j) => j >= 0 && valen.includes(((lineas[j] ?? "").match(MARCA_CERCA)?.[1] ?? "").replace("ó", "o")));
+  const marcaMargen = (n) => {
+    for (let j = n - 1; j >= Math.max(0, n - 1 - LINEAS_MARCA); j--) {
+      const m = (lineas[j] ?? "").match(MARCA_MARGEN);
+      if (m) return m;
     }
-    if (/medianaMs(?:Async)?\(/.test(codigo) && /toBeLessThan(?:OrEqual)?\(/.test(codigo) && !/topeMs\(/.test(codigo)) {
-      malas.push({ linea: i + 1, motivo: "tope-sin-margen", texto: l.trim().slice(0, 120) });
-    }
+    return null;
+  };
+  /** ¿La línea n (desde 1) está cubierta? null si sí; si no, el motivo. */
+  const cubierta = (n, valen = ["sin tope", "relacion"]) => {
+    if (marcaCerca(n, valen)) return null;
+    const m = marcaMargen(n);
+    if (!m) return "sin-marca";
+    if (Number(m[1].replace(",", ".")) < MARGEN) return "margen-corto";
+    if (!fechaReal(m[2])) return "fecha-mala";
+    return null;
+  };
+
+  // 1. Medidas a mano: reloj menos un nombre, o dos lecturas del reloj restadas.
+  const restaRelojes = relojes.size ? new RegExp(String.raw`(?<![\w$.])(${[...relojes].join("|")})\s*-\s*(${[...relojes].join("|")})(?![\w$])`) : null;
+  lineasCodigo.forEach((l, i) => {
+    if (!(MEDIDA.test(l) || restaRelojes?.test(l))) return;
+    const motivo = cubierta(i + 1);
+    if (motivo) malas.push({ linea: i + 1, motivo, texto: lineas[i].trim().slice(0, 120) });
   });
-  return malas;
+
+  // 2. Comparaciones de una duración con un tope, aunque el expect ocupe varias líneas.
+  for (const m of codigo.matchAll(/\bexpect\s*\(/g)) {
+    const abre = m.index + m[0].length - 1;
+    const { dentro, fin } = entreParentesis(codigo, abre);
+    const tras = codigo.slice(fin).match(/^\s*\.\s*(toBeLessThan(?:OrEqual)?)\s*\(/);
+    if (!tras) continue;
+    const sujeto = primerArgumento(dentro).trim();
+    const esNombreDe = (s, conjunto) => conjunto.has(s.replace(/^await\s+/, "").trim());
+    const esDuracion = /medianaMs(?:Async)?\s*\(/.test(sujeto) || esNombreDe(sujeto, medianas) || MEDIDA.test(sujeto)
+      || (restaRelojes?.test(sujeto) ?? false) || NOMBRE_DURACION.test(sujeto);
+    if (!esDuracion) continue;
+    const { dentro: tope } = entreParentesis(codigo, fin + tras[0].length - 1);
+    if (/\btope(?:Ms|ConTestigo)\s*\(/.test(tope) || esNombreDe(tope, topes)) continue;
+    const n = lineaDe(codigo, m.index);
+    const nFin = lineaDe(codigo, fin);
+    // Una marca vale si está encima del expect o de la línea del toBeLessThan.
+    if (cubierta(n, ["relacion"]) === null || cubierta(nFin, ["relacion"]) === null) continue;
+    malas.push({ linea: n, motivo: "tope-sin-margen", texto: original.slice(m.index, fin + tras[0].length + tope.length + 1).replace(/\s+/g, " ").slice(0, 120) });
+  }
+  return malas.sort((a, b) => a.linea - b.linea);
 }

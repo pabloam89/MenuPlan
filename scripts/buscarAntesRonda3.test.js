@@ -8,7 +8,7 @@ import { LINEAS_LOG, procesar, recortarLog } from "../.claude/hooks/buscar-antes
 import { avisoRamaPrincipal } from "../.claude/hooks/principal.mjs";
 import { cabezaDe, construirIndice, detectarSenales, senalDeDenegacion, senalDeRamaPrincipal } from "./lib/buscarAntes.mjs";
 import { ficherosNombrados } from "./lib/issues.mjs";
-import { medianaMs, topeMs } from "./lib/medirTiempo.mjs";
+import { medianaMs, testigoMs, topeConTestigo, topeMs } from "./lib/medirTiempo.mjs";
 import { limpiarTexto } from "./lib/textoExterno.mjs";
 
 /**
@@ -154,11 +154,13 @@ describe("ReDoS en ficherosNombrados, detectarSenales y el hook entero", () => {
   it("el hook entero (proceso) tarda poco con una salida enorme", () => {
     const entrada = { session_id: "redos", cwd: tmp(), tool_name: "Bash", tool_input: { command: "npm test" }, error: `Exit code 1\n${"a".repeat(60_000)}\nError: x\nFAIL ${"a".repeat(60_000)}`, hook_event_name: "PostToolUseFailure" };
     let r;
+    // Lanza procesos: la carga dura toda la tanda, y el testigo de la misma tanda sube el tope con ella (#499).
+    const testigo = testigoMs();
     const ms = medianaMs(() => {
       r = spawnSync(process.execPath, [join(import.meta.dirname, "..", ".claude", "hooks", "buscar-antes.mjs")], { input: JSON.stringify(entrada), encoding: "utf8", env: { ...process.env, MENUPLAN_BUSCAR_DIR: tmp() }, timeout: 20000, windowsHide: true });
     }, { n: 3, etiqueta: "hook-salida-enorme" });
     expect(r.status).toBe(0);
-    expect(ms).toBeLessThan(topeMs(SUELTO.hook));
+    expect(ms).toBeLessThan(topeConTestigo(SUELTO.hook, { testigoAhoraMs: testigo }));
   });
 });
 
