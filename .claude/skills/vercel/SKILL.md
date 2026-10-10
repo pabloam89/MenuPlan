@@ -1,6 +1,6 @@
 ---
 name: vercel
-description: Úsala con un despliegue de Vercel — preview de un PR, staging o producción —, uno que sale Blocked, en rojo o no arranca, para leer logs, tocar una variable de entorno, subir a Blob, o al preguntar por un cron, un dominio o qué hay desplegado. No para: el CI de GitHub (github) ni la base de datos (supabase).
+description: Úsala con un despliegue de Vercel — preview de un PR, staging o producción —, uno que sale Blocked, en rojo o no arranca, para leer logs, ver, bajar, listar o tocar las variables de entorno (también las de producción, que la guardia niega bajar), subir a Blob, o al preguntar por un cron, un dominio o qué hay desplegado. No para: el CI de GitHub (github), la base de datos (supabase) ni dar de alta o rotar una clave (alta-de-secreto).
 metadata:
   tipo: herramienta
   dueno: gobierno
