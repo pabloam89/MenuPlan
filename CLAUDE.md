@@ -129,11 +129,15 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 `api/_bot/`), `tests` (`*.test.{js,jsx,mjs}`) y
 `api` (`api/*.js`). Las skills (`.claude/skills/`) son runbooks que se abren
 por su nombre: `1password`, `vercel`, `supabase`, `github`, `issues`,
-`telegram`, `hetzner` y `tailscale` (precargadas en `gobierno` y `lola`). Todas siguen
-`.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: las mismas
-siete secciones, operaciones con lo que debe salir, y cada fallo con fecha,
-causa y arreglo. Un proveedor nuevo estrena su runbook con su primera lección,
-no antes.
+`telegram`, `hetzner` y `tailscale` (precargadas en `gobierno` y `lola`); y
+las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
+`plan-de-arreglo` (partir el arreglo en encargos). Todas siguen
+`.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
+ocho (hoy hay de herramienta y de oficio, cada tipo con sus secciones), dueño, fecha
+de comprobación que caduca a los 90 días, un `SKILL.md` corto con el detalle en
+capas y sus casos de prueba en `casos.json`; `npm run skills-prueba -- <skill>`
+mide, con tokens, si ayuda. Un proveedor nuevo estrena su runbook con su
+primera lección, no antes.
 
 ## Vocabulario del catálogo
 

@@ -1,6 +1,10 @@
 ---
 name: issues
 description: Úsala cuando haya que registrar un fallo como caso, abrir o colgar un problema de fondo, un encargo o una decisión, clasificar o etiquetar issues, leer `npm run issues`, o decidir de qué problema de fondo es síntoma algo que falló. No para: el PR, su CI y las líneas `Closes`, `Runbook:` o `Casos:` (github) ni los workflows (github).
+metadata:
+  tipo: herramienta
+  dueno: gobierno
+  comprobado: "2026-10-09"
 ---
 
 # Issues
@@ -113,7 +117,8 @@ fondo de un encargo tenga diagnóstico y que un fondo cerrado tenga aprendizaje.
 - **El cuerpo de un caso:** cuándo, qué pasó (esperado frente a real),
   evidencia (comando y salida, PR, fichero:línea) y el análisis. El de una
   decisión: la pregunta en llano, las opciones (la recomendada primero) y qué
-  pasa si no se decide.
+  pasa si no se decide. El de un encargo de un fondo, el bloque `encargo` de
+  `docs/ops/ENCARGO.md` (#338; cómo se rellena, skill `plan-de-arreglo`).
 - **La traza no se rellena: se deduce.** Fechas, reaperturas, asignados,
   padre e hijos los guarda GitHub. Quién arregló sale del PR que cierra: lleva
   `Closes #n` y una línea `Agente: <nombre>` (o `sesión`); la plantilla de PR
@@ -132,9 +137,6 @@ fondo de un encargo tenga diagnóstico y que un fondo cerrado tenga aprendizaje.
   («parada» a las 4 h), las ramas sin número y `--marcas-huerfanas` (lista, no borra).
 - **Pablo ve sus decisiones** porque se le asignan (correo y app de GitHub):
   `github.com/pabloam89/MenuPlan/issues?q=is:open+label:tipo:decision`.
-- **Buscar antes (#384):** el hook `buscar-antes.mjs` ve un error, un test rojo ajeno, una
-  denegación de la guardia, «Agent type … not found» o la carpeta principal fuera de `staging`,
-  busca en el índice y pone «ESTO YA ESTÁ APUNTADO: #n» en el contexto (una vez por señal y sesión; no bloquea).
 - **Avisos que llegan solos:** al editar un fichero, el hook `avisos.mjs`
   cuenta los issues abiertos que lo nombran (una vez por sesión y fichero);
   al terminar de responder, `pendientes.mjs` frena una vez a la sesión que
@@ -160,7 +162,7 @@ en un issue (esos, a Pablo, en privado).
 | Tarea de un issue | `npm run tarea -- ops/x 193` | la rama lleva el número delante del nombre; el PR pedirá `Closes #193` |
 | Coger un encargo | `gh issue edit <n> --add-assignee @me` (o «Quién lo coge» en el cuerpo) | el asignado en el issue |
 | Cerrar a mano | `gh issue close <n> --comment "Queda en el PR #n"` (un fondo, antes con `--add-label arreglo:test`) | cerrado; solo si no lo cerró el PR |
-| Buscar lo ya apuntado (antes de investigar o dar algo por nuevo) | `npm run buscar -- "<síntoma, error, ruta o rama>"` | los issues y PR parecidos con estado, quién los lleva y su plan (encargos pendientes y hechos), sin red, del índice local (`npm run issues -- --indexar` lo refresca; el arranque también) |
+| Buscar lo ya apuntado (antes de investigar o dar algo por nuevo) | `npm run buscar -- "<síntoma, error, ruta o rama>"` | los issues y PR parecidos con estado, quién los lleva y su plan (encargos pendientes y hechos), sin red, del índice local; detalle en `.claude/skills/issues/referencias/buscar-antes.md` (`npm run issues -- --indexar` lo refresca; el arranque también) |
 | Ver el conjunto | `npm run issues` | fondos por casos, encargos, puntuales, por causa y agente, sin trazar, y la medida de `Casos:`; el informe de fichas (sin ficha, sin diagnóstico, ventana vencida, cerrados con aprendizaje) y los `matiz` repetidos, candidatos a valor nuevo del vocabulario |
 | Ver el control de un fondo | `gh issue view <n> --comments` | el comentario `<!-- menuplan:fondo … -->` del bot, con `estado=ok` o `estado=falla` y una línea por regla |
 | Poner al día la ficha de un fondo | editar el cuerpo (`gh issue edit <n> --body-file <f.md>`) con el bloque `fondo` | el workflow comenta en menos de un minuto; `control:ok` si no hay errores |
@@ -195,8 +197,6 @@ en un issue (esos, a Pablo, en privado).
   `fondos-evento.test.js`. También: la ventana no cierra con un no-aguanto presente
   ni con un caso creado desde `ventana_desde` aunque esté listado, y el pase diario
   revalida los cerrados porque colgar un hijo no lanza ningún workflow.
-- **2026-10-09 · se trató como misterio lo ya arreglado (#348, #320).** Causa: buscar dependía de acordarse.
-  Arreglo: (#384) índice, `npm run buscar` y hook `buscar-antes.mjs`, con test en `.claude/hooks/buscar-antes.test.js`.
 
 ## Qué requiere el OK de Pablo
 

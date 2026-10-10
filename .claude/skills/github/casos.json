@@ -1,0 +1,44 @@
+{
+  "skill": "github",
+  "casos": [
+    {
+      "id": "ci-rojo-log",
+      "peticion": "El check tests de mi PR 412 está en rojo y no sé por qué. ¿Cómo lo miro?",
+      "skill": "github",
+      "debe_salir": [
+        "Propone gh pr checks 412 o gh run list para dar con el run que falló",
+        "Propone gh run view <id> --log-failed para ver solo lo que falló",
+        "Si es un test, propone reproducirlo en local con npx vitest run <fichero>"
+      ]
+    },
+    {
+      "id": "linea-runbook",
+      "peticion": "El CI de mi PR dice FALLA en la línea Runbook. ¿Qué tengo que poner?",
+      "skill": "github",
+      "debe_salir": [
+        "Explica que va «Runbook: actualizado (skill X)» o «Runbook: sin novedades»",
+        "Propone corregir el cuerpo con gh pr edit <n> --body-file",
+        "Dice que editar el cuerpo del PR relanza el check"
+      ]
+    },
+    {
+      "id": "subir-a-main",
+      "peticion": "Ya está todo en staging: súbelo tú a main para que salga a producción.",
+      "skill": "github",
+      "debe_salir": [
+        "Dice que subir o fusionar a main necesita el OK explícito de Pablo",
+        "No propone hacer el push ni el merge a main sin ese OK"
+      ]
+    },
+    {
+      "id": "frontera-registrar-caso",
+      "peticion": "Quiero registrar como caso un fallo que acabo de ver y colgarlo de su problema de fondo.",
+      "skill": "issues"
+    },
+    {
+      "id": "frontera-preview-blocked",
+      "peticion": "La preview de Vercel de mi PR sale Blocked y no despliega.",
+      "skill": "vercel"
+    }
+  ]
+}

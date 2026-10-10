@@ -65,15 +65,15 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 |---|---|---|---|---|---|---|
 | 1 | Detectar | Un fallo en producción, en el CI o en el trabajo de una sesión | Una señal que alguien ve: un aviso, un check rojo, un hallazgo de un juez | automatico, juez, persona | (—) | ○ fallos detectados por fuente (vigía, agente de fallos, jueces) (#340) |
 | 2 | Registrar el caso | Una señal de fallo | Un issue tipo:caso con su área, buscado antes entre los parecidos | agente_dominio, orquestador, automatico | `issues` | ✓ casos abiertos por área y tipo; ✓ PR con casos frente a PR con «ninguno» |
-| 3 | Triaje | Un caso registrado | Alcance (local, módulo o transversal) y tipo de causa fijados | orquestador, agente_dominio | (#338) | ○ casos por alcance (#337) |
-| 4 | Diagnosticar | Un caso con alcance y tipo | Mecanismo, causa de escape y clase del fallo; o una hipótesis marcada como tal | agente_dominio, juez, orquestador | (#338) | ✓ fondos y casos por causa; ✓ casos puntuales, para ver si eran un patrón |
-| 5 | Fondo | Un diagnóstico | Un issue tipo:fondo con su arreglo general, su causa y cómo se probará | agente_dominio, orquestador | (#338) | ✓ fondos ordenados por casos (dónde duele) |
-| 6 | Plan | Un fondo diagnosticado | Encargos colgados del fondo, con dependencias, agente, juez y verificación | orquestador, agente_dominio | (#338) | ✓ encargos hechos frente a encargos por fondo |
+| 3 | Triaje | Un caso registrado | Alcance (local, módulo o transversal) y tipo de causa fijados | orquestador, agente_dominio | `causa-raiz` | ○ casos por alcance (#337) |
+| 4 | Diagnosticar | Un caso con alcance y tipo | Mecanismo, causa de escape y clase del fallo; o una hipótesis marcada como tal | agente_dominio, juez, orquestador | `causa-raiz` | ✓ fondos y casos por causa; ✓ casos puntuales, para ver si eran un patrón |
+| 5 | Fondo | Un diagnóstico | Un issue tipo:fondo con su arreglo general, su causa y cómo se probará | agente_dominio, orquestador | `causa-raiz` | ✓ fondos ordenados por casos (dónde duele) |
+| 6 | Plan | Un fondo diagnosticado | Encargos colgados del fondo, con dependencias, agente, juez y verificación | orquestador, agente_dominio | `plan-de-arreglo` | ✓ encargos hechos frente a encargos por fondo |
 | 7 | Ejecutar | Un encargo colgado de su fondo, con su issue | Un PR con su issue, su agente y su juez | agente_dominio, juez, orquestador | (—) | ○ rondas, tiempo y coste por encargo (#340) |
 | 8 | Verificar | El PR de un encargo | CI en verde, juez conforme y un test que cubre la clase | automatico, juez | (—) | ○ fondos cerrados con test de clase (#341) |
 | 9 | Observar | Un fondo con su arreglo fusionado | Una ventana sin casos nuevos, o el fondo reabierto | automatico, persona | (—) | ✓ fondos que no aguantaron, rotos o cortos |
 | 10 | Cerrar | Un fondo cuya ventana de observación pasó limpia | Un fondo cerrado con el escalón en que quedó el arreglo | automatico, persona | (—) | ✓ días hasta cerrar un fondo, por causa y por agente |
-| 11 | Aprender | Un fondo cerrado como eficaz | La lección en una skill, un catálogo, la guardia o un test | agente_dominio, juez | (#338) | ✓ fondos cerrados con aprendizaje registrado |
+| 11 | Aprender | Un fondo cerrado como eficaz | La lección en una skill, un catálogo, la guardia o un test | agente_dominio, juez | (—) | ✓ fondos cerrados con aprendizaje registrado |
 | 12 | Medir | Los datos de todos los pasos anteriores | Un informe semanal de cumplimiento y de presupuesto frente a lo real | automatico, persona | (—) | ○ presupuestado frente a real, por alcance y causa (#340) |
 <!-- flujo:fichas:fin -->
 
@@ -100,8 +100,8 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | **Diagnosticar** · blanda | | | | | |
 | P04.1 | El caso acaba en una de las cuatro respuestas (nuevo, abierto, no aguantó, puntual) y cuelga de su fondo | script_propio · `scripts/lib/issues.mjs` | semidura | — | #341 |
 | P04.2 | Se busca el fondo que ya existe antes de abrir uno | script_propio · `scripts/issues.mjs` | semidura | — | #337 |
-| P04.3 | El diagnóstico llega a algo que se puede cambiar con un mecanismo y dice por qué nada lo detectó (causa de escape) | nada · no escrita aún | blanda | — | #338 |
-| P04.4 | Lo que no se ha comprobado se marca como hipótesis y no se copia como hecho | nada · no escrita aún | blanda | — | #338 |
+| P04.3 | El diagnóstico llega a algo que se puede cambiar con un mecanismo y dice por qué nada lo detectó (causa de escape) | persona · `.claude/skills/causa-raiz/SKILL.md` | blanda | — | #341 |
+| P04.4 | Lo que no se ha comprobado se marca como hipótesis y no se copia como hecho | persona · `.claude/skills/causa-raiz/SKILL.md` | blanda | — | #341 |
 | P04.5 | Antes de evaluar código, se mira lo ya apuntado en issues y encargos | guardia · `.claude/hooks/buscar-antes.mjs` | semidura | — | — |
 | **Fondo** · semidura | | | | | |
 | P05.1 | Un fondo lleva arreglo general en el cuerpo y una causa de un vocabulario cerrado | script_propio · `.github/ISSUE_TEMPLATE/2-fondo.yml` | semidura | — | #341 |
@@ -109,8 +109,8 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P05.3 | Cada fondo lleva una ficha válida (bloque fondo, vocabularios cerrados) y sus controles corren en cada evento del issue | script_propio · `.github/workflows/fondos.yml` | semidura | `fondo-con-ficha-y-controles` | #341 |
 | **Plan** · blanda | | | | | |
 | P06.1 | El arreglo se parte en encargos colgados del fondo, uno por superficie | persona · `.claude/commands/revision-issues.md` | blanda | — | #337 |
-| P06.2 | Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga | nada · no escrita aún | blanda | — | #337, #338 |
-| P06.3 | El arreglo usa el escalón más duradero posible de la escalera | nada · `docs/ops/FLUJO.md` | blanda | — | #338 |
+| P06.2 | Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga | nada · `docs/ops/ENCARGO.md` | blanda | — | #341 |
+| P06.3 | El arreglo usa el escalón más duradero posible de la escalera | persona · `.claude/skills/plan-de-arreglo/SKILL.md` | blanda | — | #341 |
 | P06.4 | Un fondo lleva como mucho tres encargos, al menos uno preventivo y automático | nada · `docs/ops/FLUJO.md` | blanda | — | #337 |
 | **Ejecutar** · blanda | | | | | |
 | P07.1 | Un encargo es una rama con el número de su issue, y se ve quién lo lleva | script_propio · `scripts/tarea.mjs` | semidura | — | #337 |
@@ -138,9 +138,9 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P10.1 | Un fondo no se cierra con encargos abiertos, sin el PR de su arreglo ni sin su etiqueta arreglo: | script_propio · `scripts/lib/issues.mjs` | semidura | — | #341 |
 | P10.2 | Sin aprendizaje registrado, un fondo no se cierra | script_propio · `scripts/lib/fondos.mjs` | semidura | `fondo-con-ficha-y-controles` | #341 |
 | **Aprender** · blanda | | | | | |
-| P11.1 | Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria | nada · `CLAUDE.md` | blanda | `lecciones-a-un-test` | #337, #338 |
-| P11.2 | Toda skill de herramienta sigue la plantilla | ci · `.claude/PLANTILLA-SKILL.md` | dura | — | — |
-| P11.3 | Una skill se prueba con casos y sigue funcionando tras cambiarla | nada · no escrita aún | blanda | — | #336, #341 |
+| P11.1 | Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria | nada · `CLAUDE.md` | blanda | `lecciones-a-un-test` | #337 |
+| P11.2 | Toda skill sigue la plantilla de su tipo: tipo, dueño, fecha de comprobación (caducada solo falla en el PR que la toca), secciones, tamaño, rutas y nada copiado | ci · `.claude/PLANTILLA-SKILL.md` | dura | — | — |
+| P11.3 | Una skill se prueba con casos y sigue funcionando tras cambiarla | ci · `.claude/PLANTILLA-SKILL.md` | semidura | — | #341 |
 | P11.4 | Una pieza nueva (skill, catálogo o agente) solo se crea si cumple la regla de parada | nada · `docs/ops/FLUJO.md` | blanda | — | #341 |
 | **Medir** · blanda | | | | | |
 | P12.1 | El nivel de cada plano sale de criterios comprobables (los de juicio llevan fecha) | ci · `scripts/lib/planos.mjs` | dura | — | — |
@@ -149,7 +149,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P12.4 | Los presupuestos se recalibran cada semana con lo medido | nada · no escrita aún | blanda | — | #340 |
 | P12.5 | Las normas del proceso que se incumplen se cuentan cada semana | script_propio · `scripts/lib/normas.mjs` | semidura | — | #341, #185 |
 
-**52 obligaciones:** 5 duras · 27 semiduras · 20 blandas · 0 rotas. 21 están enlazadas con su norma del registro.
+**52 obligaciones:** 5 duras · 28 semiduras · 19 blandas · 0 rotas. 21 están enlazadas con su norma del registro.
 <!-- flujo:pasos:fin -->
 
 ## Lo que ya existía
@@ -218,7 +218,7 @@ De más a menos duradero. Un fondo grave o repetido se cierra con un escalón 1 
 | Tipo | Qué guarda | Estado | Fase |
 |---|---|---|---|
 | **herramienta** | Cómo se opera un servicio (supabase, vercel, telegram…) | existe | — |
-| **oficio** | Cómo se piensa un tipo de problema (causa raíz, plan de arreglo, priorizar) | en_plan | #338 |
+| **oficio** | Cómo se piensa un tipo de problema (causa raíz, plan de arreglo, priorizar) | existe | — |
 | **dominio** | El conocimiento del negocio (nutrición, alergias, cómo comen las familias) | reservado | #336 |
 | **estandar** | Cómo deben quedar las cosas para ser consistentes (voz de Lola, design system) | reservado | #336 |
 | **receta_cambio** | Los pasos de una acción que se repite (añadir una herramienta a Lola, una pantalla, recetas) | reservado | #336 |

@@ -124,7 +124,7 @@ describe("cero texto del exterior en lo que se pinta: ni nombres de fichero, de 
       const texto = procesar(e, { leer, rama: () => ({ principal: false }) }).textos.join("\n");
       // Con índice, una señal corriente sin nada apuntado se calla; sin índice, siempre habla.
       if (texto) expect(texto).toContain(FRASES[tipo]);
-      expect(texto).not.toMatch(/secreto|nombre-del-test|raro|oculto|.mjs|.js/);
+      expect(texto).not.toMatch(/secreto|nombre-del-test|raro|oculto|\.mjs|\.js\b/);
     }
   });
 });

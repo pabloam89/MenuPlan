@@ -32,8 +32,9 @@ paso. Los números no se escriben aquí ni en ningún brief: salen del comando.
   los recalibra la fase F del plan #334 y el comando da los vigentes.
 - **Sigue lo que salga** en vez de la tabla de «Qué pipeline según la acción»,
   y deja `alcance` y `tipo_causa` en la ficha del fondo.
-- **Quién itera**: en `local` y `modulo`, el agente del dominio (con la skill
-  `causa-raiz` cuando exista, fase C, #338). En `transversal`, tú lanzas los
+- **Quién itera**: en `local` y `modulo`, el agente del dominio, que
+  diagnostica con la skill `causa-raiz` (la técnica sale de `npm run tecnica`)
+  y, con el diagnóstico hecho, parte el arreglo con la skill `plan-de-arreglo`. En `transversal`, tú lanzas los
   diagnosticadores en paralelo, cada uno con una lente distinta, y sintetizas
   sus informes; los agentes no lanzan agentes (ver «Paralelo sin pisarse»).
 - **Rondas**: construir, juzgar y reparar es una

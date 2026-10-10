@@ -34,6 +34,21 @@
         "^scripts/lib/(?:issues|lleva)\\.mjs$"
       ]
     },
+    "causa-raiz": {
+      "comandos": [],
+      "rutas": [
+        "^ops/tecnicas\\.json$",
+        "^scripts/lib/tecnicas\\.mjs$"
+      ]
+    },
+    "plan-de-arreglo": {
+      "comandos": [],
+      "rutas": [
+        "^ops/mecanismos\\.json$",
+        "^scripts/lib/mecanismos\\.mjs$",
+        "^docs/ops/ENCARGO\\.md$"
+      ]
+    },
     "vercel": {
       "comandos": [
         "\\bvercel(?:\\.cmd)?\\s+(?:env|deploy|promote|rollback|rm|remove|domains?|projects?|link|alias|blob|integration|--prod)\\b",

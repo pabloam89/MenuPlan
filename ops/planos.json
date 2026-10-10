@@ -201,6 +201,19 @@
             "que": "La línea «Runbook:» se exige en el CI",
             "ruta": ".github/workflows/tests.yml",
             "patron": "runbook-pr\\.mjs"
+          },
+          {
+            "tipo": "fichero_contiene",
+            "que": "Un PR que toca una skill caducada (más de 90 días sin comprobar) falla en el CI",
+            "ruta": ".github/workflows/tests.yml",
+            "patron": "skills-pr\\.mjs"
+          },
+          {
+            "tipo": "cifra_umbral",
+            "que": "Ninguna skill caducada ni a menos de 14 días de caducar (#336). Medición semanal; en cada PR, scripts/skills-pr.mjs mira solo las que toca",
+            "medidor": "skills_caducadas_o_proximas",
+            "operador": "<=",
+            "umbral": 0
           }
         ],
         "3": [

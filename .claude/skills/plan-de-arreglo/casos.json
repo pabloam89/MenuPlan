@@ -1,0 +1,55 @@
+{
+  "skill": "plan-de-arreglo",
+  "casos": [
+    {
+      "id": "una-sola-puerta",
+      "peticion": "Ya sabemos la causa: una norma solo se hacía cumplir en una de las vías por las que se crean issues. Plantea cómo lo arreglamos para que no vuelva.",
+      "skill": "plan-de-arreglo",
+      "debe_salir": [
+        "Define la clase en general y propone barrer las demás normas que solo se vigilan en una vía",
+        "Como mucho tres encargos, y al menos uno preventivo y automático",
+        "Elige el mecanismo con npm run mecanismos o ops/mecanismos.json, el más alto posible, y dice por qué no uno más alto cuando no lo es",
+        "Cada encargo dice de qué depende, quién lo construye y quién lo juzga (distinto)"
+      ],
+      "nota": "Abstracto de #325"
+    },
+    {
+      "id": "jueces-sin-mirar-issues",
+      "peticion": "Diagnóstico hecho: los jueces evalúan sin consultar los issues abiertos porque nada se lo exige. Prepara el plan del arreglo.",
+      "skill": "plan-de-arreglo",
+      "debe_salir": [
+        "Un encargo preventivo con un mecanismo automático (un test en el CI o un hook), no solo texto",
+        "La verificación es un test de la clase que se ve fallar antes de creérselo",
+        "Pone una ventana de observación con fechas, de 90 días como mucho"
+      ],
+      "nota": "Abstracto de #320"
+    },
+    {
+      "id": "vocabulario-copiado",
+      "peticion": "El fondo dice que un vocabulario está copiado a mano en la base y en varias constantes sin ningún test que las compare. ¿Cómo lo partimos en encargos?",
+      "skill": "plan-de-arreglo",
+      "debe_salir": [
+        "Barre las instancias y apunta cuántas hay antes de arreglar",
+        "Explica si es un encargo por superficie o uno solo por ser una pieza común, para no dejar dos fuentes",
+        "Consulta npm run presupuesto para jueces y rondas"
+      ],
+      "nota": "Abstracto de #318"
+    },
+    {
+      "id": "error-como-vacio",
+      "peticion": "Tenemos diagnosticado que varios cargadores devuelven lo mismo en error que en vacío y quien los llama sube datos encima. Haz el plan.",
+      "skill": "plan-de-arreglo",
+      "debe_salir": [
+        "El preventivo lleva un test que cubre todos los cargadores de la clase, no solo el del caso",
+        "Escribe los encargos con el bloque encargo de docs/ops/ENCARGO.md y los cuelga del fondo",
+        "Pasa la ficha del fondo a estado plan con barrera y verificación"
+      ],
+      "nota": "Abstracto de #316"
+    },
+    {
+      "id": "frontera-sin-causa",
+      "peticion": "Algo ha fallado en producción y aún no sabemos por qué; antes de arreglar nada quiero entender qué pasó.",
+      "skill": "causa-raiz"
+    }
+  ]
+}
