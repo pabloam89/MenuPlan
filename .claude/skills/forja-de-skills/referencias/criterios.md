@@ -1,6 +1,8 @@
 # Los doce criterios de una skill ganadora
 
-Marca: **[F]** está en la fuente citada; **[I]** es inferencia nuestra. Fuentes
+Marca: **[F]** está en la fuente citada; **[I]** es inferencia nuestra, incluida
+la aplicada **por analogía** (CE y BEA hablan de prompts y agentes, no de skills:
+lo que dicen se traslada aquí, y no se toma por hecho). Fuentes
 (las URL, en `SKILL.md`, «Fuentes y comprobación»): **BP** = guía de buenas
 prácticas de skills de Anthropic; **CC** = documentación de skills de Claude
 Code; **DESC** = «optimizing descriptions» de agentskills.io; **EVAL** =
@@ -19,19 +21,20 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
   palabras de quien pide, el `revisor`.
 - **Error contrario:** «Ayuda con documentos»: no se abre jamás.
 - **Decisión sobre «Úsala» (tensión entre fuentes).** El test pide que empiece
-  por «Úsala »; BP aconseja la tercera persona («Procesa …; úsala cuando …») y
-  DESC el imperativo («Use this skill when …»). Se **mantiene «Úsala»**:
+  por «Úsala »; BP dice «Always write in third person» y DESC usa el
+  imperativo («Use this skill when …»). **El conflicto es real: nos apartamos
+  de BP a sabiendas.** Se **mantiene «Úsala»**:
   1. pone el *cuándo* primero, que es lo que piden CC y DESC (el listado se
      trunca y manda lo del principio) [F];
   2. la razón de BP para la tercera persona es no mezclar puntos de vista en el
-     texto que se inyecta en el sistema [F]; el riesgo es la mezcla, y las once
-     descripciones de hoy usan la misma forma, que el test garantiza [I];
-  3. cambiarlo obliga a reescribir las once y a repetir el disparo de cada una
-     sin ninguna cifra que diga que mejora [I];
-  4. el disparo medido con la forma actual es bueno (por ejemplo 6 de 6 en
-     `causa-raiz`).
+     texto que se inyecta en el sistema [F]; el riesgo es la mezcla, y las
+     descripciones de hoy usan todas la misma forma, que el test garantiza [I];
+  3. cambiarlo obliga a reescribir todas las descripciones y a repetir el disparo
+     de cada una sin ninguna cifra que diga que mejora [I];
+  4. el disparo medido con la forma actual es bueno (el de `causa-raiz` salió
+     completo).
   Se revisa si `skills-prueba` muestra un disparo que cae por la forma; entonces
-  se cambia el test y las once a la vez, con la cifra antes y después.
+  se cambia el test y todas las descripciones a la vez, con la cifra antes y después.
 
 ## 2. Frontera explícita («No para:») y probada con casi-fallos
 
@@ -45,7 +48,7 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
 ## 3. Lo esencial primero: el listado se trunca
 
 - **Fuente:** [F] CC (el listado se trunca en 1.536 caracteres); DESC (el
-  estándar pone el techo en 1.024).
+  estándar pone el límite en 1.024).
 - **Lo vigila:** límite de la casa de 600 caracteres (`MAX_DESCRIPCION`), por
   debajo del estándar de 1.024 (un test lo comprueba); que el disparador vaya en
   los primeros 250 caracteres, el `revisor`.
@@ -62,7 +65,7 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
 
 ## 5. Solo lo que el modelo no sabe
 
-- **Fuente:** [F] BP («concise is key»); CE (contexto de más degrada).
+- **Fuente:** [F] BP («concise is key»); [I] por analogía, CE (en un prompt, el contexto de más degrada).
 - **Lo vigila:** el `revisor` y el A/B (paso 2 del método). No hay test: un
   párrafo útil y uno de relleno se parecen igual.
 - **Error contrario:** explicar lo que el modelo ya hace bien. Cada párrafo
@@ -87,7 +90,7 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
 
 ## 8. Cada paso con su comprobación y un criterio de parada
 
-- **Fuente:** [F] BP («feedback loops»); BEA («stopping conditions»).
+- **Fuente:** [F] BP («feedback loops»); [I] por analogía, BEA («stopping conditions» de un agente).
 - **Lo vigila:** `sin-parada` (el «Método» de los tipos que no son herramienta
   dice «Sale bien si», «Sale:», «Debe salir», «Hecho cuando» o «Parar si»);
   `formato` (la tabla de una herramienta no tiene «Debe salir» vacío).
@@ -105,7 +108,7 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
 
 ## 10. Pocos ejemplos, canónicos y que no se contradigan
 
-- **Fuente:** [F] CE («diverse, canonical examples»); BP.
+- **Fuente:** [F] BP; [I] por analogía, CE («diverse, canonical examples» en un prompt).
 - **Lo vigila:** `ejemplos` (como mucho tres por sección de ejemplos); que sean
   canónicos y no choquen con la norma de la propia skill, el `revisor`.
 - **Error contrario:** una lista de casos límite; un ejemplo que viola la norma
@@ -127,7 +130,7 @@ Anthropic; **BEA** = «building effective agents»; **SB** = SkillsBench (arXiv
   exhaustiva, según resúmenes); CE («si una persona no sabe qué herramienta
   usar, el agente tampoco»). Que se mida con vocabulario común es [I].
 - **Lo vigila:** párrafos copiados entre skills, `copiado`; descripciones que
-  comparten demasiadas palabras, `solape` (heurística, umbral `MAX_SOLAPE`);
+  comparten demasiadas palabras, `solape` (heurística, límite `MAX_SOLAPE`);
   dudas reales entre dos skills, `skills-prueba`.
 - **Error contrario:** dos skills que reclaman la misma petición; el mismo
   procedimiento copiado y arreglado solo en una.

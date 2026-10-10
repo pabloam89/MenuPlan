@@ -9,7 +9,7 @@ import {
 } from "../scripts/lib/skills.mjs";
 import {
   CODIGOS_FORJA, EXCEPCIONES_FORJA, EXCEPCIONES_INICIALES, MAX_EJEMPLOS, MAX_SOLAPE, MIN_FRONTERA_FORJA,
-  TOPE_DESCRIPCION_ESTANDAR, TOPE_LINEAS_ESTANDAR, faltasDeSolape, faltasForja, solape,
+  LIMITE_DESCRIPCION_ESTANDAR, LIMITE_LINEAS_ESTANDAR, faltasDeSolape, faltasForja, solape,
 } from "../scripts/lib/skillsForja.mjs";
 
 /**
@@ -165,7 +165,7 @@ it("un tipo nuevo pasa con sus secciones y su registro de cambios", () => {
     if (t === "Registro de cambios") return `## ${t}\n\n- **2026-10-09** · Primera versión (#336).`;
     if (t === "Fuentes y comprobación") return `## ${t}\n\n- https://ejemplo.invalid\n\nComprobado el 2026-10-09: la prueba.`;
     if (t === "Lo que falló y por qué") return `## ${t}\n\nNada todavía: es nueva. ${relleno}`;
-    if (t === "Método") return `## ${t}\n\n${relleno} Sale bien si la prueba pasa.`;
+    if (t === "Método") return `## ${t}\n\n${relleno}\n\nSale bien si la prueba pasa.`;
     return `## ${t}\n\n${relleno}`;
   }).join("\n\n");
   const texto = `---\nname: prueba\ndescription: Úsala cuando haya que probar el nivel 1 de las skills con una skill de oficio de mentira. No para: nada real.\nmetadata:\n  tipo: oficio\n  dueno: gobierno\n  comprobado: 2026-10-09\n---\n\n# Prueba\n\n${secciones}\n`;
@@ -207,7 +207,7 @@ const codigos = (faltas) => faltas.map((f) => f.codigo);
 const conFecha = (txt) => herramienta().replace(`## Claves y accesos\n\n${relleno}`, `## Claves y accesos\n\n${relleno} ${txt}`);
 
 /** Una skill de oficio de mentira con el Método y la sección de ejemplos que se le den. */
-function oficioConForja({ metodo = `${relleno} Sale bien si la prueba pasa.`, ejemplos = relleno } = {}) {
+function oficioConForja({ metodo = `${relleno}\n\nSale bien si la prueba pasa.`, ejemplos = relleno } = {}) {
   const secciones = SECCIONES_POR_TIPO.oficio.map((t) => {
     if (t === "Registro de cambios") return `## ${t}\n\n- **2026-10-09** · Primera versión (#409).`;
     if (t === "Fuentes y comprobación") return `## ${t}\n\n- https://ejemplo.invalid\n\nComprobado el 2026-10-09: la prueba.`;
@@ -234,13 +234,18 @@ describe("la forja ve fallar cada control", () => {
     expect(codigos(faltasDe({ texto: conFecha("Desde el 9 oct 2026 va así.") }))).toEqual(["fechas"]);
     expect(codigos(faltasDe({ texto: conFecha("Al 2026-10-09 se cambió.") }))).toEqual(["fechas"]);
     expect(faltasDe({ texto: conFecha("Cabecera `anthropic-version: 2023-06-01`.") })).toEqual([]);
+    expect(faltasDe({ texto: conFecha("\n\n```\nversion: 2023-06-01\nfecha: 9 oct 2026\n```") })).toEqual([]);
     expect(faltasDe({})).toEqual([]); // la mentira ya lleva fechas en «Lo que falló» y en «Fuentes»
   });
 
   it("sin-parada: el Método de un tipo que no es herramienta no dice cuándo se acaba", () => {
     expect(codigos(faltasDe(oficio({ metodo: relleno })))).toEqual(["sin-parada"]);
-    for (const frase of ["Sale bien si X.", "Sale: el fichero.", "Debe salir Y.", "Hecho cuando Z.", "Parar si falla."]) {
-      expect(faltasDe(oficio({ metodo: `${relleno} ${frase}` })), frase).toEqual([]);
+    for (const frase of ["Sale bien si X.", "Sale: el fichero.", "Debe salir Y.", "Hecho cuando Z.", "Para por criterio, no por cansancio.", "- **Sale bien si** X.", "1. Paso. **Sale:** Y."]) {
+      expect(faltasDe(oficio({ metodo: `${relleno}\n\n${frase}` })), frase).toEqual([]);
+    }
+    // Una palabra suelta en mitad de un párrafo no es un criterio de parada.
+    for (const frase of ["Hay que parar si algo falla.", "La parada es de la persona.", "Para si hace falta, y sale algo.", "Aquí se dice que sale bien si todo va bien."]) {
+      expect(codigos(faltasDe(oficio({ metodo: `${relleno} ${frase}` }))), frase).toEqual(["sin-parada"]);
     }
   });
 
@@ -249,6 +254,12 @@ describe("la forja ve fallar cada control", () => {
     expect(MAX_EJEMPLOS).toBe(3);
     expect(faltasDe(oficio({ ejemplos: n(3) }))).toEqual([]);
     expect(codigos(faltasDe(oficio({ ejemplos: n(4) })))).toEqual(["ejemplos"]);
+    // Los subapartados de un ejemplo no son ejemplos, y un «### Ejemplo» dentro de un bloque de código tampoco.
+    const con = (k) => Array.from({ length: k }, (_, i) => `### Ejemplo ${i + 1}\n\n#### Entrada\n\n${relleno}\n\n#### Salida\n\n${relleno}`).join("\n\n");
+    expect(faltasDe(oficio({ ejemplos: con(3) }))).toEqual([]);
+    expect(codigos(faltasDe(oficio({ ejemplos: con(4) })))).toEqual(["ejemplos"]);
+    const enBloque = "```\n### Ejemplo A\n### Ejemplo B\n### Ejemplo C\n### Ejemplo D\n```";
+    expect(faltasDe(oficio({ ejemplos: `${n(2)}\n\n${enBloque}` }))).toEqual([]);
   });
 
   it("solape: dos descripciones casi iguales; distintas, no", () => {
@@ -278,6 +289,15 @@ describe("la forja ve fallar cada control", () => {
 
 // ── La lista de excepciones solo baja (como TRAGADOS_CONOCIDOS) ──────────
 
+// Los 19 pares de partida. Este literal NO se edita para añadir: solo se le quitan líneas cuando #410 y #411 arreglan la skill.
+const PARES_DE_PARTIDA = [
+  "1password: casos-negativos", "1password: fechas", "alta-de-secreto: fechas", "causa-raiz: casos-negativos",
+  "github: casos-negativos", "github: fechas", "hetzner: casos-negativos", "hetzner: fechas",
+  "issues: casos-negativos", "issues: fechas", "plan-de-arreglo: casos-negativos", "supabase: casos-negativos",
+  "supabase: fechas", "tailscale: casos-negativos", "tailscale: fechas", "telegram: casos-negativos",
+  "telegram: fechas", "vercel: casos-negativos", "vercel: fechas",
+];
+
 describe("EXCEPCIONES_FORJA: lo que las skills de hoy incumplen, y solo baja", () => {
   const brutas = Object.fromEntries(skills.map((s) => {
     const { meta, cuerpo } = parsearSkill(s.texto);
@@ -294,9 +314,13 @@ describe("EXCEPCIONES_FORJA: lo que las skills de hoy incumplen, y solo baja", (
     expect(sobran, "Ya cumple: bórralo de EXCEPCIONES_FORJA en scripts/lib/skillsForja.mjs").toEqual([]);
   });
 
-  it("la lista no sube del tope de partida, y sus claves son skills y códigos reales", () => {
-    const total = Object.values(EXCEPCIONES_FORJA).reduce((a, cs) => a + cs.length, 0);
-    expect(total).toBeLessThanOrEqual(EXCEPCIONES_INICIALES);
+  it("cada par (skill, código) de la lista está en el literal de partida: solo se puede quitar", () => {
+    const pares = Object.entries(EXCEPCIONES_FORJA).flatMap(([n, cs]) => cs.map((c) => `${n}: ${c}`));
+    expect(pares.filter((p) => !PARES_DE_PARTIDA.includes(p)), "Un par nuevo: arregla la skill; la lista no crece ni cambia de sitio").toEqual([]);
+    expect(PARES_DE_PARTIDA).toHaveLength(EXCEPCIONES_INICIALES);
+  });
+
+  it("la lista tiene claves que son skills y códigos reales", () => {
     for (const [n, cs] of Object.entries(EXCEPCIONES_FORJA)) {
       expect(skills.map((s) => s.nombre), n).toContain(n);
       for (const c of cs) expect(CODIGOS_FORJA, `${n}: ${c}`).toContain(c);
@@ -320,14 +344,14 @@ describe("PLANTILLA-SKILL.md y forja-de-skills dicen lo mismo", () => {
   const forja = readFileSync(join(RAIZ, ".claude/skills/forja-de-skills/SKILL.md"), "utf8").replace(/\r\n/g, "\n");
 
   it("los números de la forja salen en la plantilla", () => {
-    for (const n of [`${MIN_FRONTERA_FORJA} casos de frontera`, `${TOPE_DESCRIPCION_ESTANDAR} caracteres`, `${TOPE_LINEAS_ESTANDAR} líneas`, "EXCEPCIONES_FORJA", "forja-de-skills"]) {
+    for (const n of [`${MIN_FRONTERA_FORJA} casos de frontera`, `${LIMITE_DESCRIPCION_ESTANDAR} caracteres`, `${LIMITE_LINEAS_ESTANDAR} líneas`, "EXCEPCIONES_FORJA", "forja-de-skills"]) {
       expect(plantilla, n).toContain(n);
     }
   });
 
   it("los topes de la casa están por debajo de los del estándar abierto", () => {
-    expect(MAX_DESCRIPCION).toBeLessThanOrEqual(TOPE_DESCRIPCION_ESTANDAR);
-    expect(MAX_LINEAS).toBeLessThan(TOPE_LINEAS_ESTANDAR);
+    expect(MAX_DESCRIPCION).toBeLessThanOrEqual(LIMITE_DESCRIPCION_ESTANDAR);
+    expect(MAX_LINEAS).toBeLessThan(LIMITE_LINEAS_ESTANDAR);
   });
 
   it("la forja es de tipo meta, dice la regla de parada y cita al menos cinco fuentes con URL", () => {

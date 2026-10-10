@@ -17,7 +17,7 @@
       "peticion": "La skill de vercel no se abre cuando pido ver por qué falla un despliegue. ¿Qué le pasa a la descripción y cómo lo arreglo?",
       "skill": "forja-de-skills",
       "debe_salir": [
-        "Revisa la descripción: las palabras de quien pide y el disparador en los primeros caracteres, sin pasar del tope de 600",
+        "Revisa la descripción: las palabras de quien pide y el disparador en los primeros caracteres, sin pasar del límite de 600",
         "Añade casos de frontera parecidos y mide el disparo con npm run skills-prueba",
         "Comprueba que no solapa con otra skill antes de alargar la descripción"
       ]
@@ -47,7 +47,7 @@
       "peticion": "Las guías oficiales dicen que la descripción de una skill va en tercera persona, pero aquí todas empiezan por «Úsala». ¿Está mal?",
       "skill": "forja-de-skills",
       "debe_salir": [
-        "Explica que se mantiene «Úsala» y da la razón: el cuándo va primero y las once descripciones usan la misma forma",
+        "Explica que se mantiene «Úsala» y da la razón: el cuándo va primero y las descripciones comparten una misma forma",
         "Marca qué es de la fuente y qué es inferencia propia",
         "Dice cuándo se revisaría: si el disparo medido cae por la forma, y entonces se cambian test y descripciones a la vez"
       ]
@@ -64,14 +64,22 @@
       "nota": "Los agentes se escriben con PLANTILLA-AGENTE, no con la forja de skills"
     },
     {
-      "id": "frontera-despliegue-blocked",
-      "peticion": "El despliegue de la preview sale Blocked en Vercel y no sé por qué, ¿qué miro?",
-      "skill": "vercel"
+      "id": "frontera-leccion-en-otra-skill",
+      "peticion": "Añade a la skill de supabase una entrada nueva en Lo que falló sobre lo que pasó ayer con las migraciones.",
+      "skill": "supabase",
+      "nota": "Casi-fallo: nombra una skill y habla de editarla, pero es contenido de ese dominio y no estructura; la forma de la entrada ya la vigila el nivel 1"
     },
     {
-      "id": "frontera-ci-rojo",
-      "peticion": "El check tests de mi PR está en rojo y no sé qué ha fallado, ¿cómo veo el log?",
-      "skill": "github"
+      "id": "frontera-rotar-token-de-otra-skill",
+      "peticion": "La skill de vercel no dice cómo rotar el token cuando caduca, ¿lo explico ahí?",
+      "skill": "alta-de-secreto",
+      "nota": "Casi-fallo: parece una carencia de una skill, pero el procedimiento de rotar claves ya vive en otra y esa manda; la otra la cita"
+    },
+    {
+      "id": "frontera-medir-disparo",
+      "peticion": "Mide si la skill de github se dispara cuando toca, sin cambiar nada de ella.",
+      "skill": "ninguna",
+      "nota": "Casi-fallo: habla de calidad de una skill, pero medirla sin tocarla es npm run skills-prueba, no esta skill"
     }
   ]
 }

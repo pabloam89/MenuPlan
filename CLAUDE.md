@@ -134,7 +134,7 @@ las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
 `plan-de-arreglo` (partir el arreglo en encargos); y la meta `forja-de-skills`
 (crear, probar y podar skills). Todas siguen
 `.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
-ocho (hoy hay de herramienta y de oficio, cada tipo con sus secciones), dueño, fecha
+ocho (los que existan, en la plantilla; cada tipo con sus secciones), dueño, fecha
 de comprobación que caduca a los 90 días, un `SKILL.md` corto con el detalle en
 capas y sus casos de prueba en `casos.json`; `npm run skills-prueba -- <skill>`
 mide, con tokens, si ayuda. Un proveedor nuevo estrena su runbook con su

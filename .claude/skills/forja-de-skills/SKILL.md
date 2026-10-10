@@ -1,6 +1,6 @@
 ---
 name: forja-de-skills
-description: Úsala al crear, cambiar, revisar o podar una skill de .claude/skills: «hazme una skill para…», «¿hace falta una skill nueva?», «esta skill no se abre cuando toca», «está muy larga», «el test de skills falla con forja», «¿la borro?». Dice cuándo NO crearla, cómo se forja paso a paso, qué comprueba el test y qué solo juzga una persona. No para: operar un servicio (su skill), escribir o cambiar un agente (PLANTILLA-AGENTE) ni medir una skill ya hecha sin tocarla (npm run skills-prueba).
+description: Úsala al crear, reestructurar, revisar o podar una skill de .claude/skills: «hazme una skill para…», «¿hace falta una skill nueva?», «esta skill no se abre cuando toca», «está muy larga», «el test de skills falla con forja», «¿la borro?». Dice cuándo NO crearla, cómo se forja paso a paso, qué comprueba el test y qué solo juzga una persona. No para: operar un servicio (su skill), escribir o cambiar un agente (PLANTILLA-AGENTE) ni medir una skill ya hecha sin tocarla (npm run skills-prueba).
 metadata:
   tipo: meta
   dueno: gobierno
@@ -20,6 +20,10 @@ ganadora a una skill y qué la hace mala, con su fuente.
 
 No es para:
 - operar el servicio que describe una skill: la skill de ese dominio;
+- añadir una lección o un dato a una skill que ya existe (una entrada en «Lo
+  que falló», un comando nuevo): la skill de ese dominio; la forma de la
+  entrada la vigila el nivel 1. Esta skill entra si cambia la estructura, la
+  descripción o si hay dudas de que deba existir;
 - escribir un agente: `.claude/PLANTILLA-AGENTE.md`;
 - medir una skill ya escrita sin tocarla: `npm run skills-prueba -- <skill>`
   (esta skill dice cuándo lanzarlo y cómo leerlo).
@@ -51,6 +55,13 @@ No es para:
    principal va en los primeros 250 caracteres. Por qué «Úsala» y no otra forma:
    `.claude/skills/forja-de-skills/referencias/criterios.md`, criterio 1.
    Sale: una descripción que `npm run skills-prueba` acierta en todos los casos.
+   Un ejemplo, mala y buena:
+   - Mala: «Úsala con claves y secretos. No para: otras cosas.» No dice cuándo,
+     no usa las palabras de quien pide y su frontera no nombra nada.
+   - Buena: «Úsala al dar de alta o rotar una clave o token («nuevo token», «ha
+     caducado»), de punta a punta. No para: leer una clave desde un script
+     (1password).» Dice el cuándo con palabras de quien pide y la frontera
+     nombra la skill vecina.
 5. **Escribir lo mínimo que arregla los fallos del paso 2.** Solo lo que el
    modelo no sabe; un camino por defecto y una salida para el caso raro; cada
    paso con lo que sale; el detalle largo a una capa que `SKILL.md` cita con su
@@ -113,7 +124,7 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 
 ## Lo que falló y por qué
 
-- **2026-10-10 · once skills sin un estándar escrito de calidad (#408).**
+- **2026-10-10 · las skills sin un estándar escrito de calidad (#408).**
   Causa: el test de skills miraba la forma del fichero y no su calidad, y no
   había una definición de «buena» con la que comparar. Arreglo: esta skill y la
   regla `forja` del nivel 1. Antes: 10 de 11 skills con menos de tres casos de

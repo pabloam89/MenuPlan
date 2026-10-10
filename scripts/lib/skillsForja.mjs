@@ -19,13 +19,13 @@
 export const CODIGOS_FORJA = ["casos-negativos", "fechas", "sin-parada", "ejemplos", "solape"];
 
 /**
- * Techos del estándar abierto de skills (agentskills.io) y de las guías de
+ * Límites del estándar abierto de skills (agentskills.io) y de las guías de
  * Anthropic: la descripción de 1.024 caracteres y SKILL.md de 500 líneas. Los
- * topes de la casa (`MAX_DESCRIPCION`, `MAX_LINEAS`) son más estrictos; un test
+ * límites de la casa (`MAX_DESCRIPCION`, `MAX_LINEAS`) son más estrictos; un test
  * comprueba que siguen por debajo de estos.
  */
-export const TOPE_DESCRIPCION_ESTANDAR = 1024;
-export const TOPE_LINEAS_ESTANDAR = 500;
+export const LIMITE_DESCRIPCION_ESTANDAR = 1024;
+export const LIMITE_LINEAS_ESTANDAR = 500;
 
 /** Casos de frontera mínimos (peticiones parecidas que NO son de la skill). Las guías piden la mitad de las consultas negativas; tres es el suelo asumible. */
 export const MIN_FRONTERA_FORJA = 3;
@@ -70,7 +70,9 @@ const PROSA_FECHADA = [
 ];
 /** Secciones donde una fecha es lo correcto: son un registro. */
 const SECCIONES_CON_FECHA = ["Lo que falló y por qué", "Registro de cambios", "Fuentes y comprobación"];
-const CRITERIO_DE_PARADA = /Sale bien si|Sale:|Debe salir|Hecho cuando|Para (?:si|cuando|por)\b|Parar\b|parada|Termina cuando|Se acaba cuando/i;
+// Una frase de cierre al principio de una línea o dentro de una negrita; una palabra suelta («parar», «parada») en mitad de un párrafo no cuenta.
+const FRASES_DE_PARADA = "Sale bien si|Sale:|Para por criterio|Hecho cuando|Debe salir";
+const CRITERIO_DE_PARADA = new RegExp(String.raw`^[ \t]*(?:(?:[-*]|\d+\.)[ \t]+)?\**(?:${FRASES_DE_PARADA})|\*\*[^*\n]*(?:${FRASES_DE_PARADA})`, "im");
 const SECCIONES_DE_EJEMPLOS = ["Ejemplo resuelto", "Ejemplos calibrados", "Bien y mal"];
 
 /** Un texto sin sus trozos de código entre comillas invertidas: una versión de API (`2023-06-01`) no es una fecha que caduque. */
@@ -112,7 +114,8 @@ export function faltasForja({ nombre, cuerpo, tipo, casos }) {
   }
 
   for (const s of secs.filter((x) => SECCIONES_DE_EJEMPLOS.includes(x.titulo))) {
-    const n = (s.texto.match(/^#{3,4} /gm) ?? []).length + (s.texto.match(/\*\*Ejemplo\b/g) ?? []).length;
+    // Un ejemplo es un «### Ejemplo»; sus subapartados («#### Entrada», «#### Salida») y lo que haya en un bloque de código no cuentan.
+    const n = (sinCodigo(s.texto).match(/^### Ejemplo\b/gm) ?? []).length;
     if (n > MAX_EJEMPLOS) f.push(falta("ejemplos", `«${s.titulo}» tiene ${n} ejemplos; como mucho ${MAX_EJEMPLOS}, canónicos`));
   }
   return f;
@@ -144,7 +147,7 @@ export function faltasDeSolape(catalogo) {
   for (let i = 0; i < catalogo.length; i++) {
     for (let j = i + 1; j < catalogo.length; j++) {
       const s = solape(catalogo[i].descripcion, catalogo[j].descripcion);
-      if (s > MAX_SOLAPE) f.push({ ...falta("solape", `${catalogo[i].nombre} y ${catalogo[j].nombre} solapan ${s.toFixed(2)} (tope ${MAX_SOLAPE}): ¿cuál de las dos reclama la petición?`), skills: [catalogo[i].nombre, catalogo[j].nombre] });
+      if (s > MAX_SOLAPE) f.push({ ...falta("solape", `${catalogo[i].nombre} y ${catalogo[j].nombre} solapan ${s.toFixed(2)} (límite ${MAX_SOLAPE}): ¿cuál de las dos reclama la petición?`), skills: [catalogo[i].nombre, catalogo[j].nombre] });
     }
   }
   return f;
