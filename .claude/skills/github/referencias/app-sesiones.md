@@ -195,5 +195,31 @@ En PowerShell, `node scripts/token-sesion.mjs -- <comando>`, que sirve también 
 (`-- gh …`, `-- git push`). Sin clave legible avisa y sigue como Pablo (a los 13 s); sus credenciales siguen en
 el llavero y el manager de github.com hasta su `gh auth logout`.
 
+## Lo que la guardia niega a una sesión (#447)
+
+Sin esto, la sesión volvería a ser administradora en cuanto quitara el token y
+`gh` y `git` tiraran de las credenciales de Pablo. La regla vive en
+`.claude/hooks/credenciales.mjs` y se llama desde `guardia.mjs`, con su test en
+`.claude/hooks/guardia.test.js`. Mira cada orden por separado (también dentro de
+`bash -c`, un subshell, `&&`, `;` o una tubería) y no el texto de un commit, un
+cuerpo de PR o un heredoc que las nombre. Niega:
+
+| Qué | Ejemplos |
+|---|---|
+| Quitar o vaciar el token | `env -u GH_TOKEN`, `env -i`, `unset GH_TOKEN`, `GH_TOKEN=` vacío, `export -n`, `Remove-Item Env:GH_TOKEN`, `$env:GH_TOKEN = ""` (también `GITHUB_TOKEN`) |
+| Cambiar de dónde saca git sus credenciales o quién firma | `git -c credential.helper=…`, `git config credential.…`, asignar o quitar `GIT_CONFIG_*`, `GIT_AUTHOR_*`, `GIT_COMMITTER_*` |
+| Cambiar reglas del repo | `node scripts/rulesets.mjs --escribir`; `gh api` que escribe (`-X PUT|PATCH|POST|DELETE`, o con `-f`/`-F`/`--input`, que lo vuelve POST) en `rulesets`, `branches/*/protection`, `collaborators`, `actions/secrets`, `actions/variables`, `environments`, `hooks` o `keys`; `gh api graphql` con una mutación de protección de ramas, rulesets o `updateRepository` |
+| Aprobar PR | `gh pr review --approve` (o `-a`), una review `APPROVE` por la API o por GraphQL |
+| Imprimir el token | `echo $GH_TOKEN`, `printenv` y `env` sin argumentos |
+
+Lo que sigue permitido: `node scripts/token-sesion.mjs -- gh …` y `-- git push` (el
+remedio cuando el token caduca), `gh` y `git` normales con el token puesto, y leer
+esas mismas rutas de la API (un GET).
+
+Es un filtro de buena fe: quien parta el texto a propósito (una variable
+intermedia, un script en un fichero, otro intérprete) se lo salta. La barrera de
+fondo es de Pablo: `gh auth logout` y quitar el manager de credenciales de
+github.com de su PC. Hasta entonces, sus credenciales siguen ahí.
+
 Fuentes: https://docs.github.com/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app
 y https://docs.github.com/rest/apps/apps#create-an-installation-access-token-for-an-app

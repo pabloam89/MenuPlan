@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url";
 
 import { carpetaDe, contextoReal, decidir, sinAplicar } from "./guardia.mjs";
 import { cargarMapa } from "./dominios.mjs";
+import { AVISOS_CREDENCIALES } from "./credenciales.mjs";
+import { familiaDeGuardia } from "./eventos.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 // El registro de eventos (#340) escribe en ~/.claude/menuplan-fabrica: un test que lanza la guardia no toca la carpeta real del usuario.
@@ -869,5 +871,157 @@ describe("puerta de lectura al editar: el cableado real (#397)", () => {
     expect(lanza(ruta)).toBe(null);
     expect(lanza(ruta, "editar-sesion-2")).toBe("deny");
     expect(lanza(join(repo, "src", "App.jsx"))).toBe(null);
+  });
+});
+
+describe("credenciales de la sesión: no volver a las de Pablo ni cambiar las reglas del repo (#447)", () => {
+  it.each([
+    "env -u GH_TOKEN gh pr list",
+    "env -uGH_TOKEN gh pr list",
+    "env --unset=GITHUB_TOKEN git push",
+    "env -u FOO -u GH_TOKEN gh api user",
+    "env -i gh pr list",
+    "unset GH_TOKEN",
+    "unset GH_TOKEN && gh pr list",
+    "unset -v GITHUB_TOKEN; git push -u origin ops/x",
+    "(unset GH_TOKEN; gh pr list)",
+    'bash -c "unset GH_TOKEN; gh pr list"',
+    "GH_TOKEN= gh pr list",
+    'GH_TOKEN="" gh pr list',
+    "GITHUB_TOKEN='' git push",
+    "export GH_TOKEN=",
+    "export GH_TOKEN= && gh pr list",
+    "env GH_TOKEN= gh pr list",
+    "export -n GH_TOKEN",
+    "Remove-Item Env:GH_TOKEN",
+    "Remove-Item Env:\\GITHUB_TOKEN; gh pr list",
+    '$env:GH_TOKEN = ""',
+    "$env:GH_TOKEN=$null; gh pr list",
+    "[Environment]::SetEnvironmentVariable('GH_TOKEN', $null)",
+    "git -c credential.helper= push",
+    "git -c credential.helper=manager push origin ops/x",
+    'git -c "credential.https://github.com.helper=" push',
+    "git -ccredential.helper= push",
+    "git config --global credential.helper manager",
+    "GIT_CONFIG_COUNT=0 git push",
+    "GIT_AUTHOR_NAME=Pablo git commit -m x",
+    "export GIT_COMMITTER_EMAIL=pablo@example.com",
+    "unset GIT_CONFIG_COUNT",
+    "env -u GIT_AUTHOR_NAME git commit -m x",
+    "$env:GIT_AUTHOR_NAME = 'Pablo'",
+    "node scripts/rulesets.mjs --escribir",
+    "node scripts/rulesets.mjs --escribir --ruleset staging",
+    "gh api -X PUT repos/pabloam89/MenuPlan/rulesets/24770007",
+    "gh api repos/pabloam89/MenuPlan/rulesets --method POST --input r.json",
+    "gh api -XPATCH repos/pabloam89/MenuPlan/rulesets/1",
+    "gh api repos/pabloam89/MenuPlan/rulesets/1 -X DELETE",
+    "gh api -X PUT repos/pabloam89/MenuPlan/branches/main/protection --input p.json",
+    "gh api -X PUT repos/pabloam89/MenuPlan/collaborators/algbarc -f permission=admin",
+    "gh api -X PUT repos/pabloam89/MenuPlan/actions/secrets/X -f encrypted_value=a",
+    "gh api -X POST repos/pabloam89/MenuPlan/actions/variables -f name=A -f value=b",
+    "gh api -X PUT repos/pabloam89/MenuPlan/environments/prod",
+    "gh api -X POST repos/pabloam89/MenuPlan/hooks -f url=http://x",
+    "gh api -X POST repos/pabloam89/MenuPlan/keys -f key=ssh-rsa",
+    // sin -X pero con campos: gh api pasa a POST solo
+    "gh api repos/pabloam89/MenuPlan/rulesets -f name=x",
+    "gh api repos/pabloam89/MenuPlan/collaborators/algbarc -F permission=admin",
+    'gh api graphql -f query=\'mutation { updateRepository(input:{repositoryId:"x"}) { clientMutationId } }\'',
+    "gh api graphql -f query='mutation { createBranchProtectionRule(input:{}) { clientMutationId } }'",
+    'gh api graphql -f query=\'mutation { addPullRequestReview(input:{pullRequestId:"x", event: APPROVE}) { clientMutationId } }\'',
+    "gh api -X POST repos/pabloam89/MenuPlan/pulls/12/reviews -f event=APPROVE",
+    "gh pr review 12 --approve",
+    "gh pr review 12 -a",
+    "gh pr review --approve 12 --body ok",
+    "gh -R pabloam89/MenuPlan pr review 12 --approve",
+    "echo ok && gh pr review 12 --approve",
+    'bash -c "gh pr review 12 --approve"',
+    "echo $GH_TOKEN",
+    'echo "token: ${GH_TOKEN}"',
+    "printenv",
+    "printenv GH_TOKEN",
+    "printenv | grep TOKEN",
+    "env",
+    "Get-ChildItem Env:",
+    'node -e "console.log(process.env.GH_TOKEN)"',
+  ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
+
+  it.each([
+    // el remedio documentado y lo normal con GH_TOKEN puesto
+    "node scripts/token-sesion.mjs -- gh pr list",
+    "node scripts/token-sesion.mjs -- git push -u origin ops/x",
+    "node scripts/token-sesion.mjs --comprobar",
+    "gh pr list",
+    "gh pr checks 12",
+    "gh pr view 12 --json body -q .body",
+    "gh pr review 12 --comment --body 'Mira esto'",
+    "gh pr review 12 --request-changes --body 'Falta el test'",
+    "git push -u origin ops/447-guardia-credenciales",
+    "git fetch origin staging",
+    "git config --get credential.helper",
+    "git config --list",
+    "git -C /c/dev/MenuPlan-x status",
+    "git -c core.autocrlf=false diff",
+    "export GH_TOKEN=ghs_valor_de_la_app",
+    'GH_TOKEN="$(node scripts/token-sesion.mjs --comprobar)" gh pr list',
+    "export GIT_PAGER=cat",
+    "printenv PATH",
+    "echo hola",
+    "echo $HOME",
+    // lecturas por la API, aunque sean rutas de reglas
+    "gh api repos/pabloam89/MenuPlan/rules/branches/staging",
+    "gh api repos/pabloam89/MenuPlan/rulesets",
+    "gh api repos/pabloam89/MenuPlan/rulesets/24770007 -q .name",
+    "gh api repos/pabloam89/MenuPlan/environments/mercadona-sync/deployment-branch-policies -q '.branch_policies[].name'",
+    "gh api -X GET repos/pabloam89/MenuPlan/rulesets -f per_page=5",
+    "gh api repos/pabloam89/MenuPlan/branches/staging/protection",
+    "gh api repos/pabloam89/MenuPlan/collaborators",
+    // escribir en otras rutas de la API no es cambiar reglas
+    "gh api -X POST repos/pabloam89/MenuPlan/issues/447/comments -f body=hola",
+    "gh api -X PATCH repos/pabloam89/MenuPlan/issues/447 -f state=closed",
+    "gh api repos/pabloam89/MenuPlan/contents/.claude/hooks/guardia.mjs",
+    "gh api -X POST repos/pabloam89/MenuPlan/pulls/12/reviews -f event=COMMENT -f body=ok",
+    "gh api graphql -f query='query { viewer { login } }'",
+    "node scripts/rulesets.mjs",
+    "node scripts/rulesets.mjs --comprobar",
+    "grep -rn 'rulesets.mjs --escribir' scripts",
+    "rg 'env -u GH_TOKEN' .claude",
+    'echo "unset GH_TOKEN"',
+    "cat .claude/hooks/guardia.mjs",
+  ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
+
+  // El texto de un commit, un PR, un issue o un heredoc que NOMBRA estas cosas no es una orden.
+  it.each([
+    'git commit -m "guardia: niega env -u GH_TOKEN, unset GH_TOKEN; y GH_TOKEN= vacío"',
+    "git commit -m 'guardia: git -c credential.helper= y node scripts/rulesets.mjs --escribir'",
+    'git commit --message="niega gh pr review --approve; unset GH_TOKEN"',
+    'git commit -m "una" -m "otra: GIT_AUTHOR_NAME=x; export GH_TOKEN="',
+    'gh issue comment 447 --body "no hacer env -u GH_TOKEN ni printenv; echo $GH_TOKEN"',
+    'gh pr edit 480 --title "niega unset GH_TOKEN" --body "gh api -X PUT repos/o/r/rulesets/1"',
+    'npm run issues -- --nuevo "Una sesión hace env -u GH_TOKEN" --tipo caso --area ops --cuerpo f.md',
+    "git commit -F - <<'EOF'\nguardia: unset GH_TOKEN\nenv -u GH_TOKEN gh pr list\ngit -c credential.helper= push\nEOF",
+    'git commit -m "$(cat <<\'EOF\'\nniega GH_TOKEN= vacío y gh pr review --approve\nunset GH_TOKEN\nEOF\n)"',
+  ])("deja pasar el texto: %s", (c) => expect(bash(c)).toBe(null));
+
+  it("un heredoc que alimenta a un shell sí cuenta", () => {
+    expect(bash("bash <<'EOF'\nunset GH_TOKEN\ngh pr list\nEOF")).toBe("deny");
+  });
+
+  it("también en PowerShell", () => {
+    const ps = (command) => decidir({ tool_name: "PowerShell", tool_input: { command } }, ctx())?.decision ?? null;
+    expect(ps("Remove-Item Env:GH_TOKEN")).toBe("deny");
+    expect(ps('$env:GH_TOKEN = ""')).toBe("deny");
+    expect(ps("gh pr list")).toBe(null);
+  });
+
+  it("cada aviso explica qué hacer en vez y tiene su familia contable", () => {
+    for (const [clave, texto] of Object.entries(AVISOS_CREDENCIALES)) {
+      expect(texto, clave).toMatch(/#447/);
+      expect(familiaDeGuardia(texto), clave).not.toBe("otra");
+    }
+    expect(AVISOS_CREDENCIALES.token).toMatch(/token-sesion\.mjs -- /);
+    expect(AVISOS_CREDENCIALES.identidad).toMatch(/token-sesion\.mjs -- /);
+    expect(AVISOS_CREDENCIALES.reglas).toMatch(/Pablo/);
+    const familias = Object.values(AVISOS_CREDENCIALES).map(familiaDeGuardia);
+    expect(new Set(familias).size).toBe(familias.length);
   });
 });

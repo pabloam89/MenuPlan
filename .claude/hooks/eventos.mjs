@@ -75,6 +75,11 @@ export const FAMILIAS_GUARDIA = [
   [/eso es de pablo \(#328\)/i, "op-de-pablo"],
   [/lo que lee lola/i, "escribir-lo-de-lola"],
   [/permisos o el c[oó]digo que vigila/i, "tocar-permisos"],
+  [/quitar o vaciar gh_token/i, "token-de-sesion-quitado"],
+  [/cambiar de d[oó]nde saca git/i, "identidad-git-cambiada"],
+  [/cambiar las reglas del repo/i, "reglas-del-repo"],
+  [/una sesi[oó]n no aprueba pr/i, "aprobar-pr"],
+  [/imprimir el token de la sesi/i, "token-impreso"],
   [/no ha podido leer esta orden/i, "entrada-ilegible"],
 ];
 
