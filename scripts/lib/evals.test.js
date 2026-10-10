@@ -262,6 +262,7 @@ describe("scripts que llaman a un modelo: tope y libro del mes (#297)", () => {
   // mensual NO los cubre, y esta lista es lo que dice cuáles son.
   const SIN_TOPE_DE_EVALS = {
     "alergenos-puede-contener.mjs": "pasada puntual del catálogo, por lotes",
+    "boveda-sesiones.mjs": "falso positivo: solo nombra la ficha ANTHROPIC_API_KEY en una lista, no llama a ningún modelo",
     "bedca-select.mjs": "pasada puntual, con --dry-run que cotiza",
     "buscador-examen.mjs": "examen manual, ~15 céntimos con Haiku",
     "enrich-recipe-steps.mjs": "horneado puntual del catálogo, con tope de intentos",
@@ -276,7 +277,9 @@ describe("scripts que llaman a un modelo: tope y libro del mes (#297)", () => {
   const dir = fileURLToPath(new URL("scripts/", RAIZ));
   const codigo = (f) => sinComentarios(readFileSync(join(dir, f), "utf8"));
   const todos = readdirSync(dir).filter((f) => /\.mjs$/.test(f) && !/\.test\./.test(f));
-  const conIA = todos.filter((f) => MODELO.test(codigo(f)));
+  // Nombran la clave en una lista (de qué fichas copiar), pero no llaman a ningún modelo.
+  const SOLO_NOMBRA_LA_CLAVE = ["boveda-sesiones.mjs"];
+  const conIA = todos.filter((f) => !SOLO_NOMBRA_LA_CLAVE.includes(f) && MODELO.test(codigo(f)));
 
   it("el detector no se deja engañar por un comentario ni se le escapa un import de Lola", () => {
     expect(MODELO.test(sinComentarios("// usa ANTHROPIC_API_KEY\n/* api/_bot/router.js */"))).toBe(false);
