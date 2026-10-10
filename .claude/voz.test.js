@@ -90,6 +90,17 @@ describe("las tres piezas de la voz dicen lo mismo", () => {
     expect(plantillaAgente).toMatch(/DECISIONES PENDIENTES: - Necesito que decidas: <pregunta> · A \(recomendada\), B y C/);
   });
 
+  it("las tres piezas dicen que del informe de agente solo siguen la forma RESUMEN y DECISIONES PENDIENTES", () => {
+    const frase = /solo el `?RESUMEN`? y las `?DECISIONES PENDIENTES`? siguen esta forma/i;
+    for (const [nombre, t] of [["CLAUDE.md", claude], ["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) expect(t, nombre).toMatch(frase);
+  });
+
+  it("las tres piezas dan la misma excepción para ficheros y comandos", () => {
+    for (const [nombre, t] of [["CLAUDE.md", claude], ["PLANTILLA-AGENTE.md", plantillaAgente], ["SKILL.md", skill]]) {
+      expect(t, nombre).toMatch(/salvo que él los pida o los tenga que ejecutar/);
+    }
+  });
+
   it("la skill pasa el nivel 1", () => {
     const ctx = cargarContexto(RAIZ);
     const s = cargarSkill("estilo-de-respuesta", RAIZ);

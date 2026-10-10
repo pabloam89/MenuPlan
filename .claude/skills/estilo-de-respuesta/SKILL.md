@@ -18,8 +18,8 @@ decisión suya (#415); antes solo vivía en su memoria
 personal, que no ve ninguna otra sesión.
 
 Vale para toda respuesta de una sesión principal a Pablo. Del informe común de
-un agente (`.claude/PLANTILLA-AGENTE.md`) siguen esta forma solo el `RESUMEN` y
-las `DECISIONES PENDIENTES`; y la sesión que lo lanzó se lo cuenta a Pablo con ella.
+un agente (`.claude/PLANTILLA-AGENTE.md`), solo el `RESUMEN` y las
+`DECISIONES PENDIENTES` siguen esta forma; y la sesión que lo lanzó se lo cuenta a Pablo con ella.
 
 No es para:
 - el resto del informe de un agente (`CASOS`, `CAMBIOS`, `EVIDENCIA`,
@@ -40,7 +40,7 @@ No es para:
    una a cuatro ideas; si salen cinco, dos son una.
 4. **Quita la jerga.** Un término técnico se evita o se explica en una frase
    la primera vez («rama: una copia de trabajo aparte»). Los nombres de
-   ficheros, comandos y números de issue se dejan fuera salvo que él los pida.
+   ficheros, comandos y números de issue se dejan fuera salvo que él los pida o los tenga que ejecutar.
    Los términos del día a día tienen su traducción en «Traducir la jerga».
 5. **Si hace falta algo de él, una última línea** con lo que se necesita. Si
    es una decisión, tres opciones en llano (A, B, C), la recomendada primero y
@@ -158,13 +158,12 @@ Bien (plantilla de resultado):
 Mal: un párrafo de ocho líneas que empieza por el historial del fallo, nombra
 dos ficheros y un workflow, y deja la causa para la última frase.
 
-Bien:
+Bien (plantilla de resultado):
 
 > **Los avisos se repetían porque el sistema no recordaba qué había avisado ya.**
->
-> - Pasaba cada vez que una tarea tardaba más de lo normal.
-> - Ya está arreglado: ahora apunta lo avisado y no lo repite.
-> - Hay un detalle técnico más largo en el issue, por si te interesa.
+> Qué cambia para ti: las familias ya no reciben el mismo aviso dos veces.
+> Ojo: pasaba cuando una tarea tardaba más de lo normal.
+> Siguiente paso: hay un detalle técnico más largo en el issue, por si te interesa.
 
 ### Ejemplo 3: pedir una decisión
 
@@ -190,7 +189,7 @@ Bien (plantilla de decisión):
 
 ## Registro de cambios
 
-- **2026-10-10** · Se funde en esta skill la de la voz con Pablo: tres opciones en las decisiones, cinco plantillas con ejemplo canónico (`plantillas/plantillas.md`), glosario ampliado, resumen en `.claude/PLANTILLA-AGENTE.md` y `.claude/voz.test.js` que cruza regla, skill y plantilla de agentes; los ejemplos 1 y 3 siguen las plantillas de resultado y decisión, solo el `RESUMEN` y las `DECISIONES PENDIENTES` de un informe de agente siguen la forma, y los casos pasan a 13 (disparo 13/13, comprobaciones 24/29 y 23/29) (#415).
+- **2026-10-10** · Se funde en esta skill la de la voz con Pablo: tres opciones en las decisiones, cinco plantillas con ejemplo canónico (`plantillas/plantillas.md`), glosario ampliado, resumen en `.claude/PLANTILLA-AGENTE.md` y `.claude/voz.test.js` que cruza regla, skill y plantilla de agentes; los ejemplos 1 y 3 siguen las plantillas de resultado y decisión, solo el `RESUMEN` y las `DECISIONES PENDIENTES` de un informe de agente siguen la forma, y los casos pasan a 13 (disparo 13/13, comprobaciones 24/29) (#415).
 - **2026-10-10** · Se añaden «Traducir la jerga» y «El comando para pegar»; el caso del comando se reformula (disparo de 8/9 a 9/9, comprobaciones de 13/16 a 14/16) (#415).
 - **2026-10-10** · Primera versión: idea raíz en negrita, cuatro ideas como mucho, petición al final y detalle fuera del chat (#415).
 
@@ -207,4 +206,4 @@ Bien (plantilla de decisión):
 
 Sin comprobar: las fuentes se citan de memoria y no se han releído al escribir; las cifras de 5 frases y 25 palabras son de la guía GOV.UK, en inglés, y la de cuatro ideas es de Cowan y habla de memoria de trabajo, no de lectura; que la voz viva en `CLAUDE.md` y el detalle en la skill es inferencia (la documentación solo dice que el cuerpo de una skill carga cuando se usa); no hay fuente primaria sobre plantillas fijas para agentes de IA; cuántas respuestas reales cumplen la forma; y que mejore sobre el modelo solo, porque `skills-prueba` mide la skill con ella y no sin ella.
 
-Comprobado el 2026-10-10: la forma con `.claude/skills.test.js` y `.claude/voz.test.js`, y los casos con `npm run skills-prueba -- estilo-de-respuesta` (`ops/skills-prueba/estilo-de-respuesta.json`). Antes de fundir la voz: disparo 9 de 9 y comprobaciones 14 de 16. Con 13 casos (9 propios y 4 de frontera), dos pasadas seguidas: disparo 13 de 13 las dos veces y comprobaciones 24 de 29 y 23 de 29 (0,11 $ cada una). Fallan las mismas casi todas las veces: la jerga de workflow, deploy key y ruleset, el comando para pegar (primera línea y cierre) y el caso del PR; entre pasadas también cambian `fallo-de-la-prueba` y `resume-informe-agente`, es ruido del corrector.
+Comprobado el 2026-10-10: la forma con `.claude/skills.test.js` y `.claude/voz.test.js`, y los casos con `npm run skills-prueba -- estilo-de-respuesta` (`ops/skills-prueba/estilo-de-respuesta.json`). Antes de fundir la voz: disparo 9 de 9 y comprobaciones 14 de 16. Con 13 casos (9 propios y 4 de frontera) y el texto final: disparo 13 de 13 y comprobaciones 24 de 29 (0,13 $); en la pasada anterior, con el texto de antes de los últimos retoques, 24 y 23 de 29. Las que fallan cambian entre pasadas (ruido del corrector); las más repetidas son la primera línea del comando para pegar y las del caso del PR. El hash de `SKILL.md` del JSON es el del texto sin esta línea de resultado.

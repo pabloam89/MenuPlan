@@ -112,10 +112,10 @@ forma, para que decidir le cueste poco (skill `estilo-de-respuesta`).
 Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
 Un término técnico se explica la primera vez y después se llama igual. Ficheros,
 ramas y comandos van a un issue, no al chat, salvo que él los pida o los tenga
-que ejecutar. Plantillas
-fijas: resultado, decisión, error, concepto y resumen (estructura, glosario y
-ejemplos, en la skill). De un informe de agente, solo el `RESUMEN` y las
-`DECISIONES PENDIENTES` siguen esta forma (`.claude/PLANTILLA-AGENTE.md`).
+que ejecutar. Plantillas fijas: resultado, decisión, error, concepto y resumen
+(estructura, glosario y ejemplos, en la skill). De un informe de agente, solo el
+`RESUMEN` y las `DECISIONES PENDIENTES` siguen esta forma
+(`.claude/PLANTILLA-AGENTE.md`).
 
 ## Encargos
 
