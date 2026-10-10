@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { leerIndice, textoDeAviso, avisoDeIndice } from "../../scripts/lib/buscarAntes.mjs";
-import { medianaMsAsync, testigoMs, topeConTestigo } from "../../scripts/lib/medirTiempo.mjs";
+import { maquinaSaturada, medianaMsAsync, testigoMs, topeConTestigo } from "../../scripts/lib/medirTiempo.mjs";
 import { carpetaPropia, escrituraSegura } from "./buscar-antes.mjs";
 import { avisoAparte, avisoParaDenegacion, hayTiempoParaAvisar, sanearAviso, TOPE_PARA_AVISAR_MS } from "./guardia.mjs";
 
@@ -50,7 +50,10 @@ const retiene = (tope) => Math.max(10_000, Math.ceil(tope) + 5_000);
 
 describe("avisoAparte: el tope se cumple pase lo que pase con el hijo", () => {
   it("un nieto separado que hereda la tubería no alarga la espera", async () => {
-    const tope = topeConTestigo(SUELTO_HIJO_MS, { testigoAhoraMs: testigoMs() });
+    const testigo = testigoMs();
+    // El tope interno de avisoAparte es el mismo que el de la prueba, y escala con el testigo: con
+    // la espera rota, la respuesta llegaría justo en ese tope (por su temporizador) y no antes.
+    const tope = topeConTestigo(SUELTO_HIJO_MS, { testigoAhoraMs: testigo });
     const f = falso(`
       import { spawn } from "node:child_process";
       const n = spawn(process.execPath, ["-e", "setTimeout(()=>{}, ${retiene(tope)})"], { detached: true, stdio: "inherit", windowsHide: true });
@@ -58,17 +61,18 @@ describe("avisoAparte: el tope se cumple pase lo que pase con el hijo", () => {
       process.stdout.write("[buscar-antes] hola");
       process.exit(0);
     `);
-    const { v, ms } = await mide(f);
-    expect(ms).toBeLessThan(tope);
+    const { v, ms } = await mide(f, Math.ceil(tope));
     expect(v).toBe("[buscar-antes] hola");
-  }, 40000);
+    if (!maquinaSaturada(testigo, { etiqueta: "aviso-aparte nieto" })) expect(ms).toBeLessThan(tope);
+  }, 60_000);
 
   it("un hijo colgado se corta en el tope y no devuelve nada", async () => {
-    const tope = topeConTestigo(SUELTO_HIJO_MS, { testigoAhoraMs: testigoMs(), fijoMs: 600 });
+    const testigo = testigoMs();
+    const tope = topeConTestigo(SUELTO_HIJO_MS, { testigoAhoraMs: testigo, fijoMs: 600 });
     const { v, ms } = await mide(falso(`setTimeout(() => {}, ${retiene(tope)});`), 600);
     expect(v).toBe("");
-    expect(ms).toBeLessThan(tope);
-  }, 40000);
+    if (!maquinaSaturada(testigo, { etiqueta: "aviso-aparte colgado" })) expect(ms).toBeLessThan(tope);
+  }, 60_000);
 
   it("10 MB por la salida estándar: se corta el tope de bytes (el hijo muere antes de acabar de escribir)", async () => {
     const marca = join(nuevoDir(), "acabo");

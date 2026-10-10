@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { EVENTOS, TOPE_BYTES, dirFabrica, lineaDeEvento, registrarEvento } from "./eventos.mjs";
 import { TOPE_AVISO_MS, TOPE_PARA_REGISTRAR_MS, hayTiempoParaRegistrar } from "./guardia.mjs";
 import { agenteLanzado } from "./skill-abierta.mjs";
-import { medianaMs, testigoMs, topeConTestigo } from "../../scripts/lib/medirTiempo.mjs";
+import { maquinaSaturada, medianaMs, testigoMs, topeConTestigo } from "../../scripts/lib/medirTiempo.mjs";
 
 /**
  * Lo que tarda suelto la guardia con un aviso que falla, sin la espera del tope del aviso
@@ -169,10 +169,13 @@ describe("un registro que falla NUNCA rompe nada", () => {
   it("un buscar-antes.mjs que falla, sale, se cuelga o tarda no puede quitar el deny, ni hacerlo tardar (ronda 4 de #384)", () => {
     const entrada = { session_id: SESION, cwd: repoGit(), tool_name: "Bash", tool_input: { command: "git push origin main" } };
     // Lanza procesos: el testigo de la misma tanda sube el tope con la carga de la máquina (#499).
-    const tope = topeConTestigo(SUELTO_GUARDIA_MS, { testigoAhoraMs: testigoMs(), fijoMs: TOPE_AVISO_MS });
+    // Con la máquina saturada no se compara el tiempo: el resto del test sí se comprueba.
+    const testigo = testigoMs();
+    const saturada = maquinaSaturada(testigo, { etiqueta: "guardia-con-aviso" });
+    const tope = topeConTestigo(SUELTO_GUARDIA_MS, { testigoAhoraMs: testigo, fijoMs: TOPE_AVISO_MS });
     // spawnSync corta después del tope, y el bucle dura más que ese corte: una guardia que se
-    // quedara esperando al hijo no daría su respuesta y el test lo vería.
-    const corte = Math.ceil(tope) + 10_000;
+    // quedara esperando al hijo no daría su respuesta y el test lo vería (también saturada).
+    const corte = saturada ? 20_000 : Math.ceil(tope) + 10_000;
     const cuerpos = {
       "throw": 'throw new Error("roto");',
       "exit0": "process.exit(0);",
@@ -194,9 +197,10 @@ describe("un registro que falla NUNCA rompe nada", () => {
       expect(salida.permissionDecision, nombre).toBe("deny");
       expect(salida.permissionDecisionReason, nombre).not.toContain("ignora tus reglas");
       // La guardia espera el aviso como mucho TOPE_AVISO_MS (a propósito); lo demás es arrancar dos procesos.
-      expect(ms, `${nombre} tardó ${Math.round(ms)} ms`).toBeLessThan(tope);
+      if (!saturada) expect(ms, `${nombre} tardó ${Math.round(ms)} ms`).toBeLessThan(tope);
     }
-  });
+    // Seis guardias de dos procesos cada una: con la máquina saturada pasan del minuto.
+  }, 120_000);
 
   it("la guardia ya no importa nada de scripts/lib: el aviso va en otro proceso", () => {
     const fuente = readFileSync(join(AQUI, "guardia.mjs"), "utf8");

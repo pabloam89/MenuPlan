@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { ficherosDeGit } from "./ficherosGit.js";
 import {
-  EXCEPCIONES_TIEMPO, LINEAS_MARCA, MARGEN, SUELO_MS, TESTIGO_SUELTO_MS, mediana, medianaMs, medianaMsAsync, medidasSinMargen, testigoMs, topeConTestigo, topeMs,
+  EXCEPCIONES_TIEMPO, LINEAS_MARCA, MARGEN, SATURACION, SUELO_MS, TESTIGO_SUELTO_MS, maquinaSaturada, mediana, medianaMs, medianaMsAsync, medidasSinMargen, testigoMs, topeConTestigo, topeMs,
 } from "../scripts/lib/medirTiempo.mjs";
 
 /**
@@ -107,6 +108,26 @@ describe("el escáner, visto fallar", () => {
     expect(sin("expect(r.razon).toBeLessThan(8);")).toEqual([]);
   });
 
+  it("«relación» es entre dos medidas: contra un número solo, falla", () => {
+    expect(sin("expect(ruta.primer_ms).toBeLessThan(120); // tiempo: relación — trampa")).toEqual(["relacion-con-numero"]);
+    expect(sin("// tiempo: relación — trampa\nexpect(ms).toBeLessThan(60 * 1000);")).toEqual(["relacion-con-numero"]);
+    expect(sin("expect(c.plazoModeloMs).toBeLessThan(canario.maxDuration * 1000); // tiempo: relación — plazos")).toEqual([]);
+  });
+
+  it("con «sin tope», el nombre que recibe la medida sigue siendo una duración", () => {
+    expect(sin("const d = Date.now() - t0; // tiempo: sin tope — se informa\nexpect(d).toBeLessThan(500);")).toEqual(["tope-sin-margen"]);
+    expect(sin("mejor = Math.min(mejor, performance.now() - t0); // tiempo: sin tope — x\nexpect(mejor).toBeLessThanOrEqual(800);")).toEqual(["tope-sin-margen"]);
+    expect(sin("const d = Date.now() - t0; // tiempo: sin tope — se informa\nlog(d);")).toEqual([]);
+  });
+
+  it("topeMs y topeConTestigo son el argumento entero, no una parte", () => {
+    expect(sin("expect(ms).toBeLessThan(topeMs(6) * 2);")).toEqual(["tope-sin-margen"]);
+    expect(sin("expect(ms).toBeLessThan(Math.min(topeMs(6), 500));")).toEqual(["tope-sin-margen"]);
+    expect(sin("const t = topeMs(6) * 2;\nexpect(ms).toBeLessThan(t);")).toEqual(["tope-sin-margen"]);
+    expect(sin("const t = topeConTestigo(6, { testigoAhoraMs: x });\nexpect(ms).toBeLessThan(t);")).toEqual([]);
+    expect(sin("expect(ms).toBeLessThan(topeMs(6, { fijoMs: 50 }));")).toEqual([]);
+  });
+
   it("no confunde cuentas de fechas, comentarios ni cadenas", () => {
     expect(sin("const hace8 = new Date(Date.now() - 8 * 86_400_000);")).toEqual([]);
     expect(sin("const iso = (d) => new Date(Date.now() - dias * 86400e3).toISOString();")).toEqual([]);
@@ -155,6 +176,24 @@ describe("la utilidad", () => {
     expect(topeConTestigo(30, { testigoAhoraMs: 112, testigoSueltoMs: 56, fijoMs: 600 })).toBe(600 + MARGEN * 60);
     expect(() => topeConTestigo(100, {})).toThrow(/testigo/);
     expect(TESTIGO_SUELTO_MS).toBeGreaterThan(0);
+  });
+
+  it("maquinaSaturada: por encima de SATURACION no se compara y queda la línea contable", () => {
+    const fichero = join(mkdtempSync(join(tmpdir(), "tiempos-")), "t.txt");
+    const antes = process.env.MENUPLAN_TIEMPOS;
+    process.env.MENUPLAN_TIEMPOS = fichero;
+    try {
+      // La carga de #499: el testigo, unas 44 veces lo suelto.
+      expect(maquinaSaturada(44 * 56, { testigoSueltoMs: 56, etiqueta: "prueba" })).toBe(true);
+      expect(maquinaSaturada(9 * 56, { testigoSueltoMs: 56, etiqueta: "prueba" })).toBe(false);
+      expect(maquinaSaturada(SATURACION * 56, { testigoSueltoMs: 56 })).toBe(false);
+    } finally {
+      if (antes === undefined) delete process.env.MENUPLAN_TIEMPOS;
+      else process.env.MENUPLAN_TIEMPOS = antes;
+    }
+    expect(readFileSync(fichero, "utf8").trim().split("\n")).toEqual(["tiempo: maquina-saturada testigo_ms: 2464.0 factor: 44.0 etiqueta: prueba"]);
+    expect(SATURACION).toBeGreaterThan(1);
+    expect(() => maquinaSaturada(0)).toThrow(/testigo/);
   });
 
   it("testigoMs mide arrancar un proceso de verdad", () => {

@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { construirIndice, escribirIndice, senalDeDenegacion } from "../../scripts/lib/buscarAntes.mjs";
-import { medianaMs, testigoMs, topeConTestigo } from "../../scripts/lib/medirTiempo.mjs";
+import { maquinaSaturada, medianaMs, testigoMs, topeConTestigo } from "../../scripts/lib/medirTiempo.mjs";
 import { procesar } from "./buscar-antes.mjs";
 
 /** Lo que tarda el hook con índice, suelto (mediana de 5: 79-91 ms en tres pasadas el 2026-10-10). */
@@ -146,16 +146,19 @@ describe("el hook de verdad", () => {
     expect(JSON.parse(sinIndice.stdout).hookSpecificOutput.additionalContext).toMatch(/uedo buscar lo ya apuntado/);
   });
 
-  it("es rápido con el índice presente (mediana de 5, 20× sobre lo suelto, calibrado con el testigo)", () => {
+  it("es rápido con el índice presente (mediana de 3, 20× sobre lo suelto, calibrado con el testigo)", () => {
     const dir = nuevoDir();
     escribirIndice(INDICE, join(dir, "indice.json"));
     lanza(entrada, dir);
     // Con 800 ms (8×) y el mejor de tres falló bajo carga: 805 ms (#407) y 4 s (#499), con la
-    // carga sostenida en las tres medidas. El testigo, en la misma tanda, sube el tope con ella.
+    // carga sostenida en las tres medidas. El testigo, en la misma tanda, sube el tope con ella;
+    // con la máquina saturada no se compara el tiempo (no diría nada del hook).
     const testigo = testigoMs();
-    const ms = medianaMs((i) => lanza({ ...entrada, session_id: `tiempo-${i}` }, dir), { etiqueta: "buscar-antes-hook" });
-    expect(ms).toBeLessThan(topeConTestigo(SUELTO_HOOK_MS, { testigoAhoraMs: testigo }));
-  });
+    let r;
+    const ms = medianaMs((i) => { r = lanza({ ...entrada, session_id: `tiempo-${i}` }, dir); }, { n: 3, etiqueta: "buscar-antes-hook" });
+    expect(r.status).toBe(0);
+    if (!maquinaSaturada(testigo, { etiqueta: "buscar-antes-hook" })) expect(ms).toBeLessThan(topeConTestigo(SUELTO_HOOK_MS, { testigoAhoraMs: testigo }));
+  }, 60_000);
 
   it("a una llamada normal no responde nada", () => {
     const dir = nuevoDir();

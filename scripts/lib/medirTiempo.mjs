@@ -62,13 +62,17 @@ export function mediana(valores) {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 }
 
-function anotar(etiqueta, ms, n) {
+/** Deja una línea contable por el canal de MENUPLAN_TIEMPOS (consola con «1», o el fichero que nombra). */
+function emitir(linea) {
   const destino = process.env.MENUPLAN_TIEMPOS;
-  if (!etiqueta || !destino) return;
-  const linea = `tiempo etiqueta: ${etiqueta} mediana_ms: ${ms.toFixed(1)} n: ${n}`;
+  if (!destino) return;
   // El informe de vitest de este repo no enseña la consola de los tests: con una ruta, la línea va a ese fichero.
   if (destino === "1") console.log(linea);
   else appendFileSync(destino, `${linea}\n`);
+}
+
+function anotar(etiqueta, ms, n) {
+  if (etiqueta) emitir(`tiempo etiqueta: ${etiqueta} mediana_ms: ${ms.toFixed(1)} n: ${n}`);
 }
 
 /** Mediana, en ms, de `n` ejecuciones de `fn` (síncrona). */
@@ -124,8 +128,34 @@ export function testigoMs({ n = 3, etiqueta = "testigo-node" } = {}) {
  */
 export function topeConTestigo(sueltoMs, { testigoAhoraMs, testigoSueltoMs = TESTIGO_SUELTO_MS, fijoMs = 0 } = {}) {
   if (!(Number(testigoAhoraMs) > 0) || !(Number(testigoSueltoMs) > 0)) throw new Error(`topeConTestigo: hace falta el testigo de ahora y el suelto, en ms (llegaron ${testigoAhoraMs} y ${testigoSueltoMs})`);
-  const carga = Math.max(1, testigoAhoraMs / testigoSueltoMs);
-  return topeMs(sueltoMs * carga, { fijoMs });
+  return topeMs(sueltoMs * cargaDelTestigo(testigoAhoraMs, testigoSueltoMs), { fijoMs });
+}
+
+/**
+ * A partir de esta carga (el testigo tarda SATURACION veces lo suelto), la
+ * máquina está saturada y una medida no dice nada del código: en #499 la carga
+ * fue de ~44× y los tests caían por el tiempo máximo de vitest o por los topes
+ * internos del código (el aviso de la guardia, 1500 ms), no por el suyo.
+ */
+export const SATURACION = 10;
+
+/**
+ * ¿Está saturada la máquina según el testigo de la misma tanda? Si lo está, deja
+ * la línea `tiempo: maquina-saturada testigo_ms: … factor: … etiqueta: …` por el
+ * canal de MENUPLAN_TIEMPOS, y el test no compara el tiempo (sigue comprobando
+ * lo funcional): `if (!maquinaSaturada(testigo, { etiqueta })) expect(ms).toBeLessThan(tope);`.
+ */
+export function maquinaSaturada(testigoAhoraMs, { testigoSueltoMs = TESTIGO_SUELTO_MS, etiqueta = "-" } = {}) {
+  if (!(Number(testigoAhoraMs) > 0) || !(Number(testigoSueltoMs) > 0)) throw new Error(`maquinaSaturada: hace falta el testigo de ahora y el suelto, en ms (llegaron ${testigoAhoraMs} y ${testigoSueltoMs})`);
+  const factor = testigoAhoraMs / testigoSueltoMs;
+  if (factor <= SATURACION) return false;
+  emitir(`tiempo: maquina-saturada testigo_ms: ${testigoAhoraMs.toFixed(1)} factor: ${factor.toFixed(1)} etiqueta: ${etiqueta}`);
+  return true;
+}
+
+/** Cuánto va más lenta la máquina que el día de la medida, según el testigo (nunca menos de 1). */
+export function cargaDelTestigo(testigoAhoraMs, testigoSueltoMs = TESTIGO_SUELTO_MS) {
+  return Math.max(1, testigoAhoraMs / testigoSueltoMs);
 }
 
 // ── El escáner del vigilante ────────────────────────────────────────────────
@@ -185,6 +215,32 @@ function primerArgumento(s) {
   }
   return s;
 }
+
+const LLAMADA_TOPE = /^(?:topeMs|topeConTestigo)\s*\(/;
+
+/** ¿El texto es entero una llamada a topeMs o topeConTestigo (nada antes ni después)? */
+function esLlamadaEntera(texto) {
+  const t = String(texto).trim();
+  const m = t.match(LLAMADA_TOPE);
+  if (!m) return false;
+  return entreParentesis(t, m[0].length - 1).fin === t.length;
+}
+
+/** Los nombres que reciben entera una llamada a topeMs o topeConTestigo (`const tope = topeConTestigo(…);`). */
+function nombresDeTopeEntero(codigo) {
+  const nombres = new Set();
+  for (const m of codigo.matchAll(new RegExp(String.raw`(?:(?:const|let|var)\s+)?(${ID})\s*=\s*(?=(?:topeMs|topeConTestigo)\s*\()`, "g"))) {
+    const desde = m.index + m[0].length;
+    const llamada = codigo.slice(desde).match(LLAMADA_TOPE);
+    const { fin } = entreParentesis(codigo, desde + llamada[0].length - 1);
+    // Tras la llamada solo puede venir el final de la sentencia.
+    if (/^[ \t]*(?:;|\n|,|\)|$)/.test(codigo.slice(fin))) nombres.add(m[1]);
+  }
+  return nombres;
+}
+
+/** ¿Hay algún nombre o propiedad en la expresión, quitados los números? */
+const tieneNombre = (expr) => /[A-Za-z_$]/.test(String(expr).replace(/\b\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?\b/gi, ""));
 
 /**
  * Deja solo el código: comentarios y contenido de cadenas en blanco, con las
@@ -255,7 +311,15 @@ export function medidasSinMargen(texto) {
   const malas = [];
   const relojes = nombresDe(codigo, RELOJ);
   const medianas = nombresDe(codigo, "medianaMs(?:Async)?\\(");
-  const topes = nombresDe(codigo, "topeMs\\(|topeConTestigo\\(");
+  const topes = nombresDeTopeEntero(codigo);
+  const restaRelojes = relojes.size ? new RegExp(String.raw`(?<![\w$.])(${[...relojes].join("|")})\s*-\s*(${[...relojes].join("|")})(?![\w$])`) : null;
+  const esMedida = (s) => MEDIDA.test(s) || (restaRelojes?.test(s) ?? false);
+  // Los nombres que reciben una medida a mano (`const d = Date.now() - t0`, `mejor = Math.min(mejor, … - t0)`).
+  const duraciones = new Set();
+  for (const l of lineasCodigo) {
+    const a = l.match(new RegExp(String.raw`(${ID})\s*=(?![=>])\s*(.*)$`));
+    if (a && esMedida(a[2])) duraciones.add(a[1]);
+  }
 
   // «sin tope» cubre una medida que no se compara; «relación», también una comparación entre medidas.
   const marcaCerca = (n, valen) => [n - 1, n - 2].some((j) => j >= 0 && valen.includes(((lineas[j] ?? "").match(MARCA_CERCA)?.[1] ?? "").replace("ó", "o")));
@@ -277,9 +341,8 @@ export function medidasSinMargen(texto) {
   };
 
   // 1. Medidas a mano: reloj menos un nombre, o dos lecturas del reloj restadas.
-  const restaRelojes = relojes.size ? new RegExp(String.raw`(?<![\w$.])(${[...relojes].join("|")})\s*-\s*(${[...relojes].join("|")})(?![\w$])`) : null;
   lineasCodigo.forEach((l, i) => {
-    if (!(MEDIDA.test(l) || restaRelojes?.test(l))) return;
+    if (!esMedida(l)) return;
     const motivo = cubierta(i + 1);
     if (motivo) malas.push({ linea: i + 1, motivo, texto: lineas[i].trim().slice(0, 120) });
   });
@@ -292,16 +355,22 @@ export function medidasSinMargen(texto) {
     if (!tras) continue;
     const sujeto = primerArgumento(dentro).trim();
     const esNombreDe = (s, conjunto) => conjunto.has(s.replace(/^await\s+/, "").trim());
-    const esDuracion = /medianaMs(?:Async)?\s*\(/.test(sujeto) || esNombreDe(sujeto, medianas) || MEDIDA.test(sujeto)
-      || (restaRelojes?.test(sujeto) ?? false) || NOMBRE_DURACION.test(sujeto);
+    const esDuracion = /medianaMs(?:Async)?\s*\(/.test(sujeto) || esNombreDe(sujeto, medianas) || esNombreDe(sujeto, duraciones)
+      || esMedida(sujeto) || NOMBRE_DURACION.test(sujeto);
     if (!esDuracion) continue;
-    const { dentro: tope } = entreParentesis(codigo, fin + tras[0].length - 1);
-    if (/\btope(?:Ms|ConTestigo)\s*\(/.test(tope) || esNombreDe(tope, topes)) continue;
+    const { dentro: topeBruto } = entreParentesis(codigo, fin + tras[0].length - 1);
+    const tope = topeBruto.trim().replace(/,$/, "").trim();
+    // El tope es la llamada entera (sin `* k` ni Math.min alrededor) o un nombre que la recibió entera.
+    if (esLlamadaEntera(tope) || esNombreDe(tope, topes)) continue;
     const n = lineaDe(codigo, m.index);
     const nFin = lineaDe(codigo, fin);
+    const texto = original.slice(m.index, fin + tras[0].length + topeBruto.length + 1).replace(/\s+/g, " ").slice(0, 120);
     // Una marca vale si está encima del expect o de la línea del toBeLessThan.
-    if (cubierta(n, ["relacion"]) === null || cubierta(nFin, ["relacion"]) === null) continue;
-    malas.push({ linea: n, motivo: "tope-sin-margen", texto: original.slice(m.index, fin + tras[0].length + tope.length + 1).replace(/\s+/g, " ").slice(0, 120) });
+    const relacion = marcaCerca(n, ["relacion"]) || marcaCerca(nFin, ["relacion"]);
+    // «relación» es entre dos medidas: el otro lado no puede ser solo un número.
+    if (relacion && !tieneNombre(tope)) { malas.push({ linea: n, motivo: "relacion-con-numero", texto }); continue; }
+    if (relacion || [n, nFin].some((x) => marcaMargen(x) && cubierta(x, []) === null)) continue;
+    malas.push({ linea: n, motivo: "tope-sin-margen", texto });
   }
   return malas.sort((a, b) => a.linea - b.linea);
 }

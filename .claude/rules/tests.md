@@ -24,7 +24,8 @@ paths:
   varias medidas (`medianaMs`) contra `topeMs(<lo medido suelto>)`, que deja 20×
   de margen. Repetir sin margen no basta (#499: el mejor de tres a 8× falló).
   Si lanza procesos, `topeConTestigo`: un testigo de la misma tanda sube el
-  límite con la carga. Mejor aún, el orden de los eventos o dos medidas entre
+  límite con la carga, y con la máquina saturada (`maquinaSaturada`) el tiempo
+  no se compara, solo lo funcional. Mejor aún, el orden de los eventos o dos medidas entre
   sí (`// tiempo: relación — …`). Si no cabe, la marca `// tiempo: margen Nx
   medido AAAA-MM-DD` encima; lo vigila `ops/testsDeTiempo.test.js`. Una razón
   entre dos tamaños puede repetir hasta que una salga bien (#407).
