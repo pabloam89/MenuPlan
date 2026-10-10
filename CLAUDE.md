@@ -219,6 +219,9 @@ cifras que con impresiones.
 - **Vocabulario cerrado, no texto libre**, para todo lo que se vaya a agrupar:
   motivos de fallo, estados, causas, tipos, sitios. Una constante en JS (y un
   CHECK si va a SQL) con su test, como `src/lib/vocabularios.js`.
+- **Una palabra, un significado**: las palabras de proceso (comprobar, caso,
+  fondo, encargo, juez…) salen de `ops/glosario.json` (`npm run glosario`), y
+  su test falla con un sinónimo prohibido nuevo.
 - **Cada cosa que pasa deja una línea estructurada** (`campo: valor`, sin datos
   de familias) que un script pueda contar. Lo que no deja rastro no se mide, y
   lo que no se mide no mejora.

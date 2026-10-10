@@ -1,0 +1,95 @@
+{
+  "$comentario": "Lo que ya incumplía el glosario (ops/glosario.json) el 10 oct 2026, al nacer (#469): ruta → sinónimo prohibido → cuántas veces. SOLO BAJA: un sinónimo nuevo falla ops/glosario.test.js, y uno arreglado también hasta que se baja aquí su cifra (o se borra la línea). No se sube nada: se escribe el término canónico. npm run glosario -- --medir dice qué cambió.",
+  "excepciones": {
+    ".claude/PLANTILLA-AGENTE.md": {
+      "subagente": 1,
+      "subagentes": 1
+    },
+    ".claude/PLANTILLA-SKILL.md": {
+      "lección": 3,
+      "runbook": 2
+    },
+    ".claude/agents/datos.md": {
+      "incidente": 1
+    },
+    ".claude/agents/gobierno.md": {
+      "incidente": 2,
+      "worktree": 1,
+      "worktrees": 4
+    },
+    ".claude/agents/revisor.md": {
+      "bug": 2,
+      "lección": 7
+    },
+    ".claude/commands/backend-review.md": {
+      "reporte": 1
+    },
+    ".claude/commands/orquestar.md": {
+      "bug": 1,
+      "subagente": 2,
+      "worktree": 3,
+      "worktrees": 1
+    },
+    ".claude/rules/migraciones.md": {
+      "worktrees": 1
+    },
+    ".claude/skills/1password/SKILL.md": {
+      "worktree": 3
+    },
+    ".claude/skills/causa-raiz/SKILL.md": {
+      "causa raíz": 1
+    },
+    ".claude/skills/estilo-de-respuesta/SKILL.md": {
+      "subagentes": 1
+    },
+    ".claude/skills/estilo-de-respuesta/plantillas/plantillas.md": {
+      "worktree": 1
+    },
+    ".claude/skills/forja-de-skills/SKILL.md": {
+      "lección": 1
+    },
+    ".claude/skills/github/SKILL.md": {
+      "parche": 1,
+      "runbook": 1,
+      "subagente": 2,
+      "worktree": 1,
+      "worktrees": 1
+    },
+    ".claude/skills/github/referencias/app-sesiones.md": {
+      "runbook": 1
+    },
+    ".claude/skills/higiene-de-skills/SKILL.md": {
+      "lección": 1,
+      "parche": 1
+    },
+    ".claude/skills/issues/SKILL.md": {
+      "lección": 1
+    },
+    ".claude/skills/telegram/SKILL.md": {
+      "chequeos": 1
+    },
+    "CLAUDE.md": {
+      "lección": 3,
+      "runbook": 1,
+      "runbooks": 1,
+      "subagente": 1,
+      "worktrees": 2
+    },
+    "docs/ops/FLUJO.md": {
+      "causa raíz": 1,
+      "lección": 1,
+      "runbook": 2
+    },
+    "ops/estandares-agentes.json": {
+      "bug": 2,
+      "bugs": 1,
+      "lección": 6,
+      "runbook": 2,
+      "worktree": 1,
+      "worktrees": 2
+    },
+    "ops/normas.json": {
+      "lecciones": 1
+    }
+  }
+}

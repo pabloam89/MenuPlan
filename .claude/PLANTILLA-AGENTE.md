@@ -190,7 +190,7 @@ CAMBIOS: ruta:línea — qué (o «ninguno»)
 EVIDENCIA: comando → resultado (o captura → ruta)
 HALLAZGOS:
 - [bloqueante|alto|medio|nit] ruta:línea — problema → arreglo propuesto · YA APUNTADO: #n | NUEVO (buscado: <consulta>)
-NO COMPROBADO: lo que no pudo verificar
+NO COMPROBADO: lo que no pudo comprobar
 SIGUIENTE: qué toca ahora y a qué agente
 DECISIONES PENDIENTES:
 - Necesito que decidas: <pregunta> · A (recomendada), B y C, cada una con lo que pasa si se elige, su «Coste:» y «reversible» o «no se puede deshacer» · si no se decide, qué pasa
