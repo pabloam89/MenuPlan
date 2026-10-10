@@ -208,7 +208,7 @@ cuerpo de PR o un heredoc que las nombre. Niega:
 |---|---|
 | Quitar o vaciar el token | `env -u GH_TOKEN`, `env -i`, `unset GH_TOKEN`, `GH_TOKEN=` vacío, `export -n`, `Remove-Item Env:GH_TOKEN`, `$env:GH_TOKEN = ""` (también `GITHUB_TOKEN`) |
 | Cambiar de dónde saca git sus credenciales o quién firma | `git -c credential.helper=…`, `git config credential.…`, asignar o quitar `GIT_CONFIG_*`, `GIT_AUTHOR_*`, `GIT_COMMITTER_*` |
-| Cambiar reglas del repo | `node scripts/rulesets.mjs --escribir`; `gh api` que escribe (`-X PUT|PATCH|POST|DELETE`, o con `-f`/`-F`/`--input`, que lo vuelve POST) en `rulesets`, `branches/*/protection`, `collaborators`, `actions/secrets`, `actions/variables`, `environments`, `hooks` o `keys`; `gh api graphql` con una mutación de protección de ramas, rulesets o `updateRepository` |
+| Cambiar reglas del repo | `node scripts/rulesets.mjs --escribir`; `gh api` que escribe (`-X` con PUT, PATCH, POST o DELETE, o con `-f`/`-F`/`--input`, que lo vuelve POST) en `rulesets`, `branches/*/protection`, `collaborators`, `actions/secrets`, `actions/variables`, `environments`, `hooks` o `keys`; `gh api graphql` con una mutación de protección de ramas, rulesets o `updateRepository` |
 | Aprobar PR | `gh pr review --approve` (o `-a`), una review `APPROVE` por la API o por GraphQL |
 | Imprimir el token | `echo $GH_TOKEN`, `printenv` y `env` sin argumentos |
 
