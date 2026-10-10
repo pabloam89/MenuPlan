@@ -28,10 +28,13 @@ export function faltasDeMensaje(texto) {
   const f = [];
   const lineas = texto.trim().split("\n").map((l) => l.trim()).filter(Boolean);
   if (!lineas.length) return ["mensaje vacío"];
-  if (!/^\*\*[^*]+\*\*/.test(lineas[0])) f.push("la primera línea no es la idea raíz en negrita");
-  if (PREAMBULO.test(lineas[0].replace(/\*/g, ""))) f.push("empieza con preámbulo");
+  // Al retomar un tema, «Dónde estábamos:» va antes de la idea raíz y no cuenta como idea.
+  const cuerpo = /^Dónde estábamos:/.test(lineas[0]) ? lineas.slice(1) : lineas;
+  if (!cuerpo.length) return ["falta la idea raíz tras «Dónde estábamos:»"];
+  if (!/^\*\*[^*]+\*\*/.test(cuerpo[0])) f.push("la primera línea no es la idea raíz en negrita");
+  if (PREAMBULO.test(cuerpo[0].replace(/\*/g, ""))) f.push("empieza con preámbulo");
   if (EMOJI.test(texto)) f.push("lleva emojis");
-  if (lineas.length - 1 > MAX_IDEAS) f.push("pasa de cuatro ideas");
+  if (cuerpo.length - 1 > MAX_IDEAS) f.push("pasa de cuatro ideas");
   for (const l of lineas) {
     for (const frase of l.replace(/\*/g, "").split(/(?<=[.!?])\s+/)) {
       const n = frase.split(/\s+/).filter(Boolean).length;
@@ -45,6 +48,11 @@ export function faltasDeMensaje(texto) {
 /** Los bloques ```mensaje de un texto. */
 export function bloquesMensaje(texto) {
   return [...texto.matchAll(/```mensaje\n([\s\S]*?)```/g)].map((m) => m[1]);
+}
+
+/** Los bloques de un tipo (p. ej. `mensaje-corto`) de un texto. */
+export function bloquesDe(texto, tipo) {
+  return [...texto.matchAll(new RegExp("```" + tipo + "\\n([\\s\\S]*?)```", "g"))].map((m) => m[1]);
 }
 
 /** ¿El texto nombra las cinco plantillas en su línea de «plantillas fijas»? */
@@ -108,6 +116,39 @@ describe("las tres piezas de la voz dicen lo mismo", () => {
   });
 });
 
+describe("las tres mejoras de calibración (10 oct) están en las tres piezas", () => {
+  const piezas = () => [
+    ["CLAUDE.md", leer("CLAUDE.md")],
+    ["PLANTILLA-AGENTE.md", leer(".claude/PLANTILLA-AGENTE.md")],
+    ["SKILL.md", leer(".claude/skills/estilo-de-respuesta/SKILL.md")],
+  ];
+  const todas = (re) => piezas().forEach(([n, t]) => expect(t, n).toMatch(re));
+
+  it("la forma es un techo, no un molde, y una pregunta corta se contesta con la idea raíz", () => {
+    todas(/techo, no un molde/);
+    todas(/idea raíz y, si hace falta, una línea/);
+  });
+
+  it("la certeza usa siempre las tres palabras: Comprobado, Creo y No sé", () => {
+    for (const w of ["«Comprobado»", "«Creo»", "«No sé»"]) todas(new RegExp(w));
+  });
+
+  it("un issue se nombra con su nombre y el número entre paréntesis", () => {
+    todas(/con su nombre y, si hace falta, el número entre paréntesis/);
+  });
+
+  it("al retomar un tema se abre con «Dónde estábamos:»", () => todas(/«Dónde estábamos:»/));
+
+  it("cada opción lleva su coste y «reversible» o «no se puede deshacer»", () => {
+    todas(/«reversible»/);
+    todas(/«no se puede deshacer»/);
+  });
+
+  it("la skill guarda la lección del «fusionado» dicho antes de tiempo", () => {
+    expect(leer(".claude/skills/estilo-de-respuesta/SKILL.md")).toMatch(/dijo «fusionado».{0,200}guardia había frenado/);
+  });
+});
+
 describe("los ejemplos canónicos cumplen la voz", () => {
   const texto = readFileSync(join(RAIZ, ".claude/skills/estilo-de-respuesta/plantillas/plantillas.md"), "utf8");
   const bloques = bloquesMensaje(texto);
@@ -125,6 +166,36 @@ describe("los ejemplos canónicos cumplen la voz", () => {
     expect(d).toMatch(/^B:/m);
     expect(d).toMatch(/^C:/m);
     expect(d.trim().split("\n").pop()).toBe("Respóndeme con la letra.");
+  });
+
+  it("cada opción de la decisión lleva coste y reversibilidad en su línea", () => {
+    const d = bloques[PLANTILLAS.indexOf("decisión")];
+    const opciones = d.split("\n").filter((l) => /^[ABC]( \(recomendada\))?:/.test(l));
+    expect(opciones.length).toBe(3);
+    for (const o of opciones) {
+      expect(o, o).toMatch(/Coste:/);
+      expect(o, o).toMatch(/reversible|no se puede deshacer/i);
+    }
+  });
+
+  it("una respuesta de una sola línea es válida (la forma es un techo)", () => {
+    const cortos = bloquesDe(texto, "mensaje-corto");
+    expect(cortos.length).toBeGreaterThanOrEqual(1);
+    for (const c of cortos) {
+      expect(c.trim().split("\n").filter(Boolean).length, c).toBeLessThanOrEqual(2);
+      expect(faltasDeMensaje(c), c).toEqual([]);
+    }
+    expect(faltasDeMensaje("**Sí, está en staging.**")).toEqual([]);
+  });
+
+  it("el ejemplo de certeza usa las tres palabras y el de retomar abre con «Dónde estábamos:»", () => {
+    const [cert] = bloquesDe(texto, "mensaje-certeza");
+    for (const w of ["Comprobado:", "Creo:", "No sé:"]) expect(cert, w).toContain(w);
+    expect(faltasDeMensaje(cert)).toEqual([]);
+    const [retoma] = bloquesDe(texto, "mensaje-retoma");
+    expect(retoma.trim().split("\n")[0]).toMatch(/^Dónde estábamos:/);
+    expect(faltasDeMensaje(retoma)).toEqual([]);
+    expect(retoma).toMatch(/el vigilante de la voz \(#453\)/);
   });
 
   it("cada plantilla usa sus etiquetas", () => {
@@ -166,6 +237,11 @@ describe("el medidor de la voz ve fallar lo que debe", () => {
     const f = faltasDeMensaje(m).join("|");
     expect(f).toMatch(/emojis/);
     expect(f).toMatch(/cuatro ideas/);
+  });
+
+  it("«Dónde estábamos:» no cuenta como idea, pero sin idea raíz detrás falla", () => {
+    expect(faltasDeMensaje("Dónde estábamos: el test.\n**Listo.**")).toEqual([]);
+    expect(faltasDeMensaje("Dónde estábamos: el test.\nListo.").join("|")).toMatch(/idea raíz/);
   });
 
   it("una línea que no nombra las cinco plantillas no vale", () => {

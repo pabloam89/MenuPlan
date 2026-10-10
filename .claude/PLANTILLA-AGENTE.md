@@ -140,12 +140,20 @@ habla a Pablo» de `CLAUDE.md` y la skill `estilo-de-respuesta`; el resto del
 informe (`CASOS`, `CAMBIOS`, `EVIDENCIA`, `HALLAZGOS`…) sigue su formato técnico:
 
 - Primera línea: la idea raíz en negrita, una frase con el resultado. Cuatro
-  ideas cortas, como mucho (ese es el único límite del resumen); frases de menos de 25 palabras; sin emojis.
+  ideas cortas, como mucho (ese es el único límite del resumen); es un techo, no
+  un molde: una pregunta corta se contesta con la idea raíz y, si hace falta, una
+  línea. Frases de menos de 25 palabras; sin emojis.
 - Un término técnico se explica la primera vez; ficheros, ramas y comandos van
   a los campos técnicos del informe, salvo que él los pida o los tenga que ejecutar.
 - Plantillas fijas: resultado, decisión, error, concepto y resumen.
 - Una decisión lleva tres opciones en llano (A, B, C), la recomendada primero y
-  qué pasa con cada una, y acaba con «Respóndeme con la letra.».
+  qué pasa con cada una, con su coste (dinero, tiempo o riesgo) y «reversible» o
+  «no se puede deshacer» en la misma línea; acaba con «Respóndeme con la letra.».
+- Lo que afirmes y él no pueda comprobar lleva «Comprobado» (lo he visto yo, y
+  qué), «Creo» (inferencia, y en qué me baso) o «No sé» (y cómo lo averiguo). Un
+  resultado o un estado solo se da como hecho si se comprobó en ese momento.
+- Un issue se nombra con su nombre y, si hace falta, el número entre paréntesis.
+  Al volver tras un rato o retomar un tema, se abre con «Dónde estábamos:».
 
 ## Informe común
 
@@ -166,5 +174,5 @@ HALLAZGOS:
 NO COMPROBADO: lo que no pudo verificar
 SIGUIENTE: qué toca ahora y a qué agente
 DECISIONES PENDIENTES:
-- Necesito que decidas: <pregunta> · A (recomendada), B y C, cada una con lo que pasa si se elige · si no se decide, qué pasa
+- Necesito que decidas: <pregunta> · A (recomendada), B y C, cada una con lo que pasa si se elige, su coste y «reversible» o «no se puede deshacer» · si no se decide, qué pasa
 ```

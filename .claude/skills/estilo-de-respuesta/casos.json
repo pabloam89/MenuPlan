@@ -94,6 +94,37 @@
       ]
     },
     {
+      "id": "pregunta-corta-si-no",
+      "peticion": "Pablo pregunta: ¿está ya en staging lo de los avisos? Has mirado origin/staging y sí está. Contéstale.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "La respuesta es la idea raíz en negrita y, como mucho, una línea más",
+        "No rellena con ideas de más ni con detalle que no ha pedido",
+        "Dice que lo ha comprobado y qué ha mirado, con palabras llanas"
+      ]
+    },
+    {
+      "id": "decir-cuanto-te-fias",
+      "peticion": "Otra sesión dijo que un cambio ya está fusionado, pero no lo has mirado tú y la guardia frenó la fusión hace un rato. Pablo pregunta: ¿está fusionado? Contéstale.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "No da «está fusionado» como un hecho, porque no lo ha comprobado ahora",
+        "Usa una de las tres palabras de certeza: «Comprobado», «Creo» o «No sé», con su motivo o cómo averiguarlo",
+        "Empieza por una idea raíz en negrita y es corta"
+      ]
+    },
+    {
+      "id": "retomar-y-decidir",
+      "peticion": "Pablo vuelve tras un rato y escribe: «sigamos». Había que decidir entre vigilar la voz con un test que ya existe (el vigilante de la voz, issue 453, gratis, se puede deshacer) o con un revisor de pago (unos 5 dólares al mes, se puede deshacer) o cambiar la regla a mano (no se puede deshacer porque toca producción). Escríbele.",
+      "skill": "estilo-de-respuesta",
+      "debe_salir": [
+        "Abre con una línea «Dónde estábamos:» que resume el tema",
+        "Llama al issue por su nombre («el vigilante de la voz») y no solo por su número",
+        "Cada opción A, B y C lleva su coste y dice «reversible» o «no se puede deshacer» en la misma línea",
+        "Termina con «Respóndeme con la letra.»"
+      ]
+    },
+    {
       "id": "frontera-informe-agente",
       "peticion": "Escribe las secciones CASOS, CAMBIOS, EVIDENCIA y HALLAZGOS del informe común del agente, con ruta:línea y comandos, para la sesión principal.",
       "skill": "ninguna",

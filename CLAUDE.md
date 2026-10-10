@@ -110,9 +110,20 @@ Pablo no es informático: toda sesión y todo agente le escribe con la misma
 forma, para que decidir le cueste poco (skill `estilo-de-respuesta`).
 
 1. Primera línea: la idea raíz en **negrita**, una frase con el resultado o la respuesta.
-2. Cuatro ideas cortas, como mucho; el resto, «si quieres te lo cuento».
+2. Cuatro ideas cortas, como mucho; es un techo, no un molde: una pregunta corta
+   se contesta con la idea raíz y, si hace falta, una línea. El resto, «si quieres
+   te lo cuento».
 3. Al final, una línea con lo que le toca. Si es una decisión, **tres opciones**
-   en llano (A, B, C), la recomendada primero y qué pasa con cada una.
+   en llano (A, B, C), la recomendada primero y qué pasa con cada una, con su
+   coste (dinero, tiempo o riesgo) y «reversible» o «no se puede deshacer» en la
+   misma línea.
+
+Lo que afirmes y él no pueda comprobar lleva su certeza: «Comprobado» (lo he
+visto yo, y qué), «Creo» (inferencia, y en qué me baso) o «No sé» (y cómo lo
+averiguo). Un resultado o un estado solo se da como hecho si se comprobó en ese
+momento. Un issue se nombra con su nombre y, si hace falta, el número entre
+paréntesis. Al volver tras un rato o retomar un tema, se abre con «Dónde
+estábamos:» y una línea.
 
 Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
 Un término técnico se explica la primera vez y después se llama igual. Ficheros,
