@@ -81,8 +81,24 @@ describe("hábitos que ya rompieron cosas", () => {
     "vercel env pull .env.p --environment=prod",
     "vercel pull --environment=production --yes",
     "npx vercel@latest env pull --environment=Production",
+    "npx -y vercel env pull --environment=production",
+    "vercel --scope menuplan env pull --environment=production",
+    "vercel env run -e production -- node -e \"console.log(process.env)\"",
+    "vercel.cmd env pull -e production",
+    "node C:/Users/x/AppData/Roaming/npm/node_modules/vercel/dist/index.js env pull --environment=production",
+    "pnpm dlx vercel env pull --environment=production",
+    "cmd /c vercel env pull --environment=production",
+    "vercel api /v10/projects/homenu/env?decrypt=true",
   ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
-  it.each(["vercel env pull .env.local", "vercel env ls preview", "vercel whoami", "git commit -m 'vercel env pull production'"])(
+  it.each([
+    "vercel env pull .env.local",
+    "vercel env ls preview",
+    "vercel whoami",
+    "git commit -m 'vercel env pull --environment=production'",
+    "vercel env pull .env.production-backup --environment=preview",
+    "vercel deploy --prod",
+    "vercel logs homenu --environment production",
+  ])(
     "deja pasar %s",
     (c) => expect(bash(c)).toBe(null),
   );
