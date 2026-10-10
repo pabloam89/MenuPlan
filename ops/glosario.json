@@ -16,6 +16,7 @@
   "terminos": [
     {
       "termino": "comprobar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Contrastar una afirmación con una evidencia que otro puede repetir; lo que no se ha contrastado se dice «sin comprobar».",
       "sinonimos_prohibidos": ["chequear", "chequea", "chequeado", "constatar", "constata", "cotejar"],
@@ -25,6 +26,7 @@
     },
     {
       "termino": "verificar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "El paso 8 del flujo: confirmar que el arreglo de un encargo cumple, con el CI en verde, el juez conforme y un test que cubre la clase.",
       "sinonimos_prohibidos": [],
@@ -34,6 +36,7 @@
     },
     {
       "termino": "validar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Comprobar que un dato cumple su forma o su restricción: la entrada de un endpoint, una restricción NOT VALID de Postgres, un fichero contra su esquema.",
       "sinonimos_prohibidos": [],
@@ -41,6 +44,7 @@
     },
     {
       "termino": "probar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Ejecutar algo para ver qué hace de verdad: un test, un comando, la app en el navegador. Un test nuevo se prueba viéndolo fallar.",
       "sinonimos_prohibidos": ["testear", "testea", "testeado", "testar"],
@@ -48,6 +52,7 @@
     },
     {
       "termino": "ensayar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Ejecutar sin dejar efecto (ROLLBACK, --ensayo, sin --si) para ver qué haría de verdad.",
       "sinonimos_prohibidos": ["dry-run", "simulacro"],
@@ -55,6 +60,7 @@
     },
     {
       "termino": "medir",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Sacar una cifra que se puede repetir (cuántos, desde cuándo, dónde) para compararla antes y después de un arreglo.",
       "sinonimos_prohibidos": ["cuantificar"],
@@ -63,6 +69,7 @@
     },
     {
       "termino": "revisar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Leer un cambio o un texto buscando fallos o lo caducado; puede correr sus tests, pero no lo cambia.",
       "sinonimos_prohibidos": ["inspeccionar"],
@@ -71,6 +78,7 @@
     },
     {
       "termino": "auditar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Revisar de forma sistemática una superficie entera (un dominio, unos permisos, el modelo de datos) y no un diff; puede ser periódica.",
       "sinonimos_prohibidos": [],
@@ -78,6 +86,7 @@
     },
     {
       "termino": "juzgar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Dar un veredicto sobre el trabajo de otro sin cambiarlo; lo hace un juez y quien construye no juzga lo suyo.",
       "sinonimos_prohibidos": ["dictaminar", "arbitrar"],
@@ -87,6 +96,7 @@
     },
     {
       "termino": "diagnosticar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "El paso 4 del flujo: llegar de un caso a su causa cambiable y a su causa de escape, con evidencia.",
       "sinonimos_prohibidos": [],
@@ -95,6 +105,7 @@
     },
     {
       "termino": "registrar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Apuntar algo donde se puede contar: un fallo como caso en un issue, una línea estructurada en un log.",
       "sinonimos_prohibidos": [],
@@ -103,6 +114,7 @@
     },
     {
       "termino": "fusionar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Juntar un PR con su rama de destino: staging, o main cuando Pablo lo pide.",
       "sinonimos_prohibidos": ["mergear", "mergea", "mergeado", "mergeada", "mergeados", "mergeadas"],
@@ -110,6 +122,7 @@
     },
     {
       "termino": "aplicar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Ejecutar de verdad una migración en la base de producción (apply-migration --si), tras su ensayo.",
       "sinonimos_prohibidos": [],
@@ -117,6 +130,7 @@
     },
     {
       "termino": "retirar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Dar de baja algo que ya no se usa sin perder nada: una carpeta de trabajo, una clave, una fuente.",
       "sinonimos_prohibidos": [],
@@ -124,6 +138,7 @@
     },
     {
       "termino": "podar",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Quitar lo que ya no aporta: ramas fusionadas o una skill que no mejora sobre el modelo solo.",
       "sinonimos_prohibidos": [],
@@ -131,6 +146,7 @@
     },
     {
       "termino": "gateway",
+      "estado": "activo",
       "clase": "accion",
       "definicion": "Una acción que no lanza ninguna sesión ni agente: se prepara y la lanza una persona (subir a main, borrar, secretos, permisos).",
       "sinonimos_prohibidos": ["pasarela"],
@@ -138,6 +154,7 @@
     },
     {
       "termino": "fallo",
+      "estado": "activo",
       "clase": "estado",
       "definicion": "Algo que no hizo lo que debía: un resultado distinto del esperado.",
       "sinonimos_prohibidos": ["bug", "bugs", "incidencia", "incidencias", "incidente", "incidentes"],
@@ -146,6 +163,7 @@
     },
     {
       "termino": "falta",
+      "estado": "activo",
       "clase": "estado",
       "definicion": "La gravedad de un control de la forja o de la higiene que se incumple y bloquea: se arregla, no se explica.",
       "sinonimos_prohibidos": [],
@@ -154,6 +172,7 @@
     },
     {
       "termino": "aviso",
+      "estado": "activo",
       "clase": "estado",
       "definicion": "La gravedad de un control de la forja o de la higiene que señala sin bloquear: se mira, se decide y un falso positivo se explica.",
       "sinonimos_prohibidos": [],
@@ -162,6 +181,7 @@
     },
     {
       "termino": "caso",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Un fallo concreto registrado en un issue tipo:caso, con su evidencia y su análisis; cuelga de su fondo o es puntual.",
       "sinonimos_prohibidos": [],
@@ -171,6 +191,7 @@
     },
     {
       "termino": "caso de prueba",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Una petición de casos.json de una skill con lo que debe salir; los de frontera son de otra skill o de ninguna.",
       "sinonimos_prohibidos": [],
@@ -178,6 +199,7 @@
     },
     {
       "termino": "fondo",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Un issue tipo:fondo: la clase de fallo de la que cuelgan casos y encargos, con su ficha, su arreglo general y cómo se probará.",
       "sinonimos_prohibidos": [],
@@ -187,6 +209,7 @@
     },
     {
       "termino": "causa",
+      "estado": "activo",
       "clase": "campo",
       "definicion": "Por qué pasó un fallo, en tres piezas: mecanismo, condición y control ausente. Su tipo es la etiqueta causa:.",
       "sinonimos_prohibidos": ["causa raíz", "causas raíz"],
@@ -196,6 +219,7 @@
     },
     {
       "termino": "causa de escape",
+      "estado": "activo",
       "clase": "campo",
       "definicion": "Por qué ningún test, hook, revisión o vigilante paró el fallo antes de que llegara; campo causa_escape de la ficha.",
       "sinonimos_prohibidos": [],
@@ -204,6 +228,7 @@
     },
     {
       "termino": "clase",
+      "estado": "activo",
       "clase": "campo",
       "definicion": "La frase «todo X que Y» que incluye un caso y sus hermanos y excluye lo que funciona; se arregla la clase, no el caso.",
       "sinonimos_prohibidos": [],
@@ -212,6 +237,7 @@
     },
     {
       "termino": "aprendizaje",
+      "estado": "activo",
       "clase": "campo",
       "definicion": "Lo que queda de un fondo para que no se repita y dónde quedó: un test, la guardia, una skill o un catálogo.",
       "sinonimos_prohibidos": ["lección", "lecciones"],
@@ -221,6 +247,7 @@
     },
     {
       "termino": "encargo",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Un issue tipo:encargo: trabajo por hacer con dueño, constructor y juez; si es parte de un arreglo, cuelga de su fondo.",
       "sinonimos_prohibidos": ["to-do"],
@@ -229,6 +256,7 @@
     },
     {
       "termino": "tarea",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "La unidad de trabajo de una sesión: una carpeta de trabajo, una rama y lo que se pidió (npm run tarea).",
       "sinonimos_prohibidos": [],
@@ -237,6 +265,7 @@
     },
     {
       "termino": "tarea de agente",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Una clase de trabajo que repite un agente, con su estándar, en ops/estandares-agentes.json.",
       "sinonimos_prohibidos": [],
@@ -245,6 +274,7 @@
     },
     {
       "termino": "decisión",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Un issue tipo:decision asignado a Pablo: la pregunta en llano, las opciones con la recomendada primero y qué pasa si no se decide.",
       "sinonimos_prohibidos": [],
@@ -253,6 +283,7 @@
     },
     {
       "termino": "arreglo",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "El cambio que corrige una clase de fallo; el general va en el fondo y sus partes en encargos.",
       "sinonimos_prohibidos": ["parche", "parches", "apaño", "apaños"],
@@ -262,6 +293,7 @@
     },
     {
       "termino": "issue",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Una ficha de GitHub del repo con su tipo: fondo, caso, encargo o decisión.",
       "sinonimos_prohibidos": ["ticket", "tickets"],
@@ -270,6 +302,7 @@
     },
     {
       "termino": "ficha",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "El bloque fondo o encargo de líneas clave: valor en el cuerpo de un issue, que leen el workflow fondos y el CI.",
       "sinonimos_prohibidos": [],
@@ -278,6 +311,7 @@
     },
     {
       "termino": "evidencia",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Lo que respalda una afirmación y otro puede repetir: comando y salida, fichero:línea, un run o un PR.",
       "sinonimos_prohibidos": [],
@@ -285,6 +319,7 @@
     },
     {
       "termino": "hallazgo",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Un problema que un juez encuentra y devuelve en su informe, con su gravedad, su evidencia y si ya estaba apuntado.",
       "sinonimos_prohibidos": [],
@@ -292,6 +327,7 @@
     },
     {
       "termino": "defecto",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Un criterio de calidad que una skill incumple, con su código de la forja o de la higiene y su arreglo.",
       "sinonimos_prohibidos": [],
@@ -299,6 +335,7 @@
     },
     {
       "termino": "informe",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Lo que devuelve un agente al acabar, con la forma de .claude/PLANTILLA-AGENTE.md, o lo que deja un workflow semanal.",
       "sinonimos_prohibidos": ["reporte", "reportes"],
@@ -306,6 +343,7 @@
     },
     {
       "termino": "skill",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Una carpeta de .claude/skills/ con su SKILL.md, sus capas y sus casos de prueba, que una sesión abre por su nombre; tiene uno de los tipos del flujo.",
       "sinonimos_prohibidos": ["runbook", "runbooks"],
@@ -315,6 +353,7 @@
     },
     {
       "termino": "capa",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Un fichero de referencias o plantillas de una skill que su SKILL.md cita con la ruta y solo se lee si hace falta.",
       "sinonimos_prohibidos": [],
@@ -322,6 +361,7 @@
     },
     {
       "termino": "plantilla",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "El molde de una forma común: la de skills, la de agentes, la del encargo y los formularios de issue.",
       "sinonimos_prohibidos": ["template", "templates"],
@@ -329,6 +369,7 @@
     },
     {
       "termino": "regla",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Una condición concreta que hay que cumplir, escrita donde se aplica: un fichero de .claude/rules/, la guardia o un test.",
       "sinonimos_prohibidos": ["directriz", "directrices", "pauta", "pautas"],
@@ -336,6 +377,7 @@
     },
     {
       "termino": "norma",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Una obligación del proceso registrada en ops/normas.json, con quién la hace cumplir, su dureza y su test.",
       "sinonimos_prohibidos": [],
@@ -344,6 +386,7 @@
     },
     {
       "termino": "estándar",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Lo que es hacer bien una tarea de agente o un tipo de skill: sus criterios, qué comprueba, qué no hace y su fuente.",
       "sinonimos_prohibidos": [],
@@ -353,6 +396,7 @@
     },
     {
       "termino": "criterio",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Una condición de calidad con id, fuente y quién la vigila (un control o un juez).",
       "sinonimos_prohibidos": [],
@@ -360,6 +404,7 @@
     },
     {
       "termino": "control",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Una comprobación automática concreta con su código de vocabulario cerrado, que da falta, aviso o bien.",
       "sinonimos_prohibidos": ["chequeo", "chequeos"],
@@ -367,6 +412,7 @@
     },
     {
       "termino": "mecanismo",
+      "estado": "activo",
       "clase": "campo",
       "definicion": "Una forma de hacer cumplir algo, del catálogo ops/mecanismos.json; el arreglo elige el más alto posible.",
       "sinonimos_prohibidos": [],
@@ -376,6 +422,7 @@
     },
     {
       "termino": "barrera",
+      "estado": "activo",
       "clase": "campo",
       "definicion": "El escalón de la escalera (de bloqueo a texto) en que queda el arreglo de un fondo; campo barrera de la ficha.",
       "sinonimos_prohibidos": [],
@@ -384,6 +431,7 @@
     },
     {
       "termino": "guardia",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "El hook .claude/hooks/guardia.mjs, que corre antes de cada comando o edición de una sesión y niega lo prohibido.",
       "sinonimos_prohibidos": [],
@@ -391,6 +439,7 @@
     },
     {
       "termino": "hook",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Un script de .claude/hooks/ que Claude Code lanza solo en un momento fijo: al arrancar, antes de un comando, tras editar o al terminar.",
       "sinonimos_prohibidos": ["gancho", "ganchos"],
@@ -398,6 +447,7 @@
     },
     {
       "termino": "test",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Un fichero .test que vitest ejecuta en el CI; se ve fallar una vez antes de creérselo.",
       "sinonimos_prohibidos": [],
@@ -405,6 +455,7 @@
     },
     {
       "termino": "vocabulario",
+      "estado": "activo",
       "clase": "artefacto",
       "definicion": "Una lista cerrada de valores con su definición, en una constante de JS con su test (y un CHECK si va a SQL).",
       "sinonimos_prohibidos": [],
@@ -413,6 +464,7 @@
     },
     {
       "termino": "vigilante",
+      "estado": "activo",
       "clase": "rol",
       "definicion": "La pieza que ejecuta controles sin nadie delante: la guardia, el CI, un script o un workflow.",
       "sinonimos_prohibidos": ["guardián", "centinela"],
@@ -421,6 +473,7 @@
     },
     {
       "termino": "sesión",
+      "estado": "activo",
       "clase": "rol",
       "definicion": "Una conversación de Claude Code que trabaja en su carpeta de trabajo; la sesión principal es la que habla con Pablo y lanza agentes.",
       "sinonimos_prohibidos": [],
@@ -428,6 +481,7 @@
     },
     {
       "termino": "agente",
+      "estado": "activo",
       "clase": "rol",
       "definicion": "Un ayudante con su fichero en .claude/agents/, lanzado por una sesión, que es constructor o juez.",
       "sinonimos_prohibidos": ["subagente", "subagentes"],
@@ -436,6 +490,7 @@
     },
     {
       "termino": "constructor",
+      "estado": "activo",
       "clase": "rol",
       "definicion": "El agente o la sesión que hace un cambio en su dominio; no juzga lo suyo.",
       "sinonimos_prohibidos": ["implementador", "implementadores"],
@@ -445,6 +500,7 @@
     },
     {
       "termino": "juez",
+      "estado": "activo",
       "clase": "rol",
       "definicion": "Un agente sin Edit ni Write que juzga el trabajo de otro: revisor, qa, evaluador, seguridad o auditor-datos.",
       "sinonimos_prohibidos": [],
@@ -453,6 +509,7 @@
     },
     {
       "termino": "revisor",
+      "estado": "activo",
       "clase": "rol",
       "definicion": "El juez que busca fallos reales en un diff; no es cualquier juez.",
       "sinonimos_prohibidos": [],
@@ -460,6 +517,7 @@
     },
     {
       "termino": "orquestador",
+      "estado": "activo",
       "clase": "rol",
       "definicion": "La sesión principal cuando sigue /orquestar: elige el pipeline, escribe el brief de cada agente y junta sus informes.",
       "sinonimos_prohibidos": [],
@@ -468,6 +526,7 @@
     },
     {
       "termino": "dueño",
+      "estado": "activo",
       "clase": "rol",
       "definicion": "Quien responde de algo (una skill, un módulo, un encargo, una clave) y lo mantiene al día.",
       "sinonimos_prohibidos": ["responsable", "responsables"],
@@ -475,6 +534,7 @@
     },
     {
       "termino": "persona",
+      "estado": "activo",
       "clase": "rol",
       "definicion": "Pablo o Álvaro: quien lanza un gateway con ! y decide lo irreversible.",
       "sinonimos_prohibidos": [],
@@ -484,6 +544,7 @@
     },
     {
       "termino": "carpeta de trabajo",
+      "estado": "activo",
       "clase": "lugar",
       "definicion": "La carpeta C:\\dev\\MenuPlan-<tarea> de una sesión, con su rama, que abre npm run tarea y cierra npm run retirar.",
       "sinonimos_prohibidos": ["worktree", "worktrees"],
@@ -492,6 +553,7 @@
     },
     {
       "termino": "carpeta principal",
+      "estado": "activo",
       "clase": "lugar",
       "definicion": "C:\\dev\\MenuPlan: no se trabaja en ella, solo se pone al día.",
       "sinonimos_prohibidos": [],
@@ -499,6 +561,7 @@
     },
     {
       "termino": "staging",
+      "estado": "activo",
       "clase": "lugar",
       "definicion": "La rama por defecto y su despliegue de prueba; todo entra en ella por PR con el CI en verde.",
       "sinonimos_prohibidos": [],
@@ -506,6 +569,7 @@
     },
     {
       "termino": "producción",
+      "estado": "activo",
       "clase": "lugar",
       "definicion": "Lo que usan las familias: la rama main, su despliegue y la única base de datos.",
       "sinonimos_prohibidos": ["prod"],
@@ -513,6 +577,7 @@
     },
     {
       "termino": "zona",
+      "estado": "activo",
       "clase": "lugar",
       "definicion": "El conjunto de ficheros, por sus rutas, al que aplica una regla, un dominio o un término del glosario.",
       "sinonimos_prohibidos": [],

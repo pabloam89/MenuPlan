@@ -4,20 +4,40 @@
  * npm run glosario -- <término>    → uno (o los que empiezan así), con sinónimos, ref y excepciones
  * npm run glosario -- --medir      → lo que hay hoy en el repo frente a ops/glosario-excepciones.json,
  *                                    con fichero y línea de cada sinónimo nuevo
+ * npm run glosario -- --vocabularios [--escribir]
+ *                                  → el ciclo de vida de los vocabularios de proceso (#481):
+ *                                    lo anclado en ops/vocabularios-vida.json frente al código;
+ *                                    con --escribir, ancla lo de hoy
  *
- * Solo lee. El dato es ops/glosario.json (#469); lo vigila ops/glosario.test.js.
+ * Solo lee, salvo --vocabularios --escribir. El dato es ops/glosario.json (#469); lo vigila ops/glosario.test.js.
  */
-import { dirname, resolve } from "node:path";
+import { writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
   comparar, excepcionesPorTermino, plano, excepcionesPorZona, ficherosDe, leerExcepciones, leerGlosario, medir, pares, textoTermino, total,
 } from "./lib/glosario.mjs";
+import { RUTA_VOCABULARIOS, anclar, leerRegistro, problemasDeRetiros, problemasLocales, valoresActuales } from "./lib/vocabulariosVida.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const g = leerGlosario(RAIZ);
 const exc = leerExcepciones(RAIZ);
 const args = process.argv.slice(2);
+
+if (args.includes("--vocabularios")) {
+  const actuales = valoresActuales();
+  if (args.includes("--escribir")) {
+    writeFileSync(join(RAIZ, RUTA_VOCABULARIOS), `${JSON.stringify(anclar(leerRegistro(RAIZ), actuales), null, 2)}\n`);
+    console.log(`Anclado ${RUTA_VOCABULARIOS}. Si un valor desapareció del código, retíralo en «retirados» con su pasa_a.`);
+  }
+  const reg = leerRegistro(RAIZ);
+  const problemas = [...problemasLocales(reg, actuales), ...problemasDeRetiros(reg, actuales)];
+  const valores = Object.values(actuales).reduce((n, x) => n + x.length, 0);
+  console.log(`vocabularios vigilados: ${Object.keys(actuales).length} valores: ${valores} retirados: ${(reg.retirados ?? []).length} problemas: ${problemas.length}`);
+  for (const x of problemas) console.log(`  ${x}`);
+  process.exit(problemas.length ? 1 : 0);
+}
 
 if (args.includes("--medir")) {
   const { medida, detalle } = medir(RAIZ, g);

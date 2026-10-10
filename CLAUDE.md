@@ -224,7 +224,8 @@ qué lo hace cumplir; lo que aún no tiene mecanismo lleva su issue (fondo #479)
 - **Vocabulario cerrado** para todo lo que se agrupa (motivos de fallo,
   estados, causas, tipos, sitios): una constante en JS, un CHECK si va a SQL y
   su test, como `src/lib/vocabularios.js`. Un valor no se borra ni se
-  reutiliza: se retira y dice a cuál pasa (#481).
+  reutiliza: se retira y dice a cuál pasa (`ops/vocabularios-vida.json` y el
+  `estado` de cada término del glosario, con su test contra `origin/staging`).
 - **Una palabra, un significado**: las palabras de proceso (comprobar, caso,
   fondo, encargo, juez…) salen de `ops/glosario.json` (`npm run glosario`);
   su test falla con un sinónimo prohibido nuevo.

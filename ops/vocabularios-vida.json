@@ -1,0 +1,115 @@
+{
+  "$comentario": "Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479; scripts/lib/vocabulariosVida.mjs). «anclados»: los valores de hoy de cada vocabulario; lo escribe npm run glosario -- --vocabularios --escribir, no se edita a mano. «retirados»: un valor que deja de usarse no se borra ni se reutiliza; se añade aquí con {vocabulario, valor, pasa_a (un valor vivo, o null con motivo), desde (AAAA-MM-DD)}. Solo crece. Lo vigila ops/vocabularios-vida.test.js, también contra origin/staging.",
+  "anclados": {
+    "flujo.actores": [
+      "agente_dominio",
+      "orquestador",
+      "juez",
+      "persona",
+      "automatico"
+    ],
+    "flujo.alcance_fallo": [
+      "local",
+      "modulo",
+      "transversal"
+    ],
+    "flujo.diagnostican": [
+      "agente_dominio",
+      "orquestador_con_diagnosticadores"
+    ],
+    "flujo.estado_medida": [
+      "existe",
+      "pendiente"
+    ],
+    "flujo.estado_tipo_skill": [
+      "existe",
+      "en_plan",
+      "reservado"
+    ],
+    "flujo.pasos": [
+      "detectar",
+      "registrar_caso",
+      "triaje",
+      "diagnosticar",
+      "fondo",
+      "plan",
+      "ejecutar",
+      "verificar",
+      "observar",
+      "cerrar",
+      "aprender",
+      "medir"
+    ],
+    "fondos.estado": [
+      "abierto",
+      "diagnosticado",
+      "plan",
+      "en-curso",
+      "en-observacion",
+      "cerrado-eficaz",
+      "reabierto"
+    ],
+    "glosario.clase": [
+      "accion",
+      "estado",
+      "artefacto",
+      "rol",
+      "campo",
+      "lugar"
+    ],
+    "glosario.estado": [
+      "activo",
+      "retirado"
+    ],
+    "issues.analisis": [
+      "nuevo",
+      "abierto",
+      "no-aguanto-roto",
+      "no-aguanto-corto",
+      "puntual"
+    ],
+    "issues.area": [
+      "datos",
+      "lola",
+      "ui",
+      "catalogo",
+      "motor",
+      "ops"
+    ],
+    "issues.arreglo": [
+      "test",
+      "guardia",
+      "script",
+      "regla",
+      "skill",
+      "ninguno"
+    ],
+    "issues.causa": [
+      "vigilante-falso",
+      "vigilante-hueco",
+      "entorno",
+      "dos-fuentes",
+      "error-silencioso",
+      "coordinacion",
+      "modelo-datos",
+      "codigo",
+      "sin-comprobar"
+    ],
+    "issues.control": [
+      "ok",
+      "falla"
+    ],
+    "issues.tipo": [
+      "fondo",
+      "caso",
+      "encargo",
+      "decision"
+    ],
+    "issues.tipo_accion": [
+      "preventivo",
+      "detectivo",
+      "correctivo"
+    ]
+  },
+  "retirados": []
+}

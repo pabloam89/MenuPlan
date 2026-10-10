@@ -3,8 +3,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { REFERENCIA, jsonEnReferencia } from "../scripts/lib/forjaReferencia.mjs";
 import {
-  CLASES, canonicoDe, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
+  CLASES, ESTADOS_TERMINO, RUTA_GLOSARIO, canonicoDe, problemasDeVidaGlosario, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
 } from "../scripts/lib/glosario.mjs";
 
 /**
@@ -17,7 +18,10 @@ import {
  *     lo que había al nacer está en ops/glosario-excepciones.json y SOLO BAJA
  *     par a par (literal PARTIDA abajo, con la cifra de cada par: no vale subir
  *     uno a cambio de bajar otro);
- *  3. que CLAUDE.md dice que el glosario es la fuente de las palabras de proceso.
+ *  3. que CLAUDE.md dice que el glosario es la fuente de las palabras de proceso;
+ *  4. el ciclo de vida (#481): cada término está activo o retirado (con su pasa_a), y
+ *     contra origin/staging ninguno desaparece ni vuelve de retirado a activo. Plan B:
+ *     sin git o sin la referencia, contra TERMINOS_FIJADOS (los del nacimiento).
  *
  * Abajo, un autotest: cada regla falla con datos malos. Sin red.
  */
@@ -125,6 +129,34 @@ describe("el control: ningún sinónimo prohibido nuevo", () => {
   });
 });
 
+// Los términos del 10 oct 2026, al añadir el ciclo de vida (#481). NO se edita: un término no se borra, se retira.
+const TERMINOS_FIJADOS = [
+  "comprobar", "verificar", "validar", "probar", "ensayar", "medir", "revisar", "auditar", "juzgar",
+  "diagnosticar", "registrar", "fusionar", "aplicar", "retirar", "podar", "gateway", "fallo", "falta", "aviso",
+  "caso", "caso de prueba", "fondo", "causa", "causa de escape", "clase", "aprendizaje", "encargo", "tarea",
+  "tarea de agente", "decisión", "arreglo", "issue", "ficha", "evidencia", "hallazgo", "defecto", "informe",
+  "skill", "capa", "plantilla", "regla", "norma", "estándar", "criterio", "control", "mecanismo", "barrera",
+  "guardia", "hook", "test", "vocabulario", "vigilante", "sesión", "agente", "constructor", "juez", "revisor",
+  "orquestador", "dueño", "persona", "carpeta de trabajo", "carpeta principal", "staging", "producción",
+  "zona",
+];
+const REF = REFERENCIA();
+const glosarioRef = jsonEnReferencia(RAIZ, REF, RUTA_GLOSARIO);
+if (!glosarioRef) console.info(`[glosario] ciclo de vida contra ${REF}: sin git o sin la referencia; se compara con TERMINOS_FIJADOS`);
+
+describe("el ciclo de vida: un término se retira, no se borra", () => {
+  it("cada término lleva estado activo o retirado", () => {
+    expect(Object.keys(ESTADOS_TERMINO)).toEqual(["activo", "retirado"]);
+    for (const t of G.terminos) expect(Object.keys(ESTADOS_TERMINO), t.termino).toContain(t.estado);
+  });
+  it(`nada de ${glosarioRef ? REF : "la lista fijada"} desaparece ni vuelve de retirado`, () => {
+    expect(problemasDeVidaGlosario(G, glosarioRef ?? TERMINOS_FIJADOS), "Un término no se borra: estado «retirado» y pasa_a").toEqual([]);
+  });
+  it("la lista fijada también se respeta aunque haya referencia", () => {
+    expect(problemasDeVidaGlosario(G, TERMINOS_FIJADOS)).toEqual([]);
+  });
+});
+
 describe("CLAUDE.md y npm run glosario", () => {
   it("CLAUDE.md dice que el glosario es la fuente de las palabras de proceso", () => {
     expect(leer("CLAUDE.md")).toMatch(/`ops\/glosario\.json`/);
@@ -169,6 +201,42 @@ describe("autotest de la forma", () => {
 
   it("una definición que usa un sinónimo prohibido", () => {
     expect(conTermino((t) => { t.definicion = "Mirar si hay un bug con evidencia repetible."; }).join()).toMatch(/usa «bug» \(di «fallo»\)/);
+  });
+});
+
+describe("autotest del ciclo de vida", () => {
+  const conTermino = (cambio) => { const g = copia(); cambio(g.terminos.find((t) => t.termino === "fallo"), g); return problemasDeGlosario(g, { existe, leer }); };
+
+  it("un estado fuera del vocabulario, un retirado sin pasa_a o con pasa_a muerto, y pasa_a en un activo", () => {
+    expect(conTermino((t) => { t.estado = "obsoleto"; }).join()).toMatch(/estado «obsoleto» fuera del vocabulario/);
+    expect(conTermino((t) => { t.estado = "retirado"; }).join()).toMatch(/retirado sin pasa_a/);
+    expect(conTermino((t) => { t.estado = "retirado"; t.pasa_a = "inventado"; }).join()).toMatch(/pasa_a «inventado», que no es un término activo/);
+    expect(conTermino((t) => { t.pasa_a = "caso"; }).join()).toMatch(/pasa_a solo va en un término retirado/);
+  });
+
+  it("borrar un término falla; retirarlo con pasa_a no", () => {
+    const g = copia();
+    g.terminos = g.terminos.filter((t) => t.termino !== "fallo");
+    expect(problemasDeVidaGlosario(g, G).join()).toMatch(/fallo: estaba en el glosario y ha desaparecido/);
+    expect(problemasDeVidaGlosario(g, TERMINOS_FIJADOS).join()).toMatch(/fallo: estaba en el glosario/);
+    const r = copia();
+    Object.assign(r.terminos.find((t) => t.termino === "fallo"), { estado: "retirado", pasa_a: "caso" });
+    expect(problemasDeVidaGlosario(r, G)).toEqual([]);
+    expect(problemasDeGlosario(r, { existe, leer }).filter((x) => /pasa_a|estado/.test(x))).toEqual([]);
+  });
+
+  it("un retirado que vuelve a activo (reutilizar el nombre) falla", () => {
+    const ref = copia();
+    Object.assign(ref.terminos.find((t) => t.termino === "fallo"), { estado: "retirado", pasa_a: "caso" });
+    expect(problemasDeVidaGlosario(G, ref).join()).toMatch(/fallo: estaba retirado y vuelve a activo/);
+  });
+
+  it("el nombre de un retirado cuenta como sinónimo prohibido de su pasa_a", () => {
+    const g = copia();
+    Object.assign(g.terminos.find((t) => t.termino === "hallazgo"), { estado: "retirado", pasa_a: "defecto" });
+    expect(canonicoDe(g).get("hallazgo")).toBe("defecto");
+    const { detalle } = medir(RAIZ, g, { leer: () => "Un hallazgo del juez.\n", ficheros: (p) => (p === ".claude/skills/**/*.md" ? [".claude/skills/x/SKILL.md"] : []) });
+    expect(detalle.map((d) => `${d.sinonimo}→${d.canonico}`)).toEqual(["hallazgo→defecto"]);
   });
 });
 
