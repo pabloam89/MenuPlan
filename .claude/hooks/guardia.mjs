@@ -20,7 +20,7 @@ import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { AYUDA as AYUDA_CASOS, analizarCasos } from "./casos.mjs";
-import { AVISOS_CREDENCIALES, credencialDeSesion, sinTextos } from "./credenciales.mjs";
+import { AVISOS_CREDENCIALES, credencialDeComando } from "./credenciales.mjs";
 import { cargarMapa, skillsDeComando, skillsDeFicheros, unirContinuaciones } from "./dominios.mjs";
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
 import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
@@ -499,10 +499,8 @@ export function decidir(entrada, ctx) {
     // órdenes reales: el texto de un commit, un cuerpo de PR o un heredoc que lo
     // nombra no cuenta (`sinTextos`). Filtro de buena fe; la barrera de fondo es
     // que Pablo cierre la sesión de gh y quite el manager de credenciales.
-    for (const o of ordenes(sinTextos(cmd))) {
-      const cred = credencialDeSesion(o);
-      if (cred) return deny(AVISOS_CREDENCIALES[cred]);
-    }
+    const cred = credencialDeComando(cmd, { powershell: herramienta === "PowerShell" });
+    if (cred) return deny(AVISOS_CREDENCIALES[cred]);
     for (const o of ordenes(cmd)) {
       for (const r of REGLAS_COMANDO) if (r.si(o)) return r.da(o);
 

@@ -77,6 +77,8 @@ export const FAMILIAS_GUARDIA = [
   [/permisos o el c[oó]digo que vigila/i, "tocar-permisos"],
   [/quitar o vaciar gh_token/i, "token-de-sesion-quitado"],
   [/cambiar de d[oó]nde saca git/i, "identidad-git-cambiada"],
+  [/credenciales guardadas del pc/i, "credenciales-guardadas"],
+  [/en powershell la sesi[oó]n no lleva/i, "powershell-sin-token"],
   [/cambiar las reglas del repo/i, "reglas-del-repo"],
   [/una sesi[oó]n no aprueba pr/i, "aprobar-pr"],
   [/imprimir el token de la sesi/i, "token-impreso"],
