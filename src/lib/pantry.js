@@ -2,6 +2,7 @@ import { supabase } from "./supabase.js";
 import * as ids from "./ids.js";
 import { convertStockAmount } from "./kitchenUnits.js";
 import { resolveIngredientId } from "./ingredients.js";
+import { paraEscribir } from "./vocabularios.js";
 
 /**
  * Data access for user_pantry (see supabase/migrations/0002_user_pantry.sql +
@@ -88,7 +89,12 @@ function omitPackFromRows(rows) {
   return rows.map(({ pack_count: _c, pack_kind: _k, pack_size: _s, pack_size_unit: _u, ...rest }) => rest);
 }
 
-function packDbFields(pack) {
+/**
+ * Las columnas de envase de una fila nueva. El envase pasa por la lista viva (#539): uno
+ * retirado se escribe como su sucesor y uno desconocido lanza FueraDeVocabulario, como lo
+ * habría rechazado el CHECK. Exportada para su test.
+ */
+export function packDbFields(pack) {
   if (!pack?.kind || !(Number(pack.sizeQty) > 0)) {
     return {
       pack_count: null,
@@ -99,7 +105,7 @@ function packDbFields(pack) {
   }
   return {
     pack_count: Number(pack.count) > 0 ? Number(pack.count) : 1,
-    pack_kind: pack.kind,
+    pack_kind: paraEscribir("envases", pack.kind),
     pack_size: Number(pack.sizeQty),
     pack_size_unit: pack.sizeUnit ?? "g",
   };

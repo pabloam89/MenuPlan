@@ -1,6 +1,6 @@
 import { supabase } from "./supabase.js";
 import * as ids from "./ids.js";
-import { CARPETAS_FIJAS } from "./vocabularios.js";
+import { CARPETAS_FIJAS, paraEscribir } from "./vocabularios.js";
 
 /**
  * Carpetas de recetas, dentro de "Mis recetas". Son de dos clases:
@@ -23,15 +23,27 @@ import { CARPETAS_FIJAS } from "./vocabularios.js";
  * @typedef {{ id: string, name: string, createdAt?: string }} Folder
  */
 
-export const BUILT_IN_COLLECTIONS = [
-  { id: "dia_a_dia", label: "Día a día" },
-  { id: "ocasion_especial", label: "Ocasión especial" },
-  { id: "cena_rapida", label: "Cena rápida" },
-  { id: "hijos", label: "Para mis hijos" },
-];
+/** La etiqueta de cada carpeta fija, por su id. Los ids salen de vocabularios.js (CHECK de 0086). */
+const ETIQUETA_CARPETA_FIJA = {
+  dia_a_dia: "Día a día",
+  ocasion_especial: "Ocasión especial",
+  cena_rapida: "Cena rápida",
+  hijos: "Para mis hijos",
+};
 
-// Los ids salen de vocabularios.js (CHECK de 0086); vocabularios.test.js comprueba que cuadran con las etiquetas.
+// En el orden de la constante; vocabularios.test.js comprueba que cada id tiene su etiqueta.
+export const BUILT_IN_COLLECTIONS = CARPETAS_FIJAS.map((id) => ({ id, label: ETIQUETA_CARPETA_FIJA[id] }));
+
 export const BUILT_IN_IDS = CARPETAS_FIJAS;
+
+/**
+ * El collection_id que se escribe (#539): una carpeta propia (`fld_…`, el patrón del CHECK)
+ * tal cual; una fija, por la lista viva (un retirado pasa a su sucesor, uno desconocido
+ * lanza FueraDeVocabulario). «Descartados» no se guarda nunca: lanza.
+ */
+export function carpetaParaEscribir(id) {
+  return typeof id === "string" && id.startsWith("fld_") ? id : paraEscribir("carpetas_fijas", id);
+}
 
 /**
  * "Descartados" no es una carpeta de este mapa: se pinta como una más en Mis
@@ -217,16 +229,38 @@ export async function deleteRecipeFolder(userId, folderId) {
   if (error) console.warn("[recipeCollections] folder delete failed", error.message);
 }
 
+/**
+ * Sin filas repetidas (receta y carpeta): tras traducir, un retirado y su sucesor son la
+ * misma fila, y el upsert no deja tocar una fila dos veces en la misma orden.
+ */
+function sinRepetidas(rows) {
+  const vistas = new Set();
+  return rows.filter((r) => {
+    const k = `${r.recipe_id}\u0000${r.collection_id}`;
+    if (vistas.has(k)) return false;
+    vistas.add(k);
+    return true;
+  });
+}
+
 /** Replaces the stored folder set of one recipe (picker save). */
 export async function saveRecipeCollections(userId, recipeId, folderIds) {
   if (!supabase || !userId || !recipeId) return;
+  // Las filas, antes de borrar: si una carpeta no se puede escribir, no se toca nada (antes
+  // el CHECK rechazaba el upsert después del delete y la receta se quedaba sin carpetas).
+  let rows;
+  try {
+    rows = sinRepetidas((folderIds ?? []).map((id) => ({ user_id: userId, recipe_id: recipeId, collection_id: carpetaParaEscribir(id) })));
+  } catch (e) {
+    console.warn("[recipeCollections] save skipped", e.message);
+    return;
+  }
   const { error: delError } = await supabase
     .from("recipe_collections")
     .delete()
     .eq("user_id", userId)
     .eq("recipe_id", recipeId);
   if (delError) console.warn("[recipeCollections] save (clear) failed", delError.message);
-  const rows = (folderIds ?? []).map((collection_id) => ({ user_id: userId, recipe_id: recipeId, collection_id }));
   if (rows.length === 0) return;
   const { error } = await supabase
     .from("recipe_collections")
@@ -237,10 +271,20 @@ export async function saveRecipeCollections(userId, recipeId, folderIds) {
 /** Backfills the whole local map to the cloud (first login on a device). */
 export async function upsertRecipeCollections(userId, map) {
   if (!supabase || !userId) return;
-  const rows = [];
+  const todas = [];
+  const saltadas = [];
   for (const [recipe_id, folders] of Object.entries(map ?? {})) {
-    for (const collection_id of folders) rows.push({ user_id: userId, recipe_id, collection_id });
+    for (const id of folders) {
+      // Una carpeta que no se puede escribir se salta sola: antes tumbaba el upsert de todas.
+      try {
+        todas.push({ user_id: userId, recipe_id, collection_id: carpetaParaEscribir(id) });
+      } catch {
+        saltadas.push(id);
+      }
+    }
   }
+  if (saltadas.length) console.warn("[recipeCollections] bulk upsert: carpetas fuera del vocabulario saltadas", [...new Set(saltadas)]);
+  const rows = sinRepetidas(todas);
   if (rows.length === 0) return;
   const { error } = await supabase
     .from("recipe_collections")

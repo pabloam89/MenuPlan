@@ -5,7 +5,7 @@
 import { estimateListCost } from "./priceHistory.js";
 import { MATCH_HIGH, matchProductForIngredient, productIndexFor } from "./productMatcher.js";
 import { isMercadonaStore, loadStoreCatalog } from "./storeCatalog.js";
-import { PACK_KIND_LABEL, wantsPackFields } from "./packUnits.js";
+import { etiquetaEnvase, wantsPackFields } from "./packUnits.js";
 import { guessShoppingAisle } from "./ingredientCategories.js";
 import { gramsPerPiece } from "./kitchenUnits.js";
 
@@ -82,17 +82,8 @@ function isPieceSoldFresh(name) {
   );
 }
 
-function pluralKind(kind, count) {
-  const label = PACK_KIND_LABEL[kind] ?? kind;
-  if (count === 1) return label;
-  if (kind === "lata") return "latas";
-  if (kind === "bolsa") return "bolsas";
-  if (kind === "botella") return "botellas";
-  if (kind === "bote") return "botes";
-  if (kind === "paquete") return "paquetes";
-  if (kind === "carton") return "cartones";
-  return label;
-}
+// Los plurales viven con sus ids en packUnits.js (#539): aquí no se escribe ningún envase a mano.
+const pluralKind = (kind, count) => etiquetaEnvase(kind, count);
 
 /** How many units you take home (packs × SKU size). */
 function totalQtyText(product, packs, item) {

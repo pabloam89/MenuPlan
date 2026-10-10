@@ -29,6 +29,7 @@ import { duenoDe, duenoDeEstricto, rastro } from "./embudo.js";
 import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { nombreDelBot } from "./telegram.js";
 import { DIA_LARGO } from "../../src/lib/dias.js";
+import { listaParaEscribir } from "../../src/lib/vocabularios.js";
 
 // 32 hex, como gen_invite_token() en SQL: la llave que crea la app y la del bot son iguales.
 const nuevaLlave = () => ids.llave.nuevo();
@@ -215,6 +216,10 @@ export async function copiarReceta(householdId, fila) {
     copied_from_recipe_id: fila.id,
     copied_from_owner_id: fila.owner_id,
     owner_snapshot: null,
+    // La fila del otro puede llevar un valor ya retirado: la copia es una fila nueva y
+    // escribe el sucesor (#539). `...fila` no pasa por la lista viva; esto sí.
+    usage_tags: listaParaEscribir("usos_receta", fila.usage_tags),
+    required_appliances: listaParaEscribir("aparatos", fila.required_appliances),
     created_at: undefined,
     updated_at: undefined,
   };

@@ -90,6 +90,17 @@ regex que exporta `ids.js`.
   Cambiar su significado deja una línea en `redefiniciones`. **[auto]**
   Por qué: un valor reutilizado mezcla en un recuento filas viejas y nuevas que
   quieren decir cosas distintas, y nadie lo ve.
+- Como el CHECK admite los retirados, **el que impide volver a escribirlos es el
+  código** (#539): todo módulo dueño escribe una columna de vocabulario con
+  `paraEscribir` / `listaParaEscribir` de `src/lib/vocabularios.js` (un retirado
+  pasa a su `pasa_a`; uno desconocido o sin sucesor lanza `FueraDeVocabulario`).
+  Los retirados llegan a la app y al bot por `RETIRADOS`, proyección de
+  `ops/vocabularios-vida.json` que el test compara con ella. El escáner de
+  `scripts/lib/escritoresVocabulario.mjs` falla si una asignación de esas
+  columnas no pasa por la función o si un escritor de sus tablas escribe un
+  valor a mano; hoy vigila `user_pantry`, `user_recipes` y `recipe_collections`.
+  **[auto]** Un trigger que rechazara los retirados en filas nuevas sería la
+  opción en la base, si esto no bastara.
 - Nada de `create type … as enum` ni `alter type … add value`. **[auto]**
   Por qué: un enum de Postgres no se puede encoger, y el valor que añade
   `add value` no se puede usar en la misma transacción (la 0070 tuvo que ir

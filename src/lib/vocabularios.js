@@ -245,3 +245,52 @@ export const VOCABULARIOS = Object.freeze({
 
 /** La lista de un vocabulario por su nombre, o null si no existe. */
 export const vocabulario = (nombre) => VOCABULARIOS[nombre] ?? null;
+
+/**
+ * Los valores retirados de cada vocabulario, con su sucesor: { nombre: { valor: pasa_a } }
+ * (pasa_a null: retirado sin sucesor). La fuente es `retirados` de
+ * ops/vocabularios-vida.json (los `producto.<nombre>`); esto es su proyección para la app y
+ * el bot, que no cargan ops/. src/lib/vocabularios.test.js exige que cuadren exactamente:
+ * al retirar un valor se apunta en los dos sitios (#539).
+ */
+export const RETIRADOS = Object.freeze({});
+
+/** Un valor que no se puede escribir: ni vivo, ni retirado con sucesor. `motivo`: desconocido | retirado_sin_sucesor. */
+export class FueraDeVocabulario extends Error {
+  constructor(nombre, valor, motivo) {
+    super(`${nombre}: «${valor}» no se puede escribir (${motivo})`);
+    this.name = "FueraDeVocabulario";
+    this.vocabulario = nombre;
+    this.valor = valor;
+    this.motivo = motivo;
+  }
+}
+
+/**
+ * Las dos funciones con las que todo módulo dueño escribe una columna de vocabulario
+ * (PRINCIPIOS §4 y §15, #539). El CHECK admite los retirados (filas viejas de familias), así
+ * que la base no impide volver a escribirlos: lo impide pasar por aquí.
+ *   - paraEscribir(nombre, valor): el valor si está vivo; su `pasa_a` si está retirado;
+ *     lanza FueraDeVocabulario si es desconocido o retirado sin sucesor. null/undefined pasan
+ *     tal cual (columna opcional).
+ *   - listaParaEscribir(nombre, valores): lo mismo para una columna array, sin repetidos
+ *     (dos retirados pueden ir al mismo sucesor, o uno al que ya estaba).
+ * `crearEscritor` existe para probarlo con un registro de prueba (vocabularios.test.js).
+ */
+export function crearEscritor(vocabularios = VOCABULARIOS, retirados = RETIRADOS) {
+  const paraEscribir = (nombre, valor) => {
+    const lista = vocabularios[nombre];
+    if (!lista) throw new Error(`no existe el vocabulario «${nombre}»`);
+    if (valor == null || lista.includes(valor)) return valor;
+    const deEse = retirados[nombre] ?? {};
+    if (Object.prototype.hasOwnProperty.call(deEse, valor)) {
+      if (deEse[valor] == null) throw new FueraDeVocabulario(nombre, valor, "retirado_sin_sucesor");
+      return deEse[valor];
+    }
+    throw new FueraDeVocabulario(nombre, valor, "desconocido");
+  };
+  const listaParaEscribir = (nombre, valores) => (valores == null ? valores : [...new Set(valores.map((v) => paraEscribir(nombre, v)))]);
+  return { paraEscribir, listaParaEscribir };
+}
+
+export const { paraEscribir, listaParaEscribir } = crearEscritor();

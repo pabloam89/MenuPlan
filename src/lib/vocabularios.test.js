@@ -1,18 +1,19 @@
-import { describe, it, expect } from "vitest";
-import { VOCABULARIOS, vocabulario, TIPOS_GRUPO } from "./vocabularios.js";
+import { describe, it, expect, vi } from "vitest";
+import { VOCABULARIOS, vocabulario, TIPOS_GRUPO, RETIRADOS, ENVASES, crearEscritor, FueraDeVocabulario } from "./vocabularios.js";
 import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, POR, APLICA, CAMPOS_PREGUNTABLES, VOCABULARIOS_PENDIENTES } from "./registroCampos.js";
 
 // Enums cuya lista aún no existe: deuda a la vista, que solo puede bajar.
 const ENUM_SIN_LISTA = [];
 import { CAMPOS, ENUMS } from "./registroTareas.js";
 import { DAYS } from "./planner.js";
-import { PACK_KINDS } from "./packUnits.js";
+import { PACK_KINDS, ETIQUETAS_ENVASE } from "./packUnits.js";
+import { COLUMNAS, escritores, asignacionesSinFiltro, literalesSueltos, valoresVigilados } from "../../scripts/lib/escritoresVocabulario.mjs";
 import { USAGE_TAGS, USAGE_TAG_IDS } from "./userRecipes.js";
 import { BUILT_IN_COLLECTIONS, BUILT_IN_IDS } from "./recipeCollections.js";
 import { KITCHEN_TOOL_IDS } from "./electrodomesticos.js";
 import { tipoDeGrupo } from "./groups.js";
-import { readFileSync, readdirSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as V from "./vocabularios.js";
 import { checksDeLista, checksNoReconocidos, problemasDeParidad } from "../../scripts/lib/checksVocabulario.mjs";
@@ -164,6 +165,116 @@ describe("vocabularios: una lista, un sitio", () => {
   it("vocabulario() devuelve la lista o null", () => {
     expect(vocabulario("dias")).toBe(VOCABULARIOS.dias);
     expect(vocabulario("no_existe")).toBe(null);
+  });
+});
+
+/** Los retirados del producto en el registro, con la forma de RETIRADOS: { nombre: { valor: pasa_a } }. */
+function retiradosDelRegistro(registro) {
+  const out = {};
+  for (const r of registro.retirados ?? []) {
+    if (!r.vocabulario.startsWith("producto.")) continue;
+    (out[r.vocabulario.slice("producto.".length)] ??= {})[r.valor] = r.pasa_a;
+  }
+  return out;
+}
+
+/** Los .js/.jsx/.mjs de src/ y api/ que no son tests, con su texto. */
+function codigo() {
+  const out = [];
+  const andar = (d) => {
+    for (const f of readdirSync(join(RAIZ, d))) {
+      const p = `${d}/${f}`;
+      if (statSync(join(RAIZ, p)).isDirectory()) { if (f !== "node_modules") andar(p); } else if (/\.(js|jsx|mjs)$/.test(f) && !/\.test\./.test(f)) out.push(p);
+    }
+  };
+  andar("src");
+  andar("api");
+  return out.map((f) => ({ fichero: f, texto: readFileSync(join(RAIZ, f), "utf8") }));
+}
+
+// Un registro de prueba: «carton» retirado a «brick», como si se hubiera retirado hoy.
+const ENVASES_SIN_CARTON = ENVASES.filter((v) => v !== "carton");
+const CARTON_A_BRICK = { envases: { carton: "brick" } };
+
+describe("un valor retirado no vuelve a escribirse (#539)", () => {
+  it("RETIRADOS es exactamente la proyección de ops/vocabularios-vida.json (producto.*)", () => {
+    expect(RETIRADOS, "Al retirar un valor del producto, apúntalo también en RETIRADOS de src/lib/vocabularios.js").toEqual(retiradosDelRegistro(leerRegistro(RAIZ)));
+  });
+
+  it("paraEscribir: vivo tal cual, retirado a su sucesor, desconocido o sin sucesor lanza", () => {
+    const { paraEscribir, listaParaEscribir } = crearEscritor({ ...VOCABULARIOS, envases: ENVASES_SIN_CARTON }, { envases: { carton: "brick", tetra: null } });
+    expect(paraEscribir("envases", "lata")).toBe("lata");
+    expect(paraEscribir("envases", "carton")).toBe("brick");
+    expect(paraEscribir("envases", null)).toBe(null);
+    expect(() => paraEscribir("envases", "tetra")).toThrow(FueraDeVocabulario);
+    expect(() => paraEscribir("envases", "caja")).toThrow(FueraDeVocabulario);
+    expect(() => paraEscribir("no_existe", "x")).toThrow(/no existe el vocabulario/);
+    expect(listaParaEscribir("envases", ["carton", "brick", "lata"])).toEqual(["brick", "lata"]);
+    expect(listaParaEscribir("envases", null)).toBe(null);
+  });
+
+  it("los módulos dueños escriben el sucesor: con «carton» retirado a «brick», escribir carton da brick", async () => {
+    vi.resetModules();
+    vi.doMock("./supabase.js", () => ({ supabase: null }));
+    vi.doMock("./vocabularios.js", async (original) => {
+      const m = await original();
+      const vocabularios = { ...m.VOCABULARIOS, envases: ENVASES_SIN_CARTON, usos_receta: ["plato_unico", "plato_normal"], carpetas_fijas: ["dia_a_dia", "ocasion_especial", "cena_rapida"] };
+      const retirados = { ...CARTON_A_BRICK, usos_receta: { guarnicion: "plato_normal" }, carpetas_fijas: { hijos: "dia_a_dia" } };
+      return { ...m, ENVASES: ENVASES_SIN_CARTON, VOCABULARIOS: vocabularios, RETIRADOS: retirados, ...m.crearEscritor(vocabularios, retirados) };
+    });
+    try {
+      const { packDbFields } = await import("./pantry.js");
+      const { recipeToRow } = await import("./userRecipesFila.js");
+      const { carpetaParaEscribir } = await import("./recipeCollections.js");
+      expect(packDbFields({ kind: "carton", sizeQty: 1000, sizeUnit: "ml" }).pack_kind).toBe("brick");
+      expect(() => packDbFields({ kind: "caja", sizeQty: 1 })).toThrow(/envases/);
+      const fila = recipeToRow({ id: "r1", name: "x", usageTags: ["guarnicion", "plato_normal"], requiredAppliances: ["Horno"] }, "u1");
+      expect(fila.usage_tags).toEqual(["plato_normal"]);
+      expect(fila.required_appliances).toEqual(["Horno"]);
+      expect(carpetaParaEscribir("hijos")).toBe("dia_a_dia");
+      expect(carpetaParaEscribir("fld_abc")).toBe("fld_abc");
+      expect(() => carpetaParaEscribir("descartados")).toThrow(/carpetas_fijas/);
+    } finally {
+      vi.doUnmock("./vocabularios.js");
+      vi.doUnmock("./supabase.js");
+      vi.resetModules();
+    }
+  });
+
+  it("todo escritor de una columna de vocabulario pasa por la lista viva (paraEscribir y compañía)", () => {
+    const fuera = codigo().flatMap(({ fichero, texto }) => asignacionesSinFiltro(texto).map((a) => `${fichero}:${a.linea} ${a.columna}: ${a.texto}`));
+    expect(fuera, "Escribe la columna con paraEscribir/listaParaEscribir de src/lib/vocabularios.js (o carpetaParaEscribir)").toEqual([]);
+  });
+
+  it("ningún literal de esos vocabularios en los escritores de sus tablas: sale de la constante", () => {
+    const cableado = JSON.parse(readFileSync(join(RAIZ, "supabase/cableado.json"), "utf8"));
+    const valores = valoresVigilados(VOCABULARIOS, RETIRADOS);
+    const sueltos = escritores(cableado).flatMap((f) => literalesSueltos(readFileSync(join(RAIZ, f), "utf8"), valores).map((l) => `${f}:${l.linea} «${l.valor}»`));
+    expect(sueltos, "Usa la constante de src/lib/vocabularios.js en vez del literal").toEqual([]);
+  });
+
+  it("el escáner ve lo que tiene que ver (ejemplos buenos y malos)", () => {
+    const malo = [
+      "const fila = { pack_kind: pack.kind };",
+      "rows.push({ user_id, recipe_id, collection_id });",
+      "  usage_tags: recipe.usageTags ?? [],",
+    ].join("\n");
+    expect(asignacionesSinFiltro(malo).map((a) => a.columna)).toEqual(["user_pantry.pack_kind", "user_recipes.usage_tags", "recipe_collections.collection_id"]);
+    const bueno = [
+      "const fila = { pack_kind: paraEscribir(\"envases\", pack.kind) };",
+      "rows.map(({ pack_count: _c, pack_kind: _k, ...rest }) => rest);",
+      "const PACK_COLS = \"pack_count, pack_kind, pack_size\";",
+      "const x = { pack_kind: null };",
+      "for (const collection_id of folders) rows.push({ collection_id: carpetaParaEscribir(collection_id) });",
+      "// pack_kind: pack.kind (comentario)",
+    ].join("\n");
+    expect(asignacionesSinFiltro(bueno)).toEqual([]);
+    expect(literalesSueltos("if (kind === \"carton\") return 1; // \"lata\"", new Set(["carton", "lata"])).map((l) => l.valor)).toEqual(["carton"]);
+    expect(Object.values(COLUMNAS).every((n) => VOCABULARIOS[n])).toBe(true);
+  });
+
+  it("cada envase vivo o retirado tiene su etiqueta, y ninguna sobra", () => {
+    expect(Object.keys(ETIQUETAS_ENVASE).sort()).toEqual([...ENVASES, ...Object.keys(RETIRADOS.envases ?? {})].sort());
   });
 });
 
