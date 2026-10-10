@@ -223,16 +223,17 @@ describe("las rondas de investigación", () => {
   });
   it("un estándar con sus rondas deja de ser falta; uno nuevo sin ellas, sí", () => {
     const e = structuredClone(estandares);
-    const [agente, ag] = Object.entries(e.agentes).find(([, a]) => a.estado === "completo");
+    const [agente, ag] = Object.entries(e.agentes).find(([, a]) => a.tareas[0].reglas);
     ag.tareas[0].rondas = ok;
     expect(faltasDeRondas(e, datos)[`estandar:${agente}/${ag.tareas[0].id}`]).toBeUndefined();
     expect(problemasDeExcepciones(faltasDeRondas(e, datos), excepciones.rondas, "x").join()).toContain("Baja la excepción");
-    ag.tareas.push({ id: "tarea-nueva", tarea: "Una tarea nueva sin rastro de rondas", estandar: "Un estándar nuevo con texto" });
+    ag.tareas.push({ id: "tarea-nueva", tarea: "Una tarea nueva sin rastro de rondas", reglas: [{}] });
     expect(problemasDeExcepciones(faltasDeRondas(e, datos), excepciones.rondas, "x").join()).toContain(`${agente}/tarea-nueva`);
   });
-  it("un agente pendiente (sin texto de estándar) no cuenta", () => {
-    const e = { agentes: { pendiente: { estado: "pendiente", tareas: [{ id: "una", tarea: "Una tarea sin estándar todavía" }] } } };
+  it("una tarea sin reglas (sin estándar escrito) no cuenta; una común sin rondas, sí (#516)", () => {
+    const e = { agentes: { uno: { tareas: [{ id: "una", tarea: "Una tarea sin estándar todavía" }] } } };
     expect(faltasDeRondas(e, datos)).toEqual({});
+    expect(faltasDeRondas({ agentes: {}, comunes: { una: { reglas: [{}] }, otra: { reglas: [{}], rondas: ok } } }, datos)).toEqual({ "estandar:comun/una": 1 });
   });
 });
 

@@ -539,13 +539,14 @@ export const CLASES_CAMPO = {
   numero: "Un número",
   fecha: "Una fecha AAAA-MM-DD",
   texto: "Prosa: solo como hueco, con su motivo",
+  regla: "Una regla por campos (nombre, sujeto, fuerza, exigencia…); la valida problemasDeRegla con el vocabulario de sujetos de su catálogo",
 };
 /**
  * Lo que apunta una `ref`. `fuente` es el id del catálogo de fuentes de los estándares; `evidencia`, lo que
  * respalda un juicio (una ruta con su cabecera, un caso, un comando, un PR o un issue: la valida quien da
  * `ctx.existe`); `version`, el hash de 12 de una versión de un fichero (hashLF de scripts/lib/evals.mjs).
  */
-export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente", "evidencia", "version"];
+export const REFS_CAMPO = ["skill", "agente", "criterio", "ruta", "comando", "issue", "fuente", "evidencia", "version", "estandar_comun"];
 /** Nivel de una clase para el trinquete: el texto es el hueco; todo lo demás es discreto. */
 export const NIVELES_CAMPO = ["texto", "discreto"];
 export const nivelDeClase = (clase) => (clase === "texto" ? "texto" : "discreto");
@@ -610,6 +611,10 @@ function problemaDeValor(c, x, datos, ctx) {
     case "bool": return typeof x === "boolean" ? null : "no es verdadero o falso";
     case "numero": return typeof x === "number" && Number.isFinite(x) ? null : "no es un número";
     case "fecha": return fechaValida(x) ? null : `«${x}» no es una fecha AAAA-MM-DD válida`;
+    case "regla": {
+      const malos = problemasDeRegla(x, "regla", ctx.sujetos ?? {});
+      return malos.length ? malos.join("; ") : null;
+    }
     case "texto": return c.hueco === true && typeof x === "string" && x.trim() ? null : "un texto sin hueco declarado";
     case "enum": {
       const voc = ctx.vocabularios?.[c.vocab];

@@ -80,7 +80,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `plan-tres-encargos-con-preventivo` | fondo | DEBE | **Plan de tres encargos.** Cada problema de fondo DEBE tener como mucho tres encargos, cada uno con su bloque encargo completo, y al menos uno preventivo con mecanismo automático. | script_propio · semidura | test: `scripts/fondos-encargos.test.js` | — |
 | `pr-agente-y-closes-en-ci` | pr | DEBE | **Agente y Closes del PR.** Cada PR DEBE llevar la línea Agente: y, si la rama es de un issue, su Closes #n. | ci · semidura | test: `scripts/fondos-pr.test.js` | — |
 | `eventos-de-hooks-registrados` | guardia | DEBE | **Eventos de hooks registrados.** La guardia de Claude DEBE dejar una línea en el registro local de eventos por cada bloqueo, cada permiso que pide y cada skill que se abre. | guardia · semidura | test: `.claude/hooks/eventos.test.js` | — |
-| `estandar-por-tarea-de-agente` | agente | DEBE | **Estándar por tarea.** Cada agente DEBE listar sus tareas, cada una con su estándar y su fuente pública. | ci · semidura | test: `ops/estandares-agentes.test.js` | — |
+| `estandar-por-tarea-de-agente` | agente | DEBE | **Estándar por tarea.** Cada agente DEBE listar sus tareas, cada una con su estándar y su fuente pública. | ci · dura | test: `ops/estandares-agentes.test.js` | — |
 | `estandar-citado-en-el-informe` | agente | DEBE | **Estándar citado en el informe.** Cuando construye, cada agente DEBE citar en su informe el estándar de la tarea (ESTÁNDAR:), que el revisor contrasta con el diff. | persona · blanda | test: `.claude/agentes.test.js` | — |
 | `presupuestos-se-recalibran` | presupuesto | DEBE | **Presupuestos recalibrados.** Cada presupuesto del catálogo de esfuerzo DEBE recalibrarse con lo medido. | persona · blanda | test: `scripts/fabrica.test.js` | — |
 | `criterios-de-forja-en-un-catalogo` | forja | DEBE | **Criterios de la forja.** El catálogo de criterios de la forja DEBE guardar cada criterio una vez, en ops/forja.json, con su capa, su fuente y su control. | ci · dura | test: `ops/forja.test.js` | — |
@@ -199,4 +199,4 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `aprobar-pr` | `rutas-protegidas-aprobacion-de-dueno` | Aprobar un PR desde una sesión |
 | `token-impreso` | `token-de-sesion-no-se-imprime` | Imprimir el token de la sesión |
 
-Total: 98 normas (rota 2, semidura 50, dura 13, blanda 33) y 42 avisos de la guardia.
+Total: 98 normas (rota 2, semidura 49, dura 14, blanda 33) y 42 avisos de la guardia.

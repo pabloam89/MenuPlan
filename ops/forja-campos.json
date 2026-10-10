@@ -13,11 +13,14 @@
     "criterio.nombre": "texto",
     "criterio.nota": "texto",
     "criterio.sujeto": "discreto",
+    "estandar.accion": "discreto",
     "estandar.comprueba": "texto",
+    "estandar.comunes": "discreto",
     "estandar.estandar": "texto",
     "estandar.fuentes": "discreto",
     "estandar.no_hace": "texto",
     "estandar.origen": "discreto",
+    "estandar.reglas": "discreto",
     "estandar.rondas": "texto",
     "estandar.tarea": "texto",
     "juicio.estado": "discreto",
@@ -43,5 +46,15 @@
     "skill.sintoma_a_causa": "discreto",
     "skill.tipo": "discreto"
   },
-  "retirados": {}
+  "retirados": {
+    "estandar.estandar": {
+      "motivo": "El estándar pasa a reglas por campos (#516): cada regla lleva su frase generada, su control y su fuente, y no queda un texto libre con el estándar."
+    },
+    "estandar.comprueba": {
+      "motivo": "Cada comprobación pasa a ser el control de una regla: un fichero que existe (test, hook o script) o juicio (#516)."
+    },
+    "estandar.fuentes": {
+      "motivo": "La fuente pasa a cada regla (campo fuente), como pide la forma de práctica de la forja: una fuente por bullet (#516)."
+    }
+  }
 }

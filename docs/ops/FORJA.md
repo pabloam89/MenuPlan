@@ -128,11 +128,12 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 | numero | Un número |
 | fecha | Una fecha AAAA-MM-DD |
 | texto | Prosa: solo como hueco, con su motivo |
+| regla | Una regla por campos (nombre, sujeto, fuerza, exigencia…); la valida problemasDeRegla con el vocabulario de sujetos de su catálogo |
 
 | Artefacto | Campos discretos | Huecos de texto | Campos |
 |---|---|---|---|
 | skill | 13 | 2 | 15 |
-| estandar | 2 | 5 | 7 |
+| estandar | 4 | 3 | 7 |
 | agente | 3 | 1 | 4 |
 | juicio | 6 | 1 | 7 |
 | criterio | 2 | 6 | 8 |
@@ -159,15 +160,15 @@ El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; ti
 
 ### Campos de estandar
 
-Una tarea de un agente en ops/estandares-agentes.json (la clave es su id).
+Una tarea de un agente en ops/estandares-agentes.json (la clave es su id). Su estándar son sus reglas por campos (#516); las compartidas por varios agentes están en comunes y la tarea las nombra.
 
 - `tarea` — texto. Hueco: La frase que dice qué se hace en esa tarea: el verbo y su objeto no caben en un vocabulario cerrado
+- `accion` — enum (accion_tarea)
 - `origen` — enum (origen_tarea)
-- `estandar` — texto, opcional. Hueco: Qué es hacer bien la tarea, dicho con sus matices: un estándar no se reduce a casillas
-- `comprueba` — texto, lista, opcional. Hueco: Las comprobaciones concretas de esa tarea, que cambian con cada una y no tienen vocabulario común
+- `comunes` — ref a estandar_comun, lista, opcional
+- `reglas` — regla, lista
 - `no_hace` — texto, lista, opcional. Hueco: La frontera con lo que es de otro agente o de una persona, que hay que nombrar caso a caso
 - `rondas` — texto, lista, opcional. Hueco: Lo que cambió en cada ronda de investigación, una frase por ronda: el número y las fuentes son discretos, el cambio no cabe en un vocabulario
-- `fuentes` — ref a fuente, lista, opcional
 
 ### Campos de agente
 

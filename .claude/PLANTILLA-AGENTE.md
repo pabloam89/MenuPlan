@@ -125,13 +125,17 @@ quién tocó un dominio sin abrir la suya.
 
 ## Estándar de la tarea que se encarga
 
-Cada agente tiene la lista de las tareas que hace y, por cada una, su estándar:
-qué es hacerla bien, qué comprueba, qué no hace y la buena práctica pública que
-lo respalda (#413, fondo #416). Todo vive en `ops/estandares-agentes.json`; la
-sección «Tareas y su estándar» del final de cada agente se genera de ahí, y
-`ops/estandares-agentes.test.js` falla si a un agente le falta la lista, si una
-tarea no tiene estándar o si un estándar no tiene tarea. Un agente nuevo nace con
-sus estándares completos. El brief de `/orquestar` trae la línea `ESTÁNDAR A
+Cada agente tiene la lista de las tareas que hace y, por cada una, su acción
+(construir, juzgar, diagnosticar, operar, medir, documentar o decidir) y su
+estándar: unas reglas por campos, cada una con su control (un test, un hook o un
+script que exista, o juicio) y su fuente pública o de la casa, más lo que la
+tarea no hace (#413, fondo #416; por campos en #516). Lo que hacen varios agentes
+está una sola vez en las tareas comunes. Todo vive en `ops/estandares-agentes.json`;
+la sección «Tareas y su estándar» del final de cada agente y la tabla
+`docs/ops/ESTANDARES.md` se generan de ahí, y `ops/estandares-agentes.test.js`
+falla si a un agente le falta la lista, si una tarea no tiene estándar, si un
+control no existe o si un estándar no tiene tarea. Un agente nuevo nace con sus
+estándares completos. El brief de `/orquestar` trae la línea `ESTÁNDAR A
 CUMPLIR: <agente>/<tarea>` (`npm run estandar -- <agente> <tarea>`) y el campo
 `ESTÁNDAR:` del informe dice qué tarea cumplió y cómo, o «ninguna tarea del
 catálogo». El `revisor` lo contrasta con el diff.
@@ -185,7 +189,7 @@ ESTADO: ok | bloqueado | fallo
 RESUMEN: (la idea raíz en negrita y cuatro ideas como mucho, una línea cada una)
 CASOS: fallos reales del camino, uno por línea con su clase (o «ninguno»)
 SKILLS: las que abrió, con su vía (skill (herramienta|lectura|precargada), …), o «ninguna»
-ESTÁNDAR: <agente>/<tarea> — cumplido | parcial (qué punto falta) | pendiente (agente sin estándar escrito), o «ninguna tarea del catálogo»
+ESTÁNDAR: <agente>/<tarea> — cumplido | parcial (qué regla falta), o «ninguna tarea del catálogo»
 CAMBIOS: ruta:línea — qué (o «ninguno»)
 EVIDENCIA: comando → resultado (o captura → ruta)
 HALLAZGOS:
