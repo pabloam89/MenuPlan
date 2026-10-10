@@ -49,6 +49,7 @@
     "tecnica": "node scripts/oficio.mjs tecnica",
     "mecanismos": "node scripts/oficio.mjs mecanismos",
     "hora": "node scripts/hora.mjs",
+    "situacion": "node scripts/situacion.mjs",
     "consulta": "node scripts/consulta.mjs",
     "verificar:estado": "node scripts/verificar-estado.mjs",
     "op": "node scripts/op.mjs"
