@@ -151,7 +151,7 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 
 ## 10. Hecho
 
-- `npm test` pasa, incluidos `supabase/migrations.test.js`,
+- Pasan en local los tests de lo tocado, incluidos `supabase/migrations.test.js`,
   `supabase/principios.test.js` y `supabase/cableado.test.js`.
 - El ensayo de cada migración nueva pasa contra la base, y lo que debía cambiar
   se ha comprobado leyendo el catálogo (`pg_constraint`, `pg_proc`), no solo el
