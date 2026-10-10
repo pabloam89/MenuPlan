@@ -86,7 +86,7 @@ en staging.
 **Solo hay una base y es la de producción**: staging, local y los scripts
 escriben en ella, y cada migración es un cambio en producción.
 
-- Aplicar migraciones (`--si`) lo lanza **Pablo** con `!` hasta E5 (#331): las
+- Aplicar migraciones (`--si`) lo lanza **Pablo**, desde una PowerShell aparte con `$env:MENUPLAN_OP_PABLO="1"`, hasta E5 (#331): las
   sesiones no tienen la URL de administrador (#328) y leen con
   `SUPABASE_DB_URL_LECTURA`. El script exige que esté en staging, un ensayo de
   menos de una hora y el OK del juez `auditor-datos` en la cabecera; con

@@ -38,10 +38,15 @@ const OP_AL_PRINCIPIO = new RegExp(String.raw`^(?:\w+=\S*\s+)*(?:env\s+(?:-\S+\s
 const OP_ANIDADO = new RegExp(String.raw`(?:\$\(|\x60|!)\s*` + OP_EXE, "i");
 const OP_EN_SHELL = new RegExp(String.raw`\b(?:bash|sh|zsh|cmd|powershell|pwsh)(?:\.exe)?\b.*(?:\s-c|\s/c|\s-command)\b.*[\s"'&;]` + OP_EXE, "i");
 
+// `op` suelto seguido de un subcomando de la CLI: `timeout 10 op vault list`, `if op whoami`,
+// `node -e "…execSync('op read …')"`, `Start-Process op …`, `(op whoami)`… Un `npm run op -- read`
+// no casa: tras `op` va `--`, no un subcomando.
+const OP_SUELTO = /(?:^|[\s(;{&|"'\x60])op(?:\.exe)?\s+(?:read|run|inject|item|vault|whoami|signin|account|service-account|document|user|group|connect|plugin|ssh)\b/i;
+
 /** #328: ¿esta orden lanza `op` por la app o nombra lo que es solo de Pablo? */
 export function opDeSesion(o) {
   if (/^(git|gh|grep|rg)\b/.test(o) && !/\$\(|\x60|\balias[.\s]/.test(o)) return false;
-  return OP_AL_PRINCIPIO.test(o) || OP_ANIDADO.test(o) || OP_EN_SHELL.test(o)
+  return OP_AL_PRINCIPIO.test(o) || OP_ANIDADO.test(o) || OP_EN_SHELL.test(o) || OP_SUELTO.test(o)
     || /\b(MENUPLAN_OP_PABLO|OP_SIN_SERVICIO|OP_SERVICE_ACCOUNT_TOKEN)\b/.test(o)
     || /op:\/\/[\s"']*homenu(?![-\w])/i.test(o)
     || /--vault[=\s]+["']?homenu(?![-\w])/i.test(o)
@@ -119,7 +124,7 @@ const REGLAS_COMANDO = [
     // integración de la CLI de 1Password esté apagada fuera de las operaciones
     // de Pablo.
     si: opDeSesion,
-    da: () => deny("Eso es de Pablo (#328): las sesiones leen 1Password solo con la cuenta de servicio de `HoMenu-sesiones` y siempre por `npm run op -- …` (nunca `op` a pelo: sin token iría por la app y le sacaría una ventana a Pablo). Ni `MENUPLAN_OP_PABLO`, ni tocar `OP_SERVICE_ACCOUNT_TOKEN`, ni `op://HoMenu`. Si hace falta algo de producción, dale a Pablo el comando para que lo lance desde su propia terminal."),
+    da: () => deny("Eso es de Pablo (#328): las sesiones leen 1Password solo con la cuenta de servicio de `HoMenu-sesiones` y siempre por `npm run op -- …` (nunca `op` a pelo: sin token iría por la app y le sacaría una ventana a Pablo). Ni `MENUPLAN_OP_PABLO`, ni tocar `OP_SERVICE_ACCOUNT_TOKEN`, ni `op://HoMenu`. Si hace falta algo de producción, dale a Pablo el comando para que lo lance desde su propia terminal. Si solo es texto de un commit, PR o issue, pásalo por fichero (`git commit -F`, `--body-file`)."),
   },
   {
     // PowerShell 5.1 escribe UTF-8 con BOM y destroza los acentos.

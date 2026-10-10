@@ -159,6 +159,19 @@ describe("1Password: las sesiones solo leen HoMenu-sesiones (#328)", () => {
     "git -c alias.x='!op whoami' x",
     "gh alias set x '!op whoami'",
     "echo `op whoami`",
+    // Ronda 3 bis: `op` detrás de un envoltorio o dentro de una cadena.
+    "timeout 10 op vault list",
+    "node -e \"require('child_process').execSync('op whoami')\"",
+    "if op whoami; then echo ok; fi",
+    "iex \"op whoami\"",
+    "(op whoami)",
+    "{ op whoami; }",
+    "xargs op read",
+    "sleep 1 & op whoami",
+    "exec op whoami",
+    "command op whoami",
+    "nohup op whoami",
+    "time op vault list",
   ])("deniega el op directo: %s", (c) => expect(bash(c)).toBe("deny"));
   it("en PowerShell, `& op` y `&op` también", () => {
     for (const command of ["& op whoami", "&op whoami", "& 'C:\\x\\op.exe' whoami", "$x = 1; & op whoami"]) {

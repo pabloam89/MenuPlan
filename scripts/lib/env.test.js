@@ -227,4 +227,22 @@ describe("opPorLaApp: el único camino a la app de escritorio (#328)", () => {
     }
     expect(sueltos).toEqual([]);
   });
+
+  // El token vive en el llavero, no en process.env: un `op` lanzado sin `entornoOp()` ya va por la
+  // app de escritorio (y le saca una ventana a Pablo) aunque nadie borre nada.
+  it("toda llamada a `op` desde scripts/ lleva entornoOp() (o pasa por opPorLaApp)", () => {
+    const aqui = dirname(fileURLToPath(import.meta.url));
+    const recorre = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? recorre(join(d, e.name)) : /\.(mjs|js)$/.test(e.name) && !/\.test\.js$/.test(e.name) ? [join(d, e.name)] : []);
+    const sueltas = [];
+    for (const f of recorre(join(aqui, ".."))) {
+      if (f.endsWith("env.mjs")) continue;
+      const t = readFileSync(f, "utf8");
+      for (const m of t.matchAll(/\b(?:spawnSync|spawn|execFileSync|execFile|execSync)\(\s*["']op["']/g)) {
+        const ventana = t.slice(Math.max(0, m.index - 500), m.index + 400);
+        if (!/entornoOp\(/.test(ventana)) sueltas.push(`${f}:${t.slice(0, m.index).split("\n").length}`);
+      }
+    }
+    expect(sueltas).toEqual([]);
+  });
 });

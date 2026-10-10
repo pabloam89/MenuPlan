@@ -17,8 +17,9 @@ Las reglas de estructura de las tablas están en `docs/datos/PRINCIPIOS.md`
 3. **Juez y aplicar**: el juez `auditor-datos` la revisa y su veredicto va a
    la cabecera (`-- AUDITADA: auditor-datos AAAA-MM-DD OK`). Con eso, en
    staging y con un ensayo de menos de una hora, la sesión lanza `--si`. Si
-   trae `CONTRAE` o toca RLS o permisos de lo que ya existía, la lanza Pablo
-   con `!` y `--pablo` (la guardia se lo niega a las sesiones).
+   trae `CONTRAE` o toca RLS o permisos de lo que ya existía, la lanza Pablo,
+   desde una PowerShell aparte con `$env:MENUPLAN_OP_PABLO="1"` y `--pablo`
+   (la guardia se lo niega a las sesiones).
 4. **Registro**: en el mismo PR o justo después, la migración va a
    `supabase/ESTADO.md` con su objeto testigo; cada NOT VALID, a
    `supabase/PENDIENTES.md`. ¿Está aplicada? `node scripts/verificar-estado.mjs`.
