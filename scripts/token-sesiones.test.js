@@ -20,7 +20,13 @@ const ids = () => ({ appId: "123456", installationId: "987654" });
 const entrada = (texto) => Readable.from([texto]);
 
 /** Un fetch de mentira: apunta la llamada y contesta lo que se le diga. */
-function fetchFalso(estado = 201, cuerpo = { token: TOKEN, expires_at: "2026-10-10T12:00:00Z" }) {
+const CONCEDIDO = {
+  token: TOKEN,
+  expires_at: "2026-10-10T12:00:00Z",
+  permissions: { contents: "write", pull_requests: "write", issues: "write", actions: "read", checks: "read", metadata: "read" },
+  repositories: [{ name: "MenuPlan" }],
+};
+function fetchFalso(estado = 201, cuerpo = CONCEDIDO) {
   const llamadas = [];
   const fn = async (url, init) => {
     llamadas.push({ url, init });
@@ -74,7 +80,41 @@ describe("pedirToken", () => {
     expect(init.headers.Accept).toBe("application/vnd.github+json");
     expect(init.headers["X-GitHub-Api-Version"]).toBe("2022-11-28");
     expect(init.headers["User-Agent"]).toBeTruthy();
-    expect(JSON.parse(init.body)).toEqual({ repositories: ["MenuPlan"] });
+    // Permisos explícitos: los seis del encargo y ni uno más (sin workflows).
+    expect(JSON.parse(init.body)).toEqual({ repositories: ["MenuPlan"], permissions: CONCEDIDO.permissions });
+    expect(Object.keys(JSON.parse(init.body).permissions)).not.toContain("workflows");
+  });
+
+  it.each(["administration", "secrets", "environments", "deployments", "workflows"])(
+    "si GitHub concede «%s», el token se descarta y no se imprime",
+    async (permiso) => {
+      const cuerpo = { ...CONCEDIDO, permissions: { ...CONCEDIDO.permissions, [permiso]: "read" } };
+      const { codigo, out, err } = await correr({ fetchFn: fetchFalso(201, cuerpo).fn });
+      expect(codigo).toBe(1);
+      expect(out).toBe("");
+      expect(err).toContain(permiso);
+      expect(err).not.toContain(TOKEN);
+    },
+  );
+
+  it.each([
+    ["sin repositories", { ...CONCEDIDO, repositories: undefined }],
+    ["otro repo", { ...CONCEDIDO, repositories: [{ name: "Otro" }] }],
+    ["dos repos", { ...CONCEDIDO, repositories: [{ name: "MenuPlan" }, { name: "Otro" }] }],
+  ])("repositories no es exactamente [MenuPlan] (%s): el token no sale", async (_n, cuerpo) => {
+    const { codigo, out, err } = await correr({ fetchFn: fetchFalso(201, cuerpo).fn });
+    expect(codigo).toBe(1);
+    expect(out).toBe("");
+    expect(err).toMatch(/limitado exactamente a MenuPlan/);
+    expect(err).not.toContain(TOKEN);
+  });
+
+  it("con stdout en una terminal avisa por stderr (sin el token)", async () => {
+    let err = "";
+    const codigo = await ejecutar({ entrada: entrada(pem), ids, fetchFn: fetchFalso().fn, ahora: AHORA, salidaTTY: true, salida: () => {}, errores: (t) => { err += t; } });
+    expect(codigo).toBe(0);
+    expect(err).toMatch(/aviso: stdout es una terminal/);
+    expect(err).not.toContain(TOKEN);
   });
 
   it("un Installation ID que no es número no llega a hacer la petición", async () => {
@@ -151,6 +191,9 @@ describe("sinSecretos", () => {
   it("quita PEM, JWT y tokens de GitHub, y los secretos que se le dan", () => {
     const t = sinSecretos(`a -----BEGIN RSA PRIVATE KEY-----\nAAA\n-----END RSA PRIVATE KEY----- b eyJhbGciOi.eyJpc3MiOi.c2ln c ${TOKEN} d valor-raro`, ["valor-raro"]);
     expect(t).toBe("a [oculto] b [oculto] c [oculto] d [oculto]");
+  });
+  it("también los pegados a letras, números o «_» (sin \\b)", () => {
+    expect(sinSecretos(`xeyJhbGciOi.eyJpc3MiOi.c2ln y9${TOKEN} z_${TOKEN}`)).toBe("x[oculto] y9[oculto] z_[oculto]");
   });
   it("ErrorToken es el único error que enseña su mensaje", () => {
     expect(new ErrorToken("x")).toBeInstanceOf(Error);

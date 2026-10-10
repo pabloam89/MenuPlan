@@ -13,6 +13,8 @@
  *   un fichero (así no queda en el disco ni en la lista de procesos).
  * - El App ID y el Installation ID no son secretos: `SESIONES_APP_ID` y
  *   `SESIONES_INSTALLATION_ID`, del entorno o de `.env.local` (`leerEnv`).
+ * - El token se pide con permisos explícitos (sin workflows) y se descarta, sin imprimirlo, si la respuesta trae administration, secrets, environments, deployments o workflows, o si no está limitado exactamente a MenuPlan.
+ * - Capturarlo SIEMPRE con $(…): imprimido en una sesión queda en su transcripción en disco.
  * - Firma un JWT RS256 de 10 minutos con `node:crypto` (sin dependencias) y
  *   pide `POST /app/installations/{id}/access_tokens`, limitado al repo MenuPlan.
  * - Por stdout, solo el token. Por stderr, errores con la causa y la fecha de
@@ -31,6 +33,14 @@ export const VIDA_JWT_S = 540;
 export const MARGEN_IAT_S = 60;
 const TOPE_CLAVE = 16_384;
 
+/** Lo que se pide, explícito: el token nace con esto y no con todo lo que la App tenga. Sin workflows. */
+export const PERMISOS = {
+  contents: "write", pull_requests: "write", issues: "write",
+  actions: "read", checks: "read", metadata: "read",
+};
+/** Si la respuesta trae cualquiera de estos, el token se descarta sin imprimirlo. */
+export const PROHIBIDOS = ["administration", "secrets", "environments", "deployments", "workflows"];
+
 const b64url = (b) => Buffer.from(b).toString("base64url");
 
 /** Error con mensaje seguro para enseñar: nunca lleva secretos. */
@@ -42,8 +52,9 @@ export function sinSecretos(texto, secretos = []) {
   for (const s of secretos) if (s && t.includes(s)) t = t.split(s).join("[oculto]");
   return t
     .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(-----END [A-Z ]*PRIVATE KEY-----|$)/g, "[oculto]")
-    .replace(/\beyJ[\w-]+\.[\w-]+\.[\w-]+/g, "[oculto]")
-    .replace(/\b(?:ghs|ghp|gho|ghu|ghr|github_pat)_[\w]+/g, "[oculto]");
+    // Sin \b a propósito: una letra, un número o «_» pegados delante no deben esconder el secreto.
+    .replace(/eyJ[\w-]+\.[\w-]+\.[\w-]+/g, "[oculto]")
+    .replace(/(?:ghs|ghp|gho|ghu|ghr|github_pat)_\w+/g, "[oculto]");
 }
 
 /** JWT RS256 de la App. `ahora` en segundos. Lanza ErrorToken si la clave no vale. */
@@ -83,7 +94,7 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch }) {
         "User-Agent": "menuplan-token-sesiones",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ repositories: [REPO] }),
+      body: JSON.stringify({ repositories: [REPO], permissions: PERMISOS }),
     });
   } catch (e) {
     throw new ErrorToken(`sin respuesta de GitHub: ${sinSecretos(e?.cause?.code || e?.name || "error de red", [jwt])}`);
@@ -99,6 +110,11 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch }) {
     throw new ErrorToken(`GitHub respondió ${r.status}${api ? ` («${api}»)` : ""}${PISTAS[r.status] ? `: ${PISTAS[r.status]}` : ""}`);
   }
   if (typeof datos?.token !== "string" || !datos.token) throw new ErrorToken("GitHub respondió 2xx sin token");
+  // Se comprueba lo que GitHub concedió, no lo que se pidió: si no cuadra, el token no sale.
+  const extra = PROHIBIDOS.filter((p) => datos.permissions && p in datos.permissions);
+  if (extra.length) throw new ErrorToken(`el token trae permisos que no debe (${extra.join(", ")}): no lo imprimo; corrige los permisos de la App y relanza`);
+  const repos = Array.isArray(datos.repositories) ? datos.repositories.map((x) => x?.name) : null;
+  if (!repos || repos.length !== 1 || repos[0] !== REPO) throw new ErrorToken(`el token no está limitado exactamente a ${REPO} (repositorios: ${repos ? repos.length : "ninguno indicado"}): no lo imprimo`);
   return { token: datos.token, expira: datos.expires_at ?? "" };
 }
 
@@ -116,13 +132,14 @@ async function leerStdin(entrada = process.stdin) {
  * Todo el flujo, con sus dependencias inyectadas para probarlo sin red.
  * Devuelve el código de salida; escribe con `salida` (stdout) y `errores` (stderr).
  */
-export async function ejecutar({ entrada, ids, fetchFn = fetch, ahora, salida = (t) => process.stdout.write(t), errores = (t) => process.stderr.write(t) } = {}) {
+export async function ejecutar({ entrada, ids, fetchFn = fetch, ahora, salidaTTY = false, salida = (t) => process.stdout.write(t), errores = (t) => process.stderr.write(t) } = {}) {
   let pem = "";
   try {
     pem = await leerStdin(entrada);
     const { appId, installationId } = ids();
     const jwt = firmarJwt({ appId, pem, ahora });
     const { token, expira } = await pedirToken({ jwt, installationId, fetchFn });
+    if (salidaTTY) errores("token-sesiones aviso: stdout es una terminal; el token quedará en pantalla y en la transcripción. Captúralo con $(…), nunca lo imprimas\n");
     salida(`${token}\n`);
     errores(`token-sesiones resultado: ok expira: ${expira}\n`);
     return 0;
@@ -137,6 +154,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const { leerEnv } = await import("./lib/env.mjs");
   process.exitCode = await ejecutar({
     entrada: process.stdin,
+    salidaTTY: Boolean(process.stdout.isTTY),
     ids: () => ({ appId: leerEnv("SESIONES_APP_ID"), installationId: leerEnv("SESIONES_INSTALLATION_ID") }),
   });
 }
