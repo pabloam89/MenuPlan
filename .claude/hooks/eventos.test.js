@@ -132,7 +132,7 @@ describe("un registro que falla NUNCA rompe nada", () => {
   it("aunque el propio módulo de eventos no cargue (fichero roto), la guardia y skill-abierta hacen lo de siempre", () => {
     // Una copia de los hooks con eventos.mjs corrupto: el import dinámico falla y no puede cambiar nada.
     const copia = temporal("eventos-rotos-");
-    for (const f of ["guardia.mjs", "skill-abierta.mjs", "casos.mjs", "dominios.mjs", "migraciones.mjs", "sesiones.mjs"]) copyFileSync(join(AQUI, f), join(copia, f));
+    for (const f of ["guardia.mjs", "skill-abierta.mjs", "casos.mjs", "credenciales.mjs", "dominios.mjs", "migraciones.mjs", "sesiones.mjs"]) copyFileSync(join(AQUI, f), join(copia, f));
     writeFileSync(join(copia, "eventos.mjs"), "export const = ;;; esto no es javascript");
     const repo = repoGit();
     const entrada = { session_id: SESION, cwd: repo, tool_name: "Bash", tool_input: { command: "git push origin main" } };
@@ -151,7 +151,7 @@ describe("un registro que falla NUNCA rompe nada", () => {
     const entrada = { session_id: SESION, cwd: repoGit(), tool_name: "Bash", tool_input: { command: "git push origin main" } };
     for (const cuerpo of ["process.exit(0);", "process.exit(1);", "await new Promise(() => {}); export const x = 1;"]) {
       const copia = temporal("eventos-exit-");
-      for (const f of ["guardia.mjs", "skill-abierta.mjs", "casos.mjs", "dominios.mjs", "migraciones.mjs", "sesiones.mjs"]) copyFileSync(join(AQUI, f), join(copia, f));
+      for (const f of ["guardia.mjs", "skill-abierta.mjs", "casos.mjs", "credenciales.mjs", "dominios.mjs", "migraciones.mjs", "sesiones.mjs"]) copyFileSync(join(AQUI, f), join(copia, f));
       writeFileSync(join(copia, "eventos.mjs"), cuerpo);
       const r = spawnSync(process.execPath, [join(copia, "guardia.mjs")], { input: JSON.stringify(entrada), encoding: "utf8", timeout: 20000 });
       expect(JSON.parse(r.stdout).hookSpecificOutput.permissionDecision, cuerpo).toBe("deny");
@@ -170,7 +170,7 @@ describe("un registro que falla NUNCA rompe nada", () => {
     };
     for (const [nombre, cuerpo] of Object.entries(cuerpos)) {
       const copia = temporal("eventos-aviso-");
-      for (const f of ["guardia.mjs", "skill-abierta.mjs", "casos.mjs", "dominios.mjs", "migraciones.mjs", "sesiones.mjs", "eventos.mjs"]) copyFileSync(join(AQUI, f), join(copia, f));
+      for (const f of ["guardia.mjs", "skill-abierta.mjs", "casos.mjs", "credenciales.mjs", "dominios.mjs", "migraciones.mjs", "sesiones.mjs", "eventos.mjs"]) copyFileSync(join(AQUI, f), join(copia, f));
       writeFileSync(join(copia, "buscar-antes.mjs"), cuerpo);
       const t0 = Date.now();
       const r = spawnSync(process.execPath, [join(copia, "guardia.mjs")], { input: JSON.stringify(entrada), encoding: "utf8", timeout: 20000, env: { ...process.env, MENUPLAN_FABRICA_DIR: temporal("eventos-sana-") } });

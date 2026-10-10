@@ -219,6 +219,9 @@ cifras que con impresiones.
 - **Vocabulario cerrado, no texto libre**, para todo lo que se vaya a agrupar:
   motivos de fallo, estados, causas, tipos, sitios. Una constante en JS (y un
   CHECK si va a SQL) con su test, como `src/lib/vocabularios.js`.
+- **Una palabra, un significado**: las palabras de proceso (comprobar, caso,
+  fondo, encargo, juez…) salen de `ops/glosario.json` (`npm run glosario`), y
+  su test falla con un sinónimo prohibido nuevo.
 - **Cada cosa que pasa deja una línea estructurada** (`campo: valor`, sin datos
   de familias) que un script pueda contar. Lo que no deja rastro no se mide, y
   lo que no se mide no mejora.
@@ -279,7 +282,10 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
   una con un número que staging ya usa, SQL a mano contra producción y
   `apply-migration --pablo` (solo de Pablo), abrir un PR con la rama
   atrasada, sin `Casos:`, o sin `Closes` si la rama es de un issue, fusionarlo si staging
-  pisó sus ficheros, trabajar en la carpeta principal y `gh issue create` a
+  pisó sus ficheros, trabajar en la carpeta principal, volver a las credenciales de Pablo (quitar o vaciar `GH_TOKEN`, `git -c credential.…`,
+  `GIT_AUTHOR_*`), cambiar reglas del repo por terminal (`rulesets.mjs --escribir`, `gh api`
+  que escribe en rulesets, protección, secretos o environments), `gh pr review --approve` (#447;
+  es un filtro: la barrera de fondo es el `gh auth logout` de Pablo) y `gh issue create` a
   pelo (se crea con `npm run issues -- --nuevo`, que busca los parecidos);
   pregunta
   antes de un push forzado y de escribir por

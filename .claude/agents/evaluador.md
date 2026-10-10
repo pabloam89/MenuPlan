@@ -67,7 +67,7 @@ No es suyo:
 ## 6. Método
 
 1. Lee el diff y decide qué evals afectan (bot, enrutador, modelos).
-2. Corre esos evals en `origin/staging` (en un worktree temporal aparte,
+2. Corre esos evals en `origin/staging` (en una carpeta de trabajo temporal aparte,
    nunca con `git stash`) y en la rama, con las mismas opciones. Repite los
    casos sensibles.
 3. Tabula: pase total, casos que empeoran, casos que mejoran, tokens por

@@ -6,7 +6,7 @@ paths:
 
 # Lola
 
-- **Evals antes de mergear** si cambia lo que Lola lee: `api/_bot/conocimiento.md`,
+- **Evals antes de fusionar** si cambia lo que Lola lee: `api/_bot/conocimiento.md`,
   el SISTEMA de `api/_bot/agente.js` o los textos de las herramientas. Se
   corre `node scripts/bot-evals.mjs --nivel=pr` (24 casos, ~0,6–0,8 $) y, antes
   de cerrar, la pasada completa (~3,5 $; `--nivel=seguridad`, ~3,2–3,4 $, si toca
