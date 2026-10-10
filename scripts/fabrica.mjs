@@ -81,7 +81,12 @@ function traerIssues() {
 function eventosLocales() {
   const dir = dirFabrica();
   const textos = ["eventos.anterior.jsonl", "eventos.jsonl"].map((f) => {
-    try { return readFileSync(join(dir, f), "utf8"); } catch { return ""; }
+    try {
+      return readFileSync(join(dir, f), "utf8");
+    } catch {
+      // a propósito: el registro aún no existe en un PC nuevo; sin eventos el informe sale con cero
+      return "";
+    }
   });
   return contarEventos(textos.join("\n"));
 }
