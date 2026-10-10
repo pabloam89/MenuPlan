@@ -328,6 +328,8 @@ export function opcionNumero(argv, clave) {
 // ── Hashes y memoria ───────────────────────────────────────────────────────
 
 export const hash = (texto) => createHash("sha256").update(String(texto)).digest("hex").slice(0, 12);
+/** El hash del texto de un fichero con los finales de línea en LF: igual en Windows (CRLF) y en el CI. Con LF vale lo mismo que `hash`. */
+export const hashLF = (texto) => hash(String(texto).replace(/\r\n/g, "\n"));
 
 /** JSON con las claves ordenadas: el mismo objeto da siempre el mismo texto. */
 export function canonico(v) {

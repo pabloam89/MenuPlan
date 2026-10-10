@@ -72,6 +72,14 @@ jobs:
       - name: Skills del PR
         if: github.event_name == 'pull_request'
         run: node scripts/skills-pr.mjs "$RUNNER_TEMP/ficheros-del-pr.txt"
+      # Si el PR toca una skill, su higiene (faltas = falla: lo que el nivel 1 negaría
+      # sin su lista de excepciones, más rutas y comandos muertos) y el ensayo
+      # GRATIS de su nivel 2 (valida los casos; no llama a ningún modelo: el de pago
+      # lo lanza una persona). Mismo script que el informe semanal (#341). Usa la
+      # lista del paso del runbook; sin npm ci.
+      - name: Higiene de las skills del PR
+        if: github.event_name == 'pull_request'
+        run: node scripts/cumplimiento.mjs --skills-pr "$RUNNER_TEMP/ficheros-del-pr.txt"
       # Cada PR dice qué casos deja registrados (`Casos: #n, #m`) o por qué no hay
       # (`Casos: ninguno — <motivo>`), y cada #n tiene que ser un issue tipo:caso
       # con su analisis: (#185, «Cuando algo falla» de CLAUDE.md). Si la API de
