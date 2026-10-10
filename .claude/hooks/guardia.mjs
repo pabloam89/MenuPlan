@@ -16,11 +16,11 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { AYUDA as AYUDA_CASOS, analizarCasos } from "./casos.mjs";
-import { cargarMapa, skillsDeComando, unirContinuaciones } from "./dominios.mjs";
+import { cargarMapa, skillsDeComando, skillsDeFicheros, unirContinuaciones } from "./dominios.mjs";
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
 import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
 
@@ -297,6 +297,32 @@ export function contextoReal(raiz, entrada = {}) {
       }
     },
     esPrincipal,
+    // La ruta de un fichero dentro de SU carpeta del repo, con barras normales
+    // (`supabase/migrations/0099_x.sql`), o null si no es de este repo: la
+    // puerta de las skills al editar la compara con las `rutas` de
+    // dominios-skills.json. La carpeta sale del fichero y no de la sesión: lo
+    // normal es una sesión en C:\dev\MenuPlan que edita en C:\dev\MenuPlan-<tarea>
+    // (el revisor de #397 contó 1.606 ediciones así frente a ~900 dentro).
+    // Otro repo (otro --git-common-dir) no lleva puerta.
+    rutaDelRepo: (ruta) => {
+      if (!ruta) return null;
+      const abs = resolve(raiz, String(ruta));
+      let dir = dirname(abs);
+      while (!existsSync(dir)) {
+        if (dirname(dir) === dir) return null;
+        dir = dirname(dir);
+      }
+      try {
+        comunPropio ??= resolve(git(["-C", raiz, "rev-parse", "--path-format=absolute", "--git-common-dir"])).toLowerCase();
+        const [arriba, comun] = git(["-C", dir, "rev-parse", "--path-format=absolute", "--show-toplevel", "--git-common-dir"]).split(/\r?\n/);
+        if (resolve(comun).toLowerCase() !== comunPropio) return null;
+        const rel = relative(resolve(arriba), abs);
+        if (!rel || rel.startsWith("..") || isAbsolute(rel)) return null;
+        return rel.replace(/\\/g, "/");
+      } catch {
+        return null; // a propósito: fuera de un repo (o si git no contesta) no hay dominio que vigilar; falla abierta
+      }
+    },
     // Un fichero del repo en la carpeta principal. Lo ignorado (.env.local) y la
     // memoria de los agentes, que vive en la carpeta del proyecto, no cuentan.
     rutaEnPrincipal: (ruta) => {
@@ -385,8 +411,11 @@ export function contextoReal(raiz, entrada = {}) {
  * Las skills (.claude/skills/) son los runbooks, con lo que ya falló en cada
  * servicio. Se abrían solo si la sesión decidía hacerlo. Aquí, la PRIMERA vez
  * que una sesión lanza un comando de riesgo de un dominio con skill (el mapa:
- * .claude/dominios-skills.json), se le niega con el nombre de la skill; al
- * reintentar pasa. Es un obstáculo, no un candado: una vez por skill y sesión.
+ * .claude/dominios-skills.json), o edita o escribe un fichero de sus `rutas`
+ * (#397: la skill es el camino de aprendizaje, y tocar el dominio sin leerla
+ * repite lo que ya falló), se le niega con el nombre de la skill; al reintentar
+ * pasa. Es un obstáculo, no un candado: una vez por skill y sesión, y el aviso
+ * de un comando vale también para la edición (y al revés).
  *
  *  - Si la sesión ya abrió la skill (herramienta Skill o Read de su SKILL.md,
  *    anotado por skill-abierta.mjs), pasa a la primera.
@@ -396,17 +425,20 @@ export function contextoReal(raiz, entrada = {}) {
  *  - Falla abierta: si no se puede anotar el aviso (sin registro, disco, id
  *    raro), NO se niega; una puerta que no recuerda atascaría la sesión.
  */
-function puertaDeSkills(cmd, entrada, ctx) {
+function puertaDeSkills(skillsDe, entrada, ctx, que = "comando") {
   if (!ctx.dominios || !ctx.skillAbierta || !ctx.marcarSkill) return null;
   const delAgente = ctx.skillsDelAgente?.(entrada.agent_type) ?? [];
-  const faltan = skillsDeComando(cmd, ctx.dominios).filter((s) => !delAgente.includes(s) && !ctx.skillAbierta(s));
+  const faltan = skillsDe(ctx.dominios).filter((s) => !delAgente.includes(s) && !ctx.skillAbierta(s));
   const avisadas = faltan.filter((s) => ctx.marcarSkill(s));
   if (!avisadas.length) return null;
   const lista = avisadas.map((s) => `\`${s}\``).join(" y ");
   const abre = avisadas.map((s) => `Skill con skill: "${s}"`).join(" y ");
+  const inicio = que === "edicion"
+    ? `Este fichero es de un dominio con runbook: ${avisadas.length > 1 ? "sus skills tienen" : "su skill tiene"} lo que ya falló aquí y cómo se hace. `
+    : `Este comando es de los que, mal hechos, cuestan caro, y ${avisadas.length > 1 ? "sus dominios tienen" : "su dominio tiene"} runbook con lo que ya falló aquí. `;
   return deny(
-    `Este comando es de los que, mal hechos, cuestan caro, y ${avisadas.length > 1 ? "sus dominios tienen" : "su dominio tiene"} runbook con lo que ya falló aquí. ` +
-    `Abre antes ${avisadas.length > 1 ? "las skills" : "la skill"} ${lista} (herramienta ${abre}) y reintenta el mismo comando. ` +
+    inicio +
+    `Abre antes ${avisadas.length > 1 ? "las skills" : "la skill"} ${lista} (herramienta ${abre}) y reintenta ${que === "edicion" ? "la misma edición" : "el mismo comando"}. ` +
     "Este aviso sale una sola vez por skill y sesión: al reintentar pasa.",
   );
 }
@@ -528,7 +560,7 @@ export function decidir(entrada, ctx) {
     }
     // La puerta de lectura va la última entre los «no»: una orden que otra regla
     // ya niega no gasta el aviso. Se mira el comando ENTERO (no un tramo).
-    const puerta = puertaDeSkills(cmd, entrada, ctx);
+    const puerta = puertaDeSkills((mapa) => skillsDeComando(cmd, mapa), entrada, ctx);
     if (puerta) return puerta;
     if (tocaEn(cmd, RUTA_LOLA).length) {
       return ask("Esto escribe en lo que lee Lola desde la shell. Mejor con Edit: así se carga `.claude/rules/lola.md`. Y si cambia lo que lee Lola, pasa los evals (`scripts/bot-evals.mjs`) antes de mergear.");
@@ -544,6 +576,13 @@ export function decidir(entrada, ctx) {
       if (motivo) return deny(motivo);
     }
     if (ctx.rutaEnPrincipal(ruta)) return deny(EN_LA_PRINCIPAL);
+    // La puerta de las skills también al editar (#397), la última entre los
+    // «no»: una edición que otra regla ya niega no gasta el aviso.
+    const delRepo = ctx.rutaDelRepo?.(ruta);
+    if (delRepo) {
+      const puerta = puertaDeSkills((mapa) => skillsDeFicheros([delRepo], mapa), entrada, ctx, "edicion");
+      if (puerta) return puerta;
+    }
     return null;
   }
 
