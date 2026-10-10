@@ -9,9 +9,10 @@
  *
  *   candidato: <x> apariciones: <n> ficheros: <k>
  *
- * Un agente juzga cada candidato (vocabulario JUICIOS) y deja el juicio con su motivo en
+ * Un agente juzga cada candidato (vocabulario JUICIOS, con un motivo de MOTIVOS_JUICIO y
+ * el texto libre en «detalle») y deja el juicio en
  * `ops/glosario-candidatos.json`, el hueco declarado. Un candidato juzgado no vuelve a
- * salir. Si el mismo motivo se repite en REPETICIONES_REGLA juicios o más, se propone
+ * salir. Si el mismo juicio y motivo se repiten en REPETICIONES_REGLA juicios o más, se propone
  * como regla (p. ej. ampliar PALABRAS_VACIAS), en vez de juzgarlo uno a uno.
  *
  * Es léxico y sin lematizar: dos palabras son la misma si comparten las RAIZ letras
@@ -55,7 +56,29 @@ export const UMBRAL = { palabra: { apariciones: 25, ficheros: 10, zonas: 5 }, pa
 /** Lo que un agente juzga bien en una pasada: 30 palabras y 15 pares. */
 export const MAX_CANDIDATOS = { palabra: 30, par: 15 };
 
-/** Cuántos juicios con el mismo motivo hacen una regla propuesta. */
+/**
+ * Motivos cerrados de cada juicio (#481, revisión M3): se cuentan y agrupan; el porqué
+ * concreto va en «detalle», el hueco de texto libre.
+ */
+export const MOTIVOS_JUICIO = {
+  termino_nuevo: {
+    significado_propio: "Nombra algo del proceso que ningún término cubre",
+    dos_sentidos: "Ya se usa con dos significados y hay que fijar uno",
+  },
+  sinonimo: {
+    mismo_significado: "Dice lo mismo que el término con otra palabra",
+    nombre_largo: "Es el nombre largo o la forma explicada del término",
+    variante_de_forma: "Es otra forma escrita del término (inglés, abreviatura, sin tilde)",
+  },
+  nada: {
+    uso_general: "Palabra de uso general, sin un significado propio del proceso",
+    nombre_propio: "Nombre de una persona, un producto o una herramienta",
+    jerga_de_servicio: "Palabra de un servicio o de un dominio, no del proceso",
+    gramatical: "Palabra gramatical o de relleno que se coló",
+  },
+};
+
+/** Cuántos juicios con el mismo juicio y motivo hacen una regla propuesta. */
 export const REPETICIONES_REGLA = 3;
 
 /**
@@ -175,9 +198,10 @@ export function leerJuicios(raizRepo) {
   return JSON.parse(readFileSync(join(raizRepo, RUTA_JUICIOS), "utf8")).juicios ?? [];
 }
 
-export const CAMPOS_JUICIO = ["candidato", "juicio", "motivo", "fecha"];
+export const CAMPOS_JUICIO = ["candidato", "juicio", "motivo", "detalle", "fecha"];
 export const CAMPOS_JUICIO_OPCIONALES = ["sinonimo_de"];
-export const MIN_MOTIVO = 15;
+/** El detalle es el hueco: una frase, no «no aplica». */
+export const MIN_DETALLE = 15;
 
 /** La forma de los juicios: vocabulario, motivo, fecha y, si es sinónimo, de qué término activo. */
 export function problemasDeJuicios(juicios, g) {
@@ -191,7 +215,8 @@ export function problemasDeJuicios(juicios, g) {
     if (vistos.has(plano(id))) p.push(`${id}: juzgado dos veces`);
     vistos.add(plano(id));
     if (!(j.juicio in JUICIOS)) p.push(`${id}: juicio «${j.juicio}» fuera del vocabulario (${Object.keys(JUICIOS).join(", ")})`);
-    if (String(j.motivo ?? "").trim().length < MIN_MOTIVO) p.push(`${id}: el motivo tiene que tener ${MIN_MOTIVO} caracteres o más`);
+    else if (!(j.motivo in MOTIVOS_JUICIO[j.juicio])) p.push(`${id}: motivo «${j.motivo}» fuera del vocabulario de ${j.juicio} (${Object.keys(MOTIVOS_JUICIO[j.juicio]).join(", ")})`);
+    if (String(j.detalle ?? "").trim().length < MIN_DETALLE) p.push(`${id}: el detalle tiene que tener ${MIN_DETALLE} caracteres o más`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(j.fecha ?? ""))) p.push(`${id}: fecha no es AAAA-MM-DD`);
     if (j.juicio === "sinonimo" && !activos.has(j.sinonimo_de)) p.push(`${id}: sinonimo_de «${j.sinonimo_de ?? ""}», que no es un término activo`);
     if (j.juicio !== "sinonimo" && "sinonimo_de" in j) p.push(`${id}: sinonimo_de solo va con el juicio sinonimo`);
@@ -208,7 +233,7 @@ export function pendientesDeJuicios(juicios, g) {
   const sinTermino = juicios.filter((j) => j.juicio === "termino_nuevo" && !nombres.has(plano(j.candidato))).map((j) => j.candidato);
   const porMotivo = new Map();
   for (const j of juicios) {
-    const clave = `${j.juicio}: ${plano(String(j.motivo ?? "").trim())}`;
+    const clave = `${j.juicio}: ${j.motivo}`;
     if (!porMotivo.has(clave)) porMotivo.set(clave, []);
     porMotivo.get(clave).push(j.candidato);
   }

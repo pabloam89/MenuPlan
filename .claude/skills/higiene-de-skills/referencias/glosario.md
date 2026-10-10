@@ -35,20 +35,24 @@ no están como término ni como sinónimo. El umbral y su porqué, en la cabecer
 | `sinonimo` | dice lo mismo que un término que ya existe | pon `sinonimo_de`; si no se usa en el repo con otro sentido, añádelo a sus `sinonimos_prohibidos` y escribe el término donde salga |
 | `nada` | es de uso general, un nombre propio o jerga de un servicio | nada más |
 
-Cada juicio va a `ops/glosario-candidatos.json` con su motivo, que es el hueco:
-una frase que diga por qué, no «no aplica». Ejemplo:
+Cada juicio va a `ops/glosario-candidatos.json` con un motivo cerrado de su
+juicio (`MOTIVOS_JUICIO`: para `nada`, `uso_general`, `nombre_propio`,
+`jerga_de_servicio` o `gramatical`; para `sinonimo`, `mismo_significado`,
+`nombre_largo` o `variante_de_forma`; para `termino_nuevo`,
+`significado_propio` o `dos_sentidos`) y un `detalle`, que es el hueco: una
+frase que diga por qué, no «no aplica». Ejemplo:
 
 ```json
-{ "candidato": "problema de fondo", "juicio": "sinonimo", "sinonimo_de": "fondo", "motivo": "Es el nombre largo de fondo, ya dicho en su nota", "fecha": "2026-10-10" }
+{ "candidato": "problema de fondo", "juicio": "sinonimo", "sinonimo_de": "fondo", "motivo": "nombre_largo", "detalle": "Es el nombre largo de fondo, ya dicho en su nota", "fecha": "2026-10-10" }
 ```
 
 Lo juzgado deja de salir; la siguiente pasada trae los siguientes.
 
 ## 3. De juicio repetido a regla
 
-La cabecera cuenta `reglas_propuestas`: el mismo juicio con el mismo motivo en
-tres candidatos o más. No sigas juzgando uno a uno: propón la regla en el PR (por
-ejemplo, si salen tres «nada: verbo de uso general», esos verbos van a
+La cabecera cuenta `reglas_propuestas`: el mismo juicio con el mismo motivo
+cerrado en tres candidatos o más. No sigas juzgando uno a uno: propón la regla en el PR (por
+ejemplo, si salen tres `nada: uso_general`, esos verbos van a
 `PALABRAS_VACIAS` y dejan de salir). Y `termino_nuevo_sin_termino` cuenta los
 juicios `termino_nuevo` que aún no están en el glosario: se añaden en el mismo PR.
 

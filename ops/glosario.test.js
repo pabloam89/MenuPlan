@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { REFERENCIA, jsonEnReferencia } from "../scripts/lib/forjaReferencia.mjs";
-import { JUICIOS, MAX_CANDIDATOS, aJuzgar, candidatos, leerJuicios, lineaCandidato, pendientesDeJuicios, problemasDeJuicios, prosaDeZonas } from "../scripts/lib/glosarioCandidatos.mjs";
+import { JUICIOS, MAX_CANDIDATOS, MOTIVOS_JUICIO, aJuzgar, candidatos, leerJuicios, lineaCandidato, pendientesDeJuicios, problemasDeJuicios, prosaDeZonas } from "../scripts/lib/glosarioCandidatos.mjs";
 import {
   CLASES, ESTADOS_TERMINO, EXCEPCIONES_FORMA, RUTA_GLOSARIO, canonicoDe, cifrasDeForma, faltaDeForma, problemasDeRelaciones, problemasDeVidaGlosario, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
 } from "../scripts/lib/glosario.mjs";
@@ -415,23 +415,28 @@ describe("autotest de los candidatos", () => {
   });
 
   it("lo juzgado deja de salir; el mismo juicio y motivo tres veces es una regla propuesta", () => {
-    const j = (candidato, juicio = "nada", motivo = "Palabra de uso general, no de proceso") => ({ candidato, juicio, motivo, fecha: "2026-10-10" });
+    const j = (candidato, juicio = "nada", motivo = "uso_general") => ({ candidato, juicio, motivo, detalle: `${candidato}: se usa en su sentido de diccionario`, fecha: "2026-10-10" });
     expect(candidatos(trozos("Una ventana."), G, { umbral: UMB, juicios: [j("ventana")] })).toEqual([]);
-    const { reglas, sinTermino } = pendientesDeJuicios([j("lista"), j("linea"), j("texto"), j("pieza", "termino_nuevo", "Se usa como unidad de un arreglo común")], G);
-    expect(reglas).toEqual([{ juicio_y_motivo: "nada: palabra de uso general, no de proceso", candidatos: ["lista", "linea", "texto"] }]);
+    const { reglas, sinTermino } = pendientesDeJuicios([j("lista"), j("linea"), j("texto"), j("codigo", "nada", "jerga_de_servicio"), j("pieza", "termino_nuevo", "significado_propio")], G);
+    expect(reglas).toEqual([{ juicio_y_motivo: "nada: uso_general", candidatos: ["lista", "linea", "texto"] }]);
     expect(sinTermino).toEqual(["pieza"]);
   });
 
-  it("los juicios: vocabulario, motivo, fecha y sinonimo_de que existe", () => {
+  it("los juicios: vocabulario, motivo cerrado de su juicio, detalle, fecha y sinonimo_de que existe", () => {
     expect(Object.keys(JUICIOS)).toEqual(["termino_nuevo", "sinonimo", "nada"]);
-    const p = (x) => problemasDeJuicios([{ candidato: "ventana", juicio: "nada", motivo: "Palabra de uso general", fecha: "2026-10-10", ...x }], G).join();
+    expect(Object.keys(MOTIVOS_JUICIO)).toEqual(Object.keys(JUICIOS));
+    expect(Object.keys(MOTIVOS_JUICIO.nada)).toEqual(["uso_general", "nombre_propio", "jerga_de_servicio", "gramatical"]);
+    const base = { candidato: "ventana", juicio: "nada", motivo: "uso_general", detalle: "Se usa en su sentido de diccionario", fecha: "2026-10-10" };
+    const p = (x) => problemasDeJuicios([{ ...base, ...x }], G).join();
     expect(p({})).toBe("");
-    expect(p({ juicio: "quizas" })).toMatch(/fuera del vocabulario/);
-    expect(p({ motivo: "corto" })).toMatch(/15 caracteres/);
+    expect(p({ juicio: "quizas" })).toMatch(/juicio «quizas» fuera del vocabulario/);
+    expect(p({ motivo: "Palabra de uso general" })).toMatch(/motivo «Palabra de uso general» fuera del vocabulario de nada/);
+    expect(p({ motivo: "nombre_largo" })).toMatch(/fuera del vocabulario de nada/);
+    expect(p({ detalle: "corto" })).toMatch(/15 caracteres/);
     expect(p({ fecha: "ayer" })).toMatch(/AAAA-MM-DD/);
-    expect(p({ juicio: "sinonimo", sinonimo_de: "inventado" })).toMatch(/sinonimo_de «inventado»/);
-    expect(p({ juicio: "sinonimo", sinonimo_de: "fondo" })).toBe("");
+    expect(p({ juicio: "sinonimo", motivo: "nombre_largo", sinonimo_de: "inventado" })).toMatch(/sinonimo_de «inventado»/);
+    expect(p({ juicio: "sinonimo", motivo: "nombre_largo", sinonimo_de: "fondo" })).toBe("");
     expect(p({ sinonimo_de: "fondo" })).toMatch(/solo va con el juicio sinonimo/);
-    expect(problemasDeJuicios([{ candidato: "x", juicio: "nada", motivo: "Palabra de uso general", fecha: "2026-10-10" }, { candidato: "X", juicio: "nada", motivo: "Palabra de uso general", fecha: "2026-10-10" }], G).join()).toMatch(/juzgado dos veces/);
+    expect(problemasDeJuicios([base, { ...base, candidato: "VENTANA" }], G).join()).toMatch(/juzgado dos veces/);
   });
 });
