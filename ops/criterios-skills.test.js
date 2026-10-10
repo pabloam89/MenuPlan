@@ -86,10 +86,27 @@ describe("los juicios de skill del repo", () => {
     for (const { nombre, cifras: c } of TODAS) {
       expect(c.vigilados + c.de_juicio, nombre).toBe(c.criterios);
       expect(Object.keys(ESTADOS_CRITERIO).reduce((n, e) => n + c[e], 0), nombre).toBe(c.criterios);
-      expect(c.juzgados + c.juicio, nombre).toBe(c.de_juicio);
+      expect(c.calculados + c.a_mano, nombre).toBe(c.de_juicio);
+      expect(c.resueltos, nombre).toBeLessThanOrEqual(c.calculados);
+      expect(c.juzgados + c.pendientes, nombre).toBe(c.a_mano);
       expect(Object.values(c.motivos).reduce((a, b) => a + b, 0), nombre).toBe(c.juicio);
     }
-    expect(lineaDelConjunto(TODAS.length, sumarCifras(TODAS.map((f) => f.cifras)))).toMatch(/^Criterios: \d+ skills, \d+ criterios aplicados: \d+ vigilados por un control y \d+ de juicio \(\d+ deducidos de una medida, \d+ juzgados, \d+ pendientes\).*pendientes por motivo: /);
+  });
+
+  it("la frase del conjunto: cada parte suma su total, sin contar dos veces", () => {
+    const t = sumarCifras(TODAS.map((f) => f.cifras));
+    const frase = lineaDelConjunto(TODAS.length, t);
+    const m = frase.match(/^Criterios: \d+ skills, (\d+) criterios aplicados: (\d+) vigilados por un control y (\d+) de juicio: (\d+) de cálculo \((\d+) resueltos\) y (\d+) a mano \((\d+) juzgados, (\d+) pendientes\); cumple (\d+), no_cumple (\d+), no_aplica (\d+), juicio (\d+); juicio por motivo: /);
+    expect(m, frase).not.toBeNull();
+    const [total, vig, dj, calc, res, mano, juz, pend, cu, nc, na, ju] = m.slice(1).map(Number);
+    expect(vig + dj).toBe(total);
+    expect(calc + mano).toBe(dj);
+    expect(res).toBeLessThanOrEqual(calc);
+    expect(juz + pend).toBe(mano);
+    expect(cu + nc + na + ju).toBe(total);
+    // Un caso a mano en que el reparto viejo sumaba de más: un calculado pendiente.
+    const c = cifrasDeCriterios([{ origen: "calculo", estado: "juicio", motivo: "sin_pasada" }, { origen: "juicio", estado: "cumple" }]);
+    expect(lineaDelConjunto(1, c)).toMatch(/2 de juicio: 1 de cálculo \(0 resueltos\) y 1 a mano \(1 juzgados, 0 pendientes\)/);
   });
 
   it("el firmante sale de la misma lista de actores que los fondos (CAPAS_AGENTE)", () => {
@@ -140,6 +157,14 @@ describe("cada regla de los juicios guardados se ve fallar", () => {
     expect(con(hecho(s, { evidencia: [".claude/skills/github/SKILL.md#Sección inventada"] }))).toMatch(/no tiene la cabecera/);
     expect(con(hecho(s, { evidencia: ["npm run no-existe"] }))).toMatch(/no hay npm run/);
     expect(con(hecho(s, { evidencia: ["pr:abc"] }))).toMatch(/pr:<n> o issue:<n>/);
+  });
+
+  it("la evidencia de un juicio sobre otro SKILL.md no se valida: ese juicio ya no cuenta (otra_version)", () => {
+    const viejo = hecho(s, { version_skill_md: "000000000000", evidencia: ["ops/no-existe.json"] });
+    expect(con(viejo)).not.toMatch(/no existe/);
+    expect(con(viejo)).toBe("");
+    // La forma del campo sí se sigue mirando.
+    expect(con(hecho(s, { version_skill_md: "nohex", evidencia: ["ops/no-existe.json"] }))).toMatch(/no es una versión/);
   });
 
   it("no_cumple lleva nota; cumple no", () => {
@@ -267,7 +292,7 @@ describe("las cifras y las líneas", () => {
       { criterio: "d", origen: "calculo", estado: "cumple" },
     ];
     const c = cifrasDeCriterios(filas);
-    expect(lineaDeCifras("x", c)).toBe("criterios skill: x criterios: 4 vigilados: 2 de_juicio: 2 calculados: 1 juzgados: 1 cumple: 2 no_cumple: 1 no_aplica: 0 juicio: 1");
+    expect(lineaDeCifras("x", c)).toBe("criterios skill: x criterios: 4 vigilados: 2 de_juicio: 2 calculados: 1 resueltos: 1 a_mano: 1 juzgados: 0 pendientes: 1 cumple: 2 no_cumple: 1 no_aplica: 0 juicio: 1");
     expect(c.motivos).toEqual({ sin_mirar: 1 });
   });
 

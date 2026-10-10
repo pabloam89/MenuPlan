@@ -12,7 +12,7 @@
  * `scripts/lib/juiciosSkills.mjs` junta lo que calculan los controles y las pasadas vigentes con
  * los juicios de skill guardados en `ops/juicios-skills/<skill>.json`. Líneas para contar:
  *   higiene skill: <s> faltas: a avisos: b solape: 0.12 con: <otra>
- *   criterios skill: <s> criterios: n vigilados: a de_juicio: b calculados: c juzgados: d cumple: … no_cumple: … no_aplica: … juicio: …
+ *   criterios skill: <s> criterios: n vigilados: a de_juicio: b calculados: c resueltos: r a_mano: m juzgados: d pendientes: p cumple: … no_cumple: … no_aplica: … juicio: …
  *     skill: <s> criterio: <id> estado: no_cumple|juicio nota: …   (los huecos; con --todos, todas)
  * Salida: 0 sin faltas (los avisos y los huecos no fallan), 1 con alguna falta, 2 entrada mala.
  */

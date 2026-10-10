@@ -212,6 +212,10 @@ export function ctxEvidencia(raiz = RAIZ, hoy = new Date()) {
     },
     scriptsNpm: scriptsDeNpm(raiz),
     pasadaVigente: (s) => pasadaVigente(s, raiz),
+    versionSkill: (s) => {
+      const ruta = join(raiz, DIR_SKILLS, s, "SKILL.md");
+      return existsSync(ruta) ? versionDe(readFileSync(ruta, "utf8")) : null;
+    },
   };
 }
 
@@ -297,7 +301,10 @@ export function problemasDeJuicios(nombre, guardada, metadata, datos, ctx) {
     if (j.estado === "no_cumple" && !j.nota) malos.push(`${d}: un no_cumple lleva «nota» (qué falla en el hueco)`);
     if (["cumple", "no_aplica"].includes(j.estado) && "nota" in j) malos.push(`${d}: la nota solo va con ${ESTADOS_CON_NOTA.join(" o ")} (el hueco); con ${j.estado}, la evidencia basta`);
     if ("nota" in j && (typeof j.nota !== "string" || plana(j.nota).length < MIN_NOTA || /\n/.test(j.nota) || j.nota.length > MAX_NOTA)) malos.push(`${d}: la nota es una línea de ${MIN_NOTA} a ${MAX_NOTA} caracteres`);
-    if (Array.isArray(j.evidencia)) for (const r of j.evidencia) { const m = faltaDeEvidencia(r, ctx); if (m) malos.push(`${d}: ${m}`); }
+    // Un juicio hecho sobre otro SKILL.md ya no cuenta (la fila sale otra_version): su evidencia no se valida,
+    // o tocar la skill rompería el test por un juicio que no pesa.
+    const deOtraVersion = j.estado !== "juicio" && ctx.versionSkill && j.version_skill_md !== ctx.versionSkill(nombre);
+    if (Array.isArray(j.evidencia) && !deOtraVersion) for (const r of j.evidencia) { const m = faltaDeEvidencia(r, ctx); if (m) malos.push(`${d}: ${m}`); }
   }
   return malos;
 }
@@ -339,17 +346,26 @@ export function lineasDeCriterios(nombre, filas, { estados } = {}) {
     .map((f) => lineaDeFicha({ artefacto: "skill", nombre, criterio: f.criterio, estado: f.estado, nota: ESTADOS_CON_NOTA.includes(f.estado) ? plana(f.nota) : null }));
 }
 
-/** Cifras: criterios, vigilados por un control, de juicio (y de ellos, calculados y juzgados), cada estado y cada motivo de lo pendiente. */
+/**
+ * Cifras: criterios = vigilados + de_juicio; de_juicio = calculados + a_mano; a_mano = juzgados +
+ * pendientes; resueltos son los calculados que no quedan en juicio. Más cada estado y cada motivo.
+ */
 export function cifrasDeCriterios(filas) {
-  const c = { criterios: filas.length, vigilados: 0, de_juicio: 0, calculados: 0, juzgados: 0 };
+  const c = { criterios: filas.length, vigilados: 0, de_juicio: 0, calculados: 0, resueltos: 0, a_mano: 0, juzgados: 0, pendientes: 0 };
   for (const e of Object.keys(ESTADOS_CRITERIO)) c[e] = 0;
   const motivos = {};
   for (const f of filas) {
     if (f.origen === "control") c.vigilados++;
     else {
       c.de_juicio++;
-      if (f.origen === "calculo") c.calculados++;
-      if (f.estado !== "juicio") c.juzgados++;
+      if (f.origen === "calculo") {
+        c.calculados++;
+        if (f.estado !== "juicio") c.resueltos++;
+      } else {
+        c.a_mano++;
+        if (f.estado !== "juicio") c.juzgados++;
+        else c.pendientes++;
+      }
     }
     c[f.estado]++;
     if (f.estado === "juicio" && f.motivo) motivos[f.motivo] = (motivos[f.motivo] ?? 0) + 1;
@@ -359,7 +375,7 @@ export function cifrasDeCriterios(filas) {
 
 /** La línea de cifras de una skill, para contarla. */
 export function lineaDeCifras(nombre, c) {
-  return `criterios skill: ${nombre} criterios: ${c.criterios} vigilados: ${c.vigilados} de_juicio: ${c.de_juicio} calculados: ${c.calculados} juzgados: ${c.juzgados} cumple: ${c.cumple} no_cumple: ${c.no_cumple} no_aplica: ${c.no_aplica} juicio: ${c.juicio}`;
+  return `criterios skill: ${nombre} criterios: ${c.criterios} vigilados: ${c.vigilados} de_juicio: ${c.de_juicio} calculados: ${c.calculados} resueltos: ${c.resueltos} a_mano: ${c.a_mano} juzgados: ${c.juzgados} pendientes: ${c.pendientes} cumple: ${c.cumple} no_cumple: ${c.no_cumple} no_aplica: ${c.no_aplica} juicio: ${c.juicio}`;
 }
 
 /** Suma las cifras de varias skills (los motivos, por motivo). */
@@ -375,7 +391,7 @@ export function sumarCifras(lista) {
 /** La frase del conjunto. */
 export function lineaDelConjunto(n, t) {
   const motivos = Object.entries(t.motivos ?? {}).sort(([a], [b]) => a.localeCompare(b)).map(([m, v]) => `${m} ${v}`).join(", ") || "ninguno";
-  return `Criterios: ${n} skills, ${t.criterios ?? 0} criterios aplicados: ${t.vigilados ?? 0} vigilados por un control y ${t.de_juicio ?? 0} de juicio (${t.calculados ?? 0} deducidos de una medida, ${t.juzgados ?? 0} juzgados, ${t.juicio ?? 0} pendientes); cumple ${t.cumple ?? 0}, no_cumple ${t.no_cumple ?? 0}, no_aplica ${t.no_aplica ?? 0}; pendientes por motivo: ${motivos}.`;
+  return `Criterios: ${n} skills, ${t.criterios ?? 0} criterios aplicados: ${t.vigilados ?? 0} vigilados por un control y ${t.de_juicio ?? 0} de juicio: ${t.calculados ?? 0} de cálculo (${t.resueltos ?? 0} resueltos) y ${t.a_mano ?? 0} a mano (${t.juzgados ?? 0} juzgados, ${t.pendientes ?? 0} pendientes); cumple ${t.cumple ?? 0}, no_cumple ${t.no_cumple ?? 0}, no_aplica ${t.no_aplica ?? 0}, juicio ${t.juicio ?? 0}; juicio por motivo: ${motivos}.`;
 }
 
 /** Los criterios evaluados de todas las skills del repo: [{ nombre, filas, cifras }]. */
