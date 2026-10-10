@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { SOBRECARGA, leerMigraciones, leerSinAplicar, sentencias, testigos, veredictos } from "./verificar-estado.mjs";
+import { CONSULTAS, SOBRECARGA, conexionDeLaBase, leerMigraciones, leerSinAplicar, sentencias, testigos, veredictos } from "./verificar-estado.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ids = (sql) => testigos(sql).crea.map((t) => `${t.tipo}|${t.id}`);
@@ -101,6 +101,32 @@ it("una función con dos versiones vale si coincide cualquiera", () => {
   const migs = [{ nombre: "0001_f", ...testigos("create function public.f(a int) returns int language sql as $$ select 2 $$;") }];
   const catalogo = { función: new Map([["public.f", `select 1${SOBRECARGA}select 2`]]) };
   expect(veredictos(migs, catalogo, new Set())[0].estado).toBe("aplicada");
+});
+
+describe("con el usuario de solo lectura (#328)", () => {
+  it("lo que el usuario no puede ver (cron) sale «sin ver» y no cuenta: ni aplicada ni sin aplicar", () => {
+    const migs = [
+      { nombre: "0001_t", ...testigos("create table public.t (id int); select cron.schedule('job-x', '* * * * *', 'select 1');") },
+      { nombre: "0002_solo_cron", ...testigos("select cron.schedule('job-y', '* * * * *', 'select 1');") },
+    ];
+    const catalogo = { tabla: new Map([["public.t", ""]]), cron: null };
+    const v = Object.fromEntries(veredictos(migs, catalogo, new Set()).map((x) => [x.nombre, x]));
+    expect(v["0001_t"].estado).toBe("aplicada");
+    expect(v["0001_t"].filas.find((f) => f.tipo === "cron").resultado).toBe("sin ver");
+    expect(v["0002_solo_cron"]).toMatchObject({ estado: "sin ver", choca: false });
+  });
+
+  it("las columnas salen del catálogo y no de information_schema, que esconde las que el usuario no lee", () => {
+    expect(CONSULTAS.columna).not.toMatch(/information_schema/);
+    expect(CONSULTAS.columna).toMatch(/pg_attribute/);
+  });
+
+  it("entra con la URL de lectura; la de administrador, solo con --admin", () => {
+    const leer = (k) => ({ SUPABASE_DB_URL: "postgresql://admin@h/db", SUPABASE_DB_URL_LECTURA: "postgresql://consulta_lectura@h/db" })[k];
+    expect(conexionDeLaBase(leer, [])).toMatchObject({ url: "postgresql://consulta_lectura@h/db", rol: "consulta_lectura" });
+    expect(conexionDeLaBase(leer, ["--admin"]).url).toBe("postgresql://admin@h/db");
+    expect(() => conexionDeLaBase((k) => (k === "SUPABASE_DB_URL" ? "postgresql://admin@h/db" : undefined), [])).toThrow(/SUPABASE_DB_URL_LECTURA/);
+  });
 });
 
 describe("con el repo de verdad", () => {

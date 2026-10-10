@@ -62,18 +62,27 @@ export function tokenServicio() {
     try {
       token = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() || null;
     } catch {
+      // a propósito: sin token en el llavero; entornoOp falla cerrado con su mensaje (#328)
       token = null;
     }
   }
   return token;
 }
 
-/** El entorno con el que lanzar `op` (con la service account si la hay). */
+/**
+ * El entorno con el que lanzar `op`: con la service account del llavero o,
+ * solo con MENUPLAN_OP_PABLO=1, sin ella (app de escritorio). Sin token y sin
+ * esa variable, falla cerrado (#328): caer en silencio a la app daría a la
+ * sesión ventanas de aprobación iguales a las de Pablo, sobre todas las bóvedas.
+ */
 export function entornoOp(base = process.env) {
   const t = tokenServicio();
   if (t) return { ...base, OP_SERVICE_ACCOUNT_TOKEN: t };
+  if (process.env[VAR_OP_PABLO] !== "1") {
+    throw Object.assign(new Error(`no hay token de la service account (ni OP_SERVICE_ACCOUNT_TOKEN ni el llavero «${LLAVERO.recurso}»), y sin él no voy por la app de escritorio. Guárdalo con scripts/llavero-op.mjs (skill 1password); si eres Pablo y quieres la app, MENUPLAN_OP_PABLO=1`), { code: "SIN_TOKEN" });
+  }
   const env = { ...base };
-  if (process.env[VAR_OP_PABLO] === "1") delete env.OP_SERVICE_ACCOUNT_TOKEN;
+  delete env.OP_SERVICE_ACCOUNT_TOKEN;
   return env;
 }
 
@@ -126,6 +135,7 @@ function resolverVarias(pares, { tolerante = false } = {}) {
     inyectar(nuevas).forEach((v, i) => resueltas.set(nuevas[i][1], v));
     return [];
   } catch (e) {
+    if (e.code === "SIN_TOKEN") throw new Error(`No pude leer de 1Password ${nuevas.map(([k]) => k).join(", ")}: ${e.message}`);
     if (e.code === "ENOENT") throw new Error(`No pude leer de 1Password ${nuevas.map(([k]) => k).join(", ")}: ${motivoDe(e)}`);
   }
   const fallan = [];
@@ -146,7 +156,7 @@ function resolverVarias(pares, { tolerante = false } = {}) {
         console.error(`env-boveda clave: ${k} de: ${de} a: ${a} motivo: respaldo`);
         continue;
       } catch {
-        // tampoco está en la otra: cuenta como fallo
+        // a propósito: tampoco está en la otra bóveda; cuenta como fallo y se avisa abajo
       }
     }
     fallan.push(k);

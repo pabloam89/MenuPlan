@@ -166,3 +166,23 @@ describe("plan B entre bóvedas (#299): HoMenu-sesiones y HoMenu", () => {
     expect(llamadas.some((l) => l.input.includes("HoMenu-sesiones"))).toBe(false);
   });
 });
+
+describe("sin token, falla cerrado (#328)", () => {
+  it("sin token ni MENUPLAN_OP_PABLO no llama a op (ni cae a la app de escritorio); con la variable, sí y sin token", async () => {
+    delete process.env.OP_SERVICE_ACCOUNT_TOKEN;
+    vi.resetModules();
+    const fresco = await import("./env.mjs");
+    process.env.PRUEBA_A = "op://HoMenu-sesiones/X/PRUEBA_A";
+    expect(() => fresco.leerEnv("PRUEBA_A")).toThrow(/No pude leer de 1Password PRUEBA_A: no hay token de la service account/);
+    expect(() => fresco.cargarEnv(["PRUEBA_A"], { tolerante: true })).toThrow(/no hay token/);
+    expect(() => fresco.entornoOp()).toThrow(/MENUPLAN_OP_PABLO=1/);
+    expect(llamadas.filter((l) => l.cmd === "op")).toEqual([]);
+    process.env.MENUPLAN_OP_PABLO = "1";
+    try {
+      expect(fresco.leerEnv("PRUEBA_A")).toBe("VALOR-de-op://HoMenu-sesiones/X/PRUEBA_A");
+      expect(llamadas.filter((l) => l.cmd === "op").at(-1).token).toBeUndefined();
+    } finally {
+      delete process.env.MENUPLAN_OP_PABLO;
+    }
+  });
+});

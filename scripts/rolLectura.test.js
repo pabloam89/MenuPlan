@@ -6,6 +6,8 @@ import {
   argumentosDeConsulta, claveNueva, conexionDeConsulta, direccionOp, estadoFicha, fichaDeRol, fichaLectura, motivoUsuarioIncorrecto, urlDeRol, urlLectura, verificadorScram,
 } from "./lib/rolLectura.mjs";
 import { BOVEDA_COPIAS } from "./lib/copias.mjs";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 /**
  * Hace de servidor Postgres con el verificador y deja que el cliente SCRAM de
@@ -58,7 +60,7 @@ describe("usuario de solo lectura (0092, issue #233)", () => {
   it("la ficha de 1Password lleva la dirección en el campo que lee OP_LECTURA", () => {
     const ficha = JSON.parse(fichaLectura("clave", "postgresql://u:clave@h/db"));
     const [, boveda, titulo, campo] = /^op:\/\/([^/]+)\/([^/]+)\/(.+)$/.exec(OP_LECTURA);
-    expect(boveda).toBe("HoMenu");
+    expect(boveda).toBe("HoMenu-sesiones"); // #328: la leen las sesiones
     expect(ficha.title).toBe(titulo);
     expect(ficha.fields.find((f) => f.label === campo)).toMatchObject({ type: "CONCEALED", value: "postgresql://u:clave@h/db" });
   });
@@ -161,5 +163,17 @@ describe("usuario de las copias (issue #273)", () => {
 
   it("tras poner la contraseña comprueba que lee el esquema copia", () => {
     expect(copia.prueba).toMatch(/\bcopia\.auth_usuarios\b/);
+  });
+});
+
+describe("los scripts que solo leen entran con el usuario de lectura (#328)", () => {
+  // Las sesiones no tienen la URL de administrador (bóveda HoMenu-sesiones).
+  // Los que escriben (aplicar migraciones, bot-cron, ensayo-*) se quedan con Pablo hasta E5 (#331).
+  const SOLO_LEEN = ["bot-coste", "bot-medidas", "bot-panel", "lola-feedback", "router-feedback", "verificar-estado"];
+  it.each(SOLO_LEEN)("%s usa conexionDeConsulta y no lee SUPABASE_DB_URL a pelo", (nombre) => {
+    const src = readFileSync(join(import.meta.dirname, `${nombre}.mjs`), "utf8");
+    expect(src).toMatch(/conexionDe(Consulta|LaBase)\(/);
+    expect(src).not.toMatch(/leerEnv\(\s*["']SUPABASE_DB_URL["']/);
+    expect(src).not.toMatch(/\b(insert\s+into|update\s+\w+\s+set|delete\s+from)\b/i);
   });
 });

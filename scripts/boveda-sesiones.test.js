@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { leerFichero } from "./lib/env.mjs";
-import { BOVEDA_PABLO, BOVEDA_SESIONES, COPIAR, SOLO_PABLO, fichaCopia, pareceToken } from "./boveda-sesiones.mjs";
+import { BOVEDA_PABLO, BOVEDA_SESIONES, COPIAR, SOLO_PABLO, fichaCopia } from "./boveda-sesiones.mjs";
 
 // #328: lo que leen las sesiones vive en HoMenu-sesiones; lo de producción,
 // solo en HoMenu. Este test ata la lista del script a la plantilla de
@@ -32,6 +32,11 @@ describe("ops/env.1password", () => {
 });
 
 describe("COPIAR", () => {
+  it("Blob se queda con Pablo: escribe en las fotos de producción (#328)", () => {
+    expect(COPIAR.some(({ ficha }) => ficha === "Vercel Blob")).toBe(false);
+    expect(SOLO_PABLO.some(({ campo }) => campo === "BLOB_READ_WRITE_TOKEN")).toBe(true);
+  });
+
   it("no copia nada de lo que se queda con Pablo", () => {
     const prohibidos = new Set(SOLO_PABLO.map(({ ficha, campo }) => `${ficha}/${campo}`));
     for (const { ficha, campos } of COPIAR) for (const c of campos) expect(prohibidos.has(`${ficha}/${c}`), `${ficha}/${c}`).toBe(false);
@@ -64,14 +69,5 @@ describe("fichaCopia", () => {
     expect(() => fichaCopia(origen, ["NO_EXISTE"])).toThrow(/NO_EXISTE/);
     const vacio = { ...origen, fields: [{ id: "a", type: "STRING", label: "VACIO", value: "" }] };
     expect(() => fichaCopia(vacio, ["VACIO"])).toThrow(/VACIO/);
-  });
-});
-
-describe("pareceToken", () => {
-  it("solo acepta un token de service account (ops_…), sin espacios", () => {
-    expect(pareceToken("ops_eyJhbGciOi")).toBe(true);
-    expect(pareceToken("")).toBe(false);
-    expect(pareceToken("[ERROR] 2026/10/09 no autorizado")).toBe(false);
-    expect(pareceToken("ops_ con espacio")).toBe(false);
   });
 });

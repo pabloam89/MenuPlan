@@ -4,11 +4,11 @@
  *
  *   node scripts/boveda-sesiones.mjs              ensayo: qué copiaría, sin escribir
  *   node scripts/boveda-sesiones.mjs --si         copia a HoMenu-sesiones (Pablo, con `!`)
- *   op service-account create "MenuPlan sesiones" --vault HoMenu-sesiones:read_items --raw \
- *     | node scripts/boveda-sesiones.mjs --guardar-token
- *                                                el token nuevo, al llavero (Pablo, con `!`)
  *   node scripts/boveda-sesiones.mjs --comprobar  con el token del llavero: la URL de
  *                                                administrador NO se lee y las de sesiones sí
+ *
+ * El token de la cuenta de servicio nueva lo guarda `scripts/llavero-op.mjs`.
+ * Los pasos, en orden: skill `1password`, «Bóveda de sesiones».
  *
  * Copia, no mueve: la ficha de HoMenu sigue igual. Solo los campos de COPIAR:
  * la ficha «Supabase» de sesiones lleva la URL y la anon key, no la URL de
@@ -21,20 +21,17 @@
  *
  * La lista y la plantilla `ops/env.1password` las ata `boveda-sesiones.test.js`.
  */
-import { execFileSync, spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import { LLAVERO, entornoOp, tokenServicio } from "./lib/env.mjs";
+import { BOVEDA_PABLO, BOVEDA_SESIONES, VAR_OP_PABLO, entornoOp, tokenServicio } from "./lib/env.mjs";
 import { estadoFicha } from "./lib/rolLectura.mjs";
 
-export const BOVEDA_PABLO = "HoMenu";
-export const BOVEDA_SESIONES = "HoMenu-sesiones";
+export { BOVEDA_PABLO, BOVEDA_SESIONES };
 
 /** Lo que va a sesiones: ficha de HoMenu → campos (el título se conserva). */
 export const COPIAR = [
   { ficha: "Anthropic", campos: ["ANTHROPIC_API_KEY"] },
   { ficha: "Vercel AI Gateway", campos: ["AI_GATEWAY_API_KEY"] },
-  { ficha: "Vercel Blob", campos: ["BLOB_READ_WRITE_TOKEN"] },
   { ficha: "fal", campos: ["FAL_KEY"] },
   { ficha: "Gemini AI Studio", campos: ["GEMINI_AI_STUDIO_KEY"] },
   { ficha: "Groq", campos: ["GROQ_API_KEY"] },
@@ -47,6 +44,8 @@ export const COPIAR = [
 export const SOLO_PABLO = [
   { ficha: "Supabase", campo: "SUPABASE_DB_URL" },
   { ficha: "Supabase", campo: "SUPABASE_ACCESS_TOKEN" },
+  // Escribe y borra en el store que sirve las fotos de producción (seguridad, #328).
+  { ficha: "Vercel Blob", campo: "BLOB_READ_WRITE_TOKEN" },
   { ficha: "Telegram", campo: "TELEGRAM_BOT_TOKEN" },
   { ficha: "Telegram", campo: "TELEGRAM_WEBHOOK_SECRET" },
   { ficha: "Telegram", campo: "TELEGRAM_BOT_USERNAME" },
@@ -66,15 +65,20 @@ export function fichaCopia(origen, campos) {
   return { title: origen.title, category: origen.category, fields };
 }
 
-/** Un token de service account: empieza por ops_ y no lleva espacios. */
-export const pareceToken = (t) => /^ops_\S+$/.test(t);
-
-/** `op` con la service account del llavero (la que usan las sesiones). */
-const opServicio = (args, input) => spawnSync("op", args, { env: entornoOp(), encoding: "utf8", input });
+/** `op` con la service account del llavero (la que usan las sesiones). Sin token, falla cerrado. */
+function opServicio(args) {
+  let env;
+  try {
+    env = entornoOp();
+  } catch (e) {
+    return { status: 1, stdout: "", stderr: e.message };
+  }
+  return spawnSync("op", args, { env, encoding: "utf8" });
+}
 /** `op` por la app de escritorio, sin token: pide aprobar a Pablo. */
 function opApp(args, input) {
   const { OP_SERVICE_ACCOUNT_TOKEN: _, ...env } = process.env;
-  return spawnSync("op", args, { env, encoding: "utf8", input });
+  return spawnSync("op", args, { env: { ...env, [VAR_OP_PABLO]: "1" }, encoding: "utf8", input });
 }
 const motivo = (r) => (r.error?.message || r.stderr || "").trim().split("\n")[0];
 
@@ -112,33 +116,10 @@ function copiar(si) {
   return fallos;
 }
 
-/** recurso: el del llavero; otro solo para probar el script sin tocar el de verdad. */
-function guardarToken(recurso = LLAVERO.recurso) {
-  const t = readStdin().trim();
-  if (!pareceToken(t)) {
-    console.error("Lo que llega por la tubería no parece un token (ops_…): no toco el llavero. ¿Falló el `op service-account create`?");
-    return 1;
-  }
-  const ps = "[void][Windows.Security.Credentials.PasswordVault, Windows.Security.Credentials, ContentType = WindowsRuntime];"
-    + "[void][Windows.Security.Credentials.PasswordCredential, Windows.Security.Credentials, ContentType = WindowsRuntime];"
-    + " $t = [Console]::In.ReadToEnd().Trim(); $v = New-Object Windows.Security.Credentials.PasswordVault;"
-    + ` try { $v.Remove($v.Retrieve('${recurso}', '${LLAVERO.usuario}')) } catch {}`
-    + ` $v.Add((New-Object Windows.Security.Credentials.PasswordCredential('${recurso}', '${LLAVERO.usuario}', $t)));`
-    + ` $c = $v.Retrieve('${recurso}', '${LLAVERO.usuario}'); $c.RetrievePassword();`
-    + " if ($c.Password -eq $t) { 'COINCIDEN' } else { 'NO COINCIDEN' }";
-  const out = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { input: t, encoding: "utf8" }).trim();
-  console.log(`Token guardado en el llavero («${recurso}», usuario ${LLAVERO.usuario}): ${out}`);
-  return out === "COINCIDEN" ? 0 : 1;
-}
-
-function readStdin() {
-  try { return readFileSync(0, "utf8"); } catch { return ""; }
-}
-
 function comprobar() {
   let mal = 0;
   const linea = (ok, texto) => { console.log(`${ok ? "BIEN" : "MAL "}  ${texto}`); if (!ok) mal++; };
-  linea(Boolean(tokenServicio()), "hay token de service account en el llavero (sin él, `op` iría por la app y lo vería todo)");
+  linea(process.env[VAR_OP_PABLO] !== "1" && Boolean(tokenServicio()), `hay token de service account en el llavero y ${VAR_OP_PABLO} no está puesto`);
   const v = opServicio(["vault", "list", "--format", "json"]);
   const nombres = v.status === 0 ? JSON.parse(v.stdout).map((b) => b.name) : [];
   linea(nombres.length === 1 && nombres[0] === BOVEDA_SESIONES, `la cuenta solo ve ${BOVEDA_SESIONES} (ve: ${nombres.join(", ") || motivo(v)})`);
@@ -156,9 +137,5 @@ function comprobar() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
-  let codigo;
-  if (args.includes("--guardar-token")) codigo = guardarToken(args.includes("--recurso") ? args[args.indexOf("--recurso") + 1] : undefined);
-  else if (args.includes("--comprobar")) codigo = comprobar();
-  else codigo = copiar(args.includes("--si")) ? 1 : 0;
-  process.exit(codigo);
+  process.exit(args.includes("--comprobar") ? comprobar() : (copiar(args.includes("--si")) ? 1 : 0));
 }
