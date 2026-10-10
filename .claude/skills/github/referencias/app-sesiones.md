@@ -35,7 +35,7 @@ a secretos» mientras (a) y (b) no estén hechos:
 - **(b) `ios-testflight.yml` y los tags `ios-*`.** Ese workflow corre al empujar un
   tag `ios-*` desde **cualquier commit** y expone el p12 y el p8. Hace falta un
   *ruleset* de tags `ios-*` con bypass solo para Pablo, y un environment `ios` con
-  revisor obligatorio. Es de Pablo; no lo hace una sesión.
+  revisor que tenga que aprobar. Es de Pablo; no lo hace una sesión.
 
 Sin comprobar a 10 oct 2026: que (a) y (b) estén hechos. Pablo decide si crea la
 App antes o después de ellos.
@@ -45,7 +45,7 @@ App antes o después de ellos.
 - La bóveda `HoMenu-sesiones` de 1Password tiene que existir (E2, #328; a 10 oct
   2026 estaba **pendiente de crear**). Si no existe, para aquí: **no dejes el
   `.pem` en `HoMenu`**; E2 dice «mover» la clave a `HoMenu-sesiones`, y eso es
-  lo mismo: el `.pem` nace directamente en `HoMenu-sesiones`, nunca pasa por
+  lo mismo: el `.pem` nace directamente en `HoMenu-sesiones`, no pasa por
   `HoMenu`. Nombres fijados por la rama de E2: bóveda `HoMenu-sesiones`, Documento
   `GitHub App homenu-sesiones`.
 - La app de escritorio de 1Password abierta y desbloqueada.
@@ -113,7 +113,7 @@ En la App → **Private keys** → **Generate a private key**: el navegador baja
 
 Se usa `node scripts/op.mjs` y no `npm run op --`: la cabecera que imprime npm
 entraría en la tubería delante del PEM y lo estropearía. El token **solo se
-captura con `$(…)`**: nunca se imprime en una sesión (quedaría en la transcripción
+captura con `$(…)`**: no se imprime en una sesión (quedaría en la transcripción
 en disco). El script avisa por stderr si su salida es una terminal.
 
 `GH_TOKEN="$(node scripts/op.mjs document get "GitHub App homenu-sesiones" --vault HoMenu-sesiones | node scripts/token-sesiones.mjs)" gh api repos/pabloam89/MenuPlan -q .full_name`
@@ -131,7 +131,7 @@ El propio script se niega a imprimir un token si GitHub le concede `administrati
 `secrets`, `environments`, `deployments` o `workflows`, o si no está limitado
 exactamente a `MenuPlan`. Si da 200 en alguna de las tres últimas llamadas, corrige
 los permisos de la App antes de seguir (E3 no empieza hasta entonces). Para la
-guardia futura: el token solo debe capturarse con `$(…)`, nunca imprimirse.
+guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
 
 ## Seguridad: caducidad, alcance, fuga y revocación
 
@@ -139,8 +139,8 @@ guardia futura: el token solo debe capturarse con `$(…)`, nunca imprimirse.
   de instalación 1 hora, y eso solo protege frente a **un token que se escapa**. El
   `.pem` **no caduca**. Según el diseño de E2, cualquier sesión que lea la bóveda
   `HoMenu-sesiones` puede sacar el `.pem` y tener acceso persistente (pedir tokens
-  nuevos cuando quiera) hasta que alguien borre la clave. Rotación: **90 días como
-  máximo** (skill `alta-de-secreto`); la fecha, en `ops/INVENTARIO.md`.
+  nuevos cuando quiera) hasta que alguien borre la clave. Rotación: **cada 90 días,
+  como mucho** (skill `alta-de-secreto`); la fecha, en `ops/INVENTARIO.md`.
   **DECISIÓN PENDIENTE de Pablo: ¿se acepta que las sesiones puedan leer el `.pem`?**
   Alternativa si no: que el token lo pida un proceso fuera de las sesiones.
 - **Alcance.** Solo `pabloam89/MenuPlan`, con los permisos de arriba y el token
@@ -171,7 +171,7 @@ guardia futura: el token solo debe capturarse con `$(…)`, nunca imprimirse.
      reactiva la instalación.
 - **Rotación normal.** Genera una **segunda** clave (la App admite varias),
   sustituye el Documento, comprueba el paso 4 y solo entonces borra la vieja.
-- **Quitar la App** (OK de Pablo): Uninstall en el repo, Delete GitHub App, el
+- **Quitar la App** (lo decide Pablo): Uninstall en el repo, Delete GitHub App, el
   Documento a la papelera y la fila del inventario marcada «retirada».
 - El token sale por la salida estándar del script y no se escribe en ningún
   fichero. No lo pegues en un comando ni en un issue; no se pone en `GH_TOKEN` de

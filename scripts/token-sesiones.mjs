@@ -106,6 +106,7 @@ export async function pedirToken({ jwt, installationId, fetchFn = fetch }) {
   try {
     datos = await r.json();
   } catch {
+    // a propósito: un cuerpo que no es JSON no se enseña (podría llevar secretos); sigue como datos = null y el error sale justo debajo con el código HTTP (o «2xx sin token»)
     datos = null;
   }
   if (!r.ok) {
@@ -136,7 +137,9 @@ async function leerStdin(entrada = process.stdin, esperaMs = ESPERA_STDIN_MS) {
     }
     return s;
   })();
-  leer.catch(() => {});
+  leer.catch(() => {
+    // a propósito: si gana el tope de tiempo, el fallo de la lectura ya no importa; el motivo que sale por stderr es el del tope. Sin esto, Node avisa de un rechazo sin atender
+  });
   try {
     return await Promise.race([leer, tope]);
   } finally {
