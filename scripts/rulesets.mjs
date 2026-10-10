@@ -123,7 +123,10 @@ export class ErrorRulesets extends Error {}
 export function tokenDe(env, ejecutarGh = () => execFileSync("gh", ["auth", "token"], { encoding: "utf8", timeout: ESPERA_MS, stdio: ["ignore", "pipe", "ignore"] })) {
   const t = (env.GH_TOKEN || env.GITHUB_TOKEN || "").trim();
   if (t) return t;
-  try { return String(ejecutarGh()).trim(); } catch { return ""; }
+  try { return String(ejecutarGh()).trim(); } catch {
+    // a propósito: sin token el script sale con código 2 y su propio aviso («sin token»)
+    return "";
+  }
 }
 
 async function llamar(fetchFn, token, metodo, ruta, cuerpo) {
