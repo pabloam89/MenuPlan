@@ -35,6 +35,11 @@ jobs:
           # Dos commits: en un PR, HEAD es la fusión con la base y HEAD^1 la base;
           # su diferencia son los ficheros del PR (para el paso del runbook).
           fetch-depth: 2
+      # El trinquete de ops/forja.test.js compara con origin/staging (#458): un
+      # criterio no puede bajar de capa ni desaparecer de los dos ficheros a la
+      # vez. Con fetch-depth 2 esa referencia no existe y el test se saltaría.
+      - name: Traer staging para los trinquetes
+        run: git fetch --no-tags --depth=1 origin +refs/heads/staging:refs/remotes/origin/staging
       - uses: actions/setup-node@v6
         with:
           node-version: 24
