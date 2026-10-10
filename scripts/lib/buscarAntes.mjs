@@ -25,7 +25,7 @@
  *
  * Todo es puro salvo `leerIndice`/`escribirIndice`/`ramaDeLaPrincipal`.
  */
-import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -222,11 +222,12 @@ export function escribirIndice(indice, ruta = rutaIndice()) {
 export function leerIndice(ruta = rutaIndice(), ahora = Date.now()) {
   if (!existsSync(ruta)) return { indice: null, motivo: "ausente" };
   try {
-    const st = statSync(ruta);
+    // lstat y no stat (#428): un enlace no sigue; solo cuenta un fichero que está de verdad ahí.
+    const st = lstatSync(ruta);
     // Solo un fichero normal (un FIFO tiene tamaño 0 y readFileSync se colgaría) y, en POSIX, de una carpeta nuestra.
     if (!st.isFile()) return { indice: null, motivo: "ilegible" };
     if (st.size > MAX_BYTES_INDICE) return { indice: null, motivo: "grande" };
-    if (typeof process.getuid === "function" && statSync(dirname(ruta)).uid !== process.getuid()) return { indice: null, motivo: "ilegible" };
+    if (typeof process.getuid === "function" && lstatSync(dirname(ruta)).uid !== process.getuid()) return { indice: null, motivo: "ilegible" };
     const indice = JSON.parse(readFileSync(ruta, "utf8"));
     if (indice?.version !== VERSION_INDICE || !Array.isArray(indice.fichas)) return { indice: null, motivo: "version" };
     // Una ficha fuera de esquema (a mano, o de otra versión) se descarta: nunca llega a pintarse.
@@ -603,7 +604,7 @@ export function textoDeAviso(senal, resultados, lectura) {
     const cuerpo = grupos.map(([quien, lista], i) => `${quien}${i === 0 ? ` — ${marco}` : ""}: ${lista.map(lineaDeResultado).join(" | ")}.`).join(" ");
     return `${cabeza} ${cuerpo} Si no tiene que ver con lo tuyo, ignóralo: este aviso no se repite en la sesión.`;
   }
-  return `${cabeza} No hay nada apuntado que se parezca${edad}. Antes de darlo por nuevo, busca con otras palabras: \`npm run buscar -- "<síntoma>"\`. `
+  return `${cabeza} No hay nada apuntado que se parezca${edad}. Antes de darlo por nuevo, busca con otras palabras: \`npm run buscar -- "síntoma"\`. `
     + "Si es nuevo, regístralo con `npm run issues -- --nuevo …`; no lo des por un misterio. Este aviso no se repite en la sesión.";
 }
 
