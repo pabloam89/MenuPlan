@@ -49,7 +49,7 @@ describe("la línea de un evento", () => {
     expect(l.rama).toBeNull();
   });
 
-  it("el vocabulario son cuatro eventos", () => expect(EVENTOS).toEqual(["skill_cargada", "agente_lanzado", "bloqueo_guardia", "permiso_pedido"]));
+  it("el vocabulario son cinco eventos", () => expect(EVENTOS).toEqual(["skill_cargada", "agente_lanzado", "bloqueo_guardia", "permiso_pedido", "estado_sin_leer"]));
 });
 
 describe("registrarEvento escribe una línea JSON por evento", () => {
