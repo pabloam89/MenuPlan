@@ -518,6 +518,7 @@ scripts/diseno/             recorte, tarjetas, optimizado, iconos, logo
 8. Limpieza (con OK de Pablo, porque es borrar): `Avatares/` fuera del índice,
    pares de `categories/`, logos duplicados, `public/postres/`,
    `feature-graphic.png`, `dish-gallery/` y `menus_cole/` fuera de la raíz.
+   (`dish-gallery/` ya está retirada, #301; solo queda `dish-gallery/public/catalog.json`, decisión #519.)
 9. Aparte: nombre accesible a los ~20 botones sin nombre de «Tu menú»; la
    pegatina de Lola tapa la última fila de «Compra».
 
