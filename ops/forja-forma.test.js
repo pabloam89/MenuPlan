@@ -104,7 +104,7 @@ describe("una práctica contra su forma", () => {
     expect(problemas(una)[0].mensaje).toContain("bullet 3");
   });
   it("la voz es material: la pasiva con «ser» y la refleja con «se» fallan", () => {
-    for (const regla of ["El resultado es revisado por otra persona", "Escribe lo que fue acordado antes", "Comprueba cómo se calcula el total"]) {
+    for (const regla of ["El resultado es revisado por otra persona", "Escribe lo que fue acordado antes", "Se calcula el total antes de abrir el PR"]) {
       const p = practica(3);
       p.bullets[0].regla = regla;
       expect(criterios(p), regla).toContain("practica-voz-activa");
@@ -126,6 +126,53 @@ describe("una práctica contra su forma", () => {
     expect(con("Abre nuestro PR con el CI en verde")).toContain("practica-modo-tiempo-persona");
     expect(con("Así usted sabe qué pasa", "porque")).toContain("practica-modo-tiempo-persona");
     expect(con("Abre el PR con el CI en verde")).toEqual([]);
+  });
+  /**
+   * Las 19 reglas de la revisión del juez (12 de h2 y 7 de h3): antes la heurística marcaba 12 de 19 (11 falsos
+   * positivos, contando «estaba» como acierto); ahora solo marca las que tienen un pasado de verdad.
+   */
+  const DEL_JUEZ = [
+    ["Lee el log antes de tocar nada y formula una hipótesis.", "Porque el síntoma engaña si no miras primero el error exacto del CI.", false],
+    ["Devuelve el fallo con fichero y error cuando el rojo es del producto.", "Así quien lo hizo sabe dónde mirar sin reproducirlo otra vez.", false],
+    ["Prueba con workflow_dispatch en tu rama antes de fiarte del cron.", "El cron solo corre en main y un fallo ahí llega a producción sin que nadie lo vea.", false],
+    ["Pon el permiso mínimo en cada workflow.", "Un token con permisos de más convierte un paso comprometido en acceso al repo.", false],
+    ["Mira qué hace el script, no qué proveedor trae escrito.", "Porque el nombre engaña y se generó una imagen con el modelo equivocado.", false],
+    ["Cuando se acabe el plazo, avisa a Pablo por el issue.", "La alerta se pierde si nadie la ve, y el plazo vence en silencio.", false],
+    ["Escribe la fecha que da npm run hora, nunca la de date.", "En Git Bash date devolvió la hora UTC y las horas límite salieron 2 h antes.", false],
+    ["Anota el motivo cuando cambió el vocabulario.", "Porque el cambio se pierde si solo queda en el chat y no en el repo.", true],
+    ["Aplica la migración que se ensayó hace menos de una hora.", "Un ensayo viejo no vale: el esquema cambió desde entonces.", true],
+    ["Cierra el issue con el PR que lo arregla; no lo cierres a mano.", "Así el cierre queda enlazado y cuenta como arreglado en las cifras.", false],
+    ["Revisa los tests porque fallaba el de ayer.", "La causa es de antes de ayer, y se vio en el log del martes.", true],
+    ["Usa se como clave si el vocabulario lo pide.", "Se trata de un identificador, no de una pasiva.", false],
+    ["Revisa la librería y la batería de pruebas.", "Porque lo dice la fuente de la casa en detalle", false],
+    ["Lee la tubería del CI.", "Porque lo dice la fuente de la casa en detalle", false],
+    ["Actualiza la galería de la ingeniería.", "Porque lo dice la fuente de la casa en detalle", false],
+    ["Pregunta a Pablo cuando se te olvide algo.", "Porque lo dice la fuente de la casa en detalle", false],
+    ["Pide el permiso: se puede cuando hay PR.", "Porque lo dice la fuente de la casa en detalle", false],
+    ["Evita el estaba (nombre propio) en la app.", "Porque lo dice la fuente de la casa en detalle", true],
+    ["Cierra lo que se hace en la sesión.", "Porque lo dice la fuente de la casa en detalle", false],
+  ];
+  it("las 19 reglas del juez: las buenas no se marcan; «se ensayó», «fallaba» y «cambió» sí", () => {
+    expect(DEL_JUEZ).toHaveLength(19);
+    for (const [regla, porque, marca] of DEL_JUEZ) {
+      const p = practica(2);
+      p.bullets.forEach((b) => { b.regla = regla; b.porque = porque; });
+      const r = problemas(p).filter((x) => /voz|modo/.test(x.criterio));
+      expect(r.length > 0, regla).toBe(marca);
+    }
+    expect(DEL_JUEZ.filter((x) => x[2])).toHaveLength(4);
+  });
+  it("«se» + verbo solo cuenta si abre la regla, y no con {puede, pueda, trata, te, me, acabe}", () => {
+    const con = (regla) => { const p = practica(3); p.bullets[0].regla = regla; return criterios(p); };
+    expect(con("Se lee el log antes de tocar nada")).toContain("practica-voz-activa");
+    expect(con("Se prueba con workflow_dispatch en la rama")).toContain("practica-voz-activa");
+    for (const sana of ["Pide permiso cuando se pueda", "Revisa lo que se trata aparte", "Se puede abrir el PR con el CI en verde", "Se trata de abrir el PR a tiempo", "Se acabe antes de abrir el PR"]) expect(con(sana), sana).not.toContain("practica-voz-activa");
+    expect(con("Cierra lo que se hace en la sesión")).not.toContain("practica-voz-activa");
+  });
+  it("el condicional («-ería») y el «-ó» suelto ya no cuentan como otro tiempo; el futuro y el pasado sí", () => {
+    const con = (regla) => { const p = practica(3); p.bullets[0].regla = regla; return criterios(p); };
+    for (const sana of ["Mira la librería", "Revisa la categoría", "Compara la ingeniería", "Avisa a Mercadona"]) expect(con(sana), sana).not.toContain("practica-modo-tiempo-persona");
+    for (const mala of ["Revisará la cola", "Ensayó la migración", "Cambió el estado", "Fallaban los tests"]) expect(con(mala), mala).toContain("practica-modo-tiempo-persona");
   });
   it("cada criterio que emite existe en la base, con la capa que toca", () => {
     const capas = (id) => datos.criterios.find((c) => c.id === id)?.capa;

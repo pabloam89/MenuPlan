@@ -148,7 +148,7 @@ El frontmatter de .claude/agents/<agente>.md.
 
 ## La forma de una práctica
 
-Datos en `forma_practica` de `ops/forja.json`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto. Aplicarlo a los estándares reales es de #454.
+Datos en `forma_practica` de `ops/forja.json`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto que **es orientativa hasta que #454 la calibre con estándares reales** (la voz solo mira el verbo que abre la regla; el condicional y el -ó suelto no cuentan como otro tiempo). Aplicarlo a los estándares reales es de #454.
 
 | Artefacto | Bullets | Estructura de cada bullet | Fuente por bullet | Voz | Modo y tiempo | Persona |
 |---|---|---|---|---|---|---|
@@ -316,9 +316,9 @@ Heurística automática; lo que hoy incumple va a una lista de excepciones que s
 
 ### material · estandar (4)
 
-- `practica-voz-activa` — La regla y su porqué van en voz activa, sin pasiva con «ser» ni pasiva refleja con «se»: heurística sobre el texto, que no entiende la frase
+- `practica-voz-activa` — La regla y su porqué van en voz activa, sin pasiva con «ser» ni pasiva refleja con «se»: heurística sobre el texto, que no entiende la frase; orientativo hasta que #454 la calibre con estándares reales
   - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
-- `practica-modo-tiempo-persona` — La regla usa un solo modo y tiempo verbal y una sola persona, los declarados en forma_practica (hoy imperativo, segunda persona): heurística que detecta futuros, pasados, sujetos nominales y modales
+- `practica-modo-tiempo-persona` — La regla usa un solo modo y tiempo verbal y una sola persona, los declarados en forma_practica (hoy imperativo, segunda persona): heurística que detecta futuros, pasados, sujetos nominales y modales; orientativo hasta que #454 la calibre con estándares reales
   - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
 - `estandar-rondas-de-investigacion` — Un estándar deja el rastro de tres rondas de investigación o más (buscar, contrastar, destilar), cada una con una línea «ronda: n fuentes: k cambios: …» y fuentes mayores que 0; lo que hoy no lo cumple va a una lista de excepciones que solo baja
   - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.

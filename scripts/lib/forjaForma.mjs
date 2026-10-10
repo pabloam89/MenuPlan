@@ -14,6 +14,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { FUENTE_F, FUENTE_I, esTexto } from "./forja.mjs";
+
 export const RUTA_EXCEPCIONES = "ops/forja-excepciones.json";
 
 /** Las partes de un bullet, en este orden. */
@@ -22,9 +24,6 @@ export const VOCES = ["activa"];
 export const MODOS_TIEMPO = ["imperativo", "presente"];
 export const PERSONAS = ["segunda", "tercera", "impersonal"];
 
-const FUENTE_F = /^\[F\] https:\/\/[^\s/]+\/\S*$/;
-const FUENTE_I = /^\[I\] (\S+)$/;
-const esTexto = (v, min) => typeof v === "string" && v.trim().length >= min;
 const MIN_PARTE = 10;
 
 export function leerExcepciones(raiz) {
@@ -61,8 +60,10 @@ export function problemasDeFormaDeclarada(datos, artefactos) {
 const FRONTERA = String.raw`(?:(?<![\p{L}])(?=[\p{L}])|(?<=[\p{L}])(?![\p{L}]))`;
 const ub = (re) => new RegExp(re.source.replace(/\\b/g, () => FRONTERA), "iu");
 const PASIVA_SER = ub(/\b(?:es|son|fue|fueron|será|serán|sea|sean|siendo|ha sido|han sido|había sido)\s+[a-záéíóúñ]+(?:ad|id)[oa]s?\b/);
-const PASIVA_REFLEJA = ub(/\bse\s+(?!ha\b|han\b)[a-záéíóúñ]+(?:a|an|e|en|ará|arán|erá|erán|irá|irán)\b/);
-const OTRO_TIEMPO = ub(/\b[a-záéíóúñ]+(?:ará|erá|irá|arán|erán|irán|aría|ería|iría|arían|erían|irían|aron|ieron|ió|aba|aban|ó)\b/);
+/** Pasiva refleja: solo el verbo que abre la regla (las subordinadas no cuentan), salvo 'se' + {ha, han, pueda, puede, trata, te, me, acabe}. */
+const PASIVA_REFLEJA = ub(/^\s*se\s+(?!(?:ha|han|pueda|puede|trata|te|me|acabe)\b)[a-záéíóúñ]+(?:a|an|e|en|ará|arán|erá|erán|irá|irán)\b/);
+/** Futuro y pasado de verbo regular. Sin condicional (-ería, -aría, -iría: librería, tubería…) ni -ó suelto. */
+const OTRO_TIEMPO = ub(/\b[a-záéíóúñ]+(?:ará|erá|irá|arán|erán|irán|aron|ieron|ió|yó|aba|aban)\b/);
 const SUJETO_NOMINAL = ub(/^(?:el|la|los|las|un|una|unos|unas|todo|toda|todos|todas|cada)\b/);
 const MODAL_DESCRIPTIVO = ub(/\b(?:debe|deben|debería|deberían|hay que|conviene|es necesario)\b/);
 const PERSONA_MALA = {
@@ -101,8 +102,9 @@ export function problemasDePractica(practica, artefacto, datos, existe) {
       if (!existe(ruta)) anota("practica-fuente-por-bullet", `${d}: la fuente de la casa apunta a ${ruta}, que no existe en el repo`);
     } else anota("practica-fuente-por-bullet", `${d}: «fuente» es «[F] https://…» o «[I] ruta/del/repo»`);
     const texto = `${b?.regla ?? ""} ${b?.porque ?? ""}`;
-    if (PASIVA_SER.test(texto) || PASIVA_REFLEJA.test(texto)) anota("practica-voz-activa", `${d}: voz pasiva («${(texto.match(PASIVA_SER) ?? texto.match(PASIVA_REFLEJA))[0]}»); la forma pide ${f.voz}`);
     const regla = String(b?.regla ?? "");
+    const pasiva = texto.match(PASIVA_SER) ?? regla.match(PASIVA_REFLEJA);
+    if (pasiva) anota("practica-voz-activa", `${d}: voz pasiva («${pasiva[0].trim()}»); la forma pide ${f.voz}`);
     const otro = regla.match(OTRO_TIEMPO);
     if (otro) anota("practica-modo-tiempo-persona", `${d}: «${otro[0]}» no es ${f.modo_tiempo}; un solo modo y tiempo`);
     if (f.modo_tiempo === "imperativo") {

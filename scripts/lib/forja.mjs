@@ -73,9 +73,9 @@ export const CAMPOS_PENDIENTE = ["pendiente_de", "control_pendiente"];
 export const ESPERADOS_CALIBRACION = ["cumple", "no_cumple"];
 
 const ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-const FUENTE_F = /^\[F\] https:\/\/[^\s/]+\/\S*$/;
-const FUENTE_I = /^\[I\] (\S+)$/;
-const esTexto = (v, min) => typeof v === "string" && v.trim().length >= min;
+export const FUENTE_F = /^\[F\] https:\/\/[^\s/]+\/\S*$/;
+export const FUENTE_I = /^\[I\] (\S+)$/;
+export const esTexto = (v, min) => typeof v === "string" && v.trim().length >= min;
 
 export function leerForja(raiz) {
   return JSON.parse(readFileSync(join(raiz, RUTA_FORJA), "utf8"));
@@ -682,7 +682,7 @@ function mdForma(datos) {
   return [
     "## La forma de una práctica",
     "",
-    "Datos en `forma_practica` de `ops/forja.json`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto. Aplicarlo a los estándares reales es de #454.",
+    "Datos en `forma_practica` de `ops/forja.json`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto que **es orientativa hasta que #454 la calibre con estándares reales** (la voz solo mira el verbo que abre la regla; el condicional y el -ó suelto no cuentan como otro tiempo). Aplicarlo a los estándares reales es de #454.",
     "",
     "| Artefacto | Bullets | Estructura de cada bullet | Fuente por bullet | Voz | Modo y tiempo | Persona |",
     "|---|---|---|---|---|---|---|",
