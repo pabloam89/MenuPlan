@@ -128,7 +128,12 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
    orden de abrirlas antes de tocar su dominio. Las que el agente trae
    precargadas salen aparte. Si no pide ninguna, «ninguna». Un juez también
    abre las de lo que juzga.
-7. Recordatorio: termina con el informe común de
+7. **Lo ya apuntado** (#384): pasa tú `npm run buscar -- "<área, ficheros o síntoma>"`
+   (y `npm run issues`, filtrado por el área) y pega en el brief los issues y
+   encargos que salen, con su estado y su plan. El agente no los vuelve a presentar
+   como nuevos: cada hallazgo suyo lleva `YA APUNTADO: #n` o `NUEVO (buscado: …)`.
+   Un hallazgo sin esa marca se devuelve.
+8. Recordatorio: termina con el informe común de
    `.claude/PLANTILLA-AGENTE.md`, con `CASOS:` y `SKILLS:`.
 
 ## 5. Paralelo sin pisarse

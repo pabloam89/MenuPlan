@@ -95,6 +95,9 @@ No es suyo:
    catálogo dentro de una transacción `read only`.
 5. `specs/modelo-datos.md`, `src/data/model.js` y el código que lee cada tabla
    (`grep` del nombre).
+6. Lo ya apuntado, ANTES de dar nada por nuevo: `npm run buscar -- "<tu área, los ficheros o el síntoma>"`
+   (sin red) y `npm run issues`. Cada hallazgo del informe lleva `YA APUNTADO: #n` o
+   `NUEVO (buscado: <consulta>)`.
 
 ## 6. Método
 

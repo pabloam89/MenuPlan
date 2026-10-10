@@ -219,6 +219,22 @@ it("cada agente trae precargadas las skills de su dominio, y solo esas: una sola
   }
 });
 
+it("buscar antes de dar nada por nuevo: plantilla, orquestar y las fuentes de cada agente (#384, #320)", () => {
+  // Los cinco jueces del 9 oct 2026 presentaron como nuevo lo ya apuntado (#320).
+  const plantilla = readFileSync(join(AQUI, "PLANTILLA-AGENTE.md"), "utf8");
+  const informe = plantilla.slice(plantilla.indexOf("## Informe común"));
+  expect(informe).toMatch(/YA APUNTADO: #n/);
+  expect(informe).toContain("NUEVO (buscado: <consulta>)");
+  expect(plantilla).toMatch(/^## Lo ya apuntado/m);
+  const orquestar = readFileSync(join(AQUI, "commands", "orquestar.md"), "utf8");
+  expect(orquestar).toMatch(/npm run buscar/);
+  expect(orquestar).toMatch(/YA APUNTADO: #n/);
+  for (const f of agentes) {
+    const fuentes = seccion(leer(f).cuerpo, "Fuentes de verdad");
+    expect(/npm run (buscar|issues)/.test(fuentes), `${f}: sus Fuentes de verdad no nombran npm run buscar ni npm run issues`).toBe(true);
+  }
+});
+
 it("CLAUDE.md y /orquestar nombran a todos los agentes", () => {
   const claude = readFileSync(join(RAIZ, "CLAUDE.md"), "utf8");
   const orquestar = readFileSync(join(AQUI, "commands", "orquestar.md"), "utf8");
