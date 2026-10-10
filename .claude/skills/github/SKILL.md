@@ -84,11 +84,10 @@ los del vigía, los de iOS y la clave de la App `homenu-dependabot-merge`) y qu�
 que manda. `tests.yml` no usa ninguno.
 
 **Identidad de las sesiones (#329).** El arranque canjea la clave de la App `homenu-sesiones`
-(`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs` de E1) por un token de 1 hora y lo
-deja en `CLAUDE_ENV_FILE`, que carga el shell Bash: `GH_TOKEN`, un ayudante de `git push` y el
-autor `homenu-sesiones[bot]`. PowerShell no lo carga: ahí, `node scripts/token-sesion.mjs -- <comando>`.
-Sin clave legible avisa y sigue como Pablo; el tope es de 13 s. Las credenciales de Pablo siguen en el
-llavero y en el manager de github.com hasta su `gh auth logout`. Caducado: `-- gh …` o `-- git push`.
+(`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs`) por un token de 1 hora en `CLAUDE_ENV_FILE`,
+que carga Bash: `GH_TOKEN`, un ayudante de `git push` y el autor `homenu-sesiones[bot]`. En PowerShell, `node
+scripts/token-sesion.mjs -- <comando>`, que sirve también caducado (`-- gh …`, `-- git push`). Sin clave legible avisa
+y sigue como Pablo (tope 13 s); sus credenciales siguen en el llavero y el manager de github.com hasta su `gh auth logout`.
 
 Un secreto nuevo o rotado va a un environment con política de ramas, nunca al <!-- norma:secretos-de-repo -->
 repo; el alta entera, en la skill `alta-de-secreto`.
@@ -187,8 +186,7 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 
 ## Qué requiere el OK de Pablo
 
-- Crear, rotar o retirar la clave de la App `homenu-sesiones`, y cerrar la sesión de `gh` que
-  Pablo tiene abierta como administrador (las sesiones ya no la usan, pero sigue en su llavero).
+- Rotar o retirar la clave de la App `homenu-sesiones`, y el `gh auth logout` de Pablo (sigue en su llavero).
 - Cualquier ajuste del repo: protección de ramas y rulesets, visibilidad, rama
   por defecto, Dependabot, secret scanning, environments, secretos y deploy keys
   (una de escritura se salta el ruleset de `staging`: no se crea otra sin más).
