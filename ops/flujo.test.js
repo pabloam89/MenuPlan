@@ -127,7 +127,7 @@ const MALOS = [
   ["ref-no-contiene", "un fichero que existe pero no lleva la frase (la clase #231)", (d) => { obligacion(d, "P04.1").contiene = "una frase que no está en ese fichero"; }],
   ["ref-contiene-corto", "una frase tan genérica que cualquier fichero la lleva", (d) => { obligacion(d, "P06.3").contiene = "e"; }],
   ["ref-sin-contiene", "un ref sin decir qué tiene que llevar", (d) => { obligacion(d, "P04.1").contiene = null; }],
-  ["ref-sin-nota", "sin ref y sin decir por qué", (d) => { delete obligacion(d, "P12.2").nota; }],
+  ["ref-sin-nota", "sin ref y sin decir por qué", (d) => { delete d.pasos.flatMap((p) => p.obligaciones).find((o) => o.ref === null && o.nota).nota; }],
   ["ref-nulo", "sin ref con un ejecutor que sí tiene que tener fichero", (d) => { Object.assign(obligacion(d, "P07.1"), { ref: null, contiene: null, nota: "x" }); }],
   ["test-no-existe", "un test que no existe", (d) => { obligacion(d, "P07.5").test = "ops/no-existe.test.js"; }],
   ["fase-desconocida", "una fase que no es del plan", (d) => { obligacion(d, "P02.1").fase = ["#99999"]; }],

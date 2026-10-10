@@ -139,9 +139,14 @@ export function ejecutar(entrada, opciones = {}) {
       }
     }
     if (r.lineas.length) {
-      const log = join(dir, "senales.log");
-      appendFileSync(log, `${r.lineas.join("\n")}\n`);
-      recortarLog(log);
+      try {
+        const log = join(dir, "senales.log");
+        appendFileSync(log, `${r.lineas.join("\n")}\n`);
+        recortarLog(log);
+      } catch (e) {
+        // La contabilidad no puede quitar el aviso de esta llamada. No en silencio.
+        console.error(`[buscar-antes] no he podido anotar la señal: ${String(e?.message ?? e).split("\n")[0]}`);
+      }
     }
   }
   return r.textos;
@@ -161,6 +166,24 @@ export function avisoDeDenegacion(entrada, motivo) {
 }
 
 const esPrincipal = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+
+/**
+ * Modo `--denegacion`: lo llama la guardia en un PROCESO APARTE y con tope (ronda 4 de #384), para que
+ * un fallo, un exit o un cuelgue de este módulo y de lo que importa no pueda quitar un `deny`.
+ * Lee por stdin `{ entrada: { session_id, cwd, tool_input: { command } }, motivo }` e imprime SOLO el
+ * texto del aviso (o nada). Sale siempre con 0 salvo que muera: la guardia valida lo que recibe.
+ */
+if (esPrincipal && process.argv.includes("--denegacion")) {
+  try {
+    let crudo = "";
+    for await (const trozo of process.stdin) crudo += trozo;
+    const { entrada, motivo } = JSON.parse(crudo);
+    process.stdout.write(avisoDeDenegacion(entrada, String(motivo ?? "")));
+  } catch (e) {
+    console.error(`[buscar-antes] no he podido buscar lo ya apuntado: ${String(e?.message ?? e).split("\n")[0]}`);
+  }
+  process.exit(0);
+}
 
 if (esPrincipal) {
   try {
