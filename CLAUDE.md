@@ -213,22 +213,41 @@ y su fecha, está en `src/data/model.js` (`TABLAS`, vigilado por `ops/fuentes.te
 
 ## Pensar en datos
 
-Lo que se repite se diseña para poder contarse; todo se analiza mejor con
-cifras que con impresiones.
+Lo que se repite se diseña para poder contarse, y corregir es ver qué falla en
+qué hueco, no releer un texto continuo. Cada principio dice entre paréntesis
+qué lo hace cumplir; los que aún no tienen mecanismo cuelgan del fondo #479.
 
-- **Vocabulario cerrado, no texto libre**, para todo lo que se vaya a agrupar:
-  motivos de fallo, estados, causas, tipos, sitios. Una constante en JS (y un
-  CHECK si va a SQL) con su test, como `src/lib/vocabularios.js`.
-- **Una palabra, un significado**: las palabras de proceso (comprobar, caso,
-  fondo, encargo, juez…) salen de `ops/glosario.json` (`npm run glosario`), y
-  su test falla con un sinónimo prohibido nuevo.
-- **Cada cosa que pasa deja una línea estructurada** (`campo: valor`, sin datos
-  de familias) que un script pueda contar. Lo que no deja rastro no se mide, y
-  lo que no se mide no mejora.
-- **La clase, no el caso**: se arregla el caso y se ataca su problema de fondo
-  («Cuando algo falla», abajo). Una regla, un dato, una fuente que el resto usa.
-- **La cifra antes y después**: cuántos casos, desde cuándo y dónde, antes de
-  proponer un arreglo; la misma cifra después, para saber si sirvió.
+- **Discreto primero**: sí/no, un valor de vocabulario, una referencia a algo
+  que existe, un número o una fecha. El texto libre, solo en un hueco
+  declarado que diga qué cubre (`ops/forja.json`, #458).
+- **Vocabulario cerrado** para todo lo que se agrupa: una constante en JS, un
+  CHECK si va a SQL y su test, como `src/lib/vocabularios.js`. Un valor no se
+  borra ni se reutiliza: se retira y dice a cuál pasa (#481).
+- **Una palabra, un significado**: las palabras de proceso salen de
+  `ops/glosario.json` (`npm run glosario`); su test falla con un sinónimo
+  prohibido nuevo.
+- **Ninguna cifra sin pregunta**: cada métrica dice qué pregunta responde y
+  qué script la lee; si nadie la lee, no se recoge (#480).
+- **Cada cosa que pasa deja una línea `campo: valor`**, con un nombre de
+  evento único y sin datos de familias, que un script pueda contar.
+- **La clase, no el caso**: el caso cuelga de su fondo, y el fondo se cierra
+  con un test que cubre la clase (línea `Casos:` del PR, workflow `fondos`).
+- **La cifra antes y después, con su ruido**: cuántos casos, desde cuándo y
+  dónde; «mejoró» solo si la diferencia sale del margen o hay casos de sobra
+  (#480).
+- **El control más fuerte que quepa**: impedir, luego bloquear, luego avisar
+  y, en último lugar, dejarlo escrito (`npm run mecanismos`).
+- **Tres capas**: formal (test determinista), material (heurística con
+  excepciones que solo bajan) y subjetiva (juez LLM con tope de gasto). Lo
+  subjetivo que se juzga igual una y otra vez sube de capa; se baja solo si
+  el test sale frágil, y se deja escrito el porqué (`ops/forja.json`).
+- **El juez LLM dice pasa o no pasa con su motivo**, puede decir «no sé» y se
+  calibra contra ejemplos de Pablo (#482).
+- **Ninguna cifra es objetivo sola**: va con otra que la vigile y con una
+  muestra leída a mano; una cifra que se persigue deja de medir (informe
+  semanal del flujo).
+- **De arriba abajo**: forja, luego plantilla por tipo, luego cada pieza; no
+  se rellena una pieza antes que su plantilla.
 
 ## Qué se le pregunta a Pablo, y qué no
 
