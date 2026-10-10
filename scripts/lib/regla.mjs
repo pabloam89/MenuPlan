@@ -40,6 +40,13 @@ export const CONTROL_JUICIO = "juicio";
 const ID_SUJETO = /^[a-z]+(\.[a-z]+)*$/;
 const NOMBRE = /^[A-ZÁÉÍÓÚÑÜ][^.\n]*[^.\s]$/;
 const CONDICION = /^(cuando|si) \S/;
+// Infinitivo: acaba en ar, er, ir (con tilde si lleva pronombre: devolvérselo), con pronombres enclíticos si los hay (arse, erlo, irles…).
+const INFINITIVO = /^[a-zñáéíóúü]*(ar|er|ir|ár|ér|ír)(se|me|te|nos|os|l[oae]s?)*$/;
+/** La primera palabra de la exigencia que debe ser un infinitivo: salta un «no» inicial. */
+const primeraPalabra = (e) => {
+  const w = e.trim().split(/\s+/).map((x) => x.replace(/[,;:]+$/, ""));
+  return w[0] === "no" ? (w[1] ?? "") : w[0];
+};
 const esTexto = (v, min) => typeof v === "string" && v.trim().length >= min;
 const palabras = (t) => t.trim().split(/\s+/).length;
 const mayuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
@@ -90,6 +97,7 @@ export function problemasDeRegla(r, d, sujetos) {
     if (/\n/.test(e)) malos.push(`${d}: «exigencia» va en una sola línea`);
     if (/[.;:]\s*$/.test(e)) malos.push(`${d}: «exigencia» va sin punto final`);
     if (e !== e.trim() || e.charAt(0) !== e.charAt(0).toLowerCase()) malos.push(`${d}: «exigencia» empieza en minúscula, con el verbo: la frase se une al sujeto`);
+    else if (!INFINITIVO.test(primeraPalabra(e))) malos.push(`${d}: «exigencia» empieza por un verbo en infinitivo (ar, er, ir, con o sin pronombre), o por «no» y un infinitivo`);
   }
   if ("nota" in (r ?? {})) {
     if (!esTexto(r.nota, LIMITES_REGLA.nota.min) || /\n/.test(r.nota)) malos.push(`${d}: «nota» es una línea de ${LIMITES_REGLA.nota.min} caracteres o más`);
