@@ -33,7 +33,7 @@ import { SALIDA, cabeOtro, costeUsd, estimadoSiguiente, hash, opcionNumero, tope
 import {
   DIR_SKILLS, ESTIMADO_LLAMADA, MODELO_BARATO, MODELO_EJECUTA, NINGUNA, RAIZ, TOPE_SKILLS_USD,
   catalogoParaDisparo, comparar, faltasDeCasos, jsonDeTexto, nombresDeSkills, promptCorrige,
-  promptDisparo, promptEjecuta, resumen,
+  promptDisparo, promptEjecuta, resumen, leerRespuesta, OPCIONES_EJECUTA,
 } from "./lib/skills.mjs";
 
 const argv = process.argv.slice(2);
@@ -83,14 +83,15 @@ if (!API_KEY) salir(SALIDA.entrada, "Falta ANTHROPIC_API_KEY (en .env.local, com
 let gastado = 0;
 let llamadas = 0;
 
-/** Una llamada a la API, con su coste sumado; null si no cabe en el tope. */
-async function llamar({ modelo, system, usuario, maxTokens }) {
+/** Una llamada a la API, con su coste sumado: { texto, motivo } (leerRespuesta); null si no cabe en el tope. */
+async function llamar({ modelo, system, usuario, maxTokens, thinking }) {
   if (!cabeOtro(gastado, tope, estimadoSiguiente(gastado, llamadas, ESTIMADO_LLAMADA))) return null;
   const cuerpo = {
     model: modelo,
     max_tokens: maxTokens,
     system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: usuario }],
+    ...(thinking ? { thinking } : {}),
   };
   for (let intento = 1; ; intento++) {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -105,7 +106,7 @@ async function llamar({ modelo, system, usuario, maxTokens }) {
     if (res.ok) {
       llamadas++;
       gastado += costeUsd(data.usage, modelo, { ttl: "5m" });
-      return (data.content ?? []).find((b) => b?.type === "text")?.text ?? "";
+      return leerRespuesta(data);
     }
     const reintentable = res.status === 429 || res.status >= 500;
     if (!reintentable || intento >= 3) throw new Error(`API ${res.status}: ${data?.error?.message ?? "sin detalle"}`);
@@ -126,17 +127,20 @@ for (const skill of pedidas) {
   for (const c of casosDe[skill]) {
     const r = await llamar({ modelo: MODELO_BARATO, system: sistemaDisparo, usuario: c.peticion, maxTokens: 60 });
     if (r == null) { res.disparo.push({ id: c.id, esperado: c.skill, elegido: null, estado: "sin_correr" }); continue; }
-    const elegido = String(jsonDeTexto(r)?.skill ?? "").trim() || NINGUNA;
+    const elegido = String(jsonDeTexto(r.texto)?.skill ?? "").trim() || NINGUNA;
     res.disparo.push({ id: c.id, esperado: c.skill, elegido, estado: elegido === c.skill ? "ok" : "falla" });
   }
 
   for (const c of casosDe[skill].filter((x) => x.skill === skill)) {
-    const respuesta = await llamar({ modelo: MODELO_EJECUTA, system: promptEjecuta(textoSkill), usuario: c.peticion, maxTokens: 1200 });
-    if (respuesta == null) { res.ejecucion.push({ id: c.id, estado: "sin_correr", comprobaciones: [] }); continue; }
+    const r = await llamar({ modelo: MODELO_EJECUTA, system: promptEjecuta(textoSkill), usuario: c.peticion, ...OPCIONES_EJECUTA });
+    if (r == null) { res.ejecucion.push({ id: c.id, estado: "sin_correr", comprobaciones: [] }); continue; }
+    // Una respuesta vacía o cortada no se corrige: no dice nada de la skill (#338).
+    if (r.motivo) { console.warn(`  sin_correr: ${c.id} respuesta ${r.motivo}`); res.ejecucion.push({ id: c.id, estado: "sin_correr", motivo: r.motivo, comprobaciones: [], respuesta: r.texto.slice(0, 2000) }); continue; }
+    const respuesta = r.texto;
     const usuario = `Respuesta:\n<respuesta>\n${respuesta}\n</respuesta>\n\nComprobaciones:\n${c.debe_salir.map((d) => `- ${d}`).join("\n")}`;
     const nota = await llamar({ modelo: MODELO_BARATO, system: promptCorrige(), usuario, maxTokens: 900 });
     if (nota == null) { res.ejecucion.push({ id: c.id, estado: "sin_correr", comprobaciones: [], respuesta: respuesta.slice(0, 2000) }); continue; }
-    const leidas = jsonDeTexto(nota)?.comprobaciones ?? [];
+    const leidas = jsonDeTexto(nota.texto)?.comprobaciones ?? [];
     // Cada comprobación del caso, en su orden; la que el corrector no devuelva, no cumple.
     const comprobaciones = c.debe_salir.map((texto, i) => {
       const l = leidas.find((x) => x?.texto === texto) ?? leidas[i];
