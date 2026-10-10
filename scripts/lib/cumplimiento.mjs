@@ -143,6 +143,77 @@ export function lineaDeIndicador(m) {
   return `indicador: ${m.indicador} valor: ${m.valor ?? "-"} umbral: ${m.umbral} estado: ${m.estado}${en}${nota}`;
 }
 
+// ── Contrapesos: las cifras que vigilan a los indicadores (#480) ──────────────
+
+/**
+ * Una cifra que se persigue deja de medir (Goodhart): cada indicador va con otra que
+ * subiría si se hiciera trampa con él (su `vigilante` en ops/metricas.json). Estas dos
+ * no tienen umbral: no disparan, se leen junto al indicador que vigilan.
+ */
+export const CONTRAPESOS = {
+  fondos_abiertos: { que: "fondos de la casa abiertos (si se dejan sin cerrar para no contar como cerrados sin aprendizaje, sube)" },
+  casos_puntuales_recientes: { que: `casos «puntual» creados en los últimos ${VENTANA_CORTO_DIAS} días (si un «no aguantó» se apunta como puntual, sube)` },
+};
+
+/** Los contrapesos medidos; `issues` null = la API no respondió (valor null, nunca un cero inventado). → [{ contrapeso, valor }] */
+export function medirContrapesos(issues, { hoy = new Date() } = {}) {
+  if (!Array.isArray(issues)) return Object.keys(CONTRAPESOS).map((contrapeso) => ({ contrapeso, valor: null }));
+  const desde = hoy.getTime() - VENTANA_CORTO_DIAS * 86_400_000;
+  const deLaCasa = (i) => !i.asociacion || esDeLaCasa(i.asociacion);
+  const puntual = (i) => deLaCasa(i) && tipoDe(i.labels) === "caso" && nombresDe(i.labels).includes("analisis:puntual") && i.createdAt && Date.parse(i.createdAt) >= desde;
+  return [
+    { contrapeso: "fondos_abiertos", valor: fondosDe(issues).filter(abierto).length },
+    { contrapeso: "casos_puntuales_recientes", valor: issues.filter(puntual).length },
+  ];
+}
+
+/** La línea contable de un contrapeso. */
+export function lineaDeContrapeso(c) {
+  return `contrapeso: ${c.contrapeso} valor: ${c.valor ?? "-"}`;
+}
+
+/**
+ * La serie de antes de cada cifra, leída de informes anteriores (los comentarios del
+ * issue «Flujo: informe semanal», del más antiguo al más reciente). Cada línea
+ * `indicador: x valor: n` o `contrapeso: x valor: n` es un punto; un «-» (sin datos) no cuenta.
+ *
+ * Un punto por semana: si el texto trae la cabecera de cada informe («informe semanal
+ * (AAAA-MM-DD)»), cada cifra cuenta una vez por semana (lunes a domingo), con el último valor
+ * numérico de esa semana: un run lanzado a mano no mete un punto de más, y un informe sin datos
+ * («-») no borra el valor bueno de la misma semana. Sin cabeceras, cada línea es un punto.
+ * → { id: [n, …] }
+ */
+export function seriesDeHistorial(texto) {
+  const PUNTO = /^[ \t]*(?:indicador|contrapeso): ([a-z][a-z0-9_]*) valor: (\d+(?:\.\d+)?)(?=\s|$)/gm;
+  const CABECERA = /informe semanal \((\d{4}-\d{2}-\d{2})\)/g;
+  const t = String(texto ?? "");
+  const cabeceras = [...t.matchAll(CABECERA)];
+  const series = {};
+  if (!cabeceras.length) {
+    for (const m of t.matchAll(PUNTO)) (series[m[1]] ??= []).push(Number(m[2]));
+    return series;
+  }
+  // semana → (cifra → último valor numérico). Los bloques llegan del más antiguo al más reciente.
+  const porSemana = new Map();
+  cabeceras.forEach((c, i) => {
+    const semana = lunesDe(c[1]);
+    const valores = porSemana.get(semana) ?? new Map();
+    for (const m of t.slice(c.index, cabeceras[i + 1]?.index ?? t.length).matchAll(PUNTO)) valores.set(m[1], Number(m[2]));
+    porSemana.set(semana, valores);
+  });
+  for (const semana of [...porSemana.keys()].sort()) {
+    for (const [id, n] of porSemana.get(semana)) (series[id] ??= []).push(n);
+  }
+  return series;
+}
+
+/** El lunes (AAAA-MM-DD) de la semana de una fecha AAAA-MM-DD. */
+function lunesDe(dia) {
+  const f = new Date(`${dia}T12:00:00Z`);
+  f.setUTCDate(f.getUTCDate() - ((f.getUTCDay() + 6) % 7));
+  return f.toISOString().slice(0, 10);
+}
+
 // ── Poda: piezas sin uso (solo con el registro local de la fábrica, #340) ─────
 
 /** Días de registro que se piden antes de proponer aparcar nada: el plazo de «Nadie la abre» de la skill forja-de-skills. */
