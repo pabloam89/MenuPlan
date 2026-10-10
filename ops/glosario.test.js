@@ -254,6 +254,15 @@ describe("autotest de relaciones y forma", () => {
     expect(faltaDeForma({ clase: "rol", definicion: "Ejecutar algo que se quiere ver." })).toMatch(/artículo/);
     expect(conTermino("zona", (t) => { t.definicion = "Conjunto de ficheros por sus rutas, sin más."; }).join()).toMatch(/zona: la definición no empieza por artículo/);
   });
+
+  it("con amplio, el género de la definición es ese amplio", () => {
+    expect(faltaDeForma({ clase: "rol", amplio: "juez", definicion: "El juez que busca fallos." })).toBeNull();
+    expect(faltaDeForma({ clase: "rol", amplio: "juez", definicion: "Un agente que busca fallos." })).toMatch(/no empieza por su amplio «juez»|no empieza por su amplio \(«juez»\)/);
+    expect(faltaDeForma({ clase: "accion", amplio: "probar", definicion: "Probar algo que no deja efecto." })).toBeNull();
+    expect(faltaDeForma({ clase: "accion", amplio: "probar", definicion: "Ejecutar algo que no deja efecto." })).toMatch(/su amplio/);
+    expect(faltaDeForma({ clase: "campo", amplio: "causa", definicion: "La causa que explica por qué." })).toBeNull();
+    expect(conTermino("revisor", (t) => { t.definicion = "Un agente que busca fallos reales en un diff."; }).join()).toMatch(/revisor: la definición no empieza por su amplio/);
+  });
 });
 
 describe("autotest del ciclo de vida", () => {

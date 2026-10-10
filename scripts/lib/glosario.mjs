@@ -81,7 +81,9 @@ export const RELACIONES = {
  * Forma de la definición (ISO 704: género próximo + diferencia): «un/una X que Y».
  * Se comprueba con una heurística: empieza por artículo + sustantivo (o, en un verbo de
  * clase accion, por un infinitivo, que es su género) y contiene «que» como palabra.
- * No ve si el género es el bueno: eso es del revisor.
+ * Si el término tiene `amplio`, el género es ese: la definición empieza por él («revisor»,
+ * de amplio «juez»: «El juez que …»). Sin amplio, no ve si el género es el bueno: eso es
+ * del revisor.
  */
 export const ARTICULOS = ["un", "una", "el", "la", "los", "las"];
 const NO_SUSTANTIVO = new Set(["que", "de", "del", "en", "con", "por", "para", "a", "y", "o", "se", "lo", "su", "sus"]);
@@ -96,6 +98,12 @@ export function faltaDeForma(t) {
   const infinitivo = t.clase === "accion" && /^\p{L}+(ar|er|ir)$/u.test(p1);
   if (!conArticulo && !infinitivo) return t.clase === "accion" ? "no empieza por un infinitivo ni por artículo + sustantivo" : "no empieza por artículo + sustantivo («un/una X»)";
   if (!/(?<!\p{L})que(?!\p{L})/iu.test(d)) return "no dice la diferencia con «que …»";
+  if (typeof t.amplio === "string") {
+    const ws = plano(d).split(/\s+/).map((x) => x.replace(/[^a-z0-9]/g, ""));
+    const genero = conArticulo ? ws.slice(1) : ws;
+    const amplio = plano(t.amplio).split(/\s+/);
+    if (!amplio.every((w, i) => genero[i] === w)) return `no empieza por su amplio («${t.amplio}»), que es su género`;
+  }
   return null;
 }
 
