@@ -30,6 +30,7 @@ import { copyFileSync, existsSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { dirname, join } from "node:path";
 
+import { instalarDrivers } from "./lib/generados.mjs";
 import { leerInventario, marcar, textoDeRama } from "./lib/lleva.mjs";
 import { RESERVA_VALIDA } from "./lib/zonas.mjs";
 
@@ -184,6 +185,15 @@ async function main() {
     } catch (e) {
       console.warn(`Aviso: no pude hacer el commit inicial (${String(e.stderr || e.message).trim().split("\n")[0]}). Hazlo ya a mano, o el hook limpiar-worktrees puede borrar esta carpeta: git -C "${destino}" commit --allow-empty -m "tarea: arranca ${rama}"`);
     }
+  }
+
+  // Los drivers de fusión de lo generado (#551): en la configuración común a todos los worktrees.
+  // Sin ellos, FORJA.md, los moldes y las anclas de la forja chocan al traer staging.
+  try {
+    const puestos = instalarDrivers(principal);
+    if (puestos.length) console.log(`Drivers de fusión de lo generado instalados (${puestos.length} claves de git).`);
+  } catch (e) {
+    console.warn(`Aviso: no pude instalar los drivers de fusión (${String(e.stderr || e.message).trim().split("\n")[0]}). A mano: node scripts/generados.mjs --instalar`);
   }
 
   // Las zonas reservadas (#506): en la configuración de git de la rama, que se borra con ella.

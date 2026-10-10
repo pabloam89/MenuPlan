@@ -15,6 +15,26 @@
   },
   "lineas": [
     {
+      "firma": "generado ruta",
+      "emisores": [
+        "scripts/merge-driver.mjs"
+      ],
+      "campos": {
+        "ruta": "id",
+        "driver": "estado",
+        "resultado": "estado",
+        "regenera": "texto",
+        "motivo": "texto"
+      },
+      "lectores": [
+        {
+          "tipo": "rutina",
+          "ref": ".claude/skills/github/referencias/generados.md",
+          "menciona": "generado ruta:"
+        }
+      ]
+    },
+    {
       "firma": "indicador",
       "emisores": [
         "scripts/lib/cumplimiento.mjs",
