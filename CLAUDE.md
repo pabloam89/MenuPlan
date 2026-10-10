@@ -120,6 +120,11 @@ trabajo: devuelve «Decisiones para Pablo».
 | `lola`: el bot, herramientas, conocimiento, coste | `seguridad`: RLS, endpoints, secretos, prompts |
 | | `auditor-datos`: normalización, duplicados y cableado |
 
+Cada agente lista sus tareas y el estándar de cada una (qué es hacerla bien,
+qué comprueba, qué no hace y su fuente) en `ops/estandares-agentes.json`; el
+brief de `/orquestar` lo trae con `npm run estandar -- <agente> <tarea>` y el
+`revisor` lo contrasta (#413).
+
 Aparcados en `.claude/agentes-aparcados/`: rendimiento y arquitecto.
 
 ## Reglas por carpeta y skills
