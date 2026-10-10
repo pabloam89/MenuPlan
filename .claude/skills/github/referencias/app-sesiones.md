@@ -105,9 +105,9 @@ En la App → **Private keys** → **Generate a private key**: el navegador baja
 2. Borra el `.pem` de Descargas **y de la Papelera de reciclaje**. Debe quedar una
    sola copia: la del Documento.
 3. Apunta los dos números en `.env.local` de la carpeta principal, en claro (no son
-   secretos): `SESIONES_APP_ID=…` y `SESIONES_INSTALLATION_ID=…`. Dónde viven
-   cuando las sesiones los lean (`ops/env.1password` o variables) lo decide E3
-   (#329): **pendiente**.
+   secretos): `SESIONES_APP_ID=…` y `SESIONES_INSTALLATION_ID=…`. Son opcionales
+   desde E3 (#329): el arranque usa el App ID 5260552 de `scripts/lib/tokenSesion.mjs` y
+   pide el Installation ID a GitHub; solo valen si quieres fijarlos.
 
 ## 4. Comprobar
 
@@ -184,9 +184,16 @@ guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
   texto.
 - El nombre del Documento y de la bóveda, de la rama `ops/328-boveda-sesiones`
   (PR #412, sin fusionar): si E2 los cambia, se cambian aquí y en el script.
-- Dónde guardan las sesiones el App ID y el Installation ID (E3, #329).
 - Que los permisos del cuerpo de la petición (`permissions`) los acepte GitHub tal
-  cual con estos seis (sin probar contra la API real).
+  cual con estos seis: visto el 10 oct 2026 con la App real (`token-sesion.mjs --comprobar`, #329).
+
+## Cómo trabaja una sesión con la App (#329)
+
+El arranque canjea la clave (`scripts/lib/tokenSesion.mjs`, sobre `token-sesiones.mjs`) por un token de 1 hora
+en `CLAUDE_ENV_FILE`, que carga Bash: `GH_TOKEN`, un ayudante de `git push` y el autor `homenu-sesiones[bot]`.
+En PowerShell, `node scripts/token-sesion.mjs -- <comando>`, que sirve también con el token caducado
+(`-- gh …`, `-- git push`). Sin clave legible avisa y sigue como Pablo (a los 13 s); sus credenciales siguen en
+el llavero y el manager de github.com hasta su `gh auth logout`.
 
 Fuentes: https://docs.github.com/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-json-web-token-jwt-for-a-github-app
 y https://docs.github.com/rest/apps/apps#create-an-installation-access-token-for-an-app
