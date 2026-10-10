@@ -297,10 +297,27 @@ describe("los criterios de esta parte en la base", () => {
     f((c) => { c.pendiente_de = "999"; }, "pendiente_de es el issue");
     f((c) => { c.control_pendiente = ""; }, "control_pendiente es la ruta");
     f((c) => { c.control = "ops/forja.json"; }, "lleva control «juicio»");
-    f((c) => { c.capa = "subjetiva"; }, "pendiente_de es de un criterio formal o material");
+    f((c) => { c.motivo_pendiente = "falta_decision"; }, "solo está pendiente de su control (falta_herramienta)");
+    f((c) => { c.motivo_pendiente = "sin_mirar"; }, "motivo_pendiente «sin_mirar» no está en el vocabulario");
     f(() => {}, `ya existe ${futuro}`, (r) => existe(r) || r === futuro);
     f((c) => { delete c.pendiente_de; delete c.control_pendiente; }, "lo vigila un fichero, no «juicio»");
     expect(generarMd(bien)).toContain("provisional: lo da #999");
+  });
+  it("un criterio subjetivo pendiente (#457) lleva su issue y un motivo cerrado, y sigue con control «juicio»", () => {
+    const sub = datos.criterios.find((x) => x.id === "solo-lo-que-el-modelo-no-sabe");
+    expect(sub).toMatchObject({ capa: "subjetiva", control: "juicio", motivo_pendiente: "falta_herramienta" });
+    expect(problemasDeForja(datos, existe)).toEqual([]);
+    const f = (mut, trozo) => {
+      const d = clon();
+      mut(d.criterios.find((x) => x.id === sub.id));
+      expect(problemasDeForja(d, existe).join("\n"), trozo).toContain(trozo);
+    };
+    f((c) => { delete c.motivo_pendiente; }, "pendiente_de y motivo_pendiente van juntos");
+    f((c) => { delete c.pendiente_de; }, "pendiente_de y motivo_pendiente van juntos");
+    f((c) => { c.motivo_pendiente = "otra_version"; }, "no está en el vocabulario");
+    f((c) => { c.pendiente_de = "517"; }, "pendiente_de es el issue");
+    f((c) => { c.control_pendiente = "ops/forja.json"; }, "ya existe ops/forja.json");
+    expect(generarMd(datos)).toContain(`Pendiente (falta_herramienta): lo da ${sub.pendiente_de}.`);
   });
   it("FORJA.md recoge la forma, el método y el control del glosario", () => {
     const md = leer("docs/ops/FORJA.md");
