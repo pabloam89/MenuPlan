@@ -83,6 +83,9 @@ export const ORIGEN_DATO = ["dicho", "supuesto", "visto", "derivado", "por_defec
  */
 export const ORIGEN_ALERGIAS = ["dicha", "por_silencio"];
 
+/** Por dónde llegó un dato de la ficha (sobre.canal, 0097): los canales del bot, la app y el sistema. */
+export const CANALES_DATO = ["app", "telegram", "whatsapp", "sistema"];
+
 /** A qué se refiere un «sobre» o un cambio: qué lo originó. */
 export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];
 
@@ -217,6 +220,7 @@ export const VOCABULARIOS = Object.freeze({
   origen_dato: ORIGEN_DATO,
   origen_alergias: ORIGEN_ALERGIAS,
   ref_tipo: REF_TIPO,
+  canales_dato: CANALES_DATO,
   sexo: SEXO,
   patron_semanas: PATRON_SEMANAS,
   motivos_fallo: MOTIVOS_FALLO,

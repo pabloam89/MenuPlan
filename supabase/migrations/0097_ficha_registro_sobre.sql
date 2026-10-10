@@ -1,13 +1,15 @@
 -- Ficha de la casa (spec v18): qué se puede saber y cómo lo sabemos.
 --
 -- NÚMERO: era la 0120 en el PR #106 (8 oct 2026); pasó a la 0097, el contiguo a staging. La 0120 queda libre.
+-- NOMBRES: las tablas de la ficha van en singular, como persona y grupo (excepción declarada a PRINCIPIOS §12).
 --
 --   · registro_campo: el catálogo de campos. Se rellena desde src/lib/registroCampos.js;
 --     registroCampos.test.js compara el INSERT de aquí con ese objeto.
 --   · sobre: la procedencia de cada dato (quién lo dijo, cómo lo sabemos, cuándo,
 --     por qué canal y a raíz de qué). Uno por casa, campo y persona (persona nula = la casa).
---     Si el campo tiene columna propia (persona.edad, persona_alergia…), manda la columna
---     y sobre.valor queda nulo; si no la tiene, el valor vive aquí.
+--     Si el campo tiene columna propia (registro_campo.columna: persona.edad, persona.fecha_nacimiento,
+--     persona_alergia), manda la columna y sobre.valor tiene que ser nulo (lo exige el trigger);
+--     si no la tiene, el valor vive aquí.
 --   · ficha_casa(): la lectura compacta para Lola, ficha y tareas abiertas en una ida.
 --
 -- persona.id sigue siendo text: estas FKs pasan a uuid con persona cuando toque (ver PENDIENTES.md).
@@ -24,6 +26,13 @@
 --   · sin la tabla cambio (historial de solo añadir) ni las columnas registro_campo.visibilidad y .unidad:
 --     ningún código ni función las lee (regla «ningún campo ni tabla sin lector»). Vuelven con su primer
 --     lector o escritor, en otra migración;
+--   · sin las columnas sobre.frase, .rechazados y .preguntado (ni lector ni escritor); vuelven con su
+--     primer escritor, en otra migración;
+--   · registro_campo.columna: una sola verdad para los campos que ya tienen columna propia;
+--   · etapaBebe pasa a por = casa (un dato por casa, como data.etapaBebe);
+--   · sobre.quien_user pasa a dicho_by y sobre.fecha a confirmado_at;
+--   · ficha_casa solo para service_role mientras la app no tenga lector;
+--   · el trigger de sobre pone tope de 200 caracteres a los textos;
 --   · lock_timeout, on delete en campo, índice de cada FK, created_at, comentarios (también SALUD:),
 --     search_path con pg_temp y revoke a authenticated en ficha_casa, y el constraint
 --     registro_campo_enum_con_vocabulario pasa a registro_campo_enum_lista_check (el sufijo
@@ -33,7 +42,8 @@
 --   · registro_campo: la lee ficha_casa (faltan, tareas de seguridad), el trigger sobre_valor_valido y la FK
 --     de sobre; la escribe esta migración, generada de src/lib/registroCampos.js (módulo dueño).
 --   · sobre: la lee ficha_casa (datos, faltan). Aún no la escribe ningún código: la primera escritura
---     será de la sesión de la ficha (RPC que anota «lo dijo X por Y»).
+--     será de la sesión de la ficha (RPC que anota «lo dijo X por Y»). La lee api/_bot/fichaRpc.js (servidor,
+--     clave de servicio); la app no la lee todavía.
 --
 -- Consultas previas (deben dar 0): ninguna de las dos tablas existe aún.
 --   select count(*) from information_schema.tables
@@ -68,6 +78,7 @@ create table if not exists public.registro_campo (
   seguridad   boolean not null default false,
   por         text not null default 'persona',
   aplica      text not null default 'todos',
+  columna     text,
   caduca_dias integer check (caduca_dias is null or caduca_dias > 0),
   created_at  timestamptz not null default now(),
   constraint registro_campo_id_forma check (id ~ '^[a-zA-Z][a-zA-Z0-9_]*$'),
@@ -79,6 +90,7 @@ create table if not exists public.registro_campo (
   constraint registro_campo_aplica_vocabulario check (aplica in ('todos', 'bebe')),
   -- vocabulario si y solo si es enum; rango solo en numéricos
   constraint registro_campo_enum_lista_check check ((tipo in ('enum', 'lista_enum')) = (vocabulario is not null)),
+  constraint registro_campo_columna_forma check (columna is null or columna ~ '^[a-z_]+(\.[a-z_]+)?$'),
   constraint registro_campo_rango check (minimo is null or maximo is null or minimo <= maximo),
   constraint registro_campo_rango_numerico check ((minimo is null and maximo is null) or tipo in ('int', 'decimal'))
 );
@@ -93,23 +105,24 @@ comment on column public.registro_campo.politica is 'Cuándo se pregunta (nunca,
 comment on column public.registro_campo.seguridad is 'true: su tarea entra siempre en lo que lee Lola, sin límite (alergias…); la lee ficha_casa.';
 comment on column public.registro_campo.por is 'Si el dato es de cada persona o de la casa entera; lo lee sobre_valor_valido.';
 comment on column public.registro_campo.aplica is 'A quién se le pregunta: todos, o solo bebés (la etapa la decide etapaDe en JS); la lee ficha_casa y la usa faltanDeFicha.';
+comment on column public.registro_campo.columna is 'Dónde vive ya el valor si el campo tiene columna o tabla propia (persona.edad, persona_alergia…): sobre.valor tiene que ser nulo y ficha_casa lee el valor de ahí. null = el valor vive en sobre.valor. Lo leen sobre_valor_valido y, con registroCampos.test.js, los dos case de ficha_casa.';
 comment on column public.registro_campo.caduca_dias is 'Días que vive la pregunta abierta sobre el campo; null = el de su tipo de tarea. Lo lee registroTareas.js desde el JS, no desde esta tabla.';
 
 -- Generado desde REGISTRO_CAMPOS; el test falla si no coincide.
 insert into public.registro_campo
-  (id, tipo, vocabulario, minimo, maximo, politica, seguridad, por, aplica, caduca_dias) values
-  ('alergias',      'lista_enum', 'alergenos',      null, null, 'una_vez',         true,  'persona', 'todos', 30),
-  ('etapaBebe',     'enum',       'etapa_bebe',     null, null, 'antes_de_usarlo', true,  'persona', 'bebe',  21),
-  ('edad',          'int',        null,             0,    120,  'nunca',           false, 'persona', 'todos', null),
-  ('nacimiento',    'fecha',      null,             null, null, 'nunca',           false, 'persona', 'todos', null),
-  ('sexo',          'enum',       'sexo',           null, null, 'nunca',           false, 'persona', 'todos', null),
-  ('colegio',       'texto',      null,             null, null, 'nunca',           false, 'persona', 'todos', null),
-  ('patronSemanas', 'enum',       'patron_semanas', null, null, 'nunca',           false, 'persona', 'todos', null)
+  (id, tipo, vocabulario, minimo, maximo, politica, seguridad, por, aplica, columna, caduca_dias) values
+  ('alergias',      'lista_enum', 'alergenos',      null, null, 'una_vez',         true,  'persona', 'todos', 'persona_alergia',         30),
+  ('etapaBebe',     'enum',       'etapa_bebe',     null, null, 'antes_de_usarlo', true,  'casa',    'bebe',  null,                    21),
+  ('edad',          'int',        null,             0,    120,  'nunca',           false, 'persona', 'todos', 'persona.edad',            null),
+  ('nacimiento',    'fecha',      null,             null, null, 'nunca',           false, 'persona', 'todos', 'persona.fecha_nacimiento', null),
+  ('sexo',          'enum',       'sexo',           null, null, 'nunca',           false, 'persona', 'todos', null,                    null),
+  ('colegio',       'texto',      null,             null, null, 'nunca',           false, 'persona', 'todos', null,                    null),
+  ('patronSemanas', 'enum',       'patron_semanas', null, null, 'nunca',           false, 'persona', 'todos', null,                    null)
 on conflict (id) do update set
   tipo = excluded.tipo, vocabulario = excluded.vocabulario,
   minimo = excluded.minimo, maximo = excluded.maximo, politica = excluded.politica,
   seguridad = excluded.seguridad, por = excluded.por,
-  aplica = excluded.aplica, caduca_dias = excluded.caduca_dias;
+  aplica = excluded.aplica, columna = excluded.columna, caduca_dias = excluded.caduca_dias;
 
 -- 2. sobre ---------------------------------------------------------------------
 
@@ -118,23 +131,21 @@ create table if not exists public.sobre (
   household_id uuid not null references public.households(id) on delete cascade,
   persona_id   text,                       -- null = dato de la casa
   campo        text not null references public.registro_campo(id) on delete restrict,  -- restrict: no se borra un campo con datos
-  valor        jsonb,                      -- solo si el campo no tiene columna propia
+  valor        jsonb,                      -- solo si el campo no tiene columna propia (registro_campo.columna)
   origen       text not null,
   bloqueado    boolean not null default false,   -- no volver a preguntar (≠ no saberlo)
-  preguntado   integer not null default 0 check (preguntado >= 0),
-  quien_user   uuid references auth.users(id) on delete set null,
+  dicho_by     uuid references auth.users(id) on delete set null,
   canal        text not null,
-  frase        text check (frase is null or length(frase) <= 500),
-  rechazados   jsonb check (rechazados is null or jsonb_typeof(rechazados) = 'array'),
   ref_tipo     text,
   ref_id       text,
-  fecha        timestamptz not null default now(),
+  confirmado_at timestamptz not null default now(),
   created_at   timestamptz not null default now(),
   constraint sobre_origen_vocabulario
     check (origen in ('dicho', 'supuesto', 'visto', 'derivado', 'por_defecto', 'delegado', 'no_quiere_decirlo')),
   constraint sobre_canal_vocabulario check (canal in ('app', 'telegram', 'whatsapp', 'sistema')),
   constraint sobre_ref_tipo_vocabulario check (ref_tipo is null or ref_tipo in ('menu', 'mensaje', 'pantalla', 'senal')),
   constraint sobre_ref_completa check ((ref_tipo is null) = (ref_id is null)),
+  constraint sobre_sistema_sin_usuario check (canal <> 'sistema' or dicho_by is null),
   foreign key (household_id, persona_id) references public.persona(household_id, id) on delete cascade
 );
 
@@ -143,19 +154,16 @@ create unique index if not exists sobre_unico
 -- Un índice por FK (PRINCIPIOS §2): sin ellos, cada borrado en cascada recorre la tabla.
 create index if not exists sobre_persona on public.sobre (household_id, persona_id);
 create index if not exists sobre_campo on public.sobre (campo);
-create index if not exists sobre_quien_user on public.sobre (quien_user);
+create index if not exists sobre_dicho_by on public.sobre (dicho_by);
 
 comment on table public.sobre is
-  'SALUD: la procedencia de cada dato de la ficha (quién lo dijo, cómo lo sabemos, cuándo, por qué canal y a raíz de qué), uno por casa, campo y persona (persona nula = la casa). Puede guardar el valor de datos de salud (alergias, etapa del bebé) cuando el campo no tiene columna propia. Se borra con la persona o la casa (cascada); sin plazo propio de conservación. La lee ficha_casa; aún no la escribe ningún código.';
+  'SALUD: la procedencia de cada dato de la ficha (quién lo dijo, cómo lo sabemos, cuándo, por qué canal y a raíz de qué), uno por casa, campo y persona (persona nula = la casa). Puede guardar el valor de datos de salud (alergias, etapa del bebé) cuando el campo no tiene columna propia (hoy, etapaBebe). Se borra con la persona o la casa (cascada); sin plazo propio de conservación. La lee ficha_casa; aún no la escribe ningún código.';
 comment on column public.sobre.persona_id is 'null = dato de la casa. FK compuesta a persona; persona.id sigue siendo text hasta el paso 2 de la transición a uuid (PENDIENTES.md).';
-comment on column public.sobre.valor is 'Solo si el campo no tiene columna propia; su tipo y rango los comprueba sobre_valor_valido contra registro_campo. Puede ser un escalar, por eso no lleva check de objeto.';
+comment on column public.sobre.valor is 'Solo si el campo no tiene columna propia (registro_campo.columna es null; si la tiene, el trigger exige null); su tipo y rango los comprueba sobre_valor_valido contra registro_campo. Puede ser un escalar, por eso no lleva check de objeto.';
 comment on column public.sobre.bloqueado is 'true: no volver a preguntar (distinto de no saberlo).';
-comment on column public.sobre.preguntado is 'Cuántas veces se ha preguntado este campo.';
-comment on column public.sobre.quien_user is 'Quién lo dijo; null si lo puso el sistema o si el usuario se borró (set null: el dato no depende de la cuenta).';
-comment on column public.sobre.frase is 'Lo que dijo la persona, tal cual, hasta 500 caracteres.';
-comment on column public.sobre.rechazados is 'Valores que la familia ya rechazó (array JSON); lo valida el código que escriba la ficha (aún sin escritor).';
+comment on column public.sobre.dicho_by is 'El usuario que lo dijo. null = lo puso el sistema (canal = ''sistema'', que lo exige un check). También queda null si la cuenta se borra (on delete set null: el dato no depende de la cuenta).';
 comment on column public.sobre.ref_id is 'Id de lo que lo originó, polimórfico según ref_tipo (menú, mensaje, pantalla o señal): sin FK a propósito.';
-comment on column public.sobre.fecha is 'Cuándo consta el dato (se actualiza cada vez que se confirma); created_at es cuándo se creó la fila.';
+comment on column public.sobre.confirmado_at is 'Cuándo se confirmó el dato por última vez (se actualiza cada vez que se confirma); created_at es cuándo se creó la fila.';
 
 -- El valor tiene el tipo y el rango de su campo. El vocabulario lo comprueba el
 -- código (la lista vive en JS); aquí, la forma.
@@ -170,6 +178,9 @@ begin
   if (r.por = 'persona') <> (new.persona_id is not null) then
     raise exception 'sobre: el campo % es de %, y la persona no cuadra', new.campo, r.por using errcode = '23514';
   end if;
+  if r.columna is not null and new.valor is not null then
+    raise exception 'sobre: % tiene columna propia (%), su valor no va en sobre', new.campo, r.columna using errcode = '23514';
+  end if;
   if v is null or jsonb_typeof(v) = 'null' then return new; end if;
   -- En una variable: dentro de un IF, PL/pgSQL cortaría la condición en el primer THEN del CASE.
   bien := case r.tipo
@@ -183,6 +194,10 @@ begin
   end;
   if not bien then
     raise exception 'sobre: % no es un valor de tipo % para %', v, r.tipo, new.campo using errcode = '23514';
+  end if;
+  -- Tope de 200 caracteres a cada texto (el valor entero o cada elemento de una lista).
+  if exists (select 1 from jsonb_path_query(v, '$.** ? (@.type() == "string")') t where char_length(t #>> '{}') > 200) then
+    raise exception 'sobre: texto de más de 200 caracteres para %', new.campo using errcode = '23514';
   end if;
   if r.tipo in ('int', 'decimal') and (
        (r.minimo is not null and (v #>> '{}')::numeric < r.minimo) or
@@ -269,7 +284,8 @@ begin
     into v_grupos
     from public.grupo g where g.household_id = p_casa;
 
-  -- datos: lo que tiene sobre. Si el campo tiene columna, el valor sale de ella.
+  -- datos: lo que tiene sobre. Si el campo tiene columna (registro_campo.columna), el valor sale de ella:
+  -- los tres «when» de abajo son exactamente los campos con columna (registroCampos.test.js lo comprueba).
   select coalesce(jsonb_agg(jsonb_build_object(
            'campo', s.campo,
            'sujeto', jsonb_build_object('tipo', case when s.persona_id is null then 'casa' else 'persona' end, 'id', s.persona_id),
@@ -284,8 +300,8 @@ begin
                           when s.origen in ('dicho', 'delegado') then 'confirmado'
                           else 'inferido' end,
            'origen', s.origen,
-           'visto', to_char(s.fecha at time zone 'Europe/Madrid', 'YYYY-MM-DD'),
-           'por', s.quien_user,
+           'confirmado_el', to_char(s.confirmado_at at time zone 'Europe/Madrid', 'YYYY-MM-DD'),
+           'dicho_por', s.dicho_by,
            'canal', s.canal,
            'ref', case when s.ref_tipo is null then null else jsonb_build_object('tipo', s.ref_tipo, 'id', s.ref_id) end
          ) order by s.campo, (s.persona_id is not null), s.persona_id), '[]'::jsonb)
@@ -294,7 +310,8 @@ begin
     left join public.persona p on p.household_id = s.household_id and p.id = s.persona_id
    where s.household_id = p_casa;
 
-  -- faltan: campos que se pueden preguntar, sin sobre y sin valor en su columna.
+  -- faltan: campos que se pueden preguntar, sin sobre y sin valor en su columna (los tres «r.id =» son
+  -- los mismos campos con columna).
   -- «aplica» va tal cual: si es «bebe», el JS mira la etapa antes de preguntarlo.
   select coalesce(jsonb_agg(jsonb_build_object(
            'campo', f.campo,
@@ -375,7 +392,8 @@ begin
 end $$;
 
 revoke all on function public.ficha_casa(uuid, uuid, text, integer) from public, anon, authenticated;
-grant execute on function public.ficha_casa(uuid, uuid, text, integer) to authenticated, service_role;
+-- Solo la service role (el bot) hasta que la app tenga un lector; entonces se concede a authenticated.
+grant execute on function public.ficha_casa(uuid, uuid, text, integer) to service_role;
 
 comment on function public.ficha_casa(uuid, uuid, text, integer) is
-  'La ficha de la casa y sus tareas abiertas en una ida, para el prompt de Lola (contrato v1; lector: api/_bot/fichaRpc.js). Un usuario solo ve su casa; la service role pasa p_usuario. Solo lectura.';
+  'La ficha de la casa y sus tareas abiertas en una ida, para el prompt de Lola (contrato v1; lector: api/_bot/fichaRpc.js). Solo la service role puede llamarla hoy (pasa p_usuario); la rama de authenticated, que solo ve su casa, queda lista para cuando la app la lea. Solo lectura.';

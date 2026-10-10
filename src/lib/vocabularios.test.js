@@ -30,7 +30,7 @@ const CHECK_A_VOCABULARIO = {
   registro_campo_por_vocabulario: { valores: POR },
   registro_campo_aplica_vocabulario: { valores: APLICA },
   sobre_origen_vocabulario: { lista: "origen_dato" },
-  sobre_canal_vocabulario: { lista: "canales", extra: ["app", "sistema"] },
+  sobre_canal_vocabulario: { lista: "canales_dato" },
   sobre_ref_tipo_vocabulario: { lista: "ref_tipo" },
 };
 

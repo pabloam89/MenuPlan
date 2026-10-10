@@ -42,7 +42,6 @@ export const NO_LLEVAN = new Map([
   ["cookings.sticker", "el sello decorativo de la foto"],
   ["persona.resto", "lo que no tiene columna de una persona: lo recalcula del JSON de la casa cada guardado (0089)"],
   ["sobre.valor", "tabla de la 0097, posterior al paso a UUID de la 0091: solo se escribe con ids nuevos, no hay ninguno viejo que reescribir"],
-  ["sobre.rechazados", "tabla de la 0097: valores de un campo rechazados por la familia, no ids de persona ni de grupo"],
   ["user_recipes.ingredients", "receta propia: sus ingredientes"],
   ["user_recipes.methods", "receta propia: sus métodos"],
   ["user_recipes.owner_snapshot", "receta propia: quién la publicó (usuario, no persona de la casa)"],
