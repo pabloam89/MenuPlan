@@ -42,7 +42,11 @@
       ]
     },
     "alta-de-secreto": {
-      "comandos": [],
+      "comandos": [
+        "\\bgh\\s+secret\\s+set\\b",
+        "\\bvercel(?:\\.cmd)?\\s+env\\s+add\\b",
+        "(?:^|[\\s\"'=;&|(])op(?:\\.exe)?(?:\\s+--)?\\s+item\\s+create\\b"
+      ],
       "rutas": [
         "^scripts/clave-[\\w-]+\\.mjs$",
         "^scripts/lib/claveRol\\.mjs$"
