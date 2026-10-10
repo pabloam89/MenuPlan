@@ -3,18 +3,18 @@
  * rulesets.mjs — los rulesets de `main` y `staging` frente a lo deseado (E4, #330;
  * fondo #326: dueño de código).
  *
- *   node scripts/rulesets.mjs                       # solo LEE y enseña la diferencia
- *   node scripts/rulesets.mjs --escribir            # crea o actualiza (SOLO Pablo, con su credencial de administrador)
- *   node scripts/rulesets.mjs --escribir --bypass-admin   # además, el rol Administrador puede fusionar su propio PR
+ *   node scripts/rulesets.mjs             # solo LEE y enseña la diferencia
+ *   node scripts/rulesets.mjs --escribir  # crea o actualiza (SOLO Pablo, con su credencial de administrador)
  *
- * Lo deseado:
- * - main: PR, check `tests` y 1 aprobación de dueño de código (CODEOWNERS). Sin
- *   bypass para nadie (ni la App); `--bypass-admin` añade el rol Administrador, y
- *   solo en modo `pull_request` (por el botón del PR, nunca por push).
+ * Lo deseado (opción A de #330):
+ * - main, dos rulesets: (a) PR y check `tests`, sin bypass para nadie; (b) regla
+ *   `update` (restringir actualizaciones) con bypass solo para el rol Administrador,
+ *   en modo `pull_request`: solo Pablo fusiona, por el botón del PR. Sin aprobación
+ *   de dueño en main: no hace falta, fusiona quien tiene el bypass.
  * - staging: lo de hoy (`tests`, excepción de la deploy key) y, además, PR con la
  *   revisión de dueño de código y 0 aprobaciones: GitHub no deja condicionar una
- *   regla de ruleset por ruta; el filtro por ruta lo pone CODEOWNERS (la
- *   aprobación de dueño solo se pide a un PR que toca ficheros con dueño).
+ *   regla de ruleset por ruta; el filtro por ruta lo pone CODEOWNERS. Sin bypass para
+ *   nadie salvo la deploy key (un bypass también saltaría `tests`).
  *
  * Falla cerrado: sin token, sin respuesta, con una respuesta rara o sin permiso de
  * administrador, no escribe nada. No imprime el token ni lo que GitHub devuelva sin
@@ -27,7 +27,8 @@ export const API = "https://api.github.com";
 export const REPO = "pabloam89/MenuPlan";
 /** El check `tests` es de la app de GitHub Actions (integration_id 15368). */
 export const CHECK_TESTS = { context: "tests", integration_id: 15368 };
-export const NOMBRE_MAIN = "main: dueño de código";
+export const NOMBRE_MAIN = "main: PR y tests";
+export const NOMBRE_MAIN_SOLO = "main: solo Pablo fusiona";
 export const NOMBRE_STAGING = "staging: tests obligatorios";
 /** Rol Administrador del repo en la API de rulesets. */
 const ROL_ADMIN = 5;
@@ -37,29 +38,32 @@ const checks = () => ({
   type: "required_status_checks",
   parameters: { strict_required_status_checks_policy: false, do_not_enforce_on_create: false, required_status_checks: [{ ...CHECK_TESTS }] },
 });
-const revision = (aprobaciones) => ({
+const revision = (aprobaciones, dueno) => ({
   type: "pull_request",
   parameters: {
     required_approving_review_count: aprobaciones,
     dismiss_stale_reviews_on_push: true,
-    require_code_owner_review: true,
+    require_code_owner_review: dueno,
     require_last_push_approval: false,
     required_review_thread_resolution: false,
   },
 });
 
-/** Los dos rulesets deseados. `bypassAdmin`: el rol Administrador, solo por PR. */
-export function deseados({ bypassAdmin = false } = {}) {
-  const admin = bypassAdmin ? [{ actor_id: ROL_ADMIN, actor_type: "RepositoryRole", bypass_mode: "pull_request" }] : [];
+/** Los tres rulesets deseados. */
+export function deseados() {
   const rama = (nombre, ref, rules, bypass) => ({
     name: nombre, target: "branch", enforcement: "active",
     conditions: { ref_name: { include: [`refs/heads/${ref}`], exclude: [] } },
     rules, bypass_actors: bypass,
   });
   return [
-    rama(NOMBRE_MAIN, "main", [revision(1), checks()], admin),
+    rama(NOMBRE_MAIN, "main", [revision(0, false), checks()], []),
+    // «update»: solo quien tiene bypass actualiza la rama; el rol Administrador, y solo por PR.
+    // Sin comprobar a 10 oct 2026: el nombre exacto del parámetro (update_allows_fetch_and_merge).
+    rama(NOMBRE_MAIN_SOLO, "main", [{ type: "update", parameters: { update_allows_fetch_and_merge: false } }],
+      [{ actor_id: ROL_ADMIN, actor_type: "RepositoryRole", bypass_mode: "pull_request" }]),
     // La excepción de la deploy key (el cron de Mercadona empuja con ella) se mantiene tal cual.
-    rama(NOMBRE_STAGING, "staging", [checks(), revision(0)], [{ actor_id: null, actor_type: "DeployKey", bypass_mode: "always" }, ...admin]),
+    rama(NOMBRE_STAGING, "staging", [checks(), revision(0, true)], [{ actor_id: null, actor_type: "DeployKey", bypass_mode: "always" }]),
   ];
 }
 
@@ -139,13 +143,16 @@ async function llamar(fetchFn, token, metodo, ruta, cuerpo) {
   }
   let datos = null;
   try { datos = await r.json(); } catch { datos = null; /* a propósito: un cuerpo que no es JSON no se enseña; el código HTTP basta */ }
-  if (!r.ok) throw new ErrorRulesets(`GitHub respondió ${r.status} en ${metodo} ${ruta || "/"}${datos?.message ? ` («${sinSecretos(datos.message, [token]).slice(0, 120)}»)` : ""}`);
+  if (!r.ok) {
+    const errores = Array.isArray(datos?.errors) ? ` errores: ${sinSecretos(JSON.stringify(datos.errors), [token]).slice(0, 300)}` : "";
+    throw new ErrorRulesets(`GitHub respondió ${r.status} en ${metodo} ${ruta || "/"}${datos?.message ? ` («${sinSecretos(datos.message, [token]).slice(0, 120)}»)` : ""}${errores}`);
+  }
   return datos;
 }
 
 /** Lee todos los rulesets del repo con su detalle. */
 export async function leerRulesets(fetchFn, token) {
-  const lista = await llamar(fetchFn, token, "GET", "/rulesets?includes_parents=false");
+  const lista = await llamar(fetchFn, token, "GET", "/rulesets?includes_parents=false&per_page=100");
   if (!Array.isArray(lista)) throw new ErrorRulesets("la lista de rulesets no es una lista: no sigo");
   const completos = [];
   for (const r of lista) {
@@ -155,20 +162,25 @@ export async function leerRulesets(fetchFn, token) {
   return completos;
 }
 
-/** El ruleset actual que corresponde a uno deseado: el mismo nombre o, si no, el que solo apunta a su rama. */
+/** El ruleset actual con el mismo nombre que uno deseado. Solo por nombre: nunca se pisa uno ajeno. */
 export function emparejar(actuales, d) {
-  const ref = d.conditions.ref_name.include[0];
-  return actuales.find((a) => a.name === d.name)
-    ?? actuales.find((a) => a.target === "branch" && (a.conditions?.ref_name?.include ?? []).length === 1 && a.conditions.ref_name.include[0] === ref) ?? null;
+  return actuales.find((a) => a.name === d.name) ?? null;
+}
+
+/** Rulesets de otro nombre que apuntan a la misma rama: se avisa, no se tocan. */
+export function ajenosEnLaRama(actuales, deseadosTodos) {
+  const nuestros = new Set(deseadosTodos.map((d) => d.name));
+  const refs = new Set(deseadosTodos.flatMap((d) => d.conditions.ref_name.include));
+  return actuales.filter((a) => !nuestros.has(a.name) && (a.conditions?.ref_name?.include ?? []).some((x) => refs.has(x)));
 }
 
 export async function ejecutar({ argv = [], env = {}, fetchFn = fetch, salida = (l) => console.log(l), ejecutarGh } = {}) {
-  const desconocidos = argv.filter((a) => !["--escribir", "--bypass-admin"].includes(a));
-  if (desconocidos.length) { salida(`rulesets: argumento desconocido (${desconocidos.join(" ")}). Vale --escribir y --bypass-admin.`); return 2; }
+  const desconocidos = argv.filter((a) => !["--escribir"].includes(a));
+  if (desconocidos.length) { salida(`rulesets: argumento desconocido (${desconocidos.join(" ")}). Vale --escribir.`); return 2; }
   const escribir = argv.includes("--escribir");
   const token = tokenDe(env, ejecutarGh);
   if (!token) { salida("rulesets: sin token (GH_TOKEN, GITHUB_TOKEN o `gh auth login`). No hago nada."); return 2; }
-  const quiero = deseados({ bypassAdmin: argv.includes("--bypass-admin") });
+  const quiero = deseados();
   try {
     if (escribir) {
       const repo = await llamar(fetchFn, token, "GET", "");
@@ -178,6 +190,7 @@ export async function ejecutar({ argv = [], env = {}, fetchFn = fetch, salida = 
       }
     }
     const actuales = await leerRulesets(fetchFn, token);
+    for (const a of ajenosEnLaRama(actuales, quiero)) salida(`rulesets aviso: «${a.name}» (id ${a.id}) también apunta a una de estas ramas; no lo toco`);
     let cuadra = true;
     const pendientes = [];
     for (const d of quiero) {
@@ -192,9 +205,26 @@ export async function ejecutar({ argv = [], env = {}, fetchFn = fetch, salida = 
       if (!cuadra) salida("rulesets: para aplicarlo, Pablo lanza `node scripts/rulesets.mjs --escribir` desde su terminal.");
       return cuadra ? 0 : 1;
     }
-    for (const { d, a } of pendientes) {
-      const r = a ? await llamar(fetchFn, token, "PUT", `/rulesets/${a.id}`, d) : await llamar(fetchFn, token, "POST", "/rulesets", d);
-      salida(`rulesets ${d.name}: ${a ? "actualizado" : "creado"} (id ${r?.id ?? "?"})`);
+    let escritos = 0;
+    try {
+      for (const { d, a } of pendientes) {
+        const r = a ? await llamar(fetchFn, token, "PUT", `/rulesets/${a.id}`, d) : await llamar(fetchFn, token, "POST", "/rulesets", d);
+        escritos++;
+        salida(`rulesets ${d.name}: ${a ? "actualizado" : "creado"} (id ${r?.id ?? "?"})`);
+      }
+    } catch (e) {
+      if (escritos > 0) {
+        salida(`rulesets: se escribieron ${escritos} de ${pendientes.length} y el siguiente falló; estado ahora:`);
+        try {
+          const ahora = await leerRulesets(fetchFn, token);
+          for (const d of quiero) {
+            const dif = diferencias(emparejar(ahora, d), d);
+            salida(`rulesets ${d.name}: ${dif.length ? "difiere" : "ok"}`);
+            for (const l of dif) salida(`  - ${l}`);
+          }
+        } catch { salida("rulesets: tampoco he podido releer el estado."); }
+      }
+      throw e;
     }
     const despues = await leerRulesets(fetchFn, token);
     let ok = true;

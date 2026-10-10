@@ -14,7 +14,7 @@ metadata:
 - **Repo** `pabloam89/MenuPlan`, **público**. Rama por defecto: `staging` (desde cuándo, en «Fechas» de Fuentes y comprobación). `main` es producción.
 - **Protección de ramas** (desde el 7 oct, también para administradores):
   - `main`: solo por PR con el check `tests` en verde; sin force push ni
-    borrado. Con el ruleset de #330 (por aplicar), además 1 aprobación de dueño.
+    borrado. Con los rulesets de #330 (por aplicar), solo fusiona Pablo (bypass).
   - `staging`: sin force push ni borrado (protección clásica) y el **ruleset
     «staging: tests obligatorios»**: nada entra sin `tests` en verde, ni por PR
     ni por push, tampoco Pablo. Solo se lo saltan las deploy keys, y la única
