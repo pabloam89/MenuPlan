@@ -22,10 +22,14 @@ export function limpiarTexto(texto, max = MAX_TEXTO) {
     // NFKC primero: los ángulos de anchura completa (＜ ＞) y compatibles (﹤ ﹥) pasan a < > y se quitan abajo.
     .normalize("NFKC")
     .replace(/[\p{Cc}\p{Zl}\p{Zp}]/gu, " ")
+    // Invisibles que no son Cf: selectores de variación, rellenos de jamo/hangul y braille en blanco.
+    .replace(/[︀-️\u{E0100}-\u{E01EF}ᅟᅠㅤﾠ⠀]/gu, "")
     .replace(/[\p{Cf}<>[\]`«»‹›〈〉⟨⟩⟪⟫《》❬❭❮❯❰❱]/gu, "")
     .replace(/\s+/g, " ")
     .trim();
-  return s.length > max ? `${s.slice(0, max - 1)}…` : s;
+  // Por puntos de código: cortar un par sustituto dejaría medio carácter.
+  const puntos = [...s];
+  return puntos.length > max ? `${puntos.slice(0, max - 1).join("")}…` : s;
 }
 
 /** Rama válida para pintarla o cruzarla: letras, prefijo, barra y un nombre sencillo. */

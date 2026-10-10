@@ -11,9 +11,8 @@
 import { execFileSync } from "node:child_process";
 import { dirname } from "node:path";
 
-import { CONSULTA, leerIssue } from "./lib/issues.mjs";
-import { leerInventario, leerMarcas } from "./lib/lleva.mjs";
-import { situacion } from "./lib/situacion.mjs";
+import { leerInventario } from "./lib/lleva.mjs";
+import { LIMITE_FUSIONADOS, leerTodosLosIssues, situacion } from "./lib/situacion.mjs";
 
 const gh = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30_000 });
 const git = (...args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 15_000 });
@@ -22,7 +21,7 @@ const json = (...args) => JSON.parse(gh(...args));
 const principal = () => dirname(git("rev-parse", "--path-format=absolute", "--git-common-dir").trim());
 
 const fuentes = {
-  prsAbiertos: () => json("pr", "list", "--state", "open", "--limit", "50", "--json", "number,title,headRefName,statusCheckRollup")
+  prsAbiertos: () => json("pr", "list", "--state", "open", "--limit", "50", "--json", "number,title,headRefName,statusCheckRollup,isCrossRepository,author")
     .map((p) => ({ ...p, checks: p.statusCheckRollup ?? [] })),
   // Atrasada: origin/staging tiene commits que la rama del PR no tiene. Se mira el origin ya traído (git fetch antes).
   atrasada: (rama) => {
@@ -34,30 +33,19 @@ const fuentes = {
       throw new Error(`no he podido comparar con origin/${rama}: ${String(e.stderr ?? e.message).trim().split("\n")[0]}`);
     }
   },
-  fusionados: () => json("pr", "list", "--state", "merged", "--limit", "40", "--json", "number,title,headRefName,mergedAt"),
+  // Búsqueda por fecha y no «los últimos 40»: con un día movido, 40 no llegan a 6 h atrás.
+  fusionados: (desde) => json("pr", "list", "--state", "merged", "--search", `merged:>=${desde}`, "--limit", String(LIMITE_FUSIONADOS), "--json", "number,title,headRefName,mergedAt,isCrossRepository"),
   ramas: () => leerInventario(principal()),
-  decisiones: () => json("issue", "list", "--label", "tipo:decision", "--state", "open", "--limit", "100", "--json", "number,title,createdAt,comments")
-    .map((d) => ({ number: d.number, title: d.title, createdAt: d.createdAt, ultimoComentario: d.comments?.at(-1)?.createdAt ?? null })),
-  issues: () => {
-    const out = [];
-    let cursor = null;
-    do {
-      const args = ["api", "graphql", "-f", `query=${CONSULTA}`];
-      if (cursor) args.push("-f", `cursor=${cursor}`);
-      const pag = JSON.parse(gh(...args)).data.repository.issues;
-      out.push(...pag.nodes.map((n) => ({ ...leerIssue(n), marcas: leerMarcas(n.comments?.nodes, { soloCasa: true }) })));
-      cursor = pag.pageInfo.hasNextPage ? pag.pageInfo.endCursor : null;
-    } while (cursor);
-    return out;
-  },
+  // Issues, decisiones incluidas: una sola consulta GraphQL (con tope de páginas) y filtrada por autor de la casa.
+  issues: () => leerTodosLosIssues(gh),
 };
 
-// Lo último que se sabe de origin; si el fetch falla, el atraso se calcula con lo que haya y se dice.
-let aviso = "";
+// Lo último que se sabe de origin; si el fetch falla, el atraso se calcula con lo que haya y la cabecera lo dice.
+let avisoFetch = "";
 try {
   git("-C", principal(), "fetch", "origin", "--quiet");
 } catch (e) {
-  aviso = `\nAviso: git fetch falló (${String(e.stderr ?? e.message).trim().split("\n")[0]}); el atraso de los PR y las ramas es el de la última vez que se trajo origin.`;
+  avisoFetch = String(e.stderr ?? e.message).trim().split("\n")[0];
 }
 
-console.log(situacion(fuentes, new Date()) + aviso);
+console.log(situacion(fuentes, new Date(), { avisoFetch }));

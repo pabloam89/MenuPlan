@@ -239,11 +239,11 @@ export const CONSULTA = `query($cursor: String) {
         id number title state createdAt closedAt body authorAssociation
         labels(first: 20) { nodes { name } }
         assignees(first: 5) { nodes { login } }
-        reaperturas: timelineItems(itemTypes: [REOPENED_EVENT]) { totalCount }
+        reaperturas: timelineItems(itemTypes: [REOPENED_EVENT], last: 1) { totalCount nodes { ... on ReopenedEvent { createdAt } } }
         closedByPullRequestsReferences(first: 5, includeClosedPrs: true) {
           nodes { number headRefName mergedAt body author { login } }
         }
-        comments(last: 10) { nodes { body authorAssociation } }
+        comments(last: 10) { nodes { body authorAssociation createdAt } }
         parent { number state labels(first: 20) { nodes { name } } }
         subIssues(first: 50) {
           nodes {
@@ -300,6 +300,7 @@ export function leerIssue(n) {
     labels: (n.labels?.nodes ?? []).map((l) => ({ name: l.name })),
     asignados: (n.assignees?.nodes ?? []).map((a) => a.login),
     reaperturas: n.reaperturas?.totalCount ?? 0,
+    ultimaReapertura: n.reaperturas?.nodes?.at(-1)?.createdAt ?? null,
     prs,
     padre: n.parent ? ref(n.parent) : null,
     hijos: (n.subIssues?.nodes ?? []).map(ref),
