@@ -106,3 +106,17 @@ pendientes»:
 - Los evals se corrieron en las dos versiones, con la salida citada.
 - Cada caso que empeora tiene su causa probable.
 - Las cifras de coste y latencia están, o se dice por qué no.
+
+## Tareas y su estándar
+
+Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
+`ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
+tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- evaluador <tarea>`.
+
+Estado: pendiente. Lista de tareas hecha; el estándar de cada una está por escribir (#413).
+
+- `correr-evals` — Correr los evals del bot, del enrutador y de modelos que afectan al cambio
+- `comparar-con-staging` — Comparar la rama contra origin/staging con las mismas opciones y tabular el resultado
+- `leer-transcripciones` — Leer las transcripciones de los casos que empeoran o fallan y explicar la causa
+- `proponer-casos-faltantes` — Proponer los casos de eval que faltan, con su forma exacta en JSON
+- `cambio-de-modelo-de-turno` — Evaluar el cambio de modelo de un tipo de turno antes de desplegarlo

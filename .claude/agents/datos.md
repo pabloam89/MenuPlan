@@ -158,3 +158,18 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
   «OK».
 - Cada columna o tabla nueva tiene un lector señalado.
 - ESTADO.md dice la verdad sobre lo que esta rama trae.
+
+## Tareas y su estándar
+
+Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
+`ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
+tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- datos <tarea>`.
+
+- `modelar-antes-de-sql` — Diseñar el modelo antes del SQL: entidades, relaciones, ciclo de vida e invariantes
+- `restricciones-y-tipos` — Dar a cada tabla sus claves, relaciones, tipos y vocabulario cerrado con CHECK y su constante JS
+- `escribir-migracion` — Escribir una migración nueva con cabecera, consultas previas, objeto testigo y plan B del código
+- `ensayar-migracion` — Ensayar la migración contra la base y comprobar el resultado leyendo el catálogo
+- `estado-de-migraciones` — Mantener ESTADO.md y PENDIENTES.md y contestar si una migración está aplicada
+- `rls-y-funciones-seguras` — Escribir las políticas RLS, los grants y las funciones security definer de una migración para que las juzgue seguridad
+- `donde-vive-el-dato` — Decidir dónde vive un dato (SQL, JSON en git o los dos) y deshacer repeticiones y cruces por nombre
+- `texto-libre-a-vocabulario` — Convertir un texto libre que se agrupa en vocabulario cerrado con su CHECK y su constante

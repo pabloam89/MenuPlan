@@ -59,6 +59,12 @@ No es suyo:
    pasa). Una que falta es hallazgo **medio** con su nombre; si además el
    diff repite algo que esa skill ya cuenta en «Lo que falló y por qué», es
    **alto**. Sin informe del constructor, dilo como no comprobado.
+8. **El estándar de la tarea se contrasta** (#413). Con `npm run estandar --
+   <agente> <tarea>` sacas el estándar de la tarea que dice la línea `ESTÁNDAR:`
+   del informe del constructor y compruebas, con el diff y su evidencia, cada
+   punto de «comprueba» y que no se hizo nada de «no_hace». Un punto sin
+   evidencia es hallazgo **medio**; un «no_hace» hecho es **alto**. Si el agente
+   es pendiente o no hay informe, dilo como no comprobado.
 
 ## 4. Disparadores
 
@@ -74,6 +80,8 @@ No es suyo:
 3. `CLAUDE.md` y la spec del dominio en `specs/` (ver `specs/INDEX.md`).
 4. Los issues abiertos que nombran los ficheros del diff (`npm run issues`, o
    `gh issue list --search <fichero>`): fallos que ya se repitieron.
+5. El estándar de la tarea del constructor, de `ops/estandares-agentes.json`
+   (`npm run estandar -- <agente> <tarea>`).
 
 ## 6. Método
 
@@ -94,8 +102,10 @@ No es suyo:
 5. Corre `npm run skills-encargo -- --diff`, abre tú también esas skills
    (para juzgar con lo que ya falló) y contrasta la lista con el `SKILLS:` del
    constructor (principio 7).
-6. Escribe cada hallazgo con severidad, línea, caso y arreglo propuesto.
-7. Si un patrón de fallo se repite, propón en el informe dónde dejarlo (un
+6. Corre `npm run estandar -- <agente> <tarea>` con lo que dice la línea
+   `ESTÁNDAR:` del constructor y contrasta cada punto con el diff (principio 8).
+7. Escribe cada hallazgo con severidad, línea, caso y arreglo propuesto.
+8. Si un patrón de fallo se repite, propón en el informe dónde dejarlo (un
    test, una regla de la guardia o un issue): un juez no escribe, y una
    lección no va a la memoria. Cierra con el informe común.
 
@@ -126,4 +136,21 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
   skill) o que no quedó en ninguna, y si la línea «Runbook:» es cierta.
 - Dice qué skills pedía el diff (`npm run skills-encargo -- --diff`) y si el
   constructor las abrió según su `SKILLS:`.
+- Dice qué estándar tenía la tarea del constructor (`ESTÁNDAR:`) y qué puntos
+  de «comprueba» tienen evidencia y cuáles no.
 - Cada hallazgo bloqueante tiene un caso concreto reproducible.
+
+## Tareas y su estándar
+
+Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
+`ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
+tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- revisor <tarea>`.
+
+- `revisar-diff` — Revisar el diff entero de la rama contra origin/staging y levantar solo lo que rompe
+- `hallazgos-con-caso` — Escribir cada hallazgo con severidad, línea, caso concreto y arreglo propuesto
+- `tests-que-prueban` — Correr los tests de lo tocado y comprobar que un test nuevo fallaría sin el cambio
+- `leccion-del-fallo` — Comprobar que un PR que arregla un fallo deja su lección en un test, la guardia o la skill
+- `skills-abiertas` — Contrastar las skills que pedía el diff con las que el constructor dijo abrir
+- `contrastar-estandar-del-constructor` — Contrastar el diff con el estándar de la tarea que el constructor dice haber cumplido
+- `reutilizacion-evidente` — Señalar la reutilización evidente cuando evita un fallo o una segunda verdad
+- `diagnosticar-bug` — Localizar dónde está un bug antes de que alguien lo arregle

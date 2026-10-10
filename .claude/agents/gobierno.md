@@ -141,3 +141,19 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 - `npm test -- .claude` pasa si ha tocado hooks o agentes.
 - Lo que dejó pendiente está en «Decisiones pendientes» o en
   `ops/INVENTARIO.md`, no solo en el chat.
+
+## Tareas y su estándar
+
+Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
+`ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
+tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- gobierno <tarea>`.
+
+- `flujo-rama-pr-staging` — Llevar un cambio de su rama a staging por PR con el CI en verde, mirando el estado real de origin/staging
+- `paso-a-main` — Preparar el paso a main cuando Pablo lo pide, dejando los comandos listos sin ejecutarlos
+- `worktrees-y-ramas` — Crear, retirar y podar carpetas de trabajo y ramas sin perder trabajo sin subir
+- `diagnosticar-fallo-de-ci-o-despliegue` — Diagnosticar un CI rojo, un despliegue fallido o en Blocked y un hook que bloquea, separando causa de síntoma
+- `workflows-y-crons` — Cambiar o revisar un workflow o un cron con permisos mínimos y acciones fijadas
+- `permisos-y-hooks` — Cambiar permisos y hooks, y convertir en regla de la guardia lo que importa y solo está escrito
+- `secretos-e-inventario` — Llevar al día qué secretos y servicios existen, de quién son y dónde viven, sin escribir un valor
+- `despliegues-vercel` — Informar del estado y los logs de un despliegue de Vercel y preparar el despliegue a producción cuando se pide
+- `registros-y-planos` — Poner al día DECISIONES, INVENTARIO y PLANOS y contestar «¿cómo está la casa?» con cifras
