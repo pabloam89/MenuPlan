@@ -128,7 +128,7 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 (`api/_bot/`, `api/bot/`), `catalogo` (`src/data/`, `src/utils/`, `src/lib/`,
 `api/_bot/`), `tests` (`*.test.{js,jsx,mjs}`) y
 `api` (`api/*.js`). Las skills (`.claude/skills/`) son runbooks que se abren
-por su nombre: `1password`, `vercel`, `supabase`, `github`, `issues`,
+por su nombre: `1password`, `alta-de-secreto`, `vercel`, `supabase`, `github`, `issues`,
 `telegram`, `hetzner` y `tailscale` (precargadas en `gobierno` y `lola`); y
 las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
 `plan-de-arreglo` (partir el arreglo en encargos). Todas siguen
@@ -191,7 +191,7 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 - Crear, rotar o cambiar secretos y variables de entorno.
 - Gastar dinero: un plan de pago, una compra, evals de pago que no tocan.
 - Escribir a personas o publicar algo en su nombre.
-- Ampliar los permisos de `.claude/settings.json` (la guardia pregunta).
+- Ampliar los permisos de `.claude/settings.json` (la sesión pregunta en el chat antes de abrir el PR y el juez lo marca; la guardia ya no pregunta al editar).
 - Reescribir historia de una rama que no es tuya.
 
 **Autorizado de forma permanente** (se hace y se cuenta en el resumen):
@@ -224,7 +224,7 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
   pisó sus ficheros, trabajar en la carpeta principal y `gh issue create` a
   pelo (se crea con `npm run issues -- --nuevo`, que busca los parecidos);
   pregunta
-  antes de un push forzado, de tocar los permisos (`settings.json`) y de escribir por
+  antes de un push forzado y de escribir por
   terminal lo que lee Lola. Cada regla,
   con su porqué y su test en `.claude/hooks/guardia.test.js`.
 - **`avisos.mjs`** tras editar un fichero: los issues abiertos que lo nombran.
