@@ -87,10 +87,9 @@ describe("los moldes de .claude/plantillas-skill/ están al día", () => {
 /**
  * Dónde puede haber varios tipos juntos, y por qué no es otra lista:
  * - ops/forja.json: es LA lista (y los retirados, con su destino);
- * - scripts/lib/plantillasSkill.mjs: SECCIONES_POR_TIPO, lo propio de cada tipo, que
- *   problemasDePlantillas obliga a tener exactamente los tipos de la forja;
- * - .claude/PLANTILLA-SKILL.md: un apartado de estándar por tipo, que .claude/skills.test.js
- *   obliga a tener exactamente los tipos de la forja;
+ * - .claude/PLANTILLA-SKILL.md, SOLO su sección «El estándar de cada tipo»: un apartado
+ *   por tipo, que .claude/skills.test.js obliga a tener exactamente los tipos de la forja;
+ *   el resto del fichero se mira como cualquier otro;
  * - docs/ops/FORJA.md: se genera de la forja y ops/forja.test.js lo compara.
  * - ops/vocabularios-vida.json: el ancla de forja.tipo_skill la escribe `npm run glosario --
  *   --vocabularios --escribir` desde la forja, y sus retirados solo crecen; ops/vocabularios-vida.test.js
@@ -98,7 +97,17 @@ describe("los moldes de .claude/plantillas-skill/ están al día", () => {
  * Los *.test.js no cuentan: comprueban, no son fuente (ops/forja-tipos.test.js reescribe
  * a propósito la tabla de Pablo para contrastarla).
  */
-const PERMITIDOS = ["ops/forja.json", "scripts/lib/plantillasSkill.mjs", ".claude/PLANTILLA-SKILL.md", "docs/ops/FORJA.md", "ops/vocabularios-vida.json"];
+const PERMITIDOS = ["ops/forja.json", "docs/ops/FORJA.md", "ops/vocabularios-vida.json"];
+/** Secciones exentas dentro de un fichero que por lo demás se mira: { ruta: título de la sección ## }. */
+const SECCIONES_EXENTAS = { ".claude/PLANTILLA-SKILL.md": "El estándar de cada tipo" };
+/** El texto sin la sección `## titulo` (hasta la siguiente cabecera ##); falla si la sección no está, para que la exención no quede vieja. */
+function sinSeccion(texto, titulo, ruta) {
+  const lineas = texto.replace(/\r\n/g, "\n").split("\n");
+  const i = lineas.findIndex((l) => l.trim() === `## ${titulo}`);
+  if (i < 0) throw new Error(`${ruta}: no tiene la sección «${titulo}» que SECCIONES_EXENTAS exime`);
+  const j = lineas.findIndex((l, k) => k > i && /^## /.test(l));
+  return [...lineas.slice(0, i), ...(j < 0 ? [] : lineas.slice(j))].join("\n");
+}
 const VOCABULARIOS = { vigentes: tiposDeForja(datos), retirados: Object.keys(datos.destino_tipos_actuales ?? {}) };
 
 describe("una sola lista de tipos de skill", () => {
@@ -112,6 +121,7 @@ describe("una sola lista de tipos de skill", () => {
         // a propósito: un fichero borrado sin commitear no es una lista; cualquier otro error se enseña
         return [`${f}: no se pudo leer (${e.code})`];
       }
+      if (f in SECCIONES_EXENTAS) texto = sinSeccion(texto, SECCIONES_EXENTAS[f], f);
       return listasDeTipos(texto, f, VOCABULARIOS).map((h) => `${h.ruta} (${h.donde}): ${h.vocabulario} ${h.ids.join(", ")}`);
     }).filter((x) => !x.includes("no se pudo leer (ENOENT)"));
     expect(otras, "Los tipos de skill viven solo en tipos_skill de ops/forja.json: lee de allí en vez de escribirlos").toEqual([]);
@@ -127,6 +137,30 @@ describe("una sola lista de tipos de skill", () => {
     expect(listasDeTipos("### `servicio`\n\n### `flujo`\n\n### `revision`\n", "a.md", VOCABULARIOS)).toHaveLength(1);
     expect(listasDeTipos(JSON.stringify({ tipo: { fondo: 1, caso: 2, encargo: 3, decision: 4 }, a: ["flujo", "forja"] }), "a.json", VOCABULARIOS)).toEqual([]);
     expect(MIN_IDS_LISTA).toBe(3);
+  });
+
+  it("ve también listas con guiones en Markdown y arrays de objetos {tipo: …} en JSON", () => {
+    const guiones = "Tipos:\n\n- **servicio**: opera un sistema\n  y sigue aquí.\n- `flujo`: encadena\n- revision, que juzga\n\nOtra cosa.\n";
+    expect(listasDeTipos(guiones, "a.md", VOCABULARIOS).map((h) => `${h.donde} ${h.ids.join()}`)).toEqual(["lista de la línea 3 flujo,revision,servicio"]);
+    // Dos listas separadas por un párrafo no se suman, y una palabra en mayúscula no es un id.
+    expect(listasDeTipos("- servicio\n- flujo\n\nTexto.\n\n- revision\n- Decision\n", "a.md", VOCABULARIOS)).toEqual([]);
+    const objetos = JSON.stringify({ filas: [{ tipo: "servicio", n: 1 }, { tipo: "flujo" }, { tipo: "decision" }] });
+    expect(listasDeTipos(objetos, "a.json", VOCABULARIOS).map((h) => h.donde)).toEqual(["$.filas[].tipo"]);
+  });
+
+  it("la exención de .claude/PLANTILLA-SKILL.md es solo su sección de estándares: fuera de ella, una lista se ve", () => {
+    const texto = "# P\n\n## Antes\n\n- servicio\n- flujo\n- revision\n\n## El estándar de cada tipo\n\n### `servicio`\n\n### `flujo`\n\n### `revision`\n\n## Después\n\nNada.\n";
+    const resto = sinSeccion(texto, "El estándar de cada tipo", "x.md");
+    expect(resto).not.toContain("### `servicio`");
+    expect(resto).toContain("## Después");
+    expect(listasDeTipos(resto, "x.md", VOCABULARIOS).map((h) => h.donde)).toEqual(["lista de la línea 5"]);
+    expect(() => sinSeccion("# P\n", "El estándar de cada tipo", "x.md")).toThrow(/no tiene la sección/);
+  });
+
+  it("ningún texto dice ya que las respuestas van en respuestas_tipo de la forja: van en el frontmatter", () => {
+    for (const f of [".claude/PLANTILLA-SKILL.md", ".claude/skills/forja-de-skills/SKILL.md", "CLAUDE.md", "docs/ops/FORJA.md"]) {
+      expect(readFileSync(join(RAIZ, f), "utf8"), f).not.toContain("respuestas_tipo");
+    }
   });
 
   it("el lector de JS salta cadenas y comentarios, y ve claves con y sin comillas", () => {

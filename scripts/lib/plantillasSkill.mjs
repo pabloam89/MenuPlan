@@ -357,7 +357,7 @@ export function listasDeTipos(texto, ruta, vocabularios) {
     const andar = (v, camino) => {
       if (Array.isArray(v)) {
         mirar(v.filter((x) => typeof x === "string"), camino);
-        mirar(v.map((x) => (x && typeof x === "object" ? x.id : null)).filter((x) => typeof x === "string"), `${camino}[].id`);
+        for (const k of ["id", "tipo"]) mirar(v.map((x) => (x && typeof x === "object" ? x[k] : null)).filter((x) => typeof x === "string"), `${camino}[].${k}`);
         v.forEach((x, i) => andar(x, `${camino}[${i}]`));
       } else if (v && typeof v === "object") {
         mirar(Object.keys(v), `${camino}{}`);
@@ -379,6 +379,17 @@ export function listasDeTipos(texto, ruta, vocabularios) {
       tabla = [];
     });
     if (tabla.length) mirar(tabla, `tabla de la línea ${inicio}`);
+    // Listas con guiones: los elementos seguidos (con sus líneas de continuación sangradas) son un contenedor.
+    let lista = [];
+    let desde = 0;
+    t.split("\n").forEach((l, i) => {
+      const e = l.match(/^[ \t]*[-*][ \t]+(?:\*\*|`)*([\w-]+)(?:\*\*|`)*(?=[\s:.,;)]|$)/);
+      if (e) { if (!lista.length) desde = i + 1; lista.push(e[1]); return; }
+      if (lista.length && /^[ \t]+\S/.test(l)) return;
+      if (lista.length) mirar(lista, `lista de la línea ${desde}`);
+      lista = [];
+    });
+    if (lista.length) mirar(lista, `lista de la línea ${desde}`);
   }
   return fuera;
 }
