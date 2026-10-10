@@ -16,7 +16,7 @@
 //   - todos sus commits son de dependabot[bot], hechos por GitHub (web-flow) y
 //     con firma válida: si alguien más ha empujado, no;
 //   - npm: solo toca package.json y package-lock.json DE LA RAÍZ (otra carpeta,
-//     como dish-gallery/, no la prueba el CI);
+//     como una subcarpeta con su propio package.json, no la prueba el CI);
 //   - actions: solo toca .github/workflows/*.yml y en ellos solo cambian
 //     líneas `uses:`, cada una a la misma acción (otro `run:`, no);
 //   - es parche o menor: manda el `update-type` del commit de Dependabot si lo
