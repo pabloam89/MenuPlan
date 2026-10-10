@@ -311,8 +311,8 @@ Heurística automática; lo que hoy incumple va a una lista de excepciones que s
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `caso-duplicado`.
 - `caso-en-frontera` — Una petición propia de la skill no usa las palabras de lo que su «No para:» deja a otra skill
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `caso-en-frontera`.
-- `vocabulario-canonico` — Una cosa se llama siempre igual: ningún artefacto usa un sinónimo prohibido en vez del término canónico del glosario único. Su control y su glosario los da el encargo #469 (ops/glosario.json y ops/glosario.test.js); hasta que existan, el control es un juicio
-  - Fuente: [I] docs/ops/FORJA.md. Control: juicio (provisional: lo da #469 con `ops/glosario.test.js`).
+- `vocabulario-canonico` — Una cosa se llama siempre igual: ningún artefacto usa un sinónimo prohibido en vez del término canónico del glosario único (ops/glosario.json, #469)
+  - Fuente: [I] ops/glosario.json. Control: `ops/glosario.test.js`.
 
 ### material · estandar (4)
 
@@ -322,8 +322,8 @@ Heurística automática; lo que hoy incumple va a una lista de excepciones que s
   - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
 - `estandar-rondas-de-investigacion` — Un estándar deja el rastro de tres rondas de investigación o más (buscar, contrastar, destilar), cada una con una línea «ronda: n fuentes: k cambios: …» y fuentes mayores que 0; lo que hoy no lo cumple va a una lista de excepciones que solo baja
   - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
-- `vocabulario-canonico` — Una cosa se llama siempre igual: ningún artefacto usa un sinónimo prohibido en vez del término canónico del glosario único. Su control y su glosario los da el encargo #469 (ops/glosario.json y ops/glosario.test.js); hasta que existan, el control es un juicio
-  - Fuente: [I] docs/ops/FORJA.md. Control: juicio (provisional: lo da #469 con `ops/glosario.test.js`).
+- `vocabulario-canonico` — Una cosa se llama siempre igual: ningún artefacto usa un sinónimo prohibido en vez del término canónico del glosario único (ops/glosario.json, #469)
+  - Fuente: [I] ops/glosario.json. Control: `ops/glosario.test.js`.
 
 ### material · agente (0)
 

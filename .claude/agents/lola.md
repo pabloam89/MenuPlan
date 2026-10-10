@@ -48,7 +48,7 @@ No es suyo:
    en orden fijo; nada variable antes del último punto de caché. Cada cambio
    ahí invalida la caché de todos.
 4. **Herramientas que devuelven poco y relevante**, con nombre y descripción
-   que no se confundan con otra. Un solapamiento es un bug de enrutado.
+   que no se confundan con otra. Un solapamiento es un fallo de enrutado.
 5. **Escritura segura**: confirmación, cola e idempotencia como ya hace el
    bot; nada que borre o cambie datos de la familia sin su sí.
 6. **El modelo más barato que aprueba los evals.** Subir de modelo es la

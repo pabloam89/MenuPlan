@@ -21,7 +21,7 @@
  * sin datos de familias, para medir cuántas señales traen algo apuntado.
  */
 import { createHash } from "node:crypto";
-import { appendFileSync, mkdirSync, readFileSync, statSync } from "node:fs";
+import { appendFileSync, lstatSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -66,7 +66,7 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
   for (const s of pendientes.slice(0, MAX_POR_LLAMADA)) {
     nuevas.push(huella(s.clave));
     if (!lectura.indice) {
-      textos.push(`${cabezaDe(s)} No puedo buscar lo ya apuntado: ${avisoDeIndice(lectura)} Mientras tanto: \`gh issue list --state all --search "<palabras>"\`.`);
+      textos.push(`${cabezaDe(s)} No puedo buscar lo ya apuntado: ${avisoDeIndice(lectura)} Mientras tanto: \`gh issue list --state all --search "palabras"\`.`);
       lineas.push(`buscar-antes senal: ${s.tipo} resultado: sin-indice`);
       continue;
     }
@@ -100,6 +100,41 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
 export const LINEAS_LOG = 500;
 const MAX_BYTES_LOG = 100 * 1024;
 
+/** ¿La carpeta es nuestra? (POSIX; en Windows siempre sí). */
+export function carpetaPropia(dir) {
+  if (typeof process.getuid !== "function") return true;
+  try {
+    const st = lstatSync(dir);
+    return st.isDirectory() && st.uid === process.getuid();
+  } catch {
+    // a propósito: si no se puede mirar la carpeta, no se escribe en ella (falla cerrado).
+    return false;
+  }
+}
+
+/**
+ * ¿Se puede escribir en esta ruta sin tocar nada ajeno? (#428, POSIX con varios usuarios): ni enlace
+ * ni fichero de otro usuario, ni en una carpeta de otro. Si no existe aún, solo cuenta la carpeta.
+ * En Windows no hay uid y siempre vale.
+ */
+export function escrituraSegura(ruta, dir = null) {
+  if (typeof process.getuid !== "function") return true;
+  const yo = process.getuid();
+  try {
+    if (dir && lstatSync(dir).uid !== yo) return false;
+    try {
+      const st = lstatSync(ruta);
+      return st.isFile() && st.uid === yo;
+    } catch (e) {
+      if (e?.code === "ENOENT") return true;
+      return false;
+    }
+  } catch {
+    // a propósito: si no se puede mirar la carpeta, no se escribe (falla cerrado; es un registro opcional).
+    return false;
+  }
+}
+
 /** El registro de señales no crece sin fin: pasado el tope, quedan las últimas `LINEAS_LOG` líneas. */
 export function recortarLog(ruta) {
   try {
@@ -125,10 +160,11 @@ function leerMarcasDe(ruta) {
 export function ejecutar(entrada, opciones = {}) {
   const dir = dirBuscar();
   mkdirSync(dir, { recursive: true });
+  const propia = carpetaPropia(dir);
   const marcas = join(dir, `sesion-${huella(entrada.session_id)}.json`);
   const r = procesar(entrada, { vistas: leerMarcasDe(marcas), ...opciones });
   if (r.nuevas.length || r.lineas.length) {
-    if (r.nuevas.length) {
+    if (r.nuevas.length && propia) {
       // Se vuelve a leer justo antes de escribir: dos llamadas a la vez de la misma sesión no se pisan del todo.
       try {
         escribirAtomico(marcas, JSON.stringify([...new Set([...leerMarcasDe(marcas), ...r.nuevas])]));
@@ -141,6 +177,7 @@ export function ejecutar(entrada, opciones = {}) {
     if (r.lineas.length) {
       try {
         const log = join(dir, "senales.log");
+        if (!escrituraSegura(log, dir)) throw new Error("senales.log o su carpeta no son nuestros");
         appendFileSync(log, `${r.lineas.join("\n")}\n`);
         recortarLog(log);
       } catch (e) {

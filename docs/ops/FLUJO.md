@@ -1,4 +1,4 @@
-# El flujo de una incidencia
+# El flujo de un fallo
 
 De que algo falla a que se aprende de ello. Es la especificación del fondo
 **#334**; esta pieza es su fase F0 (**#335**). Dice, para cada paso, qué

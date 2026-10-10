@@ -273,36 +273,41 @@ describe("los criterios de esta parte en la base", () => {
     for (const id of ids.slice(3)) expect(por(id).capa).toBe("material");
     for (const id of ids.slice(0, 6)) expect(por(id).control).toBe("ops/forja-forma.test.js");
   });
-  it("vocabulario-canonico es el sitio del glosario de #469: material, provisional con control «juicio»", () => {
+  it("vocabulario-canonico lo vigila el glosario de #469", () => {
     const c = datos.criterios.find((x) => x.id === "vocabulario-canonico");
-    expect(c).toMatchObject({ capa: "material", control: "juicio", pendiente_de: "#469", control_pendiente: "ops/glosario.test.js", aplica_a: ["skill", "estandar"], tipos: "todos" });
-    expect(c.texto).toContain("#469");
-    expect(existe("ops/glosario.json"), "Ya existe el glosario de #469: pon ops/glosario.test.js como control").toBe(existe("ops/glosario.test.js"));
+    expect(c).toMatchObject({ capa: "material", control: "ops/glosario.test.js", aplica_a: ["skill", "estandar"], tipos: "todos" });
+    expect(c).not.toHaveProperty("pendiente_de");
+    expect(c).not.toHaveProperty("control_pendiente");
   });
-  it("el criterio pendiente falla si está mal puesto o si su fichero ya existe", () => {
+  it("un criterio pendiente falla si está mal puesto o si su fichero ya existe", () => {
+    // Un criterio provisional de mentira: su control lo da otro encargo y aún no existe.
+    const futuro = "ops/futuro.test.js";
+    const provisional = (c) => Object.assign(c, { control: "juicio", pendiente_de: "#999", control_pendiente: futuro });
     const f = (mut, trozo, existeX = existe) => {
       const d = clon();
-      mut(d.criterios.find((c) => c.id === "vocabulario-canonico"));
+      const c = provisional(d.criterios.find((x) => x.id === "vocabulario-canonico"));
+      mut(c);
       expect(problemasDeForja(d, existeX).join("\n"), trozo).toContain(trozo);
     };
+    const bien = clon();
+    provisional(bien.criterios.find((x) => x.id === "vocabulario-canonico"));
+    expect(problemasDeForja(bien, existe)).toEqual([]);
     f((c) => { delete c.pendiente_de; }, "van juntos");
     f((c) => { delete c.control_pendiente; }, "van juntos");
-    f((c) => { c.pendiente_de = "469"; }, "pendiente_de es el issue");
+    f((c) => { c.pendiente_de = "999"; }, "pendiente_de es el issue");
     f((c) => { c.control_pendiente = ""; }, "control_pendiente es la ruta");
     f((c) => { c.control = "ops/forja.json"; }, "lleva control «juicio»");
     f((c) => { c.capa = "subjetiva"; }, "pendiente_de es de un criterio formal o material");
-    f(() => {}, "ya existe ops/glosario.test.js", (r) => existe(r) || r === "ops/glosario.test.js");
-    const d = clon();
-    delete d.criterios.find((c) => c.id === "vocabulario-canonico").pendiente_de;
-    delete d.criterios.find((c) => c.id === "vocabulario-canonico").control_pendiente;
-    expect(problemasDeForja(d, existe).join()).toContain("lo vigila un fichero, no «juicio»");
+    f(() => {}, `ya existe ${futuro}`, (r) => existe(r) || r === futuro);
+    f((c) => { delete c.pendiente_de; delete c.control_pendiente; }, "lo vigila un fichero, no «juicio»");
+    expect(generarMd(bien)).toContain("provisional: lo da #999");
   });
-  it("FORJA.md recoge la forma, el método y el criterio provisional", () => {
+  it("FORJA.md recoge la forma, el método y el control del glosario", () => {
     const md = leer("docs/ops/FORJA.md");
     expect(md).toBe(generarMd(datos));
     expect(md).toContain("## La forma de una práctica");
     expect(md).toContain("regla · porque · ejemplo_bueno · ejemplo_malo");
     expect(md).toContain("## Método de construcción");
-    expect(md).toContain("provisional: lo da #469");
+    expect(md).toContain("Control: `ops/glosario.test.js`");
   });
 });

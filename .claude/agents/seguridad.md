@@ -31,7 +31,7 @@ Es suyo:
 
 No es suyo:
 - Arreglar: propone el arreglo; lo hace `datos` (RLS) o el constructor.
-- Bugs que no son de seguridad: `revisor`.
+- Fallos que no son de seguridad: `revisor`.
 
 ## 3. Principios
 
