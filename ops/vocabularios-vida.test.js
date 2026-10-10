@@ -6,7 +6,7 @@ import { REFERENCIA, jsonEnReferencia } from "../scripts/lib/forjaReferencia.mjs
 import {
   PREFIJO_PRODUCTO, RUTA_VOCABULARIOS, VOCABULARIOS, admitidosEnLaBase, anclar, leerRegistro, problemasContraReferencia, problemasDeRetiros, problemasLocales, valoresActuales,
 } from "../scripts/lib/vocabulariosVida.mjs";
-import { checksDeLista, problemasDeParidad } from "../scripts/lib/checksVocabulario.mjs";
+import { checksDeLista, checksNoReconocidos, problemasDeParidad } from "../scripts/lib/checksVocabulario.mjs";
 import { VOCABULARIOS as PRODUCTO } from "../src/lib/vocabularios.js";
 
 /**
@@ -292,7 +292,7 @@ describe("autotest de la paridad JS↔SQL (#497)", () => {
 
   it("añadir un valor en JS sin migración falla; con la migración, pasa", () => {
     const crea = m("create table t (c text check (c in ('a', 'b')));");
-    expect(problemasDeParidad(checksDeLista([crea]), lista(["a", "b", "z"])).join()).toMatch(/el código ofrece «z» y el CHECK no lo admite/);
+    expect(problemasDeParidad(checksDeLista([crea]), lista(["a", "b", "z"])).join()).toMatch(/el código ofrece «z» y el CHECK vivo no lo admite/);
     const amplia = m("alter table t drop constraint t_c_check; alter table t add constraint t_c_vocabulario check (c in ('a', 'b', 'z')) not valid;", "0002_x.sql");
     expect(problemasDeParidad(checksDeLista([crea, amplia]), lista(["a", "b", "z"]))).toEqual([]);
   });
@@ -322,5 +322,60 @@ describe("autotest de la paridad JS↔SQL (#497)", () => {
     const crea = m("create table t (c text, constraint t_c_vocabulario check (c in ('a') or c like 'fld\\_%'));");
     expect(problemasDeParidad(checksDeLista([crea]), lista(["a"])).join()).toMatch(/patrones like del CHECK/);
     expect(problemasDeParidad(checksDeLista([crea]), lista(["a"], { patrones: ["fld\\_%"] }))).toEqual([]);
+  });
+
+  it("reconoce las otras formas de una lista: = any (array[…]), 'a'::text, columna entre comillas y <@ sin cast", () => {
+    const formas = {
+      "= any": "create table t (c text check (c = any (array['a', 'b'])));",
+      "= any con casts (pg_get_constraintdef)": "create table t (c text, constraint t_c_check check ((c = ANY (ARRAY['a'::text, 'b'::text]))));",
+      "in con ::text": "create table t (c text check (c in ('a'::text, 'b'::text)));",
+      "columna entre comillas": "create table t (\"c\" text check (\"c\" in ('a', 'b')));",
+      "<@ sin cast": "create table t (c text[] check (c <@ array['a', 'b']));",
+    };
+    const vistas = Object.entries(formas).filter(([, sql]) => checksDeLista([m(sql)]).get("t.c")?.[0]?.valores?.join() === "a,b").map(([f]) => f);
+    expect(vistas, "formas que el lector reconoce").toEqual(Object.keys(formas));
+    for (const [forma, sql] of Object.entries(formas)) {
+      expect(checksDeLista([m(sql)]).get("t.c")?.[0]?.valores, forma).toEqual(["a", "b"]);
+      expect([...checksNoReconocidos([m(sql)]).keys()], forma).toEqual([]);
+    }
+  });
+
+  it("un CHECK con literales e in/any/<@ que no es de lista sale en checksNoReconocidos", () => {
+    const raros = {
+      "not in": "create table t (c text, constraint t_no check (c not in ('a', 'b')));",
+      "atado a otra columna": "create table t (c text, d date, constraint t_no check ((c in ('a')) = (d is not null)));",
+      "any de una columna array": "create table t (c text, r text[], constraint t_no check (c = 'x' or not ('x' = any(r))));",
+      "dos columnas en el or": "create table t (c text, d text, constraint t_no check (c is null or d in ('a')));",
+    };
+    for (const [forma, sql] of Object.entries(raros)) {
+      expect([...checksNoReconocidos([m(sql)]).keys()], forma).toEqual(["t.t_no"]);
+      expect(checksDeLista([m(sql)]).size, forma).toBe(0);
+    }
+  });
+
+  it("un constraint es de su tabla: drop constraint x en una no borra el x de otra", () => {
+    const dos = m("create table a (c text, constraint mismo check (c in ('x'))); create table b (c text, constraint mismo check (c in ('y')));");
+    const quita = m("alter table a drop constraint mismo;", "0002_x.sql");
+    const r = checksDeLista([dos, quita]);
+    expect(r.has("a.c")).toBe(false);
+    expect(r.get("b.c")?.[0]?.valores).toEqual(["y"]);
+  });
+
+  it("una migración sin aplicar no cuenta como CHECK vivo, y el mensaje lo dice", () => {
+    const crea = m("create table t (c text check (c in ('a')));");
+    const amplia = m("alter table t drop constraint t_c_check; alter table t add constraint t_c_check check (c in ('a', 'z'));", "0002_amplia.sql");
+    const p = problemasDeParidad(checksDeLista([crea]), lista(["a", "z"]), {}, checksDeLista([crea, amplia])).join();
+    expect(p).toMatch(/ofrece «z» y el CHECK vivo no lo admite\. La 0002_amplia\.sql lo añade, pero está sin aplicar/);
+    // Una tabla que solo existe en una migración sin aplicar: se compara con ese CHECK, avisando.
+    const p2 = problemasDeParidad(new Map(), lista(["a", "b"]), {}, checksDeLista([crea])).join();
+    expect(p2).toMatch(/ofrece «b».*la 0001_x\.sql está sin aplicar/);
+    expect(problemasDeParidad(new Map(), lista(["a"]), {}, checksDeLista([crea]))).toEqual([]);
+  });
+
+  it("un rename de tabla, columna o constraint hace fallar al lector, que no lo sigue", () => {
+    const crea = m("create table t (c text check (c in ('a')));");
+    for (const r of ["alter table t rename to u;", "alter table t rename column c to d;", "alter table t rename constraint t_c_check to otro;"]) {
+      expect(() => checksDeLista([crea, m(r, "0002_x.sql")]), r).toThrow(/no sigue los rename/);
+    }
   });
 });

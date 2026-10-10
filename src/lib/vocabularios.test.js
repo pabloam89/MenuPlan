@@ -15,7 +15,8 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as V from "./vocabularios.js";
-import { checksDeLista, problemasDeParidad } from "../../scripts/lib/checksVocabulario.mjs";
+import { checksDeLista, checksNoReconocidos, problemasDeParidad } from "../../scripts/lib/checksVocabulario.mjs";
+import { leerSinAplicar } from "../../scripts/verificar-estado.mjs";
 import { admitidosEnLaBase, leerRegistro } from "../../scripts/lib/vocabulariosVida.mjs";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -82,10 +83,26 @@ const SIN_LISTA = {
 // Lo que había el 11 oct 2026 (#497). Baja cuando una pasa a COLUMNA_A_VOCABULARIO; no sube.
 const SIN_LISTA_MAX = 17;
 
-/** Las migraciones en orden, para checksDeLista. */
-function migraciones() {
+/**
+ * CHECK con literales e `in`/`any`/`<@` que NO son de lista (el lector no los reconoce), con su
+ * motivo. Lista cerrada: uno nuevo que el lector no entienda falla aquí hasta que alguien diga
+ * qué es (o el lector aprenda su forma). Clave «tabla.constraint», de toda la historia.
+ */
+const NO_ES_LISTA = {
+  "bot_tareas.bot_tareas_cierre_check": "ata status y closed_at; la lista de status es bot_tareas_status_check",
+  "ingredient_substitutions.chk_substitution_not_an_allergen": "not in: prohíbe valores, no los enumera (tabla borrada en la 0093)",
+  "recipes.chk_no_guarnicion_role_outside_type": "ata type y meal_roles (tabla borrada en la 0093)",
+  "registro_campo.registro_campo_enum_lista_check": "ata tipo y vocabulario; la lista de tipo es registro_campo_tipo_vocabulario",
+  "registro_campo.registro_campo_rango_numerico": "ata minimo/maximo y tipo; la lista de tipo es registro_campo_tipo_vocabulario",
+};
+
+/** Las migraciones en orden, para checksDeLista; `aplicadas` quita las de «Sin aplicar» de supabase/ESTADO.md. */
+function migraciones({ aplicadas = false } = {}) {
   const dir = new URL("../../supabase/migrations/", import.meta.url);
-  return readdirSync(dir).filter((x) => x.endsWith(".sql")).sort().map((f) => ({ fichero: f, sql: readFileSync(new URL(f, dir), "utf8") }));
+  const sinAplicar = leerSinAplicar(readFileSync(new URL("../../supabase/ESTADO.md", import.meta.url), "utf8"));
+  return readdirSync(dir).filter((x) => x.endsWith(".sql")).sort()
+    .filter((f) => !aplicadas || !sinAplicar.has(f.replace(/\.sql$/, "")))
+    .map((f) => ({ fichero: f, sql: readFileSync(new URL(f, dir), "utf8") }));
 }
 
 /** El mapa de columnas con vivos y retirados, para problemasDeParidad. */
@@ -126,7 +143,12 @@ describe("vocabularios: una lista, un sitio", () => {
   });
 
   it("el CHECK de lista vigente de cada columna admite exactamente su lista: los vivos y los retirados", () => {
-    expect(problemasDeParidad(checksDeLista(migraciones()), mapaDeParidad(leerRegistro(RAIZ)), SIN_LISTA)).toEqual([]);
+    // Vivo = lo de las migraciones aplicadas; las sin aplicar solo cuentan para decirlo en el mensaje.
+    expect(problemasDeParidad(checksDeLista(migraciones({ aplicadas: true })), mapaDeParidad(leerRegistro(RAIZ)), SIN_LISTA, checksDeLista(migraciones()))).toEqual([]);
+  });
+
+  it("todo CHECK con literales e in/any/<@ que no es de lista está en NO_ES_LISTA con su motivo", () => {
+    expect([...checksNoReconocidos(migraciones()).keys()], "Si es de lista, enseña su forma a scripts/lib/checksVocabulario.mjs; si no, añádelo a NO_ES_LISTA con su porqué").toEqual(Object.keys(NO_ES_LISTA).sort());
   });
 
   it("los CHECK de lista sin su lista en JS solo pueden bajar", () => {
