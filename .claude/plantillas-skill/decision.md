@@ -94,15 +94,15 @@ Los de `campos_ficha.skill` de `ops/forja.json`; lo que no está declarado no va
 |---|---|---|---|
 | `name` | ref | sí | una skill que existe |
 | `description` | texto | sí | hueco de texto |
-| `tipo` | enum | no | `decision` |
-| `opera_proveedor` | bool | no | `true` o `false` |
-| `juzga_artefacto` | bool | no | `true` o `false` |
-| `encadena` | bool | no | `true` o `false` |
-| `pasos_fijos` | bool | no | `true` o `false` |
-| `sintoma_a_causa` | bool | no | `true` o `false` |
-| `elige_opciones` | bool | no | `true` o `false` |
+| `tipo` | enum | sí | `decision` |
+| `opera_proveedor` | bool | sí | `false` en este tipo |
+| `juzga_artefacto` | bool | sí | `false` en este tipo |
+| `encadena` | bool | sí | `false` en este tipo |
+| `pasos_fijos` | bool | sí | `false` en este tipo |
+| `sintoma_a_causa` | bool | sí | `false` en este tipo |
+| `elige_opciones` | bool | sí | `true` en este tipo |
 | `porque_tipo` | texto | no | hueco de texto |
-| `nivel` | enum | no | `0`, `1`, `2` |
+| `nivel` | enum | no | `2`, o sin él (el 1 son los moldes; el 0, la pieza meta) |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |
 | `libertad` | enum | no | `alta`, `media`, `baja` |

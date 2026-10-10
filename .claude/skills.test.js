@@ -15,7 +15,7 @@ import {
 
 /**
  * Nivel 1 de las skills (#336), gratis y en el CI. Todas siguen
- * `.claude/PLANTILLA-SKILL.md`: tipo de los ocho de `ops/forja.json` (el que dan sus respuestas), dueño que
+ * `.claude/PLANTILLA-SKILL.md`: tipo de los de `ops/forja.json` (el que dan sus respuestas), dueño que
  * la carga, fecha de comprobación bien puesta, las secciones de su tipo, un
  * SKILL.md corto con el detalle en capas, rutas que existen, nada copiado entre
  * skills y sus casos de prueba en `casos.json`. Las reglas viven en

@@ -49,7 +49,7 @@
       "id": "skills",
       "nombre": "Skills",
       "pregunta": "¿Cómo se hace?",
-      "contiene": "Método, técnicas, referencias, scripts y plantillas. De herramienta (cómo se opera un servicio) y de oficio (cómo se piensa un tipo de problema)",
+      "contiene": "Método, técnicas, referencias, scripts y plantillas. De uno de los tipos de tipos_skill de ops/forja.json (un servicio se opera; un diagnóstico piensa un tipo de problema), salvo la pieza meta",
       "donde": [
         ".claude/skills",
         ".claude/PLANTILLA-SKILL.md"

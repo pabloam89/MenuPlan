@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { leerForja } from "../scripts/lib/forja.mjs";
 import {
-  EXCEPCIONES_PLANTILLA, EXCEPCIONES_PLANTILLA_INICIALES, MIN_IDS_LISTA, PISTAS, RUTA_PLANTILLA_COMUN, SECCIONES_POR_TIPO,
+  CABEZA, COLA, EXCEPCIONES_PLANTILLA, EXCEPCIONES_PLANTILLA_INICIALES, MIN_IDS_LISTA, PISTAS, RUTA_PLANTILLA_COMUN, SECCIONES_POR_TIPO,
   contenedoresJs, estadoDePlantillas, estandarDeTipo, generarPlantilla, generarPlantillas, listasDeTipos, problemasDePlantillas, tiposDeForja,
 } from "../scripts/lib/plantillasSkill.mjs";
 import { cargarSkill, nombresDeSkills, parsearSkill } from "../scripts/lib/skills.mjs";
@@ -166,6 +166,52 @@ describe("una sola lista de tipos de skill", () => {
   it("el lector de JS salta cadenas y comentarios, y ve claves con y sin comillas", () => {
     const c = contenedoresJs("const a = { \"uno\": 1, dos: [\"tres\", 'cu{atro'] /* { cinco: 1 } */ };\n// { seis: 1 }\nconst b = `{ siete: 1 }`;");
     expect(c.map((x) => x.ids)).toEqual([["tres"], ["uno", "dos"]]);
+  });
+});
+
+// ── Lo escrito a mano que tiene que cuadrar con la forja ────────────────
+
+/** Los títulos en negrita de una lista (numerada o con guiones) dentro de la sección `### titulo` de un Markdown. */
+function negritasDeSeccion(texto, titulo) {
+  const lineas = texto.replace(/\r\n/g, "\n").split("\n");
+  const i = lineas.findIndex((l) => l.trim() === `### ${titulo}`);
+  if (i < 0) return null;
+  const j = lineas.findIndex((l, k) => k > i && /^#{2,3} /.test(l));
+  return lineas.slice(i + 1, j < 0 ? undefined : j).map((l) => l.match(/^(?:\d+\.|-)\s+\*\*([^*]+?)\.?\*\*/)?.[1]).filter(Boolean);
+}
+
+describe("lo escrito a mano cuadra con la forja", () => {
+  const otros = tiposDeForja(datos).filter((t) => t !== "servicio");
+
+  it("«El servicio, sección a sección» de la plantilla común son las secciones del servicio, en orden", () => {
+    expect(negritasDeSeccion(comun, "El servicio, sección a sección")).toEqual(SECCIONES_POR_TIPO.servicio);
+    expect(negritasDeSeccion("### El servicio, sección a sección\n\n1. **Qué es y dónde.** x\n2. **Otra.** y\n", "El servicio, sección a sección")).not.toEqual(SECCIONES_POR_TIPO.servicio);
+  });
+  it("«Los demás tipos» solo describe secciones que llevan todos los tipos que no son servicio", () => {
+    const comunes = negritasDeSeccion(comun, "Los demás tipos");
+    expect(comunes.length).toBeGreaterThan(2);
+    for (const t of otros) for (const s of comunes) expect(SECCIONES_POR_TIPO[t], `${t} no lleva «${s}»`).toContain(s);
+  });
+  it("CABEZA y COLA (con las que se escriben las excepciones) son de todos los tipos que no son servicio: COLA al final y CABEZA en su orden", () => {
+    for (const t of otros) {
+      const ss = SECCIONES_POR_TIPO[t];
+      expect(ss.slice(-COLA.length), t).toEqual(COLA);
+      expect(CABEZA.map((s) => ss.indexOf(s)).every((x, i, a) => x >= 0 && (i === 0 || x > a[i - 1])), `${t}: ${ss.join(", ")}`).toBe(true);
+    }
+  });
+  it("las respuestas de la ficha (campos bool de campos_ficha.skill) son exactamente las preguntas de preguntas_tipo", () => {
+    const bools = Object.entries(datos.campos_ficha.skill.campos).filter(([, c]) => c.clase === "bool").map(([n]) => n);
+    expect(bools.sort()).toEqual(datos.preguntas_tipo.map((p) => p.clave).sort());
+  });
+  it("en cada molde (nivel 2), tipo y las respuestas son obligatorios con el valor de su tipo, y nivel no ofrece el 1", () => {
+    for (const t of tiposDeForja(datos)) {
+      const molde = generarPlantilla(datos, t, { estandar: estandarDeTipo(comun, t) });
+      expect(molde, t).toContain(`| \`tipo\` | enum | sí | \`${t}\` |`);
+      for (const p of datos.preguntas_tipo) expect(molde, `${t} ${p.clave}`).toContain(`| \`${p.clave}\` | bool | sí | \`${p.tipo === t}\` en este tipo |`);
+      const nivel = molde.split("\n").find((l) => l.startsWith("| `nivel` |"));
+      expect(nivel, t).not.toContain("`1`");
+      expect(nivel, t).toContain("`2`");
+    }
   });
 });
 

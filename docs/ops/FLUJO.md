@@ -198,7 +198,7 @@ sitios, y por eso la especificación va antes de construir:
 | Capa | Pregunta | Qué contiene | Dónde |
 |---|---|---|---|
 | **Catálogos** | ¿Qué existe? | Registros estructurados, cada hecho una sola vez: vocabularios, mapas, planos, normas, mecanismos, técnicas y presupuestos | `scripts/lib/issues.mjs`, `ops/MODULOS.json`, `ops/planos.json`, `ops/flujo.json`, `ops/presupuestos.json` |
-| **Skills** | ¿Cómo se hace? | Método, técnicas, referencias, scripts y plantillas. De herramienta (cómo se opera un servicio) y de oficio (cómo se piensa un tipo de problema) | `.claude/skills`, `.claude/PLANTILLA-SKILL.md` |
+| **Skills** | ¿Cómo se hace? | Método, técnicas, referencias, scripts y plantillas. De uno de los tipos de tipos_skill de ops/forja.json (un servicio se opera; un diagnóstico piensa un tipo de problema), salvo la pieza meta | `.claude/skills`, `.claude/PLANTILLA-SKILL.md` |
 | **Agentes** | ¿Quién lo hace y con qué permisos? | Rol, permisos y qué skills cargan. No llevan método: lo toman de las skills | `.claude/agents`, `.claude/PLANTILLA-AGENTE.md` |
 | **Orquestación y reglas duras** | ¿Cuándo, en qué orden y cuánto? | Pipelines, presupuestos, tope de rondas y las reglas que impone un mecanismo | `.claude/commands/orquestar.md`, `.claude/hooks/guardia.mjs`, `.github/workflows/tests.yml` |
 

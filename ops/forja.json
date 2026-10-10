@@ -205,7 +205,7 @@
     },
     "forja": {
       "destinos": [],
-      "nota": "Retirado el 10 oct 2026 por decisión de Pablo, sin sucesor: crear skills es de la pieza meta (nivel 0, forja-de-skills), que no tiene tipo. Pendiente de registrarlo en ops/vocabularios-vida.json cuando llegue (#481)."
+      "nota": "Retirado el 10 oct 2026 por decisión de Pablo, sin sucesor: crear skills es de la pieza meta (nivel 0, forja-de-skills), que no tiene tipo. Retirado en ops/vocabularios-vida.json (forja.tipo_skill), como los demás de esta lista."
     }
   },
   "campos_ficha": {
