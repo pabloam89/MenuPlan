@@ -23,7 +23,7 @@ Cada `npm run issues` o arranque de sesión sin caché valía **~320 puntos**: c
 | Quién | Qué pide | API | Frecuencia |
 |---|---|---|---|
 | `scripts/issues.mjs` (arranque, listado, `--indexar`) | todos los issues (3 páginas) + PR del índice | GraphQL | cada arranque de sesión: ~320 puntos. Ahora con caché de 15 min (arranque) o 10 (listado) |
-| `scripts/issues.mjs` (`--nuevo`, `--colgar`, `--ordenar`) | lo mismo, siempre fresco, y la escritura | GraphQL | a mano; invalidan la caché |
+| `scripts/issues.mjs` (`--nuevo`, `--colgar`, `--ordenar`) | lo mismo, sin caché, fresco, y la escritura | GraphQL | a mano; invalidan la caché |
 | `scripts/issues.mjs` (listado) | PR fusionados para «Casos:» | GraphQL | 1 punto |
 | `.claude/hooks/arranque.mjs` + `migraciones.mjs` | `gh pr list --state open --limit 50` con ficheros | GraphQL | 1 por sesión, pocos puntos |
 | `.claude/hooks/avisos.mjs` | `gh issue list --state open --limit 300` | GraphQL | caché de 10 min en la carpeta temporal |
@@ -34,7 +34,7 @@ Cada `npm run issues` o arranque de sesión sin caché valía **~320 puntos**: c
 
 ## Cómo se gasta menos
 
-- **Esperar al CI**: `npm run espera-ci -- <pr>` (REST, una llamada cada 60 s, sale con 0 si todo pasa, 1 si algo falla o pasa del tope y 3 si no pudo preguntar tras 3 intentos; el PR va siempre primero).
+- **Esperar al CI**: `npm run espera-ci -- <pr>` (REST, una llamada cada 60 s, sale con 0 si todo pasa, 1 si algo falla o se acaba el tiempo y 3 si no pudo preguntar tras 3 intentos; el PR va en primer lugar).
   No uses `gh pr checks --watch`.
 - **Leer un issue o un PR suelto**: `gh api repos/pabloam89/MenuPlan/issues/<n> --jq .body` (REST) en vez de `gh issue view`.
 - **Issues de golpe**: `npm run issues` tiene caché (`--fresco` la salta). Si GitHub no contesta o no hay cuota, el arranque usa lo último que guardó (hasta 6 h) y lo dice en su salida.

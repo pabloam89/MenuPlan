@@ -8,7 +8,7 @@
  *                                           lo que está sin clasificar o trazar
  *   npm run issues -- --fresco              (con cualquier orden de lectura) salta la caché:
  *                                           el listado vale 10 min y el arranque 15 (#424,
- *                                           cuota GraphQL; lo que escribe va siempre fresco)
+ *                                           cuota GraphQL; lo que escribe va sin caché)
  *   npm run issues -- --colgar <hijo> <fondo>
  *                                           cuelga un caso o un encargo de su
  *                                           problema de fondo; si el fondo
@@ -88,8 +88,8 @@ function pedirNodos() {
 /**
  * Todos los issues, con PR, reaperturas, padre e hijos. Cuesta ~320 puntos de la
  * cuota GraphQL (#424), así que se guarda en una caché local: `ttlMin` dice cuántos
- * minutos vale (0 = siempre fresco, para lo que escribe) y con `viejoSiFalla` una
- * respuesta vieja sustituye a un error. Sin caché, se pide como siempre.
+ * minutos vale (0 = sin caché, para lo que escribe) y con `viejoSiFalla` una
+ * respuesta vieja sustituye a un error. Sin caché, se pide como antes.
  */
 let minutosDeCacheVieja = null; // se rellena si el plan B sirvió una caché vieja (el arranque lo cuenta en stdout)
 function todos({ ttlMin = 0, viejoSiFalla = false } = {}) {
