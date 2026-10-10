@@ -11,6 +11,8 @@
     "docs_ops": ["docs/ops/*.md"],
     "estandares": ["ops/estandares-agentes.json"],
     "normas": ["ops/normas.json"],
+    "forja": ["ops/forja.json"],
+    "redaccion": ["ops/redaccion.json"],
     "comandos": [".claude/commands/*.md"]
   },
   "terminos": [
