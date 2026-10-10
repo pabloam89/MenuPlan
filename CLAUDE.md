@@ -215,39 +215,49 @@ y su fecha, está en `src/data/model.js` (`TABLAS`, vigilado por `ops/fuentes.te
 
 Lo que se repite se diseña para poder contarse, y corregir es ver qué falla en
 qué hueco, no releer un texto continuo. Cada principio dice entre paréntesis
-qué lo hace cumplir; los que aún no tienen mecanismo cuelgan del fondo #479.
+qué lo hace cumplir; lo que aún no tiene mecanismo lleva su issue (fondo #479).
 
 - **Discreto primero**: sí/no, un valor de vocabulario, una referencia a algo
   que existe, un número o una fecha. El texto libre, solo en un hueco
-  declarado que diga qué cubre (`ops/forja.json`, #458).
-- **Vocabulario cerrado** para todo lo que se agrupa: una constante en JS, un
-  CHECK si va a SQL y su test, como `src/lib/vocabularios.js`. Un valor no se
-  borra ni se reutiliza: se retira y dice a cuál pasa (#481).
-- **Una palabra, un significado**: las palabras de proceso salen de
-  `ops/glosario.json` (`npm run glosario`); su test falla con un sinónimo
-  prohibido nuevo.
+  declarado: un campo que dice qué cubre que lo discreto no alcanza (la base
+  de la forja, #458).
+- **Vocabulario cerrado** para todo lo que se agrupa (motivos de fallo,
+  estados, causas, tipos, sitios): una constante en JS, un CHECK si va a SQL y
+  su test, como `src/lib/vocabularios.js`. Un valor no se borra ni se
+  reutiliza: se retira y dice a cuál pasa (#481).
+- **Una palabra, un significado**: las palabras de proceso (comprobar, caso,
+  fondo, encargo, juez…) salen de `ops/glosario.json` (`npm run glosario`);
+  su test falla con un sinónimo prohibido nuevo.
 - **Ninguna cifra sin pregunta**: cada métrica dice qué pregunta responde y
   qué script la lee; si nadie la lee, no se recoge (#480).
-- **Cada cosa que pasa deja una línea `campo: valor`**, con un nombre de
-  evento único y sin datos de familias, que un script pueda contar.
-- **La clase, no el caso**: el caso cuelga de su fondo, y el fondo se cierra
-  con un test que cubre la clase (línea `Casos:` del PR, workflow `fondos`).
-- **La cifra antes y después, con su ruido**: cuántos casos, desde cuándo y
-  dónde; «mejoró» solo si la diferencia sale del margen o hay casos de sobra
-  (#480).
-- **El control más fuerte que quepa**: impedir, luego bloquear, luego avisar
-  y, en último lugar, dejarlo escrito (`npm run mecanismos`).
-- **Tres capas**: formal (test determinista), material (heurística con
-  excepciones que solo bajan) y subjetiva (juez LLM con tope de gasto). Lo
-  subjetivo que se juzga igual una y otra vez sube de capa; se baja solo si
-  el test sale frágil, y se deja escrito el porqué (`ops/forja.json`).
+- **Cada cosa que pasa deja una línea `campo: valor`** que un script pueda
+  contar, con un nombre de evento que no se repite y sin datos de familias:
+  lo que no deja rastro no se mide, y lo que no se mide no mejora
+  (`.claude/hooks/eventos.mjs`; el registro de qué se cuenta, #480).
+- **La clase, no el caso**: se arregla el caso y se ataca su problema de
+  fondo; el caso cuelga de su fondo, y el fondo se cierra con su barrera y
+  una verificación que cubre la clase (línea `Casos:` del PR, workflow
+  `fondos`; «Cuando algo falla», abajo). Una regla, un dato, una fuente que el
+  resto usa.
+- **La cifra antes y después**: cuántos casos, desde cuándo y dónde, antes de
+  proponer un arreglo; la misma cifra después, para saber si sirvió. «Mejoró»
+  solo si la diferencia es mayor que lo que la cifra varía sola, o si hay
+  casos de sobra (#480).
+- **El mecanismo más alto de la escalera**: bloqueo, test en el CI, script,
+  skill y, en último lugar, texto; se baja de escalón solo con su motivo
+  (`npm run mecanismos`, skill `plan-de-arreglo`).
+- **Tres capas de comprobación**: formal (un test que da lo mismo cada vez),
+  material (una regla aproximada con una lista de excepciones que solo puede
+  bajar) y subjetiva (un juez LLM con presupuesto). Lo subjetivo que se juzga
+  igual una y otra vez pasa a material o formal; se vuelve atrás solo si el
+  test sale frágil, con el porqué escrito (la base de la forja, #458).
 - **El juez LLM dice pasa o no pasa con su motivo**, puede decir «no sé» y se
-  calibra contra ejemplos de Pablo (#482).
-- **Ninguna cifra es objetivo sola**: va con otra que la vigile y con una
-  muestra leída a mano; una cifra que se persigue deja de medir (informe
-  semanal del flujo).
-- **De arriba abajo**: forja, luego plantilla por tipo, luego cada pieza; no
-  se rellena una pieza antes que su plantilla.
+  calibra contra ejemplos marcados por Pablo (#482).
+- **Ninguna cifra es objetivo sola**: una cifra que se persigue deja de medir;
+  va con otra que la vigile y con una muestra leída a mano (#480).
+- **De arriba abajo**: primero la forja (qué hace buena a una pieza), luego
+  la plantilla de su tipo y después cada pieza; no se rellena una pieza antes
+  que su plantilla (#458).
 
 ## Qué se le pregunta a Pablo, y qué no
 
