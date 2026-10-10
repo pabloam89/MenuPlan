@@ -89,6 +89,7 @@ describe("hábitos que ya rompieron cosas", () => {
     "pnpm dlx vercel env pull --environment=production",
     "cmd /c vercel env pull --environment=production",
     "vercel api /v10/projects/homenu/env?decrypt=true",
+    "vercel api /v1/projects/homenu/env/env_abc123",
   ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
   it.each([
     "vercel env pull .env.local",
@@ -98,6 +99,7 @@ describe("hábitos que ya rompieron cosas", () => {
     "vercel env pull .env.production-backup --environment=preview",
     "vercel deploy --prod",
     "vercel logs homenu --environment production",
+    "grep -rn \"vercel env pull --environment=production\" docs",
   ])(
     "deja pasar %s",
     (c) => expect(bash(c)).toBe(null),

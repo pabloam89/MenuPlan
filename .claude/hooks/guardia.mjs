@@ -82,10 +82,10 @@ const REGLAS_COMANDO = [
     // parta el texto adrede se la salta; la defensa de fondo es que la CLI del
     // PC no tenga sesión (skill `vercel`). Un commit o un echo no cuentan (#332).
     si: (o) =>
-      /\bvercel\b/i.test(o) && !/^(git|echo|gh)\b/.test(o) &&
+      /\bvercel\b/i.test(o) && !/^(git|echo|gh|grep|rg)\b/.test(o) &&
       ((/\benv\s+(pull|run|ls|list)\b|(^|\s)pull\b/i.test(o) &&
         (/(^|\s)(-e|--environment|--target)(=|\s+)['"]?prod(uction)?\b/i.test(o) || /\benv\s+(ls|list)\s+['"]?prod(uction)?\b/i.test(o))) ||
-        /\bapi\b.*\bdecrypt\b/i.test(o)),
+        /\bapi\b.*(\bdecrypt\b|\/env\b)/i.test(o)),
     da: () => deny("Las variables de Production de Vercel son solo de Pablo (#332): tienen la clave de administrador de la base y el token del bot. Para desarrollo usa `.env.local` (direcciones `op://`); si de verdad hace falta Production, dale el comando a Pablo para que lo lance con `!`."),
   },
   {
