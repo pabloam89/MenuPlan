@@ -604,7 +604,7 @@ export function textoDeAviso(senal, resultados, lectura) {
     const cuerpo = grupos.map(([quien, lista], i) => `${quien}${i === 0 ? ` — ${marco}` : ""}: ${lista.map(lineaDeResultado).join(" | ")}.`).join(" ");
     return `${cabeza} ${cuerpo} Si no tiene que ver con lo tuyo, ignóralo: este aviso no se repite en la sesión.`;
   }
-  return `${cabeza} No hay nada apuntado que se parezca${edad}. Antes de darlo por nuevo, busca con otras palabras: \`npm run buscar -- "<síntoma>"\`. `
+  return `${cabeza} No hay nada apuntado que se parezca${edad}. Antes de darlo por nuevo, busca con otras palabras: \`npm run buscar -- "síntoma"\`. `
     + "Si es nuevo, regístralo con `npm run issues -- --nuevo …`; no lo des por un misterio. Este aviso no se repite en la sesión.";
 }
 

@@ -66,7 +66,7 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
   for (const s of pendientes.slice(0, MAX_POR_LLAMADA)) {
     nuevas.push(huella(s.clave));
     if (!lectura.indice) {
-      textos.push(`${cabezaDe(s)} No puedo buscar lo ya apuntado: ${avisoDeIndice(lectura)} Mientras tanto: \`gh issue list --state all --search "<palabras>"\`.`);
+      textos.push(`${cabezaDe(s)} No puedo buscar lo ya apuntado: ${avisoDeIndice(lectura)} Mientras tanto: \`gh issue list --state all --search "palabras"\`.`);
       lineas.push(`buscar-antes senal: ${s.tipo} resultado: sin-indice`);
       continue;
     }
@@ -105,6 +105,17 @@ const MAX_BYTES_LOG = 100 * 1024;
  * ni fichero de otro usuario, ni en una carpeta de otro. Si no existe aún, solo cuenta la carpeta.
  * En Windows no hay uid y siempre vale.
  */
+/** ¿La carpeta es nuestra? (POSIX; en Windows siempre sí). */
+export function carpetaPropia(dir) {
+  if (typeof process.getuid !== "function") return true;
+  try {
+    const st = lstatSync(dir);
+    return st.isDirectory() && st.uid === process.getuid();
+  } catch {
+    return false;
+  }
+}
+
 export function escrituraSegura(ruta, dir = null) {
   if (typeof process.getuid !== "function") return true;
   const yo = process.getuid();
@@ -147,10 +158,11 @@ function leerMarcasDe(ruta) {
 export function ejecutar(entrada, opciones = {}) {
   const dir = dirBuscar();
   mkdirSync(dir, { recursive: true });
+  const propia = carpetaPropia(dir);
   const marcas = join(dir, `sesion-${huella(entrada.session_id)}.json`);
   const r = procesar(entrada, { vistas: leerMarcasDe(marcas), ...opciones });
   if (r.nuevas.length || r.lineas.length) {
-    if (r.nuevas.length) {
+    if (r.nuevas.length && propia) {
       // Se vuelve a leer justo antes de escribir: dos llamadas a la vez de la misma sesión no se pisan del todo.
       try {
         escribirAtomico(marcas, JSON.stringify([...new Set([...leerMarcasDe(marcas), ...r.nuevas])]));

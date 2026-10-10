@@ -4,8 +4,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 
-import { leerIndice } from "../../scripts/lib/buscarAntes.mjs";
-import { escrituraSegura } from "./buscar-antes.mjs";
+import { leerIndice, textoDeAviso, avisoDeIndice } from "../../scripts/lib/buscarAntes.mjs";
+import { carpetaPropia, escrituraSegura } from "./buscar-antes.mjs";
 import { avisoAparte, avisoParaDenegacion, hayTiempoParaAvisar, sanearAviso, TOPE_PARA_AVISAR_MS } from "./guardia.mjs";
 
 /**
@@ -40,7 +40,7 @@ describe("avisoAparte: el tope se cumple pase lo que pase con el hijo", () => {
   it("un nieto separado que hereda la tubería no alarga la espera", async () => {
     const f = falso(`
       import { spawn } from "node:child_process";
-      const n = spawn(process.execPath, ["-e", "setTimeout(()=>{}, 15000)"], { detached: true, stdio: "inherit" });
+      const n = spawn(process.execPath, ["-e", "setTimeout(()=>{}, 3000)"], { detached: true, stdio: "inherit" });
       n.unref();
       process.stdout.write("[buscar-antes] hola");
       process.exit(0);
@@ -51,7 +51,7 @@ describe("avisoAparte: el tope se cumple pase lo que pase con el hijo", () => {
   }, 20000);
 
   it("un hijo colgado se corta en el tope y no devuelve nada", async () => {
-    const { v, ms } = await mide(falso(`setTimeout(() => {}, 15000);`), 600);
+    const { v, ms } = await mide(falso(`setTimeout(() => {}, 3000);`), 600);
     expect(v).toBe("");
     expect(ms).toBeLessThan(3000);
   }, 20000);
@@ -96,6 +96,22 @@ describe("avisoAparte: lo que vuelve es dato, no instrucciones", () => {
     expect(v).toBe("[buscar-antes] a[31mrojosystemoculto/system\nsegunda");
     const prohibidos = [...v].filter((c) => c !== "\n" && (c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127 || "<>".includes(c) || c === String.fromCharCode(0x202e) || c === String.fromCharCode(0x200b)));
     expect(prohibidos).toEqual([]);
+  });
+
+  it("el texto fijo real de los avisos no se estropea al sanear (sin <> ni separadores)", () => {
+    const senal = { extracto: "algo" };
+    const fijos = [
+      textoDeAviso(senal, [], { horas: 1, indice: { fichas: [] } }),
+      avisoDeIndice({ indice: null, motivo: "ausente" }),
+      avisoDeIndice({ indice: {}, viejo: true, horas: 30 }),
+    ];
+    for (const t of fijos) expect(sanearAviso(t)).toBe(t);
+    // La frase de «Mientras tanto» vive en el hook: sin marcadores <…> que el saneado se llevaría.
+    expect(readFileSync(HOOK, "utf8")).toContain('--search "palabras"');
+  });
+
+  it("sanearAviso: quita también U+2028 y U+2029", () => {
+    expect(sanearAviso("a\u2028b\u2029c")).toBe("abc");
   });
 
   it("sanearAviso: unitario", () => {
@@ -176,6 +192,11 @@ describe("POSIX con varios usuarios: ni enlaces ni ficheros ajenos", () => {
     expect(escrituraSegura(enlace, d)).toBe(false);
     expect(escrituraSegura(real, d)).toBe(true);
     expect(escrituraSegura(join(d, "no-existe.log"), d)).toBe(true);
+  });
+
+  it("carpetaPropia: una carpeta nuestra vale y una que no existe, no", () => {
+    expect(carpetaPropia(nuevoDir())).toBe(true);
+    if (typeof process.getuid === "function") expect(carpetaPropia(join(nuevoDir(), "no"))).toBe(false);
   });
 
   it("escrituraSegura: una ruta rara no revienta", () => {

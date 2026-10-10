@@ -654,9 +654,9 @@ const GRACIA_TRAS_EXIT_MS = 100;
 /**
  * Saneado mínimo EN LÍNEA de lo que devuelve el hijo (#428, #313: texto de fuera es dato): fuera los
  * caracteres de control salvo el salto de línea (incluido ESC, así que no queda ningún color ANSI),
- * los de formato (bidi, ancho cero) y `<` y `>`. No importa nada de scripts/lib a propósito.
+ * los de formato (bidi, ancho cero), los separadores de línea y párrafo (U+2028/2029) y `<` y `>`. No importa nada de scripts/lib a propósito.
  */
-export const sanearAviso = (t) => String(t).replace(/(?!\n)\p{Cc}|\p{Cf}|[<>]/gu, "");
+export const sanearAviso = (t) => String(t).replace(/(?!\n)\p{Cc}|\p{Cf}|\p{Zl}|\p{Zp}|[<>]/gu, "");
 
 /**
  * El aviso de «esto ya está apuntado» para una denegación, obtenido en un PROCESO APARTE y con tope
@@ -679,7 +679,7 @@ export function avisoAparte(r, entrada, { script = join(dirname(fileURLToPath(im
       if (hecho) return;
       hecho = true;
       timers.forEach(clearTimeout);
-      try { hijo?.stdout?.destroy(); hijo?.stdin?.destroy(); hijo?.kill(); } catch { /* a propósito: ya muerto */ }
+      try { hijo?.stdout?.destroy(); hijo?.stdin?.destroy(); hijo?.kill("SIGKILL"); } catch { /* a propósito: ya muerto */ }
       if (aviso) console.error(`[guardia] no he podido buscar lo ya apuntado (${aviso})`);
       resolver(valor);
     };
