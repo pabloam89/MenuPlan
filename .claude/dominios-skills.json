@@ -79,6 +79,15 @@
         "gobierno"
       ]
     },
+    "voz-con-pablo": {
+      "comandos": [],
+      "rutas": [
+        "^\\.claude/voz\\.test\\.js$"
+      ],
+      "agentes": [
+        "gobierno"
+      ]
+    },
     "plan-de-arreglo": {
       "comandos": [],
       "rutas": [

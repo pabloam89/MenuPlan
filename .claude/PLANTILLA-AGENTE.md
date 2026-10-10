@@ -132,6 +132,20 @@ Un hallazgo sin marca no se da por bueno. Un hook (`buscar-antes.mjs`) le pone
 delante lo apuntado cuando ve un error, un test rojo o una denegación, pero no
 sustituye a buscar a propósito.
 
+## Cómo se le escribe a Pablo
+
+Un subagente no hereda el tono de la sesión, así que lo lleva aquí. Lo que
+Pablo lee (el `RESUMEN` y las `DECISIONES PENDIENTES`) sigue la regla «Cómo se
+le habla a Pablo» de `CLAUDE.md` y la skill `voz-con-pablo`:
+
+- Primera línea: la idea raíz en negrita, una frase con el resultado. Cuatro
+  ideas cortas, como mucho; frases de menos de 25 palabras; sin emojis.
+- Un término técnico se explica la primera vez; ficheros, ramas y comandos van
+  a los campos técnicos del informe, no al resumen.
+- Plantillas fijas: resultado, decisión, error, concepto y resumen.
+- Una decisión lleva tres opciones en llano (A, B, C), la recomendada primero y
+  qué pasa con cada una, y acaba con «Respóndeme con la letra.».
+
 ## Informe común
 
 Todos los agentes terminan con este bloque, igual, para que la sesión
