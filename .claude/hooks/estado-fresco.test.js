@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { afirmaEstado, estadoSinLeer, recordatorioDeEstado } from "./pendientes.mjs";
+import { MOTIVOS_ESTADO, afirmaEstado, estadoSinLeer, filasDe, recordatorioDeEstado } from "./pendientes.mjs";
 
 // El freno del estado fresco (#462, fondo #231): afirmar el estado de un issue o PR sin
 // haberlo leído de la fuente hace poco. Semidura: lee texto (como #174).
@@ -29,6 +29,11 @@ describe("afirmaEstado: cuándo un mensaje cuenta el estado", () => {
     "Hecho. Mira el #299 cuando puedas.",
     "Hay cosas pendientes y abiertas.",
     "```\nel #299 está abierto\n```",
+    "Es independiente: ver #5",
+    "Color #123abc, pendiente de revisar",
+    "Mira pendientes.mjs:#12",
+    "| #299 | independiente |",
+    "Los dependientes del #7 quedan aparte.",
   ])("no: %s", (t) => expect(afirmaEstado(t)).toBe(false));
 });
 
@@ -68,10 +73,33 @@ describe("estadoSinLeer: la lectura de la fuente", () => {
   it("el turno es el del último mensaje del usuario (id para la marca)", () => {
     expect(estadoSinLeer(sesion(usuario(hace(9), "a"), usuario(hace(3), "b")), dice, AHORA).turno).toBe("b");
   });
+  it("los mensajes que no escribió Pablo no avanzan el turno", () => {
+    const ruido = [
+      JSON.stringify({ type: "user", uuid: "m1", isMeta: true, message: { content: "caveat" } }),
+      JSON.stringify({ type: "user", uuid: "m2", message: { content: "<task-notification>fin</task-notification>" } }),
+      JSON.stringify({ type: "user", uuid: "m3", message: { content: [{ type: "text", text: "<system-reminder>x</system-reminder>" }] } }),
+      JSON.stringify({ type: "user", uuid: "m4", message: { content: "<bash-input>ls</bash-input>" } }),
+      JSON.stringify({ type: "user", uuid: "m5", message: { content: "<command-name>/x</command-name>" } }),
+    ];
+    expect(estadoSinLeer(sesion(usuario(hace(9), "pablo"), ...ruido), dice, AHORA).turno).toBe("pablo");
+  });
+  it("acepta el transcript ya parseado (una sola lectura)", () => {
+    const j = sesion(usuario(hace(3), "b"));
+    expect(estadoSinLeer(filasDe(j), dice, AHORA)).toEqual(estadoSinLeer(j, dice, AHORA));
+  });
   it("el aviso manda ejecutar npm run situacion, citar su hora y lleva la línea contable", () => {
     const r = recordatorioDeEstado("sin-lectura");
     expect(r).toMatch(/antes de contar el estado, ejecuta `npm run situacion` y cita su hora/);
     expect(r).toMatch(/^estado-fresco freno motivo: sin-lectura$/m);
+  });
+});
+
+describe("el vocabulario de motivos", () => {
+  it("los dos motivos que emite estadoSinLeer están en MOTIVOS_ESTADO", () => {
+    expect(MOTIVOS_ESTADO).toEqual(["sin-lectura", "lectura-vieja"]);
+    const a = estadoSinLeer("", "El #299 está abierto.", AHORA).motivo;
+    const b = estadoSinLeer(bash(hace(30), "npm run situacion"), "El #299 está abierto.", AHORA).motivo;
+    expect([a, b].every((m) => MOTIVOS_ESTADO.includes(m))).toBe(true);
   });
 });
 
@@ -97,6 +125,20 @@ describe("el hook entero (stdin → stdout)", () => {
     const lineas = readFileSync(join(fabrica, "eventos.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
     expect(lineas.filter((l) => l.evento === "estado_sin_leer")).toHaveLength(1);
     expect(lineas[0]).toMatchObject({ evento: "estado_sin_leer", nombre: "sin-lectura" });
+  });
+  it("tres notificaciones seguidas tras un freno no producen otro freno", () => {
+    const id = `efnot${Date.now()}`;
+    const t3 = join(fabrica, "t3.jsonl");
+    const notif = (n) => JSON.stringify({ type: "user", uuid: `n${n}`, message: { content: `<task-notification>${n}</task-notification>` } });
+    writeFileSync(t3, sesion(usuario(new Date(ahora.getTime() - 60_000).toISOString(), "turno-N"), notif(1)));
+    expect(JSON.parse(lanza({ transcript_path: t3 }, id).stdout).decision).toBe("block");
+    writeFileSync(t3, sesion(usuario(new Date(ahora.getTime() - 60_000).toISOString(), "turno-N"), notif(1), notif(2), notif(3)));
+    expect(lanza({ transcript_path: t3 }, id).stdout).toBe("");
+  });
+  it("la marca del turno vive en la carpeta de la fábrica, no en tmp", () => {
+    const id = `efmarca${Date.now()}`;
+    lanza({}, id);
+    expect(existsSync(join(fabrica, "marcas", `${id}.estado`))).toBe(true);
   });
   it("con stop_hook_active no frena (nunca en bucle)", () => {
     expect(lanza({ stop_hook_active: true }).stdout).toBe("");

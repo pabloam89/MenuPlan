@@ -48,18 +48,27 @@ export function pendientesSinIssue({ ultimo, comandos }) {
   });
 }
 
+/**
+ * El transcript (JSONL) ya parseado: una fila por línea, `null` si no era JSON (cortada al
+ * escribir). Se parsea UNA vez en el hook y se pasa a todo lo demás (#462): cada función
+ * acepta el texto o estas filas.
+ */
+export function filasDe(jsonl) {
+  if (Array.isArray(jsonl)) return jsonl;
+  return String(jsonl ?? "").split("\n").map((linea) => {
+    try {
+      return JSON.parse(linea);
+    } catch {
+      return null; // a propósito: una línea del transcript que no es JSON se salta
+    }
+  });
+}
+
 /** Del transcript (JSONL): el último texto de Claude y todos los comandos de shell. */
 export function leerTranscript(jsonl) {
   let ultimo = "";
   const comandos = [];
-  for (const linea of String(jsonl).split("\n")) {
-    let e;
-    try {
-      e = JSON.parse(linea);
-    } catch {
-      // a propósito: una línea del transcript que no es JSON (cortada al escribir) se salta
-      continue;
-    }
+  for (const e of filasDe(jsonl)) {
     if (e?.type !== "assistant") continue;
     const partes = Array.isArray(e.message?.content) ? e.message.content : [];
     const texto = partes.filter((p) => p.type === "text").map((p) => p.text).join("\n");
@@ -146,14 +155,7 @@ export function senalesDeFallo(jsonl) {
   const comandos = [];
   const escritos = new Map(); // nombre de fichero → lo último que se escribió con Write
   const resultados = [];
-  for (const linea of String(jsonl).split("\n")) {
-    let e;
-    try {
-      e = JSON.parse(linea);
-    } catch {
-      // a propósito: una línea del transcript que no es JSON (cortada al escribir) se salta
-      continue;
-    }
+  for (const e of filasDe(jsonl)) {
     const partes = Array.isArray(e?.message?.content) ? e.message.content : [];
     for (const p of partes) {
       if (e.type === "assistant" && p.type === "tool_use") {
@@ -221,6 +223,11 @@ export const RECORDATORIO = "[pendientes] Tu último mensaje deja decisiones o p
 // (falso positivo). Lo que frena se cuenta en eventos.jsonl (`estado_sin_leer`)
 // para medir ambos. Solo la sesión principal: el Stop de un subagente no pasa
 // por aquí, y si llega `agent_id` se ignora. Un freno por turno, nunca en bucle.
+//
+// «Lectura» quiere decir «la sesión escribió una orden que lo parece»
+// (`npm run situacion`, `gh issue view`…), no que la fuente respondiera ni que
+// su resultado se citara. No se endurece a propósito: comprobar la respuesta
+// costaría más falsos frenos que verdades; primero se mide con `estado_sin_leer`.
 
 /** Minutos que dura fresca una lectura de la fuente. */
 export const MINUTOS_FRESCA = 15;
@@ -229,8 +236,10 @@ export const MOTIVOS_ESTADO = ["sin-lectura", "lectura-vieja"];
 
 /** Palabras que cuentan el estado de un issue o PR (sin acentos, en minúsculas). */
 const PALABRA_ESTADO = "abiert[oa]s?|cerrad[oa]s?|fusionad[oa]s?|mergead[oa]s?|pendientes?|esperando|lo lleva|la lleva|bloquea|bloquead[oa]s?|en curso";
-const ESTADO_ANTES = new RegExp(`(?:${PALABRA_ESTADO}).{0,60}#\\d+`);
-const ESTADO_DESPUES = new RegExp(`#\\d+.{0,60}\\b(?:${PALABRA_ESTADO})`);
+// El número no va pegado a una palabra, ruta o color: `pendientes.mjs:#12` y `#123abc` no son un issue.
+const NUM = "(?<![\\w.:/])#\\d+(?!\\w)";
+const ESTADO_ANTES = new RegExp(`\\b(?:${PALABRA_ESTADO}).{0,60}${NUM}`);
+const ESTADO_DESPUES = new RegExp(`${NUM}.{0,60}\\b(?:${PALABRA_ESTADO})\\b`);
 
 /** ¿Cuenta el mensaje el estado de algún issue o PR? (`#n` y palabra de estado en la misma línea, fuera de bloques de código) */
 export function afirmaEstado(texto) {
@@ -251,6 +260,20 @@ function leeLaFuente(orden) {
   return false;
 }
 
+/** Lo que el sistema mete como mensaje de usuario sin que Pablo escriba nada (avisos de tareas, salidas de comandos, recordatorios). */
+const NO_ES_DE_PABLO = /^\s*<(?:task-notification|bash-|system-reminder|command-|local-command)/;
+
+/** ¿Es este mensaje de usuario algo que escribió Pablo? Ni un resultado de herramienta, ni `isMeta`, ni ruido del sistema. */
+function esMensajeDePablo(e) {
+  if (e.isMeta === true) return false;
+  const c = e.message?.content;
+  if (Array.isArray(c)) {
+    if (c.length && c.every((p) => p?.type === "tool_result")) return false;
+    return !NO_ES_DE_PABLO.test(c.filter((p) => p?.type === "text").map((p) => p.text).join("\n"));
+  }
+  return !NO_ES_DE_PABLO.test(String(c ?? ""));
+}
+
 /**
  * ¿Hay que frenar? → { frena, motivo, turno }
  *  - `afirmaEstado(ultimo)` y ninguna lectura de la fuente con menos de 15 min;
@@ -262,18 +285,11 @@ export function estadoSinLeer(jsonl, ultimo, ahora = new Date()) {
   let turno = null;
   let hayLectura = false;
   let fresca = false;
-  const lineas = String(jsonl ?? "").split("\n");
-  lineas.forEach((linea, i) => {
-    let e;
-    try {
-      e = JSON.parse(linea);
-    } catch {
-      // a propósito: una línea cortada del transcript se salta
-      return;
-    }
-    const partes = Array.isArray(e?.message?.content) ? e.message.content : null;
-    if (e?.type === "user" && !(partes && partes.length && partes.every((p) => p?.type === "tool_result"))) turno = String(e.uuid ?? `l${i}`);
-    if (e?.type !== "assistant" || !partes) return;
+  filasDe(jsonl).forEach((e, i) => {
+    if (!e) return;
+    const partes = Array.isArray(e.message?.content) ? e.message.content : null;
+    if (e.type === "user" && esMensajeDePablo(e)) turno = String(e.uuid ?? `l${i}`);
+    if (e.type !== "assistant" || !partes) return;
     for (const p of partes) {
       if (p.type !== "tool_use" || !/^(?:Bash|PowerShell)$/.test(p.name) || !p.input?.command) continue;
       if (!ordenesDe(p.input.command).some(leeLaFuente)) continue;
@@ -319,10 +335,12 @@ if (esPrincipal) {
     const id = String(entrada.session_id ?? "x").replace(/\W/g, "");
     const marca = join(dir, `${id}.hecho`);
     const marcaCasos = join(dir, `${id}.casos`);
-    const transcript = entrada.transcript_path && existsSync(entrada.transcript_path) ? readFileSync(entrada.transcript_path, "utf8") : "";
+    const crudoTranscript = entrada.transcript_path && existsSync(entrada.transcript_path) ? readFileSync(entrada.transcript_path, "utf8") : "";
+    const transcript = filasDe(crudoTranscript); // se parsea UNA vez y lo reciben los tres frenos
+    const mirar = aMirar(entrada, transcript);
     // Cada freno sale una vez por sesión y con su marca; si salen los dos a la vez, primero los pendientes.
     let frenado = false;
-    if (!existsSync(marca) && pendientesSinIssue(aMirar(entrada, transcript))) {
+    if (!existsSync(marca) && pendientesSinIssue(mirar)) {
       writeFileSync(marca, new Date().toISOString());
       process.stdout.write(JSON.stringify({ decision: "block", reason: RECORDATORIO }));
       frenado = true;
@@ -336,13 +354,17 @@ if (esPrincipal) {
     }
     // El estado fresco (#462): solo la sesión principal, un freno por turno y nunca si ya frenó otro.
     if (!frenado && !entrada.agent_id && !entrada.agent_type) {
-      const { frena, motivo, turno } = estadoSinLeer(transcript, aMirar(entrada, transcript).ultimo);
-      const marcaEstado = join(dir, `${id}.estado`);
+      const { frena, motivo, turno } = estadoSinLeer(transcript, mirar.ultimo);
+      const { dirFabrica, registrarEvento } = await import("./eventos.mjs");
+      // La marca del estado vive en la carpeta de la fábrica (fuera de tmp, que es de todos); las otras dos no se mueven.
+      const dirMarcas = join(dirFabrica(), "marcas");
+      mkdirSync(dirMarcas, { recursive: true });
+      const marcaEstado = join(dirMarcas, `${id}.estado`);
       const yaFrenado = existsSync(marcaEstado) && readFileSync(marcaEstado, "utf8") === String(turno);
       if (frena && !yaFrenado) {
         writeFileSync(marcaEstado, String(turno));
-        const { registrarEvento } = await import("./eventos.mjs");
-        registrarEvento({ evento: "estado_sin_leer", nombre: motivo, sesion: entrada.session_id, cwd: entrada.cwd });
+        // Solo se registra un motivo del vocabulario cerrado (si no, el freno sale igual pero sin evento).
+        if (MOTIVOS_ESTADO.includes(motivo)) registrarEvento({ evento: "estado_sin_leer", nombre: motivo, sesion: entrada.session_id, cwd: entrada.cwd });
         process.stdout.write(JSON.stringify({ decision: "block", reason: recordatorioDeEstado(motivo) }));
       }
     }
