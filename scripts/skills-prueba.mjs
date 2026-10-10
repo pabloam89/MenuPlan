@@ -29,7 +29,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { cargarEnv } from "./lib/env.mjs";
-import { SALIDA, cabeOtro, costeUsd, estimadoSiguiente, hash, opcionNumero, topeDePasada } from "./lib/evals.mjs";
+import { SALIDA, costeUsd, estimadoSiguiente, hash, opcionNumero, topeDePasada, apuntarOAvisar, puedeGastar } from "./lib/evals.mjs";
 import {
   DIR_SKILLS, ESTIMADO_LLAMADA, MODELO_BARATO, MODELO_EJECUTA, NINGUNA, RAIZ, TOPE_SKILLS_USD,
   catalogoParaDisparo, comparar, faltasDeCasos, jsonDeTexto, nombresDeSkills, promptCorrige,
@@ -82,10 +82,13 @@ if (!API_KEY) salir(SALIDA.entrada, "Falta ANTHROPIC_API_KEY (en .env.local, com
 
 let gastado = 0;
 let llamadas = 0;
+let motivoTope = null;
 
 /** Una llamada a la API, con su coste sumado: { texto, motivo } (leerRespuesta); null si no cabe en el tope. */
 async function llamar({ modelo, system, usuario, maxTokens, thinking }) {
-  if (!cabeOtro(gastado, tope, estimadoSiguiente(gastado, llamadas, ESTIMADO_LLAMADA))) return null;
+  // El libro se vuelve a leer antes de cada llamada de pago: otra pasada puede haber gastado mientras tanto.
+  const cupo = puedeGastar(gastado, tope, estimadoSiguiente(gastado, llamadas, ESTIMADO_LLAMADA));
+  if (!cupo.ok) { motivoTope = cupo.motivo; return null; }
   const cuerpo = {
     model: modelo,
     max_tokens: maxTokens,
@@ -105,7 +108,9 @@ async function llamar({ modelo, system, usuario, maxTokens, thinking }) {
     });
     if (res.ok) {
       llamadas++;
-      gastado += costeUsd(data.usage, modelo, { ttl: "5m" });
+      const coste = costeUsd(data.usage, modelo, { ttl: "5m" });
+      gastado += coste;
+      apuntarOAvisar({ script: "skills-prueba", coste_usd: coste });
       return leerRespuesta(data);
     }
     const reintentable = res.status === 429 || res.status >= 500;
@@ -186,5 +191,6 @@ for (const skill of pedidas) {
   }
 }
 
+if (motivoTope) console.log(`tope_evals script: skills-prueba motivo: ${motivoTope} gastado_usd: ${gastado.toFixed(3)} tope_usd: ${tope.toFixed(2)}`);
 console.log(`skills-prueba total coste_usd: ${gastado.toFixed(4)} llamadas: ${llamadas} tope_usd: ${tope.toFixed(2)}`);
 process.exit(codigo);

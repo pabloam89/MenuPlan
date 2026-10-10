@@ -4,17 +4,18 @@
  *   node scripts/bot-coste.mjs            → este mes
  *   node scripts/bot-coste.mjs 2026-10    → ese mes
  *
- * Lee SUPABASE_DB_URL de .env.local. Los precios son por millón de tokens y
+ * Lee SUPABASE_DB_URL_LECTURA (usuario de solo lectura, #328). Los precios son por millón de tokens y
  * hay que revisarlos contra la tarifa publicada de Anthropic del modelo que
  * use api/_bot/agente.js (MODELO); la voz (Groq) no entra, es céntimos.
  */
 
 import pg from "pg";
 import { leerEnv } from "./lib/env.mjs";
+import { conexionDeConsulta } from "./lib/rolLectura.mjs";
 
 const PRECIO = { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 }; // USD / 1M tokens
 
-const dbUrl = leerEnv("SUPABASE_DB_URL", { obligatoria: true });
+const dbUrl = conexionDeConsulta(leerEnv).url;
 
 const mes = (process.argv[2] ?? new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date()).slice(0, 7)) + "-01";
 

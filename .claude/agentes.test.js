@@ -180,6 +180,45 @@ it("el informe común lleva CASOS: y /orquestar los pasa a la línea «Casos:» 
   }
 });
 
+it("el informe común lleva SKILLS:, /orquestar las saca del mapa y el revisor las comprueba (#397)", () => {
+  // Las skills son el camino de aprendizaje: si el informe no dice cuáles se
+  // abrieron, nadie puede comprobar que se usaron. La lista del brief sale de un
+  // script sobre .claude/dominios-skills.json, no de memoria.
+  const plantilla = readFileSync(join(AQUI, "PLANTILLA-AGENTE.md"), "utf8");
+  const informe = plantilla.slice(plantilla.indexOf("## Informe común"));
+  expect(informe).toMatch(/^SKILLS:/m);
+  expect(plantilla).toMatch(/^## Skills que he abierto$/m);
+  const orquestar = readFileSync(join(AQUI, "commands", "orquestar.md"), "utf8");
+  const brief = orquestar.slice(orquestar.indexOf("## 4. El brief"), orquestar.indexOf("## 5."));
+  expect(brief).toMatch(/npm run skills-encargo/);
+  expect(brief).toMatch(/`SKILLS:`/);
+  const pkg = JSON.parse(readFileSync(join(RAIZ, "package.json"), "utf8"));
+  expect(pkg.scripts["skills-encargo"]).toMatch(/scripts\/skills-encargo\.mjs/);
+  const { cuerpo } = leer("revisor.md");
+  expect(seccion(cuerpo, "Principios")).toMatch(/skills-encargo -- *\n? *--diff[\s\S]*`SKILLS:`/);
+  expect(seccion(cuerpo, "Hecho")).toMatch(/SKILLS:/);
+});
+
+it("cada agente trae precargadas las skills de su dominio, y solo esas: una sola fuente, el mapa (#397)", () => {
+  // El 10 oct, `datos` editó supabase/ 9 veces en una semana sin la skill
+  // supabase: no la traía precargada y nada lo pedía. El mapa dice qué
+  // constructores trabajan en cada dominio (`agentes`); el frontmatter lo sigue.
+  const mapa = JSON.parse(readFileSync(join(AQUI, "dominios-skills.json"), "utf8"));
+  const esperado = {};
+  for (const [skill, d] of Object.entries(mapa.skills)) {
+    expect(Array.isArray(d.agentes) && d.agentes.length > 0, `${skill}: falta "agentes" en el mapa`).toBe(true);
+    for (const a of d.agentes) {
+      expect(existsSync(join(DIR, `${a}.md`)), `${skill}: el agente ${a} no existe`).toBe(true);
+      (esperado[a] ??= []).push(skill);
+    }
+  }
+  for (const f of agentes) {
+    const nombre = f.replace(/\.md$/, "");
+    const { meta } = leer(f);
+    expect(lista(meta.skills).sort(), `${nombre}: su skills: no cuadra con "agentes" del mapa`).toEqual((esperado[nombre] ?? []).sort());
+  }
+});
+
 it("buscar antes de dar nada por nuevo: plantilla, orquestar y las fuentes de cada agente (#384, #320)", () => {
   // Los cinco jueces del 9 oct 2026 presentaron como nuevo lo ya apuntado (#320).
   const plantilla = readFileSync(join(AQUI, "PLANTILLA-AGENTE.md"), "utf8");

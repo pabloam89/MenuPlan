@@ -103,7 +103,7 @@ describe("resumen y comparación", () => {
 describe("el tope", () => {
   it("el propio es bajo y no pasa nunca de lo que queda del presupuesto de evals", () => {
     expect(TOPE_SKILLS_USD).toBeLessThanOrEqual(1);
-    expect(topeDePasada(TOPE_SKILLS_USD)).toBeLessThanOrEqual(TOPE_SKILLS_USD);
+    expect(topeDePasada(TOPE_SKILLS_USD, 0)).toBeLessThanOrEqual(TOPE_SKILLS_USD);
     expect(topeDePasada(TOPE_SKILLS_USD, 1e6)).toBe(0);
   });
 });

@@ -20,21 +20,14 @@
  * Para rotarla: Pablo archiva la ficha en 1Password y lo vuelve a lanzar. Si se
  * corta entre el paso 3 y el 4, igual: archivar y relanzar.
  */
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import pg from "pg";
-import { entornoOp, leerEnv } from "./env.mjs";
+import { entornoOp, leerEnv, opPorLaApp } from "./env.mjs";
 import { VAR_ADMIN, claveNueva, direccionOp, estadoFicha, fichaDeRol, urlDeRol, verificadorScram } from "./rolLectura.mjs";
 
 const ssl = { rejectUnauthorized: false };
 /** Solo la primera línea de stderr de `op`: el mensaje de error nunca lleva la entrada. */
 const errorDeOp = (e) => String(e.stderr || "sin detalle").trim().split("\n")[0];
-
-/** El entorno para `op` sin la service account: la app de escritorio, que pide aprobar. */
-function entornoSinServicio() {
-  const env = { ...process.env };
-  delete env.OP_SERVICE_ACCOUNT_TOKEN;
-  return env;
-}
 
 /**
  * @param {typeof import("./rolLectura.mjs").PERFILES[string]} p
@@ -51,9 +44,10 @@ export async function ponerClave(p, { si }) {
   // ¿Ya hay ficha? Con la service account si puede leer esa bóveda; si no, con
   // la app (pide aprobar). Solo se sigue con un «no existe» claro: cualquier
   // otro fallo podría acabar en una ficha duplicada y una dirección op:// ambigua.
-  const busca = spawnSync("op", ["item", "get", p.ficha, "--vault", p.boveda, "--format", "json"], {
-    env: p.servicio ? entornoOp() : entornoSinServicio(), encoding: "utf8", stdio: ["ignore", "ignore", "pipe"],
-  });
+  const argsBusca = ["item", "get", p.ficha, "--vault", p.boveda, "--format", "json"];
+  const busca = p.servicio
+    ? spawnSync("op", argsBusca, { env: entornoOp(), encoding: "utf8", stdio: ["ignore", "ignore", "pipe"] })
+    : opPorLaApp(argsBusca);
   const ficha = estadoFicha(busca);
   if (ficha === "existe") {
     console.error(`Ya existe la ficha «${p.ficha}». Para rotar la contraseña, archívala en 1Password y vuelve a lanzarlo.`);
@@ -79,10 +73,9 @@ export async function ponerClave(p, { si }) {
 
     // 1Password primero: si Pablo no aprueba la ventana, la base no cambia. Sin
     // la service account (solo lee) y con la ficha por stdin, no en argumentos.
-    try {
-      execFileSync("op", ["item", "create", "--vault", p.boveda, "-"], { env: entornoSinServicio(), input: fichaDeRol(p, clave, url), stdio: ["pipe", "ignore", "pipe"] });
-    } catch (e) {
-      console.error(`No pude guardar en 1Password: ${errorDeOp(e)}. La base no se ha tocado.`);
+    const guardada = opPorLaApp(["item", "create", "--vault", p.boveda, "-"], { input: fichaDeRol(p, clave, url) });
+    if (guardada.status !== 0) {
+      console.error(`No pude guardar en 1Password: ${errorDeOp(guardada)}. La base no se ha tocado.`);
       return 1;
     }
     console.log(`Guardada en ${op}.`);

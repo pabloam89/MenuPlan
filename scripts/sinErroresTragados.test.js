@@ -33,7 +33,6 @@ const TRAGADOS_CONOCIDOS = {
   "scripts/gen-all-photos.mjs": ["const releaseLock = () => { try { unlinkSync(LOCK_FILE); } catch {} };"], // ~l.39
   "scripts/gen-prompt-test.mjs": ["} catch (err) {"], // ~l.99 (solo console.log)
   "scripts/issues.mjs": ["} catch (e) {"], // ~l.127 (solo console.log)
-  "scripts/lib/env.mjs": ["} catch {"], // ~l.53
   "scripts/lib/mercadonaFetch.mjs": ["batch.map((id) => fetchJson(`${API}/categories/${id}/`).catch(() => null)),"], // ~l.68
   "scripts/lib/permisoAplicar.mjs": ["} catch {", "} catch {", "} catch {"], // ~l.188, ~l.201 y ~l.206
   "scripts/mercadona-ingredient-map.mjs": ["batch.map((id) => fetchJson(`${API}/categories/${id}/`).catch(() => null))"], // ~l.250

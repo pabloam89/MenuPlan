@@ -2,6 +2,7 @@
 name: datos
 description: Úsalo ANTES de crear o cambiar una tabla, columna, constraint, RPC, política RLS o migración; al decidir si un dato nuevo va en SQL, en JSON versionado o en los dos; al convertir texto libre en vocabulario cerrado; para saber si una migración está aplicada; y cuando un dato esté repetido o se cruce por nombre en vez de por id. No para: aplicar en producción (gateway), recetas o nutrición como contenido, ramas o CI (gobierno).
 tools: Read, Grep, Glob, Bash, Edit, Write
+skills: [supabase, alta-de-secreto]
 model: inherit
 color: blue
 memory: project

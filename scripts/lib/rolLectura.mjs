@@ -3,8 +3,8 @@
  * dirección y cómo se guarda su contraseña sin que viaje en claro.
  *
  *   - `consulta_lectura` (migración 0092, issue #233): `npm run consulta` desde
- *     el PC de Pablo. Su dirección, en la bóveda HoMenu (la lee la service
- *     account del PC sin preguntar).
+ *     el PC y las sesiones. Su dirección, en la bóveda HoMenu-sesiones (#328;
+ *     la lee la service account de las sesiones sin preguntar).
  *   - `copia_lectura` (issue #273): las copias nocturnas del
  *     servidor (`ops/copias/copia-base.sh`) y el ensayo de restauración. Lee
  *     también los usuarios de `auth` (esquema `copia`), así que su dirección va
@@ -15,17 +15,18 @@
  */
 import { createHash, createHmac, pbkdf2Sync, randomBytes } from "node:crypto";
 import { BOVEDA_COPIAS } from "./copias.mjs";
+import { BOVEDA_SESIONES } from "./env.mjs";
 
 export const ROL_LECTURA = "consulta_lectura";
 export const VAR_LECTURA = "SUPABASE_DB_URL_LECTURA";
 export const VAR_ADMIN = "SUPABASE_DB_URL";
 /**
- * Dónde vive en 1Password: una ficha propia en HoMenu, porque se crea con la
+ * Dónde vive en 1Password: una ficha propia en HoMenu-sesiones (#328), porque se crea con la
  * plantilla JSON por stdin (`op item create -`), y `op item edit` solo admite
  * plantillas desde un fichero o valores como argumento.
  */
 export const FICHA_LECTURA = "Supabase lectura";
-export const OP_LECTURA = `op://HoMenu/${FICHA_LECTURA}/${VAR_LECTURA}`;
+export const OP_LECTURA = `op://${BOVEDA_SESIONES}/${FICHA_LECTURA}/${VAR_LECTURA}`;
 
 export const ROL_COPIA = "copia_lectura";
 export const VAR_COPIA = "SUPABASE_DB_URL_COPIA";
@@ -43,7 +44,7 @@ export const OP_COPIA = `op://${BOVEDA_COPIAS}/${FICHA_COPIA}/${VAR_COPIA}`;
  */
 export const PERFILES = {
   [ROL_LECTURA]: {
-    rol: ROL_LECTURA, variable: VAR_LECTURA, ficha: FICHA_LECTURA, boveda: "HoMenu", servicio: true,
+    rol: ROL_LECTURA, variable: VAR_LECTURA, ficha: FICHA_LECTURA, boveda: BOVEDA_SESIONES, servicio: true,
     migracion: "0092_rol_consulta_lectura", issue: 233, script: "scripts/clave-consulta-lectura.mjs",
     prueba: null,
     despues: `Añade (o descomenta) en tu .env.local: ${VAR_LECTURA}=${OP_LECTURA}`,

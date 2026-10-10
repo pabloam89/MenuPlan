@@ -29,7 +29,7 @@ la carpeta del repo con la rama de las copias. Cada paso, una llamada.
 - **Healthchecks** (si se decide en #273): check diario, gracia 2 h. Antes, la URL
   de ping a la ficha `Healthchecks` de `HoMenu`, campo `COPIA_AVISO_URL` (OK;
   skill `1password`), nunca tecleada en un comando. Se **añade** con `>>`:
-  `node scripts/op.mjs read "op://HoMenu/Healthchecks/COPIA_AVISO_URL" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_AVISO_URL=%s\n" "$v" >> /etc/menuplan-copia/copia.env; grep -c ^COPIA_ /etc/menuplan-copia/copia.env'`
+  `MENUPLAN_OP_PABLO=1 node scripts/op.mjs read "op://HoMenu/Healthchecks/COPIA_AVISO_URL" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_AVISO_URL=%s\n" "$v" >> /etc/menuplan-copia/copia.env; grep -c ^COPIA_ /etc/menuplan-copia/copia.env'`
   → `2` (`>` borraría `COPIA_DB_URL`). Luego `aviso: ok`; un fallo llega con `/fail`.
 - **Tras una purga legítima** (la copia baja a menos de la mitad y para por
   `incompleta`): `"$SSH" root@100.73.252.32 'systemd-run --wait -p EnvironmentFile=/etc/menuplan-copia/copia.env /usr/local/sbin/menuplan-copia --aceptar-tamano'`

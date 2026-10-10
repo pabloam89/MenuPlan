@@ -168,10 +168,8 @@
     {
       "id": "meta",
       "que": "Cómo crear, probar y podar las propias piezas",
-      "estado": "reservado",
-      "fase": [
-        "#336"
-      ]
+      "estado": "existe",
+      "fase": []
     }
   ],
   "regla_de_parada": {
@@ -286,9 +284,9 @@
       ],
       "obligaciones": [
         { "id": "P06.1", "texto": "El arreglo se parte en encargos colgados del fondo, uno por superficie", "ejecutor": "persona", "dureza": "blanda", "ref": ".claude/commands/revision-issues.md", "contiene": "Fondos sin arreglo en marcha", "test": null, "fase": ["#337"], "norma": null, "nota": "La revisión semanal ve los fondos sin encargos" },
-        { "id": "P06.2", "texto": "Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/ENCARGO.md", "contiene": "distinto del constructor", "test": "scripts/encargo.test.js", "fase": ["#341"], "norma": null, "nota": "Desde #338 el formato del encargo (docs/ops/ENCARGO.md, generado de issues.mjs) y el formulario traen depende_de, constructor y juez, y la skill plan-de-arreglo los pide. Ningún control lee todavía el bloque encargo: el test vigila que formato, formulario y skills digan lo mismo, no que un encargo lo cumpla" },
+        { "id": "P06.2", "texto": "Cada encargo dice de qué depende, qué agente lo construye y qué juez lo juzga", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/fondos.mjs", "contiene": "quien construye no juzga", "test": "scripts/fondos-encargos.test.js", "fase": ["#341"], "norma": "plan-tres-encargos-con-preventivo", "nota": "Desde #338 el formato del encargo (docs/ops/ENCARGO.md, generado de issues.mjs) y el formulario traen depende_de, constructor y juez. Desde #396 el workflow fondos lee el bloque encargo de cada hijo y, desde el estado plan (antes los encargos se van colgando), falla el fondo (nuevo) o avisa (anterior a la ficha) si falta un campo o juez y constructor son el mismo. Informa; no impide crear el encargo" },
         { "id": "P06.3", "texto": "El arreglo usa el escalón más duradero posible de la escalera", "ejecutor": "persona", "dureza": "blanda", "ref": ".claude/skills/plan-de-arreglo/SKILL.md", "contiene": "Elige el mecanismo, el más alto posible", "test": "ops/mecanismos.test.js", "fase": ["#341"], "norma": null, "nota": "Desde #338 el catálogo ops/mecanismos.json da el escalón de cada mecanismo y lo cruza por test con el registro de normas; la skill plan-de-arreglo pide el más alto y el porqué si no (por_que_no_mas_alto del encargo). Lo elige quien hace el plan" },
-        { "id": "P06.4", "texto": "Un fondo lleva como mucho tres encargos, al menos uno preventivo y automático", "ejecutor": "nada", "dureza": "blanda", "ref": "docs/ops/FLUJO.md", "contiene": "como mucho tres encargos", "test": null, "fase": ["#337"], "norma": null, "nota": "El workflow fondos avisa de más de tres (regla plan-grande); lo de «al menos uno preventivo y automático» sigue sin comprobar" }
+        { "id": "P06.4", "texto": "Un fondo lleva como mucho tres encargos, al menos uno preventivo y automático", "ejecutor": "script_propio", "dureza": "semidura", "ref": "scripts/lib/fondos.mjs", "contiene": "sin-preventivo-automatico", "test": "scripts/fondos-encargos.test.js", "fase": ["#337"], "norma": "plan-tres-encargos-con-preventivo", "nota": "El workflow fondos falla (fondo nuevo) o avisa (anterior a la ficha) con más de tres encargos (plan-grande) y, desde el estado plan, si ninguno es preventivo con un mecanismo de escalón bloqueo o test_ci (sin-preventivo-automatico). Informa; no impide colgar encargos" }
       ]
     },
     {

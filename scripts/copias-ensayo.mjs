@@ -36,14 +36,14 @@
  * datos de familias ni el tamaño de la base, solo `recuento: ok|fallo` y el
  * cociente; `lineaRegistroEnsayo`, #273). Cadencia: skill hetzner.
  */
-import { execFileSync, spawn, spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, mkdirSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import pg from "pg";
 
-import { RAIZ } from "./lib/env.mjs";
+import { RAIZ, opPorLaApp } from "./lib/env.mjs";
 import {
   CLAVE_PRIVADA, DIR_SERVIDOR, NOMBRE_COPIA, OP_CLAVE_COPIAS, RELACIONES_COPIA, SERVIDOR, SQL_SECUENCIAS, NOMBRES_SIN_COPIA,
   clavesAjenasAAuth, columnasCopiaQueNoCuadran, fechaDeCopia, lineaEstructurada, lineaRegistroEnsayo, sqlAuthDeMentira, sqlHuerfanos, veredicto,
@@ -175,14 +175,10 @@ function clavePrivada() {
   let texto;
   if (f) texto = readFileSync(f, "utf8");
   else {
-    // Sin la service account: no puede leer esa bóveda, y así pide aprobar.
-    const env = { ...process.env };
-    delete env.OP_SERVICE_ACCOUNT_TOKEN;
-    try {
-      texto = execFileSync("op", ["read", OP_CLAVE_COPIAS], { encoding: "utf8", env, stdio: ["ignore", "pipe", "pipe"] });
-    } catch (e) {
-      fallo("clave", `op read falló: ${(e.stderr || e.message).trim().split("\n")[0]}`);
-    }
+    // Por la app (opPorLaApp): la service account no lee esa bóveda, y así pide aprobar a Pablo.
+    const r = opPorLaApp(["read", OP_CLAVE_COPIAS]);
+    if (r.status !== 0) fallo("clave", `op read falló: ${String(r.stderr || r.error?.message || "sin detalle").trim().split("\n")[0]}`);
+    texto = r.stdout;
   }
   const clave = texto.split(/\r?\n/).map((l) => l.trim()).find((l) => CLAVE_PRIVADA.test(l));
   if (!clave) fallo("clave", "lo leído no contiene una clave privada de age");
@@ -232,13 +228,9 @@ async function contar(client) {
  */
 function urlProduccion() {
   if (process.env[VAR_COPIA]) return process.env[VAR_COPIA];
-  const env = { ...process.env };
-  delete env.OP_SERVICE_ACCOUNT_TOKEN;
-  try {
-    return execFileSync("op", ["read", OP_COPIA], { encoding: "utf8", env, stdio: ["ignore", "pipe", "pipe"] }).trim();
-  } catch (e) {
-    fallo("produccion", `No pude leer ${OP_COPIA} (${(e.stderr || e.message).trim().split("\n")[0]}). ¿Está aplicada la ${PERFILES[ROL_COPIA].migracion} y puesta su contraseña (scripts/clave-copia-lectura.mjs)? Sin ella, --sin-produccion.`);
-  }
+  const r = opPorLaApp(["read", OP_COPIA]);
+  if (r.status === 0) return r.stdout.trim();
+  fallo("produccion", `No pude leer ${OP_COPIA} (${String(r.stderr || r.error?.message || "sin detalle").trim().split("\n")[0]}). ¿Está aplicada la ${PERFILES[ROL_COPIA].migracion} y puesta su contraseña (scripts/clave-copia-lectura.mjs)? Sin ella, --sin-produccion.`);
 }
 
 /** Filas de las tablas de public y ops y de las vistas de `copia`, en producción. */

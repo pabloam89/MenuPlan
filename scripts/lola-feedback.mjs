@@ -32,6 +32,7 @@
 import fs from "node:fs";
 import pg from "pg";
 import { cargarEnv, leerEnv } from "./lib/env.mjs";
+import { conexionDeConsulta } from "./lib/rolLectura.mjs";
 import { huecosDeLola, contarHuecos, normal } from "./lib/bot-semana.mjs";
 
 cargarEnv(["ANTHROPIC_API_KEY"]);
@@ -75,8 +76,8 @@ if (arg("anadir")) {
 }
 
 // ── Sacar los huecos ────────────────────────────────────────────────────────
-const url = leerEnv("SUPABASE_DB_URL");
-if (!url) throw new Error("Falta SUPABASE_DB_URL en .env.local");
+// Solo lee user_events: usuario de solo lectura (#328).
+const { url } = conexionDeConsulta(leerEnv);
 const db = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
 await db.connect();
 const { rows } = await db.query(

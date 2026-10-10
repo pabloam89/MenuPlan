@@ -15,3 +15,6 @@ paths:
 - Cada caso malo cambia **una** cosa y debe disparar exactamente esa regla.
 - Con varias sesiones o agentes en la misma carpeta, no lances la suite
   entera a la vez: la contención de CPU da timeouts falsos.
+- **Un test que mide tiempo** deja al menos 20× de margen sobre lo que tarda
+  suelto, o repite la medida y vale con que una salga bien (#407: una razón
+  con umbral 8× entre 4× y 16× falló cuatro veces bajo carga).

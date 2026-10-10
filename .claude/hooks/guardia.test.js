@@ -114,6 +114,93 @@ describe("hábitos que ya rompieron cosas", () => {
     expect(decidir({ tool_name: "PowerShell", tool_input: { command: "dir | Out-File $env:TEMP\\x.txt" } }, ctx())).toBe(null));
 });
 
+describe("1Password: las sesiones solo leen HoMenu-sesiones (#328)", () => {
+  // Con la cuenta de servicio de sesiones, lo de HoMenu solo se lee por la app
+  // de escritorio. Si una sesión la pide, a Pablo le sale una ventana igual que
+  // las suyas: la puerta es que la sesión no pueda ni pedirla.
+  it.each([
+    "MENUPLAN_OP_PABLO=1 node scripts/consulta.mjs",
+    "export MENUPLAN_OP_PABLO=1",
+    "cd C:/dev/MenuPlan-x && MENUPLAN_OP_PABLO=1 npm run dev",
+    "OP_SIN_SERVICIO=1 node scripts/bot-coste.mjs",
+    "npm run op -- read \"op://HoMenu/Supabase/SUPABASE_DB_URL\"",
+    "op read op://HoMenu/Telegram/TELEGRAM_BOT_TOKEN",
+    "op read 'op://homenu/Supabase/SUPABASE_DB_URL'",
+    "SUPABASE_DB_URL=op://HoMenu/Supabase/SUPABASE_DB_URL node scripts/verificar-estado.mjs",
+    "op inject -i plantilla.txt && echo op://HoMenu/Supabase/SUPABASE_DB_URL | op inject",
+    "env -u OP_SERVICE_ACCOUNT_TOKEN op item get Supabase --vault HoMenu",
+    "env --unset=OP_SERVICE_ACCOUNT_TOKEN op vault list",
+    "unset OP_SERVICE_ACCOUNT_TOKEN; op vault list",
+    "OP_SERVICE_ACCOUNT_TOKEN= op vault list",
+  ])("deniega %s", (c) => expect(bash(c)).toBe("deny"));
+
+  // Ronda 3 (seguridad): sin token, `op` va por la app de escritorio y a Pablo
+  // le sale una ventana igual que las suyas. La vía es `npm run op --`, que pasa
+  // por entornoOp y falla cerrado. Es un filtro de buena fe: quien parta el texto
+  // adrede se lo salta; la barrera de fondo es la integración de la CLI apagada.
+  it.each([
+    "op read op://HoMenu-sesiones/Groq/GROQ_API_KEY",
+    "op vault list",
+    "op.exe item list",
+    "OP.EXE signin",
+    "\"C:\\Program Files\\1Password CLI\\op.exe\" vault list",
+    "C:/Users/pablo/AppData/Local/Microsoft/WinGet/Links/op.exe whoami",
+    "FOO=1 op whoami",
+    "env FOO=1 op whoami",
+    "cd C:/dev/MenuPlan-x && op whoami",
+    "echo hola | op inject",
+    "npm run op -- item get Supabase --vault HoMenu",
+    "npm run op -- item list --vault=homenu",
+    "npm run op -- item get 5amxx4ygtowjgfadvnlecifc2e --vault x",
+    "npm run op -- read op://c64ol4a3oewjeue3szoafrrr6q/Copias/clave",
+    "npm run op -- read \"op://HoMenu\"/Supabase/SUPABASE_DB_URL",
+    "bash -c 'op whoami'",
+    "powershell -Command \"op whoami\"",
+    "git log $(op read op://HoMenu-sesiones/x/y)",
+    "git commit -m \"$(op whoami)\"",
+    "git -c alias.x='!op whoami' x",
+    "gh alias set x '!op whoami'",
+    "echo `op whoami`",
+    // Ronda 3 bis: `op` detrás de un envoltorio o dentro de una cadena.
+    "timeout 10 op vault list",
+    "node -e \"require('child_process').execSync('op whoami')\"",
+    "if op whoami; then echo ok; fi",
+    "iex \"op whoami\"",
+    "(op whoami)",
+    "{ op whoami; }",
+    "xargs op read",
+    "sleep 1 & op whoami",
+    "exec op whoami",
+    "command op whoami",
+    "nohup op whoami",
+    "time op vault list",
+  ])("deniega el op directo: %s", (c) => expect(bash(c)).toBe("deny"));
+  it("en PowerShell, `& op` y `&op` también", () => {
+    for (const command of ["& op whoami", "&op whoami", "& 'C:\\x\\op.exe' whoami", "$x = 1; & op whoami"]) {
+      expect(decidir({ tool_name: "PowerShell", tool_input: { command } }, ctx())?.decision, command).toBe("deny");
+    }
+  });
+  it("en PowerShell, también", () =>
+    expect(decidir({ tool_name: "PowerShell", tool_input: { command: "$env:MENUPLAN_OP_PABLO='1'; node scripts/consulta.mjs" } }, ctx()).decision).toBe("deny"));
+  it.each([
+    "npm run op -- read \"op://HoMenu-sesiones/Groq/GROQ_API_KEY\"",
+    "node scripts/boveda-sesiones.mjs --comprobar",
+    "git commit -m 'ops: MENUPLAN_OP_PABLO y op://HoMenu/ solo para Pablo'",
+    "grep -rn \"op://HoMenu/\" ops scripts",
+    "gh issue comment 328 --body 'env -u OP_SERVICE_ACCOUNT_TOKEN, de Pablo'",
+    "npx vitest run scripts/lib/env.test.js",
+    "npm run --silent op -- read \"op://HoMenu-sesiones/Groq/GROQ_API_KEY\"",
+    "npm run op -- vault list --format json",
+    "node scripts/op.mjs whoami",
+    "git commit -m 'ops: op read y op.exe solo por npm run op'",
+    "git commit -F C:/tmp/msg.txt",
+    "grep -rn \"op vault list\" .claude",
+    "gh pr view 12 --json title",
+    "open README.md",
+    "node scripts/copias.mjs --operaciones",
+  ])("deja pasar %s", (c) => expect(bash(c)).toBe(null));
+});
+
 describe("la base es producción", () => {
   it("el ensayo de una migración pasa", () => expect(bash("node scripts/apply-migration.mjs 0086_vocabulario_de_la_app")).toBe(null));
   it("aplicarla con --si pasa: la protege el script (staging, ensayo, juez)", () =>
@@ -658,5 +745,129 @@ describe("la puerta no afloja las reglas duras", () => {
     const r = decidir({ tool_name: "Bash", cwd: "C:/dev/MenuPlan", tool_input: { command: "git commit -m 'toca apply-migration'" } }, c);
     expect(r.decision).toBe("deny");
     expect(r.motivo).toMatch(/carpeta principal/);
+  });
+});
+
+// ── La puerta de las skills también al editar (#397) ───────────────────────
+
+describe("puerta de lectura al editar: abre la skill antes de tocar su dominio (#397)", () => {
+  const mapa = cargarMapa(RAIZ);
+  const sesion = ({ abiertas = [], marcaOk = true, extra = {} } = {}) => {
+    const vistas = new Set(abiertas);
+    return ctx({
+      dominios: mapa,
+      skillAbierta: (s) => vistas.has(s),
+      marcarSkill: (s) => {
+        if (!marcaOk) return false;
+        vistas.add(s);
+        return true;
+      },
+      rutaDelRepo: (r) => (r.startsWith("C:/w/") ? r.slice(5) : r.startsWith("C:\\w\\") ? r.slice(5).replace(/\\/g, "/") : null),
+      ...extra,
+    });
+  };
+  const toca = (tool_name, file_path, c, extra = {}) => decidir({ tool_name, tool_input: { file_path }, ...extra }, c);
+
+  it("Edit de un fichero del dominio: niega a la primera con la skill, y la misma edición pasa al reintento", () => {
+    const c = sesion();
+    const r = toca("Edit", "C:/w/vercel.json", c);
+    expect(r?.decision).toBe("deny");
+    expect(r.motivo).toMatch(/skill `vercel`/);
+    expect(r.motivo).toMatch(/la misma edición/);
+    expect(toca("Edit", "C:/w/vercel.json", c)).toBe(null);
+  });
+
+  it.each([
+    ["Write", "C:/w/supabase/migrations/0150_nueva.sql", "supabase"],
+    ["MultiEdit", "C:/w/scripts/telegram-webhook.mjs", "telegram"],
+    ["Edit", "C:/w/.github/workflows/tests.yml", "github"],
+    ["Edit", "C:\\w\\ops\\copias\\copia-base.sh", "hetzner"],
+    ["Write", "C:/w/scripts/lib/issues.mjs", "issues"],
+  ])("%s %s pide la skill %s", (herramienta, ruta, skill) => {
+    const r = toca(herramienta, ruta, sesion());
+    expect(r?.decision).toBe("deny");
+    expect(r.motivo).toContain(`\`${skill}\``);
+  });
+
+  it("si la sesión ya abrió la skill, o el agente la trae precargada, pasa a la primera", () => {
+    expect(toca("Edit", "C:/w/vercel.json", sesion({ abiertas: ["vercel"] }))).toBe(null);
+    const conAgente = sesion({ extra: { skillsDelAgente: (t) => (t === "datos" ? ["supabase"] : []) } });
+    expect(toca("Write", "C:/w/supabase/migrations/0150_x.sql", conAgente, { agent_type: "datos" })).toBe(null);
+  });
+
+  it("el aviso es uno por skill y sesión: el de un comando vale para la edición", () => {
+    const c = sesion();
+    expect(bash("vercel env add FOO", c)).toBe("deny");
+    expect(toca("Edit", "C:/w/vercel.json", c)).toBe(null);
+  });
+
+  it("lo que no es de ningún dominio, o cae fuera de la carpeta, no tiene puerta", () => {
+    const c = sesion();
+    for (const ruta of ["C:/w/src/App.jsx", "C:/w/api/_bot/agente.js", "C:/w/docs/vercel.json", "D:/otro/vercel.json"]) {
+      expect(toca("Edit", ruta, c)?.decision ?? null, ruta).toBe(null);
+    }
+  });
+
+  it("falla abierta: sin mapa, sin registro, sin rutaDelRepo o sin poder anotar, no bloquea", () => {
+    expect(toca("Edit", "C:/w/vercel.json", ctx())).toBe(null);
+    expect(toca("Edit", "C:/w/vercel.json", sesion({ marcaOk: false }))).toBe(null);
+    expect(toca("Edit", "C:/w/vercel.json", sesion({ extra: { rutaDelRepo: undefined } }))).toBe(null);
+  });
+
+  it("las reglas duras ganan y no gastan el aviso", () => {
+    const c = sesion({ extra: { enStaging: () => true } });
+    const r = toca("Edit", "C:/w/supabase/migrations/0079_personas_y_grupos.sql", c);
+    expect(r?.decision).toBe("deny");
+    expect(r.motivo).not.toMatch(/skill `supabase`/);
+    const p = sesion({ extra: { rutaEnPrincipal: () => true } });
+    expect(toca("Edit", "C:/w/vercel.json", p).motivo).toMatch(/carpeta principal/);
+    expect(toca("Edit", "C:/w/vercel.json", sesion()).motivo).toMatch(/skill `vercel`/);
+  });
+});
+
+describe("puerta de lectura al editar: el cableado real (#397)", () => {
+  // Una carpeta de trabajo (worktree), no la principal: en la principal ya
+  // niega otra regla antes de llegar a la puerta.
+  const base = mkdtempSync(join(tmpdir(), "guardia-editar-"));
+  execFileSync("git", ["init", "-q", base]);
+  execFileSync("git", ["-C", base, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "base"]);
+  const repo = join(base, "trabajo");
+  execFileSync("git", ["-C", base, "worktree", "add", "-q", repo]);
+  mkdirSync(join(repo, ".claude"), { recursive: true });
+  copyFileSync(join(RAIZ, ".claude", "dominios-skills.json"), join(repo, ".claude", "dominios-skills.json"));
+  const lanza = (file_path, session_id = "editar-sesion-1") => {
+    const e = { session_id, cwd: repo, tool_name: "Edit", tool_input: { file_path } };
+    return decidir(e, contextoReal(repo, e))?.decision ?? null;
+  };
+
+  it("rutaDelRepo da la ruta del repo con barras normales, y null fuera", () => {
+    const c = contextoReal(repo, { cwd: repo });
+    expect(c.rutaDelRepo(join(repo, "supabase", "migrations", "0150_x.sql"))).toBe("supabase/migrations/0150_x.sql");
+    expect(c.rutaDelRepo(join(tmpdir(), "fuera.json"))).toBe(null);
+    expect(c.rutaDelRepo("")).toBe(null);
+  });
+
+  it("con la sesión en la carpeta principal y el fichero en una carpeta de trabajo, la ruta sale de la del fichero (#397)", () => {
+    // Lo normal: sesión en C:\dev\MenuPlan editando C:\dev\MenuPlan-<tarea>\vercel.json.
+    const desdeLaPrincipal = contextoReal(base, { cwd: base });
+    expect(desdeLaPrincipal.rutaDelRepo(join(repo, "vercel.json"))).toBe("vercel.json");
+    mkdirSync(join(base, ".claude"), { recursive: true }); // la principal también tiene su mapa
+    copyFileSync(join(RAIZ, ".claude", "dominios-skills.json"), join(base, ".claude", "dominios-skills.json"));
+    const e = { session_id: "editar-desde-principal", cwd: base, tool_name: "Edit", tool_input: { file_path: join(repo, "vercel.json") } };
+    expect(decidir(e, contextoReal(base, e))?.decision).toBe("deny");
+    // Otro repo no lleva puerta.
+    const otro = mkdtempSync(join(tmpdir(), "guardia-otro-"));
+    execFileSync("git", ["init", "-q", otro]);
+    expect(desdeLaPrincipal.rutaDelRepo(join(otro, "vercel.json"))).toBe(null);
+  });
+
+  it("de punta a punta: niega la primera edición, pasa la segunda, y otra sesión vuelve a pagar", () => {
+    const ruta = join(repo, "vercel.json");
+    const e = { session_id: "editar-sesion-0", cwd: repo, tool_name: "Edit", tool_input: { file_path: ruta } };
+    expect(decidir(e, contextoReal(repo, e))?.motivo).toMatch(/skill `vercel`/);
+    expect(lanza(ruta)).toBe("deny");
+    expect(lanza(ruta)).toBe(null);
+    expect(lanza(ruta, "editar-sesion-2")).toBe("deny");
+    expect(lanza(join(repo, "src", "App.jsx"))).toBe(null);
   });
 });

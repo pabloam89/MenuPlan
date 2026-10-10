@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { SOBRECARGA, leerMigraciones, leerSinAplicar, sentencias, testigos, veredictos } from "./verificar-estado.mjs";
+import { CONSULTAS, SOBRECARGA, conexionDeLaBase, leerMigraciones, leerSinAplicar, sentencias, testigos, veredictos } from "./verificar-estado.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ids = (sql) => testigos(sql).crea.map((t) => `${t.tipo}|${t.id}`);
@@ -103,6 +103,32 @@ it("una función con dos versiones vale si coincide cualquiera", () => {
   expect(veredictos(migs, catalogo, new Set())[0].estado).toBe("aplicada");
 });
 
+describe("con el usuario de solo lectura (#328)", () => {
+  it("lo que el usuario no puede ver (cron) sale «sin ver» y no cuenta: ni aplicada ni sin aplicar", () => {
+    const migs = [
+      { nombre: "0001_t", ...testigos("create table public.t (id int); select cron.schedule('job-x', '* * * * *', 'select 1');") },
+      { nombre: "0002_solo_cron", ...testigos("select cron.schedule('job-y', '* * * * *', 'select 1');") },
+    ];
+    const catalogo = { tabla: new Map([["public.t", ""]]), cron: null };
+    const v = Object.fromEntries(veredictos(migs, catalogo, new Set()).map((x) => [x.nombre, x]));
+    expect(v["0001_t"].estado).toBe("aplicada");
+    expect(v["0001_t"].filas.find((f) => f.tipo === "cron").resultado).toBe("sin ver");
+    expect(v["0002_solo_cron"]).toMatchObject({ estado: "sin ver", choca: false });
+  });
+
+  it("las columnas salen del catálogo y no de information_schema, que esconde las que el usuario no lee", () => {
+    expect(CONSULTAS.columna).not.toMatch(/information_schema/);
+    expect(CONSULTAS.columna).toMatch(/pg_attribute/);
+  });
+
+  it("entra con la URL de lectura; la de administrador, solo con --admin", () => {
+    const leer = (k) => ({ SUPABASE_DB_URL: "postgresql://admin@h/db", SUPABASE_DB_URL_LECTURA: "postgresql://consulta_lectura@h/db" })[k];
+    expect(conexionDeLaBase(leer, [])).toMatchObject({ url: "postgresql://consulta_lectura@h/db", rol: "consulta_lectura" });
+    expect(conexionDeLaBase(leer, ["--admin"]).url).toBe("postgresql://admin@h/db");
+    expect(() => conexionDeLaBase((k) => (k === "SUPABASE_DB_URL" ? "postgresql://admin@h/db" : undefined), [])).toThrow(/SUPABASE_DB_URL_LECTURA/);
+  });
+});
+
 describe("con el repo de verdad", () => {
   const migraciones = leerMigraciones();
 
@@ -122,5 +148,28 @@ describe("con el repo de verdad", () => {
     const lista = leerSinAplicar(readFileSync(join(RAIZ, "supabase", "ESTADO.md"), "utf8"));
     expect(lista.has("0021_store_products")).toBe(true);
     expect(lista.has("0080_bot_tareas_v2")).toBe(false); // aplicada el 8 oct 2026
+  });
+});
+
+describe("privilegios por defecto quitados (0096)", () => {
+  const sql = "alter default privileges for role postgres in schema public revoke all on tables from anon;\n"
+    + "alter default privileges for role postgres in schema public revoke all on sequences from anon, public;";
+  const migs = [{ nombre: "0096_x", ...testigos(sql) }];
+
+  it("cada rol quitado es un testigo negativo", () => {
+    expect(migs[0].quita.map((t) => `${t.tipo}|${t.id}`)).toEqual([
+      "permiso_defecto|tables:anon", "permiso_defecto|sequences:anon", "permiso_defecto|sequences:public",
+    ]);
+    expect(migs[0].crea).toEqual([]);
+  });
+  it("aplicada si la plantilla ya no lleva a anon; sin aplicar si todavía sí", () => {
+    const sin = { permiso_defecto: new Map([["tables:anon", ""], ["tables:authenticated", ""], ["sequences:anon", ""], ["sequences:public", ""]]) };
+    expect(veredictos(migs, sin, new Set())[0].estado).toBe("sin aplicar");
+    const con = { permiso_defecto: new Map([["tables:authenticated", ""], ["functions:anon", ""]]) };
+    expect(veredictos(migs, con, new Set())[0].estado).toBe("aplicada");
+  });
+  it("lo de las funciones no cuenta: functions:anon en la plantilla no desmiente a tables:anon", () => {
+    const con = { permiso_defecto: new Map([["functions:anon", ""]]) };
+    expect(veredictos(migs, con, new Set())[0].estado).toBe("aplicada");
   });
 });

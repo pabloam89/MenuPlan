@@ -1,5 +1,5 @@
 {
-  "_nota": "Un solo mapa de qué dominios tienen skill (runbook en .claude/skills/<nombre>/). Lo leen la guardia (.claude/hooks/guardia.mjs: puerta de lectura) y scripts/runbook-pr.mjs (la línea «Runbook:» de cada PR en el CI). Lo cruza .claude/dominios-skills.test.js con las skills reales. 'comandos': expresiones regulares (sin distinguir mayúsculas) que se buscan en el comando ENTERO, solo los que mutan o son de alto riesgo: leer no tiene puerta. 'rutas': expresiones regulares sobre rutas del repo con barras normales (sensibles a mayúsculas): tocarlas pide la línea «Runbook:» en el PR. 'exentas': skill -> motivo, para una skill que no tiene ni comandos ni rutas que vigilar. Una skill nueva se añade aquí o el test falla. Los comodines entre dos piezas de un patrón llevan tope ([\\s\\S]{0,1000} o {0,2000}): sin él, una entrada grande y repetida es cuadrática.",
+  "_nota": "Un solo mapa de qué dominios tienen skill (runbook en .claude/skills/<nombre>/). Lo leen la guardia (.claude/hooks/guardia.mjs: puerta de lectura) y scripts/runbook-pr.mjs (la línea «Runbook:» de cada PR en el CI). Lo cruza .claude/dominios-skills.test.js con las skills reales. 'comandos': expresiones regulares (sin distinguir mayúsculas) que se buscan en el comando ENTERO, solo los que mutan o son de alto riesgo: leer no tiene puerta. 'rutas': expresiones regulares sobre rutas del repo con barras normales (sensibles a mayúsculas): tocarlas pide la línea «Runbook:» en el PR. 'exentas': skill -> motivo, para una skill que no tiene ni comandos ni rutas que vigilar. Una skill nueva se añade aquí o el test falla. Los comodines entre dos piezas de un patrón llevan tope ([\\s\\S]{0,1000} o {0,2000}): sin él, una entrada grande y repetida es cuadrática. 'agentes': los constructores cuyo trabajo cae en el dominio; los traen precargados en su `skills:` (lo vigila .claude/agentes.test.js, #397).",
   "skills": {
     "supabase": {
       "comandos": [
@@ -12,6 +12,10 @@
       "rutas": [
         "^supabase/",
         "^scripts/(?:apply-migration|bot-cron|verificar-estado)\\.mjs$"
+      ],
+      "agentes": [
+        "gobierno",
+        "datos"
       ]
     },
     "github": {
@@ -24,6 +28,9 @@
         "^\\.github/(?!ISSUE_TEMPLATE/)",
         "^scripts/(?:podar|retirar|tarea|runbook-pr)\\.mjs$",
         "^\\.claude/dominios-skills\\.json$"
+      ],
+      "agentes": [
+        "gobierno"
       ]
     },
     "issues": {
@@ -32,6 +39,9 @@
         "^\\.github/ISSUE_TEMPLATE/",
         "^scripts/issues\\.mjs$",
         "^scripts/lib/(?:issues|lleva)\\.mjs$"
+      ],
+      "agentes": [
+        "gobierno"
       ]
     },
     "causa-raiz": {
@@ -39,6 +49,9 @@
       "rutas": [
         "^ops/tecnicas\\.json$",
         "^scripts/lib/tecnicas\\.mjs$"
+      ],
+      "agentes": [
+        "gobierno"
       ]
     },
     "alta-de-secreto": {
@@ -50,6 +63,20 @@
       "rutas": [
         "^scripts/clave-[\\w-]+\\.mjs$",
         "^scripts/lib/claveRol\\.mjs$"
+      ],
+      "agentes": [
+        "gobierno",
+        "datos"
+      ]
+    },
+    "forja-de-skills": {
+      "comandos": [],
+      "rutas": [
+        "^scripts/lib/skillsForja\\.mjs$",
+        "^\\.claude/PLANTILLA-SKILL\\.md$"
+      ],
+      "agentes": [
+        "gobierno"
       ]
     },
     "plan-de-arreglo": {
@@ -58,6 +85,9 @@
         "^ops/mecanismos\\.json$",
         "^scripts/lib/mecanismos\\.mjs$",
         "^docs/ops/ENCARGO\\.md$"
+      ],
+      "agentes": [
+        "gobierno"
       ]
     },
     "vercel": {
@@ -69,6 +99,9 @@
       "rutas": [
         "^vercel\\.json$",
         "^scripts/(?:upload-to-blob|build-vectores)\\.mjs$"
+      ],
+      "agentes": [
+        "gobierno"
       ]
     },
     "1password": {
@@ -79,6 +112,9 @@
       "rutas": [
         "^ops/env\\.1password$",
         "^scripts/lib/env\\.mjs$"
+      ],
+      "agentes": [
+        "gobierno"
       ]
     },
     "telegram": {
@@ -90,6 +126,9 @@
       "rutas": [
         "^scripts/telegram-[\\w-]+\\.mjs$",
         "^api/bot/telegram\\.js$"
+      ],
+      "agentes": [
+        "lola"
       ]
     },
     "hetzner": {
@@ -106,6 +145,9 @@
         "^ops/copias/",
         "^scripts/copias-[\\w-]+\\.mjs$",
         "^scripts/lib/copias\\.mjs$"
+      ],
+      "agentes": [
+        "gobierno"
       ]
     },
     "tailscale": {
@@ -113,7 +155,10 @@
         "\\btailscale(?:\\.exe)?[\"']?\\s+(?:up|down|set|serve|funnel|login|logout|cert|file|ssh|switch|lock|configure)\\b",
         "tailscale\\.com/install\\.sh"
       ],
-      "rutas": []
+      "rutas": [],
+      "agentes": [
+        "gobierno"
+      ]
     }
   },
   "exentas": {}

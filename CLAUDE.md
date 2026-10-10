@@ -28,7 +28,7 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
 | Hosting | Vercel, equipo «menuplan», proyecto `homenu` (antes «Monicos MenuPlan» y `menu-plan`) |
 | Base de datos | Supabase `mdzwbrworucnummibxrq`, **una sola: producción**. Cuelga del equipo de Vercel (Marketplace) |
 | Servicios, cuentas y dónde está cada clave | `ops/INVENTARIO.md` (nunca valores) |
-| Las claves en local | 1Password, bóveda `HoMenu`. `.env.local` guarda direcciones `op://` (plantilla `ops/env.1password`), no claves. Skill `1password` |
+| Las claves en local | 1Password: las sesiones, bóveda `HoMenu-sesiones`; lo de producción, solo `HoMenu` (Pablo). `.env.local` guarda direcciones `op://` (plantilla `ops/env.1password`), no claves. Skill `1password` |
 | Estado real de las migraciones | `supabase/ESTADO.md`; NOT VALID por validar en `supabase/PENDIENTES.md` |
 | Cómo deben ser las tablas | `docs/datos/PRINCIPIOS.md` (con test desde la 0087) |
 | Reglas de UI | `DESIGN_SYSTEM.md` (criterio); valores en `src/design/tokens.js`; estado y plan en `docs/diseno/ESTADO.md` |
@@ -86,10 +86,11 @@ en staging.
 **Solo hay una base y es la de producción**: staging, local y los scripts
 escriben en ella, y cada migración es un cambio en producción.
 
-- Aplicar (`--si`) lo puede lanzar la sesión: el script exige que esté en
-  staging, un ensayo de menos de una hora y el OK del juez `auditor-datos` en
-  la cabecera. Si borra algo con datos (`CONTRAE`) o toca RLS o permisos de lo
-  que ya existía, la lanza **Pablo** con `!` y `--pablo`. Luego, ESTADO.md.
+- Aplicar migraciones (`--si`) lo lanza **Pablo**, desde una PowerShell aparte con `$env:MENUPLAN_OP_PABLO="1"`, hasta E5 (#331): las
+  sesiones no tienen la URL de administrador (#328) y leen con
+  `SUPABASE_DB_URL_LECTURA`. El script pide que esté en staging, un ensayo de
+  menos de una hora y el OK del juez `auditor-datos` en la cabecera; con
+  `CONTRAE`, o RLS o permisos de lo que ya existía, además `--pablo`. Luego, ESTADO.md.
 - **El código no puede depender de que la migración ya esté**: la rama se
   despliega antes de que alguien la aplique. Plan B siempre.
 - **Ningún campo ni tabla sin lector**, y cada dato en un solo sitio.
@@ -129,11 +130,12 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 `api/_bot/`), `tests` (`*.test.{js,jsx,mjs}`) y
 `api` (`api/*.js`). Las skills (`.claude/skills/`) son runbooks que se abren
 por su nombre: `1password`, `alta-de-secreto`, `vercel`, `supabase`, `github`, `issues`,
-`telegram`, `hetzner` y `tailscale` (precargadas en `gobierno` y `lola`); y
+`telegram`, `hetzner` y `tailscale` (precargadas en los agentes que el mapa `.claude/dominios-skills.json` pone en su dominio); y
 las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
-`plan-de-arreglo` (partir el arreglo en encargos). Todas siguen
+`plan-de-arreglo` (partir el arreglo en encargos); y la meta `forja-de-skills`
+(crear, probar y podar skills). Todas siguen
 `.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
-ocho (hoy hay de herramienta y de oficio, cada tipo con sus secciones), dueño, fecha
+ocho (los que existan, en la plantilla; cada tipo con sus secciones), dueño, fecha
 de comprobación que caduca a los 90 días, un `SKILL.md` corto con el detalle en
 capas y sus casos de prueba en `casos.json`; `npm run skills-prueba -- <skill>`
 mide, con tokens, si ayuda. Un proveedor nuevo estrena su runbook con su

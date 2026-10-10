@@ -100,7 +100,8 @@ metadata:
 - Al menos **4 casos**: 3 que deben cargar esta skill, con `debe_salir` (lo
   que tiene que decir o hacer quien la abra, comprobable), y 1 de frontera, que
   debe cargar otra skill o `ninguna` (el que mejor separa: la petición que se
-  parece y no es suya).
+  parece y no es suya). Eso es el suelo de la forma; la forja (abajo) pide
+  **3 casos de frontera**.
 - `peticion` en las palabras de quien pide, no en las de la skill. Nada de
   datos de familias ni nada sensible: el repo es público.
 - Campos: `id`, `peticion`, `skill`, `debe_salir` y, si hace falta, `nota`.
@@ -123,7 +124,7 @@ qué», «Registro de cambios», «Fuentes y comprobación»).
 | `meta` | Cómo crear, probar y podar las propias piezas | Cuándo y para qué · Método · Cómo se prueba · Cuándo se poda · Lo que falló y por qué · Registro de cambios · Fuentes y comprobación |
 
 Hoy hay skills de tipo herramienta, de tipo oficio (`causa-raiz` y
-`plan-de-arreglo`, #338) y de tipo receta de cambio (`alta-de-secreto`, #398); el estado de cada tipo lo lleva `ops/flujo.json`. Los demás quedan declarados y no se crea ninguno hasta que
+`plan-de-arreglo`, #338), de tipo receta de cambio (`alta-de-secreto`, #398) y de tipo meta (`forja-de-skills`, #409); el estado de cada tipo lo lleva `ops/flujo.json`. Los demás quedan declarados y no se crea ninguno hasta que
 cumpla la regla de parada.
 
 ### Forma del tipo herramienta
@@ -185,6 +186,28 @@ Comprobado el AAAA-MM-DD: cómo se comprobó, y qué NO se comprobó.
 - **Registro de cambios**: `- **AAAA-MM-DD** · qué cambió (#issue)`, lo más
   reciente arriba; al menos la primera versión.
 - La última línea, como en herramienta: `Comprobado el …` o `Sin comprobar: …`.
+
+## La forja: qué hace buena a una skill
+
+La forma no basta: una skill con todas las secciones puede no abrirse nunca o
+no enseñar nada. Qué la hace ganadora, qué la hace mala, con su fuente, y cómo se
+forja paso a paso (incluido cuándo **no** crearla) está en la skill
+`forja-de-skills`. Lo automatizable lo comprueba la regla `forja` del nivel 1
+(`scripts/lib/skillsForja.mjs`):
+
+- **3 casos de frontera** como mínimo (peticiones parecidas que son de otra skill).
+- **Sin fechas en el cuerpo** fuera de «Lo que falló y por qué», «Registro de
+  cambios» y «Fuentes y comprobación».
+- **Criterio de parada**: el «Método» (salvo en herramienta) dice qué sale o cuándo se acaba.
+- **Como mucho 3 ejemplos** por sección de ejemplos.
+- **Descripciones sin solape** léxico entre skills.
+- Techos del estándar abierto: descripción de **1024 caracteres** y `SKILL.md` de
+  **500 líneas**; los de la casa (600 y 220) van por debajo.
+
+Lo que incumplen las skills de antes de la forja está en `EXCEPCIONES_FORJA`, una
+lista que solo baja: se arregla la skill, no se añade nada. Lo que solo juzga una
+persona (si cada párrafo justifica su coste, si hay un camino por defecto) o
+`skills-prueba` (si dispara, si mejora sobre el modelo solo) no es test.
 
 ## Nivel 2: ¿ayuda de verdad?
 

@@ -16,11 +16,11 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { AYUDA as AYUDA_CASOS, analizarCasos } from "./casos.mjs";
-import { cargarMapa, skillsDeComando, unirContinuaciones } from "./dominios.mjs";
+import { cargarMapa, skillsDeComando, skillsDeFicheros, unirContinuaciones } from "./dominios.mjs";
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
 import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
 
@@ -31,6 +31,29 @@ const ask = (motivo) => ({ decision: "ask", motivo });
 
 /** Separa `a && b; c | d` para mirar cada orden por su cuenta. */
 const ordenes = (cmd) => cmd.split(/&&|\|\||;|\n|\|/).map((s) => s.trim()).filter(Boolean);
+
+// El ejecutable `op`, con o sin ruta y `.exe`, y con o sin comillas.
+const OP_EXE = String.raw`(?:"[^"]*[\\/]op(?:\.exe)?"|'[^']*[\\/]op(?:\.exe)?'|["']?(?:[^\s"']*[\\/])?op(?:\.exe)?["']?)(?=\s|$)`;
+const OP_AL_PRINCIPIO = new RegExp(String.raw`^(?:\w+=\S*\s+)*(?:env\s+(?:-\S+\s+|\w+=\S*\s+)*)?(?:&\s*|call\s+)?` + OP_EXE, "i");
+const OP_ANIDADO = new RegExp(String.raw`(?:\$\(|\x60|!)\s*` + OP_EXE, "i");
+const OP_EN_SHELL = new RegExp(String.raw`\b(?:bash|sh|zsh|cmd|powershell|pwsh)(?:\.exe)?\b.*(?:\s-c|\s/c|\s-command)\b.*[\s"'&;]` + OP_EXE, "i");
+
+// `op` suelto seguido de un subcomando de la CLI: `timeout 10 op vault list`, `if op whoami`,
+// `node -e "…execSync('op read …')"`, `Start-Process op …`, `(op whoami)`… Un `npm run op -- read`
+// no casa: tras `op` va `--`, no un subcomando.
+const OP_SUELTO = /(?:^|[\s(;{&|"'\x60])op(?:\.exe)?\s+(?:read|run|inject|item|vault|whoami|signin|account|service-account|document|user|group|connect|plugin|ssh)\b/i;
+
+/** #328: ¿esta orden lanza `op` por la app o nombra lo que es solo de Pablo? */
+export function opDeSesion(o) {
+  if (/^(git|gh|grep|rg)\b/.test(o) && !/\$\(|\x60|\balias[.\s]/.test(o)) return false;
+  return OP_AL_PRINCIPIO.test(o) || OP_ANIDADO.test(o) || OP_EN_SHELL.test(o) || OP_SUELTO.test(o)
+    || /\b(MENUPLAN_OP_PABLO|OP_SIN_SERVICIO|OP_SERVICE_ACCOUNT_TOKEN)\b/.test(o)
+    || /op:\/\/[\s"']*homenu(?![-\w])/i.test(o)
+    || /--vault[=\s]+["']?homenu(?![-\w])/i.test(o)
+    || /op:\/\/["']?[a-z0-9]{26}\b/i.test(o)
+    || /--vault[=\s]+["']?[a-z0-9]{26}\b/i.test(o)
+    || /\bitem\s+(?:get|edit|share|delete)\s+["']?[a-z0-9]{26}\b/i.test(o);
+}
 
 const REGLAS_COMANDO = [
   {
@@ -87,6 +110,21 @@ const REGLAS_COMANDO = [
         (/(^|\s)(-e|--environment|--target)(=|\s+)['"]?prod(uction)?\b/i.test(o) || /\benv\s+(ls|list)\s+['"]?prod(uction)?\b/i.test(o))) ||
         /\bapi\b.*(\bdecrypt\b|\/env\b)/i.test(o)),
     da: () => deny("Las variables de Production de Vercel son solo de Pablo (#332): tienen la clave de administrador de la base y el token del bot. Para desarrollo usa `.env.local` (direcciones `op://`); si de verdad hace falta Production, dale el comando a Pablo para que lo lance con `!`."),
+  },
+  {
+    // #328: la cuenta de servicio de las sesiones solo lee HoMenu-sesiones; lo
+    // de HoMenu (URL de administrador, bot, Blob…) solo se lee por la app de
+    // escritorio, aprobando Pablo. Si una sesión pudiera pedirlo, a Pablo le
+    // saldría una ventana igual que las suyas. Qué se niega: `opDeSesion`.
+    // Por orden: un commit, un grep o un comentario de gh que lo nombran no
+    // cuentan (como la regla de Vercel), salvo que la orden lleve `$(`,
+    // comillas invertidas o `alias`. Pablo lo lanza desde su propia terminal.
+    // ACEPTADO por escrito (ronda 3 de #328): es un filtro de buena fe; quien
+    // parta el texto adrede se lo salta. La barrera de fondo es que la
+    // integración de la CLI de 1Password esté apagada fuera de las operaciones
+    // de Pablo.
+    si: opDeSesion,
+    da: () => deny("Eso es de Pablo (#328): las sesiones leen 1Password solo con la cuenta de servicio de `HoMenu-sesiones` y siempre por `npm run op -- …` (nunca `op` a pelo: sin token iría por la app y le sacaría una ventana a Pablo). Ni `MENUPLAN_OP_PABLO`, ni tocar `OP_SERVICE_ACCOUNT_TOKEN`, ni `op://HoMenu`. Si hace falta algo de producción, dale a Pablo el comando para que lo lance desde su propia terminal. Si solo es texto de un commit, PR o issue, pásalo por fichero (`git commit -F`, `--body-file`)."),
   },
   {
     // PowerShell 5.1 escribe UTF-8 con BOM y destroza los acentos.
@@ -297,6 +335,32 @@ export function contextoReal(raiz, entrada = {}) {
       }
     },
     esPrincipal,
+    // La ruta de un fichero dentro de SU carpeta del repo, con barras normales
+    // (`supabase/migrations/0099_x.sql`), o null si no es de este repo: la
+    // puerta de las skills al editar la compara con las `rutas` de
+    // dominios-skills.json. La carpeta sale del fichero y no de la sesión: lo
+    // normal es una sesión en C:\dev\MenuPlan que edita en C:\dev\MenuPlan-<tarea>
+    // (el revisor de #397 contó 1.606 ediciones así frente a ~900 dentro).
+    // Otro repo (otro --git-common-dir) no lleva puerta.
+    rutaDelRepo: (ruta) => {
+      if (!ruta) return null;
+      const abs = resolve(raiz, String(ruta));
+      let dir = dirname(abs);
+      while (!existsSync(dir)) {
+        if (dirname(dir) === dir) return null;
+        dir = dirname(dir);
+      }
+      try {
+        comunPropio ??= resolve(git(["-C", raiz, "rev-parse", "--path-format=absolute", "--git-common-dir"])).toLowerCase();
+        const [arriba, comun] = git(["-C", dir, "rev-parse", "--path-format=absolute", "--show-toplevel", "--git-common-dir"]).split(/\r?\n/);
+        if (resolve(comun).toLowerCase() !== comunPropio) return null;
+        const rel = relative(resolve(arriba), abs);
+        if (!rel || rel.startsWith("..") || isAbsolute(rel)) return null;
+        return rel.replace(/\\/g, "/");
+      } catch {
+        return null; // a propósito: fuera de un repo (o si git no contesta) no hay dominio que vigilar; falla abierta
+      }
+    },
     // Un fichero del repo en la carpeta principal. Lo ignorado (.env.local) y la
     // memoria de los agentes, que vive en la carpeta del proyecto, no cuentan.
     rutaEnPrincipal: (ruta) => {
@@ -385,8 +449,11 @@ export function contextoReal(raiz, entrada = {}) {
  * Las skills (.claude/skills/) son los runbooks, con lo que ya falló en cada
  * servicio. Se abrían solo si la sesión decidía hacerlo. Aquí, la PRIMERA vez
  * que una sesión lanza un comando de riesgo de un dominio con skill (el mapa:
- * .claude/dominios-skills.json), se le niega con el nombre de la skill; al
- * reintentar pasa. Es un obstáculo, no un candado: una vez por skill y sesión.
+ * .claude/dominios-skills.json), o edita o escribe un fichero de sus `rutas`
+ * (#397: la skill es el camino de aprendizaje, y tocar el dominio sin leerla
+ * repite lo que ya falló), se le niega con el nombre de la skill; al reintentar
+ * pasa. Es un obstáculo, no un candado: una vez por skill y sesión, y el aviso
+ * de un comando vale también para la edición (y al revés).
  *
  *  - Si la sesión ya abrió la skill (herramienta Skill o Read de su SKILL.md,
  *    anotado por skill-abierta.mjs), pasa a la primera.
@@ -396,17 +463,20 @@ export function contextoReal(raiz, entrada = {}) {
  *  - Falla abierta: si no se puede anotar el aviso (sin registro, disco, id
  *    raro), NO se niega; una puerta que no recuerda atascaría la sesión.
  */
-function puertaDeSkills(cmd, entrada, ctx) {
+function puertaDeSkills(skillsDe, entrada, ctx, que = "comando") {
   if (!ctx.dominios || !ctx.skillAbierta || !ctx.marcarSkill) return null;
   const delAgente = ctx.skillsDelAgente?.(entrada.agent_type) ?? [];
-  const faltan = skillsDeComando(cmd, ctx.dominios).filter((s) => !delAgente.includes(s) && !ctx.skillAbierta(s));
+  const faltan = skillsDe(ctx.dominios).filter((s) => !delAgente.includes(s) && !ctx.skillAbierta(s));
   const avisadas = faltan.filter((s) => ctx.marcarSkill(s));
   if (!avisadas.length) return null;
   const lista = avisadas.map((s) => `\`${s}\``).join(" y ");
   const abre = avisadas.map((s) => `Skill con skill: "${s}"`).join(" y ");
+  const inicio = que === "edicion"
+    ? `Este fichero es de un dominio con runbook: ${avisadas.length > 1 ? "sus skills tienen" : "su skill tiene"} lo que ya falló aquí y cómo se hace. `
+    : `Este comando es de los que, mal hechos, cuestan caro, y ${avisadas.length > 1 ? "sus dominios tienen" : "su dominio tiene"} runbook con lo que ya falló aquí. `;
   return deny(
-    `Este comando es de los que, mal hechos, cuestan caro, y ${avisadas.length > 1 ? "sus dominios tienen" : "su dominio tiene"} runbook con lo que ya falló aquí. ` +
-    `Abre antes ${avisadas.length > 1 ? "las skills" : "la skill"} ${lista} (herramienta ${abre}) y reintenta el mismo comando. ` +
+    inicio +
+    `Abre antes ${avisadas.length > 1 ? "las skills" : "la skill"} ${lista} (herramienta ${abre}) y reintenta ${que === "edicion" ? "la misma edición" : "el mismo comando"}. ` +
     "Este aviso sale una sola vez por skill y sesión: al reintentar pasa.",
   );
 }
@@ -528,7 +598,7 @@ export function decidir(entrada, ctx) {
     }
     // La puerta de lectura va la última entre los «no»: una orden que otra regla
     // ya niega no gasta el aviso. Se mira el comando ENTERO (no un tramo).
-    const puerta = puertaDeSkills(cmd, entrada, ctx);
+    const puerta = puertaDeSkills((mapa) => skillsDeComando(cmd, mapa), entrada, ctx);
     if (puerta) return puerta;
     if (tocaEn(cmd, RUTA_LOLA).length) {
       return ask("Esto escribe en lo que lee Lola desde la shell. Mejor con Edit: así se carga `.claude/rules/lola.md`. Y si cambia lo que lee Lola, pasa los evals (`scripts/bot-evals.mjs`) antes de mergear.");
@@ -544,6 +614,13 @@ export function decidir(entrada, ctx) {
       if (motivo) return deny(motivo);
     }
     if (ctx.rutaEnPrincipal(ruta)) return deny(EN_LA_PRINCIPAL);
+    // La puerta de las skills también al editar (#397), la última entre los
+    // «no»: una edición que otra regla ya niega no gasta el aviso.
+    const delRepo = ctx.rutaDelRepo?.(ruta);
+    if (delRepo) {
+      const puerta = puertaDeSkills((mapa) => skillsDeFicheros([delRepo], mapa), entrada, ctx, "edicion");
+      if (puerta) return puerta;
+    }
     return null;
   }
 

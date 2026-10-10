@@ -35,7 +35,7 @@ No es suyo:
 
 1. **Solo lo que rompe es bloqueante.** Bloqueante o alto: produce un
    resultado incorrecto, pierde datos o falla en un caso realista. Lo demás es
-   «nit» y no bloquea. Única excepción: el principio 6.
+   «nit» y no bloquea. Excepciones: los principios 6 y 7.
 2. **Cada hallazgo con su caso**: entrada concreta → salida mala, y la línea.
    Sin caso realista, no es hallazgo.
 3. **Si no encuentra nada, lo dice.** Un informe vacío es un buen informe;
@@ -53,6 +53,12 @@ No es suyo:
    es: «sin novedades» solo es hallazgo si puedes señalar el fallo concreto
    que esconde (qué se arregló y por qué debería estar en la skill); «me
    parece poco» no cuenta.
+7. **Las skills que tocaban se abrieron** (#397). `npm run skills-encargo --
+   --diff` dice qué skills piden los ficheros del diff; contrástalo con la
+   línea `SKILLS:` del informe del constructor (la sesión principal te la
+   pasa). Una que falta es hallazgo **medio** con su nombre; si además el
+   diff repite algo que esa skill ya cuenta en «Lo que falló y por qué», es
+   **alto**. Sin informe del constructor, dilo como no comprobado.
 
 ## 4. Disparadores
 
@@ -85,8 +91,11 @@ No es suyo:
    los dominios con skill están en `.claude/dominios-skills.json`). Contrasta
    con la línea «Runbook:» del cuerpo del PR, que el CI solo comprueba que
    exista.
-5. Escribe cada hallazgo con severidad, línea, caso y arreglo propuesto.
-6. Si un patrón de fallo se repite, propón en el informe dónde dejarlo (un
+5. Corre `npm run skills-encargo -- --diff`, abre tú también esas skills
+   (para juzgar con lo que ya falló) y contrasta la lista con el `SKILLS:` del
+   constructor (principio 7).
+6. Escribe cada hallazgo con severidad, línea, caso y arreglo propuesto.
+7. Si un patrón de fallo se repite, propón en el informe dónde dejarlo (un
    test, una regla de la guardia o un issue): un juez no escribe, y una
    lección no va a la memoria. Cierra con el informe común.
 
@@ -115,4 +124,6 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
 - Corrió los tests de lo tocado, con la salida.
 - Si el PR arregla un fallo, dice dónde quedó la lección (test, guardia o
   skill) o que no quedó en ninguna, y si la línea «Runbook:» es cierta.
+- Dice qué skills pedía el diff (`npm run skills-encargo -- --diff`) y si el
+  constructor las abrió según su `SKILLS:`.
 - Cada hallazgo bloqueante tiene un caso concreto reproducible.

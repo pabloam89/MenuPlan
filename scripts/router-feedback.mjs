@@ -23,6 +23,7 @@
 import fs from "node:fs";
 import pg from "pg";
 import { cargarEnv, leerEnv } from "./lib/env.mjs";
+import { conexionDeConsulta } from "./lib/rolLectura.mjs";
 
 cargarEnv(["ANTHROPIC_API_KEY"]);
 const arg = (k) => process.argv.find((a) => a.startsWith(`--${k}`));
@@ -49,7 +50,8 @@ if (arg("anadir")) {
 }
 
 // ── Sacar los sospechosos ───────────────────────────────────────────────────
-const db = new pg.Client({ connectionString: leerEnv("SUPABASE_DB_URL"), ssl: { rejectUnauthorized: false } });
+// Solo lee user_events: usuario de solo lectura (#328).
+const db = new pg.Client({ connectionString: conexionDeConsulta(leerEnv).url, ssl: { rejectUnauthorized: false } });
 await db.connect();
 const { rows } = await db.query(
   `select created_at, metadata from user_events
