@@ -28,7 +28,7 @@ Bytask, migrar · ❓ sin confirmar.
 | **Supabase** (`mdzwbrworucnummibxrq`, eu-central-1) | Base de datos, Auth, RLS | ✅ integración del Marketplace de Vercel: la org `vercel_icfg_…` cuelga del equipo de Vercel, que es el dueño y el que paga. Nada que transferir (comprobado el 7 oct 2026) | `SUPABASE_URL`, `VITE_SUPABASE_URL`, `SUPABASE_ANON_KEY`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_SECRET_KEY`, `SUPABASE_DB_URL`; `SUPABASE_DB_URL_LECTURA` (rol `consulta_lectura`, solo lectura, para `npm run consulta`; la pone `scripts/clave-consulta-lectura.mjs`) | Vercel + `.env.local`; la de lectura, solo en 1Password (`HoMenu/Supabase lectura`) y `.env.local` |
 | **Upstash Redis** | Rate limit y caché | ❓ probablemente también del Marketplace de Vercel (variables `KV_REST_API_*`), sin confirmar | `UPSTASH_REDIS_*` / `KV_REST_API_*` | Vercel (integración) |
 | **Vercel Blob** | Imágenes de platos | ✅ va con Vercel | `BLOB_READ_WRITE_TOKEN` | Vercel |
-| **Anthropic** | Planificador, bot, OCR | ❓ | `ANTHROPIC_API_KEY` (`VITE_ANTHROPIC_API_KEY` en local) | Vercel + GitHub Actions + `.env` |
+| **Anthropic** | Planificador, bot, OCR; evals de Lola y de skills | ❓ | `ANTHROPIC_API_KEY` (`VITE_ANTHROPIC_API_KEY` en local). La de las evals caduca al año (#297; la fecha, sin comprobar en la consola) | Vercel + GitHub Actions + `.env` |
 | **Google AI Studio (Gemini)** | Fotos de platos, visión | ❓ | `GEMINI_AI_STUDIO_KEY` | Vercel + `.env` |
 | **fal.ai** | Generación de imágenes (scripts) | ❓ | `FAL_KEY` | `.env` local |
 | **Groq** | Transcripción de voz del bot | ❓ | `GROQ_API_KEY` | Vercel |
