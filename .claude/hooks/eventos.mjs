@@ -30,7 +30,9 @@ import { join } from "node:path";
 
 import { numeroDeRama } from "../../scripts/lib/lleva.mjs";
 
-export const EVENTOS = ["skill_cargada", "agente_lanzado", "bloqueo_guardia", "permiso_pedido", "estado_sin_leer"];
+export const EVENTOS = ["skill_cargada", "agente_lanzado", "bloqueo_guardia", "permiso_pedido", "estado_sin_leer", "aviso_guardia"];
+// `aviso_guardia` (guardia.mjs, #506): un aviso que no bloquea (hoy, el de zona con otra rama); el
+// fichero y la rama van a su propio registro (`zonas.log`, .claude/hooks/zonas.mjs), no aquí.
 // `estado_sin_leer` (pendientes.mjs, #462): el freno de afirmar el estado de un issue o PR sin leer la
 // fuente; `nombre` es el motivo (`sin-lectura` o `lectura-vieja`).
 
@@ -53,7 +55,7 @@ const CODIGO_OK = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 /** La rama de una carpeta, o null. Solo se llama cuando hay un evento que anotar. */
 function ramaDe(cwd) {
   try {
-    return execFileSync("git", ["-C", cwd, "symbolic-ref", "--short", "HEAD"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 3000 }).trim();
+    return execFileSync("git", ["-C", cwd, "symbolic-ref", "--short", "HEAD"], { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 3000 }).trim();
   } catch {
     return null; // a propósito: sin git o sin carpeta, el evento se anota sin rama
   }

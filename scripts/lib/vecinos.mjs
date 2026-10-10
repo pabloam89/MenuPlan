@@ -87,7 +87,7 @@ export function faltasDeDatos(datos) {
 
 /** Ficheros del repo según git (versionados y nuevos sin ignorar). */
 export function ficherosDelRepo(raiz = RAIZ) {
-  const s = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], { cwd: raiz, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  const s = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], { windowsHide: true, cwd: raiz, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
   return [...new Set(s.split("\0").filter(Boolean))].filter((f) => existsSync(join(raiz, f)));
 }
 
@@ -97,7 +97,7 @@ export function ficherosDelRepo(raiz = RAIZ) {
  * cuenta como borrado más alta.
  */
 export function ficherosTocados(raiz = RAIZ) {
-  const git = (args) => execFileSync("git", args, { cwd: raiz, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  const git = (args) => execFileSync("git", args, { windowsHide: true, cwd: raiz, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
   let base = "HEAD";
   try {
     base = git(["merge-base", "origin/staging", "HEAD"]).trim();

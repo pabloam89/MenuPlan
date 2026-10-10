@@ -20,7 +20,7 @@ export const CADUCA_H = 48;
 
 export function dirSesiones(desde) {
   try {
-    const comun = execFileSync("git", ["-C", desde, "rev-parse", "--path-format=absolute", "--git-common-dir"], {
+    const comun = execFileSync("git", ["-C", desde, "rev-parse", "--path-format=absolute", "--git-common-dir"], { windowsHide: true,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();

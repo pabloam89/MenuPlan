@@ -123,6 +123,8 @@ fondo de un encargo tenga diagnóstico y que un fondo cerrado tenga aprendizaje.
   en el issue `<!-- menuplan:lleva rama=… -->` (uno por rama) y `retirar` lo borra;
   `npm run issues` y el arranque cruzan encargo → rama → último commit
   («parada» a las 4 h), las ramas sin número y `--marcas-huerfanas` (lista, no borra).
+  Por fichero (#506): `npm run issues -- --zonas` dice qué ficheros llevan varias
+  ramas vivas a la vez (`zonas-compartidas: n`, sin red; solo carpetas de este PC).
 - **Pablo ve sus decisiones** porque se le asignan (correo y app de GitHub):
   `github.com/pabloam89/MenuPlan/issues?q=is:open+label:tipo:decision`.
 - **Avisos que llegan solos:** al editar un fichero, el hook `avisos.mjs`

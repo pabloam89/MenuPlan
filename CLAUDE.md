@@ -324,7 +324,9 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
   pelo (se crea con `npm run issues -- --nuevo`, que busca los parecidos);
   pregunta
   antes de un push forzado y de escribir por
-  terminal lo que lee Lola. Cada regla,
+  terminal lo que lee Lola; y avisa, sin bloquear, al editar un fichero que otra
+  rama viva ya cambió o reservó (`npm run tarea -- … --zona <fichero>`; quién
+  lleva qué: `npm run issues -- --zonas`, #506). Cada regla,
   con su porqué y su test en `.claude/hooks/guardia.test.js`.
 - **`avisos.mjs`** tras editar un fichero: los issues abiertos que lo nombran.
   **`pendientes.mjs`** al terminar de responder: frena una vez si dejas

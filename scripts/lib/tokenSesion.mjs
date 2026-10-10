@@ -74,7 +74,7 @@ function leerFicha(f) {
     } catch (e) {
       return ko(e);
     }
-    execFile("op", ["document", "get", f.titulo, "--vault", f.vault], { env, encoding: "utf8", timeout: 10_000, maxBuffer: 1 << 20 }, (error, salida, stderr) => {
+    execFile("op", ["document", "get", f.titulo, "--vault", f.vault], { windowsHide: true, env, encoding: "utf8", timeout: 10_000, maxBuffer: 1 << 20 }, (error, salida, stderr) => {
       if (error) return ko(Object.assign(new Error(String(stderr || error.message).split("\n")[0].slice(0, 160)), { code: error.code }));
       ok(salida);
     });
@@ -319,7 +319,7 @@ export function avisoDeIdentidad({ identidad, token, motivo = "-", advertencias 
 /** `gh api user` con el entorno dado; devuelve { status, stdout, stderr }. */
 export function ghApiUser(env) {
   return new Promise((ok) => {
-    execFile("gh", ["api", "user", "--jq", ".login"], { env, encoding: "utf8", timeout: 8000 }, (error, stdout, stderr) => ok({ status: error ? (error.code ?? 1) : 0, stdout, stderr }));
+    execFile("gh", ["api", "user", "--jq", ".login"], { windowsHide: true, env, encoding: "utf8", timeout: 8000 }, (error, stdout, stderr) => ok({ status: error ? (error.code ?? 1) : 0, stdout, stderr }));
   });
 }
 

@@ -1,7 +1,7 @@
 /**
  * avisos-guardia.mjs — los avisos de la guardia, por campos (#494, fondo #488).
  *
- * Cada «no» y cada pregunta de `guardia.mjs` es un aviso con un id y UN `codigo`, el id de
+ * Cada «no», cada pregunta y cada aviso que no bloquea (`avisa(`, #506) de `guardia.mjs` es un aviso con un id y UN `codigo`, el id de
  * la norma de `ops/normas.json` que hace cumplir. El mensaje no se escribe a mano: sale de
  * cuatro partes fijas, en este orden, para que todos se lean igual:
  *
@@ -197,6 +197,12 @@ export const AVISOS = {
     que: "Escribir desde la shell en lo que lee Lola",
     porque: "así no se carga `.claude/rules/lola.md`, y si cambia lo que lee Lola hay que pasar los evals",
     enSuLugar: "usa Edit y pasa los evals (`scripts/bot-evals.mjs`) antes de mergear",
+  },
+  "zona-de-otra-rama": {
+    codigo: "zona-con-dueno",
+    que: "Editar `{fichero}`, que ya lleva {lista}",
+    porque: "dos ramas vivas sobre el mismo fichero se pisan al fusionar y obligan a la otra a traer staging, releer y repetir los tests (#504)",
+    enSuLugar: "coordina antes con esa rama por su issue o espera a su PR; si sigues, dilo en tu PR. No bloquea y sale una vez por fichero y sesión; quién lleva qué: `npm run issues -- --zonas`",
   },
   "entrada-ilegible": {
     codigo: "guardia-vigila-cada-orden",
