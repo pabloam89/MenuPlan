@@ -195,6 +195,27 @@ En PowerShell, `node scripts/token-sesion.mjs -- <comando>`, que sirve también 
 (`-- gh …`, `-- git push`). Sin clave legible avisa y sigue como Pablo (a los 13 s); sus credenciales siguen en
 el llavero y el manager de github.com hasta su `gh auth logout`.
 
+### La caché del token (E3)
+
+Canjear la clave en cada arranque leía el `.pem` de 1Password una vez por sesión: con varias
+sesiones se agotó el límite de lecturas por hora (10 oct 2026) y el arranque tardaba ~14 s.
+Ahora el token se saca una vez y lo reutilizan todas las sesiones del mismo usuario de Windows
+mientras falten más de 10 minutos para que caduque (`scripts/lib/cacheTokenSesion.mjs`).
+
+| Qué | Cómo |
+|---|---|
+| Dónde | `%LOCALAPPDATA%\MenuPlan\token-sesion.json` (fuera del repo y de OneDrive); sin esa variable, `~/.claude/token-sesion.json` |
+| Qué lleva | token, `expiraEn`, App ID e instalación, y nada más; la clave `.pem` no entra |
+| Permisos | solo el usuario: en Windows `icacls` (`/reset`, sin herencia, un permiso); en POSIX 0600. Se comprueban al leer: si no cuadran, se ignora y se canjea |
+| Se ignora y se canjea | falta, corrupto, caducado, forma rara (`^ghs_…`), caducidad a más de 2 h, otra App u otra instalación, permisos distintos |
+| Dos arranques a la vez | bloqueo de creación exclusiva (`token-sesion.json.lock`, hasta 6 s; uno huérfano de más de 30 s se quita) y escritura atómica (temporal y `rename`); sin conseguir el bloqueo, se canjea igualmente |
+| Límite de 1Password | el motivo es `limite-de-1password` (no `sin-clave`) y no se prueba la otra bóveda. Si hay token guardado que aún no caducó, se usa con la advertencia `cache-casi-caducada`; si no, plan B (avisar y seguir como Pablo) |
+| Ver y forzar | `node scripts/token-sesion.mjs --comprobar` dice `cache: si` o `cache: no` sin imprimir el token; `--sin-cache` (antes de `--`) fuerza el canje |
+| Contable | la línea del arranque acaba en `cache: si` o `cache: no` |
+
+Borrar el fichero solo cuesta un canje. La caché no recuerda las advertencias del canje
+(permisos de la App de más, clave en `HoMenu`); se ven al canjear o con `--sin-cache`.
+
 ## Lo que la guardia niega a una sesión (#447)
 
 Sin esto, la sesión volvería a ser administradora en cuanto quitara el token y
