@@ -27,16 +27,11 @@ const CHECK_A_VOCABULARIO = {
   // La ficha (0097). Las listas de registro_campo viven en registroCampos.js (su fuente); el resto, en VOCABULARIOS.
   registro_campo_tipo_vocabulario: { valores: TIPOS_CAMPO },
   registro_campo_politica_vocabulario: { valores: POLITICAS },
-  registro_campo_visibilidad_vocabulario: { lista: "visibilidad" },
   registro_campo_por_vocabulario: { valores: POR },
   registro_campo_aplica_vocabulario: { valores: APLICA },
   sobre_origen_vocabulario: { lista: "origen_dato" },
   sobre_canal_vocabulario: { lista: "canales", extra: ["app", "sistema"] },
   sobre_ref_tipo_vocabulario: { lista: "ref_tipo" },
-  cambio_actor_vocabulario: { lista: "actores_cambio" },
-  cambio_canal_vocabulario: { lista: "canales", extra: ["app", "sistema"] },
-  cambio_alcance_vocabulario: { lista: "alcances_cambio" },
-  cambio_ref_tipo_vocabulario: { lista: "ref_tipo" },
 };
 
 /** { constraint: [literales] } de todas las migraciones; si una se redefine, gana la última. */

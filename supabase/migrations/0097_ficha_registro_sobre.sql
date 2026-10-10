@@ -1,4 +1,6 @@
--- Ficha de la casa (spec v18): qué se puede saber, cómo lo sabemos y qué cambió.
+-- Ficha de la casa (spec v18): qué se puede saber y cómo lo sabemos.
+--
+-- NÚMERO: era la 0120 en el PR #106 (8 oct 2026); pasó a la 0097, el contiguo a staging. La 0120 queda libre.
 --
 --   · registro_campo: el catálogo de campos. Se rellena desde src/lib/registroCampos.js;
 --     registroCampos.test.js compara el INSERT de aquí con ese objeto.
@@ -6,23 +8,22 @@
 --     por qué canal y a raíz de qué). Uno por casa, campo y persona (persona nula = la casa).
 --     Si el campo tiene columna propia (persona.edad, persona_alergia…), manda la columna
 --     y sobre.valor queda nulo; si no la tiene, el valor vive aquí.
---   · cambio: el historial. Solo admite inserciones (el trigger lo impide todo lo demás,
---     salvo el borrado en cascada de la casa o la persona y anular quien_user).
 --   · ficha_casa(): la lectura compacta para Lola, ficha y tareas abiertas en una ida.
 --
--- Visibilidad: se guarda en registro_campo pero hoy no filtra nada (Pablo, 7 oct: todo visible).
 -- persona.id sigue siendo text: estas FKs pasan a uuid con persona cuando toque (ver PENDIENTES.md).
 --
 -- Va después de la 0080 (bot_tareas v2: tipo, campo, persona_id, vuelve_at…) y de la
 -- 0081/0082 (la copia de personas sincroniza por clave). Con la copia antigua, que borraba
--- y reinsertaba, las FKs en cascada de sobre y cambio se llevarían la procedencia en cada guardado.
+-- y reinsertaba, las FKs en cascada de sobre se llevaría la procedencia en cada guardado.
 -- La 0080, la 0081 y la 0082 están aplicadas desde el 8 oct 2026; la guardia de abajo sigue por si
 -- alguien aplica esto sobre otra base.
 --
 -- Era la 0120 (PR #106, 8 oct); se rehízo el 10 oct sobre staging con el número contiguo (0097) y con
 -- los principios que llegaron después (PRINCIPIOS.md, 0096). Cambios respecto a aquella:
 --   · 'float' pasa a 'decimal' (el principio 14 prohíbe la palabra y el campo es numeric);
---   · cambio.actor usa el vocabulario del principio 18 (usuario, bot, cron, script), no U/L/C/K;
+--   · sin la tabla cambio (historial de solo añadir) ni las columnas registro_campo.visibilidad y .unidad:
+--     ningún código ni función las lee (regla «ningún campo ni tabla sin lector»). Vuelven con su primer
+--     lector o escritor, en otra migración;
 --   · lock_timeout, on delete en campo, índice de cada FK, created_at, comentarios (también SALUD:),
 --     search_path con pg_temp y revoke a authenticated en ficha_casa, y el constraint
 --     registro_campo_enum_con_vocabulario pasa a registro_campo_enum_lista_check (el sufijo
@@ -33,13 +34,10 @@
 --     de sobre; la escribe esta migración, generada de src/lib/registroCampos.js (módulo dueño).
 --   · sobre: la lee ficha_casa (datos, faltan). Aún no la escribe ningún código: la primera escritura
 --     será de la sesión de la ficha (RPC que anota «lo dijo X por Y»).
---   · cambio: sin lector y sin escritor todavía (decisión pendiente en el PR).
---   · registro_campo.visibilidad y .unidad: se guardan y nada las lee aún (visibilidad no filtra; decisión
---     de Pablo, 7 oct: todo visible).
 --
--- Consultas previas (deben dar 0): ninguna de las tres tablas existe aún.
+-- Consultas previas (deben dar 0): ninguna de las dos tablas existe aún.
 --   select count(*) from information_schema.tables
---    where table_schema = 'public' and table_name in ('registro_campo', 'sobre', 'cambio');
+--    where table_schema = 'public' and table_name in ('registro_campo', 'sobre');
 -- Objeto testigo: la tabla public.registro_campo con 7 filas y la función public.ficha_casa.
 set lock_timeout = '5s';
 
@@ -64,11 +62,9 @@ create table if not exists public.registro_campo (
   id          text primary key,
   tipo        text not null,
   vocabulario text,
-  unidad      text,
   minimo      numeric,
   maximo      numeric,
   politica    text not null,
-  visibilidad text not null default 'casa',
   seguridad   boolean not null default false,
   por         text not null default 'persona',
   aplica      text not null default 'todos',
@@ -79,8 +75,6 @@ create table if not exists public.registro_campo (
     check (tipo in ('enum', 'lista_enum', 'int', 'decimal', 'bool', 'fecha', 'ref', 'texto')),
   constraint registro_campo_politica_vocabulario
     check (politica in ('nunca', 'solo_si_lo_piden', 'antes_de_usarlo', 'de_pasada', 'una_vez')),
-  constraint registro_campo_visibilidad_vocabulario
-    check (visibilidad in ('casa', 'titulares', 'la_persona_y_tutores')),
   constraint registro_campo_por_vocabulario check (por in ('persona', 'casa')),
   constraint registro_campo_aplica_vocabulario check (aplica in ('todos', 'bebe')),
   -- vocabulario si y solo si es enum; rango solo en numéricos
@@ -93,11 +87,9 @@ comment on table public.registro_campo is
   'Catálogo de campos de la ficha (qué se puede saber de una casa o de una persona y cómo preguntarlo). Global, no de una casa: se genera de src/lib/registroCampos.js (módulo dueño; registroCampos.test.js compara los dos). No editar a mano.';
 comment on column public.registro_campo.id is 'Nombre del campo, tal cual está en REGISTRO_CAMPOS (src/lib/registroCampos.js).';
 comment on column public.registro_campo.vocabulario is 'Nombre de su lista en VOCABULARIOS (src/lib/vocabularios.js); null si no es enum. No es FK: la lista vive en JS.';
-comment on column public.registro_campo.unidad is 'Unidad del valor numérico (años…); null si no aplica. Sin lector en SQL todavía.';
 comment on column public.registro_campo.minimo is 'Mínimo del valor numérico, que sobre_valor_valido comprueba; null si no aplica.';
 comment on column public.registro_campo.maximo is 'Máximo del valor numérico, que sobre_valor_valido comprueba; null si no aplica.';
 comment on column public.registro_campo.politica is 'Cuándo se pregunta (nunca, solo_si_lo_piden, antes_de_usarlo, de_pasada, una_vez); la lee ficha_casa en «faltan».';
-comment on column public.registro_campo.visibilidad is 'Quién puede verlo. Se guarda y NO filtra nada todavía (decisión del 7 oct 2026: todo visible); sin lector hasta que filtre.';
 comment on column public.registro_campo.seguridad is 'true: su tarea entra siempre en lo que lee Lola, sin límite (alergias…); la lee ficha_casa.';
 comment on column public.registro_campo.por is 'Si el dato es de cada persona o de la casa entera; lo lee sobre_valor_valido.';
 comment on column public.registro_campo.aplica is 'A quién se le pregunta: todos, o solo bebés (la etapa la decide etapaDe en JS); la lee ficha_casa y la usa faltanDeFicha.';
@@ -105,18 +97,18 @@ comment on column public.registro_campo.caduca_dias is 'Días que vive la pregun
 
 -- Generado desde REGISTRO_CAMPOS; el test falla si no coincide.
 insert into public.registro_campo
-  (id, tipo, vocabulario, unidad, minimo, maximo, politica, visibilidad, seguridad, por, aplica, caduca_dias) values
-  ('alergias',      'lista_enum', 'alergenos',      null,   null, null, 'una_vez',         'casa',                 true,  'persona', 'todos', 30),
-  ('etapaBebe',     'enum',       'etapa_bebe',     null,   null, null, 'antes_de_usarlo', 'casa',                 true,  'persona', 'bebe',  21),
-  ('edad',          'int',        null,             'años', 0,    120,  'nunca',           'casa',                 false, 'persona', 'todos', null),
-  ('nacimiento',    'fecha',      null,             null,   null, null, 'nunca',           'casa',                 false, 'persona', 'todos', null),
-  ('sexo',          'enum',       'sexo',           null,   null, null, 'nunca',           'la_persona_y_tutores', false, 'persona', 'todos', null),
-  ('colegio',       'texto',      null,             null,   null, null, 'nunca',           'casa',                 false, 'persona', 'todos', null),
-  ('patronSemanas', 'enum',       'patron_semanas', null,   null, null, 'nunca',           'titulares',            false, 'persona', 'todos', null)
+  (id, tipo, vocabulario, minimo, maximo, politica, seguridad, por, aplica, caduca_dias) values
+  ('alergias',      'lista_enum', 'alergenos',      null, null, 'una_vez',         true,  'persona', 'todos', 30),
+  ('etapaBebe',     'enum',       'etapa_bebe',     null, null, 'antes_de_usarlo', true,  'persona', 'bebe',  21),
+  ('edad',          'int',        null,             0,    120,  'nunca',           false, 'persona', 'todos', null),
+  ('nacimiento',    'fecha',      null,             null, null, 'nunca',           false, 'persona', 'todos', null),
+  ('sexo',          'enum',       'sexo',           null, null, 'nunca',           false, 'persona', 'todos', null),
+  ('colegio',       'texto',      null,             null, null, 'nunca',           false, 'persona', 'todos', null),
+  ('patronSemanas', 'enum',       'patron_semanas', null, null, 'nunca',           false, 'persona', 'todos', null)
 on conflict (id) do update set
-  tipo = excluded.tipo, vocabulario = excluded.vocabulario, unidad = excluded.unidad,
+  tipo = excluded.tipo, vocabulario = excluded.vocabulario,
   minimo = excluded.minimo, maximo = excluded.maximo, politica = excluded.politica,
-  visibilidad = excluded.visibilidad, seguridad = excluded.seguridad, por = excluded.por,
+  seguridad = excluded.seguridad, por = excluded.por,
   aplica = excluded.aplica, caduca_dias = excluded.caduca_dias;
 
 -- 2. sobre ---------------------------------------------------------------------
@@ -204,77 +196,16 @@ drop trigger if exists sobre_valor_valido on public.sobre;
 create trigger sobre_valor_valido before insert or update on public.sobre
   for each row execute function public.sobre_valor_valido();
 
--- 3. cambio --------------------------------------------------------------------
-
-create table if not exists public.cambio (
-  id           bigint generated always as identity primary key,
-  household_id uuid not null references public.households(id) on delete cascade,
-  persona_id   text,                       -- de quién trata (para el borrado RGPD)
-  entidad      text not null,
-  entidad_id   text,
-  campo        text,
-  antes        jsonb,
-  despues      jsonb,
-  actor        text not null,              -- usuario · bot (Lola) · cron · script (código)
-  quien_user   uuid references auth.users(id) on delete set null,
-  canal        text not null,
-  alcance      text,
-  ref_tipo     text,                       -- referencia blanda: sin FK, el historial no se reescribe
-  ref_id       text,
-  created_at   timestamptz not null default now(),
-  constraint cambio_actor_vocabulario check (actor in ('usuario', 'bot', 'cron', 'script')),
-  constraint cambio_canal_vocabulario check (canal in ('app', 'telegram', 'whatsapp', 'sistema')),
-  constraint cambio_alcance_vocabulario check (alcance is null or alcance in ('permanente', 'esta_semana', 'estos_dias')),
-  constraint cambio_ref_tipo_vocabulario check (ref_tipo is null or ref_tipo in ('menu', 'mensaje', 'pantalla', 'senal')),
-  constraint cambio_ref_completa check ((ref_tipo is null) = (ref_id is null)),
-  foreign key (household_id, persona_id) references public.persona(household_id, id) on delete cascade
-);
-
-create index if not exists cambio_casa_fecha on public.cambio (household_id, created_at desc);
-create index if not exists cambio_persona on public.cambio (household_id, persona_id);
-create index if not exists cambio_quien_user on public.cambio (quien_user);
-
-comment on table public.cambio is
-  'SALUD: historial de solo añadir de lo que cambia en la ficha de una casa (quién, cuándo, por qué canal, antes y después en jsonb; puede incluir alergias y fecha de nacimiento). Se borra con la persona o la casa (cascada, el único borrado que deja el trigger); sin plazo propio de conservación. Sin lector ni escritor todavía.';
-comment on column public.cambio.persona_id is 'De quién trata el cambio; sirve para borrarlo con la persona (RGPD). null = de la casa.';
-comment on column public.cambio.entidad is 'Qué cambió (tabla o ficha); texto libre del escritor hasta que haya uno y se cierre su lista.';
-comment on column public.cambio.entidad_id is 'Id de la fila que cambió, polimórfico según entidad: sin FK a propósito (el historial no se reescribe).';
-comment on column public.cambio.antes is 'Valor anterior, jsonb de cualquier forma (escalar, lista u objeto); null si no había.';
-comment on column public.cambio.despues is 'Valor nuevo, jsonb de cualquier forma; null si se quitó.';
-comment on column public.cambio.quien_user is 'El usuario que lo hizo; null si fue el sistema o si la cuenta se borró (set null, el único update que deja el trigger).';
-comment on column public.cambio.alcance is 'Hasta cuándo vale lo cambiado (permanente, esta_semana, estos_dias); null si no aplica.';
-comment on column public.cambio.ref_id is 'Id de lo que lo originó, polimórfico según ref_tipo: sin FK a propósito.';
-
-create or replace function public.cambio_inmutable()
-returns trigger language plpgsql set search_path = public, pg_temp as $$
-begin
-  if tg_op = 'UPDATE' then
-    -- Solo se deja anular quien_user (on delete set null de auth.users); nada más.
-    if new.quien_user is null and old.quien_user is not null
-       and (to_jsonb(new) - 'quien_user') = (to_jsonb(old) - 'quien_user') then
-      return new;
-    end if;
-    raise exception 'cambio solo admite inserciones' using errcode = '42501';
-  end if;
-  if pg_trigger_depth() > 1 then return old; end if;   -- borrado en cascada (casa o persona)
-  raise exception 'cambio solo admite inserciones' using errcode = '42501';
-end $$;
-
-drop trigger if exists cambio_inmutable on public.cambio;
-create trigger cambio_inmutable before update or delete on public.cambio
-  for each row execute function public.cambio_inmutable();
-
--- 4. Acceso: como persona (0079), solo la service role y las RPC.
+-- 3. Acceso: como persona (0079), solo la service role y las RPC.
 
 alter table public.registro_campo enable row level security;
 alter table public.sobre enable row level security;
-alter table public.cambio enable row level security;
-revoke all on public.registro_campo, public.sobre, public.cambio from anon, authenticated;
+revoke all on public.registro_campo, public.sobre from anon, authenticated;
 grant select on public.registro_campo to authenticated;
 drop policy if exists registro_campo_lectura on public.registro_campo;
 create policy registro_campo_lectura on public.registro_campo for select to authenticated using (true);
 
--- 5. ficha_casa ----------------------------------------------------------------
+-- 4. ficha_casa ----------------------------------------------------------------
 --
 -- La ficha y las tareas abiertas en una ida, para el prompt de Lola. Contrato v1
 -- acordado con la sesión del bot (8 oct):

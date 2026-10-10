@@ -191,7 +191,7 @@ La 0091 se aplicó el 9 oct 2026: los valores ya son UUID (163 ids viejos
 mapeados). Los TIPOS siguen siendo `text`: persona.id, grupo.id, sus FK (`persona_alergia`,
 `persona_intolerancia`, `persona_estado`, `persona_perfil_salud`,
 `grupo_persona`, `bot_tareas.persona_id`, y, desde la 0097 (si se aplica antes del paso 2),
-`sobre.persona_id` y `cambio.persona_id`, con su FK compuesta a `persona`) y
+`sobre.persona_id`, con su FK compuesta a `persona`) y
 `bot_tareas.para_member` / `asignado_member`.
 `src/lib/ids.js` acepta las formas viejas a propósito.
 

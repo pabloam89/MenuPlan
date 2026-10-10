@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 
 import { REGISTRO_CAMPOS, TIPOS_CAMPO, POLITICAS, POR, APLICA } from "./registroCampos.js";
-import { ORIGEN_DATO, REF_TIPO, VISIBILIDAD, CANALES, ACTORES_CAMBIO, ALCANCES_CAMBIO } from "./vocabularios.js";
+import { ORIGEN_DATO, REF_TIPO, CANALES } from "./vocabularios.js";
 
 /**
  * La 0097 copia REGISTRO_CAMPOS en registro_campo y cierra los vocabularios de
@@ -10,7 +10,7 @@ import { ORIGEN_DATO, REF_TIPO, VISIBILIDAD, CANALES, ACTORES_CAMBIO, ALCANCES_C
  * separen: un campo nuevo en JS sin migración no existiría en la base, y un
  * sobre suyo violaría la FK.
  */
-const sql = readFileSync(new URL("../../supabase/migrations/0097_ficha_registro_sobre_cambio.sql", import.meta.url), "utf8");
+const sql = readFileSync(new URL("../../supabase/migrations/0097_ficha_registro_sobre.sql", import.meta.url), "utf8");
 const codigo = sql.split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
 
 /** Los literales '…' del CHECK con ese nombre, en orden. */
@@ -54,20 +54,15 @@ describe("0097: registro_campo dice lo mismo que registroCampos.js", () => {
   it("los CHECK de registro_campo son los del JS", () => {
     expect(literales("registro_campo_tipo_vocabulario")).toEqual(TIPOS_CAMPO);
     expect(literales("registro_campo_politica_vocabulario")).toEqual(POLITICAS);
-    expect(literales("registro_campo_visibilidad_vocabulario")).toEqual(VISIBILIDAD);
     expect(literales("registro_campo_por_vocabulario")).toEqual(POR);
     expect(literales("registro_campo_aplica_vocabulario")).toEqual(APLICA);
   });
 
-  it("sobre y cambio: origen, canal y referencia con los vocabularios de siempre", () => {
+  it("sobre: origen, canal y referencia con los vocabularios de siempre", () => {
     expect(literales("sobre_origen_vocabulario")).toEqual(ORIGEN_DATO);
     const canal = ["app", ...CANALES, "sistema"];
     expect(literales("sobre_canal_vocabulario")).toEqual(canal);
-    expect(literales("cambio_canal_vocabulario")).toEqual(canal);
     expect(literales("sobre_ref_tipo_vocabulario")).toEqual(REF_TIPO);
-    expect(literales("cambio_ref_tipo_vocabulario")).toEqual(REF_TIPO);
-    expect(literales("cambio_actor_vocabulario")).toEqual(ACTORES_CAMBIO);
-    expect(literales("cambio_alcance_vocabulario")).toEqual(ALCANCES_CAMBIO);
   });
 
   it("cada valor de los CHECK está en NFC (comparan bytes)", () => {

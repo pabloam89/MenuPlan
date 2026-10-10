@@ -86,15 +86,6 @@ export const ORIGEN_ALERGIAS = ["dicha", "por_silencio"];
 /** A qué se refiere un «sobre» o un cambio: qué lo originó. */
 export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];
 
-/** Quién hizo un cambio de la ficha (cambio.actor, 0097; PRINCIPIOS §18). */
-export const ACTORES_CAMBIO = ["usuario", "bot", "cron", "script"];
-
-/** Hasta cuándo vale lo cambiado (cambio.alcance, 0097). */
-export const ALCANCES_CAMBIO = ["permanente", "esta_semana", "estos_dias"];
-
-/** Quién puede ver un dato de la ficha. Se guarda pero aún no filtra nada (todo visible). */
-export const VISIBILIDAD = ["casa", "titulares", "la_persona_y_tutores"];
-
 /** Sexo de una persona: campo nuevo de la ficha v18, solo para calorías y nunca se pregunta. */
 export const SEXO = ["mujer", "hombre", "sin_dato"];
 
@@ -226,9 +217,6 @@ export const VOCABULARIOS = Object.freeze({
   origen_dato: ORIGEN_DATO,
   origen_alergias: ORIGEN_ALERGIAS,
   ref_tipo: REF_TIPO,
-  actores_cambio: ACTORES_CAMBIO,
-  alcances_cambio: ALCANCES_CAMBIO,
-  visibilidad: VISIBILIDAD,
   sexo: SEXO,
   patron_semanas: PATRON_SEMANAS,
   motivos_fallo: MOTIVOS_FALLO,

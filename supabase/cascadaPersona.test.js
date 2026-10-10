@@ -29,7 +29,6 @@ export const CASCADA_PERMITIDA = new Map([
   ["persona_estado", "salud: se va con la persona (PRINCIPIOS §17)"],
   ["persona_perfil_salud", "salud: se va con la persona (PRINCIPIOS §17)"],
   ["sobre", "salud: de dónde sale cada dato de la ficha de la persona; se va con ella (PRINCIPIOS §17, 0097)"],
-  ["cambio", "salud: historial de la ficha de la persona; se va con ella, y es el único borrado que deja su trigger (PRINCIPIOS §17, 0097)"],
   ["grupo_persona", "pertenencia a un grupo: sin la persona no significa nada"],
 ]);
 
