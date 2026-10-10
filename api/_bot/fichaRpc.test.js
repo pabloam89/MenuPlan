@@ -78,9 +78,12 @@ function fichaCasa0097({ p_casa, p_usuario = null, p_canal = null, p_max_tareas 
     && ((["descartada", "rechazada"].includes(t.status) && Date.parse(t.closed_at) > ahora - 86400000)
       || (t.status === "aplazada" && Date.parse(t.vuelve_at) > ahora)))
     .map((t) => ({ campo: t.campo, clave: t.clave, persona_id: t.persona_id ?? t.para_member, hasta: t.status === "aplazada" ? t.vuelve_at : new Date(Date.parse(t.closed_at) + 86400000).toISOString() }));
-  const faltan = ["alergias", "etapaBebe"].flatMap((campo) => personas
-    .filter((p) => !(campo === "alergias" && p.alergias_revisadas))
-    .map((p) => ({ campo, sujeto: { tipo: "persona", id: p.id }, politica: campo === "alergias" ? "una_vez" : "antes_de_usarlo", aplica: campo === "alergias" ? "todos" : "bebe", seguridad: true })));
+  // Como la base (0097): alergias, una por persona; etapaBebe, UNA por casa (por = casa), con aplica "bebe".
+  const faltan = [
+    ...personas.filter((p) => !p.alergias_revisadas)
+      .map((p) => ({ campo: "alergias", sujeto: { tipo: "persona", id: p.id }, politica: "una_vez", aplica: "todos", seguridad: true })),
+    { campo: "etapaBebe", sujeto: { tipo: "casa", id: null }, politica: "antes_de_usarlo", aplica: "bebe", seguridad: true },
+  ];
   return {
     v: 1, generado_at: new Date(ahora).toISOString(), canal: p_canal,
     casa: { id: p_casa, rev: 41 },

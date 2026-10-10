@@ -41,9 +41,11 @@
 -- Lectores y escritores (principio 8, «ningún campo sin lector»), al 10 oct 2026:
 --   · registro_campo: la lee ficha_casa (faltan, tareas de seguridad), el trigger sobre_valor_valido y la FK
 --     de sobre; la escribe esta migración, generada de src/lib/registroCampos.js (módulo dueño).
---   · sobre: la lee ficha_casa (datos, faltan). Aún no la escribe ningún código: la primera escritura
---     será de la sesión de la ficha (RPC que anota «lo dijo X por Y»). La lee api/_bot/fichaRpc.js (servidor,
---     clave de servicio); la app no la lee todavía.
+--   · sobre: la lee ficha_casa (la proyecta en «datos» y la usa en «faltan»); ningún JS consume aún esos
+--     «datos» (fichaRpc.js solo lee personas, faltan, tareas y callados). Aún no la escribe ningún código:
+--     la primera escritura será de la sesión de la ficha (RPC que anota «lo dijo X por Y»).
+--   · registro_campo.caduca_dias se queda: la lee registroTareas.js (caducaDias) desde el JS. visibilidad y
+--     unidad se fueron porque no las leía nadie, ni SQL ni JS.
 --
 -- Consultas previas (deben dar 0): ninguna de las dos tablas existe aún.
 --   select count(*) from information_schema.tables
@@ -96,7 +98,7 @@ create table if not exists public.registro_campo (
 );
 
 comment on table public.registro_campo is
-  'Catálogo de campos de la ficha (qué se puede saber de una casa o de una persona y cómo preguntarlo). Global, no de una casa: se genera de src/lib/registroCampos.js (módulo dueño; registroCampos.test.js compara los dos). No editar a mano.';
+  'Catálogo de campos de la ficha (qué se puede saber de una casa o de una persona y cómo preguntarlo). Global, no de una casa: es una PROYECCIÓN completa de REGISTRO_CAMPOS (src/lib/registroCampos.js, módulo dueño) que recalcula esta migración (insert … on conflict do update); registroCampos.test.js compara las dos y falla si se separan. Incluye caduca_dias, que lee registroTareas.js desde el JS. No editar a mano.';
 comment on column public.registro_campo.id is 'Nombre del campo, tal cual está en REGISTRO_CAMPOS (src/lib/registroCampos.js).';
 comment on column public.registro_campo.vocabulario is 'Nombre de su lista en VOCABULARIOS (src/lib/vocabularios.js); null si no es enum. No es FK: la lista vive en JS.';
 comment on column public.registro_campo.minimo is 'Mínimo del valor numérico, que sobre_valor_valido comprueba; null si no aplica.';
@@ -193,7 +195,11 @@ begin
     else jsonb_typeof(v) = 'string'      -- enum, ref, texto
   end;
   if not bien then
-    raise exception 'sobre: % no es un valor de tipo % para %', v, r.tipo, new.campo using errcode = '23514';
+    raise exception 'sobre: el valor no es de tipo % para %', r.tipo, new.campo using errcode = '23514';
+  end if;
+  -- Tope de 50 elementos a las listas.
+  if jsonb_typeof(v) = 'array' and jsonb_array_length(v) > 50 then
+    raise exception 'sobre: más de 50 elementos para %', new.campo using errcode = '23514';
   end if;
   -- Tope de 200 caracteres a cada texto (el valor entero o cada elemento de una lista).
   if exists (select 1 from jsonb_path_query(v, '$.** ? (@.type() == "string")') t where char_length(t #>> '{}') > 200) then
@@ -202,7 +208,7 @@ begin
   if r.tipo in ('int', 'decimal') and (
        (r.minimo is not null and (v #>> '{}')::numeric < r.minimo) or
        (r.maximo is not null and (v #>> '{}')::numeric > r.maximo)) then
-    raise exception 'sobre: % fuera de rango para %', v, new.campo using errcode = '23514';
+    raise exception 'sobre: valor fuera de rango para %', new.campo using errcode = '23514';
   end if;
   return new;
 end $$;

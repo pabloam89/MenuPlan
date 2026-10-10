@@ -84,7 +84,7 @@ export const ORIGEN_DATO = ["dicho", "supuesto", "visto", "derivado", "por_defec
 export const ORIGEN_ALERGIAS = ["dicha", "por_silencio"];
 
 /** Por dónde llegó un dato de la ficha (sobre.canal, 0097): los canales del bot, la app y el sistema. */
-export const CANALES_DATO = ["app", "telegram", "whatsapp", "sistema"];
+export const CANALES_DATO = ["app", ...CANALES, "sistema"];
 
 /** A qué se refiere un «sobre» o un cambio: qué lo originó. */
 export const REF_TIPO = ["menu", "mensaje", "pantalla", "senal"];

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
 
 /**
@@ -9,8 +9,9 @@ import { REGISTRO_CAMPOS } from "../src/lib/registroCampos.js";
  *  - ficha_casa, solo para la service role hasta que la app la lea.
  *  - sobre: topes y nombres.
  */
+const sinComentarios = (texto) => texto.split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
 const sql = readFileSync(new URL("./migrations/0097_ficha_registro_sobre.sql", import.meta.url), "utf8");
-const codigo = sql.split("\n").filter((l) => !/^\s*--/.test(l)).join("\n");
+const codigo = sinComentarios(sql);
 
 const conColumna = Object.entries(REGISTRO_CAMPOS).filter(([, c]) => c.columna).map(([id]) => id).sort();
 const cuerpoFicha = codigo.slice(codigo.indexOf("create or replace function public.ficha_casa"));
@@ -39,15 +40,53 @@ describe("0097: los campos con columna propia, en un solo sitio", () => {
   });
 });
 
+/** Las migraciones de la 0097 en adelante, sin comentarios. */
+function todasDesde0097() {
+  const dir = new URL("./migrations/", import.meta.url);
+  return readdirSync(dir)
+    .filter((f) => f.endsWith(".sql") && Number(f.slice(0, 4)) >= 97)
+    .map((f) => sinComentarios(readFileSync(new URL(f, dir), "utf8")))
+    .join("\n");
+}
+
+/** Los grant sobre ficha_casa, o sobre todas las funciones, a quien no sea service_role/postgres. */
+export function concesionesPeligrosas(texto) {
+  const re = /grant\s+[^;]*?\bon\s+(?:function\s+(?:public\.)?ficha_casa|all\s+functions\s+in\s+schema\s+public)[^;]*?\bto\s+([^;]*);/gi;
+  return [...texto.matchAll(re)]
+    .filter((m) => m[1].split(",").some((r) => !/^(service_role|postgres)$/.test(r.trim())))
+    .map((m) => m[0]);
+}
+
 describe("0097: permisos y topes", () => {
-  it("ficha_casa solo se concede a service_role", () => {
+  it("ficha_casa solo se concede a service_role, en esta migración y en las posteriores", () => {
     const grants = [...codigo.matchAll(/grant\s+execute\s+on\s+function\s+public\.ficha_casa[^;]*?\bto\s+([^;]*);/gi)].map((m) => m[1].trim());
     expect(grants).toEqual(["service_role"]);
     expect(codigo).toMatch(/revoke all on function public\.ficha_casa\([^)]*\) from public, anon, authenticated/);
+    expect(concesionesPeligrosas(todasDesde0097())).toEqual([]);
+  });
+
+  it("el detector de concesiones ve las variantes (grant all, all functions in schema)", () => {
+    expect(concesionesPeligrosas("grant all on function public.ficha_casa(uuid) to authenticated;")).toHaveLength(1);
+    expect(concesionesPeligrosas("grant execute on function public.ficha_casa(uuid, uuid, text, integer) to authenticated, service_role;")).toHaveLength(1);
+    expect(concesionesPeligrosas("grant execute on all functions in schema public to authenticated;")).toHaveLength(1);
+    expect(concesionesPeligrosas("grant all privileges on all functions in schema public to anon;")).toHaveLength(1);
+    expect(concesionesPeligrosas("grant execute on function public.ficha_casa(uuid) to service_role;")).toEqual([]);
+    expect(concesionesPeligrosas("grant execute on all functions in schema public to service_role;")).toEqual([]);
   });
 
   it("el trigger de sobre pone tope de 200 caracteres a los textos", () => {
     expect(codigo).toMatch(/char_length\(t #>> '\{\}'\) > 200/);
+  });
+
+  it("el trigger de sobre pone tope de 50 elementos a las listas y no copia el valor en sus errores", () => {
+    expect(codigo).toMatch(/jsonb_array_length\(v\) > 50/);
+    const cuerpo = codigo.slice(codigo.indexOf("create or replace function public.sobre_valor_valido"), codigo.indexOf("create trigger sobre_valor_valido"));
+    const errores = [...cuerpo.matchAll(/raise exception '([^']*)'([^;]*);/g)];
+    expect(errores.length).toBeGreaterThan(3);
+    for (const m of errores) {
+      const args = m[2].split("using")[0];
+      expect(args, m[1]).not.toMatch(/[ ,]v\s*(,|$)/);
+    }
   });
 
   it("sobre no tiene las columnas sin lector ni los nombres viejos", () => {

@@ -151,8 +151,12 @@ const comoMiembro = (p) => ({
  */
 export function faltanDeFicha(ficha, data = {}, calladas = new Set()) {
   const personas = new Map((ficha?.personas ?? []).map((p) => [String(p.id), p]));
+  // Una falta de persona es de ella. Una falta de CASA con aplica «bebe» (etapaBebe, 0097: un dato por casa)
+  // se reparte entre quienes son bebé según etapaDe: la clave sigue siendo «etapa:<persona>» (estadoCasa.js).
+  const deCasa = (f) => (f.sujeto?.tipo === "casa" && f.aplica === "bebe" ? [...personas.values()] : []);
   return (ficha?.faltan ?? [])
-    .filter((f) => f.sujeto?.tipo === "persona" && personas.has(String(f.sujeto.id)))
+    .flatMap((f) => (f.sujeto?.tipo === "persona" ? [f] : deCasa(f).map((p) => ({ ...f, sujeto: { tipo: "persona", id: p.id } }))))
+    .filter((f) => personas.has(String(f.sujeto.id)))
     .map((f) => ({ ...f, persona: personas.get(String(f.sujeto.id)) }))
     .filter((f) => f.aplica !== "bebe" || etapaDe(comoMiembro(f.persona)).etapa === "bebe")
     .filter((f) => estadoDeCampo(f.campo, String(f.persona.id), data) === "pendiente")
