@@ -41,7 +41,7 @@ Cada `npm run issues` o arranque de sesión sin caché valía **~320 puntos**: c
 - **Issues de golpe**: `npm run issues` tiene caché (`--fresco` la salta). Si GitHub no contesta o no hay cuota, el arranque usa lo último que guardó (hasta 6 h) y lo dice en su salida.
 - **Con el token de la App** (`node scripts/token-sesion.mjs -- <comando gh>`): cupo propio, aparte del de Pablo. Sirve para esperar a que se reinicie el de Pablo.
 
-- **Pedir lo justo**: GitHub cobra por los `first:` pedidos y no por lo devuelto. Fabrica (#424) bajó de 321 a ~18 puntos pidiendo solo número, estado y etiquetas, y los hijos solo de los fondos en páginas de 10 (`first: 100` con hijos de 50 costaba 52 puntos por página). Un error "rate limit" se reintenta 3 veces esperando `retry-after` (tope 120 s).
+- **Pedir lo justo**: GitHub cobra por los `first:` pedidos y no por lo devuelto. Fabrica (#424) bajó de 321 a ~18 puntos pidiendo solo número, estado y etiquetas, y los hijos solo de los fondos en páginas de 10 (`first: 100` con hijos de 50 costaba 52 puntos por página). Un error "rate limit" se reintenta 3 veces esperando `retry-after` (máximo 120 s de espera).
 
 ## Cómo se cuenta
 
