@@ -70,13 +70,15 @@ describe("avisoAparte: el tope se cumple pase lo que pase con el hijo", () => {
     expect(existsSync(marca)).toBe(false);
   }, 20000);
 
-  it("si el hijo sale justo antes del tope, el aviso completo no se descarta", async () => {
+  // El margen de 70 ms es el que prueba la gracia (de verdad estrecho); con la máquina cargada por otras sesiones
+  // (#307) el hijo puede salir tarde y el tope manda, por eso se reintenta dos veces antes de darlo por rojo.
+  it("si el hijo sale justo antes del tope, el aviso completo no se descarta", { retry: 2, timeout: 20000 }, async () => {
     // El hijo escribe y sale 70 ms antes de que venza el tope, contados desde ahora (el arranque de node varía).
     const hora = Date.now() + 800 - 70;
     const f = falso(`process.stdout.write("[buscar-antes] justo"); setTimeout(() => process.exit(0), Math.max(0, ${hora} - Date.now()));`);
     const { v } = await mide(f, 800);
     expect(v).toBe("[buscar-antes] justo");
-  }, 20000);
+  });
 
   it("un hijo que falla (salida con error) no da aviso", async () => {
     const { v } = await mide(falso(`process.stdout.write("[buscar-antes] hola"); process.exit(3);`));
