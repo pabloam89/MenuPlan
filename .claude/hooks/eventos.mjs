@@ -71,6 +71,7 @@ export const FAMILIAS_GUARDIA = [
   [/base de un pr|rama base|va contra|gh -r|por `gh api`|--auto|justo detr[aá]s de `merge`/i, "fusion-fuera-de-staging"],
   [/borrar o trasladar un issue/i, "borrar-issue"],
   [/el n[uú]mero \d{4} ya es de|ya est[aá] aplicada en producci[oó]n|estado\.md/i, "migracion"],
+  [/variables de production de vercel/i, "vercel-production"],
   [/lo que lee lola/i, "escribir-lo-de-lola"],
   [/permisos o el c[oó]digo que vigila/i, "tocar-permisos"],
   [/no ha podido leer esta orden/i, "entrada-ilegible"],
