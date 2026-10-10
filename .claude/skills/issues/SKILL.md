@@ -117,7 +117,8 @@ fondo de un encargo tenga diagnóstico y que un fondo cerrado tenga aprendizaje.
 - **El cuerpo de un caso:** cuándo, qué pasó (esperado frente a real),
   evidencia (comando y salida, PR, fichero:línea) y el análisis. El de una
   decisión: la pregunta en llano, las opciones (la recomendada primero) y qué
-  pasa si no se decide.
+  pasa si no se decide. El de un encargo de un fondo, el bloque `encargo` de
+  `docs/ops/ENCARGO.md` (#338; cómo se rellena, skill `plan-de-arreglo`).
 - **La traza no se rellena: se deduce.** Fechas, reaperturas, asignados,
   padre e hijos los guarda GitHub. Quién arregló sale del PR que cierra: lleva
   `Closes #n` y una línea `Agente: <nombre>` (o `sesión`); la plantilla de PR
