@@ -47,6 +47,7 @@
 /scripts/lib/mecanismos.mjs @pabloam89
 /scripts/lib/normas.mjs @pabloam89
 /scripts/lib/presupuestos.mjs @pabloam89
+/scripts/lib/regla.mjs @pabloam89
 /scripts/lib/textoExterno.mjs @pabloam89
 /scripts/lib/tokenSesion.mjs @pabloam89
 /scripts/lib/cacheTokenSesion.mjs @pabloam89

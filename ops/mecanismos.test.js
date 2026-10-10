@@ -88,7 +88,7 @@ describe("cruce con el registro de normas (ops/normas.json)", () => {
     const planos = JSON.parse(readFileSync(join(RAIZ, "ops/planos.json"), "utf8"));
     for (const ejecutor of Object.keys(EJECUTORES)) {
       for (const alcance of ["todos", "solo_claude", "solo_script", "nadie"]) {
-        const n = { id: "x", ejecutor, alcance, ante_fallo: "cerrado", test: "ops/mecanismos.test.js", veredicto: "dura", riesgo: "bajo", issue: null, test_fallo: { ruta: "ops/mecanismos.test.js", caso: "test_fallo" } };
+        const n = { id: "x", ejecutor, alcance, ante_fallo: "cerrado", control: "ops/mecanismos.test.js", control_tipo: "test", veredicto: "dura", riesgo: "bajo", issue: null, test_fallo: { ruta: "ops/mecanismos.test.js", caso: "test_fallo" } };
         const aceptaDura = problemasDeDureza(n, { raiz: RAIZ, planos }).length === 0;
         expect(veredictoPosible(ejecutor, alcance) === "dura", `${ejecutor}/${alcance}`).toBe(aceptaDura);
       }
