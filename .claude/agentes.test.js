@@ -199,6 +199,26 @@ it("el informe común lleva SKILLS:, /orquestar las saca del mapa y el revisor l
   expect(seccion(cuerpo, "Hecho")).toMatch(/SKILLS:/);
 });
 
+it("cada agente trae precargadas las skills de su dominio, y solo esas: una sola fuente, el mapa (#397)", () => {
+  // El 10 oct, `datos` editó supabase/ 9 veces en una semana sin la skill
+  // supabase: no la traía precargada y nada lo pedía. El mapa dice qué
+  // constructores trabajan en cada dominio (`agentes`); el frontmatter lo sigue.
+  const mapa = JSON.parse(readFileSync(join(AQUI, "dominios-skills.json"), "utf8"));
+  const esperado = {};
+  for (const [skill, d] of Object.entries(mapa.skills)) {
+    expect(Array.isArray(d.agentes) && d.agentes.length > 0, `${skill}: falta "agentes" en el mapa`).toBe(true);
+    for (const a of d.agentes) {
+      expect(existsSync(join(DIR, `${a}.md`)), `${skill}: el agente ${a} no existe`).toBe(true);
+      (esperado[a] ??= []).push(skill);
+    }
+  }
+  for (const f of agentes) {
+    const nombre = f.replace(/\.md$/, "");
+    const { meta } = leer(f);
+    expect(lista(meta.skills).sort(), `${nombre}: su skills: no cuadra con "agentes" del mapa`).toEqual((esperado[nombre] ?? []).sort());
+  }
+});
+
 it("CLAUDE.md y /orquestar nombran a todos los agentes", () => {
   const claude = readFileSync(join(RAIZ, "CLAUDE.md"), "utf8");
   const orquestar = readFileSync(join(AQUI, "commands", "orquestar.md"), "utf8");
