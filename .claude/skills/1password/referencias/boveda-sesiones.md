@@ -9,7 +9,7 @@ lanzar `op` ni `opPorLaApp`: la guardia lo niega. Una ventana de aprobación que
 no has lanzado tú: no la apruebes.
 
 1. App de 1Password → **Nueva bóveda** → `HoMenu-sesiones` (con guion).
-2. PowerShell aparte, en `C:\dev\MenuPlan-boveda-sesiones`: `node scripts/boveda-sesiones.mjs`
+2. PowerShell aparte, en `C:\dev\MenuPlan`: `node scripts/boveda-sesiones.mjs`
    (ensayo, no abre la app) y `$env:MENUPLAN_OP_PABLO = "1"; node scripts/boveda-sesiones.mjs --si`:
    8 fichas, una línea `COINCIDEN` cada una.
 3. **Mover** (no copiar) la clave de la App de E1 (#327) a `HoMenu-sesiones`,
