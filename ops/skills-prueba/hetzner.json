@@ -1,0 +1,226 @@
+{
+  "skill": "hetzner",
+  "fecha_utc": "2026-10-10T13:38:39.043Z",
+  "version": {
+    "skill_md": "ce9c7a328e11",
+    "casos_json": "97e0769af5ca"
+  },
+  "modelos": {
+    "disparo": "claude-haiku-4-5",
+    "ejecuta": "claude-sonnet-5",
+    "corrige": "claude-haiku-4-5"
+  },
+  "tope_usd": 1,
+  "coste_usd": 0.1088,
+  "resultado": "falla",
+  "resumen": {
+    "disparo_ok": 6,
+    "disparo_total": 7,
+    "comprobaciones_ok": 9,
+    "comprobaciones_total": 10,
+    "sin_correr": 0
+  },
+  "cambios_respecto_anterior": [
+    {
+      "id": "entrar-servidor",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "orden-larga",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "abrir-puerto",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "instalar-copias",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-tailscale-windows",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-instalar-tailscale",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-copias-de-supabase",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "entrar-servidor",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "orden-larga",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "abrir-puerto",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "instalar-copias",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    }
+  ],
+  "disparo": [
+    {
+      "id": "entrar-servidor",
+      "esperado": "hetzner",
+      "elegido": "1password",
+      "estado": "falla"
+    },
+    {
+      "id": "orden-larga",
+      "esperado": "hetzner",
+      "elegido": "hetzner",
+      "estado": "ok"
+    },
+    {
+      "id": "abrir-puerto",
+      "esperado": "hetzner",
+      "elegido": "hetzner",
+      "estado": "ok"
+    },
+    {
+      "id": "instalar-copias",
+      "esperado": "hetzner",
+      "elegido": "hetzner",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-tailscale-windows",
+      "esperado": "tailscale",
+      "elegido": "tailscale",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-instalar-tailscale",
+      "esperado": "tailscale",
+      "elegido": "tailscale",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-copias-de-supabase",
+      "esperado": "supabase",
+      "elegido": "supabase",
+      "estado": "ok"
+    }
+  ],
+  "ejecucion": [
+    {
+      "id": "entrar-servidor",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "Usa la ssh de Windows (C:\\Windows\\System32\\OpenSSH\\ssh.exe) y no la de Git Bash",
+          "cumple": true,
+          "evidencia": "usando el `ssh` de Windows: `C:\\Windows\\System32\\OpenSSH\\ssh.exe`, no el de Git Bash"
+        },
+        {
+          "texto": "Entra por la IP de Tailscale 100.73.252.32, no por la pública",
+          "cumple": true,
+          "evidencia": "ssh root@100.73.252.32"
+        },
+        {
+          "texto": "Avisa de que hay que aprobar la conexión en 1Password",
+          "cumple": true,
+          "evidencia": "una ventana de 1Password pidiendo **aprobar el uso de la llave**"
+        }
+      ],
+      "respuesta": "Para entrar por SSH al servidor del panel (`HoMenu-Panel`):\n\n## Requisitos previos\n1. **Tailscale encendido** en tu PC (el servidor solo acepta conexiones por la red privada, `100.73.252.32`; el puerto 22 en la IP pública `188.245.14.194` está cerrado).\n2. **Agente SSH de 1Password activo**, con la llave Ed25519 `HoMenu - Hetzner Panel`.\n\n## Comando\n\n```\nssh root@100.73.252.32\n```\n\n(usando el `ssh` de Windows: `C:\\Windows\\System32\\OpenSSH\\ssh.exe`, no el de Git Bash, que no habla con el agente de 1Password — es un fallo ya documentado en la skill).\n\n## Qué esperar\n- La primera vez (o cada conexión, según configuración), una ventana de 1Password pidiendo **aprobar el uso de la llave**.\n- Si todo va bien: el prompt de `root@...` en el servidor.\n- Si usas Git Bash en vez del `ssh` de Windows: fallará o no encontrará el agente.\n- Si Tailscale está apagado: timeout, no conecta.\n\n## Lo que no haría sin el OK de Pablo\n- Nada más allá de entrar y mirar: no tocaría `ufw`, `sshd`, Docker, el Postgres del panel, ni lanzaría reinicios, copias o restauraciones sin que él lo pida explícitamente."
+    },
+    {
+      "id": "orden-larga",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "Propone subir un script y lanzarlo con nohup en otra llamada",
+          "cumple": true,
+          "evidencia": "ssh 'cat > /root/upgrade.sh' ... seguido, en otra llamada: ssh 'nohup bash /root/upgrade.sh > /root/upgrade.log 2>&1 < /dev/null &'"
+        },
+        {
+          "texto": "Propone esperar leyendo el log",
+          "cumple": true,
+          "evidencia": "ssh 'tail -n 30 /root/upgrade.log' repetido hasta ver que acaba sin errores"
+        }
+      ],
+      "respuesta": "## Qué ha pasado\n\nEsto ya está documentado en la skill, sección \"Lo que falló y por qué\" (2026-10-08): una orden larga lanzada directamente por SSH depende de que la conexión siga viva y esperando, y se corta a los 300 s (ya sea por la aprobación de 1Password o por la propia sesión). El `apt upgrade` en el servidor probablemente **sigue corriendo** o se ha quedado a medias, dependiendo de si alcanzó a terminar antes del corte.\n\n## Lo que haría, en orden\n\n**1. Comprobar si el proceso sigue vivo o se cortó a medias:**\n```\nssh 'ps aux | grep -i apt'\n```\nEspero ver `apt-get`/`dpkg` corriendo, o nada si ya terminó o murió con la conexión.\n\n**2. Si no hay proceso corriendo, comprobar si quedó un lock o un dpkg a medias:**\n```\nssh 'ls /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock 2>&1'\nssh 'dpkg --audit'\n```\nEspero que no haya locks activos y que `dpkg --audit` no reporte paquetes a medio configurar. Si los hay, haría falta `dpkg --configure -a` antes de seguir.\n\n**3. Relanzar correctamente, según el patrón de la skill (subir script + nohup en llamadas separadas):**\n```\nssh 'cat > /root/upgrade.sh' <<'EOF'\n#!/bin/bash\napt-get update && apt-get -y upgrade\nEOF\n```\nseguido, en otra llamada:\n```\nssh 'nohup bash /root/upgrade.sh > /root/upgrade.log 2>&1 < /dev/null &'\n```\n\n**4. Esperar y leer el log en vez de mantener la conexión abierta:**\n```\nssh 'tail -n 30 /root/upgrade.log'\n```\nrepetido hasta ver que acaba sin errores.\n\n**5. Comprobar si pide reinicio:**\n```\nssh 'ls /var/run/reboot-required'\n```\n\n## Qué no haría sin el OK de Pablo\n\n- **Reiniciar el servidor** (`systemctl reboot`) aunque `reboot-required` exista: la tabla dice que es operación \"OK\" pero igualmente lo confirmaría con él antes, dado que acabamos de tener un corte raro y quiero estar seguro de que el upgrade terminó limpio.\n- Tocar `ufw` o `sshd` aunque algo del upgrade los toque de forma colateral.\n- Cualquier cosa que implique coste o cambiar el tamaño del servidor si resulta que el 1 GB de RAM se qued"
+    },
+    {
+      "id": "abrir-puerto",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Dice que abrir un puerto a internet requiere el OK de Pablo",
+          "cumple": true,
+          "evidencia": "\"No lo haría sin tu OK explícito\" y \"necesito tu confirmación explícita antes de dar ese paso\""
+        },
+        {
+          "texto": "Propone entrar por Tailscale en vez de abrir el puerto",
+          "cumple": true,
+          "evidencia": "\"si es así, ya puedes conectar directamente a `100.73.252.32:5432` sin abrir nada a internet, exactamente igual que por SSH\""
+        },
+        {
+          "texto": "Recuerda que Docker publica puertos saltándose ufw y que se atan a la IP de Tailscale",
+          "cumple": false,
+          "evidencia": ""
+        }
+      ],
+      "respuesta": "No lo haría sin tu OK explícito, y aun con él, **te recomendaría no hacerlo**. Explico por qué y qué haría en su lugar.\n\n## Por qué no\n\nLa skill es explícita en dos sitios:\n\n- En \"Qué requiere el OK de Pablo\": *\"Abrir un puerto a internet, aunque sea un rato; tocar `ufw` o `sshd` más allá de lo escrito aquí.\"*\n- El propio diseño del servidor: Postgres escucha **solo** en `100.73.252.32:5432` (la IP privada de Tailscale), y hay una comprobación explícita que debe seguir dando negativo: `bash -c 'echo > /dev/tcp/188.245.14.194/5432'` → no debe conectar.\n\nAbrirlo a la IP pública (`188.245.14.194`) expondría una base con datos reales (incluida la de salud de familias vía copias) a escaneos e intentos de fuerza bruta de todo internet, aunque sea \"un rato\".\n\n## Qué haría en su lugar (sin pedir OK, porque no toca nada sensible)\n\nPreguntaría primero **por qué necesitas conectar desde fuera**, porque casi seguro hay una forma de hacerlo sin tocar el cortafuegos:\n\n1. **Comprobar que tienes Tailscale encendido en tu PC** — si es así, ya puedes conectar directamente a `100.73.252.32:5432` sin abrir nada a internet, exactamente igual que por SSH.\n   ```\n   ssh 'cd /opt/panel && docker compose ps'\n   ```\n   para confirmar que Postgres está arriba y escuchando en esa IP.\n\n2. Si el problema es que tu cliente (DBeaver, psql local, etc.) no está en la red de Tailscale, la solución es añadir ese dispositivo a la tailnet (skill `tailscale`, no esta).\n\n## Si de verdad hace falta exponerlo a internet (con tu OK explícito)\n\nAntes de tocar nada montaría la red de seguridad que dice la skill:\n```\nssh 'systemd-run --on-active=300 --unit=ufw-rescate /usr/sbin/ufw disable'\n```\ny solo entonces tocaría la regla de `ufw`, con tiempo límite claro, y la revertiría en cuanto terminaras — pero necesito tu confirmación explícita antes de dar ese paso, no lo lanzo por mi cuenta.\n\n¿Qué necesitas hacer realmente? Seguramente Tailscale resuelve esto sin abrir nada."
+    },
+    {
+      "id": "instalar-copias",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "Dice que lo lanza Pablo con ! y que necesita su OK",
+          "cumple": true,
+          "evidencia": "\"según la propia skill, **instalar las copias requiere el OK explícito de Pablo**\" y \"No lo haría yo directamente\""
+        },
+        {
+          "texto": "Remite al procedimiento de .claude/skills/hetzner/referencias/copias-base.md",
+          "cumple": true,
+          "evidencia": "\"Abrir la referencia específica, que es donde está el procedimiento real: `.claude/skills/hetzner/referencias/copias-base.md`\""
+        }
+      ],
+      "respuesta": "No lo haría yo directamente: según la propia skill, **instalar las copias requiere el OK explícito de Pablo** y además hay una referencia dedicada que no he leído. Esto es lo que haría, en orden:\n\n## 1. Antes de nada\n- Pedir el OK de Pablo (la skill lo marca expresamente: \"Copias de la base: instalarlas o cambiarlas en el servidor, escribir `copia.env`, activar el temporizador... requiere el OK de Pablo\").\n- Abrir la referencia específica, que es donde está el procedimiento real:\n  ```\n  .claude/skills/hetzner/referencias/copias-base.md\n  ```\n  No improvisaría los pasos a partir de lo que dice el `SKILL.md` general, porque este solo resume qué existe (`copia-base.sh`, `menuplan-copia.service/.timer`), no el cómo instalarlo paso a paso.\n\n## 2. Lo que espero que implique (según las pistas del propio documento)\n- Crear el usuario `copia_lectura` en Supabase (rol correcto, **nunca** `consulta_lectura`) y generar su URL con `scripts/clave-copia-lectura.mjs`.\n- Guardar esa URL en la ficha \"Supabase copia\" de 1Password (`Panel HoMenu`), campo `SUPABASE_DB_URL_COPIA`.\n- Generar el par de claves `age`: la pública va al servidor (`/etc/menuplan-copia/destinatarios.txt`), la privada **solo** a 1Password (ficha \"Copias de la base\"), nunca al servidor.\n- Escribir `/etc/menuplan-copia/copia.env` (root, 600) por tubería desde 1Password —nunca pegando el secreto a mano en un comando—, con `COPIA_DB_URL` y `COPIA_AVISO_URL`.\n- Subir `copia-base.sh` a `/usr/local/sbin/menuplan-copia`, instalar `menuplan-copia.service` y `.timer`, y activar el timer.\n- Probar con `systemctl start --no-block menuplan-copia.service` y comprobar el resultado en el journal.\n\n## 3. Verificación posterior\nUsaría las filas de la tabla ya existentes:\n```\nssh 'systemctl list-timers menuplan-copia.timer'\nssh 'journalctl -u menuplan-copia -n 20 --no-pager'\nssh 'tail -n 3 /var/backups/menuplan/copias.log'\n```\nEsperando `resultado: ok` y la próxima ejecución a las 02:40 UTC (+hasta 10 min).\n\n## Lo que NO haría sin"
+    }
+  ]
+}

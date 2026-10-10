@@ -199,6 +199,31 @@ it("el informe común lleva SKILLS:, /orquestar las saca del mapa y el revisor l
   expect(seccion(cuerpo, "Hecho")).toMatch(/SKILLS:/);
 });
 
+it("el informe común lleva ESTÁNDAR:, /orquestar pega el de la tarea, el revisor lo contrasta y cada agente lista sus tareas (#413)", () => {
+  // Un estándar que nadie cita no se cumple: mismo patrón que SKILLS: (#397). El
+  // catálogo y su test están en ops/estandares-agentes.test.js; aquí, que el
+  // encargo lo pida, el informe lo diga y el revisor lo mire.
+  const plantilla = readFileSync(join(AQUI, "PLANTILLA-AGENTE.md"), "utf8");
+  const informe = plantilla.slice(plantilla.indexOf("## Informe común"));
+  expect(informe).toMatch(/^ESTÁNDAR:/m);
+  expect(plantilla).toMatch(/^## Estándar de la tarea que se encarga$/m);
+  expect(plantilla).toMatch(/^## Tareas y su estándar$/m);
+  const orquestar = readFileSync(join(AQUI, "commands", "orquestar.md"), "utf8");
+  const brief = orquestar.slice(orquestar.indexOf("## 4. El brief"), orquestar.indexOf("## 5."));
+  expect(brief).toMatch(/npm run estandar/);
+  expect(brief).toMatch(/ESTÁNDAR A CUMPLIR/);
+  expect(brief).toMatch(/`ESTÁNDAR:`/);
+  const pkg = JSON.parse(readFileSync(join(RAIZ, "package.json"), "utf8"));
+  expect(pkg.scripts.estandar).toMatch(/scripts\/estandares-agentes\.mjs/);
+  const { cuerpo } = leer("revisor.md");
+  expect(seccion(cuerpo, "Principios")).toMatch(/npm run estandar[\s\S]*`ESTÁNDAR:`/);
+  expect(seccion(cuerpo, "Hecho")).toMatch(/ESTÁNDAR:/);
+  // Un agente sin su lista de tareas no pasa (el contenido lo compara el test de ops/).
+  for (const f of agentes) {
+    expect(leer(f).cuerpo, `${f}: falta la sección «Tareas y su estándar» (npm run estandar -- --escribir)`).toMatch(/^## Tareas y su estándar$/m);
+  }
+});
+
 it("cada agente trae precargadas las skills de su dominio, y solo esas: una sola fuente, el mapa (#397)", () => {
   // El 10 oct, `datos` editó supabase/ 9 veces en una semana sin la skill
   // supabase: no la traía precargada y nada lo pedía. El mapa dice qué

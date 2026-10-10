@@ -155,6 +155,11 @@ trabajo: devuelve «Decisiones para Pablo».
 | `lola`: el bot, herramientas, conocimiento, coste | `seguridad`: RLS, endpoints, secretos, prompts |
 | | `auditor-datos`: normalización, duplicados y cableado |
 
+Cada agente lista sus tareas y el estándar de cada una (qué es hacerla bien,
+qué comprueba, qué no hace y su fuente) en `ops/estandares-agentes.json`; el
+brief de `/orquestar` lo trae con `npm run estandar -- <agente> <tarea>` y el
+`revisor` lo contrasta (#413).
+
 Aparcados en `.claude/agentes-aparcados/`: rendimiento y arquitecto.
 
 ## Reglas por carpeta y skills
@@ -253,7 +258,10 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 ## Lo que hace cumplir esto
 
 - **`arranque.mjs`** al abrir sesión: carpeta, rama, sesiones activas, números
-  de migración cogidos, migraciones sin aplicar e issues que esperan.
+  de migración cogidos, migraciones sin aplicar, issues que esperan y con qué
+  identidad de GitHub trabajas: la App `homenu-sesiones` (commits y PR salen a su
+  nombre, sin administración) y no Pablo; si la clave no se lee, avisa y sigue
+  como Pablo (#329, skill `github`). Cambiar reglas del repo o los ajustes es de Pablo.
 - **`guardia.mjs`** antes de cada comando o edición: niega push a `main` o
   directo a staging, `git stash`, `git add .`, `vite build` a secas,
   `Set-Content`, tocar una migración aplicada (también por terminal), crear

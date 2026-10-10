@@ -117,3 +117,17 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
 - Cada tabla afectada pasó por los puntos del paso 2, y lo dice.
 - Cada dato repetido encontrado tiene sus dos (o más) ubicaciones citadas.
 - `npx vitest run supabase` pasa, con la salida.
+
+## Tareas y su estándar
+
+Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
+`ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
+tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- auditor-datos <tarea>`.
+
+Estado: pendiente. Lista de tareas hecha; el estándar de cada una está por escribir (#413).
+
+- `juzgar-migracion` — Juzgar una migración o un cambio de modelo contra PRINCIPIOS.md y dejar su veredicto en una línea
+- `buscar-datos-repetidos` — Encontrar datos repetidos entre tabla, catálogo JSON, constantes JS y prompts del bot
+- `vigilar-cableado` — Vigilar el cableado: qué ficheros tocan cada tabla y qué filtros se escriben a mano
+- `mapa-de-verdades` — Proponer el mapa de dónde vive cada hecho y quién recalcula sus proyecciones
+- `auditoria-periodica-del-modelo` — Hacer la auditoría periódica del modelo y proponer convenciones o excepciones
