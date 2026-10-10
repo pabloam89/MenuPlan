@@ -20,13 +20,16 @@ import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { AYUDA as AYUDA_CASOS, analizarCasos } from "./casos.mjs";
-import { AVISOS_CREDENCIALES, credencialDeComando } from "./credenciales.mjs";
+import { AVISO_POR_CREDENCIAL, avisoDe } from "./avisos-guardia.mjs";
+import { credencialDeComando } from "./credenciales.mjs";
 import { cargarMapa, skillsDeComando, skillsDeFicheros, unirContinuaciones } from "./dominios.mjs";
 import { enStaging as enStagingTodas } from "./migraciones.mjs";
 import { anotarSkill, dirSesiones, skillAnotada, tocar } from "./sesiones.mjs";
 
-const deny = (motivo) => ({ decision: "deny", motivo });
-const ask = (motivo) => ({ decision: "ask", motivo });
+// Cada «no» y cada pregunta es un aviso de avisos-guardia.mjs: id del aviso + datos de la acción.
+// El mensaje sale de sus cuatro partes fijas y el `codigo` es el de su norma en ops/normas.json (#494).
+const deny = (aviso, vars) => avisoDe("deny", aviso, vars);
+const ask = (aviso, vars) => avisoDe("ask", aviso, vars);
 
 // ── Comandos ───────────────────────────────────────────────────────────────
 
@@ -60,41 +63,41 @@ const REGLAS_COMANDO = [
   {
     // main es producción. Ni push ni push forzado, por ninguna variante.
     si: (o) => /^git\s+push\b/.test(o) && /(^|[\s:+])(refs\/heads\/)?main(\s|$)/.test(o),
-    da: () => deny("main es producción: no se sube nunca desde una sesión. Abre un PR a staging; el paso a main lo hace Pablo cuando lo pide."),
+    da: () => deny("push-a-main"),
   },
   {
     // A staging se llega por PR con el CI en verde. GitHub no puede exigirlo
     // todavía porque el cron de Mercadona empuja directo (ver ops/INVENTARIO.md).
     si: (o) => /^git\s+push\b/.test(o) && /(^|[\s:+])(refs\/heads\/)?staging(\s|$)/.test(o),
-    da: () => deny("A staging no se sube directo: empuja tu rama y abre un PR a staging; con el CI en verde lo puedes fusionar."),
+    da: () => deny("push-directo-a-staging"),
   },
   {
     si: (o) => /^git\s+push\b/.test(o) && /\s(-f|--force)(\s|$)/.test(o),
-    da: () => ask("Push forzado: reescribe la historia de la rama remota. ¿Es tuya y nadie más trabaja en ella?"),
+    da: () => ask("push-forzado"),
   },
   {
     // El stash es UNO para todos los worktrees: el 7 oct 2026 dos sesiones se
     // cruzaron los cambios con un push/pop simultáneo.
     si: (o) => /^git\s+stash\b/.test(o),
-    da: () => deny("git stash es común a todos los worktrees y se cruza con otras sesiones. Usa un worktree aparte o `git show origin/staging:<ruta>` para comparar."),
+    da: () => deny("stash"),
   },
   {
     // Dos veces se colaron en un commit cambios de otra sesión con `add .`.
     si: (o) => /^git\s+add\s+(.*\s)?(-A|--all|\.|:\/)(\s|$)/.test(o) || /^git\s+commit\s+(.*\s)?-[a-zA-Z]*a[a-zA-Z]*(\s|$)/.test(o),
-    da: () => deny("Nada de `git add .`, `-A` ni `commit -a`: mira `git status --short` y añade por nombre solo lo que has tocado tú."),
+    da: () => deny("add-a-ciegas"),
   },
   {
     // `vite build` a secas se salta el prebuild (catálogo + check:tdz), que es
     // el gate de Vercel. El 22 sep 2026 rompió el despliegue de staging.
     si: (o) => /(^|\s)(npx\s+)?vite\s+build\b/.test(o),
-    da: () => deny("Usa `npm run build`: `vite build` a secas se salta el prebuild (validate-catalog + check:tdz), que es lo que corre Vercel."),
+    da: () => deny("vite-build-a-secas"),
   },
   {
     // El 8 oct 2026 tres sesiones abrieron el mismo fallo (#153, #154, #159):
     // la norma pedía buscar antes y nada obligaba. El script busca los parecidos.
     // También con `VAR=x gh …`, `gh.exe` o `gh -R dueño/repo issue create`.
     si: (o) => /^(?:\w+=\S*\s+)*gh(?:\.exe)?\s+(?:(?:-R|--repo)\s+\S+\s+)?issue\s+create\b/.test(o),
-    da: () => deny("Los issues se crean con `npm run issues -- --nuevo \"título\" --tipo … --area … --cuerpo <fichero>`: antes de crear enseña los parecidos, y a Pablo le asigna las decisiones. Si ya existe uno, comenta allí."),
+    da: () => deny("issue-a-pelo"),
   },
   {
     // El 9 oct 2026 el PC tenía la CLI de Vercel con la sesión de Pablo (Owner):
@@ -110,7 +113,7 @@ const REGLAS_COMANDO = [
       ((/\benv\s+(pull|run|ls|list)\b|(^|\s)pull\b/i.test(o) &&
         (/(^|\s)(-e|--environment|--target)(=|\s+)['"]?prod(uction)?\b/i.test(o) || /\benv\s+(ls|list)\s+['"]?prod(uction)?\b/i.test(o))) ||
         /\bapi\b.*(\bdecrypt\b|\/env\b)/i.test(o)),
-    da: () => deny("Las variables de Production de Vercel son solo de Pablo (#332): tienen la clave de administrador de la base y el token del bot. Para desarrollo usa `.env.local` (direcciones `op://`); si de verdad hace falta Production, dale el comando a Pablo para que lo lance con `!`."),
+    da: () => deny("vercel-production"),
   },
   {
     // #328: la cuenta de servicio de las sesiones solo lee HoMenu-sesiones; lo
@@ -125,12 +128,12 @@ const REGLAS_COMANDO = [
     // integración de la CLI de 1Password esté apagada fuera de las operaciones
     // de Pablo.
     si: opDeSesion,
-    da: () => deny("Eso es de Pablo (#328): las sesiones leen 1Password solo con la cuenta de servicio de `HoMenu-sesiones` y siempre por `npm run op -- …` (nunca `op` a pelo: sin token iría por la app y le sacaría una ventana a Pablo). Ni `MENUPLAN_OP_PABLO`, ni tocar `OP_SERVICE_ACCOUNT_TOKEN`, ni `op://HoMenu`. Si hace falta algo de producción, dale a Pablo el comando para que lo lance desde su propia terminal. Si solo es texto de un commit, PR o issue, pásalo por fichero (`git commit -F`, `--body-file`)."),
+    da: () => deny("op-de-pablo"),
   },
   {
     // PowerShell 5.1 escribe UTF-8 con BOM y destroza los acentos.
     si: (o) => /\b(Set-Content|Out-File|Add-Content)\b/i.test(o) && !/\b(temp|tmp|scratchpad)\b/i.test(o),
-    da: () => deny("Set-Content/Out-File/Add-Content rompen los acentos y meten BOM en los ficheros del repo. Edita con la herramienta Edit/Write."),
+    da: () => deny("escribir-por-terminal"),
   },
 ];
 
@@ -144,7 +147,7 @@ const REGLAS_COMANDO = [
 // de seguridad, 8 oct 2026).
 const PABLO_EN_APLICAR = {
   si: (o) => /apply-migration\b/.test(o) && /pablo/i.test(o),
-  da: () => deny("`--pablo` es solo de Pablo: borra algo con datos o cambia RLS o permisos. Enséñale el ensayo y el veredicto del juez, y dale el comando para que lo lance con `!`."),
+  da: () => deny("apply-migration-pablo"),
 };
 
 // El Postgres del panel (Hetzner) corre en un contenedor y no es producción:
@@ -189,7 +192,7 @@ const REGLAS_SQL = [
     // SQL que escribe o cambia permisos contra una base real.
     si: (o) => (/\b(SUPABASE_DB_URL|OPS_DB_URL|pg\.Client|new\s+Client)\b/.test(o) || psqlFueraDelPanel(o))
       && /\b(drop\s+(table|schema|column|function|policy|constraint|index|view|type|trigger)|truncate|delete\s+from|alter\s+(table|type|function|policy)|update\s+[\w."]+\s+set|insert\s+into|grant|revoke|create\s+(table|policy|function|or\s+replace))\b/i.test(o),
-    da: () => deny("SQL que escribe, borra o cambia permisos contra producción (es la única base). Va en una migración por `scripts/apply-migration.mjs`; si de verdad hace falta a mano, dale el comando a Pablo para que lo lance con `!`."),
+    da: () => deny("sql-contra-produccion"),
   },
 ];
 
@@ -255,20 +258,21 @@ export function sinAplicar(estadoMd) {
  * Una migración está CERRADA si ya está en origin/staging y ESTADO.md no la da
  * por sin aplicar. Una aplicada no se edita: se escribe otra que la corrija,
  * porque producción ya ejecutó la versión vieja y nadie lo notaría.
+ * Devuelve la respuesta de la guardia (un `deny` con su aviso) o null.
  */
 export function migracionCerrada(nombre, { enStaging, estadoMd, numeroEnStaging = () => null }) {
   if (!enStaging(nombre)) {
     // Nueva en esta rama: se edita libre, salvo que su número ya lo use otra.
     const otra = numeroEnStaging(nombre.slice(0, 4));
     if (otra && otra !== nombre) {
-      return `El número ${nombre.slice(0, 4)} ya es de ${otra} en staging. Usa el siguiente libre (te lo dice el arranque de la sesión).`;
+      return deny("migracion-numero-ocupado", { numero: nombre.slice(0, 4), otra });
     }
     return null;
   }
   const libres = estadoMd ? sinAplicar(estadoMd) : null;
-  if (!libres) return `No puedo leer supabase/ESTADO.md para saber si ${nombre} está aplicada. Compruébalo antes de editarla.`;
+  if (!libres) return deny("migracion-estado-ilegible", { nombre });
   if (libres.has(nombre)) return null;
-  return `${nombre} ya está aplicada en producción (no figura «sin aplicar» en supabase/ESTADO.md). No se edita: escribe una migración nueva con el siguiente número libre.`;
+  return deny("migracion-aplicada", { nombre });
 }
 
 // ── La carpeta principal ───────────────────────────────────────────────────
@@ -297,8 +301,6 @@ export function carpetaDe(cmd, orden, cwd) {
 const GIT_QUE_ESCRIBE = /^git\s+(?:-C\s+(?:"[^"]+"|'[^']+'|\S+)\s+)?(add|commit|merge|rebase|cherry-pick|checkout|switch|reset|restore|revert|am|apply)\b/;
 /** Lo que sí vale en la principal: ponerla al día y volver a staging. */
 const GIT_DE_MANTENER = /\bmerge\s+(.*\s)?--ff-only\b|\b(checkout|switch)\s+staging\s*$/;
-
-const EN_LA_PRINCIPAL = "Estás en la carpeta principal (C:\\dev\\MenuPlan): es de todas las sesiones y en ella no se trabaja, solo se mira y se lanza `npm run tarea`. Abre la tuya con `npm run tarea -- <area>/<nombre>` y trabaja allí.";
 
 export function contextoReal(raiz, entrada = {}) {
   let deStaging;
@@ -470,16 +472,15 @@ function puertaDeSkills(skillsDe, entrada, ctx, que = "comando") {
   const faltan = skillsDe(ctx.dominios).filter((s) => !delAgente.includes(s) && !ctx.skillAbierta(s));
   const avisadas = faltan.filter((s) => ctx.marcarSkill(s));
   if (!avisadas.length) return null;
-  const lista = avisadas.map((s) => `\`${s}\``).join(" y ");
-  const abre = avisadas.map((s) => `Skill con skill: "${s}"`).join(" y ");
-  const inicio = que === "edicion"
-    ? `Este fichero es de un dominio con runbook: ${avisadas.length > 1 ? "sus skills tienen" : "su skill tiene"} lo que ya falló aquí y cómo se hace. `
-    : `Este comando es de los que, mal hechos, cuestan caro, y ${avisadas.length > 1 ? "sus dominios tienen" : "su dominio tiene"} runbook con lo que ya falló aquí. `;
-  return deny(
-    inicio +
-    `Abre antes ${avisadas.length > 1 ? "las skills" : "la skill"} ${lista} (herramienta ${abre}) y reintenta ${que === "edicion" ? "la misma edición" : "el mismo comando"}. ` +
-    "Este aviso sale una sola vez por skill y sesión: al reintentar pasa.",
-  );
+  const plural = avisadas.length > 1;
+  const vars = {
+    lista: avisadas.map((s) => `\`${s}\``).join(" y "),
+    abre: avisadas.map((s) => `Skill con skill: "${s}"`).join(" y "),
+    las_skills: plural ? "las skills" : "la skill",
+    su_dominio_tiene: plural ? "sus dominios tienen" : "su dominio tiene",
+    sus_skills_tienen: plural ? "sus skills tienen" : "su skill tiene",
+  };
+  return que === "edicion" ? deny("puerta-de-skill-edicion", vars) : deny("puerta-de-skill-comando", vars);
 }
 
 // ── La decisión ────────────────────────────────────────────────────────────
@@ -500,14 +501,14 @@ export function decidir(entrada, ctx) {
     // nombra no cuenta (`sinTextos`). Filtro de buena fe; la barrera de fondo es
     // que Pablo cierre la sesión de gh y quite el manager de credenciales.
     const cred = credencialDeComando(cmd, { powershell: herramienta === "PowerShell" });
-    if (cred) return deny(AVISOS_CREDENCIALES[cred]);
+    if (cred) return deny(AVISO_POR_CREDENCIAL[cred]);
     for (const o of ordenes(cmd)) {
       for (const r of REGLAS_COMANDO) if (r.si(o)) return r.da(o);
 
       // Una sesión, una carpeta: en la principal no se commitea ni se cambia de
       // rama (el 8 oct 2026 había tres sesiones trabajando a la vez en ella).
       if (GIT_QUE_ESCRIBE.test(o) && !GIT_DE_MANTENER.test(o) && ctx.esPrincipal(carpetaDe(cmd, o, entrada.cwd ?? ""))) {
-        return deny(EN_LA_PRINCIPAL);
+        return deny("carpeta-principal");
       }
 
       // Un PR con la rama atrasada respecto a staging choca con lo que acaban
@@ -530,7 +531,7 @@ export function decidir(entrada, ctx) {
           const cuerpo = fichero ? ctx.leer(windows(fichero[1] ?? fichero[2] ?? fichero[3]), dir) ?? "" : "";
           const texto = `${cmd}\n${cuerpo}`;
           if (!new RegExp(String.raw`\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?\s+#${issue}\b`, "i").test(texto)) {
-            return deny(`Tu rama es del issue #${issue}: pon \`Closes #${issue}\` en el cuerpo del PR (y la línea \`Agente: <nombre>\`), para que se cierre al fusionar y quede la traza.`);
+            return deny("pr-sin-closes", { issue });
           }
         }
         // La línea «Casos:» (#185): cada PR dice qué fallos del camino ha
@@ -539,31 +540,31 @@ export function decidir(entrada, ctx) {
         const ficheroCasos = o.match(/(?:-F|--body-file)(?:\s+|=)(?:"([^"]+)"|'([^']+)'|(\S+))/);
         const cuerpoCasos = ficheroCasos ? ctx.leer(windows(ficheroCasos[1] ?? ficheroCasos[2] ?? ficheroCasos[3]), dir) ?? "" : "";
         const casos = analizarCasos(`${cmd}\n${cuerpoCasos}`, { enComando: true });
-        if (!casos.valida) return deny(`${casos.motivo} ${AYUDA_CASOS} (El CI lo vuelve a comprobar.)`);
+        if (!casos.valida) return deny("pr-sin-casos", { motivo: casos.motivo, ayuda: AYUDA_CASOS });
         const atraso = ctx.atrasoLocal(dir);
-        if (atraso === null) return ask("No he podido comprobar si tu rama tiene lo último de staging. Haz `git fetch origin staging` y `git merge origin/staging` antes de abrir el PR.");
-        if (atraso > 0) return deny(`Tu rama va ${atraso} commit(s) por detrás de staging. Antes de abrir el PR: \`git fetch origin staging\`, \`git merge origin/staging\`, resuelve, pasa los tests y empuja.`);
+        if (atraso === null) return ask("rama-sin-comprobar");
+        if (atraso > 0) return deny("rama-atrasada", { atraso });
         continue;
       }
 
       // gh -R/--repo … pr merge: la base no se puede leer de la rama actual.
       if (/^gh\s+(?:-R|--repo)\b[\s\S]*\bpr\s+merge\b/.test(o)) {
-        return deny("`gh -R … pr merge` no deja comprobar la base del PR. Fusiona desde la carpeta del repo, con el número del PR.");
+        return deny("fusion-con-repo-ajeno");
       }
       // gh pr edit --base: cambiar la base de un PR a algo que no es staging lo
       // lleva a producción al fusionarlo (juez de seguridad del PR #223).
       const nuevaBase = /^gh\s+pr\s+edit\b/.test(o) ? o.match(/(?:^|\s)(?:--base|-B)(?:\s+|=)?["']?([^\s"']+)/) : null;
       if (nuevaBase && nuevaBase[1] !== "staging") {
-        return deny(`Cambiar la base de un PR a ${nuevaBase[1]} lo llevaría fuera de staging. Eso solo lo hace Pablo.`);
+        return deny("base-cambiada", { base: nuevaBase[1] });
       }
       // gh api: fusionar, cambiar la base o borrar por la API se salta todo lo
       // de aquí, también con la skill abierta (re-juicio del PR #223).
       if (/^gh\s+api\b/.test(o) && /\/pulls\/\d+\/merge\b|mergePullRequest|baseRefName|\bbase=|(?:-X|--method)[\s=]*DELETE\b/i.test(o)) {
-        return deny("Fusionar, cambiar la base de un PR o borrar por `gh api` se salta la guardia. Usa `gh pr merge <n>` (a staging) o pídeselo a Pablo.");
+        return deny("fusion-por-api");
       }
       // Borrar issues o etiquetas no tiene vuelta atrás.
       if (/^gh\s+(?:issue\s+(?:delete|transfer)|label\s+delete)\b/.test(o)) {
-        return deny("Borrar o trasladar un issue, o borrar una etiqueta, no tiene vuelta atrás. Ciérralo o retírala con `npm run issues -- --etiquetas`.");
+        return deny("borrar-issue");
       }
       // gh pr merge: solo a staging, y con el PR justo detrás de `merge`
       // (número, #número o la URL de este repo). Buscarlo en otro sitio se
@@ -573,21 +574,21 @@ export function decidir(entrada, ctx) {
       if (/^gh\s+pr\s+merge\b/.test(o)) {
         const tras = [...o.replace(/^gh\s+pr\s+merge\b/, "").matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3]);
         const pr = tras[0]?.match(/^(?:#?(\d+)|https:\/\/github\.com\/pabloam89\/MenuPlan\/pull\/(\d+)\/?)$/i);
-        if (!pr) return deny("Pon el número del PR justo detrás de `merge` (`gh pr merge 230 --squash`): así la guardia mira el mismo PR que fusiona gh.");
+        if (!pr) return deny("fusion-sin-numero");
         merge = [o, pr[1] ?? pr[2]];
       }
       if (merge && /(?:^|\s)--auto\b/.test(o)) {
-        return deny("`gh pr merge --auto` fusiona más tarde, cuando nadie mira la base. Fusiona a mano con el CI en verde.");
+        return deny("fusion-auto");
       }
       if (merge) {
         const base = ctx.baseDelPr(merge[1]);
-        if (base === null) return ask("No he podido leer la rama base de este PR. Si no es staging, solo Pablo lo fusiona.");
-        if (base !== "staging") return deny(`Este PR va contra ${base}, no contra staging. Fusionar fuera de staging solo lo hace Pablo.`);
+        if (base === null) return ask("fusion-base-ilegible");
+        if (base !== "staging") return deny("fusion-fuera-de-staging", { base });
         const choques = ctx.choquesDelPr(merge[1]);
-        if (choques === null) return ask("No he podido comprobar si staging ha tocado lo mismo que este PR. Míralo antes de fusionar.");
+        if (choques === null) return ask("pr-choques-sin-comprobar");
         if (choques.length) {
           const lista = choques.slice(0, 5).join(", ") + (choques.length > 5 ? ` y ${choques.length - 5} más` : "");
-          return deny(`Desde que se abrió este PR, staging ha cambiado sus mismos ficheros (${lista}): el CI no los ha probado juntos. Ponlo al día (\`gh pr update-branch${merge[1] ? ` ${merge[1]}` : ""}\` o merge de origin/staging y push), espera el CI en verde y fusiona.`);
+          return deny("pr-pisado-por-staging", { lista, pr: merge[1] ? ` ${merge[1]}` : "" });
         }
         continue;
       }
@@ -601,14 +602,14 @@ export function decidir(entrada, ctx) {
       // en staging, moverla o borrarla es tocar una aplicada.
       if (como !== "escribe" && !ctx.enStaging(nombre)) continue;
       const motivo = migracionCerrada(nombre, ctx);
-      if (motivo) return deny(motivo);
+      if (motivo) return motivo;
     }
     // La puerta de lectura va la última entre los «no»: una orden que otra regla
     // ya niega no gasta el aviso. Se mira el comando ENTERO (no un tramo).
     const puerta = puertaDeSkills((mapa) => skillsDeComando(cmd, mapa), entrada, ctx);
     if (puerta) return puerta;
     if (tocaEn(cmd, RUTA_LOLA).length) {
-      return ask("Esto escribe en lo que lee Lola desde la shell. Mejor con Edit: así se carga `.claude/rules/lola.md`. Y si cambia lo que lee Lola, pasa los evals (`scripts/bot-evals.mjs`) antes de mergear.");
+      return ask("escribir-lo-de-lola");
     }
     return null;
   }
@@ -618,9 +619,9 @@ export function decidir(entrada, ctx) {
     const m = ruta.match(/supabase[\\/]migrations[\\/](\d{4}_[\w-]+)\.sql$/);
     if (m) {
       const motivo = migracionCerrada(m[1], ctx);
-      if (motivo) return deny(motivo);
+      if (motivo) return motivo;
     }
-    if (ctx.rutaEnPrincipal(ruta)) return deny(EN_LA_PRINCIPAL);
+    if (ctx.rutaEnPrincipal(ruta)) return deny("carpeta-principal");
     // La puerta de las skills también al editar (#397), la última entre los
     // «no»: una edición que otra regla ya niega no gasta el aviso.
     const delRepo = ctx.rutaDelRepo?.(ruta);
@@ -767,7 +768,7 @@ if (esPrincipal) {
     console.error(`[guardia] entrada ilegible: ${e.message}`);
   }
   if (!entrada || typeof entrada !== "object") {
-    await responder(ask("La guardia no ha podido leer esta orden, así que no sabe si es segura. ¿La dejas pasar?"));
+    await responder(ask("entrada-ilegible"));
     process.exit(0);
   }
   // La raíz del worktree donde se trabaja, no CLAUDE_PROJECT_DIR (que apunta a
@@ -796,10 +797,11 @@ if (esPrincipal) {
     try {
       if (!hayTiempoParaRegistrar(INICIO)) throw new Error("la guardia ya tardó demasiado: sin registro");
       const registro = (async () => {
-        const { familiaDeGuardia, registrarEvento } = await import("./eventos.mjs");
+        const { registrarEvento } = await import("./eventos.mjs");
         registrarEvento({
           evento: r.decision === "deny" ? "bloqueo_guardia" : "permiso_pedido",
-          nombre: familiaDeGuardia(r.motivo),
+          nombre: r.aviso,
+          codigo: r.codigo,
           sesion: entrada.session_id,
           cwd: entrada.cwd || raiz,
         });
