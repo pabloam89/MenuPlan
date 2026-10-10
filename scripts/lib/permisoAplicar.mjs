@@ -16,7 +16,10 @@
  *      o crea `security definer`, que venga `--pablo`. Esa opción la guardia se
  *      la niega a cualquier sesión: solo la usa Pablo con `!`. La RLS y el
  *      revoke de una tabla creada en la misma migración no cuentan (PRINCIPIOS
- *      §8 los exige en toda tabla nueva).
+ *      §8 los exige en toda tabla nueva). Tampoco (#440) quitar a `anon` la
+ *      plantilla de tablas y secuencias nuevas de `public` (`alter default
+ *      privileges … revoke … from anon`, forma exacta en `sinRevokeAnonPorDefecto`);
+ *      cualquier otro permiso por defecto sí.
  *
  * Lo comprueba el script y no la buena fe de quien lo lanza, y vale igual para
  * Pablo que para una sesión. El SQL a mano contra la base sigue negado por la
@@ -53,6 +56,10 @@ const nombreTabla = (s) => s.replace(/"/g, "").replace(/^public\./i, "").toLower
  * Quita los comentarios (`--` y `/* *\/`) sin tocar lo que va entre comillas
  * simples: un `'--'` dentro de un literal no es un comentario.
  */
+// OJO (#440, fondo aparte): este lexer no entiende comillas dobles ni
+// dollar-quotes (un `--` dentro de un identificador entre comillas dobles o de
+// un cuerpo con dólares) ni `/* */` anidados. Es anterior a la lista blanca de
+// `anon` y no se arregla aquí.
 export function sinComentarios(sql) {
   const s = String(sql);
   let out = "";
@@ -80,6 +87,32 @@ export function sinComentarios(sql) {
 const tablasDeLista = (lista) => lista.split(",").map((t) => nombreTabla(t.trim().split(/\s+/)[0])).filter(Boolean);
 
 /**
+ * Lista blanca (#440, caso de la 0096): la ÚNICA forma de `alter default
+ * privileges` que no hace falta que lance una persona. Quita a `anon` la
+ * plantilla de las tablas o secuencias que `postgres` cree en `public` de ahora
+ * en adelante: no cambia ni un permiso de lo que existe. Todo lo que no case
+ * letra por letra (otro rol, otro esquema, funciones, `grant`, `cascade`,
+ * comillas, varios roles…) sigue siendo de Pablo. Se mira sobre el texto sin
+ * comentarios y en minúsculas, y solo si la sentencia empieza donde empieza una
+ * sentencia (inicio, tras `;`, `begin` o la apertura de un `$$`): una cola
+ * pegada a un `grant … to` no cuenta.
+ */
+// Espacio en blanco explícito: la clase de escape de espacio de JS admite
+// también espacios raros (nbsp…) que Postgres no trata como separador.
+const S = "[ \\t\\r\\n\\f]";
+const PRIV_TABLA = "(?:select|insert|update|delete|truncate|references|trigger|maintain)";
+const PRIV_SECUENCIA = "(?:usage|select|update)";
+const lista = (p) => `(?:all(?:${S}+privileges)?|${p}(?:${S}*,${S}*${p})*)`;
+const RE_REVOKE_ANON_POR_DEFECTO = new RegExp(
+  `(^|;|\\$[\\w]*\\$|\\bbegin\\b)(${S}*)alter${S}+default${S}+privileges${S}+for${S}+role${S}+postgres${S}+in${S}+schema${S}+public${S}+revoke${S}+` +
+    `(?:${lista(PRIV_TABLA)}${S}+on${S}+tables|${lista(PRIV_SECUENCIA)}${S}+on${S}+sequences)${S}+from${S}+anon${S}*(?=;|$)`,
+  "g",
+);
+
+/** El código sin las sentencias de la lista blanca (que dejan de contar). */
+export const sinRevokeAnonPorDefecto = (codigo) => String(codigo).replace(RE_REVOKE_ANON_POR_DEFECTO, "$1$2");
+
+/**
  * Por qué esta migración la lanza Pablo (vacío = no hace falta). Ante la duda,
  * es suya: se mira lo que HACE el SQL, no solo su cabecera. Borrar o vaciar
  * datos, cambiar el tipo de una columna, tocar RLS o permisos de algo que ya
@@ -93,7 +126,7 @@ export function motivosDePablo(sql) {
   // El cuerpo de una función (`as $x$ … $x$`) no se ejecuta al aplicar: un
   // `update` dentro de una RPC no toca datos ahora. Los bloques `do $$ … $$`
   // sí se ejecutan, y se quedan.
-  const codigo = conCuerpos.replace(/\bas\s+(\$[\w]*\$)[\s\S]*?\1/g, "as $cuerpo$");
+  const codigo = sinRevokeAnonPorDefecto(conCuerpos.replace(/\bas\s+(\$[\w]*\$)[\s\S]*?\1/g, "as $cuerpo$"));
   // Solo cuenta como nueva una tabla creada sin `if not exists`: con él, la
   // tabla puede existir ya y la RLS que se le ponga sería la de una ajena.
   const nuevas = new Set([...codigo.matchAll(/create\s+(?:unlogged\s+)?table\s+(?!if\s+not\s+exists)([\w."]+)/g)].map((m) => nombreTabla(m[1])));
@@ -131,6 +164,10 @@ export function motivosDePablo(sql) {
     if (!/security_invoker\s*=\s*(?:true|on)/.test(m[1])) r.push("crea una vista sin `security_invoker` (se salta la RLS)");
   }
   // SQL dinámico: lo que ejecuta no se puede leer aquí.
+  // Huecos conocidos de esta clasificación (fondo #174, caso #443), fuera de #440:
+  // el lexer de comillas de `sinComentarios`, los cuerpos de función que se
+  // quitan antes de mirar (un `execute` dentro no se ve) y un `cron.schedule`
+  // con el texto armado por partes. La lista blanca de `anon` no depende de ellos.
   if (/\bexecute\s+(?:format\s*\(|'|\$)/.test(codigo) || /\bexecute\s+[\w]+\s*;/.test(codigo)) r.push("ejecuta SQL dinámico (`execute`), que este script no puede revisar");
   return [...new Set(r)];
 }
