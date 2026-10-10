@@ -94,25 +94,15 @@ Los tipos retirados al migrar (#495) y a cuáles pasan; no vuelven a usarse:
 | rubrica_juez | revision |
 | investigacion | procedimiento |
 | meta | revision |
-| forja |  |
+| forja | sin sucesor |
 
-Por skill (`migracion_tipos`, sacada de `tipoDeSkill` y comprobada contra el frontmatter por `ops/forja-tipos.test.js` y `.claude/skills.test.js`):
+Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su `tipo`, que tiene que ser el que ellas dan: la base es norma y no guarda datos de cada pieza (`ops/forja-tipos.test.js` y `.claude/skills.test.js`). Niveles:
 
-| Skill | Tipo |
+| Nivel | Qué es |
 |---|---|
-| github | servicio |
-| vercel | servicio |
-| supabase | servicio |
-| telegram | servicio |
-| hetzner | servicio |
-| tailscale | servicio |
-| 1password | servicio |
-| alta-de-secreto | procedimiento |
-| causa-raiz | diagnostico |
-| plan-de-arreglo | decision |
-| issues | flujo |
-| higiene-de-skills | revision |
-| estilo-de-respuesta | conocimiento |
+| 0 | Pieza meta de una familia (skills hoy; la de estándares vendrá): de ella salen las plantillas por tipo. Sin tipo de skill y exactamente una por familia |
+| 1 | Plantilla por tipo, generada en .claude/plantillas-skill/<tipo>.md: no es una skill |
+| 2 | Skill concreta, con su tipo (el que dan sus respuestas); es el nivel si la ficha no dice otro |
 
 Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que le tocan, `tipos` de cada criterio) → cada skill. Criterios de skill por tipo y capa:
 
@@ -141,7 +131,7 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 
 | Artefacto | Campos discretos | Huecos de texto | Campos |
 |---|---|---|---|
-| skill | 7 | 1 | 8 |
+| skill | 13 | 2 | 15 |
 | estandar | 2 | 5 | 7 |
 | agente | 3 | 1 | 4 |
 | criterio | 2 | 6 | 8 |
@@ -153,6 +143,13 @@ El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; ti
 - `name` — ref a skill
 - `description` — texto. Hueco: El cuándo se abre la skill dicho con las palabras de quien pide: lo discreto no lo alcanza, es prosa para que el modelo reconozca una petición
 - `tipo` — enum (tipos_skill), opcional
+- `opera_proveedor` — bool, opcional
+- `juzga_artefacto` — bool, opcional
+- `encadena` — bool, opcional
+- `pasos_fijos` — bool, opcional
+- `sintoma_a_causa` — bool, opcional
+- `elige_opciones` — bool, opcional
+- `porque_tipo` — texto, opcional. Hueco: Por qué responde así cuando la respuesta no es evidente (una skill que podría parecer de otro tipo): el motivo cambia con cada skill
 - `nivel` — enum (niveles), opcional
 - `dueno` — ref a agente
 - `comprobado` — fecha

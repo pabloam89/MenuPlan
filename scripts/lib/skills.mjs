@@ -48,7 +48,7 @@ export const nivelDe = (metadata) => (metadata?.nivel === undefined ? NIVEL_SKIL
 /** Las reglas del nivel 1. Cada falta lleva una de estas claves: se pueden contar. */
 export const REGLAS = {
   frontmatter: "name igual a la carpeta, description que enruta («Úsala …», «No para:»), y solo name, description y metadata",
-  tipo: "metadata.tipo es uno de los ocho de ops/forja.json y el que dan sus respuestas en respuestas_tipo (tipoDeSkill)",
+  tipo: "metadata.tipo es uno de los de ops/forja.json y el que dan las respuestas de su ficha a preguntas_tipo (tipoDeSkill); la pieza meta (nivel 0), sin tipo ni respuestas",
   dueno: "metadata.dueno es un agente de .claude/agents/ que la carga en su `skills:`",
   comprobado: "metadata.comprobado es una fecha AAAA-MM-DD, no futura, y el texto dice qué se comprobó ese día",
   caducada: "una skill que toca el PR no tiene su comprobado de hace más de PLAZO_COMPROBADO_DIAS (lo mira scripts/skills-pr.mjs, no npm test)",
@@ -139,6 +139,8 @@ const RUTA_CITADA = /`((?:\.claude|\.github|ops|supabase|docs|specs|src|scripts|
  */
 // Un valor YAML entre comillas ("2026-10-09") es la misma cadena sin ellas.
 const sinComillas = (v) => v.replace(/^(["'])(.*)\1$/, "$2");
+// true y false sin comillas son las respuestas a las preguntas del tipo (#495): booleanos, como en YAML.
+const valorDe = (v) => (v === "true" ? true : v === "false" ? false : sinComillas(v));
 
 export function parsearSkill(texto) {
   const t = String(texto).replace(/\r\n/g, "\n");
@@ -148,7 +150,7 @@ export function parsearSkill(texto) {
   let dentro = null;
   for (const linea of m[1].split("\n")) {
     const hijo = linea.match(/^ {2}(\w+):\s*(.*)$/);
-    if (hijo && dentro) { meta[dentro][hijo[1]] = sinComillas(hijo[2].trim()); continue; }
+    if (hijo && dentro) { meta[dentro][hijo[1]] = valorDe(hijo[2].trim()); continue; }
     const top = linea.match(/^(\w+):\s*(.*)$/);
     if (!top) { dentro = null; continue; }
     if (top[2].trim() === "") { meta[top[1]] = {}; dentro = top[1]; } else { meta[top[1]] = top[2].trim(); dentro = null; }
@@ -219,7 +221,6 @@ export function cargarContexto(raiz = RAIZ, hoy = new Date()) {
     hoy,
     tipos: tiposDeForja(forja),
     seccionesMeta: forja.nivel_0?.skills?.secciones ?? null,
-    respuestas: forja.respuestas_tipo ?? {},
     preguntas: forja.preguntas_tipo ?? [],
     agentes: agentesYSkills(raiz),
     skills: nombres,
@@ -246,17 +247,21 @@ function reglaFrontmatter(nombre, meta) {
   return f;
 }
 
-function reglaTipo(nombre, m, ctx) {
+function reglaTipo(m, ctx) {
   const nivel = nivelDe(m);
-  if (nivel === NIVEL_META) return m.tipo ? [falta("tipo", `es la pieza meta (nivel ${NIVEL_META}): no lleva tipo de skill`)] : [];
+  const claves = (ctx.preguntas ?? []).map((p) => p.clave);
+  if (nivel === NIVEL_META) {
+    const sobran = ["tipo", ...claves].filter((k) => k in m);
+    return sobran.length ? [falta("tipo", `es la pieza meta (nivel ${NIVEL_META}): no lleva tipo de skill ni respuestas (${sobran.join(", ")})`)] : [];
+  }
   if (nivel !== NIVEL_SKILL) return [falta("tipo", `metadata.nivel «${nivel}»: una skill es ${NIVEL_META} (la pieza meta) o ${NIVEL_SKILL}; el 1 son las plantillas`)];
   if (!m.tipo) return [falta("tipo", "falta metadata.tipo")];
   if (!ctx.tipos.includes(m.tipo) || !(m.tipo in SECCIONES_POR_TIPO)) return [falta("tipo", `«${m.tipo}» no es ninguno de los de ops/forja.json: ${ctx.tipos.join(", ")}`)];
-  // El tipo no se elige: sale de sus respuestas (#495).
-  const r = ctx.respuestas?.[nombre];
-  if (!r) return [falta("tipo", `sin respuestas en respuestas_tipo de ops/forja.json: apunta sí o no a cada pregunta de preguntas_tipo`)];
-  const derivado = tipoDeSkill(r, ctx.preguntas);
-  if (derivado !== m.tipo) return [falta("tipo", `metadata.tipo dice «${m.tipo}» y sus respuestas en ops/forja.json dan «${derivado}»`)];
+  // El tipo no se elige: sale de las respuestas que declara su ficha (#495).
+  const faltan = claves.filter((k) => typeof m[k] !== "boolean");
+  if (faltan.length) return [falta("tipo", `su ficha no responde con true o false a ${faltan.join(", ")} (preguntas_tipo de ops/forja.json)`)];
+  const derivado = tipoDeSkill(m, ctx.preguntas);
+  if (derivado !== m.tipo) return [falta("tipo", `metadata.tipo dice «${m.tipo}» y sus respuestas dan «${derivado}»`)];
   return [];
 }
 
@@ -384,7 +389,7 @@ export function faltasDeSkill(skill, ctx) {
   const { meta, cuerpo, texto } = parsearSkill(skill.texto);
   const f = [...reglaFrontmatter(skill.nombre, meta)];
   const m = typeof meta?.metadata === "object" ? meta.metadata : {};
-  f.push(...reglaTipo(skill.nombre, m, ctx), ...reglaDueno(skill.nombre, m, ctx), ...reglaComprobado(m, texto, ctx));
+  f.push(...reglaTipo(m, ctx), ...reglaDueno(skill.nombre, m, ctx), ...reglaComprobado(m, texto, ctx));
   // La pieza meta no sigue el molde de un tipo: su forma la fija la forja (nivel_0 de ops/forja.json).
   const esMeta = nivelDe(m) === NIVEL_META;
   const tipo = esMeta ? null : m.tipo in SECCIONES_POR_TIPO ? m.tipo : "servicio";

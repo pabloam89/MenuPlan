@@ -3,6 +3,12 @@ name: hetzner
 description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a la máquina, el cortafuegos y los puertos, actualizar o reiniciar, Docker y el Postgres del panel, las copias y restaurarlas (también la copia nocturna cifrada de la base de MenuPlan, su ensayo y rotar su clave de cifrado), el disco o la memoria, o crear otro servidor. No para: la red privada y quién puede entrar (tailscale), la llave SSH y las demás claves (1password, alta-de-secreto) ni la base de MenuPlan (supabase).
 metadata:
   tipo: servicio
+  opera_proveedor: true
+  juzga_artefacto: false
+  encadena: false
+  pasos_fijos: false
+  sintoma_a_causa: false
+  elige_opciones: false
   dueno: gobierno
   comprobado: "2026-10-09"
 ---

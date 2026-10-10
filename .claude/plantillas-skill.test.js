@@ -29,11 +29,13 @@ describe("las secciones de cada tipo cuadran con la forja", () => {
   });
   it("falla con un tipo de más, uno de menos, una sección sin pista o una pista sin sección", () => {
     const d = clon();
-    d.tipos_skill.push({ ...d.tipos_skill[0], id: "nuevo" });
+    // Un tipo sin «secciones» no tiene molde.
+    const { secciones: _sinSecciones, ...sinSecciones } = d.tipos_skill[0];
+    d.tipos_skill.push({ ...sinSecciones, id: "nuevo" });
     expect(problemasDePlantillas(d).join("\n")).toContain("tipo nuevo: está en tipos_skill");
     const e = clon();
     e.tipos_skill = e.tipos_skill.filter((t) => t.id !== "flujo");
-    expect(problemasDePlantillas(e).join("\n")).toContain("tipo flujo: tiene secciones y no está en tipos_skill");
+    expect(problemasDePlantillas(e, SECCIONES_POR_TIPO).join("\n")).toContain("tipo flujo: tiene secciones y no está en tipos_skill");
     expect(problemasDePlantillas(datos, { ...SECCIONES_POR_TIPO, flujo: ["Método", "Inventada", "Fuentes y comprobación"] }).join("\n")).toContain("«Inventada» no tiene pista");
     expect(problemasDePlantillas(datos, SECCIONES_POR_TIPO, { ...PISTAS, Huérfana: "una pista que no es de nadie" }).join("\n")).toContain("la pista de «Huérfana»");
     expect(problemasDePlantillas(datos, { ...SECCIONES_POR_TIPO, flujo: ["Método", "Método", "Fuentes y comprobación"] }).join("\n")).toContain("repite");

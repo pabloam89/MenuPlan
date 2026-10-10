@@ -1,8 +1,8 @@
 // plantillas.mjs — la plantilla de cada tipo de skill, generada desde la forja (#495).
 //
 //   npm run plantillas                 dice qué moldes de .claude/plantillas-skill/ no están al día (sale con 1 si alguno)
-//   npm run plantillas -- --escribir   los regenera desde ops/forja.json, las secciones de
-//                                      scripts/lib/plantillasSkill.mjs y el estándar de .claude/PLANTILLA-SKILL.md,
+//   npm run plantillas -- --escribir   los regenera desde ops/forja.json (tipos, sus secciones, preguntas, ficha y criterios)
+//                                      y el estándar de .claude/PLANTILLA-SKILL.md,
 //                                      y borra los de un tipo que ya no está en la forja
 //
 // Una línea por molde: `plantilla ruta: <ruta> estado: igual|distinto|falta|sobra`.

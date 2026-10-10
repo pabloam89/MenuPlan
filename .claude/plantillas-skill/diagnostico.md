@@ -1,6 +1,6 @@
 # Plantilla de skill: diagnostico
 
-<!-- Generado desde ops/forja.json (tipos_skill, preguntas_tipo, campos_ficha y criterios), las secciones de scripts/lib/plantillasSkill.mjs y el estándar de .claude/PLANTILLA-SKILL.md, con «npm run plantillas -- --escribir». No se edita a mano: .claude/plantillas-skill.test.js lo compara. -->
+<!-- Generado desde ops/forja.json (tipos_skill con sus secciones, preguntas_tipo, campos_ficha y criterios) y el estándar de .claude/PLANTILLA-SKILL.md, con «npm run plantillas -- --escribir». No se edita a mano: .claude/plantillas-skill.test.js lo compara. -->
 
 El molde de una skill de tipo `diagnostico`: se copia el esqueleto y se rellena. Lo que vale para todos los tipos (claves, capas, casos de prueba, tamaño, caducidad) está en `.claude/PLANTILLA-SKILL.md`.
 
@@ -21,7 +21,7 @@ Las preguntas, en el orden en que se hacen; manda la primera con sí:
 5. `sintoma_a_causa` — ¿Va de un síntoma a su causa? → `diagnostico`
 6. `elige_opciones` — ¿Elige entre opciones con criterios? → `decision`
 
-Las respuestas de cada skill (sí o no a cada pregunta) van en `respuestas_tipo` de `ops/forja.json`; `tipoDeSkill` las convierte en el tipo, y el nivel 1 (`.claude/skills.test.js`) falla si el `tipo` del frontmatter no es ese.
+Cada skill declara sus respuestas (`true` o `false` a cada pregunta) en su frontmatter, junto a su `tipo`; `tipoDeSkill` las convierte en el tipo, y el nivel 1 (`.claude/skills.test.js`) falla si el `tipo` no es ese. Si una respuesta no es evidente, `porque_tipo` dice por qué.
 
 ## Secciones obligatorias, en orden
 
@@ -43,6 +43,12 @@ name: <igual que la carpeta>
 description: Úsala <cuándo, con las palabras de quien pide>. No para: <lo que es de otra skill, regla o agente>.
 metadata:
   tipo: diagnostico
+  opera_proveedor: false
+  juzga_artefacto: false
+  encadena: false
+  pasos_fijos: false
+  sintoma_a_causa: true
+  elige_opciones: false
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
 ---
@@ -89,6 +95,13 @@ Los de `campos_ficha.skill` de `ops/forja.json`; lo que no está declarado no va
 | `name` | ref | sí | una skill que existe |
 | `description` | texto | sí | hueco de texto |
 | `tipo` | enum | no | `diagnostico` |
+| `opera_proveedor` | bool | no | `true` o `false` |
+| `juzga_artefacto` | bool | no | `true` o `false` |
+| `encadena` | bool | no | `true` o `false` |
+| `pasos_fijos` | bool | no | `true` o `false` |
+| `sintoma_a_causa` | bool | no | `true` o `false` |
+| `elige_opciones` | bool | no | `true` o `false` |
+| `porque_tipo` | texto | no | hueco de texto |
 | `nivel` | enum | no | `0`, `1`, `2` |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |

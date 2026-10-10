@@ -418,14 +418,16 @@ function problemasDeTipos(c, d, datos, malos) {
 }
 
 /**
- * La taxonomía y la migración. `skills`: los nombres de las skills del repo;
- * `tipoActualDe`: skill → su metadata.tipo hoy. `destino_tipos_actuales` guarda los
- * tipos retirados al migrar (#495) y a cuáles pasan: ninguno puede volver a ser un
- * tipo ni a estar en una skill.
+ * La taxonomía. `skills`: los nombres de las skills del repo; `fichaDe`: skill → su
+ * `metadata` (con las respuestas ya como true o false). Cada skill de nivel 2 declara
+ * en su ficha sus respuestas a `preguntas_tipo` y su `tipo`, que tiene que ser el que
+ * ellas dan; la base no guarda datos de cada pieza (#495). `destino_tipos_actuales`
+ * guarda los tipos retirados y a cuáles pasan: ninguno vuelve a ser un tipo ni a estar en una skill.
  */
-export function problemasDeTaxonomia(datos, { skills: todas, tipoActualDe = {}, nivelDe = {} }) {
-  // La pieza meta (nivel 0) no tiene tipo: ni respuestas ni migración.
-  const metas = todas.filter((s) => String(nivelDe[s] ?? "2") === "0");
+export function problemasDeTaxonomia(datos, { skills: todas, fichaDe = {} }) {
+  const nivel = (s) => String(fichaDe[s]?.nivel ?? "2");
+  // La pieza meta (nivel 0) no tiene tipo ni respuestas.
+  const metas = todas.filter((s) => nivel(s) === "0");
   const skills = todas.filter((s) => !metas.includes(s));
   const malos = [];
   const tipos = datos.tipos_skill ?? [];
@@ -435,7 +437,7 @@ export function problemasDeTaxonomia(datos, { skills: todas, tipoActualDe = {}, 
   if (ids.length !== NUM_TIPOS_SKILL) malos.push(`tipos_skill tiene ${ids.length} tipos; la decisión de Pablo son ${NUM_TIPOS_SKILL}`);
   if (new Set(ids).size !== ids.length) malos.push("tipos_skill repite un tipo");
   for (const t of tipos) {
-    for (const k of ["id", "que", "entra", "sale", "prueba", "skills_hoy"]) if (!(k in t)) malos.push(`tipo ${t.id}: falta «${k}»`);
+    for (const k of ["id", "que", "entra", "sale", "prueba", "skills_hoy", "secciones"]) if (!(k in t)) malos.push(`tipo ${t.id}: falta «${k}»`);
     if (!ID.test(t.id ?? "")) malos.push(`tipo ${t.id}: el id va en minúsculas con guiones`);
     if (!Array.isArray(t.skills_hoy)) malos.push(`tipo ${t.id}: skills_hoy es una lista`);
   }
@@ -451,21 +453,22 @@ export function problemasDeTaxonomia(datos, { skills: todas, tipoActualDe = {}, 
     const v = datos[eje];
     if (!v || typeof v !== "object" || !Object.keys(v).length) malos.push(`${eje} es un vocabulario con valores y su explicación`);
   }
-  const respuestas = datos.respuestas_tipo ?? {};
-  const migracion = datos.migracion_tipos ?? {};
+  for (const viejo of ["respuestas_tipo", "migracion_tipos"]) if (viejo in datos) malos.push(`${viejo}: las respuestas y el tipo de cada skill van en su ficha (frontmatter), no en la base (#495)`);
   const provisionales = datos.skills_provisionales ?? {};
+  const derivado = {};
   for (const s of skills) {
-    const r = respuestas[s];
-    if (!r) { malos.push(`${s}: faltan sus respuestas en respuestas_tipo (${claves.join(", ")})`); continue; }
-    for (const k of claves) if (typeof r[k] !== "boolean") malos.push(`${s}: la respuesta «${k}» es verdadero o falso`);
-    if ("nota" in r && !esTexto(r.nota, 30)) malos.push(`${s}: la nota de sus respuestas dice por qué (30 caracteres o más)`);
-    for (const k of Object.keys(r)) if (k !== "nota" && !claves.includes(k)) malos.push(`${s}: respuesta «${k}» no es una pregunta de preguntas_tipo`);
-    const derivado = tipoDeSkill(r, preguntas);
-    if (migracion[s] !== derivado) malos.push(`${s}: migracion_tipos dice «${migracion[s]}» y sus respuestas dan «${derivado}»`);
-    const actual = tipoActualDe[s];
-    if (actual !== undefined && actual !== derivado) malos.push(`${s}: su metadata.tipo es «${actual}» y sus respuestas dan «${derivado}»`);
+    const r = fichaDe[s] ?? {};
+    const faltan = claves.filter((k) => typeof r[k] !== "boolean");
+    for (const k of faltan) malos.push(`${s}: su ficha no responde «${k}» con true o false`);
+    if (faltan.length) continue;
+    derivado[s] = tipoDeSkill(r, preguntas);
+    if (r.tipo !== derivado[s]) malos.push(`${s}: su metadata.tipo es «${r.tipo}» y sus respuestas dan «${derivado[s]}»`);
   }
-  for (const s of [...Object.keys(respuestas), ...Object.keys(migracion)]) if (!skills.includes(s)) malos.push(`${s}: está en respuestas_tipo o migracion_tipos y no es una skill de nivel 2 del repo`);
+  for (const s of metas) {
+    const r = fichaDe[s] ?? {};
+    if ("tipo" in r) malos.push(`${s}: es la pieza meta (nivel 0) y no lleva tipo`);
+    for (const k of claves) if (k in r) malos.push(`${s}: es la pieza meta (nivel 0) y no responde «${k}»`);
+  }
   if (metas.length !== 1) malos.push(`hay ${metas.length} piezas meta (nivel 0) entre las skills; tiene que haber exactamente una`);
   const n0 = datos.nivel_0?.skills?.secciones;
   if (!Array.isArray(n0) || !n0.length || n0.at(-1) !== "Fuentes y comprobación") malos.push("nivel_0.skills.secciones: la forma de la pieza meta es una lista de secciones que acaba en «Fuentes y comprobación»");
@@ -476,8 +479,8 @@ export function problemasDeTaxonomia(datos, { skills: todas, tipoActualDe = {}, 
     if (typeof p?.en_tabla !== "boolean") malos.push(`${s}: skills_provisionales dice en_tabla (true si la tabla de Pablo ya la pone en su tipo)`);
   }
   for (const t of tipos) {
-    const hoy = skills.filter((s) => migracion[s] === t.id && (!(s in provisionales) || provisionales[s].en_tabla)).sort();
-    if (JSON.stringify([...(t.skills_hoy ?? [])].sort()) !== JSON.stringify(hoy)) malos.push(`tipo ${t.id}: skills_hoy es [${(t.skills_hoy ?? []).join(", ")}] y la migración da [${hoy.join(", ")}]`);
+    const hoy = skills.filter((s) => derivado[s] === t.id && (!(s in provisionales) || provisionales[s].en_tabla)).sort();
+    if (JSON.stringify([...(t.skills_hoy ?? [])].sort()) !== JSON.stringify(hoy)) malos.push(`tipo ${t.id}: skills_hoy es [${(t.skills_hoy ?? []).join(", ")}] y las respuestas de las skills dan [${hoy.join(", ")}]`);
   }
   // Los tipos retirados: dicen a cuál pasan y no vuelven (un valor no se reutiliza).
   const retirados = datos.destino_tipos_actuales ?? {};
@@ -488,7 +491,8 @@ export function problemasDeTaxonomia(datos, { skills: todas, tipoActualDe = {}, 
     for (const x of d?.destinos ?? []) if (!ids.includes(x)) malos.push(`«${t}»: el destino «${x}» no está en tipos_skill`);
     if (!esTexto(d?.nota, 15)) malos.push(`«${t}»: el destino lleva su nota (15 caracteres o más)`);
   }
-  for (const [s, actual] of Object.entries(tipoActualDe)) {
+  for (const s of todas) {
+    const actual = fichaDe[s]?.tipo;
     if (actual in retirados) malos.push(`${s}: su metadata.tipo «${actual}» es un tipo retirado; pasa a uno de: ${(retirados[actual]?.destinos ?? []).join(", ")}`);
   }
   return malos;
@@ -710,13 +714,13 @@ function mdTipos(datos) {
     "",
     "| Tipo retirado | Destino |",
     "|---|---|",
-    ...Object.entries(datos.destino_tipos_actuales).map(([t, d]) => `| ${t} | ${d.destinos.join(", ")} |`),
+    ...Object.entries(datos.destino_tipos_actuales).map(([t, d]) => `| ${t} | ${d.destinos.join(", ") || "sin sucesor"} |`),
     "",
-    "Por skill (`migracion_tipos`, sacada de `tipoDeSkill` y comprobada contra el frontmatter por `ops/forja-tipos.test.js` y `.claude/skills.test.js`):",
+    "Cada skill declara en su ficha (frontmatter) sus respuestas a las preguntas y su `tipo`, que tiene que ser el que ellas dan: la base es norma y no guarda datos de cada pieza (`ops/forja-tipos.test.js` y `.claude/skills.test.js`). Niveles:",
     "",
-    "| Skill | Tipo |",
+    "| Nivel | Qué es |",
     "|---|---|",
-    ...Object.entries(datos.migracion_tipos).map(([s, t]) => `| ${s} | ${t} |`),
+    ...Object.entries(datos.niveles ?? {}).map(([n, q]) => `| ${n} | ${celda(q)} |`),
     "",
     "Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que le tocan, `tipos` de cada criterio) → cada skill. Criterios de skill por tipo y capa:",
     "",

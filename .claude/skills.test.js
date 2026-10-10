@@ -7,7 +7,7 @@ import {
   caducidad, caducidades, catalogoParaDisparo, cargarContexto, cargarSkill, comprobarSkillsPr, faltasDeCopiado, faltasDeSkill,
   nombresDeSkills, parsearSkill, seccion, tiposDeSkill,
 } from "../scripts/lib/skills.mjs";
-import { leerForja } from "../scripts/lib/forja.mjs";
+import { leerForja, tipoDeSkill } from "../scripts/lib/forja.mjs";
 import {
   CODIGOS_ESTANDAR, CODIGOS_FORJA, EXCEPCIONES_FORJA, EXCEPCIONES_INICIALES, MAX_EJEMPLOS, MAX_SOLAPE, MIN_FRONTERA_FORJA,
   LIMITE_DESCRIPCION_ESTANDAR, LIMITE_LINEAS_ESTANDAR, faltasDeEstandares, faltasDePresentacion, faltasDeSolape, faltasForja, solape,
@@ -49,19 +49,21 @@ const respuestasDe = (tipo) => Object.fromEntries(FORJA.preguntas_tipo.map((p) =
 const FALSO = {
   hoy: HOY,
   tipos: tiposDeSkill(RAIZ),
-  respuestas: { prueba: respuestasDe("servicio") },
   preguntas: FORJA.preguntas_tipo,
   agentes: { gobierno: ["prueba", "otra"], lola: [] },
   skills: ["prueba", "otra"],
   existe: (r) => r === "scripts/lib/skills.mjs" || r === ".claude/skills/prueba/referencias/detalle.md",
 };
 const relleno = "Texto suficiente para que la sección no cuente como vacía en la prueba.";
-/** El nivel 1 sobre una skill de mentira, con las respuestas que dan el tipo que declara (salvo que `extra` diga otras). */
-const tipoDe = (s) => parsearSkill(s.texto).meta?.metadata?.tipo;
-const nivel1 = (s, extra = {}) => faltasDeSkill(s, { ...FALSO, respuestas: { prueba: respuestasDe(tipoDe(s)) }, ...extra });
+/** Las líneas de frontmatter con las respuestas que dan un tipo: van en la ficha de la skill (#495). */
+const lineasRespuestas = (tipo) => Object.entries(respuestasDe(tipo)).map(([k, v]) => `  ${k}: ${v}`).join("\n");
+/** El nivel 1 sobre una skill de mentira. */
+const nivel1 = (s, extra = {}) => faltasDeSkill(s, { ...FALSO, ...extra });
 
 function herramienta({ meta = {}, sinSeccion = null, lineasExtra = 0, extraCuerpo = "" } = {}) {
-  const m = { tipo: "servicio", dueno: "gobierno", comprobado: "2026-10-09", ...meta };
+  // Las respuestas, las del tipo que declara (las de servicio si no es un tipo vigente): así solo falla lo que el caso cambia.
+  const tipo = meta.tipo !== undefined ? meta.tipo : "servicio";
+  const m = { tipo, ...respuestasDe(tiposDeSkill(RAIZ).includes(tipo) ? tipo : "servicio"), dueno: "gobierno", comprobado: "2026-10-09", ...meta };
   const metaTxt = Object.entries(m).filter(([, v]) => v != null).map(([k, v]) => `  ${k}: ${v}`).join("\n");
   const secciones = {
     "Qué es y dónde": `${relleno} Detalle en \`.claude/skills/prueba/referencias/detalle.md\` y \`scripts/lib/skills.mjs\`.`,
@@ -170,21 +172,23 @@ it("cada regla del vocabulario se ve fallar aquí", () => {
   expect(Object.keys(REGLAS).filter((r) => !vistas.has(r))).toEqual([]);
 });
 
-it("el tipo declarado tiene que ser el que dan sus respuestas en ops/forja.json (#495)", () => {
-  const s = buena();
-  const solo = (ctx) => faltasDeSkill(s, ctx).filter((f) => f.regla === "tipo").map((f) => f.detalle);
-  expect(solo(FALSO)).toEqual([]);
-  expect(solo({ ...FALSO, respuestas: { prueba: respuestasDe("revision") } })).toEqual(["metadata.tipo dice «servicio» y sus respuestas en ops/forja.json dan «revision»"]);
-  expect(solo({ ...FALSO, respuestas: {} })[0]).toContain("sin respuestas en respuestas_tipo");
+it("el tipo declarado tiene que ser el que dan las respuestas de su ficha (#495)", () => {
+  const solo = (meta) => nivel1(buena({ texto: herramienta({ meta }) })).filter((f) => f.regla === "tipo").map((f) => f.detalle);
+  expect(solo({})).toEqual([]);
+  expect(solo({ opera_proveedor: false, juzga_artefacto: true })).toEqual(["metadata.tipo dice «servicio» y sus respuestas dan «revision»"]);
+  expect(solo({ encadena: null })[0]).toContain("no responde con true o false a encadena");
+  expect(solo({ encadena: "sí" })[0]).toContain("no responde con true o false a encadena");
   // Con más de un sí manda la primera pregunta: un servicio que además encadena sigue siendo servicio.
-  expect(solo({ ...FALSO, respuestas: { prueba: { ...respuestasDe("servicio"), encadena: true } } })).toEqual([]);
+  expect(solo({ encadena: true })).toEqual([]);
+  // La pieza meta (nivel 0) no lleva tipo ni respuestas.
+  expect(solo({ nivel: 0, tipo: null })[0]).toContain("es la pieza meta");
 });
 
-it("las skills de nivel 2 declaran el tipo que dan sus respuestas y que dice migracion_tipos", () => {
+it("las skills de nivel 2 declaran el tipo que dan sus respuestas, y es uno de la forja", () => {
   for (const s of skills.filter((x) => parsearSkill(x.texto).meta.metadata.nivel === undefined)) {
-    const tipo = parsearSkill(s.texto).meta.metadata.tipo;
-    expect(tipo, s.nombre).toBe(FORJA.migracion_tipos[s.nombre]);
-    expect(ctx.tipos, s.nombre).toContain(tipo);
+    const m = parsearSkill(s.texto).meta.metadata;
+    expect(m.tipo, s.nombre).toBe(tipoDeSkill(m, FORJA.preguntas_tipo));
+    expect(ctx.tipos, s.nombre).toContain(m.tipo);
   }
 });
 
@@ -196,7 +200,7 @@ it("un tipo nuevo pasa con sus secciones y su registro de cambios", () => {
     if (t === "Método") return `## ${t}\n\n${relleno}\n\nSale bien si la prueba pasa.`;
     return `## ${t}\n\n${relleno}`;
   }).join("\n\n");
-  const texto = `---\nname: prueba\ndescription: Úsala cuando haya que probar el nivel 1 de las skills con una skill de diagnóstico de mentira. No para: nada real.\nmetadata:\n  tipo: diagnostico\n  dueno: gobierno\n  comprobado: 2026-10-09\n---\n\n# Prueba\n\n${secciones}\n`;
+  const texto = `---\nname: prueba\ndescription: Úsala cuando haya que probar el nivel 1 de las skills con una skill de diagnóstico de mentira. No para: nada real.\nmetadata:\n  tipo: diagnostico\n${lineasRespuestas("diagnostico")}\n  dueno: gobierno\n  comprobado: 2026-10-09\n---\n\n# Prueba\n\n${secciones}\n`;
   const skill = buena({ texto, ficheros: ["SKILL.md", "casos.json"], extra: {} });
   expect(ver(nivel1(skill))).toEqual([]);
   const sinRegistro = texto.replace("- **2026-10-09** · Primera versión (#336).", "Sin cambios que contar todavía, ninguno.");
@@ -237,7 +241,7 @@ function oficioConForja({ metodo = `${relleno}\n\nSale bien si la prueba pasa.`,
     if (t === "Ejemplo resuelto") return `## ${t}\n\n${ejemplos}`;
     return `## ${t}\n\n${relleno}`;
   }).join("\n\n");
-  return `---\nname: prueba\ndescription: Úsala cuando haya que probar el nivel 1 de las skills con una skill de diagnóstico de mentira. No para: nada real.\nmetadata:\n  tipo: diagnostico\n  dueno: gobierno\n  comprobado: 2026-10-09\n---\n\n# Prueba\n\n${secciones}\n`;
+  return `---\nname: prueba\ndescription: Úsala cuando haya que probar el nivel 1 de las skills con una skill de diagnóstico de mentira. No para: nada real.\nmetadata:\n  tipo: diagnostico\n${lineasRespuestas("diagnostico")}\n  dueno: gobierno\n  comprobado: 2026-10-09\n---\n\n# Prueba\n\n${secciones}\n`;
 }
 const oficio = (o) => ({ texto: oficioConForja(o), ficheros: ["SKILL.md", "casos.json"], extra: {} });
 

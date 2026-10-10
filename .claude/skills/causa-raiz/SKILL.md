@@ -3,6 +3,12 @@ name: causa-raiz
 description: Úsala cuando algo ha fallado y hay que saber por qué antes de arreglarlo, con las palabras «por qué ha pasado», «diagnostica», «causa raíz», «se repite», «no aguantó», «nadie lo vio venir»; o al rellenar mecanismo y causa_escape en la ficha de un fondo. No para: partir el arreglo en encargos (plan-de-arreglo), registrar el caso o las etiquetas (issues), ni operar un servicio (su skill de herramienta).
 metadata:
   tipo: diagnostico
+  opera_proveedor: false
+  juzga_artefacto: false
+  encadena: false
+  pasos_fijos: false
+  sintoma_a_causa: true
+  elige_opciones: false
   dueno: gobierno
   comprobado: 2026-10-10
 ---

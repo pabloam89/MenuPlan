@@ -18,6 +18,8 @@ const AQUI = dirname(fileURLToPath(import.meta.url));
 const RAIZ = join(AQUI, "..");
 const HOY = new Date("2026-10-10T12:00:00Z");
 const FORJA = leerForja(RAIZ);
+/** La mala es de diagnóstico: sus respuestas, en su ficha, lo dan (#495). */
+const RESPUESTAS_DIAGNOSTICO = FORJA.preguntas_tipo.map((p) => `  ${p.clave}: ${p.tipo === "diagnostico"}`).join("\n");
 const relleno = "Texto de relleno suficientemente largo para que la sección no cuente como vacía.";
 
 /** Una skill de diagnóstico de mentira; `cambios` toca el texto de cada sección o añade cosas. */
@@ -33,7 +35,7 @@ function oficio({ descripcion, comprobado = "2026-10-01", secciones = {}, ficher
   const d = descripcion ?? "Úsala al probar la higiene de las skills con una de mentira («revisa esta skill», «¿está al día?»). No para: medir si dispara (skills-prueba) ni crearla (forja-de-skills).";
   return {
     nombre: "mala",
-    texto: `---\nname: mala\ndescription: ${d}\nmetadata:\n  tipo: diagnostico\n  dueno: gobierno\n  comprobado: ${comprobado}\n---\n\n# Mala\n\n${antes}${cuerpo}\n`,
+    texto: `---\nname: mala\ndescription: ${d}\nmetadata:\n  tipo: diagnostico\n${RESPUESTAS_DIAGNOSTICO}\n  dueno: gobierno\n  comprobado: ${comprobado}\n---\n\n# Mala\n\n${antes}${cuerpo}\n`,
     ficheros, extra,
     casos: casos ?? {
       skill: "mala",
@@ -58,8 +60,6 @@ function ctxDe({ catalogo, otras = [], otrosCasos = [], existe, scriptsNpm = ["h
   return {
     hoy: HOY,
     tipos: tiposDeSkill(RAIZ),
-    // La mala es de diagnóstico: sus respuestas a las preguntas de ops/forja.json lo dan (#495).
-    respuestas: { mala: Object.fromEntries(FORJA.preguntas_tipo.map((p) => [p.clave, p.tipo === "diagnostico"])) },
     preguntas: FORJA.preguntas_tipo,
     agentes: { gobierno: ["mala", "otra"], lola: [] },
     skills: ["mala", "otra", "forja-de-skills"],

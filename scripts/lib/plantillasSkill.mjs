@@ -3,10 +3,12 @@
  *
  * De arriba abajo: la forja (`ops/forja.json`: qué tipos existen, cómo se asigna
  * el tipo con `preguntas_tipo` y qué criterios se aplican a cada uno con `tipos`)
- * → la plantilla de un tipo (este fichero: las secciones obligatorias en orden,
+ * → la plantilla de un tipo (generada aquí: las secciones obligatorias en orden,
  * los campos de la ficha con su clase, cómo se prueba y su ejemplo mínimo) →
  * cada skill. La única lista de tipos es `tipos_skill` de `ops/forja.json`: aquí
  * no se escribe ningún tipo que no esté allí, y el test lo comprueba.
+ *
+ * Las secciones de cada tipo son el campo `secciones` de su tipo en la forja.
  *
  * Por qué ficheros generados (`.claude/plantillas-skill/<tipo>.md`) y no una
  * sección dentro de `.claude/PLANTILLA-SKILL.md`: cada uno es el molde que se
@@ -34,36 +36,21 @@ export const SECCION_ESTANDARES = "El estándar de cada tipo";
 /** Los tipos de skill, en el orden de `ops/forja.json`: la única lista. */
 export const tiposDeForja = (datos) => (datos?.tipos_skill ?? []).map((t) => t.id);
 
-/** Las siete del servicio (el runbook de siempre): no comparten cabeza ni cola con los demás. */
-export const SECCIONES_SERVICIO = [
-  "Qué es y dónde",
-  "Claves y accesos",
-  "Operaciones habituales",
-  "Lo que falló y por qué",
-  "Qué requiere el OK de Pablo",
-  "Coste y límites",
-  "Fuentes y comprobación",
-];
-
-/** Lo común a los demás tipos: cabeza y cola. En medio, lo propio de cada uno. */
-export const CABEZA = ["Cuándo y para qué", "Método"];
-export const COLA = ["Lo que falló y por qué", "Registro de cambios", "Fuentes y comprobación"];
+/** Las secciones obligatorias, en orden, de cada tipo: `secciones` de cada tipo en `ops/forja.json` (#495). */
+export const seccionesDeForja = (datos) =>
+  Object.fromEntries((datos?.tipos_skill ?? []).filter((t) => Array.isArray(t.secciones)).map((t) => [t.id, t.secciones]));
 
 /**
- * Secciones obligatorias, en orden, de cada tipo. Las claves son los ids de
- * `tipos_skill` de `ops/forja.json`, ni uno más ni uno menos (lo comprueba
- * `problemasDePlantillas`): no es otra lista de tipos, es lo propio de cada uno.
- * Pendiente de decidir si pasa a `ops/forja.json` como campo de cada tipo.
+ * Las de la forja del repo, leídas una vez: { tipo: [secciones] }. No es otra lista
+ * de tipos: sale de `tipos_skill` y cambia con ella.
  */
-export const SECCIONES_POR_TIPO = {
-  servicio: SECCIONES_SERVICIO,
-  procedimiento: [...CABEZA, "Antes de empezar", "Cómo se comprueba", "Qué requiere el OK de Pablo", ...COLA],
-  diagnostico: [...CABEZA, "Técnicas", "Ejemplo resuelto", ...COLA],
-  decision: [...CABEZA, "Técnicas", "Ejemplo resuelto", ...COLA],
-  flujo: [...CABEZA, "Etapas", ...COLA],
-  revision: [...CABEZA, "Cómo se prueba", "Cuándo se poda", ...COLA],
-  conocimiento: [...CABEZA, "Lo que hay que saber", "Dónde vive el dato", ...COLA],
-};
+export const SECCIONES_POR_TIPO = seccionesDeForja(leerForja(RAIZ_REPO));
+/** Las del servicio (el runbook de siempre). */
+export const SECCIONES_SERVICIO = SECCIONES_POR_TIPO.servicio ?? [];
+
+/** Lo común a los tipos que no son servicio, para escribir una excepción sin copiar nombres. */
+export const CABEZA = ["Cuándo y para qué", "Método"];
+export const COLA = ["Lo que falló y por qué", "Registro de cambios", "Fuentes y comprobación"];
 
 /**
  * Las skills que hoy no pueden seguir el molde de su tipo sin escribir contenido
@@ -112,7 +99,7 @@ export const PISTAS = {
 };
 
 /** Errores de la tabla de secciones contra la forja (lista vacía si está bien). */
-export function problemasDePlantillas(datos, secciones = SECCIONES_POR_TIPO, pistas = PISTAS) {
+export function problemasDePlantillas(datos, secciones = seccionesDeForja(datos), pistas = PISTAS) {
   const malos = [];
   const ids = tiposDeForja(datos);
   for (const t of ids) if (!(t in secciones)) malos.push(`tipo ${t}: está en tipos_skill de ${RUTA_FORJA} y no tiene secciones`);
@@ -182,6 +169,7 @@ function campos(datos, tipo) {
     if (c.clase === "enum" && datos[c.vocab] && typeof datos[c.vocab] === "object" && !Array.isArray(datos[c.vocab])) return Object.keys(datos[c.vocab]).map((v) => `\`${v}\``).join(", ");
     if (c.clase === "ref") return `${["agente", "criterio", "issue", "comando"].includes(c.ref) ? "un" : "una"} ${c.ref} que existe`;
     if (c.clase === "fecha") return "AAAA-MM-DD";
+    if (c.clase === "bool") return "`true` o `false`";
     if (c.clase === "texto") return "hueco de texto";
     return "—";
   };
@@ -207,8 +195,10 @@ function criterios(datos, tipo) {
 }
 
 /** El esqueleto: el frontmatter y las secciones en orden, con lo que va en cada una. */
-function esqueleto(tipo, secciones) {
+function esqueleto(datos, tipo, secciones) {
   const cuerpo = secciones.flatMap((s) => [`## ${s}`, "", PISTAS[s] ?? "", ""]);
+  // Las respuestas que dan este tipo: sí a su pregunta, no a las demás (conocimiento: no a todas).
+  const respuestas = (datos.preguntas_tipo ?? []).map((p) => `  ${p.clave}: ${p.tipo === tipo}`);
   return [
     "```markdown",
     "---",
@@ -216,6 +206,7 @@ function esqueleto(tipo, secciones) {
     "description: Úsala <cuándo, con las palabras de quien pide>. No para: <lo que es de otra skill, regla o agente>.",
     "metadata:",
     `  tipo: ${tipo}`,
+    ...respuestas,
     "  dueno: <agente de .claude/agents/ que la carga en su skills:>",
     "  comprobado: AAAA-MM-DD",
     "---",
@@ -232,7 +223,7 @@ function esqueleto(tipo, secciones) {
  * El molde entero de un tipo. `estandar`: el texto de su estándar (de
  * `estandarDeTipo`), o null si la plantilla común aún no lo tiene.
  */
-export function generarPlantilla(datos, tipo, { secciones = SECCIONES_POR_TIPO, estandar = null } = {}) {
+export function generarPlantilla(datos, tipo, { secciones = seccionesDeForja(datos), estandar = null } = {}) {
   const t = (datos.tipos_skill ?? []).find((x) => x.id === tipo);
   if (!t) throw new Error(`el tipo «${tipo}» no está en tipos_skill de ${RUTA_FORJA}`);
   const ss = secciones[tipo];
@@ -240,7 +231,7 @@ export function generarPlantilla(datos, tipo, { secciones = SECCIONES_POR_TIPO, 
   const L = [
     `# Plantilla de skill: ${tipo}`,
     "",
-    `<!-- Generado desde ${RUTA_FORJA} (tipos_skill, preguntas_tipo, campos_ficha y criterios), las secciones de scripts/lib/plantillasSkill.mjs y el estándar de ${RUTA_PLANTILLA_COMUN}, con «npm run plantillas -- --escribir». No se edita a mano: .claude/plantillas-skill.test.js lo compara. -->`,
+    `<!-- Generado desde ${RUTA_FORJA} (tipos_skill con sus secciones, preguntas_tipo, campos_ficha y criterios) y el estándar de ${RUTA_PLANTILLA_COMUN}, con «npm run plantillas -- --escribir». No se edita a mano: .claude/plantillas-skill.test.js lo compara. -->`,
     "",
     `El molde de una skill de tipo \`${tipo}\`: se copia el esqueleto y se rellena. Lo que vale para todos los tipos (claves, capas, casos de prueba, tamaño, caducidad) está en \`${RUTA_PLANTILLA_COMUN}\`.`,
     "",
@@ -252,7 +243,7 @@ export function generarPlantilla(datos, tipo, { secciones = SECCIONES_POR_TIPO, 
     "",
     ...comoSeLlega(datos, tipo),
     "",
-    `Las respuestas de cada skill (sí o no a cada pregunta) van en \`respuestas_tipo\` de \`${RUTA_FORJA}\`; \`tipoDeSkill\` las convierte en el tipo, y el nivel 1 (\`.claude/skills.test.js\`) falla si el \`tipo\` del frontmatter no es ese.`,
+    `Cada skill declara sus respuestas (\`true\` o \`false\` a cada pregunta) en su frontmatter, junto a su \`tipo\`; \`tipoDeSkill\` las convierte en el tipo, y el nivel 1 (\`.claude/skills.test.js\`) falla si el \`tipo\` no es ese. Si una respuesta no es evidente, \`porque_tipo\` dice por qué.`,
     "",
     "## Secciones obligatorias, en orden",
     "",
@@ -262,7 +253,7 @@ export function generarPlantilla(datos, tipo, { secciones = SECCIONES_POR_TIPO, 
     "",
     "## Esqueleto",
     "",
-    ...esqueleto(tipo, ss),
+    ...esqueleto(datos, tipo, ss),
     "",
     "## Campos de la ficha",
     "",
@@ -284,7 +275,7 @@ export function generarPlantilla(datos, tipo, { secciones = SECCIONES_POR_TIPO, 
 }
 
 /** Los moldes de todos los tipos: { tipo: texto }. */
-export function generarPlantillas(datos, plantillaComun, secciones = SECCIONES_POR_TIPO) {
+export function generarPlantillas(datos, plantillaComun, secciones = seccionesDeForja(datos)) {
   return Object.fromEntries(tiposDeForja(datos).map((t) => [t, generarPlantilla(datos, t, { secciones, estandar: estandarDeTipo(plantillaComun, t) })]));
 }
 
