@@ -197,12 +197,14 @@ describe("el coste de evaluar los patrones", () => {
     sinSalto: "a",
   };
   const entrada = (unidad, bytes) => unidad.repeat(Math.ceil(bytes / unidad.length));
+  // El mínimo de tres y no la mediana: para una razón entre dos tamaños, el mínimo es lo más
+  // cercano al coste sin ruido. No se compara con ningún tope en ms, sino la razón con UMBRAL.
   const mejorDeTres = (cmd, m) => {
     let mejor = Infinity;
     for (let i = 0; i < 3; i++) {
       const t0 = performance.now();
       skillsDeComando(cmd, m);
-      mejor = Math.min(mejor, performance.now() - t0);
+      mejor = Math.min(mejor, performance.now() - t0); // tiempo: sin tope — entra en la razón t100 / t25
     }
     return mejor;
   };

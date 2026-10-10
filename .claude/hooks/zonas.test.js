@@ -8,6 +8,7 @@ import {
   leerZonas, lineasDeAviso, listaDeRamas, otrasRamas, refrescarEnSegundoPlano,
 } from "./zonas.mjs";
 import { contarAvisos } from "../../scripts/lib/zonas.mjs";
+import { medianaMs, topeMs } from "../../scripts/lib/medirTiempo.mjs";
 
 const AHORA = Date.parse("2026-10-10T20:00:00Z");
 const hace = (h) => new Date(AHORA - h * 3_600_000).toISOString();
@@ -106,18 +107,13 @@ describe("la foto en caché", () => {
   });
 
   it("leer la foto y buscar un fichero cuesta poco aunque haya muchas ramas (margen 20×)", () => {
-    // Medido el 10 oct 2026: ~1 ms con 40 ramas de 300 ficheros. El tope, 20 veces más.
+    // Con 40 ramas de 300 ficheros, la mediana de 15 salió de 2 a 12 ms en tres pasadas el
+    // 2026-10-10 con otras sesiones (el tope de 20 ms de antes dejaba de 1,7× a 9×, #499).
     const dir = dirTemporal();
     const grande = { hecho: new Date().toISOString(), ramas: Array.from({ length: 40 }, (_, i) => ({ rama: `ops/${i}-x`, ruta: `C:/dev/MenuPlan-${i}`, ficheros: Array.from({ length: 300 }, (_, j) => `src/f${j}.js`), reservadas: [] })) };
     escribirZonas(dir, grande);
-    const t = [];
-    for (let i = 0; i < 15; i++) {
-      const t0 = performance.now();
-      consultarZona(dir, "C:/dev/MenuPlan-0/src/f299.js", "src/f299.js", { refrescar: () => {} });
-      t.push(performance.now() - t0);
-    }
-    t.sort((a, b) => a - b);
-    expect(t[7]).toBeLessThan(20);
+    const consulta = () => consultarZona(dir, "C:/dev/MenuPlan-0/src/f299.js", "src/f299.js", { refrescar: () => {} });
+    expect(medianaMs(consulta, { n: 15, etiqueta: "zonas-consulta-40-ramas" })).toBeLessThan(topeMs(12));
   });
 });
 

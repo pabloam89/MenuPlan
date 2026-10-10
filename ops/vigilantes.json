@@ -10,6 +10,13 @@
       "evidencia": "#506 (revisor: ~38 ventanas por refresco de zonas)"
     },
     {
+      "id": "tests-de-tiempo",
+      "tests": ["ops/testsDeTiempo.test.js"],
+      "mira": ["**/*.test.{js,mjs,jsx}", "scripts/lib/medirTiempo.mjs"],
+      "porque": "Todo test que compara una duración con un tope mide con scripts/lib/medirTiempo.mjs (mediana y tope de 20× sobre lo medido suelto) o lleva la marca `// tiempo: margen Nx medido AAAA-MM-DD`: un tope fijo sin margen da rojos falsos cuando varias sesiones corren tests a la vez.",
+      "evidencia": "#499, #407, #307"
+    },
+    {
       "id": "errores-tragados-scripts",
       "tests": ["scripts/sinErroresTragados.test.js"],
       "mira": ["scripts/**/*.{js,mjs,cjs,jsx}", ".claude/hooks/**/*.{js,mjs,cjs,jsx}"],

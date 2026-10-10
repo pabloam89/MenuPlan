@@ -9,6 +9,7 @@ import { carpetaDe, contextoReal, decidir, salidaDeGuardia, sinAplicar } from ".
 import { cargarMapa } from "./dominios.mjs";
 import { AVISOS_CREDENCIALES, credencialDeComando, sinTextos } from "./credenciales.mjs";
 import { AVISOS, AVISO_POR_CREDENCIAL } from "./avisos-guardia.mjs";
+import { medianaMs, topeMs } from "../../scripts/lib/medirTiempo.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 // El registro de eventos (#340) escribe en ~/.claude/menuplan-fabrica: un test que lanza la guardia no toca la carpeta real del usuario.
@@ -1292,10 +1293,11 @@ describe("credenciales de la sesión: ronda de jueces (#447)", () => {
       "x <<EOF\n".repeat(30000),
       "a\n".repeat(40000),
     ];
+    // Lo que tarda suelto la más lenta (la mayor mediana de 5 en tres pasadas el 2026-10-10:
+    // 19 ms, la de heredocs); el tope, 20× (#499: con 250 ms el margen era de 13×).
+    const SUELTO_MS = 20;
     for (const c of enormes) {
-      const t0 = Date.now();
-      credencialDeComando(c);
-      expect(Date.now() - t0, c.slice(0, 20)).toBeLessThan(250);
+      expect(medianaMs(() => credencialDeComando(c), { etiqueta: `credencial ${c.slice(0, 12).replace(/\n/g, "\\n")}` }), c.slice(0, 20)).toBeLessThan(topeMs(SUELTO_MS));
     }
   });
 
