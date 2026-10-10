@@ -91,10 +91,11 @@ function pedirNodos() {
  * minutos vale (0 = siempre fresco, para lo que escribe) y con `viejoSiFalla` una
  * respuesta vieja sustituye a un error. Sin caché, se pide como siempre.
  */
+let minutosDeCacheVieja = null; // se rellena si el plan B sirvió una caché vieja (el arranque lo cuenta en stdout)
 function todos({ ttlMin = 0, viejoSiFalla = false } = {}) {
   const fresco = args.includes("--fresco");
   const nodos = conCache("issues-nodos", {
-    ttlMin: fresco ? 0 : ttlMin, viejoSiFalla, pedir: pedirNodos, aviso: (m) => console.error(m),
+    ttlMin: fresco ? 0 : ttlMin, viejoSiFalla, pedir: pedirNodos, aviso: (m, min) => { minutosDeCacheVieja = min; console.error(m); },
   });
   // Las marcas «lo lleva» (scripts/lib/lleva.mjs) salen de los comentarios.
   return nodos.map((n) => ({ ...leerIssue(n), marcas: leerMarcas(n.comments?.nodes, { soloCasa: true }) }));
@@ -150,6 +151,7 @@ function colgar(issues, hijoN, fondoN) {
     const pr = fondo.prs.at(-1);
     gh("issue", "reopen", String(fondoN), "--comment",
       `Reabierto por #${hijoN}: el arreglo${pr ? ` del PR #${pr.number}` : ""} no aguantó. Analiza si se rompió (\`analisis:no-aguanto-roto\`) o se quedó corto (\`analisis:no-aguanto-corto\`) y pónselo a #${hijoN}.`);
+    borrarCacheGh("issues-nodos"); // el fondo cambió de estado
     console.log(`#${fondoN} estaba cerrado: reabierto.`);
   } else if (fondo.state === "CLOSED") {
     console.log(`#${fondoN} está cerrado y #${hijoN} es anterior a su cierre: no se reabre (es reordenar, no un fallo nuevo).`);
@@ -321,7 +323,7 @@ if (args.includes("--etiquetas")) {
   // Primero las líneas y después, de paso, el índice con lo ya leído: el arranque da 10 s en total y
   // una consulta lenta no puede costar el aviso de issues (ronda 2 de #384).
   arrancar({
-    lineas: [...avisoDeArranque(issues), ...lineasDeLleva(issues, ramasVivas())],
+    lineas: [...(minutosDeCacheVieja != null ? [`Issues (caché de hace ${minutosDeCacheVieja} min: GitHub no contesta o no hay cuota)`] : []), ...avisoDeArranque(issues), ...lineasDeLleva(issues, ramasVivas())],
     imprimir: (l) => console.log(l),
     indexar: ({ restanteMs }) => indexar(issues, { reusarPrsMenosDeHoras: 1, restanteMs }),
     avisar: (m) => console.error(m),

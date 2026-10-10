@@ -4,8 +4,8 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, w
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { APIS_GH, CALLERS_GH, TTL_MIN, apiDe, conCache, contarLog, lineaGh, registrarGh } from "./lib/cuotaGh.mjs";
-import { resumirChecks } from "./espera-ci.mjs";
+import { APIS_GH, CALLERS_GH, TOPE_VIEJO_MIN, TTL_MIN, apiDe, borrarCacheGh, conCache, contarLog, escribirCacheGh, leerCacheGh, lineaGh, registrarGh } from "./lib/cuotaGh.mjs";
+import { conReintentos, leerArgs, resumirChecks } from "./espera-ci.mjs";
 
 const raiz = join(import.meta.dirname, "..");
 const dirs = [];
@@ -86,6 +86,44 @@ describe("conCache", () => {
     expect(() => conCache(nombre, { ttlMin: 15, pedir: falla, dir })).toThrow(/rate limit/);
   });
 
+  it("plan B con tope: pasadas 6 h la caché vieja no tapa el error", () => {
+    const dir = tmp();
+    conCache(nombre, { ttlMin: 15, pedir: () => ["viejo"], dir });
+    const falla = () => {
+      throw new Error("API rate limit exceeded");
+    };
+    const poner = (min) => {
+      const t = new Date(Date.now() - min * 60_000);
+      utimesSync(join(dir, `${nombre}.json`), t, t);
+    };
+    poner(TOPE_VIEJO_MIN - 5);
+    expect(conCache(nombre, { ttlMin: 15, viejoSiFalla: true, pedir: falla, dir })).toEqual(["viejo"]);
+    poner(TOPE_VIEJO_MIN + 5);
+    expect(() => conCache(nombre, { ttlMin: 15, viejoSiFalla: true, pedir: falla, dir })).toThrow(/rate limit/);
+  });
+
+  it("el aviso del plan B lleva los minutos (para decirlo en el arranque)", () => {
+    const dir = tmp();
+    conCache(nombre, { ttlMin: 15, pedir: () => 1, dir });
+    const t = new Date(Date.now() - 42 * 60_000);
+    utimesSync(join(dir, `${nombre}.json`), t, t);
+    const vistos = [];
+    const falla = () => {
+      throw new Error("x");
+    };
+    conCache(nombre, { ttlMin: 15, viejoSiFalla: true, pedir: falla, aviso: (m, min) => vistos.push(min), dir });
+    expect(vistos).toEqual([42]);
+  });
+
+  it("borrarCacheGh borra de verdad: escribir, borrar, leer da null", () => {
+    const dir = tmp();
+    escribirCacheGh(nombre, { a: 1 }, { dir });
+    expect(leerCacheGh(nombre, { dir })?.valor).toEqual({ a: 1 });
+    borrarCacheGh(nombre, { dir });
+    expect(leerCacheGh(nombre, { dir })).toBeNull();
+    expect(() => borrarCacheGh(nombre, { dir })).not.toThrow(); // borrar lo que no hay no rompe
+  });
+
   it("plan B: una caché ilegible no rompe, se pide como antes", () => {
     const dir = tmp();
     conCache(nombre, { ttlMin: 15, pedir: () => 1, dir });
@@ -95,6 +133,30 @@ describe("conCache", () => {
 });
 
 describe("espera-ci (REST)", () => {
+  it("el PR es solo el primer argumento; --cada y --tope se llevan su valor", () => {
+    expect(leerArgs(["123"])).toMatchObject({ pr: 123, cada: 60, topeMin: 20 });
+    expect(leerArgs(["123", "--cada", "90", "--tope", "5"])).toMatchObject({ pr: 123, cada: 90, topeMin: 5 });
+    expect(leerArgs(["--cada", "60", "123"]).pr).toBe(0); // no toma ni el 60 ni el 123 por PR
+    expect(leerArgs(["--tope", "20"]).pr).toBe(0);
+    expect(leerArgs(["123", "--cada", "5"]).cada).toBe(30);
+  });
+
+  it("reintenta un fallo de red y se rinde al tercero", async () => {
+    let n = 0;
+    const flojo = () => {
+      if (++n < 3) throw new Error("red");
+      return "ok";
+    };
+    expect(await conReintentos(flojo, 3, 1)).toBe("ok");
+    let m = 0;
+    const roto = () => {
+      m++;
+      throw new Error("red");
+    };
+    await expect(conReintentos(roto, 3, 1)).rejects.toThrow("red");
+    expect(m).toBe(3);
+  });
+
   it("resume los check-runs", () => {
     expect(resumirChecks([]).estado).toBe("pendiente");
     expect(resumirChecks([{ name: "tests", status: "in_progress", conclusion: null }]).estado).toBe("pendiente");
@@ -147,8 +209,40 @@ describe("ratchet de la cuota GraphQL (#424)", () => {
     expect((f.match(/todos\(\)/g) ?? []).length).toBeLessThanOrEqual(5); // --colgar, --nuevo (parecidos y padre), --ordenar, --marcas-huerfanas
   });
 
-  it("las escrituras invalidan la caché", () => {
-    expect((leer("scripts/issues.mjs").match(/borrarCacheGh\("issues-nodos"\)/g) ?? []).length).toBeGreaterThanOrEqual(3);
+  // Corta la rama de una orden: de su `args.includes` al siguiente `} else`.
+  const rama = (f, orden) => {
+    const ini = f.indexOf(`args.includes("${orden}")`);
+    expect(ini, orden).toBeGreaterThan(-1);
+    const fin = f.slice(ini + 10).search(/\n\} else/);
+    return f.slice(ini, fin < 0 ? undefined : ini + 10 + fin);
+  };
+
+  it("las órdenes que escriben (--nuevo, --colgar, --ordenar) leen siempre frescas: ni rastro de ttlMin", () => {
+    const f = leer("scripts/issues.mjs");
+    for (const o of ["--nuevo", "--colgar", "--ordenar"]) {
+      const r = rama(f, o);
+      expect(r, o).not.toMatch(/ttlMin|TTL_MIN/);
+      expect(r, o).toMatch(/todos\(|colgar\(/);
+    }
+  });
+
+  it("las escrituras invalidan la caché, en el orden crear → borrar → releer", () => {
+    const f = leer("scripts/issues.mjs");
+    const nuevo = rama(f, "--nuevo");
+    const crear = nuevo.indexOf("gh(...crear)");
+    const borrar = nuevo.indexOf('borrarCacheGh("issues-nodos")');
+    const releer = nuevo.indexOf("colgar(todos()");
+    expect(crear).toBeGreaterThan(-1);
+    expect(borrar).toBeGreaterThan(crear);
+    expect(releer).toBeGreaterThan(borrar);
+    expect(rama(f, "--ordenar")).toMatch(/borrarCacheGh\("issues-nodos"\)/);
+    // colgar(): al enlazar el padre y al reabrir el fondo
+    const colgar = f.slice(f.indexOf("function colgar("), f.indexOf("function ramasVivas"));
+    expect((colgar.match(/borrarCacheGh\("issues-nodos"\)/g) ?? []).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("el arranque cuenta en stdout que sirve caché vieja", () => {
+    expect(rama(leer("scripts/issues.mjs"), "--arranque")).toMatch(/caché de hace \$\{minutosDeCacheVieja\} min/);
   });
 
   it("el arranque abre una sola lectura de issues", () => {

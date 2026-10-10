@@ -34,10 +34,10 @@ Cada `npm run issues` o arranque de sesión sin caché valía **~320 puntos**: c
 
 ## Cómo se gasta menos
 
-- **Esperar al CI**: `npm run espera-ci -- <pr>` (REST, una llamada cada 60 s, sale con 0 si todo pasa y 1 si algo falla o pasa del tope).
+- **Esperar al CI**: `npm run espera-ci -- <pr>` (REST, una llamada cada 60 s, sale con 0 si todo pasa, 1 si algo falla o pasa del tope y 3 si no pudo preguntar tras 3 intentos; el PR va siempre primero).
   No uses `gh pr checks --watch`.
 - **Leer un issue o un PR suelto**: `gh api repos/pabloam89/MenuPlan/issues/<n> --jq .body` (REST) en vez de `gh issue view`.
-- **Issues de golpe**: `npm run issues` tiene caché (`--fresco` la salta). Si GitHub no contesta o no hay cuota, el arranque usa lo último que guardó.
+- **Issues de golpe**: `npm run issues` tiene caché (`--fresco` la salta). Si GitHub no contesta o no hay cuota, el arranque usa lo último que guardó (hasta 6 h) y lo dice en su salida.
 - **Con el token de la App** (`node scripts/token-sesion.mjs -- <comando gh>`): cupo propio, aparte del de Pablo. Sirve para esperar a que se reinicie el de Pablo.
 
 ## Cómo se cuenta

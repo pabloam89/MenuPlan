@@ -21,6 +21,8 @@ export const CALLERS_GH = ["issues", "arranque", "avisos", "migraciones", "podar
 
 /** Minutos de vida de la caché de issues según quién pide. 0 = siempre fresco. */
 export const TTL_MIN = { arranque: 15, listado: 10, escritura: 0 };
+/** Pasado este tiempo, la caché ya no sustituye a un error: se propaga (6 h). */
+export const TOPE_VIEJO_MIN = 360;
 
 export const dirCuota = () => process.env.MENUPLAN_CUOTA_DIR || join(tmpdir(), "menuplan-cuota");
 
@@ -118,8 +120,8 @@ export function conCache(nombre, { ttlMin, viejoSiFalla = false, pedir, aviso = 
     escribirCacheGh(nombre, valor, { dir });
     return valor;
   } catch (e) {
-    if (viejoSiFalla && previo) {
-      aviso(`caché de ${nombre} de hace ${Math.round(previo.minutos)} min (GitHub no contesta o sin cuota)`);
+    if (viejoSiFalla && previo && previo.minutos <= TOPE_VIEJO_MIN) {
+      aviso(`caché de ${nombre} de hace ${Math.round(previo.minutos)} min (GitHub no contesta o sin cuota)`, Math.round(previo.minutos));
       return previo.valor;
     }
     throw e;

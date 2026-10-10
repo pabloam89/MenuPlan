@@ -8,7 +8,8 @@
  * con varias sesiones esperando a la vez. Aquí cada vuelta es una llamada REST
  * (cupo `core`, aparte) a los check-runs del último commit del PR.
  *
- * Sale con 0 si todo pasa, 1 si algo falla o se acaba el tope, 2 si el uso es malo.
+ * Sale con 0 si todo pasa, 1 si algo falla o se acaba el tope, 2 si el uso es malo
+ * y 3 si no pudo preguntar a GitHub (tras 3 intentos): no es lo mismo que un CI en rojo.
  * Una línea por cambio de estado, sin ruido: `ci pr: N estado: pendiente|ok|falla`.
  */
 import { execFileSync } from "node:child_process";
@@ -29,29 +30,49 @@ const rest = (...args) => {
   return execFileSync("gh", ["api", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 30_000 });
 };
 
-async function main(argv) {
-  const pr = Number(argv.find((a) => /^\d{1,8}$/.test(a)));
+/** El PR es SOLO el primer argumento; `--cada` y `--tope` llevan su valor detrás. */
+export function leerArgs(argv) {
   const valor = (n, def) => {
     const i = argv.indexOf(n);
-    return i >= 0 && /^\d+$/.test(argv[i + 1] ?? "") ? Number(argv[i + 1]) : def;
+    return i >= 0 && /^[0-9]+$/.test(argv[i + 1] ?? "") ? Number(argv[i + 1]) : def;
   };
+  const pr = /^[0-9]{1,8}$/.test(argv[0] ?? "") ? Number(argv[0]) : 0;
+  return { pr, cada: Math.max(30, valor("--cada", 60)), topeMin: valor("--tope", 20) }; // menos de 30 s no ahorra nada
+}
+
+/** Reintenta un fallo de red unas veces antes de rendirse. */
+export async function conReintentos(fn, veces = 3, espera = 5000) {
+  for (let i = 1; ; i++) {
+    try {
+      return fn();
+    } catch (e) {
+      if (i >= veces) throw e;
+      await new Promise((ok) => setTimeout(ok, espera));
+    }
+  }
+}
+
+// Salidas: 0 el CI pasa, 1 el CI falla o no acaba en el tope, 2 uso malo, 3 no pude preguntar a GitHub.
+async function main(argv) {
+  const { pr, cada, topeMin } = leerArgs(argv);
   if (!pr) {
     console.error("Uso: npm run espera-ci -- <número de PR> [--cada 60] [--tope 20]");
     return 2;
   }
-  const cada = Math.max(30, valor("--cada", 60)); // menos de 30 s no ahorra nada
-  const tope = valor("--tope", 20) * 60_000;
+  const tope = topeMin * 60_000;
   const inicio = Date.now();
   let ultimo = "";
   for (;;) {
     let r;
     try {
-      // El commit puede cambiar (un push nuevo): se relee en cada vuelta, que sigue siendo REST.
-      const sha = rest(`repos/pabloam89/MenuPlan/pulls/${pr}`, "--jq", ".head.sha").trim();
-      r = resumirChecks(JSON.parse(rest(`repos/pabloam89/MenuPlan/commits/${sha}/check-runs?per_page=100`, "--jq", "[.check_runs[] | {name, status, conclusion}]")));
+      r = await conReintentos(() => {
+        // El commit puede cambiar (un push nuevo): se relee en cada vuelta, que sigue siendo REST.
+        const sha = rest(`repos/pabloam89/MenuPlan/pulls/${pr}`, "--jq", ".head.sha").trim();
+        return resumirChecks(JSON.parse(rest(`repos/pabloam89/MenuPlan/commits/${sha}/check-runs?per_page=100`, "--jq", "[.check_runs[] | {name, status, conclusion}]")));
+      });
     } catch (e) {
       console.error(`ci pr: ${pr} estado: sin-respuesta (${String(e.stderr ?? e.message).trim().split("\n")[0]})`);
-      return 1;
+      return 3;
     }
     const linea = `ci pr: ${pr} estado: ${r.estado}${r.fallan.length ? ` fallan: ${r.fallan.join(",")}` : ""}${r.estado === "pendiente" ? ` en-curso: ${r.faltan}` : ""}`;
     if (linea !== ultimo) console.log(linea);

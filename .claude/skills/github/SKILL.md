@@ -96,7 +96,7 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 | PRs abiertos | `gh pr list` | una línea por PR con su rama |
 | Estado de un PR | `gh pr view <n>` | título, rama, estado y descripción |
 | Checks de un PR | `gh pr checks <n>` | `tests` en `pass` (o `fail` con enlace al run) |
-| Esperar a que acaben (REST, gasta poca cuota; #424) | `npm run espera-ci -- <n>` (una llamada cada 60 s) | una línea `ci pr: n estado: ok`, `falla` o `pendiente`; sale 0 si pasa, 1 si falla o pasa del tope |
+| Esperar a que acaben (REST, gasta poca cuota; #424) | `npm run espera-ci -- <n>` (una llamada cada 60 s) | una línea `ci pr: n estado: ok`, `falla` o `pendiente`; sale 0 si pasa, 1 si falla o pasa del tope, 3 si no pudo preguntar (no es un CI en rojo) |
 | Últimos runs | `gh run list --workflow tests.yml --limit 5` | cinco filas con su estado |
 | Solo el log de lo que falló | `gh run view <run-id> --log-failed` | el error: si es lint, fichero, regla y mensaje; si es test, su nombre |
 | Relanzar lo que falló | `gh run rerun <run-id> --failed` | el run vuelve a `in_progress` |
