@@ -58,8 +58,8 @@ No es para:
    fondo en un bloque `yaml` con `id` y `depende_de`, como el plan de #334.
 7. **Constructor, juez y presupuesto.** El constructor es el agente del
    dominio (o `sesión`); el juez, distinto. `npm run presupuesto -- <alcance>
-   <tipo_causa>` dice los jueces mínimos, los obligatorios por causa y el tope
-   de rondas. En la respuesta, cada encargo con su `tipo_accion`, `mecanismo`,
+   <tipo_causa>` dice los jueces mínimos, los que pide cada causa y cuántas
+   rondas caben. En la respuesta, cada encargo con su `tipo_accion`, `mecanismo`,
    `depende_de`, `constructor` y `juez`: un plan sin ellos no se puede lanzar.
 8. **Verificación y ventana.** El preventivo lleva un test de **la clase**
    (todas las instancias del barrido, y una nueva que se añadiera), que se ve
@@ -73,7 +73,7 @@ No es para:
    «Qué» y el bloque `encargo` de `docs/ops/ENCARGO.md`. La ficha del fondo,
    a `estado: plan` con `encargos: #a, #b`. Repo público (#300): ni en el plan
    ni en los encargos va cómo se salta una barrera. Crear los encargos y editar
-   la ficha es rutina: no pide el OK de Pablo.
+   la ficha es rutina: se hace sin preguntar.
 
 Sale bien si: el comentario del bot del fondo no lleva `plan-grande` ni
 `ficha-desactualizada`, cada encargo lleva su bloque `encargo` completo, y uno
@@ -113,7 +113,7 @@ cuando hay varias».
   - E2 `detectivo`, `mecanismo: workflow_evento` (búsqueda de parecidos en
     cada issue nuevo, venga de donde venga), `por_que_no_mas_alto: el
     proveedor no deja impedir crear un issue`, `depende_de: ninguno`;
-  - E3 `correctivo`, `mecanismo: ci`: un test sobre el registro que exige a
+  - E3 `correctivo`, `mecanismo: ci`: un test sobre el registro que pide a
     cada norma de una sola puerta decir sus otras vías, `depende_de: E1`.
 - Ficha: `barrera: bloqueo`, `verificacion` el test de la guardia; ventana de
   60 días al fusionar E1.

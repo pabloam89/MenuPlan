@@ -40,16 +40,16 @@ No es para:
    `ops/MODULOS.json` que toca, casos parecidos, y si es un «no aguantó» (sube
    un nivel). Sin evidencia, `sin-comprobar`. Luego
    `npm run presupuesto -- <alcance> <tipo_causa>` → quién diagnostica,
-   cuántas hipótesis en paralelo, si toca tabla ES / NO ES y el tope de
-   rondas. No te pases del presupuesto.
+   cuántas hipótesis en paralelo, si toca tabla ES / NO ES y cuántas
+   rondas caben. No te pases del presupuesto.
 3. **Elige la técnica por el tipo de causa**:
    `npm run tecnica -- <tipo_causa>` → la técnica principal y las de apoyo, con
    sus pasos, del catálogo `ops/tecnicas.json`. Si el presupuesto pide ES / NO
    ES, haz además esa tabla. Si la técnica que sale no encaja (su «no cuando»
    se cumple), usa la de apoyo y di por qué.
 4. **Aplícala con evidencia.** Cada afirmación lleva su prueba: comando y
-   salida, `fichero:línea`, un run o un PR. La hora, con `npm run hora` (nunca
-   `date`). Lo que no se puede comprobar se escribe `HIPÓTESIS:` con la
+   salida, `fichero:línea`, un run o un PR. La hora, con `npm run hora` (no
+   `date`, que en Git Bash da UTC). Lo que no se puede comprobar se escribe `HIPÓTESIS:` con la
    observación que la confirmaría o tumbaría, y no se copia como hecho en la
    ficha.
 5. **Para por criterio, no por cansancio.** Tres paradas (vocabulario
@@ -60,14 +60,14 @@ No es para:
      es entonces la barrera que falta de nuestro lado;
    - `sin_evidencia`: se acaba lo comprobable; queda una hipótesis.
 
-   Di siempre cuál de las tres te hizo parar y a qué mecanismo llegaste.
+   Di cuál de las tres te hizo parar y a qué mecanismo llegaste.
 6. **Escribe la causa en tres piezas**: *mecanismo* (qué hace el sistema) +
    *condición* (cuándo falla) + *control ausente* (qué debía pararlo y no
    existe o no lo ve). Plantilla: «<mecanismo> falla cuando <condición>, y
    <control> no lo para porque <motivo>». Va al campo `mecanismo` de la ficha.
    Escríbela entera aunque sea hipótesis (marcada como tal): «sigo la
    plantilla» no es una causa.
-7. **Causa de escape, siempre**: por qué ningún test, hook, revisión o
+7. **Causa de escape, en todo diagnóstico**: por qué ningún test, hook, revisión o
    vigilante lo detectó antes de que llegara. Si la respuesta es «no había
    ninguno», dilo así. Va a `causa_escape`. Sin ella el fondo no pasa a
    `diagnosticado` y el CI niega los PR de sus encargos.
@@ -79,8 +79,8 @@ No es para:
    y un comentario del diagnóstico con dos líneas que se puedan contar:
    `tecnica: <id de ops/tecnicas.json>` y `parada: <id de PARADAS>`, más la
    tabla o cadena que produjo la técnica. Repo público (#300): describe el
-   mecanismo, nunca cómo saltarlo; el detalle explotable va a Pablo en privado.
-   Editar la ficha y comentar el issue es rutina: no pide el OK de Pablo.
+   mecanismo y no cómo saltarlo; el detalle explotable va a Pablo en privado. <!-- norma:repo-publico-sin-detalle -->
+   Editar la ficha y comentar el issue es rutina: se hace sin preguntar.
 
 Sale bien si: el workflow `fondos` pone `control:ok` y su comentario no lleva
 `sin-diagnostico`; y quien lea el diagnóstico puede señalar el mecanismo en el
@@ -125,7 +125,7 @@ y sube encima copias viejas.
    pase con cortes de red reales queda como `HIPÓTESIS:` con su observación.
 5. Ficha: `mecanismo: el cargador devuelve vacío cuando falla la carga, y quien
    lo llama sube datos sin distinguirlo porque nada le dice que fue un error`;
-   `causa_escape: ningún test exige que un cargador distinga error de vacío`;
+   `causa_escape: ningún test pide que un cargador distinga error de vacío`;
    `clase: todo cargador que devuelve lo mismo en error que en vacío y todo
    llamador que escribe fiándose de eso`.
 
