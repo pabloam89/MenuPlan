@@ -139,8 +139,8 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P10.2 | Sin aprendizaje registrado, un fondo no se cierra | script_propio · `scripts/lib/fondos.mjs` | semidura | `fondo-con-ficha-y-controles` | #341 |
 | **Aprender** · blanda | | | | | |
 | P11.1 | Lo aprendido queda en un test, la guardia, una skill o un catálogo, nunca solo en la memoria | nada · `CLAUDE.md` | blanda | `lecciones-a-un-test` | #337, #338 |
-| P11.2 | Toda skill de herramienta sigue la plantilla | ci · `.claude/PLANTILLA-SKILL.md` | dura | — | — |
-| P11.3 | Una skill se prueba con casos y sigue funcionando tras cambiarla | nada · no escrita aún | blanda | — | #336, #341 |
+| P11.2 | Toda skill sigue la plantilla de su tipo: tipo, dueño, fecha de comprobación (caducada solo falla en el PR que la toca), secciones, tamaño, rutas y nada copiado | ci · `.claude/PLANTILLA-SKILL.md` | dura | — | — |
+| P11.3 | Una skill se prueba con casos y sigue funcionando tras cambiarla | ci · `.claude/PLANTILLA-SKILL.md` | semidura | — | #341 |
 | P11.4 | Una pieza nueva (skill, catálogo o agente) solo se crea si cumple la regla de parada | nada · `docs/ops/FLUJO.md` | blanda | — | #341 |
 | **Medir** · blanda | | | | | |
 | P12.1 | El nivel de cada plano sale de criterios comprobables (los de juicio llevan fecha) | ci · `scripts/lib/planos.mjs` | dura | — | — |
@@ -149,7 +149,7 @@ de obligaciones (y sale con `npm run flujo`): esa cifra es la que tiene que subi
 | P12.4 | Los presupuestos se recalibran cada semana con lo medido | nada · no escrita aún | blanda | — | #340 |
 | P12.5 | Las normas del proceso que se incumplen se cuentan cada semana | script_propio · `scripts/lib/normas.mjs` | semidura | — | #341, #185 |
 
-**52 obligaciones:** 5 duras · 26 semiduras · 21 blandas · 0 rotas. 21 están enlazadas con su norma del registro.
+**52 obligaciones:** 5 duras · 27 semiduras · 20 blandas · 0 rotas. 21 están enlazadas con su norma del registro.
 <!-- flujo:pasos:fin -->
 
 ## Lo que ya existía
