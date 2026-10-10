@@ -16,7 +16,7 @@
  * que se calla lleva su `a propósito:` (scripts/sinErroresTragados.test.js).
  */
 import { execFile, execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
 import { ahoraEnMadrid } from "../../scripts/lib/hora.mjs";
@@ -25,6 +25,7 @@ import { avisosDeLimpieza, leerPendientes, worktreesVivos } from "../../scripts/
 import { sinAplicar } from "./guardia.mjs";
 import { avisoRamaPrincipal, avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
 import { avisoDeIndice, leerIndice } from "../../scripts/lib/buscarAntes.mjs";
+import { ErrorTokenSesion, avisoDeIdentidad, identidadDe, lineasDeEntorno, tokenDeSesion } from "../../scripts/lib/tokenSesion.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
 
@@ -121,6 +122,32 @@ try {
   avisos.push(`Limpieza de carpetas: no he podido leer lo que dejó pendiente (${String(e?.message ?? e).split("\n")[0]}).`);
 }
 
+// ── Identidad de GitHub (#329) ────────────────────────────────────────────
+// Se lanza ya y se espera al final (es red y `op`). Con la clave de la App legible,
+// el token de 1 hora va al fichero de entorno de la sesión (CLAUDE_ENV_FILE, que
+// lee el shell de cada comando) y `gh` y `git` actúan como homenu-sesiones[bot].
+// Si no se puede, se dice por qué y se sigue con la identidad actual (plan B).
+const identidad = (async () => {
+  let token = "no";
+  let motivo = "-";
+  const env = { ...process.env };
+  try {
+    const t = await tokenDeSesion();
+    const fichero = process.env.CLAUDE_ENV_FILE;
+    if (!fichero) throw new ErrorTokenSesion("sin-fichero-de-entorno", "este arranque no recibió CLAUDE_ENV_FILE");
+    appendFileSync(fichero, lineasDeEntorno(t));
+    env.GH_TOKEN = t.token;
+    token = "app";
+  } catch (e) {
+    motivo = e instanceof ErrorTokenSesion ? e.motivo : "error-interno";
+    console.error(`identidad-sesion token: no motivo: ${motivo} detalle: ${String(e?.message ?? e).split("\n")[0].slice(0, 160)}`);
+  }
+  const r = await new Promise((ok) => {
+    execFile("gh", ["api", "user", "--jq", ".login"], { env, encoding: "utf8", timeout: 8000 }, (error, stdout, stderr) => ok({ status: error ? (error.code ?? 1) : 0, stdout, stderr }));
+  });
+  return avisoDeIdentidad({ identidad: identidadDe(r), token, motivo });
+})();
+
 // ── Staging y migraciones ──────────────────────────────────────────────────
 const prs = pedirPrs(raiz, 10_000); // a la vez que el fetch: los dos son red, y gh es el lento
 // Lo que se enseña de los issues lo decide scripts/lib/issues.mjs (una sola
@@ -179,5 +206,7 @@ else avisos.push("Issues: no he podido leerlos (GitHub no contesta, gh sin sesi�
   const aviso = avisoDeIndice(leerIndice());
   if (aviso) avisos.push(aviso);
 }
+
+avisos.push(await identidad);
 
 process.stdout.write(`[arranque MenuPlan]\n- ${avisos.join("\n- ")}\n`);

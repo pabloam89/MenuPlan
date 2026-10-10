@@ -66,7 +66,7 @@ metadata:
   administrador incluida. Es la del llavero hasta el cambio de #328; luego se
   anula.
 - **Service account «MenuPlan sesiones»** (#328, **pendiente de crear**): solo
-  lectura de `HoMenu-sesiones`. Sustituye a la anterior en el llavero.
+  lectura de `HoMenu-sesiones` y de la clave de la App de GitHub que da su identidad a las sesiones (#329, skill `github`). Sustituye a la anterior en el llavero.
 - **Ficha `Postgres del panel`** (bóveda `Panel HoMenu`, id
   `c64ol4a3oewjeue3szoafrrr6q`): servidor, puerto, base, usuario y contraseña
   del Postgres del panel.
@@ -121,8 +121,8 @@ no has lanzado tú: no la apruebes.
 2. PowerShell aparte, en `C:\dev\MenuPlan`: `node scripts/boveda-sesiones.mjs`
    (ensayo, no abre la app) y `$env:MENUPLAN_OP_PABLO = "1"; node scripts/boveda-sesiones.mjs --si`:
    8 fichas, una línea `COINCIDEN` cada una.
-3. **Mover** (no copiar) la clave de la App de E1 (#327) a `HoMenu-sesiones`,
-   Documento `GitHub App homenu-sesiones`.
+3. **Mover** (no copiar) la clave de la App (#327) a `HoMenu-sesiones`, Documento
+   `GitHub App homenu-sesiones`: el arranque la lee ahí (hoy, de `HoMenu`, «GitHub App Sesiones»; #329).
 4. Fusionar el PR de #328 y poner al día la carpeta principal:
    `git fetch origin; git merge --ff-only origin/staging`.
 5. PowerShell aparte, en `C:\dev\MenuPlan`:

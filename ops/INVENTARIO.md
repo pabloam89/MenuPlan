@@ -64,6 +64,10 @@ que leen las sesiones, con los mismos títulos y campos; la lista que manda es
 
 La clave de la GitHub App `homenu-sesiones` (#327) se **mueve** (no se copia)
 a `HoMenu-sesiones` como Documento `GitHub App homenu-sesiones`.
+La lee el arranque (`scripts/lib/tokenSesion.mjs`, #329; App ID 5260552, no secreto): de
+`HoMenu-sesiones` y, hasta que se mueva, de la ficha «GitHub App Sesiones» de `HoMenu`.
+Con ella saca un token de instalación de 1 hora que vive solo en el fichero de entorno
+de la sesión de Claude (`CLAUDE_ENV_FILE`, en el perfil de Windows de Pablo) y en la memoria de `gh` y `git`.
 
 ### Secretos internos (no son de un servicio)
 
