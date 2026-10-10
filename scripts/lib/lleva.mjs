@@ -87,7 +87,7 @@ export function leerMarcas(comentarios, { soloCasa = false } = {}) {
 const motivoDe = (e) => String(e?.stderr ?? e?.message ?? e).trim().split("\n")[0];
 
 /** `gh` con tope de tiempo: sin red, que falle pronto y avise. */
-export const ghReal = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 20_000 });
+export const ghReal = (...args) => execFileSync("gh", args, { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 20_000 });
 
 /**
  * Los comentarios del issue con su id: [{ id, body }]. Pendiente en #313: `marcar` y `desmarcar` buscan su
@@ -160,7 +160,7 @@ export function inventario({ worktrees, principal, remotas }) {
 }
 
 /** Lee git (carpetas y ramas de GitHub aún no fusionadas en staging). Lanza si git falla: quien llama decide. */
-export function leerInventario(principal, git = (...a) => execFileSync("git", a, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 8000 })) {
+export function leerInventario(principal, git = (...a) => execFileSync("git", a, { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 8000 })) {
   const worktrees = leerWorktrees(git("-C", principal, "worktree", "list", "--porcelain")).map((w) => {
     let ultimo = null;
     try {

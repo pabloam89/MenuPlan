@@ -933,7 +933,7 @@ describe("zonas con dueño: avisa sin bloquear si otra rama viva lleva el ficher
     const dirReg = join(base, ".git", "claude-sesiones");
     mkdirSync(dirReg, { recursive: true });
     const foto = { hecho: new Date().toISOString(), ramas: [
-      { rama: "trabajo", ruta: repo, carpeta: "trabajo", issue: null, desde: null, ficheros: ["ops/forja.json"], reservadas: [] },
+      { rama: "trabajo", ruta: repo, carpeta: "trabajo", issue: null, desde: null, ficheros: ["ops/forja.json", "ops/propio.json"], reservadas: ["ops/reservado.json"] },
       { rama: "ops/9-otra", ruta: join(base, "otra"), carpeta: "otra", issue: 9, desde: otra.desde, ficheros: ["ops/forja.json"], reservadas: [] },
     ] };
     writeFileSync(join(dirReg, "zonas.json"), JSON.stringify(foto));
@@ -947,7 +947,10 @@ describe("zonas con dueño: avisa sin bloquear si otra rama viva lleva el ficher
     expect(primera.permissionDecision).toBeUndefined();
     expect(primera.additionalContext).toMatch(/^\[guardia\] Editar `ops\/forja\.json`, que ya lleva la rama `ops\/9-otra` \(#9/);
     expect(lanza("ops/forja.json")).toBe(""); // la misma sesión ya fue avisada
-    expect(lanza("ops/otro.json")).toBe(""); // la propia rama no cuenta y nadie más lo lleva
+    expect(primera.additionalContext).not.toContain("`trabajo`"); // la propia rama, que también lo lleva, no sale
+    // Lo que solo lleva la propia rama (cambiado o reservado) no avisa: sin la exclusión, avisaría.
+    expect(lanza("ops/propio.json")).toBe("");
+    expect(lanza("ops/reservado.json")).toBe("");
     expect(readFileSync(join(fabrica, "zonas.log"), "utf8")).toMatch(/^ts: \S+ zona: ops\/forja\.json rama: ops\/9-otra issue: #9 como: cambiado aviso: si\n$/);
   });
 });

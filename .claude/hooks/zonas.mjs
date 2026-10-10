@@ -68,24 +68,38 @@ export function escribirZonas(dirReg, datos) {
   renameSync(tmp, join(dirReg, FICHERO_ZONAS));
 }
 
+/**
+ * ¿Distinguir mayúsculas al comparar rutas del repo? En Windows no: el disco no las distingue, y
+ * la ruta que llega de la edición (`claude.md`) puede no ser la de git (`CLAUDE.md`).
+ */
+export const RUTAS_SIN_MAYUSCULAS = process.platform === "win32";
+const clave = (p, sinMayusculas) => (sinMayusculas ? String(p).toLowerCase() : String(p));
+
 /** ¿Una reserva cubre esta ruta? Un fichero exacto o una carpeta acabada en «/». */
-export const cubre = (reserva, rutaRel) => {
-  const r = String(reserva);
-  return r.endsWith("/") ? rutaRel.startsWith(r) : rutaRel === r;
+export const cubre = (reserva, rutaRel, sinMayusculas = RUTAS_SIN_MAYUSCULAS) => {
+  const r = clave(reserva, sinMayusculas);
+  const f = clave(rutaRel, sinMayusculas);
+  return r.endsWith("/") ? f.startsWith(r) : f === r;
 };
+
+const lista = (x) => (Array.isArray(x) ? x.filter((y) => typeof y === "string") : []);
 
 /**
  * Las OTRAS ramas que llevan `rutaRel`: [{ rama, carpeta, issue, desde, como }].
  * La propia es la rama cuya carpeta contiene `rutaAbs`; sin `rutaAbs`, ninguna
- * se excluye. Pura.
+ * se excluye. Pura. Una foto con filas rotas (null, sin lista) las salta: la
+ * guardia no puede caerse por un fichero de caché raro.
  */
-export function otrasRamas(datos, rutaRel, rutaAbs = null) {
-  if (!datos?.ramas || !rutaRel) return [];
+export function otrasRamas(datos, rutaRel, rutaAbs = null, sinMayusculas = RUTAS_SIN_MAYUSCULAS) {
+  if (!Array.isArray(datos?.ramas) || !rutaRel) return [];
   const abs = rutaAbs ? norma(rutaAbs) : null;
+  const buscada = clave(rutaRel, sinMayusculas);
   const out = [];
   for (const r of datos.ramas) {
-    if (abs && r.ruta && (abs === norma(r.ruta) || abs.startsWith(`${norma(r.ruta)}/`))) continue;
-    const como = (r.ficheros ?? []).includes(rutaRel) ? "cambiado" : (r.reservadas ?? []).some((x) => cubre(x, rutaRel)) ? "reservado" : null;
+    if (!r || typeof r !== "object" || typeof r.rama !== "string") continue;
+    if (abs && typeof r.ruta === "string" && (abs === norma(r.ruta) || abs.startsWith(`${norma(r.ruta)}/`))) continue;
+    const como = lista(r.ficheros).some((f) => clave(f, sinMayusculas) === buscada) ? "cambiado"
+      : lista(r.reservadas).some((x) => cubre(x, rutaRel, sinMayusculas)) ? "reservado" : null;
     if (como) out.push({ rama: r.rama, carpeta: r.carpeta ?? null, issue: r.issue ?? null, desde: r.desde ?? null, como });
   }
   return out;

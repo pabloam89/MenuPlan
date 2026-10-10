@@ -46,7 +46,7 @@ export async function ponerClave(p, { si }) {
   // otro fallo podría acabar en una ficha duplicada y una dirección op:// ambigua.
   const argsBusca = ["item", "get", p.ficha, "--vault", p.boveda, "--format", "json"];
   const busca = p.servicio
-    ? spawnSync("op", argsBusca, { env: entornoOp(), encoding: "utf8", stdio: ["ignore", "ignore", "pipe"] })
+    ? spawnSync("op", argsBusca, { windowsHide: true, env: entornoOp(), encoding: "utf8", stdio: ["ignore", "ignore", "pipe"] })
     : opPorLaApp(argsBusca);
   const ficha = estadoFicha(busca);
   if (ficha === "existe") {

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { RESERVA_VALIDA, compartidos, construirZonas, informeZonas, leerReservas, rutasDeStatus } from "./lib/zonas.mjs";
+import { OPCIONES_GIT, RESERVA_VALIDA, compartidos, construirZonas, informeZonas, leerReservas, rutasDeStatus } from "./lib/zonas.mjs";
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 
@@ -123,5 +123,13 @@ describe("lo que se lee de git, por piezas", () => {
     expect([...r.entries()]).toEqual([["ops/1-a.b", ["CLAUDE.md"]]]);
     expect(RESERVA_VALIDA.test("docs/ops/")).toBe(true);
     expect(RESERVA_VALIDA.test("a b")).toBe(false);
+    expect(RESERVA_VALIDA.test("Avatares/cards/mismo_menu_niños.png")).toBe(true);
+    expect(RESERVA_VALIDA.test("docs/diseño/señal-acción.md")).toBe(true);
+    expect(RESERVA_VALIDA.test("a​b")).toBe(false);
+  });
+
+  it("cada git del cálculo va oculto: sin windowsHide, una ventana por git en Windows (#506)", () => {
+    expect(OPCIONES_GIT.windowsHide).toBe(true);
+    expect(OPCIONES_GIT.stdio).toEqual(["ignore", "pipe", "ignore"]);
   });
 });

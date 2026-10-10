@@ -3,6 +3,13 @@
   "conocidas": ["src/", "api/", "scripts/", "supabase/", "ops/", "docs/", "specs/", ".claude/", ".github/", "public/", "brand/", "dish-gallery/public/catalog.json", "Avatares/", "eslint-rules/", "CLAUDE.md", "README.md", "package.json", "package-lock.json", "vercel.json", "vite.config.js", "index.html", "eslint.config.js", "eslint.tdz.config.js", "lint-base.json", "lint-tokens-base.json", "DESIGN_SYSTEM.md", "HOUSEHOLDS.md", "ILUSTRACIONES-PASOS.md", ".vercelignore", ".gitignore", ".gitattributes"],
   "vigilantes": [
     {
+      "id": "procesos-ocultos",
+      "tests": ["ops/procesosOcultos.test.js"],
+      "mira": [".claude/hooks/**/*.{js,mjs,cjs}", "scripts/lib/**/*.{js,mjs,cjs}"],
+      "porque": "Toda llamada de child_process de los hooks y de scripts/lib lleva windowsHide: true; una nueva sin ella abre una ventana de consola por proceso al correr desde un hook o en segundo plano.",
+      "evidencia": "#506 (revisor: ~38 ventanas por refresco de zonas)"
+    },
+    {
       "id": "errores-tragados-scripts",
       "tests": ["scripts/sinErroresTragados.test.js"],
       "mira": ["scripts/**/*.{js,mjs,cjs,jsx}", ".claude/hooks/**/*.{js,mjs,cjs,jsx}"],

@@ -58,7 +58,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `sin-git-stash` | sesion | NO DEBE | **Sin git stash.** Cada sesión de Claude NO DEBE usar git stash. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `stash` |
 | `sin-git-add-todo` | sesion | NO DEBE | **Sin git add masivo.** Cada sesión de Claude NO DEBE usar git add . ni commit -a. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `add-a-ciegas` |
 | `no-trabajar-en-principal` | sesion | NO DEBE | **Sin trabajo en la principal.** Cada sesión de Claude NO DEBE trabajar en la carpeta principal. | guardia · semidura | test: `.claude/hooks/principal.test.js` | `carpeta-principal` |
-| `zona-con-dueno` | sesion | DEBE | **Zona con dueño.** Cuando edita un fichero que otra rama viva ya cambió o reservó, cada sesión de Claude DEBE coordinarse antes con esa rama o esperar a su PR. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `zona-de-otra-rama` |
+| `zona-con-dueno` | sesion | DEBE | **Zona con dueño.** Cuando edita un fichero que otra rama viva ya cambió o reservó, cada sesión de Claude DEBE coordinarse antes con esa rama o esperar a su PR. | guardia · blanda | test: `.claude/hooks/guardia.test.js` | `zona-de-otra-rama` |
 | `issues-con-buscar-antes` | issue | DEBE | **Issues con búsqueda previa.** Cuando se crea, cada issue DEBE crearse con npm run issues -- --nuevo. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `issue-a-pelo` |
 | `skill-antes-de-riesgo` | sesion | DEBE | **Skill antes de riesgo.** Cuando lanza el primer comando de riesgo de un dominio, cada sesión de Claude DEBE abrir antes su skill. | guardia · semidura | test: `.claude/hooks/guardia.test.js` | `puerta-de-skill-comando` |
 | `pendientes-a-issue` | sesion | DEBE | **Pendientes a un issue.** Cuando deja decisiones o pendientes, cada sesión de Claude DEBE registrarlos en un issue. | guardia · semidura | test: `.claude/hooks/pendientes.test.js` | — |
@@ -199,4 +199,4 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `aprobar-pr` | `rutas-protegidas-aprobacion-de-dueno` | Aprobar un PR desde una sesión |
 | `token-impreso` | `token-de-sesion-no-se-imprime` | Imprimir el token de la sesión |
 
-Total: 98 normas (rota 2, semidura 51, dura 13, blanda 32) y 42 avisos de la guardia.
+Total: 98 normas (rota 2, semidura 50, dura 13, blanda 33) y 42 avisos de la guardia.

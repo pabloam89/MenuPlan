@@ -77,6 +77,8 @@ describe("ningún test que enumera ficheros del repo queda fuera de la lista", (
 // Una o dos rutas de ejemplo por grupo → el test que debe salir. Estrechar un `mira` (p. ej.
 // `scripts/**/*.mjs` → `scripts/*.mjs`) hace fallar la fila de su grupo.
 const TABLA = [
+  ["procesos-ocultos", "scripts/lib/x.mjs", "ops/procesosOcultos.test.js"],
+  ["procesos-ocultos", ".claude/hooks/x.mjs", "ops/procesosOcultos.test.js"],
   ["errores-tragados-scripts", "scripts/lib/x.mjs", "scripts/sinErroresTragados.test.js"],
   ["errores-tragados-scripts", ".claude/hooks/x.mjs", "scripts/sinErroresTragados.test.js"],
   ["errores-tragados-bot", "api/bot/x.js", "api/_bot/sinErroresTragados.test.js"],

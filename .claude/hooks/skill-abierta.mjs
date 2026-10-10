@@ -76,7 +76,7 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "
       const desde = entrada.cwd || process.cwd();
       let raiz = desde;
       try {
-        raiz = execFileSync("git", ["-C", desde, "rev-parse", "--show-toplevel"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+        raiz = execFileSync("git", ["-C", desde, "rev-parse", "--show-toplevel"], { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
       } catch {
         // a propósito: falla abierta — fuera de un repo se usa la carpeta tal cual; en el peor caso no se anota la skill y la guardia pide un reintento.
       }

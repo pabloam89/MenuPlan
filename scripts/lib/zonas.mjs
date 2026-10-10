@@ -27,11 +27,19 @@ import { pathToFileURL } from "node:url";
 import { barrerVistas, escribirZonas, FICHERO_LINEAS, haceCuanto } from "../../.claude/hooks/zonas.mjs";
 import { AJENAS, leerWorktrees, numeroDeRama } from "./lleva.mjs";
 
-const gitReal = (...a) => execFileSync("git", a, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15_000, maxBuffer: 32 * 1024 * 1024 });
+/**
+ * Las opciones de cada `git` del cálculo. `windowsHide`: el cálculo corre en segundo plano y sin
+ * consola, y sin esto Windows abre una ventana por cada `git` (revisor de #506: unas 38 por refresco).
+ */
+export const OPCIONES_GIT = { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15_000, maxBuffer: 32 * 1024 * 1024 };
+const gitReal = (...a) => execFileSync("git", a, OPCIONES_GIT);
 const norma = (p) => String(p).replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
 
-/** Una reserva válida: ruta relativa del repo, con barras normales, sin `..` ni rarezas. */
-export const RESERVA_VALIDA = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[\w.\-/]{1,200}$/;
+/**
+ * Una reserva válida: ruta relativa del repo, con barras normales, sin `..` ni rarezas. Admite
+ * letras con tilde y la ñ (flag `u`): el repo tiene ficheros como `Avatares/cards/mismo_menu_niños.png`.
+ */
+export const RESERVA_VALIDA = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[\p{L}\p{N}_.\-/]{1,200}$/u;
 
 /**
  * Lo que no es de nadie aunque cambie: la memoria de los agentes (`.claude/agent-memory/`),
@@ -101,7 +109,7 @@ export function construirZonas(principal, { git = gitReal, ahora = new Date() } 
  */
 export function compartidos(foto) {
   const por = new Map();
-  for (const r of foto.ramas) {
+  for (const r of (foto.ramas ?? []).filter((x) => x && typeof x.rama === "string")) {
     const poner = (f, como) => {
       if (!por.has(f)) por.set(f, new Map());
       const ya = por.get(f).get(r.rama);

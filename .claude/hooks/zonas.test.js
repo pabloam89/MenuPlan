@@ -34,6 +34,21 @@ describe("qué otras ramas llevan un fichero", () => {
     expect(otrasRamas(FOTO, "ops/forja.json", "C:/dev/MenuPlan-mia-2/ops/forja.json").map((o) => o.rama)).toEqual(["ops/1-mia", "ops/2-otra"]);
   });
 
+  it("en Windows no distingue mayúsculas; en Linux sí", () => {
+    expect(otrasRamas(FOTO, "claude.md", "C:/dev/MenuPlan-mia/claude.md", true).map((o) => o.rama)).toEqual(["ops/2-otra"]);
+    expect(otrasRamas(FOTO, "claude.md", "C:/dev/MenuPlan-mia/claude.md", false)).toEqual([]);
+    expect(otrasRamas(FOTO, "OPS/Glosario.json", null, true).map((o) => o.como)).toEqual(["reservado"]);
+    expect(cubre("docs/ops/", "Docs/Ops/FLUJO.md", true)).toBe(true);
+    expect(cubre("docs/ops/", "Docs/Ops/FLUJO.md", false)).toBe(false);
+  });
+
+  it("una foto con filas rotas no tumba nada", () => {
+    const rota = { ramas: [null, 3, "x", { rama: 5 }, { rama: "ops/3-y", ficheros: null, reservadas: [null, "CLAUDE.md"] }, { rama: "ops/4-z", ficheros: ["CLAUDE.md", null] }] };
+    expect(otrasRamas(rota, "CLAUDE.md").map((o) => [o.rama, o.como])).toEqual([["ops/3-y", "reservado"], ["ops/4-z", "cambiado"]]);
+    expect(otrasRamas({ ramas: "no" }, "CLAUDE.md")).toEqual([]);
+    expect(otrasRamas(null, "CLAUDE.md")).toEqual([]);
+  });
+
   it("una reserva cubre su fichero exacto o lo que cuelga de su carpeta", () => {
     expect(cubre("ops/forja.json", "ops/forja.json")).toBe(true);
     expect(cubre("ops/forja.json", "ops/forja.json.bak")).toBe(false);

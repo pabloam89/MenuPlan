@@ -308,7 +308,7 @@ const GIT_DE_MANTENER = /\bmerge\s+(.*\s)?--ff-only\b|\b(checkout|switch)\s+stag
 
 export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado } = {}) {
   let deStaging;
-  const git = (args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000 }).trim();
+  const git = (args) => execFileSync("git", args, { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000 }).trim();
   let comunPropio;
   const esPrincipal = (dir) => {
     try {
@@ -327,7 +327,13 @@ export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado } = {}) {
   const idSesion = entrada.session_id;
   return {
     // Zonas con dueño (#506): las otras ramas vivas que llevan este fichero, de la foto en caché.
-    zonaAjena: (rutaAbs, rutaRel) => consultarZona(registro(), resolve(raiz, String(rutaAbs)), rutaRel),
+    zonaAjena: (rutaAbs, rutaRel) => {
+      try {
+        return consultarZona(registro(), resolve(raiz, String(rutaAbs)), rutaRel);
+      } catch {
+        return []; // a propósito: un aviso, no un candado; si la foto o el disco fallan, la edición sigue sin aviso
+      }
+    },
     marcarZona: (rutaRel) => anotarVista(registro(), idSesion, rutaRel),
     dominios: cargarMapa(raiz),
     skillAbierta: (skill) => skillAnotada(registro(), idSesion, skill),
@@ -394,7 +400,7 @@ export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado } = {}) {
     },
     enStaging: (nombre) => {
       try {
-        execFileSync("git", ["-C", raiz, "cat-file", "-e", `origin/staging:supabase/migrations/${nombre}.sql`], { stdio: "ignore" });
+        execFileSync("git", ["-C", raiz, "cat-file", "-e", `origin/staging:supabase/migrations/${nombre}.sql`], { windowsHide: true, stdio: "ignore" });
         return true;
       } catch {
         return false; // a propósito: cat-file -e sale con error cuando el fichero no está en staging
@@ -404,7 +410,7 @@ export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado } = {}) {
     baseDelPr: (numero) => {
       try {
         const args = ["pr", "view", ...(numero ? [numero] : []), "--json", "baseRefName", "-q", ".baseRefName"];
-        return execFileSync("gh", args, { cwd: raiz, encoding: "utf8", timeout: 15000 }).trim();
+        return execFileSync("gh", args, { windowsHide: true, cwd: raiz, encoding: "utf8", timeout: 15000 }).trim();
       } catch {
         return null; // a propósito: null es «no se sabe» y decidir() lo convierte en pregunta (ask)
       }
@@ -428,8 +434,8 @@ export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado } = {}) {
     // Commits de origin/staging que le faltan a tu rama (tras traerlo). null si no se puede saber.
     atrasoLocal: (dir = raiz) => {
       try {
-        execFileSync("git", ["-C", dir, "fetch", "-q", "origin", "staging"], { stdio: "ignore", timeout: 30000 });
-        return Number(execFileSync("git", ["-C", dir, "rev-list", "--count", "HEAD..origin/staging"], { encoding: "utf8" }).trim());
+        execFileSync("git", ["-C", dir, "fetch", "-q", "origin", "staging"], { windowsHide: true, stdio: "ignore", timeout: 30000 });
+        return Number(execFileSync("git", ["-C", dir, "rev-list", "--count", "HEAD..origin/staging"], { windowsHide: true, encoding: "utf8" }).trim());
       } catch {
         return null; // a propósito: null es «no se sabe» y decidir() lo convierte en pregunta (ask)
       }
@@ -439,7 +445,7 @@ export function contextoReal(raiz, entrada = {}, { dirReg: dirRegDado } = {}) {
     // [] si no va atrasada o no se pisan; null si no se puede saber.
     choquesDelPr: (numero) => {
       try {
-        const opts = { cwd: raiz, encoding: "utf8", timeout: 15000 };
+        const opts = { windowsHide: true, cwd: raiz, encoding: "utf8", timeout: 15000 };
         const cabeza = execFileSync("gh", ["pr", "view", ...(numero ? [numero] : []), "--json", "headRefOid", "-q", ".headRefOid"], opts).trim();
         const compara = (de, a) => JSON.parse(execFileSync("gh", ["api", `repos/{owner}/{repo}/compare/${de}...${a}`, "-q", "{atraso: .behind_by, ficheros: [.files[].filename]}"], opts));
         const delPr = compara("staging", cabeza);
@@ -796,7 +802,7 @@ if (esPrincipal) {
   const desde = ruta.match(/^(.*?)[\\/]supabase[\\/]migrations[\\/]/)?.[1] || entrada.cwd || process.cwd();
   let raiz = process.env.CLAUDE_PROJECT_DIR || desde;
   try {
-    raiz = execFileSync("git", ["-C", desde, "rev-parse", "--show-toplevel"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    raiz = execFileSync("git", ["-C", desde, "rev-parse", "--show-toplevel"], { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
   } catch {
     // a propósito: fuera de un repo nos quedamos con la raíz que hay
   }

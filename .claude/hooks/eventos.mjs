@@ -55,7 +55,7 @@ const CODIGO_OK = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 /** La rama de una carpeta, o null. Solo se llama cuando hay un evento que anotar. */
 function ramaDe(cwd) {
   try {
-    return execFileSync("git", ["-C", cwd, "symbolic-ref", "--short", "HEAD"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 3000 }).trim();
+    return execFileSync("git", ["-C", cwd, "symbolic-ref", "--short", "HEAD"], { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 3000 }).trim();
   } catch {
     return null; // a propósito: sin git o sin carpeta, el evento se anota sin rama
   }
