@@ -79,6 +79,8 @@ describe("ningún test que enumera ficheros del repo queda fuera de la lista", (
 const TABLA = [
   ["procesos-ocultos", "scripts/lib/x.mjs", "ops/procesosOcultos.test.js"],
   ["procesos-ocultos", ".claude/hooks/x.mjs", "ops/procesosOcultos.test.js"],
+  ["tests-de-tiempo", "src/lib/x.test.js", "ops/testsDeTiempo.test.js"],
+  ["tests-de-tiempo", ".claude/hooks/x.test.js", "ops/testsDeTiempo.test.js"],
   ["errores-tragados-scripts", "scripts/lib/x.mjs", "scripts/sinErroresTragados.test.js"],
   ["errores-tragados-scripts", ".claude/hooks/x.mjs", "scripts/sinErroresTragados.test.js"],
   ["errores-tragados-bot", "api/bot/x.js", "api/_bot/sinErroresTragados.test.js"],
@@ -111,6 +113,8 @@ const TABLA = [
   ["endpoints", "api/x.js", "api/_guard.test.js"],
   ["vigilantes", "scripts/x.test.js", "ops/vigilantes.test.js"],
   ["una-lista-de-tipos", "docs/x.md", ".claude/plantillas-skill.test.js"],
+  ["metricas", "scripts/lib/x.mjs", "ops/metricas.test.js"],
+  ["workflows-yaml", ".github/workflows/x.yml", "ops/workflows.test.js"],
   ["una-escala-y-una-escalera", "ops/flujo.json", "ops/escalas.test.js"],
 ];
 

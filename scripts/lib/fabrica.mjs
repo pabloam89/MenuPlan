@@ -548,10 +548,11 @@ const miles = (x) => Math.round(x).toLocaleString("es-ES");
 const usd = (x) => (x === null ? "sin precio" : `${f1(x)} USD`);
 
 /** El informe en texto. Solo números, números de issue y palabras de vocabularios cerrados. */
-export function textoInforme({ cobertura: cob, union, recal, desde = null, huecoMin = HUECO_ACTIVO_MIN, precios = PRECIOS, recalibracion = false, eventos = null }) {
+export function textoInforme({ cobertura: cob, union, recal, desde = null, huecoMin = HUECO_ACTIVO_MIN, precios = PRECIOS, recalibracion = false, eventos = null, datosGithub = null }) {
   const L = [];
   L.push("Informe de la fábrica (fase F, #340) — solo agregados; los costes son una estimación a precio de API.");
   L.push(`Desde: ${desde ?? "el principio de las transcripciones"}. Minutos activos: huecos de menos de ${huecoMin} min. Precios de ${precios.comprobado_el} (${precios.estimacion ? "estimación" : "oficial"}).`);
+  if (datosGithub && datosGithub !== "fresco") L.push(`Datos de GitHub: ${datosGithub} (no son de ahora mismo).`);
   L.push("");
   L.push("Cobertura");
   L.push(`  sesiones medidas: ${cob.sesiones}; fondos con medidas: ${cob.fondos_medidos}; encargos medidos: ${cob.encargos_medidos}`);

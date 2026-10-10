@@ -11,6 +11,7 @@ import { main } from "./token-sesion.mjs";
 import { ADVERTENCIAS, APP_ID, BOT_ID, CACHES, ErrorTokenSesion, FICHAS_CLAVE, IDENTIDADES, MOTIVOS, aplicarIdentidad, avisoDeIdentidad, identidadDe, leerClaveDeBoveda, lineaIdentidad, lineasDeEntorno, motivoDeCanje, tokenConCache, tokenDeSesion } from "./lib/tokenSesion.mjs";
 import { MARGEN_MS, escribirCache, leerCache, permisosDelUsuario, principalesDeIcacls, protegerFichero, rutaDeCache } from "./lib/cacheTokenSesion.mjs";
 import { PERMISOS } from "./token-sesiones.mjs";
+import { medianaMsAsync, topeMs } from "./lib/medirTiempo.mjs";
 
 const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048, privateKeyEncoding: { type: "pkcs1", format: "pem" }, publicKeyEncoding: { type: "spki", format: "pem" } });
 const CLAVE_ROTA = ["-----BEGIN RSA PRIVATE KEY-----", "SECRETO-DE-PRUEBA", "-----END RSA PRIVATE KEY-----"].join("\n");
@@ -235,9 +236,11 @@ describe("aplicarIdentidad (lo que hace el arranque)", () => {
   });
   it("una identidad colgada no pasa del tope: vuelve desconocida, motivo red", async () => {
     const { opciones } = uso({ tope: 50, identificar: () => new Promise(() => {}) });
-    const t0 = Date.now();
-    const aviso = await aplicarIdentidad(opciones);
-    expect(Date.now() - t0).toBeLessThan(2000);
+    let aviso;
+    const ms = await medianaMsAsync(async () => { aviso = await aplicarIdentidad(opciones); }, { n: 3, etiqueta: "identidad-colgada" });
+    // Los 50 ms del tope son espera a propósito; lo que varía, suelto (medido el 2026-10-10:
+    // 61-63 ms en total), 15 ms.
+    expect(ms).toBeLessThan(topeMs(15, { fijoMs: 50 }));
     expect(aviso).toContain("identidad: desconocida token: no motivo: red");
   });
   it("un canje que termina DESPUÉS del tope no escribe el token ni añade una segunda línea contable", async () => {
@@ -452,10 +455,14 @@ describe("caché del token entre sesiones", () => {
     const ruta = nueva();
     mkdirSync(dirname(ruta), { recursive: true });
     writeFileSync(`${ruta}.lock`, "otro");
-    const t0 = Date.now();
-    const e = await usar(ruta, { generar: generador(), reloj: Date.now, hasta: t0 + 80, cache: opcionesCache(ruta, { esperaBloqueoMs: 5000 }) }).catch((x) => x);
+    let e;
+    const ms = await medianaMsAsync(async () => {
+      e = await usar(ruta, { generar: generador(), reloj: Date.now, hasta: Date.now() + 80, cache: opcionesCache(ruta, { esperaBloqueoMs: 5000 }) }).catch((x) => x);
+    }, { n: 3, etiqueta: "bloqueo-hasta" });
     expect(e.motivo).toBe("bloqueo-ocupado");
-    expect(Date.now() - t0).toBeLessThan(1500);
+    // Los 80 ms de `hasta` son espera a propósito; lo que varía, suelto (medido el 2026-10-10:
+    // 92-93 ms en total), 15 ms. Sin el límite esperaría los 5000 ms de esperaBloqueoMs.
+    expect(ms).toBeLessThan(topeMs(15, { fijoMs: 80 }));
   });
 
   it("si el bloqueo no se puede ni crear (permisos), canjea sin él", async () => {

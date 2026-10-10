@@ -20,6 +20,12 @@ paths:
   ficheros del repo entra en `ops/vigilantes.json`; `ops/vigilantes.test.js` lo comprueba.
   `vecinos` no cubre los pasos «Normas del PR» ni «Runbook del PR» (necesitan el cuerpo
   del PR): con texto nuevo en una norma, `node scripts/normas.mjs` antes y después.
-- **Un test que mide tiempo** deja al menos 20× de margen sobre lo que tarda
-  suelto, o repite la medida y vale con que una salga bien (#407: una razón
-  con umbral 8× entre 4× y 16× falló cuatro veces bajo carga).
+- **Un test que mide tiempo** usa `scripts/lib/medirTiempo.mjs`: la mediana de
+  varias medidas (`medianaMs`) contra `topeMs(<lo medido suelto>)`, que deja 20×
+  de margen. Repetir sin margen no basta (#499: el mejor de tres a 8× falló).
+  Si lanza procesos, `topeConTestigo`: un testigo de la misma tanda sube el
+  límite con la carga, y con la máquina saturada (`maquinaSaturada`) el tiempo
+  no se compara, solo lo funcional. Mejor aún, el orden de los eventos o dos medidas entre
+  sí (`// tiempo: relación — …`). Si no cabe, la marca `// tiempo: margen Nx
+  medido AAAA-MM-DD` encima; lo vigila `ops/testsDeTiempo.test.js`. Una razón
+  entre dos tamaños puede repetir hasta que una salga bien (#407).

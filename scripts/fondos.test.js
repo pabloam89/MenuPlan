@@ -12,7 +12,13 @@ import { ESCALONES } from "./lib/escalas.mjs";
 import { ALCANCES_FALLO } from "./lib/flujo.mjs";
 import { diaMadrid } from "./lib/hora.mjs";
 import { GRUPOS } from "./lib/issues.mjs";
+import { medianaMs, topeMs } from "./lib/medirTiempo.mjs";
 import { RIESGOS } from "./lib/normas.mjs";
+
+// Lo que tarda suelto leer una ficha hostil y un cuerpo de un megabyte (la mayor mediana
+// de 5 en tres pasadas el 2026-10-10: 0,2 ms y 2,6 ms).
+const SUELTO_FICHA_MS = 1;
+const SUELTO_MEGA_MS = 3;
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const leer = (...p) => readFileSync(join(RAIZ, ...p), "utf8");
@@ -142,10 +148,10 @@ describe("leerFicha", () => {
     ["una ruta absoluta", () => bloque(["verificacion: /etc/passwd"]), /ruta del repo/],
     ["una ruta con espacios y símbolos de shell", () => bloque(["verificacion: a.test.js; rm -rf /"]), /ruta del repo/],
     ["una URL como ruta", () => bloque(["verificacion: https://evil.example/x.js"]), /ruta del repo/],
-  ])("%s: error de forma, sin lanzar y sin ficha a medias", (_, hacer, esperado) => {
-    const t0 = Date.now();
-    const l = leerFicha(hacer());
-    expect(Date.now() - t0).toBeLessThan(500);
+  ])("%s: error de forma, sin lanzar y sin ficha a medias", (nombre, hacer, esperado) => {
+    const cuerpo = hacer();
+    let l;
+    expect(medianaMs(() => { l = leerFicha(cuerpo); }, { etiqueta: `ficha ${nombre}` })).toBeLessThan(topeMs(SUELTO_FICHA_MS));
     expect(l.errores.length).toBeGreaterThan(0);
     expect(l.errores.map((e) => e.mensaje).join(" | ")).toMatch(esperado);
     // Nunca se copia lo que escribió el autor tal cual al mensaje.
@@ -153,9 +159,9 @@ describe("leerFicha", () => {
   });
 
   it("un cuerpo de un megabyte sin bloque se lee rápido y sin lanzar", () => {
-    const t0 = Date.now();
-    expect(leerFicha("a\n".repeat(600_000).concat("```fondo\nestado: plan\n```")).presente).toBe(false); // más allá del tope, no se mira
-    expect(Date.now() - t0).toBeLessThan(500);
+    const cuerpo = "a\n".repeat(600_000).concat("```fondo\nestado: plan\n```");
+    expect(leerFicha(cuerpo).presente).toBe(false); // más allá del tope, no se mira
+    expect(medianaMs(() => leerFicha(cuerpo), { etiqueta: "ficha-un-mega" })).toBeLessThan(topeMs(SUELTO_MEGA_MS));
   });
 
   it("un texto con Markdown y HTML es solo texto: se guarda, no se ejecuta ni se muestra", () => {

@@ -137,7 +137,10 @@ const apuntado = (texto, n) => new RegExp(String.raw`(?<![\w])${n}(?![\w])`).tes
  * Las violaciones de una migración ≥ 0087. Cada una empieza por el nombre de
  * la regla («on-delete: …»), que es lo que mira el autotest.
  */
-export function revisar(fichero, sql, { pendientes, estado }) {
+// Los únicos ficheros que pueden declarar un valor de enum ya existente (con marca e if not exists).
+export const ENUM_DECLARATIVO = new Set(["0098_enums_salsa.sql"]);
+
+export function revisar(fichero, sql, { pendientes, estado, enumDeclarativo = ENUM_DECLARATIVO }) {
   const v = [];
   const codigo = limpiar(sql);
   const sents = sentencias(codigo);
@@ -186,7 +189,18 @@ export function revisar(fichero, sql, { pendientes, estado }) {
 
   // enum.
   if (/create\s+type\s+[\w."]+\s+as\s+enum\b/.test(codigo)) v.push("enum: create type … as enum");
-  if (/alter\s+type\s+[\w."]+\s+add\s+value\b/.test(codigo)) v.push("enum: alter type … add value");
+  // Excepción: declarar un valor que ya existe en producción (add value if not exists) en un fichero de
+  // ENUM_DECLARATIVO y con la marca «-- enum-declarativo: <porqué>». Sin las tres cosas, falla.
+  // La marca ocupa una línea que empieza por «--» y trae al menos tres palabras de porqué, en la misma línea.
+  // Límite: no distingue un «--» de línea dentro de un /* */ o de un literal de varias líneas.
+  const marcaEnum = enumDeclarativo.has(fichero) && /^[ \t]*--[ \t]*enum-declarativo:[ \t]*\S+[ \t]+\S+[ \t]+\S+/m.test(sql);
+  // Se recorre el SQL sin comentarios pero CON los cuerpos de $$ (limpiar los vacía, y un
+  // `do $$ begin alter type … add value … end $$` se escaparía): solo vale el que es una sentencia por sí mismo.
+  const crudo = sql.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\n]*/g, "").toLowerCase();
+  for (const m of crudo.matchAll(/alter\s+type\s+[\w."]+\s+add\s+value\b[^;]*/g)) {
+    const aNivelDeSentencia = sents.some((st) => /^alter\s+type\b/.test(st) && st.startsWith(m[0].trim()));
+    if (!marcaEnum || !aNivelDeSentencia || !/\badd\s+value\s+if\s+not\s+exists\b/.test(m[0])) v.push("enum: alter type … add value");
+  }
 
   // not-valid y contrae (cláusulas de alter table).
   let contrae = /\bdrop\s+table\b/.test(codigo);
@@ -434,7 +448,7 @@ comment on table public.cosas is 'Un texto largo que dice references, begin; y d
 comment on table public.cosas_log is 'Registro de solo añadir de lo que pasa con cada cosa';
 `;
 
-const CTX = { pendientes: "- `bot_tareas_ejemplo_vocabulario`\n- `bot_reminders_cosa_fk`", estado: "| `0999_ejemplo` | sin aplicar |" };
+const CTX = { pendientes: "- `bot_tareas_ejemplo_vocabulario`\n- `bot_reminders_cosa_fk`", estado: "| `0999_ejemplo` | sin aplicar |", enumDeclarativo: new Set(["0999_ejemplo.sql"]) };
 const F = "0999_ejemplo.sql";
 
 const reglas = (v) => [...new Set(v.map((x) => x.split(":")[0]))].sort();
@@ -463,6 +477,20 @@ const MALAS = [
     (s) => s + "create type public.color as enum ('rojo');\n"],
   ["enum", "alter type add value",
     (s) => s + "alter type public.household_member_role add value 'otro';\n"],
+  ["enum", "add value if not exists sin marca enum-declarativo",
+    (s) => s + "alter type public.household_member_role add value if not exists 'otro';\n"],
+  ["enum", "add value con marca pero sin if not exists",
+    (s) => s + "-- enum-declarativo: ya existe en producción\nalter type public.household_member_role add value 'otro';\n"],
+  ["enum", "marca enum-declarativo vacía (el salto de línea no es porqué)",
+    (s) => s + "-- enum-declarativo:\nalter type public.household_member_role add value if not exists 'otro';\n"],
+  ["enum", "add value dentro de un do $$ sin marca",
+    (s) => s + "do $$ begin alter type public.household_member_role add value 'otro'; end $$;\n"],
+  ["enum", "add value if not exists dentro de un do $$ con marca válida (solo vale a nivel de sentencia)",
+    (s) => s + "-- enum-declarativo: ya existe en producción\ndo $$ begin alter type public.household_member_role add value if not exists 'otro'; end $$;\n"],
+  ["enum", "marca válida no cubre create type as enum",
+    (s) => s + "-- enum-declarativo: ya existe en producción\ncreate type public.color as enum ('rojo');\n"],
+  ["enum", "marca válida, una sentencia cumple y otra no (sin if not exists)",
+    (s) => s + "-- enum-declarativo: ya existe en producción\nalter type public.household_member_role add value if not exists 'otro';\nalter type public.household_member_role add value 'otro2';\n"],
   ["not-valid", "check sobre tabla existente sin not valid",
     (s) => s.replace("check (tipo in ('a', 'b')) not valid;", "check (tipo in ('a', 'b'));")],
   ["not-valid", "foreign key sobre tabla existente sin not valid",
@@ -522,6 +550,16 @@ describe("principios: el lector distingue SQL bueno de malo", () => {
     const malo = mutar(BUENA);
     expect(malo, "la mutación no cambió nada: el caso no prueba nada").not.toBe(BUENA);
     expect(reglas(revisar(F, malo, CTX))).toEqual([regla]);
+  });
+
+  it("enum: add value if not exists con marca enum-declarativo pasa", () => {
+    const sql = BUENA + "-- enum-declarativo: el valor ya existe en producción\nalter type public.household_member_role add value if not exists 'otro';\n";
+    expect(revisar(F, sql, CTX)).toEqual([]);
+  });
+
+  it("enum: marca e if not exists válidos, pero en un fichero fuera de ENUM_DECLARATIVO, falla", () => {
+    const sql = BUENA + "-- enum-declarativo: el valor ya existe en producción\nalter type public.household_member_role add value if not exists 'otro';\n";
+    expect(reglas(revisar(F, sql, { ...CTX, enumDeclarativo: ENUM_DECLARATIVO }))).toEqual(["enum"]);
   });
 
   it("fk-indice: un unique añadido con alter table cubre la FK", () => {
