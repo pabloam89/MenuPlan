@@ -1,0 +1,61 @@
+{
+  "skill": "causa-raiz",
+  "casos": [
+    {
+      "id": "una-sola-puerta",
+      "peticion": "Teníamos una norma que obliga a buscar issues parecidos antes de crear uno, y aun así una sesión ha creado una docena de issues sin buscar, por otra vía distinta de la terminal. ¿Por qué ha pasado?",
+      "skill": "causa-raiz",
+      "debe_salir": [
+        "Mira antes lo ya apuntado en los issues (npm run issues o el fondo existente)",
+        "Fija un tipo de causa del vocabulario (por ejemplo vigilante-hueco) y elige la técnica con npm run tecnica o el catálogo ops/tecnicas.json",
+        "Escribe la causa como mecanismo + condición + control ausente",
+        "Da una causa de escape: por qué ningún control lo detectó",
+        "Define la clase en general (toda norma que solo se vigila en una vía de entrada), no solo este caso"
+      ],
+      "nota": "Abstracto de #325"
+    },
+    {
+      "id": "jueces-sin-mirar-issues",
+      "peticion": "Lanzamos varios jueces a auditar y presentaron como nuevos unos hallazgos que ya estaban apuntados en issues abiertos. Diagnostica por qué pasa esto.",
+      "skill": "causa-raiz",
+      "debe_salir": [
+        "Fija alcance y tipo de causa antes de diagnosticar, con npm run presupuesto para el esfuerzo",
+        "Para en algo que se puede cambiar con un mecanismo y dice qué criterio de parada usó",
+        "Marca como hipótesis lo que no ha comprobado, con lo que habría que observar"
+      ],
+      "nota": "Abstracto de #320"
+    },
+    {
+      "id": "vocabulario-copiado",
+      "peticion": "Un mismo vocabulario está copiado a mano en la base de datos y en varias constantes del código; al añadir un valor, una parte lo acepta y otra lo rechaza. Quiero la causa raíz, no el parche.",
+      "skill": "causa-raiz",
+      "debe_salir": [
+        "Clasifica el tipo de causa como dos-fuentes y elige técnica para ese tipo",
+        "Da una causa de escape: qué test o control debía detectar la diferencia y por qué no lo hizo",
+        "Deja el diagnóstico en la ficha del fondo (mecanismo, causa_escape, clase)"
+      ],
+      "nota": "Abstracto de #318"
+    },
+    {
+      "id": "error-como-vacio",
+      "peticion": "La sincronización de la app trata un fallo al cargar de la nube como si no hubiera datos y sube encima copias viejas. ¿Cuál es el fallo de fondo?",
+      "skill": "causa-raiz",
+      "debe_salir": [
+        "Clasifica el tipo de causa como error-silencioso y usa árbol de fallos (o justifica otra técnica)",
+        "Escribe la causa como mecanismo + condición + control ausente",
+        "Marca como hipótesis lo que no se ha reproducido"
+      ],
+      "nota": "Abstracto de #316"
+    },
+    {
+      "id": "frontera-partir-encargos",
+      "peticion": "El fondo ya tiene el diagnóstico escrito en su ficha. ¿En cuántos encargos lo partimos y con qué mecanismo, para que no vuelva?",
+      "skill": "plan-de-arreglo"
+    },
+    {
+      "id": "frontera-registrar-caso",
+      "peticion": "He visto un fallo nuevo en el CI y quiero registrarlo como caso con sus etiquetas y colgarlo de su fondo.",
+      "skill": "issues"
+    }
+  ]
+}

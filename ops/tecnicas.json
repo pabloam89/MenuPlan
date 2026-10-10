@@ -1,0 +1,114 @@
+{
+  "$comentario": "Catálogo de técnicas de diagnóstico (#338, fase C del plan #334). Es el dato: lo leen la skill causa-raiz y `npm run tecnica`; lo vigila ops/tecnicas.test.js con las reglas de scripts/lib/tecnicas.mjs. Las causas son las de `causa:` de scripts/lib/issues.mjs (no se copian aquí sus definiciones) y los criterios de parada, los de PARADAS de tecnicas.mjs. Repo público: sin detalle explotable.",
+  "version": 1,
+  "actualizado": "2026-10-10",
+  "tecnicas": [
+    {
+      "id": "cinco_porques",
+      "nombre": "5 porqués",
+      "cuando": "Hay una cadena simple de causa y efecto: una sola condición lleva a la siguiente, y cada eslabón se puede comprobar contra el código, un log o un dato.",
+      "no_cuando": "Hacen falta varias condiciones a la vez para que pase, o el fallo solo sale en un sitio y no en otro: la cadena única engaña.",
+      "produce": "cadena_causal",
+      "pasos": [
+        "Escribe el síntoma tal como se ve, con su evidencia (comando y salida, fichero:línea).",
+        "Pregunta por qué pasó y contesta solo con algo comprobado; cita la evidencia de cada respuesta.",
+        "Repite sobre la respuesta, no sobre el síntoma; cinco es una orientación, no un número fijo.",
+        "Para en cuanto se cumpla un criterio de parada y di cuál.",
+        "Haz la misma cadena para la causa de escape: por qué ningún control lo paró."
+      ],
+      "paradas": ["mecanismo_cambiable", "fuera_de_control", "sin_evidencia"],
+      "fuente": "Taiichi Ohno, «Toyota Production System» (1988)"
+    },
+    {
+      "id": "kepner_tregoe",
+      "nombre": "Kepner-Tregoe (tabla ES / NO ES)",
+      "cuando": "El fallo sale en un sitio y no en otro que se le parece (local y CI, staging y producción, una máquina y otra): la causa vive en lo que distingue los dos lados.",
+      "no_cuando": "No hay un lado que funcione con el que comparar: no hay contraste del que sacar la distinción.",
+      "produce": "tabla_es_no_es",
+      "pasos": [
+        "Tabla de cuatro filas (qué, dónde, cuándo, cuánto) y dos columnas: ES (donde pasa) y NO ES (donde podría pasar y no pasa).",
+        "Rellena cada celda con un hecho comprobado, no con una sospecha.",
+        "Lista lo que distingue la columna ES de la NO ES, y lo que cambió en el lado ES y en qué momento.",
+        "Cada causa candidata tiene que explicar todas las filas: la que deja una sin explicar, cae.",
+        "Comprueba la que queda reproduciendo el fallo en el lado ES y quitando la distinción."
+      ],
+      "paradas": ["mecanismo_cambiable", "fuera_de_control", "sin_evidencia"],
+      "fuente": "Charles Kepner y Benjamin Tregoe, «The Rational Manager» (1965)"
+    },
+    {
+      "id": "espina_de_pescado",
+      "nombre": "Espina de pescado (Ishikawa)",
+      "cuando": "Hay muchas causas posibles repartidas por sitios distintos (datos, código, proceso, herramienta, entorno, personas) y aún no se sabe por dónde empezar.",
+      "no_cuando": "La cadena ya está clara: dibujarla entera solo gasta tiempo.",
+      "produce": "mapa_de_factores",
+      "pasos": [
+        "El efecto a la derecha, en una frase con su evidencia.",
+        "Una espina por familia: datos, código, proceso, herramienta, entorno y personas o coordinación.",
+        "En cada espina, los factores que podrían contribuir; marca cuáles están comprobados y cuáles no.",
+        "Elige los dos o tres comprobados que más explican y sigue con 5 porqués o árbol de fallos sobre ellos.",
+        "Lo que queda sin comprobar sale como hipótesis, con lo que habría que mirar."
+      ],
+      "paradas": ["mecanismo_cambiable", "sin_evidencia"],
+      "fuente": "Kaoru Ishikawa, «Guide to Quality Control» (1968)"
+    },
+    {
+      "id": "arbol_de_fallos",
+      "nombre": "Árbol de fallos",
+      "cuando": "Para que pase hacen falta varias condiciones a la vez (Y) o vale cualquiera de varias (O): un fallo más un control que no lo paró, o un error que se traga y nadie avisa.",
+      "no_cuando": "Es una sola condición: el árbol se queda en una rama y es un 5 porqués con más trabajo.",
+      "produce": "arbol_de_condiciones",
+      "pasos": [
+        "El suceso de arriba: el fallo tal como se vio.",
+        "Debajo, las condiciones que lo producen, unidas por Y (hacen falta todas) u O (basta una).",
+        "Baja por cada rama hasta un hecho comprobado o un criterio de parada.",
+        "Una rama Y con un control ausente es la causa de escape: dila.",
+        "El arreglo corta la rama más alta posible: cortar una Y basta; en una O hay que cortar todas."
+      ],
+      "paradas": ["mecanismo_cambiable", "fuera_de_control", "sin_evidencia"],
+      "fuente": "U.S. NRC, «Fault Tree Handbook», NUREG-0492 (1981)"
+    },
+    {
+      "id": "cronologia",
+      "nombre": "Cronología de factores causales",
+      "cuando": "Varias sesiones, personas o procesos actuaron en paralelo y el fallo sale del orden en que pasaron las cosas: se pisaron, una no vio lo de otra o un aviso llegó tarde.",
+      "no_cuando": "Todo pasó en un solo actor y un solo momento: no hay orden que reconstruir.",
+      "produce": "cronologia",
+      "pasos": [
+        "Línea de tiempo con hora y fuente de cada hecho (commit, PR, comentario, log, run), en hora de Madrid con npm run hora.",
+        "Marca en cada hecho quién actuó y qué sabía en ese momento.",
+        "Señala los factores causales: el punto en que, con otra acción o con otra información, no habría pasado.",
+        "De cada factor, qué control debía avisar o impedir y por qué no estaba.",
+        "Los huecos de la línea de tiempo se dicen como huecos, no se rellenan."
+      ],
+      "paradas": ["mecanismo_cambiable", "sin_evidencia"],
+      "fuente": "U.S. DOE, «Events and Causal Factors Analysis» (1995)"
+    },
+    {
+      "id": "hipotesis_en_competencia",
+      "nombre": "Hipótesis en competencia",
+      "cuando": "Hay varias explicaciones posibles y la evidencia es escasa o se dio por cierta sin comprobar: hay que separar lo visto de lo supuesto.",
+      "no_cuando": "Ya hay una causa comprobada que explica toda la evidencia.",
+      "produce": "hipotesis_ponderadas",
+      "pasos": [
+        "Lista las hipótesis, todas a la vez, sin elegir todavía.",
+        "Lista la evidencia, marcando cada pieza como comprobada (con su comando o fichero:línea) o supuesta.",
+        "Matriz hipótesis × evidencia: compatible, incompatible o no dice nada.",
+        "Descarta por evidencia incompatible, no por la compatible: gana la que menos contradice, no la que más confirma.",
+        "Lo que queda vivo sale como hipótesis con la observación que la confirmaría o tumbaría."
+      ],
+      "paradas": ["sin_evidencia"],
+      "fuente": "Richards J. Heuer, «Psychology of Intelligence Analysis» (1999), cap. 8"
+    }
+  ],
+  "por_causa": {
+    "vigilante-falso": { "principal": "cinco_porques", "apoyo": ["kepner_tregoe"], "porque": "Un vigilante bloqueó algo bueno: la cadena va de la regla al patrón que casó de más; la tabla ES / NO ES separa lo que debía pasar de lo que no." },
+    "vigilante-hueco": { "principal": "arbol_de_fallos", "apoyo": ["cinco_porques"], "porque": "Hacen falta dos cosas a la vez, el fallo y un vigilante que no lo vio: la rama Y del control ausente es la causa de escape." },
+    "entorno": { "principal": "kepner_tregoe", "apoyo": ["hipotesis_en_competencia"], "porque": "Pasa en un sitio y no en otro: la causa vive en lo que distingue los dos entornos." },
+    "dos-fuentes": { "principal": "cinco_porques", "apoyo": ["kepner_tregoe"], "porque": "La cadena va de la copia que se separó a por qué existían dos; ES / NO ES separa qué consumidores ven cada versión." },
+    "error-silencioso": { "principal": "arbol_de_fallos", "apoyo": ["cinco_porques"], "porque": "Hacen falta el error y que algo se lo trague sin aviso: son dos ramas Y, y la del aviso es la de escape." },
+    "coordinacion": { "principal": "cronologia", "apoyo": ["arbol_de_fallos"], "porque": "El fallo sale del orden en que actuaron varias sesiones o personas." },
+    "modelo-datos": { "principal": "espina_de_pescado", "apoyo": ["cinco_porques"], "porque": "Una tabla que no cuadra con su uso suele tener factores en el esquema, el código, la migración y el proceso a la vez." },
+    "codigo": { "principal": "cinco_porques", "apoyo": ["hipotesis_en_competencia"], "porque": "Un fallo de lógica suele ser una cadena simple que se comprueba con un test que lo reproduce." },
+    "sin-comprobar": { "principal": "hipotesis_en_competencia", "apoyo": ["cronologia"], "porque": "Se dio algo por cierto: hay que separar lo comprobado de lo supuesto, y ver cuándo y quién lo dio por bueno." }
+  }
+}
