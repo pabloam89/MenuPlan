@@ -62,6 +62,13 @@ export function fichaCopia(origen, campos) {
     fields.push({ id: f.id, type: f.type, label: f.label, value: f.value });
   }
   fields.sort((a, b) => a.label.localeCompare(b.label));
+  // Una ficha de tipo contraseña exige su campo «password», que aquí no se copia (es de otra cosa):
+  // la copia solo lleva claves con nombre, así que va como credencial de API (visto con «Supabase lectura»).
+  if (origen.category === "PASSWORD") {
+    const secreto = fields.find((x) => x.type === "CONCEALED");
+    if (secreto && !fields.some((x) => x.id === "credential")) secreto.id = "credential";
+    return { title: origen.title, category: "API_CREDENTIAL", fields };
+  }
   return { title: origen.title, category: origen.category, fields };
 }
 
