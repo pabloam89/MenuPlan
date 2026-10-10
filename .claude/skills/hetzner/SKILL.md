@@ -13,7 +13,7 @@ metadata:
 
 - **Servidor `HoMenu-Panel`**, en el proyecto `HoMenu` de la consola de Hetzner
   Cloud: CPX02 (1 vCPU AMD, **1 GB de RAM**, 20 GB NVMe), Falkenstein (fsn1),
-  Ubuntu 26.04 LTS. Creado en la fecha de «Fechas».
+  Ubuntu 26.04 LTS. Creado en la fecha de «Fechas» de Fuentes y comprobación.
 - **Direcciones:** la pública, `188.245.14.194`, no se usa para nada (el 22 está
   cerrado). La de la red privada es `100.73.252.32` (skill `tailscale`).
 - **Para qué:** el panel de la factoría (repo propio, fuera de MenuPlan). Producción
@@ -44,7 +44,7 @@ metadata:
   - **Copia fuera del servidor** (#273, punto 4): las del panel y las de MenuPlan
     están en el mismo disco.
   - **Aviso de las copias** (#273): sin `COPIA_AVISO_URL`, `aviso: sin-canal`.
-  - **Instalar las copias**: nada instalado ni clave creada (al día de «Fechas»).
+  - **Instalar las copias**: nada instalado ni clave creada (al día de «Fechas» de Fuentes y comprobación).
   - Usuario sin privilegios y el repo del panel, que aún no existe.
 
 ## Claves y accesos
@@ -85,7 +85,7 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
 | Copia ahora | `systemctl start panel-backup.service` | un `panel-….dump` nuevo en `/var/backups/panel` |
 | Últimas copias | `ls -lt /var/backups/panel \| head -3` | una por día (03:30 UTC), con 14 días de historia |
 | Ver el temporizador | `systemctl list-timers panel-backup.timer` | la próxima ejecución |
-| Restaurar en una base nueva (OK) | `cd /opt/panel && docker compose exec -T db pg_restore -U panel -d <base_nueva> --no-owner < <fichero.dump>` | sin errores y los datos en la base nueva. Ensayado (día en «Fechas») con una tabla de prueba (un valor guardado, copiado con `backup.sh`, restaurado en otra base y leído igual); la prueba se limpió |
+| Restaurar en una base nueva (OK) | `cd /opt/panel && docker compose exec -T db pg_restore -U panel -d <base_nueva> --no-owner < <fichero.dump>` | sin errores y los datos en la base nueva. Ensayado (día en «Fechas» de Fuentes y comprobación) con una tabla de prueba (un valor guardado, copiado con `backup.sh`, restaurado en otra base y leído igual); la prueba se limpió |
 | ¿Se ve el puerto desde fuera? | `bash -c 'echo > /dev/tcp/188.245.14.194/5432'` desde cualquier PC | no conecta (timeout) |
 | Última copia de la base | `ssh 'tail -n 3 /var/backups/menuplan/copias.log'` | una línea `copia-base … resultado: ok` de esta noche, con `bytes:` parecido al de ayer (~9 MB el 9 oct) |
 | Copias de la base guardadas | `ssh 'ls /var/backups/menuplan/diaria /var/backups/menuplan/semanal'` | hasta 7 y hasta 4 carpetas `AAAA-MM-DDTHHMMSSZ` |
@@ -174,7 +174,7 @@ Instalar las copias de la base (OK; lo lanza Pablo con `!`), su ensayo de restau
 
 ## Coste y límites
 
-**7,85 €/mes con IVA** (servidor 7,25 € + IPv4 0,61 €; precios del día de «Fechas»), facturado por
+**7,85 €/mes con IVA** (servidor 7,25 € + IPv4 0,61 €; precios del día de «Fechas» de Fuentes y comprobación), facturado por
 horas: si se borra a los tres días, se paga tres días. Sin Backups de Hetzner
 (sumarían ~20 %). Tráfico incluido: 20 TB. Límite que muerde: **1 GB de RAM**, con
 la swap de 2 GB como colchón; si Postgres y el panel no caben, se sube a la CPX12

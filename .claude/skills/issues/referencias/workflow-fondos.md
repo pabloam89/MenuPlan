@@ -21,7 +21,7 @@ ficha y en los cerrados con un caso `no-aguanto-*` o posterior al cierre
   alcance** en la ficha (una vez por caso: la marca del comentario lo anota,
   también en fondos sin ficha); la ventana vencida sin casos nuevos y sin
   ningún no-aguanto lo pasa a `cerrado-eficaz` y lo cierra con su `arreglo:`, y
-  con casos nuevos lo reabre. Los fondos de antes de la fecha de «Fechas» (final de SKILL.md) sin ficha solo
+  con casos nuevos lo reabre. Los fondos de antes de la fecha de «Fechas» de Fuentes y comprobación (en SKILL.md) sin ficha solo
   avisan (el #334 va con ficha desde el principio: `npm run issues` lo marca).
 - La marca del comentario lleva el `run` del workflow, y solo se lee un comentario
   del bot cuyo run sea de `fondos.yml`: otro workflow con el mismo bot no la falsifica.

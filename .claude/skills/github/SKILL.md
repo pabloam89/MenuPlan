@@ -11,7 +11,7 @@ metadata:
 
 ## Qué es y dónde
 
-- **Repo** `pabloam89/MenuPlan`, **público**. Rama por defecto: `staging` (desde cuándo, en «Fechas»). `main` es producción.
+- **Repo** `pabloam89/MenuPlan`, **público**. Rama por defecto: `staging` (desde cuándo, en «Fechas» de Fuentes y comprobación). `main` es producción.
 - **Protección de ramas** (desde el 7 oct, también para administradores):
   - `main`: solo por PR con el check `tests` en verde; sin force push ni
     borrado.
@@ -19,7 +19,7 @@ metadata:
     «staging: tests obligatorios»**: nada entra sin `tests` en verde, ni por PR
     ni por push, tampoco Pablo. Solo se lo saltan las deploy keys, y la única
     es la del cron de Mercadona, cuyo secreto vive en el environment
-    `mercadona-sync` (solo rama staging). Decidido y activo (id 24770007; día en «Fechas»),
+    `mercadona-sync` (solo rama staging). Decidido y activo (id 24770007; día en «Fechas» de Fuentes y comprobación),
     sin exigir la rama al día.
 - **Workflows** (`.github/workflows/`):
 
@@ -112,7 +112,7 @@ repo; el alta entera, en la skill `alta-de-secreto`.
 | Probar a mano la línea «Runbook:» | `git diff --name-only origin/staging... > $TEMP/f.txt` y `PR_BODY="$(gh pr view <n> --json body -q .body)" node scripts/runbook-pr.mjs $TEMP/f.txt` | `Runbook: ok`, o `FALLA` con la línea a poner (se arregla con `gh pr edit <n> --body-file <f>`) |
 
 - **Ramas viejas:** GitHub borra la rama al fusionar el PR
-  (`delete_branch_on_merge`), pero las de antes del cambio (día en «Fechas») se quedaron.
+  (`delete_branch_on_merge`), pero las de antes del cambio (día en «Fechas» de Fuentes y comprobación) se quedaron.
   `scripts/podar.mjs` borra solo las fusionadas enteras en `origin/staging`,
   sin PR abierto, de hace más de 1 día y sin worktree.
 

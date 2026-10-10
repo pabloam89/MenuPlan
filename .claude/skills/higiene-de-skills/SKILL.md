@@ -33,7 +33,7 @@ No es para:
 2. **Separa faltas de avisos.** Una `falta` es lo que el nivel 1 negaría sin su
    lista de excepciones (o una fecha caducada): se arregla. Un `aviso` es una
    heurística nuestra, sin fuente: se mira y se decide, y si es un falso positivo
-   se dice por qué en el PR.
+   se dice por qué en el PR. Falso positivo conocido: `caso-en-frontera` en `alta-de-secreto/ficha-equivocada`, por la raíz «scrip» (compartida con la frontera de `1password`); la petición es suya.
 3. **Arregla de arriba abajo con el `arreglo` que trae**, sin añadir nada que no
    pida un defecto. Si el arreglo mueve texto (fechas, un bloque largo), nada de
    información se pierde: va a «Lo que falló y por qué», a «Fuentes y

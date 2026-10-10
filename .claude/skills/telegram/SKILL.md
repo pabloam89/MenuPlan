@@ -17,9 +17,9 @@ Esto es operar la plataforma. Cómo se escribe el código de Lola está en
 - **Un solo bot que habla con familias**, «Lola de HoMenu». Su usuario sale de
   `TELEGRAM_BOT_USERNAME`. Un bot tiene **un único webhook**: apunta a un
   despliegue (producción o staging) y no a los dos. Antes de tocarlo, mira a
-  cuál apunta (`info`, abajo). Al día de «Fechas» apuntaba a staging
+  cuál apunta (`info`, abajo). Al día de «Fechas» de Fuentes y comprobación apuntaba a staging
   (`homenu-staging.vercel.app`).
-- **Bot de avisos «HoMenu avisos»** (#267, pendiente de crear; día en «Fechas»):
+- **Bot de avisos «HoMenu avisos»** (#267, pendiente de crear; día en «Fechas» de Fuentes y comprobación):
   solo escribe en un grupo con Pablo, Álvaro y Manu lo que manda el vigía
   (`.github/workflows/vigia-lola.yml`, `scripts/vigia.mjs`). No tiene webhook
   ni lee nada; no es Lola. Manu no tiene acceso al repo: **ningún aviso lleva
@@ -36,13 +36,13 @@ Esto es operar la plataforma. Cómo se escribe el código de Lola está en
 - **Grupos familiares**, solo en Telegram de momento. Con el modo privacidad
   por defecto, en un grupo Lola solo ve comandos, menciones y respuestas a sus
   mensajes, y así se decidió.
-- **Mini App**: retirada (día en «Fechas»). Se entra en la app con el enlace de
+- **Mini App**: retirada (día en «Fechas» de Fuentes y comprobación). Se entra en la app con el enlace de
   `/app`, no con una Mini App.
 - **Bot de pruebas: no hay.** El token es uno y el webhook, uno: probar contra
   staging significa moverle el webhook al bot de verdad. Si se crea uno
   (BotFather → `/newbot`), sus claves van a 1Password y a `ops/INVENTARIO.md`, y
   esta skill se actualiza.
-- **Decidido, sin implementar (día en «Fechas»): la lista de la compra viva.** En
+- **Decidido, sin implementar (día en «Fechas» de Fuentes y comprobación): la lista de la compra viva.** En
   Telegram usará la checklist nativa de la Bot API 9.1 (`sendChecklist`,
   `editMessageChecklist`), que permite tachar tocando sin escribir a Lola. En
   WhatsApp, mensajes interactivos repintados (10 elementos como máximo, por

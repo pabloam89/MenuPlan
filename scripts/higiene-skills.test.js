@@ -211,7 +211,7 @@ describe("sobre el repo de verdad", () => {
     expect(() => higieneDelRepo("no-existe", RAIZ, HOY)).toThrow(/No existe/);
   });
 
-  it("no hay ninguna comando de npm run citado en el vocabulario que no exista: el script está en package.json", () => {
+  it("ningún comando de npm run de esta skill falta: el script higiene-skills está en package.json", () => {
     expect(scriptsDeNpm(RAIZ)).toContain("higiene-skills");
   });
 

@@ -11,8 +11,8 @@ metadata:
 
 ## Qué es y dónde
 
-- **Cuenta** de Pablo en `my.1password.eu` (plan Familias, en prueba; desde cuándo, en «Fechas»). Cinco bóvedas (#328;
-  `HoMenu-sesiones`, **pendiente de crear**, ver «Fechas»):
+- **Cuenta** de Pablo en `my.1password.eu` (plan Familias, en prueba; desde cuándo, en «Fechas» de Fuentes y comprobación). Cinco bóvedas (#328;
+  `HoMenu-sesiones`, **pendiente de crear**, ver «Fechas» de Fuentes y comprobación):
   - **`HoMenu`**: todas las claves de MenuPlan, también las de producción, una
     ficha por servicio y un campo por variable
     (`op://HoMenu/Supabase/SUPABASE_DB_URL`). Solo Pablo.
@@ -45,7 +45,7 @@ metadata:
   línea `env-boveda clave: X de: A a: B motivo: respaldo`; Vite arranca sin las
   que no puede leer (`motivo: sin-acceso`, vacías). Un `.env.local` viejo
   sigue sirviendo tras cambiar el token.
-- **Agente SSH de 1Password**: activo (alta en «Fechas»). Guarda la llave
+- **Agente SSH de 1Password**: activo (alta en «Fechas» de Fuentes y comprobación). Guarda la llave
   `HoMenu - Hetzner Panel` (Ed25519, en `Private`); cada conexión pide
   aprobar. Sirve a la `ssh` de Windows, no a la de Git for Windows.
 - **CLI** `op`: `winget install AgileBits.1Password.CLI`.
@@ -79,7 +79,7 @@ metadata:
   `node scripts/copias-clave.mjs --si` (Pablo, con `!`): la genera, la pasa a
   `op` por stdin, la relee a ciegas y solo entonces escribe la pública. **Si se
   pierde, ninguna copia sirve**: segunda copia fuera de 1Password, en #273.
-  **Pendiente de crear** (desde cuándo, en «Fechas»).
+  **Pendiente de crear** (desde cuándo, en «Fechas» de Fuentes y comprobación).
 - **Cuenta de Hetzner y Tailscale**: fichas de Pablo en `Private`, con los
   códigos de recuperación del 2FA dentro de la propia ficha.
 
@@ -95,7 +95,7 @@ metadata:
 | Dar de alta una clave (OK; de punta a punta: skill `alta-de-secreto`) | primero, a qué bóveda: si da acceso a producción (URL de administrador, bots o tokens de producción, Vercel con producción, claves de Apps), solo a `HoMenu` y no a `env.1password` (comentada, si acaso). Si es de desarrollo, a `HoMenu` y a `HoMenu-sesiones`: un script la pasa en JSON por stdin a `op item create --vault HoMenu -`, se añade a `COPIAR` y a `ops/env.1password` con `op://HoMenu-sesiones/…`, y `node scripts/boveda-sesiones.mjs --si` | ficha creada; `npx vitest run scripts/boveda-sesiones.test.js` en verde |
 | Pasar una clave a otro programa por nombre de ficha (Pablo, PowerShell aparte) | `node scripts/op.mjs item get "<Ficha>" --vault HoMenu --fields label=<CAMPO> --reveal \| <programa que lee stdin>` | el programa la recibe; en pantalla, nada. Vale con fichas cuyo nombre no cabe en `op://` |
 | Copiar a `HoMenu-sesiones` (OK; Pablo, `!`) | `node scripts/boveda-sesiones.mjs` (ensayo) y `--si` | una línea por ficha: `copiada … COINCIDEN` o `salto … ya existe`; ningún valor |
-| ¿La cuenta de sesiones lee solo lo suyo? | `node scripts/boveda-sesiones.mjs --comprobar` | todo `BIEN`: ve solo `HoMenu-sesiones`, la URL de administrador **no** se lee y las de sesiones sí. Con «MenuPlan PC Pablo» salen 12 `MAL` (día en «Fechas») |
+| ¿La cuenta de sesiones lee solo lo suyo? | `node scripts/boveda-sesiones.mjs --comprobar` | todo `BIEN`: ve solo `HoMenu-sesiones`, la URL de administrador **no** se lee y las de sesiones sí. Con «MenuPlan PC Pablo» salen 12 `MAL` (día en «Fechas» de Fuentes y comprobación) |
 | Guardar algo en otra bóveda, p. ej. `Panel HoMenu` (OK; Pablo, `!`) | como la anterior, **sin** el token de la service account y con el **id** de la bóveda: `MENUPLAN_OP_PABLO=1 npm run op -- item create --vault <id> --format json -` | ficha creada; ventana de 1Password a aprobar |
 | Cambiar el valor de una ficha (OK). Rotar de punta a punta es de `alta-de-secreto` | solo el paso de 1Password: se cambia el campo de la ficha (en las dos bóvedas si está en `COPIAR`). Crear la nueva en el servicio, ponerla en cada destino y revocar la vieja: skill `alta-de-secreto` | las direcciones no cambian: nadie toca su `.env.local` |
 | Token nuevo de la service account (OK; Pablo, `!`) | `op service-account create "MenuPlan sesiones" --vault HoMenu-sesiones:read_items --raw \| node scripts/llavero-op.mjs` | `llavero … resultado: COINCIDEN`; si no parece un token (`ops_…`), no guarda nada. La vieja se anula en 1Password.com → Developer → Service accounts |
@@ -171,7 +171,7 @@ hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesione
 
 ## Coste y límites
 
-Plan Familias en prueba (desde cuándo, en «Fechas»): hay que decidir antes de que
+Plan Familias en prueba (desde cuándo, en «Fechas» de Fuentes y comprobación): hay que decidir antes de que
 acabe si se paga. Las service accounts tienen su propio límite de peticiones
 por hora; no se ha tocado con 16 claves. Una service account solo lee las
 bóvedas que se le dieron al crearla: para dar otra hay que crear una nueva.

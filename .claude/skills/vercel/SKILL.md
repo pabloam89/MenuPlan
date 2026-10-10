@@ -46,7 +46,7 @@ Aquí no se repiten. Una sola rareza que conviene saber:
 - `AI_GATEWAY_API_KEY` (vectores de Voyage y modelos por el gateway) está en
   Production, Development y staging-menuplan, **pero no en Preview**: en la
   preview de un PR, el buscador cae a rasgos + Haiku. Es el comportamiento
-  esperado, no un fallo. El gateway tiene crédito de pago (desde cuándo, en «Fechas»).
+  esperado, no un fallo. El gateway tiene crédito de pago (desde cuándo, en «Fechas» de Fuentes y comprobación).
 
 El acceso a Vercel desde Claude es el conector de claude.ai (equipo y proyecto de
 arriba). La CLI `vercel` sí está instalada en el PC de Pablo (npm global), pero
