@@ -158,6 +158,13 @@
       "tests": ["ops/vigilantes.test.js"],
       "mira": ["**/*.test.{js,mjs,jsx}", "ops/vigilantes.json"],
       "porque": "Un test nuevo que enumera ficheros del repo tiene que estar aquí o en excepciones; esta lista misma es de conjunto."
+    },
+    {
+      "id": "una-lista-de-tipos",
+      "tests": [".claude/plantillas-skill.test.js"],
+      "mira": ["**/*.{json,js,mjs,jsx,md}"],
+      "porque": "Los tipos de skill viven solo en tipos_skill de ops/forja.json: cualquier JSON, JS o Markdown nuevo que escriba tres o más tipos juntos fuera de lo permitido es otra lista, y los moldes de .claude/plantillas-skill/ salen de la forja.",
+      "evidencia": "#495"
     }
   ],
   "pasos": [

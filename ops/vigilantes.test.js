@@ -107,6 +107,7 @@ const TABLA = [
   ["bot-sin-listas-a-mano", "api/_bot/x.js", "src/lib/comidas.test.js"],
   ["endpoints", "api/x.js", "api/_guard.test.js"],
   ["vigilantes", "scripts/x.test.js", "ops/vigilantes.test.js"],
+  ["una-lista-de-tipos", "docs/x.md", ".claude/plantillas-skill.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {
