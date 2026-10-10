@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 
-import { construirIndice, escribirIndice } from "../../scripts/lib/buscarAntes.mjs";
+import { construirIndice, escribirIndice, senalDeDenegacion } from "../../scripts/lib/buscarAntes.mjs";
 import { procesar } from "./buscar-antes.mjs";
 
 /**
@@ -58,12 +58,12 @@ describe("procesar: las señales reales de hoy", () => {
   });
 
   it("la guardia que niega un grep con la palabra pablo trae #368", () => {
-    const r = procesar(falla("Bash", `[guardia] \`${FLAG}\` es solo de Pablo: borra algo con datos o cambia permisos (la orden era un grep pablo)`, "grep pablo x.mjs"), { leer, rama: sinRama });
+    const r = procesar({ tool_name: "Bash", tool_input: {}, hook_event_name: "PostToolUseFailure" }, { leer, rama: sinRama, extra: [senalDeDenegacion(`\`${FLAG}\` es solo de Pablo: borra algo con datos o cambia permisos (la orden era un grep pablo)`, "grep pablo x.mjs")] });
     expect(r.textos[0]).toMatch(/#368/);
   });
 
   it("la guardia que toma 0093 por un issue trae #376", () => {
-    const r = procesar(falla("Bash", "[guardia] La rama datos/0093-borrar lleva el número de un issue: cierra #93 con Closes", "gh pr create"), { leer, rama: sinRama });
+    const r = procesar({ tool_name: "Bash", tool_input: {}, hook_event_name: "PostToolUseFailure" }, { leer, rama: sinRama, extra: [senalDeDenegacion("La rama datos/0093-borrar lleva el número de un issue: cierra #93 con Closes", "gh pr create")] });
     expect(r.textos[0]).toMatch(/#376/);
   });
 
@@ -102,7 +102,7 @@ describe("procesar: las señales reales de hoy", () => {
 
   it("sin índice, lo dice y da otra vía", () => {
     const r = procesar(falla("Agent", "Agent type 'x' not found"), { leer: () => ({ indice: null, motivo: "ausente" }), rama: sinRama });
-    expect(r.textos[0]).toMatch(/no puedo buscar/);
+    expect(r.textos[0]).toMatch(/uedo buscar lo ya apuntado/);
     expect(r.textos[0]).toMatch(/--indexar/);
   });
 
@@ -139,7 +139,7 @@ describe("el hook de verdad", () => {
     writeFileSync(join(dir, "indice.json"), "{roto");
     const sinIndice = lanza(entrada, dir);
     expect(sinIndice.status).toBe(0);
-    expect(JSON.parse(sinIndice.stdout).hookSpecificOutput.additionalContext).toMatch(/no puedo buscar/);
+    expect(JSON.parse(sinIndice.stdout).hookSpecificOutput.additionalContext).toMatch(/uedo buscar lo ya apuntado/);
   });
 
   it("es rápido con el índice presente (medido: ~100 ms; tope de la prueba 800 ms)", () => {

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 
 import {
-  buscar, claves, construirIndice, contarParecidosIgnorados, detectarSenales, escribirIndice, leerIndice, lineaDeResultado,
+  buscar, claves, construirIndice, contarParecidosIgnorados, detectarSenales, senalDeDenegacion, escribirIndice, leerIndice, lineaDeResultado,
   lineaParecidosIgnorados, motivoCrearIgual, planDe, ramaDeLaPrincipal, relevantes, senalDeRamaPrincipal, textoDeAviso, avisoDeIndice,
 } from "./lib/buscarAntes.mjs";
 
@@ -130,15 +130,16 @@ describe("señales (pieza 3)", () => {
   });
 
   it("la denegación de la guardia a un grep con la palabra pablo trae #368", () => {
-    const e = fallo("Bash", "[guardia] --pablo es solo de Pablo: la orden menciona el flag junto a apply-migration (grep pablo)", "grep pablo scripts/x.mjs");
-    const [s] = detectarSenales(e);
+    // La señal la crea la guardia (senalDeDenegacion), no se lee de una salida.
+    const s = senalDeDenegacion("`" + ["-", "-pa", "blo"].join("") + "` es solo de Pablo: la orden menciona el flag junto a apply-migration (grep pablo)", "grep pablo scripts/x.mjs");
     expect(s.tipo).toBe("denegacion-guardia");
+    expect(s.extracto).toBe("la guardia ha negado una orden");
     expect(buscar(INDICE, s.consulta)[0].ficha.numero).toBe(368);
   });
 
   it("la guardia que toma 0093 por un issue trae #376", () => {
-    const e = fallo("Bash", "[guardia] La rama datos/0093-borrar lleva el número de un issue: cierra #93 con Closes", "gh pr create");
-    expect(relevantes(buscar(INDICE, detectarSenales(e)[0].consulta))[0].ficha.numero).toBe(376);
+    const s = senalDeDenegacion("La rama datos/0093-borrar lleva el número de un issue: cierra #93 con Closes", "gh pr create");
+    expect(relevantes(buscar(INDICE, s.consulta))[0].ficha.numero).toBe(376);
   });
 
   it("un test rojo ajeno cuenta; el que lanzas por su nombre, no", () => {
@@ -174,7 +175,7 @@ describe("señales (pieza 3)", () => {
   it("el vocabulario es cerrado", async () => {
     const { SENALES } = await import("./lib/buscarAntes.mjs");
     const vistos = new Set([
-      ...detectarSenales(fallo("Agent", "Agent type 'x' not found")), ...detectarSenales(fallo("Bash", "[guardia] una razón suficientemente larga")),
+      ...detectarSenales(fallo("Agent", "Agent type 'x' not found")), senalDeDenegacion("una razón suficientemente larga"),
       ...detectarSenales(bash("npm test", " FAIL  a.test.js")), ...detectarSenales(fallo("Bash", "Exit code 1\nError: x", "node a.js")),
       ...detectarSenales(fallo("Bash", "Exit code 127\nfoo: command not found", "foo")), ...detectarSenales(fallo("Bash", "Exit code 2\nalgo", "node a.js")),
       senalDeRamaPrincipal("x"),

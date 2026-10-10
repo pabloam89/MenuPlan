@@ -277,6 +277,7 @@ export function leerIssue(n) {
     .filter((p) => p.mergedAt)
     .map((p) => ({ number: p.number, rama: p.headRefName, autor: p.author?.login ?? null, agente: agenteDe(p.body), mergedAt: p.mergedAt }));
   if (!prs.length && cerrado(n)) {
+    // Pendiente en #313: este «PR #n» sale de comentarios de cualquiera (no se filtra por authorAssociation).
     const citados = (n.comments?.nodes ?? []).flatMap((c) => [...String(c.body).matchAll(/\bPR\s+#(\d+)/gi)].map((m) => Number(m[1])));
     prs = [...new Set(citados)].map((number) => ({ number, rama: null, autor: null, agente: null, mergedAt: null }));
   }
@@ -458,7 +459,9 @@ const COMUNES = new Set(["claude.md", "skill.md", "readme.md", "package.json", "
 
 /** Los ficheros que nombra un texto, por su nombre (`guardia.mjs`), sin los comunes. */
 export function ficherosNombrados(texto) {
-  const m = String(texto ?? "").match(/[\w.-]+\.(?:mjs|cjs|js|jsx|ts|tsx|json|md|sql|yml|yaml|css)\b/gi) ?? [];
+  // Sin ReDoS (ronda 3 de #384): el lookbehind obliga a empezar al principio de cada palabra y el tope de
+  // 120 caracteres acota el retroceso; una palabra de 60 KB sin punto ya no cuesta segundos.
+  const m = String(texto ?? "").match(/(?<![\w.-])[\w.-]{1,120}\.(?:mjs|cjs|js|jsx|ts|tsx|json|md|sql|yml|yaml|css)\b/gi) ?? [];
   return new Set(m.map((f) => f.replace(/^.*[\\/]/, "").toLowerCase()).filter((f) => !COMUNES.has(f)));
 }
 

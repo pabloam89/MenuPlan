@@ -89,7 +89,10 @@ const motivoDe = (e) => String(e?.stderr ?? e?.message ?? e).trim().split("\n")[
 /** `gh` con tope de tiempo: sin red, que falle pronto y avise. */
 export const ghReal = (...args) => execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 20_000 });
 
-/** Los comentarios del issue con su id: [{ id, body }]. */
+/**
+ * Los comentarios del issue con su id: [{ id, body }]. Pendiente en #313: `marcar` y `desmarcar` buscan su
+ * marca entre los comentarios de CUALQUIERA (no filtran por authorAssociation); solo tocan los suyos por rama.
+ */
 function comentarios(gh, issue) {
   const salida = gh("api", "--paginate", `repos/{owner}/{repo}/issues/${issue}/comments`, "--jq", ".[] | {id: .id, body: .body} | tojson");
   return salida.split("\n").filter(Boolean).map((l) => JSON.parse(l));

@@ -19,12 +19,20 @@ export const MAX_TEXTO = 90;
  */
 export function limpiarTexto(texto, max = MAX_TEXTO) {
   const s = String(texto ?? "")
+    // NFKC primero: los ángulos de anchura completa (＜ ＞) y compatibles (﹤ ﹥) pasan a < > y se quitan abajo.
+    .normalize("NFKC")
     .replace(/[\p{Cc}\p{Zl}\p{Zp}]/gu, " ")
-    .replace(/[\p{Cf}<>[\]`«»]/gu, "")
+    .replace(/[\p{Cf}<>[\]`«»‹›〈〉⟨⟩⟪⟫《》❬❭❮❯❰❱]/gu, "")
     .replace(/\s+/g, " ")
     .trim();
   return s.length > max ? `${s.slice(0, max - 1)}…` : s;
 }
 
 /** Rama válida para pintarla o cruzarla: letras, prefijo, barra y un nombre sencillo. */
+/** El nombre de una rama de la carpeta principal (puede no llevar prefijo: `ccr-…`). */
+export const RAMA_SIMPLE = /^[\w.\-/]{1,60}$/;
+
+/** Un nombre de agente o de fichero que se puede pintar: sin nada raro. */
+export const NOMBRE_SIMPLE = /^[\w.\-]{1,80}$/;
+
 export const RAMA_VALIDA = /^[a-z]+\/[\w.\-/]{1,60}$/;

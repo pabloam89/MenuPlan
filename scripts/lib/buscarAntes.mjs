@@ -31,7 +31,7 @@ import { dirname, join } from "node:path";
 
 import { esDeLaCasa } from "./fondos.mjs";
 import { ficherosNombrados, porGrupo, raices } from "./issues.mjs";
-import { RAMA_VALIDA, limpiarTexto } from "./textoExterno.mjs";
+import { NOMBRE_SIMPLE, RAMA_SIMPLE, RAMA_VALIDA, limpiarTexto } from "./textoExterno.mjs";
 
 /** Versión del formato: si cambia, un índice viejo se descarta y se avisa. */
 export const VERSION_INDICE = 1;
@@ -394,7 +394,7 @@ export function codigoDe(texto) {
 }
 
 /** Los ficheros de un texto, sin los comunes, tope de 6. */
-const ficheros = (texto) => [...ficherosNombrados(texto)].slice(0, 6);
+const ficheros = (texto) => [...ficherosNombrados(String(texto ?? "").slice(0, 4096))].filter((f) => NOMBRE_SIMPLE.test(f)).slice(0, 6);
 
 /** La orden de la herramienta (`tool_input.command`), o ''. */
 const ordenDe = (entrada) => String(entrada?.tool_input?.command ?? "");
@@ -429,23 +429,19 @@ export function detectarSenales(entrada) {
   // dentro del informe de un subagente, de una salida de Bash o de un fichero no es una señal.
   const agente = /^[ \t\n]*(?:<tool_use_error>[ \t\n]*)?(?:Error:[ \t]*)?Agent type '([^']+)' not found/i.exec(texto);
   if (agente && tool === "Agent" && fallo) {
-    out.push({ tipo: "agente-no-existe", clave: `agente:${agente[1].toLowerCase()}`, consulta: `Agent type ${agente[1]} not found: los agentes dejaron de cargarse, carpeta principal en otra rama sin .claude/agents`, extracto: `Agent type '${agente[1]}' not found` });
+    out.push({ tipo: "agente-no-existe", clave: `agente:${agente[1].toLowerCase()}`, consulta: `Agent type ${agente[1]} not found: los agentes dejaron de cargarse, carpeta principal en otra rama sin .claude/agents`, extracto: `Agent type '${NOMBRE_SIMPLE.test(agente[1]) ? agente[1] : "(nombre no válido)"}' not found` });
   }
 
-  if (DE_COMANDO.has(tool) || fallo) {
-    // 2) La guardia niega: el motivo va tras «[guardia]».
-    const g = /\[guardia\][ \t]*([^\n]{10,500})/i.exec(texto);
-    if (g) {
-      out.push({ tipo: "denegacion-guardia", clave: `guardia:${recorta(g[1], 70).toLowerCase()}`, consulta: `${recorta(g[1], 400)} ${recorta(orden, 120)}`, extracto: `guardia: ${recorta(g[1], 110)}` });
-    }
-  }
+  // 2) La denegación de la guardia NO se lee de la salida: una denegación real nunca llega aquí (la
+  // herramienta no se ejecuta) y un «[guardia] …» en una salida es texto de cualquiera (un comentario
+  // de un issue público, un fichero). Solo la crea la propia guardia (`senalDeDenegacion`).
 
   const leeComando = DE_COMANDO.has(tool);
   const leeFallo = fallo && (leeComando || DE_AGENTE.has(tool) || tool === "");
   if (leeComando || leeFallo) {
     // 3) Un test rojo: el fichero y el nombre del test.
     if (TEST_ROJO.test(texto) && (fallo || leeComando)) {
-      const rojos = [...texto.matchAll(/^[ \t]*(?:FAIL|×|✗)[ \t]+(.+)$/gim)].map((m) => m[1].trim()).slice(0, 4);
+      const rojos = [...texto.matchAll(/^[ \t]*(?:FAIL|×|✗)[ \t]+(.+)$/gim)].map((m) => m[1].trim().slice(0, 300)).slice(0, 4);
       const fichs = unicos(rojos.flatMap((r) => ficheros(r))).slice(0, 4);
       // Un test rojo es «ajeno» si no lo lanzaste por su nombre: el que estás escribiendo o arreglando falla a propósito.
       const ajenos = fichs.filter((f) => !orden.toLowerCase().includes(f.toLowerCase()));
@@ -454,7 +450,7 @@ export function detectarSenales(entrada) {
           tipo: "test-rojo",
           clave: `test:${(fichs.join(",") || recorta(rojos[0], 60)).toLowerCase()}`,
           consulta: `test rojo ${rojos.map((r) => recorta(r, 140)).join(" ")} ${scriptDe(orden)}`,
-          extracto: `test rojo${fichs.length ? ` en ${fichs.join(", ")}` : ""}`,
+          extracto: `test rojo${fichs.length ? ` en ${fichs.join(", ")}` : ""}`, // solo nombres de fichero validados
         });
       }
     }
@@ -463,12 +459,12 @@ export function detectarSenales(entrada) {
     const conPila = PILA.test(texto);
     if (err && (fallo || conPila) && !out.some((s) => s.tipo === "test-rojo")) {
       const linea = recorta(texto.slice(err.index).split("\n").find((l) => l.trim()) ?? err[0], 200);
-      const fichs = ficheros(texto).slice(0, 3);
+      const fichs = ficheros(texto.slice(err.index, err.index + 4096)).slice(0, 3);
       out.push({
         tipo: "error",
         clave: `error:${linea.toLowerCase().replace(/\d+/g, "#").replace(/[a-z]:[\\/][^\s:]+/gi, "<ruta>").slice(0, 70)}`,
         consulta: `${linea} ${fichs.join(" ")} ${scriptDe(orden)}`,
-        extracto: `error: ${recorta(linea, 110)}`,
+        extracto: `un error en la salida del comando${fichs.length ? ` (${fichs.join(", ")})` : ""}`,
       });
     }
     // 5) No se encuentra algo (solo si falló; no con éxito).
@@ -478,7 +474,7 @@ export function detectarSenales(entrada) {
         tipo: "no-encontrado",
         clave: `no-encontrado:${linea.toLowerCase().replace(/\d+/g, "#").slice(0, 70)}`,
         consulta: `${linea} ${scriptDe(orden)}`,
-        extracto: `no encontrado: ${recorta(linea, 110)}`,
+        extracto: "algo no se encuentra (comando, módulo o ruta)",
       });
     }
     // 6) Código de salida distinto de 0 sin causa conocida: con salida que lo explique y que no sea «sin coincidencias».
@@ -491,7 +487,7 @@ export function detectarSenales(entrada) {
           tipo: "salida-no-cero",
           clave: `salida:${scriptDe(orden) || recorta(orden, 40).toLowerCase()}:${codigo}`,
           consulta: `${recorta(util, 300)} ${scriptDe(orden)}`,
-          extracto: `salió con código ${codigo}: ${recorta(util, 100)}`,
+          extracto: `un comando salió con código ${Number(codigo)}`,
         });
       }
     }
@@ -505,11 +501,26 @@ export function detectarSenales(entrada) {
  */
 export function senalDeRamaPrincipal(rama) {
   if (!rama || rama === "staging") return null;
+  // Git admite casi cualquier cosa en el nombre de una rama (`<`, `>`…): si no es sencillo, no se pinta.
+  const pintable = RAMA_SIMPLE.test(rama) ? limpiarTexto(rama, 60) : "(nombre no válido)";
   return {
     tipo: "rama-principal",
     clave: `rama:${rama.toLowerCase()}`,
-    consulta: `carpeta principal rama ${rama} ${rama}`,
-    extracto: `la carpeta principal está en la rama ${rama}, no en staging`,
+    consulta: `carpeta principal rama ${rama} ${rama}`.slice(0, 300),
+    extracto: `la carpeta principal está en la rama ${pintable}, no en staging`,
+  };
+}
+
+/**
+ * La señal de una denegación de la guardia. La crea SOLO la guardia (`avisoDeDenegacion`): el motivo
+ * y la orden son suyos y solo sirven para buscar; lo que se enseña es una frase fija.
+ */
+export function senalDeDenegacion(motivo, orden = "") {
+  return {
+    tipo: "denegacion-guardia",
+    clave: `guardia:${recorta(motivo, 70).toLowerCase()}`,
+    consulta: `${recorta(motivo, 400)} ${recorta(orden, 120)}`,
+    extracto: "la guardia ha negado una orden",
   };
 }
 
@@ -556,9 +567,12 @@ export function esFirme(r) {
   return (r.claveCompartida && r.parecido >= 0.5) || (r.compartidos >= 4 && r.parecido >= 0.6);
 }
 
+/** La cabecera de un aviso: la señal (frase fija) por `limpiarTexto`, siempre. */
+export const cabezaDe = (senal) => `[buscar-antes] Algo no encaja (señal: ${limpiarTexto(senal.extracto, 160)}).`;
+
 /** El texto que recibe la sesión para una señal. */
 export function textoDeAviso(senal, resultados, lectura) {
-  const cabeza = `[buscar-antes] Algo no encaja (${limpiarTexto(senal.extracto, 160)}).`;
+  const cabeza = cabezaDe(senal);
   const edad = lectura?.horas != null ? ` (índice ${hace(lectura.horas)}, ${lectura.indice.fichas.length} fichas)` : "";
   const hay = relevantes(resultados).slice(0, 3);
   if (hay.length) {

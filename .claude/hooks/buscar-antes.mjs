@@ -21,12 +21,12 @@
  * sin datos de familias, para medir cuántas señales traen algo apuntado.
  */
 import { createHash } from "node:crypto";
-import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
-  avisoDeIndice, buscar, dirBuscar, escribirAtomico, podarMarcas, detectarSenales, leerIndice, ramaDeLaPrincipal, relevantes, senalDeRamaPrincipal, SENALES_QUE_SIEMPRE_HABLAN, textoDeAviso,
+  avisoDeIndice, buscar, cabezaDe, dirBuscar, senalDeDenegacion, escribirAtomico, podarMarcas, detectarSenales, leerIndice, ramaDeLaPrincipal, relevantes, senalDeRamaPrincipal, SENALES_QUE_SIEMPRE_HABLAN, textoDeAviso,
 } from "../../scripts/lib/buscarAntes.mjs";
 
 /** Herramientas que se miran. Las demás (MCP, web…) ni se leen. */
@@ -47,7 +47,7 @@ const huella = (s) => createHash("sha1").update(String(s ?? "x")).digest("hex").
  * `vistas` es el conjunto de claves ya avisadas en esta sesión. Pura salvo la
  * lectura del índice (`leer`) y de la rama (`rama`), que se inyectan.
  */
-export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama = ramaDeLaPrincipal } = {}) {
+export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama = ramaDeLaPrincipal, extra = [] } = {}) {
   const textos = [];
   const nuevas = [];
   const lineas = [];
@@ -57,7 +57,7 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
   const r = rama(entrada.cwd);
   const delaRama = r.principal ? senalDeRamaPrincipal(r.rama) : null;
   if (delaRama) senales.push(delaRama);
-  senales.push(...detectarSenales(entrada));
+  senales.push(...detectarSenales(entrada), ...extra);
 
   const pendientes = senales.filter((s) => !vistas.has(huella(s.clave)));
   if (!pendientes.length) return { textos, nuevas, lineas };
@@ -66,12 +66,13 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
   for (const s of pendientes.slice(0, MAX_POR_LLAMADA)) {
     nuevas.push(huella(s.clave));
     if (!lectura.indice) {
-      textos.push(`[buscar-antes] Algo no encaja (${s.extracto}), pero no puedo buscar lo ya apuntado: ${avisoDeIndice(lectura)} Mientras tanto: \`gh issue list --state all --search "<palabras>"\`.`);
+      textos.push(`${cabezaDe(s)} No puedo buscar lo ya apuntado: ${avisoDeIndice(lectura)} Mientras tanto: \`gh issue list --state all --search "<palabras>"\`.`);
       lineas.push(`buscar-antes senal: ${s.tipo} resultado: sin-indice`);
       continue;
     }
     const hay = buscar(lectura.indice, s.consulta, { max: 6 });
-    const buenos = relevantes(hay);
+    // Solo se marcan como dichos los que se enseñan (textoDeAviso enseña 3).
+    const buenos = relevantes(hay).slice(0, 3);
     // Lo que ya se le dijo a esta sesión no se repite, venga de la señal que venga.
     const nuevos = buenos.filter((b) => !vistas.has(huella(`#${b.ficha.numero}`)) && !nuevas.includes(huella(`#${b.ficha.numero}`)));
     if (buenos.length && !nuevos.length) {
@@ -95,6 +96,21 @@ export function procesar(entrada, { vistas = new Set(), leer = leerIndice, rama 
  * llama al negar una orden porque una denegación no llega a PostToolUse (la
  * herramienta no llega a ejecutarse).
  */
+/** Líneas que se guardan de `senales.log` cuando crece (tope en bytes: ~100 KB). */
+export const LINEAS_LOG = 500;
+const MAX_BYTES_LOG = 100 * 1024;
+
+/** El registro de señales no crece sin fin: pasado el tope, quedan las últimas `LINEAS_LOG` líneas. */
+export function recortarLog(ruta) {
+  try {
+    if (statSync(ruta).size <= MAX_BYTES_LOG) return;
+    const lineas = readFileSync(ruta, "utf8").split("\n").filter(Boolean);
+    escribirAtomico(ruta, `${lineas.slice(-LINEAS_LOG).join("\n")}\n`);
+  } catch {
+    // a propósito: es contabilidad; si no se puede recortar, se recorta la próxima vez
+  }
+}
+
 /** Las marcas de una sesión; un fichero corrupto cuenta como vacío (no deja a la sesión sin avisos para siempre). */
 function leerMarcasDe(ruta) {
   try {
@@ -117,7 +133,11 @@ export function ejecutar(entrada, opciones = {}) {
       escribirAtomico(marcas, JSON.stringify([...new Set([...leerMarcasDe(marcas), ...r.nuevas])]));
       podarMarcas(dir);
     }
-    if (r.lineas.length) appendFileSync(join(dir, "senales.log"), `${r.lineas.join("\n")}\n`);
+    if (r.lineas.length) {
+      const log = join(dir, "senales.log");
+      appendFileSync(log, `${r.lineas.join("\n")}\n`);
+      recortarLog(log);
+    }
   }
   return r.textos;
 }
@@ -125,9 +145,10 @@ export function ejecutar(entrada, opciones = {}) {
 /** El aviso para una denegación de la guardia: '' si no hay nada que decir o algo falla (nunca rompe la guardia). */
 export function avisoDeDenegacion(entrada, motivo) {
   try {
-    const sintetica = { session_id: entrada?.session_id, cwd: entrada?.cwd, tool_name: "Bash", tool_input: entrada?.tool_input ?? {}, hook_event_name: "PostToolUseFailure", error: `[guardia] ${motivo}` };
+    // La señal la crea la guardia aquí, no se lee de ninguna salida (ronda 3 de #384).
+    const sintetica = { session_id: entrada?.session_id, cwd: entrada?.cwd, tool_name: "Bash", tool_input: {}, hook_event_name: "PostToolUseFailure" };
     // Sin la señal de la rama principal: no es de esta orden.
-    return ejecutar(sintetica, { rama: () => ({ principal: false }) }).join("\n");
+    return ejecutar(sintetica, { rama: () => ({ principal: false }), extra: [senalDeDenegacion(motivo, entrada?.tool_input?.command)] }).join("\n");
   } catch (e) {
     console.error(`[buscar-antes] no he podido buscar lo ya apuntado: ${String(e?.message ?? e).split("\n")[0]}`);
     return "";
