@@ -1,115 +1,288 @@
 {
-  "$comentario": "Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479; scripts/lib/vocabulariosVida.mjs). «anclados»: los valores de hoy de cada vocabulario; lo escribe npm run glosario -- --vocabularios --escribir, no se edita a mano. «retirados»: un valor que deja de usarse no se borra ni se reutiliza; se añade aquí con {vocabulario, valor, pasa_a (un valor vivo, o null con motivo), desde (AAAA-MM-DD)}. Solo crece. Lo vigila ops/vocabularios-vida.test.js, también contra origin/staging.",
+  "$comentario": "Ciclo de vida de los vocabularios cerrados de proceso (#481, fondo #479; scripts/lib/vocabulariosVida.mjs). «anclados»: los valores de hoy de cada vocabulario con su definición; lo escribe npm run glosario -- --vocabularios --escribir, no se edita a mano. «retirados»: un valor que deja de usarse no se borra ni se reutiliza: {vocabulario, valor, pasa_a (un valor vivo, o null con motivo), desde (AAAA-MM-DD)}. «redefiniciones»: una definición que cambia sin cambiar de significado, de un valor {vocabulario, valor, desde, motivo} o de un término del glosario {termino, desde, motivo}. «vocabularios_retirados»: {vocabulario, desde, motivo}. Los tres registros solo crecen. Lo vigilan ops/vocabularios-vida.test.js y ops/glosario.test.js, también contra origin/staging.",
   "anclados": {
-    "flujo.actores": [
-      "agente_dominio",
-      "orquestador",
-      "juez",
-      "persona",
-      "automatico"
-    ],
-    "flujo.alcance_fallo": [
-      "local",
-      "modulo",
-      "transversal"
-    ],
-    "flujo.diagnostican": [
-      "agente_dominio",
-      "orquestador_con_diagnosticadores"
-    ],
-    "flujo.estado_medida": [
-      "existe",
-      "pendiente"
-    ],
-    "flujo.estado_tipo_skill": [
-      "existe",
-      "en_plan",
-      "reservado"
-    ],
-    "flujo.pasos": [
-      "detectar",
-      "registrar_caso",
-      "triaje",
-      "diagnosticar",
-      "fondo",
-      "plan",
-      "ejecutar",
-      "verificar",
-      "observar",
-      "cerrar",
-      "aprender",
-      "medir"
-    ],
-    "fondos.estado": [
-      "abierto",
-      "diagnosticado",
-      "plan",
-      "en-curso",
-      "en-observacion",
-      "cerrado-eficaz",
-      "reabierto"
-    ],
-    "glosario.clase": [
-      "accion",
-      "estado",
-      "artefacto",
-      "rol",
-      "campo",
-      "lugar"
-    ],
-    "glosario.estado": [
-      "activo",
-      "retirado"
-    ],
-    "issues.analisis": [
-      "nuevo",
-      "abierto",
-      "no-aguanto-roto",
-      "no-aguanto-corto",
-      "puntual"
-    ],
-    "issues.area": [
-      "datos",
-      "lola",
-      "ui",
-      "catalogo",
-      "motor",
-      "ops"
-    ],
-    "issues.arreglo": [
-      "test",
-      "guardia",
-      "script",
-      "regla",
-      "skill",
-      "ninguno"
-    ],
-    "issues.causa": [
-      "vigilante-falso",
-      "vigilante-hueco",
-      "entorno",
-      "dos-fuentes",
-      "error-silencioso",
-      "coordinacion",
-      "modelo-datos",
-      "codigo",
-      "sin-comprobar"
-    ],
-    "issues.control": [
-      "ok",
-      "falla"
-    ],
-    "issues.tipo": [
-      "fondo",
-      "caso",
-      "encargo",
-      "decision"
-    ],
-    "issues.tipo_accion": [
-      "preventivo",
-      "detectivo",
-      "correctivo"
-    ]
+    "flujo.actores": {
+      "agente_dominio": "El constructor del dominio (datos, lola, diseno, gobierno)",
+      "orquestador": "La sesión principal con /orquestar",
+      "juez": "Un agente juez (revisor, qa, evaluador, seguridad, auditor-datos)",
+      "persona": "Pablo o Álvaro",
+      "automatico": "Un script, un hook o un workflow, sin nadie delante"
+    },
+    "flujo.alcance_fallo": {
+      "local": "Un fichero o un caso suelto, sin patrón",
+      "modulo": "Dentro de un módulo de ops/MODULOS.json",
+      "transversal": "La misma causa en módulos de ámbitos distintos, tres casos parecidos, o la segunda vez que «no aguantó»"
+    },
+    "flujo.diagnostican": {
+      "agente_dominio": "El agente del dominio, en una pasada, con la skill causa-raiz",
+      "orquestador_con_diagnosticadores": "El orquestador lanza varios diagnosticadores en paralelo, cada uno con su lente, y sintetiza"
+    },
+    "flujo.estado_medida": {
+      "existe": "Hoy se puede sacar; `donde` dice de dónde",
+      "pendiente": "Hoy no se mide; `fase` dice qué fase lo trae"
+    },
+    "flujo.estado_tipo_skill": {
+      "existe": "Hay skills de este tipo en .claude/skills/",
+      "en_plan": "Tiene fase y encargo; aún no hay skill",
+      "reservado": "Declarado en la plantilla; no se crea ninguna hasta que se cumpla la regla de parada"
+    },
+    "flujo.pasos": {
+      "detectar": "",
+      "registrar_caso": "",
+      "triaje": "",
+      "diagnosticar": "",
+      "fondo": "",
+      "plan": "",
+      "ejecutar": "",
+      "verificar": "",
+      "observar": "",
+      "cerrar": "",
+      "aprender": "",
+      "medir": ""
+    },
+    "fondos.estado": {
+      "abierto": "Registrado; aún sin diagnóstico",
+      "diagnosticado": "Mecanismo y causa de escape escritos",
+      "plan": "Encargos colgados del fondo",
+      "en-curso": "Algún encargo en marcha",
+      "en-observacion": "Arreglo fusionado; ventana sin casos nuevos corriendo",
+      "cerrado-eficaz": "La ventana pasó limpia y el aprendizaje está registrado",
+      "reabierto": "Un caso nuevo o un «no aguantó» lo reabrió"
+    },
+    "glosario.clase": {
+      "accion": "Un verbo del proceso: lo que alguien o algo hace",
+      "estado": "Cómo está algo o qué gravedad tiene",
+      "artefacto": "Una cosa que existe en el repo o en GitHub: un fichero, un issue, un bloque",
+      "rol": "Quién hace algo: una persona, una sesión, un agente o un vigilante",
+      "campo": "Una clave de una ficha o de un catálogo, con su significado",
+      "lugar": "Dónde vive algo: una carpeta, una rama, un entorno"
+    },
+    "glosario.estado": {
+      "activo": "Se usa: es la palabra canónica de su significado",
+      "retirado": "Ya no se usa: se dice su pasa_a; el nombre queda para que nadie lo reutilice"
+    },
+    "issues.analisis": {
+      "nuevo": "No había problema de fondo: se abrió uno para este caso",
+      "abierto": "Su problema de fondo estaba abierto: un caso más",
+      "no-aguanto-roto": "Su problema de fondo estaba cerrado y el arreglo se rompió después",
+      "no-aguanto-corto": "Su problema de fondo estaba cerrado y el arreglo no cubría la clase entera",
+      "puntual": "No puede repetirse, o repetirlo no hace daño; el issue dice por qué"
+    },
+    "issues.area": {
+      "datos": "Esquema, migraciones, Supabase",
+      "lola": "El bot",
+      "ui": "La app: pantallas e iconos",
+      "catalogo": "Recetas, alimentos y nutrición",
+      "motor": "Planificador y solver",
+      "ops": "Git, CI, hooks, scripts, servicios"
+    },
+    "issues.arreglo": {
+      "test": "Quedó en un test",
+      "guardia": "Quedó en la guardia (.claude/hooks/guardia.mjs)",
+      "script": "Quedó en un script que lo comprueba (tarea, retirar, apply-migration…)",
+      "regla": "Quedó en CLAUDE.md o en .claude/rules/",
+      "skill": "Quedó en un runbook de .claude/skills/",
+      "ninguno": "No hace falta, y el issue dice por qué"
+    },
+    "issues.causa": {
+      "vigilante-falso": "Un vigilante (guardia, script, CI) bloqueó algo que estaba bien",
+      "vigilante-hueco": "Un vigilante dejó pasar algo que estaba mal",
+      "entorno": "Lo local no es igual que el CI o que producción (PATH, flags, Windows, red)",
+      "dos-fuentes": "La misma regla o dato escrito en dos sitios, que acaban diciendo cosas distintas",
+      "error-silencioso": "Un error que se traga sin dejar aviso (catch vacío, exception when others, «se calla»)",
+      "coordinacion": "Sesiones que se pisan, duplican trabajo o pierden un aviso",
+      "modelo-datos": "Una tabla, una FK o un dato que no cuadra con su uso",
+      "codigo": "Un fallo de lógica en el producto",
+      "sin-comprobar": "Algo se dio por cierto (en un issue, un comentario o una respuesta) sin comprobarlo contra el código o los datos"
+    },
+    "issues.control": {
+      "ok": "La ficha del fondo pasa los controles del workflow fondos",
+      "falla": "La ficha del fondo tiene errores: el comentario del workflow fondos dice cuáles"
+    },
+    "issues.tipo": {
+      "fondo": "Problema de fondo: qué falla y su arreglo general. De él cuelgan casos y encargos",
+      "caso": "Un fallo concreto, analizado: cuelga de su problema de fondo o es puntual con su porqué",
+      "encargo": "Trabajo por hacer, con dueño; si es parte de un arreglo, cuelga de su problema de fondo",
+      "decision": "Espera a que decida Pablo (o Álvaro): pregunta, opciones y recomendación"
+    },
+    "issues.tipo_accion": {
+      "preventivo": "Impide que la clase vuelva a pasar",
+      "detectivo": "Avisa en cuanto vuelve a pasar",
+      "correctivo": "Arregla las instancias que ya hay (el barrido)"
+    }
   },
-  "retirados": []
+  "retirados": [],
+  "redefiniciones": [
+    {
+      "termino": "verificar",
+      "desde": "2026-10-10",
+      "motivo": "Su género pasa a ser su amplio, comprobar; mismo significado (#481)"
+    },
+    {
+      "termino": "probar",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "ensayar",
+      "desde": "2026-10-10",
+      "motivo": "Su género pasa a ser su amplio, probar; mismo significado (#481)"
+    },
+    {
+      "termino": "revisar",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "auditar",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "juzgar",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "diagnosticar",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "registrar",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "fusionar",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "aplicar",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "fallo",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "caso",
+      "desde": "2026-10-10",
+      "motivo": "Su género pasa a ser su amplio, issue; mismo significado (#481)"
+    },
+    {
+      "termino": "causa",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "causa de escape",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "aprendizaje",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "encargo",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "tarea de agente",
+      "desde": "2026-10-10",
+      "motivo": "«Tipo de trabajo» en vez de «clase», que es otro término; mismo significado (#481)"
+    },
+    {
+      "termino": "decisión",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "issue",
+      "desde": "2026-10-10",
+      "motivo": "Ya no se define como «ficha», que es otro término; mismo significado (#481)"
+    },
+    {
+      "termino": "evidencia",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "defecto",
+      "desde": "2026-10-10",
+      "motivo": "Es el incumplimiento de un criterio y no el criterio; se corrige el género (#481)"
+    },
+    {
+      "termino": "informe",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "plantilla",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "norma",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "estándar",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "criterio",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "mecanismo",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "vocabulario",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "orquestador",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "dueño",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "persona",
+      "desde": "2026-10-10",
+      "motivo": "Incluye a Manu, socio sin acceso al repo; los gateways siguen siendo de Pablo o Álvaro (#481)"
+    },
+    {
+      "termino": "carpeta principal",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "staging",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    },
+    {
+      "termino": "producción",
+      "desde": "2026-10-10",
+      "motivo": "Misma idea con la forma de ISO 704, «un/una X que Y» (#481)"
+    }
+  ],
+  "vocabularios_retirados": []
 }

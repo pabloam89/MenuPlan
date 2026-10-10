@@ -53,7 +53,7 @@ const FIJADA = {
 describe("los vocabularios de proceso: se retiran, no se borran", () => {
   it("cada vocabulario vigilado tiene valores y su fichero existe en el registro", () => {
     for (const [id, v] of Object.entries(VOCABULARIOS)) {
-      expect(v.valores().length, id).toBeGreaterThan(0);
+      expect(Object.keys(v.textos()).length, id).toBeGreaterThan(0);
       expect(v.fichero, id).toMatch(/^scripts\/lib\/\w+\.mjs$/);
     }
   });
@@ -120,5 +120,50 @@ describe("autotest del ciclo de vida", () => {
     expect(r({ desde: "10/10/2026" })).toMatch(/desde no es AAAA-MM-DD/);
     expect(r({ vocabulario: "y.otro" })).toMatch(/no está en VOCABULARIOS/);
     expect(r({ significado: "x" })).toMatch(/campo desconocido/);
+  });
+});
+
+describe("autotest de las redefiniciones (#481, revisión M1)", () => {
+  const act = { "x.estado": { abierto: "Registrado, sin diagnóstico", cerrado: "Ya no se mira" } };
+  const reg = (extra = {}) => ({ anclados: { "x.estado": { abierto: "Registrado, sin diagnóstico", cerrado: "Ya no se mira" } }, retirados: [], redefiniciones: [], ...extra });
+  const otro = { "x.estado": { abierto: "Cualquier issue sin cerrar", cerrado: "Ya no se mira" } };
+  const redef = { vocabulario: "x.estado", valor: "abierto", desde: "2026-10-10", motivo: "Se amplía a todo issue sin cerrar" };
+
+  it("cambiar la definición en el código sin re-anclar falla en local", () => {
+    expect(problemasLocales(reg(), otro).join()).toMatch(/x\.estado: abierto: su definición ha cambiado/);
+    expect(problemasLocales(reg(), act)).toEqual([]);
+  });
+
+  it("re-anclar sin registrar pasa en local y falla contra la referencia; con la redefinición, pasa", () => {
+    const sinRegistro = anclar(reg(), otro);
+    expect(problemasLocales(sinRegistro, otro)).toEqual([]);
+    expect(problemasContraReferencia(sinRegistro, otro, reg()).join()).toMatch(/abierto: su definición ha cambiado respecto a la referencia sin una redefinición/);
+    const conRegistro = anclar(reg({ redefiniciones: [redef] }), otro);
+    expect([...problemasContraReferencia(conRegistro, otro, reg()), ...problemasDeRetiros(conRegistro, otro)]).toEqual([]);
+  });
+
+  it("una redefinición vieja no vale para un cambio nuevo, y el registro solo crece", () => {
+    const ref = anclar(reg({ redefiniciones: [redef] }), otro);
+    const tercero = { "x.estado": { abierto: "Otra cosa distinta", cerrado: "Ya no se mira" } };
+    expect(problemasContraReferencia(anclar(ref, tercero), tercero, ref).join()).toMatch(/sin una redefinición registrada/);
+    expect(problemasContraReferencia(anclar(reg(), otro), otro, ref).join()).toMatch(/tenía 1 redefinición\(es\) en la referencia y ahora menos/);
+  });
+
+  it("la forma de una redefinición y de un vocabulario retirado", () => {
+    const p = (x) => problemasDeRetiros(reg({ redefiniciones: [{ ...redef, ...x }] }), act).join();
+    expect(p({})).toBe("");
+    expect(p({ motivo: "corto" })).toMatch(/motivo de la redefinición/);
+    expect(p({ desde: "hoy" })).toMatch(/desde que no es AAAA-MM-DD/);
+    expect(p({ valor: "pausado" })).toMatch(/redefinición de un valor que no está vivo/);
+    expect(p({ extra: 1 })).toMatch(/campo desconocido extra/);
+    expect(problemasDeRetiros(reg({ vocabularios_retirados: [{ vocabulario: "x.estado", desde: "2026-10-10", motivo: "Ya no se vigila este vocabulario" }] }), act).join()).toMatch(/está retirado y sigue en VOCABULARIOS/);
+  });
+
+  it("retirar un vocabulario entero: sin registro falla; con él, pasa en local y contra la referencia", () => {
+    const sinVoc = {};
+    expect(problemasLocales(reg(), sinVoc).join()).toMatch(/x\.estado: está anclado y ya no está en VOCABULARIOS/);
+    expect(problemasContraReferencia(anclar(reg(), sinVoc), sinVoc, reg()).join()).toMatch(/ha desaparecido sin retirarse/);
+    const retirado = anclar(reg({ vocabularios_retirados: [{ vocabulario: "x.estado", desde: "2026-10-10", motivo: "Ya no se vigila este vocabulario" }] }), sinVoc);
+    expect([...problemasLocales(retirado, sinVoc), ...problemasDeRetiros(retirado, sinVoc), ...problemasContraReferencia(retirado, sinVoc, reg())]).toEqual([]);
   });
 });

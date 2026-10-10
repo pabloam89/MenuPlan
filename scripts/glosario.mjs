@@ -39,8 +39,8 @@ if (args.includes("--vocabularios")) {
   }
   const reg = leerRegistro(RAIZ);
   const problemas = [...problemasLocales(reg, actuales), ...problemasDeRetiros(reg, actuales)];
-  const valores = Object.values(actuales).reduce((n, x) => n + x.length, 0);
-  console.log(`vocabularios vigilados: ${Object.keys(actuales).length} valores: ${valores} retirados: ${(reg.retirados ?? []).length} problemas: ${problemas.length}`);
+  const valores = Object.values(actuales).reduce((n, x) => n + Object.keys(x).length, 0);
+  console.log(`vocabularios vigilados: ${Object.keys(actuales).length} valores: ${valores} retirados: ${(reg.retirados ?? []).length} redefiniciones: ${(reg.redefiniciones ?? []).length} problemas: ${problemas.length}`);
   for (const x of problemas) console.log(`  ${x}`);
   process.exit(problemas.length ? 1 : 0);
 }

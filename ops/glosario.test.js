@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { REFERENCIA, jsonEnReferencia } from "../scripts/lib/forjaReferencia.mjs";
+import { RUTA_VOCABULARIOS, leerRegistro, redefinicionesDelGlosario } from "../scripts/lib/vocabulariosVida.mjs";
 import { JUICIOS, MAX_CANDIDATOS, MOTIVOS_JUICIO, aJuzgar, candidatos, leerJuicios, lineaCandidato, pendientesDeJuicios, problemasDeJuicios, prosaDeZonas } from "../scripts/lib/glosarioCandidatos.mjs";
 import {
   CLASES, ESTADOS_TERMINO, EXCEPCIONES_FORMA, RUTA_GLOSARIO, canonicoDe, cifrasDeForma, faltaDeForma, problemasDeRelaciones, problemasDeVidaGlosario, comparar, ficherosDe, leerExcepciones, leerGlosario, medir, patronDe, plano, problemasDeGlosario, prosaDeJson, prosaDeMarkdown, sobrePartida, total,
@@ -156,6 +157,11 @@ describe("el ciclo de vida: un término se retira, no se borra", () => {
   it("la lista fijada también se respeta aunque haya referencia", () => {
     expect(problemasDeVidaGlosario(G, TERMINOS_FIJADOS)).toEqual([]);
   });
+  // Plan B: sin referencia no hay definiciones con que comparar (la lista fijada solo trae nombres) y se salta.
+  it.skipIf(!glosarioRef)(`cada definición distinta de la de ${REF} tiene su redefinición registrada`, () => {
+    const registroRef = jsonEnReferencia(RAIZ, REF, RUTA_VOCABULARIOS);
+    expect(redefinicionesDelGlosario(G, glosarioRef, leerRegistro(RAIZ), registroRef), `Si cambias una definición sin cambiar su significado, añade {termino, desde, motivo} a «redefiniciones» de ${RUTA_VOCABULARIOS}`).toEqual([]);
+  });
 });
 
 describe("CLAUDE.md y npm run glosario", () => {
@@ -262,6 +268,25 @@ describe("autotest de relaciones y forma", () => {
     expect(faltaDeForma({ clase: "accion", amplio: "probar", definicion: "Ejecutar algo que no deja efecto." })).toMatch(/su amplio/);
     expect(faltaDeForma({ clase: "campo", amplio: "causa", definicion: "La causa que explica por qué." })).toBeNull();
     expect(conTermino("revisor", (t) => { t.definicion = "Un agente que busca fallos reales en un diff."; }).join()).toMatch(/revisor: la definición no empieza por su amplio/);
+  });
+});
+
+describe("autotest de las redefiniciones del glosario", () => {
+  const conDef = (termino, definicion) => { const g = copia(); g.terminos.find((t) => t.termino === termino).definicion = definicion; return g; };
+  const redef = { termino: "zona", desde: "2026-10-10", motivo: "Se precisa qué cuenta como zona" };
+
+  it("cambiar una definición sin registrarla falla; registrada, pasa; una vieja no vale", () => {
+    const g = conDef("zona", "El conjunto de rutas que mira un control del glosario.");
+    expect(redefinicionesDelGlosario(g, G, { redefiniciones: [] }, null).join()).toMatch(/zona: su definición ha cambiado respecto a la referencia sin una redefinición/);
+    expect(redefinicionesDelGlosario(g, G, { redefiniciones: [redef] }, null)).toEqual([]);
+    expect(redefinicionesDelGlosario(g, G, { redefiniciones: [redef] }, { redefiniciones: [redef] }).join()).toMatch(/zona: su definición ha cambiado/);
+    expect(redefinicionesDelGlosario(G, G, { redefiniciones: [] }, null)).toEqual([]);
+  });
+
+  it("solo cambiar espacios o mayúsculas no es redefinir; registrar un término que no existe, sí falla", () => {
+    const z = G.terminos.find((t) => t.termino === "zona").definicion;
+    expect(redefinicionesDelGlosario(conDef("zona", `  ${z.toUpperCase()} `), G, { redefiniciones: [] }, null)).toEqual([]);
+    expect(redefinicionesDelGlosario(G, G, { redefiniciones: [{ ...redef, termino: "inventado" }] }, null).join()).toMatch(/redefinición de un término que no existe/);
   });
 });
 
