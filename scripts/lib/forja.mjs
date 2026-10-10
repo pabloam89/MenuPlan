@@ -64,6 +64,11 @@ export const CAMPOS = ["id", "capa", "aplica_a", "texto", "fuente", "control", "
  * sobre esos casos) y `listo_para_subir`.
  */
 export const CAMPOS_OPCIONALES = ["casos_calibracion", "medidas", "listo_para_subir"];
+/**
+ * Un criterio cuyo control lo da otro encargo y aún no existe: `control: "juicio"` provisional, `pendiente_de` (el issue)
+ * y `control_pendiente` (el fichero que será su control). En cuanto ese fichero existe, el criterio tiene que pasar a usarlo.
+ */
+export const CAMPOS_PENDIENTE = ["pendiente_de", "control_pendiente"];
 /** Lo que un caso de calibración puede esperar: una respuesta conocida, no un hueco. */
 export const ESPERADOS_CALIBRACION = ["cumple", "no_cumple"];
 
@@ -93,7 +98,7 @@ export function problemasDeForja(datos, existe) {
   const codigos = new Map();
   for (const c of lista) {
     const d = c?.id ?? "(sin id)";
-    for (const k of Object.keys(c ?? {})) if (!CAMPOS.includes(k) && !CAMPOS_OPCIONALES.includes(k) && k !== "tipos") malos.push(`${d}: campo «${k}» no admitido`);
+    for (const k of Object.keys(c ?? {})) if (!CAMPOS.includes(k) && !CAMPOS_OPCIONALES.includes(k) && !CAMPOS_PENDIENTE.concat("tipos").includes(k)) malos.push(`${d}: campo «${k}» no admitido`);
     for (const k of CAMPOS) if (!(k in (c ?? {}))) malos.push(`${d}: falta el campo «${k}»`);
     if (typeof c?.id !== "string" || !ID.test(c.id)) malos.push(`${d}: el id va en minúsculas con guiones`);
     else if (ids.has(c.id)) malos.push(`${d}: id repetido`);
@@ -117,10 +122,12 @@ export function problemasDeForja(datos, existe) {
       const ruta = f.match(FUENTE_I)[1];
       if (!existe(ruta)) malos.push(`${d}: la fuente de la casa apunta a ${ruta}, que no existe en el repo`);
     } else malos.push(`${d}: «fuente» es «[F] https://…» (externa) o «[I] ruta/del/repo» (de la casa)`);
+    problemasDePendiente(c, d, existe, malos);
+    const pendiente = "pendiente_de" in (c ?? {});
     const ctl = c?.control;
     if (typeof ctl !== "string" || !ctl.trim()) malos.push(`${d}: sin control: un fichero que lo vigile o «${JUICIO}»`);
     else if (c?.capa === "subjetiva" && ctl !== JUICIO) malos.push(`${d}: un criterio subjetivo se vigila con «${JUICIO}», no con un fichero`);
-    else if (c?.capa !== "subjetiva" && ctl === JUICIO) malos.push(`${d}: un criterio ${c?.capa} lo vigila un fichero, no «${JUICIO}» (si solo se puede juzgar, es subjetivo)`);
+    else if (c?.capa !== "subjetiva" && ctl === JUICIO && !pendiente) malos.push(`${d}: un criterio ${c?.capa} lo vigila un fichero, no «${JUICIO}» (si solo se puede juzgar, es subjetivo)`);
     else if (ctl !== JUICIO && !existe(ctl)) malos.push(`${d}: su control ${ctl} no existe en el repo`);
     const cod = c?.codigo;
     if (cod !== null && (typeof cod !== "string" || !ID.test(cod))) malos.push(`${d}: «codigo» es null o un código en minúsculas con guiones`);
@@ -131,6 +138,18 @@ export function problemasDeForja(datos, existe) {
     }
   }
   return malos;
+}
+
+/** `pendiente_de` y `control_pendiente`: van juntos, solo con control «juicio», y caducan cuando el fichero existe. */
+function problemasDePendiente(c, d, existe, malos) {
+  const tiene = CAMPOS_PENDIENTE.filter((k) => k in (c ?? {}));
+  if (!tiene.length) return;
+  if (tiene.length !== 2) malos.push(`${d}: pendiente_de y control_pendiente van juntos`);
+  if (c.control !== JUICIO) malos.push(`${d}: un criterio pendiente lleva control «${JUICIO}» hasta que exista su fichero`);
+  if (c.capa === "subjetiva") malos.push(`${d}: pendiente_de es de un criterio formal o material cuyo control aún no existe`);
+  if (typeof c.pendiente_de !== "string" || !/^#[1-9]\d{0,6}$/.test(c.pendiente_de)) malos.push(`${d}: pendiente_de es el issue que lo da (#n)`);
+  if (typeof c.control_pendiente !== "string" || !c.control_pendiente.trim()) malos.push(`${d}: control_pendiente es la ruta del fichero que será su control`);
+  else if (existe(c.control_pendiente)) malos.push(`${d}: ya existe ${c.control_pendiente}: pon ese fichero como «control» y quita pendiente_de y control_pendiente`);
 }
 
 /** El parámetro de promoción: valores de partida, fáciles de cambiar. */
@@ -657,6 +676,25 @@ function mdCampos(datos) {
   return L;
 }
 
+/** La forma de cada práctica y el método de construcción: datos declarados, validados por forjaForma. */
+function mdForma(datos) {
+  const m = datos.metodo_construccion;
+  return [
+    "## La forma de una práctica",
+    "",
+    "Datos en `forma_practica` de `ops/forja.json`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto. Aplicarlo a los estándares reales es de #454.",
+    "",
+    "| Artefacto | Bullets | Estructura de cada bullet | Fuente por bullet | Voz | Modo y tiempo | Persona |",
+    "|---|---|---|---|---|---|---|",
+    ...Object.entries(datos.forma_practica).map(([a, f]) => `| ${a} | de ${f.bullets.min} a ${f.bullets.max} | ${f.estructura.join(" · ")} | ${f.fuente_por_bullet ? "[F] o [I]" : "no"} | ${f.voz} | ${f.modo_tiempo} | ${f.persona} |`),
+    "",
+    "## Método de construcción",
+    "",
+    `Un estándar se escribe tras ${m.rondas_minimas} rondas de investigación o más (${m.fases.join(", ")}), cada una con ${m.fuentes_minimas_por_ronda} fuente o más. Cada ronda deja una línea \`${m.formato_ronda}\` en el campo \`${m.campo}\` de su ficha (clase texto, lista, hueco: el cambio no cabe en un vocabulario). Lo que hoy no lo cumple está en \`ops/forja-excepciones.json\`, que solo baja.`,
+    "",
+  ];
+}
+
 /** El contenido entero de docs/ops/FORJA.md, generado del catálogo. */
 export function generarMd(datos) {
   const k = cifras(datos);
@@ -678,6 +716,7 @@ export function generarMd(datos) {
     "",
     ...mdTipos(datos),
     ...mdCampos(datos),
+    ...mdForma(datos),
     "## Vocabularios",
     "",
     "| Capa | Qué es |",
@@ -707,7 +746,7 @@ export function generarMd(datos) {
       for (const c of de) {
         L.push(`- \`${c.id}\` — ${c.texto}`);
         if (c.casos_calibracion) L.push(`  - Calibración: ${c.casos_calibracion.length} casos con respuesta conocida (${c.casos_calibracion.map((k) => k.esperado).join(", ")})${c.listo_para_subir ? ". Listo para subir." : "."}`);
-        L.push(`  - Fuente: ${c.fuente}. Control: ${c.control === JUICIO ? "juicio" : `\`${c.control}\``}.${c.codigo ? ` Código: \`${c.codigo}\`.` : ""}`);
+        L.push(`  - Fuente: ${c.fuente}. Control: ${c.control === JUICIO ? "juicio" : `\`${c.control}\``}${c.pendiente_de ? ` (provisional: lo da ${c.pendiente_de} con \`${c.control_pendiente}\`)` : ""}.${c.codigo ? ` Código: \`${c.codigo}\`.` : ""}`);
       }
     }
   }

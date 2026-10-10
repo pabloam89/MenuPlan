@@ -326,9 +326,9 @@ describe("trinquete de los campos (ops/forja-campos.json): de texto a discreto, 
 
 describe("cifras: campos discretos frente a huecos", () => {
   it("por artefacto, en la vista y en las cifras", () => {
-    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 6, huecos: 1, total: 7 }, estandar: { discretos: 2, huecos: 4, total: 6 }, agente: { discretos: 3, huecos: 1, total: 4 } });
+    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 6, huecos: 1, total: 7 }, estandar: { discretos: 2, huecos: 5, total: 7 }, agente: { discretos: 3, huecos: 1, total: 4 } });
     expect(md).toContain("| skill | 6 | 1 | 7 |");
-    expect(md).toContain("| estandar | 2 | 4 | 6 |");
+    expect(md).toContain("| estandar | 2 | 5 | 7 |");
   });
   it("FORJA.md dice que la fuente de los tipos es ops/forja.json y que la plantilla es de otro encargo", () => {
     expect(md).toContain("La fuente de los tipos pasa a ser `ops/forja.json`");

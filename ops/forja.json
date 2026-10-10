@@ -418,6 +418,13 @@
           "cubre": "La frontera con lo que es de otro agente o de una persona, que hay que nombrar caso a caso",
           "obligatorio": false
         },
+        "rondas": {
+          "clase": "texto",
+          "lista": true,
+          "hueco": true,
+          "cubre": "Lo que cambió en cada ronda de investigación, una frase por ronda: el número y las fuentes son discretos, el cambio no cabe en un vocabulario",
+          "obligatorio": false
+        },
         "fuentes": {
           "clase": "ref",
           "ref": "fuente",
@@ -453,6 +460,35 @@
         }
       }
     }
+  },
+  "forma_practica": {
+    "estandar": {
+      "bullets": {
+        "min": 2,
+        "max": 5
+      },
+      "estructura": [
+        "regla",
+        "porque",
+        "ejemplo_bueno",
+        "ejemplo_malo"
+      ],
+      "fuente_por_bullet": true,
+      "voz": "activa",
+      "modo_tiempo": "imperativo",
+      "persona": "segunda"
+    }
+  },
+  "metodo_construccion": {
+    "rondas_minimas": 3,
+    "fuentes_minimas_por_ronda": 1,
+    "formato_ronda": "ronda: n fuentes: k cambios: …",
+    "campo": "estandar.rondas",
+    "fases": [
+      "buscar",
+      "contrastar",
+      "destilar"
+    ]
   },
   "criterios": [
     {"id":"frontmatter","capa":"formal","aplica_a":["skill"],"tipos":"todos","texto":"El frontmatter lleva solo name, description y metadata; name igual que la carpeta; la description empieza por «Úsala », dice «No para:» y tiene de 81 a 600 caracteres, por debajo de los 1.024 del estándar abierto","fuente":"[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices","control":".claude/skills.test.js","codigo":"frontmatter"},
@@ -521,6 +557,13 @@
     {"id":"estandar-seccion-generada","capa":"formal","aplica_a":["estandar"],"texto":"La sección «Tareas y su estándar» de cada agente sale del catálogo y no se edita a mano","fuente":"[I] scripts/lib/estandaresAgentes.mjs","control":"ops/estandares-agentes.test.js","codigo":null},
     {"id":"estandar-concreto-y-verificable","capa":"subjetiva","aplica_a":["estandar"],"texto":"El estándar de una tarea dice qué es hacerla bien de forma que otra persona pueda comprobarlo mirando el resultado. Cumple si cada punto de «comprueba» se puede contrastar con una salida, un diff o un fichero. No cumple si es una declaración de intenciones («con cuidado», «de forma robusta»).","fuente":"[I] scripts/lib/estandaresAgentes.mjs","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Comprueba: «cada hallazgo cita fichero y línea del diff y se puede reproducir».","esperado":"cumple"},{"texto":"Comprueba: «revisa con cuidado y de forma robusta».","esperado":"no_cumple"},{"texto":"Comprueba: «los mensajes de error dicen qué ha pasado y qué hacer a continuación».","esperado":"cumple","frontera":true,"nota":"Se contrasta leyendo los mensajes, aunque «qué hacer» exige algo de juicio."}]},
     {"id":"estandar-respaldado-por-su-fuente","capa":"subjetiva","aplica_a":["estandar"],"texto":"La fuente citada respalda de verdad lo que dice el estándar. Cumple si quien lee la fuente encuentra la práctica que el estándar enuncia. No cumple si la fuente es de otro tema o solo comparte palabras con el estándar.","fuente":"[I] ops/estandares-agentes.json","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"Estándar «cada cambio se revisa por diseño, funcionalidad y pruebas» con la guía de Google de qué mirar en una revisión.","esperado":"cumple"},{"texto":"Estándar «las políticas de RLS se prueban con dos usuarios» con una guía de estilo de commits.","esperado":"no_cumple"},{"texto":"Estándar «las funciones SECURITY DEFINER revocan EXECUTE a anon» con la documentación de Postgres sobre privilegios de funciones.","esperado":"cumple","frontera":true,"nota":"La fuente no habla de anon (eso es de Supabase) pero sí del mecanismo, revocar el permiso de ejecución a PUBLIC."}]},
-    {"id":"estandar-no-hace-delimita","capa":"subjetiva","aplica_a":["estandar"],"texto":"«no_hace» marca la frontera con lo que es de otro agente o de una persona. Cumple si cada exclusión nombra algo que se podría confundir con la tarea. No cumple si son exclusiones obvias o si deja sin decir lo que más se parece.","fuente":"[I] ops/estandares-agentes.json","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"No hace: «juzgar el diff de código del producto, que es del revisor».","esperado":"cumple"},{"texto":"No hace: «cosas que no son de su competencia».","esperado":"no_cumple"},{"texto":"No hace: «escribir código del producto» y «juzgar un diff».","esperado":"cumple","frontera":true,"nota":"Son dos exclusiones que se confunden de verdad con construir y con revisar."}]}
+    {"id":"estandar-no-hace-delimita","capa":"subjetiva","aplica_a":["estandar"],"texto":"«no_hace» marca la frontera con lo que es de otro agente o de una persona. Cumple si cada exclusión nombra algo que se podría confundir con la tarea. No cumple si son exclusiones obvias o si deja sin decir lo que más se parece.","fuente":"[I] ops/estandares-agentes.json","control":"juicio","codigo":null,"casos_calibracion":[{"texto":"No hace: «juzgar el diff de código del producto, que es del revisor».","esperado":"cumple"},{"texto":"No hace: «cosas que no son de su competencia».","esperado":"no_cumple"},{"texto":"No hace: «escribir código del producto» y «juzgar un diff».","esperado":"cumple","frontera":true,"nota":"Son dos exclusiones que se confunden de verdad con construir y con revisar."}]},
+    {"id":"practica-numero-de-bullets","capa":"formal","aplica_a":["estandar"],"texto":"Una práctica lleva entre el mínimo y el máximo de bullets que declara forma_practica de su artefacto (hoy de 2 a 5 en un estándar)","fuente":"[I] scripts/lib/forjaForma.mjs","control":"ops/forja-forma.test.js","codigo":null},
+    {"id":"practica-estructura-del-bullet","capa":"formal","aplica_a":["estandar"],"texto":"Cada bullet de una práctica lleva sus cuatro partes en orden, regla · porqué · ejemplo bueno · ejemplo malo, ninguna vacía y con el ejemplo bueno distinto del malo","fuente":"[I] scripts/lib/forjaForma.mjs","control":"ops/forja-forma.test.js","codigo":null},
+    {"id":"practica-fuente-por-bullet","capa":"formal","aplica_a":["estandar"],"texto":"Cada bullet lleva su propia fuente: [F] con url https si es externa o [I] con la ruta de un fichero que existe si es de la casa","fuente":"[I] scripts/lib/forjaForma.mjs","control":"ops/forja-forma.test.js","codigo":null},
+    {"id":"practica-voz-activa","capa":"material","aplica_a":["estandar"],"texto":"La regla y su porqué van en voz activa, sin pasiva con «ser» ni pasiva refleja con «se»: heurística sobre el texto, que no entiende la frase","fuente":"[I] scripts/lib/forjaForma.mjs","control":"ops/forja-forma.test.js","codigo":null},
+    {"id":"practica-modo-tiempo-persona","capa":"material","aplica_a":["estandar"],"texto":"La regla usa un solo modo y tiempo verbal y una sola persona, los declarados en forma_practica (hoy imperativo, segunda persona): heurística que detecta futuros, pasados, sujetos nominales y modales","fuente":"[I] scripts/lib/forjaForma.mjs","control":"ops/forja-forma.test.js","codigo":null},
+    {"id":"estandar-rondas-de-investigacion","capa":"material","aplica_a":["estandar"],"texto":"Un estándar deja el rastro de tres rondas de investigación o más (buscar, contrastar, destilar), cada una con una línea «ronda: n fuentes: k cambios: …» y fuentes mayores que 0; lo que hoy no lo cumple va a una lista de excepciones que solo baja","fuente":"[I] scripts/lib/forjaForma.mjs","control":"ops/forja-forma.test.js","codigo":null},
+    {"id":"vocabulario-canonico","capa":"material","aplica_a":["skill","estandar"],"tipos":"todos","texto":"Una cosa se llama siempre igual: ningún artefacto usa un sinónimo prohibido en vez del término canónico del glosario único. Su control y su glosario los da el encargo #469 (ops/glosario.json y ops/glosario.test.js); hasta que existan, el control es un juicio","fuente":"[I] docs/ops/FORJA.md","control":"juicio","pendiente_de":"#469","control_pendiente":"ops/glosario.test.js","codigo":null}
   ]
 }

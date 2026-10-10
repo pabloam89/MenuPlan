@@ -10,6 +10,7 @@
     "estandar.fuentes": "discreto",
     "estandar.no_hace": "texto",
     "estandar.origen": "discreto",
+    "estandar.rondas": "texto",
     "estandar.tarea": "texto",
     "skill.comprobado": "discreto",
     "skill.description": "texto",

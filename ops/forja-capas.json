@@ -36,6 +36,7 @@
     "estandar-no-hace-delimita": "subjetiva",
     "estandar-pendientes-solo-bajan": "formal",
     "estandar-respaldado-por-su-fuente": "subjetiva",
+    "estandar-rondas-de-investigacion": "material",
     "estandar-seccion-generada": "formal",
     "estandar-tarea-frase": "formal",
     "estandar-tarea-id": "formal",
@@ -50,6 +51,11 @@
     "libertad-ajustada": "subjetiva",
     "pasos-con-salida-observable": "subjetiva",
     "pocos-puntos": "formal",
+    "practica-estructura-del-bullet": "formal",
+    "practica-fuente-por-bullet": "formal",
+    "practica-modo-tiempo-persona": "material",
+    "practica-numero-de-bullets": "formal",
+    "practica-voz-activa": "material",
     "ruta-muerta": "material",
     "rutas": "formal",
     "secciones": "formal",
@@ -67,6 +73,7 @@
     "tamano-cerca": "material",
     "tipo": "formal",
     "tipo-sin-estandar": "formal",
+    "vocabulario-canonico": "material",
     "vocabulario-unico": "subjetiva"
   },
   "retirados": {}

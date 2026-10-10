@@ -8,10 +8,10 @@ La única fuente de lo que se le pide a una skill, a un estándar de agente y a 
 
 | Capa | skill | estandar | agente | Criterios |
 |---|---|---|---|---|
-| formal | 26 | 13 | 0 | 39 |
-| material | 12 | 0 | 0 | 12 |
+| formal | 26 | 16 | 0 | 42 |
+| material | 13 | 4 | 0 | 16 |
 | subjetiva | 13 | 3 | 0 | 16 |
-| total | 51 | 16 | 0 | 67 |
+| total | 52 | 23 | 0 | 74 |
 
 Un criterio que se aplica a dos artefactos cuenta en las dos columnas y una vez en el total.
 
@@ -85,14 +85,14 @@ Herencia: esqueleto común (la base) → plantilla por tipo (los criterios que l
 
 | Tipo | formal | material | subjetiva | Criterios |
 |---|---|---|---|---|
-| servicio | 25 | 12 | 13 | 50 |
-| procedimiento | 26 | 12 | 13 | 51 |
-| diagnostico | 26 | 12 | 13 | 51 |
-| decision | 26 | 12 | 13 | 51 |
-| flujo | 26 | 12 | 13 | 51 |
-| forja | 26 | 12 | 13 | 51 |
-| revision | 26 | 12 | 13 | 51 |
-| conocimiento | 26 | 12 | 13 | 51 |
+| servicio | 25 | 13 | 13 | 51 |
+| procedimiento | 26 | 13 | 13 | 52 |
+| diagnostico | 26 | 13 | 13 | 52 |
+| decision | 26 | 13 | 13 | 52 |
+| flujo | 26 | 13 | 13 | 52 |
+| forja | 26 | 13 | 13 | 52 |
+| revision | 26 | 13 | 13 | 52 |
+| conocimiento | 26 | 13 | 13 | 52 |
 
 ## Discreto y texto: los campos de cada ficha
 
@@ -110,7 +110,7 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 | Artefacto | Campos discretos | Huecos de texto | Campos |
 |---|---|---|---|
 | skill | 6 | 1 | 7 |
-| estandar | 2 | 4 | 6 |
+| estandar | 2 | 5 | 7 |
 | agente | 3 | 1 | 4 |
 
 ### Campos de skill
@@ -134,6 +134,7 @@ Una tarea de un agente en ops/estandares-agentes.json (la clave es su id).
 - `estandar` — texto, opcional. Hueco: Qué es hacer bien la tarea, dicho con sus matices: un estándar no se reduce a casillas
 - `comprueba` — texto, lista, opcional. Hueco: Las comprobaciones concretas de esa tarea, que cambian con cada una y no tienen vocabulario común
 - `no_hace` — texto, lista, opcional. Hueco: La frontera con lo que es de otro agente o de una persona, que hay que nombrar caso a caso
+- `rondas` — texto, lista, opcional. Hueco: Lo que cambió en cada ronda de investigación, una frase por ronda: el número y las fuentes son discretos, el cambio no cabe en un vocabulario
 - `fuentes` — ref a fuente, lista, opcional
 
 ### Campos de agente
@@ -144,6 +145,18 @@ El frontmatter de .claude/agents/<agente>.md.
 - `description` — texto. Hueco: El cuándo se usa el agente y su frontera con los demás, dicho con las palabras de quien pide
 - `model` — enum (modelo_agente)
 - `skills` — ref a skill, lista, opcional
+
+## La forma de una práctica
+
+Datos en `forma_practica` de `ops/forja.json`; se validan con `problemasDePractica` (`scripts/lib/forjaForma.mjs`). El número de bullets, su estructura y la fuente de cada uno son capa formal; la voz, el modo, el tiempo y la persona son capa material, una heurística sobre el texto. Aplicarlo a los estándares reales es de #454.
+
+| Artefacto | Bullets | Estructura de cada bullet | Fuente por bullet | Voz | Modo y tiempo | Persona |
+|---|---|---|---|---|---|---|
+| estandar | de 2 a 5 | regla · porque · ejemplo_bueno · ejemplo_malo | [F] o [I] | activa | imperativo | segunda |
+
+## Método de construcción
+
+Un estándar se escribe tras 3 rondas de investigación o más (buscar, contrastar, destilar), cada una con 1 fuente o más. Cada ronda deja una línea `ronda: n fuentes: k cambios: …` en el campo `estandar.rondas` de su ficha (clase texto, lista, hueco: el cambio no cabe en un vocabulario). Lo que hoy no lo cumple está en `ops/forja-excepciones.json`, que solo baja.
 
 ## Vocabularios
 
@@ -229,7 +242,7 @@ Esquema y forma: determinista, lo vigila un test del CI.
 - `ejemplo-no-cuadra` — Un ejemplo «Real» sale tal cual de la skill que cita y es de ese tipo; un esqueleto solo vale mientras no haya ninguna skill del tipo
   - Fuente: [I] .claude/PLANTILLA-SKILL.md. Control: `.claude/skills.test.js`. Código: `ejemplo-no-cuadra`.
 
-### formal · estandar (13)
+### formal · estandar (16)
 
 - `estandar-fuente-con-forma` — Cada fuente del catálogo lleva id en minúsculas con guiones, nombre de diez caracteres o más y, si es externa, una url https válida; si es de la casa, la ruta de un fichero que existe y ninguna url
   - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
@@ -257,6 +270,12 @@ Esquema y forma: determinista, lo vigila un test del CI.
   - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
 - `estandar-seccion-generada` — La sección «Tareas y su estándar» de cada agente sale del catálogo y no se edita a mano
   - Fuente: [I] scripts/lib/estandaresAgentes.mjs. Control: `ops/estandares-agentes.test.js`.
+- `practica-numero-de-bullets` — Una práctica lleva entre el mínimo y el máximo de bullets que declara forma_practica de su artefacto (hoy de 2 a 5 en un estándar)
+  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
+- `practica-estructura-del-bullet` — Cada bullet de una práctica lleva sus cuatro partes en orden, regla · porqué · ejemplo bueno · ejemplo malo, ninguna vacía y con el ejemplo bueno distinto del malo
+  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
+- `practica-fuente-por-bullet` — Cada bullet lleva su propia fuente: [F] con url https si es externa o [I] con la ruta de un fichero que existe si es de la casa
+  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
 
 ### formal · agente (0)
 
@@ -266,7 +285,7 @@ Ninguno todavía.
 
 Heurística automática; lo que hoy incumple va a una lista de excepciones que solo baja.
 
-### material · skill (12)
+### material · skill (13)
 
 - `solape` — Dos descripciones no comparten más de un 25 % de sus palabras de cinco letras o más (antes de «No para:»): heurística propia que detecta dos skills que reclaman la misma petición. Casos medidos el 10 oct 2026 (nivel 2, fallos de disparo por solape) que lo prueban: forja-de-skills con higiene-de-skills, hetzner con 1password, issues con causa-raiz
   - Fuente: [I] scripts/lib/skillsForja.mjs. Control: `.claude/skills.test.js`. Código: `solape`.
@@ -292,10 +311,19 @@ Heurística automática; lo que hoy incumple va a una lista de excepciones que s
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `caso-duplicado`.
 - `caso-en-frontera` — Una petición propia de la skill no usa las palabras de lo que su «No para:» deja a otra skill
   - Fuente: [I] scripts/lib/higieneSkills.mjs. Control: `scripts/higiene-skills.test.js`. Código: `caso-en-frontera`.
+- `vocabulario-canonico` — Una cosa se llama siempre igual: ningún artefacto usa un sinónimo prohibido en vez del término canónico del glosario único. Su control y su glosario los da el encargo #469 (ops/glosario.json y ops/glosario.test.js); hasta que existan, el control es un juicio
+  - Fuente: [I] docs/ops/FORJA.md. Control: juicio (provisional: lo da #469 con `ops/glosario.test.js`).
 
-### material · estandar (0)
+### material · estandar (4)
 
-Ninguno todavía.
+- `practica-voz-activa` — La regla y su porqué van en voz activa, sin pasiva con «ser» ni pasiva refleja con «se»: heurística sobre el texto, que no entiende la frase
+  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
+- `practica-modo-tiempo-persona` — La regla usa un solo modo y tiempo verbal y una sola persona, los declarados en forma_practica (hoy imperativo, segunda persona): heurística que detecta futuros, pasados, sujetos nominales y modales
+  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
+- `estandar-rondas-de-investigacion` — Un estándar deja el rastro de tres rondas de investigación o más (buscar, contrastar, destilar), cada una con una línea «ronda: n fuentes: k cambios: …» y fuentes mayores que 0; lo que hoy no lo cumple va a una lista de excepciones que solo baja
+  - Fuente: [I] scripts/lib/forjaForma.mjs. Control: `ops/forja-forma.test.js`.
+- `vocabulario-canonico` — Una cosa se llama siempre igual: ningún artefacto usa un sinónimo prohibido en vez del término canónico del glosario único. Su control y su glosario los da el encargo #469 (ops/glosario.json y ops/glosario.test.js); hasta que existan, el control es un juicio
+  - Fuente: [I] docs/ops/FORJA.md. Control: juicio (provisional: lo da #469 con `ops/glosario.test.js`).
 
 ### material · agente (0)
 
