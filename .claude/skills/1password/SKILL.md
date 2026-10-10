@@ -1,6 +1,10 @@
 ---
 name: 1password
 description: Úsala al tocar una clave o secreto de MenuPlan, al montar un .env.local o un worktree, cuando un script no pueda leer una dirección op://, al dar de alta o rotar una clave, al guardar algo en una bóveda nueva, o si falla la service account, el token del llavero o el agente SSH. No para: dónde vive cada clave de cada servicio (ops/INVENTARIO.md) ni las contraseñas personales de Pablo.
+metadata:
+  tipo: herramienta
+  dueno: gobierno
+  comprobado: "2026-10-08"
 ---
 
 # 1Password

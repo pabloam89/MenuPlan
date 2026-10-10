@@ -8,6 +8,42 @@ orquestador que se pone a programar pierde el plan). El encargo es:
 
 $ARGUMENTS
 
+## 0. Triaje (primer paso, si el encargo arregla un fallo)
+
+Si el encargo es arreglar algo que falló (un caso, un fondo, un hallazgo de un
+juez), antes de dimensionar fija el **alcance** y el **tipo de causa** con
+datos, y deja que el esfuerzo salga del presupuesto y no de lo que parezca. Un
+encargo que no es un fallo (una pantalla, una herramienta nueva) se salta este
+paso. Los números no se escriben aquí ni en ningún brief: salen del comando.
+
+- **Alcance** (`local`, `modulo` o `transversal`; sus definiciones, en
+  `ALCANCES_FALLO` de `scripts/lib/flujo.mjs`). Míralo con datos: qué módulos de
+  `ops/MODULOS.json` toca el fallo y de qué ámbitos, qué casos parecidos hay
+  (`npm run issues` enseña los fondos abiertos con sus casos) y si es la segunda
+  vez, un caso que «no aguantó» de un fondo ya cerrado: entonces sube un nivel
+  sobre el alcance del fondo.
+- **Tipo de causa**: una del grupo `causa:` de `scripts/lib/issues.mjs`. Sin
+  evidencia, `sin-comprobar`, y se dice que es una hipótesis.
+- **Presupuesto**: `npm run presupuesto -- <alcance> <causa>`
+  (`scripts/presupuesto.mjs`, sobre el catálogo `ops/presupuestos.json`). Dice
+  quién diagnostica, cuántas hipótesis en paralelo, qué jueces (incluidos los de
+  la causa), cuántas rondas y cuántos minutos, más el pipeline sugerido. Si
+  rechaza la combinación, corrígela; no te inventes un presupuesto. Los valores
+  los recalibra la fase F del plan #334 y el comando da los vigentes.
+- **Sigue lo que salga** en vez de la tabla de «Qué pipeline según la acción»,
+  y deja `alcance` y `tipo_causa` en la ficha del fondo.
+- **Quién itera**: en `local` y `modulo`, el agente del dominio (con la skill
+  `causa-raiz` cuando exista, fase C, #338). En `transversal`, tú lanzas los
+  diagnosticadores en paralelo, cada uno con una lente distinta, y sintetizas
+  sus informes; los agentes no lanzan agentes (ver «Paralelo sin pisarse»).
+- **Rondas**: construir, juzgar y reparar es una
+  ronda. El conteo vive en el campo `rondas` de la ficha del fondo, no en tu
+  memoria: súbelo al cerrar cada ronda. Cuando el juez sigue bloqueando y se ha
+  agotado el `rondas_max` del comando, no hay otra ronda: abre un issue
+  `tipo:decision` asignado a Pablo (`npm run issues -- --nuevo`) con lo que sigue
+  bloqueado y espera su decisión. El control `rondas-excedidas` del workflow
+  `fondos` falla la ficha que pasa de ese número. <!-- norma:rondas-tope-duro -->
+
 ## 1. Dimensiona antes de orquestar
 
 Agentes cuestan: un subagente gasta varias veces los tokens de un chat, y
@@ -106,7 +142,9 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
 1. Lee el bloque `## Informe` de cada agente. `ESTADO: bloqueado` o un
    hallazgo bloqueante paran el pipeline hasta resolverlo.
 2. Un hallazgo bloqueante vuelve al constructor que toca, con el informe del
-   juez. Repite el juez tras el arreglo.
+   juez. Repite el juez tras el arreglo. Cada vuelta es una ronda del triaje
+   («Triaje»): se cuenta en la ficha del fondo y, agotadas las del
+   presupuesto, decide una persona.
 3. Junta todas las «Decisiones pendientes» en una sola lista, sin
    duplicados, con la recomendación de cada una. Las que Pablo no contesta en
    esta misma conversación pasan a un issue cada una, con `npm run issues --

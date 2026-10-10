@@ -31,7 +31,7 @@ RLS); catálogo de recetas y alimentos en JSON en git (`src/data/`).
 | Las claves en local | 1Password, bóveda `HoMenu`. `.env.local` guarda direcciones `op://` (plantilla `ops/env.1password`), no claves. Skill `1password` |
 | Estado real de las migraciones | `supabase/ESTADO.md`; NOT VALID por validar en `supabase/PENDIENTES.md` |
 | Cómo deben ser las tablas | `docs/datos/PRINCIPIOS.md` (con test desde la 0087) |
-| Reglas de UI | `DESIGN_SYSTEM.md` |
+| Reglas de UI | `DESIGN_SYSTEM.md` (criterio); valores en `src/design/tokens.js`; estado y plan en `docs/diseno/ESTADO.md` |
 | Decisiones de operación y hoja de ruta | `ops/DECISIONES.md`, `ops/PLANOS.md` |
 
 `pabloartinano/MenuPlan` y OneDrive son restos de antes del 7 oct: un error.
@@ -130,10 +130,12 @@ zona: `ui` (`src/**/*.jsx`), `migraciones` (`supabase/`), `lola`
 `api` (`api/*.js`). Las skills (`.claude/skills/`) son runbooks que se abren
 por su nombre: `1password`, `vercel`, `supabase`, `github`, `issues`,
 `telegram`, `hetzner` y `tailscale` (precargadas en `gobierno` y `lola`). Todas siguen
-`.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: las mismas
-siete secciones, operaciones con lo que debe salir, y cada fallo con fecha,
-causa y arreglo. Un proveedor nuevo estrena su runbook con su primera lección,
-no antes.
+`.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
+ocho (hoy todas son de herramienta: las mismas siete secciones), dueño, fecha
+de comprobación que caduca a los 90 días, un `SKILL.md` corto con el detalle en
+capas y sus casos de prueba en `casos.json`; `npm run skills-prueba -- <skill>`
+mide, con tokens, si ayuda. Un proveedor nuevo estrena su runbook con su
+primera lección, no antes.
 
 ## Vocabulario del catálogo
 
@@ -243,26 +245,22 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
 ## Cuando algo falla: hasta el problema de fondo
 
 Ningún fallo se cierra como suelto. Se arregla el caso si urge y se analiza
-de qué **problema de fondo** es síntoma; el análisis acaba en una de cuatro
-respuestas, que van en el issue del caso (`analisis:`). **Esto no depende de
-acordarse**: todo PR lleva `Casos: #n, #m` o `Casos: ninguno — <por qué>` (la
-guardia no deja abrirlo sin ella y el CI comprueba que son casos de verdad), y
-al terminar `pendientes.mjs` frena una vez si hubo fallos y no registraste nada.
+de qué **problema de fondo** es síntoma (`tipo:fondo`). El caso acaba en una
+respuesta de `analisis:` —nuevo, abierto, no aguantó o puntual— y se cuelga de
+su fondo; el arreglo se hace en el fondo, no en el caso: uno o varios encargos
+colgando de él, y se cierra cuando acaban y un test cubre la clase. **Esto no
+depende de acordarse**: todo PR lleva `Casos: #n, #m` o `Casos: ninguno — <por
+qué>` (la guardia no deja abrirlo sin ella y el CI comprueba que son casos de
+verdad), y al terminar `pendientes.mjs` frena una vez si hubo fallos y no
+registraste nada.
 
-1. **Nuevo**: no había problema de fondo. Se abre uno (`tipo:fondo`) con su
-   arreglo general y cómo se probará que la clase entera queda cubierta.
-2. **Abierto**: ya existe y sigue abierto. El caso se cuelga de él: más
-   evidencia, más prioridad.
-3. **No aguantó**: existía y lo cerró un PR. Se cuelga el caso, el fondo se
-   reabre y se dice si el arreglo **se rompió** (falta un test que lo proteja)
-   o **se quedó corto** (tapó casos, no la clase).
-4. **Puntual**: no puede repetirse, o repetirlo no hace daño, y se dice por
-   qué. «Alguien podría volver a hacerlo» no es puntual. Se apunta igual.
-
-El arreglo se hace en el problema de fondo, no en el caso: uno o varios
-encargos colgando de él (uno por superficie, o uno solo si es una pieza
-común). Se cierra cuando acaban sus encargos y un test cubre la clase.
-Decisiones pendientes y trabajo por coger, también como issues, no en el chat
-ni en mensajes entre sesiones. `npm run issues` lo cuenta y `--colgar` cuelga;
-el cómo, en la skill `issues`; el repaso del conjunto, cada semana con
-`/revision-issues`. El repo es público: nada sensible en un issue.
+- **El camino completo** (detectar, registrar, triaje, diagnosticar, fondo,
+  plan, ejecutar, verificar, observar, cerrar, aprender, medir), qué obligación
+  tiene cada paso y **qué la hace cumplir de verdad**: `docs/ops/FLUJO.md`.
+  `npm run flujo` da el resumen y dice qué pasos siguen blandos.
+- **Las definiciones** de cada respuesta del análisis, de las causas y de las
+  etiquetas: `scripts/lib/issues.mjs`, su única fuente. No se copian aquí.
+- Decisiones pendientes y trabajo por coger, también como issues, no en el chat
+  ni en mensajes entre sesiones. `npm run issues` lo cuenta y `--colgar` cuelga;
+  el cómo, en la skill `issues`; el repaso del conjunto, cada semana con
+  `/revision-issues`. El repo es público: nada sensible en un issue.

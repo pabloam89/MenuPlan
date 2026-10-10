@@ -73,6 +73,14 @@ describe("clasificación y formularios", () => {
     const viejo = leerIssue(nodo(["tipo:leccion", "causa:entorno", "area:ops"]));
     expect(faltas(viejo)).toContain("reclasificar: tipo:leccion ya no existe");
   });
+
+  it("control:ok y control:falla (los pone el workflow fondos, #337) son etiquetas nuestras y no piden nada", () => {
+    expect(etiquetas().map((e) => e.name)).toEqual(expect.arrayContaining(["control:ok", "control:falla"]));
+    expect(etiquetasSobrantes(["control:ok", "control:falla", "control:otra"])).toEqual(["control:otra"]);
+    expect(faltas(leerIssue(nodo([...FONDO, "control:falla"], { body: "Arreglo general" })))).toEqual([]);
+    // No sale de un desplegable: ningún formulario lo pregunta.
+    expect(GRUPOS.control.titulo).toBeUndefined();
+  });
 });
 
 describe("el análisis de cada caso acaba en una de cuatro respuestas", () => {

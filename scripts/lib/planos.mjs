@@ -19,6 +19,7 @@ import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { leerRegistro, medirFondo, medirFrases, totalFrases } from "./normas.mjs";
 import { CONSULTA, leerIssue } from "./issues.mjs";
+import { caducidades } from "./skills.mjs";
 
 /** Tipos de criterio. La definición larga vive en `vocabularios.tipos_criterio` de ops/planos.json (un test las compara). */
 export const TIPOS_CRITERIO = [
@@ -56,6 +57,12 @@ export const REGLAS_GITHUB = {
   push_protection: [],
   dependabot_alertas: [],
   dependabot_seguridad: [],
+  // #351. El detalle de estas reglas es neutro (repo público, #300): la norma y
+  // una cifra, nunca qué environment, qué secreto ni qué llave.
+  environment_solo_rama: ["rama"],
+  secretos_de_repo: ["maximo"],
+  deploy_keys_escritura: ["maximo"],
+  aprobaciones_requeridas: ["rama", "minimo"],
 };
 
 /**
@@ -94,6 +101,12 @@ export const MEDIDORES = {
     const ids = new Set(leerRegistro(raiz).normas.map((n) => n.id));
     return totalFrases(medirFrases(raiz, ids).actual);
   },
+  /**
+   * Skills caducadas (más de 90 días sin comprobar) o a menos de 14 días de
+   * caducar, o sin fecha (#336). En cada PR solo cuentan las que toca
+   * (scripts/skills-pr.mjs); aquí, todas, para verlas venir.
+   */
+  skills_caducadas_o_proximas: (raiz, ctx) => caducidades(raiz, typeof ctx?.hoy === "string" ? new Date(`${ctx.hoy}T12:00:00Z`) : (ctx?.hoy ?? new Date())).filter((e) => e.estado !== "vigente").length,
   // Las del fondo (#185, #296) necesitan los issues de GitHub: sin red, null y
   // el criterio sale «sin comprobar». Las define CIFRAS_FONDO de normas.mjs.
   casos_sin_fondo: (raiz, ctx) => cifraDeFondo("casos_sin_fondo", ctx),
@@ -113,7 +126,7 @@ function cifraDeFondo(cifra, ctx) {
  * un fondo cerrado como «no se hará» o duplicado no es un arreglo sin test).
  * Se añade aquí para no tocar issues.mjs, que cambia otra rama a la vez.
  */
-const CONSULTA_CON_MOTIVO = CONSULTA.replace("id number title state ", "id number title state stateReason ");
+export const CONSULTA_CON_MOTIVO = CONSULTA.replace("id number title state ", "id number title state stateReason ");
 
 /** Todos los issues con padre e hijos, por GraphQL (la consulta de scripts/lib/issues.mjs). */
 export function leerIssuesGh() {
@@ -243,9 +256,62 @@ export function evaluarReglaGithub(c, { repo, gh }) {
       if (sinPermiso(r)) return { estado: "sin_comprobar", detalle: "solo lo ve un administrador" };
       return { estado: "no_cumple", detalle: "alertas de Dependabot apagadas" };
     }
+    case "environment_solo_rama": {
+      // Todos los environments del repo que guardan algún secreto (la lista sale
+      // de la API, no de un fichero: uno nuevo entra solo) admiten solo la rama
+      // dada, por nombre. «Ramas protegidas» o ninguna política dejan entrar a
+      // otras. Los de Vercel no guardan secretos de Actions y no cuentan.
+      const todos = gh(`repos/${repo}/environments?per_page=100`);
+      const listaEnvs = todos.ok ? todos.json?.environments : undefined;
+      if (!Array.isArray(listaEnvs)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: no se pudieron leer los environments` };
+      let fuera = 0;
+      let conSecretos = 0;
+      for (const e of listaEnvs) {
+        const nombre = encodeURIComponent(e.name);
+        const s = gh(`repos/${repo}/environments/${nombre}/secrets?per_page=100`);
+        const n = s.ok ? s.json?.total_count : undefined;
+        if (!Number.isInteger(n)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: los secretos de los environments solo los ve un administrador` };
+        if (n === 0) continue;
+        conSecretos++;
+        const pol = e.deployment_branch_policy;
+        if (!pol || pol.custom_branch_policies !== true || pol.protected_branches) { fuera++; continue; }
+        const p = gh(`repos/${repo}/environments/${nombre}/deployment-branch-policies`);
+        if (!p.ok) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: no se pudo leer la política de ramas` };
+        const lista = p.json?.branch_policies ?? [];
+        const bien = lista.length === 1 && lista[0].name === c.rama && (lista[0].type ?? "branch") === "branch";
+        if (!bien) fuera++;
+      }
+      return { estado: fuera ? "no_cumple" : "cumple", detalle: `${cuadra(c, fuera)}: ${fuera} de ${conSecretos} fuera de la política` };
+    }
+    case "secretos_de_repo":
+    case "deploy_keys_escritura": {
+      const r = gh(c.regla === "secretos_de_repo" ? `repos/${repo}/actions/secrets?per_page=100` : `repos/${repo}/keys?per_page=100`);
+      if (!r.ok) {
+        if (sinPermiso(r)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: solo lo ve un administrador` };
+        return { estado: "no_cumple", detalle: `${cuadra(c)}: no se pudo contar` };
+      }
+      const n = c.regla === "secretos_de_repo" ? r.json?.total_count : Array.isArray(r.json) ? r.json.filter((k) => k.read_only === false).length : undefined;
+      // Una respuesta sin la cifra no es un cero: sin comprobar.
+      if (!Number.isInteger(n)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: la respuesta no trae la cifra` };
+      return { estado: n <= c.maximo ? "cumple" : "no_cumple", detalle: `${cuadra(c, n > c.maximo)}: ${n} (tope ${c.maximo})`, valor: n };
+    }
+    case "aprobaciones_requeridas": {
+      // Lo que exija la protección clásica o cualquier ruleset de la rama: manda el mayor.
+      const p = proteccion(c.rama);
+      if (sinPermiso(p)) return { estado: "sin_comprobar", detalle: `${cuadra(c)}: la protección de rama solo la lee un administrador` };
+      const r = reglas(c.rama);
+      const deRulesets = r.ok ? (r.json ?? []).filter((x) => x.type === "pull_request").map((x) => Number(x.parameters?.required_approving_review_count ?? 0)) : [];
+      const n = Math.max(p.ok ? Number(p.json?.required_pull_request_reviews?.required_approving_review_count ?? 0) : 0, ...deRulesets);
+      return { estado: n >= c.minimo ? "cumple" : "no_cumple", detalle: `${cuadra(c, n < c.minimo)}: ${n} (mínimo ${c.minimo})`, valor: n };
+    }
     default:
       return { estado: "no_cumple", detalle: `regla desconocida: ${c.regla}` };
   }
+}
+
+/** «norma X» o «norma X no cuadra»: lo único que publica el issue semanal de las reglas de #351. */
+function cuadra(c, mal = false) {
+  return `norma ${c.norma ?? c.regla}${mal ? " no cuadra" : ""}`;
 }
 
 // ── Un criterio ───────────────────────────────────────────────────────────

@@ -1,6 +1,10 @@
 ---
 name: github
 description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron de Actions falle o no arranque, haya que mirar los checks o los logs de un PR, una carpeta de trabajo desaparezca sola, o se toque la protección de ramas, Dependabot, el secret scanning o los secretos de Actions, o las líneas del PR (`Closes`, `Runbook:`, `Casos:`). No para: issues, casos y problemas de fondo (issues), despliegues (vercel) ni migraciones (agente datos).
+metadata:
+  tipo: herramienta
+  dueno: gobierno
+  comprobado: "2026-10-09"
 ---
 
 # GitHub
@@ -21,12 +25,13 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
 
 | Workflow | Cuándo | Qué hace |
 |---|---|---|
-| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | las líneas «Runbook:» y «Casos:» del PR, lint con línea base, tests y build. Es el check `tests` |
+| `tests.yml` | PR a `staging` o `main` (también al editar su cuerpo), push a `staging`, a mano | las líneas «Runbook:», «Casos:», «Agente:» y «Closes» del PR (esas dos, en el paso «Fondos del PR»), lint con línea base, tests y build. Es el check `tests` |
+| `fondos.yml` | eventos de issues (alta, edición, etiqueta, cierre, reapertura), cada día 06:35 UTC, a mano | los controles de la ficha del fondo (#337, skill `issues`): un comentario del bot con la marca `<!-- menuplan:fondo -->`, la etiqueta `control:ok` o `control:falla`, y reabrir, subir alcance o cerrar como `cerrado-eficaz`. `issues: write`, `contents: read` y `actions: read` (para comprobar el run de su comentario), acciones fijadas por SHA, solo issues de OWNER, MEMBER o COLLABORATOR, sin secretos ni `pull_request_target`; nada del issue entra en un `run:` |
 | `mercadona-sync.yml` | lunes 06:15 UTC, a mano (con `probar_push`, un commit vacío si no hay precios nuevos) | precios de Mercadona; commitea y **empuja a `staging` con la deploy key** (sin el secreto, con el token). Ese push sí lanza `tests` |
 | `agente-fallos.yml` | cada día 06:20 UTC, a mano | agente de fallos de generación (`.claude/routines/fallos-generacion.md`) |
 | `bot-semanal.yml` | lunes 06:40 UTC, a mano | informe semanal de Lola |
 | `vigia-lola.yml` | cada 15 min (`4,19,34,49`), a mano | el vigía de Lola (#267): fallos `bot_fallo` de los logs de Vercel, el canario y los avisos al grupo de Telegram «HoMenu avisos». Su estado va en la caché de Actions (`vigia-estado-*`); borrarla solo cuesta un aviso repetido. Sin `VERCEL_TOKEN` ni `CANARIO_SECRET` se salta. Sus secretos y variables, en el environment `vigia` (solo `staging`) |
-| `planos-semanal.yml` | lunes 06:50 UTC, a mano | `npm run planos -- --red` con el token del workflow (sin secretos ni Claude); si un nivel no cuadra o un juicio caduca, abre o comenta el issue «Planos: la medición semanal no cuadra». Lo que solo ve un administrador sale «sin comprobar» y no cambia ningún nivel |
+| `planos-semanal.yml` | lunes 06:50 UTC, a mano | `npm run planos -- --red` con el token del workflow (sin secretos ni Claude); si un nivel no cuadra o un juicio caduca, abre o comenta el issue «Planos: la medición semanal no cuadra». Lo que solo ve un administrador sale «sin comprobar» y no cambia ningún nivel. Desde #351 también mide la política de ramas de los environments con secretos (la lista sale de la API), los secretos a nivel de repo, las deploy keys de escritura y las aprobaciones de `main`, con detalle neutro («norma X no cuadra» y una cifra); las cuatro necesitan ver lo que solo ve un administrador, así que en el workflow salen «sin comprobar» y se miran con `npm run planos -- --red` en local |
 | `dependabot-auto.yml` | al acabar `Tests` en verde sobre una rama `dependabot/` de un PR, cada 3 h (`23 */3`), a mano | `scripts/dependabot-auto.mjs --si` (#193): fusiona en staging los PR de Dependabot de parche o menor y comenta `@dependabot rebase` a los atrasados cuyos ficheros pisó staging. Una línea por PR (`dependabot-auto pr: … decision: … motivo: … ruta: npm|actions`); reglas y motivos, en la cabecera del script. Nunca hace checkout del PR. npm (solo `package*.json` de la raíz) con el `GITHUB_TOKEN`, cuya fusión no lanza `tests` en staging (Vercel despliega igual). Actions (solo líneas `uses:` de `.github/workflows/*.yml`) con un token de la GitHub App `homenu-dependabot-merge`, en un segundo job, el único con el environment `dependabot-auto` y la clave; los que tocan `dependabot-auto.yml` o un workflow con environment esperan, y en un workflow con algún `secrets.` solo entran acciones de `actions/` y `github/` (otro dueño: `tercero-con-secretos`); si el `workflow_run` no ve la clave (`motivo: sin-clave-app`), lo fusiona la pasada de cada 3 h. Tamaño: `update-type` del commit (a los indirectos les falta) y, de respaldo, los «from A to B» fuera de `<details>`; gana el mayor. Ensayo: `GH_TOKEN="$(gh auth token)" node scripts/dependabot-auto.mjs` |
 | `ios-testflight.yml` | solo a mano | build de iOS a TestFlight |
 
@@ -60,7 +65,13 @@ description: Úsala cuando el CI de GitHub esté en rojo, un workflow o un cron 
   - **Línea «Closes #n» y «Agente:» del PR**: `Closes #n` por cada encargo o fondo
     que cierra (la guardia lo exige si la rama es de un issue: `npm run tarea --
     ops/x 193`) y `Agente: <nombre>` (o `sesión`); la plantilla de PR los trae.
-    De ahí sale quién arregló qué (skill `issues`).
+    De ahí sale quién arregló qué (skill `issues`). Desde #337 también los pide el
+    CI (`scripts/fondos-pr.mjs`, paso «Fondos del PR» de `tests`, para cualquiera
+    y no solo las sesiones de Claude): `Agente:` con un agente de `.claude/agents/`
+    o `sesión`; el `Closes` de la rama `area/<n>-…`; y por cada `Closes #n`, que el
+    fondo de un encargo tenga diagnóstico (mecanismo y causa de escape) y que un
+    fondo tenga aprendizaje. Bots exentos; si la API no responde, falla con la
+    causa y se relanza el check.
 
 ## Claves y accesos
 
@@ -100,6 +111,12 @@ que manda. `tests.yml` no usa ninguno. La CLI `gh` va con la sesión de Pablo (`
 
 ## Lo que falló y por qué
 
+- **2026-10-09 · `Closes #n` y `Agente:` solo los comprobaba la guardia, y la guardia
+  solo ve a las sesiones de Claude (#337).** Causa: el CI miraba `Runbook:` y
+  `Casos:` y nada más; un PR abierto desde la web o por otra vía no los llevaba y
+  `npm run issues` perdía quién arregló qué. Arreglo: `scripts/fondos-pr.mjs`
+  (paso «Fondos del PR»), con `scripts/fondos-pr.test.js`, visto fallar sin cada
+  regla. Sin comprobar: un PR real con el paso nuevo.
 - **2026-10-09 · 7 PR de una sesión arreglaron fallos sin registrar ningún caso (#185).**
   Causa: la norma era solo texto. Arreglo: la línea `Casos:` del PR (guardia + CI) y el
   freno de `pendientes.mjs`; tests en `casos.test.js` y `casos-pr.test.js`. Antes: 0 de 7.

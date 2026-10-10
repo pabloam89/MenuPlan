@@ -1,6 +1,10 @@
 ---
 name: hetzner
 description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a la máquina, el cortafuegos y los puertos, actualizar o reiniciar, Docker y el Postgres del panel, las copias y restaurarlas (también la copia nocturna cifrada de la base de MenuPlan y su ensayo), el disco o la memoria, o crear otro servidor. No para: la red privada y quién puede entrar (tailscale), las claves y la llave SSH (1password) ni la base de MenuPlan (supabase).
+metadata:
+  tipo: herramienta
+  dueno: gobierno
+  comprobado: "2026-10-09"
 ---
 
 # Hetzner (servidor propio)
@@ -33,11 +37,9 @@ description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a
   - Una línea por copia en `copias.log` y el journal (`copia-base … resultado:
     ok|fallo motivo: <paso> … aviso: ok|fallo|sin-canal`); vocabulario en
     `scripts/lib/copias.mjs`, cruzado por test con el script.
-  - Para por `config` si la URL entra como `postgres` o puede escribir, y por
-    `incompleta` con menos de 100 KB o menos de la mitad que la última buena.
-  - **Plan B sin `copia_lectura` (#273):** usa `consulta_lectura`, que no lee las
-    secuencias (`sin-valor`; al restaurar, `SQL_SECUENCIAS`) ni `auth.users`
-    (`auth: no`; skill `supabase`).
+  - Solo con `copia_lectura` (0095, #273; nunca `consulta_lectura`) <!-- norma:copias-solo-con-su-rol -->: con otro
+    usuario o si puede escribir, para por `config`; sin las dos vistas de
+    `copia`, por `auth`; con menos de 100 KB o la mitad de la última, `incompleta`.
 - **Pendiente:**
   - **Copia fuera del servidor** (#273, punto 4): las del panel y las de MenuPlan
     están en el mismo disco.
@@ -57,8 +59,9 @@ description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a
   Ninguna se imprime nunca.
 - **Nada en `ops/env.1password`:** el panel todavía no es parte de MenuPlan.
 - **Copias de la base:** `/etc/menuplan-copia/copia.env` (root, 600) con
-  `COPIA_DB_URL` (hoy la de `SUPABASE_DB_URL_LECTURA`, ficha `Supabase lectura`
-  de `HoMenu`) y, si se decide (#273), `COPIA_AVISO_URL` de Healthchecks. Se
+  `COPIA_DB_URL` (la de `copia_lectura`, ficha «Supabase copia» de
+  `Panel HoMenu`, campo `SUPABASE_DB_URL_COPIA`; la crea
+  `scripts/clave-copia-lectura.mjs`) y `COPIA_AVISO_URL` de Healthchecks. Se
   escribe por tubería desde 1Password, nunca a mano en un comando. La clave
   privada de `age` **no** va al servidor: ficha «Copias de la base» de
   `Panel HoMenu` (skill `1password`).
@@ -92,69 +95,7 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
 | Ensayo de restauración (Pablo, `!`) | `node scripts/copias-ensayo.mjs` desde una carpeta de tarea | `ensayo-copia … resultado: ok motivo: -`, y esa línea añadida a `ops/copias/ensayos.log` |
 | Ensayo sin tocar producción (una copia ya bajada y una clave de ensayo) | `node scripts/copias-ensayo.mjs --copia <carpeta> --clave-fichero <f> --sin-produccion --no-registrar` | `resultado: ok`; ni red ni 1Password |
 
-### Copias de la base: instalar (OK; lo lanza Pablo con `!`)
-
-Antes: la clave creada (`node scripts/copias-clave.mjs --si`, skill `1password`)
-y la pública commiteada. `SSH` es la ruta de arriba, entre comillas dobles; `R`,
-la carpeta del repo con la rama de las copias. Cada paso, una llamada.
-
-1. **Requisito:** `node scripts/copias-clave.mjs --comprobar` → `COINCIDEN`.
-   Si no, no se sube nada: las copias se cifrarían para otra clave.
-2. `"$SSH" root@100.73.252.32 'apt-get install -y age && age --version && install -d -m 700 /etc/menuplan-copia /var/backups/menuplan'` → `v1.x`.
-3. Ficheros: `"$SSH" root@100.73.252.32 'cat > /usr/local/sbin/menuplan-copia' < "$R/ops/copias/copia-base.sh"`,
-   y así `destinatarios.txt` (a `/etc/menuplan-copia/`) y las dos unidades (a
-   `/etc/systemd/system/`). Luego `"$SSH" root@100.73.252.32 'chmod 700 /usr/local/sbin/menuplan-copia && sed -i "s/\r$//" /usr/local/sbin/menuplan-copia /etc/menuplan-copia/destinatarios.txt /etc/systemd/system/menuplan-copia.* && bash -n /usr/local/sbin/menuplan-copia && systemctl daemon-reload'` → sin salida.
-4. La URL, por tubería y sin verla (`>`: crea el fichero):
-   `npm run --silent op -- read "op://HoMenu-sesiones/Supabase lectura/SUPABASE_DB_URL_LECTURA" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_DB_URL=%s\n" "$v" > /etc/menuplan-copia/copia.env; wc -c < /etc/menuplan-copia/copia.env'`
-   → más de 60; 14 es que llegó vacía. La contraseña no sale en ningún `ps`:
-   el script la pasa a un passfile en `/run/menuplan-copia` (tmpfs; systemd lo borra al parar), montado `:ro` en el
-   contenedor (`PGPASSFILE`), y usa la URL sin ella.
-5. Primera copia (fila «Copia de la base ahora») → `resultado: ok`,
-   `secuencias: sin-valor`, `auth: no`, `aviso: sin-canal`. Baja la imagen la
-   primera vez (~150 MB).
-6. Solo con el 5 en `ok`: `"$SSH" root@100.73.252.32 'systemctl enable --now menuplan-copia.timer'`.
-7. El ensayo (abajo) con esa copia.
-
-- **Healthchecks** (si se decide en #273): check diario, gracia 2 h. Antes, la URL
-  de ping a la ficha `Healthchecks` de `HoMenu`, campo `COPIA_AVISO_URL` (OK;
-  skill `1password`), nunca tecleada en un comando. Se **añade** con `>>`:
-  `OP_SIN_SERVICIO=1 node scripts/op.mjs read "op://HoMenu/Healthchecks/COPIA_AVISO_URL" | "$SSH" root@100.73.252.32 'umask 077; v=$(tr -d "\r\n"); printf "COPIA_AVISO_URL=%s\n" "$v" >> /etc/menuplan-copia/copia.env; grep -c ^COPIA_ /etc/menuplan-copia/copia.env'`
-  → `2` (`>` borraría `COPIA_DB_URL`). Luego `aviso: ok`; un fallo llega con `/fail`.
-- **Tras una purga legítima** (la copia baja a menos de la mitad y para por
-  `incompleta`): `"$SSH" root@100.73.252.32 'systemd-run --wait -p EnvironmentFile=/etc/menuplan-copia/copia.env /usr/local/sbin/menuplan-copia --aceptar-tamano'`
-  → `resultado: ok`; esa pasa a ser la referencia. Solo si se sabe por qué bajó.
-- **Actualizar la imagen** (fijada por digest en `copia-base.sh`; cada mes, con
-  el ensayo): el digest nuevo de `postgres:17` en el registro, cambiarlo en el
-  script por PR, instalar (paso 3) y ensayar.
-- **Si systemd la corta** (30 min) o llega TERM/INT: línea `resultado: fallo`
-  con el paso, `/fail` y fuera los contenedores con la etiqueta
-  `menuplan-copia=<pid>`.
-
-### Copias de la base: ensayo de restauración
-
-- **Cadencia: el primer lunes de cada mes**, y tras cambiar `copia-base.sh`, el
-  usuario de la copia o la versión de Postgres de Supabase.
-- Lo lanza Pablo con `!` en una carpeta de tarea: añade su línea a
-  `ops/copias/ensayos.log`, que va por PR (repo público: hoy con el total de
-  filas; `REGISTRO_SOLO_COCIENTE` en el script lo deja en el cociente, #273).
-- Necesita `age` (`winget install FiloSottile.age`) y Postgres 17 (zip
-  «PostgreSQL binaries» de EnterpriseDB en `C:\dev\herramientas\pgsql`, o
-  `--pg-bin`). El 9 oct 2026 no estaba ninguno.
-- Qué hace: baja la última diaria, comprueba que cada `.age` se descifra entero
-  (sin guardarlo), y restaura por tubería (`age -d | pg_restore`, una pasada por
-  sección) en un Postgres desechable en `127.0.0.1`; secuencias al día y tablas
-  y filas contra producción (`consulta_lectura`, `begin read only`).
-- **Mientras dura, el datadir del Postgres desechable tiene la base en claro**
-  (en `%TEMP%\menuplan-ensayo-*`). Al acabar, al fallar y con Ctrl+C, Ctrl+Break
-  o cerrando la ventana, se para (`-m immediate`) y se borra; si dice «OJO: no
-  pude borrar», se borra a mano. El siguiente ensayo borra los restos al empezar.
-- `motivo: recuento` o `tablas-distintas`: la copia no sirve; se abre un caso.
-
-### Copias de la base: rotar la clave (OK)
-
-Sin script: `copias-clave.mjs` se niega si la ficha existe. Otra ficha con otro
-nombre, las dos públicas en `destinatarios.txt` 28 días (la semanal más vieja) y
-luego fuera la vieja. Es un encargo de `gobierno`.
+Instalar las copias de la base (OK; lo lanza Pablo con `!`), su ensayo de restauración mensual y rotar su clave: abre `.claude/skills/hetzner/referencias/copias-base.md`.
 
 - **Cortafuegos con red de seguridad.** Antes de tocar `ufw` o `sshd`, armar un
   temporizador que lo deshaga solo:

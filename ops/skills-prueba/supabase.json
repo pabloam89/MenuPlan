@@ -1,0 +1,168 @@
+{
+  "skill": "supabase",
+  "fecha_utc": "2026-10-09T20:45:09.225Z",
+  "version": {
+    "skill_md": "2809fa678968",
+    "casos_json": "9d5dbef98403"
+  },
+  "modelos": {
+    "disparo": "claude-haiku-4-5",
+    "ejecuta": "claude-sonnet-5",
+    "corrige": "claude-haiku-4-5"
+  },
+  "tope_usd": 1,
+  "coste_usd": 0.0667,
+  "resultado": "falla",
+  "resumen": {
+    "disparo_ok": 4,
+    "disparo_total": 4,
+    "comprobaciones_ok": 8,
+    "comprobaciones_total": 9,
+    "sin_correr": 0
+  },
+  "cambios_respecto_anterior": [
+    {
+      "id": "migracion-aplicada",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "contar-casas",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "copias-supabase",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "frontera-escribir-migracion",
+      "parte": "disparo",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "migracion-aplicada",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "contar-casas",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "ok",
+      "cambio": "nuevo"
+    },
+    {
+      "id": "copias-supabase",
+      "parte": "ejecucion",
+      "antes": null,
+      "ahora": "falla",
+      "cambio": "nuevo"
+    }
+  ],
+  "disparo": [
+    {
+      "id": "migracion-aplicada",
+      "esperado": "supabase",
+      "elegido": "supabase",
+      "estado": "ok"
+    },
+    {
+      "id": "contar-casas",
+      "esperado": "supabase",
+      "elegido": "supabase",
+      "estado": "ok"
+    },
+    {
+      "id": "copias-supabase",
+      "esperado": "supabase",
+      "elegido": "supabase",
+      "estado": "ok"
+    },
+    {
+      "id": "frontera-escribir-migracion",
+      "esperado": "ninguna",
+      "elegido": "ninguna",
+      "estado": "ok"
+    }
+  ],
+  "ejecucion": [
+    {
+      "id": "migracion-aplicada",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "Propone node scripts/verificar-estado.mjs --solo 0094",
+          "cumple": true,
+          "evidencia": "```\nnode scripts/verificar-estado.mjs --solo 0094\n```"
+        },
+        {
+          "texto": "Dice que es de solo lectura",
+          "cumple": true,
+          "evidencia": "Ejecutaría, sin pedir OK (es solo lectura y está explícitamente permitido sin preguntar)"
+        },
+        {
+          "texto": "Menciona supabase/ESTADO.md como el registro de verdad",
+          "cumple": true,
+          "evidencia": "supabase/ESTADO.md (que es el registro de verdad, no la tabla `supabase_migrations.schema_migrations`, que solo tiene 12 filas)"
+        }
+      ],
+      "respuesta": "Ejecutaría, sin pedir OK (es solo lectura y está explícitamente permitido sin preguntar):\n\n```\nnode scripts/verificar-estado.mjs --solo 0094\n```\n\nEsperaría ver la migración 0094 con su testigo comprobado contra la base real, y un aviso si no cuadra con `supabase/ESTADO.md` (que es el registro de verdad, no la tabla `supabase_migrations.schema_migrations`, que solo tiene 12 filas).\n\nSi quisiera más detalle del objeto testigo concreto, añadiría `--detalle`:\n\n```\nnode scripts/verificar-estado.mjs --solo 0094 --detalle\n```\n\nLo que no haría sin el OK de Pablo:\n- Aplicarla (`apply-migration.mjs 0094 --si`) si resultara que falta.\n- Tocar nada del panel de Supabase.\n- Usar `--admin` en `npm run consulta` salvo necesidad real y explícita.\n\nSi el resultado fuera ambiguo o contradictorio con `ESTADO.md`, lo reportaría a Pablo en vez de intentar corregirlo por mi cuenta."
+    },
+    {
+      "id": "contar-casas",
+      "estado": "ok",
+      "comprobaciones": [
+        {
+          "texto": "Propone npm run consulta (el rol de solo lectura) o una transacción read only",
+          "cumple": true,
+          "evidencia": "npm run consulta -- \"select count(*) from households\""
+        },
+        {
+          "texto": "Cuenta con count en vez de imprimir filas",
+          "cumple": true,
+          "evidencia": "select count(*) from households"
+        },
+        {
+          "texto": "No usa la conexión de administrador sin --admin explícito",
+          "cumple": true,
+          "evidencia": "Usar `npm run consulta -- --admin \"...\"` (rol de administrador) salvo que el rol de lectura no me deje ver algo necesario, y avisando antes."
+        }
+      ],
+      "respuesta": "Haría esto, en este orden:\n\n1. **Comprobar que tengo la variable de entorno de solo lectura** (no la toco, solo confirmo que `SUPABASE_DB_URL_LECTURA` está disponible vía 1Password/`leerEnv`).\n\n2. **Lanzar la consulta de solo lectura con el rol `consulta_lectura`**:\n   ```\n   npm run consulta -- \"select count(*) from households\"\n   ```\n   Espero que devuelva una sola fila con el recuento (p. ej. `count: 123`), dentro de una transacción `read only` que hace `rollback` sola.\n\n   Nota: `households` es una de las seis tablas con restricción de columnas desde la 0095, pero `count(*)` está permitido aunque `select *` no lo esté, así que no hace falta nombrar columnas.\n\n3. **Si quisiera desglosar por estado** (activas vs. pendientes, por ejemplo), haría:\n   ```\n   npm run consulta -- \"select status, count(*) from households group by status\"\n   ```\n   siempre que `status` no esté en `COLUMNAS_SIN_CONSULTA` para esa tabla; si lo estuviera, el rol lo rechazaría y tocaría pedir la vista con `--admin`.\n\n**Lo que NO haría sin el OK de Pablo:**\n- Usar `npm run consulta -- --admin \"...\"` (rol de administrador) salvo que el rol de lectura no me deje ver algo necesario, y avisando antes.\n- Tocar nada del panel de Supabase.\n- Cualquier `insert`/`update`/escritura, aunque sea trivial.\n\nCon el resultado del paso 2 ya tengo la respuesta; no necesito ir más allá salvo que el número no cuadre con lo esperado, en cuyo caso lo compararía con `supabase/ESTADO.md` o `verificar-estado.mjs` antes de dar nada por raro."
+    },
+    {
+      "id": "copias-supabase",
+      "estado": "falla",
+      "comprobaciones": [
+        {
+          "texto": "Dice que el plan Free no incluye copias",
+          "cumple": true,
+          "evidencia": "El proyecto está en el plan **Free** de Supabase, que no incluye copias de seguridad (ni \"Scheduled backups\" ni PITR)"
+        },
+        {
+          "texto": "Explica que las copias son propias, cifradas, en el servidor de Hetzner",
+          "cumple": true,
+          "evidencia": "hay **copias propias**, no de Supabase: un `pg_dump` cifrado cada noche (02:40 UTC) de los esquemas `public` y `ops` (datos y esquema), guardado en el servidor de Hetzner"
+        },
+        {
+          "texto": "Remite a la skill hetzner para el cómo",
+          "cumple": false,
+          "evidencia": ""
+        }
+      ],
+      "respuesta": "**No.** El proyecto está en el plan **Free** de Supabase, que no incluye copias de seguridad (ni \"Scheduled backups\" ni PITR). Se comprobó en el panel el 2026-10-08: Vercel → Storage → MenuPlan → *Open in Supabase* → Database → Backups, y aparece el aviso *\"Free Plan does not include project backups\"*.\n\nLo que sí existe:\n\n- Desde el 9 oct 2026 (#156) hay **copias propias**, no de Supabase: un `pg_dump` cifrado cada noche (02:40 UTC) de los esquemas `public` y `ops` (datos y esquema), guardado en el servidor de Hetzner. Lo hace un usuario de solo lectura (`copia_lectura`).\n- Quedan fuera tablas de códigos efímeros (`bot_link_tokens`, `household_invites`, `bot_codigos`) que se recrean vacías al restaurar.\n- De `auth` solo se copia lo justo (dos vistas sin contraseñas ni tokens) para poder reconstruir el vínculo de login si algún día hiciera falta restaurar en otro proyecto.\n- **Pendiente**: aplicar la migración 0095, instalar el proceso en el servidor y hacer el primer ensayo de restauración (#247, #273) — a día de hoy no se ha restaurado nunca una copia.\n\nLo que no haría sin tu OK: cambiar el plan de Supabase (subir a Pro para tener backups/PITR), tocar los permisos de `copia_lectura`, ampliar qué esquemas se copian, o restaurar cualquier copia sobre la base real."
+    }
+  ]
+}

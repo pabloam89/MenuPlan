@@ -202,7 +202,11 @@ textarea::placeholder {
 
    En claro no se declara nada a propósito: sin variables, cada `var()` cae en
    su respaldo, que es el color que ya había. Un tema que no existe no puede
-   desviarse del original. */
+   desviarse del original.
+
+   Las `--pz-*` son una EXCEPCIÓN DECLARADA del sistema de tokens
+   (`src/design/tokens.js`, cabecera): son un tema con otro juego de colores, no
+   roles del tema claro, y no se absorben en los tokens. */
 .mp-pizarra-oscura {
   --pz-fondo: #10201a;
   --pz-fondo-suave: #16291f;

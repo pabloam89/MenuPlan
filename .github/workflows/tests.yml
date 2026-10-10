@@ -65,6 +65,13 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_AUTOR: ${{ github.event.pull_request.user.login }}
           PR_RAMA: ${{ github.event.pull_request.head.ref }}
+      # Si el PR toca una skill (.claude/skills/<s>/) cuya fecha de comprobado
+      # pasa de 90 días, falla: quien la toca la vuelve a comprobar (#336). No
+      # va en npm test porque el reloj pondría en rojo todos los PR, también los
+      # que no tocan ninguna skill. Usa la lista del paso anterior; sin npm ci.
+      - name: Skills del PR
+        if: github.event_name == 'pull_request'
+        run: node scripts/skills-pr.mjs "$RUNNER_TEMP/ficheros-del-pr.txt"
       # Cada PR dice qué casos deja registrados (`Casos: #n, #m`) o por qué no hay
       # (`Casos: ninguno — <motivo>`), y cada #n tiene que ser un issue tipo:caso
       # con su analisis: (#185, «Cuando algo falla» de CLAUDE.md). Si la API de
@@ -76,6 +83,20 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_AUTOR: ${{ github.event.pull_request.user.login }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+      # El PR y su problema de fondo (#337): lleva «Agente: <nombre>»; si la rama
+      # es de un issue, su «Closes #n»; y cada issue que cierra es de verdad: un
+      # encargo cuyo fondo tiene diagnóstico (mecanismo y causa de escape), o un
+      # fondo con aprendizaje. Mismo patrón que «Casos del PR»: si la API no
+      # responde, falla con la causa (relanza el check); los bots, exentos.
+      - name: Fondos del PR
+        if: github.event_name == 'pull_request'
+        run: node scripts/fondos-pr.mjs
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTOR: ${{ github.event.pull_request.user.login }}
+          PR_RAMA: ${{ github.event.pull_request.head.ref }}
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
       # Las frases normativas nuevas (#296): cada «nunca», «siempre», «tope»…

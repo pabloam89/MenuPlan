@@ -30,3 +30,8 @@ export function ahoraEnMadrid(fecha = new Date()) {
   const dia = partes(fecha, { weekday: "long", day: "numeric", month: "short" }).replace(".", "").replace(",", "");
   return `${dia}, ${horaMadrid(fecha)} en Madrid (${desfaseMadrid(fecha)})`;
 }
+
+/** «2026-10-09»: el día en Madrid (para comparar fechas límite, nunca el día UTC). */
+export function diaMadrid(fecha = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: ZONA, year: "numeric", month: "2-digit", day: "2-digit" }).format(fecha);
+}
