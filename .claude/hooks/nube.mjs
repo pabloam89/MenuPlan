@@ -22,13 +22,25 @@
  */
 export function esSesionDeNube(env, rama, ruta = "", plataforma = process.platform) {
   try {
-    if (!env || typeof env !== "object" || env.CLAUDE_CODE_REMOTE !== "true") return false;
+    if (!nubePosible(env, plataforma)) return false;
     if (typeof rama !== "string" || !/^ccr-[A-Za-z0-9._-]+$/.test(rama)) return false;
-    if (plataforma === "win32") return false;
     if (typeof ruta !== "string" || /^[A-Za-z]:|\\/.test(ruta)) return false;
     return true;
   } catch {
     // a propósito: un entorno que lanza al leerse (getter hostil) no es la nube; falla cerrado
+    return false;
+  }
+}
+
+/**
+ * Filtro barato que va ANTES de pedir la rama a git: sin la variable o en
+ * Windows no hay nube posible y no se lanza nada más (#635, ronda 2).
+ */
+export function nubePosible(env, plataforma = process.platform) {
+  try {
+    return !!env && typeof env === "object" && env.CLAUDE_CODE_REMOTE === "true" && plataforma !== "win32";
+  } catch {
+    // a propósito: un entorno que lanza al leerse no es la nube; falla cerrado
     return false;
   }
 }

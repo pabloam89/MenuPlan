@@ -1,13 +1,8 @@
-import { execFileSync } from "node:child_process";
-import { mkdtempSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { contextoReal } from "./guardia.mjs";
 import { avisoRamaPrincipal, avisoTrasAdelantar, planAdelantar, resumenReflog } from "./principal.mjs";
-import { esSesionDeNube } from "./nube.mjs";
+import { esSesionDeNube, nubePosible } from "./nube.mjs";
 
 describe("la carpeta principal se adelanta al arrancar (#192)", () => {
   const base = { esWorktree: false, rama: "staging", detras: "3", sucio: "" };
@@ -82,6 +77,7 @@ describe("la sesión de la nube no es la carpeta principal de Pablo (#635, fondo
   it("un entorno ilegible (lanza al leerse) falla cerrado", () => {
     const hostil = new Proxy({}, { get() { throw new Error("ilegible"); } });
     expect(nube(hostil)).toBe(false);
+    expect(nubePosible(hostil, "linux")).toBe(false);
   });
   it("en la nube el arranque no avisa de la rama; en el PC sí", () => {
     const c = { esWorktree: false, rama: RAMA, reflog: null };
@@ -90,31 +86,40 @@ describe("la sesión de la nube no es la carpeta principal de Pablo (#635, fondo
     expect(avisoRamaPrincipal(c)).toMatch(/no en staging/);
   });
 
-  describe("la guardia, con un repo de verdad", () => {
-    const guardado = process.env.CLAUDE_CODE_REMOTE;
-    afterEach(() => {
-      if (guardado === undefined) delete process.env.CLAUDE_CODE_REMOTE;
-      else process.env.CLAUDE_CODE_REMOTE = guardado;
-    });
-    const repo = (rama) => {
-      const dir = mkdtempSync(join(tmpdir(), "principal-nube-"));
-      const g = (...a) => execFileSync("git", ["-C", dir, ...a], { stdio: "ignore" });
-      g("init", "-q", "-b", rama);
-      g("-c", "user.email=a@b.c", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "x");
-      return dir;
+  describe("la guardia, con git inyectado (corre igual en Windows)", () => {
+    const COMUN = "/repo/.git";
+    const fake = (rama, llamadas = [], { falla = false } = {}) => (args) => {
+      llamadas.push(args.join(" "));
+      if (args.includes("--abbrev-ref")) {
+        if (falla) throw new Error("git expiró");
+        return rama;
+      }
+      return args.includes("--git-dir") ? `${COMUN}\n${COMUN}` : COMUN;
     };
-    it("la carpeta principal en ccr-… con la variable: es de tarea; sin ella o en otra rama, sigue bloqueada", () => {
-      const ccr = repo(RAMA);
-      process.env.CLAUDE_CODE_REMOTE = "true";
-      expect(contextoReal(ccr).esPrincipal(ccr)).toBe(false);
-      expect(contextoReal(ccr).rutaEnPrincipal(join(ccr, "a.txt"))).toBe(false);
-      process.env.CLAUDE_CODE_REMOTE = "false";
-      expect(contextoReal(ccr).esPrincipal(ccr)).toBe(true);
-      delete process.env.CLAUDE_CODE_REMOTE;
-      expect(contextoReal(ccr).esPrincipal(ccr)).toBe(true);
-      const otra = repo("staging");
-      process.env.CLAUDE_CODE_REMOTE = "true";
-      expect(contextoReal(otra).esPrincipal(otra)).toBe(true);
+    const principal = (rama, env, plataforma, extra = {}, llamadas = []) => {
+      const c = contextoReal("/repo", {}, { env, plataforma, gitDado: fake(rama, llamadas, extra) });
+      return [c.esPrincipal("/repo"), llamadas];
+    };
+    it("la principal en ccr-… con la variable en Linux es de tarea", () => expect(principal(RAMA, NUBE, "linux")[0]).toBe(false));
+    it("rutaEnPrincipal sigue a esPrincipal", () => {
+      const c = contextoReal("/repo", {}, { env: NUBE, plataforma: "linux", gitDado: fake(RAMA) });
+      expect(c.rutaEnPrincipal("/repo/a.txt")).toBe(false);
+    });
+    it.each([
+      ["sin variable", RAMA, {}, "linux"],
+      ["variable en false", RAMA, { CLAUDE_CODE_REMOTE: "false" }, "linux"],
+      ["rama que no es ccr-", "staging", NUBE, "linux"],
+      ["Windows con la variable y ccr-", RAMA, NUBE, "win32"],
+    ])("%s: sigue bloqueada", (_, rama, env, plataforma) => expect(principal(rama, env, plataforma)[0]).toBe(true));
+    it("un git que falla o expira al pedir la rama: sigue siendo la principal (cerrado)", () => {
+      expect(principal(RAMA, NUBE, "linux", { falla: true })[0]).toBe(true);
+    });
+    it("sin variable o en Windows no se lanza el git de la rama", () => {
+      for (const [env, plat] of [[{}, "linux"], [NUBE, "win32"], [{ CLAUDE_CODE_REMOTE: "false" }, "linux"]]) {
+        const [, llamadas] = principal(RAMA, env, plat);
+        expect(llamadas.some((l) => l.includes("--abbrev-ref"))).toBe(false);
+      }
+      expect(principal(RAMA, NUBE, "linux")[1].some((l) => l.includes("--abbrev-ref"))).toBe(true);
     });
   });
 });
