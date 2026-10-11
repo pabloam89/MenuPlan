@@ -20,13 +20,13 @@ metadata:
 - **Repo** `pabloam89/MenuPlan`, **público**. Rama por defecto: `staging` (desde cuándo, en «Fechas» de Fuentes y comprobación). `main` es producción.
 - **Protección de ramas** (desde el 7 oct, también para administradores):
   - `main`: solo por PR con el check `tests` en verde; sin force push ni
-    borrado. Con los rulesets de #330 (por aplicar), solo fusiona Pablo (bypass).
+    borrado. Con los rulesets de #330 (aplicados), solo fusiona Pablo (bypass).
   - `staging`: sin force push ni borrado (protección clásica) y el **ruleset
     «staging: tests obligatorios»**: nada entra sin `tests` en verde, ni por PR
     ni por push, tampoco Pablo. Solo se lo saltan las deploy keys, y la única
     es la del cron de Mercadona, cuyo secreto vive en el environment
     `mercadona-sync` (solo rama staging). Decidido y activo (id 24770007; día en «Fechas» de Fuentes y comprobación),
-    sin exigir la rama al día. Dueño de código (#330): `.claude/skills/github/referencias/duenos-de-codigo.md`.
+    sin exigir la rama al día. Sin aprobación humana ni dueño de código (#608): `.claude/skills/github/referencias/duenos-de-codigo.md`.
 - **Workflows** (`.github/workflows/`):
 
 | Workflow | Cuándo | Qué hace |
