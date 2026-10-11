@@ -98,7 +98,7 @@ está vacío; lo hace Pablo, issue 589).
   roto, y la vuelta atrás no se había ensayado. Arreglo: la puerta de salud tras
   desplegar, con test (`ops/salud-despliegue.test.js`, `scripts/salud-despliegue.test.js`), y
   el procedimiento de vuelta atrás con su registro de ensayos. Antes: 0 despliegues con
-  comprobación y 0 ensayos; después: todos los de staging y main, y 0 ensayos hasta que
+  comprobación y 0 ensayos; después: los de `staging-menuplan` y `Production` (no los de `Preview`), y 0 ensayos hasta que
   Pablo lo haga. Sin comprobar: la puerta en un despliegue real (puede tapar la respuesta
   una protección de Vercel: saldría `protegido`).
 - **2026-09-22 · staging roto por un build que en local pasaba.** Causa: se

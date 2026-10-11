@@ -1,7 +1,11 @@
 // La puerta de salud tras desplegar (scripts/salud-despliegue.mjs, #589): con una API de
 // mentira, cada forma de fallo de un despliegue sale como fallo con su motivo (falla cerrado).
 import { describe, it, expect } from "vitest";
-import { comprobar, evaluar, informe, leerUrl, lineas, MOTIVOS_SALUD } from "./salud-despliegue.mjs";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { comprobar, evaluar, informe, leerUrl, lineas, MOTIVOS_SALUD, veredicto } from "./salud-despliegue.mjs";
 
 const URL_OK = "https://homenu-git-staging-menuplan.vercel.app";
 const HTML = '<!doctype html><div id="root"></div>';
@@ -137,5 +141,31 @@ describe("el informe", () => {
     let dormido = 0;
     await comprobar({ base: URL_OK, fetchFn: api({ funcion: resp(500) }), intentos: 1, dormir: async () => { dormido++; } });
     expect(dormido).toBe(0);
+  });
+});
+
+describe("protegido es «sin comprobar», no «sin salud»", () => {
+  const login = () => api({ pagina: resp(307, "", "https://vercel.com/sso-api?url=x"), funcion: resp(401, "<html>Authentication Required</html>") });
+  it("solo protegido -> sin_comprobar; protegido más un fallo real -> fallo; sano -> ok", async () => {
+    expect(veredicto(await evaluar(env(), { fetchFn: login(), ...rapido }))).toBe("sin_comprobar");
+    expect(veredicto(await evaluar(env(), { fetchFn: api({ pagina: resp(307, "", "https://vercel.com/x"), funcion: resp(500) }), ...rapido }))).toBe("fallo");
+    expect(veredicto(await evaluar(env(), { fetchFn: api(), ...rapido }))).toBe("ok");
+    expect(veredicto(await evaluar(env({ DESPLIEGUE_ESTADO: "failure" }), { fetchFn: api(), ...rapido }))).toBe("fallo");
+  });
+
+  it("la línea final dice sin_comprobar", async () => {
+    expect(lineas(await evaluar(env(), { fetchFn: login(), ...rapido })).at(-1)).toMatch(/resultado: sin_comprobar /);
+  });
+
+  it("el script: un fallo sale 1, escribe el aviso, la línea de norma fail y salud=fallo", () => {
+    const dir = mkdtempSync(join(tmpdir(), "salud-"));
+    const r = spawnSync(process.execPath, [join(import.meta.dirname, "salud-despliegue.mjs"), "--issue", join(dir, "a.md")], {
+      env: { PATH: process.env.PATH, DESPLIEGUE_URL: "https://evil.example.com", DESPLIEGUE_ESTADO: "success", DESPLIEGUE_REF: "staging", GITHUB_OUTPUT: join(dir, "o.txt") },
+      encoding: "utf8", windowsHide: true,
+    });
+    expect(r.status).toBe(1);
+    expect(r.stdout).toContain("norma: vuelta-atras-probada resultado: fail");
+    expect(readFileSync(join(dir, "o.txt"), "utf8")).toBe("salud=fallo\n");
+    expect(readFileSync(join(dir, "a.md"), "utf8")).toContain("url_ilegible");
   });
 });

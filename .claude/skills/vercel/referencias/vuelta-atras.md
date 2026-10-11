@@ -14,7 +14,11 @@ Capa de la skill `vercel`. Nada de esto lo ejecuta una sesión: el rollback es d
 1. Vercel, equipo «menuplan», proyecto `homenu`, pestaña Deployments.
 2. Busca el último despliegue de producción que iba bien (estado Ready, anterior al roto).
 3. Menú «…» del despliegue, «Instant Rollback», confirma. No reconstruye: vuelve a servir el
-   que ya estaba construido, con las variables de entorno que tenía.
+   que ya estaba construido, con las variables de entorno que tenía al construirse.
+   Si después de ese despliegue se rotó un secreto o cambió una variable, no vuelvas a él: el
+   código viejo usaría la clave vieja. Redespliega el commit bueno. Que el rollback conserve
+   las variables del despliegue es lo que dice la documentación de Vercel
+   (https://vercel.com/docs/instant-rollback); sin comprobar aquí.
 4. Alternativa: `request_rollback` del conector de Vercel, si Pablo lo autoriza.
 5. Vercel deja de asignar los despliegues nuevos a producción mientras esté en rollback:
    para salir, se promueve el despliegue bueno nuevo desde el panel. Sin comprobar aquí.
@@ -32,7 +36,7 @@ Capa de la skill `vercel`. Nada de esto lo ejecuta una sesión: el rollback es d
   deja el código viejo hablando con el esquema nuevo. Por eso el código no puede depender de
   que una migración ya esté aplicada (CLAUDE.md, «Base de datos») y la migración con
   `CONTRAE` es de Pablo. Una migración se deshace con otra, y no con el rollback.
-- Los datos que ya escribió el código roto, las variables de entorno cambiadas después y el
+- Los datos que ya escribió el código roto, las variables de entorno cambiadas después (el despliegue al que vuelves no las trae) y el
   webhook de Telegram (apunta a un despliegue por su dirección).
 
 ## Anotar el ensayo

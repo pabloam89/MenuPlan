@@ -28,11 +28,17 @@
  *   DESPLIEGUE_REF      staging o main (solo para el informe)
  *   SALUD_HOSTS         opcional: dominios propios permitidos además de *.vercel.app
  * Salida: una línea `salud-despliegue chequeo: … ok: … motivo: …` por chequeo y una
- * final `salud-despliegue resultado: ok|fallo`; con `--issue <ruta>`, el cuerpo del
- * aviso. Sale 0 si todo va bien y 1 si no.
+ * final `salud-despliegue resultado: ok|fallo|sin_comprobar`; con `--issue <ruta>`, el cuerpo del
+ * aviso; y, si existe GITHUB_OUTPUT, `salud=ok|fallo|sin_comprobar` para los pasos siguientes.
+ * Sale 0 si todo va bien y 1 si no. Excepción: si lo único que falla es `protegido` (una
+ * protección de Vercel tapa la respuesta), NO se sabe si el despliegue está sano: es
+ * `sin_comprobar`, sale 0 con un `::warning::` y la línea de norma `unchecked`, y no abre
+ * ni comenta ningún issue (un login permanente no puede dar un rojo en cada despliegue).
  */
-import { writeFileSync } from "node:fs";
+import { appendFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+
+import { lineaDeNorma } from "./lib/medicionNormas.mjs";
 
 /** Los motivos de fallo, vocabulario cerrado (los lee el informe y el test). */
 export const MOTIVOS_SALUD = {
@@ -53,7 +59,11 @@ const PLAZO_MS = 10_000;
 const INTENTOS = 4;
 const ESPERA_MS = 15_000;
 
-/** Lee y valida la dirección. Devuelve { base } o { motivo }. */
+/**
+ * Lee y valida la dirección. Se acepta cualquier *.vercel.app y no un patrón más estrecho porque el
+ * repo no documenta la forma de las URL únicas de Vercel; más dominios, por SALUD_HOSTS.
+ * Devuelve { base } o { motivo }.
+ */
 export function leerUrl(texto, extras = "") {
   let u;
   try {
@@ -141,10 +151,16 @@ export async function evaluar(env, opciones = {}) {
   return { ok: chequeos.every((c) => c.ok), ref, estado, chequeos };
 }
 
+/** ok | fallo | sin_comprobar: solo `protegido` en todo lo que falla es «no se pudo mirar». */
+export function veredicto(r) {
+  if (r.ok) return "ok";
+  return r.chequeos.filter((c) => !c.ok).every((c) => c.motivo === "protegido") ? "sin_comprobar" : "fallo";
+}
+
 /** Las líneas `clave: valor` para el log (sin direcciones ni cuerpos). */
 export function lineas(r) {
   const l = r.chequeos.map((c) => `salud-despliegue chequeo: ${c.chequeo} ok: ${c.ok ? "si" : "no"} motivo: ${c.motivo ?? "-"} ms: ${c.ms} intentos: ${c.intento}`);
-  l.push(`salud-despliegue resultado: ${r.ok ? "ok" : "fallo"} ref: ${r.ref} estado: ${r.estado || "-"}`);
+  l.push(`salud-despliegue resultado: ${veredicto(r)} ref: ${r.ref} estado: ${r.estado || "-"}`);
   return l;
 }
 
@@ -168,9 +184,14 @@ async function main() {
   const i = process.argv.indexOf("--issue");
   const ruta = i > 0 ? process.argv[i + 1] : null;
   const r = await evaluar(process.env);
+  const v = veredicto(r);
   for (const l of lineas(r)) console.log(l);
-  if (!r.ok && ruta) writeFileSync(ruta, informe(r));
-  process.exitCode = r.ok ? 0 : 1;
+  const norma = { ok: "ok", fallo: "fail", sin_comprobar: "unchecked" }[v];
+  console.log(lineaDeNorma("vuelta-atras-probada", norma, { detalle: `salud tras desplegar ${r.ref}` }));
+  if (v === "sin_comprobar") console.log("::warning title=Salud del despliegue sin comprobar::Una protección de Vercel tapa la respuesta; no se sabe si el despliegue está sano (#589)");
+  if (v === "fallo" && ruta) writeFileSync(ruta, informe(r));
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `salud=${v}\n`);
+  process.exitCode = v === "fallo" ? 1 : 0;
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
