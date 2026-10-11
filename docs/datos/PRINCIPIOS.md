@@ -104,7 +104,7 @@ regex que exporta `ids.js`.
   escritor de sus tablas escribe un valor a mano (un canal o idioma fijo, con
   `CANAL.TELEGRAM` o `IDIOMAS`). Vigila todas las columnas de
   `COLUMNAS_VOCABULARIO`, la misma lista de la paridad (#549); lo que se escribe
-  desde SQL lo dice `ESCRITORES_SQL`, y el test exige que esté.
+  desde SQL lo dice `ESCRITORES_SQL`, y el test falla si falta uno.
   **[auto]** Un trigger que rechazara los retirados en filas nuevas sería la
   opción en la base, si esto no bastara.
 - Nada de `create type … as enum` ni `alter type … add value`. **[auto]**
