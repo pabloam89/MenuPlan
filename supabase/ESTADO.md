@@ -1,11 +1,13 @@
 # Estado de las migraciones
 
-Verificado contra el esquema vivo de producción (`mdzwbrworucnummibxrq`) el
-**17 sep 2026**, comprobando que existe un objeto testigo de cada migración
+Verificado contra el esquema vivo de producción (`mdzwbrworucnummibxrq`): la
+primera vez el **17 sep 2026**, comprobando que existe un objeto testigo de cada migración
 (su tabla, su columna o su esquema) — no leyendo ningún registro, porque no hay
 ninguno fiable. Ver «El registro miente» más abajo.
 
-**7 oct 2026:** vuelto a comprobar, solo con consultas de lectura, de la 0065 a
+**11 oct 2026:** recontado entero con `node scripts/verificar-estado.mjs` (solo
+lectura); las cifras de «Resumen» salen de esa pasada. Antes, el **7 oct 2026**
+se vuelve a comprobar, solo con consultas de lectura, de la 0065 a
 la 0086. Las funciones se comparan por su cuerpo (`pg_proc.prosrc` frente al
 fichero), no solo por el nombre. Salieron aplicadas la 0065, la 0066, la 0079
 (su segunda versión), la 0081, la 0082 y la 0084 (su versión final). Sin aplicar
@@ -14,14 +16,14 @@ tabla de abajo.
 
 ## Resumen
 
-Contado el 7 oct 2026 sobre la rama `staging` (0001–0086, sin la 0085, que está
-en otra rama); el 8 oct se suma la 0087, sin aplicar:
+Contado el 11 oct 2026 sobre `origin/staging` (0001–0098) con
+`node scripts/verificar-estado.mjs`:
 
 | | |
 |---|---|
 | Ficheros en `supabase/migrations/` | **101** (con la 0093 a la 0098) |
 | Comprobadas contra producción con objeto testigo | 32 el 17 sep; 0065–0086 el 7 oct; las demás, como dice cada sección |
-| Aplicadas | **89** (la cuenta histórica de esta tabla, +1 por cada una de la 0093, la 0094 y la 0095; el script de verificación da 71 en estado «aplicada» y el resto «sobrescrita» o sin testigo) |
+| Aplicadas | **89**: la salida del script del 11 oct 2026 sobre 102 entradas (101 ficheros más la `0080b` manual) es 76 «aplicada» + 13 «sobrescrita» (una posterior la rehízo) = 89, más 4 «parcial» y 9 «sin testigo»/sin aplicar. La 0098 sale «aplicada» solo porque sus tres valores de enum ya existían (es un no-op): sigue sin aplicar como migración |
 | **Sin aplicar** | **2** — `0021_store_products` y `0098_enums_salsa`; el 8 oct se aplicaron 0080, 0080b manual, 0083, 0085, 0086, 0087, 0088, 0089 y 0090; el 9 oct, 0091, 0092 y, por la noche, la 0093, la 0094 y la 0095 con `--pablo`; el 10 oct, la 0096 con `--pablo`; el 11 oct, la 0097 con `--pablo` |
 | En otras ramas | — |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
