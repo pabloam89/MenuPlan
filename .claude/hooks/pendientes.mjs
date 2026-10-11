@@ -284,6 +284,9 @@ const CI = [
 /** Líneas que hablan del futuro, de esperar, de lo que hay que hacer o de otro día («cuando el CI esté verde», «hay que comprobar que…», «ayer»): no cuentan un estado de ahora. */
 const CONDICIONAL = /\b(?:cuando|hasta que|esper\w+|en cuanto|una vez que|si el|para que|hay que|habria que|comprobar que|ayer)\b/;
 
+/** Dónde acaba una cláusula: puntuación, paréntesis, «pero» y «y». */
+const CLAUSULA = /[.;:()]|,|\bpero\b|\by\b/;
+
 /** Para los temas nuevos: sin bloques ni trozos de código, y sin citas (líneas que empiezan por «>») y sin preguntas (con «?» o «¿»). */
 function lineasSinCodigo(texto) {
   return sinAcentos(String(texto ?? "").replace(/```[\s\S]*?```/g, "").replace(/`[^`\n]*`/g, " "))
@@ -293,7 +296,8 @@ function lineasSinCodigo(texto) {
 /** Los temas de estado que cuenta el mensaje, en el orden de TEMAS_ESTADO. */
 export function temasAfirmados(texto) {
   const lineas = lineasSinCodigo(texto);
-  const alguna = (res, descarta) => lineas.some((l) => !(descarta && descarta.test(l)) && res.some((r) => r.test(l)));
+  // Se mira cláusula a cláusula: un «ayer» o un «hay que» tapa solo la suya, no una afirmación real de la misma línea.
+  const alguna = (res, descarta) => lineas.some((l) => l.split(CLAUSULA).some((c) => !(descarta && descarta.test(c)) && res.some((r) => r.test(c))));
   return TEMAS_ESTADO.filter((t) => ({
     "issues-pr": () => afirmaIssuesPr(texto),
     despliegue: () => alguna(DESPLEGADO, CONDICIONAL),
@@ -321,7 +325,7 @@ const ES_VERIFICAR = orden(`npm\\s+run\\s+(?:--silent\\s+)?verificar-estado(?![\
 const ES_CONSULTA = orden(`npm\\s+run\\s+(?:--silent\\s+)?consulta(?![\\w.-])|${script("consulta")}`);
 /** Solo el ENSAYO (sin `--si` ni `--pablo`) lee la base; con cualquiera de los dos la escribe. */
 const ES_APPLY = orden(script("apply-migration"));
-const ESCRIBE_MIGRACION = /(?:^|\s)--(?:si|pablo)\b/;
+const ESCRIBE_MIGRACION = /(?:^|\s)["']?--(?:si|pablo)\b/;
 const ES_VERCEL = /^(?:\w+=\S+\s+)*(?:npx\s+)?vercel\s+(?:ls|list|inspect|logs)\b/;
 const ES_GIT_ORIGIN = /^(?:\w+=\S+\s+)*git\s+(?:-C\s+\S+\s+)?(?:(?:log|show|rev-list|merge-base|cherry|diff|ls-remote|rev-parse)\b.*\borigin\b|branch\b.*\s(?:-r|-a|--remotes|--all)\b)/;
 /** Las herramientas de lectura del conector de Vercel (MCP): despliegues y logs; nada que escriba. */

@@ -268,6 +268,29 @@ describe("revisión del juez de #579", () => {
   ])("no frena (pregunta, pretérito o condicional): %s", (t) => {
     expect(frena(sesion(usuario(hace(3))), t).frena).toBe(false);
   });
+  it.each([
+    "El CI está verde (ayer lo vi igual).",
+    "Hay que avisar: el CI está rojo.",
+    "El CI está verde; hay que esperar a Álvaro.",
+    "Ya está desplegado en producción (ayer lo comprobé).",
+    "La base de datos tiene 40 familias; hay que borrar 2.",
+    "Si el CI está verde lo fusiono; ahora el CI está rojo.",
+    "Ayer el CI estaba rojo, ahora el CI está verde.",
+  ])("la cautela de una cláusula no tapa una afirmación real de otra: %s", (t) => {
+    expect(frena(sesion(usuario(hace(3))), t).frena).toBe(true);
+  });
+  it.each([
+    "Cuando el CI esté verde fusiono.",
+    "Si el CI falla, lo arreglo.",
+    "Espero a que el CI esté verde.",
+    "Hay que comprobar que el CI pasa.",
+    "Estoy esperando al CI, que está en curso.",
+  ])("y la condicional pura sigue sin frenar: %s", (t) => {
+    expect(frena(sesion(usuario(hace(3))), t).frena).toBe(false);
+  });
+  it("una orden con --si entre comillas tampoco es ensayo", () => {
+    expect(leyo('node scripts/apply-migration.mjs 0105_x "--si"', bd)).toBe(false);
+  });
   it("«El CI está verde» sin lectura sí frena", () => {
     expect(frena(sesion(usuario(hace(3))), "El CI está verde")).toMatchObject({ frena: true, tema: "ci" });
   });
