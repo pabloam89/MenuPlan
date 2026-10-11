@@ -46,7 +46,7 @@ const tablaDe = (q) => {
 const idDe = (x) => (x.startsWith('"') ? x.slice(1, -1) : x.toLowerCase());
 
 /** Parte por comas de nivel 0 (fuera de paréntesis, corchetes y comillas). */
-function partes(texto) {
+export function partes(texto) {
   const out = [];
   let nivel = 0, actual = "", i = 0;
   while (i < texto.length) {
@@ -68,7 +68,7 @@ function partes(texto) {
 }
 
 /** Desde el `(` en `desde`, el texto hasta su `)` (sin los dos). */
-function hastaCierre(texto, desde) {
+export function hastaCierre(texto, desde) {
   let nivel = 0;
   for (let i = desde; i < texto.length; i++) {
     if (texto[i] === "'") { i++; while (i < texto.length && !(texto[i] === "'" && texto[i + 1] !== "'")) i += texto[i] === "'" ? 2 : 1; continue; }

@@ -120,6 +120,7 @@ const TABLA = [
   ["fuentes-y-modulos", "scripts/lib/x.mjs", "ops/fuentes.test.js"],
   ["cableado", "api/_bot/x.js", "supabase/cableado.test.js"],
   ["migraciones-sql", "supabase/migrations/9999_x.sql", "supabase/principios.test.js"],
+  ["migraciones-sql", "ops/columnas-texto.json", "supabase/columnasTexto.test.js"],
   ["catalogo-de-recetas", "src/data/recipes/x.json", "src/data/model.test.js"],
   ["fuentes-sin-invisibles", "src/lib/x.js", "src/data/fuentesLimpias.test.js"],
   ["app-y-bot", "src/components/x.jsx", "src/components/coachAnchors.test.js"],

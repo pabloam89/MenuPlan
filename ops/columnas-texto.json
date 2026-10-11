@@ -1,0 +1,521 @@
+{
+  "comentario": "Clase de cada columna de texto de la base que no es un vocabulario cerrado (#585, norma C4; scripts/lib/columnasTexto.mjs). Una columna de texto con CHECK de lista o en COLUMNAS_VOCABULARIO es vocabulary y no se escribe aquí. Las demás llevan: free_text (texto de una persona: nombres, notas, mensajes), identifier (ids externos, tokens, urls, emails, claves) o excluded (fuera del vocabulario a propósito, con su motivo: los de salud, que esperan su catálogo). Clave tabla.columna (esquema.tabla.columna fuera de public); reason en castellano, al menos 10 caracteres. Lo vigila supabase/columnasTexto.test.js: una columna nueva sin clasificar, o una clasificada que ya no existe, hace fallar el CI. Las que dicen A MEDIR las cuenta npm run columnas-pocos-valores (solo lectura) y, si salen pocos valores, se pasan a vocabulario en su propia migración.",
+  "columns": {
+    "app_feedback.message": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "app_feedback.screen": {
+      "class": "free_text",
+      "reason": "A VIGILAR (#585): pantalla desde la que se escribe el comentario; sin filas en producción todavía"
+    },
+    "app_feedback.type": {
+      "class": "free_text",
+      "reason": "A VIGILAR (#585): tipo de comentario del usuario; sin filas en producción todavía"
+    },
+    "app_feedback.user_agent": {
+      "class": "free_text",
+      "reason": "Cabecera del navegador, texto del dispositivo"
+    },
+    "app_feedback.user_email": {
+      "class": "identifier",
+      "reason": "Email de una persona"
+    },
+    "bot_candados.chat_id": {
+      "class": "identifier",
+      "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
+    },
+    "bot_chats.chat_id": {
+      "class": "identifier",
+      "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
+    },
+    "bot_chats.lang": {
+      "class": "free_text",
+      "reason": "A VIGILAR (#585): 2 distintos en 8 filas (aún bajo las 50 del umbral); es un idioma y existe IDIOMAS en vocabularios.js"
+    },
+    "bot_codigos.chat_id": {
+      "class": "identifier",
+      "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
+    },
+    "bot_codigos.codigo": {
+      "class": "identifier",
+      "reason": "Código de un solo uso para vincular o entrar; efímero y único"
+    },
+    "bot_codigos.email": {
+      "class": "identifier",
+      "reason": "Email de una persona"
+    },
+    "bot_codigos.external_id": {
+      "class": "identifier",
+      "reason": "Id de una persona o cuenta en el canal de mensajería"
+    },
+    "bot_codigos.nombre": {
+      "class": "free_text",
+      "reason": "Nombre que escribe la persona"
+    },
+    "bot_cola.chat_id": {
+      "class": "identifier",
+      "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
+    },
+    "bot_entradas.entrada_xid": {
+      "class": "identifier",
+      "reason": "Id del evento de entrada del canal (xid), para no procesarlo dos veces"
+    },
+    "bot_idempotencia.clave": {
+      "class": "identifier",
+      "reason": "Clave de idempotencia o de deduplicación de una tarea o RPC; única por uso"
+    },
+    "bot_identities.display_name": {
+      "class": "free_text",
+      "reason": "Nombre que escribe la persona"
+    },
+    "bot_identities.external_id": {
+      "class": "identifier",
+      "reason": "Id de una persona o cuenta en el canal de mensajería"
+    },
+    "bot_link_tokens.token": {
+      "class": "identifier",
+      "reason": "Token secreto de un enlace o invitación"
+    },
+    "bot_messages.author_id": {
+      "class": "identifier",
+      "reason": "Id de una persona o cuenta en el canal de mensajería"
+    },
+    "bot_messages.chat_id": {
+      "class": "identifier",
+      "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
+    },
+    "bot_reminders.chat_id": {
+      "class": "identifier",
+      "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
+    },
+    "bot_reminders.created_by": {
+      "class": "identifier",
+      "reason": "Id de una persona o cuenta en el canal de mensajería"
+    },
+    "bot_reminders.text": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "bot_tareas.asignado_member": {
+      "class": "identifier",
+      "reason": "Id de miembro de la casa, referencia a otra entidad"
+    },
+    "bot_tareas.chat_id": {
+      "class": "identifier",
+      "reason": "Id de chat del canal de mensajería, lo da Telegram o WhatsApp"
+    },
+    "bot_tareas.clave": {
+      "class": "identifier",
+      "reason": "Clave de idempotencia o de deduplicación de una tarea o RPC; única por uso"
+    },
+    "bot_tareas.falta": {
+      "class": "free_text",
+      "reason": "A VIGILAR (#585): qué falta saber en una tarea del bot; 2 filas en producción"
+    },
+    "bot_tareas.para_member": {
+      "class": "identifier",
+      "reason": "Id de miembro de la casa, referencia a otra entidad"
+    },
+    "bot_tareas.pedido": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "bot_tareas.persona_id": {
+      "class": "identifier",
+      "reason": "Id de una persona de la ficha de la casa"
+    },
+    "bot_tareas.receta_propuesta": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "bot_tareas.texto": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "bot_tareas.valor": {
+      "class": "excluded",
+      "reason": "Vocabulario de salud que espera su catálogo (VOCABULARIOS_PENDIENTES de src/lib/registroCampos.js, menuplan-09); no se cierra hasta que exista"
+    },
+    "content_reports.note": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "content_reports.target_id": {
+      "class": "identifier",
+      "reason": "Id de lo reportado o comentado (receta, menú o comentario), polimórfico"
+    },
+    "content_translations.source_hash": {
+      "class": "identifier",
+      "reason": "Hash del texto original, para saber si la traducción sigue vigente"
+    },
+    "content_translations.texto": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "cookings.photo_url": {
+      "class": "identifier",
+      "reason": "Url de una imagen"
+    },
+    "cookings.recipe_id": {
+      "class": "identifier",
+      "reason": "Id de una receta (del catálogo en git o de la persona)"
+    },
+    "cookings.recipe_name": {
+      "class": "free_text",
+      "reason": "Nombre que escribe la persona"
+    },
+    "grupo_persona.grupo_id": {
+      "class": "identifier",
+      "reason": "Id de un grupo de personas de la casa"
+    },
+    "grupo_persona.persona_id": {
+      "class": "identifier",
+      "reason": "Id de una persona de la ficha de la casa"
+    },
+    "grupo.color": {
+      "class": "free_text",
+      "reason": "A VIGILAR (#585): 3 distintos en 34 filas (aún bajo las 50 del umbral); colores de grupo"
+    },
+    "grupo.id": {
+      "class": "identifier",
+      "reason": "Id de un grupo de personas de la casa"
+    },
+    "grupo.nombre": {
+      "class": "free_text",
+      "reason": "Nombre que escribe la persona"
+    },
+    "household_favorites.recipe_id": {
+      "class": "identifier",
+      "reason": "Id de una receta (del catálogo en git o de la persona)"
+    },
+    "household_favorites.scope": {
+      "class": "identifier",
+      "reason": "Id de un grupo de personas al que se limita el dato (casa entera si va vacío)"
+    },
+    "household_invites.token": {
+      "class": "identifier",
+      "reason": "Token secreto de un enlace o invitación"
+    },
+    "household_recipe_discards.recipe_id": {
+      "class": "identifier",
+      "reason": "Id de una receta (del catálogo en git o de la persona)"
+    },
+    "households.invite_token": {
+      "class": "identifier",
+      "reason": "Token secreto de un enlace o invitación"
+    },
+    "households.name": {
+      "class": "free_text",
+      "reason": "Nombre que escribe la persona"
+    },
+    "ids_uuid_equivalencias.viejo": {
+      "class": "identifier",
+      "reason": "Id antiguo de un uuid, para la transición de ids"
+    },
+    "menu_share_links.token": {
+      "class": "identifier",
+      "reason": "Token secreto de un enlace o invitación"
+    },
+    "persona_alergia.alergeno": {
+      "class": "excluded",
+      "reason": "Vocabulario de salud que espera su catálogo (VOCABULARIOS_PENDIENTES de src/lib/registroCampos.js, menuplan-09); no se cierra hasta que exista"
+    },
+    "persona_alergia.persona_id": {
+      "class": "identifier",
+      "reason": "Id de una persona de la ficha de la casa"
+    },
+    "persona_estado.estado": {
+      "class": "excluded",
+      "reason": "Vocabulario de salud que espera su catálogo (VOCABULARIOS_PENDIENTES de src/lib/registroCampos.js, menuplan-09); no se cierra hasta que exista"
+    },
+    "persona_estado.persona_id": {
+      "class": "identifier",
+      "reason": "Id de una persona de la ficha de la casa"
+    },
+    "persona_intolerancia.persona_id": {
+      "class": "identifier",
+      "reason": "Id de una persona de la ficha de la casa"
+    },
+    "persona_intolerancia.valor": {
+      "class": "excluded",
+      "reason": "Vocabulario de salud que espera su catálogo (VOCABULARIOS_PENDIENTES de src/lib/registroCampos.js, menuplan-09); no se cierra hasta que exista"
+    },
+    "persona_perfil_salud.perfil": {
+      "class": "excluded",
+      "reason": "Vocabulario de salud que espera su catálogo (VOCABULARIOS_PENDIENTES de src/lib/registroCampos.js, menuplan-09); no se cierra hasta que exista"
+    },
+    "persona_perfil_salud.persona_id": {
+      "class": "identifier",
+      "reason": "Id de una persona de la ficha de la casa"
+    },
+    "persona.clave_avatar": {
+      "class": "identifier",
+      "reason": "Clave de un recurso del catálogo (avatar o perfil), no se enumera aquí"
+    },
+    "persona.clave_perfil": {
+      "class": "identifier",
+      "reason": "Clave de un recurso del catálogo (avatar o perfil), no se enumera aquí"
+    },
+    "persona.color": {
+      "class": "free_text",
+      "reason": "CANDIDATA a vocabulario (#585): 11 distintos en 69 filas con valor; los colores de la ficha son una paleta cerrada"
+    },
+    "persona.detalle_etapa": {
+      "class": "free_text",
+      "reason": "Texto libre de la persona sobre su casa"
+    },
+    "persona.id": {
+      "class": "identifier",
+      "reason": "Id de una persona de la ficha de la casa"
+    },
+    "persona.nombre": {
+      "class": "free_text",
+      "reason": "Nombre que escribe la persona"
+    },
+    "persona.rol_hogar": {
+      "class": "free_text",
+      "reason": "CANDIDATA a vocabulario (#585): 7 distintos en 92 filas; el papel de la persona en la casa"
+    },
+    "recipe_collections.recipe_id": {
+      "class": "identifier",
+      "reason": "Id de una receta (del catálogo en git o de la persona)"
+    },
+    "recipe_folders.id": {
+      "class": "identifier",
+      "reason": "Id de una carpeta de recetas"
+    },
+    "recipe_folders.name": {
+      "class": "free_text",
+      "reason": "Nombre que escribe la persona"
+    },
+    "recipe_share_links.recipe_id": {
+      "class": "identifier",
+      "reason": "Id de una receta (del catálogo en git o de la persona)"
+    },
+    "recipe_share_links.token": {
+      "class": "identifier",
+      "reason": "Token secreto de un enlace o invitación"
+    },
+    "recipe_votes.recipe_id": {
+      "class": "identifier",
+      "reason": "Id de una receta (del catálogo en git o de la persona)"
+    },
+    "recipe_votes.scope": {
+      "class": "identifier",
+      "reason": "Id de un grupo de personas al que se limita el dato (casa entera si va vacío)"
+    },
+    "registro_campo.columna": {
+      "class": "identifier",
+      "reason": "Nombre de campo o de lista de la ficha, clave de otro registro (REGISTRO_CAMPOS, VOCABULARIOS); no se enumera aquí"
+    },
+    "registro_campo.id": {
+      "class": "identifier",
+      "reason": "Nombre de campo o de lista de la ficha, clave de otro registro (REGISTRO_CAMPOS, VOCABULARIOS); no se enumera aquí"
+    },
+    "registro_campo.vocabulario": {
+      "class": "identifier",
+      "reason": "Nombre de campo o de lista de la ficha, clave de otro registro (REGISTRO_CAMPOS, VOCABULARIOS); no se enumera aquí"
+    },
+    "shared_menus.menu_id": {
+      "class": "identifier",
+      "reason": "Id de un menú guardado o compartido"
+    },
+    "shared_menus.title": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "sobre.campo": {
+      "class": "identifier",
+      "reason": "Nombre de campo o de lista de la ficha, clave de otro registro (REGISTRO_CAMPOS, VOCABULARIOS); no se enumera aquí"
+    },
+    "sobre.persona_id": {
+      "class": "identifier",
+      "reason": "Id de una persona de la ficha de la casa"
+    },
+    "sobre.ref_id": {
+      "class": "identifier",
+      "reason": "Id de lo que originó un dato, polimórfico según ref_tipo"
+    },
+    "social_comments.body": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "social_comments.target_id": {
+      "class": "identifier",
+      "reason": "Id de lo reportado o comentado (receta, menú o comentario), polimórfico"
+    },
+    "social_profiles.avatar_url": {
+      "class": "identifier",
+      "reason": "Url de una imagen"
+    },
+    "social_profiles.bio": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "social_profiles.display_name": {
+      "class": "free_text",
+      "reason": "Nombre que escribe la persona"
+    },
+    "social_profiles.username": {
+      "class": "identifier",
+      "reason": "Nombre de usuario público y único (handle), no un nombre que se agrupe"
+    },
+    "store_products.category": {
+      "class": "free_text",
+      "reason": "A VIGILAR (#585): categorías de la tienda; la tabla no existe en producción (0021 sin aplicar)"
+    },
+    "store_products.name": {
+      "class": "free_text",
+      "reason": "Nombre de producto de la tienda, texto del catálogo externo"
+    },
+    "store_products.product_id": {
+      "class": "identifier",
+      "reason": "Id de un producto de la tienda (Mercadona)"
+    },
+    "store_products.section": {
+      "class": "free_text",
+      "reason": "A VIGILAR (#585): categorías de la tienda; la tabla no existe en producción (0021 sin aplicar)"
+    },
+    "store_products.store": {
+      "class": "free_text",
+      "reason": "A VIGILAR (#585): categorías de la tienda; la tabla no existe en producción (0021 sin aplicar)"
+    },
+    "store_products.subcategory": {
+      "class": "free_text",
+      "reason": "A VIGILAR (#585): categorías de la tienda; la tabla no existe en producción (0021 sin aplicar)"
+    },
+    "store_products.unit_format": {
+      "class": "free_text",
+      "reason": "A VIGILAR (#585): categorías de la tienda; la tabla no existe en producción (0021 sin aplicar)"
+    },
+    "user_events.event": {
+      "class": "free_text",
+      "reason": "A VIGILAR (#585): 29 distintos en 1155 filas, justo sobre el umbral; son nombres de evento y su lista es cerrada en el código"
+    },
+    "user_events.screen": {
+      "class": "free_text",
+      "reason": "CANDIDATA a vocabulario (#585): 4 distintos en 1155 filas; la pantalla desde la que se registra el evento"
+    },
+    "user_menu_recipes.menu_id": {
+      "class": "identifier",
+      "reason": "Id de un menú guardado o compartido"
+    },
+    "user_menu_recipes.recipe_id": {
+      "class": "identifier",
+      "reason": "Id de una receta (del catálogo en git o de la persona)"
+    },
+    "user_menu_weeks.menu_id": {
+      "class": "identifier",
+      "reason": "Id de un menú guardado o compartido"
+    },
+    "user_menus.id": {
+      "class": "identifier",
+      "reason": "Id de un menú guardado o compartido"
+    },
+    "user_pantry.garnish_ref": {
+      "class": "identifier",
+      "reason": "Id de un plato, ingrediente o receta a la que se enlaza"
+    },
+    "user_pantry.ingredient_id": {
+      "class": "identifier",
+      "reason": "Id de un plato, ingrediente o receta a la que se enlaza"
+    },
+    "user_pantry.ingredient_name": {
+      "class": "free_text",
+      "reason": "Nombre que escribe la persona"
+    },
+    "user_pantry.ingredient_normalized": {
+      "class": "free_text",
+      "reason": "Nombre normalizado de lo que escribió la persona"
+    },
+    "user_pantry.recipe_ref": {
+      "class": "identifier",
+      "reason": "Id de una receta (del catálogo en git o de la persona)"
+    },
+    "user_profiles.avatar_url": {
+      "class": "identifier",
+      "reason": "Url de una imagen"
+    },
+    "user_profiles.device_type": {
+      "class": "free_text",
+      "reason": "CANDIDATA a vocabulario (#585): 2 distintos en 57 filas; el tipo de dispositivo"
+    },
+    "user_profiles.display_name": {
+      "class": "free_text",
+      "reason": "Nombre que escribe la persona"
+    },
+    "user_profiles.email": {
+      "class": "identifier",
+      "reason": "Email de una persona"
+    },
+    "user_profiles.locale": {
+      "class": "identifier",
+      "reason": "Etiqueta de idioma que da el navegador (es-ES, en-US, pt-BR…): conjunto abierto, un CHECK rompería escrituras. Distinta de ui_lang, que sí es vocabulario (auditor-datos, #585)"
+    },
+    "user_profiles.pending_invite_token": {
+      "class": "identifier",
+      "reason": "Token secreto de un enlace o invitación"
+    },
+    "user_recipe_deletions.recipe_id": {
+      "class": "identifier",
+      "reason": "Id de una receta (del catálogo en git o de la persona)"
+    },
+    "user_recipe_discards.recipe_id": {
+      "class": "identifier",
+      "reason": "Id de una receta (del catálogo en git o de la persona)"
+    },
+    "user_recipes.allergens": {
+      "class": "excluded",
+      "reason": "Vocabulario de salud que espera su catálogo (VOCABULARIOS_PENDIENTES de src/lib/registroCampos.js, menuplan-09); no se cierra hasta que exista"
+    },
+    "user_recipes.base_dish_id": {
+      "class": "identifier",
+      "reason": "Id de un plato, ingrediente o receta a la que se enlaza"
+    },
+    "user_recipes.copied_from_recipe_id": {
+      "class": "identifier",
+      "reason": "Id de un plato, ingrediente o receta a la que se enlaza"
+    },
+    "user_recipes.description": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    },
+    "user_recipes.id": {
+      "class": "identifier",
+      "reason": "Id de un plato, ingrediente o receta a la que se enlaza"
+    },
+    "user_recipes.linked_catalog_id": {
+      "class": "identifier",
+      "reason": "Id de un plato, ingrediente o receta a la que se enlaza"
+    },
+    "user_recipes.main_ingredients": {
+      "class": "free_text",
+      "reason": "Lista de textos de la persona (ingredientes y alias de su receta)"
+    },
+    "user_recipes.name": {
+      "class": "free_text",
+      "reason": "Nombre que escribe la persona"
+    },
+    "user_recipes.photo": {
+      "class": "identifier",
+      "reason": "Url de una imagen"
+    },
+    "user_recipes.pinned_garnish_id": {
+      "class": "identifier",
+      "reason": "Id de un plato, ingrediente o receta a la que se enlaza"
+    },
+    "user_recipes.product_aliases": {
+      "class": "free_text",
+      "reason": "Lista de textos de la persona (ingredientes y alias de su receta)"
+    },
+    "user_recipes.sauce_id": {
+      "class": "identifier",
+      "reason": "Id de un plato, ingrediente o receta a la que se enlaza"
+    },
+    "user_recipes.steps": {
+      "class": "free_text",
+      "reason": "Mensaje, nota o descripción que escribe la persona"
+    }
+  }
+}
