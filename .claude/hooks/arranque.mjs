@@ -26,6 +26,7 @@ import { sinAplicar } from "./guardia.mjs";
 import { avisoRamaPrincipal, avisoTrasAdelantar, planAdelantar } from "./principal.mjs";
 import { avisoDeIndice, leerIndice } from "../../scripts/lib/buscarAntes.mjs";
 import { aplicarIdentidad } from "../../scripts/lib/tokenSesion.mjs";
+import { avisoDeCupos } from "../../scripts/lib/cupos.mjs";
 import { enPrs, enStaging, enWorktrees, pedirPrs, resumen } from "./migraciones.mjs";
 import { activas, apuntar, dirSesiones, listar, normaRuta } from "./sesiones.mjs";
 
@@ -128,7 +129,9 @@ try {
 // lee el shell Bash de cada comando) y `gh` y `git` actúan como homenu-sesiones[bot].
 // Si no se puede, se dice por qué y se sigue con la identidad actual (plan B).
 const identidad = aplicarIdentidad();
-
+// Los cupos compartidos (GitHub y 1Password, #578): también en paralelo, con su caché de 5 min
+// y su tope de 4 s. Nunca lanza; callada si todo va por debajo del 80 %.
+const cupos = avisoDeCupos();
 
 // ── Staging y migraciones ──────────────────────────────────────────────────
 const prs = pedirPrs(raiz, 10_000); // a la vez que el fetch: los dos son red, y gh es el lento
@@ -187,6 +190,11 @@ else avisos.push("Issues: no he podido leerlos (GitHub no contesta, gh sin sesi�
 {
   const aviso = avisoDeIndice(leerIndice());
   if (aviso) avisos.push(aviso);
+}
+
+{
+  const linea = await cupos;
+  if (linea) avisos.push(linea);
 }
 
 avisos.push(await identidad);

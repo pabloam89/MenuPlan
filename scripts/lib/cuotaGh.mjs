@@ -17,7 +17,7 @@ import { join } from "node:path";
 
 /** Vocabulario cerrado de la línea `gh: caller=… api=…`. */
 export const APIS_GH = ["rest", "graphql"];
-export const CALLERS_GH = ["issues", "arranque", "avisos", "migraciones", "podar", "retirar", "lleva", "planos", "cumplimiento", "fabrica", "espera-ci", "otro"];
+export const CALLERS_GH = ["issues", "arranque", "avisos", "migraciones", "podar", "retirar", "lleva", "planos", "cumplimiento", "fabrica", "espera-ci", "cupos", "otro"];
 
 /** Minutos de vida de la caché de issues según quién pide. 0 = sin caché. */
 export const TTL_MIN = { arranque: 15, listado: 10, escritura: 0 };
