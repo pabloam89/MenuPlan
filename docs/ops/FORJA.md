@@ -136,7 +136,7 @@ Se sistematiza lo máximo posible con atributos discretos, aunque lo continuo nu
 | criterio | 2 | 6 | 8 |
 | estandar | 6 | 3 | 9 |
 | juicio | 6 | 1 | 7 |
-| skill | 13 | 2 | 15 |
+| skill | 14 | 2 | 16 |
 
 ### Campos de agente
 
@@ -188,7 +188,7 @@ Un juicio de skill: el estado de un criterio de juicio (control «juicio») sobr
 
 ### Campos de skill
 
-El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno y comprobado en metadata). Los juicios de sus criterios de juicio van aparte, en ops/juicios-skills/<skill>.json (campos_ficha.juicio, #457).
+El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; tipo, dueno, comprobado y normas en metadata). Los juicios de sus criterios de juicio van aparte, en ops/juicios-skills/<skill>.json (campos_ficha.juicio, #457).
 
 - `name` — ref a skill
 - `description` — texto. Hueco: El cuándo se abre la skill dicho con las palabras de quien pide: lo discreto no lo alcanza, es prosa para que el modelo reconozca una petición
@@ -203,6 +203,7 @@ El frontmatter de .claude/skills/<skill>/SKILL.md (name y description arriba; ti
 - `nivel` — enum (niveles), opcional
 - `dueno` — ref a agente
 - `comprobado` — fecha
+- `normas` — ref a norma, lista
 - `libertad` — enum (libertad), opcional
 - `invocacion` — enum (invocacion), opcional
 

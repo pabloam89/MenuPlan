@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: gobierno
   comprobado: 2026-10-10
+  normas: [cuando-algo-falla, fondo-con-ficha-y-controles, repo-publico-sin-detalle]
 ---
 
 # Causa raíz

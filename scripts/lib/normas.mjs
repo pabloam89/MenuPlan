@@ -396,7 +396,10 @@ export function ficherosNormativos(raiz) {
  * { sueltas: [clave, …], citasMalas: [id, …] }
  */
 export function frasesDeLinea(linea, ids) {
-  const palabras = REGEX_PALABRAS.flatMap(([clave, re]) => [...linea.matchAll(re)].map((m) => ({ clave, pos: m.index, cubierta: false })))
+  // El id de una norma («staging-exige-tests», en la cabecera de una skill o en una tabla) es una cita, no una
+  // frase normativa (#620): se tapa con espacios, que guardan las posiciones de las citas.
+  const sinIds = linea.replace(/[a-z0-9]+(?:-[a-z0-9]+)+/g, (t) => (ids.has(t) ? " ".repeat(t.length) : t));
+  const palabras = REGEX_PALABRAS.flatMap(([clave, re]) => [...sinIds.matchAll(re)].map((m) => ({ clave, pos: m.index, cubierta: false })))
     .sort((a, b) => a.pos - b.pos);
   const citasMalas = [];
   for (const m of linea.matchAll(REGEX_CITA)) {

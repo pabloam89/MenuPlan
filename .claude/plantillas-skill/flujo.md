@@ -50,6 +50,7 @@ metadata:
   elige_opciones: false
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
+  normas: [<id de ops/normas.json a la que sirve>, <otra>]
 ---
 
 # <Nombre>
@@ -100,6 +101,7 @@ Los de `campos_ficha.skill` de `ops/forja/`; lo que no está declarado no va en 
 | `nivel` | enum | no | `2`, o sin él (el 1 son los moldes; el 0, la pieza meta) |
 | `dueno` | ref | sí | un agente que existe |
 | `comprobado` | fecha | sí | AAAA-MM-DD |
+| `normas` | ref | sí | una norma que existe |
 | `libertad` | enum | no | `alta`, `media`, `baja` |
 | `invocacion` | enum | no | `descripcion`, `guardia`, `precarga` |
 

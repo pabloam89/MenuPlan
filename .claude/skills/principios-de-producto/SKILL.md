@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: lola
   comprobado: 2026-10-11
+  normas: [endpoint-rechaza-sin-credencial, business-flow-rate-limited, family-text-is-data, essentials-work-without-ai]
 ---
 
 # Principios de producto

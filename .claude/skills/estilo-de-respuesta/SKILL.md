@@ -11,6 +11,7 @@ metadata:
   elige_opciones: false
   dueno: gobierno
   comprobado: 2026-10-10
+  normas: [estado-leido-antes-de-afirmar]
 ---
 
 # Estilo de respuesta
@@ -20,8 +21,7 @@ metadata:
 Pablo no es informático, se pierde con respuestas largas y técnicas, y quiere
 decidir rápido. Esta skill fija cómo le habla una sesión principal: lo que
 decide va arriba y el detalle va a un sitio donde pueda leerlo si quiere. Es
-decisión suya (#415); antes solo vivía en su memoria
-personal, que no ve ninguna otra sesión.
+decisión suya (#415); antes solo vivía en su memoria personal, que no ve ninguna otra sesión.
 
 Vale para toda respuesta de una sesión principal a Pablo. Del informe común de
 un agente (`.claude/PLANTILLA-AGENTE.md`), solo el `RESUMEN` y las

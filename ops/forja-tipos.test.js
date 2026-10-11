@@ -290,6 +290,8 @@ describe("campos de las fichas: lo que ya existe cumple lo que declara campos_fi
     expect(c.normas).toMatchObject({ clase: "ref", ref: "norma", lista: true, obligatorio: false });
     for (const retirado of ["estandar.estandar", "estandar.comprueba", "estandar.fuentes"]) expect(Object.keys(c).includes(retirado.split(".")[1]), retirado).toBe(false);
     for (const k of ["tipo", "dueno", "comprobado"]) expect(datos.campos_ficha.skill.campos[k]).toBeDefined();
+    // #620: las normas a las que sirve la skill, por id, en su cabecera.
+    expect(datos.campos_ficha.skill.campos.normas).toMatchObject({ clase: "ref", ref: "norma", lista: true, obligatorio: true });
   });
 });
 
@@ -416,8 +418,8 @@ describe("trinquete de los campos (ops/forja-campos.json): de texto a discreto, 
 
 describe("cifras: campos discretos frente a huecos", () => {
   it("por artefacto, en la vista y en las cifras", () => {
-    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 13, huecos: 2, total: 15 }, estandar: { discretos: 6, huecos: 3, total: 9 }, agente: { discretos: 3, huecos: 1, total: 4 }, juicio: { discretos: 6, huecos: 1, total: 7 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
-    expect(md).toContain("| skill | 13 | 2 | 15 |");
+    expect(cifrasDeCampos(datos)).toEqual({ skill: { discretos: 14, huecos: 2, total: 16 }, estandar: { discretos: 6, huecos: 3, total: 9 }, agente: { discretos: 3, huecos: 1, total: 4 }, juicio: { discretos: 6, huecos: 1, total: 7 }, criterio: { discretos: 2, huecos: 6, total: 8 } });
+    expect(md).toContain("| skill | 14 | 2 | 16 |");
     expect(md).toContain("| criterio | 2 | 6 | 8 |");
     expect(md).toContain("| estandar | 6 | 3 | 9 |");
     expect(md).toContain("| juicio | 6 | 1 | 7 |");

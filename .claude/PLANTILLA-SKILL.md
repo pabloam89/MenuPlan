@@ -76,8 +76,14 @@ metadata:
   opera_proveedor: <true o false>   # y una línea por cada pregunta de preguntas_tipo; el molde las trae todas
   dueno: <agente de .claude/agents/ que la carga en su skills:>
   comprobado: AAAA-MM-DD
+  normas: [<id de ops/normas.json a la que sirve>, <otra>]
 ---
 ```
+
+- `normas` (#620): las normas de `ops/normas.json` a las que sirve la skill, por su id. La
+  skill las cita (aquí y, junto a una frase, con `<!-- norma:id -->`) y no copia su frase:
+  `ops/uniones.test.js` falla si una cita no está en la lista o si el texto contiene la
+  exigencia de una norma.
 
 - `tipo` no se elige: sale de sus respuestas (`true` o `false`) a las preguntas de
   `preguntas_tipo` de `ops/forja/`, que van en el frontmatter (metadata), junto a `tipo`

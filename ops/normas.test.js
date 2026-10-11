@@ -106,6 +106,13 @@ describe("frases normativas", () => {
       .toEqual({ maximo: 1, tope: 1, obligatorio: 1, exige: 1, ok_de_pablo: 1, siempre: 1 });
     expect(contarFrases("soloista, topetazo, inexigente, nuncamente", ids1).cuenta).toEqual({});
   });
+
+  it("el id de una norma es una cita y no cuenta como frase normativa; otro texto con guiones sí (#620)", () => {
+    const ids2 = new Set(["staging-exige-tests", "sin-git-stash"]);
+    expect(contarFrases("  normas: [staging-exige-tests, sin-git-stash]", ids2).cuenta).toEqual({});
+    expect(contarFrases("una regla-que-exige-algo sin cita", ids2).cuenta).toEqual({ exige: 1 });
+    expect(contarFrases("staging-exige-tests y nunca más <!-- norma:sin-git-stash -->", ids2).cuenta).toEqual({});
+  });
 });
 
 describe("el paso del CI: solo las líneas añadidas del PR (scripts/normas-pr.mjs)", () => {

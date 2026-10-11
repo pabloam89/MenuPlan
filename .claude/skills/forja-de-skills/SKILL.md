@@ -5,6 +5,7 @@ metadata:
   nivel: 0
   dueno: gobierno
   comprobado: 2026-10-10
+  normas: [criterios-de-forja-en-un-catalogo, recurso-con-dueno-y-caducidad]
 ---
 
 # Forja de skills
@@ -145,6 +146,7 @@ prepara el PR con el inventario (qué decía, quién la citaba, a dónde pasa lo
 
 ## Registro de cambios
 
+- **2026-10-11** · La cabecera de cada skill dice a qué normas sirve (`metadata.normas`, ids de `ops/normas.json`); la skill las cita y no copia su frase, y `ops/uniones.test.js` lo comprueba (#620).
 - **2026-10-10** · Esta skill pasa a ser la pieza meta (nivel 0, sin tipo); una skill nueva copia el molde de su tipo, generado desde la forja en `.claude/plantillas-skill/` (#495).
 - **2026-10-10** · Las 7 excepciones de fechas que quedaban se arreglan y la lista queda vacía; la revisión de una skill concreta pasa a `higiene-de-skills` (#411).
 - **2026-10-10** · Presentación (`.claude/skills/forja-de-skills/referencias/presentacion.md`) con tres controles mecánicos, el estándar de cada tipo en la plantilla con su test, y 12 de las 19 excepciones quitadas (#410).

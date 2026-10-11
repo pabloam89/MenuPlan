@@ -4,6 +4,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { AMBITOS, ambitosDeFichero } from "../scripts/lib/ambitos.mjs";
+import { MIN_PALABRAS_COPIA, cargarSkill, nombresDeSkills, parsearSkill, problemasDeNormasDeSkill } from "../scripts/lib/skills.mjs";
 import {
   TECHO_NORMAS_SIN_JUEZ, TECHO_REGLAS_QUE_NO_SON_NORMA, accionesDeConsulta, juecesPorNorma, leerEstandares, normasDeTarea, problemasDeUnionesEstandar, tareasDe,
 } from "../scripts/lib/estandaresAgentes.mjs";
@@ -24,7 +25,9 @@ import { TECHO_SIN_NORMA, leerFondosConocidos, leerPrincipiosCasa, problemasDeUn
  *     UMBRAL_REESCRITURA, o se llama igual) sin estar en reglas_que_no_son_norma con su motivo;
  *  8. una norma vigilada por juicio no la cita ningún estándar de juez, ni está en normas_sin_juez;
  *  9. el constructor y el juez de un mismo ámbito no reciben las mismas normas de ese ámbito;
- * 10. un fichero del repo no cae en ningún ámbito (el mapa fichero → ámbito de ambitos.mjs).
+ * 10. un fichero del repo no cae en ningún ámbito (el mapa fichero → ámbito de ambitos.mjs);
+ * 11. una skill no dice en su cabecera a qué normas sirve, cita una que no está en esa lista o que no existe,
+ *     o contiene la frase de una norma en vez de citarla.
  * Al final, cada regla se ve fallar con datos malos: cada caso cambia UNA cosa.
  */
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -185,6 +188,40 @@ describe("los estándares citan normas y no las reescriben (#620)", () => {
       const j = d.agentes.revisor.tareas.find((t) => t.id === "revisar-diff");
       const soloSuya = (t) => normas.filter((n) => t.ambitos.includes(n.ambito) && n.acciones.includes(t.accion)).map((n) => n.id).filter((id) => normas.find((n) => n.id === id).ambito === "infra").sort();
       expect(soloSuya(c)).not.toEqual(soloSuya(j));
+    });
+  });
+});
+
+describe("las skills citan normas y no las contienen (#620)", () => {
+  const skills = nombresDeSkills(RAIZ).map((n) => cargarSkill(n, RAIZ));
+
+  it("cada skill dice a qué normas sirve, cita solo esas y no copia la frase de ninguna", () => {
+    expect(skills.length).toBeGreaterThanOrEqual(15);
+    expect(skills.flatMap((sk) => problemasDeNormasDeSkill(sk, normas))).toEqual([]);
+    for (const sk of skills) expect(parsearSkill(sk.texto).meta.metadata.normas.length, sk.nombre).toBeGreaterThan(0);
+  });
+
+  describe("se ven fallar", () => {
+    const sk = skills.find((x) => x.nombre === "alta-de-secreto");
+    const con = (texto, extra = sk.extra) => problemasDeNormasDeSkill({ ...sk, texto, extra }, normas).join("\n");
+    const norma = normas.find((n) => n.id === "secretos-de-repo");
+
+    it("una skill sin la lista de normas en la cabecera", () => {
+      expect(con(sk.texto.replace(/^ {2}normas: .*\n/m, ""))).toMatch(/metadata\.normas es la lista de las normas a las que sirve/);
+    });
+    it("una norma de la cabecera que no existe", () => {
+      expect(con(sk.texto.replace(/^( {2}normas: \[)/m, "$1norma-inventada, "))).toMatch(/metadata\.normas cita «norma-inventada», que no está/);
+    });
+    it("una cita en el texto, o en una capa, que no está en la cabecera", () => {
+      expect(con(sk.texto.replace(/^( {2}normas: \[)secretos-ok-pablo, /m, "$1"))).toMatch(/SKILL\.md cita la norma «secretos-ok-pablo» y no está en metadata\.normas/);
+      expect(con(sk.texto, { ...sk.extra, "referencias/x.md": "Algo <!-- norma:sin-git-stash -->" })).toMatch(/referencias\/x\.md cita la norma «sin-git-stash»/);
+    });
+    it("una skill que copia la frase de una norma, aunque cambie tildes o mayúsculas", () => {
+      expect(norma.exigencia.split(" ").length).toBeGreaterThanOrEqual(MIN_PALABRAS_COPIA - 1);
+      const copia = normas.find((n) => n.id === "secretos-ok-pablo");
+      expect(con(`${sk.texto}\nCada secreto debe ${copia.exigencia.toUpperCase()}.\n`)).toMatch(/contiene la frase de la norma «secretos-ok-pablo»/);
+      const otra = normas.find((n) => n.id === "test-visto-fallar");
+      expect(con(sk.texto, { ...sk.extra, "referencias/y.md": `Un test nuevo ha de ${otra.exigencia}.` })).toMatch(/contiene la frase de la norma «test-visto-fallar»/);
     });
   });
 });
