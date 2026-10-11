@@ -1,0 +1,13 @@
+{
+  "id": "who-what-when",
+  "area": "entidades",
+  "nombre": "Quién, qué y cuándo",
+  "enunciado": "Todo lo que cambia deja quién lo cambió (una identidad), qué cambió (un valor de vocabulario) y cuándo (un instante con zona).",
+  "porque": "Sin autor ni fecha no se puede saber desde cuándo consta un dato ni quién lo puso, y no se puede deshacer un error.",
+  "fuente": "[F] https://www.w3.org/TR/prov-o/",
+  "detalle": [
+    "docs/entidades/N0-principios.md#8-todo-lo-que-cambia-lleva-quién-qué-y-cuándo",
+    "docs/datos/PRINCIPIOS.md#9-fechas-de-cada-fila",
+    "docs/datos/PRINCIPIOS.md#18-quién-y-por-dónde"
+  ]
+}

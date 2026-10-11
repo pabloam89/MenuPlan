@@ -8,7 +8,8 @@
     "todas"
   ],
   "relacionado": [
-    "regla"
+    "regla",
+    "principio"
   ],
   "ref": {
     "fichero": "scripts/lib/normas.mjs",

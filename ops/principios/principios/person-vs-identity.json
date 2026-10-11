@@ -1,0 +1,11 @@
+{
+  "id": "person-vs-identity",
+  "area": "entidades",
+  "nombre": "Persona e identidad distintas",
+  "enunciado": "Quien responde (un miembro del equipo) y la cuenta con la que actúa (una identidad) son entidades distintas, y todo registro de acción guarda la identidad.",
+  "porque": "Si se confunden, una App o una sesión parecen una persona, y no se sabe quién responde de qué.",
+  "fuente": "[F] https://www.w3.org/TR/prov-o/",
+  "detalle": [
+    "docs/entidades/N0-principios.md#9-la-persona-y-la-identidad-son-entidades-distintas"
+  ]
+}

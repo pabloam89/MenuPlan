@@ -1,0 +1,14 @@
+{
+  "id": "top-down",
+  "area": "proceso",
+  "nombre": "De arriba abajo",
+  "enunciado": "Primero la forja dice qué hace buena a una pieza, luego la plantilla de su tipo y después cada pieza; no se rellena una pieza antes que su plantilla.",
+  "porque": "Una pieza escrita sin su plantilla fija una forma que luego hay que deshacer en todas las demás.",
+  "fuente": "[I] ops/forja/",
+  "detalle": [
+    "CLAUDE.md#pensar-en-datos"
+  ],
+  "origen": [
+    "claude:de-arriba-abajo"
+  ]
+}

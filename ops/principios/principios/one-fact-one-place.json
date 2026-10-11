@@ -1,0 +1,16 @@
+{
+  "id": "one-fact-one-place",
+  "area": "datos",
+  "nombre": "Un dato, un sitio",
+  "enunciado": "Cada dato y cada regla vive en un solo sitio con al menos un lector; cualquier otra copia es una proyección generada que un test compara con su origen.",
+  "porque": "Dos copias escritas a mano acaban diciendo cosas distintas, y nadie sabe cuál vale.",
+  "fuente": "[I] CLAUDE.md",
+  "detalle": [
+    "docs/datos/PRINCIPIOS.md#6-un-dato-un-sitio",
+    "docs/entidades/N0-principios.md#7-una-fuente-de-verdad-por-dato-y-por-vocabulario",
+    "CLAUDE.md#base-de-datos"
+  ],
+  "origen": [
+    "C3"
+  ]
+}

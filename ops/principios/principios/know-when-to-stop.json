@@ -1,0 +1,11 @@
+{
+  "id": "know-when-to-stop",
+  "area": "proceso",
+  "nombre": "Saber parar",
+  "enunciado": "Tras varios fallos seguidos, un gasto anómalo o el presupuesto agotado, el agente se detiene solo, lo registra y devuelve el control.",
+  "porque": "Un bucle que no para gasta dinero y tiempo y amplía el daño de un error.",
+  "fuente": "[I] ops/presupuestos.json",
+  "origen": [
+    "N6"
+  ]
+}

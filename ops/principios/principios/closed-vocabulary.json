@@ -1,0 +1,17 @@
+{
+  "id": "closed-vocabulary",
+  "area": "datos",
+  "nombre": "Vocabulario cerrado",
+  "enunciado": "Todo lo que se agrupa (motivos, estados, causas, tipos, sitios) toma sus valores de un vocabulario cerrado con su test, y un valor se retira diciendo a cuál pasa, no se borra ni se reutiliza.",
+  "porque": "Con texto libre cada uno escribe lo mismo de otra forma y nada se puede contar; un valor reutilizado descuadra los recuentos viejos.",
+  "fuente": "[I] src/lib/vocabularios.js",
+  "detalle": [
+    "CLAUDE.md#pensar-en-datos",
+    "docs/datos/PRINCIPIOS.md#4-vocabularios-cerrados",
+    "docs/entidades/N0-principios.md#12-un-vocabulario-tiene-ciclo-de-vida"
+  ],
+  "origen": [
+    "C4",
+    "claude:vocabulario-cerrado"
+  ]
+}

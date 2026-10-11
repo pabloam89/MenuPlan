@@ -1,0 +1,11 @@
+{
+  "id": "deprecate-not-delete",
+  "area": "entidades",
+  "nombre": "Se retira, no se borra",
+  "enunciado": "Un id, un campo, un valor o un término que deja de usarse se marca retirado y dice qué lo sustituye; no se borra ni se reutiliza su nombre.",
+  "porque": "Borrar o reutilizar un nombre deja sin sentido los recuentos y las referencias viejas sin que nadie se entere.",
+  "fuente": "[I] ops/vocabularios-vida.json",
+  "detalle": [
+    "docs/entidades/N0-principios.md#11-se-depreca-no-se-borra"
+  ]
+}

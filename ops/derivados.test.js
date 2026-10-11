@@ -64,7 +64,7 @@ describe("el inventario de derivados", () => {
   it("cuenta las entradas por clase", () => {
     const n = contarPorClase();
     expect(Object.values(n).reduce((a, b) => a + b, 0)).toBe(REGISTRO.length);
-    expect(n.documento).toBe(7);
+    expect(n.documento).toBe(8);
     expect(n.ancla).toBe(4);
   });
 });

@@ -1,0 +1,11 @@
+{
+  "id": "fk-declares-on-delete",
+  "area": "datos",
+  "nombre": "Borrado declarado en cada FK",
+  "enunciado": "Cada clave ajena declara qué pasa al borrar lo que apunta y tiene un índice que empieza por sus columnas.",
+  "porque": "El valor por defecto es una decisión que nadie tomó, y una cascada mal puesta borra en silencio.",
+  "fuente": "[I] docs/datos/PRINCIPIOS.md",
+  "detalle": [
+    "docs/datos/PRINCIPIOS.md#2-toda-fk-dice-qué-pasa-al-borrar"
+  ]
+}

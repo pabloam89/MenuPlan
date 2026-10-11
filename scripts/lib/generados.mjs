@@ -93,6 +93,7 @@ export const DERIVADOS = [
   { ruta: "docs/ops/NORMAS.md", clase: "documento", source: "ops/normas.json y .claude/hooks/avisos-guardia.mjs", regenera: "scripts/normas.mjs", test: "ops/normas.test.js" },
   { ruta: "docs/ops/ESTANDARES.md", clase: "documento", source: "ops/estandares-agentes.json", regenera: "scripts/estandares-agentes.mjs", test: "ops/estandares-agentes.test.js" },
   { ruta: "docs/producto/PRINCIPIOS.md", clase: "documento", source: "ops/principios-producto/", regenera: "scripts/principios.mjs", test: "ops/principios-producto.test.js" },
+  { ruta: "docs/PRINCIPIOS.md", clase: "documento", source: "ops/principios/, ops/principios-producto/ y ops/redaccion.json", regenera: "scripts/principios-casa.mjs", test: "ops/principios.test.js" },
   { ruta: "docs/ops/ENCARGO.md", clase: "documento", source: "scripts/lib/issues.mjs", regenera: "scripts/flujo.mjs", test: "scripts/encargo.test.js" },
   { ruta: "ops/forja-capas.json", clase: "ancla", source: "ops/forja/ (el ancla guarda las capas ya vistas)", regenera: "scripts/forja.mjs", test: "ops/forja.test.js" },
   { ruta: "ops/forja-campos.json", clase: "ancla", source: "ops/forja/ (el ancla guarda los campos ya vistos)", regenera: "scripts/forja.mjs", test: "ops/forja.test.js" },

@@ -1,0 +1,11 @@
+{
+  "id": "rehearsal-undone-and-expires",
+  "area": "infra",
+  "nombre": "El ensayo se deshace y caduca",
+  "enunciado": "Un ensayo no deja ningún cambio y vale poco tiempo: pasado su plazo, hay que ensayar otra vez.",
+  "porque": "Un ensayo que deja rastro ya no es un ensayo, y uno viejo no dice nada del estado de hoy.",
+  "fuente": "[I] scripts/apply-migration.mjs",
+  "origen": [
+    "I6"
+  ]
+}

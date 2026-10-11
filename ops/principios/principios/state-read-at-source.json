@@ -1,0 +1,11 @@
+{
+  "id": "state-read-at-source",
+  "area": "codigo",
+  "nombre": "Estado leído en su fuente",
+  "enunciado": "Un estado (fusionado, aplicado, desplegado, en verde) solo se da por cierto tras leerlo en su fuente en ese momento, no de memoria.",
+  "porque": "Varias sesiones cambian el mismo repo a la vez: lo que era cierto hace una hora puede no serlo ya.",
+  "fuente": "[I] .claude/hooks/pendientes.mjs",
+  "origen": [
+    "C9"
+  ]
+}

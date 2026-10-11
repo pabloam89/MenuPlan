@@ -1,0 +1,11 @@
+{
+  "id": "untamperable-trail",
+  "area": "infra",
+  "nombre": "Rastro que el agente no borra",
+  "enunciado": "Toda acción de un agente deja un rastro que ese mismo agente no puede editar ni borrar.",
+  "porque": "Un rastro que se puede reescribir no sirve para saber qué pasó justo cuando más falta hace.",
+  "fuente": "[I] .claude/hooks/eventos.mjs",
+  "origen": [
+    "N2"
+  ]
+}

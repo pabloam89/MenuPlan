@@ -439,9 +439,9 @@ describe("autotest de los candidatos", () => {
   });
 
   it("los falsos parientes de una palabra del glosario sí cuentan; su familia, no", () => {
-    const r = candidatos(trozos("principio constante normalización información guardar contrato normativa; comprueba fondos revisores guardias"), G, { umbral: UMB }).map((c) => c.candidato);
-    for (const w of ["principio", "constante", "normalizacion", "informacion", "guardar", "contrato", "normativa"]) expect(r, w).toContain(w);
-    for (const w of ["comprueba", "fondos", "revisores", "guardias"]) expect(r, w).not.toContain(w);
+    const r = candidatos(trozos("constante normalización información guardar contrato normativa; comprueba fondos revisores guardias principios"), G, { umbral: UMB }).map((c) => c.candidato);
+    for (const w of ["constante", "normalizacion", "informacion", "guardar", "contrato", "normativa"]) expect(r, w).toContain(w);
+    for (const w of ["comprueba", "fondos", "revisores", "guardias", "principios"]) expect(r, w).not.toContain(w);
   });
 
   it("no cuenta palabras vacías, ni lo que va en código o entre «»", () => {

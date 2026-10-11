@@ -1,0 +1,11 @@
+{
+  "id": "own-identity",
+  "area": "infra",
+  "nombre": "Cada agente, su identidad",
+  "enunciado": "Cada agente actúa con su propia identidad, distinta de la de la persona, y no puede volver a las credenciales de otro.",
+  "porque": "Con la identidad de la persona, lo que hace un agente no se distingue de lo que hace ella y hereda todos sus permisos.",
+  "fuente": "[I] .claude/skills/github/referencias/app-sesiones.md",
+  "origen": [
+    "I1"
+  ]
+}

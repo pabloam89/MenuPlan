@@ -1,0 +1,11 @@
+{
+  "id": "household-owns-data",
+  "area": "datos",
+  "nombre": "Todo cuelga de la casa",
+  "enunciado": "Las tablas de dominio cuelgan de la casa: llevan su household_id y su índice principal empieza por él.",
+  "porque": "La casa es la unidad de acceso (RLS), de borrado (RGPD) y de consulta.",
+  "fuente": "[I] docs/datos/PRINCIPIOS.md",
+  "detalle": [
+    "docs/datos/PRINCIPIOS.md#1-todo-cuelga-de-la-casa"
+  ]
+}

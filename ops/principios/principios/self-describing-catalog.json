@@ -1,0 +1,11 @@
+{
+  "id": "self-describing-catalog",
+  "area": "datos",
+  "nombre": "Diccionario en la base",
+  "enunciado": "Cada tabla nueva dice en su comentario qué guarda y quién la escribe, y el código pide las columnas que usa.",
+  "porque": "El catálogo de la base es la documentación que no se queda vieja; un select de todo esconde quién lee qué.",
+  "fuente": "[I] docs/datos/PRINCIPIOS.md",
+  "detalle": [
+    "docs/datos/PRINCIPIOS.md#16-diccionario-y-lectura"
+  ]
+}

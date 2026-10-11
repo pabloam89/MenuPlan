@@ -1,0 +1,11 @@
+{
+  "id": "entity-has-registry",
+  "area": "entidades",
+  "nombre": "Registro con definición",
+  "enunciado": "Cada entidad tiene un registro con su id, su fuente de verdad y una ficha de glosario con su definición en una frase.",
+  "porque": "Un nombre sin definición no basta: cada uno lo entiende a su manera y nadie puede comprobar que se usa bien.",
+  "fuente": "[I] ops/entidades.json",
+  "detalle": [
+    "docs/entidades/N0-principios.md#6-toda-entidad-tiene-un-registro-con-definición"
+  ]
+}

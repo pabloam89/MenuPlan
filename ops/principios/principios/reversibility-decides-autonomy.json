@@ -1,0 +1,14 @@
+{
+  "id": "reversibility-decides-autonomy",
+  "area": "proceso",
+  "nombre": "La reversibilidad decide la autonomía",
+  "enunciado": "Lo reversible lo hace el agente solo; lo irreversible se vuelve reversible (copia, borrado suave, vuelta atrás) o lo hace una persona.",
+  "porque": "Un error reversible cuesta un rato; uno irreversible puede costar datos de familias o producción.",
+  "fuente": "[I] CLAUDE.md",
+  "detalle": [
+    "CLAUDE.md#qué-se-le-pregunta-a-pablo-y-qué-no"
+  ],
+  "origen": [
+    "N1"
+  ]
+}

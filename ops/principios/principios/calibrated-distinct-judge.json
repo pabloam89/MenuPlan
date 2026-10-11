@@ -1,0 +1,15 @@
+{
+  "id": "calibrated-distinct-judge",
+  "area": "proceso",
+  "nombre": "Juez distinto y calibrado",
+  "enunciado": "El juez trabaja en otro contexto que el constructor, dice pasa o no pasa con su motivo, puede decir «no sé» y se calibra contra ejemplos marcados por Pablo.",
+  "porque": "Un juez sin calibrar puede aprobarlo todo o nada sin que se note, y uno con el mismo contexto repite los errores del constructor.",
+  "fuente": "[I] .claude/agents/revisor.md",
+  "detalle": [
+    "CLAUDE.md#pensar-en-datos"
+  ],
+  "origen": [
+    "N4",
+    "claude:el-juez-llm"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "highest-mechanism",
+  "area": "proceso",
+  "nombre": "El mecanismo más alto",
+  "enunciado": "Lo que importa se hace cumplir con el escalón más alto de la escalera de durabilidad (ops/mecanismos.json), y se baja de escalón solo con su motivo.",
+  "porque": "Lo que obliga es el hook, no el texto: una regla que solo está escrita depende de que alguien se acuerde.",
+  "fuente": "[I] ops/mecanismos.json",
+  "detalle": [
+    "CLAUDE.md#pensar-en-datos"
+  ],
+  "origen": [
+    "claude:el-mecanismo-mas-alto"
+  ]
+}

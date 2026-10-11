@@ -1,0 +1,14 @@
+{
+  "id": "progressive-deploy-with-rollback",
+  "area": "infra",
+  "nombre": "Despliegue progresivo con vuelta atrás",
+  "enunciado": "Lo que llega a producción pasa antes por staging y por main con el CI en verde, y tiene una vuelta atrás probada.",
+  "porque": "Un despliegue sin paso previo ni vuelta atrás convierte cualquier error en una caída para las familias.",
+  "fuente": "[I] .claude/skills/vercel/SKILL.md",
+  "detalle": [
+    "CLAUDE.md#ramas-y-flujo"
+  ],
+  "origen": [
+    "I7"
+  ]
+}

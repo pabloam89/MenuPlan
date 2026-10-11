@@ -1,0 +1,16 @@
+{
+  "id": "class-not-case",
+  "area": "proceso",
+  "nombre": "La clase, no el caso",
+  "enunciado": "Un fallo se arregla en su caso y se ataca su problema de fondo, que se cierra con una barrera y una verificación que cubre la clase entera.",
+  "porque": "Tapar el caso deja vivos a sus hermanos, y el mismo fallo vuelve con otra cara.",
+  "fuente": "[I] docs/ops/FLUJO.md",
+  "detalle": [
+    "CLAUDE.md#cuando-algo-falla-hasta-el-problema-de-fondo",
+    "CLAUDE.md#pensar-en-datos"
+  ],
+  "origen": [
+    "C12",
+    "claude:la-clase-no-el-caso"
+  ]
+}
