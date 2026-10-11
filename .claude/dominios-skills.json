@@ -83,7 +83,9 @@
       "comandos": [],
       "rutas": [
         "^scripts/lib/skillsForja\\.mjs$",
-        "^\\.claude/PLANTILLA-SKILL\\.md$"
+        "^\\.claude/PLANTILLA-SKILL\\.md$",
+        "^\\.claude/plantillas-skill/",
+        "^scripts/lib/plantillasSkill\\.mjs$"
       ],
       "agentes": [
         "gobierno"

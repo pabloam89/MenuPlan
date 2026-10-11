@@ -2,12 +2,32 @@ import { normalizeName, guessShoppingAisle } from "./ingredientCategories.js";
 import { toCanonicalStockQty } from "./kitchenUnits.js";
 import { ENVASES } from "./vocabularios.js";
 
+/**
+ * Cómo se pinta cada envase, en singular y en plural, por su id. Lleva los vivos de ENVASES
+ * y los retirados de RETIRADOS.envases (una fila vieja de la despensa los sigue leyendo);
+ * vocabularios.test.js comprueba que no falta ni sobra ninguno (#539).
+ */
+export const ETIQUETAS_ENVASE = {
+  bote: ["bote", "botes"],
+  lata: ["lata", "latas"],
+  paquete: ["paquete", "paquetes"],
+  bolsa: ["bolsa", "bolsas"],
+  brick: ["brick", "bricks"],
+  botella: ["botella", "botellas"],
+  carton: ["cartón", "cartones"],
+};
+
 /** Container types for packaged grocery items. Los valores salen de vocabularios.js (CHECK de 0086). */
-export const PACK_KINDS = ENVASES.map((value) => ({ value, label: value === "carton" ? "cartón" : value }));
+export const PACK_KINDS = ENVASES.map((value) => ({ value, label: etiquetaEnvase(value) }));
 
 export const PACK_SIZE_UNITS = ["g", "kg", "ml", "l"];
 
-export const PACK_KIND_LABEL = Object.fromEntries(PACK_KINDS.map((k) => [k.value, k.label]));
+
+/** El nombre del envase para `n` unidades; un id sin etiqueta se pinta tal cual. */
+export function etiquetaEnvase(kind, n = 1) {
+  const e = ETIQUETAS_ENVASE[kind];
+  return e ? e[n === 1 ? 0 : 1] : kind;
+}
 
 const PACK_NAME_RE =
   /de bote|en conserva|conserva|triturado|frito|concentrado|passata|cocid|en lata|\blata\b|atun|sardina|anchoa|mejillon|berberecho|aceite|vinagre|mayonesa|ketchup|mostaza|salsa|nata\b|yogur|leche|harina|arroz|pasta|fideo|macarron|espagueti|congelad|maiz dulce|tomate frito/;
@@ -81,26 +101,6 @@ export function stockFromPack(pack) {
       sizeUnit: canonicalSizeUnit,
     },
   };
-}
-
-/** @param {{ packCount?: number|null, packKind?: string|null, packSize?: number|null, packSizeUnit?: string|null }} item */
-export function formatPackLabel(item) {
-  const count = Number(item?.packCount) > 0 ? Number(item.packCount) : null;
-  const kind = item?.packKind;
-  const size = Number(item?.packSize);
-  const sizeUnit = item?.packSizeUnit;
-  if (!kind || !(size > 0) || !sizeUnit) return null;
-
-  const kindLabel = PACK_KIND_LABEL[kind] ?? kind;
-  const n = count ?? 1;
-  let sizeText = `${Math.round(size)} ${sizeUnit}`;
-  if (sizeUnit === "g" && size >= 1000) {
-    sizeText = `${size % 1000 === 0 ? size / 1000 : (size / 1000).toFixed(1).replace(".", ",")} kg`;
-  }
-  if (sizeUnit === "ml" && size >= 1000) {
-    sizeText = `${size % 1000 === 0 ? size / 1000 : (size / 1000).toFixed(1).replace(".", ",")} L`;
-  }
-  return `${n} ${kindLabel} · ${sizeText}`;
 }
 
 export function packFieldsFromRow(row) {

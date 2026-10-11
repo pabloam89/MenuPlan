@@ -1,0 +1,14 @@
+{
+  "id": "practica-numero-de-bullets",
+  "capa": "formal",
+  "aplica_a": [
+    "estandar"
+  ],
+  "nombre": "Número de bullets",
+  "sujeto": "estandar.practica",
+  "fuerza": "debe",
+  "exigencia": "llevar entre el mínimo y el máximo de bullets que declara forma_practica de su artefacto (hoy de 2 a 5 en un estándar)",
+  "fuente": "[I] scripts/lib/forjaForma.mjs",
+  "control": "ops/forja-forma.test.js",
+  "codigo": null
+}

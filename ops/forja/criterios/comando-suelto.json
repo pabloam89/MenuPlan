@@ -1,0 +1,16 @@
+{
+  "id": "comando-suelto",
+  "capa": "material",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Comandos entre comillas",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "poner todo comando de la casa (npm run, gh, git…) entre comillas invertidas o en un bloque, no suelto en la prosa",
+  "nota": "Heurística sobre los comandos que las skills citan",
+  "fuente": "[I] scripts/lib/skillsForja.mjs",
+  "control": ".claude/skills.test.js",
+  "codigo": "comando-suelto"
+}

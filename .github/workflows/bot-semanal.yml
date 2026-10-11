@@ -75,8 +75,14 @@ jobs:
           MENCIONES: ${{ vars.AVISO_MENCIONES || '@algbarc-design @pabloam89' }}
         run: |
           titulo="Lola: informe semanal"
-          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
-            --search "\"$titulo\" in:title" --json number --jq '.[0].number // empty' || true)
+          # Autor (el bot) y título EXACTO (#450): la búsqueda de GitHub es difusa y, en un repo
+          # público, cualquiera puede abrir un issue con el mismo título.
+          if ! issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" \
+              --search "\"$titulo\" in:title" --json number,title \
+              --jq "map(select(.title==\"$titulo\"))[0].number // empty"); then
+            echo "::warning::No se pudo buscar el issue del informe; no se abre otro."
+            exit 0
+          fi
           if [ -z "$issue" ]; then
             issue=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" \
               --body "Un comentario por semana (.github/workflows/bot-semanal.yml). Qué hacer con él: specs/mejora-semanal.md." \

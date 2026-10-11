@@ -14,7 +14,7 @@ import { normaRuta } from "./sesiones.mjs";
 
 const ejecuta = (cmd, args, cwd, timeout = 8000) => {
   try {
-    return execFileSync(cmd, args, { cwd, encoding: "utf8", timeout, stdio: ["ignore", "pipe", "ignore"] });
+    return execFileSync(cmd, args, { windowsHide: true, cwd, encoding: "utf8", timeout, stdio: ["ignore", "pipe", "ignore"] });
   } catch {
     return null; // a propósito: null es «no se sabe» (sin red, sin gh); cada uso lo dice o sigue sin ello
   }
@@ -63,7 +63,7 @@ const ARGS_PRS = ["pr", "list", "--state", "open", "--limit", "50", "--json", "n
  */
 export function pedirPrs(raiz, ms = 5000) {
   return new Promise((ok) => {
-    execFile("gh", ARGS_PRS, { cwd: raiz, encoding: "utf8", timeout: ms, maxBuffer: 8e6 }, (error, salida) => ok(error ? null : salida));
+    execFile("gh", ARGS_PRS, { windowsHide: true, cwd: raiz, encoding: "utf8", timeout: ms, maxBuffer: 8e6 }, (error, salida) => ok(error ? null : salida));
   });
 }
 

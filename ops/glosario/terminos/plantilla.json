@@ -1,0 +1,13 @@
+{
+  "termino": "plantilla",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "El molde de una forma común que se repite: la de skills, la de agentes, la del encargo y los formularios de issue.",
+  "sinonimos_prohibidos": [
+    "template",
+    "templates"
+  ],
+  "aplica_a": [
+    "todas"
+  ]
+}

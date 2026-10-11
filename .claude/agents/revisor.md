@@ -62,9 +62,10 @@ No es suyo:
 8. **El estándar de la tarea se contrasta** (#413). Con `npm run estandar --
    <agente> <tarea>` sacas el estándar de la tarea que dice la línea `ESTÁNDAR:`
    del informe del constructor y compruebas, con el diff y su evidencia, cada
-   punto de «comprueba» y que no se hizo nada de «no_hace». Un punto sin
-   evidencia es hallazgo **medio**; un «no_hace» hecho es **alto**. Si el agente
-   es pendiente o no hay informe, dilo como no comprobado.
+   regla de la tarea y de las comunes que nombra (cada una dice su control y su
+   fuente) y que no se hizo nada de «no_hace». Una regla sin evidencia es
+   hallazgo **medio**; un «no_hace» hecho es **alto**. Si no hay informe, dilo
+   como no comprobado.
 
 ## 4. Disparadores
 
@@ -136,21 +137,22 @@ No cambia nada. Devuelve en «Decisiones pendientes»:
   skill) o que no quedó en ninguna, y si la línea «Runbook:» es cierta.
 - Dice qué skills pedía el diff (`npm run skills-encargo -- --diff`) y si el
   constructor las abrió según su `SKILLS:`.
-- Dice qué estándar tenía la tarea del constructor (`ESTÁNDAR:`) y qué puntos
-  de «comprueba» tienen evidencia y cuáles no.
+- Dice qué estándar tenía la tarea del constructor (`ESTÁNDAR:`) y qué reglas
+  tienen evidencia y cuáles no.
 - Cada hallazgo bloqueante tiene un caso concreto reproducible.
 
 ## Tareas y su estándar
 
 Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
 `ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
-tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- revisor <tarea>`.
+tarea (acción, reglas con su control y su fuente, y lo que no hace): `npm run estandar -- revisor <tarea>`.
+Todas las tareas de todos los agentes, en una tabla: `docs/ops/ESTANDARES.md`.
 
-- `revisar-diff` — Revisar el diff entero de la rama contra origin/staging y levantar solo lo que rompe
-- `hallazgos-con-caso` — Escribir cada hallazgo con severidad, línea, caso concreto y arreglo propuesto
-- `tests-que-prueban` — Correr los tests de lo tocado y comprobar que un test nuevo fallaría sin el cambio
-- `leccion-del-fallo` — Comprobar que un PR que arregla un fallo deja su lección en un test, la guardia o la skill
-- `skills-abiertas` — Contrastar las skills que pedía el diff con las que el constructor dijo abrir
-- `contrastar-estandar-del-constructor` — Contrastar el diff con el estándar de la tarea que el constructor dice haber cumplido
-- `reutilizacion-evidente` — Señalar la reutilización evidente cuando evita un fallo o una segunda verdad
-- `diagnosticar-bug` — Localizar dónde está un bug antes de que alguien lo arregle
+- `revisar-diff` — Revisar el diff entero de la rama contra origin/staging y levantar solo lo que rompe (acción: juzgar)
+- `hallazgos-con-caso` — Escribir cada hallazgo con severidad, línea, caso concreto y arreglo propuesto (acción: juzgar)
+- `tests-que-prueban` — Correr los tests de lo tocado y comprobar que un test nuevo fallaría sin el cambio (acción: juzgar)
+- `leccion-del-fallo` — Comprobar que un PR que arregla un fallo deja su aprendizaje en un test, la guardia o la skill (acción: juzgar)
+- `skills-abiertas` — Contrastar las skills que pedía el diff con las que el constructor dijo abrir (acción: juzgar)
+- `contrastar-estandar-del-constructor` — Contrastar el diff con el estándar de la tarea que el constructor dice haber cumplido (acción: juzgar)
+- `reutilizacion-evidente` — Señalar la reutilización evidente cuando evita un fallo o una segunda verdad (acción: juzgar)
+- `diagnosticar-bug` — Localizar dónde está un fallo antes de que alguien lo arregle (acción: diagnosticar)

@@ -25,6 +25,7 @@ import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { BOVEDA_PABLO, BOVEDA_SESIONES, VAR_OP_PABLO, entornoOp, opPorLaApp, tokenServicio } from "./lib/env.mjs";
 import { estadoFicha } from "./lib/rolLectura.mjs";
+import { FICHAS_CLAVE } from "./lib/tokenSesion.mjs";
 
 export { BOVEDA_PABLO, BOVEDA_SESIONES };
 
@@ -62,6 +63,13 @@ export function fichaCopia(origen, campos) {
     fields.push({ id: f.id, type: f.type, label: f.label, value: f.value });
   }
   fields.sort((a, b) => a.label.localeCompare(b.label));
+  // Una ficha de tipo contraseña exige su campo «password», que aquí no se copia (es de otra cosa):
+  // la copia solo lleva claves con nombre, así que va como credencial de API (visto con «Supabase lectura»).
+  if (origen.category === "PASSWORD") {
+    const secreto = fields.find((x) => x.type === "CONCEALED");
+    if (secreto && !fields.some((x) => x.id === "credential")) secreto.id = "credential";
+    return { title: origen.title, category: "API_CREDENTIAL", fields };
+  }
   return { title: origen.title, category: origen.category, fields };
 }
 
@@ -131,6 +139,10 @@ function comprobar() {
     const r = opServicio(["read", `op://${BOVEDA_SESIONES}/${ficha}/${c}`]);
     linea(r.status === 0 && r.stdout.trim().length > 0, `op://${BOVEDA_SESIONES}/${ficha}/${c} se lee${r.status === 0 ? "" : `: ${motivo(r)}`}`);
   }
+  // La clave de la GitHub App: con otro título, token-sesion no la encuentra y las sesiones caen al login de Pablo (11 oct 2026).
+  const app = FICHAS_CLAVE[0];
+  const rApp = opServicio(["item", "get", app.titulo, "--vault", app.vault, "--format", "json"]);
+  linea(rApp.status === 0, `la ficha «${app.titulo}» (clave de la GitHub App) está en ${app.vault}${rApp.status === 0 ? "" : `: ${motivo(rApp)}`}`);
   console.log(mal ? `${mal} comprobaciones mal.` : "Todo bien: las sesiones leen lo suyo y no la URL de administrador.");
   return mal ? 1 : 0;
 }

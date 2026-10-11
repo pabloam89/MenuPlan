@@ -1,0 +1,19 @@
+{
+  "id": "decision",
+  "que": "Elegir entre opciones con criterios",
+  "entra": "dilema",
+  "sale": "opción y porqué",
+  "prueba": "cada criterio aplicado y la escalera seguida",
+  "skills_hoy": [
+    "plan-de-arreglo"
+  ],
+  "secciones": [
+    "Cuándo y para qué",
+    "Método",
+    "Técnicas",
+    "Ejemplo resuelto",
+    "Lo que falló y por qué",
+    "Registro de cambios",
+    "Fuentes y comprobación"
+  ]
+}

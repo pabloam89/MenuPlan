@@ -1,0 +1,15 @@
+{
+  "id": "copiado",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Saber sin copiar",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "no_debe",
+  "exigencia": "repetir un párrafo largo idéntico al de otra skill: el saber vive en una y la otra la cita por su nombre",
+  "fuente": "[I] scripts/lib/skills.mjs",
+  "control": ".claude/skills.test.js",
+  "codigo": "copiado"
+}

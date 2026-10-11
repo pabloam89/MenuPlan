@@ -1,0 +1,72 @@
+{
+  "skill": "telegram",
+  "juicios": {
+    "descripcion-palabras-de-quien-pide": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/telegram/SKILL.md"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "a71f6edfb36e"
+    },
+    "frontera-casi-fallos": {
+      "estado": "cumple",
+      "evidencia": [
+        "caso:telegram/frontera-token-bot-avisos",
+        "caso:telegram/frontera-cron-recordatorios"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "a71f6edfb36e"
+    },
+    "disparador-al-principio": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/telegram/SKILL.md",
+        ".claude/skills.test.js"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "a71f6edfb36e"
+    },
+    "solo-lo-que-el-modelo-no-sabe": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_herramienta"
+    },
+    "libertad-ajustada": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "camino-por-defecto": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_decision"
+    },
+    "pasos-con-salida-observable": {
+      "estado": "cumple",
+      "evidencia": [
+        ".claude/skills/telegram/SKILL.md#Operaciones habituales"
+      ],
+      "fecha": "2026-10-10",
+      "firmante": "gobierno",
+      "version_skill_md": "a71f6edfb36e"
+    },
+    "vocabulario-unico": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    },
+    "ejemplos-canonicos": {
+      "estado": "juicio",
+      "motivo_pendiente": "falta_decision"
+    },
+    "skill-contrastada-con-fallo-real": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar",
+      "nota": "sus fallos son del bot, no de una sesión sin la skill; falta mirar el commit que la creó"
+    },
+    "forma-adecuada-al-contenido": {
+      "estado": "juicio",
+      "motivo_pendiente": "sin_mirar"
+    }
+  }
+}

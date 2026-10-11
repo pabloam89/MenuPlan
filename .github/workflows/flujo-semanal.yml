@@ -21,6 +21,8 @@
 #   crea otro issue (fallar no es «no hay»).
 # - Se menciona a una persona solo si aparece un indicador que no disparaba en el comentario anterior.
 # - Sin `npm ci`: el script no tiene dependencias.
+# - Margen de ruido (#480): `medir` lee los informes anteriores del bot en el mismo issue y cada
+#   cifra sale con su vigilante y si su cambio sale del ruido («sin datos suficientes» con pocas semanas).
 
 name: Flujo semanal
 
@@ -53,18 +55,34 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
+      - name: Traer los informes anteriores (para el margen de ruido)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Las cifras de las semanas de antes salen de los comentarios del bot en el issue del informe
+          # (solo los suyos, los últimos 26). Si no se pueden leer, el informe sale igual y cada
+          # cifra dice «sin datos suficientes»: nunca un «mejoró» sin margen.
+          titulo="Flujo: informe semanal"
+          : > "$RUNNER_TEMP/historial.txt"
+          if issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" \
+              --search "\"$titulo\" in:title" --json number,title \
+              --jq "map(select(.title==\"$titulo\"))[0].number // empty") && [ -n "$issue" ]; then
+            gh issue view "$issue" --repo "$GITHUB_REPOSITORY" --json comments \
+              --jq '[.comments[] | select(.author.login=="github-actions") | .body] | .[-26:] | .[]' > "$RUNNER_TEMP/historial.txt" \
+              || echo "::warning::No se pudieron leer los informes anteriores: cada cifra sale «sin datos suficientes»."
+          else
+            echo "::warning::Sin issue del informe o sin poder buscarlo: cada cifra sale «sin datos suficientes»."
+          fi
       - name: Medir
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p "$RUNNER_TEMP/salida"
-          node scripts/cumplimiento.mjs --informe "$RUNNER_TEMP/salida/informe.md" | tee "$RUNNER_TEMP/lineas.txt"
+          node scripts/cumplimiento.mjs --informe "$RUNNER_TEMP/salida/informe.md" --historial "$RUNNER_TEMP/historial.txt" | tee "$RUNNER_TEMP/lineas.txt"
           # El nivel 2 de las skills SIN llamar a ningún modelo: valida los casos y dice lo que correría.
           # Si los casos no valen, el informe sale igual y lo dice (un run en rojo sin informe no avisa a nadie).
           if ! node scripts/skills-prueba.mjs $(ls .claude/skills) --ensayo > "$RUNNER_TEMP/ensayo.txt" 2>&1; then
-            printf '
-%s
-' "Ensayo del nivel 2: FALLA (algún casos.json no vale; mira el log del run)." >> "$RUNNER_TEMP/salida/informe.md"
+            printf '\n%s\n' "Ensayo del nivel 2: FALLA (algún casos.json no vale; mira el log del run)." >> "$RUNNER_TEMP/salida/informe.md"
           fi
           tee -a "$RUNNER_TEMP/lineas.txt" < "$RUNNER_TEMP/ensayo.txt"
           { echo '```'; cat "$RUNNER_TEMP/lineas.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
@@ -95,17 +113,17 @@ jobs:
           titulo="Flujo: informe semanal"
           informe="$RUNNER_TEMP/salida/informe.md"
           # Autor (el bot) y título EXACTO: la búsqueda de GitHub es difusa y cualquiera puede abrir un issue parecido.
-          if ! lista=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions"               --search "\"$titulo\" in:title" --json number,title               --jq "map(select(.title==\"$titulo\"))[0].number // empty"); then
+          if ! lista=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" --search "\"$titulo\" in:title" --json number,title --jq "map(select(.title==\"$titulo\"))[0].number // empty"); then
             echo "::warning::No se pudo buscar el issue del informe; no se crea otro. Queda en el resumen del run."
             exit 0
           fi
           issue="$lista"
           if [ -z "$issue" ]; then
-            issue=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo"               --body "Un comentario por semana (.github/workflows/flujo-semanal.yml): cumplimiento del flujo y salud de las skills. Un indicador fuera de umbral se registra como caso con npm run issues -- --nuevo."               | grep -oE '[0-9]+$') || { echo "::warning::No se pudo abrir el issue del informe."; exit 0; }
+            issue=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" --body "Un comentario por semana (.github/workflows/flujo-semanal.yml): cumplimiento del flujo y salud de las skills. Un indicador fuera de umbral se registra como caso con npm run issues -- --nuevo." | grep -oE '[0-9]+$') || { echo "::warning::No se pudo abrir el issue del informe."; exit 0; }
           fi
           # Indicadores que disparan ahora y los del último comentario del bot (marca oculta): solo se menciona si hay uno nuevo.
           ahora=$(grep -E '^indicador: .* estado: dispara' "$informe" | awk '{print $2}' | sort -u | paste -sd, - || true)
-          if previo=$(gh issue view "$issue" --repo "$GITHUB_REPOSITORY" --json comments               --jq '[.comments[] | select(.author.login=="github-actions") | .body] | last // ""'); then
+          if previo=$(gh issue view "$issue" --repo "$GITHUB_REPOSITORY" --json comments --jq '[.comments[] | select(.author.login=="github-actions") | .body] | last // ""'); then
             previo=$(printf '%s' "$previo" | grep -oE 'flujo:dispara=[a-z_,]*' | tail -1 | cut -d= -f2 || true)
             aviso=""
             for id in $(printf '%s' "$ahora" | tr ',' ' '); do
@@ -114,11 +132,5 @@ jobs:
           else
             aviso="" # sin poder ver el comentario anterior no se menciona: el issue notifica a quien lo sigue
           fi
-          printf '%s
-
-<!-- flujo:dispara=%s -->
-%s
-
-Run: %s
-' "$(cat "$informe")" "$ahora" "$aviso" "$RUN_URL" > "$RUNNER_TEMP/comentario.md"
-          gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comentario.md" >/dev/null             && echo "Informe publicado en el issue #$issue"             || echo "::warning::No se pudo publicar el informe"
+          printf '%s\n\n<!-- flujo:dispara=%s -->\n%s\n\nRun: %s\n' "$(cat "$informe")" "$ahora" "$aviso" "$RUN_URL" > "$RUNNER_TEMP/comentario.md"
+          if gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/comentario.md" >/dev/null; then echo "Informe publicado en el issue #$issue"; else echo "::warning::No se pudo publicar el informe"; fi

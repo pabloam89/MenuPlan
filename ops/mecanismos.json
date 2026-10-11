@@ -1,5 +1,5 @@
 {
-  "$comentario": "Catálogo de mecanismos (#338, fase C del plan #334): con qué se hace cumplir una norma o un arreglo, de más a menos duradero. Es el dato; lo leen las skills plan-de-arreglo y causa-raiz y `npm run mecanismos`, y lo vigila ops/mecanismos.test.js con las reglas de scripts/lib/mecanismos.mjs. El escalón es uno de la escalera de ops/flujo.json; el ejecutor, uno del registro de normas (scripts/lib/normas.mjs), y el test cruza los dos vocabularios. Repo público: qué mecanismo y qué cuesta, nunca cómo se salta.",
+  "$comentario": "Catálogo de mecanismos (#338, fase C del plan #334): con qué se hace cumplir una norma o un arreglo, de más a menos duradero. Es el dato; lo leen las skills plan-de-arreglo y causa-raiz y `npm run mecanismos`, y lo vigila ops/mecanismos.test.js con las reglas de scripts/lib/mecanismos.mjs. El escalón es uno de la escalera de scripts/lib/escalas.mjs y el veredicto, de su escala (el más alto que puede dar); el ejecutor, uno del registro de normas (scripts/lib/normas.mjs), y el test cruza los dos vocabularios. Repo público: qué mecanismo y qué cuesta, nunca cómo se salta.",
   "version": 1,
   "actualizado": "2026-10-10",
   "mecanismos": [
@@ -9,7 +9,7 @@
       "escalon": "bloqueo",
       "ejecutor": "github_regla",
       "alcance": "todos",
-      "veredicto_max": "dura",
+      "veredicto": "dura",
       "cuando": "Lo que no debe entrar en una rama o en el repo: exigir un check, prohibir el push forzado o el borrado, exigir revisión de dueño de código.",
       "cuesta": "Un ajuste de GitHub (OK de Pablo); se mide desde fuera con npm run planos. Si está mal puesto, bloquea a todos a la vez.",
       "ejemplo": "ops/planos.json"
@@ -20,7 +20,7 @@
       "escalon": "bloqueo",
       "ejecutor": "github_regla",
       "alcance": "todos",
-      "veredicto_max": "dura",
+      "veredicto": "dura",
       "cuando": "Un workflow que usa un secreto o escribe en producción: el secreto vive en un environment con política de ramas y, si hace falta, una persona que aprueba cada ejecución.",
       "cuesta": "Crear el environment a mano antes de fusionar el workflow (OK de Pablo); con aprobador, cada ejecución espera a una persona.",
       "ejemplo": ".github/workflows/mercadona-sync.yml",
@@ -32,7 +32,7 @@
       "escalon": "bloqueo",
       "ejecutor": "proveedor",
       "alcance": "todos",
-      "veredicto_max": "dura",
+      "veredicto": "dura",
       "cuando": "Que alguien no pueda hacer algo aunque lo intente: un rol de la base solo de lectura, un token con menos permisos, una identidad de máquina propia en vez de la de una persona.",
       "cuesta": "Crear y guardar otra credencial (OK de Pablo) y mantenerla: caduca, se rota, hay que saber quién la usa.",
       "ejemplo": "supabase/migrations/0092_rol_consulta_lectura.sql",
@@ -44,7 +44,7 @@
       "escalon": "bloqueo",
       "ejecutor": "base_datos",
       "alcance": "todos",
-      "veredicto_max": "dura",
+      "veredicto": "dura",
       "cuando": "Un dato que no puede quedar mal: un CHECK con el vocabulario, una clave ajena, un NOT NULL, una RLS.",
       "cuesta": "Una migración en la única base, que es producción (ensayo y auditor-datos; si toca RLS o permisos, la lanza Pablo), y validar los datos que ya hay.",
       "ejemplo": "docs/datos/PRINCIPIOS.md"
@@ -55,7 +55,7 @@
       "escalon": "bloqueo",
       "ejecutor": "codigo_en_ejecucion",
       "alcance": "todos",
-      "veredicto_max": "dura",
+      "veredicto": "dura",
       "cuando": "Un límite que se tiene que cumplir en cada petición: un tope de gasto, una validación de entrada; que falle cerrado si el servicio del que depende no responde.",
       "cuesta": "Código en el camino de cada petición y un test que inyecte el fallo del servicio (test_fallo del registro de normas).",
       "ejemplo": "api/_guard.js"
@@ -66,7 +66,7 @@
       "escalon": "test_ci",
       "ejecutor": "ci",
       "alcance": "todos",
-      "veredicto_max": "dura",
+      "veredicto": "dura",
       "cuando": "Lo que se puede comprobar mirando el repo o el PR: un test de la clase entera, una regla del lint, una línea obligatoria del PR.",
       "cuesta": "Un test que se ve fallar antes de creérselo; minutos de CI. Solo para lo que entra por PR o push a una rama con el check obligatorio.",
       "ejemplo": ".github/workflows/tests.yml"
@@ -77,7 +77,7 @@
       "escalon": "bloqueo",
       "ejecutor": "guardia",
       "alcance": "solo_claude",
-      "veredicto_max": "semidura",
+      "veredicto": "semidura",
       "cuando": "Frenar a una sesión de Claude antes de que actúe: un comando prohibido, un paso que se salta, una skill que no abrió.",
       "cuesta": "Una regla en la guardia con su test (OK de Pablo: tocar hooks). No ve a una persona en la terminal, a la web ni a otro programa: por eso no llega a dura.",
       "ejemplo": ".claude/hooks/guardia.mjs"
@@ -88,7 +88,7 @@
       "escalon": "script",
       "ejecutor": "script_propio",
       "alcance": "solo_script",
-      "veredicto_max": "semidura",
+      "veredicto": "semidura",
       "cuando": "Lo que depende de un modelo y no se puede comprobar con un test fijo: lo que contesta Lola, si una skill ayuda.",
       "cuesta": "Tokens en cada pasada, con su tope mensual; solo cuenta si alguien la lanza, antes y después del cambio.",
       "ejemplo": "scripts/lib/evals.mjs"
@@ -99,7 +99,7 @@
       "escalon": "script",
       "ejecutor": "script_propio",
       "alcance": "todos",
-      "veredicto_max": "semidura",
+      "veredicto": "semidura",
       "cuando": "Revisar algo venga por donde venga (terminal, web, conexión MCP, otra persona): un workflow que corre en cada evento de un issue o un pase diario, y comenta o etiqueta.",
       "cuesta": "Informa y no impide: alguien tiene que leer su comentario. Si escribe en el repo o usa secretos, pide el OK de Pablo.",
       "ejemplo": ".github/workflows/fondos.yml"
@@ -110,7 +110,7 @@
       "escalon": "script",
       "ejecutor": "script_propio",
       "alcance": "solo_script",
-      "veredicto_max": "semidura",
+      "veredicto": "semidura",
       "cuando": "Una operación que siempre pasa por el mismo script: que el script se niegue si falta algo (ensayo, juez, rama).",
       "cuesta": "Poco; pero quien no usa el script no se entera.",
       "ejemplo": "scripts/apply-migration.mjs"
@@ -121,7 +121,7 @@
       "escalon": "skill",
       "ejecutor": "persona",
       "alcance": "nadie",
-      "veredicto_max": "blanda",
+      "veredicto": "blanda",
       "cuando": "El cómo de algo que necesita criterio y no se puede comprobar con una regla: un método, un runbook con lo que debe salir.",
       "cuesta": "Mantenerla al día (caduca a los 90 días) y sus casos de prueba; solo ayuda a quien la abre.",
       "ejemplo": ".claude/PLANTILLA-SKILL.md"
@@ -132,7 +132,7 @@
       "escalon": "texto",
       "ejecutor": "nada",
       "alcance": "nadie",
-      "veredicto_max": "blanda",
+      "veredicto": "blanda",
       "cuando": "Solo cuando nada de lo de arriba es posible, o como explicación de un mecanismo que ya existe.",
       "cuesta": "Nada al escribirlo; mucho cuando se olvida.",
       "ejemplo": "CLAUDE.md"

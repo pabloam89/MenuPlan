@@ -1,0 +1,15 @@
+{
+  "id": "caso-en-frontera",
+  "capa": "material",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Petición fuera de frontera",
+  "sujeto": "skill.casos",
+  "fuerza": "conviene",
+  "exigencia": "no usar en una petición propia las palabras de lo que su «No para:» deja a otra skill",
+  "fuente": "[I] scripts/lib/higieneSkills.mjs",
+  "control": "scripts/higiene-skills.test.js",
+  "codigo": "caso-en-frontera"
+}

@@ -1,0 +1,19 @@
+{
+  "termino": "control",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una comprobación automática concreta con su código de vocabulario cerrado, que da falta, aviso o bien.",
+  "sinonimos_prohibidos": [
+    "chequeo",
+    "chequeos"
+  ],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "falta",
+    "aviso",
+    "defecto",
+    "vigilante"
+  ]
+}

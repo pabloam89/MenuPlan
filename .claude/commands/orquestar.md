@@ -88,6 +88,9 @@ no se lanzan hasta que vuelvan a `.claude/agents/`.
 ## 3. Qué pipeline según la acción
 
 `→` es secuencial; `+` es en paralelo. Entre corchetes, solo si aplica.
+El mismo dato, para máquinas, está en `ops/tipos-de-encargo.json` (lo lee el
+panel de la factoría); `ops/tipos-de-encargo.test.js` vigila que dicen lo
+mismo: si cambias una fila, cambia la otra.
 
 | Acción | Pipeline |
 |---|---|
@@ -136,9 +139,10 @@ Un subagente no ve esta conversación. Cada encargo que le pases lleva:
 8. **Estándar de la tarea** (#413): la línea `ESTÁNDAR A CUMPLIR: <agente>/<tarea>`
    que da `npm run estandar -- <agente> <tarea>` (las tareas de cada agente están
    en `ops/estandares-agentes.json`; `npm run estandar -- <agente>` las lista),
-   con su estándar, lo que comprueba y lo que no hace pegados en el brief. Si el
-   encargo no encaja en ninguna tarea, «ninguna tarea del catálogo» y por qué: es
-   la señal de una tarea que falta. Un agente pendiente lo dice en la propia línea.
+   con su acción, sus reglas (cada una con su control y su fuente), las comunes
+   que nombra y lo que no hace pegados en el brief. Si el encargo no encaja en
+   ninguna tarea, «ninguna tarea del catálogo» y por qué: es la señal de una
+   tarea que falta. Todas las tareas, en una tabla: `docs/ops/ESTANDARES.md`.
 9. Recordatorio: termina con el informe común de
    `.claude/PLANTILLA-AGENTE.md`, con `CASOS:`, `SKILLS:` y `ESTÁNDAR:`.
 

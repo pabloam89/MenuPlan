@@ -65,9 +65,25 @@ describe("fichaCopia", () => {
     expect(JSON.stringify(f)).not.toContain("admin");
   });
 
+  it("una ficha de tipo contraseña se copia como credencial de API, con su secreto como «credential»", () => {
+    const pass = { title: "Supabase lectura", category: "PASSWORD", fields: [
+      { id: "password", type: "CONCEALED", label: "password", value: "" },
+      { id: "zz9", type: "CONCEALED", label: "SUPABASE_DB_URL_LECTURA", value: "postgres://lectura" },
+    ] };
+    expect(fichaCopia(pass, ["SUPABASE_DB_URL_LECTURA"])).toEqual({
+      title: "Supabase lectura", category: "API_CREDENTIAL",
+      fields: [{ id: "credential", type: "CONCEALED", label: "SUPABASE_DB_URL_LECTURA", value: "postgres://lectura" }],
+    });
+  });
+
   it("falla si falta un campo o está vacío, sin enseñar ningún valor", () => {
     expect(() => fichaCopia(origen, ["NO_EXISTE"])).toThrow(/NO_EXISTE/);
     const vacio = { ...origen, fields: [{ id: "a", type: "STRING", label: "VACIO", value: "" }] };
     expect(() => fichaCopia(vacio, ["VACIO"])).toThrow(/VACIO/);
   });
+});
+
+import { FICHAS_CLAVE } from "./lib/tokenSesion.mjs";
+it("la primera ficha de la clave de la GitHub App es la de la bóveda de sesiones, que es la que --comprobar verifica", () => {
+  expect(FICHAS_CLAVE[0]).toEqual({ vault: BOVEDA_SESIONES, titulo: "GitHub App homenu-sesiones" });
 });

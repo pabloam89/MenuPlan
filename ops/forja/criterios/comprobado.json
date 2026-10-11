@@ -1,0 +1,15 @@
+{
+  "id": "comprobado",
+  "capa": "formal",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Fecha de comprobación",
+  "sujeto": "skill.metadatos",
+  "fuerza": "debe",
+  "exigencia": "llevar en metadata.comprobado una fecha AAAA-MM-DD no futura, y decir en el texto «Comprobado el <fecha>: …» con qué se comprobó ese día",
+  "fuente": "[I] scripts/lib/skills.mjs",
+  "control": ".claude/skills.test.js",
+  "codigo": "comprobado"
+}

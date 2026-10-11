@@ -72,9 +72,10 @@ describe("vigía: la configuración", () => {
     // Lo que lee el agente en tiempo de ejecución tiene que viajar también con el canario.
     expect(canario.includeFiles).toBe(webhook.includeFiles);
     const c = VIGIA.canario;
-    expect(c.lentoMs).toBeLessThan(c.plazoModeloMs);
-    expect(c.plazoModeloMs).toBeLessThan(canario.maxDuration * 1000);
-    expect(c.plazoSaludMs).toBeLessThan(c.plazoModeloMs);
+    // Plazos de la configuración comparados entre sí, no medidas (#499):
+    expect(c.lentoMs).toBeLessThan(c.plazoModeloMs); // tiempo: relación — plazos de la configuración
+    expect(c.plazoModeloMs).toBeLessThan(canario.maxDuration * 1000); // tiempo: relación — plazos de la configuración
+    expect(c.plazoSaludMs).toBeLessThan(c.plazoModeloMs); // tiempo: relación — plazos de la configuración
     expect(c.modeloCadaHoras * 60).toBeGreaterThan(VIGIA.cadaMin);
     expect(c.fallosParaAbrir).toBeGreaterThanOrEqual(1);
     // El tope del canario deja pasar el ritmo normal del vigía: los de cada

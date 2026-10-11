@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { normalizeAllergenId, recipeIngredientIdsHitFreeAllergy, recipeIngredientsHitAllergens } from "./allergensCore.js";
 import { filterGarnishes, filterRecipes, recipeViolatesHardSafety } from "../utils/filterRecipes.js";
+import { medianaMs, topeMs } from "../../scripts/lib/medirTiempo.mjs";
 
 // Hueco de seguridad real en producción (aviso de menuplan-05): una persona
 // guarda «Brócoli» como alergia confirmada. normalizeAllergenId la convierte
@@ -101,10 +102,12 @@ describe("alergias libres: plural, texto raro y todos los caminos", () => {
   });
 
   it("un patrón que colgaría el proceso (ReDoS) no cuesta nada", () => {
-    const t0 = performance.now();
-    caso("(a|a)*b", "aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    caso("(.*a){12}x", "aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-    expect(performance.now() - t0).toBeLessThan(200);
+    // Suelto, 0,1 ms (mediana de 5, medido el 2026-10-10); con el patrón sin escapar tardaría segundos.
+    const ms = medianaMs(() => {
+      caso("(a|a)*b", "aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+      caso("(.*a){12}x", "aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    }, { etiqueta: "alergias-redos" });
+    expect(ms).toBeLessThan(topeMs(1));
   });
 
   it("un texto larguísimo se acota en vez de compilar un regex enorme", () => {

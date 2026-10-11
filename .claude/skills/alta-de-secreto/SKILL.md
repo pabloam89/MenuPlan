@@ -2,7 +2,14 @@
 name: alta-de-secreto
 description: Úsala al dar de alta, rotar o retirar una clave, token o credencial, de punta a punta: «nuevo token», «API key para…», «secreto para el workflow», «bot nuevo», «ha caducado», «toca rotarla», una clave filtrada o vista en un log, o crear o mover la ficha de 1Password donde se guarda. Dice ámbito y caducidad, ficha y bóveda, cómo llega a GitHub, Vercel o el servidor sin verse, cómo se comprueba y se apunta. No para: leer una clave desde un script (1password), operar el servicio (su skill), la clave de las copias cifradas (hetzner), ni bajar o listar variables de Vercel (vercel).
 metadata:
-  tipo: receta_cambio
+  tipo: procedimiento
+  opera_proveedor: false
+  juzga_artefacto: false
+  encadena: false
+  pasos_fijos: true
+  sintoma_a_causa: false
+  elige_opciones: false
+  porque_tipo: "opera_proveedor es false: da de alta claves de GitHub, Vercel, Anthropic, Telegram o Supabase, así que no hay un proveedor único que operar; lo que la define son los pasos fijos con comprobación"
   dueno: gobierno
   comprobado: 2026-10-10
 ---

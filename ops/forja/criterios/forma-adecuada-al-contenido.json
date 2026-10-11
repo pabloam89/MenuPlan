@@ -1,0 +1,34 @@
+{
+  "id": "forma-adecuada-al-contenido",
+  "capa": "subjetiva",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Forma del contenido",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "poner cada contenido en su forma: tabla para datos comparables, lista numerada para pasos con orden, viñetas sin orden, párrafos cortos",
+  "cumple": "cambiar la forma de un trozo lo empeoraría",
+  "no_cumple": "hay razonamiento metido en celdas, negrita decorativa o muros de texto",
+  "nota": "La negrita va solo para lo que no puede pasar desapercibido",
+  "fuente": "[I] .claude/skills/forja-de-skills/referencias/presentacion.md",
+  "control": "juicio",
+  "codigo": null,
+  "casos_calibracion": [
+    {
+      "texto": "Los comandos y su salida, en una tabla; los pasos con orden, numerados; una sola negrita por sección.",
+      "esperado": "cumple"
+    },
+    {
+      "texto": "Un razonamiento de ocho líneas metido en una celda de tabla y media página en negrita.",
+      "esperado": "no_cumple"
+    },
+    {
+      "texto": "Tres pasos con orden puestos en una tabla de tres filas con las columnas Paso, Comando y Debe salir.",
+      "esperado": "cumple",
+      "frontera": true,
+      "nota": "Los pasos tienen orden, pero la tabla Comando y Debe salir es la forma de la plantilla para operaciones."
+    }
+  ]
+}

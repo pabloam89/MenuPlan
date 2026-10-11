@@ -2,7 +2,13 @@
 name: hetzner
 description: Úsala al tocar el servidor de Hetzner (el VPS del panel): entrar a la máquina, el cortafuegos y los puertos, actualizar o reiniciar, Docker y el Postgres del panel, las copias y restaurarlas (también la copia nocturna cifrada de la base de MenuPlan, su ensayo y rotar su clave de cifrado), el disco o la memoria, o crear otro servidor. No para: la red privada y quién puede entrar (tailscale), la llave SSH y las demás claves (1password, alta-de-secreto) ni la base de MenuPlan (supabase).
 metadata:
-  tipo: herramienta
+  tipo: servicio
+  opera_proveedor: true
+  juzga_artefacto: false
+  encadena: false
+  pasos_fijos: false
+  sintoma_a_causa: false
+  elige_opciones: false
   dueno: gobierno
   comprobado: "2026-10-09"
 ---
@@ -73,7 +79,7 @@ Con `ssh` se entiende `C:\Windows\System32\OpenSSH\ssh.exe root@100.73.252.32`
 
 | Qué | Comando | Debe salir |
 |---|---|---|
-| Entrar | `ssh` | el prompt del servidor; la primera vez, ventana de 1Password a aprobar |
+| Entrar | `ssh` | el prompt del servidor; **cada vez** ventana de 1Password a aprobar: avisa a Pablo antes y espera su sí (sin él, «communication with agent failed»; skill `1password`) |
 | Lanzar algo largo | subir el script (`ssh 'cat > /root/x.sh' < x.sh`) y **en otra llamada** `ssh 'nohup bash /root/x.sh >/dev/null 2>&1 < /dev/null &'`; leer el log | el script sigue aunque se corte la conexión |
 | Actualizar | `apt-get update && apt-get -y upgrade`, lanzado como lo anterior | el log acaba sin errores |
 | ¿Pide reinicio? | `ls /var/run/reboot-required` | el fichero existe, o `No such file` |
@@ -128,8 +134,9 @@ Instalar las copias de la base (OK; lo lanza Pablo con `!`), su ensayo de restau
   90 s; y al empezar, `limpiarRestos` para y borra lo de un ensayo cortado.
 - **2026-10-08 · una orden larga por SSH no vuelve y se corta a los 300 s
   (`apt upgrade`, `ufw` con varios pasos).** Causa: la orden depende de que la
-  conexión siga viva y esperando; no se llegó a determinar si fue la aprobación
-  de 1Password o la propia sesión. Con el mismo trabajo lanzado dentro del
+  conexión siga viva y esperando; probablemente fue la ventana de aprobación de
+  1Password sin contestar (el 11 oct se midió que sin ella la `ssh` falla con
+  «communication with agent failed»; skill `1password`). Con el mismo trabajo lanzado dentro del
   servidor tardó un minuto. Arreglo: subir el script y lanzarlo con `nohup`;
   esperar leyendo el log. El cortafuegos, en pasos cortos y con el temporizador
   de rescate.

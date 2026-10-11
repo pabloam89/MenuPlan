@@ -1,0 +1,16 @@
+{
+  "termino": "verificar",
+  "estado": "activo",
+  "clase": "accion",
+  "definicion": "Comprobar que el arreglo de un encargo cumple, con el CI en verde, el juez conforme y un test que cubre la clase; es el paso 8 del flujo.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "amplio": "comprobar",
+  "ref": {
+    "fichero": "scripts/lib/flujo.mjs",
+    "clave": "PASOS.verificar"
+  },
+  "nota": "El campo verificacion de la ficha del fondo es el fichero que lo demuestra. Fuera de este paso, «comprobar»."
+}

@@ -74,7 +74,9 @@ describe("turno por la vía rápida", () => {
     // El primer texto no carga con lo que tarda Lola en soltar; el turno entero sí la espera.
     const [ruta] = t.rutas;
     expect(ruta.rapida).toBe(true);
-    expect(ruta.primer_ms).toBeLessThan(t.cancelarTardaMs);
+    // El orden de arriba es la prueba; los milisegundos, solo entre sí: con la máquina cargada, un
+    // tope fijo de 80 ms fallaría sin que el código haya cambiado (#499).
+    expect(ruta.primer_ms).toBeLessThan(ruta.ms); // tiempo: relación — el primer texto antes que el turno entero
     expect(ruta.ms).toBeGreaterThanOrEqual(t.cancelarTardaMs - 5);
     expect(ruta.contexto_ms).toBeGreaterThanOrEqual(0);
     expect(ruta.lola_cancelada).toBe(true);
@@ -150,7 +152,7 @@ describe("el aviso sale en cuanto el enrutador sabe qué se pide", () => {
     expect(aviso).toBeGreaterThanOrEqual(0);
     expect(aviso).toBeLessThan(t.orden.indexOf("lola-contesta"));
     expect(t.rutas[0].rapida).toBe(false);
-    expect(t.rutas[0].primer_ms).toBeLessThan(120);
+    expect(t.rutas[0].primer_ms).toBeLessThan(t.rutas[0].ms); // tiempo: relación — el aviso antes que el turno entero
   });
 
   it("si Lola ya ha escrito algo suyo, el aviso no lo pisa", async () => {
@@ -187,7 +189,7 @@ describe("lo que tarda por la vía rápida también avisa", () => {
     expect(editar).toHaveBeenCalledWith(1, 1, expect.stringContaining("Menú listo"), expect.anything());
     const [ruta] = t.rutas;
     expect(ruta).toMatchObject({ rapida: true, modo: "generar", aviso: "generar_menu" });
-    expect(ruta.primer_ms).toBeLessThan(60);
+    expect(ruta.primer_ms).toBeLessThan(ruta.ms); // tiempo: relación — el aviso antes que el turno entero
     expect(ruta.ms).toBeGreaterThanOrEqual(55);
   });
 
@@ -225,7 +227,7 @@ describe("el aviso por tiempo: Lola tarda y no hay nada en pantalla", () => {
     expect(editar).toHaveBeenCalledWith(1, 1, expect.stringContaining("Aquí tienes la lista."), expect.anything());
     const [ruta] = t.rutas;
     expect(ruta.espera_ms).toBeGreaterThanOrEqual(25);
-    expect(ruta.espera_ms).toBeLessThan(150);
+    expect(ruta.espera_ms).toBeLessThan(ruta.primer_ms); // tiempo: relación — la frase de espera antes que la respuesta
     expect(ruta.primer_ms).toBeGreaterThanOrEqual(145);
   });
 

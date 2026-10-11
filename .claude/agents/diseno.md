@@ -146,16 +146,15 @@ Nunca los ejecuta; los devuelve en «Decisiones pendientes»:
 
 Fuente única: `ops/estandares-agentes.json`. Esta lista la genera `npm run estandar -- --escribir` y
 `ops/estandares-agentes.test.js` la compara; no se edita a mano. El detalle de cada
-tarea (estándar, qué comprueba, qué no hace y su fuente): `npm run estandar -- diseno <tarea>`.
+tarea (acción, reglas con su control y su fuente, y lo que no hace): `npm run estandar -- diseno <tarea>`.
+Todas las tareas de todos los agentes, en una tabla: `docs/ops/ESTANDARES.md`.
 
-Estado: pendiente. Lista de tareas hecha; el estándar de cada una está por escribir (#413).
-
-- `pantalla-con-tokens` — Diseñar o cambiar una pantalla, hoja, tarjeta o componente con los tokens y primitivos del sistema
-- `token-o-primitivo-nuevo` — Crear en el sistema el token o el primitivo que falta, con su porqué, antes de usarlo
-- `migrar-pantalla-a-tokens` — Migrar una pantalla a tokens bajando la lista de valores sueltos
-- `assets-reproducibles` — Entregar assets optimizados: original en su carpeta, derivado por script y entrada en el manifiesto
-- `iconos-e-ilustraciones` — Añadir un icono, una ilustración o una familia de assets al sistema
-- `marca-y-manifest` — Tocar el logo, el favicon, el manifest o el color de marca
-- `capturas-antes-despues` — Hacer las capturas de antes y después a 375×812 y 420×900
-- `voz-de-la-interfaz` — Escribir la voz de la interfaz: botones, vacíos y errores
-- `estado-del-diseno` — Poner al día docs/diseno/ESTADO.md con las cifras y decisiones
+- `pantalla-con-tokens` — Diseñar o cambiar una pantalla, hoja, tarjeta o componente con los tokens y primitivos del sistema (acción: construir)
+- `token-o-primitivo-nuevo` — Crear en el sistema el token o el primitivo que falta, con su porqué, antes de usarlo (acción: construir)
+- `migrar-pantalla-a-tokens` — Migrar una pantalla a tokens bajando la lista de valores sueltos (acción: construir)
+- `assets-reproducibles` — Entregar assets optimizados: original en su carpeta, derivado por script y entrada en el manifiesto (acción: construir)
+- `iconos-e-ilustraciones` — Añadir un icono, una ilustración o una familia de assets al sistema (acción: construir)
+- `marca-y-manifest` — Tocar el logo, el favicon, el manifest o el color de marca (acción: construir)
+- `capturas-antes-despues` — Hacer las capturas de antes y después a 375×812 y 420×900 (acción: medir)
+- `voz-de-la-interfaz` — Escribir la voz de la interfaz: botones, vacíos y errores (acción: construir)
+- `estado-del-diseno` — Poner al día docs/diseno/ESTADO.md con las cifras y decisiones (acción: documentar)

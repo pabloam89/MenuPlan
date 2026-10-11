@@ -81,7 +81,9 @@ en staging.
    `gh pr update-branch <n>` (en un comando aparte) y espera el CI.
 2. `git status --short` y añade por nombre solo lo tuyo; si un fichero mezcla
    lo tuyo con lo de otro, dilo en el mensaje o déjalo fuera.
-3. En local, solo los tests de los ficheros que tocas y los que cubren lo tocado (`npx vitest run <ficheros>`).
+3. En local, `npm run vecinos`: los tests de lo que tocas más los vigilantes de conjunto
+   que lo miran (los que recorren todos los scripts, skills o migraciones; lista en
+   `ops/vigilantes.json`). Elegir a mano con `npx vitest run <ficheros>` los deja fuera (#356).
    La suite entera, el build y el lint con base los corre el CI del PR (gratis en
    repo público): espera su resultado con una consulta espaciada, sin sondear. La
    suite entera en local solo si tocas algo transversal (`package.json`, `vite.config.js`,
@@ -134,7 +136,7 @@ falta, va solo entre paréntesis, detrás del nombre. Al volver tras un rato o
 retomar un tema, la idea raíz en negrita lo recuerda
 («**Seguimos con X: falta Y.**»).
 
-Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
+Siempre en castellano, también los avisos cortos. Frases de menos de 25 palabras, sin preámbulo ni recapitulación, sin emojis.
 Un término técnico se explica la primera vez y después se llama igual. Ficheros,
 ramas y comandos van a un issue, no al chat, salvo que él los pida o los tenga
 que ejecutar. Plantillas fijas: resultado, decisión, error, concepto y resumen
@@ -185,7 +187,8 @@ las de oficio, cómo se piensa un fallo: `causa-raiz` (diagnosticar) y
 y el estándar `estilo-de-respuesta` (cómo se escribe a Pablo: idea raíz en
 negrita, cuatro ideas y tres opciones). Todas siguen
 `.claude/PLANTILLA-SKILL.md`, que vigila `.claude/skills.test.js`: un tipo de
-ocho (los que existan, en la plantilla; cada tipo con sus secciones), dueño, fecha
+los siete de `ops/forja/`, el que dan sus respuestas, con su molde generado en
+`.claude/plantillas-skill/` (salvo `forja-de-skills`, la pieza meta de nivel 0, sin tipo), dueño, fecha
 de comprobación que caduca a los 90 días, un `SKILL.md` corto con el detalle en
 capas y sus casos de prueba en `casos.json`; `npm run skills-prueba -- <skill>`
 mide, con tokens, si ayuda. Un proveedor nuevo estrena su runbook con su
@@ -213,22 +216,55 @@ y su fecha, está en `src/data/model.js` (`TABLAS`, vigilado por `ops/fuentes.te
 
 ## Pensar en datos
 
-Lo que se repite se diseña para poder contarse; todo se analiza mejor con
-cifras que con impresiones.
+Lo que se repite se diseña para poder contarse, y corregir es ver qué falla en
+qué hueco, no releer un texto continuo. Cada principio dice entre paréntesis
+qué lo hace cumplir; lo que aún no tiene mecanismo lleva su issue (fondo #479).
 
-- **Vocabulario cerrado, no texto libre**, para todo lo que se vaya a agrupar:
-  motivos de fallo, estados, causas, tipos, sitios. Una constante en JS (y un
-  CHECK si va a SQL) con su test, como `src/lib/vocabularios.js`.
+- **Discreto primero**: sí/no, un valor de vocabulario, una referencia a algo
+  que existe, un número o una fecha. El texto libre, solo en un hueco
+  declarado: un campo que dice qué cubre que lo discreto no alcanza (la base
+  de la forja, #458).
+- **Vocabulario cerrado** para todo lo que se agrupa (motivos de fallo,
+  estados, causas, tipos, sitios): una constante en JS, un CHECK si va a SQL y
+  su test, como `src/lib/vocabularios.js`. Un valor de un vocabulario no se
+  borra, no se reutiliza ni se redefine sin registro: se retira y dice a cuál
+  pasa (los de proceso y los del producto, en `ops/vocabularios-vida.json`, y
+  los términos del glosario, con su test contra `origin/staging`). En el
+  producto, el retirado deja de ofrecerse pero el CHECK lo sigue admitiendo
+  (hay filas guardadas con él).
 - **Una palabra, un significado**: las palabras de proceso (comprobar, caso,
-  fondo, encargo, juez…) salen de `ops/glosario.json` (`npm run glosario`), y
+  fondo, encargo, juez…) salen de `ops/glosario/` (`npm run glosario`);
   su test falla con un sinónimo prohibido nuevo.
-- **Cada cosa que pasa deja una línea estructurada** (`campo: valor`, sin datos
-  de familias) que un script pueda contar. Lo que no deja rastro no se mide, y
-  lo que no se mide no mejora.
-- **La clase, no el caso**: se arregla el caso y se ataca su problema de fondo
-  («Cuando algo falla», abajo). Una regla, un dato, una fuente que el resto usa.
+- **Ninguna cifra sin pregunta**: cada métrica dice qué pregunta responde y
+  qué script la lee; si nadie la lee, no se recoge (#480).
+- **Cada cosa que pasa deja una línea `campo: valor`** que un script pueda
+  contar, con un nombre de evento que no se repite y sin datos de familias:
+  lo que no deja rastro no se mide, y lo que no se mide no mejora
+  (`.claude/hooks/eventos.mjs`; el registro de qué se cuenta, #480).
+- **La clase, no el caso**: se arregla el caso y se ataca su problema de
+  fondo; el caso cuelga de su fondo, y el fondo se cierra con su barrera y
+  una verificación que cubre la clase (línea `Casos:` del PR, workflow
+  `fondos`; «Cuando algo falla», abajo). Una regla, un dato, una fuente que el
+  resto usa.
 - **La cifra antes y después**: cuántos casos, desde cuándo y dónde, antes de
-  proponer un arreglo; la misma cifra después, para saber si sirvió.
+  proponer un arreglo; la misma cifra después, para saber si sirvió. «Mejoró»
+  solo si la diferencia es mayor que lo que la cifra varía sola, o si hay
+  casos de sobra (#480).
+- **El mecanismo más alto de la escalera**: bloqueo, test en el CI, script,
+  skill y, en último lugar, texto; se baja de escalón solo con su motivo
+  (`npm run mecanismos`, skill `plan-de-arreglo`).
+- **Tres capas de comprobación**: formal (un test que da lo mismo cada vez),
+  material (una regla aproximada con una lista de excepciones que solo puede
+  bajar) y subjetiva (un juez LLM con presupuesto). Lo subjetivo que se juzga
+  igual una y otra vez pasa a material o formal; se vuelve atrás solo si el
+  test sale frágil, con el porqué escrito (la base de la forja, #458).
+- **El juez LLM dice pasa o no pasa con su motivo**, puede decir «no sé» y se
+  calibra contra ejemplos marcados por Pablo (#482).
+- **Ninguna cifra es objetivo sola**: una cifra que se persigue deja de medir;
+  va con otra que la vigile y con una muestra leída a mano (#480).
+- **De arriba abajo**: primero la forja (qué hace buena a una pieza), luego
+  la plantilla de su tipo y después cada pieza; no se rellena una pieza antes
+  que su plantilla (#458).
 
 ## Qué se le pregunta a Pablo, y qué no
 
@@ -289,7 +325,9 @@ sí. Preguntar algo de la segunda lista también es un fallo; se cuenta (#185).
   pelo (se crea con `npm run issues -- --nuevo`, que busca los parecidos);
   pregunta
   antes de un push forzado y de escribir por
-  terminal lo que lee Lola. Cada regla,
+  terminal lo que lee Lola; y avisa, sin bloquear, al editar un fichero que otra
+  rama viva ya cambió o reservó (`npm run tarea -- … --zona <fichero>`; quién
+  lleva qué: `npm run issues -- --zonas`, #506). Cada regla,
   con su porqué y su test en `.claude/hooks/guardia.test.js`.
 - **`avisos.mjs`** tras editar un fichero: los issues abiertos que lo nombran.
   **`pendientes.mjs`** al terminar de responder: frena una vez si dejas

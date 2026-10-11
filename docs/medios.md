@@ -22,7 +22,7 @@ Ante la duda, no es «se rehace gratis».
 |---|---|---|
 | `scripts/test-photos/` | 1.814 PNG, pruebas de foto por receta (Gemini) | De pago |
 | `scripts/prompt-test/` | 23 PNG, pruebas de prompt | De pago |
-| `dish-gallery/review/` | 1.611 JPG, galería de revisión de fotos | De pago |
+| `dish-gallery/review/` | 1.611 JPG, galería de revisión de fotos (la herramienta se retiró en #301; la carpeta es solo local) | De pago |
 | `output/dishes/` | 2.505 JPG, fotos de platos generadas | De pago |
 | `public/dishes/` | fotos que se sirven en el bundle | Publicado |
 | `Avatares/` (`cards`, `3d`, `animaciones`) | ilustraciones Midjourney, 3D de Tripo (`.fbx`, `.glb`) | De pago (14 cards están en git) |

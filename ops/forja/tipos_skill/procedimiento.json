@@ -1,0 +1,20 @@
+{
+  "id": "procedimiento",
+  "que": "Pasos fijos que cambian algo",
+  "entra": "situación",
+  "sale": "cambio hecho y comprobado",
+  "prueba": "cada paso con su verificación y su marcha atrás",
+  "skills_hoy": [
+    "alta-de-secreto"
+  ],
+  "secciones": [
+    "Cuándo y para qué",
+    "Método",
+    "Antes de empezar",
+    "Cómo se comprueba",
+    "Qué requiere el OK de Pablo",
+    "Lo que falló y por qué",
+    "Registro de cambios",
+    "Fuentes y comprobación"
+  ]
+}

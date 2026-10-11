@@ -1,0 +1,14 @@
+{
+  "id": "practica-estructura-del-bullet",
+  "capa": "formal",
+  "aplica_a": [
+    "estandar"
+  ],
+  "nombre": "Estructura del bullet",
+  "sujeto": "estandar.practica",
+  "fuerza": "debe",
+  "exigencia": "llevar en cada bullet sus cuatro partes en orden (regla · porqué · ejemplo bueno · ejemplo malo), ninguna vacía y con el ejemplo bueno distinto del malo",
+  "fuente": "[I] scripts/lib/forjaForma.mjs",
+  "control": "ops/forja-forma.test.js",
+  "codigo": null
+}

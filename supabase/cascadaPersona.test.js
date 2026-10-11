@@ -28,6 +28,7 @@ export const CASCADA_PERMITIDA = new Map([
   ["persona_intolerancia", "salud: se va con la persona (PRINCIPIOS §17)"],
   ["persona_estado", "salud: se va con la persona (PRINCIPIOS §17)"],
   ["persona_perfil_salud", "salud: se va con la persona (PRINCIPIOS §17)"],
+  ["sobre", "salud: de dónde sale cada dato de la ficha de la persona; se va con ella (PRINCIPIOS §17, 0097)"],
   ["grupo_persona", "pertenencia a un grupo: sin la persona no significa nada"],
 ]);
 

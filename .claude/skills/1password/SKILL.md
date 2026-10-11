@@ -2,7 +2,13 @@
 name: 1password
 description: Úsala al montar un .env.local o un worktree, cuando un script no pueda leer una dirección op://, para leer una clave desde un script (leerEnv), al guardar algo en una bóveda nueva, o si falla la service account, el token del llavero o el agente SSH. No para: dar de alta ni rotar una clave de punta a punta, ni una clave filtrada (alta-de-secreto); la clave de las copias cifradas (hetzner); dónde vive cada clave (ops/INVENTARIO.md) ni las contraseñas personales de Pablo.
 metadata:
-  tipo: herramienta
+  tipo: servicio
+  opera_proveedor: true
+  juzga_artefacto: false
+  encadena: false
+  pasos_fijos: false
+  sintoma_a_causa: false
+  elige_opciones: false
   dueno: gobierno
   comprobado: "2026-10-10"
 ---
@@ -47,7 +53,9 @@ metadata:
   sigue sirviendo tras cambiar el token.
 - **Agente SSH de 1Password**: activo (alta en «Fechas» de Fuentes y comprobación). Guarda la llave
   `HoMenu - Hetzner Panel` (Ed25519, en `Private`); cada conexión pide
-  aprobar. Sirve a la `ssh` de Windows, no a la de Git for Windows.
+  aprobar **en la ventana de 1Password y con Pablo delante**: si nadie la contesta en
+  unos segundos, la `ssh` falla con «communication with agent failed» (ver «Lo que falló»).
+  Sirve a la `ssh` de Windows, no a la de Git for Windows.
 - **CLI** `op`: `winget install AgileBits.1Password.CLI`.
 
 ## Claves y accesos
@@ -102,6 +110,7 @@ metadata:
 | Crear la clave de las copias (OK; Pablo, `!`) | `node scripts/copias-clave.mjs` (ensayo) y luego `--si`; necesita `age-keygen` (`winget install FiloSottile.age`) | `Ficha «Copias de la base» creada en Panel HoMenu y comprobada (COINCIDEN)` y la pública añadida a `destinatarios.txt`; si la ficha ya existe, se niega |
 | ¿`destinatarios.txt` es la pública de la ficha? (sin leer la privada; **requisito antes de subirlo al servidor**) | `node scripts/copias-clave.mjs --comprobar` | `COINCIDEN`; si sale `NO COINCIDEN`, no se sube: las copias se cifrarían para otra clave |
 | Ver qué llaves sirve el agente SSH | `C:\Windows\System32\OpenSSH\ssh-add.exe -l` | una línea por llave, con su título, p. ej. `HoMenu - Hetzner Panel (ED25519)` |
+| La `ssh` falla con «communication with agent failed» o «Permission denied (publickey)»: ¿por qué? | `grep -a "ssh authorization prompt" "$LOCALAPPDATA"/1Password/logs/1Password_r*.log` (Git Bash; las horas del log son UTC) | una línea `ssh authorization prompt timed out` a la hora del fallo = nadie aprobó la ventana; no es un fallo del agente |
 
 El valor de una clave **nunca va escrito en un comando**: quedaría en la
 conversación. Se pasa por tubería (stdin) entre dos procesos.
@@ -126,6 +135,14 @@ escritorio y qué no, y qué hace la guardia), están en `.claude/skills/1passwo
   los encadena, es idempotente, falla cerrado y se niega si ve las variables de
   Claude Code; test en `scripts/boveda-pablo.test.js`, visto fallar sin la
   negativa y sin el freno. Sin probar contra 1Password de verdad.
+- **2026-10-10 · «Too many requests» de 1Password a las 19:10 (límite de lecturas por hora de la cuenta de servicio).**
+  Causa: cada arranque de cada sesión leía el `.pem` de la App (dos lecturas si fallaba la primera bóveda), y un test
+  llamaba a `op` de verdad en cada ejecución; qué lo agotó exactamente no se sabe, y el límite exacto tampoco. El arranque
+  tardaba ~14 s. Arreglo: el token de la App se guarda y se reutiliza entre sesiones hasta que falten 15 minutos
+  (`scripts/lib/cacheTokenSesion.mjs`, detalle en la skill `github`, `.claude/skills/github/referencias/app-sesiones.md`); con el límite agotado
+  sale el motivo `limite-de-1password`, sin probar otra bóveda, y se usa el token guardado si no caducó; el test ya no
+  llama a `op`. Tests en `scripts/tokenSesion.test.js`, vistos fallar. Antes: 1 lectura del `.pem` por sesión; después:
+  1 por hora entre todas.
 - **2026-10-09 · una dirección `op://` daba error con la ficha y el campo bien puestos.**
   Causa: el nombre de la ficha llevaba una tilde; la sintaxis de `op://` solo
   admite letras y cifras sin acento, espacios, `-`, `_` y `.` (lo demás, por id).
@@ -135,6 +152,11 @@ escritorio y qué no, y qué hace la guardia), están en `.claude/skills/1passwo
   ficha por script.** Causa: Node con `shell: true` concatena los argumentos y
   el espacio del nombre parte la bóveda en dos. Arreglo: pasar el **id** de la
   bóveda, no el nombre (`op vault list` lo da).
+- **2026-10-11 · la `ssh` al servidor falla con «communication with agent failed».**
+  Causa: nadie contestó la ventana de aprobar de 1Password (log: `ssh authorization
+  prompt timed out`); no era el agente ni la llave. Arreglo: avisar a Pablo antes de
+  conectar y esperar su sí, sin reintentar en bucle. Detalle en
+  `.claude/skills/1password/referencias/ssh-sin-aprobar.md`.
 - **2026-10-08 · al conectar por SSH sale una ventana de «Git for Windows» que
   pide algo, y la conexión se queda colgada.** Causa: la `ssh` que trae Git Bash
   no habla con el agente de 1Password (que escucha en la tubería de Windows).
@@ -185,7 +207,7 @@ escritorio y qué no, y qué hace la guardia), están en `.claude/skills/1passwo
 
 Plan Familias en prueba (desde cuándo, en «Fechas» de Fuentes y comprobación): hay que decidir antes de que
 acabe si se paga. Las service accounts tienen su propio límite de peticiones
-por hora; no se ha tocado con 16 claves. Una service account solo lee las
+por hora; ya se agotó una vez (ver «Lo que falló»). Una service account solo lee las
 bóvedas que se le dieron al crearla: para dar otra hay que crear una nueva.
 
 ## Fuentes y comprobación

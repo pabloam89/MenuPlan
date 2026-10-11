@@ -32,6 +32,7 @@ import { RASTRO } from "../../src/lib/rastro.js";
 import { hoyDeCasa, isoDeCasa, DIAS_FINDE } from "../../src/lib/dias.js";
 import { conRecordatorioDeSilencio } from "../../src/lib/alergiasBase.js";
 import { apuntarRecordatorio } from "./silencio.js";
+import { listaParaEscribir } from "../../src/lib/vocabularios.js";
 
 const hoyISO = () => isoDeCasa();
 const indiceHoy = () => hoyDeCasa().indice;
@@ -249,7 +250,7 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
       m.weekToRow(dueno, menu.id, startISO, week, householdId),
       // Con el dueño del menú nuevo: la semana pudo guardarla un cotitular, y
       // la FK (user_id, menu_id) → user_menus la rechazaría.
-      ...semanasQueSeQuedan.map((w) => ({ ...w, user_id: dueno, menu_id: menu.id })),
+      ...semanasQueSeQuedan.map((w) => ({ ...w, user_id: dueno, menu_id: menu.id, active_days: listaParaEscribir("dias", w.active_days) })),
     ]);
     const porReceta = new Map(recetasQueSeQuedan.map((f) => [f.recipe_id, f.recipe_snapshot]));
     for (const r of recipes) if (r?.id) porReceta.set(r.id, r);

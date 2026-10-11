@@ -1,0 +1,33 @@
+{
+  "id": "libertad-ajustada",
+  "capa": "subjetiva",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Libertad ajustada",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "ajustar la libertad de cada instrucción a lo frágil que es la tarea",
+  "cumple": "donde un error cuesta caro (un borrado, una clave) hay pasos exactos o un script, y donde no, una heurística",
+  "no_cumple": "hay pasos rígidos en lo abierto o vaguedad en lo irreversible",
+  "fuente": "[F] https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+  "control": "juicio",
+  "codigo": null,
+  "casos_calibracion": [
+    {
+      "texto": "Para borrar una carpeta: pasos exactos en orden y el comando listo; para elegir un nombre de rama: criterio libre.",
+      "esperado": "cumple"
+    },
+    {
+      "texto": "Para borrar una carpeta: «hazlo con cuidado como veas»; para nombrar una rama: seis pasos rígidos.",
+      "esperado": "no_cumple"
+    },
+    {
+      "texto": "Rotar una clave en cinco pasos exactos, incluido el texto literal del mensaje del commit.",
+      "esperado": "no_cumple",
+      "frontera": true,
+      "nota": "La rotación sí pide pasos exactos, pero fijar hasta el mensaje del commit es rigidez en lo abierto."
+    }
+  ]
+}

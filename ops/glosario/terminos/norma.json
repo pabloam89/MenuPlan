@@ -1,0 +1,17 @@
+{
+  "termino": "norma",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Una obligación del proceso que está registrada en ops/normas.json, con quién la hace cumplir, su dureza y su test.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "regla"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/normas.mjs",
+    "clave": "EJECUTORES"
+  }
+}

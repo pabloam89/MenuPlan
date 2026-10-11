@@ -1,0 +1,16 @@
+{
+  "termino": "hook",
+  "estado": "activo",
+  "clase": "artefacto",
+  "definicion": "Un script de .claude/hooks/ que Claude Code lanza solo en un momento fijo: al arrancar, antes de un comando, tras editar o al terminar.",
+  "sinonimos_prohibidos": [
+    "gancho",
+    "ganchos"
+  ],
+  "aplica_a": [
+    "todas"
+  ],
+  "estrecho": [
+    "guardia"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "termino": "mecanismo",
+  "estado": "activo",
+  "clase": "campo",
+  "definicion": "Una forma de hacer cumplir algo que está en el catálogo ops/mecanismos.json; el arreglo elige el más alto posible.",
+  "sinonimos_prohibidos": [],
+  "aplica_a": [
+    "todas"
+  ],
+  "relacionado": [
+    "arreglo",
+    "barrera"
+  ],
+  "ref": {
+    "fichero": "scripts/lib/mecanismos.mjs",
+    "clave": "MECANISMOS_PEDIDOS"
+  },
+  "nota": "En la ficha del fondo, el campo mecanismo guarda la causa: dos significados fijados en código, decisión pendiente."
+}

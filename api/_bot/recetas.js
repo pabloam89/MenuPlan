@@ -31,6 +31,7 @@ import { RASTRO, ORIGEN_RECETA } from "../../src/lib/rastro.js";
 import { SYSTEM_PROMPTS } from "../_prompts.js";
 import { buscarHibrido, pasaRasgos } from "./buscador.js";
 import { rasgosDeFrase } from "../../src/lib/rasgosBusqueda.js";
+import { paraEscribir } from "../../src/lib/vocabularios.js";
 
 // Las carpetas del recetario de la app (CATEGORY_META en CatalogBrowserSheet).
 // Los bebés van partidos por etapa, como allí.
@@ -196,7 +197,7 @@ export async function apartarFotoPlato(householdId, chat) {
   const url = await subirFoto(dueno, `bot_${Date.now().toString(36)}`, chat.adjunto).catch(fallaCon("recetas_subir_foto", null));
   if (!url) return "No he podido guardar la foto. Que la manden otra vez.";
   await insert("bot_messages", [{
-    channel: chat.channel, chat_id: String(chat.chatId), household_id: householdId,
+    channel: paraEscribir("canales", chat.channel), chat_id: String(chat.chatId), household_id: householdId,
     role: "assistant", author_id: null, content: { texto: "", tipo: TIPO_FOTO, url },
   }]);
   return "Foto del plato apartada: irá con la receta cuando la prepares (usarFoto = true).";
@@ -287,7 +288,7 @@ export async function prepararReceta(householdId, datos, chat) {
   });
 
   await insert("bot_messages", [{
-    channel: chat.channel, chat_id: String(chat.chatId), household_id: householdId,
+    channel: paraEscribir("canales", chat.channel), chat_id: String(chat.chatId), household_id: householdId,
     role: "assistant", author_id: null, content: { texto: "", tipo: TIPO_BORRADOR, receta },
   }]);
 

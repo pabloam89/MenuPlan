@@ -1,0 +1,15 @@
+{
+  "id": "skill-muerta",
+  "capa": "material",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Skills que existen",
+  "sujeto": "skill.cuerpo",
+  "fuerza": "debe",
+  "exigencia": "nombrar tras la palabra «skill» solo skills que existen",
+  "fuente": "[I] scripts/lib/higieneSkills.mjs",
+  "control": "scripts/higiene-skills.test.js",
+  "codigo": "skill-muerta"
+}

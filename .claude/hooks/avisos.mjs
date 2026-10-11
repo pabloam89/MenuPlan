@@ -24,6 +24,7 @@ import { pathToFileURL } from "node:url";
 
 import { issuesQueNombran } from "../../scripts/lib/issues.mjs";
 import { limpiarTexto } from "../../scripts/lib/textoExterno.mjs";
+import { registrarGh } from "../../scripts/lib/cuotaGh.mjs";
 
 const VIDA_CACHE = 10 * 60 * 1000;
 
@@ -59,7 +60,8 @@ if (esPrincipal) {
     if (existsSync(cache) && Date.now() - statSync(cache).mtimeMs < VIDA_CACHE) {
       issues = JSON.parse(readFileSync(cache, "utf8"));
     } else {
-      issues = JSON.parse(execFileSync("gh", ["issue", "list", "--state", "open", "--limit", "300", "--json", "number,title,body,state"], {
+      registrarGh("avisos", ["issue", "list"]);
+      issues = JSON.parse(execFileSync("gh", ["issue", "list", "--state", "open", "--limit", "300", "--json", "number,title,body,state"], { windowsHide: true,
         cwd: entrada.cwd || process.cwd(), encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15000,
       }));
       writeFileSync(cache, JSON.stringify(issues));

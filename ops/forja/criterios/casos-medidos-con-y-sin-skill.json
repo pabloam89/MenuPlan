@@ -1,0 +1,36 @@
+{
+  "id": "casos-medidos-con-y-sin-skill",
+  "capa": "subjetiva",
+  "aplica_a": [
+    "skill"
+  ],
+  "tipos": "todos",
+  "nombre": "Casos medidos con y sin",
+  "sujeto": "skill.casos",
+  "fuerza": "debe",
+  "exigencia": "escribirse antes que el texto y medirse con más de una ejecución, para saber si la skill mejora sobre el modelo solo",
+  "cumple": "hay cifra con y sin skill",
+  "no_cumple": "solo se probó una vez con la skill puesta",
+  "nota": "Hoy no existe la medida automática con y sin skill: el nivel 2 mide solo con ella. Cifra de partida (comprobaciones del nivel 2, 10 oct 2026): higiene-de-skills cumple 5 de 12 y forja-de-skills 12 de 16",
+  "fuente": "[F] https://agentskills.io/skill-creation/evaluating-skills",
+  "control": "juicio",
+  "codigo": null,
+  "pendiente_de": "#517",
+  "motivo_pendiente": "falta_herramienta",
+  "casos_calibracion": [
+    {
+      "texto": "Se midió el mismo caso con y sin la skill, diez ejecuciones cada vez: 9 de 10 frente a 4 de 10.",
+      "esperado": "cumple"
+    },
+    {
+      "texto": "Lo probé una vez con la skill y salió bien.",
+      "esperado": "no_cumple"
+    },
+    {
+      "texto": "Se midió con y sin la skill, solo dos ejecuciones por lado: 2 de 2 frente a 1 de 2.",
+      "esperado": "cumple",
+      "frontera": true,
+      "nota": "Muestra pobre, pero cumple la letra de la rúbrica: hay cifra con y sin skill y más de una ejecución."
+    }
+  ]
+}
