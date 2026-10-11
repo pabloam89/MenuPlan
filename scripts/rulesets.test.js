@@ -59,6 +59,10 @@ describe("lo deseado", () => {
   it("main (b): regla update, con bypass solo del rol Administrador y solo por PR", () => {
     expect(solo.name).toBe(NOMBRE_MAIN_SOLO);
     expect(solo.rules.map((r) => r.type)).toEqual(["update"]);
+    // GitHub no guarda update_allows_fetch_and_merge y devuelve {} (visto el 11 oct 2026): desearlo hacía fallar la comprobación posterior
+    expect(solo.rules[0].parameters).toEqual({});
+    const devuelto = { id: 9, ...structuredClone(solo) };
+    expect(diferencias(devuelto, solo)).toEqual([]);
     // 5 es el id del rol Administrador en la API de GitHub (literal a propósito: el test no copia el del script)
     expect(solo.bypass_actors).toEqual([{ actor_id: 5, actor_type: "RepositoryRole", bypass_mode: "pull_request" }]);
   });

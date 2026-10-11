@@ -61,8 +61,8 @@ export function deseados() {
   return [
     rama(NOMBRE_MAIN, "main", [revision(), checks()], []),
     // «update»: solo quien tiene bypass actualiza la rama; el rol Administrador, y solo por PR.
-    // Sin comprobar a 10 oct 2026: el nombre exacto del parámetro (update_allows_fetch_and_merge).
-    rama(NOMBRE_MAIN_SOLO, "main", [{ type: "update", parameters: { update_allows_fetch_and_merge: false } }],
+    // Comprobado el 11 oct 2026: GitHub no guarda ningún parámetro en `update` (devuelve {}); se desea sin ellos.
+    rama(NOMBRE_MAIN_SOLO, "main", [{ type: "update", parameters: {} }],
       [{ actor_id: ROL_ADMIN, actor_type: "RepositoryRole", bypass_mode: "pull_request" }]),
     // La excepción de la deploy key (el cron de Mercadona empuja con ella) se mantiene tal cual.
     rama(NOMBRE_STAGING, "staging", [checks()], [{ actor_id: null, actor_type: "DeployKey", bypass_mode: "always" }]),

@@ -56,9 +56,9 @@ Desde una terminal suya, con `gh auth status` como `pabloam89` (administrador):
 5. Deshacer: Settings → Rules → Rulesets → desactivar «main: PR y tests» y «main:
    solo Pablo fusiona».
 
-Sin comprobar a 11 oct 2026: el nombre exacto del parámetro de la regla `update`
-(`update_allows_fetch_and_merge`) y que el ruleset 24770007 de hoy en GitHub ya
-cuadre con lo deseado.
+Comprobado el 11 oct 2026 al aplicarlos: GitHub no guarda ningún parámetro en la
+regla `update` (devuelve `{}`), así que se desea sin ellos; `staging` quedó sin
+regla `pull_request`.
 
 ## Estado a 11 oct 2026 y orden de aplicación
 
