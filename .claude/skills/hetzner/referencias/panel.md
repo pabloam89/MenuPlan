@@ -57,5 +57,5 @@ Comprobar: `curl http://100.73.252.32:8080/<vista>` devuelve 200.
 - **2026-10-11 · el despliegue de `/diseno` dejó el contenedor reiniciándose en bucle.**
   Causa: el `Dockerfile` copia los `.mjs` uno a uno y no incluía el nuevo `markdown.mjs`;
   el script daba `FIN ok` aunque el servidor no arrancaba. Arreglo: añadirlo, y un test del
-  repo del panel que exige todos los `.mjs` de la raíz en el `Dockerfile` (visto fallar sin
+  repo del panel que comprueba que el `Dockerfile` copia todos los `.mjs` de la raíz (visto fallar sin
   la línea). Tras desplegar, comprobar con `curl` que la vista responde 200; `FIN ok` no basta.
