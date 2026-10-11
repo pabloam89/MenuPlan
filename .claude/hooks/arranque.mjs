@@ -131,7 +131,7 @@ try {
 const identidad = aplicarIdentidad();
 // Los cupos compartidos (GitHub y 1Password, #578): también en paralelo, con su caché de 5 min
 // y su tope de 4 s. Nunca lanza; callada si todo va por debajo del 80 %.
-const cupos = avisoDeCupos();
+const cupos = avisoDeCupos({ despuesDe: identidad });
 
 // ── Staging y migraciones ──────────────────────────────────────────────────
 const prs = pedirPrs(raiz, 10_000); // a la vez que el fetch: los dos son red, y gh es el lento

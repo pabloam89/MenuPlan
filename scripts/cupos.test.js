@@ -1,11 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it, vi } from "vitest";
 
-import { CUPOS, MOTIVOS_CUPO, TTL_CUPOS_MIN, UMBRAL_CUPO, avisoDeCupos, lineaDeCupos, motivoDeFallo, parsearGh, parsearOp, porcentaje } from "./lib/cupos.mjs";
+import { CUPOS, IDENTIDADES_CUPO, MOTIVOS_CUPO, TTL_CUPOS_MIN, UMBRAL_CUPO, avisoDeCupos, contarCupos, identidadDelEntorno, lineaDeCupos, motivoDeFallo, parsearGh, parsearOp, porcentaje } from "./lib/cupos.mjs";
 
 const AHORA = Date.now();
 const MIN = 60_000;
@@ -26,7 +26,7 @@ const dirNuevo = () => {
 afterAll(() => dirs.forEach((d) => rmSync(d, { recursive: true, force: true })));
 
 /** Un arranque con las dos consultas de mentira. */
-const arranque = (gh, op, extra = {}) => avisoDeCupos({ gh, op, dir: dirNuevo(), ahora: AHORA, registrar: () => {}, ...extra });
+const arranque = (gh, op, extra = {}) => avisoDeCupos({ gh, op, ghApp: async () => { throw Object.assign(new Error("sin-token"), { motivoCupo: "sin-token" }); }, identidad: "pablo", dir: dirNuevo(), ahora: AHORA, registrar: () => {}, ...extra });
 
 describe("leer las dos fuentes", () => {
   it("la tabla de 1Password real da el cupo del token (lectura) y el de la cuenta, con el reinicio absoluto; la escritura no cuenta", () => {
@@ -53,6 +53,92 @@ describe("leer las dos fuentes", () => {
     for (const m of [e({ code: "ENOENT" }), e({ stderr: "Too many requests" }), e({ stderr: "gh auth login" }), e({ killed: true }), e({ motivoCupo: "formato-raro" }), motivoDeFallo({ code: "ENOENT" }, "1password")]) expect(MOTIVOS_CUPO).toContain(m);
     expect(motivoDeFallo({ code: "ENOENT" }, "1password")).toBe("sin-op");
     expect(e({ code: "ENOENT" })).toBe("sin-gh");
+  });
+});
+
+describe("motivo sin-token y el hijo de op", () => {
+  it("la falta de token de la service account (texto de entornoOp o código SIN_TOKEN) es sin-token, no sin-respuesta", () => {
+    const e = new Error("Command failed: op\nno hay token de la service account (ni el entorno ni el llavero)");
+    expect(motivoDeFallo(e, "1password")).toBe("sin-token");
+    expect(motivoDeFallo({ code: "SIN_TOKEN", message: "x" }, "1password")).toBe("sin-token");
+    expect(motivoDeFallo(new Error("otra cosa"), "1password")).toBe("sin-respuesta");
+  });
+
+  it("op se lanza directo (no por op.mjs ni con stdio), para que el tope mate a op mismo", () => {
+    const src = readFileSync(fileURLToPath(new URL("./lib/cupos.mjs", import.meta.url)), "utf8");
+    expect(src).toMatch(/lanzar\("op", \["service-account", "ratelimit"\]/);
+    expect(src).not.toContain('op.mjs"');
+    expect(src).not.toMatch(/stdio:/);
+  });
+});
+
+describe("la identidad de gh no se mezcla", () => {
+  it("sin GH_TOKEN es pablo; con él, app; y las dos están en el vocabulario", () => {
+    expect(identidadDelEntorno({})).toBe("pablo");
+    expect(identidadDelEntorno({ GH_TOKEN: "x" })).toBe("app");
+    expect(IDENTIDADES_CUPO).toEqual(["pablo", "app"]);
+  });
+
+  it("la caché de Pablo y la de la App son ficheros distintos: una no responde por la otra", async () => {
+    const dir = dirNuevo();
+    const ghApp = vi.fn(async () => jsonGh(10, 100));
+    const base = { op: async () => tablaOp(1, 1), ghApp, dir, ahora: AHORA, registrar: () => {} };
+    // un arranque con la App en el entorno deja su lectura (baja) en la caché de la App
+    expect(await avisoDeCupos({ ...base, gh: async () => jsonGh(10, 100), identidad: "app" })).toBeNull();
+    // otro arranque, como Pablo, con GraphQL alto: la caché de la App no responde por él
+    const ghPablo = vi.fn(async () => jsonGh(10, 4900));
+    expect(await avisoDeCupos({ ...base, ahora: AHORA + MIN, gh: ghPablo, identidad: "pablo" })).toMatch(/identidad: pablo uso: 98 %/);
+    expect(ghPablo).toHaveBeenCalledTimes(1);
+  });
+
+  it("la línea dice de qué identidad es el cupo; sin token de la App guardado, no dice nada de ella", async () => {
+    const l = await arranque(async () => jsonGh(10, 4500), async () => tablaOp(1, 1));
+    expect(l).toContain("cupo: github-graphql identidad: pablo uso: 90 %");
+    expect(l).not.toContain("github-app");
+    expect(l).not.toContain("sin ver");
+  });
+
+  it("espera a la identidad del arranque antes de mirar el token de la App, con tope", async () => {
+    const orden = [];
+    let suelta;
+    const despuesDe = new Promise((ok) => (suelta = ok));
+    const ghApp = async () => { orden.push("app"); return jsonGh(0, 4500); };
+    const base = { gh: async () => jsonGh(0, 0), ghApp, op: async () => tablaOp(0, 0), identidad: "pablo", ahora: AHORA, registrar: () => {} };
+    const p = avisoDeCupos({ ...base, dir: dirNuevo(), despuesDe });
+    await new Promise((r) => setTimeout(r, 30));
+    expect(orden).toEqual([]);
+    orden.push("identidad");
+    suelta();
+    expect(await p).toMatch(/identidad: app/);
+    expect(orden).toEqual(["identidad", "app"]);
+    // y si la identidad no acaba, se mide igual pasado el tope de espera
+    expect(await avisoDeCupos({ ...base, dir: dirNuevo(), despuesDe: new Promise(() => {}), esperaApp: 40 })).toMatch(/identidad: app/);
+  });
+});
+
+describe("cupos.log tiene lector (npm run cuota)", () => {
+  it("cuenta avisos por cupo e identidad y cupos sin ver por fuente y motivo", () => {
+    const t = [
+      "2026-10-11T10:00:00Z Cupos al 80 % o más (x) — cupo: github-graphql identidad: pablo uso: 88 % reinicio: 14:05 (en 30 min); cupo: 1password-cuenta uso: 95 % reinicio: 15:00 (en 2 h).",
+      "2026-10-11T10:10:00Z Cupos al 80 % o más (x) — cupo: github-graphql identidad: pablo uso: 90 % reinicio: 14:05 (en 20 min); cupo sin ver: 1password motivo: sin-token.",
+      "2026-10-11T10:20:00Z cupo sin ver: github motivo: sin-respuesta.",
+    ].join("\n");
+    expect(contarCupos(t)).toEqual({
+      "aviso github-graphql/pablo": 2,
+      "aviso 1password-cuenta": 1,
+      "sin-ver 1password/sin-token": 1,
+      "sin-ver github/sin-respuesta": 1,
+    });
+  });
+
+  it("npm run cuota existe y lo imprime", () => {
+    const pkg = JSON.parse(readFileSync(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8"));
+    expect(pkg.scripts.cuota).toBe("node scripts/cuota.mjs");
+    const dir = dirNuevo();
+    writeFileSync(join(dir, "cupos.log"), "x cupo: github-rest identidad: app uso: 99 % reinicio: 1\n");
+    const salida = execFileSync(process.execPath, [fileURLToPath(new URL("./cuota.mjs", import.meta.url))], { encoding: "utf8", env: { ...process.env, MENUPLAN_CUOTA_DIR: dir } });
+    expect(salida).toContain("aviso github-rest/app: 1");
+    expect(salida).toContain("gh.log (caller/api): sin líneas");
   });
 });
 
@@ -97,7 +183,7 @@ describe("avisoDeCupos", () => {
   it("GraphQL al 90 %: avisa aunque 1Password vaya bien", async () => {
     const l = await arranque(async () => jsonGh(10, 4500), async () => tablaOp(50, 100));
     expect(l).toMatch(/Cupos al 80 %/);
-    expect(l).toMatch(/cupo: github-graphql uso: 90 %/);
+    expect(l).toMatch(/cupo: github-graphql identidad: pablo uso: 90 %/);
     expect(l).not.toContain("1password");
   });
 
@@ -108,7 +194,7 @@ describe("avisoDeCupos", () => {
 
   it("si no se puede leer un cupo, no falla: lo dice con un motivo y sigue con el otro", async () => {
     const l = await arranque(async () => jsonGh(10, 4600), async () => { throw Object.assign(new Error("x"), { code: "ENOENT" }); });
-    expect(l).toContain("cupo: github-graphql uso: 92 %");
+    expect(l).toContain("cupo: github-graphql identidad: pablo uso: 92 %");
     expect(l).toContain("cupo sin ver: 1password motivo: sin-op");
   });
 
@@ -167,8 +253,8 @@ describe("el arranque", () => {
     const ruta = fileURLToPath(new URL("../.claude/hooks/arranque.mjs", import.meta.url));
     execFileSync(process.execPath, ["--check", ruta]);
     const src = readFileSync(ruta, "utf8");
-    expect(src).toContain("const cupos = avisoDeCupos()");
+    expect(src).toContain("const cupos = avisoDeCupos({ despuesDe: identidad })");
     expect(src).toContain("await cupos");
-    expect(src.indexOf("const cupos = avisoDeCupos()")).toBeLessThan(src.indexOf('git("fetch"'));
+    expect(src.indexOf("const cupos = avisoDeCupos({ despuesDe: identidad })")).toBeLessThan(src.indexOf('git("fetch"'));
   });
 });
