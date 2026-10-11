@@ -129,6 +129,8 @@ const TABLA = [
   ["metricas", "scripts/lib/x.mjs", "ops/metricas.test.js"],
   ["workflows-yaml", ".github/workflows/x.yml", "ops/workflows.test.js"],
   ["una-escala-y-una-escalera", "ops/flujo.json", "ops/escalas.test.js"],
+  ["tipos-de-encargo", "ops/tipos-de-encargo.json", "ops/tipos-de-encargo.test.js"],
+  ["tipos-de-encargo", ".claude/agents/x.md", "ops/tipos-de-encargo.test.js"],
 ];
 
 describe("tabla: ruta de ejemplo → vigilante que debe salir", () => {
