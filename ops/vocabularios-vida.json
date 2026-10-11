@@ -226,6 +226,25 @@
       "tokens": "tokens de modelo",
       "nivel": "el nivel de un plano, de 0 a 4"
     },
+    "normas.ambito": {
+      "codigo": "El código del repo en general: tests, lint y forma de los ficheros",
+      "infra": "Git, ramas, CI, despliegues, secretos, permisos y servicios",
+      "datos": "La base: tablas, migraciones, roles, copias y vocabularios",
+      "catalogo": "El catálogo de recetas y alimentos que vive en git",
+      "bot": "Lola, el bot de mensajería, sus evals y su coste",
+      "api": "Las funciones de api/ y lo que protegen",
+      "ui": "Las pantallas de la app",
+      "proceso": "Cómo se trabaja: issues, fondos, PR, sesiones, agentes y skills"
+    },
+    "principios.area": {
+      "codigo": "Cómo se escribe y se prueba el código del repo, lo haga una persona o un agente",
+      "infra": "Identidades, permisos, secretos, despliegues, copias y servicios",
+      "datos": "Cómo son las tablas, las migraciones y cada dato de la base",
+      "producto": "Qué hace bien HoMenu y Lola para las familias, con su fuente",
+      "proceso": "Cómo se trabaja: fallos, fondos, cifras, jueces y quién decide",
+      "redaccion": "Cómo se escribe una regla de la casa para que se pueda contar y comparar",
+      "entidades": "Cómo se nombra, se identifica y se registra cada cosa del proyecto"
+    },
     "producto.acciones_alergias": {
       "apuntada": "",
       "recordada": ""

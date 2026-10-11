@@ -31,6 +31,7 @@ const DURA = {
   id: "ejemplo", nombre: "Tope de ejemplo", sujeto: "endpoint", fuerza: "debe", exigencia: "aplicar un tope diario",
   donde: ["CLAUDE.md"], ejecutor: "codigo_en_ejecucion", alcance: "todos", ante_fallo: "cerrado",
   control: "api/_guard.test.js", control_tipo: "test", test_fallo: { ruta: "api/_guard.test.js", caso: "sin_redis" }, veredicto: "dura", riesgo: "alto", issue: null,
+  principio: "bounded-blast-radius", ambito: "api", acciones: ["construir"],
 };
 
 describe("vocabulario de normas", () => {
@@ -267,6 +268,10 @@ describe("la plantilla de regla en cada norma (#494)", () => {
     ["un tipo «planos» sin su criterio", { control: "ops/planos.json", control_tipo: "planos" }, /lleva «criterio_planos»/],
     ["un criterio de planos sin ser de planos", { criterio_planos: "check_obligatorio:main" }, /solo con control_tipo «planos»/],
     ["un campo desconocido", { texto_viejo: "x" }, /campo desconocido/],
+    ["un principio que no es un id", { principio: "Un principio" }, /«principio» es el id/],
+    ["un ámbito fuera de su vocabulario", { ambito: "marketing" }, /ambito «marketing»/],
+    ["sin acciones", { acciones: [] }, /«acciones» es una lista/],
+    ["una acción repetida", { acciones: ["construir", "construir"] }, /repite una acción/],
   ])("falla con %s", (_, cambios, trozo) => expect(problemas(cambios).join("\n")).toMatch(trozo));
 
   it("un sujeto que ninguna norma usa falla: no se infla la lista", () => {
