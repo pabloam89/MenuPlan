@@ -61,7 +61,7 @@ export function tokenServicio() {
       + ` $c = (New-Object Windows.Security.Credentials.PasswordVault).Retrieve('${LLAVERO.recurso}', '${LLAVERO.usuario}');`
       + " $c.RetrievePassword(); [Console]::Out.Write($c.Password)";
     try {
-      token = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() || null;
+      token = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { windowsHide: true, encoding: "utf8", timeout: 5000, stdio: ["ignore", "pipe", "ignore"] }).trim() || null;
     } catch {
       // a propósito: sin token en el llavero; entornoOp falla cerrado con su mensaje (#328)
       token = null;

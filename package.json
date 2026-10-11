@@ -35,6 +35,7 @@
     "vecinos": "node scripts/vecinos.mjs",
     "podar": "node scripts/podar.mjs",
     "issues": "node scripts/issues.mjs",
+    "cuota": "node scripts/cuota.mjs",
     "espera-ci": "node scripts/espera-ci.mjs",
     "buscar": "node scripts/buscar.mjs",
     "normas": "node scripts/normas.mjs",

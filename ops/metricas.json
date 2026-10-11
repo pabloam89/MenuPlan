@@ -338,6 +338,42 @@
           "menciona": "npm run detector-identidades"
         }
       ]
+    },
+    {
+      "firma": "cupo",
+      "emisores": [
+        "scripts/lib/cupos.mjs"
+      ],
+      "campos": {
+        "cupo": "id",
+        "identidad": "estado",
+        "uso": "derivado",
+        "reinicio": "texto"
+      },
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/cuota.mjs",
+          "menciona": "contarCupos"
+        }
+      ]
+    },
+    {
+      "firma": "cupo sin ver",
+      "emisores": [
+        "scripts/lib/cupos.mjs"
+      ],
+      "campos": {
+        "ver": "id",
+        "motivo": "estado"
+      },
+      "lectores": [
+        {
+          "tipo": "script",
+          "ref": "scripts/cuota.mjs",
+          "menciona": "contarCupos"
+        }
+      ]
     }
   ],
   "informes": {
