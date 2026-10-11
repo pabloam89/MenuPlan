@@ -4,7 +4,12 @@
   "nombre": "Recursos con dueño y caducidad",
   "enunciado": "Cada recurso, sea una clave, una skill o un servicio, tiene dueño y caducidad, y avisa antes de caducar.",
   "porque": "Lo que no tiene dueño nadie lo renueva, y lo que caduca sin aviso se rompe un día cualquiera.",
-  "fuente": "[I] ops/recursos.json",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "ops/recursos.json"
+    }
+  ],
   "origen": [
     "I9"
   ]

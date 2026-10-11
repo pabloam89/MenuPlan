@@ -1,10 +1,15 @@
 {
   "id": "state-read-at-source",
-  "area": "codigo",
+  "area": "code",
   "nombre": "Estado leído en su fuente",
   "enunciado": "Una sesión da un estado por cierto solo tras leerlo en su fuente en ese momento, no de memoria.",
   "porque": "Varias sesiones cambian el mismo repo a la vez, y lo que era cierto hace una hora puede no serlo ya.",
-  "fuente": "[I] .claude/hooks/pendientes.mjs",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": ".claude/hooks/pendientes.mjs"
+    }
+  ],
   "origen": [
     "C9"
   ]

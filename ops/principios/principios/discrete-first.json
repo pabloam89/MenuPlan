@@ -1,12 +1,16 @@
 {
   "id": "discrete-first",
-  "area": "entidades",
+  "area": "entities",
   "nombre": "Discreto primero",
   "enunciado": "Lo que se cuenta, se filtra o se agrupa toma valores discretos, y el texto libre ocupa solo un hueco declarado.",
   "porque": "Lo discreto se cuenta y se compara solo, y el texto libre se lee entero cada vez.",
-  "fuente": "[F] https://google.aip.dev/126",
+  "fuentes": [
+    {
+      "marca": "F",
+      "url": "https://google.aip.dev/126"
+    }
+  ],
   "detalle": [
-    "CLAUDE.md#pensar-en-datos",
     "docs/entidades/N0-principios.md#3-valores-discretos-en-los-atributos-texto-libre-solo-de-respaldo"
   ],
   "origen": [

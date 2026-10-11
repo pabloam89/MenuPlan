@@ -1,10 +1,15 @@
 {
   "id": "health-data-apart",
-  "area": "datos",
+  "area": "data",
   "nombre": "Datos de salud aparte",
   "enunciado": "Las alergias, las intolerancias, las dietas médicas y las medidas del cuerpo se marcan como datos de salud y se tratan aparte.",
   "porque": "Son categoría especial del RGPD, y exponerlos o copiarlos de más es el daño más grave que puede hacer el producto.",
-  "fuente": "[F] https://gdpr-info.eu/art-9-gdpr/",
+  "fuentes": [
+    {
+      "marca": "F",
+      "url": "https://gdpr-info.eu/art-9-gdpr/"
+    }
+  ],
   "detalle": [
     "docs/datos/PRINCIPIOS.md#17-datos-de-salud"
   ]

@@ -4,7 +4,12 @@
   "nombre": "Nadie amplía su propio permiso",
   "enunciado": "Una persona cambia los permisos, los secretos y los ajustes de los servicios, nunca quien los usa.",
   "porque": "Si quien actúa puede darse más permisos, cualquier límite que tenga es solo una sugerencia.",
-  "fuente": "[I] CLAUDE.md",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "CLAUDE.md"
+    }
+  ],
   "detalle": [
     "CLAUDE.md#qué-se-le-pregunta-a-pablo-y-qué-no"
   ],

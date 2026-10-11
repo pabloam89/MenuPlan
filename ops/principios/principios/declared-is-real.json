@@ -4,7 +4,12 @@
   "nombre": "Lo declarado es lo real",
   "enunciado": "Lo que el repo declara de la infraestructura se compara cada cierto tiempo con lo que hay de verdad.",
   "porque": "Un registro que nadie compara con la realidad acaba mintiendo, y se decide con datos falsos.",
-  "fuente": "[I] scripts/verificar-estado.mjs",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "scripts/verificar-estado.mjs"
+    }
+  ],
   "origen": [
     "I8"
   ]

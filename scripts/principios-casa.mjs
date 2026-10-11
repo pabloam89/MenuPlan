@@ -12,6 +12,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { AMBITOS } from "./lib/ambitos.mjs";
 import { leerRegistro } from "./lib/normas.mjs";
 import { RUTA_MD, cifras, generarMd, leerPrincipiosCasa, lineaDe, normasPorPrincipio } from "./lib/principios.mjs";
 
@@ -31,19 +32,21 @@ if (pedido) {
   const porId = datos.principios.find((p) => p.id === pedido);
   const lista = porId ? [porId] : datos.principios.filter((p) => p.area === pedido);
   if (!lista.length) {
-    console.error(`«${pedido}» no es un id ni un área. Áreas: ${Object.keys(datos.areas).join(", ")}.`);
+    console.error(`«${pedido}» no es un id ni un área. Áreas: ${Object.keys(AMBITOS).join(", ")}.`);
     process.exitCode = 1;
   }
   for (const p of lista) {
     console.log(lineaDe(p));
     if (porId) {
       if (p.porque) console.log(`  porqué: ${p.porque}`);
-      console.log(`  fuente: ${p.fuente}`);
+      console.log(`  fuentes: ${p.fuentes.map((f) => `[${f.marca}] ${f.url ?? f.ruta}`).join(" ; ")}`);
+      if (p.puente) console.log(`  puente: ${p.puente}`);
       if (p.detalle.length) console.log(`  detalle: ${p.detalle.join(" ; ")}`);
       if (p.origen.length) console.log(`  origen: ${p.origen.join(", ")}`);
     }
     const ns = porPrincipio[p.id] ?? [];
-    console.log(`  normas: ${ns.length ? ns.join(", ") : `ninguna (${datos.sin_norma[p.id] ?? "sin motivo"})`}`);
+    const motivo = datos.sin_norma[p.id] ?? datos.delegados[p.area]?.sin_norma?.motivo ?? "sin motivo";
+    console.log(`  normas: ${ns.length ? ns.join(", ") : `ninguna (${motivo})`}`);
   }
 } else {
   const filas = cifras(datos);

@@ -132,11 +132,11 @@ Marca de la fuente: **[F]** está en una fuente externa (con su URL); **[I]** es
 |---|---|---|---|---|
 | `ops/forja/` | regla | cumple | 74 | - |
 | `ops/redaccion.json` | regla | cumple | 16 | - |
-| `ops/normas.json` | regla | cumple | 118 | - |
+| `ops/normas.json` | regla | cumple | 126 | - |
 | `ops/flujo.json` | regla | cumple | 53 | - |
 | `ops/estandares-agentes.json` | regla | cumple | 219 | - |
 | `ops/principios-producto/` | regla | cumple | 40 | - |
-| `ops/principios/` | principio | cumple | 58 | - |
+| `ops/principios/` | principio | cumple | 56 | - |
 
 - cumple: Cada entrada pasa las comprobaciones de regla.mjs.
 - pendiente: Aún no sigue la guía; lleva el encargo que lo pone al día y la lista solo baja.

@@ -1,53 +1,46 @@
 {
-  "$comentario": "La lista única de principios de la casa (#619, fondo #618). Un principio es el porqué: de él salen las normas de ops/normas.json (lo que debe ser verdad, con control), y de las normas, los estándares de tarea (ops/estandares-agentes.json). Un fichero por principio en principios/ (#505), con forma fija: id (en inglés), area (vocabulario de abajo), nombre, enunciado, porque, fuente ([F] https://… o [I] ruta del repo) y, si hay, detalle (rutas#sección donde se desarrolla) y origen (de qué lista vino: C1…C12, I1…I10, N1…N7 de la auditoría de agentes, o claude:<id> de «Pensar en datos»). Los catálogos que ya tienen su test y su skill no se copian: se delegan y el lector los lee de su sitio (delegados); a un principio delegado se le añade aquí solo su detalle u origen (anexos). principios_sin_norma: los principios que aún no cita ninguna norma, con su motivo; la lista solo baja. Lo lee scripts/lib/principios.mjs, lo vigilan ops/principios.test.js y ops/uniones.test.js, y de él sale docs/PRINCIPIOS.md (npm run principios-casa -- --escribir).",
-  "version": 1,
-  "areas": {
-    "codigo": {
-      "legible": "código",
-      "que": "Cómo se escribe y se prueba el código del repo, lo haga una persona o un agente"
-    },
-    "infra": {
-      "legible": "infraestructura",
-      "que": "Identidades, permisos, secretos, despliegues, copias y servicios"
-    },
-    "datos": {
-      "legible": "datos",
-      "que": "Cómo son las tablas, las migraciones y cada dato de la base"
-    },
-    "producto": {
-      "legible": "producto",
-      "que": "Qué hace bien HoMenu y Lola para las familias, con su fuente"
-    },
-    "proceso": {
-      "legible": "proceso",
-      "que": "Cómo se trabaja: fallos, fondos, cifras, jueces y quién decide"
-    },
-    "redaccion": {
-      "legible": "redacción",
-      "que": "Cómo se escribe una regla de la casa para que se pueda contar y comparar"
-    },
-    "entidades": {
-      "legible": "entidades",
-      "que": "Cómo se nombra, se identifica y se registra cada cosa del proyecto"
-    }
-  },
+  "$comentario": "La lista única de principios de la casa (#619, fondo #618). Un principio es el porqué: de él salen las normas de ops/normas.json (lo que debe ser verdad, con control), y de las normas, los estándares de tarea (ops/estandares-agentes.json). Un fichero por principio en principios/ (#505), con la plantilla de principio de scripts/lib/regla.mjs: id (en inglés), area (AMBITOS de scripts/lib/ambitos.mjs, el mismo vocabulario que el ámbito de una norma), nombre, enunciado y porque de una frase, fuentes ({marca, url} con F, la fuente lo dice, o I, inferencia nuestra; {marca: C, ruta} si está escrito en la casa) y, si hay, detalle (rutas#sección donde se desarrolla; esa sección cita el id) y origen (de qué lista vino: C1…C12, I1…I10, N1…N7 de la auditoría de agentes, o claude:<id> de «Pensar en datos»). Los catálogos que ya tienen su test y su skill no se copian: se delegan y el lector los lee de su sitio (delegados); sus principios llevan fuerza y control en su catálogo, así que los que no cita ninguna norma cuentan como cubiertos por él, con su motivo y un techo por catálogo que solo baja (sin_norma). A un principio delegado se le añade aquí solo su detalle, su origen o su condición de puente entre ejes (anexos). principios_sin_norma: los propios que aún no cita ninguna norma, con su motivo; la lista solo baja (TECHO_SIN_NORMA). Lo lee scripts/lib/principios.mjs, lo vigilan ops/principios.test.js y ops/uniones.test.js, y de él sale docs/PRINCIPIOS.md (npm run principios-casa -- --escribir).",
+  "version": 2,
   "delegados": {
-    "producto": {
+    "product": {
       "catalogo": "ops/principios-producto/",
       "detalle": "docs/producto/PRINCIPIOS.md",
-      "que": "Los principios de producto con fuente (#606), con su test y la skill principios-de-producto"
+      "que": "Los principios de producto con fuente (#606), con su test y la skill principios-de-producto",
+      "sin_norma": {
+        "motivo": "Principio de producto con su fuerza y su control en su propio catálogo; su paso a norma va a #620",
+        "techo": 32
+      }
     },
-    "redaccion": {
+    "writing": {
       "catalogo": "ops/redaccion.json",
       "detalle": "docs/ops/REDACCION.md",
-      "que": "La guía de redacción de reglas (#493), con su test"
+      "que": "La guía de redacción de reglas (#493), con su test",
+      "sin_norma": {
+        "motivo": "Regla de escritura con su fuerza y su control en ops/redaccion.json: se aplica al redactar cada norma",
+        "techo": 16
+      }
     }
   },
   "anexos": {
+    "log-what-happens": {
+      "detalle": [
+        "docs/entidades/N0-principios.md#10-un-evento-lleva-campos-fijos"
+      ],
+      "origen": [
+        "C11",
+        "claude:cada-cosa-deja-una-linea"
+      ]
+    },
+    "secure-by-default": {
+      "detalle": [
+        "docs/datos/PRINCIPIOS.md#8-seguridad"
+      ]
+    },
     "untrusted-text-is-data": {
       "origen": [
         "N5"
-      ]
+      ],
+      "puente": "Vale igual en el producto (lo que Lola lee de una familia o de una web) y en el trabajo (issues, webs y mensajes de otros agentes)"
     },
     "idempotent-writes": {
       "detalle": [
@@ -57,66 +50,8 @@
   },
   "principios_sin_norma": {
     "axis-language-bridge": "Principio del N0 de entidades: su norma la pone el N1 de cada entidad, que aún no está escrito",
-    "fk-declares-on-delete": "Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia",
-    "health-data-apart": "Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia",
-    "household-owns-data": "Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia",
-    "json-or-table": "Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia",
     "names-have-form": "Principio del N0 de entidades: su norma la pone el N1 de cada entidad, que aún no está escrito",
-    "person-vs-identity": "Principio del N0 de entidades: su norma la pone el N1 de cada entidad, que aún no está escrito",
-    "self-describing-catalog": "Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia",
-    "status-is-state-machine": "Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia",
-    "types-and-nulls": "Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia",
-    "versioned-concurrency": "Lo cubren las normas de conjunto principios-auto y principios-revision, que miran todo docs/datos/PRINCIPIOS.md; falta una norma propia",
-    "authenticate-machine-callers": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "buttons-and-free-text": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "calibrate-not-maximise-trust": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "data-minimisation": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "easy-correction-and-undo": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "escalate-by-explicit-triggers": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "escape-hatch-when-lost": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "explain-data-use": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "explain-why": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "fail-closed-for-safety-filters": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "fixed-appetite-variable-scope": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "graceful-degradation": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "human-approval-high-impact": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "idempotent-writes": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "keep-context-no-reask": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "least-privilege-for-the-model": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "log-what-happens": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "model-output-validated": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "no-pretend-human": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "no-secrets-in-prompts-or-client": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "no-sensitive-data-in-chat-by-default": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "onboard-in-stages": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "privacy-by-default": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "purpose-limitation": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "recoverable-errors": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "scope-when-in-doubt": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "secure-by-default": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "simple-first-agents": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "state-capabilities-and-limits": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "storage-limitation": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "use-existing-channel-first": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "value-before-signup": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "visibility-of-status": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "wcag-pour": "Principio de producto con su control en su propio catálogo (ops/principios-producto/); aún no es una norma del registro",
-    "castellano-siempre": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "un-termino-por-concepto": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "sin-anglicismos-con-termino": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "fuerza-segun-rfc-2119": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "mayusculas-solo-normativas": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "condicion-estilo-ears": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "exigencia-en-infinitivo": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "exigencia-sin-punto-final": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "exigencia-corta-y-unica": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "nombre-corto-y-nominal": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "dato-contable-en-campo": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "nota-solo-para-el-matiz": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "frases-cortas": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "fuente-marcada": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "control-declarado": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro",
-    "catalogo-declara-su-estado": "Regla de escritura con su control en ops/redaccion.json: se aplica al redactar cada norma, no es una norma del registro"
+    "person-vs-identity": "Principio del N0 de entidades: su norma la pone el N1 de cada entidad, que aún no está escrito"
   },
   "principios": {
     "$partida": "lista",

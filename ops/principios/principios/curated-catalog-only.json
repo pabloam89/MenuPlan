@@ -1,10 +1,15 @@
 {
   "id": "curated-catalog-only",
-  "area": "producto",
+  "area": "catalog",
   "nombre": "Solo catálogo revisado",
   "enunciado": "El menú propone solo recetas que una persona revisó y marcó con estrella y foto, sin rellenos ni combinaciones automáticas.",
   "porque": "Un plato que nadie revisó en el menú de una familia cuesta su confianza, y eso se nota más que un menú corto.",
-  "fuente": "[I] .claude/rules/catalogo.md",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": ".claude/rules/catalogo.md"
+    }
+  ],
   "detalle": [
     ".claude/rules/catalogo.md#catálogo-alimentos-y-nutrición"
   ]

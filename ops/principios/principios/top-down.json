@@ -1,12 +1,14 @@
 {
   "id": "top-down",
-  "area": "proceso",
+  "area": "process",
   "nombre": "De arriba abajo",
   "enunciado": "La forja define qué hace buena a una pieza, la plantilla de su tipo la concreta y cada pieza sigue a su plantilla.",
   "porque": "Una pieza escrita antes que su plantilla fija una forma que luego se deshace en todas las demás.",
-  "fuente": "[I] ops/forja/",
-  "detalle": [
-    "CLAUDE.md#pensar-en-datos"
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "ops/forja/"
+    }
   ],
   "origen": [
     "claude:de-arriba-abajo"

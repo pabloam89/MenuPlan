@@ -1,10 +1,15 @@
 {
   "id": "test-is-the-contract",
-  "area": "codigo",
+  "area": "code",
   "nombre": "El test es el contrato",
   "enunciado": "Un test que corre en el CI fija lo que el código promete, y cada test nuevo se ve fallar antes de creérselo.",
   "porque": "Un test que nunca se vio en rojo puede no medir nada, y lo que no fija un test se rompe sin que nadie lo vea.",
-  "fuente": "[I] .claude/rules/tests.md",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": ".claude/rules/tests.md"
+    }
+  ],
   "detalle": [
     ".claude/rules/tests.md#tests"
   ],

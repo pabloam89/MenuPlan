@@ -1,10 +1,15 @@
 {
   "id": "pure-transformations",
-  "area": "datos",
+  "area": "data",
   "nombre": "Transformaciones en módulos puros",
   "enunciado": "Cada transformación del dominio vive en un módulo puro con tests, y la base la deriva en vez de duplicarla.",
   "porque": "Dos implementaciones de la misma cuenta acaban dando resultados distintos.",
-  "fuente": "[I] docs/datos/PRINCIPIOS.md",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "docs/datos/PRINCIPIOS.md"
+    }
+  ],
   "detalle": [
     "docs/datos/PRINCIPIOS.md#11-transformaciones"
   ]

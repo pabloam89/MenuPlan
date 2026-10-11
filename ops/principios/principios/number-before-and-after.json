@@ -1,12 +1,14 @@
 {
   "id": "number-before-and-after",
-  "area": "proceso",
+  "area": "process",
   "nombre": "La cifra antes y después",
   "enunciado": "Cada arreglo se mide con la misma cifra antes y después, y mejora solo si la diferencia supera lo que varía sola.",
   "porque": "Sin la cifra de partida nadie sabe si un arreglo sirvió, y una diferencia pequeña puede ser solo ruido.",
-  "fuente": "[I] ops/metricas.json",
-  "detalle": [
-    "CLAUDE.md#pensar-en-datos"
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "ops/metricas.json"
+    }
   ],
   "origen": [
     "claude:la-cifra-antes-y-despues"

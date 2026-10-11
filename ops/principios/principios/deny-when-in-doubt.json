@@ -1,10 +1,15 @@
 {
   "id": "deny-when-in-doubt",
-  "area": "codigo",
+  "area": "code",
   "nombre": "Ante la duda, se niega",
   "enunciado": "Cuando falta un dato para decidir, como una credencial o un catálogo completo, el sistema cierra el paso.",
   "porque": "Un fallo que cierra se ve enseguida y se arregla, mientras que uno que deja pasar se descubre tarde y con daño.",
-  "fuente": "[I] api/sinCredencial.test.js",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "api/sinCredencial.test.js"
+    }
+  ],
   "origen": [
     "C10"
   ]

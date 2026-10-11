@@ -4,7 +4,12 @@
   "nombre": "El ensayo se deshace",
   "enunciado": "Un ensayo no deja ningún cambio y caduca pronto, así que uno viejo ya no vale.",
   "porque": "Un ensayo que deja rastro ya no es un ensayo, y uno viejo no dice nada del estado de hoy.",
-  "fuente": "[I] scripts/apply-migration.mjs",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "scripts/apply-migration.mjs"
+    }
+  ],
   "origen": [
     "I6"
   ]

@@ -230,7 +230,7 @@ ser verdad, con su control y su principio; el estándar de tarea cita normas.
   salen de `ops/glosario/` (`npm run glosario`).
 - Ninguna cifra sin pregunta ni objetivo sola (`no-number-without-question`), y
   la cifra antes y después (`number-before-and-after`).
-- Cada cosa que pasa deja una línea `campo: valor` (`one-structured-line`).
+- Cada cosa que pasa deja una línea `campo: valor` (`log-what-happens`).
 - La clase, no el caso (`class-not-case`).
 - El mecanismo más alto de la escalera (`highest-mechanism`).
 - Tres capas de comprobación (`three-check-layers`) y un juez distinto y

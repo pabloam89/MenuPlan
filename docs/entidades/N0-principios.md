@@ -56,7 +56,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 1. Un nombre por concepto y un concepto por nombre
 
-**Enunciado.** Cada concepto tiene un solo nombre en todo el proyecto. Cada nombre significa un solo concepto. Dos conceptos distintos nunca comparten nombre. Si hay que distinguir, se crea un nombre nuevo. La traducción entre castellano e inglés vive en un solo sitio: el campo `en` de la ficha del glosario.
+Principio: `one-word-one-meaning` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Cada concepto tiene un solo nombre en todo el proyecto. Cada nombre significa un solo concepto. Dos conceptos distintos nunca comparten nombre. Si hay que distinguir, se crea un nombre nuevo. La traducción entre castellano e inglés vive en un solo sitio: el campo `en` de la ficha del glosario.
 
 **Por qué.** La auditoría de nomenclatura encontró «responsable» escrito de siete formas: `dueno`, `agente`, `autor`, `por`, `ejecutor`, `emisor` y `quien`. La «fecha» tiene nueve nombres: `fecha`, `fecha_utc`, `comprobado`, `comprobado_el`, `actualizado`, `calibrado_el`, `desde`, `mes` y `ts`. El escalón de un mecanismo se llama `escalon`, `barrera` y `arreglo`. En sentido contrario, «caso» significa cinco cosas, «entorno» tres y «estado» tres. No se citan recuentos de apariciones: no se pudieron reproducir.
 
@@ -66,7 +68,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 2. Los sinónimos prohibidos se escriben, una vez
 
-**Enunciado.** Cada concepto tiene un término preferido. Los otros nombres que se usan para él se anotan como sinónimos prohibidos en el glosario, y solo allí. Un sinónimo prohibido no se usa en ningún registro, campo, valor ni texto de proceso. Los registros de entidades los derivan del glosario; no los copian. Se distingue un sinónimo (otra palabra, mismo concepto) de una variante de escritura (misma palabra, otra forma). La variante se normaliza sin más.
+Principio: `one-word-one-meaning` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Cada concepto tiene un término preferido. Los otros nombres que se usan para él se anotan como sinónimos prohibidos en el glosario, y solo allí. Un sinónimo prohibido no se usa en ningún registro, campo, valor ni texto de proceso. Los registros de entidades los derivan del glosario; no los copian. Se distingue un sinónimo (otra palabra, mismo concepto) de una variante de escritura (misma palabra, otra forma). La variante se normaliza sin más.
 
 **Por qué.** El glosario ya lo hace para el proceso y aun así quedan 58 apariciones prohibidas, congeladas en una lista que solo baja. Se miden con `npm run glosario -- --medir` (el 10 oct eran 78 en 46 pares; hoy son 38 pares). Fuera del glosario no hay lista. `git grep -I -o -w MenuPlan` da 424 apariciones en el repo (89 en `.md`). `HoMenu` da 466 (135 en `.md`). Nada dice cuál es cuál.
 
@@ -76,7 +80,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 3. Valores discretos en los atributos; texto libre solo de respaldo
 
-**Enunciado.** Un atributo que se va a contar, filtrar o agrupar toma sus valores de un vocabulario cerrado. El texto libre se usa solo para lo que cambia a menudo o para lo que nadie va a agrupar. Un vocabulario que crece lleva un valor `otro` y el texto de respaldo al lado. Todo vocabulario lleva además un valor para lo desconocido (`desconocida`, `sin_especificar`). Un campo nunca queda vacío para decir «no sé».
+Principio: `discrete-first` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Un atributo que se va a contar, filtrar o agrupar toma sus valores de un vocabulario cerrado. El texto libre se usa solo para lo que cambia a menudo o para lo que nadie va a agrupar. Un vocabulario que crece lleva un valor `otro` y el texto de respaldo al lado. Todo vocabulario lleva además un valor para lo desconocido (`desconocida`, `sin_especificar`). Un campo nunca queda vacío para decir «no sé».
 
 **Por qué.** La auditoría de datos encontró al menos diez columnas con texto libre que son vocabulario: `persona_alergia.alergeno`, `persona_intolerancia.valor`, `persona_estado.estado`, `persona_perfil_salud.perfil`, `persona.rol_hogar`, `user_events.event`, `app_feedback.type` y `app_feedback.screen`, `household_favorites.scope`, `user_profiles.device_type` y `bot_chats.lang`. Los alérgenos tienen tres verdades distintas (`EU_ALLERGEN_IDS`, `ALLERGENS` de recetas y la tabla de alias).
 
@@ -86,7 +92,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 4. Cada entidad tiene un id estable, único y con forma
 
-**Enunciado.** Cada entidad lleva un `id` propio. Es único dentro de su registro. No cambia nunca. No se reutiliza cuando la entidad se retira. Los ids de entidad van en inglés, en minúsculas ASCII y con palabras unidas por guion (`pull-request`). Los campos de los JSON van en inglés y con guion bajo (`source_of_truth`). El N1 de su eje fija otra forma solo si lo justifica.
+Principio: `stable-unique-id` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Cada entidad lleva un `id` propio. Es único dentro de su registro. No cambia nunca. No se reutiliza cuando la entidad se retira. Los ids de entidad van en inglés, en minúsculas ASCII y con palabras unidas por guion (`pull-request`). Los campos de los JSON van en inglés y con guion bajo (`source_of_truth`). El N1 de su eje fija otra forma solo si lo justifica.
 
 **Por qué.** Hoy hay al menos seis formas de id: kebab (`norm`, `module`), snake (`mechanism`, `metric`), entero (`plano`), uuid, texto con prefijo (`menu_`, `fld_`, `user_`) y `bigserial` en la base. Las migraciones repiten tres números: 0003, 0006 y 0051 (cuenta de prefijos de `supabase/migrations/`; la 0080b es un índice en `supabase/manual/`, previsto en PRINCIPIOS §10). La clave de `bot_candados` es solo `chat_id`, sin canal. `constructor` choca con `Object.prototype` como id.
 
@@ -96,7 +104,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 5. Los nombres tienen forma: caracteres, separador y espacio de nombres
 
-**Enunciado.** Un nombre de id, campo, valor o evento usa solo letras ASCII minúsculas, dígitos y un separador. En la base y en los campos de JSON el separador es `_`. En los ids de entidad es `-`. Un nombre de evento lleva un espacio de nombres delante (`guardia.bloqueo`). El punto lo separa. No se usan tildes ni espacios.
+Principio: `names-have-form` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Un nombre de id, campo, valor o evento usa solo letras ASCII minúsculas, dígitos y un separador. En la base y en los campos de JSON el separador es `_`. En los ids de entidad es `-`. Un nombre de evento lleva un espacio de nombres delante (`guardia.bloqueo`). El punto lo separa. No se usan tildes ni espacios.
 
 **Por qué.** En la base viva hay 35 índices con `idx_`, 8 con `uq_` y 18 sin prefijo conocido. Las restricciones siguen varios patrones: 54 `_check`, 10 `chk_` y 13 `_vocabulario`. Se miden con `npm run consulta` sobre `pg_indexes` (esquema `public`) y `pg_constraint`, y el auditor de datos las reprodujo el 11 oct. El texto de las migraciones da otras cifras. PRINCIPIOS §12 ya fija los prefijos `_fk`, `_vocabulario`, `uq_` e `idx_`, pero como **[revisión]**: nadie lo comprueba solo. El vocabulario del log de voz guarda `sí` con tilde.
 
@@ -106,7 +116,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 6. Toda entidad tiene un registro con definición
 
-**Enunciado.** Cada entidad tiene un registro: un fichero de datos con su id, su fuente de verdad y su ficha de glosario con la definición en una frase. La definición vive en el glosario y en ningún otro sitio. Un nombre sin definición no basta. Una entidad sin registro se marca `without_registry` en `ops/entidades.json` y su N1 dice cuándo lo tendrá.
+Principio: `entity-has-registry` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Cada entidad tiene un registro: un fichero de datos con su id, su fuente de verdad y su ficha de glosario con la definición en una frase. La definición vive en el glosario y en ningún otro sitio. Un nombre sin definición no basta. Una entidad sin registro se marca `without_registry` en `ops/entidades.json` y su N1 dice cuándo lo tendrá.
 
 **Por qué.** La auditoría de proceso contó 11 entidades con registro propio y 11 sin él. Ese recuento no es el del JSON. `ops/entidades.json` cuenta sus 40 entidades (campo `registry`): 11 `with_registry`, 19 `partial` y 10 `without_registry`. Los servicios son una tabla en prosa de unas 22 filas sin id. En la primera versión del registro de entidades, las definiciones estaban copiadas del glosario y ya divergían en 11 casos.
 
@@ -116,7 +128,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 7. Una fuente de verdad por dato y por vocabulario
 
-**Enunciado.** Cada dato y cada vocabulario tiene un solo lugar donde se define. Los demás sitios lo importan o lo derivan. No se copia a mano. Una copia generada se marca como derivada y un test la compara con su origen.
+Principio: `one-fact-one-place` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Cada dato y cada vocabulario tiene un solo lugar donde se define. Los demás sitios lo importan o lo derivan. No se copia a mano. Una copia generada se marca como derivada y un test la compara con su origen.
 
 **Por qué.** La lista de jueces está copiada en `presupuestos.mjs:38`, `flujo.mjs:50`, `vocabularios-vida.json:22`, el glosario (`juez`) y `CLAUDE.md`. Hay dos registros llamados «métricas» (`ops/metricas.json` y `metricas[]` en `MODULOS.json`). Los precios de los modelos están en dos sitios (`ops/precios-modelos.json` y `PRECIOS` en `scripts/lib/evals.mjs`). Una decisión vive como issue y como fila de `ops/DECISIONES.md`, sin enlace. Un fondo guarda sus casos y encargos en tres sitios. `MESES` se declara seis veces (`api/_bot/ficha.js`, `memoria.js`, `pintar.js`, `rapido.js`, `src/lib/pedidoLola.js` y `src/screens/PizarraControles.jsx`). `ESTADOS_CRITERIO` existe dos veces con valores distintos (`scripts/lib/forja.mjs` y `planos.mjs`). Se miden con `git grep -n -E "(const|let) MESES"` y `git grep -n "ESTADOS_CRITERIO ="`.
 
@@ -126,7 +140,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 8. Todo lo que cambia lleva quién, qué y cuándo
 
-**Enunciado.** Todo lo que cambia deja tres datos: quién lo cambió, qué se cambió y cuándo. «Quién» es una identidad, y la identidad apunta a una persona (principio 9). «Cuándo» es un instante con zona, en UTC. «Qué» es un valor de vocabulario. Un borrado también deja rastro.
+Principio: `who-what-when` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Todo lo que cambia deja tres datos: quién lo cambió, qué se cambió y cuándo. «Quién» es una identidad, y la identidad apunta a una persona (principio 9). «Cuándo» es un instante con zona, en UTC. «Qué» es un valor de vocabulario. Un borrado también deja rastro.
 
 **Por qué.** Catorce de 54 tablas no tienen `created_at`. Son estas: `bot_candados`, `bot_usage`, `grupo`, `grupo_persona`, `persona_alergia`, `persona_estado`, `persona_intolerancia`, `persona_perfil_salud`, `household_state`, `user_state`, `user_profiles`, `apple_auth_tokens`, `household_members` y `recipe_collections`. La cuenta es de la auditoría de datos, tras aplicarse la 0097. El autor se escribe de ocho formas (`owner_id`, `owner_user_id`, `user_id`, `created_by`, `linked_by`, `dicho_by`, `author_id`, `reporter_id`). No queda autor en las altas y bajas de alergias, intolerancias y estados, ni al entrar o salir de la casa. Los borrados duros de despensa, menús y favoritos no dejan nada. `senales.log` no lleva fecha.
 
@@ -136,7 +152,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 9. La persona y la identidad son entidades distintas
 
-**Enunciado.** Un **miembro del equipo** (`team-member`) es quien responde de lo que se hace. Una **identidad** (`identity`) es la cuenta con la que actúa el equipo: un login, una App de GitHub, una cuenta de servicio, un bot. Toda identidad apunta a un miembro del equipo, o dice que no lo tiene. Todo registro de acción guarda la identidad, no el nombre de la persona. La **persona** (`person`) es la de la casa, como en la base; no es la del equipo. La cuenta de un canal de una casa (`channel-identity`, `bot_identities`) es otra entidad, vertical.
+Principio: `person-vs-identity` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Un **miembro del equipo** (`team-member`) es quien responde de lo que se hace. Una **identidad** (`identity`) es la cuenta con la que actúa el equipo: un login, una App de GitHub, una cuenta de servicio, un bot. Toda identidad apunta a un miembro del equipo, o dice que no lo tiene. Todo registro de acción guarda la identidad, no el nombre de la persona. La **persona** (`person`) es la de la casa, como en la base; no es la del equipo. La cuenta de un canal de una casa (`channel-identity`, `bot_identities`) es otra entidad, vertical.
 
 **Por qué.** El login de Pablo está escrito en `issues.mjs`, `tokenSesion.mjs`, `buscarAntes`, `cumplimiento`, `fabricaGh`, `CODEOWNERS` (41 veces) y los workflows. El vocabulario de identidades tiene cuatro valores (`pablo`, `app`, `otra`, `desconocida`). No hay ningún enlace de identidad a persona. Hay al menos dos Apps de GitHub, cuentas de servicio de 1Password, `github-actions[bot]` y los bots de Telegram. «La sesión actuó con la identidad de Pablo» no se puede ver en ningún registro. Hasta el 11 oct, «persona» valía para el equipo y para la casa a la vez.
 
@@ -146,7 +164,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 10. Un evento lleva campos fijos
 
-**Enunciado.** Todo evento se escribe con los mismos campos: `id`, `ts` (UTC), `type`, `source`, `session`, `identity` y `subject`. `type` es de un vocabulario cerrado y lleva espacio de nombres. Los datos propios del evento van aparte, con nombres propios. Un evento se escribe como `campo: valor` en una línea o como JSON, nunca mezclados en un mismo log.
+Principio: `log-what-happens` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Todo evento se escribe con los mismos campos: `id`, `ts` (UTC), `type`, `source`, `session`, `identity` y `subject`. `type` es de un vocabulario cerrado y lleva espacio de nombres. Los datos propios del evento van aparte, con nombres propios. Un evento se escribe como `campo: valor` en una línea o como JSON, nunca mezclados en un mismo log.
 
 **Por qué.** Hoy hay seis formatos de registro de eventos: `eventos.jsonl`, `senales.log`, `voz.log`, `gh.log`, `zonas.log` y la línea de arranque `identidad-sesion`. Hay más logs aparte: `ensayos.log`, `gasto.jsonl` y `pasadas.jsonl`, y 19 firmas de línea en `ops/metricas.json` (`lineas`). Los separadores mezclan `: ` y `=`. Solo `eventos.jsonl` lleva sesión. Ninguno lleva la identidad que actuó. El vocabulario tiene seis tipos (`skill_cargada`, `agente_lanzado`, `bloqueo_guardia`, `permiso_pedido`, `estado_sin_leer`, `aviso_guardia`).
 
@@ -156,7 +176,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 11. Se depreca; no se borra
 
-**Enunciado.** Un id, un campo, un valor o un término que deja de usarse se marca `retired` y dice qué lo sustituye (`replaced_by`). No se borra ni se reutiliza el nombre. Un retirado no vuelve a activo. Un cambio de definición que no cambia el significado se registra con su motivo.
+Principio: `deprecate-not-delete` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Un id, un campo, un valor o un término que deja de usarse se marca `retired` y dice qué lo sustituye (`replaced_by`). No se borra ni se reutiliza el nombre. Un retirado no vuelve a activo. Un cambio de definición que no cambia el significado se registra con su motivo.
 
 **Por qué.** El glosario y los vocabularios ya lo hacen, y hay test. Hoy ningún término del glosario está retirado. Se mide con `ls ops/glosario/terminos | wc -l` (66 fichas en staging, 84 con las de este PR) y `grep -l '"estado": "retirado"' ops/glosario/terminos/*.json` (ninguna). En cambio, la base borra de verdad en despensa, menús y favoritos sin dejar rastro.
 
@@ -166,7 +188,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 12. Un vocabulario tiene ciclo de vida
 
-**Enunciado.** Todo vocabulario pasa por cuatro fases. **Nace**: con una definición por valor, anclada en `ops/vocabularios-vida.json`. **Vive**: un valor nuevo se añade con su definición; una definición solo cambia con una redefinición registrada. **Se retira**: un valor sin uso pasa a `retirados`, con `pasa_a` y fecha, y su nombre no se reutiliza. **Se cierra**: el vocabulario entero se retira con su motivo. Estos registros solo crecen.
+Principio: `closed-vocabulary` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Todo vocabulario pasa por cuatro fases. **Nace**: con una definición por valor, anclada en `ops/vocabularios-vida.json`. **Vive**: un valor nuevo se añade con su definición; una definición solo cambia con una redefinición registrada. **Se retira**: un valor sin uso pasa a `retirados`, con `pasa_a` y fecha, y su nombre no se reutiliza. **Se cierra**: el vocabulario entero se retira con su motivo. Estos registros solo crecen.
 
 **Por qué.** `ops/vocabularios-vida.json` ancla 63 vocabularios y 380 valores (cuenta de `anclados`; 56 y 327 en staging, más los 7 de este registro) y tiene un control contra `origin/staging`. Fuera de ese control quedan vocabularios duplicados. `ESTADOS_CRITERIO` está en dos sitios con valores distintos, `FUERZA_OK` (`estandaresAgentes.mjs`) frente a `FUERZAS` (`regla.mjs`), `HEALTH_FLAGS` (`recipeSchema.js` y `healthFlags.js`) y `CAMPOS` frente a `CAMPOS_TELEGRAM` (`loginTelegram.js` y `llaveLola.js`). Se encuentran con `git grep -n -E "(const|let) NOMBRE"`. La palabra «estado» tiene tres sentidos.
 
@@ -176,7 +200,9 @@ entidad, un tipo suyo (futuro N2) o queda fuera con motivo
 
 ### 13. Cada eje tiene su lenguaje y se traduce en la frontera
 
-**Enunciado.** Cada eje usa su propio lenguaje dentro de su contexto. Una palabra que cruza de eje se declara puente en `ops/entidades.json`. Se define una sola vez, con su frase propia de cada lado (`role_in_axis`). Una palabra puente no cambia de significado según el eje. Si lo necesita, se parte en dos entidades con nombres distintos.
+Principio: `axis-language-bridge` (su enunciado, en `docs/PRINCIPIOS.md`; aquí, el desarrollo).
+
+**Desarrollo.** Cada eje usa su propio lenguaje dentro de su contexto. Una palabra que cruza de eje se declara puente en `ops/entidades.json`. Se define una sola vez, con su frase propia de cada lado (`role_in_axis`). Una palabra puente no cambia de significado según el eje. Si lo necesita, se parte en dos entidades con nombres distintos.
 
 **Por qué.** «Persona» ya era dos cosas y hoy son dos entidades (`team-member` y `person`). «Evento» es un registro de hooks y una tabla del producto. «Entorno» tiene tres sentidos (entornos de Vercel, `VIGIA_ENTORNO` y environments de GitHub), y hay una sola base de datos para todos. Hoy hay diez puentes: `environment`, `deployment`, `event`, `metric`, `eval`, `judge`, `migration`, `table`, `data-source` y `module`.
 

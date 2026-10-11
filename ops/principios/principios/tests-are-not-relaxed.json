@@ -1,10 +1,15 @@
 {
   "id": "tests-are-not-relaxed",
-  "area": "codigo",
+  "area": "code",
   "nombre": "Los tests no se relajan",
   "enunciado": "Un test en rojo se arregla en el código o se discute con su motivo, sin aflojarlo, saltarlo ni borrarlo.",
   "porque": "Un test relajado sigue en verde y deja de vigilar justo lo que acababa de fallar.",
-  "fuente": "[I] scripts/lib/avisosPr.mjs",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "scripts/lib/avisosPr.mjs"
+    }
+  ],
   "origen": [
     "C8"
   ]

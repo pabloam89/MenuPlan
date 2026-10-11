@@ -1,10 +1,15 @@
 {
   "id": "versioned-concurrency",
-  "area": "datos",
+  "area": "data",
   "nombre": "Concurrencia con versión",
   "enunciado": "El estado compartido de la casa se escribe con funciones que comprueban y suben una versión.",
   "porque": "La app, el bot y otro miembro escriben la misma casa, y sin versión gana el último sin que nadie se entere.",
-  "fuente": "[I] docs/datos/PRINCIPIOS.md",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "docs/datos/PRINCIPIOS.md"
+    }
+  ],
   "detalle": [
     "docs/datos/PRINCIPIOS.md#7-concurrencia"
   ]

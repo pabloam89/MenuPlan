@@ -1,12 +1,14 @@
 {
   "id": "highest-mechanism",
-  "area": "proceso",
+  "area": "process",
   "nombre": "El mecanismo más alto",
   "enunciado": "Cada norma usa el escalón más alto posible de la escalera de durabilidad y baja de escalón solo con su motivo.",
   "porque": "Lo que obliga es el hook y no el texto, porque una norma solo escrita depende de que alguien se acuerde.",
-  "fuente": "[I] ops/mecanismos.json",
-  "detalle": [
-    "CLAUDE.md#pensar-en-datos"
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "ops/mecanismos.json"
+    }
   ],
   "origen": [
     "claude:el-mecanismo-mas-alto"

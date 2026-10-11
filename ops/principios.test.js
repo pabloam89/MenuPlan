@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   DOCUMENTOS_MIGRADOS, RUTA_MD, anclaDe, componerLista, existeEn, faltasDeMigracion, generarMd, leerCatalogoPropio,
-  leerPrincipiosCasa, leerTextoEn, problemasDePrincipios, seccionesNumeradas,
+  leerPrincipiosCasa, leerTextoEn, problemasDeEnunciadoUnico, problemasDePrincipios, seccionDe, seccionesNumeradas,
 } from "../scripts/lib/principios.mjs";
 import { leerPrincipios as leerProducto } from "../scripts/lib/principiosProducto.mjs";
 import { leerJsonEn, leerRedaccion, problemasDeRedaccion } from "../scripts/lib/redaccion.mjs";
@@ -62,10 +62,37 @@ describe("la migración de las cinco listas y de la auditoría de agentes", () =
   });
 });
 
+describe("un enunciado por principio (#619)", () => {
+  it("cada sección migrada cita el id de su principio y no lleva otro «Enunciado.»", () => {
+    expect(problemasDeEnunciadoUnico(datos.principios, textos)).toEqual([]);
+  });
+
+  it("se ve fallar sin la cita o con un «Enunciado.» propio", () => {
+    const n0 = "docs/entidades/N0-principios.md";
+    const sinCita = { ...textos, [n0]: textos[n0].replace("Principio: `discrete-first`", "Principio: otro") };
+    expect(problemasDeEnunciadoUnico(datos.principios, sinCita).join("\n")).toMatch(/no cita el principio `discrete-first`/);
+    const conEnunciado = { ...textos, [n0]: `${textos[n0]}\n**Enunciado.** Otra frase.\n` };
+    expect(problemasDeEnunciadoUnico(datos.principios, conEnunciado).join("\n")).toMatch(/lleva un «Enunciado\.» propio/);
+  });
+
+  it("seccionDe corta en el siguiente título del mismo nivel", () => {
+    const md = "## 1. Uno\n\nA\n\n### sub\n\nB\n\n## 2. Dos\n\nC\n";
+    expect(seccionDe(md, "1-uno")).toContain("B");
+    expect(seccionDe(md, "1-uno")).not.toContain("C");
+  });
+});
+
 describe("docs/PRINCIPIOS.md sale de la lista", () => {
   it("está al día", () => {
     const md = readFileSync(join(RAIZ, RUTA_MD), "utf8");
     expect(md, "PRINCIPIOS.md se genera: edita ops/principios/ y lanza `npm run principios-casa -- --escribir`").toBe(generarMd(datos));
+  });
+
+  it("no pierde ninguna fuente, tampoco las de los delegados con varias", () => {
+    const md = generarMd(datos);
+    const perdidas = datos.principios.flatMap((p) => p.fuentes.filter((f) => !md.includes(f.url ?? f.ruta)).map((f) => `${p.id}: ${f.url ?? f.ruta}`));
+    expect(perdidas).toEqual([]);
+    expect(datos.principios.some((p) => p.catalogo && p.fuentes.length > 1)).toBe(true);
   });
 
   it("lleva cada principio una vez y un cambio lo descuadra", () => {
@@ -79,8 +106,8 @@ describe("docs/PRINCIPIOS.md sale de la lista", () => {
 
 describe("se ven fallar", () => {
   const BUENO = {
-    id: "ejemplo-bueno", area: "codigo", nombre: "Principio de ejemplo", enunciado: "Un principio de ejemplo dice lo que se busca en una línea.",
-    porque: "Sin un porqué escrito cada uno decide a su manera.", fuente: "[I] CLAUDE.md", detalle: ["CLAUDE.md#pensar-en-datos"], origen: ["C1"],
+    id: "ejemplo-bueno", area: "code", nombre: "Principio de ejemplo", enunciado: "Un principio de ejemplo dice lo que se busca en una línea.",
+    porque: "Sin un porqué escrito cada uno decide a su manera.", fuentes: [{ marca: "C", ruta: "CLAUDE.md" }], detalle: ["CLAUDE.md#agentes"], origen: ["C1"],
   };
   const con = (cambios) => {
     const c = structuredClone(propio);
@@ -92,6 +119,7 @@ describe("se ven fallar", () => {
 
   it.each([
     ["un campo desconocido", { texto: "x" }, /campo desconocido «texto»/],
+    ["la fuente de antes, en texto", { fuente: "[I] CLAUDE.md" }, /campo desconocido «fuente»/],
     ["sin porqué", { porque: undefined }, /«porque» es una frase/],
     ["un id con mayúsculas", { id: "Ejemplo" }, /«id» va en minúsculas/],
     ["un área fuera del vocabulario", { area: "marketing" }, /área «marketing» fuera del vocabulario/],
@@ -110,8 +138,13 @@ describe("se ven fallar", () => {
     ["un nombre con punto final", { nombre: "Principio de ejemplo." }, /«nombre»/],
     ["un enunciado sin punto final", { enunciado: "Un principio de ejemplo sin punto final al acabar" }, /«enunciado» acaba en punto/],
     ["un enunciado en dos líneas", { enunciado: "Una línea larga de un principio.\nY otra más." }, /«enunciado» va en una sola línea/],
-    ["una fuente sin marca", { fuente: "CLAUDE.md" }, /«fuente» es «\[F\]/],
-    ["una fuente de la casa que no existe", { fuente: "[I] no/existe.md" }, /no existe en el repo/],
+    ["sin fuentes", { fuentes: [] }, /«fuentes» es una lista/],
+    ["una fuente sin marca", { fuentes: [{ ruta: "CLAUDE.md" }] }, /marca «undefined» fuera del vocabulario/],
+    ["una fuente de la casa que no existe", { fuentes: [{ marca: "C", ruta: "no/existe.md" }] }, /la ruta no\/existe\.md no existe/],
+    ["una ruta del repo marcada como inferencia", { fuentes: [{ marca: "I", ruta: "CLAUDE.md" }] }, /su marca es C/],
+    ["una url que no es https", { fuentes: [{ marca: "F", url: "http://ejemplo.org/x" }] }, /dirección https completa/],
+    ["una fuente repetida", { fuentes: [{ marca: "C", ruta: "CLAUDE.md" }, { marca: "C", ruta: "CLAUDE.md" }] }, /fuente repetida/],
+    ["un detalle que vuelve a «Pensar en datos»", { detalle: ["CLAUDE.md#pensar-en-datos"] }, /sería circular/],
     ["un detalle a un fichero que no existe", { detalle: ["no/existe.md"] }, /el detalle no\/existe\.md no existe/],
     ["un detalle a una sección que no existe", { detalle: ["CLAUDE.md#seccion-inventada"] }, /no tiene la sección #seccion-inventada/],
     ["un origen inventado", { origen: ["C13"] }, /origen «C13»/],
@@ -127,6 +160,15 @@ describe("se ven fallar", () => {
     expect(problemasDePrincipios(c, componerLista(c, delegados).principios, ctx).join("\n")).toMatch(/repetido con/);
   });
 
+  it("un anexo con un puente vacío o un delegado sin su techo", () => {
+    const c = structuredClone(propio);
+    c.anexos["untrusted-text-is-data"].puente = "corto";
+    expect(problemasDePrincipios(c, componerLista(c, delegados).principios, ctx).join("\n")).toMatch(/«puente» dice en una línea/);
+    const d = structuredClone(propio);
+    delete d.delegados.product.sin_norma;
+    expect(problemasDePrincipios(d, componerLista(d, delegados).principios, ctx).join("\n")).toMatch(/delegado «product»: «sin_norma» lleva su motivo y su techo/);
+  });
+
   it("un anexo a un principio que no existe o a uno propio", () => {
     const c = structuredClone(propio);
     c.anexos = { inventado: { origen: ["N5"] } };
@@ -137,6 +179,7 @@ describe("se ven fallar", () => {
 
   it("quitar un principio deja sin migrar su origen y sus secciones", () => {
     const sin = datos.principios.filter((p) => p.id !== "closed-vocabulary");
+    expect(faltasDeMigracion(datos.principios, textos)).toEqual([]);
     const f = faltasDeMigracion(sin, textos).join("\n");
     expect(f).toMatch(/origen C4: ningún principio lo recoge/);
     expect(f).toMatch(/docs\/datos\/PRINCIPIOS\.md#4-vocabularios-cerrados: ningún principio la cita/);

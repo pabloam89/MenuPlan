@@ -4,7 +4,12 @@
   "nombre": "Cada agente, su identidad",
   "enunciado": "Cada agente actúa con su propia identidad, distinta de la de cualquier persona, sin acceso a credenciales ajenas.",
   "porque": "Con la identidad de una persona, lo que hace un agente no se distingue de lo que hace ella y hereda todos sus permisos.",
-  "fuente": "[I] .claude/skills/github/referencias/app-sesiones.md",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": ".claude/skills/github/referencias/app-sesiones.md"
+    }
+  ],
   "origen": [
     "I1"
   ]

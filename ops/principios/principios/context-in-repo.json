@@ -1,10 +1,15 @@
 {
   "id": "context-in-repo",
-  "area": "codigo",
+  "area": "code",
   "nombre": "Contexto en el repositorio",
   "enunciado": "Lo que una sesión necesita saber vive en el repositorio, no en la memoria de una persona ni de una sesión.",
   "porque": "Cada sesión empieza sin memoria, así que lo que no está en el repo se pierde o se reinventa.",
-  "fuente": "[I] CLAUDE.md",
+  "fuentes": [
+    {
+      "marca": "C",
+      "ruta": "CLAUDE.md"
+    }
+  ],
   "detalle": [
     "CLAUDE.md#lo-que-hace-cumplir-esto"
   ],
