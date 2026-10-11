@@ -17,7 +17,7 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `produccion-solo-desde-main` | despliegue | DEBE | **Producción solo desde main.** Cada despliegue a producción DEBE salir solo de main. | nada · blanda | juicio | — |
 | `ajustes-servicios-ok-pablo` | ajuste | DEBE | **Ajustes con OK de Pablo.** Cada cambio de ajustes de GitHub, Vercel o Supabase DEBE pedir el OK de Pablo. | clasificador · blanda | juicio | `reglas-del-repo` |
 | `secretos-ok-pablo` | secreto | DEBE | **Secretos con OK de Pablo.** Cuando se crea, rota o cambia, cada secreto o variable de entorno DEBE pedir el OK de Pablo. | clasificador · blanda | juicio | — |
-| `permisos-ok-pablo` | permiso | DEBE | **Permisos con OK de Pablo.** Cuando amplía los permisos de .claude/settings.json, cada cambio de permisos o de hooks de Claude DEBE pedir el OK de Pablo. | guardia · blanda | test: `.claude/hooks/guardia.test.js` | — |
+| `permisos-ok-pablo` | permiso | DEBE | **Permisos con OK de Pablo.** Cuando amplía los permisos de .claude/settings.json, cada cambio de permisos o de hooks de Claude DEBE pedir el OK de Pablo. | persona · blanda | juicio | — |
 | `evals-antes-de-fusionar` | lola | DEBE | **Evals antes de fusionar.** Cuando cambia lo que lee, el bot Lola DEBE pasar las evals antes de fusionar. | nada · blanda | juicio | `escribir-lo-de-lola` |
 | `endpoint-nuevo-juez-seguridad` | endpoint | DEBE | **Endpoint nuevo al juez.** Cuando es nuevo, cada endpoint de la app DEBE pasar por el juez seguridad. | nada · blanda | juicio | — |
 | `main-solo-por-pr-con-tests` | main | DEBE | **Main solo por PR.** La rama main DEBE recibir cambios solo por PR con el check tests en verde. | github_regla · semidura | planos: check_obligatorio:main | — |
@@ -146,11 +146,11 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 64 |
+| test | Un test del repo que falla en el CI | 63 |
 | planos | Un criterio de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 1 |
 | script | Un script del repo que comprueba y se lanza a mano o en el build | 2 |
-| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 24 |
+| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 25 |
 
 ## Avisos de la guardia
 
