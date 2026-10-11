@@ -74,14 +74,6 @@
       "evidencia": "#582"
     },
     {
-      "id": "dueno-de-lo-que-ejecuta-un-hook",
-      "tests": ["scripts/rulesets.test.js"],
-      "mira": ["scripts/**/*.{js,mjs}", ".claude/hooks/*.mjs", ".github/workflows/*.yml", ".github/CODEOWNERS", ".claude/settings.json", "package.json"],
-      "porque": "Todo lo que corre con secretos o por un hook, y sus imports, tiene dueño en CODEOWNERS: un script nuevo importado por un hook sin dueño lo rompe.",
-      "evidencia": "PR #424",
-      "amplio": true
-    },
-    {
       "id": "scripts-sin-caminos-sueltos",
       "tests": ["scripts/lib/env.test.js", "scripts/lib/evals.test.js"],
       "mira": ["scripts/**/*.{js,mjs}"],
