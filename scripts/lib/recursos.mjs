@@ -14,9 +14,9 @@
  *   norma?                       id de una norma de ops/normas.json que lo exige
  *   rotacion_en_curso?           número del issue que lo está rotando (apaga el aviso del reloj)
  *
- * Lectores (ningún campo sin lector): `ops/recursos.test.js` (forma y reloj) y la sección
+ * Lectores (ningún campo sin lector): `ops/recursos.test.js` (la forma) y la sección
  * «Caducidades» del informe semanal (`scripts/cumplimiento.mjs --informe`, workflow
- * `flujo-semanal.yml`). La caducidad de las SKILLS no se repite aquí: la calcula
+ * `flujo-semanal.yml`), que es donde avisa el reloj (sin bloquear: un test con fecha pondría en rojo todos los PR). La caducidad de las SKILLS no se repite aquí: la calcula
  * `caducidades()` de `skills.mjs`, con su plazo de 90 días y su aviso de 14.
  */
 import { existsSync, readFileSync } from "node:fs";
@@ -139,7 +139,7 @@ export function problemasDeConjunto(recursos) {
 
 /**
  * La regla del reloj: una caducidad vencida o a menos de AVISO_ANTES_DIAS sin rotación en curso es
- * un fallo; una rotación marcada con la caducidad aún lejos es una marca olvidada.
+ * un problema (la lista que usa quien avisa; ningún test la corre con la fecha de hoy); una rotación marcada con la caducidad aún lejos es una marca olvidada.
  */
 export function problemasDeReloj(recursos, hoy = new Date()) {
   const malos = [];

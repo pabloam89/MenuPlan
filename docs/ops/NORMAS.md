@@ -36,8 +36,8 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `secretos-en-environments` | secreto | DEBE | **Secretos en environments.** Cuando está en un environment, cada secreto o variable de entorno DEBE llegar solo a la rama staging. | github_regla · dura | planos: environment_solo_rama:staging | — |
 | `secretos-de-repo` | secreto | NO DEBE | **Sin secretos de repo.** Cuando es de Actions, cada secreto o variable de entorno NO DEBE estar a nivel de repo. | nada · blanda | planos: secretos_de_repo | — |
 | `deploy-key-unica` | repo | DEBE | **Una sola deploy key.** El repositorio DEBE tener una sola deploy key de escritura, la del cron; otra pide el OK de Pablo. | nada · blanda | planos: deploy_keys_escritura | — |
-| `caducidad-token-vercel` | secreto | DEBE | **Caducidad del token de Vercel.** Cuando es el token de Vercel, cada secreto o variable de entorno DEBE caducar a los 90 días, con la fecha anotada y la rotación antes. | ci · semidura | test: `ops/recursos.test.js` | — |
-| `caducidad-clave-anthropic-evals` | secreto | DEBE | **Caducidad de clave de evals.** Cuando es la clave de Anthropic de las evals, cada secreto o variable de entorno DEBE caducar al año. | nada · blanda | juicio | — |
+| `caducidad-token-vercel` | secreto | DEBE | **Caducidad del token de Vercel.** Cuando es el token de Vercel, cada secreto o variable de entorno DEBE caducar a los 90 días, con la fecha anotada y la rotación antes. | script_propio · blanda | script: `scripts/cumplimiento.mjs` | — |
+| `caducidad-clave-anthropic-evals` | secreto | DEBE | **Caducidad de clave de evals.** Cuando es la clave de Anthropic de las evals, cada secreto o variable de entorno DEBE caducar al año. | script_propio · blanda | script: `scripts/cumplimiento.mjs` | — |
 | `presupuesto-por-alcance` | fondo | DEBE | **Presupuesto por alcance.** Cada problema de fondo DEBE sacar su esfuerzo del presupuesto de su alcance y su causa, y no de lo que decida la sesión. | nada · blanda | test: `ops/presupuestos.test.js` | — |
 | `rondas-tope-duro` | fondo | NO DEBE | **Tope de rondas.** Cada problema de fondo NO DEBE pasar de las rondas del presupuesto de constructor y juez. | script_propio · semidura | test: `scripts/fondos-rondas.test.js` | — |
 | `skill-antes-de-tocar` | sesion | DEBE | **Skill antes de tocar.** Cuando edita las rutas de un dominio o lanza uno de sus comandos de riesgo, cada sesión de Claude DEBE abrir antes la skill del dominio. | guardia · blanda | test: `.claude/hooks/guardia.test.js` | `puerta-de-skill-edicion` |
@@ -146,11 +146,11 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 
 | Tipo de control | Qué es | Normas |
 |---|---|---|
-| test | Un test del repo que falla en el CI | 64 |
+| test | Un test del repo que falla en el CI | 63 |
 | planos | Un criterio de la medición semanal de ops/planos.json (con red, cada lunes) | 7 |
 | workflow | Un paso de un workflow de GitHub Actions que falla el check | 1 |
-| script | Un script del repo que comprueba y se lanza a mano o en el build | 2 |
-| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 24 |
+| script | Un script del repo que comprueba y se lanza a mano o en el build | 4 |
+| juicio | El juicio de una persona o de un LLM sobre sus casos: no hay nada que falle solo | 23 |
 
 ## Avisos de la guardia
 
@@ -199,4 +199,4 @@ Una norma es algo que el repo dice que se cumple siempre. Cada una se escribe po
 | `aprobar-pr` | `rutas-protegidas-aprobacion-de-dueno` | Aprobar un PR desde una sesión |
 | `token-impreso` | `token-de-sesion-no-se-imprime` | Imprimir el token de la sesión |
 
-Total: 98 normas (rota 2, semidura 50, dura 14, blanda 32) y 42 avisos de la guardia.
+Total: 98 normas (rota 2, semidura 49, dura 14, blanda 33) y 42 avisos de la guardia.

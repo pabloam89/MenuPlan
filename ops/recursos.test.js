@@ -2,7 +2,7 @@
 //
 // Vigila, en este orden:
 //  1. la forma: vocabularios cerrados, fechas válidas, sin campos vacíos, rutas que existen;
-//  2. el reloj: ninguna caducidad vencida o a 14 días o menos sin una rotación en curso;
+//  2. el reloj, solo con fechas de mentira (la fecha de hoy no hace fallar nada; avisa el informe semanal);
 //  3. las normas caducidad-*: apuntan a esta fuente y cada una tiene su recurso;
 //  4. INVENTARIO.md enlaza la fuente.
 // Cada regla se ve fallar con datos de mentira (más abajo).
@@ -103,7 +103,7 @@ describe("2. el reloj", () => {
     for (const s of ["vencida", "proxima", "en_rotacion", "vigente", "sin_caducidad", "por_confirmar"]) expect(Object.keys(ESTADOS)).toContain(s);
   });
 
-  it("falla con una caducidad vencida o a 14 días o menos sin rotación en curso (fecha de prueba)", () => {
+  it("marca como problema una caducidad vencida o a 14 días o menos sin rotación en curso (fechas de prueba)", () => {
     const vencida = { ...BUENO(), caducidad: "2026-10-10" };
     const proxima = { ...BUENO(), caducidad: "2026-10-25" };
     expect(problemasDeReloj([vencida], HOY).join()).toContain("caducó el 2026-10-10");
@@ -114,9 +114,8 @@ describe("2. el reloj", () => {
     expect(problemasDeReloj([{ ...BUENO(), caducidad: "sin-caducidad" }, { ...BUENO(), caducidad: "por-confirmar" }], HOY)).toEqual([]);
   });
 
-  it("hoy, ningún recurso del registro está vencido ni a punto sin una rotación en curso", () => {
-    expect(problemasDeReloj(datos.recursos), "Rota el recurso y pon la fecha nueva en ops/recursos.json, o marca «rotacion_en_curso» con el issue que lo rota").toEqual([]);
-  });
+  // Decisión B de #581: ningún test compara una caducidad con la fecha de hoy (pondría en rojo todos los PR el día que algo
+  // caduque). Solo avisa el informe semanal; aquí la regla se prueba con fechas de mentira.
 
   it("el informe ve los recursos y las skills próximas a caducar", () => {
     const c = caducidadesDelRepo(RAIZ, new Date("2027-01-01T00:00:00Z"));
@@ -137,11 +136,10 @@ describe("3. las normas de caducidad", () => {
     }
   });
 
-  it("la norma del token de Vercel tiene este test como control; la de Anthropic sigue blanda hasta que haya fecha", () => {
-    const vercel = normas.find((n) => n.id === "caducidad-token-vercel");
-    expect(vercel).toMatchObject({ ejecutor: "ci", control: "ops/recursos.test.js", control_tipo: "test", veredicto: "semidura" });
-    const anthropic = normas.find((n) => n.id === "caducidad-clave-anthropic-evals");
-    expect(anthropic.veredicto).toBe("blanda");
+  it("las dos normas son blandas, con el informe semanal como control: no prometen un bloqueo", () => {
+    for (const id of ["caducidad-token-vercel", "caducidad-clave-anthropic-evals"]) {
+      expect(normas.find((n) => n.id === id), id).toMatchObject({ ejecutor: "script_propio", alcance: "solo_script", ante_fallo: "abierto", control: "scripts/cumplimiento.mjs", control_tipo: "script", veredicto: "blanda" });
+    }
     expect(datos.recursos.find((r) => r.id === "anthropic-clave-evals").caducidad).toBe("por-confirmar");
   });
 

@@ -95,7 +95,7 @@ export function seccionCaducidades({ recursos, skills }) {
   const L = ["", "### Caducidades", ""];
   const alertas = [...por("vencida"), ...por("proxima")];
   L.push(alertas.length
-    ? `**${alertas.length} recurso${alertas.length > 1 ? "s" : ""} vencido${alertas.length > 1 ? "s" : ""} o a ${AVISO_ANTES_DIAS} días o menos de caducar, sin rotación en curso.** Rótalo o marca su \`rotacion_en_curso\` en \`ops/recursos.json\` (el test de ese fichero falla igual).`
+    ? `**${alertas.length} recurso${alertas.length > 1 ? "s" : ""} vencido${alertas.length > 1 ? "s" : ""} o a ${AVISO_ANTES_DIAS} días o menos de caducar, sin rotación en curso.** Rótalo o marca su \`rotacion_en_curso\` en \`ops/recursos.json\` (solo avisa: no bloquea ningún PR).`
     : `Ningún recurso vencido ni a ${AVISO_ANTES_DIAS} días o menos de caducar sin rotación en curso.`);
   if (alertas.length) {
     L.push("", "| recurso | dueño | caduca | días |", "|---|---|---|---|");
