@@ -100,6 +100,18 @@
         "gobierno"
       ]
     },
+    "principios-de-producto": {
+      "comandos": [],
+      "rutas": [
+        "^ops/principios-producto/",
+        "^docs/producto/PRINCIPIOS\\.md$",
+        "^scripts/lib/principiosProducto\\.mjs$",
+        "^scripts/principios\\.mjs$"
+      ],
+      "agentes": [
+        "lola"
+      ]
+    },
     "plan-de-arreglo": {
       "comandos": [],
       "rutas": [

@@ -1,0 +1,20 @@
+{
+  "id": "secure-by-default",
+  "nombre": "Seguro de serie",
+  "area": "trust-safety",
+  "sujeto": "database",
+  "fuerza": "debe",
+  "condicion": "cuando se crea una tabla nueva",
+  "exigencia": "negar su acceso a anon desde el primer momento, sin que nadie tenga que configurarlo",
+  "control": "supabase/anonPorDefecto.test.js",
+  "nota": "El test cubre tablas y secuencias de public (las funciones no, lo dice la cabecera de la 0096). No comprueba la seguridad por filas ni lo creado por supabase_admin. Para el resto de funciones nuevas el principio de CISA se aplica por juicio.",
+  "porque": "Lo seguro de serie no depende de que alguien se acuerde de activarlo; lo inseguro debe costar un paso consciente.",
+  "ejemplo_bueno": "Una tabla nueva de menús nace sin permisos para anon",
+  "ejemplo_malo": "Una tabla nueva queda legible para cualquiera hasta que alguien se acuerda de cerrarla",
+  "fuentes": [
+    {
+      "url": "https://www.cisa.gov/securebydesign",
+      "marca": "F"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "recoverable-errors",
+  "nombre": "Errores recuperables",
+  "area": "ux-clarity",
+  "sujeto": "product",
+  "fuerza": "debe",
+  "condicion": "cuando algo falla",
+  "exigencia": "decir en llano qué pasó y cómo seguir, sin códigos crudos",
+  "control": "juicio",
+  "porque": "Un error claro convierte un fallo en continuidad.",
+  "ejemplo_bueno": "No he podido guardar el menú; reinténtalo o míralo en la app",
+  "ejemplo_malo": "Error 500 al escribir en household_state",
+  "fuentes": [
+    {
+      "url": "https://www.nngroup.com/articles/ten-usability-heuristics/",
+      "marca": "F"
+    },
+    {
+      "url": "https://pair.withgoogle.com/chapter/errors-failing/",
+      "marca": "F"
+    }
+  ]
+}

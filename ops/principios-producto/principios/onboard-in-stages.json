@@ -1,0 +1,19 @@
+{
+  "id": "onboard-in-stages",
+  "nombre": "Presentarse por etapas",
+  "area": "onboarding",
+  "sujeto": "product",
+  "fuerza": "debe",
+  "condicion": "cuando se presentan las funciones a una persona nueva",
+  "exigencia": "hacerlo por etapas cortas, cuando cada función es relevante y con acciones reversibles de poco riesgo",
+  "control": "juicio",
+  "porque": "Una lista larga al principio no se retiene.",
+  "ejemplo_bueno": "El primer día, el menú; unos días después, la lista de la compra; luego la despensa",
+  "ejemplo_malo": "El primer mensaje enumera todas las funciones de Lola de golpe",
+  "fuentes": [
+    {
+      "url": "https://pair.withgoogle.com/chapter/mental-models/",
+      "marca": "F"
+    }
+  ]
+}

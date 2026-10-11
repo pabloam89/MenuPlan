@@ -1,0 +1,71 @@
+{
+  "$comentario": "Principios de producto con fuente (#606): lo que hacen bien los mejores productos y chatbots, para decidir, recomendar y diseñar con una base escrita. Un fichero por principio en principios/ (#505), cada uno con la plantilla de regla de scripts/lib/regla.mjs y la guía de ops/redaccion.json, más area, porque, ejemplo bueno y malo, y fuentes ({ url, marca }: F la fuente lo dice, I es inferencia nuestra). El control es un fichero que existe y de verdad vigila lo que dice, o juicio. Los ids y los valores, en inglés (decisión de Pablo del 11 oct 2026, ops/DECISIONES.md); los textos, en castellano. Lo lee scripts/lib/principiosProducto.mjs, lo vigila ops/principios-producto.test.js y de él sale docs/producto/PRINCIPIOS.md (npm run principios -- --escribir). Un principio nuevo es un fichero nuevo en principios/ con su fuente; la skill principios-de-producto dice cómo. Repo público: nada de cómo se salta un control.",
+  "version": 1,
+  "artefactos": [
+    "principio"
+  ],
+  "areas": {
+    "trust-safety": {
+      "legible": "confianza y seguridad",
+      "que": "Que el producto no se pueda usar contra la familia ni contra el negocio"
+    },
+    "privacy": {
+      "legible": "privacidad",
+      "que": "Qué datos se piden, para qué, cuánto se guardan y a quién se enseñan"
+    },
+    "conversational-ai": {
+      "legible": "IA conversacional",
+      "que": "Cómo habla, decide y se equivoca un bot como Lola"
+    },
+    "onboarding": {
+      "legible": "primeros pasos",
+      "que": "Cómo entra alguien nuevo y cuándo ve el valor"
+    },
+    "cost-reliability": {
+      "legible": "coste y fiabilidad",
+      "que": "Cuánto cuesta cada uso, qué pasa cuando algo falla y cómo se sabe"
+    },
+    "ux-clarity": {
+      "legible": "claridad de uso",
+      "que": "Que se entienda qué pasa y cómo seguir"
+    },
+    "accessibility": {
+      "legible": "accesibilidad",
+      "que": "Que lo pueda usar cualquier persona, con cualquier ayuda"
+    },
+    "scope": {
+      "legible": "alcance",
+      "que": "Qué merece hacerse, cuánto y por qué canal"
+    }
+  },
+  "sujetos": {
+    "product": {
+      "legible": "el producto",
+      "aplica_a": [
+        "principio"
+      ]
+    },
+    "bot": {
+      "legible": "el bot",
+      "aplica_a": [
+        "principio"
+      ]
+    },
+    "database": {
+      "legible": "la base de datos",
+      "aplica_a": [
+        "principio"
+      ]
+    },
+    "decision": {
+      "legible": "toda decisión de producto",
+      "aplica_a": [
+        "principio"
+      ]
+    }
+  },
+  "principios": {
+    "$partida": "lista",
+    "clave": "id"
+  }
+}

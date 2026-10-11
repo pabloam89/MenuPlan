@@ -1,0 +1,20 @@
+{
+  "id": "abuse-of-business-flows-limited",
+  "nombre": "Flujos de negocio limitados",
+  "area": "trust-safety",
+  "sujeto": "product",
+  "fuerza": "debe",
+  "condicion": "cuando una función puede dañar al negocio si se usa en masa (crear cuentas, comentar, pedir menús)",
+  "exigencia": "limitarla por persona o por origen",
+  "control": "juicio",
+  "nota": "Los públicos de ops/api-sin-credencial.json declaran su protección, por ejemplo un límite por IP; no hay un test que exija un límite en cada endpoint de escritura.",
+  "porque": "El spam y el abuso automatizado son el riesgo típico de un flujo abierto, y cuestan dinero o reputación.",
+  "ejemplo_bueno": "Los reportes y los comentarios tienen un máximo por hora y por persona o por IP",
+  "ejemplo_malo": "Un script puede crear cientos de reportes por minuto sin que nada lo frene",
+  "fuentes": [
+    {
+      "url": "https://api-security.owasp.org/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows",
+      "marca": "F"
+    }
+  ]
+}

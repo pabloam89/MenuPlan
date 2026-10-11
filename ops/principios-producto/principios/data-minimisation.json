@@ -1,0 +1,24 @@
+{
+  "id": "data-minimisation",
+  "nombre": "Minimización de datos",
+  "area": "privacy",
+  "sujeto": "product",
+  "fuerza": "debe",
+  "condicion": "cuando se pide o se guarda un dato personal",
+  "exigencia": "limitarlo a lo necesario para un fin concreto",
+  "control": "juicio",
+  "nota": "La regla de CLAUDE.md «ningún campo sin lector» cubre la mitad, el dato que nadie usa; que un dato sea necesario para su fin es juicio.",
+  "porque": "Lo que no se guarda no se filtra ni se puede usar mal.",
+  "ejemplo_bueno": "De una alergia se guarda el alérgeno, no el diagnóstico ni un texto libre",
+  "ejemplo_malo": "El formulario de la casa pide fecha de nacimiento completa solo para saber si es menor de edad",
+  "fuentes": [
+    {
+      "url": "https://gdpr-info.eu/art-5-gdpr/",
+      "marca": "F"
+    },
+    {
+      "url": "https://gdpr-info.eu/art-25-gdpr/",
+      "marca": "F"
+    }
+  ]
+}

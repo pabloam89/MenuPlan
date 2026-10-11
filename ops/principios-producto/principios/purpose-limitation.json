@@ -1,0 +1,19 @@
+{
+  "id": "purpose-limitation",
+  "nombre": "Limitación de la finalidad",
+  "area": "privacy",
+  "sujeto": "product",
+  "fuerza": "no_debe",
+  "condicion": "cuando un dato se recogió para un fin",
+  "exigencia": "usarlo para otro fin incompatible",
+  "control": "juicio",
+  "porque": "Es la base de la confianza: la familia dio el dato para algo y espera que sea solo para eso.",
+  "ejemplo_bueno": "Las alergias se usan para filtrar menús y nada más",
+  "ejemplo_malo": "Las alergias de una familia entran en un análisis de mercado o en el prompt de moderación",
+  "fuentes": [
+    {
+      "url": "https://gdpr-info.eu/art-5-gdpr/",
+      "marca": "F"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "bounded-loops-and-timeouts",
+  "nombre": "Bucles y tiempos acotados",
+  "area": "cost-reliability",
+  "sujeto": "bot",
+  "fuerza": "debe",
+  "condicion": "cuando encadena pasos o herramientas en un turno",
+  "exigencia": "limitar las vueltas, el tiempo y el tamaño de la entrada",
+  "control": "juicio",
+  "nota": "El turno tiene un máximo de vueltas (MAX_VUELTAS en api/_bot/turnos.js) y un tiempo máximo en Vercel; ningún test los nombra.",
+  "porque": "Los errores se acumulan en cada vuelta y el coste no tiene techo.",
+  "ejemplo_bueno": "Lola corta a las pocas llamadas a herramientas y contesta con lo que ya tiene",
+  "ejemplo_malo": "Un turno puede encadenar llamadas sin fin si el modelo no se decide",
+  "fuentes": [
+    {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "marca": "F"
+    },
+    {
+      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
+      "marca": "F"
+    }
+  ]
+}

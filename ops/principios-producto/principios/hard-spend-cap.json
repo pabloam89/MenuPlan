@@ -1,0 +1,24 @@
+{
+  "id": "hard-spend-cap",
+  "nombre": "Límite de gasto en IA",
+  "area": "cost-reliability",
+  "sujeto": "product",
+  "fuerza": "debe",
+  "condicion": "cuando un endpoint de api/ llama a un modelo de pago",
+  "exigencia": "pasar por un límite diario global que corte antes de gastar y falle cerrado si no puede contar",
+  "control": "api/_guard.test.js",
+  "nota": "El test recorre api/ y exige que cada fichero con IA pase por el límite diario, por uno propio o figure en las excepciones. El gasto del bot por familia no lo cubre este test.",
+  "porque": "El abuso puede disparar la factura (denial of wallet) sin que nadie haya entrado en el sistema.",
+  "ejemplo_bueno": "Generar un menú sin sesión corta en un límite diario global y falla cerrado si Redis cae",
+  "ejemplo_malo": "Un endpoint llama al modelo sin contar y una noche de peticiones vacía el crédito",
+  "fuentes": [
+    {
+      "url": "https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption",
+      "marca": "F"
+    },
+    {
+      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
+      "marca": "F"
+    }
+  ]
+}

@@ -23,6 +23,7 @@ docs/ops/REDACCION.md merge=generado
 docs/ops/NORMAS.md merge=generado
 docs/ops/ESTANDARES.md merge=generado
 docs/ops/ENCARGO.md merge=generado
+docs/producto/PRINCIPIOS.md merge=generado
 ops/forja-capas.json merge=json-claves
 ops/forja-campos.json merge=json-claves
 ops/forja-excepciones.json merge=json-claves

@@ -1,0 +1,19 @@
+{
+  "id": "buttons-and-free-text",
+  "nombre": "Botones y texto libre",
+  "area": "conversational-ai",
+  "sujeto": "bot",
+  "fuerza": "debe",
+  "condicion": "cuando las opciones son pocas y conocidas",
+  "exigencia": "ofrecer botones además del texto libre",
+  "control": "juicio",
+  "porque": "Los usuarios piden opciones ya preparadas y escriben menos.",
+  "ejemplo_bueno": "Para elegir el día de la semana, Lola ofrece siete botones y deja escribirlo",
+  "ejemplo_malo": "Lola pide que se escriba el día exacto y no entiende abreviaturas",
+  "fuentes": [
+    {
+      "url": "https://www.nngroup.com/articles/chatbots/",
+      "marca": "F"
+    }
+  ]
+}

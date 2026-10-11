@@ -1,0 +1,20 @@
+{
+  "id": "wcag-pour",
+  "nombre": "Accesible para todos",
+  "area": "accessibility",
+  "sujeto": "product",
+  "fuerza": "debe",
+  "condicion": "cuando se diseña una pantalla",
+  "exigencia": "poner texto alternativo a las imágenes, poder usar todo con teclado y cuidar el contraste del texto",
+  "control": "juicio",
+  "nota": "WCAG organiza esto en perceptible, operable, comprensible y robusto. El criterio fino de la interfaz está en DESIGN_SYSTEM.md.",
+  "porque": "WCAG es el estándar de accesibilidad y llega a más gente, incluida la que usa lector de pantalla.",
+  "ejemplo_bueno": "Toda imagen de plato tiene su texto alternativo y los botones se alcanzan con el teclado",
+  "ejemplo_malo": "Un menú solo se puede abrir con el ratón y la foto del plato no tiene descripción",
+  "fuentes": [
+    {
+      "url": "https://www.w3.org/WAI/standards-guidelines/wcag/glance/",
+      "marca": "F"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "least-privilege-for-the-model",
+  "nombre": "Mínimo privilegio para el modelo",
+  "area": "trust-safety",
+  "sujeto": "bot",
+  "fuerza": "debe",
+  "condicion": "cuando el modelo puede ejecutar herramientas",
+  "exigencia": "darle solo las herramientas y los permisos mínimos, y dejar que la base, no el prompt, decida qué está autorizado",
+  "control": "juicio",
+  "porque": "Una alucinación o una inyección convierten cualquier permiso de más en daño real.",
+  "ejemplo_bueno": "Lola lee y escribe solo con la identidad de la familia que habla y es la base quien niega lo ajeno",
+  "ejemplo_malo": "Lola usa una clave de administrador y confía en que el prompt le diga que no toque otras casas",
+  "fuentes": [
+    {
+      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "marca": "F"
+    },
+    {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "marca": "F"
+    }
+  ]
+}
