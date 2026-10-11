@@ -38,6 +38,13 @@
       "evidencia": "#551 (fondo #504): 18 líneas en conflicto en 9 ficheros a 0"
     },
     {
+      "id": "derivados-registrados",
+      "tests": ["ops/derivados.test.js"],
+      "mira": ["**/*.md", ".github/ISSUE_TEMPLATE/*.yml", "src/design/tokens.css", "src/components/icons.jsx", "src/lib/ingredientImageIds.js", "src/data/model.js", "scripts/lib/generados.mjs", "scripts/lib/derivados.mjs"],
+      "porque": "Todo fichero del repo con cabecera de generado o con bloques generados, y todo dato derivado de TABLAS, está en el inventario de derivados (DERIVADOS de scripts/lib/generados.mjs) con su fuente, su script y su test, o con el motivo de que no tiene: uno nuevo sin registrar se queda sin dueño y nadie sabe de qué sale ni cómo se regenera.",
+      "evidencia": "#584 (norma C3, un dato un sitio): 37 derivados en 6 clases, 14 sin test propio, todos con motivo"
+    },
+    {
       "id": "tests-de-tiempo",
       "tests": ["ops/testsDeTiempo.test.js"],
       "mira": ["**/*.test.{js,mjs,jsx}", "scripts/lib/medirTiempo.mjs"],
@@ -58,6 +65,13 @@
       "mira": ["api/_bot/**/*.{js,mjs,cjs,jsx}", "api/bot/**/*.{js,mjs,cjs,jsx}"],
       "porque": "Lo mismo para el código del bot: un catch nuevo que no avisa.",
       "evidencia": "#177"
+    },
+    {
+      "id": "api-sin-credencial",
+      "tests": ["api/sinCredencial.test.js"],
+      "mira": ["api/**/*.{js,mjs,cjs,ts}", "ops/api-sin-credencial.json"],
+      "porque": "Todo endpoint de api/ rechaza con 401 o 403 una petición sin credencial, salvo la lista de públicos con su motivo; un endpoint nuevo que no rechaza falla aquí.",
+      "evidencia": "#582"
     },
     {
       "id": "dueno-de-lo-que-ejecuta-un-hook",
@@ -163,9 +177,9 @@
     },
     {
       "id": "migraciones-sql",
-      "tests": ["supabase/anonPorDefecto.test.js", "supabase/cascadaPersona.test.js", "supabase/errores.test.js", "supabase/idsPersonaGrupo.test.js", "supabase/migrations.test.js", "supabase/principios.test.js", "supabase/rolLectura.test.js", "src/lib/registroTareas.test.js", "src/lib/vocabularios.test.js", "api/_bot/fichaExtras.test.js", "scripts/lib/migraciones.test.js", "supabase/fichaSobre.test.js"],
-      "mira": ["supabase/migrations/*.sql"],
-      "porque": "Leen todas las migraciones: numeración contigua, principios de tablas, anon por defecto, errores, vocabularios y cascada de personas. Una migración nueva se mide contra todas."
+      "tests": ["supabase/anonPorDefecto.test.js", "supabase/cascadaPersona.test.js", "supabase/errores.test.js", "supabase/idsPersonaGrupo.test.js", "supabase/migrations.test.js", "supabase/principios.test.js", "supabase/rolLectura.test.js", "src/lib/registroTareas.test.js", "src/lib/vocabularios.test.js", "api/_bot/fichaExtras.test.js", "scripts/lib/migraciones.test.js", "supabase/fichaSobre.test.js", "supabase/columnasTexto.test.js"],
+      "mira": ["supabase/migrations/*.sql", "ops/columnas-texto.json"],
+      "porque": "Leen todas las migraciones: numeración contigua, principios de tablas, anon por defecto, errores, vocabularios, cascada de personas y la clase de cada columna de texto (ops/columnas-texto.json). Una migración nueva se mide contra todas."
     },
     {
       "id": "catalogo-de-recetas",
