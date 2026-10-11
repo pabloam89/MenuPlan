@@ -83,6 +83,8 @@ const TABLA = [
   ["catalogos-partidos", "ops/glosario/terminos/x.json", "ops/catalogos.test.js"],
   ["generados-sin-choque", "docs/ops/NUEVO.md", "ops/generados.test.js"],
   ["generados-sin-choque", ".gitattributes", "ops/generados.test.js"],
+  ["derivados-registrados", "src/design/tokens.css", "ops/derivados.test.js"],
+  ["derivados-registrados", "scripts/lib/derivados.mjs", "ops/derivados.test.js"],
   ["forja", "ops/forja/criterios/x.json", "ops/forja.test.js"],
   ["forja", "ops/forja/tipos_skill/x.json", "scripts/higiene-skills.test.js"],
   ["forja", "ops/forja/campos_ficha/x.json", "ops/forja-forma.test.js"],
