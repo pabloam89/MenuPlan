@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { EVENTOS, TOPE_BYTES, dirFabrica, lineaDeEvento, registrarEvento } from "./eventos.mjs";
+import { ACTOR_APP, EVENTOS, FUENTES, TOPE_BYTES, actorDe, dirFabrica, lineaDeEvento, registrarEvento } from "./eventos.mjs";
 import { TOPE_AVISO_MS, TOPE_PARA_REGISTRAR_MS, hayTiempoParaRegistrar } from "./guardia.mjs";
 import { agenteLanzado } from "./skill-abierta.mjs";
 import { maquinaSaturada, medianaMs, testigoMs, topeConTestigo } from "../../scripts/lib/medirTiempo.mjs";
@@ -31,9 +31,35 @@ const AHORA = new Date("2026-10-10T08:00:00Z");
 const SESION = "sesion-de-prueba-1";
 
 describe("la línea de un evento", () => {
-  it("lleva ts, sesion, rama, issue, evento y nombre, y nada más", () => {
-    const l = lineaDeEvento({ evento: "skill_cargada", nombre: "github", sesion: SESION, rama: "ops/340-observabilidad-fabrica" }, AHORA);
-    expect(l).toEqual({ ts: "2026-10-10T08:00:00.000Z", sesion: SESION, rama: "ops/340-observabilidad-fabrica", issue: 340, evento: "skill_cargada", nombre: "github" });
+  it("lleva id, ts, sesion, fuente, actor, rama, issue, evento y nombre, y nada más", () => {
+    const l = lineaDeEvento({ evento: "skill_cargada", nombre: "github", sesion: SESION, rama: "ops/340-observabilidad-fabrica", fuente: "skill-abierta", actor: ACTOR_APP }, AHORA, "id-fijo");
+    expect(l).toEqual({ id: "id-fijo", ts: "2026-10-10T08:00:00.000Z", sesion: SESION, fuente: "skill-abierta", actor: ACTOR_APP, rama: "ops/340-observabilidad-fabrica", issue: 340, evento: "skill_cargada", nombre: "github" });
+  });
+
+  it("el id no se repite entre eventos iguales", () => {
+    const d = { evento: "skill_cargada", nombre: "github" };
+    const ids = new Set(Array.from({ length: 50 }, () => lineaDeEvento(d, AHORA).id));
+    expect(ids.size).toBe(50);
+  });
+
+  it("una fuente fuera de FUENTES o un actor que no es la App se anotan como null", () => {
+    const l = lineaDeEvento({ evento: "skill_cargada", nombre: "x", fuente: "otra-cosa", actor: "Pablo Artiñano" }, AHORA);
+    expect([l.fuente, l.actor]).toEqual([null, null]);
+  });
+
+  it("las fuentes son los tres hooks que escriben", () => expect(FUENTES).toEqual(["guardia", "skill-abierta", "pendientes"]));
+
+  it("cada hook que anota un evento pasa su propia fuente (si no, la línea sale con fuente null)", () => {
+    for (const fuente of FUENTES) {
+      const codigo = readFileSync(join(import.meta.dirname, `${fuente === "skill-abierta" ? "skill-abierta" : fuente}.mjs`), "utf8");
+      expect(codigo, fuente).toContain(`fuente: "${fuente}"`);
+    }
+  });
+
+  it("el actor es la App solo si el autor de git de la sesión lo es", () => {
+    expect(actorDe({ GIT_AUTHOR_NAME: ACTOR_APP })).toBe(ACTOR_APP);
+    expect(actorDe({ GIT_AUTHOR_NAME: "Pablo Artiñano" })).toBeNull();
+    expect(actorDe({})).toBeNull();
   });
 
   it("el issue sale de la rama con la regla de lleva.mjs: sin número o con cero delante (una migración), nulo", () => {
@@ -67,7 +93,7 @@ describe("registrarEvento escribe una línea JSON por evento", () => {
     expect(registrarEvento({ evento: "bloqueo_guardia", nombre: "push-a-main", sesion: SESION, rama: "ops/340-x" }, { dir, ahora: AHORA })).toBe(true);
     const lineas = readFileSync(join(dir, "eventos.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
     expect(lineas.map((l) => [l.evento, l.nombre, l.issue])).toEqual([["skill_cargada", "github", 340], ["bloqueo_guardia", "push-a-main", 340]]);
-    expect(Object.keys(lineas[0])).toEqual(["ts", "sesion", "rama", "issue", "evento", "nombre"]);
+    expect(Object.keys(lineas[0])).toEqual(["id", "ts", "sesion", "fuente", "actor", "rama", "issue", "evento", "nombre"]);
   });
 
   it("sin rama, la saca de la carpeta (git) y el issue de esa rama", () => {
@@ -287,8 +313,8 @@ describe("agente lanzado (necesita «Agent» en el matcher de settings.json: pro
 
 describe("el aviso y la norma de cada bloqueo de la guardia (#494)", () => {
   it("la línea de un bloqueo lleva el código de su norma, y una que no lo lleva no inventa el campo", () => {
-    const con = lineaDeEvento({ evento: "bloqueo_guardia", nombre: "push-a-main", codigo: "main-solo-pablo", sesion: SESION, rama: "ops/340-x" }, AHORA);
-    expect(con).toEqual({ ts: "2026-10-10T08:00:00.000Z", sesion: SESION, rama: "ops/340-x", issue: 340, evento: "bloqueo_guardia", nombre: "push-a-main", codigo: "main-solo-pablo" });
+    const con = lineaDeEvento({ evento: "bloqueo_guardia", nombre: "push-a-main", codigo: "main-solo-pablo", sesion: SESION, rama: "ops/340-x", fuente: "guardia" }, AHORA, "id-fijo");
+    expect(con).toEqual({ id: "id-fijo", ts: "2026-10-10T08:00:00.000Z", sesion: SESION, fuente: "guardia", actor: null, rama: "ops/340-x", issue: 340, evento: "bloqueo_guardia", nombre: "push-a-main", codigo: "main-solo-pablo" });
     expect("codigo" in lineaDeEvento({ evento: "skill_cargada", nombre: "github" }, AHORA)).toBe(false);
   });
 

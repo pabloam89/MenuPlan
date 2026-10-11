@@ -58,6 +58,7 @@ async function registrar(entrada, skill) {
     registrarEvento({
       evento: skill ? "skill_cargada" : "agente_lanzado",
       nombre: skill ?? agente,
+      fuente: "skill-abierta",
       sesion: entrada.session_id,
       cwd: entrada.cwd || process.cwd(),
     });
