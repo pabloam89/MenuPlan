@@ -150,9 +150,9 @@ guardia futura: el token solo debe capturarse con `$(…)`, y no imprimirse.
 - **`staging` no es una frontera de seguridad.** Con Contents y PR en escritura el
   bot puede fusionar en `staging` (con `tests` en verde) scripts que los crons
   ejecutan con secretos (`OPS_DB_URL`, `ANTHROPIC_API_KEY`, `VERCEL_TOKEN`,
-  `MERCADONA_DEPLOY_KEY`). E4 (#330) solo pondrá revisión de dueño de código en
-  `.claude/**` y `.github/**`, **no en `scripts/`**. Hasta entonces, lo único que lo
-  frena es que Pablo lea el PR; hay que decidir si `scripts/` entra en E4.
+  `MERCADONA_DEPLOY_KEY`). Desde #608 no hay revisión de dueño de código ni aprobación humana en ningún PR a
+  `staging`: lo que lo frena es el juez `revisor` (de proceso, GitHub no lo hace cumplir)
+  y `tests`. Un check «Juez:» en el PR queda como encargo (#612), no construido.
 - **Si se filtra el `.pem` o el token (revocación completa), en este orden:**
   1. App → **Private keys** → **Delete** **todas** las claves que pudieran estar
      expuestas (tras una rotación conviven dos): no basta borrar «la filtrada».

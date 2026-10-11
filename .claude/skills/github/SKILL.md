@@ -26,7 +26,7 @@ metadata:
     ni por push, tampoco Pablo. Solo se lo saltan las deploy keys, y la única
     es la del cron de Mercadona, cuyo secreto vive en el environment
     `mercadona-sync` (solo rama staging). Decidido y activo (id 24770007; día en «Fechas» de Fuentes y comprobación),
-    sin exigir la rama al día. Dueño de código (#330): `.claude/skills/github/referencias/duenos-de-codigo.md`.
+    sin exigir la rama al día. Sin aprobación humana ni dueño de código (#608): `.claude/skills/github/referencias/duenos-de-codigo.md`.
 - **Workflows** (`.github/workflows/`):
 
 | Workflow | Cuándo | Qué hace |

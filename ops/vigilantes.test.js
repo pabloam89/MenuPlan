@@ -59,7 +59,7 @@ describe("ningún test que enumera ficheros del repo queda fuera de la lista", (
 
   it("la búsqueda encuentra tests (no una lista vacía que pase en vacío)", () => {
     expect(enumeradores.length).toBeGreaterThan(40);
-    for (const t of ["scripts/sinErroresTragados.test.js", "scripts/rulesets.test.js", ".claude/rutas.test.js", "ops/fuentes.test.js"]) expect(enumeradores.map((e) => e.test)).toContain(t);
+    for (const t of ["scripts/sinErroresTragados.test.js", ".claude/rutas.test.js", "ops/fuentes.test.js"]) expect(enumeradores.map((e) => e.test)).toContain(t);
   });
 
   it("todo test detectado es vigilante o excepción con motivo", () => {
@@ -101,8 +101,6 @@ const TABLA = [
   ["errores-tragados-bot", "api/bot/x.js", "api/_bot/sinErroresTragados.test.js"],
   ["api-sin-credencial", "api/x.js", "api/sinCredencial.test.js"],
   ["api-sin-credencial", "ops/api-sin-credencial.json", "api/sinCredencial.test.js"],
-  ["dueno-de-lo-que-ejecuta-un-hook", ".claude/hooks/x.mjs", "scripts/rulesets.test.js"],
-  ["dueno-de-lo-que-ejecuta-un-hook", ".github/CODEOWNERS", "scripts/rulesets.test.js"],
   ["scripts-sin-caminos-sueltos", "scripts/lib/x.mjs", "scripts/lib/env.test.js"],
   ["cuota-de-gh", "scripts/lib/x.mjs", "scripts/cuotaGh.test.js"],
   ["cuota-de-gh", "docs/ops/x.md", "scripts/cuotaGh.test.js"],
@@ -166,10 +164,11 @@ describe("`npm run vecinos` elige el vigilante de cada caso que cayó en el CI (
     expect(testsDe([M(".claude/hooks/buscar-antes.mjs")])).toContain("scripts/sinErroresTragados.test.js");
   });
 
-  it("3 · texto nuevo en una skill, un script que ejecuta un hook y un catch: planos, rulesets y sinErroresTragados", () => {
+  it("3 · texto nuevo en una skill y un catch: planos y sinErroresTragados", () => {
+    // #608: sin revisión de dueño de código ya no hay vigilante de «dueño de lo que ejecuta un hook»
+    // (rulesets.test.js dejó de recorrer los scripts); se quita esa expectativa a propósito, no por flojera.
     expect(testsDe([M(".claude/skills/github/SKILL.md")])).toContain("ops/planos.test.js");
     const script = testsDe([A("scripts/lib/cuotaGh.mjs")]);
-    expect(script).toContain("scripts/rulesets.test.js");
     expect(script).toContain("scripts/sinErroresTragados.test.js");
   });
 
