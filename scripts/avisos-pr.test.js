@@ -8,10 +8,15 @@ import { ErrorDeApi } from "./lib/ghApi.mjs";
 import { medianaMs, topeMs } from "./lib/medirTiempo.mjs";
 import {
   MOTIVOS_SIN_COMPROBAR, REGLAS, RESULTADOS, UMBRALES_TAMANO,
-  avisosDelPr, esGenerado, evaluarC1, evaluarC12, evaluarC8, excepcionAprendizaje, excepcionTamano, excepcionTests,
+  avisosDelPr, esGenerado, evaluarC1, evaluarC12, evaluarC8, excepcionAprendizaje, excepcionTamano, excepcionTests, excepcionesDelPr,
   leerDiff, lineaContable,
 } from "./lib/avisosPr.mjs";
-import { fondosCerrados } from "./avisos-pr.mjs";
+import { fondosCerrados, leerNormas } from "./avisos-pr.mjs";
+import { RETIRADA_FORMAS_ANTIGUAS } from "./lib/excepciones.mjs";
+
+/** Un día fijo dentro de la transición de las formas antiguas: los tests no dependen del reloj. */
+const HOY = "2026-10-12";
+const normas = leerNormas();
 
 /** Un fichero del diff `-U0` de mentira. */
 const fichero = (ruta, quitadas = [], anadidas = []) =>
@@ -98,14 +103,26 @@ describe("C8: tests relajados", () => {
     const baja = ficheros(fichero("lint-base.json", ['  "a.js | regla | m": 2,'], ['  "a.js | regla | m": 1,']));
     expect(evaluarC8({ ficheros: baja }).resultado).toBe("ok");
   });
-  it("la línea «Tests relajados: sí — motivo» silencia el aviso y deja el motivo; sin motivo no vale", () => {
+  it("la excepción única «Excepción: tests-no-se-relajan — motivo — hasta …» silencia el aviso y deja el motivo; sin motivo o caducada no vale (#621)", () => {
     const f = ficheros(fichero("a.test.js", ["expect(1)"], []));
-    const r = evaluarC8({ ficheros: f, cuerpo: "Tests relajados: sí — el test duplicaba otro de la misma zona" });
+    const r = evaluarC8({ ficheros: f, hoy: HOY, cuerpo: "Excepción: tests-no-se-relajan — el test duplicaba otro de la misma zona — hasta 2026-10-20" });
     expect(r.resultado).toBe("exempt");
-    expect(r.detalle).toContain("reason=el test duplicaba otro");
-    expect(evaluarC8({ ficheros: f, cuerpo: "Tests relajados: sí — ya" }).resultado).toBe("warning");
-    expect(evaluarC8({ ficheros: f, cuerpo: "<!-- Tests relajados: sí — motivo de la plantilla -->" }).resultado).toBe("warning");
-    expect(excepcionTests("Tests relajados: no")).toBeNull();
+    expect(r.detalle).toContain("reason=el test duplicaba otro de la misma zona until=2026-10-20");
+    expect(evaluarC8({ ficheros: f, hoy: HOY, cuerpo: "Excepción: tests-no-se-relajan — ya — hasta 2026-10-20" }).resultado).toBe("warning");
+    expect(evaluarC8({ ficheros: f, hoy: HOY, cuerpo: "Excepción: tests-no-se-relajan — el test duplicaba otro de la zona — hasta 2026-10-01" }).resultado).toBe("warning");
+    expect(evaluarC8({ ficheros: f, hoy: HOY, cuerpo: "Excepción: pr-acotado — el test duplicaba otro de la zona — hasta 2026-10-20" }).resultado).toBe("warning");
+    expect(evaluarC8({ ficheros: f, hoy: HOY, cuerpo: "<!-- Excepción: tests-no-se-relajan — motivo de la plantilla — hasta 2026-10-20 -->" }).resultado).toBe("warning");
+  });
+  it("la forma antigua «Tests relajados: sí — motivo» vale en la transición y no después", () => {
+    const f = ficheros(fichero("a.test.js", ["expect(1)"], []));
+    const cuerpo = "Tests relajados: sí — el test duplicaba otro de la misma zona";
+    const r = evaluarC8({ ficheros: f, cuerpo, hoy: HOY });
+    expect(r.resultado).toBe("exempt");
+    expect(r.detalle).toContain("reason=el test duplicaba otro de la misma zona form=legacy");
+    expect(evaluarC8({ ficheros: f, cuerpo, hoy: RETIRADA_FORMAS_ANTIGUAS }).resultado).toBe("exempt");
+    expect(evaluarC8({ ficheros: f, cuerpo, hoy: "2026-11-16" }).resultado).toBe("warning");
+    expect(evaluarC8({ ficheros: f, hoy: HOY, cuerpo: "Tests relajados: sí — ya" }).resultado).toBe("warning");
+    expect(excepcionTests("Tests relajados: no", HOY)).toBeNull();
   });
 });
 
@@ -136,13 +153,16 @@ describe("C1: PR demasiado grande", () => {
     expect(r.resultado).toBe("ok");
     expect(r.detalle).toContain("lines=1 files=1 areas=1 generated_skipped=1");
   });
-  it("la línea «Tamaño: grande — motivo» lo silencia y queda el motivo", () => {
+  it("la excepción única de pr-acotado lo silencia y queda el motivo; la forma antigua vale en la transición", () => {
     const f = ficheros(...muchas(UMBRALES_TAMANO.files + 1));
-    const r = evaluarC1({ ficheros: f, cuerpo: "Tamaño: grande — mueve una carpeta entera sin cambiar su contenido" });
+    const r = evaluarC1({ ficheros: f, hoy: HOY, cuerpo: "Excepción: pr-acotado — mueve una carpeta entera sin cambiar su contenido — hasta 2026-10-20" });
     expect(r.resultado).toBe("exempt");
     expect(r.detalle).toContain("reason=mueve una carpeta entera");
-    expect(excepcionTamano("Tamano: grande - un motivo suficiente")).toContain("un motivo");
-    expect(excepcionTamano("Tamaño: pequeño")).toBeNull();
+    const v = evaluarC1({ ficheros: f, hoy: HOY, cuerpo: "Tamaño: grande — mueve una carpeta entera sin cambiar su contenido" });
+    expect(v.resultado).toBe("exempt");
+    expect(evaluarC1({ ficheros: f, hoy: "2026-11-16", cuerpo: "Tamaño: grande — mueve una carpeta entera sin cambiar su contenido" }).resultado).toBe("warning");
+    expect(excepcionTamano("Tamano: grande - un motivo suficiente", HOY)).toContain("un motivo");
+    expect(excepcionTamano("Tamaño: pequeño", HOY)).toBeNull();
   });
 });
 
@@ -162,11 +182,14 @@ describe("C12: fondo cerrado sin aprendizaje", () => {
   it("no avisa si no cierra ningún fondo", () => {
     expect(evaluarC12({ ficheros: sinLeccion, fondosCerrados: [] }).resultado).toBe("ok");
   });
-  it("la línea «Aprendizaje: <dónde>» lo silencia y queda dónde", () => {
-    const r = evaluarC12({ ficheros: sinLeccion, fondosCerrados: [503], cuerpo: "Aprendizaje: skill issues, sección Lo que falló (PR #580)" });
+  it("la excepción única de lecciones-a-un-test lo silencia y queda dónde; la forma antigua vale en la transición", () => {
+    const r = evaluarC12({ ficheros: sinLeccion, fondosCerrados: [503], hoy: HOY, cuerpo: "Excepción: lecciones-a-un-test — skill issues, sección Lo que falló (PR #580) — hasta 2026-10-20" });
     expect(r.resultado).toBe("exempt");
     expect(r.detalle).toContain("reason=skill issues");
-    expect(excepcionAprendizaje("Aprendizaje: x")).toBeNull();
+    const v = evaluarC12({ ficheros: sinLeccion, fondosCerrados: [503], hoy: HOY, cuerpo: "Aprendizaje: skill issues, sección Lo que falló (PR #580)" });
+    expect(v.resultado).toBe("exempt");
+    expect(evaluarC12({ ficheros: sinLeccion, fondosCerrados: [503], hoy: "2026-11-16", cuerpo: "Aprendizaje: skill issues, sección Lo que falló (PR #580)" }).resultado).toBe("warning");
+    expect(excepcionAprendizaje("Aprendizaje: x", HOY)).toBeNull();
   });
   it("si no se pudo mirar la API, sale unchecked y no un aviso", () => {
     expect(evaluarC12({ ficheros: sinLeccion, sinComprobar: "api_error" })).toEqual({ regla: "c12", resultado: "unchecked", detalle: "reason=api_error" });
@@ -180,8 +203,10 @@ describe("los bots y el cuerpo hostil", () => {
   });
   it("un cuerpo de un megabyte no se queda colgado", () => {
     // Suelto tarda unos milisegundos; el tope es topeMs, con el margen de la casa (#499).
-    const ms = medianaMs(() => avisosDelPr({ diff: fichero("a.test.js", ["expect(1)"], []), cuerpo: "Aprendizaje: ".repeat(100_000) + "\n".repeat(50_000) }));
+    const ms = medianaMs(() => avisosDelPr({ diff: fichero("a.test.js", ["expect(1)"], []), hoy: HOY, cuerpo: "Aprendizaje: ".repeat(100_000) + "\n".repeat(50_000) }));
     expect(ms).toBeLessThan(topeMs(10));
+    const ms2 = medianaMs(() => excepcionesDelPr({ cuerpo: "Excepción: pr-acotado — x — hasta ".repeat(40_000) + "\n".repeat(50_000), normas: leerNormas(), hoy: HOY }));
+    expect(ms2).toBeLessThan(topeMs(10));
   });
 });
 
@@ -217,6 +242,29 @@ describe("scripts/avisos-pr.mjs de punta a punta", () => {
     const lineas = r.stdout.split("\n").filter((l) => l.startsWith("avisos-pr:"));
     expect(lineas.map((l) => /regla=(\w+) resultado=(\w+)/.exec(l).slice(1).join(":"))).toEqual(["c8:warning", "c1:ok", "c12:ok"]);
     expect(r.stdout).toMatch(/^::warning title=Aviso C8::/m);
+  });
+  it("deja la línea por norma de cada aviso (#621) y una excepción vigente sale exceptuada", () => {
+    const sin = correr(fichero("a.test.js", ["expect(1)"], []), { PR_BODY: "Closes #", PR_AUTOR: "pablo", HOY });
+    expect(sin.stdout).toContain("norma: tests-no-se-relajan resultado: salta\n");
+    expect(sin.stdout).toContain("norma: pr-acotado resultado: cumple\n");
+    const con = correr(fichero("a.test.js", ["expect(1)"], []), { PR_BODY: "Excepción: tests-no-se-relajan — el test duplicaba otro de la misma zona — hasta 2026-10-20\nExcepción: zona-con-dueno — coordinado con la otra rama a mano — hasta 2026-10-20", PR_AUTOR: "pablo", HOY });
+    expect(con.status).toBe(0);
+    expect(con.stdout).toContain("norma: tests-no-se-relajan resultado: exceptuada\n");
+    expect(con.stdout).toContain("norma: zona-con-dueno resultado: exceptuada\n");
+    expect(con.stdout).not.toMatch(/^::warning title=Aviso C8/m);
+  });
+  it("una excepción caducada avisa y no cuenta; si es de una norma dura que el PR toca, sale 1", () => {
+    const dura = normas.find((n) => n.veredicto === "dura" && n.donde?.length);
+    const caducada = `Excepción: ${dura.id} — motivo bien largo y caducado — hasta 2026-10-01`;
+    const avisa = correr(fichero("a.test.js", ["expect(1)"], []), { PR_BODY: caducada, PR_AUTOR: "pablo", HOY });
+    expect(avisa.status).toBe(0);
+    expect(avisa.stdout).toMatch(/^::warning title=Excepción del PR::.*la caducidad ya ha pasado/m);
+    expect(avisa.stdout).not.toContain(`norma: ${dura.id} resultado: exceptuada`);
+    const falla = correr(fichero(dura.donde[0], ["x"], []), { PR_BODY: caducada, PR_AUTOR: "pablo", HOY });
+    expect(falla.status).toBe(1);
+    expect(falla.stdout).toMatch(/^::error title=Excepción caducada de una norma dura::/m);
+    const bot = correr(fichero(dura.donde[0], ["x"], []), { PR_BODY: caducada, PR_AUTOR: "dependabot[bot]", HOY });
+    expect(bot.status).toBe(0);
   });
   it("sin fichero de diff sale 0 y deja las tres líneas como unchecked", () => {
     const r = spawnSync(process.execPath, ["scripts/avisos-pr.mjs", join(dir, "no-existe.txt")], { encoding: "utf8", env: { PATH: process.env.PATH } });

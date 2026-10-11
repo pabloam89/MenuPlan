@@ -14,6 +14,8 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { AMBITOS } from "./ambitos.mjs";
+import { FORMA, MAX_DIAS, RETIRADA_FORMAS_ANTIGUAS } from "./excepciones.mjs";
+import { MIN_EXCEPTUADAS, RESULTADOS_NORMA } from "./medicionNormas.mjs";
 import { VEREDICTOS } from "./escalas.mjs";
 import { CONTROL_JUICIO, FUERZAS, ID_KEBAB, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 
@@ -329,6 +331,14 @@ export function generarMd(registro, avisos) {
   for (const [id, t] of Object.entries(CONTROL_TIPOS)) L.push(`| ${id} | ${celda(t.que)} | ${normas.filter((n) => n.control_tipo === id).length} |`);
   L.push("", "## Avisos de la guardia", "", "| Aviso | Norma | Qué se niega |", "|---|---|---|");
   for (const [id, a] of Object.entries(avisos)) L.push(`| \`${id}\` | \`${a.codigo}\` | ${celda(a.que)} |`);
+  L.push(
+    "", "## Excepciones, choques y medición (#621)", "",
+    `**Una sola forma de excepción.** En el cuerpo del PR, una línea por excepción: \`${FORMA}\`. Cuenta si la norma existe, el motivo es de verdad y la caducidad no ha pasado ni cae a más de ${MAX_DIAS} días; si no, avisa y no cuenta, y **falla** si la norma es \`dura\` y el PR toca uno de sus ficheros (\`donde\` o \`control\`). Las formas de antes («Tests relajados: sí — …», «Tamaño: grande — …», «Aprendizaje: …») valen hasta el ${RETIRADA_FORMAS_ANTIGUAS}, avisan y están registradas como retiradas en \`ops/vocabularios-vida.json\`. El lector es \`scripts/lib/excepciones.mjs\`.`,
+    "",
+    "**Cuando dos normas chocan** gana la del ámbito de más arriba en la precedencia (seguridad, datos de familias, coste, velocidad; tabla en `docs/PRINCIPIOS.md`, dato en `ops/principios/_catalogo.json`), y quien cede lo deja dicho con una excepción de su norma. `npm run estandar -- <agente> <tarea>` imprime la tabla en el brief.",
+    "",
+    `**Cada control que salta deja su línea** \`norma: <id> resultado: ${RESULTADOS_NORMA.join("|")}\` (los avisos del CI y «Fondos del PR» en el log del run; la guardia, en el registro local de eventos con el \`codigo\` de su norma). \`npm run normas -- --medir\` las cuenta por norma y dice cuáles nunca saltan, cuáles no han dejado dato y cuáles se exceptúan siempre (desde ${MIN_EXCEPTUADAS} veces, sin un solo salto). Registrada en \`ops/metricas.json\`.`,
+  );
   const v = contar("veredicto").map(([k, n]) => `${k} ${n}`).join(", ");
   L.push("", `Total: ${normas.length} normas (${v}) y ${Object.keys(avisos).length} avisos de la guardia.`, "");
   return `${L.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd()}\n`;

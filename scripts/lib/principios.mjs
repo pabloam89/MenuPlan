@@ -145,7 +145,7 @@ export function componerLista(propio, { producto = null, redaccion = null } = {}
     p.origen = [...p.origen, ...(a.origen ?? [])];
     p.puente = a.puente ?? null;
   }
-  return { delegados, anexos: propio.anexos ?? {}, sin_norma: propio.principios_sin_norma ?? {}, principios: fuera };
+  return { delegados, anexos: propio.anexos ?? {}, sin_norma: propio.principios_sin_norma ?? {}, precedencia: propio.precedencia ?? null, principios: fuera };
 }
 
 /** La lista entera del repo: el catálogo propio más los delegados, cada uno leído con su lector de siempre. */
@@ -460,6 +460,13 @@ export function generarMd(datos) {
   for (const f of filas) L.push(`| ${AMBITOS[f.area].legible} (\`${f.area}\`) | ${f.total} | ${f.delegados} | ${f.sinNorma} |`);
   const suma = (k) => filas.reduce((s, f) => s + f[k], 0);
   L.push(`| **Total** | **${suma("total")}** | **${suma("delegados")}** | **${suma("sinNorma")}** |`);
+  if (datos.precedencia) {
+    // La precedencia entre áreas (#621): el dato vive en `precedencia` de ops/principios/_catalogo.json; su lector, scripts/lib/precedencia.mjs.
+    const pr = datos.precedencia;
+    L.push("", "## Precedencia entre áreas", "", "Si dos normas piden cosas incompatibles, gana la del área de arriba (seguridad, datos de familias, coste, velocidad). Cada norma hereda el puesto del ámbito que lleva. El dato vive en `precedencia` de `ops/principios/_catalogo.json` y se imprime en el brief con `npm run estandar`.", "", "| Puesto | Área | Defiende |", "|---|---|---|");
+    pr.orden.forEach((x, i) => L.push(`| ${i + 1} | ${AMBITOS[x.area].legible} (\`${x.area}\`) | \`${x.concepto}\`: ${pr.conceptos[x.concepto]} |`));
+    L.push("", `**Si chocan.** ${pr.choque.regla}`, "", `Constancia, en el cuerpo del PR: \`${pr.choque.constancia}\``);
+  }
   for (const area of areasUsadas(datos)) {
     const a = AMBITOS[area];
     L.push("", `## ${a.legible.charAt(0).toUpperCase()}${a.legible.slice(1)} (\`${area}\`)`, "", `${a.que}.`);

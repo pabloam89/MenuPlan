@@ -135,10 +135,14 @@ jobs:
       # sesiones): C8 tests relajados (aserciones quitadas, .skip/.only/.todo, un umbral que sube),
       # C1 PR demasiado grande (líneas, ficheros o áreas, sin contar lo generado) y C12 un PR que
       # cierra un fondo sin tocar un test, la guardia ni una skill. Cada uno deja una línea
-      # `avisos-pr: regla=… resultado=ok|warning|exempt|unchecked detalle=…` que se cuenta con
-      # `gh run view <run> --log | grep "avisos-pr:"`. La excepción se declara en el cuerpo del PR:
-      # «Tests relajados: sí — <motivo>», «Tamaño: grande — <motivo>» y «Aprendizaje: <dónde>».
-      # De aviso a fallo: cuando una regla lleve 30 PR seguidos con menos del 10 % de avisos
+      # `avisos-pr: regla=… resultado=ok|warning|exempt|unchecked detalle=…` y otra por norma
+      # (`norma: <id> resultado: cumple|salta|exceptuada`, #621), que se cuentan con
+      # `gh run view <run> --log | grep -E "avisos-pr:|norma:"` y `npm run normas -- --medir --log <fichero>`.
+      # La excepción se declara en el cuerpo del PR con UNA forma (#621):
+      # «Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD» (las de antes, «Tests relajados: sí — …»,
+      # «Tamaño: grande — …» y «Aprendizaje: …», valen con aviso hasta el 2026-11-15). Una excepción
+      # vencida o de una norma que no existe no cuenta; este paso solo FALLA si es de una norma dura que
+      # el PR toca. De aviso a fallo (las tres reglas): cuando una lleve 30 PR seguidos con menos del 10 % de avisos
       # falsos (los que acaban en la línea de excepción por un motivo trivial), su
       # `resultado=warning` pasa a salir con código 1 en scripts/avisos-pr.mjs (detalle en la
       # cabecera de scripts/lib/avisosPr.mjs). Usa el diff del paso anterior; sin npm ci. El

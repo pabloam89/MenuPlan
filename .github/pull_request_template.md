@@ -29,6 +29,16 @@ y el CI lo comprueba). Escribe una de estas dos, a la derecha de «Runbook:»:
 Si este PR arregla un fallo, la lección tiene que haber quedado en un test, en
 la guardia o en la skill: el revisor lo mira. Si no toca ningún dominio, déjala
 como está.
+
+Excepción (solo si incumples una norma a propósito; una línea por norma, #621):
+  Excepción: <id de norma> — <motivo> — hasta AAAA-MM-DD
+El id es el de ops/normas.json (npm run normas); el motivo, de verdad (10
+caracteres o más); la fecha, dentro de los próximos 90 días. Una excepción
+vencida, con una norma que no existe o mal escrita no cuenta: avisa, y falla si
+la norma es dura y el PR la toca. Los avisos del CI aceptan en su lugar, hasta
+el 2026-11-15, las formas de antes («Tests relajados: sí — …», «Tamaño: grande —
+…», «Aprendizaje: …»): usa la nueva. Si dos normas chocan, gana la de más arriba
+en la precedencia (docs/PRINCIPIOS.md) y la otra se deja como excepción.
 -->
 
 Closes #

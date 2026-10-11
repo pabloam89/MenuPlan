@@ -36,6 +36,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { AMBITOS, ambitosDeFichero } from "./ambitos.mjs";
+import { textoDePrecedencia } from "./precedencia.mjs";
 import { CONTROL_JUICIO, fraseDeRegla, problemasDeRegla, problemasDeSujetos } from "./regla.mjs";
 import { problemasDePractica } from "./forjaForma.mjs";
 import { leerForja } from "./forja.mjs";
@@ -437,7 +438,7 @@ export function lineaDeNorma(n, sujetos, por) {
  * El estándar de una tarea en texto: lo que el brief de /orquestar pega para el agente. `registro`: ops/normas.json
  * leído ({ normas, sujetos }), para sus normas; `ficheros`, los tocados, que suman las normas de su ámbito.
  */
-export function textoDeTarea(nombre, idTarea, datos, registro = null, { ficheros = [] } = {}) {
+export function textoDeTarea(nombre, idTarea, datos, registro = null, { ficheros = [], precedencia = null } = {}) {
   const ag = datos.agentes[nombre];
   if (!ag) return null;
   const t = ag.tareas.find((x) => x.id === idTarea);
@@ -455,6 +456,8 @@ export function textoDeTarea(nombre, idTarea, datos, registro = null, { ficheros
     const cabeza = `Normas que tocan (${ns.length}; por consulta ${(t.ambitos ?? []).join(", ")} × ${accionesDeConsulta(t.accion).join(" y ")}${extra.length ? `, y ${extra.join(", ")} por los ficheros` : ""}; cada una con su frase, su control y su principio):`;
     partes.push(`${cabeza}\n${ns.map((x) => lineaDeNorma(x.norma, registro.sujetos, x.por)).join("\n")}`);
   }
+  // Qué gana si dos normas chocan (#621): el dato es el de ops/principios/_catalogo.json, que lee precedencia.mjs.
+  if (precedencia) partes.push(textoDePrecedencia(precedencia));
   if (t.reglas?.length) partes.push(`Reglas propias de la tarea (cada una con su control y su fuente):\n${t.reglas.map((r) => lineaDeRegla(r, datos)).join("\n")}`);
   for (const c of t.comunes ?? []) {
     const rs = datos.comunes[c].reglas ?? [];

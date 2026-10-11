@@ -8,7 +8,8 @@
  *                                         el estándar de esa tarea (lo que /orquestar pega en el brief): las
  *                                         normas que le tocan (sus ámbitos × su acción, más las del ámbito de
  *                                         cada fichero tocado y las que cita), con su frase, su control y su
- *                                         principio, y sus reglas propias
+ *                                         principio, la precedencia entre áreas (qué gana si dos normas chocan,
+ *                                         #621) y sus reglas propias
  *   npm run estandar -- <agente> <tarea> --diff   lo mismo con los ficheros de la rama frente a origin/staging
  *                                         (los de `skills-encargo --diff`); es lo que /orquestar pega al juez
  *   npm run estandar -- comunes           las tareas comunes a varios agentes
@@ -19,6 +20,7 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ficherosDeLaRama } from "./lib/vecinos.mjs";
+import { leerPrecedencia } from "./lib/precedencia.mjs";
 import { bajarJuicioMaximo, contar, contarJuicio, escribirMd, escribirSecciones, leerEstandares, leerNormasEn, textoDeComun, textoDeTarea } from "./lib/estandaresAgentes.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -58,7 +60,7 @@ if (args.includes("--escribir")) {
   if (!ag) { console.error(`No hay agente «${agente}». Los hay: ${Object.keys(datos.agentes).join(", ")}`); process.exit(1); }
   if (!tarea) { for (const t of ag.tareas) console.log(`${t.id} — ${t.tarea} (acción: ${t.accion})`); }
   else {
-    const txt = textoDeTarea(agente, tarea, datos, registro, { ficheros });
+    const txt = textoDeTarea(agente, tarea, datos, registro, { ficheros, precedencia: leerPrecedencia(RAIZ) });
     if (!txt) { console.error(`${agente} no tiene la tarea «${tarea}». Tiene: ${ag.tareas.map((t) => t.id).join(", ")}`); process.exit(1); }
     console.log(txt);
   }

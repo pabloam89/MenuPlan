@@ -48,6 +48,8 @@ import { CLASES, ESTADOS_TERMINO, plano } from "./glosario.mjs";
 import { GRUPOS, TIPOS_ACCION } from "./issues.mjs";
 import { CAUSAS_EXCEPCION, ROLES_CAMPO, TIPOS_LECTOR, UNIDADES } from "./metricas.mjs";
 import { AMBITOS } from "./ambitos.mjs";
+import { FORMAS as FORMAS_EXCEPCION } from "./excepciones.mjs";
+import { leerPrecedencia } from "./precedencia.mjs";
 import { VEREDICTOS_RUIDO } from "./ruido.mjs";
 import { VOCABULARIOS as PRODUCTO } from "../../src/lib/vocabularios.js";
 
@@ -83,6 +85,10 @@ export const VOCABULARIOS = {
   "ruido.veredicto": { fichero: "scripts/lib/ruido.mjs", textos: conTexto(VEREDICTOS_RUIDO) },
   // El área de un principio y el ámbito de una norma (#619): un solo vocabulario, en scripts/lib/ambitos.mjs.
   ambitos: { fichero: "scripts/lib/ambitos.mjs", textos: () => Object.fromEntries(Object.entries(AMBITOS).map(([k, a]) => [k, a.que])) },
+  // La excepción de un PR a una norma (#621): una sola forma viva; las tres de antes están retiradas (scripts/lib/excepciones.mjs).
+  "pr.excepcion_forma": { fichero: "scripts/lib/excepciones.mjs", textos: conTexto(FORMAS_EXCEPCION) },
+  // Los conceptos de la precedencia entre áreas (#621): el dato vive en ops/principios/_catalogo.json.
+  "precedencia.concepto": { fichero: "scripts/lib/precedencia.mjs", textos: () => ({ ...leerPrecedencia(RAIZ).conceptos }) },
   // El registro de entidades (#566): sus valores van a ops/entidades.json y a ops/entidades-sujetos.json.
   "entidades.axis": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(AXES) },
   "entidades.registry": { fichero: "scripts/lib/entidades.mjs", textos: conTexto(REGISTRIES) },
