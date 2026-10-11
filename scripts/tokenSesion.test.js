@@ -94,6 +94,16 @@ describe("leerClaveDeBoveda", () => {
     expect(e).toBeInstanceOf(ErrorTokenSesion);
     expect(e.motivo).toBe("sin-clave");
   });
+
+  it("el mensaje dice qué bóveda y ficha buscó cada vez y qué contestó la cuenta (no solo el último fallo)", async () => {
+    const leer = async (f) => { throw new Error(f.vault === "HoMenu" ? "\"HoMenu\" isn't a vault in this account." : "\"GitHub App homenu-sesiones\" isn't an item in the \"HoMenu-sesiones\" vault."); };
+    const e = await leerClaveDeBoveda({ leer }).catch((x) => x);
+    expect(e.motivo).toBe("sin-clave");
+    expect(e.message).toContain("HoMenu-sesiones/GitHub App homenu-sesiones");
+    expect(e.message).toContain("isn't an item");
+    expect(e.message).toContain("HoMenu/GitHub App Sesiones");
+    expect(e.message).toContain("isn't a vault");
+  });
 });
 
 describe("lineasDeEntorno", () => {

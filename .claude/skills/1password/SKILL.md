@@ -53,7 +53,9 @@ metadata:
   sigue sirviendo tras cambiar el token.
 - **Agente SSH de 1Password**: activo (alta en «Fechas» de Fuentes y comprobación). Guarda la llave
   `HoMenu - Hetzner Panel` (Ed25519, en `Private`); cada conexión pide
-  aprobar. Sirve a la `ssh` de Windows, no a la de Git for Windows.
+  aprobar **en la ventana de 1Password y con Pablo delante**: si nadie la contesta en
+  unos segundos, la `ssh` falla con «communication with agent failed» (ver «Lo que falló»).
+  Sirve a la `ssh` de Windows, no a la de Git for Windows.
 - **CLI** `op`: `winget install AgileBits.1Password.CLI`.
 
 ## Claves y accesos
@@ -108,6 +110,7 @@ metadata:
 | Crear la clave de las copias (OK; Pablo, `!`) | `node scripts/copias-clave.mjs` (ensayo) y luego `--si`; necesita `age-keygen` (`winget install FiloSottile.age`) | `Ficha «Copias de la base» creada en Panel HoMenu y comprobada (COINCIDEN)` y la pública añadida a `destinatarios.txt`; si la ficha ya existe, se niega |
 | ¿`destinatarios.txt` es la pública de la ficha? (sin leer la privada; **requisito antes de subirlo al servidor**) | `node scripts/copias-clave.mjs --comprobar` | `COINCIDEN`; si sale `NO COINCIDEN`, no se sube: las copias se cifrarían para otra clave |
 | Ver qué llaves sirve el agente SSH | `C:\Windows\System32\OpenSSH\ssh-add.exe -l` | una línea por llave, con su título, p. ej. `HoMenu - Hetzner Panel (ED25519)` |
+| La `ssh` falla con «communication with agent failed» o «Permission denied (publickey)»: ¿por qué? | `grep -a "ssh authorization prompt" "$LOCALAPPDATA"/1Password/logs/1Password_r*.log` (Git Bash; las horas del log son UTC) | una línea `ssh authorization prompt timed out` a la hora del fallo = nadie aprobó la ventana; no es un fallo del agente |
 
 El valor de una clave **nunca va escrito en un comando**: quedaría en la
 conversación. Se pasa por tubería (stdin) entre dos procesos.
@@ -128,6 +131,11 @@ hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesione
   sale el motivo `limite-de-1password`, sin probar otra bóveda, y se usa el token guardado si no caducó; el test ya no
   llama a `op`. Tests en `scripts/tokenSesion.test.js`, vistos fallar. Antes: 1 lectura del `.pem` por sesión; después:
   1 por hora entre todas.
+  Seguimiento (11 oct, #556): `service-account ratelimit` mostró el cupo **de la cuenta** agotado (1000 por hora) con el
+  token de la sesión a 0: lo gastan otras sesiones. Cada llamada a `op inject` deja ya una línea en
+  `~/.menuplan/op-lecturas.jsonl` (`script`, `claves`, `reintento`; sin valores) para sumar por script, y el error de
+  «Too many requests» manda a `npm run op -- service-account ratelimit` para ver cuándo se reinicia. Sin cerrar:
+  quién gasta más (hay que dejar correr el registro) y reutilizar las claves leídas durante la hora.
 - **2026-10-09 · una dirección `op://` daba error con la ficha y el campo bien puestos.**
   Causa: el nombre de la ficha llevaba una tilde; la sintaxis de `op://` solo
   admite letras y cifras sin acento, espacios, `-`, `_` y `.` (lo demás, por id).
@@ -137,6 +145,11 @@ hace la guardia), están en `.claude/skills/1password/referencias/boveda-sesione
   ficha por script.** Causa: Node con `shell: true` concatena los argumentos y
   el espacio del nombre parte la bóveda en dos. Arreglo: pasar el **id** de la
   bóveda, no el nombre (`op vault list` lo da).
+- **2026-10-11 · la `ssh` al servidor falla con «communication with agent failed».**
+  Causa: nadie contestó la ventana de aprobar de 1Password (log: `ssh authorization
+  prompt timed out`); no era el agente ni la llave. Arreglo: avisar a Pablo antes de
+  conectar y esperar su sí, sin reintentar en bucle. Detalle en
+  `.claude/skills/1password/referencias/ssh-sin-aprobar.md`.
 - **2026-10-08 · al conectar por SSH sale una ventana de «Git for Windows» que
   pide algo, y la conexión se queda colgada.** Causa: la `ssh` que trae Git Bash
   no habla con el agente de 1Password (que escucha en la tubería de Windows).
